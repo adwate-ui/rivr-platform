@@ -31,3 +31,13 @@ export async function signInToConsole(page: Page, number: string) {
   // Six digits in, the code goes on by itself (S-01).
   await page.getByRole('textbox', { name: /^Code sent to/ }).fill(SIGN_IN_CODE);
 }
+
+/**
+ * Signs someone in to the console and waits until the code is checked and the console opens, for a flow that goes on by
+ * an address: a navigation while the code is checked cancels the check, and the console opens signed out.
+ */
+export async function signInToConsoleAndWait(page: Page, number: string) {
+  await signInToConsole(page, number);
+  await expect(page.getByRole('textbox', { name: /^Code sent to/ })).toHaveCount(0, { timeout: 15_000 });
+  await expect(page.getByRole('textbox', { name: 'Mobile number' })).toHaveCount(0);
+}

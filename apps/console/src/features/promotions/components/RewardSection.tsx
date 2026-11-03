@@ -2,17 +2,22 @@ import { BONUS_CHIPS_ON } from '@rivr/contracts/promotionModel';
 import { t } from '@rivr/i18n';
 import { ChoiceChips, Grid, Segmented, Stack, Text } from '@rivr/ui';
 import type { ReactNode } from 'react';
-import { BuilderCard, FormInput, type SectionProps } from './BuilderCard.tsx';
+import { BuilderCard, FormInput, offered, type SectionProps } from './BuilderCard.tsx';
 import { REWARD_KINDS } from './builderForm.ts';
 
 /** A choice of two to four with its label shown above it, as the prototype's "Bonus as" and "Given on". */
 function Labelled({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <Stack gap={2}>
+    <Stack gap={2} align="start">
       <Text as="span" variant="label">{label}</Text>
       {children}
     </Stack>
   );
+}
+
+/** The typed fields of a reward, two a row from 768 px. */
+function Fields({ children }: { children: ReactNode }) {
+  return <Grid columns={2} gap={4} stackBelow="medium">{children}</Grid>;
 }
 
 /** A count of bonus chips, in its own field. */
@@ -34,13 +39,15 @@ function BuyInFields({ section }: { section: SectionProps }) {
         <Segmented label={bonusAs} size="small" value={form.buyMode} options={modes}
           onChange={(buyMode) => { if (!isReadOnly) onChange({ ...form, buyMode }); }} />
       </Labelled>
-      {isPercent ? (
-        <FormInput section={section} field="percent" label={t('console.promotions.builder.fields.percent')}
-          suffix={t('console.promotions.builder.fields.percentSuffix')} inputMode="numeric" />
-      ) : <ChipsInput section={section} field="buyChips" label={t('console.promotions.builder.fields.buyChips')} />}
-      {isPercent ? <ChipsInput section={section} field="capChips" label={t('console.promotions.builder.fields.capChips')} /> : null}
-      <FormInput section={section} field="firstN" label={t('console.promotions.builder.fields.firstN')}
-        suffix={t('console.promotions.builder.fields.firstNSuffix')} inputMode="numeric" />
+      <Fields>
+        {isPercent ? (
+          <FormInput section={section} field="percent" label={t('console.promotions.builder.fields.percent')}
+            suffix={t('console.promotions.builder.fields.percentSuffix')} inputMode="numeric" />
+        ) : <ChipsInput section={section} field="buyChips" label={t('console.promotions.builder.fields.buyChips')} />}
+        {isPercent ? <ChipsInput section={section} field="capChips" label={t('console.promotions.builder.fields.capChips')} /> : null}
+        <FormInput section={section} field="firstN" label={t('console.promotions.builder.fields.firstN')}
+          suffix={t('console.promotions.builder.fields.firstNSuffix')} inputMode="numeric" />
+      </Fields>
     </>
   );
 }
@@ -50,7 +57,7 @@ function BonusChipsFields({ section }: { section: SectionProps }) {
   const givenOn = t('console.promotions.builder.fields.givenOn');
   return (
     <>
-      <ChipsInput section={section} field="chips" label={t('console.promotions.builder.fields.chips')} />
+      <Fields><ChipsInput section={section} field="chips" label={t('console.promotions.builder.fields.chips')} /></Fields>
       <Labelled label={givenOn}>
         <Segmented label={givenOn} size="small" value={form.bonusOn}
           options={BONUS_CHIPS_ON.map((on) => ({ value: on, label: t(`console.promotions.builder.fields.bonusOn.${on}`) }))}
@@ -73,30 +80,34 @@ function KindFields({ section }: { section: SectionProps }) {
   switch (section.form.kind) {
     case 'points_multiplier':
       return (
-        <FormInput section={section} field="multiplier" label={t('console.promotions.builder.fields.multiplier')}
-          suffix={t('console.promotions.builder.fields.multiplierSuffix')} inputMode="decimal" />
+        <Fields>
+          <FormInput section={section} field="multiplier" label={t('console.promotions.builder.fields.multiplier')}
+            suffix={t('console.promotions.builder.fields.multiplierSuffix')} inputMode="decimal" />
+        </Fields>
       );
     case 'buyin_bonus':
       return <BuyInFields section={section} />;
     case 'hours_bonus':
-      return <><ChipsInput section={section} field="chips" label={t('console.promotions.builder.fields.chips')} /><AfterInput section={section} /></>;
+      return <Fields><ChipsInput section={section} field="chips" label={t('console.promotions.builder.fields.chips')} /><AfterInput section={section} /></Fields>;
     case 'bonus_chips':
       return <BonusChipsFields section={section} />;
     case 'free_spin':
       return (
-        <>
+        <Fields>
           <FormInput section={section} field="spins" label={t('console.promotions.builder.fields.spins')}
             suffix={t('console.promotions.builder.fields.spinsSuffix')} inputMode="numeric" />
           <AfterInput section={section} />
-        </>
+        </Fields>
       );
     case 'cab_home':
       return (
-        <FormInput section={section} field="fromVisit" label={t('console.promotions.builder.fields.fromVisit')}
-          suffix={t('console.promotions.builder.fields.fromVisitSuffix')} inputMode="numeric" />
+        <Fields>
+          <FormInput section={section} field="fromVisit" label={t('console.promotions.builder.fields.fromVisit')}
+            suffix={t('console.promotions.builder.fields.fromVisitSuffix')} inputMode="numeric" />
+        </Fields>
       );
     case 'tournament_entry':
-      return <FormInput section={section} field="tournament" label={t('console.promotions.builder.fields.tournament')} />;
+      return <Fields><FormInput section={section} field="tournament" label={t('console.promotions.builder.fields.tournament')} /></Fields>;
     default:
       return null;
   }
@@ -104,16 +115,16 @@ function KindFields({ section }: { section: SectionProps }) {
 
 /** 1 · Reward: a card for each kind, then that kind's own fields (the brief: the buy-in bonus has % or Fixed chips). */
 export function RewardSection(section: SectionProps) {
-  const { form, onChange, isReadOnly } = section;
+  const { form, onChange } = section;
   const kinds = REWARD_KINDS.map((kind) => ({
     value: kind, label: t(`console.promotions.builder.rewards.${kind}.label`), description: t(`console.promotions.builder.rewards.${kind}.description`),
   }));
   return (
     <BuilderCard label={t('console.promotions.builder.sections.reward')} isChanged={section.isChanged}>
       <ChoiceChips label={t('console.promotions.builder.rewardKind')} isLabelVisuallyHidden mode="one" look="card" selected={[form.kind]}
-        isDisabled={isReadOnly} options={kinds}
+        options={offered(section, kinds, [form.kind])}
         onChange={(picked) => onChange({ ...form, kind: REWARD_KINDS.find((kind) => kind === picked[0]) ?? form.kind })} />
-      {form.kind === 'waitlist_priority' ? null : <Grid columns={2} gap={4} stackBelow="medium"><KindFields section={section} /></Grid>}
+      <KindFields section={section} />
     </BuilderCard>
   );
 }

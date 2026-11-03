@@ -174,8 +174,9 @@ export {
   type ApproverView, type MemberPromotionGrant, type PromotionOverview, type PromotionsOverview, type PromotionVersionView,
 } from './promotionVersions.ts';
 export {
-  usePromotionVersionActions, type DraftToSave, type PromotionVersionFailure, type SavedDraft, type SimulationRun,
+  usePromotionVersionActions, type DraftToSave, type PromotionVersionFailure, type SavedDraft,
 } from './promotionVersionActions.ts';
+export { useLastWeekReplay, type SimulationRun } from './promotionReplay.ts';
 export { useOnboardingChecklist, type OnboardingItem } from './onboarding.ts';
 export { useQuizAttempts, useQuizzes, useSubmitQuiz, type Quiz, type QuizAttempt, type QuizFailure, type QuizResult } from './quizzes.ts';
 export {

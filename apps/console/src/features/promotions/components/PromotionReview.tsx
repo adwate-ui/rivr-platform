@@ -1,4 +1,4 @@
-import type { ApproverView, PromotionVersionView } from '@rivr/db';
+import { useLastWeekReplay, type ApproverView, type PromotionVersionView } from '@rivr/db';
 import type { Actor, TermsPart } from '@rivr/domain/promotions';
 import { formatDayTime, t } from '@rivr/i18n';
 import { Box, ErrorMessage, Grid, Stack, Text } from '@rivr/ui';
@@ -36,6 +36,21 @@ function changesLine({ live, changed }: ApproverView): string {
   return t('console.promotions.review.changes', { version: live.version, parts });
 }
 
+/**
+ * Last week replayed afresh for the approver (decision 0465), not the figures stored with the version, which its author's
+ * browser sent; a replay that fails offers Simulate to run it again.
+ */
+function FreshSimulation({ waiting }: { waiting: PromotionVersionView }) {
+  const replay = useLastWeekReplay(waiting.id, waiting.terms);
+  if (waiting.terms === null || replay.data === undefined) {
+    const isFailed = replay.isError || waiting.terms === null;
+    const retry = replay.isError && waiting.terms !== null ? () => void replay.refetch() : undefined;
+    return <SimulationCard shown={null} emptyText={t(isFailed ? 'console.promotions.simulation.failed' : 'console.promotions.simulation.replaying')} onSimulate={retry} />;
+  }
+  const shown = { kind: waiting.terms.reward.kind, result: replay.data, period: { from: replay.data.from, to: replay.data.to } };
+  return <SimulationCard shown={shown} emptyText={t('console.promotions.simulation.replaying')} />;
+}
+
 /** The five sections as the builder shows them, read only, each marked where the waiting version changes it. */
 function ReadOnlySections({ waiting, changed, names }: { waiting: PromotionVersionView; changed: ReadonlySet<TermsPart>; names: BuilderNames }) {
   if (waiting.terms === null) return <ErrorMessage>{t('console.promotions.review.unreadable')}</ErrorMessage>;
@@ -67,18 +82,20 @@ export function PromotionReview({ venueId, names, actor, view, onDone }: Promoti
   const changed = new Set(live === null ? [] : view.changed);
   const name = waiting.terms?.name ?? '';
   return (
-    <BuilderFrame title={t('console.promotions.review.title', { name })} description={submittedLine(waiting)} onBack={onDone}>
+    <BuilderFrame title={t('console.promotions.review.title', { name })} onBack={onDone}>
       <Grid columns={2} gap={6} stackBelow="medium">
         <Stack gap={4}>
-          <Text variant="secondary">{changesLine(view)}</Text>
+          <Stack gap={1}>
+            <Text variant="secondary" tone="muted">{submittedLine(waiting)}</Text>
+            <Text variant="secondary">{changesLine(view)}</Text>
+          </Stack>
           <ReadOnlySections waiting={waiting} changed={changed} names={names} />
         </Stack>
         <Box isSticky>
           <Stack gap={4}>
             <SummaryCards title={name} core={waiting.terms} names={names.names}
               before={live?.terms ? { label: t('console.promotions.review.runningNow', { version: live.version }), core: live.terms } : undefined} />
-            <SimulationCard emptyText={t('console.promotions.simulation.notStored')}
-              shown={waiting.simulation === null || waiting.terms === null ? null : { kind: waiting.terms.reward.kind, result: waiting.simulation, period: null }} />
+            <FreshSimulation waiting={waiting} />
             <DecisionPanel venueId={venueId} waiting={waiting} actor={actor} onDone={onDone} />
           </Stack>
         </Box>

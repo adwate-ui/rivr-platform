@@ -2,7 +2,7 @@ import type { PromotionStatus } from '@rivr/contracts/promotionModel';
 import { isListedIn, usePromotionsOverview, type PromotionOverview, type PromotionsOverview } from '@rivr/db';
 import type { PromotionNames } from '@rivr/domain/promotions';
 import { t } from '@rivr/i18n';
-import { Button, ChoiceChips, DataTable, ErrorMessage, Screen, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, DataTable, ErrorMessage, Screen, Stack } from '@rivr/ui';
 import { useState } from 'react';
 import { usePauseResume } from '../hooks/usePauseResume.ts';
 import { canOpen, listColumns } from './listColumns.tsx';
@@ -32,7 +32,7 @@ function Listed({ venueId, names, onOpen, overview }: PromotionListProps & { ove
   const rows = overview.promotions.filter((promotion) => filter === 'all' || isListedIn(promotion, filter));
   return (
     <Stack gap={4}>
-      <ChoiceChips label={t('console.promotions.list.filter')} isLabelVisuallyHidden mode="one" look="subtle" selected={[filter]}
+      <ChoiceChips label={t('console.promotions.list.filter')} isLabelVisuallyHidden isOneRow mode="one" look="subtle" selected={[filter]}
         options={FILTERS.map((value) => ({ value, label: labelOf(value), count: overview.counts[value] }))}
         onChange={(picked) => setFilter(FILTERS.find((value) => value === picked[0]) ?? 'all')} />
       {toggles.failure === null ? null : <ErrorMessage>{t(`console.promotions.failures.${toggles.failure}`)}</ErrorMessage>}
@@ -57,10 +57,7 @@ export function PromotionList(props: PromotionListProps) {
   }
   return (
     <Screen title={title} actions={action}>
-      <Stack gap={6}>
-        <Text variant="secondary" tone="muted">{t('console.promotions.description')}</Text>
-        <Listed {...props} overview={overview.data} />
-      </Stack>
+      <Listed {...props} overview={overview.data} />
     </Screen>
   );
 }
