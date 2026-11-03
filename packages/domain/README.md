@@ -70,7 +70,13 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | Export | What it does |
 |---|---|
 | `holdFraction(calledAt, holdUntil, at)` | How much of a called seat's hold is left, 1 to 0: the bar under the countdown (decision 0320). |
-| `priorityOn(stake, { tier, qualifyingStake })`, `TierPriority`, `Priority` | A member's priority on the list for one stake (#40): the tier's weight from the setting `waitlist.priority_weights`, with its name as the reason. The black card's counts only at the member's qualifying stake; Founders' Circle on every list. The database's `private.priority_weight` is proved equal by `packages/testing/golden/waitlist.json`; the database orders each list by weight, then join time. |
+| `priorityOn(stake, { tier, qualifyingStake })`, `TierPriority`, `Priority` | A member's priority on a list at one stake (#40): the tier's weight from the setting `waitlist.priority_weights`, with its name as the reason. The black card's counts only at the member's qualifying stake; Founders' Circle on every list. The database's `private.priority_weight` is proved equal by `packages/testing/golden/waitlist.json`; the database orders each table's list (decision 0433) by the weight at the table's stake, then join time. |
+
+### `@rivr/domain/tables`
+
+| Export | What it does |
+|---|---|
+| `tableRetireRefusal({ seated, waiting })`, `TableInPlay`, `TableRetireRefusal` | Whether a table may be deactivated or deleted (decision 0432): `players_seated` while anyone sits at it, else `players_waiting` while a place waits on its list or is called to it, else null. `private.assert_table_empty` refuses with the same reasons (RVSTD, RVWTG). |
 
 ### `@rivr/domain/credit`
 
@@ -172,6 +178,21 @@ Hourly rakeback (#108, decision 0245), in paise. `packages/testing/golden/rakeba
 | `secondsInWindow(stint, conditions)`, `playedSecondsInWindow(time, conditions)` | Hours-played promotions with days or times (#457, decision 0186): a stint's whole seconds inside the window on the club days it touches, and a table's time inside the window less its share of the time away, which earns points at the table's rate (`pointsForTime`). |
 
 The database's `private.promotion_applies`, `private.promotion_reward` and `private.promotions_to_give` are proved equal on `packages/testing/golden/promotions.json`, and `private.seconds_in_window` on `promotionWindow.json`; `private.evaluate_promotions` puts them together.
+
+**The typed model (console v3; decisions 0436 to 0438).** A promotion's version holds a Reward, Eligibility, Schedule, Limits and Channels (`@rivr/contracts/promotionModel`), in points, bonus chips, spins and perks, never paise. The rules above stay until the engine and the console move to versions.
+
+| Export | What it does |
+|---|---|
+| `isInSchedule(schedule, at)`, `secondsInSchedule(span, schedule)`, `openingMinutes` | When a version runs: on its club days from its start day to its end day, an opening from `from` to the next `to`, across midnight or the 06:00 turnover; the same time at both ends is 24 hours. Time-played rewards count the whole seconds of play inside the openings. Proved on `promotionSchedule.json`. |
+| `isEligible(promo, member, context)`, `MemberFacts` | The member's tier and audience (new in 30 days, lapsed 30 days, women once recorded), and for an event at a moment its stake, table and moment. |
+| `computeGrant(promo, event)`, `triggerOf(reward)`, `Grant` | What the reward gives for one event, before limits: a buy-in bonus as a percent of own chips in whole 50s held to its cap, or fixed; a multiplier's extra points; an hours bonus or spins after their minutes; bonus chips on their event; a cab, an entry or priority on a visit. `Result` with the reason for nothing. |
+| `checkLimits(promo, grant, tally)`, `tallyFor`, `periodKey`, `remainingBudget`, `decideGrant` | The limits in order: the member's period, first N per table, members a day, most grants, the budget in chips whole or not at all; counted over all versions. |
+| `stackGrants(candidates)` | For one event: one multiplier, the one giving the most points; chips and spins stack; one perk of each kind. |
+| `simulate(promo, events)` | Last week replayed: members qualified, times given, points, chips, spins, perks, whether the budget stopped a grant, and every grant. |
+| `describePromotion(promo, names?)` | The one-line summary in English, in chips and points. |
+| `transition(state, action, actor)`, `sameTerms` | The status machine: submit needs a simulation on these terms, approval `promotions.approve` and someone other than the author, an edit of a running version opens the next draft. |
+
+`private.promo_is_eligible`, `private.promo_grant`, `private.promo_check_limits`, `private.promo_stack` and `private.seconds_in_schedule` will be proved equal on `promotionRewards.json` and `promotionSchedule.json`.
 
 ### `@rivr/domain/tally`
 

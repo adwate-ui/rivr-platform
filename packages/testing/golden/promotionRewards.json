@@ -1,0 +1,881 @@
+{
+  "rule": "promotionRewards",
+  "about": "What a promotion gives (console v3 phase 7; decisions 0436 and 0438), in points, bonus chips, spins or a perk, never rupees. Days are the club's, 06:00 to 06:00 IST, and its weeks run Monday to Sunday. Eligible: the member's tier and audience must be the promotion's (new members have fewer than 30 whole days since joining; lapsed regulars' last visit before this one was 30 or more whole days before; women only when the club has recorded it). The time-played rewards are the points multiplier, the hours bonus and the free spin: for them only the minutes inside the schedule at its stakes and tables count, so the moment and table of the event do not matter. For every other reward the event's stake, table and moment must be the promotion's, so a promotion for some stakes gives nothing for an event away from a table. Grant: a buy-in bonus is a percent of the member's own chips rounded down to whole 50s, then held to its cap, or fixed chips; a buy-in paid from bonus (its own chips are 0) earns nothing from any buy-in reward, a buy-in bonus or bonus chips on the first buy-in; a points multiplier gives the extra on the points earned, rounded down (double on 120 is 120 more); an hours bonus or free spin needs its minutes; bonus chips come on a visit, the visit's first buy-in, a referral or a sign-up; a cab home from the Nth visit of the calendar month; an entry or waitlist priority on a visit; nothing comes to nothing. Limits, in this order: the member's period already given (the same visit, club day, club week, ever, or with no limit the same event), the first N buy-ins per table, which counts this promotion's grants at that table this club day, members a day (a member already given it today is not a new one), the most grants, and the budget in bonus chips, whole or not at all. A spin spends no chips when given; the wheel pays a bonus only within what is left of the budget. Stacking for one event: at most one points multiplier, the one giving the most points (the first on a tie); bonus chips and spins from different promotions stack; one perk of each kind, the first given. Inputs are written as the database holds them.",
+  "cases": [
+    {
+      "description": "Everyone, every stake, Tuesdays: a buy-in at 21:00 on Tuesday qualifies.",
+      "operation": "eligible",
+      "inputs": {
+        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
+      },
+      "expected": {
+        "eligible": "yes"
+      }
+    },
+    {
+      "description": "Tuesdays: a buy-in at 21:00 on Wednesday does not.",
+      "operation": "eligible",
+      "inputs": {
+        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "context": "{\"at\": \"2026-11-18T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
+      },
+      "expected": {
+        "eligible": "no"
+      }
+    },
+    {
+      "description": "Only 100/200: a buy-in at 50/100 does not qualify.",
+      "operation": "eligible",
+      "inputs": {
+        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": [\"nlh_100_200\"], \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
+      },
+      "expected": {
+        "eligible": "no"
+      }
+    },
+    {
+      "description": "Only 100/200: a buy-in at 100/200 qualifies.",
+      "operation": "eligible",
+      "inputs": {
+        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": [\"nlh_100_200\"], \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_100_200\", \"tableId\": \"t1\"}"
+      },
+      "expected": {
+        "eligible": "yes"
+      }
+    },
+    {
+      "description": "Only 100/200: an event away from a table has no stake, so it does not qualify.",
+      "operation": "eligible",
+      "inputs": {
+        "terms": "{\"reward\": {\"kind\": \"bonus_chips\", \"chips\": 500, \"on\": \"visit\"}, \"eligibility\": {\"stakes\": [\"nlh_100_200\"], \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": null, \"tableId\": null}"
+      },
+      "expected": {
+        "eligible": "no"
+      }
+    },
+    {
+      "description": "Only Table 1: a buy-in at Table 2 does not qualify.",
+      "operation": "eligible",
+      "inputs": {
+        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"everyone\", \"tableIds\": [\"t1\"]}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t2\"}"
+      },
+      "expected": {
+        "eligible": "no"
+      }
+    },
+    {
+      "description": "Only Founders' Circle: a Founders' Circle member qualifies.",
+      "operation": "eligible",
+      "inputs": {
+        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": [\"founders\"], \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "member": "{\"tierId\": \"founders\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
+      },
+      "expected": {
+        "eligible": "yes"
+      }
+    },
+    {
+      "description": "Only Founders' Circle: a member with no tier does not.",
+      "operation": "eligible",
+      "inputs": {
+        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": [\"founders\"], \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "member": "{\"tierId\": null, \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
+      },
+      "expected": {
+        "eligible": "no"
+      }
+    },
+    {
+      "description": "New members, first 30 days: 29 whole days since joining qualifies.",
+      "operation": "eligible",
+      "inputs": {
+        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"new_30d\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 29, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
+      },
+      "expected": {
+        "eligible": "yes"
+      }
+    },
+    {
+      "description": "New members, first 30 days: 30 whole days since joining does not.",
+      "operation": "eligible",
+      "inputs": {
+        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"new_30d\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 30, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
+      },
+      "expected": {
+        "eligible": "no"
+      }
+    },
+    {
+      "description": "Lapsed regulars: last here 30 days ago qualifies.",
+      "operation": "eligible",
+      "inputs": {
+        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"lapsed\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 30, \"isWoman\": null}",
+        "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
+      },
+      "expected": {
+        "eligible": "yes"
+      }
+    },
+    {
+      "description": "Lapsed regulars: last here 29 days ago does not.",
+      "operation": "eligible",
+      "inputs": {
+        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"lapsed\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 29, \"isWoman\": null}",
+        "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
+      },
+      "expected": {
+        "eligible": "no"
+      }
+    },
+    {
+      "description": "Lapsed regulars: a member who never came before is not a lapsed regular.",
+      "operation": "eligible",
+      "inputs": {
+        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"lapsed\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": null, \"isWoman\": null}",
+        "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
+      },
+      "expected": {
+        "eligible": "no"
+      }
+    },
+    {
+      "description": "Women members: a member whose gender the club has not recorded does not qualify.",
+      "operation": "eligible",
+      "inputs": {
+        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"women\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
+      },
+      "expected": {
+        "eligible": "no"
+      }
+    },
+    {
+      "description": "Women members: a member recorded as a woman qualifies.",
+      "operation": "eligible",
+      "inputs": {
+        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"women\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": true}",
+        "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
+      },
+      "expected": {
+        "eligible": "yes"
+      }
+    },
+    {
+      "description": "Points multiplier, Friday 20:00 to 02:00 at 100/200: a visit closing at 03:00 on Saturday still qualifies; only its time inside the window at that stake earns.",
+      "operation": "eligible",
+      "inputs": {
+        "terms": "{\"reward\": {\"kind\": \"points_multiplier\", \"multiplier\": 2}, \"eligibility\": {\"stakes\": [\"nlh_100_200\"], \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [5], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "context": "{\"at\": \"2026-11-21T03:00:00+05:30\", \"stake\": null, \"tableId\": null}"
+      },
+      "expected": {
+        "eligible": "yes"
+      }
+    },
+    {
+      "description": "Points multiplier for Founders' Circle only: a member with no tier does not qualify.",
+      "operation": "eligible",
+      "inputs": {
+        "terms": "{\"reward\": {\"kind\": \"points_multiplier\", \"multiplier\": 2}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": [\"founders\"], \"audience\": \"everyone\"}, \"schedule\": {\"days\": [5], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "member": "{\"tierId\": null, \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "context": "{\"at\": \"2026-11-20T21:00:00+05:30\", \"stake\": null, \"tableId\": null}"
+      },
+      "expected": {
+        "eligible": "no"
+      }
+    },
+    {
+      "description": "20% of a 10,000 buy-in: 2,000 bonus chips.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 10000, \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "2000",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "20% up to 1,000, on a 10,000 buy-in: the cap is smaller than 20%, so 1,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20, \"capChips\": 1000}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 10000, \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "1000",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "20% up to 2,000, on a 10,000 buy-in: exactly at the cap, 2,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20, \"capChips\": 2000}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 10000, \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "2000",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "20% up to 2,000, on a 5,000 buy-in: under the cap, 1,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20, \"capChips\": 2000}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 5000, \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "1000",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "10% of 2,499 is 249.9: rounded down to whole 50s, 200.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 10}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 2499, \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "200",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "10% of 499 is 49.9: under one 50 chip, so nothing is given.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 10}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 499, \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "refusal": "nothing_earned"
+      }
+    },
+    {
+      "description": "A buy-in paid from bonus chips earns no bonus.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 0, \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "refusal": "nothing_earned"
+      }
+    },
+    {
+      "description": "Fixed 500 bonus chips on a buy-in: 500.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"fixed\", \"chips\": 500, \"firstNBuyinsPerTable\": 5}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 2000, \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "500",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "Fixed 500 bonus chips on a buy-in paid from bonus: nothing.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"fixed\", \"chips\": 500}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 0, \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "refusal": "nothing_earned"
+      }
+    },
+    {
+      "description": "Double points on 120 earned: 120 more.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"points_multiplier\", \"multiplier\": 2}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"time_played\", \"minutes\": 180, \"points\": 120}"
+      },
+      "expected": {
+        "points": "120",
+        "chips": "0",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "Triple points on 120 earned: 240 more.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"points_multiplier\", \"multiplier\": 3}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"time_played\", \"minutes\": 180, \"points\": 120}"
+      },
+      "expected": {
+        "points": "240",
+        "chips": "0",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "1.25 times the points on 130 earned is 32.5 more: rounded down, 32.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"points_multiplier\", \"multiplier\": 1.25}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"time_played\", \"minutes\": 180, \"points\": 130}"
+      },
+      "expected": {
+        "points": "32",
+        "chips": "0",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "Five times the points on 7 earned: 28 more.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"points_multiplier\", \"multiplier\": 5}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"time_played\", \"minutes\": 30, \"points\": 7}"
+      },
+      "expected": {
+        "points": "28",
+        "chips": "0",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "Double points on nothing earned: nothing.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"points_multiplier\", \"multiplier\": 2}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"time_played\", \"minutes\": 180, \"points\": 0}"
+      },
+      "expected": {
+        "refusal": "nothing_earned"
+      }
+    },
+    {
+      "description": "1,000 bonus chips after four hours: 3 hours 59 minutes is too short.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"hours_bonus\", \"chips\": 1000, \"afterMinutes\": 240}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"time_played\", \"minutes\": 239, \"points\": 0}"
+      },
+      "expected": {
+        "refusal": "too_short"
+      }
+    },
+    {
+      "description": "1,000 bonus chips after four hours: four hours exactly gives 1,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"hours_bonus\", \"chips\": 1000, \"afterMinutes\": 240}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"time_played\", \"minutes\": 240, \"points\": 0}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "1000",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "Two free spins after four hours: five hours gives two spins.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"free_spin\", \"spins\": 2, \"afterMinutes\": 240}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"time_played\", \"minutes\": 300, \"points\": 0}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "0",
+        "spins": "2",
+        "perk": ""
+      }
+    },
+    {
+      "description": "A free spin after four hours: three hours is too short.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"free_spin\", \"spins\": 1, \"afterMinutes\": 240}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"time_played\", \"minutes\": 180, \"points\": 0}"
+      },
+      "expected": {
+        "refusal": "too_short"
+      }
+    },
+    {
+      "description": "1,000 bonus chips on each visit: a visit gives 1,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": null, \"stake\": null, \"kind\": \"visit\", \"visitInMonth\": 1}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "1000",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "1,000 bonus chips for a referral: the referral gives 1,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"referral\"}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"referral\"}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "1000",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "500 bonus chips on sign-up: the sign-up gives 500.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 500, \"on\": \"signup\"}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"signup\"}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "500",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "1,000 bonus chips on the first buy-in: the visit's first buy-in gives 1,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"first_buyin\"}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 5000, \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "1000",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "1,000 bonus chips on the first buy-in: a second buy-in gives nothing.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"first_buyin\"}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 5000, \"isFirstOfVisit\": false}"
+      },
+      "expected": {
+        "refusal": "not_first_buy_in"
+      }
+    },
+    {
+      "description": "1,000 bonus chips on the first buy-in: a first buy-in paid from bonus gives nothing.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"first_buyin\"}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 0, \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "refusal": "nothing_earned"
+      }
+    },
+    {
+      "description": "Bonus chips on a referral are not given for a visit.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"referral\"}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": null, \"stake\": null, \"kind\": \"visit\", \"visitInMonth\": 2}"
+      },
+      "expected": {
+        "refusal": "other_event"
+      }
+    },
+    {
+      "description": "Bonus chips on a visit are not given for a sign-up.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"signup\"}"
+      },
+      "expected": {
+        "refusal": "other_event"
+      }
+    },
+    {
+      "description": "A cab home from the fourth visit in a month: the third visit is not yet.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"cab_home\", \"fromVisitInMonth\": 4}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": null, \"stake\": null, \"kind\": \"visit\", \"visitInMonth\": 3}"
+      },
+      "expected": {
+        "refusal": "not_yet"
+      }
+    },
+    {
+      "description": "A cab home from the fourth visit in a month: the fourth visit gives it.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"cab_home\", \"fromVisitInMonth\": 4}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": null, \"stake\": null, \"kind\": \"visit\", \"visitInMonth\": 4}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "0",
+        "spins": "0",
+        "perk": "cab_home"
+      }
+    },
+    {
+      "description": "A tournament entry is given on a visit.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"tournament_entry\", \"tournamentId\": \"RIVR Sunday\"}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": null, \"stake\": null, \"kind\": \"visit\", \"visitInMonth\": 1}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "0",
+        "spins": "0",
+        "perk": "tournament_entry"
+      }
+    },
+    {
+      "description": "Waitlist priority is given on a visit.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"waitlist_priority\"}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": null, \"stake\": null, \"kind\": \"visit\", \"visitInMonth\": 1}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "0",
+        "spins": "0",
+        "perk": "waitlist_priority"
+      }
+    },
+    {
+      "description": "A points multiplier is not given for a buy-in.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"points_multiplier\", \"multiplier\": 2}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 10000, \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "refusal": "other_event"
+      }
+    },
+    {
+      "description": "A buy-in bonus is not given for time played.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"time_played\", \"minutes\": 240, \"points\": 100}"
+      },
+      "expected": {
+        "refusal": "other_event"
+      }
+    },
+    {
+      "description": "No limits and nothing given yet: given.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "limits": "{\"perMember\": \"none\"}",
+        "grant": "{\"points\": 0, \"chips\": 2000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
+      }
+    },
+    {
+      "description": "A budget of 5,000 with 4,000 given: a grant of 1,000 uses the last of it.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 5000}",
+        "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 4000, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
+      }
+    },
+    {
+      "description": "Budget exhausted mid-grant: 5,000 with 4,500 given cannot give 1,000, and never gives part of it.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 5000}",
+        "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 4500, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "no",
+        "refusal": "budget_exhausted"
+      }
+    },
+    {
+      "description": "A budget all spent still gives a spin, which spends no chips until it wins.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"free_spin\", \"spins\": 1, \"afterMinutes\": 240}",
+        "limits": "{\"perMember\": \"per_day\", \"budgetChips\": 5000}",
+        "grant": "{\"points\": 0, \"chips\": 0, \"spins\": 1, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 5000, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
+      }
+    },
+    {
+      "description": "Once per member: a member who has had it does not have it again.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "limits": "{\"perMember\": \"once\"}",
+        "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": true, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "no",
+        "refusal": "already_given"
+      }
+    },
+    {
+      "description": "First 5 buy-ins per table: the fifth is given when four have been.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20, \"firstNBuyinsPerTable\": 5}",
+        "limits": "{\"perMember\": \"none\"}",
+        "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 4}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
+      }
+    },
+    {
+      "description": "First 5 buy-ins per table: the sixth is not.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20, \"firstNBuyinsPerTable\": 5}",
+        "limits": "{\"perMember\": \"none\"}",
+        "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 5}"
+      },
+      "expected": {
+        "given": "no",
+        "refusal": "first_n_taken"
+      }
+    },
+    {
+      "description": "First 5 buy-ins per table: a buy-in away from a table cannot count among them.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20, \"firstNBuyinsPerTable\": 5}",
+        "limits": "{\"perMember\": \"none\"}",
+        "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": null}"
+      },
+      "expected": {
+        "given": "no",
+        "refusal": "first_n_taken"
+      }
+    },
+    {
+      "description": "50 members a day: a 51st member is not given it.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "limits": "{\"perMember\": \"none\", \"maxMembersPerDay\": 50}",
+        "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 50, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "no",
+        "refusal": "members_per_day"
+      }
+    },
+    {
+      "description": "50 members a day: one of the 50 already given it today may have it again, as the per-member limit allows.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "limits": "{\"perMember\": \"none\", \"maxMembersPerDay\": 50}",
+        "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 50, \"isMemberGrantedToday\": true, \"isPeriodTaken\": false, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
+      }
+    },
+    {
+      "description": "50 members a day: the 50th member is given it.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "limits": "{\"perMember\": \"none\", \"maxMembersPerDay\": 50}",
+        "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 49, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
+      }
+    },
+    {
+      "description": "At most 100 grants: the 100th is given.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "limits": "{\"perMember\": \"none\", \"maxGrants\": 100}",
+        "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 99, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
+      }
+    },
+    {
+      "description": "At most 100 grants: the 101st is not given.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "limits": "{\"perMember\": \"none\", \"maxGrants\": 100}",
+        "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 100, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "no",
+        "refusal": "max_grants"
+      }
+    },
+    {
+      "description": "Double and triple points on the same play: only the triple's 240 more points.",
+      "operation": "stack",
+      "inputs": {
+        "candidates": "[{\"promotion\": \"double\", \"points\": 120, \"chips\": 0, \"spins\": 0, \"perk\": null}, {\"promotion\": \"triple\", \"points\": 240, \"chips\": 0, \"spins\": 0, \"perk\": null}]"
+      },
+      "expected": {
+        "given": "triple"
+      }
+    },
+    {
+      "description": "Double points all night (300 more) and triple points 20:00 to 22:00 (200 more): the one giving more, the double.",
+      "operation": "stack",
+      "inputs": {
+        "candidates": "[{\"promotion\": \"double\", \"points\": 300, \"chips\": 0, \"spins\": 0, \"perk\": null}, {\"promotion\": \"triple\", \"points\": 200, \"chips\": 0, \"spins\": 0, \"perk\": null}]"
+      },
+      "expected": {
+        "given": "double"
+      }
+    },
+    {
+      "description": "Two multipliers giving the same points: the first.",
+      "operation": "stack",
+      "inputs": {
+        "candidates": "[{\"promotion\": \"first\", \"points\": 100, \"chips\": 0, \"spins\": 0, \"perk\": null}, {\"promotion\": \"second\", \"points\": 100, \"chips\": 0, \"spins\": 0, \"perk\": null}]"
+      },
+      "expected": {
+        "given": "first"
+      }
+    },
+    {
+      "description": "Bonus chips from two promotions stack.",
+      "operation": "stack",
+      "inputs": {
+        "candidates": "[{\"promotion\": \"tuesday\", \"points\": 0, \"chips\": 2000, \"spins\": 0, \"perk\": null}, {\"promotion\": \"graduate\", \"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}]"
+      },
+      "expected": {
+        "given": "tuesday | graduate"
+      }
+    },
+    {
+      "description": "A multiplier and an hours bonus on the same play: both, as only multipliers exclude each other.",
+      "operation": "stack",
+      "inputs": {
+        "candidates": "[{\"promotion\": \"double\", \"points\": 120, \"chips\": 0, \"spins\": 0, \"perk\": null}, {\"promotion\": \"hours\", \"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}, {\"promotion\": \"triple\", \"points\": 180, \"chips\": 0, \"spins\": 0, \"perk\": null}]"
+      },
+      "expected": {
+        "given": "hours | triple"
+      }
+    },
+    {
+      "description": "Two cabs home for one visit: one cab.",
+      "operation": "stack",
+      "inputs": {
+        "candidates": "[{\"promotion\": \"cab-a\", \"points\": 0, \"chips\": 0, \"spins\": 0, \"perk\": \"cab_home\"}, {\"promotion\": \"cab-b\", \"points\": 0, \"chips\": 0, \"spins\": 0, \"perk\": \"cab_home\"}, {\"promotion\": \"priority\", \"points\": 0, \"chips\": 0, \"spins\": 0, \"perk\": \"waitlist_priority\"}]"
+      },
+      "expected": {
+        "given": "cab-a | priority"
+      }
+    },
+    {
+      "description": "Spins from two promotions stack.",
+      "operation": "stack",
+      "inputs": {
+        "candidates": "[{\"promotion\": \"spin-a\", \"points\": 0, \"chips\": 0, \"spins\": 1, \"perk\": null}, {\"promotion\": \"spin-b\", \"points\": 0, \"chips\": 0, \"spins\": 2, \"perk\": null}]"
+      },
+      "expected": {
+        "given": "spin-a | spin-b"
+      }
+    },
+    {
+      "description": "Nothing to give: none.",
+      "operation": "stack",
+      "inputs": {
+        "candidates": "[]"
+      },
+      "expected": {
+        "given": "none"
+      }
+    }
+  ]
+}

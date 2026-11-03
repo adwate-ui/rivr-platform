@@ -1,0 +1,144 @@
+{
+  "rule": "promotionSchedule",
+  "about": "When a promotion runs (console v3 phase 7; decision 0438). Its days are the club's days, which run 06:00 to 06:00 IST, so 01:30 on Saturday morning is still Friday night. On each listed day from its start day to its end day the promotion opens at its 'from' time on that club day (a 'from' before 06:00 is the small hours after that day's evening, so a Tuesday opening at 02:00 is at 02:00 on Wednesday morning) and runs to the next 'to' time: 20:00 to 02:00 crosses midnight and ends at 02:00 the next morning, 22:00 to 08:00 runs past the club's 06:00 turnover, and the same time at both ends is a whole 24 hours. An opening that begins on the end day runs to its close. A moment is in the schedule from an opening's start up to, not including, its end. For time played, only the time inside the openings counts, its total rounded down to whole seconds. 15 November 2026 is a Sunday, so the 20th is a Friday. Schedules are written as the database holds them; days are 1 Monday to 7 Sunday.",
+  "cases": [
+    {
+      "description": "Friday and Saturday, 20:00 to 02:00: 21:00 on Friday is in.",
+      "operation": "in",
+      "inputs": { "schedule": "{\"days\": [5, 6], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}", "at": "2026-11-20T21:00:00+05:30" },
+      "expected": { "inSchedule": "yes" }
+    },
+    {
+      "description": "Midnight crossing: 01:30 on Saturday morning is still Friday's opening.",
+      "operation": "in",
+      "inputs": { "schedule": "{\"days\": [5, 6], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}", "at": "2026-11-21T01:30:00+05:30" },
+      "expected": { "inSchedule": "yes" }
+    },
+    {
+      "description": "02:00 on Saturday morning is the end of Friday's opening, which is not in it.",
+      "operation": "in",
+      "inputs": { "schedule": "{\"days\": [5, 6], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}", "at": "2026-11-21T02:00:00+05:30" },
+      "expected": { "inSchedule": "no" }
+    },
+    {
+      "description": "19:59 on Friday is before it opens.",
+      "operation": "in",
+      "inputs": { "schedule": "{\"days\": [5, 6], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}", "at": "2026-11-20T19:59:00+05:30" },
+      "expected": { "inSchedule": "no" }
+    },
+    {
+      "description": "Thursday is not one of its days.",
+      "operation": "in",
+      "inputs": { "schedule": "{\"days\": [5, 6], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}", "at": "2026-11-19T21:00:00+05:30" },
+      "expected": { "inSchedule": "no" }
+    },
+    {
+      "description": "01:00 on Sunday morning is Saturday's opening, still running.",
+      "operation": "in",
+      "inputs": { "schedule": "{\"days\": [5, 6], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}", "at": "2026-11-22T01:00:00+05:30" },
+      "expected": { "inSchedule": "yes" }
+    },
+    {
+      "description": "The start day: starting Friday 20 November, 01:00 that Friday morning is Thursday night, before it starts.",
+      "operation": "in",
+      "inputs": { "schedule": "{\"days\": [4, 5], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-20\", \"timezone\": \"Asia/Kolkata\"}", "at": "2026-11-20T01:00:00+05:30" },
+      "expected": { "inSchedule": "no" }
+    },
+    {
+      "description": "The start day: starting Friday 20 November, 20:00 that Friday is its first opening.",
+      "operation": "in",
+      "inputs": { "schedule": "{\"days\": [4, 5], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-20\", \"timezone\": \"Asia/Kolkata\"}", "at": "2026-11-20T20:00:00+05:30" },
+      "expected": { "inSchedule": "yes" }
+    },
+    {
+      "description": "The end day: ending Saturday 21 November, its Saturday opening still runs at 01:00 on Sunday.",
+      "operation": "in",
+      "inputs": { "schedule": "{\"days\": [1, 2, 3, 4, 5, 6, 7], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-01\", \"endsOn\": \"2026-11-21\", \"timezone\": \"Asia/Kolkata\"}", "at": "2026-11-22T01:00:00+05:30" },
+      "expected": { "inSchedule": "yes" }
+    },
+    {
+      "description": "The end day: ending Saturday 21 November, Sunday evening has no opening.",
+      "operation": "in",
+      "inputs": { "schedule": "{\"days\": [1, 2, 3, 4, 5, 6, 7], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-01\", \"endsOn\": \"2026-11-21\", \"timezone\": \"Asia/Kolkata\"}", "at": "2026-11-22T21:00:00+05:30" },
+      "expected": { "inSchedule": "no" }
+    },
+    {
+      "description": "Every day, 06:00 to 06:00: the whole club day, 05:59 on Wednesday morning included.",
+      "operation": "in",
+      "inputs": { "schedule": "{\"days\": [1, 2, 3, 4, 5, 6, 7], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}", "at": "2026-11-18T05:59:00+05:30" },
+      "expected": { "inSchedule": "yes" }
+    },
+    {
+      "description": "A Tuesday opening at 02:00 is in Tuesday night, so 03:00 on Wednesday morning is in.",
+      "operation": "in",
+      "inputs": { "schedule": "{\"days\": [2], \"from\": \"02:00\", \"to\": \"05:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}", "at": "2026-11-18T03:00:00+05:30" },
+      "expected": { "inSchedule": "yes" }
+    },
+    {
+      "description": "A Tuesday opening at 02:00: 03:00 on Tuesday morning is still Monday night, so it is not in.",
+      "operation": "in",
+      "inputs": { "schedule": "{\"days\": [2], \"from\": \"02:00\", \"to\": \"05:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}", "at": "2026-11-17T03:00:00+05:30" },
+      "expected": { "inSchedule": "no" }
+    },
+    {
+      "description": "Tuesday 22:00 to 08:00 runs past the club's 06:00 turnover: 07:00 on Wednesday is in.",
+      "operation": "in",
+      "inputs": { "schedule": "{\"days\": [2], \"from\": \"22:00\", \"to\": \"08:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}", "at": "2026-11-18T07:00:00+05:30" },
+      "expected": { "inSchedule": "yes" }
+    },
+    {
+      "description": "Friday 20:00 to 02:00, played 19:00 Friday to 03:00 Saturday: the six hours inside count.",
+      "operation": "seconds",
+      "inputs": { "schedule": "{\"days\": [5, 6], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}", "from": "2026-11-20T19:00:00+05:30", "to": "2026-11-21T03:00:00+05:30" },
+      "expected": { "seconds": "21600" }
+    },
+    {
+      "description": "Midnight crossing: played 23:00 Friday to 01:00 Saturday, all two hours count.",
+      "operation": "seconds",
+      "inputs": { "schedule": "{\"days\": [5, 6], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}", "from": "2026-11-20T23:00:00+05:30", "to": "2026-11-21T01:00:00+05:30" },
+      "expected": { "seconds": "7200" }
+    },
+    {
+      "description": "Played on Thursday, which is not one of its days: nothing counts.",
+      "operation": "seconds",
+      "inputs": { "schedule": "{\"days\": [5, 6], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}", "from": "2026-11-19T19:00:00+05:30", "to": "2026-11-19T23:00:00+05:30" },
+      "expected": { "seconds": "0" }
+    },
+    {
+      "description": "Played 18:00 Friday to 03:00 Sunday: Friday's and Saturday's openings, six hours each.",
+      "operation": "seconds",
+      "inputs": { "schedule": "{\"days\": [5, 6], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}", "from": "2026-11-20T18:00:00+05:30", "to": "2026-11-22T03:00:00+05:30" },
+      "expected": { "seconds": "43200" }
+    },
+    {
+      "description": "The start day: starting Saturday, played 21:00 Friday to 01:00 Sunday, only Saturday's five hours to 01:00 count.",
+      "operation": "seconds",
+      "inputs": { "schedule": "{\"days\": [5, 6], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-21\", \"timezone\": \"Asia/Kolkata\"}", "from": "2026-11-20T21:00:00+05:30", "to": "2026-11-22T01:00:00+05:30" },
+      "expected": { "seconds": "18000" }
+    },
+    {
+      "description": "The end day: ending Friday, played 21:00 Friday to 01:00 Sunday, Friday's opening counts to its 02:00 close and Saturday's not at all.",
+      "operation": "seconds",
+      "inputs": { "schedule": "{\"days\": [5, 6], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-01\", \"endsOn\": \"2026-11-20\", \"timezone\": \"Asia/Kolkata\"}", "from": "2026-11-20T21:00:00+05:30", "to": "2026-11-22T01:00:00+05:30" },
+      "expected": { "seconds": "18000" }
+    },
+    {
+      "description": "Every day, 06:00 to 06:00: all of a night from 22:00 to 04:00 counts.",
+      "operation": "seconds",
+      "inputs": { "schedule": "{\"days\": [1, 2, 3, 4, 5, 6, 7], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}", "from": "2026-11-17T22:00:00+05:30", "to": "2026-11-18T04:00:00+05:30" },
+      "expected": { "seconds": "21600" }
+    },
+    {
+      "description": "Nothing played: zero seconds.",
+      "operation": "seconds",
+      "inputs": { "schedule": "{\"days\": [1, 2, 3, 4, 5, 6, 7], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}", "from": "2026-11-17T22:00:00+05:30", "to": "2026-11-17T22:00:00+05:30" },
+      "expected": { "seconds": "0" }
+    },
+    {
+      "description": "Part seconds are dropped: 90.6 seconds inside count as 90.",
+      "operation": "seconds",
+      "inputs": { "schedule": "{\"days\": [5, 6], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}", "from": "2026-11-20T20:00:00+05:30", "to": "2026-11-20T20:01:30.600+05:30" },
+      "expected": { "seconds": "90" }
+    }
+  ]
+}
