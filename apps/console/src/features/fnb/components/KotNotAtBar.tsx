@@ -3,14 +3,16 @@ import { formatTime, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Inline, PrintSheet, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { flushSync } from 'react-dom';
-import { orderWhere } from './orderLanes.ts';
 
-/** The KOT on paper, as the bar printer would have printed it: its number, where it goes, when, what, and comp. */
+/**
+ * The KOT on paper, as the bar printer prints it: its number, the table and seat, when, what, and comp. It names no member:
+ * the paper goes to Glaza's bar, a vendor, as the bar printer's KOT does.
+ */
 function PrintedKot({ order }: { order: FnbOrderTonight }) {
   return (
     <Stack gap={1}>
       <Text weight="semibold">{t('console.fnb.kot', { kot: order.kotNumber })}</Text>
-      <Text>{orderWhere(order)}</Text>
+      <Text>{t('console.fnb.kotWhere', { table: order.tableName, seat: order.seat })}</Text>
       <Text>{t('console.fnb.orderedAt', { time: formatTime(new Date(order.createdAt)) })}</Text>
       {order.lines.map((line) => <Text key={line.itemId}>{t('console.fnb.line', { quantity: line.quantity, name: line.name })}</Text>)}
       {order.isComp ? <Text>{t('console.fnb.comp')}</Text> : null}
@@ -29,18 +31,11 @@ function usePrinting() {
   return { isPrinting, print };
 }
 
-interface KotNotAtBarProps {
-  venueId: string;
-  order: FnbOrderTonight;
-  /** Marking it handed over is for staff who run F&B (mark_kot_sent). */
-  canMarkSent: boolean;
-}
-
 /**
  * The bar printer did not get this KOT (console v3), as its outbox delivery says, never a clock: print it here or read it
- * to the bar, then Bar has it, which takes the flag away.
+ * to the bar, then Bar has it, which takes the flag away. Everyone who serves F&B may say so, as mark_kot_sent allows.
  */
-export function KotNotAtBar({ venueId, order, canMarkSent }: KotNotAtBarProps) {
+export function KotNotAtBar({ venueId, order }: { venueId: string; order: FnbOrderTonight }) {
   const { markSent } = useFnbActions(venueId);
   const { isPrinting, print } = usePrinting();
   const [failure, setFailure] = useState<FnbFailure | null>(null);
@@ -55,10 +50,8 @@ export function KotNotAtBar({ venueId, order, canMarkSent }: KotNotAtBarProps) {
         <Button variant="subtle" size="small" aria-label={t('console.fnb.printKotName', { kot: order.kotNumber })} onClick={print}>
           {t('console.fnb.printKot')}
         </Button>
-        {canMarkSent ? (
-          <Button variant="subtle" size="small" aria-label={t('console.fnb.barHasItName', { kot: order.kotNumber })}
-            isLoading={markSent.isPending} onClick={() => void markHandedOver()}>{t('console.fnb.barHasIt')}</Button>
-        ) : null}
+        <Button variant="subtle" size="small" aria-label={t('console.fnb.barHasItName', { kot: order.kotNumber })}
+          isLoading={markSent.isPending} onClick={() => void markHandedOver()}>{t('console.fnb.barHasIt')}</Button>
       </Inline>
       {failure === null ? null : <ErrorMessage>{t(`console.fnb.failures.${failure}`)}</ErrorMessage>}
       {isPrinting ? <PrintSheet><PrintedKot order={order} /></PrintSheet> : null}

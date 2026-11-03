@@ -11,12 +11,12 @@ import { OrderBoard } from './OrderBoard.tsx';
 const TABS = ['orders', 'menu'] as const;
 type FnbTab = (typeof TABS)[number];
 
-/** What the staff member may do here: order for a seat, comp an order and mark a KOT handed over, and keep the menu's photos. */
+/** What the staff member may do here: order for a seat, comp an order, and keep the menu's photos. */
 interface FnbAccess {
   readonly venueId: string;
   /** Staff who serve order for a seat too (decision 0302), when they read who sits there: the floor, not Service alone (#640). */
   readonly canOrder: boolean;
-  /** Staff who run F&B (fnb.manage): a comp, a KOT marked handed over, a dish's photo. */
+  /** Staff who run F&B (fnb.manage): a comp and a dish's photo. */
   readonly canManage: boolean;
 }
 
@@ -77,7 +77,7 @@ function Fnb({ access, tab, onNavigate }: { access: FnbAccess; tab: FnbTab; onNa
     <Screen title={title} actions={action === undefined ? undefined : <Inline gap={4} align="center" wrap>{sent}{action}</Inline>}>
       <Stack gap={6}>
         {tabs}
-        {tab === 'menu' ? <MenuTab access={access} /> : <OrderBoard venueId={access.venueId} orders={orders.data ?? []} canMarkSent={access.canManage} />}
+        {tab === 'menu' ? <MenuTab access={access} /> : <OrderBoard venueId={access.venueId} orders={orders.data ?? []} />}
       </Stack>
       {access.canOrder ? (
         <NewOrderSheet key={newOrder.opened} venueId={access.venueId} isOpen={newOrder.isOpen} canComp={access.canManage}

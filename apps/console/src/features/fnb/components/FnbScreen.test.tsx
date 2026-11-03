@@ -95,12 +95,26 @@ describe('Food and drink (console v3)', () => {
     await waitFor(() => expect(calls.find((call) => call.url.includes('/rpc/mark_kot_sent'))?.body).toEqual({ p_order_id: 'o4' }));
   });
 
-  it('gives Service, who read no members, serving alone: no new order, and no marking a KOT handed over', async () => {
-    renderAs('service');
+  it('gives Service, who read no members, serving alone: no new order, but a KOT the bar printer missed to print and mark handed over', async () => {
+    const { calls } = renderAs('service');
     expect(await screen.findByRole('region', { name: 'To accept' }, WAIT)).toBeDefined();
     expect(screen.queryByRole('button', { name: 'New order' })).toBeNull();
     expect(screen.getByRole('button', { name: 'Print KOT 4' })).toBeDefined();
-    expect(screen.queryByRole('button', { name: 'KOT 4: bar has it' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'KOT 4: bar has it' }));
+    await waitFor(() => expect(calls.find((call) => call.url.includes('/rpc/mark_kot_sent'))?.body).toEqual({ p_order_id: 'o4' }));
+  });
+
+  it('prints a KOT the bar printer missed with its table and seat, naming no member, as the bar printer does', async () => {
+    const print = vi.fn();
+    vi.stubGlobal('print', print);
+    renderAs('service');
+    fireEvent.click(await screen.findByRole('button', { name: 'Print KOT 4' }, WAIT));
+    expect(print).toHaveBeenCalledOnce();
+    const paper = document.querySelector('[data-print-sheet]');
+    expect(paper?.textContent).toContain('KOT 4');
+    expect(paper?.textContent).toContain('Private Room, seat 4');
+    expect(paper?.textContent).toContain('2 × Beer');
+    expect(paper?.textContent).not.toContain('Lalit Goel');
   });
 
   it('orders for a seat: the table first, then the seat with who sits there, then the items (F&B order, table then seat)', async () => {

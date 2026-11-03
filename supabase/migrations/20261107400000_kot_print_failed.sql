@@ -1,8 +1,9 @@
 -- Console v3's Food and drink flags a KOT the bar printer did not get: "The bar printer did not get this KOT. Print it or
 -- read it to the bar." The flag is the bar_printer consumer's own state in the outbox, never a clock: its last attempt
 -- failed (it is retried, so the flag goes while a new attempt prints), or it was closed unprinted, too old to print. A KOT
--- handed to the bar by hand, or a void order, needs nothing, so it is never flagged. The practice venue's agent claims no
--- KOT (claim_agent_kots), so its orders have no bar_printer delivery and are never flagged.
+-- handed to the bar by hand, an order the bar accepted or delivered (so the bar has it), or a void order needs nothing,
+-- so it is never flagged. The practice venue's agent claims no KOT (claim_agent_kots), so its orders have no bar_printer
+-- delivery and are never flagged.
 -- As 20261103200300_order_on_its_way.sql made it, with kot_print_failed last. staff_queue_counts reads the function by
 -- column name, so it needs no change.
 
@@ -22,11 +23,11 @@ as $$
   select o.id, o.kot_number, g.name, o.seat, m.full_name, m.member_number, o.lines, o.is_comp, o.source, o.created_at, o.kot_sent_at, o.kot_sent_by,
          o.accepted_at, o.delivered_at, floor(extract(epoch from coalesce(o.delivered_at, o.cancelled_at, now()) - o.created_at))::integer,
          o.cancelled_at, o.cancel_reason, o.on_way_at,
-         o.kot_sent_at is null and o.cancelled_at is null and exists (
+         o.kot_sent_at is null and o.cancelled_at is null and o.accepted_at is null and o.delivered_at is null and exists (
            -- The order's fnb.ordered event, by its idempotency key (unique per venue), and the bar printer's delivery of it.
            select 1 from public.outbox_event e
-           join public.outbox_delivery d on d.event_id = e.id and d.consumer = 'bar_printer'
-           where e.venue_id = o.venue_id and e.idempotency_key = 'fnb.ordered:' || o.id
+           join public.outbox_delivery d on d.event_id = e.id and d.venue_id = e.venue_id and d.consumer = 'bar_printer'
+           where e.venue_id = o.venue_id and e.event_type = 'fnb.ordered' and e.idempotency_key = 'fnb.ordered:' || o.id
              and (d.status = 'failed' or d.status = 'delivered'))
   from public.fnb_order o
   join public.game_table g on g.id = o.table_id

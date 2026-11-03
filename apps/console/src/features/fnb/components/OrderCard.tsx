@@ -59,15 +59,13 @@ function CardActions({ venueId, lane, ...step }: StepProps & { venueId: string; 
 interface OrderCardProps extends StepProps {
   venueId: string;
   lane: OrderLane;
-  /** Marking a KOT handed to the bar is for staff who run F&B. */
-  canMarkSent: boolean;
 }
 
 /**
  * One order on its lane (console v3): its KOT and how long it has waited, or took; where it goes; what was ordered; the
  * bar printer's miss, when the outbox says so; Comp; and its next step. An order to accept carries the gold hairline.
  */
-export function OrderCard({ venueId, lane, canMarkSent, ...step }: OrderCardProps) {
+export function OrderCard({ venueId, lane, ...step }: OrderCardProps) {
   const { order } = step;
   const time = formatDuration(order.ageSeconds);
   return (
@@ -79,7 +77,7 @@ export function OrderCard({ venueId, lane, canMarkSent, ...step }: OrderCardProp
         </Inline>
         <Text variant="small">{orderWhere(order)}</Text>
         <Text variant="small" tone="muted">{orderLines(order)}</Text>
-        {order.isKotPrintFailed ? <KotNotAtBar venueId={venueId} order={order} canMarkSent={canMarkSent} /> : null}
+        {order.isKotPrintFailed ? <KotNotAtBar venueId={venueId} order={order} /> : null}
         {order.isComp ? <Text variant="caption" weight="semibold">{t('console.fnb.comp')}</Text> : null}
         <CardActions venueId={venueId} lane={lane} {...step} />
       </Stack>

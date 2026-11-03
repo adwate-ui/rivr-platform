@@ -33,7 +33,7 @@ function renderBoard(orders: readonly FnbOrderTonight[]) {
   });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}>
-      <OrderBoard venueId="v1" orders={orders} canMarkSent={false} />
+      <OrderBoard venueId="v1" orders={orders} />
     </RivrDataProvider>,
   );
   return sent;

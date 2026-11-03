@@ -11,14 +11,13 @@ interface LaneProps {
   orders: readonly FnbOrderTonight[];
   serve: ReturnType<typeof useServeFnbOrder>;
   act: Act;
-  canMarkSent: boolean;
 }
 
 /**
  * One lane, a region named for it: its name as the prototype's small capitals and its count, then its orders oldest first,
  * or that it has none.
  */
-function Lane({ venueId, lane, orders, serve, act, canMarkSent }: LaneProps) {
+function Lane({ venueId, lane, orders, serve, act }: LaneProps) {
   const name = t(`console.fnb.${lane}`);
   return (
     <Box as="section" aria-label={name}>
@@ -28,7 +27,7 @@ function Lane({ venueId, lane, orders, serve, act, canMarkSent }: LaneProps) {
           <Text variant="caption" tone="muted" isTabular>{formatNumber(orders.length)}</Text>
         </Inline>
         {orders.length === 0 ? <Text variant="small" tone="muted">{t('console.fnb.laneEmpty')}</Text> : orders.map((order) => (
-          <OrderCard key={order.orderId} venueId={venueId} lane={lane} order={order} serve={serve} act={act} canMarkSent={canMarkSent} />
+          <OrderCard key={order.orderId} venueId={venueId} lane={lane} order={order} serve={serve} act={act} />
         ))}
       </Stack>
     </Box>
@@ -39,7 +38,7 @@ function Lane({ venueId, lane, orders, serve, act, canMarkSent }: LaneProps) {
  * Tonight's orders in three lanes (console v3): to accept, being prepared, and delivered tonight. A void order goes to no
  * bar and leaves them. Service, the floor and the managers serve from here (#640, decision 0302).
  */
-export function OrderBoard({ venueId, orders, canMarkSent }: { venueId: string; orders: readonly FnbOrderTonight[]; canMarkSent: boolean }) {
+export function OrderBoard({ venueId, orders }: { venueId: string; orders: readonly FnbOrderTonight[] }) {
   const serve = useServeFnbOrder(venueId);
   const [failure, setFailure] = useState<FnbFailure | null>(null);
   const act: Act = async (done) => {
@@ -52,7 +51,7 @@ export function OrderBoard({ venueId, orders, canMarkSent }: { venueId: string; 
       {failure === null ? null : <ErrorMessage>{t(`console.fnb.failures.${failure}`)}</ErrorMessage>}
       <Grid columns={3} gap={4} stackBelow="medium">
         {ORDER_LANES.map((lane) => (
-          <Lane key={lane} venueId={venueId} lane={lane} orders={lanes[lane]} serve={serve} act={act} canMarkSent={canMarkSent} />
+          <Lane key={lane} venueId={venueId} lane={lane} orders={lanes[lane]} serve={serve} act={act} />
         ))}
       </Grid>
     </Stack>

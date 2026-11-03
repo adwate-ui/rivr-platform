@@ -97,7 +97,8 @@ export const consoleFnb = {
   printKotName: 'Print KOT {kot}',
   barHasIt: 'Bar has it',
   barHasItName: 'KOT {kot}: bar has it',
-  /** The KOT as the console prints it: when it was ordered, `21:40`. */
+  /** The KOT as the console prints it for the bar, naming no member: `Table 2, seat 9`, and when it was ordered, `21:40`. */
+  kotWhere: '{table}, seat {seat}',
   orderedAt: 'Ordered {time}',
   /** Ordering for a seat (console v3): the table first, then the seat and who sits there, then the items. */
   newOrder: 'New order',
