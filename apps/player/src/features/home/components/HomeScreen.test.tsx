@@ -2,7 +2,7 @@ import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/d
 import { ToastProvider } from '@rivr/ui';
 import { QueryClient } from '@tanstack/react-query';
 import { createMemoryHistory, createRootRoute, createRouter, RouterProvider } from '@tanstack/react-router';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { HomeScreen } from './HomeScreen.tsx';
 
@@ -84,6 +84,17 @@ describe('Tonight', () => {
     expect(sheet.textContent).toContain('Table 1');
     expect(screen.getByRole('img', { name: '3 of 9 seats open' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Take a seat' })).toBeDefined();
+  });
+
+  it('Browsing: lists the open tables first, a closed one between two open ones after both (owner, 3 Nov)', async () => {
+    const t5 = { ...TABLES[0], id: 't5', name: 'Table 5', position: 3 };
+    renderTonight([], [], {
+      '/rest/v1/game_table': [TABLES[0], { ...TABLES[1], position: 2 }, t5],
+      '/rpc/floor_open_seats': [{ table_id: 't1', open_seats: 3 }, { table_id: 't4', open_seats: 9 }, { table_id: 't5', open_seats: 2 }],
+    });
+    await screen.findByText('Table 5 · NLH 50/100', {}, LATER);
+    const rows = screen.getAllByText(/^Table \d · NLH 50\/100$/).map((name) => name.textContent);
+    expect(rows).toEqual(['Table 1 · NLH 50/100', 'Table 5 · NLH 50/100', 'Table 4 · NLH 50/100']);
   });
 
   it('On the list: the place, Next in line, when they joined, and Leave waitlist', async () => {
