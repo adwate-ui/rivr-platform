@@ -1,11 +1,12 @@
 import type { Permission } from '@rivr/contracts';
-import { useAuthStatus, useControlState, useSignOut, useStaffQueueCounts, useStaffVenue, useWaitingHighHands, type StaffVenueState } from '@rivr/db';
+import { useAuthStatus, useControlState, useSignOut, useStaffDensity, useStaffQueueCounts, useStaffVenue, useWaitingHighHands, type StaffVenueState } from '@rivr/db';
 import { useRecordTableExport } from '@rivr/db/exports';
 import { t } from '@rivr/i18n';
-import { Box, ConsoleShell, DataTableExportProvider, KillSwitchBanner, Screen, Text, TitleCount, UrgentChime } from '@rivr/ui';
+import { ConsoleShell, DataTableDensityProvider, DataTableExportProvider, KillSwitchBanner, PracticeBanner, Screen, ShortcutProvider, TitleCount, UrgentChime } from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { ConsoleSearch } from './ConsoleSearch.tsx';
+import { FrameClock, FramePulse } from './FrameHeader.tsx';
 import { NotStaff } from './NotStaff.tsx';
 import { landingFor, locksWhenIdle, phoneTabsFor, railFor, railItemAt, refusalAt, URGENT_QUEUES, type Refusal } from './rail.ts';
 import { SignOutButton } from './SignOutButton.tsx';
@@ -49,7 +50,10 @@ export function Frame({ children, prompt }: { children: ReactNode; prompt?: (sta
   const onIdle = useCallback(() => setIdleLocked(true), []);
   if (authStatus === 'signed-out') return <Navigate to="/sign-in" search={isIdleLocked ? { why: 'idle' } : {}} replace />;
   if (staff.status === 'not-staff') return <NotStaff />;
-  if (staff.status === 'ready') return <StaffFrame staff={staff} prompt={prompt} onIdle={onIdle}>{children}</StaffFrame>;
+  if (staff.status === 'ready') {
+    // The keys the screen open now offers (useShortcut), and the menu's list of them.
+    return <ShortcutProvider><StaffFrame staff={staff} prompt={prompt} onIdle={onIdle}>{children}</StaffFrame></ShortcutProvider>;
+  }
   // Until the staff record loads, or if it cannot, the header still offers a way out, and the rail stays empty (#811).
   return (
     <ConsoleShell sections={[]} account={<SignOutButton />}>
@@ -68,18 +72,6 @@ interface StaffFrameProps {
   /** The idle lock is signing the staff member out. */
   onIdle: () => void;
   children: ReactNode;
-}
-
-/**
- * On every screen while the console works in the practice venue (F1-07): a trainee never takes it for the club, nor the
- * club for it, where queues look empty and real members are not found.
- */
-function PracticeBanner() {
-  return (
-    <Box surface="alert" paddingX={4} paddingY={2}>
-      <Text as="span" variant="small" weight="medium" tone="onAlert">{t('console.practiceBanner')}</Text>
-    </Box>
-  );
 }
 
 /** The rail's counts, and the urgent queues' own: null until the first read, so the first read sounds nothing. */
@@ -115,19 +107,63 @@ function useStaffShell(staff: ReadyStaff, onIdle: () => void) {
   useIdleLock(locksWhenIdle(location.pathname), lock);
   const { counts, urgent } = useRailCounts(venueId, permissions);
   return {
-    ...location, urgent, sections: railFor(permissions, counts), tabs: phoneTabsFor(permissions, counts),
+    ...location, counts, urgent, sections: railFor(permissions, counts), tabs: phoneTabsFor(permissions, counts),
     refusal: refusalAt(permissions, location.pathname, location.tab),
   };
 }
 
-function StaffFrame({ staff, prompt, onIdle, children }: StaffFrameProps) {
-  const { venueId, permissions } = staff.venue;
+/**
+ * Across the top, above everything: the kill switch's banner, the practice venue's stripe on every screen while the
+ * console works there (F1-07, decision 0444), so nobody takes it for the club, with the way back; and any prompt.
+ */
+function FrameBanner({ staff, prompt, location }: { staff: ReadyStaff; prompt: StaffFrameProps['prompt']; location: { pathname: string; search: string } }) {
+  const { venueId, permissions, isPractice } = staff.venue;
   const { isVenueFrozen } = useControlState(venueId);
-  const navigate = useNavigate();
-  const { pathname, search, urgent, sections, tabs, refusal } = useStaffShell(staff, onIdle);
+  return (
+    <>
+      {isVenueFrozen ? <KillSwitchBanner audience="staff" /> : null}
+      {isPractice ? (
+        <PracticeBanner message={t('console.practiceBanner')} action={{ label: t('console.shell.backToClub'), onPress: () => staff.setPractice(false) }} />
+      ) : null}
+      {prompt?.({ venueId, permissions, ...location })}
+    </>
+  );
+}
+
+interface FrameBodyProps {
+  staff: ReadyStaff;
+  urgent: Readonly<Record<string, number>> | null;
+  /** The screen open now is refused: why, under its name; or undefined. */
+  refusal: Refusal | undefined;
+  landing: string | undefined;
+  children: ReactNode;
+}
+
+/** The screen, or its refusal, with what every screen shares: the staff member's density, the export, the chime. */
+function FrameBody({ staff, urgent, refusal, landing, children }: FrameBodyProps) {
+  const { venueId, permissions } = staff.venue;
+  const density = useStaffDensity(venueId);
   // Every table offers its export to staff who export tables, each recorded first (#102).
   const recordExport = useRecordTableExport(venueId);
-  const exporter = permissions.includes('exports.table') ? recordExport : null;
+  return (
+    <DataTableDensityProvider density={density.data ?? 'comfortable'}>
+      <DataTableExportProvider exporter={permissions.includes('exports.table') ? recordExport : null}>
+        {/* New urgent work chimes and is told to a screen reader, and the tab says how much waits (decision 0301); a venue
+            switch starts the chime over, so the other venue's counts sound nothing. */}
+        <UrgentChime key={venueId} counts={urgent} />
+        <TitleCount count={totalOf(urgent)}>
+          {/* A screen opened by address that the role doesn't include is refused here, before it loads anything. */}
+          {refusal === undefined ? children : <Refused refusal={refusal} landing={landing} />}
+        </TitleCount>
+      </DataTableExportProvider>
+    </DataTableDensityProvider>
+  );
+}
+
+function StaffFrame({ staff, prompt, onIdle, children }: StaffFrameProps) {
+  const { venueId, permissions } = staff.venue;
+  const navigate = useNavigate();
+  const { pathname, search, counts, urgent, sections, tabs, refusal } = useStaffShell(staff, onIdle);
   return (
     <ConsoleShell
       sections={sections}
@@ -135,23 +171,13 @@ function StaffFrame({ staff, prompt, onIdle, children }: StaffFrameProps) {
       currentItem={railItemAt(pathname)}
       title={refusal?.title}
       onNavigate={(href) => void navigate({ href })}
-      banner={<>
-        {isVenueFrozen ? <KillSwitchBanner audience="staff" /> : null}
-        {staff.venue.isPractice ? <PracticeBanner /> : null}
-        {prompt?.({ venueId, permissions, pathname, search })}
-      </>}
+      banner={<FrameBanner staff={staff} prompt={prompt} location={{ pathname, search }} />}
       search={<ConsoleSearch venueId={venueId} permissions={permissions} sections={sections} />}
-      account={<StaffAccount staff={staff} shortcuts={[]} />}
+      pulse={<FramePulse venueId={venueId} permissions={permissions} counts={counts} />}
+      clock={<FrameClock />}
+      account={<StaffAccount staff={staff} />}
     >
-      <DataTableExportProvider exporter={exporter}>
-        {/* New urgent work chimes and is told to a screen reader, and the tab says how much waits (decision 0301); a venue
-            switch starts the chime over, so the other venue's counts sound nothing. */}
-        <UrgentChime key={venueId} counts={urgent} />
-        <TitleCount count={totalOf(urgent)}>
-          {/* A screen opened by address that the role doesn't include is refused here, before it loads anything. */}
-          {refusal === undefined ? children : <Refused refusal={refusal} landing={pathname === '/' ? landingFor(sections) : undefined} />}
-        </TitleCount>
-      </DataTableExportProvider>
+      <FrameBody staff={staff} urgent={urgent} refusal={refusal} landing={pathname === '/' ? landingFor(sections) : undefined}>{children}</FrameBody>
     </ConsoleShell>
   );
 }

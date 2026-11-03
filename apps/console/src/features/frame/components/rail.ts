@@ -48,6 +48,11 @@ export function railFor(permissions: readonly Permission[], counts: QueueCounts 
   })).filter((section) => section.items.length > 0);
 }
 
+/** Every request waiting on the floor: joins, top-ups, more time and players leaving, as the Requests tab counts them. */
+export function requestsWaiting(counts: QueueCounts): number {
+  return countOf(REQUESTS, counts) ?? 0;
+}
+
 /** Below 768 px, the tab bar's tabs the role opens: Floor, Requests, Waitlist, Door. More, which the shell adds, holds the rest. */
 export function phoneTabsFor(permissions: readonly Permission[], counts: QueueCounts = {}): SideNavItem[] {
   return PHONE_TABS.flatMap(({ entry: id, label }) => {

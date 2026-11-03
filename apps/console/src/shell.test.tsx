@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { answerStaff, CLUB, LAZY_SCREEN, PRACTICE, renderAt, signIn } from './consoleTestApp.tsx';
 
@@ -108,6 +108,34 @@ describe('the console frame', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Sana Qureshi' }));
     expect(screen.getByText('Cashier · RIVR Gurugram')).toBeDefined();
     expect(screen.queryByRole('switch', { name: 'Practice venue' })).toBeNull();
+  });
+
+  it('keeps the practice venue and its stripe after a reload, and goes back to the club from the stripe', async () => {
+    signIn();
+    answerStaff([CLUB, PRACTICE]);
+    renderAt('/');
+    fireEvent.click(await screen.findByRole('button', { name: 'Sana Qureshi' }));
+    fireEvent.click(screen.getByRole('switch', { name: 'Practice venue' }));
+    expect(await screen.findByRole('region', { name: 'Practice venue' })).toBeDefined();
+    // A reload: the page starts again from what the device kept.
+    cleanup();
+    renderAt('/');
+    const stripe = await screen.findByRole('region', { name: 'Practice venue' });
+    fireEvent.click(within(stripe).getByRole('button', { name: 'Back to the club' }));
+    await waitFor(() => expect(screen.queryByRole('region', { name: 'Practice venue' })).toBeNull());
+    fireEvent.click(screen.getByRole('button', { name: 'Sana Qureshi' }));
+    expect(screen.getByText('Cashier · RIVR Gurugram')).toBeDefined();
+  });
+
+  it('offers the density and the keys that work in the staff member’s menu', async () => {
+    signIn();
+    answerStaff([CLUB]);
+    renderAt('/');
+    fireEvent.click(await screen.findByRole('button', { name: 'Sana Qureshi' }));
+    const density = screen.getByRole('radiogroup', { name: 'Density' });
+    expect(within(density).getByRole('radio', { name: 'Comfortable' }).getAttribute('aria-checked')).toBe('true');
+    expect(within(density).getByRole('radio', { name: 'Compact' })).toBeDefined();
+    expect(screen.getByRole('list', { name: 'Shortcuts' }).textContent).toBe('/SearchCtrl KSearchEscClose');
   });
 
   it('says on sign-in that the idle lock signed the staff member out', async () => {
