@@ -5,7 +5,8 @@
  *   changed    quick, plus: mutation tests on the changed money modules, pgTAP when supabase/ or a golden
  *              file changed, the generated-tokens check, the drill gates, Storybook build and visual tests
  *   all        every step for every package
- *   code       CI: quick, the generated-tokens check and the drill gates, for every package
+ *   code       CI: quick and the generated-tokens check, for every package
+ *   drills     CI: the drill gates, beside code so neither nears its time limit (decision 0425)
  *   database   CI: pgTAP and the generated types
  *   storybook  CI: Storybook build and visual tests
  *   mutation <n>/<count>   CI: the n-th of `count` shares of the money modules' files to mutate. With
@@ -276,7 +277,8 @@ function stepsFor(mode, scope) {
 
 /** CI's parallel parts, one job each (decision 0243). */
 const CI_PARTS = {
-  code: (scope) => [...quickSteps(scope), tokensStep(), drillsStep()],
+  code: (scope) => [...quickSteps(scope), tokensStep()],
+  drills: () => [drillsStep()],
   database: () => [pgtapStep()],
   storybook: () => [storybookStep()],
   mutation: (scope) => {
