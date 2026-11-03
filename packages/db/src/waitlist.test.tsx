@@ -49,7 +49,7 @@ const EMPTY = {
 afterEach(cleanup);
 
 describe('Waitlist data', () => {
-  it('gives tonight\'s tables with how many wait for each game and each table\'s open seats, money in paise as bigint', async () => {
+  it('gives tonight\'s active tables with how many wait on each table\'s list and its open seats, money in paise as bigint', async () => {
     const { result } = renderWaitlist({
       ...EMPTY,
       '/rest/v1/game_table': {
@@ -61,7 +61,7 @@ describe('Waitlist data', () => {
       '/rest/v1/table_type': {
         body: [{ id: 'hi', name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, buy_in_min_paise: 1000000, straddle_paise: null }],
       },
-      '/rpc/waitlist_lengths': { body: [{ table_type_id: 'hi', waiting: 3, call_time_minutes: 180 }] },
+      '/rpc/waitlist_lengths': { body: [{ table_id: 't2', waiting: 3, call_time_minutes: 180 }, { table_id: 't3', waiting: 1, call_time_minutes: 180 }] },
       '/rpc/floor_open_seats': { body: [{ table_id: 't2', open_seats: 4 }] },
     });
     // A table whose game the person cannot read is left out.
@@ -78,29 +78,29 @@ describe('Waitlist data', () => {
       '/rpc/my_waitlist': {
         body: [{
           entry_id: 'e4', table_type_id: 'hi', table_type_name: 'NLH 100/200', small_blind_paise: 10000, big_blind_paise: 20000,
-          joined_at: '2026-10-19T14:00:00+00:00', place: 4, is_request: false,
+          joined_at: '2026-10-19T14:00:00+00:00', place: 4, is_request: false, table_id: 't2', table_name: 'Table 2',
         }, {
           entry_id: 'e5', table_type_id: 'lo', table_type_name: 'NLH 50/100', small_blind_paise: 5000, big_blind_paise: 10000,
-          joined_at: '2026-10-19T14:05:00+00:00', place: 0, is_request: true,
+          joined_at: '2026-10-19T14:05:00+00:00', place: 0, is_request: true, table_id: 't1', table_name: 'Table 1',
         }],
       },
       '/rpc/waitlist_board': {
         body: [{
           entry_id: 'e4', table_type_id: 'hi', member_id: ISHAAN, full_name: 'Ishaan Verma', joined_at: '2026-10-19T14:00:00+00:00',
-          place: 4, added_by_floor: true, priority_reason: 'Black card',
+          place: 4, added_by_floor: true, priority_reason: 'Black card', asked_table_id: 't2',
         }],
       },
     });
     await waitFor(() => expect(result.current.places.data).toEqual([{
       entryId: 'e4', tableTypeId: 'hi', tableTypeName: 'NLH 100/200', smallBlind: 10000n, bigBlind: 20000n,
-      joinedAt: '2026-10-19T14:00:00+00:00', place: 4, isRequest: false,
+      joinedAt: '2026-10-19T14:00:00+00:00', place: 4, isRequest: false, tableId: 't2', tableName: 'Table 2',
     }, {
       entryId: 'e5', tableTypeId: 'lo', tableTypeName: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n,
-      joinedAt: '2026-10-19T14:05:00+00:00', place: null, isRequest: true,
+      joinedAt: '2026-10-19T14:05:00+00:00', place: null, isRequest: true, tableId: 't1', tableName: 'Table 1',
     }]));
     await waitFor(() => expect(result.current.board.data).toEqual([{
       entryId: 'e4', tableTypeId: 'hi', memberId: ISHAAN, fullName: 'Ishaan Verma', joinedAt: '2026-10-19T14:00:00+00:00',
-      place: 4, addedByFloor: true, priorityReason: 'Black card',
+      place: 4, addedByFloor: true, priorityReason: 'Black card', tableId: 't2',
     }]));
   });
 
@@ -108,16 +108,16 @@ describe('Waitlist data', () => {
     const { result } = renderWaitlist({
       ...EMPTY,
       '/rpc/waitlist_requests': {
-        body: [{ entry_id: 'e6', table_type_id: 'hi', member_id: ISHAAN, full_name: 'Ishaan Verma', joined_at: '2026-10-29T14:00:00+00:00' }],
+        body: [{ entry_id: 'e6', table_type_id: 'hi', member_id: ISHAAN, full_name: 'Ishaan Verma', joined_at: '2026-10-29T14:00:00+00:00', table_id: 't2' }],
       },
       '/rpc/approve_waitlist_request': { status: 400, body: { code: '22023', message: 'No request to approve' } },
-      '/rpc/join_waitlist': { status: 400, body: { code: 'RVONE', message: 'One game at a time' } },
+      '/rpc/join_waitlist_at': { status: 400, body: { code: 'RVONE', message: 'One list at a time' } },
     });
     await waitFor(() => expect(result.current.requests.data).toEqual([{
-      entryId: 'e6', tableTypeId: 'hi', memberId: ISHAAN, fullName: 'Ishaan Verma', joinedAt: '2026-10-29T14:00:00+00:00',
+      entryId: 'e6', tableTypeId: 'hi', tableId: 't2', memberId: ISHAAN, fullName: 'Ishaan Verma', joinedAt: '2026-10-29T14:00:00+00:00',
     }]));
     expect(await act(() => result.current.approve.mutateAsync('e6'))).toEqual({ ok: false, error: 'invalid' });
-    expect(await act(() => result.current.member.join.mutateAsync({ tableTypeId: 'hi', requestId: 'r2' }))).toEqual({
+    expect(await act(() => result.current.member.joinAt.mutateAsync({ tableId: 't2', requestId: 'r2' }))).toEqual({
       ok: false, error: 'one_at_a_time',
     });
   });
@@ -125,13 +125,13 @@ describe('Waitlist data', () => {
   it('joins with the tap\'s request id and leaves, saying why when the database refuses', async () => {
     const { result, calls } = renderWaitlist({
       ...EMPTY,
-      '/rpc/join_waitlist': { status: 400, body: { code: 'RVKYC', message: 'Finish the identity check to join a waitlist' } },
+      '/rpc/join_waitlist_at': { status: 400, body: { code: 'RVKYC', message: 'Finish the identity check to join a waitlist' } },
       '/rpc/leave_waitlist': { body: null },
     });
-    expect(await act(() => result.current.member.join.mutateAsync({ tableTypeId: 'hi', requestId: 'r1' }))).toEqual({
+    expect(await act(() => result.current.member.joinAt.mutateAsync({ tableId: 't2', requestId: 'r1' }))).toEqual({
       ok: false, error: 'kyc_needed',
     });
-    expect(calls.find((call) => call.url.includes('/rpc/join_waitlist'))?.body).toEqual({ p_table_type_id: 'hi', p_idempotency_key: 'r1' });
+    expect(calls.find((call) => call.url.includes('/rpc/join_waitlist_at'))?.body).toEqual({ p_table_id: 't2', p_idempotency_key: 'r1' });
     expect(await act(() => result.current.member.leave.mutateAsync('e4'))).toEqual({ ok: true, value: null });
   });
 
@@ -141,11 +141,11 @@ describe('Waitlist data', () => {
       '/rpc/add_to_waitlist': { status: 400, body: { code: 'RVNOM', message: 'No member has that number' } },
       '/rpc/leave_waitlist': { status: 400, body: { code: 'XX000', message: 'boom' } },
     });
-    expect(await act(() => result.current.floor.add.mutateAsync({ tableTypeId: 'lo', phone: '9000000299', requestId: 'r2' }))).toEqual({
+    expect(await act(() => result.current.floor.add.mutateAsync({ tableId: 't1', phone: '9000000299', requestId: 'r2' }))).toEqual({
       ok: false, error: 'no_member',
     });
     expect(calls.find((call) => call.url.includes('/rpc/add_to_waitlist'))?.body).toEqual({
-      p_table_type_id: 'lo', p_phone: '9000000299', p_idempotency_key: 'r2',
+      p_table_id: 't1', p_phone: '9000000299', p_idempotency_key: 'r2',
     });
     expect(await act(() => result.current.floor.remove.mutateAsync('e4'))).toEqual({ ok: false, error: 'unavailable' });
   });

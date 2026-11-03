@@ -41,12 +41,14 @@ describe('tables setup, games history and points by hand', () => {
     const { result } = renderSetup({
       table_type: { body: [{ id: 's1', name: 'NLH 50/100', game: 'nlh', small_blind_paise: 5000, big_blind_paise: 10000, straddle_paise: null },
         { id: 's2', name: '100/200', game: null, small_blind_paise: 10000, big_blind_paise: 20000, straddle_paise: 40000 }] },
-      game_table: { body: [{ id: 't1', name: 'Table 1', table_type_id: 's1', seats: 9, is_open: true }] },
+      game_table: { body: [{ id: 't1', name: 'Table 1', table_type_id: 's1', seats: 9, is_open: true, active: true },
+        { id: 't4', name: 'Table 4', table_type_id: 's1', seats: 9, is_open: false, active: false }] },
     });
     await waitFor(() => expect(result.current.setup.data).toEqual({
       stakes: [{ id: 's1', name: 'NLH 50/100', game: 'nlh', smallBlind: 5000n, bigBlind: 10000n, straddle: null },
         { id: 's2', name: '100/200', game: null, smallBlind: 10000n, bigBlind: 20000n, straddle: 40000n }],
-      tables: [{ id: 't1', name: 'Table 1', stakeId: 's1', seats: 9, isOpen: true }],
+      tables: [{ id: 't1', name: 'Table 1', stakeId: 's1', seats: 9, isOpen: true, isActive: true },
+        { id: 't4', name: 'Table 4', stakeId: 's1', seats: 9, isOpen: false, isActive: false }],
     }));
   });
 
@@ -73,6 +75,25 @@ describe('tables setup, games history and points by hand', () => {
     });
     expect(calls.find((call) => call.path === 'add_game_table')?.body).toEqual({ p_venue_id: VENUE, p_name: 'Table 9', p_table_type_id: 's1', p_seats: 8 });
     expect(refused).toEqual({ ok: false, error: 'players_seated' });
+  });
+
+  it('deactivates, reactivates and deletes a table, and says why one was refused (decision 0432)', async () => {
+    const { result, calls } = renderSetup({
+      deactivate_game_table: { status: 400, body: { code: 'RVWTG', message: 'Take the players off its waitlist first' } },
+      delete_game_table: { status: 400, body: { code: 'RVSTD', message: 'Move the players' } },
+    });
+    let outcomes: unknown[] = [];
+    await act(async () => {
+      outcomes = [
+        await result.current.actions.deactivate.mutateAsync('t1'),
+        await result.current.actions.reactivate.mutateAsync('t4'),
+        await result.current.actions.remove.mutateAsync('t1'),
+      ];
+    });
+    expect(outcomes).toEqual([{ ok: false, error: 'players_waiting' }, { ok: true, value: null }, { ok: false, error: 'players_seated' }]);
+    expect(calls.filter((call) => call.path.endsWith('_game_table')).map((call) => [call.path, call.body])).toEqual([
+      ['deactivate_game_table', { p_table_id: 't1' }], ['reactivate_game_table', { p_table_id: 't4' }], ['delete_game_table', { p_table_id: 't1' }],
+    ]);
   });
 
   it('reads the games each club day ran', async () => {

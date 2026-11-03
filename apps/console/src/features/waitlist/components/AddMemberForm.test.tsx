@@ -20,7 +20,7 @@ describe('adding a member to a list by number', () => {
     render(
       <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
         queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-        <AddMemberForm venueId="v1" tableTypeId="t1" />
+        <AddMemberForm venueId="v1" tableId="t1" />
       </RivrDataProvider>,
     );
     fireEvent.click(screen.getByRole('button', { name: 'Add to the list' }));
@@ -43,7 +43,7 @@ describe('adding a member to a list by number', () => {
     render(
       <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
         queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-        <AddMemberForm venueId="v1" tableTypeId="t1" />
+        <AddMemberForm venueId="v1" tableId="t1" />
       </RivrDataProvider>,
     );
     fireEvent.change(screen.getByRole('textbox', { name: 'Mobile number' }), { target: { value: '9876543210' } });

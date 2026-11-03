@@ -94,7 +94,7 @@ export function EntryRow({ venueId, entry, tables }: { venueId: string; entry: W
         </Stack>
         <EntryActions venueId={venueId} entry={entry} onCall={() => setIsCalling(true)} canCall={tables.length > 0} act={act} />
       </Inline>
-      {isCalling ? <AssignForm venueId={venueId} entryId={entry.entryId} name={entry.fullName} tables={tables} askedTableId={entry.askedTableId}
+      {isCalling ? <AssignForm venueId={venueId} entryId={entry.entryId} name={entry.fullName} tables={tables} askedTableId={entry.tableId}
         onDone={() => setIsCalling(false)} /> : null}
       {failure === null ? null : <ErrorMessage>{t(failure)}</ErrorMessage>}
     </Stack>

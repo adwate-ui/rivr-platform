@@ -1,7 +1,7 @@
 -- A member may hide their name on the room's TVs (#326, decision 0070): on by default; with it off, the
 -- TV's waitlist board gives their place and no name, and turning it back on restores the first name and
 -- initial. Each change tells the venue's TVs to read the board again. The seed has Kabir Sethi (202),
--- Naina Kapoor (203) and Rohan Bhatia (204) waiting for 100/200.
+-- Naina Kapoor (203) and Rohan Bhatia (204) waiting on Table 2's list.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -34,12 +34,8 @@ insert into public.device (id, venue_id, kind, name, auth_user_id) values
   ('00000000-0000-4000-8000-00000000d741', '00000000-0000-4000-8000-000000000001', 'tv', 'Bar TV', '00000000-0000-4000-8000-00000000e741');
 insert into public.tv_screen (device_id, venue_id, mode) values
   ('00000000-0000-4000-8000-00000000d741', '00000000-0000-4000-8000-000000000001', 'waitlist');
-create temporary table hundreds on commit drop as
-select id from public.table_type where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'nlh_100_200';
-grant select on hundreds to authenticated;
-
 create function pg_temp.board() returns table (place integer, display_name text) language sql as $$
-  select b.place, b.display_name from public.tv_waitlist_board() b where b.table_type_id = (select id from hundreds) order by b.place;
+  select b.place, b.display_name from public.tv_waitlist_board() b where b.table_name = 'Table 2' order by b.place;
 $$;
 grant execute on function pg_temp.board() to authenticated;
 

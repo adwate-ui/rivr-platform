@@ -6,7 +6,7 @@ import { queryKeys } from './queryKeys.ts';
 // A waitlist place moves as others join and leave: positions refresh every ten seconds.
 const LIVE = 10_000;
 
-/** One table on tonight's floor, with its game and stakes and how many wait for that game. */
+/** One active table on tonight's floor (decision 0432), with its game and stakes and how many wait on its own list (decision 0433). */
 export interface FloorTable {
   readonly id: string;
   /** Staff read the tables of every venue they work at: the console shows the selected venue's. */
@@ -23,9 +23,9 @@ export interface FloorTable {
   readonly buyIn: bigint;
   /** A compulsory straddle in paise, as in the Private Room; null where there is none. */
   readonly straddle: bigint | null;
-  /** Members waiting for this table's game and stake: on the list, not still asking (#633). */
+  /** Members on this table's own list (decision 0433): approved, not still asking (#633). */
   readonly waiting: number;
-  /** The game's call time in minutes (#633); 0 where it has none. */
+  /** The stake's call time in minutes (#633); 0 where it has none. */
   readonly callTimeMinutes: number;
   /** Seats free tonight: not sat in, nor held for a called member (#87); null where the person may not read them. */
   readonly openSeats: number | null;
@@ -52,9 +52,9 @@ export interface WaitlistPlace {
   readonly holdUntil: string | null;
   /** While the member has stepped away: when their place goes; null otherwise. */
   readonly awayUntil: string | null;
-  /** The table the member asked for from the app (decision 0321); null for a place the floor added. */
-  readonly tableId: string | null;
-  readonly tableName: string | null;
+  /** The table whose list the place is on (decision 0433). */
+  readonly tableId: string;
+  readonly tableName: string;
   /** When the seat was called: the hold drains from here to holdUntil. */
   readonly calledAt: string | null;
   /** When the member said they were on their way. */
@@ -78,8 +78,8 @@ export interface WaitlistBoardEntry {
   readonly holdUntil: string | null;
   /** While away (Skip, or the member stepped away): when the place goes. */
   readonly awayUntil: string | null;
-  /** The table the member asked for from the app (decision 0321): the floor's Assign starts from it. */
-  readonly askedTableId: string | null;
+  /** The table whose list the place is on (decision 0433): the floor assigns it only there. */
+  readonly tableId: string;
   /** When a called member said they were on their way. */
   readonly onWayAt: string | null;
 }
@@ -107,8 +107,8 @@ export function failureOf(error: { code: string }): WaitlistFailure {
 }
 
 /**
- * Tonight's tables at the venue the person belongs to, in floor order, with each game's waitlist length and call time, and each
- * table's open seats.
+ * Tonight's active tables at the venue the person belongs to (decision 0432), in floor order, with each table's waitlist length
+ * (decision 0433), its stake's call time, and its open seats.
  */
 export function useFloorTables() {
   const { client, userId } = useRivrData();
@@ -118,7 +118,8 @@ export function useFloorTables() {
     refetchInterval: LIVE,
     queryFn: async (): Promise<FloorTable[]> => {
       const [tables, types, lengths, open] = await Promise.all([
-        client.from('game_table').select('id, venue_id, name, is_open, seats, position, table_type_id, must_move_to_table_id, room').order('position'),
+        client.from('game_table').select('id, venue_id, name, is_open, seats, position, table_type_id, must_move_to_table_id, room')
+          .eq('active', true).order('position'),
         client.from('table_type').select('id, name, game, small_blind_paise, big_blind_paise, buy_in_min_paise, straddle_paise'),
         client.rpc('waitlist_lengths'),
         client.rpc('floor_open_seats'),
@@ -127,8 +128,8 @@ export function useFloorTables() {
       if (types.error) throw types.error;
       if (lengths.error) throw lengths.error;
       if (open.error) throw open.error;
-      const waiting = new Map(lengths.data.map((row) => [row.table_type_id, row.waiting]));
-      const callTime = new Map(lengths.data.map((row) => [row.table_type_id, row.call_time_minutes]));
+      const waiting = new Map(lengths.data.map((row) => [row.table_id, row.waiting]));
+      const callTime = new Map(lengths.data.map((row) => [row.table_id, row.call_time_minutes]));
       const openSeats = new Map(open.data.map((row) => [row.table_id, row.open_seats]));
       return tables.data.flatMap((table) => {
         const type = types.data.find((candidate) => candidate.id === table.table_type_id);
@@ -137,8 +138,8 @@ export function useFloorTables() {
           id: table.id, venueId: table.venue_id, name: table.name, isOpen: table.is_open, seats: table.seats, tableTypeId: type.id, tableTypeName: type.name,
           game: type.game === 'plo' ? 'plo' : 'nlh',
           smallBlind: BigInt(type.small_blind_paise), bigBlind: BigInt(type.big_blind_paise), buyIn: BigInt(type.buy_in_min_paise),
-          straddle: type.straddle_paise === null ? null : BigInt(type.straddle_paise), waiting: waiting.get(type.id) ?? 0, openSeats: openSeats.get(table.id) ?? null,
-          callTimeMinutes: callTime.get(type.id) ?? 0,
+          straddle: type.straddle_paise === null ? null : BigInt(type.straddle_paise), waiting: waiting.get(table.id) ?? 0, openSeats: openSeats.get(table.id) ?? null,
+          callTimeMinutes: callTime.get(table.id) ?? 0,
           mustMoveToTableId: table.must_move_to_table_id ?? null, room: table.room === 'private' ? 'private' : 'main',
         }];
       });
@@ -168,21 +169,14 @@ export function useMyWaitlist() {
 }
 
 /**
- * Joining a list from the app (`join_waitlist`, feature waitlist.join), stepping away and back, and leaving it. `join` takes
- * the request id of the tap, so a retried tap joins once. Each resolves to a Result; both reload the
- * floor and the member's places.
+ * Joining a table's list from the app (`join_waitlist_at`, feature waitlist.join; decision 0433), stepping away and back, and
+ * leaving it. `joinAt` takes the request id of the tap, so a retried tap joins once. Each resolves to a Result; each reloads
+ * the floor and the member's places.
  */
 export function useWaitlistActions() {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   const reload = () => queryClient.invalidateQueries({ queryKey: ['user', userId ?? 'signed-out'] });
-  const join = useMutation({
-    mutationFn: async ({ tableTypeId, requestId }: { tableTypeId: string; requestId: string }): Promise<Result<string, WaitlistFailure>> => {
-      const { data, error } = await client.rpc('join_waitlist', { p_table_type_id: tableTypeId, p_idempotency_key: requestId });
-      await reload();
-      return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(data);
-    },
-  });
   const joinAt = useMutation({
     mutationFn: async ({ tableId, requestId }: { tableId: string; requestId: string }): Promise<Result<string, WaitlistFailure>> => {
       const { data, error } = await client.rpc('join_waitlist_at', { p_table_id: tableId, p_idempotency_key: requestId });
@@ -204,7 +198,7 @@ export function useWaitlistActions() {
       return error ? err(failureOf(error)) : ok(null);
     },
   });
-  return { join, joinAt, leave, stepAway };
+  return { joinAt, leave, stepAway };
 }
 
 /** The venue's lists for the floor (`waitlist_board`, waitlist.manage): each place in order, with names. */
@@ -220,21 +214,21 @@ export function useWaitlistBoard(venueId: string) {
       return data.map((row) => ({
         entryId: row.entry_id, tableTypeId: row.table_type_id, memberId: row.member_id, fullName: row.full_name, joinedAt: row.joined_at,
         place: row.place, addedByFloor: row.added_by_floor, priorityReason: row.priority_reason, callTableName: row.call_table_name,
-        callSeat: row.call_seat, holdUntil: row.hold_until, awayUntil: row.away_until, askedTableId: row.asked_table_id, onWayAt: row.on_way_at,
+        callSeat: row.call_seat, holdUntil: row.hold_until, awayUntil: row.away_until, tableId: row.asked_table_id, onWayAt: row.on_way_at,
       }));
     },
   });
 }
 
-/** The floor adds a member found by their mobile number, or takes a place off a list. Both reload the board. */
+/** The floor adds a member found by their mobile number to a table's list (decision 0433), or takes a place off a list. Both reload the board. */
 export function useFloorWaitlistActions(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   const reload = () => queryClient.invalidateQueries({ queryKey: ['user', userId ?? 'signed-out'] });
   const add = useMutation({
-    mutationFn: async (entry: { tableTypeId: string; phone: string; requestId: string }): Promise<Result<string, WaitlistFailure>> => {
+    mutationFn: async (entry: { tableId: string; phone: string; requestId: string }): Promise<Result<string, WaitlistFailure>> => {
       const { data, error } = await client.rpc('add_to_waitlist', {
-        p_table_type_id: entry.tableTypeId, p_phone: entry.phone, p_idempotency_key: entry.requestId,
+        p_table_id: entry.tableId, p_phone: entry.phone, p_idempotency_key: entry.requestId,
       });
       await reload();
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(data);
@@ -254,6 +248,8 @@ export function useFloorWaitlistActions(venueId: string) {
 export interface WaitlistRequest {
   readonly entryId: string;
   readonly tableTypeId: string;
+  /** The table whose list the member asked to join (decision 0433). */
+  readonly tableId: string;
   readonly memberId: string;
   readonly fullName: string;
   readonly joinedAt: string;
@@ -269,7 +265,9 @@ export function useWaitlistRequests(venueId: string) {
     queryFn: async (): Promise<WaitlistRequest[]> => {
       const { data, error } = await client.rpc('waitlist_requests', { p_venue_id: venueId });
       if (error) throw error;
-      return data.map((row) => ({ entryId: row.entry_id, tableTypeId: row.table_type_id, memberId: row.member_id, fullName: row.full_name, joinedAt: row.joined_at }));
+      return data.map((row) => ({
+        entryId: row.entry_id, tableTypeId: row.table_type_id, tableId: row.table_id, memberId: row.member_id, fullName: row.full_name, joinedAt: row.joined_at,
+      }));
     },
   });
 }

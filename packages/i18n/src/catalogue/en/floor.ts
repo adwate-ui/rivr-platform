@@ -197,6 +197,8 @@ export const tablesSetup = {
   failures: {
     invalid: 'Check the name, the blinds and straddle (whole 50s) and the seats (2 to 10).',
     players_seated: 'Move the players off this table before changing its stake.',
+    /** Deactivating or deleting a table with players on its waitlist (decision 0432). */
+    players_waiting: 'Take the players off this table’s waitlist first.',
     seats_taken: 'More seats are taken. Free them first.',
     not_allowed: 'Only the super admin sets up tables.',
     paused: 'Venue frozen. Try again once it is released.',

@@ -12,7 +12,7 @@ afterEach(() => {
 
 const NAINA: WaitlistBoardEntry = {
   entryId: 'e1', tableTypeId: 'tt', memberId: 'm2', fullName: 'Naina Kapoor', joinedAt: '2026-11-15T15:00:00Z', place: 1, addedByFloor: false,
-  priorityReason: null, callTableName: null, callSeat: null, holdUntil: null, awayUntil: null, askedTableId: null, onWayAt: null,
+  priorityReason: null, callTableName: null, callSeat: null, holdUntil: null, awayUntil: null, tableId: 't2', onWayAt: null,
 };
 
 /** Aditya, the floor, with Naina first on a list, and a fake API that keeps each place taken off. */

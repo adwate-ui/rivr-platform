@@ -1,5 +1,5 @@
--- Call, seat and step away (#63). The seed puts Kabir (202), Naina (203) and Rohan (204) on 100/200;
--- Tables 2, 3 and 5 are open at 100/200, Table 4 is closed, and the hold is 20 minutes. 103 Aditya is
+-- Call, seat and step away (#63). The seed puts Kabir (202), Naina (203) and Rohan (204) on Table 2's list (100/200; a
+-- list per table, decision 0433); Tables 2, 3 and 5 are open at 100/200, Table 4 is closed, and the hold is 20 minutes. 103 Aditya is
 -- the floor; 106 Pema a dealer. Ishaan (211) and Vihaan (212, a black card) have finished the check.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -48,34 +48,36 @@ update public.waitlist_entry set joined_at = now() - interval '30 minutes' where
 update public.waitlist_entry set joined_at = now() - interval '29 minutes' where id = pg_temp.entry('00000000-0000-4000-8000-000000000203');
 update public.waitlist_entry set joined_at = now() - interval '28 minutes' where id = pg_temp.entry('00000000-0000-4000-8000-000000000204');
 
--- The floor calls Kabir to Table 3, seat 9.
+-- The floor calls Kabir to Table 2, seat 9.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select lives_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000202'), pg_temp.table_id('Table 3'), 9) $$,
-  'the floor calls the first name to Table 3, seat 9');
+select lives_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000202'), pg_temp.table_id('Table 2'), 9) $$,
+  'the floor calls the first name to Table 2, seat 9');
 select results_eq($$ select full_name, call_table_name, call_seat, hold_until = now() + interval '20 minutes'
                      from public.waitlist_board('00000000-0000-4000-8000-000000000001') where place = 1 and call_table_name is not null $$,
-  $$ values ('Kabir Sethi'::text, 'Table 3'::text, 9, true) $$, 'who is held there for 20 minutes, on the floor''s list');
+  $$ values ('Kabir Sethi'::text, 'Table 2'::text, 9, true) $$, 'who is held there for 20 minutes, on the floor''s list');
 select throws_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000202'), pg_temp.table_id('Table 2'), 1) $$,
   '22023', null, 'a called member is not called again');
 select throws_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000203'), pg_temp.table_id('Table 4'), 1) $$,
   '22023', null, 'nor anyone to a closed table');
+select throws_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000203'), pg_temp.table_id('Table 3'), 1) $$,
+  '22023', null, 'nor to an open table of the game that is not their list''s own');
 select throws_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000203'), pg_temp.table_id('Table 1'), 1) $$,
   '22023', null, 'nor to another game''s table');
 select throws_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000203'), pg_temp.table_id('Table 2'), 10) $$,
   '22023', null, 'nor to a seat the table does not have');
 select throws_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000203'), pg_temp.table_id('Table 2'), 1) $$,
   'RVKYC', null, 'nor anyone without a finished identity check: they could not take the seat');
-select throws_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000204'), pg_temp.table_id('Table 3'), 9) $$,
+select throws_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000204'), pg_temp.table_id('Table 2'), 9) $$,
   'RVHLD', null, 'nor anyone to a seat held for another call');
 reset role;
 select results_eq($$ select payload ->> 'table_name', (payload ->> 'seat')::integer, payload ? 'hold_until'
                      from public.outbox_event where event_type = 'waitlist.called'
                        and payload ->> 'member_id' = '00000000-0000-4000-8000-000000000202' $$,
-  $$ values ('Table 3'::text, 9, true) $$, 'the call sends the seat call: table, seat and hold, never a number');
+  $$ values ('Table 2'::text, 9, true) $$, 'the call sends the seat call: table, seat and hold, never a number');
 
 -- Kabir is seated, while his hold lasts and the table is open: off every list, and the seat is taken.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000202');
-select results_eq($$ select call_table_name, call_seat from public.my_waitlist() $$, $$ values ('Table 3'::text, 9) $$,
+select results_eq($$ select call_table_name, call_seat from public.my_waitlist() $$, $$ values ('Table 2'::text, 9) $$,
   'the member sees the seat they are called to');
 reset role;
 update public.waitlist_entry set hold_until = now() - interval '1 second' where id = pg_temp.entry('00000000-0000-4000-8000-000000000202');
@@ -84,12 +86,12 @@ select throws_ok($$ select public.seat_from_waitlist(pg_temp.entry('00000000-000
   'a member is not seated once the hold has run out');
 reset role;
 update public.waitlist_entry set hold_until = now() + interval '20 minutes' where id = pg_temp.entry('00000000-0000-4000-8000-000000000202');
-update public.game_table set is_open = false where id = pg_temp.table_id('Table 3');
+update public.game_table set is_open = false where id = pg_temp.table_id('Table 2');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select throws_ok($$ select public.seat_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000202')) $$, '22023', null,
   'nor at a table closed since the call');
 reset role;
-update public.game_table set is_open = true where id = pg_temp.table_id('Table 3');
+update public.game_table set is_open = true where id = pg_temp.table_id('Table 2');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select lives_ok($$ select public.seat_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000202')) $$, 'the floor seats them');
 select is((select full_name from public.waitlist_board('00000000-0000-4000-8000-000000000001') where place = 1
@@ -144,11 +146,11 @@ update public.waitlist_entry set away_used = interval '0' where id = pg_temp.ent
 
 -- A call unanswered when its hold runs out rolls to the next name, for the same seat.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000210');
-select isnt(public.join_waitlist(pg_temp.type_id('nlh_100_200'), gen_random_uuid()), null, 'Dev joins behind Rohan');
+select isnt(public.join_waitlist_at(pg_temp.table_id('Table 2'), gen_random_uuid()), null, 'Dev joins behind Rohan');
 select pg_temp.approve_joins();
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select lives_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000204'), pg_temp.table_id('Table 5'), 4) $$,
-  'the floor calls Rohan to Table 5, seat 4');
+select lives_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000204'), pg_temp.table_id('Table 2'), 4) $$,
+  'the floor calls Rohan to Table 2, seat 4');
 reset role;
 update public.waitlist_entry set hold_until = now() - interval '1 second' where id = pg_temp.entry('00000000-0000-4000-8000-000000000204');
 select private.expire_waitlist_holds();
@@ -156,18 +158,18 @@ select is((select left_reason from public.waitlist_entry where member_id = '0000
            and table_type_id = pg_temp.type_id('nlh_100_200')), 'missed', 'the unanswered call lets Rohan''s place go');
 select results_eq($$ select ct.name, e.call_seat from public.waitlist_entry e join public.game_table ct on ct.id = e.call_table_id
                      where e.member_id = '00000000-0000-4000-8000-000000000210' and e.status = 'waiting' $$,
-  $$ values ('Table 5'::text, 4) $$, 'and calls the next name, Dev, to the same seat');
+  $$ values ('Table 2'::text, 4) $$, 'and calls the next name, Dev, to the same seat');
 
 -- A called member who leaves rolls the seat on too; the floor's Skip ends a call and rolls it on.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select isnt(public.join_waitlist(pg_temp.type_id('nlh_100_200'), gen_random_uuid()), null, 'Ishaan joins behind Dev');
+select isnt(public.join_waitlist_at(pg_temp.table_id('Table 2'), gen_random_uuid()), null, 'Ishaan joins behind Dev');
 select pg_temp.approve_joins();
 select pg_temp.as_person('00000000-0000-4000-8000-000000000210');
 select lives_ok($$ select public.leave_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000210')) $$, 'Dev leaves while called');
 reset role;
 select results_eq($$ select ct.name, e.call_seat from public.waitlist_entry e join public.game_table ct on ct.id = e.call_table_id
                      where e.member_id = '00000000-0000-4000-8000-000000000211' and e.status = 'waiting' $$,
-  $$ values ('Table 5'::text, 4) $$, 'and Ishaan is called to the seat');
+  $$ values ('Table 2'::text, 4) $$, 'and Ishaan is called to the seat');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select throws_ok($$ select public.step_away(pg_temp.entry('00000000-0000-4000-8000-000000000211'), true) $$, '22023', null,
   'a called member cannot step away themselves');
@@ -188,7 +190,7 @@ reset role;
 insert into public.control_state (venue_id, level, member_id, reason)
 values ('00000000-0000-4000-8000-000000000001', 'member_freeze', '00000000-0000-4000-8000-000000000211', 'Test');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000211'), pg_temp.table_id('Table 5'), 4) $$,
+select throws_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000211'), pg_temp.table_id('Table 2'), 4) $$,
   'RVMBR', null, 'the floor cannot call a frozen member');
 reset role;
 select is((select count(*)::integer from public.outbox_event where event_type = 'waitlist.called'
@@ -196,11 +198,11 @@ select is((select count(*)::integer from public.outbox_event where event_type = 
 
 -- While the venue is frozen a hold pauses: nobody loses a place, and nobody is called.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
-select isnt(public.join_waitlist(pg_temp.type_id('nlh_100_200'), gen_random_uuid()), null, 'Vihaan joins');
+select isnt(public.join_waitlist_at(pg_temp.table_id('Table 2'), gen_random_uuid()), null, 'Vihaan joins');
 select pg_temp.approve_joins();
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select lives_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000212'), pg_temp.table_id('Table 5'), 4) $$,
-  'and is called to Table 5, seat 4');
+select lives_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000212'), pg_temp.table_id('Table 2'), 4) $$,
+  'and is called to Table 2, seat 4');
 reset role;
 insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Test');
 update public.waitlist_entry set hold_until = now() - interval '1 second' where id = pg_temp.entry('00000000-0000-4000-8000-000000000212');

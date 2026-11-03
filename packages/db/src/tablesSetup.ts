@@ -18,23 +18,32 @@ export interface SetupStake {
   readonly straddle: bigint | null;
 }
 
-/** A table (#642): its name, stake and seats, and whether it plays now. */
+/** A table (#642): its name, stake and seats, whether it plays now, and whether it is active (decision 0432). */
 export interface SetupTable {
   readonly id: string;
   readonly name: string;
   readonly stakeId: string;
   readonly seats: number;
   readonly isOpen: boolean;
+  /** False once deactivated: hidden from everything live, kept for history; reactivating brings it back closed. */
+  readonly isActive: boolean;
 }
 
-/** Why a setup change was refused. */
-export type TablesFailure = 'not_allowed' | 'invalid' | 'players_seated' | 'seats_taken' | 'paused' | 'unavailable';
+/**
+ * Why a setup change was refused. `players_seated` and `players_waiting` are @rivr/domain's tableRetireRefusal reasons
+ * (decision 0432); a stake change refused for players seated or waiting is `players_seated`.
+ */
+export type TablesFailure = 'not_allowed' | 'invalid' | 'players_seated' | 'players_waiting' | 'seats_taken' | 'paused' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, TablesFailure>> = {
-  '42501': 'not_allowed', '22023': 'invalid', '23505': 'invalid', '23514': 'invalid', RVSTD: 'players_seated', RVOCC: 'seats_taken', RVFRZ: 'paused',
+  '42501': 'not_allowed', '22023': 'invalid', '23505': 'invalid', '23514': 'invalid', RVSTD: 'players_seated', RVWTG: 'players_waiting',
+  RVOCC: 'seats_taken', RVFRZ: 'paused',
 };
 
-/** The venue's stakes, smallest first, and its tables in floor order, for the super admin's Tables setup (#642). */
+/**
+ * The venue's stakes, smallest first, and its tables in floor order, for the super admin's Tables setup (#642): the inactive
+ * ones too, marked, and never a deleted one (decision 0432).
+ */
 export function useTablesSetup(venueId: string) {
   const { client, userId } = useRivrData();
   return useQuery({
@@ -44,7 +53,8 @@ export function useTablesSetup(venueId: string) {
       const [types, tables] = await Promise.all([
         client.from('table_type').select('id, name, game, small_blind_paise, big_blind_paise, straddle_paise').eq('venue_id', venueId)
           .order('small_blind_paise').order('name'),
-        client.from('game_table').select('id, name, table_type_id, seats, is_open').eq('venue_id', venueId).order('position'),
+        client.from('game_table').select('id, name, table_type_id, seats, is_open, active').eq('venue_id', venueId).is('deleted_at', null)
+          .order('position'),
       ]);
       if (types.error) throw types.error;
       if (tables.error) throw tables.error;
@@ -53,7 +63,9 @@ export function useTablesSetup(venueId: string) {
           id: row.id, name: row.name, game: gameOf(row.game), smallBlind: BigInt(row.small_blind_paise), bigBlind: BigInt(row.big_blind_paise),
           straddle: row.straddle_paise === null ? null : BigInt(row.straddle_paise),
         })),
-        tables: tables.data.map((row) => ({ id: row.id, name: row.name, stakeId: row.table_type_id, seats: row.seats, isOpen: row.is_open })),
+        tables: tables.data.map((row) => ({
+          id: row.id, name: row.name, stakeId: row.table_type_id, seats: row.seats, isOpen: row.is_open, isActive: row.active,
+        })),
       };
     },
   });
@@ -76,12 +88,15 @@ export interface TableOrder {
   readonly seats: number;
 }
 
-/** Adds or changes stakes and tables (tables.manage); each a Result, and the setup reloads. */
+/**
+ * Adds or changes stakes and tables, and deactivates, reactivates or deletes a table (tables.manage; decision 0432); each a
+ * Result, and everything the person reads reloads, as a table leaving or coming back changes the live floor and the lists.
+ */
 export function useTablesSetupActions(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   const settle = async (error: { code: string } | null): Promise<Result<null, TablesFailure>> => {
-    await queryClient.invalidateQueries({ queryKey: queryKeys.tablesSetup(userId ?? 'signed-out', venueId) });
+    await queryClient.invalidateQueries({ queryKey: ['user', userId ?? 'signed-out'] });
     return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
   };
   const saveStake = useMutation({
@@ -105,7 +120,16 @@ export function useTablesSetupActions(venueId: string) {
       return settle(error);
     },
   });
-  return { saveStake, saveTable };
+  const deactivate = useMutation({
+    mutationFn: async (tableId: string) => settle((await client.rpc('deactivate_game_table', { p_table_id: tableId })).error),
+  });
+  const reactivate = useMutation({
+    mutationFn: async (tableId: string) => settle((await client.rpc('reactivate_game_table', { p_table_id: tableId })).error),
+  });
+  const remove = useMutation({
+    mutationFn: async (tableId: string) => settle((await client.rpc('delete_game_table', { p_table_id: tableId })).error),
+  });
+  return { saveStake, saveTable, deactivate, reactivate, remove };
 }
 
 /** One table on one club day (#643): how many times it opened and how long it ran, in whole seconds. */

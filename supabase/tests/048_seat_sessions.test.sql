@@ -19,8 +19,8 @@ grant execute on function pg_temp.as_person(text), pg_temp.t(text) to authentica
 select is(has_column_privilege('authenticated', 'public.game_table', 'must_move_to_table_id', 'insert'), false,
   'a new table cannot be added with a must-move link');
 select is(has_column_privilege('authenticated', 'public.game_table', 'name', 'insert'), true, 'only with the columns named');
-insert into public.waitlist_entry (venue_id, member_id, table_type_id, idempotency_key)
-select venue_id, '00000000-0000-4000-8000-000000000214', table_type_id, gen_random_uuid() from public.game_table where id = pg_temp.t('Table 1');
+insert into public.waitlist_entry (venue_id, member_id, table_type_id, table_id, idempotency_key)
+select venue_id, '00000000-0000-4000-8000-000000000214', table_type_id, id, gen_random_uuid() from public.game_table where id = pg_temp.t('Table 1');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 create temp table yash as select public.seat_member(pg_temp.t('Table 1'), 7, '9000000214') as session;
 reset role;
@@ -87,7 +87,7 @@ create function pg_temp.approve_joins() returns void language sql security defin
 $$;
 grant execute on function pg_temp.approve_joins() to authenticated;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-insert into entry select public.join_waitlist((select table_type_id from public.game_table where id = pg_temp.t('Table 3')), gen_random_uuid());
+insert into entry select public.join_waitlist_at(pg_temp.t('Table 3'), gen_random_uuid());
 select pg_temp.approve_joins();
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select lives_ok($$ select public.call_from_waitlist((select id from entry), pg_temp.t('Table 3'), 7) $$, 'the floor calls Ishaan to Table 3, seat 7');
@@ -113,7 +113,7 @@ select is((select count(*)::integer from public.outbox_event where event_type = 
 select is((select count(*)::integer from public.outbox_event where event_type = 'seat.moved'), 1, 'seat.moved for the move');
 
 -- A seat held for a waitlist call and a taken seat know about each other (#63). Rohan finishes his
--- identity check here; Vihaan sits at Table 1 and the floor adds him to the 100/200 list, to change tables: seated, he
+-- identity check here; Vihaan sits at Table 1 and the floor adds him to Table 3's list, to change tables: seated, he
 -- joins no list from the app himself (#633).
 reset role;
 insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, pan, photo_path, verified_at) values
@@ -123,10 +123,10 @@ grant select, insert on vihaan to authenticated;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 insert into vihaan select 'session', public.seat_member(pg_temp.t('Table 1'), 2, '9000000212');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
-select throws_ok($$ select public.join_waitlist((select table_type_id from public.game_table where id = pg_temp.t('Table 3')), gen_random_uuid()) $$,
+select throws_ok($$ select public.join_waitlist_at(pg_temp.t('Table 3'), gen_random_uuid()) $$,
   'RVONE', null, 'seated, Vihaan joins no list from the app');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-insert into vihaan select 'entry', public.add_to_waitlist((select table_type_id from public.game_table where id = pg_temp.t('Table 3')), '9000000212', gen_random_uuid());
+insert into vihaan select 'entry', public.add_to_waitlist(pg_temp.t('Table 3'), '9000000212', gen_random_uuid());
 select throws_ok($$ select public.call_from_waitlist((select id from vihaan where name = 'entry'), pg_temp.t('Table 3'), 7) $$, 'RVOCC', null,
   'no call goes to a seat someone sits in');
 select lives_ok($$ select public.call_from_waitlist((select id from vihaan where name = 'entry'), pg_temp.t('Table 3'), 8) $$,

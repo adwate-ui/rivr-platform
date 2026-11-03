@@ -9,10 +9,10 @@ import type { z } from 'zod';
 import { FAILURE_COPY } from './failureCopy.ts';
 
 /**
- * Adds a member to one list by their mobile number. A new request id for each number added, so a
+ * Adds a member to one table's list (decision 0433) by their mobile number. A new request id for each number added, so a
  * retried tap adds the member once and the next number is a new request.
  */
-export function AddMemberForm({ venueId, tableTypeId }: { venueId: string; tableTypeId: string }) {
+export function AddMemberForm({ venueId, tableId }: { venueId: string; tableId: string }) {
   const { add } = useFloorWaitlistActions(venueId);
   const [requestId, setRequestId] = useState(() => crypto.randomUUID());
   const [failure, setFailure] = useState<WaitlistFailure | null>(null);
@@ -21,7 +21,7 @@ export function AddMemberForm({ venueId, tableTypeId }: { venueId: string; table
     resolver, defaultValues: { phone: '' },
   });
   const submit = form.handleSubmit(async ({ phone }) => {
-    const added = await add.mutateAsync({ tableTypeId, phone, requestId });
+    const added = await add.mutateAsync({ tableId, phone, requestId });
     setFailure(added.ok ? null : added.error);
     if (added.ok) {
       form.reset();

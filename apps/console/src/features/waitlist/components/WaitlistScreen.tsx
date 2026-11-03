@@ -3,7 +3,7 @@ import { t } from '@rivr/i18n';
 import { ErrorMessage, Screen, Stack, StaleNotice, Text } from '@rivr/ui';
 import { GameList } from './GameList.tsx';
 
-/** The floor's waitlists (#38), one per game and stake, for staff with waitlist.manage. */
+/** The floor's waitlists (#38), one per active table (decision 0433), for staff with waitlist.manage. */
 export function WaitlistScreen() {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
@@ -14,20 +14,12 @@ export function WaitlistScreen() {
   return <Board venueId={staff.venue.venueId} canOpen={staff.venue.permissions.includes('floor.manage')} />;
 }
 
-/** Each of the venue's games and stakes once, in floor order: its tables share one list. */
-function gamesOf(tables: readonly FloorTable[], venueId: string): FloorTable[] {
-  const here = tables.filter((table) => table.venueId === venueId);
-  return here.filter((table, index) => here.findIndex((other) => other.tableTypeId === table.tableTypeId) === index);
-}
-
-/** A game's interest while it is not running, with a closed table to open (#113). */
-function interestOf(game: FloorTable, lists: readonly InterestList[], tables: readonly FloorTable[], canOpen: boolean) {
-  const list = lists.find((candidate) => candidate.tableTypeId === game.tableTypeId);
-  const ofGame = tables.filter((table) => table.venueId === game.venueId && table.tableTypeId === game.tableTypeId);
-  // The floor's tables refresh first: once one is open, the game is running whatever the interest list last said.
-  if (list === undefined || ofGame.some((table) => table.isOpen)) return undefined;
-  const closedTable = ofGame.find((table) => !table.isOpen);
-  return { list, closedTable, canOpen };
+/** A closed table's interest (#113): its own list, with the table to open. */
+function interestOf(table: FloorTable, lists: readonly InterestList[], canOpen: boolean) {
+  const list = lists.find((candidate) => candidate.tableId === table.id);
+  // The floor's tables refresh first: once the table is open, it is running whatever the interest list last said.
+  if (list === undefined || table.isOpen) return undefined;
+  return { list, closedTable: table, canOpen };
 }
 
 function Board({ venueId, canOpen }: { venueId: string; canOpen: boolean }) {
@@ -45,8 +37,9 @@ function Board({ venueId, canOpen }: { venueId: string; canOpen: boolean }) {
   if (tables.data === undefined || board.data === undefined) {
     return isFailing ? <Screen title={title} status="error" onRetry={retry} /> : <Screen title={title} status="loading" />;
   }
-  const games = gamesOf(tables.data, venueId);
-  if (games.length === 0) return <Screen title={title} status="empty" emptyText={t('console.waitlist.noGames')} />;
+  // The selected venue's active tables, in floor order (staff read every venue they work at).
+  const here = tables.data.filter((table) => table.venueId === venueId);
+  if (here.length === 0) return <Screen title={title} status="empty" emptyText={t('console.waitlist.noGames')} />;
   return (
     <Screen title={title}>
       <Stack gap={10}>
@@ -54,12 +47,11 @@ function Board({ venueId, canOpen }: { venueId: string; canOpen: boolean }) {
         {asked.isError ? <ErrorMessage>{t('console.waitlist.requestsFailed')}</ErrorMessage> : null}
         {/* What Hold place and Remove each do (decision 0299: the owner asked). */}
         <Text tone="muted">{t('console.waitlist.holdOrRemove')}</Text>
-        {games.map((game) => (
-          <GameList key={game.tableTypeId} venueId={venueId} game={game}
-            tables={tables.data.filter((table) => table.venueId === venueId && table.tableTypeId === game.tableTypeId && table.isOpen)}
-            entries={board.data.filter((entry) => entry.tableTypeId === game.tableTypeId)}
-            requests={requests.filter((request) => request.tableTypeId === game.tableTypeId)}
-            interest={interestOf(game, interest, tables.data, canOpen)} />
+        {here.map((table) => (
+          <GameList key={table.id} venueId={venueId} table={table}
+            entries={board.data.filter((entry) => entry.tableId === table.id)}
+            requests={requests.filter((request) => request.tableId === table.id)}
+            interest={interestOf(table, interest, canOpen)} />
         ))}
       </Stack>
     </Screen>

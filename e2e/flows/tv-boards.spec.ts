@@ -1,11 +1,11 @@
 /**
  * TV boards (#65; design prompt TV), signed in once on the console as a floor manager (Pooja Bansal,
  * this flow's own sign-in: Auth sends one code a minute to a number):
- * - a TV is paired on the waitlist board: each stake, its places as first name and initial;
- * - Kunal Mehra has hidden his name on the TVs in Profile (#326), so when the floor adds him to 50/100
+ * - a TV is paired on the waitlist board: a list a table (decision 0433), its places as first name and initial;
+ * - Kunal Mehra has hidden his name on the TVs in Profile (#326), so when the floor adds him to Table 1's list
  *   the TV shows "Player 1", never his name; he turns it back on and the TV shows "Kunal M.". Kunal is
  *   this flow's own member, as no other flow signs in as him;
- * - the floor adds Vihaan Kapoor to 50/100, and the TV shows "Vihaan K." within seconds, through
+ * - the floor adds Vihaan Kapoor to Table 1's list, and the TV shows "Vihaan K." within seconds, through
  *   Realtime and not its half-minute read;
  * - the console offers no jackpot board, and the TV shows no rupee; each board has its progress bar (#628);
  * - on the call-time board (decision 0163), the floor seats Nakul Dhillon in the Private Room, where call
@@ -23,9 +23,9 @@ const PLAYER = 'Vihaan Kapoor';
 const HIDDEN = 'Kunal Mehra';
 const LEAVING = 'Nakul Dhillon';
 
-/** The console list for one game and stake, found by its heading. */
+/** The console list for one table (decision 0433), found by its heading. */
 function gameList(page: Page, name: string): Locator {
-  return page.locator('div').filter({ has: page.getByRole('heading', { name }) })
+  return page.locator('div').filter({ has: page.getByRole('heading', { name, exact: true }) })
     .filter({ has: page.getByRole('button', { name: 'Add to the list' }) }).last();
 }
 
@@ -60,10 +60,10 @@ async function removeLeftover(floor: Page, name: string) {
   await expect(remove).toHaveCount(0);
 }
 
-/** Adds a member to the console's 50/100 list by number. */
+/** Adds a member to the console's Table 1 list (50/100) by number. */
 async function addToFifties(floor: Page, number: string, name: string) {
-  await gameList(floor, 'NLH 50/100').getByRole('textbox', { name: 'Mobile number' }).fill(number);
-  await gameList(floor, 'NLH 50/100').getByRole('button', { name: 'Add to the list' }).click();
+  await gameList(floor, 'Table 1').getByRole('textbox', { name: 'Mobile number' }).fill(number);
+  await gameList(floor, 'Table 1').getByRole('button', { name: 'Add to the list' }).click();
   await expect(floor.getByRole('button', { name: `Remove ${name}` })).toBeVisible();
 }
 
@@ -82,7 +82,7 @@ async function seatNakul(floor: Page) {
 }
 
 test.describe('TV boards', () => {
-  test('TV boards: the waitlist by stake, a hidden name as its place, live as the floor adds players, and no rupee', async ({ browser }) => {
+  test('TV boards: the waitlist a list a table, a hidden name as its place, live as the floor adds players, and no rupee', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'makes a device login and changes the waitlist, so the local stack only');
     test.setTimeout(240_000);
     const name = `TV ${String(Date.now() % 100_000).padStart(5, '0')}`;
@@ -99,25 +99,26 @@ test.describe('TV boards', () => {
     await expect(tv.getByRole('heading', { level: 1, name: 'Waitlist' })).toBeVisible({ timeout: 15_000 });
     // The bar along the foot fills over the board's half minute, so the board reads as live (#628).
     await expect(tv.locator('[data-board-progress]')).toHaveCount(1);
-    const fifties = tv.getByRole('region', { name: 'NLH 50/100' });
-    await expect(tv.getByRole('region', { name: 'NLH 100/200' })).toBeVisible();
+    // Five open tables take turns three to a screen, a page every ten seconds: Table 1 and 2 are on the first.
+    const fifties = tv.getByRole('region', { name: 'Table 1', exact: true });
+    await expect(tv.getByRole('region', { name: 'Table 2', exact: true })).toBeVisible({ timeout: 25_000 });
 
     await floor.getByRole('link', { name: 'Waitlist' }).click();
-    await expect(floor.getByRole('heading', { name: 'NLH 50/100' })).toBeVisible();
+    await expect(floor.getByRole('heading', { name: 'Table 1', exact: true })).toBeVisible();
     await removeLeftover(floor, PLAYER);
     await removeLeftover(floor, HIDDEN);
-    // Kunal first, on the empty 50/100 list: his place, never his name.
-    await expect(fifties.getByText('No one waiting.', { exact: true })).toBeVisible({ timeout: 10_000 });
+    // Kunal first, on Table 1's empty list: his place, never his name.
+    await expect(fifties.getByText('No one waiting.', { exact: true })).toBeVisible({ timeout: 25_000 });
     await addToFifties(floor, '9000000216', HIDDEN);
-    await expect(fifties.getByText('Player 1', { exact: true })).toBeVisible({ timeout: 10_000 });
+    await expect(fifties.getByText('Player 1', { exact: true })).toBeVisible({ timeout: 25_000 });
     await expect(tv.getByText(/Kunal/)).toHaveCount(0);
     // Well inside the half-minute read: the signal reaches the TV through Realtime.
     await addToFifties(floor, '9000000212', PLAYER);
-    await expect(fifties.getByText('Vihaan K.', { exact: true })).toBeVisible({ timeout: 10_000 });
+    await expect(fifties.getByText('Vihaan K.', { exact: true })).toBeVisible({ timeout: 25_000 });
     await expect(tv.getByText(PLAYER, { exact: true })).toHaveCount(0);
     // Turned back on, the TV names him again.
     await nameOnTvs(member, true);
-    await expect(fifties.getByText('Kunal M.', { exact: true })).toBeVisible({ timeout: 10_000 });
+    await expect(fifties.getByText('Kunal M.', { exact: true })).toBeVisible({ timeout: 25_000 });
     await expect(fifties.getByText('Player 1', { exact: true })).toHaveCount(0);
 
     await floor.getByRole('link', { name: 'Devices', exact: true }).click();

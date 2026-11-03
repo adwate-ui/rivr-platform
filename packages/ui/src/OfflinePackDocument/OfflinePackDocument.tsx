@@ -30,8 +30,9 @@ export interface OfflinePackTable {
   readonly seats: readonly OfflinePackSeat[];
 }
 
-/** A place on the waitlist. */
+/** A place on a table's waitlist (decision 0433). */
 export interface OfflinePackWaiting {
+  readonly table: string;
   readonly game: string;
   readonly place: number;
   readonly name: string;
@@ -140,8 +141,9 @@ function Floor({ pack }: { pack: OfflinePack }) {
       <h3 className="text-16 font-semibold">{t('documents.offlinePack.waitlist')}</h3>
       {pack.waitlist.length === 0 ? <NoneLine text={t('documents.offlinePack.nobodyWaiting')} /> : (
         <DocumentTable caption={t('documents.offlinePack.waitlist')}
-          columns={[{ label: t('documents.offlinePack.game') }, { label: t('documents.offlinePack.place') }, { label: t('documents.offlinePack.member') }]}
-          rows={pack.waitlist.map((place) => [place.game, String(place.place), `${place.name} (${place.memberNumber})`])} />
+          columns={[{ label: t('documents.offlinePack.waitingAt') }, { label: t('documents.offlinePack.game') }, { label: t('documents.offlinePack.place') },
+            { label: t('documents.offlinePack.member') }]}
+          rows={pack.waitlist.map((place) => [place.table, place.game, String(place.place), `${place.name} (${place.memberNumber})`])} />
       )}
     </div>
   );

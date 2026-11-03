@@ -34,7 +34,7 @@ grant select on yesterday to authenticated;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 insert into ids select 'ishaan', public.seat_member(pg_temp.t('Table 3'), 2, '9000000211');
 insert into ids select 'mihir', public.seat_member(pg_temp.t('Table 1'), 5, '9000000213');
-select isnt(public.add_to_waitlist((select table_type_id from public.game_table where id = pg_temp.t('Table 1')), '9000000212', gen_random_uuid()), null,
+select isnt(public.add_to_waitlist(pg_temp.t('Table 1'), '9000000212', gen_random_uuid()), null,
   'Vihaan waits for 50/100');
 reset role;
 -- Ishaan: an hour at Table 3 from 07:00, then Table 2 from 08:00. Mihir: 07:10 to 07:50, checked out at 07:55. Vihaan: since 07:30.

@@ -1357,14 +1357,14 @@ isOneToOne: false
                   ]
                 },"game_table": {
                   Row: {
-                    "created_at": string,"id": string,"is_open": boolean,"must_move_to_table_id": string | null,"name": string,"position": number,"room": string,"seats": number,"table_type_id": string,"updated_at": string,"venue_id": string
+                    "active": boolean,"created_at": string,"deleted_at": string | null,"id": string,"is_open": boolean,"must_move_to_table_id": string | null,"name": string,"position": number,"room": string,"seats": number,"table_type_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"is_open"?: boolean,"must_move_to_table_id"?: string | null,"name": string,"position": number,"room"?: string,"seats"?: number,"table_type_id": string,"updated_at"?: string,"venue_id": string
+                    "active"?: boolean,"created_at"?: string,"deleted_at"?: string | null,"id"?: string,"is_open"?: boolean,"must_move_to_table_id"?: string | null,"name": string,"position": number,"room"?: string,"seats"?: number,"table_type_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"is_open"?: boolean,"must_move_to_table_id"?: string | null,"name"?: string,"position"?: number,"room"?: string,"seats"?: number,"table_type_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "active"?: boolean,"created_at"?: string,"deleted_at"?: string | null,"id"?: string,"is_open"?: boolean,"must_move_to_table_id"?: string | null,"name"?: string,"position"?: number,"room"?: string,"seats"?: number,"table_type_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -4226,11 +4226,11 @@ isOneToOne: false
       referencedRelation: "member"
       referencedColumns: ["id","venue_id"]
     },{
-      foreignKeyName: "waitlist_entry_table_id_fkey"
-      columns: ["table_id"]
+      foreignKeyName: "waitlist_entry_table_fkey"
+      columns: ["table_id","venue_id"]
 isOneToOne: false
       referencedRelation: "game_table"
-      referencedColumns: ["id"]
+      referencedColumns: ["id","venue_id"]
     },{
       foreignKeyName: "waitlist_entry_table_type_id_venue_id_fkey"
       columns: ["table_type_id","venue_id"]
@@ -4560,7 +4560,7 @@ isOneToOne: false
 { Args: { "p_venue_id": string }; Returns: (number)[]
                            },
 "add_to_waitlist":
-{ Args: { "p_idempotency_key": string,"p_phone": string,"p_table_type_id": string }; Returns: string
+{ Args: { "p_idempotency_key": string,"p_phone": string,"p_table_id": string }; Returns: string
                            },
 "agent_device":
 { Args: { "p_token_hash": string }; Returns: {
@@ -4823,6 +4823,9 @@ isOneToOne: false
               "down_id": string,"full_name": string,"staff_id": string,"started_at": string
             }[]
                            },
+"deactivate_game_table":
+{ Args: { "p_table_id": string }; Returns: undefined
+                           },
 "dealer_nights":
 { Args: { "p_from": string,"p_until": string,"p_venue_id": string }; Returns: {
               "counted_downs": number,"dealer_name": string,"dealt_seconds": number,"downs": number,"hands": number,"hands_per_hour": number,"rake_paise": number,"staff_id": string,"variance_paise": number
@@ -4855,6 +4858,9 @@ isOneToOne: false
                            },
 "decline_withdrawal":
 { Args: { "p_reason": string,"p_request_id": string }; Returns: undefined
+                           },
+"delete_game_table":
+{ Args: { "p_table_id": string }; Returns: undefined
                            },
 "deliver_fnb_order":
 { Args: { "p_order_id": string }; Returns: undefined
@@ -5023,7 +5029,7 @@ isOneToOne: false
                            },
 "interest_lists":
 { Args: { "p_venue_id": string }; Returns: {
-              "is_ready": boolean,"players_to_open": number,"table_type_id": string,"waiting": number
+              "is_ready": boolean,"players_to_open": number,"table_id": string,"waiting": number
             }[]
                            },
 "issue_marker":
@@ -5038,9 +5044,6 @@ isOneToOne: false
 { Args: { "p_venue_id": string }; Returns: {
               "freeroll_paise": number,"main_paise": number,"payout_rule": Json,"season_paise": number
             }[]
-                           },
-"join_waitlist":
-{ Args: { "p_idempotency_key": string,"p_table_type_id": string }; Returns: string
                            },
 "join_waitlist_at":
 { Args: { "p_idempotency_key": string,"p_table_id": string }; Returns: string
@@ -5470,6 +5473,9 @@ isOneToOne: false
                            },
 "rate_visit":
 { Args: { "p_note": string,"p_score": number,"p_visit_id": string }; Returns: string
+                           },
+"reactivate_game_table":
+{ Args: { "p_table_id": string }; Returns: undefined
                            },
 "record_academy_payment":
 { Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
@@ -6037,7 +6043,7 @@ isOneToOne: false
                            },
 "tv_waitlist_board":
 { Args: Record<PropertyKey, never>; Returns: {
-              "big_blind_paise": number,"call_table_name": string,"display_name": string,"is_away": boolean,"open_tables": number,"place": number,"small_blind_paise": number,"table_type_id": string,"table_type_name": string
+              "big_blind_paise": number,"call_table_name": string,"display_name": string,"is_away": boolean,"is_open": boolean,"place": number,"small_blind_paise": number,"table_id": string,"table_name": string,"table_type_name": string
             }[]
                            },
 "unclaimed_balances":
@@ -6118,12 +6124,12 @@ isOneToOne: false
                            },
 "waitlist_lengths":
 { Args: Record<PropertyKey, never>; Returns: {
-              "call_time_minutes": number,"table_type_id": string,"waiting": number
+              "call_time_minutes": number,"table_id": string,"waiting": number
             }[]
                            },
 "waitlist_requests":
 { Args: { "p_venue_id": string }; Returns: {
-              "entry_id": string,"full_name": string,"joined_at": string,"member_id": string,"table_type_id": string
+              "entry_id": string,"full_name": string,"joined_at": string,"member_id": string,"table_id": string,"table_type_id": string
             }[]
                            },
 "winner_card_images_to_remove":

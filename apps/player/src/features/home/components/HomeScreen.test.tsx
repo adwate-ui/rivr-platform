@@ -34,7 +34,7 @@ const SEAT = {
 function answers(places: unknown[], seat: unknown[], more: Record<string, unknown>): Record<string, unknown> {
   return {
     '/rest/v1/game_table': TABLES, '/rest/v1/table_type': TYPES, '/rpc/my_feature_access': FEATURES,
-    '/rpc/waitlist_lengths': [{ table_type_id: 'tt1', waiting: 0, call_time_minutes: 180 }],
+    '/rpc/waitlist_lengths': [{ table_id: 't1', waiting: 0, call_time_minutes: 180 }, { table_id: 't4', waiting: 0, call_time_minutes: 180 }],
     '/rpc/floor_open_seats': [{ table_id: 't1', open_seats: 3 }, { table_id: 't4', open_seats: 9 }],
     '/rpc/floor_taken_seats': [1, 3, 5, 6, 8, 9].map((seatNumber) => ({ table_id: 't1', seat: seatNumber })),
     '/rpc/my_waitlist': places, '/rpc/my_seat': seat,

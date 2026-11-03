@@ -7,3 +7,5 @@ Date: 3 Nov 2026. The player redesign's join sheet is a table's (brief 3.4 B: "T
 - **The seat call's answers.** "I'm on my way" is `accept_seat_call`, which keeps when the member said so (`waitlist_entry.on_way_at`); the floor's list shows "On the way". An answer counts for the call in force only: called again, or skipped and called, the place shows no answer until the member gives one. Decline seat is leaving the list, as before, which rolls the call on to the next name.
 - **From the push.** The Seat ready push's "I'm on my way" opens Tonight at `/?accept=<place>`, which answers at once and cleans the address. It cannot answer from the lock screen without opening the app: a notification holds no sign-in, and the brief's background answer would need a token in the push (phase 2's native shell can do it, decision 0323).
 - **Open.** Whether lists should be a table's own, with their own order, is a question for the owner (#777). Until then a table's "Waiting" in the join sheet is the stake's count.
+
+Superseded where it keeps the list per stake by 0433 (one waitlist per table).

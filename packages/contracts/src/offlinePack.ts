@@ -22,7 +22,8 @@ export const offlinePackRowSchema = z.object({
   tables: z.array(z.object({
     name: z.string(), game: z.string(), seats: z.array(z.object({ seat: z.number().int(), name: z.string(), member_number: z.string() })),
   })),
-  waitlist: z.array(z.object({ game: z.string(), place: z.number().int(), name: z.string(), member_number: z.string() })),
+  /** Each place with the table whose list it is on (decision 0433), a table's list in its order. */
+  waitlist: z.array(z.object({ table: z.string(), game: z.string(), place: z.number().int(), name: z.string(), member_number: z.string() })),
   sops: z.array(z.object({ title: z.string(), version: z.number().int(), in_force_from: z.string(), body: z.string() })),
 });
 export type OfflinePackRow = z.infer<typeof offlinePackRowSchema>;

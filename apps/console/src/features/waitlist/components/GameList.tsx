@@ -8,13 +8,12 @@ import { RequestList } from './RequestList.tsx';
 
 interface GameListProps {
   venueId: string;
-  game: FloorTable;
-  /** The game's open tables, to call a member to. */
-  tables: readonly FloorTable[];
+  /** The table whose list this is (decision 0433): a place is assigned only to it, while it is open. */
+  table: FloorTable;
   entries: readonly WaitlistBoardEntry[];
   /** Joins from the app waiting for the floor (#633). */
   requests: readonly WaitlistRequest[];
-  /** The game's interest while it is not running (#113): with a closed table to open, for staff who open tables. */
+  /** The table's interest while it is closed (#113): with the table to open, for staff who open tables. */
   interest?: { list: InterestList; closedTable: FloorTable | undefined; canOpen: boolean } | undefined;
 }
 
@@ -28,15 +27,18 @@ export function nameGivesBlinds(name: string, smallBlind: bigint, bigBlind: bigi
 }
 
 /**
- * One game and stake's list, in order, each place with the floor's actions, the joins waiting for approval (#633), and a way
- * to add a member by their number.
+ * One table's list (decision 0433), in order, each place with the floor's actions, the joins waiting for approval (#633), and
+ * a way to add a member by their number.
  */
-export function GameList({ venueId, game, tables, entries, requests, interest }: GameListProps) {
+export function GameList({ venueId, table, entries, requests, interest }: GameListProps) {
+  // Assigned only to the list's own table, and only while it is open.
+  const tables = table.isOpen ? [table] : [];
   return (
     <Stack gap={4}>
       <Inline gap={3} align="baseline">
-        <Heading level={2}>{game.tableTypeName}</Heading>
-        {nameGivesBlinds(game.tableTypeName, game.smallBlind, game.bigBlind) ? null : <Stakes smallBlind={game.smallBlind} bigBlind={game.bigBlind} tone="muted" />}
+        <Heading level={2}>{table.name}</Heading>
+        <Text tone="muted">{table.tableTypeName}</Text>
+        {nameGivesBlinds(table.tableTypeName, table.smallBlind, table.bigBlind) ? null : <Stakes smallBlind={table.smallBlind} bigBlind={table.bigBlind} tone="muted" />}
       </Inline>
       {interest === undefined ? null : (
         <InterestNotice venueId={venueId} interest={interest.list} table={interest.closedTable} canOpen={interest.canOpen} />
@@ -46,7 +48,7 @@ export function GameList({ venueId, game, tables, entries, requests, interest }:
       <Stack gap={3} divided>
         {entries.map((entry) => <EntryRow key={entry.entryId} venueId={venueId} entry={entry} tables={tables} />)}
       </Stack>
-      <AddMemberForm venueId={venueId} tableTypeId={game.tableTypeId} />
+      <AddMemberForm venueId={venueId} tableId={table.id} />
     </Stack>
   );
 }

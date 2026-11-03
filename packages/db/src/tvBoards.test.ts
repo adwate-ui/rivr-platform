@@ -1,30 +1,31 @@
 import { describe, expect, it } from 'vitest';
 import { toPaise } from './parse/hands.ts';
-import { toTvCallTimeTables, toTvJackpot, toTvStakes } from './tvBoards.ts';
+import { toTvCallTimeTables, toTvJackpot, toTvTables } from './tvBoards.ts';
 
-const STAKE = { small_blind_paise: 10000, big_blind_paise: 20000, open_tables: 2 };
+const STAKE = { table_type_name: 'NLH 100/200', small_blind_paise: 10000, big_blind_paise: 20000 };
 
 describe('the TV boards (#65)', () => {
-  it('groups the waitlist a stake at a time, keeping an empty stake and each place in order', () => {
-    const stakes = toTvStakes([
-      { table_type_id: 'a', table_type_name: '50/100', ...STAKE, place: null, display_name: null, call_table_name: null, is_away: null },
-      { table_type_id: 'b', table_type_name: '100/200', ...STAKE, place: 1, display_name: 'Kabir S.', call_table_name: 'Table 3', is_away: false },
-      { table_type_id: 'b', table_type_name: '100/200', ...STAKE, place: 2, display_name: 'Naina K.', call_table_name: null, is_away: true },
+  it('groups the waitlist a table at a time (decision 0433), keeping an empty table and each place in order', () => {
+    const tables = toTvTables([
+      { table_id: 't1', table_name: 'Table 1', ...STAKE, is_open: true, place: null, display_name: null, call_table_name: null, is_away: null },
+      { table_id: 't3', table_name: 'Table 3', ...STAKE, is_open: false, place: 1, display_name: 'Kabir S.', call_table_name: 'Table 3', is_away: false },
+      { table_id: 't3', table_name: 'Table 3', ...STAKE, is_open: false, place: 2, display_name: 'Naina K.', call_table_name: null, is_away: true },
     ]);
-    expect(stakes.map((stake) => [stake.name, stake.places.length])).toEqual([['50/100', 0], ['100/200', 2]]);
-    expect(stakes[1]?.places).toEqual([
+    expect(tables.map((table) => [table.name, table.stake, table.isOpen, table.places.length]))
+      .toEqual([['Table 1', 'NLH 100/200', true, 0], ['Table 3', 'NLH 100/200', false, 2]]);
+    expect(tables[1]?.places).toEqual([
       { place: 1, name: 'Kabir S.', calledTo: 'Table 3', isAway: false },
       { place: 2, name: 'Naina K.', calledTo: null, isAway: true },
     ]);
-    expect(stakes[1]?.bigBlind).toBe(toPaise(20000));
+    expect(tables[1]?.bigBlind).toBe(toPaise(20000));
   });
 
   // A member may hide their name on the TVs (task 326).
   it('keeps the place of a member who hid their name, with no name', () => {
-    const stakes = toTvStakes([
-      { table_type_id: 'b', table_type_name: '100/200', ...STAKE, place: 1, display_name: null, call_table_name: null, is_away: false },
+    const tables = toTvTables([
+      { table_id: 't2', table_name: 'Table 2', ...STAKE, is_open: true, place: 1, display_name: null, call_table_name: null, is_away: false },
     ]);
-    expect(stakes[0]?.places).toEqual([{ place: 1, name: null, calledTo: null, isAway: false }]);
+    expect(tables[0]?.places).toEqual([{ place: 1, name: null, calledTo: null, isAway: false }]);
   });
 
   it('gives the main pool, and tonight\'s high hand only when there is one', () => {

@@ -35,16 +35,18 @@ select '00000000-0000-4000-8000-000000000001', m.id, 'verified', 'digilocker', '
        '00000000-0000-4000-8000-000000000001/' || m.id || '/selfie.jpg', now()
 from (values ('00000000-0000-4000-8000-000000000202'::uuid, 'ABCPK2022K'), ('00000000-0000-4000-8000-000000000204'::uuid, 'ABCPR2044R')) as m (id, pan);
 
--- Assign: Kabir to Table 3, seat 9, for four hours. He is seated at once, and the seat-ready message still goes.
+-- Assign: Kabir to Table 2, seat 9 (his list's table, decision 0433), for four hours. He is seated at once, and the seat-ready message still goes.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 create temp table kabir_entry as select pg_temp.entry('00000000-0000-4000-8000-000000000202') as id;
 grant select on kabir_entry to authenticated;
-select lives_ok($$ select public.assign_from_waitlist((select id from kabir_entry), pg_temp.table_id('Table 3'), 9, 240) $$,
-  'the floor assigns Kabir to Table 3, seat 9, for four hours');
+select throws_ok($$ select public.assign_from_waitlist((select id from kabir_entry), pg_temp.table_id('Table 3'), 9, 240) $$, '22023', null,
+  'the floor assigns nobody to a table but their list''s own');
+select lives_ok($$ select public.assign_from_waitlist((select id from kabir_entry), pg_temp.table_id('Table 2'), 9, 240) $$,
+  'the floor assigns Kabir to Table 2, seat 9, for four hours');
 reset role;
 select results_eq($$ select s.seat, s.call_time_minutes, g.name from public.seat_session s join public.game_table g on g.id = s.table_id
                      where s.member_id = '00000000-0000-4000-8000-000000000202' and s.ended_at is null $$,
-  $$ values (9, 240, 'Table 3'::text) $$, 'he is seated there, with his four hours');
+  $$ values (9, 240, 'Table 2'::text) $$, 'he is seated there, with his four hours');
 select is((select status from public.waitlist_entry where id = (select id from kabir_entry)), 'seated', 'and off the list as seated');
 select is((select count(*)::integer from public.outbox_event where event_type = 'waitlist.called'
            and payload ->> 'member_id' = '00000000-0000-4000-8000-000000000202'), 1, 'the seat-ready message goes out');
@@ -79,10 +81,10 @@ insert into public.kyc_record (venue_id, member_id, status, method, date_of_birt
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212', 'verified', 'digilocker', '1990-01-01', 'ABCPV2122V',
         '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000212/selfie.jpg', now())
 on conflict (member_id) do nothing;
-insert into public.waitlist_entry (venue_id, member_id, table_type_id, joined_at, approved_at, status, idempotency_key)
-select '00000000-0000-4000-8000-000000000001', m.id, t.id, now(), now(), 'waiting', gen_random_uuid()
+insert into public.waitlist_entry (venue_id, member_id, table_type_id, table_id, joined_at, approved_at, status, idempotency_key)
+select '00000000-0000-4000-8000-000000000001', m.id, g.table_type_id, g.id, now(), now(), 'waiting', gen_random_uuid()
 from (values ('00000000-0000-4000-8000-000000000212'::uuid), ('00000000-0000-4000-8000-000000000211'::uuid)) m (id)
-cross join public.table_type t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.code = 'nlh_100_200';
+cross join public.game_table g where g.venue_id = '00000000-0000-4000-8000-000000000001' and g.name = 'Table 2';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
 select throws_ok($$ select public.assign_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000212'), pg_temp.table_id('Table 2'), 7, 150) $$,
   '42501', null, 'a host cuts no call time below the stake''s own');

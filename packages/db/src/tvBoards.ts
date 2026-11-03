@@ -18,13 +18,18 @@ export interface TvPlace {
   readonly isAway: boolean;
 }
 
-/** One stake on the TV's waitlist board, with the tables open at it and its places in order. */
-export interface TvStake {
-  readonly tableTypeId: string;
+/**
+ * One table's list on the TV's waitlist board (decision 0433): an open table, or a closed one somebody waits for, with its
+ * stake and its places in order.
+ */
+export interface TvTableList {
+  readonly tableId: string;
   readonly name: string;
+  /** The stake's name: "NLH 100/200". */
+  readonly stake: string;
   readonly smallBlind: Paise;
   readonly bigBlind: Paise;
-  readonly openTables: number;
+  readonly isOpen: boolean;
   readonly places: readonly TvPlace[];
 }
 
@@ -108,35 +113,36 @@ export function useTvSignals(venueId: string) {
 }
 
 interface BoardRow {
-  table_type_id: string;
+  table_id: string;
+  table_name: string;
   table_type_name: string;
   small_blind_paise: number;
   big_blind_paise: number;
-  open_tables: number;
+  is_open: boolean;
   place: number | null;
   display_name: string | null;
   call_table_name: string | null;
   is_away: boolean | null;
 }
 
-/** The board's rows, a stake at a time in the order they come, each stake's places in order. */
-export function toTvStakes(rows: readonly BoardRow[]): TvStake[] {
-  const stakes: { stake: Omit<TvStake, 'places'>; places: TvPlace[] }[] = [];
+/** The board's rows, a table at a time in the order they come (the floor's), each table's places in order. */
+export function toTvTables(rows: readonly BoardRow[]): TvTableList[] {
+  const tables: { table: Omit<TvTableList, 'places'>; places: TvPlace[] }[] = [];
   for (const row of rows) {
-    let last = stakes.at(-1);
-    if (last?.stake.tableTypeId !== row.table_type_id) {
+    let last = tables.at(-1);
+    if (last?.table.tableId !== row.table_id) {
       last = {
-        stake: { tableTypeId: row.table_type_id, name: row.table_type_name, smallBlind: toPaise(row.small_blind_paise),
-          bigBlind: toPaise(row.big_blind_paise), openTables: row.open_tables },
+        table: { tableId: row.table_id, name: row.table_name, stake: row.table_type_name, smallBlind: toPaise(row.small_blind_paise),
+          bigBlind: toPaise(row.big_blind_paise), isOpen: row.is_open },
         places: [],
       };
-      stakes.push(last);
+      tables.push(last);
     }
     if (row.place !== null) {
       last.places.push({ place: row.place, name: row.display_name, calledTo: row.call_table_name, isAway: row.is_away === true });
     }
   }
-  return stakes.map(({ stake, places }) => ({ ...stake, places }));
+  return tables.map(({ table, places }) => ({ ...table, places }));
 }
 
 interface CallTimeRow {
@@ -183,17 +189,17 @@ export function toTvJackpot(row: JackpotRow): TvJackpot {
   return { main: toPaise(row.main_paise), highHand };
 }
 
-/** The signed-in TV's waitlist board at its venue, live while the TV's screen listens for signals (useTvSignals). */
+/** The signed-in TV's waitlist board at its venue, a list a table, live while the TV's screen listens for signals (useTvSignals). */
 export function useTvWaitlistBoard() {
   const { client, userId } = useRivrData();
   return useQuery({
     queryKey: queryKeys.tvWaitlistBoard(userId ?? 'signed-out'),
     enabled: userId !== null,
     refetchInterval: BOARD_CHECK,
-    queryFn: async (): Promise<TvStake[]> => {
+    queryFn: async (): Promise<TvTableList[]> => {
       const { data, error } = await client.rpc('tv_waitlist_board');
       if (error) throw error;
-      return toTvStakes(data);
+      return toTvTables(data);
     },
   });
 }
