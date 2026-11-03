@@ -26,9 +26,8 @@ test.describe('Website', () => {
     await menu.getByRole('link', { name: 'Membership' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'RIVR membership' })).toBeVisible();
 
-    // The Academy is out of the menu until it is ready, and its page still carries the codes.
-    await page.goto(`${appUrl('web')}/academy?ref=FRIEND1&utm_source=instagram`);
-    await expect(page.getByRole('link', { name: 'Book a seat' })).toHaveAttribute('href', `${appUrl('player')}/academy?ref=FRIEND1&utm_source=instagram`);
+    // The Academy is off at launch (decision 0308): out of the menu, and its page is not there.
+    expect((await page.request.get(`${appUrl('web')}/academy`)).status()).toBe(404);
   });
 
   test('the cookie banner asks once, and the map loads only once maps are allowed (#616)', async ({ page }) => {
