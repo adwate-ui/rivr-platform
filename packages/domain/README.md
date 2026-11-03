@@ -77,6 +77,7 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | Export | What it does |
 |---|---|
 | `tableRetireRefusal({ seated, waiting })`, `TableInPlay`, `TableRetireRefusal` | Whether a table may be deactivated or deleted (decision 0432): `players_seated` while anyone sits at it, else `players_waiting` while a place waits on its list or is called to it, else null. `private.assert_table_empty` refuses with the same reasons (RVSTD, RVWTG). |
+| `tableToSeatAt(tables)`, `TableToSeat` | Where the Live floor's Seat a player seats (decision 0446): the first open table, in floor order, with a free seat and someone on its list; else the first open table with a free seat; else null. |
 
 ### `@rivr/domain/credit`
 
@@ -134,6 +135,12 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | Export | What it does |
 |---|---|
 | `TOP_UP_TARGET_SECONDS`, `secondsWaiting(requestedAt, now)`, `isTopUpLate(seconds)` | How long a top-up request has waited, in whole seconds never below zero, and whether it is past the floor's 60-second target, when the Top-ups page marks it Late in red (decision 0299). |
+
+### `@rivr/domain/floorRequests`
+
+| Export | What it does |
+|---|---|
+| `requestTargets(set)`, `DEFAULT_REQUEST_TARGETS`, `REQUEST_TARGET_SECONDS`, `isRequestLate(kind, seconds, targets)`, `FloorRequestKind`, `RequestTargets` | How long a request may wait on the Live floor's panel before its age shows late (decision 0446): the club's setting `floor.request_targets` where set, each side on its own; else a top-up's `TOP_UP_TARGET_SECONDS` and five minutes for a join, more time, a player leaving or one who left owing call time. Late is strictly past the target. |
 
 ### `@rivr/domain/tds`
 

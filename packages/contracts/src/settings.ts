@@ -31,6 +31,14 @@ const callTimeAddChoices = {
   value: z.strictObject({ minutes: z.array(z.enum(['15', '30', '45', '60', '90', '120', '180', '240'])).min(1).max(8) }),
 } as const satisfies SettingDefinition;
 
+/** How long a request may wait on the Live floor before it shows late, in seconds (decision 0446); unset, @rivr/domain's defaults. */
+const floorRequestTargets = {
+  key: 'floor.request_targets',
+  description: 'How long a request may wait on the Live floor before it shows late: a top-up, and every other request, in seconds.',
+  scope: 'venue',
+  value: z.strictObject({ top_up_seconds: z.int().min(30).max(1800), other_seconds: z.int().min(60).max(3600) }),
+} as const satisfies SettingDefinition;
+
 const defaultTier = {
   key: 'tier.default',
   description: 'The tier every new member starts in (additions, "Tier-gated features").',
@@ -285,7 +293,7 @@ const reportsUnclaimedDays = {
 
 /** Every setting key declared in code. */
 export const SETTINGS = [
-  callTimeMinutes, callTimeAddChoices, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, dealerRotationMinutes, waitlistPriorityWeights, waitlistHoldMinutes,
+  callTimeMinutes, callTimeAddChoices, floorRequestTargets, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, dealerRotationMinutes, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
   cardQrRotationSeconds, leaguePoints, leaguePrizes, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
   cageCashBuyInLimit, amlStructuring, rakebackRate, accommodationHoursPerNight, reviewsGoogleUrl, cabMinimumVisits, learnSessionPoints, learnDailyPointsCap, spinBudget, hostLapse, socialConnectedChannels, pointsDailyStaffCap, pointsVerifiedBonus,

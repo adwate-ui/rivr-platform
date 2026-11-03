@@ -461,14 +461,14 @@ isOneToOne: false
                   ]
                 },"call_time_request": {
                   Row: {
-                    "created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"id": string,"idempotency_key": string,"member_id": string,"minutes": number,"requested_at": string,"session_id": string,"status": string,"updated_at": string,"venue_id": string
+                    "created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"id": string,"idempotency_key": string,"member_id": string,"minutes": number,"minutes_before": number | null,"requested_at": string,"session_id": string,"status": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"id"?: string,"idempotency_key": string,"member_id": string,"minutes": number,"requested_at"?: string,"session_id": string,"status"?: string,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"id"?: string,"idempotency_key": string,"member_id": string,"minutes": number,"minutes_before"?: number | null,"requested_at"?: string,"session_id": string,"status"?: string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string,"member_id"?: string,"minutes"?: number,"requested_at"?: string,"session_id"?: string,"status"?: string,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string,"member_id"?: string,"minutes"?: number,"minutes_before"?: number | null,"requested_at"?: string,"session_id"?: string,"status"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -4937,6 +4937,16 @@ isOneToOne: false
               "open_seats": number,"table_id": string
             }[]
                            },
+"floor_request_targets":
+{ Args: { "p_venue_id": string }; Returns: {
+              "other_seconds": number,"top_up_seconds": number
+            }[]
+                           },
+"floor_requests":
+{ Args: { "p_venue_id": string }; Returns: {
+              "call_time_left": number,"full_name": string,"kind": string,"member_id": string,"minutes": number,"owed_seconds": number,"request_id": string,"seat": number,"session_id": string,"since": string,"table_id": string,"top_up": string
+            }[]
+                           },
 "floor_seats":
 { Args: { "p_venue_id": string }; Returns: {
               "away_since": string,"call_time_left": number,"full_name": string,"leaving_at": string,"member_id": string,"must_move_order": number,"seat": number,"session_id": string,"started_at": string,"table_id": string,"tier_name": string,"time_request_id": string,"time_request_minutes": number,"top_up": string
@@ -6056,6 +6066,21 @@ isOneToOne: false
 { Args: { "p_venue_id": string }; Returns: {
               "bonus_paise": number,"cash_paise": number,"full_name": string,"last_seen_at": string,"member_id": string,"member_number": number
             }[]
+                           },
+"undo_call_time":
+{ Args: { "p_request_id": string }; Returns: undefined
+                           },
+"undo_leave":
+{ Args: { "p_session_id": string }; Returns: undefined
+                           },
+"undo_seat":
+{ Args: { "p_session_id": string }; Returns: undefined
+                           },
+"undo_top_up":
+{ Args: { "p_request_id": string }; Returns: undefined
+                           },
+"undo_waitlist_decision":
+{ Args: { "p_entry_id": string }; Returns: undefined
                            },
 "unlock_points":
 { Args: { "p_idempotency_key": string,"p_member_id": string,"p_points": number,"p_reason": string }; Returns: string

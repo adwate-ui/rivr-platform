@@ -24,6 +24,7 @@ export const isShownSetting = (key: string) => !HIDDEN_KEYS.includes(key);
 const AREA_OF: Readonly<Record<SettingKey, RuleArea>> = {
   'call_time.minutes': 'floor',
   'call_time.add_choices': 'floor',
+  'floor.request_targets': 'floor',
   'card.qr_rotation_seconds': 'floor',
   'dealer.rotation_minutes': 'floor',
   'waitlist.hold_minutes': 'floor',

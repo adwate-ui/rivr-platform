@@ -62,6 +62,11 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     fields: { minutes: 'Lengths offered' },
     options: { 15: '15 min', 30: '30 min', 45: '45 min', 60: '1 hour', 90: '1 hour 30', 120: '2 hours', 180: '3 hours', 240: '4 hours' },
   },
+  'floor.request_targets': {
+    name: 'Request targets',
+    help: 'Seconds a request waits on the Live floor before it shows late. 60 for a top-up and 300 for the rest unless set.',
+    fields: { top_up_seconds: 'Top-up, seconds', other_seconds: 'Others, seconds' },
+  },
   'card.qr_rotation_seconds': {
     name: 'Door code refresh',
     help: "How often the card's code changes. Every 30 seconds unless set.",
