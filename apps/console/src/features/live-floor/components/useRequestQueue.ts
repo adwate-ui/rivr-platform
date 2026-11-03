@@ -29,15 +29,21 @@ function useFreshKeys(requests: readonly FloorRequest[] | undefined, onArrive: (
   return fresh;
 }
 
-/** The requests in the order held when the pointer came in, as they are now; those gone since are dropped. */
+/**
+ * The requests in the order held when the pointer came in, as they are now: those gone since are dropped, and new ones
+ * join the end, so nothing above them moves.
+ */
 function heldOrder(held: readonly FloorRequest[], latest: readonly FloorRequest[]): FloorRequest[] {
   const now = new Map(latest.map((request) => [requestKey(request), request]));
-  return held.flatMap((request) => now.get(requestKey(request)) ?? []);
+  const kept = held.flatMap((request) => now.get(requestKey(request)) ?? []);
+  const keys = new Set(kept.map(requestKey));
+  return [...kept, ...latest.filter((request) => !keys.has(requestKey(request)))];
 }
 
 /**
  * The floor's requests as the panel shows them (console v3): oldest first, never re-sorted under the pointer. While the
- * pointer is on the list, new ones wait until it leaves and what was done goes; `fresh` marks those just arrived.
+ * pointer is on the list its order holds, what was done goes and what arrives joins the end; once it leaves, oldest first
+ * again. `fresh` marks those just arrived.
  */
 export function useRequestQueue(requests: readonly FloorRequest[] | undefined, onArrive: () => void) {
   const [held, setHeld] = useState<readonly FloorRequest[] | null>(null);

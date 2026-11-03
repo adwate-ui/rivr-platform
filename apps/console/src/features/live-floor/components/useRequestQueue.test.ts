@@ -24,13 +24,13 @@ describe('the requests queue (console v3)', () => {
     expect(result.current.fresh.size).toBe(0);
   });
 
-  it('keeps the order under the pointer: what arrives waits until it leaves, and what was done goes', () => {
+  it('keeps the order under the pointer: what was done goes, what arrives joins the end, and oldest first once it leaves', () => {
     const { result, rerender } = renderHook(({ requests }) => useRequestQueue(requests, () => undefined), {
       initialProps: { requests: [join('e1', 'Ritika Bhalla'), join('e2', 'Leela Menon')] },
     });
     act(() => result.current.hold(true));
     rerender({ requests: [join('e0', 'Riya Sen'), join('e2', 'Leela Menon')] });
-    expect(names(result.current.shown)).toEqual(['Leela Menon']);
+    expect(names(result.current.shown)).toEqual(['Leela Menon', 'Riya Sen']);
     act(() => result.current.hold(false));
     expect(names(result.current.shown)).toEqual(['Riya Sen', 'Leela Menon']);
   });
