@@ -75,7 +75,7 @@ function Group({ group, current, onPick }: { group: PickListGroup; current: stri
 export function PickList({ label, groups, current, onPick, search, emptyText }: PickListProps) {
   const isEmpty = groups.every((group) => group.items.length === 0);
   return (
-    <section aria-label={label} className="flex flex-col overflow-hidden rounded-md bg-raised pb-2 text-content">
+    <section aria-label={label} className="flex flex-col overflow-hidden rounded-md bg-raised text-content">
       {search === undefined ? null : <div className="p-2">{search}</div>}
       {isEmpty ? <p className="px-4 py-4 font-text text-14 leading-normal text-content-muted">{emptyText}</p> : null}
       {groups.filter((group) => group.items.length > 0).map((group, index) => (

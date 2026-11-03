@@ -2,7 +2,7 @@ import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/d
 import { QueryClient } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Content } from './ContentScreen.tsx';
+import { Website } from './WebsiteScreen.tsx';
 
 afterEach(() => {
   cleanup();
@@ -17,28 +17,28 @@ const PAGES = [
   { id: 'p-bank', slug: 'journal-bankroll', title: 'Bankroll basics' }, { id: 'p-terms', slug: 'terms', title: 'Terms of use' },
 ];
 
-function renderTab(tab: string | undefined, onNavigate = vi.fn()) {
+function renderWebsite(pages: unknown[] = PAGES) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000101', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
   }));
   vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
     const url = String(input instanceof Request ? input.url : input);
-    return Response.json(url.includes('/rest/v1/site_page') ? PAGES : []);
+    return Response.json(url.includes('/rest/v1/site_page') ? pages : []);
   });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <Content venueId="v1" tabs={['website', 'learn']} tab={tab} onNavigate={onNavigate} />
+      <Website venueId="v1" />
     </RivrDataProvider>,
   );
-  return onNavigate;
 }
 
-describe('Content', () => {
-  it('lists the website’s pages in Club, Guides and Legal, the home and link-in-bio pages named apart', async () => {
-    renderTab(undefined);
+describe('Website', () => {
+  it('lists the pages in Club, Guides and Legal, the home and link-in-bio pages named apart', async () => {
+    renderWebsite();
     const list = await screen.findByRole('region', { name: 'Pages' }, { timeout: 5000 });
+    expect(screen.getByRole('heading', { name: 'Website', level: 1 })).toBeDefined();
     for (const group of ['Club', 'Guides', 'Legal']) expect(within(list).getByRole('heading', { name: group })).toBeDefined();
     expect(within(list).getByRole('button', { name: 'Home' })).toBeDefined();
     expect(within(list).getByRole('button', { name: 'Link in bio' })).toBeDefined();
@@ -50,7 +50,7 @@ describe('Content', () => {
   });
 
   it('finds a page by its name', async () => {
-    renderTab('website');
+    renderWebsite();
     fireEvent.change(await screen.findByRole('searchbox', { name: 'Find a page' }, { timeout: 5000 }), { target: { value: 'bank' } });
     const list = screen.getByRole('region', { name: 'Pages' });
     expect(within(list).getAllByRole('button').map((button) => button.textContent)).toEqual(['Bankroll basics']);
@@ -58,11 +58,8 @@ describe('Content', () => {
     expect(within(list).getByText('No page matches.')).toBeDefined();
   });
 
-  it('keeps the Learn content on its own tab, through the address', async () => {
-    const onNavigate = renderTab('learn');
-    expect(await screen.findByRole('heading', { name: 'Add a source' }, { timeout: 5000 })).toBeDefined();
-    expect(screen.getByRole('link', { name: 'Learn content' }).getAttribute('aria-current')).toBe('page');
-    fireEvent.click(screen.getByRole('link', { name: 'Website' }));
-    expect(onNavigate).toHaveBeenCalledWith('/content?tab=website');
+  it('says in one line when the website has no pages', async () => {
+    renderWebsite([]);
+    expect(await screen.findByText('The website has no pages yet.', undefined, { timeout: 5000 })).toBeDefined();
   });
 });

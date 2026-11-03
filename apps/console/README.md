@@ -35,7 +35,8 @@ src/
     fnb/              food and drink for staff who run F&B (#123), Service's whole role (#640): Orders in three lanes, to accept, being prepared and delivered tonight, each with its time; a KOT the bar printer missed, as its outbox delivery says, to print or read to the bar and mark handed over; New order, the table then the seat, paid or comp; the Menu tab, by kind, an item at a time or from a CSV (#799) (/fnb?tab=orders|menu, console v3)
     tables-setup/     the stakes the club runs and its tables, each added or changed, for the super admin (#642; /tables)
     games-history/    the tables run each club day, how often and how long, for the super admin (#643; /games-history)
-    door/             the Door, two tabs (/door?tab=checkin|today): Check-in, one field for the card the scanner reads (#71), a mobile, a member number or a name, then the members expected and in the room; and Today's players by status, with tables and time played (#641)
+    check-in/         the Door's Check-in tab (/door?tab=check-in): one field for the card the scanner reads (#71), a mobile, a member number or a name; then the members expected and in the room
+    todays-players/   the Door's Today's players tab (/door?tab=players): every member at the club today by status, with times, tables and time played (#641)
     cage/             buy-ins by cash, UPI or wallet, the tables' requests, and markers signed for on the pad (/cage)
     markers/          credit: open markers by age, limits, raises waiting for a second super admin, room exposure (/markers)
     withdrawals/      members' withdrawals waiting for the cage and its second approvers (/withdrawals)
@@ -60,8 +61,13 @@ src/
     sops/             the SOP library: read and acknowledge; managers add SOPs, publish versions, see who acknowledged (/sops)
     staff/            the venue's staff as a table to search (C-03): add behind a button, open a name to change a job title or role, turn off; each hire's onboarding checklist, the SOPs their role must acknowledge, ticked as they do (/staff); the dealers' PINs for the tablet sign-in, by tab (#606; /dealer-pins opens it)
     incidents/        the incident log, the club's contacts and its drills (/incidents)
-    feedback/         the General Manager's feedback tickets: resolve each with what was done (/feedback)
-    rewards/          points by hand, earned or locked, and unlocking them (#645); the rewards catalogue, kept beside its form, and members' redemptions to hand over (/rewards)
+    feedback/         the General Manager's feedback by tab (/feedback?tab=open|resolved): open tickets, each resolved with what was done, kept with the staff member's name; and the rest of the last 90 days
+    host-queue/       lapsed regulars to call, longest gone first, beside the call open: why they stopped coming (needed to save it), the offer and a note; or off the queue (/host-queue)
+    social/           by tab (/social?tab=wall|publish|leads): the social wall's tagged posts to approve or reject, publishing with the posts made, and the inbox's leads
+    website/          Content's Website tab (/content?tab=website): the pages found by name in Club, Guides and Legal, beside the open page's draft, preview, publishing and history (#129)
+    learn-sources/    Content's Learn content tab (/content?tab=learn), loaded when first opened as it carries the drill engine: licensed encodings and adding one that passes its checks (#131)
+    rewards/          the Rewards tab of /rewards, by part (?part=catalogue|handover|points): the catalogue, its form opened by New reward or a reward's Edit; members' redemptions to hand over; points by hand, earned or locked, and released (#645), and League points from a CSV
+    spin-wheel/       the Spin wheel tab of /rewards (?tab=spin-wheel): the spins waiting, and the wheel's prizes with their odds as bars, a bonus the month's spin budget cannot pay saying it is off the wheel, with a link to the budget
     league/           the RIVR League's standings by month or season, and its seasons (/league)
     tournament-interest/ a new tournament published without money: name, start, game and stake as text, description (#800);
                       who registered interest in each from the app, marked registered once paid (#636; /tournament-interest)

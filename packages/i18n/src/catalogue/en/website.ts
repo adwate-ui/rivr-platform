@@ -64,10 +64,3 @@ export const website = {
     unavailable: 'Not sent. Try again.',
   },
 } as const;
-
-/** The console's Content screen (console v3): the website's pages, and the Learn content behind the player app's Learn. */
-export const consoleContent = {
-  title: 'Content',
-  notAllowed: 'Not in your role. Ask an admin.',
-  tabs: { website: 'Website', learn: 'Learn content' },
-} as const;

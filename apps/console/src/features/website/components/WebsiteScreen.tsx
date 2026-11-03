@@ -1,6 +1,7 @@
+import { useStaffVenue } from '@rivr/db';
 import { useSitePages, type EditorPage } from '@rivr/db/siteEditor';
 import { t } from '@rivr/i18n';
-import { Box, Heading, Input, LoadState, PickList, Skeleton, SplitView, Stack, Text } from '@rivr/ui';
+import { Box, Heading, Input, PickList, Screen, SplitView, Stack } from '@rivr/ui';
 import { useState } from 'react';
 import { PageEditor } from './PageEditor.tsx';
 import { pageGroups, pageLabel } from './pagePicker.ts';
@@ -33,14 +34,34 @@ function Pages({ venueId, pages }: { venueId: string; pages: readonly EditorPage
   );
 }
 
-/**
- * The website editor (#129; features "Website editing"; decision 0270): a page's words changed in place, saved as a draft,
- * previewed as the website draws it, and published now or at a time; every version kept, and any earlier one published
- * again in one click.
- */
-export function WebsiteTab({ venueId }: { venueId: string }) {
+/** The website's pages beside the open page's editor, or the list's loading, empty or error state. */
+export function Website({ venueId }: { venueId: string }) {
   const pages = useSitePages(venueId);
-  if (pages.data === undefined) return pages.isError ? <LoadState isError onRetry={() => void pages.refetch()} /> : <Skeleton look="rows" rows={6} />;
-  if (pages.data.length === 0) return <Text tone="muted">{t('console.website.noPages')}</Text>;
-  return <Pages venueId={venueId} pages={pages.data} />;
+  const title = t('console.website.title');
+  if (pages.data === undefined) {
+    return pages.isError
+      ? <Screen title={title} status="error" onRetry={() => void pages.refetch()} />
+      : <Screen title={title} status="loading" loadingLook="rows" />;
+  }
+  if (pages.data.length === 0) return <Screen title={title} status="empty" emptyText={t('console.website.noPages')} />;
+  return (
+    <Screen title={title}>
+      <Pages venueId={venueId} pages={pages.data} />
+    </Screen>
+  );
+}
+
+/**
+ * The website editor (#129; features "Website editing"; decision 0270), Content's first tab (console v3), for super
+ * admins and marketing (website.edit): a page's words changed in place, saved as a draft, previewed as the website draws
+ * it, and published now or at a time; every version kept, and any earlier one published again in one click.
+ */
+export function WebsiteScreen() {
+  const staff = useStaffVenue();
+  // The frame shows a screen only once the staff member's venue is known.
+  if (staff.status !== 'ready') return null;
+  if (!staff.venue.permissions.includes('website.edit')) {
+    return <Screen title={t('console.website.title')} status="error" errorText={t('console.website.notAllowed')} />;
+  }
+  return <Website venueId={staff.venue.venueId} />;
 }
