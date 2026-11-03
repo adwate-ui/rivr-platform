@@ -143,9 +143,12 @@ function HiddenTitle({ heading, title, place }: { heading: HeadingAttributes; ti
   );
 }
 
-/** An empty element at the title row's end, handed to the part of the screen that draws a control there. */
+/**
+ * An empty element at the title row's end, handed to the part of the screen that draws a control there; at the end on a
+ * console phone too, where the title is the header's and the row holds the control alone.
+ */
 function ActionsSlot({ onSlot }: { onSlot: (element: HTMLDivElement | null) => void }) {
-  return <div ref={onSlot} className="flex items-center" />;
+  return <div ref={onSlot} className="ms-auto flex items-center" />;
 }
 
 /** The title with its actions, which wrap onto two lines on a narrow screen, and in a player shell the initial at its end. */
