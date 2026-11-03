@@ -13,9 +13,11 @@ test.describe('Phone change', () => {
   test('a super admin changes a practice member\'s number, with a reason', async ({ page }) => {
     test.skip(isRemoteTarget(), 'changes a member\'s number, so the local stack only');
     await signInToConsole(page, '9000000780');
-    const rail = page.getByRole('complementary');
-    await rail.getByRole('switch', { name: 'Practice venue' }).click();
-    await expect(rail.getByText('RIVR Practice')).toBeVisible();
+    // The practice venue switch is in the account menu (console v3); a stripe across the top says it is on.
+    await page.getByRole('button', { name: 'Kiran Joshi', exact: true }).click();
+    await page.getByRole('switch', { name: 'Practice venue' }).click();
+    await expect(page.getByText('Practice venue: nothing here reaches the club or its members.')).toBeVisible();
+    await page.keyboard.press('Escape');
     await page.getByRole('link', { name: 'Members' }).click();
     await page.getByRole('searchbox', { name: 'Name, member no. or mobile' }).fill('Omar');
     await page.getByRole('button', { name: 'Omar Sheikh', exact: true }).click();

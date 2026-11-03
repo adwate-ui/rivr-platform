@@ -35,8 +35,8 @@ async function pairTv(tv: Page, floor: Page, name: string, board: string) {
   await tv.goto(appUrl('display'));
   const shown = tv.getByRole('heading', { level: 2, name: /^\d{6}$/ });
   await expect(shown).toBeVisible();
-  await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-  await floor.getByRole('link', { name: 'TVs' }).click();
+  // Devices is a tab of Settings (console v3), each kind a part in the address.
+  await floor.goto(`${appUrl('console')}/settings?tab=devices&part=tvs`);
   await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
   await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
   await floor.getByRole('button', { name: 'Pair the TV' }).click();
@@ -72,9 +72,9 @@ test.describe('Rewards', () => {
     await member.reload();
     await expect(member.getByText(/^Collected /).first()).toBeVisible({ timeout: 10_000 });
 
-    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
+    // Devices is a tab of Settings (console v3), each kind a part in the address.
 
-    await floor.getByRole('link', { name: 'TVs' }).click();
+    await floor.goto(`${appUrl('console')}/settings?tab=devices&part=tvs`);
     await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Unpair the TV' }).click();

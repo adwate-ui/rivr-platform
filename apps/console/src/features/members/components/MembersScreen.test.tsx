@@ -21,12 +21,13 @@ const SEAT = { session_id: 's1', table_id: 't2', seat: 3, member_id: 'm1', full_
   must_move_order: null, away_since: null, call_time_left: null, leaving_at: null, top_up: null, time_request_id: null, time_request_minutes: null };
 const TODAY = { member_id: 'm2', full_name: 'Arjun Mehta', member_number: 63, status: 'waiting', checked_in_at: null, checked_out_at: null, waiting_seconds: 540, tables: [] };
 const GRANT = { grant_id: 'g1', granted_at: '2026-11-03T13:00:00Z', club_day: '2026-11-03', promotion_name: 'Triple points', version: 2, points: 300, chips: 0, spins: 0, perk: null };
+const PERK = { ...GRANT, grant_id: 'g2', promotion_name: 'Cab home', points: 0, perk: 'cab_home' };
 
 const ANSWERS: Record<string, unknown> = {
   '/rpc/member_search': [SAKSHI, ARJUN], '/rpc/member_record': [RECORD], '/rpc/floor_seats': [SEAT], '/rpc/todays_players': [TODAY],
   '/rest/v1/game_table': [{ id: 't2', venue_id: 'v1', name: 'Table 2', is_open: true, seats: 9, position: 2, table_type_id: 'tt1', must_move_to_table_id: null, room: 'main' }],
   '/rest/v1/table_type': [{ id: 'tt1', name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, buy_in_min_paise: 1000000, straddle_paise: null }],
-  '/rpc/member_promotion_grants': [GRANT],
+  '/rpc/member_promotion_grants': [GRANT, PERK],
 };
 
 /** A staff member in `role` on Members, with the member `memberId`'s record open when given. */
@@ -72,6 +73,8 @@ describe('Members (console v3)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Show Sakshi Tandon on the floor' }));
     expect(onNavigate).toHaveBeenCalledWith('/?table=t2&seat=3');
     expect(await screen.findByText(/Triple points: 300 points/)).toBeDefined();
+    // A perk reads as the promotion builder names it, never its code.
+    expect(screen.getByText(/Cab home: Cab home$/)).toBeDefined();
     expect(screen.getByRole('link', { name: 'Account' })).toBeDefined();
   });
 

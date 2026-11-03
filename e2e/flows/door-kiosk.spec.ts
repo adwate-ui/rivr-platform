@@ -39,8 +39,8 @@ test.describe('Door kiosk', () => {
     const name = `Door ${String(Date.now() % 100_000).padStart(5, '0')}`;
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000191');
-    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-    await floor.getByRole('link', { name: 'Tablets' }).click();
+    // Devices is a tab of Settings (console v3), each kind a part in the address.
+    await floor.goto(`${appUrl('console')}/settings?tab=devices&part=tablets`);
     await floor.getByRole('textbox', { name: 'Tablet name' }).fill(name);
     await floor.getByRole('switch', { name: 'Door kiosk' }).click();
     await floor.getByRole('button', { name: 'Add and pair' }).click();
@@ -85,9 +85,9 @@ test.describe('Door kiosk', () => {
     await floor.getByRole('link', { name: /^Resolved \d+$/ }).click();
     await expect(floor.getByText(/^Resolved by Nisha Arora on .*: Second host on the door from Friday\.$/)).toBeVisible();
 
-    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
+    // Devices is a tab of Settings (console v3), each kind a part in the address.
 
-    await floor.getByRole('link', { name: 'Tablets' }).click();
+    await floor.goto(`${appUrl('console')}/settings?tab=devices&part=tablets`);
     await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Unpair the tablet' }).click();

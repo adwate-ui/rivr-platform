@@ -2,6 +2,18 @@ import { useMemberPromotionGrants, type MemberPromotionGrant } from '@rivr/db';
 import { formatDate, formatNumber, t } from '@rivr/i18n';
 import { Heading, LoadState, Stack, Text } from '@rivr/ui';
 
+// A perk is a code in the database (promotion_grant.perk); it reads as the promotion builder names the reward.
+const PERKS = {
+  cab_home: 'console.promotions.builder.rewards.cab_home.label',
+  tournament_entry: 'console.promotions.builder.rewards.tournament_entry.label',
+  waitlist_priority: 'console.promotions.builder.rewards.waitlist_priority.label',
+} as const;
+
+function perkWords(perk: string): string {
+  const key = Object.entries(PERKS).find(([code]) => code === perk)?.[1];
+  return key === undefined ? '' : t(key);
+}
+
 /** What a grant gave, in words: points, bonus chips, spins and a perk, as many as it gave. */
 function given(grant: MemberPromotionGrant): string {
   const parts = [
@@ -9,9 +21,9 @@ function given(grant: MemberPromotionGrant): string {
     ...(grant.chips > 0 ? [t('console.members.grantChips', { count: formatNumber(grant.chips) })] : []),
     ...(grant.spins === 1 ? [t('console.members.grantSpin')] : []),
     ...(grant.spins > 1 ? [t('console.members.grantSpins', { count: formatNumber(grant.spins) })] : []),
-    ...(grant.perk === null ? [] : [grant.perk]),
+    ...(grant.perk === null ? [] : [perkWords(grant.perk)]),
   ];
-  return parts.join(', ');
+  return parts.filter((part) => part !== '').join(', ');
 }
 
 function Body({ grants }: { grants: ReturnType<typeof useMemberPromotionGrants> }) {
