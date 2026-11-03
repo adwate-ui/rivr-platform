@@ -64,6 +64,8 @@ test.describe('Rewards', () => {
     await expect(tv.getByRole('heading', { name: 'RIVR League' })).toBeVisible({ timeout: 20_000 });
 
     await floor.getByRole('link', { name: 'Rewards', exact: true }).click();
+    // What waits to be handed over is a tab of Rewards, counted on it (console v3).
+    await floor.getByRole('link', { name: /^Hand over \d+$/ }).click();
     await floor.getByRole('button', { name: `Hand ${REWARD} over to Riya Sen` }).first().click();
     await expect(floor.getByText(/^Meher Lal, /).first()).toBeVisible();
 

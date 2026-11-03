@@ -23,7 +23,7 @@ export function PointsByHand({ venueId }: { venueId: string }) {
       <Inline gap={3} align="end">
         <Input label={t('console.rewards.byHand.phone')} type="tel" inputMode="numeric" prefix={INDIA} maxLength={14} value={typed}
           onChange={(event) => setTyped(event.target.value)} />
-        <Button variant="secondary" isDisabled={!isMobile(digits)} isLoading={phone !== null && member.isFetching} onClick={() => setPhone(digits)}>
+        <Button variant="subtle" size="compact" isDisabled={!isMobile(digits)} isLoading={phone !== null && member.isFetching} onClick={() => setPhone(digits)}>
           {t('console.rewards.byHand.find')}
         </Button>
       </Inline>
@@ -88,10 +88,10 @@ function PointsForm({ venueId, member }: { venueId: string; member: MemberPoints
         <Input label={t('console.rewards.byHand.reason')} maxLength={200} value={reason} onChange={(event) => { setReason(event.target.value); change.reset(); }} />
       </Inline>
       <Inline gap={3} wrap>
-        <Button variant="primary" isDisabled={isOff} onClick={() => void run('earned')}>{t('console.rewards.byHand.giveEarned')}</Button>
-        <Button variant="secondary" isDisabled={isOff} onClick={() => void run('locked')}>{t('console.rewards.byHand.giveLocked')}</Button>
-        <Button variant="secondary" isDisabled={isOff || member.locked === 0n} onClick={() => void run('unlock')}>{t('console.rewards.byHand.unlock')}</Button>
-        <Button variant="secondary" isDisabled={isOff} onClick={() => void run('league')}>{t('console.rewards.byHand.giveLeague')}</Button>
+        <Button variant="strong" size="compact" isDisabled={isOff} onClick={() => void run('earned')}>{t('console.rewards.byHand.giveEarned')}</Button>
+        <Button variant="subtle" size="compact" isDisabled={isOff} onClick={() => void run('locked')}>{t('console.rewards.byHand.giveLocked')}</Button>
+        <Button variant="subtle" size="compact" isDisabled={isOff || member.locked === 0n} onClick={() => void run('unlock')}>{t('console.rewards.byHand.unlock')}</Button>
+        <Button variant="subtle" size="compact" isDisabled={isOff} onClick={() => void run('league')}>{t('console.rewards.byHand.giveLeague')}</Button>
       </Inline>
       <StatusMessage>{change.outcome?.ok === true ? change.outcome.text : null}</StatusMessage>
       {change.outcome?.ok === false ? <ErrorMessage>{change.outcome.text}</ErrorMessage> : null}

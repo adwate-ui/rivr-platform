@@ -1,9 +1,6 @@
-/** The console's spin wheel (#150; decision 0266): the spins waiting, and the wheel's prizes and odds. */
+/** The console's spin wheel (#150; decision 0266), a tab of Rewards (console v3): the spins waiting, and the wheel's prizes and odds. */
 export const spin = {
-  title: 'Spin wheel',
-  notAllowed: 'Not in your role. Ask an admin.',
   waiting: 'Spins waiting',
-  waitingHint: 'Spin with the member there. The TVs show the prize.',
   noneWaiting: 'No spins waiting.',
   member: 'Member',
   promotion: 'Promotion',
@@ -12,26 +9,29 @@ export const spin = {
   spinFor: 'Spin for {name}',
   won: '{name} won {prize}.',
   wheel: 'The wheel',
-  wheelHint: 'A prize’s odds are its weight out of the weights of the prizes that can be won now. A bonus more than what is left of this month’s spin budget, set in Settings, is off the wheel, here and on the TVs.',
+  wheelHint: 'Odds are a prize’s weight out of all prizes that can be won now.',
   noPrizes: 'No prizes on the wheel yet.',
   /** Above the waiting spins while no prize can be drawn: Spin waits for one (C-08). */
   noDrawable: 'The wheel has no prize to draw. Add one, then spin.',
   prize: 'Prize',
   odds: 'Odds',
-  /** `3 in 10`. */
+  /** The odds in words: `3 in 10`, or `Off` for a prize off the wheel. */
+  chance: 'Chance',
   oddsValue: '{weight} in {odds}',
+  offWheel: 'Off',
+  /** A bonus more than what is left of this month's spin budget is off the wheel, here and on the TVs. */
   budgetSpent: 'Off the wheel: this month’s spin budget cannot pay it',
+  /** Where that budget is set: Settings, Members and rewards. */
+  budgetLink: 'Spin budget',
   remove: 'Remove',
   removeName: 'Remove {prize}',
   confirmRemove: 'Yes, remove {prize}',
-  addTitle: 'Add a prize',
   kind: 'Prize',
   kinds: { points: 'Points', bonus: 'Bonus', nothing: 'Nothing' },
   points: 'Points',
-  bonus: 'Bonus chips',
-  bonusHint: 'In whole 50s: 500, 1,000.',
+  bonus: 'Bonus chips, in 50s',
   weight: 'Weight',
-  weightHint: '1 to 1,000. Weight 2 comes up twice as often as 1.',
+  weightHint: 'Weight 1 to 1,000. Weight 2 comes up twice as often as 1.',
   add: 'Add to the wheel',
   added: '{prize} is on the wheel.',
   /** A prize as the console names it; a bonus as bonus chips, never rupees (#629). */
