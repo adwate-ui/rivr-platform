@@ -1,5 +1,5 @@
 # A tag release-YYYYMMDD-N deploys the tagged commit to production after the end-to-end
-# suite passes on staging, and builds the signed APK for the dealer tablet shell.
+# flows tagged @staging pass on staging, and builds the signed APK for the dealer tablet shell.
 # Production is never seeded. Rollback is a Pages rollback plus a forward-fix migration.
 # docs/spec/additions-2026-10-14.md, "Environments and release" and "Android builds".
 #
@@ -86,7 +86,9 @@ jobs:
           playwright: 'true'
       # No report or trace is uploaded: this repository is public and a staging trace would
       # carry staging sessions. Failures print in the log.
-      - run: pnpm e2e
+      # Only the flows tagged @staging (decision 0420): they use only the apps and staging's seeded test
+      # numbers. The rest read the local stack's database or its seed as it stands, which staging's is not.
+      - run: pnpm e2e --grep @staging
 
   database:
     needs: e2e-staging

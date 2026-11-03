@@ -18,7 +18,7 @@ async function requestCode(page: Page, number: string) {
   await page.getByRole('button', { name: 'Send code' }).click();
 }
 
-test.describe('Sign in', () => {
+test.describe('Sign in', { tag: '@staging' }, () => {
   test.beforeAll(() => {
     if (CODE === '') throw new Error('E2E_SIGN_IN_CODE is not set: the sign-in flow cannot sign in on staging');
   });
@@ -46,6 +46,7 @@ test.describe('Sign in', () => {
   });
 
   test('Sign in › Code (auto-fill): the code sent by WhatsApp goes on by itself and lands on Tonight', async ({ page }) => {
+    test.skip(isRemoteTarget(), 'signs in with a number staging does not list as a test number, so the local stack only');
     await requestCode(page, '90000 00281');
     await expect(page.getByRole('heading', { name: 'Enter the code' })).toBeVisible();
     await expect(page.getByText('Sent on WhatsApp to +91 90000 00281')).toBeVisible();
