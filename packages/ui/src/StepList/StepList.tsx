@@ -59,16 +59,16 @@ function StepWords({ step }: { step: Step }) {
 }
 
 /**
- * A step as a raised card (console v3): its mark, words and action on one line, centred on each other, and what it holds
- * under the words.
+ * A step as a raised card (console v3): its mark, words and action on one line, centred on each other (on a phone the
+ * action under the words), and what it holds under the words.
  */
 function CardStep({ step, number }: { step: Step; number: number }) {
   return (
     <li aria-current={step.state === 'current' ? 'step' : undefined} className="flex flex-col gap-4 rounded-lg bg-raised p-4">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         <Marker number={number} state={step.state} />
         <StepWords step={step} />
-        {step.action ? <div className="flex shrink-0">{step.action}</div> : null}
+        {step.action ? <div className="flex shrink-0 max-medium:w-full max-medium:ps-12">{step.action}</div> : null}
       </div>
       {step.content ? <div className="min-w-0 medium:ps-12">{step.content}</div> : null}
     </li>
