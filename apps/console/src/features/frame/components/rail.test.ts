@@ -49,7 +49,7 @@ describe('the console rail and who may open each screen', () => {
   it('gives Floor every super admin module but tables setup, the member list, games history, tournaments and bonus', () => {
     const floor = ROLE_PERMISSIONS.floor;
     // And KYC review, for its checks in person (decision 0301).
-    expect(items(floor)).toEqual(['/', '/waitlist', '/top-ups', '/check-in', '/fnb', '/players-today', '/kyc-review', '/rewards']);
+    expect(items(floor)).toEqual(['/', '/waitlist', '/top-ups', '/time-requests', '/check-in', '/fnb', '/players-today', '/kyc-review', '/rewards']);
     // Devices waits for a TV-only permission: devices.manage also enrols the cage's computers.
     for (const kept of ['/tables', '/members', '/games-history', '/tournament-interest', '/promotions', '/spin-wheel', '/devices']) {
       expect(isAllowedAt(floor, kept)).toBe(false);
@@ -58,7 +58,7 @@ describe('the console rail and who may open each screen', () => {
   });
 
   it('gives Cashier the same as Floor, less the food and drink orders', () => {
-    expect(items(ROLE_PERMISSIONS.cashier)).toEqual(['/', '/waitlist', '/top-ups', '/check-in', '/players-today', '/rewards']);
+    expect(items(ROLE_PERMISSIONS.cashier)).toEqual(['/', '/waitlist', '/top-ups', '/time-requests', '/check-in', '/players-today', '/rewards']);
   });
 
   it('shows beside an entry how many wait on its screen, and nothing beside the others', () => {

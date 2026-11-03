@@ -1,5 +1,5 @@
 import { useMySeatActions, type MySeat, type MySeatFailure } from '@rivr/db';
-import { ADD_TIME_CHOICES, type AddTimeMinutes } from '@rivr/domain/callTime';
+import { isAddTimeChoice, type AddTimeMinutes } from '@rivr/domain/callTime';
 import { formatHoursMinutes, t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Sheet, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
@@ -38,19 +38,23 @@ function TopUpSheet({ onClose }: SheetProps) {
   );
 }
 
-/** "Add time": 30 min, 1 hour or 2 hours (an hour unless changed), then Request it of the floor (decision 0320). */
-function AddTimeSheet({ onClose }: SheetProps) {
+/**
+ * "Add time": the lengths the club offers (decision 0305; an hour first if offered), then Request it of the floor
+ * (decision 0320), met or not.
+ */
+function AddTimeSheet({ seat, onClose }: SheetProps & { seat: MySeat }) {
   const { requestTime } = useMySeatActions();
   const send = useSend(onClose);
-  const [choice, setChoice] = useState<AddTimeMinutes>(60);
+  const choices = seat.addTimeChoices.filter(isAddTimeChoice);
+  const [choice, setChoice] = useState<AddTimeMinutes>(choices.find((minutes) => minutes === 60) ?? choices[0] ?? 60);
   const [requestId] = useState(() => crypto.randomUUID());
   const label = (minutes: AddTimeMinutes) => t(`player.live.seat.times.m${minutes}`);
   return (
     <Sheet isOpen onClose={onClose} title={t('player.live.seat.addTime')}>
       <Stack gap={4}>
         <ChoiceChips label={t('player.live.seat.addTime')} isLabelVisuallyHidden look="tile" mode="one" selected={[String(choice)]}
-          options={ADD_TIME_CHOICES.map((minutes) => ({ value: String(minutes), label: label(minutes) }))}
-          onChange={([value]) => setChoice(ADD_TIME_CHOICES.find((minutes) => String(minutes) === value) ?? choice)} />
+          options={choices.map((minutes) => ({ value: String(minutes), label: label(minutes) }))}
+          onChange={([value]) => setChoice(choices.find((minutes) => String(minutes) === value) ?? choice)} />
         <Button variant="primary" size="tall" fullWidth isLoading={requestTime.isPending}
           onClick={() => void requestTime.mutateAsync({ minutes: choice, requestId }).then(send.settle)}>
           {t('player.live.seat.requestTime', { choice: label(choice) })}
@@ -83,7 +87,7 @@ function LeaveSheet({ seat, secondsLeft, onClose }: SheetProps & { seat: MySeat;
 /** The seat's sheet that is open, if one is. */
 export function SeatSheets({ open, seat, secondsLeft, onClose }: { open: SeatSheet | null; seat: MySeat; secondsLeft: number; onClose: () => void }) {
   if (open === 'topUp') return <TopUpSheet onClose={onClose} />;
-  if (open === 'addTime') return <AddTimeSheet onClose={onClose} />;
+  if (open === 'addTime') return <AddTimeSheet seat={seat} onClose={onClose} />;
   if (open === 'leave') return <LeaveSheet seat={seat} secondsLeft={secondsLeft} onClose={onClose} />;
   return null;
 }

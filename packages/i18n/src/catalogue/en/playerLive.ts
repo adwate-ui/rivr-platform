@@ -79,7 +79,8 @@ export const playerLive = {
     cancel: 'Cancel',
     /** `{choice}` is `1 hour`. */
     requestTime: 'Request {choice}',
-    times: { m30: '30 min', m60: '1 hour', m120: '2 hours' },
+    /** Every length the club may offer (decision 0305); the club's setting picks which show. */
+    times: { m15: '15 min', m30: '30 min', m45: '45 min', m60: '1 hour', m90: '1 hour 30', m120: '2 hours', m180: '3 hours', m240: '4 hours' },
     /** Once the floor approves: `1 hour added`. */
     timeAdded: '{choice} added',
     leaveTitle: 'Leave your seat?',
@@ -97,7 +98,7 @@ export const playerLive = {
     statusTopUp: 'Top-up',
     requested: 'Requested',
     inProgress: 'In progress',
-    statusTimes: { m30: '+30 min', m60: '+1 h', m120: '+2 h' },
+    statusTimes: { m15: '+15 min', m30: '+30 min', m45: '+45 min', m60: '+1 h', m90: '+1 h 30', m120: '+2 h', m180: '+3 h', m240: '+4 h' },
     statusLeaving: 'Leaving list',
     onTheList: 'On the list',
   },

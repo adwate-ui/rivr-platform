@@ -27,7 +27,7 @@ const PLACE = {
 const SEAT = {
   table_name: 'Table 1', seat: 4, is_away: false, has_call_time: true, call_time_left: 9668, played_seconds: 1140, is_leaving: false, top_up: null,
   call_time_minutes: 180, started_at: '2026-11-15T16:55:30Z', call_time_ends_at: new Date(NOW + 9668 * 1000).toISOString(),
-  table_type_name: 'NLH 50/100', small_blind_paise: 5000, big_blind_paise: 10000, time_request_minutes: null,
+  table_type_name: 'NLH 50/100', small_blind_paise: 5000, big_blind_paise: 10000, time_request_minutes: null, add_time_choices: [30, 60, 120],
 };
 
 /** The answers the screen's reads get: each table, the member's places and seat as the test says, then the test's own. */
@@ -128,6 +128,15 @@ describe('Tonight', () => {
     expect(screen.getByRole('button', { name: 'Request 1 hour' })).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: '2 hours' }));
     expect(screen.getByRole('button', { name: 'Request 2 hours' })).toBeDefined();
+  });
+
+  it('Add time once the call time is met, with the lengths the club ticked (decision 0305)', async () => {
+    renderTonight([], [{ ...SEAT, call_time_left: 0, call_time_ends_at: null, add_time_choices: [45, 90] }]);
+    fireEvent.click(await screen.findByRole('button', { name: 'Add time' }, LATER));
+    expect(await screen.findByRole('dialog', { name: 'Add time' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Request 45 min' })).toBeDefined();
+    expect(screen.getByRole('button', { name: '1 hour 30' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: '2 hours' })).toBeNull();
   });
 
   it('Order on its way: the tracker reads where the order is, from the bar\'s steps', async () => {

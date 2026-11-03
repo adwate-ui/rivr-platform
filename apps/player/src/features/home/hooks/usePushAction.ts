@@ -9,13 +9,13 @@ import { WAITLIST_FAILURE_COPY } from '../components/waitlistCopy.ts';
 export interface PushTarget {
   readonly isReady: boolean;
   readonly calledEntryId: string | null;
-  /** Seated with a call time still running, as Add time on the seat needs. */
+  /** Seated with a call time, met or not (decision 0305), as Add time on the seat needs. */
   readonly canAddTime: boolean;
 }
 
 /**
- * A push's button, as the address it opened (decision 0320): `?sheet=add-time` opens Add time for a seated member whose
- * call time runs and who may see it (call_time.view);
+ * A push's button, as the address it opened (decision 0320): `?sheet=add-time` opens Add time for a seated member with
+ * call time, met or not (decision 0305), who may see it (call_time.view);
  * `?accept=<place>` says "I'm on my way" to that seat call, once, with a toast if it does not go through. Either way the
  * address is cleaned, so a refresh does not act again.
  */

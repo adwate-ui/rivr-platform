@@ -23,6 +23,14 @@ const callTimeMinutes = {
   value: z.strictObject({ minutes: z.int().min(0).max(24 * 60) }),
 } as const satisfies SettingDefinition;
 
+/** The lengths of more call time offered (decision 0305), ticked from eight presets; none set is 30 min, 1 hour, 2 hours. */
+const callTimeAddChoices = {
+  key: 'call_time.add_choices',
+  description: 'The lengths of more call time offered: a member asks for one from the seat, the floor adds one. None set is 30 minutes, 1 hour and 2 hours.',
+  scope: 'venue',
+  value: z.strictObject({ minutes: z.array(z.enum(['15', '30', '45', '60', '90', '120', '180', '240'])).min(1).max(8) }),
+} as const satisfies SettingDefinition;
+
 const defaultTier = {
   key: 'tier.default',
   description: 'The tier every new member starts in (additions, "Tier-gated features").',
@@ -277,7 +285,7 @@ const reportsUnclaimedDays = {
 
 /** Every setting key declared in code. */
 export const SETTINGS = [
-  callTimeMinutes, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, dealerRotationMinutes, waitlistPriorityWeights, waitlistHoldMinutes,
+  callTimeMinutes, callTimeAddChoices, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, dealerRotationMinutes, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
   cardQrRotationSeconds, leaguePoints, leaguePrizes, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
   cageCashBuyInLimit, amlStructuring, rakebackRate, accommodationHoursPerNight, reviewsGoogleUrl, cabMinimumVisits, learnSessionPoints, learnDailyPointsCap, spinBudget, hostLapse, socialConnectedChannels, pointsVerifiedBonus,

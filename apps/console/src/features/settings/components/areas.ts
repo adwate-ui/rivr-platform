@@ -23,6 +23,7 @@ export const isShownSetting = (key: string) => !HIDDEN_KEYS.includes(key);
 /** Where each setting sits. Every key the contracts declare has an area, or this does not compile. */
 const AREA_OF: Readonly<Record<SettingKey, RuleArea>> = {
   'call_time.minutes': 'floor',
+  'call_time.add_choices': 'floor',
   'card.qr_rotation_seconds': 'floor',
   'dealer.rotation_minutes': 'floor',
   'waitlist.hold_minutes': 'floor',

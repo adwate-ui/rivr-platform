@@ -23,6 +23,7 @@ export const rail = {
     settings: 'Settings',
     waitlist: 'Waitlist',
     topUps: 'Top-ups',
+    timeRequests: 'Time requests',
     hands: 'Hands',
     certification: 'Certification',
     checkIn: 'Check-in',

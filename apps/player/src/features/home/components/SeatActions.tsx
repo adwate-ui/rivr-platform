@@ -32,8 +32,8 @@ export function SeatActions({ seat, onOpen }: { seat: MySeat; onOpen: (sheet: Se
       <Stack gap={3}>
         <Grid columns={3} gap={2}>
           {topUp.state === 'enabled' ? <RoundAction icon="topUp" label={t('player.live.seat.topUp')} isPending={seat.topUp !== null} onPress={() => onOpen('topUp')} /> : null}
-          {/* A call time already met takes no more (decision 0324). */}
-          {seat.hasCallTime && callTime.state === 'enabled' && (seat.callTimeLeft ?? 0) > 0 ? (
+          {/* Met or not, more call time may be asked for (decision 0305). */}
+          {seat.hasCallTime && callTime.state === 'enabled' ? (
             <RoundAction icon="addTime" label={t('player.live.seat.addTime')} isPending={seat.timeRequestMinutes !== null} onPress={() => onOpen('addTime')} />
           ) : null}
           <FeatureGate access={leaving}>
