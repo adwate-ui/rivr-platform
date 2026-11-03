@@ -20,7 +20,7 @@ test.describe('Check-in', () => {
     test.skip(isRemoteTarget(), 'opens visits that only check-out (#82) closes, so the local stack only');
     await signInToConsole(page, '9000000124');
     await page.getByRole('link', { name: 'Door', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Check-in', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Check-in', level: 2 })).toBeVisible();
 
     await expect(doorList(page, 'Expected tonight').getByText('Naina Kapoor')).toBeVisible();
     await page.getByRole('button', { name: 'Check in Naina Kapoor' }).click();

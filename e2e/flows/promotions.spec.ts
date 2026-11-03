@@ -11,7 +11,7 @@ import { execFileSync } from 'node:child_process';
 import { expect, test, type Page } from '@playwright/test';
 import { worktreeName } from '@rivr/config/worktree';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
-import { signInToConsoleAndWait, signInToPlayer } from '../support/signIn.ts';
+import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 const CLUB = '00000000-0000-4000-8000-000000000001';
 const RHEA = '00000000-0000-4000-8000-000000000280';
@@ -74,7 +74,7 @@ test.describe('Promotions', () => {
   test('create, simulate, submit, approve by a second person, live, and a grant at a buy-in', async ({ browser }) => {
     test.setTimeout(150_000);
     const floor = await browser.newPage();
-    await signInToConsoleAndWait(floor, '9000000180');
+    await signInToConsole(floor, '9000000180');
     await buildAndSubmit(floor);
     // The one who submitted it never approves it.
     await floor.getByRole('button', { name: `Review ${NAME}` }).click();
@@ -82,7 +82,7 @@ test.describe('Promotions', () => {
     await floor.getByRole('button', { name: 'All promotions' }).click();
 
     const approver = await browser.newPage();
-    await signInToConsoleAndWait(approver, '9000000759');
+    await signInToConsole(approver, '9000000759');
     await approve(approver);
     const row = approver.getByRole('table', { name: 'Promotions' }).getByRole('row').filter({ hasText: NAME });
     await approver.getByRole('radio', { name: /^Live/ }).click();

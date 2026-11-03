@@ -10,7 +10,7 @@ import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { worktreeName } from '@rivr/config/worktree';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
-import { signInToConsoleAndWait } from '../support/signIn.ts';
+import { signInToConsole } from '../support/signIn.ts';
 
 const CLUB = '00000000-0000-4000-8000-000000000001';
 const NAME = `Thursday triple points ${Date.now().toString(36).slice(-5)}`;
@@ -72,7 +72,7 @@ test.describe('Promotion simulation', () => {
     const expected = lastWeekInSchedule();
     expect(expected.visits).toBeGreaterThan(0);
 
-    await signInToConsoleAndWait(page, '9000000750');
+    await signInToConsole(page, '9000000750');
     const started = Date.now();
     await page.goto(`${appUrl('console')}/promotions?open=new`);
     await page.getByRole('textbox', { name: 'Name members see' }).fill(NAME);

@@ -9,7 +9,7 @@
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { appUrl } from '../support/apps.ts';
-import { signInToConsoleAndWait, signInToPlayer } from '../support/signIn.ts';
+import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 const MEMBER = 'Ishaan Verma';
 const BLACK_CARD = 'Vihaan Kapoor';
@@ -49,7 +49,7 @@ const IN_LINE = /^(Next|\d+(st|nd|rd|th)) in line$/;
 
 /** The console's card for one table's list (decision 0433), found by its heading. */
 function gameList(page: Page, name: string): Locator {
-  // The card is the innermost section that holds the heading; the screen's own section holds every card.
+  // The innermost: the table's own card, not the screens around it (a tab's screen is a section inside its screen's).
   return page.locator('section').filter({ has: page.getByRole('heading', { level: 2, name, exact: true }) }).last();
 }
 
@@ -81,7 +81,7 @@ test.beforeAll(async ({ browser }) => {
   player = await browser.newPage();
   await signInToPlayer(player, '9000000211');
   host = await browser.newPage();
-  await signInToConsoleAndWait(host, '9000000111');
+  await signInToConsole(host, '9000000111');
   await host.goto(`${appUrl('console')}/waitlist`);
   await expect(host.getByRole('heading', { name: 'Table 2', exact: true })).toBeVisible();
   // A run stopped early may have left places behind.

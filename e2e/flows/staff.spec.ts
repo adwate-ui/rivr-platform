@@ -8,7 +8,8 @@
  */
 import { expect, test } from '@playwright/test';
 import { appUrl } from '../support/apps.ts';
-import { openConsole, signInToConsole } from '../support/signIn.ts';
+import { signInToConsole } from '../support/signIn.ts';
+import { openConsole } from '../support/console.ts';
 
 const REFUSED = 'Not in your role. Ask an admin.';
 

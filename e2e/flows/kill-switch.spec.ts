@@ -10,7 +10,8 @@
 import { expect, test, type Browser, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { letGoEarly, seatOnFloor } from '../support/floor.ts';
-import { openConsole, signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { openConsole } from '../support/console.ts';
+import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 import { dealerSignsIn, revoke, tabletAtTable3 } from '../support/tablet.ts';
 
 const MEMBER_BANNER = 'The club is paused. Ask a member of staff.';

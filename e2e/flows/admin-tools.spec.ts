@@ -9,7 +9,8 @@ import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { worktreeName } from '@rivr/config/worktree';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
-import { openConsole, signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { openConsole } from '../support/console.ts';
 
 /** Runs SQL in this worktree's local database and returns its unaligned output. */
 function sql(query: string): string {

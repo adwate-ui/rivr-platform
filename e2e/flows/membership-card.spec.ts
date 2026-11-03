@@ -40,7 +40,7 @@ test.describe('Membership card', () => {
     // The scanner types the card's code into the door's one field (console v3).
     const card = desk.getByRole('textbox', { name: 'Card, mobile, number or name' });
     // Past the few seconds' grace a code has once its QR has changed.
-    await expect(desk.getByRole('heading', { name: 'Check-in', level: 1 })).toBeVisible();
+    await expect(desk.getByRole('heading', { name: 'Check-in', level: 2 })).toBeVisible();
     await desk.waitForTimeout(6_000);
     await card.fill(screenshot);
     await card.press('Enter');

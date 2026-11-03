@@ -18,7 +18,7 @@ test.describe('Learn sources', () => {
     await page.getByRole('link', { name: 'Content', exact: true }).click();
     await page.getByRole('link', { name: 'Learn content' }).click();
     await expect(page).toHaveURL(/\/content\?tab=learn$/);
-    await expect(page.getByRole('heading', { name: 'Learn content', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Learn content', level: 2 })).toBeVisible();
     // With no source yet, the screen's one action opens the adding (console v3); with one, the form is already there.
     const add = page.getByRole('button', { name: 'Add a source' });
     await expect(add.or(page.getByRole('heading', { name: 'Add a source' }))).toBeVisible();

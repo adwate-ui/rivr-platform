@@ -18,7 +18,8 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
 import { letGoEarly, seatOnFloor, showSeats, tableTile } from '../support/floor.ts';
-import { openConsole, signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { openConsole } from '../support/console.ts';
+import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 const PLAYER = 'Vihaan Kapoor';
 const HIDDEN = 'Kunal Mehra';

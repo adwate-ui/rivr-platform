@@ -3,7 +3,8 @@
  * is ended it is gone. Aisha Khan (126) and Bhuvan Walia (426) are this flow's own, as Auth sends one code a minute.
  */
 import { expect, test } from '@playwright/test';
-import { openConsole, signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { openConsole } from '../support/console.ts';
 
 test('Notices: a notice put up in Settings shows on members\' Home until it is ended', async ({ browser, page }) => {
   const words = `Valet parking from 8 pm tonight (${String(Date.now())}).`;

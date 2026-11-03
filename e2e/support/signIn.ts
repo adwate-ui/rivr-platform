@@ -22,16 +22,12 @@ export async function signInToPlayer(page: Page, number: string, path = '/sign-i
 }
 
 /**
- * Opens a console screen by its address once the sign-in before it has gone through: the Admin screens sit in the rail's
- * folded group (console v3), so a flow goes to them directly.
+ * Signs someone in to the console at 1440 px and waits until the code is checked and the console opens: a navigation
+ * while the code is checked cancels the check ("context canceled" in Auth's logs), and the console opens signed out.
+ * With `path`, it then opens that screen by its address (e2e/support/console.ts, decision 0443). What they land on is
+ * the caller's to check.
  */
-export async function openConsole(page: Page, path: string) {
-  await expect(page.getByRole('textbox', { name: /^Code sent to/ })).toHaveCount(0);
-  await page.goto(`${appUrl('console')}${path}`);
-}
-
-/** Signs someone in to the console at 1440 px; what they land on is the caller's to check. */
-export async function signInToConsole(page: Page, number: string) {
+export async function signInToConsole(page: Page, number: string, path?: string) {
   if (SIGN_IN_CODE === '') throw new Error('E2E_SIGN_IN_CODE is not set: the flow cannot sign in on staging');
   await page.setViewportSize(VIEWPORT.console);
   await page.goto(appUrl('console'));
@@ -39,14 +35,7 @@ export async function signInToConsole(page: Page, number: string) {
   await page.getByRole('button', { name: 'Send code' }).click();
   // Six digits in, the code goes on by itself (S-01).
   await page.getByRole('textbox', { name: /^Code sent to/ }).fill(SIGN_IN_CODE);
-}
-
-/**
- * Signs someone in to the console and waits until the code is checked and the console opens, for a flow that goes on by
- * an address: a navigation while the code is checked cancels the check, and the console opens signed out.
- */
-export async function signInToConsoleAndWait(page: Page, number: string) {
-  await signInToConsole(page, number);
   await expect(page.getByRole('textbox', { name: /^Code sent to/ })).toHaveCount(0, { timeout: 15_000 });
   await expect(page.getByRole('textbox', { name: 'Mobile number' })).toHaveCount(0);
+  if (path !== undefined) await page.goto(`${appUrl('console')}${path}`);
 }

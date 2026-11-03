@@ -9,7 +9,8 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
-import { openConsole, signInToConsole } from '../support/signIn.ts';
+import { signInToConsole } from '../support/signIn.ts';
+import { openConsole } from '../support/console.ts';
 
 const DEALER = 'Pema Lepcha';
 

@@ -10,7 +10,7 @@ import { execFileSync } from 'node:child_process';
 import { expect, test, type Page } from '@playwright/test';
 import { worktreeName } from '@rivr/config/worktree';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
-import { signInToConsoleAndWait } from '../support/signIn.ts';
+import { signInToConsole } from '../support/signIn.ts';
 
 const CLUB = '00000000-0000-4000-8000-000000000001';
 // The flow's own member, made once and kept.
@@ -57,7 +57,7 @@ test.describe('Promotion versions', () => {
     test.setTimeout(150_000);
     sql(`insert into public.member (id, venue_id, full_name, phone) values ('${SIMRAN}', '${CLUB}', 'Simran Oberoi', '+919000000882') on conflict (id) do nothing`);
     const author = await browser.newPage();
-    await signInToConsoleAndWait(author, '9000000107');
+    await signInToConsole(author, '9000000107');
     await author.goto(`${appUrl('console')}/promotions`);
     await author.getByRole('button', { name: 'New promotion' }).click();
     await author.getByRole('radiogroup', { name: 'Start from' }).getByRole('radio', { name: 'Buy-in bonus' }).click();
@@ -66,7 +66,7 @@ test.describe('Promotion versions', () => {
     await author.getByRole('button', { name: 'Every day' }).click();
     await simulateAndSubmit(author);
     const approver = await browser.newPage();
-    await signInToConsoleAndWait(approver, '9000000760');
+    await signInToConsole(approver, '9000000760');
     await approve(approver, 'A new promotion. Nothing runs yet.');
 
     // Version 2: 10% from 20%, waiting while version 1 runs.

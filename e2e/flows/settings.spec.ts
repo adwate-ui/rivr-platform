@@ -10,7 +10,8 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
-import { openConsole, signInToConsole } from '../support/signIn.ts';
+import { signInToConsole } from '../support/signIn.ts';
+import { openConsole } from '../support/console.ts';
 
 const REFUSED = 'Not in your role. Ask an admin.';
 
