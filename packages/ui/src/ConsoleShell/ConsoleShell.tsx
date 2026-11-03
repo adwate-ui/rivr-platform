@@ -1,6 +1,7 @@
 import { t } from '@rivr/i18n';
 import type { ReactNode } from 'react';
 import { cx } from '../internal/classes.ts';
+import { ConsoleFrameContext } from '../internal/consoleFrame.ts';
 import type { Navigate } from '../internal/navigation.ts';
 import { MAIN_ID, SkipLink } from '../internal/SkipLink.tsx';
 import type { SideNavItem, SideNavSection } from '../SideNav/SideNav.tsx';
@@ -82,7 +83,7 @@ export function ConsoleShell(props: ConsoleShellProps) {
           {/* Focusable, so a keyboard can scroll a screen that has nothing else to focus (loading, empty, read-only). Positioned, so
               a screen's visually hidden text stays inside it rather than lengthening the page. */}
           <main id={MAIN_ID} tabIndex={0} className={cx('relative min-h-0 flex-1 overflow-y-auto', props.isFullBleed !== true && 'px-4 pt-7 pb-10 medium:px-8')}>
-            {props.children}
+            <ConsoleFrameContext value>{props.children}</ConsoleFrameContext>
           </main>
         </div>
       </div>

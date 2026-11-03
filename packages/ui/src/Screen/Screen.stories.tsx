@@ -3,6 +3,7 @@ import { Button } from '../Button/Button.tsx';
 import { Inline } from '../Inline/Inline.tsx';
 import { Money } from '../Money/Money.tsx';
 import { Stack } from '../Stack/Stack.tsx';
+import { Tabs } from '../Tabs/Tabs.tsx';
 import { Text } from '../Text/Text.tsx';
 import { Screen } from './Screen.tsx';
 
@@ -53,5 +54,25 @@ export const LongText: Story = {
     status: 'error',
     errorText: 'The withdrawal queue did not load because the cage is offline. Reconnect the cage computer, then try again.',
     onRetry: () => undefined,
+  },
+};
+
+const DOOR_TABS = [{ id: 'check-in', label: 'Check-in', href: '#check-in' }, { id: 'players', label: 'Today’s players', href: '#players' }];
+
+/**
+ * A console screen that holds others (console v3): its title, then its pill tabs, then the tab's own screen, whose title
+ * the tab already says, heard but not shown again; its actions stay.
+ */
+export const WithTabs: Story = {
+  tags: ['viewport-console'],
+  args: {
+    title: 'Door',
+    actions: undefined,
+    tabs: <Tabs look="pill" label="Door" current="check-in" tabs={DOOR_TABS} />,
+    children: (
+      <Screen title="Check-in" actions={<Button variant="subtle" size="compact">Check in by card</Button>}>
+        <Text>Kabir Sethi · Member</Text>
+      </Screen>
+    ),
   },
 };

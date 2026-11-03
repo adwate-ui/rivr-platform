@@ -5,6 +5,27 @@ import { axeViolations, renderIn } from '../test/render.tsx';
 import { Screen, TitleCount } from './Screen.tsx';
 
 describe('Screen', () => {
+  it('shows its title, then its tabs, then the tab’s own screen, whose title is heard but not shown again', () => {
+    renderIn(
+      <Screen title="Door" tabs={<nav aria-label="Door">Check-in</nav>}>
+        <Screen title="Check-in" actions={<button type="button">Scan</button>}>
+          <p>Expected</p>
+          <Screen level={2} title="In the room"><p>Nobody</p></Screen>
+        </Screen>
+      </Screen>,
+    );
+    const door = screen.getByRole('heading', { name: 'Door', level: 1 });
+    const tabs = screen.getByRole('navigation', { name: 'Door' });
+    const part = screen.getByRole('heading', { name: 'Check-in', level: 2 });
+    expect(door.compareDocumentPosition(tabs) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(tabs.compareDocumentPosition(part) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(part).toHaveClass('sr-only');
+    expect(screen.getByRole('button', { name: 'Scan' })).toBeVisible();
+    // A screen inside the part is its own again, as the part has no tabs.
+    expect(screen.getByRole('heading', { name: 'In the room', level: 2 })).not.toHaveClass('sr-only');
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+  });
+
   it('heads a part of a screen under its tabs at the second level', () => {
     renderIn(<Screen level={2} title="Tablets"><p>Table 1</p></Screen>);
     expect(screen.getByRole('heading', { name: 'Tablets', level: 2 })).toBeInTheDocument();

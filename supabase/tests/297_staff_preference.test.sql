@@ -114,8 +114,9 @@ select throws_ok($$ insert into public.staff_preference (staff_id, venue_id, den
   '42501', null, 'and cannot change the club''s');
 reset role;
 
--- A practice reset and a live purge clear it with the venue's other rows (decision 0442); the staff record stays.
-select ok('staff_preference' in (select private.practice_reset_tables()), 'the practice reset clears the practice venue''s densities');
+-- A practice reset and a live purge keep it, as they keep the staff record it belongs to (decision 0442).
+select ok(not ('staff_preference' in (select private.practice_reset_tables())), 'the practice reset keeps the practice venue''s densities');
+select ok(not ('staff_preference' in (select private.live_purge_tables())), 'and a live purge keeps the club''s');
 
 -- A setting of the console only: nothing went to the outbox, from either venue.
 select is((select count(*) from public.outbox_event), (select outbox_before from ids), 'no outbox event, so nothing reaches an external system');

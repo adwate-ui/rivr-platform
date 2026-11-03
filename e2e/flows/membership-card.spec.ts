@@ -40,7 +40,7 @@ test.describe('Membership card', () => {
     await openTab(desk, 'Door', 'Check-in');
     const card = desk.getByRole('textbox', { name: 'Membership card' });
     // Past the few seconds' grace a code has once its QR has changed.
-    await expect(desk.getByRole('heading', { name: 'Check-in', level: 1 })).toBeVisible();
+    await expect(desk.getByRole('heading', { name: 'Check-in', level: 2 })).toBeVisible();
     await desk.waitForTimeout(6_000);
     await card.fill(screenshot);
     await card.press('Enter');

@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { consoleSections, consoleTabs } from '../storybook/fixtures.ts';
 import { axeViolations, renderIn } from '../test/render.tsx';
 import { RAIL_KEY } from './ConsoleRail.tsx';
+import { Screen } from '../Screen/Screen.tsx';
 import { ConsoleShell } from './ConsoleShell.tsx';
 
 function renderShell(onNavigate = vi.fn()) {
@@ -29,6 +30,16 @@ beforeEach(() => window.localStorage.clear());
 afterEach(() => vi.unstubAllGlobals());
 
 describe('ConsoleShell', () => {
+  it('leaves a screen’s title to the phone’s header below 768 px, heard there and shown from 768 px', () => {
+    renderIn(
+      <ConsoleShell sections={consoleSections()} currentItem="members">
+        <Screen title="Members"><p>No one yet.</p></Screen>
+      </ConsoleShell>,
+    );
+    expect(within(screen.getByRole('main')).getByRole('heading', { name: 'Members', level: 1 })).toHaveClass('max-medium:sr-only');
+    expect(screen.getByRole('banner')).toHaveTextContent('Members');
+  });
+
   it('holds the rail in a complementary landmark, the header in a banner and the screen in main', () => {
     renderShell();
     expect(rail()).toContainElement(screen.getByRole('navigation', { name: 'Sections' }));
