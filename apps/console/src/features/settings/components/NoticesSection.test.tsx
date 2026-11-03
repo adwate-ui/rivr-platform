@@ -111,12 +111,12 @@ describe('notices on Tonight, in Settings (decision 0424)', () => {
     fireEvent.change(time('Start time'), { target: { value: '7pm' } });
     fireEvent.change(screen.getByLabelText('Ends on'), { target: { value: '2026-11-15' } });
     fireEvent.click(screen.getByRole('button', { name: 'Put up' }));
-    await waitFor(() => expect(time('Start time').getAttribute('aria-invalid')).toBe('true'));
-    // Its time put right, the end that has a day and no time is next.
-    fireEvent.change(time('Start time'), { target: { value: '19:00' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Put up' }));
-    await waitFor(() => expect(time('End time').getAttribute('aria-invalid')).toBe('true'));
-    expect(screen.getByText('A 24-hour time, as 19:00, with its day. Or clear both.')).toBeDefined();
+    // Both at once, each under its own field: the start's time not as 19:00, and the end's day without a time.
+    await waitFor(() => {
+      expect(time('Start time').getAttribute('aria-invalid')).toBe('true');
+      expect(time('End time').getAttribute('aria-invalid')).toBe('true');
+    });
+    expect(screen.getAllByText('A 24-hour time, as 19:00, with its day. Or clear both.')).toHaveLength(2);
     expect(calls.some((call) => call.url.includes('/rpc/post_notice'))).toBe(false);
   });
 
