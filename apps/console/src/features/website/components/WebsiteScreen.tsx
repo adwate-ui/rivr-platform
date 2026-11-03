@@ -22,7 +22,7 @@ function Pages({ venueId, pages }: { venueId: string; pages: readonly EditorPage
     <SplitView layout="even" isChosen={chosen !== undefined} backLabel={t('console.website.back')} onBack={() => setChosenId(null)}
       list={<PickList label={t('console.website.list')} groups={groups} current={open?.pageId ?? null} onPick={setChosenId}
         emptyText={t('console.website.noMatch')}
-        search={<Input type="search" label={t('console.website.find')} value={query} autoComplete="off" onChange={(event) => setQuery(event.target.value)} />} />}
+        search={<Input type="search" variant="subtle" label={t('console.website.find')} value={query} autoComplete="off" onChange={(event) => setQuery(event.target.value)} />} />}
       detail={open === undefined ? null : (
         <Box surface="raised" radius="md" padding={5}>
           <Stack gap={6}>

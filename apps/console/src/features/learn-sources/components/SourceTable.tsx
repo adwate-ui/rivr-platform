@@ -1,4 +1,4 @@
-import { useLearnSources, type LearnSource } from '@rivr/db/learnSources';
+import type { LearnSource } from '@rivr/db/learnSources';
 import { formatDate, formatIsoDay, t } from '@rivr/i18n';
 import { DataTable, type DataTableColumn } from '@rivr/ui';
 
@@ -17,10 +17,6 @@ function columns(): readonly DataTableColumn<LearnSource>[] {
 }
 
 /** The venue's sources with their licences: on until the last day, then off for everyone. */
-export function SourceTable({ venueId }: { venueId: string }) {
-  const sources = useLearnSources(venueId);
-  const base = { label: t('console.learnSources.table'), columns: columns(), rowKey: (row: LearnSource) => row.sourceKey };
-  if (sources.data === undefined && sources.isError) return <DataTable {...base} status="error" onRetry={() => void sources.refetch()} />;
-  if (sources.data === undefined) return <DataTable {...base} status="loading" />;
-  return <DataTable {...base} rows={sources.data} emptyText={t('console.learnSources.none')} />;
+export function SourceTable({ rows }: { rows: readonly LearnSource[] }) {
+  return <DataTable label={t('console.learnSources.table')} columns={columns()} rowKey={(row) => row.sourceKey} rows={rows} emptyText={t('console.learnSources.none')} />;
 }

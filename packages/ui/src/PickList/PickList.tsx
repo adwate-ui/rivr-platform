@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from 'react';
 import { cx } from '../internal/classes.ts';
+import { Text } from '../Text/Text.tsx';
 
 /** One item to open: its title and, under it, one line. */
 export interface PickListItem {
@@ -31,7 +32,6 @@ export interface PickListProps {
   emptyText: string;
 }
 
-const HEADING = 'flex items-center justify-between gap-3 px-4 pt-3 pb-1 font-text text-12 leading-snug font-medium uppercase tracking-wide text-content-muted';
 
 function Item({ item, isCurrent, onPick }: { item: PickListItem; isCurrent: boolean; onPick: (id: string) => void }) {
   return (
@@ -41,7 +41,7 @@ function Item({ item, isCurrent, onPick }: { item: PickListItem; isCurrent: bool
           'flex min-h-touch w-full flex-col items-start justify-center gap-1 border-l-2 px-4 text-left transition-colors tablet:min-h-control',
           item.detail ? 'py-3' : 'py-2',
           'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus',
-          isCurrent ? 'border-gold bg-selected' : 'border-transparent hover:bg-subtle',
+          isCurrent ? 'border-content bg-selected' : 'border-transparent hover:bg-subtle',
         )}>
         <span className="font-text text-14 leading-snug font-medium text-content">{item.title}</span>
         {item.detail ? <span className="font-text text-12 leading-snug text-content-muted">{item.detail}</span> : null}
@@ -55,9 +55,9 @@ function Group({ group, current, onPick }: { group: PickListGroup; current: stri
   return (
     <div>
       {group.label === undefined ? null : (
-        <div className={HEADING}>
-          <h2 id={headingId}>{group.label}</h2>
-          {group.count === undefined ? null : <span className="tabular-nums">{group.count}</span>}
+        <div className="flex items-center justify-between gap-3 px-4 pt-3 pb-1">
+          <h2 id={headingId}><Text as="span" variant="eyebrow" tone="muted">{group.label}</Text></h2>
+          {group.count === undefined ? null : <Text as="span" variant="eyebrow" tone="muted" isTabular>{group.count}</Text>}
         </div>
       )}
       <ul aria-labelledby={group.label === undefined ? undefined : headingId} className="flex flex-col">
@@ -70,7 +70,7 @@ function Group({ group, current, onPick }: { group: PickListGroup; current: stri
 /**
  * A queue to open items from, beside the item open (console v3: KYC review, Host queue, the website's pages): on a raised
  * panel, each group under its heading and count, each item a row of its title and one line; the one open on the chosen
- * fill with a gold edge. A search field, given, sits above.
+ * fill with a cream edge (gold is only for what needs someone, decision 0429). A search field, given, sits above.
  */
 export function PickList({ label, groups, current, onPick, search, emptyText }: PickListProps) {
   const isEmpty = groups.every((group) => group.items.length === 0);

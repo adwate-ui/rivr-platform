@@ -19,6 +19,10 @@ test.describe('Learn sources', () => {
     await page.getByRole('link', { name: 'Learn content' }).click();
     await expect(page).toHaveURL(/\/content\?tab=learn$/);
     await expect(page.getByRole('heading', { name: 'Learn content', level: 1 })).toBeVisible();
+    // With no source yet, the screen's one action opens the adding (console v3); with one, the form is already there.
+    const add = page.getByRole('button', { name: 'Add a source' });
+    await expect(add.or(page.getByRole('heading', { name: 'Add a source' }))).toBeVisible();
+    if (await add.isVisible()) await add.click();
     const file = page.locator('input[type="file"]');
     await file.setInputFiles({ name: 'broken.json', mimeType: 'application/json', buffer: Buffer.from('{"not": "an encoding"}') });
     await expect(page.getByText('Refused by: validator.')).toBeVisible({ timeout: 20_000 });

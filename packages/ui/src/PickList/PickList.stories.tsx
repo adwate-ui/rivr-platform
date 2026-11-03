@@ -23,7 +23,7 @@ export const Default: Story = {};
 export const WithSearch: Story = {
   args: {
     label: 'Pages', current: null, emptyText: 'No page matches.',
-    search: <Input type="search" label="Find a page" value="" onChange={() => undefined} />,
+    search: <Input type="search" variant="subtle" label="Find a page" value="" onChange={() => undefined} />,
     groups: [
       { label: 'Club', items: [{ id: 'about', title: 'About' }, { id: 'home', title: 'Home' }, { id: 'house-rules', title: 'House rules' }] },
       { label: 'Legal', items: [{ id: 'privacy', title: 'Privacy' }, { id: 'terms', title: 'Terms of use' }] },

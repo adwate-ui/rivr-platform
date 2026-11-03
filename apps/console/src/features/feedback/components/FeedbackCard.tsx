@@ -20,12 +20,12 @@ export function FeedbackCard({ venueId, item }: { venueId: string; item: Feedbac
     <Box as="article" surface="raised" radius="md" padding={4}>
       <Stack gap={2}>
         <Inline gap={3} justify="between" align="center" wrap>
-          <Text variant="small" weight="medium">{whoLine(item)}</Text>
+          <Text variant="secondary" weight="medium">{whoLine(item)}</Text>
           <Text variant="caption" tone="muted">{kindLine(item)}</Text>
         </Inline>
         {item.ratings === null ? null : <Text variant="caption" tone="muted">{ratingsLine(item.ratings)}</Text>}
-        {item.note === null ? null : <Text>{item.note}</Text>}
-        {resolved === null ? null : <Text variant="small" tone="muted">{resolved}</Text>}
+        {item.note === null ? null : <Text variant="row">{item.note}</Text>}
+        {resolved === null ? null : <Text variant="secondary" tone="muted">{resolved}</Text>}
         {item.isTicket && item.resolvedAt === null ? <ResolveForm venueId={venueId} item={item} /> : null}
       </Stack>
     </Box>

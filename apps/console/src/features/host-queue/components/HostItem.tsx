@@ -46,10 +46,10 @@ function Who({ item }: { item: HostQueueItem }) {
   return (
     <Stack gap={1}>
       <Heading level={2} variant="section">{item.fullName}</Heading>
-      <Text variant="small" tone="muted">
+      <Text variant="secondary" tone="muted">
         {t('console.hostQueue.lapse', { phone: formatMobile(item.phone), last: formatDate(new Date(item.lastVisitAt)), visits: String(item.visits) })}
       </Text>
-      {item.offer === null ? null : <Text variant="small">{t('console.hostQueue.offered', { offer: offerText(item.offer) })}</Text>}
+      {item.offer === null ? null : <Text variant="secondary">{t('console.hostQueue.offered', { offer: offerText(item.offer) })}</Text>}
     </Stack>
   );
 }

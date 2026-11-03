@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { feedbackResolveSchema } from '@rivr/contracts';
 import { useResolveFeedback, type FeedbackFailure, type FeedbackItem } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Box, Button, ErrorMessage, Inline, Input, Stack } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, Input, Stack } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -22,10 +22,10 @@ export function ResolveForm({ venueId, item }: { venueId: string; item: Feedback
   const field = form.register('resolution');
   return (
     <Stack gap={2}>
-      {/* Resolve beside the field, its foot on the field's (console v3); what is wrong goes under the row, so they stay level. */}
-      <Inline gap={2} align="end">
-        <Box grow><Input {...field} label={t('console.feedback.resolution')} autoComplete="off" maxLength={500} /></Box>
-        <Button variant="subtle" isLoading={resolve.isPending} aria-label={t('console.feedback.resolveName', { name: item.fullName })}
+      {/* Resolve beside the console's filled field, on its centre line (console v3); what is wrong goes under the row, so they stay level. */}
+      <Inline gap={2} align="center">
+        <Input {...field} variant="subtle" label={t('console.feedback.resolution')} autoComplete="off" maxLength={500} />
+        <Button variant="subtle" size="compact" isLoading={resolve.isPending} aria-label={t('console.feedback.resolveName', { name: item.fullName })}
           onClick={() => void submit()}>
           {t('console.feedback.resolve')}
         </Button>
