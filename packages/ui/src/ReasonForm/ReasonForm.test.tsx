@@ -1,6 +1,6 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useState } from 'react';
+import { StrictMode, useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations, renderIn } from '../test/render.tsx';
 import { ReasonForm, type ReasonFormProps } from './ReasonForm.tsx';
@@ -14,6 +14,24 @@ function renderRevoke(props: Partial<ReasonFormProps> = {}) {
       onCancel={onCancel} {...props} />,
   );
   return { onRevoke, onCancel };
+}
+
+/** Void, as the console's orders have it: the button gives way to the form, and Cancel brings the button back. */
+function OpensInPlace() {
+  const [isOpen, setIsOpen] = useState(false);
+  if (!isOpen) return <button type="button" onClick={() => setIsOpen(true)}>Void</button>;
+  return <ReasonForm field={{ name: 'reason' }} label="Why it is voided" actions={[{ label: 'Void the order', onClick: () => undefined }]} onCancel={() => setIsOpen(false)} />;
+}
+
+/** Refuse, as the approval queue has it: the button stays, and the form opens under it. */
+function OpensBelow() {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <>
+      <button type="button" onClick={() => setIsOpen(true)}>Refuse</button>
+      {isOpen ? <ReasonForm field={{ name: 'reason' }} label="Why it is refused" actions={[{ label: 'Refuse it', onClick: () => undefined }]} onCancel={() => setIsOpen(false)} /> : null}
+    </>
+  );
 }
 
 function ControlledReason() {
@@ -62,9 +80,39 @@ describe('ReasonForm', () => {
     expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
   });
 
+  // Issue 758: the focus goes into the form as it opens, and back to what opened it on Cancel.
+  it('takes the focus to its field when it opens, and gives it back to the button that took its place on Cancel', async () => {
+    renderIn(<OpensInPlace />);
+    await userEvent.click(screen.getByRole('button', { name: 'Void' }));
+    expect(screen.getByRole('textbox', { name: 'Why it is voided' })).toHaveFocus();
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Void' })).toHaveFocus());
+  });
+
+  it('gives the focus back to the button that opened it, where that button stays', async () => {
+    renderIn(<OpensBelow />);
+    await userEvent.click(screen.getByRole('button', { name: 'Refuse' }));
+    expect(screen.getByRole('textbox', { name: 'Why it is refused' })).toHaveFocus();
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Refuse' })).toHaveFocus());
+  });
+
+  it('gives the focus back to its opener under StrictMode too, where effects run twice', async () => {
+    renderIn(<StrictMode><OpensBelow /></StrictMode>);
+    await userEvent.click(screen.getByRole('button', { name: 'Refuse' }));
+    expect(screen.getByRole('textbox', { name: 'Why it is refused' })).toHaveFocus();
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Refuse' })).toHaveFocus());
+  });
+
+  it('leaves the focus where it is when the form stays open on its page', () => {
+    renderRevoke({ onCancel: undefined });
+    expect(screen.getByRole('textbox', { name: 'Why it is revoked' })).not.toHaveFocus();
+  });
+
   it('is filled in and decided from the keyboard: the reason, then the decision, then Cancel', async () => {
     const { onRevoke, onCancel } = renderRevoke();
-    await userEvent.tab();
+    // Opened, it starts at the reason (issue 758).
     expect(screen.getByRole('textbox', { name: 'Why it is revoked' })).toHaveFocus();
     await userEvent.keyboard('Lost on the floor');
     await userEvent.tab();

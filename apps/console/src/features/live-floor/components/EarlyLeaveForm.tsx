@@ -36,7 +36,8 @@ export function EarlyLeaveForm({ venueId, member, onDone, onCancel }: EarlyLeave
     onDone(outcome);
   };
   const submit = async () => {
-    const letGo = await letLeaveEarly.mutateAsync({ memberId: member.memberId, reason: reason.trim() });
+    // A seated player's seat is freed next, and that step reads the floor again for both (#745).
+    const letGo = await letLeaveEarly.mutateAsync({ memberId: member.memberId, reason: reason.trim(), isSeatFreedNext: member.sessionId !== undefined });
     const outcome = letGo.ok && member.sessionId !== undefined ? await leave.mutateAsync(member.sessionId) : letGo;
     setIsDone(outcome.ok);
     onDone(outcome);

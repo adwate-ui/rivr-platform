@@ -22,10 +22,11 @@ type Standing =
   | { kind: 'browsing' }
   | { kind: 'waiting'; place: WaitlistPlace }
   | { kind: 'ready'; place: WaitlistPlace & { holdUntil: string } }
-  | { kind: 'seated'; seat: MySeat };
+  | { kind: 'seated'; seat: MySeat; places: readonly WaitlistPlace[] };
 
 function standingOf(seat: MySeat | null, places: readonly WaitlistPlace[]): Standing {
-  if (seat !== null) return { kind: 'seated', seat };
+  // Seated, a place on another list to change tables shows among the seat's requests (#781).
+  if (seat !== null) return { kind: 'seated', seat, places };
   const [place] = places;
   if (place === undefined) return { kind: 'browsing' };
   return place.holdUntil === null ? { kind: 'waiting', place } : { kind: 'ready', place: { ...place, holdUntil: place.holdUntil } };
@@ -64,7 +65,7 @@ function StandingView({ standing, now, offer, onJoin, tables, sheet }: {
   switch (standing.kind) {
     case 'waiting': return <WaitingView place={standing.place} offer={offer} />;
     case 'ready': return <SeatReadyView place={standing.place} now={now} />;
-    case 'seated': return <SeatedView seat={standing.seat} now={now} sheet={sheet.open} onSheet={sheet.set} />;
+    case 'seated': return <SeatedView seat={standing.seat} places={standing.places} now={now} sheet={sheet.open} onSheet={sheet.set} />;
     default: return (
       <Stack gap={4}>
         <RateVisit />

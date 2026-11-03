@@ -101,6 +101,8 @@ export const playerLive = {
     statusTimes: { m15: '+15 min', m30: '+30 min', m45: '+45 min', m60: '+1 h', m90: '+1 h 30', m120: '+2 h', m180: '+3 h', m240: '+4 h' },
     statusLeaving: 'Leaving list',
     onTheList: 'On the list',
+    /** A seated member's place on another list to change tables (#781), with no table asked for: `Waitlist · NLH 100/200`. */
+    statusWaitlist: 'Waitlist · {game}',
   },
   rate: {
     /** `Tonight · 2h 41m at Table 1`, or for a visit on an earlier night `14 Nov · 2h 41m at Table 1`. */
