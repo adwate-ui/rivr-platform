@@ -16,8 +16,8 @@ $$;
 select results_eq($$ select slug, is_published from public.site_page
                      where venue_id = (select venue_id from club) and slug in ('leaderboard', 'journal-cash-game-tips', 'journal-tournaments-gurugram', 'journal-poker-legal-gurugram')
                      order by slug $$,
-  $$ values ('journal-cash-game-tips'::text, true), ('journal-poker-legal-gurugram', false), ('journal-tournaments-gurugram', true), ('leaderboard', true) $$,
-  'the club has the Leaderboard and the new articles, with "Is poker legal in Gurugram?" a draft');
+  $$ values ('journal-cash-game-tips'::text, true), ('journal-poker-legal-gurugram', true), ('journal-tournaments-gurugram', true), ('leaderboard', true) $$,
+  'the club has the Leaderboard and the new articles, "Is poker legal in Gurugram?" published once the owner confirmed rake is allowed (#794)');
 select is(pg_temp.page_kinds((select venue_id from club), 'leaderboard'), array['hero', 'league', 'cards'], 'the Leaderboard shows the League''s standings');
 select is(pg_temp.page_kinds((select venue_id from club), 'membership'),
   array['hero', 'cards', 'cards', 'rewards', 'outstation', 'cards', 'promotions', 'faq'],

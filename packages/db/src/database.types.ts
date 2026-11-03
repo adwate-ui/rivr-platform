@@ -4818,11 +4818,6 @@ isOneToOne: false
               "approval_threshold_paise": number,"exposure_cap_paise": number,"exposure_paise": number,"minimum_visits": number
             }[]
                            },
-"crm_contact":
-{ Args: { "p_payload": Json,"p_venue_id": string }; Returns: {
-              "city": string,"full_name": string,"games_played": (string)[],"kyc_status": string,"last_visit_at": string,"member_id": string,"member_number": number,"occupation": string,"phone": string,"play_times": (string)[],"seconds_played": number,"tier_name": string
-            }[]
-                           },
 "current_down":
 { Args: Record<PropertyKey, never>; Returns: {
               "down_id": string,"full_name": string,"staff_id": string,"started_at": string
@@ -5464,9 +5459,6 @@ isOneToOne: false
 { Args: { "p_member_id": string,"p_promotion_id"?: string,"p_push_type"?: string,"p_venue_id": string }; Returns: {
               "auth": string,"endpoint": string,"p256dh": string
             }[]
-                           },
-"queue_crm_sync":
-{ Args: { "p_limit"?: number }; Returns: number
                            },
 "raise_sms_limit_alert":
 { Args: Record<PropertyKey, never>; Returns: undefined
