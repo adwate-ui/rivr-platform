@@ -7,6 +7,7 @@
 import { expect, test } from '@playwright/test';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
+import { openTab } from '../support/console.ts';
 
 test.describe('Website edit', () => {
   test('marketing edits a page, previews it, publishes it and rolls it back', async ({ page, browser }) => {
@@ -14,7 +15,7 @@ test.describe('Website edit', () => {
     test.setTimeout(60_000);
     const heading = `House rules ${String(Date.now()).slice(-6)}`;
     await signInToConsole(page, '9000000637');
-    await page.getByRole('link', { name: 'Website' }).click();
+    await openTab(page, 'Content', 'Website');
     await page.getByRole('radiogroup', { name: 'Page' }).getByRole('radio', { name: 'House rules', exact: true }).click();
     const field = page.getByRole('textbox', { name: 'Heading' }).first();
     const original = await field.inputValue();

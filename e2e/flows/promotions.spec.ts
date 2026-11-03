@@ -8,6 +8,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { openDevices } from '../support/console.ts';
 
 const RUNS = 'NLH 100/200 · Thursday, 14:00 to 20:00';
 // The card's optional link (#776): the approver reads it, and the member's card opens it.
@@ -47,8 +48,7 @@ async function pairTvOnPromotions(tv: Page, floor: Page, name: string) {
   await tv.goto(appUrl('display'));
   const shown = tv.getByRole('heading', { level: 2, name: /^\d{6}$/ });
   await expect(shown).toBeVisible();
-  await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-  await floor.getByRole('link', { name: 'TVs' }).click();
+  await openDevices(floor, 'TVs');
   await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
   await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
   await floor.getByRole('button', { name: 'Pair the TV' }).click();

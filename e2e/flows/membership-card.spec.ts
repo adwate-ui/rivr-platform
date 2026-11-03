@@ -8,6 +8,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { openTab } from '../support/console.ts';
 
 /** What the QR on the member's card holds now. */
 async function doorCode(page: Page): Promise<string> {
@@ -36,7 +37,7 @@ test.describe('Membership card', () => {
 
     const desk = await (await browser.newContext()).newPage();
     await signInToConsole(desk, '9000000190');
-    await desk.getByRole('link', { name: 'Check-in' }).click();
+    await openTab(desk, 'Door', 'Check-in');
     const card = desk.getByRole('textbox', { name: 'Membership card' });
     // Past the few seconds' grace a code has once its QR has changed.
     await expect(desk.getByRole('heading', { name: 'Check-in', level: 1 })).toBeVisible();

@@ -16,6 +16,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { openDevices, openTab } from '../support/console.ts';
 
 /** What the QR on the member's card holds now, on the Card tab (decision 0320). */
 async function doorCode(member: Page): Promise<string> {
@@ -39,8 +40,7 @@ test.describe('Door kiosk', () => {
     const name = `Door ${String(Date.now() % 100_000).padStart(5, '0')}`;
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000191');
-    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-    await floor.getByRole('link', { name: 'Tablets' }).click();
+    await openDevices(floor, 'Tablets');
     await floor.getByRole('textbox', { name: 'Tablet name' }).fill(name);
     await floor.getByRole('switch', { name: 'Door kiosk' }).click();
     await floor.getByRole('button', { name: 'Add and pair' }).click();
@@ -64,7 +64,7 @@ test.describe('Door kiosk', () => {
     await scan(kiosk, await doorCode(member));
     await expect(kiosk.getByText('Welcome, Vidya.', { exact: true })).toBeVisible();
     await expect(kiosk.getByText('Goodbye, Vidya.', { exact: true })).toHaveCount(0);
-    await floor.getByRole('link', { name: 'Check-in' }).click();
+    await openTab(floor, 'Door', 'Check-in');
     await floor.getByRole('button', { name: 'Check out Vidya Chadha' }).click();
     await expect(floor.getByRole('button', { name: 'Check out Vidya Chadha' })).toHaveCount(0);
 
@@ -83,9 +83,7 @@ test.describe('Door kiosk', () => {
     await floor.getByRole('button', { name: 'Resolve Vidya Chadha’s ticket' }).first().click();
     await expect(floor.getByText(/^Resolved by Nisha Arora on .*: Second host on the door from Friday\.$/)).toBeVisible();
 
-    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-
-    await floor.getByRole('link', { name: 'Tablets' }).click();
+    await openDevices(floor, 'Tablets');
     await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Unpair the tablet' }).click();

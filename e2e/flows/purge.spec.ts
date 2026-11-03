@@ -10,6 +10,7 @@ import { expect, test } from '@playwright/test';
 import { worktreeName } from '@rivr/config/worktree';
 import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
+import { openFromRail, switchToPractice } from '../support/console.ts';
 
 /** Runs SQL in this worktree's local database and returns its unaligned output. */
 function sql(query: string): string {
@@ -44,10 +45,8 @@ test.describe('Purge', () => {
   test('Purge: a super admin resets the practice venue to its seed, typing its name', async ({ page }) => {
     test.skip(isRemoteTarget(), 'resets the practice venue, so the local stack only');
     await signInToConsole(page, '9000000177');
-    const rail = page.getByRole('complementary');
-    await rail.getByRole('switch', { name: 'Practice venue' }).click();
-    await expect(rail.getByText('RIVR Practice')).toBeVisible();
-    await page.getByRole('link', { name: 'Practice reset' }).click();
+    await switchToPractice(page);
+    await openFromRail(page, 'Practice reset');
 
     const table = page.getByRole('table', { name: 'Tables a reset reloads' });
     await expect(table.getByRole('cell', { name: 'member', exact: true })).toBeVisible();
@@ -77,7 +76,7 @@ test.describe('Purge', () => {
     // The room's other super admin asks for the purge, saying why.
     const asker = await browser.newPage();
     await signInToConsole(asker, '9000000187');
-    await asker.getByRole('link', { name: 'Purge', exact: true }).click();
+    await openFromRail(asker, 'Purge');
     const askedMine = asker.getByText(/^You asked for the purge at /);
     const ask = asker.getByRole('button', { name: 'Ask for the purge' });
     await expect(ask.or(askedMine)).toBeVisible();
@@ -87,7 +86,7 @@ test.describe('Purge', () => {
     }
     await expect(askedMine).toBeVisible();
     await signInToConsole(page, '9000000186');
-    await page.getByRole('link', { name: 'Purge', exact: true }).click();
+    await openFromRail(page, 'Purge');
     await expect(page.getByText(/ asked for the purge at .+: "Closing the E2E room for good"\. Make the archive, then purge\.$/)).toBeVisible();
 
     const saved = page.waitForEvent('download');

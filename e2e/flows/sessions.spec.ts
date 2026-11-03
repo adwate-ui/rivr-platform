@@ -8,6 +8,7 @@
 import { expect, test } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { openTab } from '../support/console.ts';
 
 test.describe('Sessions', () => {
   test('Sessions, card, rewards › Sessions, Session detail: a member reads a session in her history, with no money, and hides it from her list', async ({ browser }) => {
@@ -27,7 +28,7 @@ test.describe('Sessions', () => {
     await sahil.getByRole('button', { name: 'Let leave early' }).click();
     await expect(sahil.getByText('Released early.')).toBeVisible();
     await expect(sahil.getByRole('button', { name: 'Rhea Kaul leaves' })).toHaveCount(0);
-    await sahil.getByRole('link', { name: 'Check-in' }).click();
+    await openTab(sahil, 'Door', 'Check-in');
     await sahil.getByRole('textbox', { name: 'Mobile number' }).fill('9000000297');
     await sahil.getByRole('button', { name: 'Check out', exact: true }).click();
     await expect(sahil.getByText('Checked out.')).toBeVisible();

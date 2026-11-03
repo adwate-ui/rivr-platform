@@ -7,12 +7,13 @@
 import { expect, test } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
+import { openTab } from '../support/console.ts';
 
 test.describe('Spin wheel', () => {
   test('the floor puts a prize on the wheel and spins it for a member', async ({ page }) => {
     test.skip(isRemoteTarget(), 'spins the seed member\u2019s spin, so the local stack only');
     await signInToConsole(page, '9000000633');
-    await page.getByRole('link', { name: 'Spin wheel' }).click();
+    await openTab(page, 'Rewards', 'Spin wheel');
     const wheel = page.getByRole('table', { name: 'The wheel' });
     await expect(wheel.or(page.getByText('No prizes on the wheel yet.'))).toBeVisible();
     // Each prize's Remove is asked twice (F2-21).

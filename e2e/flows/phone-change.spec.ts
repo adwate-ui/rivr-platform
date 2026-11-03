@@ -8,14 +8,13 @@
 import { expect, test } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
+import { switchToPractice } from '../support/console.ts';
 
 test.describe('Phone change', () => {
   test('a super admin changes a practice member\'s number, with a reason', async ({ page }) => {
     test.skip(isRemoteTarget(), 'changes a member\'s number, so the local stack only');
     await signInToConsole(page, '9000000780');
-    const rail = page.getByRole('complementary');
-    await rail.getByRole('switch', { name: 'Practice venue' }).click();
-    await expect(rail.getByText('RIVR Practice')).toBeVisible();
+    await switchToPractice(page);
     await page.getByRole('link', { name: 'Members' }).click();
     await page.getByRole('searchbox', { name: 'Find a member' }).fill('Omar');
     await page.getByRole('button', { name: 'Open Omar Sheikh' }).click();

@@ -10,6 +10,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { openDevices } from '../support/console.ts';
 
 const REWARD = 'Bar upgrade, one night';
 
@@ -35,8 +36,7 @@ async function pairTv(tv: Page, floor: Page, name: string, board: string) {
   await tv.goto(appUrl('display'));
   const shown = tv.getByRole('heading', { level: 2, name: /^\d{6}$/ });
   await expect(shown).toBeVisible();
-  await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-  await floor.getByRole('link', { name: 'TVs' }).click();
+  await openDevices(floor, 'TVs');
   await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
   await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
   await floor.getByRole('button', { name: 'Pair the TV' }).click();
@@ -70,9 +70,7 @@ test.describe('Rewards', () => {
     await member.reload();
     await expect(member.getByText(/^Collected /).first()).toBeVisible({ timeout: 10_000 });
 
-    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-
-    await floor.getByRole('link', { name: 'TVs' }).click();
+    await openDevices(floor, 'TVs');
     await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Unpair the TV' }).click();

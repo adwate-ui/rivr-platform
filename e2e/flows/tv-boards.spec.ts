@@ -18,6 +18,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { openDevices } from '../support/console.ts';
 
 const PLAYER = 'Vihaan Kapoor';
 const HIDDEN = 'Kunal Mehra';
@@ -35,8 +36,7 @@ async function pairTv(tv: Page, floor: Page, name: string) {
   await tv.goto(appUrl('display'));
   const shown = tv.getByRole('heading', { level: 2, name: /^\d{6}$/ });
   await expect(shown).toBeVisible();
-  await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-  await floor.getByRole('link', { name: 'TVs' }).click();
+  await openDevices(floor, 'TVs');
   await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
   await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
   await floor.getByRole('button', { name: 'Pair the TV' }).click();
@@ -121,9 +121,7 @@ test.describe('TV boards', () => {
     await expect(fifties.getByText('Kunal M.', { exact: true })).toBeVisible({ timeout: 25_000 });
     await expect(fifties.getByText('Player 1', { exact: true })).toHaveCount(0);
 
-    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-
-    await floor.getByRole('link', { name: 'TVs' }).click();
+    await openDevices(floor, 'TVs');
     // No jackpot to choose, and no rupee on the TV (#628).
     await expect(floor.getByRole('radiogroup', { name: `What ${name} shows`, exact: true }).getByRole('radio', { name: 'Jackpot and high hand', exact: true }))
       .toHaveCount(0);
@@ -152,8 +150,7 @@ test.describe('TV boards', () => {
     await expect(room.getByText('Nakul D.', { exact: true })).toHaveCount(0);
 
     // The promotions in between: after half a minute on the board, a promotion, and then the board again.
-    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-    await floor.getByRole('link', { name: 'TVs' }).click();
+    await openDevices(floor, 'TVs');
     await floor.getByRole('group', { name: `What ${name} turns to in between`, exact: true }).getByRole('button', { name: 'Promotions', exact: true }).click();
     await expect(floor.getByRole('group', { name: `What ${name} turns to in between`, exact: true })
       .getByRole('button', { name: 'Promotions', exact: true })).toHaveAttribute('aria-pressed', 'true');
@@ -174,8 +171,7 @@ test.describe('TV boards', () => {
     await floor.getByRole('button', { name: `Yes, remove ${PLAYER}` }).click();
     await floor.getByRole('button', { name: `Remove ${HIDDEN}` }).click();
     await floor.getByRole('button', { name: `Yes, remove ${HIDDEN}` }).click();
-    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-    await floor.getByRole('link', { name: 'TVs' }).click();
+    await openDevices(floor, 'TVs');
     await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Unpair the TV' }).click();

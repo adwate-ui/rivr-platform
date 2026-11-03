@@ -7,6 +7,7 @@
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
 import { signInToConsole } from '../support/signIn.ts';
+import { openTab } from '../support/console.ts';
 
 const EXAMPLE = join(import.meta.dirname, '..', '..', 'packages', 'drills', 'fixtures', 'example-encoding.json');
 const nextYear = () => `${String(new Date().getFullYear() + 1)}-03-31`;
@@ -14,7 +15,7 @@ const nextYear = () => `${String(new Date().getFullYear() + 1)}-03-31`;
 test.describe('Learn sources', () => {
   test('Learn sources: a super admin uploads an encoding that passes the validator and the gates', async ({ page }) => {
     await signInToConsole(page, '9000000629');
-    await page.getByRole('link', { name: 'Learn content' }).click();
+    await openTab(page, 'Content', 'Learn content');
     const file = page.locator('input[type="file"]');
     await file.setInputFiles({ name: 'broken.json', mimeType: 'application/json', buffer: Buffer.from('{"not": "an encoding"}') });
     await expect(page.getByText('Refused by: validator.')).toBeVisible({ timeout: 20_000 });

@@ -10,6 +10,7 @@ import { expect, test } from '@playwright/test';
 import { worktreeName } from '@rivr/config/worktree';
 import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { openFromRail, openTab } from '../support/console.ts';
 
 /** Runs SQL in this worktree's local database and returns its unaligned output. */
 function sql(query: string): string {
@@ -25,7 +26,7 @@ test.describe('Admin tools', () => {
   test('the super admin sets up a stake and a table, reads the games run, and builds an hours bonus', async ({ page }) => {
     test.setTimeout(90_000);
     await signInToConsole(page, '9000000114');
-    await page.getByRole('link', { name: 'Tables setup' }).click();
+    await openFromRail(page, 'Tables');
     await expect(page.getByRole('heading', { name: 'New stake' })).toBeVisible();
     await page.getByRole('textbox', { name: 'Stake name' }).fill(`PLO 200/400 ${RUN}`);
     await page.getByRole('textbox', { name: 'Small blind' }).fill('200');
@@ -52,7 +53,7 @@ test.describe('Admin tools', () => {
                 from public.game_table g join public.table_type t on t.id = g.table_type_id where g.name = 'Table ${RUN}'`)).toBe('6 none 40000 80000');
 
     // The seed's open tables have run since it was loaded, within the last seven club days.
-    await page.getByRole('link', { name: 'Games history' }).click();
+    await openTab(page, 'Settings', 'Games history');
     const history = page.getByRole('table', { name: 'Tables run each club day' });
     await expect(history.getByRole('row').filter({ hasText: 'Table 3' }).first()).toBeVisible();
     await page.getByRole('searchbox', { name: 'Find a table' }).fill('Table 3');

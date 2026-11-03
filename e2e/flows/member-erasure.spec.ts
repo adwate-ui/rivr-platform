@@ -11,6 +11,7 @@ import { expect, test } from '@playwright/test';
 import { localBinary, localSupabaseEnv, worktreeRoot } from '@rivr/config/worktree';
 import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
+import { switchToPractice } from '../support/console.ts';
 
 const FOLDER = '00000000-0000-4000-8000-000000000002/00000000-0000-4000-8000-0000000d0758/';
 // A one-pixel PNG, as the KYC images flow uploads.
@@ -32,9 +33,7 @@ test.describe('Member erasure', () => {
     await request.post(`${url}/storage/v1/object/kyc/${FOLDER}selfie.png`, { headers: { ...server, 'content-type': 'image/png', 'x-upsert': 'true' }, data: PNG });
 
     await signInToConsole(page, '9000000757');
-    const rail = page.getByRole('complementary');
-    await rail.getByRole('switch', { name: 'Practice venue' }).click();
-    await expect(rail.getByText('RIVR Practice')).toBeVisible();
+    await switchToPractice(page);
     await page.getByRole('link', { name: 'Members' }).click();
     await page.getByRole('searchbox', { name: 'Find a member' }).fill('Neel');
     await page.getByRole('button', { name: 'Open Neel Kapur' }).click();

@@ -8,6 +8,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
+import { openTab } from '../support/console.ts';
 
 /** One of the door's lists, found by its heading. */
 function doorList(page: Page, name: string): Locator {
@@ -18,7 +19,7 @@ test.describe('Check-out', () => {
   test('Check-out: the front desk checks a member out from the room list and by the number on his card', async ({ page }) => {
     test.skip(isRemoteTarget(), 'opens and closes visits, so the local stack only');
     await signInToConsole(page, '9000000158');
-    await page.getByRole('link', { name: 'Check-in' }).click();
+    await openTab(page, 'Door', 'Check-in');
     const phone = page.getByRole('textbox', { name: 'Mobile number' });
 
     await phone.fill('9000000253');
