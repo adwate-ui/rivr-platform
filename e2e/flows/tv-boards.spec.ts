@@ -9,15 +9,15 @@
  *   Realtime and not its half-minute read;
  * - the console offers no jackpot board, and the TV shows no rupee; each board has its progress bar (#628);
  * - on the call-time board (decision 0163), the floor seats Nakul Dhillon in the Private Room, where call
- *   time is three hours (#634): the TV shows him at his table with the time left. Marked leaving, he is on the
- *   console's Leaving list and the TV shows his seat opening, within seconds. Given the promotions to turn
+ *   time is three hours (#634): the TV shows him at his table with the time left. Marked leaving, he is among the
+ *   console's requests and the TV shows his seat opening, within seconds. Given the promotions to turn
  *   to in between, the TV shows a promotion slide, then the call-time board again. Nakul is from the
  *   seed's hundred more members, whom no other flow seats; Pooja, an admin, lets him leave early, and he leaves.
  * Both leave the list and the TV is unpaired at the end.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
-import { letGoEarly, seatOnFloor, showSeats, tableTile } from '../support/floor.ts';
+import { letGoEarly, requestsPanel, seatOnFloor, showSeats, tableTile } from '../support/floor.ts';
 import { openConsole } from '../support/console.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
@@ -144,8 +144,11 @@ test.describe('TV boards', () => {
     // Tonight › Leaving list: Leave seat asks first, as call time is owed (decision 0320).
     await nakul.getByRole('button', { name: 'Leave seat' }).click();
     await nakul.getByRole('dialog', { name: 'Leave your seat?' }).getByRole('button', { name: 'Join leaving list' }).click();
-    await expect(floor.getByRole('heading', { name: 'Leaving', exact: true })).toBeVisible({ timeout: 20_000 });
-    await expect(floor.getByText('Private Room · seat 8', { exact: true })).toBeVisible();
+    // Leaving is one of the requests docked beside the Live floor (console v3, decision 0479).
+    const leaving = requestsPanel(floor).locator('div').filter({ has: floor.getByRole('button', { name: LEAVING, exact: true }) })
+      .filter({ hasText: /^Leaving/ }).last();
+    await expect(leaving).toBeVisible({ timeout: 20_000 });
+    await expect(leaving).toContainText('Private Room, seat 8');
     const openings = tv.getByRole('region', { name: 'Seats opening' });
     await expect(openings.getByText('Private Room · Seat 8', { exact: true })).toBeVisible({ timeout: 10_000 });
     await expect(openings.getByText('Nakul D.', { exact: true })).toBeVisible();
