@@ -16,6 +16,8 @@ export const staff = {
   login: 'Login',
   active: 'Active',
   search: 'Find staff',
+  /** The role filter (console v3): All, then each role someone holds; it is named by `role`. */
+  allRoles: 'All',
   addOpen: 'Add staff',
   closeFor: 'Close {name}',
   /** The permission roles, as the screen names them. */

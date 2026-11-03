@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { dealerPinSchema } from '@rivr/contracts';
 import { useSetDealerPin, type DealerPinFailure } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, Stack, StatusMessage } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, Input, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -29,11 +29,14 @@ export function PinForm({ venueId, staffId, name }: { venueId: string; staffId: 
   const pinField = form.register('pin', { onChange: () => setIsSaved(false) });
   return (
     <Stack gap={2}>
-      <Inline gap={3} align="end">
-        <Input {...pinField} type="password" inputMode="numeric" maxLength={4} autoComplete="off" label={t('console.dealerPins.pin', { name })}
-          hint={t('console.dealerPins.pinHint')} error={form.formState.errors.pin ? t('console.dealerPins.invalid') : undefined} />
-        <Button variant="secondary" isLoading={setPin.isPending} onClick={() => void submit()}>{t('console.dealerPins.save', { name })}</Button>
+      {/* The field and Save the same 44 px, ends on one line, so Save sits centred on the field; the rule under them both. */}
+      <Inline gap={3} align="end" wrap>
+        <Input {...pinField} type="password" inputMode="numeric" maxLength={4} autoComplete="off" label={t('console.dealerPins.pin', { name })} />
+        <Button variant="primary" aria-label={t('console.dealerPins.save', { name })} isLoading={setPin.isPending} onClick={() => void submit()}>
+          {t('console.dealerPins.saveShort')}
+        </Button>
       </Inline>
+      {form.formState.errors.pin ? <ErrorMessage>{t('console.dealerPins.invalid')}</ErrorMessage> : <Text variant="small" tone="muted">{t('console.dealerPins.pinHint')}</Text>}
       <StatusMessage>{isSaved ? t('console.dealerPins.saved', { name }) : null}</StatusMessage>
       {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>

@@ -1,6 +1,7 @@
 import { useStaffVenue, useVenueDealers, type VenueDealer } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
-import { Screen, Stack, Text } from '@rivr/ui';
+import { Button, DataTable, Screen, type DataTableColumn } from '@rivr/ui';
+import { useState } from 'react';
 import { PinForm } from './PinForm.tsx';
 
 /** Where a dealer's PIN stands: set, not yet, or locked after five wrong PINs and until when. */
@@ -9,10 +10,27 @@ function standing(dealer: VenueDealer): string {
   return t(dealer.hasPin ? 'console.dealerPins.hasPin' : 'console.dealerPins.noPin');
 }
 
+/** The columns: the dealer, where their PIN stands, and Set PIN or Change, which opens the PIN's field under the row. */
+function pinColumns(onOpen: (dealer: VenueDealer) => void): readonly DataTableColumn<VenueDealer>[] {
+  return [
+    { key: 'dealer', header: t('console.dealerPins.dealer'), cell: (dealer) => dealer.fullName, sortValue: (dealer) => dealer.fullName, priority: 'primary' },
+    { key: 'pin', header: t('console.dealerPins.pinColumn'), cell: standing },
+    {
+      key: 'set', header: '', align: 'end',
+      cell: (dealer) => (
+        <Button variant="subtle" size="small" aria-label={t('console.dealerPins.setFor', { name: dealer.fullName })} onClick={() => onOpen(dealer)}>
+          {dealer.hasPin ? t('console.dealerPins.change') : t('console.dealerPins.set')}
+        </Button>
+      ),
+    },
+  ];
+}
+
 /**
- * Dealer PINs (#41): the dealers whose PIN the signed-in manager may set, which a dealer then enters
- * on the tablet to start a down. Only staff whose role includes everything a dealer does set one
- * (decision 0046), so an admin sees the list empty.
+ * Dealer PINs (#41, console v3): a table of the dealers whose PIN the signed-in manager may set, each with Set PIN in its
+ * row, which opens the PIN's field under it, rather than a form for every dealer. A dealer then enters it on the tablet
+ * to start a down. Only staff whose role includes everything a dealer does set one (decision 0046), so an admin sees the
+ * list empty.
  */
 export function DealerPinsSection() {
   const staff = useStaffVenue();
@@ -26,23 +44,16 @@ export function DealerPinsSection() {
 
 function DealerList({ venueId }: { venueId: string }) {
   const dealers = useVenueDealers(venueId);
+  const [openId, setOpenId] = useState<string | null>(null);
   const title = t('console.dealerPins.title');
-  if (dealers.isPending) return <Screen level={2} title={title} status="loading" />;
+  if (dealers.isPending) return <Screen level={2} title={title} status="loading" loadingLook="rows" />;
   if (dealers.data === undefined) return <Screen level={2} title={title} status="error" onRetry={() => void dealers.refetch()} />;
   if (dealers.data.length === 0) return <Screen level={2} title={title} status="empty" emptyText={t('console.dealerPins.empty')} />;
   return (
     <Screen level={2} title={title}>
-      <Stack gap={6} divided>
-        {dealers.data.map((dealer) => (
-          <Stack key={dealer.staffId} gap={3}>
-            <Stack gap={1}>
-              <Text weight="semibold">{dealer.fullName}</Text>
-              <Text variant="small" tone="muted">{standing(dealer)}</Text>
-            </Stack>
-            <PinForm venueId={venueId} staffId={dealer.staffId} name={dealer.fullName} />
-          </Stack>
-        ))}
-      </Stack>
+      <DataTable label={title} columns={pinColumns((dealer) => setOpenId(openId === dealer.staffId ? null : dealer.staffId))} rows={dealers.data}
+        rowKey={(dealer) => dealer.staffId} emptyText={t('console.dealerPins.empty')}
+        rowDetail={(dealer) => (openId === dealer.staffId ? <PinForm venueId={venueId} staffId={dealer.staffId} name={dealer.fullName} /> : null)} />
     </Screen>
   );
 }
