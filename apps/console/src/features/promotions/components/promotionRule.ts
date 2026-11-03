@@ -1,9 +1,8 @@
 import type { PromotionConditions, PromotionEffect, PromotionRules } from '@rivr/contracts';
 import type { PromotionAwaitingApproval, PromotionStake } from '@rivr/db';
-import { formatChips, formatList, formatMoney, formatNumber, t } from '@rivr/i18n';
+import { formatChips, formatList, formatNumber, t } from '@rivr/i18n';
 import { dayName } from './promotionCopy.ts';
 
-const money = (paise: number) => formatMoney(BigInt(paise));
 // A bonus is bonus chips, never rupees (#629).
 const chips = (paise: number) => formatChips(BigInt(paise));
 
@@ -21,22 +20,18 @@ function pointsText(effect: Extract<PromotionEffect, { kind: 'points' }>): strin
     : t('console.promotions.rule.gives.pointsMultiplier', { multiplier: formatNumber(effect.multiplier_percent / 100) });
 }
 
-function prizeText(effect: Extract<PromotionEffect, { kind: 'physical_prize' }>): string {
-  return effect.value_paise === undefined
-    ? t('console.promotions.rule.gives.prize', { prize: effect.prize })
-    : t('console.promotions.rule.gives.prizeWorth', { prize: effect.prize, value: money(effect.value_paise) });
-}
-
-/** What a rule gives, in the approver's words: the amounts as stored, not as the submitter described them. */
+/**
+ * What a rule gives, in the approver's words: the amounts as stored, not as the submitter described them. No rupees, as
+ * on every console (decision 0284, #649): a prize is named without its worth, a jackpot payout without its amount.
+ */
 function givesText(effect: PromotionEffect): string {
   switch (effect.kind) {
     case 'bonus': return bonusText(effect);
     case 'points': return pointsText(effect);
     case 'freeroll_ticket': return t('console.promotions.rule.gives.freerollTicket', { tournament: effect.tournament });
     case 'cab_eligibility': return t('console.promotions.rule.gives.cab');
-    case 'physical_prize': return prizeText(effect);
-    case 'jackpot_payout':
-      return t('console.promotions.rule.gives.jackpot', { amount: money(effect.amount_paise), pool: t(`console.promotions.rule.pools.${effect.pool}`) });
+    case 'physical_prize': return t('console.promotions.rule.gives.prize', { prize: effect.prize });
+    case 'jackpot_payout': return t('console.promotions.rule.gives.jackpot', { pool: t(`console.promotions.rule.pools.${effect.pool}`) });
     case 'message': return t('console.promotions.rule.gives.message', { text: effect.text });
     case 'spin': return t('console.promotions.rule.gives.spin');
   }
