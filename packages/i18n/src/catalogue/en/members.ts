@@ -57,6 +57,23 @@ export const members = {
   noEarlyDepartures: 'No early departures.',
   /** One early departure: `{date}`, `{time}` of call time owed, why, and the admin who let them go. */
   earlyDeparture: '{date} · {time} short · {reason} · let go by {name}',
+  /** A super admin withdraws one recorded by mistake (decision 0500). `{date}` is the early departure's. */
+  withdraw: 'Withdraw',
+  withdrawNamed: 'Withdraw the early departure of {date}',
+  withdrawReason: 'Why the early departure of {date} is withdrawn',
+  withdrawHint: 'In words, three characters or more.',
+  withdrawConfirm: 'Withdraw it',
+  /** `{date}` it was withdrawn, `{name}` the super admin, and why. */
+  earlyDepartureWithdrawn: 'Withdrawn {date} by {name}: {reason}',
+  withdrawFailures: {
+    notAllowed: 'Only a super admin withdraws an early departure.',
+    noMember: 'That member is not at this venue.',
+    invalid: 'Give the reason in words, three characters or more.',
+    paused: 'Venue frozen. Try again once it is released.',
+    unavailable: 'Not withdrawn. Try again.',
+    alreadyWithdrawn: 'Already withdrawn by someone else.',
+    memberFrozen: 'This member is frozen. Try again once released.',
+  },
   tierChange: 'Tier change',
   tiersUnavailable: 'The tiers did not load.',
   newTier: 'New tier',

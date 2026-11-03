@@ -19,17 +19,13 @@ export function allOrPicked(picked: readonly string[], before: 'all' | readonly 
 
 const shownOf = (value: 'all' | readonly string[]) => (value === 'all' ? [ALL] : value);
 
-/**
- * 2 · Who qualifies: stakes, tiers and which members. Women members is offered only to a version that already names them:
- * the club records no gender, so it matches nobody (decisions 0472 and 0494).
- */
+/** 2 · Who qualifies: stakes, tiers and which members. */
 export function WhoSection({ section, stakes, tiers }: { section: SectionProps; stakes: readonly PromotionStake[]; tiers: readonly VenueTier[] }) {
   const { form, onChange } = section;
-  const audiences = AUDIENCES.filter((audience) => audience !== 'women' || form.audience === 'women');
   const isRefused = section.errors.has('who');
   const stakeOptions = [{ value: ALL, label: t('console.promotions.builder.fields.allStakes') }, ...stakes.map((stake) => ({ value: stake.code, label: stake.name }))];
   const tierOptions = [{ value: ALL, label: t('console.promotions.builder.fields.allTiers') }, ...tiers.map((tier) => ({ value: tier.tierId, label: tier.name }))];
-  const audienceOptions = audiences.map((audience) => ({ value: audience, label: t(`console.promotions.builder.fields.audiences.${audience}`) }));
+  const audienceOptions = AUDIENCES.map((audience) => ({ value: audience, label: t(`console.promotions.builder.fields.audiences.${audience}`) }));
   return (
     <BuilderCard label={t('console.promotions.builder.sections.who')} isChanged={section.isChanged}>
       <ChoiceChips label={t('console.promotions.builder.fields.stakes')} look="subtle" selected={shownOf(form.stakes)}

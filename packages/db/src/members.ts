@@ -40,13 +40,15 @@ export interface MemberRecord {
   readonly earlyDepartures: number;
 }
 
-/** A member let go before their call time (#79): when, the call time owed, why and by whom. */
+/** A member let go before their call time (#79): when, the call time owed, why and by whom; and its withdrawal, if any. */
 export interface EarlyDeparture {
   readonly earlyDepartureId: string;
   readonly at: string;
   readonly shortfallSeconds: number;
   readonly reason: string;
   readonly staffName: string;
+  /** A super admin withdrew it as recorded by mistake (decision 0500): when, why and who; null while it stands. */
+  readonly withdrawn: { readonly at: string; readonly reason: string; readonly staffName: string } | null;
 }
 
 /** A tier of the venue, most senior first. */
@@ -116,6 +118,8 @@ export function useMemberEarlyDepartures(venueId: string, memberId: string) {
       if (error) throw error;
       return data.map((row) => ({
         earlyDepartureId: row.early_departure_id, at: row.created_at, shortfallSeconds: row.shortfall_seconds, reason: row.reason, staffName: row.staff_name,
+        withdrawn: row.withdrawn_at === null || row.withdrawn_reason === null
+          ? null : { at: row.withdrawn_at, reason: row.withdrawn_reason, staffName: row.withdrawn_by ?? '' },
       }));
     },
   });
@@ -186,4 +190,31 @@ export function useMemberActions(venueId: string) {
     },
   });
   return { setTier, setBreak };
+}
+
+/** Why a withdrawal did not go through: a member failure, one already withdrawn, or the member frozen. */
+export type EarlyDepartureFailure = MemberFailure | 'already_withdrawn' | 'member_frozen';
+
+const WITHDRAWAL_FAILURE_BY_CODE: Readonly<Record<string, EarlyDepartureFailure>> = {
+  ...FAILURE_BY_CODE, RVDEC: 'already_withdrawn', RVMBR: 'member_frozen',
+};
+
+/**
+ * A super admin withdraws an early departure recorded by mistake, with a reason in words of three characters or more
+ * (decision 0500); a Result, and it reloads the record and its list. The early departure is kept, marked withdrawn.
+ */
+export function useWithdrawEarlyDeparture(venueId: string, memberId: string) {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ earlyDepartureId, reason }: { earlyDepartureId: string; reason: string }): Promise<Result<null, EarlyDepartureFailure>> => {
+      const { error } = await client.rpc('withdraw_early_departure', { p_early_departure_id: earlyDepartureId, p_reason: reason.trim() });
+      const user = userId ?? 'signed-out';
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.memberEarlyDepartures(user, venueId, memberId) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.memberRecord(user, venueId, memberId) }),
+      ]);
+      return error ? err(WITHDRAWAL_FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
+    },
+  });
 }

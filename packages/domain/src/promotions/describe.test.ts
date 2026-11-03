@@ -1,4 +1,4 @@
-import type { Reward } from '@rivr/contracts/promotionModel';
+import type { Limits, Reward } from '@rivr/contracts/promotionModel';
 import { buildPromotionTerms } from '@rivr/testing';
 import { describe, expect, it } from 'vitest';
 import { cardWords, describePromotion, whoAndWhen } from './describe.ts';
@@ -21,14 +21,23 @@ describe('describePromotion', () => {
   it('names stakes, tables and tiers, and the audience, when given', () => {
     const weekend = buildPromotionTerms({
       reward: { kind: 'points_multiplier', multiplier: 3 },
-      eligibility: { stakes: ['nlh_100_200'], tableIds: ['t3'], tiers: ['tier-black'], audience: 'women' },
+      eligibility: { stakes: ['nlh_100_200'], tableIds: ['t3'], tiers: ['tier-black'], audience: 'new_30d' },
       schedule: { days: [6, 5], from: '20:00', to: '02:00', startsOn: '2026-11-06', endsOn: '2026-12-31', timezone: 'Asia/Kolkata' },
       limits: { perMember: 'per_visit', maxMembersPerDay: 50, maxGrants: 1_000 },
     });
     expect(describePromotion(weekend, { stakes: { nlh_100_200: 'NLH 100/200' }, tiers: { 'tier-black': 'Black card' } })).toBe(
-      '3× points, for NLH 100/200 · t3 · Black card · women members, Fri, Sat 20:00–02:00. Once per visit per member, first 50 members a day, '
+      '3× points, for NLH 100/200 · t3 · Black card · new members, first 30 days, Fri, Sat 20:00–02:00. Once per visit per member, first 50 members a day, '
       + 'at most 1,000 times. Starts 6 Nov 2026, ends 31 Dec 2026.',
     );
+  });
+
+  it('says up to N times a member in a period, and a budget and most grants each month (decision 0499)', () => {
+    const limitsLine = (limits: Limits) => describePromotion(buildPromotionTerms({ limits })).split('. ')[1];
+    expect(limitsLine({ perMember: 'per_day', timesPerMember: 2 })).toBe('Up to 2 times a day per member');
+    expect(limitsLine({ perMember: 'once', timesPerMember: 3 })).toBe('Up to 3 times ever per member');
+    expect(limitsLine({ perMember: 'per_visit', timesPerMember: 2 })).toBe('Up to 2 times per visit per member');
+    expect(limitsLine({ perMember: 'per_week', timesPerMember: 4, budgetChips: 10_000, maxGrants: 300, budgetPeriod: 'month' }))
+      .toBe('Up to 4 times a week per member, at most 300 times a month, budget 10,000 chips a month');
   });
 
   it('says each reward plainly', () => {

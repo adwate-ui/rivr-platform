@@ -5,7 +5,7 @@ import type { BuilderForm } from './builderForm.ts';
 /** A field the builder marks when the terms cannot take what it holds. */
 export type FormField =
   | 'name' | 'multiplier' | 'percent' | 'capChips' | 'buyChips' | 'firstN' | 'chips' | 'afterHours' | 'spins' | 'fromVisit' | 'tournament'
-  | 'who' | 'days' | 'from' | 'to' | 'startsOn' | 'endsOn' | 'maxMembersPerDay' | 'budgetChips' | 'rulesText' | 'link';
+  | 'who' | 'days' | 'from' | 'to' | 'startsOn' | 'endsOn' | 'timesPerMember' | 'maxMembersPerDay' | 'budgetChips' | 'rulesText' | 'link';
 
 /**
  * The builder read as terms: the whole version's when every field holds (`terms`), the four parts a summary and a
@@ -97,15 +97,27 @@ function scheduleOf(form: BuilderForm): Record<string, unknown> {
   });
 }
 
+/**
+ * The limits as typed (decision 0499): up to N times only with a period, and a month only with a budget or most grants
+ * to count in it, so a choice the other fields make meaningless is left out rather than refused.
+ */
+function limitsOf(form: BuilderForm) {
+  const budgetChips = numberOf(form.budgetChips);
+  const hasBudget = budgetChips !== undefined || form.maxGrants !== undefined;
+  return defined({
+    perMember: form.perMember, timesPerMember: form.perMember === 'none' ? undefined : numberOf(form.timesPerMember),
+    maxMembersPerDay: numberOf(form.maxMembersPerDay), budgetChips, maxGrants: form.maxGrants,
+    budgetPeriod: form.budgetPeriod === 'month' && hasBudget ? 'month' as const : undefined,
+  });
+}
+
 function partsOf(form: BuilderForm) {
   return {
     name: form.name,
     reward: rewardOf(form),
     eligibility: defined({ stakes: form.stakes, tableIds: form.tableIds, tiers: form.tiers, audience: form.audience }),
     schedule: scheduleOf(form),
-    limits: defined({
-      perMember: form.perMember, maxMembersPerDay: numberOf(form.maxMembersPerDay), budgetChips: numberOf(form.budgetChips), maxGrants: form.maxGrants,
-    }),
+    limits: limitsOf(form),
     channels: form.channels,
     rulesText: form.rulesText.split('\n').map((line) => line.trim()).filter((line) => line !== ''),
     ...(form.link.trim() === '' ? {} : { link: form.link.trim() }),
@@ -113,7 +125,9 @@ function partsOf(form: BuilderForm) {
 }
 
 const SCHEDULE_FIELDS: Readonly<Record<string, FormField>> = { days: 'days', from: 'from', to: 'to', startsOn: 'startsOn', endsOn: 'endsOn' };
-const LIMIT_FIELDS: Readonly<Record<string, FormField>> = { maxMembersPerDay: 'maxMembersPerDay', budgetChips: 'budgetChips' };
+const LIMIT_FIELDS: Readonly<Record<string, FormField>> = {
+  timesPerMember: 'timesPerMember', maxMembersPerDay: 'maxMembersPerDay', budgetChips: 'budgetChips',
+};
 // The words around the terms, checked with the whole version.
 const WORD_FIELDS: Readonly<Record<string, FormField>> = { name: 'name', rulesText: 'rulesText', link: 'link' };
 

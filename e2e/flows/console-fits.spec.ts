@@ -70,13 +70,31 @@ async function measure(page: Page, what: string) {
   }
 }
 
-/** A screen's link on the rail, Admin unfolded first when a reload (a part opened by its address) folded it again. */
-async function railLink(page: Page, href: string) {
+/**
+ * Unfolds Admin on the rail by its state (`aria-expanded`), never by a blind click: a click as the group opens itself,
+ * for the screen open now, would fold it shut.
+ */
+async function unfoldAdmin(rail: Locator) {
+  const admin = rail.getByRole('button', { name: 'Admin' });
+  if ((await admin.count()) > 0 && (await admin.getAttribute('aria-expanded')) !== 'true') await admin.click();
+}
+
+/**
+ * Opens a screen from its link on the rail at a desk, Admin unfolded first when the link is not there (a reload, or a
+ * part opened by its address, folds it again). The rail may still be drawing the last screen's links and fold Admin
+ * under a link just found, so finding the link, the click and the link marked current are tried again together, each
+ * with a short wait, until the screen is open; then nothing on it is still loading.
+ */
+async function openFromRail(page: Page, href: string) {
   const rail = page.getByRole('navigation', { name: 'Sections' });
-  await expect(rail.getByRole('link').first()).toBeVisible();
   const link = rail.locator(`a[href="${href}"]`);
-  if ((await link.count()) === 0) await rail.getByRole('button', { name: 'Admin' }).click();
-  return link;
+  await page.setViewportSize(DESK);
+  await expect(async () => {
+    if ((await link.count()) === 0) await unfoldAdmin(rail);
+    await link.click({ timeout: 2_000 });
+    await expect(link).toHaveAttribute('aria-current', 'page', { timeout: 2_000 });
+  }).toPass({ timeout: 30_000 });
+  await settled(page);
 }
 
 /** Each screen the rail lists, Admin unfolded, and each of a screen's tabs past the one it opens on, measured at each size. */
@@ -86,12 +104,16 @@ async function everyScreenFits(page: Page, number: string) {
   const rail = page.getByRole('navigation', { name: 'Sections' });
   await expect(rail).toBeVisible();
   const admin = rail.getByRole('button', { name: 'Admin' });
-  if ((await admin.count()) > 0) await admin.click();
+  if ((await admin.count()) > 0) {
+    await expect(async () => {
+      await unfoldAdmin(rail);
+      await expect(admin).toHaveAttribute('aria-expanded', 'true', { timeout: 1_000 });
+    }).toPass({ timeout: 15_000 });
+  }
   const screens = await hrefs(rail.getByRole('link'));
   expect(screens.length).toBeGreaterThan(0);
   for (const href of screens) {
-    await page.setViewportSize(DESK);
-    await openAtDesk(page, await railLink(page, href));
+    await openFromRail(page, href);
     await measure(page, href);
     for (const tab of (await hrefs(page.locator('main nav a[href*="?tab="]'))).slice(1)) {
       await openTabAtDesk(page, tab);

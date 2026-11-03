@@ -35,6 +35,7 @@ export function MembersScreen(props: MembersScreenProps) {
     override: permissions.includes('members.override_features'),
     erase: permissions.includes('members.erase'),
     changePhone: permissions.includes('members.change_phone'),
+    withdrawDeparture: staff.venue.role === 'super_admin',
   };
   return <Members title={title} venueId={venueId} can={can} {...props} />;
 }

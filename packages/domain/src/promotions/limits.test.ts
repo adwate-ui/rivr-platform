@@ -1,7 +1,7 @@
 import { buildMemberFacts, buildPromotionEvent, buildPromotionTerms } from '@rivr/testing';
 import { describe, expect, it } from 'vitest';
 import { NO_GRANT, toPromotionEvent } from './grant.ts';
-import { checkLimits, decideGrant, ledgerEntryFor, periodKey, remainingBudget, tallyFor, type LedgerEntry } from './limits.ts';
+import { checkLimits, decideGrant, ledgerEntryFor, periodKey, remainingBudget, slotKey, tallyFor, type LedgerEntry } from './limits.ts';
 
 const BONUS = { kind: 'buyin_bonus', mode: 'percent', percent: 20 } as const;
 const buyIn = (place: Parameters<typeof buildPromotionEvent>[1] = {}) =>
@@ -9,7 +9,7 @@ const buyIn = (place: Parameters<typeof buildPromotionEvent>[1] = {}) =>
 const entry = (more: Partial<LedgerEntry>): LedgerEntry => ({
   ...NO_GRANT, chips: 1_000, memberId: 'member-2', clubDay: '2026-11-17', periodKey: 'event:old', tableId: 'table-1', ...more,
 });
-const NOTHING_YET = { chipsGiven: 0, grantsGiven: 0, membersToday: 0, isMemberGrantedToday: false, isPeriodTaken: false, grantsAtTableToday: 0 };
+const NOTHING_YET = { chipsGiven: 0, grantsGiven: 0, membersToday: 0, isMemberGrantedToday: false, periodGiven: 0, grantsAtTableToday: 0 };
 
 describe('periodKey', () => {
   const night = buyIn({ at: '2026-11-18T02:00:00+05:30' });
@@ -27,12 +27,28 @@ describe('periodKey', () => {
   });
 });
 
+describe('slotKey', () => {
+  it('keys a member\'s first grant in a period by the period, then #2, #3 and on (decision 0499)', () => {
+    expect(slotKey('day:2026-11-17', 0)).toBe('day:2026-11-17');
+    expect(slotKey('day:2026-11-17', 1)).toBe('day:2026-11-17#2');
+    expect(slotKey('once', 19)).toBe('once#20');
+  });
+});
+
 describe('remainingBudget', () => {
   it('is none with no budget, what is left of one, and never below nothing', () => {
     const terms = buildPromotionTerms();
-    expect(remainingBudget(terms, [entry({})])).toBeNull();
-    expect(remainingBudget({ limits: { perMember: 'none', budgetChips: 5_000 } }, [entry({}), entry({ chips: 1_500 })])).toBe(2_500);
-    expect(remainingBudget({ limits: { perMember: 'none', budgetChips: 1_000 } }, [entry({ chips: 1_500 })])).toBe(0);
+    expect(remainingBudget(terms, [entry({})], '2026-11-17')).toBeNull();
+    expect(remainingBudget({ limits: { perMember: 'none', budgetChips: 5_000 } }, [entry({}), entry({ chips: 1_500 })], '2026-11-17')).toBe(2_500);
+    expect(remainingBudget({ limits: { perMember: 'none', budgetChips: 1_000 } }, [entry({ chips: 1_500 })], '2026-11-17')).toBe(0);
+  });
+
+  it('counts a monthly budget\'s own month only (decision 0499)', () => {
+    const monthly = { limits: { perMember: 'none' as const, budgetChips: 5_000, budgetPeriod: 'month' as const } };
+    const ledger = [entry({ clubDay: '2026-10-31', chips: 4_000 }), entry({ clubDay: '2026-11-01', chips: 1_000 })];
+    expect(remainingBudget(monthly, ledger, '2026-11-30')).toBe(4_000);
+    expect(remainingBudget(monthly, ledger, '2026-10-31')).toBe(1_000);
+    expect(remainingBudget({ limits: { ...monthly.limits, budgetPeriod: undefined } }, ledger, '2026-11-30')).toBe(0);
   });
 });
 
@@ -43,13 +59,31 @@ describe('tallyFor', () => {
       entry({ memberId: 'member-3', tableId: 'table-2' }),
     ];
     const tally = tallyFor({ limits: { perMember: 'per_day' } }, ledger, buyIn());
-    expect(tally).toEqual({ chipsGiven: 4_000, grantsGiven: 4, membersToday: 3, isMemberGrantedToday: true, isPeriodTaken: true, grantsAtTableToday: 2 });
+    expect(tally).toEqual({ chipsGiven: 4_000, grantsGiven: 4, membersToday: 3, isMemberGrantedToday: true, periodGiven: 1, grantsAtTableToday: 2 });
+  });
+
+  it('counts the member\'s numbered grants in the period, not another\'s or another period\'s', () => {
+    const ledger = [
+      entry({ memberId: 'member-1', periodKey: 'day:2026-11-17' }), entry({ memberId: 'member-1', periodKey: 'day:2026-11-17#2' }),
+      entry({ memberId: 'member-2', periodKey: 'day:2026-11-17' }), entry({ memberId: 'member-1', periodKey: 'day:2026-11-16' }),
+      entry({ memberId: 'member-1', periodKey: 'day:2026-11-170' }),
+    ];
+    expect(tallyFor({ limits: { perMember: 'per_day', timesPerMember: 3 } }, ledger, buyIn()).periodGiven).toBe(2);
+  });
+
+  it('counts a monthly budget\'s grants and chips in the event\'s club month, which turns at 06:00 IST', () => {
+    const limits = { perMember: 'none' as const, budgetChips: 10_000, maxGrants: 10, budgetPeriod: 'month' as const };
+    const ledger = [entry({ clubDay: '2026-10-31', chips: 3_000 }), entry({ clubDay: '2026-11-01', chips: 500 }), entry({ clubDay: '2026-11-30', chips: 50 })];
+    const lateNovember = tallyFor({ limits }, ledger, buyIn({ at: '2026-12-01T05:59:00+05:30' }));
+    expect([lateNovember.chipsGiven, lateNovember.grantsGiven]).toEqual([550, 2]);
+    const december = tallyFor({ limits }, ledger, buyIn({ at: '2026-12-01T06:00:00+05:30' }));
+    expect([december.chipsGiven, december.grantsGiven]).toEqual([0, 0]);
   });
 
   it('has no table count away from a table, and nothing taken for a new member', () => {
     const tally = tallyFor({ limits: { perMember: 'once' } }, [entry({ periodKey: 'once' })], buyIn({ tableId: null }));
     expect(tally.grantsAtTableToday).toBeNull();
-    expect(tally.isPeriodTaken).toBe(false);
+    expect(tally.periodGiven).toBe(0);
     expect(tally.isMemberGrantedToday).toBe(false);
   });
 });
@@ -57,9 +91,13 @@ describe('tallyFor', () => {
 describe('ledgerEntryFor', () => {
   it('records the grant with the member, club day, period key and table', () => {
     const grant = { ...NO_GRANT, chips: 2_000 };
-    expect(ledgerEntryFor({ limits: { perMember: 'per_visit' } }, buyIn(), grant)).toEqual({
+    expect(ledgerEntryFor({ limits: { perMember: 'per_visit' } }, buyIn(), grant, { periodGiven: 0 })).toEqual({
       ...grant, memberId: 'member-1', clubDay: '2026-11-17', periodKey: 'visit:visit-1', tableId: 'table-1',
     });
+  });
+
+  it('keys a second grant in the period as the member\'s second', () => {
+    expect(ledgerEntryFor({ limits: { perMember: 'per_day', timesPerMember: 2 } }, buyIn(), NO_GRANT, { periodGiven: 1 }).periodKey).toBe('day:2026-11-17#2');
   });
 });
 
@@ -72,9 +110,15 @@ describe('checkLimits', () => {
 
   it('names the first limit broken', () => {
     const promo = { reward: { ...BONUS, firstNBuyinsPerTable: 1 }, limits: { perMember: 'once' as const, maxGrants: 1 } };
-    expect(checkLimits(promo, NO_GRANT, { ...NOTHING_YET, isPeriodTaken: true, grantsAtTableToday: 1, grantsGiven: 1 })).toEqual({ ok: false, error: 'already_given' });
+    expect(checkLimits(promo, NO_GRANT, { ...NOTHING_YET, periodGiven: 1, grantsAtTableToday: 1, grantsGiven: 1 })).toEqual({ ok: false, error: 'already_given' });
     expect(checkLimits(promo, NO_GRANT, { ...NOTHING_YET, grantsAtTableToday: 1, grantsGiven: 1 })).toEqual({ ok: false, error: 'first_n_taken' });
     expect(checkLimits(promo, NO_GRANT, { ...NOTHING_YET, grantsGiven: 1 })).toEqual({ ok: false, error: 'max_grants' });
+  });
+
+  it('lets a member have it up to N times in a period, and no more (decision 0499)', () => {
+    const twiceADay = { reward: BONUS, limits: { perMember: 'per_day' as const, timesPerMember: 2 } };
+    expect(checkLimits(twiceADay, NO_GRANT, { ...NOTHING_YET, periodGiven: 1 }).ok).toBe(true);
+    expect(checkLimits(twiceADay, NO_GRANT, { ...NOTHING_YET, periodGiven: 2 })).toEqual({ ok: false, error: 'already_given' });
   });
 });
 
@@ -89,6 +133,6 @@ describe('decideGrant', () => {
     expect(decideGrant(tuesday, buildMemberFacts(), buyIn({ at: '2026-11-18T21:00:00+05:30' }), NOTHING_YET)).toEqual({ ok: false, error: 'not_eligible' });
     const fromBonus = toPromotionEvent(buildPromotionEvent({ kind: 'buy_in', ownChips: 0, isFirstOfVisit: true }));
     expect(decideGrant(tuesday, buildMemberFacts(), fromBonus, NOTHING_YET)).toEqual({ ok: false, error: 'nothing_earned' });
-    expect(decideGrant(tuesday, buildMemberFacts(), buyIn(), { ...NOTHING_YET, isPeriodTaken: true })).toEqual({ ok: false, error: 'already_given' });
+    expect(decideGrant(tuesday, buildMemberFacts(), buyIn(), { ...NOTHING_YET, periodGiven: 1 })).toEqual({ ok: false, error: 'already_given' });
   });
 });

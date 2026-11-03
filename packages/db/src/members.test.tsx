@@ -4,7 +4,9 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberRecord, useMembersOfTier, useMemberSearch, useVenueTiers } from './members.ts';
+import {
+  isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberRecord, useMembersOfTier, useMemberSearch, useVenueTiers, useWithdrawEarlyDeparture,
+} from './members.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
@@ -28,6 +30,7 @@ function renderMembers(replies: Record<string, { status?: number; body: unknown 
   const { result } = renderHook(() => ({
     search: useMemberSearch(VENUE, 'Kabir'), record: useMemberRecord(VENUE, 'm1'), departures: useMemberEarlyDepartures(VENUE, 'm1'),
     tiers: useVenueTiers(VENUE), actions: useMemberActions(VENUE), everyone: useMembersOfTier(VENUE, null), ofTier: useMembersOfTier(VENUE, 't2'),
+    withdraw: useWithdrawEarlyDeparture(VENUE, 'm1'),
   }), { wrapper });
   return { result, calls };
 }
@@ -49,12 +52,21 @@ describe('Members', () => {
         qualifying_small_blind: 10000, qualifying_big_blind: 20000, is_kyc_complete: true, photo_path: null, visits: 3, last_visit_at: null, is_in_room: false,
         early_departures: 1, known_as: 'Kabir',
       }] },
-      member_early_departures: { body: [{ early_departure_id: 'e1', created_at: '2026-11-15T20:00:00Z', shortfall_seconds: 3600, reason: 'Unwell', staff_name: 'Harish Kumar' }] },
+      member_early_departures: { body: [
+        { early_departure_id: 'e1', created_at: '2026-11-15T20:00:00Z', shortfall_seconds: 3600, reason: 'Unwell', staff_name: 'Harish Kumar',
+          withdrawn_at: null, withdrawn_reason: null, withdrawn_by: null },
+        { early_departure_id: 'e0', created_at: '2026-11-08T20:00:00Z', shortfall_seconds: 600, reason: 'Unwell', staff_name: 'Harish Kumar',
+          withdrawn_at: '2026-11-09T10:00:00Z', withdrawn_reason: 'Recorded against the wrong member', withdrawn_by: 'Vikram Rao' },
+      ] },
       '': { body: [{ id: 't3', name: 'Black card' }, { id: 't2', name: "Founders' Circle" }] },
     });
     await waitFor(() => expect(result.current.search.data?.[0]).toMatchObject({ memberNumber: 2, fullName: 'Kabir Sethi', visits: 3, lastVisitAt: null }));
     await waitFor(() => expect(result.current.record.data).toMatchObject({ knownAs: 'Kabir', tierUntil: '2026-11-22', qualifying: { smallBlind: 10000n, bigBlind: 20000n }, earlyDepartures: 1 }));
-    await waitFor(() => expect(result.current.departures.data).toEqual([{ earlyDepartureId: 'e1', at: '2026-11-15T20:00:00Z', shortfallSeconds: 3600, reason: 'Unwell', staffName: 'Harish Kumar' }]));
+    await waitFor(() => expect(result.current.departures.data).toEqual([
+      { earlyDepartureId: 'e1', at: '2026-11-15T20:00:00Z', shortfallSeconds: 3600, reason: 'Unwell', staffName: 'Harish Kumar', withdrawn: null },
+      { earlyDepartureId: 'e0', at: '2026-11-08T20:00:00Z', shortfallSeconds: 600, reason: 'Unwell', staffName: 'Harish Kumar',
+        withdrawn: { at: '2026-11-09T10:00:00Z', reason: 'Recorded against the wrong member', staffName: 'Vikram Rao' } },
+    ]));
     await waitFor(() => expect(result.current.tiers.data).toEqual([{ tierId: 't3', name: 'Black card' }, { tierId: 't2', name: "Founders' Circle" }]));
   });
 
@@ -67,6 +79,16 @@ describe('Members', () => {
     expect(calls.filter((call) => call.rpc === 'members_of_tier').map((call) => call.body)).toEqual(expect.arrayContaining([
       { p_venue_id: VENUE }, { p_venue_id: VENUE, p_tier_id: 't2' },
     ]));
+  });
+
+  it('withdraws an early departure with its reason, and says why one is refused', async () => {
+    const { result, calls } = renderMembers({ withdraw_early_departure: { status: 403, body: { code: '42501', message: 'no' } } });
+    let outcome: unknown;
+    await act(async () => {
+      outcome = await result.current.withdraw.mutateAsync({ earlyDepartureId: 'e1', reason: ' Recorded against the wrong member ' });
+    });
+    expect(outcome).toEqual({ ok: false, error: 'not_allowed' });
+    expect(calls.find((call) => call.rpc === 'withdraw_early_departure')?.body).toEqual({ p_early_departure_id: 'e1', p_reason: 'Recorded against the wrong member' });
   });
 
   it('has no record for a member not of this venue', async () => {

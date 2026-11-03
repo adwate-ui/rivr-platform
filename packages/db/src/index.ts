@@ -95,7 +95,7 @@ export { useMyUsualFnbItems } from './fnbUsual.ts';
 export { useMySeat, useMySeatActions, type Leaving, type MySeat, type MySeatFailure, type TopUp } from './mySeat.ts';
 export { useFloorNight, useTableHands, type FloorNight, type TableHand, type TableNight } from './floorNight.ts';
 export {
-  isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberRecord, useMembersOfTier, useMemberSearch, useVenueTiers, type EarlyDeparture, type MemberFailure,
+  isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberRecord, useMembersOfTier, useMemberSearch, useVenueTiers, useWithdrawEarlyDeparture, type EarlyDeparture, type EarlyDepartureFailure, type MemberFailure,
   type MemberRecord, type MemberRow, type TierChange, type VenueTier,
 } from './members.ts';
 export { useChangeMemberPhone, type PhoneChangeFailure } from './memberPhone.ts';

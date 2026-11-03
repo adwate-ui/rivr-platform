@@ -44,7 +44,7 @@ function buyIn(n: number, ownChips: number) {
   return {
     event: { kind: 'buy_in', key: `buy_in:${n}`, at: `2026-10-27T2${n}:00:00+05:30`, memberId: `m${n}`, visitId: `v${n}`, tableId: 't1', stake: 'nlh_50_100',
       ownChips, isFirstOfVisit: true },
-    member: { tierId: null, daysSinceJoined: 40, daysSinceLastVisit: 3, isWoman: null },
+    member: { tierId: null, daysSinceJoined: 40, daysSinceLastVisit: 3 },
   };
 }
 

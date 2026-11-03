@@ -95,8 +95,11 @@ select results_eq($$ select name, refused_by, refused_reason from public.promoti
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select is_empty($$ select * from public.promotions_sent_back('00000000-0000-4000-8000-000000000001') $$, 'a cashier reads none of it');
 reset role;
--- A card the typed model cannot say (the League) is still a template run the old way (decision 0491).
-insert into ids select 'referral', id from public.promotion where template_key = 'league' and venue_id = '00000000-0000-4000-8000-000000000001';
+-- A template still run the old way, as a venue may have one from before versions (decision 0491); the word-only cards
+-- that were such templates are retired (decision 0498).
+with p as (insert into public.promotion (venue_id, template_key, name, detail, runs)
+           values ('00000000-0000-4000-8000-000000000001', 'old_way_146', 'An old template', 'Words only', 'Every night') returning id)
+insert into ids select 'referral', id from p;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select lives_ok($$ select public.submit_promotion_template((select id from ids where name = 'referral')) $$, 'a template is submitted');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');

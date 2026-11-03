@@ -22,12 +22,11 @@ create function pg_temp.bonuses(p_member text) returns text language sql as $$
   where g.member_id = p_member::uuid and g.reason = 'Buy-in bonus Tuesday';
 $$;
 
--- The seed: Buy-in bonus Tuesday, high hands and referral live, in both venues.
+-- The seed: Buy-in bonus Tuesday and referral live, in both venues; the high-hands card is retired (decision 0498).
 select results_eq($$ select venue_id::text, template_key from public.promotion where status = 'live' order by 1, 2 $$,
-  $$ values ('00000000-0000-4000-8000-000000000001'::text, 'high_hands'::text), ('00000000-0000-4000-8000-000000000001', 'referral'),
-            ('00000000-0000-4000-8000-000000000001', 'tuesday_bonus'), ('00000000-0000-4000-8000-000000000002', 'high_hands'),
+  $$ values ('00000000-0000-4000-8000-000000000001'::text, 'referral'::text), ('00000000-0000-4000-8000-000000000001', 'tuesday_bonus'),
             ('00000000-0000-4000-8000-000000000002', 'referral'), ('00000000-0000-4000-8000-000000000002', 'tuesday_bonus') $$,
-  'the seed runs the design prompt''s three promotions in both venues');
+  'the seed runs the design prompt''s promotions that give something, in both venues');
 select is((select r.conditions from public.promotion_rule r join public.promotion p on p.id = r.promotion_id
            where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key = 'tuesday_bonus'),
   '{"days": [2], "first_n": {"count": 5, "per": "table"}}'::jsonb, 'the Tuesday bonus runs on Tuesdays, for the first five at a table');

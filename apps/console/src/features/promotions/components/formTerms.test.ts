@@ -42,6 +42,19 @@ describe('the builder read as terms', () => {
     expect(unnamed.core?.reward).toEqual({ kind: 'points_multiplier', multiplier: 2 });
   });
 
+  it('reads up to N times a member, and a budget each month, leaving either out where it means nothing (decision 0499)', () => {
+    const limits = readForm(named({ perMember: 'per_day', timesPerMember: '2', budgetChips: '10,000', budgetPeriod: 'month' })).terms?.limits;
+    expect(limits).toEqual({ perMember: 'per_day', timesPerMember: 2, budgetChips: 10_000, budgetPeriod: 'month' });
+    expect(readForm(named({ perMember: 'none', timesPerMember: '2', budgetPeriod: 'month' })).terms?.limits).toEqual({ perMember: 'none' });
+    expect([...readForm(named({ perMember: 'per_day', timesPerMember: '1' })).errors]).toEqual(['timesPerMember']);
+    expect([...readForm(named({ perMember: 'per_day', timesPerMember: '21' })).errors]).toEqual(['timesPerMember']);
+    const thrice = readForm(named({ perMember: 'once', timesPerMember: '3', budgetChips: '500', budgetPeriod: 'month' })).terms;
+    expect(thrice).not.toBeNull();
+    if (thrice === null) return;
+    const back = formFromTerms(thrice);
+    expect([back.timesPerMember, back.budgetPeriod]).toEqual(['3', 'month']);
+  });
+
   it('gives a version’s terms back as the fields that made them', () => {
     const terms: PromotionTerms = {
       name: 'Four-hour bonus', reward: { kind: 'hours_bonus', chips: 1_000, afterMinutes: 270 },

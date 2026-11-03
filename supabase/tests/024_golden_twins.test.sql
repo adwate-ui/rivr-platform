@@ -742,7 +742,8 @@ select results_eq(
 -- private.promo_check_limits and private.promo_stack, and @rivr/domain isEligible, computeGrant, checkLimits and stackGrants
 -- (packages/testing/golden/promotionRewards.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'promotionRewards.json'), 'the promotion reward cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'promotionRewards.json' and operation not in ('eligible', 'grant', 'limits', 'stack') $$,
+select is_empty($$ select operation from golden.golden_case where file = 'promotionRewards.json'
+                   and operation not in ('eligible', 'grant', 'limits', 'stack', 'tally', 'periodKey') $$,
   'every operation in promotionRewards.json is proved here');
 select results_eq(
   $$ select description, case when private.promo_is_eligible((inputs ->> 'terms')::jsonb, (inputs ->> 'member')::jsonb, (inputs ->> 'context')::jsonb)
@@ -769,6 +770,58 @@ select results_eq(
      from golden.golden_case where file = 'promotionRewards.json' and operation = 'stack' order by position $$,
   $$ select description, expected ->> 'given' from golden.golden_case where file = 'promotionRewards.json' and operation = 'stack' order by position $$,
   'private.promo_stack stacks every event in the golden file');
+
+-- @rivr/domain periodKey and slotKey: private.promo_period_key and private.promo_slot_key (decision 0499).
+select results_eq(
+  $$ select description, private.promo_slot_key(private.promo_period_key((inputs ->> 'limits')::jsonb, (inputs ->> 'event')::jsonb ->> 'key',
+                                                                         ((inputs ->> 'event')::jsonb ->> 'at')::timestamptz,
+                                                                         ((inputs ->> 'event')::jsonb ->> 'visitId')::uuid),
+                                                (inputs ->> 'given')::integer)
+     from golden.golden_case where file = 'promotionRewards.json' and operation = 'periodKey' order by position $$,
+  $$ select description, expected ->> 'key' from golden.golden_case where file = 'promotionRewards.json' and operation = 'periodKey' order by position $$,
+  'private.promo_period_key and promo_slot_key key every grant in the golden file');
+
+-- @rivr/domain tallyFor: private.promotion_tally over a promotion holding the fixture's ledger as grants (decision 0499).
+-- The fixture's two tables are Gurugram's Table 1 and Table 2.
+create function pg_temp.golden_table(p_id text) returns uuid language sql as $$
+  select g.id from public.game_table g where g.venue_id = '00000000-0000-4000-8000-000000000001'
+    and g.name = case p_id when '00000000-0000-4000-8000-0000000071a1' then 'Table 1' when '00000000-0000-4000-8000-0000000071a2' then 'Table 2' end;
+$$;
+create function pg_temp.golden_tally(p_inputs jsonb) returns text language plpgsql as $$
+declare
+  v_promotion uuid;
+  v_version uuid;
+  v_limits jsonb := (p_inputs ->> 'limits')::jsonb;
+  v_event jsonb := (p_inputs ->> 'event')::jsonb;
+  v_tally jsonb;
+begin
+  insert into public.promotion (venue_id, name) values ('00000000-0000-4000-8000-000000000001', 'Golden tally') returning id into v_promotion;
+  insert into public.promotion_version (venue_id, promotion_id, version, status, name, reward, eligibility, schedule, limits, channels)
+  values ('00000000-0000-4000-8000-000000000001', v_promotion, 1, 'ended', 'Golden tally', '{"kind": "bonus_chips", "chips": 500, "on": "visit"}',
+          '{"stakes": "all", "tiers": "all", "audience": "everyone"}',
+          '{"days": [1, 2, 3, 4, 5, 6, 7], "from": "06:00", "to": "06:00", "startsOn": "2026-10-01", "timezone": "Asia/Kolkata"}', v_limits,
+          '{"playerApp": false, "tv": false, "website": false, "whatsapp": false}')
+  returning id into v_version;
+  insert into public.promotion_grant (venue_id, promotion_id, promotion_version_id, member_id, table_id, trigger, effect, cost_paise, points, chips, spins,
+                                      perk, source_key, period_key, club_day)
+  select '00000000-0000-4000-8000-000000000001', v_promotion, v_version, (e ->> 'memberId')::uuid, pg_temp.golden_table(e ->> 'tableId'), 'buy_in', '{}',
+         (e ->> 'chips')::bigint * 100, (e ->> 'points')::bigint, (e ->> 'chips')::bigint, (e ->> 'spins')::integer, e ->> 'perk', 'golden:' || n,
+         e ->> 'periodKey', (e ->> 'clubDay')::date
+  from jsonb_array_elements((p_inputs ->> 'ledger')::jsonb) with ordinality as l (e, n);
+  v_tally := private.promotion_tally(v_promotion, (v_event ->> 'memberId')::uuid,
+    private.promo_period_key(v_limits, v_event ->> 'key', (v_event ->> 'at')::timestamptz, (v_event ->> 'visitId')::uuid),
+    pg_temp.golden_table(v_event ->> 'tableId'), private.club_day_of((v_event ->> 'at')::timestamptz), v_limits);
+  return concat_ws(' | ', v_tally ->> 'chipsGiven', v_tally ->> 'grantsGiven', v_tally ->> 'membersToday', v_tally ->> 'isMemberGrantedToday',
+                   v_tally ->> 'periodGiven', coalesce(v_tally ->> 'grantsAtTableToday', ''));
+end;
+$$;
+select results_eq(
+  $$ select description, pg_temp.golden_tally(inputs)
+     from golden.golden_case where file = 'promotionRewards.json' and operation = 'tally' order by position $$,
+  $$ select description, concat_ws(' | ', expected ->> 'chipsGiven', expected ->> 'grantsGiven', expected ->> 'membersToday', expected ->> 'isMemberGrantedToday',
+                                   expected ->> 'periodGiven', expected ->> 'grantsAtTableToday')
+     from golden.golden_case where file = 'promotionRewards.json' and operation = 'tally' order by position $$,
+  'private.promotion_tally counts every ledger in the golden file');
 
 select * from finish();
 rollback;

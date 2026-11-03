@@ -3,6 +3,7 @@ import { buildMemberFacts, buildPromotionTerms } from '@rivr/testing';
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { computeGrant, triggerOf, type Grant, type PromotionEvent } from './grant.ts';
+import { clubDay } from '../clubDay/clubDay.ts';
 import { checkLimits, remainingBudget, tallyFor, type LedgerEntry } from './limits.ts';
 import { simulate } from './simulation.ts';
 import { stackGrants } from './stacking.ts';
@@ -41,12 +42,19 @@ const event: fc.Arbitrary<PromotionEvent> = fc.tuple(place, fc.oneof(
   fc.record({ kind: fc.constant('visit' as const), visitInMonth: fc.integer({ min: 1, max: 31 }) }),
   fc.record({ kind: fc.constantFrom('referral' as const, 'signup' as const) }),
 )).map(([where, facts]) => ({ ...where, ...facts }));
+// Up to N times a member only with a period, and a monthly budget only with a budget or most grants (decision 0499).
 const limits: fc.Arbitrary<Limits> = fc.record({
   perMember: fc.constantFrom('none', 'per_visit', 'per_day', 'per_week', 'once' as const),
+  timesPerMember: fc.option(fc.integer({ min: 2, max: 4 }), { nil: undefined }),
   maxMembersPerDay: fc.option(fc.integer({ min: 1, max: 4 }), { nil: undefined }),
   budgetChips: fc.option(chips, { nil: undefined }),
   maxGrants: fc.option(fc.integer({ min: 1, max: 10 }), { nil: undefined }),
-}, { requiredKeys: ['perMember'] });
+  budgetPeriod: fc.option(fc.constant('month' as const), { nil: undefined }),
+}, { requiredKeys: ['perMember'] }).map(({ timesPerMember, budgetPeriod, ...rest }): Limits => ({
+  ...rest,
+  ...(timesPerMember === undefined || rest.perMember === 'none' ? {} : { timesPerMember }),
+  ...(budgetPeriod === undefined || (rest.budgetChips === undefined && rest.maxGrants === undefined) ? {} : { budgetPeriod }),
+}));
 const grant: fc.Arbitrary<Grant> = fc.record({
   points: fc.nat({ max: 1_000 }), chips: fc.nat({ max: 200 }).map((fifties) => fifties * 50), spins: fc.nat({ max: 3 }),
   perk: fc.constantFrom(null, 'cab_home' as const, 'waitlist_priority' as const),
@@ -66,7 +74,7 @@ describe('promotion reward properties', () => {
 
   it('never lets a grant past what is left of the budget', () => {
     fc.assert(fc.property(fc.record({ reward, limits }), ledger, grant, event, (promo, past, next, on) => {
-      const left = remainingBudget(promo, past);
+      const left = remainingBudget(promo, past, clubDay(on.at));
       const result = checkLimits(promo, next, tallyFor(promo, past, on));
       if (result.ok && left !== null) expect(result.value.chips).toBeLessThanOrEqual(left);
     }));
@@ -92,6 +100,31 @@ describe('promotion reward properties', () => {
       expect(result.chips).toBeLessThanOrEqual(limit.budgetChips ?? Number.MAX_SAFE_INTEGER);
       expect(result.timesGiven).toBeLessThanOrEqual(limit.maxGrants ?? Number.MAX_SAFE_INTEGER);
       expect(result.membersQualified).toBeLessThanOrEqual(new Set(week.map((on) => on.memberId)).size);
+    }));
+  });
+
+  it('never gives a member more grants in a period than the promotion allows (decision 0499)', () => {
+    fc.assert(fc.property(reward, limits, fc.array(event, { maxLength: 25 }), (given, limit, week) => {
+      fc.pre(limit.perMember !== 'none');
+      const result = simulate(buildPromotionTerms({ reward: given, limits: limit }), week.map((on) => ({ event: on, member: buildMemberFacts() })));
+      const perPeriod = new Map<string, number>();
+      for (const entry of result.grants) {
+        const period = `${entry.memberId} ${entry.periodKey.split('#')[0] ?? ''}`;
+        perPeriod.set(period, (perPeriod.get(period) ?? 0) + 1);
+      }
+      expect(Math.max(0, ...perPeriod.values())).toBeLessThanOrEqual(limit.timesPerMember ?? 1);
+    }));
+  });
+
+  it('keeps a monthly budget within each month, starting again at the next (decision 0499)', () => {
+    const MONTH_END_MS = Date.parse('2026-11-28T06:00:00+05:30');
+    const turnOfMonth = fc.tuple(event, fc.integer({ min: 0, max: 6 * 1_440 })).map(([on, minute]) => ({ ...on, at: new Date(MONTH_END_MS + minute * 60_000) }));
+    fc.assert(fc.property(reward, chips, fc.array(turnOfMonth, { maxLength: 30 }), (given, budget, days) => {
+      const monthly: Limits = { perMember: 'none', budgetChips: budget, budgetPeriod: 'month' };
+      const result = simulate(buildPromotionTerms({ reward: given, limits: monthly }), days.map((on) => ({ event: on, member: buildMemberFacts() })));
+      const spent = new Map<string, number>();
+      for (const entry of result.grants) spent.set(entry.clubDay.slice(0, 7), (spent.get(entry.clubDay.slice(0, 7)) ?? 0) + entry.chips);
+      for (const total of spent.values()) expect(total).toBeLessThanOrEqual(budget);
     }));
   });
 });

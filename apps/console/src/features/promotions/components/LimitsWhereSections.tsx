@@ -3,20 +3,36 @@ import { t } from '@rivr/i18n';
 import { ChoiceChips, Grid, TextArea } from '@rivr/ui';
 import { BuilderCard, FormInput, offered, type SectionProps } from './BuilderCard.tsx';
 
-/** 4 · Limits: how often each member, the most members a club day, and a budget in bonus chips; blank is no limit. */
+const BUDGET_PERIODS = ['whole', 'month'] as const;
+
+/**
+ * 4 · Limits: how often each member, up to how many times in that period, the most members a club day, and a budget in
+ * bonus chips for the whole promotion or each month (decision 0499); blank is no limit, and blank times is once.
+ */
 export function LimitsSection({ section }: { section: SectionProps }) {
   const { form, onChange } = section;
   const noLimit = t('console.promotions.builder.fields.noLimit');
   const limits = PER_MEMBER.map((limit) => ({ value: limit, label: t(`console.promotions.builder.fields.perMemberChoices.${limit}`) }));
+  const periods = BUDGET_PERIODS.map((period) => ({ value: period, label: t(`console.promotions.builder.fields.budgetPeriods.${period}`) }));
+  const hasBudget = form.budgetChips.trim() !== '' || form.maxGrants !== undefined;
   return (
     <BuilderCard label={t('console.promotions.builder.sections.limits')} isChanged={section.isChanged}>
       <ChoiceChips label={t('console.promotions.builder.fields.perMember')} mode="one" look="subtle" selected={[form.perMember]}
         options={offered(section, limits, [form.perMember])}
         onChange={(picked) => onChange({ ...form, perMember: PER_MEMBER.find((limit) => limit === picked[0]) ?? form.perMember })} />
       <Grid columns={2} gap={4} stackBelow="medium">
+        {form.perMember === 'none' ? null : (
+          <FormInput section={section} field="timesPerMember" label={t('console.promotions.builder.fields.timesPerMember')} inputMode="numeric"
+            placeholder={t('console.promotions.builder.fields.once')} />
+        )}
         <FormInput section={section} field="maxMembersPerDay" label={t('console.promotions.builder.fields.maxMembersPerDay')} inputMode="numeric"
           placeholder={noLimit} />
         <FormInput section={section} field="budgetChips" label={t('console.promotions.builder.fields.budgetChips')} inputMode="numeric" placeholder={noLimit} />
+        {hasBudget ? (
+          <ChoiceChips label={t('console.promotions.builder.fields.budgetPeriod')} mode="one" look="subtle" selected={[form.budgetPeriod]}
+            options={offered(section, periods, [form.budgetPeriod])}
+            onChange={(picked) => onChange({ ...form, budgetPeriod: BUDGET_PERIODS.find((period) => period === picked[0]) ?? form.budgetPeriod })} />
+        ) : null}
       </Grid>
     </BuilderCard>
   );

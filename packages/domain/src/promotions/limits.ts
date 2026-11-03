@@ -16,15 +16,16 @@ export type Ledger = readonly LedgerEntry[];
 
 /**
  * What a promotion's grants so far say about one more, as the database counts them from promotion_grant: the chips and
- * grants given, the members given it this club day and whether this member is one, whether this member already has
- * a grant with the event's period key, and the grants at the event's table this club day (null away from a table).
+ * grants given (this calendar month of club days for a monthly budget, decision 0499), the members given it this club
+ * day and whether this member is one, how many grants this member has in the event's period, and the grants at the
+ * event's table this club day (null away from a table).
  */
 export interface GrantTally {
   readonly chipsGiven: number;
   readonly grantsGiven: number;
   readonly membersToday: number;
   readonly isMemberGrantedToday: boolean;
-  readonly isPeriodTaken: boolean;
+  readonly periodGiven: number;
   readonly grantsAtTableToday: number | null;
 }
 
@@ -53,32 +54,53 @@ export function periodKey(limits: Pick<Limits, 'perMember'>, event: EventWhen): 
   }
 }
 
+/**
+ * The key of a member's next grant in a period, given how many they have in it (decision 0499): the period's own key for
+ * the first, then `#2`, `#3` and on, so the database's unique key still holds each one under concurrency.
+ */
+export function slotKey(base: string, given: number): string {
+  return given === 0 ? base : `${base}#${String(given + 1)}`;
+}
+
+/** Whether a grant's key is one of a period's: its own key or a numbered one after it. */
+const isInPeriod = (key: string, base: string) => key === base || key.startsWith(`${base}#`);
+
 const chipsIn = (ledger: Ledger) => ledger.reduce((total, entry) => total + entry.chips, 0);
 
-/** What is left of the promotion's budget in bonus chips over all its versions, never below nothing; null with no budget. */
-export function remainingBudget(promo: { readonly limits: Limits }, ledger: Ledger): number | null {
+/** The grants the budget and the most grants count: all of them, or for a monthly budget those of the club day's calendar month. */
+function counted(limits: Limits, ledger: Ledger, day: string): Ledger {
+  return limits.budgetPeriod === 'month' ? ledger.filter((entry) => entry.clubDay.slice(0, 7) === day.slice(0, 7)) : ledger;
+}
+
+/**
+ * What is left of the promotion's budget in bonus chips on a club day, over all its versions (that day's month for a
+ * monthly budget), never below nothing; null with no budget.
+ */
+export function remainingBudget(promo: { readonly limits: Limits }, ledger: Ledger, day: string): number | null {
   const budget = promo.limits.budgetChips;
-  return budget === undefined ? null : Math.max(0, budget - chipsIn(ledger));
+  return budget === undefined ? null : Math.max(0, budget - chipsIn(counted(promo.limits, ledger, day)));
 }
 
 /** The tally for one more grant to the event's member, from the promotion's ledger. */
 export function tallyFor(promo: { readonly limits: Limits }, ledger: Ledger, event: PromotionEvent): GrantTally {
   const day = clubDay(event.at);
   const today = ledger.filter((entry) => entry.clubDay === day);
+  const inBudget = counted(promo.limits, ledger, day);
   const key = periodKey(promo.limits, event);
   return {
-    chipsGiven: chipsIn(ledger),
-    grantsGiven: ledger.length,
+    chipsGiven: chipsIn(inBudget),
+    grantsGiven: inBudget.length,
     membersToday: new Set(today.map((entry) => entry.memberId)).size,
     isMemberGrantedToday: today.some((entry) => entry.memberId === event.memberId),
-    isPeriodTaken: ledger.some((entry) => entry.memberId === event.memberId && entry.periodKey === key),
+    periodGiven: ledger.filter((entry) => entry.memberId === event.memberId && isInPeriod(entry.periodKey, key)).length,
     grantsAtTableToday: event.tableId === null ? null : today.filter((entry) => entry.tableId === event.tableId).length,
   };
 }
 
-/** A grant as it enters the ledger. */
-export function ledgerEntryFor(promo: { readonly limits: Limits }, event: PromotionEvent, grant: Grant): LedgerEntry {
-  return { ...grant, memberId: event.memberId, clubDay: clubDay(event.at), periodKey: periodKey(promo.limits, event), tableId: event.tableId };
+/** A grant as it enters the ledger, keyed as the member's next in its period. */
+export function ledgerEntryFor(promo: { readonly limits: Limits }, event: PromotionEvent, grant: Grant, tally: Pick<GrantTally, 'periodGiven'>): LedgerEntry {
+  const key = slotKey(periodKey(promo.limits, event), tally.periodGiven);
+  return { ...grant, memberId: event.memberId, clubDay: clubDay(event.at), periodKey: key, tableId: event.tableId };
 }
 
 type LimitCheck = (promo: { readonly reward: Reward; readonly limits: Limits }, grant: Grant, tally: GrantTally) => boolean;
@@ -87,7 +109,7 @@ const firstNOf = (reward: Reward) => (reward.kind === 'buyin_bonus' ? reward.fir
 
 // In order: the first broken limit is the reason.
 const LIMITS: readonly (readonly [LimitRefusal, LimitCheck])[] = [
-  ['already_given', (_, __, tally) => tally.isPeriodTaken],
+  ['already_given', ({ limits }, _, tally) => tally.periodGiven >= (limits.timesPerMember ?? 1)],
   ['first_n_taken', ({ reward }, _, tally) => {
     const firstN = firstNOf(reward);
     return firstN !== undefined && (tally.grantsAtTableToday === null || tally.grantsAtTableToday >= firstN);
@@ -99,11 +121,12 @@ const LIMITS: readonly (readonly [LimitRefusal, LimitCheck])[] = [
 ];
 
 /**
- * Whether a promotion's limits let a grant through (decision 0471): the member's period not yet given, among the first
- * N buy-ins at the table this club day, within the members a day (a member already given it today is not a new one)
- * and the most grants, and the whole grant within what is left of the budget in bonus chips, never part of it. The
- * database's private.promo_check_limits is proved equal on promotionRewards.json; its unique period key holds the
- * per-member limit under concurrency.
+ * Whether a promotion's limits let a grant through (decisions 0471 and 0499): the member given it fewer times in the
+ * period than it allows (once unless it says up to N), among the first N buy-ins at the table this club day, within the
+ * members a day (a member already given it today is not a new one) and the most grants, and the whole grant within what
+ * is left of the budget in bonus chips, never part of it; a monthly budget's tally counts the month alone. The
+ * database's private.promo_check_limits is proved equal on promotionRewards.json; its unique period key, numbered for
+ * each grant in a period (slotKey), holds the per-member limit under concurrency.
  */
 export function checkLimits(promo: { readonly reward: Reward; readonly limits: Limits }, grant: Grant, tally: GrantTally): Result<Grant, LimitRefusal> {
   const broken = LIMITS.find(([, isBroken]) => isBroken(promo, grant, tally));

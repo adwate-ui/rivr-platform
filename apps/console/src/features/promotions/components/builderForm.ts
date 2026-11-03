@@ -37,8 +37,12 @@ export interface BuilderForm {
   readonly startsOn: string;
   readonly endsOn: string;
   readonly perMember: Limits['perMember'];
+  /** Up to how many times a member in the period (decision 0499); blank is once. */
+  readonly timesPerMember: string;
   readonly maxMembersPerDay: string;
   readonly budgetChips: string;
+  /** Whether the budget and the most grants are for the whole promotion or start again each month (decision 0499). */
+  readonly budgetPeriod: 'whole' | 'month';
   /** The most grants a version already sets: kept as it is, as the builder does not offer it. */
   readonly maxGrants: number | undefined;
   readonly channels: Channels;
@@ -56,8 +60,8 @@ export function blankForm(today: string): BuilderForm {
   return {
     name: '', kind: 'points_multiplier', multiplier: '2', buyMode: 'percent', percent: '20', capChips: '2000', buyChips: '1000', firstN: '5',
     chips: '1000', afterHours: '4', bonusOn: 'visit', spins: '1', fromVisit: '4', tournament: '', stakes: 'all', tableIds: undefined, tiers: 'all',
-    audience: 'everyone', days: [5, 6], from: '20:00', to: '02:00', startsOn: today, endsOn: '', perMember: 'per_visit', maxMembersPerDay: '',
-    budgetChips: '', maxGrants: undefined, channels: { playerApp: true, tv: true, website: false, whatsapp: false }, rulesText: '', link: '',
+    audience: 'everyone', days: [5, 6], from: '20:00', to: '02:00', startsOn: today, endsOn: '', perMember: 'per_visit', timesPerMember: '',
+    maxMembersPerDay: '', budgetChips: '', budgetPeriod: 'whole', maxGrants: undefined, channels: { playerApp: true, tv: true, website: false, whatsapp: false }, rulesText: '', link: '',
   };
 }
 
@@ -99,7 +103,8 @@ export function formFromTerms(terms: PromotionTerms): BuilderForm {
     ...blankForm(schedule.startsOn), ...rewardFields(terms.reward), kind: terms.reward.kind, name: terms.name,
     stakes: eligibility.stakes, tableIds: eligibility.tableIds, tiers: eligibility.tiers, audience: eligibility.audience,
     days: schedule.days, from: schedule.from, to: schedule.to, startsOn: schedule.startsOn, endsOn: schedule.endsOn ?? '',
-    perMember: limits.perMember, maxMembersPerDay: text(limits.maxMembersPerDay), budgetChips: text(limits.budgetChips), maxGrants: limits.maxGrants,
+    perMember: limits.perMember, timesPerMember: text(limits.timesPerMember), maxMembersPerDay: text(limits.maxMembersPerDay),
+    budgetChips: text(limits.budgetChips), budgetPeriod: limits.budgetPeriod === 'month' ? 'month' : 'whole', maxGrants: limits.maxGrants,
     channels: terms.channels, rulesText: terms.rulesText.join('\n'), link: terms.link ?? '',
   };
 }
