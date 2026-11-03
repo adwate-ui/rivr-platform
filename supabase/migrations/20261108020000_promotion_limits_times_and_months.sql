@@ -271,6 +271,9 @@ begin
           jsonb_strip_nulls(jsonb_build_object(
             'perMember', case when p_promotion.per_player_limit >= 1 and p_promotion.per_player_period = 'day' then 'per_day'
                               when p_promotion.per_player_limit >= 1 and p_promotion.per_player_period = 'promotion' then 'once'
+                              -- The first N grants a club day with no limit a member: one a club day each, N members a day,
+                              -- so never more than N grants a club day (decision 0501).
+                              when p_promotion.per_player_limit is null and p_conditions #>> '{first_n,per}' = 'day' then 'per_day'
                               else 'none' end,
             -- Up to N a day or ever, as the rule allowed N (decision 0499).
             'timesPerMember', case when p_promotion.per_player_limit > 1 and p_promotion.per_player_period in ('day', 'promotion')
@@ -336,11 +339,12 @@ begin
     end if;
     -- A rule the model cannot say exactly stays on the old path (decision 0491; money audit). Up to N a member and monthly
     -- budgets are the model's now (decision 0499); more than 20 a member is not, nor a budget under 50 chips, whole or
-    -- monthly, which a version's whole 50s of chips would drop, nor the first N grants a club day unless a member has it
-    -- once: the model counts members a day, and a member given it more than once would take more of the N.
+    -- monthly, which a version's whole 50s of chips would drop, nor the first N grants a club day when a member may have
+    -- it more than once: the model counts members a day, and a member given it twice would take two of the N. With no
+    -- limit a member, it converts as one a club day each (decision 0501).
     if coalesce(v_promotion.per_player_limit, 1) > 20
        or exists (select 1 from public.promotion_budget b where b.promotion_id = v_promotion.id and b.cap_paise is not null and b.cap_paise < 5000)
-       or (v_rule.conditions #>> '{first_n,per}' = 'day' and v_promotion.per_player_limit is distinct from 1) then
+       or (v_rule.conditions #>> '{first_n,per}' = 'day' and coalesce(v_promotion.per_player_limit, 1) > 1) then
       v_reward := null;
     end if;
     if v_reward is not null then
