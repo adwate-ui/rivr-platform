@@ -73,12 +73,24 @@ const PER_MEMBER: Readonly<Record<Limits['perMember'], string>> = {
   once: 'Once ever per member',
 };
 
+// Up to N times a member in a period (decision 0499): its period in words.
+const TIMES_IN: Readonly<Record<Exclude<Limits['perMember'], 'none'>, string>> = {
+  per_visit: 'per visit', per_day: 'a day', per_week: 'a week', once: 'ever',
+};
+
+function perMemberText(limits: Limits): string {
+  const times = limits.timesPerMember;
+  if (times === undefined || limits.perMember === 'none') return PER_MEMBER[limits.perMember];
+  return `Up to ${count(times)} times ${TIMES_IN[limits.perMember]} per member`;
+}
+
 function limitsText(limits: Limits): string {
+  const monthly = limits.budgetPeriod === 'month' ? ' a month' : '';
   return [
-    PER_MEMBER[limits.perMember],
+    perMemberText(limits),
     limits.maxMembersPerDay === undefined ? null : `first ${count(limits.maxMembersPerDay)} members a day`,
-    limits.maxGrants === undefined ? null : `at most ${count(limits.maxGrants)} times`,
-    limits.budgetChips === undefined ? null : `budget ${count(limits.budgetChips)} chips`,
+    limits.maxGrants === undefined ? null : `at most ${count(limits.maxGrants)} times${monthly}`,
+    limits.budgetChips === undefined ? null : `budget ${count(limits.budgetChips)} chips${monthly}`,
   ].filter((part) => part !== null).join(', ');
 }
 

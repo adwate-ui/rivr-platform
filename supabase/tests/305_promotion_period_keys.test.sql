@@ -30,8 +30,8 @@ select ok(not private.is_iso_day('17-11-2026'), 'a day written another way is re
 select ok(not private.is_iso_day('0000-01-01'), 'year 0 is refused');
 select ok(not private.is_iso_day(null), 'no day is refused');
 
--- A rule promotion the model cannot say exactly stays on the old path, unversioned: two grants a member a day, or a
--- budget by the month.
+-- Rule promotions with two grants a member a day, or a budget by the month, become versions now the model says both
+-- (decision 0499); a monthly budget under 50 chips with no most grants still cannot be said, and stays on the old path.
 reset datestyle;
 create temp table ids (name text primary key, id uuid);
 with p as (insert into public.promotion (venue_id, name, status, priority, per_player_limit, per_player_period)
@@ -43,13 +43,22 @@ insert into ids select 'monthly', id from p;
 with p as (insert into public.promotion (venue_id, name, status, priority, per_player_limit, per_player_period)
            values ('00000000-0000-4000-8000-000000000001', 'Once a day', 'live', 5, 1, 'day') returning id)
 insert into ids select 'daily', id from p;
+with p as (insert into public.promotion (venue_id, name, status, priority)
+           values ('00000000-0000-4000-8000-000000000001', 'Tiny monthly budget', 'live', 5) returning id)
+insert into ids select 'tiny', id from p;
 insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, effect)
 select '00000000-0000-4000-8000-000000000001', id, 'buy_in', '{}', '{"kind": "bonus", "amount_paise": 100000, "expires_days": 30}' from ids;
 insert into public.promotion_budget (venue_id, promotion_id, cap_paise, period)
-values ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'monthly'), 1000000, 'month');
+values ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'monthly'), 1000000, 'month'),
+       ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tiny'), 4900, 'month');
 select private.version_promotions('00000000-0000-4000-8000-000000000001');
-select is((select count(*)::integer from public.promotion_version v join ids on ids.id = v.promotion_id where ids.name in ('twice', 'monthly')), 0,
-  'two grants a member a day, or a monthly budget, stay on the old path');
+select results_eq($$ select ids.name, v.limits from public.promotion_version v join ids on ids.id = v.promotion_id
+                    where ids.name in ('twice', 'monthly') order by ids.name $$,
+  $$ values ('monthly'::text, '{"perMember": "none", "budgetChips": 10000, "budgetPeriod": "month"}'::jsonb),
+            ('twice', '{"perMember": "per_day", "timesPerMember": 2}') $$,
+  'two grants a member a day, and a budget by the month, become versions that say so');
+select is_empty($$ select 1 from public.promotion_version v join ids on ids.id = v.promotion_id where ids.name = 'tiny' $$,
+  'a monthly budget under 50 chips, with no most grants, stays on the old path');
 select is((select v.limits ->> 'perMember' from public.promotion_version v join ids on ids.id = v.promotion_id where ids.name = 'daily'), 'per_day',
   'once a day becomes a version, once a day');
 

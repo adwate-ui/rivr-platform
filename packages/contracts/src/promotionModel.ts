@@ -73,12 +73,26 @@ export type Schedule = z.infer<typeof scheduleSchema>;
 /** How often one member may have it: no limit, once a visit, a club day, a club week, or once ever. */
 export const PER_MEMBER = ['none', 'per_visit', 'per_day', 'per_week', 'once'] as const;
 
-export const limitsSchema = z.strictObject({
-  perMember: z.enum(PER_MEMBER),
-  maxMembersPerDay: z.int().min(1).max(10_000).optional(),
-  budgetChips: chips.optional(),
-  maxGrants: z.int().min(1).max(1_000_000).optional(),
-});
+/** How long the budget and the most grants run: the whole promotion (left out), or each calendar month of club days. */
+export const BUDGET_PERIODS = ['month'] as const;
+
+/**
+ * How often and how much (decision 0499): per member, up to `timesPerMember` times in each period (2 to 20; left out,
+ * once), which needs a period; the most members a club day; and a budget in bonus chips and the most grants, for the
+ * whole promotion or, with `budgetPeriod` `month`, afresh each calendar month, which needs one of the two.
+ */
+export const limitsSchema = z
+  .strictObject({
+    perMember: z.enum(PER_MEMBER),
+    timesPerMember: z.int().min(2).max(20).optional(),
+    maxMembersPerDay: z.int().min(1).max(10_000).optional(),
+    budgetChips: chips.optional(),
+    maxGrants: z.int().min(1).max(1_000_000).optional(),
+    budgetPeriod: z.enum(BUDGET_PERIODS).optional(),
+  })
+  .refine(({ perMember, timesPerMember }) => timesPerMember === undefined || perMember !== 'none', { path: ['timesPerMember'] })
+  .refine(({ budgetPeriod, budgetChips, maxGrants }) => budgetPeriod === undefined || budgetChips !== undefined || maxGrants !== undefined,
+    { path: ['budgetPeriod'] });
 export type Limits = z.infer<typeof limitsSchema>;
 
 export const channelsSchema = z.strictObject({ playerApp: z.boolean(), tv: z.boolean(), website: z.boolean(), whatsapp: z.boolean() });

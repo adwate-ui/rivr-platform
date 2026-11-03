@@ -1,6 +1,6 @@
 {
   "rule": "promotionRewards",
-  "about": "What a promotion gives (console v3 phase 7; decisions 0470 and 0472), in points, bonus chips, spins or a perk, never rupees. Days are the club's, 06:00 to 06:00 IST, and its weeks run Monday to Sunday. Eligible: the member's tier and audience must be the promotion's (new members have fewer than 30 whole days since joining; lapsed regulars' last visit before this one was 30 or more whole days before). The time-played rewards are the points multiplier, the hours bonus and the free spin: for them only the minutes inside the schedule at its stakes and tables count, so the moment and table of the event do not matter. For every other reward the event's stake, table and moment must be the promotion's, so a promotion for some stakes gives nothing for an event away from a table. Grant: a buy-in bonus is a percent of the member's own chips rounded down to whole 50s, then held to its cap, or fixed chips; a buy-in paid from bonus (its own chips are 0) earns nothing from any buy-in reward, a buy-in bonus or bonus chips on the first buy-in; a points multiplier gives the extra on the points earned, rounded down (double on 120 is 120 more); an hours bonus or free spin needs its minutes; bonus chips come on a visit, the visit's first buy-in, a referral or a sign-up; a cab home from the Nth visit of the calendar month; an entry or waitlist priority on a visit; nothing comes to nothing. Limits, in this order: the member's period already given (the same visit, club day, club week, ever, or with no limit the same event), the first N buy-ins per table, which counts this promotion's grants at that table this club day, members a day (a member already given it today is not a new one), the most grants, and the budget in bonus chips, whole or not at all. A spin spends no chips when given; the wheel pays a bonus only within what is left of the budget. Stacking for one event: at most one points multiplier, the one giving the most points (the first on a tie); bonus chips and spins from different promotions stack; one perk of each kind, the first given. Inputs are written as the database holds them.",
+  "about": "What a promotion gives (console v3 phase 7; decisions 0470 and 0472), in points, bonus chips, spins or a perk, never rupees. Days are the club's, 06:00 to 06:00 IST, and its weeks run Monday to Sunday. Eligible: the member's tier and audience must be the promotion's (new members have fewer than 30 whole days since joining; lapsed regulars' last visit before this one was 30 or more whole days before). The time-played rewards are the points multiplier, the hours bonus and the free spin: for them only the minutes inside the schedule at its stakes and tables count, so the moment and table of the event do not matter. For every other reward the event's stake, table and moment must be the promotion's, so a promotion for some stakes gives nothing for an event away from a table. Grant: a buy-in bonus is a percent of the member's own chips rounded down to whole 50s, then held to its cap, or fixed chips; a buy-in paid from bonus (its own chips are 0) earns nothing from any buy-in reward, a buy-in bonus or bonus chips on the first buy-in; a points multiplier gives the extra on the points earned, rounded down (double on 120 is 120 more); an hours bonus or free spin needs its minutes; bonus chips come on a visit, the visit's first buy-in, a referral or a sign-up; a cab home from the Nth visit of the calendar month; an entry or waitlist priority on a visit; nothing comes to nothing. Limits, in this order: the member's period already given as often as it allows, once unless it says up to N (2 to 20) times (the same visit, club day, club week, ever, or with no limit the same event; each grant in a period is keyed as the member's Nth there, the first by the period itself, then #2 and on), the first N buy-ins per table, which counts this promotion's grants at that table this club day, members a day (a member already given it today is not a new one), the most grants, and the budget in bonus chips, whole or not at all; a monthly budget and most grants count the grants of the event's calendar month of club days alone, starting again at 06:00 IST on the first. A spin spends no chips when given; the wheel pays a bonus only within what is left of the budget. Stacking for one event: at most one points multiplier, the one giving the most points (the first on a tie); bonus chips and spins from different promotions stack; one perk of each kind, the first given. Inputs are written as the database holds them.",
   "cases": [
     {
       "description": "Everyone, every stake, Tuesdays: a buy-in at 21:00 on Tuesday qualifies.",
@@ -598,7 +598,7 @@
         "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
         "limits": "{\"perMember\": \"none\"}",
         "grant": "{\"points\": 0, \"chips\": 2000, \"spins\": 0, \"perk\": null}",
-        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 0}"
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
       },
       "expected": {
         "given": "yes",
@@ -612,7 +612,7 @@
         "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
         "limits": "{\"perMember\": \"none\", \"budgetChips\": 5000}",
         "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
-        "tally": "{\"chipsGiven\": 4000, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 0}"
+        "tally": "{\"chipsGiven\": 4000, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
       },
       "expected": {
         "given": "yes",
@@ -626,7 +626,7 @@
         "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
         "limits": "{\"perMember\": \"none\", \"budgetChips\": 5000}",
         "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
-        "tally": "{\"chipsGiven\": 4500, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 0}"
+        "tally": "{\"chipsGiven\": 4500, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
       },
       "expected": {
         "given": "no",
@@ -640,7 +640,7 @@
         "reward": "{\"kind\": \"free_spin\", \"spins\": 1, \"afterMinutes\": 240}",
         "limits": "{\"perMember\": \"per_day\", \"budgetChips\": 5000}",
         "grant": "{\"points\": 0, \"chips\": 0, \"spins\": 1, \"perk\": null}",
-        "tally": "{\"chipsGiven\": 5000, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 0}"
+        "tally": "{\"chipsGiven\": 5000, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
       },
       "expected": {
         "given": "yes",
@@ -654,7 +654,7 @@
         "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
         "limits": "{\"perMember\": \"once\"}",
         "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
-        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": true, \"grantsAtTableToday\": 0}"
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 1, \"grantsAtTableToday\": 0}"
       },
       "expected": {
         "given": "no",
@@ -668,7 +668,7 @@
         "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20, \"firstNBuyinsPerTable\": 5}",
         "limits": "{\"perMember\": \"none\"}",
         "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
-        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 4}"
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 4}"
       },
       "expected": {
         "given": "yes",
@@ -682,7 +682,7 @@
         "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20, \"firstNBuyinsPerTable\": 5}",
         "limits": "{\"perMember\": \"none\"}",
         "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
-        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 5}"
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 5}"
       },
       "expected": {
         "given": "no",
@@ -696,7 +696,7 @@
         "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20, \"firstNBuyinsPerTable\": 5}",
         "limits": "{\"perMember\": \"none\"}",
         "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
-        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": null}"
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": null}"
       },
       "expected": {
         "given": "no",
@@ -710,7 +710,7 @@
         "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
         "limits": "{\"perMember\": \"none\", \"maxMembersPerDay\": 50}",
         "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
-        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 50, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 0}"
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 50, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
       },
       "expected": {
         "given": "no",
@@ -724,7 +724,7 @@
         "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
         "limits": "{\"perMember\": \"none\", \"maxMembersPerDay\": 50}",
         "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
-        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 50, \"isMemberGrantedToday\": true, \"isPeriodTaken\": false, \"grantsAtTableToday\": 0}"
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 50, \"isMemberGrantedToday\": true, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
       },
       "expected": {
         "given": "yes",
@@ -738,7 +738,7 @@
         "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
         "limits": "{\"perMember\": \"none\", \"maxMembersPerDay\": 50}",
         "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
-        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 49, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 0}"
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 49, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
       },
       "expected": {
         "given": "yes",
@@ -752,7 +752,7 @@
         "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
         "limits": "{\"perMember\": \"none\", \"maxGrants\": 100}",
         "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
-        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 99, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 0}"
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 99, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
       },
       "expected": {
         "given": "yes",
@@ -766,11 +766,109 @@
         "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
         "limits": "{\"perMember\": \"none\", \"maxGrants\": 100}",
         "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
-        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 100, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"isPeriodTaken\": false, \"grantsAtTableToday\": 0}"
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 100, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
       },
       "expected": {
         "given": "no",
         "refusal": "max_grants"
+      }
+    },
+    {
+      "description": "Up to twice a day: a member given it once today has it again.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "limits": "{\"perMember\": \"per_day\", \"timesPerMember\": 2}",
+        "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 1000, \"grantsGiven\": 1, \"membersToday\": 1, \"isMemberGrantedToday\": true, \"periodGiven\": 1, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
+      }
+    },
+    {
+      "description": "Up to twice a day: a member given it twice today has it no more.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "limits": "{\"perMember\": \"per_day\", \"timesPerMember\": 2}",
+        "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 2000, \"grantsGiven\": 2, \"membersToday\": 1, \"isMemberGrantedToday\": true, \"periodGiven\": 2, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "no",
+        "refusal": "already_given"
+      }
+    },
+    {
+      "description": "Up to three times ever: the third is let through.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "limits": "{\"perMember\": \"once\", \"timesPerMember\": 3}",
+        "grant": "{\"points\": 0, \"chips\": 500, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 1000, \"grantsGiven\": 2, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 2, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
+      }
+    },
+    {
+      "description": "A monthly budget of 10,000 chips with 9,000 given this month: 1,000 more is let through, at the cap.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 10000, \"budgetPeriod\": \"month\"}",
+        "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 9000, \"grantsGiven\": 9, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
+      }
+    },
+    {
+      "description": "A monthly budget of 10,000 chips with 9,000 given this month: 1,050 more is not, never part of it.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 10000, \"budgetPeriod\": \"month\"}",
+        "grant": "{\"points\": 0, \"chips\": 1050, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 9000, \"grantsGiven\": 9, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "no",
+        "refusal": "budget_exhausted"
+      }
+    },
+    {
+      "description": "At most 10 grants a month, 10 given this month: no more this month.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "limits": "{\"perMember\": \"none\", \"maxGrants\": 10, \"budgetPeriod\": \"month\"}",
+        "grant": "{\"points\": 0, \"chips\": 0, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 10, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "no",
+        "refusal": "max_grants"
+      }
+    },
+    {
+      "description": "A monthly budget with nothing given this month: a zero-chip grant is let through.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 50, \"budgetPeriod\": \"month\"}",
+        "grant": "{\"points\": 0, \"chips\": 0, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
       }
     },
     {
@@ -851,6 +949,170 @@
       },
       "expected": {
         "given": "none"
+      }
+    },
+    {
+      "description": "A whole budget counts every grant, in every month.",
+      "operation": "tally",
+      "inputs": {
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 10000}",
+        "ledger": "[{\"memberId\": \"00000000-0000-4000-8000-000000000202\", \"clubDay\": \"2026-10-31\", \"periodKey\": \"event:a\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\", \"points\": 0, \"chips\": 3000, \"spins\": 0, \"perk\": null}, {\"memberId\": \"00000000-0000-4000-8000-000000000202\", \"clubDay\": \"2026-11-01\", \"periodKey\": \"event:b\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\", \"points\": 0, \"chips\": 500, \"spins\": 0, \"perk\": null}, {\"memberId\": \"00000000-0000-4000-8000-000000000203\", \"clubDay\": \"2026-11-30\", \"periodKey\": \"event:c\", \"tableId\": \"00000000-0000-4000-8000-0000000071a2\", \"points\": 0, \"chips\": 50, \"spins\": 0, \"perk\": null}]",
+        "event": "{\"memberId\": \"00000000-0000-4000-8000-000000000201\", \"at\": \"2026-11-30T21:00:00+05:30\", \"key\": \"buy_in:x1\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\", \"tableId\": \"00000000-0000-4000-8000-0000000071a2\"}"
+      },
+      "expected": {
+        "chipsGiven": "3550",
+        "grantsGiven": "3",
+        "membersToday": "1",
+        "isMemberGrantedToday": "false",
+        "periodGiven": "0",
+        "grantsAtTableToday": "1"
+      }
+    },
+    {
+      "description": "A monthly budget counts the grants of the event's club month only: 05:59 IST on 1 December is still 30 November.",
+      "operation": "tally",
+      "inputs": {
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 10000, \"budgetPeriod\": \"month\"}",
+        "ledger": "[{\"memberId\": \"00000000-0000-4000-8000-000000000202\", \"clubDay\": \"2026-10-31\", \"periodKey\": \"event:a\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\", \"points\": 0, \"chips\": 3000, \"spins\": 0, \"perk\": null}, {\"memberId\": \"00000000-0000-4000-8000-000000000202\", \"clubDay\": \"2026-11-01\", \"periodKey\": \"event:b\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\", \"points\": 0, \"chips\": 500, \"spins\": 0, \"perk\": null}, {\"memberId\": \"00000000-0000-4000-8000-000000000203\", \"clubDay\": \"2026-11-30\", \"periodKey\": \"event:c\", \"tableId\": \"00000000-0000-4000-8000-0000000071a2\", \"points\": 0, \"chips\": 50, \"spins\": 0, \"perk\": null}]",
+        "event": "{\"memberId\": \"00000000-0000-4000-8000-000000000201\", \"at\": \"2026-12-01T05:59:00+05:30\", \"key\": \"buy_in:x2\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\", \"tableId\": \"00000000-0000-4000-8000-0000000071a2\"}"
+      },
+      "expected": {
+        "chipsGiven": "550",
+        "grantsGiven": "2",
+        "membersToday": "1",
+        "isMemberGrantedToday": "false",
+        "periodGiven": "0",
+        "grantsAtTableToday": "1"
+      }
+    },
+    {
+      "description": "From 06:00 IST on 1 December a monthly budget starts again from nothing.",
+      "operation": "tally",
+      "inputs": {
+        "limits": "{\"perMember\": \"none\", \"maxGrants\": 10, \"budgetPeriod\": \"month\"}",
+        "ledger": "[{\"memberId\": \"00000000-0000-4000-8000-000000000202\", \"clubDay\": \"2026-10-31\", \"periodKey\": \"event:a\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\", \"points\": 0, \"chips\": 3000, \"spins\": 0, \"perk\": null}, {\"memberId\": \"00000000-0000-4000-8000-000000000202\", \"clubDay\": \"2026-11-01\", \"periodKey\": \"event:b\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\", \"points\": 0, \"chips\": 500, \"spins\": 0, \"perk\": null}, {\"memberId\": \"00000000-0000-4000-8000-000000000203\", \"clubDay\": \"2026-11-30\", \"periodKey\": \"event:c\", \"tableId\": \"00000000-0000-4000-8000-0000000071a2\", \"points\": 0, \"chips\": 50, \"spins\": 0, \"perk\": null}]",
+        "event": "{\"memberId\": \"00000000-0000-4000-8000-000000000201\", \"at\": \"2026-12-01T06:00:00+05:30\", \"key\": \"buy_in:x3\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\", \"tableId\": null}"
+      },
+      "expected": {
+        "chipsGiven": "0",
+        "grantsGiven": "0",
+        "membersToday": "0",
+        "isMemberGrantedToday": "false",
+        "periodGiven": "0",
+        "grantsAtTableToday": ""
+      }
+    },
+    {
+      "description": "A member's grants in the period are counted with their numbered keys, not another member's or another day's.",
+      "operation": "tally",
+      "inputs": {
+        "limits": "{\"perMember\": \"per_day\", \"timesPerMember\": 3}",
+        "ledger": "[{\"memberId\": \"00000000-0000-4000-8000-000000000201\", \"clubDay\": \"2026-11-17\", \"periodKey\": \"day:2026-11-17\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\", \"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}, {\"memberId\": \"00000000-0000-4000-8000-000000000201\", \"clubDay\": \"2026-11-17\", \"periodKey\": \"day:2026-11-17#2\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\", \"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}, {\"memberId\": \"00000000-0000-4000-8000-000000000202\", \"clubDay\": \"2026-11-17\", \"periodKey\": \"day:2026-11-17\", \"tableId\": \"00000000-0000-4000-8000-0000000071a2\", \"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}, {\"memberId\": \"00000000-0000-4000-8000-000000000201\", \"clubDay\": \"2026-11-16\", \"periodKey\": \"day:2026-11-16\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\", \"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}]",
+        "event": "{\"memberId\": \"00000000-0000-4000-8000-000000000201\", \"at\": \"2026-11-17T23:00:00+05:30\", \"key\": \"buy_in:x4\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\"}"
+      },
+      "expected": {
+        "chipsGiven": "4000",
+        "grantsGiven": "4",
+        "membersToday": "2",
+        "isMemberGrantedToday": "true",
+        "periodGiven": "2",
+        "grantsAtTableToday": "2"
+      }
+    },
+    {
+      "description": "Per club day: 02:00 IST is still the day before.",
+      "operation": "periodKey",
+      "inputs": {
+        "limits": "{\"perMember\": \"per_day\"}",
+        "event": "{\"key\": \"buy_in:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
+        "given": "0"
+      },
+      "expected": {
+        "key": "day:2026-11-17"
+      }
+    },
+    {
+      "description": "Per club week: Monday to Sunday, by the club day.",
+      "operation": "periodKey",
+      "inputs": {
+        "limits": "{\"perMember\": \"per_week\"}",
+        "event": "{\"key\": \"buy_in:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
+        "given": "0"
+      },
+      "expected": {
+        "key": "week:2026-11-16"
+      }
+    },
+    {
+      "description": "Per visit: the visit.",
+      "operation": "periodKey",
+      "inputs": {
+        "limits": "{\"perMember\": \"per_visit\"}",
+        "event": "{\"key\": \"buy_in:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
+        "given": "0"
+      },
+      "expected": {
+        "key": "visit:00000000-0000-4000-8000-0000000072a1"
+      }
+    },
+    {
+      "description": "Per visit with no visit: the event.",
+      "operation": "periodKey",
+      "inputs": {
+        "limits": "{\"perMember\": \"per_visit\"}",
+        "event": "{\"key\": \"buy_in:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": null}",
+        "given": "0"
+      },
+      "expected": {
+        "key": "visit:buy_in:k1"
+      }
+    },
+    {
+      "description": "Once ever.",
+      "operation": "periodKey",
+      "inputs": {
+        "limits": "{\"perMember\": \"once\"}",
+        "event": "{\"key\": \"buy_in:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
+        "given": "0"
+      },
+      "expected": {
+        "key": "once"
+      }
+    },
+    {
+      "description": "No limit: the event itself.",
+      "operation": "periodKey",
+      "inputs": {
+        "limits": "{\"perMember\": \"none\"}",
+        "event": "{\"key\": \"buy_in:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
+        "given": "0"
+      },
+      "expected": {
+        "key": "event:buy_in:k1"
+      }
+    },
+    {
+      "description": "Up to twice a day: the member's second grant today is numbered 2.",
+      "operation": "periodKey",
+      "inputs": {
+        "limits": "{\"perMember\": \"per_day\", \"timesPerMember\": 2}",
+        "event": "{\"key\": \"buy_in:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
+        "given": "1"
+      },
+      "expected": {
+        "key": "day:2026-11-17#2"
+      }
+    },
+    {
+      "description": "Up to 20 times ever: the twentieth is numbered 20.",
+      "operation": "periodKey",
+      "inputs": {
+        "limits": "{\"perMember\": \"once\", \"timesPerMember\": 20}",
+        "event": "{\"key\": \"buy_in:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
+        "given": "19"
+      },
+      "expected": {
+        "key": "once#20"
       }
     }
   ]

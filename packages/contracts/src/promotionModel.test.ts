@@ -70,6 +70,18 @@ describe('the promotion model schemas', () => {
     expect(limitsSchema.safeParse({ perMember: 'none', budgetChips: 75 }).success).toBe(false);
   });
 
+  it('takes up to 2 to 20 times a member in a period, and a budget or most grants afresh each month (decision 0499)', () => {
+    expect(limitsSchema.safeParse({ perMember: 'per_day', timesPerMember: 2 }).success).toBe(true);
+    expect(limitsSchema.safeParse({ perMember: 'once', timesPerMember: 20 }).success).toBe(true);
+    expect(limitsSchema.safeParse({ perMember: 'per_day', timesPerMember: 1 }).success).toBe(false);
+    expect(limitsSchema.safeParse({ perMember: 'per_day', timesPerMember: 21 }).success).toBe(false);
+    expect(limitsSchema.safeParse({ perMember: 'none', timesPerMember: 2 }).success).toBe(false);
+    expect(limitsSchema.safeParse({ perMember: 'none', budgetChips: 10_000, budgetPeriod: 'month' }).success).toBe(true);
+    expect(limitsSchema.safeParse({ perMember: 'none', maxGrants: 100, budgetPeriod: 'month' }).success).toBe(true);
+    expect(limitsSchema.safeParse({ perMember: 'none', budgetPeriod: 'month' }).success).toBe(false);
+    expect(limitsSchema.safeParse({ perMember: 'none', budgetChips: 10_000, budgetPeriod: 'week' }).success).toBe(false);
+  });
+
   it('takes whole terms, with at most twelve rules', () => {
     expect(promotionTermsSchema.safeParse(TERMS).success).toBe(true);
     expect(promotionTermsSchema.safeParse({ ...TERMS, rulesText: Array.from({ length: 13 }, () => 'A rule') }).success).toBe(false);

@@ -113,8 +113,14 @@ export const promotions = {
       endsOn: 'Ends (blank for no end)',
       perMember: 'Each member',
       perMemberChoices: { none: 'No limit', per_visit: 'Once per visit', per_day: 'Once a day', per_week: 'Once a week', once: 'Once ever' },
+      /** Up to how many times a member in the period (decision 0499); blank reads as once. */
+      timesPerMember: 'Up to how many times',
+      once: 'Once',
       maxMembersPerDay: 'Most members a day',
       budgetChips: 'Budget in bonus chips',
+      /** Whether the budget and the most grants are for the whole promotion or start again each month. */
+      budgetPeriod: 'Budget runs',
+      budgetPeriods: { whole: 'For the whole promotion', month: 'Each month' },
       noLimit: 'No limit',
       channels: 'Shows on',
       channelNames: { playerApp: 'Player app', tv: 'TVs', website: 'Website', whatsapp: 'WhatsApp message' },
@@ -140,6 +146,7 @@ export const promotions = {
       to: '24-hour time, such as 02:00.',
       startsOn: 'Pick the first day.',
       endsOn: 'On or after the first day, or blank.',
+      timesPerMember: 'A whole number from 2 to 20, or blank for once.',
       maxMembersPerDay: 'A whole number from 1, or blank.',
       budgetChips: 'Whole 50s of chips, or blank.',
       rulesText: 'At most 12 lines of 200 characters.',

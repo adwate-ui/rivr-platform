@@ -4,7 +4,7 @@ import rewardsJson from '@rivr/testing/golden/promotionRewards.json';
 import { describe, expect, it } from 'vitest';
 import { isEligible } from './eligibility.ts';
 import { computeGrant, toPromotionEvent, type Grant, type Perk } from './grant.ts';
-import { checkLimits, type GrantTally } from './limits.ts';
+import { checkLimits, periodKey, slotKey, tallyFor, type GrantTally, type LedgerEntry } from './limits.ts';
 import { stackGrants } from './stacking.ts';
 
 const golden = readGolden(rewardsJson);
@@ -28,16 +28,33 @@ function tallyOf(text: string): GrantTally {
   const atTable = field(json, 'grantsAtTableToday');
   return {
     chipsGiven: numberOf(field(json, 'chipsGiven')), grantsGiven: numberOf(field(json, 'grantsGiven')), membersToday: numberOf(field(json, 'membersToday')),
-    isMemberGrantedToday: field(json, 'isMemberGrantedToday') === true, isPeriodTaken: field(json, 'isPeriodTaken') === true,
+    isMemberGrantedToday: field(json, 'isMemberGrantedToday') === true, periodGiven: numberOf(field(json, 'periodGiven')),
     grantsAtTableToday: typeof atTable === 'number' ? atTable : null,
   };
 }
 
 const parse = (text: string): unknown => JSON.parse(text);
 
+/** A ledger entry as the fixture writes it. */
+function entryOf(json: unknown): LedgerEntry {
+  return {
+    ...grantOf(json), memberId: String(field(json, 'memberId')), clubDay: String(field(json, 'clubDay')), periodKey: String(field(json, 'periodKey')),
+    tableId: textOrNull(field(json, 'tableId')),
+  };
+}
+
+/** The fixture's event as the tally reads it: who, when, which event, visit and table; the kind does not count. */
+function tallyEvent(text: string) {
+  const json = parse(text);
+  return toPromotionEvent(promotionEventSchema.parse({
+    kind: 'referral', stake: null, key: field(json, 'key'), at: field(json, 'at'), memberId: field(json, 'memberId'),
+    visitId: field(json, 'visitId'), tableId: field(json, 'tableId'),
+  }));
+}
+
 describe('Promotion rewards golden fixtures (packages/testing/golden/promotionRewards.json)', () => {
   it('tests every operation in the file', () => {
-    expect(() => assertOperations(golden, ['eligible', 'grant', 'limits', 'stack'])).not.toThrow();
+    expect(() => assertOperations(golden, ['eligible', 'grant', 'limits', 'stack', 'tally', 'periodKey'])).not.toThrow();
   });
 
   it.each(casesFor(golden, 'eligible'))('%s', (_, goldenCase) => {
@@ -71,6 +88,21 @@ describe('Promotion rewards golden fixtures (packages/testing/golden/promotionRe
     const promo = { reward: rewardSchema.parse(parse(goldenInput(goldenCase, 'reward'))), limits: limitsSchema.parse(parse(goldenInput(goldenCase, 'limits'))) };
     const result = checkLimits(promo, grantOf(parse(goldenInput(goldenCase, 'grant'))), tallyOf(goldenInput(goldenCase, 'tally')));
     expect([result.ok ? 'yes' : 'no', result.ok ? '' : result.error]).toEqual([goldenExpected(goldenCase, 'given'), goldenExpected(goldenCase, 'refusal')]);
+  });
+
+  it.each(casesFor(golden, 'tally'))('%s', (_, goldenCase) => {
+    const ledger = parse(goldenInput(goldenCase, 'ledger'));
+    if (!Array.isArray(ledger)) throw new Error('Golden ledger is not a list');
+    const tally = tallyFor({ limits: limitsSchema.parse(parse(goldenInput(goldenCase, 'limits'))) }, ledger.map(entryOf), tallyEvent(goldenInput(goldenCase, 'event')));
+    expect([tally.chipsGiven, tally.grantsGiven, tally.membersToday, tally.isMemberGrantedToday, tally.periodGiven, tally.grantsAtTableToday ?? ''].map(String))
+      .toEqual(['chipsGiven', 'grantsGiven', 'membersToday', 'isMemberGrantedToday', 'periodGiven', 'grantsAtTableToday'].map((name) => goldenExpected(goldenCase, name)));
+  });
+
+  it.each(casesFor(golden, 'periodKey'))('%s', (_, goldenCase) => {
+    const event = parse(goldenInput(goldenCase, 'event'));
+    const when = { key: String(field(event, 'key')), at: new Date(String(field(event, 'at'))), visitId: textOrNull(field(event, 'visitId')) };
+    const base = periodKey(limitsSchema.parse(parse(goldenInput(goldenCase, 'limits'))), when);
+    expect(slotKey(base, Number(goldenInput(goldenCase, 'given')))).toBe(goldenExpected(goldenCase, 'key'));
   });
 
   it.each(casesFor(golden, 'stack'))('%s', (_, goldenCase) => {

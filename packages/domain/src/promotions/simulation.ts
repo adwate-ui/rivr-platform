@@ -45,8 +45,9 @@ export function simulate(promo: Terms, events: readonly ReplayedEvent[]): Simula
     const grant = isEligible(promo, member, event) ? computeGrant(promo, event) : null;
     if (grant === null || !grant.ok) continue;
     qualified.add(event.memberId);
-    const decided = checkLimits(promo, grant.value, tallyFor(promo, grants, event));
-    if (decided.ok) grants.push(ledgerEntryFor(promo, event, decided.value));
+    const tally = tallyFor(promo, grants, event);
+    const decided = checkLimits(promo, grant.value, tally);
+    if (decided.ok) grants.push(ledgerEntryFor(promo, event, decided.value, tally));
     else isBudgetReached ||= BUDGET_LIMITS.has(decided.error);
   }
   return { events: events.length, membersQualified: qualified.size, timesGiven: grants.length, ...totalsOf(grants), isBudgetReached, grants };
