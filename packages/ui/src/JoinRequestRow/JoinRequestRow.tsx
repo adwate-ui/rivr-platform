@@ -29,7 +29,8 @@ export function JoinRequestRow({ name, note, approve, decline }: JoinRequestRowP
   return (
     <div className="flex min-h-touch items-center gap-2 bg-gold-tint px-4 py-1 tablet:min-h-row">
       <span aria-hidden="true" className="size-pip shrink-0 rounded-full bg-action" />
-      <p className="min-w-0 flex-1 truncate font-text text-14 leading-snug text-content">
+      {/* Wraps rather than cut: a card at 1180 px is narrow, and the name is what the floor reads. */}
+      <p className="min-w-0 flex-1 font-text text-14 leading-snug text-content">
         {name}
         <span className="text-12 text-content-muted"> {note}</span>
       </p>

@@ -12,7 +12,6 @@
 import { expect, test } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
-import { openTab } from '../support/console.ts';
 
 test.describe('Call time', () => {
   test('Tonight › Seated, Add time, Top-up requested, Leaving list: three hours, an hour more the floor approves, a top-up; leaving before it needs an admin', async ({ browser }) => {
@@ -73,11 +72,12 @@ test.describe('Call time', () => {
     await floor.getByRole('textbox', { name: 'Call time in minutes, from when they sat down' }).fill('300');
     await floor.getByRole('button', { name: 'Save call time' }).click();
     await expect(floor.getByText(/^Call time (5 h|4 h 59 min) left$/)).toBeVisible();
-    // Today's players (#641): she is playing, at the Private Room.
-    await openTab(floor, 'Door', 'Today’s players');
+    // Today's players (#641), the Door's second tab (console v3): she is playing, at the Private Room.
+    await floor.getByRole('link', { name: 'Door', exact: true }).click();
+    await floor.getByRole('navigation', { name: 'Door', exact: true }).getByRole('link', { name: 'Today’s players' }).click();
     const today = floor.getByRole('row').filter({ hasText: 'Ritika Das' });
     await expect(today.getByText('Playing', { exact: true })).toBeVisible();
-    await expect(today.getByText(/^Private Room · /)).toBeVisible();
+    await expect(today.getByText('Private Room', { exact: true })).toBeVisible();
     await floor.getByRole('link', { name: 'Live floor' }).click();
     await floor.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Private Room', exact: true }).click();
 

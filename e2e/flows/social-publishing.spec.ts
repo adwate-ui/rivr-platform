@@ -15,7 +15,9 @@ test.describe('Publishing', () => {
     test.skip(isRemoteTarget(), 'uploads to the venue\u2019s bucket, so the local stack only');
     const caption = `RIVR Sunday ${String(Date.now()).slice(-6)}: ₹5,00,000 guaranteed`;
     await signInToConsole(page, '9000000636');
-    await page.getByRole('link', { name: 'Social' }).click();
+    await page.getByRole('link', { name: 'Social', exact: true }).click();
+    // Publishing is its own tab (console v3).
+    await page.getByRole('link', { name: 'Publish', exact: true }).click();
     await page.locator('input[type="file"]').setInputFiles({ name: 'sunday.png', mimeType: 'image/png', buffer: PIXEL });
     await page.getByRole('textbox', { name: 'Caption' }).fill(caption);
     await page.getByRole('button', { name: 'Publish' }).click();

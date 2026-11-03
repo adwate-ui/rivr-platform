@@ -10,3 +10,12 @@ export function partsFor(can: { manage: boolean; override: boolean; changePhone:
     return true;
   });
 }
+
+/**
+ * A member's record in the address (console v3): `/members?member=…`, and `&part=…` past the first part, so Back, a
+ * refresh and a link from the floor open it.
+ */
+export function recordHref(memberId: string, part: RecordPart = 'visits'): string {
+  const member = `/members?member=${encodeURIComponent(memberId)}`;
+  return part === 'visits' ? member : `${member}&part=${part}`;
+}

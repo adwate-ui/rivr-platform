@@ -124,6 +124,28 @@ reset role;
 select is((select g.name from public.waitlist_entry e join public.game_table g on g.id = e.table_id join ids on ids.id = e.id where ids.name = 'vihaan'),
   'Table 5', 'Vihaan, found by his membership number, goes on Table 5''s list');
 
+-- Where an old waiting place moved (decision 0434): the busiest active table of its stake by players seated now, then the
+-- first in floor order; nowhere for a stake with no table. The floor (103) seats Kabir (202), Ishaan (211), Mihir (213) and Vihaan (212).
+create function pg_temp.moved_to() returns text language sql as $$
+  select g.name from public.game_table g where g.id = private.list_table_for('00000000-0000-4000-8000-000000000001',
+    (select table_type_id from public.game_table where id = pg_temp.table_id('Table 3')), null, pg_temp.table_id('Table 5'));
+$$;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select lives_ok($$ select public.seat_member(pg_temp.table_id('Table 5'), 1, '9000000202') $$, 'Kabir sits at Table 5');
+reset role;
+select is(pg_temp.moved_to(), 'Table 5', 'one player seated makes Table 5 the busiest table of 100/200');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select lives_ok($$ select public.seat_member(pg_temp.table_id('Table 3'), 1, '9000000211') $$, 'Ishaan sits at Table 3');
+select lives_ok($$ select public.seat_member(pg_temp.table_id('Table 3'), 2, '9000000213') $$, 'and Mihir beside him');
+reset role;
+select is(pg_temp.moved_to(), 'Table 3', 'two seated at Table 3 beat one at Table 5, whatever the place asked for');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select lives_ok($$ select public.seat_member(pg_temp.table_id('Table 5'), 2, '9000000212') $$, 'Vihaan sits at Table 5');
+reset role;
+select is(pg_temp.moved_to(), 'Table 3', 'two each: the first in floor order, Table 3 before Table 5');
+select is(private.list_table_for('00000000-0000-4000-8000-000000000001', gen_random_uuid(), null, null), null,
+  'a stake with no table has no list to move to');
+
 -- The old join for a stake is gone.
 select is(to_regprocedure('public.join_waitlist(uuid, uuid)'), null, 'there is no join for a stake');
 

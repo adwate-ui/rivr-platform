@@ -218,6 +218,8 @@ export const queryKeys = {
   /** The console's promotions list, a promotion's versions and a member's grants (console v3 phase 7). */
   promotionsOverview: (userId: string, venueId: string) => ['user', userId, 'promotions-overview', venueId] as const,
   promotionVersions: (userId: string, promotionId: string) => ['user', userId, 'promotion-versions', promotionId] as const,
+  /** Last week replayed afresh on a waiting version, for its approver (decision 0465). */
+  promotionReplay: (userId: string, versionId: string) => ['user', userId, 'promotion-replay', versionId] as const,
   memberPromotionGrants: (userId: string, memberId: string) => ['user', userId, 'member-promotion-grants', memberId] as const,
   /** A venue's SOP library (#51), and who has acknowledged each version, for SOP managers. */
   sops: (userId: string, venueId: string) => ['user', userId, 'sops', venueId] as const,

@@ -40,7 +40,7 @@ describe('adding a member to a table’s list (console v3)', () => {
   it('stops an empty number at the field, before any call', async () => {
     const { sent, add } = renderForm(() => Response.json('e1'));
     fireEvent.click(add);
-    expect(await screen.findByText('Not a member number or mobile.')).toBeDefined();
+    expect(await screen.findByText('Enter a mobile or member number.')).toBeDefined();
     expect(sent).toEqual([]);
   });
 

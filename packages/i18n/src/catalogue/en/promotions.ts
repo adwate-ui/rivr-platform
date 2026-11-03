@@ -5,7 +5,6 @@
  */
 export const promotions = {
   title: 'Promotions',
-  description: 'A new or changed promotion goes live only after approval.',
   notAllowed: 'Not in your role. Ask an admin.',
   newPromotion: 'New promotion',
   allPromotions: 'All promotions',
@@ -46,7 +45,6 @@ export const promotions = {
   builder: {
     newTitle: 'New promotion',
     editTitle: 'Edit: {name}',
-    description: 'The line on the right is what the approver reads.',
     /** Editing a running promotion: `{current}` runs on while `{next}`, its new version, waits. */
     editsLive: 'Changes make version {next}. Version {current} runs until it is approved.',
     /** A draft a super admin sent back: who and why. */
@@ -166,7 +164,9 @@ export const promotions = {
     timesGiven: 'times given',
     measures: { points: 'extra points', chips: 'bonus chips', spins: 'spins', perks: 'perks' },
     budgetReached: 'The budget would have run out.',
-    notStored: 'No simulation stored.',
+    /** The approver's view replays last week afresh (decision 0465). */
+    replaying: 'Replaying last week.',
+    failed: 'Not loaded. Try again.',
   },
   /** The approver's view of a waiting version against the running one (four eyes, decision 0437). */
   review: {

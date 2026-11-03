@@ -91,7 +91,7 @@ export function PromotionBuilder({ venueId, names, actor, start, onDone }: Promo
   const section: SectionProps = { form, errors: builder.errors, onChange: builder.change, isReadOnly: false };
   const title = form.name.trim() === '' ? t(`console.promotions.builder.rewards.${form.kind}.label`) : form.name.trim();
   return (
-    <BuilderFrame title={start.title} description={t('console.promotions.builder.description')} onBack={onDone}>
+    <BuilderFrame title={start.title} onBack={onDone}>
       <Grid columns={2} gap={6} stackBelow="medium">
         <Stack gap={4}>
           {start.notice === null ? null : <Text variant="secondary">{start.notice}</Text>}

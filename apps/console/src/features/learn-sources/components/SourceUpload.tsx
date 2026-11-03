@@ -2,7 +2,7 @@ import { hashSource } from '@rivr/drills';
 import { checkEncoding, type EncodingCheck } from '@rivr/drills/gates';
 import { useAddLearnSource } from '@rivr/db/learnSources';
 import { formatDate, t } from '@rivr/i18n';
-import { Button, CameraButton, ErrorMessage, Heading, Input, Stack, StatusMessage, Text } from '@rivr/ui';
+import { Button, CameraButton, ErrorMessage, Heading, Inline, Input, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState } from 'react';
 
 const SOURCE_KEY = /^[a-z0-9_-]{1,60}$/;
@@ -84,9 +84,11 @@ function LicenceForm({ venueId, checked, source, onAdded }: LicenceFormProps) {
     <>
       <Input type="date" label={t('console.learnSources.licenceEndsLabel')} value={endsOn} onChange={(event) => setEndsOn(event.target.value)} />
       <Input label={t('console.learnSources.licenceTerms')} value={terms} maxLength={2000} autoComplete="off" onChange={(event) => setTerms(event.target.value)} />
-      <Button variant="primary" isDisabled={endsOn === '' || terms.trim().length < 3} isLoading={add.isPending} onClick={upload}>
-        {t('console.learnSources.upload')}
-      </Button>
+      <Inline>
+        <Button variant="primary" size="compact" isDisabled={endsOn === '' || terms.trim().length < 3} isLoading={add.isPending} onClick={upload}>
+          {t('console.learnSources.upload')}
+        </Button>
+      </Inline>
       {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}
     </>
   );
@@ -103,11 +105,12 @@ export function SourceUpload({ venueId }: { venueId: string }) {
   return (
     <Stack gap={4}>
       <Heading level={2} variant="section">{t('console.learnSources.addTitle')}</Heading>
-      <Text variant="small" tone="muted">{t('console.learnSources.hint')}</Text>
-      <CameraButton camera="none" accept="application/json,.json" variant="secondary" isLoading={encoding.isChecking}
-        onPhoto={(file) => { setAdded(null); encoding.read(file); }}>
-        {t('console.learnSources.choose')}
-      </CameraButton>
+      <Inline>
+        <CameraButton camera="none" accept="application/json,.json" variant="subtle" isLoading={encoding.isChecking}
+          onPhoto={(file) => { setAdded(null); encoding.read(file); }}>
+          {t('console.learnSources.choose')}
+        </CameraButton>
+      </Inline>
       <StatusMessage>{encoding.isChecking ? t('console.learnSources.checking') : null}</StatusMessage>
       {encoding.isUnreadable ? <ErrorMessage>{t('console.learnSources.unreadable')}</ErrorMessage> : null}
       {encoding.checked === null ? null : <Verdict checked={encoding.checked} />}

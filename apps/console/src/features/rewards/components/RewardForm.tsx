@@ -34,7 +34,7 @@ function Choices({ form }: { form: RewardFormApi }) {
   return (
     <>
       <Controller control={form.control} name="kind" render={({ field }) => (
-        <ChoiceChips label={t('console.rewards.kind')} mode="one" selected={[field.value]}
+        <ChoiceChips label={t('console.rewards.kind')} mode="one" look="subtle" selected={[field.value]}
           options={REWARD_KINDS.map((kind) => ({ value: kind, label: t(`console.rewards.kinds.${kind}`) }))}
           onChange={(chosen) => { if (chosen[0] !== undefined) field.onChange(chosen[0]); }} />
       )} />
@@ -69,8 +69,8 @@ function Fields({ form }: { form: RewardFormApi }) {
 /**
  * Adds a reward to the catalogue, or changes the one chosen (`item`): its kind, name, where to collect it,
  * its price (nights for a hotel night, else points) and how many are left. `onOutcome` runs with the words to say once it
- * is saved, which the screen keeps, as a change saved closes this form (F2-23), and with null when a save is refused, so an
- * earlier save's words go; `onCancel` when the change is cancelled.
+ * is saved, which the screen keeps, as a save closes this form (F2-23), and with null when a save is refused, so an
+ * earlier save's words go; `onCancel` when it is closed unsaved.
  */
 export function RewardForm({ venueId, item, onOutcome, onCancel }: {
   venueId: string; item: RewardItem | null; onOutcome: (saved: string | null) => void; onCancel: () => void;
@@ -82,19 +82,18 @@ export function RewardForm({ venueId, item, onOutcome, onCancel }: {
   const submit = form.handleSubmit(async (values) => {
     const saved = await save.mutateAsync(orderOf(values, item));
     setFailure(saved.ok ? null : t(`console.rewards.failures.${saved.error}`));
-    if (saved.ok && item === null) form.reset(EMPTY);
     onOutcome(saved.ok ? t('console.rewards.saved', { name: values.name }) : null);
   });
   return (
     <Stack gap={4}>
-      <Heading level={2} variant="section">{item === null ? t('console.rewards.newReward') : t('console.rewards.editName', { name: item.name })}</Heading>
+      <Heading level={2} variant="card">{item === null ? t('console.rewards.newReward') : t('console.rewards.editName', { name: item.name })}</Heading>
       <Choices form={form} />
       {/* A reward is saved before it has a photo: the photo goes on the reward, by its id. */}
       {item === null ? null : <RewardPhotoField venueId={venueId} item={item} />}
       <Fields form={form} />
       <Inline gap={4} align="center">
-        <Button variant="primary" isLoading={save.isPending} onClick={() => void submit()}>{t('console.rewards.save')}</Button>
-        {item === null ? null : <Button variant="text" onClick={onCancel}>{t('console.rewards.cancel')}</Button>}
+        <Button variant="primary" size="compact" isLoading={save.isPending} onClick={() => void submit()}>{t('console.rewards.save')}</Button>
+        <Button variant="text" size="compact" onClick={onCancel}>{t('console.rewards.cancel')}</Button>
       </Inline>
       {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}
     </Stack>

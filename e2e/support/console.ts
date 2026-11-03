@@ -5,6 +5,11 @@
 import { expect, type Page } from '@playwright/test';
 import { appUrl } from './apps.ts';
 
+/** Opens a console screen by its v3 address (decision 0443), for a staff member signed in by `signInToConsole`. */
+export async function openConsole(page: Page, path: string) {
+  await page.goto(`${appUrl('console')}${path}`);
+}
+
 /** Opens a screen from the rail, unfolding Admin first when the screen sits in it, and waits until it is the one open. */
 export async function openFromRail(page: Page, screen: string) {
   const rail = page.getByRole('navigation', { name: 'Sections' });

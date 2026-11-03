@@ -34,6 +34,14 @@ export function BuilderCard({ label, isChanged = false, children }: { label: str
   );
 }
 
+/**
+ * The choices a section offers: every one to change, and only those chosen to read in the approver's view, where a
+ * dimmed row of every choice would hide which is chosen.
+ */
+export function offered<Option extends { readonly value: string }>(section: SectionProps, options: readonly Option[], chosen: readonly string[]): Option[] {
+  return section.isReadOnly ? options.filter((option) => chosen.includes(option.value)) : [...options];
+}
+
 /** A field typed as text in the builder. */
 export type TextField = Exclude<FormField, 'who' | 'days'>;
 

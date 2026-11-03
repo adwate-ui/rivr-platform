@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { cancelRedemptionSchema } from '@rivr/contracts';
 import { useCancelRedemption, useHandOverRedemption, useVenueRedemptions, type Redemption } from '@rivr/db';
 import { formatDayTime, t } from '@rivr/i18n';
-import { Button, DataTable, ErrorMessage, Heading, ReasonForm, Stack, type DataTableColumn } from '@rivr/ui';
+import { Box, Button, DataTable, ErrorMessage, Heading, Inline, ReasonForm, Stack, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -18,7 +18,7 @@ function HandOverButton({ venueId, redemption }: { venueId: string; redemption: 
   };
   return (
     <Stack gap={1}>
-      <Button variant="secondary" isLoading={handOver.isPending} onClick={() => void press()}
+      <Button variant="strong" size="small" isLoading={handOver.isPending} onClick={() => void press()}
         aria-label={t('console.rewards.handOverName', { reward: redemption.rewardName, name: redemption.fullName })}>
         {t('console.rewards.handOver')}
       </Button>
@@ -41,7 +41,7 @@ function CancelRedemption({ venueId, redemption }: { venueId: string; redemption
   const names = { reward: redemption.rewardName, name: redemption.fullName };
   if (!isOpen) {
     return (
-      <Button variant="text" onClick={() => setIsOpen(true)} aria-label={t('console.rewards.cancelRedemptionName', names)}>
+      <Button variant="text" size="small" onClick={() => setIsOpen(true)} aria-label={t('console.rewards.cancelRedemptionName', names)}>
         {t('console.rewards.cancelRedemption')}
       </Button>
     );
@@ -60,10 +60,10 @@ function CancelRedemption({ venueId, redemption }: { venueId: string; redemption
 /** A redemption waiting at the desk: hand it over, or cancel it. */
 function WaitingActions({ venueId, redemption }: { venueId: string; redemption: Redemption }) {
   return (
-    <Stack gap={2}>
+    <Inline gap={2} align="start" wrap>
       <HandOverButton venueId={venueId} redemption={redemption} />
       <CancelRedemption venueId={venueId} redemption={redemption} />
-    </Stack>
+    </Inline>
   );
 }
 
@@ -98,12 +98,14 @@ function Section({ venueId, isWaiting, rows, onRetry }: SectionProps) {
   const base = { label, columns: columns(venueId, isWaiting), rowKey: (row: Redemption) => row.id };
   const emptyText = t(isWaiting ? 'console.rewards.noneWaiting' : 'console.rewards.noneHandedOver');
   return (
-    <Stack gap={4}>
-      <Heading level={2} variant="section">{label}</Heading>
-      {rows === 'loading' ? <DataTable {...base} status="loading" /> : null}
-      {rows === 'error' ? <DataTable {...base} status="error" onRetry={onRetry} /> : null}
-      {typeof rows === 'object' ? <DataTable {...base} rows={rows} emptyText={emptyText} /> : null}
-    </Stack>
+    <Box surface="raised" radius="md" padding={5}>
+      <Stack gap={4}>
+        <Heading level={2} variant="card">{label}</Heading>
+        {rows === 'loading' ? <DataTable {...base} status="loading" /> : null}
+        {rows === 'error' ? <DataTable {...base} status="error" onRetry={onRetry} /> : null}
+        {typeof rows === 'object' ? <DataTable {...base} rows={rows} emptyText={emptyText} /> : null}
+      </Stack>
+    </Box>
   );
 }
 
@@ -114,7 +116,7 @@ export function RedemptionList({ venueId }: { venueId: string }) {
   const pick = (isWaiting: boolean) => (typeof state === 'object' ? state.filter((row) => (row.handedOverAt === null) === isWaiting) : state);
   const retry = () => void redemptions.refetch();
   return (
-    <Stack gap={8}>
+    <Stack gap={6}>
       <Section venueId={venueId} isWaiting rows={pick(true)} onRetry={retry} />
       <Section venueId={venueId} isWaiting={false} rows={pick(false)} onRetry={retry} />
     </Stack>

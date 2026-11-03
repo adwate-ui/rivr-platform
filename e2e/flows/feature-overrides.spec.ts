@@ -15,10 +15,10 @@ test.describe('Feature overrides', () => {
     const admin = await browser.newPage();
     await signInToConsole(admin, '9000000134');
     await admin.getByRole('link', { name: 'Members' }).click();
-    await admin.getByRole('searchbox', { name: 'Find a member' }).fill('Siddharth');
-    await admin.getByRole('button', { name: 'Open Siddharth Vaid' }).click();
+    await admin.getByRole('searchbox', { name: 'Name, member no. or mobile' }).fill('Siddharth');
+    await admin.getByRole('button', { name: 'Siddharth Vaid', exact: true }).click();
     // The record's parts are tabs (C-02).
-    await admin.getByRole('button', { name: 'Account', exact: true }).click();
+    await admin.getByRole('link', { name: 'Account', exact: true }).click();
     await expect(admin.getByRole('heading', { name: 'Feature overrides' })).toBeVisible();
     await admin.getByRole('radiogroup', { name: 'Feature' }).getByRole('radio', { name: 'Session history' }).click();
     await admin.getByRole('radiogroup', { name: 'Override' }).getByRole('radio', { name: 'Take away' }).click();

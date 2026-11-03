@@ -11,7 +11,6 @@ import { expect, test } from '@playwright/test';
 import { localBinary, localSupabaseEnv, worktreeRoot } from '@rivr/config/worktree';
 import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
-import { switchToPractice } from '../support/console.ts';
 
 const FOLDER = '00000000-0000-4000-8000-000000000002/00000000-0000-4000-8000-0000000d0758/';
 // A one-pixel PNG, as the KYC images flow uploads.
@@ -33,12 +32,16 @@ test.describe('Member erasure', () => {
     await request.post(`${url}/storage/v1/object/kyc/${FOLDER}selfie.png`, { headers: { ...server, 'content-type': 'image/png', 'x-upsert': 'true' }, data: PNG });
 
     await signInToConsole(page, '9000000757');
-    await switchToPractice(page);
+    // The practice venue switch is in the account menu (console v3); a stripe across the top says it is on.
+    await page.getByRole('button', { name: 'Nisha Bhatt', exact: true }).click();
+    await page.getByRole('switch', { name: 'Practice venue' }).click();
+    await expect(page.getByText('Practice venue: nothing here reaches the club or its members.')).toBeVisible();
+    await page.keyboard.press('Escape');
     await page.getByRole('link', { name: 'Members' }).click();
-    await page.getByRole('searchbox', { name: 'Find a member' }).fill('Neel');
-    await page.getByRole('button', { name: 'Open Neel Kapur' }).click();
+    await page.getByRole('searchbox', { name: 'Name, member no. or mobile' }).fill('Neel');
+    await page.getByRole('button', { name: 'Neel Kapur', exact: true }).click();
     // The record's parts are tabs (C-02).
-    await page.getByRole('radio', { name: 'Account', exact: true }).click();
+    await page.getByRole('link', { name: 'Account', exact: true }).click();
 
     await expect(page.getByRole('heading', { name: 'Erasure on request' })).toBeVisible();
     await expect(page.getByText('Forfeited to the club: 500 points and 0 bonus chips.')).toBeVisible();

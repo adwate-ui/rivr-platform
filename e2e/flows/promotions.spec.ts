@@ -23,11 +23,18 @@ function sql(query: string): string {
   return execFileSync('docker', ['exec', `supabase_db_${worktreeName()}`, 'psql', '-U', 'postgres', '-tAc', query], { encoding: 'utf8' }).trim();
 }
 
-/** A buy-in of 10,000 in cash at the Private Room, as the cage's trigger weighs one: the grants given. */
-function buyInAtThePrivateRoom(memberId: string, key: string): number {
-  return Number(sql(`select count(*) from private.evaluate_promotions('${CLUB}', 'buy_in', jsonb_build_object(
+/**
+ * A buy-in of 10,000 in cash at the Private Room, as the cage's trigger weighs one: what this promotion gave for it, its
+ * chips and version. Another live promotion may give for the same buy-in, such as the seed's Tuesday buy-in bonus on a
+ * Tuesday: bonus chips from different promotions stack (decision 0436).
+ */
+function buyInAtThePrivateRoom(memberId: string, key: string): string {
+  sql(`select private.evaluate_promotions('${CLUB}', 'buy_in', jsonb_build_object(
     'member_id', '${memberId}', 'key', 'buy_in:${key}', 'amount_paise', 1000000, 'method', 'cash',
-    'table_id', (select id from public.game_table where venue_id = '${CLUB}' and name = 'Private Room')))`));
+    'table_id', (select id from public.game_table where venue_id = '${CLUB}' and name = 'Private Room')))`);
+  return sql(`select string_agg(g.chips || ' ' || v.version, ', ') from public.promotion_grant g
+              join public.promotion_version v on v.id = g.promotion_version_id
+              where g.source_key = 'buy_in:${key}' and g.member_id = '${memberId}' and v.name = '${NAME}'`);
 }
 
 /** Builds the promotion from the Buy-in bonus template, simulates it on last week and submits it. */
@@ -85,9 +92,8 @@ test.describe('Promotions', () => {
     await signInToPlayer(member, '9000000280');
     await expect(member.getByRole('region', { name: 'Tonight' }).getByRole('listitem').filter({ hasText: NAME })).toBeVisible({ timeout: 15_000 });
 
-    expect(buyInAtThePrivateRoom(RHEA, `promotions-e2e-${NAME}`)).toBe(1);
-    expect(sql(`select g.chips || ' ' || v.version from public.promotion_grant g join public.promotion_version v on v.id = g.promotion_version_id
-                where g.member_id = '${RHEA}' and v.name = '${NAME}'`)).toBe('2000 1');
+    // One grant from this promotion, under its version 1: 20% of 10,000, at its cap of 2,000.
+    expect(buyInAtThePrivateRoom(RHEA, `promotions-e2e-${NAME}`)).toBe('2000 1');
 
     // Paused again, so no other flow meets it.
     await approver.getByRole('button', { name: `Pause ${NAME}` }).click();

@@ -34,7 +34,7 @@ function FileSummary({ chosen }: { chosen: Chosen }) {
     return (
       <Stack gap={2}>
         {problems.slice(0, PROBLEMS_SHOWN).map((problem) => <ErrorMessage key={JSON.stringify(problem)}>{problemText(problem)}</ErrorMessage>)}
-        {more > 0 ? <Text variant="small" tone="muted">{t('console.rewards.leagueCsv.more', { count: formatNumber(more) })}</Text> : null}
+        {more > 0 ? <Text variant="secondary" tone="muted">{t('console.rewards.leagueCsv.more', { count: formatNumber(more) })}</Text> : null}
       </Stack>
     );
   }
@@ -58,10 +58,9 @@ function GiveFile({ venueId, chosen, onGiven }: { venueId: string; chosen: Chose
   };
   return (
     <Stack gap={3}>
-      <Input label={t('console.rewards.leagueCsv.reason')} maxLength={200} value={reason} onChange={(event) => setReason(event.target.value)} />
+      <Input variant="subtle" label={t('console.rewards.leagueCsv.reason')} maxLength={200} value={reason} onChange={(event) => setReason(event.target.value)} />
       <Inline>
-        {/* Secondary: Points by hand's Give as earned is the screen's one gold button (ui.md). */}
-        <Button variant="secondary" isDisabled={reason.trim().length < 3} isLoading={give.isPending} onClick={() => void send()}>
+        <Button variant="subtle" size="compact" isDisabled={reason.trim().length < 3} isLoading={give.isPending} onClick={() => void send()}>
           {t('console.rewards.leagueCsv.give')}
         </Button>
       </Inline>
@@ -86,10 +85,10 @@ export function LeagueCsvImport({ venueId }: { venueId: string }) {
   };
   return (
     <Stack gap={4}>
-      <Heading level={2} variant="section">{t('console.rewards.leagueCsv.heading')}</Heading>
-      <Text variant="small" tone="muted">{t('console.rewards.leagueCsv.format')}</Text>
+      <Heading level={2} variant="card">{t('console.rewards.leagueCsv.heading')}</Heading>
+      <Text variant="secondary" tone="muted">{t('console.rewards.leagueCsv.format')}</Text>
       <Inline>
-        <CameraButton variant="secondary" camera="none" accept=".csv,text/csv" onPhoto={(file) => void choose(file)}>
+        <CameraButton variant="subtle" camera="none" accept=".csv,text/csv" onPhoto={(file) => void choose(file)}>
           {t(chosen === null ? 'console.rewards.leagueCsv.choose' : 'console.rewards.leagueCsv.chooseAnother')}
         </CameraButton>
       </Inline>

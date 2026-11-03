@@ -42,6 +42,11 @@ export interface FnbOrderTonight {
   readonly createdAt: string;
   /** Null while the bar has not been given the KOT: the agent prints it, or staff hand it over and mark it. */
   readonly kotSentBy: 'agent' | 'staff' | null;
+  /**
+   * The bar printer did not get the KOT (console v3): the agent's last attempt failed, or it closed it unprinted. From the
+   * outbox's bar_printer delivery, never a clock; false once the bar has it or the order is void.
+   */
+  readonly isKotPrintFailed: boolean;
   /** When service accepted it and delivered it (#640); null until then. */
   readonly acceptedAt: string | null;
   readonly deliveredAt: string | null;
@@ -206,6 +211,7 @@ export function useFnbOrdersTonight(venueId: string) {
         orderId: row.order_id, kotNumber: row.kot_number, tableName: row.table_name, seat: row.seat, memberName: row.member_name,
         memberNumber: Number(row.member_number), lines: linesOf(row.lines), isComp: row.is_comp, source: sourceOf(row.source),
         createdAt: row.created_at, kotSentBy: row.kot_sent_by === 'agent' || row.kot_sent_by === 'staff' ? row.kot_sent_by : null,
+        isKotPrintFailed: row.kot_print_failed,
         acceptedAt: row.accepted_at, deliveredAt: row.delivered_at, ageSeconds: row.age_seconds, onWayAt: row.on_way_at,
         cancelledAt: row.cancelled_at, cancelReason: row.cancel_reason,
       }));

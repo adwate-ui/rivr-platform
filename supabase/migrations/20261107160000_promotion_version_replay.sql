@@ -23,7 +23,8 @@ as $$
   from public.member m where m.id = p_member_id;
 $$;
 
--- One replayed event with its member: the member, visit and key as numbers within the replay.
+-- One replayed event with its member: the member, visit and key as numbers within the replay, and its time to the minute,
+-- so an event cannot be matched to the cage's or the floor's records.
 create function private.replay_entry(p_kind text, p_n bigint, p_at timestamptz, p_member_id uuid, p_member_n bigint, p_more jsonb)
 returns jsonb
 language sql
@@ -32,7 +33,7 @@ security definer
 set search_path = ''
 as $$
   select jsonb_build_object(
-    'event', jsonb_build_object('kind', p_kind, 'key', p_kind || ':' || p_n, 'at', p_at, 'memberId', 'm' || p_member_n, 'visitId', null,
+    'event', jsonb_build_object('kind', p_kind, 'key', p_kind || ':' || p_n, 'at', date_trunc('minute', p_at), 'memberId', 'm' || p_member_n, 'visitId', null,
                                 'tableId', null, 'stake', null) || p_more,
     'member', private.replay_member_facts(p_member_id, p_at));
 $$;

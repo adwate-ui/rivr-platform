@@ -8,9 +8,8 @@
  * supabase/tests/204_tournament_interest.test.sql, 292_tournaments_without_money.test.sql and 296_tournament_registration_undo.test.sql.
  */
 import { expect, test } from '@playwright/test';
-import { isRemoteTarget } from '../support/apps.ts';
+import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
-import { openTab } from '../support/console.ts';
 
 /** The IST day two days from now, as a date field takes it: `2026-11-05`. */
 const dayAfterTomorrow = () => new Date(Date.now() + 2 * 86_400_000).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
@@ -23,7 +22,7 @@ test.describe('Tournament interest', () => {
 
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000116');
-    await openTab(floor, 'Waitlist', 'Tournament interest');
+    await floor.goto(`${appUrl('console')}/waitlist?tab=interest`);
     await expect(floor.getByRole('heading', { name: 'New tournament' })).toBeVisible();
     await expect(floor.getByLabel(/buy-in|prize|guarantee/i)).toHaveCount(0);
     await floor.getByRole('textbox', { name: 'Name' }).fill(name);

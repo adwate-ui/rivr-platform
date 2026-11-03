@@ -66,7 +66,10 @@ begin
           jsonb_strip_nulls(jsonb_build_object('days', coalesce(p_conditions -> 'days', '[1, 2, 3, 4, 5, 6, 7]'), 'from', coalesce(p_conditions ->> 'from', '06:00'),
                              'to', coalesce(p_conditions ->> 'until', '06:00'), 'startsOn', private.club_day_of(p_promotion.starts_at)::text,
                              'timezone', 'Asia/Kolkata',
-                             'endsOn', greatest(private.club_day_of(p_promotion.ends_at - interval '1 second'), private.club_day_of(p_promotion.starts_at))::text)),
+                             -- No end date, no last day: greatest() skips a null, which made the start day the last.
+                             'endsOn', case when p_promotion.ends_at is not null
+                                            then greatest(private.club_day_of(p_promotion.ends_at - interval '1 second'),
+                                                          private.club_day_of(p_promotion.starts_at))::text end)),
           jsonb_strip_nulls(jsonb_build_object(
             'perMember', case when p_promotion.per_player_limit = 1 and p_promotion.per_player_period = 'day' then 'per_day'
                               when p_promotion.per_player_limit = 1 and p_promotion.per_player_period = 'promotion' then 'once'

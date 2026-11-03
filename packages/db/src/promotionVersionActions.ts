@@ -1,9 +1,9 @@
-import { promotionVersionReplaySchema, type PromotionSimulationResult, type PromotionTerms } from '@rivr/contracts/promotionModel';
+import type { PromotionTerms } from '@rivr/contracts/promotionModel';
 import { err, ok, type Result } from '@rivr/contracts/result';
-import { clubDay } from '@rivr/domain/clubDay';
-import { cardWords, simulate, toPromotionEvent, type PromotionNames, type Terms } from '@rivr/domain/promotions';
+import { cardWords, type PromotionNames, type Terms } from '@rivr/domain/promotions';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { RivrClient } from './client.ts';
+import { simulationOf, type SimulationRun } from './promotionReplay.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
@@ -34,22 +34,7 @@ export interface SavedDraft {
   readonly promotionId: string;
 }
 
-/** Last week replayed on a draft, as stored on the version, and the club days replayed. */
-export interface SimulationRun extends PromotionSimulationResult {
-  readonly from: Date;
-  readonly to: Date;
-}
-
 const termsOnly = (terms: Terms) => ({ reward: terms.reward, eligibility: terms.eligibility, schedule: terms.schedule, limits: terms.limits });
-
-/**
- * The terms as if the version had run on the days replayed (decision 0465): from the first of them, with no last day. A
- * promotion that starts today or later still shows what last week would have given; its days and times still count.
- */
-function asIfRunning(terms: Terms, from: string): Terms {
-  const { endsOn: _endsOn, ...schedule } = terms.schedule;
-  return { ...terms, schedule: { ...schedule, startsOn: clubDay(new Date(from)) } };
-}
 
 /** Settles a version call: reloads the list and the versions, then says how the call went. */
 function useSettle(venueId: string) {
@@ -73,12 +58,11 @@ function useSimulate(venueId: string) {
     mutationFn: async ({ versionId, terms }: { versionId: string; terms: Terms }): Promise<Result<SimulationRun, PromotionVersionFailure>> => {
       const { data, error } = await client.rpc('promotion_version_replay', { p_version_id: versionId });
       if (error) return err(FAILURE_BY_CODE[error.code] ?? 'unavailable');
-      const replay = promotionVersionReplaySchema.safeParse(data);
-      if (!replay.success) return err('unavailable');
-      const events = replay.data.events.map(({ event, member }) => ({ event: toPromotionEvent(event), member }));
-      const { grants: _grants, ...result } = simulate(asIfRunning(terms, replay.data.from), events);
+      const run = simulationOf(data, terms);
+      if (run === null) return err('unavailable');
+      const { from: _from, to: _to, ...result } = run;
       const stored = await client.rpc('record_promotion_simulation', { p_version_id: versionId, p_simulation: result, p_terms: termsOnly(terms) });
-      return settle({ ...result, from: new Date(replay.data.from), to: new Date(replay.data.to) }, stored.error);
+      return settle(run, stored.error);
     },
   });
 }

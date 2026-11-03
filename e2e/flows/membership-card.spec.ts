@@ -8,16 +8,15 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
-import { openTab } from '../support/console.ts';
 
 /** What the QR on the member's card holds now. */
 async function doorCode(page: Page): Promise<string> {
   return (await page.getByRole('img', { name: 'Your door code' }).getAttribute('data-value')) ?? '';
 }
 
-/** One of the door's lists, found by its heading. */
+/** One of the door's lists, a region named by its heading (console v3). */
 function doorList(page: Page, name: string): Locator {
-  return page.locator('div').filter({ has: page.getByRole('heading', { name, level: 2 }) }).last();
+  return page.getByRole('region', { name });
 }
 
 test.describe('Membership card', () => {
@@ -37,8 +36,9 @@ test.describe('Membership card', () => {
 
     const desk = await (await browser.newContext()).newPage();
     await signInToConsole(desk, '9000000190');
-    await openTab(desk, 'Door', 'Check-in');
-    const card = desk.getByRole('textbox', { name: 'Membership card' });
+    await desk.getByRole('link', { name: 'Door', exact: true }).click();
+    // The scanner types the card's code into the door's one field (console v3).
+    const card = desk.getByRole('textbox', { name: 'Card, mobile, number or name' });
     // Past the few seconds' grace a code has once its QR has changed.
     await expect(desk.getByRole('heading', { name: 'Check-in', level: 2 })).toBeVisible();
     await desk.waitForTimeout(6_000);
@@ -48,7 +48,7 @@ test.describe('Membership card', () => {
     await expect(doorList(desk, 'In the room').getByText('Kavya Rao')).toHaveCount(0);
 
     await card.fill(await doorCode(member));
-    await desk.getByRole('button', { name: 'Check in by card' }).click();
+    await desk.getByRole('button', { name: 'Check in', exact: true }).click();
     await expect(doorList(desk, 'In the room').getByText('Kavya Rao')).toBeVisible();
   });
 });

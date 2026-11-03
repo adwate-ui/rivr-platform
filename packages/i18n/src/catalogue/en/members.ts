@@ -4,24 +4,41 @@ export const members = {
   notAllowed: 'Not in your role. Ask an admin.',
   /** Lists every member of a tier (additions flow 20), or any tier, as the search finds them. */
   filterTier: 'Tier',
-  anyTier: 'Any',
+  anyTier: 'All tiers',
   noneInTier: 'No members in {tier}.',
   /** How an export of the results records the search (#102). */
   searchedFor: 'Search: {query}',
-  search: 'Find a member',
-  searchHint: 'A member number, two or more letters of a name, or four or more digits of a mobile.',
+  /** The search field's label, shown inside it (console v3): two or more letters of a name, or four or more digits. */
+  search: 'Name, member no. or mobile',
   searchPrompt: 'Search by member number, name or mobile.',
   /** `{query}` is what was typed. */
   noMatch: 'No member matches {query}.',
   number: 'No.',
-  name: 'Member',
-  mobile: 'Mobile',
+  name: 'Name',
   tier: 'Tier',
   visits: 'Visits',
   lastVisit: 'Last visit',
   never: 'Never',
-  /** The button on a found member's row. */
-  open: 'Open {name}',
+  /** Where a member is tonight (console v3): their seat, waiting for one, gone home, or not at the club (`notHere`). */
+  tonight: 'Tonight',
+  notHere: '–',
+  waiting: 'Waiting',
+  left: 'Left',
+  /** `{table}` is the table's name and `{seat}` its number: `Table 2 · 3` in the list, `Table 2, seat 3` in full. */
+  seatShort: '{table} · {seat}',
+  seatFull: '{table}, seat {seat}',
+  /** Opens the member's seat on the live floor. */
+  show: 'Show',
+  showOnFloor: 'Show {name} on the floor',
+  back: 'Back to Members',
+  /** What promotions gave the member (console v3), newest first: `3 Nov 2026 · Triple points: 300 points`. */
+  grantsTitle: 'Promotions given',
+  noGrants: 'None yet.',
+  grantLine: '{date} · {promotion}: {given}',
+  grantPoints: '{count} points',
+  grantChips: '{count} bonus chips',
+  grantSpins: '{count} spins',
+  grantSpin: '1 spin',
   /** The record. `{number}` is the member number. */
   memberNumber: 'Member {number}',
   /** `{date}`: 30 Nov 2026, the tier change's last day. */
@@ -35,10 +52,6 @@ export const members = {
   knownAs: 'Known as {name}',
   /** The record's parts, one shown at a time (C-02); visits takes visitsTitle. `{name}` is the member's. */
   parts: { label: 'Record of {name}', membership: 'Tier and break', account: 'Account' },
-  /** `{count}` visits, the last on `{date}`. */
-  visitsLine: '{count} visits, the last on {date}',
-  visitsOne: '1 visit, on {date}',
-  noVisits: 'No visits yet.',
   earlyDeparturesTitle: 'Early departures',
   noEarlyDepartures: 'No early departures.',
   /** One early departure: `{date}`, `{time}` of call time owed, why, and the admin who let them go. */

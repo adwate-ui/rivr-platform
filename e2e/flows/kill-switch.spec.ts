@@ -10,8 +10,8 @@
 import { expect, test, type Browser, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { openConsole } from '../support/console.ts';
 import { dealerSignsIn, revoke, tabletAtTable3 } from '../support/tablet.ts';
-import { openFromRail } from '../support/console.ts';
 
 const MEMBER_BANNER = 'The club is paused. Ask a member of staff.';
 const STAFF_BANNER = 'Venue frozen. Changes are refused until it is released.';
@@ -19,12 +19,12 @@ const VISITOR_BANNER = 'The club is paused. Check back soon.';
 
 /** Asks to release the freeze on one super admin's console, and releases it on the other's. */
 async function release(first: Page, second: Page) {
-  await openFromRail(first, 'Kill switch');
+  await openConsole(first, '/kill-switch');
   await first.getByRole('button', { name: 'Release Venue freeze' }).click();
   await first.getByRole('textbox', { name: 'Why it is released' }).fill('Dispute settled');
   await first.getByRole('button', { name: 'Release', exact: true }).click();
   await expect(first.getByText('Asked. A second super admin releases the venue freeze.')).toBeVisible();
-  await openFromRail(second, 'Kill switch');
+  await openConsole(second, '/kill-switch');
   await expect(second.getByText('Neha Kulkarni asked to release: Dispute settled. A second super admin releases it.')).toBeVisible();
   await second.getByRole('button', { name: 'Release Venue freeze' }).click();
   await second.getByRole('button', { name: 'Release', exact: true }).click();
@@ -33,7 +33,7 @@ async function release(first: Page, second: Page) {
 
 /** After a failure: release the freeze if it is still engaged, so the flows after this one find the club open. */
 async function releaseIfFrozen(browser: Browser, first: Page) {
-  await openFromRail(first, 'Kill switch');
+  await openConsole(first, '/kill-switch');
   if (await first.getByRole('button', { name: 'Release Venue freeze' }).count() === 0) return;
   const second = await browser.newPage();
   await signInToConsole(second, '9000000136');
@@ -55,7 +55,7 @@ test.describe('Kill switch', () => {
     await dealerSignsIn(tablet);
     let frozen = false;
     try {
-      await openFromRail(first, 'Kill switch');
+      await openConsole(first, '/kill-switch');
       await expect(first.getByText('Nothing is engaged.')).toBeVisible();
       await first.getByRole('radiogroup', { name: 'Level' }).getByRole('radio', { name: 'Venue freeze' }).click();
       await first.getByRole('textbox', { name: 'Why' }).fill('Dispute at Table 3');

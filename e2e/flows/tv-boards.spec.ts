@@ -17,17 +17,23 @@
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
-import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 import { openDevices } from '../support/console.ts';
+import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 const PLAYER = 'Vihaan Kapoor';
 const HIDDEN = 'Kunal Mehra';
 const LEAVING = 'Nakul Dhillon';
 
-/** The console list for one table (decision 0433), found by its heading. */
+/** The console's card for one table's list (decision 0433), found by its heading (console v3). */
 function gameList(page: Page, name: string): Locator {
-  return page.locator('div').filter({ has: page.getByRole('heading', { name, exact: true }) })
-    .filter({ has: page.getByRole('button', { name: 'Add to the list' }) }).last();
+  return page.locator('section').filter({ has: page.getByRole('heading', { level: 2, name, exact: true }) });
+}
+
+/** Takes a member's place off the lists from its ⋯ menu, asked first (decision 0435). */
+async function removePlace(floor: Page, name: string) {
+  await floor.getByRole('button', { name: `More for ${name}`, exact: true }).first().click();
+  await floor.getByRole('menuitem', { name: 'Remove from list' }).click();
+  await floor.getByRole('button', { name: `Yes, remove ${name}` }).click();
 }
 
 /** Pairs a TV on the console's TVs screen by the code it shows; the TV starts on the waitlist board. */
@@ -52,19 +58,16 @@ async function nameOnTvs(member: Page, isOn: boolean) {
 
 /** Takes a member off the console's lists, where a run stopped early may have left them. */
 async function removeLeftover(floor: Page, name: string) {
-  const remove = floor.getByRole('button', { name: `Remove ${name}` });
-  if (await remove.count() > 0) {
-    await remove.first().click();
-    await floor.getByRole('button', { name: `Yes, remove ${name}` }).click();
-  }
-  await expect(remove).toHaveCount(0);
+  const menu = floor.getByRole('button', { name: `More for ${name}`, exact: true });
+  if (await menu.count() > 0) await removePlace(floor, name);
+  await expect(menu).toHaveCount(0);
 }
 
 /** Adds a member to the console's Table 1 list (50/100) by number. */
 async function addToFifties(floor: Page, number: string, name: string) {
-  await gameList(floor, 'Table 1').getByRole('textbox', { name: 'Mobile number' }).fill(number);
-  await gameList(floor, 'Table 1').getByRole('button', { name: 'Add to the list' }).click();
-  await expect(floor.getByRole('button', { name: `Remove ${name}` })).toBeVisible();
+  await gameList(floor, 'Table 1').getByRole('textbox', { name: 'Add: mobile or member no.' }).fill(number);
+  await gameList(floor, 'Table 1').getByRole('button', { name: 'Add', exact: true }).click();
+  await expect(floor.getByRole('button', { name: `More for ${name}`, exact: true })).toBeVisible();
 }
 
 /** Seats Nakul at the Private Room's seat 8, unless a run stopped early left him seated. */
@@ -166,11 +169,9 @@ test.describe('TV boards', () => {
     await expect(floor.getByText('Released early.')).toBeVisible();
     await expect(floor.getByRole('button', { name: `${LEAVING} leaves` })).toHaveCount(0);
 
-    await floor.getByRole('link', { name: 'Waitlist' }).click();
-    await floor.getByRole('button', { name: `Remove ${PLAYER}` }).click();
-    await floor.getByRole('button', { name: `Yes, remove ${PLAYER}` }).click();
-    await floor.getByRole('button', { name: `Remove ${HIDDEN}` }).click();
-    await floor.getByRole('button', { name: `Yes, remove ${HIDDEN}` }).click();
+    await floor.goto(`${appUrl('console')}/waitlist`);
+    await removePlace(floor, PLAYER);
+    await removePlace(floor, HIDDEN);
     await openDevices(floor, 'TVs');
     await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');

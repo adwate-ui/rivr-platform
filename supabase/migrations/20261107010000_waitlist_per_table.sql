@@ -5,15 +5,26 @@
 
 -- Every waiting place moves to the busiest active table of its stake: the most seated now, then the first in floor order,
 -- then the table it was called to or asked for. A stake with no active table keeps its places on its first table in floor
--- order; a place whose stake has no table at all has no list left, and leaves it (decision 0433).
-update public.waitlist_entry e
-set table_id = (
+-- order; a place whose stake has no table at all has no list left, and leaves it (decisions 0433, 0434). A function of its
+-- own, so pgTAP proves the choice (292).
+create function private.list_table_for(p_venue_id uuid, p_table_type_id uuid, p_call_table_id uuid, p_asked_table_id uuid)
+returns uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
   select g.id from public.game_table g
-  where g.table_type_id = e.table_type_id and g.venue_id = e.venue_id
+  where g.table_type_id = p_table_type_id and g.venue_id = p_venue_id
   order by g.active desc, g.deleted_at is null desc,
            (select count(*) from public.seat_session s where s.table_id = g.id and s.ended_at is null) desc,
-           g.position, g.id = e.call_table_id desc, g.id = e.table_id desc, g.id
-  limit 1)
+           g.position, g.id = p_call_table_id desc nulls last, g.id = p_asked_table_id desc nulls last, g.id
+  limit 1;
+$$;
+revoke execute on function private.list_table_for(uuid, uuid, uuid, uuid) from public, anon, authenticated;
+
+update public.waitlist_entry e
+set table_id = private.list_table_for(e.venue_id, e.table_type_id, e.call_table_id, e.table_id)
 where e.status = 'waiting';
 update public.waitlist_entry e set status = 'left', left_at = now(), left_reason = 'left'
 where e.status = 'waiting' and e.table_id is null;

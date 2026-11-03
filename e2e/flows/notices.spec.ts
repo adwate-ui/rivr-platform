@@ -4,13 +4,12 @@
  */
 import { expect, test } from '@playwright/test';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
-import { openFromRail } from '../support/console.ts';
+import { openConsole } from '../support/console.ts';
 
 test('Notices: a notice put up in Settings shows on members\' Home until it is ended', async ({ browser, page }) => {
   const words = `Valet parking from 8 pm tonight (${String(Date.now())}).`;
   await signInToConsole(page, '9000000126');
-  await openFromRail(page, 'Settings');
-  await page.getByRole('link', { name: 'Notices', exact: true }).click();
+  await openConsole(page, '/settings?tab=settings&part=notices');
   await page.getByRole('textbox', { name: 'Notice' }).fill(words);
   await page.getByRole('button', { name: 'Put up' }).click();
   await expect(page.getByRole('status').getByText('Notice put up.')).toBeVisible();

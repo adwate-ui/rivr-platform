@@ -8,18 +8,21 @@
 import { expect, test } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
-import { switchToPractice } from '../support/console.ts';
 
 test.describe('Phone change', () => {
   test('a super admin changes a practice member\'s number, with a reason', async ({ page }) => {
     test.skip(isRemoteTarget(), 'changes a member\'s number, so the local stack only');
     await signInToConsole(page, '9000000780');
-    await switchToPractice(page);
+    // The practice venue switch is in the account menu (console v3); a stripe across the top says it is on.
+    await page.getByRole('button', { name: 'Kiran Joshi', exact: true }).click();
+    await page.getByRole('switch', { name: 'Practice venue' }).click();
+    await expect(page.getByText('Practice venue: nothing here reaches the club or its members.')).toBeVisible();
+    await page.keyboard.press('Escape');
     await page.getByRole('link', { name: 'Members' }).click();
-    await page.getByRole('searchbox', { name: 'Find a member' }).fill('Omar');
-    await page.getByRole('button', { name: 'Open Omar Sheikh' }).click();
+    await page.getByRole('searchbox', { name: 'Name, member no. or mobile' }).fill('Omar');
+    await page.getByRole('button', { name: 'Omar Sheikh', exact: true }).click();
     // The record's parts are tabs (C-02).
-    await page.getByRole('radio', { name: 'Account', exact: true }).click();
+    await page.getByRole('link', { name: 'Account', exact: true }).click();
 
     await expect(page.getByRole('heading', { name: 'Phone number' })).toBeVisible();
     const number = page.getByRole('textbox', { name: 'New mobile number' });

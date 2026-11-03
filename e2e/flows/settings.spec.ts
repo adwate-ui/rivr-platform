@@ -11,7 +11,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
-import { openFromRail } from '../support/console.ts';
+import { openConsole } from '../support/console.ts';
 
 const REFUSED = 'Not in your role. Ask an admin.';
 
@@ -23,7 +23,7 @@ const tomorrow = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkat
 
 /** Opens Settings and one setting, by its name, from its area's list. */
 async function openSetting(page: Page, name: string) {
-  await openFromRail(page, 'Settings');
+  await openConsole(page, '/settings');
   await page.getByRole('searchbox', { name: 'Find a setting' }).fill(name);
   await page.getByRole('button', { name, exact: true }).click();
   await expect(page.getByRole('heading', { name, level: 2 })).toBeVisible();
@@ -63,7 +63,7 @@ test.describe('Settings', () => {
 
     const owner = await browser.newPage();
     await signInToConsole(owner, '9000000154');
-    await openFromRail(owner, 'Settings');
+    await openConsole(owner, '/settings');
     await openArea(owner, 'Club details');
     await owner.getByRole('textbox', { name: 'Alert WhatsApp number' }).fill('98765 43210');
     await owner.getByRole('button', { name: 'Save configuration' }).click();

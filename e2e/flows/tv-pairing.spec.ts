@@ -12,7 +12,7 @@
 import { expect, test } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
-import { openDevices } from '../support/console.ts';
+import { openConsole } from '../support/console.ts';
 
 test.describe('TV pairing', () => {
   test('TV pairing: a TV shows a code, the console pairs it with a mode and changes it; unpaired, it shows a new code', async ({ browser }) => {
@@ -30,7 +30,7 @@ test.describe('TV pairing', () => {
 
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000117');
-    await openDevices(floor, 'TVs');
+    await openConsole(floor, '/settings?tab=devices&part=tvs');
     await expect(floor.getByText('A TV paired here joins RIVR Gurugram.')).toBeVisible();
     await floor.getByRole('textbox', { name: 'Code on the TV' }).fill(String((Number(code) + 1) % 1_000_000).padStart(6, '0'));
     await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
@@ -69,7 +69,7 @@ test.describe('TV pairing', () => {
     // Arvind Rao, a super admin (the owner's switch, venue.configure); his number is otherwise only the Kill switch flow's.
     const owner = await browser.newPage();
     await signInToConsole(owner, '9000000136');
-    await openDevices(owner, 'TVs');
+    await openConsole(owner, '/settings?tab=devices&part=tvs');
     const windowOnly = owner.getByRole('switch', { name: 'Pair TVs only after Pair a TV is pressed' });
     await windowOnly.click();
     try {

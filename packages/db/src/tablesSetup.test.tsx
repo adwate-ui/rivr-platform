@@ -47,9 +47,22 @@ describe('tables setup, games history and points by hand', () => {
     await waitFor(() => expect(result.current.setup.data).toEqual({
       stakes: [{ id: 's1', name: 'NLH 50/100', game: 'nlh', smallBlind: 5000n, bigBlind: 10000n, straddle: null },
         { id: 's2', name: '100/200', game: null, smallBlind: 10000n, bigBlind: 20000n, straddle: 40000n }],
-      tables: [{ id: 't1', name: 'Table 1', stakeId: 's1', seats: 9, isOpen: true, isActive: true },
-        { id: 't4', name: 'Table 4', stakeId: 's1', seats: 9, isOpen: false, isActive: false }],
+      tables: [{ id: 't1', name: 'Table 1', stakeId: 's1', seats: 9, isOpen: true, isActive: true, seated: 0, waiting: 0 },
+        { id: 't4', name: 'Table 4', stakeId: 's1', seats: 9, isOpen: false, isActive: false, seated: 0, waiting: 0 }],
     }));
+  });
+
+  it('counts who keeps each table in play: the players seated, and the places waiting on its list or called to it', async () => {
+    const { result, calls } = renderSetup({
+      game_table: { body: [{ id: 't1', name: 'Table 1', table_type_id: 's1', seats: 9, is_open: true, active: true },
+        { id: 't2', name: 'Table 2', table_type_id: 's1', seats: 9, is_open: true, active: true }] },
+      seat_session: { body: [{ table_id: 't1' }, { table_id: 't1' }] },
+      waitlist_entry: { body: [{ table_id: 't1', call_table_id: null }, { table_id: 't1', call_table_id: 't2' }, { table_id: 't2', call_table_id: 't2' }] },
+    });
+    await waitFor(() => expect(result.current.setup.data?.tables.map(({ id, seated, waiting }) => ({ id, seated, waiting }))).toEqual([
+      { id: 't1', seated: 2, waiting: 2 }, { id: 't2', seated: 0, waiting: 2 },
+    ]));
+    expect(calls.map((call) => call.path)).toEqual(expect.arrayContaining(['seat_session', 'waitlist_entry']));
   });
 
   it('adds a stake or changes one, and says why a table change was refused', async () => {

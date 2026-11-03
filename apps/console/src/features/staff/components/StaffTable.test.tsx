@@ -15,12 +15,12 @@ const STAFF: readonly StaffMember[] = [
   { staffId: 's3', fullName: 'Ravi Dealer', jobTitle: 'Dealer', role: 'dealer', phone: null, isActive: false, isMe: false },
 ];
 
-function renderTable() {
+function renderTable(isAdding = false) {
   vi.stubGlobal('fetch', async () => Response.json([]));
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })} queryClient={cache}>
-      <StaffTable venueId="v1" members={STAFF} grantable={['cashier', 'dealer', 'host']} />
+      <StaffTable venueId="v1" members={STAFF} grantable={['cashier', 'dealer', 'host']} isAdding={isAdding} />
     </RivrDataProvider>,
   );
 }
@@ -45,13 +45,23 @@ describe('StaffTable', () => {
     expect(screen.queryByRole('button', { name: 'Ayesha Thomas · You' })).toBeNull();
   });
 
-  it('keeps the add form behind Add staff, and closes it again', () => {
+  it('shows the add form above the table while Add staff has it open', () => {
     renderTable();
     expect(screen.queryByRole('textbox', { name: 'Full name' })).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'Add staff' }));
+    cleanup();
+    renderTable(true);
     expect(screen.getByRole('textbox', { name: 'Full name' })).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
-    expect(screen.queryByRole('textbox', { name: 'Full name' })).toBeNull();
+  });
+
+  it('narrows the table by role, each role someone holds a chip with its count, and back with All', () => {
+    renderTable();
+    const roles = screen.getByRole('radiogroup', { name: 'Staff by role' });
+    expect(Array.from(roles.querySelectorAll('[role="radio"]'), (chip) => chip.textContent)).toEqual(['All3', 'Admin1', 'Cashier1', 'Dealer1']);
+    fireEvent.click(screen.getByRole('radio', { name: /^Cashier/ }));
+    expect(screen.getByRole('button', { name: 'Manoj Pillai' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Ayesha Thomas · You' })).toBeNull();
+    fireEvent.click(screen.getByRole('radio', { name: /^All/ }));
+    expect(screen.getByRole('button', { name: 'Ayesha Thomas · You' })).toBeDefined();
   });
 
   it('opens a staff member beside the table, to change them, and closes them', () => {
