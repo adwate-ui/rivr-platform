@@ -17,6 +17,9 @@ export const Default: Story = {};
 /** A session that lost: the net in the plain tone. */
 export const Loss: Story = { args: { when: '2 Feb 2026', title: 'Table 3', value: <Money paise={-5_260_000n} signed />, detail: '100/200 · 3 h 15 min' } };
 
+/** A played session as Sessions lists it (decision 0320): its day and table, the time played at the right, no detail line. */
+export const WithoutDetail: Story = { args: { when: '3 Nov 2026', title: 'Table 1', value: '2 h 25 min', detail: undefined } };
+
 export const LongText: Story = {
   args: { title: 'Private Room with a much longer name than any table has, and 2 more', detail: '1,000/2,000 · 14 h 50 min, with a straddle on every hand' },
 };

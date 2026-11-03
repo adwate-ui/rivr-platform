@@ -17,6 +17,15 @@ describe('HistoryRow', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
+  it('centres its figure down the row and keeps no room for a detail it does not have (owner, 3 Nov)', () => {
+    renderIn(<HistoryRow when="3 Nov 2026" title="Table 1" value="2 h 25 min" onOpen={() => {}} />);
+    const row = screen.getByRole('button', { name: /Table 1/ });
+    expect(row).toHaveClass('items-center');
+    // When and what down the left, the time at the right: no empty third line under them.
+    expect(row.firstElementChild?.children).toHaveLength(2);
+    expect(row.lastChild).toHaveTextContent('2 h 25 min');
+  });
+
   it('opens by a tap, Enter or Space', async () => {
     const onOpen = vi.fn();
     renderIn(<HistoryRow when="13 Feb 2026" title="Table 2" value={null} detail="100/200 · 6 h 30 min" onOpen={onOpen} />);
