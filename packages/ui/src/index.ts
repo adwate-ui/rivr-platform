@@ -157,6 +157,7 @@ export * from './Banner/index.ts';
 export * from './Toast/index.ts';
 export * from './Sheet/index.ts';
 export * from './PickerSheet/index.ts';
+export * from './PickList/index.ts';
 export * from './SeatMap/index.ts';
 export * from './ProgressRing/index.ts';
 export * from './ProgressBar/index.ts';

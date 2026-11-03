@@ -73,6 +73,13 @@ describe('ConfirmButton', () => {
     expect(onConfirm).not.toHaveBeenCalled();
   });
 
+  it('takes the console’s subtle fill and size, and asks at the same size (console v3)', async () => {
+    renderIn(<ConfirmButton variant="subtle" size="compact" label="Take off the queue" confirm="Yes, take Ritika off the queue" onConfirm={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Take off the queue' })).toHaveClass('bg-subtle', 'tablet:min-h-control');
+    await userEvent.click(screen.getByRole('button', { name: 'Take off the queue' }));
+    expect(screen.getByRole('button', { name: 'Yes, take Ritika off the queue' })).toHaveClass('tablet:min-h-control');
+  });
+
   it('has no accessibility violations, asking or not', async () => {
     const { container } = renderIn(<ConfirmButton label="Leaves" name="Leaves: Ritika Das" confirm="Yes, Ritika leaves" onConfirm={() => undefined} />);
     expect(await axeViolations(container)).toEqual([]);
