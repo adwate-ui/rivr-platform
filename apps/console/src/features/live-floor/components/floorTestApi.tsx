@@ -101,7 +101,7 @@ export function renderFloorScreen(Screen: ComponentType, api: FloorApi = {}) {
     return answer(url, api);
   });
   const rootRoute = createRootRoute();
-  const screenRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: Screen });
+  const screenRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: () => <Screen /> });
   const membersRoute = createRoute({ getParentRoute: () => rootRoute, path: '/members', component: () => null });
   const router = createRouter({ routeTree: rootRoute.addChildren([screenRoute, membersRoute]), history: createMemoryHistory({ initialEntries: ['/'] }) });
   render(
