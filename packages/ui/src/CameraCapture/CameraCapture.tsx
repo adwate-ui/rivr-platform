@@ -35,6 +35,33 @@ export function troubleOf(error: unknown): CameraTrouble {
   return 'failed';
 }
 
+// Chrome, Edge and Firefox on an iPhone are apps of their own, each with its own camera switch in Settings.
+const IPHONE_APPS: readonly (readonly [RegExp, string])[] = [[/CriOS\//, 'Chrome'], [/EdgiOS\//, 'Edge'], [/FxiOS\//, 'Firefox']];
+
+/**
+ * Where to allow a blocked camera on this device, by the browser's user agent (decision 0423). A browser that has
+ * refused never asks again by itself. In a browser on an iPhone or iPad the camera goes back on in Settings, found by
+ * searching for the browser; in a browser on Android, in the site's permissions from the icon by the address. The
+ * installed app, an app's own browser (Instagram's, Google's, an Android web view) and anything else keep the general
+ * line, as there is no one place to name.
+ */
+export function blockedHelpOf(userAgent: string, isInstalled: boolean): string {
+  if (isInstalled) return t('ui.camera.blocked');
+  if (/iPhone|iPad|iPod/.test(userAgent)) {
+    // Safari names its version and itself; an app's own browser leaves one of the two out.
+    const browser = IPHONE_APPS.find(([pattern]) => pattern.test(userAgent))?.[1] ?? (/Version\/.*Safari\//.test(userAgent) ? 'Safari' : null);
+    return browser ? t('ui.camera.blockedIphone', { browser }) : t('ui.camera.blocked');
+  }
+  // An Android web view says `; wv)`.
+  return t(/Android/.test(userAgent) && !/; wv\)/.test(userAgent) ? 'ui.camera.blockedAndroid' : 'ui.camera.blocked');
+}
+
+/** Whether the app runs from the home screen, with no browser round it: the player's own check (install.ts). */
+function isInstalledApp(): boolean {
+  const standalone = typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches;
+  return standalone || Reflect.get(navigator, 'standalone') === true;
+}
+
 // Enough for liveness and a face match, and small to send: the app shrinks it again before it goes.
 const LONGEST_SIDE = 1280;
 const QUALITY = 0.9;
@@ -144,7 +171,7 @@ function Frame({ children }: { children: ReactNode }) {
 export function Trouble({ trouble, phoneUrl, onRetry }: { trouble: CameraTrouble; phoneUrl: string | undefined; onRetry: () => void }) {
   return (
     <Stack gap={6}>
-      <div role="alert"><Text>{t(`ui.camera.${trouble}`)}</Text></div>
+      <div role="alert"><Text>{trouble === 'blocked' ? blockedHelpOf(navigator.userAgent, isInstalledApp()) : t(`ui.camera.${trouble}`)}</Text></div>
       {trouble === 'none' && phoneUrl ? (
         <Stack gap={3} align="center">
           <div className="size-photo rounded-md bg-cream p-3">
