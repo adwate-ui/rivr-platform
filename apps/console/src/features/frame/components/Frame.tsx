@@ -2,7 +2,9 @@ import type { Permission } from '@rivr/contracts';
 import { useAuthStatus, useControlState, useSignOut, useStaffDensity, useStaffQueueCounts, useStaffVenue, useWaitingHighHands, type StaffVenueState } from '@rivr/db';
 import { useRecordTableExport } from '@rivr/db/exports';
 import { t } from '@rivr/i18n';
-import { ConsoleShell, DataTableDensityProvider, DataTableExportProvider, KillSwitchBanner, PracticeBanner, Screen, ShortcutProvider, TitleCount, UrgentChime } from '@rivr/ui';
+import {
+  ConsoleShell, DataTableDensityProvider, DataTableExportProvider, KillSwitchBanner, PracticeBanner, Screen, ShortcutProvider, TitleCount, ToastProvider, UrgentChime,
+} from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { ConsoleSearch } from './ConsoleSearch.tsx';
@@ -51,8 +53,13 @@ export function Frame({ children, prompt }: { children: ReactNode; prompt?: (sta
   if (authStatus === 'signed-out') return <Navigate to="/sign-in" search={isIdleLocked ? { why: 'idle' } : {}} replace />;
   if (staff.status === 'not-staff') return <NotStaff />;
   if (staff.status === 'ready') {
-    // The keys the screen open now offers (useShortcut), and the menu's list of them.
-    return <ShortcutProvider><StaffFrame staff={staff} prompt={prompt} onIdle={onIdle}>{children}</StaffFrame></ShortcutProvider>;
+    // The keys the screen open now offers (useShortcut), and the menu's list of them; and the toasts every step raises,
+    // with Undo where the step has its own compensating call (console v3).
+    return (
+      <ShortcutProvider>
+        <ToastProvider place="console"><StaffFrame staff={staff} prompt={prompt} onIdle={onIdle}>{children}</StaffFrame></ToastProvider>
+      </ShortcutProvider>
+    );
   }
   // Until the staff record loads, or if it cannot, the header still offers a way out, and the rail stays empty (#811).
   return (

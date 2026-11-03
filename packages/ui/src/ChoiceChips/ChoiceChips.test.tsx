@@ -154,4 +154,21 @@ describe('ChoiceChips', () => {
     expect(onChange).toHaveBeenCalledWith(['pending']);
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it("draws the console's cards, each named by its label and described by its line, the chosen one gold-edged", async () => {
+    const onChange = vi.fn();
+    const kinds = [
+      { value: 'multiplier', label: 'Points multiplier', description: 'Points earned per hour, multiplied' },
+      { value: 'buyin', label: 'Buy-in bonus', description: 'Bonus chips on a buy-in, % or fixed' },
+    ];
+    const { container } = renderIn(<ChoiceChips label="Reward" look="card" mode="one" options={kinds} selected={['buyin']} onChange={onChange} />);
+    const chosen = screen.getByRole('radio', { name: 'Buy-in bonus' });
+    expect(chosen).toHaveAccessibleDescription('Bonus chips on a buy-in, % or fixed');
+    expect(chosen).toHaveClass('border-gold', 'bg-gold-tint', 'items-start', 'text-start');
+    expect(screen.getByRole('radio', { name: 'Points multiplier' })).toHaveClass('border-control');
+    expect(screen.getByRole('radiogroup', { name: 'Reward' })).toHaveClass('grid-cols-1', 'medium:grid-cols-2');
+    await userEvent.click(screen.getByRole('radio', { name: 'Points multiplier' }));
+    expect(onChange).toHaveBeenCalledWith(['multiplier']);
+    expect(await axeViolations(container)).toEqual([]);
+  });
 });

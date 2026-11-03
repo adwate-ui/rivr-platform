@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { promotionBuilderSchema, promotionConditionsSchema, promotionEffectSchema, promotionLinkSchema } from './promotions.ts';
+import { promotionConditionsSchema, promotionEffectSchema, promotionRefusalSchema } from './promotions.ts';
 
 describe('promotion schemas (#83)', () => {
   it('takes no conditions, or any of them together', () => {
@@ -36,21 +36,6 @@ describe('promotion schemas (#83)', () => {
     expect(promotionEffectSchema.safeParse({ kind: 'bonus', percent_bps: 2000 }).success).toBe(false);
   });
 
-  it('takes the builder\'s four blocks, a window whole and within the club day (#84)', () => {
-    const flow7 = { days: [4], from: '14:00', until: '20:00', stake: 'nlh_100_200', reward: 'double_points', limit: 'none', bonus_cap_rupees: 5000, bonus_hours: 4, bonus_chips: 1000 };
-    expect(promotionBuilderSchema.safeParse(flow7).success).toBe(true);
-    expect(promotionBuilderSchema.safeParse({ ...flow7, days: [], from: null, until: null, stake: null }).success).toBe(true);
-    expect(promotionBuilderSchema.safeParse({ ...flow7, until: null }).success).toBe(false);
-    expect(promotionBuilderSchema.safeParse({ ...flow7, from: '22:00', until: '08:00' }).success).toBe(false);
-    expect(promotionBuilderSchema.safeParse({ ...flow7, reward: 'free_lunch' }).success).toBe(false);
-    expect(promotionBuilderSchema.safeParse({ ...flow7, bonus_cap_rupees: 5020 }).success).toBe(false);
-    expect(promotionBuilderSchema.safeParse({ ...flow7, bonus_cap_rupees: 0 }).success).toBe(false);
-    expect(promotionBuilderSchema.safeParse({ ...flow7, bonus_cap_rupees: Number.NaN }).success).toBe(false);
-    expect(promotionBuilderSchema.safeParse({ ...flow7, bonus_hours: 0 }).success).toBe(false);
-    expect(promotionBuilderSchema.safeParse({ ...flow7, bonus_hours: 13 }).success).toBe(false);
-    expect(promotionBuilderSchema.safeParse({ ...flow7, bonus_chips: 1020 }).success).toBe(false);
-  });
-
   it('gives points, items and messages by kind', () => {
     expect(promotionEffectSchema.safeParse({ kind: 'points', multiplier_percent: 200 }).success).toBe(true);
     expect(promotionEffectSchema.safeParse({ kind: 'points', multiplier_percent: 100 }).success).toBe(false);
@@ -60,19 +45,9 @@ describe('promotion schemas (#83)', () => {
     expect(promotionEffectSchema.safeParse({ kind: 'cocktail' }).success).toBe(false);
   });
 
-  // Issue 776: a card's link.
-  it('takes a card\'s link only as an https address', () => {
-    expect(promotionLinkSchema.safeParse('https://glaza.example/happy-hour').success).toBe(true);
-    expect(promotionLinkSchema.safeParse('http://glaza.example/').success).toBe(false);
-    expect(promotionLinkSchema.safeParse('javascript:alert(1)').success).toBe(false);
-    expect(promotionLinkSchema.safeParse('https://glaza.example/happy hour').success).toBe(false);
-    // As the database's check: written as https:// exactly, and no host hidden behind a user part or a look-alike letter.
-    expect(promotionLinkSchema.safeParse('https://glaza.example:8443/menu?day=tue#bar').success).toBe(true);
-    expect(promotionLinkSchema.safeParse('Https://glaza.example/').success).toBe(false);
-    expect(promotionLinkSchema.safeParse('https:glaza.example').success).toBe(false);
-    expect(promotionLinkSchema.safeParse('https://rivr.club@evil.example/').success).toBe(false);
-    expect(promotionLinkSchema.safeParse('https://rivr.club‮/').success).toBe(false);
-    expect(promotionLinkSchema.safeParse('https://rіvr.club/').success).toBe(false);
-    expect(promotionLinkSchema.safeParse(`https://glaza.example/${'a'.repeat(500)}`).success).toBe(false);
+  it('takes a reason to send a version back of 3 to 300 characters, trimmed', () => {
+    expect(promotionRefusalSchema.safeParse({ reason: 'Too generous' }).success).toBe(true);
+    expect(promotionRefusalSchema.safeParse({ reason: '  ok  ' }).success).toBe(false);
+    expect(promotionRefusalSchema.safeParse({ reason: 'x'.repeat(301) }).success).toBe(false);
   });
 });

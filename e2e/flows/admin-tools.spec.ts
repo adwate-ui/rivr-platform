@@ -8,7 +8,7 @@
 import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { worktreeName } from '@rivr/config/worktree';
-import { isRemoteTarget } from '../support/apps.ts';
+import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 /** Runs SQL in this worktree's local database and returns its unaligned output. */
@@ -59,19 +59,19 @@ test.describe('Admin tools', () => {
     await expect(history.getByRole('row').filter({ hasText: 'Table 1' })).toHaveCount(0);
     await expect(history.getByRole('row').filter({ hasText: 'Table 3' }).first()).toContainText(/\d+ min|\d+ h/);
 
-    // A time-based bonus (#646): 1,500 bonus chips after three hours in a visit.
-    await page.getByRole('link', { name: 'Promotions' }).click();
-    await page.getByRole('radiogroup', { name: 'Reward' }).getByRole('radio', { name: 'Bonus chips for hours played' }).click();
-    await page.getByRole('textbox', { name: 'Hours played in a visit' }).fill('3');
+    // A time-based bonus (#646): 1,500 bonus chips after three hours in a visit, built as a version (console v3, decision 0437).
+    await page.goto(`${appUrl('console')}/promotions?open=new`);
+    await page.getByRole('radiogroup', { name: 'Reward' }).getByRole('radio', { name: 'Hours-played bonus' }).click();
+    await page.getByRole('textbox', { name: 'Name members see' }).fill(`Hours bonus ${RUN}`);
     await page.getByRole('textbox', { name: 'Bonus chips', exact: true }).fill('1500');
-    await expect(page.getByRole('article', { name: 'Bonus chips for hours played' })).toContainText('1,500 bonus chips after 3 hours at the tables');
-    await page.getByRole('button', { name: 'Simulate last week' }).click();
-    await expect(page.getByText('Times given', { exact: true })).toBeVisible({ timeout: 10_000 });
-    await page.getByRole('button', { name: 'Submit for approval', exact: true }).click();
-    await expect(page.getByText('Bonus chips for hours played waits for a super admin to approve it.')).toBeVisible({ timeout: 10_000 });
-    expect(sql(`select r.trigger || ' ' || (r.conditions ->> 'min_hours') || ' ' || (r.effect ->> 'amount_paise') from public.promotion_rule r
-                join public.promotion p on p.id = r.promotion_id where p.name = 'Bonus chips for hours played' order by p.created_at desc limit 1`))
-      .toBe('hours_played 3 150000');
+    await page.getByRole('textbox', { name: 'After', exact: true }).fill('3');
+    await expect(page.getByText(/^1,500 bonus chips after 3 hours, for all stakes/)).toBeVisible();
+    await page.getByRole('button', { name: 'Simulate' }).click();
+    await expect(page.getByText('times given', { exact: true })).toBeVisible({ timeout: 10_000 });
+    await page.getByRole('button', { name: 'Submit for approval' }).click();
+    await expect(page.getByText(`Hours bonus ${RUN} sent for approval`)).toBeVisible({ timeout: 10_000 });
+    expect(sql(`select (reward ->> 'chips') || ' ' || (reward ->> 'afterMinutes') || ' ' || status from public.promotion_version
+                where name = 'Hours bonus ${RUN}'`)).toBe('1500 180 awaiting_approval');
   });
 
   test('the super admin gives a member locked points and releases some, and the member sees what stays locked', async ({ browser }) => {

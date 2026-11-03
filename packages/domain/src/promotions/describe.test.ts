@@ -1,7 +1,7 @@
 import type { Reward } from '@rivr/contracts/promotionModel';
 import { buildPromotionTerms } from '@rivr/testing';
 import { describe, expect, it } from 'vitest';
-import { cardWords, describePromotion } from './describe.ts';
+import { cardWords, describePromotion, whoAndWhen } from './describe.ts';
 
 const rewardLine = (reward: Reward) => describePromotion(buildPromotionTerms({ reward })).split(', for ')[0];
 
@@ -75,5 +75,18 @@ describe('cardWords', () => {
     const long = buildPromotionTerms({ eligibility: { stakes: 'all', tiers: Array.from({ length: 30 }, (_, n) => `tier-number-${n}`), audience: 'everyone' } });
     expect(cardWords(long).runs).toHaveLength(120);
     expect(cardWords(long).runs.endsWith('…')).toBe(true);
+  });
+});
+
+describe('whoAndWhen', () => {
+  it('gives who it is for and when it runs apart, named as the summary names them', () => {
+    const weekend = buildPromotionTerms({
+      eligibility: { stakes: ['nlh_100_200'], tiers: ['tier-black'], audience: 'lapsed' },
+      schedule: { days: [6, 5], from: '20:00', to: '02:00', startsOn: '2026-11-06', timezone: 'Asia/Kolkata' },
+    });
+    expect(whoAndWhen(weekend, { stakes: { nlh_100_200: 'NLH 100/200' }, tiers: { 'tier-black': 'Black card' } })).toEqual({
+      who: 'NLH 100/200 · Black card · lapsed regulars', when: 'Fri, Sat 20:00–02:00',
+    });
+    expect(whoAndWhen(buildPromotionTerms({}))).toEqual({ who: 'all stakes', when: 'every day, all day' });
   });
 });
