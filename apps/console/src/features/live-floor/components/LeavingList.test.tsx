@@ -53,14 +53,14 @@ function renderList(seats: SeatedPlayer[], canLetGoEarly = false) {
 describe('LeavingList (decision 0163)', () => {
   it('lets the floor free the seat of a player whose call time is done', async () => {
     const { sent } = renderList([{ ...PLAYER, callTimeLeft: 0 }]);
-    fireEvent.click(screen.getByRole('button', { name: 'Kabir Sethi leaves' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Let Kabir Sethi go from the leaving list' }));
     fireEvent.click(screen.getByRole('button', { name: 'Yes, Kabir Sethi leaves' }));
     await waitFor(() => expect(sent).toEqual([{ p_session_id: 's1', p_reason: 'left' }]));
   });
 
   it('lets staff with the override let one who still owes call time go early, with a reason (decision 0306)', async () => {
     const { sent } = renderList([PLAYER], true);
-    fireEvent.click(screen.getByRole('button', { name: 'Kabir Sethi leaves' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Let Kabir Sethi go from the leaving list' }));
     expect(screen.getByRole('heading', { name: 'Early departure for Kabir Sethi' })).toBeDefined();
     fireEvent.change(screen.getByLabelText(/Why they leave early/), { target: { value: 'Family emergency' } });
     fireEvent.click(screen.getByRole('button', { name: 'Let leave early' }));
@@ -69,7 +69,7 @@ describe('LeavingList (decision 0163)', () => {
 
   it('lets other floor staff free the seat of one who still owes, who then leaves owing (decision 0306)', async () => {
     const { sent } = renderList([PLAYER]);
-    fireEvent.click(screen.getByRole('button', { name: 'Kabir Sethi leaves' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Let Kabir Sethi go from the leaving list' }));
     fireEvent.click(screen.getByRole('button', { name: 'Yes, Kabir Sethi leaves' }));
     await waitFor(() => expect(sent).toEqual([{ p_session_id: 's1', p_reason: 'left' }]));
   });

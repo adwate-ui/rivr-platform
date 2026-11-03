@@ -47,9 +47,9 @@ function LeavingRow({ venueId, player, tableName, isFloor, canLetGoEarly, report
       {isFloor ? (
         <Inline gap={2} align="center">
           {isOwing && canLetGoEarly ? (
-            <Button variant="text" aria-label={t('console.liveFloor.leaveName', { name: player.fullName })} onClick={onLeaveEarly}>{t('console.liveFloor.leave')}</Button>
+            <Button variant="text" aria-label={t('console.liveFloor.leavingLeaveName', { name: player.fullName })} onClick={onLeaveEarly}>{t('console.liveFloor.leave')}</Button>
           ) : (
-            <ConfirmButton label={t('console.liveFloor.leave')} name={t('console.liveFloor.leaveName', { name: player.fullName })}
+            <ConfirmButton label={t('console.liveFloor.leave')} name={t('console.liveFloor.leavingLeaveName', { name: player.fullName })}
               confirm={t('console.liveFloor.confirmLeave', { name: player.fullName })} isBusy={leave.isPending}
               onConfirm={() => void leave.mutateAsync(player.sessionId).then(report)} />
           )}
