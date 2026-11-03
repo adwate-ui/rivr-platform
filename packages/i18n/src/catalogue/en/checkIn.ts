@@ -3,8 +3,6 @@
 /** The door's Check-in (#72), as in the prototype. */
 export const checkIn = {
   title: 'Check-in',
-  /** The Door's tabs (console v3): Check-in and Today's players. */
-  door: 'Door',
   expected: 'Expected tonight',
   inRoom: 'In the room',
   checkIn: 'Check in',

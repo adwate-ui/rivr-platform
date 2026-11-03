@@ -21,7 +21,8 @@ interface RowProps {
 function InRoomRow({ member, isBusy, onPress }: RowProps) {
   return (
     <Inline gap={3} justify="between">
-      <Text>{member.fullName}</Text>
+      {/* The name gives way first, cut with an ellipsis, so the row stays one line on a phone. */}
+      <Inline grow><Text truncate>{member.fullName}</Text></Inline>
       <Inline gap={4}>
         <Text variant="small" tone="muted">{member.tierName}</Text>
         <Text variant="small" tone="muted">{formatTime(new Date(member.since))}</Text>
@@ -36,9 +37,9 @@ function InRoomRow({ member, isBusy, onPress }: RowProps) {
 function ExpectedRow({ member, isBusy, onPress }: RowProps) {
   return (
     <Inline gap={3} justify="between">
-      <Stack gap={1}>
+      <Stack gap={0}>
         <Text weight="medium">{member.fullName}</Text>
-        <Text variant="small" tone="muted">{member.tierName}</Text>
+        <Text variant="caption" tone="muted">{member.tierName}</Text>
       </Stack>
       <Button variant="subtle" size="small" isDisabled={isBusy} aria-label={t('console.checkIn.checkInMember', { name: member.fullName })}
         onClick={onPress}>{t('console.checkIn.checkIn')}</Button>

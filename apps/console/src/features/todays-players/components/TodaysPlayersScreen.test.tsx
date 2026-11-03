@@ -3,7 +3,7 @@ import { formatDuration } from '@rivr/i18n';
 import { QueryClient } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { TodaysPlayersTab } from './TodaysPlayersTab.tsx';
+import { TodaysPlayersScreen } from './TodaysPlayersScreen.tsx';
 
 afterEach(() => {
   cleanup();
@@ -40,7 +40,7 @@ function renderTab(rows: unknown[]) {
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <StaffVenueProvider><TodaysPlayersTab /></StaffVenueProvider>
+      <StaffVenueProvider><TodaysPlayersScreen /></StaffVenueProvider>
     </RivrDataProvider>,
   );
 }

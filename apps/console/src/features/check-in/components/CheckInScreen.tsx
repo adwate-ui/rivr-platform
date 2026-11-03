@@ -9,7 +9,7 @@ import { DoorList } from './DoorList.tsx';
  * reads, a mobile number, a member number or a name; then the members expected (on a waitlist, not yet in the room) with
  * Check in, and who is in the room since when, with Check out (#82).
  */
-export function CheckInTab() {
+export function CheckInScreen() {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
@@ -33,11 +33,16 @@ function CheckIn({ venueId }: { venueId: string }) {
       <Stack gap={6}>
         {board.isError ? <StaleNotice since={new Date(board.dataUpdatedAt)} onRetry={() => void board.refetch()} /> : null}
         <DoorField venueId={venueId} />
+        {/* Each list in a Stack of its own, so a short list keeps its own height beside a long one. */}
         <Grid columns={2} gap={5} stackBelow="medium">
-          <DoorList venueId={venueId} title={t('console.checkIn.expected')} members={board.data.filter((member) => !member.isInRoom)}
-            emptyText={t('console.checkIn.noneExpected')} />
-          <DoorList venueId={venueId} title={t('console.checkIn.inRoom')} members={board.data.filter((member) => member.isInRoom)}
-            emptyText={t('console.checkIn.noneInRoom')} />
+          <Stack>
+            <DoorList venueId={venueId} title={t('console.checkIn.expected')} members={board.data.filter((member) => !member.isInRoom)}
+              emptyText={t('console.checkIn.noneExpected')} />
+          </Stack>
+          <Stack>
+            <DoorList venueId={venueId} title={t('console.checkIn.inRoom')} members={board.data.filter((member) => member.isInRoom)}
+              emptyText={t('console.checkIn.noneInRoom')} />
+          </Stack>
         </Grid>
       </Stack>
     </Screen>

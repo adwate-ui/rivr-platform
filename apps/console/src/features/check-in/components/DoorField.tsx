@@ -1,6 +1,6 @@
 import type { MemberRow } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Box, Button, ErrorMessage, Inline, Input, Stack, StatusMessage, Text } from '@rivr/ui';
+import { Box, Button, ErrorMessage, Inline, Input, Stack, StatusMessage, Text, useIsWide } from '@rivr/ui';
 import { useRef } from 'react';
 import { CHECK_IN_FAILURE_COPY, checkOutRefusalText } from './checkInCopy.ts';
 import { useDoorField, type DoorAction, type DoorOutcome } from './useDoorField.ts';
@@ -62,16 +62,20 @@ export function DoorField({ venueId }: { venueId: string }) {
   const press = (action: DoorAction) => void door.press(action).then(() => field.current?.focus());
   const problem = problemOf(door.outcome);
   const several = door.outcome?.kind === 'several' ? door.outcome : null;
+  // Check out is the field's second action: beside Check in from 768 px, under the field on a phone, so the field keeps its width.
+  const isWide = useIsWide('medium');
+  const checkOut = <Button variant="text" onClick={() => press('out')}>{t('console.checkIn.checkOut')}</Button>;
   return (
     <Stack gap={3}>
-      <Inline gap={3} align="end" wrap>
+      <Inline gap={3} align="end">
         <Box grow>
           <Input ref={field} label={t('console.checkIn.field')} value={door.text} autoComplete="off" autoFocus
             onChange={(event) => door.type(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') press('in'); }} />
         </Box>
         <Button variant="primary" isLoading={door.isBusy} onClick={() => press('in')}>{t('console.checkIn.checkIn')}</Button>
-        <Button variant="text" onClick={() => press('out')}>{t('console.checkIn.checkOut')}</Button>
+        {isWide ? checkOut : null}
       </Inline>
+      {isWide ? null : <Inline>{checkOut}</Inline>}
       <StatusMessage>{doneOf(door.outcome)}</StatusMessage>
       {problem === null ? null : <ErrorMessage>{problem}</ErrorMessage>}
       {several === null ? null : (

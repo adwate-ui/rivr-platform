@@ -11,8 +11,8 @@ function Details({ check }: { check: KycCheck }) {
     <Stack gap={0} divided>
       {checkDetails(check).map((detail) => (
         <Inline key={detail.label} gap={4} justify="between">
-          <Text tone="muted">{detail.label}</Text>
-          <Text>{detail.value}</Text>
+          <Text variant="small" tone="muted">{detail.label}</Text>
+          <Text variant="small">{detail.value}</Text>
         </Inline>
       ))}
     </Stack>

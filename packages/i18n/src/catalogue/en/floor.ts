@@ -149,8 +149,9 @@ export const todaysPlayers = {
   name: 'Player',
   status: 'Status',
   statuses: { playing: 'Playing', waiting: 'Waiting', left: 'Left' },
-  checkedIn: 'Checked in',
-  checkedOut: 'Checked out',
+  /** When they checked in and out, short as the prototype's headers, so a phone's scrolling line keeps them on one line. */
+  checkedIn: 'In',
+  checkedOut: 'Out',
   waited: 'Waited',
   /** The tables a player played on today, and the time played across them, in columns of their own (console v3). */
   table: 'Table',

@@ -75,8 +75,9 @@ function Candidates({ venueId, search, onChoose }: CandidatesProps) {
             <Text variant="small" tone="muted">{t('console.kycInPerson.phoneEnding', { digits: member.phoneLast4 })}</Text>
             {member.status === null ? null : <Text variant="small" tone="muted">{t('console.kycInPerson.startedOnApp')}</Text>}
           </Stack>
-          <Button variant="secondary" onClick={() => onChoose(member)}>
-            {t('console.kycInPerson.checkName', { name: member.fullName })}
+          {/* One short word on a row's button (console v3), its full name read out, so it never wraps in the sheet. */}
+          <Button variant="subtle" size="small" aria-label={t('console.kycInPerson.checkName', { name: member.fullName })} onClick={() => onChoose(member)}>
+            {t('console.kycInPerson.check')}
           </Button>
         </Inline>
       ))}
