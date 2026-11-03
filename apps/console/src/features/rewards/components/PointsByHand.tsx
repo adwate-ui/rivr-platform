@@ -3,8 +3,6 @@ import { formatNumber, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Grid, Heading, Inline, Input, Number as Figure, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState } from 'react';
 
-const INDIA = '+91';
-
 // An Indian mobile number, as member.phone keeps them.
 const isMobile = (digits: string) => /^[6-9]\d{9}$/.test(digits);
 
@@ -16,12 +14,14 @@ export function PointsByHand({ venueId }: { venueId: string }) {
   const [typed, setTyped] = useState('');
   const [phone, setPhone] = useState<string | null>(null);
   const member = useMemberPoints(venueId, phone);
-  const digits = typed.replace(/\D/g, '');
+  // Ten digits, or the same typed after +91.
+  const digits = typed.replace(/\D/g, '').replace(/^91(?=\d{10}$)/, '');
   return (
     <Stack gap={4}>
       <Heading level={2} variant="section">{t('console.rewards.byHand.heading')}</Heading>
-      <Inline gap={3} align="end">
-        <Input label={t('console.rewards.byHand.phone')} type="tel" inputMode="numeric" prefix={INDIA} maxLength={14} value={typed}
+      {/* The field and Find, both 36 px at a desk, centred on one line. */}
+      <Inline gap={3} align="center">
+        <Input variant="subtle" label={t('console.rewards.byHand.phone')} type="tel" inputMode="numeric" maxLength={16} value={typed}
           onChange={(event) => setTyped(event.target.value)} />
         <Button variant="subtle" size="compact" isDisabled={!isMobile(digits)} isLoading={phone !== null && member.isFetching} onClick={() => setPhone(digits)}>
           {t('console.rewards.byHand.find')}
@@ -83,9 +83,9 @@ function PointsForm({ venueId, member }: { venueId: string; member: MemberPoints
     <Stack gap={4}>
       <PointsHeld member={member} />
       <Inline gap={4} wrap>
-        <Input label={t('console.rewards.byHand.points')} inputMode="numeric" maxLength={7} value={points}
+        <Input variant="subtle" label={t('console.rewards.byHand.points')} inputMode="numeric" maxLength={7} value={points}
           onChange={(event) => { setPoints(event.target.value.trim()); change.reset(); }} />
-        <Input label={t('console.rewards.byHand.reason')} maxLength={200} value={reason} onChange={(event) => { setReason(event.target.value); change.reset(); }} />
+        <Input variant="subtle" label={t('console.rewards.byHand.reason')} maxLength={200} value={reason} onChange={(event) => { setReason(event.target.value); change.reset(); }} />
       </Inline>
       <Inline gap={3} wrap>
         <Button variant="strong" size="compact" isDisabled={isOff} onClick={() => void run('earned')}>{t('console.rewards.byHand.giveEarned')}</Button>

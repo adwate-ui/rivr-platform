@@ -32,8 +32,11 @@ export function CatalogueTab({ venueId, canKeep, editing, onEdit }: CatalogueTab
             onOutcome={(text) => { setSaved(text); if (text !== null) onEdit('none'); }} />
         </Box>
       ) : null}
-      <StatusMessage>{saved}</StatusMessage>
-      <CatalogueList venueId={venueId} canEdit={canKeep} onEdit={edit} />
+      {/* What was saved, right above the list; an empty line takes no gap of its own. */}
+      <Stack gap={3}>
+        <StatusMessage>{saved}</StatusMessage>
+        <CatalogueList venueId={venueId} canEdit={canKeep} onEdit={edit} />
+      </Stack>
     </Stack>
   );
 }

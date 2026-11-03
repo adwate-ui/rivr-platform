@@ -2,7 +2,7 @@ import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, StaffVenueProv
 import { QueryClient } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { RewardsScreen } from './RewardsScreen.tsx';
+import { RewardsParts } from './RewardsScreen.tsx';
 
 afterEach(() => {
   cleanup();
@@ -16,8 +16,8 @@ const WAITING = {
   created_at: '2026-11-15T15:00:00Z', handed_over_at: null, handed_over_by: null,
 };
 
-/** A staff member in `role` on Rewards at `tab`, with one reward in the catalogue and one waiting to be handed over. */
-function renderAs(role: string, tab: string | undefined) {
+/** A staff member in `role` on Rewards at `part`, with one reward in the catalogue and one waiting to be handed over. */
+function renderAs(role: string, part: string | undefined) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000107', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -35,7 +35,7 @@ function renderAs(role: string, tab: string | undefined) {
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <StaffVenueProvider><RewardsScreen tab={tab} onNavigate={onNavigate} /></StaffVenueProvider>
+      <StaffVenueProvider><RewardsParts part={part} onNavigate={onNavigate} /></StaffVenueProvider>
     </RivrDataProvider>,
   );
   return onNavigate;
@@ -44,12 +44,11 @@ function renderAs(role: string, tab: string | undefined) {
 const LAZY = { timeout: 5000 };
 
 describe('Rewards', () => {
-  it('gives the floor the catalogue, hand over and points by hand, each tab counting what waits, and no spin wheel', async () => {
+  it('gives the floor the catalogue, hand over and points by hand, each counting what waits', async () => {
     renderAs('floor', undefined);
     expect(await screen.findByRole('link', { name: 'Catalogue 1' }, LAZY)).toBeDefined();
     expect(await screen.findByRole('link', { name: 'Hand over 1' })).toBeDefined();
     expect(screen.getByRole('link', { name: 'Points by hand' })).toBeDefined();
-    expect(screen.queryByRole('link', { name: 'Spin wheel' })).toBeNull();
     expect(await screen.findByText('RIVR hoodie')).toBeDefined();
   });
 
@@ -74,25 +73,20 @@ describe('Rewards', () => {
     expect(screen.getByRole('heading', { name: 'League points from a CSV' })).toBeDefined();
   });
 
-  it('opens the spin wheel for staff who run promotions, as the database asks', async () => {
-    renderAs('marketing', 'spin');
-    expect(await screen.findByRole('heading', { name: 'Spins waiting' }, LAZY)).toBeDefined();
-    expect(screen.getByRole('heading', { name: 'The wheel' })).toBeDefined();
-  });
-
-  it('shows the first tab to a role that has no spin wheel, whatever the address asks', async () => {
-    renderAs('floor', 'spin');
+  it('shows marketing, who keep the catalogue alone, the catalogue whatever part the address asks for', async () => {
+    renderAs('marketing', 'points');
     expect(await screen.findByText('RIVR hoodie', {}, LAZY)).toBeDefined();
-    expect(screen.queryByRole('heading', { name: 'Spins waiting' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Points by hand' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Give points by hand' })).toBeNull();
   });
 
-  it('asks the address to change when a tab is chosen', async () => {
+  it('asks the address to change when a part is chosen', async () => {
     const onNavigate = renderAs('floor', undefined);
     fireEvent.click(await screen.findByRole('link', { name: 'Points by hand' }, LAZY));
-    expect(onNavigate).toHaveBeenCalledWith('/rewards?tab=points');
+    expect(onNavigate).toHaveBeenCalledWith('/rewards?tab=rewards&part=points');
   });
 
-  it('refuses a role with no rewards and no promotions', async () => {
+  it('refuses a role with no rewards', async () => {
     renderAs('dealer', undefined);
     expect(await screen.findByText('Not in your role. Ask an admin.', {}, LAZY)).toBeDefined();
   });

@@ -42,21 +42,22 @@ export function PrizeForm({ venueId }: { venueId: string }) {
   const prize = useAddPrize(venueId);
   const [kind, setKind] = useState<SpinPrizeKind>('points');
   const [amount, setAmount] = useState('');
-  const [weight, setWeight] = useState('1');
+  const [weight, setWeight] = useState('');
   const submit = () => void prize.send(kind, amount, weight).then((isAdded) => { if (isAdded) setAmount(''); });
   return (
     <Stack gap={3}>
-      <Inline gap={3} align="end" wrap>
+      {/* One row of 36 px parts at a desk, centred on one line: the kind, the amount, the weight and Add. */}
+      <Inline gap={3} align="center" wrap>
         <Segmented label={t('console.spin.kind')} size="compact" value={kind} onChange={setKind}
           options={KINDS.map((each) => ({ value: each, label: t(`console.spin.kinds.${each}`) }))} />
         {kind === 'nothing' ? null : (
-          <Input label={t(kind === 'points' ? 'console.spin.points' : 'console.spin.bonus')} value={amount} inputMode="numeric" autoComplete="off"
-            onChange={(event) => setAmount(event.target.value)} />
+          <Input variant="subtle" label={t(kind === 'points' ? 'console.spin.points' : 'console.spin.bonus')} value={amount} inputMode="numeric"
+            autoComplete="off" onChange={(event) => setAmount(event.target.value)} />
         )}
-        <Input label={t('console.spin.weight')} value={weight} inputMode="numeric" autoComplete="off" onChange={(event) => setWeight(event.target.value)} />
+        <Input variant="subtle" label={t('console.spin.weight')} value={weight} inputMode="numeric" autoComplete="off" onChange={(event) => setWeight(event.target.value)} />
         <Button variant="subtle" size="compact" isLoading={prize.isPending} onClick={submit}>{t('console.spin.add')}</Button>
+        <Text variant="small" tone="muted">{t('console.spin.weightHint')}</Text>
       </Inline>
-      <Text variant="small" tone="muted">{t('console.spin.weightHint')}</Text>
       <StatusMessage>{prize.outcome?.ok === true ? prize.outcome.text : null}</StatusMessage>
       {prize.outcome?.ok === false ? <ErrorMessage>{prize.outcome.text}</ErrorMessage> : null}
     </Stack>

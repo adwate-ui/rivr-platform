@@ -10,25 +10,26 @@ const SPIN_BUDGET_SETTING = '/settings?tab=members';
 
 /**
  * A prize's odds: its weight's share of the prizes that can be won now as a bar; or, for a bonus this month's spin budget
- * cannot pay, why it is off the wheel and where the budget is set, so a prize added never just fails to show.
+ * cannot pay, why it is off the wheel, so a prize added never just fails to show.
  */
 function OddsCell({ prize, total }: { prize: SpinPrize; total: number }) {
   if (prize.isDrawable) return <ProgressBar fraction={total === 0 ? 0 : prize.weight / total} />;
-  return (
-    <Inline gap={3} align="center" wrap>
-      <DotStatus tone="danger" label={t('console.spin.budgetSpent')} />
-      <Button variant="text" size="small" href={SPIN_BUDGET_SETTING}>{t('console.spin.budgetLink')}</Button>
-    </Inline>
-  );
+  return <DotStatus tone="danger" label={t('console.spin.budgetSpent')} />;
 }
 
-/** What it gives, its odds, its chance in words ("4 in 9", or a dash off the wheel), and Remove for staff who keep the wheel. */
+/** Its chance in words, "4 in 9"; off the wheel, the way to the spin budget in its place, on the same line. */
+function ChanceCell({ prize, total }: { prize: SpinPrize; total: number }) {
+  if (prize.isDrawable) return <>{t('console.spin.oddsValue', { weight: formatNumber(prize.weight), odds: formatNumber(total) })}</>;
+  return <Button variant="text" size="small" href={SPIN_BUDGET_SETTING}>{t('console.spin.budgetLink')}</Button>;
+}
+
+/** What it gives, its odds, its chance, and Remove for staff who keep the wheel. */
 function columnsFor(total: number, onRemove: ((prize: SpinPrize) => void) | null): readonly DataTableColumn<SpinPrize>[] {
-  const chance = (row: SpinPrize) => (row.isDrawable ? t('console.spin.oddsValue', { weight: formatNumber(row.weight), odds: formatNumber(total) }) : t('console.spin.offWheel'));
   const columns: DataTableColumn<SpinPrize>[] = [
     { key: 'prize', header: t('console.spin.prize'), cell: (row) => prizeLabel(row) },
     { key: 'odds', header: t('console.spin.odds'), isWide: true, cell: (row) => <OddsCell prize={row} total={total} /> },
-    { key: 'chance', header: t('console.spin.chance'), align: 'end', cell: chance },
+    { key: 'chance', header: t('console.spin.chance'), align: 'end', cell: (row) => <ChanceCell prize={row} total={total} />,
+      exportValue: (row) => (row.isDrawable ? t('console.spin.oddsValue', { weight: formatNumber(row.weight), odds: formatNumber(total) }) : t('console.spin.budgetSpent')) },
   ];
   if (onRemove === null) return columns;
   // Asked twice: a removed prize is gone from the wheel at once (F2-21).
@@ -47,7 +48,8 @@ function PrizeRows({ venueId, canKeep }: { venueId: string; canKeep: boolean }) 
   const onRemove = canKeep ? (prize: SpinPrize) => void remove.mutateAsync(prize.prizeId).then((done) => {
     setFailure(done.ok ? null : t(`console.spin.failures.${done.error}`));
   }) : null;
-  const base = { label: t('console.spin.wheel'), columns: columnsFor(total, onRemove), rowKey: (row: SpinPrize) => row.prizeId };
+  // On a phone the prizes keep their lines, scrolling sideways, so a bar and an off-the-wheel reason keep their room.
+  const base = { label: t('console.spin.wheel'), columns: columnsFor(total, onRemove), rowKey: (row: SpinPrize) => row.prizeId, narrowLayout: 'scroll' as const };
   return (
     <>
       {wheel.data === undefined && wheel.isError ? <DataTable {...base} status="error" onRetry={() => void wheel.refetch()} /> : null}

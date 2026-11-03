@@ -58,7 +58,7 @@ function GiveFile({ venueId, chosen, onGiven }: { venueId: string; chosen: Chose
   };
   return (
     <Stack gap={3}>
-      <Input label={t('console.rewards.leagueCsv.reason')} maxLength={200} value={reason} onChange={(event) => setReason(event.target.value)} />
+      <Input variant="subtle" label={t('console.rewards.leagueCsv.reason')} maxLength={200} value={reason} onChange={(event) => setReason(event.target.value)} />
       <Inline>
         <Button variant="subtle" size="compact" isDisabled={reason.trim().length < 3} isLoading={give.isPending} onClick={() => void send()}>
           {t('console.rewards.leagueCsv.give')}

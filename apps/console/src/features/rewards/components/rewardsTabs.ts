@@ -1,6 +1,9 @@
-/** Rewards' parts, each its own tab with its own address (`/rewards?tab=spin`), in the rail's order (console v3). */
-export const REWARDS_TABS = ['catalogue', 'handover', 'points', 'spin'] as const;
-export type RewardsTab = (typeof REWARDS_TABS)[number];
+/**
+ * Rewards' parts (console v3), each with its own address inside the Rewards tab: `/rewards?tab=rewards&part=handover`.
+ * The spin wheel is the screen's other tab, a screen of its own.
+ */
+export const REWARDS_PARTS = ['catalogue', 'handover', 'points'] as const;
+export type RewardsPart = (typeof REWARDS_PARTS)[number];
 
 /** What a staff member may do here, from their permissions. */
 export interface RewardsAccess {
@@ -10,8 +13,6 @@ export interface RewardsAccess {
   readonly handOver: boolean;
   /** points.give: points by hand and League points. */
   readonly give: boolean;
-  /** promotions.manage: spin the wheel and keep its prizes, as the database asks (decision 0302). */
-  readonly spin: boolean;
 }
 
 /** The access a staff member's permissions give. */
@@ -20,17 +21,18 @@ export function accessOf(permissions: readonly string[]): RewardsAccess {
     keep: permissions.includes('rewards.manage'),
     handOver: permissions.includes('rewards.hand_over'),
     give: permissions.includes('points.give'),
-    spin: permissions.includes('promotions.manage'),
   };
 }
 
-/** The tabs a staff member sees: the catalogue for anyone with a rewards permission, then each part their role allows. */
-export function tabsFor(access: RewardsAccess): readonly RewardsTab[] {
-  const shown: Record<RewardsTab, boolean> = {
+/** The parts a staff member sees: the catalogue for anyone with a rewards permission, then each part their role allows. */
+export function partsFor(access: RewardsAccess): readonly RewardsPart[] {
+  const shown: Record<RewardsPart, boolean> = {
     catalogue: access.keep || access.handOver || access.give,
     handover: access.handOver,
     points: access.give,
-    spin: access.spin,
   };
-  return REWARDS_TABS.filter((tab) => shown[tab]);
+  return REWARDS_PARTS.filter((part) => shown[part]);
 }
+
+/** A part's address. */
+export const partHref = (part: RewardsPart) => `/rewards?tab=rewards&part=${part}`;
