@@ -132,6 +132,8 @@ export const tokens = {
     "row": 42,
     "rowCompact": 34,
     "sidePanel": 440,
+    "dock": 320,
+    "dockStrip": 52,
     "palette": 600,
     "paletteList": 420,
     "search": 420,
@@ -267,6 +269,7 @@ export const tokens = {
       "sheet": "240ms",
       "tick": "1000ms",
       "toast": "3200ms",
+      "toastUndo": "5000ms",
       "fresh": "2500ms",
       "turn": "1000ms"
     },

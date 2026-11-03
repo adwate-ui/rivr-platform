@@ -24,6 +24,11 @@ export const consoleUi = {
   sheet: {
     close: 'Close',
   },
+  /** A panel docked beside a screen (the Live floor's requests): fold it to a strip, or open it again from the strip. */
+  dockedPanel: {
+    fold: 'Collapse',
+    open: 'Open, {count} waiting',
+  },
   /** DataTable's ticks: each row's, read with the row's title (`Select Arjun Mehta`), and the header's for every row as shown. */
   dataTable: {
     selectRow: 'Select {row}',

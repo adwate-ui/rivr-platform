@@ -62,6 +62,7 @@ export * from './TableCard/index.ts';
 export * from './TableTile/index.ts';
 export * from './SeatRow/index.ts';
 export * from './RequestItem/index.ts';
+export * from './DockedPanel/index.ts';
 export * from './DataTable/index.ts';
 export * from './Chart/index.ts';
 

@@ -15,6 +15,8 @@ export interface ToastProps extends ToastMessage {
 
 /** How long a toast stays, from the tokens: 3.2 s. */
 export const TOAST_MS = Number.parseInt(String(tokens.motion.duration.toast), 10);
+/** How long a toast with Undo stays, from the tokens: 5 s, so its change can be taken back (console v3). */
+export const UNDO_TOAST_MS = Number.parseInt(String(tokens.motion.duration.toastUndo), 10);
 
 /**
  * A toast on its own, as the provider shows it: cream, with Undo when it can be undone. The provider's status region,
@@ -55,7 +57,7 @@ const PLACE = {
 
 /**
  * Confirms the staff member's or member's own action at the foot of the screen (decision 0320): "Joined waitlist", with
- * Undo when it can be undone. One at a time; a new one replaces the last. It goes after 3.2 s. Its status region is there
+ * Undo when it can be undone. One at a time; a new one replaces the last. It goes after 3.2 s, or 5 s with Undo. Its status region is there
  * all along, empty between toasts, so each is announced as it comes.
  */
 export function ToastProvider({ children, place = 'player' }: ToastProviderProps) {
@@ -65,7 +67,7 @@ export function ToastProvider({ children, place = 'player' }: ToastProviderProps
   const show = useCallback<ShowToast>((text, options) => {
     clearTimeout(timer.current);
     setMessage({ text, onUndo: options?.onUndo });
-    timer.current = setTimeout(close, TOAST_MS);
+    timer.current = setTimeout(close, options?.onUndo === undefined ? TOAST_MS : UNDO_TOAST_MS);
   }, [close]);
   useEffect(() => () => clearTimeout(timer.current), []);
   const value = useMemo(() => show, [show]);
