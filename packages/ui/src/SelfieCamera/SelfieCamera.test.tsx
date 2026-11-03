@@ -27,6 +27,14 @@ describe('Identity › Camera', () => {
     expect(screen.getByRole('button', { name: 'Back' })).toBeDefined();
   });
 
+  it('sets "Selfie" in the middle of three equal columns, centred whatever Back\'s width (owner, 3 Nov)', async () => {
+    cameraThatStarts();
+    renderIn(<SelfieCamera onPhoto={() => undefined} onBack={() => undefined} />);
+    const title = await screen.findByText('Selfie');
+    expect(title).toHaveClass('justify-self-center');
+    expect(title.parentElement).toHaveClass('grid', 'grid-cols-3');
+  });
+
   it('says what to do when the browser has no camera', async () => {
     Object.defineProperty(navigator, 'mediaDevices', { value: undefined, configurable: true });
     renderIn(<SelfieCamera onPhoto={() => undefined} onBack={() => undefined} />);
