@@ -79,9 +79,9 @@ select is((select count(*)::integer from public.seat_session), 1, 'which he stil
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select is_empty($$ select * from public.my_seat() $$, 'staff have no seat of their own');
 
--- Every minute: call_time.completed once per session, and the session reminder once.
+-- Every minute: call_time.completed once per session. No session reminder goes, whatever a member set (#796).
 select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
-select lives_ok($$ select public.set_session_reminder(4) $$, 'Vihaan asks for a reminder after 4 hours');
+select lives_ok($$ select public.set_session_reminder(4) $$, 'Vihaan sets a reminder after 4 hours, as an old app could');
 reset role;
 update public.seat_session set started_at = started_at - interval '4 hours', seated_here_at = seated_here_at - interval '4 hours'
 where id = (select id from ids where name = 'vihaan');
@@ -89,9 +89,8 @@ select lives_ok($$ select private.sweep_seated_time() $$, 'the minute''s sweep')
 select lives_ok($$ select private.sweep_seated_time() $$, 'and the next');
 select results_eq($$ select event_type, (payload ->> 'member_id')::uuid from public.outbox_event
                      where event_type in ('call_time.completed', 'session.reminder') order by event_type $$,
-  $$ values ('call_time.completed'::text, '00000000-0000-4000-8000-000000000212'::uuid),
-            ('session.reminder', '00000000-0000-4000-8000-000000000212'::uuid) $$,
-  'Vihaan''s call time is complete and his reminder sent, each once; Ishaan has time left and no reminder');
+  $$ values ('call_time.completed'::text, '00000000-0000-4000-8000-000000000212'::uuid) $$,
+  'Vihaan''s call time is complete, once, and no reminder is sent; Ishaan has time left');
 
 -- Leaving within the minute of completing still emits call_time.completed, once.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
