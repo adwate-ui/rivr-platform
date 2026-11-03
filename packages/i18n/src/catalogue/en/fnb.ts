@@ -62,52 +62,53 @@ export const tabletFnb = {
 export const consoleFnb = {
   title: 'Food and drink',
   notAllowed: 'Not in your role. Ask an admin.',
-  toPrint: 'KOTs to print',
-  toPrintHint: 'If the agent is down, print or read each to the bar, then mark it sent.',
-  noneToPrint: 'Every KOT is at the bar.',
-  markSent: 'Mark KOT {kot} sent',
-  /** Serving (#640): orders to accept, then being prepared, then delivered, each with its table, seat and time. */
+  /** The screen's two parts (console v3): tonight's orders, and the menu. */
+  tabs: { orders: 'Orders', menu: 'Menu' },
+  /** Tonight's orders in three lanes, oldest first, each with its count (console v3). */
   toAccept: 'To accept',
-  noneToAccept: 'No orders waiting.',
   preparing: 'Being prepared',
-  nonePreparing: 'Nothing being prepared.',
   delivered: 'Delivered tonight',
-  noneDelivered: 'Nothing delivered yet tonight.',
-  accept: 'Accept KOT {kot}',
-  deliver: 'Mark KOT {kot} delivered',
-  /** A runner leaves with the order (decision 0320). */
-  onWay: 'KOT {kot} on its way',
-  isOnWay: 'On its way',
-  /** `{time}`: 6 min. */
-  waitingFor: 'Waiting {time}',
+  laneEmpty: 'Nothing here.',
+  /** An order's card: `KOT 4`, then where it goes, `Private Room, seat 4 · Lalit Goel`, then its lines. */
+  kot: 'KOT {kot}',
+  where: '{table}, seat {seat} · {member}',
+  line: '{quantity} × {name}',
+  comp: 'Comp',
+  /** How long a delivered order took, `{time}`: 6 min. */
   deliveredIn: 'Delivered in {time}',
+  accept: 'Accept',
+  acceptName: 'Accept KOT {kot}',
+  deliver: 'Delivered',
+  deliverName: 'Mark KOT {kot} delivered',
+  /** A runner leaves with the order (decision 0320). */
+  onWay: 'On its way',
+  onWayName: 'KOT {kot} on its way',
+  isOnWay: 'On its way',
   /** Voiding an order not yet delivered (decision 0302), with a reason the member sees. */
   void: 'Void',
   voidName: 'Void KOT {kot}',
   voidReason: 'Why void KOT {kot}',
   voidConfirm: 'Void the order',
   invalidVoidReason: 'Give a reason of 3 to 300 characters.',
-  voided: 'Void orders',
   memberSeesReason: 'The member sees this.',
-  voidedLine: 'Void: {reason}',
-  /** When an order was placed, `21:40`. */
+  /** The bar printer's delivery of the KOT failed or closed unprinted (console v3): never said from a clock. */
+  notAtBar: 'The bar printer did not get this KOT. Print it or read it to the bar.',
+  printKot: 'Print KOT',
+  printKotName: 'Print KOT {kot}',
+  barHasIt: 'Bar has it',
+  barHasItName: 'KOT {kot}: bar has it',
+  /** The KOT as the console prints it: when it was ordered, `21:40`. */
   orderedAt: 'Ordered {time}',
-  tonight: 'Tonight’s orders',
-  noneTonight: 'No orders tonight.',
-  /** `{kot}`, the table, seat and member: `KOT 12 · Table 3, seat 5 · Yash Gupta (1043)`. */
-  order: 'KOT {kot} · {table}, seat {seat} · {member} ({number})',
-  line: '{quantity} × {name}',
-  paid: 'Paid',
-  comp: 'Comp',
-  byAgent: 'Printed at the bar',
-  byStaff: 'Given to the bar by hand',
-  waiting: 'Not at the bar yet',
-  newOrder: 'Order for a seat',
+  /** Ordering for a seat (console v3): the table first, then the seat and who sits there, then the items. */
+  newOrder: 'New order',
+  table: 'Table',
   seat: 'Seat',
-  /** A seat to order for: `Table 3, seat 5 · Yash Gupta`. */
-  seatChoice: '{table}, seat {seat} · {name}',
+  /** A seat to order for: `3 · Sakshi Tandon`. */
+  seatChoice: '{seat} · {name}',
   nobodySeated: 'Nobody seated.',
+  orderItems: 'Items',
   isComp: 'Comp it: RIVR pays Glaza',
+  cancel: 'Cancel',
   send: 'Send to the bar',
   sent: 'Sent to the bar: KOT {kot}.',
   items: 'Menu',

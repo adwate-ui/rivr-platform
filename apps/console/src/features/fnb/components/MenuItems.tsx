@@ -25,7 +25,7 @@ function AddItem({ venueId, next }: { venueId: string; next: number }) {
         <Input label={t('console.fnb.itemName')} value={name} maxLength={60} autoComplete="off" onChange={(event) => setName(event.target.value)} />
         <ChoiceChips label={t('console.fnb.kind')} mode="one" options={kinds()} selected={[kind]}
           onChange={([picked]) => { const found = FNB_ITEM_KINDS.find((known) => known === picked); if (found) setKind(found); }} />
-        <Button variant="secondary" isDisabled={name.trim() === ''} isLoading={saveItem.isPending} onClick={() => void add()}>{t('console.fnb.addItem')}</Button>
+        <Button variant="subtle" size="compact" isDisabled={name.trim() === ''} isLoading={saveItem.isPending} onClick={() => void add()}>{t('console.fnb.addItem')}</Button>
       </Inline>
       {failure === null ? null : <ErrorMessage>{t('console.fnb.invalidItem')}</ErrorMessage>}
     </Stack>
