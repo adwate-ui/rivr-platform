@@ -7,6 +7,11 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- A venue starts with hotel nights off (20261105300100); the club offers them to every tier here.
+insert into public.tier_feature (venue_id, tier_id, feature_key, is_enabled, display_mode, effective_from)
+select venue_id, id, 'rewards.accommodation', true, 'locked', now() - interval '1 day' from public.tier
+where venue_id = '00000000-0000-4000-8000-000000000001';
+
 create function pg_temp.as_person(p_person text) returns void language sql as $$
   select set_config('role', 'authenticated', true),
          set_config('request.jwt.claims', jsonb_build_object('sub', p_person, 'role', 'authenticated')::text, true);
