@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { axeViolations, renderIn } from '../test/render.tsx';
 import { DockedPanel } from './DockedPanel.tsx';
 
@@ -48,6 +48,21 @@ describe('DockedPanel', () => {
     unmount();
     renderIn(<Floor isOpen={false} count={0} />);
     expect(screen.getByText('0', { selector: 'span' })).toHaveClass('bg-subtle-hover');
+  });
+
+  it('says when the pointer comes onto what it holds, and leaves, so a list there can keep still', async () => {
+    const onHoverChange = vi.fn();
+    renderIn(<DockedPanel title="Requests" count={1} isOpen onToggle={() => undefined} panel={<p>Ritika Bhalla</p>} onHoverChange={onHoverChange}>x</DockedPanel>);
+    await userEvent.hover(screen.getByText('Ritika Bhalla'));
+    expect(onHoverChange).toHaveBeenLastCalledWith(true);
+    await userEvent.unhover(screen.getByText('Ritika Bhalla'));
+    expect(onHoverChange).toHaveBeenLastCalledWith(false);
+  });
+
+  it('shows the screen alone, with its gutter, for a role the panel is not for', () => {
+    renderIn(<DockedPanel title="Requests" count={0} isOpen onToggle={() => undefined} panel={<p>Ritika Bhalla</p>} hasPanel={false}><h1>Live floor</h1></DockedPanel>);
+    expect(screen.getByRole('heading', { name: 'Live floor' }).parentElement).toHaveClass('px-4', 'medium:px-8');
+    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
   });
 
   it('has no accessibility violations, open or folded', async () => {

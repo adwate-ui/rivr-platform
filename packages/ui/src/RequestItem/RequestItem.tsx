@@ -1,6 +1,10 @@
 import { t } from '@rivr/i18n';
+import { tokens } from '@rivr/tokens';
 import { Button } from '../Button/Button.tsx';
 import { cx } from '../internal/classes.ts';
+
+/** How long a new request's gold tint takes to fade, from the tokens: 2.5 s (decision 0431). Keep `isNew` on for as long. */
+export const FRESH_MS = Number.parseInt(String(tokens.motion.duration.fresh), 10);
 
 /** One of a request's two actions: what it says and what it does. */
 export interface RequestAction {

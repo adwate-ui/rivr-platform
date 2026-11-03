@@ -102,13 +102,14 @@ export function floorQueryKeys(userId: string, venueId: string) {
 
 /**
  * Live (decision 0446): reads the floor again when the database broadcasts on the venue's private topic (floor:<venue id>)
- * that something it shows changed, once a second after the first signal of a burst.
+ * that something it shows changed, once a second after the first signal of a burst. For the floor only (`isEnabled`).
  */
-export function useFloorSignals(venueId: string) {
+export function useFloorSignals(venueId: string, isEnabled = true) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   useEffect(() => {
-    if (userId === null) return undefined;
+    // Only the floor (waitlist.manage) may hear the topic; anyone else would be refused it.
+    if (userId === null || !isEnabled) return undefined;
     let pending: ReturnType<typeof setTimeout> | null = null;
     const channel = client.channel(`floor:${venueId}`, { config: { private: true } });
     channel.on('broadcast', { event: 'changed' }, () => {
@@ -123,5 +124,5 @@ export function useFloorSignals(venueId: string) {
       if (pending !== null) clearTimeout(pending);
       void client.removeChannel(channel);
     };
-  }, [client, queryClient, userId, venueId]);
+  }, [client, queryClient, userId, venueId, isEnabled]);
 }

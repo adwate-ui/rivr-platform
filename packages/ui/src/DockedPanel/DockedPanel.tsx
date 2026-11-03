@@ -16,6 +16,10 @@ export interface DockedPanelProps {
   onToggle: () => void;
   /** What the panel holds while open: a live region, so what comes and goes is read out politely. */
   panel: ReactNode;
+  /** The pointer came onto what the panel holds, or left it: a list there keeps still meanwhile (console v3). */
+  onHoverChange?: ((isOver: boolean) => void) | undefined;
+  /** False for a role the panel is not for: the screen alone, with the same gutter. */
+  hasPanel?: boolean;
 }
 
 const TOGGLE =
@@ -37,11 +41,13 @@ function Count({ count }: { count: number }) {
  * 320 px with its title, count and › to fold it; folded, a 52 px strip with its count and its name read down the strip,
  * the whole strip opening it again. Below 768 px there is no panel: the phone gives it a screen of its own.
  */
-export function DockedPanel({ children, title, count, isOpen, onToggle, panel }: DockedPanelProps) {
+export function DockedPanel({ children, title, count, isOpen, onToggle, panel, onHoverChange, hasPanel = true }: DockedPanelProps) {
   const headingId = useId();
+  const screen = <div className="min-w-0 flex-1 overflow-y-auto px-4 pt-7 pb-10 medium:px-8">{children}</div>;
+  if (!hasPanel) return <div className="flex h-full min-h-0">{screen}</div>;
   return (
     <div className="flex h-full min-h-0">
-      <div className="min-w-0 flex-1 overflow-y-auto px-4 pt-7 pb-10 medium:px-8">{children}</div>
+      {screen}
       <aside aria-labelledby={headingId} className={cx('hidden shrink-0 overflow-y-auto bg-raised medium:block', isOpen ? 'w-dock' : 'w-dock-strip')}>
         {isOpen ? (
           <div className="flex flex-col px-5 pt-7 pb-8">
@@ -52,7 +58,7 @@ export function DockedPanel({ children, title, count, isOpen, onToggle, panel }:
                 <Icon name="chevronRight" size="sm" />
               </button>
             </div>
-            <div aria-live="polite">{panel}</div>
+            <div aria-live="polite" onPointerEnter={() => onHoverChange?.(true)} onPointerLeave={() => onHoverChange?.(false)}>{panel}</div>
           </div>
         ) : (
           <>

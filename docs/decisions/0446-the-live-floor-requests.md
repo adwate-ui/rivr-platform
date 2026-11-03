@@ -1,0 +1,10 @@
+# 0446: The Live floor's requests, live
+
+Date: 3 Nov 2026. Console v3 brief, phase 2: a requests panel beside the tiles, ages late past a target read from settings, live through `@rivr/db`.
+
+- **One read.** `floor_requests(venue)` (waitlist.manage) gives every request oldest first, each with when it began: joins asked for, top-ups asked for or in hand, time requests, players leaving, and players who left owing call time (the last for `call_time.override` only, as `left_owing_call_time`). The panel and the phone's `/requests` show the same list.
+- **Targets.** A new venue setting, `floor.request_targets` (seconds: top-up 30 to 1,800, the rest 60 to 3,600), read by `floor_request_targets`. Unset, `@rivr/domain/floorRequests` supplies them: a top-up keeps `TOP_UP_TARGET_SECONDS` (60 s, the owner's 2 Nov rule, decision 0299, and the Top-ups page's), the rest 5 minutes. The brief says a top-up's is 3 minutes; the club sets that in Settings if it wants it. Late is strictly past the target, in the danger colour and read as "late".
+- **Live.** As decisions 0051 and 0192: a statement changing seats, waitlist places, time or top-up requests, tables or early departures broadcasts once on the private topic `floor:<venue>`, naming nothing; only the venue's floor hears it. The console reads the floor again a second after the first signal of a burst, and every ten seconds besides. The practice venue's floor hears its own topic only; nothing leaves for an outside system.
+- **Never re-sorted under the pointer.** While the pointer is on the list, new requests wait until it leaves; one acted on goes at once. A new one glows gold for 2.5 s and opens a folded panel.
+- **Seat a player** opens the Seat sheet at the first open table, in floor order, with a free seat and someone on its list, else the first with a free seat (`tableToSeatAt`).
+- **Also waiting** shows a line only for what has something waiting (spins, tournament sign-ups, KYC checks, feedback), linking to today's addresses, which redirect to the new tabs.

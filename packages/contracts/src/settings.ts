@@ -7,6 +7,7 @@
  */
 import { z } from 'zod';
 import { socialConnectedChannels } from './channels.ts';
+import { floorRequestTargets } from './floorSettings.ts';
 import { hostLapse } from './hostQueue.ts';
 import {
   accommodationHoursPerNight, cabMinimumVisits, leaguePrizes, learnDailyPointsCap, learnSessionPoints, pointsDailyStaffCap, pointsPerHour, pointsRewardsRakeShare, pointsVerifiedBonus, rakebackRate,
@@ -29,14 +30,6 @@ const callTimeAddChoices = {
   description: 'The lengths of more call time offered: a member asks for one from the seat, the floor adds one. None set is 30 minutes, 1 hour and 2 hours.',
   scope: 'venue',
   value: z.strictObject({ minutes: z.array(z.enum(['15', '30', '45', '60', '90', '120', '180', '240'])).min(1).max(8) }),
-} as const satisfies SettingDefinition;
-
-/** How long a request may wait on the Live floor before it shows late, in seconds (decision 0446); unset, @rivr/domain's defaults. */
-const floorRequestTargets = {
-  key: 'floor.request_targets',
-  description: 'How long a request may wait on the Live floor before it shows late: a top-up, and every other request, in seconds.',
-  scope: 'venue',
-  value: z.strictObject({ top_up_seconds: z.int().min(30).max(1800), other_seconds: z.int().min(60).max(3600) }),
 } as const satisfies SettingDefinition;
 
 const defaultTier = {
