@@ -1,86 +1,96 @@
 /**
- * Publish a promotion (#84, #86; design prompt flow 7): the floor manager opens Promotions, builds
- * Thursday 14:00 to 20:00, 100/200, double points, no limits, sees the player card and the TV slide
- * previewed, and submits it; Arjun Batra, a super admin, approves it and it runs (#144). The member's Home shows
- * the card, and a TV on Promotions shows the slide. 180 Tara, 759 Arjun and 280 Rhea are the flow's own: Auth sends
- * one code a minute to a number.
+ * Publish a promotion (console v3, phase 7; decision 0437). Tara Bhalla, a floor manager who manages promotions, starts
+ * a new promotion from the Buy-in bonus template, names it, keeps it to the Private Room every day, simulates it on last
+ * week and submits it. Arjun Batra, a super admin and a second person, reviews it and approves it, and it is live:
+ * Rhea Sood's Home shows its card, and a buy-in of 10,000 at the Private Room gives her 2,000 bonus chips (20%, capped
+ * at 2,000). The console takes no buy-ins (decision 0284), so the cage's own trigger call stands in for one. 180 Tara,
+ * 759 Arjun and 280 Rhea are the flow's own: Auth sends one code a minute to a number. Local stack only: it reads the
+ * database and pauses the promotion at the end, so no other flow meets it.
  */
+import { execFileSync } from 'node:child_process';
 import { expect, test, type Page } from '@playwright/test';
-import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
+import { worktreeName } from '@rivr/config/worktree';
+import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
-const RUNS = 'NLH 100/200 · Thursday, 14:00 to 20:00';
-// The card's optional link (#776): the approver reads it, and the member's card opens it.
-const LINK = 'https://glaza.example/double-points';
+const CLUB = '00000000-0000-4000-8000-000000000001';
+const RHEA = '00000000-0000-4000-8000-000000000280';
+// A name of this run's own, as each run makes a promotion of its own.
+const NAME = `Private Room bonus ${Date.now().toString(36).slice(-5)}`;
 
-/** Builds flow 7 in the builder and submits it; a super admin approves it. */
-async function publishFlow7(floor: Page, approver: Page) {
-  await floor.getByRole('link', { name: 'Promotions' }).click();
-  await expect(floor.getByRole('heading', { name: 'New promotion' })).toBeVisible({ timeout: 5000 });
-  await floor.getByRole('group', { name: 'Days' }).getByRole('button', { name: 'Thursday' }).click();
-  await floor.getByRole('radiogroup', { name: 'From' }).getByRole('radio', { name: '14:00' }).click();
-  await floor.getByRole('radiogroup', { name: 'To' }).getByRole('radio', { name: '20:00' }).click();
-  await floor.getByRole('radiogroup', { name: 'Who' }).getByRole('radio', { name: 'NLH 100/200' }).click();
-  await expect(floor.getByRole('radiogroup', { name: 'Reward' }).getByRole('radio', { name: 'Double points' })).toHaveAttribute('aria-checked', 'true');
-  await expect(floor.getByRole('radiogroup', { name: 'Limits' }).getByRole('radio', { name: 'None' })).toHaveAttribute('aria-checked', 'true');
-  // The player card and the TV slide, as the choices would publish them.
-  await expect(floor.getByRole('article', { name: 'Double points' })).toContainText(RUNS);
-  await expect(floor.getByRole('group', { name: 'TV slide' })).toContainText(RUNS);
-  await floor.getByRole('textbox', { name: 'Card link (optional)' }).fill(LINK);
-  // Simulated on last week first, then submitted; a super admin approves it (#144).
-  await floor.getByRole('button', { name: 'Simulate last week' }).click();
-  await expect(floor.getByText('Times given', { exact: true })).toBeVisible({ timeout: 10_000 });
-  await floor.getByRole('button', { name: 'Submit for approval', exact: true }).click();
-  await expect(floor.getByText('Double points waits for a super admin to approve it.')).toBeVisible({ timeout: 10_000 });
-  await approver.getByRole('link', { name: 'Promotions' }).click();
-  const waitingList = approver.getByRole('heading', { name: 'Waiting for approval' }).locator('xpath=..');
-  const waiting = waitingList.getByText(RUNS, { exact: true }).first().locator('xpath=../..');
-  await expect(waiting).toContainText(`Card opens ${LINK}`);
-  await waiting.getByRole('button', { name: 'Approve', exact: true }).click();
-  await expect(approver.getByText('Double points is live.')).toBeVisible({ timeout: 10_000 });
-  await expect(approver.getByText('Live', { exact: true }).first()).toBeVisible();
+/** Runs SQL in this worktree's local database and returns its unaligned output. */
+function sql(query: string): string {
+  return execFileSync('docker', ['exec', `supabase_db_${worktreeName()}`, 'psql', '-U', 'postgres', '-tAc', query], { encoding: 'utf8' }).trim();
 }
 
-/** Pairs a TV on the console's TVs screen by the code it shows, and sets it to Promotions. */
-async function pairTvOnPromotions(tv: Page, floor: Page, name: string) {
-  await tv.setViewportSize(VIEWPORT.display);
-  await tv.goto(appUrl('display'));
-  const shown = tv.getByRole('heading', { level: 2, name: /^\d{6}$/ });
-  await expect(shown).toBeVisible();
-  await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-  await floor.getByRole('link', { name: 'TVs' }).click();
-  await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
-  await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
-  await floor.getByRole('button', { name: 'Pair the TV' }).click();
-  await expect(floor.getByText(`${name} is paired.`)).toBeVisible();
-  await floor.getByRole('radiogroup', { name: `What ${name} shows`, exact: true }).getByRole('radio', { name: 'Promotions', exact: true }).click();
+/** A buy-in of 10,000 in cash at the Private Room, as the cage's trigger weighs one: the grants given. */
+function buyInAtThePrivateRoom(memberId: string, key: string): number {
+  return Number(sql(`select count(*) from private.evaluate_promotions('${CLUB}', 'buy_in', jsonb_build_object(
+    'member_id', '${memberId}', 'key', 'buy_in:${key}', 'amount_paise', 1000000, 'method', 'cash',
+    'table_id', (select id from public.game_table where venue_id = '${CLUB}' and name = 'Private Room')))`));
+}
+
+/** Builds the promotion from the Buy-in bonus template, simulates it on last week and submits it. */
+async function buildAndSubmit(floor: Page) {
+  await floor.goto(`${appUrl('console')}/promotions`);
+  await floor.getByRole('button', { name: 'New promotion' }).click();
+  await expect(floor.getByRole('heading', { level: 1, name: 'New promotion' })).toBeVisible();
+  await floor.getByRole('radiogroup', { name: 'Start from' }).getByRole('radio', { name: 'Buy-in bonus' }).click();
+  await floor.getByRole('textbox', { name: 'Name members see' }).fill(NAME);
+  await floor.getByRole('group', { name: 'Stakes' }).getByRole('button', { name: 'Private Room' }).click();
+  await floor.getByRole('button', { name: 'Every day' }).click();
+  await expect(floor.getByText(/^20% buy-in bonus, up to 2,000, first 5 buy-ins per table, for Private Room, every day, all day\./)).toBeVisible();
+  // Submitting waits for a simulation on the terms as they stand.
+  await expect(floor.getByRole('button', { name: 'Submit for approval' })).toBeDisabled();
+  await floor.getByRole('button', { name: 'Simulate' }).click();
+  await expect(floor.getByText('members qualified', { exact: true })).toBeVisible({ timeout: 10_000 });
+  await floor.getByRole('button', { name: 'Submit for approval' }).click();
+  await expect(floor.getByText(`${NAME} sent for approval`)).toBeVisible({ timeout: 10_000 });
+  const row = floor.getByRole('table', { name: 'Promotions' }).getByRole('row').filter({ hasText: NAME });
+  await expect(row).toContainText('Awaiting approval');
+}
+
+/** A second staff member, a super admin, reviews it and approves it. */
+async function approve(approver: Page) {
+  await approver.goto(`${appUrl('console')}/promotions`);
+  await approver.getByRole('radio', { name: /^Awaiting approval/ }).click();
+  await approver.getByRole('button', { name: `Review ${NAME}` }).click();
+  await expect(approver.getByRole('heading', { level: 1, name: `Review: ${NAME}` })).toBeVisible();
+  await expect(approver.getByText('A new promotion. Nothing runs yet.')).toBeVisible();
+  await approver.getByRole('button', { name: 'Approve' }).click();
+  await expect(approver.getByText(`${NAME} is live`)).toBeVisible({ timeout: 10_000 });
 }
 
 test.describe('Promotions', () => {
-  test('Publish a promotion: Thursday 14:00 to 20:00 at 100/200, double points, no limits; the card on Tonight, the slide on the TV', async ({ browser }) => {
-    test.skip(isRemoteTarget(), 'publishes a promotion and pairs a TV, so the local stack only');
-    test.setTimeout(120_000);
+  test.skip(isRemoteTarget(), 'makes a promotion and weighs a buy-in in the local database, so the local stack only');
+
+  test('create, simulate, submit, approve by a second person, live, and a grant at a buy-in', async ({ browser }) => {
+    test.setTimeout(150_000);
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000180');
+    await buildAndSubmit(floor);
+    // The one who submitted it never approves it.
+    await floor.getByRole('button', { name: `Review ${NAME}` }).click();
+    await expect(floor.getByText('A super admin approves it.')).toBeVisible();
+    await floor.getByRole('button', { name: 'All promotions' }).click();
+
     const approver = await browser.newPage();
     await signInToConsole(approver, '9000000759');
-    await publishFlow7(floor, approver);
+    await approve(approver);
+    const row = approver.getByRole('table', { name: 'Promotions' }).getByRole('row').filter({ hasText: NAME });
+    await approver.getByRole('radio', { name: /^Live/ }).click();
+    await expect(row).toContainText('Live');
 
     const member = await browser.newPage();
     await signInToPlayer(member, '9000000280');
-    // Tonight's offers (decision 0320): the card in the carousel headed Tonight.
-    const card = member.getByRole('region', { name: 'Tonight' }).getByRole('listitem').filter({ hasText: 'Double points' });
-    await expect(card).toContainText(RUNS, { timeout: 15_000 });
-    await expect(card.getByRole('link').first()).toHaveAttribute('href', LINK);
+    await expect(member.getByRole('region', { name: 'Tonight' }).getByRole('listitem').filter({ hasText: NAME })).toBeVisible({ timeout: 15_000 });
 
-    const name = `TV ${String(Date.now() % 100_000).padStart(5, '0')}`;
-    const tv = await browser.newPage();
-    await pairTvOnPromotions(tv, floor, name);
-    await expect(tv.getByRole('heading', { level: 1, name: 'Double points' }).first()).toBeVisible({ timeout: 20_000 });
-    await expect(tv.getByText(RUNS).first()).toBeVisible();
+    expect(buyInAtThePrivateRoom(RHEA, `promotions-e2e-${NAME}`)).toBe(1);
+    expect(sql(`select g.chips || ' ' || v.version from public.promotion_grant g join public.promotion_version v on v.id = g.promotion_version_id
+                where g.member_id = '${RHEA}' and v.name = '${NAME}'`)).toBe('2000 1');
 
-    await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
-    await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
-    await floor.getByRole('button', { name: 'Unpair the TV' }).click();
+    // Paused again, so no other flow meets it.
+    await approver.getByRole('button', { name: `Pause ${NAME}` }).click();
+    await expect(approver.getByText(`${NAME} paused`)).toBeVisible();
   });
 });
