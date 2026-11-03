@@ -1,7 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import {
-  dealerPinEntrySchema, dealerPinSchema, dealerTabletAddSchema, devicePairRequestSchema, devicePairSchema, deviceRevokeSchema, tvPairingSchema, tvPairSchema,
+  cageAgentRequestSchema, dealerPinEntrySchema, dealerPinSchema, dealerTabletAddSchema, devicePairRequestSchema, devicePairSchema, deviceRevokeSchema,
+  tvPairingSchema, tvPairSchema,
 } from './devices.ts';
+
+describe('cage agent requests', () => {
+  const finish = { action: 'finish_kot', delivery_id: '00000000-0000-4000-8000-0000000f0001', delivered: true, error: null, retry_after_seconds: 0 };
+
+  it('finishes a KOT as the attempt it was claimed as, or with none from an agent installed before that', () => {
+    expect(cageAgentRequestSchema.parse({ ...finish, attempts: 2 })).toEqual({ ...finish, attempts: 2 });
+    expect(cageAgentRequestSchema.parse(finish)).toEqual(finish);
+  });
+
+  it('refuses an attempt that is no claim', () => {
+    expect(cageAgentRequestSchema.safeParse({ ...finish, attempts: 0 }).success).toBe(false);
+    expect(cageAgentRequestSchema.safeParse({ ...finish, attempts: 1.5 }).success).toBe(false);
+  });
+});
 
 describe('dealer tablet schemas (#41)', () => {
   it('pairs with six digits only', () => {
