@@ -40,9 +40,9 @@ test.describe('F&B', () => {
     await member.getByRole('button', { name: 'Order to my seat' }).click();
     await expect(member.getByRole('heading', { name: 'Order', level: 1, exact: true })).toBeVisible();
     await expect(member.getByText('Table 3, seat 1 · Pay on delivery')).toBeVisible();
-    await member.getByRole('button', { name: 'Soft drinks', exact: true }).click();
+    await member.getByRole('radio', { name: 'Soft drinks', exact: true }).click();
     await member.getByRole('button', { name: 'Add Masala chai' }).click();
-    await member.getByRole('button', { name: 'Bar', exact: true }).click();
+    await member.getByRole('radio', { name: 'Bar', exact: true }).click();
     await member.getByRole('button', { name: 'Add Beer' }).click();
     await member.getByRole('button', { name: /^Send to the bar/ }).click();
     // Back on Tonight, a toast says so, and the tracker follows it to the seat: sent, until the service staff take it (#640).

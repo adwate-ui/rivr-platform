@@ -40,7 +40,7 @@ test.describe('Player settings', () => {
 
     await member.getByRole('button', { name: 'Send feedback' }).click();
     sheet = member.getByRole('dialog', { name: 'Send feedback' });
-    await sheet.getByRole('button', { name: 'Detailed feedback' }).click();
+    await sheet.getByRole('radio', { name: 'Detailed feedback' }).click();
     const rate = async (group: string, score: string) => sheet.getByRole('radiogroup', { name: group }).getByRole('radio', { name: score, exact: true }).click();
     await rate('The gameplay, 1 to 5', '5');
     await rate('The cashier, 1 to 5', '3');
