@@ -117,6 +117,19 @@ describe("a table's waitlist card (console v3)", () => {
     expect(await screen.findByText('Kabir Sethi seated at Table 1, seat 4')).toBeDefined();
   });
 
+  it('asks before holding a called place, as its call ends and the seat goes to the next name', async () => {
+    renderCard({ entries: [place(1, 'Kabir Sethi', { callTableName: 'Table 1', callSeat: 4, holdUntil: '2026-11-15T15:52:00Z' })] });
+    fireEvent.click(screen.getByRole('button', { name: 'More for Kabir Sethi' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Hold place' }));
+    expect(screen.getByText('Hold Kabir Sethi’s place? The seat goes to the next name.')).toBeDefined();
+    expect(calls.filter((call) => call.rpc === 'step_away')).toEqual([]);
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, hold Kabir Sethi’s place' }));
+    await waitFor(() => expect(calls).toContainEqual({ rpc: 'step_away', body: { p_entry_id: 'e1', p_is_away: true } }));
+    // No Undo: Release would not bring the call back.
+    expect(await screen.findByText('Kabir Sethi’s place held')).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
+  });
+
   it('says nobody waits when the list is empty', () => {
     renderCard({ entries: [] });
     expect(screen.getByText('No one is waiting.')).toBeDefined();

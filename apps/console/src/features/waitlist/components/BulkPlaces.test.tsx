@@ -5,9 +5,9 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BulkPlaces } from './BulkPlaces.tsx';
 
-const place = (place: number, fullName: string): WaitlistBoardEntry => ({
+const place = (place: number, fullName: string, holdUntil: string | null = null): WaitlistBoardEntry => ({
   entryId: `e${String(place)}`, tableTypeId: 'tt', memberId: `m${String(place)}`, fullName, joinedAt: '2026-11-15T15:35:00Z', place, addedByFloor: false,
-  priorityReason: null, callTableName: null, callSeat: null, holdUntil: null, awayUntil: null, tableId: 't1', onWayAt: null,
+  priorityReason: null, callTableName: null, callSeat: null, holdUntil, awayUntil: null, tableId: 't1', onWayAt: null,
 });
 
 let calls: { rpc: string; body: unknown }[] = [];
@@ -31,11 +31,11 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function renderBar(onClear = vi.fn()) {
+function renderBar(onClear = vi.fn(), entries = [place(1, 'Ishaan Verma'), place(2, 'Mihir Shah')]) {
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <ToastProvider place="console"><BulkPlaces venueId="v1" entries={[place(1, 'Ishaan Verma'), place(2, 'Mihir Shah')]} onClear={onClear} /></ToastProvider>
+      <ToastProvider place="console"><BulkPlaces venueId="v1" entries={entries} onClear={onClear} /></ToastProvider>
     </RivrDataProvider>,
   );
   return onClear;
@@ -60,5 +60,14 @@ describe('the bulk bar over the places ticked (console v3)', () => {
       { rpc: 'leave_waitlist', body: { p_entry_id: 'e1' } }, { rpc: 'leave_waitlist', body: { p_entry_id: 'e2' } },
     ]));
     expect(await screen.findByText('Removed from the lists: 2')).toBeDefined();
+  });
+
+  it('asks before holding when a place ticked is called', async () => {
+    renderBar(vi.fn(), [place(1, 'Ishaan Verma'), place(2, 'Kabir Sethi', '2026-11-15T15:52:00Z')]);
+    fireEvent.click(screen.getByRole('button', { name: 'Hold' }));
+    expect(screen.getByText('Some places ticked are called. Hold them all? Their seats go to the next names.')).toBeDefined();
+    expect(calls).toEqual([]);
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, hold them' }));
+    await waitFor(() => expect(calls).toHaveLength(2));
   });
 });
