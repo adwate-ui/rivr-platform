@@ -4,6 +4,7 @@
  */
 import { settings } from './settings.ts';
 import { rail } from './consoleRail.ts';
+import { shell } from './consoleShell.ts';
 import { cage } from './cage.ts';
 import { markers } from './credit.ts';
 import { killSwitch } from './killSwitch.ts';
@@ -190,6 +191,7 @@ export const consoleApp = {
   /** The heading while the console finds the staff member's venue, or fails to. */
   title: 'Console',
   rail,
+  shell,
   waitlist,
   // Each member named, never spread: a spread can run a getter, so the bundler would keep this whole
   // object, and the console's copy would ship in the player (#344).

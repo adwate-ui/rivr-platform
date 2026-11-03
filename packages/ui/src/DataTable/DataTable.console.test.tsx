@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Button } from '../Button/Button.tsx';
 import { axeViolations, renderIn } from '../test/render.tsx';
 import { DataTable, VIRTUAL_FROM, type DataTableColumn, type DataTableProps } from './DataTable.tsx';
+import { DataTableDensityProvider } from './DataTableDensity.tsx';
 
 // The console v3 table: ticks, a click anywhere on a row, density, and the scroll layout on a phone.
 
@@ -141,6 +142,14 @@ describe('DataTable on the console', () => {
     const many = Array.from({ length: VIRTUAL_FROM + 1 }, (_, index) => ({ id: `c${index}`, name: `Member ${index}`, hours: index }));
     renderIn(<Ticked rows={many} density="compact" />);
     expect(bodyRows()[1]).toHaveStyle({ height: `${tokens.size.rowCompact}px`, transform: `translateY(${tokens.size.rowCompact}px)` });
+  });
+
+  it('takes the staff member’s own density from the frame, unless it sets one', () => {
+    const { unmount } = renderIn(<DataTableDensityProvider density="compact"><Ticked /></DataTableDensityProvider>);
+    expect(bodyRows()[0]).toHaveClass('tablet:min-h-row-compact');
+    unmount();
+    renderIn(<DataTableDensityProvider density="compact"><Ticked density="comfortable" /></DataTableDensityProvider>);
+    expect(bodyRows()[0]).toHaveClass('tablet:min-h-row');
   });
 
   it('on a phone, scrolls the lines sideways under their header, the tick and title held, with no sort bar', () => {

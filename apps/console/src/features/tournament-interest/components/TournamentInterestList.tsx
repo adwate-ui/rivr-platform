@@ -2,7 +2,7 @@ import {
   useMarkTournamentRegistered, useStaffVenue, useTournamentInterest, useUnmarkTournamentRegistered, type TournamentInterest, type TournamentInterestFailure,
 } from '@rivr/db';
 import { formatDayTime, formatNumber, t } from '@rivr/i18n';
-import { Box, Button, ErrorMessage, Heading, Inline, LoadState, Skeleton, Stack, Text, useToast } from '@rivr/ui';
+import { Box, Button, ErrorMessage, Heading, Inline, Screen, Stack, Text, useToast } from '@rivr/ui';
 import { useState } from 'react';
 import { PublishTournament } from './PublishTournament.tsx';
 
@@ -74,27 +74,30 @@ function TournamentCard({ venueId, group }: { venueId: string; group: readonly T
   );
 }
 
-/** The tab once the staff member's venue is known: the cards, or that nobody asked, then the form to publish one. */
+/** The screen once the staff member's venue is known: the cards, or that nobody asked, then the form to publish one. */
 function InterestTab({ venueId }: { venueId: string }) {
   const list = useTournamentInterest(venueId);
-  if (list.isPending) return <Skeleton look="rows" />;
-  if (list.data === undefined) return <LoadState isError onRetry={() => void list.refetch()} />;
+  const title = t('console.tournamentInterest.title');
+  if (list.isPending) return <Screen title={title} status="loading" loadingLook="rows" />;
+  if (list.data === undefined) return <Screen title={title} status="error" onRetry={() => void list.refetch()} />;
   return (
-    <Stack gap={8}>
-      {list.data.length === 0 ? <Text tone="muted">{t('console.tournamentInterest.empty')}</Text> : (
-        <Stack gap={4}>{byTournament(list.data).map((group) => <TournamentCard key={group[0]?.tournamentId} venueId={venueId} group={group} />)}</Stack>
-      )}
-      <PublishTournament venueId={venueId} />
-    </Stack>
+    <Screen title={title}>
+      <Stack gap={8}>
+        {list.data.length === 0 ? <Text tone="muted">{t('console.tournamentInterest.empty')}</Text> : (
+          <Stack gap={4}>{byTournament(list.data).map((group) => <TournamentCard key={group[0]?.tournamentId} venueId={venueId} group={group} />)}</Stack>
+        )}
+        <PublishTournament venueId={venueId} />
+      </Stack>
+    </Screen>
   );
 }
 
 /**
- * Tournament interest, the Waitlist screen's second tab (#636; console v3), for staff who manage tournaments: a card for
- * each upcoming tournament with the members who registered interest from the app, each marked registered once they paid
- * at the venue; then a new tournament to publish without money (#800). The tournament module stays hidden.
+ * Tournament interest, the Waitlist's second tab (#636; console v3), for staff who manage tournaments: a card for each
+ * upcoming tournament with the members who registered interest from the app, each marked registered once they paid at the
+ * venue; then a new tournament to publish without money (#800). The tournament module stays hidden.
  */
-export function TournamentInterestList() {
+export function TournamentInterestScreen() {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;

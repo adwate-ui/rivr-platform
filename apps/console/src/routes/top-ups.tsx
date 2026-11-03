@@ -1,6 +1,7 @@
-import { createRoute } from '@tanstack/react-router';
-import { TopUpsScreen } from '../features/top-ups/index.ts';
+import { createRoute, Navigate } from '@tanstack/react-router';
 import { frameRoute } from './frame.tsx';
 
-/** The top-ups waiting and tonight's closed ones, on a page of their own (decision 0299). */
-export const topUpsRoute = createRoute({ getParentRoute: () => frameRoute, path: '/top-ups', component: TopUpsScreen });
+/** Top-ups moved into Requests (console v3): an old link or bookmark opens its tab there. */
+export const topUpsRoute = createRoute({
+  getParentRoute: () => frameRoute, path: '/top-ups', component: () => <Navigate to="/requests" search={{ tab: 'top-ups' }} replace />,
+});

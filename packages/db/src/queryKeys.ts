@@ -130,6 +130,8 @@ export const queryKeys = {
   fnbOrdersTonight: (userId: string, venueId: string) => ['user', userId, 'fnb-orders-tonight', venueId] as const,
   topUpsTonight: (userId: string, venueId: string) => ['user', userId, 'top-ups-tonight', venueId] as const,
   staffQueueCounts: (userId: string, venueId: string) => ['user', userId, 'staff-queue-counts', venueId] as const,
+  /** The signed-in staff member's console density at a venue (decision 0442). */
+  staffDensity: (userId: string, venueId: string) => ['user', userId, 'staff-density', venueId] as const,
   addTimeChoices: (userId: string, venueId: string) => ['user', userId, 'add-time-choices', venueId] as const,
   todaysPlayers: (userId: string, venueId: string) => ['user', userId, 'todays-players', venueId] as const,
   /** A venue's stakes and tables, for Tables setup (#642). */
@@ -211,13 +213,8 @@ export const queryKeys = {
   /** A venue's certification quizzes, and the attempts at them the signed-in staff member may see (#50): all, or one person's, under it. */
   quizzes: (userId: string, venueId: string) => ['user', userId, 'quizzes', venueId] as const,
   quizAttempts: (userId: string, venueId: string) => ['user', userId, 'quiz-attempts', venueId] as const,
-  /** A venue's live and paused promotions, and its stakes for the builder (#84). */
-  promotions: (userId: string, venueId: string) => ['user', userId, 'promotions', venueId] as const,
+  /** A venue's stakes for the promotion builder (#84). */
   promotionStakes: (userId: string, venueId: string) => ['user', userId, 'promotion-stakes', venueId] as const,
-  promotionTemplates: (userId: string, venueId: string) => ['user', userId, 'promotion-templates', venueId] as const,
-  /** A venue's promotions waiting for a super admin (#144). */
-  promotionsAwaitingApproval: (userId: string, venueId: string) => ['user', userId, 'promotions-awaiting', venueId] as const,
-  promotionsSentBack: (userId: string, venueId: string) => ['user', userId, 'promotions-sent-back', venueId] as const,
   /** The console's promotions list, a promotion's versions and a member's grants (console v3 phase 7). */
   promotionsOverview: (userId: string, venueId: string) => ['user', userId, 'promotions-overview', venueId] as const,
   promotionVersions: (userId: string, promotionId: string) => ['user', userId, 'promotion-versions', promotionId] as const,

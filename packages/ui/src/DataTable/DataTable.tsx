@@ -5,6 +5,7 @@ import { PhoneSort } from './PhoneSort.tsx';
 import { Input } from '../Input/Input.tsx';
 import { useIsWide } from '../useIsWide/useIsWide.ts';
 import { Text } from '../Text/Text.tsx';
+import { useTableDensity } from './DataTableDensity.tsx';
 import { ExportBar, useTableExporter } from './DataTableExport.tsx';
 import { HeaderRow, layoutOf, PlainBody, VirtualBody } from './rows.tsx';
 import { ticksFor, type DataTableSelection } from './Selection.tsx';
@@ -64,7 +65,10 @@ export type DataTableProps<Row> = DataTableState<Row> & {
   onRowOpen?: (row: Row) => void;
   /** A first column of ticks, to act on several rows at once, with a tick in the header for every row as shown. */
   selection?: DataTableSelection;
-  /** A row's height from 1180 px: `comfortable`, 42 px, or `compact`, 34 px. Below, rows stay 44 px targets. */
+  /**
+   * A row's height from 1180 px: `comfortable`, 42 px, or `compact`, 34 px. Below, rows stay 44 px targets. Left out, the
+   * staff member's own density from `DataTableDensityProvider` (decision 0442).
+   */
   density?: 'comfortable' | 'compact';
   /**
    * Below 768 px: `cards`, a card per row, sorted from a bar above them; or `scroll`, the table's lines under its header,
@@ -123,9 +127,11 @@ interface TableProps<Row> {
 
 function Table<Row>({ props, visible, sort, query, onSort }: TableProps<Row>) {
   const header = useRef<HTMLDivElement>(null);
+  // The staff member's own density (decision 0442), unless the table sets one.
+  const density = useTableDensity();
   const isVirtual = visible.length > VIRTUAL_FROM;
   const ticks = props.selection === undefined ? null : ticksFor(props.selection, visible.map(props.rowKey));
-  const layout = layoutOf(props.columns, props.narrowLayout ?? 'cards', props.density ?? 'comfortable', ticks);
+  const layout = layoutOf(props.columns, props.narrowLayout ?? 'cards', props.density ?? density, ticks);
   // In the scroll layout below 768 px the body scrolls sideways, and the header, which has no scrollbar, follows it.
   const onScrollX = (event: UIEvent<HTMLElement>) => {
     if (header.current !== null) header.current.scrollLeft = event.currentTarget.scrollLeft;

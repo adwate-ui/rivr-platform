@@ -1,190 +1,216 @@
-/** The console's Promotions (#84; design prompt Promotions, flow 7): what is running, and the builder's four blocks. */
+/**
+ * The console's Promotions (console v3, phase 7; decisions 0437 and 0461 to 0466): the list by status, the builder in
+ * five sections with its summary column, and the approver's view of a waiting version. Points, bonus chips, spins and
+ * perks, never rupees (decision 0284).
+ */
 export const promotions = {
   title: 'Promotions',
-  notAllowed: 'Only staff who manage promotions see this.',
-  running: 'Running',
-  empty: 'No promotions running.',
-  live: 'Live',
-  paused: 'Paused',
-  pause: 'Pause',
-  resume: 'Resume',
-  /** Every scheme in the deck, ready to send for approval as it stands (#85, #144). */
-  templates: 'Templates',
-  submitTemplate: 'Send for approval',
-  /** Beneath the budget Send for approval opens (A-15). */
-  sendTemplate: 'Send',
-  sendTemplateNamed: 'Send {name}',
-  /** After a template is sent: `{name}` is the template. */
-  templateSubmitted: '{name} waits for a super admin.',
-  /** A template's optional budget as it is sent (#562): an amount in rupees, for the whole promotion or each month. */
-  budget: 'Budget in bonus chips (optional)',
-  budgetFor: 'Budget for',
-  budgetPeriods: { promotion: 'The whole promotion', month: 'Each month' },
-  invalidBudget: 'Enter the budget in bonus chips, or leave it empty.',
-  /** The builder's budget (A2-04): the most grants beside the amount, both optional. */
-  budgetGrants: 'Most grants (optional)',
-  invalidBuilderBudget: 'Whole numbers for the budget and the most grants, or leave them empty.',
+  description: 'A new or changed promotion goes live only after approval.',
+  notAllowed: 'Not in your role. Ask an admin.',
   newPromotion: 'New promotion',
-  /** The promotion's rules and questions as the website shows them (#618). */
-  rules: 'Rules on the website',
-  rulesHint: 'One rule a line.',
-  questions: 'Questions on the website',
-  questionsHint: 'Question, answer, then a blank line.',
-  /** The card's optional link (#776): the member's card opens it. */
-  link: 'Card link (optional)',
-  invalidLink: 'Not a web address. Start it with https://.',
-  when: 'When',
-  days: 'Days',
-  from: 'From',
-  to: 'To',
-  who: 'Who',
-  reward: 'Reward',
-  limits: 'Limits',
-  allStakes: 'All stakes',
-  everyDay: 'Every day',
-  /** By ISO day: Monday is day 1. */
-  dayNames: { monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday', thursday: 'Thursday', friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday' },
-  /** A window on the chosen days, in IST: "Thursday, 14:00 to 20:00". */
-  dayWindow: '{days}, {from} to {until}',
-  /** Who and when, under the title on the cards: "100/200 · Thursday, 14:00 to 20:00". */
-  runs: '{who} · {when}',
-  /** With a limit, which players must know: "NLH 100/200 · Thursday, 14:00 to 20:00 · Once per member". */
-  runsWithLimit: '{who} · {when} · {limit}',
-  rewards: { double_points: 'Double points', triple_points: 'Triple points', buy_in_bonus: '10% buy-in bonus', hours_bonus: 'Bonus chips for hours played' },
-  /** The 10% buy-in bonus's cap, which the floor sets (question #415). */
-  bonusCap: 'Most bonus chips per buy-in',
-  /** What the bonus gives, on its card, in bonus chips (#629): "Up to 5,000 bonus chips a buy-in". */
-  bonusDetail: 'Up to {cap} bonus chips a buy-in',
-  /** The hours bonus's two numbers, which the builder sets (#646). */
-  bonusHours: 'Hours played in a visit',
-  bonusChips: 'Bonus chips',
-  /** On its card: "1,000 bonus chips after 4 hours at the tables". */
-  hoursBonusDetail: '{chips} bonus chips after {hours} hours at the tables',
-  hoursBonusDetailOne: '{chips} bonus chips after 1 hour at the tables',
-  limitOptions: { none: 'None', first_50: 'First 50 members a day', once_per_member: 'Once per member' },
-  playerApp: 'Player app',
-  tvSlide: 'TV slide',
-  /** Above the title on the TV slide. */
+  allPromotions: 'All promotions',
+  /** Above the title on the TV slide preview, as the TV says it. */
   slideLabel: 'Promotion',
-  submit: 'Submit for approval',
-  /** After Submit for approval: `{name}` is the promotion. */
-  submitted: '{name} waits for a super admin to approve it.',
-  /** Promotions waiting for a super admin (#144): only a super admin approves one, never their own. */
-  awaiting: {
-    heading: 'Waiting for approval',
-    /** Under each: `{name}` submitted it at `{time}`. */
-    submittedBy: 'Submitted by {name}, {time}',
-    waiting: 'Waiting for a super admin.',
-    yours: 'You submitted it, so another super admin approves it.',
-    approve: 'Approve',
-    refuse: 'Refuse',
-    refuseReason: 'Why it is refused',
-    refuseHint: 'The submitter reads this.',
-    invalidReason: 'Say why, in 3 to 300 characters.',
-    /** After Approve or Refuse: `{name}` is the promotion. */
-    approved: '{name} is live.',
-    refused: '{name} went back to draft.',
-    /** What it actually does, in words made from its stored rule: the approver reads these, not only the card words. */
-    does: 'What it does',
-    unreadable: 'Its rule cannot be read here. Refuse it.',
-    /** The rules and questions it puts on the website (#618), as the public will read them. */
-    website: 'On the website',
-    question: '{question} {answer}',
-    /** The address its card opens (#776). */
-    link: 'Card opens {link}',
+  statuses: { draft: 'Draft', awaiting_approval: 'Awaiting approval', scheduled: 'Scheduled', live: 'Live', paused: 'Paused', ended: 'Ended' },
+  list: {
+    label: 'Promotions',
+    filter: 'Show',
+    all: 'All',
+    empty: 'No promotions with this status.',
+    columns: { promotion: 'Promotion', who: 'Who', when: 'When', given: 'This week', status: 'Status' },
+    /** Under a running promotion's status: its next version, beside it. */
+    newVersionWaits: 'New version awaits approval',
+    newVersionDraft: 'New version in draft',
+    sentBack: 'Sent back',
+    /** A promotion still run by its rule (decision 0461): its card and Pause only. */
+    cardOnly: 'Card only',
+    pause: 'Pause',
+    resume: 'Resume',
+    edit: 'Edit',
+    review: 'Review',
+    pauseNamed: 'Pause {name}',
+    resumeNamed: 'Resume {name}',
+    editNamed: 'Edit {name}',
+    reviewNamed: 'Review {name}',
   },
-  /** A rule in words (#144): `{when}` is its trigger, `{gives}` what it gives, `{who}` for whom. */
-  rule: {
-    line: '{when}: {gives}',
-    forWhom: 'Who and when: {who}',
-    everyone: 'anyone, any time',
-    cardOnly: 'Card only: the engine gives nothing, the floor runs it',
-    trigger: {
-      buy_in: 'On a buy-in', hours_played: 'For hours played', hand_logged: 'When a hand is logged', tournament_entry: 'On a tournament entry',
-      referral: 'On a referral', check_in: 'On a check-in', graduation: 'On an Academy graduation', date_window: 'Once each club day in its window',
-    },
-    gives: {
-      /** A bonus as bonus chips, never rupees (#629). */
-      bonusAmount: '{chips} bonus chips, ending after {days} days',
-      bonusShare: 'bonus chips of {percent}% of the buy-in, ending after {days} days',
-      bonusShareCapped: 'bonus chips of {percent}% of the buy-in, up to {cap}, ending after {days} days',
-      points: '{points} points',
-      pointsMultiplier: '{multiplier} times the points earned',
-      freerollTicket: 'a freeroll ticket to {tournament}',
-      cab: 'a cab home',
-      /** No rupees on the console (decision 0284, #649): a prize by its name, a jackpot payout without its amount. */
-      prize: '{prize}',
-      jackpot: 'a payout from the {pool} jackpot',
-      message: 'a message: {text}',
-      spin: 'a spin of the wheel',
-    },
-    pools: { main: 'main', season: 'season', freeroll: 'freeroll' },
-    conditions: {
-      days: 'on {days}', window: 'from {from} to {until}', firstPerTable: 'the first {count} at each table',
-      firstPerDay: 'the first {count} each club day', callTime: 'once call time is complete', minHours: 'after {hours} hours played',
-      minHoursOne: 'after 1 hour played',
-      stakes: 'at {stakes}', tables: 'at {count} chosen tables', tablesOne: 'at 1 chosen table', tiers: '{count} chosen tiers',
-      tiersOne: '1 chosen tier', newPlayer: 'new players only',
-      lapsed: 'players back after {days} days away', minVisits: 'members with {count} visits this month',
-      minVisitsOne: 'members with 1 visit this month', hands: 'for {hands}',
-    },
-    hands: { four_of_a_kind: 'four of a kind', straight_flush: 'a straight flush', royal_flush: 'a royal flush', bad_beat: 'a bad beat' },
-    noLimit: 'No limit per member',
-    limitPerDay: 'At most {limit} per member each club day',
-    limitInAll: 'At most {limit} per member in all',
-    noBudget: 'No budget: it gives without a cap',
-    /** `{amount}`: bonus chips, `50,000` (#629). */
-    budgetPaise: 'Budget: {amount} bonus chips',
-    budgetCount: 'Budget: {count} grants',
-    budgetCountOne: 'Budget: 1 grant',
-    budgetBoth: 'Budget: {amount} bonus chips or {count} grants, whichever comes first',
-    budgetBothOne: 'Budget: {amount} bonus chips or 1 grant, whichever comes first',
-    /** A monthly budget (#562): `Budget: 50,000 bonus chips, each month`. */
-    eachMonth: '{budget}, each month',
+  /** What a staff member's own action did: `{name}` is the promotion, `{date}` its first day. */
+  toast: {
+    paused: '{name} paused',
+    resumed: '{name} resumed',
+    saved: '{name} saved as a draft',
+    submitted: '{name} sent for approval',
+    live: '{name} is live',
+    scheduled: '{name} starts {date}',
+    sentBack: '{name} sent back to draft',
   },
-  /** Promotions a super admin sent back (#144), with why: the one who submitted each reads it here. */
-  sentBack: {
-    heading: 'Sent back',
-    /** `{name}` sent it back at `{time}`, saying `{reason}`. */
-    line: '{name}, {time}: {reason}',
-    template: 'Back to Templates. Send it again once it is right.',
-    built: 'Build it again with the changes asked for.',
+  builder: {
+    newTitle: 'New promotion',
+    editTitle: 'Edit: {name}',
+    description: 'The line on the right is what the approver reads.',
+    /** Editing a running promotion: `{current}` runs on while `{next}`, its new version, waits. */
+    editsLive: 'Changes make version {next}. Version {current} runs until it is approved.',
+    /** A draft a super admin sent back: who and why. */
+    sentBack: 'Sent back by {name}: {reason}',
+    startFrom: 'Start from',
+    name: 'Name members see',
+    sections: { reward: '1 · Reward', who: '2 · Who qualifies', when: '3 · When', limits: '4 · Limits', where: '5 · Where it shows' },
+    rewardKind: 'Reward',
+    /** The templates that prefill the builder, and the names they give. */
+    templates: {
+      blank: 'Blank', double_points: 'Points multiplier', buyin_bonus: 'Buy-in bonus', four_hour_bonus: 'Four-hour bonus', cab_home: 'Cab home',
+      spin_the_wheel: 'Spin the wheel', founders_priority: 'Founders’ Circle priority', graduate_freeroll: 'Graduate freeroll',
+    },
+    templateNames: {
+      double_points: 'Double points', buyin_bonus: 'Buy-in bonus Tuesday', four_hour_bonus: 'Four-hour bonus', cab_home: 'Cab home',
+      spin_the_wheel: 'Spin the wheel', founders_priority: 'Founders’ Circle priority', graduate_freeroll: 'Graduate freeroll',
+    },
+    /** The tournament the Graduate freeroll template enters, by name. */
+    freerollTournament: 'RIVR Sunday',
+    rewards: {
+      points_multiplier: { label: 'Points multiplier', description: 'Points earned per hour, multiplied' },
+      buyin_bonus: { label: 'Buy-in bonus', description: 'Bonus chips on a buy-in, % or fixed' },
+      hours_bonus: { label: 'Hours-played bonus', description: 'Bonus chips after time at the tables' },
+      bonus_chips: { label: 'Bonus chips', description: 'A fixed bonus on a visit or referral' },
+      free_spin: { label: 'Free spin', description: 'Spins of the RIVR wheel' },
+      cab_home: { label: 'Cab home', description: 'A ride home after a set visit count' },
+      tournament_entry: { label: 'Tournament entry', description: 'A seat in a tournament' },
+      waitlist_priority: { label: 'Waitlist priority', description: 'First call on every waitlist' },
+    },
+    fields: {
+      multiplier: 'Multiplier',
+      multiplierSuffix: '× points',
+      bonusAs: 'Bonus as',
+      percentMode: '%',
+      fixedMode: 'Fixed chips',
+      percent: 'Bonus',
+      percentSuffix: '% of the buy-in',
+      capChips: 'Cap per buy-in',
+      buyChips: 'Bonus chips',
+      chips: 'Bonus chips',
+      chipsSuffix: 'chips',
+      firstN: 'On the first',
+      firstNSuffix: 'buy-ins per table',
+      afterHours: 'After',
+      afterSuffix: 'hours played',
+      givenOn: 'Given on',
+      bonusOn: { visit: 'Each visit', first_buyin: 'First buy-in', referral: 'Referral', signup: 'Sign-up' },
+      spins: 'Spins',
+      spinsSuffix: 'spins',
+      fromVisit: 'From visit',
+      fromVisitSuffix: 'in a calendar month',
+      tournament: 'Tournament',
+      stakes: 'Stakes',
+      allStakes: 'All stakes',
+      tiers: 'Tiers',
+      allTiers: 'All tiers',
+      audience: 'Members',
+      audiences: { everyone: 'Everyone', new_30d: 'New members, first 30 days', lapsed: 'Lapsed regulars', women: 'Women members' },
+      days: 'Days',
+      dayNames: { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' },
+      everyDay: 'Every day',
+      from: 'From',
+      to: 'To',
+      timePlaceholder: '20:00',
+      startsOn: 'Starts',
+      endsOn: 'Ends (blank for no end)',
+      perMember: 'Each member',
+      perMemberChoices: { none: 'No limit', per_visit: 'Once per visit', per_day: 'Once a day', per_week: 'Once a week', once: 'Once ever' },
+      maxMembersPerDay: 'Most members a day',
+      budgetChips: 'Budget in bonus chips',
+      noLimit: 'No limit',
+      channels: 'Shows on',
+      channelNames: { playerApp: 'Player app', tv: 'TVs', website: 'Website', whatsapp: 'WhatsApp message' },
+      rulesText: 'Rules on the website, one a line',
+      link: 'Card link (optional)',
+    },
+    /** Under a field the terms cannot take, after Save draft, Simulate or Submit. */
+    errors: {
+      name: 'Name it in 3 to 80 characters.',
+      multiplier: '1.25 to 5, in quarters.',
+      percent: 'A whole percent, 1 to 100.',
+      capChips: 'Whole 50s of chips, or blank for no cap.',
+      buyChips: 'Whole 50s of chips, from 50.',
+      chips: 'Whole 50s of chips, from 50.',
+      firstN: '1 to 100, or blank for every buy-in.',
+      afterHours: 'Half hours, from 0.5 to 24.',
+      spins: '1 to 10 spins.',
+      fromVisit: 'A visit from 1 to 31.',
+      tournament: 'Name the tournament.',
+      who: 'Pick who qualifies again.',
+      days: 'Pick at least one day.',
+      from: '24-hour time, such as 20:00.',
+      to: '24-hour time, such as 02:00.',
+      startsOn: 'Pick the first day.',
+      endsOn: 'On or after the first day, or blank.',
+      maxMembersPerDay: 'A whole number from 1, or blank.',
+      budgetChips: 'Whole 50s of chips, or blank.',
+      rulesText: 'At most 12 lines of 200 characters.',
+      link: 'An https address, or blank.',
+    },
+    fixFields: 'Not saved. Check the fields marked.',
+    inOneLine: 'In one line',
+    incomplete: 'Fill in the fields marked to read it here.',
+    tvSlide: 'TV slide',
+    saveDraft: 'Save draft',
+    submit: 'Submit for approval',
   },
-  /** The simulation before publishing (#144): last week's seven club days replayed with the promotion. */
-  simulate: 'Simulate last week',
-  simulateFirst: 'Simulate it on last week before submitting it.',
+  /** Last week replayed on the terms as they stand (decision 0437): submitting waits for it. */
   simulation: {
-    heading: 'Last week',
-    /** The club days replayed: "12 Oct to 18 Oct". */
+    heading: 'Last week, if it had run',
+    simulate: 'Simulate',
+    again: 'Run again',
+    hint: 'Run it before submitting, so the approver sees what it gives.',
+    /** The club days replayed: "27 Oct to 2 Nov". */
     period: '{from} to {to}',
-    replaying: 'Replaying last week.',
-    replayed: 'Buy-ins and visits replayed',
-    grants: 'Times given',
-    members: 'Members',
-    /** The bonus it would have given, as bonus chips (#629). */
-    cost: 'Bonus chips',
-    points: 'Extra points',
-    budget: 'Budget',
-    noCap: 'No cap',
-    budgetLeft: 'Bonus chips left of the budget',
+    membersQualified: 'members qualified',
+    timesGiven: 'times given',
+    measures: { points: 'extra points', chips: 'bonus chips', spins: 'spins', perks: 'perks' },
     budgetReached: 'The budget would have run out.',
-    nothing: 'Nothing last week would have earned it.',
-    failures: {
-      not_allowed: 'Only staff who manage promotions simulate one.',
-      not_replayable: 'This promotion cannot be replayed on last week.',
-      unavailable: 'Simulation not run. Try again.',
-    },
+    notStored: 'No simulation stored.',
   },
+  /** The approver's view of a waiting version against the running one (four eyes, decision 0437). */
+  review: {
+    title: 'Review: {name}',
+    /** `{version}` waits; `{name}` submitted it at `{time}`. */
+    submittedBy: 'Version {version}, submitted by {name}, {time}.',
+    /** A version with no submitter of its own, converted from a rule (decision 0461). */
+    waitingVersion: 'Version {version} awaits approval.',
+    newPromotion: 'A new promotion. Nothing runs yet.',
+    /** What the waiting version changes against the running one, `{parts}` named in order. */
+    changes: 'Changes from version {version}: {parts}.',
+    noChanges: 'The same terms as version {version}.',
+    parts: {
+      name: 'name', reward: 'reward', eligibility: 'who qualifies', schedule: 'when', limits: 'limits', channels: 'where it shows', rulesText: 'rules',
+      link: 'card link',
+    },
+    /** The running version's one line, for the approver to read beside the new one. */
+    runningNow: 'Version {version} now',
+    changed: 'Changed',
+    approve: 'Approve',
+    reject: 'Reject',
+    rejectReason: 'Why it goes back',
+    /** The rule, shown before the reason is sent. */
+    rejectHint: '3 to 300 characters. The author reads it.',
+    invalidReason: 'Say why, in 3 to 300 characters.',
+    sendBack: 'Send back',
+    yours: 'You submitted or changed this version, so another super admin approves it.',
+    notApprover: 'A super admin approves it.',
+    unreadable: 'Its terms cannot be read here. Send it back.',
+  },
+  /** A promotion opened by its address that the builder cannot show. */
+  open: {
+    legacy: 'This promotion runs by its rule. Pause or resume it from the list.',
+  },
+  /** Why a call did not go through, from @rivr/db's PromotionVersionFailure. */
   failures: {
-    invalid: 'Both times, start before end, by 06:00.',
-    invalidCap: 'Whole 50s of chips, from 50 to 1,00,000.',
-    invalidHours: 'Hours from 1 to 12.',
-    invalidChips: 'Whole 50s of chips, from 50 to 1,00,000.',
-    not_allowed: 'Not in your role. A super admin approves promotions.',
-    own_promotion: 'You submitted this one, so another super admin approves it.',
-    already_decided: 'Another super admin has already decided this one.',
+    not_allowed: 'Not in your role. Ask an admin.',
+    invalid: 'Not saved. Check the fields marked.',
+    needs_simulation: 'Not sent. Simulate it on last week first.',
+    own_promotion: 'Not approved. Another super admin approves your version.',
+    already_decided: 'Already decided. Reload the list.',
     switched_off: 'Promotions are switched off.',
     paused: 'Venue frozen. Try again once it is released.',
+    not_found: 'Promotion not found. Reload the list.',
     unavailable: 'Not sent. Try again.',
   },
 } as const;

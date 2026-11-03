@@ -173,13 +173,11 @@ Hourly rakeback (#108, decision 0245), in paise. `packages/testing/golden/rakeba
 | `promotionApplies(conditions, facts)`, `PromotionFacts` | Whether a promotion rule applies (#83, decision 0140): every condition it names holds (tier, stake, table, day, time window, first N per table or day, new or lapsed, visits this month, call time completed, hours played, the hand). Days and windows are the club's, 06:00 to 06:00 IST. |
 | `promotionReward(effect, { amount, points })`, `PromotionReward` | What an effect gives: its rupee cost against the budget, and points. A bonus share is rounded down to whole ₹50 chips, then held to its cap; double points on 120 earned is 120 more; a bonus or points of nothing is `null`. |
 | `promotionsToGive(candidates)`, `PromotionCandidate` | Of the promotions that apply to one event, in priority order, which to give: each while its count budget, rupee budget and per-player limit allow, never part of one; one that does not stack only alone. |
-| `promotionDraft(choices)`, `PromotionDraft` | The builder's four blocks as one rule (#84): double or triple points on hours played, or 10% of a buy-in as bonus for a week; days, an IST window and a stake as conditions, only those chosen; "First 50 members" the first 50 grants a club day, "Once per member" one grant each over the promotion. |
-| `simulatePromotion(draft, events, budget?)`, `ReplayEvent`, `SimulationBudget`, `PromotionSimulation` | A promotion replayed on last week's events before it is published (#144, decision 0214). Events are weighed in time order with `promotionApplies`, `promotionReward` and `promotionsToGive`, counting first N per club day and table, the per-player limit and the budget as the engine does. The result is the events replayed, the times given, the members, the rupee cost, the extra points, what is left of a rupee budget and whether the budget stopped a grant. A rule on past visits, call time or a hand is `not_replayable`. Proved on `promotionSimulation.json`. |
 | `secondsInWindow(stint, conditions)`, `playedSecondsInWindow(time, conditions)` | Hours-played promotions with days or times (#457, decision 0186): a stint's whole seconds inside the window on the club days it touches, and a table's time inside the window less its share of the time away, which earns points at the table's rate (`pointsForTime`). |
 
 The database's `private.promotion_applies`, `private.promotion_reward` and `private.promotions_to_give` are proved equal on `packages/testing/golden/promotions.json`, and `private.seconds_in_window` on `promotionWindow.json`; `private.evaluate_promotions` puts them together.
 
-**The typed model (console v3; decisions 0436 to 0438).** A promotion's version holds a Reward, Eligibility, Schedule, Limits and Channels (`@rivr/contracts/promotionModel`), in points, bonus chips, spins and perks, never paise. The rules above stay until the engine and the console move to versions.
+**The typed model (console v3; decisions 0436 to 0438).** A promotion's version holds a Reward, Eligibility, Schedule, Limits and Channels (`@rivr/contracts/promotionModel`), in points, bonus chips, spins and perks, never paise. The console builds versions only (decision 0461); the rules above stay for the promotions that still run by a rule, which the engine weighs before the versions.
 
 | Export | What it does |
 |---|---|
@@ -190,6 +188,7 @@ The database's `private.promotion_applies`, `private.promotion_reward` and `priv
 | `stackGrants(candidates)` | For one event: one multiplier, the one giving the most points; chips and spins stack; one perk of each kind. |
 | `simulate(promo, events)` | Last week replayed: members qualified, times given, points, chips, spins, perks, whether the budget stopped a grant, and every grant. |
 | `describePromotion(promo, names?)` | The one-line summary in English, in chips and points. |
+| `whoAndWhen(promo, names?)` | Who a version is for and when it runs, each on its own, as the summary words them: the console list's Who and When. |
 | `transition(state, action, actor)`, `sameTerms` | The status machine: submit needs a simulation on these terms, approval `promotions.approve` and someone other than the author, an edit of a running version opens the next draft. |
 
 `private.promo_is_eligible`, `private.promo_grant`, `private.promo_check_limits`, `private.promo_stack` and `private.seconds_in_schedule` will be proved equal on `promotionRewards.json` and `promotionSchedule.json`.

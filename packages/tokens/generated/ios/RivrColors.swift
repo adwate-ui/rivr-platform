@@ -40,6 +40,7 @@ public enum RivrColors {
     public static let colorOnAction = Color(red: 0.039, green: 0.165, blue: 0.125, opacity: 1) /** Text on the primary action. */
     public static let colorOnAlert = Color(red: 0.953, green: 0.929, blue: 0.878, opacity: 1) /** Text on an alert fill. */
     public static let colorOnCream = Color(red: 0.078, green: 0.078, blue: 0.078, opacity: 1) /** Text on a cream tile. */
+    public static let colorPracticeStripe = Color(red: 0.722, green: 0.592, blue: 0.302, opacity: 1) /** The darker stripe between gold ones on the practice venue's banner across the console (console v3, decision 0444). */
     public static let colorRaised = Color(red: 0.039, green: 0.165, blue: 0.125, opacity: 1) /** Raised surfaces: nav bars, rails, sheets, row hover. */
     public static let colorRed = Color(red: 0.769, green: 0.086, blue: 0.165, opacity: 1) /** Alerts, negatives, the spade card in the mark. Nothing else. */
     public static let colorRim = Color(red: 0.227, green: 0.165, blue: 0.078, opacity: 1) /** The wooden rim round the felt on the seat map. */
