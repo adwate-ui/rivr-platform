@@ -72,7 +72,7 @@ export function NewTournamentForm({ venueId, templates, onMade }: { venueId: str
           <TemplateChoice form={form} templates={templates} />
           <Fields form={form} />
           <Inline gap={4} align="center">
-            <Button variant="secondary" isLoading={create.isPending} onClick={() => void submit()}>{t('console.tournaments.make')}</Button>
+            <Button variant="subtle" isLoading={create.isPending} onClick={() => void submit()}>{t('console.tournaments.make')}</Button>
             <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
           </Inline>
         </>

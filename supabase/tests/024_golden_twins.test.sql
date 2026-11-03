@@ -722,5 +722,53 @@ select results_eq(
   $$ select description, (expected ->> 'thousandths')::bigint from golden.golden_case where file = 'accommodation.json' order by position $$,
   'private.nights_for_time gives every case in the golden file');
 
+-- Promotion schedules (console v3, decision 0472): private.is_in_schedule and private.seconds_in_schedule, and @rivr/domain
+-- isInSchedule and secondsInSchedule (packages/testing/golden/promotionSchedule.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'promotionSchedule.json'), 'the promotion schedule cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'promotionSchedule.json' and operation not in ('in', 'seconds') $$,
+  'every operation in promotionSchedule.json is proved here');
+select results_eq(
+  $$ select description, case when private.is_in_schedule((inputs ->> 'schedule')::jsonb, (inputs ->> 'at')::timestamptz) then 'yes' else 'no' end
+     from golden.golden_case where file = 'promotionSchedule.json' and operation = 'in' order by position $$,
+  $$ select description, expected ->> 'inSchedule' from golden.golden_case where file = 'promotionSchedule.json' and operation = 'in' order by position $$,
+  'private.is_in_schedule decides every moment in the golden file');
+select results_eq(
+  $$ select description, private.seconds_in_schedule((inputs ->> 'schedule')::jsonb, (inputs ->> 'from')::timestamptz, (inputs ->> 'to')::timestamptz)
+     from golden.golden_case where file = 'promotionSchedule.json' and operation = 'seconds' order by position $$,
+  $$ select description, (expected ->> 'seconds')::bigint from golden.golden_case where file = 'promotionSchedule.json' and operation = 'seconds' order by position $$,
+  'private.seconds_in_schedule counts every span in the golden file');
+
+-- Promotion rewards (console v3, decisions 0470 and 0472): private.promo_is_eligible, private.promo_grant,
+-- private.promo_check_limits and private.promo_stack, and @rivr/domain isEligible, computeGrant, checkLimits and stackGrants
+-- (packages/testing/golden/promotionRewards.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'promotionRewards.json'), 'the promotion reward cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'promotionRewards.json' and operation not in ('eligible', 'grant', 'limits', 'stack') $$,
+  'every operation in promotionRewards.json is proved here');
+select results_eq(
+  $$ select description, case when private.promo_is_eligible((inputs ->> 'terms')::jsonb, (inputs ->> 'member')::jsonb, (inputs ->> 'context')::jsonb)
+                              then 'yes' else 'no' end
+     from golden.golden_case where file = 'promotionRewards.json' and operation = 'eligible' order by position $$,
+  $$ select description, expected ->> 'eligible' from golden.golden_case where file = 'promotionRewards.json' and operation = 'eligible' order by position $$,
+  'private.promo_is_eligible decides every member in the golden file');
+select results_eq(
+  $$ select description, coalesce(g.o_refusal, g.o_points || ' | ' || g.o_chips || ' | ' || g.o_spins || ' | ' || coalesce(g.o_perk, ''))
+     from golden.golden_case cross join lateral private.promo_grant((inputs ->> 'reward')::jsonb, (inputs ->> 'event')::jsonb) g
+     where file = 'promotionRewards.json' and operation = 'grant' order by position $$,
+  $$ select description, coalesce(expected ->> 'refusal',
+                                   (expected ->> 'points') || ' | ' || (expected ->> 'chips') || ' | ' || (expected ->> 'spins') || ' | ' || (expected ->> 'perk'))
+     from golden.golden_case where file = 'promotionRewards.json' and operation = 'grant' order by position $$,
+  'private.promo_grant gives every grant in the golden file');
+select results_eq(
+  $$ select description, coalesce(private.promo_check_limits((inputs ->> 'reward')::jsonb, (inputs ->> 'limits')::jsonb, (inputs ->> 'grant')::jsonb,
+                                                             (inputs ->> 'tally')::jsonb), '')
+     from golden.golden_case where file = 'promotionRewards.json' and operation = 'limits' order by position $$,
+  $$ select description, expected ->> 'refusal' from golden.golden_case where file = 'promotionRewards.json' and operation = 'limits' order by position $$,
+  'private.promo_check_limits lets through or stops every grant in the golden file');
+select results_eq(
+  $$ select description, coalesce(nullif(array_to_string(private.promo_stack((inputs ->> 'candidates')::jsonb), ' | '), ''), 'none')
+     from golden.golden_case where file = 'promotionRewards.json' and operation = 'stack' order by position $$,
+  $$ select description, expected ->> 'given' from golden.golden_case where file = 'promotionRewards.json' and operation = 'stack' order by position $$,
+  'private.promo_stack stacks every event in the golden file');
+
 select * from finish();
 rollback;

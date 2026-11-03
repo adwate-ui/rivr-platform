@@ -8,7 +8,7 @@ export { useSignIn, useSignOut, type SignInResult } from './signIn.ts';
 // The website's reads are at @rivr/db/site, so the apps' bundles never carry their schemas.
 // Lane A's money hooks (cage, credit, treasury, expenses...) are listed in money.ts, so lanes rarely edit the same list.
 export * from './money.ts';
-export { StaffVenueProvider, useStaffVenue, useStaffVenues, type StaffVenue, type StaffVenueState } from './staff.tsx';
+export { PRACTICE_KEY, StaffVenueProvider, useStaffVenue, useStaffVenues, type StaffVenue, type StaffVenueState } from './staff.tsx';
 export { useStaffActions, useVenueStaff, type StaffChange, type StaffFailure, type StaffMember } from './venueStaff.ts';
 export {
   cellKey, useTierActions, useTierMatrix,
@@ -77,11 +77,14 @@ export {
   openSeatsAt, useFloorSeats, useHeldSeats, useLeftOwingCallTime, useSeatActions, useSetSeatCallTime, useDecideCallTime, useAddCallTime, useAddTimeChoices,
   useSetTopUp, type HeldSeat, type LeftOwing, type SeatedPlayer, type SeatFailure,
 } from './seats.ts';
+export { useFloorRequests, useFloorRequestTargets, useFloorSignals, type FloorRequest, type FloorRequestTargets } from './floorRequests.ts';
+export { useFloorActions, useFloorUndo, type FloorUndo, type Seated } from './floorActions.ts';
 export { useSeatEvents, useTabletSeats, type SeatEventFailure, type TabletPlayer, type TabletSeat } from './tabletSeats.ts';
 export {
   isTopUpWaiting, useTodaysPlayers, useTopUpsTonight, type TodayStatus, type TodaysPlayer, type TopUpStatus, type TopUpTonight,
 } from './floorToday.ts';
 export { useStaffQueueCounts } from './staffQueues.ts';
+export { DENSITIES, useSetStaffDensity, useStaffDensity, type Density } from './staffPreference.ts';
 export {
   useGamesHistory, useTablesSetup, useTablesSetupActions, type GamesDay, type SetupStake, type SetupTable, type StakeOrder, type TableGame,
   type TableOrder, type TablesFailure,
@@ -103,6 +106,7 @@ export {
   useApproveWaitlistRequest,
   useFloorTables,
   useFloorWaitlistActions,
+  type FloorWaitlistWho,
   useMyWaitlist,
   useWaitlistActions,
   useWaitlistBoard,
@@ -140,7 +144,7 @@ export {
   type VenueTv,
 } from './tvScreens.ts';
 export {
-  useTvCallTimeBoard, useTvJackpot, useTvSignals, useTvWaitlistBoard, type TvCallTimeTable, type TvJackpot, type TvPlace, type TvSeated, type TvStake,
+  useTvCallTimeBoard, useTvJackpot, useTvSignals, useTvWaitlistBoard, type TvCallTimeTable, type TvJackpot, type TvPlace, type TvSeated, type TvTableList,
 } from './tvBoards.ts';
 export { useMyPromotionCards, type PromotionCardData } from './promotionCards.ts';
 export { useTvPromotions } from './tvPromotions.ts';
@@ -166,11 +170,15 @@ export {
   type HandVariant,
   type TableRules,
 } from './hands.ts';
+export { usePromotionActions, usePromotionStakes, type PromotionFailure, type PromotionStake } from './promotions.ts';
 export {
-  usePromotionActions, usePromotionDecisions, usePromotions, usePromotionsAwaitingApproval, usePromotionsSentBack, usePromotionSimulation, usePromotionStakes, usePromotionTemplates,
-  type ConsolePromotion, type PromotionAwaitingApproval, type PromotionFailure, type PromotionSentBack, type PromotionSimulationResult, type PromotionStake,
-  type PromotionBudget, type PromotionToSubmit, type SimulationFailure, type TemplateSubmission,
-} from './promotions.ts';
+  approverViewOf, isListedIn, useMemberPromotionGrants, usePromotionsOverview, usePromotionVersions,
+  type ApproverView, type MemberPromotionGrant, type PromotionOverview, type PromotionsOverview, type PromotionVersionView,
+} from './promotionVersions.ts';
+export {
+  usePromotionVersionActions, type DraftToSave, type PromotionVersionFailure, type SavedDraft,
+} from './promotionVersionActions.ts';
+export { useLastWeekReplay, type SimulationRun } from './promotionReplay.ts';
 export { useOnboardingChecklist, type OnboardingItem } from './onboarding.ts';
 export { useQuizAttempts, useQuizzes, useSubmitQuiz, type Quiz, type QuizAttempt, type QuizFailure, type QuizResult } from './quizzes.ts';
 export {
@@ -209,6 +217,6 @@ export {
   type LiveField, type LiveTournament, type MyStanding, type MyTournament, type MyTournamentTicket,
 } from './liveTournament.ts';
 export {
-  useMarkTournamentRegistered, useMyUpcomingTournaments, usePublishTournament, useRegisterTournamentInterest, useTournamentInterest,
+  useMarkTournamentRegistered, useMyUpcomingTournaments, usePublishTournament, useRegisterTournamentInterest, useTournamentInterest, useUnmarkTournamentRegistered,
   type TournamentInterest, type TournamentInterestFailure, type TournamentListing, type TournamentStanding, type UpcomingTournament,
 } from './tournamentInterest.ts';

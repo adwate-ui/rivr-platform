@@ -35,6 +35,19 @@ describe('StepList', () => {
     expect(marks[2]).toHaveTextContent('3');
   });
 
+  it('makes each step a raised card holding its action and content, in the console\'s look (console v3)', () => {
+    renderIn(<StepList label="Practice reset" look="cards" steps={[
+      { title: 'Switch to the practice venue', state: 'current', action: <button type="button">Switch to practice</button> },
+      { title: 'Reset the practice venue', state: 'next', content: <p>Type the venue's name.</p> },
+    ]} />);
+    const [first, second] = screen.getAllByRole('listitem');
+    expect(first).toHaveClass('bg-raised', 'rounded-lg');
+    expect(first).toHaveAttribute('aria-current', 'step');
+    expect(within(first ?? document.body).getByRole('button', { name: 'Switch to practice' })).toBeInTheDocument();
+    expect(within(second ?? document.body).getByText("Type the venue's name.")).toBeInTheDocument();
+    expect(screen.getByText('Switch to the practice venue').textContent).toBe('Switch to the practice venue, current step');
+  });
+
   it('rules each step between hairlines in the redesign\'s look (decision 0320)', () => {
     renderIn(<StepList label="Identity check" look="ruled" steps={[{ title: 'Selfie', state: 'done' }, { title: 'DigiLocker', state: 'current' }]} />);
     expect(screen.getAllByRole('listitem')[0]).toHaveClass('border-t');

@@ -11,9 +11,9 @@ $$;
 grant execute on function pg_temp.as_person(text) to authenticated;
 create temp table entry as select gen_random_uuid() as id;
 grant select on entry to authenticated;
-insert into public.waitlist_entry (id, venue_id, member_id, table_type_id, joined_at, approved_at, status, idempotency_key)
-select (select id from entry), '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212', t.id, now(), now(), 'waiting', gen_random_uuid()
-from public.table_type t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.code = 'nlh_100_200';
+insert into public.waitlist_entry (id, venue_id, member_id, table_type_id, table_id, joined_at, approved_at, status, idempotency_key)
+select (select id from entry), '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212', g.table_type_id, g.id, now(), now(), 'waiting', gen_random_uuid()
+from public.game_table g where g.venue_id = '00000000-0000-4000-8000-000000000001' and g.name = 'Table 2';
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select public.call_from_waitlist((select id from entry),

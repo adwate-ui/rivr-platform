@@ -110,7 +110,10 @@ select is_empty($$
       -- Reviewed as safe in #129: a website draft's preview token, which shows only that unpublished draft.
       'preview_token',
       -- Reviewed as safe in #627: the ids of the sessions a member hid from their own list.
-      'hidden_sessions')
+      'hidden_sessions',
+      -- Reviewed as safe in console v3 (decision 0471): the period a promotion grant counts in, such as 'day:2026-11-17',
+      -- and the spins it gave and that were spun.
+      'period_key', 'spins', 'spins_used')
     -- Reviewed as safe in #779, for this table only: a phone's push addresses for the live status, which reach it only
     -- with the club's own Apple and Firebase keys (function secrets). The phone's own key is kept as a hash, which never goes.
     and a.table_name || '.' || c not in ('live_status_device.push_token', 'live_status_device.activity_push_token')

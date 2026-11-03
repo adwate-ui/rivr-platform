@@ -63,7 +63,7 @@ export function SopForm({ venueId, sop, onDone }: SopFormProps) {
         <Button variant="primary" isLoading={isSaving} onClick={() => void save()}>
           {t(sop === undefined ? 'console.sops.addSop' : 'console.sops.publish')}
         </Button>
-        <Button variant="secondary" onClick={onDone}>{t('console.sops.cancel')}</Button>
+        <Button variant="subtle" onClick={onDone}>{t('console.sops.cancel')}</Button>
       </Inline>
     </Stack>
   );

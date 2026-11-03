@@ -1,6 +1,7 @@
 import type { SettingField } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { ChoiceChips, ErrorMessage, Input, Stack, Switch } from '@rivr/ui';
+import { isBonusChips } from './bonusChips.ts';
 import { fieldLabel, limitsText, optionLabel, unitOf } from './settingsCopy.ts';
 import type { FieldDraft } from './valueDraft.ts';
 
@@ -30,15 +31,21 @@ function ChoiceField({ settingKey, field, draft, isInvalid, tiers, onChange }: F
   );
 }
 
+/** The words after a number: "bonus chips", a percent or a time; none for money, which has the ₹ before it, or a count. */
+function suffixOf(field: Extract<SettingField, { kind: 'integer' }>): string | undefined {
+  if (isBonusChips(field)) return t('console.settings.suffixes.bonusChips');
+  const unit = unitOf(field);
+  return unit === null ? undefined : t(`console.settings.suffixes.${unit}`);
+}
+
 /** A number in its unit: ₹ before money, % or a time after the value, its limits as the hint and, when wrong, the error. */
 function NumberField({ settingKey, field, draft, isInvalid, onChange }: FieldInputProps & { field: Extract<SettingField, { kind: 'integer' }> }) {
-  const unit = unitOf(field);
   const limits = limitsText(field);
   const hint = field.isRequired ? limits : `${limits} ${t('console.settings.optional')}`.trim();
   return (
     <Input label={fieldLabel(settingKey, field.name)} hint={isInvalid ? undefined : hint} error={isInvalid ? limits : undefined}
       value={typeof draft === 'string' ? draft : ''} inputMode="decimal" prefix={field.isMoney ? t('console.settings.rupee') : undefined}
-      suffix={unit === null ? undefined : t(`console.settings.suffixes.${unit}`)} onChange={(event) => onChange(event.target.value)} />
+      suffix={suffixOf(field)} onChange={(event) => onChange(event.target.value)} />
   );
 }
 

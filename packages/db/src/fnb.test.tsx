@@ -53,7 +53,7 @@ describe('table-side food and drink', () => {
         body: [{
           order_id: 'o1', kot_number: 3, table_name: 'Table 3', seat: 5, member_name: 'Yash Gupta', member_number: 1043,
           lines: [{ item_id: CHAI, name: 'Masala chai', kind: 'soft_drink', quantity: 2, note: null }], is_comp: true, source: 'console',
-          created_at: '2026-11-15T16:30:00Z', kot_sent_at: null, kot_sent_by: null,
+          created_at: '2026-11-15T16:30:00Z', kot_sent_at: null, kot_sent_by: null, kot_print_failed: true,
         }],
       },
     });
@@ -64,6 +64,7 @@ describe('table-side food and drink', () => {
     await waitFor(() => expect(result.current.tonight.data).toEqual([{
       orderId: 'o1', kotNumber: 3, tableName: 'Table 3', seat: 5, memberName: 'Yash Gupta', memberNumber: 1043,
       lines: [{ itemId: CHAI, name: 'Masala chai', quantity: 2, note: null }], isComp: true, source: 'console', createdAt: '2026-11-15T16:30:00Z', kotSentBy: null,
+      isKotPrintFailed: true,
     }]));
   });
 

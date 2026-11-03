@@ -1,7 +1,7 @@
 import { formatIsoDay, formatRupeesForFile, t } from '@rivr/i18n';
 import { createContext, isValidElement, useContext, useState, type ReactNode } from 'react';
-import { Button } from '../Button/Button.tsx';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage.tsx';
+import { OverflowMenu } from '../OverflowMenu/OverflowMenu.tsx';
 import { csvFile, saveFile, xlsxFile, type ExportCell } from './exportFiles.ts';
 
 /** What an export asks to be recorded before its file is saved (#102): the table, its filters, the format and the rows. */
@@ -17,7 +17,7 @@ export type TableExporter = (request: TableExportRequest) => Promise<boolean>;
 
 const ExportContext = createContext<TableExporter | null>(null);
 
-/** Offers Export CSV and Export XLSX on every DataTable beneath it, each recorded by the exporter before its file is saved (#102). */
+/** Offers an Export control, CSV or XLSX, on every DataTable beneath it, each recorded by the exporter before its file is saved (#102). */
 export function DataTableExportProvider({ exporter, children }: { exporter: TableExporter | null; children: ReactNode }) {
   return <ExportContext value={exporter}>{children}</ExportContext>;
 }
@@ -36,7 +36,7 @@ interface ExportColumn<Row> {
 }
 
 /** The words a cell shows: its text, or the text inside the elements it draws (a Text, a Button's label). */
-function textOf(node: ReactNode): string {
+export function textOf(node: ReactNode): string {
   if (typeof node === 'string' || typeof node === 'number') return String(node);
   if (Array.isArray(node)) return node.map(textOf).join('');
   if (isValidElement<{ children?: ReactNode }>(node)) return textOf(node.props.children);
@@ -74,8 +74,9 @@ interface ExportBarProps<Row> {
 }
 
 /**
- * Export CSV and Export XLSX (#102): the rows as shown, in the columns that have a heading. The export is
- * recorded first; one that is not recorded saves nothing and says so.
+ * One small Export control at the top right, as the prototype has it, whose menu offers CSV and XLSX (#102): the rows as
+ * shown, in the columns that have a heading. The export is recorded first; one that is not recorded saves nothing and
+ * says so.
  */
 export function ExportBar<Row>({ exporter, label, columns, rows, filter }: ExportBarProps<Row>) {
   const [state, setState] = useState<'idle' | 'busy' | 'failed'>('idle');
@@ -89,12 +90,13 @@ export function ExportBar<Row>({ exporter, label, columns, rows, filter }: Expor
     save(format === 'csv' ? csvFile(headers, cells) : xlsxFile(label, headers, cells), label, format);
     setState('idle');
   };
+  const formats = [
+    { id: 'csv', label: t('ui.dataTable.exportCsv'), isDisabled: state === 'busy', onSelect: () => void run('csv') },
+    { id: 'xlsx', label: t('ui.dataTable.exportXlsx'), isDisabled: state === 'busy', onSelect: () => void run('xlsx') },
+  ];
   return (
-    <div className="flex flex-col items-end gap-2">
-      <div className="flex gap-2">
-        <Button isLoading={state === 'busy'} onClick={() => void run('csv')}>{t('ui.dataTable.exportCsv')}</Button>
-        <Button isLoading={state === 'busy'} onClick={() => void run('xlsx')}>{t('ui.dataTable.exportXlsx')}</Button>
-      </div>
+    <div className="ms-auto flex flex-col items-end gap-2">
+      <OverflowMenu label={t('ui.dataTable.exportNamed', { what: label })} text={t('ui.dataTable.export')} items={formats} />
       {state === 'failed' ? <ErrorMessage>{t('ui.dataTable.exportFailed')}</ErrorMessage> : null}
     </div>
   );

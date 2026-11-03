@@ -56,7 +56,7 @@ describe('SarEntryPanel', () => {
     const sent = renderPanel(() => new Response(null, { status: 204 }));
     fireEvent.click(screen.getByRole('button', { name: 'Record the review' }));
     expect(screen.getByText('Choose an outcome and write a note of 10 to 1,000 characters.')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Monitor' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Monitor' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Note' }), { target: { value: ' Watching his cash for a month ' } });
     fireEvent.click(screen.getByRole('button', { name: 'Record the review' }));
     await waitFor(() => expect(sent).toEqual([{ p_entry_id: 'e1', p_outcome: 'monitor', p_note: 'Watching his cash for a month' }]));
@@ -64,7 +64,7 @@ describe('SarEntryPanel', () => {
 
   it('says why when the database refuses', async () => {
     renderPanel(() => Response.json({ code: '42501', message: 'Only staff who review AML review the register' }, { status: 403 }));
-    fireEvent.click(screen.getByRole('button', { name: 'Reported' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Reported' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Note' }), { target: { value: 'Reported to the FIU today' } });
     fireEvent.click(screen.getByRole('button', { name: 'Record the review' }));
     expect(await screen.findByText('Only staff who review AML review the register.')).toBeTruthy();

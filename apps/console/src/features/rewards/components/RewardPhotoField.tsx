@@ -20,7 +20,7 @@ export function RewardPhotoField({ venueId, item }: { venueId: string; item: Rew
     <Stack gap={2}>
       <Inline gap={4} align="center">
         <ItemPhoto src={shown.photoUrl} name={shown.name} />
-        <CameraButton variant="secondary" camera="none" accept="image/jpeg,image/png,image/webp" isLoading={upload.isPending}
+        <CameraButton variant="subtle" camera="none" accept="image/jpeg,image/png,image/webp" isLoading={upload.isPending}
           onPhoto={(photo) => void put(photo)}>
           {t(shown.photoUrl === null ? 'console.itemPhoto.add' : 'console.itemPhoto.replace')}
         </CameraButton>

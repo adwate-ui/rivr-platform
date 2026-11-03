@@ -21,7 +21,7 @@ function JobTitleForm({ member, isDisabled, onSave }: { member: StaffMember; isD
     <Inline gap={3} align="end">
       <Input {...jobTitleField} label={t('console.staff.jobTitleFor', { name: member.fullName })} autoComplete="off" disabled={isDisabled}
         error={form.formState.errors.jobTitle ? t('console.staff.invalidJobTitle') : undefined} />
-      <Button variant="secondary" isDisabled={isDisabled} onClick={() => void submit()}>{t('console.staff.saveJobTitle', { name: member.fullName })}</Button>
+      <Button variant="subtle" isDisabled={isDisabled} onClick={() => void submit()}>{t('console.staff.saveJobTitle', { name: member.fullName })}</Button>
     </Inline>
   );
 }

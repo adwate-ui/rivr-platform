@@ -32,9 +32,12 @@ function renderAs(role: string) {
 }
 
 describe('Spin wheel (decision 0302)', () => {
-  it('lets staff who run promotions spin, as the database asks', async () => {
+  it('lets staff who run promotions spin and keep the wheel, as the database asks', async () => {
     renderAs('marketing');
-    expect(await screen.findByRole('heading', { name: 'Spins waiting' }, { timeout: 5000 })).toBeDefined();
+    expect(await screen.findByRole('heading', { name: 'Spin wheel', level: 1 }, { timeout: 5000 })).toBeDefined();
+    expect(await screen.findByRole('heading', { name: 'Spins waiting' })).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'The wheel' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Add to the wheel' })).toBeDefined();
   });
 
   it('refuses the floor, who run no promotions', async () => {

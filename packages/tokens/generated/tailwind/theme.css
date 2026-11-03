@@ -24,6 +24,7 @@
   --color-control: var(--rivr-color-control);
   --color-gold-tint: var(--rivr-color-gold-tint);
   --color-gold-edge: var(--rivr-color-gold-edge);
+  --color-practice-stripe: var(--rivr-color-practice-stripe);
   --color-cream-track: var(--rivr-color-cream-track);
   --color-cream-faint: var(--rivr-color-cream-faint);
   --color-seat-taken: var(--rivr-color-seat-taken);
@@ -43,6 +44,10 @@
   --color-alert: var(--rivr-color-alert);
   --color-on-alert: var(--rivr-color-on-alert);
   --color-focus: var(--rivr-color-focus);
+  --color-subtle: var(--rivr-color-subtle);
+  --color-subtle-hover: var(--rivr-color-subtle-hover);
+  --color-selected: var(--rivr-color-selected);
+  --color-danger: var(--rivr-color-danger);
   --color-chart-1: var(--rivr-color-chart-1);
   --color-chart-2: var(--rivr-color-chart-2);
   --color-chart-3: var(--rivr-color-chart-3);
@@ -54,6 +59,7 @@
   --text-12: var(--rivr-font-size-12);
   --text-13: var(--rivr-font-size-13);
   --text-14: var(--rivr-font-size-14);
+  --text-15: var(--rivr-font-size-15);
   --text-16: var(--rivr-font-size-16);
   --text-18: var(--rivr-font-size-18);
   --text-20: var(--rivr-font-size-20);
@@ -88,6 +94,7 @@
   --spacing-4: var(--rivr-space-4);
   --spacing-5: var(--rivr-space-5);
   --spacing-6: var(--rivr-space-6);
+  --spacing-7: var(--rivr-space-7);
   --spacing-8: var(--rivr-space-8);
   --spacing-10: var(--rivr-space-10);
   --spacing-12: var(--rivr-space-12);
@@ -97,8 +104,19 @@
   --spacing-32: var(--rivr-space-32);
   --spacing-touch: var(--rivr-size-touch);
   --spacing-rail: var(--rivr-size-rail);
+  --spacing-rail-collapsed: var(--rivr-size-rail-collapsed);
+  --spacing-control: var(--rivr-size-control);
+  --spacing-row: var(--rivr-size-row);
+  --spacing-row-compact: var(--rivr-size-row-compact);
+  --spacing-side-panel: var(--rivr-size-side-panel);
+  --spacing-dock: var(--rivr-size-dock);
+  --spacing-dock-strip: var(--rivr-size-dock-strip);
+  --spacing-palette: var(--rivr-size-palette);
+  --spacing-palette-list: var(--rivr-size-palette-list);
+  --spacing-search: var(--rivr-size-search);
   --spacing-bottom-nav: var(--rivr-size-bottom-nav);
   --spacing-header: var(--rivr-size-header);
+  --spacing-console-header: var(--rivr-size-console-header);
   --spacing-text: var(--rivr-size-text);
   --spacing-photo: var(--rivr-size-photo);
   --spacing-card: var(--rivr-size-card);
@@ -107,6 +125,11 @@
   --spacing-round: var(--rivr-size-round);
   --spacing-tile: var(--rivr-size-tile);
   --spacing-seat: var(--rivr-size-seat);
+  --spacing-switch-width: var(--rivr-size-switch-width);
+  --spacing-switch-height: var(--rivr-size-switch-height);
+  --spacing-switch-knob: var(--rivr-size-switch-knob);
+  --spacing-switch-inset: var(--rivr-size-switch-inset);
+  --spacing-switch-travel: var(--rivr-size-switch-travel);
   --spacing-pip: var(--rivr-size-pip);
   --spacing-grabber: var(--rivr-size-grabber);
   --spacing-ring: var(--rivr-size-ring);
@@ -145,6 +168,8 @@
   --container-medium: var(--rivr-breakpoint-medium);
   --breakpoint-tablet: 1180px;
   --container-tablet: var(--rivr-breakpoint-tablet);
+  --breakpoint-wide: 1200px;
+  --container-wide: var(--rivr-breakpoint-wide);
   --breakpoint-console: 1440px;
   --container-console: var(--rivr-breakpoint-console);
   --breakpoint-tv: 1920px;

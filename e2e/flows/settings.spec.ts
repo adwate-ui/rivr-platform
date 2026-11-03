@@ -11,6 +11,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
+import { openConsole } from '../support/console.ts';
 
 const REFUSED = 'Not in your role. Ask an admin.';
 
@@ -22,7 +23,7 @@ const tomorrow = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkat
 
 /** Opens Settings and one setting, by its name, from its area's list. */
 async function openSetting(page: Page, name: string) {
-  await page.getByRole('link', { name: 'Settings', exact: true }).click();
+  await openConsole(page, '/settings');
   await page.getByRole('searchbox', { name: 'Find a setting' }).fill(name);
   await page.getByRole('button', { name, exact: true }).click();
   await expect(page.getByRole('heading', { name, level: 2 })).toBeVisible();
@@ -51,7 +52,7 @@ test.describe('Settings', () => {
     await expect(admin.getByRole('textbox', { name: 'Minutes' })).toHaveAttribute('aria-invalid', 'true');
     await expect(admin.getByText('Between 1 and 120 minutes.')).toBeVisible();
     await admin.getByRole('textbox', { name: 'Minutes' }).fill('12');
-    await admin.getByRole('group', { name: 'Takes effect' }).getByRole('button', { name: 'From a later day' }).click();
+    await admin.getByRole('radiogroup', { name: 'Takes effect' }).getByRole('radio', { name: 'From a later day' }).click();
     await admin.getByLabel('Day').fill(tomorrow());
     await admin.getByRole('button', { name: 'Save change' }).click();
     await expect(admin.getByText('Change saved.')).toBeVisible();
@@ -62,7 +63,7 @@ test.describe('Settings', () => {
 
     const owner = await browser.newPage();
     await signInToConsole(owner, '9000000154');
-    await owner.getByRole('link', { name: 'Settings', exact: true }).click();
+    await openConsole(owner, '/settings');
     await openArea(owner, 'Club details');
     await owner.getByRole('textbox', { name: 'Alert WhatsApp number' }).fill('98765 43210');
     await owner.getByRole('button', { name: 'Save configuration' }).click();

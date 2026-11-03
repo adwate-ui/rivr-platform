@@ -8,8 +8,9 @@
 import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { worktreeName } from '@rivr/config/worktree';
-import { isRemoteTarget } from '../support/apps.ts';
+import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { openConsole } from '../support/console.ts';
 
 /** Runs SQL in this worktree's local database and returns its unaligned output. */
 function sql(query: string): string {
@@ -25,7 +26,8 @@ test.describe('Admin tools', () => {
   test('the super admin sets up a stake and a table, reads the games run, and builds an hours bonus', async ({ page }) => {
     test.setTimeout(90_000);
     await signInToConsole(page, '9000000114');
-    await page.getByRole('link', { name: 'Tables setup' }).click();
+    await openConsole(page, '/tables');
+    await page.getByRole('button', { name: 'New stake' }).click();
     await expect(page.getByRole('heading', { name: 'New stake' })).toBeVisible();
     await page.getByRole('textbox', { name: 'Stake name' }).fill(`PLO 200/400 ${RUN}`);
     await page.getByRole('textbox', { name: 'Small blind' }).fill('200');
@@ -35,16 +37,17 @@ test.describe('Admin tools', () => {
     await expect(page.getByText(`PLO 200/400 ${RUN} is saved.`)).toBeVisible();
     await expect(page.getByRole('table', { name: 'The stakes the club runs' }).getByRole('row').filter({ hasText: `PLO 200/400 ${RUN}` })).toContainText('800');
 
+    await page.getByRole('button', { name: 'New table' }).click();
     await expect(page.getByRole('heading', { name: 'New table' })).toBeVisible();
     await page.getByRole('textbox', { name: 'Table name' }).fill(`Table ${RUN}`);
-    await page.getByRole('group', { name: 'Stake' }).getByRole('button', { name: `PLO 200/400 ${RUN}` }).click();
-    await page.getByRole('group', { name: 'Seats' }).getByRole('button', { name: '8', exact: true }).click();
+    await page.getByRole('radiogroup', { name: 'Stake' }).getByRole('radio', { name: `PLO 200/400 ${RUN}` }).click();
+    await page.getByRole('radiogroup', { name: 'Seats' }).getByRole('radio', { name: '8', exact: true }).click();
     await page.getByRole('button', { name: 'Save the table' }).click();
     await expect(page.getByText(`Table ${RUN} is saved.`)).toBeVisible();
     const tables = page.getByRole('table', { name: 'The club’s tables, in floor order' });
-    await expect(tables.getByRole('row').filter({ hasText: `Table ${RUN}` })).toContainText('Closed');
+    await expect(tables.getByRole('row').filter({ hasText: `Table ${RUN}` })).toContainText('Active · closed tonight');
     await tables.getByRole('button', { name: `Change table Table ${RUN}` }).click();
-    await page.getByRole('group', { name: 'Seats' }).getByRole('button', { name: '6', exact: true }).click();
+    await page.getByRole('radiogroup', { name: 'Seats' }).getByRole('radio', { name: '6', exact: true }).click();
     await page.getByRole('button', { name: 'Save the table' }).click();
     await expect(page.getByText(`Table ${RUN} is saved.`)).toBeVisible();
     // No game asked, and the straddle kept (decision 0299).
@@ -52,33 +55,35 @@ test.describe('Admin tools', () => {
                 from public.game_table g join public.table_type t on t.id = g.table_type_id where g.name = 'Table ${RUN}'`)).toBe('6 none 40000 80000');
 
     // The seed's open tables have run since it was loaded, within the last seven club days.
-    await page.getByRole('link', { name: 'Games history' }).click();
+    await page.goto(`${appUrl('console')}/settings?tab=games-history`);
     const history = page.getByRole('table', { name: 'Tables run each club day' });
     await expect(history.getByRole('row').filter({ hasText: 'Table 3' }).first()).toBeVisible();
     await page.getByRole('searchbox', { name: 'Find a table' }).fill('Table 3');
     await expect(history.getByRole('row').filter({ hasText: 'Table 1' })).toHaveCount(0);
     await expect(history.getByRole('row').filter({ hasText: 'Table 3' }).first()).toContainText(/\d+ min|\d+ h/);
 
-    // A time-based bonus (#646): 1,500 bonus chips after three hours in a visit.
-    await page.getByRole('link', { name: 'Promotions' }).click();
-    await page.getByRole('group', { name: 'Reward' }).getByRole('button', { name: 'Bonus chips for hours played' }).click();
-    await page.getByRole('textbox', { name: 'Hours played in a visit' }).fill('3');
+    // A time-based bonus (#646): 1,500 bonus chips after three hours in a visit, built as a version (console v3, decision 0471).
+    await page.goto(`${appUrl('console')}/promotions?open=new`);
+    await page.getByRole('radiogroup', { name: 'Reward' }).getByRole('radio', { name: 'Hours-played bonus' }).click();
+    await page.getByRole('textbox', { name: 'Name members see' }).fill(`Hours bonus ${RUN}`);
     await page.getByRole('textbox', { name: 'Bonus chips', exact: true }).fill('1500');
-    await expect(page.getByRole('article', { name: 'Bonus chips for hours played' })).toContainText('1,500 bonus chips after 3 hours at the tables');
-    await page.getByRole('button', { name: 'Simulate last week' }).click();
-    await expect(page.getByText('Times given', { exact: true })).toBeVisible({ timeout: 10_000 });
-    await page.getByRole('button', { name: 'Submit for approval', exact: true }).click();
-    await expect(page.getByText('Bonus chips for hours played waits for a super admin to approve it.')).toBeVisible({ timeout: 10_000 });
-    expect(sql(`select r.trigger || ' ' || (r.conditions ->> 'min_hours') || ' ' || (r.effect ->> 'amount_paise') from public.promotion_rule r
-                join public.promotion p on p.id = r.promotion_id where p.name = 'Bonus chips for hours played' order by p.created_at desc limit 1`))
-      .toBe('hours_played 3 150000');
+    await page.getByRole('textbox', { name: 'After', exact: true }).fill('3');
+    await expect(page.getByText(/^1,500 bonus chips after 3 hours, for all stakes/)).toBeVisible();
+    await page.getByRole('button', { name: 'Simulate' }).click();
+    await expect(page.getByText('times given', { exact: true })).toBeVisible({ timeout: 10_000 });
+    await page.getByRole('button', { name: 'Submit for approval' }).click();
+    await expect(page.getByText(`Hours bonus ${RUN} sent for approval`)).toBeVisible({ timeout: 10_000 });
+    expect(sql(`select (reward ->> 'chips') || ' ' || (reward ->> 'afterMinutes') || ' ' || status from public.promotion_version
+                where name = 'Hours bonus ${RUN}'`)).toBe('1500 180 awaiting_approval');
   });
 
   test('the super admin gives a member locked points and releases some, and the member sees what stays locked', async ({ browser }) => {
     test.setTimeout(90_000);
     const admin = await browser.newPage();
     await signInToConsole(admin, '9000000113');
-    await admin.getByRole('link', { name: 'Rewards' }).click();
+    await admin.getByRole('link', { name: 'Rewards', exact: true }).click();
+    // Points by hand is a part of Rewards' Rewards tab (console v3).
+    await admin.getByRole('link', { name: 'Points by hand', exact: true }).click();
     await admin.getByRole('textbox', { name: 'Member’s mobile number' }).fill('9000000752');
     await admin.getByRole('button', { name: 'Find', exact: true }).click();
     await expect(admin.getByText(/^Neha Bhalla · No\. \d+$/)).toBeVisible();

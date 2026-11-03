@@ -8,7 +8,7 @@ import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { useSignIn, useSignOut } from './signIn.ts';
-import { StaffVenueProvider, useStaffVenue } from './staff.tsx';
+import { PRACTICE_KEY, StaffVenueProvider, useStaffVenue } from './staff.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const SANA = '00000000-0000-4000-8000-000000000104';
@@ -85,6 +85,26 @@ describe('the console venue', () => {
 
     await waitFor(() => expect(result.current.staff.status).toBe('ready'));
     expect(ready().venue).toMatchObject({ venueId: 'v1', isPractice: false });
+  });
+
+  it('stays in the practice venue across a reload, as a new provider reads it', async () => {
+    const first = renderStaff({ body: [PRACTICE_ROW, CLUB_ROW] });
+    await waitFor(() => expect(first.result.current.staff.status).toBe('ready'));
+    act(() => first.ready().setPractice(true));
+    cleanup();
+    const reloaded = renderStaff({ body: [PRACTICE_ROW, CLUB_ROW] });
+    await waitFor(() => expect(reloaded.result.current.staff.status).toBe('ready'));
+    expect(reloaded.ready().venue).toMatchObject({ venueId: 'v2', isPractice: true });
+    act(() => reloaded.ready().setPractice(false));
+    expect(localStorage.getItem(PRACTICE_KEY)).toBeNull();
+  });
+
+  it('starts at the club for someone else who signs in on a device left in practice', async () => {
+    localStorage.setItem(PRACTICE_KEY, '00000000-0000-4000-8000-000000000101');
+    const { result, ready } = renderStaff({ body: [PRACTICE_ROW, CLUB_ROW] });
+    await waitFor(() => expect(result.current.staff.status).toBe('ready'));
+    expect(ready().venue.isPractice).toBe(false);
+    localStorage.removeItem(PRACTICE_KEY);
   });
 
   it('is nobody\'s for someone who is not active staff', async () => {

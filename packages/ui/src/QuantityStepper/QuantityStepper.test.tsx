@@ -54,4 +54,13 @@ describe('QuantityStepper', () => {
     expect(screen.getByRole('group', { name: 'Masala chai' })).not.toHaveTextContent('Masala chai');
     expect(screen.getByRole('button', { name: 'One more Masala chai' })).toHaveClass('bg-action', 'rounded-full');
   });
+
+  it('keeps its label and fills its buttons faintly at 32 px from 1180 px on the console (console v3)', () => {
+    renderIn(<QuantityStepper label="Masala chai" value={1} onChange={() => undefined} look="console" />);
+    expect(screen.getByRole('group', { name: 'Masala chai' })).toHaveTextContent('Masala chai');
+    for (const name of ['One fewer Masala chai', 'One more Masala chai']) {
+      expect(screen.getByRole('button', { name })).toHaveClass('bg-subtle', 'tablet:min-h-8', 'rounded-md');
+    }
+    expect(screen.getByText('Masala chai')).toHaveClass('text-14');
+  });
 });

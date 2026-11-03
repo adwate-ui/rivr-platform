@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { useState } from 'react';
 import { Money } from '../Money/Money.tsx';
 import { Text } from '../Text/Text.tsx';
 import { DataTable, type DataTableColumn, type DataTableSort } from './DataTable.tsx';
@@ -41,6 +42,8 @@ interface MarkerTableProps {
   withFilter?: boolean;
   /** Beneath an export provider, as every console table is for staff who export tables (#102). */
   withExport?: boolean;
+  density?: 'comfortable' | 'compact';
+  narrowLayout?: 'cards' | 'scroll';
 }
 
 /** The table as the console's Markers screen would hold it: open markers, by member. */
@@ -49,14 +52,32 @@ function MarkerTable({ withExport = false, ...props }: MarkerTableProps) {
   return <DataTableExportProvider exporter={async () => true}><Markers {...props} /></DataTableExportProvider>;
 }
 
-function Markers({ state = 'ready', rows = markers(8), initialSort, withFilter = false }: Omit<MarkerTableProps, 'withExport'>) {
+function Markers({ state = 'ready', rows = markers(8), initialSort, withFilter = false, ...look }: Omit<MarkerTableProps, 'withExport'>) {
   const base = {
-    label: 'Open markers', columns: COLUMNS, rowKey: (row: Marker) => row.id, ...(initialSort ? { initialSort } : {}),
+    label: 'Open markers', columns: COLUMNS, rowKey: (row: Marker) => row.id, ...look, ...(initialSort ? { initialSort } : {}),
     ...(withFilter ? { filter: { label: 'Find a member', text: (row: Marker) => row.name } } : {}),
   };
   if (state === 'loading') return <DataTable {...base} status="loading" />;
   if (state === 'error') return <DataTable {...base} status="error" onRetry={() => undefined} />;
   return <DataTable {...base} rows={rows} emptyText="No markers outstanding." />;
+}
+
+// A table that ticks rows: every cell in the full colour, which stays clear on a ticked row's fill.
+const TICKED_COLUMNS: readonly DataTableColumn<Marker>[] = [
+  { key: 'name', header: 'Member', cell: (row) => row.name, sortValue: (row) => row.name },
+  { key: 'id', header: 'Marker', cell: (row) => row.id },
+  { key: 'tier', header: 'Tier', cell: (row) => row.tier, sortValue: (row) => row.tier },
+  { key: 'age', header: 'Age (days)', cell: (row) => row.ageDays, sortValue: (row) => row.ageDays, align: 'end' },
+  { key: 'amount', header: 'Outstanding', cell: (row) => <Money paise={row.amount} />, sortValue: (row) => row.amount, align: 'end' },
+];
+
+/** Markers a screen acts on several at a time: two ticked, rows that open on a click. */
+function TickedMarkers({ narrowLayout = 'cards' }: { narrowLayout?: 'cards' | 'scroll' }) {
+  const [selected, setSelected] = useState<readonly string[]>(['MK-00002', 'MK-00005']);
+  return (
+    <DataTable label="Open markers" columns={TICKED_COLUMNS} rowKey={(row) => row.id} rows={markers(8)} emptyText="No markers outstanding."
+      selection={{ selected, onChange: setSelected }} onRowOpen={() => undefined} narrowLayout={narrowLayout} />
+  );
 }
 
 const meta = { title: 'Data/DataTable', component: MarkerTable } satisfies Meta<typeof MarkerTable>;
@@ -72,7 +93,7 @@ export const Sorted: Story = { args: { initialSort: { key: 'amount', direction: 
 /** With a filter box above, matching a member's name. */
 export const WithFilter: Story = { args: { withFilter: true } };
 
-/** For staff who export tables: Export CSV and Export XLSX beside the filter box (#102). */
+/** For staff who export tables: one small Export control at the top right, offering CSV and XLSX (#102). */
 export const WithExport: Story = { args: { withFilter: true, withExport: true } };
 
 export const Loading: Story = { args: { state: 'loading' } };
@@ -99,3 +120,24 @@ export const OnAPortraitTablet: Story = { tags: ['viewport-portrait'] };
 
 /** Ten thousand rows as cards on a phone: still only the cards in view are drawn (the @perf check). */
 export const ManyRowsOnAPhone: Story = { ...ManyRows, tags: ['viewport-phone'] };
+
+/** At a desk, compact: rows 34 px high from 1180 px, for a screen that shows many at once. */
+export const Compact: Story = { args: { density: 'compact' }, tags: ['viewport-console'] };
+
+/** Ticks for acting on several rows at once: two ticked, on the chosen fill; the header's tick shows a dash for some. */
+export const Ticked: Story = { render: () => <TickedMarkers />, tags: ['viewport-console'] };
+
+/** Ticks on a phone's cards: each tick at its card's start, the header's above them. */
+export const TickedOnAPhone: Story = { render: () => <TickedMarkers />, tags: ['viewport-phone'] };
+
+/** The scroll layout on a phone: the lines under their header scroll sideways, the ticks and the member held. */
+export const ScrollOnAPhone: Story = { render: () => <TickedMarkers narrowLayout="scroll" />, tags: ['viewport-phone'] };
+
+/** A row opened in place (console v3): its form under it across the table, such as a dealer's new PIN. */
+export const RowOpenInPlace: Story = {
+  render: () => (
+    <DataTable label="Open markers" columns={TICKED_COLUMNS} rowKey={(row) => row.id} rows={markers(4)} emptyText="No markers outstanding."
+      rowDetail={(row) => (row.id === 'MK-00002' ? <Text>{`Settle ${row.id} from here.`}</Text> : null)} />
+  ),
+  tags: ['viewport-console'],
+};

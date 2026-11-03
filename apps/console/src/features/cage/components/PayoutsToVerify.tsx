@@ -60,7 +60,7 @@ function AccountRow({ venueId, account }: { venueId: string; account: PayoutAcco
           </Text>
         </Stack>
         <Stack gap={1} align="end">
-          <Button variant="secondary" isLoading={decide.isPending && !isRejecting} onClick={() => decideWith(true, null)}>{t('console.cage.verifyPayout')}</Button>
+          <Button variant="subtle" isLoading={decide.isPending && !isRejecting} onClick={() => decideWith(true, null)}>{t('console.cage.verifyPayout')}</Button>
           <Button variant="text" onClick={() => setIsRejecting((open) => !open)}>{t('console.cage.rejectPayout')}</Button>
         </Stack>
       </Inline>

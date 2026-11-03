@@ -4,15 +4,12 @@ import { Box, Button, ErrorMessage, Figure, Stack, Text, useToast } from '@rivr/
 import { useState, type ReactNode } from 'react';
 import { lineOf, WAITLIST_FAILURE_COPY } from './waitlistCopy.ts';
 
-/** Leaving the list, with Undo: back on the same list, at the table asked for (at its end: a place is not kept). */
+/** Leaving the list, with Undo: back on the same table's list (at its end: a place is not kept). */
 function useLeave(place: WaitlistPlace) {
-  const { leave, join, joinAt } = useWaitlistActions();
+  const { leave, joinAt } = useWaitlistActions();
   const toast = useToast();
   const [failure, setFailure] = useState<WaitlistFailure | null>(null);
-  const rejoin = () => {
-    const requestId = crypto.randomUUID();
-    void (place.tableId === null ? join.mutateAsync({ tableTypeId: place.tableTypeId, requestId }) : joinAt.mutateAsync({ tableId: place.tableId, requestId }));
-  };
+  const rejoin = () => void joinAt.mutateAsync({ tableId: place.tableId, requestId: crypto.randomUUID() });
   const go = async () => {
     const left = await leave.mutateAsync(place.entryId);
     setFailure(left.ok ? null : left.error);
@@ -22,12 +19,12 @@ function useLeave(place: WaitlistPlace) {
 }
 
 /**
- * On the list (brief 3.4 C): the list's table and game, the place as a large numeral, "Next in line" or where, when they
+ * On the list (brief 3.4 C): the list's table (decision 0467) and game, the place as a large numeral, "Next in line" or where, when they
  * joined, and Leave waitlist. No Step away. `offer` is Profile's offer of seat-ready push, through the route.
  */
 export function WaitingView({ place, offer }: { place: WaitlistPlace; offer: ReactNode }) {
   const leave = useLeave(place);
-  const eyebrow = place.tableName === null ? place.tableTypeName : t('player.live.list.eyebrow', { table: place.tableName, game: place.tableTypeName });
+  const eyebrow = t('player.live.list.eyebrow', { table: place.tableName, game: place.tableTypeName });
   return (
     <Stack gap={8}>
       <Box paddingX={6} paddingY={8}>

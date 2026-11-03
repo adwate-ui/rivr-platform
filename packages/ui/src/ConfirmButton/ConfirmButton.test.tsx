@@ -17,6 +17,14 @@ describe('ConfirmButton', () => {
     expect(screen.getByRole('button', { name: 'Leaves: Ritika Das' })).toBeInTheDocument();
   });
 
+  it('on the console, keeps both buttons at a row’s small size, the first a subtle fill (decision 0464)', async () => {
+    renderIn(<ConfirmButton variant="subtle" size="small" label="Delete" name="Delete Table 3" confirm="Yes, delete Table 3" onConfirm={() => undefined} />);
+    expect(screen.getByRole('button', { name: 'Delete Table 3' })).toHaveClass('bg-subtle', 'text-13');
+    await userEvent.click(screen.getByRole('button', { name: 'Delete Table 3' }));
+    expect(screen.getByRole('button', { name: 'Yes, delete Table 3' })).toHaveClass('text-13');
+    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveClass('text-13');
+  });
+
   it('works from the keyboard: Enter asks, Enter again does it', async () => {
     const onConfirm = vi.fn();
     renderIn(<ConfirmButton label="Remove" confirm="Yes, remove Ritika" onConfirm={onConfirm} />);
@@ -71,6 +79,13 @@ describe('ConfirmButton', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Remove' }));
     expect(screen.queryByRole('button', { name: 'Yes, remove Ritika' })).toBeNull();
     expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it('takes the console’s subtle fill and size, and asks at the same size (console v3)', async () => {
+    renderIn(<ConfirmButton variant="subtle" size="compact" label="Take off the queue" confirm="Yes, take Ritika off the queue" onConfirm={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Take off the queue' })).toHaveClass('bg-subtle', 'tablet:min-h-control');
+    await userEvent.click(screen.getByRole('button', { name: 'Take off the queue' }));
+    expect(screen.getByRole('button', { name: 'Yes, take Ritika off the queue' })).toHaveClass('tablet:min-h-control');
   });
 
   it('has no accessibility violations, asking or not', async () => {

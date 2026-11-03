@@ -19,7 +19,7 @@ export const Default: Story = {};
 /** Custom, with the minutes asked for. */
 export const Custom: Story = {
   play: async ({ canvasElement }) => {
-    await userEvent.click(within(canvasElement).getByRole('button', { name: 'Custom' }));
+    await userEvent.click(within(canvasElement).getByRole('radio', { name: 'Custom' }));
     await expect(within(canvasElement).getByRole('textbox', { name: /^Minutes/ })).toBeVisible();
   },
 };

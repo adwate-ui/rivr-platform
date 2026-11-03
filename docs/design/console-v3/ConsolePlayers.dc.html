@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="padding:24px clamp(16px,3vw,32px) 48px;display:flex;flex-direction:column;gap:28px;color:#F3EDE0;font-family:'Instrument Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums">
+
+<sc-if value="{{ isToday }}">
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:240px">
+        <h1 style="margin:0;font-size:24px;font-weight:500">Today's players</h1>
+        <div style="font-size:13px;color:rgba(243,237,224,0.65);margin-top:6px">Everyone at the club today: playing, waiting or gone.</div>
+      </div>
+      <button style="height:32px;padding:0 12px;background:rgba(243,237,224,0.06);border:none;border-radius:4px;color:#F3EDE0;font-size:13px;cursor:pointer">Export CSV</button>
+      <button style="height:32px;padding:0 12px;background:rgba(243,237,224,0.06);border:none;border-radius:4px;color:#F3EDE0;font-size:13px;cursor:pointer">Export XLSX</button>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <div style="display:flex;gap:4px">
+        <sc-for list="{{ tpChips }}" as="c"><button onClick="{{ c.onClick }}" style="height:32px;padding:0 12px;border-radius:4px;font-size:13px;cursor:pointer;background:{{ c.bg }};color:{{ c.color }};border:1px solid {{ c.border }}">{{ c.label }} <span style="opacity:0.6">{{ c.n }}</span></button></sc-for>
+      </div>
+      <input value="{{ tpQuery }}" onChange="{{ onTpQuery }}" placeholder="Find a player" style="flex:1;min-width:200px;max-width:360px;height:34px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 12px;font-size:14px">
+    </div>
+    <div>
+      <div style="display:grid;grid-template-columns:minmax(0,1.4fr) 100px 80px 80px 80px minmax(0,1fr) 90px;min-width:720px;position:sticky;top:0;background:#0E3B2C;gap:12px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.5);padding:8px 10px;border-bottom:1px solid rgba(243,237,224,0.1)">
+        <span>Player</span><span>Status</span><span>In</span><span>Out</span><span style="text-align:right">Waited</span><span>Table</span><span style="text-align:right">Time played</span>
+      </div>
+      <sc-for list="{{ tpRows }}" as="r" hint-placeholder-count="10">
+        <div style="display:grid;grid-template-columns:minmax(0,1.4fr) 100px 80px 80px 80px minmax(0,1fr) 90px;min-width:720px;gap:12px;align-items:center;padding:9px 10px;border-bottom:1px solid rgba(243,237,224,0.04)" style-hover="background:#0A2A20">
+          <span style="font-size:14px">{{ r.name }}</span>
+          <span style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="width:7px;height:7px;border-radius:50%;background:{{ r.pillColor }}"></span>{{ r.status }}</span>
+          <span style="font-size:13px;color:rgba(243,237,224,0.8)">{{ r.in }}</span>
+          <span style="font-size:13px;color:rgba(243,237,224,0.8)">{{ r.out }}</span>
+          <span style="font-size:13px;text-align:right;color:{{ r.waitColor }}">{{ r.waited }}</span>
+          <span style="font-size:13px;color:rgba(243,237,224,0.8)">{{ r.table }}</span>
+          <span style="font-size:13px;color:rgba(243,237,224,0.8);text-align:right">{{ r.played }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isKyc }}">
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:240px">
+        <h1 style="margin:0;font-size:24px;font-weight:500">KYC review</h1>
+        <div style="font-size:13px;color:rgba(243,237,224,0.65);margin-top:6px">Checks the vendor could not finish. Approve only when the card and the person match.</div>
+      </div>
+      <button onClick="{{ openInPerson }}" style="height:36px;padding:0 16px;background:#C9A85C;border:none;border-radius:4px;color:#141414;font-size:14px;font-weight:600;cursor:pointer">Check in person</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:20px;align-items:start">
+      <div style="background:#0A2A20;border-radius:6px;overflow:hidden">
+        <sc-for list="{{ kycGroups }}" as="kg">
+          <div style="display:flex;justify-content:space-between;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.55);padding:12px 14px 6px"><span>{{ kg.title }}</span><span>{{ kg.count }}</span></div>
+          <sc-for list="{{ kg.items }}" as="k">
+            <div onClick="{{ k.onClick }}" style="padding:10px 14px;cursor:pointer;background:{{ k.bg }};border-left:2px solid {{ k.line }}" style-hover="background:rgba(243,237,224,0.04)">
+              <div style="font-size:14px;font-weight:500">{{ k.name }}</div>
+              <div style="font-size:12px;color:rgba(243,237,224,0.6);margin-top:2px">{{ k.meta }}</div>
+            </div>
+          </sc-for>
+        </sc-for>
+      </div>
+      <sc-if value="{{ hasKyc }}">
+        <div style="background:#0A2A20;border-radius:6px;padding:20px;display:flex;flex-direction:column;gap:18px">
+          <div style="display:flex;gap:18px;flex-wrap:wrap">
+            <div style="width:150px;height:190px;border-radius:4px;background:#0E3B2C;border:1px solid rgba(243,237,224,0.12);display:grid;place-items:center;text-align:center;font-size:12px;color:rgba(243,237,224,0.55);padding:12px">{{ kyc.photo }}</div>
+            <div style="flex:1;min-width:240px;display:flex;flex-direction:column;gap:4px">
+              <div style="font-size:20px;font-weight:600">{{ kyc.name }}</div>
+              <div style="font-size:12px;color:rgba(243,237,224,0.6)">In the queue since {{ kyc.since }}</div>
+              <div style="font-size:14px;margin:10px 0 6px;padding:8px 10px;background:rgba(201,168,92,0.1);border-radius:4px">{{ kyc.note }}</div>
+              <sc-for list="{{ kyc.facts }}" as="fx">
+                <div style="display:flex;gap:12px;padding:6px 0;border-bottom:1px solid rgba(243,237,224,0.04);font-size:14px"><span style="width:110px;color:rgba(243,237,224,0.6)">{{ fx.k }}</span><span>{{ fx.v }}</span></div>
+              </sc-for>
+            </div>
+          </div>
+          <sc-if value="{{ kyc.canDecide }}">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <span style="font-size:12px;color:rgba(243,237,224,0.7)">Reason (in words, never document numbers)</span>
+              <input value="{{ kycReason }}" onChange="{{ onKycReason }}" placeholder="e.g. Face and PAN card match, checked at the desk" style="height:40px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 12px;font-size:14px">
+            </div>
+            <div style="display:flex;gap:8px">
+              <button onClick="{{ kycApprove }}" style="height:38px;padding:0 18px;background:#C9A85C;border:none;border-radius:4px;color:#141414;font-size:14px;font-weight:600;cursor:pointer">Approve</button>
+              <button onClick="{{ kycReject }}" style="height:38px;padding:0 16px;background:transparent;border:1px solid rgba(232,130,140,0.5);border-radius:4px;color:#E8828C;font-size:14px;cursor:pointer">Reject</button>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isHost }}">
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div>
+      <h1 style="margin:0;font-size:24px;font-weight:500">Host queue</h1>
+      <div style="font-size:13px;color:rgba(243,237,224,0.65);margin-top:6px">Lapsed regulars, longest gone first. Log every call, even when nobody picks up.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:20px;align-items:start">
+      <div style="background:#0A2A20;border-radius:6px;overflow:hidden">
+        <sc-for list="{{ hosts }}" as="h">
+          <div onClick="{{ h.onClick }}" style="padding:12px 14px;cursor:pointer;background:{{ h.bg }};border-left:2px solid {{ h.line }}">
+            <div style="font-size:14px;font-weight:500">{{ h.name }}</div>
+            <div style="font-size:12px;color:rgba(243,237,224,0.6);margin-top:2px">{{ h.meta }}</div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ noHosts }}"><div style="padding:16px;font-size:13px;color:rgba(243,237,224,0.6)">Nobody to call. Lapsed regulars appear here.</div></sc-if>
+      </div>
+      <sc-if value="{{ hasHost }}">
+        <div style="background:#0A2A20;border-radius:6px;padding:20px;display:flex;flex-direction:column;gap:18px">
+          <div>
+            <div style="font-size:20px;font-weight:600">{{ host.name }}</div>
+            <div style="font-size:13px;color:rgba(243,237,224,0.65);margin-top:4px">{{ host.phone }} · {{ host.meta }}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:12px;color:rgba(243,237,224,0.7)">Why they stopped coming</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ reasons }}" as="c"><button onClick="{{ c.onClick }}" style="height:32px;padding:0 12px;border-radius:4px;font-size:13px;cursor:pointer;background:{{ c.bg }};color:{{ c.color }};border:1px solid {{ c.border }}">{{ c.label }}</button></sc-for></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:12px;color:rgba(243,237,224,0.7)">Offer</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ offers }}" as="c"><button onClick="{{ c.onClick }}" style="height:32px;padding:0 12px;border-radius:4px;font-size:13px;cursor:pointer;background:{{ c.bg }};color:{{ c.color }};border:1px solid {{ c.border }}">{{ c.label }}</button></sc-for></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:12px;color:rgba(243,237,224,0.7)">Note</span>
+            <textarea rows="3" style="background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:10px 12px;font-size:14px;resize:vertical"></textarea>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button onClick="{{ saveCall }}" style="height:38px;padding:0 18px;background:{{ saveBg }};border:none;border-radius:4px;color:#141414;font-size:14px;font-weight:600;cursor:pointer">Save the call</button>
+            <button onClick="{{ closeHost }}" style="height:38px;padding:0 14px;background:rgba(243,237,224,0.06);border:none;border-radius:4px;color:#F3EDE0;font-size:14px;cursor:pointer">Take off the queue</button>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isFeedback }}">
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div>
+      <h1 style="margin:0;font-size:24px;font-weight:500">Feedback</h1>
+      <div style="font-size:13px;color:rgba(243,237,224,0.65);margin-top:6px">What members told us. Resolve a ticket with what was done; it is kept with your name.</div>
+    </div>
+    <div style="display:flex;gap:2px;border-bottom:1px solid rgba(243,237,224,0.1)">
+      <sc-for list="{{ fbTabs }}" as="tb"><button onClick="{{ tb.onClick }}" style="background:none;border:none;border-bottom:2px solid {{ tb.line }};color:{{ tb.color }};font-size:14px;padding:8px 12px;cursor:pointer;margin-bottom:-1px">{{ tb.label }}</button></sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;max-width:900px">
+      <sc-for list="{{ tickets }}" as="tk">
+        <div style="background:#0A2A20;border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+            <span style="font-size:13px;font-weight:500">{{ tk.who }}</span>
+            <span style="font-size:12px;color:rgba(243,237,224,0.6)">{{ tk.topic }} · {{ tk.date }}</span>
+          </div>
+          <sc-if value="{{ tk.hasScores }}"><div style="font-size:12px;color:#C9A85C">{{ tk.scores }}</div></sc-if>
+          <div style="font-size:15px;line-height:1.5">{{ tk.text }}</div>
+          <sc-if value="{{ tk.open }}">
+            <div style="display:flex;gap:8px;margin-top:4px">
+              <input value="{{ tk.note }}" onChange="{{ tk.onNote }}" placeholder="What was done" style="flex:1;height:36px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 12px;font-size:14px">
+              <button onClick="{{ tk.onResolve }}" style="height:36px;padding:0 14px;background:rgba(243,237,224,0.06);border:none;border-radius:4px;color:#F3EDE0;font-size:13px;cursor:pointer">Resolve</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ tk.resolved }}"><div style="font-size:13px;color:rgba(243,237,224,0.7)">Resolved by Vikram Rao: {{ tk.note }}</div></sc-if>
+        </div>
+      </sc-for>
+      <sc-if value="{{ noTickets }}"><div style="font-size:14px;color:rgba(243,237,224,0.6);padding:12px 0">Nothing here in the last 90 days.</div></sc-if>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ ipOpen }}">
+  <div onClick="{{ closeInPerson }}" style="position:fixed;inset:0;background:rgba(5,20,15,0.55);z-index:40"></div>
+  <div style="position:fixed;top:0;right:0;bottom:0;width:440px;max-width:100%;z-index:41;background:#0A2A20;border-left:1px solid rgba(201,168,92,0.3);display:flex;flex-direction:column">
+    <div style="padding:18px 20px;border-bottom:1px solid rgba(243,237,224,0.05);display:flex;justify-content:space-between"><div><div style="font-size:19px;font-weight:600">Check in person</div><div style="font-size:13px;color:rgba(243,237,224,0.6);margin-top:4px">Originals in hand. Photograph the face, never a document.</div></div><button onClick="{{ closeInPerson }}" style="background:none;border:none;color:#F3EDE0;font-size:22px;cursor:pointer">×</button></div>
+    <div style="flex:1;overflow:auto;padding:20px;display:flex;flex-direction:column;gap:18px">
+      <input placeholder="Member's name or last digits of their number" style="height:40px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 12px;font-size:14px">
+      <div style="height:220px;border:1px dashed rgba(243,237,224,0.25);border-radius:4px;display:grid;place-items:center;font-size:13px;color:rgba(243,237,224,0.6)">Camera opens here. Take the photo of the face.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <input placeholder="Date of birth" style="height:38px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 10px;font-size:13px">
+        <input placeholder="PAN" style="height:38px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 10px;font-size:13px">
+      </div>
+      <label style="display:flex;gap:10px;font-size:13px;line-height:1.5;color:rgba(243,237,224,0.85)"><input type="checkbox" style="accent-color:#C9A85C;margin-top:3px">The member consents to RIVR keeping this photo and these details.</label>
+    </div>
+    <div style="padding:14px 20px;border-top:1px solid rgba(243,237,224,0.08);display:flex;gap:8px;justify-content:flex-end">
+      <button onClick="{{ closeInPerson }}" style="height:38px;padding:0 14px;background:transparent;border:none;color:#F3EDE0;font-size:14px;cursor:pointer">Cancel</button>
+      <button onClick="{{ verifyInPerson }}" style="height:38px;padding:0 18px;background:#C9A85C;border:none;border-radius:4px;color:#141414;font-size:14px;font-weight:600;cursor:pointer">Verify</button>
+    </div>
+  </div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:800},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;today&quot;,&quot;kyc&quot;,&quot;host&quot;,&quot;feedback&quot;],&quot;default&quot;:&quot;today&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onToast&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(msg: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = {
+    tpFilter: 'All', tpQuery: '',
+    kycSel: 'Rohan Bhatia', kycReason: '', kycDone: [],
+    kycs: [
+      { name: 'Rohan Bhatia', since: '3 Nov 2026, 11:42', review: true, note: 'PAN only, no DigiLocker. Check the card and the person.', dob: '15 Jun 1991', pan: 'ABCPB4417R', method: 'PAN alone' },
+      { name: 'Naina Kapoor', since: '3 Nov 2026, 11:42', review: true, note: 'DigiLocker matched. Confirm the face.', dob: '3 Feb 1994', pan: 'ABCPK7720N', method: 'DigiLocker' },
+      ...[['Puneet Agarwal', '28 Nov 1967'], ['Charu Taneja', '18 Jul 1975'], ['Shivam Kalra', '25 Sep 1974'], ['Jahnavi Tiwari', '8 Aug 2001'], ['Arnav Pahwa', '6 Sep 2001'], ['Omkar Tandon', '23 Feb 1995'], ['Ishani Ahuja', '4 Jul 1967'], ['Hemant Jain', '25 Nov 2000'], ['Zara Dutta', '20 Nov 2001'], ['Keshav Parikh', '28 Jun 1976']].map(([name, dob]) => ({ name, since: '3 Nov 2026, 11:23', review: false, note: 'Waiting for the member to give a PAN.', dob, method: 'DigiLocker' })),
+    ],
+    hostSel: 0, reason: null, offer: 'No offer', hosts: [{ name: 'Ritika Bhalla', phone: '+91 90000 00642', meta: 'last here 4 Oct 2026 · 4 visits before that' }],
+    fbTab: 'Open',
+    tickets: [
+      { who: 'Ritika Bhalla · No. 42', topic: 'Check-in and check-out', date: '3 Nov', text: 'Check-in took ten minutes on Saturday, the queue at the door was long.', open: true, note: '' },
+      { who: 'Zoya Merchant · No. 44', topic: 'Detailed feedback, would recommend 8 of 10', date: '3 Nov', scores: 'Gameplay 5 · Cashier 4 · Service 3 · Ambience 4', text: 'Great tables. The washroom near the Private Room needs attention.', open: true, note: '' },
+      { who: 'Yuvraj Luthra · No. 98', topic: 'Dealer', date: '3 Nov', text: 'The dealer on Table 3 was quick and clear. Best game this month.', open: true, note: '' },
+      { who: 'Rhea Kaul · No. 43', topic: 'Service', date: '3 Nov', text: 'Waited twenty minutes for a chai at Table 2 around 11. Staff were lovely, just stretched.', open: true, note: '' },
+    ],
+    ipOpen: false,
+  };
+  t(m) { this.props.onToast && this.props.onToast(m); }
+  renderVals() {
+    const S = this.state, sc = this.props.screen;
+    const opt = (on) => ({ bg: on ? 'rgba(201,168,92,0.16)' : 'transparent', border: on ? '#C9A85C' : 'rgba(243,237,224,0.18)', color: on ? '#F3EDE0' : 'rgba(243,237,224,0.8)' });
+    const raw = 'Ajay Dhillon|P|Private Room · 9 min;Arjun Mehta|W|9;Bhuvan Walia|P|Table 2 · 9 min;Chirag Bajaj|P|Table 1 · 9 min;Eshan Taneja|P|Table 2 · 9 min;Ishaan Verma|W|9;Jahnavi Mittal|P|Table 1 · 9 min;Kabir Anand|L|06:23|10:23;Kabir Sethi|W|38;Kashish Rastogi|P|Table 3 · 9 min;Keshav Mehrotra|P|Private Room · 9 min;Lalit Goel|P|Private Room · 9 min;Leela Menon|W|8;Mahima Tiwari|L|11:35|—|Table 5 · 2 min;Mansi Kalra|P|Table 3 · 9 min;Mihir Shah|W|9;Mrinal Thakur|P|Table 2 · 9 min;Naina Kapoor|W|32;Nakul Dhillon|P|Table 1 · 9 min;Payal Agarwal|P|Private Room · 9 min;Payal Bhatt|P|Table 3 · 9 min;Rajesh Saini|P|Table 3 · 9 min;Ritika Bhalla|W|8;Riya Sen|W|8;Rohan Bhatia|W|23;Sakshi Tandon|P|Table 2 · 9 min;Samar Dua|P|Table 2 · 9 min;Shalini Sood|P|Table 1 · 9 min;Siddharth Vaid|P|Table 2 · 9 min;Sonal Kohli|L|11:35|—|Table 5 · 2 min;Tara Singh|L|06:23|10:23;Vaani Mathur|P|Table 1 · 9 min;Vidya Chadha|P|Table 1 · 9 min;Vishal Dutta|P|Table 3 · 9 min;Yamini Mehrotra|P|Table 2 · 9 min;Yuvraj Luthra|P|Table 5 · 9 min';
+    const players = raw.split(';').map(s => { const o = (s => { const a = s.split('|'); const st = { P: 'Playing', W: 'Waiting', L: 'Left' }[a[1]]; return st === 'Playing' ? { name: a[0], status: st, in: '11:35', out: '—', waited: '0 min', table: a[2] } : st === 'Waiting' ? { name: a[0], status: st, in: a[0] === 'Kabir Sethi' ? '11:40' : '—', out: '—', waited: `${a[2]} min`, table: '—' } : { name: a[0], status: st, in: a[2], out: a[3], waited: '0 min', table: a[4] || '—' }; })(s); const [tb, tm] = (o.table || '—').split(' · '); return { ...o, table: tb, played: tm || '—' }; });
+    const q = S.tpQuery.trim().toLowerCase();
+    const pill = { Playing: ['', 'rgba(243,237,224,0.75)'], Waiting: ['', '#C9A85C'], Left: ['', 'rgba(243,237,224,0.25)'] };
+    const kycList = S.kycs.filter(k => !S.kycDone.includes(k.name));
+    const kycSel = kycList.find(k => k.name === S.kycSel) || kycList[0];
+    const kItem = (k) => ({ name: k.name, meta: k.review ? `${k.method} · ${k.since.split(', ')[1]}` : `Needs a PAN · since ${k.since.split(', ')[1]}`, bg: kycSel && kycSel.name === k.name ? 'rgba(201,168,92,0.1)' : 'transparent', line: kycSel && kycSel.name === k.name ? '#C9A85C' : 'transparent', onClick: () => this.setState({ kycSel: k.name, kycReason: '' }) });
+    const decide = (ok) => { if (!S.kycReason.trim()) return this.t('Give a reason first'); this.setState(s => ({ kycDone: [...s.kycDone, kycSel.name], kycReason: '' })); this.t(`${kycSel.name} ${ok ? 'approved' : 'rejected'}`); };
+    const host = S.hosts[S.hostSel];
+    const tickets = S.tickets.filter(tk => S.fbTab === 'Open' ? tk.open : !tk.open);
+    return {
+      isToday: sc === 'today', isKyc: sc === 'kyc', isHost: sc === 'host', isFeedback: sc === 'feedback',
+      tpChips: ['All', 'Playing', 'Waiting', 'Left'].map(l => ({ label: l, n: l === 'All' ? players.length : players.filter(p => p.status === l).length, ...opt(S.tpFilter === l), onClick: () => this.setState({ tpFilter: l }) })),
+      tpQuery: S.tpQuery, onTpQuery: (e) => this.setState({ tpQuery: e.target.value }),
+      tpRows: players.filter(p => (S.tpFilter === 'All' || p.status === S.tpFilter) && (!q || p.name.toLowerCase().includes(q))).map(p => ({ ...p, pillBg: pill[p.status][0], pillColor: pill[p.status][1], waitColor: parseInt(p.waited) >= 30 ? '#E8828C' : 'rgba(243,237,224,0.8)' })),
+      kycGroups: [{ title: 'To review', items: kycList.filter(k => k.review).map(kItem) }, { title: 'Waiting on the member', items: kycList.filter(k => !k.review).map(kItem) }].map(g => ({ ...g, count: g.items.length })),
+      hasKyc: !!kycSel, kyc: kycSel ? { ...kycSel, photo: kycSel.review ? 'Photo from the vendor' : 'No photo yet', canDecide: kycSel.review, facts: [{ k: 'Date of birth', v: kycSel.dob }].concat(kycSel.pan ? [{ k: 'PAN', v: kycSel.pan }] : []).concat([{ k: 'Method', v: kycSel.method }]) } : {},
+      kycReason: S.kycReason, onKycReason: (e) => this.setState({ kycReason: e.target.value }), kycApprove: () => decide(true), kycReject: () => decide(false),
+      openInPerson: () => this.setState({ ipOpen: true }), closeInPerson: () => this.setState({ ipOpen: false }), ipOpen: S.ipOpen, verifyInPerson: () => { this.setState({ ipOpen: false }); this.t('Verified. They can take a seat.'); },
+      hosts: S.hosts.map((h, i) => ({ ...h, bg: i === S.hostSel ? 'rgba(201,168,92,0.1)' : 'transparent', line: i === S.hostSel ? '#C9A85C' : 'transparent', onClick: () => this.setState({ hostSel: i }) })), noHosts: S.hosts.length === 0, hasHost: !!host, host: host || {},
+      reasons: ['Moved away', 'Busy', 'Budget', 'Game too big', 'Game too small', 'Unhappy with a visit', 'Playing elsewhere', 'Could not reach', 'Other'].map(l => ({ label: l, ...opt(S.reason === l), onClick: () => this.setState({ reason: l }) })),
+      offers: ['No offer', 'Points', 'Bonus', 'A free spin', 'A message'].map(l => ({ label: l, ...opt(S.offer === l), onClick: () => this.setState({ offer: l }) })),
+      saveBg: S.reason ? '#C9A85C' : 'rgba(201,168,92,0.4)',
+      saveCall: () => { if (!S.reason) return this.t('Pick why they stopped coming'); this.t(`Call to ${host.name} saved`); this.setState({ reason: null, offer: 'No offer' }); },
+      closeHost: () => { this.t(`${host.name} taken off the queue`); this.setState(s => ({ hosts: s.hosts.filter((_, i) => i !== s.hostSel), hostSel: 0 })); },
+      fbTabs: [['Open', S.tickets.filter(t => t.open).length], ['Resolved', S.tickets.filter(t => !t.open).length]].map(([l, n]) => ({ label: `${l} ${n}`, line: S.fbTab === l ? '#C9A85C' : 'transparent', color: S.fbTab === l ? '#F3EDE0' : 'rgba(243,237,224,0.6)', onClick: () => this.setState({ fbTab: l }) })),
+      tickets: tickets.map(tk => { const i = S.tickets.indexOf(tk); return { ...tk, hasScores: !!tk.scores, resolved: !tk.open, onNote: (e) => { const v = e.target.value; this.setState(s => ({ tickets: s.tickets.map((x, j) => j === i ? { ...x, note: v } : x) })); }, onResolve: () => { if (!tk.note.trim()) return this.t('Say what was done first'); this.setState(s => ({ tickets: s.tickets.map((x, j) => j === i ? { ...x, open: false } : x) })); this.t('Ticket resolved'); } }; }),
+      noTickets: tickets.length === 0,
+    };
+  }
+}
+</script>
+</body>
+</html>

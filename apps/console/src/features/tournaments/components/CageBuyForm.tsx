@@ -76,7 +76,7 @@ export function CageBuyForm({ venueId, tournament }: { venueId: string; tourname
           onChange={(chosen) => { if (chosen[0] !== undefined) field.onChange(chosen[0]); }} />
       )} />
       <Inline gap={3} wrap>
-        <Button variant="secondary" isDisabled={chosenMember === ''} isLoading={cash.isPending} onClick={() => void take()}>
+        <Button variant="subtle" isDisabled={chosenMember === ''} isLoading={cash.isPending} onClick={() => void take()}>
           {t('console.tournaments.takeCash', { amount })}
         </Button>
         {purchase === 'entry' ? <Button variant="text" isDisabled={chosenMember === ''} isLoading={ticket.isPending}

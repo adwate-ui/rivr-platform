@@ -1,0 +1,52 @@
+/**
+ * Finding one's way round the console v3 shell (phase 1, decision 0476) at a desk, as staff do: the rail, its Admin group
+ * folded until opened, a screen's tabs, and the staff member's menu at the header's end.
+ */
+import { expect, type Page } from '@playwright/test';
+import { appUrl } from './apps.ts';
+
+/** Opens a console screen by its v3 address (decision 0476), for a staff member signed in by `signInToConsole`. */
+export async function openConsole(page: Page, path: string) {
+  await page.goto(`${appUrl('console')}${path}`);
+}
+
+/** Opens a screen from the rail, unfolding Admin first when the screen sits in it, and waits until it is the one open. */
+export async function openFromRail(page: Page, screen: string) {
+  const rail = page.getByRole('navigation', { name: 'Sections' });
+  const link = rail.getByRole('link', { name: screen, exact: true });
+  // The rail fills once the staff record is read; only then does a missing link mean a folded Admin.
+  await expect(rail.getByRole('link').first()).toBeVisible();
+  if ((await link.count()) === 0) await rail.getByRole('button', { name: 'Admin' }).click();
+  await link.click();
+  await expect(link).toHaveAttribute('aria-current', 'page');
+}
+
+/** Opens a screen from the rail, then one of its tabs; a role with that tab alone sees no tabs, and is there already. */
+export async function openTab(page: Page, screen: string, tab: string) {
+  await openFromRail(page, screen);
+  const link = page.getByRole('main').getByRole('navigation', { name: screen, exact: true }).getByRole('link', { name: tab, exact: true });
+  if ((await link.count()) > 0) {
+    await link.click();
+    await expect(link).toHaveAttribute('aria-current', 'page');
+  }
+}
+
+/** Opens Settings' Devices tab at the TVs or the tablets, by its v3 address (decision 0476). */
+export async function openDevices(page: Page, kind: 'TVs' | 'Tablets') {
+  await page.goto(`${appUrl('console')}/settings?tab=devices&part=${kind === 'TVs' ? 'tvs' : 'tablets'}`);
+  await expect(page.getByRole('main').getByRole('link', { name: kind, exact: true })).toHaveAttribute('aria-current', 'page');
+}
+
+/** Opens the staff member's menu at the header's end, and gives back its panel. */
+export async function openAccountMenu(page: Page) {
+  await page.getByRole('banner').locator('button[aria-expanded]').click();
+  return page.getByRole('group').filter({ has: page.getByRole('button', { name: 'Sign out' }) });
+}
+
+/** Switches the console to the practice venue from the staff member's menu, waits for its stripe, and closes the menu. */
+export async function switchToPractice(page: Page) {
+  const menu = await openAccountMenu(page);
+  await menu.getByRole('switch', { name: 'Practice venue' }).click();
+  await expect(page.getByRole('region', { name: 'Practice venue' })).toBeVisible();
+  await page.keyboard.press('Escape');
+}

@@ -12,12 +12,14 @@ test.describe('Social wall', () => {
   test('marketing approves a tagged post and the website shows it', async ({ page, browser }) => {
     test.skip(isRemoteTarget(), 'moderates the seed\u2019s posts, so the local stack only');
     await signInToConsole(page, '9000000635');
-    await page.getByRole('link', { name: 'Social' }).click();
-    const queue = page.getByRole('table', { name: 'Tagged posts' });
-    const row = queue.getByRole('row').filter({ hasText: '@zoya.plays' });
+    await page.getByRole('link', { name: 'Social', exact: true }).click();
+    // The wall is Social's first tab (console v3); a post already approved by an earlier run offers no Approve.
+    await expect(page.getByRole('link', { name: /^Social wall \d+$/ })).toHaveAttribute('aria-current', 'page');
+    const queue = page.getByRole('region', { name: 'Tagged posts' });
+    const row = queue.getByRole('article').filter({ hasText: '@zoya.plays' });
     await expect(row).toBeVisible();
-    const approve = page.getByRole('button', { name: 'Approve @zoya.plays’s post' });
-    if (await approve.isEnabled()) await approve.click();
+    const approve = row.getByRole('button', { name: 'Approve @zoya.plays’s post' });
+    if (await approve.count() > 0) await approve.click();
     await expect(row).toContainText('On the wall');
 
     const site = await browser.newPage();

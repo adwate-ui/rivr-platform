@@ -93,3 +93,26 @@ export const Tabs: Story = {
   args: { look: 'tabs', mode: 'one', label: 'Menu', isLabelVisuallyHidden: true, selected: ['food'],
     options: [{ value: 'food', label: 'Food' }, { value: 'soft', label: 'Soft drinks' }, { value: 'bar', label: 'Bar' }] },
 };
+
+/** The console's filter chips (console v3): a faint fill, the chosen one gold-tinted, each with its count; 34 px at a desk. */
+export const ConsoleSubtle: Story = {
+  args: { look: 'subtle', mode: 'one', label: 'Show', isLabelVisuallyHidden: true, selected: ['all'],
+    options: [{ value: 'all', label: 'All', count: 24 }, { value: 'playing', label: 'Playing', count: 18 }, { value: 'waiting', label: 'Waiting', count: 6 },
+      { value: 'left', label: 'Left', count: 0 }] },
+  tags: ['viewport-console'],
+};
+
+/** Below 1180 px each chip is a 44 px touch target. */
+export const ConsoleSubtleOnAPortraitTablet: Story = { ...ConsoleSubtle, tags: ['viewport-portrait'] };
+
+/** The console's cards (console v3): a promotion's reward, each kind with its line, the chosen one gold-edged. */
+export const ConsoleCards: Story = {
+  args: { look: 'card', mode: 'one', label: 'Reward', selected: ['buyin'],
+    options: [
+      { value: 'multiplier', label: 'Points multiplier', description: 'Points earned per hour, multiplied' },
+      { value: 'buyin', label: 'Buy-in bonus', description: 'Bonus chips on a buy-in, % or fixed' },
+      { value: 'hours', label: 'Hours-played bonus', description: 'Bonus chips after time at the tables' },
+      { value: 'priority', label: 'Waitlist priority', description: 'First call on every waitlist' },
+    ] },
+  tags: ['viewport-console'],
+};

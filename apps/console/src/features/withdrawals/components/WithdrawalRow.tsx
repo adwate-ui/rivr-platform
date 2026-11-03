@@ -20,7 +20,7 @@ function SendForm({ onSend, isSaving }: { onSend: (utr: string) => void; isSavin
     <Inline gap={3} align="end">
       <Input {...utr} label={t('console.withdrawals.utr')} inputMode="numeric" maxLength={12} autoComplete="off"
         error={form.formState.errors.utr ? t('console.withdrawals.utrInvalid') : undefined} />
-      <Button variant="secondary" isLoading={isSaving} onClick={() => void form.handleSubmit((values) => onSend(values.utr))()}>
+      <Button variant="subtle" isLoading={isSaving} onClick={() => void form.handleSubmit((values) => onSend(values.utr))()}>
         {t('console.withdrawals.send')}
       </Button>
     </Inline>
@@ -80,7 +80,7 @@ export function WithdrawalRow({ venueId, withdrawal, canDecide, canSecond, onSen
       {withdrawal.status === 'paying' ? null : <Inline gap={3} align="end" wrap>
         {canDecide ? <SendForm isSaving={send.isPending} onSend={(utr) => void send.mutateAsync({ withdrawalId: id, utr }).then((done) => settle(done, () => onSent(utr)))} /> : null}
         {canSecond && withdrawal.needsSecond ? (
-          <Button variant="secondary" isLoading={secondApprove.isPending} onClick={() => void secondApprove.mutateAsync(id).then((done) => settle(done))}>
+          <Button variant="subtle" isLoading={secondApprove.isPending} onClick={() => void secondApprove.mutateAsync(id).then((done) => settle(done))}>
             {t('console.withdrawals.secondApprove')}
           </Button>
         ) : null}

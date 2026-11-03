@@ -88,7 +88,7 @@ describe('Profile', () => {
     const { sent } = renderProfile();
     fireEvent.click(await screen.findByRole('button', { name: /Send feedback/ }, LATER));
     const sheet = await screen.findByRole('dialog', { name: 'Send feedback' });
-    fireEvent.click(within(sheet).getByRole('button', { name: 'Dealer' }));
+    fireEvent.click(within(sheet).getByRole('radio', { name: 'Dealer' }));
     fireEvent.change(within(sheet).getByLabelText('What happened?'), { target: { value: 'Slow deal at Table 3' } });
     fireEvent.click(within(sheet).getByRole('button', { name: 'Send' }));
     expect(await screen.findByText('Feedback sent', {}, LATER)).toBeDefined();
@@ -99,11 +99,11 @@ describe('Profile', () => {
     const { sent } = renderProfile();
     fireEvent.click(await screen.findByRole('button', { name: /Send feedback/ }, LATER));
     const sheet = await screen.findByRole('dialog', { name: 'Send feedback' });
-    fireEvent.click(within(sheet).getByRole('button', { name: 'Detailed feedback' }));
+    fireEvent.click(within(sheet).getByRole('radio', { name: 'Detailed feedback' }));
     for (const area of ['The gameplay, 1 to 5', 'The cashier, 1 to 5', 'The service, 1 to 5', 'The ambience, 1 to 5']) {
-      fireEvent.click(within(within(sheet).getByRole('group', { name: area })).getByRole('button', { name: '4' }));
+      fireEvent.click(within(within(sheet).getByRole('radiogroup', { name: area })).getByRole('radio', { name: '4' }));
     }
-    fireEvent.click(within(within(sheet).getByRole('group', { name: /recommend RIVR/ })).getByRole('button', { name: '9' }));
+    fireEvent.click(within(within(sheet).getByRole('radiogroup', { name: /recommend RIVR/ })).getByRole('radio', { name: '9' }));
     fireEvent.click(within(sheet).getByRole('button', { name: 'Send' }));
     expect(await screen.findByText('Feedback sent', {}, LATER)).toBeDefined();
     expect(sent).toEqual([{ p_ratings: { gameplay: 4, cashier: 4, service: 4, ambience: 4 }, p_nps: 9, p_note: '' }]);

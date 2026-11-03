@@ -44,7 +44,7 @@ function CorrectForm({ venueId, hand, onDone }: { venueId: string; hand: HighHan
       <Inline gap={3} align="end">
         <Input {...seatField} label={t('console.highHands.correctSeat')} inputMode="numeric" autoComplete="off"
           error={isInvalid ? t('console.highHands.invalidCorrection') : undefined} />
-        <Button variant="secondary" isLoading={correct.isPending} onClick={() => void submit()}>{t('console.highHands.correctConfirm')}</Button>
+        <Button variant="subtle" isLoading={correct.isPending} onClick={() => void submit()}>{t('console.highHands.correctConfirm')}</Button>
         <Button variant="text" onClick={() => onDone(null)}>{t('common.cancel')}</Button>
       </Inline>
     </Stack>
@@ -61,7 +61,7 @@ function Decisions({ venueId, hand, onOpen, onOutcome }: {
   return (
     <Inline gap={2}>
       {payout === null ? null : (
-        <Button variant="secondary" isLoading={approve.isPending} onClick={() => void pay()}>
+        <Button variant="subtle" isLoading={approve.isPending} onClick={() => void pay()}>
           {t('console.highHands.approve', { amount: formatMoney(payout) })}
         </Button>
       )}

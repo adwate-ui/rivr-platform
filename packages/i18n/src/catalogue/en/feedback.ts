@@ -4,17 +4,19 @@
 export const feedback = {
   title: 'Feedback',
   notAllowed: 'Not in your role. Ask an admin.',
-  open: 'Open tickets',
+  /** The two tabs (console v3): open tickets, and everything else of the last 90 days; each with how many. */
+  tabs: { open: 'Open {count}', resolved: 'Resolved {count}' },
   noneOpen: 'No open tickets.',
-  recent: 'Other feedback, last 90 days',
-  noneRecent: 'Nothing else in the last 90 days.',
-  /** A rating: `{name}` and their number, `{score}` of 5, and the day of the visit (IST): `Mihir Shah · No. 1213 · 2 of 5 · visit 25 Oct`. */
-  ratingLine: '{name} · No. {number} · {score} of 5 · visit {date}',
+  noneResolved: 'Nothing resolved in the last 90 days.',
+  /** A card's member: `Mihir Shah · No. 1213`. */
+  who: '{name} · No. {number}',
+  /** A rating: `{score}` of 5, and the day of the visit (IST): `2 of 5 · visit 25 Oct`. */
+  ratingLine: '{score} of 5 · visit {date}',
   /** A note sent from Profile, on the day it came. */
-  noteLine: '{name} · No. {number} · a note from the app · {date}',
-  /** The app's two forms (#637): the quick note with its topic, and the detailed form with its recommendation, 0 to 10. */
-  quickLine: '{name} · No. {number} · a quick note on {topic} · {date}',
-  detailedLine: '{name} · No. {number} · detailed feedback, would recommend {nps} of 10 · {date}',
+  noteLine: 'A note from the app · {date}',
+  /** The app's two forms (#637): the quick note by its topic, and the detailed form with its recommendation, 0 to 10. */
+  quickLine: '{topic} · {date}',
+  detailedLine: 'Detailed feedback, would recommend {nps} of 10 · {date}',
   /** The detailed form's ratings, each 1 to 5: `Gameplay 5 · Cashier 3`. */
   rating: '{area} {score}',
   ratingsSeparator: ' · ',
@@ -26,7 +28,6 @@ export const feedback = {
   /** A resolved ticket: what was done, by whom and when. */
   resolvedLine: 'Resolved by {name} on {date}: {resolution}',
   resolution: 'What was done',
-  resolutionHint: 'Kept with the ticket, with your name.',
   invalidResolution: 'Say what was done, in at most 500 characters.',
   resolve: 'Resolve',
   resolveName: 'Resolve {name}’s ticket',

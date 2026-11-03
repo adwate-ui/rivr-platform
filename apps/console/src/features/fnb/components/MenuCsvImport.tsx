@@ -39,7 +39,7 @@ function SaveFile({ venueId, items, onSaved }: { venueId: string; items: readonl
   return (
     <Stack gap={2}>
       <Inline>
-        <Button variant="secondary" isLoading={saveMenu.isPending} onClick={() => void save()}>{t('console.fnb.menuCsv.save')}</Button>
+        <Button variant="subtle" size="compact" isLoading={saveMenu.isPending} onClick={() => void save()}>{t('console.fnb.menuCsv.save')}</Button>
       </Inline>
       {failure === null ? null : <ErrorMessage>{t(`console.fnb.menuCsv.failures.${failure}`)}</ErrorMessage>}
     </Stack>
@@ -73,7 +73,7 @@ export function MenuCsvImport({ venueId }: { venueId: string }) {
       <Heading level={2}>{t('console.fnb.menuCsv.heading')}</Heading>
       <Text variant="small" tone="muted">{t('console.fnb.menuCsv.format')}</Text>
       <Inline>
-        <CameraButton variant="secondary" camera="none" accept=".csv,text/csv" onPhoto={(file) => void choose(file)}>
+        <CameraButton variant="subtle" camera="none" accept=".csv,text/csv" onPhoto={(file) => void choose(file)}>
           {t(csv === null ? 'console.fnb.menuCsv.choose' : 'console.fnb.menuCsv.chooseAnother')}
         </CameraButton>
       </Inline>

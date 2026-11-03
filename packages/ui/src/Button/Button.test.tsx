@@ -32,6 +32,16 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: 'Seat' })).toHaveClass('bg-action', 'text-on-action', 'min-h-touch', 'min-w-touch');
   });
 
+  it('fills the console\'s buttons rather than outlining them, 36 or 32 px at a desk and 44 px below (decision 0464)', () => {
+    renderIn(<>
+      <Button variant="subtle" size="compact">Export</Button>
+      <Button variant="strong" size="small">Approve</Button>
+    </>);
+    expect(screen.getByRole('button', { name: 'Export' })).toHaveClass('bg-subtle', 'min-h-touch', 'tablet:min-h-control', 'rounded-md', 'text-14');
+    expect(screen.getByRole('button', { name: 'Export' })).not.toHaveClass('border');
+    expect(screen.getByRole('button', { name: 'Approve' })).toHaveClass('bg-cream', 'text-on-cream', 'min-h-touch', 'tablet:min-h-8', 'text-13');
+  });
+
   it('ignores presses while loading and says so, keeping its label and focus (F5-17)', async () => {
     const onClick = vi.fn();
     renderIn(
@@ -149,6 +159,12 @@ describe('Button', () => {
     const link = screen.getByRole('link', { name: 'Open the recording' });
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('puts a gold dot before the label for what needs the floor, unread (decision 0463)', () => {
+    renderIn(<Button variant="subtle" hasDot>Needs you</Button>);
+    const button = screen.getByRole('button', { name: 'Needs you' });
+    expect(button.querySelector('[aria-hidden="true"].bg-action')).not.toBeNull();
   });
 
   it('as a plain link, opens in place', () => {

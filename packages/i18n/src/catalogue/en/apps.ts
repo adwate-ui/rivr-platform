@@ -4,6 +4,7 @@
  */
 import { settings } from './settings.ts';
 import { rail } from './consoleRail.ts';
+import { shell } from './consoleShell.ts';
 import { cage } from './cage.ts';
 import { markers } from './credit.ts';
 import { killSwitch } from './killSwitch.ts';
@@ -15,6 +16,7 @@ import { cameraFailures, cameras } from './cameras.ts';
 import { members, tiers } from './members.ts';
 import { checkIn } from './checkIn.ts';
 import { gamesHistory, liveFloor, tablesSetup, timeRequests, todaysPlayers, topUps } from './floor.ts';
+import { floor } from './liveFloorV3.ts';
 import { computers, dealerPins, devices, streamOverlay, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
 import { highHands } from './highHands.ts';
 import { certification } from './training.ts';
@@ -142,6 +144,7 @@ export const playerApp = {
 
 export const consoleApp = {
   liveFloor,
+  floor,
   todaysPlayers,
   tablesSetup,
   gamesHistory,
@@ -190,6 +193,7 @@ export const consoleApp = {
   /** The heading while the console finds the staff member's venue, or fails to. */
   title: 'Console',
   rail,
+  shell,
   waitlist,
   // Each member named, never spread: a spread can run a getter, so the bundler would keep this whole
   // object, and the console's copy would ship in the player (#344).

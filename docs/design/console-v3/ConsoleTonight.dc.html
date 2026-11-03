@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="padding:24px clamp(16px,3vw,32px) 48px;display:flex;flex-direction:column;gap:28px;color:#F3EDE0;font-family:'Instrument Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums">
+
+<sc-if value="{{ isCheckin }}">
+  <div style="display:flex;flex-direction:column;gap:20px">
+    <div>
+      <h1 style="margin:0;font-size:24px;font-weight:500">Check-in</h1>
+      <div style="font-size:13px;color:rgba(243,237,224,0.65);margin-top:6px">Scan a membership card or type a mobile, member number or name.</div>
+    </div>
+    <div style="display:flex;gap:8px;max-width:720px">
+      <input value="{{ ciQuery }}" onChange="{{ onCiQuery }}" onKeyDown="{{ onCiKey }}" placeholder="Scan card, or +91 mobile / member no. / name" style="flex:1;height:44px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 14px;font-size:15px">
+      <button onClick="{{ onCiSubmit }}" style="height:44px;padding:0 18px;background:#C9A85C;border:none;border-radius:4px;color:#141414;font-size:14px;font-weight:600;cursor:pointer">Check in</button>
+    </div>
+    <sc-if value="{{ ciHasError }}"><div style="font-size:13px;color:#E8828C;margin-top:-10px">{{ ciError }}</div></sc-if>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:20px;align-items:start">
+      <div style="background:#0A2A20;border-radius:6px">
+        <div style="padding:14px 16px;border-bottom:1px solid rgba(243,237,224,0.05);display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:15px;font-weight:600">Expected tonight</span><span style="font-size:13px;color:rgba(243,237,224,0.6)">{{ expectedCount }}</span></div>
+        <sc-for list="{{ expected }}" as="e" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid rgba(243,237,224,0.04)">
+            <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:500">{{ e.name }}</div><div style="font-size:12px;color:rgba(243,237,224,0.6);margin-top:2px">{{ e.meta }}</div></div>
+            <button onClick="{{ e.onIn }}" style="height:30px;padding:0 12px;background:rgba(243,237,224,0.07);border:none;border-radius:4px;color:#F3EDE0;font-size:13px;cursor:pointer">Check in</button>
+          </div>
+        </sc-for>
+        <sc-if value="{{ noExpected }}"><div style="padding:16px;font-size:13px;color:rgba(243,237,224,0.6)">Everyone expected is in.</div></sc-if>
+      </div>
+      <div style="background:#0A2A20;border-radius:6px">
+        <div style="padding:14px 16px;border-bottom:1px solid rgba(243,237,224,0.05);display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:15px;font-weight:600">In the room</span><span style="font-size:13px;color:rgba(243,237,224,0.6)">{{ inRoomCount }}</span></div>
+        <sc-for list="{{ inRoom }}" as="r" hint-placeholder-count="8">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) auto 54px auto;gap:12px;align-items:center;padding:8px 16px;border-bottom:1px solid rgba(243,237,224,0.04)">
+            <span style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
+            <span style="font-size:12px;color:rgba(243,237,224,0.6)">{{ r.tier }}</span>
+            <span style="font-size:13px;color:rgba(243,237,224,0.7);text-align:right">{{ r.at }}</span>
+            <button onClick="{{ r.onOut }}" style="height:28px;padding:0 10px;background:rgba(243,237,224,0.06);border:none;border-radius:4px;color:#F3EDE0;font-size:12px;cursor:pointer">Check out</button>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isFnb }}">
+  <div style="display:flex;flex-direction:column;gap:18px">
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:240px">
+        <h1 style="margin:0;font-size:24px;font-weight:500">Food and drink</h1>
+        <div style="font-size:13px;color:rgba(243,237,224,0.65);margin-top:6px">Orders from seats, oldest first. If the bar printer misses a KOT, the card says so until the bar has it.</div>
+      </div>
+      <button onClick="{{ openOrder }}" style="height:36px;padding:0 16px;background:#C9A85C;border:none;border-radius:4px;color:#141414;font-size:14px;font-weight:600;cursor:pointer">New order</button>
+    </div>
+    <div style="display:flex;gap:2px;border-bottom:1px solid rgba(243,237,224,0.1)">
+      <sc-for list="{{ fnbTabs }}" as="tb"><button onClick="{{ tb.onClick }}" style="background:none;border:none;border-bottom:2px solid {{ tb.line }};color:{{ tb.color }};font-size:14px;padding:8px 12px;cursor:pointer;margin-bottom:-1px">{{ tb.label }}</button></sc-for>
+    </div>
+    <sc-if value="{{ fnbOrders }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:14px;align-items:start;overflow-x:auto">
+        <sc-for list="{{ lanes }}" as="ln" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+            <div style="display:flex;justify-content:space-between;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(243,237,224,0.55);padding:0 2px"><span>{{ ln.title }}</span><span>{{ ln.count }}</span></div>
+            <sc-for list="{{ ln.cards }}" as="c">
+              <div style="background:#0A2A20;border:1px solid {{ c.border }};border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:14px;font-weight:600">KOT {{ c.kot }}</span><span style="font-size:12px;color:{{ c.ageColor }}">{{ c.age }}</span></div>
+                <div style="font-size:13px">{{ c.where }}</div>
+                <div style="font-size:13px;color:rgba(243,237,224,0.7)">{{ c.items }}</div>
+                <sc-if value="{{ c.notSent }}">
+                  <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;padding:8px;background:rgba(196,22,42,0.12);border-radius:3px;color:#E8828C"><span>The bar printer did not get this KOT. Print it or read it to the bar.</span><div style="display:flex;gap:12px"><button onClick="{{ c.onPrint }}" style="background:none;border:none;color:#F3EDE0;font-size:12px;cursor:pointer;text-decoration:underline;padding:0">Print KOT</button><button onClick="{{ c.onSent }}" style="background:none;border:none;color:#F3EDE0;font-size:12px;cursor:pointer;text-decoration:underline;padding:0">Bar has it</button></div></div>
+                </sc-if>
+                <sc-if value="{{ c.comp }}"><span style="align-self:flex-start;font-size:11px;font-weight:600;padding:2px 6px;border-radius:3px;border:1px solid rgba(201,168,92,0.5);color:#C9A85C">Comp</span></sc-if>
+                <sc-if value="{{ c.hasActions }}">
+                  <div style="display:flex;gap:6px;margin-top:2px">
+                    <button onClick="{{ c.onPrimary }}" style="height:30px;padding:0 12px;background:#F3EDE0;border:none;border-radius:4px;color:#141414;font-size:12px;font-weight:600;cursor:pointer">{{ c.primary }}</button>
+                    <button onClick="{{ c.onVoid }}" style="height:30px;padding:0 10px;background:transparent;border:none;color:rgba(243,237,224,0.7);font-size:12px;cursor:pointer" style-hover="color:#E8828C">Void</button>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+            <sc-if value="{{ ln.empty }}"><div style="font-size:13px;color:rgba(243,237,224,0.5);padding:14px;border:1px dashed rgba(243,237,224,0.12);border-radius:6px">Nothing here.</div></sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ fnbMenu }}">
+      <div style="background:#0A2A20;border-radius:6px;max-width:820px">
+        <sc-for list="{{ menu }}" as="mi">
+          <div style="display:grid;grid-template-columns:40px minmax(0,1fr) auto auto;gap:14px;align-items:center;padding:10px 16px;border-bottom:1px solid rgba(243,237,224,0.04);opacity:{{ mi.opacity }}">
+            <div style="width:40px;height:40px;border-radius:4px;border:1px dashed rgba(243,237,224,0.2);display:grid;place-items:center;font-size:10px;color:rgba(243,237,224,0.5)">Photo</div>
+            <div><div style="font-size:14px;font-weight:500">{{ mi.name }}</div><div style="font-size:12px;color:rgba(243,237,224,0.6)">{{ mi.kind }}</div></div>
+            <span style="font-size:12px;color:rgba(243,237,224,0.6)">{{ mi.state }}</span>
+            <button onClick="{{ mi.onToggle }}" style="width:34px;height:20px;border-radius:10px;border:1px solid rgba(243,237,224,0.3);background:{{ mi.bg }};position:relative;cursor:pointer;padding:0"><span style="position:absolute;top:2px;left:{{ mi.knob }};width:14px;height:14px;border-radius:50%;background:#F3EDE0"></span></button>
+          </div>
+        </sc-for>
+        <div style="display:flex;gap:8px;padding:12px 16px;flex-wrap:wrap">
+          <input placeholder="New item name" style="flex:1;min-width:200px;height:34px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 10px;font-size:13px">
+          <select style="height:34px;background:rgba(243,237,224,0.05);color:#F3EDE0;border:none;border-radius:4px;padding:0 8px;font-size:13px"><option>Food</option><option>Soft drink</option><option>Alcohol</option></select>
+          <button style="height:34px;padding:0 12px;background:rgba(243,237,224,0.06);border:none;border-radius:4px;color:#F3EDE0;font-size:13px;cursor:pointer">Add to the menu</button>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isTint }}">
+  <div style="display:flex;flex-direction:column;gap:18px;max-width:900px">
+    <div>
+      <h1 style="margin:0;font-size:24px;font-weight:500">Tournament interest</h1>
+      <div style="font-size:13px;color:rgba(243,237,224,0.65);margin-top:6px">Members who asked to play. Mark them registered once they have their seat.</div>
+    </div>
+    <sc-for list="{{ tourneys }}" as="tn" hint-placeholder-count="2">
+      <div style="background:#0A2A20;border-radius:6px">
+        <div style="padding:14px 16px;border-bottom:1px solid rgba(243,237,224,0.05);display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+          <div><span style="font-size:16px;font-weight:600">{{ tn.name }}</span><span style="font-size:13px;color:rgba(243,237,224,0.6);margin-left:10px">{{ tn.when }}</span></div>
+          <span style="font-size:13px;color:rgba(243,237,224,0.7)">{{ tn.summary }}</span>
+        </div>
+        <sc-for list="{{ tn.people }}" as="pp">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid rgba(243,237,224,0.04)">
+            <span style="flex:1;font-size:14px">{{ pp.name }}<span style="font-size:12px;color:rgba(243,237,224,0.55)"> · No. {{ pp.no }}</span></span>
+            <sc-if value="{{ pp.done }}"><span style="font-size:13px;color:#C9A85C">Registered</span><button onClick="{{ pp.onToggle }}" style="background:none;border:none;color:rgba(243,237,224,0.6);font-size:12px;cursor:pointer">Undo</button></sc-if>
+            <sc-if value="{{ pp.notDone }}"><button onClick="{{ pp.onToggle }}" style="height:30px;padding:0 12px;background:rgba(243,237,224,0.06);border:none;border-radius:4px;color:#F3EDE0;font-size:13px;cursor:pointer">Mark registered</button></sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isSpin }}">
+  <div style="display:flex;flex-direction:column;gap:20px;max-width:900px">
+    <div>
+      <h1 style="margin:0;font-size:24px;font-weight:500">Spin wheel</h1>
+      <div style="font-size:13px;color:rgba(243,237,224,0.65);margin-top:6px">Spin with the member there. The TVs show the prize.</div>
+    </div>
+    <div style="background:#0A2A20;border-radius:6px">
+      <div style="padding:14px 16px;border-bottom:1px solid rgba(243,237,224,0.05);display:flex;justify-content:space-between"><span style="font-size:15px;font-weight:600">Spins waiting</span><span style="font-size:13px;color:rgba(243,237,224,0.6)">{{ spinsCount }}</span></div>
+      <sc-for list="{{ spins }}" as="sp">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(243,237,224,0.04);flex-wrap:wrap">
+          <div style="flex:1;min-width:200px"><div style="font-size:14px;font-weight:500">{{ sp.name }}</div><div style="font-size:12px;color:rgba(243,237,224,0.6);margin-top:2px">{{ sp.meta }}</div></div>
+          <sc-if value="{{ sp.hasResult }}"><span style="font-size:15px;font-weight:600;color:#C9A85C">{{ sp.result }}</span></sc-if>
+          <sc-if value="{{ sp.canSpin }}"><button onClick="{{ sp.onSpin }}" style="height:34px;padding:0 18px;background:#C9A85C;border:none;border-radius:4px;color:#141414;font-size:14px;font-weight:600;cursor:pointer">Spin</button></sc-if>
+        </div>
+      </sc-for>
+      <sc-if value="{{ noSpins }}"><div style="padding:16px;font-size:13px;color:rgba(243,237,224,0.6)">No spins waiting.</div></sc-if>
+    </div>
+    <div style="background:#0A2A20;border-radius:6px">
+      <div style="padding:14px 16px;border-bottom:1px solid rgba(243,237,224,0.05);display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+        <span style="font-size:15px;font-weight:600">The wheel</span>
+        <span style="font-size:12px;color:rgba(243,237,224,0.6)">Odds are a prize's weight out of all prizes that can be won now.</span>
+      </div>
+      <sc-for list="{{ prizes }}" as="pz">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,1.2fr) 60px auto;gap:14px;align-items:center;padding:10px 16px;border-bottom:1px solid rgba(243,237,224,0.04)">
+          <span style="font-size:14px">{{ pz.label }}</span>
+          <sc-if value="{{ pz.on }}"><div style="height:6px;background:rgba(243,237,224,0.1);border-radius:3px;overflow:hidden"><div style="height:100%;width:{{ pz.pct }};background:#C9A85C"></div></div></sc-if>
+          <sc-if value="{{ pz.off }}"><span style="font-size:12px;color:#E8828C">Off the wheel: this month's spin budget cannot pay it</span></sc-if>
+          <span style="font-size:13px;text-align:right;color:rgba(243,237,224,0.8)">{{ pz.odds }}</span>
+          <button onClick="{{ pz.onRemove }}" style="background:none;border:none;color:rgba(243,237,224,0.6);font-size:12px;cursor:pointer" style-hover="color:#E8828C">Remove</button>
+        </div>
+      </sc-for>
+      <div style="display:flex;gap:8px;padding:12px 16px;align-items:center;flex-wrap:wrap">
+        <div style="display:flex;border:1px solid rgba(243,237,224,0.18);border-radius:4px;overflow:hidden">
+          <sc-for list="{{ prizeKinds }}" as="pk"><button onClick="{{ pk.onClick }}" style="height:34px;padding:0 12px;border:none;background:{{ pk.bg }};color:{{ pk.color }};font-size:13px;cursor:pointer">{{ pk.label }}</button></sc-for>
+        </div>
+        <sc-if value="{{ needsAmount }}"><input value="{{ pAmount }}" onChange="{{ onPAmount }}" placeholder="Amount" style="width:100px;height:34px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 10px;font-size:13px"></sc-if>
+        <input value="{{ pWeight }}" onChange="{{ onPWeight }}" placeholder="Weight 1–1000" style="width:120px;height:34px;background:rgba(243,237,224,0.05);border:none;border-radius:4px;color:#F3EDE0;padding:0 10px;font-size:13px">
+        <button onClick="{{ addPrize }}" style="height:34px;padding:0 12px;background:rgba(243,237,224,0.06);border:none;border-radius:4px;color:#F3EDE0;font-size:13px;cursor:pointer">Add to the wheel</button>
+        <span style="font-size:12px;color:rgba(243,237,224,0.55)">Weight 2 comes up twice as often as 1.</span>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ orderOpen }}">
+  <div onClick="{{ closeOrder }}" style="position:fixed;inset:0;background:rgba(5,20,15,0.55);z-index:40"></div>
+  <div style="position:fixed;top:0;right:0;bottom:0;width:420px;max-width:100%;z-index:41;background:#0A2A20;border-left:1px solid rgba(201,168,92,0.3);display:flex;flex-direction:column">
+    <div style="padding:18px 20px;border-bottom:1px solid rgba(243,237,224,0.05);display:flex;justify-content:space-between"><div style="font-size:19px;font-weight:600">New order</div><button onClick="{{ closeOrder }}" style="background:none;border:none;color:#F3EDE0;font-size:22px;cursor:pointer">×</button></div>
+    <div style="flex:1;overflow:auto;padding:20px;display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span style="font-size:12px;color:rgba(243,237,224,0.7)">Table</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ oTables }}" as="ot"><button onClick="{{ ot.onClick }}" style="height:34px;padding:0 12px;border-radius:4px;font-size:13px;cursor:pointer;background:{{ ot.bg }};color:{{ ot.color }};border:1px solid {{ ot.border }}">{{ ot.label }}</button></sc-for></div>
+        <sc-if value="{{ hasOSeats }}">
+          <span style="font-size:12px;color:rgba(243,237,224,0.7);margin-top:8px">Seat</span>
+          <div style="display:flex;flex-direction:column;gap:4px"><sc-for list="{{ oSeats }}" as="os"><button onClick="{{ os.onClick }}" style="display:flex;gap:12px;align-items:center;height:36px;padding:0 12px;border-radius:4px;font-size:14px;cursor:pointer;text-align:left;background:{{ os.bg }};color:#F3EDE0;border:1px solid {{ os.border }}"><span style="width:18px;color:rgba(243,237,224,0.55)">{{ os.n }}</span><span>{{ os.name }}</span></button></sc-for></div>
+        </sc-if>
+      </div>
+      <div style="display:flex;flex-direction:column">
+        <span style="font-size:12px;color:rgba(243,237,224,0.7);margin-bottom:6px">Items</span>
+        <sc-for list="{{ orderItems }}" as="oi">
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(243,237,224,0.04)">
+            <span style="flex:1;font-size:14px">{{ oi.name }}</span>
+            <button onClick="{{ oi.onDec }}" style="width:30px;height:30px;background:rgba(243,237,224,0.06);border:none;border-radius:4px;color:#F3EDE0;cursor:pointer">−</button>
+            <span style="width:20px;text-align:center;font-size:14px">{{ oi.qty }}</span>
+            <button onClick="{{ oi.onInc }}" style="width:30px;height:30px;background:rgba(243,237,224,0.06);border:none;border-radius:4px;color:#F3EDE0;cursor:pointer">+</button>
+          </div>
+        </sc-for>
+      </div>
+      <label style="display:flex;align-items:center;justify-content:space-between;font-size:14px;cursor:pointer"><span>Comp it: RIVR pays</span><input type="checkbox" checked="{{ oComp }}" onChange="{{ onComp }}" style="width:18px;height:18px;accent-color:#C9A85C"></label>
+      <sc-if value="{{ oHasError }}"><div style="font-size:13px;color:#E8828C">{{ oError }}</div></sc-if>
+    </div>
+    <div style="padding:14px 20px;border-top:1px solid rgba(243,237,224,0.08);display:flex;gap:8px;justify-content:flex-end">
+      <button onClick="{{ closeOrder }}" style="height:38px;padding:0 14px;background:transparent;border:none;color:#F3EDE0;font-size:14px;cursor:pointer">Cancel</button>
+      <button onClick="{{ sendOrder }}" style="height:38px;padding:0 18px;background:#C9A85C;border:none;border-radius:4px;color:#141414;font-size:14px;font-weight:600;cursor:pointer">Send to the bar</button>
+    </div>
+  </div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:800},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;checkin&quot;,&quot;fnb&quot;,&quot;tint&quot;,&quot;spin&quot;],&quot;default&quot;:&quot;checkin&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onToast&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(msg: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = {
+    ciQuery: '', ciError: '',
+    expected: [['Kabir Sethi', 'Black card', 41], ['Naina Kapoor', 'Member', 87], ['Rohan Bhatia', 'Member', 90], ['Ishaan Verma', 'Member', 77], ['Mihir Shah', 'Member', 78], ['Arjun Mehta', 'Black card', 63], ['Leela Menon', 'Member', 39], ['Ritika Bhalla', 'Black card', 42], ['Riya Sen', 'Member', 95]],
+    inRoom: ['Nakul Dhillon|Member', 'Vidya Chadha|Academy graduate', 'Chirag Bajaj|Member', 'Jahnavi Mittal|Member', 'Vaani Mathur|Member', 'Shalini Sood|Member', 'Mrinal Thakur|Founders\' Circle', 'Siddharth Vaid|Founders\' Circle', 'Sakshi Tandon|Black card', 'Bhuvan Walia|Founders\' Circle', 'Yamini Mehrotra|Black card', 'Eshan Taneja|Black card', 'Samar Dua|Black card', 'Kashish Rastogi|Founders\' Circle', 'Rajesh Saini|Founders\' Circle', 'Vishal Dutta|Member', 'Mansi Kalra|Founders\' Circle', 'Payal Bhatt|Member', 'Payal Agarwal|Black card', 'Lalit Goel|Black card', 'Keshav Mehrotra|Founders\' Circle', 'Ajay Dhillon|Founders\' Circle', 'Yuvraj Luthra|Academy graduate'].map(s => { const [name, tier] = s.split('|'); return { name, tier, at: '11:35' }; }),
+    fnbTab: 'Orders',
+    orders: [
+      { kot: 4, where: 'Private Room, seat 4 · Lalit Goel', items: '2 × Beer, 1 × French fries', stage: 'accept', wait: 5, sent: false },
+      { kot: 1, where: 'Table 2, seat 9 · Samar Dua', items: '2 × Masala chai, 1 × Paneer tikka', stage: 'accept', wait: 5, sent: true },
+      { kot: 2, where: 'Private Room, seat 2 · Payal Agarwal', items: '1 × Whisky, 1 × Mineral water', stage: 'prep', wait: 5, sent: true },
+      { kot: 3, where: 'Table 1, seat 1 · Nakul Dhillon', items: '1 × Club sandwich, 1 × Fresh lime soda', stage: 'done', wait: 1, sent: true },
+    ],
+    menu: [['Masala chai', 'Soft drink'], ['Fresh lime soda', 'Soft drink'], ['Mineral water', 'Soft drink'], ['Club sandwich', 'Food'], ['Paneer tikka', 'Food'], ['French fries', 'Food'], ['Beer', 'Alcohol'], ['Whisky', 'Alcohol']].map(([name, kind]) => ({ name, kind, on: true })),
+    orderOpen: false, oTable: '', oSeat: '', oQty: {}, oComp: false, oError: '',
+    tourneys: [
+      { name: 'Weeknight Turbo', when: 'Tue 10 Nov, 20:00', people: [{ name: 'Ritika Bhalla', no: 42, done: false }] },
+      { name: 'RIVR Sunday', when: 'Sun 15 Nov, 16:00', people: [{ name: 'Kavya Rao', no: 45, done: false }, { name: 'Rhea Kaul', no: 43, done: false }, { name: 'Zoya Merchant', no: 44, done: false }, { name: 'Leela Menon', no: 39, done: false }] },
+    ],
+    spins: [{ name: 'Tara Bose', meta: 'Spin the wheel · given Tue 3 Nov, 11:23', result: null }],
+    prizes: [{ label: '100 points', w: 4, on: true }, { label: '500 points', w: 2, on: true }, { label: '1,000 bonus chips', w: 1, on: false }, { label: 'Nothing', w: 3, on: true }],
+    pKind: 'Points', pAmount: '', pWeight: '',
+  };
+  t(msg) { this.props.onToast && this.props.onToast(msg); }
+  checkIn(name) { this.setState(s => ({ expected: s.expected.filter(e => e[0] !== name), inRoom: [{ name, tier: (s.expected.find(e => e[0] === name) || [])[1] || 'Member', at: '11:40' }, ...s.inRoom], ciQuery: '', ciError: '' })); this.t(`${name} checked in`); }
+  renderVals() {
+    const S = this.state, sc = this.props.screen;
+    const q = S.ciQuery.trim().toLowerCase();
+    const exp = S.expected.filter(e => !q || e[0].toLowerCase().includes(q) || String(e[2]) === q);
+    const lane = (stage, title) => {
+      const cards = S.orders.filter(o => o.stage === stage).map(o => ({ ...o, age: stage === 'done' ? `delivered in ${o.wait} min` : `${o.wait} min`, ageColor: stage !== 'done' && o.wait >= 5 ? '#E8828C' : 'rgba(243,237,224,0.6)', notSent: !o.sent && stage !== 'done', border: stage === 'accept' ? 'rgba(201,168,92,0.4)' : 'rgba(243,237,224,0.08)', hasActions: stage !== 'done', primary: stage === 'accept' ? 'Accept' : 'Delivered',
+        onPrimary: () => { this.setState(s => ({ orders: s.orders.map(x => x.kot === o.kot ? { ...x, stage: stage === 'accept' ? 'prep' : 'done', wait: x.wait } : x) })); this.t(`KOT ${o.kot} ${stage === 'accept' ? 'accepted' : 'delivered'}`); },
+        onVoid: () => { this.setState(s => ({ orders: s.orders.filter(x => x.kot !== o.kot) })); this.t(`KOT ${o.kot} voided`); },
+        onPrint: () => this.t(`KOT ${o.kot} sent to the counter printer`), onSent: () => this.setState(s => ({ orders: s.orders.map(x => x.kot === o.kot ? { ...x, sent: true } : x) })) }));
+      return { title, cards, count: cards.length, empty: cards.length === 0 };
+    };
+    const totalW = S.prizes.filter(p => p.on).reduce((a, p) => a + p.w, 0);
+    const floor = { 'Table 1': ['1|Nakul Dhillon', '2|Vidya Chadha', '4|Chirag Bajaj', '5|Jahnavi Mittal', '7|Vaani Mathur', '8|Shalini Sood'], 'Table 2': ['1|Mrinal Thakur', '2|Siddharth Vaid', '3|Sakshi Tandon', '5|Bhuvan Walia', '6|Yamini Mehrotra', '8|Eshan Taneja', '9|Samar Dua'], 'Table 3': ['1|Kashish Rastogi', '3|Rajesh Saini', '4|Vishal Dutta', '6|Mansi Kalra', '7|Payal Bhatt'], 'Table 5': ['3|Yuvraj Luthra'], 'Private Room': ['2|Payal Agarwal', '4|Lalit Goel', '6|Keshav Mehrotra', '8|Ajay Dhillon'] };
+    const sel = (on) => ({ bg: on ? 'rgba(201,168,92,0.16)' : 'transparent', border: on ? '#C9A85C' : 'rgba(243,237,224,0.18)', color: on ? '#F3EDE0' : 'rgba(243,237,224,0.85)' });
+    return {
+      isCheckin: sc === 'checkin', isFnb: sc === 'fnb', isTint: sc === 'tint', isSpin: sc === 'spin',
+      ciQuery: S.ciQuery, onCiQuery: (e) => this.setState({ ciQuery: e.target.value, ciError: '' }),
+      onCiSubmit: () => { if (exp.length === 1) this.checkIn(exp[0][0]); else this.setState({ ciError: exp.length ? 'More than one match. Pick from the list below.' : 'No expected member matches. Check the number, or add them at KYC review.' }); },
+      onCiKey: (e) => { if (e.key === 'Enter') { if (exp.length === 1) this.checkIn(exp[0][0]); else this.setState({ ciError: exp.length ? 'More than one match. Pick from the list below.' : 'No expected member matches. Check the number, or add them at KYC review.' }); } },
+      ciHasError: !!S.ciError, ciError: S.ciError,
+      expected: exp.map(e => ({ name: e[0], meta: `${e[1]} · No. ${e[2]}`, onIn: () => this.checkIn(e[0]) })), expectedCount: S.expected.length, noExpected: exp.length === 0,
+      inRoom: S.inRoom.map(r => ({ ...r, onOut: () => { this.setState(s => ({ inRoom: s.inRoom.filter(x => x.name !== r.name) })); this.t(`${r.name} checked out`); } })), inRoomCount: S.inRoom.length,
+      fnbTabs: ['Orders', 'Menu'].map(l => ({ label: l, line: S.fnbTab === l ? '#C9A85C' : 'transparent', color: S.fnbTab === l ? '#F3EDE0' : 'rgba(243,237,224,0.6)', onClick: () => this.setState({ fnbTab: l }) })),
+      fnbOrders: S.fnbTab === 'Orders', fnbMenu: S.fnbTab === 'Menu',
+      lanes: [lane('accept', 'To accept'), lane('prep', 'Being prepared'), lane('done', 'Delivered tonight')],
+      menu: S.menu.map((m, i) => ({ ...m, state: m.on ? 'On offer' : 'Off', opacity: m.on ? 1 : 0.55, bg: m.on ? '#C9A85C' : 'transparent', knob: m.on ? '17px' : '2px', onToggle: () => this.setState(s => ({ menu: s.menu.map((x, j) => j === i ? { ...x, on: !x.on } : x) })) })),
+      orderOpen: S.orderOpen, openOrder: () => this.setState({ orderOpen: true, oTable: '', oSeat: '', oQty: {}, oComp: false, oError: '' }), closeOrder: () => this.setState({ orderOpen: false }),
+      oTables: Object.keys(floor).map(t => ({ label: t, ...sel(S.oTable === t), onClick: () => this.setState({ oTable: t, oSeat: '', oError: '' }) })),
+      hasOSeats: !!S.oTable, oSeats: (floor[S.oTable] || []).map(s => { const [n, name] = s.split('|'); const v = `${S.oTable}, seat ${n} · ${name}`; return { n, name, ...sel(S.oSeat === v), onClick: () => this.setState({ oSeat: v, oError: '' }) }; }),
+      orderItems: S.menu.filter(m => m.on).map(m => ({ name: m.name, qty: S.oQty[m.name] || 0, onInc: () => this.setState(s => ({ oQty: { ...s.oQty, [m.name]: (s.oQty[m.name] || 0) + 1 } })), onDec: () => this.setState(s => ({ oQty: { ...s.oQty, [m.name]: Math.max(0, (s.oQty[m.name] || 0) - 1) } })) })),
+      oComp: S.oComp, onComp: (e) => this.setState({ oComp: e.target.checked }), oHasError: !!S.oError, oError: S.oError,
+      sendOrder: () => {
+        const items = Object.entries(S.oQty).filter(([, v]) => v > 0);
+        if (!S.oSeat) return this.setState({ oError: S.oTable ? 'Choose the seat.' : 'Choose the table, then the seat.' });
+        if (!items.length) return this.setState({ oError: 'Add at least one item.' });
+        const kot = Math.max(...S.orders.map(o => o.kot), 0) + 1;
+        this.setState(s => ({ orderOpen: false, orders: [...s.orders, { kot, where: S.oSeat, items: items.map(([k, v]) => `${v} × ${k}`).join(', '), stage: 'accept', wait: 0, sent: false, comp: S.oComp }] }));
+        this.t(`KOT ${kot} sent to the bar`);
+      },
+      tourneys: S.tourneys.map((tn, ti) => ({ ...tn, summary: `${tn.people.length} interested · ${tn.people.filter(p => p.done).length} registered`, people: tn.people.map((p, pi) => ({ ...p, notDone: !p.done, onToggle: () => this.setState(s => ({ tourneys: s.tourneys.map((x, a) => a !== ti ? x : { ...x, people: x.people.map((y, b) => b === pi ? { ...y, done: !y.done } : y) }) })) })) })),
+      spins: S.spins.map((sp, i) => ({ ...sp, hasResult: !!sp.result, canSpin: !sp.result, onSpin: () => {
+        const on = S.prizes.filter(p => p.on); let r = Math.random() * totalW, pick = on[0];
+        for (const p of on) { r -= p.w; if (r <= 0) { pick = p; break; } }
+        this.setState(s => ({ spins: s.spins.map((x, j) => j === i ? { ...x, result: pick.label } : x) })); this.t(`${sp.name} won: ${pick.label}`);
+      } })), spinsCount: S.spins.filter(s => !s.result).length, noSpins: S.spins.length === 0,
+      prizes: S.prizes.map((p, i) => ({ ...p, off: !p.on, pct: `${p.w / totalW * 100}%`, odds: p.on ? `${p.w} in ${totalW}` : '—', onRemove: () => this.setState(s => ({ prizes: s.prizes.filter((_, j) => j !== i) })) })),
+      prizeKinds: ['Points', 'Bonus', 'Nothing'].map(k => ({ label: k, bg: S.pKind === k ? 'rgba(201,168,92,0.18)' : 'transparent', color: S.pKind === k ? '#F3EDE0' : 'rgba(243,237,224,0.7)', onClick: () => this.setState({ pKind: k }) })),
+      needsAmount: S.pKind !== 'Nothing', pAmount: S.pAmount, onPAmount: (e) => this.setState({ pAmount: e.target.value }), pWeight: S.pWeight, onPWeight: (e) => this.setState({ pWeight: e.target.value }),
+      addPrize: () => {
+        const w = parseInt(S.pWeight, 10); if (!(w >= 1 && w <= 1000)) return this.t('Weight must be 1 to 1,000');
+        const amt = parseInt(S.pAmount, 10);
+        if (S.pKind !== 'Nothing' && !(amt > 0)) return this.t('Enter an amount');
+        const label = S.pKind === 'Nothing' ? 'Nothing' : `${amt.toLocaleString('en-IN')} ${S.pKind === 'Points' ? 'points' : 'bonus chips'}`;
+        this.setState(s => ({ prizes: [...s.prizes, { label, w, on: true }], pAmount: '', pWeight: '' })); this.t(`${label} added to the wheel`);
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

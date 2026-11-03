@@ -5,6 +5,27 @@ import { axeViolations, renderIn } from '../test/render.tsx';
 import { Screen, TitleCount } from './Screen.tsx';
 
 describe('Screen', () => {
+  it('shows its title, then its tabs, then the tab’s own screen, whose title is heard but not shown again', () => {
+    renderIn(
+      <Screen title="Door" tabs={<nav aria-label="Door">Check-in</nav>}>
+        <Screen title="Check-in" actions={<button type="button">Scan</button>}>
+          <p>Expected</p>
+          <Screen level={2} title="In the room"><p>Nobody</p></Screen>
+        </Screen>
+      </Screen>,
+    );
+    const door = screen.getByRole('heading', { name: 'Door', level: 1 });
+    const tabs = screen.getByRole('navigation', { name: 'Door' });
+    const part = screen.getByRole('heading', { name: 'Check-in', level: 2 });
+    expect(door.compareDocumentPosition(tabs) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(tabs.compareDocumentPosition(part) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(part).toHaveClass('sr-only');
+    expect(screen.getByRole('button', { name: 'Scan' })).toBeVisible();
+    // A screen inside the part is its own again, as the part has no tabs.
+    expect(screen.getByRole('heading', { name: 'In the room', level: 2 })).not.toHaveClass('sr-only');
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+  });
+
   it('heads a part of a screen under its tabs at the second level', () => {
     renderIn(<Screen level={2} title="Tablets"><p>Table 1</p></Screen>);
     expect(screen.getByRole('heading', { name: 'Tablets', level: 2 })).toBeInTheDocument();
@@ -37,6 +58,20 @@ describe('Screen', () => {
     expect(screen.queryByText('Never shown')).not.toBeInTheDocument();
   });
 
+  it('offers the one thing to do when it is empty, on the console (console v3)', async () => {
+    const onClick = vi.fn();
+    renderIn(<Screen title="Tables" status="empty" emptyText="No tables yet." emptyAction={{ label: 'Add a table', onClick }} />);
+    expect(screen.getByText('No tables yet.')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Add a table' }));
+    expect(onClick).toHaveBeenCalledOnce();
+  });
+
+  it('loads a console list as faint rows, saying so to a screen reader only (console v3)', () => {
+    const { container } = renderIn(<Screen title="Members" status="loading" loadingLook="rows" />);
+    expect(screen.getByText('Loading')).toHaveClass('sr-only');
+    expect(container.querySelectorAll('[data-skeleton-row]')).toHaveLength(6);
+  });
+
   it('alerts the error and retries on request', async () => {
     const onRetry = vi.fn();
     renderIn(<Screen title="Balance" status="error" onRetry={onRetry} />);
@@ -66,6 +101,30 @@ describe('Screen', () => {
   it('leaves the focus on a field the screen focuses itself, such as the door\u2019s scanner field', () => {
     renderIn(<Screen title="Check-in"><input aria-label="Membership card" autoFocus /></Screen>);
     expect(screen.getByRole('textbox', { name: 'Membership card' })).toHaveFocus();
+  });
+
+  it('leaves the focus in a menu the person has open when a screen opens behind it, as on a switch to the practice venue', () => {
+    function Page({ isScreenShown }: { isScreenShown: boolean }) {
+      return (
+        <>
+          <button type="button" aria-expanded="true" aria-controls="account">Sana Qureshi</button>
+          <div id="account" role="group" aria-label="Sana Qureshi"><button type="button">Practice venue</button></div>
+          {isScreenShown ? <Screen title="Live floor">content</Screen> : null}
+        </>
+      );
+    }
+    const { rerender } = renderIn(<Page isScreenShown={false} />);
+    screen.getByRole('button', { name: 'Practice venue' }).focus();
+    rerender(<Page isScreenShown />);
+    expect(screen.getByRole('button', { name: 'Practice venue' })).toHaveFocus();
+  });
+
+  it('gives a part of the screen an element at the title row’s end, as the Members table draws its Export there', () => {
+    let slot: HTMLDivElement | null = null;
+    renderIn(<Screen title="Members" onActionsSlot={(element) => { slot = element; }}>content</Screen>);
+    const title = screen.getByRole('heading', { level: 1, name: 'Members' });
+    expect(slot).not.toBeNull();
+    expect(title.parentElement).toContainElement(slot);
   });
 
   it('as a section of another screen, names nothing and takes no focus', () => {

@@ -100,7 +100,7 @@ export function CashOutForm({ venueId, member }: { venueId: string; member: Cage
         <Switch label={t('console.cage.final')} hint={t('console.cage.finalHint')} isOn={field.value}
           onChange={field.onChange} />
       )} />
-      <Button variant="secondary" isDisabled={typed.trim() === ''} isLoading={take.isPending} onClick={() => void submit()}>{t('console.cage.cashOut')}</Button>
+      <Button variant="subtle" isDisabled={typed.trim() === ''} isLoading={take.isPending} onClick={() => void submit()}>{t('console.cage.cashOut')}</Button>
       {outcome.failure === null ? null : <ErrorMessage>{t(failureCopy(outcome.failure), { amount: formatMoney(chips) })}</ErrorMessage>}
       {outcome.done === null ? null : <CashOutDoneLines done={outcome.done.result} to={outcome.done.to} />}
       {outcome.done === null ? null : <CashOutReceipt key={outcome.done.result.cageTransactionId} venueId={venueId} member={member} chips={outcome.done.chips} done={outcome.done.result} to={outcome.done.to} />}

@@ -53,7 +53,7 @@ function LiftForm({ venueId, override, onDone, onCancel }: {
     <Stack gap={3}>
       <Input label={t('console.members.overrides.liftReason')} value={reason} maxLength={500} autoComplete="off" onChange={(event) => setReason(event.target.value)} />
       <Inline gap={3}>
-        <Button variant="secondary" isDisabled={reason.trim().length < 3} isLoading={lift.isPending} onClick={() => void submit()}>
+        <Button variant="subtle" isDisabled={reason.trim().length < 3} isLoading={lift.isPending} onClick={() => void submit()}>
           {t('console.members.overrides.lift')}
         </Button>
         <Button variant="text" onClick={onCancel}>{t('common.cancel')}</Button>
@@ -135,7 +135,7 @@ function OverrideForm({ venueId, memberId, onOutcome }: { venueId: string; membe
         onChange={(event) => setReason(event.target.value)} />
       <Input type="date" label={t('console.members.overrides.until')} hint={t('console.members.overrides.untilHint')} value={until}
         onChange={(event) => setUntil(event.target.value)} />
-      <Button variant="secondary" isDisabled={featureKey === null || reason.trim().length < 3} isLoading={set.isPending} onClick={() => void submit()}>
+      <Button variant="subtle" isDisabled={featureKey === null || reason.trim().length < 3} isLoading={set.isPending} onClick={() => void submit()}>
         {t('console.members.overrides.save')}
       </Button>
     </Stack>

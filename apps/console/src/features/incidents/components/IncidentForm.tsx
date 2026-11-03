@@ -78,7 +78,7 @@ export function IncidentForm({ venueId, sops, cameras }: { venueId: string; sops
           selected={field.value === null ? [] : [field.value]} onChange={([picked]) => field.onChange(picked ?? null)} />
       )} />
       <Stack gap={2} align="start">
-        <Button variant="secondary" isLoading={isPending} onClick={() => void submit()}>{t('console.incidents.logConfirm')}</Button>
+        <Button variant="subtle" isLoading={isPending} onClick={() => void submit()}>{t('console.incidents.logConfirm')}</Button>
         {outcome === 'logged' ? <Text variant="small">{t('console.incidents.logged')}</Text> : null}
         {outcome === null || outcome === 'logged' ? null : <ErrorMessage>{failureText(outcome)}</ErrorMessage>}
       </Stack>

@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { tvPairSchema } from '@rivr/contracts';
 import { useTvActions, type TvFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -38,6 +38,7 @@ export function PairTvForm({ venueId, venueName, isPractice }: PairTvFormProps) 
   const nameField = form.register('name');
   return (
     <Stack gap={4}>
+      <Heading level={3}>{t('console.tvs.pairTitle')}</Heading>
       <Text tone="muted">{t(isPractice ? 'console.tvs.practiceVenue' : 'console.tvs.venue', { venue: venueName })}</Text>
       <Inline gap={3} align="start" wrap>
         <Input {...codeField} label={t('console.tvs.code')} hint={t('console.tvs.codeHint')} inputMode="numeric" autoComplete="off"
@@ -49,7 +50,8 @@ export function PairTvForm({ venueId, venueName, isPractice }: PairTvFormProps) 
         <ModeChips label={t('console.tvs.mode')} value={field.value} onChange={field.onChange} isDisabled={pair.isPending} />
       )} />
       <Inline gap={3}>
-        <Button variant="secondary" isLoading={pair.isPending} onClick={() => void submit()}>{t('console.tvs.pair')}</Button>
+        {/* The part's one gold action (decision 0463). */}
+        <Button variant="primary" isLoading={pair.isPending} onClick={() => void submit()}>{t('console.tvs.pair')}</Button>
       </Inline>
       {pairedName === null ? null : <Text>{t('console.tvs.pairedNow', { name: pairedName })}</Text>}
       {failure === null ? null : <ErrorMessage>{t(TV_FAILURE_COPY[failure])}</ErrorMessage>}

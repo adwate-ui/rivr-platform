@@ -29,7 +29,7 @@ export function BookingRow({ venueId, booking }: { venueId: string; booking: Sta
       {booking.status === 'awaiting_payment' ? (
         <Inline gap={4} align="end" wrap>
           <RecordUtr venueId={venueId} bookingId={booking.id} payer={payer} />
-          <Button variant="secondary" isLoading={cancelBooking.isPending} onClick={() => void cancel()}>
+          <Button variant="subtle" isLoading={cancelBooking.isPending} onClick={() => void cancel()}>
             {t('console.academy.cancel')}
           </Button>
         </Inline>
@@ -50,8 +50,8 @@ function Student({ booking, onPresent, onGraduate, isBusy }: { booking: StaffAca
       <Text variant="small" tone="muted">{attended}</Text>
       {booking.graduatedAt === null ? (
         <>
-          <Button variant="secondary" isDisabled={isBusy} onClick={onPresent}>{t('console.academy.markPresent')}</Button>
-          <Button variant="secondary" isDisabled={isBusy} onClick={onGraduate}>{t('console.academy.graduate')}</Button>
+          <Button variant="subtle" isDisabled={isBusy} onClick={onPresent}>{t('console.academy.markPresent')}</Button>
+          <Button variant="subtle" isDisabled={isBusy} onClick={onGraduate}>{t('console.academy.graduate')}</Button>
         </>
       ) : <Text variant="small">{t('console.academy.graduated')}</Text>}
     </Inline>

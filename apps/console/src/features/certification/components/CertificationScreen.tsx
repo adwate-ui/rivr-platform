@@ -14,7 +14,7 @@ function QuizRow({ quiz, mine, onStart }: { quiz: Quiz; mine: readonly QuizAttem
       <Text variant="small" tone="muted">{t('console.certification.about', { count: quiz.questions.length, percent: quiz.passPercent })}</Text>
       <Text variant="small">{standingText(quiz, mine)}</Text>
       <Inline>
-        <Button variant="secondary" onClick={onStart}>{t('console.certification.start', { title: quiz.title })}</Button>
+        <Button variant="subtle" onClick={onStart}>{t('console.certification.start', { title: quiz.title })}</Button>
       </Inline>
     </Stack>
   );

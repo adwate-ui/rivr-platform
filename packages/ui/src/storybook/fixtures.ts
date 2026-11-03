@@ -2,28 +2,44 @@
  * Sample navigation for stories: the console rail and the player tabs as the design prompt
  * lists them. Apps build their own from their routes and the signed-in role.
  */
-import { consoleApp, registerMessages, t, type en } from '@rivr/i18n';
 import type { BottomNavItem } from '../BottomNav/BottomNav.tsx';
 import type { SideNavItem, SideNavSection } from '../SideNav/SideNav.tsx';
 
-type RailItem = keyof typeof en.console.rail.items;
-
-// The rail's labels are the console's own copy, which the console registers at start; the stories and tests do the same.
-registerMessages({ console: consoleApp });
-
-/** The console rail, grouped by the job (#602): Overview, Tonight, Cage, Players, Marketing, Money, Team and Reports. */
+/**
+ * The console v3 rail as its prototype has it (decision 0465): Tonight, Players, Marketing and the folded Admin, with the
+ * super admin's danger screens. Counts in gold ask for action; the rest are for information.
+ */
 export function consoleSections(): SideNavSection[] {
-  const item = (id: RailItem): SideNavItem => ({ id, label: t(`console.rail.items.${id}`), href: `#${id}` });
+  const item = (id: string, label: string, icon: SideNavItem['icon'], extra: Partial<SideNavItem> = {}): SideNavItem =>
+    ({ id, label, icon, href: `#${id}`, ...extra });
   return [
-    // Overview is a single link, so it has no heading of its own.
-    { id: 'overview', items: [item('overview')] },
-    { id: 'tonight', label: t('console.rail.groups.tonight'), items: [item('liveFloor'), item('waitlist'), item('checkIn'), item('tournaments'), item('jackpots')] },
-    { id: 'cage', label: t('console.rail.groups.cage'), items: [item('cage'), item('shift')] },
-    { id: 'players', label: t('console.rail.groups.players'), items: [item('members'), item('kycReview'), item('hostQueue')] },
-    { id: 'marketing', label: t('console.rail.groups.marketing'), items: [item('promotions'), item('rewards'), item('academy')] },
-    { id: 'money', label: t('console.rail.groups.money'), items: [item('markers'), item('expenses')] },
-    { id: 'team', label: t('console.rail.groups.team'), items: [item('staff'), item('sops')] },
-    { id: 'reports', label: t('console.rail.groups.reports'), items: [item('reports'), item('hands')] },
+    { id: 'tonight', label: 'Tonight', items: [
+      item('floor', 'Live floor', 'floor', { count: 9, isActionable: true }), item('waitlist', 'Waitlist', 'waitlist', { count: 3, isActionable: true }),
+      item('door', 'Door', 'door'), item('fnb', 'Food and drink', 'food', { count: 2, isActionable: true }),
+    ] },
+    { id: 'players', label: 'Players', items: [
+      item('members', 'Members', 'profile'), item('kyc', 'KYC review', 'kyc', { count: 2 }), item('host', 'Host queue', 'phone', { count: 1 }),
+      item('feedback', 'Feedback', 'feedback', { count: 4 }),
+    ] },
+    { id: 'marketing', label: 'Marketing', items: [
+      item('promotions', 'Promotions', 'promotions'), item('rewards', 'Rewards', 'rewards'), item('social', 'Social', 'social', { count: 2 }),
+      item('content', 'Content', 'content'),
+    ] },
+    { id: 'admin', label: 'Admin', isCollapsible: true, items: [
+      item('staff', 'Staff', 'staff'), item('tables', 'Tables', 'tables'), item('settings', 'Settings', 'settings'),
+      item('kill', 'Kill switch', 'alert', { tone: 'danger' }), item('reset', 'Practice reset', 'reset', { tone: 'danger' }),
+      item('purge', 'Purge', 'purge', { tone: 'danger' }),
+    ] },
+  ];
+}
+
+/** The console's phone tabs (console v3): Floor, Requests, Waitlist and Door; the shell adds More. */
+export function consoleTabs(): SideNavItem[] {
+  return [
+    { id: 'floor', label: 'Floor', icon: 'floor', href: '#floor' },
+    { id: 'requests', label: 'Requests', icon: 'requests', href: '#requests', count: 12, isActionable: true },
+    { id: 'waitlist', label: 'Waitlist', icon: 'waitlist', href: '#waitlist', count: 3, isActionable: true },
+    { id: 'door', label: 'Door', icon: 'door', href: '#door' },
   ];
 }
 

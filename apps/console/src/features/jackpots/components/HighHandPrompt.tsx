@@ -32,7 +32,7 @@ export function HighHandPrompt({ venueId, hand, waiting, onSeeAll }: HighHandPro
   const actions = (
     <>
       {payout === null ? null : (
-        <Button variant="secondary" isLoading={approve.isPending} onClick={() => void pay()}>
+        <Button variant="subtle" isLoading={approve.isPending} onClick={() => void pay()}>
           {t('console.highHands.approve', { amount: formatMoney(payout) })}
         </Button>
       )}

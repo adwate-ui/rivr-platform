@@ -9,6 +9,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
+import { openDevices } from '../support/console.ts';
 
 const BUDGET = 5_000;
 
@@ -37,18 +38,17 @@ test.describe('TV reload', () => {
     await expect(shown).toBeVisible();
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000120');
-    await floor.getByRole('link', { name: 'Devices', exact: true }).click();
-    await floor.getByRole('link', { name: 'TVs' }).click();
+    await openDevices(floor, 'TVs');
     await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
     await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
     await floor.getByRole('button', { name: 'Pair the TV' }).click();
     await expect(tv.getByRole('heading', { level: 1, name: 'Waitlist' })).toBeVisible({ timeout: 15_000 });
-    const modes = floor.getByRole('group', { name: `What ${name} shows`, exact: true });
+    const modes = floor.getByRole('radiogroup', { name: `What ${name} shows`, exact: true });
 
     for (const mode of MODES) {
-      const chip = modes.getByRole('button', { name: mode.chip, exact: true });
+      const chip = modes.getByRole('radio', { name: mode.chip, exact: true });
       await chip.click();
-      await expect(chip).toHaveAttribute('aria-pressed', 'true');
+      await expect(chip).toHaveAttribute('aria-checked', 'true');
       const started = Date.now();
       await tv.reload();
       await expect(mode.rendered(tv), `${mode.chip} after a reload`).toBeVisible({ timeout: BUDGET });

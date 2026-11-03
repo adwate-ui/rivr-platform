@@ -65,6 +65,9 @@ import { computersRoute } from './routes/computers.tsx';
 import { camerasRoute } from './routes/cameras.tsx';
 import { devicesRoute } from './routes/devices.tsx';
 import { shiftRoute } from './routes/shift.tsx';
+import { doorRoute } from './routes/door.tsx';
+import { contentRoute } from './routes/content.tsx';
+import { requestsRoute } from './routes/requests.tsx';
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
@@ -72,6 +75,10 @@ const routeTree = rootRoute.addChildren([
     settingsRoute,
     devicesRoute,
     shiftRoute,
+    // Console v3's screens that hold others by tab (phase 1).
+    doorRoute,
+    contentRoute,
+    requestsRoute,
     homeRoute, academyRoute, academyPaymentsRoute, kycReviewRoute, waitlistRoute, checkInRoute, cageRoute, tabletsRoute, tvsRoute, computersRoute, camerasRoute, dealerPinsRoute, rakeRoute, jackpotsRoute,
     highHandsRoute, fnbRoute, markersRoute, membersRoute, killSwitchRoute, practiceResetRoute, purgeRoute, exportsRoute, amlRoute, withdrawalsRoute, treasuryRoute, endOfDayRoute, staffRoute, rosterRoute,
     certificationRoute,

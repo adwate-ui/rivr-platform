@@ -60,9 +60,9 @@ function DepositRow({ venueId, deposit, canSecond }: { venueId: string; deposit:
       <Inline gap={3} align="end" wrap>
         <Input {...amount} label={t('console.cage.amountInBank')} prefix={t('console.cage.rupee')} inputMode="numeric" maxLength={8} autoComplete="off"
           error={form.formState.errors.amount ? t('console.cage.amountInBankInvalid') : undefined} />
-        <Button variant="secondary" isLoading={confirm.isPending} onClick={() => void confirmIt()}>{t('console.cage.confirmReceived')}</Button>
+        <Button variant="subtle" isLoading={confirm.isPending} onClick={() => void confirmIt()}>{t('console.cage.confirmReceived')}</Button>
         {canSecond && deposit.needsSecond ? (
-          <Button variant="secondary" isLoading={secondApprove.isPending} onClick={() => void secondApprove.mutateAsync(deposit.depositId).then(settle)}>
+          <Button variant="subtle" isLoading={secondApprove.isPending} onClick={() => void secondApprove.mutateAsync(deposit.depositId).then(settle)}>
             {t('console.withdrawals.secondApprove')}
           </Button>
         ) : null}

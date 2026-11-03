@@ -6,7 +6,8 @@ import { TablesBlock } from './TablesBlock.tsx';
 
 /**
  * Tables setup (#642; owner's feedback doc of 29 Oct, super admin module 1), for tables.manage: the stakes the club runs,
- * each a game and its blinds, and its tables, each with a stake and its seats. The floor opens and closes them.
+ * each a game and its blinds, and its tables, each with a stake and its seats, deactivated, reactivated or deleted
+ * (decision 0466). The floor opens and closes them.
  */
 export function TablesSetupScreen() {
   const staff = useStaffVenue();
@@ -25,7 +26,7 @@ function Setup({ venueId }: { venueId: string }) {
   if (setup.data === undefined) return <Screen title={title} status="error" onRetry={() => void setup.refetch()} />;
   return (
     <Screen title={title}>
-      <Stack gap={12} divided>
+      <Stack gap={8}>
         <StakesBlock venueId={venueId} stakes={setup.data.stakes} />
         <TablesBlock venueId={venueId} stakes={setup.data.stakes} tables={setup.data.tables} />
       </Stack>

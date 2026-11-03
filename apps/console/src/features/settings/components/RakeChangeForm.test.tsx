@@ -37,7 +37,7 @@ afterEach(() => {
 describe('scheduling a rake change', () => {
   it('sends the change from its IST time, then clears the form', async () => {
     const inserted = renderForm(201);
-    fireEvent.click(screen.getByRole('button', { name: 'NLH 100/200' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'NLH 100/200' }));
     fill('Rate (%)', '5');
     fill('Cap (₹)', '7000');
     fill('From', '2099-01-01');
@@ -49,7 +49,7 @@ describe('scheduling a rake change', () => {
       venue_id: 'v1', key: 'rake.config', subject: 'nlh_100_200', effective_from: '2099-01-01T10:00:00+05:30', reason: 'Weekend cap',
       value: { rate_basis_points: 500, cap_paise: 700000 },
     }]);
-    await waitFor(() => expect(screen.getByRole('button', { name: 'NLH 100/200' }).getAttribute('aria-pressed')).toBe('false'));
+    await waitFor(() => expect(screen.getByRole('radio', { name: 'NLH 100/200' }).getAttribute('aria-checked')).toBe('false'));
     expect(screen.getByLabelText('Cap (₹)')).toHaveProperty('value', '');
   });
 
@@ -60,7 +60,7 @@ describe('scheduling a rake change', () => {
     expect(await screen.findByText('Choose a table type.')).toBeDefined();
     expect(screen.getByText('Give a cap in whole ₹50 chips, up to ₹1,00,000.')).toBeDefined();
     expect(inserted).toEqual([]);
-    fireEvent.click(screen.getByRole('button', { name: 'NLH 100/200' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'NLH 100/200' }));
     fill('Rate (%)', '5');
     fill('Cap (₹)', '7000');
     fill('From', '2020-01-01');

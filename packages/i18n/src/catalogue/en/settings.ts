@@ -22,13 +22,18 @@ export const settings = {
   /** Each value's line in its history: when it began, who set it, and why. */
   by: 'by {name}',
   /** Units: as shown after a value, and after a field. */
-  units: { percent: '{value}%', minutes: '{value} minutes', days: '{value} days', seconds: '{value} seconds', hours: '{value} hours', years: '{value} years' },
-  suffixes: { percent: '%', minutes: 'minutes', days: 'days', seconds: 'seconds', hours: 'hours', years: 'years' },
+  units: {
+    percent: '{value}%', minutes: '{value} minutes', days: '{value} days', seconds: '{value} seconds', hours: '{value} hours', years: '{value} years',
+    bonusChips: '{value} bonus chips',
+  },
+  suffixes: { percent: '%', minutes: 'minutes', days: 'days', seconds: 'seconds', hours: 'hours', years: 'years', bonusChips: 'bonus chips' },
   /** A field's limits, as its hint and as its error. */
   between: 'Between {min} and {max}.',
   atLeast: '{min} or more.',
   upTo: 'Up to {max}.',
   inChips: 'In whole ₹50 chips.',
+  /** Bonus chips go out in fifties, as the promotions' do (decision 0472). */
+  inFifties: 'In fifties.',
   twoDecimals: 'Up to two decimals.',
   optional: 'Optional.',
   required: 'Required.',
@@ -72,8 +77,12 @@ export const settings = {
   fromDate: 'From a later day',
   date: 'Day',
   invalidDate: 'Choose a day after today.',
-  reason: 'Reason',
-  invalidReason: 'Say why, in up to 200 characters.',
+  /** The rule in the label (console v3): the database refuses a control setting's shorter reason. */
+  reason: 'Reason, 3 characters or more',
+  invalidReason: 'Say why, in 3 to 200 characters.',
+  /** A row's Change (console v3), which opens a new value in the row; its name for a screen reader. */
+  change: 'Change',
+  changeName: 'Change {name}',
   chooseSubject: 'Choose what it applies to.',
   schedule: 'Save change',
   saved: 'Change saved.',
@@ -147,6 +156,9 @@ export const settings = {
     body: 'Notice',
     bodyHint: 'Shows at the top of every member\'s Home until you end it. Up to 280 characters.',
     post: 'Put up',
+    /** The live preview beside the notice (console v3), and what it shows before anything is typed. */
+    preview: 'On members’ Home',
+    previewEmpty: 'Your notice shows here.',
     posted: 'Notice put up.',
     none: 'No notice is up.',
     until: 'Until {date}',

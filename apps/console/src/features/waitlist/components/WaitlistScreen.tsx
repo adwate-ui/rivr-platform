@@ -1,67 +1,22 @@
-import { useFloorTables, useInterestLists, useStaffVenue, useWaitlistBoard, useWaitlistRequests, type FloorTable, type InterestList } from '@rivr/db';
+import { useStaffVenue } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { ErrorMessage, Screen, Stack, StaleNotice, Text } from '@rivr/ui';
-import { GameList } from './GameList.tsx';
+import { Screen } from '@rivr/ui';
+import { WaitlistLists } from './WaitlistLists.tsx';
 
-/** The floor's waitlists (#38), one per game and stake, for staff with waitlist.manage. */
+/**
+ * Lists, the Waitlist's first tab (console v3): a card for each table's own list (decision 0467), for staff with
+ * waitlist.manage. The frame holds the tabs (`?tab=lists`, `?tab=interest`, decision 0476).
+ */
 export function WaitlistScreen() {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
-  if (!staff.venue.permissions.includes('waitlist.manage')) {
-    return <Screen title={t('console.waitlist.title')} status="error" errorText={t('console.waitlist.notAllowed')} />;
-  }
-  return <Board venueId={staff.venue.venueId} canOpen={staff.venue.permissions.includes('floor.manage')} />;
-}
-
-/** Each of the venue's games and stakes once, in floor order: its tables share one list. */
-function gamesOf(tables: readonly FloorTable[], venueId: string): FloorTable[] {
-  const here = tables.filter((table) => table.venueId === venueId);
-  return here.filter((table, index) => here.findIndex((other) => other.tableTypeId === table.tableTypeId) === index);
-}
-
-/** A game's interest while it is not running, with a closed table to open (#113). */
-function interestOf(game: FloorTable, lists: readonly InterestList[], tables: readonly FloorTable[], canOpen: boolean) {
-  const list = lists.find((candidate) => candidate.tableTypeId === game.tableTypeId);
-  const ofGame = tables.filter((table) => table.venueId === game.venueId && table.tableTypeId === game.tableTypeId);
-  // The floor's tables refresh first: once one is open, the game is running whatever the interest list last said.
-  if (list === undefined || ofGame.some((table) => table.isOpen)) return undefined;
-  const closedTable = ofGame.find((table) => !table.isOpen);
-  return { list, closedTable, canOpen };
-}
-
-function Board({ venueId, canOpen }: { venueId: string; canOpen: boolean }) {
-  const tables = useFloorTables();
-  const board = useWaitlistBoard(venueId);
-  // The interest lists are an addition: the waitlists show while they load, or if they fail.
-  const interest = useInterestLists(venueId).data ?? [];
-  // So are the joins waiting for approval (#633), with an error above them when they fail to load.
-  const asked = useWaitlistRequests(venueId);
-  const requests = asked.data ?? [];
+  const { venueId, permissions } = staff.venue;
   const title = t('console.waitlist.title');
-  const retry = () => void Promise.all([tables.refetch(), board.refetch()]);
-  // Open all night: a list that stops refreshing stays on screen, saying since when.
-  const isFailing = tables.isError || board.isError;
-  if (tables.data === undefined || board.data === undefined) {
-    return isFailing ? <Screen title={title} status="error" onRetry={retry} /> : <Screen title={title} status="loading" />;
-  }
-  const games = gamesOf(tables.data, venueId);
-  if (games.length === 0) return <Screen title={title} status="empty" emptyText={t('console.waitlist.noGames')} />;
+  if (!permissions.includes('waitlist.manage')) return <Screen title={title} status="error" errorText={t('console.waitlist.notAllowed')} />;
   return (
     <Screen title={title}>
-      <Stack gap={10}>
-        {isFailing ? <StaleNotice since={new Date(Math.min(tables.dataUpdatedAt, board.dataUpdatedAt))} onRetry={retry} /> : null}
-        {asked.isError ? <ErrorMessage>{t('console.waitlist.requestsFailed')}</ErrorMessage> : null}
-        {/* What Hold place and Remove each do (decision 0299: the owner asked). */}
-        <Text tone="muted">{t('console.waitlist.holdOrRemove')}</Text>
-        {games.map((game) => (
-          <GameList key={game.tableTypeId} venueId={venueId} game={game}
-            tables={tables.data.filter((table) => table.venueId === venueId && table.tableTypeId === game.tableTypeId && table.isOpen)}
-            entries={board.data.filter((entry) => entry.tableTypeId === game.tableTypeId)}
-            requests={requests.filter((request) => request.tableTypeId === game.tableTypeId)}
-            interest={interestOf(game, interest, tables.data, canOpen)} />
-        ))}
-      </Stack>
+      <WaitlistLists venueId={venueId} canOpen={permissions.includes('floor.manage')} />
     </Screen>
   );
 }

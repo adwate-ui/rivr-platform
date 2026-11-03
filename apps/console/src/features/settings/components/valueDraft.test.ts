@@ -1,5 +1,6 @@
 import type { SettingField } from '@rivr/db';
 import { describe, expect, it } from 'vitest';
+import { shownInBonusChips } from './bonusChips.ts';
 import { fieldLabel, limitsText, unitOf, valueText } from './settingsCopy.ts';
 import { draftsFrom, readValue, valueFrom } from './valueDraft.ts';
 
@@ -107,5 +108,33 @@ describe('numbers as people type them', () => {
     const rows = number('rows', 1, 1_000_000);
     expect(valueFrom([rows], { rows: '10,00,000' })).toEqual({ value: { rows: 1_000_000 } });
     expect(valueFrom([RATE], { rate_basis_points: '5.25' })).toEqual({ value: { rate_basis_points: 525 } });
+  });
+});
+
+describe('the spin wheel budget in bonus chips, never rupees (owner, 3 Nov)', () => {
+  // As the database gives it: a money field in paise, in whole ₹50 chips; the console shows it in bonus chips.
+  const [budget] = shownInBonusChips({
+    key: 'spin.budget', description: '', scope: 'venue', subjects: [],
+    fields: [number('monthly_paise', 0, 100_000_000, { isMoney: true, isChips: true })],
+  }).fields;
+  const fields = budget === undefined ? [] : [budget];
+
+  it('shows the budget and its limits in bonus chips, with no ₹', () => {
+    expect(valueText('spin.budget', fields, { monthly_paise: 500_000 }, tierName)).toBe('5,000 bonus chips');
+    if (budget?.kind !== 'integer') throw new Error('The budget is a number');
+    expect(limitsText(budget)).toBe('Between 0 bonus chips and 10,00,000 bonus chips. In fifties.');
+    expect(limitsText(budget)).not.toContain('₹');
+  });
+
+  it('fills the form in chips and saves a changed value back in paise', () => {
+    expect(draftsFrom(fields, { monthly_paise: 500_000 })).toEqual({ monthly_paise: '5000' });
+    expect(readValue('spin.budget', fields, { monthly_paise: '7,500' })).toEqual({ value: { monthly_paise: 750_000 } });
+    // Bonus chips go out in fifties: 7,525 is not a budget the schema takes.
+    expect(readValue('spin.budget', fields, { monthly_paise: '7525' })).toEqual({ invalid: ['monthly_paise'] });
+  });
+
+  it('leaves every other setting as the database gave it', () => {
+    const setting = { key: 'rake.config', description: '', scope: 'venue' as const, subjects: [], fields: RAKE };
+    expect(shownInBonusChips(setting)).toBe(setting);
   });
 });

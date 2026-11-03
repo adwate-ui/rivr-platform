@@ -25,6 +25,7 @@ public enum RivrColors {
     public static let colorCream = Color(red: 0.953, green: 0.929, blue: 0.878, opacity: 1) /** Primary text and the wordmark tiles. */
     public static let colorCreamFaint = Color(red: 0.953, green: 0.929, blue: 0.878, opacity: 0.30196078431372547) /** Cream at 30%. A sheet's grabber, a picker field's edge and a step not reached. */
     public static let colorCreamTrack = Color(red: 0.953, green: 0.929, blue: 0.878, opacity: 0.12156862745098039) /** Cream at 12%. The track under the call-time ring and a progress bar, and a paused action's fill. */
+    public static let colorDanger = Color(red: 0.910, green: 0.510, blue: 0.549, opacity: 1) /** Danger text on the console: Remove, Purge, the Kill switch, an age past its target. 4.76:1 on green, 5.86:1 on green-black; never on a subtle fill. */
     public static let colorFocus = Color(red: 0.953, green: 0.929, blue: 0.878, opacity: 1) /** Keyboard focus ring. */
     public static let colorGold = Color(red: 0.788, green: 0.659, blue: 0.361, opacity: 1) /** The one primary action per screen, money that belongs to the player, hairlines at 25%. */
     public static let colorGoldEdge = Color(red: 0.788, green: 0.659, blue: 0.361, opacity: 0.34901960784313724) /** Gold at 35%. A neutral banner's edge and the selfie's frame on the membership card. */
@@ -39,12 +40,16 @@ public enum RivrColors {
     public static let colorOnAction = Color(red: 0.039, green: 0.165, blue: 0.125, opacity: 1) /** Text on the primary action. */
     public static let colorOnAlert = Color(red: 0.953, green: 0.929, blue: 0.878, opacity: 1) /** Text on an alert fill. */
     public static let colorOnCream = Color(red: 0.078, green: 0.078, blue: 0.078, opacity: 1) /** Text on a cream tile. */
+    public static let colorPracticeStripe = Color(red: 0.722, green: 0.592, blue: 0.302, opacity: 1) /** The darker stripe between gold ones on the practice venue's banner across the console (console v3, decision 0477). */
     public static let colorRaised = Color(red: 0.039, green: 0.165, blue: 0.125, opacity: 1) /** Raised surfaces: nav bars, rails, sheets, row hover. */
     public static let colorRed = Color(red: 0.769, green: 0.086, blue: 0.165, opacity: 1) /** Alerts, negatives, the spade card in the mark. Nothing else. */
     public static let colorRim = Color(red: 0.227, green: 0.165, blue: 0.078, opacity: 1) /** The wooden rim round the felt on the seat map. */
     public static let colorScrim = Color(red: 0.020, green: 0.059, blue: 0.043, opacity: 0.6) /** The dark veil behind an open sheet, and round the selfie's oval. */
     public static let colorSeatTaken = Color(red: 0.953, green: 0.929, blue: 0.878, opacity: 0.34901960784313724) /** Cream at 35%. A taken seat's dot on the tables list. */
+    public static let colorSelected = Color(red: 0.788, green: 0.659, blue: 0.361, opacity: 0.1411764705882353) /** Gold at 14%. A chosen row, option or seat on the console. */
     public static let colorSkeleton = Color(red: 0.953, green: 0.929, blue: 0.878, opacity: 0.0784313725490196) /** Cream at 8%. A first load's blocks, where its text will be. */
     public static let colorSkeletonFaint = Color(red: 0.953, green: 0.929, blue: 0.878, opacity: 0.050980392156862744) /** Cream at 5%. A first load's blocks, where its rows will be. */
+    public static let colorSubtle = Color(red: 0.953, green: 0.929, blue: 0.878, opacity: 0.050980392156862744) /** Cream at 5%. The console's filled controls in place of outlines (console v3, decision 0462): a subtle button, the search field, a segmented control's track, a chip. Text on it is cream: muted text is 4.47:1 on it. */
+    public static let colorSubtleHover = Color(red: 0.953, green: 0.929, blue: 0.878, opacity: 0.0784313725490196) /** Cream at 8%. A subtle fill under the pointer, and the rail's current screen. */
     public static let colorSurface = Color(red: 0.055, green: 0.231, blue: 0.173, opacity: 1) /** Page background. */
 }

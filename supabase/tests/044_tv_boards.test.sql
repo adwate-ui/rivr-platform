@@ -1,9 +1,9 @@
 -- TV boards (#65): a paired TV reads its own venue's waitlist board while it shows it (players as
--- first name and initial, in the floor's order, every stake) and its jackpot with tonight's high
+-- first name and initial, in the floor's order, a list per open table, decision 0467) and its jackpot with tonight's high
 -- hand; nobody else reads them; the database broadcasts on the venue's private topic when what a
 -- board shows changes, and only the venue's TVs may hear it. The seed has Kabir Sethi, Naina Kapoor
--- and Rohan Bhatia waiting for 100/200, nobody for 50/100, and a main pool of ₹3,42,600, in both venues,
--- and tonight's high hand (56_floor.sql).
+-- and Rohan Bhatia waiting on Table 2's list (100/200), nobody at Table 1 (50/100), and a main pool of ₹3,42,600, in
+-- both venues, and tonight's high hand (56_floor.sql).
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -33,9 +33,9 @@ grant execute on function pg_temp.as_person(text) to authenticated, anon;
 create temp table seed_high_hand on commit drop as
 select h.venue_id, c.category from public.high_hand_claim c join public.hand h on h.id = c.hand_id
 where h.idempotency_key = 'seed:high-hand' and h.played_at >= private.tonight_began(now());
-create temp table practice_types on commit drop as
-select id from public.table_type where venue_id = '00000000-0000-4000-8000-000000000002';
-grant select on seed_high_hand, practice_types to authenticated;
+create temp table practice_tables on commit drop as
+select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000002';
+grant select on seed_high_hand, practice_tables to authenticated;
 
 -- A paired TV at the club and one at the practice venue, both on the waitlist board, and a tablet.
 insert into auth.users (id, instance_id, aud, role, phone) values
@@ -49,10 +49,10 @@ insert into public.device (id, venue_id, kind, name, auth_user_id) values
 insert into public.tv_screen (device_id, venue_id, mode) values
   ('00000000-0000-4000-8000-00000000d201', '00000000-0000-4000-8000-000000000001', 'waitlist'),
   ('00000000-0000-4000-8000-00000000d202', '00000000-0000-4000-8000-000000000002', 'waitlist');
--- The club's stakes, as the database owner sees them (a TV reads no table directly).
-create temporary table stakes on commit drop as
-select id, code from public.table_type where venue_id = '00000000-0000-4000-8000-000000000001';
-grant select on stakes to authenticated;
+-- The club's open tables, as the database owner sees them (a TV reads no table directly).
+create temporary table open_tables on commit drop as
+select id, name from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and is_open and active;
+grant select on open_tables to authenticated;
 
 select is(private.first_name_and_initial('Arjun Mehta'), 'Arjun M.', 'a player is a first name and initial');
 select is(private.first_name_and_initial('  Rahul  Kumar Sharma '), 'Rahul S.', 'the initial of the last name');
@@ -62,23 +62,24 @@ select is(private.first_name_and_initial('Cher'), 'Cher', 'a single name stays w
 
 -- The waitlist board.
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e201');
-select results_eq($$ select place, display_name from public.tv_waitlist_board() where table_type_id = (select id from stakes where code = 'nlh_100_200') $$,
+select results_eq($$ select place, display_name from public.tv_waitlist_board() where table_name = 'Table 2' $$,
   $$ values (1, 'Kabir S.'::text), (2, 'Naina K.'::text), (3, 'Rohan B.'::text) $$,
-  'the bar TV shows 100/200''s list in order, each as a first name and initial');
-select ok((select count(*) = 1 and bool_and(place is null) from public.tv_waitlist_board() b
-           where b.table_type_id = (select id from stakes where code = 'nlh_50_100')),
-  'a stake nobody waits for is on the board, empty');
+  'the bar TV shows Table 2''s list in order, each as a first name and initial');
+select ok((select count(*) = 1 and bool_and(place is null) from public.tv_waitlist_board() b where b.table_name = 'Table 1'),
+  'an open table nobody waits for is on the board, empty');
+select ok(not exists (select 1 from public.tv_waitlist_board() b where b.table_name = 'Table 4'),
+  'a closed table nobody waits for is not');
 select ok(not exists (select 1 from public.tv_waitlist_board() b where b.display_name in ('Kabir Sethi', 'Naina Kapoor', 'Rohan Bhatia')),
   'and no full name reaches the TV');
-select is((select count(distinct table_type_id)::int from public.tv_waitlist_board()), (select count(*)::int from stakes),
-  'every stake at the venue, and only that venue''s');
+select results_eq($$ select distinct table_id from public.tv_waitlist_board() order by table_id $$,
+  $$ select id from open_tables order by id $$, 'every open table at the venue, and only that venue''s');
 select results_eq($$ select main_paise, high_hand_category from public.tv_jackpot() $$,
   $$ select 34260000::bigint, (select category from seed_high_hand where venue_id = '00000000-0000-4000-8000-000000000001') $$,
   'the jackpot is ₹3,42,600, with the seed''s high hand when it was played tonight');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e202');
 select results_eq($$ select display_name from public.tv_waitlist_board() where place is not null order by place $$,
   $$ values ('Kabir S.'::text), ('Naina K.'), ('Rohan B.') $$, 'the practice TV shows the practice venue''s own list');
-select is_empty($$ select * from public.tv_waitlist_board() where table_type_id not in (select id from practice_types) $$, 'and none of the club''s');
+select is_empty($$ select * from public.tv_waitlist_board() where table_id not in (select id from practice_tables) $$, 'and none of the club''s');
 select results_eq($$ select main_paise from public.tv_jackpot() $$, $$ values (34260000::bigint) $$, 'and the practice venue''s own jackpot');
 reset role;
 update public.tv_screen set mode = 'jackpot' where device_id = '00000000-0000-4000-8000-00000000d201';
@@ -115,8 +116,9 @@ select throws_ok($$ select * from public.tv_waitlist_board() $$, '42501', null, 
 reset role;
 
 -- Broadcasts: when what a board shows changes, and only then.
-insert into public.waitlist_entry (venue_id, member_id, table_type_id, idempotency_key)
-select '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000201', id, gen_random_uuid() from stakes where code = 'nlh_50_100';
+insert into public.waitlist_entry (venue_id, member_id, table_type_id, table_id, idempotency_key)
+select '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000201', g.table_type_id, g.id, gen_random_uuid()
+from public.game_table g where g.venue_id = '00000000-0000-4000-8000-000000000001' and g.name = 'Table 1';
 select is(pg_temp.signals('tv:00000000-0000-4000-8000-000000000001', 'waitlist'), 1, 'joining the waitlist tells the venue''s TVs');
 update public.waitlist_entry set updated_at = now() where member_id = '00000000-0000-4000-8000-000000000201';
 select is(pg_temp.signals('tv:00000000-0000-4000-8000-000000000001', 'waitlist'), 1, 'a change the board does not show tells them nothing');
@@ -152,8 +154,8 @@ select is_empty($$ select * from realtime.messages $$, 'a member hears no TV top
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is_empty($$ select * from realtime.messages $$, 'nor does staff');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e201');
-select results_eq($$ select place, display_name from public.tv_waitlist_board() where table_type_id = (select id from stakes where code = 'nlh_50_100') $$,
-  $$ values (1, 'Arjun M.'::text) $$, 'and the board reads the list as it is now');
+select results_eq($$ select place, display_name from public.tv_waitlist_board() where table_name = 'Table 1' $$,
+  $$ values (1, 'Arjun M.'::text) $$, 'and the board reads the list as it is now, a closed table''s too while someone waits for it');
 reset role;
 
 select * from finish();

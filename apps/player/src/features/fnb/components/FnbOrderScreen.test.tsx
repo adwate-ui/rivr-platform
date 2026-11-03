@@ -71,11 +71,11 @@ describe('Tonight › Order', () => {
     renderOrder('seated');
     expect(await screen.findByText('Table 3, seat 5 · Pay on delivery', {}, LATER)).toBeDefined();
     expect(screen.getByRole('heading', { name: 'Order' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Food' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('radio', { name: 'Food' }).getAttribute('aria-checked')).toBe('true');
     fireEvent.click(screen.getByRole('button', { name: 'Add Club sandwich' }));
     expect(screen.getByRole('button', { name: 'One more Club sandwich' })).toBeDefined();
     expect(screen.getByRole('button', { name: /Send to the bar/ }).textContent).toContain('1 item');
-    fireEvent.click(screen.getByRole('button', { name: 'Soft drinks' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Soft drinks' }));
     expect(screen.getByRole('button', { name: 'Add Masala chai' })).toBeDefined();
   });
 

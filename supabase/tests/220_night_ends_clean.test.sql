@@ -38,9 +38,9 @@ select '00000000-0000-4000-8000-0000000d2201', '00000000-0000-4000-8000-00000000
 insert into public.seat_session (venue_id, member_id, visit_id, table_id, seat, started_at, seated_here_at, ended_at, end_reason)
 select '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', '00000000-0000-4000-8000-0000000d2201', pg_temp.table_id('Table 2'), 7,
        began - interval '7 hours', began - interval '7 hours', began - interval '2 hours', 'left' from night;
-insert into public.waitlist_entry (id, venue_id, member_id, table_type_id, joined_at, approved_at, idempotency_key)
+insert into public.waitlist_entry (id, venue_id, member_id, table_type_id, table_id, joined_at, approved_at, idempotency_key)
 values ('00000000-0000-4000-8000-0000000e2202', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', pg_temp.type_of('Private Room'),
-        now(), now(), gen_random_uuid());
+        pg_temp.table_id('Private Room'), now(), now(), gen_random_uuid());
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 create temp table tonight as select public.check_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216') as visit_id;
@@ -54,9 +54,9 @@ select is((select status from public.waitlist_entry where id = '00000000-0000-40
 -- Yash never checked out last night either, and kept a place on a list: it is on no list tonight, and goes when he checks in.
 insert into public.visit (venue_id, member_id, opened_at)
 select '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214', began - interval '5 hours' from night;
-insert into public.waitlist_entry (id, venue_id, member_id, table_type_id, joined_at, approved_at, idempotency_key)
+insert into public.waitlist_entry (id, venue_id, member_id, table_type_id, table_id, joined_at, approved_at, idempotency_key)
 select '00000000-0000-4000-8000-0000000e2203', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214', pg_temp.type_of('Table 2'),
-       began - interval '3 hours', began - interval '3 hours', gen_random_uuid() from night;
+       pg_temp.table_id('Table 2'), began - interval '3 hours', began - interval '3 hours', gen_random_uuid() from night;
 select ok(not exists (select 1 from private.ranked_waitlist(array[pg_temp.type_of('Table 2')]) r where r.entry_id = '00000000-0000-4000-8000-0000000e2203'),
   'a waiting place from last night is on no list tonight, so nobody at home is called');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');

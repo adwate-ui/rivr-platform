@@ -2,7 +2,8 @@ import type { Permission } from '@rivr/contracts';
 import { useStaffVenue, useVenueStaff } from '@rivr/db';
 import { grantableRoles } from '@rivr/domain/staff';
 import { t } from '@rivr/i18n';
-import { Screen } from '@rivr/ui';
+import { Button, Screen } from '@rivr/ui';
+import { useState } from 'react';
 import { StaffTable } from './StaffTable.tsx';
 
 /**
@@ -22,14 +23,19 @@ export function StaffSection() {
 
 function StaffList({ venueId, permissions }: { venueId: string; permissions: readonly Permission[] }) {
   const members = useVenueStaff(venueId);
+  const [isAdding, setIsAdding] = useState(false);
   const grantable = grantableRoles(permissions);
   const title = t('console.staff.tabs.staff');
-  if (members.isPending) return <Screen level={2} title={title} status="loading" />;
+  if (members.isPending) return <Screen level={2} title={title} status="loading" loadingLook="rows" />;
   // A failed refresh keeps what was known, so a job title half typed stays put.
   if (members.data === undefined) return <Screen level={2} title={title} status="error" onRetry={() => void members.refetch()} />;
+  // The screen's one gold action (decision 0463); one button opens and closes the form, so focus stays on it.
+  const add = (
+    <Button variant="primary" size="compact" onClick={() => setIsAdding(!isAdding)}>{isAdding ? t('common.close') : t('console.staff.addOpen')}</Button>
+  );
   return (
-    <Screen level={2} title={title}>
-      <StaffTable venueId={venueId} members={members.data} grantable={grantable} />
+    <Screen level={2} title={title} actions={add}>
+      <StaffTable venueId={venueId} members={members.data} grantable={grantable} isAdding={isAdding} />
     </Screen>
   );
 }

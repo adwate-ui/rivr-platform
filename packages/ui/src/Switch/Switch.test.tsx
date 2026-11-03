@@ -37,6 +37,16 @@ describe('Switch', () => {
     expect(screen.getByRole('switch')).toHaveClass('min-h-touch', 'min-w-touch');
   });
 
+  it("draws the prototype's 46 by 28 track with a round knob that moves across when on", () => {
+    const { container, rerender } = renderIn(<Switch label="Seat calls" isOn={false} onChange={() => undefined} />);
+    const track = container.querySelector('[data-switch-track]');
+    expect(track).toHaveClass('w-switch-width', 'h-switch-height', 'rounded-full', 'border-control');
+    expect(track?.firstElementChild).toHaveClass('size-switch-knob', 'rounded-full', 'bg-cream');
+    rerender(<Switch label="Seat calls" isOn onChange={() => undefined} />);
+    expect(track).toHaveClass('bg-action');
+    expect(track?.firstElementChild).toHaveClass('translate-x-switch-travel', 'bg-raised');
+  });
+
   it('reads its hint as the description', () => {
     renderIn(<Switch label="Seat calls" hint="When your seat is ready." isOn onChange={() => undefined} />);
     expect(screen.getByRole('switch')).toHaveAccessibleDescription('When your seat is ready.');

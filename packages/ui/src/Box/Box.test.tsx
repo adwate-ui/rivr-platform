@@ -31,4 +31,9 @@ describe('Box', () => {
     renderIn(<Box>Plain</Box>);
     expect(screen.getByText('Plain')).not.toHaveAttribute('class');
   });
+
+  it('stays in view at the top of a scrolling page from 768 px, at its own height in a grid, when asked', () => {
+    renderIn(<Box isSticky>In one line</Box>);
+    expect(screen.getByText('In one line')).toHaveClass('medium:sticky', 'medium:top-0', 'medium:self-start');
+  });
 });

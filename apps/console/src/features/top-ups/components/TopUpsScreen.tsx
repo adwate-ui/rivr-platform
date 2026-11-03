@@ -40,11 +40,11 @@ function WaitingRow({ request, now, isBusy, onSet }: { request: TopUpTonight; no
       <Inline gap={2}>
         {request.status === 'requested' ? (
           <>
-            <Button variant="secondary" aria-label={t('console.topUps.startName', { name })} isLoading={isBusy} onClick={() => onSet(true)}>{t('console.topUps.start')}</Button>
+            <Button variant="subtle" aria-label={t('console.topUps.startName', { name })} isLoading={isBusy} onClick={() => onSet(true)}>{t('console.topUps.start')}</Button>
             <Button variant="text" aria-label={t('console.topUps.resetName', { name })} isDisabled={isBusy} onClick={() => onSet(false)}>{t('console.topUps.reset')}</Button>
           </>
         ) : (
-          <Button variant="secondary" aria-label={t('console.topUps.doneName', { name })} isLoading={isBusy} onClick={() => onSet(false)}>{t('console.topUps.done')}</Button>
+          <Button variant="subtle" aria-label={t('console.topUps.doneName', { name })} isLoading={isBusy} onClick={() => onSet(false)}>{t('console.topUps.done')}</Button>
         )}
       </Inline>
     </Inline>

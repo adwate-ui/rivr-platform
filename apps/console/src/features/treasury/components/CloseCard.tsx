@@ -25,7 +25,7 @@ function ReviewForm({ venueId, close }: { venueId: string; close: EodClose }) {
         error={form.formState.errors.reason ? t('console.endOfDay.reasonInvalid') : undefined} />
       {failure === null ? null : <ErrorMessage>{t(EOD_FAILURE_COPY[failure])}</ErrorMessage>}
       <Inline>
-        <Button variant="secondary" isLoading={review.isPending} onClick={() => void submit()}>{t('console.endOfDay.recordReason')}</Button>
+        <Button variant="subtle" isLoading={review.isPending} onClick={() => void submit()}>{t('console.endOfDay.recordReason')}</Button>
       </Inline>
     </Stack>
   );

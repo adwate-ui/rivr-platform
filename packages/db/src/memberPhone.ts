@@ -29,6 +29,7 @@ export function useChangeMemberPhone(venueId: string, memberId: string) {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.memberRecord(user, venueId, memberId) }),
         queryClient.invalidateQueries({ queryKey: queryKeys.memberSearchAll(user) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.membersOfTierAll(user) }),
       ]);
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },

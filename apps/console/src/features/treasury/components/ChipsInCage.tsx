@@ -47,7 +47,7 @@ export function ChipsInCage({ venueId, inventory, canCount, onCounted }: {
       </Inline>
       {canCount && !isCounting ? (
         <Inline>
-          <Button variant="secondary" onClick={() => setCounting(true)}>{t('console.treasury.countChips')}</Button>
+          <Button variant="subtle" onClick={() => setCounting(true)}>{t('console.treasury.countChips')}</Button>
         </Inline>
       ) : null}
     </Stack>

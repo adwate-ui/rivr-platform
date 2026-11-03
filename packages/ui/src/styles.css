@@ -110,6 +110,16 @@
     }
   }
 
+  /* The practice venue's banner (PracticeBanner; decision 0477): gold and a darker gold in stripes across the console, so
+     nobody takes the practice venue for the club. A sign, not decoration: the only stripes anywhere. */
+  [data-practice-stripes] {
+    background-image: repeating-linear-gradient(
+      135deg,
+      var(--rivr-color-gold) 0 var(--rivr-space-3),
+      var(--rivr-color-practice-stripe) var(--rivr-space-3) var(--rivr-space-6)
+    );
+  }
+
   /* The stream overlay (#125) is drawn over OBS's video: the page behind it shows nothing. */
   html:has([data-stream-overlay]) {
     background-color: transparent;
@@ -127,7 +137,8 @@
     [data-board-progress],
     [data-sheet],
     [data-scrim],
-    [data-toast] {
+    [data-toast],
+    [data-fresh] {
       animation: none !important;
     }
   }
@@ -220,6 +231,41 @@
 @keyframes rivr-sheet-up {
   from {
     transform: translateY(100%);
+  }
+}
+
+/* The console's sheet (console v3): from 768 px a panel down the right of the screen, which slides in from the right. */
+@layer components {
+  [data-sheet='console'] {
+    @variant medium {
+      animation-name: rivr-sheet-in;
+    }
+  }
+}
+
+@keyframes rivr-sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+/* A folded panel's name, read down its strip (DockedPanel, console v3). */
+@layer components {
+  [data-vertical-label] {
+    writing-mode: vertical-rl;
+  }
+}
+
+/* A request just arrived on the console (RequestItem `isNew`, decision 0465): a gold tint that fades over 2.5 s. */
+@layer components {
+  [data-fresh] {
+    animation: rivr-fresh var(--rivr-motion-duration-fresh) var(--rivr-motion-easing-out);
+  }
+}
+
+@keyframes rivr-fresh {
+  from {
+    background-color: var(--rivr-color-selected);
   }
 }
 

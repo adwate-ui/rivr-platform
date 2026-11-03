@@ -8,6 +8,9 @@ create extension if not exists pgtap with schema extensions;
 select no_plan();
 
 -- The seed's live promotions (57_promotions.sql) back to drafts: only the test's own are weighed.
+-- A promotion run in versions goes back to draft through its version (decision 0491).
+update public.promotion_version set status = 'draft' where status = 'live';
+select private.sync_promotion(id) from public.promotion where current_version is not null;
 update public.promotion set status = 'draft' where status = 'live';
 
 create function pg_temp.as_person(p_person text) returns void language sql as $$
