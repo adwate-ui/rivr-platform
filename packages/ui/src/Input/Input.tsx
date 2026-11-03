@@ -170,8 +170,10 @@ function Field({ id, type, variant, prefix, suffix, isInvalid, describedBy, nati
   );
   if (!isAdorned) return input;
   return (
-    // data-field-row: the focus ring goes round the whole row, prefix and suffix included (styles.css).
-    <div data-field-row {...line} className={cx(frame, ROW_DIMMED, 'flex items-baseline gap-3')}>
+    // data-field-row: the focus ring goes round the whole row, prefix and suffix included (styles.css). Centred, not on
+    // one baseline: the row is taller than the input inside it (54 px round 44 when tall), and a baseline row sat the
+    // prefix and the value at its top. The prefix is the field's own size, so centred they still share a baseline.
+    <div data-field-row {...line} className={cx(frame, ROW_DIMMED, 'flex items-center gap-3')}>
       {prefix ? <Adornment id={`${id}-prefix`} text={prefix} /> : null}
       {input}
       {suffix ? <Adornment id={`${id}-suffix`} text={suffix} /> : null}

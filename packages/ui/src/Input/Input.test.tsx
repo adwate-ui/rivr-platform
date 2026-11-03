@@ -124,4 +124,11 @@ describe('Input', () => {
     expect(screen.getByRole('textbox', { name: 'Mobile number' }).closest('[data-field-row]')).toHaveClass('min-h-action');
     expect(screen.getByRole('alert').querySelector('svg')).toBeNull();
   });
+
+  it('centres the prefix and the value down the row, not on its top (owner, 3 Nov)', () => {
+    renderIn(<Input label="Mobile number" prefix="+91" isTall />);
+    const row = screen.getByRole('textbox', { name: 'Mobile number' }).closest('[data-field-row]');
+    expect(row).toHaveClass('items-center');
+    expect(row).not.toHaveClass('items-baseline');
+  });
 });
