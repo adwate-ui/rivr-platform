@@ -124,7 +124,9 @@ export function PlayerSheet(props: PlayerSheetProps) {
       })}
       {permissions.includes('call_time.override') && player.callTimeLeft !== null ? <AddTime venueId={venueId} player={player} changes={changes.seats} /> : null}
       <Move {...props} changes={changes.seats} />
-      <Button variant="text" onClick={() => void navigate({ href: `/members?member=${player.memberId}` })}>{t('console.floor.player.memberRecord')}</Button>
+      <Inline>
+        <Button variant="text" onClick={() => void navigate({ href: `/members?member=${player.memberId}` })}>{t('console.floor.player.memberRecord')}</Button>
+      </Inline>
     </Sheet>
   );
 }
