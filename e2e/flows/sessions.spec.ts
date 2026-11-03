@@ -7,6 +7,7 @@
  */
 import { expect, test } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
+import { letGoEarly, seatOnFloor } from '../support/floor.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 test.describe('Sessions', () => {
@@ -15,18 +16,11 @@ test.describe('Sessions', () => {
     test.setTimeout(120_000);
     const sahil = await browser.newPage();
     await signInToConsole(sahil, '9000000613');
-    await sahil.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 2', exact: true }).click();
-    await sahil.getByRole('radiogroup', { name: 'Seat', exact: true }).getByRole('radio', { name: '4', exact: true }).click();
-    await sahil.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000297');
-    await sahil.getByRole('button', { name: 'Seat', exact: true }).click();
-    await expect(sahil.getByRole('button', { name: 'Rhea Kaul leaves' })).toBeVisible();
+    await seatOnFloor(sahil, { table: 'Table 2', seat: 4, number: '9000000297' });
 
-    // One Leave (decision 0299): she owes call time, so she is let go early with a reason, and the seat is freed.
-    await sahil.getByRole('button', { name: 'Rhea Kaul leaves' }).click();
-    await sahil.getByRole('textbox', { name: 'Why they leave early' }).fill('Going home');
-    await sahil.getByRole('button', { name: 'Let leave early' }).click();
-    await expect(sahil.getByText('Released early.')).toBeVisible();
-    await expect(sahil.getByRole('button', { name: 'Rhea Kaul leaves' })).toHaveCount(0);
+    // She owes call time, so she is let go early with a reason (decision 0448), and the seat is freed.
+    await letGoEarly(sahil, 'Rhea Kaul', 'Floor decision');
+    await expect(sahil.getByRole('button', { name: /^Seat \d+, Rhea Kaul,/ })).toHaveCount(0);
     await sahil.getByRole('link', { name: 'Check-in' }).click();
     await sahil.getByRole('textbox', { name: 'Mobile number' }).fill('9000000297');
     await sahil.getByRole('button', { name: 'Check out', exact: true }).click();

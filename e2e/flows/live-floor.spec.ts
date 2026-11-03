@@ -1,48 +1,39 @@
 /**
- * Live floor (#81; design prompt "Live floor"; the prototype's console). Meera Chopra, this flow's own
- * floor manager (Auth sends one code a minute to a number), opens the live floor: how many are seated; the
- * main room's tables and the Private Room, each a card with its ring, occupancy, dealer and hands per hour.
- * Pressing Table 4's card opens it: its stakes, its night so far and its seats. No rake and no rupee show
- * (#626, decision 0284). The figures with hands logged (hands, per hour, dealer) are proved in
- * supabase/tests/052_live_floor.test.sql.
+ * Live floor (console v3, phase 2; decision 0446). Meera Chopra, this flow's own floor manager (Auth sends one code a
+ * minute to a number), opens the live floor: the active tables room by room, each a tile with its stake and seat bar,
+ * Table 4 closed with Open table; Summary or Seats; Needs you; Seat a player, the one gold button; the requests docked
+ * beside; a table's ⋯ opens its sheet. No rake and no rupee show (#626, decision 0284).
  */
 import { expect, test } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
+import { requestsPanel, showSeats, tableTile } from '../support/floor.ts';
 import { signInToConsole } from '../support/signIn.ts';
 
 test.describe('Live floor', () => {
-  test('the room plan shows every table by room, and a card opens its table with its night, and no rake or rupee', async ({ page }) => {
+  test('the tiles show every active table by room, a closed one with Open table, and a table\'s sheet; no rake or rupee', async ({ page }) => {
     test.skip(isRemoteTarget(), 'reads the seeded floor, so the local stack only');
     await signInToConsole(page, '9000000129');
     await expect(page.getByRole('heading', { name: 'Live floor', level: 1 })).toBeVisible();
-    await expect(page.getByText(/^\d+ seated$/)).toBeVisible();
-    await expect(page.getByText('Rake tonight', { exact: true })).toHaveCount(0);
-    await expect(page.getByText('Main room', { exact: true })).toBeVisible();
-    // The room's label, and the felt of the table named for it.
-    await expect(page.getByText('Private Room', { exact: true }).first()).toBeVisible();
-    const plan = page.getByRole('region', { name: 'Room plan' });
-    for (const name of ['Table 1', 'Table 2', 'Table 3', 'Table 4', 'Table 5', 'Private Room']) {
-      await expect(plan.getByRole('button', { name, exact: true })).toBeVisible();
-    }
+    await expect(page.getByRole('region', { name: 'Main room' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Private Room' })).toBeVisible();
+    for (const name of ['Table 1', 'Table 2', 'Table 3', 'Table 4', 'Table 5', 'Private Room']) await expect(tableTile(page, name)).toBeVisible();
+    await expect(tableTile(page, 'Table 4').getByText('Closed', { exact: true })).toBeVisible();
+    await expect(tableTile(page, 'Table 4').getByRole('button', { name: 'Open table' })).toBeVisible();
+    await expect(requestsPanel(page)).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Seat a player' })).toHaveAttribute('aria-keyshortcuts', 'S');
 
-    // At a desk the first table shows beside the plan, which marks it (F2-29).
-    await expect(plan.getByRole('button', { pressed: true })).toHaveCount(1);
-    const table4 = plan.getByRole('button', { name: 'Table 4', exact: true });
-    await table4.click();
-    await expect(table4).toHaveAttribute('aria-pressed', 'true');
-    const heading = page.getByRole('heading', { name: 'Table 4', level: 2 });
-    await expect(heading).toBeVisible();
-    // Under the name, its stakes alone.
-    await expect(heading.locator('xpath=..').getByText('100/200', { exact: true })).toBeVisible();
-    // Who still owes call time and who asks for a top-up, where hands stood (UI polish audit A-11).
-    await expect(page.getByText('Call time running', { exact: true })).toBeVisible();
-    await expect(page.getByText('Top-ups waiting', { exact: true })).toBeVisible();
-    await expect(page.getByText('Hands', { exact: true })).toHaveCount(0);
-    await expect(page.getByRole('heading', { name: 'Recent hands' })).toHaveCount(0);
+    // Seats lists every seat of an open table; a closed one has none to list.
+    await showSeats(page);
+    await expect(tableTile(page, 'Table 5').getByRole('button', { name: /^Seat 9, / })).toBeVisible();
+    await expect(tableTile(page, 'Table 4').getByRole('button', { name: /^Seat 1, / })).toHaveCount(0);
+
+    // The table's sheet: its status, seated, dealer and waiting, and Open or Close for tonight.
+    await page.getByRole('button', { name: 'Settings for Table 5' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Table 5' });
+    await expect(sheet.getByText('Status', { exact: true })).toBeVisible();
+    await expect(sheet.getByText('Waiting', { exact: true })).toBeVisible();
+    await expect(sheet.getByRole('radiogroup', { name: 'Must move to' })).toBeVisible();
+    await page.keyboard.press('Escape');
     await expect(page.getByText(/₹|[Rr]ake/)).toHaveCount(0);
-    // Closed, its seats are simply open; at an open table they invite a call from the waitlist.
-    await expect(page.getByText('Open · call the waitlist')).toHaveCount(0);
-    await page.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 5', exact: true }).click();
-    await expect(page.getByText('Open · call the waitlist').first()).toBeVisible();
   });
 });

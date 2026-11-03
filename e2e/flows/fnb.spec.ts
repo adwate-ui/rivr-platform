@@ -13,6 +13,7 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
+import { letGoEarly, seatOnFloor } from '../support/floor.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 import { dealerSignsIn, revoke, tabletAtTable3 } from '../support/tablet.ts';
 
@@ -28,11 +29,7 @@ test.describe('F&B', () => {
     test.skip(isRemoteTarget(), 'seats a seeded member, pairs a tablet and places orders, so the local stack only');
     test.setTimeout(120_000);
     await signInToConsole(page, '9000000615');
-    await page.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
-    await page.getByRole('radiogroup', { name: 'Seat', exact: true }).getByRole('radio', { name: '1', exact: true }).click();
-    await page.getByRole('textbox', { name: 'Mobile or member number' }).fill('9000000288');
-    await page.getByRole('button', { name: 'Seat', exact: true }).click();
-    await expect(page.getByRole('button', { name: 'Ishan Mehta leaves' })).toBeVisible();
+    await seatOnFloor(page, { table: 'Table 3', seat: 1, number: '9000000288' });
 
     const member = await browser.newPage();
     await signInToPlayer(member, '9000000288');
@@ -120,11 +117,8 @@ test.describe('F&B', () => {
 
     await revoke(page, name);
     await page.getByRole('link', { name: 'Live floor' }).click();
-    await page.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Table 3', exact: true }).click();
-    // One Leave (decision 0299): he owes call time, so he is let go early with a reason, and his seat is freed with it.
-    await page.getByRole('button', { name: 'Ishan Mehta leaves' }).click();
-    await page.getByRole('textbox', { name: 'Why they leave early' }).fill('End of the F&B flow');
-    await page.getByRole('button', { name: 'Let leave early' }).click();
-    await expect(page.getByRole('button', { name: 'Ishan Mehta leaves' })).toHaveCount(0);
+    // He owes call time, so he is let go early with a reason (decision 0448), and his seat is freed with it.
+    await letGoEarly(page, 'Ishan Mehta', 'Floor decision');
+    await expect(page.getByRole('button', { name: /^Seat \d+, Ishan Mehta,/ })).toHaveCount(0);
   });
 });
