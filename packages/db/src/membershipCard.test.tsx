@@ -40,7 +40,7 @@ describe('the membership card', () => {
   it('asks for the next code as soon as this one changes', async () => {
     const { result } = renderCard([[row('card.1.mac', 1_000)], [row('card.2.mac', 60_000)]]);
     await waitFor(() => expect(result.current.data?.code).toBe('card.1.mac'));
-    await waitFor(() => expect(result.current.data?.code).toBe('card.2.mac'), { timeout: 4_000 });
+    await waitFor(() => expect(result.current.data?.code).toBe('card.2.mac'));
   });
 
   it('is nothing for someone who is not a member, such as staff', async () => {
