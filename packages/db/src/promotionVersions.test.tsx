@@ -82,6 +82,13 @@ describe('promotions in versions: the list', () => {
     expect(calls.find((call) => call.url.includes('promotions_overview'))?.body).toEqual({ p_venue_id: VENUE });
   });
 
+  it('counts a running promotion whose new version waits under its own status and under awaiting approval', async () => {
+    const { result } = renderVersions({ '/rpc/promotions_overview': [overviewRow({ open_version_id: 'v2', open_status: 'awaiting_approval' })] });
+    await waitFor(() => expect(result.current.overview.data).toBeDefined());
+    expect(result.current.overview.data?.promotions[0]?.status).toBe('live');
+    expect(result.current.overview.data?.counts).toMatchObject({ all: 1, live: 1, awaiting_approval: 1, draft: 0 });
+  });
+
   it('reads terms it cannot parse as none', async () => {
     const { result } = renderVersions({ '/rpc/promotions_overview': [overviewRow({ reward: { kind: 'cash' } })] });
     await waitFor(() => expect(result.current.overview.data?.promotions[0]?.terms).toBeNull());

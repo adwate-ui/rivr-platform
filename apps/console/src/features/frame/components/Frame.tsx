@@ -53,8 +53,13 @@ export function Frame({ children, prompt }: { children: ReactNode; prompt?: (sta
   if (authStatus === 'signed-out') return <Navigate to="/sign-in" search={isIdleLocked ? { why: 'idle' } : {}} replace />;
   if (staff.status === 'not-staff') return <NotStaff />;
   if (staff.status === 'ready') {
-    // The keys the screen open now offers (useShortcut), and the menu's list of them.
-    return <ShortcutProvider><StaffFrame staff={staff} prompt={prompt} onIdle={onIdle}>{children}</StaffFrame></ShortcutProvider>;
+    // The keys the screen open now offers (useShortcut), and the menu's list of them; and the toasts every step raises,
+    // with Undo where the step has its own compensating call (console v3).
+    return (
+      <ShortcutProvider>
+        <ToastProvider place="console"><StaffFrame staff={staff} prompt={prompt} onIdle={onIdle}>{children}</StaffFrame></ToastProvider>
+      </ShortcutProvider>
+    );
   }
   // Until the staff record loads, or if it cannot, the header still offers a way out, and the rail stays empty (#811).
   return (
@@ -141,7 +146,7 @@ interface FrameBodyProps {
   children: ReactNode;
 }
 
-/** The screen, or its refusal, with what every screen shares: the staff member's density, the export, the toasts, the chime. */
+/** The screen, or its refusal, with what every screen shares: the staff member's density, the export, the chime. */
 function FrameBody({ staff, urgent, refusal, landing, children }: FrameBodyProps) {
   const { venueId, permissions } = staff.venue;
   const density = useStaffDensity(venueId);
@@ -149,17 +154,15 @@ function FrameBody({ staff, urgent, refusal, landing, children }: FrameBodyProps
   const recordExport = useRecordTableExport(venueId);
   return (
     <DataTableDensityProvider density={density.data ?? 'comfortable'}>
-      <ToastProvider place="console">
-        <DataTableExportProvider exporter={permissions.includes('exports.table') ? recordExport : null}>
-          {/* New urgent work chimes and is told to a screen reader, and the tab says how much waits (decision 0301); a venue
-              switch starts the chime over, so the other venue's counts sound nothing. */}
-          <UrgentChime key={venueId} counts={urgent} />
-          <TitleCount count={totalOf(urgent)}>
-            {/* A screen opened by address that the role doesn't include is refused here, before it loads anything. */}
-            {refusal === undefined ? children : <Refused refusal={refusal} landing={landing} />}
-          </TitleCount>
-        </DataTableExportProvider>
-      </ToastProvider>
+      <DataTableExportProvider exporter={permissions.includes('exports.table') ? recordExport : null}>
+        {/* New urgent work chimes and is told to a screen reader, and the tab says how much waits (decision 0301); a venue
+            switch starts the chime over, so the other venue's counts sound nothing. */}
+        <UrgentChime key={venueId} counts={urgent} />
+        <TitleCount count={totalOf(urgent)}>
+          {/* A screen opened by address that the role doesn't include is refused here, before it loads anything. */}
+          {refusal === undefined ? children : <Refused refusal={refusal} landing={landing} />}
+        </TitleCount>
+      </DataTableExportProvider>
     </DataTableDensityProvider>
   );
 }
