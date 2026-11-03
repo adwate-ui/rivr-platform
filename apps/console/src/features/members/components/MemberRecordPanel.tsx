@@ -20,6 +20,8 @@ export interface RecordAccess {
   readonly erase: boolean;
   /** A super admin changes the member's phone number, their login (#502). */
   readonly changePhone: boolean;
+  /** A super admin withdraws an early departure recorded by mistake (decision 0500). */
+  readonly withdrawDeparture: boolean;
 }
 
 /** Member number, tier (and a change's last day), KYC and whether they are in the room. */
@@ -44,7 +46,7 @@ interface PartProps {
 }
 
 /** Visits (console v3): how many and the last, early departures, and what promotions gave the member. */
-function VisitsPart({ venueId, record }: Omit<PartProps, 'can'>) {
+function VisitsPart({ venueId, record, can }: PartProps) {
   const last = record.lastVisitAt === null ? t('console.members.never') : formatDate(new Date(record.lastVisitAt));
   return (
     <Stack gap={6}>
@@ -52,7 +54,7 @@ function VisitsPart({ venueId, record }: Omit<PartProps, 'can'>) {
         <DetailRow label={t('console.members.visits')} value={formatNumber(record.visits)} labelTone="muted" size="small" />
         <DetailRow label={t('console.members.lastVisit')} value={last} labelTone="muted" size="small" isLast />
       </Stack>
-      <EarlyDepartures venueId={venueId} memberId={record.memberId} />
+      <EarlyDepartures venueId={venueId} memberId={record.memberId} canWithdraw={can.withdrawDeparture} />
       <PromotionGrants memberId={record.memberId} />
     </Stack>
   );
@@ -77,7 +79,7 @@ function PartContent({ part, venueId, record, can }: PartProps & { part: RecordP
       </Stack>
     );
   }
-  return <VisitsPart venueId={venueId} record={record} />;
+  return <VisitsPart venueId={venueId} record={record} can={can} />;
 }
 
 /** The record's header: the KYC photo for those who may see it, the name, and its status lines. */

@@ -1089,6 +1089,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"early_departure_withdrawal": {
+                  Row: {
+                    "created_at": string,"early_departure_id": string,"id": string,"reason": string,"updated_at": string,"venue_id": string,"withdrawn_by_staff_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"early_departure_id": string,"id"?: string,"reason": string,"updated_at"?: string,"venue_id": string,"withdrawn_by_staff_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"early_departure_id"?: string,"id"?: string,"reason"?: string,"updated_at"?: string,"venue_id"?: string,"withdrawn_by_staff_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "early_departure_withdrawal_early_departure_id_venue_id_fkey"
+      columns: ["early_departure_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "early_departure"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "early_departure_withdrawal_withdrawn_by_staff_id_venue_id_fkey"
+      columns: ["withdrawn_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"eod_close": {
                   Row: {
                     "closed_at": string,"closed_by_staff_id": string,"count_id": string,"counted_cash_paise": number,"counted_chips_paise": number,"counted_markers_paise": number,"counted_receipts_paise": number,"created_at": string,"expected_cash_paise": number,"expected_chips_paise": number,"expected_markers_paise": number,"expected_receipts_paise": number,"id": string,"idempotency_key": string,"is_anomaly": boolean,"reason": string | null,"reviewed_at": string | null,"reviewed_by_staff_id": string | null,"shift_id": string,"updated_at": string,"venue_id": string
@@ -5199,7 +5225,7 @@ isOneToOne: false
                            },
 "member_early_departures":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
-              "created_at": string,"early_departure_id": string,"reason": string,"shortfall_seconds": number,"staff_name": string
+              "created_at": string,"early_departure_id": string,"reason": string,"shortfall_seconds": number,"staff_name": string,"withdrawn_at": string,"withdrawn_by": string,"withdrawn_reason": string
             }[]
                            },
 "member_erasure_preview":
@@ -6298,6 +6324,9 @@ isOneToOne: false
                            },
 "withdraw_consent":
 { Args: { "p_purpose": string }; Returns: undefined
+                           },
+"withdraw_early_departure":
+{ Args: { "p_early_departure_id": string,"p_reason": string }; Returns: undefined
                            }
           }
           Enums: {
