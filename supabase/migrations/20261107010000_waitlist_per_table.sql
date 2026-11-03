@@ -23,6 +23,7 @@ as $$
 $$;
 revoke execute on function private.list_table_for(uuid, uuid, uuid, uuid) from public, anon, authenticated;
 
+-- Before this migration a place's table_id was the table it asked for (decision 0321): it breaks the last tie.
 update public.waitlist_entry e
 set table_id = private.list_table_for(e.venue_id, e.table_type_id, e.call_table_id, e.table_id)
 where e.status = 'waiting';

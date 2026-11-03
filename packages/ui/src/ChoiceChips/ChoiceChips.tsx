@@ -69,12 +69,12 @@ const SUBTLE =
   'inline-flex min-h-touch items-center rounded-md px-3 font-text text-13 leading-control text-content transition-colors tablet:min-h-row-compact ' +
   'focus-visible:outline-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-disabled';
 
-/** The row the choices sit in, by look. */
 // The console's cards (console v3): a semibold label and a muted line under it, both from the card's start.
 const CARD =
   'flex min-h-touch flex-col items-start justify-center gap-1 rounded-md border px-3 py-2 text-start font-text transition-colors ' +
   'focus-visible:outline-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-disabled';
 
+/** The row the choices sit in, by look. */
 function rowClasses(look: ChipLook, optionCount: number, isOneRow: boolean): string {
   if (look === 'tile') return TILE_ROW[optionCount] ?? 'grid grid-cols-3 gap-2';
   if (look === 'card') return 'grid grid-cols-1 gap-2 medium:grid-cols-2';

@@ -6,7 +6,10 @@ import { Box, Button, ErrorMessage, Heading, Inline, Screen, Stack, Text, useToa
 import { useState } from 'react';
 import { PublishTournament } from './PublishTournament.tsx';
 
-/** Each tournament's interest, in the list's order: soonest tournament first, then in the order members asked. */
+/**
+ * Each tournament's interest, in the list's order: soonest tournament first, then in the order members asked. The read
+ * sorts by tournament (`tournament_interest_list`), so a tournament's members come together.
+ */
 function byTournament(interests: readonly TournamentInterest[]): TournamentInterest[][] {
   const groups: TournamentInterest[][] = [];
   for (const interest of interests) {

@@ -2,7 +2,7 @@ import { useFloorWaitlistActions, useWaitlistCallActions, type FloorTable, type 
 import { t, type MessageKey } from '@rivr/i18n';
 import { Box, ConfirmQuestion, ErrorMessage, Stack, useTableDensity, useToast, WaitlistRow, type OverflowMenuItem } from '@rivr/ui';
 import { useState } from 'react';
-import { BACK_FAILURE_COPY, ENTRY_FAILURE_COPY } from './failureCopy.ts';
+import { RELEASE_FAILURE_COPY, ENTRY_FAILURE_COPY } from './failureCopy.ts';
 import { placeMeta } from './placeMeta.ts';
 
 type Outcome = { ok: true } | { ok: false; error: WaitlistFailure };
@@ -36,13 +36,13 @@ function usePlaceSteps(venueId: string, entry: WaitlistBoardEntry) {
   const released = t('console.waitlist.toast.released', { name });
   // Undo goes through the same step, so a refused Undo (the place called or seated meanwhile) says so under the row.
   const holdNow = () => run(setAway(true), held, ENTRY_FAILURE_COPY);
-  const releaseNow = () => run(setAway(false), released, BACK_FAILURE_COPY);
+  const releaseNow = () => run(setAway(false), released, RELEASE_FAILURE_COPY);
   return {
     failure,
     isBusy: seat.isPending || away.isPending || remove.isPending,
     // Hold and Release undo each other exactly; holding a called place also ends its call, which Release does not bring back.
     hold: () => run(setAway(true), held, ENTRY_FAILURE_COPY, entry.holdUntil === null ? () => void releaseNow() : undefined),
-    release: () => void run(setAway(false), released, BACK_FAILURE_COPY, () => void holdNow()),
+    release: () => void run(setAway(false), released, RELEASE_FAILURE_COPY, () => void holdNow()),
     seatCalled: () => void run(seat.mutateAsync(entry.entryId),
       t('console.waitlist.toast.seated', { name, table: entry.callTableName ?? '', seat: entry.callSeat ?? 0 })),
     remove: () => run(remove.mutateAsync(entry.entryId), t('console.waitlist.toast.removed', { name })),
