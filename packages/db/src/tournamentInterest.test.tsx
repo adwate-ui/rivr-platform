@@ -6,7 +6,7 @@ import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
-import { usePublishTournament } from './tournamentInterest.ts';
+import { useMarkTournamentRegistered, usePublishTournament, useUnmarkTournamentRegistered } from './tournamentInterest.ts';
 
 const SIGNED_IN = '00000000-0000-4000-8000-000000000103';
 const VENUE = '00000000-0000-4000-8000-000000000001';
@@ -54,5 +54,44 @@ describe('a tournament published without money', () => {
       await act(async () => { published = await result.current.mutateAsync(LISTING); });
       expect(published).toEqual({ ok: false, error: failure });
     }
+  });
+});
+
+/** A fake API that answers every call with `reply`, the hooks to mark and take back a registration, and the calls sent. */
+function renderRegistration(reply: { status?: number; body: unknown }) {
+  const calls: { url: string; body: unknown }[] = [];
+  const fetch: typeof globalThis.fetch = async (input, init) => {
+    const url = input instanceof Request ? input.url : String(input);
+    if (!url.includes('/rpc/')) return Response.json([]);
+    calls.push({ url, body: init?.body ? JSON.parse(String(init.body)) : undefined });
+    return Response.json(reply.body, { status: reply.status ?? 200 });
+  };
+  const client: RivrClient = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
+    global: { fetch },
+    auth: { storage: sessionStorageFor(SIGNED_IN), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+  const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
+  const { result } = renderHook(() => ({ mark: useMarkTournamentRegistered(VENUE), unmark: useUnmarkTournamentRegistered(VENUE) }), { wrapper });
+  return { result, calls };
+}
+
+describe('marking a member registered, and Undo', () => {
+  it('marks, then takes the registration back through its own function', async () => {
+    const { result, calls } = renderRegistration({ body: null });
+    await act(async () => { await result.current.mark.mutateAsync('i1'); });
+    let undone: unknown;
+    await act(async () => { undone = await result.current.unmark.mutateAsync('i1'); });
+    expect(undone).toEqual({ ok: true, value: null });
+    expect(calls.map((call) => [call.url.split('/rpc/')[1], call.body])).toEqual([
+      ['mark_tournament_registered', { p_interest_id: 'i1' }],
+      ['unmark_tournament_registered', { p_interest_id: 'i1' }],
+    ]);
+  });
+
+  it('says an Undo too late was refused', async () => {
+    const { result } = renderRegistration({ status: 400, body: { code: '22023', message: 'no' } });
+    let undone: unknown;
+    await act(async () => { undone = await result.current.unmark.mutateAsync('i1'); });
+    expect(undone).toEqual({ ok: false, error: 'invalid' });
   });
 });

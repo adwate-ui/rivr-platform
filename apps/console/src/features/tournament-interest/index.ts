@@ -1,1 +1,1 @@
-export { TournamentInterestScreen } from './components/TournamentInterestScreen.tsx';
+export { TournamentInterestList } from './components/TournamentInterestList.tsx';

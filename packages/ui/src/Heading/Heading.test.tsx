@@ -63,4 +63,9 @@ describe('Heading', () => {
     renderIn(<Heading level={3} isFocusedOnMount>Move Kabir Sethi</Heading>);
     expect(screen.getByRole('heading', { level: 3, name: 'Move Kabir Sethi' })).toHaveFocus();
   });
+
+  it("sets a console card's name at 15 px in semibold (console v3)", () => {
+    renderIn(<Heading level={2} variant="card">Table 1</Heading>);
+    expect(screen.getByRole('heading', { level: 2, name: 'Table 1' })).toHaveClass('text-15', 'font-semibold');
+  });
 });

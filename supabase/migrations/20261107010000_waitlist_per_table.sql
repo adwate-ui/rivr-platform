@@ -135,10 +135,12 @@ begin
 end;
 $$;
 
--- The floor (waitlist.manage) adds a member found by mobile number to a table's list (RVNOM when none).
+-- The floor (waitlist.manage) adds a member to a table's list, found by mobile number or by membership number as Seat a
+-- player finds them (console v3: "Add: mobile or member no."). Exactly one of the two (22023), a blank mobile counting as
+-- none; RVNOM when nobody has it.
 drop function public.add_to_waitlist(uuid, text, uuid);
 drop function private.add_to_waitlist(uuid, text, uuid);
-create function private.add_to_waitlist(p_table_id uuid, p_phone text, p_idempotency_key uuid)
+create function private.add_to_waitlist(p_table_id uuid, p_phone text, p_idempotency_key uuid, p_member_number bigint default null)
 returns uuid
 language plpgsql
 security definer
@@ -146,24 +148,29 @@ set search_path = ''
 as $$
 declare
   v_venue_id uuid := (select g.venue_id from public.game_table g where g.id = p_table_id);
+  v_phone text := nullif(btrim(coalesce(p_phone, '')), '');
   v_member_id uuid;
 begin
   if v_venue_id is null or not private.has_permission(v_venue_id, 'waitlist.manage') then
     raise exception 'Only the floor adds a member to a waitlist' using errcode = '42501';
   end if;
+  if (v_phone is null) = (p_member_number is null) then
+    raise exception 'A mobile number or a membership number, one of them' using errcode = '22023';
+  end if;
   select m.id into v_member_id from public.member m
-  where m.venue_id = v_venue_id and m.phone = '+91' || right(regexp_replace(coalesce(p_phone, ''), '[^0-9]', '', 'g'), 10);
+  where m.venue_id = v_venue_id
+    and (m.phone = '+91' || right(regexp_replace(coalesce(v_phone, ''), '[^0-9]', '', 'g'), 10) or m.member_number = p_member_number);
   if v_member_id is null then
     raise exception 'No member has that number' using errcode = 'RVNOM';
   end if;
   return private.put_on_waitlist(v_member_id, p_table_id, p_idempotency_key, private.current_staff_id(v_venue_id));
 end;
 $$;
-create function public.add_to_waitlist(p_table_id uuid, p_phone text, p_idempotency_key uuid)
+create function public.add_to_waitlist(p_table_id uuid, p_phone text, p_idempotency_key uuid, p_member_number bigint default null)
 returns uuid language sql volatile security invoker set search_path = ''
-as $$ select private.add_to_waitlist(p_table_id, p_phone, p_idempotency_key); $$;
-revoke execute on function private.add_to_waitlist(uuid, text, uuid), public.add_to_waitlist(uuid, text, uuid) from public, anon;
-grant execute on function private.add_to_waitlist(uuid, text, uuid), public.add_to_waitlist(uuid, text, uuid) to authenticated;
+as $$ select private.add_to_waitlist(p_table_id, p_phone, p_idempotency_key, p_member_number); $$;
+revoke execute on function private.add_to_waitlist(uuid, text, uuid, bigint), public.add_to_waitlist(uuid, text, uuid, bigint) from public, anon;
+grant execute on function private.add_to_waitlist(uuid, text, uuid, bigint), public.add_to_waitlist(uuid, text, uuid, bigint) to authenticated;
 
 -- A call goes to the list's own table only (22023 any other). As 20261019091800_seat_sessions.sql made it.
 create or replace function private.put_call(p_entry_id uuid, p_table_id uuid, p_seat integer)
