@@ -32,7 +32,10 @@ Variables are plain and visible, so they hold only non-secret values (Settings â
 |---|---|
 | `STAGING_SUPABASE_URL`, `STAGING_SUPABASE_PUBLISHABLE_KEY` | builds for previews and staging |
 | `PROD_SUPABASE_URL`, `PROD_SUPABASE_PUBLISHABLE_KEY` | production builds |
-| `STAGING_{PLAYER,CONSOLE,TABLET,DISPLAY,WEB}_URL` | the release's end-to-end run against staging |
+| `STAGING_{PLAYER,CONSOLE,TABLET,DISPLAY,WEB}_URL` | the staging addresses; `STAGING_WEB_URL` also gives staging builds `VITE_WEB_URL` (the console's website previews) and the release's website preview alias |
+| `PROD_PLAYER_URL`, `PROD_WEB_URL` | production builds: the website's links into the player app, and `VITE_WEB_URL` |
+| `GTM_ID` | every web build, as `VITE_GTM_ID` and `PUBLIC_GTM_ID` (decision 0298) |
+| `PROD_CASHFREE_ENVIRONMENT` | `sandbox` keeps production on Cashfree's sandbox through releases (decision 0421); unset means `production` |
 | `PROD_TABLET_URL` | the hosted bundle the APK shell loads |
 | `PROD_DISPLAY_URL` | the hosted TV app, so `device-pair` answers TVs asking for a pairing code (#49) |
 

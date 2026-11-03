@@ -84,9 +84,12 @@ jobs:
       VITE_SUPABASE_URL: ${{ vars.STAGING_SUPABASE_URL }}
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.STAGING_SUPABASE_PUBLISHABLE_KEY }}
       VITE_TURNSTILE_SITE_KEY: ${{ vars.STAGING_TURNSTILE_SITE_KEY }}
+      VITE_WEB_URL: ${{ vars.STAGING_WEB_URL }}
+      VITE_GTM_ID: ${{ vars.GTM_ID }}
       PUBLIC_SUPABASE_URL: ${{ vars.STAGING_SUPABASE_URL }}
       PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.STAGING_SUPABASE_PUBLISHABLE_KEY }}
       PUBLIC_PLAYER_URL: ${{ vars.STAGING_PLAYER_URL }}
+      PUBLIC_GTM_ID: ${{ vars.GTM_ID }}
     steps:
       - if: env.HAS_CLOUDFLARE != 'true'
         run: echo "::notice::CLOUDFLARE_API_TOKEN is not set; skipping the Pages deploy."
