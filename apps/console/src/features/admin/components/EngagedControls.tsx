@@ -1,6 +1,6 @@
 import { useControlActions, useEngagedControls, type ControlFailure, type EngagedControl } from '@rivr/db';
 import { formatDayTime, t } from '@rivr/i18n';
-import { Button, Heading, Inline, Input, Stack, Text, LoadState } from '@rivr/ui';
+import { Banner, Button, Heading, Inline, Input, LoadState, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { controlName } from './controlCopy.ts';
 
@@ -31,18 +31,18 @@ function ReleaseForm({ venueId, control, onDone, onCancel }: {
   );
 }
 
+/** An engaged control as a red banner (console v3): what, why, who and when, with Release; a release asked for under it. */
 function ControlRow({ control, onRelease }: { control: EngagedControl; onRelease: () => void }) {
   const what = controlName(control);
   return (
-    <Inline justify="between" align="center" gap={4}>
-      <Stack gap={1}>
-        <Text>{t('console.killSwitch.line', { what, reason: control.reason, name: control.engagedBy ?? '', time: formatDayTime(new Date(control.engagedAt)) })}</Text>
-        {control.releaseAsk === null ? null : (
-          <Text variant="small" tone="muted">{t('console.killSwitch.releaseAsked', { name: control.releaseAsk.by, reason: control.releaseAsk.reason })}</Text>
-        )}
-      </Stack>
-      <Button variant="text" aria-label={t('console.killSwitch.releaseName', { what })} onClick={onRelease}>{t('console.killSwitch.release')}</Button>
-    </Inline>
+    <Stack gap={2}>
+      <Banner tone="alert" action={{ label: t('console.killSwitch.release'), name: t('console.killSwitch.releaseName', { what }), onPress: onRelease }}>
+        {t('console.killSwitch.line', { what, reason: control.reason, name: control.engagedBy ?? '', time: formatDayTime(new Date(control.engagedAt)) })}
+      </Banner>
+      {control.releaseAsk === null ? null : (
+        <Text variant="small" tone="muted">{t('console.killSwitch.releaseAsked', { name: control.releaseAsk.by, reason: control.releaseAsk.reason })}</Text>
+      )}
+    </Stack>
   );
 }
 
@@ -54,7 +54,7 @@ function Body({ venueId, onOutcome }: { venueId: string; onOutcome: (outcome: Re
   if (controls.data.length === 0) return <Text tone="muted">{t('console.killSwitch.noneEngaged')}</Text>;
   return (
     <Stack gap={4}>
-      <Stack gap={3} divided>
+      <Stack gap={3}>
         {controls.data.map((control) => <ControlRow key={control.controlId} control={control} onRelease={() => setReleasing(control)} />)}
       </Stack>
       {releasing === null ? null : (

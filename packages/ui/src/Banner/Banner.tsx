@@ -10,8 +10,11 @@ export interface BannerProps {
   /** One line: the fact. */
   children: ReactNode;
   tone?: BannerTone;
-  /** The one thing to do about it, such as Retry or Add time. */
-  action?: { label: string; onPress: () => void } | undefined;
+  /**
+   * The one thing to do about it, such as Retry or Add time; `name`, a fuller name for a screen reader where banners
+   * repeat the label, such as the kill switch's "Release Venue freeze" (console v3). It starts with the label.
+   */
+  action?: { label: string; onPress: () => void; name?: string | undefined } | undefined;
   /** Shows the × that hides the banner. An alert banner is never dismissed. */
   onDismiss?: (() => void) | undefined;
 }
@@ -36,7 +39,7 @@ export function Banner({ children, tone = 'neutral', action, onDismiss }: Banner
       </span>
       <span className="min-w-0 flex-1 font-text text-14 leading-snug font-medium">{children}</span>
       {action ? (
-        <button type="button" className={ACTION} onClick={action.onPress}>{action.label}</button>
+        <button type="button" className={ACTION} aria-label={action.name} onClick={action.onPress}>{action.label}</button>
       ) : null}
       {onDismiss && tone === 'neutral' ? (
         <button type="button" aria-label={t('ui.banner.dismiss')} onClick={onDismiss}

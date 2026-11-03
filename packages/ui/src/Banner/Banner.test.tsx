@@ -20,6 +20,13 @@ describe('Banner', () => {
     expect(onDismiss).toHaveBeenCalledOnce();
   });
 
+  it('names its action more fully for a screen reader where banners repeat it', async () => {
+    const onPress = vi.fn();
+    renderIn(<Banner tone="alert" action={{ label: 'Release', name: 'Release Venue freeze', onPress }}>Venue freeze is engaged.</Banner>);
+    await userEvent.click(screen.getByRole('button', { name: 'Release Venue freeze' }));
+    expect(onPress).toHaveBeenCalledOnce();
+  });
+
   it('never offers to dismiss an alert', () => {
     renderIn(<Banner tone="alert" onDismiss={() => undefined}>The club is paused.</Banner>);
     expect(screen.queryByRole('button', { name: 'Dismiss' })).not.toBeInTheDocument();
