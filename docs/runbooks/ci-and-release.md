@@ -63,7 +63,7 @@ Auth and API on staging and production, in the Supabase dashboard:
   6. WhatsApp through the Evolution bridge, for now (decision 0297):
      - On the bridge, create an instance for RIVR's own number and link it by scanning its QR code with that phone.
      - Set `EVOLUTION_API_URL` (https, no trailing slash), `EVOLUTION_API_KEY` and `EVOLUTION_INSTANCE_NAME` as function secrets, with `pnpm supabase secrets set --env-file <file> --project-ref <ref>` so no value is typed on a command line.
-     - On staging, also set `WHATSAPP_ALLOWLIST` to the team's numbers (`+91…`, comma-separated). Members' messages and alerts go only to them; sign-in codes go to whoever asks.
+     - Staging sets no `WHATSAPP_ALLOWLIST`, so it messages every number, test members included (decision 0461). Setting one (`+91…`, comma-separated) limits members' messages and alerts to those numbers; sign-in codes always go to whoever asks.
      - Check it: sign in on the player app with a real number on the list; the code arrives on WhatsApp.
      - To move to Meta's Cloud API later, unset the three bridge secrets and follow the next step.
   6a. Once WhatsApp is approved by Meta:

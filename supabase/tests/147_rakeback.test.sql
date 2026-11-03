@@ -7,6 +7,11 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- A venue starts with hourly rakeback off (20261105300100); the club offers it to every tier here.
+insert into public.tier_feature (venue_id, tier_id, feature_key, is_enabled, display_mode, effective_from)
+select venue_id, id, 'rewards.rakeback', true, 'locked', now() - interval '1 day' from public.tier
+where venue_id = '00000000-0000-4000-8000-000000000001';
+
 create function pg_temp.week() returns timestamptz language sql as $$ select week_from from private.rakeback_week(now()) $$;
 -- Last club week's Wednesday 06:00 IST, and some minutes after it.
 create function pg_temp.at(p_minutes integer) returns timestamptz language sql as $$
