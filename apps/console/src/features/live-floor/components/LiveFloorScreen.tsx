@@ -1,79 +1,13 @@
-import {
-  useFloorNight, useFloorSeats, useFloorTables, useHeldSeats, useStaffVenue, type FloorNight, type FloorTable, type HeldSeat, type SeatedPlayer,
-} from '@rivr/db';
-import { t } from '@rivr/i18n';
-import { Screen, SplitView, Stack, StaleNotice, useIsWide } from '@rivr/ui';
-import { useState } from 'react';
-import { JoinRequestsNotice } from './JoinRequestsNotice.tsx';
-import { LeavingList } from './LeavingList.tsx';
-import { LeftOwingCallTime } from './LeftOwingCallTime.tsx';
-import { RoomPlan } from './RoomPlan.tsx';
-import { TableDetail } from './TableDetail.tsx';
+import { useStaffVenue } from '@rivr/db';
+import { Floor } from './Floor.tsx';
 
 /**
- * Live floor (#77, #81; the prototype's console): rake tonight and how many are seated; every table
- * seen from above, room by room, with who sits where, its rake, dealer and hands per hour; and the
- * chosen table beside, with its night so far, its seats and its recent hands. The floor
- * (waitlist.manage) seats, moves and lets players leave; floor managers open and close tables and set
- * must-move tables; admins let a player leave before call time, seated or gone from their seat (#79).
- * The floor marks a player leaving, and the Leaving list shows when each seat opens (decision 0163). Joins from the app waiting
- * for approval lead to the Waitlist (#638), and tonight's top-ups show by table, for the floor and the cashier (#639).
+ * The Live floor (console v3, phase 2; decisions 0446 to 0449): tiles room by room, the requests docked beside them, and
+ * the player, seat, table and leave sheets. Its toasts, with Undo, are the frame's (ToastProvider).
  */
 export function LiveFloorScreen() {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   return <Floor venueId={staff.venue.venueId} permissions={staff.venue.permissions} />;
-}
-
-/** The floor's four reads once every one has arrived; null until then. */
-function loaded(tables: FloorTable[] | undefined, seats: SeatedPlayer[] | undefined, held: HeldSeat[] | undefined, night: FloorNight | undefined) {
-  if (tables === undefined || seats === undefined || held === undefined || night === undefined) return null;
-  return { tables, seats, held, night };
-}
-
-/** Open all night: once a read stops refreshing, a notice saying since when (call-time timers move only with a refresh). */
-function staleOf(reads: readonly { isError: boolean; dataUpdatedAt: number; refetch: () => Promise<unknown> }[]) {
-  if (!reads.some((read) => read.isError)) return null;
-  return <StaleNotice since={new Date(Math.min(...reads.map((read) => read.dataUpdatedAt)))} onRetry={() => void Promise.all(reads.map((read) => read.refetch()))} />;
-}
-
-function Floor({ venueId, permissions }: { venueId: string; permissions: readonly string[] }) {
-  const reads = { tables: useFloorTables(), seats: useFloorSeats(venueId), held: useHeldSeats(venueId), night: useFloorNight(venueId) };
-  const [chosenId, setChosenId] = useState<string | null>(null);
-  // At a desk the first table shows beside the plan, so the plan marks it; below, none is open until one is chosen (F2-29).
-  const isAtDesk = useIsWide('tablet');
-  const title = t('console.liveFloor.title');
-  const data = loaded(reads.tables.data, reads.seats.data, reads.held.data, reads.night.data);
-  if (data === null) {
-    const all = Object.values(reads);
-    if (all.some((read) => read.isError)) return <Screen title={title} status="error" onRetry={() => void Promise.all(all.map((read) => read.refetch()))} />;
-    return <Screen title={title} status="loading" />;
-  }
-  const stale = staleOf(Object.values(reads));
-  const here = data.tables.filter((table) => table.venueId === venueId);
-  const chosen = here.find((table) => table.id === chosenId) ?? here[0];
-  if (chosen === undefined) return <Screen title={title} status="empty" emptyText={t('console.liveFloor.empty')} />;
-  return (
-    <Screen title={title}>
-      {stale}
-      {/* The first table shows beside the plan from 1180 px; below, the plan stays until a table is chosen (#605). */}
-      <SplitView isChosen={chosenId !== null} onBack={() => setChosenId(null)} backLabel={t('console.liveFloor.backToFloor')}
-        list={(
-          <Stack gap={8}>
-            {permissions.includes('waitlist.manage') ? <JoinRequestsNotice venueId={venueId} /> : null}
-            <RoomPlan tables={here} seats={data.seats} held={data.held} night={data.night} canSeeSeats={permissions.includes('members.read')}
-              chosenId={chosenId !== null || isAtDesk ? chosen.id : ''} onChoose={setChosenId} />
-            <LeavingList venueId={venueId} tables={here} seats={data.seats} isFloor={permissions.includes('waitlist.manage')}
-              canLetGoEarly={permissions.includes('call_time.override')} />
-            {permissions.includes('call_time.override') ? <LeftOwingCallTime venueId={venueId} /> : null}
-          </Stack>
-        )}
-        detail={(
-          <TableDetail key={chosen.id} venueId={venueId} table={chosen} tables={here} permissions={permissions}
-            seats={data.seats.filter((seat) => seat.tableId === chosen.id)} held={data.held.filter((seat) => seat.tableId === chosen.id)}
-            night={data.night.tables.find((figures) => figures.tableId === chosen.id)} />
-        )} />
-    </Screen>
-  );
 }

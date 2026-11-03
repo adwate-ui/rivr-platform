@@ -1,0 +1,364 @@
+{
+  "controls-1440": [
+    {
+      "label": "view",
+      "top": 84,
+      "height": 36,
+      "centre": 102,
+      "off": 0
+    },
+    {
+      "label": "needs you",
+      "top": 84,
+      "height": 36,
+      "centre": 102,
+      "off": 0
+    },
+    {
+      "label": "seat a player",
+      "top": 84,
+      "height": 36,
+      "centre": 102,
+      "off": 0
+    },
+    {
+      "label": "title",
+      "top": 86,
+      "height": 31,
+      "centre": 102,
+      "off": 0
+    }
+  ],
+  "tile-head-1440": [
+    {
+      "label": "name",
+      "top": 188,
+      "height": 20,
+      "centre": 197.3,
+      "off": 0
+    },
+    {
+      "label": "settings",
+      "top": 181,
+      "height": 32,
+      "centre": 197.3,
+      "off": 0
+    }
+  ],
+  "closed-1440": [
+    {
+      "label": "closed",
+      "top": 332,
+      "height": 20,
+      "centre": 341.5,
+      "off": 0
+    },
+    {
+      "label": "open table",
+      "top": 325,
+      "height": 32,
+      "centre": 341.5,
+      "off": 0
+    }
+  ],
+  "request-actions-1440": [
+    {
+      "label": "approve",
+      "top": 199,
+      "height": 32,
+      "centre": 215.5,
+      "off": 0
+    },
+    {
+      "label": "decline",
+      "top": 199,
+      "height": 32,
+      "centre": 215.5,
+      "off": 0
+    }
+  ],
+  "player-footer-1440": [
+    {
+      "label": "leave",
+      "top": 844,
+      "height": 44,
+      "centre": 866,
+      "off": 0
+    },
+    {
+      "label": "close",
+      "top": 844,
+      "height": 44,
+      "centre": 866,
+      "off": 0
+    }
+  ],
+  "player-title-1440": [
+    {
+      "label": "title",
+      "top": 20,
+      "height": 26,
+      "centre": 33,
+      "off": 0
+    },
+    {
+      "label": "close x",
+      "top": 15,
+      "height": 36,
+      "centre": 33,
+      "off": 0
+    }
+  ],
+  "seat-footer-1440": [
+    {
+      "label": "cancel",
+      "top": 844,
+      "height": 44,
+      "centre": 866,
+      "off": 0
+    },
+    {
+      "label": "seat",
+      "top": 844,
+      "height": 44,
+      "centre": 866,
+      "off": 0
+    }
+  ],
+  "controls-1180": [
+    {
+      "label": "view",
+      "top": 84,
+      "height": 36,
+      "centre": 102,
+      "off": 0
+    },
+    {
+      "label": "needs you",
+      "top": 84,
+      "height": 36,
+      "centre": 102,
+      "off": 0
+    },
+    {
+      "label": "seat a player",
+      "top": 84,
+      "height": 36,
+      "centre": 102,
+      "off": 0
+    },
+    {
+      "label": "title",
+      "top": 86,
+      "height": 31,
+      "centre": 102,
+      "off": 0
+    }
+  ],
+  "tile-head-1180": [
+    {
+      "label": "name",
+      "top": 188,
+      "height": 20,
+      "centre": 197.3,
+      "off": 0
+    },
+    {
+      "label": "settings",
+      "top": 181,
+      "height": 32,
+      "centre": 197.3,
+      "off": 0
+    }
+  ],
+  "closed-1180": [
+    {
+      "label": "closed",
+      "top": 332,
+      "height": 20,
+      "centre": 341.5,
+      "off": 0
+    },
+    {
+      "label": "open table",
+      "top": 325,
+      "height": 32,
+      "centre": 341.5,
+      "off": 0
+    }
+  ],
+  "request-actions-1180": [
+    {
+      "label": "approve",
+      "top": 199,
+      "height": 32,
+      "centre": 215.5,
+      "off": 0
+    },
+    {
+      "label": "decline",
+      "top": 199,
+      "height": 32,
+      "centre": 215.5,
+      "off": 0
+    }
+  ],
+  "player-footer-1180": [
+    {
+      "label": "leave",
+      "top": 764,
+      "height": 44,
+      "centre": 786,
+      "off": 0
+    },
+    {
+      "label": "close",
+      "top": 764,
+      "height": 44,
+      "centre": 786,
+      "off": 0
+    }
+  ],
+  "player-title-1180": [
+    {
+      "label": "title",
+      "top": 20,
+      "height": 26,
+      "centre": 33,
+      "off": 0
+    },
+    {
+      "label": "close x",
+      "top": 15,
+      "height": 36,
+      "centre": 33,
+      "off": 0
+    }
+  ],
+  "seat-footer-1180": [
+    {
+      "label": "cancel",
+      "top": 764,
+      "height": 44,
+      "centre": 786,
+      "off": 0
+    },
+    {
+      "label": "seat",
+      "top": 764,
+      "height": 44,
+      "centre": 786,
+      "off": 0
+    }
+  ],
+  "controls-390": [
+    {
+      "label": "view",
+      "top": 131,
+      "height": 48,
+      "centre": 155.2,
+      "off": 0
+    },
+    {
+      "label": "needs you",
+      "top": 133,
+      "height": 44,
+      "centre": 155.2,
+      "off": 0
+    },
+    {
+      "label": "seat a player",
+      "top": 191,
+      "height": 44,
+      "centre": 213.2,
+      "off": 58
+    },
+    {
+      "label": "title",
+      "top": 84,
+      "height": 31,
+      "centre": 99.6,
+      "off": -55.6
+    }
+  ],
+  "tile-head-390": [
+    {
+      "label": "name",
+      "top": 307,
+      "height": 20,
+      "centre": 316.8,
+      "off": 0
+    },
+    {
+      "label": "settings",
+      "top": 295,
+      "height": 44,
+      "centre": 316.8,
+      "off": 0
+    }
+  ],
+  "closed-390": [
+    {
+      "label": "closed",
+      "top": 700,
+      "height": 20,
+      "centre": 709.5,
+      "off": 0
+    },
+    {
+      "label": "open table",
+      "top": 687,
+      "height": 44,
+      "centre": 709.5,
+      "off": 0
+    }
+  ],
+  "player-footer-390": [
+    {
+      "label": "leave",
+      "top": 788,
+      "height": 44,
+      "centre": 810,
+      "off": 0
+    },
+    {
+      "label": "close",
+      "top": 788,
+      "height": 44,
+      "centre": 810,
+      "off": 0
+    }
+  ],
+  "player-title-390": [
+    {
+      "label": "title",
+      "top": 85,
+      "height": 26,
+      "centre": 98,
+      "off": 0
+    },
+    {
+      "label": "close x",
+      "top": 76,
+      "height": 44,
+      "centre": 98,
+      "off": 0
+    }
+  ],
+  "seat-footer-390": [
+    {
+      "label": "cancel",
+      "top": 788,
+      "height": 44,
+      "centre": 810,
+      "off": 0
+    },
+    {
+      "label": "seat",
+      "top": 788,
+      "height": 44,
+      "centre": 810,
+      "off": 0
+    }
+  ]
+}

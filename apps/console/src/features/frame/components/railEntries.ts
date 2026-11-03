@@ -101,15 +101,12 @@ export const RAIL: readonly RailGroup[] = [
 ];
 
 /**
- * Every request waiting on the floor, as one list (console v3): the phone's Requests tab. From 768 px they sit beside the
- * Live floor. Until the Live floor's requests land, its tabs are today's top-ups and time requests.
+ * Every request waiting on the floor, as one list (console v3, decision 0446): the phone's Requests tab. From 768 px they
+ * sit beside the Live floor. Top-ups and time requests are among them, so their old addresses open it.
  */
 export const REQUESTS: RailEntry = {
-  id: 'requests', label: 'console.rail.items.requests', href: '/requests', icon: 'requests', anyOf: [],
-  counts: ['waitlist', 'topUps', 'timeRequests', 'liveFloor'], isActionable: true, tabs: [
-    { id: 'top-ups', label: 'console.rail.items.topUps', anyOf: ['waitlist.manage'] },
-    { id: 'time', label: 'console.rail.items.timeRequests', anyOf: ['waitlist.manage'] },
-  ],
+  id: 'requests', label: 'console.rail.items.requests', href: '/requests', icon: 'requests', anyOf: ['waitlist.manage'],
+  counts: ['waitlist', 'topUps', 'timeRequests', 'liveFloor'], isActionable: true,
 };
 
 /** Below 768 px, the tab bar's tabs before More: each a screen above, under a shorter name. */

@@ -35,3 +35,8 @@ export const LongText: Story = {
     detail: 'Private Room upstairs by the bar, seat 9 · 1 h 25 min owed', primary: { label: 'Record', onClick: () => undefined }, secondary: undefined,
   },
 };
+
+/** Inside the player's own sheet: the ask in a gold-tinted box, its age, then the actions. */
+export const Ask: Story = {
+  args: { look: 'ask', kind: undefined, title: 'Wants +1 h', detail: undefined, age: '6 min', isLate: true },
+};

@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations, renderIn } from '../test/render.tsx';
-import { RequestItem } from './RequestItem.tsx';
+import { FRESH_MS, RequestItem } from './RequestItem.tsx';
 
 function renderItem(extra: Partial<Parameters<typeof RequestItem>[0]> = {}) {
   const approve = vi.fn();
@@ -16,6 +16,20 @@ function renderItem(extra: Partial<Parameters<typeof RequestItem>[0]> = {}) {
 }
 
 describe('RequestItem', () => {
+  it('keeps a new request\'s tint for the 2.5 s it takes to fade (decision 0431)', () => {
+    expect(FRESH_MS).toBe(2500);
+  });
+
+  it('shows the ask of one player in their sheet as a gold-tinted box with its age and actions', async () => {
+    const { approve } = renderItem({ look: 'ask', title: 'Wants +1 h', age: '6 min', isLate: true });
+    expect(screen.queryByText('Join request')).not.toBeInTheDocument();
+    expect(screen.queryByText('Table 1 waitlist')).not.toBeInTheDocument();
+    expect(screen.getByText('Wants +1 h').parentElement?.parentElement).toHaveClass('bg-selected');
+    expect(screen.getByText('6 min')).toHaveClass('text-danger');
+    await userEvent.click(screen.getByRole('button', { name: 'Approve' }));
+    expect(approve).toHaveBeenCalledOnce();
+  });
+
   it('says what is asked, how long ago, who asks and where', () => {
     renderItem();
     for (const text of ['Join request', '4 min', 'Table 1 waitlist']) expect(screen.getByText(text)).toBeInTheDocument();

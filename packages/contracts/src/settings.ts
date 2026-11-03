@@ -7,6 +7,7 @@
  */
 import { z } from 'zod';
 import { socialConnectedChannels } from './channels.ts';
+import { floorRequestTargets } from './floorSettings.ts';
 import { hostLapse } from './hostQueue.ts';
 import {
   accommodationHoursPerNight, cabMinimumVisits, leaguePrizes, learnDailyPointsCap, learnSessionPoints, pointsDailyStaffCap, pointsPerHour, pointsRewardsRakeShare, pointsVerifiedBonus, rakebackRate,
@@ -285,7 +286,7 @@ const reportsUnclaimedDays = {
 
 /** Every setting key declared in code. */
 export const SETTINGS = [
-  callTimeMinutes, callTimeAddChoices, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, dealerRotationMinutes, waitlistPriorityWeights, waitlistHoldMinutes,
+  callTimeMinutes, callTimeAddChoices, floorRequestTargets, defaultTier, kycMinimumAge, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, dealerRotationMinutes, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
   cardQrRotationSeconds, leaguePoints, leaguePrizes, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
   cageCashBuyInLimit, amlStructuring, rakebackRate, accommodationHoursPerNight, reviewsGoogleUrl, cabMinimumVisits, learnSessionPoints, learnDailyPointsCap, spinBudget, hostLapse, socialConnectedChannels, pointsDailyStaffCap, pointsVerifiedBonus,

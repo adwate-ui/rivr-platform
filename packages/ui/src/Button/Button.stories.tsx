@@ -64,6 +64,9 @@ export const Console: Story = {
 };
 
 /** The label at the left and an aside at the right: the Order screen's foot (brief 3.5). */
+/** A gold dot before the label: the Live floor's Needs you filter, off and on (console v3). */
+export const WithDot: Story = { args: { variant: 'subtle', size: 'compact', hasDot: true, children: 'Needs you' } };
+
 export const WithAside: Story = { args: { variant: 'primary', size: 'tall', fullWidth: true, aside: '2 items', children: 'Send to the bar' } };
 
 /** Sending: the turning circle stays with the label, the aside at the right. */

@@ -249,6 +249,13 @@
   }
 }
 
+/* A folded panel's name, read down its strip (DockedPanel, console v3). */
+@layer components {
+  [data-vertical-label] {
+    writing-mode: vertical-rl;
+  }
+}
+
 /* A request just arrived on the console (RequestItem `isNew`, decision 0431): a gold tint that fades over 2.5 s. */
 @layer components {
   [data-fresh] {

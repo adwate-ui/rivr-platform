@@ -68,6 +68,16 @@ describe('TableTile', () => {
     expect(screen.getByRole('group')).not.toHaveClass('inset-ring-gold-edge');
   });
 
+  it('comes into view when a link points at it, and not otherwise', () => {
+    const scrolled = vi.fn();
+    Element.prototype.scrollIntoView = scrolled;
+    renderTile();
+    expect(scrolled).not.toHaveBeenCalled();
+    renderTile({ name: 'Table 2', isScrolledTo: true });
+    expect(scrolled).toHaveBeenCalledOnce();
+    expect(scrolled).toHaveBeenCalledWith({ block: 'center' });
+  });
+
   it('has no accessibility violations, closed or open', async () => {
     const { container, rerender } = renderTile({ isExpanded: true });
     expect(await axeViolations(container)).toEqual([]);

@@ -24,6 +24,11 @@ export const consoleUi = {
   sheet: {
     close: 'Close',
   },
+  /** A panel docked beside a screen (the Live floor's requests): fold it to a strip, or open it again from the strip. */
+  dockedPanel: {
+    fold: 'Collapse',
+    open: 'Open, {count} waiting',
+  },
   /** The staff member's menu at the header's end (AccountMenu): the heading over the keys that work. */
   account: {
     shortcuts: 'Shortcuts',

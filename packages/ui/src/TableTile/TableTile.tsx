@@ -1,5 +1,5 @@
 import { t } from '@rivr/i18n';
-import { useId, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { Icon } from '../Icon/Icon.tsx';
 import { cx } from '../internal/classes.ts';
 
@@ -25,6 +25,8 @@ export interface TableTileProps {
   onSettings: () => void;
   /** The seats, as `SeatRow`s, shown while expanded. */
   children?: ReactNode;
+  /** Brought into the middle of the view as it mounts or is asked: the table a link pointed at (a member's Show). */
+  isScrolledTo?: boolean;
 }
 
 const SEGMENT: Record<TileSeat, string> = { open: 'bg-subtle-hover', seated: 'bg-content-muted', needsYou: 'bg-action' };
@@ -60,20 +62,30 @@ function Occupancy({ seats, isExpanded, summaryId }: { seats: readonly TileSeat[
   );
 }
 
+/** A tile brought into the middle of the view while `isScrolledTo` turns on. */
+function useScrolledTo(isScrolledTo: boolean) {
+  const tile = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (isScrolledTo) tile.current?.scrollIntoView({ block: 'center' });
+  }, [isScrolledTo]);
+  return tile;
+}
+
 /**
  * One table on the live floor (console v3): its name and stake, ⋯ for its settings, a bar of its seats (open, seated, in
  * gold the ones who need the floor) and how many need it. A tile that needs the floor has a gold inner ring (decision 0429).
  * A press on the tile shows its seats under it; the keyboard's button is the bar's line, which says whether they show.
  * A closed table says so, with the action that opens it.
  */
-export function TableTile({ name, stake, seats, isClosed = false, openAction, isExpanded, onToggle, onSettings, children }: TableTileProps) {
+export function TableTile({ name, stake, seats, isClosed = false, openAction, isExpanded, onToggle, onSettings, children, isScrolledTo }: TableTileProps) {
   const nameId = useId();
+  const tile = useScrolledTo(isScrolledTo === true);
   const summaryId = useId();
   const seatsId = useId();
   const needsYou = !isClosed && seats.includes('needsYou');
   const isOpen = isExpanded && !isClosed;
   return (
-    <div role="group" aria-labelledby={nameId} className={cx('overflow-hidden rounded-lg bg-raised', needsYou && 'inset-ring inset-ring-gold-edge')}>
+    <div ref={tile} role="group" aria-labelledby={nameId} className={cx('overflow-hidden rounded-lg bg-raised', needsYou && 'inset-ring inset-ring-gold-edge')}>
       {/* A press anywhere on the head shows or hides the seats, as the button inside it does from the keyboard; ⋯ keeps its own. */}
       <div onClick={isClosed ? undefined : onToggle} className={cx('flex flex-col gap-3 px-4 pt-4 pb-3', !isClosed && 'cursor-pointer transition-colors hover:bg-subtle')}>
         <div className="flex items-center gap-2">

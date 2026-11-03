@@ -245,7 +245,10 @@ export function useFloorWaitlistActions(venueId: string) {
   const remove = useMutation({
     mutationFn: async (entryId: string): Promise<Result<null, WaitlistFailure>> => {
       const { error } = await client.rpc('leave_waitlist', { p_entry_id: entryId });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.waitlistBoard(userId ?? 'signed-out', venueId) });
+      // The board, and a declined join leaves the floor's requests too (decision 0446).
+      const user = userId ?? 'signed-out';
+      await Promise.all([queryKeys.waitlistBoard(user, venueId), queryKeys.floorRequests(user, venueId)]
+        .map((queryKey) => queryClient.invalidateQueries({ queryKey })));
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },
   });

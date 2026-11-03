@@ -109,6 +109,8 @@
   --spacing-row: var(--rivr-size-row);
   --spacing-row-compact: var(--rivr-size-row-compact);
   --spacing-side-panel: var(--rivr-size-side-panel);
+  --spacing-dock: var(--rivr-size-dock);
+  --spacing-dock-strip: var(--rivr-size-dock-strip);
   --spacing-palette: var(--rivr-size-palette);
   --spacing-palette-list: var(--rivr-size-palette-list);
   --spacing-search: var(--rivr-size-search);
