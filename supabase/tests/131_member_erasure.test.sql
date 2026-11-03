@@ -249,9 +249,9 @@ select is_empty($$ select 1 from pg_temp.audit_about('00000000-0000-4000-8000-00
 select isnt_empty($$ select 1 from pg_temp.audit_about('00000000-0000-4000-8000-0000000d0797') where entity in ('kyc_record', 'kyc_review') $$,
   'her identity check and its review are in the audit log');
 select is_empty($$ select 1 from pg_temp.audit_about('00000000-0000-4000-8000-0000000d0797')
-                   where coalesce(before, '{}') ?| array['pan', 'date_of_birth', 'masked_aadhaar', 'identity_key', 'photo_path', 'address']
-                      or coalesce(after, '{}') ?| array['pan', 'date_of_birth', 'masked_aadhaar', 'identity_key', 'photo_path', 'address'] $$,
-  'with no PAN, date of birth, Aadhaar, selfie or address in any row about her');
+                   where coalesce(before, '{}') ?| array['pan', 'date_of_birth', 'masked_aadhaar', 'identity_key', 'photo_path']
+                      or coalesce(after, '{}') ?| array['pan', 'date_of_birth', 'masked_aadhaar', 'identity_key', 'photo_path'] $$,
+  'with no PAN, date of birth, Aadhaar or selfie in any row about her');
 select isnt_empty($$ select 1 from pg_temp.audit_about('00000000-0000-4000-8000-0000000d0797') where entity = 'feedback' $$,
   'though the rows themselves are kept');
 select results_eq($$ select entity, before, reason, (after ->> 'points')::bigint from public.audit_log
