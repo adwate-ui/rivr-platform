@@ -93,7 +93,7 @@ export const Sorted: Story = { args: { initialSort: { key: 'amount', direction: 
 /** With a filter box above, matching a member's name. */
 export const WithFilter: Story = { args: { withFilter: true } };
 
-/** For staff who export tables: Export CSV and Export XLSX beside the filter box (#102). */
+/** For staff who export tables: one small Export control at the top right, offering CSV and XLSX (#102). */
 export const WithExport: Story = { args: { withFilter: true, withExport: true } };
 
 export const Loading: Story = { args: { state: 'loading' } };

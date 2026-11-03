@@ -228,7 +228,12 @@ export const ui = {
     sortedBy: 'Sorted by {column}, {direction}',
     ascending: 'ascending',
     descending: 'descending',
-    /** A console table's export (#102): the rows as shown, recorded in the audit log first. */
+    /**
+     * A console table's export (#102): the rows as shown, recorded in the audit log first. One small control, as the
+     * prototype has it, whose menu offers each format; `{what}` is the table's name.
+     */
+    export: 'Export',
+    exportNamed: 'Export {what}',
     exportCsv: 'Export CSV',
     exportXlsx: 'Export XLSX',
     exportFailed: 'Export not saved. Try again.',

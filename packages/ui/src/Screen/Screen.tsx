@@ -28,6 +28,11 @@ export type ScreenProps = ScreenState & {
   title: string;
   /** Controls beside the heading, for example one primary Button. */
   actions?: ReactNode;
+  /**
+   * Given an element at the end of the title row once it is drawn, for a control a part of the screen draws there: the
+   * Members table's Export, beside the title as the prototype has it (`DataTable exportIn`).
+   */
+  onActionsSlot?: (element: HTMLDivElement | null) => void;
   /** 2 for a part of a screen shown under its tabs (#606), such as Devices' Tablets: its heading is the second level. */
   level?: 1 | 2;
   /** `serif`, the player redesign's screen title in the display face at 36 (decision 0320). */
@@ -123,7 +128,7 @@ function ScreenHeading({ props, place }: { props: ScreenProps; place: ScreenPlac
   if (place.isPart) return <PartHeading heading={heading} title={props.title} actions={props.actions} />;
   if (props.isTitleHidden === true) return <HiddenTitle heading={heading} title={props.title} place={place} />;
   // On the console's phone the header names the screen: with nothing beside it, the hidden h1 takes no line of its own.
-  if (place.isInConsole && props.actions === undefined) return <Heading {...heading} isShownFromMedium>{props.title}</Heading>;
+  if (place.isInConsole && props.actions === undefined && props.onActionsSlot === undefined) return <Heading {...heading} isShownFromMedium>{props.title}</Heading>;
   return <TitleRow heading={heading} props={props} place={place} />;
 }
 
@@ -138,12 +143,18 @@ function HiddenTitle({ heading, title, place }: { heading: HeadingAttributes; ti
   );
 }
 
+/** An empty element at the title row's end, handed to the part of the screen that draws a control there. */
+function ActionsSlot({ onSlot }: { onSlot: (element: HTMLDivElement | null) => void }) {
+  return <div ref={onSlot} className="flex items-center" />;
+}
+
 /** The title with its actions, which wrap onto two lines on a narrow screen, and in a player shell the initial at its end. */
 function TitleRow({ heading, props, place }: { heading: HeadingAttributes; props: ScreenProps; place: ScreenPlace }) {
   return (
     <div className={cx('flex flex-wrap items-center justify-between gap-4', place.isTabHeading && 'min-h-touch', place.gutter)}>
       <Heading {...heading} {...(props.titleLook === 'serif' ? SERIF_TITLE : {})} isShownFromMedium={place.isInConsole}>{props.title}</Heading>
       {props.actions}
+      {props.onActionsSlot === undefined ? null : <ActionsSlot onSlot={props.onActionsSlot} />}
       {place.isTabHeading ? <PlayerAvatar /> : null}
     </div>
   );

@@ -19,11 +19,19 @@ export interface OverflowMenuProps {
   items: readonly OverflowMenuItem[];
   /** The edge of the button the menu lines up with: `end`, the default, for a button at a row's end. */
   align?: 'start' | 'end';
+  /** Words on the button in place of ⋯, as a table's "Export" (console v3); `label` still names it in full: "Export Members". */
+  text?: string;
 }
 
 const TRIGGER =
   'inline-flex size-touch shrink-0 items-center justify-center rounded-md text-content-muted transition-colors tablet:size-8 ' +
   'hover:bg-subtle-hover hover:text-content aria-expanded:bg-subtle-hover aria-expanded:text-content ' +
+  'focus-visible:outline-2 focus-visible:outline-focus';
+
+// The prototype's quiet word-button at a screen's top right: muted words that brighten on hover, as the ⋯ does.
+const TEXT_TRIGGER =
+  'inline-flex min-h-touch shrink-0 items-center justify-center rounded-md px-3 font-text text-13 leading-control font-medium text-content-muted ' +
+  'transition-colors tablet:min-h-8 hover:bg-subtle-hover hover:text-content aria-expanded:bg-subtle-hover aria-expanded:text-content ' +
   'focus-visible:outline-2 focus-visible:outline-focus';
 
 const MENU = 'absolute top-full z-overlay mt-1 flex min-w-32 flex-col rounded-lg bg-raised p-1 shadow-modal focus:outline-none';
@@ -87,11 +95,11 @@ function useMenu(items: readonly OverflowMenuItem[], { trigger, entries }: MenuR
 }
 
 /**
- * A row's or a tile's further actions behind a ⋯ button (console v3): a menu below it on a raised panel, opened by a
+ * A row's or a tile's further actions behind a ⋯ button, or a few words such as a table's Export (console v3): a menu below it on a raised panel, opened by a
  * press, Enter, Space or the down arrow with the focus on its first item. The arrow keys move through it, Enter or Space
  * chooses, Escape closes it back to the button, and Tab or a click elsewhere closes it.
  */
-export function OverflowMenu({ label, items, align = 'end' }: OverflowMenuProps) {
+export function OverflowMenu({ label, items, align = 'end', text }: OverflowMenuProps) {
   const trigger = useRef<HTMLButtonElement>(null);
   const entries = useRef<(HTMLButtonElement | null)[]>([]);
   const menu = useMenu(items, { trigger, entries });
@@ -100,8 +108,8 @@ export function OverflowMenu({ label, items, align = 'end' }: OverflowMenuProps)
   return (
     <div className="relative inline-flex" onBlur={menu.onBlur}>
       <button ref={trigger} id={buttonId} type="button" aria-label={label} aria-haspopup="menu" aria-expanded={menu.isOpen}
-        aria-controls={menu.isOpen ? menuId : undefined} onClick={menu.toggle} onKeyDown={menu.onTriggerKeyDown} className={TRIGGER}>
-        <Icon name="overflow" />
+        aria-controls={menu.isOpen ? menuId : undefined} onClick={menu.toggle} onKeyDown={menu.onTriggerKeyDown} className={text === undefined ? TRIGGER : TEXT_TRIGGER}>
+        {text === undefined ? <Icon name="overflow" /> : text}
       </button>
       {menu.isOpen ? (
         <div id={menuId} role="menu" aria-labelledby={buttonId} tabIndex={-1} onKeyDown={menu.onMenuKeyDown}

@@ -119,6 +119,14 @@ describe('Screen', () => {
     expect(screen.getByRole('button', { name: 'Practice venue' })).toHaveFocus();
   });
 
+  it('gives a part of the screen an element at the title row’s end, as the Members table draws its Export there', () => {
+    let slot: HTMLDivElement | null = null;
+    renderIn(<Screen title="Members" onActionsSlot={(element) => { slot = element; }}>content</Screen>);
+    const title = screen.getByRole('heading', { level: 1, name: 'Members' });
+    expect(slot).not.toBeNull();
+    expect(title.parentElement).toContainElement(slot);
+  });
+
   it('as a section of another screen, names nothing and takes no focus', () => {
     document.title = 'RIVR';
     renderIn(<Screen title="Tonight" level={2}>content</Screen>);

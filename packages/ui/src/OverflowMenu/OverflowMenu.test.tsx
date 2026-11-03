@@ -23,6 +23,15 @@ describe('OverflowMenu', () => {
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 
+  it('shows a few words in place of the dots when given them, still named in full', async () => {
+    renderIn(<OverflowMenu label="Export Members" text="Export" items={[{ id: 'csv', label: 'Export CSV', onSelect: vi.fn() }]} />);
+    const button = screen.getByRole('button', { name: 'Export Members' });
+    expect(button).toHaveTextContent(/^Export$/);
+    expect(button).toHaveClass('text-13', 'text-content-muted', 'tablet:min-h-8');
+    await userEvent.click(button);
+    expect(screen.getByRole('menuitem', { name: 'Export CSV' })).toHaveFocus();
+  });
+
   it('opens its menu when pressed, named by the button, with the focus on the first item', async () => {
     renderIn(<OverflowMenu label="More for Ritika Bhalla" items={itemsWith()} />);
     await userEvent.click(trigger());

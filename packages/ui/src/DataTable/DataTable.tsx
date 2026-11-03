@@ -1,5 +1,6 @@
 import { t } from '@rivr/i18n';
 import { useMemo, useRef, useState, type ReactNode, type UIEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '../Button/Button.tsx';
 import { PhoneSort } from './PhoneSort.tsx';
 import { Input } from '../Input/Input.tsx';
@@ -31,6 +32,11 @@ export type DataTableProps<Row> = DataTableState<Row> & {
   toolbar?: (rows: readonly Row[]) => ReactNode;
   /** The screen's own filters, in words, which an export records with the table's (#102): `Search: 9000`. */
   exportFilter?: string;
+  /**
+   * Where the Export control goes in place of the table's top right: an element in the screen's title row, as the
+   * Members prototype has it beside the title. Null while that element is not there yet, and nothing shows.
+   */
+  exportIn?: HTMLElement | null;
   /**
    * Opens a row's record: a click anywhere on the row does, besides on a control in it, and its title becomes the
    * button a keyboard and a screen reader open it with (#603).
@@ -145,13 +151,26 @@ function filtersInForce<Row>(props: DataTableProps<Row>, query: string): string 
 }
 
 /**
- * Above the table: the filter box, the caller's toolbar, and, beneath a DataTableExportProvider, the export
- * of the rows as shown with every filter in force; nothing when there is none of these.
+ * The Export control for the rows as shown, beneath a DataTableExportProvider and once there are rows: `here`, at the
+ * table's top right, or `elsewhere`, drawn in the element `exportIn` names.
+ */
+function useExportPlaced<Row>(props: DataTableProps<Row>, visible: readonly Row[], query: string) {
+  const exporter = useTableExporter();
+  const menu = exporter === null || visible.length === 0 ? null
+    : <ExportBar exporter={exporter} label={props.label} columns={props.columns} rows={visible} filter={filtersInForce(props, query)} />;
+  const target = props.exportIn;
+  if (target === undefined) return { here: menu, elsewhere: null };
+  return { here: null, elsewhere: menu === null || target === null ? null : createPortal(menu, target) };
+}
+
+/**
+ * Above the table: the filter box, the caller's toolbar, and, beneath a DataTableExportProvider, the Export control at
+ * the top right for the rows as shown with every filter in force, or in the element `exportIn` names; nothing when there
+ * is none of these.
  */
 function Bar<Row>({ props, visible, query, onQuery }: { props: DataTableProps<Row>; visible: readonly Row[]; query: string; onQuery: (query: string) => void }) {
-  const found = useTableExporter();
-  const exporter = visible.length === 0 ? null : found;
-  if (props.filter === undefined && props.toolbar === undefined && exporter === null) return null;
+  const { here, elsewhere } = useExportPlaced(props, visible, query);
+  if (props.filter === undefined && props.toolbar === undefined && here === null) return elsewhere;
   return (
     <div className="flex flex-wrap items-end gap-4">
       {props.filter === undefined ? null : (
@@ -160,7 +179,8 @@ function Bar<Row>({ props, visible, query, onQuery }: { props: DataTableProps<Ro
         </div>
       )}
       {props.toolbar?.(visible)}
-      {exporter === null ? null : <ExportBar exporter={exporter} label={props.label} columns={props.columns} rows={visible} filter={filtersInForce(props, query)} />}
+      {here}
+      {elsewhere}
     </div>
   );
 }
