@@ -2,7 +2,7 @@ import { consoleUi } from './uiConsole.ts';
 
 /** Copy that @rivr/ui components show themselves: navigation, shells, controls. */
 export const ui = {
-  /** The console v3 redesign's components (decision 0431). */
+  /** The console v3 redesign's components (decision 0465). */
   console: consoleUi,
   /** The browser tab's title on a screen (F5-03): `Check-in · RIVR`. */
   screenTitle: '{title} · RIVR',

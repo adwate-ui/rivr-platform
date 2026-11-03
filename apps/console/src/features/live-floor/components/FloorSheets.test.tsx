@@ -61,7 +61,7 @@ describe('The player sheet (console v3)', () => {
     const [added] = rpcs('add_seat_call_time');
     expect(added).toMatchObject({ p_session_id: 's2', p_minutes: 30 });
     fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
-    // Undo finds the addition by the request id it was made with (decision 0447).
+    // Undo finds the addition by the request id it was made with (decision 0480).
     await waitFor(() => expect(rpcs('undo_call_time')).toEqual([{ p_request_id: Reflect.get(Object(added), 'p_idempotency_key') }]));
   });
 

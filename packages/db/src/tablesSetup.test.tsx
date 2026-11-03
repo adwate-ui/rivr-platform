@@ -90,7 +90,7 @@ describe('tables setup, games history and points by hand', () => {
     expect(refused).toEqual({ ok: false, error: 'players_seated' });
   });
 
-  it('deactivates, reactivates and deletes a table, and says why one was refused (decision 0432)', async () => {
+  it('deactivates, reactivates and deletes a table, and says why one was refused (decision 0466)', async () => {
     const { result, calls } = renderSetup({
       deactivate_game_table: { status: 400, body: { code: 'RVWTG', message: 'Take the players off its waitlist first' } },
       delete_game_table: { status: 400, body: { code: 'RVSTD', message: 'Move the players' } },

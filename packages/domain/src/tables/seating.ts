@@ -8,7 +8,7 @@ export interface TableToSeat {
 }
 
 /**
- * Where the Live floor's Seat a player seats (console v3, decision 0446): the first open table, in floor order, with a
+ * Where the Live floor's Seat a player seats (console v3, decision 0479): the first open table, in floor order, with a
  * free seat and someone on its list; else the first open table with a free seat, for a walk-up; null when every table is
  * closed or full.
  */

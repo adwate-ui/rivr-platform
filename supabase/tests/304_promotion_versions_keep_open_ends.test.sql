@@ -1,4 +1,4 @@
--- A promotion run by a rule with no end date becomes version 1 with no last day (decision 0461), so the clock that ends
+-- A promotion run by a rule with no end date becomes version 1 with no last day (decision 0491), so the clock that ends
 -- promotions after their last day (private.advance_promotions) leaves it running; one with an end date ends after it.
 -- The seed's open-ended promotions, such as the referral bonus, keep no last day either.
 begin;

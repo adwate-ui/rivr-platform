@@ -31,7 +31,7 @@ function totalsOf(grants: readonly LedgerEntry[]): Pick<Simulation, 'points' | '
 }
 
 /**
- * Replays a version on last week's events before it is submitted (the brief's simulate; decision 0437): in time order,
+ * Replays a version on last week's events before it is submitted (the brief's simulate; decision 0471): in time order,
  * as the engine weighs them live, each is weighed with isEligible, computeGrant and checkLimits against the grants the
  * replay has given so far, so the replay cannot disagree with the engine. Members qualified are those the promotion
  * would have given something before its limits; times given and the totals are the grants its limits let through. It

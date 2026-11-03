@@ -14,10 +14,10 @@ export interface ConfirmButtonProps {
   confirm: string;
   /**
    * The first button's look: a text button in a list, secondary for a row's action, primary for a page's main step; on the
-   * console (decision 0430), subtle for a row's action.
+   * console (decision 0464), subtle for a row's action.
    */
   variant?: Extract<ButtonVariant, 'text' | 'secondary' | 'subtle' | 'primary'>;
-  /** Both buttons' size: the console's `small` inside a row (decision 0430). */
+  /** Both buttons' size: the console's `small` inside a row (decision 0464). */
   size?: ButtonSize;
   /** While the step runs: the button shows it and takes no press, so it is never sent twice. */
   isBusy?: boolean;

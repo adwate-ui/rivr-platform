@@ -8,7 +8,7 @@ import { queryKeys } from './queryKeys.ts';
 // What the floor and the owner read beside the live lists: games not running (#113) and pot data (#114).
 
 /**
- * A closed table (#113, decision 0184; a table's own list since decision 0433): its waitlist is its interest list. How many
+ * A closed table (#113, decision 0184; a table's own list since decision 0467): its waitlist is its interest list. How many
  * wait, how many the venue wants before opening it (null when not set), and whether that many wait.
  */
 export interface InterestList {

@@ -19,7 +19,7 @@ function draftNotice(draft: PromotionVersionView, running: PromotionVersionView 
 
 /**
  * Where the builder starts on a promotion's versions: its open draft; else the running version, whose change drafts the
- * next one (decision 0437); else, for one that has ended, a new promotion on its terms. Null when no version can be read.
+ * next one (decision 0471); else, for one that has ended, a new promotion on its terms. Null when no version can be read.
  */
 export function startFrom(versions: readonly PromotionVersionView[], promotionId: string): BuilderStart | null {
   const draft = versions.find((one) => one.status === 'draft');

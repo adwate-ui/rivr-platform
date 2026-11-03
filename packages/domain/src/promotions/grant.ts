@@ -112,7 +112,7 @@ function visitGrant(reward: Reward, event: EventOf<'visit'>): Result<Grant, Gran
 }
 
 /**
- * What a promotion's reward gives for one event (decision 0438), before its limits: points or chips, never paise. A
+ * What a promotion's reward gives for one event (decision 0472), before its limits: points or chips, never paise. A
  * buy-in bonus is a percent of the member's own chips, rounded down to whole 50s and held to its cap, or fixed chips,
  * and nothing on a buy-in paid from bonus; a multiplier the extra points on those earned in the window; an hours bonus
  * or free spin once the minutes in the window are played; bonus chips on their event; a cab home from the visit's

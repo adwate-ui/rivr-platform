@@ -1,6 +1,6 @@
 import type { SettingField, VenueSetting } from '@rivr/db';
 
-/** One bonus chip is 100 paise, as the promotions' bonus chips are (decision 0438). */
+/** One bonus chip is 100 paise, as the promotions' bonus chips are (decision 0472). */
 export const PAISE_PER_BONUS_CHIP = 100;
 
 /**

@@ -1,5 +1,5 @@
 /**
- * Console shell (console v3, phase 1; decision 0443). The flow's own super admin opens every old address of a screen that
+ * Console shell (console v3, phase 1; decision 0476). The flow's own super admin opens every old address of a screen that
  * moved and lands on its new screen at its tab; the three tabs that are gone land on the screen that took their place and
  * say so in a line; a hidden screen is refused under its own name. The flow's own admin has Admin on the rail without the
  * danger screens, and is refused the purge by its address, under its name.

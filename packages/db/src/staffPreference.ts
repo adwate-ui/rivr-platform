@@ -4,7 +4,7 @@ import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 import { useStaffVenues } from './staff.tsx';
 
-/** How tall the console's rows are (decision 0442): comfortable, 42 px, or compact, 34 px. */
+/** How tall the console's rows are (decision 0475): comfortable, 42 px, or compact, 34 px. */
 export type Density = 'comfortable' | 'compact';
 
 export const DENSITIES: readonly Density[] = ['comfortable', 'compact'];
@@ -27,7 +27,7 @@ export function useStaffDensity(venueId: string) {
 
 /**
  * Keeps the staff member's density at every venue where they are staff, so the club and the practice venue match
- * (decision 0442). Shown at once, and put back if the database refuses it.
+ * (decision 0475). Shown at once, and put back if the database refuses it.
  */
 export function useSetStaffDensity() {
   const { client, userId } = useRivrData();

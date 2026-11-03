@@ -1,7 +1,7 @@
 /**
  * Console sign-in (#223): staff sign in with their mobile number and the code sent to it, like
  * members (question #172), and work at the club or, while training, the practice venue, whose stripe
- * stays across the top after a reload until they go back to the club (decision 0444). Someone who
+ * stays across the top after a reload until they go back to the club (decision 0477). Someone who
  * is not staff is turned away. Each test uses its own seeded number: Auth sends one code a minute.
  */
 import { expect, test } from '@playwright/test';

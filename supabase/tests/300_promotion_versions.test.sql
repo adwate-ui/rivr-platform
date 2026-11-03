@@ -1,4 +1,4 @@
--- Promotions in versions (console v3 phase 7; decisions 0437 and 0461). 107 Ishita (marketing) drafts, simulates and
+-- Promotions in versions (console v3 phase 7; decisions 0471 and 0491). 107 Ishita (marketing) drafts, simulates and
 -- submits; 101 Vikram and 134 Kavya are super admins, who approve or reject, never their own; 104 Sana is a cashier and
 -- 211 Ishaan a member. Editing the live promotion drafts version 2 while version 1 keeps giving; once version 2 is
 -- approved, version 1 ends, and a member's once-a-day limit holds across both.
@@ -44,7 +44,7 @@ $$;
 create function pg_temp.id(p_name text) returns uuid language sql as $$ select id from ids where name = p_name; $$;
 grant execute on function pg_temp.id(text) to authenticated;
 
--- The seed's live promotions back to drafts (decision 0461): only this test's own give.
+-- The seed's live promotions back to drafts (decision 0491): only this test's own give.
 update public.promotion_version set status = 'draft' where status = 'live';
 select private.sync_promotion(id) from public.promotion where current_version is not null;
 update public.promotion set status = 'draft' where status = 'live';

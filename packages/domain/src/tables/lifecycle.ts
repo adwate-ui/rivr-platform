@@ -1,4 +1,4 @@
-/** Why a table may not be deactivated or deleted now (decision 0432): someone sits at it, or waits on its list. */
+/** Why a table may not be deactivated or deleted now (decision 0466): someone sits at it, or waits on its list. */
 export type TableRetireRefusal = 'players_seated' | 'players_waiting';
 
 /** Who keeps a table in play: the players seated at it, and the places waiting on its list or called to it. */

@@ -34,7 +34,7 @@ export type LimitRefusal = 'already_given' | 'first_n_taken' | 'members_per_day'
 type EventWhen = Pick<PromotionEvent, 'key' | 'at' | 'visitId'>;
 
 /**
- * The period a member's grant counts in, which the database keeps unique per promotion and member (decision 0437):
+ * The period a member's grant counts in, which the database keeps unique per promotion and member (decision 0471):
  * the visit, the club day, the club week (Monday to Sunday), once ever; with no limit, the event itself, so an event
  * replayed gives nothing more.
  */
@@ -99,7 +99,7 @@ const LIMITS: readonly (readonly [LimitRefusal, LimitCheck])[] = [
 ];
 
 /**
- * Whether a promotion's limits let a grant through (decision 0437): the member's period not yet given, among the first
+ * Whether a promotion's limits let a grant through (decision 0471): the member's period not yet given, among the first
  * N buy-ins at the table this club day, within the members a day (a member already given it today is not a new one)
  * and the most grants, and the whole grant within what is left of the budget in bonus chips, never part of it. The
  * database's private.promo_check_limits is proved equal on promotionRewards.json; its unique period key holds the

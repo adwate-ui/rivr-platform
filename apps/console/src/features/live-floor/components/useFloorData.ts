@@ -27,7 +27,7 @@ export function useNow(everyMs = 30_000): Date {
 }
 
 /**
- * The Live floor's reads, kept live by the venue's floor topic (decision 0446): `loading` until the tables and seats are
+ * The Live floor's reads, kept live by the venue's floor topic (decision 0479): `loading` until the tables and seats are
  * read, `error` when one cannot be, then the data. Requests are the floor's (waitlist.manage) alone.
  */
 export function useFloorData(venueId: string, permissions: readonly string[]) {

@@ -19,7 +19,7 @@ function useLeave(place: WaitlistPlace) {
 }
 
 /**
- * On the list (brief 3.4 C): the list's table (decision 0433) and game, the place as a large numeral, "Next in line" or where, when they
+ * On the list (brief 3.4 C): the list's table (decision 0467) and game, the place as a large numeral, "Next in line" or where, when they
  * joined, and Leave waitlist. No Step away. `offer` is Profile's offer of seat-ready push, through the route.
  */
 export function WaitingView({ place, offer }: { place: WaitlistPlace; offer: ReactNode }) {

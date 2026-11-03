@@ -6,7 +6,7 @@ import { useState } from 'react';
 
 /**
  * Pause and Resume on the list (console v3), each said in a toast whose Undo is the other: the exact compensating call. A
- * promotion in versions pauses its running version; one still run by its rule pauses its card (decision 0461).
+ * promotion in versions pauses its running version; one still run by its rule pauses its card (decision 0491).
  */
 export function usePauseResume(venueId: string) {
   const versions = usePromotionVersionActions(venueId);

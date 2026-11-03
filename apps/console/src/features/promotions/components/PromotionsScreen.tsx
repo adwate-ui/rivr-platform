@@ -34,7 +34,7 @@ function PromotionsBody({ venueId, actor, open, onOpen }: PromotionsScreenProps 
 }
 
 /**
- * Promotions (console v3, phase 7; decisions 0437 and 0461 to 0466): the list, the builder of a new promotion or a new
+ * Promotions (console v3, phase 7; decisions 0471 and 0491 to 0496): the list, the builder of a new promotion or a new
  * version, and the approver's view of a waiting one, each in the address so a refresh, Back or a shared link opens it.
  * For staff who manage promotions; a super admin (promotions.approve) approves another's version.
  */

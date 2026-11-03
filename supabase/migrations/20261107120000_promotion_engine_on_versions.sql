@@ -1,11 +1,11 @@
--- The engine weighs live versions (console v3 phase 7; decisions 0436 to 0438, 0461). private.evaluate_promotions keeps
+-- The engine weighs live versions (console v3 phase 7; decisions 0470 to 0472, 0491). private.evaluate_promotions keeps
 -- its name, arguments and every caller (a buy-in, a visit closed, a check-in, a referral); it now also takes a sign-up,
 -- fired once a member's identity is verified. For each live version whose reward is for that kind of event it builds
 -- the event as @rivr/domain weighs it, then asks the twins: promo_is_eligible, promo_grant, promo_check_limits against
 -- the promotion's grants over all its versions, and promo_stack across the versions for the one event. A grant is
 -- written with its period key, which the database keeps unique per promotion and member; chips are credited as bonus
 -- at once (chips × 100 paise), points as points, spins wait at the wheel, perks for the floor. A promotion still run by
--- its rule (made by the old builder, before versions) is weighed as before until the console moves (decision 0461).
+-- its rule (made by the old builder, before versions) is weighed as before until the console moves (decision 0491).
 
 -- @rivr/domain triggerOf: the kind of event a reward is given for.
 create function private.promotion_event_kind(p_reward jsonb)
@@ -22,7 +22,7 @@ as $$
 $$;
 
 -- What a version knows of the member now: tier, whole club days since joining, whole days since the last visit before
--- this one (null for a first), and whether a woman (null: the club records no gender, decision 0438).
+-- this one (null for a first), and whether a woman (null: the club records no gender, decision 0472).
 create function private.promotion_member_facts(p_member_id uuid)
 returns jsonb
 language sql
@@ -292,7 +292,7 @@ begin
 end;
 $$;
 
--- A sign-up's promotions, once a member's identity is first verified (decision 0438): one verified person, one sign-up
+-- A sign-up's promotions, once a member's identity is first verified (decision 0472): one verified person, one sign-up
 -- bonus, keyed by the member. Not while a practice reset or purge reloads the row.
 create function private.signup_promotions()
 returns trigger

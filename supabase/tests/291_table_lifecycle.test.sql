@@ -1,4 +1,4 @@
--- Tables come and go (decision 0432). The super admin (101 Vikram) and an admin (103 Aditya) hold tables.manage; a host
+-- Tables come and go (decision 0466). The super admin (101 Vikram) and an admin (103 Aditya) hold tables.manage; a host
 -- (111 Zoya) and another venue's admin do not. A table is deactivated or deleted only with nobody seated at it (RVSTD) and
 -- nobody on its list (RVWTG), seated first, as @rivr/domain tableRetireRefusal says. Deactivated, it is gone from every live
 -- read and comes back closed; deleted, setup lists it no more and reports keep it. Ishaan (211) and Vihaan (212) have

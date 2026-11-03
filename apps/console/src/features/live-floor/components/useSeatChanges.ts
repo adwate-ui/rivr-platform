@@ -16,7 +16,7 @@ export interface SeatAt {
   readonly callMinutes: number;
 }
 
-/** Seating, from a list or by number, each undone by taking the seat back (decision 0447). True when it went through. */
+/** Seating, from a list or by number, each undone by taking the seat back (decision 0480). True when it went through. */
 function useSeating(venueId: string) {
   const say = useChangeToast();
   const undo = useFloorUndo(venueId);
@@ -55,7 +55,7 @@ function useAddTime(venueId: string) {
 
 /**
  * The floor's changes to who sits where: seat, move (undone by moving back), leave (undone by taking the seat again), add
- * time; and let go early with a reason, kept on the member's record and not undone (decision 0448).
+ * time; and let go early with a reason, kept on the member's record and not undone (decision 0481).
  */
 export function useSeatChanges(venueId: string) {
   const say = useChangeToast();

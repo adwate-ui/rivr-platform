@@ -1,4 +1,4 @@
--- Every venue's promotions in versions (decision 0461): each promotion run by one rule the typed model can say becomes
+-- Every venue's promotions in versions (decision 0491): each promotion run by one rule the typed model can say becomes
 -- version 1, in the status it had; Founders' Circle priority and the cab home, cards only until now, become waitlist
 -- priority and a cab home from the fourth visit; and every venue gains Double points and Triple points as points
 -- multipliers (drafts, from today). A rule the model cannot say (a hand, call time, visits so far, a new player), and the
@@ -145,7 +145,7 @@ begin
     else
       v_reward := null;
     end if;
-    -- A rule the model cannot say exactly stays on the old path (decision 0461; money audit): more than one grant a member
+    -- A rule the model cannot say exactly stays on the old path (decision 0491; money audit): more than one grant a member
     -- in its period, which a version would loosen to no limit, or a monthly budget, which a version's whole-promotion
     -- budget would spend for good.
     if coalesce(v_promotion.per_player_limit, 1) > 1

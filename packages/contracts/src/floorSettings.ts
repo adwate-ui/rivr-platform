@@ -4,7 +4,7 @@
 import { z } from 'zod';
 import type { SettingDefinition } from './settingDefinition.ts';
 
-/** How long a request may wait on the Live floor before it shows late, in seconds (decision 0446); unset, @rivr/domain's defaults. */
+/** How long a request may wait on the Live floor before it shows late, in seconds (decision 0479); unset, @rivr/domain's defaults. */
 export const floorRequestTargets = {
   key: 'floor.request_targets',
   description: 'How long a request may wait on the Live floor before it shows late: a top-up, and every other request, in seconds.',

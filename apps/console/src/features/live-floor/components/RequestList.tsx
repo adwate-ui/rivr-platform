@@ -28,7 +28,7 @@ export const tableNameOf = (tables: readonly FloorTable[], tableId: string) => t
 
 /**
  * The floor's requests (console v3), oldest first: each says what is asked and how long ago (late past the club's target,
- * decision 0446), who asks and where, then its one filled action and the one in words. One that just arrived glows gold.
+ * decision 0479), who asks and where, then its one filled action and the one in words. One that just arrived glows gold.
  */
 export function RequestList({ requests, tables, targets, now, fresh, changes, onLeave, onOpen }: RequestListProps) {
   // Which action is in flight, so its button turns while it goes.

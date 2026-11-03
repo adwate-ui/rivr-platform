@@ -40,7 +40,7 @@ Import from `@rivr/contracts`, or one module at a time (`@rivr/contracts/ids`).
 | `blindLevelsSchema` | At `@rivr/contracts/blindLevels`, apart so Home and the TV carry only it: a structure's levels as the database keeps them, read into `@rivr/domain/tournament`'s stages. |
 | `REWARD_KINDS`, `RewardKind`, `rewardKindOf(text)`, `rewardItemSchema` | The kinds also at `@rivr/contracts/rewardKinds`, with no Zod, where `rewardKindOf` reads a kind from the database (anything unknown as merchandise). The rewards catalogue's form (#145, decision 0181): a tournament seat, F&B upgrade, merchandise or hotel night (never cash), its name, where to collect it, its price in whole points and how many are left (blank for no limit). |
 | `leagueSeasonSchema` | A RIVR League season (#147, decision 0182): a name and its first and last months as `2026-11`, in order. |
-| `promotionRefusalSchema` | The reason a super admin sends a waiting promotion's version back to draft, 3 to 300 characters, which its author reads (#144, decisions 0244 and 0437). |
+| `promotionRefusalSchema` | The reason a super admin sends a waiting promotion's version back to draft, 3 to 300 characters, which its author reads (#144, decisions 0244 and 0471). |
 | `chipCountSchema`, `openShiftSchema` | The Treasury's forms (#24): how many of each of the venue's chips, a whole number from 0, and for opening the cage's shift the float in whole rupees. |
 | `closeShiftSchema`, `eodReviewSchema` | End of day (#45): the cash, receipts and markers in whole rupees with the chips counted, and a reviewer's reason for a variance, 3 to 500 characters. |
 | `cashOutSchema`, `CASH_OUT_TO` | The cage's cash-out form (#75): the chips in whole rupees, to cash or the wallet, and whether it is final (#76). |

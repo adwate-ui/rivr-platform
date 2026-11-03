@@ -20,7 +20,7 @@ interface FloorProps {
   permissions: readonly string[];
 }
 
-/** Where Seat a player opens: the first open table with someone waiting, else one with a free seat (decision 0446). */
+/** Where Seat a player opens: the first open table with someone waiting, else one with a free seat (decision 0479). */
 function seatAnyOf(data: FloorData): FloorSheet | null {
   const taken = [...data.seats, ...data.held];
   const table = tableToSeatAt(data.tables.map((one) => ({ ...one, openSeats: openSeatsAt(one, taken).length })));
@@ -50,7 +50,7 @@ function FloorControls({ view, onView, isNeedsYouOnly, onNeedsYou, onSeat, seatK
 }
 
 /**
- * The floor's keys, through the console's registry (decision 0445): A and D act on the oldest request shown, S opens Seat a
+ * The floor's keys, through the console's registry (decision 0478): A and D act on the oldest request shown, S opens Seat a
  * player; each only while there is something to do. Gives back S for Seat a player's tooltip.
  */
 function useFloorKeys(oldest: FloorRequest | undefined, forActions: RequestActionsFor, seat: (() => void) | null): ButtonShortcut {
@@ -102,7 +102,7 @@ function FloorReady({ venueId, permissions, data }: FloorProps & { data: FloorDa
 
 /**
  * The Live floor (console v3, phase 2): the venue's active tables room by room, the requests docked beside them, and a
- * sheet for each player, open seat and table. Every change shows a toast with Undo for five seconds (decision 0447).
+ * sheet for each player, open seat and table. Every change shows a toast with Undo for five seconds (decision 0480).
  */
 export function Floor({ venueId, permissions }: FloorProps) {
   const floor = useFloorData(venueId, permissions);

@@ -31,8 +31,8 @@ function useTicks() {
 }
 
 /**
- * The tables with a card (decision 0433): every open one, and a closed one only while someone waits on it or asks to,
- * as its interest in reopening (#113). Inactive tables never come (decision 0432).
+ * The tables with a card (decision 0467): every open one, and a closed one only while someone waits on it or asks to,
+ * as its interest in reopening (#113). Inactive tables never come (decision 0466).
  */
 function tablesShown(tables: readonly FloorTable[], venueId: string, board: readonly WaitlistBoardEntry[], askedAt: ReadonlySet<string>) {
   return tables.filter((table) => table.venueId === venueId && (table.isOpen || askedAt.has(table.id) || board.some((entry) => entry.tableId === table.id)));
@@ -73,7 +73,7 @@ function Cards({ venueId, canOpen, tables, entries, requests, interest }: CardsP
 }
 
 /**
- * Lists, the Waitlist screen's first tab (console v3): a card for each table's own list (decision 0433), the bulk bar over
+ * Lists, the Waitlist screen's first tab (console v3): a card for each table's own list (decision 0467), the bulk bar over
  * the places ticked, and the sheet that seats a place at its table. Open all night: a list that stops refreshing stays on
  * screen, saying since when.
  */

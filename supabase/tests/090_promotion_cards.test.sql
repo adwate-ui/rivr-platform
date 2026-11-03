@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 select no_plan();
 
 -- The seed's live promotions (57_promotions.sql) back to drafts: the test starts with none live.
--- A promotion run in versions goes back to draft through its version (decision 0461).
+-- A promotion run in versions goes back to draft through its version (decision 0491).
 update public.promotion_version set status = 'draft' where status = 'live';
 select private.sync_promotion(id) from public.promotion where current_version is not null;
 update public.promotion set status = 'draft' where status = 'live';
@@ -17,7 +17,7 @@ create function pg_temp.as_person(p_person text) returns void language sql as $$
          set_config('request.jwt.claims', jsonb_build_object('sub', p_person, 'role', 'authenticated')::text, true);
 $$;
 grant execute on function pg_temp.as_person(text) to authenticated;
--- A template run in versions (decision 0461), as staff take it live: simulated on last week and submitted by the caller,
+-- A template run in versions (decision 0491), as staff take it live: simulated on last week and submitted by the caller,
 -- then approved by a super admin.
 create function pg_temp.submit_version(p_key text) returns void language sql as $$
   select public.record_promotion_simulation(v.id,
@@ -104,7 +104,7 @@ reset role;
 select is_empty($$ select * from private.promotion_cards('00000000-0000-4000-8000-000000000001') $$, 'paused, it leaves Home and the TVs');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select public.set_promotion_live((select id from ids where name = 'flow7'), true);
--- The referral template runs in versions (decision 0461): simulated, submitted, then approved by a super admin.
+-- The referral template runs in versions (decision 0491): simulated, submitted, then approved by a super admin.
 select pg_temp.submit_version('referral');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select pg_temp.approve_version('referral');

@@ -25,7 +25,7 @@ export interface PromotionOverview {
   /** Null for a promotion still run by its rule, or terms that cannot be read. */
   readonly terms: Terms | null;
   readonly givenThisWeek: number;
-  /** Run by its rule, made before versions (decision 0461): its card and pause only. */
+  /** Run by its rule, made before versions (decision 0491): its card and pause only. */
   readonly isLegacy: boolean;
 }
 

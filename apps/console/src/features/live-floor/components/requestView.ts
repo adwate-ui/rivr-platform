@@ -48,7 +48,7 @@ function ageOf(seconds: number): string {
   return minutes < 1 ? t('console.floor.requests.now') : t('console.floor.requests.age', { minutes });
 }
 
-/** A request in words at `now`, with the table it is at and the club's targets for lateness (decision 0446). */
+/** A request in words at `now`, with the table it is at and the club's targets for lateness (decision 0479). */
 export function wordsOf(request: FloorRequest, table: string, now: Date, targets: RequestTargets): RequestWords {
   const seconds = waitedSeconds(request.since, now);
   return { kind: kindOf(request), detail: detailOf(request, table), age: ageOf(seconds), isLate: isRequestLate(request.kind, seconds, targets) };

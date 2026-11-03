@@ -67,7 +67,7 @@ export type DataTableProps<Row> = DataTableState<Row> & {
   selection?: DataTableSelection;
   /**
    * A row's height from 1180 px: `comfortable`, 42 px, or `compact`, 34 px. Below, rows stay 44 px targets. Left out, the
-   * staff member's own density from `DataTableDensityProvider` (decision 0442).
+   * staff member's own density from `DataTableDensityProvider` (decision 0475).
    */
   density?: 'comfortable' | 'compact';
   /**
@@ -127,7 +127,7 @@ interface TableProps<Row> {
 
 function Table<Row>({ props, visible, sort, query, onSort }: TableProps<Row>) {
   const header = useRef<HTMLDivElement>(null);
-  // The staff member's own density (decision 0442), unless the table sets one.
+  // The staff member's own density (decision 0475), unless the table sets one.
   const density = useTableDensity();
   const isVirtual = visible.length > VIRTUAL_FROM;
   const ticks = props.selection === undefined ? null : ticksFor(props.selection, visible.map(props.rowKey));

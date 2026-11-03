@@ -9,7 +9,7 @@ import type { z } from 'zod';
 import { FAILURE_COPY } from './failureCopy.ts';
 
 /**
- * Adds a member to one table's list (decision 0433) by their mobile number or membership number (console v3). A new
+ * Adds a member to one table's list (decision 0467) by their mobile number or membership number (console v3). A new
  * request id for each number added, so a retried tap adds the member once and the next number is a new request.
  */
 export function AddPlaceForm({ venueId, table }: { venueId: string; table: { id: string; name: string } }) {

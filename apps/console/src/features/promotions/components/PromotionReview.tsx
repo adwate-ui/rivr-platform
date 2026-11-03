@@ -37,7 +37,7 @@ function changesLine({ live, changed }: ApproverView): string {
 }
 
 /**
- * Last week replayed afresh for the approver (decision 0465), not the figures stored with the version, which its author's
+ * Last week replayed afresh for the approver (decision 0495), not the figures stored with the version, which its author's
  * browser sent; a replay that fails offers Simulate to run it again.
  */
 function FreshSimulation({ waiting }: { waiting: PromotionVersionView }) {
@@ -74,7 +74,7 @@ function ReadOnlySections({ waiting, changed, names }: { waiting: PromotionVersi
 
 /**
  * The approver's view (console v3, phase 7): the builder read only, each part the waiting version changes marked against
- * the running version, both in one line, the simulation stored with it, and Approve or Reject (four eyes, decision 0437).
+ * the running version, both in one line, the simulation stored with it, and Approve or Reject (four eyes, decision 0471).
  */
 export function PromotionReview({ venueId, names, actor, view, onDone }: PromotionReviewProps) {
   const { live, waiting } = view;

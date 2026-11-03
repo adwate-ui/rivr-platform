@@ -1,4 +1,4 @@
--- The Live floor live (console v3, phase 2; decision 0446), as the TV boards and the owner dashboard are (decisions 0051,
+-- The Live floor live (console v3, phase 2; decision 0479), as the TV boards and the owner dashboard are (decisions 0051,
 -- 0192): whatever the floor shows changing broadcasts once a statement on the venue's private topic floor:<venue id>,
 -- naming nothing. The console reads its floor again shortly after. Only the venue's floor (waitlist.manage) hears it.
 -- The practice venue's floor hears its own topic: a broadcast to staff consoles reaches no external system.

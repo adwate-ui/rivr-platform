@@ -1,4 +1,4 @@
--- Last week replayed as if the version had run then (console v3 phase 7 step 3; decision 0465). The replay weighed time
+-- Last week replayed as if the version had run then (console v3 phase 7 step 3; decision 0495). The replay weighed time
 -- played inside the version's schedule with its first and last days, so a promotion that starts today or later, as a
 -- new one does, replayed no time at all and its simulation always gave nothing. Its days and times still count; its
 -- first day becomes the replay's and it has no last day. The version keeps its own schedule: only the replay's copy

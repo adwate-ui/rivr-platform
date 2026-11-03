@@ -722,7 +722,7 @@ select results_eq(
   $$ select description, (expected ->> 'thousandths')::bigint from golden.golden_case where file = 'accommodation.json' order by position $$,
   'private.nights_for_time gives every case in the golden file');
 
--- Promotion schedules (console v3, decision 0438): private.is_in_schedule and private.seconds_in_schedule, and @rivr/domain
+-- Promotion schedules (console v3, decision 0472): private.is_in_schedule and private.seconds_in_schedule, and @rivr/domain
 -- isInSchedule and secondsInSchedule (packages/testing/golden/promotionSchedule.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'promotionSchedule.json'), 'the promotion schedule cases are loaded');
 select is_empty($$ select operation from golden.golden_case where file = 'promotionSchedule.json' and operation not in ('in', 'seconds') $$,
@@ -738,7 +738,7 @@ select results_eq(
   $$ select description, (expected ->> 'seconds')::bigint from golden.golden_case where file = 'promotionSchedule.json' and operation = 'seconds' order by position $$,
   'private.seconds_in_schedule counts every span in the golden file');
 
--- Promotion rewards (console v3, decisions 0436 and 0438): private.promo_is_eligible, private.promo_grant,
+-- Promotion rewards (console v3, decisions 0470 and 0472): private.promo_is_eligible, private.promo_grant,
 -- private.promo_check_limits and private.promo_stack, and @rivr/domain isEligible, computeGrant, checkLimits and stackGrants
 -- (packages/testing/golden/promotionRewards.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'promotionRewards.json'), 'the promotion reward cases are loaded');

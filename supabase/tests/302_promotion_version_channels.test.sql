@@ -12,7 +12,7 @@ create function pg_temp.as_person(p_person text) returns void language sql as $$
 $$;
 grant execute on function pg_temp.as_person(text) to authenticated;
 
--- The seed's live promotions back to drafts (decision 0461): only this test's own show.
+-- The seed's live promotions back to drafts (decision 0491): only this test's own show.
 update public.promotion_version set status = 'draft' where status = 'live';
 select private.sync_promotion(id) from public.promotion where current_version is not null;
 update public.promotion set status = 'draft' where status = 'live';

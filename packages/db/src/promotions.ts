@@ -32,7 +32,7 @@ export function usePromotionStakes(venueId: string) {
 }
 
 /**
- * Pauses or resumes a promotion still run by its rule, made before versions (decision 0461): a card that is only words,
+ * Pauses or resumes a promotion still run by its rule, made before versions (decision 0491): a card that is only words,
  * such as high hands (`set_promotion_live`). A promotion in versions pauses through its version
  * (`usePromotionVersionActions`). The console's list reloads after each.
  */

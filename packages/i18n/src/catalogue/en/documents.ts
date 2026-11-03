@@ -122,7 +122,7 @@ export const documents = {
     seat: 'Seat',
     waitlist: 'Waitlist',
     nobodyWaiting: 'Nobody waiting.',
-    /** The waitlist's first column: the table whose list the place is on (decision 0433). */
+    /** The waitlist's first column: the table whose list the place is on (decision 0467). */
     waitingAt: 'Table',
     game: 'Game',
     place: 'Place',

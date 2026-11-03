@@ -41,7 +41,7 @@ function tableColumns(props: TablesBlockProps & { open: string | null; onChange:
 }
 
 /**
- * The tables in floor order (console v3; decision 0432), each with its status and its actions: Change opens its form under
+ * The tables in floor order (console v3; decision 0466), each with its status and its actions: Change opens its form under
  * its row, New table an empty one above the list. What an action did is said under the list.
  */
 export function TablesBlock({ venueId, stakes, tables }: TablesBlockProps) {

@@ -3,7 +3,7 @@ import { tokens } from '@rivr/tokens';
 import { Button } from '../Button/Button.tsx';
 import { cx } from '../internal/classes.ts';
 
-/** How long a new request's gold tint takes to fade, from the tokens: 2.5 s (decision 0431). Keep `isNew` on for as long. */
+/** How long a new request's gold tint takes to fade, from the tokens: 2.5 s (decision 0465). Keep `isNew` on for as long. */
 export const FRESH_MS = Number.parseInt(String(tokens.motion.duration.fresh), 10);
 
 /** One of a request's two actions: what it says and what it does. */
@@ -30,11 +30,11 @@ export interface RequestItemProps {
   primary: RequestAction;
   /** The other, in words: Decline, Not leaving. */
   secondary?: RequestAction | undefined;
-  /** Just arrived: a gold tint that fades over 2.5 s (decision 0431). */
+  /** Just arrived: a gold tint that fades over 2.5 s (decision 0465). */
   isNew?: boolean;
   /**
    * `queue`, an entry in the floor's list of requests. `ask`, what one player asks, inside their sheet: a gold-tinted box
-   * (it needs the floor, decision 0429) with the ask and its age on one line and the actions under it; `kind` and `detail`
+   * (it needs the floor, decision 0463) with the ask and its age on one line and the actions under it; `kind` and `detail`
    * are the sheet's to say.
    */
   look?: 'queue' | 'ask';

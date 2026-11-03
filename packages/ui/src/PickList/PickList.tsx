@@ -70,7 +70,7 @@ function Group({ group, current, onPick }: { group: PickListGroup; current: stri
 /**
  * A queue to open items from, beside the item open (console v3: KYC review, Host queue, the website's pages): on a raised
  * panel, each group under its heading and count, each item a row of its title and one line; the one open on the chosen
- * fill with a cream edge (gold is only for what needs someone, decision 0429). A search field, given, sits above.
+ * fill with a cream edge (gold is only for what needs someone, decision 0463). A search field, given, sits above.
  */
 export function PickList({ label, groups, current, onPick, search, emptyText }: PickListProps) {
   const isEmpty = groups.every((group) => group.items.length === 0);

@@ -39,7 +39,7 @@ export function InterestNotice({ venueId, interest, table, canOpen }: InterestNo
   return (
     <Stack gap={2}>
       <Inline gap={4} align="center" justify="between">
-        {/* Enough to open a table needs the floor: a gold dot with its words, never gold text (decision 0429). */}
+        {/* Enough to open a table needs the floor: a gold dot with its words, never gold text (decision 0463). */}
         {interest.isReady ? <DotStatus tone="needsYou" label={interestLine(interest)} /> : <Text variant="secondary" tone="muted">{interestLine(interest)}</Text>}
         {interest.isReady && canOpen && table !== undefined ? (
           <Button variant="subtle" size="small" isLoading={setOpen.isPending} onClick={() => void open(table.id)}>{t('console.waitlist.openTable', { table: table.name })}</Button>

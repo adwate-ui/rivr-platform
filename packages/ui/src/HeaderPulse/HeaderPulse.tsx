@@ -7,7 +7,7 @@ export interface PulseCount {
   /** What is counted, after the number: "seated", "waiting", "requests". */
   readonly label: string;
   readonly href: string;
-  /** The count asks for the staff member (requests): a gold dot before it while it is above 0 (decision 0429). */
+  /** The count asks for the staff member (requests): a gold dot before it while it is above 0 (decision 0463). */
   readonly needsYou?: boolean | undefined;
 }
 

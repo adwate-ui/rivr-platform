@@ -5,7 +5,7 @@ export interface ProgressBarProps {
   fraction: number;
   /** `hold`, 200 px: a called seat's hold draining. `full`, the whole width: the way to the next reward. */
   width?: 'hold' | 'full';
-  /** `gold`, something on its way to the member; `muted`, cream at 60%, a call time running on the console, which needs nobody (decision 0429). */
+  /** `gold`, something on its way to the member; `muted`, cream at 60%, a call time running on the console, which needs nobody (decision 0463). */
   tone?: 'gold' | 'muted';
 }
 

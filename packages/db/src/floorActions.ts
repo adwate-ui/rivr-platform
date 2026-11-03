@@ -34,7 +34,7 @@ interface SeatFromList {
 }
 
 /**
- * The Live floor's seating (console v3, decision 0446), each a Result that reads the floor again: `seat` a member by mobile
+ * The Live floor's seating (console v3, decision 0479), each a Result that reads the floor again: `seat` a member by mobile
  * or membership number, or `seatFromList` the next on a table's list (Assign: called and seated at once, decision 0299),
  * each giving the new seat's session for Undo; `move` a seated player to an open seat at another table, or back;
  * `declineJoin` a join asked for from the app.
@@ -64,7 +64,7 @@ export function useFloorActions(venueId: string) {
     mutationFn: async ({ sessionId, tableId, seat: number }: { sessionId: string; tableId: string; seat: number }) =>
       settle((await client.rpc('move_seat', { p_session_id: sessionId, p_table_id: tableId, p_seat: number })).error),
   });
-  // Declined by the floor, apart from a place its member gave up, so Undo brings back only the floor's own (decision 0447).
+  // Declined by the floor, apart from a place its member gave up, so Undo brings back only the floor's own (decision 0480).
   const declineJoin = useMutation({
     mutationFn: async (entryId: string) => settle((await client.rpc('decline_waitlist_request', { p_entry_id: entryId })).error),
   });
@@ -72,7 +72,7 @@ export function useFloorActions(venueId: string) {
 }
 
 /**
- * What Undo takes back (decision 0447): a seat taken, a seat left, a call time decision or addition (`requestId`, or the
+ * What Undo takes back (decision 0480): a seat taken, a seat left, a call time decision or addition (`requestId`, or the
  * request id an addition was made with), a top-up step, or a join approved or declined.
  */
 export type FloorUndo =
@@ -92,7 +92,7 @@ function undoCall(client: ReturnType<typeof useRivrData>['client'], undo: FloorU
 }
 
 /**
- * Undo on the floor's toast (decision 0447): a compensating function in the database, never a rollback here. A Result: a
+ * Undo on the floor's toast (decision 0480): a compensating function in the database, never a rollback here. A Result: a
  * change that moved on since, or is two minutes old, is refused (`invalid`, `occupied`), and the floor is read again.
  */
 export function useFloorUndo(venueId: string) {

@@ -111,7 +111,7 @@ select is_empty($$
       'preview_token',
       -- Reviewed as safe in #627: the ids of the sessions a member hid from their own list.
       'hidden_sessions',
-      -- Reviewed as safe in console v3 (decision 0437): the period a promotion grant counts in, such as 'day:2026-11-17',
+      -- Reviewed as safe in console v3 (decision 0471): the period a promotion grant counts in, such as 'day:2026-11-17',
       -- and the spins it gave and that were spun.
       'period_key', 'spins', 'spins_used')
     -- Reviewed as safe in #779, for this table only: a phone's push addresses for the live status, which reach it only

@@ -1,5 +1,5 @@
 /**
- * Edit a live promotion (console v3, phase 7; decision 0437). Ishita Bose (marketing) publishes a Private Room buy-in
+ * Edit a live promotion (console v3, phase 7; decision 0471). Ishita Bose (marketing) publishes a Private Room buy-in
  * bonus of 20%, which Leela Varma, a super admin, approves. Ishita then edits it to 10%: that makes version 2, which
  * waits for approval while version 1 still runs, so Simran's buy-in still earns 20% under version 1. Leela reads what
  * changed and approves it: version 2 is live, version 1 has ended, and the next buy-in earns 10% under version 2. The

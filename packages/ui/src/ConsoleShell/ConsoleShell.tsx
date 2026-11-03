@@ -65,7 +65,7 @@ function ConsoleHeader({ title, search, pulse, clock, account }: HeaderProps) {
 }
 
 /**
- * The staff console's frame (console v3, decision 0431). From 768 px a rail of 224 px with labels, or 64 px of icons,
+ * The staff console's frame (console v3, decision 0465). From 768 px a rail of 224 px with labels, or 64 px of icons,
  * folds to icons on its own below 1200 px and keeps the staff member's own choice on the device; beside it the header and
  * the screen, which scroll on their own. Below 768 px a header names the screen, and a tab bar along the foot holds the
  * app's tabs and More. The banner runs across the top above everything.

@@ -6,7 +6,7 @@ export type TableDensity = 'comfortable' | 'compact';
 const DensityContext = createContext<TableDensity>('comfortable');
 
 /**
- * The staff member's own density for every table inside (console v3, decision 0442): the console's frame holds it, read
+ * The staff member's own density for every table inside (console v3, decision 0475): the console's frame holds it, read
  * from their setting. A table's own `density` still wins.
  */
 export function DataTableDensityProvider({ density, children }: { density: TableDensity; children: ReactNode }) {

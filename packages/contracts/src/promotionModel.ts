@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * The typed promotion model (console v3, phase 7; decision 0438): what a promotion's version gives (Reward), to whom
+ * The typed promotion model (console v3, phase 7; decision 0472): what a promotion's version gives (Reward), to whom
  * (Eligibility), when (Schedule), how often (Limits) and where it shows (Channels). Rewards are points, bonus chips,
  * spins and perks, never rupees or paise (decision 0284). `promotion_version` holds each part as jsonb, and the database
  * checks the same shapes.

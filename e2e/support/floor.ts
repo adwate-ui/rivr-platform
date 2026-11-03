@@ -1,4 +1,4 @@
-/** The Live floor as console v3 draws it (decision 0446): a table's tile, seating by number, a player's sheet, letting go. */
+/** The Live floor as console v3 draws it (decision 0479): a table's tile, seating by number, a player's sheet, letting go. */
 import { expect, type Page } from '@playwright/test';
 
 /** A table's tile, named for the table and its stake: "Table 5 100/200". */
@@ -29,7 +29,7 @@ export async function openPlayer(page: Page, name: string) {
   return page.getByRole('dialog', { name });
 }
 
-/** Lets a seated player owing call time go early from their sheet's Leave, with one of the four reasons (decision 0448). */
+/** Lets a seated player owing call time go early from their sheet's Leave, with one of the four reasons (decision 0481). */
 export async function letGoEarly(page: Page, name: string, reason = 'Emergency') {
   const sheet = await openPlayer(page, name);
   await sheet.getByRole('button', { name: 'Leave', exact: true }).last().click();

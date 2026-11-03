@@ -19,7 +19,7 @@ export interface TvPlace {
 }
 
 /**
- * One table's list on the TV's waitlist board (decision 0433): an open table, or a closed one somebody waits for, with its
+ * One table's list on the TV's waitlist board (decision 0467): an open table, or a closed one somebody waits for, with its
  * stake and its places in order.
  */
 export interface TvTableList {

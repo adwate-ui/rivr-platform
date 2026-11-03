@@ -8,7 +8,7 @@ export interface DockedPanelProps {
   children: ReactNode;
   /** The panel's name: "Requests". */
   title: string;
-  /** How many the panel holds: beside its title, and on the strip when folded, gold while above 0 (decision 0429). */
+  /** How many the panel holds: beside its title, and on the strip when folded, gold while above 0 (decision 0463). */
   count: number;
   /** Open at 320 px, or folded to a 52 px strip with its count. */
   isOpen: boolean;

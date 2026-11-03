@@ -1,5 +1,5 @@
 -- Interest lists (#113; decision 0184) and pot data (#114; decision 0185). The Private Room is closed here: its own
--- waitlist (decision 0433) is its interest list, and once as many wait as the venue's
+-- waitlist (decision 0467) is its interest list, and once as many wait as the venue's
 -- waitlist.interest_to_open (3), the floor (103 Aditya, waitlist.manage) is told. A dealer (106 Pema) is
 -- not. Pot data is the super admin's (101 Vikram): every hand in a period; the admin and the cashier see none.
 begin;

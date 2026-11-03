@@ -48,7 +48,7 @@ export interface BuilderForm {
 
 export const EVERY_DAY: readonly number[] = [1, 2, 3, 4, 5, 6, 7];
 
-// The club's whole day, 06:00 to 06:00 (decision 0438).
+// The club's whole day, 06:00 to 06:00 (decision 0472).
 const ALL_DAY = { days: EVERY_DAY, from: '06:00', to: '06:00' } as const;
 
 /** A blank promotion as the prototype starts one: 2× points on Friday and Saturday 20:00 to 02:00, once a visit, from `today`. */
@@ -118,7 +118,7 @@ export interface TemplateTiers {
 
 const tierOnly = (tierId: string | null): BuilderForm['tiers'] => (tierId === null ? 'all' : [tierId]);
 
-// What each template sets over a blank promotion; the club's own rules where step 2 converted them (decision 0461).
+// What each template sets over a blank promotion; the club's own rules where step 2 converted them (decision 0491).
 const TEMPLATE_FIELDS: Readonly<Record<Exclude<TemplateKey, 'blank'>, (tiers: TemplateTiers) => Partial<BuilderForm>>> = {
   double_points: () => ({ kind: 'points_multiplier', multiplier: '2' }),
   buyin_bonus: () => ({ kind: 'buyin_bonus', buyMode: 'percent', percent: '20', capChips: '2000', firstN: '5', ...ALL_DAY, days: [2], perMember: 'none' }),

@@ -1,4 +1,4 @@
--- The console's density (console v3, phase 1; decision 0442): each staff member's own choice of row height, comfortable
+-- The console's density (console v3, phase 1; decision 0475): each staff member's own choice of row height, comfortable
 -- (42 px) or compact (34 px), kept in the database so it follows them to any computer at the club. One row per staff
 -- record, so the club and the practice venue each hold the staff member's own; the console writes them together. Staff
 -- read and write only their own rows, and nothing else reads them: no outbox event, nothing leaves the database.

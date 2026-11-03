@@ -1,4 +1,4 @@
--- Last week replayed as if the version had run then (console v3 phase 7; decision 0465). 107 Ishita (marketing) drafts an
+-- Last week replayed as if the version had run then (console v3 phase 7; decision 0495). 107 Ishita (marketing) drafts an
 -- hours bonus that starts next week and ends the day after; 211 Ishaan played three hours at Table 3 on an evening four
 -- club days ago. The replay still gives his time inside the schedule's hours, and the version keeps its own days. Only
 -- staff who manage promotions at the version's venue replay it: not 104 Sana (a cashier), nor 153 Imran (an admin at

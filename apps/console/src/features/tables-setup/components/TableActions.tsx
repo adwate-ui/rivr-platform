@@ -22,7 +22,7 @@ interface TableActionsProps {
 type Action = ReturnType<typeof useTablesSetupActions>['deactivate'];
 
 /**
- * A table's actions (decision 0432): Change; Deactivate, which hides it from everything live and keeps its history, or
+ * A table's actions (decision 0466): Change; Deactivate, which hides it from everything live and keeps its history, or
  * Reactivate, which brings it back closed; and Delete, asked twice. Deactivating or deleting a table someone sits at or
  * waits for is refused before it is sent, by @rivr/domain's rule, and the database refuses it again on its own count.
  */

@@ -78,5 +78,5 @@ export const promotionEffectSchema = z.union([
 ]);
 export type PromotionEffect = z.infer<typeof promotionEffectSchema>;
 
-/** Why a super admin sends a waiting promotion's version back to draft (#144, decision 0437): its author reads it, 3 to 300 characters. */
+/** Why a super admin sends a waiting promotion's version back to draft (#144, decision 0471): its author reads it, 3 to 300 characters. */
 export const promotionRefusalSchema = z.object({ reason: z.string().trim().min(3).max(300) });

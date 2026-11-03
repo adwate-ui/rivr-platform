@@ -1,4 +1,4 @@
--- Waitlist priority (#40), each table's list in its own order (decision 0433). The seed puts Kabir (202), Naina (203) and
+-- Waitlist priority (#40), each table's list in its own order (decision 0467). The seed puts Kabir (202), Naina (203) and
 -- Rohan (204) on Table 2's list (100/200) in that order and weights the black card (2, at its qualifying stake only) and Founders' Circle (1). Arjun
 -- (201) and Vihaan (212) are black cards at 100/200; Tara (209) becomes Founders' Circle here; Dev (210)
 -- and Ishaan (211) are members. now() is the same all through the transaction, so joins are given

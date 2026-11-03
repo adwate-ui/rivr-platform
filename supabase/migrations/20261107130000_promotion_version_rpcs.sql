@@ -1,4 +1,4 @@
--- The versions' status machine (decision 0437), as @rivr/domain transition has it: save a draft, store its simulation,
+-- The versions' status machine (decision 0471), as @rivr/domain transition has it: save a draft, store its simulation,
 -- submit it, approve or reject it, pause, resume and end it. Staff who manage promotions draft, simulate, submit, pause,
 -- resume and end; a super admin (promotions.approve) approves or rejects, never a version they submitted or last edited.
 -- Submitting needs a simulation on the version's own terms. Editing a running version drafts the next, and the running

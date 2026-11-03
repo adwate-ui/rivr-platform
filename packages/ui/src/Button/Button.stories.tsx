@@ -48,7 +48,7 @@ export const PlayerRedesign: Story = {
 };
 
 /**
- * The console's buttons (decision 0430): filled, never outlined. The gold primary, a subtle fill, a list item's cream
+ * The console's buttons (decision 0464): filled, never outlined. The gold primary, a subtle fill, a list item's cream
  * action and a text button; compact at a desk, small inside a row, both 44 px below 1180 px.
  */
 export const Console: Story = {

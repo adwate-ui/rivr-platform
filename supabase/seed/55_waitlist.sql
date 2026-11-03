@@ -1,5 +1,5 @@
 -- The design prompt's waitlist for 100/200: Kabir Sethi 23:52, Naina Kapoor 23:58, then Rohan Bhatia 00:07,
--- with the seed running at the clock, 00:10 (#38, #54), on Table 2's list (a list per table, decision 0433). 50/100 is empty.
+-- with the seed running at the clock, 00:10 (#38, #54), on Table 2's list (a list per table, decision 0467). 50/100 is empty.
 
 insert into public.waitlist_entry (venue_id, member_id, table_type_id, table_id, joined_at, idempotency_key)
 select tt.venue_id, w.member_id, tt.id, g.id, now() - w.ago, w.member_id

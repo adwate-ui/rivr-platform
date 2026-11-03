@@ -19,7 +19,7 @@ describe('ProgressBar', () => {
     expect(fillOf(container)?.style.transform).toBe('scaleX(0)');
   });
 
-  it('fills in cream, not gold, for a call time on the console (decision 0429)', () => {
+  it('fills in cream, not gold, for a call time on the console (decision 0463)', () => {
     const { container } = renderIn(<ProgressBar fraction={0.5} tone="muted" />);
     expect(container.querySelector('[data-progress-fill]')).toHaveClass('bg-content-muted');
     expect(container.querySelector('[data-progress-fill]')).not.toHaveClass('bg-gold');

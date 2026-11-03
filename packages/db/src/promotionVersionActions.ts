@@ -48,7 +48,7 @@ function useSettle(venueId: string) {
 }
 
 /**
- * Replays a draft on last week as if it had run then (decisions 0437 and 0465): the database's events, @rivr/domain
+ * Replays a draft on last week as if it had run then (decisions 0471 and 0495): the database's events, @rivr/domain
  * simulate, and the result stored on the version with the terms it ran on.
  */
 function useSimulate(venueId: string) {

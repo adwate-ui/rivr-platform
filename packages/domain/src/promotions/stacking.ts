@@ -15,7 +15,7 @@ function bestMultiplier(candidates: readonly StackCandidate[]): StackCandidate |
 }
 
 /**
- * Which promotions to give for one event (decision 0436), in the order given: at most one points multiplier, the one
+ * Which promotions to give for one event (decision 0470), in the order given: at most one points multiplier, the one
  * giving the most points, the first on a tie; bonus chips and spins from different promotions all stack, each within
  * its own limits; one perk of each kind, the first. The database's private.promo_stack is proved equal on
  * promotionRewards.json.

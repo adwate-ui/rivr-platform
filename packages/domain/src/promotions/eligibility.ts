@@ -42,7 +42,7 @@ export function isAtEligibleTable(eligibility: Eligibility, stake: string | null
 }
 
 /**
- * Whether a member qualifies for a promotion at an event (decision 0438): their tier and audience are the promotion's,
+ * Whether a member qualifies for a promotion at an event (decision 0472): their tier and audience are the promotion's,
  * and, for an event at a moment (a buy-in, a visit, a referral, a sign-up), its stake, table and moment are too. For a
  * time-played reward the stake, table and schedule decide which minutes count (secondsInSchedule at isAtEligibleTable),
  * so a visit that closes after the window still qualifies. The database's private.promo_is_eligible is proved equal on

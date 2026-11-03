@@ -2,7 +2,7 @@ import { useStaffVenue } from '@rivr/db';
 import { Floor } from './Floor.tsx';
 
 /**
- * The Live floor (console v3, phase 2; decisions 0446 to 0449): tiles room by room, the requests docked beside them, and
+ * The Live floor (console v3, phase 2; decisions 0479 to 0482): tiles room by room, the requests docked beside them, and
  * the player, seat, table and leave sheets. Its toasts, with Undo, are the frame's (ToastProvider).
  */
 export function LiveFloorScreen() {

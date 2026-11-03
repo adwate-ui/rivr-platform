@@ -14,7 +14,7 @@ const TRIGGER =
 /**
  * The console header's search (console v3): from 768 px a field-like button, "Search members, screens, actions" with its
  * `/` key; below, a search button. Either opens the command palette. Its fill is the rail's green-black, not cream at 5%,
- * so its muted words keep 4.5:1 (decision 0428).
+ * so its muted words keep 4.5:1 (decision 0462).
  */
 export function SearchTrigger({ onOpen }: SearchTriggerProps) {
   return (

@@ -132,7 +132,7 @@ export const queryKeys = {
   fnbOrdersTonight: (userId: string, venueId: string) => ['user', userId, 'fnb-orders-tonight', venueId] as const,
   topUpsTonight: (userId: string, venueId: string) => ['user', userId, 'top-ups-tonight', venueId] as const,
   staffQueueCounts: (userId: string, venueId: string) => ['user', userId, 'staff-queue-counts', venueId] as const,
-  /** The signed-in staff member's console density at a venue (decision 0442). */
+  /** The signed-in staff member's console density at a venue (decision 0475). */
   staffDensity: (userId: string, venueId: string) => ['user', userId, 'staff-density', venueId] as const,
   addTimeChoices: (userId: string, venueId: string) => ['user', userId, 'add-time-choices', venueId] as const,
   todaysPlayers: (userId: string, venueId: string) => ['user', userId, 'todays-players', venueId] as const,
@@ -220,7 +220,7 @@ export const queryKeys = {
   /** The console's promotions list, a promotion's versions and a member's grants (console v3 phase 7). */
   promotionsOverview: (userId: string, venueId: string) => ['user', userId, 'promotions-overview', venueId] as const,
   promotionVersions: (userId: string, promotionId: string) => ['user', userId, 'promotion-versions', promotionId] as const,
-  /** Last week replayed afresh on a waiting version, for its approver (decision 0465). */
+  /** Last week replayed afresh on a waiting version, for its approver (decision 0495). */
   promotionReplay: (userId: string, versionId: string) => ['user', userId, 'promotion-replay', versionId] as const,
   memberPromotionGrants: (userId: string, memberId: string) => ['user', userId, 'member-promotion-grants', memberId] as const,
   /** A venue's SOP library (#51), and who has acknowledged each version, for SOP managers. */

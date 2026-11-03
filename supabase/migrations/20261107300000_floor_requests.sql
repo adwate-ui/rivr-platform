@@ -1,4 +1,4 @@
--- The Live floor's requests panel (console v3, phase 2; decision 0446): one read of everything that waits on the floor,
+-- The Live floor's requests panel (console v3, phase 2; decision 0479): one read of everything that waits on the floor,
 -- oldest first, each with when it began, so its age can turn late past the club's target.
 -- 1. floor_requests: join requests, top-ups (asked for or in hand), time requests, players leaving, and players who left
 --    their seat before its call time (the last only for staff who let a player go early, call_time.override).

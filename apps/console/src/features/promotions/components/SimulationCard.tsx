@@ -59,7 +59,7 @@ interface SimulationCardProps {
   emptyText: string;
 }
 
-/** "Last week, if it had run" (decision 0437): the builder runs it before submitting, and the approver reads it. */
+/** "Last week, if it had run" (decision 0471): the builder runs it before submitting, and the approver reads it. */
 export function SimulationCard({ shown, onSimulate, isPending = false, emptyText }: SimulationCardProps) {
   return (
     <Box as="section" surface="raised" radius="lg" padding={4}>

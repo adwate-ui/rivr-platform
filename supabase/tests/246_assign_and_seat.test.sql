@@ -35,7 +35,7 @@ select '00000000-0000-4000-8000-000000000001', m.id, 'verified', 'digilocker', '
        '00000000-0000-4000-8000-000000000001/' || m.id || '/selfie.jpg', now()
 from (values ('00000000-0000-4000-8000-000000000202'::uuid, 'ABCPK2022K'), ('00000000-0000-4000-8000-000000000204'::uuid, 'ABCPR2044R')) as m (id, pan);
 
--- Assign: Kabir to Table 2, seat 9 (his list's table, decision 0433), for four hours. He is seated at once, and the seat-ready message still goes.
+-- Assign: Kabir to Table 2, seat 9 (his list's table, decision 0467), for four hours. He is seated at once, and the seat-ready message still goes.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 create temp table kabir_entry as select pg_temp.entry('00000000-0000-4000-8000-000000000202') as id;
 grant select on kabir_entry to authenticated;

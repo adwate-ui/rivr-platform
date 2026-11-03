@@ -4,7 +4,7 @@ import { AccountMenu, AccountMenuRow, Segmented, Switch, useShortcutList, type S
 
 type ReadyStaff = Extract<StaffVenueState, { status: 'ready' }>;
 
-/** The density the staff member chose, kept in the database (decision 0442): comfortable or compact rows. */
+/** The density the staff member chose, kept in the database (decision 0475): comfortable or compact rows. */
 function DensityRow({ venueId }: { venueId: string }) {
   const density = useStaffDensity(venueId);
   const setDensity = useSetStaffDensity();

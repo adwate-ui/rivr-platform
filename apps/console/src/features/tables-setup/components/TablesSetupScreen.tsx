@@ -7,7 +7,7 @@ import { TablesBlock } from './TablesBlock.tsx';
 /**
  * Tables setup (#642; owner's feedback doc of 29 Oct, super admin module 1), for tables.manage: the stakes the club runs,
  * each a game and its blinds, and its tables, each with a stake and its seats, deactivated, reactivated or deleted
- * (decision 0432). The floor opens and closes them.
+ * (decision 0466). The floor opens and closes them.
  */
 export function TablesSetupScreen() {
   const staff = useStaffVenue();

@@ -24,7 +24,7 @@ export async function signInToPlayer(page: Page, number: string, path = '/sign-i
 /**
  * Signs someone in to the console at 1440 px and waits until the code is checked and the console opens: a navigation
  * while the code is checked cancels the check ("context canceled" in Auth's logs), and the console opens signed out.
- * With `path`, it then opens that screen by its address (e2e/support/console.ts, decision 0443). What they land on is
+ * With `path`, it then opens that screen by its address (e2e/support/console.ts, decision 0476). What they land on is
  * the caller's to check.
  */
 export async function signInToConsole(page: Page, number: string, path?: string) {

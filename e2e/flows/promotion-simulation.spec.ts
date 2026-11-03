@@ -1,5 +1,5 @@
 /**
- * Promotion simulation (#144; scope-v1 module 7 acceptance; console v3, decisions 0437 and 0465): the floor builds a
+ * Promotion simulation (#144; scope-v1 module 7 acceptance; console v3, decisions 0471 and 0495): the floor builds a
  * new Thursday scheme, triple points at the Private Room from 14:00 to 20:00, simulates it on last week as if it had run
  * then, and submits it, in under ten minutes. A member of the flow's own, Simran, played in the Private Room last
  * Thursday 14:00 to 20:00, so the simulation gives twice the points that time earned. Submitting waits for a simulation

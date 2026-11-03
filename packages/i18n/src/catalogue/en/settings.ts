@@ -32,7 +32,7 @@ export const settings = {
   atLeast: '{min} or more.',
   upTo: 'Up to {max}.',
   inChips: 'In whole ₹50 chips.',
-  /** Bonus chips go out in fifties, as the promotions' do (decision 0438). */
+  /** Bonus chips go out in fifties, as the promotions' do (decision 0472). */
   inFifties: 'In fifties.',
   twoDecimals: 'Up to two decimals.',
   optional: 'Optional.',

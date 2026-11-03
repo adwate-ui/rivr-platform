@@ -5,7 +5,7 @@ import { DotStatus, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
 // Who needs the floor first: those waiting, then those playing, then those who left.
 const RANK: Readonly<Record<TodayStatus, number>> = { waiting: 0, playing: 1, left: 2 };
 
-// Gold for a player waiting for a seat (decision 0429); cream for one playing; faint for one gone.
+// Gold for a player waiting for a seat (decision 0463); cream for one playing; faint for one gone.
 const TONE: Readonly<Record<TodayStatus, DotStatusTone>> = { waiting: 'needsYou', playing: 'active', left: 'inactive' };
 
 const NONE = () => t('console.todaysPlayers.none');

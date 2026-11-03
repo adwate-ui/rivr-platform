@@ -32,7 +32,7 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: 'Seat' })).toHaveClass('bg-action', 'text-on-action', 'min-h-touch', 'min-w-touch');
   });
 
-  it('fills the console\'s buttons rather than outlining them, 36 or 32 px at a desk and 44 px below (decision 0430)', () => {
+  it('fills the console\'s buttons rather than outlining them, 36 or 32 px at a desk and 44 px below (decision 0464)', () => {
     renderIn(<>
       <Button variant="subtle" size="compact">Export</Button>
       <Button variant="strong" size="small">Approve</Button>
@@ -161,7 +161,7 @@ describe('Button', () => {
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
-  it('puts a gold dot before the label for what needs the floor, unread (decision 0429)', () => {
+  it('puts a gold dot before the label for what needs the floor, unread (decision 0463)', () => {
     renderIn(<Button variant="subtle" hasDot>Needs you</Button>);
     const button = screen.getByRole('button', { name: 'Needs you' });
     expect(button.querySelector('[aria-hidden="true"].bg-action')).not.toBeNull();

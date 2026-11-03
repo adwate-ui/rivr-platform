@@ -3,7 +3,7 @@ import { t } from '@rivr/i18n';
 import { Text, TvWaitlistBoard, type TvWaitlistStake } from '@rivr/ui';
 import { usePage } from './usePage.ts';
 
-// Three tables to a screen; more take turns, a page every ten seconds, as the call-time board's do (decision 0433).
+// Three tables to a screen; more take turns, a page every ten seconds, as the call-time board's do (decision 0467).
 export const WAITLIST_TABLES_SHOWN = 3;
 
 /** What a place says beside the name: the table it is called to, or that the player stepped away. */
@@ -26,7 +26,7 @@ export function toBoardColumn(table: TvTableList): TvWaitlistStake {
 }
 
 /**
- * The waitlist board (#65): a list a table (decision 0433), every open table and a closed one somebody waits for, live as
+ * The waitlist board (#65): a list a table (decision 0467), every open table and a closed one somebody waits for, live as
  * players join, are called and leave; more tables than fit take turns.
  */
 export function WaitlistMode() {

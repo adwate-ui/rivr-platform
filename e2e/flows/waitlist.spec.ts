@@ -1,7 +1,7 @@
 /**
  * Waitlist (#38, #40, #63), with one member and one host signed in throughout (Auth sends one code a
  * minute to a number): Ishaan Verma (member, identity check finished) and Zoya Sheikh (host). The
- * member asks to join a table's list from Tonight (a list per table, decision 0433), and the floor approves the request onto
+ * member asks to join a table's list from Tonight (a list per table, decision 0467), and the floor approves the request onto
  * it (#633), removes them and adds them, one list at a time; a black card the floor adds (Vihaan Kapoor, seeded with a
  * finished check; never signs in) goes first only at its qualifying stake; and the floor assigns the member a seat at the
  * list's table, which they see on Tonight. Titles follow the prototype's panel (decision 0320). The console's Waitlist is
@@ -47,7 +47,7 @@ async function leaveEveryList(page: Page) {
 
 const IN_LINE = /^(Next|\d+(st|nd|rd|th)) in line$/;
 
-/** The console's card for one table's list (decision 0433), found by its heading. */
+/** The console's card for one table's list (decision 0467), found by its heading. */
 function gameList(page: Page, name: string): Locator {
   // The innermost: the table's own card, not the screens around it (a tab's screen is a section inside its screen's).
   return page.locator('section').filter({ has: page.getByRole('heading', { level: 2, name, exact: true }) }).last();
@@ -189,7 +189,7 @@ test.describe('Waitlist', () => {
     await host.reload();
     const higher = gameList(host, 'Table 2');
     await higher.getByRole('button', { name: `Seat ${MEMBER}` }).click();
-    // A place is seated only at its list's table (decision 0433): the sheet names Table 2.
+    // A place is seated only at its list's table (decision 0467): the sheet names Table 2.
     const sheet = host.getByRole('dialog', { name: `Seat ${MEMBER}` });
     await expect(sheet.getByText(/^Table 2 · /)).toBeVisible();
     await sheet.getByRole('radiogroup', { name: 'Seat', exact: true }).getByRole('radio', { name: '9', exact: true }).click();

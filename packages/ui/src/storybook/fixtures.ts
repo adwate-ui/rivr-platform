@@ -6,7 +6,7 @@ import type { BottomNavItem } from '../BottomNav/BottomNav.tsx';
 import type { SideNavItem, SideNavSection } from '../SideNav/SideNav.tsx';
 
 /**
- * The console v3 rail as its prototype has it (decision 0431): Tonight, Players, Marketing and the folded Admin, with the
+ * The console v3 rail as its prototype has it (decision 0465): Tonight, Players, Marketing and the folded Admin, with the
  * super admin's danger screens. Counts in gold ask for action; the rest are for information.
  */
 export function consoleSections(): SideNavSection[] {

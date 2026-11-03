@@ -71,7 +71,7 @@ function OpenJoinSheet({ table, onClose }: { table: FloorTable; onClose: () => v
 
 /**
  * Joining at a table (brief 3.4 B, decision 0321): the table's name, its game and stakes, the seat map (display only: the
- * floor seats), seats open, the wait on this table's own list (decision 0433) and the call time, and one button. A join is a
+ * floor seats), seats open, the wait on this table's own list (decision 0467) and the call time, and one button. A join is a
  * request the floor approves onto this table's list; it says so with a toast and Undo, and the phone buzzes. Feature
  * waitlist.join.
  */

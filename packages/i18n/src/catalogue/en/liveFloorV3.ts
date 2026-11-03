@@ -1,5 +1,5 @@
 /**
- * The Live floor as console v3 draws it (phase 2, decisions 0446 to 0449): the tiles, the requests panel and its phone
+ * The Live floor as console v3 draws it (phase 2, decisions 0479 to 0482): the tiles, the requests panel and its phone
  * screen, the player, seat, table and leave sheets, and the toasts each change shows with Undo. Read as `console.floor.*`.
  */
 export const floor = {
@@ -8,7 +8,7 @@ export const floor = {
   seats: 'Seats',
   needsYou: 'Needs you',
   seatPlayer: 'Seat a player',
-  /** What the floor's keys do, in the staff member's list of shortcuts (decision 0445). */
+  /** What the floor's keys do, in the staff member's list of shortcuts (decision 0478). */
   keys: {
     approve: 'Approve the oldest request',
     decline: 'Decline the oldest request',
@@ -122,7 +122,7 @@ export const floor = {
     pickReason: 'Pick a reason to let them go before call time.',
     cancel: 'Cancel',
   },
-  /** What each change says at the foot of the screen, with Undo for five seconds (decision 0447). */
+  /** What each change says at the foot of the screen, with Undo for five seconds (decision 0480). */
   toast: {
     seated: '{name} seated at {table}, seat {seat}',
     moved: '{name} moved to {table}, seat {seat}',

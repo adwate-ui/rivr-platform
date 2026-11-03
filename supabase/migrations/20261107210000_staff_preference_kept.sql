@@ -1,4 +1,4 @@
--- A practice reset keeps the staff's console density (decision 0442), as it keeps the staff records it belongs to: it is a
+-- A practice reset keeps the staff's console density (decision 0475), as it keeps the staff records it belongs to: it is a
 -- staff member's own setting, not the venue's play. A live purge, which deletes from what a reset reloads, keeps it too, as
 -- it keeps the staff. As in 20261102090100_notices.sql, with staff_preference.
 create or replace function private.practice_reset_keeps()

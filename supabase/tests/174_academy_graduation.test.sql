@@ -1,6 +1,6 @@
 -- Academy attendance and graduation (#128): staff who manage members mark a booked student present at a class, once a
 -- day, and graduate her: the Academy graduate tier is set, and with the graduate freeroll running, her next visit as a
--- graduate grants it with no manual step (since decision 0461 an entry is given on a visit, not at graduation). 622 Ritu has a booking with her UTR given on a batch running this week (seed
+-- graduate grants it with no manual step (since decision 0491 an entry is given on a visit, not at graduation). 622 Ritu has a booking with her UTR given on a batch running this week (seed
 -- 75_academy_graduation.sql). 103 Aditya is an admin (members.manage); 104 Sana a cashier.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -16,7 +16,7 @@ create temporary table ritu on commit drop as
 grant select on ritu to authenticated;
 
 -- The graduate freeroll is running at the club.
--- It runs in versions (decision 0461): its first version goes live, and the promotion copies it.
+-- It runs in versions (decision 0491): its first version goes live, and the promotion copies it.
 update public.promotion_version v set status = 'live' from public.promotion p
 where p.id = v.promotion_id and p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key = 'graduate_freeroll';
 select private.sync_promotion(id) from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key = 'graduate_freeroll';

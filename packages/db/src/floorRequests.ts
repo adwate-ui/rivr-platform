@@ -18,7 +18,7 @@ interface Seated {
 }
 
 /**
- * What waits on the Live floor (decision 0446), each with what the floor acts on: a join (`id` the waitlist place), a
+ * What waits on the Live floor (decision 0479), each with what the floor acts on: a join (`id` the waitlist place), a
  * top-up (`id` its request; started or not), more time (`id` its request, the length asked), a player leaving (`id` the
  * seat session) and one who left owing call time (`id` the member). A seated one has its call time left, null for none.
  */
@@ -69,7 +69,7 @@ export function useFloorRequests(venueId: string, isEnabled = true) {
   });
 }
 
-/** The club's targets for how long a request waits before it shows late, in seconds; null where it set none (decision 0446). */
+/** The club's targets for how long a request waits before it shows late, in seconds; null where it set none (decision 0479). */
 export interface FloorRequestTargets {
   readonly topUpSeconds: number | null;
   readonly otherSeconds: number | null;
@@ -101,7 +101,7 @@ export function floorQueryKeys(userId: string, venueId: string) {
 }
 
 /**
- * Live (decision 0446): reads the floor again when the database broadcasts on the venue's private topic (floor:<venue id>)
+ * Live (decision 0479): reads the floor again when the database broadcasts on the venue's private topic (floor:<venue id>)
  * that something it shows changed, once a second after the first signal of a burst. For the floor only (`isEnabled`).
  */
 export function useFloorSignals(venueId: string, isEnabled = true) {

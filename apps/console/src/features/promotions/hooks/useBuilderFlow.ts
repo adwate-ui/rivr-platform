@@ -56,7 +56,7 @@ function useDraftSaver(start: FlowStart, names: PromotionNames, actions: ReturnT
 }
 
 /**
- * The builder's calls on its draft (decision 0437): Save draft, Simulate (saving first, as a simulation runs on a saved
+ * The builder's calls on its draft (decision 0471): Save draft, Simulate (saving first, as a simulation runs on a saved
  * version) and Submit for approval (saving and simulating again first when the words changed since, as a save clears
  * the stored simulation). Each gives the version's id, or why it did not go through.
  */

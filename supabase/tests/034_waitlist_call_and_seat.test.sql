@@ -1,5 +1,5 @@
 -- Call, seat and step away (#63). The seed puts Kabir (202), Naina (203) and Rohan (204) on Table 2's list (100/200; a
--- list per table, decision 0433); Tables 2, 3 and 5 are open at 100/200, Table 4 is closed, and the hold is 20 minutes. 103 Aditya is
+-- list per table, decision 0467); Tables 2, 3 and 5 are open at 100/200, Table 4 is closed, and the hold is 20 minutes. 103 Aditya is
 -- the floor; 106 Pema a dealer. Ishaan (211) and Vihaan (212, a black card) have finished the check.
 begin;
 create extension if not exists pgtap with schema extensions;

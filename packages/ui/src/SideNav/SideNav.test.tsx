@@ -42,7 +42,7 @@ describe('SideNav', () => {
     expect(screen.getByRole('link', { name: 'Waitlist' })).not.toHaveAttribute('aria-describedby');
   });
 
-  it('fills an actionable count gold and an informational one muted (decision 0429)', () => {
+  it('fills an actionable count gold and an informational one muted (decision 0463)', () => {
     renderIn(<SideNav label="Sections" sections={sections} />);
     expect(screen.getByText('9')).toHaveClass('bg-action', 'text-on-action');
     expect(screen.getByText('2')).toHaveClass('bg-cream-track', 'text-content');

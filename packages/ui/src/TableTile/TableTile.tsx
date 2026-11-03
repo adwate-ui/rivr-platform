@@ -73,7 +73,7 @@ function useScrolledTo(isScrolledTo: boolean) {
 
 /**
  * One table on the live floor (console v3): its name and stake, ⋯ for its settings, a bar of its seats (open, seated, in
- * gold the ones who need the floor) and how many need it. A tile that needs the floor has a gold inner ring (decision 0429).
+ * gold the ones who need the floor) and how many need it. A tile that needs the floor has a gold inner ring (decision 0463).
  * A press on the tile shows its seats under it; the keyboard's button is the bar's line, which says whether they show.
  * A closed table says so, with the action that opens it.
  */

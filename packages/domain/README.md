@@ -70,14 +70,14 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | Export | What it does |
 |---|---|
 | `holdFraction(calledAt, holdUntil, at)` | How much of a called seat's hold is left, 1 to 0: the bar under the countdown (decision 0320). |
-| `priorityOn(stake, { tier, qualifyingStake })`, `TierPriority`, `Priority` | A member's priority on a list at one stake (#40): the tier's weight from the setting `waitlist.priority_weights`, with its name as the reason. The black card's counts only at the member's qualifying stake; Founders' Circle on every list. The database's `private.priority_weight` is proved equal by `packages/testing/golden/waitlist.json`; the database orders each table's list (decision 0433) by the weight at the table's stake, then join time. |
+| `priorityOn(stake, { tier, qualifyingStake })`, `TierPriority`, `Priority` | A member's priority on a list at one stake (#40): the tier's weight from the setting `waitlist.priority_weights`, with its name as the reason. The black card's counts only at the member's qualifying stake; Founders' Circle on every list. The database's `private.priority_weight` is proved equal by `packages/testing/golden/waitlist.json`; the database orders each table's list (decision 0467) by the weight at the table's stake, then join time. |
 
 ### `@rivr/domain/tables`
 
 | Export | What it does |
 |---|---|
-| `tableRetireRefusal({ seated, waiting })`, `TableInPlay`, `TableRetireRefusal` | Whether a table may be deactivated or deleted (decision 0432): `players_seated` while anyone sits at it, else `players_waiting` while a place waits on its list or is called to it, else null. `private.assert_table_empty` refuses with the same reasons (RVSTD, RVWTG). |
-| `tableToSeatAt(tables)`, `TableToSeat`, `seatingCallTime(stakeMinutes)` | Where the Live floor's Seat a player seats (decision 0446): the first open table, in floor order, with a free seat and someone on its list; else the first open table with a free seat; else null. And the call time its sheet starts with: the stake's own where it is one of `CALL_TIME_CHOICES`, else 3 hours (decision 0299). |
+| `tableRetireRefusal({ seated, waiting })`, `TableInPlay`, `TableRetireRefusal` | Whether a table may be deactivated or deleted (decision 0466): `players_seated` while anyone sits at it, else `players_waiting` while a place waits on its list or is called to it, else null. `private.assert_table_empty` refuses with the same reasons (RVSTD, RVWTG). |
+| `tableToSeatAt(tables)`, `TableToSeat`, `seatingCallTime(stakeMinutes)` | Where the Live floor's Seat a player seats (decision 0479): the first open table, in floor order, with a free seat and someone on its list; else the first open table with a free seat; else null. And the call time its sheet starts with: the stake's own where it is one of `CALL_TIME_CHOICES`, else 3 hours (decision 0299). |
 
 ### `@rivr/domain/credit`
 
@@ -140,7 +140,7 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 
 | Export | What it does |
 |---|---|
-| `requestTargets(set)`, `DEFAULT_REQUEST_TARGETS`, `REQUEST_TARGET_SECONDS`, `isRequestLate(kind, seconds, targets)`, `FloorRequestKind`, `RequestTargets` | How long a request may wait on the Live floor's panel before its age shows late (decision 0446): the club's setting `floor.request_targets` where set, each side on its own; else a top-up's `TOP_UP_TARGET_SECONDS` and five minutes for a join, more time, a player leaving or one who left owing call time. Late is strictly past the target. |
+| `requestTargets(set)`, `DEFAULT_REQUEST_TARGETS`, `REQUEST_TARGET_SECONDS`, `isRequestLate(kind, seconds, targets)`, `FloorRequestKind`, `RequestTargets` | How long a request may wait on the Live floor's panel before its age shows late (decision 0479): the club's setting `floor.request_targets` where set, each side on its own; else a top-up's `TOP_UP_TARGET_SECONDS` and five minutes for a join, more time, a player leaving or one who left owing call time. Late is strictly past the target. |
 
 ### `@rivr/domain/tds`
 
@@ -184,7 +184,7 @@ Hourly rakeback (#108, decision 0245), in paise. `packages/testing/golden/rakeba
 
 The database's `private.promotion_applies`, `private.promotion_reward` and `private.promotions_to_give` are proved equal on `packages/testing/golden/promotions.json`, and `private.seconds_in_window` on `promotionWindow.json`; `private.evaluate_promotions` puts them together.
 
-**The typed model (console v3; decisions 0436 to 0438).** A promotion's version holds a Reward, Eligibility, Schedule, Limits and Channels (`@rivr/contracts/promotionModel`), in points, bonus chips, spins and perks, never paise. The console builds versions only (decision 0461); the rules above stay for the promotions that still run by a rule, which the engine weighs before the versions.
+**The typed model (console v3; decisions 0470 to 0472).** A promotion's version holds a Reward, Eligibility, Schedule, Limits and Channels (`@rivr/contracts/promotionModel`), in points, bonus chips, spins and perks, never paise. The console builds versions only (decision 0491); the rules above stay for the promotions that still run by a rule, which the engine weighs before the versions.
 
 | Export | What it does |
 |---|---|

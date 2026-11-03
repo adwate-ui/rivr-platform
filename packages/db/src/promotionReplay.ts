@@ -12,7 +12,7 @@ export interface SimulationRun extends PromotionSimulationResult {
 }
 
 /**
- * The terms as if the version had run on the days replayed (decision 0465): from the first of them, with no last day. A
+ * The terms as if the version had run on the days replayed (decision 0495): from the first of them, with no last day. A
  * promotion that starts today or later still shows what last week would have given; its days and times still count.
  */
 function asIfRunning(terms: Terms, from: string): Terms {
@@ -30,7 +30,7 @@ export function simulationOf(replay: unknown, terms: Terms): SimulationRun | nul
 }
 
 /**
- * Last week replayed afresh on a version, for its approver (decision 0465): the database's events weighed here, never the
+ * Last week replayed afresh on a version, for its approver (decision 0495): the database's events weighed here, never the
  * figures stored with the version, which its author's browser sent. It changes nothing.
  */
 export function useLastWeekReplay(versionId: string, terms: Terms | null) {

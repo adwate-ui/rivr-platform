@@ -1,11 +1,11 @@
 /**
- * Finding one's way round the console v3 shell (phase 1, decision 0443) at a desk, as staff do: the rail, its Admin group
+ * Finding one's way round the console v3 shell (phase 1, decision 0476) at a desk, as staff do: the rail, its Admin group
  * folded until opened, a screen's tabs, and the staff member's menu at the header's end.
  */
 import { expect, type Page } from '@playwright/test';
 import { appUrl } from './apps.ts';
 
-/** Opens a console screen by its v3 address (decision 0443), for a staff member signed in by `signInToConsole`. */
+/** Opens a console screen by its v3 address (decision 0476), for a staff member signed in by `signInToConsole`. */
 export async function openConsole(page: Page, path: string) {
   await page.goto(`${appUrl('console')}${path}`);
 }
@@ -31,7 +31,7 @@ export async function openTab(page: Page, screen: string, tab: string) {
   }
 }
 
-/** Opens Settings' Devices tab at the TVs or the tablets, by its v3 address (decision 0443). */
+/** Opens Settings' Devices tab at the TVs or the tablets, by its v3 address (decision 0476). */
 export async function openDevices(page: Page, kind: 'TVs' | 'Tablets') {
   await page.goto(`${appUrl('console')}/settings?tab=devices&part=${kind === 'TVs' ? 'tvs' : 'tablets'}`);
   await expect(page.getByRole('main').getByRole('link', { name: kind, exact: true })).toHaveAttribute('aria-current', 'page');

@@ -14,7 +14,7 @@ export interface SideNavItem {
   /** How many things wait on the screen (#317); shown when above 0 and read as "2 waiting". */
   count?: number | undefined;
   /**
-   * The count asks the staff member to act, such as requests or orders: a solid gold badge (decision 0429). Otherwise the
+   * The count asks the staff member to act, such as requests or orders: a solid gold badge (decision 0463). Otherwise the
    * count is for information, such as feedback tickets, and its badge is muted.
    */
   isActionable?: boolean | undefined;

@@ -93,7 +93,7 @@ test.describe('Kill switch', () => {
     } finally {
       if (frozen) await releaseIfFrozen(browser, first);
       await first.getByRole('link', { name: 'Live floor' }).click();
-      // He owes call time, so he is let go early with a reason (decision 0448), and the seat is freed.
+      // He owes call time, so he is let go early with a reason (decision 0481), and the seat is freed.
       await letGoEarly(first, 'Kunal Mehra', 'Floor decision');
       await expect(first.getByRole('button', { name: /^Seat \d+, Kunal Mehra,/ })).toHaveCount(0);
       await revoke(first, name);

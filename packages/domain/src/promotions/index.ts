@@ -7,7 +7,7 @@ export {
   type PromotionReward,
 } from './promotions.ts';
 export { playedSecondsInWindow, secondsInWindow, type Stint, type TableTime } from './window.ts';
-// The typed model of console v3 (decisions 0436 to 0438), which replaces the rules above as the engine moves to versions.
+// The typed model of console v3 (decisions 0470 to 0472), which replaces the rules above as the engine moves to versions.
 export { cardWords, describePromotion, whoAndWhen, type PromotionNames } from './describe.ts';
 export { isAtEligibleTable, isEligible, isTimeBased, LAPSED_DAYS, NEW_MEMBER_DAYS, type EligibilityContext } from './eligibility.ts';
 export {

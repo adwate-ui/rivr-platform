@@ -20,7 +20,7 @@ export interface RailEntry {
   readonly tabs?: readonly ScreenTab[];
   /** The queues (`staff_queue_counts`) whose waiting add up to the count beside it. */
   readonly counts?: readonly string[];
-  /** The count asks for action (requests, orders): a gold badge (decision 0429); otherwise a muted one. */
+  /** The count asks for action (requests, orders): a gold badge (decision 0463); otherwise a muted one. */
   readonly isActionable?: true;
   /** Signs the staff member out after ten idle minutes (#384): members' records and documents, kill switch, purge. */
   readonly locksWhenIdle?: true;
@@ -46,7 +46,7 @@ export interface HiddenScreen {
 const FLOOR_READERS: readonly Permission[] = ['members.read', 'floor.manage', 'waitlist.manage', 'hands.log', 'dashboards.read', 'promotions.manage'];
 
 // The rail in the order of a club night (console v3, phase 1). A host has no Marketing or Admin: Rewards is for those who
-// run the catalogue or give points, not for handing over (decision 0443).
+// run the catalogue or give points, not for handing over (decision 0476).
 export const RAIL: readonly RailGroup[] = [
   {
     id: 'tonight', label: 'console.rail.groups.tonight', entries: [
@@ -58,7 +58,7 @@ export const RAIL: readonly RailGroup[] = [
       { id: 'door', label: 'console.rail.items.door', href: '/door', icon: 'door', anyOf: [], tabs: [
         { id: 'check-in', label: 'console.rail.items.checkIn', anyOf: ['waitlist.manage'] },
         { id: 'players', label: 'console.rail.items.todaysPlayers', anyOf: ['members.read'] },
-        // Redemptions to hand over at the door, so a host, who has no Marketing (decision 0443), still hands them over.
+        // Redemptions to hand over at the door, so a host, who has no Marketing (decision 0476), still hands them over.
         { id: 'handover', label: 'console.rail.items.handOver', anyOf: ['rewards.hand_over'] },
       ] },
       { id: 'fnb', label: 'console.rail.items.fnb', href: '/fnb', icon: 'food', anyOf: ['fnb.manage', 'fnb.serve'], counts: ['fnb'], isActionable: true },
@@ -103,7 +103,7 @@ export const RAIL: readonly RailGroup[] = [
 ];
 
 /**
- * Every request waiting on the floor, as one list (console v3, decision 0446): the phone's Requests tab. From 768 px they
+ * Every request waiting on the floor, as one list (console v3, decision 0479): the phone's Requests tab. From 768 px they
  * sit beside the Live floor. Top-ups and time requests are among them, so their old addresses open it.
  */
 export const REQUESTS: RailEntry = {

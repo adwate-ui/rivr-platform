@@ -3,7 +3,7 @@
  * floor manager (Auth sends one code a minute to a number), seats Ritika Das in the Private Room, where call time is three
  * hours (#634): her seat's row shows it, and Ritika's Tonight says where she sits, the game and how long she has played,
  * round the call-time ring (decision 0320). From her seat she asks for an hour more, which Harish approves in the
- * requests beside the floor, and for a top-up, which he starts and marks done there (decision 0446). He finds her playing on
+ * requests beside the floor, and for a top-up, which he starts and marks done there (decision 0479). He finds her playing on
  * Today's players (#641); she leaves her seat and, with call time owed, is a Leaving request. Then flow 13: she leaves
  * before her call time, so Harish, an admin, lets her go early with a reason, which frees the seat for the next run. The
  * clock across moves, away time, the completed event and the shortfall are proved in supabase/tests/051_call_time.test.sql,
@@ -78,7 +78,7 @@ test.describe('Call time', () => {
     await expect(player.getByText('Leaving list', { exact: true })).toBeVisible();
     await expect(player.getByText('On the list', { exact: true })).toBeVisible();
 
-    // Flow 13: she owes call time, so the admin lets her go early with one of four reasons (decision 0448), freeing the seat.
+    // Flow 13: she owes call time, so the admin lets her go early with one of four reasons (decision 0481), freeing the seat.
     await (await ritikasRequest(floor, /^Leaving/)).getByRole('button', { name: 'Leave', exact: true }).click();
     const leave = floor.getByRole('dialog', { name: 'Let go before call time' });
     await leave.getByRole('radio', { name: 'Emergency' }).click();

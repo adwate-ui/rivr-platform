@@ -1,4 +1,4 @@
--- One waitlist per table (owner, #777; decision 0433). The seed puts Kabir (202), Naina (203) and Rohan (204) on Table 2's
+-- One waitlist per table (owner, #777; decision 0467). The seed puts Kabir (202), Naina (203) and Rohan (204) on Table 2's
 -- list; Tables 2, 3 and 5 are open at 100/200. Ishaan (211), Vihaan (212) and Mihir (213) have finished the check; 103
 -- Aditya is the floor; 101 Vikram sets up tables. Each table's list has its own order, its own calls and its own count;
 -- the website's count stays one a stake.
@@ -124,7 +124,7 @@ reset role;
 select is((select g.name from public.waitlist_entry e join public.game_table g on g.id = e.table_id join ids on ids.id = e.id where ids.name = 'vihaan'),
   'Table 5', 'Vihaan, found by his membership number, goes on Table 5''s list');
 
--- Where an old waiting place moved (decision 0434): the busiest active table of its stake by players seated now, then the
+-- Where an old waiting place moved (decision 0468): the busiest active table of its stake by players seated now, then the
 -- first in floor order; nowhere for a stake with no table. The floor (103) seats Kabir (202), Ishaan (211), Mihir (213) and Vihaan (212).
 create function pg_temp.moved_to() returns text language sql as $$
   select g.name from public.game_table g where g.id = private.list_table_for('00000000-0000-4000-8000-000000000001',

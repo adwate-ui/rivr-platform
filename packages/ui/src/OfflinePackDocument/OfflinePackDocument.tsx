@@ -30,7 +30,7 @@ export interface OfflinePackTable {
   readonly seats: readonly OfflinePackSeat[];
 }
 
-/** A place on a table's waitlist (decision 0433). */
+/** A place on a table's waitlist (decision 0467). */
 export interface OfflinePackWaiting {
   readonly table: string;
   readonly game: string;

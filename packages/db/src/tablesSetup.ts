@@ -19,7 +19,7 @@ export interface SetupStake {
   readonly straddle: bigint | null;
 }
 
-/** A table (#642): its name, stake and seats, whether it plays now, and whether it is active (decision 0432). */
+/** A table (#642): its name, stake and seats, whether it plays now, and whether it is active (decision 0466). */
 export interface SetupTable {
   readonly id: string;
   readonly name: string;
@@ -35,7 +35,7 @@ export interface SetupTable {
 
 /**
  * Why a setup change was refused. `players_seated` and `players_waiting` are @rivr/domain's tableRetireRefusal reasons
- * (decision 0432); a stake change refused for players seated or waiting is `players_seated`.
+ * (decision 0466); a stake change refused for players seated or waiting is `players_seated`.
  */
 export type TablesFailure = 'not_allowed' | 'invalid' | 'players_seated' | 'players_waiting' | 'seats_taken' | 'paused' | 'unavailable';
 
@@ -46,7 +46,7 @@ const FAILURE_BY_CODE: Readonly<Record<string, TablesFailure>> = {
 
 /**
  * The venue's stakes, smallest first, and its tables in floor order, for the super admin's Tables setup (#642): the inactive
- * ones too, marked, and never a deleted one (decision 0432).
+ * ones too, marked, and never a deleted one (decision 0466).
  */
 export function useTablesSetup(venueId: string) {
   const { client, userId } = useRivrData();
@@ -82,7 +82,7 @@ export function useTablesSetup(venueId: string) {
 const countOf = (tableIds: readonly (string | null)[], tableId: string) => tableIds.filter((id) => id === tableId).length;
 
 /**
- * Who keeps each table in play, for setup to say why a table cannot go before it is asked (decision 0432): the open seat
+ * Who keeps each table in play, for setup to say why a table cannot go before it is asked (decision 0466): the open seat
  * sessions' tables, and each waiting place's table and the table it is called to. Rows the role does not read count as
  * none; the database refuses on its own count either way.
  */
@@ -117,7 +117,7 @@ export interface TableOrder {
 }
 
 /**
- * Adds or changes stakes and tables, and deactivates, reactivates or deletes a table (tables.manage; decision 0432); each a
+ * Adds or changes stakes and tables, and deactivates, reactivates or deletes a table (tables.manage; decision 0466); each a
  * Result, and everything the person reads reloads, as a table leaving or coming back changes the live floor and the lists.
  */
 export function useTablesSetupActions(venueId: string) {

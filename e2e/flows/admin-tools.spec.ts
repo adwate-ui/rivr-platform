@@ -62,7 +62,7 @@ test.describe('Admin tools', () => {
     await expect(history.getByRole('row').filter({ hasText: 'Table 1' })).toHaveCount(0);
     await expect(history.getByRole('row').filter({ hasText: 'Table 3' }).first()).toContainText(/\d+ min|\d+ h/);
 
-    // A time-based bonus (#646): 1,500 bonus chips after three hours in a visit, built as a version (console v3, decision 0437).
+    // A time-based bonus (#646): 1,500 bonus chips after three hours in a visit, built as a version (console v3, decision 0471).
     await page.goto(`${appUrl('console')}/promotions?open=new`);
     await page.getByRole('radiogroup', { name: 'Reward' }).getByRole('radio', { name: 'Hours-played bonus' }).click();
     await page.getByRole('textbox', { name: 'Name members see' }).fill(`Hours bonus ${RUN}`);

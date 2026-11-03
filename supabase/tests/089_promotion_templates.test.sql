@@ -1,5 +1,5 @@
 -- Templates for every scheme in the deck (#85). Every venue has them as drafts; six carry the engine's rule (the
--- four-hour bonus since decision 0164), the rest are cards only. Since decision 0461 those the typed model can say run in
+-- four-hour bonus since decision 0164), the rest are cards only. Since decision 0491 those the typed model can say run in
 -- versions, with Founders' Circle priority, the cab home, and Double and Triple points as points multipliers. 107 Ishita (marketing) submits one and 101, a super admin, approves it (#144); 104 Sana (cashier) may do neither.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -58,7 +58,7 @@ select results_eq(
             ('spin_wheel', 1, 'draft', '{"kind": "free_spin", "spins": 1, "afterMinutes": 240}', '{"perMember": "per_day"}'),
             ('triple_points', 1, 'draft', '{"kind": "points_multiplier", "multiplier": 3}', '{"perMember": "per_visit"}'),
             ('tuesday_bonus', 1, 'draft', '{"kind": "buyin_bonus", "mode": "percent", "percent": 20, "firstNBuyinsPerTable": 5}', '{"perMember": "none"}') $$,
-  'the templates the typed model can say are versions: double and triple points as multipliers (decision 0461)');
+  'the templates the typed model can say are versions: double and triple points as multipliers (decision 0491)');
 select is((select v.eligibility -> 'tiers' ->> 0 from public.promotion_version v where v.id = pg_temp.version_of('founders_priority')),
   (select id::text from public.tier where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Founders'' Circle'),
   'Founders'' Circle priority is for that tier');

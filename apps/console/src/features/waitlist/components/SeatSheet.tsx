@@ -14,7 +14,7 @@ export interface SeatSheetPlace {
 
 interface SeatSheetProps {
   venueId: string;
-  /** The table whose list the place is on (decision 0433): the only table it is seated at. */
+  /** The table whose list the place is on (decision 0467): the only table it is seated at. */
   table: FloorTable;
   place: SeatSheetPlace | null;
   onClose: () => void;

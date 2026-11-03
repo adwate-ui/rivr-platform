@@ -2,7 +2,7 @@
 -- onto the list, in the order the member asked, or removes it; the floor's own adds are on the list at once. A member waits
 -- for one game at a time. Tonight's tables say each game's call time. 211 Ishaan, 212 Vihaan and 213 Mihir have finished
 -- their identity check; 106 Pema is a dealer. The seed puts Kabir, Naina and Rohan on Table 2's list (100/200; a list per
--- table, decision 0433).
+-- table, decision 0467).
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();

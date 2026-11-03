@@ -4,14 +4,14 @@ import { cx } from '../internal/classes.ts';
 
 /**
  * `primary` is the gold filled button: at most one per screen. `secondary` is outlined with a
- * hairline, `text` is a cream text button, `danger` is a red fill for destructive actions. The console (decision 0430)
+ * hairline, `text` is a cream text button, `danger` is a red fill for destructive actions. The console (decision 0464)
  * fills rather than outlines: `subtle`, a faint cream fill, in place of `secondary`; `strong`, a cream fill, for the main
  * action of each item in a list, such as a request's Approve, where gold is kept for the screen's one primary action.
  */
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'subtle' | 'strong' | 'text' | 'danger';
 
 /**
- * `tall`, 54 px, is the player app's one gold action of a step or sheet (decision 0320). The console's (decision 0430):
+ * `tall`, 54 px, is the player app's one gold action of a step or sheet (decision 0320). The console's (decision 0464):
  * `compact`, 36 px at a desk, and `small`, 32 px at a desk for an action inside a row or tile; both keep the 44 px touch
  * target below 1180 px (decision 0282).
  */
@@ -53,7 +53,7 @@ interface ActionButtonProps extends ButtonLookProps {
    * two together in its middle: the Order screen's "Send to the bar" and "2 items" (brief 3.5; owner, 3 Nov).
    */
   aside?: ReactNode;
-  /** A gold dot before the label: a control for what needs the floor, such as the Live floor's Needs you (decision 0429). */
+  /** A gold dot before the label: a control for what needs the floor, such as the Live floor's Needs you (decision 0463). */
   hasDot?: boolean;
   /** A key that does the same on the screen (console v3, from `useShortcut`): its tooltip names it, and it is announced. */
   shortcut?: { readonly key: string; readonly hint: string } | undefined;
@@ -100,7 +100,7 @@ const SIZE: Record<ButtonSize, string> = {
 // A text button sits close to its words; a pill is set smaller, as in the player redesign's prototype.
 const SHAPE: Record<ButtonShape, string> = { rounded: 'rounded-lg text-16', pill: 'rounded-full text-14' };
 
-// The console's sizes set their own corner and type, as in its prototype (decision 0430).
+// The console's sizes set their own corner and type, as in its prototype (decision 0464).
 const CONSOLE_LOOK: Partial<Record<ButtonSize, string>> = { compact: 'rounded-md text-14 px-4', small: 'rounded-md text-13 px-3' };
 
 const PADDING = (variant: ButtonVariant, shape: ButtonShape) => (variant === 'text' ? 'px-3' : shape === 'pill' ? 'px-4' : 'px-5');

@@ -50,7 +50,7 @@ export function PairTvForm({ venueId, venueName, isPractice }: PairTvFormProps) 
         <ModeChips label={t('console.tvs.mode')} value={field.value} onChange={field.onChange} isDisabled={pair.isPending} />
       )} />
       <Inline gap={3}>
-        {/* The part's one gold action (decision 0429). */}
+        {/* The part's one gold action (decision 0463). */}
         <Button variant="primary" isLoading={pair.isPending} onClick={() => void submit()}>{t('console.tvs.pair')}</Button>
       </Inline>
       {pairedName === null ? null : <Text>{t('console.tvs.pairedNow', { name: pairedName })}</Text>}

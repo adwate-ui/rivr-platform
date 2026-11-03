@@ -101,7 +101,7 @@ function outcomeOf(state: VersionState, action: PromotionAction): Transition {
 }
 
 /**
- * The status machine of a promotion's version (decision 0437): draft → awaiting approval → scheduled → live ⇄ paused →
+ * The status machine of a promotion's version (decision 0471): draft → awaiting approval → scheduled → live ⇄ paused →
  * ended. Submitting needs a simulation run on these very terms. Approving needs promotions.approve and someone other
  * than the author (four eyes); it goes live at once when the start day has come, scheduled otherwise, and ends the
  * version that ran before. Rejecting sends it back to draft with a reason. Starting is the clock's, on the start day.

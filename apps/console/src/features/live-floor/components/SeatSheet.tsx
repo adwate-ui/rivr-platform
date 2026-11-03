@@ -21,7 +21,7 @@ export interface SeatSheetProps {
   onClose: () => void;
 }
 
-/** The next names on a table's own list (decision 0433), in order: waiting, not called, not away; four at most. */
+/** The next names on a table's own list (decision 0467), in order: waiting, not called, not away; four at most. */
 function nextOn(board: readonly WaitlistBoardEntry[], tableId: string): WaitlistBoardEntry[] {
   return board.filter((entry) => entry.tableId === tableId && entry.callTableName === null && entry.awayUntil === null)
     .sort((a, b) => a.place - b.place).slice(0, 4);
@@ -127,7 +127,7 @@ function CallTime({ sheet }: { sheet: SeatSheetState }) {
 
 /**
  * Seat a player (console v3): the next names on the table's own list, or a mobile or member number; then the table and
- * seat; then the call time. Seat seats them at once, with Undo (decision 0447).
+ * seat; then the call time. Seat seats them at once, with Undo (decision 0480).
  */
 export function SeatSheet(props: SeatSheetProps) {
   const sheet = useSeatSheet(props);

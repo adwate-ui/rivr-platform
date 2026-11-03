@@ -12,7 +12,7 @@ import { tableMeta } from './placeMeta.ts';
 
 export interface TableWaitlistProps {
   venueId: string;
-  /** The table whose list this is (decision 0433): a place is seated only at it. */
+  /** The table whose list this is (decision 0467): a place is seated only at it. */
   table: FloorTable;
   entries: readonly WaitlistBoardEntry[];
   /** Joins from the app waiting for the floor (#633). */

@@ -18,7 +18,7 @@ test.describe('Sessions', () => {
     await signInToConsole(sahil, '9000000613');
     await seatOnFloor(sahil, { table: 'Table 2', seat: 4, number: '9000000297' });
 
-    // She owes call time, so she is let go early with a reason (decision 0448), and the seat is freed.
+    // She owes call time, so she is let go early with a reason (decision 0481), and the seat is freed.
     await letGoEarly(sahil, 'Rhea Kaul', 'Floor decision');
     await expect(sahil.getByRole('button', { name: /^Seat \d+, Rhea Kaul,/ })).toHaveCount(0);
     await sahil.getByRole('link', { name: 'Door', exact: true }).click();

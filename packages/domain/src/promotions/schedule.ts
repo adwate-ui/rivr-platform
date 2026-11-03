@@ -43,7 +43,7 @@ function overlapMs(opening: readonly [number, number] | null, from: number, to: 
 const isWithin = (opening: readonly [number, number] | null, moment: number) => opening !== null && moment >= opening[0] && moment < opening[1];
 
 /**
- * Whether a moment is in one of the schedule's openings (decision 0438): the one that began this club day, or last
+ * Whether a moment is in one of the schedule's openings (decision 0472): the one that began this club day, or last
  * night's still running past midnight or the 06:00 turnover. An opening is on a listed club day from the start day to
  * the end day; it begins at `from` that club day (02:00 on a Tuesday is the small hours after Tuesday evening) and runs
  * up to, not including, its end. The database's private.is_in_schedule is proved equal on promotionSchedule.json.

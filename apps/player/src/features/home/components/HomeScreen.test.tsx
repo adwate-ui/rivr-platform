@@ -96,7 +96,7 @@ describe('Tonight', () => {
     await screen.findByText('Table 5 · NLH 50/100', {}, LATER);
     const rows = screen.getAllByText(/^Table \d · NLH 50\/100$/).map((name) => name.textContent);
     expect(rows).toEqual(['Table 1 · NLH 50/100', 'Table 5 · NLH 50/100', 'Table 4 · NLH 50/100']);
-    // Each table shows its own list's wait (decision 0433), in its row and in its join sheet.
+    // Each table shows its own list's wait (decision 0467), in its row and in its join sheet.
     expect(screen.getByRole('button', { name: /^Table 5 · NLH 50\/100/ }).textContent).toContain('No wait');
     fireEvent.click(screen.getByRole('button', { name: /^Table 1 · NLH 50\/100.*2 waiting/ }));
     expect((await screen.findByRole('dialog')).textContent).toMatch(/Waiting\s*2/);

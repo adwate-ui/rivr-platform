@@ -1,5 +1,5 @@
 /**
- * Publish a promotion (console v3, phase 7; decision 0437). Tara Bhalla, a floor manager who manages promotions, starts
+ * Publish a promotion (console v3, phase 7; decision 0471). Tara Bhalla, a floor manager who manages promotions, starts
  * a new promotion from the Buy-in bonus template, names it, keeps it to the Private Room every day, simulates it on last
  * week and submits it. Arjun Batra, a super admin and a second person, reviews it and approves it, and it is live:
  * Rhea Sood's Home shows its card, and a buy-in of 10,000 at the Private Room gives her 2,000 bonus chips (20%, capped
@@ -26,7 +26,7 @@ function sql(query: string): string {
 /**
  * A buy-in of 10,000 in cash at the Private Room, as the cage's trigger weighs one: what this promotion gave for it, its
  * chips and version. Another live promotion may give for the same buy-in, such as the seed's Tuesday buy-in bonus on a
- * Tuesday: bonus chips from different promotions stack (decision 0436).
+ * Tuesday: bonus chips from different promotions stack (decision 0470).
  */
 function buyInAtThePrivateRoom(memberId: string, key: string): string {
   sql(`select private.evaluate_promotions('${CLUB}', 'buy_in', jsonb_build_object(

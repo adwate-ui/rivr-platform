@@ -1,4 +1,4 @@
--- The Live floor live (decision 0446): what the floor shows changing signals the venue's private floor topic, heard by
+-- The Live floor live (decision 0479): what the floor shows changing signals the venue's private floor topic, heard by
 -- its floor only. 103 is a floor manager (admin), 108 a host, 106 a dealer, 107 marketing.
 begin;
 create extension if not exists pgtap with schema extensions;

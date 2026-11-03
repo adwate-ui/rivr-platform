@@ -1,11 +1,11 @@
--- One waitlist per table (owner, #777; console v3 Phase 3; decision 0433, which replaces 0321's list per stake). Each
+-- One waitlist per table (owner, #777; console v3 Phase 3; decision 0467, which replaces 0321's list per stake). Each
 -- table has its own list, with its own order and priority: a place is on its table's list (waitlist_entry.table_id), and
 -- the stake (table_type_id) stays for priority, events and the website's counts. The member joins a chosen table's list;
 -- the floor adds to a table's list, and calls and assigns a place only to its own table; the TV shows a list per table.
 
 -- Every waiting place moves to the busiest active table of its stake: the most seated now, then the first in floor order,
 -- then the table it was called to or asked for. A stake with no active table keeps its places on its first table in floor
--- order; a place whose stake has no table at all has no list left, and leaves it (decisions 0433, 0434). A function of its
+-- order; a place whose stake has no table at all has no list left, and leaves it (decisions 0467, 0468). A function of its
 -- own, so pgTAP proves the choice (292).
 create function private.list_table_for(p_venue_id uuid, p_table_type_id uuid, p_call_table_id uuid, p_asked_table_id uuid)
 returns uuid
@@ -35,7 +35,7 @@ alter table public.waitlist_entry
   add constraint waitlist_entry_table_fkey foreign key (table_id, venue_id) references public.game_table (id, venue_id),
   add constraint waitlist_entry_waits_at_a_table check (status <> 'waiting' or table_id is not null);
 create index waitlist_entry_table_list_idx on public.waitlist_entry (table_id, joined_at) where status = 'waiting';
-comment on column public.waitlist_entry.table_id is 'The table whose list the place is on (decision 0433); before 7 Nov 2026, the table asked for.';
+comment on column public.waitlist_entry.table_id is 'The table whose list the place is on (decision 0467); before 7 Nov 2026, the table asked for.';
 
 -- Ranked a table at a time: by the priority weight of the place's stake, then join time. As 20261101150000_night_ends_clean.sql
 -- made it, partitioned by the table and saying which. Callers still pass the stakes whose tables they read.
@@ -87,7 +87,7 @@ begin
     end if;
     return v_replay.id;
   end if;
-  -- Held against the table being deactivated or deleted meanwhile (decision 0432).
+  -- Held against the table being deactivated or deleted meanwhile (decision 0466).
   select * into v_table from public.game_table g where g.id = p_table_id and g.venue_id = v_venue_id and g.active for key share;
   if v_table.id is null then
     raise exception 'No such table at this venue' using errcode = '22023';

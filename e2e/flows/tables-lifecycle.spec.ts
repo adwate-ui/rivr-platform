@@ -1,5 +1,5 @@
 /**
- * Tables come and go (console v3, Phase 6; decision 0432). Priya Nath, this flow's own super admin, adds a table of the
+ * Tables come and go (console v3, Phase 6; decision 0466). Priya Nath, this flow's own super admin, adds a table of the
  * run's own on Tables setup, deactivates it (gone from the live floor and every live read, its row kept), reactivates it
  * (back, closed), is refused deleting it while a place waits on its list, then deletes it once the list is empty: setup no
  * longer lists it and its row stays for reports. The rules and refusals are proved in supabase/tests/291_table_lifecycle

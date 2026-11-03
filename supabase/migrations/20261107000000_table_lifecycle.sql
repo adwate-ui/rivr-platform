@@ -1,4 +1,4 @@
--- Tables come and go (console v3, Phase 6; decision 0432). The super admin (tables.manage) deactivates a table, which
+-- Tables come and go (console v3, Phase 6; decision 0466). The super admin (tables.manage) deactivates a table, which
 -- hides it from everything live (the live floor, the waitlists, the player app, the TVs, the website) and keeps its
 -- history; reactivates it, closed; or deletes it for good, keeping its history rows for reports. Neither while anyone
 -- sits at the table (RVSTD) or waits on its list (RVWTG): the reasons @rivr/domain's tableRetireRefusal gives.
@@ -10,8 +10,8 @@ alter table public.game_table
   add constraint game_table_deleted_inactive check (deleted_at is null or not active),
   add constraint game_table_inactive_closed check (active or not is_open);
 
-comment on column public.game_table.active is 'False once the super admin deactivates the table: hidden from everything live, its history kept (decision 0432).';
-comment on column public.game_table.deleted_at is 'When the super admin deleted the table, for good: setup no longer lists it; reports keep it (decision 0432).';
+comment on column public.game_table.active is 'False once the super admin deactivates the table: hidden from everything live, its history kept (decision 0466).';
+comment on column public.game_table.deleted_at is 'When the super admin deleted the table, for good: setup no longer lists it; reports keep it (decision 0466).';
 grant select (active, deleted_at) on public.game_table to authenticated;
 
 -- Members see the active tables only; staff see every table not deleted, as setup lists the inactive ones.

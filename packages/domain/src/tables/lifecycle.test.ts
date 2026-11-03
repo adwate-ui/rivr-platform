@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { tableRetireRefusal } from './index.ts';
 
-describe('taking a table away (decision 0432)', () => {
+describe('taking a table away (decision 0466)', () => {
   it('may deactivate or delete a table nobody sits at or waits for', () => {
     expect(tableRetireRefusal({ seated: 0, waiting: 0 })).toBeNull();
   });

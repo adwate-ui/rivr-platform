@@ -34,7 +34,7 @@ function confirmOf(owes: boolean, canLetGo: boolean): { label: MessageKey; varia
 /**
  * Leave (console v3). With the call time met, or none: Yes, they leave, with Undo. Owing, staff with the override pick
  * one of Emergency, Unwell, Table broke or Floor decision, which is written to the member's record with their name, and
- * let the player go early (not undone, decision 0448); other floor staff free the seat owing, with Undo (decision 0306).
+ * let the player go early (not undone, decision 0481); other floor staff free the seat owing, with Undo (decision 0306).
  */
 export function LeaveSheet({ leaver, canLetGo, changes, onClose }: LeaveSheetProps) {
   const [reason, setReason] = useState<MessageKey | null>(null);

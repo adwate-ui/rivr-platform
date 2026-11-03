@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 export const requestKey = (request: FloorRequest) => `${request.kind}:${request.id}`;
 
 /**
- * Requests that arrived since the last read, each for as long as its gold tint fades (decision 0431); `onArrive` hears of
+ * Requests that arrived since the last read, each for as long as its gold tint fades (decision 0465); `onArrive` hears of
  * them, so a folded panel opens. The first read brings nothing new.
  */
 function useFreshKeys(requests: readonly FloorRequest[] | undefined, onArrive: () => void): ReadonlySet<string> {

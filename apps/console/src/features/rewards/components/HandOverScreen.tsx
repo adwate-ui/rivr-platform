@@ -5,7 +5,7 @@ import { RedemptionList } from './RedemptionList.tsx';
 
 /**
  * The Door's Hand over tab (console v3, the coordinator's ruling for the owner): members' redemptions to hand over, for
- * staff with rewards.hand_over, so a host, who has no Marketing (decision 0443), still hands them over at the door.
+ * staff with rewards.hand_over, so a host, who has no Marketing (decision 0476), still hands them over at the door.
  */
 export function HandOverScreen() {
   const staff = useStaffVenue();

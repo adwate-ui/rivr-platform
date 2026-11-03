@@ -41,7 +41,7 @@ const ICONS = {
   addTime: ['M4 13A8 8 0 1 0 20 13A8 8 0 1 0 4 13Z', 'M12 9V13L15 15', 'M10 2.5H14'],
   leave: ['M14 4H19V20H14', 'M10 8L6 12L10 16', 'M6 12H15'],
   arrowRight: ['M5 12H19', 'M13 6L19 12L13 18'],
-  // The console v3 rail and tab bar (decision 0431), from its prototype's 16 px icons at one and a half times. The rail's
+  // The console v3 rail and tab bar (decision 0465), from its prototype's 16 px icons at one and a half times. The rail's
   // other screens reuse the set: food and drink `food`, members `profile`, the host queue `phone`, rewards `rewards`, the
   // kill switch `alert`, folding the rail `chevronLeft` and `chevronRight`; More is `overflow`.
   floor: ['M3 7.5H21V16.5H3Z', 'M7.5 12H16.5'],

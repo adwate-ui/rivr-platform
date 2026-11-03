@@ -4,8 +4,8 @@ import { Screen } from '@rivr/ui';
 import { WaitlistLists } from './WaitlistLists.tsx';
 
 /**
- * Lists, the Waitlist's first tab (console v3): a card for each table's own list (decision 0433), for staff with
- * waitlist.manage. The frame holds the tabs (`?tab=lists`, `?tab=interest`, decision 0443).
+ * Lists, the Waitlist's first tab (console v3): a card for each table's own list (decision 0467), for staff with
+ * waitlist.manage. The frame holds the tabs (`?tab=lists`, `?tab=interest`, decision 0476).
  */
 export function WaitlistScreen() {
   const staff = useStaffVenue();

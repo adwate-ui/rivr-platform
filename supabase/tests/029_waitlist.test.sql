@@ -1,4 +1,4 @@
--- The waitlist (#38), a list per table (decision 0433). The seed puts Kabir (202), Naina (203) and Rohan (204) on Table 2's
+-- The waitlist (#38), a list per table (decision 0467). The seed puts Kabir (202), Naina (203) and Rohan (204) on Table 2's
 -- list (100/200) in that order; Table 1 (50/100) has nobody. 201 Arjun and 209 Tara are members; 103 Aditya is the floor (waitlist.manage);
 -- 106 Pema is a dealer and 109 the investor (owner_view); 301 is a member of the practice venue. A join from the app
 -- is a request the floor approves (#633), and a member waits for one game at a time; 211 Ishaan waits for none.

@@ -18,7 +18,7 @@ describe('PickList', () => {
     expect(screen.getByText('2')).toBeInTheDocument();
   });
 
-  it('marks the item open as current, on the chosen fill with a cream edge, never gold (decision 0429)', () => {
+  it('marks the item open as current, on the chosen fill with a cream edge, never gold (decision 0463)', () => {
     renderIn(<PickList label="Checks" groups={CHECKS} current="r2" onPick={vi.fn()} emptyText="Nothing to check." />);
     expect(screen.getByRole('button', { name: 'Naina Kapoor' })).toHaveAttribute('aria-current', 'true');
     expect(screen.getByRole('button', { name: 'Naina Kapoor' })).toHaveClass('bg-selected', 'border-content');

@@ -22,7 +22,7 @@ export interface JoinRequestRowProps {
 }
 
 /**
- * A member asking from the app to join a table's waitlist (console v3): a gold dot (it needs the floor, decision 0429), who
+ * A member asking from the app to join a table's waitlist (console v3): a gold dot (it needs the floor, decision 0463), who
  * and what they ask, then Approve filled and Decline in words, on a faint gold band above the table's list.
  */
 export function JoinRequestRow({ name, note, approve, decline }: JoinRequestRowProps) {

@@ -1,5 +1,5 @@
 /**
- * Copy that @rivr/ui's console v3 components show themselves (decision 0431): the shell, its search, sheets, the floor's
+ * Copy that @rivr/ui's console v3 components show themselves (decision 0465): the shell, its search, sheets, the floor's
  * tiles and rows, and the controls the console's screens share. Read as `ui.console.*`.
  */
 export const consoleUi = {

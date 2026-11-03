@@ -3,7 +3,7 @@ import { seatingCallTime, tableToSeatAt } from './index.ts';
 
 const table = (name: string, isOpen: boolean, openSeats: number, waiting: number) => ({ name, isOpen, openSeats, waiting });
 
-describe('where Seat a player seats (decision 0446)', () => {
+describe('where Seat a player seats (decision 0479)', () => {
   it('picks the first open table with a free seat and someone waiting', () => {
     const tables = [table('Table 1', true, 2, 0), table('Table 2', true, 0, 4), table('Table 3', true, 1, 2), table('Table 5', true, 3, 1)];
     expect(tableToSeatAt(tables)?.name).toBe('Table 3');

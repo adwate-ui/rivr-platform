@@ -34,7 +34,7 @@ describe('TableTile', () => {
     expect(screen.getByText('Show seats')).toBeInTheDocument();
   });
 
-  it('rings a tile that needs the floor in gold, and no other (decision 0429)', () => {
+  it('rings a tile that needs the floor in gold, and no other (decision 0463)', () => {
     const { rerender } = renderTile();
     expect(screen.getByRole('group')).toHaveClass('inset-ring-gold-edge');
     rerender(<TableTile name="Table 1" stake="50/100" seats={['seated', 'open']} isExpanded={false} onToggle={vi.fn()} onSettings={vi.fn()} />);

@@ -1,4 +1,4 @@
--- The engine on versions (console v3 phase 7; decisions 0436 to 0438): a live version's limits and budget, held in the
+-- The engine on versions (console v3 phase 7; decisions 0470 to 0472): a live version's limits and budget, held in the
 -- database. Each block puts one version live at Gurugram and weighs events for the seed's members: buy-ins at Tables 3
 -- and 5, check-ins and a sign-up. The engine's twins are proved on the golden files (024_golden_twins); this proves
 -- they are put together as the domain does, and that the unique period key holds a member's limit.
@@ -6,7 +6,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
--- The seed's live promotions back to drafts (decision 0461): only this test's own give.
+-- The seed's live promotions back to drafts (decision 0491): only this test's own give.
 update public.promotion_version set status = 'draft' where status = 'live';
 select private.sync_promotion(id) from public.promotion where current_version is not null;
 update public.promotion set status = 'draft' where status = 'live';

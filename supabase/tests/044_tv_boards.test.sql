@@ -1,5 +1,5 @@
 -- TV boards (#65): a paired TV reads its own venue's waitlist board while it shows it (players as
--- first name and initial, in the floor's order, a list per open table, decision 0433) and its jackpot with tonight's high
+-- first name and initial, in the floor's order, a list per open table, decision 0467) and its jackpot with tonight's high
 -- hand; nobody else reads them; the database broadcasts on the venue's private topic when what a
 -- board shows changes, and only the venue's TVs may hear it. The seed has Kabir Sethi, Naina Kapoor
 -- and Rohan Bhatia waiting on Table 2's list (100/200), nobody at Table 1 (50/100), and a main pool of ₹3,42,600, in

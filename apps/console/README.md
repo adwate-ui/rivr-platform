@@ -21,7 +21,7 @@ src/
   router.tsx          every route, in one list
   routes/             one file per URL; renders a feature's screen and nothing else
   features/<name>/    components/ and hooks/, imported only through index.ts
-    frame/            the app's shell (console v3, decision 0443): staff only; the rail for the role (Tonight, Players,
+    frame/            the app's shell (console v3, decision 0476): staff only; the rail for the role (Tonight, Players,
                       Marketing, Admin folded), the phone's tab bar; the header's search, counts, clock and the staff
                       member's menu (density, practice venue, shortcuts, sign out); the practice venue's stripe; the
                       kill-switch banner; refusals under the screen's name; ScreenTabs for a screen that holds others
@@ -32,7 +32,7 @@ src/
                       /academy); the payments the cage checks against the bank (/academy/payments)
     live-floor/       the room plan and each table's seats (/): seat, move, away, leaving, top-ups and a player's call time (#638);
                       joins waiting for approval, and tonight's top-ups by table with the time each took (#639)
-    waitlist/         the Waitlist's Lists tab (/waitlist?tab=lists; decisions 0433, 0435): a card for each open table's own list, and a closed one while someone waits on it, with Open table once enough wait; joins from the app to approve or decline (#633); each place's Seat (the seat sheet at its table), Hold place or Release and Remove; the bulk bar; add by mobile or member number
+    waitlist/         the Waitlist's Lists tab (/waitlist?tab=lists; decisions 0467, 0469): a card for each open table's own list, and a closed one while someone waits on it, with Open table once enough wait; joins from the app to approve or decline (#633); each place's Seat (the seat sheet at its table), Hold place or Release and Remove; the bulk bar; add by mobile or member number
     pot-data/         every hand by table, dealer, variant and the club's days, for the super admin (/pot-data)
     dealers/          the rotation board, and each dealer's hours, hands, rake, variance and tip-pool share by time dealt (/dealers)
     fnb/              food and drink for staff who run F&B (#123), Service's whole role (#640): Orders in three lanes, to accept, being prepared and delivered tonight, each with its time; a KOT the bar printer missed, as its outbox delivery says, to print or read to the bar and mark handed over; New order, the table then the seat, paid or comp; the Menu tab, by kind, an item at a time or from a CSV (#799) (/fnb?tab=orders|menu, console v3)
@@ -78,10 +78,10 @@ src/
                       bounties, balancing, the room, buys in cash for a cashier), payouts (the places' shares,
                       the finish, deals, what was paid), tournaments from templates, templates, and blind
                       structures with the calculator (/tournaments; #115 to #121, #149)
-    promotions/       the list by status with each count, Pause or Resume (Undo) and Edit or Review; the builder in five numbered sections from a template, beside the one-line summary, the TV slide, last week's simulation, Save draft and Submit for approval, which waits for a simulation on the terms as they stand; and the approver's view, the builder read only with what the waiting version changes, Approve (never the author's own) or Reject with a reason. Editing a running promotion drafts its next version (/promotions, ?open=new or ?open=<id>; console v3, decisions 0437, 0464 to 0466). |
+    promotions/       the list by status with each count, Pause or Resume (Undo) and Edit or Review; the builder in five numbered sections from a template, beside the one-line summary, the TV slide, last week's simulation, Save draft and Submit for approval, which waits for a simulation on the terms as they stand; and the approver's view, the builder read only with what the waiting version changes, Approve (never the author's own) or Reject with a reason. Editing a running promotion drafts its next version (/promotions, ?open=new or ?open=<id>; console v3, decisions 0471, 0494 to 0496). |
 ```
 
-Staff sign in at `/sign-in`; everyone else is sent there. The console works in one venue at a time, the club unless the staff member turns on "Practice venue", and every screen reads and writes for that venue through `useStaffVenue()` from `@rivr/db`. A screen adds its rail entry, with the permissions that may see it and its tabs, in `features/frame/components/railEntries.ts`; a hidden one (decision 0284) goes in its `HIDDEN` list. An old address that moved redirects from its own route file to its screen and tab. The practice venue's switch, and the staff member's density (decision 0442), are in their menu at the header's end.
+Staff sign in at `/sign-in`; everyone else is sent there. The console works in one venue at a time, the club unless the staff member turns on "Practice venue", and every screen reads and writes for that venue through `useStaffVenue()` from `@rivr/db`. A screen adds its rail entry, with the permissions that may see it and its tabs, in `features/frame/components/railEntries.ts`; a hidden one (decision 0284) goes in its `HIDDEN` list. An old address that moved redirects from its own route file to its screen and tab. The practice venue's switch, and the staff member's density (decision 0475), are in their menu at the header's end.
 
 Everything visible comes from `@rivr/ui`, every word from `@rivr/i18n`, every read through `@rivr/db`. A route imports only features, and a feature never imports another feature; `pnpm lint:deps` fails either (`.claude/rules/apps.md`).
 

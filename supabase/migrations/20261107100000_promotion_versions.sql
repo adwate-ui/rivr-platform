@@ -1,4 +1,4 @@
--- Promotions in versions (console v3 phase 7; decisions 0436 to 0438, 0461). A promotion keeps its row; what it gives,
+-- Promotions in versions (console v3 phase 7; decisions 0470 to 0472, 0491). A promotion keeps its row; what it gives,
 -- to whom, when, how often and where it shows now live in its versions, typed as @rivr/contracts promotionModel has
 -- them. A version is drafted, submitted, approved by another person and run; editing a running one drafts the next,
 -- and the running one goes on until that is approved. `promotion` keeps a copy of its current version's words and
@@ -132,7 +132,7 @@ create table public.promotion_version (
   -- The card's words, from describePromotion: what it gives, and who and when.
   detail text check (detail is null or length(btrim(detail)) between 1 and 200),
   runs text check (runs is null or length(btrim(runs)) between 1 and 120),
-  -- Who last changed the draft, who submitted it (its author, decision 0437) and who approved or rejected it.
+  -- Who last changed the draft, who submitted it (its author, decision 0471) and who approved or rejected it.
   edited_by_staff_id uuid references public.staff (id),
   author_staff_id uuid references public.staff (id),
   submitted_at timestamptz,
@@ -182,7 +182,7 @@ alter table public.promotion
   drop constraint promotion_status_check,
   add constraint promotion_status_check check (status in ('draft', 'pending', 'scheduled', 'live', 'paused', 'ended'));
 
--- A grant's version, the period it counts in (decision 0437), and what it gave in chips, spins or a perk; a rule's grant
+-- A grant's version, the period it counts in (decision 0471), and what it gave in chips, spins or a perk; a rule's grant
 -- (before versions) has its rule instead. Spins are taken one at a time at the wheel.
 alter table public.promotion_grant
   add column promotion_version_id uuid,

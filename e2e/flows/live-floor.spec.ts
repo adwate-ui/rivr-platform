@@ -1,5 +1,5 @@
 /**
- * Live floor (console v3, phase 2; decision 0446). Meera Chopra, this flow's own floor manager (Auth sends one code a
+ * Live floor (console v3, phase 2; decision 0479). Meera Chopra, this flow's own floor manager (Auth sends one code a
  * minute to a number), opens the live floor: the active tables room by room, each a tile with its stake and seat bar,
  * Table 4 closed with Open table; Summary or Seats; Needs you; Seat a player, the one gold button; the requests docked
  * beside; a table's ⋯ opens its sheet. No rake and no rupee show (#626, decision 0284).

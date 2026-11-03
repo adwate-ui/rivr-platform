@@ -50,7 +50,7 @@ const rowOf = (name: string) => {
   return row;
 };
 
-describe('tables setup: deactivate, reactivate and delete (decision 0432)', () => {
+describe('tables setup: deactivate, reactivate and delete (decision 0466)', () => {
   it('says where each table stands: seated at an open one, closed tonight, or inactive and hidden', () => {
     renderTables();
     expect(rowOf('Table 1').textContent).toContain('Active · 7 seated');

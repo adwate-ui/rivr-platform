@@ -21,7 +21,7 @@ const shownOf = (value: 'all' | readonly string[]) => (value === 'all' ? [ALL] :
 
 /**
  * 2 · Who qualifies: stakes, tiers and which members. Women members is offered only to a version that already names them:
- * the club records no gender, so it matches nobody (decisions 0438 and 0464).
+ * the club records no gender, so it matches nobody (decisions 0472 and 0494).
  */
 export function WhoSection({ section, stakes, tiers }: { section: SectionProps; stakes: readonly PromotionStake[]; tiers: readonly VenueTier[] }) {
   const { form, onChange } = section;

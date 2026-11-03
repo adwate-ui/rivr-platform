@@ -1,5 +1,5 @@
 /**
- * The console's Promotions (console v3, phase 7; decisions 0437 and 0461 to 0466): the list by status, the builder in
+ * The console's Promotions (console v3, phase 7; decisions 0471 and 0491 to 0496): the list by status, the builder in
  * five sections with its summary column, and the approver's view of a waiting version. Points, bonus chips, spins and
  * perks, never rupees (decision 0284).
  */
@@ -21,7 +21,7 @@ export const promotions = {
     newVersionWaits: 'New version awaits approval',
     newVersionDraft: 'New version in draft',
     sentBack: 'Sent back',
-    /** A promotion still run by its rule (decision 0461): its card and Pause only. */
+    /** A promotion still run by its rule (decision 0491): its card and Pause only. */
     cardOnly: 'Card only',
     pause: 'Pause',
     resume: 'Resume',
@@ -152,7 +152,7 @@ export const promotions = {
     saveDraft: 'Save draft',
     submit: 'Submit for approval',
   },
-  /** Last week replayed on the terms as they stand (decision 0437): submitting waits for it. */
+  /** Last week replayed on the terms as they stand (decision 0471): submitting waits for it. */
   simulation: {
     heading: 'Last week, if it had run',
     simulate: 'Simulate',
@@ -164,16 +164,16 @@ export const promotions = {
     timesGiven: 'times given',
     measures: { points: 'extra points', chips: 'bonus chips', spins: 'spins', perks: 'perks' },
     budgetReached: 'The budget would have run out.',
-    /** The approver's view replays last week afresh (decision 0465). */
+    /** The approver's view replays last week afresh (decision 0495). */
     replaying: 'Replaying last week.',
     failed: 'Not loaded. Try again.',
   },
-  /** The approver's view of a waiting version against the running one (four eyes, decision 0437). */
+  /** The approver's view of a waiting version against the running one (four eyes, decision 0471). */
   review: {
     title: 'Review: {name}',
     /** `{version}` waits; `{name}` submitted it at `{time}`. */
     submittedBy: 'Version {version}, submitted by {name}, {time}.',
-    /** A version with no submitter of its own, converted from a rule (decision 0461). */
+    /** A version with no submitter of its own, converted from a rule (decision 0491). */
     waitingVersion: 'Version {version} awaits approval.',
     newPromotion: 'A new promotion. Nothing runs yet.',
     /** What the waiting version changes against the running one, `{parts}` named in order. */

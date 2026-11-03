@@ -198,10 +198,10 @@ export const tablesSetup = {
   tableIncomplete: 'Name the table and choose its stake.',
   /** After a save: `{name}` is the stake or table. */
   saved: '{name} is saved.',
-  /** The tables' status column (decision 0432): `{count}` players seated at an open table. */
+  /** The tables' status column (decision 0466): `{count}` players seated at an open table. */
   statusColumn: 'Status',
   status: { inactive: 'Inactive · hidden from the floor', closed: 'Active · closed tonight', open: 'Active · {count} seated' },
-  /** A table's actions (decision 0432); each `...Name` is the button's name for a screen reader, `{name}` the table. */
+  /** A table's actions (decision 0466); each `...Name` is the button's name for a screen reader, `{name}` the table. */
   deactivate: 'Deactivate',
   deactivateName: 'Deactivate {name}',
   reactivate: 'Reactivate',
@@ -220,7 +220,7 @@ export const tablesSetup = {
   failures: {
     invalid: 'Check the name, the blinds and straddle (whole 50s) and the seats (2 to 10).',
     players_seated: 'Move the players off this table before changing its stake.',
-    /** Deactivating or deleting a table with players on its waitlist (decision 0432). */
+    /** Deactivating or deleting a table with players on its waitlist (decision 0466). */
     players_waiting: 'Take the players off this table’s waitlist first.',
     seats_taken: 'More seats are taken. Free them first.',
     not_allowed: 'Only the super admin sets up tables.',

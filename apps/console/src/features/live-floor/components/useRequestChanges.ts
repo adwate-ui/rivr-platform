@@ -8,7 +8,7 @@ type Join = Extract<FloorRequest, { kind: 'join' }>;
 type TopUp = Extract<FloorRequest, { kind: 'top_up' }>;
 type Time = Extract<FloorRequest, { kind: 'time' }>;
 
-/** A join approved or declined (#633), each undone by the database's own undo (decision 0447). */
+/** A join approved or declined (#633), each undone by the database's own undo (decision 0480). */
 function useJoinChanges(venueId: string) {
   const say = useChangeToast();
   const undo = useFloorUndo(venueId);

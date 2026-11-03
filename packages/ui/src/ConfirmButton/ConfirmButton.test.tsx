@@ -17,7 +17,7 @@ describe('ConfirmButton', () => {
     expect(screen.getByRole('button', { name: 'Leaves: Ritika Das' })).toBeInTheDocument();
   });
 
-  it('on the console, keeps both buttons at a row’s small size, the first a subtle fill (decision 0430)', async () => {
+  it('on the console, keeps both buttons at a row’s small size, the first a subtle fill (decision 0464)', async () => {
     renderIn(<ConfirmButton variant="subtle" size="small" label="Delete" name="Delete Table 3" confirm="Yes, delete Table 3" onConfirm={() => undefined} />);
     expect(screen.getByRole('button', { name: 'Delete Table 3' })).toHaveClass('bg-subtle', 'text-13');
     await userEvent.click(screen.getByRole('button', { name: 'Delete Table 3' }));

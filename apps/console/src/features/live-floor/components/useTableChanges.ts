@@ -4,7 +4,7 @@ import { useChangeToast } from './useChangeToast.ts';
 
 /**
  * The floor managers' changes to a table (floor.manage): open or close it for tonight, and the main table it feeds as a
- * must-move table. Each is undone by the same function with what was there before (decision 0447).
+ * must-move table. Each is undone by the same function with what was there before (decision 0480).
  */
 export function useTableChanges(venueId: string) {
   const say = useChangeToast();

@@ -110,7 +110,7 @@
     }
   }
 
-  /* The practice venue's banner (PracticeBanner; decision 0444): gold and a darker gold in stripes across the console, so
+  /* The practice venue's banner (PracticeBanner; decision 0477): gold and a darker gold in stripes across the console, so
      nobody takes the practice venue for the club. A sign, not decoration: the only stripes anywhere. */
   [data-practice-stripes] {
     background-image: repeating-linear-gradient(
@@ -256,7 +256,7 @@
   }
 }
 
-/* A request just arrived on the console (RequestItem `isNew`, decision 0431): a gold tint that fades over 2.5 s. */
+/* A request just arrived on the console (RequestItem `isNew`, decision 0465): a gold tint that fades over 2.5 s. */
 @layer components {
   [data-fresh] {
     animation: rivr-fresh var(--rivr-motion-duration-fresh) var(--rivr-motion-easing-out);

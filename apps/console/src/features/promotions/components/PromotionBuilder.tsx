@@ -45,7 +45,7 @@ function shownOf(simulation: SimulationOnTerms | null, core: Terms | null): Simu
   return { kind: simulation.terms.reward.kind, result: simulation.result, period };
 }
 
-/** Whether Submit for approval may be pressed: the status machine's own rule, a simulation on these very terms (decision 0437). */
+/** Whether Submit for approval may be pressed: the status machine's own rule, a simulation on these very terms (decision 0471). */
 function maySubmit(simulation: SimulationOnTerms | null, core: Terms | null, actor: Actor): boolean {
   if (simulation === null || core === null) return false;
   return transition({ status: 'draft', authorId: null, terms: core, simulatedTerms: simulation.terms }, { kind: 'submit' }, actor).ok;
@@ -83,7 +83,7 @@ function useBuilder(venueId: string, start: BuilderStart, names: BuilderNames, o
 /**
  * The promotion builder (console v3, phase 7; ConsolePromotions prototype): "Start from" and the name, then five numbered
  * sections, beside a column held in view with the one-line summary, the TV slide, last week's simulation, Save draft and
- * Submit for approval, which waits for a simulation on the terms as they stand (decision 0437).
+ * Submit for approval, which waits for a simulation on the terms as they stand (decision 0471).
  */
 export function PromotionBuilder({ venueId, names, actor, start, onDone }: PromotionBuilderProps) {
   const builder = useBuilder(venueId, start, names, onDone);

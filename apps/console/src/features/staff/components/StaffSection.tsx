@@ -29,7 +29,7 @@ function StaffList({ venueId, permissions }: { venueId: string; permissions: rea
   if (members.isPending) return <Screen level={2} title={title} status="loading" loadingLook="rows" />;
   // A failed refresh keeps what was known, so a job title half typed stays put.
   if (members.data === undefined) return <Screen level={2} title={title} status="error" onRetry={() => void members.refetch()} />;
-  // The screen's one gold action (decision 0429); one button opens and closes the form, so focus stays on it.
+  // The screen's one gold action (decision 0463); one button opens and closes the form, so focus stays on it.
   const add = (
     <Button variant="primary" size="compact" onClick={() => setIsAdding(!isAdding)}>{isAdding ? t('common.close') : t('console.staff.addOpen')}</Button>
   );

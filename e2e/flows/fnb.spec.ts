@@ -123,7 +123,7 @@ test.describe('F&B', () => {
 
     await revoke(page, name);
     await page.getByRole('link', { name: 'Live floor' }).click();
-    // He owes call time, so he is let go early with a reason (decision 0448), and his seat is freed with it.
+    // He owes call time, so he is let go early with a reason (decision 0481), and his seat is freed with it.
     await letGoEarly(page, 'Ishan Mehta', 'Floor decision');
     await expect(page.getByRole('button', { name: /^Seat \d+, Ishan Mehta,/ })).toHaveCount(0);
   });

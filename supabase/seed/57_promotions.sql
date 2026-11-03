@@ -2,7 +2,7 @@
 -- the first five buy-ins per table, on Tuesdays), high hands and referral, published from their
 -- templates (#85) as they stand. A promotion already published (staging, seeded again) is left as the
 -- floor has it, and a venue frozen, or with promotions off, is left alone. Buy-in bonus Tuesday and the
--- referral run in versions (decision 0461): their first version goes live, and the promotion copies it;
+-- referral run in versions (decision 0491): their first version goes live, and the promotion copies it;
 -- high hands, words only, is published as before.
 update public.promotion_version v set status = 'live'
 from public.promotion p

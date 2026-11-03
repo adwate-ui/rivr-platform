@@ -1,4 +1,4 @@
--- Undo on the Live floor (console v3, phase 2; decision 0447). Every change the floor makes shows a toast with Undo for five
+-- Undo on the Live floor (console v3, phase 2; decision 0480). Every change the floor makes shows a toast with Undo for five
 -- seconds, and Undo calls a compensating function here, never a rollback in the browser. Each takes back one change made in
 -- the last two minutes (the toast's five seconds, and the rest a slow network's), by staff who may make it, never while the
 -- venue or member is frozen, and refuses (22023) once anything has moved on from it.
@@ -20,7 +20,7 @@ as $$ select p_at is not null and p_at > now() - interval '2 minutes'; $$;
 -- this, a declined request, or one undone. A floor addition undone is 'undone': it was never asked for.
 alter table public.call_time_request add column minutes_before integer check (minutes_before between 0 and 1440);
 comment on column public.call_time_request.minutes_before is
-  'The seat''s call time in minutes before this request was approved or the floor added it (decision 0447); null otherwise.';
+  'The seat''s call time in minutes before this request was approved or the floor added it (decision 0480); null otherwise.';
 -- The member's own call time before an approval: theirs in their export (decisions 0240 and 0241).
 insert into private.member_export_column (table_name, column_name, kind) values ('call_time_request', 'minutes_before', 'owed');
 alter table public.call_time_request drop constraint call_time_request_status_check;

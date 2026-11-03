@@ -43,7 +43,7 @@ interface TickProps {
   readonly onChange: () => void;
 }
 
-/** A native checkbox in cream (a choice, not gold: decision 0429); the label round it takes the tap, 44 px each way below 1180 px (decision 0282). */
+/** A native checkbox in cream (a choice, not gold: decision 0463); the label round it takes the tap, 44 px each way below 1180 px (decision 0282). */
 export function Tick({ label, isChecked, isMixed, onChange }: TickProps) {
   return (
     <label className="flex min-h-touch min-w-touch cursor-pointer items-center justify-center tablet:min-h-0 tablet:min-w-0">

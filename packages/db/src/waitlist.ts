@@ -6,7 +6,7 @@ import { queryKeys } from './queryKeys.ts';
 // A waitlist place moves as others join and leave: positions refresh every ten seconds.
 const LIVE = 10_000;
 
-/** One active table on tonight's floor (decision 0432), with its game and stakes and how many wait on its own list (decision 0433). */
+/** One active table on tonight's floor (decision 0466), with its game and stakes and how many wait on its own list (decision 0467). */
 export interface FloorTable {
   readonly id: string;
   /** Staff read the tables of every venue they work at: the console shows the selected venue's. */
@@ -23,7 +23,7 @@ export interface FloorTable {
   readonly buyIn: bigint;
   /** A compulsory straddle in paise, as in the Private Room; null where there is none. */
   readonly straddle: bigint | null;
-  /** Members on this table's own list (decision 0433): approved, not still asking (#633). */
+  /** Members on this table's own list (decision 0467): approved, not still asking (#633). */
   readonly waiting: number;
   /** The stake's call time in minutes (#633); 0 where it has none. */
   readonly callTimeMinutes: number;
@@ -52,7 +52,7 @@ export interface WaitlistPlace {
   readonly holdUntil: string | null;
   /** While the member has stepped away: when their place goes; null otherwise. */
   readonly awayUntil: string | null;
-  /** The table whose list the place is on (decision 0433). */
+  /** The table whose list the place is on (decision 0467). */
   readonly tableId: string;
   readonly tableName: string;
   /** When the seat was called: the hold drains from here to holdUntil. */
@@ -78,7 +78,7 @@ export interface WaitlistBoardEntry {
   readonly holdUntil: string | null;
   /** While away (Skip, or the member stepped away): when the place goes. */
   readonly awayUntil: string | null;
-  /** The table whose list the place is on (decision 0433): the floor assigns it only there. */
+  /** The table whose list the place is on (decision 0467): the floor assigns it only there. */
   readonly tableId: string;
   /** When a called member said they were on their way. */
   readonly onWayAt: string | null;
@@ -107,8 +107,8 @@ export function failureOf(error: { code: string }): WaitlistFailure {
 }
 
 /**
- * Tonight's active tables at the venue the person belongs to (decision 0432), in floor order, with each table's waitlist length
- * (decision 0433), its stake's call time, and its open seats.
+ * Tonight's active tables at the venue the person belongs to (decision 0466), in floor order, with each table's waitlist length
+ * (decision 0467), its stake's call time, and its open seats.
  */
 export function useFloorTables() {
   const { client, userId } = useRivrData();
@@ -169,7 +169,7 @@ export function useMyWaitlist() {
 }
 
 /**
- * Joining a table's list from the app (`join_waitlist_at`, feature waitlist.join; decision 0433), stepping away and back, and
+ * Joining a table's list from the app (`join_waitlist_at`, feature waitlist.join; decision 0467), stepping away and back, and
  * leaving it. `joinAt` takes the request id of the tap, so a retried tap joins once. Each resolves to a Result; each reloads
  * the floor and the member's places.
  */
@@ -224,7 +224,7 @@ export function useWaitlistBoard(venueId: string, isEnabled = true) {
 export type FloorWaitlistWho = { readonly phone: string } | { readonly memberNumber: number };
 
 /**
- * The floor adds a member found by their mobile number or membership number to a table's list (decision 0433), or takes a
+ * The floor adds a member found by their mobile number or membership number to a table's list (decision 0467), or takes a
  * place off a list. Both reload the board.
  */
 export function useFloorWaitlistActions(venueId: string) {
@@ -245,7 +245,7 @@ export function useFloorWaitlistActions(venueId: string) {
   const remove = useMutation({
     mutationFn: async (entryId: string): Promise<Result<null, WaitlistFailure>> => {
       const { error } = await client.rpc('leave_waitlist', { p_entry_id: entryId });
-      // The board, and a declined join leaves the floor's requests too (decision 0446).
+      // The board, and a declined join leaves the floor's requests too (decision 0479).
       const user = userId ?? 'signed-out';
       await Promise.all([queryKeys.waitlistBoard(user, venueId), queryKeys.floorRequests(user, venueId)]
         .map((queryKey) => queryClient.invalidateQueries({ queryKey })));
@@ -259,7 +259,7 @@ export function useFloorWaitlistActions(venueId: string) {
 export interface WaitlistRequest {
   readonly entryId: string;
   readonly tableTypeId: string;
-  /** The table whose list the member asked to join (decision 0433). */
+  /** The table whose list the member asked to join (decision 0467). */
   readonly tableId: string;
   readonly memberId: string;
   readonly fullName: string;

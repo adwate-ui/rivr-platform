@@ -16,7 +16,7 @@ function renderItem(extra: Partial<Parameters<typeof RequestItem>[0]> = {}) {
 }
 
 describe('RequestItem', () => {
-  it('keeps a new request\'s tint for the 2.5 s it takes to fade (decision 0431)', () => {
+  it('keeps a new request\'s tint for the 2.5 s it takes to fade (decision 0465)', () => {
     expect(FRESH_MS).toBe(2500);
   });
 
@@ -36,7 +36,7 @@ describe('RequestItem', () => {
     expect(screen.getByRole('button', { name: 'Ritika Bhalla' })).toBeInTheDocument();
   });
 
-  it('fills its one primary action in cream, never gold, and sets the other in words (decision 0429)', () => {
+  it('fills its one primary action in cream, never gold, and sets the other in words (decision 0463)', () => {
     renderItem();
     expect(screen.getByRole('button', { name: 'Approve' })).toHaveClass('bg-cream');
     expect(screen.getByRole('button', { name: 'Approve' })).not.toHaveClass('bg-action');

@@ -1,7 +1,7 @@
 /**
  * TV boards (#65; design prompt TV), signed in once on the console as a floor manager (Pooja Bansal,
  * this flow's own sign-in: Auth sends one code a minute to a number):
- * - a TV is paired on the waitlist board: a list a table (decision 0433), its places as first name and initial;
+ * - a TV is paired on the waitlist board: a list a table (decision 0467), its places as first name and initial;
  * - Kunal Mehra has hidden his name on the TVs in Profile (#326), so when the floor adds him to Table 1's list
  *   the TV shows "Player 1", never his name; he turns it back on and the TV shows "Kunal M.". Kunal is
  *   this flow's own member, as no other flow signs in as him;
@@ -25,13 +25,13 @@ const PLAYER = 'Vihaan Kapoor';
 const HIDDEN = 'Kunal Mehra';
 const LEAVING = 'Nakul Dhillon';
 
-/** The console's card for one table's list (decision 0433), found by its heading (console v3). */
+/** The console's card for one table's list (decision 0467), found by its heading (console v3). */
 function gameList(page: Page, name: string): Locator {
   // The card is the innermost section that holds the heading; the screen's own section holds every card.
   return page.locator('section').filter({ has: page.getByRole('heading', { level: 2, name, exact: true }) }).last();
 }
 
-/** Takes a member's place off the lists from its ⋯ menu, asked first (decision 0435). */
+/** Takes a member's place off the lists from its ⋯ menu, asked first (decision 0469). */
 async function removePlace(floor: Page, name: string) {
   await floor.getByRole('button', { name: `More for ${name}`, exact: true }).first().click();
   await floor.getByRole('menuitem', { name: 'Remove from list' }).click();

@@ -5,7 +5,7 @@ import { toBoardColumn } from './WaitlistMode.tsx';
 
 const STAKE = { stake: 'NLH 100/200', smallBlind: fromPaise(10_000n), bigBlind: fromPaise(20_000n) };
 
-describe('the waitlist board, a list a table (decision 0433)', () => {
+describe('the waitlist board, a list a table (decision 0467)', () => {
   it('heads each column with the table, its stake under it, and its places in order', () => {
     const table: TvTableList = {
       tableId: 't2', name: 'Table 2', ...STAKE, isOpen: true,

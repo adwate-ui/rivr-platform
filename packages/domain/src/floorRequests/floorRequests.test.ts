@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_REQUEST_TARGETS, isRequestLate, REQUEST_TARGET_SECONDS, requestTargets } from './index.ts';
 
-describe('how long a request may wait on the floor (decision 0446)', () => {
+describe('how long a request may wait on the floor (decision 0479)', () => {
   it('gives a top-up its own sixty seconds and the rest five minutes when the club set none', () => {
     expect(REQUEST_TARGET_SECONDS).toBe(300);
     expect(DEFAULT_REQUEST_TARGETS).toEqual({ topUpSeconds: 180, otherSeconds: 300 });

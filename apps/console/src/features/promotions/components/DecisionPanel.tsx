@@ -51,7 +51,7 @@ function useDecision({ venueId, waiting, onDone }: DecisionPanelProps) {
   };
 }
 
-/** What approving does, by the status machine (decision 0437): live at once from its first day, scheduled before it. */
+/** What approving does, by the status machine (decision 0471): live at once from its first day, scheduled before it. */
 function approvalSaid(waiting: PromotionVersionView, actor: Actor): string | null {
   if (waiting.terms === null) return null;
   const state = { status: waiting.status, authorId: null, terms: waiting.terms, simulatedTerms: null };
@@ -63,7 +63,7 @@ function approvalSaid(waiting: PromotionVersionView, actor: Actor): string | nul
 }
 
 /**
- * The approver's decision (four eyes, decision 0437): Approve, which the one who submitted or last changed the version never
+ * The approver's decision (four eyes, decision 0471): Approve, which the one who submitted or last changed the version never
  * has, saying why; and Reject, with the reason and its rule shown before it is sent. Staff without promotions.approve read
  * who approves it.
  */

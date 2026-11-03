@@ -5,7 +5,7 @@ import { toTvCallTimeTables, toTvJackpot, toTvTables } from './tvBoards.ts';
 const STAKE = { table_type_name: 'NLH 100/200', small_blind_paise: 10000, big_blind_paise: 20000 };
 
 describe('the TV boards (#65)', () => {
-  it('groups the waitlist a table at a time (decision 0433), keeping an empty table and each place in order', () => {
+  it('groups the waitlist a table at a time (decision 0467), keeping an empty table and each place in order', () => {
     const tables = toTvTables([
       { table_id: 't1', table_name: 'Table 1', ...STAKE, is_open: true, place: null, display_name: null, call_table_name: null, is_away: null },
       { table_id: 't3', table_name: 'Table 3', ...STAKE, is_open: false, place: 1, display_name: 'Kabir S.', call_table_name: 'Table 3', is_away: false },

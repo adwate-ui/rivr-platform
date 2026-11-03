@@ -16,11 +16,11 @@ export const tv = {
     social_wall: 'Social wall',
     spin_wheel: 'Spin wheel',
   },
-  /** The waitlist board (#65), a list a table (decision 0433). */
+  /** The waitlist board (#65), a list a table (decision 0467). */
   waitlist: {
     title: 'Waitlist',
     empty: 'No one waiting.',
-    /** Under a closed table somebody waits for (decision 0433): `{stake}` as `NLH 100/200`. */
+    /** Under a closed table somebody waits for (decision 0467): `{stake}` as `NLH 100/200`. */
     closed: '{stake} · Closed',
     /** Beside a player called to a seat: `{table}` is the table's name. */
     called: 'Called to {table}',

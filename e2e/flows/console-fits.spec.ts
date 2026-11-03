@@ -1,5 +1,5 @@
 /**
- * Console fits (#601, #605; decisions 0282, 0431, 0443). Rhea Kapur, this flow's own floor manager, opens the console on a
+ * Console fits (#601, #605; decisions 0282, 0465, 0476). Rhea Kapur, this flow's own floor manager, opens the console on a
  * phone, the floor's 1180 px tablet and a desk: on the phone a tab bar holds Floor, Requests, Waitlist, Door and More, whose
  * menu reaches her screens and closes on choosing one; on the tablet the rail folds to its icons by itself and keeps her
  * own choice across a reload; at the desk it shows its labels, and `/` opens the search, which finds a screen by name.

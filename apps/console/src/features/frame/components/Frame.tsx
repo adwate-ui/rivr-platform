@@ -121,7 +121,7 @@ function useStaffShell(staff: ReadyStaff, onIdle: () => void) {
 
 /**
  * Across the top, above everything: the kill switch's banner, the practice venue's stripe on every screen while the
- * console works there (F1-07, decision 0444), so nobody takes it for the club, with the way back; and any prompt.
+ * console works there (F1-07, decision 0477), so nobody takes it for the club, with the way back; and any prompt.
  */
 function FrameBanner({ staff, prompt, location }: { staff: ReadyStaff; prompt: StaffFrameProps['prompt']; location: { pathname: string; search: string } }) {
   const { venueId, permissions, isPractice } = staff.venue;
@@ -177,7 +177,7 @@ function StaffFrame({ staff, prompt, onIdle, children }: StaffFrameProps) {
       tabs={tabs}
       currentItem={railItemAt(pathname)}
       title={refusal?.title}
-      // The Live floor docks its requests at the screen's edge, so it lays out its own gutter (decision 0449).
+      // The Live floor docks its requests at the screen's edge, so it lays out its own gutter (decision 0482).
       isFullBleed={pathname === '/' && refusal === undefined}
       onNavigate={(href) => void navigate({ href })}
       banner={<FrameBanner staff={staff} prompt={prompt} location={{ pathname, search }} />}

@@ -17,7 +17,7 @@ describe('HeaderPulse', () => {
     expect(screen.getByRole('link', { name: '6 requests' })).toBeInTheDocument();
   });
 
-  it('puts a gold dot before a count that needs the staff member while it is above 0 (decision 0429)', () => {
+  it('puts a gold dot before a count that needs the staff member while it is above 0 (decision 0463)', () => {
     const { container, rerender } = renderIn(<HeaderPulse label="Tonight" items={items} />);
     expect(container.querySelectorAll('.bg-action')).toHaveLength(1);
     rerender(<HeaderPulse label="Tonight" items={[{ id: 'requests', count: 0, label: 'requests', href: '#requests', needsYou: true }]} />);

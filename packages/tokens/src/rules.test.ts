@@ -42,7 +42,7 @@ describe('the design inventory', () => {
     const tv = [48, 88, 280];
     // The player app's redesign (decision 0320).
     const player = [32, 40, 72, 160];
-    // The console v3 redesign's body (decision 0428).
+    // The console v3 redesign's body (decision 0462).
     const console = [15];
     expect(sizes.map((token) => px(token.value))).toEqual([...suggested, ...tv, ...player, ...console].sort((a, b) => a - b));
     expect(INVENTORY).toContain('TV scale: 48, 88, 280.');

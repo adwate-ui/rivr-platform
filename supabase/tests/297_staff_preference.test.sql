@@ -1,4 +1,4 @@
--- A staff member's console density (console v3, phase 1; decision 0442). Sana (104) is a cashier at the club and the
+-- A staff member's console density (console v3, phase 1; decision 0475). Sana (104) is a cashier at the club and the
 -- practice venue; Vikram (101) a super admin at both. Each reads and writes only their own rows, at the venue of the record;
 -- nobody else, not even a super admin, reads them; and nothing about them leaves the database.
 begin;
@@ -114,7 +114,7 @@ select throws_ok($$ insert into public.staff_preference (staff_id, venue_id, den
   '42501', null, 'and cannot change the club''s');
 reset role;
 
--- A practice reset and a live purge keep it, as they keep the staff record it belongs to (decision 0442).
+-- A practice reset and a live purge keep it, as they keep the staff record it belongs to (decision 0475).
 select ok(not ('staff_preference' in (select private.practice_reset_tables())), 'the practice reset keeps the practice venue''s densities');
 select ok(not ('staff_preference' in (select private.live_purge_tables())), 'and a live purge keeps the club''s');
 

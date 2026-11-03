@@ -2,7 +2,7 @@
  * Seating (#77; console v3, phase 2). Kiran Bhat, this flow's own floor manager (Auth sends one code a minute to a
  * number), seats Ishaan Verma at Table 5, seat 1 by his mobile number from the seat's own row. She moves him to another
  * table, the table first and then a seat, and takes the move back with Undo. He leaves before his call time is met: Leave
- * asks one of four reasons (decision 0448), kept on his record, and frees the seat. Empty, Table 5 closes for tonight
+ * asks one of four reasons (decision 0481), kept on his record, and frees the seat. Empty, Table 5 closes for tonight
  * from its sheet, and Undo opens it again.
  */
 import { expect, test } from '@playwright/test';

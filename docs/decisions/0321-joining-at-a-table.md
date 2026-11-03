@@ -8,4 +8,4 @@ Date: 3 Nov 2026. The player redesign's join sheet is a table's (brief 3.4 B: "T
 - **From the push.** The Seat ready push's "I'm on my way" opens Tonight at `/?accept=<place>`, which answers at once and cleans the address. It cannot answer from the lock screen without opening the app: a notification holds no sign-in, and the brief's background answer would need a token in the push (phase 2's native shell can do it, decision 0323).
 - **Open.** Whether lists should be a table's own, with their own order, is a question for the owner (#777). Until then a table's "Waiting" in the join sheet is the stake's count.
 
-Superseded where it keeps the list per stake by 0433 (one waitlist per table).
+Superseded where it keeps the list per stake by decision 0467 (one waitlist per table).

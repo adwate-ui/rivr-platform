@@ -1,4 +1,4 @@
--- Undo on the Live floor (decision 0447): each change the floor makes is taken back by a compensating function, for two
+-- Undo on the Live floor (decision 0480): each change the floor makes is taken back by a compensating function, for two
 -- minutes, by staff who may make it, never while frozen, and never once something has moved on. At the club's Table 5:
 -- Ishaan (211), Vihaan (212), Mihir (213), Yash (214), Ritika (215). 103 is a floor manager (admin), 108 a host, 106 a dealer.
 begin;
