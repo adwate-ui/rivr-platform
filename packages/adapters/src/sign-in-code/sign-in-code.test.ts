@@ -58,10 +58,10 @@ describe('sendSignInCode', () => {
     });
 
     /** Sends, lets `ms` of fake time pass, and says what came back and how long after the start it did. */
-    async function sendOver(ms: number, channels: Parameters<typeof sendSignInCode>[0], preferSms = false) {
+    async function sendOver(ms: number, channels: Parameters<typeof sendSignInCode>[0], preferSms = false, keepAlive?: (send: Promise<unknown>) => void) {
       const started = Date.now();
       let endedAfter = Number.POSITIVE_INFINITY;
-      const sending = sendSignInCode(channels, { to, code, preferSms, deadline: started + 1_300 }).then((sent) => {
+      const sending = sendSignInCode(channels, { to, code, preferSms, deadline: started + 1_300, keepAlive }).then((sent) => {
         endedAfter = Date.now() - started;
         return sent;
       });
@@ -75,10 +75,18 @@ describe('sendSignInCode', () => {
       expect(endedAfter).toBeLessThan(1_300);
     });
 
-    it('fails as unavailable, never late, when every channel is silent', async () => {
-      const { sent, endedAfter } = await sendOver(1_400, { whatsapp: hangingWhatsApp, smsOtp: hangingSms }, true);
-      expect(sent).toEqual({ ok: false, error: { code: 'unavailable' } });
-      expect(endedAfter).toBeLessThan(1_400);
+    it('counts the last channel as sent when it is still sending at the deadline, and keeps each late send alive', async () => {
+      const kept: Promise<unknown>[] = [];
+      const { sent, endedAfter } = await sendOver(1_400, { whatsapp: hangingWhatsApp, smsOtp: hangingSms }, true, (send) => kept.push(send));
+      expect(sent).toEqual({ ok: true, value: { channel: 'whatsapp', messageId: 'unknown' } });
+      expect(endedAfter).toBeLessThanOrEqual(1_300);
+      expect(kept).toHaveLength(2);
+    });
+
+    it('counts a late WhatsApp as sent when it is the only channel', async () => {
+      const { sent, endedAfter } = await sendOver(1_400, { whatsapp: hangingWhatsApp });
+      expect(sent).toEqual({ ok: true, value: { channel: 'whatsapp', messageId: 'unknown' } });
+      expect(endedAfter).toBeLessThanOrEqual(1_300);
     });
 
     it('tries no channel once the deadline has passed', async () => {

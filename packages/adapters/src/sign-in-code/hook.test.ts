@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createFakeSmsOtp } from '../sms-otp/index.ts';
 import { createFakeWhatsApp } from '../whatsapp/index.ts';
 import { handleSendSmsHook } from './index.ts';
@@ -83,6 +83,21 @@ describe('handleSendSmsHook', () => {
     smsOtp.failNext({ code: 'rate_limited' });
 
     expect(await handleSendSmsHook(payload, { smsOtp })).toEqual(refusal(429, 'Too many codes were sent. Wait a minute and try again.'));
+  });
+
+  it('lets the app ask for the code when WhatsApp is still sending as Auth\'s time runs out', async () => {
+    vi.useFakeTimers();
+    try {
+      const slowWhatsApp = { sendTemplate: () => new Promise<never>(() => undefined) };
+      const kept: Promise<unknown>[] = [];
+      const replying = handleSendSmsHook(payload, { whatsapp: slowWhatsApp }, undefined, (send) => kept.push(send));
+      await vi.advanceTimersByTimeAsync(5_000);
+
+      expect(await replying).toEqual({ status: 200, body: {} });
+      expect(kept).toHaveLength(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('tells the app the code was not sent when every channel failed', async () => {

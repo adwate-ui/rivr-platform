@@ -41,7 +41,12 @@ export type NoteSignInCodeSend = (to: IndianMobile) => Promise<boolean>;
  * code for a number not on WhatsApp and reports the failure only later (error 131026), so the member
  * asking again is the sign the first never arrived. The code is never logged or stored (decision 0025).
  */
-export async function handleSendSmsHook(payload: unknown, channels: SignInCodeChannels, noteSend?: NoteSignInCodeSend): Promise<HookReply> {
+export async function handleSendSmsHook(
+  payload: unknown,
+  channels: SignInCodeChannels,
+  noteSend?: NoteSignInCodeSend,
+  keepAlive?: (send: Promise<unknown>) => void,
+): Promise<HookReply> {
   // Counted from the call, so noting the send comes out of the same 5 seconds Auth waits.
   const deadline = Date.now() + SEND_BUDGET_MS;
   const hook = sendSmsHookSchema.safeParse(payload);
@@ -51,6 +56,6 @@ export async function handleSendSmsHook(payload: unknown, channels: SignInCodeCh
   }
   if (!hook.success) return hookError(400, 'The hook payload is not a sign-in code for an Indian mobile.');
   const preferSms = noteSend ? await noteSend(hook.data.to) : false;
-  const sent = await sendSignInCode(channels, { ...hook.data, preferSms, deadline });
+  const sent = await sendSignInCode(channels, { ...hook.data, preferSms, deadline, keepAlive });
   return sent.ok ? { status: 200, body: {} } : replyTo(sent.error);
 }
