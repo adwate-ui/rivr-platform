@@ -145,6 +145,13 @@ begin
     else
       v_reward := null;
     end if;
+    -- A rule the model cannot say exactly stays on the old path (decision 0461; money audit): more than one grant a member
+    -- in its period, which a version would loosen to no limit, or a monthly budget, which a version's whole-promotion
+    -- budget would spend for good.
+    if coalesce(v_promotion.per_player_limit, 1) > 1
+       or exists (select 1 from public.promotion_budget b where b.promotion_id = v_promotion.id and b.period = 'month') then
+      v_reward := null;
+    end if;
     if v_reward is not null then
       perform private.insert_version_from_rule(v_promotion, v_reward,
         case when v_promotion.template_key = 'founders_priority'

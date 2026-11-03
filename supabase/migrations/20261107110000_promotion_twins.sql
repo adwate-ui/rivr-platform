@@ -192,7 +192,9 @@ as $$
      or (c.points = 0 and c.n = (select min(x.n) from c x where x.points = 0 and x.perk = c.perk));
 $$;
 
--- @rivr/domain periodKey: the period a member's grant counts in, kept unique per promotion and member.
+-- @rivr/domain periodKey: the period a member's grant counts in, kept unique per promotion and member. Days are written
+-- with to_char, never a date's text, so a session's DateStyle cannot change a key and let a second grant past the unique
+-- index (money audit, console v3; 305 proves it).
 create function private.promo_period_key(p_limits jsonb, p_key text, p_at timestamptz, p_visit_id uuid)
 returns text
 language sql
@@ -201,8 +203,8 @@ set search_path = ''
 as $$
   select case p_limits ->> 'perMember'
     when 'per_visit' then 'visit:' || coalesce(p_visit_id::text, p_key)
-    when 'per_day' then 'day:' || private.club_day_of(p_at)
-    when 'per_week' then 'week:' || (private.club_day_of(p_at) - (extract(isodow from private.club_day_of(p_at))::integer - 1))
+    when 'per_day' then 'day:' || to_char(private.club_day_of(p_at), 'YYYY-MM-DD')
+    when 'per_week' then 'week:' || to_char(private.club_day_of(p_at) - (extract(isodow from private.club_day_of(p_at))::integer - 1), 'YYYY-MM-DD')
     when 'once' then 'once'
     else 'event:' || p_key end;
 $$;
