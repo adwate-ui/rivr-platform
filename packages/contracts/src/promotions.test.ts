@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { promotionBuilderSchema, promotionConditionsSchema, promotionEffectSchema } from './promotions.ts';
+import { promotionBuilderSchema, promotionConditionsSchema, promotionEffectSchema, promotionLinkSchema } from './promotions.ts';
 
 describe('promotion schemas (#83)', () => {
   it('takes no conditions, or any of them together', () => {
@@ -58,5 +58,21 @@ describe('promotion schemas (#83)', () => {
     expect(promotionEffectSchema.safeParse({ kind: 'jackpot_payout', pool: 'season', amount_paise: 500_000 }).success).toBe(true);
     expect(promotionEffectSchema.safeParse({ kind: 'message', text: '  ' }).success).toBe(false);
     expect(promotionEffectSchema.safeParse({ kind: 'cocktail' }).success).toBe(false);
+  });
+
+  // Issue 776: a card's link.
+  it('takes a card\'s link only as an https address', () => {
+    expect(promotionLinkSchema.safeParse('https://glaza.example/happy-hour').success).toBe(true);
+    expect(promotionLinkSchema.safeParse('http://glaza.example/').success).toBe(false);
+    expect(promotionLinkSchema.safeParse('javascript:alert(1)').success).toBe(false);
+    expect(promotionLinkSchema.safeParse('https://glaza.example/happy hour').success).toBe(false);
+    // As the database's check: written as https:// exactly, and no host hidden behind a user part or a look-alike letter.
+    expect(promotionLinkSchema.safeParse('https://glaza.example:8443/menu?day=tue#bar').success).toBe(true);
+    expect(promotionLinkSchema.safeParse('Https://glaza.example/').success).toBe(false);
+    expect(promotionLinkSchema.safeParse('https:glaza.example').success).toBe(false);
+    expect(promotionLinkSchema.safeParse('https://rivr.club@evil.example/').success).toBe(false);
+    expect(promotionLinkSchema.safeParse('https://rivr.club‮/').success).toBe(false);
+    expect(promotionLinkSchema.safeParse('https://rіvr.club/').success).toBe(false);
+    expect(promotionLinkSchema.safeParse(`https://glaza.example/${'a'.repeat(500)}`).success).toBe(false);
   });
 });

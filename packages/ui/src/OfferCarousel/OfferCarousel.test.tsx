@@ -19,8 +19,29 @@ describe('OfferCarousel', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(2);
   });
 
+  // Issue 776: a promotion's card may carry a link.
+  it('makes a card with an address a link that opens in a new tab', () => {
+    renderIn(<OfferCarousel title="Tonight" countLabel="1 offer" offers={[
+      { id: 'a', title: 'Happy hour', offer: '2-for-1 at the Glaza bar', href: 'https://glaza.example/happy-hour' },
+    ]} />);
+    const card = screen.getByRole('link', { name: /Happy hour/ });
+    expect(card).toHaveAttribute('href', 'https://glaza.example/happy-hour');
+    expect(card).toHaveAttribute('target', '_blank');
+    expect(card).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('ignores an address that is not https, so the card only says its offer', () => {
+    renderIn(<OfferCarousel title="Tonight" countLabel="1 offer" offers={[{ id: 'a', title: 'Happy hour', offer: '2-for-1', href: 'javascript:alert(1)' }]} />);
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(screen.getByText('2-for-1')).toBeInTheDocument();
+  });
+
   it('has no accessibility violations', async () => {
-    const { container } = renderIn(<OfferCarousel title="Tonight" countLabel="1 offer" offers={[{ id: 'a', title: 'Referral', offer: 'Chips', onOpen: () => undefined }]} />);
+    const { container } = renderIn(<OfferCarousel title="Tonight" countLabel="2 offers" offers={[
+      { id: 'a', title: 'Referral', offer: 'Chips', onOpen: () => undefined },
+      { id: 'b', title: 'Happy hour', offer: '2-for-1', href: 'https://glaza.example/happy-hour' },
+    ]} />);
     expect(await axeViolations(container)).toEqual([]);
   });
 });

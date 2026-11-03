@@ -30,6 +30,9 @@ export const promotions = {
   rulesHint: 'One rule a line.',
   questions: 'Questions on the website',
   questionsHint: 'Question, answer, then a blank line.',
+  /** The card's optional link (#776): the member's card opens it. */
+  link: 'Card link (optional)',
+  invalidLink: 'Not a web address. Start it with https://.',
   when: 'When',
   days: 'Days',
   from: 'From',
@@ -87,6 +90,8 @@ export const promotions = {
     /** The rules and questions it puts on the website (#618), as the public will read them. */
     website: 'On the website',
     question: '{question} {answer}',
+    /** The address its card opens (#776). */
+    link: 'Card opens {link}',
   },
   /** A rule in words (#144): `{when}` is its trigger, `{gives}` what it gives, `{who}` for whom. */
   rule: {

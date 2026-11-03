@@ -1,4 +1,4 @@
-import { promotionBuilderSchema, type PromotionBuilder } from '@rivr/contracts';
+import { promotionBuilderSchema, promotionLinkSchema, type PromotionBuilder } from '@rivr/contracts';
 import {
   usePromotionActions,
   usePromotions,
@@ -14,7 +14,7 @@ import {
 } from '@rivr/db';
 import { promotionDraft } from '@rivr/domain/promotions';
 import { t } from '@rivr/i18n';
-import { Button, DisplayPreview, ErrorMessage, Grid, Heading, Inline, PromotionCard, Screen, Stack, Text, TextArea, TvPromotionSlide, StatusMessage } from '@rivr/ui';
+import { Button, DisplayPreview, ErrorMessage, Grid, Heading, Inline, Input, PromotionCard, Screen, Stack, Text, TextArea, TvPromotionSlide, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { BuilderBlocks } from './BuilderBlocks.tsx';
 import { BuilderBudget, budgetOf, NO_BUDGET, type TypedBudget } from './BuilderBudget.tsx';
@@ -63,9 +63,12 @@ function invalidText(choices: PromotionBuilder): string | null {
 
 const NOT_SIMULATED = { simulation: null, failure: null } as const;
 
-const NO_WORDS = { rules: '', questions: '' };
+const NO_WORDS = { rules: '', questions: '', link: '' };
 
-/** The promotion's rules and questions as the website shows them (#618), each box as promotionWords reads it. */
+/**
+ * The promotion's rules and questions as the website shows them (#618), each box as promotionWords reads it, and the
+ * optional link the member's card opens (#776).
+ */
 function WebWords({ words, isDisabled, onChange }: { words: typeof NO_WORDS; isDisabled: boolean; onChange: (next: typeof NO_WORDS) => void }) {
   return (
     <Stack gap={4}>
@@ -73,8 +76,22 @@ function WebWords({ words, isDisabled, onChange }: { words: typeof NO_WORDS; isD
         onChange={(event) => onChange({ ...words, rules: event.target.value })} />
       <TextArea label={t('console.promotions.questions')} hint={t('console.promotions.questionsHint')} rows={6} value={words.questions} disabled={isDisabled}
         onChange={(event) => onChange({ ...words, questions: event.target.value })} />
+      <Input label={t('console.promotions.link')} type="url" inputMode="url" value={words.link} disabled={isDisabled}
+        onChange={(event) => onChange({ ...words, link: event.target.value })} />
     </Stack>
   );
+}
+
+/** The card's link as typed (#776): null when left empty, the address when promotionLinkSchema takes it, otherwise undefined. */
+function linkOf(typed: string): string | null | undefined {
+  const link = typed.trim();
+  if (link === '') return null;
+  return promotionLinkSchema.safeParse(link).success ? link : undefined;
+}
+
+/** The words the builder submits beside its rule: the website's rules and questions, and the card's link if one was typed. */
+function wordsToSubmit(words: typeof NO_WORDS) {
+  return { ...promotionWords(words.rules, words.questions), link: linkOf(words.link) ?? undefined };
 }
 
 /** The simulation of the choices as they stand (#144): any change clears it, and publishing waits for it. */
@@ -89,8 +106,9 @@ function useSimulation(venueId: string) {
 }
 
 /** What to fix before the builder's promotion is simulated or submitted, or null. */
-function invalidOf(choices: PromotionBuilder, budget: TypedBudget): string | null {
-  return invalidText(choices) ?? (budgetOf(budget) === undefined ? t('console.promotions.invalidBuilderBudget') : null);
+function invalidOf(choices: PromotionBuilder, budget: TypedBudget, words: typeof NO_WORDS): string | null {
+  return invalidText(choices) ?? (budgetOf(budget) === undefined ? t('console.promotions.invalidBuilderBudget') : null)
+    ?? (linkOf(words.link) === undefined ? t('console.promotions.invalidLink') : null);
 }
 
 /** The builder's choices, its words for the website and its budget, with one request id for them, new with any change (A3). */
@@ -117,11 +135,11 @@ function Builder({ venueId, stakes }: { venueId: string; stakes: readonly Promot
   const [outcome, setOutcome] = useState<{ ok: boolean; text: string } | null>(null);
   const [title, detail, runs] = [rewardTitle(choices), rewardDetail(choices), runsText(choices, stakes)];
   const check = (then: () => Promise<void>) => {
-    const invalid = invalidOf(choices, budget);
+    const invalid = invalidOf(choices, budget, words);
     return invalid === null ? then() : Promise.resolve(setOutcome({ ok: false, text: invalid }));
   };
   const submit = async () => {
-    const webWords = promotionWords(words.rules, words.questions);
+    const webWords = wordsToSubmit(words);
     const result = await submitPromotion.mutateAsync({ name: title, detail, runs, draft: promotionDraft(choices), ...webWords, requestId: builder.requestId, budget: budgetOf(budget) ?? null });
     if (result.ok || result.error !== 'unavailable') builder.renew();
     if (result.ok) { builder.reset(); simulation.clear(); }
