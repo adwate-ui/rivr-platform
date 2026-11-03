@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The app's themes inherit Theme.Rivr, generated from the design tokens (packages/tokens). -->
+<resources>
+    <style name="AppTheme" parent="Theme.Rivr" />
+
+    <style name="AppTheme.NoActionBar" parent="Theme.Rivr">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:background">@null</item>
+    </style>
+
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="android:background">@drawable/splash</item>
+    </style>
+</resources>

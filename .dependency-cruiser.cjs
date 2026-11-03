@@ -87,7 +87,7 @@ module.exports = {
   ],
   options: {
     doNotFollow: { path: 'node_modules' },
-    exclude: { path: '(node_modules|dist|storybook-static|android|generated|\\.astro)/' },
+    exclude: { path: '(node_modules|dist|storybook-static|android|ios|generated|\\.astro)/' },
     tsPreCompilationDeps: true,
     tsConfig: { fileName: 'tsconfig.json' },
     enhancedResolveOptions: {

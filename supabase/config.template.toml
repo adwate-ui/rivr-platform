@@ -434,6 +434,14 @@ verify_jwt = false
 [functions.push]
 verify_jwt = false
 
+# The lock-screen live status consumer, run by the scheduler with its secret (decision 0323).
+[functions.live-status]
+verify_jwt = false
+
+# An iPhone reports a Live Activity's token with its own key while the app has no session (decision 0361).
+[functions.live-status-token]
+verify_jwt = false
+
 [functions.meta-conversions]
 verify_jwt = false
 

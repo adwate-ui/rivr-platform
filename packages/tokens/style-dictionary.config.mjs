@@ -54,6 +54,18 @@ const config = {
         { destination: 'themes.xml', format: 'rivr/android-theme' },
       ],
     },
+    // The colours of the player app's iOS Live Activity (decision 0361): SwiftUI colours for the widget extension.
+    ios: {
+      buildPath: `${OUT}ios/`,
+      transforms: ['attribute/cti', 'name/camel', 'color/ColorSwiftUI'],
+      options: { fileHeader: 'rivr' },
+      files: [{
+        destination: 'RivrColors.swift',
+        format: 'ios-swift/any.swift',
+        filter: isColor,
+        options: { className: 'RivrColors', objectType: 'enum', import: ['SwiftUI'] },
+      }],
+    },
     manifest: {
       buildPath: OUT,
       transforms: ['attribute/cti'],

@@ -25,6 +25,7 @@ const IGNORES = [
   'test-results/**',
   'playwright-report/**',
   'apps/*/android/**',
+  'apps/*/ios/**',
   'supabase/.temp/**',
   // Generated files: edit the source (tokens.json, the migrations) and regenerate.
   'packages/tokens/generated/**',
