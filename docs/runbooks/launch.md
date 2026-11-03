@@ -34,3 +34,7 @@ Nothing here touches the club's own venue. The reset refuses any venue that is n
 
 | Date | Environment | Step | By | Result |
 |---|---|---|---|---|
+| 3 Nov 2026 | production | First release, `release-20261103-1` at c8715a5d (go-live moved up from 15 Nov) | Claude, with the owner's leave | Migrations, Edge Functions and the five web apps live on rivrpoker.com; the tablet APK not built (no signing key yet) |
+| 3 Nov 2026 | production | Club venue, two super admins and the alert number (create-a-venue.md) | Claude | Done; legal name, address and GSTIN from the GST certificate |
+| 3 Nov 2026 | production | `release-20261103-3` at f842a8a6 (`-2` stopped on staging's paused promotions) | Claude | The club's number on the website, Privacy without HubSpot, Cashfree's sandbox kept (decision 0421) |
+| 3 Nov 2026 | staging and production | The security review's checks 1 to 5 | Claude | 1, 2 and 5 pass, 3 done, 4 sandbox by decision 0421 (`docs/security/2026-10-review.md`) |
