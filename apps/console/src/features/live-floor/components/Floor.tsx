@@ -1,7 +1,7 @@
 import { tableToSeatAt } from '@rivr/domain/tables';
 import { openSeatsAt, type FloorRequest } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, DockedPanel, Inline, Screen, Segmented, useIsWide } from '@rivr/ui';
+import { Button, DockedPanel, Inline, Screen, Segmented, useIsWide, useShortcut, type ButtonShortcut } from '@rivr/ui';
 import { useCallback, useState } from 'react';
 import { AlsoWaiting } from './AlsoWaiting.tsx';
 import { FloorSheets, useRequestOpeners, type FloorSheet } from './FloorSheets.tsx';
@@ -9,7 +9,6 @@ import { FloorTiles, type FloorView } from './FloorTiles.tsx';
 import { requestActions, type RequestActionsFor } from './requestActions.ts';
 import { RequestList, tableNameOf } from './RequestList.tsx';
 import { useFloorData, useNow, type FloorData } from './useFloorData.ts';
-import { useFloorShortcuts } from './useFloorShortcuts.ts';
 import { useRequestChanges } from './useRequestChanges.ts';
 import { useRequestQueue } from './useRequestQueue.ts';
 import { useSeatChanges } from './useSeatChanges.ts';
@@ -36,23 +35,28 @@ function usePanel() {
 }
 
 /** The screen's controls: Summary or Seats, Needs you, and the one gold button, Seat a player. */
-function FloorControls({ view, onView, isNeedsYouOnly, onNeedsYou, onSeat }: {
-  view: FloorView; onView: (view: FloorView) => void; isNeedsYouOnly: boolean; onNeedsYou: () => void; onSeat: (() => void) | null;
+function FloorControls({ view, onView, isNeedsYouOnly, onNeedsYou, onSeat, seatKey }: {
+  view: FloorView; onView: (view: FloorView) => void; isNeedsYouOnly: boolean; onNeedsYou: () => void; onSeat: (() => void) | null; seatKey: ButtonShortcut;
 }) {
   return (
     <Inline gap={3} wrap>
       <Segmented label={t('console.floor.view')} value={view} onChange={onView}
         options={[{ value: 'summary', label: t('console.floor.summary') }, { value: 'seats', label: t('console.floor.seats') }]} />
       <Button variant="subtle" size="compact" hasDot isPressed={isNeedsYouOnly} onClick={onNeedsYou}>{t('console.floor.needsYou')}</Button>
-      {onSeat === null ? null : <Button variant="primary" size="compact" onClick={onSeat}>{t('console.floor.seatPlayer')}</Button>}
+      {onSeat === null ? null : <Button variant="primary" size="compact" shortcut={seatKey} onClick={onSeat}>{t('console.floor.seatPlayer')}</Button>}
     </Inline>
   );
 }
 
-/** The keys A and D act on the oldest request shown, S opens Seat a player (console v3). */
-function useOldestKeys(oldest: FloorRequest | undefined, forActions: RequestActionsFor, seat: () => void) {
+/**
+ * The floor's keys, through the console's registry (decision 0445): A and D act on the oldest request shown, S opens Seat a
+ * player; each only while there is something to do. Gives back S for Seat a player's tooltip.
+ */
+function useFloorKeys(oldest: FloorRequest | undefined, forActions: RequestActionsFor, seat: (() => void) | null): ButtonShortcut {
   const actions = oldest === undefined ? undefined : requestActions(oldest, forActions);
-  useFloorShortcuts({ approve: () => void actions?.primary.run(), decline: () => void actions?.secondary?.run(), seat });
+  useShortcut({ key: 'a', label: t('console.floor.keys.approve'), onPress: () => void actions?.primary.run(), isEnabled: actions !== undefined });
+  useShortcut({ key: 'd', label: t('console.floor.keys.decline'), onPress: () => void actions?.secondary?.run(), isEnabled: actions?.secondary !== undefined });
+  return useShortcut({ key: 's', label: t('console.floor.seatPlayer'), onPress: () => seat?.(), isEnabled: seat !== null });
 }
 
 /** The floor once read: tiles, the requests panel, the sheets, and the keys A, D and S. */
@@ -68,7 +72,8 @@ function FloorReady({ venueId, permissions, data }: FloorProps & { data: FloorDa
   const seatAny = isFloor ? seatAnyOf(data) : null;
   const { onLeave, onOpen } = useRequestOpeners(data, setSheet);
   const oldest = queue.shown[0];
-  useOldestKeys(oldest, { changes: changes.requests, tableName: tableNameOf(data.tables, oldest?.tableId ?? ''), onLeave }, () => { if (seatAny !== null) setSheet(seatAny); });
+  const openSeat = seatAny === null ? null : () => setSheet(seatAny);
+  const seatKey = useFloorKeys(oldest, { changes: changes.requests, tableName: tableNameOf(data.tables, oldest?.tableId ?? ''), onLeave }, openSeat);
   const requestsPanel = (
     <>
       <RequestList requests={queue.shown} tables={data.tables} targets={data.targets} now={now} fresh={queue.fresh} changes={changes.requests}
@@ -81,7 +86,7 @@ function FloorReady({ venueId, permissions, data }: FloorProps & { data: FloorDa
       panel={requestsPanel} onHoverChange={queue.hold} hasPanel={isFloor}>
       <Screen title={t('console.liveFloor.title')} actions={(
         <FloorControls view={view} onView={setView} isNeedsYouOnly={isNeedsYouOnly} onNeedsYou={() => setNeedsYouOnly(!isNeedsYouOnly)}
-          onSeat={seatAny === null ? null : () => setSheet(seatAny)} />
+          onSeat={openSeat} seatKey={seatKey} />
       )}>
         <FloorTiles tables={data.tables} seats={data.seats} held={data.held} view={view} isNeedsYouOnly={isNeedsYouOnly}
           canOpenTables={permissions.includes('floor.manage')} onPlayer={(player) => setSheet({ kind: 'player', sessionId: player.sessionId })}

@@ -1,6 +1,7 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, StaffVenueProvider } from '@rivr/db';
 import { QueryClient } from '@tanstack/react-query';
 import { createMemoryHistory, createRootRoute, createRoute, createRouter, RouterProvider } from '@tanstack/react-router';
+import { ShortcutProvider, ToastProvider } from '@rivr/ui';
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';
 import type { ComponentType } from 'react';
@@ -107,7 +108,10 @@ export function renderFloorScreen(Screen: ComponentType, api: FloorApi = {}) {
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <StaffVenueProvider><RouterProvider router={router} /></StaffVenueProvider>
+      {/* The frame's own providers: the keys a screen offers, and its toasts with Undo. */}
+      <StaffVenueProvider>
+        <ShortcutProvider><ToastProvider place="console"><RouterProvider router={router} /></ToastProvider></ShortcutProvider>
+      </StaffVenueProvider>
     </RivrDataProvider>,
   );
   return { sent, rpcs: (name: string) => sent.filter((call) => call.rpc === name).map((call) => call.body), router };

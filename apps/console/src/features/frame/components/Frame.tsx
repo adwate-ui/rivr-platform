@@ -177,6 +177,8 @@ function StaffFrame({ staff, prompt, onIdle, children }: StaffFrameProps) {
       tabs={tabs}
       currentItem={railItemAt(pathname)}
       title={refusal?.title}
+      // The Live floor docks its requests at the screen's edge, so it lays out its own gutter (decision 0449).
+      isFullBleed={pathname === '/' && refusal === undefined}
       onNavigate={(href) => void navigate({ href })}
       banner={<FrameBanner staff={staff} prompt={prompt} location={{ pathname, search }} />}
       search={<ConsoleSearch venueId={venueId} permissions={permissions} sections={sections} />}

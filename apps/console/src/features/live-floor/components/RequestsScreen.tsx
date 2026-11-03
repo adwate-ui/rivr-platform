@@ -1,6 +1,6 @@
 import { useStaffVenue } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Screen, Stack, ToastProvider } from '@rivr/ui';
+import { Screen, Stack } from '@rivr/ui';
 import { useState } from 'react';
 import { AlsoWaiting } from './AlsoWaiting.tsx';
 import { FloorSheets, useRequestOpeners, type FloorSheet } from './FloorSheets.tsx';
@@ -53,9 +53,5 @@ function Requests({ venueId, permissions }: RequestsProps) {
 export function RequestsScreen() {
   const staff = useStaffVenue();
   if (staff.status !== 'ready') return null;
-  return (
-    <ToastProvider place="console">
-      <Requests venueId={staff.venue.venueId} permissions={staff.venue.permissions} />
-    </ToastProvider>
-  );
+  return <Requests venueId={staff.venue.venueId} permissions={staff.venue.permissions} />;
 }

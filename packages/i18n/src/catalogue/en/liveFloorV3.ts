@@ -8,6 +8,11 @@ export const floor = {
   seats: 'Seats',
   needsYou: 'Needs you',
   seatPlayer: 'Seat a player',
+  /** What the floor's keys do, in the staff member's list of shortcuts (decision 0445). */
+  keys: {
+    approve: 'Approve the oldest request',
+    decline: 'Decline the oldest request',
+  },
   noneNeedsYou: 'No table needs you.',
   /** A seat's row: its call time left, met, or none; or what its player asks for, in gold. */
   met: 'Done',
