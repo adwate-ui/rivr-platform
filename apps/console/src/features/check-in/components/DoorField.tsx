@@ -1,6 +1,6 @@
 import type { MemberRow } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Box, Button, ErrorMessage, Inline, Input, Stack, StatusMessage, Text, useIsWide } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, Input, Stack, StatusMessage, Text, useIsWide } from '@rivr/ui';
 import { useRef } from 'react';
 import { CHECK_IN_FAILURE_COPY, checkOutRefusalText } from './checkInCopy.ts';
 import { useDoorField, type DoorAction, type DoorOutcome } from './useDoorField.ts';
@@ -40,8 +40,8 @@ function Matches({ matches, action, onChoose }: MatchesProps) {
         {matches.map((row) => (
           <Inline key={row.memberId} gap={4} justify="between">
             <Stack gap={1}>
-              <Text weight="medium">{row.fullName}</Text>
-              <Text variant="small" tone="muted">{t('console.checkIn.memberMeta', { number: row.memberNumber, tier: row.tierName })}</Text>
+              <Text variant="row" weight="medium">{row.fullName}</Text>
+              <Text variant="secondary" tone="muted">{t('console.checkIn.memberMeta', { number: row.memberNumber, tier: row.tierName })}</Text>
             </Stack>
             <Button variant="subtle" size="small" aria-label={t(named, { name: row.fullName })} onClick={() => onChoose(row.memberId)}>{label}</Button>
           </Inline>
@@ -64,15 +64,14 @@ export function DoorField({ venueId }: { venueId: string }) {
   const several = door.outcome?.kind === 'several' ? door.outcome : null;
   // Check out is the field's second action: beside Check in from 768 px, under the field on a phone, so the field keeps its width.
   const isWide = useIsWide('medium');
-  const checkOut = <Button variant="text" onClick={() => press('out')}>{t('console.checkIn.checkOut')}</Button>;
+  const checkOut = <Button variant="text" size="compact" onClick={() => press('out')}>{t('console.checkIn.checkOut')}</Button>;
   return (
     <Stack gap={3}>
-      <Inline gap={3} align="end">
-        <Box grow>
-          <Input ref={field} label={t('console.checkIn.field')} value={door.text} autoComplete="off" autoFocus
-            onChange={(event) => door.type(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') press('in'); }} />
-        </Box>
-        <Button variant="primary" isLoading={door.isBusy} onClick={() => press('in')}>{t('console.checkIn.checkIn')}</Button>
+      {/* The console's filled field beside its button (console v3), its name inside it until something is typed. */}
+      <Inline gap={3}>
+        <Input ref={field} variant="subtle" label={t('console.checkIn.field')} value={door.text} autoComplete="off" autoFocus
+          onChange={(event) => door.type(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') press('in'); }} />
+        <Button variant="primary" size="compact" isLoading={door.isBusy} onClick={() => press('in')}>{t('console.checkIn.checkIn')}</Button>
         {isWide ? checkOut : null}
       </Inline>
       {isWide ? null : <Inline>{checkOut}</Inline>}

@@ -104,6 +104,19 @@ export function checkGroups(checks: readonly KycCheck[]) {
   };
 }
 
+/** The queue as PickList groups (console v3): to review, waiting on the member and refused, each with its count; an empty one is left out. */
+export function queueGroups(checks: readonly KycCheck[]) {
+  const groups = checkGroups(checks);
+  const group = (label: string, list: readonly KycCheck[]) => ({
+    label, count: list.length, items: list.map((check) => ({ id: check.memberId, title: check.fullName, detail: queueLine(check) })),
+  });
+  return [
+    group(t('console.kycReview.waiting'), groups.toReview),
+    group(t('console.kycReview.onMember'), groups.onMember),
+    group(t('console.kycReview.refused'), groups.refused),
+  ];
+}
+
 /** Whether a super admin may reopen this check: a refused one done in person (#267), refused as a duplicate. */
 export function mayReopen(check: KycCheck, isSuperAdmin: boolean): boolean {
   // The database reopens only a duplicate PAN or Aadhaar refusal; under 18 or a reviewer's refusal stays (F1-13).

@@ -1,12 +1,11 @@
 import { useKycReviewQueue, useStaffVenue, type KycCheck } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Screen, SplitView, Stack, StaleNotice } from '@rivr/ui';
+import { PickList, Screen, SplitView, Stack, StaleNotice } from '@rivr/ui';
 import { useState } from 'react';
-import { checkGroups } from './checkText.ts';
+import { checkGroups, queueGroups } from './checkText.ts';
 import { InPersonSection } from './InPersonSection.tsx';
 import { InPersonSheet } from './InPersonSheet.tsx';
 import { KycCheckCard } from './KycCheckCard.tsx';
-import { KycQueueList } from './KycQueueList.tsx';
 
 /**
  * KYC review, for KYC reviewers (`kyc.review`) at the venue the console works in, with checks in person; and for hosts and
@@ -50,7 +49,8 @@ function ReviewQueue({ venueId, canReopen }: { venueId: string; canReopen: boole
         {queue.isError ? <StaleNotice since={new Date(queue.dataUpdatedAt)} onRetry={() => void queue.refetch()} /> : null}
         <SplitView layout="even" backLabel={t('console.kycReview.back')} onBack={() => setChosenId(null)}
           isChosen={open !== null && open.memberId === chosenId}
-          list={<KycQueueList checks={queue.data} chosenId={open?.memberId ?? null} onChoose={setChosenId} />}
+          list={<PickList label={t('console.kycReview.queue')} groups={queueGroups(queue.data)} current={open?.memberId ?? null}
+            onPick={setChosenId} emptyText={t('console.kycReview.empty')} />}
           detail={open === null ? null : (
             <KycCheckCard key={open.memberId} venueId={venueId} check={open} canReopen={canReopen} onDecided={() => setChosenId(open.memberId)} />
           )} />

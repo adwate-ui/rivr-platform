@@ -3,7 +3,8 @@ export const kycReview = {
   title: 'KYC review',
   notAllowed: 'Not in your role. Ask an admin.',
   empty: 'No checks waiting for review.',
-  /** The queue's groups down the left (console v3), each with its count. */
+  /** The queue down the left (console v3), read as its name; then its groups, each with its count. */
+  queue: 'Checks',
   waiting: 'To review',
   /** Checks that wait for the member, for a PAN: nothing for a reviewer to decide yet (C-06). */
   onMember: 'Waiting on the member',

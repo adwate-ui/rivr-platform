@@ -11,8 +11,8 @@ function Details({ check }: { check: KycCheck }) {
     <Stack gap={0} divided>
       {checkDetails(check).map((detail) => (
         <Inline key={detail.label} gap={4} justify="between">
-          <Text variant="small" tone="muted">{detail.label}</Text>
-          <Text variant="small">{detail.value}</Text>
+          <Text variant="row" tone="muted">{detail.label}</Text>
+          <Text variant="row">{detail.value}</Text>
         </Inline>
       ))}
     </Stack>
@@ -44,7 +44,7 @@ export function KycCheckCard({ venueId, check, canReopen, onDecided }: KycCheckC
           <Stack gap={3} grow>
             <Stack gap={1}>
               <Heading level={2}>{check.fullName}</Heading>
-              <Text variant="small" tone="muted">{checkSince(check)}</Text>
+              <Text variant="secondary" tone="muted">{checkSince(check)}</Text>
             </Stack>
             {status === null ? null : <Text weight="medium">{status}</Text>}
             <Details check={check} />

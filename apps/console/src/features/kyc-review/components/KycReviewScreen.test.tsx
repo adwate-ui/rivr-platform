@@ -66,14 +66,17 @@ describe('KYC review (decision 0301)', () => {
     expect(await screen.findByText('Not in your role. Ask an admin.', {}, { timeout: 5000 })).toBeDefined();
   });
 
-  it('lists the checks by group with counts, and opens the first to review beside them', async () => {
+  it('lists the checks by group with counts, and opens the first to review beside them, marked', async () => {
     renderAs('admin', QUEUE);
     expect(await screen.findByRole('heading', { level: 2, name: 'Rohan Bhatia' }, { timeout: 5000 })).toBeDefined();
-    const toReview = screen.getByRole('region', { name: 'To review' });
-    expect(within(toReview).getByText('2')).toBeDefined();
-    expect(within(screen.getByRole('region', { name: 'Waiting on the member' })).getByRole('button', { name: /Puneet Agarwal/ })).toBeDefined();
+    const queue = screen.getByRole('region', { name: 'Checks' });
+    const toReview = within(queue).getByRole('list', { name: 'To review' });
+    expect(within(toReview).getAllByRole('listitem')).toHaveLength(2);
+    expect(within(toReview).getByRole('button', { name: /Rohan Bhatia/ }).getAttribute('aria-current')).toBe('true');
+    expect(within(within(queue).getByRole('list', { name: 'Waiting on the member' })).getByRole('button', { name: /Puneet Agarwal/ })).toBeDefined();
     fireEvent.click(within(toReview).getByRole('button', { name: /Naina Kapoor/ }));
     expect(screen.getByRole('heading', { level: 2, name: 'Naina Kapoor' })).toBeDefined();
+    expect(within(toReview).getByRole('button', { name: /Naina Kapoor/ }).getAttribute('aria-current')).toBe('true');
     expect(screen.getByText('ABCPN4444N')).toBeDefined();
   });
 

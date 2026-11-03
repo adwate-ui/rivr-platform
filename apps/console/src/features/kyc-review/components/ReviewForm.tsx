@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { kycReviewSchema } from '@rivr/contracts';
 import { useKycReviewActions, type KycReviewFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, Stack } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, Input, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -45,8 +45,11 @@ export function ReviewForm({ venueId, memberId, fullName, needsDateOfBirth, need
     <Stack gap={3}>
       {needsDateOfBirth ? <Input {...dateOfBirth} type="date" label={t('console.kycReview.dateOfBirthFor', { name: fullName })} /> : null}
       {needsPan ? <Input {...pan} label={t('console.kycReview.panFor', { name: fullName })} maxLength={10} autoComplete="off" /> : null}
-      <Input {...reason} label={t('console.kycReview.reasonFor', { name: fullName })} hint={t('console.kycReview.reasonHint')}
-        maxLength={500} autoComplete="off" />
+      {/* The console's filled field (console v3), its name inside it; the rule for the reason on the line above, as in the prototype. */}
+      <Stack gap={2}>
+        <Text variant="secondary" tone="muted">{t('console.kycReview.reasonHint')}</Text>
+        <Input {...reason} variant="subtle" label={t('console.kycReview.reasonFor', { name: fullName })} maxLength={500} autoComplete="off" />
+      </Stack>
       <Inline gap={3}>
         <Button variant="strong" size="compact" isLoading={review.isPending} onClick={decide(true)}>{t('console.kycReview.approve')}</Button>
         <Button variant="subtle" size="compact" isLoading={review.isPending} onClick={decide(false)}>{t('console.kycReview.reject')}</Button>

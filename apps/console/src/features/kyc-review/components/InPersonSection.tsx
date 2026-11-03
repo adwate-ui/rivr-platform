@@ -71,9 +71,9 @@ function Candidates({ venueId, search, onChoose }: CandidatesProps) {
       {found.data.map((member) => (
         <Inline key={member.memberId} gap={4} align="center" justify="between">
           <Stack gap={1}>
-            <Text weight="medium">{member.fullName}</Text>
-            <Text variant="small" tone="muted">{t('console.kycInPerson.phoneEnding', { digits: member.phoneLast4 })}</Text>
-            {member.status === null ? null : <Text variant="small" tone="muted">{t('console.kycInPerson.startedOnApp')}</Text>}
+            <Text variant="row" weight="medium">{member.fullName}</Text>
+            <Text variant="secondary" tone="muted">{t('console.kycInPerson.phoneEnding', { digits: member.phoneLast4 })}</Text>
+            {member.status === null ? null : <Text variant="secondary" tone="muted">{t('console.kycInPerson.startedOnApp')}</Text>}
           </Stack>
           {/* One short word on a row's button (console v3), its full name read out, so it never wraps in the sheet. */}
           <Button variant="subtle" size="small" aria-label={t('console.kycInPerson.checkName', { name: member.fullName })} onClick={() => onChoose(member)}>

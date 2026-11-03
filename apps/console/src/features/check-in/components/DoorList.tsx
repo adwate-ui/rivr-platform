@@ -22,10 +22,10 @@ function InRoomRow({ member, isBusy, onPress }: RowProps) {
   return (
     <Inline gap={3} justify="between">
       {/* The name gives way first, cut with an ellipsis, so the row stays one line on a phone. */}
-      <Inline grow><Text truncate>{member.fullName}</Text></Inline>
+      <Inline grow><Text variant="row" truncate>{member.fullName}</Text></Inline>
       <Inline gap={4}>
-        <Text variant="small" tone="muted">{member.tierName}</Text>
-        <Text variant="small" tone="muted">{formatTime(new Date(member.since))}</Text>
+        <Text variant="secondary" tone="muted">{member.tierName}</Text>
+        <Text variant="secondary" tone="muted">{formatTime(new Date(member.since))}</Text>
         <Button variant="subtle" size="small" isDisabled={isBusy} aria-label={t('console.checkIn.checkOutMember', { name: member.fullName })}
           onClick={onPress}>{t('console.checkIn.checkOut')}</Button>
       </Inline>
@@ -38,8 +38,8 @@ function ExpectedRow({ member, isBusy, onPress }: RowProps) {
   return (
     <Inline gap={3} justify="between">
       <Stack gap={0}>
-        <Text weight="medium">{member.fullName}</Text>
-        <Text variant="caption" tone="muted">{member.tierName}</Text>
+        <Text variant="row" weight="medium">{member.fullName}</Text>
+        <Text variant="secondary" tone="muted">{member.tierName}</Text>
       </Stack>
       <Button variant="subtle" size="small" isDisabled={isBusy} aria-label={t('console.checkIn.checkInMember', { name: member.fullName })}
         onClick={onPress}>{t('console.checkIn.checkIn')}</Button>
@@ -77,11 +77,11 @@ export function DoorList({ venueId, title, members, emptyText }: DoorListProps) 
     <Box as="section" aria-labelledby={headingId} surface="raised" radius="md" paddingX={4} paddingY={3}>
       <Stack gap={0} divided>
         <Inline gap={3} justify="between">
-          <Heading level={2} variant="subsection" id={headingId}>{title}</Heading>
-          <Text variant="small" tone="muted">{formatNumber(members.length)}</Text>
+          <Heading level={2} variant="card" id={headingId}>{title}</Heading>
+          <Text variant="secondary" tone="muted">{formatNumber(members.length)}</Text>
         </Inline>
         {actions.failure === null ? null : <ErrorMessage>{actions.failure}</ErrorMessage>}
-        {members.length === 0 ? <Text variant="small" tone="muted">{emptyText}</Text> : null}
+        {members.length === 0 ? <Text variant="secondary" tone="muted">{emptyText}</Text> : null}
         {members.map((member) => member.isInRoom
           ? <InRoomRow key={member.memberId} member={member} isBusy={actions.isBusy} onPress={() => void actions.release(member.memberId)} />
           : <ExpectedRow key={member.memberId} member={member} isBusy={actions.isBusy} onPress={() => void actions.admit(member.memberId)} />)}
