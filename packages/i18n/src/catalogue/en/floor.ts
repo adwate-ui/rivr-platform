@@ -142,6 +142,9 @@ export const todaysPlayers = {
   notAllowed: 'Not in your role. Ask an admin.',
   label: 'Players today',
   empty: 'Nobody has come in today yet.',
+  /** The status filter's chips (console v3), each with its count. */
+  all: 'All',
+  noneOfStatus: 'No player with this status.',
   filter: 'Find a player',
   name: 'Player',
   status: 'Status',
@@ -149,9 +152,9 @@ export const todaysPlayers = {
   checkedIn: 'Checked in',
   checkedOut: 'Checked out',
   waited: 'Waited',
-  tables: 'Tables and hours',
-  /** One table and the time there: `Table 3 · 1 h 20 min`. */
-  tableLine: '{table} · {time}',
+  /** The tables a player played on today, and the time played across them, in columns of their own (console v3). */
+  table: 'Table',
+  played: 'Time played',
   none: '–',
 } as const;
 

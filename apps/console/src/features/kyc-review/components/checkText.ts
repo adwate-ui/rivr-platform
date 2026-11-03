@@ -87,6 +87,14 @@ export function checkDetails(check: KycCheck): readonly { label: string; value: 
   return details.flatMap(({ label, value }) => (value === null ? [] : [{ label, value }]));
 }
 
+/** A check's line in the queue (console v3): how it was made and when it began to wait, or what the member owes, or the day refused. */
+export function queueLine(check: KycCheck): string {
+  const at = new Date(check.updatedAt);
+  if (check.status === 'needs_pan') return t('console.kycReview.needsPanLine', { time: formatTime(at) });
+  if (check.status === 'refused') return formatDate(at);
+  return t('console.kycReview.queueLine', { method: t(METHOD_COPY[check.method]), time: formatTime(at) });
+}
+
 /** The queue in its groups: checks a reviewer decides, checks waiting on the member, and refused ones (C-06). */
 export function checkGroups(checks: readonly KycCheck[]) {
   return {

@@ -3,11 +3,17 @@ export const kycReview = {
   title: 'KYC review',
   notAllowed: 'Not in your role. Ask an admin.',
   empty: 'No checks waiting for review.',
-  waiting: 'Checks to review',
+  /** The queue's groups down the left (console v3), each with its count. */
+  waiting: 'To review',
   /** Checks that wait for the member, for a PAN: nothing for a reviewer to decide yet (C-06). */
-  onMember: 'Checks waiting on the member',
+  onMember: 'Waiting on the member',
   /** The last 90 days of them (F1-31). */
-  refused: 'Refused checks, the last 90 days',
+  refused: 'Refused, last 90 days',
+  /** A check's line in the queue: how it was made, and the time it began to wait. */
+  queueLine: '{method} · {time}',
+  needsPanLine: 'Needs a PAN · since {time}',
+  /** On a phone, from the check open back to the queue. */
+  back: 'Back to KYC review',
   photoOf: 'KYC photo of {name}',
   /** Why a check waits for a reviewer. */
   waitPanAlone: 'PAN only, no DigiLocker. Check the card and the person.',

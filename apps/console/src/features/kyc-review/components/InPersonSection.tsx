@@ -19,9 +19,10 @@ const OUTCOME_COPY: Readonly<Record<KycInPersonOutcome, MessageKey>> = {
 /**
  * A check in person (#246, while no KYC vendor is live): the reviewer finds a member at the club by
  * name or the last digits of their number, then checks them against their original documents. Only
- * members with no check, or one the app never finished, are found; never the reviewer themselves.
+ * members with no check, or one the app never finished, are found; never the reviewer themselves. In its sheet
+ * (`hasHeading` false) the sheet's title and subtitle say what the heading and hint say here.
  */
-export function InPersonSection({ venueId }: { venueId: string }) {
+export function InPersonSection({ venueId, hasHeading = true }: { venueId: string; hasHeading?: boolean }) {
   const [search, setSearch] = useState('');
   const [member, setMember] = useState<KycCandidate | null>(null);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
@@ -36,8 +37,8 @@ export function InPersonSection({ venueId }: { venueId: string }) {
   };
   return (
     <Stack gap={4}>
-      <Heading level={2}>{t('console.kycInPerson.title')}</Heading>
-      <Text tone="muted">{t('console.kycInPerson.hint')}</Text>
+      {hasHeading ? <Heading level={2}>{t('console.kycInPerson.title')}</Heading> : null}
+      {hasHeading ? <Text tone="muted">{t('console.kycInPerson.hint')}</Text> : null}
       {/* Always there, so the outcome is read out as it appears (F1-23). */}
       <StatusMessage>{outcome === null ? null : t(OUTCOME_COPY[outcome.status], { name: outcome.name })}</StatusMessage>
       {member === null ? (

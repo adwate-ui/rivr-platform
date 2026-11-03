@@ -70,11 +70,12 @@ test.describe('Call time', () => {
     await floor.getByRole('textbox', { name: 'Call time in minutes, from when they sat down' }).fill('300');
     await floor.getByRole('button', { name: 'Save call time' }).click();
     await expect(floor.getByText(/^Call time (5 h|4 h 59 min) left$/)).toBeVisible();
-    // Today's players (#641): she is playing, at the Private Room.
-    await floor.getByRole('link', { name: 'Today’s players' }).click();
+    // Today's players (#641), the Door's second tab (console v3): she is playing, at the Private Room.
+    await floor.getByRole('link', { name: 'Door', exact: true }).click();
+    await floor.getByRole('navigation', { name: 'Door', exact: true }).getByRole('link', { name: 'Today’s players' }).click();
     const today = floor.getByRole('row').filter({ hasText: 'Ritika Das' });
     await expect(today.getByText('Playing', { exact: true })).toBeVisible();
-    await expect(today.getByText(/^Private Room · /)).toBeVisible();
+    await expect(today.getByText('Private Room', { exact: true })).toBeVisible();
     await floor.getByRole('link', { name: 'Live floor' }).click();
     await floor.getByRole('region', { name: 'Room plan' }).getByRole('button', { name: 'Private Room', exact: true }).click();
 
