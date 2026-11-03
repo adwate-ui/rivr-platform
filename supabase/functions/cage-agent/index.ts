@@ -96,9 +96,10 @@ Deno.serve(async (request) => {
     if (agent === null) return Response.json({ error: 'not_enrolled' }, { status: 401 });
     if (input.data.action === 'pack') return await pack(agent.venueId);
     if (input.data.action === 'claim_kots') return await claimKots(agent.deviceId, input.data.limit);
+    // An agent installed before #691 names no attempt: the key is left out of the JSON, and the function's default applies.
     await call('/rest/v1/rpc/finish_agent_kot', {
       p_device_id: agent.deviceId, p_delivery_id: input.data.delivery_id, p_delivered: input.data.delivered,
-      p_error: input.data.error, p_retry_after_seconds: input.data.retry_after_seconds,
+      p_error: input.data.error, p_retry_after_seconds: input.data.retry_after_seconds, p_attempts: input.data.attempts,
     });
     return Response.json({ finished: true });
   } catch {

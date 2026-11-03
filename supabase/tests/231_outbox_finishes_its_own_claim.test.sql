@@ -22,7 +22,7 @@ select results_eq($$ select status::text, attempts, last_error from public.outbo
 select public.finish_outbox_delivery((select id from delivery), true, null, interval '5 minutes', 2);
 select is((select status::text from public.outbox_delivery where id = (select id from delivery)), 'delivered', 'the second claim''s finish goes through');
 
--- A finish without its attempt, as the cage agent's KOTs make (finish_agent_kot), goes through as before.
+-- A finish without its attempt, as a cage agent installed before #691 makes (finish_agent_kot), goes through as before.
 select private.emit('00000000-0000-4000-8000-000000000001', 'visit.closed', '{"visit_id": "v2"}', 'test-own-claim-2');
 select public.claim_outbox_deliveries('tally', array['visit.closed'], false);
 select public.finish_outbox_delivery((select d.id from public.outbox_delivery d join public.outbox_event e on e.id = d.event_id
