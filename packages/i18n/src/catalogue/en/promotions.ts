@@ -102,7 +102,7 @@ export const promotions = {
       tiers: 'Tiers',
       allTiers: 'All tiers',
       audience: 'Members',
-      audiences: { everyone: 'Everyone', new_30d: 'New members, first 30 days', lapsed: 'Lapsed regulars', women: 'Women members' },
+      audiences: { everyone: 'Everyone', new_30d: 'New members, first 30 days', lapsed: 'Lapsed regulars' },
       days: 'Days',
       dayNames: { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' },
       everyDay: 'Every day',

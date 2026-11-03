@@ -1,13 +1,13 @@
 {
   "rule": "promotionRewards",
-  "about": "What a promotion gives (console v3 phase 7; decisions 0470 and 0472), in points, bonus chips, spins or a perk, never rupees. Days are the club's, 06:00 to 06:00 IST, and its weeks run Monday to Sunday. Eligible: the member's tier and audience must be the promotion's (new members have fewer than 30 whole days since joining; lapsed regulars' last visit before this one was 30 or more whole days before; women only when the club has recorded it). The time-played rewards are the points multiplier, the hours bonus and the free spin: for them only the minutes inside the schedule at its stakes and tables count, so the moment and table of the event do not matter. For every other reward the event's stake, table and moment must be the promotion's, so a promotion for some stakes gives nothing for an event away from a table. Grant: a buy-in bonus is a percent of the member's own chips rounded down to whole 50s, then held to its cap, or fixed chips; a buy-in paid from bonus (its own chips are 0) earns nothing from any buy-in reward, a buy-in bonus or bonus chips on the first buy-in; a points multiplier gives the extra on the points earned, rounded down (double on 120 is 120 more); an hours bonus or free spin needs its minutes; bonus chips come on a visit, the visit's first buy-in, a referral or a sign-up; a cab home from the Nth visit of the calendar month; an entry or waitlist priority on a visit; nothing comes to nothing. Limits, in this order: the member's period already given (the same visit, club day, club week, ever, or with no limit the same event), the first N buy-ins per table, which counts this promotion's grants at that table this club day, members a day (a member already given it today is not a new one), the most grants, and the budget in bonus chips, whole or not at all. A spin spends no chips when given; the wheel pays a bonus only within what is left of the budget. Stacking for one event: at most one points multiplier, the one giving the most points (the first on a tie); bonus chips and spins from different promotions stack; one perk of each kind, the first given. Inputs are written as the database holds them.",
+  "about": "What a promotion gives (console v3 phase 7; decisions 0470 and 0472), in points, bonus chips, spins or a perk, never rupees. Days are the club's, 06:00 to 06:00 IST, and its weeks run Monday to Sunday. Eligible: the member's tier and audience must be the promotion's (new members have fewer than 30 whole days since joining; lapsed regulars' last visit before this one was 30 or more whole days before). The time-played rewards are the points multiplier, the hours bonus and the free spin: for them only the minutes inside the schedule at its stakes and tables count, so the moment and table of the event do not matter. For every other reward the event's stake, table and moment must be the promotion's, so a promotion for some stakes gives nothing for an event away from a table. Grant: a buy-in bonus is a percent of the member's own chips rounded down to whole 50s, then held to its cap, or fixed chips; a buy-in paid from bonus (its own chips are 0) earns nothing from any buy-in reward, a buy-in bonus or bonus chips on the first buy-in; a points multiplier gives the extra on the points earned, rounded down (double on 120 is 120 more); an hours bonus or free spin needs its minutes; bonus chips come on a visit, the visit's first buy-in, a referral or a sign-up; a cab home from the Nth visit of the calendar month; an entry or waitlist priority on a visit; nothing comes to nothing. Limits, in this order: the member's period already given (the same visit, club day, club week, ever, or with no limit the same event), the first N buy-ins per table, which counts this promotion's grants at that table this club day, members a day (a member already given it today is not a new one), the most grants, and the budget in bonus chips, whole or not at all. A spin spends no chips when given; the wheel pays a bonus only within what is left of the budget. Stacking for one event: at most one points multiplier, the one giving the most points (the first on a tie); bonus chips and spins from different promotions stack; one perk of each kind, the first given. Inputs are written as the database holds them.",
   "cases": [
     {
       "description": "Everyone, every stake, Tuesdays: a buy-in at 21:00 on Tuesday qualifies.",
       "operation": "eligible",
       "inputs": {
         "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
-        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
       "expected": {
@@ -19,7 +19,7 @@
       "operation": "eligible",
       "inputs": {
         "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
-        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-18T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
       "expected": {
@@ -31,7 +31,7 @@
       "operation": "eligible",
       "inputs": {
         "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": [\"nlh_100_200\"], \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
-        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
       "expected": {
@@ -43,7 +43,7 @@
       "operation": "eligible",
       "inputs": {
         "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": [\"nlh_100_200\"], \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
-        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_100_200\", \"tableId\": \"t1\"}"
       },
       "expected": {
@@ -55,7 +55,7 @@
       "operation": "eligible",
       "inputs": {
         "terms": "{\"reward\": {\"kind\": \"bonus_chips\", \"chips\": 500, \"on\": \"visit\"}, \"eligibility\": {\"stakes\": [\"nlh_100_200\"], \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
-        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": null, \"tableId\": null}"
       },
       "expected": {
@@ -67,7 +67,7 @@
       "operation": "eligible",
       "inputs": {
         "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"everyone\", \"tableIds\": [\"t1\"]}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
-        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t2\"}"
       },
       "expected": {
@@ -79,7 +79,7 @@
       "operation": "eligible",
       "inputs": {
         "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": [\"founders\"], \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
-        "member": "{\"tierId\": \"founders\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "member": "{\"tierId\": \"founders\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
       "expected": {
@@ -91,7 +91,7 @@
       "operation": "eligible",
       "inputs": {
         "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": [\"founders\"], \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
-        "member": "{\"tierId\": null, \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "member": "{\"tierId\": null, \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
       "expected": {
@@ -103,7 +103,7 @@
       "operation": "eligible",
       "inputs": {
         "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"new_30d\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
-        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 29, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 29, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
       "expected": {
@@ -115,7 +115,7 @@
       "operation": "eligible",
       "inputs": {
         "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"new_30d\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
-        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 30, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 30, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
       "expected": {
@@ -127,7 +127,7 @@
       "operation": "eligible",
       "inputs": {
         "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"lapsed\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
-        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 30, \"isWoman\": null}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 30}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
       "expected": {
@@ -139,7 +139,7 @@
       "operation": "eligible",
       "inputs": {
         "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"lapsed\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
-        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 29, \"isWoman\": null}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 29}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
       "expected": {
@@ -151,35 +151,11 @@
       "operation": "eligible",
       "inputs": {
         "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"lapsed\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
-        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": null, \"isWoman\": null}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": null}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
       "expected": {
         "eligible": "no"
-      }
-    },
-    {
-      "description": "Women members: a member whose gender the club has not recorded does not qualify.",
-      "operation": "eligible",
-      "inputs": {
-        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"women\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
-        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
-        "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
-      },
-      "expected": {
-        "eligible": "no"
-      }
-    },
-    {
-      "description": "Women members: a member recorded as a woman qualifies.",
-      "operation": "eligible",
-      "inputs": {
-        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"women\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
-        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": true}",
-        "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
-      },
-      "expected": {
-        "eligible": "yes"
       }
     },
     {
@@ -187,7 +163,7 @@
       "operation": "eligible",
       "inputs": {
         "terms": "{\"reward\": {\"kind\": \"points_multiplier\", \"multiplier\": 2}, \"eligibility\": {\"stakes\": [\"nlh_100_200\"], \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [5], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
-        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-21T03:00:00+05:30\", \"stake\": null, \"tableId\": null}"
       },
       "expected": {
@@ -199,7 +175,7 @@
       "operation": "eligible",
       "inputs": {
         "terms": "{\"reward\": {\"kind\": \"points_multiplier\", \"multiplier\": 2}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": [\"founders\"], \"audience\": \"everyone\"}, \"schedule\": {\"days\": [5], \"from\": \"20:00\", \"to\": \"02:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
-        "member": "{\"tierId\": null, \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7, \"isWoman\": null}",
+        "member": "{\"tierId\": null, \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-20T21:00:00+05:30\", \"stake\": null, \"tableId\": null}"
       },
       "expected": {

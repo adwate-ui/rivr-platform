@@ -18,7 +18,7 @@ export function buildPromotionTerms(overrides: Partial<PromotionTerms> = {}): Pr
 
 /** A regular on the base tier, a member for 200 days and last here a week ago, whose gender the club has not recorded. */
 export function buildMemberFacts(overrides: Partial<MemberFacts> = {}): MemberFacts {
-  return { tierId: 'tier-member', daysSinceJoined: 200, daysSinceLastVisit: 7, isWoman: null, ...overrides };
+  return { tierId: 'tier-member', daysSinceJoined: 200, daysSinceLastVisit: 7, ...overrides };
 }
 
 interface EventPlace {

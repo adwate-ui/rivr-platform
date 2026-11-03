@@ -24,8 +24,6 @@ function isInAudience(audience: Eligibility['audience'], member: MemberFacts): b
       return member.daysSinceJoined < NEW_MEMBER_DAYS;
     case 'lapsed':
       return member.daysSinceLastVisit !== null && member.daysSinceLastVisit >= LAPSED_DAYS;
-    case 'women':
-      return member.isWoman === true;
     default:
       return true;
   }

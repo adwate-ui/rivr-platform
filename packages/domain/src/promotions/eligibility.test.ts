@@ -49,7 +49,5 @@ describe('isEligible', () => {
     expect(isEligible(forNew, buildMemberFacts({ daysSinceJoined: 0 }), TUESDAY_NIGHT)).toBe(true);
     const forLapsed = { ...forNew, eligibility: { ...forNew.eligibility, audience: 'lapsed' as const } };
     expect(isEligible(forLapsed, buildMemberFacts({ daysSinceLastVisit: 365 }), TUESDAY_NIGHT)).toBe(true);
-    const forWomen = { ...forNew, eligibility: { ...forNew.eligibility, audience: 'women' as const } };
-    expect(isEligible(forWomen, buildMemberFacts({ isWoman: false }), TUESDAY_NIGHT)).toBe(false);
   });
 });

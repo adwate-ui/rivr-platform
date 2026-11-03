@@ -45,7 +45,7 @@ function rewardText(reward: Reward, names: PromotionNames): string {
 }
 
 const AUDIENCE: Readonly<Record<Eligibility['audience'], string | null>> = {
-  everyone: null, new_30d: 'new members, first 30 days', lapsed: 'lapsed regulars', women: 'women members',
+  everyone: null, new_30d: 'new members, first 30 days', lapsed: 'lapsed regulars',
 };
 
 function whoText(eligibility: Eligibility, names: PromotionNames): string {

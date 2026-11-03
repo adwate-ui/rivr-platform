@@ -45,9 +45,10 @@ describe('the promotion model schemas', () => {
     expect(rewardSchema.safeParse({ kind: 'cash', amount: 100 }).success).toBe(false);
   });
 
-  it('takes all stakes and tiers, or a list of them, and four audiences', () => {
+  it('takes all stakes and tiers, or a list of them, and three audiences, none of them women', () => {
     expect(eligibilitySchema.safeParse({ stakes: 'all', tiers: 'all', audience: 'lapsed' }).success).toBe(true);
-    expect(eligibilitySchema.safeParse({ stakes: ['nlh_50_100'], tableIds: ['t1'], tiers: ['tier-1'], audience: 'women' }).success).toBe(true);
+    expect(eligibilitySchema.safeParse({ stakes: ['nlh_50_100'], tableIds: ['t1'], tiers: ['tier-1'], audience: 'new_30d' }).success).toBe(true);
+    expect(eligibilitySchema.safeParse({ stakes: 'all', tiers: 'all', audience: 'women' }).success).toBe(false);
     expect(eligibilitySchema.safeParse({ stakes: [], tiers: 'all', audience: 'everyone' }).success).toBe(false);
     expect(eligibilitySchema.safeParse({ stakes: 'all', tiers: 'all', audience: 'vip' }).success).toBe(false);
   });
@@ -89,7 +90,7 @@ describe('the promotion model schemas', () => {
     expect(promotionEventSchema.safeParse({ ...base, kind: 'signup' }).success).toBe(true);
     expect(promotionEventSchema.safeParse({ ...base, kind: 'buy_in', ownChips: -1, isFirstOfVisit: true }).success).toBe(false);
     expect(promotionEventSchema.safeParse({ ...base, kind: 'referral', extra: 1 }).success).toBe(false);
-    expect(memberFactsSchema.safeParse({ tierId: null, daysSinceJoined: 3, daysSinceLastVisit: null, isWoman: null }).success).toBe(true);
+    expect(memberFactsSchema.safeParse({ tierId: null, daysSinceJoined: 3, daysSinceLastVisit: null }).success).toBe(true);
   });
 
   it('reads a replay as the database gives it, with microseconds and offsets', () => {
@@ -97,7 +98,7 @@ describe('the promotion model schemas', () => {
       from: '2026-10-27T00:30:00+00:00', to: '2026-11-03T00:30:00+00:00',
       events: [{
         event: { at: '2026-10-31T10:48:00.044839+00:00', key: 'visit:1', kind: 'visit', stake: null, tableId: null, visitId: 'v1', memberId: 'm3', visitInMonth: 3 },
-        member: { tierId: 'd50d783c-ad4a-4bb4-b613-59edbf9f9587', isWoman: null, daysSinceJoined: 0, daysSinceLastVisit: 7 },
+        member: { tierId: 'd50d783c-ad4a-4bb4-b613-59edbf9f9587', daysSinceJoined: 0, daysSinceLastVisit: 7 },
       }],
     };
     expect(promotionVersionReplaySchema.safeParse(replay).success).toBe(true);

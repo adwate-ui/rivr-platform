@@ -38,8 +38,11 @@ export const rewardSchema = z.union([
 ]);
 export type Reward = z.infer<typeof rewardSchema>;
 
-/** Who a promotion is for beyond stakes and tiers: everyone, members in their first 30 days, lapsed regulars or women. */
-export const AUDIENCES = ['everyone', 'new_30d', 'lapsed', 'women'] as const;
+/**
+ * Who a promotion is for beyond stakes and tiers: everyone, members in their first 30 days or lapsed regulars. No gender
+ * is recorded, so there is no audience of women (owner, 3 Nov).
+ */
+export const AUDIENCES = ['everyone', 'new_30d', 'lapsed'] as const;
 
 export const eligibilitySchema = z.strictObject({
   // Table type codes, such as nlh_100_200.
@@ -129,8 +132,6 @@ export const memberFactsSchema = z.strictObject({
   tierId: id.nullable(),
   daysSinceJoined: z.int().min(0),
   daysSinceLastVisit: z.int().min(0).nullable(),
-  // Null while the club records no gender: no audience of women matches it.
-  isWoman: z.boolean().nullable(),
 });
 export type MemberFacts = z.infer<typeof memberFactsSchema>;
 
