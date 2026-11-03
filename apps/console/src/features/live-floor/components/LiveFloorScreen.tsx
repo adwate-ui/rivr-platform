@@ -64,7 +64,8 @@ function Floor({ venueId, permissions }: { venueId: string; permissions: readonl
             {permissions.includes('waitlist.manage') ? <JoinRequestsNotice venueId={venueId} /> : null}
             <RoomPlan tables={here} seats={data.seats} held={data.held} night={data.night} canSeeSeats={permissions.includes('members.read')}
               chosenId={chosenId !== null || isAtDesk ? chosen.id : ''} onChoose={setChosenId} />
-            <LeavingList venueId={venueId} tables={here} seats={data.seats} isFloor={permissions.includes('waitlist.manage')} />
+            <LeavingList venueId={venueId} tables={here} seats={data.seats} isFloor={permissions.includes('waitlist.manage')}
+              canLetGoEarly={permissions.includes('call_time.override')} />
             {permissions.includes('call_time.override') ? <LeftOwingCallTime venueId={venueId} /> : null}
           </Stack>
         )}

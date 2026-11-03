@@ -49,6 +49,8 @@ export const liveFloor = {
   away: 'Away',
   leave: 'Leave',
   leaveName: '{name} leaves',
+  /** Leave on the Leaving list (decision 0306), named apart from the seat row's own Leave. */
+  leavingLeaveName: 'Let {name} go from the leaving list',
   confirmLeave: 'Yes, {name} leaves',
   /** An admin lets a player leave before their call time, with a reason (#79). `{time}`: 1 h 12 min. */
   leaveEarly: 'Leave early',
