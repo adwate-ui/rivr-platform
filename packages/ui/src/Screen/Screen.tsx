@@ -1,5 +1,6 @@
 import { t } from '@rivr/i18n';
 import { createContext, useContext, useEffect, useId, useRef, type ReactNode } from 'react';
+import { Button } from '../Button/Button.tsx';
 import { Heading } from '../Heading/Heading.tsx';
 import { cx } from '../internal/classes.ts';
 import { usePlayerFrame } from '../internal/playerFrame.ts';
@@ -12,7 +13,13 @@ import { Text } from '../Text/Text.tsx';
 export type ScreenState =
   | { status?: 'ready' }
   | { status: 'loading' }
-  | { status: 'empty'; /** One line, for example "No sessions yet." */ emptyText: string }
+  | {
+    status: 'empty';
+    /** One line, for example "No sessions yet." */
+    emptyText: string;
+    /** The one thing to do about it, on the console (console v3): "Add a table". */
+    emptyAction?: { label: string; onClick: () => void } | undefined;
+  }
   | { status: 'error'; /** What happened, then what to do. Defaults to the shared load error. */ errorText?: string; onRetry?: () => void };
 
 export type ScreenProps = ScreenState & {
@@ -26,8 +33,11 @@ export type ScreenProps = ScreenState & {
   titleLook?: 'default' | 'serif';
   /** Keeps the heading for screen readers only: a screen headed by something else, such as Tonight's wordmark. */
   isTitleHidden?: boolean;
-  /** `skeleton`, faint blocks in place of the word, for the player app's first load (decision 0320). */
-  loadingLook?: 'text' | 'skeleton';
+  /**
+   * `skeleton`, faint blocks in place of the word, for the player app's first load (decision 0320); on the console
+   * (console v3), `rows` for a list or table and `tiles` for the live floor.
+   */
+  loadingLook?: 'text' | 'skeleton' | 'rows' | 'tiles';
   children?: ReactNode;
 };
 
@@ -129,12 +139,28 @@ export function Screen(props: ScreenProps) {
   );
 }
 
+function Loading({ look = 'text' }: { look: ScreenProps['loadingLook'] }) {
+  if (look === 'text') return <LoadState />;
+  return <Skeleton look={look === 'skeleton' ? 'screen' : look} rows={look === 'rows' ? 6 : 3} />;
+}
+
+/** Why there is nothing, in one line, and the one thing to do about it when there is one. */
+function Empty({ text, action }: { text: string; action: { label: string; onClick: () => void } | undefined }) {
+  if (action === undefined) return <Text tone="muted">{text}</Text>;
+  return (
+    <div className="flex flex-col items-start gap-3">
+      <Text tone="muted">{text}</Text>
+      <Button variant="subtle" size="compact" onClick={action.onClick}>{action.label}</Button>
+    </div>
+  );
+}
+
 function ScreenBody(props: ScreenProps) {
   switch (props.status) {
     case 'loading':
-      return props.loadingLook === 'skeleton' ? <Skeleton /> : <LoadState />;
+      return <Loading look={props.loadingLook} />;
     case 'empty':
-      return <Text tone="muted">{props.emptyText}</Text>;
+      return <Empty text={props.emptyText} action={props.emptyAction} />;
     case 'error':
       return <LoadState isError errorText={props.errorText} onRetry={props.onRetry} />;
     default:

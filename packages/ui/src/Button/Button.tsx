@@ -4,12 +4,18 @@ import { cx } from '../internal/classes.ts';
 
 /**
  * `primary` is the gold filled button: at most one per screen. `secondary` is outlined with a
- * hairline, `text` is a cream text button, `danger` is a red fill for destructive actions.
+ * hairline, `text` is a cream text button, `danger` is a red fill for destructive actions. The console (decision 0430)
+ * fills rather than outlines: `subtle`, a faint cream fill, in place of `secondary`; `strong`, a cream fill, for the main
+ * action of each item in a list, such as a request's Approve, where gold is kept for the screen's one primary action.
  */
-export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'text' | 'danger';
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'subtle' | 'strong' | 'text' | 'danger';
 
-/** `tall`, 54 px, is the player app's one gold action of a step or sheet (decision 0320). */
-export type ButtonSize = 'regular' | 'large' | 'tall';
+/**
+ * `tall`, 54 px, is the player app's one gold action of a step or sheet (decision 0320). The console's (decision 0430):
+ * `compact`, 36 px at a desk, and `small`, 32 px at a desk for an action inside a row or tile; both keep the 44 px touch
+ * target below 1180 px (decision 0282).
+ */
+export type ButtonSize = 'regular' | 'large' | 'tall' | 'compact' | 'small';
 
 /** `pill` rounds the ends: the player app's small actions in a row, such as Add, Notify me or Redeem (decision 0320). */
 export type ButtonShape = 'rounded' | 'pill';
@@ -72,16 +78,28 @@ const VARIANT: Record<ButtonVariant, string> = {
   secondary: 'border border-hairline font-medium text-content hover:border-control',
   // The player redesign's outlined button: the control colour's edge (decision 0320).
   outline: 'border border-control font-medium text-content',
+  subtle: 'bg-subtle font-medium text-content hover:bg-subtle-hover',
+  strong: 'bg-cream font-semibold text-on-cream',
   text: 'font-medium text-content underline-offset-4 hover:underline',
   danger: 'bg-alert font-medium text-on-alert',
 };
 
-const SIZE: Record<ButtonSize, string> = { regular: 'min-h-touch', large: 'min-h-12', tall: 'min-h-action' };
+const SIZE: Record<ButtonSize, string> = {
+  regular: 'min-h-touch', large: 'min-h-12', tall: 'min-h-action',
+  compact: 'min-h-touch tablet:min-h-control', small: 'min-h-touch tablet:min-h-8',
+};
 
 // A text button sits close to its words; a pill is set smaller, as in the player redesign's prototype.
 const SHAPE: Record<ButtonShape, string> = { rounded: 'rounded-lg text-16', pill: 'rounded-full text-14' };
 
+// The console's sizes set their own corner and type, as in its prototype (decision 0430).
+const CONSOLE_LOOK: Partial<Record<ButtonSize, string>> = { compact: 'rounded-md text-14 px-4', small: 'rounded-md text-13 px-3' };
+
 const PADDING = (variant: ButtonVariant, shape: ButtonShape) => (variant === 'text' ? 'px-3' : shape === 'pill' ? 'px-4' : 'px-5');
+
+/** The corner, type size and padding: the console's sizes have their own; the rest follow the shape. */
+const lookOf = (variant: ButtonVariant, size: ButtonSize, shape: ButtonShape) =>
+  CONSOLE_LOOK[size] ?? cx(SHAPE[shape], PADDING(variant, shape));
 
 const PRESSED = 'border border-accent font-medium text-accent';
 
@@ -94,7 +112,7 @@ const BASE =
 /** The link form of a button: it goes somewhere, saves a file, or opens a new tab. */
 function LinkButton({ children, variant = 'secondary', size = 'regular', shape = 'rounded', icon, fullWidth, href, download, opensNewTab, ...rest }: LinkButtonProps) {
   return (
-    <a href={href} download={download} className={cx(BASE, 'justify-center', SIZE[size], VARIANT[variant], SHAPE[shape], PADDING(variant, shape), fullWidth && 'w-full')}
+    <a href={href} download={download} className={cx(BASE, 'justify-center', SIZE[size], VARIANT[variant], lookOf(variant, size, shape), fullWidth && 'w-full')}
       target={opensNewTab ? '_blank' : undefined} rel={opensNewTab ? 'noopener noreferrer' : undefined}
       aria-label={rest['aria-label']}
       aria-describedby={rest['aria-describedby']}>
@@ -122,7 +140,7 @@ function ActionButton({ children, variant = 'secondary', size = 'regular', shape
   return (
     <button
       type={type}
-      className={cx(BASE, aside === undefined ? 'justify-center' : 'justify-between', SIZE[size], isPressed ? PRESSED : VARIANT[variant], SHAPE[shape], PADDING(variant, shape), fullWidth && 'w-full')}
+      className={cx(BASE, aside === undefined ? 'justify-center' : 'justify-between', SIZE[size], isPressed ? PRESSED : VARIANT[variant], lookOf(variant, size, shape), fullWidth && 'w-full')}
       onClick={handleClick}
       disabled={isDisabled}
       aria-pressed={isPressed}

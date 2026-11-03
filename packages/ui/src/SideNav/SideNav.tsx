@@ -1,28 +1,8 @@
-import { t } from '@rivr/i18n';
-import { useId } from 'react';
-import { cx } from '../internal/classes.ts';
-import { routeClick, type Navigate } from '../internal/navigation.ts';
+import type { Navigate } from '../internal/navigation.ts';
+import { NavGroup, type SideNavSection } from './NavGroup.tsx';
 
-export interface SideNavItem {
-  id: string;
-  /** Already translated, for example `t('console.rail.items.cage')`. */
-  label: string;
-  href: string;
-  /** How many things wait on the screen, such as high-hand claims (#317); shown beside the label when above 0. */
-  count?: number | undefined;
-  /** The count is urgent, such as a top-up waiting (decision 0299): a red marker, not the gold outline. */
-  isUrgent?: boolean | undefined;
-}
-
-export interface SideNavSection {
-  id: string;
-  /**
-   * The group heading (Floor, Money...). No icon sits beside it. Leave it out for a section that
-   * is a single link, such as Reports, so the name does not show twice.
-   */
-  label?: string | undefined;
-  items: readonly SideNavItem[];
-}
+export type { SideNavItem } from './NavItem.tsx';
+export type { SideNavSection } from './NavGroup.tsx';
 
 export interface SideNavProps {
   /** Names the navigation landmark. */
@@ -31,74 +11,20 @@ export interface SideNavProps {
   /** The id of the item for the current screen. */
   current?: string | undefined;
   onNavigate?: Navigate | undefined;
-}
-
-/** The console's left rail: grouped sections of links, with the current screen marked. */
-export function SideNav({ label, sections, current, onNavigate }: SideNavProps) {
-  return (
-    <nav aria-label={label} className="flex flex-col gap-5">
-      {sections.map((section) => (
-        <RailSection key={section.id} section={section} current={current} onNavigate={onNavigate} />
-      ))}
-    </nav>
-  );
-}
-
-interface RailSectionProps {
-  section: SideNavSection;
-  current: string | undefined;
-  onNavigate: Navigate | undefined;
-}
-
-function RailSection({ section, current, onNavigate }: RailSectionProps) {
-  const headingId = useId();
-  return (
-    <div className="flex flex-col gap-1">
-      {section.label ? (
-        <p id={headingId} className="px-3 font-text text-13 text-content-muted">
-          {section.label}
-        </p>
-      ) : null}
-      <ul aria-labelledby={section.label ? headingId : undefined} className="flex flex-col">
-        {section.items.map((item) => (
-          <li key={item.id}>
-            <RailLink item={item} isCurrent={item.id === current} onNavigate={onNavigate} />
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+  /** The rail folded to its icons (console v3): no headings, each count a dot, each name a tooltip and read out. */
+  isCollapsed?: boolean;
 }
 
 /**
- * One entry; with things waiting on its screen, the number beside it, gold or red when urgent. Its name is its label
- * whatever waits, and its description says how many (decision 0301), so a screen reader hears both and the link keeps one name.
- * The name comes from the label itself, not an aria-label, so a search by label for a word inside it finds no link.
+ * The console's screens in their groups (console v3): each with its icon, name and what waits on it, the current one on
+ * a faint fill. ConsoleShell's rail holds it, labelled or folded to icons, and so does its phone menu, More.
  */
-function RailLink({ item, isCurrent, onNavigate }: { item: SideNavItem; isCurrent: boolean; onNavigate: Navigate | undefined }) {
-  const waiting = item.count !== undefined && item.count > 0 ? item.count : null;
-  const descriptionId = useId();
+export function SideNav({ label, sections, current, onNavigate, isCollapsed = false }: SideNavProps) {
   return (
-    <a
-      href={item.href}
-      aria-current={isCurrent ? 'page' : undefined}
-      aria-describedby={waiting === null ? undefined : descriptionId}
-      onClick={(event) => routeClick(event, item.href, onNavigate)}
-      className={cx(
-        // A finger's width below a desk, where the rail is the console's menu.
-        'flex min-h-touch items-center gap-2 rounded-r-md border-l-2 px-3 font-text text-16 transition-colors tablet:min-h-8',
-        isCurrent ? 'border-action font-medium text-content' : 'border-transparent text-content-muted hover:text-content',
-      )}
-    >
-      {item.label}
-      {waiting === null ? null : (
-        <>
-          <span aria-hidden="true" className={cx('ml-auto rounded-md border px-2 font-text text-13 font-medium tabular-nums',
-            item.isUrgent === true ? 'border-alert bg-alert text-on-alert' : 'border-action text-action')}>{waiting}</span>
-          {/* Out of the name, read as the description, which reaches hidden text by its id. */}
-          <span id={descriptionId} aria-hidden="true" className="sr-only">{t('ui.consoleRail.waiting', { count: waiting })}</span>
-        </>
-      )}
-    </a>
+    <nav aria-label={label} className="flex flex-col gap-5">
+      {sections.map((section) => (
+        <NavGroup key={section.id} section={section} current={current} isCollapsed={isCollapsed} onNavigate={onNavigate} />
+      ))}
+    </nav>
   );
 }

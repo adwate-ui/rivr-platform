@@ -32,6 +32,16 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: 'Seat' })).toHaveClass('bg-action', 'text-on-action', 'min-h-touch', 'min-w-touch');
   });
 
+  it('fills the console\'s buttons rather than outlining them, 36 or 32 px at a desk and 44 px below (decision 0430)', () => {
+    renderIn(<>
+      <Button variant="subtle" size="compact">Export</Button>
+      <Button variant="strong" size="small">Approve</Button>
+    </>);
+    expect(screen.getByRole('button', { name: 'Export' })).toHaveClass('bg-subtle', 'min-h-touch', 'tablet:min-h-control', 'rounded-md', 'text-14');
+    expect(screen.getByRole('button', { name: 'Export' })).not.toHaveClass('border');
+    expect(screen.getByRole('button', { name: 'Approve' })).toHaveClass('bg-cream', 'text-on-cream', 'min-h-touch', 'tablet:min-h-8', 'text-13');
+  });
+
   it('ignores presses while loading and says so, keeping its label and focus (F5-17)', async () => {
     const onClick = vi.fn();
     renderIn(

@@ -47,6 +47,22 @@ export const PlayerRedesign: Story = {
   ),
 };
 
+/**
+ * The console's buttons (decision 0430): filled, never outlined. The gold primary, a subtle fill, a list item's cream
+ * action and a text button; compact at a desk, small inside a row, both 44 px below 1180 px.
+ */
+export const Console: Story = {
+  render: () => (
+    <Inline gap={3} wrap>
+      <Button variant="primary" size="compact">Seat a player</Button>
+      <Button variant="subtle" size="compact">Export</Button>
+      <Button variant="strong" size="small">Approve</Button>
+      <Button variant="text" size="small">Decline</Button>
+      <Button variant="subtle" size="small">Open table</Button>
+    </Inline>
+  ),
+};
+
 /** The label at the left and an aside at the right: the Order screen's foot (brief 3.5). */
 export const WithAside: Story = { args: { variant: 'primary', size: 'tall', fullWidth: true, aside: '2 items', children: 'Send to the bar' } };
 

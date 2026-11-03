@@ -4,7 +4,7 @@ import { tokens } from '@rivr/tokens';
  * RIVR's own line icons, drawn for the club (AS-05, 2 Nov 2026): a 24 px grid, the brand's 1.5 px stroke, butt caps and
  * mitred joins, one family. Each icon is its strokes as path data. Icons appear only where they carry meaning a word
  * cannot: the tab bar, chevrons, close, the console's menu, lock, alert and offline, and the website's top bar, where a
- * phone and an envelope say call and write (#616).
+ * phone and an envelope say call and write (#616); and the console's rail, which folds to its icons (console v3).
  */
 const ICONS = {
   // A gabled house with its door: the member's own night at the club (second pass, 2 Nov; the first read as a bank).
@@ -41,6 +41,29 @@ const ICONS = {
   addTime: ['M4 13A8 8 0 1 0 20 13A8 8 0 1 0 4 13Z', 'M12 9V13L15 15', 'M10 2.5H14'],
   leave: ['M14 4H19V20H14', 'M10 8L6 12L10 16', 'M6 12H15'],
   arrowRight: ['M5 12H19', 'M13 6L19 12L13 18'],
+  // The console v3 rail and tab bar (decision 0431), from its prototype's 16 px icons at one and a half times. The rail's
+  // other screens reuse the set: food and drink `food`, members `profile`, the host queue `phone`, rewards `rewards`, the
+  // kill switch `alert`, folding the rail `chevronLeft` and `chevronRight`; More is `overflow`.
+  floor: ['M3 7.5H21V16.5H3Z', 'M7.5 12H16.5'],
+  waitlist: ['M4.5 6H19.5', 'M4.5 12H19.5', 'M4.5 18H13.5'],
+  door: ['M6 3H18V21H6Z', 'M14.25 11.25V12.75'],
+  kyc: ['M4.5 4.5H19.5V19.5H4.5Z', 'M9 12L11.25 14.25L15.75 9.75'],
+  feedback: ['M3 4.5H21V16.5H9L4.5 21V16.5H3Z'],
+  promotions: ['M3 10.5L16.5 4.5V19.5L3 13.5Z', 'M16.5 9H19.5V15H16.5'],
+  social: ['M3 12A2.25 2.25 0 1 0 7.5 12A2.25 2.25 0 1 0 3 12Z', 'M16.5 6A2.25 2.25 0 1 0 21 6A2.25 2.25 0 1 0 16.5 6Z',
+    'M16.5 18A2.25 2.25 0 1 0 21 18A2.25 2.25 0 1 0 16.5 18Z', 'M7.5 10.95L16.5 7.2', 'M7.5 13.05L16.5 16.8'],
+  content: ['M4.5 3H15L19.5 7.5V21H4.5Z', 'M9 12H15', 'M9 16.5H15'],
+  staff: ['M6 7.5A3 3 0 1 0 12 7.5A3 3 0 1 0 6 7.5Z', 'M3 19.5C3 15.75 5.7 14.25 9 14.25S15 15.75 15 19.5', 'M16.5 4.8A3 3 0 0 1 16.5 10.2',
+    'M18 14.4C19.95 15 21 16.5 21 19.5'],
+  tables: ['M3 7.5H21V15H3Z', 'M6 15V21', 'M18 15V21'],
+  settings: ['M9 12A3 3 0 1 0 15 12A3 3 0 1 0 9 12Z', 'M12 2.25V5.25', 'M12 18.75V21.75', 'M2.25 12H5.25', 'M18.75 12H21.75', 'M5.1 5.1L7.2 7.2',
+    'M16.8 16.8L18.9 18.9', 'M5.1 18.9L7.2 16.8', 'M16.8 7.2L18.9 5.1'],
+  reset: ['M4.5 12A7.5 7.5 0 1 0 18 7.5', 'M18 3V7.5H13.5'],
+  purge: ['M4.5 6H19.5', 'M9 6V3.75H15V6', 'M6.75 6L7.8 20.25H16.2L17.25 6'],
+  requests: ['M4.5 4.5H19.5V19.5H4.5Z', 'M9 10.5H15', 'M9 15H12'],
+  search: ['M3 10.5A7.5 7.5 0 1 0 18 10.5A7.5 7.5 0 1 0 3 10.5Z', 'M16 16L21 21'],
+  // Three dots, each a small ring: a row's or a table's more actions, and the tab bar's More.
+  overflow: ['M4 12A1 1 0 1 0 6 12A1 1 0 1 0 4 12Z', 'M11 12A1 1 0 1 0 13 12A1 1 0 1 0 11 12Z', 'M18 12A1 1 0 1 0 20 12A1 1 0 1 0 18 12Z'],
 } satisfies Record<string, readonly string[]>;
 
 export type IconName = keyof typeof ICONS;

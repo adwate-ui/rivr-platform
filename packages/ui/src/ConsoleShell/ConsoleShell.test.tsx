@@ -1,116 +1,125 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
-import { consoleSections } from '../storybook/fixtures.ts';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { consoleSections, consoleTabs } from '../storybook/fixtures.ts';
 import { axeViolations, renderIn } from '../test/render.tsx';
+import { RAIL_KEY } from './ConsoleRail.tsx';
 import { ConsoleShell } from './ConsoleShell.tsx';
 
 function renderShell(onNavigate = vi.fn()) {
   return renderIn(
-    <ConsoleShell
-      sections={consoleSections()}
-      currentItem="cage"
-      onNavigate={onNavigate}
-      banner={<p>Venue frozen.</p>}
-      railFooter={<p>Sana Qureshi</p>}
-    >
-      <h1>Cage</h1>
+    <ConsoleShell sections={consoleSections()} tabs={consoleTabs()} currentItem="members" onNavigate={onNavigate}
+      banner={<p>Venue frozen.</p>} search={<button type="button">Search</button>} pulse={<p>23 seated</p>} clock={<p>11:40</p>}
+      account={<button type="button">Vikram Rao</button>}>
+      <h1>Members</h1>
     </ConsoleShell>,
   );
 }
 
+/** A window `width` wide, as matchMedia answers a min-width query. */
+function windowOf(width: number) {
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: width >= Number(/min-width: (\d+)px/.exec(query)?.[1] ?? 0), addEventListener: () => undefined, removeEventListener: () => undefined,
+  }));
+}
+
+const rail = () => screen.getByRole('complementary');
+
+beforeEach(() => window.localStorage.clear());
+afterEach(() => vi.unstubAllGlobals());
+
 describe('ConsoleShell', () => {
-  it('holds the rail in a complementary landmark and the screen in main', () => {
+  it('holds the rail in a complementary landmark, the header in a banner and the screen in main', () => {
     renderShell();
-    expect(screen.getByRole('complementary')).toContainElement(screen.getByRole('navigation', { name: 'Sections' }));
-    expect(screen.getByRole('main')).toHaveTextContent('Cage');
+    expect(rail()).toContainElement(screen.getByRole('navigation', { name: 'Sections' }));
+    expect(screen.getByRole('main')).toHaveTextContent('Members');
     expect(screen.getByText('Venue frozen.')).toBeInTheDocument();
+    const header = screen.getByRole('banner');
+    for (const part of ['Search', 'Vikram Rao']) expect(within(header).getByRole('button', { name: part })).toBeInTheDocument();
+    expect(header).toHaveTextContent('23 seated');
+    expect(header).toHaveTextContent('11:40');
   });
 
-  it('puts who is signed in at the foot of the rail', () => {
+  it('scrolls the screen on its own, focusable, and positioned for its hidden text', () => {
     renderShell();
-    expect(screen.getByRole('complementary')).toHaveTextContent('Sana Qureshi');
-  });
-
-  it('scrolls the list of screens, not the foot of the rail, so signing out stays in view', () => {
-    renderShell();
-    const list = screen.getByRole('navigation', { name: 'Sections' }).parentElement;
-    expect(list).toHaveClass('overflow-y-auto');
-    expect(list).not.toContainElement(screen.getByText('Sana Qureshi'));
-    expect(screen.getByRole('main')).toHaveClass('overflow-y-auto');
-    // Positioned, so a screen's visually hidden text cannot lengthen the page past the window.
-    expect(screen.getByRole('main')).toHaveClass('relative');
-    // A keyboard can scroll the screen even when it has nothing else to focus.
+    expect(screen.getByRole('main')).toHaveClass('overflow-y-auto', 'relative');
     expect(screen.getByRole('main')).toHaveAttribute('tabindex', '0');
   });
 
   it('groups the rail by the job and marks the current screen', () => {
     renderShell();
-    for (const group of ['Tonight', 'Cage', 'Players', 'Marketing', 'Money', 'Team', 'Reports']) {
-      expect(screen.getByRole('list', { name: group })).toBeInTheDocument();
-    }
-    expect(screen.getByRole('link', { name: 'Overview' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Cage' })).toHaveAttribute('aria-current', 'page');
+    for (const group of ['Tonight', 'Players', 'Marketing']) expect(within(rail()).getByRole('list', { name: group })).toBeInTheDocument();
+    expect(within(rail()).getByRole('link', { name: 'Members' })).toHaveAttribute('aria-current', 'page');
   });
 
-  it('names the screen in the top bar, whose menu opens the rail and closes on choosing a screen', async () => {
+  it('shows the rail\'s labels from 1200 px, and folds it to icons below on its own', () => {
+    windowOf(1440);
+    const { unmount } = renderShell();
+    expect(rail()).toHaveClass('w-rail');
+    expect(within(rail()).getByRole('button', { name: 'Collapse' })).toBeInTheDocument();
+    unmount();
+    windowOf(1180);
+    renderShell();
+    expect(rail()).toHaveClass('w-rail-collapsed');
+    expect(within(rail()).getByRole('link', { name: 'Members' })).toHaveAttribute('title', 'Members');
+  });
+
+  it('keeps the staff member\'s choice of rail on the device', async () => {
+    windowOf(1440);
+    const { unmount } = renderShell();
+    await userEvent.click(within(rail()).getByRole('button', { name: 'Collapse' }));
+    expect(rail()).toHaveClass('w-rail-collapsed');
+    expect(window.localStorage.getItem(RAIL_KEY)).toBe('icons');
+    unmount();
+    renderShell();
+    expect(rail()).toHaveClass('w-rail-collapsed');
+    await userEvent.click(within(rail()).getByRole('button', { name: 'Expand' }));
+    expect(rail()).toHaveClass('w-rail');
+  });
+
+  it('still folds the rail when the device refuses storage', async () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('denied'); });
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('denied'); });
+    renderShell();
+    await userEvent.click(within(rail()).getByRole('button', { name: 'Collapse' }));
+    expect(rail()).toHaveClass('w-rail-collapsed');
+    vi.restoreAllMocks();
+  });
+
+  it('names the screen in the phone\'s header, and puts the app\'s tabs and More along the foot', () => {
+    renderShell();
+    expect(screen.getByRole('banner')).toHaveTextContent('Members');
+    const tabs = screen.getByRole('navigation', { name: 'Main' });
+    expect(within(tabs).getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual(['#floor', '#requests', '#waitlist', '#door']);
+    expect(within(tabs).getByRole('link', { name: 'Requests', description: '12 waiting' })).toBeInTheDocument();
+    expect(within(tabs).getByRole('button', { name: 'More' })).toBeInTheDocument();
+  });
+
+  it('opens every screen from More, and closes it on choosing one', async () => {
     const onNavigate = vi.fn();
     renderShell(onNavigate);
-    expect(screen.getByRole('banner')).toHaveTextContent('Cage');
-    await userEvent.click(screen.getByRole('button', { name: 'Menu' }));
-    const menu = screen.getByRole('dialog', { name: 'Sections' });
-    expect(within(menu).getByText('Sana Qureshi')).toBeInTheDocument();
-    await userEvent.click(within(menu).getByRole('link', { name: 'KYC review' }));
-    expect(onNavigate).toHaveBeenCalledWith('#kycReview');
+    await userEvent.click(screen.getByRole('button', { name: 'More' }));
+    const more = screen.getByRole('dialog', { name: 'All screens' });
+    await userEvent.click(within(more).getByRole('link', { name: 'Feedback' }));
+    expect(onNavigate).toHaveBeenCalledWith('#feedback');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  // A tap outside closes it too: the Console fits flow taps beside the menu in a real browser.
-  it('closes the menu with Escape or its Close button, giving focus back to Menu', async () => {
+  it('closes More with Escape or Close', async () => {
     renderShell();
-    const menu = screen.getByRole('button', { name: 'Menu' });
-    await userEvent.click(menu);
+    await userEvent.click(screen.getByRole('button', { name: 'More' }));
     await userEvent.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(menu).toHaveFocus();
-    await userEvent.click(menu);
-    await userEvent.click(screen.getByRole('button', { name: 'Close the menu' }));
+    await userEvent.click(screen.getByRole('button', { name: 'More' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(menu).toHaveFocus();
-  });
-
-  it('finds a screen by name with Go to, and Enter opens the first found', async () => {
-    const onNavigate = vi.fn();
-    renderShell(onNavigate);
-    const rail = screen.getByRole('complementary');
-    await userEvent.type(within(rail).getByRole('searchbox', { name: 'Go to' }), 'kyc');
-    expect(within(rail).getAllByRole('link').map((link) => link.textContent)).toEqual(['KYC review']);
-    await userEvent.keyboard('{Enter}');
-    expect(onNavigate).toHaveBeenCalledWith('#kycReview');
-    await userEvent.type(within(rail).getByRole('searchbox', { name: 'Go to' }), 'zzz');
-    expect(within(rail).getByText('No screen by that name.')).toBeInTheDocument();
-  });
-
-  it('moves to Go to with Ctrl+K, or / outside a field', async () => {
-    renderShell();
-    const goTo = within(screen.getByRole('complementary')).getByRole('searchbox', { name: 'Go to' });
-    await userEvent.keyboard('{Control>}k{/Control}');
-    expect(goTo).toHaveFocus();
-    goTo.blur();
-    await userEvent.keyboard('/');
-    expect(goTo).toHaveFocus();
   });
 
   it('routes rail links through the app', async () => {
     const onNavigate = vi.fn();
     renderShell(onNavigate);
-    await userEvent.click(screen.getByRole('link', { name: 'KYC review' }));
-    expect(onNavigate).toHaveBeenCalledWith('#kycReview');
-  });
-
-  it('has no accessibility violations', async () => {
-    const { container } = renderShell();
-    expect(await axeViolations(container)).toEqual([]);
+    await userEvent.click(within(rail()).getByRole('link', { name: 'KYC review' }));
+    expect(onNavigate).toHaveBeenCalledWith('#kyc');
   });
 
   it('starts with Skip to content, which takes the focus to the screen past the rail (F5-03)', async () => {
@@ -119,5 +128,10 @@ describe('ConsoleShell', () => {
     expect(screen.getByRole('link', { name: 'Skip to content' })).toHaveFocus();
     await userEvent.keyboard('{Enter}');
     expect(screen.getByRole('main')).toHaveFocus();
+  });
+
+  it('has no accessibility violations', async () => {
+    const { container } = renderShell();
+    expect(await axeViolations(container)).toEqual([]);
   });
 });

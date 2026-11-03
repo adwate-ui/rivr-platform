@@ -97,4 +97,31 @@ describe('ChoiceChips', () => {
     expect(screen.getByRole('button', { name: 'Food' })).toHaveClass('border-gold', 'border-b-2');
     expect(screen.getByRole('button', { name: 'Bar' })).toHaveClass('border-transparent');
   });
+
+  it('draws the console\'s subtle chips: a faint cream fill, the chosen one gold-tinted, 34 px at a desk and 44 below', () => {
+    renderIn(<ChoiceChips label="Status" look="subtle" mode="one" options={GAMES} selected={['plo']} onChange={() => undefined} />);
+    const chosen = screen.getByRole('button', { name: 'PLO' });
+    const other = screen.getByRole('button', { name: 'NLH' });
+    expect(chosen).toHaveClass('bg-selected', 'text-content', 'rounded-md', 'text-13', 'min-h-touch', 'tablet:min-h-row-compact', 'items-center', 'leading-control');
+    expect(chosen).not.toHaveClass('bg-subtle');
+    expect(other).toHaveClass('bg-subtle', 'text-content');
+    expect(other).not.toHaveClass('text-content-muted', 'border');
+  });
+
+  it('shows a chip\'s count after its label and reads it as part of its name', async () => {
+    const onChange = vi.fn();
+    const statuses = [{ value: 'pending', label: 'Pending', count: 3 }, { value: 'done', label: 'Done', count: 0 }, { value: 'all', label: 'All' }];
+    const { container } = renderIn(<ChoiceChips label="Status" look="subtle" mode="one" options={statuses} selected={['all']} onChange={onChange} />);
+    const pending = screen.getByRole('button', { name: 'Pending, 3' });
+    expect(pending).toHaveTextContent('Pending3');
+    // Cream like its label, never muted on the fill; set apart by its weight beside a chosen label.
+    expect(pending).toHaveClass('text-content');
+    expect(screen.getByText('3')).toHaveClass('font-regular');
+    expect(screen.getByText('3')).not.toHaveClass('text-content-muted');
+    expect(screen.getByRole('button', { name: 'Done, 0' })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
+    await userEvent.click(pending);
+    expect(onChange).toHaveBeenCalledWith(['pending']);
+    expect(await axeViolations(container)).toEqual([]);
+  });
 });

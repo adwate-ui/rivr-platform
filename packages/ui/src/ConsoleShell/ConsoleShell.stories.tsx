@@ -1,13 +1,41 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { AvatarLink } from '../AvatarLink/AvatarLink.tsx';
 import { Button } from '../Button/Button.tsx';
-import { Screen } from '../Screen/Screen.tsx';
-import { Stack } from '../Stack/Stack.tsx';
-import { Switch } from '../Switch/Switch.tsx';
-import { Text } from '../Text/Text.tsx';
-import { consoleSections } from '../storybook/fixtures.ts';
+import { SearchTrigger } from '../CommandPalette/SearchTrigger.tsx';
+import { Grid } from '../Grid/Grid.tsx';
+import { HeaderPulse } from '../HeaderPulse/HeaderPulse.tsx';
 import { KillSwitchBanner as Banner } from '../KillSwitchBanner/KillSwitchBanner.tsx';
-import { TablesList } from '../storybook/screens.tsx';
+import { Screen } from '../Screen/Screen.tsx';
+import { consoleSections, consoleTabs } from '../storybook/fixtures.ts';
+import { TableTile, type TileSeat } from '../TableTile/TableTile.tsx';
+import { Time } from '../Time/Time.tsx';
 import { ConsoleShell } from './ConsoleShell.tsx';
+
+const SEATS: readonly TileSeat[][] = [
+  ['seated', 'needsYou', 'open', 'seated', 'seated', 'open', 'seated', 'needsYou', 'open'],
+  ['needsYou', 'seated', 'needsYou', 'open', 'seated', 'seated', 'open', 'needsYou', 'seated'],
+  ['seated', 'open', 'needsYou', 'seated', 'open', 'seated', 'needsYou', 'open', 'open'],
+];
+
+function tile(name: string, stake: string, seats: readonly TileSeat[]) {
+  return <TableTile key={name} name={name} stake={stake} seats={seats} isExpanded={false} onToggle={() => undefined} onSettings={() => undefined} />;
+}
+
+const floor = (
+  <Screen title="Live floor" actions={<Button variant="primary" size="compact">Seat a player</Button>}>
+    <Grid columns={3} gap={3} stackBelow="medium">
+      {tile('Table 1', '50/100', SEATS[0] ?? [])}
+      {tile('Table 2', '100/200', SEATS[1] ?? [])}
+      {tile('Table 3', '100/200', SEATS[2] ?? [])}
+    </Grid>
+  </Screen>
+);
+
+const PULSE = [
+  { id: 'seated', count: 23, label: 'seated', href: '#floor' },
+  { id: 'waiting', count: 6, label: 'waiting', href: '#waitlist' },
+  { id: 'requests', count: 12, label: 'requests', href: '#requests', needsYou: true },
+];
 
 const meta = {
   title: 'Shells/ConsoleShell',
@@ -16,60 +44,49 @@ const meta = {
   parameters: { layout: 'fullscreen' },
   args: {
     sections: consoleSections(),
-    currentItem: 'liveFloor',
-    children: (
-      <Screen title="Live floor">
-        <TablesList />
-      </Screen>
-    ),
+    tabs: consoleTabs(),
+    currentItem: 'floor',
+    search: <SearchTrigger onOpen={() => undefined} />,
+    pulse: <HeaderPulse label="Tonight" items={PULSE} />,
+    clock: <Time at={new Date('2026-11-15T06:10:00Z')} tone="muted" />,
+    account: <AvatarLink initial="V" href="#account" />,
+    children: floor,
   },
 } satisfies Meta<typeof ConsoleShell>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+/** At a desk, 1440 px: the rail with its labels, the header's search, pulse and clock. */
 export const Default: Story = {};
 
-export const Loading: Story = { args: { children: <Screen title="Live floor" status="loading" /> } };
+/** The floor's 1180 px tablet: the rail folds to its icons on its own, each count a dot. */
+export const OnATablet: Story = { tags: ['!viewport-console', 'viewport-tablet'] };
+
+/** On a phone: the header names the screen, and the tab bar holds the app's tabs and More. */
+export const OnAPhone: Story = { tags: ['!viewport-console', 'viewport-phone'] };
+
+export const Loading: Story = { args: { children: <Screen title="Live floor" status="loading" loadingLook="tiles" /> } };
 
 export const Empty: Story = {
-  args: { currentItem: 'markers', children: <Screen title="Markers" status="empty" emptyText="No open markers." /> },
+  args: {
+    currentItem: 'tables',
+    children: <Screen title="Tables" status="empty" emptyText="No tables yet." emptyAction={{ label: 'Add a table', onClick: () => undefined }} />,
+  },
 };
 
-export const WithError: Story = {
-  args: { currentItem: 'cage', children: <Screen title="Cage" status="error" onRetry={() => undefined} /> },
+export const WithError: Story = { args: { currentItem: 'members', children: <Screen title="Members" status="error" onRetry={() => undefined} /> } };
+
+/** The kill switch's banner across the top, above everything; an Admin screen open, its group with it. */
+export const KillSwitchBanner: Story = {
+  args: { banner: <Banner audience="staff" />, currentItem: 'kill', children: <Screen title="Kill switch" status="empty" emptyText="The venue is frozen." /> },
 };
-
-export const KillSwitchBanner: Story = { args: { banner: <Banner audience="staff" /> } };
-
-/** On a phone the rail becomes the menu: the top bar names the screen (#601). */
-export const OnAPhone: Story = { tags: ['!viewport-console', 'viewport-phone'] };
 
 export const OnAPhoneLongTitle: Story = {
   tags: ['!viewport-console', 'viewport-phone'],
   args: {
-    sections: [{ id: 'tonight', label: 'Tonight', items: [{ id: 'long', label: 'Tournament registrations and late entries', href: '#long' }] }],
+    sections: [{ id: 'tonight', label: 'Tonight', items: [{ id: 'long', label: 'Tournament registrations and late entries', href: '#long', icon: 'waitlist' }] }],
     currentItem: 'long',
-    children: <Screen title="Tournament registrations and late entries" actions={<Button variant="primary">New tournament</Button>} />,
+    children: <Screen title="Tournament registrations and late entries" status="empty" emptyText="No registrations yet." />,
   },
-};
-
-/** The foot of the rail as the console fills it: the staff member, the venue, the practice switch, sign out. */
-function staffFooter(name: string, venue: string) {
-  return (
-    <Stack gap={3}>
-      <Stack gap={1}>
-        <Text weight="medium">{name}</Text>
-        <Text variant="small" tone="muted">{venue}</Text>
-      </Stack>
-      <Switch label="Practice venue" isOn={false} onChange={() => undefined} />
-      <Button variant="secondary">Sign out</Button>
-    </Stack>
-  );
-}
-
-export const WithStaff: Story = { args: { railFooter: staffFooter('Sana Qureshi', 'RIVR Gurugram') } };
-
-export const WithStaffLongText: Story = {
-  args: { railFooter: staffFooter('Venkataraghavan Subramaniam-Krishnamurthy', 'RIVR Gurugram, Upper floor, Glaza, M3M 65th Avenue') },
 };

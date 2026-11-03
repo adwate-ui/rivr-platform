@@ -23,6 +23,8 @@ The prototype's TV (1920 by 1080, read across a room) adds larger sizes: 48 for 
 
 The player app's redesign (`docs/design/player-redesign/`, decision 0320) adds a sheet's title (32), a sign-up title (40), a seat's hold counting down (72) and the member's place on a waitlist (160). Player scale: 32, 40, 72, 160.
 
+The console v3 redesign (`docs/design/console-v3/`, decision 0428) sets a row's primary text at 15 between the 14 and 16 already there; the rest of its scale (24, 20, 14, 13, 12) is the suggested one. Console scale: 15.
+
 Both faces are SIL OFL; install them from `@fontsource` packages rather than copying files from the prototype.
 
 ## Screens in the prototype

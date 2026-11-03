@@ -1,14 +1,15 @@
 import { t } from '@rivr/i18n';
-import { tokens } from '@rivr/tokens';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type ReactNode, type UIEvent } from 'react';
 import { Button } from '../Button/Button.tsx';
-import { Icon } from '../Icon/Icon.tsx';
 import { PhoneSort } from './PhoneSort.tsx';
 import { Input } from '../Input/Input.tsx';
-import { cx } from '../internal/classes.ts';
 import { useIsWide } from '../useIsWide/useIsWide.ts';
 import { Text } from '../Text/Text.tsx';
 import { ExportBar, useTableExporter } from './DataTableExport.tsx';
+import { HeaderRow, layoutOf, PlainBody, VirtualBody } from './rows.tsx';
+import { ticksFor, type DataTableSelection } from './Selection.tsx';
+
+export type { DataTableSelection };
 
 /** One column: its header, what each row shows in it, and the value it sorts by (no sorting without one). */
 export interface DataTableColumn<Row> {
@@ -56,50 +57,28 @@ export type DataTableProps<Row> = DataTableState<Row> & {
   toolbar?: (rows: readonly Row[]) => ReactNode;
   /** The screen's own filters, in words, which an export records with the table's (#102): `Search: 9000`. */
   exportFilter?: string;
-  /** Opens a row's record: its title becomes a button that does (#603). */
+  /**
+   * Opens a row's record: a click anywhere on the row does, besides on a control in it, and its title becomes the
+   * button a keyboard and a screen reader open it with (#603).
+   */
   onRowOpen?: (row: Row) => void;
+  /** A first column of ticks, to act on several rows at once, with a tick in the header for every row as shown. */
+  selection?: DataTableSelection;
+  /** A row's height from 1180 px: `comfortable`, 42 px, or `compact`, 34 px. Below, rows stay 44 px targets. */
+  density?: 'comfortable' | 'compact';
+  /**
+   * Below 768 px: `cards`, a card per row, sorted from a bar above them; or `scroll`, the table's lines under its header,
+   * scrolling sideways with the first column held.
+   */
+  narrowLayout?: 'cards' | 'scroll';
 };
 
 /** Past this many rows, only the rows in view are drawn (additions, "Performance budgets"). */
 export const VIRTUAL_FROM = 200;
-const ROW_HEIGHT = tokens.space[12];
-// A card below 768 px: each line this high, the gap between lines, the padding above and below, the hairline under it.
-const CARD_LINE = tokens.space[6];
-const CARD_GAP = tokens.space[1];
-const CARD_PADDING = tokens.space[3] * 2;
-const HAIRLINE = 1;
-const ROWS_IN_VIEW = 12;
-// Rows drawn beyond each edge of the view, so a quick scroll shows no gap.
-const OVERSCAN = 6;
-// From 768 px up a row is a line of equal columns; below, it is a card: its title, then a line for each other column.
-const WIDE_GRID = 'medium:grid medium:grid-flow-col medium:auto-cols-fr medium:items-center medium:gap-4';
-
-type Priority = NonNullable<DataTableColumn<unknown>['priority']>;
-
-const priorityOf = (column: DataTableColumn<never>, index: number): Priority => column.priority ?? (index === 0 ? 'primary' : 'secondary');
-
-// Below 768 px a secondary cell names its column before its value, from data-label (styles.css), so the header's words
-// stay out of the rows.
-const CELL: Record<Priority, string> = {
-  primary: '',
-  secondary: 'flex justify-between gap-3 text-14 medium:block medium:text-16',
-  optional: 'hidden medium:block',
-};
-
-/**
- * A card's height below 768 px, for the drawn window of a long list: its title (a 44 px button when rows open), a line
- * for each secondary column, and what is between and around them. A long list's cells keep to one line, so it holds.
- */
-function cardHeight<Row>(columns: readonly DataTableColumn<Row>[], opens: boolean): number {
-  const secondary = columns.filter((column, index) => priorityOf(column, index) === 'secondary').length;
-  return (opens ? tokens.size.touch : CARD_LINE) + secondary * (CARD_GAP + CARD_LINE) + CARD_PADDING + HAIRLINE;
-}
 
 // One collator for every comparison: making one per comparison is slow on thousands of rows.
 const COLLATOR = new Intl.Collator('en-IN', { sensitivity: 'base', numeric: true });
 const NO_ROWS: readonly never[] = [];
-// A scrolling body and the header above it keep the same room for a scrollbar, so their columns line up.
-const GUTTER = { scrollbarGutter: 'stable' } as const;
 
 function compare(a: string | number | bigint, b: string | number | bigint): number {
   if (typeof a === 'string' && typeof b === 'string') return COLLATOR.compare(a, b);
@@ -124,129 +103,31 @@ function shown<Row>(rows: readonly Row[], { columns, sort, text, query }: View<R
   return [...matching].sort((a, b) => sign * compare(value(a), value(b)));
 }
 
-function HeaderCell<Row>({ column, sort, onSort }: { column: DataTableColumn<Row>; sort: DataTableSort | null; onSort: (key: string) => void }) {
-  const direction = sort?.key === column.key ? sort.direction : undefined;
-  const align = column.align === 'end' ? 'justify-end' : 'justify-start';
-  const span = column.isWide ? 'medium:col-span-2' : undefined;
-  if (column.sortValue === undefined) {
-    return <div role="columnheader" className={cx('flex min-w-0', align, span)}><Text variant="small" tone="muted">{column.header}</Text></div>;
-  }
-  return (
-    <div role="columnheader" aria-sort={direction ?? 'none'} className={cx('flex min-w-0', align, span)}>
-      <button type="button" onClick={() => onSort(column.key)}
-        className="flex min-h-touch min-w-touch items-center gap-1 font-text text-14 text-content-muted transition-colors hover:text-content focus-visible:text-content tablet:min-w-0">
-        {column.header}
-        {direction === undefined ? null : <Icon name={direction === 'ascending' ? 'chevronUp' : 'chevronDown'} size="sm" />}
-      </button>
-    </div>
-  );
+interface TableProps<Row> {
+  readonly props: DataTableProps<Row>;
+  readonly visible: readonly Row[];
+  readonly sort: DataTableSort | null;
+  readonly query: string;
+  readonly onSort: (key: string) => void;
 }
 
-interface BodyRowProps<Row> {
-  row: Row;
-  columns: readonly DataTableColumn<Row>[];
-  index: number;
-  /** In a long list: where the row is drawn, and its height. */
-  place?: { readonly offset: number; readonly height: number };
-  onRowOpen?: ((row: Row) => void) | undefined;
-}
-
-interface TitleProps<Row> {
-  row: Row;
-  column: DataTableColumn<Row>;
-  onRowOpen: ((row: Row) => void) | undefined;
-  /** In a long list's fixed rows, it keeps to one line. */
-  isOneLine: boolean;
-}
-
-/** The title cell's content: a button that opens the row, when rows open. */
-function Title<Row>({ row, column, onRowOpen, isOneLine }: TitleProps<Row>) {
-  if (onRowOpen === undefined) return <>{column.cell(row)}</>;
-  return (
-    <button type="button" onClick={() => onRowOpen(row)}
-      className="flex min-h-touch w-full items-center text-start text-content underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-focus">
-      <span className={isOneLine ? 'truncate' : undefined}>{column.cell(row)}</span>
-    </button>
-  );
-}
-
-/** A cell's words as its title, in a long list whose rows keep to one line, so text cut short can still be read (F5-05). */
-function titleOf(content: ReactNode, isOneLine: boolean): string | undefined {
-  return isOneLine && (typeof content === 'string' || typeof content === 'number') ? String(content) : undefined;
-}
-
-function BodyRow<Row>({ row, columns, index, place, onRowOpen }: BodyRowProps<Row>) {
-  const isOneLine = place !== undefined;
-  return (
-    <div role="row" aria-rowindex={index + 2}
-      className={cx('flex flex-col gap-1 border-b border-hairline px-3 py-3 transition-colors hover:bg-raised', WIDE_GRID,
-        isOneLine ? 'absolute inset-x-0 top-0 overflow-hidden medium:h-12 medium:py-0' : 'relative medium:min-h-12 medium:py-2')}
-      style={place === undefined ? undefined : { transform: `translateY(${place.offset}px)`, height: place.height }}>
-      {columns.map((column, at) => {
-        const priority = priorityOf(column, at);
-        return (
-          // A long list's rows are one height, so there a cell keeps to one line and its words are its title (F5-05);
-          // elsewhere long text wraps onto the row's next line rather than be cut. On a phone's card, a value with no
-          // spaces (a key, a link) breaks rather than spill. data-label is the column's name, which styles.css shows
-          // before the value on a phone.
-          <div key={column.key} role="cell" data-label={priority === 'secondary' ? column.header : undefined}
-            title={titleOf(column.cell(row), isOneLine)}
-            className={cx('min-w-0 font-text text-16 text-content wrap-anywhere', isOneLine ? 'truncate' : undefined, CELL[priority],
-              column.isWide && 'medium:col-span-2',
-              column.align === 'end' ? 'medium:text-end' : 'text-start')}>
-            {priority === 'primary' ? <Title row={row} column={column} onRowOpen={onRowOpen} isOneLine={isOneLine} /> : column.cell(row)}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/**
- * Past VIRTUAL_FROM rows: a scrolling body of a fixed height, which takes keyboard focus so arrow keys
- * scroll it. Rows are all one height, so the rows in view, and a few either side, follow from how far
- * it is scrolled; only those are drawn.
- */
-interface VirtualBodyProps<Row> {
-  rows: readonly Row[];
-  columns: readonly DataTableColumn<Row>[];
-  rowKey: (row: Row) => string;
-  onRowOpen: ((row: Row) => void) | undefined;
-}
-
-function VirtualBody<Row>({ rows, columns, rowKey, onRowOpen }: VirtualBodyProps<Row>) {
-  const [scrolled, setScrolled] = useState(0);
-  // Lines from 768 px up; cards below, each of a fixed height for its columns.
-  // Rows are lines from 768 px, else cards.
-  const height = useIsWide('medium') ? ROW_HEIGHT : cardHeight(columns, onRowOpen !== undefined);
-  const first = Math.max(0, Math.floor(scrolled / height) - OVERSCAN);
-  const last = Math.min(rows.length, Math.ceil(scrolled / height) + ROWS_IN_VIEW + OVERSCAN);
-  return (
-    <div role="rowgroup" tabIndex={0} className="overflow-y-auto focus-visible:outline-2 focus-visible:outline-focus"
-      style={{ ...GUTTER, height: ROW_HEIGHT * ROWS_IN_VIEW }} onScroll={(event) => setScrolled(event.currentTarget.scrollTop)}>
-      <div className="relative w-full" style={{ height: rows.length * height }}>
-        {rows.slice(first, last).map((row, index) => (
-          <BodyRow key={rowKey(row)} row={row} columns={columns} index={first + index} place={{ offset: (first + index) * height, height }} onRowOpen={onRowOpen} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function Table<Row>({ props, visible, sort, query, onSort }: { props: DataTableProps<Row>; visible: readonly Row[]; sort: DataTableSort | null; query: string; onSort: (key: string) => void }) {
+function Table<Row>({ props, visible, sort, query, onSort }: TableProps<Row>) {
+  const header = useRef<HTMLDivElement>(null);
   const isVirtual = visible.length > VIRTUAL_FROM;
+  const ticks = props.selection === undefined ? null : ticksFor(props.selection, visible.map(props.rowKey));
+  const layout = layoutOf(props.columns, props.narrowLayout ?? 'cards', props.density ?? 'comfortable', ticks);
+  // In the scroll layout below 768 px the body scrolls sideways, and the header, which has no scrollbar, follows it.
+  const onScrollX = (event: UIEvent<HTMLElement>) => {
+    if (header.current !== null) header.current.scrollLeft = event.currentTarget.scrollLeft;
+  };
+  const body = { rows: visible, columns: props.columns, rowKey: props.rowKey, onRowOpen: props.onRowOpen, layout, onScrollX };
   return (
     <div role="table" aria-label={props.label} aria-rowcount={visible.length + 1} className="flex flex-col">
-      {/* The header shows from 768 px up; below, each card names its own columns. */}
-      <div role="rowgroup" style={isVirtual ? { ...GUTTER, overflowY: 'hidden' } : undefined}>
-        <div role="row" aria-rowindex={1} className={cx('hidden border-b border-hairline px-3', WIDE_GRID)}>
-          {props.columns.map((column) => <HeaderCell key={column.key} column={column} sort={sort} onSort={onSort} />)}
-        </div>
-      </div>
+      <HeaderRow ref={header} columns={props.columns} sort={sort} onSort={onSort} layout={layout} isVirtual={isVirtual} />
       {isVirtual
         // A new order or filter starts from the top.
-        ? <VirtualBody key={`${sort?.key ?? ''}:${sort?.direction ?? ''}:${query}`} rows={visible} columns={props.columns} rowKey={props.rowKey} onRowOpen={props.onRowOpen} />
-        : <div role="rowgroup">{visible.map((row, index) => <BodyRow key={props.rowKey(row)} row={row} columns={props.columns} index={index} onRowOpen={props.onRowOpen} />)}</div>}
+        ? <VirtualBody key={`${sort?.key ?? ''}:${sort?.direction ?? ''}:${query}`} {...body} />
+        : <PlainBody {...body} />}
     </div>
   );
 }
@@ -295,10 +176,10 @@ function Bar<Row>({ props, visible, query, onQuery }: { props: DataTableProps<Ro
 }
 
 /**
- * A table of records for the console (`.claude/rules/ui.md`, "Data"): headers that sort, an optional
- * filter box, and the loading, empty and error states. Past 200 rows only the rows in view are drawn,
- * so thousands of rows scroll smoothly. Beneath a DataTableExportProvider, the rows as shown export as CSV
- * or XLSX, each export recorded first (#102).
+ * A table of records for the console (`.claude/rules/ui.md`, "Data"): headers that sort, held at the top as the page
+ * scrolls, an optional filter box, optional ticks, and the loading, empty and error states. Past 200 rows only the rows
+ * in view are drawn, so thousands of rows scroll smoothly. Beneath a DataTableExportProvider, the rows as shown export
+ * as CSV or XLSX, each export recorded first (#102).
  */
 export function DataTable<Row>(props: DataTableProps<Row>) {
   const isWide = useIsWide('medium');
@@ -314,7 +195,8 @@ export function DataTable<Row>(props: DataTableProps<Row>) {
       <Bar props={props} visible={visible} query={query} onQuery={setQuery} />
       {visible.length === 0 ? <Instead props={props} query={query} /> : (
         <>
-          {isWide ? null : <PhoneSort label={props.label} columns={props.columns} sort={sort} onSort={onSort} />}
+          {/* Below 768 px the cards sort from a bar above them; the scroll layout keeps its header. */}
+          {isWide || props.narrowLayout === 'scroll' ? null : <PhoneSort label={props.label} columns={props.columns} sort={sort} onSort={onSort} />}
           <Table props={props} visible={visible} sort={sort} query={query} onSort={onSort} />
         </>
       )}

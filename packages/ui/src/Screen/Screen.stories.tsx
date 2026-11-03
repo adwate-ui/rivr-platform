@@ -34,6 +34,17 @@ export const Loading: Story = { args: { status: 'loading' } };
 
 export const Empty: Story = { args: { title: 'Sessions', status: 'empty', emptyText: 'No sessions yet.', actions: undefined } };
 
+/** The console's empty state (console v3): one sentence and the one thing to do. */
+export const EmptyWithAction: Story = {
+  args: { title: 'Tables', status: 'empty', emptyText: 'No tables yet.', emptyAction: { label: 'Add a table', onClick: () => undefined }, actions: undefined },
+};
+
+/** The console's first load of a list (console v3): faint rows, never the word. */
+export const LoadingRows: Story = { args: { title: 'Members', status: 'loading', loadingLook: 'rows', actions: undefined } };
+
+/** The live floor's first load (console v3): faint tiles. */
+export const LoadingTiles: Story = { args: { title: 'Live floor', status: 'loading', loadingLook: 'tiles', actions: undefined } };
+
 export const WithError: Story = { args: { status: 'error', onRetry: () => undefined } };
 
 export const LongText: Story = {

@@ -16,11 +16,13 @@ export interface ToastProps extends ToastMessage {
 /** How long a toast stays, from the tokens: 3.2 s. */
 export const TOAST_MS = Number.parseInt(String(tokens.motion.duration.toast), 10);
 
-/** A toast on its own, as the provider shows it: cream, above the tab bar, read out politely. */
+/**
+ * A toast on its own, as the provider shows it: cream, with Undo when it can be undone. The provider's status region,
+ * there all along, reads it out politely as it comes.
+ */
 export function Toast({ text, onUndo, onClose }: ToastProps) {
   return (
-    <div role="status" aria-live="polite"
-      className="flex items-center justify-between gap-3 rounded-lg bg-cream px-4 py-3 font-text text-16 font-medium text-on-cream shadow-modal"
+    <div className="flex items-center justify-between gap-3 rounded-lg bg-cream px-4 py-3 font-text text-16 font-medium text-on-cream shadow-modal"
       data-toast="">
       <span>{text}</span>
       {onUndo ? (
@@ -37,11 +39,26 @@ type ShowToast = (text: string, options?: { onUndo?: () => void }) => void;
 
 const ToastContext = createContext<ShowToast | null>(null);
 
+export interface ToastProviderProps {
+  children: ReactNode;
+  /**
+   * `player`, above the player app's tab bar at a phone's width (decision 0320); `console`, centred at the foot of the
+   * console as wide as its words, above the tab bar below 768 px (console v3).
+   */
+  place?: 'player' | 'console';
+}
+
+const PLACE = {
+  player: 'mx-auto px-5 pb-5 medium:max-w-phone',
+  console: 'flex justify-center px-4 pb-4 medium:bottom-0 medium:pb-6',
+} as const;
+
 /**
- * Confirms the member's own action at the foot of the screen, above the tab bar (decision 0320): "Joined waitlist", with
- * Undo when it can be undone. One at a time; a new one replaces the last. It goes after 3.2 s.
+ * Confirms the staff member's or member's own action at the foot of the screen (decision 0320): "Joined waitlist", with
+ * Undo when it can be undone. One at a time; a new one replaces the last. It goes after 3.2 s. Its status region is there
+ * all along, empty between toasts, so each is announced as it comes.
  */
-export function ToastProvider({ children }: { children: ReactNode }) {
+export function ToastProvider({ children, place = 'player' }: ToastProviderProps) {
   const [message, setMessage] = useState<ToastMessage | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const close = useCallback(() => setMessage(null), []);
@@ -55,10 +72,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext value={value}>
       {children}
-      <div className="pointer-events-none fixed inset-x-0 bottom-bottom-nav z-modal mx-auto px-5 pb-5 medium:max-w-phone">
-        <div className="pointer-events-auto">
-          {message ? <Toast text={message.text} onUndo={message.onUndo} onClose={close} /> : null}
-        </div>
+      <div role="status" aria-live="polite" className={`pointer-events-none fixed inset-x-0 bottom-bottom-nav z-modal ${PLACE[place]}`}>
+        {message ? (
+          <div className="pointer-events-auto max-w-palette">
+            <Toast text={message.text} onUndo={message.onUndo} onClose={close} />
+          </div>
+        ) : null}
       </div>
     </ToastContext>
   );

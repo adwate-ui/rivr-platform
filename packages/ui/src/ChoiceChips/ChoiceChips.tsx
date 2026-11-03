@@ -1,3 +1,4 @@
+import { t } from '@rivr/i18n';
 import { useId } from 'react';
 import { cx } from '../internal/classes.ts';
 import { Stack } from '../Stack/Stack.tsx';
@@ -7,6 +8,8 @@ import { Text } from '../Text/Text.tsx';
 export interface ChoiceChip<Value extends string> {
   readonly value: Value;
   readonly label: string;
+  /** How many there are of it, shown after the label and read with it as the chip's name: "Pending, 3". */
+  readonly count?: number | undefined;
 }
 
 export interface ChoiceChipsProps<Value extends string> {
@@ -31,10 +34,13 @@ export interface ChoiceChipsProps<Value extends string> {
   isOneRow?: boolean;
   /**
    * `pill`, the redesign's rounded chips, picked in gold tint; `tile`, square choices in a row of equal columns, such as a
-   * rating of 1 to 5 or Add time's three lengths (decision 0320). `chip` elsewhere.
+   * rating of 1 to 5 or Add time's three lengths (decision 0320). `subtle`, the console's filter chips (console v3): a
+   * faint cream fill, the chosen one gold-tinted, 34 px at a desk and 44 px below 1180 px. `chip` elsewhere.
    */
-  look?: 'chip' | 'pill' | 'tile' | 'tabs';
+  look?: 'chip' | 'pill' | 'tile' | 'tabs' | 'subtle';
 }
+
+type ChipLook = NonNullable<ChoiceChipsProps<string>['look']>;
 
 const CHIP =
   'min-h-touch rounded-md border px-4 font-text text-14 leading-control font-medium transition-colors ' +
@@ -51,19 +57,40 @@ const TILE_ROW: Record<number, string> = { 3: 'grid grid-cols-3 gap-2', 5: 'grid
 // The Order screen's categories (decision 0320): words over a hairline, the chosen one underlined in gold.
 const TAB = '-mb-px min-h-touch min-w-touch border-b-2 font-text text-16 font-medium transition-colors';
 
+// The console's filter chips (console v3): filled rather than outlined, cream words on either fill, never muted ones.
+const SUBTLE =
+  'inline-flex min-h-touch items-center rounded-md px-3 font-text text-13 leading-control text-content transition-colors tablet:min-h-row-compact ' +
+  'focus-visible:outline-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-disabled';
+
 /** The row the choices sit in, by look. */
-function rowClasses(look: 'chip' | 'pill' | 'tile' | 'tabs', optionCount: number, isOneRow: boolean): string {
+function rowClasses(look: ChipLook, optionCount: number, isOneRow: boolean): string {
   if (look === 'tile') return TILE_ROW[optionCount] ?? 'grid grid-cols-3 gap-2';
   if (look === 'tabs') return 'flex gap-6 border-b border-hairline';
   return cx('flex gap-2', isOneRow ? 'overflow-x-auto' : 'flex-wrap');
 }
 
 /** The classes of one choice in each look, on or off. */
-function choiceClasses(look: 'chip' | 'pill' | 'tile' | 'tabs', isOn: boolean, optionCount: number): string {
+function choiceClasses(look: ChipLook, isOn: boolean, optionCount: number): string {
   if (look === 'tabs') return cx(TAB, isOn ? 'border-gold text-content' : 'border-transparent text-content-muted');
+  if (look === 'subtle') return cx(SUBTLE, isOn ? 'bg-selected font-medium' : 'bg-subtle hover:bg-subtle-hover');
   if (look === 'chip') return cx(CHIP, isOn ? 'border-action bg-raised text-content' : 'border-control text-content-muted');
   const picked = isOn ? 'border-gold bg-gold-tint text-content' : 'border-control text-content-muted';
   return look === 'pill' ? cx(PILL, picked) : cx(TILE, optionCount === 5 ? 'h-round' : 'h-tile', picked);
+}
+
+/** A chip's name with its count, `Pending, 3`; without a count, none, so its words name it. */
+function nameWithCount(chip: ChoiceChip<string>): string | undefined {
+  return chip.count === undefined ? undefined : t('ui.console.choiceChips.withCount', { label: chip.label, count: chip.count });
+}
+
+/** A chip's label, then any count, in the chip's own colour and set apart by its regular weight. */
+function ChipWords({ chip }: { chip: ChoiceChip<string> }) {
+  return (
+    <>
+      {chip.label}
+      {chip.count === undefined ? null : <span className="ms-2 font-regular tabular-nums">{chip.count}</span>}
+    </>
+  );
 }
 
 /** A preference picked from a few choices, such as games or stakes: a row of chips that wraps, or scrolls. */
@@ -94,11 +121,12 @@ export function ChoiceChips<Value extends string>({
               key={option.value}
               type="button"
               aria-pressed={isOn}
+              aria-label={nameWithCount(option)}
               disabled={isDisabled}
               onClick={() => press(option.value)}
               className={cx(choiceClasses(look, isOn, options.length), isOneRow && 'shrink-0 whitespace-nowrap')}
             >
-              {option.label}
+              <ChipWords chip={option} />
             </button>
           );
         })}

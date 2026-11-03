@@ -6,10 +6,10 @@ import { SideNav } from './SideNav.tsx';
 const meta = {
   title: 'Navigation/SideNav',
   component: SideNav,
-  args: { label: 'Sections', sections: consoleSections(), current: 'cage' },
+  args: { label: 'Sections', sections: consoleSections(), current: 'floor' },
   decorators: [
     (Story) => (
-      <Box surface="raised" padding={4}>
+      <Box surface="raised" padding={3}>
         <Story />
       </Box>
     ),
@@ -19,45 +19,25 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+/** The rail with its labels: counts in gold ask for action, muted ones inform; Admin folded. */
 export const Default: Story = {};
 
 export const Empty: Story = { args: { sections: [] } };
 
-/** High hands with two claims waiting for the floor (#317). */
-export const WithCount: Story = {
-  args: {
-    current: 'liveFloor',
-    sections: [
-      { id: 'floor', label: 'Floor', items: [{ id: 'liveFloor', label: 'Live floor', href: '#floor' }] },
-      { id: 'growth', label: 'Growth', items: [
-        { id: 'jackpots', label: 'Jackpots', href: '#jackpots' },
-        { id: 'highHands', label: 'High hands', href: '#high-hands', count: 2 },
-      ] },
-    ],
-  },
-};
+/** An Admin screen open: its group stays open, the danger screens in the danger colour. */
+export const AdminOpen: Story = { args: { current: 'kill' } };
 
-/** Top-ups waiting, an urgent count in red (decision 0299). */
-export const UrgentCount: Story = {
-  args: {
-    current: 'liveFloor',
-    sections: [
-      { id: 'floor', label: 'Floor', items: [
-        { id: 'liveFloor', label: 'Live floor', href: '#floor' },
-        { id: 'topUps', label: 'Top-ups', href: '#top-ups', count: 2, isUrgent: true },
-      ] },
-    ],
-  },
-};
+/** Folded to icons: no headings, each count a dot, every screen shown. */
+export const Collapsed: Story = { args: { isCollapsed: true } };
 
 export const LongText: Story = {
   args: {
     current: 'long',
     sections: [
       {
-        id: 'money',
-        label: 'Money and settlement across every venue',
-        items: [{ id: 'long', label: 'Withdrawals waiting for a second approver above ₹1,00,000', href: '#long' }],
+        id: 'tonight',
+        label: 'Tonight and every night after it at the club',
+        items: [{ id: 'long', label: 'Withdrawals waiting for a second approver', href: '#long', icon: 'requests', count: 128, isActionable: true }],
       },
     ],
   },

@@ -44,6 +44,11 @@ export * from './ReasonForm/index.ts';
 export * from './ReferralCard/index.ts';
 export * from './PlaybackLink/index.ts';
 export * from './SignaturePad/index.ts';
+// The console v3 controls.
+export * from './Segmented/index.ts';
+export * from './OverflowMenu/index.ts';
+export * from './BulkBar/index.ts';
+export * from './DotStatus/index.ts';
 
 // Data
 export * from './KycPhoto/index.ts';
@@ -54,6 +59,9 @@ export * from './CallTimeChoice/index.ts';
 export * from './CallTimeTimer/index.ts';
 export * from './WaitTimer/index.ts';
 export * from './TableCard/index.ts';
+export * from './TableTile/index.ts';
+export * from './SeatRow/index.ts';
+export * from './RequestItem/index.ts';
 export * from './DataTable/index.ts';
 export * from './Chart/index.ts';
 
@@ -77,6 +85,8 @@ export * from './PinPad/index.ts';
 export * from './Keypad/index.ts';
 export * from './PlayerShell/index.ts';
 export * from './ConsoleShell/index.ts';
+export * from './CommandPalette/index.ts';
+export * from './HeaderPulse/index.ts';
 export * from './TabletShell/index.ts';
 export * from './DisplayShell/index.ts';
 export * from './TvJackpotBoard/index.ts';

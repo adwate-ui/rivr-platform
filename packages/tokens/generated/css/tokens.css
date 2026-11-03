@@ -23,6 +23,7 @@
   --rivr-color-skeleton-faint: #F3EDE00D; /** Cream at 5%. A first load's blocks, where its rows will be. */
   --rivr-color-rim: #3A2A14; /** The wooden rim round the felt on the seat map. */
   --rivr-color-scrim: #050F0B99; /** The dark veil behind an open sheet, and round the selfie's oval. */
+  --rivr-color-danger: #E8828C; /** Danger text on the console: Remove, Purge, the Kill switch, an age past its target. 4.76:1 on green, 5.86:1 on green-black; never on a subtle fill. */
   --rivr-color-chart-3: #7FC8A9; /** Mint. */
   --rivr-color-chart-4: #8DB8E0; /** Sky. */
   --rivr-color-chart-5: #E88B7D; /** Coral. */
@@ -32,6 +33,7 @@
   --rivr-font-size-12: 12px;
   --rivr-font-size-13: 13px;
   --rivr-font-size-14: 14px;
+  --rivr-font-size-15: 15px; /** The console's body: a row's primary text, a tile's name (console v3). */
   --rivr-font-size-16: 16px;
   --rivr-font-size-18: 18px;
   --rivr-font-size-20: 20px;
@@ -68,6 +70,7 @@
   --rivr-space-4: 16px;
   --rivr-space-5: 20px;
   --rivr-space-6: 24px;
+  --rivr-space-7: 28px; /** The console's gap between sections, and a page's top padding (console v3). */
   --rivr-space-8: 32px;
   --rivr-space-10: 40px;
   --rivr-space-12: 48px;
@@ -76,7 +79,15 @@
   --rivr-space-24: 96px;
   --rivr-space-32: 128px;
   --rivr-size-touch: 44px; /** Minimum touch target on the player app and the dealer tablet. */
-  --rivr-size-rail: 248px; /** Console left rail. */
+  --rivr-size-rail: 224px; /** The console's rail with its labels (console v3). */
+  --rivr-size-rail-collapsed: 64px; /** The console's rail as icons alone: below 1200 px, or when the staff member folds it. */
+  --rivr-size-control: 36px; /** A console control's height at a desk, from 1180 px: a compact button, the search field, a rail item. Below 1180 px the touch target (decision 0282). */
+  --rivr-size-row: 42px; /** A console row at the comfortable density: a table's row, a seat, a list entry. */
+  --rivr-size-row-compact: 34px; /** A console row at the compact density. */
+  --rivr-size-side-panel: 440px; /** A console sheet at the side of the screen, from 768 px. */
+  --rivr-size-palette: 600px; /** The console's command palette at its widest. */
+  --rivr-size-palette-list: 420px; /** The command palette's results at their tallest; past it they scroll. */
+  --rivr-size-search: 420px; /** The console header's search field at its widest. */
   --rivr-size-bottom-nav: 64px; /** Player bottom tab bar. */
   --rivr-size-header: 56px; /** Top bar on phone and tablet shells. */
   --rivr-size-text: 640px; /** Longest comfortable line of text. */
@@ -143,11 +154,13 @@
   --rivr-brand-maskable: 112px; /** A maskable PWA icon: the card inside the safe circle, 80% of the width. */
   --rivr-brand-adaptive: 140px; /** An Android adaptive icon's foreground: the card inside the safe zone, 66 of 108, with room to spare. */
   --rivr-brand-lockup: 400px; /** A splash screen or cover: the wordmark and tagline. */
+  --rivr-breakpoint-wide: 1200px; /** The console's rail shows its labels from here; below, its icons alone, as on the floor's 1180 px tablets (console v3). */
   --rivr-motion-duration-state: 200ms; /** State changes only: a seat filling, a sheet sliding in. */
   --rivr-motion-duration-stagger: 120ms; /** The logo animation: the wait before the next tile rises. Each tile rises in the state duration. */
   --rivr-motion-duration-sheet: 240ms; /** A bottom sheet sliding up (decision 0320). */
   --rivr-motion-duration-tick: 1000ms; /** A live timer's ring or bar moving on by one second, linear. */
   --rivr-motion-duration-toast: 3200ms; /** How long a toast stays before it goes. */
+  --rivr-motion-duration-fresh: 2500ms; /** A request just arrived on the console: its gold tint fades over this, ease-out (console v3, decision 0431). */
   --rivr-motion-duration-turn: 1000ms; /** One turn of a busy button's circle, which keeps turning while its action is in flight (F5-17); still under reduced motion. */
   --rivr-motion-easing-out: cubic-bezier(0, 0, 0.58, 1); /** ease-out. */
   --rivr-icon-size-sm: 16px;
@@ -167,6 +180,9 @@
   --rivr-color-alert: var(--rivr-color-red); /** Alert and danger fills, negative markers. */
   --rivr-color-on-alert: var(--rivr-color-cream); /** Text on an alert fill. */
   --rivr-color-focus: var(--rivr-color-cream); /** Keyboard focus ring. */
+  --rivr-color-subtle: var(--rivr-color-skeleton-faint); /** Cream at 5%. The console's filled controls in place of outlines (console v3, decision 0428): a subtle button, the search field, a segmented control's track, a chip. Text on it is cream: muted text is 4.47:1 on it. */
+  --rivr-color-subtle-hover: var(--rivr-color-skeleton); /** Cream at 8%. A subtle fill under the pointer, and the rail's current screen. */
+  --rivr-color-selected: var(--rivr-color-gold-tint); /** Gold at 14%. A chosen row, option or seat on the console. */
   --rivr-color-chart-1: var(--rivr-color-gold);
   --rivr-color-chart-2: var(--rivr-color-cream);
   --rivr-size-card: var(--rivr-viewport-card-width); /** The membership card at its widest. */

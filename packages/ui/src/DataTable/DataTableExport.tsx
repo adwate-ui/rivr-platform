@@ -36,7 +36,7 @@ interface ExportColumn<Row> {
 }
 
 /** The words a cell shows: its text, or the text inside the elements it draws (a Text, a Button's label). */
-function textOf(node: ReactNode): string {
+export function textOf(node: ReactNode): string {
   if (typeof node === 'string' || typeof node === 'number') return String(node);
   if (Array.isArray(node)) return node.map(textOf).join('');
   if (isValidElement<{ children?: ReactNode }>(node)) return textOf(node.props.children);

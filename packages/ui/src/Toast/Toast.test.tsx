@@ -21,7 +21,8 @@ describe('Toast', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Joined waitlist');
     expect(TOAST_MS).toBe(3200);
     act(() => vi.advanceTimersByTime(TOAST_MS));
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    // The region stays, empty, so the next toast is announced as it comes.
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
   });
 
   it('undoes the action and goes when Undo is pressed', async () => {
@@ -30,7 +31,20 @@ describe('Toast', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Join' }));
     await userEvent.click(screen.getByRole('button', { name: 'Undo' }));
     expect(onUndo).toHaveBeenCalledOnce();
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('keeps its polite status region before any toast comes, so the first is announced too', () => {
+    renderIn(<ToastProvider place="console"><Trigger /></ToastProvider>);
+    expect(screen.getByRole('status')).toHaveAttribute('aria-live', 'polite');
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('sits at the foot of the console, centred, and above the tab bar on a phone (console v3)', async () => {
+    renderIn(<ToastProvider place="console"><Trigger /></ToastProvider>);
+    await userEvent.click(screen.getByRole('button', { name: 'Join' }));
+    expect(screen.getByRole('status')).toHaveClass('justify-center', 'bottom-bottom-nav', 'medium:bottom-0');
+    expect(screen.getByRole('status')).toHaveTextContent('Joined waitlist');
   });
 
   it('needs a provider', () => {

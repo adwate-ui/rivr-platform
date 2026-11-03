@@ -37,6 +37,20 @@ describe('Screen', () => {
     expect(screen.queryByText('Never shown')).not.toBeInTheDocument();
   });
 
+  it('offers the one thing to do when it is empty, on the console (console v3)', async () => {
+    const onClick = vi.fn();
+    renderIn(<Screen title="Tables" status="empty" emptyText="No tables yet." emptyAction={{ label: 'Add a table', onClick }} />);
+    expect(screen.getByText('No tables yet.')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Add a table' }));
+    expect(onClick).toHaveBeenCalledOnce();
+  });
+
+  it('loads a console list as faint rows, saying so to a screen reader only (console v3)', () => {
+    const { container } = renderIn(<Screen title="Members" status="loading" loadingLook="rows" />);
+    expect(screen.getByText('Loading')).toHaveClass('sr-only');
+    expect(container.querySelectorAll('[data-skeleton-row]')).toHaveLength(6);
+  });
+
   it('alerts the error and retries on request', async () => {
     const onRetry = vi.fn();
     renderIn(<Screen title="Balance" status="error" onRetry={onRetry} />);

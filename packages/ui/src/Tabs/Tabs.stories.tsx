@@ -38,3 +38,20 @@ export const OnAPhone: Story = { ...LongText, tags: ['!viewport-console', 'viewp
 
 /** On a tablet held upright the tabs keep to one row. */
 export const OnAPortraitTablet: Story = { ...LongText, tags: ['!viewport-console', 'viewport-portrait'] };
+
+/** The console's pills (console v3): no hairline, the part shown on a faint fill; 32 px at a desk. */
+export const Pills: Story = {
+  args: {
+    look: 'pill', label: 'Waitlist', current: 'tables',
+    tabs: [
+      { id: 'tables', label: 'By table', href: '#tables' },
+      { id: 'interest', label: 'Interest list', href: '#interest' },
+      { id: 'tournament', label: 'Tournament interest', href: '#tournament' },
+    ],
+  },
+};
+
+export const PillsLongText: Story = { args: { ...LongText.args, look: 'pill' } };
+
+/** Below 1180 px each pill is a 44 px touch target. */
+export const PillsOnAPortraitTablet: Story = { ...Pills, tags: ['!viewport-console', 'viewport-portrait'] };

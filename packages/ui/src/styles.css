@@ -127,7 +127,8 @@
     [data-board-progress],
     [data-sheet],
     [data-scrim],
-    [data-toast] {
+    [data-toast],
+    [data-fresh] {
       animation: none !important;
     }
   }
@@ -220,6 +221,34 @@
 @keyframes rivr-sheet-up {
   from {
     transform: translateY(100%);
+  }
+}
+
+/* The console's sheet (console v3): from 768 px a panel down the right of the screen, which slides in from the right. */
+@layer components {
+  [data-sheet='console'] {
+    @variant medium {
+      animation-name: rivr-sheet-in;
+    }
+  }
+}
+
+@keyframes rivr-sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+/* A request just arrived on the console (RequestItem `isNew`, decision 0431): a gold tint that fades over 2.5 s. */
+@layer components {
+  [data-fresh] {
+    animation: rivr-fresh var(--rivr-motion-duration-fresh) var(--rivr-motion-easing-out);
+  }
+}
+
+@keyframes rivr-fresh {
+  from {
+    background-color: var(--rivr-color-selected);
   }
 }
 

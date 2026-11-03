@@ -42,9 +42,12 @@ describe('the design inventory', () => {
     const tv = [48, 88, 280];
     // The player app's redesign (decision 0320).
     const player = [32, 40, 72, 160];
-    expect(sizes.map((token) => px(token.value))).toEqual([...suggested, ...tv, ...player].sort((a, b) => a - b));
+    // The console v3 redesign's body (decision 0428).
+    const console = [15];
+    expect(sizes.map((token) => px(token.value))).toEqual([...suggested, ...tv, ...player, ...console].sort((a, b) => a - b));
     expect(INVENTORY).toContain('TV scale: 48, 88, 280.');
     expect(INVENTORY).toContain('Player scale: 32, 40, 72, 160.');
+    expect(INVENTORY).toContain('Console scale: 15.');
   });
 
   it('sets the text face\'s ₹ sign in Noto Sans Devanagari, after Instrument Sans, which lacks it; the display face carries its own', () => {
@@ -86,5 +89,16 @@ describe('visual rules', () => {
   it('breaks at the four target devices', () => {
     const widths = ['phone', 'tablet', 'console', 'tv'].map((device) => px(tokenValue(`breakpoint.${device}`)));
     expect(widths).toEqual([390, 1180, 1440, 1920]);
+  });
+
+  it('folds the console rail to icons below 1200 px, past the floor\'s 1180 px tablets (console v3)', () => {
+    expect(px(tokenValue('breakpoint.wide'))).toBe(1200);
+    expect(px(tokenValue('size.rail'))).toBe(224);
+    expect(px(tokenValue('size.railCollapsed'))).toBe(64);
+  });
+
+  it('sets the console\'s rows at 42 px, or 34 px compact (console v3)', () => {
+    expect(px(tokenValue('size.row'))).toBe(42);
+    expect(px(tokenValue('size.rowCompact'))).toBe(34);
   });
 });
