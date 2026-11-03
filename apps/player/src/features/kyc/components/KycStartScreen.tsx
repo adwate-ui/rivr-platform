@@ -1,4 +1,4 @@
-import { useAuthStatus, useKycRecord } from '@rivr/db';
+import { useAuthStatus, useKycRecord, useMember } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button } from '@rivr/ui';
 import { Navigate } from '@tanstack/react-router';
@@ -16,13 +16,25 @@ import { SelfieStep } from './SelfieStep.tsx';
  */
 export function KycStartScreen() {
   const authStatus = useAuthStatus();
+  const member = useMember();
+
+  // Outside the frame, so it sends the signed-out to sign-in itself, to come back here (#233), and a number that is not a
+  // member yet to join first, as the frame does: only a member has an identity check, and the kyc function refuses anyone else.
+  // A member stays on their check even if a later read of who they are fails.
+  if (authStatus === 'signed-out') return <Navigate to="/sign-in" search={{ next: '/kyc' }} replace />;
+  if (member.data) return <MembersCheck />;
+  if (member.isSuccess) return <Navigate to="/sign-up" search={{ next: '/kyc' }} replace />;
+  if (member.isError) return <KycLoadFailed onRetry={() => void member.refetch()} />;
+  return <KycLoading />;
+}
+
+/** A member's check, read from their record: the selfie, then DigiLocker, or where it stands once it has moved on. */
+function MembersCheck() {
   const record = useKycRecord();
   const [isTaking, setIsTaking] = useState(false);
   // The selfie sent on this visit: DigiLocker follows as the next step, not as a return.
   const [hasJustSent, setHasJustSent] = useState(false);
 
-  // Outside the frame, so it sends the signed-out to sign-in itself, to come back here (#233).
-  if (authStatus === 'signed-out') return <Navigate to="/sign-in" search={{ next: '/kyc' }} replace />;
   if (record.isPending) return <KycLoading />;
   if (record.isError) return <KycLoadFailed onRetry={() => void record.refetch()} />;
   if (record.data && record.data.status !== 'started') return <KycOutcome record={record.data} onChecked={() => void record.refetch()} />;
