@@ -56,8 +56,8 @@ describe('notices on Home, in Settings', () => {
 
   it('says what to do when the notice is refused', async () => {
     renderNotices({ status: 400, body: { code: '22023', message: 'too long' } });
-    fireEvent.change(await screen.findByRole('textbox', { name: 'Notice' }), { target: { value: 'x'.repeat(281) } });
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Notice' }), { target: { value: 'x'.repeat(501) } });
     fireEvent.click(screen.getByRole('button', { name: 'Put up' }));
-    expect(await screen.findByText('Write 1 to 280 characters, then put it up.')).toBeDefined();
+    expect(await screen.findByText('Write 1 to 500 characters, any link starting https://, and an end after the start.')).toBeDefined();
   });
 });

@@ -10,6 +10,8 @@ export const playerLive = {
   referralTitle: 'Referral',
   referralOffer: '{chips} bonus chips each',
   referralSchedule: 'Every day',
+  /** A club notice's card above the offers (decision 0424): its gold eyebrow. */
+  notice: 'From the club',
   allTables: 'All tables',
   running: '{count} running',
   runningWithTournaments: '{tables} running · {tournaments} tournaments',

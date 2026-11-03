@@ -145,7 +145,8 @@ export const settings = {
   notices: {
     title: 'Notices on Home',
     body: 'Notice',
-    bodyHint: 'Shows at the top of every member\'s Home until you end it. Up to 280 characters.',
+    /** Decision 0424: up to 500 characters, line breaks kept, https links tappable. */
+    bodyHint: 'Shows on members\' Tonight until you end it. Up to 500 characters; line breaks stay and https:// links can be tapped.',
     post: 'Put up',
     posted: 'Notice put up.',
     none: 'No notice is up.',
@@ -157,8 +158,9 @@ export const settings = {
     ended: 'Notice ended.',
     failures: {
       not_allowed: 'Not in your role. Ask an admin.',
-      invalid: 'Write 1 to 280 characters, then put it up.',
+      invalid: 'Write 1 to 500 characters, any link starting https://, and an end after the start.',
       paused: 'Venue frozen. Try again once it is released.',
+      ended: 'This notice has ended. Put up a new one.',
       unavailable: 'Not saved. Try again.',
     },
   },

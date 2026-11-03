@@ -9,7 +9,6 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const NOTICES = [{ noticeId: 'n1', body: 'RIVR opens on Sunday 15 November.' }];
 // 22:41 IST.
 const SHOWN_AT = Date.parse('2026-11-02T17:11:00Z');
 
@@ -18,27 +17,15 @@ function renderBanners(props: Partial<TonightBannersProps> = {}) {
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <TonightBanners notices={NOTICES} isBrowsing shownAt={SHOWN_AT} hasRefreshFailed={false} onRetry={() => undefined} {...props} />
+      <TonightBanners shownAt={SHOWN_AT} hasRefreshFailed={false} onRetry={() => undefined} {...props} />
     </RivrDataProvider>,
   );
 }
 
 describe('Tonight › banners', () => {
-  it('shows the club\'s notices while browsing, each dismissible', () => {
-    renderBanners();
-    expect(screen.getByText('RIVR opens on Sunday 15 November.')).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
-    expect(screen.queryByText('RIVR opens on Sunday 15 November.')).toBeNull();
-  });
-
-  it('keeps notices away while the member waits or plays', () => {
-    renderBanners({ isBrowsing: false });
-    expect(screen.queryByText('RIVR opens on Sunday 15 November.')).toBeNull();
-  });
-
   it('says a refresh failed and when the shown tables came, with Retry', () => {
     const onRetry = vi.fn();
-    renderBanners({ hasRefreshFailed: true, onRetry, notices: [] });
+    renderBanners({ hasRefreshFailed: true, onRetry });
     expect(screen.getByText("Couldn't refresh. Showing 22:41.")).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
     expect(onRetry).toHaveBeenCalledOnce();
@@ -46,7 +33,7 @@ describe('Tonight › banners', () => {
 
   it('says the call time ends soon, with Add time', () => {
     const onAddTime = vi.fn();
-    renderBanners({ callEnding: { minutes: 14, onAddTime }, notices: [] });
+    renderBanners({ callEnding: { minutes: 14, onAddTime } });
     expect(screen.getByText('Call time ends in 14 min')).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Add time' }));
     expect(onAddTime).toHaveBeenCalledOnce();
@@ -54,7 +41,7 @@ describe('Tonight › banners', () => {
 
   it('says it is offline, showing the tables as they last came', () => {
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
-    renderBanners({ notices: [] });
+    renderBanners();
     expect(screen.getByText('Offline. Showing tables as of 22:41.')).toBeDefined();
   });
 });

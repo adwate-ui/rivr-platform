@@ -5407,7 +5407,7 @@ isOneToOne: false
             }[]
                            },
 "post_notice":
-{ Args: { "p_body": string,"p_venue_id": string }; Returns: string
+{ Args: { "p_body": string,"p_ends_at"?: string,"p_starts_at"?: string,"p_venue_id": string }; Returns: string
                            },
 "pot_data":
 { Args: { "p_from": string,"p_until": string,"p_venue_id": string }; Returns: {
@@ -6053,6 +6053,9 @@ isOneToOne: false
                            },
 "unlock_points":
 { Args: { "p_idempotency_key": string,"p_member_id": string,"p_points": number,"p_reason": string }; Returns: string
+                           },
+"update_notice":
+{ Args: { "p_body": string,"p_ends_at"?: string,"p_notice_id": string,"p_starts_at"?: string }; Returns: undefined
                            },
 "use_tournament_ticket":
 { Args: { "p_idempotency_key": string,"p_member_id": string,"p_tournament_id": string }; Returns: string
