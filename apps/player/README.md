@@ -9,7 +9,7 @@ pnpm db:start                 # this worktree's local Supabase, seeded
 pnpm dev --filter player
 ```
 
-The dev server listens on this worktree's port block (`player` is port `<block>40`, so `54340`-style on the root checkout; see `docs/decisions/0003`). `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` default to the local stack; CI and deploys set them. Sign in with a seed phone number and code `123456` (`supabase/seed/10_people.sql`).
+The dev server listens on this worktree's port block (`player` is port `<block>40`, so `54340`-style on the root checkout; see `docs/decisions/0003`). `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` default to the local stack; CI and deploys set them. `VITE_WEB_URL`, the website's address for the terms and privacy links under the sign-in line (#775), defaults to this worktree's website; the workflows set it (#825), and a build without it shows the line with no links. Sign in with a seed phone number and code `123456` (`supabase/seed/10_people.sql`).
 
 `pnpm test --filter player` runs the app's tests; `pnpm e2e --grep "<flow>"` runs a flow across apps.
 

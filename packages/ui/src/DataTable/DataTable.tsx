@@ -75,6 +75,11 @@ export type DataTableProps<Row> = DataTableState<Row> & {
    * scrolling sideways with the first column held.
    */
   narrowLayout?: 'cards' | 'scroll';
+  /**
+   * Under a row, across the whole table: what the row opened in place, such as a dealer's new PIN or a setting's new
+   * value (console v3); null for none. Not in a long list, whose rows are all one height.
+   */
+  rowDetail?: (row: Row) => ReactNode;
 };
 
 /** Past this many rows, only the rows in view are drawn (additions, "Performance budgets"). */
@@ -107,6 +112,11 @@ function shown<Row>(rows: readonly Row[], { columns, sort, text, query }: View<R
   return [...matching].sort((a, b) => sign * compare(value(a), value(b)));
 }
 
+/** How many rows have their detail open: each is a row of its own, counted with the others. */
+function detailCount<Row>(rows: readonly Row[], detail: ((row: Row) => ReactNode) | undefined): number {
+  return detail === undefined ? 0 : rows.filter((row) => (detail(row) ?? null) !== null).length;
+}
+
 interface TableProps<Row> {
   readonly props: DataTableProps<Row>;
   readonly visible: readonly Row[];
@@ -127,13 +137,14 @@ function Table<Row>({ props, visible, sort, query, onSort }: TableProps<Row>) {
     if (header.current !== null) header.current.scrollLeft = event.currentTarget.scrollLeft;
   };
   const body = { rows: visible, columns: props.columns, rowKey: props.rowKey, onRowOpen: props.onRowOpen, layout, onScrollX };
+  const detail = isVirtual ? undefined : props.rowDetail;
   return (
-    <div role="table" aria-label={props.label} aria-rowcount={visible.length + 1} className="flex flex-col">
+    <div role="table" aria-label={props.label} aria-rowcount={visible.length + detailCount(visible, detail) + 1} className="flex flex-col">
       <HeaderRow ref={header} columns={props.columns} sort={sort} onSort={onSort} layout={layout} isVirtual={isVirtual} />
       {isVirtual
         // A new order or filter starts from the top.
         ? <VirtualBody key={`${sort?.key ?? ''}:${sort?.direction ?? ''}:${query}`} {...body} />
-        : <PlainBody {...body} />}
+        : <PlainBody {...body} rowDetail={detail} />}
     </div>
   );
 }

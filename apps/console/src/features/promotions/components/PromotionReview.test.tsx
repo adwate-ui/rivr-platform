@@ -21,16 +21,27 @@ const RAISED = { ...TUESDAY, reward: { ...TUESDAY.reward, percent: 25 }, schedul
 const WAITING = version({ id: 'v2', version: 2, status: 'awaiting_approval', terms: RAISED, simulation: SIMULATION, submittedAt: '2026-11-03T09:00:00+00:00' });
 const APPROVER: Actor = { staffId: 's9', permissions: ['promotions.manage', 'promotions.approve'] };
 
+/** Last Tuesday's buy-ins of 10,000 and 5,000 of own chips, as promotion_version_replay gives them. */
+const REPLAY = {
+  from: '2026-10-27T00:30:00+00:00', to: '2026-11-03T00:30:00+00:00',
+  events: [10_000, 5_000].map((ownChips, n) => ({
+    event: { kind: 'buy_in', key: `buy_in:${String(n)}`, at: `2026-10-27T2${String(n)}:00:00+05:30`, memberId: `m${String(n)}`, visitId: `v${String(n)}`,
+      tableId: 't1', stake: 'nlh_50_100', ownChips, isFirstOfVisit: true },
+    member: { tierId: null, daysSinceJoined: 40, daysSinceLastVisit: 3, isWoman: null },
+  })),
+};
+
 function renderReview(versions: PromotionVersionView[], actor: Actor = APPROVER) {
   const view = approverViewOf(versions);
   const onDone = vi.fn();
   if (view.waiting === null) throw new Error('A version must wait in these tests');
-  const api = renderWithApi(<PromotionReview venueId="v1" names={NAMES} actor={actor} view={{ ...view, waiting: view.waiting }} onDone={onDone} />, {});
+  const api = renderWithApi(<PromotionReview venueId="v1" names={NAMES} actor={actor} view={{ ...view, waiting: view.waiting }} onDone={onDone} />,
+    { '/rpc/promotion_version_replay': { body: REPLAY } });
   return { ...api, onDone };
 }
 
 describe("the approver's view (console v3)", () => {
-  it('reads the waiting version against the live one: what changes, marked on its sections, both in one line, and the simulation', () => {
+  it('reads the waiting version against the live one: what changes, marked on its sections, and both in one line', () => {
     renderReview([WAITING, version({})]);
     expect(screen.getByRole('heading', { level: 1, name: 'Review: Buy-in bonus Tuesday' })).toBeDefined();
     expect(screen.getByText('Changes from version 1: reward, when.')).toBeDefined();
@@ -40,10 +51,24 @@ describe("the approver's view (console v3)", () => {
     expect(screen.getByText('Version 1 now')).toBeDefined();
     expect(screen.getByText(/^25% buy-in bonus, up to 2,000, first 5 buy-ins per table, for all stakes, Tue, Wed, all day\./)).toBeDefined();
     expect(screen.getByText(/^20% buy-in bonus, up to 2,000, first 5 buy-ins per table, for all stakes, Tue, all day\./)).toBeDefined();
-    expect(screen.getByText('12,000')).toBeDefined();
-    expect(screen.getByText('The budget would have run out.')).toBeDefined();
     expect(screen.getByRole('textbox', { name: 'Bonus' })).toHaveProperty('readOnly', true);
-    expect(within(screen.getByRole('radiogroup', { name: 'Reward' })).getByRole('radio', { name: 'Buy-in bonus' })).toHaveProperty('disabled', true);
+    // Read only, each choice shows only what is chosen.
+    const kinds = within(screen.getByRole('radiogroup', { name: 'Reward' })).getAllByRole('radio');
+    expect(kinds.map((kind) => [kind.getAttribute('aria-label'), kind.getAttribute('aria-checked')])).toEqual([['Buy-in bonus', 'true']]);
+    expect(within(screen.getByRole('group', { name: 'Days' })).getAllByRole('button').map((day) => day.textContent)).toEqual(['Tue', 'Wed']);
+    expect(screen.queryByRole('button', { name: 'Every day' })).toBeNull();
+    expect(screen.getByText('Version 2, submitted by Ishita Bose, Tue 3 Nov, 14:30.')).toBeDefined();
+  });
+
+  it('replays last week afresh for the approver, never showing the figures stored with the version', async () => {
+    const { bodiesOf } = renderReview([WAITING, version({})]);
+    // 25% of 10,000 held to 2,000, and 25% of 5,000: 3,250 bonus chips; the stored 12,000 is the author's browser's.
+    expect(await screen.findByText('3,250')).toBeDefined();
+    expect(screen.getByText('27 Oct to 2 Nov')).toBeDefined();
+    expect(screen.queryByText('12,000')).toBeNull();
+    expect(screen.queryByText('The budget would have run out.')).toBeNull();
+    expect(bodiesOf('promotion_version_replay')).toEqual([{ p_version_id: 'v2' }]);
+    expect(bodiesOf('record_promotion_simulation')).toEqual([]);
   });
 
   it('approves a version for a second staff member, says it is live and goes back to the list', async () => {

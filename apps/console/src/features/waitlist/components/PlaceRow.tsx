@@ -1,6 +1,6 @@
 import { useFloorWaitlistActions, useWaitlistCallActions, type FloorTable, type WaitlistBoardEntry, type WaitlistFailure } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Box, ConfirmQuestion, ErrorMessage, Stack, useToast, WaitlistRow, type OverflowMenuItem } from '@rivr/ui';
+import { Box, ConfirmQuestion, ErrorMessage, Stack, useTableDensity, useToast, WaitlistRow, type OverflowMenuItem } from '@rivr/ui';
 import { useState } from 'react';
 import { BACK_FAILURE_COPY, ENTRY_FAILURE_COPY } from './failureCopy.ts';
 import { placeMeta } from './placeMeta.ts';
@@ -32,26 +32,48 @@ function usePlaceSteps(venueId: string, entry: WaitlistBoardEntry) {
     if (outcome.ok) toast(said, onUndo === undefined ? undefined : { onUndo });
   };
   const setAway = (isAway: boolean) => away.mutateAsync({ entryId: entry.entryId, isAway });
+  const held = t('console.waitlist.toast.held', { name });
+  const released = t('console.waitlist.toast.released', { name });
+  // Undo goes through the same step, so a refused Undo (the place called or seated meanwhile) says so under the row.
+  const holdNow = () => run(setAway(true), held, ENTRY_FAILURE_COPY);
+  const releaseNow = () => run(setAway(false), released, BACK_FAILURE_COPY);
   return {
     failure,
     isBusy: seat.isPending || away.isPending || remove.isPending,
     // Hold and Release undo each other exactly; holding a called place also ends its call, which Release does not bring back.
-    hold: () => void run(setAway(true), t('console.waitlist.toast.held', { name }), ENTRY_FAILURE_COPY,
-      entry.holdUntil === null ? () => void setAway(false) : undefined),
-    release: () => void run(setAway(false), t('console.waitlist.toast.released', { name }), BACK_FAILURE_COPY, () => void setAway(true)),
+    hold: () => run(setAway(true), held, ENTRY_FAILURE_COPY, entry.holdUntil === null ? () => void releaseNow() : undefined),
+    release: () => void run(setAway(false), released, BACK_FAILURE_COPY, () => void holdNow()),
     seatCalled: () => void run(seat.mutateAsync(entry.entryId),
       t('console.waitlist.toast.seated', { name, table: entry.callTableName ?? '', seat: entry.callSeat ?? 0 })),
     remove: () => run(remove.mutateAsync(entry.entryId), t('console.waitlist.toast.removed', { name })),
   };
 }
 
-/** The ⋯ menu: Hold place, or Release for a place held, then Remove from list. */
-function menuItems(entry: WaitlistBoardEntry, steps: ReturnType<typeof usePlaceSteps>, askRemove: () => void): OverflowMenuItem[] {
+type Asking = 'hold' | 'remove' | null;
+
+/**
+ * The ⋯ menu: Hold place, or Release for a place held, then Remove from list. Remove asks first; so does Hold on a called
+ * place, as it ends the call and calls the next name, with no Undo.
+ */
+function menuItems(entry: WaitlistBoardEntry, steps: ReturnType<typeof usePlaceSteps>, ask: (what: Asking) => void): OverflowMenuItem[] {
   const isHeld = entry.awayUntil !== null;
+  const hold = entry.holdUntil === null ? () => void steps.hold() : () => ask('hold');
   return [
-    isHeld ? { id: 'release', label: t('console.waitlist.card.release'), onSelect: steps.release } : { id: 'hold', label: t('console.waitlist.card.hold'), onSelect: steps.hold },
-    { id: 'remove', label: t('console.waitlist.card.removeFromList'), onSelect: askRemove, tone: 'danger' },
+    isHeld ? { id: 'release', label: t('console.waitlist.card.release'), onSelect: steps.release } : { id: 'hold', label: t('console.waitlist.card.hold'), onSelect: hold },
+    { id: 'remove', label: t('console.waitlist.card.removeFromList'), onSelect: () => ask('remove'), tone: 'danger' },
   ];
+}
+
+/** The question a step asks first under its row: Remove, or Hold on a called place. */
+function StepQuestion({ asking, name, steps, onDone }: { asking: Exclude<Asking, null>; name: string; steps: ReturnType<typeof usePlaceSteps>; onDone: () => void }) {
+  const isRemove = asking === 'remove';
+  return (
+    <Box paddingX={4} paddingY={2}>
+      <ConfirmQuestion question={t(isRemove ? 'console.waitlist.card.confirmRemove' : 'console.waitlist.card.confirmHoldCalled', { name })}
+        confirm={t(isRemove ? 'console.waitlist.confirmRemove' : 'console.waitlist.confirmSkip', { name })} isBusy={steps.isBusy} onCancel={onDone}
+        onConfirm={() => void (isRemove ? steps.remove() : steps.hold()).then(onDone)} />
+    </Box>
+  );
 }
 
 /**
@@ -60,23 +82,19 @@ function menuItems(entry: WaitlistBoardEntry, steps: ReturnType<typeof usePlaceS
  */
 export function PlaceRow({ venueId, entry, table, now, isTicked, onToggle, onSeat }: PlaceRowProps) {
   const steps = usePlaceSteps(venueId, entry);
-  const [isRemoving, setIsRemoving] = useState(false);
+  const density = useTableDensity();
+  const [asking, setAsking] = useState<Asking>(null);
   const name = entry.fullName;
   const isCalled = entry.holdUntil !== null;
   const canSeat = isCalled || table.isOpen;
   return (
     <Stack gap={2}>
-      <WaitlistRow position={entry.place} name={name} meta={placeMeta(entry, now)} isHeld={entry.awayUntil !== null}
+      <WaitlistRow position={entry.place} name={name} meta={placeMeta(entry, now)} isHeld={entry.awayUntil !== null} density={density}
         tick={{ label: t('console.waitlist.card.select', { name }), isTicked, onToggle }}
         action={canSeat ? { label: t('console.waitlist.seatShort'), name: t('console.waitlist.seat', { name }), isLoading: steps.isBusy,
           onClick: isCalled ? steps.seatCalled : onSeat } : undefined}
-        menu={{ label: t('console.waitlist.card.more', { name }), items: menuItems(entry, steps, () => setIsRemoving(true)) }} />
-      {isRemoving ? (
-        <Box paddingX={4} paddingY={2}>
-          <ConfirmQuestion question={t('console.waitlist.card.confirmRemove', { name })} confirm={t('console.waitlist.confirmRemove', { name })}
-            isBusy={steps.isBusy} onCancel={() => setIsRemoving(false)} onConfirm={() => void steps.remove().then(() => setIsRemoving(false))} />
-        </Box>
-      ) : null}
+        menu={{ label: t('console.waitlist.card.more', { name }), items: menuItems(entry, steps, setAsking) }} />
+      {asking === null ? null : <StepQuestion asking={asking} name={name} steps={steps} onDone={() => setAsking(null)} />}
       {steps.failure === null ? null : <Box paddingX={4}><ErrorMessage>{t(steps.failure)}</ErrorMessage></Box>}
     </Stack>
   );

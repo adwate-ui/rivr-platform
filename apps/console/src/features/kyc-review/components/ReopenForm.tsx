@@ -33,7 +33,7 @@ export function ReopenForm({ venueId, memberId, fullName }: ReopenFormProps) {
         autoComplete="off"
       />
       <Inline gap={3}>
-        <Button variant="secondary" isLoading={reopen.isPending} onClick={() => void submit()}>
+        <Button variant="subtle" size="compact" isLoading={reopen.isPending} onClick={() => void submit()}>
           {t('console.kycInPerson.reopen')}
         </Button>
       </Inline>

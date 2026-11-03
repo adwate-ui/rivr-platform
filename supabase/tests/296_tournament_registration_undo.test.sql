@@ -45,6 +45,32 @@ select throws_ok($$ select public.unmark_tournament_registered('00000000-0000-40
   'a registration marked more than ten minutes ago stays');
 reset role;
 
+-- Marked just now again: another venue's admin takes it back nowhere, and neither does anyone while registration is
+-- switched off or the venue frozen.
+update public.tournament_interest set registered_at = now() where id = '00000000-0000-4000-8000-0000000c2962';
+-- Signed out again, so the new venue's first settings may start before now.
+select set_config('request.jwt.claims', '', true);
+select private.bootstrap_venue('00000000-0000-4000-8000-0000000000e1', 'Elsewhere', 'elsewhere', false, 'Elsewhere Ltd', 'Somewhere', 'ELS');
+insert into auth.users (instance_id, id, aud, role, phone, created_at, updated_at) values
+  ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-0000000002e6', 'authenticated', 'authenticated', '919000002960', now(), now());
+insert into public.staff (venue_id, user_id, full_name, job_title, role)
+values ('00000000-0000-4000-8000-0000000000e1', '00000000-0000-4000-8000-0000000002e6', 'Elsewhere Admin', 'Floor manager', 'admin');
+select pg_temp.as_person('00000000-0000-4000-8000-0000000002e6');
+select throws_ok($$ select public.unmark_tournament_registered('00000000-0000-4000-8000-0000000c2962') $$, '42501', null,
+  'another venue''s admin takes back none of the club''s registrations');
+reset role;
+insert into public.control_state (venue_id, level, feature, reason) values ('00000000-0000-4000-8000-000000000001', 'feature_kill', 'tournament_registration', 'Test');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.unmark_tournament_registered('00000000-0000-4000-8000-0000000c2962') $$, 'RVKIL', null,
+  'with registration switched off, none is taken back');
+reset role;
+-- The freeze is weighed before any switch (control_state is append-only, so the switch stays on).
+insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Test');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.unmark_tournament_registered('00000000-0000-4000-8000-0000000c2962') $$, 'RVFRZ', null,
+  'nor while the venue is frozen');
+reset role;
+
 select is(has_function_privilege('anon', 'public.unmark_tournament_registered(uuid)', 'execute'), false, 'nobody signed out takes one back');
 
 select * from finish();

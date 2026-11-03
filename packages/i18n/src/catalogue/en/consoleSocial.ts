@@ -2,13 +2,14 @@
 export const consoleSocial = {
   title: 'Social',
   notAllowed: 'Not in your role. Ask an admin.',
+  /** The tabs (console v3) once read: the posts waiting on the wall, and the leads. */
+  tabs: { wall: 'Social wall {count}', leads: 'Leads {count}' },
   channels: {
     instagram: 'Instagram', facebook: 'Facebook', x: 'X', linkedin: 'LinkedIn', youtube: 'YouTube', telegram: 'Telegram',
     google_business_profile: 'Google Business Profile', whatsapp: 'WhatsApp',
   },
   publish: {
     title: 'Publish',
-    hint: 'One image and its caption to every channel chosen. A connected channel posts it by itself; any other offers the image and caption to download and post by hand.',
     chooseImage: 'Choose the image',
     imageChosen: 'Image: {name}',
     caption: 'Caption',
@@ -54,7 +55,6 @@ export const consoleSocial = {
   },
   leads: {
     title: 'Leads',
-    hint: 'Each conversation on Instagram, Facebook or WhatsApp, the latest first. A WhatsApp lead is linked to the member with that number, now or when they sign up. Reply in the app the message came in.',
     table: 'Leads',
     none: 'No messages yet.',
     channel: 'Channel',
@@ -68,16 +68,12 @@ export const consoleSocial = {
   },
   wall: {
     title: 'Social wall',
-    hint: 'Public Instagram posts that tag the club, newest first. Approved posts rotate on the TVs and the website; open a post to see it before approving.',
     table: 'Tagged posts',
     none: 'No posts tag the club yet.',
-    handle: 'Posted by',
     handleValue: '@{handle}',
-    caption: 'Caption',
-    posted: 'Posted',
-    status: 'Status',
+    /** Under the handle: the caption and when it was posted. */
+    line: '“{caption}” · {posted}',
     statuses: { pending: 'Waiting', approved: 'On the wall', rejected: 'Not shown' },
-    actions: 'Moderate',
     open: 'Open',
     openName: 'Open @{handle}’s post on Instagram',
     approve: 'Approve',

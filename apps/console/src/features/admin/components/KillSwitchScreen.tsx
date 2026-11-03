@@ -1,6 +1,6 @@
 import { useStaffVenue, type ControlFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { ErrorMessage, Grid, Screen, Stack, StatusMessage } from '@rivr/ui';
+import { ErrorMessage, Screen, Stack, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 import { CONTROL_FAILURE_COPY } from './controlCopy.ts';
 import { EngagedControls } from './EngagedControls.tsx';
@@ -40,12 +40,10 @@ export function KillSwitchScreen() {
   if (!staff.venue.permissions.includes('control.engage')) return <Screen title={title} status="error" errorText={t('console.killSwitch.notAllowed')} />;
   return (
     <Screen title={title}>
-      <Stack gap={6}>
+      <Stack gap={8}>
         <OutcomeLine outcome={outcome} />
-        <Grid columns={2} gap={8} stackBelow="medium">
-          <EngagedControls venueId={staff.venue.venueId} onOutcome={setOutcome} />
-          <EngageForm venueId={staff.venue.venueId} onOutcome={setOutcome} />
-        </Grid>
+        <EngagedControls venueId={staff.venue.venueId} onOutcome={setOutcome} />
+        <EngageForm venueId={staff.venue.venueId} onOutcome={setOutcome} />
       </Stack>
     </Screen>
   );

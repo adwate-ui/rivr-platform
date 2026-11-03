@@ -9,17 +9,18 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
 
-/** One of the door's lists, found by its heading. */
+/** One of the door's lists, a region named by its heading (console v3). */
 function doorList(page: Page, name: string): Locator {
-  return page.locator('div').filter({ has: page.getByRole('heading', { name, level: 2 }) }).last();
+  return page.getByRole('region', { name });
 }
 
 test.describe('Check-out', () => {
   test('Check-out: the front desk checks a member out from the room list and by the number on his card', async ({ page }) => {
     test.skip(isRemoteTarget(), 'opens and closes visits, so the local stack only');
     await signInToConsole(page, '9000000158');
-    await page.getByRole('link', { name: 'Check-in' }).click();
-    const phone = page.getByRole('textbox', { name: 'Mobile number' });
+    await page.getByRole('link', { name: 'Door', exact: true }).click();
+    // One field for a card, a mobile, a member number or a name (console v3).
+    const phone = page.getByRole('textbox', { name: 'Card, mobile, number or name' });
 
     await phone.fill('9000000253');
     await page.getByRole('button', { name: 'Check in', exact: true }).click();

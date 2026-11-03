@@ -1,21 +1,16 @@
-import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, type FloorTable, type WaitlistBoardEntry, type WaitlistRequest } from '@rivr/db';
+import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, type WaitlistBoardEntry, type WaitlistRequest } from '@rivr/db';
 import { ToastProvider } from '@rivr/ui';
 import { QueryClient } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TableWaitlist } from './TableWaitlist.tsx';
+import { buildFloorTable, buildPlace } from './waitlistFixtures.ts';
 
 const NOW = new Date('2026-11-15T15:40:00Z');
 
-const TABLE: FloorTable = {
-  id: 't1', venueId: 'v1', name: 'Table 1', room: 'main', seats: 9, tableTypeId: 'tt', tableTypeName: 'NLH 50/100', game: 'nlh', smallBlind: 5000n,
-  bigBlind: 10000n, buyIn: 500000n, straddle: null, waiting: 2, callTimeMinutes: 180, openSeats: 3, mustMoveToTableId: null, isOpen: true,
-};
+const TABLE = buildFloorTable({ tableTypeName: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n });
 
-const place = (place: number, fullName: string, extra: Partial<WaitlistBoardEntry> = {}): WaitlistBoardEntry => ({
-  entryId: `e${String(place)}`, tableTypeId: 'tt', memberId: `m${String(place)}`, fullName, joinedAt: '2026-11-15T15:35:00Z', place, addedByFloor: true,
-  priorityReason: null, callTableName: null, callSeat: null, holdUntil: null, awayUntil: null, tableId: 't1', onWayAt: null, ...extra,
-});
+const place = (number: number, fullName: string, extra: Partial<WaitlistBoardEntry> = {}) => buildPlace({ place: number, fullName, addedByFloor: true, ...extra });
 
 const REQUEST: WaitlistRequest = { entryId: 'r1', memberId: 'm9', fullName: 'Ritika Bhalla', joinedAt: '2026-11-15T15:36:00Z', tableTypeId: 'tt', tableId: 't1' };
 
@@ -115,6 +110,19 @@ describe("a table's waitlist card (console v3)", () => {
     await waitFor(() => expect(calls).toContainEqual({ rpc: 'seat_from_waitlist', body: { p_entry_id: 'e1' } }));
     expect(onSeat).not.toHaveBeenCalled();
     expect(await screen.findByText('Kabir Sethi seated at Table 1, seat 4')).toBeDefined();
+  });
+
+  it('asks before holding a called place, as its call ends and the seat goes to the next name', async () => {
+    renderCard({ entries: [place(1, 'Kabir Sethi', { callTableName: 'Table 1', callSeat: 4, holdUntil: '2026-11-15T15:52:00Z' })] });
+    fireEvent.click(screen.getByRole('button', { name: 'More for Kabir Sethi' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Hold place' }));
+    expect(screen.getByText('Hold Kabir Sethi’s place? The seat goes to the next name.')).toBeDefined();
+    expect(calls.filter((call) => call.rpc === 'step_away')).toEqual([]);
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, hold Kabir Sethi’s place' }));
+    await waitFor(() => expect(calls).toContainEqual({ rpc: 'step_away', body: { p_entry_id: 'e1', p_is_away: true } }));
+    // No Undo: Release would not bring the call back.
+    expect(await screen.findByText('Kabir Sethi’s place held')).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
   });
 
   it('says nobody waits when the list is empty', () => {

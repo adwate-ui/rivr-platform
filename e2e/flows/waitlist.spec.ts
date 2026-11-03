@@ -9,7 +9,7 @@
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { appUrl } from '../support/apps.ts';
-import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { signInToConsoleAndWait, signInToPlayer } from '../support/signIn.ts';
 
 const MEMBER = 'Ishaan Verma';
 const BLACK_CARD = 'Vihaan Kapoor';
@@ -80,7 +80,7 @@ test.beforeAll(async ({ browser }) => {
   player = await browser.newPage();
   await signInToPlayer(player, '9000000211');
   host = await browser.newPage();
-  await signInToConsole(host, '9000000111');
+  await signInToConsoleAndWait(host, '9000000111');
   await host.goto(`${appUrl('console')}/waitlist`);
   await expect(host.getByRole('heading', { name: 'Table 2', exact: true })).toBeVisible();
   // A run stopped early may have left places behind.
@@ -126,8 +126,9 @@ test.describe('Waitlist', () => {
     await host.reload();
     await expect(host.getByRole('heading', { name: 'Table 2', exact: true })).toHaveCount(1);
     const higher = gameList(host, 'Table 2');
-    await expect(higher.getByText(MEMBER, { exact: true })).toBeVisible();
+    // The join asking: the name, "asks to join", Approve and Decline, each read with the name.
     await expect(higher.getByText('asks to join')).toBeVisible();
+    await expect(higher.getByRole('button', { name: `Decline ${MEMBER}` })).toBeVisible();
     await higher.getByRole('button', { name: `Approve ${MEMBER}` }).click();
     await expect(host.getByText(`${MEMBER} added to the Table 2 list`)).toBeVisible();
     await player.reload();

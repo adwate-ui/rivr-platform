@@ -4,8 +4,11 @@ import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+const isLocal = !process.env.VITE_SUPABASE_URL;
 // Use this worktree's local Supabase unless CI or a deploy names a project.
 defaultToLocalSupabase('VITE_');
+// The website's address, for the terms and privacy links (#775): this worktree's website locally; a deploy names it.
+if (isLocal) process.env.VITE_WEB_URL ||= `http://127.0.0.1:${String(appPort('web'))}`;
 
 /**
  * The installable app (#16): the manifest, with colours from the tokens and icons from the brand kit

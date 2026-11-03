@@ -31,8 +31,10 @@ test.describe('Manual KYC', () => {
 
   test('a KYC reviewer checks a member in person against the originals, and the member is verified', async ({ page }) => {
     await signInToConsole(page, '9000000110');
-    await page.getByRole('link', { name: 'KYC review' }).click();
-    await expect(page.getByRole('heading', { name: 'Check in person' })).toBeVisible();
+    await page.getByRole('link', { name: 'KYC review', exact: true }).click();
+    // Check in person opens its sheet (console v3).
+    await page.getByRole('button', { name: 'Check in person' }).click();
+    await expect(page.getByRole('dialog', { name: 'Check in person' })).toBeVisible();
 
     await page.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }).fill('kabir');
     await expect(page.getByText('Mobile ending 0202')).toBeVisible();

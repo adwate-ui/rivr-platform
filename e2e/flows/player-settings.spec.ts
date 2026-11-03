@@ -40,7 +40,7 @@ test.describe('Player settings', () => {
 
     await member.getByRole('button', { name: 'Send feedback' }).click();
     sheet = member.getByRole('dialog', { name: 'Send feedback' });
-    await sheet.getByRole('button', { name: 'Detailed feedback' }).click();
+    await sheet.getByRole('radio', { name: 'Detailed feedback' }).click();
     const rate = async (group: string, score: string) => sheet.getByRole('radiogroup', { name: group }).getByRole('radio', { name: score, exact: true }).click();
     await rate('The gameplay, 1 to 5', '5');
     await rate('The cashier, 1 to 5', '3');
@@ -54,10 +54,13 @@ test.describe('Player settings', () => {
     const manager = await browser.newPage();
     await signInToConsole(manager, '9000000115');
     await manager.getByRole('link', { name: 'Feedback' }).click();
-    await expect(manager.getByText(`Quick and fair at Table 3, run ${run}`)).toBeVisible();
-    await expect(manager.getByText(/^Naveen Iyer · No\. \d+ · a quick note on Dealer · /).first()).toBeVisible();
-    await expect(manager.getByText(`More PLO, run ${run}`)).toBeVisible();
-    await expect(manager.getByText(/^Naveen Iyer · No\. \d+ · detailed feedback, would recommend 9 of 10 · /).first()).toBeVisible();
-    await expect(manager.getByText('Gameplay 5 · Cashier 3 · Service 4 · Ambience 5').first()).toBeVisible();
+    // Each is an open ticket, on its own card: who sent it, then what it is and when (console v3).
+    const quick = manager.getByRole('article').filter({ hasText: `Quick and fair at Table 3, run ${run}` });
+    await expect(quick.getByText(/^Naveen Iyer · No\. \d+$/)).toBeVisible();
+    await expect(quick.getByText(/^Dealer · /)).toBeVisible();
+    const detailed = manager.getByRole('article').filter({ hasText: `More PLO, run ${run}` });
+    await expect(detailed.getByText(/^Naveen Iyer · No\. \d+$/)).toBeVisible();
+    await expect(detailed.getByText(/^Detailed feedback, would recommend 9 of 10 · /)).toBeVisible();
+    await expect(detailed.getByText('Gameplay 5 · Cashier 3 · Service 4 · Ambience 5')).toBeVisible();
   });
 });

@@ -91,10 +91,15 @@ describe('Tonight', () => {
     renderTonight([], [], {
       '/rest/v1/game_table': [TABLES[0], { ...TABLES[1], position: 2 }, t5],
       '/rpc/floor_open_seats': [{ table_id: 't1', open_seats: 3 }, { table_id: 't4', open_seats: 9 }, { table_id: 't5', open_seats: 2 }],
+      '/rpc/waitlist_lengths': [{ table_id: 't1', waiting: 2, call_time_minutes: 180 }, { table_id: 't5', waiting: 0, call_time_minutes: 180 }],
     });
     await screen.findByText('Table 5 · NLH 50/100', {}, LATER);
     const rows = screen.getAllByText(/^Table \d · NLH 50\/100$/).map((name) => name.textContent);
     expect(rows).toEqual(['Table 1 · NLH 50/100', 'Table 5 · NLH 50/100', 'Table 4 · NLH 50/100']);
+    // Each table shows its own list's wait (decision 0433), in its row and in its join sheet.
+    expect(screen.getByRole('button', { name: /^Table 5 · NLH 50\/100/ }).textContent).toContain('No wait');
+    fireEvent.click(screen.getByRole('button', { name: /^Table 1 · NLH 50\/100.*2 waiting/ }));
+    expect((await screen.findByRole('dialog')).textContent).toMatch(/Waiting\s*2/);
   });
 
   it('Browsing: one referral reward makes one offer card, before the club\'s other promotions in the row (owner, 3 Nov)', async () => {

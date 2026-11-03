@@ -68,8 +68,10 @@ export function EngageForm({ venueId, onOutcome }: { venueId: string; onOutcome:
     <Stack gap={4}>
       <Heading level={2}>{t('console.killSwitch.newControl')}</Heading>
       <Controller control={form.control} name="level" render={({ field }) => (
-        <ChoiceChips label={t('console.killSwitch.level')} mode="one" selected={field.value === null ? [] : [field.value]}
-          options={CONTROL_LEVELS.map((value) => ({ value, label: t(`console.killSwitch.levels.${value}`) }))}
+        <ChoiceChips label={t('console.killSwitch.level')} mode="one" look="card" selected={field.value === null ? [] : [field.value]}
+          options={CONTROL_LEVELS.map((value) => ({
+            value, label: t(`console.killSwitch.levels.${value}`), description: t(`console.killSwitch.levelDetails.${value}`),
+          }))}
           onChange={([chosen]) => { field.onChange(chosen ?? null); form.setValue('phone', ''); form.setValue('feature', null); setConfirming(null); }} />
       )} />
       <Target control={form.control} level={level} phoneError={errors.phone !== undefined} />
@@ -77,7 +79,7 @@ export function EngageForm({ venueId, onOutcome }: { venueId: string; onOutcome:
         error={errors.reason ? t('console.killSwitch.invalidReason') : undefined} />
       {errors.level || errors.feature ? <ErrorMessage>{t('console.killSwitch.chooseTarget')}</ErrorMessage> : null}
       {confirming === null ? (
-        <Button variant="secondary" onClick={() => void form.handleSubmit(setConfirming)()}>{t('console.killSwitch.engage')}</Button>
+        <Inline><Button variant="subtle" onClick={() => void form.handleSubmit(setConfirming)()}>{t('console.killSwitch.engage')}</Button></Inline>
       ) : <Confirm values={confirming} isPending={engage.isPending} onConfirm={() => void engageNow(confirming)} onCancel={() => setConfirming(null)} />}
     </Stack>
   );

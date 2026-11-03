@@ -21,8 +21,8 @@ test.describe('Sessions', () => {
     // She owes call time, so she is let go early with a reason (decision 0448), and the seat is freed.
     await letGoEarly(sahil, 'Rhea Kaul', 'Floor decision');
     await expect(sahil.getByRole('button', { name: /^Seat \d+, Rhea Kaul,/ })).toHaveCount(0);
-    await sahil.getByRole('link', { name: 'Check-in' }).click();
-    await sahil.getByRole('textbox', { name: 'Mobile number' }).fill('9000000297');
+    await sahil.getByRole('link', { name: 'Door', exact: true }).click();
+    await sahil.getByRole('textbox', { name: 'Card, mobile, number or name' }).fill('9000000297');
     await sahil.getByRole('button', { name: 'Check out', exact: true }).click();
     await expect(sahil.getByText('Checked out.')).toBeVisible();
 

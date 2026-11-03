@@ -2,8 +2,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { dealerTabletAddSchema } from '@rivr/contracts';
 import { useDeviceActions, type DeviceFailure, type PairingCode } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, Stack, Switch, StatusMessage } from '@rivr/ui';
-import { useState } from 'react';
+import { Button, ErrorMessage, Heading, Inline, Input, Stack, StatusMessage, Switch, Text } from '@rivr/ui';
+import { useId, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import { DEVICE_FAILURE_COPY } from './failureCopy.ts';
@@ -37,13 +37,19 @@ export function AddTabletForm({ venueId, onCode }: AddTabletFormProps) {
     if (added.value !== null) onCode(added.value);
   });
   const nameField = form.register('name');
+  // The hint, or what is wrong, sits under the row and is read with the field.
+  const noteId = useId();
+  const isWrong = form.formState.errors.name !== undefined;
   return (
     <Stack gap={2}>
-      <Inline gap={3} align="end">
-        <Input {...nameField} label={t('console.tablets.name')} hint={t('console.tablets.nameHint')} autoComplete="off"
-          error={form.formState.errors.name ? t('console.tablets.invalidName') : undefined} />
-        <Button variant="secondary" isLoading={add.isPending} onClick={() => void submit()}>{t('console.tablets.add')}</Button>
+      <Heading level={3}>{t('console.tablets.addTitle')}</Heading>
+      {/* The console's field beside its button (console v3): one height, centred on one line; the hint under them both. */}
+      <Inline gap={3} wrap>
+        <Input {...nameField} variant="subtle" label={t('console.tablets.name')} autoComplete="off" aria-describedby={noteId} aria-invalid={isWrong || undefined} />
+        <Button variant="primary" size="compact" isLoading={add.isPending} onClick={() => void submit()}>{t('console.tablets.add')}</Button>
       </Inline>
+      {isWrong ? <ErrorMessage id={noteId}>{t('console.tablets.invalidName')}</ErrorMessage>
+        : <Text id={noteId} variant="small" tone="muted">{t('console.tablets.nameHint')}</Text>}
       <Switch label={t('console.tablets.isDoor')} hint={t('console.tablets.isDoorHint')} isOn={isDoor} onChange={setIsDoor} />
       <StatusMessage>{isAddedWithoutCode ? t('console.tablets.addedWithoutCode') : null}</StatusMessage>
       {failure === null ? null : <ErrorMessage>{t(DEVICE_FAILURE_COPY[failure])}</ErrorMessage>}

@@ -163,6 +163,24 @@ select throws_ok($$ select public.save_promotion_draft('00000000-0000-4000-8000-
 reset role;
 select is((select status from public.promotion where id = pg_temp.id('promo')), 'ended', 'the promotion says ended');
 
+-- Four eyes count the last change too: Vikram changes a draft that Ishita then simulates and submits, so Kavya approves
+-- it, never he.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
+insert into ids select 'e1', public.save_promotion_draft('00000000-0000-4000-8000-000000000001', pg_temp.draft('Changed by Vikram', 10, (select day from today)));
+insert into ids select 'e1-promo', promotion_id from public.promotion_version where id = pg_temp.id('e1');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select lives_ok($$ select public.save_promotion_draft('00000000-0000-4000-8000-000000000001',
+  pg_temp.draft('Changed by Vikram', 11, (select day from today)), pg_temp.id('e1-promo')) $$, 'a super admin changes the draft');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
+select lives_ok($$ select pg_temp.simulate(pg_temp.id('e1')) $$, 'marketing simulates it');
+select lives_ok($$ select public.submit_promotion_version(pg_temp.id('e1')) $$, 'and submits it');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select throws_ok($$ select public.approve_promotion_version(pg_temp.id('e1')) $$, 'RVTWO', null,
+  'the super admin who changed it does not approve it, though another submitted it');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
+select lives_ok($$ select public.approve_promotion_version(pg_temp.id('e1')) $$, 'another super admin does');
+reset role;
+
 -- Who reads and writes versions: managers of the venue, through the functions alone.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select is_empty($$ select * from public.promotion_version $$, 'a member reads no versions');

@@ -72,8 +72,12 @@ export const settings = {
   fromDate: 'From a later day',
   date: 'Day',
   invalidDate: 'Choose a day after today.',
-  reason: 'Reason',
-  invalidReason: 'Say why, in up to 200 characters.',
+  /** The rule in the label (console v3): the database refuses a control setting's shorter reason. */
+  reason: 'Reason, 3 characters or more',
+  invalidReason: 'Say why, in 3 to 200 characters.',
+  /** A row's Change (console v3), which opens a new value in the row; its name for a screen reader. */
+  change: 'Change',
+  changeName: 'Change {name}',
   chooseSubject: 'Choose what it applies to.',
   schedule: 'Save change',
   saved: 'Change saved.',
@@ -147,6 +151,9 @@ export const settings = {
     body: 'Notice',
     bodyHint: 'Shows at the top of every member\'s Home until you end it. Up to 280 characters.',
     post: 'Put up',
+    /** The live preview beside the notice (console v3), and what it shows before anything is typed. */
+    preview: 'On members’ Home',
+    previewEmpty: 'Your notice shows here.',
     posted: 'Notice put up.',
     none: 'No notice is up.',
     until: 'Until {date}',

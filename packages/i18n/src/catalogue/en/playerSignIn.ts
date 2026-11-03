@@ -6,6 +6,9 @@ export const playerSignIn = {
   phoneInvalid: 'Enter a 10-digit mobile number.',
   sendCode: 'Send code',
   legal: 'Members only, 18+. By continuing you accept the terms and privacy notice.',
+  /** The links under the legal line, to the website's pages (#775). */
+  terms: 'Terms',
+  privacy: 'Privacy notice',
   back: 'Back',
   codeTitle: 'Enter the code',
   /** Codes go by WhatsApp through the Evolution bridge (decision 0297), so the line says so, not SMS. */

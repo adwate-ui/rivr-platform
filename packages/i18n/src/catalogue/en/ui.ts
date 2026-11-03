@@ -156,6 +156,10 @@ export const ui = {
     use: 'Use photo',
     retake: 'Retake',
     blocked: 'Camera blocked. Allow it in site settings.',
+    /** In a browser on an iPhone or iPad: Settings' search finds the browser's camera switch on every iOS (decision 0423). */
+    blockedIphone: 'Camera blocked. In Settings, search for {browser} and allow Camera, then come back here.',
+    /** On Android, where the site's permissions open from the icon left of the address (decision 0423). */
+    blockedAndroid: 'Camera blocked. Tap the icon left of the address, then Permissions, allow Camera and tap Try again.',
     none: 'No camera here. Carry on with a phone.',
     failed: 'Camera did not start. Try again.',
     tryAgain: 'Try again',

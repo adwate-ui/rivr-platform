@@ -2,13 +2,29 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { indianMobileSchema, type IndianMobile } from '@rivr/contracts';
 import { useSignIn } from '@rivr/db';
 import { formatTypedMobile, t } from '@rivr/i18n';
-import { Button, Captcha, Heading, Input, StepScreen, Text, useCaptcha, Wordmark } from '@rivr/ui';
+import { Button, Captcha, Heading, Inline, Input, StepScreen, Text, useCaptcha, Wordmark } from '@rivr/ui';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { CAPTCHA_SITE_KEY } from '../captcha.ts';
 import { FAILURE_COPY } from './failureCopy.ts';
 
 const phoneForm = z.object({ phone: indianMobileSchema });
+
+/** The legal line, with links to the terms and the privacy notice, pages of the website (#775); alone where the build names no website. */
+function LegalLine() {
+  const webUrl = import.meta.env.VITE_WEB_URL;
+  return (
+    <>
+      <Text variant="caption" tone="muted" align="center">{t('player.signIn.legal')}</Text>
+      {webUrl ? (
+        <Inline gap={4} justify="center">
+          <Button variant="text" href={`${webUrl}/terms`} opensNewTab>{t('player.signIn.terms')}</Button>
+          <Button variant="text" href={`${webUrl}/privacy`} opensNewTab>{t('player.signIn.privacy')}</Button>
+        </Inline>
+      ) : null}
+    </>
+  );
+}
 
 /**
  * The first step (decision 0320): the lockup, the motto, then at the foot "Sign in or join", the number after +91, spaced
@@ -46,7 +62,7 @@ export function PhoneStep({ onCodeSent }: { onCodeSent: (phone: IndianMobile) =>
           <Button variant="primary" size="tall" type="submit" fullWidth isDisabled={!captcha.isReady} isLoading={requestCode.isPending}>
             {t('player.signIn.sendCode')}
           </Button>
-          <Text variant="caption" tone="muted" align="center">{t('player.signIn.legal')}</Text>
+          <LegalLine />
         </>
       }
     >

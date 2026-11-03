@@ -36,12 +36,12 @@ async function photoFrom(taken: Blob): Promise<Photo | null> {
 function PhotoTaker({ hasPhoto, onPhoto }: { hasPhoto: boolean; onPhoto: (taken: Blob) => void }) {
   const [isTaking, setIsTaking] = useState(false);
   if (!isTaking) {
-    return <Button variant="secondary" onClick={() => setIsTaking(true)}>{t(hasPhoto ? 'console.kycInPerson.retakePhoto' : 'console.kycInPerson.takePhoto')}</Button>;
+    return <Button variant="subtle" size="compact" onClick={() => setIsTaking(true)}>{t(hasPhoto ? 'console.kycInPerson.retakePhoto' : 'console.kycInPerson.takePhoto')}</Button>;
   }
   return (
     <Stack gap={3}>
       <CameraCapture facing="environment" phoneUrl={window.location.href} onPhoto={(taken) => { setIsTaking(false); onPhoto(taken); }} />
-      <Button variant="text" onClick={() => setIsTaking(false)}>{t('common.cancel')}</Button>
+      <Button variant="text" size="compact" onClick={() => setIsTaking(false)}>{t('common.cancel')}</Button>
     </Stack>
   );
 }
@@ -75,21 +75,20 @@ export function InPersonForm({ venueId, member, onDecided, onCancel }: InPersonF
     const done = await check.mutateAsync({ ...details, memberId: member.memberId, consent: true, photo: photo.jpeg });
     return done.ok ? onDecided(done.value) : setProblem(FAILURE_COPY[done.error]);
   }, () => setProblem('console.kycInPerson.invalid'));
+  // The photo above the fields (console v3), so the form fits the 440 px sheet it opens in.
   return (
-    <Inline gap={6} align="start">
+    <Stack gap={4}>
       <KycPhoto alt={t('console.kycReview.photoOf', { name: member.fullName })} src={photo?.preview ?? null} status={photo === null ? 'missing' : 'ready'} />
-      <Stack gap={3} grow>
-        <PhotoTaker hasPhoto={photo !== null} onPhoto={(taken) => void takePhoto(taken)} />
-        <DetailsFields form={form} name={member.fullName} consent={consent} onConsent={setConsent} />
-        <Inline gap={3}>
-          <Button variant="primary" isLoading={check.isPending} onClick={() => void submit()}>
-            {t('console.kycInPerson.verifyName', { name: member.fullName })}
-          </Button>
-          <Button variant="secondary" onClick={onCancel}>{t('common.cancel')}</Button>
-        </Inline>
-        {problem === null ? null : <ErrorMessage>{t(problem)}</ErrorMessage>}
-      </Stack>
-    </Inline>
+      <PhotoTaker hasPhoto={photo !== null} onPhoto={(taken) => void takePhoto(taken)} />
+      <DetailsFields form={form} name={member.fullName} consent={consent} onConsent={setConsent} />
+      <Inline gap={3} wrap>
+        <Button variant="primary" size="compact" isLoading={check.isPending} onClick={() => void submit()}>
+          {t('console.kycInPerson.verifyName', { name: member.fullName })}
+        </Button>
+        <Button variant="subtle" size="compact" onClick={onCancel}>{t('common.cancel')}</Button>
+      </Inline>
+      {problem === null ? null : <ErrorMessage>{t(problem)}</ErrorMessage>}
+    </Stack>
   );
 }
 

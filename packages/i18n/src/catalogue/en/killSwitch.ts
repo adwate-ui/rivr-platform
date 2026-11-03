@@ -11,6 +11,14 @@ export const killSwitch = {
     member_freeze: 'Member freeze',
     access_revoke: 'Access revoked',
   },
+  /** What each level does (console v3), said once it is chosen. */
+  levelDetails: {
+    venue_freeze: 'Stops every change at the venue. Before a purge, or in a serious incident.',
+    feature_kill: 'Turns one feature off for everyone, such as withdrawals.',
+    messaging_stop: 'Holds every message to members: WhatsApp, texts and notifications.',
+    member_freeze: 'Freezes one member: no waitlist, no points, no requests.',
+    access_revoke: 'Ends one staff member’s sessions and blocks their sign-in.',
+  },
   features: {
     withdrawals: 'Withdrawals',
     credit: 'Credit',
