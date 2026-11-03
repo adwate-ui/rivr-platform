@@ -1,6 +1,7 @@
 -- A promotion grant's period key (console v3, money audit): the same as @rivr/domain's periodKey whatever the session's
 -- DateStyle, so the unique (promotion, member, period key) index holds a once-a-day or once-a-week reward to one grant.
--- Club days turn at 06:00 IST; a club week starts on Monday. And which old rule promotions become versions.
+-- Club days turn at 06:00 IST; a club week starts on Monday. A schedule's ISO day is checked the same in any DateStyle.
+-- And which old rule promotions become versions.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -19,6 +20,15 @@ select is(pg_temp.key_at('per_day', '2026-11-18 06:00:00+05:30'), 'day:2026-11-1
 set local datestyle = 'ISO, MDY';
 select is(pg_temp.key_at('once', now()), 'once', 'once is once');
 select is(pg_temp.key_at('none', now()), 'event:k1', 'no limit keys the event');
+
+-- A schedule's ISO day is checked the same in any DateStyle: the check on a version's terms is immutable.
+set local datestyle = 'SQL, DMY';
+select ok(private.is_iso_day('2026-11-17'), 'an ISO day is a day in any DateStyle');
+select ok(private.is_iso_day('2028-02-29'), 'a leap day is a day');
+select ok(not private.is_iso_day('2026-02-30'), 'a day the calendar has not is refused');
+select ok(not private.is_iso_day('17-11-2026'), 'a day written another way is refused');
+select ok(not private.is_iso_day('0000-01-01'), 'year 0 is refused');
+select ok(not private.is_iso_day(null), 'no day is refused');
 
 -- A rule promotion the model cannot say exactly stays on the old path, unversioned: two grants a member a day, or a
 -- budget by the month.

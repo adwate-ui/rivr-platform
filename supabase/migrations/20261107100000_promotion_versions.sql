@@ -5,7 +5,9 @@
 -- status, so every reader of a promotion's card keeps working. Grants record their version and the period they count
 -- in, unique per promotion and member, so a member's limit holds in the database across versions.
 
--- A calendar day written as ISO, '2026-11-17', and a real one.
+-- A calendar day written as ISO, '2026-11-17', and a real one. Truly immutable, as the check on a version's terms needs:
+-- make_date reads the three numbers, never the session's DateStyle as a text-to-date cast would, and refuses a day
+-- the calendar has not (2026-02-30) or year 0.
 create function private.is_iso_day(p_day text)
 returns boolean
 language plpgsql
@@ -13,7 +15,11 @@ immutable
 set search_path = ''
 as $$
 begin
-  return p_day ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' and to_char(p_day::date, 'YYYY-MM-DD') = p_day;
+  if p_day is null or p_day !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' then
+    return false;
+  end if;
+  perform make_date(substr(p_day, 1, 4)::integer, substr(p_day, 6, 2)::integer, substr(p_day, 9, 2)::integer);
+  return true;
 exception when others then
   return false;
 end;
