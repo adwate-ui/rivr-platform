@@ -49,8 +49,8 @@ function VisitsPart({ venueId, record }: Omit<PartProps, 'can'>) {
   return (
     <Stack gap={6}>
       <Stack gap={0}>
-        <DetailRow label={t('console.members.visits')} value={formatNumber(record.visits)} labelTone="muted" />
-        <DetailRow label={t('console.members.lastVisit')} value={last} labelTone="muted" isLast />
+        <DetailRow label={t('console.members.visits')} value={formatNumber(record.visits)} labelTone="muted" size="small" />
+        <DetailRow label={t('console.members.lastVisit')} value={last} labelTone="muted" size="small" isLast />
       </Stack>
       <EarlyDepartures venueId={venueId} memberId={record.memberId} />
       <PromotionGrants memberId={record.memberId} />

@@ -5,7 +5,7 @@ import type { Tonight } from './tonight.ts';
 
 /** A member's place tonight as a dot and a short status (console v3): a seat, waiting, left, or a dash when not here. */
 export function TonightStatus({ tonight }: { tonight: Tonight | undefined }) {
-  if (tonight === undefined) return <Text tone="muted">{t('console.members.notHere')}</Text>;
+  if (tonight === undefined) return <Text variant="secondary" tone="muted">{t('console.members.notHere')}</Text>;
   if (tonight.kind === 'seated') {
     const seat = { table: tonight.tableName, seat: tonight.seat };
     return <DotStatus tone="active" label={t('console.members.seatShort', seat)} title={t('console.members.seatFull', seat)} />;
@@ -28,7 +28,7 @@ export function memberColumns(tonight: ReadonlyMap<string, Tonight>): readonly D
   return [
     // Twice a share, so a name stays on one line beside the record (the screenshot index: "Kabir / Sethi").
     { key: 'name', header: t('console.members.name'), cell: (row) => row.fullName, sortValue: (row) => row.fullName, isWide: true },
-    { key: 'number', header: t('console.members.number'), cell: (row) => <Text tone="muted">{String(row.memberNumber)}</Text>, sortValue: (row) => row.memberNumber },
+    { key: 'number', header: t('console.members.number'), cell: (row) => <Text variant="secondary" tone="muted">{String(row.memberNumber)}</Text>, sortValue: (row) => row.memberNumber },
     { key: 'tier', header: t('console.members.tier'), cell: (row) => row.tierName, sortValue: (row) => row.tierName },
     {
       key: 'tonight', header: t('console.members.tonight'), cell: (row) => <TonightStatus tonight={tonight.get(row.memberId)} />,

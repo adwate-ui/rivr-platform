@@ -36,6 +36,8 @@ function Results({ venueId, tonight, onOpen, query, tier }: ListProps & { query:
   const base = {
     label: t('console.members.title'), columns: memberColumns(tonight), rowKey: (row: MemberRow) => row.memberId, exportFilter,
     onRowOpen: (row: MemberRow) => onOpen(row.memberId), initialSort: { key: 'name', direction: 'ascending' } as const,
+    // On a phone the table's lines scroll sideways under the names, as in the prototype.
+    narrowLayout: 'scroll' as const,
   };
   if (tier === null && !isMemberQuery(query)) return <Text tone="muted">{t('console.members.searchPrompt')}</Text>;
   if (rows.isError) return <DataTable {...base} status="error" onRetry={() => void rows.refetch()} />;
