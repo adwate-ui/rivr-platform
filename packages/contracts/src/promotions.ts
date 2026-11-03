@@ -135,6 +135,12 @@ export const promotionBuilderSchema = z
   });
 export type PromotionBuilder = z.infer<typeof promotionBuilderSchema>;
 
+/**
+ * A promotion card's optional link (#776), which the member's card opens: a plain https address in printable ASCII with no
+ * user part, so the host its approver reads is the one it opens. The same pattern as promotion.link's check.
+ */
+export const promotionLinkSchema = z.url({ protocol: /^https$/ }).max(500).regex(/^https:\/\/[A-Za-z0-9.-]+(:[0-9]{1,5})?([/?#][!-~]*)?$/);
+
 /** A waiting promotion's rules as stored, which its approver reads (#144): what sets each off, for whom, and what it gives. */
 export const promotionRulesSchema = z.array(
   z.strictObject({ trigger: z.enum(PROMOTION_TRIGGERS), conditions: promotionConditionsSchema, effect: promotionEffectSchema }),

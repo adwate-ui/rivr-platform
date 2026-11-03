@@ -39,11 +39,11 @@ select results_eq($$ select p.slug, jsonb_array_length(b.content -> 'items'),
                      where p.venue_id = (select venue_id from club) and b.kind = 'timeline' order by p.slug $$,
   $$ values ('about'::text, 4, 4) $$, 'On the record lists four rulings on the About page, each linked to its judgment (the front page''s copy went, W-01)');
 
-select ok((select b.content -> 'cards' @> '[{"link": {"page": "journal-cash-game-tips"}}, {"link": {"page": "journal-tournaments-gurugram"}}]'
-             and not b.content::text like '%journal-poker-legal-gurugram%'
+select ok((select b.content -> 'cards' @> '[{"link": {"page": "journal-cash-game-tips"}}, {"link": {"page": "journal-tournaments-gurugram"}},
+                                             {"link": {"page": "journal-poker-legal-gurugram"}}]'
            from public.site_block b join public.site_page p on p.id = b.page_id
            where p.venue_id = (select venue_id from club) and p.slug = 'journal' and b.content ->> 'heading' = 'Articles'),
-  'the journal lists the new published articles, and not the draft');
+  'the journal lists the new articles, the legality one since it was published (#623)');
 select is((select count(*) from public.site_block b join public.site_page p on p.id = b.page_id
            where p.venue_id = (select venue_id from club) and p.slug in ('home', 'membership')
              and (b.content::text like '%5\% of your rake%' or b.content::text like '%₹1,000 on your first%' or b.content::text like '%fourth visit%')), 0::bigint,

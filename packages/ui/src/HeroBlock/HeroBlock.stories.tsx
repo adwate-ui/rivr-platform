@@ -24,6 +24,9 @@ export const Default: Story = {};
 
 export const OnAPhone: Story = { tags: ['!viewport-console', 'viewport-phone'] };
 
+// A word wider than a phone breaks inside the heading rather than scroll the page sideways (#621).
+export const LongWordOnAPhone: Story = { tags: ['!viewport-console', 'viewport-phone'], args: { heading: 'Internationalisation nights', video: undefined, note: undefined } };
+
 export const WithoutVideo: Story = { args: { eyebrow: undefined, heading: 'RIVR Academy', text: 'Learn the game in a small batch with a RIVR coach.', video: undefined, note: undefined } };
 
 export const WithoutAction: Story = { args: { action: undefined } };

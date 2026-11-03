@@ -103,14 +103,18 @@ describe('Tonight', () => {
       '/rpc/my_referral': [{ code: 'PGHG59H7', referred: 0, bonus_paise: 100000 }],
       // As the server lists them since 3 Nov: the promotion behind the referral card is not a card again.
       '/rpc/my_promotion_cards': [
-        { promotion_id: 'p1', title: 'High hands', detail: 'Royal flush 25,000', runs: 'Every night' },
-        { promotion_id: 'p2', title: 'Buy-in bonus Tuesday', detail: '20% on the first five buy-ins per table', runs: 'Tuesday · all stakes' },
+        { promotion_id: 'p1', title: 'High hands', detail: 'Royal flush 25,000', runs: 'Every night', link: null },
+        { promotion_id: 'p2', title: 'Buy-in bonus Tuesday', detail: '20% on the first five buy-ins per table', runs: 'Tuesday · all stakes',
+          link: 'https://glaza.example/tuesday' },
       ],
     });
     const offers = (await screen.findByText('3 offers', {}, LATER)).closest('section');
     if (offers === null) throw new Error('No offers row');
     expect(within(offers).getAllByText('Referral')).toHaveLength(1);
     expect(within(offers).getAllByRole('listitem')).toHaveLength(3);
+    // A card with a link opens it (issue 776); one without only says its offer.
+    expect(within(offers).getByRole('link', { name: /Buy-in bonus Tuesday/ }).getAttribute('href')).toBe('https://glaza.example/tuesday');
+    expect(within(offers).queryByRole('link', { name: /High hands/ })).toBeNull();
   });
 
   it('On the list: the place, Next in line, when they joined, and Leave waitlist', async () => {
