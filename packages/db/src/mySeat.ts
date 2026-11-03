@@ -35,6 +35,8 @@ export interface MySeat {
   readonly bigBlind: bigint;
   /** More call time asked for, waiting on the floor (decision 0320), in minutes; null with none. */
   readonly timeRequestMinutes: number | null;
+  /** The lengths of more call time the club offers, in minutes, shortest first (decision 0305). */
+  readonly addTimeChoices: readonly number[];
 }
 
 // The time left is read again each half minute; Home shows it to the minute.
@@ -58,7 +60,7 @@ export function useMySeat() {
             playedSeconds: row.played_seconds, isLeaving: row.is_leaving, topUp: isTopUp(row.top_up) ? row.top_up : null,
             callTimeMinutes: row.call_time_minutes, startedAt: row.started_at, callTimeEndsAt: row.call_time_ends_at,
             tableTypeName: row.table_type_name, smallBlind: BigInt(row.small_blind_paise), bigBlind: BigInt(row.big_blind_paise),
-            timeRequestMinutes: row.time_request_minutes };
+            timeRequestMinutes: row.time_request_minutes, addTimeChoices: row.add_time_choices };
     },
   });
 }

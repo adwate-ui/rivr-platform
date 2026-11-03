@@ -15,7 +15,7 @@ afterEach(() => {
 const SEAT = {
   table_name: 'Table 3', seat: 5, is_away: false, has_call_time: false, call_time_left: null, played_seconds: 600, is_leaving: false, top_up: null,
   call_time_minutes: null, started_at: '2026-11-15T16:55:00Z', call_time_ends_at: null, table_type_name: 'NLH 100/200', small_blind_paise: 10000,
-  big_blind_paise: 20000, time_request_minutes: null,
+  big_blind_paise: 20000, time_request_minutes: null, add_time_choices: [30, 60, 120],
 };
 const MENU = [
   { item_id: 'chai', name: 'Masala chai', kind: 'soft_drink', photo_path: 'v1/menu-chai.jpg' },

@@ -56,6 +56,12 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     help: 'Minimum play before leaving, at this table type.',
     fields: { minutes: 'Minutes' },
   },
+  'call_time.add_choices': {
+    name: 'Add time choices',
+    help: 'The lengths a player may ask to add, and the floor adds. 30 min, 1 hour and 2 hours unless set.',
+    fields: { minutes: 'Lengths offered' },
+    options: { 15: '15 min', 30: '30 min', 45: '45 min', 60: '1 hour', 90: '1 hour 30', 120: '2 hours', 180: '3 hours', 240: '4 hours' },
+  },
   'card.qr_rotation_seconds': {
     name: 'Door code refresh',
     help: "How often the card's code changes. Every 30 seconds unless set.",

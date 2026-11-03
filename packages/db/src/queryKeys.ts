@@ -130,6 +130,7 @@ export const queryKeys = {
   fnbOrdersTonight: (userId: string, venueId: string) => ['user', userId, 'fnb-orders-tonight', venueId] as const,
   topUpsTonight: (userId: string, venueId: string) => ['user', userId, 'top-ups-tonight', venueId] as const,
   staffQueueCounts: (userId: string, venueId: string) => ['user', userId, 'staff-queue-counts', venueId] as const,
+  addTimeChoices: (userId: string, venueId: string) => ['user', userId, 'add-time-choices', venueId] as const,
   todaysPlayers: (userId: string, venueId: string) => ['user', userId, 'todays-players', venueId] as const,
   /** A venue's stakes and tables, for Tables setup (#642). */
   tablesSetup: (userId: string, venueId: string) => ['user', userId, 'tables-setup', venueId] as const,

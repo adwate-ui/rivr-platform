@@ -93,23 +93,30 @@ select lives_ok($$ select public.decide_call_time_request((select id from to_a_d
 reset role;
 select is((pg_temp.session()).call_time_minutes, 1440, 'a day, exactly');
 
--- A call time already met takes no more (decision 0324): asking and approving are both refused once it has run out.
+-- A call time already met still takes more (decision 0305, undoing 0324): it runs from the minutes played, and is owed again.
 update public.seat_session set call_time_minutes = 180, call_time_completed_at = null where id = (pg_temp.session()).id;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 create temp table before_end on commit drop as select public.request_call_time(30, gen_random_uuid()) as id;
 grant select on before_end to authenticated;
 reset role;
-update public.seat_session set started_at = now() - interval '4 hours', seated_here_at = now() - interval '4 hours'
+update public.seat_session set started_at = now() - interval '4 hours', seated_here_at = now() - interval '4 hours', call_time_completed_at = now()
 where id = (pg_temp.session()).id;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select public.decide_call_time_request((select id from before_end), true) $$, '22023', null,
-  'the floor approves no time once the call time has run out');
-select lives_ok($$ select public.decide_call_time_request((select id from before_end), false) $$, 'and declines it instead');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select throws_ok($$ select public.request_call_time(60, gen_random_uuid()) $$, '22023', null, 'nor does the member ask once it has run out');
+select lives_ok($$ select public.decide_call_time_request((select id from before_end), true) $$,
+  'the floor approves time once the call time has run out');
 reset role;
-select is((pg_temp.session()).call_time_minutes, 180, 'his call time stays three hours: met, he owes no more');
-update public.seat_session set started_at = now(), seated_here_at = now() where id = (pg_temp.session()).id;
+select is((pg_temp.session()).call_time_minutes, 270, 'half an hour from the four hours played: 4 h 30');
+select is((pg_temp.session()).call_time_completed_at, null, 'and the call time is owed again, to be completed once played');
+update public.seat_session set call_time_minutes = 180, call_time_completed_at = now() where id = (pg_temp.session()).id;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
+create temp table after_end on commit drop as select public.request_call_time(60, gen_random_uuid()) as id;
+grant select on after_end to authenticated;
+select isnt((select id from after_end), null, 'the member asks for an hour once it has run out');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select lives_ok($$ select public.decide_call_time_request((select id from after_end), false) $$, 'which the floor may still decline');
+reset role;
+select is((pg_temp.session()).call_time_minutes, 180, 'declined, his call time stays three hours');
+update public.seat_session set started_at = now(), seated_here_at = now(), call_time_completed_at = null where id = (pg_temp.session()).id;
 
 -- A tier without call time asks for none.
 insert into public.member_feature_override (venue_id, member_id, feature_key, is_granted, reason)

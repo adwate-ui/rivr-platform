@@ -131,9 +131,10 @@ function useSeatSettle(venueId: string) {
   const queryClient = useQueryClient();
   const user = userId ?? 'signed-out';
   return async (error: { code: string } | null, codes: Readonly<Record<string, SeatFailure>> = FAILURE_BY_CODE): Promise<Result<null, SeatFailure>> => {
-    // Tonight's top-ups too, so Top-ups moves on as soon as the floor starts or finishes one (decision 0299).
+    // Tonight's top-ups too, so Top-ups moves on as soon as the floor starts or finishes one (decision 0299), and the rail's
+    // counts, so a time request decided leaves its red count at once (decision 0305).
     const reread = [queryKeys.floorSeats(user, venueId), queryKeys.heldSeats(user, venueId), queryKeys.leftOwingCallTime(user, venueId), queryKeys.floorTables(user),
-      queryKeys.topUpsTonight(user, venueId)];
+      queryKeys.topUpsTonight(user, venueId), queryKeys.staffQueueCounts(user, venueId)];
     await Promise.all(reread.map((queryKey) => queryClient.invalidateQueries({ queryKey })));
     return error ? err(codes[error.code] ?? 'unavailable') : ok(null);
   };
@@ -194,6 +195,33 @@ export function useDecideCallTime(venueId: string) {
   return useMutation({
     mutationFn: async ({ requestId, isApproved }: { requestId: string; isApproved: boolean }) =>
       settle((await client.rpc('decide_call_time_request', { p_request_id: requestId, p_is_approved: isApproved })).error),
+  });
+}
+
+/**
+ * The floor's managers (call_time.override) add a length offered to a seated player's call time, met or not (decision 0305).
+ * The same `requestId` again adds nothing more, so a retry after a lost answer is safe.
+ */
+export function useAddCallTime(venueId: string) {
+  const { client } = useRivrData();
+  const settle = useSeatSettle(venueId);
+  return useMutation({
+    mutationFn: async ({ sessionId, minutes, requestId }: { sessionId: string; minutes: number; requestId: string }) =>
+      settle((await client.rpc('add_seat_call_time', { p_session_id: sessionId, p_minutes: minutes, p_idempotency_key: requestId })).error),
+  });
+}
+
+/** The lengths of more call time the club offers, in minutes, shortest first (decision 0305), for the floor. */
+export function useAddTimeChoices(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.addTimeChoices(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<readonly number[]> => {
+      const { data, error } = await client.rpc('add_time_choices', { p_venue_id: venueId });
+      if (error) throw error;
+      return data;
+    },
   });
 }
 

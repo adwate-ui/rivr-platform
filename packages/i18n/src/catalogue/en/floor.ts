@@ -93,6 +93,10 @@ export const liveFloor = {
   approveTimeName: 'Approve more call time for {name}',
   declineTime: 'Decline',
   declineTimeName: 'Decline more call time for {name}',
+  /** The floor's managers add a length the club offers themselves (decision 0305): `Add time` `+1 h` `+2 h`. */
+  addTime: 'Add time',
+  addTimeChoice: '+{time}',
+  addTimeName: 'Add {time} to the call time of {name}',
   /** A table's red marker on the room plan while a top-up waits there (decision 0299). */
   topUpMarker: 'Top-up',
   /** A table's marker while a member there asks for more call time (decision 0320): minutes are on the seat's row. */
@@ -220,6 +224,23 @@ export const topUps = {
     paused: 'Venue frozen. Try again once it is released.',
     not_allowed: 'Not in your role. Ask an admin.',
     changed: 'This top-up changed. Check the list and try again.',
+  },
+} as const;
+
+/** Time requests (decision 0305): more call time members asked for, each with Approve and Decline. Minutes only. */
+export const timeRequests = {
+  title: 'Time requests',
+  noneWaiting: 'No time requests waiting.',
+  /** `{table}, seat {seat} · {name}`: Table 3, seat 5 · Kabir Sethi. */
+  line: '{table}, seat {seat} · {name}',
+  /** `{time}`: 1h 20m. */
+  left: '{time} call time left',
+  met: 'Call time met',
+  notAllowed: 'Not in your role. Ask an admin.',
+  failures: {
+    paused: 'Venue frozen. Try again once it is released.',
+    not_allowed: 'Not in your role. Ask an admin.',
+    changed: 'This request changed. Check the list and try again.',
   },
 } as const;
 

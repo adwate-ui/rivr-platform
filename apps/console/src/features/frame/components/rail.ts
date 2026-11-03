@@ -39,6 +39,8 @@ const RAIL: readonly RailGroup[] = [
       { id: 'waitlist', label: 'console.rail.items.waitlist', href: '/waitlist', anyOf: ['waitlist.manage'] },
       // Top-ups on a page of their own, the waiting ones counted in red (decision 0299).
       { id: 'topUps', label: 'console.rail.items.topUps', href: '/top-ups', anyOf: ['waitlist.manage'] },
+      // More call time members asked for, on a page of their own, counted in red (decision 0305).
+      { id: 'timeRequests', label: 'console.rail.items.timeRequests', href: '/time-requests', anyOf: ['waitlist.manage'] },
       { id: 'checkIn', label: 'console.rail.items.checkIn', href: '/check-in', anyOf: ['waitlist.manage'] },
       { id: 'tournaments', label: 'console.rail.items.tournaments', href: '/tournaments', anyOf: ['tournaments.manage', 'cage.transact'], hidden: true },
       { id: 'dealers', label: 'console.rail.items.dealers', href: '/dealers', anyOf: ['floor.manage'], hidden: true },
@@ -140,7 +142,7 @@ const RAIL: readonly RailGroup[] = [
 ];
 
 /** The queues where minutes matter, counted in red, in the tab's title and with a chime (decision 0301): the rest are gold. */
-export const URGENT_QUEUES: readonly string[] = ['topUps', 'waitlist', 'fnb', 'liveFloor'];
+export const URGENT_QUEUES: readonly string[] = ['topUps', 'timeRequests', 'waitlist', 'fnb', 'liveFloor'];
 
 const isAllowed = (entry: RailEntry, permissions: readonly Permission[]) =>
   entry.anyOf.length === 0 || entry.anyOf.some((permission) => permissions.includes(permission));

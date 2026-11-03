@@ -2997,14 +2997,14 @@ isOneToOne: false
                   ]
                 },"seat_session": {
                   Row: {
-                    "away_seconds": number,"away_since": string | null,"call_time_completed_at": string | null,"call_time_minutes": number,"created_at": string,"end_reason": string | null,"ended_at": string | null,"ending_warned_at": string | null,"id": string,"leaving_at": string | null,"leaving_by_staff_id": string | null,"member_id": string,"reminded_at": string | null,"seat": number,"seated_by_staff_id": string | null,"seated_here_at": string,"started_at": string,"table_id": string,"top_up_requested_at": string | null,"top_up_started_at": string | null,"updated_at": string,"venue_id": string,"visit_id": string
+                    "away_seconds": number,"away_since": string | null,"call_time_completed_at": string | null,"call_time_first_met_at": string | null,"call_time_minutes": number,"created_at": string,"end_reason": string | null,"ended_at": string | null,"ending_warned_at": string | null,"id": string,"leaving_at": string | null,"leaving_by_staff_id": string | null,"member_id": string,"reminded_at": string | null,"seat": number,"seated_by_staff_id": string | null,"seated_here_at": string,"started_at": string,"table_id": string,"top_up_requested_at": string | null,"top_up_started_at": string | null,"updated_at": string,"venue_id": string,"visit_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_minutes"?: number,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"ending_warned_at"?: string | null,"id"?: string,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id": string,"reminded_at"?: string | null,"seat": number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id": string,"top_up_requested_at"?: string | null,"top_up_started_at"?: string | null,"updated_at"?: string,"venue_id": string,"visit_id": string
+                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_first_met_at"?: string | null,"call_time_minutes"?: number,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"ending_warned_at"?: string | null,"id"?: string,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id": string,"reminded_at"?: string | null,"seat": number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id": string,"top_up_requested_at"?: string | null,"top_up_started_at"?: string | null,"updated_at"?: string,"venue_id": string,"visit_id": string
                   }
                   Update: {
-                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_minutes"?: number,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"ending_warned_at"?: string | null,"id"?: string,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id"?: string,"reminded_at"?: string | null,"seat"?: number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id"?: string,"top_up_requested_at"?: string | null,"top_up_started_at"?: string | null,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
+                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_first_met_at"?: string | null,"call_time_minutes"?: number,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"ending_warned_at"?: string | null,"id"?: string,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id"?: string,"reminded_at"?: string | null,"seat"?: number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id"?: string,"top_up_requested_at"?: string | null,"top_up_started_at"?: string | null,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
                   }
                   Relationships: [
                     {
@@ -4518,6 +4518,9 @@ isOneToOne: false
 "add_payout_account":
 { Args: { "p_account_number"?: string,"p_bank_name": string,"p_holder_name"?: string,"p_ifsc"?: string,"p_kind": string,"p_vpa"?: string }; Returns: string
                            },
+"add_seat_call_time":
+{ Args: { "p_idempotency_key": string,"p_minutes": number,"p_session_id": string }; Returns: undefined
+                           },
 "add_shareholder":
 { Args: { "p_kind": string,"p_name": string,"p_venue_id": string }; Returns: string
                            },
@@ -4532,6 +4535,9 @@ isOneToOne: false
                            },
 "add_table_type":
 { Args: { "p_big_blind_paise": number,"p_name": string,"p_small_blind_paise": number,"p_straddle_paise"?: number,"p_venue_id": string }; Returns: string
+                           },
+"add_time_choices":
+{ Args: { "p_venue_id": string }; Returns: (number)[]
                            },
 "add_to_waitlist":
 { Args: { "p_idempotency_key": string,"p_phone": string,"p_table_type_id": string }; Returns: string
@@ -5233,7 +5239,7 @@ isOneToOne: false
                            },
 "my_seat":
 { Args: Record<PropertyKey, never>; Returns: {
-              "big_blind_paise": number,"call_time_ends_at": string,"call_time_left": number,"call_time_minutes": number,"has_call_time": boolean,"is_away": boolean,"is_leaving": boolean,"played_seconds": number,"seat": number,"small_blind_paise": number,"started_at": string,"table_name": string,"table_type_name": string,"time_request_minutes": number,"top_up": string
+              "add_time_choices": (number)[],"big_blind_paise": number,"call_time_ends_at": string,"call_time_left": number,"call_time_minutes": number,"has_call_time": boolean,"is_away": boolean,"is_leaving": boolean,"played_seconds": number,"seat": number,"small_blind_paise": number,"started_at": string,"table_name": string,"table_type_name": string,"time_request_minutes": number,"top_up": string
             }[]
                            },
 "my_sessions":

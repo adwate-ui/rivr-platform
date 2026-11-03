@@ -31,12 +31,12 @@ function standingOf(seat: MySeat | null, places: readonly WaitlistPlace[]): Stan
   return place.holdUntil === null ? { kind: 'waiting', place } : { kind: 'ready', place: { ...place, holdUntil: place.holdUntil } };
 }
 
-/** What a push's button may act on (usePushAction): the place called, or a seat whose call time still runs. */
+/** What a push's button may act on (usePushAction): the place called, or a seat with call time, met or not (decision 0305). */
 function pushTargetOf(standing: Standing, isReady: boolean): PushTarget {
   return {
     isReady,
     calledEntryId: standing.kind === 'ready' ? standing.place.entryId : null,
-    canAddTime: standing.kind === 'seated' && standing.seat.hasCallTime && (standing.seat.callTimeLeft ?? 0) > 0,
+    canAddTime: standing.kind === 'seated' && standing.seat.hasCallTime,
   };
 }
 

@@ -8,6 +8,7 @@ import { SEAT_FAILURE_COPY } from './seatCopy.ts';
 import { SeatForm } from './SeatForm.tsx';
 import { TableControls } from './TableControls.tsx';
 import { TableHeader } from './TableHeader.tsx';
+import { AddTime } from './AddTime.tsx';
 import { TimeRequest } from './TimeRequest.tsx';
 
 interface TableDetailProps {
@@ -113,10 +114,24 @@ interface SeatRowsProps {
   onForm: (form: 'leaveEarly' | 'callTime', player: SeatedPlayer) => void;
 }
 
+/**
+ * Under a seated player, more call time: what they asked for, to approve or decline (decision 0320), and for the floor's
+ * managers (call_time.override), a length to add themselves, to a seat that has call time (decision 0305).
+ */
+function SeatTime({ venueId, player, canAddTime, report }: { venueId: string; player: SeatedPlayer; canAddTime: boolean; report: Report }) {
+  return (
+    <>
+      {player.timeRequest ? <TimeRequest venueId={venueId} player={{ ...player, timeRequest: player.timeRequest }} report={report} /> : null}
+      {canAddTime && player.callTimeLeft !== null ? <AddTime venueId={venueId} player={player} report={report} /> : null}
+    </>
+  );
+}
+
 /** Each seat's row; under a seated player, the floor's buttons on a line of their own (waitlist.manage), so neither crowds the other (#712). */
 function SeatRows({ venueId, table, seats, held, permissions, report, onForm }: SeatRowsProps) {
   const { leave } = useSeatActions(venueId);
   const isFloor = permissions.includes('waitlist.manage');
+  const canAddTime = permissions.includes('call_time.override');
   return (
     <Stack gap={2} divided>
       {Array.from({ length: table.seats }, (_, index) => {
@@ -131,7 +146,7 @@ function SeatRows({ venueId, table, seats, held, permissions, report, onForm }: 
                 onLeave={() => void leave.mutateAsync(player.sessionId).then(report)} onLeaveEarly={() => onForm('leaveEarly', player)}
                 onCallTime={() => onForm('callTime', player)} />
             ) : null}
-            {isFloor && player?.timeRequest ? <TimeRequest venueId={venueId} player={{ ...player, timeRequest: player.timeRequest }} report={report} /> : null}
+            {isFloor && player !== undefined ? <SeatTime venueId={venueId} player={player} canAddTime={canAddTime} report={report} /> : null}
           </Stack>
         );
       })}

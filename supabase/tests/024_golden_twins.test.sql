@@ -210,13 +210,13 @@ select results_eq(
   $$ select description, (expected ->> 'secondsLeft')::integer from golden.golden_case where file = 'callTime.json' order by position $$,
   'private.call_time_left gives every time left in the golden file');
 
--- More call time the floor approves: private.extended_call_time and @rivr/domain extendedCallTime
--- (packages/testing/golden/callTimeExtension.json, decision 0320). The SQL refuses with null, whatever the reason.
+-- More call time for a seat: private.extended_call_time and @rivr/domain extendedCallTime
+-- (packages/testing/golden/callTimeExtension.json, decisions 0320 and 0305). The SQL refuses with null, whatever the reason.
 select ok((select count(*) > 0 from golden.golden_case where file = 'callTimeExtension.json'), 'the call time extension cases are loaded');
 select is_empty($$ select operation from golden.golden_case where file = 'callTimeExtension.json' and operation <> 'extend' $$,
   'every operation in callTimeExtension.json is proved here');
 select results_eq(
-  $$ select description, private.extended_call_time((inputs ->> 'current')::integer, (inputs ->> 'add')::integer)
+  $$ select description, private.extended_call_time((inputs ->> 'current')::integer, (inputs ->> 'played')::integer, (inputs ->> 'add')::integer)
      from golden.golden_case where file = 'callTimeExtension.json' order by position $$,
   $$ select description, nullif(expected ->> 'minutes', '')::integer from golden.golden_case where file = 'callTimeExtension.json' order by position $$,
   'private.extended_call_time gives every call time in the golden file, and refuses every refusal');
