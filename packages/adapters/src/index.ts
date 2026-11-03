@@ -12,7 +12,6 @@ export type { FakeControls } from './shared/recorder.ts';
 export * from './cache-purge/index.ts';
 export * from './cctv/index.ts';
 export * from './channel-analytics/index.ts';
-export * from './crm/index.ts';
 export * from './google-ads/index.ts';
 export * from './instagram-graph/index.ts';
 export * from './kitchen-printer/index.ts';
