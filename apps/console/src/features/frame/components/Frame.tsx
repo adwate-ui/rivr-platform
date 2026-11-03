@@ -2,7 +2,9 @@ import type { Permission } from '@rivr/contracts';
 import { useAuthStatus, useControlState, useSignOut, useStaffDensity, useStaffQueueCounts, useStaffVenue, useWaitingHighHands, type StaffVenueState } from '@rivr/db';
 import { useRecordTableExport } from '@rivr/db/exports';
 import { t } from '@rivr/i18n';
-import { ConsoleShell, DataTableDensityProvider, DataTableExportProvider, KillSwitchBanner, PracticeBanner, Screen, ShortcutProvider, TitleCount, UrgentChime } from '@rivr/ui';
+import {
+  ConsoleShell, DataTableDensityProvider, DataTableExportProvider, KillSwitchBanner, PracticeBanner, Screen, ShortcutProvider, TitleCount, ToastProvider, UrgentChime,
+} from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { ConsoleSearch } from './ConsoleSearch.tsx';
@@ -139,7 +141,7 @@ interface FrameBodyProps {
   children: ReactNode;
 }
 
-/** The screen, or its refusal, with what every screen shares: the staff member's density, the export, the chime. */
+/** The screen, or its refusal, with what every screen shares: the staff member's density, the export, the toasts, the chime. */
 function FrameBody({ staff, urgent, refusal, landing, children }: FrameBodyProps) {
   const { venueId, permissions } = staff.venue;
   const density = useStaffDensity(venueId);
@@ -147,15 +149,17 @@ function FrameBody({ staff, urgent, refusal, landing, children }: FrameBodyProps
   const recordExport = useRecordTableExport(venueId);
   return (
     <DataTableDensityProvider density={density.data ?? 'comfortable'}>
-      <DataTableExportProvider exporter={permissions.includes('exports.table') ? recordExport : null}>
-        {/* New urgent work chimes and is told to a screen reader, and the tab says how much waits (decision 0301); a venue
-            switch starts the chime over, so the other venue's counts sound nothing. */}
-        <UrgentChime key={venueId} counts={urgent} />
-        <TitleCount count={totalOf(urgent)}>
-          {/* A screen opened by address that the role doesn't include is refused here, before it loads anything. */}
-          {refusal === undefined ? children : <Refused refusal={refusal} landing={landing} />}
-        </TitleCount>
-      </DataTableExportProvider>
+      <ToastProvider place="console">
+        <DataTableExportProvider exporter={permissions.includes('exports.table') ? recordExport : null}>
+          {/* New urgent work chimes and is told to a screen reader, and the tab says how much waits (decision 0301); a venue
+              switch starts the chime over, so the other venue's counts sound nothing. */}
+          <UrgentChime key={venueId} counts={urgent} />
+          <TitleCount count={totalOf(urgent)}>
+            {/* A screen opened by address that the role doesn't include is refused here, before it loads anything. */}
+            {refusal === undefined ? children : <Refused refusal={refusal} landing={landing} />}
+          </TitleCount>
+        </DataTableExportProvider>
+      </ToastProvider>
     </DataTableDensityProvider>
   );
 }

@@ -8,6 +8,8 @@ import { expect, type Page } from '@playwright/test';
 export async function openFromRail(page: Page, screen: string) {
   const rail = page.getByRole('navigation', { name: 'Sections' });
   const link = rail.getByRole('link', { name: screen, exact: true });
+  // The rail fills once the staff record is read; only then does a missing link mean a folded Admin.
+  await expect(rail.getByRole('link').first()).toBeVisible();
   if ((await link.count()) === 0) await rail.getByRole('button', { name: 'Admin' }).click();
   await link.click();
   await expect(link).toHaveAttribute('aria-current', 'page');

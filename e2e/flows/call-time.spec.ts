@@ -12,6 +12,7 @@
 import { expect, test } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { openTab } from '../support/console.ts';
 
 test.describe('Call time', () => {
   test('Tonight › Seated, Add time, Top-up requested, Leaving list: three hours, an hour more the floor approves, a top-up; leaving before it needs an admin', async ({ browser }) => {
@@ -73,7 +74,7 @@ test.describe('Call time', () => {
     await floor.getByRole('button', { name: 'Save call time' }).click();
     await expect(floor.getByText(/^Call time (5 h|4 h 59 min) left$/)).toBeVisible();
     // Today's players (#641): she is playing, at the Private Room.
-    await floor.getByRole('link', { name: 'Today’s players' }).click();
+    await openTab(floor, 'Door', 'Today’s players');
     const today = floor.getByRole('row').filter({ hasText: 'Ritika Das' });
     await expect(today.getByText('Playing', { exact: true })).toBeVisible();
     await expect(today.getByText(/^Private Room · /)).toBeVisible();

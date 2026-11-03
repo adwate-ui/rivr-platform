@@ -19,7 +19,7 @@ test.describe('Phone change', () => {
     await page.getByRole('searchbox', { name: 'Find a member' }).fill('Omar');
     await page.getByRole('button', { name: 'Open Omar Sheikh' }).click();
     // The record's parts are tabs (C-02).
-    await page.getByRole('button', { name: 'Account', exact: true }).click();
+    await page.getByRole('radio', { name: 'Account', exact: true }).click();
 
     await expect(page.getByRole('heading', { name: 'Phone number' })).toBeVisible();
     const number = page.getByRole('textbox', { name: 'New mobile number' });

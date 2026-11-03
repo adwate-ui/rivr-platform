@@ -4,6 +4,7 @@ import { t, type MessageKey } from '@rivr/i18n';
 import { CommandPalette, SearchTrigger, type PaletteGroup, type PaletteItem, type SideNavSection } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
+import { isAllowedAt } from './rail.ts';
 
 interface Action {
   readonly id: string;
@@ -56,13 +57,13 @@ interface ConsoleSearchProps {
 
 /**
  * The header's search (console v3): the trigger, and the palette it opens, also opened by `/` or Ctrl K. It finds members
- * for staff who read them, the night's actions their role does, and the screens on their rail.
+ * for staff who open Members, the night's actions their role does, and the screens on their rail.
  */
 export function ConsoleSearch({ venueId, permissions, sections }: ConsoleSearchProps) {
   const navigate = useNavigate();
   const [isOpen, setOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const canFindMembers = permissions.includes('members.read');
+  const canFindMembers = permissions.includes('members.read') && isAllowedAt(permissions, '/members');
   const members = useMemberSearch(venueId, canFindMembers ? query : '');
   const groups = groupsFor({ query, members: members.data ?? [], permissions, sections, go: (href) => void navigate({ href }) });
   const open = (next: boolean) => {

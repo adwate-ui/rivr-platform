@@ -21,8 +21,11 @@ src/
   router.tsx          every route, in one list
   routes/             one file per URL; renders a feature's screen and nothing else
   features/<name>/    components/ and hooks/, imported only through index.ts
-    frame/            the app's shell: staff only, the rail for the role, who is signed in, the
-                      practice venue switch, sign out, the kill-switch banner, not found
+    frame/            the app's shell (console v3, decision 0443): staff only; the rail for the role (Tonight, Players,
+                      Marketing, Admin folded), the phone's tab bar; the header's search, counts, clock and the staff
+                      member's menu (density, practice venue, shortcuts, sign out); the practice venue's stripe; the
+                      kill-switch banner; refusals under the screen's name; ScreenTabs for a screen that holds others
+                      (`?tab=`, a tab's own parts `?part=`); not found
     sign-in/          mobile number and code, as in the player app (decision 0032)
     kyc-review/       identity checks waiting for a KYC reviewer, decided with a reason, and checks in person (/kyc-review)
     academy/          Academy batches, company bookings, recording a UTR and cancelling (Academy staff,
@@ -33,10 +36,10 @@ src/
     pot-data/         every hand by table, dealer, variant and the club's days, for the super admin (/pot-data)
     dealers/          the rotation board, and each dealer's hours, hands, rake, variance and tip-pool share by time dealt (/dealers)
     fnb/              food and drink for staff who run F&B (#123), Service's whole role (#640): serving orders, to accept, being prepared and delivered, each with its time; KOTs to print until the cage agent prints them, each marked sent once at the bar; tonight's orders; an order for a seat, paid or comp; the menu by kind, an item at a time or from a CSV (#799) (/fnb)
-    todays-players/   every member at the club today: status, check-in and out, waiting, tables and hours (#641; /players-today)
+    todays-players/   every member at the club today: status, check-in and out, waiting, tables and hours (#641; the Door's Today's players tab, /door?tab=players)
     tables-setup/     the stakes the club runs and its tables, each added or changed, for the super admin (#642; /tables)
-    games-history/    the tables run each club day, how often and how long, for the super admin (#643; /games-history)
-    check-in/         the door: members expected and in the room, check in from the list, by the membership card the door's scanner reads (#71) or by mobile number (/check-in)
+    games-history/    the tables run each club day, how often and how long, for the super admin (#643; Settings' Games history tab, /settings?tab=games-history)
+    check-in/         the door: members expected and in the room, check in from the list, by the membership card the door's scanner reads (#71) or by mobile number (the Door's Check-in tab, /door?tab=check-in)
     cage/             buy-ins by cash, UPI or wallet, the tables' requests, and markers signed for on the pad (/cage)
     markers/          credit: open markers by age, limits, raises waiting for a second super admin, room exposure (/markers)
     withdrawals/      members' withdrawals waiting for the cage and its second approvers (/withdrawals)
@@ -47,13 +50,13 @@ src/
     members/          a member found by name, mobile or number; the record, early departures, a tier change, a break (decision 0053), feature overrides and erasure on request (/members)
     admin/            the kill switch for super admins: what is engaged, engaging a level, release by two for a freeze (/kill-switch); reset the practice venue to its seed, after a dry run and its name typed (/practice-reset); purge a frozen live venue after its full archive is saved, a dry run and its name typed (/purge, #432); the full export archive and one member's data (what a member is owed, staff notes in their own folder, #498), locked to the owner's backup key (/exports, #103); the roster, for staff who manage staff: a week's shifts by job title, adding shifts for a job title's staff, copying the week before, and tonight's attendance (/roster, #106)
     aml/              the AML register for staff who review AML: patterns in members' cash buy-ins, their buy-ins, and the review (/aml, #105)
-    devices/          the devices, by tab (/devices, #606): dealer tablets and door kiosks to add, pair, fix to a
+    devices/          the devices, Settings' Devices tab, by kind (/settings?tab=devices&part=, #606): dealer tablets and door kiosks to add, pair, fix to a
                       table and unpair; TVs to pair by their code, change and unpair; cage and admin computers to
                       add, enrol and revoke; CCTV cameras over a table or the cage (#122), whose Playback Pot data,
-                      Incidents and the cage's receipt link to. /tablets, /tvs, /computers and /cameras open their tab
+                      Incidents and the cage's receipt link to. /devices, /tablets and /tvs open it; /computers and /cameras say they are gone
     settings/         the rules in areas by job, each by name with its value now, who changes it and what is to come;
-                      each table type's rake, scheduled and withdrawn, in the Rake area (/rake leads there); the
-                      club's details and chips for super admins (/settings, #604)
+                      the club's details and chips for super admins (/settings, its areas by `?part=`, #604); /rake
+                      opens it, saying rake is no longer on the console
     jackpots/         the jackpot's pools and payout rule, a bad beat paid in chips and a payout reversed; the high
                       hands claimed on the tablets, approved and paid or rejected, and their history (/jackpots,
                       #606; /high-hands opens its tab); the prompt across every other screen while one waits
@@ -62,10 +65,10 @@ src/
     staff/            the venue's staff as a table to search (C-03): add behind a button, open a name to change a job title or role, turn off; each hire's onboarding checklist, the SOPs their role must acknowledge, ticked as they do (/staff); the dealers' PINs for the tablet sign-in, by tab (#606; /dealer-pins opens it)
     incidents/        the incident log, the club's contacts and its drills (/incidents)
     feedback/         the General Manager's feedback tickets: resolve each with what was done (/feedback)
-    rewards/          points by hand, earned or locked, and unlocking them (#645); the rewards catalogue, kept beside its form, and members' redemptions to hand over (/rewards)
+    rewards/          points by hand, earned or locked, and unlocking them (#645); the rewards catalogue, kept beside its form, and members' redemptions to hand over (/rewards, beside the Spin wheel tab, /rewards?tab=spin-wheel)
     league/           the RIVR League's standings by month or season, and its seasons (/league)
     tournament-interest/ a new tournament published without money: name, start, game and stake as text, description (#800);
-                      who registered interest in each from the app, marked registered once paid (#636; /tournament-interest)
+                      who registered interest in each from the app, marked registered once paid (#636; the Waitlist's Tournament interest tab, /waitlist?tab=interest)
     tournaments/      the tournament clock and its controls, the field and the floor (players, bust-outs with
                       bounties, balancing, the room, buys in cash for a cashier), payouts (the places' shares,
                       the finish, deals, what was paid), tournaments from templates, templates, and blind
@@ -73,7 +76,7 @@ src/
     promotions/       what is running, paused and resumed in place; the deck's templates, each sent for approval as it stands; and the builder's four blocks with the player card and TV slide previews; Submit for approval (/promotions). A super admin approves or refuses each waiting promotion, never their own, reading what it does in words made from its stored rule; sent-back ones show who sent them back and why (#144, decision 0244). |
 ```
 
-Staff sign in at `/sign-in`; everyone else is sent there. The console works in one venue at a time, the club unless the staff member turns on "Practice venue", and every screen reads and writes for that venue through `useStaffVenue()` from `@rivr/db`. A screen adds its rail entry, with the permissions that may see it, in `features/frame/components/rail.ts`.
+Staff sign in at `/sign-in`; everyone else is sent there. The console works in one venue at a time, the club unless the staff member turns on "Practice venue", and every screen reads and writes for that venue through `useStaffVenue()` from `@rivr/db`. A screen adds its rail entry, with the permissions that may see it and its tabs, in `features/frame/components/railEntries.ts`; a hidden one (decision 0284) goes in its `HIDDEN` list. An old address that moved redirects from its own route file to its screen and tab. The practice venue's switch, and the staff member's density (decision 0442), are in their menu at the header's end.
 
 Everything visible comes from `@rivr/ui`, every word from `@rivr/i18n`, every read through `@rivr/db`. A route imports only features, and a feature never imports another feature; `pnpm lint:deps` fails either (`.claude/rules/apps.md`).
 

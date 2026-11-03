@@ -1,6 +1,11 @@
 import { t } from '@rivr/i18n';
 import { createContext, useContext, useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
-import type { ShortcutHint } from '../AccountMenu/AccountMenu.tsx';
+
+/** One keyboard shortcut in a list: the keys as written ("/", "Ctrl K") and what they do ("Search"). */
+export interface ShortcutHint {
+  readonly keys: string;
+  readonly label: string;
+}
 
 /** A key that does something on the screen open now. */
 export interface ShortcutBinding {

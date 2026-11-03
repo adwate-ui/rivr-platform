@@ -1,11 +1,6 @@
 import { t } from '@rivr/i18n';
 import { useEffect, useId, useRef, useState, type FocusEvent, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
-
-/** One keyboard shortcut in the menu's list: the keys as written ("/", "Ctrl K") and what they do ("Search"). */
-export interface ShortcutHint {
-  readonly keys: string;
-  readonly label: string;
-}
+import type { ShortcutHint } from '../Shortcuts/Shortcuts.tsx';
 
 export interface AccountMenuProps {
   /** Who is signed in: the button shows their initials and names itself with it, and the menu opens on it. */

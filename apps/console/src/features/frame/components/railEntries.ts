@@ -51,7 +51,7 @@ export const RAIL: readonly RailGroup[] = [
   {
     id: 'tonight', label: 'console.rail.groups.tonight', entries: [
       { id: 'liveFloor', label: 'console.rail.items.liveFloor', href: '/', icon: 'floor', anyOf: FLOOR_READERS, counts: ['topUps', 'timeRequests', 'liveFloor'], isActionable: true },
-      { id: 'waitlist', label: 'console.rail.items.waitlist', href: '/waitlist', icon: 'waitlist', anyOf: [], counts: ['waitlist'], isActionable: true, tabs: [
+      { id: 'waitlist', label: 'console.rail.items.waitlist', href: '/waitlist', icon: 'waitlist', anyOf: [], counts: ['waitlist', 'tournamentInterest'], isActionable: true, tabs: [
         { id: 'lists', label: 'console.rail.items.lists', anyOf: ['waitlist.manage'] },
         { id: 'interest', label: 'console.rail.items.tournamentInterest', anyOf: ['tournaments.manage'] },
       ] },

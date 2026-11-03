@@ -24,8 +24,6 @@ export const shell = {
     slash: '/',
     commandK: 'Ctrl K',
     escape: 'Esc',
-    /** A button's tooltip with its key: "Seat a player (S)". */
-    withKey: '{label} ({key})',
   },
   /** The command palette's groups and their muted words. */
   palette: {
