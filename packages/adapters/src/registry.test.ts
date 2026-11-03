@@ -7,6 +7,7 @@ import {
   upiVpaSchema,
 } from '@rivr/contracts';
 import { describe, expect, it } from 'vitest';
+import { createFakeLiveStatus } from './live-status/index.ts';
 import { createAdapters, createFakeAdapters } from './registry.ts';
 import { createFakeSmsOtp } from './sms-otp/index.ts';
 import { createFakeSocialPublishing } from './social-publishing/index.ts';
@@ -39,6 +40,17 @@ describe('createAdapters for the practice venue', () => {
 
     expect([liveSms.calls, livePayouts.calls, liveInstagram.calls]).toEqual([[], [], []]);
     expect((await adapters.kyc.startDigiLocker({ memberId, returnUrl: 'https://app.rivr.test/kyc' })).ok).toBe(true);
+  });
+});
+
+describe('createAdapters and the lock-screen live status', () => {
+  it('never shows a practice venue status on a phone, and uses the live one at a real venue', async () => {
+    const live = createFakeLiveStatus();
+    const status = { device: { platform: 'android' as const, token: 'dXk3:APA91bHPRgkF3JUikC4ENAH', activityToken: null }, status: null };
+
+    await createAdapters({ isPracticeVenue: true, live: { liveStatus: live } }).liveStatus.show(status);
+    expect(live.calls).toEqual([]);
+    expect(createAdapters({ isPracticeVenue: false, live: { liveStatus: live } }).liveStatus).toBe(live);
   });
 });
 
@@ -85,7 +97,7 @@ describe('createFakeAdapters', () => {
   it('gives every adapter a fake with its call log', () => {
     const fakes = createFakeAdapters();
 
-    expect(Object.keys(fakes)).toHaveLength(17);
+    expect(Object.keys(fakes)).toHaveLength(18);
     expect(fakes.receiptPrinter.calls).toEqual([]);
   });
 });

@@ -29,4 +29,24 @@ export const push = {
     title: '{name} is starting',
     body: 'The clock has started. Take your seat.',
   },
+  /**
+   * The lock-screen live status in the native app (decision 0323), as the prototype's Lock screen states have it: a line
+   * above the figure, the figure (a place in words, or a countdown the phone draws) and one button.
+   */
+  liveStatus: {
+    /** Above the place: `Waitlist · Table 1`, or `Waitlist` when no table was asked for. */
+    waitlist: 'Waitlist · {table}',
+    waitlistAny: 'Waitlist',
+    next: 'Next in line',
+    /** `{ordinal}` is `2nd`. */
+    place: '{ordinal} in line',
+    /** A join the floor has not approved yet. */
+    requested: 'Requested',
+    heldFor: 'Seat ready · held for',
+    callTimeLeft: 'Call time left',
+    /** Top right while seated: `Table 1 · Seat 4`. */
+    seat: '{table} · Seat {seat}',
+    onMyWay: "I'm on my way",
+    order: 'Order',
+  },
 } as const;
