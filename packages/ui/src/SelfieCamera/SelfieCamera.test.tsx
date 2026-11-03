@@ -5,6 +5,7 @@ import { SelfieCamera } from './SelfieCamera.tsx';
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 /** A phone whose camera starts, as a fake stream. */
@@ -16,6 +17,18 @@ function cameraThatStarts() {
 }
 
 describe('Identity › Camera', () => {
+  it('on an iPhone whose browser blocked the camera, says where to allow it', async () => {
+    vi.stubGlobal('isSecureContext', true);
+    Object.defineProperty(navigator, 'mediaDevices', {
+      value: { getUserMedia: vi.fn(async () => { throw new DOMException('Denied', 'NotAllowedError'); }) },
+      configurable: true,
+    });
+    vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/141.0.7390.96 Mobile/15E148 Safari/604.1');
+    renderIn(<SelfieCamera onPhoto={() => undefined} onBack={() => undefined} />);
+    expect(await screen.findByText('Camera blocked. In Settings, search for Chrome and allow Camera, then come back here.')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeDefined();
+  });
+
   it('shows the oval, three tips and the shutter once the camera starts', async () => {
     cameraThatStarts();
     renderIn(<SelfieCamera onPhoto={() => undefined} onBack={() => undefined} />);
