@@ -46,10 +46,17 @@ select public.begin_kyc_vendor_call('00000000-0000-4000-8000-000000000202', true
 select public.claim_kyc_selfie('00000000-0000-4000-8000-000000000202');
 select public.record_kyc_selfie('00000000-0000-4000-8000-000000000202', 95, null);
 select public.record_kyc_started('00000000-0000-4000-8000-000000000202', 'session-3');
-select is(public.record_kyc_digilocker('00000000-0000-4000-8000-000000000202', '1992-02-02', 'XXXX XXXX 1111', 'aadhaar-202', null, 'DLF Phase 3', 'vendor-2', true, 96),
-  'verified', 'without a PAN DigiLocker still verifies, with no PAN step');
+select is(public.record_kyc_digilocker('00000000-0000-4000-8000-000000000202', '1992-02-02', 'XXXX XXXX 1111', 'aadhaar-202', null, 'DLF Phase 3', 'vendor-2', true, 96,
+  'kabir sethi|1992-02-02|1111'), 'verified', 'without a PAN DigiLocker still verifies, with no PAN step');
 select is((select date_of_birth from public.kyc_record where member_id = '00000000-0000-4000-8000-000000000202'), '1992-02-02'::date,
   'DigiLocker''s date of birth is kept');
+
+-- A check from before decision 0400 that DigiLocker matched without a PAN still finishes with one.
+update public.kyc_record set status = 'needs_pan', verified_at = null where member_id = '00000000-0000-4000-8000-000000000202';
+select is(public.record_kyc_pan('00000000-0000-4000-8000-000000000202', 'BCDPS2345G', '2000-01-01', 'vendor-pan'), 'verified',
+  'a valid PAN completes a DigiLocker check waiting for one');
+select is((select date_of_birth from public.kyc_record where member_id = '00000000-0000-4000-8000-000000000202'), '1992-02-02'::date,
+  'and DigiLocker''s date of birth stands, not the one typed in');
 
 -- Someone else's Aadhaar (its photo is not the selfie's face): staff review.
 select pg_temp.consent('00000000-0000-4000-8000-000000000204');

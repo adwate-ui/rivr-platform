@@ -22,7 +22,7 @@ function KycHeld({ title, body }: { title: string; body: string }) {
   );
 }
 
-/** Under review (decision 0320): staff finish the check, a PAN alone or a DigiLocker record in another name. */
+/** Under review (decision 0320): staff finish the check, a PAN alone, another face than the selfie's or a possible duplicate. */
 export function KycUnderReview() {
   return <KycHeld title={t('player.kyc.reviewTitle')} body={t('player.kyc.review')} />;
 }

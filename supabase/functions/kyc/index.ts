@@ -96,8 +96,9 @@ function panInput(record: Record<string, unknown>, body: unknown) {
 }
 
 /**
- * A PAN check, when DigiLocker failed or held no PAN. The PAN is checked against the member's
- * registered name, never one from the request; the date of birth is DigiLocker's when it gave one.
+ * A PAN check, when DigiLocker failed (or, for a check from before decision 0400, held no PAN). The
+ * PAN is checked against the member's registered name, never one from the request; the date of birth
+ * is DigiLocker's when it gave one.
  */
 async function checkPan({ memberId, fullName, kyc }: Subject, body: unknown): Promise<Response> {
   const record = await currentRecord(memberId);

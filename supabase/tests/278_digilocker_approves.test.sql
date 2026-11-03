@@ -3,8 +3,9 @@
 -- check also asked for the Aadhaar's name letter for letter as the member registered it. Now the face alone says
 -- whose Aadhaar it is, so another spelling of the name, or a DigiLocker with no PAN, verifies, keeps the identity
 -- and gives the verified bonus. Two rules still stop it: under 18 is refused, and another membership's identity is
--- refused (a verified PAN) or held for a KYC reviewer (the identity key). A face that is not the selfie's is
--- someone else's Aadhaar: it waits for staff and keeps nothing. The members are made here, with sanitized details.
+-- refused (a verified PAN) or held for a KYC reviewer (the identity key, or a PAN-alone check on the same date of
+-- birth when this one has no PAN). A face that is not the selfie's is someone else's Aadhaar: it waits for staff
+-- and keeps nothing. 103 Aditya is a KYC reviewer. The members are made here, with sanitized details.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -15,7 +16,11 @@ insert into public.member (id, venue_id, full_name, phone) values
   ('00000000-0000-4000-8000-0000000004d3', '00000000-0000-4000-8000-000000000001', 'Ira Sen', '+919000098803'),
   ('00000000-0000-4000-8000-0000000004d4', '00000000-0000-4000-8000-000000000001', 'Kunal Rao', '+919000098804'),
   ('00000000-0000-4000-8000-0000000004d5', '00000000-0000-4000-8000-000000000001', 'Nikhil Rao', '+919000098805'),
-  ('00000000-0000-4000-8000-0000000004d6', '00000000-0000-4000-8000-000000000001', 'Meera Pillai', '+919000098806');
+  ('00000000-0000-4000-8000-0000000004d6', '00000000-0000-4000-8000-000000000001', 'Meera Pillai', '+919000098806'),
+  ('00000000-0000-4000-8000-0000000004d7', '00000000-0000-4000-8000-000000000001', 'Farhan Ali', '+919000098807'),
+  ('00000000-0000-4000-8000-0000000004d8', '00000000-0000-4000-8000-000000000001', 'Farhan A', '+919000098808'),
+  ('00000000-0000-4000-8000-0000000004d9', '00000000-0000-4000-8000-000000000001', 'Tara Nair', '+919000098809'),
+  ('00000000-0000-4000-8000-0000000004da', '00000000-0000-4000-8000-000000000001', 'Uma Iyer', '+919000098810');
 
 -- The club gives 500 points for a verified check, whatever day the test runs on.
 delete from public.setting where key = 'points.verified_bonus';
@@ -78,6 +83,34 @@ select is(public.record_kyc_digilocker('00000000-0000-4000-8000-0000000004d6', '
             'Gurugram', 'session-meera', true, 93, 'meera pillai|1985-03-03|9001'), 'refused',
   'a PAN a verified member holds is refused');
 select is((select refusal from public.kyc_record where member_id = '00000000-0000-4000-8000-0000000004d6'), 'duplicate_pan', 'and says why');
+
+-- Farhan was verified on a PAN alone, which keeps no Aadhaar details. A DigiLocker with no PAN on his date of birth
+-- may be him again: before, the PAN step would have found him; now a reviewer looks, and sees whose check it may be.
+insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, pan, photo_path, verified_at)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000004d7', 'verified', 'pan', '1979-11-30', 'ALIPF7788R',
+        '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000004d7/selfie.jpg', now());
+select pg_temp.started('00000000-0000-4000-8000-0000000004d8');
+select is(public.record_kyc_digilocker('00000000-0000-4000-8000-0000000004d8', '1979-11-30', 'XXXX XXXX 6060', null, null,
+            'Gurugram', 'session-farhan', true, 89, 'farhan ali|1979-11-30|6060'), 'needs_review',
+  'a DigiLocker with no PAN on the date of birth of a PAN-alone check waits for a KYC reviewer');
+select set_config('role', 'authenticated', true),
+       set_config('request.jwt.claims', '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}', true);
+select results_eq(
+  $$ select waiting_because, clashes_with from public.kyc_review_queue('00000000-0000-4000-8000-000000000001')
+     where member_id = '00000000-0000-4000-8000-0000000004d8' $$,
+  $$ values ('clash'::text, array['Farhan Ali']::text[]) $$,
+  'who sees it as a possible duplicate of Farhan''s check');
+reset role;
+
+-- A check that would keep nothing to find a duplicate by, and a face match with no answer, wait for staff.
+select pg_temp.started('00000000-0000-4000-8000-0000000004d9');
+select is(public.record_kyc_digilocker('00000000-0000-4000-8000-0000000004d9', '1991-07-07', 'XXXX XXXX 1717', null, null,
+            'Gurugram', 'session-tara', true, 92, null), 'needs_review', 'no PAN and no identity key is never verified');
+select pg_temp.started('00000000-0000-4000-8000-0000000004da');
+select is(public.record_kyc_digilocker('00000000-0000-4000-8000-0000000004da', '1992-08-08', 'XXXX XXXX 8080', null, null,
+            'Gurugram', 'session-uma', null, 0, 'uma iyer|1992-08-08|8080'), 'needs_review', 'a face match with no answer is not a match');
+select is((select date_of_birth from public.kyc_record where member_id = '00000000-0000-4000-8000-0000000004da'), null::date,
+  'and keeps nothing');
 
 select * from finish();
 rollback;
