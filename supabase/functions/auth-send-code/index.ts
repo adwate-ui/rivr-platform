@@ -14,12 +14,19 @@ const secret = (Deno.env.get('SEND_SMS_HOOK_SECRET') ?? '').replace('v1,whsec_',
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
-/** The channels whose credentials are set as function secrets: WhatsApp, and SMS through MSG91. */
+/** Supabase's runtime: keeps the function running after its reply until the promise settles. */
+declare const EdgeRuntime: { waitUntil(promise: Promise<unknown>): void };
+
+/**
+ * The channels whose credentials are set as function secrets: WhatsApp, and SMS through MSG91.
+ * The hook stops waiting at its deadline; a WhatsApp request still running then carries on, up to
+ * 15 seconds, after Auth has its reply (decision 0304).
+ */
 function liveChannels() {
   const authKey = Deno.env.get('MSG91_AUTH_KEY');
   const templateId = Deno.env.get('MSG91_TEMPLATE_ID');
   return {
-    whatsapp: liveWhatsApp(4_000),
+    whatsapp: liveWhatsApp(15_000),
     smsOtp: authKey && templateId ? createMsg91SmsOtp({ authKey, templateId }) : undefined,
   };
 }
@@ -59,5 +66,5 @@ Deno.serve(async (request) => {
   } catch {
     return new Response(null, { status: 401 });
   }
-  return reply(await handleSendSmsHook(payload, liveChannels(), noteSend));
+  return reply(await handleSendSmsHook(payload, liveChannels(), noteSend, (send) => EdgeRuntime.waitUntil(send)));
 });

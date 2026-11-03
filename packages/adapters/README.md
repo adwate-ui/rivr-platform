@@ -61,9 +61,9 @@ The one exception to "outbox consumers only": Auth waits for the code to go out,
 
 1. The app asks Auth for a code (`signInWithOtp`). Auth generates it.
 2. Auth posts it to the Send SMS hook set in `supabase/config.template.toml` (`[auth.hook.send_sms]`), signed with the hook secret.
-3. `supabase/functions/auth-send-code` checks the signature, then calls `handleSendSmsHook(payload, channels, noteSend)`. `noteSend` records the send in the database (`note_sign_in_code_send`: an HMAC of the number under a Vault key, and the time) and says whether a code went to the number in the last ten minutes.
+3. `supabase/functions/auth-send-code` checks the signature, then calls `handleSendSmsHook(payload, channels, noteSend, keepAlive)`. `noteSend` records the send in the database (`note_sign_in_code_send`: an HMAC of the number under a Vault key, and the time) and says whether a code went to the number in the last ten minutes.
 4. `handleSendSmsHook` parses the payload with `sendSmsHookSchema` (`@rivr/contracts`) and calls `sendSignInCode`.
-5. `sendSignInCode({ whatsapp, smsOtp }, { to, code, preferSms })` tries the WhatsApp authentication template (`sign_in_code`) first, then SMS; for a second code within ten minutes (`preferSms`), SMS first, since Meta accepts a code for a number not on WhatsApp and fails it only later (#181). A channel left out is skipped; with neither it fails closed (`not_configured`), and Auth refuses the sign-in.
+5. `sendSignInCode({ whatsapp, smsOtp }, { to, code, preferSms })` tries the WhatsApp authentication template (`sign_in_code`) first, then SMS; for a second code within ten minutes (`preferSms`), SMS first, since Meta accepts a code for a number not on WhatsApp and fails it only later (#181). A channel left out is skipped; with neither it fails closed (`not_configured`), and Auth refuses the sign-in. The last channel, if it is still sending at the deadline, counts as sent, and `keepAlive` (`EdgeRuntime.waitUntil`) lets its request finish after the reply: the Evolution bridge takes 4 s and more, and delivers anyway (decision 0304).
 
 SMS goes through MSG91 once `MSG91_AUTH_KEY` and `MSG91_TEMPLATE_ID` are set as function secrets (runbook `ci-and-release.md`); until then codes go by WhatsApp alone.
 
