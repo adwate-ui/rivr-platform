@@ -169,9 +169,9 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     fields: { points: 'Points' },
   },
   'kyc.at_the_club': {
-    name: 'Identity checked at the club',
-    help: 'On while Cashfree is not live: a new member takes a selfie in the app and is let in, and staff check their Aadhaar and PAN at the desk on their first visit. Play waits for that check. Off, new members check in the app again.',
-    fields: { enabled: 'Check at the club' },
+    name: 'Identity (KYC) checked at the club',
+    help: 'On while Cashfree KYC is not live: a new member takes a selfie in the app and is let in, and staff check their Aadhaar and PAN at the desk on their first visit. Play waits for that check. Off, new members do KYC in the app again.',
+    fields: { enabled: 'Check KYC at the club' },
   },
   'points.verified_bonus': {
     name: 'Bonus on verification',

@@ -17,6 +17,8 @@ const KEYS = [
     value_schema: { type: 'object', properties: { minutes: { type: 'integer', minimum: 1, maximum: 120 } }, required: ['minutes'] } },
   { key: 'points.daily_staff_cap', description: 'Daily cap', scope: 'venue',
     value_schema: { type: 'object', properties: { points: { type: 'integer', minimum: 0, maximum: 1000000 } }, required: ['points'] } },
+  { key: 'kyc.at_the_club', description: 'Identity checked at the club', scope: 'venue',
+    value_schema: { type: 'object', properties: { enabled: { type: 'boolean' } }, required: ['enabled'] } },
 ];
 
 /** An admin (not a super admin) on Settings' Floor and Members areas; every setting written is kept. */
@@ -43,6 +45,24 @@ function renderArea(area: 'floor' | 'members', isSuperAdmin = false) {
   );
   return written;
 }
+
+describe('the KYC switch (decision 0502)', () => {
+  it('sits under Settings → Floor, named for KYC, a super admin\'s to change, and a filter for KYC finds it', async () => {
+    renderArea('floor', true);
+    await screen.findByText('Identity (KYC) checked at the club', {}, { timeout: 5000 });
+    const row = screen.getAllByRole('row').find((one) => one.textContent?.includes('Identity (KYC) checked at the club') === true);
+    expect(row?.textContent).toContain('Super admin');
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'KYC' } });
+    expect(screen.getByText('Identity (KYC) checked at the club')).toBeDefined();
+    expect(screen.queryByText('Seat hold')).toBeNull();
+  });
+
+  it('is no longer under Members and rewards', async () => {
+    renderArea('members', true);
+    await screen.findByText(/Daily/, {}, { timeout: 5000 }).catch(() => undefined);
+    expect(screen.queryByText('Identity (KYC) checked at the club')).toBeNull();
+  });
+});
 
 describe('a setting changed in its row (console v3)', () => {
   it('opens the new value under the setting’s row, with the reason’s rule in its label', async () => {
