@@ -155,6 +155,9 @@ export const waitlist = {
   changed: 'The list changed. Check it and try again.',
   seat: 'Seat {name}',
   seatShort: 'Seat',
+  /** A place whose member registered with a selfie: the desk checks their ID before they sit (decision 0503). */
+  checkId: 'Check {name}’s ID',
+  checkIdShort: 'Check ID',
   confirmSkip: 'Yes, hold {name}’s place',
   noMember: 'No member has that number. Sign them up first.',
   kycNeeded: 'This member has not finished their identity check. Send them to the front desk.',
@@ -184,6 +187,7 @@ export const waitlist = {
     placeHeld: 'place held',
     calledTo: 'called to seat {seat} until {time}',
     onTheWay: 'on the way',
+    idCheckNeeded: 'ID check needed',
     confirmRemove: 'Remove {name} from the list?',
     /** Hold on a called place: the call ends and the seat goes to the next name. */
     confirmHoldCalled: 'Hold {name}’s place? The seat goes to the next name.',

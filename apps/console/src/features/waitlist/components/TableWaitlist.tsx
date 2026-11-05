@@ -24,6 +24,8 @@ export interface TableWaitlistProps {
   ticked: ReadonlySet<string>;
   onToggle: (entryId: string) => void;
   onSeat: (entry: WaitlistBoardEntry) => void;
+  /** Opens the check in person for a place whose member's identity check waits for the desk (decision 0503). */
+  onCheckId: (entry: WaitlistBoardEntry) => void;
 }
 
 /** The table's joins from the app, oldest first (#633): Approve puts the member on the list, Decline takes the request off. */
@@ -58,7 +60,7 @@ function JoinRequests({ venueId, table, requests }: { venueId: string; table: Fl
  * One table's waitlist as a card (console v3): its name, stake and open seats; the joins asking from the app; the places in
  * order, each with its tick, Seat and ⋯ menu; and a field to add a member by mobile or membership number.
  */
-export function TableWaitlist({ venueId, table, entries, requests, interest, canOpen, now, ticked, onToggle, onSeat }: TableWaitlistProps) {
+export function TableWaitlist({ venueId, table, entries, requests, interest, canOpen, now, ticked, onToggle, onSeat, onCheckId }: TableWaitlistProps) {
   return (
     <Box as="section" surface="raised" radius="lg">
       <Box paddingX={4} paddingY={4}>
@@ -77,7 +79,7 @@ export function TableWaitlist({ venueId, table, entries, requests, interest, can
         <Stack gap={0}>
           {entries.map((entry) => (
             <PlaceRow key={entry.entryId} venueId={venueId} entry={entry} table={table} now={now} isTicked={ticked.has(entry.entryId)}
-              onToggle={() => onToggle(entry.entryId)} onSeat={() => onSeat(entry)} />
+              onToggle={() => onToggle(entry.entryId)} onSeat={() => onSeat(entry)} onCheckId={() => onCheckId(entry)} />
           ))}
         </Stack>
       )}

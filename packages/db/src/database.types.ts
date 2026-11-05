@@ -6300,7 +6300,7 @@ isOneToOne: false
                            },
 "waitlist_board":
 { Args: { "p_venue_id": string }; Returns: {
-              "added_by_floor": boolean,"asked_table_id": string,"away_until": string,"call_seat": number,"call_table_name": string,"entry_id": string,"full_name": string,"hold_until": string,"joined_at": string,"member_id": string,"on_way_at": string,"place": number,"priority_reason": string,"table_type_id": string
+              "added_by_floor": boolean,"asked_table_id": string,"away_until": string,"call_seat": number,"call_table_name": string,"entry_id": string,"full_name": string,"hold_until": string,"joined_at": string,"member_id": string,"needs_id_check": boolean,"on_way_at": string,"place": number,"priority_reason": string,"table_type_id": string
             }[]
                            },
 "waitlist_lengths":

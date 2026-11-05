@@ -36,13 +36,17 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function renderCard(props: { entries?: readonly WaitlistBoardEntry[]; ticked?: ReadonlySet<string>; onToggle?: (id: string) => void; onSeat?: () => void }) {
+function renderCard(props: {
+  entries?: readonly WaitlistBoardEntry[]; ticked?: ReadonlySet<string>; onToggle?: (id: string) => void; onSeat?: () => void;
+  onCheckId?: (entry: WaitlistBoardEntry) => void;
+}) {
   return render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
       <ToastProvider place="console">
         <TableWaitlist venueId="v1" table={TABLE} entries={props.entries ?? [place(1, 'Ishaan Verma'), place(2, 'Mihir Shah')]} requests={[REQUEST]}
-          interest={undefined} canOpen now={NOW} ticked={props.ticked ?? new Set()} onToggle={props.onToggle ?? vi.fn()} onSeat={props.onSeat ?? vi.fn()} />
+          interest={undefined} canOpen now={NOW} ticked={props.ticked ?? new Set()} onToggle={props.onToggle ?? vi.fn()} onSeat={props.onSeat ?? vi.fn()}
+          onCheckId={props.onCheckId ?? vi.fn()} />
       </ToastProvider>
     </RivrDataProvider>,
   );
@@ -101,6 +105,21 @@ describe("a table's waitlist card (console v3)", () => {
     fireEvent.click(screen.getByRole('button', { name: 'Seat Ishaan Verma' }));
     expect(onToggle).toHaveBeenCalledWith('e1');
     expect(onSeat).toHaveBeenCalledOnce();
+  });
+
+  it('marks a place whose ID the desk must check, and offers Check ID in place of Seat, even once called (decision 0503)', () => {
+    const onSeat = vi.fn();
+    const onCheckId = vi.fn();
+    const uday = place(1, 'Uday Thakur', { needsIdCheck: true, callTableName: 'Table 1', callSeat: 4, holdUntil: '2026-11-15T15:52:00Z' });
+    renderCard({ onSeat, onCheckId, entries: [uday, place(2, 'Mihir Shah')] });
+    expect(screen.getByText(/^5 min · ID check needed · added by the floor/)).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Seat Uday Thakur' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Check Uday Thakur’s ID' }));
+    expect(onCheckId).toHaveBeenCalledWith(uday);
+    expect(onSeat).not.toHaveBeenCalled();
+    expect(calls.filter((call) => call.rpc === 'seat_from_waitlist')).toEqual([]);
+    // A verified member keeps Seat.
+    expect(screen.getByRole('button', { name: 'Seat Mihir Shah' })).toBeDefined();
   });
 
   it('seats a called member at the seat held for them, with no sheet', async () => {

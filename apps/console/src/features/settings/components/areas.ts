@@ -31,6 +31,8 @@ const AREA_OF: Readonly<Record<SettingKey, RuleArea>> = {
   'waitlist.hold_minutes': 'floor',
   'waitlist.interest_to_open': 'floor',
   'waitlist.priority_weights': 'floor',
+  // Under Settings → Floor, as the floor runs the desk's check (the owner, 5 Nov; decision 0502).
+  'kyc.at_the_club': 'floor',
   'rake.config': 'rake',
   'dealer.variance_threshold': 'rake',
   'high_hand.payouts': 'rake',
@@ -43,7 +45,6 @@ const AREA_OF: Readonly<Record<SettingKey, RuleArea>> = {
   'markers.due_days': 'cage',
   'accommodation.hours_per_night': 'members',
   'cab.minimum_visits': 'members',
-  'kyc.at_the_club': 'members',
   'points.verified_bonus': 'members',
   'points.daily_staff_cap': 'members',
   'host.lapse': 'members',

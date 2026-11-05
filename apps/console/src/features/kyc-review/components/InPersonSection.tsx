@@ -20,10 +20,11 @@ const OUTCOME_COPY: Readonly<Record<KycInPersonOutcome, MessageKey>> = {
  * A check in person (#246, while no KYC vendor is live): the reviewer finds a member at the club by
  * name or the last digits of their number, then checks them against their original documents. Only
  * members with no check, or one the app never finished, are found; never the reviewer themselves. In its sheet
- * (`hasHeading` false) the sheet's title and subtitle say what the heading and hint say here.
+ * (`hasHeading` false) the sheet's title and subtitle say what the heading and hint say here. `initialSearch` starts the
+ * search with a member's name, from the waitlist's Check ID (decision 0503).
  */
-export function InPersonSection({ venueId, hasHeading = true }: { venueId: string; hasHeading?: boolean }) {
-  const [search, setSearch] = useState('');
+export function InPersonSection({ venueId, hasHeading = true, initialSearch }: { venueId: string; hasHeading?: boolean; initialSearch?: string | undefined }) {
+  const [search, setSearch] = useState(initialSearch ?? '');
   const [member, setMember] = useState<KycCandidate | null>(null);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const choose = (chosen: KycCandidate) => {
