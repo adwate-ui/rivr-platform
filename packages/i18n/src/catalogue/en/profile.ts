@@ -6,6 +6,8 @@ export const profile = {
   account: 'Account',
   club: 'Club',
   verified: 'Verified',
+  /** A member let in by their selfie, whose identity is checked at the club (decision 0502). */
+  atTheDesk: 'At the desk, first visit',
   learn: 'Learn',
   events: 'Events',
   sendFeedback: 'Send feedback',

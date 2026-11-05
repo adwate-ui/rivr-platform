@@ -9,6 +9,10 @@ export const kycInPerson = {
   /** `{digits}` is the last four digits of the member's mobile number. */
   phoneEnding: 'Mobile ending {digits}',
   startedOnApp: 'Started on the app, not finished.',
+  /** A member let in by their selfie, to be checked at the club (decision 0502). */
+  atTheClub: 'Selfie taken in the app. Check their originals.',
+  /** Their app selfie beside the camera, to compare with the face at the desk. */
+  appSelfieOf: 'The selfie {name} took in the app',
   /** A found member's button, and its full name for a screen reader. */
   check: 'Check',
   checkName: 'Check {name}',

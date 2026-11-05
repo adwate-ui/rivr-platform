@@ -1,8 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { kycInPersonSchema } from '@rivr/contracts';
-import { shrinkPhoto, toBase64, useKycInPerson, type KycCandidate, type KycInPersonFailure, type KycInPersonOutcome } from '@rivr/db';
+import {
+  shrinkPhoto, toBase64, useKycImageUrl, useKycInPerson, type KycCandidate, type KycInPersonFailure, type KycInPersonOutcome,
+} from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, CameraCapture, ErrorMessage, Inline, Input, KycPhoto, Stack, Switch } from '@rivr/ui';
+import { Button, CameraCapture, ErrorMessage, Inline, Input, KycPhoto, kycPhotoStatus, Stack, Switch } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
@@ -46,6 +48,23 @@ function PhotoTaker({ hasPhoto, onPhoto }: { hasPhoto: boolean; onPhoto: (taken:
   );
 }
 
+/**
+ * The photo being taken, and beside it the selfie the member took in the app to be checked at the club (decision 0502),
+ * so staff compare the two faces; the photo alone for anyone else.
+ */
+function Photos({ member, photo }: { member: KycCandidate; photo: Photo | null }) {
+  const appSelfie = useKycImageUrl(member.clubSelfiePath);
+  const taken = <KycPhoto alt={t('console.kycReview.photoOf', { name: member.fullName })} src={photo?.preview ?? null} status={photo === null ? 'missing' : 'ready'} />;
+  if (member.clubSelfiePath === null) return taken;
+  return (
+    <Inline gap={3} align="start">
+      {taken}
+      <KycPhoto alt={t('console.kycInPerson.appSelfieOf', { name: member.fullName })} src={appSelfie.data ?? null}
+        status={kycPhotoStatus(member.clubSelfiePath, appSelfie)} />
+    </Inline>
+  );
+}
+
 interface InPersonFormProps {
   venueId: string;
   member: KycCandidate;
@@ -78,7 +97,7 @@ export function InPersonForm({ venueId, member, onDecided, onCancel }: InPersonF
   // The photo above the fields (console v3), so the form fits the 440 px sheet it opens in.
   return (
     <Stack gap={4}>
-      <KycPhoto alt={t('console.kycReview.photoOf', { name: member.fullName })} src={photo?.preview ?? null} status={photo === null ? 'missing' : 'ready'} />
+      <Photos member={member} photo={photo} />
       <PhotoTaker hasPhoto={photo !== null} onPhoto={(taken) => void takePhoto(taken)} />
       <DetailsFields form={form} name={member.fullName} consent={consent} onConsent={setConsent} />
       <Inline gap={3} wrap>

@@ -4,19 +4,21 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useKycActions, useKycRecord } from './kyc.ts';
+import { useKycActions, useKycAtTheClub, useKycRecord } from './kyc.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const ASHA = '00000000-0000-4000-8000-000000000301';
 
-/** A fake API: the kyc function answers with `kyc`, PostgREST's kyc_record with `record`. */
-function renderKyc(replies: { kyc?: { status: number; body: unknown }; record?: unknown }) {
+/** A fake API: the kyc function answers with `kyc`, PostgREST's kyc_record with `record`, kyc_at_the_club with `atTheClub`. */
+function renderKyc(replies: { kyc?: { status: number; body: unknown }; record?: unknown; atTheClub?: unknown }) {
   const calls: { url: string; body: unknown }[] = [];
   const fetch: typeof globalThis.fetch = async (input, init) => {
     const url = input instanceof Request ? input.url : String(input);
     calls.push({ url, body: init?.body ? JSON.parse(String(init.body)) : undefined });
-    const reply = url.includes('/functions/v1/kyc') ? (replies.kyc ?? { status: 200, body: {} }) : { status: 200, body: replies.record ?? null };
+    const reply = url.includes('/functions/v1/kyc') ? (replies.kyc ?? { status: 200, body: {} })
+      : url.includes('/rpc/kyc_at_the_club') ? { status: 200, body: replies.atTheClub ?? false }
+      : { status: 200, body: replies.record ?? null };
     return new Response(JSON.stringify(reply.body), { status: reply.status, headers: { 'content-type': 'application/json' } });
   };
   const client: RivrClient = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
@@ -24,7 +26,7 @@ function renderKyc(replies: { kyc?: { status: number; body: unknown }; record?: 
     auth: { storage: sessionStorageFor(ASHA), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
-  const { result } = renderHook(() => ({ record: useKycRecord(), actions: useKycActions() }), { wrapper });
+  const { result } = renderHook(() => ({ record: useKycRecord(), atTheClub: useKycAtTheClub(), actions: useKycActions() }), { wrapper });
   return { result, calls };
 }
 
@@ -33,12 +35,33 @@ afterEach(cleanup);
 describe('useKycRecord', () => {
   it('gives the member their check, the masked Aadhaar and no more', async () => {
     const { result } = renderKyc({
-      record: { status: 'verified', photo_path: 'v/m/selfie.jpg', date_of_birth: '1990-01-01', masked_aadhaar: 'XXXX XXXX 0000', pan: 'ABCPE1234F' },
+      record: {
+        status: 'verified', photo_path: 'v/m/selfie.jpg', date_of_birth: '1990-01-01', masked_aadhaar: 'XXXX XXXX 0000', pan: 'ABCPE1234F',
+        at_club_from: null,
+      },
     });
 
     await waitFor(() => expect(result.current.record.data).toEqual({
-      status: 'verified', hasSelfie: true, dateOfBirth: '1990-01-01', maskedAadhaar: 'XXXX XXXX 0000', pan: 'ABCPE1234F',
+      status: 'verified', hasSelfie: true, dateOfBirth: '1990-01-01', maskedAadhaar: 'XXXX XXXX 0000', pan: 'ABCPE1234F', isAtTheClub: false,
     }));
+  });
+
+  it('says when a member\'s selfie let them in to be checked at the club', async () => {
+    const { result } = renderKyc({
+      record: { status: 'started', photo_path: null, date_of_birth: null, masked_aadhaar: null, pan: null, at_club_from: '2026-11-05T09:00:00Z' },
+    });
+
+    await waitFor(() => expect(result.current.record.data).toMatchObject({ status: 'started', hasSelfie: false, isAtTheClub: true }));
+  });
+});
+
+describe('useKycAtTheClub', () => {
+  it('says whether the venue checks identity at the club', async () => {
+    const on = renderKyc({ atTheClub: true });
+    await waitFor(() => expect(on.result.current.atTheClub.data).toBe(true));
+    cleanup();
+    const off = renderKyc({ atTheClub: false });
+    await waitFor(() => expect(off.result.current.atTheClub.data).toBe(false));
   });
 });
 
@@ -50,6 +73,18 @@ describe('useKycActions', () => {
 
     expect(await act(() => result.current.actions.sendSelfie.mutateAsync(photo))).toEqual({ ok: true, value: 'started' });
     expect(calls.find((call) => call.url.includes('/functions/v1/kyc'))?.body).toEqual({ action: 'selfie', image: '/9j/4A==' });
+  });
+
+  it('sends a selfie for the club as the sign-up photo, and says whether the check now waits for the desk', async () => {
+    const waits = renderKyc({ kyc: { status: 200, body: { status: 'at_club' } } });
+    expect(await act(() => waits.result.current.actions.sendClubSelfie.mutateAsync(photo))).toEqual({ ok: true, value: true });
+    expect(waits.calls.find((call) => call.url.includes('/functions/v1/kyc'))?.body).toEqual({ action: 'photo', image: '/9j/4A==' });
+    cleanup();
+    const closed = renderKyc({ kyc: { status: 200, body: { status: 'kept' } } });
+    expect(await act(() => closed.result.current.actions.sendClubSelfie.mutateAsync(photo))).toEqual({ ok: true, value: false });
+    cleanup();
+    const stopped = renderKyc({ kyc: { status: 423, body: { error: 'stopped' } } });
+    expect(await act(() => stopped.result.current.actions.sendClubSelfie.mutateAsync(photo))).toEqual({ ok: false, error: 'stopped' });
   });
 
   it('says when a selfie did not pass liveness', async () => {

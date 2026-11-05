@@ -54,10 +54,14 @@ export const queryKeys = {
   academyInvoice: (userId: string, bookingId: string) => ['user', userId, 'academy', 'invoice', bookingId] as const,
   /** The signed-in member's KYC record. */
   kycRecord: (userId: string) => ['user', userId, 'kyc-record'] as const,
+  /** Whether the signed-in member's venue checks identity at the club. */
+  kycAtTheClub: (userId: string) => ['user', userId, 'kyc-at-the-club'] as const,
   /** A venue's Academy batches and bookings, as staff see them. */
   academyStaff: (userId: string, venueId: string) => ['user', userId, 'academy-staff', venueId] as const,
   /** A venue's identity checks for a KYC reviewer. */
   kycReview: (userId: string, venueId: string) => ['user', userId, 'kyc-review', venueId] as const,
+  /** Whether a venue checks identity at the club, as its KYC reviewers see it. */
+  venueKycAtTheClub: (userId: string, venueId: string) => ['user', userId, 'kyc-review', venueId, 'at-the-club'] as const,
   /** Every search for a check in person at a venue, to refresh them together. */
   kycInPersonSearches: (userId: string, venueId: string) => ['user', userId, 'kyc-in-person', venueId] as const,
   kycInPersonCandidates: (userId: string, venueId: string, search: string) => ['user', userId, 'kyc-in-person', venueId, search] as const,

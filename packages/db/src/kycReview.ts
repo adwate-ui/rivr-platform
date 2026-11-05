@@ -87,6 +87,23 @@ export function useKycReviewQueue(venueId: string) {
   });
 }
 
+/**
+ * Whether the venue checks identity at the club now (decision 0502), for its KYC reviewers: a super admin may then reopen a
+ * check the vendor held, to be checked at the desk. False for anyone else.
+ */
+export function useVenueKycAtTheClub(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.venueKycAtTheClub(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<boolean> => {
+      const { data, error } = await client.rpc('kyc_at_the_club', { p_venue_id: venueId });
+      if (error) throw error;
+      return data === true;
+    },
+  });
+}
+
 /** A reviewer's decision: approve or reject with the reason, and the date of birth and PAN where the check has none. */
 export interface KycDecision {
   memberId: string;
@@ -139,6 +156,12 @@ export interface KycCandidate {
   /** The last four digits of their mobile number, to tell two of the same name apart. */
   readonly phoneLast4: string;
   readonly status: 'started' | null;
+  /**
+   * The selfie they took in the app to be checked at the club (decision 0502), for `useKycImageUrl`: their sign-up photo,
+   * or the app's KYC selfie for a check reopened from the vendor. Staff compare it with the face at the desk. Null for
+   * anyone else.
+   */
+  readonly clubSelfiePath: string | null;
 }
 
 const CANDIDATE_STATUSES = ['started'] as const;
@@ -155,6 +178,7 @@ export function useKycInPersonCandidates(venueId: string, search: string) {
       return data.map((row) => ({
         memberId: row.member_id, fullName: row.full_name, phoneLast4: row.phone_last4,
         status: row.status === null ? null : oneOf(CANDIDATE_STATUSES, row.status),
+        clubSelfiePath: row.app_selfie_path,
       }));
     },
   });

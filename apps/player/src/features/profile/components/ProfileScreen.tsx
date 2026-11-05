@@ -1,4 +1,4 @@
-import { useFeature, useKycImageUrl, useMember, useMembershipCard, usePreferences, useSignedInPhone } from '@rivr/db';
+import { useFeature, useKycImageUrl, useKycRecord, useMember, useMembershipCard, usePreferences, useSignedInPhone } from '@rivr/db';
 import { formatMobile, t } from '@rivr/i18n';
 import { BackButton, Box, DetailRow, FeatureGate, Heading, Inline, KycPhoto, kycPhotoStatus, ProfileMark, Screen, Stack, Text } from '@rivr/ui';
 import { useCanGoBack, useNavigate, useRouter } from '@tanstack/react-router';
@@ -21,6 +21,19 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
 function HeadPhoto({ path }: { path: string }) {
   const photo = useKycImageUrl(path);
   return <KycPhoto isFilling alt={t('player.card.photo')} src={photo.data ?? null} status={kycPhotoStatus(path, photo)} />;
+}
+
+/**
+ * The identity check: verified, or, for a member let in by their selfie (decision 0502), at the desk on the first visit,
+ * which opens what to bring.
+ */
+function IdentityRow() {
+  const navigate = useNavigate();
+  const kyc = useKycRecord();
+  if (kyc.data?.status === 'started' && kyc.data.isAtTheClub) {
+    return <DetailRow label={t('player.profile.identity')} value={t('player.profile.atTheDesk')} onOpen={() => void navigate({ to: '/kyc' })} isLast />;
+  }
+  return <DetailRow label={t('player.profile.identity')} value={t('player.profile.verified')} valueTone="accent" isLast />;
 }
 
 /** "Founders' Circle · +91 90000 00901", once both are known. */
@@ -90,7 +103,7 @@ export function ProfileScreen() {
       <ProfileHead />
       <Group title={t('player.profile.account')}>
         <DetailRow label={t('player.profile.card')} onOpen={() => void navigate({ to: '/card' })} />
-        <DetailRow label={t('player.profile.identity')} value={t('player.profile.verified')} valueTone="accent" isLast />
+        <IdentityRow />
       </Group>
       <Group title={t('player.profile.notifications')}><NotificationsSection preferences={preferences.data} /></Group>
       <ClubGroup onFeedback={() => setFeedbackOpen(true)} />

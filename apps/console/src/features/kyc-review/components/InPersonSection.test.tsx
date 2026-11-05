@@ -23,10 +23,10 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-const NAINA = { member_id: '00000000-0000-4000-8000-000000000203', full_name: 'Naina Kapoor', phone_last4: '0203', status: null };
+const NAINA = { member_id: '00000000-0000-4000-8000-000000000203', full_name: 'Naina Kapoor', phone_last4: '0203', status: null, app_selfie_path: null };
 
-/** Vikram, a KYC reviewer, signed in, and a fake API that finds Naina and answers her check with `reply`. */
-function renderSection(reply: () => Response) {
+/** Vikram, a KYC reviewer, signed in, and a fake API that finds `found` (Naina) and answers her check with `reply`. */
+function renderSection(reply: () => Response, found: unknown = NAINA) {
   localStorage.setItem(
     SESSION_STORAGE_KEY,
     JSON.stringify({
@@ -38,7 +38,8 @@ function renderSection(reply: () => Response) {
   const sent: unknown[] = [];
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (url.includes('/rpc/kyc_in_person_candidates')) return Response.json([NAINA]);
+    if (url.includes('/rpc/kyc_in_person_candidates')) return Response.json([found]);
+    if (url.includes('/functions/v1/kyc-image-url')) return Response.json({ signedPath: '/object/sign/kyc/selfie.jpg?token=t' });
     if (url.includes('/functions/v1/kyc-in-person')) {
       sent.push(JSON.parse(String(init?.body)));
       return reply();
@@ -107,6 +108,24 @@ describe('a check in person', () => {
     await checkNaina({ consent: false });
     expect((await screen.findByRole('alert')).textContent).toMatch(/^Photo, date of birth/);
     expect(sent).toEqual([]);
+  });
+
+  it('marks a member whose selfie came in for the desk, and shows that selfie beside the camera (decision 0502)', async () => {
+    renderSection(() => Response.json({ status: 'verified' }), {
+      ...NAINA, status: 'started', app_selfie_path: `v1/${NAINA.member_id}/photo.jpg`,
+    });
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }), { target: { value: 'nai' } });
+    expect(await screen.findByText('Selfie taken in the app. Check their originals.')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Check Naina Kapoor' }));
+    expect(await screen.findByRole('img', { name: 'The selfie Naina Kapoor took in the app' })).toBeDefined();
+  });
+
+  it('says a check the app started and never finished, with no selfie for the desk', async () => {
+    renderSection(() => Response.json({ status: 'verified' }), { ...NAINA, status: 'started' });
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }), { target: { value: 'nai' } });
+    expect(await screen.findByText('Started on the app, not finished.')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Check Naina Kapoor' }));
+    expect(screen.queryByRole('img', { name: 'The selfie Naina Kapoor took in the app' })).toBeNull();
   });
 
   it('sends nothing without the member\'s photo', async () => {

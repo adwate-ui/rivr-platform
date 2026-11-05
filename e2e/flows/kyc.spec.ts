@@ -4,11 +4,12 @@
  * sends the member straight back; a real venue without vendor keys fails closed (decision 0014). Staging has
  * Cashfree's sandbox keys (#474, decision 0197), so there the real venue's check goes to Cashfree instead.
  */
+import { execFileSync } from 'node:child_process';
 import { expect, test, type Page } from '@playwright/test';
-import { localSupabaseEnv } from '@rivr/config/worktree';
+import { localSupabaseEnv, worktreeName } from '@rivr/config/worktree';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { serviceRoleKey } from '../support/serviceRole.ts';
-import { signInToPlayer } from '../support/signIn.ts';
+import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 /**
  * Opens Identity and takes the selfie with the camera, unless an earlier run already took it: the browser's fake camera
@@ -84,5 +85,71 @@ test.describe('KYC', () => {
     await expect(matched.getByRole('heading', { name: 'PAN', level: 1 })).toBeVisible();
     await expect(matched.getByRole('button', { name: 'Verify' })).toBeVisible();
     await expect(matched.getByRole('button', { name: 'Try DigiLocker again' })).toHaveCount(0);
+  });
+});
+
+const UDAY = '00000000-0000-4000-8000-000000000418';
+const CLUB = '00000000-0000-4000-8000-000000000001';
+
+function sql(query: string): string {
+  return execFileSync('docker', ['exec', `supabase_db_${worktreeName()}`, 'psql', '-U', 'postgres', '-tAc', query], { encoding: 'utf8' }).trim();
+}
+
+/** Uday with no check, no bonus and no consent, and the club checking identity in the app: before and after. */
+function resetAtTheClub() {
+  sql(`delete from public.setting where venue_id = '${CLUB}' and key = 'kyc.at_the_club'`);
+  sql(`delete from public.kyc_review where member_id = '${UDAY}'`);
+  sql(`delete from public.consent where member_id = '${UDAY}' and purpose = 'kyc_verification'`);
+  sql(`delete from public.kyc_record where member_id = '${UDAY}'`);
+}
+
+test.describe('Identity › At the club', () => {
+  test.skip(isRemoteTarget(), 'switches the club to checking identity at the desk in the local database, so the local stack only');
+  test.beforeEach(resetAtTheClub);
+  test.afterEach(resetAtTheClub);
+
+  test('switched on, a member registers with a selfie, is let in, and the desk verifies them with the bonus of their selfie day', async ({ browser, page }) => {
+    // The switch as a super admin sets it from Settings, with its reason (decision 0502); the bonus as it stood that day.
+    sql(`insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+         values ('${CLUB}', 'kyc.at_the_club', '', '{"enabled": true}', now() - interval '1 minute', 'Cashfree is not live')`);
+    const bonusBefore = Number(sql(`select coalesce(-sum(private.account_balance(a.id)), 0) from public.ledger_account a
+                                    where a.member_id = '${UDAY}' and a.code = 'member.points'`));
+    // The ledger is append-only: an earlier run's bonus stays, and the bonus is paid once.
+    const wasPaid = sql(`select exists (select 1 from public.ledger_transaction where idempotency_key = 'verified_bonus:${UDAY}')`) === 't';
+
+    await signInToPlayer(page, '9000000418', '/kyc');
+    await expect(page.getByText('Aadhaar and PAN at the desk, on your first visit')).toBeVisible();
+    await page.getByRole('button', { name: 'Take a selfie' }).click();
+    await page.getByRole('button', { name: 'Take photo' }).click();
+    await page.getByRole('button', { name: 'Use photo' }).click();
+    await expect(page.getByRole('heading', { name: "You're registered." })).toBeVisible();
+    await page.getByRole('button', { name: "See tonight's tables" }).click();
+    await expect(page.getByRole('heading', { name: 'Tonight', level: 1 })).toBeVisible();
+    await expect(page.getByText('Bring your Aadhaar and PAN on your first visit. The desk checks them before you play.')).toBeVisible();
+    expect(sql(`select status || ' ' || (at_club_from is not null) from public.kyc_record where member_id = '${UDAY}'`)).toBe('started true');
+
+    // At the desk: Sunita (host) finds Uday, sees his app selfie beside the camera, and checks his originals.
+    const desk = await browser.newPage();
+    await signInToConsole(desk, '9000000124', '/kyc-review');
+    await desk.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }).fill('Uday');
+    await expect(desk.getByText('Selfie taken in the app. Check their originals.')).toBeVisible();
+    await desk.getByRole('button', { name: 'Check Uday Thakur' }).click();
+    await expect(desk.getByRole('img', { name: 'The selfie Uday Thakur took in the app' })).toBeVisible();
+    await desk.getByRole('button', { name: 'Take their photo' }).click();
+    await desk.getByRole('button', { name: 'Take photo' }).click();
+    await desk.getByRole('button', { name: 'Use photo' }).click();
+    await desk.getByLabel('Date of birth on Uday Thakur\'s original document').fill('1991-03-18');
+    await desk.getByRole('textbox', { name: 'Last four digits of Uday Thakur\'s Aadhaar' }).fill('4180');
+    await desk.getByRole('textbox', { name: 'Uday Thakur\'s PAN from the original card' }).fill('udapt4180t');
+    await desk.getByRole('switch', { name: 'Uday Thakur agrees to this identity check' }).click();
+    await desk.getByRole('button', { name: 'Verify Uday Thakur' }).click();
+    await expect(desk.getByRole('status').getByText('Uday Thakur is verified and can take a seat.')).toBeVisible();
+
+    expect(sql(`select status || ' ' || method from public.kyc_record where member_id = '${UDAY}'`)).toBe('verified manual');
+    const bonusDue = Number(sql(`select coalesce((private.setting_at('${CLUB}', 'points.verified_bonus', '',
+                                   (select at_club_from from public.kyc_record where member_id = '${UDAY}')) ->> 'points')::bigint, 0)`));
+    const bonusAfter = Number(sql(`select coalesce(-sum(private.account_balance(a.id)), 0) from public.ledger_account a
+                                   where a.member_id = '${UDAY}' and a.code = 'member.points'`));
+    expect(bonusAfter - bonusBefore).toBe(wasPaid ? 0 : bonusDue);
   });
 });

@@ -21,6 +21,15 @@ export const playerKyc = {
   digilockerStepDetail: 'Aadhaar and OTP',
   verifiedStep: 'Verified',
   kept: 'We store your photo, date of birth, address, PAN and the last 4 digits of your Aadhaar.',
+  /** Identity checked at the club (decision 0502): the selfie in the app, the documents at the desk. */
+  clubStep: 'At the club',
+  clubStepDetail: 'Aadhaar and PAN at the desk, on your first visit',
+  clubKept: 'We store your selfie now. At the desk we record your date of birth, PAN and the last 4 digits of your Aadhaar.',
+  registeredTitle: "You're registered.",
+  /** On the registered screen, and on Tonight's card until the desk has checked them. */
+  atTheDesk: 'Bring your Aadhaar and PAN on your first visit. The desk checks them before you play.',
+  /** The eyebrow of Tonight's card. */
+  deskCheck: 'Identity check',
   takeSelfie: 'Take a selfie',
   notLive: 'Photo unclear. Retake it in good light.',
   start: 'Continue to DigiLocker',

@@ -46,6 +46,16 @@ describe('mayReopen', () => {
     }
   });
 
+  it('offers a super admin Reopen for a check the vendor held while the club checks identity at the desk (decision 0502)', () => {
+    const held = { ...REFUSED, method: 'digilocker' } as const;
+    expect(mayReopen(held, true, true)).toBe(true);
+    expect(mayReopen({ ...held, status: 'needs_review', refusal: null }, true, true)).toBe(true);
+    expect(mayReopen({ ...held, refusal: 'under_18' }, true, true)).toBe(false);
+    expect(mayReopen({ ...held, status: 'needs_pan', refusal: null }, true, true)).toBe(false);
+    expect(mayReopen(held, false, true)).toBe(false);
+    expect(mayReopen({ ...held, status: 'needs_review', refusal: null }, true, false)).toBe(false);
+  });
+
   it('offers it to no one but a super admin, and for no check not done in person', () => {
     expect(mayReopen(REFUSED, false)).toBe(false);
     expect(mayReopen({ ...REFUSED, method: 'digilocker' }, true)).toBe(false);

@@ -1,6 +1,7 @@
 /**
  * The settings for what members earn by playing: points by the hour and from rake (RIVR Rewards), and hourly
- * rakeback. Part of SETTINGS in settings.ts, kept here to hold that file to its size.
+ * rakeback; and the members' own: the verification bonus and where identity is checked. Part of SETTINGS in settings.ts,
+ * kept here to hold that file to its size.
  */
 import { z } from 'zod';
 import type { SettingDefinition } from './settingDefinition.ts';
@@ -56,6 +57,15 @@ export const pointsVerifiedBonus = {
   description: 'Points a member gets once, when their identity check is verified (the pre-registration bonus); none set, or 0, gives none.',
   scope: 'venue',
   value: z.strictObject({ points: z.int().min(0).max(10000) }),
+} as const satisfies SettingDefinition;
+
+/** Identity checked at the club (decision 0502): while Cashfree is not live, a selfie lets a new member in and staff check them at the desk. */
+export const kycAtTheClub = {
+  key: 'kyc.at_the_club',
+  description: 'Identity checked at the club: a new member takes a selfie in the app and is let in, and staff check their Aadhaar and PAN in person on their first visit, which is final while this is on. Off, members check in the app. None set is off. Only a super admin changes it, with a reason.',
+  scope: 'venue',
+  superAdminOnly: true,
+  value: z.strictObject({ enabled: z.boolean() }),
 } as const satisfies SettingDefinition;
 
 /**

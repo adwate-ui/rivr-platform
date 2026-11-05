@@ -1,4 +1,4 @@
-import { useAuthStatus, useKycRecord, useMember } from '@rivr/db';
+import { useAuthStatus, useKycAtTheClub, useKycRecord, useMember } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button } from '@rivr/ui';
 import { Navigate } from '@tanstack/react-router';
@@ -7,6 +7,7 @@ import { DigilockerStep } from './DigilockerStep.tsx';
 import { KycIntro } from './KycIntro.tsx';
 import { KycOutcome } from './KycOutcome.tsx';
 import { KycLoadFailed, KycLoading } from './KycRecordStates.tsx';
+import { KycRegistered } from './KycRegistered.tsx';
 import { SelfieStep } from './SelfieStep.tsx';
 
 /**
@@ -28,20 +29,44 @@ export function KycStartScreen() {
   return <KycLoading />;
 }
 
-/** A member's check, read from their record: the selfie, then DigiLocker, or where it stands once it has moved on. */
+/**
+ * A member's check, read from their record: the selfie, then DigiLocker, or where it stands once it has moved on. While the
+ * club checks identity at the desk (decision 0502), the selfie lets them in instead, and the desk does the rest.
+ */
 function MembersCheck() {
   const record = useKycRecord();
+  const atTheClub = useKycAtTheClub();
+
+  if (record.isPending || atTheClub.isPending) return <KycLoading />;
+  const failed = [record, atTheClub].find((read) => read.isError);
+  if (failed) return <KycLoadFailed onRetry={() => void failed.refetch()} />;
+  if (record.data && record.data.status !== 'started') return <KycOutcome record={record.data} onChecked={() => void record.refetch()} />;
+  if (atTheClub.data) return record.data?.isAtTheClub ? <KycRegistered /> : <ClubCheck />;
+  // Once the switch is off, a member let in by their selfie may also check in the app.
+  return <AppCheck hasSelfie={record.data?.hasSelfie === true} />;
+}
+
+/** In the app (decision 0320): the selfie, then DigiLocker; a member with the selfie in picks up at DigiLocker. */
+function AppCheck({ hasSelfie }: { hasSelfie: boolean }) {
   const [isTaking, setIsTaking] = useState(false);
   // The selfie sent on this visit: DigiLocker follows as the next step, not as a return.
   const [hasJustSent, setHasJustSent] = useState(false);
-
-  if (record.isPending) return <KycLoading />;
-  if (record.isError) return <KycLoadFailed onRetry={() => void record.refetch()} />;
-  if (record.data && record.data.status !== 'started') return <KycOutcome record={record.data} onChecked={() => void record.refetch()} />;
-  if (record.data?.hasSelfie || hasJustSent) return <DigilockerStep isResume={!hasJustSent} />;
+  if (hasSelfie || hasJustSent) return <DigilockerStep isResume={!hasJustSent} />;
   if (isTaking) return <SelfieStep onBack={() => setIsTaking(false)} onSent={() => setHasJustSent(true)} />;
   return (
     <KycIntro at="selfie" isResume={false}
+      action={<Button variant="primary" size="tall" fullWidth onClick={() => setIsTaking(true)}>{t('player.kyc.takeSelfie')}</Button>} />
+  );
+}
+
+/** At the club (decision 0502): the selfie, with its tips, then in; the desk checks the documents on the first visit. */
+function ClubCheck() {
+  const [isTaking, setIsTaking] = useState(false);
+  const [isSent, setIsSent] = useState(false);
+  if (isSent) return <KycRegistered />;
+  if (isTaking) return <SelfieStep isForTheClub onBack={() => setIsTaking(false)} onSent={() => setIsSent(true)} />;
+  return (
+    <KycIntro at="selfie" route="club" isResume={false}
       action={<Button variant="primary" size="tall" fullWidth onClick={() => setIsTaking(true)}>{t('player.kyc.takeSelfie')}</Button>} />
   );
 }
