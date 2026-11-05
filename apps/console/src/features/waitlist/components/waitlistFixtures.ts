@@ -8,7 +8,7 @@ export function buildPlace(overrides: Partial<WaitlistBoardEntry> & Pick<Waitlis
   return {
     entryId: `e${String(overrides.place)}`, tableTypeId: 'tt', memberId: `m${String(overrides.place)}`, joinedAt: '2026-11-15T15:35:00Z',
     addedByFloor: false, priorityReason: null, callTableName: null, callSeat: null, holdUntil: null, awayUntil: null, tableId: 't1',
-    onWayAt: null, ...overrides,
+    onWayAt: null, needsIdCheck: false, ...overrides,
   };
 }
 

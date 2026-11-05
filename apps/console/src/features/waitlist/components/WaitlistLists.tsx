@@ -3,6 +3,7 @@ import {
 } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { ErrorMessage, Grid, LoadState, Skeleton, StaleNotice, Stack, Text } from '@rivr/ui';
+import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { BulkPlaces } from './BulkPlaces.tsx';
 import { SeatSheet, type SeatSheetPlace } from './SeatSheet.tsx';
@@ -51,7 +52,10 @@ interface CardsProps {
 function Cards({ venueId, canOpen, tables, entries, requests, interest }: CardsProps) {
   const now = useNow();
   const ticks = useTicks();
+  const navigate = useNavigate();
   const [seating, setSeating] = useState<{ table: FloorTable; place: SeatSheetPlace } | null>(null);
+  // Check ID (decision 0503): the check in person, with the member searched by name; Seat comes back once they are verified.
+  const checkId = (entry: WaitlistBoardEntry) => void navigate({ to: '/kyc-review', search: { check: entry.fullName } });
   const shown = tablesShown(tables, venueId, entries, new Set(requests.map((request) => request.tableId)));
   if (shown.length === 0) return <Text tone="muted">{t('console.waitlist.noGames')}</Text>;
   return (
@@ -64,7 +68,7 @@ function Cards({ venueId, canOpen, tables, entries, requests, interest }: CardsP
             requests={requests.filter((request) => request.tableId === table.id)}
             interest={table.isOpen ? undefined : interest.find((list) => list.tableId === table.id)}
             ticked={ticks.ticked} onToggle={ticks.toggle}
-            onSeat={(entry) => setSeating({ table, place: { entryId: entry.entryId, name: entry.fullName } })} />
+            onSeat={(entry) => setSeating({ table, place: { entryId: entry.entryId, name: entry.fullName } })} onCheckId={checkId} />
         ))}
       </Grid>
       {seating === null ? null : <SeatSheet venueId={venueId} table={seating.table} place={seating.place} onClose={() => setSeating(null)} />}

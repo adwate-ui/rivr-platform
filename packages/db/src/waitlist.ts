@@ -82,6 +82,11 @@ export interface WaitlistBoardEntry {
   readonly tableId: string;
   /** When a called member said they were on their way. */
   readonly onWayAt: string | null;
+  /**
+   * Their identity check is not finished: a member let in by their selfie waits, but the desk checks their ID before they
+   * sit (decision 0503).
+   */
+  readonly needsIdCheck: boolean;
 }
 
 /** Why joining, adding or leaving did not go through: `stopped` is the member frozen, `paused` the whole venue. */
@@ -215,6 +220,7 @@ export function useWaitlistBoard(venueId: string, isEnabled = true) {
         entryId: row.entry_id, tableTypeId: row.table_type_id, memberId: row.member_id, fullName: row.full_name, joinedAt: row.joined_at,
         place: row.place, addedByFloor: row.added_by_floor, priorityReason: row.priority_reason, callTableName: row.call_table_name,
         callSeat: row.call_seat, holdUntil: row.hold_until, awayUntil: row.away_until, tableId: row.asked_table_id, onWayAt: row.on_way_at,
+        needsIdCheck: row.needs_id_check,
       }));
     },
   });

@@ -1,4 +1,4 @@
-import { useWaitlistActions, type WaitlistFailure, type WaitlistPlace } from '@rivr/db';
+import { useKycRecord, useWaitlistActions, type WaitlistFailure, type WaitlistPlace } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
 import { Box, Button, ErrorMessage, Figure, Stack, Text, useToast } from '@rivr/ui';
 import { useState, type ReactNode } from 'react';
@@ -20,10 +20,13 @@ function useLeave(place: WaitlistPlace) {
 
 /**
  * On the list (brief 3.4 C): the list's table (decision 0467) and game, the place as a large numeral, "Next in line" or where, when they
- * joined, and Leave waitlist. No Step away. `offer` is Profile's offer of seat-ready push, through the route.
+ * joined, and Leave waitlist. No Step away. `offer` is Profile's offer of seat-ready push, through the route. A member let in
+ * by their selfie is told the desk checks their ID before they sit (decision 0503).
  */
 export function WaitingView({ place, offer }: { place: WaitlistPlace; offer: ReactNode }) {
   const leave = useLeave(place);
+  const kyc = useKycRecord();
+  const isDeskFirst = kyc.data?.status === 'started' && kyc.data.isAtTheClub;
   const eyebrow = t('player.live.list.eyebrow', { table: place.tableName, game: place.tableTypeName });
   return (
     <Stack gap={8}>
@@ -33,6 +36,7 @@ export function WaitingView({ place, offer }: { place: WaitlistPlace; offer: Rea
           {place.place === null ? null : <Figure size="place">{String(place.place)}</Figure>}
           <Text variant="lead" align="center">{lineOf(place)}</Text>
           <Text variant="small" tone="muted" align="center">{t('player.live.list.joined', { time: formatTime(new Date(place.joinedAt)) })}</Text>
+          {isDeskFirst ? <Text variant="small" align="center">{t('player.live.list.deskFirst')}</Text> : null}
         </Stack>
       </Box>
       <Box paddingX={5}>

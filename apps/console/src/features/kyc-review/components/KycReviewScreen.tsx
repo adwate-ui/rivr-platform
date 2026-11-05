@@ -10,15 +10,20 @@ import { KycCheckCard } from './KycCheckCard.tsx';
 /**
  * KYC review, for KYC reviewers (`kyc.review`) at the venue the console works in, with checks in person; and for hosts and
  * the floor, who check members in person (`kyc.in_person`, decision 0301) and review nothing, the check in person alone.
+ * `checkName`, from the waitlist's Check ID (decision 0503), opens the check in person with that member searched.
  */
-export function KycReviewScreen() {
+export function KycReviewScreen({ checkName }: { checkName?: string | undefined }) {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   const { venueId, permissions } = staff.venue;
   // Reopening a refused check done in person is a super admin's (#267).
-  if (permissions.includes('kyc.review')) return <ReviewQueue venueId={venueId} canReopen={permissions.includes('members.override_features')} />;
-  if (permissions.includes('kyc.in_person')) return <Screen title={t('console.kycReview.title')}><InPersonSection venueId={venueId} /></Screen>;
+  if (permissions.includes('kyc.review')) {
+    return <ReviewQueue venueId={venueId} canReopen={permissions.includes('members.override_features')} checkName={checkName} />;
+  }
+  if (permissions.includes('kyc.in_person')) {
+    return <Screen title={t('console.kycReview.title')}><InPersonSection venueId={venueId} initialSearch={checkName} /></Screen>;
+  }
   return <Screen title={t('console.kycReview.title')} status="error" errorText={t('console.kycReview.notAllowed')} />;
 }
 
@@ -31,11 +36,11 @@ function openCheck(checks: readonly KycCheck[], chosenId: string | null): KycChe
  * The queue down the left and the check open on the right, half each (console v3); on a phone the check is a view of its
  * own with the way back. Check in person, the screen's one gold button, opens its sheet.
  */
-function ReviewQueue({ venueId, canReopen }: { venueId: string; canReopen: boolean }) {
+function ReviewQueue({ venueId, canReopen, checkName }: { venueId: string; canReopen: boolean; checkName: string | undefined }) {
   const queue = useKycReviewQueue(venueId);
   const [chosenId, setChosenId] = useState<string | null>(null);
   const title = t('console.kycReview.title');
-  const actions = <InPersonSheet venueId={venueId} />;
+  const actions = <InPersonSheet venueId={venueId} initialSearch={checkName} />;
   // A failed refresh keeps the queue and any decision half typed, with a notice, rather than swapping them for an error.
   if (queue.data === undefined) {
     return queue.isError

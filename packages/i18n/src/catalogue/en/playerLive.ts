@@ -49,6 +49,8 @@ export const playerLive = {
     requested: 'Requested',
     joined: 'Joined {time}',
     leave: 'Leave waitlist',
+    /** A member let in by their selfie, waiting before the desk has checked them (decision 0503). */
+    deskFirst: 'Your ID is checked at the desk before you sit.',
     joinedToast: 'Joined waitlist',
     leftToast: 'Left waitlist',
   },

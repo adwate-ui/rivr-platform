@@ -17,6 +17,8 @@ interface PlaceRowProps {
   onToggle: () => void;
   /** Opens the sheet that seats the place at its table. */
   onSeat: () => void;
+  /** Opens the check in person for a member whose identity check waits for the desk (decision 0503). */
+  onCheckId: () => void;
 }
 
 /** The place's steps: Seat, Hold place or Release, and Remove, each saying its outcome in a toast or its failure under the row. */
@@ -77,22 +79,31 @@ function StepQuestion({ asking, name, steps, onDone }: { asking: Exclude<Asking,
 }
 
 /**
- * One place on a table's list (console v3): its tick for the bulk bar, its number, who and how long, Seat, and the ⋯ menu.
- * Seat seats a called member at the seat held for them, and opens the seat sheet for anyone else while the table is open.
+ * The row's one button: Check ID while the member's identity check waits for the desk (decision 0503), which opens the
+ * check in person for them; otherwise Seat, which seats a called member at the seat held for them and opens the seat sheet
+ * for anyone else while the table is open. None for a closed table's place not called.
  */
-export function PlaceRow({ venueId, entry, table, now, isTicked, onToggle, onSeat }: PlaceRowProps) {
+function rowAction({ entry, table, onSeat, onCheckId }: PlaceRowProps, steps: ReturnType<typeof usePlaceSteps>) {
+  const name = entry.fullName;
+  if (entry.needsIdCheck) return { label: t('console.waitlist.checkIdShort'), name: t('console.waitlist.checkId', { name }), onClick: onCheckId };
+  const isCalled = entry.holdUntil !== null;
+  if (!isCalled && !table.isOpen) return undefined;
+  return { label: t('console.waitlist.seatShort'), name: t('console.waitlist.seat', { name }), isLoading: steps.isBusy,
+    onClick: isCalled ? steps.seatCalled : onSeat };
+}
+
+/** One place on a table's list (console v3): its tick for the bulk bar, its number, who and how long, its button, and the ⋯ menu. */
+export function PlaceRow(props: PlaceRowProps) {
+  const { venueId, entry, now, isTicked, onToggle } = props;
   const steps = usePlaceSteps(venueId, entry);
   const density = useTableDensity();
   const [asking, setAsking] = useState<Asking>(null);
   const name = entry.fullName;
-  const isCalled = entry.holdUntil !== null;
-  const canSeat = isCalled || table.isOpen;
   return (
     <Stack gap={2}>
       <WaitlistRow position={entry.place} name={name} meta={placeMeta(entry, now)} isHeld={entry.awayUntil !== null} density={density}
         tick={{ label: t('console.waitlist.card.select', { name }), isTicked, onToggle }}
-        action={canSeat ? { label: t('console.waitlist.seatShort'), name: t('console.waitlist.seat', { name }), isLoading: steps.isBusy,
-          onClick: isCalled ? steps.seatCalled : onSeat } : undefined}
+        action={rowAction(props, steps)}
         menu={{ label: t('console.waitlist.card.more', { name }), items: menuItems(entry, steps, setAsking) }} />
       {asking === null ? null : <StepQuestion asking={asking} name={name} steps={steps} onDone={() => setAsking(null)} />}
       {steps.failure === null ? null : <Box paddingX={4}><ErrorMessage>{t(steps.failure)}</ErrorMessage></Box>}
