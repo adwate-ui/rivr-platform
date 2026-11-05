@@ -1,4 +1,4 @@
-import { useKycImageUrl, type KycCheck } from '@rivr/db';
+import { useKycImageUrl, useVenueKycAtTheClub, type KycCheck } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Box, Heading, Inline, KycPhoto, Stack, Text } from '@rivr/ui';
 import { checkDetails, checkSince, checkStatus, mayReopen } from './checkText.ts';
@@ -30,10 +30,12 @@ interface KycCheckCardProps {
 /**
  * One identity check, open beside the queue (console v3): the KYC photo, why it waits and since when, what the vendor
  * found, the members whose checks hold the same PAN, Aadhaar or face, and, while it waits for review, the decision; for
- * a super admin, a refused check done in person can be reopened.
+ * a super admin, a refused check done in person can be reopened, and while the club checks identity at the desk (decision
+ * 0502), one the vendor held.
  */
 export function KycCheckCard({ venueId, check, canReopen, onDecided }: KycCheckCardProps) {
   const photo = useKycImageUrl(check.photoPath);
+  const atTheClub = useVenueKycAtTheClub(venueId);
   const photoStatus = check.photoPath === null ? 'missing' : photo.isPending ? 'loading' : photo.isError ? 'error' : 'ready';
   const status = checkStatus(check);
   return (
@@ -55,7 +57,7 @@ export function KycCheckCard({ venueId, check, canReopen, onDecided }: KycCheckC
           <ReviewForm venueId={venueId} memberId={check.memberId} fullName={check.fullName}
             needsDateOfBirth={check.dateOfBirth === null} needsPan={check.pan === null} onDecided={onDecided} />
         ) : null}
-        {mayReopen(check, canReopen) ? <ReopenForm venueId={venueId} memberId={check.memberId} fullName={check.fullName} /> : null}
+        {mayReopen(check, canReopen, atTheClub.data === true) ? <ReopenForm venueId={venueId} memberId={check.memberId} fullName={check.fullName} /> : null}
       </Stack>
     </Box>
   );

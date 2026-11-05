@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { isCallTimeEnding, minutesLeftToSay } from '@rivr/domain/callTime';
 import { useNow } from '../hooks/useNow.ts';
 import { usePushAction, type PushTarget } from '../hooks/usePushAction.ts';
+import { DeskCheckNotice } from './DeskCheckNotice.tsx';
 import { JoinSheet } from './JoinSheet.tsx';
 import { RateVisit } from './RateVisit.tsx';
 import { callSecondsLeft, SeatedView } from './SeatedView.tsx';
@@ -72,6 +73,7 @@ function StandingView({ standing, now, offer, onJoin, tables, notices, sheet }: 
     case 'seated': return <SeatedView seat={standing.seat} places={standing.places} now={now} sheet={sheet.open} onSheet={sheet.set} />;
     default: return (
       <Stack gap={4}>
+        <DeskCheckNotice />
         <TonightNotices notices={notices} />
         <RateVisit />
         <TonightOffers />

@@ -20,7 +20,7 @@ export {
 } from './signUp.ts';
 export { rememberAttribution, storedAttribution, type SignUpAttribution } from './attribution.ts';
 export { KYC_IMAGE_URL_SECONDS, useKycImageUrl } from './kycImages.ts';
-export { toBase64, useKycActions, useKycRecord, type KycRecord, type KycStatus } from './kyc.ts';
+export { toBase64, useKycActions, useKycAtTheClub, useKycRecord, type KycRecord, type KycStatus } from './kyc.ts';
 export { shrinkPhoto } from './photo.ts';
 export { itemPhotoUrl, useItemPhotoUpload, type ItemPhotoFailure, type ItemPhotoKind, type ItemPhotoOrder } from './itemPhotos.ts';
 export {
@@ -28,6 +28,7 @@ export {
   useKycInPersonCandidates,
   useKycReviewActions,
   useKycReviewQueue,
+  useVenueKycAtTheClub,
   type KycCandidate,
   type KycCheck,
   type KycDecision,

@@ -34,6 +34,11 @@ select is((select r.conditions from public.promotion_rule r join public.promotio
 update public.promotion_rule r set conditions = jsonb_set(r.conditions, '{days}',
   jsonb_build_array(extract(isodow from now() at time zone 'Asia/Kolkata' - interval '6 hours')::integer))
 from public.promotion p where p.id = r.promotion_id and p.template_key = 'tuesday_bonus';
+-- The engine reads the live version's schedule (20261107120000_promotion_engine_on_versions.sql): today is its day there too,
+-- or the test passes only on a Tuesday.
+update public.promotion_version v set schedule = jsonb_set(v.schedule, '{days}',
+  jsonb_build_array(extract(isodow from now() at time zone 'Asia/Kolkata' - interval '6 hours')::integer))
+from public.promotion p where p.id = v.promotion_id and p.template_key = 'tuesday_bonus' and v.status = 'live';
 
 -- Ishaan's wallet holds ₹2,00,000; he sits at Table 3 and Vihaan at Table 5.
 select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'deposit', 'test-tuesday-deposit',

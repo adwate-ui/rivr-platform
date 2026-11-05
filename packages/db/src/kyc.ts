@@ -18,6 +18,8 @@ export interface KycRecord {
   readonly dateOfBirth: string | null;
   readonly maskedAadhaar: string | null;
   readonly pan: string | null;
+  /** Whether their selfie let them into the app to have their identity checked at the club (decision 0502). */
+  readonly isAtTheClub: boolean;
 }
 
 const STATUSES: readonly KycStatus[] = ['started', 'needs_pan', 'needs_review', 'verified', 'refused'];
@@ -41,11 +43,28 @@ export function useKycRecord() {
     queryKey: queryKeys.kycRecord(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<KycRecord | null> => {
-      const { data, error } = await client.from('kyc_record').select('status, photo_path, date_of_birth, masked_aadhaar, pan').maybeSingle();
+      const { data, error } = await client.from('kyc_record').select('status, photo_path, date_of_birth, masked_aadhaar, pan, at_club_from').maybeSingle();
       if (error) throw error;
       const status = toStatus(data?.status);
       if (data === null || status === null) return null;
-      return { status, hasSelfie: data.photo_path !== null, dateOfBirth: data.date_of_birth, maskedAadhaar: data.masked_aadhaar, pan: data.pan };
+      return {
+        status, hasSelfie: data.photo_path !== null, dateOfBirth: data.date_of_birth, maskedAadhaar: data.masked_aadhaar, pan: data.pan,
+        isAtTheClub: data.at_club_from !== null,
+      };
+    },
+  });
+}
+
+/** Whether the member's venue checks identity at the club now (decision 0502): a selfie in the app, then the desk. */
+export function useKycAtTheClub() {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.kycAtTheClub(userId ?? 'signed-out'),
+    enabled: userId !== null,
+    queryFn: async (): Promise<boolean> => {
+      const { data, error } = await client.rpc('kyc_at_the_club');
+      if (error) throw error;
+      return data === true;
     },
   });
 }
@@ -72,6 +91,18 @@ export function useKycActions() {
   const sendSelfie = useMutation({
     mutationFn: async (photo: Blob) => statusOf('started')(await invoke({ action: 'selfie', image: await toBase64(photo) })),
   });
+  // At the club (decision 0502): the selfie is kept as the sign-up photo, with no vendor call. True once the check waits
+  // for the desk; false if the venue no longer checks identity at the club.
+  const sendClubSelfie = useMutation({
+    mutationFn: async (photo: Blob): Promise<Result<boolean, KycFailure>> => {
+      const sent = await invoke({ action: 'photo', image: await toBase64(photo) });
+      if (!sent.ok) return sent;
+      const isAtTheClub = sent.value.status === 'at_club';
+      // Switched off meanwhile: the screen goes back to the app's own check.
+      if (!isAtTheClub) await queryClient.invalidateQueries({ queryKey: queryKeys.kycAtTheClub(userId ?? 'signed-out') });
+      return ok(isAtTheClub);
+    },
+  });
   const start = useMutation({
     mutationFn: async (): Promise<Result<string, KycFailure>> => {
       const started = await invoke({ action: 'start' });
@@ -82,5 +113,5 @@ export function useKycActions() {
   const verifyPan = useMutation({
     mutationFn: async (input: { pan: string; dateOfBirth?: string }) => statusOf('needs_pan')(await invoke({ action: 'pan', ...input })),
   });
-  return { sendSelfie, start, complete, verifyPan };
+  return { sendSelfie, sendClubSelfie, start, complete, verifyPan };
 }

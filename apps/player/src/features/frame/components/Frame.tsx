@@ -40,12 +40,13 @@ function useReturnSearch(authStatus: AuthStatus): { toSignIn: ReturnSearch; toSi
 }
 
 /**
- * A member's screens once their identity check is verified (#632). Until then they see only its steps: a member whose
+ * A member's screens once their identity check is verified (#632), or once their selfie let them in to be checked at the
+ * club (decision 0502): the server still keeps play for the desk's check. Until then they see only its steps: a member whose
  * check is not verified goes to /kyc, and nothing shows while it is read, or the way to try again if it cannot be.
  */
 function KycGate({ isMember, children }: { isMember: boolean; children: ReactNode }) {
   const kyc = useKycRecord();
-  if (kyc.data?.status === 'verified') return children;
+  if (kyc.data?.status === 'verified' || (kyc.data?.status === 'started' && kyc.data.isAtTheClub)) return children;
   if (isMember && kyc.isSuccess) return <Navigate to="/kyc" replace />;
   return <Screen title={t('player.kyc.title')} status={kyc.isError ? 'error' : 'loading'} loadingLook="skeleton" onRetry={() => void kyc.refetch()} />;
 }

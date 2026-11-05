@@ -73,7 +73,11 @@ function Candidates({ venueId, search, onChoose }: CandidatesProps) {
           <Stack gap={1}>
             <Text variant="row" weight="medium">{member.fullName}</Text>
             <Text variant="secondary" tone="muted">{t('console.kycInPerson.phoneEnding', { digits: member.phoneLast4 })}</Text>
-            {member.status === null ? null : <Text variant="secondary" tone="muted">{t('console.kycInPerson.startedOnApp')}</Text>}
+            {member.status === null ? null : (
+              <Text variant="secondary" tone="muted">
+                {t(member.clubSelfiePath === null ? 'console.kycInPerson.startedOnApp' : 'console.kycInPerson.atTheClub')}
+              </Text>
+            )}
           </Stack>
           {/* One short word on a row's button (console v3), its full name read out, so it never wraps in the sheet. */}
           <Button variant="subtle" size="small" aria-label={t('console.kycInPerson.checkName', { name: member.fullName })} onClick={() => onChoose(member)}>

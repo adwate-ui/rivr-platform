@@ -168,6 +168,11 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     help: 'The most points one staff member gives by hand in a club day. Past it, a change is refused and you are told. Super admins have no limit, and only they change it. No limit unless set.',
     fields: { points: 'Points' },
   },
+  'kyc.at_the_club': {
+    name: 'Identity checked at the club',
+    help: 'On while Cashfree is not live: a new member takes a selfie in the app and is let in, and staff check their Aadhaar and PAN at the desk on their first visit. Play waits for that check. Off, new members check in the app again.',
+    fields: { enabled: 'Check at the club' },
+  },
   'points.verified_bonus': {
     name: 'Bonus on verification',
     help: 'The points a member gets once, when their identity check is verified. Not set gives none. Ends at launch: 0 from 15 November.',
