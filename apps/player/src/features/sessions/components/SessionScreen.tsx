@@ -2,10 +2,9 @@ import { useFeatureStatus } from '@rivr/db';
 import { useHideMySession, useMySession, type MySession } from '@rivr/db/sessions';
 import { formatHoursMinutes, formatNumber, formatStakes, formatTime, t } from '@rivr/i18n';
 import { BackButton, Box, Button, DetailRow, ErrorMessage, FeatureGate, Heading, Screen, Stack, Text, useToast } from '@rivr/ui';
-import { useParams } from '@tanstack/react-router';
+import { useCanGoBack, useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { sessionDay, sessionTitle } from './naming.ts';
-import { useGoBack } from '../../frame/goBack.ts';
 
 /** The game a session was: a cash table's stakes, or the tournament with the member's place in its field (#549). */
 function gameOf(session: MySession): string {
@@ -53,7 +52,11 @@ export function SessionScreen() {
   const { visitId = '' } = useParams({ strict: false });
   const sessions = useMySession(visitId);
   const access = useFeatureStatus('sessions.history');
-  const toList = useGoBack('/sessions');
+  const router = useRouter();
+  const canGoBack = useCanGoBack();
+  const navigate = useNavigate();
+  // Back to where it was opened from, or to /sessions in its place: never a new entry on top (owner, 8 Nov).
+  const toList = () => (canGoBack ? router.history.back() : void navigate({ to: '/sessions', replace: true }));
   const session = sessions.data ?? undefined;
   const title = t('player.sessions.title');
   const back = <BackButton label={title} onBack={toList} />;

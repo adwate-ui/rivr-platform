@@ -6,7 +6,7 @@ import { toBase64 } from './kyc.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
-/** Why a sign-up did not go through, as the screen tells it: the name, an answer, the photo, staff, paused, or anything else. */
+/** Why a sign-up did not go through, as the screen tells it: the name, an answer, the photo, paused, or anything else. */
 export type SignUpFailure = 'invalid_name' | 'invalid_answers' | 'photo_failed' | 'stopped' | 'unavailable';
 
 /** What best describes the member (#631), one of these. */

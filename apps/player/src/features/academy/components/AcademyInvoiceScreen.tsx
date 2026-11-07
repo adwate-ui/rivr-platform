@@ -1,8 +1,7 @@
 import { useAcademyInvoice, useAuthStatus } from '@rivr/db';
 import { documents, registerMessages, t } from '@rivr/i18n';
 import { InvoiceDocument, Screen } from '@rivr/ui';
-import { Navigate, useParams } from '@tanstack/react-router';
-import { useGoBack } from '../../frame/goBack.ts';
+import { Navigate, useCanGoBack, useNavigate, useParams, useRouter } from '@tanstack/react-router';
 
 // The invoice's words are the printed documents' copy, loaded with this screen only.
 registerMessages({ documents });
@@ -15,7 +14,11 @@ registerMessages({ documents });
 export function AcademyInvoiceScreen() {
   const { bookingId = '' } = useParams({ strict: false });
   const authStatus = useAuthStatus();
-  const toAcademy = useGoBack('/academy');
+  const router = useRouter();
+  const canGoBack = useCanGoBack();
+  const navigate = useNavigate();
+  // Back to where it was opened from, or to /academy in its place: never a new entry on top (owner, 8 Nov).
+  const toAcademy = () => (canGoBack ? router.history.back() : void navigate({ to: '/academy', replace: true }));
   const invoice = useAcademyInvoice(bookingId);
   const title = t('player.academy.invoice');
   // Outside the frame, so it sends the signed-out to sign-in itself, to come back here (as #233).

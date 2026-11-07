@@ -1,7 +1,7 @@
 import { useHouseRules, type HouseRules } from '@rivr/db/houseRules';
 import { formatNumber, t } from '@rivr/i18n';
 import { BackButton, Figure, Heading, Inline, Screen, Stack, Text } from '@rivr/ui';
-import { useGoBack } from '../../frame/goBack.ts';
+import { useCanGoBack, useNavigate, useRouter } from '@tanstack/react-router';
 
 /** The rules, each with its number in gold, then the legal standing and its cases, each between hairlines (brief 3.10). */
 function Rules({ rules }: { rules: HouseRules }) {
@@ -40,7 +40,11 @@ function Rules({ rules }: { rules: HouseRules }) {
  */
 export function HouseRulesScreen() {
   const rules = useHouseRules();
-  const toProfile = useGoBack('/profile');
+  const router = useRouter();
+  const canGoBack = useCanGoBack();
+  const navigate = useNavigate();
+  // Back to where it was opened from, or to /profile in its place: never a new entry on top (owner, 8 Nov).
+  const toProfile = () => (canGoBack ? router.history.back() : void navigate({ to: '/profile', replace: true }));
   const title = t('player.houseRules.title');
   const back = <BackButton label={t('player.profile.title')} onBack={toProfile} />;
   const look = { titleLook: 'serif' } as const;

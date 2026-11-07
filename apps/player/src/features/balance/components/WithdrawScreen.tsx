@@ -5,13 +5,12 @@ import { fromRupees } from '@rivr/domain/money';
 import { withdrawalCheck } from '@rivr/domain/wallet';
 import { formatMoney, t, type MessageKey } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Input, Screen, Stack, Text } from '@rivr/ui';
-import { useNavigate } from '@tanstack/react-router';
+import { useCanGoBack, useNavigate, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
 import { payoutLine } from './payoutCopy.ts';
 import { withdrawBlock } from './withdrawBlock.ts';
-import { useGoBack } from '../../frame/goBack.ts';
 
 /** What the member is told when a withdrawal is refused. */
 const FAILURE_COPY: Readonly<Record<WithdrawalFailure, MessageKey>> = {
@@ -83,7 +82,11 @@ export function WithdrawScreen() {
   const wallet = useWallet();
   const accounts = usePayoutAccounts();
   const withdrawals = useWithdrawals();
-  const toBalance = useGoBack('/balance');
+  const router = useRouter();
+  const canGoBack = useCanGoBack();
+  const navigate = useNavigate();
+  // Back to where it was opened from, or to /balance in its place: never a new entry on top (owner, 8 Nov).
+  const toBalance = () => (canGoBack ? router.history.back() : void navigate({ to: '/balance', replace: true }));
   // The moment the screen opened: what is overdue now, not as it re-renders.
   const [now] = useState(() => new Date());
   const title = t('player.balance.withdraw');

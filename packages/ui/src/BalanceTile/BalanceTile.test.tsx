@@ -18,7 +18,7 @@ describe('BalanceTile', () => {
     renderIn(<BalanceTile icon="chip" figure="1,500" label="Bonus chips" line="Use with your buy-in." tone="money" onOpen={onOpen} aria-expanded={false} />);
     const tile = screen.getByRole('button', { name: /Bonus chips/ });
     expect(tile).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.getByText('1,500').closest('span[class*="text-accent"]')).not.toBeNull();
+    expect(screen.getByText('1,500')).toHaveClass('text-money');
     tile.focus();
     await userEvent.keyboard('{Enter}');
     expect(onOpen).toHaveBeenCalledOnce();

@@ -46,19 +46,19 @@ function LockedPoints() {
 }
 
 /**
- * The bonus chips tile, its Try again and its history, as Rewards places them. With the feature off, or the chips not
- * read, there is no tile, and points take the whole row.
+ * The bonus chips tile behind rewards.bonus (rule 8; a member an override locked out sees the locked notice in its place),
+ * its Try again and its history, as Rewards places them. Hidden, or the chips not read, points take the whole row.
  */
 function useChips(bonus: FeatureAccess) {
   const chips = useMyBonus();
   const [isOpen, setOpen] = useState(false);
-  const isOn = bonus.state === 'enabled';
-  const hasTile = isOn && !chips.isError && chips.data !== null;
+  const hasTile = bonus.state !== 'hidden' && !chips.isError && chips.data !== null;
+  const tile = <BonusTile chips={chips.data ?? undefined} isOpen={isOpen} onToggle={() => setOpen(!isOpen)} />;
   return {
     hasTile,
-    tile: hasTile ? <BonusTile chips={chips.data ?? undefined} isOpen={isOpen} onToggle={() => setOpen(!isOpen)} /> : null,
-    retry: isOn && chips.isError ? <LoadState isError onRetry={() => void chips.refetch()} /> : null,
-    history: hasTile && isOpen ? <BonusHistory /> : null,
+    tile: hasTile ? <FeatureGate access={bonus}>{tile}</FeatureGate> : null,
+    retry: bonus.state === 'enabled' && chips.isError ? <LoadState isError onRetry={() => void chips.refetch()} /> : null,
+    history: bonus.state === 'enabled' && hasTile && isOpen ? <BonusHistory /> : null,
   };
 }
 

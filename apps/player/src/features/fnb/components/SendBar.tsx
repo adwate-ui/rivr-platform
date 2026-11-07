@@ -2,7 +2,7 @@ import type { MySeat } from '@rivr/db';
 import { usePlaceFnbOrder, type FnbFailure } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
 import { Box, Button, ErrorMessage, haptic, PlayerDock, Stack, Text, useToast } from '@rivr/ui';
-import { useNavigate } from '@tanstack/react-router';
+import { useCanGoBack, useNavigate, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 
 /**
@@ -12,6 +12,8 @@ import { useState } from 'react';
  */
 export function SendBar({ seat, counts, onSent }: { seat: MySeat; counts: Readonly<Record<string, number>>; onSent: () => void }) {
   const place = usePlaceFnbOrder();
+  const router = useRouter();
+  const canGoBack = useCanGoBack();
   const navigate = useNavigate();
   const toast = useToast();
   const [failure, setFailure] = useState<FnbFailure | null>(null);
@@ -28,7 +30,9 @@ export function SendBar({ seat, counts, onSent }: { seat: MySeat; counts: Readon
     haptic();
     onSent();
     toast(t('player.order.sentToast'));
-    void navigate({ to: '/' });
+    // Back to Home, where Order was opened: never Home again on top of Order (owner, 8 Nov).
+    if (canGoBack) router.history.back();
+    else void navigate({ to: '/', replace: true });
   };
   return (
     <PlayerDock>
