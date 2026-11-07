@@ -7,6 +7,7 @@ import { EraseMember } from './EraseMember.tsx';
 import { FeatureOverrides } from './FeatureOverrides.tsx';
 import { MemberBonus } from './MemberBonus.tsx';
 import { MemberBreak } from './MemberBreak.tsx';
+import { MemberSignUp } from './MemberSignUp.tsx';
 import { PromotionGrants } from './PromotionGrants.tsx';
 import { partsFor, recordHref, type RecordPart } from './recordParts.ts';
 import { SeatLine } from './SeatLine.tsx';
@@ -39,6 +40,7 @@ function statusLine(record: MemberRecord): string {
 const PART_LABELS = {
   visits: 'console.members.visitsTitle',
   bonus: 'console.members.parts.bonus',
+  signUp: 'console.members.parts.signUp',
   membership: 'console.members.parts.membership',
   account: 'console.members.parts.account',
 } as const;
@@ -64,9 +66,10 @@ function VisitsPart({ venueId, record, can }: PartProps) {
   );
 }
 
-/** One part of the record: visits; bonus chips; the tier and a break; or the account's overrides, number and erasure. */
+/** One part of the record: visits; bonus chips; sign-up; the tier and a break; or the account's overrides, number and erasure. */
 function PartContent({ part, venueId, record, can }: PartProps & { part: RecordPart }) {
   if (part === 'bonus') return <MemberBonus venueId={venueId} memberId={record.memberId} canGive={can.giveBonus} />;
+  if (part === 'signUp') return <MemberSignUp venueId={venueId} memberId={record.memberId} />;
   if (part === 'membership') {
     return (
       <Stack gap={6}>
@@ -115,8 +118,8 @@ interface RecordProps extends PartProps {
 }
 
 /**
- * The record, its parts as tabs in the address (console v3; C-02): Visits and Bonus chips for all, Tier and break for
- * members.manage, Account for super admins. A part the staff member may not open shows Visits.
+ * The record, its parts as tabs in the address (console v3; C-02): Visits, Bonus chips and Sign-up for all, Tier and break
+ * for members.manage, Account for super admins. A part the staff member may not open shows Visits.
  */
 function Record({ venueId, record, can, part, tonight, onNavigate }: RecordProps) {
   const parts = partsFor(can);

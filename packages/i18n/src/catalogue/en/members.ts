@@ -1,4 +1,5 @@
 import { memberBonus } from './memberBonus.ts';
+import { memberSignUp } from './memberSignUp.ts';
 
 /** The console's Members screen (#60): find a member, open their record, and change their tier. */
 export const members = {
@@ -20,6 +21,11 @@ export const members = {
   name: 'Name',
   tier: 'Tier',
   visits: 'Visits',
+  /** More of each member on the list (owner, 8 Nov): their mobile (super admins only), KYC, time played, city and joining day. */
+  mobile: 'Mobile',
+  kyc: 'KYC',
+  kycStatuses: { verified: 'Verified', in_review: 'In review', at_desk: 'Desk check', refused: 'Refused', not_done: 'Not done' },
+  played: 'Hours played', city: 'City', memberSince: 'Member since',
   lastVisit: 'Last visit',
   never: 'Never',
   /** Where a member is tonight (console v3): their seat, waiting for one, gone home, or not at the club (`notHere`). */
@@ -54,7 +60,9 @@ export const members = {
   /** The name a member gave at sign-up, under their Aadhaar name (#803): `Known as Ashu`. */
   knownAs: 'Known as {name}',
   /** The record's parts, one shown at a time (C-02); visits takes visitsTitle. `{name}` is the member's. */
-  parts: { label: 'Record of {name}', bonus: 'Bonus chips', membership: 'Tier and break', account: 'Account' },
+  parts: { label: 'Record of {name}', bonus: 'Bonus chips', signUp: 'Sign-up', membership: 'Tier and break', account: 'Account' },
+  /** The record's Sign-up (owner, 8 Nov). */
+  signUp: memberSignUp,
   bonus: memberBonus,
   earlyDeparturesTitle: 'Early departures',
   noEarlyDepartures: 'No early departures.',

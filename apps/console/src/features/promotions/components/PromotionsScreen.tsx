@@ -19,16 +19,19 @@ interface PromotionsScreenProps {
   open: string | undefined;
   /** Opens one, or the list again with null. */
   onOpen: (open: string | null) => void;
+  /** The list's tab in the address (`?tab=ended`; owner, 8 Nov), and how a tab opens. */
+  tab: string | undefined;
+  onNavigate: (href: string) => void;
 }
 
-function PromotionsBody({ venueId, actor, open, onOpen }: PromotionsScreenProps & { venueId: string; actor: Actor }) {
+function PromotionsBody({ venueId, actor, open, onOpen, tab, onNavigate }: PromotionsScreenProps & { venueId: string; actor: Actor }) {
   const names = useBuilderNames(venueId);
   const title = t('console.promotions.title');
   if (names.status !== 'ready') {
     return names.status === 'error' ? <Screen title={title} status="error" onRetry={names.retry} /> : <Screen title={title} status="loading" loadingLook="rows" />;
   }
   const back = () => onOpen(null);
-  if (open === undefined) return <PromotionList venueId={venueId} names={names.value.names} onOpen={onOpen} />;
+  if (open === undefined) return <PromotionList venueId={venueId} names={names.value.names} onOpen={onOpen} tab={tab} onNavigate={onNavigate} />;
   if (open === 'new') return <PromotionBuilder venueId={venueId} names={names.value} actor={actor} start={newStart()} onDone={back} />;
   return <PromotionOpen key={open} venueId={venueId} promotionId={open} names={names.value} actor={actor} onDone={back} />;
 }
@@ -38,7 +41,7 @@ function PromotionsBody({ venueId, actor, open, onOpen }: PromotionsScreenProps 
  * version, and the approver's view of a waiting one, each in the address so a refresh, Back or a shared link opens it.
  * For staff who manage promotions; a super admin (promotions.approve) approves another's version.
  */
-export function PromotionsScreen({ open, onOpen }: PromotionsScreenProps) {
+export function PromotionsScreen(props: PromotionsScreenProps) {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
@@ -46,5 +49,5 @@ export function PromotionsScreen({ open, onOpen }: PromotionsScreenProps) {
   if (!permissions.includes('promotions.manage')) {
     return <Screen title={t('console.promotions.title')} status="error" errorText={t('console.promotions.notAllowed')} />;
   }
-  return <PromotionsBody venueId={venueId} actor={{ staffId, permissions }} open={open} onOpen={onOpen} />;
+  return <PromotionsBody venueId={venueId} actor={{ staffId, permissions }} {...props} />;
 }
