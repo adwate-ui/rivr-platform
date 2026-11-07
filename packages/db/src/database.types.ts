@@ -5303,6 +5303,11 @@ isOneToOne: false
               "earned": number,"full_name": string,"locked": number,"member_id": string,"member_number": number
             }[]
                            },
+"member_points_of":
+{ Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
+              "earned": number,"locked": number
+            }[]
+                           },
 "member_promotion_grants":
 { Args: { "p_member_id": string }; Returns: {
               "chips": number,"club_day": string,"grant_id": string,"granted_at": string,"perk": string,"points": number,"promotion_name": string,"spins": number,"version": number

@@ -92,7 +92,7 @@ export {
   useGamesHistory, useTablesSetup, useTablesSetupActions, type GamesDay, type SetupStake, type SetupTable, type StakeOrder, type TableGame,
   type TableOrder, type TablesFailure,
 } from './tablesSetup.ts';
-export { useGivePoints, useMemberPoints, useMyLockedPoints, type MemberPoints, type PointsFailure, type PointsOrder } from './pointsByHand.ts';
+export { useGivePoints, useMemberPoints, useMemberPointsOf, useMyLockedPoints, type MemberPoints, type PointsFailure, type PointsOrder } from './pointsByHand.ts';
 export { useFloorTakenSeats, useSeatCallActions } from './seatCall.ts';
 export { useMyUsualFnbItems } from './fnbUsual.ts';
 export { useMySeat, useMySeatActions, type Leaving, type MySeat, type MySeatFailure, type TopUp } from './mySeat.ts';

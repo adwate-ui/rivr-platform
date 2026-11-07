@@ -60,7 +60,7 @@ export const members = {
   /** The name a member gave at sign-up, under their Aadhaar name (#803): `Known as Ashu`. */
   knownAs: 'Known as {name}',
   /** The record's parts, one shown at a time (C-02); visits takes visitsTitle. `{name}` is the member's. */
-  parts: { label: 'Record of {name}', bonus: 'Bonus chips', signUp: 'Sign-up', membership: 'Tier and break', account: 'Account' },
+  parts: { label: 'Record of {name}', bonus: 'Points and bonus chips', signUp: 'Sign-up', membership: 'Tier and break', account: 'Account' },
   /** The record's Sign-up (owner, 8 Nov). */
   signUp: memberSignUp,
   bonus: memberBonus,
@@ -169,7 +169,7 @@ export const members = {
       cash: 'cash in the wallet',
       chips: 'a visit or a seat still open',
       markers: 'markers not settled',
-      rewards: 'points or bonus owed to the club',
+      rewards: 'points or bonus chips owed to the club',
       redemptions: 'a reward not yet handed over',
       waitlist: 'a place on a waitlist',
       tournament: 'a run in a tournament not yet finished',
@@ -178,7 +178,7 @@ export const members = {
     },
     /** `{bonus}`: bonus chips, `2,000` (#629). */
     forfeit: 'Forfeited to the club: {points} points and {bonus} bonus chips.',
-    nothingToForfeit: 'No points or bonus to forfeit.',
+    nothingToForfeit: 'No points or bonus chips to forfeit.',
     /** Hotel nights the erasure forfeits, or forfeited (#146): `1.25`. */
     nightsForfeit: 'Hotel nights forfeited to the club: {nights}.',
     blockNote: 'On a break until {date}: their number and identity stay blocked until then, by keyed hashes alone.',

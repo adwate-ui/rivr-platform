@@ -1,8 +1,14 @@
-/** The record's Bonus chips (decision 0504): the balance, then each line, the newest first; super admins add some by hand (owner, 8 Nov). */
+/**
+ * The record's Points and bonus chips (decision 0504; owner, 8 Nov): the two balances apart, each with its own name, line
+ * and look, as Rewards shows them to the member; then each bonus line, the newest first; super admins add some by hand.
+ */
 export const memberBonus = {
-  balance: 'Bonus chips now',
+  pointsLabel: 'Points',
+  pointsLine: 'Spend on rewards.',
+  pointsLineLocked: 'Spend on rewards. {locked} more locked.',
+  chipsLabel: 'Bonus chips',
   /** They never expire; the floor redeems them with a buy-in as it seats the member. */
-  note: 'Redeemed in the seat sheet. They never expire.',
+  chipsLine: 'Used with a buy-in in the seat sheet. Never expire.',
   history: 'History',
   none: 'No bonus chips yet.',
   showEarlier: 'Show earlier',

@@ -39,6 +39,7 @@ const ANSWERS: Record<string, unknown> = {
     { line_id: 'b1', at: '2026-11-02T14:00:00Z', kind: 'credited', amount_paise: 250_000, reason: 'Welcome bonus', table_name: null, staff_name: null },
   ],
   '/rpc/member_bonus': [{ bonus_paise: 150_000 }],
+  '/rpc/member_points_of': [{ earned: 3_250, locked: 500 }],
   '/rpc/member_sign_up': [{
     signed_up_at: '2026-10-19T10:00:00Z', city: 'Gurugram', occupation: 'salaried', play_times: ['weekday_evenings', 'weekends'],
     games_played: ['poker', 'plo'], referral_code: null, creator_code: 'ASHU', utm_source: 'instagram', utm_medium: 'social', utm_campaign: 'diwali',
@@ -135,11 +136,15 @@ describe('Members (console v3)', () => {
     expect(screen.getByRole('link', { name: 'Account' })).toBeDefined();
   });
 
-  it('shows the member’s bonus chips on the record, read only: the balance and each line, newest first (decision 0504)', async () => {
+  it('shows points and bonus chips apart on the record, then each bonus line, newest first (decision 0504; owner, 8 Nov)', async () => {
     renderAs('host', 'm1', 'bonus');
     expect(await screen.findByRole('heading', { name: 'Sakshi Tandon', level: 2 }, { timeout: 5000 })).toBeDefined();
-    expect(screen.getByRole('link', { name: 'Bonus chips' }).getAttribute('aria-current')).toBe('page');
+    expect(screen.getByRole('link', { name: 'Points and bonus chips' }).getAttribute('aria-current')).toBe('page');
     expect(await screen.findByText('1,500', {}, { timeout: 5000 })).toBeDefined();
+    // Points, to spend on rewards, apart from bonus chips, used with a buy-in: each with its own line.
+    expect(screen.getByText('3,250')).toBeDefined();
+    expect(screen.getByText('Spend on rewards. 500 more locked.')).toBeDefined();
+    expect(screen.getByText('Used with a buy-in in the seat sheet. Never expire.')).toBeDefined();
     expect(await screen.findByText(/Buy-in · Table 2 · seated by Aditya Malhotra$/, {}, { timeout: 5000 })).toBeDefined();
     expect(screen.getByText('−1,000')).toBeDefined();
     expect(screen.getByText(/Welcome bonus$/)).toBeDefined();

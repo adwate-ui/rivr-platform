@@ -62,7 +62,7 @@ describe('the promotion builder (console v3)', () => {
     expect(within(screen.getByRole('radiogroup', { name: 'Reward' })).getByRole('radio', { name: 'Buy-in bonus' }).getAttribute('aria-checked')).toBe('true');
     expect(screen.getByText(/^20% buy-in bonus, up to 2,000, first 5 buy-ins per table, for all stakes, Tue, all day\./)).toBeDefined();
     expect(within(screen.getByRole('group', { name: 'TV slide' })).getByText('Buy-in bonus Tuesday')).toBeDefined();
-    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Bonus as' })).getByRole('radio', { name: 'Fixed chips' }));
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Bonus chips as' })).getByRole('radio', { name: 'Fixed chips' }));
     expect(screen.getByRole('textbox', { name: 'Bonus chips' })).toHaveProperty('value', '1000');
   });
 
@@ -103,7 +103,7 @@ describe('the promotion builder (console v3)', () => {
       '/rpc/save_promotion_draft': refused('RVFRZ'),
     });
     expect(screen.getByText('Changes make version 2.')).toBeDefined();
-    fireEvent.change(screen.getByRole('textbox', { name: 'Bonus' }), { target: { value: '25' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Bonus chips', exact: true }), { target: { value: '25' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save draft' }));
     expect(await screen.findByText('Venue frozen. Try again once it is released.')).toBeDefined();
     expect(bodiesOf('save_promotion_draft')[0]).toMatchObject({ p_promotion_id: 'p1', p_draft: { terms: { reward: { percent: 25 } } } });

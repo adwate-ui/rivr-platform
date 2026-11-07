@@ -85,10 +85,10 @@ export const promotions = {
     fields: {
       multiplier: 'Multiplier',
       multiplierSuffix: '× points',
-      bonusAs: 'Bonus as',
+      bonusAs: 'Bonus chips as',
       percentMode: '%',
       fixedMode: 'Fixed chips',
-      percent: 'Bonus',
+      percent: 'Bonus chips',
       percentSuffix: '% of the buy-in',
       capChips: 'Cap per buy-in',
       buyChips: 'Bonus chips',

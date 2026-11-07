@@ -174,7 +174,7 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     fields: { enabled: 'Check KYC at the club' },
   },
   'points.verified_bonus': {
-    name: 'Bonus on verification',
+    name: 'Points on verification',
     help: 'The points a member gets once, when their identity check is verified. Not set gives none. Ends at launch: 0 from 15 November.',
     fields: { points: 'Points' },
   },

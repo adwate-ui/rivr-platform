@@ -51,7 +51,7 @@ describe("the approver's view (console v3)", () => {
     expect(screen.getByText('Version 1 now')).toBeDefined();
     expect(screen.getByText(/^25% buy-in bonus, up to 2,000, first 5 buy-ins per table, for all stakes, Tue, Wed, all day\./)).toBeDefined();
     expect(screen.getByText(/^20% buy-in bonus, up to 2,000, first 5 buy-ins per table, for all stakes, Tue, all day\./)).toBeDefined();
-    expect(screen.getByRole('textbox', { name: 'Bonus' })).toHaveProperty('readOnly', true);
+    expect(screen.getByRole('textbox', { name: 'Bonus chips', exact: true })).toHaveProperty('readOnly', true);
     // Read only, each choice shows only what is chosen.
     const kinds = within(screen.getByRole('radiogroup', { name: 'Reward' })).getAllByRole('radio');
     expect(kinds.map((kind) => [kind.getAttribute('aria-label'), kind.getAttribute('aria-checked')])).toEqual([['Buy-in bonus', 'true']]);
