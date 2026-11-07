@@ -39,6 +39,11 @@ const ANSWERS: Record<string, unknown> = {
     { line_id: 'b1', at: '2026-11-02T14:00:00Z', kind: 'credited', amount_paise: 250_000, reason: 'Welcome bonus', table_name: null, staff_name: null },
   ],
   '/rpc/member_bonus': [{ bonus_paise: 150_000 }],
+  '/rpc/member_sign_up': [{
+    signed_up_at: '2026-10-19T10:00:00Z', city: 'Gurugram', occupation: 'salaried', play_times: ['weekday_evenings', 'weekends'],
+    games_played: ['poker', 'plo'], referral_code: null, creator_code: 'ASHU', utm_source: 'instagram', utm_medium: 'social', utm_campaign: 'diwali',
+    utm_content: null, utm_term: null, first_seen_at: null,
+  }],
 };
 
 /** A staff member in `role` on Members, with the member `memberId`'s record open when given. */
@@ -136,6 +141,18 @@ describe('Members (console v3)', () => {
     expect(screen.getByText(/Welcome bonus$/)).toBeDefined();
     expect(screen.getByText('+2,500')).toBeDefined();
     expect(screen.queryByRole('button', { name: /Add|Give/ })).toBeNull();
+  });
+
+  it('shows what the member told the club at sign-up, and how they came (owner, 8 Nov)', async () => {
+    renderAs('host', 'm1', 'signUp');
+    expect(await screen.findByRole('heading', { name: 'Sakshi Tandon', level: 2 }, { timeout: 5000 })).toBeDefined();
+    expect(screen.getByRole('link', { name: 'Sign-up' }).getAttribute('aria-current')).toBe('page');
+    expect(await screen.findByText('Salaried', {}, { timeout: 5000 })).toBeDefined();
+    for (const shown of ['19 Oct 2026', 'Weekday evenings, Weekends', "Hold'em, PLO", 'ASHU', 'instagram · social · diwali']) {
+      expect(screen.getByText(shown)).toBeDefined();
+    }
+    // No referral code and no first visit to the site on record.
+    expect(screen.getAllByText('Not given')).toHaveLength(2);
   });
 
   it('keeps the Account part from an admin, and goes back to the list from the record', async () => {
