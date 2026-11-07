@@ -17,6 +17,30 @@ export interface MemberRow {
   readonly lastVisitAt: string | null;
 }
 
+/**
+ * A member on the Members list (owner, 8 Nov): as a search finds them, but the full number only for super admins
+ * (members.change_phone; null for other staff), its last four digits for everyone, and their KYC, time played, city and
+ * member-since day.
+ */
+export interface MemberListRow extends MemberRow {
+  readonly phoneLast4: string | null;
+  readonly kycStatus: MemberKycStatus;
+  /** Every seat session's time played, in whole minutes. */
+  readonly minutesPlayed: number;
+  /** The city they gave in their preferences, or null. */
+  readonly city: string | null;
+  readonly memberSince: string;
+}
+
+/**
+ * A member's KYC as the Members list shows it: verified; waiting for a reviewer; let in by their selfie with the desk's
+ * check due on their first visit; refused; or not done (no check, or one they have not finished).
+ */
+export type MemberKycStatus = 'verified' | 'in_review' | 'at_desk' | 'refused' | 'not_done';
+
+const KYC_STATUSES: readonly MemberKycStatus[] = ['verified', 'in_review', 'at_desk', 'refused', 'not_done'];
+const kycStatusOf = (text: string): MemberKycStatus => KYC_STATUSES.find((status) => status === text) ?? 'not_done';
+
 /** One member's record (#60): tier and a change's last day, qualifying stake, KYC, visits and early departures (#79). */
 export interface MemberRecord {
   readonly memberId: string;
@@ -134,12 +158,13 @@ export function useMembersOfTier(venueId: string, tierId: string | null) {
   return useQuery({
     queryKey: queryKeys.membersOfTier(userId ?? 'signed-out', venueId, tierId ?? ''),
     enabled: userId !== null,
-    queryFn: async (): Promise<MemberRow[]> => {
+    queryFn: async (): Promise<MemberListRow[]> => {
       const { data, error } = await client.rpc('members_of_tier', tierId === null ? { p_venue_id: venueId } : { p_venue_id: venueId, p_tier_id: tierId });
       if (error) throw error;
       return data.map((row) => ({
-        memberId: row.member_id, memberNumber: row.member_number, fullName: row.full_name, phone: row.phone, tierName: row.tier_name,
-        visits: row.visits, lastVisitAt: row.last_visit_at,
+        memberId: row.member_id, memberNumber: row.member_number, fullName: row.full_name, phone: row.phone, phoneLast4: row.phone_last4,
+        tierName: row.tier_name, visits: row.visits, lastVisitAt: row.last_visit_at, kycStatus: kycStatusOf(row.kyc_status),
+        minutesPlayed: Number(row.minutes_played), city: row.city, memberSince: row.member_since,
       }));
     },
   });

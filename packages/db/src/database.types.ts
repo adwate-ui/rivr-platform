@@ -5315,9 +5315,14 @@ isOneToOne: false
               "full_name": string,"last_visit_at": string,"member_id": string,"member_number": number,"phone": string,"tier_name": string,"visits": number
             }[]
                            },
+"member_sign_up":
+{ Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
+              "city": string,"creator_code": string,"first_seen_at": string,"games_played": (string)[],"occupation": string,"play_times": (string)[],"referral_code": string,"signed_up_at": string,"utm_campaign": string,"utm_content": string,"utm_medium": string,"utm_source": string,"utm_term": string
+            }[]
+                           },
 "members_of_tier":
 { Args: { "p_tier_id"?: string,"p_venue_id": string }; Returns: {
-              "full_name": string,"last_visit_at": string,"member_id": string,"member_number": number,"phone": string,"tier_name": string,"visits": number
+              "city": string,"full_name": string,"kyc_status": string,"last_visit_at": string,"member_id": string,"member_number": number,"member_since": string,"minutes_played": number,"phone": string,"phone_last4": string,"tier_name": string,"visits": number
             }[]
                            },
 "message_recipient":
@@ -5627,7 +5632,7 @@ isOneToOne: false
                            },
 "promotions_overview":
 { Args: { "p_venue_id": string }; Returns: {
-              "channels": Json,"created_at": string,"current_status": string,"current_version_id": string,"detail": string,"eligibility": Json,"given_this_week": number,"is_legacy": boolean,"limits": Json,"name": string,"open_status": string,"open_version_id": string,"promotion_id": string,"rejected_reason": string,"reward": Json,"runs": string,"schedule": Json,"status": string,"template_key": string
+              "channels": Json,"created_at": string,"current_status": string,"current_version_id": string,"detail": string,"eligibility": Json,"ended_at": string,"given_this_week": number,"is_legacy": boolean,"limits": Json,"name": string,"open_status": string,"open_version_id": string,"promotion_id": string,"rejected_reason": string,"reward": Json,"runs": string,"schedule": Json,"status": string,"template_key": string
             }[]
                            },
 "promotions_sent_back":
@@ -6083,6 +6088,11 @@ isOneToOne: false
 "staff_queue_counts":
 { Args: { "p_venue_id": string }; Returns: {
               "queue": string,"waiting": number
+            }[]
+                           },
+"staff_removals":
+{ Args: { "p_venue_id": string }; Returns: {
+              "removed_at": string,"removed_by": string,"staff_id": string
             }[]
                            },
 "start_device_pairing":

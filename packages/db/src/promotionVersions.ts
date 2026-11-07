@@ -27,6 +27,8 @@ export interface PromotionOverview {
   readonly givenThisWeek: number;
   /** Run by its rule, made before versions (decision 0491): its card and pause only. */
   readonly isLegacy: boolean;
+  /** When an ended promotion ended (the owner, 8 Nov); null for one that has not. */
+  readonly endedAt: string | null;
 }
 
 /** The list and how many promotions it has in each status, as the filter chips count them. */
@@ -51,6 +53,7 @@ interface OverviewRow {
   promotion_id: string; template_key: string | null; status: string; name: string; detail: string | null; runs: string | null;
   current_version_id: string | null; current_status: string | null; open_version_id: string | null; open_status: string | null;
   rejected_reason: string | null; reward: Json; eligibility: Json; schedule: Json; limits: Json; given_this_week: number; is_legacy: boolean;
+  ended_at: string | null;
 }
 
 /** A row of promotions_overview as the list shows it; a rule's promotion waiting reads as awaiting approval. */
@@ -60,6 +63,7 @@ export function toPromotionOverview(row: OverviewRow): PromotionOverview {
     id: row.promotion_id, templateKey: row.template_key, name: row.name, detail: row.detail, runs: row.runs, status: listed ?? 'draft',
     currentVersionId: row.current_version_id, openVersionId: row.open_version_id, openStatus: statusOf(row.open_status),
     rejectedReason: row.rejected_reason, terms: row.is_legacy ? null : termsOf(row), givenThisWeek: Number(row.given_this_week), isLegacy: row.is_legacy,
+    endedAt: row.ended_at,
   };
 }
 

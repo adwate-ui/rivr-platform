@@ -1,4 +1,4 @@
-import { useMembersOfTier, useVenueTiers, type MemberRow, type VenueTier } from '@rivr/db';
+import { useMembersOfTier, useVenueTiers, type MemberListRow, type VenueTier } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { ChoiceChips, DataTable, Input, Stack } from '@rivr/ui';
 import { useState } from 'react';
@@ -12,18 +12,26 @@ interface ListProps {
   readonly onOpen: (memberId: string) => void;
   /** The element beside the screen's title that holds the table's Export, as the prototype has it; null until it is there. */
   readonly exportIn: HTMLElement | null;
+  /** Super admins (members.change_phone) see each full mobile number; other staff only search by its last four digits. */
+  readonly seesPhone: boolean;
+  /** A record is open beside the list, so it has half the width and only its first columns. */
+  readonly isDocked: boolean;
+}
+
+/** Whether four or more digits typed match the mobile: within the full number, or by its last four digits for staff without it. */
+function isPhoneFound(row: MemberListRow, digits: string): boolean {
+  if (digits.length < 4) return false;
+  return row.phone === null ? row.phoneLast4 === digits.slice(-4) : row.phone.includes(digits.slice(-10));
 }
 
 /**
  * Whether the search finds a member: their name as typed, their member number exactly, or four or more digits of their
  * mobile number, as the prototype's "last 4 digits".
  */
-function isFound(row: MemberRow, query: string): boolean {
+function isFound(row: MemberListRow, query: string): boolean {
   const typed = query.trim().toLowerCase();
   if (typed === '') return true;
-  const digits = typed.replace(/\D/g, '');
-  return row.fullName.toLowerCase().includes(typed) || String(row.memberNumber) === typed
-    || (digits.length >= 4 && row.phone?.includes(digits.slice(-10)) === true);
+  return row.fullName.toLowerCase().includes(typed) || String(row.memberNumber) === typed || isPhoneFound(row, typed.replace(/\D/g, ''));
 }
 
 /** The screen's filters in words, as an export records them (#102): "All members" when nothing narrows the list. */
@@ -43,11 +51,11 @@ function emptyText(query: string, tier: VenueTier | null): string {
 }
 
 /** Every member, or a tier's, as a table, narrowed by the search as typed; or its loading or error state. */
-function Results({ venueId, tonight, onOpen, exportIn, query, tier }: ListProps & { query: string; tier: VenueTier | null }) {
+function Results({ venueId, tonight, onOpen, exportIn, seesPhone, isDocked, query, tier }: ListProps & { query: string; tier: VenueTier | null }) {
   const listed = useMembersOfTier(venueId, tier?.tierId ?? null);
   const base = {
-    label: t('console.members.title'), columns: memberColumns(tonight), rowKey: (row: MemberRow) => row.memberId, exportFilter: filterWords(query, tier),
-    onRowOpen: (row: MemberRow) => onOpen(row.memberId), initialSort: { key: 'name', direction: 'ascending' } as const, exportIn,
+    label: t('console.members.title'), columns: memberColumns(tonight, { seesPhone, isDocked }), rowKey: (row: MemberListRow) => row.memberId,
+    exportFilter: filterWords(query, tier), onRowOpen: (row: MemberListRow) => onOpen(row.memberId), initialSort: { key: 'name', direction: 'ascending' } as const, exportIn,
     // On a phone the table's lines scroll sideways under the names, as in the prototype.
     narrowLayout: 'scroll' as const,
   };
@@ -58,9 +66,10 @@ function Results({ venueId, tonight, onOpen, exportIn, query, tier }: ListProps 
 
 /**
  * Every member of the venue, listed on open (owner, 3 Nov; decision 0483), as console v3 draws it: the search and a tier
- * choice narrow the table of Name, No., Tier, Tonight and Visits; a click on a row opens the member's record.
+ * choice narrow the table of Name, No., Tier, KYC, Hours played, City, Member since, Tonight and Visits, with the mobile
+ * for super admins (owner, 8 Nov); a click on a row opens the member's record.
  */
-export function MemberList({ venueId, tonight, onOpen, exportIn }: ListProps) {
+export function MemberList({ venueId, tonight, onOpen, exportIn, seesPhone, isDocked }: ListProps) {
   const [query, setQuery] = useState('');
   const [tierId, setTierId] = useState('');
   const tiers = useVenueTiers(venueId);
@@ -75,7 +84,7 @@ export function MemberList({ venueId, tonight, onOpen, exportIn }: ListProps) {
           options={[{ value: '', label: t('console.members.anyTier') }, ...tiers.data.map((choice) => ({ value: choice.tierId, label: choice.name }))]}
           onChange={(picked) => setTierId(picked[0] ?? '')} />
       )}
-      <Results venueId={venueId} tonight={tonight} onOpen={onOpen} exportIn={exportIn} query={query} tier={tier} />
+      <Results venueId={venueId} tonight={tonight} onOpen={onOpen} exportIn={exportIn} seesPhone={seesPhone} isDocked={isDocked} query={query} tier={tier} />
     </Stack>
   );
 }

@@ -11,7 +11,7 @@ function overviewRow(more: Record<string, unknown>) {
     promotion_id: 'p1', template_key: null, status: 'live', name: 'Buy-in bonus Tuesday', detail: '20% buy-in bonus, up to 2,000', runs: null,
     current_version_id: 'v1', current_status: 'live', open_version_id: null, open_status: null, rejected_reason: null, reward: TUESDAY.reward,
     eligibility: TUESDAY.eligibility, schedule: TUESDAY.schedule, limits: TUESDAY.limits, channels: TUESDAY.channels, given_this_week: 38, is_legacy: false,
-    created_at: '2026-11-03T10:00:00+00:00', ...more,
+    created_at: '2026-11-03T10:00:00+00:00', ended_at: null, ...more,
   };
 }
 
@@ -25,11 +25,15 @@ const ROWS = [
   overviewRow({ promotion_id: 'p3', name: 'Four-hour bonus', open_version_id: 'v5', open_status: 'awaiting_approval', given_this_week: 4 }),
   overviewRow({ promotion_id: 'p4', name: 'Lapsed regulars bonus', status: 'paused', detail: '500 bonus chips', runs: 'Every night',
     current_version_id: null, current_status: null, is_legacy: true, given_this_week: 3 }),
+  overviewRow({ promotion_id: 'p5', name: 'Diwali double points', status: 'ended', current_version_id: 'v7', current_status: 'ended',
+    given_this_week: 0, ended_at: '2026-11-02T10:00:00+00:00' }),
 ];
 
-function renderList(onOpen = vi.fn()) {
-  const api = renderWithApi(<PromotionList venueId="v1" names={NAMES.names} onOpen={onOpen} />, { '/rpc/promotions_overview': { body: ROWS } });
-  return { ...api, onOpen };
+function renderList(onOpen = vi.fn(), tab?: string) {
+  const onNavigate = vi.fn();
+  const api = renderWithApi(<PromotionList venueId="v1" names={NAMES.names} onOpen={onOpen} tab={tab} onNavigate={onNavigate} />,
+    { '/rpc/promotions_overview': { body: ROWS } });
+  return { ...api, onOpen, onNavigate };
 }
 
 describe('the promotions list (console v3)', () => {
@@ -67,8 +71,36 @@ describe('the promotions list (console v3)', () => {
     expect(within(table).queryByText('Buy-in bonus Tuesday')).toBeNull();
     expect(within(table).getByText('Weekend triple points')).toBeDefined();
     expect(within(table).getByText('Four-hour bonus')).toBeDefined();
-    fireEvent.click(screen.getByRole('radio', { name: 'Ended, 0' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Draft, 0' }));
     expect(screen.getByText('No promotions with this status.')).toBeDefined();
+  });
+
+  it('keeps ended promotions apart, under their own tab in the address, with the day each ended (owner, 8 Nov)', async () => {
+    const { onNavigate } = renderList();
+    const table = await screen.findByRole('table', { name: 'Promotions' });
+    expect(within(table).queryByText('Diwali double points')).toBeNull();
+    expect(screen.getByRole('link', { name: 'Current 4' }).getAttribute('aria-current')).toBe('page');
+    fireEvent.click(screen.getByRole('link', { name: 'Ended 1' }));
+    expect(onNavigate).toHaveBeenCalledWith('/promotions?tab=ended');
+    resetApi();
+    renderList(vi.fn(), 'ended');
+    const ended = await screen.findByRole('table', { name: 'Promotions' });
+    expect(within(ended).queryByText('Buy-in bonus Tuesday')).toBeNull();
+    const diwali = within(ended).getAllByRole('row').find((row) => row.textContent?.includes('Diwali double points')) ?? ended;
+    expect(diwali.textContent).toContain('2 Nov 2026');
+    expect(screen.queryByRole('radio', { name: 'All, 4' })).toBeNull();
+  });
+
+  it('ends a running promotion in versions after a second press; one run by its rule and a new one have no End', async () => {
+    const { bodiesOf } = renderList();
+    fireEvent.click(await screen.findByRole('button', { name: 'End Buy-in bonus Tuesday' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, end Buy-in bonus Tuesday' }));
+    expect(await screen.findByText('Buy-in bonus Tuesday ended')).toBeDefined();
+    expect(bodiesOf('end_promotion_version')).toEqual([{ p_version_id: 'v1' }]);
+    expect(screen.queryByRole('button', { name: 'End Lapsed regulars bonus' })).toBeNull();
+    // Its next version waits for approval: it is decided first, so the end is never undone by an approval.
+    expect(screen.queryByRole('button', { name: 'End Four-hour bonus' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'End Weekend triple points' })).toBeNull();
   });
 
   it('opens a promotion to edit or review, and the builder for a new one', async () => {

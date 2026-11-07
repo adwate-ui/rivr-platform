@@ -7,7 +7,7 @@ import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
-import { useStaffActions, useVenueStaff } from './venueStaff.ts';
+import { useStaffActions, useStaffRemovals, useVenueStaff } from './venueStaff.ts';
 
 const SIGNED_IN = '00000000-0000-4000-8000-000000000150';
 const VENUE = '00000000-0000-4000-8000-000000000001';
@@ -37,6 +37,35 @@ const AYESHA = { id: 's1', full_name: 'Ayesha Thomas', job_title: 'Floor manager
 const PEMA = { id: 's2', full_name: 'Pema Lepcha', job_title: 'Dealer', role: 'dealer', phone: null, is_active: false, user_id: null };
 
 afterEach(cleanup);
+
+/** The removed staff's record, as staff_removals answers with `rows`; every call is kept with what it was sent. */
+function renderRemovals(rows: unknown[]) {
+  const calls: { url: string; body: unknown }[] = [];
+  const fetch: typeof globalThis.fetch = async (input, init) => {
+    calls.push({ url: input instanceof Request ? input.url : String(input), body: init?.body ? JSON.parse(String(init.body)) : undefined });
+    return Response.json(rows);
+  };
+  const client: RivrClient = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
+    global: { fetch },
+    auth: { storage: sessionStorageFor(SIGNED_IN), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+  const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
+  const { result } = renderHook(() => useStaffRemovals(VENUE), { wrapper });
+  return { result, calls };
+}
+
+describe('useStaffRemovals', () => {
+  it('reads when each removed login was turned off and by whom, by staff id (owner, 8 Nov)', async () => {
+    const { result, calls } = renderRemovals([
+      { staff_id: 's2', removed_at: '2026-11-05T12:00:00Z', removed_by: 'Vikram Rao' },
+      { staff_id: 's3', removed_at: '2026-10-30T09:00:00Z', removed_by: null },
+    ]);
+    await waitFor(() => expect(result.current.data?.size).toBe(2));
+    expect(result.current.data?.get('s2')).toEqual({ removedAt: '2026-11-05T12:00:00Z', removedBy: 'Vikram Rao' });
+    expect(result.current.data?.get('s3')).toEqual({ removedAt: '2026-10-30T09:00:00Z', removedBy: null });
+    expect(calls.find((call) => call.url.includes('/rpc/staff_removals'))?.body).toEqual({ p_venue_id: VENUE });
+  });
+});
 
 describe('useVenueStaff', () => {
   it('lists the venue\'s staff with job title and role apart, and marks the signed-in one', async () => {

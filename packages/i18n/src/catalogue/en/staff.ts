@@ -7,14 +7,12 @@ export const notStaff = {
 /** The console's Staff screen (#28): the venue's staff, with job titles apart from roles. */
 export const staff = {
   title: 'Staff',
-  /** The tabs (#606); Dealer PINs takes its own title. */
-  tabs: { staff: 'Staff members' },
+  /** The tabs (#606): staff working, and those whose login is off (owner, 8 Nov); Dealer PINs takes its own title. */
+  tabs: { staff: 'Staff members', removed: 'Removed staff' },
   notAllowed: 'Not in your role. Ask an admin.',
   empty: 'No staff yet.',
   /** The staff table (C-03): its headings and search, the button that opens the add form, and a row's Close (common.close). */
   name: 'Name',
-  login: 'Login',
-  active: 'Active',
   search: 'Find staff',
   /** The role filter (console v3): its name, apart from the add form's Role; All, then each role someone holds. */
   roleFilter: 'Staff by role',
@@ -31,13 +29,21 @@ export const staff = {
     marketing: 'Marketing',
     host: 'Host',
     owner_view: 'Owner, view only',
-    service: 'Service',
+    service: 'F&B',
   },
   /** Under a name: `{jobTitle}`, then the role. */
   line: '{jobTitle} · {role}',
   /** A dealer with no number, who signs in on a tablet with a PIN. */
   noPhone: 'No number',
   inactive: 'Turned off',
+  /** Removed staff (owner, 8 Nov): a removal's date and who did it, and Restore. */
+  removedOn: 'Removed',
+  removedBy: '{date} · by {name}',
+  removedUnrecorded: 'Not recorded',
+  noneRemoved: 'No one removed.',
+  restore: 'Restore',
+  restoreNamed: 'Restore {name}',
+  confirmRestore: 'Yes, restore {name}',
   you: 'You',
   /** A row's way into its changes (UI polish audit A-17), and out again. */
   change: 'Change',

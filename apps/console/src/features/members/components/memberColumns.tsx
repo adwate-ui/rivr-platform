@@ -1,6 +1,6 @@
-import type { MemberRow } from '@rivr/db';
-import { formatNumber, t } from '@rivr/i18n';
-import { DotStatus, Text, type DataTableColumn } from '@rivr/ui';
+import type { MemberKycStatus, MemberListRow } from '@rivr/db';
+import { formatHoursMinutes, formatMobile, formatMonthYear, formatNumber, t } from '@rivr/i18n';
+import { DotStatus, Text, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
 import type { Tonight } from './tonight.ts';
 
 /** A member's place tonight as a dot and a short status (console v3): a seat, waiting, left, or a dash when not here. */
@@ -23,8 +23,60 @@ function tonightOrder(tonight: Tonight | undefined): string {
   return tonight.kind === 'waiting' ? '1' : '2';
 }
 
-/** Members' columns (console v3): Name, No., Tier, Tonight and Visits; the name opens the record. */
-export function memberColumns(tonight: ReadonlyMap<string, Tonight>): readonly DataTableColumn<MemberRow>[] {
+// Verified is cream; a check someone must do is gold; refused is red; not done faint.
+const KYC_TONE: Readonly<Record<MemberKycStatus, DotStatusTone>> = {
+  verified: 'active', in_review: 'needsYou', at_desk: 'needsYou', refused: 'danger', not_done: 'inactive',
+};
+const KYC_ORDER: readonly MemberKycStatus[] = ['at_desk', 'in_review', 'not_done', 'refused', 'verified'];
+
+/**
+ * The mobile number, for super admins only (owner, 8 Nov): staff without members.change_phone have no such column. Two
+ * shares, so a number stays on one line beside the other columns at 1440 px.
+ */
+const mobileColumn: DataTableColumn<MemberListRow> = {
+  key: 'mobile', header: t('console.members.mobile'), priority: 'secondary', isWide: true,
+  cell: (row) => (row.phone === null ? '' : formatMobile(row.phone)), exportValue: (row) => row.phone ?? '',
+};
+
+/** KYC, time played, city and the day they joined (owner, 8 Nov); city and joining day give way first on a narrow screen. */
+function moreColumns(): readonly DataTableColumn<MemberListRow>[] {
+  return [
+    {
+      key: 'kyc', header: t('console.members.kyc'), sortValue: (row) => KYC_ORDER.indexOf(row.kycStatus),
+      cell: (row) => <DotStatus tone={KYC_TONE[row.kycStatus]} label={t(`console.members.kycStatuses.${row.kycStatus}`)} />,
+      exportValue: (row) => t(`console.members.kycStatuses.${row.kycStatus}`),
+    },
+    {
+      key: 'played', header: t('console.members.played'), align: 'end', sortValue: (row) => row.minutesPlayed,
+      cell: (row) => formatHoursMinutes(row.minutesPlayed * 60),
+    },
+    { key: 'city', header: t('console.members.city'), priority: 'optional', cell: (row) => row.city ?? '', sortValue: (row) => row.city ?? '' },
+    {
+      key: 'since', header: t('console.members.memberSince'), priority: 'optional', sortValue: (row) => row.memberSince,
+      cell: (row) => formatMonthYear(new Date(row.memberSince)),
+    },
+  ];
+}
+
+/** How the list is drawn: whether the viewer sees full numbers, and whether a record is open beside it, half the width. */
+export interface MemberColumnsFor {
+  readonly seesPhone: boolean;
+  readonly isDocked: boolean;
+}
+
+/**
+ * Members' columns (console v3; owner, 8 Nov): Name, No., Tier, the mobile for super admins, KYC, Hours played, City,
+ * Member since, Tonight and Visits; the name opens the record. With a record open beside the list, only Name, No., Tier,
+ * Tonight and Visits, which fit half the width; the record has the rest.
+ */
+export function memberColumns(tonight: ReadonlyMap<string, Tonight>, view: MemberColumnsFor): readonly DataTableColumn<MemberListRow>[] {
+  const [name, number, tier, ...rest] = coreColumns(tonight);
+  const more = view.isDocked ? [] : [...(view.seesPhone ? [mobileColumn] : []), ...moreColumns()];
+  return [name, number, tier, ...more, ...rest].filter((column) => column !== undefined);
+}
+
+/** Name, No., Tier, Tonight and Visits: the list as console v3 drew it. */
+function coreColumns(tonight: ReadonlyMap<string, Tonight>): readonly DataTableColumn<MemberListRow>[] {
   return [
     // Twice a share, so a name stays on one line beside the record (the screenshot index: "Kabir / Sethi").
     { key: 'name', header: t('console.members.name'), cell: (row) => row.fullName, sortValue: (row) => row.fullName, isWide: true },

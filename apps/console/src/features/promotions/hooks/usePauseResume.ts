@@ -6,7 +6,8 @@ import { useState } from 'react';
 
 /**
  * Pause and Resume on the list (console v3), each said in a toast whose Undo is the other: the exact compensating call. A
- * promotion in versions pauses its running version; one still run by its rule pauses its card (decision 0491).
+ * promotion in versions pauses its running version; one still run by its rule pauses its card (decision 0491). End (owner,
+ * 8 Nov) ends a running version for good, after the list's second press, so its toast has no Undo.
  */
 export function usePauseResume(venueId: string) {
   const versions = usePromotionVersionActions(venueId);
@@ -24,9 +25,16 @@ export function usePauseResume(venueId: string) {
     const said = t(isLive ? 'console.promotions.toast.resumed' : 'console.promotions.toast.paused', { name: promotion.name });
     toast(said, { onUndo: () => void setLive(promotion, !isLive) });
   };
+  const end = async (promotion: PromotionOverview) => {
+    if (promotion.currentVersionId === null) return;
+    const outcome = await versions.end.mutateAsync(promotion.currentVersionId);
+    setFailure(outcome.ok ? null : outcome.error);
+    if (outcome.ok) toast(t('console.promotions.toast.ended', { name: promotion.name }));
+  };
   return {
     failure,
-    isBusy: versions.setLive.isPending || rules.setLive.isPending,
+    isBusy: versions.setLive.isPending || rules.setLive.isPending || versions.end.isPending,
+    end: (promotion: PromotionOverview) => void end(promotion),
     pause: (promotion: PromotionOverview) => void turn(promotion, false),
     resume: (promotion: PromotionOverview) => void turn(promotion, true),
   };

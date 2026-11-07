@@ -9,7 +9,9 @@ export { useSignIn, useSignOut, type SignInResult } from './signIn.ts';
 // Lane A's money hooks (cage, credit, treasury, expenses...) are listed in money.ts, so lanes rarely edit the same list.
 export * from './money.ts';
 export { PRACTICE_KEY, StaffVenueProvider, useStaffVenue, useStaffVenues, type StaffVenue, type StaffVenueState } from './staff.tsx';
-export { useStaffActions, useVenueStaff, type StaffChange, type StaffFailure, type StaffMember } from './venueStaff.ts';
+export {
+  useStaffActions, useStaffRemovals, useVenueStaff, type StaffChange, type StaffFailure, type StaffMember, type StaffRemoval,
+} from './venueStaff.ts';
 export {
   cellKey, useTierActions, useTierMatrix,
   type DisplayMode, type ShowsAs, type TierCell, type TierCellChange, type TierFailure, type TierMatrix,
@@ -96,9 +98,10 @@ export { useMyUsualFnbItems } from './fnbUsual.ts';
 export { useMySeat, useMySeatActions, type Leaving, type MySeat, type MySeatFailure, type TopUp } from './mySeat.ts';
 export { useFloorNight, useTableHands, type FloorNight, type TableHand, type TableNight } from './floorNight.ts';
 export {
-  isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberRecord, useMembersOfTier, useMemberSearch, useVenueTiers, useWithdrawEarlyDeparture, type EarlyDeparture, type EarlyDepartureFailure, type MemberFailure,
+  isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberRecord, useMembersOfTier, useMemberSearch, useVenueTiers, useWithdrawEarlyDeparture, type EarlyDeparture, type EarlyDepartureFailure, type MemberFailure, type MemberKycStatus, type MemberListRow,
   type MemberRecord, type MemberRow, type TierChange, type VenueTier,
 } from './members.ts';
+export { useMemberSignUp, type MemberSignUp, type SignUpCampaign } from './memberSignUp.ts';
 export { useChangeMemberPhone, type PhoneChangeFailure } from './memberPhone.ts';
 export {
   useEraseMember, useMemberErasurePreview, useRemoveErasedKycFiles, type Erasure, type ErasureBlocker, type ErasureFailure, type ErasurePreview,
