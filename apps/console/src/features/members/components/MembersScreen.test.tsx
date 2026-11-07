@@ -89,7 +89,7 @@ describe('Members (console v3)', () => {
       expect(within(table).getByRole('columnheader', { name: new RegExp(header) })).toBeDefined();
     }
     const sakshi = within(table).getAllByRole('row').find((row) => row.textContent?.includes('Sakshi Tandon')) ?? table;
-    for (const shown of ['+91 90000 00266', 'Verified', '2h 15m', 'Gurugram', '20 Oct 2026']) expect(sakshi.textContent).toContain(shown);
+    for (const shown of ['+91 90000 00266', 'Verified', '2h 15m', 'Gurugram', 'Oct 2026']) expect(sakshi.textContent).toContain(shown);
     const arjun = within(table).getAllByRole('row').find((row) => row.textContent?.includes('Arjun Mehta')) ?? table;
     expect(arjun.textContent).toContain('Desk check');
   });
@@ -120,6 +120,10 @@ describe('Members (console v3)', () => {
   it('shows a seated member\'s seat with a link to it on the floor, and the promotions they were given', async () => {
     const onNavigate = renderAs('super_admin', 'm1');
     expect(await screen.findByRole('heading', { name: 'Sakshi Tandon', level: 2 }, { timeout: 5000 })).toBeDefined();
+    // Half the width beside the record, the list keeps Name, No., Tier, Tonight and Visits; the record has the rest.
+    const table = screen.getByRole('table', { name: 'Members' });
+    expect(within(table).queryByRole('columnheader', { name: /KYC|Mobile|Hours played/ })).toBeNull();
+    expect(within(table).getByRole('columnheader', { name: /Visits/ })).toBeDefined();
     // The list beside it names her seat too, in its Tonight column's title: the record's line is the one with Show.
     const show = await screen.findByRole('button', { name: 'Show Sakshi Tandon on the floor' });
     expect(show.parentElement?.textContent).toContain('Table 2, seat 3');

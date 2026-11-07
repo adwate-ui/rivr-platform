@@ -16,7 +16,7 @@ export { formatClock,
   formatHoursMinutes,
   formatTypedDay,
   isoDayOfTyped,
-  formatMinutesSeconds, formatDate, formatDateTime, formatDayMonth, formatDayTime, formatDuration, formatIsoDay, isLaterIstDay, istMidnight, formatMonth, formatQuarter, formatTime, formatWeekday } from './format/time.ts';
+  formatMinutesSeconds, formatDate, formatDateTime, formatMonthYear, formatDayMonth, formatDayTime, formatDuration, formatIsoDay, isLaterIstDay, istMidnight, formatMonth, formatQuarter, formatTime, formatWeekday } from './format/time.ts';
 export { formatList } from './format/list.ts';
 export { formatOrdinal } from './format/ordinal.ts';
 export { formatBlinds } from './format/chips.ts';

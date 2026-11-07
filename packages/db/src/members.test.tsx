@@ -72,9 +72,21 @@ describe('Members', () => {
 
   it('lists every member of the venue with no tier given, and a tier’s members with one', async () => {
     const { result, calls } = renderMembers({
-      members_of_tier: { body: [{ member_id: 'm1', member_number: 2, full_name: 'Kabir Sethi', phone: null, tier_name: 'Member', visits: 0, last_visit_at: null }] },
+      members_of_tier: { body: [{
+        member_id: 'm1', member_number: 2, full_name: 'Kabir Sethi', phone: null, phone_last4: '0102', tier_name: 'Member', visits: 0, last_visit_at: null,
+        kyc_status: 'at_desk', minutes_played: 135, city: 'Gurugram', member_since: '2026-10-20T10:00:00Z',
+      }, {
+        member_id: 'm2', member_number: 3, full_name: 'Arjun Mehta', phone: '+919000000103', phone_last4: '0103', tier_name: 'Member', visits: 2,
+        last_visit_at: null, kyc_status: 'pending', minutes_played: 0, city: null, member_since: '2026-10-21T10:00:00Z',
+      }] },
     });
-    await waitFor(() => expect(result.current.everyone.data?.[0]).toMatchObject({ memberId: 'm1', fullName: 'Kabir Sethi', phone: null }));
+    // The list's more (owner, 8 Nov): the last four digits for all, KYC, time played, city and since when.
+    await waitFor(() => expect(result.current.everyone.data?.[0]).toEqual({
+      memberId: 'm1', memberNumber: 2, fullName: 'Kabir Sethi', phone: null, phoneLast4: '0102', tierName: 'Member', visits: 0, lastVisitAt: null,
+      kycStatus: 'at_desk', minutesPlayed: 135, city: 'Gurugram', memberSince: '2026-10-20T10:00:00Z',
+    }));
+    // A KYC status the console does not know reads as not done, never as verified.
+    expect(result.current.everyone.data?.[1]).toMatchObject({ phone: '+919000000103', kycStatus: 'not_done', city: null });
     await waitFor(() => expect(result.current.ofTier.isSuccess).toBe(true));
     expect(calls.filter((call) => call.rpc === 'members_of_tier').map((call) => call.body)).toEqual(expect.arrayContaining([
       { p_venue_id: VENUE }, { p_venue_id: VENUE, p_tier_id: 't2' },

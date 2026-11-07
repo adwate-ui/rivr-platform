@@ -1,10 +1,13 @@
 -- More on the Members list (the owner, 8 Nov): each member's KYC status, total time played, city and member-since day,
--- and the mobile number for super admins. The full number goes only to staff who change numbers (members.change_phone,
--- super admins); the rest get its last four digits, which the console's search matches. As 20261107410000 made it
--- otherwise: every member of the venue in use, or of a tier, by name, at most 5,000, for staff who read members.
+-- and the mobile number for super admins. This list gives the full number only to staff who change numbers
+-- (members.change_phone, super admins) and the rest its last four digits, which the console's search matches. It is
+-- what the list shows, not a wall: the member record, the search and the member table still give staff who read
+-- members the number. As 20261107410000 made it otherwise: every member of the venue in use, or of a tier, by name, at
+-- most 5,000, for staff who read members.
 --
--- KYC status, as the console shows it: verified; in_review (waiting for a reviewer); at_desk (let in by their selfie,
--- the desk checks them on their first visit); refused; not_done (no check, or one the member has not finished).
+-- KYC status, as the console shows it: verified (private.is_kyc_complete, as the record says "KYC verified"); in_review
+-- (waiting for a reviewer); at_desk (let in by their selfie, the desk checks them on their first visit); refused;
+-- not_done (no check, or one the member has not finished).
 
 drop function public.members_of_tier(uuid, uuid);
 drop function private.members_of_tier(uuid, uuid);
@@ -30,7 +33,7 @@ as $$
   select m.id, m.member_number, m.full_name, case when a.sees_phone then m.phone end, right(m.phone, 4), t.name,
          (select count(*)::integer from public.visit v where v.member_id = m.id),
          (select max(v.opened_at) from public.visit v where v.member_id = m.id),
-         case when k.status = 'verified' then 'verified'
+         case when private.is_kyc_complete(m.id) then 'verified'
               when k.status = 'needs_review' then 'in_review'
               when k.status = 'refused' then 'refused'
               when k.status = 'started' and k.at_club_from is not null then 'at_desk'

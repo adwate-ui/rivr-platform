@@ -31,21 +31,27 @@ from played p;
 insert into public.member_preference (member_id, venue_id, city)
 values ('00000000-0000-4000-8000-000000000211', '00000000-0000-4000-8000-000000000001', 'Gurugram')
 on conflict (member_id) do update set city = excluded.city;
+-- Two unfinished checks move on: one waits for a reviewer, one is refused.
+create temporary table moved as
+select k.member_id, row_number() over (order by m.member_number) as at from public.kyc_record k join public.member m on m.id = k.member_id
+where m.venue_id = '00000000-0000-4000-8000-000000000001' and k.status = 'needs_pan' order by m.member_number limit 2;
+update public.kyc_record set status = 'needs_review' where member_id = (select member_id from moved where at = 1);
+update public.kyc_record set status = 'refused', refusal = 'staff_rejected' where member_id = (select member_id from moved where at = 2);
 -- What each club member has played, counted here as the list should count it.
 create temporary table expected as
-select m.id, m.phone, m.created_at, k.status as kyc, k.at_club_from,
+select m.id, m.phone, m.created_at, k.status as kyc, k.at_club_from, private.is_kyc_complete(m.id) as is_complete,
        coalesce((select sum(private.minutes_played(s, now())) from public.seat_session s where s.member_id = m.id and s.venue_id = m.venue_id), 0)::bigint as minutes
 from public.member m left join public.kyc_record k on k.member_id = m.id
 where m.venue_id = '00000000-0000-4000-8000-000000000001';
-grant select on at_desk, expected to authenticated;
+grant select on at_desk, moved, expected to authenticated;
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select is_empty($$ select 1 from public.members_of_tier('00000000-0000-4000-8000-000000000001') l join expected e on e.id = l.member_id
-                   where l.phone is distinct from e.phone $$, 'a super admin reads each full number');
+                   where l.phone is distinct from e.phone $$, 'the list gives a super admin each full number');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is_empty($$ select 1 from public.members_of_tier('00000000-0000-4000-8000-000000000001') where phone is not null $$,
-  'an admin reads no full number');
+  'the list gives an admin no full number');
 select is_empty($$ select 1 from public.members_of_tier('00000000-0000-4000-8000-000000000001') l join expected e on e.id = l.member_id
                    where l.phone_last4 is distinct from right(e.phone, 4) $$, 'but each number''s last four digits');
 select is_empty($$ select 1 from public.members_of_tier('00000000-0000-4000-8000-000000000001') l join expected e on e.id = l.member_id
@@ -55,7 +61,10 @@ select is_empty($$ select 1 from public.members_of_tier('00000000-0000-4000-8000
 select is((select kyc_status from public.members_of_tier('00000000-0000-4000-8000-000000000001') where member_id = (select member_id from at_desk)),
   'at_desk', 'a member let in by their selfie waits for the desk''s check');
 select is_empty($$ select 1 from public.members_of_tier('00000000-0000-4000-8000-000000000001') l join expected e on e.id = l.member_id
-                   where e.kyc = 'verified' and l.kyc_status <> 'verified' $$, 'a verified member reads verified');
+                   where e.is_complete <> (l.kyc_status = 'verified') $$, 'verified exactly as the record says KYC verified');
+select results_eq($$ select l.kyc_status from public.members_of_tier('00000000-0000-4000-8000-000000000001') l
+                     join moved on moved.member_id = l.member_id order by moved.at $$,
+  $$ values ('in_review'::text), ('refused'::text) $$, 'a check waiting for a reviewer, and one refused');
 select is_empty($$ select 1 from public.members_of_tier('00000000-0000-4000-8000-000000000001') l join expected e on e.id = l.member_id
                    where (e.kyc is null or e.kyc = 'needs_pan') and l.kyc_status <> 'not_done' $$, 'no check, or one unfinished, is not done');
 select results_eq($$ select minutes_played, city from public.members_of_tier('00000000-0000-4000-8000-000000000001')
