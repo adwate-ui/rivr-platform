@@ -36,11 +36,30 @@ async function sendOne(eventType: string, payload: unknown) {
 }
 
 describe('the push consumer', () => {
-  it('is a messaging consumer of seat calls, call time, session reminders, withdrawals, tournaments and promotion offers', () => {
+  it('is a messaging consumer of seat calls, call time, session reminders, withdrawals, tournaments, promotion offers and bonus chips', () => {
     const consumer = createPushConsumer({ push: createFakePush(), ...members([]), now });
     expect([consumer.name, consumer.isMessaging, consumer.eventTypes]).toEqual([
-      'push', true, ['waitlist.called', 'call_time.ending', 'call_time.completed', 'session.reminder', 'withdrawal.sent', 'tournament.starting', 'promotion.offered'],
+      'push', true, ['waitlist.called', 'call_time.ending', 'call_time.completed', 'session.reminder', 'withdrawal.sent', 'tournament.starting', 'promotion.offered',
+        'bonus.credited', 'bonus.redeemed'],
     ]);
+  });
+
+  it('tells the member of bonus chips added and used, under the Bonus chips switch, opening Rewards (decision 0504)', async () => {
+    expect(await sendOne('bonus.credited', { member_id: MEMBER, bonus_grant_id: OTHER, amount_paise: 50_000, reason: 'Welcome bonus' })).toEqual({
+      outcome: { ok: true, value: null }, asked: ['push.bonus'],
+      sent: [{ title: 'Bonus chips added', body: '500 bonus chips · Welcome bonus', url: '/rewards', tag: `bonus-${OTHER}` }],
+    });
+    const redeemed = { member_id: MEMBER, bonus_redemption_id: OTHER, amount_paise: 100_000, table_id: SESSION, table_name: 'Table 3' };
+    expect(await sendOne('bonus.redeemed', redeemed)).toEqual({
+      outcome: { ok: true, value: null }, asked: ['push.bonus'],
+      sent: [{ title: 'Bonus chips used', body: '1,000 bonus chips with your buy-in at Table 3.', url: '/rewards', tag: `bonus-used-${OTHER}` }],
+    });
+    expect((await sendOne('bonus.redeemed', { ...redeemed, amount_paise: 1_000 })).outcome)
+      .toEqual({ ok: false, error: { code: 'rejected', reason: 'bonus.redeemed payload is not readable' } });
+    const consumer = createPushConsumer({ push: createFakePush(), ...members([phone('a')]), now });
+    const hoursAgo = (hours: number) => new Date(now().getTime() - hours * 60 * 60 * 1000);
+    expect(await consumer.deliver(delivery('bonus.credited', { member_id: MEMBER, bonus_grant_id: OTHER, amount_paise: 50_000, reason: 'Welcome' }, hoursAgo(25))))
+      .toEqual({ ok: true, value: null });
   });
 
   it('sends the seat call to each of the member\u2019s phones: the table, the seat and the hold, in IST', async () => {

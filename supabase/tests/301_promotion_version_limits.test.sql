@@ -104,7 +104,7 @@ select results_eq($$ select coalesce(g.perk, p.name), g.chips from public.promot
   $$ values ('Chips A'::text, 100::bigint), ('Chips B', 200), ('waitlist_priority', 0) $$, 'both bonuses, and one waitlist priority (the older promotion''s)');
 select is(pg_temp.check_in('214', 's-1'), 0, 'the same check-in again gives nothing more');
 select is((select count(*)::integer from public.bonus_grant where member_id = '00000000-0000-4000-8000-000000000214' and reason in ('Chips A', 'Chips B')
-           and expires_at > now() + interval '6 days'), 2, 'each credited as bonus for seven days');
+           and expires_at is null), 2, 'each credited as bonus that never ends (decision 0504)');
 update public.promotion_version set status = 'ended' where promotion_id in (select id from ids where name in ('chips-a', 'chips-b', 'priority-a', 'priority-b'));
 
 -- Who qualifies: a tier, and an event away from a table for a promotion of some stakes.

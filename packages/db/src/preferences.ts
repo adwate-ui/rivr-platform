@@ -10,7 +10,7 @@ export const GAMES = ['nlh', 'plo', 'tournaments'] as const;
 export type Game = (typeof GAMES)[number];
 
 /** The push notifications a member chooses in Profile. Promotions follow the marketing consent. */
-export const PUSH_CHOICES = ['push.seat_ready', 'push.call_time_complete', 'push.withdrawal_sent', 'push.tournament_starting'] as const;
+export const PUSH_CHOICES = ['push.seat_ready', 'push.call_time_complete', 'push.withdrawal_sent', 'push.tournament_starting', 'push.bonus'] as const;
 export type PushChoice = (typeof PUSH_CHOICES)[number];
 
 /** A stake as blinds in paise: 100/200 is 10000n and 20000n. */

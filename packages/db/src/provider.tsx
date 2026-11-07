@@ -16,13 +16,16 @@ interface RivrData {
 
 const RivrDataContext = createContext<RivrData | null>(null);
 
-// Tables whose changes alter what the signed-in person may do, and the cached query each one makes
-// stale. Keys come from queryKeys, so renaming a key cannot silently stop live updates.
+// Tables whose changes alter what the signed-in person may do or holds, and the cached query each one
+// makes stale. Keys come from queryKeys, so renaming a key cannot silently stop live updates.
 const TABLES_THAT_CHANGE_ACCESS: ReadonlyArray<readonly [table: string, staleQuery: (userId: string) => readonly string[]]> = [
   ['tier_feature', queryKeys.featureAccess],
   ['member_feature_override', queryKeys.featureAccess],
   ['member', queryKeys.featureAccess],
   ['control_state', queryKeys.controlState],
+  // Bonus chips given or used (decision 0504): the member's Rewards, toast and the record's Bonus tab, each under its own row-level security.
+  ['bonus_grant', queryKeys.bonusAll],
+  ['bonus_redemption', queryKeys.bonusAll],
 ];
 
 function useSession(client: RivrClient): { userId: string | null; authStatus: AuthStatus } {

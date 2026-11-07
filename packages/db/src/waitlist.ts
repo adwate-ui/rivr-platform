@@ -99,11 +99,15 @@ export type WaitlistFailure =
   // Seat sessions (#77): someone sits in the seat called to.
   | 'seat_taken'
   // One game at a time (#633): the member already waits for another.
-  | 'one_at_a_time';
+  | 'one_at_a_time'
+  // Bonus chips redeemed as the member is seated (decision 0504): more than they have, not whole 50s, the staff member's own
+  // record, promotions switched off, or too many a minute.
+  | 'bonus_short' | 'not_chips' | 'own_record' | 'bonus_off' | 'too_many';
 
 const FAILURE_BY_CODE: Readonly<Record<string, WaitlistFailure>> = {
   '42501': 'not_open', RVKYC: 'kyc_needed', RVBRK: 'on_break', RVMBR: 'stopped', RVFRZ: 'paused', RVNOM: 'no_member', '22023': 'invalid',
   RVHLD: 'seat_held', RVLAT: 'too_late', RVAWY: 'no_time_away', RVOCC: 'seat_taken', RVSTD: 'invalid', RVONE: 'one_at_a_time',
+  RVBON: 'bonus_short', RVCHP: 'not_chips', RVOWN: 'own_record', RVKIL: 'bonus_off', RVRAT: 'too_many',
 };
 
 /** The failure a refused waitlist call stands for. */

@@ -52,7 +52,23 @@ export const members = {
   /** The name a member gave at sign-up, under their Aadhaar name (#803): `Known as Ashu`. */
   knownAs: 'Known as {name}',
   /** The record's parts, one shown at a time (C-02); visits takes visitsTitle. `{name}` is the member's. */
-  parts: { label: 'Record of {name}', membership: 'Tier and break', account: 'Account' },
+  parts: { label: 'Record of {name}', bonus: 'Bonus chips', membership: 'Tier and break', account: 'Account' },
+  /** The record's Bonus chips (decision 0504), read only: the balance, then each line, the newest first. */
+  bonus: {
+    balance: 'Bonus chips now',
+    /** They never expire; the floor redeems them with a buy-in as it seats the member. */
+    note: 'Redeemed in the seat sheet. They never expire.',
+    history: 'History',
+    none: 'No bonus chips yet.',
+    showEarlier: 'Show earlier',
+    /** A line: `15 Nov 2026 · Welcome bonus` `+500`; `15 Nov 2026 · Buy-in · Table 3 · seated by Aditya Malhotra` `−1,000`. */
+    credited: '{date} · {reason}',
+    redeemed: '{date} · Buy-in · {table}',
+    redeemedBy: '{date} · Buy-in · {table} · seated by {name}',
+    expired: '{date} · Expired · {reason}',
+    plus: '+{chips}',
+    minus: '−{chips}',
+  },
   earlyDeparturesTitle: 'Early departures',
   noEarlyDepartures: 'No early departures.',
   /** One early departure: `{date}`, `{time}` of call time owed, why, and the admin who let them go. */

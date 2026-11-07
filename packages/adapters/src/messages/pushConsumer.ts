@@ -1,8 +1,8 @@
 import {
-  callTimeCompletedSchema, callTimeEndingSchema, err, ok, promotionOfferedSchema, sessionReminderSchema, tournamentStartingSchema, waitlistCalledSchema,
-  withdrawalSentSchema, type Result,
+  bonusCreditedSchema, bonusRedeemedSchema, callTimeCompletedSchema, callTimeEndingSchema, err, ok, promotionOfferedSchema, sessionReminderSchema,
+  tournamentStartingSchema, waitlistCalledSchema, withdrawalSentSchema, type Result,
 } from '@rivr/contracts';
-import { formatMoney, formatTime, push as pushCopy, registerMessages, t } from '@rivr/i18n';
+import { formatChips, formatMoney, formatTime, push as pushCopy, registerMessages, t } from '@rivr/i18n';
 import type { ClaimedDelivery, Consumer } from '../outbox/index.ts';
 import type { PushAdapter, WebPushSubscription } from '../push/types.ts';
 import type { AdapterFailure } from '../shared/failure.ts';
@@ -13,6 +13,7 @@ registerMessages({ push: pushCopy });
 /** The events the push consumer sends a notification for (#139, #338). */
 export const PUSH_EVENT_TYPES = [
   'waitlist.called', 'call_time.ending', 'call_time.completed', 'session.reminder', 'withdrawal.sent', 'tournament.starting', 'promotion.offered',
+  'bonus.credited', 'bonus.redeemed',
 ] as const;
 
 /**
@@ -112,6 +113,24 @@ function promotionOffered(payload: unknown): Built {
   return ok({ memberId, pushType: 'push.promotion_published', promotionId, title, body, url: '/', tag: `promotion-${promotionId}` });
 }
 
+/** Bonus chips added (decision 0504): how many and why, opening Rewards, where the balance is. */
+function bonusCredited(payload: unknown): Built {
+  const credited = bonusCreditedSchema.safeParse(payload);
+  if (!credited.success) return unreadable('bonus.credited');
+  const { member_id: memberId, bonus_grant_id: grantId, amount_paise: amount, reason } = credited.data;
+  const body = t('push.bonusCredited.body', { chips: formatChips(BigInt(amount)), reason });
+  return ok({ memberId, pushType: 'push.bonus', title: t('push.bonusCredited.title'), body, url: '/rewards', tag: `bonus-${grantId}` });
+}
+
+/** Bonus chips used with the member's buy-in as they were seated (decision 0504): how many, and at which table. */
+function bonusRedeemed(payload: unknown): Built {
+  const redeemed = bonusRedeemedSchema.safeParse(payload);
+  if (!redeemed.success) return unreadable('bonus.redeemed');
+  const { member_id: memberId, bonus_redemption_id: redemptionId, amount_paise: amount, table_name: table } = redeemed.data;
+  const body = t('push.bonusRedeemed.body', { chips: formatChips(BigInt(amount)), table });
+  return ok({ memberId, pushType: 'push.bonus', title: t('push.bonusRedeemed.title'), body, url: '/rewards', tag: `bonus-used-${redemptionId}` });
+}
+
 const HOUR_MS = 60 * 60 * 1000;
 
 /**
@@ -124,6 +143,8 @@ const USEFUL_FOR_MS: Readonly<Partial<Record<(typeof PUSH_EVENT_TYPES)[number], 
   'tournament.starting': HOUR_MS,
   'withdrawal.sent': 24 * HOUR_MS,
   'promotion.offered': 24 * HOUR_MS,
+  'bonus.credited': 24 * HOUR_MS,
+  'bonus.redeemed': 24 * HOUR_MS,
 };
 
 function isStale(eventType: (typeof PUSH_EVENT_TYPES)[number], occurredAt: Date | undefined, now: Date): boolean {
@@ -140,6 +161,8 @@ const BUILDERS: Readonly<Record<(typeof PUSH_EVENT_TYPES)[number], (payload: unk
   'withdrawal.sent': withdrawalSent,
   'tournament.starting': tournamentStarting,
   'promotion.offered': promotionOffered,
+  'bonus.credited': bonusCredited,
+  'bonus.redeemed': bonusRedeemed,
 };
 
 function pushFor(delivery: ClaimedDelivery, now: Date): Built {

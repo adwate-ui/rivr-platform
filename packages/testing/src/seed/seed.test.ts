@@ -77,7 +77,7 @@ describe('design prompt seed: people', () => {
 
   it('gives Arjun the balances the flows compute from', () => {
     expect(seed.arjun.cash).toBe(18_500_000n);
-    expect(seed.arjun.bonus).toEqual({ amount: 400_000n, expiresAt: ist('2026-11-22 23:59') });
+    expect(seed.arjun.bonus).toEqual({ amount: 400_000n, expiresAt: null });
     expect(seed.arjun.openMarker.amount).toBe(5_000_000n);
     expect(seed.clock.getTime() - seed.arjun.openMarker.issuedAt.getTime()).toBe(14 * DAY_MS);
     expect(seed.arjun.creditLimit).toBe(20_000_000n);

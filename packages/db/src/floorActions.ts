@@ -3,7 +3,7 @@ import type { SeatWho } from '@rivr/contracts';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { floorQueryKeys } from './floorRequests.ts';
 import { useRivrData } from './provider.tsx';
-import { SEAT_FAILURE_BY_CODE, type SeatFailure } from './seats.ts';
+import { bonusArg, SEAT_FAILURE_BY_CODE, type SeatFailure } from './seats.ts';
 
 /** How a floor change ends: every read of the floor again, and an error as its failure (or `unavailable`). */
 function useFloorSettle(venueId: string) {
@@ -23,6 +23,8 @@ interface SeatByNumber {
   seat: number;
   who: SeatWho;
   callMinutes: number;
+  /** Bonus chips the member redeems with their buy-in (decision 0504); none when left out or 0. */
+  bonusChips?: number;
 }
 
 interface SeatFromList {
@@ -31,6 +33,8 @@ interface SeatFromList {
   tableId: string;
   seat: number;
   callMinutes: number;
+  /** Bonus chips the member redeems with their buy-in (decision 0504); none when left out or 0. */
+  bonusChips?: number;
 }
 
 /**
@@ -43,16 +47,20 @@ export function useFloorActions(venueId: string) {
   const { client } = useRivrData();
   const settle = useFloorSettle(venueId);
   const seat = useMutation({
-    mutationFn: async ({ tableId, seat: number, who, callMinutes }: SeatByNumber): Promise<Seated> => {
+    mutationFn: async ({ tableId, seat: number, who, callMinutes, bonusChips }: SeatByNumber): Promise<Seated> => {
       const found = 'phone' in who ? { p_phone: who.phone } : { p_member_number: who.memberNumber };
-      const { data, error } = await client.rpc('seat_member', { p_table_id: tableId, p_seat: number, ...found, p_call_minutes: callMinutes });
+      const { data, error } = await client.rpc('seat_member', {
+        p_table_id: tableId, p_seat: number, ...found, p_call_minutes: callMinutes, ...bonusArg(bonusChips),
+      });
       const settled = await settle(error);
       return settled.ok ? ok(data) : settled;
     },
   });
   const seatFromList = useMutation({
-    mutationFn: async ({ entryId, memberId, tableId, seat: number, callMinutes }: SeatFromList): Promise<Seated> => {
-      const { error } = await client.rpc('assign_from_waitlist', { p_entry_id: entryId, p_table_id: tableId, p_seat: number, p_call_minutes: callMinutes });
+    mutationFn: async ({ entryId, memberId, tableId, seat: number, callMinutes, bonusChips }: SeatFromList): Promise<Seated> => {
+      const { error } = await client.rpc('assign_from_waitlist', {
+        p_entry_id: entryId, p_table_id: tableId, p_seat: number, p_call_minutes: callMinutes, ...bonusArg(bonusChips),
+      });
       if (error) return settle(error);
       // Assign gives no session: it is the member's seat now, read before the floor is.
       const seats = await client.rpc('floor_seats', { p_venue_id: venueId });

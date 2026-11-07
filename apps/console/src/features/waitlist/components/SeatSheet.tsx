@@ -1,15 +1,43 @@
+import { bonusChipsToRedeemSchema } from '@rivr/contracts';
 import { CALL_TIME_CHOICES, isCallTimeMinutes } from '@rivr/domain/callTime';
 import { openSeatsAt, useFloorSeats, useHeldSeats, useWaitlistCallActions, type FloorTable, type WaitlistFailure } from '@rivr/db';
-import { t } from '@rivr/i18n';
-import { Button, CallTimeChoice, ChoiceChips, ErrorMessage, Inline, Sheet, Stack, useToast } from '@rivr/ui';
+import { useMemberBonus } from '@rivr/db/bonus';
+import { formatChips, t, type MessageKey } from '@rivr/i18n';
+import { Button, CallTimeChoice, ChoiceChips, ErrorMessage, Inline, Input, Sheet, Stack, useToast } from '@rivr/ui';
 import { useState } from 'react';
 import { ENTRY_FAILURE_COPY } from './failureCopy.ts';
 import { stakeOf } from './placeMeta.ts';
 
-/** Who the sheet seats: the place, by its entry. */
+/** Who the sheet seats: the place, by its entry, and its member, whose bonus chips it shows (decision 0504). */
 export interface SeatSheetPlace {
   readonly entryId: string;
+  readonly memberId: string;
   readonly name: string;
+}
+
+/** The member's bonus chips, under the field for those they redeem: nothing until it has come. */
+function bonusHint(balance: bigint | null | undefined): string | undefined {
+  if (balance === undefined || balance === null) return undefined;
+  return balance === 0n ? t('console.waitlist.bonusChipsNone') : t('console.waitlist.bonusChipsHas', { chips: formatChips(balance) });
+}
+
+/** Why Seat did not go through: no seat or call time chosen, bonus chips not whole 50s, or the database's refusal. */
+function failureCopy(failure: WaitlistFailure | 'choose' | 'bonus'): MessageKey {
+  if (failure === 'choose') return 'console.waitlist.invalidCall';
+  return failure === 'bonus' ? 'console.waitlist.badBonusChips' : ENTRY_FAILURE_COPY[failure];
+}
+
+/** The bonus chips field (decision 0504): what is typed, with the member's balance under it. */
+function useBonusField(venueId: string, memberId: string, onChange: () => void) {
+  const [text, setText] = useState('');
+  const balance = useMemberBonus(venueId, memberId).data;
+  return {
+    text,
+    field: (
+      <Input label={t('console.waitlist.bonusChips')} hint={bonusHint(balance)} value={text} inputMode="numeric" autoComplete="off"
+        onChange={(event) => { setText(event.target.value); onChange(); }} />
+    ),
+  };
 }
 
 interface SeatSheetProps {
@@ -35,12 +63,16 @@ function useSeatForm({ venueId, table, place, onDone }: { venueId: string; table
   const [picked, setPicked] = useState<number | null>(null);
   // The stake's own call time to start from (decision 0299); another is the floor's choice.
   const [callMinutes, setCallMinutes] = useState<number | null>(table.callTimeMinutes);
-  const [failure, setFailure] = useState<WaitlistFailure | 'choose' | null>(null);
+  const [failure, setFailure] = useState<WaitlistFailure | 'choose' | 'bonus' | null>(null);
+  // Bonus chips the member redeems with their buy-in (decision 0504), as typed; blank is none.
+  const bonus = useBonusField(venueId, place.memberId, () => setFailure(null));
   // A seat taken since it was chosen (the floor is read every ten seconds) is no choice.
   const seat = picked !== null && free.includes(picked) ? picked : null;
   const seatNow = async () => {
     if (seat === null || !isCallTimeMinutes(callMinutes)) return setFailure('choose');
-    const done = await assign.mutateAsync({ entryId: place.entryId, tableId: table.id, seat, callMinutes });
+    const bonusChips = bonusChipsToRedeemSchema.safeParse(bonus.text);
+    if (!bonusChips.success) return setFailure('bonus');
+    const done = await assign.mutateAsync({ entryId: place.entryId, tableId: table.id, seat, callMinutes, bonusChips: bonusChips.data });
     if (!done.ok) return setFailure(done.error);
     toast(t('console.waitlist.toast.seated', { name: place.name, table: table.name, seat }));
     return onDone();
@@ -52,7 +84,8 @@ function useSeatForm({ venueId, table, place, onDone }: { venueId: string; table
           options={free.map((number) => ({ value: String(number), label: String(number) }))}
           onChange={([value]) => setPicked(value === undefined ? null : Number(value))} />
         <CallTimeChoice choices={CALL_TIME_CHOICES} initial={table.callTimeMinutes} onChange={setCallMinutes} />
-        {failure === null ? null : <ErrorMessage>{t(failure === 'choose' ? 'console.waitlist.invalidCall' : ENTRY_FAILURE_COPY[failure])}</ErrorMessage>}
+        {bonus.field}
+        {failure === null ? null : <ErrorMessage>{t(failureCopy(failure))}</ErrorMessage>}
       </Stack>
     ),
     footer: (
@@ -65,8 +98,9 @@ function useSeatForm({ venueId, table, place, onDone }: { venueId: string; table
 }
 
 /**
- * Seat from a table's list (console v3): the console's sheet with the seats free at the list's own table and a call time.
- * Seat assigns and seats the member at once (decision 0299); the seat-ready message still goes out by WhatsApp.
+ * Seat from a table's list (console v3): the console's sheet with the seats free at the list's own table, a call time, and
+ * any bonus chips the member redeems with their buy-in (decision 0504). Seat assigns and seats the member at once
+ * (decision 0299); the seat-ready message still goes out by WhatsApp.
  */
 export function SeatSheet({ venueId, table, place, onClose }: SeatSheetProps) {
   return place === null ? null : <OpenSeatSheet key={place.entryId} venueId={venueId} table={table} place={place} onClose={onClose} />;

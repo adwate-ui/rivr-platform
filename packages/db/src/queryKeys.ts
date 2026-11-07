@@ -127,6 +127,13 @@ export const queryKeys = {
   rewardCatalogue: (userId: string) => ['user', userId, 'reward-catalogue'] as const,
   myRedemptions: (userId: string) => ['user', userId, 'my-redemptions'] as const,
   myLeague: (userId: string) => ['user', userId, 'my-league'] as const,
+  /** Bonus chips (decision 0504): the member's own, or a member's for staff. Every key starts with bonusAll, which a live change makes stale. */
+  bonusAll: (userId: string) => ['user', userId, 'bonus'] as const,
+  myBonus: (userId: string) => ['user', userId, 'bonus', 'mine'] as const,
+  myBonusHistory: (userId: string, count: number) => ['user', userId, 'bonus', 'mine', 'history', count] as const,
+  memberBonus: (userId: string, venueId: string, memberId: string) => ['user', userId, 'bonus', venueId, memberId] as const,
+  memberBonusHistory: (userId: string, venueId: string, memberId: string, count: number) =>
+    ['user', userId, 'bonus', venueId, memberId, 'history', count] as const,
   /** Table-side food and drink (#123): the member's menu, a venue's, its items, and tonight's orders. */
   myFnbMenu: (userId: string) => ['user', userId, 'my-fnb-menu'] as const,
   /** The signed-in member's orders tonight, and where each is (#635). */

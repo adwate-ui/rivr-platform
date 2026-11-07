@@ -42,6 +42,9 @@ export const profile = {
   withdrawalsHint: 'When a withdrawal is sent.',
   tournamentStarts: 'Tournaments',
   tournamentStartsHint: 'When a tournament starts',
+  /** Bonus chips added or used (decision 0504). */
+  bonusChips: 'Bonus chips',
+  bonusChipsHint: 'When bonus chips are added or used',
   marketing: 'Offers',
   marketingHint: 'By WhatsApp and app. Stop any time.',
   /** The cookie banner's analytics choice, changed later (decision 0298). */

@@ -13,7 +13,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const FEATURES = ['push.seat_ready', 'push.call_time_complete', 'learn.library'].map((feature_key) => ({ feature_key, state: 'enabled', tiers: null }));
+const FEATURES = ['push.seat_ready', 'push.call_time_complete', 'push.bonus', 'learn.library'].map((feature_key) => ({ feature_key, state: 'enabled', tiers: null }));
 const CARD = { member_number: 901, full_name: 'Meera Iyer', tier_name: 'Founders’ Circle', code: 'c0de', ms_left: 30000, photo_path: null };
 
 /** Meera signed in on +91 90000 00901, opening Profile from Rewards; feedback she sends goes to `sent`. */
@@ -64,6 +64,8 @@ describe('Profile', () => {
     expect(screen.getByText('Verified')).toBeDefined();
     expect(await screen.findByRole('switch', { name: /Seat calls/ }, LATER)).toBeDefined();
     expect(screen.getByRole('switch', { name: /Call time/ })).toBeDefined();
+    // Bonus chips added or used (decision 0504).
+    expect(screen.getByRole('switch', { name: /Bonus chips/ })).toBeDefined();
     expect(screen.queryByText(/limit|take a break|waitlist alerts/i)).toBeNull();
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
   });

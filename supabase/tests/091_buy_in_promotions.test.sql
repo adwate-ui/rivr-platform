@@ -61,9 +61,9 @@ select public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000-0000
   '00000000-0000-4000-8000-0000000c8801', null, (select id from ids where name = 'request'));
 reset role;
 select is(pg_temp.bonuses('00000000-0000-4000-8000-000000000211'), '200000', 'a ₹10,000 buy-in, the first at Table 3 today, credits ₹2,000 of bonus');
-select ok((select expires_at between now() + interval '7 days' - interval '1 minute' and now() + interval '7 days'
+select ok((select expires_at is null
            from public.bonus_grant where member_id = '00000000-0000-4000-8000-000000000211' and reason = 'Buy-in bonus Tuesday'),
-  'for a week');
+  'which never ends (decision 0504)');
 select is(private.bonus_in_force('00000000-0000-4000-8000-000000000211', now()), 200000::bigint, 'and it is in force at once');
 select is((select count(*)::integer from public.outbox_event where event_type = 'promotion.granted'
            and payload ->> 'member_id' = '00000000-0000-4000-8000-000000000211'), 1, 'announced by promotion.granted');

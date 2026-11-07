@@ -3,6 +3,7 @@ import { useMyRewards, useRewardCatalogue, type MyRewards } from '@rivr/db/myRew
 import { nextReward } from '@rivr/domain/rewards';
 import { formatNights, formatNumber, memberRewards, registerMessages, t } from '@rivr/i18n';
 import { FeatureGate, Figure, Inline, ProgressBar, Screen, Stack, Text } from '@rivr/ui';
+import { BonusSection } from './BonusSection.tsx';
 import { Catalogue } from './Catalogue.tsx';
 import { LeagueSection } from './LeagueSection.tsx';
 import { MyRedemptionList } from './MyRedemptionList.tsx';
@@ -48,12 +49,13 @@ function Balance({ rewards, hasCatalogue }: { rewards: MyRewards; hasCatalogue: 
 }
 
 /**
- * Rewards (decision 0320): the tier, the points and the next reward; the catalogue with its filters and redeem sheet
- * (rewards.catalogue) and the member's redemptions; hotel nights (rewards.accommodation); the league (league.standings);
- * and Refer a friend.
+ * Rewards (decision 0320): the tier, the points and the next reward; bonus chips and their history (rewards.bonus, decision
+ * 0504); the catalogue with its filters and redeem sheet (rewards.catalogue) and the member's redemptions; hotel nights
+ * (rewards.accommodation); the league (league.standings); and Refer a friend.
  */
 export function RewardsScreen() {
   const rewards = useMyRewards();
+  const bonus = useFeature('rewards.bonus');
   const catalogue = useFeature('rewards.catalogue');
   const league = useFeature('league.standings');
   const accommodation = useFeature('rewards.accommodation');
@@ -66,6 +68,7 @@ export function RewardsScreen() {
     <Screen {...look} title={title}>
       <Stack gap={8}>
         <Balance rewards={rewards.data} hasCatalogue={catalogue.state === 'enabled'} />
+        <FeatureGate access={bonus}><BonusSection /></FeatureGate>
         <FeatureGate access={accommodation}>
           <Stack gap={1}>
             <Text variant="small" tone="muted">{t('memberRewards.nights')}</Text>

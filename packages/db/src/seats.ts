@@ -43,16 +43,24 @@ export interface HeldSeat {
  * the player already seated, no finished identity check, on a break, no member with that number, the
  * member or venue frozen, a table closed or a seat it does not have (`invalid`), no call time owed to let a player leave
  * early (`call_time_done`, #79), a table to close that still has players or held calls (`table_in_use`), a must-move
- * link to anything but an open main table of the same game (`must_move_invalid`), or anything else (#333).
+ * link to anything but an open main table of the same game (`must_move_invalid`), bonus chips redeemed with the seat
+ * that are more than the member has, not whole 50s, on the staff member's own record, with promotions switched off, or
+ * too many a minute (decision 0504), or anything else (#333).
  */
 export type SeatFailure = 'not_allowed' | 'occupied' | 'held' | 'seated' | 'kyc_needed' | 'on_break' | 'no_member' | 'stopped' | 'paused' | 'invalid'
-  | 'call_time_done' | 'table_in_use' | 'must_move_invalid' | 'unavailable';
+  | 'call_time_done' | 'table_in_use' | 'must_move_invalid' | 'bonus_short' | 'not_chips' | 'own_record' | 'bonus_off' | 'too_many' | 'unavailable';
 
 /** The failure each database refusal of a seat change stands for; anything else is `unavailable`. */
 export const SEAT_FAILURE_BY_CODE: Readonly<Record<string, SeatFailure>> = {
   '42501': 'not_allowed', RVOCC: 'occupied', RVHLD: 'held', RVSTD: 'seated', RVKYC: 'kyc_needed', RVBRK: 'on_break', RVNOM: 'no_member',
-  RVMBR: 'stopped', RVFRZ: 'paused', '22023': 'invalid', RVCTD: 'call_time_done',
+  RVMBR: 'stopped', RVFRZ: 'paused', '22023': 'invalid', RVCTD: 'call_time_done', RVBON: 'bonus_short', RVCHP: 'not_chips', RVOWN: 'own_record',
+  RVKIL: 'bonus_off', RVRAT: 'too_many',
 };
+
+/** A seating's bonus chips argument (decision 0504): none when there are none to redeem. */
+export function bonusArg(bonusChips: number | undefined): { p_bonus_chips?: number } {
+  return bonusChips === undefined || bonusChips === 0 ? {} : { p_bonus_chips: bonusChips };
+}
 
 // The seat map changes as the floor seats, moves and calls players.
 const LIVE = 10_000;

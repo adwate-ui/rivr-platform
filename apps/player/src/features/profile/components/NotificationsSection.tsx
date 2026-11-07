@@ -9,6 +9,7 @@ const PUSH_COPY: Readonly<Record<PushChoice, { label: MessageKey; hint: MessageK
   'push.call_time_complete': { label: 'player.profile.callTime', hint: 'player.profile.callTimeHint' },
   'push.withdrawal_sent': { label: 'player.profile.withdrawals', hint: 'player.profile.withdrawalsHint' },
   'push.tournament_starting': { label: 'player.profile.tournamentStarts', hint: 'player.profile.tournamentStartsHint' },
+  'push.bonus': { label: 'player.profile.bonusChips', hint: 'player.profile.bonusChipsHint' },
 };
 
 /** One kind of push, behind its feature: on or off for this member. */
@@ -25,8 +26,8 @@ function NotificationSwitch({ type, isOn }: { type: PushChoice; isOn: boolean })
 }
 
 /**
- * Notifications (brief 3.9): push on this phone, then Seat calls, Call time, Tournaments (each a push this member can turn
- * off), Offers (marketing consent), Name on club TVs and Analytics (the cookie choice), each with its line.
+ * Notifications (brief 3.9): push on this phone, then Seat calls, Call time, Tournaments, Bonus chips (each a push this
+ * member can turn off), Offers (marketing consent), Name on club TVs and Analytics (the cookie choice), each with its line.
  */
 export function NotificationsSection({ preferences }: { preferences: Preferences }) {
   const { setMarketing, setNameOnTvs } = usePreferenceActions();

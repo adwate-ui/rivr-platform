@@ -36,7 +36,7 @@ select set_eq(
      -- account a money record names kept and marked removed (others deleted), bonus grants closed by the forfeit.
      ('consent'), ('kyc_record'), ('payout_account'), ('bonus_grant'),
      -- Kept, naming only the member's id: money, tax, play and safer-gambling records.
-     ('academy_attendance'), ('academy_booking'), ('buy_in_request'), ('cage_transaction'), ('control_state'), ('credit_line'), ('deposit_request'),
+     ('academy_attendance'), ('academy_booking'), ('bonus_redemption'), ('buy_in_request'), ('cage_transaction'), ('control_state'), ('credit_line'), ('deposit_request'),
      ('early_departure'), ('fnb_order'), ('invoice'), ('jackpot_event'), ('league_adjustment'), ('league_finish'), ('ledger_account'), ('marker'), ('member_tier_change'),
      ('points_earning'), ('promotion_grant'), ('redemption'), ('referral'), ('sar_entry'), ('seat_session'), ('self_exclusion'), ('spin'), ('tds_withholding'),
      ('top_up_request'), ('call_time_request'),

@@ -3,10 +3,8 @@ export const balance = {
   title: 'Balance',
   empty: 'No movements yet.',
   cash: 'Cash',
-  /** A bonus grant ending within the week: "₹4,000 bonus · expires Sunday 23:59". */
-  bonusLine: '{amount} bonus · expires {day} {time}',
-  /** A bonus grant ending later: "₹4,000 bonus · expires Sun 29 Nov, 23:59". */
-  bonusLineLater: '{amount} bonus · expires {when}',
+  /** A bonus grant in force, which never expires (decision 0504), in chips as the app shows no rupee: "4,000 bonus chips". */
+  bonusLine: '{chips} bonus chips',
   points: '{points} points',
   markers: 'Markers',
   marker: 'Issued {issued} · due {due}',

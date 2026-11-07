@@ -89,6 +89,14 @@ export const playerApp = {
     /** No connection before the card came (F3-25): the door checks a member in by number too. */
     offline: 'No connection. Give your number at the door.',
   },
+  /** The toast on any screen when bonus chips are added or used while the app is open (decision 0504). */
+  bonus: {
+    /** `500 bonus chips added · Welcome bonus`. */
+    credited: '{chips} bonus chips added · {reason}',
+    /** `1,000 bonus chips used for your buy-in at Table 3`. */
+    redeemed: '{chips} bonus chips used for your buy-in at {table}',
+    redeemedNoTable: '{chips} bonus chips used for your buy-in',
+  },
   /** RIVR Academy: batches, booking a seat, paying by UPI with the UTR. */
   academy: {
     title: 'RIVR Academy',

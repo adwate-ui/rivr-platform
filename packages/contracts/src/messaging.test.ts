@@ -1,5 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { callTimeEndingSchema, callTimeUpdatedSchema, promotionOfferedSchema, waitlistCalledSchema } from './messaging.ts';
+import {
+  bonusCreditedSchema, bonusRedeemedSchema, callTimeEndingSchema, callTimeUpdatedSchema, promotionOfferedSchema, waitlistCalledSchema,
+} from './messaging.ts';
+
+describe('the bonus chip events (decision 0504)', () => {
+  const member = '00000000-0000-4000-8000-000000000211';
+  const other = '00000000-0000-4000-8000-0000000005e1';
+  it('reads bonus.credited: the chips in paise and why', () => {
+    const credited = { member_id: member, bonus_grant_id: other, amount_paise: 50_000, reason: 'Welcome bonus' };
+    expect(bonusCreditedSchema.parse(credited)).toEqual(credited);
+    expect(bonusCreditedSchema.safeParse({ ...credited, amount_paise: 0 }).success).toBe(false);
+  });
+
+  it('reads bonus.redeemed in whole ₹50 chips, at a table', () => {
+    const redeemed = { member_id: member, bonus_redemption_id: other, amount_paise: 100_000, table_id: other, table_name: 'Table 3' };
+    expect(bonusRedeemedSchema.parse(redeemed)).toEqual(redeemed);
+    expect(bonusRedeemedSchema.safeParse({ ...redeemed, amount_paise: 2_500 }).success).toBe(false);
+  });
+});
 
 describe('waitlistCalledSchema', () => {
   // As private.put_call builds it (#63): Postgres writes the hold with microseconds and the session's offset.

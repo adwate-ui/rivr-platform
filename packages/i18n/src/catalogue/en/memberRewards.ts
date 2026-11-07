@@ -92,4 +92,25 @@ export const memberRewards = {
   /** A place: `3`, its name, and its points. */
   placeLine: '{place}. {name}',
   leaguePoints: '{points} points',
+  /** The member's bonus chips (decision 0504): they never expire, and are used with a buy-in as the floor seats them. */
+  bonus: {
+    heading: 'Bonus chips',
+    /** After the figure: `1,500 bonus chips`. */
+    chipsWord: 'bonus chips',
+    /** Under the figure, how they are used. */
+    howToUse: 'Used with your buy-in. They never expire.',
+    none: 'No bonus chips yet.',
+    /** Opens and closes the history, which starts closed. */
+    history: 'History',
+    showEarlier: 'Show earlier',
+    noHistory: 'Nothing here yet.',
+    /** A line's label, with its day: `Welcome bonus · 15 Nov`; `Buy-in · Table 3 · 15 Nov`; `Expired · Buy-in bonus Tuesday · 9 Nov`. */
+    credited: '{reason} · {date}',
+    redeemed: 'Buy-in · {table} · {date}',
+    redeemedNoTable: 'Buy-in · {date}',
+    expired: 'Expired · {reason} · {date}',
+    /** A line's chips: `+500`, `−1,000`. */
+    plus: '+{chips}',
+    minus: '−{chips}',
+  },
 } as const;

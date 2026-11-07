@@ -16,5 +16,10 @@ export const SEAT_FAILURE_COPY: Readonly<Record<SeatFailure, MessageKey>> = {
   call_time_done: 'console.liveFloor.callTimeDone',
   table_in_use: 'console.liveFloor.tableInUse',
   must_move_invalid: 'console.liveFloor.mustMoveInvalid',
+  bonus_short: 'console.liveFloor.bonusShort',
+  not_chips: 'console.liveFloor.notChips',
+  own_record: 'console.liveFloor.ownRecord',
+  bonus_off: 'console.liveFloor.bonusOff',
+  too_many: 'console.liveFloor.tooMany',
   unavailable: 'console.liveFloor.unavailable',
 };

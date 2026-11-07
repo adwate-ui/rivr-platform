@@ -88,6 +88,12 @@ export const floor = {
     chooseWho: 'Choose a player or type a number.',
     badNumber: 'Not a member number or a mobile.',
     pickSeat: 'Pick a seat.',
+    /** Bonus chips the member redeems with their buy-in (decision 0504): their balance once known, else checked as they sit. */
+    bonusChips: 'Bonus chips to redeem',
+    bonusChipsHas: 'Has {chips} bonus chips.',
+    bonusChipsNone: 'No bonus chips.',
+    bonusChipsTyped: 'Checked as they sit.',
+    badBonusChips: 'Bonus chips go in whole 50s.',
   },
   table: {
     subtitle: '{stake} · {room}',
