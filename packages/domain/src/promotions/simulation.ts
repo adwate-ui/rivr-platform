@@ -1,6 +1,7 @@
 import type { MemberFacts, PromotionSimulationResult } from '@rivr/contracts/promotionModel';
 import { isEligible } from './eligibility.ts';
 import { computeGrant, type PromotionEvent } from './grant.ts';
+import { stepsReached } from './hourSteps.ts';
 import { checkLimits, ledgerEntryFor, tallyFor, type LedgerEntry, type LimitRefusal } from './limits.ts';
 import type { Terms } from './terms.ts';
 
@@ -17,6 +18,19 @@ export interface Simulation extends PromotionSimulationResult {
 
 // The budget in chips, or the most grants, stopped a grant the promotion would otherwise have given.
 const BUDGET_LIMITS: ReadonlySet<LimitRefusal> = new Set(['budget_exhausted', 'max_grants']);
+
+/**
+ * The events a promotion weighs: a play-time bonus weighs a step for each one a visit's time played reached (owner, 8
+ * Nov), at the visit's close as the replay has no moment within a visit; every other promotion the events as given.
+ */
+function eventsFor(promo: Terms, replayed: ReplayedEvent): readonly ReplayedEvent[] {
+  const { event } = replayed;
+  if (promo.reward.kind !== 'hours_bonus' || event.kind !== 'time_played') return [replayed];
+  return stepsReached(promo.reward, event.minutes).map((stepMinutes) => ({
+    ...replayed,
+    event: { ...event, kind: 'hours_step', key: `${event.key.replace(/^hours_played:/, 'hours_step:')}:${String(stepMinutes)}`, minutes: event.minutes, stepMinutes },
+  }));
+}
 
 const byTime = (one: ReplayedEvent, other: ReplayedEvent) =>
   one.event.at.getTime() - other.event.at.getTime() || (one.event.key < other.event.key ? -1 : Number(one.event.key > other.event.key));
@@ -41,7 +55,7 @@ export function simulate(promo: Terms, events: readonly ReplayedEvent[]): Simula
   const grants: LedgerEntry[] = [];
   const qualified = new Set<string>();
   let isBudgetReached = false;
-  for (const { event, member } of [...events].sort(byTime)) {
+  for (const { event, member } of events.flatMap((one) => eventsFor(promo, one)).sort(byTime)) {
     const grant = isEligible(promo, member, event) ? computeGrant(promo, event) : null;
     if (grant === null || !grant.ok) continue;
     qualified.add(event.memberId);

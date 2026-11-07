@@ -6,6 +6,8 @@ import { computeGrant, toPromotionEvent, triggerOf, type PromotionEvent } from '
 const event = (...args: Parameters<typeof buildPromotionEvent>): PromotionEvent => toPromotionEvent(buildPromotionEvent(...args));
 const buyIn = event({ kind: 'buy_in', ownChips: 10_000, isFirstOfVisit: true });
 const played = event({ kind: 'time_played', minutes: 300, points: 200 });
+// A play-time bonus step: 300 minutes played, the 240-minute step reached.
+const step = (stepMinutes: number, minutes = 300) => event({ kind: 'hours_step', minutes, stepMinutes }, { key: `hours_step:visit-1:${String(stepMinutes)}` });
 const visit = event({ kind: 'visit', visitInMonth: 5 }, { tableId: null, stake: null });
 const grantOf = (reward: Reward, on: PromotionEvent) => computeGrant({ reward }, on);
 
@@ -17,9 +19,10 @@ describe('toPromotionEvent', () => {
 });
 
 describe('triggerOf', () => {
-  it('gives time-played rewards for time played, buy-in bonuses for buy-ins and perks for visits', () => {
+  it('gives time-played rewards for time played, play-time bonuses for each step, buy-in bonuses for buy-ins and perks for visits', () => {
     expect(triggerOf({ kind: 'points_multiplier', multiplier: 2 })).toBe('time_played');
-    expect(triggerOf({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 })).toBe('time_played');
+    expect(triggerOf({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 })).toBe('hours_step');
+    expect(triggerOf({ kind: 'hours_bonus', mode: 'every', everyMinutes: 60, chips: 100 })).toBe('hours_step');
     expect(triggerOf({ kind: 'free_spin', spins: 1, afterMinutes: 240 })).toBe('time_played');
     expect(triggerOf({ kind: 'buyin_bonus', mode: 'fixed', chips: 500 })).toBe('buy_in');
     expect(triggerOf({ kind: 'cab_home', fromVisitInMonth: 4 })).toBe('visit');
@@ -59,7 +62,22 @@ describe('computeGrant', () => {
 
   it('gives spins once the minutes are played, the minute itself included', () => {
     expect(grantOf({ kind: 'free_spin', spins: 3, afterMinutes: 300 }, played)).toEqual({ ok: true, value: { points: 0, chips: 0, spins: 3, perk: null } });
-    expect(grantOf({ kind: 'hours_bonus', chips: 500, afterMinutes: 330 }, played)).toEqual({ ok: false, error: 'too_short' });
+    expect(grantOf({ kind: 'hours_bonus', chips: 500, afterMinutes: 240 }, played)).toEqual({ ok: false, error: 'other_event' });
+  });
+
+  it('gives a play-time bonus step its own chips once its minutes are played, and nothing for a step it does not have (owner, 8 Nov)', () => {
+    const chipsOf = (chips: number) => ({ ok: true, value: { points: 0, chips, spins: 0, perk: null } });
+    expect(grantOf({ kind: 'hours_bonus', chips: 500, afterMinutes: 240 }, step(240))).toEqual(chipsOf(500));
+    expect(grantOf({ kind: 'hours_bonus', chips: 500, afterMinutes: 330 }, step(330))).toEqual({ ok: false, error: 'too_short' });
+    expect(grantOf({ kind: 'hours_bonus', chips: 500, afterMinutes: 240 }, step(120))).toEqual({ ok: false, error: 'not_a_step' });
+    const steps: Reward = { kind: 'hours_bonus', mode: 'steps', steps: [{ afterMinutes: 120, chips: 500 }, { afterMinutes: 240, chips: 1_000 }] };
+    expect(grantOf(steps, step(120))).toEqual(chipsOf(500));
+    expect(grantOf(steps, step(240))).toEqual(chipsOf(1_000));
+    expect(grantOf(steps, step(180))).toEqual({ ok: false, error: 'not_a_step' });
+    const every: Reward = { kind: 'hours_bonus', mode: 'every', everyMinutes: 90, chips: 250, timesPerVisit: 2 };
+    expect(grantOf(every, step(180))).toEqual(chipsOf(250));
+    expect(grantOf(every, step(270))).toEqual({ ok: false, error: 'not_a_step' });
+    expect(grantOf({ kind: 'free_spin', spins: 1, afterMinutes: 240 }, step(240))).toEqual({ ok: false, error: 'other_event' });
   });
 
   it('gives bonus chips for a referral only on a referral', () => {
