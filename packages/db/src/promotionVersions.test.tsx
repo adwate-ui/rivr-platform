@@ -43,7 +43,7 @@ function overviewRow(more: Record<string, unknown>) {
   return {
     promotion_id: 'p1', template_key: null, status: 'live', name: 'Double points', detail: '2× points', runs: 'all stakes · every day, all day',
     current_version_id: 'v1', current_status: 'live', open_version_id: null, open_status: null, rejected_reason: null, reward: TERMS.reward,
-    eligibility: TERMS.eligibility, schedule: TERMS.schedule, limits: TERMS.limits, channels: TERMS.channels, given_this_week: 41, is_legacy: false,
+    eligibility: TERMS.eligibility, schedule: TERMS.schedule, limits: TERMS.limits, channels: TERMS.channels, given_this_week: 41, is_legacy: false, ended_at: null,
     created_at: '2026-11-03T10:00:00+00:00', ...more,
   };
 }

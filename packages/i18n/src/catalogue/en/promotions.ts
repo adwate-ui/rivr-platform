@@ -16,7 +16,10 @@ export const promotions = {
     filter: 'Show',
     all: 'All',
     empty: 'No promotions with this status.',
-    columns: { promotion: 'Promotion', who: 'Who', when: 'When', given: 'This week', status: 'Status' },
+    /** Current promotions and ended ones, apart (owner, 8 Nov). */
+    views: { label: 'Promotions shown', current: 'Current', ended: 'Ended' },
+    noneEnded: 'No promotion has ended.',
+    columns: { promotion: 'Promotion', who: 'Who', when: 'When', given: 'This week', status: 'Status', ended: 'Ended' },
     /** Under a running promotion's status: its next version, beside it. */
     newVersionWaits: 'New version awaits approval',
     newVersionDraft: 'New version in draft',
@@ -31,11 +34,16 @@ export const promotions = {
     resumeNamed: 'Resume {name}',
     editNamed: 'Edit {name}',
     reviewNamed: 'Review {name}',
+    /** Ends a scheduled, live or paused promotion for good, after a second press. */
+    end: 'End',
+    endNamed: 'End {name}',
+    confirmEnd: 'Yes, end {name}',
   },
   /** What a staff member's own action did: `{name}` is the promotion, `{date}` its first day. */
   toast: {
     paused: '{name} paused',
     resumed: '{name} resumed',
+    ended: '{name} ended',
     saved: '{name} saved as a draft',
     submitted: '{name} sent for approval',
     live: '{name} is live',

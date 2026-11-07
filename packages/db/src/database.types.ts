@@ -5627,7 +5627,7 @@ isOneToOne: false
                            },
 "promotions_overview":
 { Args: { "p_venue_id": string }; Returns: {
-              "channels": Json,"created_at": string,"current_status": string,"current_version_id": string,"detail": string,"eligibility": Json,"given_this_week": number,"is_legacy": boolean,"limits": Json,"name": string,"open_status": string,"open_version_id": string,"promotion_id": string,"rejected_reason": string,"reward": Json,"runs": string,"schedule": Json,"status": string,"template_key": string
+              "channels": Json,"created_at": string,"current_status": string,"current_version_id": string,"detail": string,"eligibility": Json,"ended_at": string,"given_this_week": number,"is_legacy": boolean,"limits": Json,"name": string,"open_status": string,"open_version_id": string,"promotion_id": string,"rejected_reason": string,"reward": Json,"runs": string,"schedule": Json,"status": string,"template_key": string
             }[]
                            },
 "promotions_sent_back":
