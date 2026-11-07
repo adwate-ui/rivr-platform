@@ -9,24 +9,29 @@ export type Seating =
   | { readonly kind: 'list'; readonly entryId: string; readonly memberId: string; readonly fullName: string }
   | { readonly kind: 'number'; readonly who: SeatWho; readonly typed: string };
 
-/** Where and for how long: the table, the seat and the call time in minutes. */
+/** Where and for how long: the table, the seat and the call time in minutes; and bonus chips redeemed with the buy-in (decision 0504). */
 export interface SeatAt {
   readonly table: FloorTable;
   readonly seat: number;
   readonly callMinutes: number;
+  readonly bonusChips: number;
 }
 
-/** Seating, from a list or by number, each undone by taking the seat back (decision 0480). True when it went through. */
+/**
+ * Seating, from a list or by number, each undone by taking the seat back (decision 0480). A seat with bonus chips redeemed
+ * has no Undo: the database keeps the redemption and refuses it. True when it went through.
+ */
 function useSeating(venueId: string) {
   const say = useChangeToast();
   const undo = useFloorUndo(venueId);
   const { seat, seatFromList } = useFloorActions(venueId);
   return async (who: Seating, at: SeatAt): Promise<boolean> => {
+    const where = { tableId: at.table.id, seat: at.seat, callMinutes: at.callMinutes, bonusChips: at.bonusChips };
     const outcome = who.kind === 'list'
-      ? await seatFromList.mutateAsync({ entryId: who.entryId, memberId: who.memberId, tableId: at.table.id, seat: at.seat, callMinutes: at.callMinutes })
-      : await seat.mutateAsync({ tableId: at.table.id, seat: at.seat, who: who.who, callMinutes: at.callMinutes });
+      ? await seatFromList.mutateAsync({ entryId: who.entryId, memberId: who.memberId, ...where })
+      : await seat.mutateAsync({ who: who.who, ...where });
     const name = who.kind === 'list' ? who.fullName : who.typed;
-    const sessionId = outcome.ok ? outcome.value : null;
+    const sessionId = outcome.ok && at.bonusChips === 0 ? outcome.value : null;
     say(outcome, t('console.floor.toast.seated', { name, table: at.table.name, seat: at.seat }),
       sessionId === null ? undefined : () => undo.mutateAsync({ kind: 'seat', sessionId }));
     return outcome.ok;

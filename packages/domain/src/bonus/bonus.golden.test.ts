@@ -20,11 +20,11 @@ function amounts(text: string): Paise[] {
   return text === '' ? [] : text.split(' | ').map(amount);
 }
 
-/** Reads fixture grants such as "₹4,000 @ 2026-11-23T06:00:00+05:30 | …"; empty is none. */
+/** Reads fixture grants such as "₹4,000 @ 2026-11-23T06:00:00+05:30 | ₹500 @ never"; empty is none. */
 function grants(text: string): BonusGrant[] {
   return text === '' ? [] : text.split(' | ').map((grant) => {
     const [remaining = '', end = ''] = grant.split(' @ ');
-    return { remaining: amount(remaining), expiresAt: new Date(end) };
+    return { remaining: amount(remaining), expiresAt: end === 'never' ? null : new Date(end) };
   });
 }
 

@@ -187,7 +187,7 @@ describe('RivrDataProvider, useFeature and useControlState', () => {
     expect(await screen.findByText('learn: enabled; frozen: true')).toBeDefined();
   });
 
-  it('listens to every table that changes what a person may do', async () => {
+  it('listens to every table that changes what a person may do or holds: access, the kill switch and bonus chips', async () => {
     const { client, channels } = testClient(freshDatabase(), ARJUN);
     render(
       <RivrDataProvider client={client}>
@@ -197,7 +197,7 @@ describe('RivrDataProvider, useFeature and useControlState', () => {
     await waitFor(() => expect(channels).toHaveLength(1));
     const tables = vi.mocked(channels[0]?.on)?.mock.calls.map(([, filter]) => ('table' in filter ? filter.table : undefined));
 
-    expect(tables).toEqual(['tier_feature', 'member_feature_override', 'member', 'control_state']);
+    expect(tables).toEqual(['tier_feature', 'member_feature_override', 'member', 'control_state', 'bonus_grant', 'bonus_redemption']);
   });
 });
 

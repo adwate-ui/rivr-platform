@@ -116,7 +116,7 @@ select results_eq($$ select pg_temp.given(m) from unnest(array['213', '214', '21
   $$ values (25000::bigint), (0), (10000), (0) $$,
   '10% in ₹50 chips: ₹250 of ₹2,500, nothing yet for Yash, ₹100 of Kunal''s ₹1,000 at 100/200 (none at 50/100), none for 217');
 select is((select expires_at from public.bonus_grant where member_id = '00000000-0000-4000-8000-000000000213' and reason = 'Hourly rakeback'),
-  now() + interval '7 days', 'ending after the rate''s seven days');
+  null, 'which never ends, whatever the rate says (decision 0504)');
 
 -- A hand the tablet sent late: ₹1,500 among the three at Table 2. The next run gives what it adds.
 select pg_temp.hand('Table 2', 150000, pg_temp.at(100), 'rakeback-hand-6');

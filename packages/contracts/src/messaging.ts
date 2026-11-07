@@ -88,6 +88,23 @@ export const withdrawalSentSchema = z.object({ member_id: z.uuid(), withdrawal_r
 /** tournament.starting (#139): the tournament's clock started, told to each member with a place in it. */
 export const tournamentStartingSchema = z.object({ member_id: z.uuid(), tournament_id: z.uuid(), name: z.string().trim().min(1).max(80) });
 
+/** bonus.credited (decision 0504): bonus chips added to the member's balance, with the promotion's name or another reason. */
+export const bonusCreditedSchema = z.object({
+  member_id: z.uuid(),
+  bonus_grant_id: z.uuid(),
+  amount_paise: z.int().min(1),
+  reason: z.string().trim().min(3).max(200),
+});
+
+/** bonus.redeemed (decision 0504): bonus chips used for the member's buy-in as the floor seated them, at that table. */
+export const bonusRedeemedSchema = z.object({
+  member_id: z.uuid(),
+  bonus_redemption_id: z.uuid(),
+  amount_paise: z.int().min(5000).multipleOf(5000),
+  table_id: z.uuid(),
+  table_name: z.string().trim().min(1).max(40),
+});
+
 /**
  * The notices a member hears of by WhatsApp while away from the app (decision 0303): an identity check verified, waiting for
  * review or refused; a reward cancelled; a seat on the leaving list released.

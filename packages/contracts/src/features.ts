@@ -71,6 +71,8 @@ export const FEATURES = [
   core('core.kill_switch_banner', 'Kill-switch banner', 'The banner shown while the venue is frozen.', ['player:*']),
   core('core.house_rules', 'House rules', 'The club’s house rules.', ['player:profile/rules', 'web:house-rules']),
   core('core.feedback', 'Feedback', 'Rating a visit, and sending the club a note.', ['player:home', 'player:profile']),
+  core('rewards.bonus', 'Bonus chips', 'The member’s bonus chips and their history, in Rewards.', ['player:rewards']),
+  core('push.bonus', 'Bonus chip notifications', 'Push when bonus chips are added or used.', ['player:profile/notifications']),
 ] as const satisfies readonly FeatureDefinition[];
 
 /** A feature key declared in code. */

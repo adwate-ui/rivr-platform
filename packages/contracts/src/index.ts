@@ -35,7 +35,7 @@ export {
   type UpiVpa, type Utr,
 } from './payments.ts';
 export { academyBatchSchema, companyBookingSchema } from './academy.ts';
-export { doorCardSchema, doorCheckInSchema, floorWaitlistAddSchema, seatPlayerSchema, type SeatWho } from './waitlist.ts';
+export { bonusChipsToRedeemSchema, doorCardSchema, doorCheckInSchema, floorWaitlistAddSchema, seatPlayerSchema, type SeatWho } from './waitlist.ts';
 export {
   dealerPinEntrySchema,
   dealerPinSchema,
@@ -104,7 +104,8 @@ export {
   type HighHandRank,
 } from './highHands.ts';
 export {
-  alertRaisedSchema, callTimeCompletedSchema, callTimeEndingSchema, callTimeUpdatedSchema, linkSuffixSchema, MEMBER_NOTICES, memberNoticeSchema,
+  alertRaisedSchema, bonusCreditedSchema, bonusRedeemedSchema, callTimeCompletedSchema, callTimeEndingSchema, callTimeUpdatedSchema, linkSuffixSchema,
+  MEMBER_NOTICES, memberNoticeSchema,
   promotionOfferedSchema, receiptReadySchema, reviewRequestedSchema, sessionReminderSchema, tournamentStartingSchema, waitlistCalledSchema,
   withdrawalSentSchema, type MemberNotice, type PromotionOffered, type ReceiptReady, type ReviewRequested, type WaitlistCalled,
 } from './messaging.ts';

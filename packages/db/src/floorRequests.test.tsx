@@ -89,6 +89,30 @@ describe('the floor\'s seating', () => {
     expect(calls.find((call) => call.rpc === 'assign_from_waitlist')?.body).toEqual({ p_entry_id: 'e1', p_table_id: 't2', p_seat: 3, p_call_minutes: 180 });
   });
 
+  it('redeems bonus chips with the buy-in as it seats (decision 0504), and sends none for 0', async () => {
+    const { result, calls } = renderFloor({ seat_member: { body: 's9' }, assign_from_waitlist: { body: null }, floor_seats: { body: [] } });
+    await act(async () => {
+      await result.current.actions.seat.mutateAsync({ tableId: 't2', seat: 5, who: { memberNumber: 42 }, callMinutes: 240, bonusChips: 1000 });
+      await result.current.actions.seatFromList.mutateAsync({ entryId: 'e1', memberId: 'm7', tableId: 't2', seat: 3, callMinutes: 180, bonusChips: 0 });
+    });
+    expect(calls.find((call) => call.rpc === 'seat_member')?.body).toEqual({
+      p_table_id: 't2', p_seat: 5, p_member_number: 42, p_call_minutes: 240, p_bonus_chips: 1000,
+    });
+    expect(calls.find((call) => call.rpc === 'assign_from_waitlist')?.body).toEqual({ p_entry_id: 'e1', p_table_id: 't2', p_seat: 3, p_call_minutes: 180 });
+  });
+
+  it('names why bonus chips were not redeemed: more than the member has, not 50s, own record, promotions off, too many', async () => {
+    let outcomes: unknown[] = [];
+    for (const code of ['RVBON', 'RVCHP', 'RVOWN', 'RVKIL', 'RVRAT']) {
+      const { result } = renderFloor({ seat_member: { status: 400, body: { code, message: 'refused' } } });
+      await act(async () => {
+        outcomes = [...outcomes, await result.current.actions.seat.mutateAsync({ tableId: 't2', seat: 5, who: { memberNumber: 42 }, callMinutes: 240, bonusChips: 50 })];
+      });
+      cleanup();
+    }
+    expect(outcomes).toEqual(['bonus_short', 'not_chips', 'own_record', 'bonus_off', 'too_many'].map((error) => ({ ok: false, error })));
+  });
+
   it('names why a seating or a move did not go through', async () => {
     const { result } = renderFloor({
       assign_from_waitlist: { status: 400, body: { code: 'RVOCC', message: 'taken' } },

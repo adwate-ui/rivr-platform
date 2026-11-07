@@ -264,12 +264,12 @@ select results_eq(
   'private.cash_out_split gives every cash-out in the golden file');
 
 -- A bonus: private.bonus_draws and private.bonus_expiring, and @rivr/domain bonusSpend and bonusExpired
--- (packages/testing/golden/bonus.json). Grants are written "amount @ end | ...".
+-- (packages/testing/golden/bonus.json). Grants are written "amount @ end | ...", the end "never" for one with none.
 create function pg_temp.grant_amounts(p_text text) returns bigint[] language sql immutable as $$
   select pg_temp.paise_list(regexp_replace(coalesce(p_text, ''), '\s*@[^|]*', '', 'g'));
 $$;
 create function pg_temp.grant_ends(p_text text) returns timestamptz[] language sql immutable as $$
-  select coalesce(array_agg(trim(split_part(part, '@', 2))::timestamptz order by n), '{}')
+  select coalesce(array_agg(nullif(trim(split_part(part, '@', 2)), 'never')::timestamptz order by n), '{}')
   from unnest(string_to_array(nullif(p_text, ''), '|')) with ordinality as u (part, n);
 $$;
 select ok((select count(*) > 0 from golden.golden_case where file = 'bonus.json'), 'the bonus cases are loaded');

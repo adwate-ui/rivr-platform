@@ -16,6 +16,11 @@ export const FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>> = {
   too_late: 'console.waitlist.tooLate',
   no_time_away: 'console.waitlist.noTimeAway',
   one_at_a_time: 'console.waitlist.oneAtATime',
+  bonus_short: 'console.waitlist.bonusShort',
+  not_chips: 'console.waitlist.notChips',
+  own_record: 'console.waitlist.ownRecord',
+  bonus_off: 'console.waitlist.bonusOff',
+  too_many: 'console.waitlist.tooMany',
 };
 
 /** The same for Seat, Hold place and Release, where a refused request means the place or table changed. */

@@ -68,7 +68,8 @@ function Cards({ venueId, canOpen, tables, entries, requests, interest }: CardsP
             requests={requests.filter((request) => request.tableId === table.id)}
             interest={table.isOpen ? undefined : interest.find((list) => list.tableId === table.id)}
             ticked={ticks.ticked} onToggle={ticks.toggle}
-            onSeat={(entry) => setSeating({ table, place: { entryId: entry.entryId, name: entry.fullName } })} onCheckId={checkId} />
+            onSeat={(entry) => setSeating({ table, place: { entryId: entry.entryId, memberId: entry.memberId, name: entry.fullName } })}
+            onCheckId={checkId} />
         ))}
       </Grid>
       {seating === null ? null : <SeatSheet venueId={venueId} table={seating.table} place={seating.place} onClose={() => setSeating(null)} />}

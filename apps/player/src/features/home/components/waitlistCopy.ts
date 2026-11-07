@@ -24,4 +24,10 @@ export const WAITLIST_FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>
   too_late: 'player.tonight.tooLate',
   no_time_away: 'player.tonight.unavailable',
   one_at_a_time: 'player.tonight.oneAtATime',
+  // Bonus chips redeemed as the floor seats a member (decision 0504): staff's refusals, never a member's.
+  bonus_short: 'player.tonight.unavailable',
+  not_chips: 'player.tonight.unavailable',
+  own_record: 'player.tonight.unavailable',
+  bonus_off: 'player.tonight.unavailable',
+  too_many: 'player.tonight.unavailable',
 };

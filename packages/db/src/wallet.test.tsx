@@ -41,16 +41,18 @@ describe('Wallet', () => {
   it('gives Arjun\'s cash, bonus in force, points, open markers and limit, reading only his own grants and markers', async () => {
     const { result, urls } = renderWallet({
       my_wallet: [{ member_id: ARJUN, cash_paise: 18_500_000, points: 18_420, credit_limit_paise: 20_000_000 }],
-      bonus_grant: [{ id: 'g1', remaining_paise: 400_000, expires_at: '2026-11-22T18:29:00+00:00' }],
+      bonus_grant: [{ id: 'g1', remaining_paise: 400_000, expires_at: null }],
       marker: [{ id: 'm1', outstanding_paise: 5_000_000, issued_at: '2026-10-06T12:00:00+00:00', due_at: '2026-11-05T12:00:00+00:00' }],
     });
     await waitFor(() => expect(result.current.wallet.data).toEqual({
       cash: 18_500_000n, points: 18_420n, creditLimit: 20_000_000n,
-      bonus: [{ grantId: 'g1', remaining: 400_000n, expiresAt: '2026-11-22T18:29:00+00:00' }],
+      bonus: [{ grantId: 'g1', remaining: 400_000n, expiresAt: null }],
       markers: [{ markerId: 'm1', outstanding: 5_000_000n, issuedAt: '2026-10-06T12:00:00+00:00', dueAt: '2026-11-05T12:00:00+00:00' }],
     }));
     expect(urls.find((url) => url.includes('/bonus_grant'))).toContain(`member_id=eq.${ARJUN}`);
     expect(urls.find((url) => url.includes('/bonus_grant'))).toContain('expired_at=is.null');
+    // A grant with no end is in force (decision 0504).
+    expect(decodeURIComponent(urls.find((url) => url.includes('/bonus_grant')) ?? '')).toContain('or=(expires_at.is.null,expires_at.gt.');
     expect(urls.find((url) => url.includes('/marker'))).toContain('settled_at=is.null');
   });
 

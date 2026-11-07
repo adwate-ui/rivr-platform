@@ -24,7 +24,7 @@ export const arjun: SeedDemoMember = {
   tier: 'black_card',
   qualifyingStakes: STAKES_100_200,
   cash: paise(18_500_000n), // ₹1,85,000
-  bonus: { amount: paise(400_000n), expiresAt: ist('2026-11-22 23:59') }, // ₹4,000, expires Sunday
+  bonus: { amount: paise(400_000n), expiresAt: null }, // ₹4,000, never ends (decision 0504)
   openMarker: { amount: paise(5_000_000n), issuedAt: ist('2026-11-03 00:10') }, // ₹50,000, 14 days ago
   creditLimit: paise(20_000_000n), // ₹2,00,000
   points: 18_420,
