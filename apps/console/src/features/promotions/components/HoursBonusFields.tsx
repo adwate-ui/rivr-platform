@@ -1,5 +1,5 @@
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Grid, Input, Segmented, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Grid, Inline, Input, Segmented, Stack, Text } from '@rivr/ui';
 import { FormInput, type SectionProps } from './BuilderCard.tsx';
 import type { HourStepFields } from './builderForm.ts';
 
@@ -14,13 +14,16 @@ function MoreStep({ section, step, at }: { section: SectionProps; step: HourStep
     <Grid columns={2} gap={4} stackBelow="medium">
       <Input label={t('console.promotions.builder.fields.stepChips')} suffix={t('console.promotions.builder.fields.chipsSuffix')} inputMode="numeric"
         value={step.chips} readOnly={isReadOnly} onChange={(event) => change({ chips: event.target.value })} />
-      <Stack gap={1} align="start">
+      {/* The field as wide as its column, as the first step's; Remove on its own line under it. */}
+      <Stack gap={1}>
         <Input label={t('console.promotions.builder.fields.afterHours')} suffix={t('console.promotions.builder.fields.afterSuffix')} inputMode="decimal"
           value={step.afterHours} readOnly={isReadOnly} onChange={(event) => change({ afterHours: event.target.value })} />
         {isReadOnly ? null : (
-          <Button variant="text" size="small" onClick={() => onChange({ ...form, moreSteps: form.moreSteps.filter((_, index) => index !== at) })}>
-            {t('console.promotions.builder.fields.removeStep', { step: String(at + 2) })}
-          </Button>
+          <Inline>
+            <Button variant="text" size="small" onClick={() => onChange({ ...form, moreSteps: form.moreSteps.filter((_, index) => index !== at) })}>
+              {t('console.promotions.builder.fields.removeStep', { step: String(at + 2) })}
+            </Button>
+          </Inline>
         )}
       </Stack>
     </Grid>
