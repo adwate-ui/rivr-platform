@@ -1,0 +1,39 @@
+/** The record's Bonus chips (decision 0504): the balance, then each line, the newest first; super admins add some by hand (owner, 8 Nov). */
+export const memberBonus = {
+  balance: 'Bonus chips now',
+  /** They never expire; the floor redeems them with a buy-in as it seats the member. */
+  note: 'Redeemed in the seat sheet. They never expire.',
+  history: 'History',
+  none: 'No bonus chips yet.',
+  showEarlier: 'Show earlier',
+  /** A line: `15 Nov 2026 · Welcome bonus` `+500`; `15 Nov 2026 · Buy-in · Table 3 · seated by Aditya Malhotra` `−1,000`. */
+  credited: '{date} · {reason}',
+  redeemed: '{date} · Buy-in · {table}',
+  redeemedBy: '{date} · Buy-in · {table} · seated by {name}',
+  expired: '{date} · Expired · {reason}',
+  plus: '+{chips}',
+  minus: '−{chips}',
+  /**
+   * Bonus chips added by hand (the owner, 8 Nov): super admins only, whole fifties from 50 to 1,00,000, with a reason the
+   * member's history shows and the audit log keeps. `{chips}` is the number, as `1,500`.
+   */
+  give: {
+    title: 'Add bonus chips',
+    intro: 'For super admins. Added to the balance at once, with your reason in their history.',
+    chips: 'Bonus chips',
+    chipsHint: 'Whole fifties, 50 to 1,00,000.',
+    reason: 'Reason',
+    reasonHint: 'The member sees it in their history.',
+    add: 'Add bonus chips',
+    confirm: 'Yes, add {chips} bonus chips',
+    added: '{chips} bonus chips added.',
+    failures: {
+      not_allowed: 'Super admins only.',
+      own_record: 'Not on your own record. Ask another super admin.',
+      invalid_chips: 'Give whole fifties from 50 to 1,00,000.',
+      invalid_reason: 'Give a reason of 3 to 200 characters.',
+      paused: 'Venue frozen or promotions stopped. Try once released.',
+      unavailable: 'Not added. Try again.',
+    },
+  },
+};
