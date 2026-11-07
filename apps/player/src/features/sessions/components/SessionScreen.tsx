@@ -2,9 +2,10 @@ import { useFeatureStatus } from '@rivr/db';
 import { useHideMySession, useMySession, type MySession } from '@rivr/db/sessions';
 import { formatHoursMinutes, formatNumber, formatStakes, formatTime, t } from '@rivr/i18n';
 import { BackButton, Box, Button, DetailRow, ErrorMessage, FeatureGate, Heading, Screen, Stack, Text, useToast } from '@rivr/ui';
-import { useCanGoBack, useNavigate, useParams, useRouter } from '@tanstack/react-router';
+import { useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import { sessionDay, sessionTitle } from './naming.ts';
+import { useGoBack } from '../../frame/goBack.ts';
 
 /** The game a session was: a cash table's stakes, or the tournament with the member's place in its field (#549). */
 function gameOf(session: MySession): string {
@@ -52,10 +53,7 @@ export function SessionScreen() {
   const { visitId = '' } = useParams({ strict: false });
   const sessions = useMySession(visitId);
   const access = useFeatureStatus('sessions.history');
-  const navigate = useNavigate();
-  const router = useRouter();
-  const canGoBack = useCanGoBack();
-  const toList = () => (canGoBack ? router.history.back() : void navigate({ to: '/sessions', replace: true }));
+  const toList = useGoBack('/sessions');
   const session = sessions.data ?? undefined;
   const title = t('player.sessions.title');
   const back = <BackButton label={title} onBack={toList} />;

@@ -11,6 +11,7 @@ import { Controller, useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
 import { payoutLine } from './payoutCopy.ts';
 import { withdrawBlock } from './withdrawBlock.ts';
+import { useGoBack } from '../../frame/goBack.ts';
 
 /** What the member is told when a withdrawal is refused. */
 const FAILURE_COPY: Readonly<Record<WithdrawalFailure, MessageKey>> = {
@@ -54,7 +55,7 @@ function WithdrawForm({ wallet, accounts, block }: { wallet: Wallet; accounts: r
     const amount = fromRupees(BigInt(values.amount));
     if (!withdrawalCheck(amount, wallet.cash).ok) return;
     const done = await request.mutateAsync({ amount, payoutAccountId: values.payoutAccountId, requestId });
-    if (done.ok) void navigate({ to: '/balance' });
+    if (done.ok) void navigate({ to: '/balance', replace: true });
   });
   const amountField = form.register('amount');
   return (
@@ -82,11 +83,11 @@ export function WithdrawScreen() {
   const wallet = useWallet();
   const accounts = usePayoutAccounts();
   const withdrawals = useWithdrawals();
-  const navigate = useNavigate();
+  const toBalance = useGoBack('/balance');
   // The moment the screen opened: what is overdue now, not as it re-renders.
   const [now] = useState(() => new Date());
   const title = t('player.balance.withdraw');
-  const back = <Button variant="text" onClick={() => void navigate({ to: '/balance' })}>{t('common.back')}</Button>;
+  const back = <Button variant="text" onClick={toBalance}>{t('common.back')}</Button>;
   if (wallet.isPending || accounts.isPending) return <Screen title={title} actions={back} status="loading" />;
   if (wallet.isError || accounts.isError || wallet.data === null) {
     return <Screen title={title} actions={back} status="error" onRetry={() => void Promise.all([wallet.refetch(), accounts.refetch()])} />;

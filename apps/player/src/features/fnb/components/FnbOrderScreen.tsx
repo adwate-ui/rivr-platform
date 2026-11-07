@@ -3,9 +3,10 @@ import { useFeatureStatus, useMySeat, useMyUsualFnbItems, type MySeat } from '@r
 import { useMyFnbMenu, useMyFnbOrders, type FnbMenuItem } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
 import { BackButton, Button, ChoiceChips, FeatureGate, Heading, Inline, ItemPhoto, LoadState, QuantityStepper, Screen, Skeleton, Stack, SuggestionCard, Text } from '@rivr/ui';
-import { Navigate, useNavigate, useSearch } from '@tanstack/react-router';
+import { Navigate, useSearch } from '@tanstack/react-router';
 import { useState } from 'react';
 import { SendBar } from './SendBar.tsx';
+import { useGoBack } from '../../frame/goBack.ts';
 
 type Counts = Readonly<Record<string, number>>;
 
@@ -92,13 +93,13 @@ function OrderBody() {
  */
 export function FnbOrderScreen() {
   const feature = useFeatureStatus('fnb.table_side');
-  const navigate = useNavigate();
+  const toHome = useGoBack('/');
   const title = t('player.order.title');
   if (feature.status === 'loading') return <Screen title={title} isTitleHidden status="loading" loadingLook="skeleton" />;
   if (feature.status === 'error') return <Screen title={title} status="error" onRetry={feature.retry} />;
   return (
     <Stack gap={2}>
-      <BackButton label={t('player.order.back')} onBack={() => void navigate({ to: '/' })} />
+      <BackButton label={t('player.order.back')} onBack={toHome} />
       <Heading level={1} variant="serif">{title}</Heading>
       <FeatureGate access={feature.access}><OrderBody /></FeatureGate>
     </Stack>

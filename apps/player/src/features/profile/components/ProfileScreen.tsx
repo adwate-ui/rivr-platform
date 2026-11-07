@@ -1,11 +1,12 @@
 import { useFeature, useKycImageUrl, useKycRecord, useMember, useMembershipCard, usePreferences, useSignedInPhone } from '@rivr/db';
 import { formatMobile, t } from '@rivr/i18n';
 import { BackButton, Box, DetailRow, FeatureGate, Heading, Inline, KycPhoto, kycPhotoStatus, ProfileMark, Screen, Stack, Text } from '@rivr/ui';
-import { useCanGoBack, useNavigate, useRouter } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import { useState, type ReactNode } from 'react';
 import { FeedbackSheet } from './FeedbackSection.tsx';
 import { NotificationsSection } from './NotificationsSection.tsx';
 import { SignOutSection } from './SignOutSection.tsx';
+import { useGoBack } from '../../frame/goBack.ts';
 
 /** A group of rows under its gold eyebrow: Account, Notifications, Club. */
 function Group({ title, children }: { title: string; children: ReactNode }) {
@@ -83,10 +84,9 @@ function ClubGroup({ onFeedback }: { onFeedback: () => void }) {
 export function ProfileScreen() {
   const preferences = usePreferences();
   const navigate = useNavigate();
-  const router = useRouter();
-  const canGoBack = useCanGoBack();
+  const toTab = useGoBack('/');
   const [isFeedbackOpen, setFeedbackOpen] = useState(false);
-  const back = <BackButton label={t('player.profile.back')} onBack={() => (canGoBack ? router.history.back() : void navigate({ to: '/' }))} />;
+  const back = <BackButton label={t('player.profile.back')} onBack={toTab} />;
   if (preferences.data === undefined) {
     // Sign out works offline, so it stays within reach when Profile cannot load.
     return (
