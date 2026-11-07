@@ -1,4 +1,5 @@
-import { useMyBonus, useMyBonusHistory, type BonusLine } from '@rivr/db/bonus';
+import { useMyBonusHistory, type BonusLine } from '@rivr/db/bonus';
+import type { Paise } from '@rivr/domain/money';
 import { formatChips, formatDayMonth, t } from '@rivr/i18n';
 import { BalanceTile, Box, Button, DetailRow, Heading, LoadState, Skeleton, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
@@ -46,15 +47,12 @@ function History() {
 
 /**
  * The bonus chips tile beside points at the top of Rewards (decision 0504; owner, 8 Nov): the chips in gold with a chip,
- * and what they are for. It opens their history in place, closed until the member opens it.
+ * and what they are for, or a skeleton while they come. It opens their history in place, closed until the member opens it.
  */
-export function BonusTile({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
-  const bonus = useMyBonus();
-  if (bonus.isError) return <LoadState isError onRetry={() => void bonus.refetch()} />;
-  if (bonus.data === undefined) return <Skeleton rows={2} />;
-  if (bonus.data === null) return null;
+export function BonusTile({ chips, isOpen, onToggle }: { chips: Paise | undefined; isOpen: boolean; onToggle: () => void }) {
+  if (chips === undefined) return <Skeleton rows={2} />;
   return (
-    <BalanceTile icon="chip" tone="money" figure={formatChips(bonus.data)} label={t('memberRewards.bonus.label')}
+    <BalanceTile icon="chip" tone="money" figure={formatChips(chips)} label={t('memberRewards.bonus.label')}
       line={t('memberRewards.bonus.line')} onOpen={onToggle} aria-expanded={isOpen} />
   );
 }

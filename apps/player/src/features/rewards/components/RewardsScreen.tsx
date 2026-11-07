@@ -2,7 +2,8 @@ import { useFeature, useMyLockedPoints } from '@rivr/db';
 import { useMyRewards, useRewardCatalogue, type MyRewards } from '@rivr/db/myRewards';
 import { nextReward } from '@rivr/domain/rewards';
 import { formatNights, formatNumber, memberRewards, registerMessages, t } from '@rivr/i18n';
-import { BalanceTile, FeatureGate, Grid, Inline, ProgressBar, Screen, Stack, Text, type FeatureAccess } from '@rivr/ui';
+import { useMyBonus } from '@rivr/db/bonus';
+import { BalanceTile, FeatureGate, Grid, Inline, LoadState, ProgressBar, Screen, Stack, Text, type FeatureAccess } from '@rivr/ui';
 import { useState } from 'react';
 import { BonusHistory, BonusTile } from './BonusSection.tsx';
 import { Catalogue } from './Catalogue.tsx';
@@ -37,19 +38,43 @@ function NextReward({ points }: { points: bigint }) {
  * The tier, then points and bonus chips side by side, each with its one line (owner, 8 Nov: told apart at a glance); locked
  * points if any, the way to the next reward, and the bonus chips history once its tile opens it.
  */
-function Balances({ rewards, hasCatalogue, bonus }: { rewards: MyRewards; hasCatalogue: boolean; bonus: FeatureAccess }) {
+/** Points the club gave locked (#645), under the tiles: nothing when there are none. */
+function LockedPoints() {
   const locked = useMyLockedPoints().data;
-  const [isBonusOpen, setBonusOpen] = useState(false);
+  if (locked === undefined || locked === 0n) return null;
+  return <Text tone="muted">{t('memberRewards.locked', { points: formatNumber(locked) })}</Text>;
+}
+
+/**
+ * The bonus chips tile, its Try again and its history, as Rewards places them. With the feature off, or the chips not
+ * read, there is no tile, and points take the whole row.
+ */
+function useChips(bonus: FeatureAccess) {
+  const chips = useMyBonus();
+  const [isOpen, setOpen] = useState(false);
+  const isOn = bonus.state === 'enabled';
+  const hasTile = isOn && !chips.isError && chips.data !== null;
+  return {
+    hasTile,
+    tile: hasTile ? <BonusTile chips={chips.data ?? undefined} isOpen={isOpen} onToggle={() => setOpen(!isOpen)} /> : null,
+    retry: isOn && chips.isError ? <LoadState isError onRetry={() => void chips.refetch()} /> : null,
+    history: hasTile && isOpen ? <BonusHistory /> : null,
+  };
+}
+
+function Balances({ rewards, hasCatalogue, bonus }: { rewards: MyRewards; hasCatalogue: boolean; bonus: FeatureAccess }) {
+  const chips = useChips(bonus);
   return (
     <Stack gap={3}>
       <Text variant="eyebrow" tone="accent">{rewards.tierName}</Text>
-      <Grid columns={2} gap={3}>
+      <Grid columns={chips.hasTile ? 2 : 1} gap={3}>
         <BalanceTile icon="star" figure={formatNumber(rewards.points)} label={t('memberRewards.pointsLabel')} line={t('memberRewards.pointsLine')} />
-        <FeatureGate access={bonus}><BonusTile isOpen={isBonusOpen} onToggle={() => setBonusOpen(!isBonusOpen)} /></FeatureGate>
+        {chips.tile}
       </Grid>
-      {locked === undefined || locked === 0n ? null : <Text tone="muted">{t('memberRewards.locked', { points: formatNumber(locked) })}</Text>}
+      {chips.retry}
+      {chips.history}
+      <LockedPoints />
       {hasCatalogue ? <NextReward points={rewards.points} /> : null}
-      {isBonusOpen ? <BonusHistory /> : null}
     </Stack>
   );
 }

@@ -22,7 +22,7 @@ describe('Sign in › Phone', () => {
   it('says the code comes on WhatsApp, under the number', () => {
     renderPhone();
     expect(screen.getByRole('textbox', { name: 'Mobile number' }).getAttribute('aria-describedby')).toBeTruthy();
-    expect(screen.getByText("We'll send your code on WhatsApp.")).toBeDefined();
+    expect(screen.getByText('Code comes on WhatsApp.')).toBeDefined();
   });
 
   it('links the terms and the privacy notice on the website, each in a new tab', () => {

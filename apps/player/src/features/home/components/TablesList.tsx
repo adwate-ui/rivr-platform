@@ -3,7 +3,7 @@ import { formatDayTime, formatMoney, formatStakes, t } from '@rivr/i18n';
 import { Button, FeatureGate, Heading, Inline, Stack, TableListRow, Text, useToast } from '@rivr/ui';
 
 /** A table's name and its stakes as small blind, big blind and any straddle: `Table 5 · NLH 100/200/400` (owner, 8 Nov). */
-export function tableLabel(table: FloorTable): string {
+function tableLabel(table: FloorTable): string {
   const stakes = formatStakes(table.smallBlind, table.bigBlind, table.straddle);
   return t('player.live.tableName', { name: table.name, game: `${t(`player.live.gameShort.${table.game}`)} ${stakes}` });
 }
