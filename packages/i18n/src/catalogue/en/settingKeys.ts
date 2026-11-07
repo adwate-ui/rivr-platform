@@ -190,8 +190,8 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   },
   'rakeback.rate': {
     name: 'Rakeback',
-    help: "The share of a member's rake at this table type over a club week, given back as bonus each Monday, held to a cap and lasting the days given. Not set gives none.",
-    fields: { basis_points: 'Share', cap_paise: 'Cap', expires_days: 'Bonus lasts' },
+    help: "The share of a member's rake at this table type over a club week, given back as bonus chips each Monday, held to a cap and lasting the days given. Not set gives none.",
+    fields: { basis_points: 'Share', cap_paise: 'Cap', expires_days: 'Bonus chips last' },
   },
   'reports.unclaimed_days': {
     name: 'Unclaimed balance after',

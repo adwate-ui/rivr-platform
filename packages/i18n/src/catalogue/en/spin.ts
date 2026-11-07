@@ -28,7 +28,7 @@ export const spin = {
   removeName: 'Remove {prize}',
   confirmRemove: 'Yes, remove {prize}',
   kind: 'Prize',
-  kinds: { points: 'Points', bonus: 'Bonus', nothing: 'Nothing' },
+  kinds: { points: 'Points', bonus: 'Bonus chips', nothing: 'Nothing' },
   points: 'Points',
   bonus: 'Bonus chips, in 50s',
   /** The weight's field, its label shown inside it until something is typed. */

@@ -75,7 +75,7 @@ describe('the promotion builder (console v3)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Remove step 2' }));
     expect(screen.queryByRole('textbox', { name: 'Then bonus chips' })).toBeNull();
     fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Pays' })).getByRole('radio', { name: 'Every few hours' }));
-    fireEvent.change(screen.getByRole('textbox', { name: 'Most times a visit' }), { target: { value: '3' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Times a visit' }), { target: { value: '3' } });
     expect(screen.getByText(/^1,000 bonus chips every 2 hours, up to 3 times a visit, for all stakes/)).toBeDefined();
   });
 
