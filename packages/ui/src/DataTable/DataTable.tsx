@@ -7,7 +7,9 @@ import { Input } from '../Input/Input.tsx';
 import { useIsWide } from '../useIsWide/useIsWide.ts';
 import { Text } from '../Text/Text.tsx';
 import { useTableDensity } from './DataTableDensity.tsx';
+import { ColumnFiltersPanel } from './ColumnFilters.tsx';
 import { ExportBar, useTableExporter } from './DataTableExport.tsx';
+import { filtersInWords, filtersOn, NO_FILTERS, passes, type ColumnFilters } from './filters.ts';
 import { HeaderRow, layoutOf, PlainBody, VirtualBody } from './rows.tsx';
 import { ticksFor, type DataTableSelection } from './Selection.tsx';
 import type { DataTableColumn, DataTableSort } from './columns.ts';
@@ -79,12 +81,14 @@ interface View<Row> {
   readonly sort: DataTableSort | null;
   readonly text: ((row: Row) => string) | undefined;
   readonly query: string;
+  readonly filters: ColumnFilters;
 }
 
-/** The rows to show: those matching the filter, in the chosen order. */
-function shown<Row>(rows: readonly Row[], { columns, sort, text, query }: View<Row>): readonly Row[] {
+/** The rows to show: those matching the search and every column filter in force, in the chosen order. */
+function shown<Row>(rows: readonly Row[], { columns, sort, text, query, filters }: View<Row>): readonly Row[] {
   const needle = query.trim().toLowerCase();
-  const matching = text === undefined || needle === '' ? rows : rows.filter((row) => text(row).toLowerCase().includes(needle));
+  const on = filtersOn(columns, filters);
+  const matching = rows.filter((row) => (text === undefined || needle === '' || text(row).toLowerCase().includes(needle)) && passes(row, on, filters));
   const value = columns.find((column) => column.key === sort?.key)?.sortValue;
   if (sort === null || value === undefined) return matching;
   const sign = sort.direction === 'ascending' ? 1 : -1;
@@ -100,6 +104,7 @@ interface TableProps<Row> {
   readonly props: DataTableProps<Row>;
   readonly visible: readonly Row[];
   readonly sort: DataTableSort | null;
+  /** The search and the column filters in force, which a long table starts from the top for. */
   readonly query: string;
   readonly onSort: (key: string) => void;
 }
@@ -129,7 +134,7 @@ function Table<Row>({ props, visible, sort, query, onSort }: TableProps<Row>) {
 }
 
 /** What stands in for the rows: loading, the error with a retry, or why there are none (announced as the filter changes). */
-function Instead<Row>({ props, query }: { props: DataTableProps<Row>; query: string }) {
+function Instead<Row>({ props, query, isFiltered }: { props: DataTableProps<Row>; query: string; isFiltered: boolean }) {
   if (props.status === 'loading') return <div role="status" className="px-3 py-4"><Text tone="muted">{t('common.loading')}</Text></div>;
   if (props.status === 'error') {
     return (
@@ -139,45 +144,69 @@ function Instead<Row>({ props, query }: { props: DataTableProps<Row>; query: str
       </div>
     );
   }
-  const text = props.rows.length === 0 ? props.emptyText : t('ui.dataTable.noMatch', { query: query.trim() });
+  const why = query.trim() === '' && isFiltered ? t('ui.dataTable.noFilterMatch') : t('ui.dataTable.noMatch', { query: query.trim() });
+  const text = props.rows.length === 0 ? props.emptyText : why;
   return <div role="status" className="px-3 py-4"><Text tone="muted">{text}</Text></div>;
 }
 
-/** Every filter in force, in words, as an export records them: the screen's, then the table's own. */
-function filtersInForce<Row>(props: DataTableProps<Row>, query: string): string {
+/** Every filter in force, in words, as an export records them: the screen's, then the table's search and its columns'. */
+function filtersInForce<Row>(props: DataTableProps<Row>, query: string, filters: ColumnFilters): string {
   const typed = query.trim();
   const own = typed === '' || props.filter === undefined ? undefined : `${props.filter.label}: ${typed}`;
-  return [props.exportFilter, own].filter((part) => part !== undefined && part !== '').join('; ');
+  return [props.exportFilter, own, ...filtersInWords(filtersOn(props.columns, filters), filters)].filter((part) => part !== undefined && part !== '').join('; ');
+}
+
+/** What the bar holds: the search typed and the column filters, open or not. */
+interface BarState {
+  readonly query: string;
+  readonly onQuery: (query: string) => void;
+  readonly filters: ColumnFilters;
+  readonly isFiltering: boolean;
+  readonly onFiltering: () => void;
 }
 
 /**
  * The Export control for the rows as shown, beneath a DataTableExportProvider and once there are rows: `here`, at the
  * table's top right, or `elsewhere`, drawn in the element `exportIn` names.
  */
-function useExportPlaced<Row>(props: DataTableProps<Row>, visible: readonly Row[], query: string) {
+function useExportPlaced<Row>(props: DataTableProps<Row>, visible: readonly Row[], query: string, filters: ColumnFilters) {
   const exporter = useTableExporter();
   const menu = exporter === null || visible.length === 0 ? null
-    : <ExportBar exporter={exporter} label={props.label} columns={props.columns} rows={visible} filter={filtersInForce(props, query)} />;
+    : <ExportBar exporter={exporter} label={props.label} columns={props.columns} rows={visible} filter={filtersInForce(props, query, filters)} />;
   const target = props.exportIn;
   if (target === undefined) return { here: menu, elsewhere: null };
   return { here: null, elsewhere: menu === null || target === null ? null : createPortal(menu, target) };
 }
 
+/** Filters, for a table with a column to filter: open or closed, with how many are in force. */
+function FiltersButton<Row>({ props, state }: { props: DataTableProps<Row>; state: BarState }) {
+  if (!props.columns.some((column) => column.filter !== undefined)) return null;
+  const count = filtersOn(props.columns, state.filters).length;
+  return (
+    <Button variant="subtle" size="small" aria-expanded={state.isFiltering} onClick={state.onFiltering} aside={count === 0 ? undefined : String(count)}
+      aria-label={count === 0 ? t('ui.dataTable.filters') : t('ui.dataTable.filtersCount', { count: String(count) })}>
+      {t('ui.dataTable.filters')}
+    </Button>
+  );
+}
+
 /**
- * Above the table: the filter box, the caller's toolbar, and, beneath a DataTableExportProvider, the Export control at
- * the top right for the rows as shown with every filter in force, or in the element `exportIn` names; nothing when there
- * is none of these.
+ * Above the table: the filter box, Filters for a table with columns to filter, the caller's toolbar, and, beneath a
+ * DataTableExportProvider, the Export control at the top right for the rows as shown with every filter in force, or in
+ * the element `exportIn` names; nothing when there is none of these.
  */
-function Bar<Row>({ props, visible, query, onQuery }: { props: DataTableProps<Row>; visible: readonly Row[]; query: string; onQuery: (query: string) => void }) {
-  const { here, elsewhere } = useExportPlaced(props, visible, query);
-  if (props.filter === undefined && props.toolbar === undefined && here === null) return elsewhere;
+function Bar<Row>({ props, visible, state }: { props: DataTableProps<Row>; visible: readonly Row[]; state: BarState }) {
+  const { here, elsewhere } = useExportPlaced(props, visible, state.query, state.filters);
+  const filters = <FiltersButton props={props} state={state} />;
+  if (props.filter === undefined && props.toolbar === undefined && here === null && !props.columns.some((column) => column.filter !== undefined)) return elsewhere;
   return (
     <div className="flex flex-wrap items-end gap-4">
       {props.filter === undefined ? null : (
         <div className="min-w-0 flex-1 basis-full medium:basis-0">
-          <Input type="search" label={props.filter.label} value={query} onChange={(event) => onQuery(event.target.value)} autoComplete="off" />
+          <Input type="search" label={props.filter.label} value={state.query} onChange={(event) => state.onQuery(event.target.value)} autoComplete="off" />
         </div>
       )}
+      {filters}
       {props.toolbar?.(visible)}
       {here}
       {elsewhere}
@@ -195,19 +224,24 @@ export function DataTable<Row>(props: DataTableProps<Row>) {
   const isWide = useIsWide('medium');
   const [sort, setSort] = useState<DataTableSort | null>(props.initialSort ?? null);
   const [query, setQuery] = useState('');
+  const [filters, setFilters] = useState<ColumnFilters>(NO_FILTERS);
+  const [isFiltering, setFiltering] = useState(false);
   const source = props.status === 'loading' || props.status === 'error' ? NO_ROWS : props.rows;
   const text = props.filter?.text;
-  const visible = useMemo(() => shown(source, { columns: props.columns, sort, text, query }), [source, props.columns, sort, text, query]);
+  const visible = useMemo(() => shown(source, { columns: props.columns, sort, text, query, filters }), [source, props.columns, sort, text, query, filters]);
+  const state = { query, onQuery: setQuery, filters, isFiltering, onFiltering: () => setFiltering(!isFiltering) };
+  const isFiltered = filtersOn(props.columns, filters).length > 0;
   const onSort = (key: string) => setSort((current) =>
     current?.key === key && current.direction === 'ascending' ? { key, direction: 'descending' } : { key, direction: 'ascending' });
   return (
     <div className="flex flex-col gap-4">
-      <Bar props={props} visible={visible} query={query} onQuery={setQuery} />
-      {visible.length === 0 ? <Instead props={props} query={query} /> : (
+      <Bar props={props} visible={visible} state={state} />
+      {isFiltering ? <ColumnFiltersPanel columns={props.columns} rows={source} filters={filters} onChange={setFilters} /> : null}
+      {visible.length === 0 ? <Instead props={props} query={query} isFiltered={isFiltered} /> : (
         <>
           {/* Below 768 px the cards sort from a bar above them; the scroll layout keeps its header. */}
           {isWide || props.narrowLayout === 'scroll' ? null : <PhoneSort label={props.label} columns={props.columns} sort={sort} onSort={onSort} />}
-          <Table props={props} visible={visible} sort={sort} query={query} onSort={onSort} />
+          <Table props={props} visible={visible} sort={sort} query={`${query}:${JSON.stringify(filters)}`} onSort={onSort} />
         </>
       )}
     </div>
