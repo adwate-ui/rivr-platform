@@ -31,7 +31,7 @@ export const staff = {
     marketing: 'Marketing',
     host: 'Host',
     owner_view: 'Owner, view only',
-    service: 'Service',
+    service: 'F&B',
   },
   /** Under a name: `{jobTitle}`, then the role. */
   line: '{jobTitle} · {role}',
