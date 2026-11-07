@@ -103,7 +103,7 @@ describe('the promotion builder (console v3)', () => {
       '/rpc/save_promotion_draft': refused('RVFRZ'),
     });
     expect(screen.getByText('Changes make version 2.')).toBeDefined();
-    fireEvent.change(screen.getByRole('textbox', { name: 'Bonus chips', exact: true }), { target: { value: '25' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Bonus chips' }), { target: { value: '25' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save draft' }));
     expect(await screen.findByText('Venue frozen. Try again once it is released.')).toBeDefined();
     expect(bodiesOf('save_promotion_draft')[0]).toMatchObject({ p_promotion_id: 'p1', p_draft: { terms: { reward: { percent: 25 } } } });
