@@ -3,7 +3,7 @@ import { ToastProvider } from '@rivr/ui';
 import { QueryClient } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { StaffTable } from './StaffTable.tsx';
+import { StaffTable, type StaffView } from './StaffTable.tsx';
 
 afterEach(() => {
   cleanup();
@@ -15,10 +15,11 @@ const STAFF: readonly StaffMember[] = [
   { staffId: 's1', fullName: 'Ayesha Thomas', jobTitle: 'Floor manager', role: 'admin', phone: '+919000000150', isActive: true, isMe: true },
   { staffId: 's2', fullName: 'Manoj Pillai', jobTitle: 'Cashier', role: 'cashier', phone: '+919000000151', isActive: true, isMe: false },
   { staffId: 's3', fullName: 'Ravi Dealer', jobTitle: 'Dealer', role: 'dealer', phone: null, isActive: false, isMe: false },
+  { staffId: 's4', fullName: 'Neha Kapoor', jobTitle: 'Floor manager', role: 'admin', phone: '+919000000152', isActive: false, isMe: false },
 ];
 
 /** The table, with Ravi removed on 5 Nov by Vikram; a change sent to the staff table goes to `changes`. */
-function renderTable(isAdding = false) {
+function renderTable(isAdding = false, view: StaffView = 'active') {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000101', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -37,7 +38,7 @@ function renderTable(isAdding = false) {
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })} queryClient={cache}>
       <ToastProvider place="console">
-        <StaffTable venueId="v1" members={STAFF} grantable={['cashier', 'dealer', 'host']} isAdding={isAdding} />
+        <StaffTable venueId="v1" members={STAFF} grantable={['cashier', 'dealer', 'host']} isAdding={isAdding} view={view} />
       </ToastProvider>
     </RivrDataProvider>,
   );
@@ -45,24 +46,26 @@ function renderTable(isAdding = false) {
 }
 
 describe('StaffTable', () => {
-  it('lists the active staff as a table, with You on one\'s own row; the removed apart, with how many (owner, 8 Nov)', () => {
+  it('lists the staff working as a table, with You on one\'s own row; a removed login is not among them (owner, 8 Nov)', () => {
     renderTable();
     expect(screen.getByRole('button', { name: 'Ayesha Thomas · You' })).toBeDefined();
     expect(screen.getByText('+91 90000 00151')).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Ravi Dealer' })).toBeNull();
-    const views = screen.getByRole('radiogroup', { name: 'Staff shown' });
-    expect(Array.from(views.querySelectorAll('[role="radio"]'), (chip) => chip.textContent)).toEqual(['Active2', 'Removed1']);
+    expect(screen.queryByRole('columnheader', { name: /Login/ })).toBeNull();
   });
 
-  it('shows the removed with when and by whom, and restores one after a second press', async () => {
-    const { changes } = renderTable();
-    fireEvent.click(screen.getByRole('radio', { name: /^Removed/ }));
-    expect(screen.getByRole('button', { name: 'Ravi Dealer' })).toBeDefined();
+  it('lists the removed with when and by whom, and restores one after a second press', async () => {
+    const { changes } = renderTable(false, 'removed');
     expect(await screen.findByText(/^5 Nov 2026 · by Vikram Rao$/)).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Ravi Dealer' })).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Ayesha Thomas · You' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Restore Ravi Dealer' }));
     fireEvent.click(screen.getByRole('button', { name: 'Yes, restore Ravi Dealer' }));
     await waitFor(() => expect(changes).toEqual([{ is_active: true }]));
+    // An admin's role is beyond this manager's, so her row has no Restore, as it would have no changes; nor any record.
+    expect(screen.getByRole('button', { name: 'Neha Kapoor' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Restore Neha Kapoor' })).toBeNull();
+    expect(screen.getByText('Not recorded')).toBeDefined();
   });
 
   it('narrows the table to what is typed in the search', () => {

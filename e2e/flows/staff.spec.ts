@@ -58,7 +58,7 @@ test.describe('Staff', () => {
     await admin.reload();
     // A reload closes the row. Turned off, they are under Removed (owner, 8 Nov); found again, the name, then Change,
     // open it on what was saved.
-    await admin.getByRole('radio', { name: /^Removed/ }).click();
+    await admin.getByRole('link', { name: 'Removed staff' }).click();
     await admin.getByRole('searchbox', { name: 'Find staff' }).fill(run);
     await admin.getByRole('button', { name, exact: true }).click();
     await admin.getByRole('button', { name: `Change ${name}` }).click();
