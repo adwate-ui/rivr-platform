@@ -85,8 +85,10 @@ export function ProfileScreen() {
   const navigate = useNavigate();
   const router = useRouter();
   const canGoBack = useCanGoBack();
+  // Back to where it was opened from, or to / in its place: never a new entry on top (owner, 8 Nov).
+  const toTab = () => (canGoBack ? router.history.back() : void navigate({ to: '/', replace: true }));
   const [isFeedbackOpen, setFeedbackOpen] = useState(false);
-  const back = <BackButton label={t('player.profile.back')} onBack={() => (canGoBack ? router.history.back() : void navigate({ to: '/' }))} />;
+  const back = <BackButton label={t('player.profile.back')} onBack={toTab} />;
   if (preferences.data === undefined) {
     // Sign out works offline, so it stays within reach when Profile cannot load.
     return (

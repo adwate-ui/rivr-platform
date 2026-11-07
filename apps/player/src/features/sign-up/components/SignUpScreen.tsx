@@ -10,7 +10,7 @@ import { Controller, useForm, type Control, type UseFormReturn } from 'react-hoo
 import { z } from 'zod';
 
 // The name as on Aadhaar and the city in English letters, as the database requires; one occupation, when they usually play
-// (one, kept as a list as the database has it, #631) and any games (#653).
+// (any, #631) and any games (#653).
 const signUpForm = z.object({
   fullName: z.string().trim().min(2).max(100).regex(/^[A-Za-z][A-Za-z .'-]*$/),
   city: z.string().trim().min(2).max(60).regex(/^[A-Za-z][A-Za-z .'-]*$/),
@@ -24,7 +24,6 @@ const FAILURE_COPY: Readonly<Record<SignUpFailure, MessageKey>> = {
   invalid_name: 'player.signUp.nameInvalid',
   invalid_answers: 'player.signUp.answersInvalid',
   photo_failed: 'player.signUp.photoFailed',
-  staff: 'player.signUp.staff',
   stopped: 'player.signUp.stopped',
   unavailable: 'player.signUp.unavailable',
 };
@@ -38,7 +37,7 @@ function GoTo({ href }: { href: string }) {
   return null;
 }
 
-/** "Your game": the occupation (one, required), when they usually play (one) and the games they play (any). */
+/** "Your game": the occupation (one, required), when they usually play (any) and the games they play (any). */
 function YourGame({ control, occupationError }: { control: Control<SignUpForm>; occupationError: string | undefined }) {
   return (
     <Stack gap={3}>
@@ -49,9 +48,8 @@ function YourGame({ control, occupationError }: { control: Control<SignUpForm>; 
           options={OCCUPATIONS.map((value) => ({ value, label: t(`player.signUp.occupations.${value}`) }))} />
       )} />
       <Controller control={control} name="playTimes" render={({ field }) => (
-        <PickerSheet label={t('player.signUp.playTimesLabel')} placeholder={t('player.signUp.select')} selected={field.value}
-          onChange={(values) => field.onChange(values.slice(0, 1))}
-          options={PLAY_TIMES.map((value) => ({ value, label: t(`player.signUp.playTimes.${value}`) }))} />
+        <PickerSheet label={t('player.signUp.playTimesLabel')} placeholder={t('player.signUp.selectAny')} mode="many" selected={field.value}
+          onChange={field.onChange} options={PLAY_TIMES.map((value) => ({ value, label: t(`player.signUp.playTimes.${value}`) }))} />
       )} />
       <Controller control={control} name="gamesPlayed" render={({ field }) => (
         <PickerSheet label={t('player.signUp.gamesLabel')} placeholder={t('player.signUp.selectAny')} mode="many" selected={field.value}

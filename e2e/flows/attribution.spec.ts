@@ -42,7 +42,10 @@ test.describe('Attribution', () => {
     await page.getByRole('button', { name: /^Occupation/ }).click();
     await page.getByRole('dialog', { name: 'Occupation' }).getByRole('button', { name: 'Salaried', exact: true }).click();
     await page.getByRole('button', { name: /^When you usually play/ }).click();
-    await page.getByRole('dialog', { name: 'When you usually play' }).getByRole('button', { name: 'Weekday evenings', exact: true }).click();
+    const times = page.getByRole('dialog', { name: 'When you usually play' });
+    await times.getByRole('button', { name: 'Weekday evenings', exact: true }).click();
+    await times.getByRole('button', { name: 'Late nights', exact: true }).click();
+    await times.getByRole('button', { name: 'Done' }).click();
     await page.getByRole('button', { name: /^Games you play/ }).click();
     const games = page.getByRole('dialog', { name: 'Games you play' });
     await games.getByRole('button', { name: 'PLO', exact: true }).click();
@@ -59,6 +62,6 @@ test.describe('Attribution', () => {
     expect(sql(`select p.city || '|' || p.occupation || '|' || array_to_string(p.play_times, ',') || '|'
                 || array_to_string(array(select g from unnest(p.games_played) g order by g), ',')
                 from public.member_preference p join public.member m on m.id = p.member_id where m.phone = '+91${NUMBER}'`))
-      .toBe('Gurugram|salaried|weekday_evenings|bomb,plo');
+      .toBe('Gurugram|salaried|late_night,weekday_evenings|bomb,plo');
   });
 });

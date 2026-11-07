@@ -1,5 +1,5 @@
 /**
- * Player shell (#6; decision 0320): anyone signed out goes to sign-in; a signed-in member gets the four tabs (Tonight,
+ * Player shell (#6; decision 0320): anyone signed out goes to sign-in; a signed-in member gets the four tabs (Home,
  * Sessions, Card, Rewards) with their initial top right, which opens Profile. Rajat Singh, a practice-venue member, so no
  * other flow signs in with his number inside Auth's one-code-a-minute window.
  */
@@ -22,7 +22,7 @@ test.describe('Player shell', () => {
 
     await expect(page.getByRole('heading', { name: 'Tonight', level: 1 })).toBeVisible();
     const tabs = page.getByRole('navigation', { name: 'Main' });
-    for (const tab of ['Tonight', 'Sessions', 'Card', 'Rewards']) await expect(tabs.getByRole('link', { name: tab })).toBeVisible();
+    for (const tab of ['Home', 'Sessions', 'Card', 'Rewards']) await expect(tabs.getByRole('link', { name: tab })).toBeVisible();
     // Balance is hidden (#627): the app shows no rupee.
     await expect(tabs.getByRole('link', { name: 'Balance' })).toHaveCount(0);
     const profile = page.getByRole('link', { name: 'Profile' });

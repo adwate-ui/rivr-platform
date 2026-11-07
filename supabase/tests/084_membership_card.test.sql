@@ -43,6 +43,11 @@ select is((select count(*)::integer from public.membership_card where member_id 
   'one card, made the first time she asked');
 select is(pg_temp.kavya_code(0), (select code from card where name = 'now'), 'her code is the database''s for this window');
 select isnt(pg_temp.kavya_code(1), pg_temp.kavya_code(0), 'each window has its own code');
+-- What a phone's camera shows (owner, 8 Nov): RIVR and her membership number first, never the card's id.
+select ok((select code ~ ('^RIVR-' || (select member_number from public.member where id = '00000000-0000-4000-8000-000000000290') || '-[0-9]+-[0-9a-f]{24}$')
+           from card where name = 'now'), 'her code starts with RIVR and her membership number');
+select ok((select position(c.id::text in k.code) = 0 from public.membership_card c, card k
+           where c.member_id = '00000000-0000-4000-8000-000000000290' and k.name = 'now'), 'and carries no card id');
 
 -- A code stays good five seconds past the end of its window, and no longer.
 select is(private.card_member('00000000-0000-4000-8000-000000000001', pg_temp.kavya_code(-1),
@@ -65,6 +70,11 @@ select throws_ok($$ select public.check_in_by_card('00000000-0000-4000-8000-0000
 select throws_ok($$ select public.check_in_by_card('00000000-0000-4000-8000-000000000001',
                     (select left(code, -1) || case when right(code, 1) = '0' then '1' else '0' end from card where name = 'now')) $$,
   'RVCRD', null, 'nor a code with its MAC changed');
+select throws_ok($$ select public.check_in_by_card('00000000-0000-4000-8000-000000000001',
+                    (select regexp_replace(code, '^RIVR-[0-9]+-', 'RIVR-' || (select member_number from public.member
+                                                                             where id = '00000000-0000-4000-8000-000000000211') || '-')
+                     from card where name = 'now')) $$,
+  'RVCRD', null, 'nor her code with another member''s number: the signature is her card''s');
 select throws_ok($$ select public.check_in_by_card('00000000-0000-4000-8000-000000000001', '9000000290') $$,
   'RVCRD', null, 'nor something that is not a card code');
 select throws_ok($$ select public.check_in_by_card('00000000-0000-4000-8000-000000000002', (select code from card where name = 'now')) $$,

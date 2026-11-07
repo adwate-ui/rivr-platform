@@ -5,32 +5,31 @@ import { axeViolations, renderIn } from '../test/render.tsx';
 import { TableListRow } from './TableListRow.tsx';
 
 describe('TableListRow', () => {
-  it('opens the table from anywhere on the row, with the wait in gold when no one waits', async () => {
+  it('opens the table from anywhere on the row, with the wait in gold when no one waits and the line under the name', async () => {
     const onOpen = vi.fn();
-    renderIn(<TableListRow name="Table 1 · NLH 50/100" openSeats={3} wait="No wait" isNoWait seatsLine="3 open" onOpen={onOpen} />);
+    renderIn(<TableListRow name="Table 1 · NLH 50/100" detail="Min buy-in ₹5,000" wait="No wait" isNoWait onOpen={onOpen} />);
     const row = screen.getByRole('button', { name: /Table 1 · NLH 50\/100/ });
-    expect(row).toHaveTextContent('3 open');
+    expect(row).toHaveTextContent('Min buy-in ₹5,000');
     expect(screen.getByText('No wait')).toHaveClass('text-accent');
     await userEvent.click(row);
     expect(onOpen).toHaveBeenCalledOnce();
   });
 
-  it('draws a dot a seat, the open ones gold and last', () => {
-    const { container } = renderIn(<TableListRow name="Table 1" openSeats={2} wait="No wait" seatsLine="2 open" onOpen={() => undefined} />);
-    const dots = [...container.querySelectorAll('.size-pip')];
-    expect(dots).toHaveLength(9);
-    expect(dots.filter((dot) => dot.classList.contains('bg-gold'))).toHaveLength(2);
-    expect(dots.at(-1)).toHaveClass('bg-gold');
+  it('shows no seats, open or taken, and with no wait given nothing at the right: players see neither', () => {
+    const { container } = renderIn(<TableListRow name="Table 1 · NLH 100/200/400" detail="Min buy-in ₹10,000" onOpen={() => undefined} />);
+    expect(container.querySelectorAll('.size-pip')).toHaveLength(0);
+    expect(screen.getByRole('button')).toHaveTextContent(/^Table 1 · NLH 100\/200\/400Min buy-in ₹10,000$/);
   });
 
-  it('is dimmed and cannot be pressed while closed', () => {
-    renderIn(<TableListRow name="Table 4" openSeats={0} wait="Closed" seatsLine="Opens later" isClosed onOpen={() => undefined} />);
+  it('is dimmed and cannot be pressed while closed, with its line under the wait', () => {
+    renderIn(<TableListRow name="Table 4" wait="Closed" seatsLine="Opens later" isClosed onOpen={() => undefined} />);
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.getByText('Opens later')).toBeInTheDocument();
     expect(screen.getByText('Table 4').closest('div')).toHaveClass('opacity-disabled');
   });
 
   it('has no accessibility violations', async () => {
-    const { container } = renderIn(<TableListRow name="Table 1" openSeats={1} wait="1 waiting" seatsLine="1 open" onOpen={() => undefined} />);
+    const { container } = renderIn(<TableListRow name="Table 1" detail="Min buy-in ₹5,000" wait="1 waiting" onOpen={() => undefined} />);
     expect(await axeViolations(container)).toEqual([]);
   });
 });

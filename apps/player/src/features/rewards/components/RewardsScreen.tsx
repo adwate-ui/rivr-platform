@@ -2,8 +2,10 @@ import { useFeature, useMyLockedPoints } from '@rivr/db';
 import { useMyRewards, useRewardCatalogue, type MyRewards } from '@rivr/db/myRewards';
 import { nextReward } from '@rivr/domain/rewards';
 import { formatNights, formatNumber, memberRewards, registerMessages, t } from '@rivr/i18n';
-import { FeatureGate, Figure, Inline, ProgressBar, Screen, Stack, Text } from '@rivr/ui';
-import { BonusSection } from './BonusSection.tsx';
+import { useMyBonus } from '@rivr/db/bonus';
+import { BalanceTile, FeatureGate, Grid, Inline, LoadState, ProgressBar, Screen, Stack, Text, type FeatureAccess } from '@rivr/ui';
+import { useState } from 'react';
+import { BonusHistory, BonusTile } from './BonusSection.tsx';
 import { Catalogue } from './Catalogue.tsx';
 import { LeagueSection } from './LeagueSection.tsx';
 import { MyRedemptionList } from './MyRedemptionList.tsx';
@@ -32,17 +34,46 @@ function NextReward({ points }: { points: bigint }) {
   );
 }
 
-/** The tier, the points in gold, locked points if any, and the way to the next reward. */
-function Balance({ rewards, hasCatalogue }: { rewards: MyRewards; hasCatalogue: boolean }) {
+/**
+ * The tier, then points and bonus chips side by side, each with its one line (owner, 8 Nov: told apart at a glance); locked
+ * points if any, the way to the next reward, and the bonus chips history once its tile opens it.
+ */
+/** Points the club gave locked (#645), under the tiles: nothing when there are none. */
+function LockedPoints() {
   const locked = useMyLockedPoints().data;
+  if (locked === undefined || locked === 0n) return null;
+  return <Text tone="muted">{t('memberRewards.locked', { points: formatNumber(locked) })}</Text>;
+}
+
+/**
+ * The bonus chips tile behind rewards.bonus (rule 8; a member an override locked out sees the locked notice in its place),
+ * its Try again and its history, as Rewards places them. Hidden, or the chips not read, points take the whole row.
+ */
+function useChips(bonus: FeatureAccess) {
+  const chips = useMyBonus();
+  const [isOpen, setOpen] = useState(false);
+  const hasTile = bonus.state !== 'hidden' && !chips.isError && chips.data !== null;
+  const tile = <BonusTile chips={chips.data ?? undefined} isOpen={isOpen} onToggle={() => setOpen(!isOpen)} />;
+  return {
+    hasTile,
+    tile: hasTile ? <FeatureGate access={bonus}>{tile}</FeatureGate> : null,
+    retry: bonus.state === 'enabled' && chips.isError ? <LoadState isError onRetry={() => void chips.refetch()} /> : null,
+    history: bonus.state === 'enabled' && hasTile && isOpen ? <BonusHistory /> : null,
+  };
+}
+
+function Balances({ rewards, hasCatalogue, bonus }: { rewards: MyRewards; hasCatalogue: boolean; bonus: FeatureAccess }) {
+  const chips = useChips(bonus);
   return (
-    <Stack gap={2}>
+    <Stack gap={3}>
       <Text variant="eyebrow" tone="accent">{rewards.tierName}</Text>
-      <Inline gap={3} align="baseline">
-        <Figure size="display" tone="money">{formatNumber(rewards.points)}</Figure>
-        <Text tone="muted">{t('memberRewards.pointsWord')}</Text>
-      </Inline>
-      {locked === undefined || locked === 0n ? null : <Text tone="muted">{t('memberRewards.locked', { points: formatNumber(locked) })}</Text>}
+      <Grid columns={chips.hasTile ? 2 : 1} gap={3}>
+        <BalanceTile icon="star" figure={formatNumber(rewards.points)} label={t('memberRewards.pointsLabel')} line={t('memberRewards.pointsLine')} />
+        {chips.tile}
+      </Grid>
+      {chips.retry}
+      {chips.history}
+      <LockedPoints />
       {hasCatalogue ? <NextReward points={rewards.points} /> : null}
     </Stack>
   );
@@ -67,8 +98,7 @@ export function RewardsScreen() {
   return (
     <Screen {...look} title={title}>
       <Stack gap={8}>
-        <Balance rewards={rewards.data} hasCatalogue={catalogue.state === 'enabled'} />
-        <FeatureGate access={bonus}><BonusSection /></FeatureGate>
+        <Balances rewards={rewards.data} hasCatalogue={catalogue.state === 'enabled'} bonus={bonus} />
         <FeatureGate access={accommodation}>
           <Stack gap={1}>
             <Text variant="small" tone="muted">{t('memberRewards.nights')}</Text>

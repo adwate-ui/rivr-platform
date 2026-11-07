@@ -52,9 +52,10 @@ export function SessionScreen() {
   const { visitId = '' } = useParams({ strict: false });
   const sessions = useMySession(visitId);
   const access = useFeatureStatus('sessions.history');
-  const navigate = useNavigate();
   const router = useRouter();
   const canGoBack = useCanGoBack();
+  const navigate = useNavigate();
+  // Back to where it was opened from, or to /sessions in its place: never a new entry on top (owner, 8 Nov).
   const toList = () => (canGoBack ? router.history.back() : void navigate({ to: '/sessions', replace: true }));
   const session = sessions.data ?? undefined;
   const title = t('player.sessions.title');

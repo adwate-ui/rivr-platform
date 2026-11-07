@@ -72,34 +72,33 @@ function renderTonight(places: unknown[] = [], seat: unknown[] = [], more: Recor
 const LATER = { timeout: 5000 };
 
 describe('Tonight', () => {
-  it('Browsing: lists the tables in the sheet, a closed one dimmed, and opens the join sheet', async () => {
+  it('Browsing: lists the tables by stakes with their minimum buy-in, a closed one dimmed, and opens the join sheet', async () => {
     renderTonight();
     const table = await screen.findByRole('button', { name: /Table 1 · NLH 50\/100/ }, LATER);
-    expect(table.textContent).toContain('No wait');
-    expect(table.textContent).toContain('3 open');
-    expect(screen.getByText('Table 4 · NLH 50/100')).toBeDefined();
-    expect(screen.getByText('Opens later')).toBeDefined();
+    // Stakes and buy-in only: players see neither seats nor the wait (owner, 8 Nov).
+    expect(table.textContent).toBe('Table 1 · NLH 50/100Min buy-in ₹5,000');
+    for (const closed of ['Table 4 · NLH 50/100', 'Closed', 'Opens later']) expect(screen.getByText(closed)).toBeDefined();
     fireEvent.click(table);
     const sheet = await screen.findByRole('dialog', { name: "No-Limit Hold'em 50/100" });
     expect(sheet.textContent).toContain('Table 1');
-    expect(screen.getByRole('img', { name: '3 of 9 seats open' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Take a seat' })).toBeDefined();
+    expect(sheet.textContent).toContain('Min buy-in₹5,000');
+    expect(sheet.textContent).not.toMatch(/open|[Ww]ait|Full/);
+    expect(screen.queryByRole('img', { name: /seats open/ })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Request a seat' })).toBeDefined();
   });
 
-  it('Browsing: lists the open tables first, a closed one between two open ones after both (owner, 3 Nov)', async () => {
-    const t5 = { ...TABLES[0], id: 't5', name: 'Table 5', position: 3 };
+  it('Browsing: lists the open tables first, a closed one after; a straddle follows the blinds (owner, 3 and 8 Nov)', async () => {
+    const t5 = { ...TABLES[0], id: 't5', name: 'Table 5', position: 3, table_type_id: 'tt2' };
     renderTonight([], [], {
       '/rest/v1/game_table': [TABLES[0], { ...TABLES[1], position: 2 }, t5],
-      '/rpc/floor_open_seats': [{ table_id: 't1', open_seats: 3 }, { table_id: 't4', open_seats: 9 }, { table_id: 't5', open_seats: 2 }],
+      '/rest/v1/table_type': [...TYPES, { ...TYPES[0], id: 'tt2', small_blind_paise: 10_000, big_blind_paise: 20_000, straddle_paise: 40_000 }],
       '/rpc/waitlist_lengths': [{ table_id: 't1', waiting: 2, call_time_minutes: 180 }, { table_id: 't5', waiting: 0, call_time_minutes: 180 }],
     });
-    await screen.findByText('Table 5 · NLH 50/100', {}, LATER);
-    const rows = screen.getAllByText(/^Table \d · NLH 50\/100$/).map((name) => name.textContent);
-    expect(rows).toEqual(['Table 1 · NLH 50/100', 'Table 5 · NLH 50/100', 'Table 4 · NLH 50/100']);
-    // Each table shows its own list's wait (decision 0467), in its row and in its join sheet.
-    expect(screen.getByRole('button', { name: /^Table 5 · NLH 50\/100/ }).textContent).toContain('No wait');
-    fireEvent.click(screen.getByRole('button', { name: /^Table 1 · NLH 50\/100.*2 waiting/ }));
-    expect((await screen.findByRole('dialog')).textContent).toMatch(/Waiting\s*2/);
+    await screen.findByText('Table 5 · NLH 100/200/400', {}, LATER);
+    const rows = screen.getAllByText(/^Table \d · NLH [\d/]+$/).map((name) => name.textContent);
+    expect(rows).toEqual(['Table 1 · NLH 50/100', 'Table 5 · NLH 100/200/400', 'Table 4 · NLH 50/100']);
+    fireEvent.click(screen.getByRole('button', { name: /^Table 5 · NLH 100\/200\/400/ }));
+    expect(await screen.findByRole('dialog', { name: "No-Limit Hold'em 100/200/400" })).toBeDefined();
   });
 
   it('Browsing: one referral reward makes one offer card, before the club\'s other promotions in the row (owner, 3 Nov)', async () => {
@@ -246,7 +245,7 @@ describe('Tonight', () => {
     fireEvent.click(screen.getByRole('button', { name: /Table 1 · NLH 50\/100/ }));
     expect(await screen.findByRole('dialog', { name: "No-Limit Hold'em 50/100" })).toBeDefined();
     expect(screen.getAllByText(/^On a break until /)).toHaveLength(2);
-    expect(screen.queryByRole('button', { name: /^(Take a seat|Join waitlist)$/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Request a seat$/ })).toBeNull();
   });
 
   it('Browsing: the tournaments under the tables say Notify me, Notifying you, or Registered once the floor has', async () => {

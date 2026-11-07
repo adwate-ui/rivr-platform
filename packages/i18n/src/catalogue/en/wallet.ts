@@ -22,13 +22,13 @@ export const balance = {
   kindBuyIn: 'Buy-in',
   kindCashOut: 'Cash-out',
   kindMarker: 'Marker',
-  kindBonus: 'Bonus',
-  kindBonusExpiry: 'Bonus expired',
+  kindBonus: 'Bonus chips',
+  kindBonusExpiry: 'Bonus chips expired',
   kindReversal: 'Correction',
   kindOpeningBalance: 'Opening balance',
   kindOther: 'Club entry',
-  /** After a bonus movement's amount: "+₹4,000 bonus". */
-  bonusWord: 'bonus',
+  /** After a bonus chips movement's amount: "+₹4,000 bonus chips" (never "bonus" alone, owner 8 Nov). */
+  bonusWord: 'bonus chips',
   /** A marker line: more owed on markers, or some of it repaid. */
   owed: '{amount} owed',
   repaid: '{amount} repaid',

@@ -1,18 +1,11 @@
 import { useFeature, useMyUpcomingTournaments, useRegisterTournamentInterest, type FloorTable, type UpcomingTournament } from '@rivr/db';
-import { formatDayTime, t } from '@rivr/i18n';
+import { formatDayTime, formatMoney, formatStakes, t } from '@rivr/i18n';
 import { Button, FeatureGate, Heading, Inline, Stack, TableListRow, Text, useToast } from '@rivr/ui';
 
-/** The wait at a table's right: gold "No wait", how many wait, or closed. */
-function waitOf(table: FloorTable): string {
-  if (!table.isOpen) return t('player.live.closed');
-  return table.waiting === 0 ? t('player.live.noWait') : t('player.live.waiting', { count: table.waiting });
-}
-
-/** Under the wait: how many seats are open, full, or that a closed table opens later. */
-function seatsLineOf(table: FloorTable): string {
-  if (!table.isOpen) return t('player.live.opensLater');
-  const open = table.openSeats ?? 0;
-  return open === 0 ? t('player.live.full') : t('player.live.seatsOpen', { count: open });
+/** A table's name and its stakes as small blind, big blind and any straddle: `Table 5 · NLH 100/200/400` (owner, 8 Nov). */
+function tableLabel(table: FloorTable): string {
+  const stakes = formatStakes(table.smallBlind, table.bigBlind, table.straddle);
+  return t('player.live.tableName', { name: table.name, game: `${t(`player.live.gameShort.${table.game}`)} ${stakes}` });
 }
 
 /** The pill's word: Notify me, Notifying you once asked, or Registered once the floor has registered them (#636). */
@@ -66,9 +59,9 @@ function openFirst(tables: readonly FloorTable[]): FloorTable[] {
 }
 
 /**
- * Tonight's tables (decision 0320) with the live floor: a row a table with a dot a seat, the wait, and how many seats are
- * open; the open tables first and the closed ones after them, dimmed. `onOpen` opens a table's join sheet; without it the
- * rows only show. Then the tournaments.
+ * Tonight's tables (decision 0320) with the live floor: a row a table with its stakes and minimum buy-in, never its seats
+ * or the wait (owner, 8 Nov); the open tables first and the closed ones after them, dimmed. `onOpen` opens a table's join
+ * sheet; without it the rows only show. Then the tournaments.
  */
 export function TablesList({ tables, onOpen }: { tables: readonly FloorTable[]; onOpen?: ((table: FloorTable) => void) | undefined }) {
   const liveView = useFeature('floor.live_view');
@@ -77,9 +70,9 @@ export function TablesList({ tables, onOpen }: { tables: readonly FloorTable[]; 
       <FeatureGate access={liveView}>
         <Stack gap={0}>
           {openFirst(tables).map((table) => (
-            <TableListRow key={table.id} name={t('player.live.tableName', { name: table.name, game: table.tableTypeName })}
-              seatCount={table.seats} openSeats={table.isOpen ? table.openSeats ?? 0 : 0} wait={waitOf(table)}
-              isNoWait={table.waiting === 0} seatsLine={seatsLineOf(table)} isClosed={!table.isOpen}
+            <TableListRow key={table.id} name={tableLabel(table)} detail={t('player.live.minBuyIn', { amount: formatMoney(table.buyIn) })}
+              wait={table.isOpen ? undefined : t('player.live.closed')} seatsLine={table.isOpen ? undefined : t('player.live.opensLater')}
+              isClosed={!table.isOpen}
               onOpen={onOpen ? () => onOpen(table) : undefined} />
           ))}
         </Stack>

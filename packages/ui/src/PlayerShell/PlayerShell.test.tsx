@@ -22,7 +22,7 @@ describe('PlayerShell', () => {
     renderShell();
     expect(screen.getByRole('main')).toHaveTextContent('Tonight');
     expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Tonight' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('aria-current', 'page');
   });
 
   it('opens Profile from the member initial, top right', async () => {
