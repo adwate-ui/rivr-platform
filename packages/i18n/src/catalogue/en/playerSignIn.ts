@@ -4,6 +4,8 @@ export const playerSignIn = {
   phoneLabel: 'Mobile number',
   phonePlaceholder: '98765 43210',
   phoneInvalid: 'Enter a 10-digit mobile number.',
+  /** Under the number, before Send code: where the code goes (decision 0297). */
+  phoneHint: "We'll send your code on WhatsApp.",
   sendCode: 'Send code',
   legal: 'Members only, 18+. By continuing you accept the terms and privacy notice.',
   /** The links under the legal line, to the website's pages (#775). */
