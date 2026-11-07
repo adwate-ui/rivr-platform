@@ -174,10 +174,11 @@ test.describe('Waitlist', () => {
   });
 
   test('Tonight › Browsing, Seated: the floor assigns the member a seat at the list\u2019s table and a call time, and they see it on Tonight (decision 0299)', async () => {
-    // Tonight's floor (#87): each table's open seats and its wait; its call time in the join sheet (#633); the upcoming
-    // tournaments (#636); no jackpot (#627).
+    // Tonight's floor (#87): each table by its stakes and minimum buy-in, never its seats or the wait (owner, 8 Nov); its
+    // call time in the join sheet (#633); the upcoming tournaments (#636); no jackpot (#627).
     await player.reload();
-    await expect(tableRow(player, 'Table 2')).toContainText(/(\d+ open|Full)/);
+    await expect(tableRow(player, 'Table 2')).toContainText(/Min buy-in ₹/);
+    await expect(tableRow(player, 'Table 2')).not.toContainText(/open|wait|Full/);
     await tableRow(player, 'Table 2').click();
     await expect(player.getByRole('dialog').getByText('3 h', { exact: true })).toBeVisible();
     await player.keyboard.press('Escape');
