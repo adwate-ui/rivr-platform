@@ -6085,6 +6085,11 @@ isOneToOne: false
               "queue": string,"waiting": number
             }[]
                            },
+"staff_removals":
+{ Args: { "p_venue_id": string }; Returns: {
+              "removed_at": string,"removed_by": string,"staff_id": string
+            }[]
+                           },
 "start_device_pairing":
 { Args: { "p_device_id": string }; Returns: {
               "code": string,"expires_at": string

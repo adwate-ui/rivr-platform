@@ -1,11 +1,13 @@
-import { createRivrClient, RivrDataProvider, type StaffMember } from '@rivr/db';
+import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, type StaffMember } from '@rivr/db';
+import { ToastProvider } from '@rivr/ui';
 import { QueryClient } from '@tanstack/react-query';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { StaffTable } from './StaffTable.tsx';
 
 afterEach(() => {
   cleanup();
+  localStorage.clear();
   vi.unstubAllGlobals();
 });
 
@@ -15,30 +17,59 @@ const STAFF: readonly StaffMember[] = [
   { staffId: 's3', fullName: 'Ravi Dealer', jobTitle: 'Dealer', role: 'dealer', phone: null, isActive: false, isMe: false },
 ];
 
+/** The table, with Ravi removed on 5 Nov by Vikram; a change sent to the staff table goes to `changes`. */
 function renderTable(isAdding = false) {
-  vi.stubGlobal('fetch', async () => Response.json([]));
+  localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
+    access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
+    user: { id: '00000000-0000-4000-8000-000000000101', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
+  }));
+  const changes: unknown[] = [];
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input instanceof Request ? input.url : input);
+    if (url.includes('/rpc/staff_removals')) return Response.json([{ staff_id: 's3', removed_at: '2026-11-05T12:00:00Z', removed_by: 'Vikram Rao' }]);
+    if (url.includes('/rest/v1/staff') && init?.method === 'PATCH') {
+      changes.push(JSON.parse(String(init.body)));
+      return Response.json([{ id: 's3' }]);
+    }
+    return Response.json([]);
+  });
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })} queryClient={cache}>
-      <StaffTable venueId="v1" members={STAFF} grantable={['cashier', 'dealer', 'host']} isAdding={isAdding} />
+      <ToastProvider place="console">
+        <StaffTable venueId="v1" members={STAFF} grantable={['cashier', 'dealer', 'host']} isAdding={isAdding} />
+      </ToastProvider>
     </RivrDataProvider>,
   );
+  return { changes };
 }
 
 describe('StaffTable', () => {
-  it('lists the staff as a table, with You on one\'s own row, a dealer with no number and a login turned off', () => {
+  it('lists the active staff as a table, with You on one\'s own row; the removed apart, with how many (owner, 8 Nov)', () => {
     renderTable();
     expect(screen.getByRole('button', { name: 'Ayesha Thomas · You' })).toBeDefined();
-    expect(screen.getByText('No number')).toBeDefined();
     expect(screen.getByText('+91 90000 00151')).toBeDefined();
-    expect(screen.getByText('Turned off')).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Ravi Dealer' })).toBeNull();
+    const views = screen.getByRole('radiogroup', { name: 'Staff shown' });
+    expect(Array.from(views.querySelectorAll('[role="radio"]'), (chip) => chip.textContent)).toEqual(['Active2', 'Removed1']);
+  });
+
+  it('shows the removed with when and by whom, and restores one after a second press', async () => {
+    const { changes } = renderTable();
+    fireEvent.click(screen.getByRole('radio', { name: /^Removed/ }));
+    expect(screen.getByRole('button', { name: 'Ravi Dealer' })).toBeDefined();
+    expect(await screen.findByText(/^5 Nov 2026 · by Vikram Rao$/)).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Ayesha Thomas · You' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Restore Ravi Dealer' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, restore Ravi Dealer' }));
+    await waitFor(() => expect(changes).toEqual([{ is_active: true }]));
   });
 
   it('narrows the table to what is typed in the search', () => {
     renderTable();
     fireEvent.change(screen.getByRole('searchbox', { name: 'Find staff' }), { target: { value: 'cashier' } });
     expect(screen.getByRole('button', { name: 'Manoj Pillai' })).toBeDefined();
-    expect(screen.queryByRole('button', { name: 'Ravi Dealer' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Ayesha Thomas · You' })).toBeNull();
     // A number as the table shows it finds its row too.
     fireEvent.change(screen.getByRole('searchbox', { name: 'Find staff' }), { target: { value: '90000 00151' } });
     expect(screen.getByRole('button', { name: 'Manoj Pillai' })).toBeDefined();
@@ -56,7 +87,7 @@ describe('StaffTable', () => {
   it('narrows the table by role, each role someone holds a chip with its count, and back with All', () => {
     renderTable();
     const roles = screen.getByRole('radiogroup', { name: 'Staff by role' });
-    expect(Array.from(roles.querySelectorAll('[role="radio"]'), (chip) => chip.textContent)).toEqual(['All3', 'Admin1', 'Cashier1', 'Dealer1']);
+    expect(Array.from(roles.querySelectorAll('[role="radio"]'), (chip) => chip.textContent)).toEqual(['All2', 'Admin1', 'Cashier1']);
     fireEvent.click(screen.getByRole('radio', { name: /^Cashier/ }));
     expect(screen.getByRole('button', { name: 'Manoj Pillai' })).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Ayesha Thomas · You' })).toBeNull();

@@ -38,6 +38,15 @@ export const staff = {
   /** A dealer with no number, who signs in on a tablet with a PIN. */
   noPhone: 'No number',
   inactive: 'Turned off',
+  /** Staff still working and staff removed, apart (owner, 8 Nov): their tabs, a removal's date and who did it, Restore. */
+  views: { label: 'Staff shown', active: 'Active', removed: 'Removed' },
+  removedOn: 'Removed',
+  removedBy: '{date} · by {name}',
+  noneRemoved: 'No one removed.',
+  restore: 'Restore',
+  restoreNamed: 'Restore {name}',
+  confirmRestore: 'Yes, restore {name}',
+  restoreFailed: 'Not restored. Try again.',
   you: 'You',
   /** A row's way into its changes (UI polish audit A-17), and out again. */
   change: 'Change',

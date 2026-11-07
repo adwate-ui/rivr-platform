@@ -43,6 +43,29 @@ function columnsOf(change: StaffChange) {
   return { is_active: change.isActive };
 }
 
+/** When a removed staff member's login was turned off, and by whom (null when no staff login did it). */
+export interface StaffRemoval {
+  readonly removedAt: string;
+  readonly removedBy: string | null;
+}
+
+/**
+ * Removed staff (the owner, 8 Nov), by staff id: when each login that is off now was turned off, and by whom, from the
+ * audit log. Under the staff list's key, so every change to staff reads it again. Empty without staff.manage.
+ */
+export function useStaffRemovals(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: [...queryKeys.venueStaff(userId ?? 'signed-out', venueId), 'removals'],
+    enabled: userId !== null,
+    queryFn: async (): Promise<ReadonlyMap<string, StaffRemoval>> => {
+      const { data, error } = await client.rpc('staff_removals', { p_venue_id: venueId });
+      if (error) throw error;
+      return new Map(data.map((row) => [row.staff_id, { removedAt: row.removed_at, removedBy: row.removed_by }]));
+    },
+  });
+}
+
 /** The venue's staff, active first, then by name. */
 export function useVenueStaff(venueId: string) {
   const { client, userId } = useRivrData();

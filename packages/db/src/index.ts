@@ -9,7 +9,9 @@ export { useSignIn, useSignOut, type SignInResult } from './signIn.ts';
 // Lane A's money hooks (cage, credit, treasury, expenses...) are listed in money.ts, so lanes rarely edit the same list.
 export * from './money.ts';
 export { PRACTICE_KEY, StaffVenueProvider, useStaffVenue, useStaffVenues, type StaffVenue, type StaffVenueState } from './staff.tsx';
-export { useStaffActions, useVenueStaff, type StaffChange, type StaffFailure, type StaffMember } from './venueStaff.ts';
+export {
+  useStaffActions, useStaffRemovals, useVenueStaff, type StaffChange, type StaffFailure, type StaffMember, type StaffRemoval,
+} from './venueStaff.ts';
 export {
   cellKey, useTierActions, useTierMatrix,
   type DisplayMode, type ShowsAs, type TierCell, type TierCellChange, type TierFailure, type TierMatrix,
