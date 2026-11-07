@@ -2,16 +2,20 @@ import type { PromotionStatus } from '@rivr/contracts/promotionModel';
 import { isListedIn, usePromotionsOverview, type PromotionOverview, type PromotionsOverview } from '@rivr/db';
 import type { PromotionNames } from '@rivr/domain/promotions';
 import { t } from '@rivr/i18n';
-import { Button, ChoiceChips, DataTable, ErrorMessage, Screen, Stack } from '@rivr/ui';
+import { Button, ChoiceChips, DataTable, ErrorMessage, Screen, Stack, Tabs } from '@rivr/ui';
 import { useState } from 'react';
 import { usePauseResume } from '../hooks/usePauseResume.ts';
 import { canOpen, endedColumns, listColumns } from './listColumns.tsx';
 
 type Filter = Exclude<PromotionStatus, 'ended'> | 'all';
-type View = 'current' | 'ended';
+const TABS = ['current', 'ended'] as const;
+type View = (typeof TABS)[number];
 
 // The current list's status chips in the prototype's order, each with its count; ended promotions have their own tab.
 const FILTERS: readonly Filter[] = ['all', 'live', 'scheduled', 'awaiting_approval', 'paused', 'draft'];
+
+// The Ended tab opens on the promotion that ended last.
+const LATEST_ENDED_FIRST = { key: 'ended', direction: 'descending' } as const;
 
 const labelOf = (filter: Filter) => (filter === 'all' ? t('console.promotions.list.all') : t(`console.promotions.statuses.${filter}`));
 
@@ -20,6 +24,9 @@ interface PromotionListProps {
   names: PromotionNames;
   /** Opens a promotion's builder or approver view by its id, or the builder for a new one. */
   onOpen: (promotionId: string | 'new') => void;
+  /** The tab in the address: Current, or Ended with `?tab=ended` (owner, 8 Nov); and how a tab opens. */
+  tab: string | undefined;
+  onNavigate: (href: string) => void;
 }
 
 /** The status chips over the current promotions: All, then each status, with how many each lists. */
@@ -32,19 +39,18 @@ function StatusChips({ current, filter, onChange }: { current: readonly Promotio
   );
 }
 
-/** Current and ended promotions apart (owner, 8 Nov): the tabs, with how many each holds. */
-function ViewTabs({ view, current, ended, onChange }: { view: View; current: number; ended: number; onChange: (view: View) => void }) {
+/** Current and ended promotions apart (owner, 8 Nov): the tabs in the address, each with how many it holds. */
+function ViewTabs({ view, counts, onNavigate }: { view: View; counts: Readonly<Record<View, number>>; onNavigate: (href: string) => void }) {
   return (
-    <ChoiceChips label={t('console.promotions.list.views.label')} isLabelVisuallyHidden mode="one" look="tabs" selected={[view]}
-      options={[{ value: 'current', label: t('console.promotions.list.views.current'), count: current },
-        { value: 'ended', label: t('console.promotions.list.views.ended'), count: ended }]}
-      onChange={([picked]) => onChange(picked === 'ended' ? 'ended' : 'current')} />
+    <Tabs label={t('console.promotions.title')} current={view} onNavigate={onNavigate}
+      tabs={TABS.map((id) => ({ id, label: t(`console.promotions.list.tabs.${id}`, { count: String(counts[id]) }),
+        href: id === 'current' ? '/promotions' : `/promotions?tab=${id}` }))} />
   );
 }
 
 /** The tabs, the chips and the table once the list has come. */
-function Listed({ venueId, names, onOpen, overview }: PromotionListProps & { overview: PromotionsOverview }) {
-  const [view, setView] = useState<View>('current');
+function Listed({ venueId, names, onOpen, tab, onNavigate, overview }: PromotionListProps & { overview: PromotionsOverview }) {
+  const view: View = TABS.find((one) => one === tab) ?? 'current';
   const [filter, setFilter] = useState<Filter>('all');
   const toggles = usePauseResume(venueId);
   const open = (promotion: PromotionOverview) => {
@@ -56,11 +62,12 @@ function Listed({ venueId, names, onOpen, overview }: PromotionListProps & { ove
   const isEnded = view === 'ended';
   return (
     <Stack gap={4}>
-      <ViewTabs view={view} current={current.length} ended={ended.length} onChange={setView} />
+      <ViewTabs view={view} counts={{ current: current.length, ended: ended.length }} onNavigate={onNavigate} />
       {isEnded ? null : <StatusChips current={current} filter={filter} onChange={setFilter} />}
       {toggles.failure === null ? null : <ErrorMessage>{t(`console.promotions.failures.${toggles.failure}`)}</ErrorMessage>}
       <DataTable label={t('console.promotions.list.label')} rowKey={(promotion) => promotion.id} density="comfortable" narrowLayout="scroll"
-        columns={isEnded ? endedColumns(names, steps) : listColumns(names, steps)} onRowOpen={open}
+        columns={isEnded ? endedColumns(names, steps) : listColumns(names, steps)} onRowOpen={open} key={view}
+        {...(isEnded ? { initialSort: LATEST_ENDED_FIRST } : {})}
         rows={isEnded ? ended : current.filter((promotion) => filter === 'all' || isListedIn(promotion, filter))}
         emptyText={t(isEnded ? 'console.promotions.list.noneEnded' : 'console.promotions.list.empty')} />
     </Stack>

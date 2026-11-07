@@ -29,9 +29,11 @@ const ROWS = [
     given_this_week: 0, ended_at: '2026-11-02T10:00:00+00:00' }),
 ];
 
-function renderList(onOpen = vi.fn()) {
-  const api = renderWithApi(<PromotionList venueId="v1" names={NAMES.names} onOpen={onOpen} />, { '/rpc/promotions_overview': { body: ROWS } });
-  return { ...api, onOpen };
+function renderList(onOpen = vi.fn(), tab?: string) {
+  const onNavigate = vi.fn();
+  const api = renderWithApi(<PromotionList venueId="v1" names={NAMES.names} onOpen={onOpen} tab={tab} onNavigate={onNavigate} />,
+    { '/rpc/promotions_overview': { body: ROWS } });
+  return { ...api, onOpen, onNavigate };
 }
 
 describe('the promotions list (console v3)', () => {
@@ -73,13 +75,16 @@ describe('the promotions list (console v3)', () => {
     expect(screen.getByText('No promotions with this status.')).toBeDefined();
   });
 
-  it('keeps ended promotions apart, under their own tab, with the day each ended (owner, 8 Nov)', async () => {
-    renderList();
+  it('keeps ended promotions apart, under their own tab in the address, with the day each ended (owner, 8 Nov)', async () => {
+    const { onNavigate } = renderList();
     const table = await screen.findByRole('table', { name: 'Promotions' });
     expect(within(table).queryByText('Diwali double points')).toBeNull();
-    expect(screen.getByRole('radio', { name: 'Current, 4' }).getAttribute('aria-checked')).toBe('true');
-    fireEvent.click(screen.getByRole('radio', { name: 'Ended, 1' }));
-    const ended = screen.getByRole('table', { name: 'Promotions' });
+    expect(screen.getByRole('link', { name: 'Current 4' }).getAttribute('aria-current')).toBe('page');
+    fireEvent.click(screen.getByRole('link', { name: 'Ended 1' }));
+    expect(onNavigate).toHaveBeenCalledWith('/promotions?tab=ended');
+    resetApi();
+    renderList(vi.fn(), 'ended');
+    const ended = await screen.findByRole('table', { name: 'Promotions' });
     expect(within(ended).queryByText('Buy-in bonus Tuesday')).toBeNull();
     const diwali = within(ended).getAllByRole('row').find((row) => row.textContent?.includes('Diwali double points')) ?? ended;
     expect(diwali.textContent).toContain('2 Nov 2026');
@@ -93,6 +98,8 @@ describe('the promotions list (console v3)', () => {
     expect(await screen.findByText('Buy-in bonus Tuesday ended')).toBeDefined();
     expect(bodiesOf('end_promotion_version')).toEqual([{ p_version_id: 'v1' }]);
     expect(screen.queryByRole('button', { name: 'End Lapsed regulars bonus' })).toBeNull();
+    // Its next version waits for approval: it is decided first, so the end is never undone by an approval.
+    expect(screen.queryByRole('button', { name: 'End Four-hour bonus' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'End Weekend triple points' })).toBeNull();
   });
 

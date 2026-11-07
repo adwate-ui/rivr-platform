@@ -26,9 +26,12 @@ export function canOpen(promotion: PromotionOverview): boolean {
 // End (owner, 8 Nov): a version that is scheduled, live or paused (end_promotion_version); a rule's promotion only pauses.
 const ENDS: readonly PromotionStatus[] = ['scheduled', 'live', 'paused'];
 
-/** Whether End shows: a promotion in versions whose current version is scheduled, live or paused. */
+/**
+ * Whether End shows: a promotion in versions whose current version is scheduled, live or paused, with no new version open.
+ * A waiting or draft version would outlive the end and, approved, run it again; it is approved or rejected first.
+ */
 export function canEnd(promotion: PromotionOverview): boolean {
-  return !promotion.isLegacy && promotion.currentVersionId !== null && ENDS.includes(promotion.status);
+  return !promotion.isLegacy && promotion.currentVersionId !== null && promotion.openVersionId === null && ENDS.includes(promotion.status);
 }
 
 const capitalised = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);
