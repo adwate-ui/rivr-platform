@@ -3,7 +3,7 @@ import { useFeatureStatus, useMySeat, useMyUsualFnbItems, type MySeat } from '@r
 import { useMyFnbMenu, useMyFnbOrders, type FnbMenuItem } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
 import { BackButton, Button, ChoiceChips, FeatureGate, Heading, Inline, ItemPhoto, LoadState, QuantityStepper, Screen, Skeleton, Stack, SuggestionCard, Text } from '@rivr/ui';
-import { Navigate, useNavigate, useSearch } from '@tanstack/react-router';
+import { Navigate, useCanGoBack, useNavigate, useRouter, useSearch } from '@tanstack/react-router';
 import { useState } from 'react';
 import { SendBar } from './SendBar.tsx';
 
@@ -92,13 +92,17 @@ function OrderBody() {
  */
 export function FnbOrderScreen() {
   const feature = useFeatureStatus('fnb.table_side');
+  const router = useRouter();
+  const canGoBack = useCanGoBack();
   const navigate = useNavigate();
+  // Back to where it was opened from, or to / in its place: never a new entry on top (owner, 8 Nov).
+  const toHome = () => (canGoBack ? router.history.back() : void navigate({ to: '/', replace: true }));
   const title = t('player.order.title');
   if (feature.status === 'loading') return <Screen title={title} isTitleHidden status="loading" loadingLook="skeleton" />;
   if (feature.status === 'error') return <Screen title={title} status="error" onRetry={feature.retry} />;
   return (
     <Stack gap={2}>
-      <BackButton label={t('player.order.back')} onBack={() => void navigate({ to: '/' })} />
+      <BackButton label={t('player.order.back')} onBack={toHome} />
       <Heading level={1} variant="serif">{title}</Heading>
       <FeatureGate access={feature.access}><OrderBody /></FeatureGate>
     </Stack>

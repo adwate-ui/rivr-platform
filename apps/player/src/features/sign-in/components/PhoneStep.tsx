@@ -56,7 +56,7 @@ export function PhoneStep({ onCodeSent }: { onCodeSent: (phone: IndianMobile) =>
           <Controller control={form.control} name="phone" render={({ field }) => (
             <Input ref={field.ref} name={field.name} value={field.value} onBlur={field.onBlur} onChange={(event) => field.onChange(formatTypedMobile(event.target.value))}
               label={t('player.signIn.phoneLabel')} prefix={t('common.signIn.countryCode')} isTall placeholder={t('player.signIn.phonePlaceholder')}
-              type="tel" inputMode="tel" autoComplete="tel-national" error={error} />
+              hint={t('player.signIn.phoneHint')} type="tel" inputMode="tel" autoComplete="tel-national" error={error} />
           )} />
           <Captcha {...captcha.props} />
           <Button variant="primary" size="tall" type="submit" fullWidth isDisabled={!captcha.isReady} isLoading={requestCode.isPending}>

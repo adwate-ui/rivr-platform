@@ -75,12 +75,11 @@ test.describe('Bonus chips', () => {
     await expect(page.getByText('500 bonus chips added · Welcome bonus')).toBeVisible();
     expect(Number(sql(`select private.bonus_in_force('${JAYESH}', now())`))).toBe(before + 50_000);
 
-    // Rewards: the balance, and the history closed until he opens it.
+    // Rewards: the bonus chips tile beside points (owner, 8 Nov), its history closed until he opens it.
     await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Rewards' }).click();
-    // The innermost block holding the section's heading: its figure and History, apart from the catalogue's points.
-    const bonus = page.locator('div').filter({ has: page.getByRole('heading', { name: 'Bonus chips' }) }).last();
-    await expect(bonus.getByText(chips(before + 50_000), { exact: true })).toBeVisible();
-    await expect(bonus.getByRole('button', { name: 'History' })).toHaveAttribute('aria-expanded', 'false');
+    const bonus = page.getByRole('button', { name: /Bonus chips/ });
+    await expect(bonus).toContainText(chips(before + 50_000));
+    await expect(bonus).toHaveAttribute('aria-expanded', 'false');
 
     // The desk checks him (kyc.spec.ts walks it); it gives no second sign-up bonus.
     sql(`update public.kyc_record set status = 'verified', method = 'manual', verified_at = now(), date_of_birth = '1990-04-12',
@@ -103,9 +102,10 @@ test.describe('Bonus chips', () => {
 
     // He is told, and his history shows the buy-in.
     await expect(page.getByText('500 bonus chips used for your buy-in at Table 5')).toBeVisible();
-    await bonus.getByRole('button', { name: 'History' }).click();
-    await expect(bonus.getByText(/^Buy-in · Table 5 · /).first()).toBeVisible();
-    await expect(bonus.getByText(/^Welcome bonus · /).first()).toBeVisible();
+    await bonus.click();
+    await expect(page.getByRole('heading', { name: 'Bonus chips history' })).toBeVisible();
+    await expect(page.getByText(/^Buy-in · Table 5 · /).first()).toBeVisible();
+    await expect(page.getByText(/^Welcome bonus · /).first()).toBeVisible();
 
     // His record's Bonus chips tab, read only, names who seated him.
     await floor.goto(`${appUrl('console')}/members?member=${JAYESH}&part=bonus`);

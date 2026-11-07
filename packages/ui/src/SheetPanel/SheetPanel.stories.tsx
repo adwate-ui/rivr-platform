@@ -13,8 +13,8 @@ const meta = {
     aside: '4 running',
     children: (
       <>
-        <TableListRow name="Table 1 · NLH 50/100" openSeats={3} wait="No wait" isNoWait seatsLine="3 open" onOpen={() => undefined} />
-        <TableListRow name="Table 2 · NLH 100/200" openSeats={0} wait="3 waiting" seatsLine="Full" onOpen={() => undefined} />
+        <TableListRow name="Table 1 · NLH 50/100" detail="Min buy-in ₹5,000" wait="No wait" isNoWait onOpen={() => undefined} />
+        <TableListRow name="Table 2 · NLH 100/200" detail="Min buy-in ₹10,000" wait="3 waiting" seatsLine="Full" onOpen={() => undefined} />
       </>
     ),
   },

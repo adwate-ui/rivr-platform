@@ -40,8 +40,8 @@ export function useCardScanner(onCode: (code: string) => void) {
     const canvas = document.createElement('canvas');
     const timer = setInterval(() => {
       const code = videoRef.current === null ? null : readFrame(videoRef.current, canvas);
-      // A card's code names the card before its first dot; the same card held up is one scan.
-      const card = code?.split('.')[0] ?? '';
+      // A card's code names its member after RIVR (RIVR-58-…, owner 8 Nov); the same card held up, across a new code, is one scan.
+      const card = code?.match(/^RIVR-(\d+)-/)?.[1] ?? code ?? '';
       if (code === null || (card === last.card && Date.now() - last.at < SAME_CARD_MS)) return;
       last = { card, at: Date.now() };
       onCodeRef.current(code);

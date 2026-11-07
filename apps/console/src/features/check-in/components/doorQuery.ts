@@ -8,8 +8,8 @@ export type DoorQuery =
   | { readonly kind: 'search'; readonly query: string }
   | { readonly kind: 'none' };
 
-// A membership card's QR reads as the card's id, a dot, the start of the code's window, a dot and its signature (#71).
-const CARD_CODE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.\d+\.\S+$/i;
+// A membership card's QR (#71; owner, 8 Nov): RIVR, the member's number, the start of the code's window and its signature.
+const CARD_CODE = /^RIVR-\d{1,12}-\d{1,12}-[0-9a-f]{24}$/i;
 
 /** Reads the field as the door's scanner or the front desk filled it. */
 export function doorQuery(text: string): DoorQuery {

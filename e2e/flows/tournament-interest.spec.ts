@@ -38,7 +38,8 @@ test.describe('Tournament interest', () => {
     await signInToPlayer(member, '9000000408');
     await expect(member.getByRole('heading', { name: 'Tournaments', exact: true })).toBeVisible();
     await expect(member.getByText(name, { exact: true })).toBeVisible();
-    await expect(member.getByText(/₹/)).toHaveCount(0);
+    // No money on the tournament; the only ₹ on Home is each table's minimum buy-in (owner, 8 Nov).
+    await expect(member.getByText(/₹/).filter({ hasNotText: /^Min buy-in ₹/ })).toHaveCount(0);
     await member.getByRole('button', { name: `Register interest in ${name}` }).click();
     // Notify me becomes Notifying you (decision 0320); the floor registers them once they pay at the club.
     await expect(member.getByRole('button', { name: `Register interest in ${name}` })).toHaveText('Notifying you');

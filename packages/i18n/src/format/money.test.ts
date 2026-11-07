@@ -51,6 +51,11 @@ describe('formatStakes', () => {
     expect(formatStakes(5_000n, 10_000n)).toBe('50/100');
     expect(formatStakes(100_000n, 200_000n)).toBe('1,000/2,000');
   });
+
+  it('adds a straddle after the blinds when there is one (owner, 8 Nov)', () => {
+    expect(formatStakes(10_000n, 20_000n, 40_000n)).toBe('100/200/400');
+    expect(formatStakes(10_000n, 20_000n, null)).toBe('100/200');
+  });
 });
 
 describe('formatNights', () => {

@@ -22,7 +22,7 @@ async function requestOf(floor: Page, name: string, kind: RegExp) {
 async function askToJoin(member: Page) {
   await member.getByRole('button', { name: /^Table 1 · / }).click();
   const sheet = member.getByRole('dialog');
-  await sheet.getByRole('button', { name: /^(Take a seat|Join waitlist)$/ }).click();
+  await sheet.getByRole('button', { name: /^Request a seat$/ }).click();
   await expect(sheet).toHaveCount(0);
 }
 

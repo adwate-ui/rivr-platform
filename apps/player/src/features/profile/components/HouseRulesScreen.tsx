@@ -1,7 +1,7 @@
 import { useHouseRules, type HouseRules } from '@rivr/db/houseRules';
 import { formatNumber, t } from '@rivr/i18n';
 import { BackButton, Figure, Heading, Inline, Screen, Stack, Text } from '@rivr/ui';
-import { useNavigate } from '@tanstack/react-router';
+import { useCanGoBack, useNavigate, useRouter } from '@tanstack/react-router';
 
 /** The rules, each with its number in gold, then the legal standing and its cases, each between hairlines (brief 3.10). */
 function Rules({ rules }: { rules: HouseRules }) {
@@ -40,9 +40,13 @@ function Rules({ rules }: { rules: HouseRules }) {
  */
 export function HouseRulesScreen() {
   const rules = useHouseRules();
+  const router = useRouter();
+  const canGoBack = useCanGoBack();
   const navigate = useNavigate();
+  // Back to where it was opened from, or to /profile in its place: never a new entry on top (owner, 8 Nov).
+  const toProfile = () => (canGoBack ? router.history.back() : void navigate({ to: '/profile', replace: true }));
   const title = t('player.houseRules.title');
-  const back = <BackButton label={t('player.profile.title')} onBack={() => void navigate({ to: '/profile' })} />;
+  const back = <BackButton label={t('player.profile.title')} onBack={toProfile} />;
   const look = { titleLook: 'serif' } as const;
   if (rules.isError) return <Stack gap={2}>{back}<Screen {...look} title={title} status="error" onRetry={() => void rules.refetch()} /></Stack>;
   if (rules.data === undefined) return <Stack gap={2}>{back}<Screen {...look} title={title} status="loading" loadingLook="skeleton" /></Stack>;

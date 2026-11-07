@@ -4,6 +4,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { createMemoryHistory, createRootRoute, createRoute, createRouter, Outlet, RouterProvider } from '@tanstack/react-router';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { HouseRulesScreen } from './HouseRulesScreen.tsx';
 import { ProfileScreen } from './ProfileScreen.tsx';
 
 afterEach(() => {
@@ -38,8 +39,9 @@ function renderProfile() {
   const rootRoute = createRootRoute({ component: () => <ToastProvider><Outlet /></ToastProvider> });
   const page = (path: string, name: string) => createRoute({ getParentRoute: () => rootRoute, path, component: () => <Text>{name}</Text> });
   const profile = createRoute({ getParentRoute: () => rootRoute, path: '/profile', component: ProfileScreen });
+  const rules = createRoute({ getParentRoute: () => rootRoute, path: '/profile/rules', component: HouseRulesScreen });
   const router = createRouter({
-    routeTree: rootRoute.addChildren([page('/rewards', 'Rewards screen'), page('/card', 'Card screen'), page('/profile/rules', 'Rules screen'), profile]),
+    routeTree: rootRoute.addChildren([page('/rewards', 'Rewards screen'), page('/card', 'Card screen'), rules, profile]),
     history: createMemoryHistory({ initialEntries: ['/rewards', '/profile'], initialIndex: 1 }),
   });
   render(
@@ -82,6 +84,16 @@ describe('Profile', () => {
 
   it('goes back to the tab it was opened from', async () => {
     const { router } = renderProfile();
+    fireEvent.click(await screen.findByRole('button', { name: 'Back' }, LATER));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/rewards'));
+  });
+
+  it('goes back from House rules to Profile, and from Profile to the tab: never to House rules again', async () => {
+    const { router } = renderProfile();
+    fireEvent.click(await screen.findByRole('button', { name: /House rules/ }, LATER));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/profile/rules'));
+    fireEvent.click(await screen.findByRole('button', { name: 'Profile' }, LATER));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/profile'));
     fireEvent.click(await screen.findByRole('button', { name: 'Back' }, LATER));
     await waitFor(() => expect(router.state.location.pathname).toBe('/rewards'));
   });

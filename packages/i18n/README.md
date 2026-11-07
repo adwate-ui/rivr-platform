@@ -13,7 +13,7 @@ Every word a member or staff user reads, and the one formatter for money, number
 | `formatChips(paise)` | `5,000`: chips, such as bonus chips, as a count with no rupee symbol, for the screens that show no rupee (#627). Otherwise as `formatMoney`. |
 | `formatNumber(n)` | A count: `18,420`, `−5` with the minus sign money uses; −0 is `0` (F5-12). |
 | `formatNights(thousandths)` | Hotel nights kept in thousandths: `1.25`, `0.175`, `2` (#146). |
-| `formatStakes(small, big)` | Blinds in paise to `100/200`; a blind with paise keeps them, `0.50/1`. |
+| `formatStakes(small, big, straddle?)` | Blinds in paise to `100/200`, and a straddle after them, `100/200/400`; a blind with paise keeps them, `0.50/1`. |
 | `formatTime(date)` | 24-hour IST clock, `02:40`. |
 | `formatBlinds(small, big, ante?)` | A tournament level's blinds in chips: `400/800 ante 800`, or `400/800` with no ante (#119). |
 | `formatRupeesForInput(paise)` | Paise as the rupees a form's field holds: `10000`, or `2500.50` with paise. |

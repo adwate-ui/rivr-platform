@@ -187,7 +187,7 @@ describe('the player app', () => {
     renderAt('/nowhere', clientWithKabir());
     expect(await screen.findByRole('heading', { name: "This page doesn't exist." })).toBeDefined();
     expect(screen.getByText('The link may be old or mistyped.')).toBeDefined();
-    expect(screen.getByRole('link', { name: 'Go to Tonight' }).getAttribute('href')).toBe('/');
+    expect(screen.getByRole('link', { name: 'Go to Home' }).getAttribute('href')).toBe('/');
     expect(screen.getAllByRole('navigation', { name: 'Main' })).toHaveLength(1);
   });
 });

@@ -53,7 +53,7 @@ test.describe('Waitlist › At the club', () => {
 
     await signInToPlayer(page, '9000000410');
     await page.getByRole('button', { name: /^Table 3 · / }).click();
-    await page.getByRole('dialog').getByRole('button', { name: /^(Take a seat|Join waitlist)$/ }).click();
+    await page.getByRole('dialog').getByRole('button', { name: /^Request a seat$/ }).click();
     await expect(page.getByText('Requested', { exact: true })).toBeVisible();
     await expect(page.getByText('Your ID is checked at the desk before you sit.')).toBeVisible();
 

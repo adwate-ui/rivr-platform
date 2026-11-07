@@ -4,7 +4,7 @@ import { useDepositActions, useDepositDetails, useFeature, usePayoutAccounts, ty
 import { fromRupees } from '@rivr/domain/money';
 import { t, type MessageKey } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, FeatureGate, Inline, Input, Screen, Stack, Text } from '@rivr/ui';
-import { useNavigate } from '@tanstack/react-router';
+import { useCanGoBack, useNavigate, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { payoutLine } from './payoutCopy.ts';
@@ -46,7 +46,7 @@ function DepositForm({ details, accounts }: { details: DepositDetails; accounts:
   const form = useForm<z.input<typeof depositSchema>, unknown, z.output<typeof depositSchema>>({ resolver, defaultValues: { amount: '', utr: '', payoutAccountId: accounts[0]?.accountId ?? '' } });
   const send = form.handleSubmit(async (values) => {
     const done = await request.mutateAsync({ amount: fromRupees(BigInt(values.amount)), utr: values.utr, payoutAccountId: values.payoutAccountId, requestId });
-    if (done.ok) void navigate({ to: '/balance' });
+    if (done.ok) void navigate({ to: '/balance', replace: true });
   });
   const amount = form.register('amount');
   const utr = form.register('utr');
@@ -85,8 +85,12 @@ function DepositBody() {
  * the bank statement; Balance shows it submitted, then received.
  */
 export function DepositScreen() {
+  const router = useRouter();
+  const canGoBack = useCanGoBack();
   const navigate = useNavigate();
-  const back = <Button variant="text" onClick={() => void navigate({ to: '/balance' })}>{t('common.back')}</Button>;
+  // Back to where it was opened from, or to /balance in its place: never a new entry on top (owner, 8 Nov).
+  const toBalance = () => (canGoBack ? router.history.back() : void navigate({ to: '/balance', replace: true }));
+  const back = <Button variant="text" onClick={toBalance}>{t('common.back')}</Button>;
   return (
     <Screen title={t('player.balance.deposit')} actions={back}>
       <FeatureGate access={useFeature('balance.deposits')}>

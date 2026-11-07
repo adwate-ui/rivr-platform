@@ -10,7 +10,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const CARD = '1f0c2a4e-6b7d-4c8e-9f10-112233445566.1730612400.a1B2c3D4';
+const CARD = 'RIVR-58-1730612400-a3f9c2d1e4b5f6a7b8c9d0e1';
 
 /** A member as the search finds them. */
 const member = (id: string, name: string, number: number) => ({
