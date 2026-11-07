@@ -7,7 +7,7 @@ import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
 /** Why a sign-up did not go through, as the screen tells it: the name, an answer, the photo, staff, paused, or anything else. */
-export type SignUpFailure = 'invalid_name' | 'invalid_answers' | 'photo_failed' | 'staff' | 'stopped' | 'unavailable';
+export type SignUpFailure = 'invalid_name' | 'invalid_answers' | 'photo_failed' | 'stopped' | 'unavailable';
 
 /** What best describes the member (#631), one of these. */
 export const OCCUPATIONS = [
@@ -36,7 +36,6 @@ export interface SignUpDetails {
 
 function failureOf(code: string | undefined): SignUpFailure {
   if (code === '22023') return 'invalid_name';
-  if (code === 'RVSTF') return 'staff';
   if (code === 'RVKIL' || code === 'RVFRZ' || code === 'RVMBR') return 'stopped';
   return 'unavailable';
 }

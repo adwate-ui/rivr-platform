@@ -75,10 +75,12 @@ reset role;
 select is((select a.first_seen_at from public.sign_up_attribution a join public.member m on m.id = a.member_id
            where m.user_id = '00000000-0000-4000-8000-0000000000a5'), null, 'and it is dropped');
 
--- Staff do not sign themselves up as players (#216).
+-- Staff sign themselves up as members like anyone else (the owner, 8 Nov), on the same login.
 select pg_temp.as_user('00000000-0000-4000-8000-000000000106');
-select throws_ok($$ select public.sign_up('Pema Lepcha', '{}') $$, 'RVSTF', null, 'a staff login cannot sign itself up as a player');
+select lives_ok($$ select public.sign_up('Pema Lepcha', '{}') $$, 'a staff login signs itself up as a member');
 reset role;
+select results_eq($$ select m.full_name, m.phone from public.member m where m.user_id = '00000000-0000-4000-8000-000000000106' $$,
+  $$ values ('Pema Lepcha'::text, '+919000000106'::text) $$, 'on its own number and login');
 
 -- Nobody joins without a code session, or while KYC sign-up is switched off.
 select pg_temp.as_user('00000000-0000-4000-8000-0000000000a2');
@@ -105,8 +107,8 @@ set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-0000000000a1", 
 select is((select count(*)::int from public.sign_up_attribution), 0, 'a member does not see sign-up codes');
 select throws_ok($$ select private.sign_up('Tara Joshi', '{}') $$, '42501', null, 'a session not started by a code cannot sign up');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}';
-select is((select count(*)::int from public.sign_up_attribution where venue_id = '00000000-0000-4000-8000-000000000001'), 3,
-  'staff with member access see the venue''s sign-up codes');
+select is((select count(*)::int from public.sign_up_attribution where venue_id = '00000000-0000-4000-8000-000000000001'), 4,
+  'staff with member access see the venue''s sign-up codes (Pema''s, a staff member''s, among them)');
 select is((select count(*)::int from public.sign_up_attribution where venue_id = '00000000-0000-4000-8000-0000000000e1'), 0,
   'but not another venue''s');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000106", "role": "authenticated"}';

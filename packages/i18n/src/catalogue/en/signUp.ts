@@ -45,7 +45,6 @@ export const playerSignUp = {
   answersInvalid: 'Check your city and your choices, then try again.',
   submit: 'Continue',
   photoFailed: 'Photo not sent. Try again or remove it.',
-  staff: 'Staff join as members at the front desk.',
   stopped: 'Sign-ups are paused. Try again later.',
   unavailable: 'Sign-up is down. Try again shortly.',
 } as const;
