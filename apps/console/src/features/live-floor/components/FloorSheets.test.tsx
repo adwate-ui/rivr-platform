@@ -173,6 +173,33 @@ describe('The seat sheet (console v3)', () => {
     await screen.findByText('Leela Menon seated at Table 2, seat 2');
     expect(rpcs('assign_from_waitlist')).toEqual([{ p_entry_id: 'e7', p_table_id: 't2', p_seat: 2, p_call_minutes: 180 }]);
   });
+
+  it('shows the chosen member’s bonus chips and redeems them with the seat, with no Undo (decision 0504)', async () => {
+    const { rpcs } = await renderFloor({ ...FLOOR, replies: { member_bonus: { status: 200, body: [{ bonus_paise: 150_000 }] } } });
+    fireEvent.click(within(tile('Table 2 100/200')).getByRole('button', { name: 'Seat 2, Open' }));
+    const seat = await sheet('Seat a player');
+    await within(seat).findByRole('radio', { name: 'Leela Menon · 12 min' });
+    expect(await within(seat).findByText('Has 1,500 bonus chips.')).toBeDefined();
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Bonus chips to redeem' }), { target: { value: '25' } });
+    fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
+    expect(within(seat).getByText('Bonus chips go in whole 50s.')).toBeDefined();
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Bonus chips to redeem' }), { target: { value: '1000' } });
+    fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
+    await screen.findByText('Leela Menon seated at Table 2, seat 2');
+    expect(rpcs('assign_from_waitlist')).toEqual([{ p_entry_id: 'e7', p_table_id: 't2', p_seat: 2, p_call_minutes: 180, p_bonus_chips: 1000 }]);
+    expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
+  });
+
+  it('says why bonus chips were not redeemed, and seats nobody', async () => {
+    await renderFloor({ ...FLOOR, replies: { seat_member: { status: 400, body: { code: 'RVBON', message: 'short' } } } });
+    fireEvent.click(within(tile('Table 1 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
+    const seat = await sheet('Seat a player');
+    expect(within(seat).getByText('Checked as they sit.')).toBeDefined();
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Or a mobile or member number' }), { target: { value: '42' } });
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Bonus chips to redeem' }), { target: { value: '5000' } });
+    fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
+    expect(await screen.findByText('More bonus chips than the member has. Not seated.')).toBeDefined();
+  });
 });
 
 describe('The Show link of a member record (console v3)', () => {

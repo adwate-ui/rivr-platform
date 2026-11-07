@@ -96,7 +96,8 @@ select is_empty($$ select * from public.bonus_grant $$, 'the practice venue''s c
 reset role;
 update public.staff set is_active = true where user_id = '00000000-0000-4000-8000-000000000104' and venue_id = '00000000-0000-4000-8000-000000000001';
 
--- Expiring: at its end a grant's remainder is reversed by the sweep, once.
+-- Expiring: bonus chips given now never end (decision 0504). The minute's sweep stays on for a grant given with an end
+-- before then (one a freeze held past its end): at its end its remainder is reversed by the sweep, once.
 select isnt_empty($$ select 1 from cron.job where jobname = 'bonus-expiry' and schedule = '* * * * *' $$, 'the sweep runs every minute');
 update public.bonus_grant set expires_at = now() where member_id = '00000000-0000-4000-8000-000000000211';
 select is(private.bonus_in_force('00000000-0000-4000-8000-000000000211', now()), 0::bigint, 'at their end Ishaan''s grants are no longer in force');

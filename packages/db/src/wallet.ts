@@ -5,11 +5,11 @@ import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
-/** A bonus grant still in force (#17): what is left of it, and when it ends. */
+/** A bonus grant still in force (#17): what is left of it, and when it ends; null for one that never does (decision 0504). */
 export interface WalletBonus {
   readonly grantId: string;
   readonly remaining: Paise;
-  readonly expiresAt: string;
+  readonly expiresAt: string | null;
 }
 
 /** One of the member's open markers (#74): what it still owes, when it was issued and when it falls due. */
@@ -29,11 +29,12 @@ export interface Wallet {
   readonly creditLimit: Paise | null;
 }
 
-/** The member's grants in force, soonest to end first, and open markers, oldest first. */
+/** The member's grants in force, soonest to end first and those with no end last, and open markers, oldest first. */
 async function grantsAndMarkers(client: RivrClient, memberId: string) {
   const [grants, markers] = await Promise.all([
     client.from('bonus_grant').select('id, remaining_paise, expires_at').eq('member_id', memberId).is('expired_at', null)
-      .gt('expires_at', new Date().toISOString()).gt('remaining_paise', 0).order('expires_at'),
+      .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`).gt('remaining_paise', 0)
+      .order('expires_at', { nullsFirst: false }).order('created_at'),
     client.from('marker').select('id, outstanding_paise, issued_at, due_at').eq('member_id', memberId).is('settled_at', null).order('issued_at'),
   ]);
   if (grants.error) throw grants.error;

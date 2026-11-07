@@ -32,11 +32,9 @@ begin
     pg_temp.seed_account(gurugram, 'venue.opening_balance'), pg_temp.seed_account(gurugram, 'member.cash', arjun), 18500000);
   perform pg_temp.seed_post(gurugram, 'seed:arjun:bonus',
     pg_temp.seed_account(gurugram, 'venue.bonus_expense'), pg_temp.seed_account(gurugram, 'member.bonus', arjun), 400000);
-  -- His bonus is one grant, ending at 23:59 on this week's Sunday (tonight, seeded on a Sunday): "expires Sunday".
+  -- His bonus is one grant, which never ends: bonus chips never expire (decision 0504).
   insert into public.bonus_grant (venue_id, member_id, amount_paise, remaining_paise, expires_at, reason, idempotency_key, ledger_transaction_id)
-  select gurugram, arjun, 400000, 400000,
-         (date_trunc('week', now() at time zone 'Asia/Kolkata') + interval '6 days 23 hours 59 minutes') at time zone 'Asia/Kolkata',
-         'Buy-in bonus Tuesday', 'seed:arjun:bonus', t.id
+  select gurugram, arjun, 400000, 400000, null, 'Buy-in bonus Tuesday', 'seed:arjun:bonus', t.id
   from public.ledger_transaction t where t.venue_id = gurugram and t.idempotency_key = 'seed:arjun:bonus'
   on conflict (venue_id, idempotency_key) do nothing;
   perform pg_temp.seed_post(gurugram, 'seed:arjun:marker',

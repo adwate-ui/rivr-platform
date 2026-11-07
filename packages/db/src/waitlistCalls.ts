@@ -1,6 +1,7 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
+import { bonusArg } from './seats.ts';
 import { failureOf, type WaitlistFailure } from './waitlist.ts';
 
 /**
@@ -19,10 +20,14 @@ export function useWaitlistCallActions() {
   const seat = useMutation({
     mutationFn: async (entryId: string) => settle((await client.rpc('seat_from_waitlist', { p_entry_id: entryId })).error),
   });
-  // Assign (decision 0299): the call and the seating in one step, with the call time the floor chose.
+  // Assign (decision 0299): the call and the seating in one step, with the call time the floor chose, and any bonus chips the
+  // member redeems with their buy-in (decision 0504).
   const assign = useMutation({
-    mutationFn: async ({ entryId, tableId, seat: number, callMinutes }: { entryId: string; tableId: string; seat: number; callMinutes: number }) =>
-      settle((await client.rpc('assign_from_waitlist', { p_entry_id: entryId, p_table_id: tableId, p_seat: number, p_call_minutes: callMinutes })).error),
+    mutationFn: async ({ entryId, tableId, seat: number, callMinutes, bonusChips }:
+                       { entryId: string; tableId: string; seat: number; callMinutes: number; bonusChips?: number }) =>
+      settle((await client.rpc('assign_from_waitlist', {
+        p_entry_id: entryId, p_table_id: tableId, p_seat: number, p_call_minutes: callMinutes, ...bonusArg(bonusChips),
+      })).error),
   });
   const away = useMutation({
     mutationFn: async ({ entryId, isAway }: { entryId: string; isAway: boolean }) =>

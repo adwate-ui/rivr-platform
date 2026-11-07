@@ -1,0 +1,73 @@
+import { useMyBonus, useMyBonusHistory, type BonusLine } from '@rivr/db/bonus';
+import { formatChips, formatDayMonth, t } from '@rivr/i18n';
+import { Box, Button, DetailRow, Figure, Heading, Inline, LoadState, Skeleton, Stack, Text } from '@rivr/ui';
+import { useState } from 'react';
+
+/** Lines shown at first, and how many more each Show earlier adds. */
+const PAGE = 20;
+
+/** A line's label and its signed chips: `Welcome bonus · 15 Nov` `+500`; `Buy-in · Table 3 · 15 Nov` `−1,000`. */
+function lineCopy(line: BonusLine): { label: string; value: string } {
+  const date = formatDayMonth(new Date(line.at));
+  const chips = formatChips(line.amount);
+  if (line.kind === 'credited') return { label: t('memberRewards.bonus.credited', { reason: line.reason ?? '', date }), value: t('memberRewards.bonus.plus', { chips }) };
+  const value = t('memberRewards.bonus.minus', { chips });
+  if (line.kind === 'expired') return { label: t('memberRewards.bonus.expired', { reason: line.reason ?? '', date }), value };
+  return {
+    label: line.tableName === null ? t('memberRewards.bonus.redeemedNoTable', { date }) : t('memberRewards.bonus.redeemed', { table: line.tableName, date }),
+    value,
+  };
+}
+
+/** The newest lines, with Show earlier while there may be more. */
+function History() {
+  const [count, setCount] = useState(PAGE);
+  const history = useMyBonusHistory(count);
+  if (history.isError) return <LoadState isError onRetry={() => void history.refetch()} />;
+  if (history.data === undefined) return <Skeleton rows={3} />;
+  if (history.data.length === 0) return <Text tone="muted">{t('memberRewards.bonus.noHistory')}</Text>;
+  return (
+    <Stack gap={2}>
+      <Box>
+        {history.data.map((line, index) => {
+          const copy = lineCopy(line);
+          return (
+            <DetailRow key={line.id} label={copy.label} value={copy.value} valueTone={line.kind === 'credited' ? 'accent' : 'muted'}
+              isLast={index === (history.data?.length ?? 0) - 1} />
+          );
+        })}
+      </Box>
+      {history.data.length < count ? null : (
+        <Button variant="text" onClick={() => setCount(count + PAGE)}>{t('memberRewards.bonus.showEarlier')}</Button>
+      )}
+    </Stack>
+  );
+}
+
+/**
+ * Bonus chips in Rewards (decision 0504): the balance in gold, how they are used, and their history, closed until the
+ * member opens it: chips given with the promotion's name, chips used with a buy-in and at which table, the newest first.
+ */
+export function BonusSection() {
+  const bonus = useMyBonus();
+  const [isOpen, setOpen] = useState(false);
+  if (bonus.isError) return <LoadState isError onRetry={() => void bonus.refetch()} />;
+  if (bonus.data === undefined) return <Skeleton rows={2} />;
+  if (bonus.data === null) return null;
+  return (
+    <Stack gap={3}>
+      <Heading level={2} variant="subsection">{t('memberRewards.bonus.heading')}</Heading>
+      <Inline gap={3} align="baseline">
+        <Figure size="title" tone="money">{formatChips(bonus.data)}</Figure>
+        <Text tone="muted">{t('memberRewards.bonus.chipsWord')}</Text>
+      </Inline>
+      <Text variant="small" tone="muted">{bonus.data === 0n ? t('memberRewards.bonus.none') : t('memberRewards.bonus.howToUse')}</Text>
+      <Inline>
+        <Button variant="text" icon={isOpen ? 'chevronUp' : 'chevronDown'} aria-expanded={isOpen} onClick={() => setOpen(!isOpen)}>
+          {t('memberRewards.bonus.history')}
+        </Button>
+      </Inline>
+      {isOpen ? <History /> : null}
+    </Stack>
+  );
+}

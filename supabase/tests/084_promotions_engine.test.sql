@@ -161,10 +161,10 @@ select is(private.promotion_facts('00000000-0000-4000-8000-000000000218', null, 
 select is(pg_temp.buy_in('211', 'Table 3', 'test-1'), 1, 'Ishaan''s buy-in gives one promotion');
 select is(pg_temp.grants('Graduate first buy-in'), '211', 'the graduate bonus, which does not stack');
 select is(pg_temp.held('member.bonus', '00000000-0000-4000-8000-000000000211'), 100000::bigint, 'Ishaan holds ₹1,000 of bonus');
-select results_eq($$ select b.reason, b.expires_at > now() + interval '29 days', g.fulfilled_at is not null
+select results_eq($$ select b.reason, b.expires_at is null, g.fulfilled_at is not null
                      from public.promotion_grant g join public.bonus_grant b on b.id = g.bonus_grant_id
                      where g.member_id = '00000000-0000-4000-8000-000000000211' $$,
-  $$ values ('Graduate first buy-in'::text, true, true) $$, 'credited at once through the bonus, ending in 30 days');
+  $$ values ('Graduate first buy-in'::text, true, true) $$, 'credited at once through the bonus, which never ends (decision 0504)');
 select is(pg_temp.buy_in('211', 'Table 3', 'test-1'), 0, 'a replay of the buy-in gives nothing more');
 select is((select count(*)::integer from public.bonus_grant where member_id = '00000000-0000-4000-8000-000000000211'), 1, 'and credits nothing more');
 

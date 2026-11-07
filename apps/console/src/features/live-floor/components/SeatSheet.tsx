@@ -1,8 +1,9 @@
-import { seatPlayerSchema } from '@rivr/contracts';
+import { bonusChipsToRedeemSchema, seatPlayerSchema } from '@rivr/contracts';
 import { CALL_TIME_CHOICES } from '@rivr/domain/callTime';
 import { seatingCallTime } from '@rivr/domain/tables';
 import { openSeatsAt, useWaitlistBoard, type FloorTable, type HeldSeat, type SeatedPlayer, type WaitlistBoardEntry } from '@rivr/db';
-import { formatDuration, t, type MessageKey } from '@rivr/i18n';
+import { useMemberBonus } from '@rivr/db/bonus';
+import { formatChips, formatDuration, t, type MessageKey } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Input, Sheet, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { waitedSeconds } from './requestView.ts';
@@ -46,8 +47,12 @@ function useSeatChoice(start: SeatSheetProps['start']) {
   const [number, setNumber] = useState('');
   // A call time the floor chose; null takes the table's own (seatingCallTime), as the table changes.
   const [callMinutes, setCallMinutes] = useState<number | null>(null);
+  // Bonus chips the member redeems with their buy-in (decision 0504), as typed; blank is none.
+  const [bonusChips, setBonusChips] = useState('');
   const [error, setError] = useState<MessageKey | null>(null);
-  return { tableId, setTableId, seat, setSeat, entryId, setEntryId, number, setNumber, callMinutes, setCallMinutes, error, setError };
+  return {
+    tableId, setTableId, seat, setSeat, entryId, setEntryId, number, setNumber, callMinutes, setCallMinutes, bonusChips, setBonusChips, error, setError,
+  };
 }
 
 /** The seat chosen while it is still free, else the table's first free seat; none at a full table. */
@@ -71,7 +76,9 @@ function useSeatSheet({ venueId, tables, seats, held, start, changes, onClose }:
     const who = seatingOf(choice.number, isTyped ? undefined : entry);
     if (typeof who === 'string') return choice.setError(who);
     if (table === undefined || seat === null) return choice.setError('console.floor.seat.pickSeat');
-    if (await changes.seat(who, { table, seat, callMinutes })) onClose();
+    const bonusChips = bonusChipsToRedeemSchema.safeParse(choice.bonusChips);
+    if (!bonusChips.success) return choice.setError('console.floor.seat.badBonusChips');
+    if (await changes.seat(who, { table, seat, callMinutes, bonusChips: bonusChips.data })) onClose();
   };
   const open = tables.filter((one) => one.isOpen && openSeatsAt(one, taken).length > 0);
   return { choice, table, free, seat, next, chosen: isTyped ? undefined : entry, open, confirm, callMinutes };
@@ -126,8 +133,25 @@ function CallTime({ sheet }: { sheet: SeatSheetState }) {
 }
 
 /**
+ * Bonus chips the member redeems with their buy-in (decision 0504): their balance once a name from the list is chosen; a
+ * number typed is checked as they sit.
+ */
+function BonusChips({ sheet, venueId }: { sheet: SeatSheetState; venueId: string }) {
+  const { choice, chosen } = sheet;
+  const balance = useMemberBonus(venueId, chosen?.memberId ?? null).data;
+  const hint = chosen === undefined ? t('console.floor.seat.bonusChipsTyped')
+    : balance === undefined || balance === null ? undefined
+      : balance === 0n ? t('console.floor.seat.bonusChipsNone') : t('console.floor.seat.bonusChipsHas', { chips: formatChips(balance) });
+  return (
+    <Input label={t('console.floor.seat.bonusChips')} hint={hint} value={choice.bonusChips} inputMode="numeric" autoComplete="off"
+      onChange={(event) => { choice.setBonusChips(event.target.value); choice.setError(null); }} />
+  );
+}
+
+/**
  * Seat a player (console v3): the next names on the table's own list, or a mobile or member number; then the table and
- * seat; then the call time. Seat seats them at once, with Undo (decision 0480).
+ * seat; then the call time; then any bonus chips they redeem with their buy-in (decision 0504). Seat seats them at once,
+ * with Undo (decision 0480) unless bonus chips were redeemed.
  */
 export function SeatSheet(props: SeatSheetProps) {
   const sheet = useSeatSheet(props);
@@ -144,6 +168,7 @@ export function SeatSheet(props: SeatSheetProps) {
       <Who sheet={sheet} now={props.now} />
       <Where sheet={sheet} />
       <CallTime sheet={sheet} />
+      <BonusChips sheet={sheet} venueId={props.venueId} />
       {sheet.choice.error === null ? null : <ErrorMessage>{t(sheet.choice.error)}</ErrorMessage>}
     </Sheet>
   );

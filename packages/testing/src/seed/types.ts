@@ -45,7 +45,8 @@ export interface SeedMember {
 /** The demo member with the balances the linked flows compute from. */
 export interface SeedDemoMember extends SeedMember {
   readonly cash: Paise;
-  readonly bonus: { readonly amount: Paise; readonly expiresAt: Date };
+  /** Bonus chips never end (decision 0504): `expiresAt` is null. */
+  readonly bonus: { readonly amount: Paise; readonly expiresAt: Date | null };
   readonly openMarker: { readonly amount: Paise; readonly issuedAt: Date };
   readonly creditLimit: Paise;
   readonly points: number;

@@ -6,6 +6,7 @@ import { InstallOffer, PlayerShell, Screen, Stack, type BottomNavItem, type Feat
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useState, type ReactNode } from 'react';
 import { useInstallOffer } from '../install.ts';
+import { BonusToasts } from './BonusToasts.tsx';
 import { FrameBanners } from './FrameBanners.tsx';
 
 // Tonight, Card and Rewards always show as tabs; the features inside them are gated one by one (decision 0320).
@@ -81,6 +82,7 @@ export function Frame({ children }: { children: ReactNode }) {
       avatar={TAB_FOR_PATH[pathname] === undefined ? undefined : { initial: member.data?.initial, href: '/profile' }}
       isTabBarHidden={PUSHED.includes(pathname)} isFullBleed={pathname === '/'}>
       {pathname === '/' && offer.kind ? <InstallOffer kind={offer.kind} onInstall={offer.install} onDismiss={offer.dismiss} /> : null}
+      {member.data ? <BonusToasts /> : null}
       {/* A banner keeps 8 px from the screen's header under it; the column grows so a screen can centre in it (Not found). */}
       <Stack gap={2} grow>
         {pathname === '/' ? null : <FrameBanners />}

@@ -205,9 +205,8 @@ from seed_more_player p
 where p.bonus_paise > 0;
 
 insert into public.bonus_grant (venue_id, member_id, amount_paise, remaining_paise, expires_at, reason, idempotency_key, ledger_transaction_id)
-select '00000000-0000-4000-8000-000000000001', p.id, p.bonus_paise, p.bonus_paise,
-       (date_trunc('week', now() at time zone 'Asia/Kolkata') + interval '13 days 23 hours 59 minutes') at time zone 'Asia/Kolkata',
-       'Buy-in bonus Tuesday', t.idempotency_key, t.id
+-- With no end: bonus chips never expire (decision 0504).
+select '00000000-0000-4000-8000-000000000001', p.id, p.bonus_paise, p.bonus_paise, null, 'Buy-in bonus Tuesday', t.idempotency_key, t.id
 from seed_more_player p
 join public.ledger_transaction t on t.venue_id = '00000000-0000-4000-8000-000000000001' and t.idempotency_key = 'seed:more:' || right(p.id::text, 3) || ':bonus'
 where p.bonus_paise > 0

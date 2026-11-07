@@ -150,7 +150,7 @@ describe('The floor\'s keys (console v3)', () => {
     fireEvent.keyDown(window, { key: 's' });
     const sheet = await screen.findByRole('dialog', { name: 'Seat a player' });
     // In the sheet, typing an S is a number's, not the floor's.
-    fireEvent.keyDown(within(sheet).getByRole('textbox'), { key: 'a' });
+    fireEvent.keyDown(within(sheet).getByRole('textbox', { name: 'Or a mobile or member number' }), { key: 'a' });
     expect(rpcs('approve_waitlist_request')).toHaveLength(1);
   });
 });

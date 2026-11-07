@@ -11,7 +11,13 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const FEATURES = ['rewards.catalogue', 'referral.share_cards'].map((feature_key) => ({ feature_key, state: 'enabled', tiers: null }));
+const FEATURES = ['rewards.catalogue', 'referral.share_cards', 'rewards.bonus'].map((feature_key) => ({ feature_key, state: 'enabled', tiers: null }));
+/** Meera's bonus chips (decision 0504): 1,250 left after a 1,500 welcome and 1,000 used at Table 3, and more given before. */
+const BONUS_LINES = [
+  { line_id: 'b2', at: '2026-11-15T18:00:00Z', kind: 'redeemed', amount_paise: 100_000, reason: null, table_name: 'Table 3' },
+  { line_id: 'b1', at: '2026-11-14T18:00:00Z', kind: 'credited', amount_paise: 150_000, reason: 'Welcome bonus', table_name: null },
+];
+interface BonusReplies { balance: number | 'down'; lines: readonly unknown[] }
 const ITEMS = [
   { id: 'chai', kind: 'fnb_upgrade', name: 'Masala chai upgrade', detail: 'At the bar', points: 500, nights: null, stock: null, is_live: true, photo_path: null },
   { id: 'hoodie', kind: 'merchandise', name: 'RIVR hoodie', detail: 'At the host desk', points: 3000, nights: null, stock: 0, is_live: true, photo_path: null },
@@ -21,26 +27,40 @@ const REDEMPTION = {
   id: 'r0', reward_name: 'RIVR cap', kind: 'merchandise', detail: 'At the host desk', points: 800, nights: null, created_at: '2026-11-01T18:00:00Z', handed_over_at: null, cancelled_at: null, cancel_reason: null,
 };
 
-/** Meera signed in with 3,250 points, the catalogue and Refer a friend; redeeming sends its order to `redeemed`. */
-function renderRewards(points = 3250) {
+/** The bonus chips' replies (decision 0504): the history, kept as asked for, or the balance; undefined for any other path. */
+function bonusReply(url: string, body: string, bonus: BonusReplies, historyAsked: unknown[]): Response | undefined {
+  if (url.includes('/rpc/my_bonus_history')) {
+    historyAsked.push(JSON.parse(body));
+    return Response.json(bonus.lines);
+  }
+  if (!url.includes('/rpc/my_bonus')) return undefined;
+  return bonus.balance === 'down' ? Response.json({ code: 'XX000', message: 'down' }, { status: 500 }) : Response.json([{ bonus_paise: bonus.balance }]);
+}
+
+/** Meera signed in with 3,250 points, bonus chips, the catalogue and Refer a friend; redeeming sends its order to `redeemed`. */
+function renderRewards(points = 3250, bonus: BonusReplies = { balance: 125_000, lines: BONUS_LINES }) {
+  const historyAsked: unknown[] = [];
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000231', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
   }));
   const redeemed: unknown[] = [];
+  // Each read's reply by its path; any other is nothing.
+  const answers: Record<string, unknown> = {
+    '/rpc/my_feature_access': FEATURES, '/rpc/my_rewards': [{ points, tier_name: 'Founders’ Circle', nights: 0 }], '/rpc/my_locked_points': 0,
+    '/rest/v1/reward_item': ITEMS, '/rpc/my_redemptions': [REDEMPTION], '/rpc/my_referral': [{ code: 'RIVR4821', referred: 2, bonus_paise: 100000 }],
+  };
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (url.includes('/rpc/my_feature_access')) return Response.json(FEATURES);
-    if (url.includes('/rpc/my_rewards')) return Response.json([{ points, tier_name: 'Founders’ Circle', nights: 0 }]);
-    if (url.includes('/rpc/my_locked_points')) return Response.json(0);
-    if (url.includes('/rest/v1/reward_item')) return Response.json(ITEMS);
-    if (url.includes('/rpc/my_redemptions')) return Response.json([REDEMPTION]);
-    if (url.includes('/rpc/my_referral')) return Response.json([{ code: 'RIVR4821', referred: 2, bonus_paise: 100000 }]);
+    const body = String(init?.body ?? '{}');
+    const bonusAnswer = bonusReply(url, body, bonus, historyAsked);
+    if (bonusAnswer !== undefined) return bonusAnswer;
     if (url.includes('/rpc/redeem_reward')) {
-      redeemed.push(JSON.parse(String(init?.body)));
+      redeemed.push(JSON.parse(body));
       return Response.json('r1');
     }
-    return Response.json([]);
+    const path = Object.keys(answers).find((key) => url.includes(key));
+    return Response.json(path === undefined ? [] : answers[path]);
   });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
@@ -48,10 +68,52 @@ function renderRewards(points = 3250) {
       <ToastProvider><RewardsScreen /></ToastProvider>
     </RivrDataProvider>,
   );
-  return { redeemed };
+  return { redeemed, historyAsked };
 }
 
 const LATER = { timeout: 5000 };
+
+describe('Rewards: bonus chips (decision 0504)', () => {
+  it('shows the balance in chips, with the history closed until the member opens it', async () => {
+    const { historyAsked } = renderRewards();
+    expect(await screen.findByRole('heading', { name: 'Bonus chips' }, LATER)).toBeDefined();
+    expect(screen.getByText('1,250')).toBeDefined();
+    expect(screen.getByText('Used with your buy-in. They never expire.')).toBeDefined();
+    const history = screen.getByRole('button', { name: 'History' });
+    expect(history.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.queryByText('Buy-in · Table 3 · 15 Nov')).toBeNull();
+    expect(historyAsked).toEqual([]);
+    fireEvent.click(history);
+    expect(history.getAttribute('aria-expanded')).toBe('true');
+    expect(await screen.findByText('Buy-in · Table 3 · 15 Nov', {}, LATER)).toBeDefined();
+    expect(screen.getByText('−1,000')).toBeDefined();
+    expect(screen.getByText('Welcome bonus · 14 Nov')).toBeDefined();
+    expect(screen.getByText('+1,500')).toBeDefined();
+    expect(historyAsked).toEqual([{ p_limit: 20 }]);
+    expect(screen.queryByRole('button', { name: 'Show earlier' })).toBeNull();
+    expect(screen.queryByText(/₹/)).toBeNull();
+  });
+
+  it('offers earlier lines once twenty are shown', async () => {
+    const lines = Array.from({ length: 20 }, (_, index) => ({ ...BONUS_LINES[1], line_id: `g${index}`, at: `2026-10-${String(index + 1).padStart(2, '0')}T18:00:00Z` }));
+    const { historyAsked } = renderRewards(3250, { balance: 3_000_000, lines });
+    fireEvent.click(await screen.findByRole('button', { name: 'History' }, LATER));
+    fireEvent.click(await screen.findByRole('button', { name: 'Show earlier' }, LATER));
+    await waitFor(() => expect(historyAsked).toEqual([{ p_limit: 20 }, { p_limit: 40 }]));
+  });
+
+  it('says so when there are no bonus chips, and offers Try again when they cannot be read', async () => {
+    renderRewards(3250, { balance: 0, lines: [] });
+    expect(await screen.findByText('No bonus chips yet.', {}, LATER)).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'History' }));
+    expect(await screen.findByText('Nothing here yet.', {}, LATER)).toBeDefined();
+    cleanup();
+    renderRewards(3250, { balance: 'down', lines: [] });
+    expect(await screen.findByText('3,250', {}, LATER)).toBeDefined();
+    expect(await screen.findByRole('button', { name: 'Try again' }, LATER)).toBeDefined();
+    expect(screen.queryByRole('heading', { name: 'Bonus chips' })).toBeNull();
+  });
+});
 
 describe('Rewards', () => {
   it('shows the tier, the points, and the next reward with how many points to go, and no rupee', async () => {
