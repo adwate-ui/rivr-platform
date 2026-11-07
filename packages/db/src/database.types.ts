@@ -6136,6 +6136,11 @@ isOneToOne: false
               "hand_id": string,"number": number,"played_at": string,"pot_paise": number,"rake_paise": number,"variant": Database["public"]['Enums']["hand_variant"]
             }[]
                            },
+"table_metrics":
+{ Args: { "p_from": string,"p_to": string,"p_venue_id": string }; Returns: {
+              "peak": number,"player_seconds": number,"players": number,"run_seconds": number,"seats": number,"table_id": string,"table_name": string
+            }[]
+                           },
 "tablet_dealers":
 { Args: Record<PropertyKey, never>; Returns: {
               "full_name": string,"staff_id": string
