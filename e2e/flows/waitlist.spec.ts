@@ -28,7 +28,7 @@ function tableRow(page: Page, name: string): Locator {
 async function joinAt(page: Page, name: string) {
   await tableRow(page, name).click();
   const sheet = page.getByRole('dialog');
-  await sheet.getByRole('button', { name: /^(Take a seat|Join waitlist)$/ }).click();
+  await sheet.getByRole('button', { name: /^Request a seat$/ }).click();
   await expect(sheet).toHaveCount(0);
 }
 

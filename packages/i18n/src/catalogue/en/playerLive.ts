@@ -15,12 +15,15 @@ export const playerLive = {
   allTables: 'All tables',
   running: '{count} running',
   runningWithTournaments: '{tables} running · {tournaments} tournaments',
-  /** A table's row: `Table 1 · NLH 50/100`. */
+  /** A table's row: `Table 1 · NLH 50/100`, with a straddle `Table 5 · NLH 100/200/400` (owner, 8 Nov). */
   tableName: '{name} · {game}',
+  /** The game before its stakes in a table's row. */
+  gameShort: { nlh: 'NLH', plo: 'PLO' },
   noWait: 'No wait',
   waiting: '{count} waiting',
   closed: 'Closed',
-  seatsOpen: '{count} open',
+  /** Under a table's name (owner, 8 Nov: the buy-in, never how many seats are open): `Min buy-in ₹5,000`. */
+  minBuyIn: 'Min buy-in {amount}',
   full: 'Full',
   opensLater: 'Opens later',
   tournaments: 'Tournaments',
@@ -28,15 +31,10 @@ export const playerLive = {
   notifying: 'Notifying you',
   games: { nlh: "No-Limit Hold'em", plo: 'Pot-Limit Omaha' },
   join: {
-    /** Read out for the seat map: `3 of 9 seats open`. */
-    seatMap: '{open} of {seats} seats open',
-    seatsOpen: 'Seats open',
-    seatsOf: '{open} of {seats}',
-    waiting: 'Waiting',
-    none: 'None',
+    minBuyIn: 'Min buy-in',
+    /** The join's one button: a request the floor approves onto the table's list; players see no wait (owner, 8 Nov). */
+    request: 'Request a seat',
     callTime: 'Call time',
-    takeSeat: 'Take a seat',
-    joinWaitlist: 'Join waitlist',
     paused: 'The club is paused',
   },
   list: {

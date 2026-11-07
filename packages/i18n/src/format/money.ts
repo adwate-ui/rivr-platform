@@ -43,9 +43,13 @@ export function formatNights(thousandths: bigint): string {
   return rest === 0n ? `${sign}${whole}` : `${sign}${whole}.${rest.toString().padStart(3, '0').replace(/0+$/, '')}`;
 }
 
-/** Formats a cash game's blinds, given in paise, as `100/200`; a blind with paise keeps them: `0.50/1`. */
-export function formatStakes(smallBlind: bigint, bigBlind: bigint): string {
-  return `${formatChips(smallBlind)}/${formatChips(bigBlind)}`;
+/**
+ * Formats a cash game's blinds, given in paise, as `100/200`, and its straddle after them when it has one: `100/200/400`;
+ * a blind with paise keeps them: `0.50/1`.
+ */
+export function formatStakes(smallBlind: bigint, bigBlind: bigint, straddle: bigint | null = null): string {
+  const blinds = `${formatChips(smallBlind)}/${formatChips(bigBlind)}`;
+  return straddle === null ? blinds : `${blinds}/${formatChips(straddle)}`;
 }
 
 /**

@@ -11,7 +11,7 @@ import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 // A break in force names its end with the year, as the floor's may run for years.
 const ENDS = /\d{1,2} \w{3} \d{4}, \d{2}:\d{2}/.source;
-const JOIN = /^(Take a seat|Join waitlist)$/;
+const JOIN = /^Request a seat$/;
 
 test.describe('Self-exclusion', () => {
   test('Tonight › Browsing: a member the club puts on a break loses his place, is told until when, and cannot join', async ({ browser, page }) => {
