@@ -25,8 +25,8 @@ function GiveOutcome({ outcome }: { outcome: Outcome }) {
 
 /**
  * Bonus chips added by hand (the owner, 8 Nov), for super admins on another member's record: how many, in whole fifties,
- * and why, asked twice. One request id until it goes through or is refused, so a retry after a dropped line never adds
- * twice.
+ * and why, asked twice. One request id until it goes through, is refused or what is typed changes, so pressing again after
+ * a dropped line never adds twice, and an edited press is a grant of its own.
  */
 export function GiveBonusChips({ venueId, memberId }: { venueId: string; memberId: string }) {
   const give = useGiveBonusChips(venueId, memberId);
@@ -47,9 +47,9 @@ export function GiveBonusChips({ venueId, memberId }: { venueId: string; memberI
       <Heading level={3}>{t('console.members.bonus.give.title')}</Heading>
       <Text tone="muted">{t('console.members.bonus.give.intro')}</Text>
       <Input label={t('console.members.bonus.give.chips')} hint={t('console.members.bonus.give.chipsHint')} value={typed} inputMode="numeric"
-        autoComplete="off" onChange={(event) => setTyped(event.target.value)} />
+        autoComplete="off" onChange={(event) => { setTyped(event.target.value); setRequestId(crypto.randomUUID()); }} />
       <Input label={t('console.members.bonus.give.reason')} hint={t('console.members.bonus.give.reasonHint')} value={reason} maxLength={200}
-        autoComplete="off" onChange={(event) => setReason(event.target.value)} />
+        autoComplete="off" onChange={(event) => { setReason(event.target.value); setRequestId(crypto.randomUUID()); }} />
       <Stack align="start">
         <ConfirmButton variant="subtle" label={t('console.members.bonus.give.add')} isBusy={give.isPending}
           confirm={t('console.members.bonus.give.confirm', { chips: formatNumber(chips ?? 0) })}

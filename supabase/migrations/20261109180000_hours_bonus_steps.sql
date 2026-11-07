@@ -448,11 +448,15 @@ declare
   v_visit public.visit;
   v_table uuid;
   v_step integer;
+  v_member jsonb;
 begin
   select * into v_visit from public.visit v where v.id = p_visit_id;
   if v_visit.id is null then
     return;
   end if;
+  -- Only versions the member is for (tier and audience; a play-time bonus counts its own stakes in the minutes), so a step
+  -- no version would give is not weighed again each minute (review, 8 Nov).
+  v_member := private.promotion_member_facts(v_visit.member_id);
   v_table := (select s.table_id from public.seat_session s where s.visit_id = p_visit_id
               order by s.ended_at is null desc, s.started_at desc limit 1);
   for v_step in
@@ -461,6 +465,8 @@ begin
     cross join lateral private.visit_schedule_time_at(p_visit_id, pv.schedule, pv.eligibility, p_at) t
     cross join lateral private.promo_hours_steps(pv.reward) s
     where pv.venue_id = v_visit.venue_id and pv.status = 'live' and pv.reward ->> 'kind' = 'hours_bonus' and s.o_after_minutes <= t.o_seconds / 60
+      and private.promo_is_eligible(jsonb_build_object('reward', pv.reward, 'eligibility', pv.eligibility, 'schedule', pv.schedule), v_member,
+                                    jsonb_build_object('kind', 'hours_step', 'at', p_at, 'stake', null, 'tableId', null))
       and not exists (select 1 from public.promotion_grant g where g.promotion_id = pv.promotion_id and g.member_id = v_visit.member_id
                         and g.source_key = 'hours_step:' || p_visit_id || ':' || s.o_after_minutes)
     order by 1
