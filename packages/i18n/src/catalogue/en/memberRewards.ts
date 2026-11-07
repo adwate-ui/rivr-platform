@@ -31,7 +31,9 @@ export const memberRewards = {
   leftLine: '{count} left · {detail}',
   redeem: 'Redeem',
   /** The redesign (decision 0320): the balance's word, the next reward, a reward out of reach, and the redeem sheet. */
-  pointsWord: 'points',
+  /** The points tile beside bonus chips (owner, 8 Nov): one name, and one line on what they are for. */
+  pointsLabel: 'Points',
+  pointsLine: 'Spend on rewards.',
   next: 'Next: {name}',
   /** Every reward in points is within reach: the bar full. */
   allUnlocked: 'Everything unlocked',
@@ -94,14 +96,11 @@ export const memberRewards = {
   leaguePoints: '{points} points',
   /** The member's bonus chips (decision 0504): they never expire, and are used with a buy-in as the floor seats them. */
   bonus: {
-    heading: 'Bonus chips',
-    /** After the figure: `1,500 bonus chips`. */
-    chipsWord: 'bonus chips',
-    /** Under the figure, how they are used. */
-    howToUse: 'Used with your buy-in. They never expire.',
-    none: 'No bonus chips yet.',
-    /** Opens and closes the history, which starts closed. */
-    history: 'History',
+    /** The tile beside points (owner, 8 Nov): one name, and one line on what they are for. */
+    label: 'Bonus chips',
+    line: 'Use with your buy-in. Never expire.',
+    /** Over the history the tile opens. */
+    history: 'Bonus chips history',
     showEarlier: 'Show earlier',
     noHistory: 'Nothing here yet.',
     /** A line's label, with its day: `Welcome bonus · 15 Nov`; `Buy-in · Table 3 · 15 Nov`; `Expired · Buy-in bonus Tuesday · 9 Nov`. */

@@ -1,6 +1,6 @@
 import { useMyBonus, useMyBonusHistory, type BonusLine } from '@rivr/db/bonus';
 import { formatChips, formatDayMonth, t } from '@rivr/i18n';
-import { Box, Button, DetailRow, Figure, Heading, Inline, LoadState, Skeleton, Stack, Text } from '@rivr/ui';
+import { BalanceTile, Box, Button, DetailRow, Heading, LoadState, Skeleton, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 
 /** Lines shown at first, and how many more each Show earlier adds. */
@@ -45,29 +45,29 @@ function History() {
 }
 
 /**
- * Bonus chips in Rewards (decision 0504): the balance in gold, how they are used, and their history, closed until the
- * member opens it: chips given with the promotion's name, chips used with a buy-in and at which table, the newest first.
+ * The bonus chips tile beside points at the top of Rewards (decision 0504; owner, 8 Nov): the chips in gold with a chip,
+ * and what they are for. It opens their history in place, closed until the member opens it.
  */
-export function BonusSection() {
+export function BonusTile({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
   const bonus = useMyBonus();
-  const [isOpen, setOpen] = useState(false);
   if (bonus.isError) return <LoadState isError onRetry={() => void bonus.refetch()} />;
   if (bonus.data === undefined) return <Skeleton rows={2} />;
   if (bonus.data === null) return null;
   return (
-    <Stack gap={3}>
-      <Heading level={2} variant="subsection">{t('memberRewards.bonus.heading')}</Heading>
-      <Inline gap={3} align="baseline">
-        <Figure size="title" tone="money">{formatChips(bonus.data)}</Figure>
-        <Text tone="muted">{t('memberRewards.bonus.chipsWord')}</Text>
-      </Inline>
-      <Text variant="small" tone="muted">{bonus.data === 0n ? t('memberRewards.bonus.none') : t('memberRewards.bonus.howToUse')}</Text>
-      <Inline>
-        <Button variant="text" icon={isOpen ? 'chevronUp' : 'chevronDown'} aria-expanded={isOpen} onClick={() => setOpen(!isOpen)}>
-          {t('memberRewards.bonus.history')}
-        </Button>
-      </Inline>
-      {isOpen ? <History /> : null}
+    <BalanceTile icon="chip" tone="money" figure={formatChips(bonus.data)} label={t('memberRewards.bonus.label')}
+      line={t('memberRewards.bonus.line')} onOpen={onToggle} aria-expanded={isOpen} />
+  );
+}
+
+/**
+ * The bonus chips history, once opened from its tile: chips given with the promotion's name, chips used with a buy-in and
+ * at which table, the newest first.
+ */
+export function BonusHistory() {
+  return (
+    <Stack gap={2}>
+      <Heading level={2} variant="subsection">{t('memberRewards.bonus.history')}</Heading>
+      <History />
     </Stack>
   );
 }

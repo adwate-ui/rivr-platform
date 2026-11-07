@@ -64,6 +64,11 @@ const ICONS = {
   search: ['M3 10.5A7.5 7.5 0 1 0 18 10.5A7.5 7.5 0 1 0 3 10.5Z', 'M16 16L21 21'],
   // Three dots, each a small ring: a row's or a table's more actions, and the tab bar's More.
   overflow: ['M4 12A1 1 0 1 0 6 12A1 1 0 1 0 4 12Z', 'M11 12A1 1 0 1 0 13 12A1 1 0 1 0 11 12Z', 'M18 12A1 1 0 1 0 20 12A1 1 0 1 0 18 12Z'],
+  // A five-point star: points, earned by playing and spent on rewards (owner, 8 Nov: points and bonus chips told apart).
+  star: ['M12 3.5L14.6 8.9L20.5 9.7L16.2 13.8L17.3 19.6L12 16.8L6.7 19.6L7.8 13.8L3.5 9.7L9.4 8.9Z'],
+  // A poker chip, its edge marked at four points: bonus chips, used with a buy-in.
+  chip: ['M3.5 12A8.5 8.5 0 1 0 20.5 12A8.5 8.5 0 1 0 3.5 12Z', 'M8.5 12A3.5 3.5 0 1 0 15.5 12A3.5 3.5 0 1 0 8.5 12Z',
+    'M12 3.5V6', 'M12 18V20.5', 'M3.5 12H6', 'M18 12H20.5'],
 } satisfies Record<string, readonly string[]>;
 
 export type IconName = keyof typeof ICONS;

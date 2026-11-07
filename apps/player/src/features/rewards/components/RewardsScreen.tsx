@@ -2,8 +2,9 @@ import { useFeature, useMyLockedPoints } from '@rivr/db';
 import { useMyRewards, useRewardCatalogue, type MyRewards } from '@rivr/db/myRewards';
 import { nextReward } from '@rivr/domain/rewards';
 import { formatNights, formatNumber, memberRewards, registerMessages, t } from '@rivr/i18n';
-import { FeatureGate, Figure, Inline, ProgressBar, Screen, Stack, Text } from '@rivr/ui';
-import { BonusSection } from './BonusSection.tsx';
+import { BalanceTile, FeatureGate, Grid, Inline, ProgressBar, Screen, Stack, Text, type FeatureAccess } from '@rivr/ui';
+import { useState } from 'react';
+import { BonusHistory, BonusTile } from './BonusSection.tsx';
 import { Catalogue } from './Catalogue.tsx';
 import { LeagueSection } from './LeagueSection.tsx';
 import { MyRedemptionList } from './MyRedemptionList.tsx';
@@ -32,18 +33,23 @@ function NextReward({ points }: { points: bigint }) {
   );
 }
 
-/** The tier, the points in gold, locked points if any, and the way to the next reward. */
-function Balance({ rewards, hasCatalogue }: { rewards: MyRewards; hasCatalogue: boolean }) {
+/**
+ * The tier, then points and bonus chips side by side, each with its one line (owner, 8 Nov: told apart at a glance); locked
+ * points if any, the way to the next reward, and the bonus chips history once its tile opens it.
+ */
+function Balances({ rewards, hasCatalogue, bonus }: { rewards: MyRewards; hasCatalogue: boolean; bonus: FeatureAccess }) {
   const locked = useMyLockedPoints().data;
+  const [isBonusOpen, setBonusOpen] = useState(false);
   return (
-    <Stack gap={2}>
+    <Stack gap={3}>
       <Text variant="eyebrow" tone="accent">{rewards.tierName}</Text>
-      <Inline gap={3} align="baseline">
-        <Figure size="display" tone="money">{formatNumber(rewards.points)}</Figure>
-        <Text tone="muted">{t('memberRewards.pointsWord')}</Text>
-      </Inline>
+      <Grid columns={2} gap={3}>
+        <BalanceTile icon="star" figure={formatNumber(rewards.points)} label={t('memberRewards.pointsLabel')} line={t('memberRewards.pointsLine')} />
+        <FeatureGate access={bonus}><BonusTile isOpen={isBonusOpen} onToggle={() => setBonusOpen(!isBonusOpen)} /></FeatureGate>
+      </Grid>
       {locked === undefined || locked === 0n ? null : <Text tone="muted">{t('memberRewards.locked', { points: formatNumber(locked) })}</Text>}
       {hasCatalogue ? <NextReward points={rewards.points} /> : null}
+      {isBonusOpen ? <BonusHistory /> : null}
     </Stack>
   );
 }
@@ -67,8 +73,7 @@ export function RewardsScreen() {
   return (
     <Screen {...look} title={title}>
       <Stack gap={8}>
-        <Balance rewards={rewards.data} hasCatalogue={catalogue.state === 'enabled'} />
-        <FeatureGate access={bonus}><BonusSection /></FeatureGate>
+        <Balances rewards={rewards.data} hasCatalogue={catalogue.state === 'enabled'} bonus={bonus} />
         <FeatureGate access={accommodation}>
           <Stack gap={1}>
             <Text variant="small" tone="muted">{t('memberRewards.nights')}</Text>

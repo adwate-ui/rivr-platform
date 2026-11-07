@@ -73,18 +73,19 @@ function renderRewards(points = 3250, bonus: BonusReplies = { balance: 125_000, 
 
 const LATER = { timeout: 5000 };
 
-describe('Rewards: bonus chips (decision 0504)', () => {
-  it('shows the balance in chips, with the history closed until the member opens it', async () => {
+describe('Rewards: points and bonus chips (decision 0504; owner, 8 Nov)', () => {
+  it('shows points and bonus chips side by side, each with what it is for, the history closed until the chips tile opens it', async () => {
     const { historyAsked } = renderRewards();
-    expect(await screen.findByRole('heading', { name: 'Bonus chips' }, LATER)).toBeDefined();
-    expect(screen.getByText('1,250')).toBeDefined();
-    expect(screen.getByText('Used with your buy-in. They never expire.')).toBeDefined();
-    const history = screen.getByRole('button', { name: 'History' });
-    expect(history.getAttribute('aria-expanded')).toBe('false');
+    const chips = await screen.findByRole('button', { name: /Bonus chips/ }, LATER);
+    expect(chips.textContent).toBe('1,250Bonus chipsUse with your buy-in. Never expire.');
+    expect(screen.getByText('Points')).toBeDefined();
+    expect(screen.getByText('Spend on rewards.')).toBeDefined();
+    expect(chips.getAttribute('aria-expanded')).toBe('false');
     expect(screen.queryByText('Buy-in · Table 3 · 15 Nov')).toBeNull();
     expect(historyAsked).toEqual([]);
-    fireEvent.click(history);
-    expect(history.getAttribute('aria-expanded')).toBe('true');
+    fireEvent.click(chips);
+    expect(chips.getAttribute('aria-expanded')).toBe('true');
+    expect(await screen.findByRole('heading', { name: 'Bonus chips history' }, LATER)).toBeDefined();
     expect(await screen.findByText('Buy-in · Table 3 · 15 Nov', {}, LATER)).toBeDefined();
     expect(screen.getByText('−1,000')).toBeDefined();
     expect(screen.getByText('Welcome bonus · 14 Nov')).toBeDefined();
@@ -97,21 +98,22 @@ describe('Rewards: bonus chips (decision 0504)', () => {
   it('offers earlier lines once twenty are shown', async () => {
     const lines = Array.from({ length: 20 }, (_, index) => ({ ...BONUS_LINES[1], line_id: `g${index}`, at: `2026-10-${String(index + 1).padStart(2, '0')}T18:00:00Z` }));
     const { historyAsked } = renderRewards(3250, { balance: 3_000_000, lines });
-    fireEvent.click(await screen.findByRole('button', { name: 'History' }, LATER));
+    fireEvent.click(await screen.findByRole('button', { name: /Bonus chips/ }, LATER));
     fireEvent.click(await screen.findByRole('button', { name: 'Show earlier' }, LATER));
     await waitFor(() => expect(historyAsked).toEqual([{ p_limit: 20 }, { p_limit: 40 }]));
   });
 
-  it('says so when there are no bonus chips, and offers Try again when they cannot be read', async () => {
+  it('shows no bonus chips as 0, and offers Try again when they cannot be read', async () => {
     renderRewards(3250, { balance: 0, lines: [] });
-    expect(await screen.findByText('No bonus chips yet.', {}, LATER)).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'History' }));
+    const chips = await screen.findByRole('button', { name: /Bonus chips/ }, LATER);
+    expect(chips.textContent).toContain('0Bonus chips');
+    fireEvent.click(chips);
     expect(await screen.findByText('Nothing here yet.', {}, LATER)).toBeDefined();
     cleanup();
     renderRewards(3250, { balance: 'down', lines: [] });
     expect(await screen.findByText('3,250', {}, LATER)).toBeDefined();
     expect(await screen.findByRole('button', { name: 'Try again' }, LATER)).toBeDefined();
-    expect(screen.queryByRole('heading', { name: 'Bonus chips' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Bonus chips/ })).toBeNull();
   });
 });
 
