@@ -48,6 +48,25 @@ select lives_ok($$ select private.sweep_hours_bonus() $$, 'the next minute''s sw
 select is((select count(*)::integer from public.promotion_grant where promotion_id = (select promotion_id from bonus)), 3,
   'pays no step twice');
 
+-- Two promotions with the same step each pay it: a second one-step bonus at two hours, live beside the first.
+create temp table second as select gen_random_uuid() as promotion_id;
+insert into public.promotion (id, venue_id, name, status, starts_at)
+select promotion_id, '00000000-0000-4000-8000-000000000001', 'Two-hour bonus', 'draft', now() - interval '1 day' from second;
+insert into public.promotion_version (venue_id, promotion_id, version, status, name, reward, eligibility, schedule, limits, channels)
+select '00000000-0000-4000-8000-000000000001', s.promotion_id, 1, 'live', 'Two-hour bonus', '{"kind": "hours_bonus", "chips": 300, "afterMinutes": 120}',
+       v.eligibility, v.schedule, '{"perMember": "per_visit"}', v.channels
+from second s, public.promotion_version v where v.id = (select version_id from bonus);
+select private.sync_promotion((select promotion_id from second));
+select lives_ok($$ select private.sweep_hours_bonus() $$, 'the sweep with a second promotion at two hours');
+select results_eq($$ select g.chips from public.promotion_grant g where g.promotion_id = (select promotion_id from second) order by g.member_id $$,
+  $$ values (300::bigint), (300::bigint) $$, 'Mihir and Kunal, already paid the first promotion''s two-hour step, are paid the second''s too');
+select throws_ok($$ insert into public.promotion_grant
+                    select (jsonb_populate_record(null::public.promotion_grant,
+                              to_jsonb(g) || jsonb_build_object('id', gen_random_uuid(), 'period_key', g.period_key || '#2'))).*
+                    from public.promotion_grant g where g.promotion_id = (select promotion_id from second) limit 1 $$,
+  '23505', null, 'a step paid twice by one promotion, as a sweep and a close at once would, is refused by the database');
+update public.promotion_version set status = 'ended' where promotion_id = (select promotion_id from second);
+
 -- Every 90 minutes, once a visit: only the first step.
 update public.promotion_version set reward = '{"kind": "hours_bonus", "mode": "every", "everyMinutes": 90, "chips": 250, "timesPerVisit": 1}'
 where id = (select version_id from bonus);

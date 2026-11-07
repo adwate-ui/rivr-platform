@@ -28,7 +28,7 @@ function eventsFor(promo: Terms, replayed: ReplayedEvent): readonly ReplayedEven
   if (promo.reward.kind !== 'hours_bonus' || event.kind !== 'time_played') return [replayed];
   return stepsReached(promo.reward, event.minutes).map((stepMinutes) => ({
     ...replayed,
-    event: { ...event, kind: 'hours_step', key: `${event.key.replace(/^hours_played:/, 'hours_step:')}:${String(stepMinutes)}`, minutes: event.minutes, stepMinutes },
+    event: { ...event, kind: 'hours_step', key: `${event.key}:${String(stepMinutes)}`, minutes: event.minutes, stepMinutes },
   }));
 }
 

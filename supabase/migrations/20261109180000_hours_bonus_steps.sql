@@ -300,7 +300,7 @@ begin
     return v_base || jsonb_build_object('minutes', v_time.o_seconds / 60, 'points', v_time.o_points);
   elsif p_kind = 'hours_step' then
     select * into v_time from private.visit_schedule_time_at(v_visit, p_version.schedule, p_version.eligibility,
-                                                             coalesce((p_context ->> 'at')::timestamptz, now()));
+                                                             least(coalesce((p_context ->> 'at')::timestamptz, now()), now()));
     return v_base || jsonb_build_object('minutes', v_time.o_seconds / 60, 'stepMinutes', (p_context ->> 'step_minutes')::integer);
   elsif p_kind = 'visit' then
     return v_base || jsonb_build_object('tableId', null, 'stake', null,
@@ -391,8 +391,11 @@ declare
   v_candidate jsonb;
   v_id uuid;
 begin
-  if v_kind is null or exists (select 1 from public.promotion_grant g where g.venue_id = p_venue_id and g.member_id = v_member_id
-                                 and g.source_key = p_context ->> 'key' and g.promotion_version_id is not null) then
+  -- An event is weighed once; a play-time bonus step once for each promotion, so one paying a step never stops another
+  -- with the same step (money audit, 8 Nov).
+  if v_kind is null or (p_trigger <> 'hours_step' and exists (
+       select 1 from public.promotion_grant g where g.venue_id = p_venue_id and g.member_id = v_member_id
+         and g.source_key = p_context ->> 'key' and g.promotion_version_id is not null)) then
     return;
   end if;
   v_member := private.promotion_member_facts(v_member_id);
@@ -402,6 +405,8 @@ begin
     order by p.created_at, p.id
     for update of v
   loop
+    continue when p_trigger = 'hours_step' and exists (select 1 from public.promotion_grant g where g.promotion_id = v_version.promotion_id
+                                                         and g.member_id = v_member_id and g.source_key = p_context ->> 'key');
     v_event := private.promotion_event(v_kind, v_version, p_context);
     continue when not private.promo_is_eligible(
       jsonb_build_object('reward', v_version.reward, 'eligibility', v_version.eligibility, 'schedule', v_version.schedule), v_member, v_event);
@@ -456,7 +461,7 @@ begin
     cross join lateral private.visit_schedule_time_at(p_visit_id, pv.schedule, pv.eligibility, p_at) t
     cross join lateral private.promo_hours_steps(pv.reward) s
     where pv.venue_id = v_visit.venue_id and pv.status = 'live' and pv.reward ->> 'kind' = 'hours_bonus' and s.o_after_minutes <= t.o_seconds / 60
-      and not exists (select 1 from public.promotion_grant g where g.member_id = v_visit.member_id
+      and not exists (select 1 from public.promotion_grant g where g.promotion_id = pv.promotion_id and g.member_id = v_visit.member_id
                         and g.source_key = 'hours_step:' || p_visit_id || ':' || s.o_after_minutes)
     order by 1
   loop
@@ -467,8 +472,9 @@ begin
 end;
 $$;
 
--- Each minute, every open visit at a venue with a live play-time bonus is weighed for the steps it has reached. One
--- visit that cannot be weighed never stops the others; it is logged.
+-- Each minute, every open visit with the member seated now, at a venue with a live play-time bonus, is weighed for the
+-- steps it has reached: paid while seated, and a visit left open from an earlier night is not. One visit that cannot be
+-- weighed never stops the others; it is logged.
 create function private.sweep_hours_bonus()
 returns void
 language plpgsql
@@ -481,7 +487,7 @@ begin
   for v_visit in
     select v.id from public.visit v
     where v.closed_at is null
-      and exists (select 1 from public.seat_session s where s.visit_id = v.id)
+      and exists (select 1 from public.seat_session s where s.visit_id = v.id and s.ended_at is null)
       and exists (select 1 from public.promotion_version pv where pv.venue_id = v.venue_id and pv.status = 'live'
                     and pv.reward ->> 'kind' = 'hours_bonus')
     order by v.opened_at
@@ -598,3 +604,11 @@ as $$
   select coalesce(jsonb_agg(private.replay_entry(e.kind, e.n, e.at, e.member_id, e.member_n, e.more) order by e.at, e.n), '[]'::jsonb)
   from (select x.*, row_number() over (order by x.at, x.id) as n, dense_rank() over (order by x.member_id) as member_n from entries x) e;
 $$;
+
+-- Grants made before steps count against their step: each one-step play-time bonus grant's period gets '@' its minutes,
+-- so a member paid once ever, today or this week under the old key is not paid again under the new (money audit, 8 Nov).
+update public.promotion_grant g
+set period_key = regexp_replace(g.period_key, '^([^#@]*)(#[0-9]+)?$', '\1@' || (v.reward ->> 'afterMinutes') || '\2')
+from public.promotion_version v
+where v.id = g.promotion_version_id and v.reward ->> 'kind' = 'hours_bonus' and v.reward ? 'afterMinutes'
+  and g.period_key is not null and position('@' in g.period_key) = 0;
