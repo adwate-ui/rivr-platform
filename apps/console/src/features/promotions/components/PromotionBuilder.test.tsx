@@ -66,6 +66,19 @@ describe('the promotion builder (console v3)', () => {
     expect(screen.getByRole('textbox', { name: 'Bonus chips' })).toHaveProperty('value', '1000');
   });
 
+  it('builds a play-time bonus at set times, a step at a time, or every so often (owner, 8 Nov)', () => {
+    renderBuilder(NEW);
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Reward' })).getByRole('radio', { name: 'Hours-played bonus' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add a step' }));
+    expect(screen.getByRole('textbox', { name: 'Then bonus chips' })).toHaveProperty('value', '1000');
+    expect(screen.getByText(/^1,000 bonus chips after 4 hours, then 1,000 after 6 hours, for all stakes/)).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Remove step 2' }));
+    expect(screen.queryByRole('textbox', { name: 'Then bonus chips' })).toBeNull();
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Pays' })).getByRole('radio', { name: 'Every few hours' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Most times a visit' }), { target: { value: '3' } });
+    expect(screen.getByText(/^1,000 bonus chips every 2 hours, up to 3 times a visit, for all stakes/)).toBeDefined();
+  });
+
   it('marks the fields the terms refuse and sends nothing', async () => {
     const { calls } = renderBuilder(NEW);
     fireEvent.change(screen.getByRole('textbox', { name: 'Multiplier' }), { target: { value: '2.1' } });

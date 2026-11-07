@@ -68,6 +68,28 @@ describe('the builder read as terms', () => {
     expect(readForm(form).terms).toEqual(terms);
   });
 
+  it('reads a play-time bonus at set times or every so often, and gives each back as its fields (owner, 8 Nov)', () => {
+    const hours = (more: Partial<BuilderForm>) => readForm(named({ kind: 'hours_bonus', chips: '500', afterHours: '2', ...more }));
+    expect(hours({}).terms?.reward).toEqual({ kind: 'hours_bonus', chips: 500, afterMinutes: 120 });
+    const steps = hours({ moreSteps: [{ afterHours: '4', chips: '1,000' }, { afterHours: '6.5', chips: '1500' }] }).terms;
+    expect(steps?.reward).toEqual({
+      kind: 'hours_bonus', mode: 'steps', steps: [{ afterMinutes: 120, chips: 500 }, { afterMinutes: 240, chips: 1_000 }, { afterMinutes: 390, chips: 1_500 }],
+    });
+    const every = hours({ hoursMode: 'every', everyHours: '1.5', timesPerVisit: '3' }).terms;
+    expect(every?.reward).toEqual({ kind: 'hours_bonus', mode: 'every', everyMinutes: 90, chips: 500, timesPerVisit: 3 });
+    expect(hours({ hoursMode: 'every', everyHours: '2', timesPerVisit: '' }).terms?.reward).toEqual({ kind: 'hours_bonus', mode: 'every', everyMinutes: 120, chips: 500 });
+    for (const terms of [steps, every]) {
+      if (terms === null || terms === undefined) throw new Error('The terms were not read');
+      expect(readForm(formFromTerms(terms)).terms).toEqual(terms);
+    }
+  });
+
+  it('marks a play-time bonus’s steps out of order, and every so often past 12 hours or 20 times', () => {
+    const hours = (more: Partial<BuilderForm>) => readForm(named({ kind: 'hours_bonus', chips: '500', afterHours: '4', ...more })).errors;
+    expect([...hours({ moreSteps: [{ afterHours: '2', chips: '500' }] })]).toEqual(['steps']);
+    expect([...hours({ hoursMode: 'every', everyHours: '13', timesPerVisit: '21' })].sort()).toEqual(['everyHours', 'timesPerVisit']);
+  });
+
   it('prefills a template over a blank promotion, named, for the tier it is for', () => {
     const tuesday = templateForm('buyin_bonus', TODAY, { founders: null, graduate: null });
     expect(readForm(tuesday).terms).toMatchObject({

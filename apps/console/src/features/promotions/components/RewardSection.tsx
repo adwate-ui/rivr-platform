@@ -4,6 +4,7 @@ import { ChoiceChips, Grid, Segmented, Stack, Text } from '@rivr/ui';
 import type { ReactNode } from 'react';
 import { BuilderCard, FormInput, offered, type SectionProps } from './BuilderCard.tsx';
 import { REWARD_KINDS } from './builderForm.ts';
+import { HoursBonusFields } from './HoursBonusFields.tsx';
 
 /** A choice of two to four with its label shown above it, as the prototype's "Bonus as" and "Given on". */
 function Labelled({ label, children }: { label: string; children: ReactNode }) {
@@ -88,7 +89,7 @@ function KindFields({ section }: { section: SectionProps }) {
     case 'buyin_bonus':
       return <BuyInFields section={section} />;
     case 'hours_bonus':
-      return <Fields><ChipsInput section={section} field="chips" label={t('console.promotions.builder.fields.chips')} /><AfterInput section={section} /></Fields>;
+      return <HoursBonusFields section={section} />;
     case 'bonus_chips':
       return <BonusChipsFields section={section} />;
     case 'free_spin':
