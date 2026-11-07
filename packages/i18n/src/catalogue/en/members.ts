@@ -18,6 +18,13 @@ export const members = {
   name: 'Name',
   tier: 'Tier',
   visits: 'Visits',
+  /** More of each member on the list (owner, 8 Nov): their mobile (super admins only), KYC, time played, city and joining day. */
+  mobile: 'Mobile',
+  kyc: 'KYC',
+  kycStatuses: { verified: 'Verified', in_review: 'In review', at_desk: 'Desk check', refused: 'Refused', not_done: 'Not done' },
+  played: 'Hours played',
+  city: 'City',
+  memberSince: 'Member since',
   lastVisit: 'Last visit',
   never: 'Never',
   /** Where a member is tonight (console v3): their seat, waiting for one, gone home, or not at the club (`notHere`). */

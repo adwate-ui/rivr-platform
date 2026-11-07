@@ -48,7 +48,7 @@ function Members({ title, venueId, can, memberId, part, onNavigate }: MembersScr
     <Screen title={title} onActionsSlot={setExportIn}>
       {/* The list stays in place as a record opens, so the search typed stays (C-02). */}
       <SplitView layout="docked" backLabel={t('console.members.back')} onBack={() => onNavigate('/members')}
-        list={<MemberList venueId={venueId} tonight={tonight} onOpen={(id) => onNavigate(recordHref(id))} exportIn={exportIn} />}
+        list={<MemberList venueId={venueId} tonight={tonight} onOpen={(id) => onNavigate(recordHref(id))} exportIn={exportIn} seesPhone={can.changePhone} />}
         detail={memberId === undefined ? null : (
           <MemberRecordPanel key={memberId} venueId={venueId} memberId={memberId} can={can} part={part}
             tonight={tonight.get(memberId)} onNavigate={onNavigate} />

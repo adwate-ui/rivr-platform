@@ -1,6 +1,6 @@
-import type { MemberRow } from '@rivr/db';
-import { formatNumber, t } from '@rivr/i18n';
-import { DotStatus, Text, type DataTableColumn } from '@rivr/ui';
+import type { MemberKycStatus, MemberListRow } from '@rivr/db';
+import { formatDate, formatHoursMinutes, formatMobile, formatNumber, t } from '@rivr/i18n';
+import { DotStatus, Text, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
 import type { Tonight } from './tonight.ts';
 
 /** A member's place tonight as a dot and a short status (console v3): a seat, waiting, left, or a dash when not here. */
@@ -23,13 +23,50 @@ function tonightOrder(tonight: Tonight | undefined): string {
   return tonight.kind === 'waiting' ? '1' : '2';
 }
 
-/** Members' columns (console v3): Name, No., Tier, Tonight and Visits; the name opens the record. */
-export function memberColumns(tonight: ReadonlyMap<string, Tonight>): readonly DataTableColumn<MemberRow>[] {
+// Verified is cream; a check someone must do is gold; refused is red; not done faint.
+const KYC_TONE: Readonly<Record<MemberKycStatus, DotStatusTone>> = {
+  verified: 'active', in_review: 'needsYou', at_desk: 'needsYou', refused: 'danger', not_done: 'inactive',
+};
+const KYC_ORDER: readonly MemberKycStatus[] = ['at_desk', 'in_review', 'not_done', 'refused', 'verified'];
+
+/** The mobile number, for super admins only (owner, 8 Nov): staff without members.change_phone have no such column. */
+const mobileColumn: DataTableColumn<MemberListRow> = {
+  key: 'mobile', header: t('console.members.mobile'), priority: 'secondary',
+  cell: (row) => (row.phone === null ? '' : formatMobile(row.phone)), exportValue: (row) => row.phone ?? '',
+};
+
+/** KYC, time played, city and the day they joined (owner, 8 Nov); city and joining day give way first on a narrow screen. */
+function moreColumns(): readonly DataTableColumn<MemberListRow>[] {
+  return [
+    {
+      key: 'kyc', header: t('console.members.kyc'), sortValue: (row) => KYC_ORDER.indexOf(row.kycStatus),
+      cell: (row) => <DotStatus tone={KYC_TONE[row.kycStatus]} label={t(`console.members.kycStatuses.${row.kycStatus}`)} />,
+      exportValue: (row) => t(`console.members.kycStatuses.${row.kycStatus}`),
+    },
+    {
+      key: 'played', header: t('console.members.played'), align: 'end', sortValue: (row) => row.minutesPlayed,
+      cell: (row) => formatHoursMinutes(row.minutesPlayed * 60),
+    },
+    { key: 'city', header: t('console.members.city'), priority: 'optional', cell: (row) => row.city ?? '', sortValue: (row) => row.city ?? '' },
+    {
+      key: 'since', header: t('console.members.memberSince'), priority: 'optional', sortValue: (row) => row.memberSince,
+      cell: (row) => formatDate(new Date(row.memberSince)),
+    },
+  ];
+}
+
+/**
+ * Members' columns (console v3; owner, 8 Nov): Name, No., Tier, the mobile for super admins, KYC, Hours played, City,
+ * Member since, Tonight and Visits; the name opens the record.
+ */
+export function memberColumns(tonight: ReadonlyMap<string, Tonight>, seesPhone: boolean): readonly DataTableColumn<MemberListRow>[] {
   return [
     // Twice a share, so a name stays on one line beside the record (the screenshot index: "Kabir / Sethi").
     { key: 'name', header: t('console.members.name'), cell: (row) => row.fullName, sortValue: (row) => row.fullName, isWide: true },
     { key: 'number', header: t('console.members.number'), cell: (row) => <Text variant="secondary" tone="muted">{String(row.memberNumber)}</Text>, sortValue: (row) => row.memberNumber },
     { key: 'tier', header: t('console.members.tier'), cell: (row) => row.tierName, sortValue: (row) => row.tierName },
+    ...(seesPhone ? [mobileColumn] : []),
+    ...moreColumns(),
     {
       key: 'tonight', header: t('console.members.tonight'), cell: (row) => <TonightStatus tonight={tonight.get(row.memberId)} />,
       sortValue: (row) => tonightOrder(tonight.get(row.memberId)), exportValue: (row) => tonightWords(tonight.get(row.memberId)),

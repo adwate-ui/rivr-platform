@@ -10,8 +10,13 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const SAKSHI = { member_id: 'm1', member_number: 66, full_name: 'Sakshi Tandon', phone: '+919000000266', tier_name: 'Black card', visits: 1, last_visit_at: '2026-11-03T12:00:00Z' };
-const ARJUN = { ...SAKSHI, member_id: 'm2', member_number: 63, full_name: 'Arjun Mehta', visits: 7 };
+const SAKSHI = {
+  member_id: 'm1', member_number: 66, full_name: 'Sakshi Tandon', phone: '+919000000266', phone_last4: '0266', tier_name: 'Black card', visits: 1,
+  last_visit_at: '2026-11-03T12:00:00Z', kyc_status: 'verified', minutes_played: 135, city: 'Gurugram', member_since: '2026-10-20T10:00:00Z',
+};
+// As an admin reads him: no full number, only its last four digits.
+const ARJUN = { ...SAKSHI, member_id: 'm2', member_number: 63, full_name: 'Arjun Mehta', visits: 7, phone: null, phone_last4: '0263', kyc_status: 'at_desk',
+  minutes_played: 0, city: null };
 const RECORD = {
   member_id: 'm1', member_number: 66, full_name: 'Sakshi Tandon', known_as: null, phone: '+919000000266', tier_id: 'tr1', tier_name: 'Black card',
   tier_until: null, is_kyc_complete: true, photo_path: null, qualifying_small_blind: null, qualifying_big_blind: null, visits: 1,
@@ -70,6 +75,27 @@ describe('Members (console v3)', () => {
     for (const header of ['Name', 'No.', 'Tier', 'Tonight', 'Visits']) expect(within(table).getByRole('columnheader', { name: new RegExp(header) })).toBeDefined();
     fireEvent.click(within(table).getByRole('button', { name: 'Arjun Mehta' }));
     expect(onNavigate).toHaveBeenCalledWith('/members?member=m2');
+  });
+
+  it('shows each member\'s KYC, hours played, city and member-since day, and the mobile to a super admin (owner, 8 Nov)', async () => {
+    renderAs('super_admin');
+    const table = await screen.findByRole('table', { name: 'Members' }, { timeout: 5000 });
+    for (const header of ['Mobile', 'KYC', 'Hours played', 'City', 'Member since']) {
+      expect(within(table).getByRole('columnheader', { name: new RegExp(header) })).toBeDefined();
+    }
+    const sakshi = within(table).getAllByRole('row').find((row) => row.textContent?.includes('Sakshi Tandon')) ?? table;
+    for (const shown of ['+91 90000 00266', 'Verified', '2h 15m', 'Gurugram', '20 Oct 2026']) expect(sakshi.textContent).toContain(shown);
+    const arjun = within(table).getAllByRole('row').find((row) => row.textContent?.includes('Arjun Mehta')) ?? table;
+    expect(arjun.textContent).toContain('Desk check');
+  });
+
+  it('keeps the mobile column from other staff, who find a member by the last four digits of their number', async () => {
+    renderAs('admin');
+    const table = await screen.findByRole('table', { name: 'Members' }, { timeout: 5000 });
+    expect(within(table).queryByRole('columnheader', { name: /Mobile/ })).toBeNull();
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Name, member no. or mobile' }), { target: { value: '98100 00263' } });
+    expect(within(table).getByRole('button', { name: 'Arjun Mehta' })).toBeDefined();
+    expect(within(table).queryByRole('button', { name: 'Sakshi Tandon' })).toBeNull();
   });
 
   it('narrows the list by a name as typed or a member number, and says when nothing matches', async () => {
