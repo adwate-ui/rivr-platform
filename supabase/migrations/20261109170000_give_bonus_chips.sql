@@ -4,7 +4,8 @@
 -- who, how many and why, and the member's app says so (bonus.credited). The request id makes a retry the same grant,
 -- audited once.
 --
--- Refusals: 42501 not a super admin of the member's venue; RVOWN their own record; RVCHP not whole fifties from 50 to
+-- Refusals: 42501 not a super admin of the member's venue, or an erased member; RVOWN their own record, by their login,
+-- number or name (private.is_own_kyc_check); RVCHP not whole fifties from 50 to
 -- 1,00,000; 22023 a reason not of 3 to 200 characters, or no request id; the venue frozen or promotions stopped as
 -- assert_writable says.
 
@@ -15,7 +16,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  v_venue_id uuid := (select m.venue_id from public.member m where m.id = p_member_id);
+  v_venue_id uuid := (select m.venue_id from public.member m where m.id = p_member_id and m.erased_at is null);
   v_key text := 'bonus.hand:' || p_request_id;
   v_is_retry boolean;
   v_id uuid;
@@ -23,7 +24,7 @@ begin
   if v_venue_id is null or not private.is_super_admin(v_venue_id) then
     raise exception 'Only a super admin adds bonus chips' using errcode = '42501';
   end if;
-  if private.is_own_cage_record(p_member_id) then
+  if private.is_own_cage_record(p_member_id) or coalesce(private.is_own_kyc_check(p_member_id), false) then
     raise exception 'Staff never add bonus chips to their own record' using errcode = 'RVOWN';
   end if;
   if p_chips is null or p_chips < 50 or p_chips > 100000 or p_chips % 50 <> 0 then

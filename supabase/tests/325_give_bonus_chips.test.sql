@@ -38,9 +38,9 @@ select results_eq($$ select a.reason, (a.after ->> 'chips')::integer, s.full_nam
                      join public.staff s on s.user_id = a.actor_user_id and s.venue_id = a.venue_id
                      where a.action = 'bonus.give' and a.entity_id = '00000000-0000-4000-8000-000000000211' $$,
   $$ values ('Birthday at the club'::text, 500, 'Vikram Rao'::text) $$, 'the audit log keeps who, how many and why, once');
-select is_empty($$ select 1 from public.ledger_entry e join public.ledger_transaction t on t.id = e.transaction_id
-                   where t.idempotency_key = 'bonus:bonus.hand:' || (select id from ids where name = 'request')
-                   group by t.id having sum(e.amount) <> 0 $$, 'the ledger stays balanced');
+select results_eq($$ select count(*)::integer, sum(e.amount)::bigint from public.ledger_entry e join public.ledger_transaction t on t.id = e.transaction_id
+                     where t.idempotency_key = 'bonus:bonus.hand:' || (select id from ids where name = 'request') $$,
+  $$ values (2, 0::bigint) $$, 'the ledger holds its two lines, and they balance');
 
 select pg_temp.as_user('00000000-0000-4000-8000-000000000101');
 select throws_ok($$ select public.give_bonus_chips((select id from ids where name = 'ira'), 75, 'Birthday', gen_random_uuid()) $$,

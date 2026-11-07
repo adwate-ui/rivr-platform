@@ -38,7 +38,7 @@ export const memberBonus = {
       own_record: 'Not on your own record. Ask another super admin.',
       invalid_chips: 'Give whole fifties from 50 to 1,00,000.',
       invalid_reason: 'Give a reason of 3 to 200 characters.',
-      paused: 'Venue frozen or promotions stopped. Try once released.',
+      paused: 'Frozen, or promotions stopped. Try once released.',
       unavailable: 'Not added. Try again.',
     },
   },

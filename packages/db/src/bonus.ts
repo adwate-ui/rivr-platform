@@ -105,12 +105,13 @@ export function useMemberBonusHistory(venueId: string, memberId: string, count: 
 
 /**
  * Why bonus chips added by hand did not go through: not a super admin; the super admin's own member record; not whole
- * fifties from 50 to 1,00,000; no reason of 3 to 200 characters; the venue frozen or promotions stopped; anything else.
+ * fifties from 50 to 1,00,000; no reason of 3 to 200 characters; the venue or member frozen, or promotions stopped;
+ * anything else.
  */
 export type GiveBonusFailure = 'not_allowed' | 'own_record' | 'invalid_chips' | 'invalid_reason' | 'paused' | 'unavailable';
 
 const GIVE_FAILURE_BY_CODE: Readonly<Record<string, GiveBonusFailure>> = {
-  '42501': 'not_allowed', RVOWN: 'own_record', RVCHP: 'invalid_chips', '22023': 'invalid_reason', RVFRZ: 'paused', RVKIL: 'paused',
+  '42501': 'not_allowed', RVOWN: 'own_record', RVCHP: 'invalid_chips', '22023': 'invalid_reason', RVFRZ: 'paused', RVKIL: 'paused', RVMBR: 'paused',
 };
 
 /** Bonus chips added by hand: how many, why, and the request id that makes a retry the same grant. */
