@@ -743,7 +743,7 @@ select results_eq(
 -- (packages/testing/golden/promotionRewards.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'promotionRewards.json'), 'the promotion reward cases are loaded');
 select is_empty($$ select operation from golden.golden_case where file = 'promotionRewards.json'
-                   and operation not in ('eligible', 'grant', 'limits', 'stack', 'tally', 'periodKey') $$,
+                   and operation not in ('eligible', 'grant', 'limits', 'stack', 'tally', 'periodKey', 'steps') $$,
   'every operation in promotionRewards.json is proved here');
 select results_eq(
   $$ select description, case when private.promo_is_eligible((inputs ->> 'terms')::jsonb, (inputs ->> 'member')::jsonb, (inputs ->> 'context')::jsonb)
@@ -775,11 +775,21 @@ select results_eq(
 select results_eq(
   $$ select description, private.promo_slot_key(private.promo_period_key((inputs ->> 'limits')::jsonb, (inputs ->> 'event')::jsonb ->> 'key',
                                                                          ((inputs ->> 'event')::jsonb ->> 'at')::timestamptz,
-                                                                         ((inputs ->> 'event')::jsonb ->> 'visitId')::uuid),
+                                                                         ((inputs ->> 'event')::jsonb ->> 'visitId')::uuid,
+                                                                         ((inputs ->> 'event')::jsonb ->> 'stepMinutes')::integer),
                                                 (inputs ->> 'given')::integer)
      from golden.golden_case where file = 'promotionRewards.json' and operation = 'periodKey' order by position $$,
   $$ select description, expected ->> 'key' from golden.golden_case where file = 'promotionRewards.json' and operation = 'periodKey' order by position $$,
   'private.promo_period_key and promo_slot_key key every grant in the golden file');
+
+-- @rivr/domain stepsReached: private.promo_hours_steps, the steps a play-time bonus reaches in the minutes played (owner, 8 Nov).
+select results_eq(
+  $$ select description, coalesce((select string_agg(s.o_after_minutes::text, ',' order by s.o_after_minutes)
+                                   from private.promo_hours_steps((inputs ->> 'reward')::jsonb) s
+                                   where s.o_after_minutes <= (inputs ->> 'minutes')::integer), '')
+     from golden.golden_case where file = 'promotionRewards.json' and operation = 'steps' order by position $$,
+  $$ select description, expected ->> 'steps' from golden.golden_case where file = 'promotionRewards.json' and operation = 'steps' order by position $$,
+  'private.promo_hours_steps reaches every step in the golden file');
 
 -- @rivr/domain tallyFor: private.promotion_tally over a promotion holding the fixture's ledger as grants (decision 0499).
 -- The fixture's two tables are Gurugram's Table 1 and Table 2.

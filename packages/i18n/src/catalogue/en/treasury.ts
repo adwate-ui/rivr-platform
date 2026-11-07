@@ -10,7 +10,7 @@ export const treasury = {
   /** What the venue holds, from the ledger. */
   wallets: 'Member wallets',
   withdrawalsPending: 'Withdrawals pending',
-  bonus: 'Bonus liability',
+  bonus: 'Bonus chips liability',
   markers: 'Markers outstanding',
   jackpots: 'Jackpots held',
   chipsInPlay: 'Chips in play',

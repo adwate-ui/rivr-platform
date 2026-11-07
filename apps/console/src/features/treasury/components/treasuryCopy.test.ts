@@ -14,7 +14,7 @@ const INVENTORY: ChipInventory = { lines: [], inCage: null, countedAt: null, cou
 describe('what the Treasury says (#24)', () => {
   it('lists what the venue holds in the prototype\'s order, then the chips in play and the cage float', () => {
     expect(balanceRows(TREASURY).map((row) => [row.label, row.paise])).toEqual([
-      ['Member wallets', 141_150_000n], ['Withdrawals pending', 2_500_000n], ['Bonus liability', 400_000n], ['Markers outstanding', 28_500_000n],
+      ['Member wallets', 141_150_000n], ['Withdrawals pending', 2_500_000n], ['Bonus chips liability', 400_000n], ['Markers outstanding', 28_500_000n],
       ['Jackpots held', 34_260_000n], ['Chips in play', 9_800_000n], ['Cage float', 120_000_000n],
     ]);
   });

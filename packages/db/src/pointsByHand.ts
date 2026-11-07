@@ -36,6 +36,24 @@ export function useMemberPoints(venueId: string, phone: string | null) {
   });
 }
 
+/**
+ * A member's points on their record (owner, 8 Nov), for staff who read members: earned, to spend on rewards, and locked
+ * until released. Null for an erased member or one of another venue.
+ */
+export function useMemberPointsOf(venueId: string, memberId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.memberPointsOf(userId ?? 'signed-out', venueId, memberId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<{ readonly earned: bigint; readonly locked: bigint } | null> => {
+      const { data, error } = await client.rpc('member_points_of', { p_venue_id: venueId, p_member_id: memberId });
+      if (error) throw error;
+      const row = data[0];
+      return row === undefined ? null : { earned: BigInt(row.earned), locked: BigInt(row.locked) };
+    },
+  });
+}
+
 /** Points by hand: given as earned or as locked, or locked ones unlocked into earned. The request id makes a retry count once. */
 export interface PointsOrder {
   readonly memberId: string;

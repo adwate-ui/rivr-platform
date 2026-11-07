@@ -4,7 +4,8 @@ import type { BuilderForm } from './builderForm.ts';
 
 /** A field the builder marks when the terms cannot take what it holds. */
 export type FormField =
-  | 'name' | 'multiplier' | 'percent' | 'capChips' | 'buyChips' | 'firstN' | 'chips' | 'afterHours' | 'spins' | 'fromVisit' | 'tournament'
+  | 'name' | 'multiplier' | 'percent' | 'capChips' | 'buyChips' | 'firstN' | 'chips' | 'afterHours' | 'everyHours' | 'timesPerVisit' | 'steps'
+  | 'spins' | 'fromVisit' | 'tournament'
   | 'who' | 'days' | 'from' | 'to' | 'startsOn' | 'endsOn' | 'timesPerMember' | 'maxMembersPerDay' | 'budgetChips' | 'rulesText' | 'link';
 
 /**
@@ -35,6 +36,19 @@ function buyInOf(form: BuilderForm): Record<string, unknown> {
   return defined({ kind: form.kind, mode: 'percent', percent: numberOf(form.percent), capChips: numberOf(form.capChips), firstNBuyinsPerTable });
 }
 
+/**
+ * A play-time bonus as typed (owner, 8 Nov): every so often with its cap; or at set times, its one step the plain form
+ * and more steps a list.
+ */
+function hoursOf(form: BuilderForm): Record<string, unknown> {
+  if (form.hoursMode === 'every') {
+    return defined({ kind: form.kind, mode: 'every', everyMinutes: minutesOf(form.everyHours), chips: numberOf(form.chips), timesPerVisit: numberOf(form.timesPerVisit) });
+  }
+  const first = defined({ afterMinutes: minutesOf(form.afterHours), chips: numberOf(form.chips) });
+  if (form.moreSteps.length === 0) return { kind: form.kind, ...first };
+  return { kind: form.kind, mode: 'steps', steps: [first, ...form.moreSteps.map((step) => defined({ afterMinutes: minutesOf(step.afterHours), chips: numberOf(step.chips) }))] };
+}
+
 /** The reward the fields of its kind give. */
 function rewardOf(form: BuilderForm): Record<string, unknown> {
   switch (form.kind) {
@@ -43,7 +57,7 @@ function rewardOf(form: BuilderForm): Record<string, unknown> {
     case 'buyin_bonus':
       return buyInOf(form);
     case 'hours_bonus':
-      return defined({ kind: form.kind, chips: numberOf(form.chips), afterMinutes: minutesOf(form.afterHours) });
+      return hoursOf(form);
     case 'bonus_chips':
       return defined({ kind: form.kind, chips: numberOf(form.chips), on: form.bonusOn });
     case 'free_spin':
@@ -60,12 +74,21 @@ function rewardOf(form: BuilderForm): Record<string, unknown> {
 // The reward's own keys and the field each is typed in; bonus chips are the buy-in's own field on a buy-in bonus.
 const REWARD_FIELDS: Readonly<Record<string, FormField>> = {
   multiplier: 'multiplier', percent: 'percent', capChips: 'capChips', firstNBuyinsPerTable: 'firstN', afterMinutes: 'afterHours', spins: 'spins',
-  fromVisitInMonth: 'fromVisit', tournamentId: 'tournament',
+  fromVisitInMonth: 'fromVisit', tournamentId: 'tournament', everyMinutes: 'everyHours', timesPerVisit: 'timesPerVisit', steps: 'steps',
 };
 
-/** The one shape of the reward union for the kind (and a buy-in's mode) chosen, so its refusals name their fields. */
+/** The mode of the shape the fields make: a buy-in's, or a play-time bonus's set steps or every so often; none for the rest. */
+function modeOf(form: BuilderForm): string | undefined {
+  if (form.kind === 'buyin_bonus') return form.buyMode;
+  if (form.kind !== 'hours_bonus') return undefined;
+  if (form.hoursMode === 'every') return 'every';
+  return form.moreSteps.length > 0 ? 'steps' : undefined;
+}
+
+/** The one shape of the reward union for the kind (and its mode) chosen, so its refusals name their fields. */
 function rewardShapeFor(form: BuilderForm) {
-  return rewardSchema.options.find((option) => option.shape.kind.value === form.kind && (!('mode' in option.shape) || option.shape.mode.value === form.buyMode));
+  const mode = modeOf(form);
+  return rewardSchema.options.find((option) => option.shape.kind.value === form.kind && ('mode' in option.shape ? option.shape.mode.value === mode : mode === undefined));
 }
 
 function rewardErrors(form: BuilderForm, reward: Record<string, unknown>): FormField[] {

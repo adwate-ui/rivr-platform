@@ -1,4 +1,5 @@
 import type { Eligibility, Limits, Reward, Schedule } from '@rivr/contracts/promotionModel';
+import type { HoursBonus } from './hourSteps.ts';
 import type { Terms } from './terms.ts';
 
 /** The names to show for stake codes, tier ids, table ids and tournaments; an id with no name shows as it is. */
@@ -23,6 +24,21 @@ function buyInText(reward: Extract<Reward, { kind: 'buyin_bonus' }>): string {
   return `${reward.percent}% buy-in bonus${cap}${firstN}`;
 }
 
+/**
+ * A play-time bonus in words (owner, 8 Nov): `1,000 bonus chips after 4 hours`; `500 bonus chips after 2 hours, then 1,000
+ * after 4 hours`; `500 bonus chips every 2 hours, up to 3 times a visit`.
+ */
+function hoursText(reward: HoursBonus): string {
+  if (!('mode' in reward)) return `${count(reward.chips)} bonus chips after ${hours(reward.afterMinutes)}`;
+  if (reward.mode === 'steps') {
+    return reward.steps.map((step, at) => `${at === 0 ? '' : 'then '}${count(step.chips)}${at === 0 ? ' bonus chips' : ''} after ${hours(step.afterMinutes)}`)
+      .join(', ');
+  }
+  const times = reward.timesPerVisit;
+  const cap = times === undefined ? '' : `, up to ${times === 1 ? 'once' : `${times} times`} a visit`;
+  return `${count(reward.chips)} bonus chips every ${reward.everyMinutes === 60 ? 'hour' : hours(reward.everyMinutes)}${cap}`;
+}
+
 function rewardText(reward: Reward, names: PromotionNames): string {
   switch (reward.kind) {
     case 'points_multiplier':
@@ -30,7 +46,7 @@ function rewardText(reward: Reward, names: PromotionNames): string {
     case 'buyin_bonus':
       return buyInText(reward);
     case 'hours_bonus':
-      return `${count(reward.chips)} bonus chips after ${hours(reward.afterMinutes)}`;
+      return hoursText(reward);
     case 'bonus_chips':
       return `${count(reward.chips)} bonus chips ${BONUS_CHIPS_ON[reward.on]}`;
     case 'free_spin':

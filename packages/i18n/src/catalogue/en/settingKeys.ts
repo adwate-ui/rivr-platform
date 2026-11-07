@@ -174,7 +174,7 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     fields: { enabled: 'Check KYC at the club' },
   },
   'points.verified_bonus': {
-    name: 'Bonus on verification',
+    name: 'Points on verification',
     help: 'The points a member gets once, when their identity check is verified. Not set gives none. Ends at launch: 0 from 15 November.',
     fields: { points: 'Points' },
   },
@@ -190,8 +190,8 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   },
   'rakeback.rate': {
     name: 'Rakeback',
-    help: "The share of a member's rake at this table type over a club week, given back as bonus each Monday, held to a cap and lasting the days given. Not set gives none.",
-    fields: { basis_points: 'Share', cap_paise: 'Cap', expires_days: 'Bonus lasts' },
+    help: "The share of a member's rake at this table type over a club week, given back as bonus chips each Monday, held to a cap and lasting the days given. Not set gives none.",
+    fields: { basis_points: 'Share', cap_paise: 'Cap', expires_days: 'Bonus chips last' },
   },
   'reports.unclaimed_days': {
     name: 'Unclaimed balance after',

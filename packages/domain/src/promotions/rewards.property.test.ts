@@ -18,6 +18,11 @@ const reward: fc.Arbitrary<Reward> = fc.oneof(
     })),
   chips.map((amount): Reward => ({ kind: 'buyin_bonus', mode: 'fixed', chips: amount })),
   fc.record({ amount: chips, after: minutes }).map(({ amount, after }): Reward => ({ kind: 'hours_bonus', chips: amount, afterMinutes: after })),
+  // Play time paid as each step is reached (owner, 8 Nov): set steps, rising, or every so often.
+  fc.uniqueArray(fc.tuple(minutes, chips), { minLength: 2, maxLength: 6, selector: ([after]) => after })
+    .map((steps): Reward => ({ kind: 'hours_bonus', mode: 'steps', steps: steps.sort(([one], [other]) => one - other).map(([afterMinutes, amount]) => ({ afterMinutes, chips: amount })) })),
+  fc.record({ every: minutes.filter((after) => after <= 720), amount: chips, times: fc.option(fc.integer({ min: 1, max: 20 }), { nil: undefined }) })
+    .map(({ every, amount, times }): Reward => ({ kind: 'hours_bonus', mode: 'every', everyMinutes: every, chips: amount, ...(times === undefined ? {} : { timesPerVisit: times }) })),
   fc.record({ amount: chips, on: fc.constantFrom('visit', 'first_buyin', 'referral', 'signup' as const) })
     .map(({ amount, on }): Reward => ({ kind: 'bonus_chips', chips: amount, on })),
   fc.record({ spins: fc.integer({ min: 1, max: 10 }), after: minutes }).map(({ spins, after }): Reward => ({ kind: 'free_spin', spins, afterMinutes: after })),
@@ -39,6 +44,7 @@ const place = fc.record({
 const event: fc.Arbitrary<PromotionEvent> = fc.tuple(place, fc.oneof(
   fc.record({ kind: fc.constant('buy_in' as const), ownChips: fc.integer({ min: 0, max: 100_000 }), isFirstOfVisit: fc.boolean() }),
   fc.record({ kind: fc.constant('time_played' as const), minutes: fc.integer({ min: 0, max: 900 }), points: fc.integer({ min: 0, max: 5_000 }) }),
+  fc.record({ kind: fc.constant('hours_step' as const), minutes: fc.integer({ min: 0, max: 1_440 }), stepMinutes: minutes }),
   fc.record({ kind: fc.constant('visit' as const), visitInMonth: fc.integer({ min: 1, max: 31 }) }),
   fc.record({ kind: fc.constantFrom('referral' as const, 'signup' as const) }),
 )).map(([where, facts]) => ({ ...where, ...facts }));

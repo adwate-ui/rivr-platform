@@ -42,8 +42,8 @@ export function offered<Option extends { readonly value: string }>(section: Sect
   return section.isReadOnly ? options.filter((option) => chosen.includes(option.value)) : [...options];
 }
 
-/** A field typed as text in the builder. */
-export type TextField = Exclude<FormField, 'who' | 'days'>;
+/** A field typed as text in the builder; a play-time bonus's steps are a list of their own. */
+export type TextField = Exclude<FormField, 'who' | 'days' | 'steps'>;
 
 interface FieldProps {
   readonly section: SectionProps;

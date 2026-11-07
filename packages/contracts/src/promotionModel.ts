@@ -11,6 +11,9 @@ import { z } from 'zod';
 const chips = z.int().min(50).max(10_000_000).multipleOf(50);
 // Minutes played, in half hours as the builder offers them.
 const minutesPlayed = z.int().min(30).max(1_440).multipleOf(30);
+// A play-time bonus's steps (owner, 8 Nov): two to six, each later than the one before; one step is the plain form.
+const hourSteps = z.array(z.strictObject({ afterMinutes: minutesPlayed, chips })).min(2).max(6)
+  .refine((steps) => steps.every((step, at) => at === 0 || step.afterMinutes > (steps[at - 1]?.afterMinutes ?? 0)));
 const firstN = z.int().min(1).max(100);
 // A 24-hour IST time, "20:00".
 const clockTime = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
@@ -29,7 +32,13 @@ export const rewardSchema = z.union([
     firstNBuyinsPerTable: firstN.optional(),
   }),
   z.strictObject({ kind: z.literal('buyin_bonus'), mode: z.literal('fixed'), chips, firstNBuyinsPerTable: firstN.optional() }),
+  // Play time pays as each step is reached while seated (owner, 8 Nov): once after a time, at set steps, or every so often.
   z.strictObject({ kind: z.literal('hours_bonus'), chips, afterMinutes: minutesPlayed }),
+  z.strictObject({ kind: z.literal('hours_bonus'), mode: z.literal('steps'), steps: hourSteps }),
+  z.strictObject({
+    kind: z.literal('hours_bonus'), mode: z.literal('every'), everyMinutes: minutesPlayed.max(720), chips,
+    timesPerVisit: z.int().min(1).max(20).optional(),
+  }),
   z.strictObject({ kind: z.literal('bonus_chips'), chips, on: z.enum(BONUS_CHIPS_ON) }),
   z.strictObject({ kind: z.literal('free_spin'), spins: z.int().min(1).max(10), afterMinutes: minutesPlayed }),
   z.strictObject({ kind: z.literal('cab_home'), fromVisitInMonth: z.int().min(1).max(31) }),
@@ -118,7 +127,7 @@ export const PROMOTION_STATUSES = ['draft', 'awaiting_approval', 'scheduled', 'l
 export type PromotionStatus = (typeof PROMOTION_STATUSES)[number];
 
 const eventBase = {
-  // The event, once: 'buy_in:' and the cage transaction, 'hours_played:' and the visit.
+  // The event, once: 'buy_in:' and the cage transaction, 'hours_played:' and the visit, 'hours_step:' the visit and step.
   key: z.string().min(1).max(200),
   at: z.iso.datetime({ offset: true }),
   memberId: id,
@@ -130,11 +139,13 @@ const eventBase = {
 /**
  * An event a promotion weighs, as the engine and last week's replay give it: a buy-in (the member's own chips, 0 when
  * paid from bonus), time played (the minutes inside the version's schedule at its stakes and tables, and the points
- * earned in them), a visit (its number in the calendar month), a referral or a sign-up.
+ * earned in them), a play-time bonus step reached, a visit (its number in the calendar month), a referral or a sign-up.
  */
 export const promotionEventSchema = z.discriminatedUnion('kind', [
   z.strictObject({ ...eventBase, kind: z.literal('buy_in'), ownChips: z.int().min(0), isFirstOfVisit: z.boolean() }),
   z.strictObject({ ...eventBase, kind: z.literal('time_played'), minutes: z.int().min(0), points: z.int().min(0) }),
+  // A play-time bonus step reached (owner, 8 Nov): the minutes played so far, and the step's own minutes.
+  z.strictObject({ ...eventBase, kind: z.literal('hours_step'), minutes: z.int().min(0), stepMinutes: minutesPlayed }),
   z.strictObject({ ...eventBase, kind: z.literal('visit'), visitInMonth: z.int().min(1) }),
   z.strictObject({ ...eventBase, kind: z.literal('referral') }),
   z.strictObject({ ...eventBase, kind: z.literal('signup') }),

@@ -8,6 +8,12 @@ export const REWARD_KINDS: readonly RewardKind[] = [
   'points_multiplier', 'buyin_bonus', 'hours_bonus', 'bonus_chips', 'free_spin', 'cab_home', 'tournament_entry', 'waitlist_priority',
 ];
 
+/** A play-time bonus step after the first, as typed: its hours played and its bonus chips. */
+export interface HourStepFields {
+  readonly afterHours: string;
+  readonly chips: string;
+}
+
 /** The builder's fields as typed (console v3): numbers stay text until the terms are read from them (formTerms). */
 export interface BuilderForm {
   readonly name: string;
@@ -20,8 +26,14 @@ export interface BuilderForm {
   readonly firstN: string;
   /** An hours bonus's chips, or bonus chips on an event. */
   readonly chips: string;
-  /** Hours played before an hours bonus or a free spin. */
+  /** Hours played before an hours bonus or a free spin; a play-time bonus's first step. */
   readonly afterHours: string;
+  /** A play-time bonus pays at set times (its first step above, then `moreSteps`) or every so often (owner, 8 Nov). */
+  readonly hoursMode: 'steps' | 'every';
+  readonly moreSteps: readonly HourStepFields[];
+  readonly everyHours: string;
+  /** Up to how many times a visit every so often pays; blank is no cap. */
+  readonly timesPerVisit: string;
   readonly bonusOn: (typeof BONUS_CHIPS_ON)[number];
   readonly spins: string;
   readonly fromVisit: string;
@@ -59,7 +71,7 @@ const ALL_DAY = { days: EVERY_DAY, from: '06:00', to: '06:00' } as const;
 export function blankForm(today: string): BuilderForm {
   return {
     name: '', kind: 'points_multiplier', multiplier: '2', buyMode: 'percent', percent: '20', capChips: '2000', buyChips: '1000', firstN: '5',
-    chips: '1000', afterHours: '4', bonusOn: 'visit', spins: '1', fromVisit: '4', tournament: '', stakes: 'all', tableIds: undefined, tiers: 'all',
+    chips: '1000', afterHours: '4', hoursMode: 'steps', moreSteps: [], everyHours: '2', timesPerVisit: '', bonusOn: 'visit', spins: '1', fromVisit: '4', tournament: '', stakes: 'all', tableIds: undefined, tiers: 'all',
     audience: 'everyone', days: [5, 6], from: '20:00', to: '02:00', startsOn: today, endsOn: '', perMember: 'per_visit', timesPerMember: '',
     maxMembersPerDay: '', budgetChips: '', budgetPeriod: 'whole', maxGrants: undefined, channels: { playerApp: true, tv: true, website: false, whatsapp: false }, rulesText: '', link: '',
   };
@@ -74,6 +86,16 @@ function buyInFields(reward: Extract<Reward, { kind: 'buyin_bonus' }>): Partial<
   return { buyMode: 'percent', percent: String(reward.percent), capChips: text(reward.capChips), firstN };
 }
 
+/** A play-time bonus's fields: its first step and those after it, or every so often (owner, 8 Nov). */
+function hoursFields(reward: Extract<Reward, { kind: 'hours_bonus' }>): Partial<BuilderForm> {
+  if (!('mode' in reward)) return { hoursMode: 'steps', chips: String(reward.chips), afterHours: hoursOf(reward.afterMinutes), moreSteps: [] };
+  if (reward.mode === 'every') {
+    return { hoursMode: 'every', chips: String(reward.chips), everyHours: hoursOf(reward.everyMinutes), timesPerVisit: text(reward.timesPerVisit) };
+  }
+  const [first, ...rest] = reward.steps.map((step) => ({ afterHours: hoursOf(step.afterMinutes), chips: String(step.chips) }));
+  return { hoursMode: 'steps', ...(first === undefined ? {} : first), moreSteps: rest };
+}
+
 /** The fields of a reward, each kind its own. */
 function rewardFields(reward: Reward): Partial<BuilderForm> {
   switch (reward.kind) {
@@ -82,7 +104,7 @@ function rewardFields(reward: Reward): Partial<BuilderForm> {
     case 'buyin_bonus':
       return buyInFields(reward);
     case 'hours_bonus':
-      return { chips: String(reward.chips), afterHours: hoursOf(reward.afterMinutes) };
+      return hoursFields(reward);
     case 'bonus_chips':
       return { chips: String(reward.chips), bonusOn: reward.on };
     case 'free_spin':
