@@ -46,7 +46,7 @@ export const ui = {
     /** Accessible name of the player app's bottom tab bar. */
     label: 'Main',
     /** The member's own night (decision 0320): the first tab. */
-    home: 'Tonight',
+    home: 'Home',
     /** The membership card, a tab since the redesign. */
     card: 'Card',
     sessions: 'Sessions',

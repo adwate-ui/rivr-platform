@@ -17,13 +17,13 @@ describe('BottomNav', () => {
     renderIn(<BottomNav items={tabs()} current="home" />);
     const nav = screen.getByRole('navigation', { name: 'Main' });
     const names = within(nav).getAllByRole('link').map((link) => link.textContent);
-    expect(names).toEqual(['Tonight', 'Sessions', 'Menu', 'Rewards', 'Learn']);
+    expect(names).toEqual(['Home', 'Sessions', 'Menu', 'Rewards', 'Learn']);
   });
 
   it('marks the current tab as the current page', () => {
     renderIn(<BottomNav items={tabs()} current="food" />);
     expect(screen.getByRole('link', { name: 'Menu' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByRole('link', { name: 'Tonight' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('link', { name: 'Home' })).not.toHaveAttribute('aria-current');
   });
 
   it('leaves out a hidden tab', () => {

@@ -18,5 +18,5 @@ export const playerNotFound = {
   code: '404',
   title: "This page doesn't exist.",
   body: 'The link may be old or mistyped.',
-  home: 'Go to Tonight',
+  home: 'Go to Home',
 } as const;
