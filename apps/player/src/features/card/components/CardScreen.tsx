@@ -42,7 +42,9 @@ export function CardScreen() {
   const title = t('player.card.tab');
   const look = { titleLook: 'serif' } as const;
   if (!navigator.onLine || card.fetchStatus === 'paused') {
-    return <Screen {...look} title={title} status="error" errorText={t('player.card.offline')} onRetry={() => void card.refetch()} />;
+    const number = card.data?.memberNumber;
+    const offline = number === undefined ? t('player.card.offline') : t('player.card.offlineNumber', { number });
+    return <Screen {...look} title={title} status="error" errorText={offline} onRetry={() => void card.refetch()} />;
   }
   if (card.isPending) return <Screen {...look} title={title} status="loading" loadingLook="skeleton" />;
   if (card.isError || card.data === null) return <Screen {...look} title={title} status="error" onRetry={() => void card.refetch()} />;

@@ -10,7 +10,7 @@ The tablet's writes (a dealer's sign-in and end of down, seat events, food order
 |---|---|
 | `createRivrClient({ url, publishableKey })` | The one client an app uses. Never pass the service-role key. A tablet, cage computer or TV signs in as its own device login; that login is how the audit log knows the device. |
 | `RivrClient`, `RivrClientOptions` | The client's type and its options. |
-| `RivrDataProvider` | Wraps an app: client, query cache, the signed-in user, and one Realtime channel that refreshes feature access and kill-switch state when an admin changes them. |
+| `RivrDataProvider` | Wraps an app: client, query cache, the signed-in user, and one Realtime channel that refreshes feature access and kill-switch state when an admin changes them. `keepsForOffline`, the player app: what it needs to open with no connection stays on the phone for one club night, the identity check without its documents, restored only when it opens offline and removed at sign-out (`offlineCache.ts`, decision 0541). |
 | `useFeature(key)` | How a member-facing feature shows for the signed-in member: `{ state: 'enabled' }`, `{ state: 'locked', tiers }` or `{ state: 'hidden' }`. Pass it to `FeatureGate`. Hidden until known. |
 | `useFeatureStatus(key)`, `FeatureStatus` | The same access for a screen that shows something with or without the feature: `loading`, `error` (with `retry`) or `ready` with the `access`, so the screen waits rather than switching once access arrives. |
 | `useControlState(venueId?)` | The kill switch: `isVenueFrozen`, `killedFeatures`, `isMemberFrozen` (member apps). Drives `KillSwitchBanner`. |

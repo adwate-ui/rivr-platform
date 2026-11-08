@@ -7,6 +7,8 @@ export const playerSignIn = {
   /** Under the number, before Send code: where the code goes (decision 0297). */
   phoneHint: 'Code comes on WhatsApp.',
   sendCode: 'Send code',
+  /** Opened with no connection (F-175): over the step, with Send code held back. */
+  offline: 'No connection. Send the code once you are back online.',
   legal: 'Members only, 18+. By continuing you accept the terms and privacy notice.',
   /** The links under the legal line, to the website's pages (#775). */
   terms: 'Terms',

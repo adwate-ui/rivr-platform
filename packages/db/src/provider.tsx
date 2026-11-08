@@ -2,6 +2,7 @@ import { isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { RivrClient } from './client.ts';
+import { forgetOffline, keepForOffline, restoreForOffline } from './offlineCache.ts';
 import { queryKeys } from './queryKeys.ts';
 
 /** Whether anyone is signed in; `loading` until the stored session has been read. */
@@ -72,14 +73,29 @@ function LiveUpdates({ client, userId }: Pick<RivrData, 'client' | 'userId'>) {
   return null;
 }
 
-/** Gives everything below it the Supabase client and the query cache, and keeps access state live. */
-export function RivrDataProvider({ client, queryClient, children }: {
+/** A new cache, with what the phone kept when it opens offline (the installed player app, F-053). */
+function newCache(keepsForOffline: boolean): QueryClient {
+  const cache = new QueryClient();
+  if (keepsForOffline) restoreForOffline(cache);
+  return cache;
+}
+
+/**
+ * Gives everything below it the Supabase client and the query cache, and keeps access state live. `keepsForOffline`, the
+ * player app: what it needs to open with no connection stays on the phone until sign-out (./offlineCache.ts).
+ */
+export function RivrDataProvider({ client, queryClient, keepsForOffline = false, children }: {
   client: RivrClient;
   queryClient?: QueryClient;
+  keepsForOffline?: boolean;
   children: ReactNode;
 }) {
-  const [cache] = useState(() => queryClient ?? new QueryClient());
+  const [cache] = useState(() => queryClient ?? newCache(keepsForOffline));
   const { userId, authStatus } = useSession(client);
+  useEffect(() => (keepsForOffline ? keepForOffline(cache) : undefined), [cache, keepsForOffline]);
+  useEffect(() => {
+    if (keepsForOffline && authStatus === 'signed-out') forgetOffline();
+  }, [authStatus, keepsForOffline]);
   return (
     <RivrDataContext.Provider value={{ client, userId, authStatus }}>
       <QueryClientProvider client={cache}>

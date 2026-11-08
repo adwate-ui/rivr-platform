@@ -88,6 +88,8 @@ export const playerApp = {
     photo: 'Your photo',
     /** No connection before the card came (F3-25): the door checks a member in by number too. */
     offline: 'No connection. Give your number at the door.',
+    /** The same, when the phone kept the number from the last time (F-053). */
+    offlineNumber: 'No connection. Give your number at the door: {number}.',
   },
   /** The toast on any screen when bonus chips are added or used while the app is open (decision 0504). */
   bonus: {

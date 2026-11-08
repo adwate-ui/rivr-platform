@@ -15,7 +15,7 @@ const CARD = { member_number: 1024, full_name: 'Kavya Rao', tier_name: 'Member',
 const SELFIE = '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000290/selfie.jpg';
 
 /** Kavya signed in, and my_membership_card answering with her card, a failure, or never; `answer` changes it. */
-function renderCard(first: 'card' | 'fails' | 'never', card: object = CARD) {
+function renderCard(first: 'card' | 'fails' | 'never', card: object = CARD, kept?: object) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: KAVYA, aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -29,6 +29,7 @@ function renderCard(first: 'card' | 'fails' | 'never', card: object = CARD) {
     return answer === 'fails' ? Response.json({ message: 'down' }, { status: 503 }) : Response.json([card]);
   });
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  if (kept !== undefined) cache.setQueryData(['user', KAVYA, 'membership-card'], kept);
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })} queryClient={cache}>
       <CardScreen />
@@ -53,6 +54,16 @@ describe('Membership card', () => {
     try {
       renderCard('never');
       expect(screen.getByText('No connection. Give your number at the door.')).toBeDefined();
+    } finally {
+      Reflect.deleteProperty(navigator, 'onLine');
+    }
+  });
+
+  it('gives the number the phone kept, opened with no connection (F-053)', async () => {
+    Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false });
+    try {
+      renderCard('never', CARD, { memberNumber: '1024', fullName: 'Kavya Rao', tierName: 'Member', code: 'old', msLeft: 0, photoPath: null });
+      expect(await screen.findByText('No connection. Give your number at the door: 1024.', {}, { timeout: 5000 })).toBeDefined();
     } finally {
       Reflect.deleteProperty(navigator, 'onLine');
     }

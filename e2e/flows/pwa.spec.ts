@@ -6,6 +6,7 @@
 import manifestColors from '@rivr/tokens/manifest-colors.json' with { type: 'json' };
 import { expect, test, type APIRequestContext } from '@playwright/test';
 import { appUrl, VIEWPORT } from '../support/apps.ts';
+import { signInToPlayer } from '../support/signIn.ts';
 
 /** Width and height of a PNG, from the IHDR chunk after its signature. */
 async function pngSize(request: APIRequestContext, path: string) {
@@ -50,6 +51,34 @@ test.describe('PWA', { tag: '@staging' }, () => {
     await context.setOffline(true);
     await page.reload();
     await expect(page.getByText('Skill runs deep.')).toBeVisible();
+    // Nobody signed in with no connection: it says so, and no code can be asked for.
+    await expect(page.getByText('No connection. Send the code once you are back online.')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Send code' })).toBeDisabled();
+    await context.setOffline(false);
+  });
+});
+
+// Signs in, so not on staging's @staging run. Tara (seeded verified) signs in in no other flow, as Auth sends one code a minute.
+test.describe('PWA, a member offline', () => {
+  test('a member who has used the app opens Home and the card with no connection, and never an endless Identity', async ({ page, context }) => {
+    await signInToPlayer(page, '9000000621');
+    await page.evaluate(async () => {
+      await navigator.serviceWorker.ready;
+    });
+    // What the app opens with is kept a moment after it is read: the card too, once it has been seen.
+    await page.goto(`${appUrl('player')}/card`);
+    await expect(page.getByRole('img', { name: 'Your door code' })).toBeVisible();
+    await page.goto(appUrl('player'));
+    await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeAttached();
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('rivr.offline.v1')?.includes('membership-card') ?? false)).toBe(true);
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('rivr.offline.v1')?.includes('floor-tables') ?? false)).toBe(true);
+
+    await context.setOffline(true);
+    await page.reload();
+    await expect(page.getByText(/^No connection\. Showing tables as of \d\d:\d\d\.$/)).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('heading', { name: 'Identity' })).toHaveCount(0);
+    await page.goto(`${appUrl('player')}/card`);
+    await expect(page.getByText(/^No connection\. Give your number at the door: \d+\.$/)).toBeVisible({ timeout: 15_000 });
     await context.setOffline(false);
   });
 });
