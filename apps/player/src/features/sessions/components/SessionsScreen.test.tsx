@@ -167,6 +167,9 @@ describe('a session', () => {
     expect(screen.getByText('6h 00m')).toBeDefined();
     expect(screen.queryByText(/₹/)).toBeNull();
     expect(screen.queryByText(/TDS|Receipt|Buy-in|Cash-out/)).toBeNull();
+    // Drawn under its own Back button, it names the page after the session and takes the focus (WCAG 2.4.2).
+    expect(document.title).toBe('Table 3 · RIVR');
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Table 3' }));
   });
 
   it('shows a tournament with its place in the field', async () => {

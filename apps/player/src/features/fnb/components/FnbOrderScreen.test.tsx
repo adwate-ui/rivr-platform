@@ -71,6 +71,9 @@ describe('Tonight › Order', () => {
     renderOrder('seated');
     expect(await screen.findByText('Table 3, seat 5 · Pay on delivery', {}, LATER)).toBeDefined();
     expect(screen.getByRole('heading', { name: 'Order' })).toBeDefined();
+    // Drawn under its own Back button, it still names the page and takes the focus (WCAG 2.4.2).
+    expect(document.title).toBe('Order · RIVR');
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Order' }));
     expect(screen.getByRole('radio', { name: 'Food' }).getAttribute('aria-checked')).toBe('true');
     fireEvent.click(screen.getByRole('button', { name: 'Add Club sandwich' }));
     expect(screen.getByRole('button', { name: 'One more Club sandwich' })).toBeDefined();

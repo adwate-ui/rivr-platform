@@ -4,7 +4,7 @@ import { Button, Skeleton, StepScreen, Text } from '@rivr/ui';
 /** Identity while the member's record loads: faint blocks, never the word (decision 0320). */
 export function KycLoading() {
   return (
-    <StepScreen footer={null}>
+    <StepScreen footer={null} pageTitle={t('player.kyc.title')}>
       <Skeleton />
     </StepScreen>
   );

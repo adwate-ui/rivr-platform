@@ -45,6 +45,8 @@ export const memberRewards = {
   readyToCollect: 'Ready to collect',
   noneLeft: 'None left',
   redeemName: 'Redeem {name}',
+  /** An unavailable reward's button, named from what it shows first (WCAG 2.5.3): `1,500 to go, RIVR cap`. */
+  unavailableName: '{cta}, {name}',
   cancel: 'Cancel',
   /** Refer a friend (#151): the code is RIVR and the member's number. */
   referral: {

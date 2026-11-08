@@ -29,6 +29,14 @@ describe('StepScreen', () => {
     expect(screen.getByRole('main')).toHaveTextContent('Six digits');
   });
 
+  it('names the page after the step, and gives the name back when it goes (WCAG 2.4.2)', () => {
+    document.title = 'RIVR';
+    const { unmount } = renderStep();
+    expect(document.title).toBe('Code · RIVR');
+    unmount();
+    expect(document.title).toBe('RIVR');
+  });
+
   it('puts the action in main, after the content', () => {
     renderStep();
     const action = screen.getByRole('button', { name: 'Verify' });

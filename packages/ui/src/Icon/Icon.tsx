@@ -22,6 +22,9 @@ const ICONS = {
   chevronDown: ['M6 9L12 15L18 9'],
   chevronUp: ['M6 15L12 9L18 15'],
   close: ['M5.5 5.5L18.5 18.5', 'M18.5 5.5L5.5 18.5'],
+  // The website hero's video (WCAG 2.2.2, audit of 8 Nov): two bars stop it, a triangle starts it again.
+  pause: ['M9 5.5V18.5', 'M15 5.5V18.5'],
+  play: ['M7.5 5L18.5 12L7.5 19Z'],
   /** A step done (StepList); the second pass of 2 Nov drew it the same. */
   check: ['M4.5 12.5L9.5 17.5L19.5 6.5'],
   lock: ['M5.5 10.5H18.5V20.5H5.5Z', 'M8.5 10.5V7.5A3.5 3.5 0 0 1 15.5 7.5V10.5', 'M12 14V17'],

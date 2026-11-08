@@ -4,6 +4,7 @@ import { Button } from '../Button/Button.tsx';
 import { photoOf, Trouble, useCamera } from '../CameraCapture/CameraCapture.tsx';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage.tsx';
 import { Heading } from '../Heading/Heading.tsx';
+import { usePageTitle } from '../Screen/Screen.tsx';
 import { cx } from '../internal/classes.ts';
 import { useFaceGuidance, type Guidance } from './faceGuidance.ts';
 
@@ -105,6 +106,8 @@ function Review({ photo, isSending, error, onUse, onRetake }: ReviewProps) {
  * blocked or missing camera says what to do, as CameraCapture does, with a QR code to carry on with a phone.
  */
 export function SelfieCamera({ onPhoto, isSending = false, error, onBack, phoneUrl }: SelfieCameraProps) {
+  // Full screen, with no step around it: it names the page itself (WCAG 2.4.2).
+  usePageTitle(t('ui.selfie.title'));
   const [taken, setTaken] = useState<{ photo: Blob; count: number } | null>(null);
   const camera = useCamera('user', taken === null);
   const isTaking = useRef(false);
