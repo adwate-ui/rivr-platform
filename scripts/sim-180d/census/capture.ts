@@ -90,11 +90,15 @@ async function cropPhotos(page: Page, file: string): Promise<string[]> {
 
 const slug = (text: string): string => text.replaceAll(/[^a-zA-Z0-9]+/g, '_').replaceAll(/^_|_$/g, '') || 'home';
 
+/** Where a shot's capture is written, without its extension. */
+export function captureFile(shot: Pick<Shot, 'app' | 'size' | 'person' | 'path'>, dir: string): string {
+  return join(dir, shot.app, shot.size, shot.person, slug(shot.path));
+}
+
 /** Captures the page as it stands into `dir`: <app>/<size>/<person>/<slug>.png and .json. */
 export async function capture(page: Page, shot: Shot, seen: Seen, dir: string): Promise<CaptureRecord> {
-  const folder = join(dir, shot.app, shot.size, shot.person);
-  mkdirSync(folder, { recursive: true });
-  const file = join(folder, slug(shot.path));
+  mkdirSync(join(dir, shot.app, shot.size, shot.person), { recursive: true });
+  const file = captureFile(shot, dir);
   await page.screenshot({ path: `${file}.png`, fullPage: true });
   const layout = layoutSchema.parse(await page.evaluate(LAYOUT_FACTS));
   await page.addScriptTag({ path: AXE_PATH });

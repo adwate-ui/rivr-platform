@@ -7,7 +7,8 @@ import { test, type Page, type TestInfo } from '@playwright/test';
 import { appUrl, type App } from '../../../e2e/support/apps.ts';
 import type { AppName } from '../src/catalogue/types.ts';
 import { planVisits, type Person, type Visit } from '../src/census/plan.ts';
-import { capture, watch, type Shot } from './capture.ts';
+import { existsSync } from 'node:fs';
+import { capture, captureFile, watch, type Shot } from './capture.ts';
 import { useSimClock } from './clock.ts';
 import { readContext, readScreens, sessionFile } from './context.ts';
 import { sql } from '../bin/stack/psql.ts';
@@ -81,6 +82,9 @@ export function defineCensus(app: AppName): void {
       test.use({ storageState: person === 'visitor' ? answeredBanner() : sessionFile(context, person satisfies Person) });
       for (const one of visits.filter((each) => each.person === person)) {
         test(`${one.path} (${one.expect})`, async ({ page }, info) => {
+          // A census stopped part-way carries on: a screen captured already for this person and size is not opened again.
+          const done = existsSync(`${captureFile({ app, size: sizeOf(info), person, path: one.path }, context.dir)}.json`);
+          test.skip(done, 'captured already');
           await visit(page, one, info);
         });
       }
