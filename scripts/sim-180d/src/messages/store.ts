@@ -7,18 +7,27 @@ import type { ClaimedDelivery, OutboxStore } from '@rivr/adapters';
 
 export type Rpc = (name: string, args: object) => Promise<unknown>;
 
+// A connection the API closed (the stack restarts at each snapshot, leaving a stale keep-alive socket) fails with
+// fetch's TypeError before anything is sent; that alone is tried again. An HTTP error or a timeout is not.
+const TRIES = 3;
+const PAUSE_MS = 500;
+
 /** Calls a database function with the service role; throws when it fails, so a delivery is tried again. */
-export function createRpc(apiUrl: string, serviceRoleKey: string, fetcher: typeof fetch = fetch): Rpc {
+export function createRpc(apiUrl: string, serviceRoleKey: string, fetcher: typeof fetch = fetch, pauseMs = PAUSE_MS): Rpc {
   const headers = { apikey: serviceRoleKey, authorization: `Bearer ${serviceRoleKey}`, 'content-type': 'application/json' };
+  const post = (name: string, args: object): Promise<Response> =>
+    fetcher(`${apiUrl}/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(args), signal: AbortSignal.timeout(5_000) });
   return async (name, args) => {
-    const answer = await fetcher(`${apiUrl}/rest/v1/rpc/${name}`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(args),
-      signal: AbortSignal.timeout(5_000),
-    });
-    if (!answer.ok) throw new Error(`${name} failed (${answer.status})`);
-    return answer.status === 204 ? null : await answer.json();
+    for (let attempt = 1; ; attempt += 1) {
+      try {
+        const answer = await post(name, args);
+        if (!answer.ok) throw new Error(`${name} failed (${answer.status})`);
+        return answer.status === 204 ? null : await answer.json();
+      } catch (error) {
+        if (attempt >= TRIES || !(error instanceof TypeError)) throw error;
+        await new Promise((resolve) => setTimeout(resolve, pauseMs));
+      }
+    }
   };
 }
 

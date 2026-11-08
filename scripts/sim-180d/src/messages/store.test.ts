@@ -23,6 +23,34 @@ function recordingRpc(answer: unknown): { rpc: Rpc; calls: [string, object][] } 
 }
 
 describe('createRpc', () => {
+  it('tries a closed connection again, but not an HTTP failure', async () => {
+    let calls = 0;
+    const flaky: typeof fetch = async () => {
+      calls += 1;
+      if (calls === 1) throw new TypeError('fetch failed');
+      return new Response('[]', { status: 200 });
+    };
+    expect(await createRpc('http://x', 'key', flaky, 0)('claim_outbox_deliveries', {})).toEqual([]);
+    expect(calls).toBe(2);
+    let refused = 0;
+    const failing: typeof fetch = async () => {
+      refused += 1;
+      return new Response('no', { status: 500 });
+    };
+    await expect(createRpc('http://x', 'key', failing, 0)('claim_outbox_deliveries', {})).rejects.toThrow('failed (500)');
+    expect(refused).toBe(1);
+  });
+
+  it('gives up after three closed connections', async () => {
+    let calls = 0;
+    const down: typeof fetch = async () => {
+      calls += 1;
+      throw new TypeError('fetch failed');
+    };
+    await expect(createRpc('http://x', 'key', down, 0)('claim_outbox_deliveries', {})).rejects.toThrow('fetch failed');
+    expect(calls).toBe(3);
+  });
+
   it('posts to the REST endpoint with the service role', async () => {
     const seen: { url: string; init: RequestInit | undefined }[] = [];
     const fetcher: typeof fetch = async (url, init) => {
