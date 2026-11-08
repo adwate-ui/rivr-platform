@@ -14,6 +14,8 @@ export interface EditorPage {
   readonly pageId: string;
   readonly slug: string;
   readonly title: string;
+  /** A version not yet on the website: a scheduled publish, a draft, or none (F-029). */
+  readonly pending: 'draft' | 'scheduled' | null;
 }
 
 /** A block as the editor holds it: its kind and content, as @rivr/contracts siteBlockSchema reads them. */
@@ -46,6 +48,12 @@ export type SiteEditFailure = 'not_allowed' | 'gone' | 'invalid' | 'paused' | 'u
 const FAILURE_BY_CODE: Readonly<Record<string, SiteEditFailure>> = { '42501': 'not_allowed', P0002: 'gone', '22023': 'invalid', RVFRZ: 'paused' };
 const STATUSES: readonly SiteRevision['status'][] = ['draft', 'scheduled', 'published', 'replaced'];
 
+/** A scheduled publish before a draft: the sooner thing to know about a page. */
+function pendingOf(statuses: readonly string[]): EditorPage['pending'] {
+  if (statuses.includes('scheduled')) return 'scheduled';
+  return statuses.includes('draft') ? 'draft' : null;
+}
+
 /** The blocks in a revision's jsonb, as the editor holds them. */
 function blocksOf(value: Json): EditorBlock[] {
   if (!Array.isArray(value)) return [];
@@ -63,9 +71,10 @@ export function useSitePages(venueId: string) {
     queryKey: keys.pages(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<EditorPage[]> => {
-      const { data, error } = await client.from('site_page').select('id, slug, title').eq('venue_id', venueId).order('slug');
+      const { data, error } = await client.from('site_page').select('id, slug, title, site_revision(status)').eq('venue_id', venueId)
+        .in('site_revision.status', ['draft', 'scheduled']).order('slug');
       if (error) throw error;
-      return data.map((row) => ({ pageId: row.id, slug: row.slug, title: row.title }));
+      return data.map((row) => ({ pageId: row.id, slug: row.slug, title: row.title, pending: pendingOf(row.site_revision.map((revision) => revision.status)) }));
     },
   });
 }
@@ -99,7 +108,10 @@ export function useEditorPage(pageId: string) {
 export function useSiteEditor(venueId: string, pageId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
-  const reload = () => queryClient.invalidateQueries({ queryKey: keys.page(userId ?? 'signed-out', pageId) });
+  const reload = () => Promise.all([
+    queryClient.invalidateQueries({ queryKey: keys.page(userId ?? 'signed-out', pageId) }),
+    queryClient.invalidateQueries({ queryKey: keys.pages(userId ?? 'signed-out', venueId) }),
+  ]);
   const failureOf = (code: string): SiteEditFailure => FAILURE_BY_CODE[code] ?? 'unavailable';
   const save = useMutation({
     mutationFn: async (blocks: readonly EditorBlock[]): Promise<Result<string, SiteEditFailure>> => {

@@ -23,14 +23,24 @@ export const website = {
   },
   /** `Title 2`: the second in a list. */
   fieldNumber: '{field} {number}',
+  /** What each item of a list is, over its fields: `Question 1` (F-040). */
+  items: { cards: 'Card', questions: 'Question', roles: 'Role', figures: 'Figure', links: 'Link', items: 'Item' },
   fields: {
-    eyebrow: 'Eyebrow', heading: 'Heading', text: 'Text', note: 'Note', body: 'Body', intro: 'Introduction', title: 'Title', label: 'Label',
+    eyebrow: 'Small line above the heading', heading: 'Heading', text: 'Text', note: 'Note', body: 'Body', intro: 'Introduction', title: 'Title', label: 'Label',
     alt: 'Picture description', quote: 'Quote', question: 'Question', answer: 'Answer', apply: 'How to apply', address: 'Address', hours: 'Hours',
     value: 'Figure', phone: 'Phone', email: 'Email', when: 'When', lines: 'Line', points: 'Point', rules: 'Rule', phrases: 'Phrase',
     paragraphs: 'Paragraph',
   },
   save: 'Save draft',
   saved: 'Draft saved.',
+  /** Beside the actions (F-029): `{time}` is 2 min. */
+  savedAgo: 'Saved {time} ago',
+  savedJustNow: 'Saved just now',
+  /** The fields or the preview. */
+  view: 'View',
+  viewEdit: 'Edit',
+  viewPreview: 'Preview',
+  publishLater: 'Publish later',
   publish: 'Publish now',
   published: 'Published.',
   publishOn: 'Publish on',

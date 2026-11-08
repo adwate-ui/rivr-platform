@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { cx } from '../internal/classes.ts';
+import { STICKY_BAR_TOP } from '../internal/consoleMain.ts';
 import { PADDING, PADDING_X, PADDING_Y, type Space } from '../internal/space.ts';
 
 /** The page background, a raised surface (nav, rows, sheets), a cream tile or an alert fill (banners). */
@@ -26,6 +27,8 @@ export interface BoxProps {
    * summary (console v3). Below 768 px the columns stack and it scrolls with the page.
    */
   isSticky?: boolean;
+  /** Keeps the box, the whole width of its column, at the top of the console's main: a long form's actions (F-029). The offset takes off main's own top padding, which a sticky box would otherwise stop short of. */
+  isStickyBar?: boolean;
   id?: string;
   'aria-label'?: string;
   'aria-labelledby'?: string;
@@ -50,14 +53,14 @@ const HAIRLINE: Record<BoxHairline, string> = {
 
 const RADIUS = { none: '', sm: 'rounded-sm', md: 'rounded-md', lg: 'rounded-lg', card: 'rounded-card' } as const;
 
-type BoxLook = Pick<BoxProps, 'padding' | 'paddingX' | 'paddingY' | 'surface' | 'hairline' | 'radius' | 'grow' | 'isSticky'>;
+type BoxLook = Pick<BoxProps, 'padding' | 'paddingX' | 'paddingY' | 'surface' | 'hairline' | 'radius' | 'grow' | 'isSticky' | 'isStickyBar'>;
 
 // A grid cell stretches to its row by default, and a stretched cell has nowhere to stick: a sticky box keeps its own height.
 const STICKY = 'medium:sticky medium:top-0 medium:self-start';
 
 /** How the box sits among its neighbours: filling the space left, or held in view as the page scrolls. */
-function placeClasses({ grow = false, isSticky = false }: BoxLook): string {
-  return cx(grow && 'min-w-0 flex-1', isSticky && STICKY);
+function placeClasses({ grow = false, isSticky = false, isStickyBar = false }: BoxLook): string {
+  return cx(grow && 'min-w-0 flex-1', isSticky && STICKY, isStickyBar && `sticky ${STICKY_BAR_TOP} z-nav`);
 }
 
 function boxClasses(look: BoxLook): string {
@@ -73,10 +76,26 @@ function boxClasses(look: BoxLook): string {
   );
 }
 
+/**
+ * A sticky bar's height as its scroller's scroll padding, with room for the focus ring, so a field reached by keyboard
+ * stops clear of the bar however tall it is now: a second row, a status line or Publish later open (WCAG 2.4.11).
+ */
+function keepFocusClearOfBar(bar: HTMLElement | null) {
+  const scroller = bar?.closest('main');
+  if (!bar || !scroller || typeof ResizeObserver === 'undefined') return undefined;
+  const observer = new ResizeObserver(() => scroller.style.setProperty('scroll-padding-top', `calc(${String(bar.offsetHeight)}px + var(--rivr-space-2))`));
+  observer.observe(bar);
+  return () => {
+    observer.disconnect();
+    scroller.style.removeProperty('scroll-padding-top');
+  };
+}
+
 /** A plain block with token padding, a surface, hairlines and a radius. The base of every layout. */
 export function Box({ children, as: Element = 'div', id, 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy, isLive, ...look }: BoxProps) {
   return (
-    <Element data-surface={look.surface === 'raised' ? 'raised' : undefined} className={boxClasses(look) || undefined} id={id} aria-label={ariaLabel} aria-labelledby={ariaLabelledBy} aria-live={isLive ? 'polite' : undefined}>
+    <Element data-surface={look.surface === 'raised' ? 'raised' : undefined} ref={look.isStickyBar ? keepFocusClearOfBar : undefined} className={boxClasses(look) || undefined} id={id} aria-label={ariaLabel} aria-labelledby={ariaLabelledBy}
+      aria-live={isLive ? 'polite' : undefined}>
       {children}
     </Element>
   );

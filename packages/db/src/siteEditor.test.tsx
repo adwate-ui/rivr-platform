@@ -37,7 +37,7 @@ afterEach(cleanup);
 describe('the website editor', () => {
   it('reads the pages, and a page\u2019s blocks and versions, newest first', async () => {
     const { result } = renderHooks({
-      '/rest/v1/site_page': { body: [{ id: PAGE, slug: 'house-rules', title: 'House rules' }] },
+      '/rest/v1/site_page': { body: [{ id: PAGE, slug: 'house-rules', title: 'House rules', site_revision: [{ status: 'draft' }, { status: 'scheduled' }] }] },
       '/rest/v1/site_block': { body: [{ kind: 'text', content: { heading: 'House rules', body: 'One player to a hand.' } }] },
       '/rest/v1/site_revision': { body: [
         { id: 'r2', status: 'scheduled', blocks: [{ kind: 'text', content: { heading: 'Tonight' } }, 'junk'], publish_at: '2026-11-15T12:30:00+00:00',
@@ -46,7 +46,7 @@ describe('the website editor', () => {
           updated_at: '2026-11-14T10:00:00+00:00' },
       ] },
     });
-    await waitFor(() => expect(result.current.pages.data).toEqual([{ pageId: PAGE, slug: 'house-rules', title: 'House rules' }]));
+    await waitFor(() => expect(result.current.pages.data).toEqual([{ pageId: PAGE, slug: 'house-rules', title: 'House rules', pending: 'scheduled' }]));
     await waitFor(() => expect(result.current.page.data?.blocks).toEqual([{ kind: 'text', content: { heading: 'House rules', body: 'One player to a hand.' } }]));
     expect(result.current.page.data?.revisions).toEqual([
       { revisionId: 'r2', status: 'scheduled', blocks: [{ kind: 'text', content: { heading: 'Tonight' } }], publishAt: '2026-11-15T12:30:00+00:00',

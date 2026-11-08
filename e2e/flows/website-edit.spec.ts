@@ -16,14 +16,25 @@ test.describe('Website edit', () => {
     await signInToConsole(page, '9000000637');
     // The website is Content's first tab, its pages listed beside the editor (console v3).
     await page.getByRole('link', { name: 'Content', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Website', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Website', level: 2 })).toBeVisible();
     await page.getByRole('region', { name: 'Pages' }).getByRole('button', { name: 'House rules', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'House rules', level: 2 })).toBeVisible();
+    // Going back up the page by keyboard, each field stops clear of the bar that stays at the top (WCAG 2.4.11).
+    await page.getByRole('main').getByRole('textbox').last().focus();
+    for (let step = 0; step < 8; step += 1) {
+      await page.keyboard.press('Shift+Tab');
+      await expect.poll(() => page.getByRole('button', { name: 'Save draft' }).evaluate((save) => {
+        const focused = document.activeElement;
+        const bar = save.closest('.sticky');
+        return focused === null || bar === null ? 'no field or bar' : bar.contains(focused) || focused.getBoundingClientRect().top >= bar.getBoundingClientRect().bottom;
+      })).toBe(true);
+    }
     const field = page.getByRole('textbox', { name: 'Heading' }).first();
     const original = await field.inputValue();
     await field.fill(heading);
     await page.getByRole('button', { name: 'Save draft' }).click();
     await expect(page.getByText('Draft saved.')).toBeVisible();
+    await page.getByRole('radio', { name: 'Preview' }).click();
     await expect(page.frameLocator('iframe[title="Preview of House rules"]').getByRole('heading', { name: heading })).toBeVisible();
 
     await page.getByRole('button', { name: 'Publish now' }).click();
