@@ -170,7 +170,8 @@ async function openATable(): Promise<void> {
 
 /** The member asks to join (waitlist.spec.ts:22-32); the floor approves (floor-requests.spec.ts:45-52), checks ID when asked. */
 async function joinAndApprove(): Promise<void> {
-  await member.reload();
+  // Home lists the tables; step 3 left the member on another tab.
+  await member.goto(`${appUrl('player')}/`);
   await member.getByRole('button', { name: new RegExp(`^${night.table} · `) }).click();
   await member.getByRole('dialog').getByRole('button', { name: /^Request a seat$/ }).click();
   await expect(member.getByText('Requested', { exact: true })).toBeVisible(SLOW);
