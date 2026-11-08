@@ -8,7 +8,7 @@ export function KycVerified() {
   const navigate = useNavigate();
   const firstName = useMember().data?.fullName.split(' ')[0] ?? '';
   return (
-    <StepScreen
+    <StepScreen pageTitle={t('player.kyc.verifiedTitle')}
       align="center"
       footer={
         <Button variant="primary" size="tall" fullWidth onClick={() => void navigate({ to: '/', replace: true })}>

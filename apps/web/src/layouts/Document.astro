@@ -103,8 +103,8 @@ const previewImage = new URL('/og-image.png', Astro.url.origin).href;
           if (isPaused) video?.pause();
           else void video?.play().catch(() => undefined);
           toggle.setAttribute('aria-pressed', String(isPaused));
-          toggle.querySelector('[data-when-playing]')?.classList.toggle('hidden', isPaused);
-          toggle.querySelector('[data-when-paused]')?.classList.toggle('hidden', !isPaused);
+          toggle.querySelector('[data-when-playing]')?.toggleAttribute('hidden', isPaused);
+          toggle.querySelector('[data-when-paused]')?.toggleAttribute('hidden', !isPaused);
         }
       }
       try {

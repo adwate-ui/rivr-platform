@@ -65,19 +65,35 @@ const PLACE = {
   console: 'flex justify-center px-4 pb-4 medium:bottom-0 medium:pb-6',
 } as const;
 
-/** The toast's time, held while the person's pointer or focus is on it and counted again from the start when it leaves. */
+/** Why a toast's time is held: the person's pointer, their focus, or both. */
+type ToastHold = 'pointer' | 'focus';
+
+/**
+ * The toast's time, held while the person's pointer or focus is on it and counted again from the start once neither is,
+ * so a pointer passing over a focused toast never lets it go under the focus.
+ */
 function useToastTimer(close: () => void) {
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const duration = useRef(TOAST_MS);
+  const holds = useRef(new Set<ToastHold>());
   const start = useCallback((ms: number) => {
     clearTimeout(timer.current);
     duration.current = ms;
+    holds.current.clear();
     timer.current = setTimeout(close, ms);
   }, [close]);
-  const hold = useCallback(() => clearTimeout(timer.current), []);
-  const resume = useCallback(() => start(duration.current), [start]);
+  const hold = useCallback((why: ToastHold) => {
+    holds.current.add(why);
+    clearTimeout(timer.current);
+  }, []);
+  const release = useCallback((why: ToastHold) => {
+    holds.current.delete(why);
+    if (holds.current.size > 0) return;
+    clearTimeout(timer.current);
+    timer.current = setTimeout(close, duration.current);
+  }, [close]);
   useEffect(() => () => clearTimeout(timer.current), []);
-  return useMemo(() => ({ start, hold, resume }), [start, hold, resume]);
+  return useMemo(() => ({ start, hold, release }), [start, hold, release]);
 }
 
 /**
@@ -100,8 +116,8 @@ export function ToastProvider({ children, place = 'player' }: ToastProviderProps
       {children}
       <div role="status" aria-live="polite" className={`pointer-events-none fixed inset-x-0 bottom-bottom-nav z-modal ${PLACE[place]}`}>
         {message ? (
-          <div className="pointer-events-auto max-w-palette" onPointerEnter={timer.hold} onPointerLeave={timer.resume} onFocus={timer.hold}
-            onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) timer.resume(); }}>
+          <div className="pointer-events-auto max-w-palette" onPointerEnter={() => timer.hold('pointer')} onPointerLeave={() => timer.release('pointer')}
+            onFocus={() => timer.hold('focus')} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) timer.release('focus'); }}>
             <Toast text={message.text} onUndo={message.onUndo} onClose={close} />
           </div>
         ) : null}

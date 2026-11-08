@@ -66,7 +66,7 @@ export function LoopingVideo({ src, poster, note }: { src: string; poster: strin
       <button type="button" data-web-video-toggle aria-pressed="false" aria-label={t('ui.web.pauseVideo')}
         className="absolute start-3 bottom-3 flex size-touch items-center justify-center rounded-full bg-green-black text-cream focus-visible:outline-2 focus-visible:outline-focus">
         <span data-when-playing className="flex"><Icon name="pause" size="sm" /></span>
-        <span data-when-paused className="hidden"><Icon name="play" size="sm" /></span>
+        <span data-when-paused hidden className="flex"><Icon name="play" size="sm" /></span>
       </button>
       {note ? <MediaNote>{note}</MediaNote> : null}
     </div>

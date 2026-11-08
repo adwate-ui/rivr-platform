@@ -71,6 +71,7 @@ describe('Profile', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Meera Iyer' }, LATER)).toBeDefined();
     // Drawn under its own Back button, it still names the page (WCAG 2.4.2).
     expect(document.title).toBe('Profile · RIVR');
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Meera Iyer' }));
     expect(await screen.findByText(/^Founders’ Circle · \+91/, {}, LATER)).toBeDefined();
     for (const group of ['Account', 'Notifications', 'Club']) expect(screen.getByText(group)).toBeDefined();
     expect(screen.getByText('Verified')).toBeDefined();

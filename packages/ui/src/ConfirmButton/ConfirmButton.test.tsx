@@ -39,7 +39,7 @@ describe('ConfirmButton', () => {
     const onConfirm = vi.fn();
     renderIn(<ConfirmButton label="Remove" confirm="Yes, remove Ritika" onConfirm={onConfirm} />);
     await userEvent.click(screen.getByRole('button', { name: 'Remove' }));
-    expect(screen.getByRole('status')).toHaveTextContent('Confirm or cancel.');
+    expect(screen.getByText('Confirm or cancel.')).toBeInTheDocument();
     // While the pointer or the focus is on it, its time is held (WCAG 2.2.1).
     act(() => { vi.advanceTimersByTime(60_000); });
     expect(screen.getByRole('button', { name: 'Yes, remove Ritika' })).toBeInTheDocument();

@@ -52,13 +52,14 @@ function useAskingTime(isAsking: boolean, isHeld: boolean, wrap: RefObject<HTMLS
  */
 export function ConfirmButton({ label, name, confirm, variant = 'text', size = 'regular', isBusy = false, isDisabled = false, onConfirm }: ConfirmButtonProps) {
   const [isAsking, setAsking] = useState(false);
-  const [isHeld, setHeld] = useState(false);
+  const [isHovered, setHovered] = useState(false);
+  const [isFocused, setFocused] = useState(false);
   const wrap = useRef<HTMLSpanElement>(null);
-  useAskingTime(isAsking, isHeld, wrap, setAsking);
+  useAskingTime(isAsking, isHovered || isFocused, wrap, setAsking);
   // The button is the first child in both states, so it stays the same element and keeps the focus.
   return (
-    <span ref={wrap} className="inline-flex flex-wrap items-center gap-2" onPointerEnter={() => setHeld(true)} onPointerLeave={() => setHeld(false)}
-      onFocus={() => setHeld(true)} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setHeld(false); }}>
+    <span ref={wrap} className="inline-flex flex-wrap items-center gap-2" onPointerEnter={() => setHovered(true)} onPointerLeave={() => setHovered(false)}
+      onFocus={() => setFocused(true)} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
       {isAsking ? (
         <Button variant="danger" size={size} isDisabled={isDisabled} onClick={() => { setAsking(false); onConfirm(); }}>{confirm}</Button>
       ) : (
@@ -66,7 +67,8 @@ export function ConfirmButton({ label, name, confirm, variant = 'text', size = '
           onClick={() => setAsking(true)}>{label}</Button>
       )}
       {isAsking ? <Button variant="text" size={size} onClick={() => turnBack(wrap.current, setAsking)}>{t('common.cancel')}</Button> : null}
-      <span role="status" className="sr-only">{isAsking ? t('ui.confirm.asking') : ''}</span>
+      {/* Polite, not role="status": a screen keeps its one status region for its own outcome. */}
+      <span aria-live="polite" className="sr-only">{isAsking ? t('ui.confirm.asking') : ''}</span>
     </span>
   );
 }

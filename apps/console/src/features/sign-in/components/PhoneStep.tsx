@@ -31,7 +31,7 @@ export function PhoneStep({ onCodeSent, notice }: { onCodeSent: (phone: IndianMo
   // A refusal from Auth carries its own words; anything else failed the number check.
   const error = errors.phone ? (errors.phone.type === 'server' ? errors.phone.message : t('common.signIn.phoneInvalid')) : undefined;
   return (
-    <StepScreen
+    <StepScreen pageTitle={t('common.signIn.title')}
       align="center"
       onSubmit={send}
       footer={
