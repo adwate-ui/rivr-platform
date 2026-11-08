@@ -31,8 +31,8 @@ export const members = {
   /** Where a member is tonight (console v3): their seat, waiting for one, gone home, or not at the club (`notHere`). */
   tonight: 'Tonight',
   notHere: '–',
-  waiting: 'Waiting',
-  left: 'Left',
+  waiting: 'Waiting', left: 'Left',
+  tonightKinds: { seated: 'Seated', notHere: 'Not here' },
   /** `{table}` is the table's name and `{seat}` its number: `Table 2 · 3` in the list, `Table 2, seat 3` in full. */
   seatShort: '{table} · {seat}',
   seatFull: '{table}, seat {seat}',

@@ -15,9 +15,10 @@ export const NO_FILTERS: ColumnFilters = {};
 
 const COLLATOR = new Intl.Collator('en-IN', { sensitivity: 'base', numeric: true });
 
-/** A row's value as its column's filter reads it: the column's own filter value, else the words its cell shows. */
-export function filterValueOf<Row>(column: DataTableColumn<Row>, row: Row): string {
-  return column.filterValue?.(row) ?? textOf(column.cell(row));
+/** A row's values as its column's filter reads them: the column's own filter value or values, else the words its cell shows. */
+export function valuesOf<Row>(column: DataTableColumn<Row>, row: Row): readonly string[] {
+  const value = column.filterValue?.(row) ?? textOf(column.cell(row));
+  return typeof value === 'string' ? [value] : value;
 }
 
 const isOn = (filter: ColumnFilter | undefined): filter is ColumnFilter => filter !== undefined && (filter.typed.trim() !== '' || filter.chosen.length > 0);
@@ -27,13 +28,14 @@ export function filtersOn<Row>(columns: readonly DataTableColumn<Row>[], filters
   return columns.filter((column) => column.filter !== undefined && isOn(filters[column.key]));
 }
 
-/** Whether a row holds every filter in force: the words typed within its value, or its value among those chosen. */
+/** Whether a row holds every filter in force: the words typed within its values, or any of its values among those chosen. */
 export function passes<Row>(row: Row, on: readonly DataTableColumn<Row>[], filters: ColumnFilters): boolean {
   return on.every((column) => {
     const filter = filters[column.key];
     if (filter === undefined) return true;
-    const value = filterValueOf(column, row);
-    return column.filter === 'choice' ? filter.chosen.includes(value) : value.toLowerCase().includes(filter.typed.trim().toLowerCase());
+    const values = valuesOf(column, row);
+    if (column.filter === 'choice') return values.some((value) => filter.chosen.includes(value));
+    return values.join(' ').toLowerCase().includes(filter.typed.trim().toLowerCase());
   });
 }
 
@@ -41,8 +43,9 @@ export function passes<Row>(row: Row, on: readonly DataTableColumn<Row>[], filte
 export function choicesOf<Row>(column: DataTableColumn<Row>, rows: readonly Row[]): readonly { readonly value: string; readonly count: number }[] {
   const counts = new Map<string, number>();
   for (const row of rows) {
-    const value = filterValueOf(column, row);
-    if (value !== '') counts.set(value, (counts.get(value) ?? 0) + 1);
+    for (const value of new Set(valuesOf(column, row))) {
+      if (value !== '') counts.set(value, (counts.get(value) ?? 0) + 1);
+    }
   }
   return [...counts].sort(([one], [other]) => COLLATOR.compare(one, other)).map(([value, count]) => ({ value, count }));
 }

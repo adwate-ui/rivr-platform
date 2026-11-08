@@ -11,6 +11,7 @@ interface Member {
   readonly name: string;
   readonly tier: string;
   readonly role: string;
+  readonly tables: readonly string[];
 }
 
 // The tier is drawn in a Text, so its filter reads the cell's words; the role is read from its own value.
@@ -18,12 +19,14 @@ const COLUMNS: readonly DataTableColumn<Member>[] = [
   { key: 'name', header: 'Member', cell: (row) => row.name, filter: 'text' },
   { key: 'tier', header: 'Tier', cell: (row) => <Text tone="muted">{row.tier}</Text>, filter: 'choice' },
   { key: 'role', header: 'Role', cell: (row) => row.role.toUpperCase(), filter: 'choice', filterValue: (row) => row.role },
+  // A member who moved tables is found under each table.
+  { key: 'tables', header: 'Tables', cell: (row) => row.tables.join(', '), filter: 'choice', filterValue: (row) => row.tables },
 ];
 const ROWS: readonly Member[] = [
-  { id: 'm1', name: 'Naina Kapoor', tier: 'Black card', role: 'player' },
-  { id: 'm2', name: 'Arjun Mehta', tier: 'Member', role: 'player' },
-  { id: 'm3', name: 'Kabir Sethi', tier: 'Member', role: 'dealer' },
-  { id: 'm4', name: 'Vihaan Kapoor', tier: "Founders' Circle", role: 'player' },
+  { id: 'm1', name: 'Naina Kapoor', tier: 'Black card', role: 'player', tables: ['Table 1', 'Table 3'] },
+  { id: 'm2', name: 'Arjun Mehta', tier: 'Member', role: 'player', tables: ['Table 1'] },
+  { id: 'm3', name: 'Kabir Sethi', tier: 'Member', role: 'dealer', tables: [] },
+  { id: 'm4', name: 'Vihaan Kapoor', tier: "Founders' Circle", role: 'player', tables: ['Table 3'] },
 ];
 
 /** The names in the table's rows as shown: each body row's first cell. */
@@ -62,6 +65,15 @@ describe('DataTable column filters (owner, 8 Nov: filters on every table)', () =
     expect(screen.getByText('Nothing matches these filters.')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
     expect(namesShown()).toHaveLength(4);
+  });
+
+  it('finds a row under each of its values: a member at two tables under both, each table counting them', async () => {
+    table();
+    await userEvent.click(screen.getByRole('button', { name: 'Filters' }));
+    const tables = screen.getByRole('group', { name: 'Tables' });
+    expect(within(tables).getAllByRole('button').map((chip) => chip.textContent)).toEqual(['Table 12', 'Table 32']);
+    await userEvent.click(within(tables).getByRole('button', { name: /^Table 3/ }));
+    expect(namesShown()).toEqual(['Naina Kapoor', 'Vihaan Kapoor']);
   });
 
   it('records the column filters in force with an export', async () => {

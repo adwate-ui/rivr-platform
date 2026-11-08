@@ -86,10 +86,16 @@ function coreColumns(tonight: ReadonlyMap<string, Tonight>): readonly DataTableC
     {
       key: 'tonight', header: t('console.members.tonight'), cell: (row) => <TonightStatus tonight={tonight.get(row.memberId)} />,
       sortValue: (row) => tonightOrder(tonight.get(row.memberId)), exportValue: (row) => tonightWords(tonight.get(row.memberId)), filter: 'choice',
-      filterValue: (row) => tonightWords(tonight.get(row.memberId)) || t('console.members.notHere'),
+      filterValue: (row) => tonightKind(tonight.get(row.memberId)),
     },
     { key: 'visits', header: t('console.members.visits'), cell: (row) => formatNumber(row.visits), sortValue: (row) => row.visits, align: 'end' },
   ];
+}
+
+/** Tonight as its filter reads it (owner, 8 Nov): Seated, Waiting, Left or Not here, never a seat of its own. */
+function tonightKind(tonight: Tonight | undefined): string {
+  if (tonight === undefined) return t('console.members.tonightKinds.notHere');
+  return tonight.kind === 'seated' ? t('console.members.tonightKinds.seated') : t(`console.members.${tonight.kind}`);
 }
 
 /** Tonight in words for an export: `Table 2, seat 3`, `Waiting` or `Left`. */

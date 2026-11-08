@@ -2,7 +2,7 @@ import { useTableMetrics, type TableMetrics } from '@rivr/db';
 import { clubDay, dayAfter } from '@rivr/domain/clubDay';
 import { tableUse } from '@rivr/domain/tables';
 import { formatHoursMinutes, formatNumber, t } from '@rivr/i18n';
-import { ChoiceChips, DataTable, Stack, type DataTableColumn } from '@rivr/ui';
+import { ChoiceChips, DataTable, Heading, Stack, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 
 /** The spans the view offers: tonight's club day, the last 7 or the last 30. */
@@ -15,20 +15,21 @@ const fullnessOf = (row: TableMetrics) => tableUse(row.playerSeconds, row.seats,
 /** The columns (owner, 8 Nov): the table, its seats, hours run, players, the most at once, player hours and how full. */
 function columns(): readonly DataTableColumn<TableMetrics>[] {
   return [
-    { key: 'table', header: t('console.reports.tables.table'), cell: (row) => row.tableName, sortValue: (row) => row.tableName },
+    { key: 'table', header: t('console.reports.tables.table'), cell: (row) => row.tableName, sortValue: (row) => row.tableName, filter: 'text' },
     { key: 'seats', header: t('console.reports.tables.seats'), cell: (row) => formatNumber(row.seats), sortValue: (row) => row.seats, align: 'end' },
     {
       key: 'run', header: t('console.reports.tables.hoursRun'), align: 'end', sortValue: (row) => row.runSeconds,
-      cell: (row) => formatHoursMinutes(row.runSeconds),
+      cell: (row) => formatHoursMinutes(row.runSeconds), exportValue: (row) => formatHoursMinutes(row.runSeconds),
     },
     { key: 'players', header: t('console.reports.tables.players'), cell: (row) => formatNumber(row.players), sortValue: (row) => row.players, align: 'end' },
     { key: 'peak', header: t('console.reports.tables.peak'), cell: (row) => formatNumber(row.peak), sortValue: (row) => row.peak, align: 'end' },
     {
       key: 'played', header: t('console.reports.tables.playerHours'), align: 'end', sortValue: (row) => row.playerSeconds,
-      cell: (row) => formatHoursMinutes(row.playerSeconds),
+      cell: (row) => formatHoursMinutes(row.playerSeconds), exportValue: (row) => formatHoursMinutes(row.playerSeconds),
     },
     {
       key: 'use', header: t('console.reports.tables.use'), align: 'end', sortValue: (row) => fullnessOf(row) ?? -1,
+      exportValue: (row) => fullnessOf(row) ?? '',
       cell: (row) => {
         const fullness = fullnessOf(row);
         return fullness === null ? '' : t('console.reports.tables.percent', { percent: String(fullness) });
@@ -45,9 +46,14 @@ export function TablesReport({ venueId }: { venueId: string }) {
   const [span, setSpan] = useState<Span>('week');
   const to = clubDay(new Date());
   const metrics = useTableMetrics(venueId, dayAfter(to, 1 - SPANS[span]), to);
-  const base = { label: t('console.reports.tables.title'), columns: columns(), rowKey: (row: TableMetrics) => row.tableId, narrowLayout: 'scroll' as const };
+  const spanWords = t('console.exportFilters.choice', { label: t('console.reports.tables.span'), value: t(`console.reports.tables.spans.${span}`) });
+  const base = {
+    label: t('console.reports.tables.title'), columns: columns(), rowKey: (row: TableMetrics) => row.tableId, narrowLayout: 'scroll' as const,
+    exportFilter: spanWords,
+  };
   return (
     <Stack gap={4}>
+      <Heading level={2}>{t('console.reports.tables.title')}</Heading>
       <ChoiceChips label={t('console.reports.tables.span')} isLabelVisuallyHidden mode="one" look="subtle" selected={[span]}
         options={SPAN_KEYS.map((value) => ({ value, label: t(`console.reports.tables.spans.${value}`) }))}
         onChange={([picked]) => setSpan(SPAN_KEYS.find((value) => value === picked) ?? 'week')} />

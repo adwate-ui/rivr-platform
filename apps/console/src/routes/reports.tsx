@@ -3,7 +3,7 @@ import { tabSearchFrom } from '../features/frame/index.ts';
 import { ReportsScreen } from '../features/reports/index.ts';
 import { frameRoute } from './frame.tsx';
 
-/** Tonight's rake by table, dealer and game, the monthly investor MIS and the rest, one by tab (`?tab=`; #99, #605). */
+/** Reports: the money-free Tables view alone (owner, 8 Nov); the money reports' tabs (`?tab=`; #99, #605) open Tables. */
 export const reportsRoute = createRoute({
   getParentRoute: () => frameRoute, path: '/reports', component: ReportsScreen, validateSearch: tabSearchFrom,
 });

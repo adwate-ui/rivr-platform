@@ -30,7 +30,7 @@ function columns(): readonly DataTableColumn<SocialPost>[] {
     { key: 'caption', header: t('console.social.posts.caption'), cell: (row) => row.caption, filter: 'text' },
     {
       key: 'channels', header: t('console.social.posts.channels'), cell: (row) => channelsOf(row), filter: 'choice',
-      filterValue: (row) => row.channels.map(({ channel }) => t(`console.social.channels.${channel}`)).join(', '),
+      filterValue: (row) => row.channels.map(({ channel }) => t(`console.social.channels.${channel}`)),
     },
     { key: 'download', header: t('console.social.posts.download'), align: 'end', cell: (row) => (
       <Inline gap={2}>

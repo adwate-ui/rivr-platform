@@ -153,8 +153,12 @@ function Instead<Row>({ props, query, isFiltered }: { props: DataTableProps<Row>
 function filtersInForce<Row>(props: DataTableProps<Row>, query: string, filters: ColumnFilters): string {
   const typed = query.trim();
   const own = typed === '' || props.filter === undefined ? undefined : `${props.filter.label}: ${typed}`;
-  return [props.exportFilter, own, ...filtersInWords(filtersOn(props.columns, filters), filters)].filter((part) => part !== undefined && part !== '').join('; ');
+  const words = [props.exportFilter, own, ...filtersInWords(filtersOn(props.columns, filters), filters)].filter((part) => part !== undefined && part !== '').join('; ');
+  // The audit log takes 1,000 characters: many values picked are cut short rather than stop the export.
+  return words.length > FILTER_WORDS_MOST ? `${words.slice(0, FILTER_WORDS_MOST - 1)}…` : words;
 }
+
+const FILTER_WORDS_MOST = 1000;
 
 /** What the bar holds: the search typed and the column filters, open or not. */
 interface BarState {

@@ -2,8 +2,8 @@
 -- player hours, % utilisation"), money-free. For each table over a span of club days (06:00 to 06:00 IST): the seconds it
 -- ran (its table runs, each clipped to the span); the members who sat there; the most seated at once; and the seconds
 -- they sat there (each seat session's stints at the table, from private.session_tables, clipped to the span). Runs and
--- seats still open count up to now. How full it was is @rivr/domain tableUse, from these. For staff who read reports, at
--- the venue in use; a span of 1 to 92 club days.
+-- seats still open count up to now. How full it was is @rivr/domain tableUse, from these. For staff who read reports, as
+-- every report (private.assert_reports: 42501 otherwise, 22023 for the practice venue); a span of 1 to 92 club days.
 
 create function private.table_metrics(p_venue_id uuid, p_from date, p_to date)
 returns table (table_id uuid, table_name text, seats integer, run_seconds bigint, players integer, peak integer, player_seconds bigint)
@@ -13,6 +13,7 @@ security definer
 set search_path = ''
 as $$
 begin
+  perform private.assert_reports(p_venue_id);
   if p_from is null or p_to is null or p_to < p_from or p_to - p_from > 91 then
     raise exception 'A span of 1 to 92 club days' using errcode = '22023';
   end if;
@@ -58,8 +59,7 @@ begin
   left join runs r on r.table_id = g.id
   left join played p on p.table_id = g.id
   left join peaks k on k.table_id = g.id
-  where g.venue_id = p_venue_id and private.has_permission(p_venue_id, 'reports.read')
-    and (coalesce(r.seconds, 0) > 0 or coalesce(p.seconds, 0) > 0)
+  where g.venue_id = p_venue_id and (coalesce(r.seconds, 0) > 0 or coalesce(p.seconds, 0) > 0)
   order by g.position, g.name;
 end;
 $$;

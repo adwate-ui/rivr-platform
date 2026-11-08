@@ -27,8 +27,8 @@ export interface DataTableColumn<Row> {
    * of the values its rows hold. Every filter in force must hold; a choice holds for any value picked.
    */
   readonly filter?: 'text' | 'choice';
-  /** What the filter reads; without it, the words the cell shows. */
-  readonly filterValue?: (row: Row) => string;
+  /** What the filter reads: one value, or several (a player at two tables) any of which a choice may hold; without it, the cell's words. */
+  readonly filterValue?: (row: Row) => string | readonly string[];
 }
 
 /** Which column the rows are sorted by, and which way. */
