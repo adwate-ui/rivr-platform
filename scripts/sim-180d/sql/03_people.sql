@@ -18,7 +18,7 @@ create function sim.attribution(p_source text, p_seq int) returns jsonb language
 -- A new member signs up from the app as Auth leaves them: a confirmed phone and a code sign-in (amr otp).
 create function sim.sign_up(p_n int, p_idx int, p_persona text, p_source text) returns uuid language plpgsql as $$
 declare
-  v_seq int := p_n * 100 + p_idx;
+  v_seq int := p_n * 500 + p_idx;
   v_user uuid := sim.uid('member:' || v_seq);
   v_phone text := sim.phone(v_seq);
   v_name text := sim.name(v_seq);

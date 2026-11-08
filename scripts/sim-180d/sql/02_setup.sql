@@ -113,6 +113,14 @@ begin
   insert into public.device (venue_id, kind, name, auth_user_id, enrolled_at)
   values (sim.venue(), 'door', 'Door kiosk', sim.uid('device:door'), sim_clock.now());
   insert into sim.device select 'door', id, auth_user_id from public.device where auth_user_id = sim.uid('device:door');
+  -- A lounge TV, its rotation set by the admin to every board that names members (the hidden-name check reads them).
+  perform sim.auth_user(sim.uid('device:tv'), '+919991000002');
+  insert into public.device (venue_id, kind, name, auth_user_id, enrolled_at)
+  values (sim.venue(), 'tv', 'Lounge TV', sim.uid('device:tv'), sim_clock.now());
+  insert into sim.device select 'tv', id, auth_user_id from public.device where auth_user_id = sim.uid('device:tv');
+  perform sim.try(sim.who('admin'), 'tv.rotation', format(
+    'select public.set_tv_rotation(p_device_id => %L, p_rotation => array[''waitlist'', ''call_time'', ''rewards'', ''spin_wheel'']::public.tv_mode[])',
+    (select device_id from sim.device where key = 'tv')));
   -- A super admin, not an admin: can_grant_role lets an admin manage only roles whose every permission they hold, and
   -- a dealer holds hands.log, which an admin does not. (A lead for the review: may an admin set a dealer's PIN?)
   perform sim.try(sim.who('admin'), 'dealer.pin_by_admin', format('select public.set_dealer_pin(%L, %L)', (select staff_id from sim.staff where key = 'dealer1'), '2741'), true);
@@ -149,9 +157,33 @@ begin
   end loop;
 end $$;
 
+-- The local seed plays a "tonight" at the live venue (waiting places, seats and visits stamped minutes before now).
+-- Production starts clean, so night 0 closes it as the club would: places left, seats ended, members checked out.
+create function sim.close_rehearsal() returns void language plpgsql as $$
+declare
+  w record;
+begin
+  for w in select e.id, m.user_id from public.waitlist_entry e join public.member m on m.id = e.member_id
+           where e.venue_id = sim.venue() and e.status = 'waiting' loop
+    perform sim.try(w.user_id, 'day0.leave_rehearsal_place', format('select public.leave_waitlist(%L)', w.id));
+  end loop;
+  for w in select s.id from public.seat_session s where s.venue_id = sim.venue() and s.ended_at is null loop
+    perform sim.try(sim.floor(), 'day0.end_rehearsal_seat', format('select public.end_seat(p_session_id => %L, p_reason => %L)', w.id, 'table_closed'));
+  end loop;
+  for w in select v.member_id from public.visit v join sim.persona p using (member_id) where v.venue_id = sim.venue() and v.closed_at is null loop
+    perform sim.check_out(w.member_id);
+  end loop;
+  perform sim.event('rehearsal_closed', jsonb_build_object(
+    'places_left', (select count(*) from public.waitlist_entry where venue_id = sim.venue() and status = 'waiting'),
+    'seats_open', (select count(*) from public.seat_session where venue_id = sim.venue() and ended_at is null),
+    'visits_open', (select count(*) from public.visit where venue_id = sim.venue() and closed_at is null)));
+end $$;
+
 create function sim.day0() returns void language plpgsql as $$
 begin
   perform sim.cast_and_devices();
   perform sim.club_settings();
   perform sim.members_on_launch();
+  perform sim.close_rehearsal();
+  perform sim.spin_prizes();
 end $$;
