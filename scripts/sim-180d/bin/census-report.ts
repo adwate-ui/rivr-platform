@@ -24,6 +24,8 @@ const recordSchema = z.object({
   smallTargets: z.array(z.string()),
   clipped: z.array(z.string()),
   fallbackFonts: z.array(z.string()),
+  offCentre: z.array(z.string()).default([]),
+  misaligned: z.array(z.string()).default([]),
   shot: z.string(),
 });
 type CaptureFile = z.infer<typeof recordSchema>;

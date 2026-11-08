@@ -35,6 +35,10 @@ export interface Capture {
   clipped: string[];
   /** Font families that fell back instead of loading. */
   fallbackFonts: string[];
+  /** Photos, avatars and icons that should fill their frame but sit off-centre or leave the frame's colour showing. */
+  offCentre: string[];
+  /** Near misses in alignment: siblings' left edges 1 to 4 px apart, or a centred box off its parent's centre. */
+  misaligned: string[];
 }
 
 export interface Flag {
@@ -83,6 +87,8 @@ function layoutFlags(capture: Capture): Flag[] {
   if (capture.smallTargets.length > 0) flags.push({ check: 'small_targets', lens: 'a11y', severity: 'P3', detail: capture.smallTargets.join(', ') });
   if (capture.clipped.length > 0) flags.push({ check: 'clipped_text', lens: 'design', severity: 'P3', detail: capture.clipped.join(', ') });
   if (capture.fallbackFonts.length > 0) flags.push({ check: 'fallback_font', lens: 'design', severity: 'P2', detail: capture.fallbackFonts.join(', ') });
+  if (capture.offCentre.length > 0) flags.push({ check: 'off_centre', lens: 'design', severity: 'P2', detail: capture.offCentre.join(' | ') });
+  if (capture.misaligned.length > 0) flags.push({ check: 'misaligned', lens: 'design', severity: 'P3', detail: capture.misaligned.join(' | ') });
   return flags;
 }
 

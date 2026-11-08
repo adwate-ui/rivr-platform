@@ -48,6 +48,80 @@ export const LAYOUT_FACTS = `(() => {
   }
   const fallback = [...families].filter((family) => family && !generic.includes(family) && !document.fonts.check('16px "' + family + '"'));
   for (const face of document.fonts) if (face.status === 'error') fallback.push(face.family.replace(/["']/g, ''));
+  // Photos, avatars and icons that should fill their frame: each box that holds an image, measured against its nearest
+  // framed ancestor (a border, a radius or clipping). Where the box is meant to fill the frame (85% of it or more each
+  // way), an uneven gap is off-centre and any gap shows the frame's colour (the 8 Nov card photo's stripe).
+  const px = (value) => parseFloat(value) || 0;
+  const framed = (el) => {
+    const style = getComputedStyle(el);
+    return style.overflow !== 'visible' || px(style.borderTopWidth) > 0 || px(style.borderTopLeftRadius) > 0;
+  };
+  const colourOf = (el) => {
+    for (let node = el; node; node = node.parentElement) {
+      const bg = getComputedStyle(node).backgroundColor;
+      if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') return bg;
+    }
+    return 'none';
+  };
+  const offCentre = [];
+  const boxes = new Set();
+  for (const img of document.querySelectorAll('img, svg[role="img"], canvas')) {
+    boxes.add(img);
+    for (let up = img.parentElement, depth = 0; up && depth < 3; up = up.parentElement, depth += 1) if (framed(up)) { boxes.add(up); break; }
+  }
+  for (const box of boxes) {
+    const r = box.getBoundingClientRect();
+    if (!shown(box, r) || offCentre.length >= 15) continue;
+    let frame = box.parentElement;
+    for (let depth = 0; frame && depth < 3 && !framed(frame); depth += 1) frame = frame.parentElement;
+    if (!frame || frame === document.body) continue;
+    const f = frame.getBoundingClientRect();
+    const s = getComputedStyle(frame);
+    const inner = { left: f.left + px(s.borderLeftWidth) + px(s.paddingLeft), right: f.right - px(s.borderRightWidth) - px(s.paddingRight),
+      top: f.top + px(s.borderTopWidth) + px(s.paddingTop), bottom: f.bottom - px(s.borderBottomWidth) - px(s.paddingBottom) };
+    const width = inner.right - inner.left;
+    const height = inner.bottom - inner.top;
+    if (width <= 0 || height <= 0 || r.width < width * 0.85 || r.height < height * 0.85) continue;
+    const gap = { left: r.left - inner.left, right: inner.right - r.right, top: r.top - inner.top, bottom: inner.bottom - r.bottom };
+    const uneven = Math.abs(gap.left - gap.right) > 1.5 || Math.abs(gap.top - gap.bottom) > 1.5;
+    const showing = Math.max(gap.left, gap.right, gap.top, gap.bottom) > 1;
+    if (uneven || showing) {
+      const round = (value) => Math.round(value * 10) / 10;
+      offCentre.push((box.getAttribute('alt') || name(box)) + ': gaps L' + round(gap.left) + ' R' + round(gap.right) + ' T' + round(gap.top) +
+        ' B' + round(gap.bottom) + ' px in a ' + round(width) + 'x' + round(height) + ' frame, showing ' + colourOf(frame));
+    }
+  }
+  // Near misses in alignment (the 3 Nov sign-up): siblings stacked in a column whose left edges differ by 1 to 4 px, and
+  // a box its parent centres (flex centring or auto margins) that sits more than 1.5 px off the parent's centre.
+  const misaligned = [];
+  for (const parent of document.querySelectorAll('body *')) {
+    if (misaligned.length >= 15) break;
+    const kids = [...parent.children].filter((kid) => shown(kid, kid.getBoundingClientRect()));
+    if (kids.length === 0) continue;
+    const ps = getComputedStyle(parent);
+    const pr = parent.getBoundingClientRect();
+    const column = ps.display.includes('flex') ? ps.flexDirection.startsWith('column') : ps.display === 'block' || ps.display === 'grid';
+    if (column && kids.length >= 2) {
+      const lefts = [...new Set(kids.map((kid) => Math.round(kid.getBoundingClientRect().left * 2) / 2))].sort((a, b) => a - b);
+      for (let i = 1; i < lefts.length; i += 1) {
+        const step = lefts[i] - lefts[i - 1];
+        if (step > 0.5 && step <= 4) { misaligned.push(name(parent) + ': left edges ' + lefts[i - 1] + ' and ' + lefts[i] + ' px'); break; }
+      }
+    }
+    const centring = (ps.display.includes('flex') && (ps.flexDirection.startsWith('column') ? ps.alignItems === 'center' : ps.justifyContent === 'center'));
+    for (const kid of kids) {
+      const ks = getComputedStyle(kid);
+      if (!(centring && kids.length === 1) && !(ks.marginLeft === ks.marginRight && px(ks.marginLeft) > 0 && ks.display === 'block')) continue;
+      const kr = kid.getBoundingClientRect();
+      const innerLeft = pr.left + px(ps.borderLeftWidth) + px(ps.paddingLeft);
+      const innerRight = pr.right - px(ps.borderRightWidth) - px(ps.paddingRight);
+      const off = (kr.left + kr.right) / 2 - (innerLeft + innerRight) / 2;
+      if (kr.width < innerRight - innerLeft - 1 && Math.abs(off) > 1.5) {
+        misaligned.push(name(kid) + ': ' + Math.round(off * 10) / 10 + ' px off the centre of ' + name(parent));
+        break;
+      }
+    }
+  }
   const navigation = performance.getEntriesByType('navigation')[0];
   const scripts = performance.getEntriesByType('resource').filter((entry) => entry.initiatorType === 'script');
   return {
@@ -56,6 +130,8 @@ export const LAYOUT_FACTS = `(() => {
     smallTargets: [...new Set(small)].slice(0, 25),
     clipped: [...new Set(clipped)],
     fallbackFonts: [...new Set(fallback)],
+    offCentre,
+    misaligned,
     lcpMs: typeof window.__rivrLcp === 'number' ? window.__rivrLcp : null,
     loadMs: navigation ? Math.round(navigation.loadEventEnd || navigation.duration) : null,
     scriptBytes: scripts.reduce((sum, entry) => sum + (entry.transferSize || entry.encodedBodySize || 0), 0),
@@ -70,6 +146,8 @@ export const layoutSchema = z.object({
   smallTargets: z.array(z.string()),
   clipped: z.array(z.string()),
   fallbackFonts: z.array(z.string()),
+  offCentre: z.array(z.string()),
+  misaligned: z.array(z.string()),
   lcpMs: z.number().nullable(),
   loadMs: z.number().nullable(),
   scriptBytes: z.number(),

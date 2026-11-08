@@ -68,6 +68,24 @@ export interface CaptureRecord extends Capture {
   scriptBytes: number;
   axeTargets: Record<string, string[]>;
   shot: string;
+  /** Device-scale crops of each photo's frame, for the reviewers (a 1 px stripe is lost in a full-page picture). */
+  photoCrops: string[];
+}
+
+const MAX_CROPS = 6;
+
+/** Each visible image's frame (its grandparent: the photo box and the frame around it), at the device's own scale. */
+async function cropPhotos(page: Page, file: string): Promise<string[]> {
+  const images = page.locator('img:visible');
+  const count = Math.min(await images.count(), MAX_CROPS);
+  const crops: string[] = [];
+  for (let index = 0; index < count; index += 1) {
+    const path = `${file}.photo-${String(index + 1)}.png`;
+    const frame = images.nth(index).locator('xpath=../..');
+    const taken = await frame.screenshot({ path, scale: 'device', timeout: 3_000 }).then(() => true).catch(() => false);
+    if (taken) crops.push(path);
+  }
+  return crops;
 }
 
 const slug = (text: string): string => text.replaceAll(/[^a-zA-Z0-9]+/g, '_').replaceAll(/^_|_$/g, '') || 'home';
@@ -90,7 +108,7 @@ export async function capture(page: Page, shot: Shot, seen: Seen, dir: string): 
     axeTargets: Object.fromEntries(axe.map((violation) => [violation.id, violation.targets])),
     lcpMs: layout.lcpMs, loadMs: layout.loadMs, scriptBytes: layout.scriptBytes, overflowX: layout.overflowX,
     tinyTargets: layout.tinyTargets, smallTargets: layout.smallTargets, clipped: layout.clipped, fallbackFonts: layout.fallbackFonts,
-    shot: `${file}.png`,
+    offCentre: layout.offCentre, misaligned: layout.misaligned, shot: `${file}.png`, photoCrops: await cropPhotos(page, file),
   };
   writeFileSync(`${file}.json`, `${JSON.stringify(record, null, 2)}\n`);
   return record;

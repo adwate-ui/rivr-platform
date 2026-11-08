@@ -19,6 +19,8 @@ const CLEAN: Capture = {
   outcome: 'open',
   clipped: [],
   fallbackFonts: [],
+  offCentre: [],
+  misaligned: [],
 };
 
 const checks = (change: Partial<Capture>) => checkCapture({ ...CLEAN, ...change }).map((flag) => flag.check);
@@ -30,6 +32,14 @@ describe('checkCapture', () => {
     const refused = checkCapture({ ...CLEAN, app: 'console', role: 'floor', text: 'Members', expect: 'open', outcome: 'refused' });
     expect(refused.map((flag) => [flag.check, flag.severity])).toEqual([['access_mismatch', 'P1']]);
     expect(checks({ expect: 'moved', outcome: 'refused' })).toEqual([]);
+  });
+
+  it('flags a photo off-centre in its frame, or leaving the frame showing', () => {
+    expect(checks({ offCentre: ['Your photo: gaps L0 R3.5 T0 B0 px in a 62x78 frame, showing rgb(16, 48, 36)'] })).toEqual(['off_centre']);
+  });
+
+  it('flags a near miss in alignment as polish', () => {
+    expect(checkCapture({ ...CLEAN, misaligned: ['Mobile number: left edges 16 and 18 px'] }).map((flag) => [flag.check, flag.severity])).toEqual([['misaligned', 'P3']]);
   });
 
   it('flags targets under 24 px as WCAG AA, and under 44 px as polish', () => {
