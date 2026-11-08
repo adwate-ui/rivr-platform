@@ -18,8 +18,8 @@ test.describe('Website', { tag: '@staging' }, () => {
     expect((await page.request.get(`${appUrl('web')}/icons/favicon-32.png`)).status()).toBe(200);
     await expect(page.getByRole('link', { name: 'Join RIVR' }).first()).toHaveAttribute('href', `${appUrl('player')}/sign-in?ref=FRIEND1&utm_source=instagram`);
     await expect(page.getByRole('link', { name: 'Member app' }).first()).toHaveAttribute('href', `${appUrl('player')}/?ref=FRIEND1&utm_source=instagram`);
-    // Reserving a seat is a WhatsApp message to the club (#616).
-    await expect(page.getByRole('banner').getByRole('link', { name: 'Reserve a seat' })).toHaveAttribute('href', /^https:\/\/wa\.me\/\d+\?text=/);
+    // Requesting a seat is a WhatsApp message to the club (#616).
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Request a seat' })).toHaveAttribute('href', /^https:\/\/wa\.me\/\d+\?text=/);
 
     const menu = page.getByRole('navigation', { name: 'Site' });
     await expect(menu.getByRole('link', { name: 'RIVR Academy' })).toHaveCount(0);
@@ -61,7 +61,7 @@ test.describe('Website', { tag: '@staging' }, () => {
     await expect(page.getByRole('heading', { level: 2, name: 'Built for the long session.' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'A dealer in a waistcoat deals at a table' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Done waiting for a seat?' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Join the waitlist' })).toHaveAttribute('href', `${appUrl('player')}/`);
+    await expect(page.getByRole('link', { name: 'Open the app' })).toHaveAttribute('href', `${appUrl('player')}/`);
     await expect(page.getByRole('heading', { level: 2, name: 'Hold your nerve.' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Find us' })).toBeVisible();
     await expect(page.getByText('Strictly 18+. Poker is a game of skill.')).toBeVisible();

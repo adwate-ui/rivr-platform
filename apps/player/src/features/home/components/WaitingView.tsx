@@ -20,8 +20,8 @@ function useLeave(place: WaitlistPlace) {
 
 /**
  * On the list (brief 3.4 C): the list's table (decision 0467) and game, the place as a large numeral, "Next in line" or where, when they
- * joined, and Leave waitlist. No Step away. `offer` is Profile's offer of seat-ready push, through the route. A member let in
- * by their selfie is told the desk checks their ID before they sit (decision 0503).
+ * joined, how the floor calls them when a seat opens, and Leave waitlist. No Step away. `offer` is Profile's offer of seat-ready
+ * push, through the route. A member let in by their selfie is told the desk checks their ID before they sit (decision 0503).
  */
 export function WaitingView({ place, offer }: { place: WaitlistPlace; offer: ReactNode }) {
   const leave = useLeave(place);
@@ -36,6 +36,7 @@ export function WaitingView({ place, offer }: { place: WaitlistPlace; offer: Rea
           {place.place === null ? null : <Figure size="place">{String(place.place)}</Figure>}
           <Text variant="lead" align="center">{lineOf(place)}</Text>
           <Text variant="small" tone="muted" align="center">{t('player.live.list.joined', { time: formatTime(new Date(place.joinedAt)) })}</Text>
+          <Text variant="small" tone="muted" align="center">{t('player.live.list.called')}</Text>
           {isDeskFirst ? <Text variant="small" align="center">{t('player.live.list.deskFirst')}</Text> : null}
         </Stack>
       </Box>

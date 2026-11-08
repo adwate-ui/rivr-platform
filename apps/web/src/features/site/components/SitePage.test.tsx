@@ -46,11 +46,11 @@ describe('a website page', () => {
     // bar and beside the menu (UI polish audit A-25, W-03).
     expect(within(menu).getAllByRole('link').map((link) => link.textContent)).toEqual([
       'Member app', 'The club', 'The room', 'Games', 'Membership', 'Leaderboard', "What’s on", 'Prizes and calendar', 'Journal', 'Visit and contact',
-      'Reserve a seat',
+      'Request a seat',
     ]);
-    const reserve = screen.getAllByRole('link', { name: 'Reserve a seat' })[0]?.getAttribute('href') ?? '';
+    const reserve = screen.getAllByRole('link', { name: 'Request a seat' })[0]?.getAttribute('href') ?? '';
     expect(reserve.startsWith('https://wa.me/918796580435?')).toBe(true);
-    expect(new URL(reserve).searchParams.get('text')).toBe('Hi RIVR, I would like to reserve a seat tonight.');
+    expect(new URL(reserve).searchParams.get('text')).toBe('Hi RIVR, I would like a seat tonight.');
     // The contacts are their marks, named for a screen reader; the number shows beside the phone.
     expect(within(screen.getByRole('list', { name: 'Contact' })).getAllByRole('link').map((link) => link.getAttribute('aria-label') ?? link.textContent)).toEqual([
       '+91 87965 80435', 'WhatsApp', 'Instagram', 'YouTube', 'info@rivrpoker.com',
@@ -119,8 +119,8 @@ describe('a website page', () => {
     const { container } = render(<SitePage page={live} playerUrl="https://player.invalid/" attribution={null} />);
     expect(screen.getByText('Buy-in ₹5,000')).toBeDefined();
     expect(screen.queryByText(/running|waiting/)).toBeNull();
-    // The header's Reserve a seat, the phone menu's, and the games block's.
-    expect(screen.getAllByRole('link', { name: 'Reserve a seat' }).map((reserve) => reserve.getAttribute('href')?.startsWith('https://wa.me/'))).toEqual([true, true, true]);
+    // The header's Request a seat, the phone menu's, and the games block's.
+    expect(screen.getAllByRole('link', { name: 'Request a seat' }).map((reserve) => reserve.getAttribute('href')?.startsWith('https://wa.me/'))).toEqual([true, true, true]);
     expect(container.querySelector('#games')).not.toBeNull();
     expect(screen.getByText('Sunday 15 Nov 2026, 16:00')).toBeDefined();
     expect(screen.getByRole('table', { name: 'The month at a glance' })).toBeDefined();

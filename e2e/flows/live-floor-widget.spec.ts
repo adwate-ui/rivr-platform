@@ -13,6 +13,6 @@ test.describe('Live floor widget', () => {
     const games = page.locator('#games');
     await expect(games.getByText(/^Buy-in ₹/).first()).toBeVisible();
     await expect(games.getByText(/running|waiting|open seat/)).toHaveCount(0);
-    await expect(games.getByRole('link', { name: 'Reserve a seat' })).toHaveAttribute('href', /^https:\/\/wa\.me\/\d+\?text=/);
+    await expect(games.getByRole('link', { name: 'Request a seat' })).toHaveAttribute('href', /^https:\/\/wa\.me\/\d+\?text=/);
   });
 });
