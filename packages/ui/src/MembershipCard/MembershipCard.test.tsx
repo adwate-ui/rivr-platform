@@ -28,7 +28,9 @@ describe('MembershipCard', () => {
   it('shows the photo it is given between the wordmark and the member\u2019s name (decision 0300)', () => {
     renderIn(<MembershipCard {...ARJUN} photo={<img alt="Your photo" src="data:," />} />);
     const photo = screen.getByRole('img', { name: 'Your photo' });
-    expect(photo.parentElement).toHaveClass('flex-1', 'min-h-0');
+    // In its 3:4 frame, its one border, in the slot that takes the height left.
+    expect(photo.parentElement).toHaveClass('aspect-portrait', 'border');
+    expect(photo.parentElement?.parentElement).toHaveClass('flex-1', 'min-h-0');
     expect(screen.getByRole('img', { name: 'RIVR Poker Club' }).compareDocumentPosition(photo) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(photo.compareDocumentPosition(screen.getByText('Arjun Mehta')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });

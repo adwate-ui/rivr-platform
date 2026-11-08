@@ -47,3 +47,15 @@ export const LongText: Story = {
 
 /** The player app's card tab (decision 0320): gold-edged, no QR on the card. */
 export const Redesign: Story = { args: { look: 'redesign', qr: undefined } };
+
+/** The card tab with the member's verified selfie filling its frame, at a phone's width: one border, no stripe (F-201). */
+export const RedesignWithPhoto: Story = {
+  tags: ['viewport-phone'],
+  args: { look: 'redesign', qr: undefined, name: 'Kabir Sethi', tier: 'Member', memberNumber: '14', photo: <KycPhoto isFilling alt="Your photo" src={PORTRAIT} /> },
+};
+
+/** The card tab when the selfie could not load: the frame stays whole and shows the member's initial (F-205). */
+export const RedesignPhotoNotLoaded: Story = {
+  tags: ['viewport-phone'],
+  args: { ...RedesignWithPhoto.args, photo: <KycPhoto isFilling alt="Your photo" src={null} status="error" initial="K" /> },
+};

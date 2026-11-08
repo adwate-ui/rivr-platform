@@ -1,13 +1,14 @@
-import { useKycImageUrl, useMembershipCard } from '@rivr/db';
+import { useKycImageUrl, useMember, useMembershipCard } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Box, Inline, KycPhoto, kycPhotoStatus, MembershipCard, ProgressBar, Screen, Stack, Text } from '@rivr/ui';
 import { QrCode } from '@rivr/ui/qr-code';
 import { useEffect, useState } from 'react';
 
-/** The member's verified selfie on the card (decision 0300), through the kyc-image-url function. */
+/** The member's verified selfie on the card (decision 0300), through the kyc-image-url function; their initial until it shows. */
 function CardPhoto({ path }: { path: string }) {
   const photo = useKycImageUrl(path);
-  return <KycPhoto isFilling alt={t('player.card.photo')} src={photo.data ?? null} status={kycPhotoStatus(path, photo)} />;
+  const initial = useMember().data?.initial;
+  return <KycPhoto isFilling alt={t('player.card.photo')} src={photo.data ?? null} status={kycPhotoStatus(path, photo)} initial={initial} />;
 }
 
 /**

@@ -36,8 +36,13 @@ export function MembershipCard({ name, tier, memberNumber, qr, photo, look = 'cl
       {/* As narrow as the wordmark, so the QR square takes the rest; a long name wraps beneath it. */}
       <div className="flex h-full w-min shrink-0 flex-col justify-between gap-2">
         <Wordmark />
-        {/* The photo takes the height left, so a long name that wraps shrinks it rather than the card growing. */}
-        {photo === undefined ? null : <div className="min-h-0 flex-1">{photo}</div>}
+        {/* The photo takes the height left, so a long name that wraps shrinks it rather than the card growing: a 3:4 frame
+            with its hairline, which the filling KycPhoto covers. */}
+        {photo === undefined ? null : (
+          <div className="min-h-0 flex-1">
+            <div className="aspect-portrait h-full overflow-hidden rounded-md border border-hairline">{photo}</div>
+          </div>
+        )}
         <div className="flex flex-col gap-1">
           <Text variant="lead" weight="semibold">
             {name}
