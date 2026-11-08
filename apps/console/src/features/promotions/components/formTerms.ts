@@ -4,7 +4,7 @@ import type { BuilderForm } from './builderForm.ts';
 
 /** A field the builder marks when the terms cannot take what it holds. */
 export type FormField =
-  | 'name' | 'multiplier' | 'percent' | 'capChips' | 'buyChips' | 'firstN' | 'chips' | 'afterHours' | 'everyHours' | 'timesPerVisit' | 'steps'
+  | 'name' | 'multiplier' | 'firstN' | 'chips' | 'afterHours' | 'everyHours' | 'timesPerVisit' | 'steps'
   | 'spins' | 'fromVisit' | 'tournament'
   | 'who' | 'days' | 'from' | 'to' | 'startsOn' | 'endsOn' | 'timesPerMember' | 'maxMembersPerDay' | 'budgetChips' | 'rulesText' | 'link';
 
@@ -30,12 +30,6 @@ function defined(object: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(Object.entries(object).filter(([, value]) => value !== undefined));
 }
 
-function buyInOf(form: BuilderForm): Record<string, unknown> {
-  const firstNBuyinsPerTable = numberOf(form.firstN);
-  if (form.buyMode === 'fixed') return defined({ kind: form.kind, mode: 'fixed', chips: numberOf(form.buyChips), firstNBuyinsPerTable });
-  return defined({ kind: form.kind, mode: 'percent', percent: numberOf(form.percent), capChips: numberOf(form.capChips), firstNBuyinsPerTable });
-}
-
 /**
  * A play-time bonus as typed (owner, 8 Nov): every so often with its cap; or at set times, its one step the plain form
  * and more steps a list.
@@ -54,8 +48,8 @@ function rewardOf(form: BuilderForm): Record<string, unknown> {
   switch (form.kind) {
     case 'points_multiplier':
       return defined({ kind: form.kind, multiplier: numberOf(form.multiplier) });
-    case 'buyin_bonus':
-      return buyInOf(form);
+    case 'seat_bonus':
+      return defined({ kind: form.kind, chips: numberOf(form.chips), firstNSeatsPerTable: numberOf(form.firstN) });
     case 'hours_bonus':
       return hoursOf(form);
     case 'bonus_chips':
@@ -71,15 +65,14 @@ function rewardOf(form: BuilderForm): Record<string, unknown> {
   }
 }
 
-// The reward's own keys and the field each is typed in; bonus chips are the buy-in's own field on a buy-in bonus.
+// The reward's own keys and the field each is typed in.
 const REWARD_FIELDS: Readonly<Record<string, FormField>> = {
-  multiplier: 'multiplier', percent: 'percent', capChips: 'capChips', firstNBuyinsPerTable: 'firstN', afterMinutes: 'afterHours', spins: 'spins',
+  multiplier: 'multiplier', firstNSeatsPerTable: 'firstN', afterMinutes: 'afterHours', spins: 'spins',
   fromVisitInMonth: 'fromVisit', tournamentId: 'tournament', everyMinutes: 'everyHours', timesPerVisit: 'timesPerVisit', steps: 'steps',
 };
 
-/** The mode of the shape the fields make: a buy-in's, or a play-time bonus's set steps or every so often; none for the rest. */
+/** The mode of the shape the fields make: a play-time bonus's set steps or every so often; none for the rest. */
 function modeOf(form: BuilderForm): string | undefined {
-  if (form.kind === 'buyin_bonus') return form.buyMode;
   if (form.kind !== 'hours_bonus') return undefined;
   if (form.hoursMode === 'every') return 'every';
   return form.moreSteps.length > 0 ? 'steps' : undefined;
@@ -95,9 +88,7 @@ function rewardErrors(form: BuilderForm, reward: Record<string, unknown>): FormF
   const parsed = rewardShapeFor(form)?.safeParse(reward);
   if (parsed === undefined || parsed.success) return [];
   return parsed.error.issues.map(({ path }) => {
-    const key = String(path[0]);
-    if (key === 'chips') return form.kind === 'buyin_bonus' ? 'buyChips' : 'chips';
-    return REWARD_FIELDS[key] ?? 'chips';
+    return REWARD_FIELDS[String(path[0])] ?? 'chips';
   });
 }
 

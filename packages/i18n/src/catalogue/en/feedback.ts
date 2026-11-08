@@ -32,7 +32,7 @@ export const feedback = {
   resolve: 'Resolve',
   resolveName: 'Resolve {name}’s ticket',
   failures: {
-    not_allowed: 'Your role does not allow this.',
+    not_allowed: 'Not in your role. Ask an admin.',
     invalid: 'Already resolved.',
     already_rated: 'Already resolved.',
     too_old: 'Already resolved.',

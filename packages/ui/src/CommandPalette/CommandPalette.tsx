@@ -30,6 +30,8 @@ export interface CommandPaletteProps {
   groups: readonly PaletteGroup[];
   /** `loading` while the app looks, `error` when it could not. */
   status?: 'ready' | 'loading' | 'error';
+  /** What the search field says while empty, for a role that finds less. */
+  placeholder?: string | undefined;
 }
 
 function isTyping(target: EventTarget | null): boolean {
@@ -104,7 +106,7 @@ export function CommandPalette(props: CommandPaletteProps) {
 }
 
 /** The field and the results, mounted while the palette is open, so each opening starts on the first result. */
-function PaletteBody({ onOpenChange, query, onQueryChange, groups, status = 'ready' }: CommandPaletteProps) {
+function PaletteBody({ onOpenChange, query, onQueryChange, groups, status = 'ready', placeholder }: CommandPaletteProps) {
   const listId = useId();
   const [active, setActive] = useState(0);
   const shown = status === 'ready' ? groups.filter((group) => group.items.length > 0) : [];
@@ -124,7 +126,7 @@ function PaletteBody({ onOpenChange, query, onQueryChange, groups, status = 'rea
     <>
       <input type="text" role="combobox" aria-label={t('ui.console.palette.label')} aria-expanded={flat.length > 0} aria-controls={listId}
         aria-autocomplete="list" aria-activedescendant={flat.length > 0 ? optionId(marked) : undefined} autoComplete="off"
-        value={query} placeholder={t('ui.console.palette.placeholder')}
+        value={query} placeholder={placeholder ?? t('ui.console.palette.placeholder')}
         onChange={(event) => { setActive(0); onQueryChange(event.target.value); }}
         onKeyDown={(event) => moveOrChoose(event, flat.length, marked, { move: setActive, choose: () => choose(flat[marked]) })}
         className="h-header w-full shrink-0 border-b border-subtle-hover bg-transparent px-5 font-text text-16 text-content placeholder:text-content-muted focus:outline-none" />

@@ -15,7 +15,7 @@ interface Action {
 
 // The night's commonest jobs, each opening the screen where it is done.
 const ACTIONS: readonly Action[] = [
-  { id: 'seat', label: 'console.shell.palette.seat', href: '/', anyOf: ['floor.manage'] },
+  { id: 'seat', label: 'console.shell.palette.seat', href: '/', anyOf: ['waitlist.manage'] },
   { id: 'waitlist', label: 'console.shell.palette.addToWaitlist', href: '/waitlist', anyOf: ['waitlist.manage'] },
   { id: 'checkIn', label: 'console.shell.palette.checkIn', href: '/door?tab=check-in', anyOf: ['waitlist.manage'] },
 ];
@@ -72,8 +72,10 @@ export function ConsoleSearch({ venueId, permissions, sections }: ConsoleSearchP
   };
   return (
     <>
-      <SearchTrigger onOpen={() => open(true)} />
-      <CommandPalette isOpen={isOpen} onOpenChange={open} query={query} onQueryChange={setQuery} groups={groups} />
+      {/* It says what the role can find: no members for those who do not open Members (audit F-037). */}
+      <SearchTrigger onOpen={() => open(true)} label={canFindMembers ? undefined : t('console.shell.palette.triggerNoMembers')} />
+      <CommandPalette isOpen={isOpen} onOpenChange={open} query={query} onQueryChange={setQuery} groups={groups}
+        placeholder={canFindMembers ? undefined : t('console.shell.palette.placeholderNoMembers')} />
     </>
   );
 }

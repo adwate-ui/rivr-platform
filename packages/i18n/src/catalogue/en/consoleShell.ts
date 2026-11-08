@@ -37,6 +37,9 @@ export const shell = {
     memberNumber: 'No. {number}',
     seat: 'Seat a player',
     addToWaitlist: 'Add to a waitlist',
+    /** The search's words for a role that finds no members. */
+    triggerNoMembers: 'Search screens and actions',
+    placeholderNoMembers: 'Type a screen or action',
     checkIn: 'Check a member in',
   },
   /** An old address whose tab is gone, opened on the screen that took its place (#811). */

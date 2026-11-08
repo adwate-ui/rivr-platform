@@ -158,7 +158,7 @@ export const rewards = {
   cancelRedemptionConfirm: 'Cancel and give back what it took',
   invalidCancelReason: 'Give a reason of 3 to 300 characters.',
   failures: {
-    not_allowed: 'Your role does not allow this.',
+    not_allowed: 'Not in your role. Ask an admin.',
     invalid: 'Not saved. Check the values.',
     stock_changed: 'Redeemed while you edited. Open it again.',
     handed_over: 'Already handed over.',
@@ -211,7 +211,7 @@ export const league = {
   cancel: 'Cancel',
   saved: '{name} is saved.',
   failures: {
-    not_allowed: 'Your role does not allow this.',
+    not_allowed: 'Not in your role. Ask an admin.',
     invalid: 'Overlaps another season, or the months are out of order.',
     paused: 'Venue frozen. Try again once it is released.',
     unavailable: 'Not sent. Try again.',

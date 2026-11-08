@@ -48,15 +48,18 @@ describe('the console rail (console v3)', () => {
   it('gives Service only food and drink, where it lands in place of the Live floor', () => {
     expect(items('service')).toEqual(['/fnb']);
     expect(isAllowedAt(ROLE_PERMISSIONS.service, '/')).toBe(false);
-    expect(landingFor(railFor(ROLE_PERMISSIONS.service))).toBe('/fnb');
+    expect(landingFor(railFor(ROLE_PERMISSIONS.service))?.href).toBe('/fnb');
     expect(phoneTabsFor(ROLE_PERMISSIONS.service)).toEqual([]);
   });
 
-  it('gives marketing its own screens and the floor to look at, a dealer the floor alone, and an investor the floor alone', () => {
-    expect(items('marketing')).toEqual(['/', '/promotions', '/rewards', '/social', '/content']);
-    expect(items('dealer')).toEqual(['/']);
-    // No Reports for investors (the owner, 9 Nov).
-    expect(items('owner_view')).toEqual(['/']);
+  it('gives marketing its own screens and a dealer and an investor none: the Live floor would read empty without members.read (audit F-004)', () => {
+    expect(items('marketing')).toEqual(['/promotions', '/rewards', '/social', '/content']);
+    expect(landingFor(railFor(ROLE_PERMISSIONS.marketing))?.href).toBe('/promotions');
+    for (const role of ['dealer', 'owner_view'] as const) {
+      expect(items(role)).toEqual([]);
+      expect(landingFor(railFor(ROLE_PERMISSIONS[role]))).toBeUndefined();
+      expect(isAllowedAt(ROLE_PERMISSIONS[role], '/')).toBe(false);
+    }
   });
 
   it('keeps a cashier out of admin screens, whether from the rail or by address, whatever the case', () => {
@@ -73,7 +76,7 @@ describe('the console rail (console v3)', () => {
     expect(tabsFor(rewards, ROLE_PERMISSIONS.cashier).map((tab) => tab.id)).toEqual(['rewards']);
     expect(tabsFor(rewards, ROLE_PERMISSIONS.super_admin).map((tab) => tab.id)).toEqual(['rewards', 'spin-wheel']);
     expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/rewards', 'rewards')).toBe(true);
-    expect(refusalAt(ROLE_PERMISSIONS.cashier, '/rewards', 'spin-wheel')).toEqual({ title: 'Rewards', isOff: false });
+    expect(refusalAt(ROLE_PERMISSIONS.cashier, '/rewards', 'spin-wheel')).toEqual({ title: 'Spin wheel', isOff: false });
     expect(isAllowedAt(ROLE_PERMISSIONS.floor, '/waitlist', 'interest')).toBe(false);
     // A host has no Marketing, so hands redemptions over at the Door.
     const door = entry('door');

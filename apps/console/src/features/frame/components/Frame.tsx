@@ -35,17 +35,28 @@ function StaffShortcuts({ venueId, children }: { venueId: string; children: Reac
   return <ShortcutProvider isOn={isOn.data ?? true}>{children}</ShortcutProvider>;
 }
 
+interface RefusedProps {
+  refusal: Refusal;
+  /** The address is the Live floor's, `/`. */
+  isHome: boolean;
+  /** The first screen the role has; none for a role with no screen. */
+  landing: ReturnType<typeof landingFor>;
+}
+
 /**
- * A screen the role does not include, refused, or one the club switched off, said to be off (C-04), under the screen's own
- * name (#811); but the Live floor's address, for a role without it (#640: Service), opens the first screen the role has.
+ * A screen the role does not include, or one the club does not use (C-04), said so under the screen's own name (#811), with
+ * the way to the first screen the role has (audit F-106). The Live floor's address, for a role without it (#640: Service),
+ * opens that screen; a role with no screen at all is told so (owner, 8 Nov).
  */
-function Refused({ refusal, landing }: { refusal: Refusal; landing: string | undefined }) {
+function Refused({ refusal, isHome, landing }: RefusedProps) {
   const navigate = useNavigate();
+  const href = landing?.href;
   useEffect(() => {
-    if (landing !== undefined) void navigate({ href: landing, replace: true });
-  }, [landing, navigate]);
-  const why = refusal.isOff ? t('console.switchedOff') : t('console.notAllowed');
-  return landing === undefined ? <Screen title={refusal.title} status="error" errorText={why} /> : null;
+    if (isHome && href !== undefined) void navigate({ href, replace: true });
+  }, [isHome, href, navigate]);
+  if (isHome) return href === undefined ? <Screen title={t('console.noScreens.title')} status="empty" emptyText={t('console.noScreens.body')} /> : null;
+  const action = landing === undefined ? undefined : { label: landing.label, onClick: () => void navigate({ href: landing.href }) };
+  return <Screen title={refusal.title} status="empty" emptyText={t(refusal.isOff ? 'console.switchedOff' : 'console.notAllowed')} emptyAction={action} />;
 }
 
 /**
@@ -151,12 +162,13 @@ interface FrameBodyProps {
   urgent: Readonly<Record<string, number>> | null;
   /** The screen open now is refused: why, under its name; or undefined. */
   refusal: Refusal | undefined;
-  landing: string | undefined;
+  isHome: boolean;
+  landing: ReturnType<typeof landingFor>;
   children: ReactNode;
 }
 
 /** The screen, or its refusal, with what every screen shares: the staff member's density, the export, the chime. */
-function FrameBody({ staff, urgent, refusal, landing, children }: FrameBodyProps) {
+function FrameBody({ staff, urgent, refusal, isHome, landing, children }: FrameBodyProps) {
   const { venueId, permissions } = staff.venue;
   const density = useStaffDensity(venueId);
   // Every table offers its export to staff who export tables, each recorded first (#102).
@@ -172,7 +184,7 @@ function FrameBody({ staff, urgent, refusal, landing, children }: FrameBodyProps
         <UrgentChime key={venueId} counts={urgent} />
         <TitleCount count={totalOf(urgent)}>
           {/* A screen opened by address that the role doesn't include is refused here, before it loads anything. */}
-          {refusal === undefined ? children : <Refused refusal={refusal} landing={landing} />}
+          {refusal === undefined ? children : <Refused refusal={refusal} isHome={isHome} landing={landing} />}
         </TitleCount>
       </DataTableExportProvider>
       </DataTableViewProvider>
@@ -184,22 +196,24 @@ function StaffFrame({ staff, prompt, onIdle, children }: StaffFrameProps) {
   const { venueId, permissions } = staff.venue;
   const navigate = useNavigate();
   const { pathname, search, counts, urgent, sections, tabs, refusal } = useStaffShell(staff, onIdle);
+  // A role with no screen (an investor, a dealer) has nothing to search for, and the name of a screen it does not have is wrong.
+  const hasNoScreen = sections.length === 0;
   return (
     <ConsoleShell
       sections={sections}
       tabs={tabs}
       currentItem={railItemAt(pathname)}
-      title={refusal?.title}
+      title={hasNoScreen && pathname === '/' ? t('console.noScreens.title') : refusal?.title}
       // The Live floor docks its requests at the screen's edge, so it lays out its own gutter (decision 0482).
       isFullBleed={pathname === '/' && refusal === undefined}
       onNavigate={(href) => void navigate({ href })}
       banner={<FrameBanner staff={staff} prompt={prompt} location={{ pathname, search }} />}
-      search={<ConsoleSearch venueId={venueId} permissions={permissions} sections={sections} />}
+      search={hasNoScreen ? undefined : <ConsoleSearch venueId={venueId} permissions={permissions} sections={sections} />}
       pulse={<FramePulse venueId={venueId} permissions={permissions} counts={counts} />}
       clock={<FrameClock />}
       account={<StaffAccount staff={staff} />}
     >
-      <FrameBody staff={staff} urgent={urgent} refusal={refusal} landing={pathname === '/' ? landingFor(sections) : undefined}>{children}</FrameBody>
+      <FrameBody staff={staff} urgent={urgent} refusal={refusal} isHome={pathname === '/'} landing={landingFor(sections)}>{children}</FrameBody>
     </ConsoleShell>
   );
 }

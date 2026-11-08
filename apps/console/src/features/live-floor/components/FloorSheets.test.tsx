@@ -48,6 +48,13 @@ function first<T>(found: T[]): T {
 }
 
 describe('The player sheet (console v3)', () => {
+  it('offers the member record only to staff who may open Members, so a cashier is not sent to a refusal (audit F-025)', async () => {
+    await renderFloor({ ...FLOOR, role: 'cashier' });
+    fireEvent.click(screen.getByRole('button', { name: 'Seat 5, Kabir Sethi, +1 h?' }));
+    const player = await sheet('Kabir Sethi');
+    expect(within(player).queryByRole('button', { name: 'Open member record' })).toBeNull();
+  });
+
   it('shows the call time left with its bar, the ask with its actions, Add time, Move and the member record', async () => {
     const { rpcs } = await renderFloor();
     fireEvent.click(screen.getByRole('button', { name: 'Seat 5, Kabir Sethi, +1 h?' }));

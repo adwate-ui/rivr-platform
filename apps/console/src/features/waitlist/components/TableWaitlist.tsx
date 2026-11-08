@@ -26,8 +26,8 @@ export interface TableWaitlistProps {
   onSeat: (entry: WaitlistBoardEntry) => void;
   /** A join approved: its seat sheet follows when a seat is free for it (the owner, 8 Nov). */
   onApproved: (entryId: string) => void;
-  /** Opens the check in person for a place whose member's identity check waits for the desk (decision 0503). */
-  onCheckId: (entry: WaitlistBoardEntry) => void;
+  /** Opens the check in person for a place whose member's identity check waits for the desk (decision 0503); none for staff who cannot. */
+  onCheckId?: ((entry: WaitlistBoardEntry) => void) | undefined;
 }
 
 /** The table's joins from the app, oldest first (#633): Approve puts the member on the list, Decline takes the request off. */
@@ -89,7 +89,7 @@ export function TableWaitlist(props: TableWaitlistProps) {
         <Stack gap={0}>
           {entries.map((entry) => (
             <PlaceRow key={entry.entryId} venueId={venueId} entry={entry} table={table} now={now} isTicked={ticked.has(entry.entryId)}
-              onToggle={() => onToggle(entry.entryId)} onSeat={() => onSeat(entry)} onCheckId={() => onCheckId(entry)} />
+              onToggle={() => onToggle(entry.entryId)} onSeat={() => onSeat(entry)} onCheckId={onCheckId === undefined ? undefined : () => onCheckId(entry)} />
           ))}
         </Stack>
       )}

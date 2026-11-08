@@ -53,14 +53,16 @@ describe('describePromotion', () => {
       .toBe('500 bonus chips every 2 hours, up to 3 times a visit');
     expect(rewardLine({ kind: 'hours_bonus', mode: 'every', everyMinutes: 60, chips: 250 })).toBe('250 bonus chips every hour');
     expect(rewardLine({ kind: 'hours_bonus', mode: 'every', everyMinutes: 90, chips: 250, timesPerVisit: 1 }))
-      .toBe('250 bonus chips every 1.5 hours, up to once a visit');
+      .toBe('250 bonus chips every 1 h 30 min, up to once a visit');
     expect(rewardLine({ kind: 'bonus_chips', chips: 1_000, on: 'referral' })).toBe('1,000 bonus chips for each referral');
     expect(rewardLine({ kind: 'bonus_chips', chips: 500, on: 'first_buyin' })).toBe('500 bonus chips on the first buy-in of a visit');
-    expect(rewardLine({ kind: 'free_spin', spins: 1, afterMinutes: 90 })).toBe('1 free spin after 1.5 hours');
+    expect(rewardLine({ kind: 'free_spin', spins: 1, afterMinutes: 90 })).toBe('1 free spin after 1 h 30 min');
     expect(rewardLine({ kind: 'free_spin', spins: 2, afterMinutes: 240 })).toBe('2 free spins after 4 hours');
     expect(rewardLine({ kind: 'cab_home', fromVisitInMonth: 4 })).toBe('A cab home from visit 4 in a month');
     expect(rewardLine({ kind: 'tournament_entry', tournamentId: 'RIVR Sunday' })).toBe('An entry to RIVR Sunday');
-    expect(rewardLine({ kind: 'waitlist_priority' })).toBe('First call on every waitlist');
+    expect(rewardLine({ kind: 'waitlist_priority' })).toBe('Front of every waitlist');
+    expect(rewardLine({ kind: 'seat_bonus', chips: 1_000 })).toBe('1,000 bonus chips on the first seat of a visit');
+    expect(rewardLine({ kind: 'seat_bonus', chips: 500, firstNSeatsPerTable: 5 })).toBe('500 bonus chips for the first 5 seated at a table');
     expect(rewardLine({ kind: 'points_multiplier', multiplier: 1.25 })).toBe('1.25× points');
   });
 

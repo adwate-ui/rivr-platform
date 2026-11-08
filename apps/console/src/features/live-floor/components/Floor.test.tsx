@@ -145,6 +145,20 @@ describe('The requests panel (console v3)', () => {
   });
 });
 
+describe('The floor for a cashier', () => {
+  it('offers the list in place of Check ID, and a name that opens nothing as plain text (audit F-014, F-025)', async () => {
+    const check = requestRow({ kind: 'seat_check', id: 'e8', name: 'Dev Khanna', minutes: 30, table_id: 't2' });
+    const { router } = await renderFloor({ ...FLOOR, role: 'cashier', requests: [check] });
+    const panel = within(requests());
+    const list = await panel.findByRole('button', { name: /View list/ });
+    expect(panel.getByText('Dev Khanna')).toBeDefined();
+    expect(panel.queryByRole('button', { name: 'Dev Khanna' })).toBeNull();
+    expect(panel.queryByRole('button', { name: /Check ID/ })).toBeNull();
+    fireEvent.click(list);
+    await waitFor(() => expect(router.state.location.pathname).toBe('/waitlist'));
+  });
+});
+
 describe('The floor\'s keys (console v3)', () => {
   it('approves the oldest request with A, declines it with D, and seats a player with S; not while typing', async () => {
     const { rpcs } = await renderFloor();

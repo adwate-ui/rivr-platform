@@ -14,7 +14,6 @@ export type BuilderNamesState = { readonly status: 'ready'; readonly value: Buil
 
 // The tiers the Founders' Circle priority and Graduate freeroll templates are for, as the venue's seed names them.
 const FOUNDERS = "Founders' Circle";
-const GRADUATE = 'Academy graduate';
 
 /** The stakes and tiers of the venue, read once for the list, the builder and the approver. */
 export function useBuilderNames(venueId: string): BuilderNamesState {
@@ -33,7 +32,7 @@ export function useBuilderNames(venueId: string): BuilderNamesState {
         stakes: Object.fromEntries(stakes.data.map((stake) => [stake.code, stake.name])),
         tiers: Object.fromEntries(venueTiers.map((tier) => [tier.tierId, tier.name])),
       },
-      templateTiers: { founders: tierNamed(FOUNDERS), graduate: tierNamed(GRADUATE) },
+      templateTiers: { founders: tierNamed(FOUNDERS) },
     },
   };
 }

@@ -50,6 +50,6 @@ describe('Check-in', () => {
 
   it('refuses a dealer, who keeps no door', async () => {
     renderAs('dealer');
-    expect(await screen.findByText('Not in your role. Ask the front desk.', {}, { timeout: 5000 })).toBeDefined();
+    expect(await screen.findByText('Not in your role. Ask an admin.', {}, { timeout: 5000 })).toBeDefined();
   });
 });
