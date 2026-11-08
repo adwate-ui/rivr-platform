@@ -12,6 +12,16 @@ export interface SpinPrize {
  * Whether a prize can be drawn: a bonus only while the budget left covers it, the smaller of what is left of the month's
  * spin budget and of the spin's promotion's own budget.
  */
+/** A prize's odds in lowest terms, for the TV (F-139): 20 in 70 is 2 in 7. */
+export function reducedOdds(weight: number, total: number): { readonly weight: number; readonly total: number } {
+  const divisor = commonDivisor(weight, total);
+  return divisor === 0 ? { weight, total } : { weight: weight / divisor, total: total / divisor };
+}
+
+function commonDivisor(a: number, b: number): number {
+  return b === 0 ? a : commonDivisor(b, a % b);
+}
+
 export function isDrawable(prize: SpinPrize, budgetLeft: Paise): boolean {
   return prize.kind !== 'bonus' || prize.amount <= budgetLeft;
 }

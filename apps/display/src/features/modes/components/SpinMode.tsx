@@ -1,5 +1,6 @@
 import { useTvSpinWheel, type SpinPrizeKind, type TvSpinWheel } from '@rivr/db/spin';
 import { fromPaise } from '@rivr/domain/money';
+import { reducedOdds } from '@rivr/domain/spin';
 import { formatChips, formatNumber, t } from '@rivr/i18n';
 import { Text, TV_WAITLIST_PLACES_SHOWN, TvWaitlistBoard, type TvWaitlistStake } from '@rivr/ui';
 import { isEmptyBoard, useSkipWhenEmpty } from './useSkipWhenEmpty.ts';
@@ -17,21 +18,22 @@ function prizeLabel(prize: { readonly kind: SpinPrizeKind; readonly amount: bigi
  * more prizes than a column shows (#582) shows them a page at a time, from `first`, the column saying which.
  */
 export function toSpinColumns(wheel: TvSpinWheel, first = 0): TvWaitlistStake[] {
-  const odds = wheel.prizes.reduce((total, prize) => total + prize.weight, 0);
+  const total = wheel.prizes.reduce((sum, prize) => sum + prize.weight, 0);
   const shown = wheel.prizes.slice(first, first + TV_WAITLIST_PLACES_SHOWN);
   const isPaged = wheel.prizes.length > TV_WAITLIST_PLACES_SHOWN;
   return [
     {
       id: 'wheel', stake: t('tv.spin.wheel'),
       detail: isPaged ? t('tv.spin.page', { from: first + 1, to: first + shown.length, count: wheel.prizes.length }) : t('tv.spin.wheelDetail'),
-      places: shown.map((prize, index) => ({
-        id: `prize-${first + index}`, place: String(first + index + 1), name: prizeLabel(prize),
-        status: t('tv.spin.odds', { weight: formatNumber(prize.weight), odds: formatNumber(odds) }),
-      })),
+      // No place number: a prize is no rank (F-139).
+      places: shown.map((prize, index) => {
+        const odds = reducedOdds(prize.weight, total);
+        return { id: `prize-${first + index}`, place: '', name: prizeLabel(prize), status: t('tv.spin.odds', { weight: formatNumber(odds.weight), odds: formatNumber(odds.total) }) };
+      }),
     },
     {
       id: 'spins', stake: t('tv.spin.spins'), detail: t('tv.spin.spinsDetail'),
-      places: wheel.spins.map((spin, index) => ({ id: `spin-${index}`, place: '', name: spin.name ?? t('tv.spin.hiddenName'), status: prizeLabel(spin) })),
+      places: wheel.spins.map((spin, index) => ({ id: `spin-${index}`, place: '', name: spin.name ?? t('tv.hiddenName'), status: prizeLabel(spin) })),
     },
   ];
 }
