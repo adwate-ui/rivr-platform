@@ -168,6 +168,17 @@ describe('The floor\'s keys (console v3)', () => {
     await waitFor(() => expect(rpcs('approve_waitlist_request')).toEqual([{ p_entry_id: 'e2' }]));
   });
 
+  it('does nothing with A while the focus is on an approved player, never the oldest request instead', async () => {
+    const seat = requestRow({ kind: 'seat', id: 'e7', name: 'Arjun Rao', minutes: 40, table_id: 't2', seat: 4 });
+    const { rpcs } = await renderFloor({ ...FLOOR, requests: [seat, ...REQUESTS] });
+    const arjun = within(requests()).getByText('Arjun Rao').closest('[data-request]');
+    if (!(arjun instanceof HTMLElement)) throw new Error('no request row for Arjun Rao');
+    first(within(arjun).getAllByRole('button')).focus();
+    fireEvent.keyDown(arjun, { key: 'a' });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(rpcs('approve_waitlist_request')).toEqual([]);
+  });
+
   it('passes over approved players with A: seating one is the floor\'s own press, never a key', async () => {
     const older = [
       requestRow({ kind: 'seat', id: 'e7', name: 'Arjun Rao', minutes: 40, table_id: 't2', seat: 4 }),

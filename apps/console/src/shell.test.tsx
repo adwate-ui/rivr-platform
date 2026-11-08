@@ -147,6 +147,32 @@ describe('the console frame', () => {
     expect(screen.getByRole('list', { name: 'Shortcuts' }).textContent).toBe('/SearchCtrl KSearchEscClose');
   });
 
+  it('keeps single-key shortcuts off for a staff member who turned them off, and on again from the menu (WCAG 2.1.4)', async () => {
+    signIn();
+    const writes: unknown[] = [];
+    vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
+      const request = input instanceof Request ? input : new Request(String(input), init);
+      if (request.url.includes('/rest/v1/staff_preference')) {
+        if (request.method === 'GET') return Response.json({ has_shortcuts: false });
+        writes.push(JSON.parse(await request.text()));
+        return new Response(null, { status: 201 });
+      }
+      return request.url.includes('/rest/v1/staff') ? Response.json([CLUB]) : Response.json([]);
+    });
+    renderAt('/');
+    fireEvent.click(await screen.findByRole('button', { name: 'SQ, Sana Qureshi' }));
+    const toggle = screen.getByRole('switch', { name: 'Keyboard shortcuts' });
+    await waitFor(() => expect(toggle.getAttribute('aria-checked')).toBe('false'));
+    expect(screen.getByRole('list', { name: 'Shortcuts' }).textContent).toBe('Ctrl KSearchEscClose');
+    fireEvent.keyDown(document.body, { key: '/' });
+    expect(screen.queryByRole('dialog', { name: 'Search' })).toBeNull();
+    fireEvent.click(toggle);
+    await waitFor(() => expect(writes).toEqual([[expect.objectContaining({ has_shortcuts: true })]]));
+    await waitFor(() => expect(toggle.getAttribute('aria-checked')).toBe('true'));
+    fireEvent.keyDown(document.body, { key: '/' });
+    expect(await screen.findByRole('dialog', { name: 'Search' })).toBeDefined();
+  });
+
   it('says on sign-in that the idle lock signed the staff member out', async () => {
     signIn();
     answerStaff([{ ...CLUB, full_name: 'Kunal Desai', role: 'super_admin' }]);

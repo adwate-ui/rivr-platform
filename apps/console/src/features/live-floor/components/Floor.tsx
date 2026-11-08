@@ -65,7 +65,11 @@ function useFloorKeys(requests: readonly FloorRequest[], tables: FloorData['tabl
   seat: (() => void) | null): ButtonShortcut | undefined {
   const askable = requests.filter((request) => !isSeatAlert(request));
   const actionsOf = (request: FloorRequest) => requestActions(request, { ...forActions, tableName: tableNameOf(tables, request.tableId) });
-  const target = () => askable.find((request) => requestKey(request) === focusedRequestKey()) ?? askable[0];
+  // With the focus on a request, only that one: an approved player's row (seating is never a key) takes no A or D at all.
+  const target = () => {
+    const focused = focusedRequestKey();
+    return focused === null ? askable[0] : askable.find((request) => requestKey(request) === focused);
+  };
   const run = (which: 'primary' | 'secondary') => {
     const request = target();
     if (request !== undefined) void actionsOf(request)[which]?.run();
