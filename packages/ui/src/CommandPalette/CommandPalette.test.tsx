@@ -33,6 +33,13 @@ function Harness({ onSelect = vi.fn(), onQuery = vi.fn() }: { onSelect?: () => v
 const openWithKeys = () => userEvent.keyboard('{Control>}k{/Control}');
 
 describe('CommandPalette', () => {
+  it('says what a role can find, on the trigger and in the field', async () => {
+    renderIn(<><SearchTrigger onOpen={vi.fn()} label="Search screens and actions" />
+      <CommandPalette isOpen onOpenChange={vi.fn()} query="" onQueryChange={vi.fn()} groups={[]} placeholder="Type a screen or action" /></>);
+    expect(screen.getByPlaceholderText('Type a screen or action')).toBeInTheDocument();
+    expect(screen.getByText('Search screens and actions', { ignore: 'input' })).toBeInTheDocument();
+  });
+
   it('opens from the header\'s search, its field focused, the results in their named groups', async () => {
     renderIn(<Harness />);
     await userEvent.click(screen.getByRole('button', { name: 'Search members, screens, actions' }));

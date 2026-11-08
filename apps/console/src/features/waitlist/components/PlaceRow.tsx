@@ -17,8 +17,8 @@ interface PlaceRowProps {
   onToggle: () => void;
   /** Opens the sheet that seats the place at its table. */
   onSeat: () => void;
-  /** Opens the check in person for a member whose identity check waits for the desk (decision 0503). */
-  onCheckId: () => void;
+  /** Opens the check in person for a member whose identity check waits for the desk (decision 0503); none for staff who cannot. */
+  onCheckId?: (() => void) | undefined;
 }
 
 /** The place's steps: Seat, Hold place or Release, and Remove, each saying its outcome in a toast or its failure under the row. */
@@ -85,7 +85,7 @@ function StepQuestion({ asking, name, steps, onDone }: { asking: Exclude<Asking,
  */
 function rowAction({ entry, table, onSeat, onCheckId }: PlaceRowProps, steps: ReturnType<typeof usePlaceSteps>) {
   const name = entry.fullName;
-  if (entry.needsIdCheck) return { label: t('console.waitlist.checkIdShort'), name: t('console.waitlist.checkId', { name }), onClick: onCheckId };
+  if (entry.needsIdCheck) return onCheckId === undefined ? undefined : { label: t('console.waitlist.checkIdShort'), name: t('console.waitlist.checkId', { name }), onClick: onCheckId };
   const isCalled = entry.holdUntil !== null;
   if (!isCalled && !table.isOpen) return undefined;
   return { label: t('console.waitlist.seatShort'), name: t('console.waitlist.seat', { name }), isLoading: steps.isBusy,
@@ -94,14 +94,16 @@ function rowAction({ entry, table, onSeat, onCheckId }: PlaceRowProps, steps: Re
 
 /** One place on a table's list (console v3): its tick for the bulk bar, its number, who and how long, its button, and the ⋯ menu. */
 export function PlaceRow(props: PlaceRowProps) {
-  const { venueId, entry, now, isTicked, onToggle } = props;
+  const { venueId, entry, now, isTicked, onToggle, onCheckId } = props;
   const steps = usePlaceSteps(venueId, entry);
   const density = useTableDensity();
   const [asking, setAsking] = useState<Asking>(null);
   const name = entry.fullName;
+  // No Check ID of their own (a cashier): the state in words, and no dead button (audit F-014).
+  const meta = entry.needsIdCheck && onCheckId === undefined ? t('console.waitlist.metaIdAtDesk', { meta: placeMeta(entry, now) }) : placeMeta(entry, now);
   return (
     <Stack gap={2}>
-      <WaitlistRow position={entry.place} name={name} meta={placeMeta(entry, now)} isHeld={entry.awayUntil !== null} density={density}
+      <WaitlistRow position={entry.place} name={name} meta={meta} isHeld={entry.awayUntil !== null} density={density}
         tick={{ label: t('console.waitlist.card.select', { name }), isTicked, onToggle }}
         action={rowAction(props, steps)}
         menu={{ label: t('console.waitlist.card.more', { name }), items: menuItems(entry, steps, setAsking) }} />

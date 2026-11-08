@@ -5,6 +5,8 @@ import { useShortcutsOn } from '../Shortcuts/Shortcuts.tsx';
 export interface SearchTriggerProps {
   /** Opens the command palette. */
   onOpen: () => void;
+  /** Its words, for a role that finds less than members, screens and actions. */
+  label?: string | undefined;
 }
 
 const TRIGGER =
@@ -17,14 +19,14 @@ const TRIGGER =
  * `/` key; below, a search button. Either opens the command palette. Its fill is the rail's green-black, not cream at 5%,
  * so its muted words keep 4.5:1 (decision 0462).
  */
-export function SearchTrigger({ onOpen }: SearchTriggerProps) {
+export function SearchTrigger({ onOpen, label }: SearchTriggerProps) {
   // `/` is a single key: shown and announced only while the staff member keeps shortcuts on (WCAG 2.1.4).
   const isSlashOn = useShortcutsOn();
   return (
     <button type="button" onClick={onOpen} aria-keyshortcuts={isSlashOn ? '/ Control+K Meta+K' : 'Control+K Meta+K'} className={TRIGGER}>
       <span className="flex medium:hidden"><Icon name="search" /></span>
       <span className="hidden medium:flex"><Icon name="search" size="sm" /></span>
-      <span className="sr-only medium:not-sr-only medium:min-w-0 medium:flex-1 medium:truncate medium:text-start">{t('ui.console.palette.trigger')}</span>
+      <span className="sr-only medium:not-sr-only medium:min-w-0 medium:flex-1 medium:truncate medium:text-start">{label ?? t('ui.console.palette.trigger')}</span>
       {isSlashOn ? <span aria-hidden="true" className="hidden text-12 medium:block">{t('ui.console.palette.key')}</span> : null}
     </button>
   );

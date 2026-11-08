@@ -136,7 +136,7 @@ export const waitlist = {
   interestReady: '{count} interested: enough to open a table',
   openTable: 'Open {table}',
   openFailed: 'Table not opened. Try again.',
-  openNotAllowed: 'Not in your role. Ask a floor manager.',
+  openNotAllowed: 'Not in your role. Ask an admin.',
   openPaused: 'Venue frozen. Try again once it is released.',
   requestsFailed: 'Requests not loaded. Reload the page.',
   approve: 'Approve {name}',
@@ -169,6 +169,8 @@ export const waitlist = {
   /** A place whose member registered with a selfie: the desk checks their ID before they sit (decision 0503). */
   checkId: 'Check {name}’s ID',
   checkIdShort: 'Check ID',
+  /** A place whose ID check waits for the desk, for staff who do not check ID (a cashier). */
+  metaIdAtDesk: '{meta} · ask the floor or host',
   confirmSkip: 'Yes, hold {name}’s place',
   noMember: 'No member has that number. Sign them up first.',
   kycNeeded: 'This member has not finished their identity check. Send them to the front desk.',
@@ -176,7 +178,7 @@ export const waitlist = {
   stopped: 'This member is frozen.',
   paused: 'Venue frozen. Try again once it is released.',
   invalid: 'Enter a 10-digit mobile number.',
-  notOpen: 'Not allowed here.',
+  notOpen: 'Not in your role. Ask an admin.',
   unavailable: 'Not sent. Try again.',
   card: {
     /** Under the table's name: `{stake}` as "NLH 100/200", and how many seats are free. */
