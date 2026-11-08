@@ -1369,6 +1369,126 @@
       "expected": {
         "key": "visit:00000000-0000-4000-8000-0000000072a1@1"
       }
+    },
+    {
+      "description": "A seat bonus on the first seat of a visit: its 1,000 bonus chips.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"seat_bonus\", \"chips\": 1000}",
+        "event": "{\"key\": \"seated:s1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"seated\", \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "1000",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "A seat bonus on a later seat of the visit: nothing.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"seat_bonus\", \"chips\": 1000}",
+        "event": "{\"key\": \"seated:s1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"seated\", \"isFirstOfVisit\": false}"
+      },
+      "expected": {
+        "refusal": "not_first_seat"
+      }
+    },
+    {
+      "description": "A seat bonus for the first 5 at a table pays a later seat of the visit too: the limit counts them.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"seat_bonus\", \"chips\": 1000, \"firstNSeatsPerTable\": 5}",
+        "event": "{\"key\": \"seated:s1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"seated\", \"isFirstOfVisit\": false}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "1000",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "The smallest seat bonus, 50 bonus chips, is paid whole.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"seat_bonus\", \"chips\": 50}",
+        "event": "{\"key\": \"seated:s1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"seated\", \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "50",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "A buy-in bonus is not paid for a seat.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"fixed\", \"chips\": 1000}",
+        "event": "{\"key\": \"seated:s1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"seated\", \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "refusal": "other_event"
+      }
+    },
+    {
+      "description": "First 5 seats at a table: the fifth is.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"seat_bonus\", \"chips\": 1000, \"firstNSeatsPerTable\": 5}",
+        "limits": "{\"perMember\": \"none\"}",
+        "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 4}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
+      }
+    },
+    {
+      "description": "First 5 seats at a table: the sixth is not.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"seat_bonus\", \"chips\": 1000, \"firstNSeatsPerTable\": 5}",
+        "limits": "{\"perMember\": \"none\"}",
+        "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 5}"
+      },
+      "expected": {
+        "given": "no",
+        "refusal": "first_n_taken"
+      }
+    },
+    {
+      "description": "A seat bonus with no first N is not held to a count at the table.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"seat_bonus\", \"chips\": 1000}",
+        "limits": "{\"perMember\": \"none\"}",
+        "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 50}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
+      }
+    },
+    {
+      "description": "First 5 seats at a table: a member already paid today takes no second place, even with places left.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"seat_bonus\", \"chips\": 1000, \"firstNSeatsPerTable\": 5}",
+        "limits": "{\"perMember\": \"none\"}",
+        "grant": "{\"points\": 0, \"chips\": 1000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 1000, \"grantsGiven\": 1, \"membersToday\": 1, \"isMemberGrantedToday\": true, \"periodGiven\": 0, \"grantsAtTableToday\": 1}"
+      },
+      "expected": {
+        "given": "no",
+        "refusal": "already_given"
+      }
     }
   ]
 }

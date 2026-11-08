@@ -29,9 +29,9 @@ export const NO_GRANT: Grant = { points: 0, chips: 0, spins: 0, perk: null };
 /**
  * Why a promotion gives nothing for an event: it is for another kind of event, nothing comes to anything, the time
  * played is short of its minutes, the step reached is not one of the play-time bonus's own, the visit is before its
- * number in the month, or the buy-in is not the visit's first.
+ * number in the month, or the buy-in or seat is not the visit's first.
  */
-export type GrantRefusal = 'other_event' | 'nothing_earned' | 'too_short' | 'not_a_step' | 'not_yet' | 'not_first_buy_in';
+export type GrantRefusal = 'other_event' | 'nothing_earned' | 'too_short' | 'not_a_step' | 'not_yet' | 'not_first_buy_in' | 'not_first_seat';
 
 type BuyInBonus = Extract<Reward, { kind: 'buyin_bonus' }>;
 type EventOf<K extends PromotionEventKind> = Extract<PromotionEvent, { kind: K }>;
@@ -53,6 +53,8 @@ export function triggerOf(reward: Reward): PromotionEventKind {
       return 'hours_step';
     case 'buyin_bonus':
       return 'buy_in';
+    case 'seat_bonus':
+      return 'seated';
     case 'bonus_chips':
       return BONUS_CHIPS_EVENT[reward.on];
     default:
@@ -80,6 +82,12 @@ function buyInGrant(reward: Reward, event: EventOf<'buy_in'>): Result<Grant, Gra
   if (reward.kind !== 'bonus_chips' || reward.on !== 'first_buyin') return err('other_event');
   if (!event.isFirstOfVisit) return err('not_first_buy_in');
   return event.ownChips > 0 ? ok(chipsGrant(reward.chips)) : err('nothing_earned');
+}
+
+/** A seat bonus (owner, 8 Nov): its chips on the first seat of a visit; with first N on any seat, and checkLimits counts them at the table. */
+function seatGrant(reward: Reward, event: EventOf<'seated'>): Result<Grant, GrantRefusal> {
+  if (reward.kind !== 'seat_bonus') return err('other_event');
+  return reward.firstNSeatsPerTable === undefined && !event.isFirstOfVisit ? err('not_first_seat') : ok(chipsGrant(reward.chips));
 }
 
 /** The extra of a multiplier on the points earned, rounded down: double on 120 is 120 more. Quarters keep it in whole numbers. */
@@ -134,6 +142,8 @@ export function computeGrant(promo: { readonly reward: Reward }, event: Promotio
   switch (event.kind) {
     case 'buy_in':
       return buyInGrant(reward, event);
+    case 'seated':
+      return seatGrant(reward, event);
     case 'time_played':
       return timeGrant(reward, event);
     case 'hours_step':

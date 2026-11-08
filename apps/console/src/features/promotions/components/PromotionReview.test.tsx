@@ -17,16 +17,16 @@ function version(more: Partial<PromotionVersionView>): PromotionVersionView {
   };
 }
 
-const RAISED = { ...TUESDAY, reward: { ...TUESDAY.reward, percent: 25 }, schedule: { ...TUESDAY.schedule, days: [2, 3] } };
+const RAISED = { ...TUESDAY, reward: { kind: 'seat_bonus' as const, chips: 1_500, firstNSeatsPerTable: 5 }, schedule: { ...TUESDAY.schedule, days: [2, 3] } };
 const WAITING = version({ id: 'v2', version: 2, status: 'awaiting_approval', terms: RAISED, simulation: SIMULATION, submittedAt: '2026-11-03T09:00:00+00:00' });
 const APPROVER: Actor = { staffId: 's9', permissions: ['promotions.manage', 'promotions.approve'] };
 
-/** Last Tuesday's buy-ins of 10,000 and 5,000 of own chips, as promotion_version_replay gives them. */
+/** Last Tuesday's two first seats, as promotion_version_replay gives them. */
 const REPLAY = {
   from: '2026-10-27T00:30:00+00:00', to: '2026-11-03T00:30:00+00:00',
-  events: [10_000, 5_000].map((ownChips, n) => ({
-    event: { kind: 'buy_in', key: `buy_in:${String(n)}`, at: `2026-10-27T2${String(n)}:00:00+05:30`, memberId: `m${String(n)}`, visitId: `v${String(n)}`,
-      tableId: 't1', stake: 'nlh_50_100', ownChips, isFirstOfVisit: true },
+  events: [0, 1].map((n) => ({
+    event: { kind: 'seated', key: `seated:${String(n)}`, at: `2026-10-27T2${String(n)}:00:00+05:30`, memberId: `m${String(n)}`, visitId: `v${String(n)}`,
+      tableId: 't1', stake: 'nlh_50_100', isFirstOfVisit: true },
     member: { tierId: null, daysSinceJoined: 40, daysSinceLastVisit: 3 },
   })),
 };
@@ -49,12 +49,12 @@ describe("the approver's view (console v3)", () => {
     expect(within(screen.getByRole('region', { name: '3 · When' })).getByText('Changed')).toBeDefined();
     expect(within(screen.getByRole('region', { name: '2 · Who qualifies' })).queryByText('Changed')).toBeNull();
     expect(screen.getByText('Version 1 now')).toBeDefined();
-    expect(screen.getByText(/^25% buy-in bonus, up to 2,000, first 5 buy-ins per table, for all stakes, Tue, Wed, all day\./)).toBeDefined();
-    expect(screen.getByText(/^20% buy-in bonus, up to 2,000, first 5 buy-ins per table, for all stakes, Tue, all day\./)).toBeDefined();
+    expect(screen.getByText(/^1,500 bonus chips for the first 5 seated at a table, for all stakes, Tue, Wed, all day\./)).toBeDefined();
+    expect(screen.getByText(/^1,000 bonus chips for the first 5 seated at a table, for all stakes, Tue, all day\./)).toBeDefined();
     expect(screen.getByRole('textbox', { name: 'Bonus chips' })).toHaveProperty('readOnly', true);
     // Read only, each choice shows only what is chosen.
     const kinds = within(screen.getByRole('radiogroup', { name: 'Reward' })).getAllByRole('radio');
-    expect(kinds.map((kind) => [kind.getAttribute('aria-label'), kind.getAttribute('aria-checked')])).toEqual([['Buy-in bonus', 'true']]);
+    expect(kinds.map((kind) => [kind.getAttribute('aria-label'), kind.getAttribute('aria-checked')])).toEqual([['Seat bonus chips', 'true']]);
     expect(within(screen.getByRole('group', { name: 'Days' })).getAllByRole('button').map((day) => day.textContent)).toEqual(['Tue', 'Wed']);
     expect(screen.queryByRole('button', { name: 'Every day' })).toBeNull();
     expect(screen.getByText('Version 2, submitted by Ishita Bose, Tue 3 Nov, 14:30.')).toBeDefined();
@@ -62,8 +62,8 @@ describe("the approver's view (console v3)", () => {
 
   it('replays last week afresh for the approver, never showing the figures stored with the version', async () => {
     const { bodiesOf } = renderReview([WAITING, version({})]);
-    // 25% of 10,000 held to 2,000, and 25% of 5,000: 3,250 bonus chips; the stored 12,000 is the author's browser's.
-    expect(await screen.findByText('3,250')).toBeDefined();
+    // Two seats at 1,500: 3,000 bonus chips; the stored 12,000 is the author's browser's.
+    expect(await screen.findByText('3,000')).toBeDefined();
     expect(screen.getByText('27 Oct to 2 Nov')).toBeDefined();
     expect(screen.queryByText('12,000')).toBeNull();
     expect(screen.queryByText('The budget would have run out.')).toBeNull();

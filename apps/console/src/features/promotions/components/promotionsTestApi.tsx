@@ -19,9 +19,9 @@ export const refused = (code: string): Reply => ({ status: 400, body: { code, me
 /** Ishita, marketing, who manages promotions: the screens' tests sign her in. */
 const SIGNED_IN = '00000000-0000-4000-8000-000000000107';
 
-/** The Tuesday buy-in bonus as a version holds it. */
+/** The Tuesday bonus as a version holds it. */
 export const TUESDAY: PromotionTerms = {
-  name: 'Buy-in bonus Tuesday', reward: { kind: 'buyin_bonus', mode: 'percent', percent: 20, capChips: 2_000, firstNBuyinsPerTable: 5 },
+  name: 'Buy-in bonus Tuesday', reward: { kind: 'seat_bonus', chips: 1_000, firstNSeatsPerTable: 5 },
   eligibility: { stakes: 'all', tiers: 'all', audience: 'everyone' },
   schedule: { days: [2], from: '06:00', to: '06:00', startsOn: '2026-10-01', timezone: 'Asia/Kolkata' }, limits: { perMember: 'none' },
   channels: { playerApp: true, tv: true, website: false, whatsapp: false }, rulesText: [],
@@ -32,7 +32,7 @@ export const NAMES: BuilderNames = {
   stakes: [{ code: 'nlh_50_100', name: 'NLH 50/100' }, { code: 'nlh_100_200', name: 'NLH 100/200' }],
   tiers: [{ tierId: 'tier-fc', name: "Founders' Circle" }, { tierId: 'tier-member', name: 'Member' }],
   names: { stakes: { nlh_50_100: 'NLH 50/100', nlh_100_200: 'NLH 100/200' }, tiers: { 'tier-fc': "Founders' Circle", 'tier-member': 'Member' } },
-  templateTiers: { founders: 'tier-fc', graduate: null },
+  templateTiers: { founders: 'tier-fc' },
 };
 
 /**

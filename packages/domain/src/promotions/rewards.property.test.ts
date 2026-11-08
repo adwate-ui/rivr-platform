@@ -10,7 +10,10 @@ import { stackGrants } from './stacking.ts';
 
 const chips = fc.integer({ min: 1, max: 2_000 }).map((fifties) => fifties * 50);
 const minutes = fc.integer({ min: 1, max: 48 }).map((halves) => halves * 30);
+const seatBonus = fc.record({ amount: chips, firstN: fc.option(fc.integer({ min: 1, max: 5 }), { nil: undefined }) }).map(({ amount, firstN }): Reward => (
+  firstN === undefined ? { kind: 'seat_bonus', chips: amount } : { kind: 'seat_bonus', chips: amount, firstNSeatsPerTable: firstN }));
 const reward: fc.Arbitrary<Reward> = fc.oneof(
+  seatBonus,
   fc.integer({ min: 5, max: 20 }).map((quarters): Reward => ({ kind: 'points_multiplier', multiplier: quarters / 4 })),
   fc.record({ percent: fc.integer({ min: 1, max: 100 }), cap: fc.option(chips, { nil: undefined }), firstN: fc.option(fc.integer({ min: 1, max: 5 }), { nil: undefined }) })
     .map(({ percent, cap, firstN }): Reward => ({
@@ -43,6 +46,7 @@ const place = fc.record({
 });
 const event: fc.Arbitrary<PromotionEvent> = fc.tuple(place, fc.oneof(
   fc.record({ kind: fc.constant('buy_in' as const), ownChips: fc.integer({ min: 0, max: 100_000 }), isFirstOfVisit: fc.boolean() }),
+  fc.record({ kind: fc.constant('seated' as const), isFirstOfVisit: fc.boolean() }),
   fc.record({ kind: fc.constant('time_played' as const), minutes: fc.integer({ min: 0, max: 900 }), points: fc.integer({ min: 0, max: 5_000 }) }),
   fc.record({ kind: fc.constant('hours_step' as const), minutes: fc.integer({ min: 0, max: 1_440 }), stepMinutes: minutes }),
   fc.record({ kind: fc.constant('visit' as const), visitInMonth: fc.integer({ min: 1, max: 31 }) }),
@@ -70,6 +74,15 @@ const ledger: fc.Arbitrary<LedgerEntry[]> = fc.array(fc.tuple(grant, fc.constant
 ), { maxLength: 8 });
 
 describe('promotion reward properties', () => {
+  it('pays a seat bonus its exact chips or nothing, and on a later seat of a visit only with a first N (audit F-005)', () => {
+    fc.assert(fc.property(seatBonus, place, fc.boolean(), (given, where, isFirstOfVisit) => {
+      if (given.kind !== 'seat_bonus') return;
+      const result = computeGrant({ reward: given }, { ...where, kind: 'seated', isFirstOfVisit });
+      expect(result.ok).toBe(isFirstOfVisit || given.firstNSeatsPerTable !== undefined);
+      if (result.ok) expect(result.value).toEqual({ points: 0, chips: given.chips, spins: 0, perk: null });
+    }));
+  });
+
   it('never gives a negative grant, and gives only for its own kind of event', () => {
     fc.assert(fc.property(reward, event, (given, on) => {
       const result = computeGrant({ reward: given }, on);
