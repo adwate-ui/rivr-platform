@@ -2,12 +2,12 @@
  * The console's screens, read from the console itself: its menu (railEntries.ts: RAIL, REQUESTS, HIDDEN), the
  * addresses its router answers (routes/*.tsx), and which role may open what (ROLE_PERMISSIONS in @rivr/contracts).
  */
-import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { ROLE_PERMISSIONS, STAFF_ROLES, type StaffRole } from '@rivr/contracts';
 import { z } from 'zod';
 import { REPO_ROOT } from '../paths.ts';
+import { readRoutes } from './routes.ts';
 import type { Role, Screen } from './types.ts';
 
 const CONSOLE = join(REPO_ROOT, 'apps', 'console', 'src');
@@ -36,14 +36,9 @@ export async function loadConsoleMenu(file = MENU_FILE): Promise<ConsoleMenu> {
   return { entries: [...parsed.RAIL.flatMap((group) => group.entries), parsed.REQUESTS], hidden: parsed.HIDDEN.map((screen) => screen.href) };
 }
 
-/** Every `path: '…'` the console's route files declare. */
+/** Every address the console's route files declare. */
 export function readConsoleRoutes(dir = ROUTES_DIR): string[] {
-  const paths = new Set<string>();
-  for (const name of readdirSync(dir, { recursive: true, encoding: 'utf8' })) {
-    if (!/\.tsx?$/.test(name) || /\.test\.tsx?$/.test(name)) continue;
-    for (const match of readFileSync(join(dir, name), 'utf8').matchAll(/\bpath:\s*'([^']+)'/g)) paths.add(`${match[1] ?? ''}`);
-  }
-  return [...paths].filter((path) => path.startsWith('/')).sort();
+  return readRoutes(dir).map((route) => route.path);
 }
 
 function menuScreens(entry: MenuEntry): Screen[] {
