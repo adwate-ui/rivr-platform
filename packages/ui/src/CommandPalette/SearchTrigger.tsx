@@ -1,5 +1,6 @@
 import { t } from '@rivr/i18n';
 import { Icon } from '../Icon/Icon.tsx';
+import { useShortcutsOn } from '../Shortcuts/Shortcuts.tsx';
 
 export interface SearchTriggerProps {
   /** Opens the command palette. */
@@ -17,12 +18,14 @@ const TRIGGER =
  * so its muted words keep 4.5:1 (decision 0462).
  */
 export function SearchTrigger({ onOpen }: SearchTriggerProps) {
+  // `/` is a single key: shown and announced only while the staff member keeps shortcuts on (WCAG 2.1.4).
+  const isSlashOn = useShortcutsOn();
   return (
-    <button type="button" onClick={onOpen} aria-keyshortcuts="/ Control+K Meta+K" className={TRIGGER}>
+    <button type="button" onClick={onOpen} aria-keyshortcuts={isSlashOn ? '/ Control+K Meta+K' : 'Control+K Meta+K'} className={TRIGGER}>
       <span className="flex medium:hidden"><Icon name="search" /></span>
       <span className="hidden medium:flex"><Icon name="search" size="sm" /></span>
       <span className="sr-only medium:not-sr-only medium:min-w-0 medium:flex-1 medium:truncate medium:text-start">{t('ui.console.palette.trigger')}</span>
-      <span aria-hidden="true" className="hidden text-12 medium:block">{t('ui.console.palette.key')}</span>
+      {isSlashOn ? <span aria-hidden="true" className="hidden text-12 medium:block">{t('ui.console.palette.key')}</span> : null}
     </button>
   );
 }

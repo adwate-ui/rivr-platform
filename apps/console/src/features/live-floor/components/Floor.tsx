@@ -11,7 +11,7 @@ import { RequestList, tableNameOf } from './RequestList.tsx';
 import { useFloorData, useNow, type FloorData } from './useFloorData.ts';
 import { useFloorFocus } from './useFloorFocus.ts';
 import { useRequestChanges } from './useRequestChanges.ts';
-import { actionable, useRequestQueue } from './useRequestQueue.ts';
+import { actionable, requestKey, useRequestQueue } from './useRequestQueue.ts';
 import { useSeatChanges } from './useSeatChanges.ts';
 import { useTableChanges } from './useTableChanges.ts';
 
@@ -37,7 +37,8 @@ function usePanel() {
 
 /** The screen's controls: Summary or Seats, Needs you, and the one gold button, Seat a player. */
 function FloorControls({ view, onView, isNeedsYouOnly, onNeedsYou, onSeat, seatKey }: {
-  view: FloorView; onView: (view: FloorView) => void; isNeedsYouOnly: boolean; onNeedsYou: () => void; onSeat: (() => void) | null; seatKey: ButtonShortcut;
+  view: FloorView; onView: (view: FloorView) => void; isNeedsYouOnly: boolean; onNeedsYou: () => void; onSeat: (() => void) | null;
+  seatKey: ButtonShortcut | undefined;
 }) {
   return (
     <Inline gap={3} wrap>
@@ -49,14 +50,34 @@ function FloorControls({ view, onView, isNeedsYouOnly, onNeedsYou, onSeat, seatK
   );
 }
 
+/** The request whose own button holds the focus, by the key RequestList marks it with; none when the focus is elsewhere. */
+function focusedRequestKey(): string | null {
+  return document.activeElement?.closest('[data-request]')?.getAttribute('data-request') ?? null;
+}
+
 /**
- * The floor's keys, through the console's registry (decision 0478): A and D act on the oldest request shown, S opens Seat a
- * player; each only while there is something to do. Gives back S for Seat a player's tooltip.
+ * The floor's keys, through the console's registry (decision 0478): A and D act on the request whose button holds the
+ * focus, else the oldest shown; S opens Seat a player; each only while there is something to do, and only while the staff
+ * member keeps shortcuts on. Seating an approved player is the floor's own press, never a key. Gives back S for Seat a
+ * player's tooltip.
  */
-function useFloorKeys(oldest: FloorRequest | undefined, forActions: RequestActionsFor, seat: (() => void) | null): ButtonShortcut {
-  const actions = oldest === undefined ? undefined : requestActions(oldest, forActions);
-  useShortcut({ key: 'a', label: t('console.floor.keys.approve'), onPress: () => void actions?.primary.run(), isEnabled: actions !== undefined });
-  useShortcut({ key: 'd', label: t('console.floor.keys.decline'), onPress: () => void actions?.secondary?.run(), isEnabled: actions?.secondary !== undefined });
+function useFloorKeys(requests: readonly FloorRequest[], tables: FloorData['tables'], forActions: Omit<RequestActionsFor, 'tableName'>,
+  seat: (() => void) | null): ButtonShortcut | undefined {
+  const askable = requests.filter((request) => !isSeatAlert(request));
+  const actionsOf = (request: FloorRequest) => requestActions(request, { ...forActions, tableName: tableNameOf(tables, request.tableId) });
+  // With the focus on a request, only that one: an approved player's row (seating is never a key) takes no A or D at all.
+  const target = () => {
+    const focused = focusedRequestKey();
+    return focused === null ? askable[0] : askable.find((request) => requestKey(request) === focused);
+  };
+  const run = (which: 'primary' | 'secondary') => {
+    const request = target();
+    if (request !== undefined) void actionsOf(request)[which]?.run();
+  };
+  const oldest = askable[0];
+  useShortcut({ key: 'a', label: t('console.floor.keys.approve'), onPress: () => run('primary'), isEnabled: oldest !== undefined });
+  useShortcut({ key: 'd', label: t('console.floor.keys.decline'), onPress: () => run('secondary'),
+    isEnabled: askable.some((request) => actionsOf(request).secondary !== undefined) });
   return useShortcut({ key: 's', label: t('console.floor.seatPlayer'), onPress: () => seat?.(), isEnabled: seat !== null });
 }
 
@@ -73,10 +94,8 @@ function FloorReady({ venueId, permissions, data }: FloorProps & { data: FloorDa
   const seatAny = isFloor ? seatAnyOf(data) : null;
   const openers = useRequestOpeners(venueId, data, setSheet);
   const focusTableId = useFloorFocus(data, setSheet);
-  // A and D approve or decline the oldest request; seating an approved player is the floor's own press, never a key.
-  const oldest = queue.shown.find((request) => !isSeatAlert(request));
   const openSeat = seatAny === null ? null : () => setSheet(seatAny);
-  const seatKey = useFloorKeys(oldest, { changes: changes.requests, tableName: tableNameOf(data.tables, oldest?.tableId ?? ''), ...openers }, openSeat);
+  const seatKey = useFloorKeys(queue.shown, data.tables, { changes: changes.requests, ...openers }, openSeat);
   const requestsPanel = (
     <>
       <RequestList requests={queue.shown} tables={data.tables} targets={data.targets} now={now} fresh={queue.fresh} changes={changes.requests}

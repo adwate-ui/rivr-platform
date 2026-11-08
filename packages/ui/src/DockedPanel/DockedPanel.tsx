@@ -58,7 +58,9 @@ export function DockedPanel({ children, title, count, isOpen, onToggle, panel, o
                 <Icon name="chevronRight" size="sm" />
               </button>
             </div>
-            <div aria-live="polite" onPointerEnter={() => onHoverChange?.(true)} onPointerLeave={() => onHoverChange?.(false)}>{panel}</div>
+            {/* Not a live region: it would read every changed request and its buttons again. New urgent work is told once, by
+                the console's UrgentChime. */}
+            <div onPointerEnter={() => onHoverChange?.(true)} onPointerLeave={() => onHoverChange?.(false)}>{panel}</div>
           </div>
         ) : (
           <>

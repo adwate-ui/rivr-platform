@@ -3703,14 +3703,14 @@ isOneToOne: false
                   ]
                 },"staff_preference": {
                   Row: {
-                    "created_at": string,"density": string,"staff_id": string,"updated_at": string,"venue_id": string
+                    "created_at": string,"density": string,"has_shortcuts": boolean,"staff_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"density"?: string,"staff_id": string,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"density"?: string,"has_shortcuts"?: boolean,"staff_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"density"?: string,"staff_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"density"?: string,"has_shortcuts"?: boolean,"staff_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {

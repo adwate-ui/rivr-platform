@@ -29,7 +29,8 @@ export interface TableTileProps {
   isScrolledTo?: boolean;
 }
 
-const SEGMENT: Record<TileSeat, string> = { open: 'bg-subtle-hover', seated: 'bg-content-muted', needsYou: 'bg-action' };
+// An open seat is an outline at 4.37:1 against the tile, not a fill nearly the tile's own colour (WCAG 1.4.11).
+const SEGMENT: Record<TileSeat, string> = { open: 'border border-control', seated: 'bg-content-muted', needsYou: 'bg-action' };
 
 function count(seats: readonly TileSeat[], state: TileSeat): number {
   return seats.filter((seat) => seat === state).length;
@@ -40,8 +41,11 @@ function needsLine(needs: number): string {
   return needs === 1 ? t('ui.console.tableTile.needsYouOne') : t('ui.console.tableTile.needsYou', { count: needs });
 }
 
-/** The bar and the line under it: how many sit there, then who needs the floor or Show seats. Read out in words. */
-function Occupancy({ seats, isExpanded, summaryId }: { seats: readonly TileSeat[]; isExpanded: boolean; summaryId: string }) {
+/**
+ * The bar and the line under it: how many sit there, then who needs the floor or Show seats. The line is part of the
+ * button's name, as it shows (WCAG 2.5.3); the bar is read out in words.
+ */
+function Occupancy({ seats, isExpanded, summaryId, lineId }: { seats: readonly TileSeat[]; isExpanded: boolean; summaryId: string; lineId: string }) {
   const needs = count(seats, 'needsYou');
   const seated = count(seats, 'seated') + needs;
   return (
@@ -50,15 +54,32 @@ function Occupancy({ seats, isExpanded, summaryId }: { seats: readonly TileSeat[
         {seats.map((seat, index) => <span key={index} className={cx('h-pip min-w-0 flex-1 rounded-sm', SEGMENT[seat])} />)}
       </span>
       <span id={summaryId} className="sr-only">{t('ui.console.tableTile.bar', { seated: count(seats, 'seated'), needs, open: count(seats, 'open') })}</span>
-      <span className="flex items-center justify-between gap-3 text-13 leading-snug">
+      <span id={lineId} className="flex items-center justify-between gap-3 text-13 leading-snug">
         <span className="text-content-muted">{t('ui.console.tableTile.seated', { seated, total: seats.length })}</span>
+        {/* A space between, so the button reads "6 of 9 seated 2 need you"; a flex row draws none. */}
+        {' '}
         {needs > 0 ? (
           <span className="flex items-center gap-2 text-gold"><span aria-hidden="true" className="size-pip rounded-full bg-action" />{needsLine(needs)}</span>
         ) : (
-          <span aria-hidden="true" className="text-content-muted">{t(isExpanded ? 'ui.console.tableTile.hideSeats' : 'ui.console.tableTile.showSeats')}</span>
+          <span className="text-content-muted">{t(isExpanded ? 'ui.console.tableTile.hideSeats' : 'ui.console.tableTile.showSeats')}</span>
         )}
       </span>
     </>
+  );
+}
+
+/**
+ * The keyboard's button for the seats: named with the table and what the line under the bar shows (WCAG 2.5.3), the bar
+ * read out as its description. No handler of its own: its press reaches the head's, so the seats toggle once.
+ */
+function SeatsButton({ seats, nameId, seatsId, isOpen }: { seats: readonly TileSeat[]; nameId: string; seatsId: string; isOpen: boolean }) {
+  const summaryId = useId();
+  const lineId = useId();
+  return (
+    <button type="button" aria-expanded={isOpen} aria-controls={isOpen ? seatsId : undefined} aria-labelledby={`${nameId} ${lineId}`}
+      aria-describedby={summaryId} className="-mx-1 flex flex-col gap-3 rounded-md px-1 text-start font-text focus-visible:outline-2 focus-visible:outline-focus">
+      <Occupancy seats={seats} isExpanded={isOpen} summaryId={summaryId} lineId={lineId} />
+    </button>
   );
 }
 
@@ -80,7 +101,6 @@ function useScrolledTo(isScrolledTo: boolean) {
 export function TableTile({ name, stake, seats, isClosed = false, openAction, isExpanded, onToggle, onSettings, children, isScrolledTo }: TableTileProps) {
   const nameId = useId();
   const tile = useScrolledTo(isScrolledTo === true);
-  const summaryId = useId();
   const seatsId = useId();
   const needsYou = !isClosed && seats.includes('needsYou');
   const isOpen = isExpanded && !isClosed;
@@ -107,11 +127,7 @@ export function TableTile({ name, stake, seats, isClosed = false, openAction, is
             {openAction}
           </div>
         ) : (
-          // No handler of its own: its press reaches the head's, so the seats toggle once.
-          <button type="button" aria-expanded={isOpen} aria-controls={isOpen ? seatsId : undefined} aria-labelledby={nameId} aria-describedby={summaryId}
-            className="-mx-1 flex flex-col gap-3 rounded-md px-1 text-start font-text focus-visible:outline-2 focus-visible:outline-focus">
-            <Occupancy seats={seats} isExpanded={isOpen} summaryId={summaryId} />
-          </button>
+          <SeatsButton seats={seats} nameId={nameId} seatsId={seatsId} isOpen={isOpen} />
         )}
       </div>
       {isOpen ? <div id={seatsId} className="border-t border-subtle px-2 pt-1 pb-2">{children}</div> : null}

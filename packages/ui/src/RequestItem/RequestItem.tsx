@@ -18,7 +18,7 @@ export interface RequestItemProps {
   kind?: string | undefined;
   /** How long it has waited: "4 min". */
   age?: string | undefined;
-  /** It has waited past its target: the age in the danger colour, and "late" read after it. */
+  /** It has waited past its target: "Late · 130 min", the word first and the danger colour second (WCAG 1.4.1). */
   isLate?: boolean;
   /** Who asks: "Ritika Bhalla". */
   title: string;
@@ -32,6 +32,8 @@ export interface RequestItemProps {
   secondary?: RequestAction | undefined;
   /** Just arrived: a gold tint that fades over 2.5 s (decision 0465). */
   isNew?: boolean;
+  /** The screen's key for this request, kept on it as `data-request`, so the floor's A and D find the one in focus. */
+  requestKey?: string | undefined;
   /**
    * `queue`, an entry in the floor's list of requests. `ask`, what one player asks, inside their sheet: a gold-tinted box
    * (it needs the floor, decision 0463) with the ask and its age on one line and the actions under it; `kind` and `detail`
@@ -52,13 +54,12 @@ function Title({ title, onTitle }: Pick<RequestItemProps, 'title' | 'onTitle'>) 
   );
 }
 
-/** How long it has waited, in the danger colour and read as late past its target. */
+/** How long it has waited; past its target, "Late · 130 min" in the danger colour, so the word tells it without the colour. */
 function Age({ age, isLate }: { age: string | undefined; isLate: boolean }) {
   if (age === undefined) return null;
   return (
-    <span className={cx('shrink-0 font-text text-12 leading-snug tabular-nums', isLate ? 'text-danger' : 'text-content-muted')}>
-      {age}
-      {isLate ? <span className="sr-only">, {t('ui.console.requestItem.late')}</span> : null}
+    <span className={cx('shrink-0 font-text text-12 leading-snug tabular-nums', isLate ? 'font-semibold text-danger' : 'text-content-muted')}>
+      {isLate ? t('ui.console.requestItem.late', { age }) : age}
     </span>
   );
 }
@@ -95,10 +96,10 @@ function Ask({ age, isLate = false, title, primary, secondary }: RequestItemProp
  * is the same request inside the player's own sheet.
  */
 export function RequestItem(props: RequestItemProps) {
-  const { kind, age, isLate = false, title, onTitle, detail, primary, secondary, isNew = false } = props;
+  const { kind, age, isLate = false, title, onTitle, detail, primary, secondary, isNew = false, requestKey } = props;
   if (props.look === 'ask') return <Ask {...props} />;
   return (
-    <div data-fresh={isNew ? '' : undefined} className="-mx-3 flex flex-col gap-1 rounded-md px-3 py-3">
+    <div data-fresh={isNew ? '' : undefined} data-request={requestKey} className="-mx-3 flex flex-col gap-1 rounded-md px-3 py-3">
       <div className="flex items-center justify-between gap-2 font-text text-12 leading-snug">
         <span className="text-content-muted">{kind}</span>
         <Age age={age} isLate={isLate} />
