@@ -93,6 +93,36 @@ const previewImage = new URL('/og-image.png', Astro.url.origin).href;
           banner.hidden = false;
         }
       });
+
+      // The hero's room video (WCAG 2.2.2): its button pauses it and plays it again, pressed while paused, and the choice
+      // holds for the visit, page to page. Session storage can be refused; the button still works without it.
+      const VIDEOS_PAUSED = 'rivr-videos-paused';
+      function pauseVideos(isPaused: boolean) {
+        for (const toggle of document.querySelectorAll<HTMLButtonElement>('[data-web-video-toggle]')) {
+          const video = toggle.parentElement?.querySelector<HTMLVideoElement>('video[data-web-video]');
+          if (isPaused) video?.pause();
+          else void video?.play().catch(() => undefined);
+          toggle.setAttribute('aria-pressed', String(isPaused));
+          toggle.querySelector('[data-when-playing]')?.classList.toggle('hidden', isPaused);
+          toggle.querySelector('[data-when-paused]')?.classList.toggle('hidden', !isPaused);
+        }
+      }
+      try {
+        if (sessionStorage.getItem(VIDEOS_PAUSED) === 'yes') pauseVideos(true);
+      } catch {
+        // No session storage: every page starts playing.
+      }
+      document.addEventListener('click', (event) => {
+        const toggle = event.target instanceof Element ? event.target.closest('[data-web-video-toggle]') : null;
+        if (toggle === null) return;
+        const isPaused = toggle.getAttribute('aria-pressed') !== 'true';
+        pauseVideos(isPaused);
+        try {
+          sessionStorage.setItem(VIDEOS_PAUSED, isPaused ? 'yes' : 'no');
+        } catch {
+          // Kept for this page only.
+        }
+      });
     </script>
   </body>
 </html>

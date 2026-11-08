@@ -1,4 +1,6 @@
+import { t } from '@rivr/i18n';
 import { tokens } from '@rivr/tokens';
+import { Icon } from '../Icon/Icon.tsx';
 import MEDIA_WIDTHS from './mediaWidths.json';
 
 /**
@@ -50,13 +52,22 @@ export function MediaNote({ children }: { children: string }) {
   return <span className="absolute bottom-3 end-3 rounded-sm bg-green-black px-2 py-1 font-text text-12 uppercase tracking-wide text-cream">{children}</span>;
 }
 
-/** A muted loop of the room, filling its frame, over its first frame. */
+/**
+ * A muted loop of the room, filling its frame, over its first frame, with a button that pauses it and plays it again
+ * (WCAG 2.2.2). The website is plain HTML: its page's script (`Document.astro`) runs the button, `aria-pressed` while
+ * paused, and keeps the choice for the visit.
+ */
 export function LoopingVideo({ src, poster, note }: { src: string; poster: string; note?: string | undefined }) {
   return (
     <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-hairline">
       <WebImage src={poster} alt="" span="half" isLazy={false} className="absolute inset-0 size-full object-cover" />
       <video data-web-video src={src} poster={poster} autoPlay muted loop playsInline preload="metadata" aria-hidden="true"
         className="absolute inset-0 size-full object-cover" />
+      <button type="button" data-web-video-toggle aria-pressed="false" aria-label={t('ui.web.pauseVideo')}
+        className="absolute start-3 bottom-3 flex size-touch items-center justify-center rounded-full bg-green-black text-cream focus-visible:outline-2 focus-visible:outline-focus">
+        <span data-when-playing className="flex"><Icon name="pause" size="sm" /></span>
+        <span data-when-paused className="hidden"><Icon name="play" size="sm" /></span>
+      </button>
       {note ? <MediaNote>{note}</MediaNote> : null}
     </div>
   );
