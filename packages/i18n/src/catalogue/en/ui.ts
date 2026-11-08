@@ -41,6 +41,12 @@ export const ui = {
   sheet: {
     close: 'Close',
   },
+  /** The player app's way to reach the front desk, at the foot of a step and of Profile (WCAG 3.2.6). */
+  deskHelp: {
+    label: 'Front desk',
+    call: 'Call the desk',
+    whatsapp: 'WhatsApp the desk',
+  },
   picker: {
     done: 'Done',
     chooseOne: 'Choose one',

@@ -1,5 +1,6 @@
+import { CLUB_CONTACT } from '@rivr/contracts/club';
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
-import { Text, ToastProvider } from '@rivr/ui';
+import { DeskHelpProvider, Text, ToastProvider } from '@rivr/ui';
 import { QueryClient } from '@tanstack/react-query';
 import { createMemoryHistory, createRootRoute, createRoute, createRouter, Outlet, RouterProvider } from '@tanstack/react-router';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
@@ -46,7 +47,8 @@ function renderProfile(card: object = CARD) {
     }
     return Response.json([]);
   });
-  const rootRoute = createRootRoute({ component: () => <ToastProvider><Outlet /></ToastProvider> });
+  // As AppRoot gives every screen: the toasts and the club's number for the front desk.
+  const rootRoute = createRootRoute({ component: () => <DeskHelpProvider contact={CLUB_CONTACT}><ToastProvider><Outlet /></ToastProvider></DeskHelpProvider> });
   const page = (path: string, name: string) => createRoute({ getParentRoute: () => rootRoute, path, component: () => <Text>{name}</Text> });
   const profile = createRoute({ getParentRoute: () => rootRoute, path: '/profile', component: ProfileScreen });
   const rules = createRoute({ getParentRoute: () => rootRoute, path: '/profile/rules', component: HouseRulesScreen });
@@ -78,6 +80,14 @@ describe('Profile', () => {
     expect(screen.getByRole('switch', { name: /Bonus chips/ })).toBeDefined();
     expect(screen.queryByText(/limit|take a break|waitlist alerts/i)).toBeNull();
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
+  });
+
+  it('ends with the way to the front desk, after Sign out, as every step does (8 Nov audit, F-184)', async () => {
+    renderProfile();
+    const help = await screen.findByRole('group', { name: 'Front desk' }, LATER);
+    expect(within(help).getByRole('link', { name: 'Call the desk' }).getAttribute('href')).toBe('tel:+918796580435');
+    expect(within(help).getByRole('link', { name: 'WhatsApp the desk' }).getAttribute('href')).toBe('https://wa.me/918796580435');
+    expect(screen.getByRole('button', { name: 'Sign out' }).compareDocumentPosition(help)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
   it('shows her verified selfie filling the mark, and her initial without one', async () => {

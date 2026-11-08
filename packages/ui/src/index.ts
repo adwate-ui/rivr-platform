@@ -187,4 +187,5 @@ export * from './NoticeText/index.ts';
 export * from './NoticeCard/index.ts';
 export * from './ProfileMark/index.ts';
 export * from './BackButton/index.ts';
+export * from './DeskHelp/index.ts';
 export { haptic } from './haptic/index.ts';

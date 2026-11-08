@@ -1,11 +1,12 @@
 import type { Attribution, PlayerDestination, SiteBlock } from '@rivr/contracts';
+import { CLUB_CONTACT } from '@rivr/contracts/club';
 import type { SitePage as SitePageData } from '@rivr/db/site';
 import { formatIsoDay, t, type MessageKey } from '@rivr/i18n';
 import {
   CalendarBlock, CardsBlock, CareersBlock, CookieBanner, FaqBlock, FeatureBlock, GalleryBlock, GamesBlock, HeroBlock, KillSwitchBanner, LinksBlock, MapBlock,
   MarqueeBlock, PromotionsBlock, RulesBlock, StatementBlock, StoryBlock, TableBlock, TextBlock, TimelineBlock, WebBand, WebFooter, WebShell, type WebBandTone, type WebShellProps,
 } from '@rivr/ui';
-import { CLUB_CONTACT, playerHref, siteHref, whatsappHref } from '../links.ts';
+import { playerHref, siteHref, whatsappHref } from '../links.ts';
 import { ClubBlock, isEmptyClubBlock } from './ClubBlocks.tsx';
 
 interface SitePageProps {

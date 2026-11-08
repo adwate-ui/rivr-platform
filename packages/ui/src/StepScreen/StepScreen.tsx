@@ -1,5 +1,6 @@
 import type { FormEvent, ReactNode } from 'react';
 import { Button } from '../Button/Button.tsx';
+import { DeskHelp } from '../DeskHelp/DeskHelp.tsx';
 import { Heading, type SerifSize } from '../Heading/Heading.tsx';
 import { Icon } from '../Icon/Icon.tsx';
 import { cx } from '../internal/classes.ts';
@@ -90,7 +91,8 @@ function StepTitle({ title, look }: { title: string; look: StepScreenProps['look
  * One step of a flow on a 390 px phone, outside the app's tabs: sign-in, then the KYC steps.
  * Back, the heading and the content, and the action at the bottom of the screen (design
  * prompt, "Sign-in and KYC"). The action stays inside `main`: it is the step's purpose, not
- * page furniture, so a screen reader jumping to main finds the field and the button. From 768 px,
+ * page furniture, so a screen reader jumping to main finds the field and the button. Under it, the way to the front desk
+ * (`DeskHelp`), in the player app. From 768 px,
  * on a tablet or a computer, the step is a panel in the middle of the screen, its action under its
  * content, not the phone's column stretched to the screen's foot (S-01).
  */
@@ -102,8 +104,8 @@ export function StepScreen({ children, footer, title, back, align = 'top', onSub
         {children}
       </div>
       {/* One top padding or the other: with both, the plain footer's 24 px won and the ruled footer's action sat 24 px under
-          its rule, not the prototype's 12. */}
-      <div className={cx('flex flex-col gap-6', look?.isFooterRuled === true ? FOOTER_RULED : 'pt-6')}>{footer}</div>
+          its rule, not the prototype's 12. The way to the front desk ends every step, where a DeskHelpProvider gives one. */}
+      <div className={cx('flex flex-col gap-6', look?.isFooterRuled === true ? FOOTER_RULED : 'pt-6')}>{footer}<DeskHelp /></div>
     </>
   );
   const submit = (event: FormEvent<HTMLFormElement>) => {
