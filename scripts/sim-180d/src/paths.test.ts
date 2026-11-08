@@ -1,15 +1,19 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { runDir, SIM_HOME, srcDir } from './paths.ts';
+import { DB_CONTAINER, DB_ROOT, runDir, SIM_HOME } from './paths.ts';
 
 describe('paths', () => {
   it('keeps everything under ~/.rivr-sim180, outside the repository', () => {
     expect(SIM_HOME).toBe(join(homedir(), '.rivr-sim180'));
+    expect(DB_ROOT.startsWith(SIM_HOME)).toBe(true);
   });
 
-  it('keeps one rewritten copy per commit and one folder per run', () => {
-    expect(srcDir('f01e4eb1')).toBe(join(SIM_HOME, 'src', 'f01e4eb1'));
+  it('names the container after the copy, so it never clashes with a worktree stack', () => {
+    expect(DB_CONTAINER).toBe('supabase_db_rivr-sim180-db');
+  });
+
+  it('keeps one folder per run', () => {
     expect(runDir('2026-11-15-a')).toBe(join(SIM_HOME, 'runs', '2026-11-15-a'));
   });
 });

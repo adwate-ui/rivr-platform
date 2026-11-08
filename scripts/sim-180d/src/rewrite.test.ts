@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findRealTimeCalls, rewriteTimeCalls } from './rewrite.ts';
+import { findRealTimeCalls, rewriteFiles, rewriteTimeCalls } from './rewrite.ts';
 
 describe('rewriteTimeCalls', () => {
   it.each([
@@ -32,6 +32,25 @@ describe('rewriteTimeCalls', () => {
   it('is idempotent, so a second pass changes nothing', () => {
     const once = rewriteTimeCalls('select now(), current_date, current_timestamp').text;
     expect(rewriteTimeCalls(once).text).toBe(once);
+  });
+});
+
+describe('rewriteFiles', () => {
+  it('rewrites every file and totals the counts', () => {
+    const result = rewriteFiles([
+      { name: 'a.sql', text: 'select now()' },
+      { name: 'b.sql', text: 'where d = current_date and t < now()' },
+    ]);
+    expect(result.files.map((file) => file.text)).toEqual([
+      'select sim_clock.now()',
+      'where d = (sim_clock.now())::date and t < sim_clock.now()',
+    ]);
+    expect(result.counts).toEqual({ now: 2, clock: 0, timestamp: 0, date: 1 });
+    expect(result.unhandled).toEqual([]);
+  });
+
+  it('names the file of each form left on the real clock', () => {
+    expect(rewriteFiles([{ name: 'c.sql', text: "select 'now'::timestamptz" }]).unhandled).toEqual(["c.sql: 'now'::"]);
   });
 });
 

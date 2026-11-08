@@ -54,3 +54,30 @@ const UNHANDLED = new RegExp(
 export function findRealTimeCalls(text: string): string[] {
   return [...text.matchAll(UNHANDLED)].map((match) => match[0]);
 }
+
+const KINDS: readonly (keyof RewriteCounts)[] = ['now', 'clock', 'timestamp', 'date'];
+
+export interface FileText {
+  name: string;
+  text: string;
+}
+
+export interface RewrittenFiles {
+  files: FileText[];
+  counts: RewriteCounts;
+  /** `file: form` for every time reading the rewrite left on the real clock. */
+  unhandled: string[];
+}
+
+/** Rewrites a set of files and totals what changed, so prepare can refuse a copy that still reads real time. */
+export function rewriteFiles(files: readonly FileText[]): RewrittenFiles {
+  const counts: RewriteCounts = { now: 0, clock: 0, timestamp: 0, date: 0 };
+  const unhandled: string[] = [];
+  const out = files.map((file) => {
+    const rewritten = rewriteTimeCalls(file.text);
+    for (const kind of KINDS) counts[kind] += rewritten.counts[kind];
+    unhandled.push(...findRealTimeCalls(rewritten.text).map((form) => `${file.name}: ${form}`));
+    return { name: file.name, text: rewritten.text };
+  });
+  return { files: out, counts, unhandled };
+}
