@@ -11,7 +11,7 @@ import { RequestList, tableNameOf } from './RequestList.tsx';
 import { useFloorData, useNow, type FloorData } from './useFloorData.ts';
 import { useFloorFocus } from './useFloorFocus.ts';
 import { useRequestChanges } from './useRequestChanges.ts';
-import { actionable, requestKey, useRequestQueue } from './useRequestQueue.ts';
+import { listedRows, requestKey, useRequestQueue } from './useRequestQueue.ts';
 import { useSeatChanges } from './useSeatChanges.ts';
 import { useTableChanges } from './useTableChanges.ts';
 
@@ -57,7 +57,7 @@ function focusedRequestKey(): string | null {
 
 /**
  * The floor's keys, through the console's registry (decision 0478): A and D act on the request whose button holds the
- * focus, else the oldest shown; S opens Seat a player; each only while there is something to do, and only while the staff
+ * focus, else the first shown; S opens Seat a player; each only while there is something to do, and only while the staff
  * member keeps shortcuts on. Seating an approved player is the floor's own press, never a key. Gives back S for Seat a
  * player's tooltip.
  */
@@ -104,7 +104,7 @@ function FloorReady({ venueId, permissions, data }: FloorProps & { data: FloorDa
     </>
   );
   return (
-    <DockedPanel title={t('console.floor.requests.title')} count={actionable(data.requests ?? []).length} isOpen={panel.isOpen} onToggle={panel.toggle}
+    <DockedPanel title={t('console.floor.requests.title')} count={listedRows(data.requests ?? []).length} isOpen={panel.isOpen} onToggle={panel.toggle}
       panel={requestsPanel} onHoverChange={queue.hold} hasPanel={isFloor}>
       <Screen title={t('console.liveFloor.title')} actions={(
         <FloorControls view={view} onView={setView} isNeedsYouOnly={isNeedsYouOnly} onNeedsYou={() => setNeedsYouOnly(!isNeedsYouOnly)}

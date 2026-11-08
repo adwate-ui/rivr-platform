@@ -4830,6 +4830,9 @@ isOneToOne: false
 "call_from_waitlist":
 { Args: { "p_entry_id": string,"p_seat": number,"p_table_id": string }; Returns: undefined
                            },
+"call_to_seat":
+{ Args: { "p_entry_id": string }; Returns: number
+                           },
 "cameras":
 { Args: { "p_venue_id": string }; Returns: {
               "camera_id": string,"channel": string,"is_active": boolean,"is_cage": boolean,"name": string,"table_id": string,"table_name": string

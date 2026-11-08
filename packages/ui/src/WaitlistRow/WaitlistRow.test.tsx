@@ -11,6 +11,14 @@ const place = {
 };
 
 describe('WaitlistRow', () => {
+  it('offers a second action before the first, read with who it acts on', () => {
+    const onCall = vi.fn();
+    renderIn(<WaitlistRow position={1} name="Ishaan Verma" action={{ label: 'Seat', name: 'Seat Ishaan Verma', onClick: vi.fn() }}
+      secondary={{ label: 'Call', name: 'Call Ishaan Verma', onClick: onCall }} />);
+    screen.getByRole('button', { name: 'Call Ishaan Verma' }).click();
+    expect(onCall).toHaveBeenCalledOnce();
+  });
+
   it('shows the place, who and how long, with Seat read with the name', async () => {
     const onSeat = vi.fn();
     renderIn(<WaitlistRow {...place} action={{ label: 'Seat', name: 'Seat Kabir Sethi', onClick: onSeat }} />);

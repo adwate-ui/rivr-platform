@@ -37,8 +37,8 @@ export function leaverOfRequest(request: LeaveRequest, data: FloorData): Leaver 
   return player === undefined ? null : leaverOf(player, tableName);
 }
 
-/** The seat sheet for an approved player: their table, its first free seat, and them chosen. */
-const seatSheetOf = (alert: SeatAlert): FloorSheet => ({ kind: 'seat', tableId: alert.tableId, seat: null, entryId: alert.id });
+/** The seat sheet for an approved player: their table, the seat held for them or its first free one, and them chosen. */
+const seatSheetOf = (alert: SeatAlert): FloorSheet => ({ kind: 'seat', tableId: alert.tableId, seat: alert.seat, entryId: alert.id });
 
 
 /**

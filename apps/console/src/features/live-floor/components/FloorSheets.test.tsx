@@ -72,6 +72,14 @@ describe('The player sheet (console v3)', () => {
     await waitFor(() => expect(rpcs('undo_call_time')).toEqual([{ p_request_id: Reflect.get(Object(added), 'p_idempotency_key') }]));
   });
 
+  it('offers one Leave: the card\'s once the player has asked to go (audit F-131)', async () => {
+    await renderFloor();
+    fireEvent.click(screen.getByRole('button', { name: /^Seat 3, Rohan Bhatia/ }));
+    const player = await sheet('Rohan Bhatia');
+    expect(within(player).getAllByRole('button', { name: 'Leave' })).toHaveLength(1);
+    expect(within(player).getByRole('button', { name: 'Not leaving' })).toBeDefined();
+  });
+
   it('moves a player to a table chosen first, then a seat, and Undo moves them back', async () => {
     const { rpcs } = await renderFloor();
     fireEvent.click(screen.getByRole('button', { name: 'Seat 5, Kabir Sethi, +1 h?' }));
@@ -197,12 +205,35 @@ describe('The seat sheet (console v3)', () => {
     expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
   });
 
+  it('asks for a call time when Custom holds none, and seats nobody (audit F-112)', async () => {
+    const { rpcs } = await renderFloor();
+    fireEvent.click(within(tile('Table 1 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
+    const seat = await sheet('Seat a player');
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Mobile or member number' }), { target: { value: '42' } });
+    fireEvent.click(within(seat).getByRole('radio', { name: 'Custom' }));
+    fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
+    expect(await within(seat).findByText('Enter a call time of 0 to 1,440 minutes.')).toBeDefined();
+    expect(rpcs('seat_member')).toEqual([]);
+  });
+
+  it('seats at the new table\'s own call time after Custom was left empty on another table', async () => {
+    const { rpcs } = await renderFloor();
+    fireEvent.click(within(tile('Table 1 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
+    const seat = await sheet('Seat a player');
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Mobile or member number' }), { target: { value: '42' } });
+    fireEvent.click(within(seat).getByRole('radio', { name: 'Custom' }));
+    fireEvent.click(within(seat).getByRole('radio', { name: 'Table 2' }));
+    fireEvent.change(within(seat).getByRole('textbox', { name: /obile or member number$/ }), { target: { value: '42' } });
+    fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
+    await waitFor(() => expect(rpcs('seat_member')).toHaveLength(1));
+  });
+
   it('says why bonus chips were not redeemed, and seats nobody', async () => {
     await renderFloor({ ...FLOOR, replies: { seat_member: { status: 400, body: { code: 'RVBON', message: 'short' } } } });
     fireEvent.click(within(tile('Table 1 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
     const seat = await sheet('Seat a player');
-    expect(within(seat).getByText('Checked as they sit.')).toBeDefined();
-    fireEvent.change(within(seat).getByRole('textbox', { name: 'Or a mobile or member number' }), { target: { value: '42' } });
+    expect(within(seat).getByText('Up to their balance. Taken off when they sit.')).toBeDefined();
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Mobile or member number' }), { target: { value: '42' } });
     fireEvent.change(within(seat).getByRole('textbox', { name: 'Bonus chips to redeem' }), { target: { value: '5000' } });
     fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
     expect(await screen.findByText('More bonus chips than the member has. Not seated.')).toBeDefined();

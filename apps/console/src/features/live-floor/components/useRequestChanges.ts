@@ -1,6 +1,6 @@
 import {
-  useApproveWaitlistRequest, useDecideCallTime, useFloorActions, useFloorUndo, useSeatActions, useSeatCalled, useSetTopUp,
-  type FloorRequest, type SeatAlert,
+  useApproveWaitlistRequest, useDecideCallTime, useFloorActions, useFloorUndo, useSeatActions, useSetTopUp,
+  type FloorRequest,
 } from '@rivr/db';
 import { formatDuration, t } from '@rivr/i18n';
 import { useChangeToast } from './useChangeToast.ts';
@@ -18,7 +18,6 @@ function useJoinChanges(venueId: string) {
   const undo = useFloorUndo(venueId);
   const approve = useApproveWaitlistRequest();
   const { declineJoin } = useFloorActions(venueId);
-  const seatCalled = useSeatCalled(venueId);
   const undoJoin = (join: Join) => () => undo.mutateAsync({ kind: 'join', entryId: join.id });
   return {
     approveJoin: async (join: Join, table: string) => {
@@ -27,12 +26,6 @@ function useJoinChanges(venueId: string) {
       return outcome.ok;
     },
     declineJoin: async (join: Join) => say(await declineJoin.mutateAsync(join.id), t('console.floor.toast.joinDeclined', { name: join.fullName }), undoJoin(join)),
-    seatCalled: async (alert: SeatAlert, table: string) => {
-      const outcome = await seatCalled.mutateAsync({ entryId: alert.id, memberId: alert.memberId });
-      const sessionId = outcome.ok ? outcome.value : null;
-      say(outcome, t('console.floor.toast.seated', { name: alert.fullName, table, seat: alert.seat ?? 0 }),
-        sessionId === null ? undefined : () => undo.mutateAsync({ kind: 'seat', sessionId }));
-    },
   };
 }
 

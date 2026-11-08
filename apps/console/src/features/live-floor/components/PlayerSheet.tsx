@@ -43,7 +43,8 @@ function CallTime({ player, now }: { player: SeatedPlayer; now: Date }) {
         <Text variant="caption" tone="muted">{t('console.floor.player.callTime')}</Text>
         <Text variant="caption" tone="muted">{t('console.floor.player.since', { time: formatTime(new Date(player.startedAt)) })}</Text>
       </Inline>
-      <Figure size="title">{figure}</Figure>
+      {/* Nothing to count down: said at body size, not as the sheet's largest words (audit F-131). */}
+      {left === null ? <Text tone="muted">{figure}</Text> : <Figure size="title">{figure}</Figure>}
       {left === null ? null : <ProgressBar tone="muted" fraction={played / Math.max(1, played + left)} />}
     </Stack>
   );
@@ -102,9 +103,11 @@ function Move({ player, tables, seats, held, changes }: Pick<PlayerSheetProps, '
 export function PlayerSheet(props: PlayerSheetProps) {
   const { venueId, player, table, requests, targets, now, permissions, changes, onLeave, onClose } = props;
   const asks = requests.filter((request) => request.kind !== 'left_owing' && 'sessionId' in request && request.sessionId === player.sessionId);
+  // One Leave: the card's, when the player has asked to go (audit F-131).
+  const hasAskedToLeave = asks.some((request) => request.kind === 'leaving');
   const footer = (
-    <Inline justify="between" grow>
-      <Button variant="text" onClick={() => onLeave()}>{t('console.floor.player.leave')}</Button>
+    <Inline justify={hasAskedToLeave ? 'end' : 'between'} grow>
+      {hasAskedToLeave ? null : <Button variant="text" onClick={() => onLeave()}>{t('console.floor.player.leave')}</Button>}
       <Button variant="text" onClick={onClose}>{t('console.floor.player.close')}</Button>
     </Inline>
   );

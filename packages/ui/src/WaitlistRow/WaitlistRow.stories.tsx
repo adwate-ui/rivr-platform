@@ -34,8 +34,17 @@ export const Loading: Story = { args: { action: { label: 'Seat', name: 'Seat Ish
 
 export const Compact: Story = { args: { density: 'compact' } };
 
+/** Call beside Seat, for a waiting member with a free seat (the owner, 8 Nov). */
+export const WithCall: Story = { args: { secondary: { label: 'Call', name: 'Call Ishaan Verma', onClick: noop } } };
+
 export const LongText: Story = {
   args: { position: 12, name: 'Venkataraghavan Subramaniam-Krishnamurthy', meta: '1 h 45 min · added by the floor · place held' },
 };
 
 export const OnAPhone: Story = { tags: ['viewport-phone'] };
+
+/** Call and Seat under a long name, on a phone: the name keeps its line. */
+export const WithCallOnAPhone: Story = {
+  tags: ['viewport-phone'],
+  args: { name: 'Venkataraghavan Subramaniam-Krishnamurthy', secondary: { label: 'Call', name: 'Call Venkataraghavan', onClick: noop } },
+};
