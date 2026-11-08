@@ -112,6 +112,14 @@ describe('CommandPalette', () => {
     expect(screen.getByRole('alert')).toBeInTheDocument();
   });
 
+  it('marks the result with a gold bar, and keeps a line under the field while it has the focus (F-019)', () => {
+    renderIn(<CommandPalette isOpen onOpenChange={vi.fn()} query="ri" onQueryChange={vi.fn()} groups={groups()} />);
+    const [first, second] = screen.getAllByRole('option');
+    expect(first).toHaveClass('border-s-2', 'border-gold');
+    expect(second).toHaveClass('border-s-2', 'border-transparent');
+    expect(screen.getByRole('combobox')).toHaveClass('focus:border-focus');
+  });
+
   it('has no accessibility violations', async () => {
     renderIn(<CommandPalette isOpen onOpenChange={vi.fn()} query="ri" onQueryChange={vi.fn()} groups={groups()} />);
     expect(await axeViolations(document.body)).toEqual([]);

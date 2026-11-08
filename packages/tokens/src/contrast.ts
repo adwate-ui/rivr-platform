@@ -26,6 +26,13 @@ function composite(top: Rgba, bottom: Rgba): Rgba {
   return { red: mix(top.red, bottom.red), green: mix(top.green, bottom.green), blue: mix(top.blue, bottom.blue), alpha: 1 };
 }
 
+/** A translucent fill as the opaque colour it shows on `ground`, as `#RRGGBB`: a tint's real ground for the text on it. */
+export function flatten(fill: string, ground: string): string {
+  const { red, green, blue } = composite(parseHex(fill), parseHex(ground));
+  const two = (channel: number) => Math.round(channel).toString(16).padStart(2, '0');
+  return `#${two(red)}${two(green)}${two(blue)}`;
+}
+
 function relativeLuminance({ red, green, blue }: Rgba): number {
   const linear = (channel: number) => {
     const value = channel / 255;

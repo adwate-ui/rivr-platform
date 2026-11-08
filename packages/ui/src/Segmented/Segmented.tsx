@@ -36,7 +36,7 @@ const HEIGHT: Record<SegmentedSize, string> = { compact: 'min-h-touch tablet:min
 
 /**
  * One choice of two to four, such as the floor's Summary or Seats (console v3): a radio group on a faint track, the
- * chosen option on cream at 12%. It is one stop for Tab, and the arrow keys move along it and choose as they go.
+ * chosen option on cream at 12% with a gold edge inside it (F-019). It is one stop for Tab, and the arrow keys move along it and choose as they go.
  */
 export function Segmented<Value extends string>({ label, options, value, onChange, size = 'compact' }: SegmentedProps<Value>) {
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
@@ -59,7 +59,7 @@ export function Segmented<Value extends string>({ label, options, value, onChang
         return (
           <button key={option.value} ref={(element) => { buttons.current[index] = element; }} type="button" role="radio"
             aria-checked={isChosen} tabIndex={index === chosen ? 0 : -1} onClick={() => choose(index)} onKeyDown={(event) => onKeyDown(event, index)}
-            className={cx(SEGMENT, HEIGHT[size], isChosen && 'bg-cream-track font-medium')}>
+            className={cx(SEGMENT, HEIGHT[size], isChosen && 'bg-cream-track font-medium inset-ring inset-ring-gold')}>
             {option.label}
           </button>
         );

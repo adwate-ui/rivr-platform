@@ -33,6 +33,9 @@ describe('Segmented', () => {
     expect(screen.getByRole('radio', { name: 'Compact' })).toHaveClass('bg-cream-track', 'text-content', 'font-medium', 'rounded-sm', 'text-13');
     expect(screen.getByRole('radio', { name: 'Dense' })).toHaveClass('text-content');
     expect(screen.getByRole('radio', { name: 'Dense' })).not.toHaveClass('bg-cream-track');
+    // Against its track the fill alone is 1.38:1: the chosen one has a gold edge (F-019).
+    expect(screen.getByRole('radio', { name: 'Compact' })).toHaveClass('inset-ring', 'inset-ring-gold');
+    expect(screen.getByRole('radio', { name: 'Dense' })).not.toHaveClass('inset-ring');
   });
 
   it('chooses an option when pressed, and not again when it is already chosen', async () => {
