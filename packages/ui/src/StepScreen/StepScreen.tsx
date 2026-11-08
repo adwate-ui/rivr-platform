@@ -32,7 +32,7 @@ const ALIGN = { top: 'pt-6', center: 'items-center justify-center' } as const;
 
 const BACK_CHEVRON = { icon: 'chevronLeft' } as const;
 
-const FOOTER_RULED = '-mx-6 border-t border-hairline px-6 pt-3';
+const FOOTER_RULED = '-mx-5 border-t border-hairline px-5 pt-3';
 
 /** The redesign's step: its title's size, eyebrow and subtitle; a bar of the steps in place of Back's words; a ruled footer. */
 export interface StepLook {
@@ -112,7 +112,7 @@ export function StepScreen({ children, footer, title, back, align = 'top', onSub
   };
   return (
     <div className="flex min-h-dvh w-full flex-col bg-surface text-content medium:items-center medium:justify-center medium:px-6 medium:py-12">
-      <div className="mx-auto flex w-full max-w-phone flex-1 flex-col px-6 pt-4 pb-8 medium:flex-none medium:rounded-lg medium:border medium:border-hairline medium:bg-raised medium:px-10 medium:py-10">
+      <div className="mx-auto flex w-full max-w-phone flex-1 flex-col px-5 pt-4 pb-8 medium:flex-none medium:rounded-lg medium:border medium:border-hairline medium:bg-raised medium:px-10 medium:py-10">
         {back ? <StepBack back={back} look={look} /> : null}
         <main className="flex flex-1 flex-col">
           {onSubmit ? (

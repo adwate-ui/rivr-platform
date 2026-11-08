@@ -3,7 +3,7 @@ import { t } from '@rivr/i18n';
 import { Button, DoneMark, Heading, Stack, StepScreen, Text } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 
-/** The check is done (decision 0320): a gold tick, "Verified", a welcome by first name, and on to the tables. */
+/** The check is done (decision 0320): a gold tick, "Verified", a welcome by first name, centred (F-149), and on to the tables. */
 export function KycVerified() {
   const navigate = useNavigate();
   const firstName = useMember().data?.fullName.split(' ')[0] ?? '';
@@ -16,10 +16,10 @@ export function KycVerified() {
         </Button>
       }
     >
-      <Stack gap={4} align="start">
+      <Stack gap={4} align="center">
         <DoneMark />
-        <Heading level={1} variant="serif" serifSize={44}>{t('player.kyc.verifiedTitle')}</Heading>
-        {firstName ? <Text tone="muted">{t('player.kyc.welcome', { name: firstName })}</Text> : null}
+        <Heading level={1} variant="serif" serifSize={44} align="center">{t('player.kyc.verifiedTitle')}</Heading>
+        {firstName ? <Text tone="muted" align="center">{t('player.kyc.welcome', { name: firstName })}</Text> : null}
       </Stack>
     </StepScreen>
   );

@@ -21,7 +21,7 @@ export function MyRedemptionList() {
   if (redemptions.data.length === 0) return null;
   return (
     <Stack gap={2}>
-      <Heading level={2} variant="subsection">{t('memberRewards.yourRedemptions')}</Heading>
+      <Heading level={2} variant="eyebrow">{t('memberRewards.yourRedemptions')}</Heading>
       <Box>
         {redemptions.data.map((redemption) => {
           const status = statusOf(redemption);

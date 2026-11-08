@@ -10,7 +10,7 @@ import { cx } from '../internal/classes.ts';
  * the page. `step` is the title of a step of sign-in or KYC.
  * The rest use the text face.
  */
-export type HeadingVariant = 'display' | 'poster' | 'tvTitle' | 'tvCode' | 'hero' | 'band' | 'statement' | 'step' | 'title' | 'section' | 'subsection' | 'card' | 'serif';
+export type HeadingVariant = 'display' | 'poster' | 'tvTitle' | 'tvCode' | 'hero' | 'band' | 'statement' | 'step' | 'title' | 'section' | 'subsection' | 'card' | 'serif' | 'eyebrow';
 
 /** The display face's sizes for `serif`, the player redesign's titles (decision 0320): a screen's is 36, a sheet's 32. */
 export type SerifSize = 28 | 32 | 36 | 40 | 44 | 48;
@@ -55,6 +55,8 @@ const VARIANT: Record<HeadingVariant, string> = {
   // A console card's or tile's name (console v3): the console's 15 px body, in semibold.
   card: 'font-text text-15 leading-snug font-semibold',
   serif: 'font-display leading-tight font-regular',
+  // A section of a player tab, as Profile's groups and Rewards' are titled (F-172): the gold eyebrow, a heading to screen readers.
+  eyebrow: 'font-text text-12 leading-snug font-medium uppercase tracking-wide',
 };
 
 const SERIF_SIZE: Record<SerifSize, string> = { 28: 'text-28', 32: 'text-32', 36: 'text-36', 40: 'text-40', 44: 'text-44', 48: 'text-48' };
@@ -74,7 +76,7 @@ export function Heading({ children, level, variant = DEFAULT_VARIANT[level], ser
   }, [isFocusedOnMount]);
   const isFocusable = isFocusTarget === true || isFocusedOnMount === true;
   return (
-    <Element ref={heading} className={cx('text-content', VARIANT[variant], variant === 'serif' && SERIF_SIZE[serifSize], align === 'center' && 'text-center', hiddenClass(isVisuallyHidden, isShownFromMedium), isFocusable && 'outline-none')}
+    <Element ref={heading} className={cx(variant === 'eyebrow' ? 'text-accent' : 'text-content', VARIANT[variant], variant === 'serif' && SERIF_SIZE[serifSize], align === 'center' && 'text-center', hiddenClass(isVisuallyHidden, isShownFromMedium), isFocusable && 'outline-none')}
       id={id} tabIndex={isFocusable ? -1 : undefined}>
       {children}
     </Element>

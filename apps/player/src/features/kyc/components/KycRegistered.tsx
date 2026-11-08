@@ -19,11 +19,11 @@ export function KycRegistered() {
         </Button>
       }
     >
-      <Stack gap={4} align="start">
+      <Stack gap={4} align="center">
         <DoneMark />
-        <Heading level={1} variant="serif" serifSize={44}>{t('player.kyc.registeredTitle')}</Heading>
-        {firstName ? <Text tone="muted">{t('player.kyc.welcome', { name: firstName })}</Text> : null}
-        <Text>{t('player.kyc.atTheDesk')}</Text>
+        <Heading level={1} variant="serif" serifSize={44} align="center">{t('player.kyc.registeredTitle')}</Heading>
+        {firstName ? <Text tone="muted" align="center">{t('player.kyc.welcome', { name: firstName })}</Text> : null}
+        <Text align="center">{t('player.kyc.atTheDesk')}</Text>
       </Stack>
     </StepScreen>
   );
