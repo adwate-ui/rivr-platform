@@ -4,7 +4,7 @@ import { Button, DoneMark, Heading, Stack, StepScreen, Text } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 
 /**
- * The selfie is in while the club checks identity at the desk (decision 0502): a gold tick, "You're registered.", a welcome
+ * The selfie is in while the club checks identity at the desk (decision 0502): a gold tick, "Registered", a welcome
  * by first name, what to bring on the first visit, and on into the app, as KycVerified does.
  */
 export function KycRegistered() {

@@ -74,7 +74,7 @@ test.describe('Sign in', { tag: '@staging' }, () => {
     await requestCode(page, '9000000203');
     await expect(page.getByRole('button', { name: 'Verify' })).toBeDisabled();
     await page.getByRole('textbox', { name: '6-digit code' }).fill('000000');
-    await expect(page.getByText("That code didn't match.")).toBeVisible();
+    await expect(page.getByText('Wrong or expired code. Check it, or resend.')).toBeVisible();
     await expect(page.getByRole('textbox', { name: '6-digit code' })).toHaveValue('');
     await expect(page.getByRole('button', { name: /^Resend code in \d:\d\d$/ })).toBeDisabled();
   });

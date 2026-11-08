@@ -49,7 +49,7 @@ export const playerEvents = {
     invalid: 'That is not possible.',
     past: 'That event has started.',
     full: 'Every seat is booked.',
-    paused: 'Paused. Ask at the club.',
+    paused: 'The club is paused. Ask a member of staff.',
     unavailable: 'That did not go through. Try again.',
   },
 } as const;

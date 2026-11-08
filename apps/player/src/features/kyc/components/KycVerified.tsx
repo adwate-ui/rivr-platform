@@ -3,7 +3,7 @@ import { t } from '@rivr/i18n';
 import { Button, DoneMark, Heading, Stack, StepScreen, Text } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 
-/** The check is done (decision 0320): a gold tick, "You're verified.", a welcome by first name, and on to tonight's tables. */
+/** The check is done (decision 0320): a gold tick, "Verified", a welcome by first name, and on to the tables. */
 export function KycVerified() {
   const navigate = useNavigate();
   const firstName = useMember().data?.fullName.split(' ')[0] ?? '';

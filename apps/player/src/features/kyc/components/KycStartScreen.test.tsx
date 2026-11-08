@@ -72,7 +72,7 @@ describe('Identity › At the club (decision 0502)', () => {
 
   it('tells a member let in by their selfie they are registered, and what to bring', async () => {
     renderIdentity({ id: 'm1', full_name: 'Kabir Sethi' }, { atTheClub: true, record: { ...STARTED, at_club_from: '2026-11-05T09:00:00Z' } });
-    expect(await screen.findByRole('heading', { name: "You're registered." })).toBeDefined();
+    expect(await screen.findByRole('heading', { name: 'Registered' })).toBeDefined();
     expect(screen.getByText('Bring your Aadhaar and PAN on your first visit. The desk checks them before you play.')).toBeDefined();
     expect(screen.getByRole('button', { name: 'See the tables' })).toBeDefined();
   });

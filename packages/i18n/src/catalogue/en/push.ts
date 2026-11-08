@@ -55,8 +55,8 @@ export const push = {
     requested: 'Requested',
     heldFor: 'Seat ready · held for',
     callTimeLeft: 'Call time left',
-    /** Top right while seated: `Table 1 · Seat 4`. */
-    seat: '{table} · Seat {seat}',
+    /** Top right while seated: `Table 1, seat 4`. */
+    seat: '{table}, seat {seat}',
     onMyWay: "I'm on my way",
     order: 'Order',
   },

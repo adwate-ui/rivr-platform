@@ -139,7 +139,7 @@ describe('Tonight', () => {
 
   it('Seated: the seat in the header and the call time counting down to its end', async () => {
     renderTonight([], [SEAT]);
-    expect(await screen.findByRole('heading', { name: 'Table 1 · Seat 4' }, LATER)).toBeDefined();
+    expect(await screen.findByRole('heading', { name: 'Table 1, seat 4' }, LATER)).toBeDefined();
     expect(screen.getByText('NLH 50/100 · playing 19 min')).toBeDefined();
     expect(screen.getByRole('timer', { name: 'Call time left 2h 41m' }).textContent).toBe('2:41:08');
   });
@@ -186,7 +186,7 @@ describe('Tonight', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Add time' }, LATER));
     expect(await screen.findByRole('dialog', { name: 'Add time' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Request 45 min' })).toBeDefined();
-    expect(screen.getByRole('radio', { name: '1 hour 30' })).toBeDefined();
+    expect(screen.getByRole('radio', { name: '1 h 30 min' })).toBeDefined();
     expect(screen.queryByRole('radio', { name: '2 hours' })).toBeNull();
   });
 
@@ -217,7 +217,7 @@ describe('Tonight', () => {
 
   it('Seat ready push for a call that is over: nothing is sent', async () => {
     const { router, asked } = renderTonight([], [SEAT], {}, '/?accept=e1');
-    expect(await screen.findByRole('heading', { name: 'Table 1 · Seat 4' }, LATER)).toBeDefined();
+    expect(await screen.findByRole('heading', { name: 'Table 1, seat 4' }, LATER)).toBeDefined();
     await vi.waitFor(() => expect(router.state.location.search).toEqual({}));
     expect(asked.filter((call) => call.startsWith('accept_seat_call'))).toEqual([]);
   });

@@ -69,7 +69,8 @@ export const playerLive = {
     declinedToast: 'Seat declined',
   },
   seated: {
-    title: '{table} · Seat {seat}',
+    /** `Table 3, seat 4`, as the seated toast and the push say it. */
+    title: '{table}, seat {seat}',
     /** Under the seat: `NLH 50/100 · playing 19 min`. */
     playing: '{game} · playing {time}',
     left: 'call time left · ends {time}',
@@ -87,7 +88,7 @@ export const playerLive = {
     /** `{choice}` is `1 hour`. */
     requestTime: 'Request {choice}',
     /** Every length the club may offer (decision 0305); the club's setting picks which show. */
-    times: { m15: '15 min', m30: '30 min', m45: '45 min', m60: '1 hour', m90: '1 hour 30', m120: '2 hours', m180: '3 hours', m240: '4 hours' },
+    times: { m15: '15 min', m30: '30 min', m45: '45 min', m60: '1 hour', m90: '1 h 30 min', m120: '2 hours', m180: '3 hours', m240: '4 hours' },
     /** Once the floor approves: `1 hour added`. */
     timeAdded: '{choice} added',
     leaveTitle: 'Leave your seat?',
@@ -105,7 +106,7 @@ export const playerLive = {
     statusTopUp: 'Top-up',
     requested: 'Requested',
     inProgress: 'In progress',
-    statusTimes: { m15: '+15 min', m30: '+30 min', m45: '+45 min', m60: '+1 h', m90: '+1 h 30', m120: '+2 h', m180: '+3 h', m240: '+4 h' },
+    statusTimes: { m15: '+15 min', m30: '+30 min', m45: '+45 min', m60: '+1 h', m90: '+1 h 30 min', m120: '+2 h', m180: '+3 h', m240: '+4 h' },
     statusLeaving: 'Leaving list',
     onTheList: 'On the list',
     /** A seated member's place on another list to change tables (#781), with no table asked for: `Waitlist · NLH 100/200`. */
