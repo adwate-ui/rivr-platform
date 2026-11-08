@@ -67,9 +67,23 @@ Each was confirmed against RIVR's code before it was fixed. A RIVR defect is a f
 | A promotion's welcome grant counted as bonus chips "given by hand" to the member's own record | N04 judges only grants no promotion made |
 | A snapshot restarts the stack, leaving a stale keep-alive socket for the next request | A request that fails before it is sent is tried again, up to three times |
 | N11 and N13 matched a hidden member's first name and initial against another member who shares it | The boards' own `first_name_and_initial`, counted only where no member on the TVs shares the short name |
+| The freeze drill released the venue as the same super admin, which only asks for a release; nights 75 to 77 stayed frozen | A second super admin releases it, as the kill switch requires |
+| The apps' preview servers read the stack's key at run time and found none ("supabaseKey is required"); the website (Astro) reads `PUBLIC_*`, not `VITE_*` | The census and walks point the worktree's ignored config at the copy and pass both sets of variables |
+| Logins the simulation made had NULL token columns, which Auth cannot read, so they could not sign in ("Sign-in is down") | Those columns are empty strings, as Auth's own rows have them |
+| `ltrim(phone, '+91')` strips any of those characters, turning +919000000218 into 000000218 | `substr(phone, 4)` |
+| Every stored selfie and desk photo was a storage row with no file, so photos never loaded in the census | One made-up portrait is uploaded for each before the browsers open |
+| The iPhone-size project ran in Chromium: the device preset only names WebKit as its default | The project asks for WebKit |
+| A checkpoint's census plays the night after its snapshot, so "New Year's Eve" showed 1 January | `--keep` censuses a night no snapshot ends before; New Year's Eve itself was replayed from night 30 |
+| Device pairing used the admin's session before it was saved (ten workers), and members absent at a checkpoint failed their sign-in | Devices pair in their own step after every sign-in; absent members are skipped |
+| A stopped run left a preview server on the worktree's ports, which later died mid-census | The app ports are freed before each census or walk |
+| The e2e flows reach the database as `supabase_db_<worktree>`; the copy runs as `supabase_db_rivr-sim180-db` | `walks/bin/docker` maps the one name to the other on the walks' PATH only |
+| The census's error-state pictures are taken about 1.5 s after load, before the apps' retries end | Not fixed: listed under "Not covered" |
 
 ## Not covered
 
 - A real tablet and real TVs (their sizes are emulated, and the tablet APK is not tested), Cashfree (off), real money, load beyond a peak night.
 - Hidden modules, apart from being unreachable and showing no ₹.
 - Edge in the staging walks: Chromium, the same engine, runs them.
+- The message consumers for vendors (ads, social, KYC recheck, payouts) are not run in the simulation, so its `outbox.silent` owner alerts are the harness's, not RIVR's.
+- The final error state of each screen (captured before the retries end) and the website's front page at 390 px.
+- The first run (8 Nov) stopped at night 90 at the owner's request; nights 48 to 90 ran three steps a call with the consumers every 30 simulated minutes.
