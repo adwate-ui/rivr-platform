@@ -22,7 +22,7 @@ export const BonusChips: Story = {
 export const Pair: Story = {
   render: () => (
     <Grid columns={2} gap={3}>
-      <BalanceTile icon="star" figure="3,250" label="Points" line="Spend on rewards." />
+      <BalanceTile icon="star" figure="3,250" label="Points" line="Spend on rewards." onOpen={() => undefined} />
       <BalanceTile icon="chip" figure="1,500" label="Bonus chips" line="Use with your buy-in. Never expire." tone="money" onOpen={() => undefined} />
     </Grid>
   ),

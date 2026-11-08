@@ -1,9 +1,6 @@
-import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
-import { ToastProvider } from '@rivr/ui';
-import { QueryClient } from '@tanstack/react-query';
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { RewardsScreen } from './RewardsScreen.tsx';
+import { BONUS_LINES, LATER, renderRewards } from './rewardsTestKit.tsx';
 
 afterEach(() => {
   cleanup();
@@ -11,73 +8,11 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const FEATURES = ['rewards.catalogue', 'referral.share_cards', 'rewards.bonus'].map((feature_key) => ({ feature_key, state: 'enabled', tiers: null }));
-/** Meera's bonus chips (decision 0504): 1,250 left after a 1,500 welcome and 1,000 used at Table 3, and more given before. */
-const BONUS_LINES = [
-  { line_id: 'b2', at: '2026-11-15T18:00:00Z', kind: 'redeemed', amount_paise: 100_000, reason: null, table_name: 'Table 3' },
-  { line_id: 'b1', at: '2026-11-14T18:00:00Z', kind: 'credited', amount_paise: 150_000, reason: 'Welcome bonus', table_name: null },
-];
-interface BonusReplies { balance: number | 'down'; lines: readonly unknown[] }
-const ITEMS = [
-  { id: 'chai', kind: 'fnb_upgrade', name: 'Masala chai upgrade', detail: 'At the bar', points: 500, nights: null, stock: null, is_live: true, photo_path: null },
-  { id: 'hoodie', kind: 'merchandise', name: 'RIVR hoodie', detail: 'At the host desk', points: 3000, nights: null, stock: 0, is_live: true, photo_path: null },
-  { id: 'seat', kind: 'tournament_seat', name: 'Sunday Main Event seat', detail: 'Booked by the host', points: 4000, nights: null, stock: null, is_live: true, photo_path: null },
-];
-const REDEMPTION = {
-  id: 'r0', reward_name: 'RIVR cap', kind: 'merchandise', detail: 'At the host desk', points: 800, nights: null, created_at: '2026-11-01T18:00:00Z', handed_over_at: null, cancelled_at: null, cancel_reason: null,
-};
-
-/** The bonus chips' replies (decision 0504): the history, kept as asked for, or the balance; undefined for any other path. */
-function bonusReply(url: string, body: string, bonus: BonusReplies, historyAsked: unknown[]): Response | undefined {
-  if (url.includes('/rpc/my_bonus_history')) {
-    historyAsked.push(JSON.parse(body));
-    return Response.json(bonus.lines);
-  }
-  if (!url.includes('/rpc/my_bonus')) return undefined;
-  return bonus.balance === 'down' ? Response.json({ code: 'XX000', message: 'down' }, { status: 500 }) : Response.json([{ bonus_paise: bonus.balance }]);
-}
-
-/** Meera signed in with 3,250 points, bonus chips, the catalogue and Refer a friend; redeeming sends its order to `redeemed`. */
-function renderRewards(points = 3250, bonus: BonusReplies = { balance: 125_000, lines: BONUS_LINES }) {
-  const historyAsked: unknown[] = [];
-  localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
-    access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
-    user: { id: '00000000-0000-4000-8000-000000000231', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
-  }));
-  const redeemed: unknown[] = [];
-  // Each read's reply by its path; any other is nothing.
-  const answers: Record<string, unknown> = {
-    '/rpc/my_feature_access': FEATURES, '/rpc/my_rewards': [{ points, tier_name: 'Founders’ Circle', nights: 0 }], '/rpc/my_locked_points': 0,
-    '/rest/v1/reward_item': ITEMS, '/rpc/my_redemptions': [REDEMPTION], '/rpc/my_referral': [{ code: 'RIVR4821', referred: 2, bonus_paise: 100000 }],
-  };
-  vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = String(input instanceof Request ? input.url : input);
-    const body = String(init?.body ?? '{}');
-    const bonusAnswer = bonusReply(url, body, bonus, historyAsked);
-    if (bonusAnswer !== undefined) return bonusAnswer;
-    if (url.includes('/rpc/redeem_reward')) {
-      redeemed.push(JSON.parse(body));
-      return Response.json('r1');
-    }
-    const path = Object.keys(answers).find((key) => url.includes(key));
-    return Response.json(path === undefined ? [] : answers[path]);
-  });
-  render(
-    <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
-      queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <ToastProvider><RewardsScreen /></ToastProvider>
-    </RivrDataProvider>,
-  );
-  return { redeemed, historyAsked };
-}
-
-const LATER = { timeout: 5000 };
-
 describe('Rewards: points and bonus chips (decision 0504; owner, 8 Nov)', () => {
   it('shows points and bonus chips side by side, each with what it is for, the history closed until the chips tile opens it', async () => {
     const { historyAsked } = renderRewards();
     const chips = await screen.findByRole('button', { name: /Bonus chips/ }, LATER);
-    expect(chips.textContent).toBe('1,250Bonus chipsUse with your buy-in. Never expire.');
+    expect(chips.textContent).toBe('1,250Bonus chipsUse with your buy-in. Never expire.History');
     expect(screen.getByText('Points')).toBeDefined();
     expect(screen.getByText('Spend on rewards.')).toBeDefined();
     expect(chips.getAttribute('aria-expanded')).toBe('false');
@@ -93,6 +28,21 @@ describe('Rewards: points and bonus chips (decision 0504; owner, 8 Nov)', () => 
     expect(historyAsked).toEqual([{ p_limit: 20 }]);
     expect(screen.queryByRole('button', { name: 'Show earlier' })).toBeNull();
     expect(screen.queryByText(/₹/)).toBeNull();
+  });
+
+  it('opens the points history from its tile, each line signed, closed until the member opens it (F-054)', async () => {
+    renderRewards();
+    const points = await screen.findByRole('button', { name: /Spend on rewards/ }, LATER);
+    expect(points.textContent).toContain('History');
+    expect(screen.queryByText('Redeemed: RIVR cap · 15 Nov')).toBeNull();
+    fireEvent.click(points);
+    expect(points.getAttribute('aria-expanded')).toBe('true');
+    expect(await screen.findByRole('heading', { name: 'Points history' }, LATER)).toBeDefined();
+    expect(await screen.findByText('Redeemed: RIVR cap · 15 Nov', {}, LATER)).toBeDefined();
+    expect(screen.getByText('−500')).toBeDefined();
+    expect(screen.getByText('Locked · Founders pack · 14 Nov')).toBeDefined();
+    expect(screen.getByText('Points for the visit · 13 Nov')).toBeDefined();
+    expect(screen.getByText('+250')).toBeDefined();
   });
 
   it('offers earlier lines once twenty are shown', async () => {
@@ -127,6 +77,20 @@ describe('Rewards', () => {
     expect(screen.queryByText(/₹/)).toBeNull();
   });
 
+  it('wraps its filters, so none is off-screen (F-187)', async () => {
+    renderRewards();
+    const filters = await screen.findByRole('radiogroup', { name: 'Show' }, LATER);
+    expect(filters.className).toContain('flex-wrap');
+    expect(filters.className).not.toContain('overflow-x-auto');
+  });
+
+  it('lists a reward with none left after the rest (F-187)', async () => {
+    renderRewards();
+    const hoodie = await screen.findByText('RIVR hoodie', {}, LATER);
+    const seat = screen.getByText('Sunday Main Event seat');
+    expect(seat.compareDocumentPosition(hoodie) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('filters the catalogue by its pills', async () => {
     renderRewards();
     expect(await screen.findByText('RIVR hoodie', {}, LATER)).toBeDefined();
@@ -151,11 +115,42 @@ describe('Rewards', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Redeem Masala chai upgrade' }, LATER));
     const sheet = await screen.findByRole('dialog', { name: 'Masala chai upgrade' });
     expect(within(sheet).getByText('500 points')).toBeDefined();
+    expect(within(sheet).getByText('Points after')).toBeDefined();
     expect(within(sheet).getByText('2,750 points')).toBeDefined();
     fireEvent.click(within(sheet).getByRole('button', { name: 'Redeem' }));
     expect(await screen.findByText('Redeemed')).toBeDefined();
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(redeemed).toEqual([expect.objectContaining({ p_item_id: 'chai', p_points: 500, p_idempotency_key: expect.any(String) })]);
+  });
+
+  describe('a reward priced in hotel nights (F-046)', () => {
+    const SUITE = { id: 'suite', kind: 'hotel_night', name: 'Partner hotel suite', detail: 'The host confirms', points: null, nights: 1, stock: null, is_live: true, photo_path: null };
+    const NIGHTS = { items: [SUITE], features: ['rewards.accommodation'] };
+
+    it('says how many nights short, and cannot be redeemed', async () => {
+      renderRewards(3250, undefined, NIGHTS);
+      const suite = await screen.findByRole('button', { name: '1 night to go, Partner hotel suite' }, LATER);
+      expect(suite.hasAttribute('disabled')).toBe(true);
+    });
+
+    it('counts part of a night', async () => {
+      renderRewards(3250, undefined, { ...NIGHTS, nights: 250 });
+      expect(await screen.findByRole('button', { name: '0.75 nights to go, Partner hotel suite' }, LATER)).toBeDefined();
+    });
+
+    it('can be redeemed with the nights held', async () => {
+      renderRewards(3250, undefined, { ...NIGHTS, nights: 1000 });
+      expect((await screen.findByRole('button', { name: 'Redeem Partner hotel suite' }, LATER)).hasAttribute('disabled')).toBe(false);
+    });
+
+    it('has its filter only for a tier with hotel nights', async () => {
+      renderRewards(3250, undefined, NIGHTS);
+      expect(await screen.findByRole('radio', { name: 'Hotel nights' }, LATER)).toBeDefined();
+      cleanup();
+      renderRewards();
+      expect(await screen.findByRole('radio', { name: 'F&B upgrades' }, LATER)).toBeDefined();
+      expect(screen.queryByRole('radio', { name: 'Hotel nights' })).toBeNull();
+    });
   });
 
   it('lists a redemption as Ready to collect until it is handed over', async () => {
@@ -176,9 +171,9 @@ describe('Rewards', () => {
     expect(writeText).toHaveBeenCalledWith(expect.stringContaining('RIVR4821'));
   });
 
-  it('says Everything unlocked when every reward still to be had is within reach (one with none left is not next)', async () => {
+  it('says Every reward in reach when every reward still to be had is within reach (one with none left is not next)', async () => {
     renderRewards(4500);
-    expect(await screen.findByText('Everything unlocked', {}, LATER)).toBeDefined();
+    expect(await screen.findByText('Every reward in reach', {}, LATER)).toBeDefined();
     expect(screen.queryByText(/ to go$/)).toBeNull();
   });
 });

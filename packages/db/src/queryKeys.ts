@@ -118,6 +118,7 @@ export const queryKeys = {
   amlRegister: (userId: string, venueId: string) => ['user', userId, 'aml-register', venueId] as const,
   /** A venue's rewards catalogue and redemptions, as the console keeps them (decision 0181). */
   rewardItems: (userId: string, venueId: string) => ['user', userId, 'reward-items', venueId] as const,
+  rewardRedemptionCounts: (userId: string, venueId: string) => ['user', userId, 'reward-redemption-counts', venueId] as const,
   venueRedemptions: (userId: string, venueId: string) => ['user', userId, 'venue-redemptions', venueId] as const,
   /** A venue's League seasons, and its standings over some months (decision 0182). */
   leagueSeasons: (userId: string, venueId: string) => ['user', userId, 'league-seasons', venueId] as const,
@@ -125,6 +126,8 @@ export const queryKeys = {
   venueLeague: (userId: string, venueId: string, first: string, last: string) => ['user', userId, 'venue-league', venueId, first, last] as const,
   /** The member's Rewards tab (#152): points and tier, the catalogue, their redemptions and the League. */
   myRewards: (userId: string) => ['user', userId, 'my-rewards'] as const,
+  /** Under myRewards, so whatever refreshes the balance refreshes its history. */
+  myPointsHistory: (userId: string, count: number) => ['user', userId, 'my-rewards', 'points-history', count] as const,
   rewardCatalogue: (userId: string) => ['user', userId, 'reward-catalogue'] as const,
   myRedemptions: (userId: string) => ['user', userId, 'my-redemptions'] as const,
   myLeague: (userId: string) => ['user', userId, 'my-league'] as const,

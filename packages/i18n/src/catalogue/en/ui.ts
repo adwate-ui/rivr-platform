@@ -284,6 +284,8 @@ export const ui = {
     exportXlsx: 'Export XLSX',
     exportFailed: 'Export not saved. Try again.',
   },
+  /** A balance that opens its history (F-054). */
+  balanceTile: { history: 'History' },
   /** The offer to add the player app to the home screen, on a member's second visit. */
   installOffer: {
     title: 'RIVR on your home screen',

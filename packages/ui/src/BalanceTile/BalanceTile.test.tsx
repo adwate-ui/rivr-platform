@@ -11,6 +11,16 @@ describe('BalanceTile', () => {
     expect(screen.getByText('Points')).toBeInTheDocument();
     expect(screen.getByText('Spend on rewards.')).toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.queryByText('History')).not.toBeInTheDocument();
+  });
+
+  it('says it opens a history, with a chevron that turns as it opens (F-054)', () => {
+    const { container, rerender } = renderIn(<BalanceTile icon="star" figure="3,250" label="Points" line="Spend on rewards." onOpen={() => undefined} aria-expanded={false} />);
+    expect(screen.getByRole('button', { name: /Points/ })).toHaveTextContent('History');
+    const chevron = () => container.querySelector('button > span:last-child svg path')?.getAttribute('d');
+    const closed = chevron();
+    rerender(<BalanceTile icon="star" figure="3,250" label="Points" line="Spend on rewards." onOpen={() => undefined} aria-expanded />);
+    expect(chevron()).not.toBe(closed);
   });
 
   it('draws bonus chips gold, and opens its history from the keyboard, saying whether it is open', async () => {

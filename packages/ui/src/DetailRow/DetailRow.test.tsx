@@ -5,6 +5,12 @@ import { axeViolations, renderIn } from '../test/render.tsx';
 import { DetailRow } from './DetailRow.tsx';
 
 describe('DetailRow', () => {
+  it('lets a long label wrap and keeps the value whole (a filled history at 390 px)', () => {
+    renderIn(<DetailRow label="Promised_by_the_floor_manager" value="+12,34,567" />);
+    expect(screen.getByText('Promised_by_the_floor_manager')).toHaveClass('min-w-0', 'wrap-anywhere');
+    expect(screen.getByText('+12,34,567')).toHaveClass('shrink-0');
+  });
+
   it('shows a label and its value under a hairline', () => {
     renderIn(<DetailRow label="Game" value="NLH 50/100" labelTone="muted" isLast />);
     expect(screen.getByText('Game')).toHaveClass('text-content-muted');

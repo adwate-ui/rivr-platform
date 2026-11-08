@@ -1,6 +1,6 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
 import type { Paise } from '@rivr/domain/money';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
@@ -66,6 +66,8 @@ export function useMyBonusHistory(count: number) {
   return useQuery({
     queryKey: queryKeys.myBonusHistory(userId ?? 'signed-out', count),
     enabled: userId !== null,
+    // Asking for more keeps the lines on screen until they come.
+    placeholderData: keepPreviousData,
     queryFn: async (): Promise<BonusLine[]> => {
       const { data, error } = await client.rpc('my_bonus_history', { p_limit: count });
       if (error) throw error;

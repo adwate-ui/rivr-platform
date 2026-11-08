@@ -74,7 +74,7 @@ export const tv = {
     /** A season's months: `November 2026 to April 2027`. */
     seasonMonths: '{first} to {last}',
     empty: 'No League points yet.',
-    points: '{points} points',
+    points: '{points} League points',
     /** A member who hid their name on the TVs (#326). */
     hiddenName: 'A member',
   },

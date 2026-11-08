@@ -1,7 +1,9 @@
 import { REWARD_KINDS, type RewardKind } from '@rivr/contracts/rewardKinds';
 import type { RewardItem } from '@rivr/db';
 import { useRedeemReward, useRewardCatalogue } from '@rivr/db/myRewards';
-import { formatNumber, t } from '@rivr/i18n';
+import { NIGHT } from '@rivr/domain/accommodation';
+import { rewardShortfall, soldOutLast, type RewardShortfall, type RewardsHeld } from '@rivr/domain/rewards';
+import { formatNights, formatNumber, t } from '@rivr/i18n';
 import { Box, Button, ChoiceChips, DetailRow, ErrorMessage, Inline, ItemPhoto, LoadState, Skeleton, Sheet, Stack, Text, useToast } from '@rivr/ui';
 import { useState } from 'react';
 
@@ -14,11 +16,14 @@ export function priceText({ points, nights }: { points: bigint | null; nights: n
 /** Where and how it is collected, with how many are left where the club counts them. */
 const noteOf = (item: RewardItem) => (item.stock === null ? item.detail : t('memberRewards.leftLine', { count: formatNumber(item.stock), detail: item.detail }));
 
-/** Whether the member's points cover a reward priced in points; a hotel night's own check is the database's. */
-const canAfford = (item: RewardItem, balance: bigint) => item.points === null || balance >= item.points;
+/** How far short the member is, in what the reward is priced in: `750 to go`, `1 night to go`, `0.75 nights to go`. */
+function toGo({ unit, short }: RewardShortfall): string {
+  if (unit === 'points') return t('memberRewards.toGo', { points: formatNumber(short) });
+  return short === NIGHT ? t('memberRewards.oneNightToGo') : t('memberRewards.nightsToGo', { nights: formatNights(short) });
+}
 
 /**
- * The redeem sheet (brief 3.8): Redeem, the reward, its cost and the balance after, how it is collected, then Redeem or
+ * The redeem sheet (brief 3.8): Redeem, the reward, its cost and the points after, how it is collected, then Redeem or
  * Cancel. One request id until the server answers, so a retried tap redeems once; done, a toast says so.
  */
 function RedeemSheet({ item, balance, onClose }: { item: RewardItem; balance: bigint; onClose: () => void }) {
@@ -39,7 +44,7 @@ function RedeemSheet({ item, balance, onClose }: { item: RewardItem; balance: bi
       <Box>
         <DetailRow label={t('memberRewards.cost')} labelTone="muted" value={priceText(item)} />
         {item.points === null ? null : (
-          <DetailRow label={t('memberRewards.balanceAfter')} labelTone="muted" isLast value={t('memberRewards.price', { points: formatNumber(balance - item.points) })} />
+          <DetailRow label={t('memberRewards.pointsAfter')} labelTone="muted" isLast value={t('memberRewards.price', { points: formatNumber(balance - item.points) })} />
         )}
       </Box>
       <Text variant="small" tone="muted">{noteOf(item)}</Text>
@@ -52,11 +57,11 @@ function RedeemSheet({ item, balance, onClose }: { item: RewardItem; balance: bi
   );
 }
 
-/** One reward: its tile, name, cost in gold and note; Redeem, or how many points short, or none left. */
-function RewardRow({ item, balance, onRedeem }: { item: RewardItem; balance: bigint; onRedeem: () => void }) {
-  const isShort = !canAfford(item, balance);
-  const cta = item.stock === 0 ? t('memberRewards.noneLeft')
-    : isShort ? t('memberRewards.toGo', { points: formatNumber((item.points ?? 0n) - balance) }) : t('memberRewards.redeem');
+/** One reward: its tile, name, cost in gold and note; Redeem, or how far short in what it is priced in, or none left. */
+function RewardRow({ item, held, onRedeem }: { item: RewardItem; held: RewardsHeld; onRedeem: () => void }) {
+  const shortfall = rewardShortfall(item, held);
+  const isShort = shortfall !== null;
+  const cta = item.stock === 0 ? t('memberRewards.noneLeft') : shortfall === null ? t('memberRewards.redeem') : toGo(shortfall);
   return (
     <Inline gap={3} align="center">
       <ItemPhoto src={item.photoUrl} name={item.name} size="sm" />
@@ -74,26 +79,28 @@ function RewardRow({ item, balance, onRedeem }: { item: RewardItem; balance: big
 }
 
 /**
- * The catalogue (brief 3.8): filter pills that scroll (All and each kind), a row a reward, and the redeem sheet. Feature
- * rewards.catalogue, gated by the screen.
+ * The catalogue (brief 3.8): filter pills that wrap, so none is off-screen (All and each kind; F-187), a row a reward with
+ * those sold out last, and the redeem sheet. Feature rewards.catalogue, gated by the screen.
  */
-export function Catalogue({ balance }: { balance: bigint }) {
+export function Catalogue({ held, hasNights }: { held: RewardsHeld; hasNights: boolean }) {
   const catalogue = useRewardCatalogue();
   const [kind, setKind] = useState<RewardKind | 'all'>('all');
   const [redeeming, setRedeeming] = useState<RewardItem | null>(null);
-  const options = [{ value: 'all' as const, label: t('memberRewards.all') }, ...REWARD_KINDS.map((value) => ({ value, label: t(`memberRewards.kinds.${value}`) }))];
+  // A tier without hotel nights gets none from the database, so no filter for them either (F-046).
+  const kinds = REWARD_KINDS.filter((value) => hasNights || value !== 'hotel_night');
+  const options = [{ value: 'all' as const, label: t('memberRewards.all') }, ...kinds.map((value) => ({ value, label: t(`memberRewards.kinds.${value}`) }))];
   // A skeleton while it comes, never the word Loading (brief 2.6); Try again if it cannot.
   if (catalogue.isError) return <LoadState isError onRetry={() => void catalogue.refetch()} />;
   if (catalogue.data === undefined) return <Skeleton rows={2} />;
-  const shown = catalogue.data.filter((item) => kind === 'all' || item.kind === kind);
+  const shown = soldOutLast(catalogue.data.filter((item) => kind === 'all' || item.kind === kind));
   return (
     <Stack gap={4}>
-      <ChoiceChips label={t('memberRewards.show')} isLabelVisuallyHidden look="pill" mode="one" isOneRow selected={[kind]} options={options}
+      <ChoiceChips label={t('memberRewards.show')} isLabelVisuallyHidden look="pill" mode="one" selected={[kind]} options={options}
         onChange={(chosen) => setKind(chosen[0] ?? 'all')} />
       {shown.length === 0 ? <Text tone="muted">{t('memberRewards.noRewards')}</Text> : (
-        <Stack gap={3} divided>{shown.map((item) => <RewardRow key={item.id} item={item} balance={balance} onRedeem={() => setRedeeming(item)} />)}</Stack>
+        <Stack gap={3} divided>{shown.map((item) => <RewardRow key={item.id} item={item} held={held} onRedeem={() => setRedeeming(item)} />)}</Stack>
       )}
-      {redeeming === null ? null : <RedeemSheet item={redeeming} balance={balance} onClose={() => setRedeeming(null)} />}
+      {redeeming === null ? null : <RedeemSheet item={redeeming} balance={held.points} onClose={() => setRedeeming(null)} />}
     </Stack>
   );
 }

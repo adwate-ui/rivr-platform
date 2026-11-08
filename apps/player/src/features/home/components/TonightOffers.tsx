@@ -16,7 +16,7 @@ export function TonightOffers() {
   const bonus = useMyReferral().data?.bonus ?? null;
   const referral: Offer[] = bonus === null ? [] : [{
     id: 'referral', title: t('player.live.referralTitle'), offer: t('player.live.referralOffer', { chips: formatChips(bonus) }),
-    schedule: t('player.live.referralSchedule'), onOpen: () => void navigate({ to: '/rewards' }),
+    onOpen: () => void navigate({ to: '/rewards' }),
   }];
   const live: Offer[] = feed.state === 'enabled'
     ? promotions.map((card) => ({ id: card.id, title: card.title, offer: card.detail ?? card.title, schedule: card.runs ?? undefined, href: card.link ?? undefined }))

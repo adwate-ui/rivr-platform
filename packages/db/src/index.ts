@@ -74,6 +74,7 @@ export {
   type FeedbackVisit,
 } from './feedback.ts';
 export * from './rewards.ts';
+export * from './rewardCounts.ts';
 export * from './league.ts';
 export * from './dealers.ts';
 export * from './floorReports.ts';
