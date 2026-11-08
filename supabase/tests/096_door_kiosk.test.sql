@@ -108,7 +108,7 @@ select results_eq($$ select action, first_name, played_seconds between 16130 and
 reset role;
 select results_eq($$ select g.cost_paise, g.trigger from public.promotion_grant g join public.promotion p on p.id = g.promotion_id
                      where p.template_key = 'hours_bonus' and g.member_id = '00000000-0000-4000-8000-000000000213' $$,
-  $$ values (100000::bigint, 'hours_played'::text) $$, 'and the four-hour bonus gives him ₹1,000');
+  $$ values (100000::bigint, 'hours_step'::text) $$, 'and the four-hour bonus gives him ₹1,000, its step reached by the close');
 select lives_ok($$ select private.weigh_hours_played('00000000-0000-4000-8000-0000000a9601') $$, 'the close weighed again, as a replay would');
 select is((select count(*)::integer from public.promotion_grant g join public.promotion p on p.id = g.promotion_id
            where p.template_key = 'hours_bonus' and g.member_id = '00000000-0000-4000-8000-000000000213'), 1, 'gives nothing more');

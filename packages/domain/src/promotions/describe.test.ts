@@ -46,6 +46,14 @@ describe('describePromotion', () => {
     expect(rewardLine({ kind: 'buyin_bonus', mode: 'fixed', chips: 500, firstNBuyinsPerTable: 3 })).toBe('500 bonus chips on a buy-in, first 3 buy-ins per table');
     expect(rewardLine({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 })).toBe('1,000 bonus chips after 4 hours');
     expect(rewardLine({ kind: 'hours_bonus', chips: 1_00_000, afterMinutes: 60 })).toBe('1,00,000 bonus chips after 1 hour');
+    // Paid as each step is reached (owner, 8 Nov): set steps, or every so often with or without a cap.
+    expect(rewardLine({ kind: 'hours_bonus', mode: 'steps', steps: [{ afterMinutes: 120, chips: 500 }, { afterMinutes: 240, chips: 1_000 }] }))
+      .toBe('500 bonus chips after 2 hours, then 1,000 after 4 hours');
+    expect(rewardLine({ kind: 'hours_bonus', mode: 'every', everyMinutes: 120, chips: 500, timesPerVisit: 3 }))
+      .toBe('500 bonus chips every 2 hours, up to 3 times a visit');
+    expect(rewardLine({ kind: 'hours_bonus', mode: 'every', everyMinutes: 60, chips: 250 })).toBe('250 bonus chips every hour');
+    expect(rewardLine({ kind: 'hours_bonus', mode: 'every', everyMinutes: 90, chips: 250, timesPerVisit: 1 }))
+      .toBe('250 bonus chips every 1.5 hours, up to once a visit');
     expect(rewardLine({ kind: 'bonus_chips', chips: 1_000, on: 'referral' })).toBe('1,000 bonus chips for each referral');
     expect(rewardLine({ kind: 'bonus_chips', chips: 500, on: 'first_buyin' })).toBe('500 bonus chips on the first buy-in of a visit');
     expect(rewardLine({ kind: 'free_spin', spins: 1, afterMinutes: 90 })).toBe('1 free spin after 1.5 hours');

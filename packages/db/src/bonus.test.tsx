@@ -1,9 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import { QueryClient } from '@tanstack/react-query';
-import { cleanup, renderHook, waitFor } from '@testing-library/react';
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { useMemberBonus, useMemberBonusHistory, useMyBonus, useMyBonusHistory } from './bonus.ts';
+import { useGiveBonusChips, useMemberBonus, useMemberBonusHistory, useMyBonus, useMyBonusHistory } from './bonus.ts';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
@@ -85,5 +85,21 @@ describe('bonus chips', () => {
     const { wrapper } = clientFor({ '/rpc/my_bonus': { status: 500, body: { code: 'XX000', message: 'down' } } });
     const { result } = renderHook(() => useMyBonus(), { wrapper });
     await waitFor(() => expect(result.current.isError).toBe(true));
+  });
+
+  it('adds bonus chips by hand with a reason and the request id, and says why it is refused (owner, 8 Nov)', async () => {
+    const done = clientFor({ '/rpc/give_bonus_chips': { body: 'g9' } });
+    const added = renderHook(() => useGiveBonusChips(VENUE, MEMBER), { wrapper: done.wrapper });
+    let outcome: unknown;
+    await act(async () => { outcome = await added.result.current.mutateAsync({ chips: 500, reason: 'Birthday', requestId: 'r-1' }); });
+    expect(outcome).toEqual({ ok: true, value: null });
+    expect(done.calls.find((call) => call.url.includes('/rpc/give_bonus_chips'))?.body)
+      .toEqual({ p_member_id: MEMBER, p_chips: 500, p_reason: 'Birthday', p_request_id: 'r-1' });
+    for (const [code, failure] of [['RVCHP', 'invalid_chips'], ['RVOWN', 'own_record'], ['42501', 'not_allowed'], ['XX000', 'unavailable']] as const) {
+      const refused = clientFor({ '/rpc/give_bonus_chips': { status: 400, body: { code, message: 'no' } } });
+      const hook = renderHook(() => useGiveBonusChips(VENUE, MEMBER), { wrapper: refused.wrapper });
+      await act(async () => { outcome = await hook.result.current.mutateAsync({ chips: 75, reason: 'Birthday', requestId: 'r-2' }); });
+      expect(outcome).toEqual({ ok: false, error: failure });
+    }
   });
 });

@@ -17,6 +17,7 @@ export {
   checkLimits, decideGrant, ledgerEntryFor, periodKey, remainingBudget, slotKey, tallyFor, type GrantTally, type Ledger, type LedgerEntry, type LimitRefusal,
   type Refusal,
 } from './limits.ts';
+export { hourSteps, stepsReached, type HourStep, type HoursBonus } from './hourSteps.ts';
 export { isInSchedule, openingMinutes, secondsInSchedule, type Span } from './schedule.ts';
 export { simulate, type ReplayedEvent, type Simulation } from './simulation.ts';
 export { stackGrants, type StackCandidate } from './stacking.ts';

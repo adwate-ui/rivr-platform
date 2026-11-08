@@ -1,6 +1,6 @@
 {
   "rule": "promotionRewards",
-  "about": "What a promotion gives (console v3 phase 7; decisions 0470 and 0472), in points, bonus chips, spins or a perk, never rupees. Days are the club's, 06:00 to 06:00 IST, and its weeks run Monday to Sunday. Eligible: the member's tier and audience must be the promotion's (new members have fewer than 30 whole days since joining; lapsed regulars' last visit before this one was 30 or more whole days before). The time-played rewards are the points multiplier, the hours bonus and the free spin: for them only the minutes inside the schedule at its stakes and tables count, so the moment and table of the event do not matter. For every other reward the event's stake, table and moment must be the promotion's, so a promotion for some stakes gives nothing for an event away from a table. Grant: a buy-in bonus is a percent of the member's own chips rounded down to whole 50s, then held to its cap, or fixed chips; a buy-in paid from bonus (its own chips are 0) earns nothing from any buy-in reward, a buy-in bonus or bonus chips on the first buy-in; a points multiplier gives the extra on the points earned, rounded down (double on 120 is 120 more); an hours bonus or free spin needs its minutes; bonus chips come on a visit, the visit's first buy-in, a referral or a sign-up; a cab home from the Nth visit of the calendar month; an entry or waitlist priority on a visit; nothing comes to nothing. Limits, in this order: the member's period already given as often as it allows, once unless it says up to N (2 to 20) times (the same visit, club day, club week, ever, or with no limit the same event; each grant in a period is keyed as the member's Nth there, the first by the period itself, then #2 and on), the first N buy-ins per table, which counts this promotion's grants at that table this club day, members a day (a member already given it today is not a new one), the most grants, and the budget in bonus chips, whole or not at all; a monthly budget and most grants count the grants of the event's calendar month of club days alone, starting again at 06:00 IST on the first. A spin spends no chips when given; the wheel pays a bonus only within what is left of the budget. Stacking for one event: at most one points multiplier, the one giving the most points (the first on a tie); bonus chips and spins from different promotions stack; one perk of each kind, the first given. Inputs are written as the database holds them.",
+  "about": "What a promotion gives (console v3 phase 7; decisions 0470 and 0472), in points, bonus chips, spins or a perk, never rupees. Days are the club's, 06:00 to 06:00 IST, and its weeks run Monday to Sunday. Eligible: the member's tier and audience must be the promotion's (new members have fewer than 30 whole days since joining; lapsed regulars' last visit before this one was 30 or more whole days before). The time-played rewards are the points multiplier, the play-time (hours) bonus and the free spin: for them only the minutes inside the schedule at its stakes and tables count, so the moment and table of the event do not matter. For every other reward the event's stake, table and moment must be the promotion's, so a promotion for some stakes gives nothing for an event away from a table. Grant: a buy-in bonus is a percent of the member's own chips rounded down to whole 50s, then held to its cap, or fixed chips; a buy-in paid from bonus (its own chips are 0) earns nothing from any buy-in reward, a buy-in bonus or bonus chips on the first buy-in; a points multiplier gives the extra on the points earned, rounded down (double on 120 is 120 more); a free spin needs its minutes; a play-time bonus pays each step as it is reached (owner, 8 Nov): its one step after a time, its set steps (two to six, rising), or one every so many minutes up to its times a visit and never past 24 hours, each step's chips once its minutes are played, nothing for a step it does not have, and nothing for time played at a visit's close; bonus chips come on a visit, the visit's first buy-in, a referral or a sign-up; a cab home from the Nth visit of the calendar month; an entry or waitlist priority on a visit; nothing comes to nothing. Limits, in this order: the member's period already given as often as it allows, once unless it says up to N (2 to 20) times (the same visit, club day, club week, ever, or with no limit the same event, and for a play-time bonus step that period @ the step's minutes, so the limit holds for each step; each grant in a period is keyed as the member's Nth there, the first by the period itself, then #2 and on), the first N buy-ins per table, which counts this promotion's grants at that table this club day, members a day (a member already given it today is not a new one), the most grants, and the budget in bonus chips, whole or not at all; a monthly budget and most grants count the grants of the event's calendar month of club days alone, starting again at 06:00 IST on the first. A spin spends no chips when given; the wheel pays a bonus only within what is left of the budget. Stacking for one event: at most one points multiplier, the one giving the most points (the first on a tie); bonus chips and spins from different promotions stack; one perk of each kind, the first given. Inputs are written as the database holds them.",
   "cases": [
     {
       "description": "Everyone, every stake, Tuesdays: a buy-in at 21:00 on Tuesday qualifies.",
@@ -367,26 +367,126 @@
       }
     },
     {
-      "description": "1,000 bonus chips after four hours: 3 hours 59 minutes is too short.",
+      "description": "1,000 bonus chips after four hours, its one step: 3 hours 59 minutes is too short.",
       "operation": "grant",
       "inputs": {
         "reward": "{\"kind\": \"hours_bonus\", \"chips\": 1000, \"afterMinutes\": 240}",
-        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"time_played\", \"minutes\": 239, \"points\": 0}"
+        "event": "{\"key\": \"hours_step:v1:240\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"hours_step\", \"minutes\": 239, \"stepMinutes\": 240}"
       },
       "expected": {
         "refusal": "too_short"
       }
     },
     {
-      "description": "1,000 bonus chips after four hours: four hours exactly gives 1,000.",
+      "description": "1,000 bonus chips after four hours, its one step: four hours exactly gives 1,000.",
       "operation": "grant",
       "inputs": {
         "reward": "{\"kind\": \"hours_bonus\", \"chips\": 1000, \"afterMinutes\": 240}",
-        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"time_played\", \"minutes\": 240, \"points\": 0}"
+        "event": "{\"key\": \"hours_step:v1:240\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"hours_step\", \"minutes\": 240, \"stepMinutes\": 240}"
       },
       "expected": {
         "points": "0",
         "chips": "1000",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "A play-time bonus weighs only its steps: time played at close gives it nothing.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"hours_bonus\", \"chips\": 1000, \"afterMinutes\": 240}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"time_played\", \"minutes\": 300, \"points\": 0}"
+      },
+      "expected": {
+        "refusal": "other_event"
+      }
+    },
+    {
+      "description": "500 after two hours, then 1,000 after four: the four-hour step at 4 hours 10 minutes gives 1,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"hours_bonus\", \"mode\": \"steps\", \"steps\": [{\"afterMinutes\": 120, \"chips\": 500}, {\"afterMinutes\": 240, \"chips\": 1000}]}",
+        "event": "{\"key\": \"hours_step:v1:240\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"hours_step\", \"minutes\": 250, \"stepMinutes\": 240}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "1000",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "500 after two hours, then 1,000 after four: the two-hour step gives 500.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"hours_bonus\", \"mode\": \"steps\", \"steps\": [{\"afterMinutes\": 120, \"chips\": 500}, {\"afterMinutes\": 240, \"chips\": 1000}]}",
+        "event": "{\"key\": \"hours_step:v1:120\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"hours_step\", \"minutes\": 250, \"stepMinutes\": 120}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "500",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "500 after two hours, then 1,000 after four: three hours is not one of its steps.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"hours_bonus\", \"mode\": \"steps\", \"steps\": [{\"afterMinutes\": 120, \"chips\": 500}, {\"afterMinutes\": 240, \"chips\": 1000}]}",
+        "event": "{\"key\": \"hours_step:v1:180\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"hours_step\", \"minutes\": 250, \"stepMinutes\": 180}"
+      },
+      "expected": {
+        "refusal": "not_a_step"
+      }
+    },
+    {
+      "description": "250 every 1.5 hours, twice a visit: the second step, at three hours, gives 250.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"hours_bonus\", \"mode\": \"every\", \"everyMinutes\": 90, \"chips\": 250, \"timesPerVisit\": 2}",
+        "event": "{\"key\": \"hours_step:v1:180\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"hours_step\", \"minutes\": 200, \"stepMinutes\": 180}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "250",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "250 every 1.5 hours, twice a visit: a third step, at 4.5 hours, is past its cap.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"hours_bonus\", \"mode\": \"every\", \"everyMinutes\": 90, \"chips\": 250, \"timesPerVisit\": 2}",
+        "event": "{\"key\": \"hours_step:v1:270\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"hours_step\", \"minutes\": 300, \"stepMinutes\": 270}"
+      },
+      "expected": {
+        "refusal": "not_a_step"
+      }
+    },
+    {
+      "description": "50 every 12 hours: the 24-hour step a minute early is too short.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"hours_bonus\", \"mode\": \"every\", \"everyMinutes\": 720, \"chips\": 50}",
+        "event": "{\"key\": \"hours_step:v1:1440\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"hours_step\", \"minutes\": 1439, \"stepMinutes\": 1440}"
+      },
+      "expected": {
+        "refusal": "too_short"
+      }
+    },
+    {
+      "description": "50 every 12 hours: the 24-hour step itself gives 50, the last of a day's play.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"hours_bonus\", \"mode\": \"every\", \"everyMinutes\": 720, \"chips\": 50}",
+        "event": "{\"key\": \"hours_step:v1:1440\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"hours_step\", \"minutes\": 1440, \"stepMinutes\": 1440}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "50",
         "spins": "0",
         "perk": ""
       }
@@ -1113,6 +1213,119 @@
       },
       "expected": {
         "key": "once#20"
+      }
+    },
+    {
+      "description": "1,000 after four hours: 3 hours 59 minutes reaches no step.",
+      "operation": "steps",
+      "inputs": {
+        "reward": "{\"kind\": \"hours_bonus\", \"chips\": 1000, \"afterMinutes\": 240}",
+        "minutes": "239"
+      },
+      "expected": {
+        "steps": ""
+      }
+    },
+    {
+      "description": "1,000 after four hours: four hours reaches its step.",
+      "operation": "steps",
+      "inputs": {
+        "reward": "{\"kind\": \"hours_bonus\", \"chips\": 1000, \"afterMinutes\": 240}",
+        "minutes": "240"
+      },
+      "expected": {
+        "steps": "240"
+      }
+    },
+    {
+      "description": "500 after two hours, then 1,000 after four: 1 hour 59 minutes reaches none.",
+      "operation": "steps",
+      "inputs": {
+        "reward": "{\"kind\": \"hours_bonus\", \"mode\": \"steps\", \"steps\": [{\"afterMinutes\": 120, \"chips\": 500}, {\"afterMinutes\": 240, \"chips\": 1000}]}",
+        "minutes": "119"
+      },
+      "expected": {
+        "steps": ""
+      }
+    },
+    {
+      "description": "500 after two hours, then 1,000 after four: 4 hours 10 minutes reaches both.",
+      "operation": "steps",
+      "inputs": {
+        "reward": "{\"kind\": \"hours_bonus\", \"mode\": \"steps\", \"steps\": [{\"afterMinutes\": 120, \"chips\": 500}, {\"afterMinutes\": 240, \"chips\": 1000}]}",
+        "minutes": "250"
+      },
+      "expected": {
+        "steps": "120,240"
+      }
+    },
+    {
+      "description": "250 every 1.5 hours, twice a visit: ten hours reaches two steps, its cap.",
+      "operation": "steps",
+      "inputs": {
+        "reward": "{\"kind\": \"hours_bonus\", \"mode\": \"every\", \"everyMinutes\": 90, \"chips\": 250, \"timesPerVisit\": 2}",
+        "minutes": "600"
+      },
+      "expected": {
+        "steps": "90,180"
+      }
+    },
+    {
+      "description": "50 every 12 hours, no cap: a day's play reaches two steps, never past 24 hours.",
+      "operation": "steps",
+      "inputs": {
+        "reward": "{\"kind\": \"hours_bonus\", \"mode\": \"every\", \"everyMinutes\": 720, \"chips\": 50}",
+        "minutes": "1440"
+      },
+      "expected": {
+        "steps": "720,1440"
+      }
+    },
+    {
+      "description": "50 every 12 hours, no cap: nothing played reaches nothing.",
+      "operation": "steps",
+      "inputs": {
+        "reward": "{\"kind\": \"hours_bonus\", \"mode\": \"every\", \"everyMinutes\": 720, \"chips\": 50}",
+        "minutes": "0"
+      },
+      "expected": {
+        "steps": ""
+      }
+    },
+    {
+      "description": "A play-time bonus step per visit: the visit and @ the step's minutes.",
+      "operation": "periodKey",
+      "inputs": {
+        "limits": "{\"perMember\": \"per_visit\"}",
+        "event": "{\"key\": \"hours_step:v1:120\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\", \"stepMinutes\": 120}",
+        "given": "0"
+      },
+      "expected": {
+        "key": "visit:00000000-0000-4000-8000-0000000072a1@120"
+      }
+    },
+    {
+      "description": "A play-time bonus step per club day, its second time: the day, @ its minutes, #2.",
+      "operation": "periodKey",
+      "inputs": {
+        "limits": "{\"perMember\": \"per_day\"}",
+        "event": "{\"key\": \"hours_step:v1:240\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\", \"stepMinutes\": 240}",
+        "given": "1"
+      },
+      "expected": {
+        "key": "day:2026-11-17@240#2"
+      }
+    },
+    {
+      "description": "A play-time bonus step with no limit: the event, @ its minutes.",
+      "operation": "periodKey",
+      "inputs": {
+        "limits": "{\"perMember\": \"none\"}",
+        "event": "{\"key\": \"hours_step:v1:90\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\", \"stepMinutes\": 90}",
+        "given": "0"
+      },
+      "expected": {
+        "key": "event:hours_step:v1:90@90"
       }
     }
   ]

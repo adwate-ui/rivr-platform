@@ -1,5 +1,6 @@
+import { err, ok, type Result } from '@rivr/contracts/result';
 import type { Paise } from '@rivr/domain/money';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
@@ -98,6 +99,42 @@ export function useMemberBonusHistory(venueId: string, memberId: string, count: 
       const { data, error } = await client.rpc('member_bonus_history', { p_venue_id: venueId, p_member_id: memberId, p_limit: count });
       if (error) throw error;
       return data.map((row) => ({ ...lineOf(row), staffName: row.staff_name }));
+    },
+  });
+}
+
+/**
+ * Why bonus chips added by hand did not go through: not a super admin; the super admin's own member record; not whole
+ * fifties from 50 to 1,00,000; no reason of 3 to 200 characters; the venue or member frozen, or promotions stopped;
+ * anything else.
+ */
+export type GiveBonusFailure = 'not_allowed' | 'own_record' | 'invalid_chips' | 'invalid_reason' | 'paused' | 'unavailable';
+
+const GIVE_FAILURE_BY_CODE: Readonly<Record<string, GiveBonusFailure>> = {
+  '42501': 'not_allowed', RVOWN: 'own_record', RVCHP: 'invalid_chips', '22023': 'invalid_reason', RVFRZ: 'paused', RVKIL: 'paused', RVMBR: 'paused',
+};
+
+/** Bonus chips added by hand: how many, why, and the request id that makes a retry the same grant. */
+export interface BonusGift {
+  readonly chips: number;
+  readonly reason: string;
+  readonly requestId: string;
+}
+
+/**
+ * Adds bonus chips to a member's balance by hand (the owner, 8 Nov): super admins only, with a reason, in whole fifties
+ * from 50 to 1,00,000 and no daily cap (`give_bonus_chips`). Resolves to a Result and reads the balance and history again.
+ */
+export function useGiveBonusChips(venueId: string, memberId: string) {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (gift: BonusGift): Promise<Result<null, GiveBonusFailure>> => {
+      const { error } = await client.rpc('give_bonus_chips', {
+        p_member_id: memberId, p_chips: gift.chips, p_reason: gift.reason, p_request_id: gift.requestId,
+      });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.memberBonus(userId ?? 'signed-out', venueId, memberId) });
+      return error ? err(GIVE_FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },
   });
 }

@@ -32,14 +32,20 @@ export interface GrantTally {
 /** Why the limits stop a grant the reward would give. */
 export type LimitRefusal = 'already_given' | 'first_n_taken' | 'members_per_day' | 'max_grants' | 'budget_exhausted';
 
-type EventWhen = Pick<PromotionEvent, 'key' | 'at' | 'visitId'>;
+type EventWhen = Pick<PromotionEvent, 'key' | 'at' | 'visitId'> & { readonly stepMinutes?: number };
 
 /**
  * The period a member's grant counts in, which the database keeps unique per promotion and member (decision 0471):
  * the visit, the club day, the club week (Monday to Sunday), once ever; with no limit, the event itself, so an event
- * replayed gives nothing more.
+ * replayed gives nothing more. A play-time bonus step counts in its own: the period and `@` its minutes (owner, 8 Nov),
+ * so the member limit holds for each step.
  */
 export function periodKey(limits: Pick<Limits, 'perMember'>, event: EventWhen): string {
+  const base = basePeriod(limits, event);
+  return event.stepMinutes === undefined ? base : `${base}@${String(event.stepMinutes)}`;
+}
+
+function basePeriod(limits: Pick<Limits, 'perMember'>, event: EventWhen): string {
   switch (limits.perMember) {
     case 'per_visit':
       return `visit:${event.visitId ?? event.key}`;

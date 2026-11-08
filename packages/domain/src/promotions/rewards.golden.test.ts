@@ -4,6 +4,7 @@ import rewardsJson from '@rivr/testing/golden/promotionRewards.json';
 import { describe, expect, it } from 'vitest';
 import { isEligible } from './eligibility.ts';
 import { computeGrant, toPromotionEvent, type Grant, type Perk } from './grant.ts';
+import { stepsReached } from './hourSteps.ts';
 import { checkLimits, periodKey, slotKey, tallyFor, type GrantTally, type LedgerEntry } from './limits.ts';
 import { stackGrants } from './stacking.ts';
 
@@ -54,7 +55,7 @@ function tallyEvent(text: string) {
 
 describe('Promotion rewards golden fixtures (packages/testing/golden/promotionRewards.json)', () => {
   it('tests every operation in the file', () => {
-    expect(() => assertOperations(golden, ['eligible', 'grant', 'limits', 'stack', 'tally', 'periodKey'])).not.toThrow();
+    expect(() => assertOperations(golden, ['eligible', 'grant', 'limits', 'stack', 'tally', 'periodKey', 'steps'])).not.toThrow();
   });
 
   it.each(casesFor(golden, 'eligible'))('%s', (_, goldenCase) => {
@@ -100,9 +101,19 @@ describe('Promotion rewards golden fixtures (packages/testing/golden/promotionRe
 
   it.each(casesFor(golden, 'periodKey'))('%s', (_, goldenCase) => {
     const event = parse(goldenInput(goldenCase, 'event'));
-    const when = { key: String(field(event, 'key')), at: new Date(String(field(event, 'at'))), visitId: textOrNull(field(event, 'visitId')) };
+    const step = field(event, 'stepMinutes');
+    const when = {
+      key: String(field(event, 'key')), at: new Date(String(field(event, 'at'))), visitId: textOrNull(field(event, 'visitId')),
+      ...(typeof step === 'number' ? { stepMinutes: step } : {}),
+    };
     const base = periodKey(limitsSchema.parse(parse(goldenInput(goldenCase, 'limits'))), when);
     expect(slotKey(base, Number(goldenInput(goldenCase, 'given')))).toBe(goldenExpected(goldenCase, 'key'));
+  });
+
+  it.each(casesFor(golden, 'steps'))('%s', (_, goldenCase) => {
+    const reward = rewardSchema.parse(parse(goldenInput(goldenCase, 'reward')));
+    if (reward.kind !== 'hours_bonus') throw new Error('Golden steps need a play-time bonus');
+    expect(stepsReached(reward, Number(goldenInput(goldenCase, 'minutes'))).join(',')).toBe(goldenExpected(goldenCase, 'steps'));
   });
 
   it.each(casesFor(golden, 'stack'))('%s', (_, goldenCase) => {

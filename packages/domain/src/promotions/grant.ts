@@ -1,5 +1,6 @@
 import type { PromotionEventJson, Reward } from '@rivr/contracts/promotionModel';
 import { err, ok, type Result } from '@rivr/contracts/result';
+import { hourSteps } from './hourSteps.ts';
 
 type WithMoment<E> = E extends unknown ? Omit<E, 'at'> & { readonly at: Date } : never;
 
@@ -27,9 +28,10 @@ export const NO_GRANT: Grant = { points: 0, chips: 0, spins: 0, perk: null };
 
 /**
  * Why a promotion gives nothing for an event: it is for another kind of event, nothing comes to anything, the time
- * played is short of its minutes, the visit is before its number in the month, or the buy-in is not the visit's first.
+ * played is short of its minutes, the step reached is not one of the play-time bonus's own, the visit is before its
+ * number in the month, or the buy-in is not the visit's first.
  */
-export type GrantRefusal = 'other_event' | 'nothing_earned' | 'too_short' | 'not_yet' | 'not_first_buy_in';
+export type GrantRefusal = 'other_event' | 'nothing_earned' | 'too_short' | 'not_a_step' | 'not_yet' | 'not_first_buy_in';
 
 type BuyInBonus = Extract<Reward, { kind: 'buyin_bonus' }>;
 type EventOf<K extends PromotionEventKind> = Extract<PromotionEvent, { kind: K }>;
@@ -45,9 +47,10 @@ const BONUS_CHIPS_EVENT: Readonly<Record<Extract<Reward, { kind: 'bonus_chips' }
 export function triggerOf(reward: Reward): PromotionEventKind {
   switch (reward.kind) {
     case 'points_multiplier':
-    case 'hours_bonus':
     case 'free_spin':
       return 'time_played';
+    case 'hours_bonus':
+      return 'hours_step';
     case 'buyin_bonus':
       return 'buy_in';
     case 'bonus_chips':
@@ -88,13 +91,19 @@ function timeGrant(reward: Reward, event: EventOf<'time_played'>): Result<Grant,
   switch (reward.kind) {
     case 'points_multiplier':
       return given({ ...NO_GRANT, points: extraPoints(reward.multiplier, event.points) });
-    case 'hours_bonus':
-      return event.minutes >= reward.afterMinutes ? ok(chipsGrant(reward.chips)) : err('too_short');
     case 'free_spin':
       return event.minutes >= reward.afterMinutes ? ok({ ...NO_GRANT, spins: reward.spins }) : err('too_short');
     default:
       return err('other_event');
   }
+}
+
+/** A play-time bonus step reached (owner, 8 Nov): that step's chips, once its minutes are played. */
+function stepGrant(reward: Reward, event: EventOf<'hours_step'>): Result<Grant, GrantRefusal> {
+  if (reward.kind !== 'hours_bonus') return err('other_event');
+  const step = hourSteps(reward).find((one) => one.afterMinutes === event.stepMinutes);
+  if (step === undefined) return err('not_a_step');
+  return event.minutes >= step.afterMinutes ? ok(chipsGrant(step.chips)) : err('too_short');
 }
 
 function visitGrant(reward: Reward, event: EventOf<'visit'>): Result<Grant, GrantRefusal> {
@@ -114,8 +123,9 @@ function visitGrant(reward: Reward, event: EventOf<'visit'>): Result<Grant, Gran
 /**
  * What a promotion's reward gives for one event (decision 0472), before its limits: points or chips, never paise. A
  * buy-in bonus is a percent of the member's own chips, rounded down to whole 50s and held to its cap, or fixed chips,
- * and nothing on a buy-in paid from bonus; a multiplier the extra points on those earned in the window; an hours bonus
- * or free spin once the minutes in the window are played; bonus chips on their event; a cab home from the visit's
+ * and nothing on a buy-in paid from bonus; a multiplier the extra points on those earned in the window; a free spin
+ * once the minutes in the window are played, and a play-time bonus step's chips as each step is reached (owner, 8 Nov);
+ * bonus chips on their event; a cab home from the visit's
  * number in the month; an entry or waitlist priority on a visit. The database's private.promo_grant is proved equal on
  * promotionRewards.json.
  */
@@ -126,6 +136,8 @@ export function computeGrant(promo: { readonly reward: Reward }, event: Promotio
       return buyInGrant(reward, event);
     case 'time_played':
       return timeGrant(reward, event);
+    case 'hours_step':
+      return stepGrant(reward, event);
     case 'visit':
       return visitGrant(reward, event);
     default:

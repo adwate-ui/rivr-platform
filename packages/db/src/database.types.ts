@@ -5132,6 +5132,9 @@ isOneToOne: false
               "big_blind_paise": number,"club_day": string,"game": string,"runs": number,"seconds": number,"small_blind_paise": number,"table_id": string,"table_name": string
             }[]
                            },
+"give_bonus_chips":
+{ Args: { "p_chips": number,"p_member_id": string,"p_reason": string,"p_request_id": string }; Returns: string
+                           },
 "give_consent":
 { Args: { "p_purpose": string }; Returns: undefined
                            },
@@ -5298,6 +5301,11 @@ isOneToOne: false
 "member_points":
 { Args: { "p_phone": string,"p_venue_id": string }; Returns: {
               "earned": number,"full_name": string,"locked": number,"member_id": string,"member_number": number
+            }[]
+                           },
+"member_points_of":
+{ Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
+              "earned": number,"locked": number
             }[]
                            },
 "member_promotion_grants":

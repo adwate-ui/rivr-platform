@@ -73,7 +73,7 @@ test.describe('Promotion versions', () => {
     await author.goto(`${appUrl('console')}/promotions`);
     await author.getByRole('button', { name: `Edit ${NAME}` }).click();
     await expect(author.getByText('Changes make version 2. Version 1 runs until it is approved.')).toBeVisible();
-    await author.getByRole('textbox', { name: 'Bonus', exact: true }).fill('10');
+    await author.getByRole('textbox', { name: 'Bonus chips', exact: true }).fill('10');
     await simulateAndSubmit(author);
     await expect(rowOf(author)).toContainText('Live');
     await expect(rowOf(author)).toContainText('New version awaits approval');

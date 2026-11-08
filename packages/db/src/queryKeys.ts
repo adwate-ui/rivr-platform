@@ -156,6 +156,7 @@ export const queryKeys = {
   /** Every member's points looked up by number at a venue (#645), and one of them. */
   memberPointsAll: (userId: string, venueId: string) => ['user', userId, 'member-points', venueId] as const,
   memberPoints: (userId: string, venueId: string, phone: string) => ['user', userId, 'member-points', venueId, phone] as const,
+  memberPointsOf: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-points-of', venueId, memberId] as const,
   /** The signed-in member's locked points (#645). */
   myLockedPoints: (userId: string) => ['user', userId, 'my-locked-points'] as const,
   /** The member's referral code (#151). */
