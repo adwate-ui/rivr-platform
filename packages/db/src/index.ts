@@ -17,7 +17,7 @@ export {
   type DisplayMode, type ShowsAs, type TierCell, type TierCellChange, type TierFailure, type TierMatrix,
 } from './tierMatrix.ts';
 export {
-  GAMES_PLAYED, OCCUPATIONS, PLAY_TIMES, useSignedInPhone, useSignUp, type GamePlayed, type Occupation, type PlayTime, type SignUpDetails,
+  GAMES_PLAYED, OCCUPATIONS, PLAY_TIMES, useSignedInPhone, storedReferralCode, useSignUp, type GamePlayed, type Occupation, type PlayTime, type SignUpDetails,
   type SignUpFailure,
 } from './signUp.ts';
 export { rememberAttribution, storedAttribution, type SignUpAttribution } from './attribution.ts';
