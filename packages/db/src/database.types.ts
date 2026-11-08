@@ -6236,7 +6236,7 @@ isOneToOne: false
                            },
 "tablet_seats":
 { Args: Record<PropertyKey, never>; Returns: {
-              "away_since": string,"call_time_left": number,"full_name": string,"member_id": string,"minimum_paise": number,"pending_buy_in_paise": number,"seat": number,"session_id": string
+              "away_since": string,"big_blind_paise": number,"call_time_left": number,"full_name": string,"leaving_at": string,"member_id": string,"minimum_paise": number,"pending_buy_in_paise": number,"seat": number,"session_id": string,"small_blind_paise": number
             }[]
                            },
 "take_break":

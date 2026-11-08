@@ -223,6 +223,9 @@ export const seats = {
   open: 'Seat {seat} is open.',
   pending: 'A buy-in for this seat is already with the cage.',
   away: 'Away',
+  /** Under a seat on the ring (F-189): `{minutes}` is the call time left, its last fifteen. */
+  leaving: 'Leaving',
+  ending: '{minutes} min left',
   back: 'Back',
   isAway: 'Away from the table. The seat is kept.',
   left: 'Player left',
@@ -236,6 +239,10 @@ export const seats = {
 
 /** The tablet's queue of hands (#43), in its slim banner. */
 export const queue = {
+  /** Offline with no hand held (F-045): before the device is known, at a table, at a door kiosk. */
+  offline: 'Offline.',
+  offlineTable: 'Offline. Seats update when the network is back.',
+  offlineDoor: 'Check-in is offline. See the front desk.',
   queuedOne: 'Offline. 1 hand queued.',
   queued: 'Offline. {count} hands queued.',
   sendingOne: 'Sending 1 hand.',
