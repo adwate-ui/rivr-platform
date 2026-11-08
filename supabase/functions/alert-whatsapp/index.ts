@@ -10,11 +10,12 @@ import { fenced, liveWhatsApp } from '../_shared/whatsapp.ts';
 
 const numberRows = z.array(z.object({ alert_whatsapp: z.string().nullable() }));
 
-/** The venue's alert number for an alert raised within the day, through the service role only; null otherwise. */
+/** The venue's alert number for an alert raised within the day, through the service role only; 'no_number' with none set; null for any other alert. */
 const findAlertNumber: FindAlertNumber = async (venueId, alertId) => {
   const row = numberRows.parse(await rpc('alert_recipient', { p_venue_id: venueId, p_alert_id: alertId }))[0];
-  const phone = indianMobileSchema.safeParse(row?.alert_whatsapp);
-  return phone.success ? phone.data : null;
+  if (row === undefined) return null;
+  const phone = indianMobileSchema.safeParse(row.alert_whatsapp);
+  return phone.success ? phone.data : 'no_number';
 };
 
 // Until WhatsApp is approved and its credentials set, nothing is claimed: alerts wait on the dashboard.

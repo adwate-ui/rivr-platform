@@ -30,11 +30,11 @@ select public.finish_outbox_delivery((select d.id from public.outbox_delivery d 
 select is((select d.status::text from public.outbox_delivery d join public.outbox_event e on e.id = d.event_id
            where d.consumer = 'tally' and e.idempotency_key = 'test-own-claim-2'), 'delivered', 'a finish without its attempt goes through as before');
 
-select ok(has_function_privilege('service_role', 'public.finish_outbox_delivery(uuid, boolean, text, interval, integer)', 'execute'),
+select ok(has_function_privilege('service_role', 'public.finish_outbox_delivery(uuid, boolean, text, interval, integer, boolean)', 'execute'),
   'the consumers, with the service role, finish deliveries');
-select ok(not has_function_privilege('authenticated', 'public.finish_outbox_delivery(uuid, boolean, text, interval, integer)', 'execute'),
+select ok(not has_function_privilege('authenticated', 'public.finish_outbox_delivery(uuid, boolean, text, interval, integer, boolean)', 'execute'),
   'and no signed-in person does');
-select ok(not has_function_privilege('anon', 'public.finish_outbox_delivery(uuid, boolean, text, interval, integer)', 'execute'),
+select ok(not has_function_privilege('anon', 'public.finish_outbox_delivery(uuid, boolean, text, interval, integer, boolean)', 'execute'),
   'nor anyone signed out');
 
 select * from finish();

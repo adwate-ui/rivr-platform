@@ -1,9 +1,10 @@
 import type { FloorTable, SeatedPlayer, TodaysPlayer } from '@rivr/db';
 
-/** Where a member is tonight: in a seat, waiting for one, or gone home. A member not at the club today has none. */
+/** Where a member is tonight: in a seat, waiting for one, in the room without either, or gone home. A member not at the club today has none. */
 export type Tonight =
   | { readonly kind: 'seated'; readonly tableId: string; readonly tableName: string; readonly seat: number }
   | { readonly kind: 'waiting' }
+  | { readonly kind: 'in_room' }
   | { readonly kind: 'left' };
 
 /**
@@ -18,7 +19,8 @@ export function tonightByMember(
   const names = new Map(tables.map((table) => [table.id, table.name]));
   const byMember = new Map<string, Tonight>();
   for (const player of today) {
-    if (player.status !== 'playing') byMember.set(player.memberId, { kind: player.status });
+    // Someone who never checked in was not here tonight.
+    if (player.status === 'waiting' || player.status === 'in_room' || player.status === 'left') byMember.set(player.memberId, { kind: player.status });
   }
   for (const seated of seats) {
     byMember.set(seated.memberId, { kind: 'seated', tableId: seated.tableId, tableName: names.get(seated.tableId) ?? '', seat: seated.seat });

@@ -11,16 +11,18 @@ export function TonightStatus({ tonight }: { tonight: Tonight | undefined }) {
     return <DotStatus tone="active" label={t('console.members.seatShort', seat)} title={t('console.members.seatFull', seat)} />;
   }
   // Waiting is gold, as on the door's list of today's players: someone at the club without a seat yet.
+  if (tonight.kind === 'in_room') return <DotStatus tone="active" label={t('console.members.inRoom')} />;
   return tonight.kind === 'waiting'
     ? <DotStatus tone="needsYou" label={t('console.members.waiting')} />
     : <DotStatus tone="inactive" label={t('console.members.left')} />;
 }
 
-/** Seated first, by table and seat, then waiting, left, and members not at the club. */
+/** Seated first, by table and seat, then waiting, in the room, left, and members not at the club. */
 function tonightOrder(tonight: Tonight | undefined): string {
-  if (tonight === undefined) return '3';
+  if (tonight === undefined) return '4';
   if (tonight.kind === 'seated') return `0 ${tonight.tableName} ${String(tonight.seat).padStart(2, '0')}`;
-  return tonight.kind === 'waiting' ? '1' : '2';
+  if (tonight.kind === 'in_room') return '2';
+  return tonight.kind === 'waiting' ? '1' : '3';
 }
 
 // Verified is cream; a check someone must do is gold; refused is red; not done faint.
@@ -92,15 +94,17 @@ function coreColumns(tonight: ReadonlyMap<string, Tonight>): readonly DataTableC
   ];
 }
 
-/** Tonight as its filter reads it (owner, 8 Nov): Seated, Waiting, Left or Not here, never a seat of its own. */
+/** Tonight as its filter reads it (owner, 8 Nov): Seated, Waiting, In the room, Left or Not here, never a seat of its own. */
 function tonightKind(tonight: Tonight | undefined): string {
   if (tonight === undefined) return t('console.members.tonightKinds.notHere');
-  return tonight.kind === 'seated' ? t('console.members.tonightKinds.seated') : t(`console.members.${tonight.kind}`);
+  if (tonight.kind === 'seated') return t('console.members.tonightKinds.seated');
+  return tonight.kind === 'in_room' ? t('console.members.inRoom') : t(`console.members.${tonight.kind}`);
 }
 
-/** Tonight in words for an export: `Table 2, seat 3`, `Waiting` or `Left`. */
+/** Tonight in words for an export: `Table 2, seat 3`, `Waiting`, `In the room` or `Left`. */
 function tonightWords(tonight: Tonight | undefined): string {
   if (tonight === undefined) return '';
   if (tonight.kind === 'seated') return t('console.members.seatFull', { table: tonight.tableName, seat: tonight.seat });
+  if (tonight.kind === 'in_room') return t('console.members.inRoom');
   return t(tonight.kind === 'waiting' ? 'console.members.waiting' : 'console.members.left');
 }

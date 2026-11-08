@@ -3,10 +3,10 @@ import { formatDuration, formatTime, t } from '@rivr/i18n';
 import { DotStatus, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
 
 // Who needs the floor first: those waiting, then those playing, then those who left.
-const RANK: Readonly<Record<TodayStatus, number>> = { waiting: 0, playing: 1, left: 2 };
+const RANK: Readonly<Record<TodayStatus, number>> = { waiting: 0, playing: 1, in_room: 2, left: 3, never_arrived: 4 };
 
 // Gold for a player waiting for a seat (decision 0463); cream for one playing; faint for one gone.
-const TONE: Readonly<Record<TodayStatus, DotStatusTone>> = { waiting: 'needsYou', playing: 'active', left: 'inactive' };
+const TONE: Readonly<Record<TodayStatus, DotStatusTone>> = { waiting: 'needsYou', playing: 'active', in_room: 'active', left: 'inactive', never_arrived: 'inactive' };
 
 const NONE = () => t('console.todaysPlayers.none');
 const at = (iso: string | null) => (iso === null ? NONE() : formatTime(new Date(iso)));

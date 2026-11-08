@@ -53,6 +53,12 @@ describe("Today's players", () => {
     expect(within(chips).getByRole('radio', { name: 'All, 4' }).getAttribute('aria-checked')).toBe('true');
   });
 
+  it('tells who is in the room and who never arrived from who left (audit F-097)', async () => {
+    renderTab([...TODAY, player('Kabir Sethi', 'in_room'), player('Yash Gupta', 'never_arrived')]);
+    const chips = await screen.findByRole('radiogroup', { name: 'Status' }, { timeout: 5000 });
+    for (const name of ['In the room, 1', 'Left, 1', 'Never arrived, 1']) expect(within(chips).getByRole('radio', { name })).toBeDefined();
+  });
+
   it('shows only the players of the status chosen', async () => {
     renderTab(TODAY);
     fireEvent.click(await screen.findByRole('radio', { name: 'Waiting, 1' }, { timeout: 5000 }));
