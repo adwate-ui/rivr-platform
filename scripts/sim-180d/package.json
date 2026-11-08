@@ -8,6 +8,11 @@
     "test": "vitest run",
     "sim": "tsx bin/run.ts"
   },
+  "dependencies": {
+    "@rivr/adapters": "workspace:*",
+    "@rivr/contracts": "workspace:*",
+    "zod": "^4.6.7"
+  },
   "devDependencies": {
     "@types/node": "^22.18.0",
     "@vitest/coverage-v8": "^5.0.5",
