@@ -43,7 +43,9 @@ export interface HiddenScreen {
   readonly locksWhenIdle?: true;
 }
 
-const FLOOR_READERS: readonly Permission[] = ['members.read', 'floor.manage', 'waitlist.manage', 'hands.log', 'dashboards.read', 'promotions.manage'];
+// The floor's seats come from reads that need members.read: without it every seat reads empty, so investors, marketing and
+// dealers have no Live floor (owner, 8 Nov; audit F-004).
+const FLOOR_READERS: readonly Permission[] = ['members.read', 'floor.manage', 'waitlist.manage'];
 
 // The rail in the order of a club night (console v3, phase 1). A host has no Marketing or Admin: Rewards is for those who
 // run the catalogue or give points, not for handing over (decision 0476).

@@ -93,7 +93,7 @@ export function refusalAt(permissions: readonly Permission[], pathname: string, 
   if (entry === undefined) return undefined;
   const named = entry.tabs?.find((one) => one.id === tab);
   const isAllowed = named === undefined ? mayOpen(entry, permissions) : holdsAny(named.anyOf, permissions);
-  return isAllowed ? undefined : { title: t(entry.label), isOff: false };
+  return isAllowed ? undefined : { title: t(named?.label ?? entry.label), isOff: false };
 }
 
 /** True when `refusalAt` lets the staff member in. */
@@ -106,9 +106,9 @@ export function locksWhenIdle(pathname: string): boolean {
   return (hiddenAt(pathname)?.locksWhenIdle ?? entryAt(pathname)?.locksWhenIdle) === true;
 }
 
-/** Where a staff member whose role cannot open the Live floor lands: the first screen their rail shows (#640: Service). */
-export function landingFor(sections: readonly SideNavSection[]): string | undefined {
-  return sections.flatMap((section) => section.items)[0]?.href;
+/** The first screen a staff member's rail shows: where a role without the Live floor lands (#640: Service), and a refusal's way back. */
+export function landingFor(sections: readonly SideNavSection[]): SideNavItem | undefined {
+  return sections.flatMap((section) => section.items)[0];
 }
 
 /** The rail's (or the tab bar's) item for the screen at `pathname`, so the screen's own address marks it current. */
