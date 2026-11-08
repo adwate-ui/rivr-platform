@@ -35,4 +35,9 @@ describe('TV slides', () => {
     expect(renderToStaticMarkup(<WaitlistSlide stakes={[{ id: 'a', stake: 'NLH 50/100', detail: '1 table open', places: [] }]} />)).toContain('No one waiting.');
     expect(renderToStaticMarkup(<BadBeatJackpotSlide amountPaise={34_260_000n} />)).toContain('No high hand yet tonight.');
   });
+
+  it('says how many more wait than the board holds', () => {
+    const places = Array.from({ length: 9 }, (_, index) => ({ id: String(index), place: String(index + 1), name: `Player ${index + 1}` }));
+    expect(renderToStaticMarkup(<WaitlistSlide stakes={[{ id: 'a', stake: 'NLH 50/100', detail: '1 table open', places }]} />)).toMatch(/\+\d+ more/);
+  });
 });

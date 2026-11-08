@@ -11,6 +11,7 @@ const meta = {
   args: {
     title: 'Waitlist',
     emptyText: 'No one waiting.',
+    moreText: (hidden: number) => `+${hidden} more`,
     stakes: [
       { id: 'a', stake: '₹50/100', detail: '1 table open', places: [] },
       {
@@ -50,7 +51,7 @@ export const ThreeStakes: Story = {
   },
 };
 
-/** More than six waiting: the board shows the first six. */
+/** More waiting than the stage holds: the board shows those it does, and how many more. */
 export const Full: Story = {
   args: {
     stakes: [{
@@ -59,6 +60,30 @@ export const Full: Story = {
         id: String(index), place: String(index + 1), name,
       })),
     }],
+  },
+};
+
+const NAMES = ['Kabir S.', 'Naina K.', 'Rohan B.', 'Arjun M.', 'Ishaan V.', 'Vihaan K.', 'Dev M.'];
+
+/** The fullest it gets (F-044): three columns of more than fit, a player called in each. */
+export const ThreeFullColumns: Story = {
+  args: {
+    footer: 'Page 1 of 2 · Table 4, Table 5: no list',
+    stakes: ['Table 1', 'Table 2', 'Table 3'].map((stake) => ({
+      id: stake, stake, detail: 'NLH 100/200',
+      places: NAMES.map((name, index) => ({ id: String(index), place: String(index + 1), name, status: index === 0 ? 'Called to Table 2' : undefined })),
+    })),
+  },
+};
+
+/** Rows with a status take more room (F-044): four of them in each of three columns. */
+export const ThreeColumnsManyStatuses: Story = {
+  args: {
+    footer: 'Page 1 of 2',
+    stakes: ['Table 1', 'Table 2', 'Table 3'].map((stake) => ({
+      id: stake, stake, detail: 'NLH 100/200',
+      places: NAMES.map((name, index) => ({ id: String(index), place: String(index + 1), name, status: index < 4 ? 'Called to Table 2' : undefined })),
+    })),
   },
 };
 
