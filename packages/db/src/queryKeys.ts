@@ -118,6 +118,7 @@ export const queryKeys = {
   amlRegister: (userId: string, venueId: string) => ['user', userId, 'aml-register', venueId] as const,
   /** A venue's rewards catalogue and redemptions, as the console keeps them (decision 0181). */
   rewardItems: (userId: string, venueId: string) => ['user', userId, 'reward-items', venueId] as const,
+  rewardRedemptionCounts: (userId: string, venueId: string) => ['user', userId, 'reward-redemption-counts', venueId] as const,
   venueRedemptions: (userId: string, venueId: string) => ['user', userId, 'venue-redemptions', venueId] as const,
   /** A venue's League seasons, and its standings over some months (decision 0182). */
   leagueSeasons: (userId: string, venueId: string) => ['user', userId, 'league-seasons', venueId] as const,

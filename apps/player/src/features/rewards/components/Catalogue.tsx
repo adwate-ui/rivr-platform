@@ -1,7 +1,7 @@
 import { REWARD_KINDS, type RewardKind } from '@rivr/contracts/rewardKinds';
 import type { RewardItem } from '@rivr/db';
 import { useRedeemReward, useRewardCatalogue } from '@rivr/db/myRewards';
-import { rewardShortfall, type RewardShortfall, type RewardsHeld } from '@rivr/domain/rewards';
+import { rewardShortfall, soldOutLast, type RewardShortfall, type RewardsHeld } from '@rivr/domain/rewards';
 import { formatNights, formatNumber, t } from '@rivr/i18n';
 import { Box, Button, ChoiceChips, DetailRow, ErrorMessage, Inline, ItemPhoto, LoadState, Skeleton, Sheet, Stack, Text, useToast } from '@rivr/ui';
 import { useState } from 'react';
@@ -78,8 +78,8 @@ function RewardRow({ item, held, onRedeem }: { item: RewardItem; held: RewardsHe
 }
 
 /**
- * The catalogue (brief 3.8): filter pills that scroll (All and each kind), a row a reward, and the redeem sheet. Feature
- * rewards.catalogue, gated by the screen.
+ * The catalogue (brief 3.8): filter pills that wrap, so none is off-screen (All and each kind; F-187), a row a reward with
+ * those sold out last, and the redeem sheet. Feature rewards.catalogue, gated by the screen.
  */
 export function Catalogue({ held, hasNights }: { held: RewardsHeld; hasNights: boolean }) {
   const catalogue = useRewardCatalogue();
@@ -91,10 +91,10 @@ export function Catalogue({ held, hasNights }: { held: RewardsHeld; hasNights: b
   // A skeleton while it comes, never the word Loading (brief 2.6); Try again if it cannot.
   if (catalogue.isError) return <LoadState isError onRetry={() => void catalogue.refetch()} />;
   if (catalogue.data === undefined) return <Skeleton rows={2} />;
-  const shown = catalogue.data.filter((item) => kind === 'all' || item.kind === kind);
+  const shown = soldOutLast(catalogue.data.filter((item) => kind === 'all' || item.kind === kind));
   return (
     <Stack gap={4}>
-      <ChoiceChips label={t('memberRewards.show')} isLabelVisuallyHidden look="pill" mode="one" isOneRow selected={[kind]} options={options}
+      <ChoiceChips label={t('memberRewards.show')} isLabelVisuallyHidden look="pill" mode="one" selected={[kind]} options={options}
         onChange={(chosen) => setKind(chosen[0] ?? 'all')} />
       {shown.length === 0 ? <Text tone="muted">{t('memberRewards.noRewards')}</Text> : (
         <Stack gap={3} divided>{shown.map((item) => <RewardRow key={item.id} item={item} held={held} onRedeem={() => setRedeeming(item)} />)}</Stack>

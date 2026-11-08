@@ -149,6 +149,13 @@ describe('Rewards', () => {
     expect(screen.queryByText(/₹/)).toBeNull();
   });
 
+  it('lists a reward with none left after the rest (F-187)', async () => {
+    renderRewards();
+    const hoodie = await screen.findByText('RIVR hoodie', {}, LATER);
+    const seat = screen.getByText('Sunday Main Event seat');
+    expect(seat.compareDocumentPosition(hoodie) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('filters the catalogue by its pills', async () => {
     renderRewards();
     expect(await screen.findByText('RIVR hoodie', {}, LATER)).toBeDefined();
