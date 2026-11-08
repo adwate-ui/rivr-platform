@@ -16,6 +16,8 @@ describe('DetailRow', () => {
     renderIn(<DetailRow label="House rules" onOpen={onOpen} />);
     await userEvent.click(screen.getByRole('button', { name: 'House rules' }));
     expect(onOpen).toHaveBeenCalledOnce();
+    // The chevron's ink ends on the row's edge, past its side bearing (F-157).
+    expect(screen.getByRole('button', { name: 'House rules' }).querySelector('svg')?.parentElement).toHaveClass('-mr-1');
   });
 
   it('has no accessibility violations', async () => {

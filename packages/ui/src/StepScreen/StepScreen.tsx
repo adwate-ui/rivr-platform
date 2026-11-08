@@ -49,7 +49,8 @@ export interface StepLook {
 function StepBack({ back, look }: { back: { label: string; onBack: () => void }; look: StepLook | undefined }) {
   if (look?.progress) return <ProgressBack back={back} progress={look.progress} />;
   return (
-    <header className="-ml-3 self-start">
+    // Its chevron's ink on the page's edge, past the button's padding and the chevron's side bearing (F-157), as BackButton.
+    <header className={cx('self-start', look ? '-ml-5' : '-ml-3')}>
       <Button variant="text" onClick={back.onBack} {...(look ? BACK_CHEVRON : {})}>
         {back.label}
       </Button>
@@ -60,9 +61,11 @@ function StepBack({ back, look }: { back: { label: string; onBack: () => void };
 /** Back as a chevron, then a segment a step, gold up to this one, then where the member is: "1 of 2". */
 function ProgressBack({ back, progress }: { back: { label: string; onBack: () => void }; progress: NonNullable<StepLook['progress']> }) {
   return (
-    <header className="-ml-2 flex items-center gap-4">
+    // The chevron at BackButton's size, its ink on the page's edge (F-157, F-177): the 44 px target's 12 px either side of it
+    // and its side bearing sit outside.
+    <header className="-ml-5 flex items-center gap-4">
       <button type="button" aria-label={back.label} onClick={back.onBack} className="flex size-touch shrink-0 items-center justify-center text-content">
-        <Icon name="chevronLeft" size="lg" />
+        <Icon name="chevronLeft" size="md" />
       </button>
       <span aria-hidden="true" className="grid flex-1 grid-flow-col gap-2">
         {Array.from({ length: progress.of }, (_, index) => (

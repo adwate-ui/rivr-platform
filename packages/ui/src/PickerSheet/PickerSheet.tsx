@@ -49,14 +49,18 @@ interface OptionsProps<Value extends string> {
   onPress: (value: Value) => void;
 }
 
-/** The sheet's rows, each 52 px with its radio or checkbox at the right. */
+/**
+ * The sheet's rows, each 52 px with its radio or checkbox at the right: radios in a radio group for one choice, toggles in
+ * a group for several (F-177).
+ */
 function Options<Value extends string>({ label, options, selected, isMany, onPress }: OptionsProps<Value>) {
   return (
-    <div role="group" aria-label={label} className="flex flex-col">
+    <div role={isMany ? 'group' : 'radiogroup'} aria-label={label} className="flex flex-col">
       {options.map((option) => {
         const isOn = selected.includes(option.value);
         return (
-          <button key={option.value} type="button" aria-pressed={isOn} className={OPTION} onClick={() => onPress(option.value)}>
+          <button key={option.value} type="button" role={isMany ? undefined : 'radio'} aria-checked={isMany ? undefined : isOn}
+            aria-pressed={isMany ? isOn : undefined} className={OPTION} onClick={() => onPress(option.value)}>
             {option.label}
             <Mark isOn={isOn} isMany={isMany} />
           </button>

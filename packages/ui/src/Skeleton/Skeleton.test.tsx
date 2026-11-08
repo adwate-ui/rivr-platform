@@ -6,7 +6,8 @@ import { Skeleton } from './Skeleton.tsx';
 describe('Skeleton', () => {
   it('says it is loading to a screen reader only, never on the screen', () => {
     renderIn(<Skeleton />);
-    expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true');
+    // Not aria-busy: that could keep its Loading from being heard (F-177).
+    expect(screen.getByRole('status')).not.toHaveAttribute('aria-busy');
     expect(screen.getByText('Loading')).toHaveClass('sr-only');
   });
 

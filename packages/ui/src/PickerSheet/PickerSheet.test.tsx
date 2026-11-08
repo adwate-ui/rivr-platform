@@ -24,7 +24,8 @@ describe('PickerSheet', () => {
   it('closes as one option is picked, and shows it', async () => {
     renderIn(<Games mode="one" />);
     await userEvent.click(screen.getByRole('button', { name: /Games you play/ }));
-    await userEvent.click(screen.getByRole('button', { name: 'PLO' }));
+    expect(screen.getByRole('radiogroup', { name: 'Games you play' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('radio', { name: 'PLO' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Games you play/ })).toHaveTextContent('PLO');
   });
