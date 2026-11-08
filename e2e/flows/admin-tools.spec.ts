@@ -89,11 +89,11 @@ test.describe('Admin tools', () => {
     await admin.getByRole('button', { name: 'Find', exact: true }).click();
     await expect(admin.getByText(/^Neha Bhalla · No\. \d+$/)).toBeVisible();
     await admin.getByRole('textbox', { name: 'Points to give or release' }).fill('300');
-    await admin.getByRole('textbox', { name: 'Reason' }).fill('Welcome to RIVR');
+    await admin.getByRole('textbox', { name: 'Reason', exact: true }).fill('Welcome to RIVR');
     await admin.getByRole('button', { name: 'Give as locked' }).click();
     await expect(admin.getByText('300 points locked for Neha Bhalla.')).toBeVisible();
     await admin.getByRole('textbox', { name: 'Points to give or release' }).fill('100');
-    await admin.getByRole('textbox', { name: 'Reason' }).fill('Played the month');
+    await admin.getByRole('textbox', { name: 'Reason', exact: true }).fill('Played the month');
     await admin.getByRole('button', { name: 'Release', exact: true }).click();
     await expect(admin.getByText('100 of Neha Bhalla’s locked points released to spend.')).toBeVisible();
 
