@@ -75,6 +75,9 @@ export const playerLive = {
     left: 'call time left · ends {time}',
     /** The ring's clock, read out: `Call time left 2h 41m`. */
     timer: 'Call time left {time}',
+    /** The next play-time bonus on this seat (audit F-173). */
+    nextBonus: 'Next: {chips} bonus chips',
+    nextBonusIn: 'in {time}',
     seatedToast: 'Seated at {table}, seat {seat}',
   },
   /** What the member does from the seat (brief 3.4 E): three round actions, each a sheet, then food and drink. */

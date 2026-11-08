@@ -44,6 +44,29 @@ const LIVE = 30_000;
 
 const isTopUp = (value: string | null): value is TopUp => value === 'requested' || value === 'in_progress';
 
+/** The next play-time bonus step this seat is counting towards (audit F-173). */
+export interface NextPlayTimeBonus {
+  readonly chips: number;
+  readonly afterMinutes: number;
+  readonly secondsLeft: number;
+}
+
+/** The next play-time bonus that would pay on the member's seat, or null when none is counting. */
+export function useMyNextPlayTimeBonus() {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.myNextPlayTimeBonus(userId ?? 'signed-out'),
+    enabled: userId !== null,
+    refetchInterval: LIVE,
+    queryFn: async (): Promise<NextPlayTimeBonus | null> => {
+      const { data, error } = await client.rpc('my_next_play_time_bonus');
+      if (error) throw error;
+      const row = data[0];
+      return row === undefined ? null : { chips: Number(row.chips), afterMinutes: row.after_minutes, secondsLeft: Number(row.seconds_left) };
+    },
+  });
+}
+
 /** The member's seat, or null when they are not seated. */
 export function useMySeat() {
   const { client, userId } = useRivrData();
