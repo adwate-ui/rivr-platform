@@ -15,7 +15,7 @@ function columns(onRecord: (shiftId: string, status: Attendance) => void): reado
       cell: (row) => t('console.roster.shift', { starts: formatTime(new Date(row.startsAt)), ends: formatTime(new Date(row.endsAt)) }),
     },
     {
-      key: 'attendance', header: t('console.roster.tonightTitle'),
+      key: 'attendance', filter: false, header: t('console.roster.tonightTitle'),
       cell: (row) => (
         <ChoiceChips label={t('console.roster.attendanceFor', { name: row.fullName })} isLabelVisuallyHidden mode="one"
           selected={row.attendance === null ? [] : [row.attendance]} onChange={(picked) => { if (picked[0] !== undefined) onRecord(row.shiftId, picked[0]); }}

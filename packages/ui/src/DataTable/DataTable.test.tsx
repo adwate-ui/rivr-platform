@@ -131,7 +131,7 @@ describe('DataTable', () => {
   it('announces when nothing matches', async () => {
     table(ROWS, { filter: true });
     await userEvent.type(screen.getByRole('searchbox', { name: 'Find a member' }), 'zz');
-    expect(screen.getByRole('status')).toHaveTextContent('Nothing matches zz.');
+    expect(screen.getAllByRole('status').map((status) => status.textContent)).toEqual(['0 of 3', 'Nothing matches zz.']);
   });
 
   it('lets the body of a long table take focus, so the keys scroll it', () => {
@@ -167,15 +167,16 @@ describe('DataTable', () => {
 
   it('sorts on a phone from a bar above the cards, where the header row is hidden, and draws no bar at a desk', async () => {
     const desk = table();
-    expect(screen.queryByRole('group', { name: 'Sort Members' })).toBeNull();
+    expect(screen.queryByRole('group', { name: 'Sort and filter Members' })).toBeNull();
     desk.unmount();
     // Below 768 px.
     vi.stubGlobal('matchMedia', (media: string) => ({ matches: false, media, addEventListener: () => undefined, removeEventListener: () => undefined }));
     try {
       table();
-      const bar = screen.getByRole('group', { name: 'Sort Members' });
-      await userEvent.click(within(bar).getByRole('button', { name: 'Sort by Hours' }));
-      expect(within(bar).getByRole('button', { name: 'Sorted by Hours, ascending' })).toHaveAttribute('aria-pressed', 'true');
+      const bar = screen.getByRole('group', { name: 'Sort and filter Members' });
+      await userEvent.click(within(bar).getByRole('button', { name: 'Hours: sort and filter' }));
+      await userEvent.click(within(screen.getByRole('dialog', { name: 'Hours: sort and filter' })).getByRole('button', { name: 'Sort ascending' }));
+      expect(within(bar).getByRole('button', { name: 'Hours: sort and filter, sorted ascending' })).toBeInTheDocument();
       expect(names()).toEqual(['Kabir Sethi', 'Naina Kapoor', 'Arjun Mehta']);
     } finally {
       vi.unstubAllGlobals();

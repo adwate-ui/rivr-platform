@@ -32,7 +32,7 @@ function columns(): readonly DataTableColumn<SocialPost>[] {
       key: 'channels', header: t('console.social.posts.channels'), cell: (row) => channelsOf(row), filter: 'choice',
       filterValue: (row) => row.channels.map(({ channel }) => t(`console.social.channels.${channel}`)),
     },
-    { key: 'download', header: t('console.social.posts.download'), align: 'end', cell: (row) => (
+    { key: 'download', filter: false, header: t('console.social.posts.download'), align: 'end', cell: (row) => (
       <Inline gap={2}>
         <Button variant="text" href={row.imageUrl}>{t('console.social.posts.image')}</Button>
         <Button variant="text" href={captionLink(row.caption)} download="caption.txt">{t('console.social.posts.captionFile')}</Button>

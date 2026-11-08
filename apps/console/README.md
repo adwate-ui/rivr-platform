@@ -25,7 +25,9 @@ src/
                       Marketing, Admin folded), the phone's tab bar; the header's search, counts, clock and the staff
                       member's menu (density, practice venue, shortcuts, sign out); the practice venue's stripe; the
                       kill-switch banner; refusals under the screen's name; ScreenTabs for a screen that holds others
-                      (`?tab=`, a tab's own parts `?part=`); not found
+                      (`?tab=`, a tab's own parts `?part=`); not found; every table's order, search and filters in
+                      the address under `t.<table>` (`useAddressTableViews`, the club's days for date filters), which a
+                      screen's own links keep (`useNavigateKeepingViews`; decision 0512)
     sign-in/          mobile number and code, as in the player app (decision 0032)
     kyc-review/       identity checks waiting for a KYC reviewer: the queue beside the check open, decided with a reason in words, and Check in person in a sheet, beside the member's app selfie when they registered to be checked at the club (decision 0502) (/kyc-review)
     academy/          Academy batches, company bookings, recording a UTR and cancelling (Academy staff,

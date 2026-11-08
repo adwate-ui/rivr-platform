@@ -1,5 +1,6 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, StaffVenueProvider } from '@rivr/db';
 import { QueryClient } from '@tanstack/react-query';
+import { createMemoryHistory, createRootRoute, createRouter, RouterProvider } from '@tanstack/react-router';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MembersScreen } from './MembersScreen.tsx';
@@ -62,10 +63,13 @@ function renderAs(role: string, memberId?: string, part?: string) {
     return Response.json(path === undefined ? [] : ANSWERS[path]);
   });
   const onNavigate = vi.fn();
+  // The list keeps its search and tier in the address (owner, 9 Nov), so the screen sits in a router at /members.
+  const screenRoute = createRootRoute({ component: () => <StaffVenueProvider><MembersScreen memberId={memberId} part={part} onNavigate={onNavigate} /></StaffVenueProvider> });
+  const router = createRouter({ routeTree: screenRoute, history: createMemoryHistory({ initialEntries: ['/members'] }) });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <StaffVenueProvider><MembersScreen memberId={memberId} part={part} onNavigate={onNavigate} /></StaffVenueProvider>
+      <RouterProvider router={router} />
     </RivrDataProvider>,
   );
   return onNavigate;
@@ -115,16 +119,15 @@ describe('Members (console v3)', () => {
     expect(within(table).getByRole('button', { name: 'Arjun Mehta' })).toBeDefined();
     expect(within(table).queryByRole('button', { name: 'Sakshi Tandon' })).toBeNull();
     fireEvent.change(search, { target: { value: 'Zoya' } });
-    expect(await screen.findByText('No member matches Zoya.')).toBeDefined();
+    expect(await screen.findByText('Nothing matches Zoya.')).toBeDefined();
   });
 
   it('shows a seated member\'s seat with a link to it on the floor, and the promotions they were given', async () => {
     const onNavigate = renderAs('super_admin', 'm1');
     expect(await screen.findByRole('heading', { name: 'Sakshi Tandon', level: 2 }, { timeout: 5000 })).toBeDefined();
-    // Half the width beside the record, the list keeps Name, No., Tier, Tonight and Visits; the record has the rest.
+    // Half the width beside the record, the list keeps every column, its lines scrolling sideways (owner, 9 Nov).
     const table = screen.getByRole('table', { name: 'Members' });
-    expect(within(table).queryByRole('columnheader', { name: /KYC|Mobile|Hours played/ })).toBeNull();
-    expect(within(table).getByRole('columnheader', { name: /Visits/ })).toBeDefined();
+    for (const column of [/^Mobile/, /^KYC/, /^Hours played/, /^City/, /^Visits/]) expect(within(table).getByRole('columnheader', { name: column })).toBeDefined();
     // The list beside it names her seat too, in its Tonight column's title: the record's line is the one with Show.
     const show = await screen.findByRole('button', { name: 'Show Sakshi Tandon on the floor' });
     expect(show.parentElement?.textContent).toContain('Table 2, seat 3');

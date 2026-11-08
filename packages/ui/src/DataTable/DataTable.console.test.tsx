@@ -108,9 +108,8 @@ describe('DataTable on the console', () => {
     renderIn(<Ticked onRowOpen={() => undefined} />);
     await userEvent.tab();
     expect(tick('Select all')).toHaveFocus();
-    await userEvent.tab();
-    await userEvent.tab();
-    await userEvent.tab();
+    // Past each column's name and menu in the header, then the first row's tick.
+    for (let step = 0; step < 12 && document.activeElement !== tick('Select Naina Kapoor'); step += 1) await userEvent.tab();
     expect(tick('Select Naina Kapoor')).toHaveFocus();
     await userEvent.keyboard(' ');
     expect(tick('Select Naina Kapoor')).toBeChecked();
@@ -176,7 +175,7 @@ describe('DataTable on the console', () => {
     renderIn(<DataTable label="Members" columns={COLUMNS} rowKey={(row) => row.id} rows={ROWS} emptyText="None." />);
     expect(screen.getAllByRole('rowgroup')[0]?.firstElementChild).toHaveClass('hidden');
     expect(screen.getAllByRole('cell')[0]).not.toHaveClass('max-medium:sticky');
-    expect(screen.getByRole('group', { name: 'Sort Members' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Sort and filter Members' })).toBeInTheDocument();
   });
 
   it('opens a row in place: its detail a row of its own under it, across every column, counted with the rows', async () => {

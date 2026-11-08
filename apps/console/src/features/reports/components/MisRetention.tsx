@@ -7,7 +7,7 @@ const promotionColumns = (): readonly DataTableColumn<PromotionCost>[] => [
   { key: 'grants', header: t('console.reports.grants'), align: 'end', cell: (row) => formatNumber(row.grants), sortValue: (row) => row.grants },
   { key: 'cost', header: t('console.reports.costMonth'), align: 'end', cell: (row) => <Money paise={row.cost} />, sortValue: (row) => row.cost },
   { key: 'toDate', header: t('console.reports.costToDate'), align: 'end', cell: (row) => <Money paise={row.costToDate} />, sortValue: (row) => row.costToDate },
-  { key: 'budget', header: t('console.reports.budget'), align: 'end', cell: (row) => <Budget row={row} /> },
+  { key: 'budget', filter: false, header: t('console.reports.budget'), align: 'end', cell: (row) => <Budget row={row} /> },
 ];
 
 /** A promotion's budget: its cap in rupees, its cap on grants, or No cap. */

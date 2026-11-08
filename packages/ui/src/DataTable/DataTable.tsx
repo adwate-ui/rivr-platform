@@ -1,20 +1,19 @@
 import { t } from '@rivr/i18n';
-import { useId, useMemo, useRef, useState, type ReactNode, type UIEvent } from 'react';
-import { createPortal } from 'react-dom';
+import { useRef, type ReactNode, type UIEvent } from 'react';
 import { Button } from '../Button/Button.tsx';
-import { PhoneSort } from './PhoneSort.tsx';
-import { Input } from '../Input/Input.tsx';
-import { useIsWide } from '../useIsWide/useIsWide.ts';
 import { Text } from '../Text/Text.tsx';
-import { useTableDensity } from './DataTableDensity.tsx';
-import { ColumnFiltersPanel } from './ColumnFilters.tsx';
-import { ExportBar, useTableExporter } from './DataTableExport.tsx';
-import { filtersInWords, filtersOn, NO_FILTERS, passes, type ColumnFilters } from './filters.ts';
-import { HeaderRow, layoutOf, PlainBody, VirtualBody } from './rows.tsx';
-import { ticksFor, type DataTableSelection } from './Selection.tsx';
+import { useIsWide } from '../useIsWide/useIsWide.ts';
+import { ColumnMenu } from './ColumnMenu.tsx';
 import type { DataTableColumn, DataTableExportColumn, DataTableSort } from './columns.ts';
+import { useTableDensity } from './DataTableDensity.tsx';
+import { PhoneSort } from './PhoneSort.tsx';
+import { HeaderRow } from './header.tsx';
+import { layoutOf, PlainBody, VirtualBody } from './rows.tsx';
+import { ticksFor, type DataTableSelection } from './Selection.tsx';
+import { FilterPills, TableBar } from './TableBar.tsx';
+import { useTable, type DataTableSearch } from './useTable.ts';
 
-export type { DataTableColumn, DataTableExportColumn, DataTableSelection, DataTableSort };
+export type { DataTableColumn, DataTableExportColumn, DataTableSearch, DataTableSelection, DataTableSort };
 
 /** The rows, or one of the states every list has. */
 export type DataTableState<Row> =
@@ -27,9 +26,14 @@ export type DataTableProps<Row> = DataTableState<Row> & {
   label: string;
   columns: readonly DataTableColumn<Row>[];
   rowKey: (row: Row) => string;
-  /** A filter box above the table: a row stays when `text` gives something containing what is typed, case aside. */
-  filter?: { readonly label: string; readonly text: (row: Row) => string };
+  /**
+   * A search box above the table: a row stays when `text` gives something containing what is typed, case aside; or, for a
+   * screen with a search of its own (Members: a member number exactly, a mobile's last four digits), when `matches` says so.
+   */
+  filter?: DataTableSearch<Row>;
   initialSort?: DataTableSort;
+  /** Under the search box, a screen's own choice that narrows the rows, such as Members' tiers. */
+  belowSearch?: ReactNode;
   /** Beside the filter box, given the rows as shown (filtered and sorted). */
   toolbar?: (rows: readonly Row[]) => ReactNode;
   /** The screen's own filters, in words, which an export records with the table's (#102): `Search: 9000`. */
@@ -59,6 +63,11 @@ export type DataTableProps<Row> = DataTableState<Row> & {
    */
   narrowLayout?: 'cards' | 'scroll';
   /**
+   * The table's lines scroll sideways at every width, each column at least `size.column` wide, rather than squeeze: a
+   * table beside a docked record, which keeps every column (owner, 9 Nov).
+   */
+  scrollsSideways?: boolean;
+  /**
    * Under a row, across the whole table: what the row opened in place, such as a dealer's new PIN or a setting's new
    * value (console v3); null for none. Not in a long list, whose rows are all one height.
    */
@@ -67,35 +76,6 @@ export type DataTableProps<Row> = DataTableState<Row> & {
 
 /** Past this many rows, only the rows in view are drawn (additions, "Performance budgets"). */
 export const VIRTUAL_FROM = 200;
-
-// One collator for every comparison: making one per comparison is slow on thousands of rows.
-const COLLATOR = new Intl.Collator('en-IN', { sensitivity: 'base', numeric: true });
-const NO_ROWS: readonly never[] = [];
-
-function compare(a: string | number | bigint, b: string | number | bigint): number {
-  if (typeof a === 'string' && typeof b === 'string') return COLLATOR.compare(a, b);
-  if (a < b) return -1;
-  return a > b ? 1 : 0;
-}
-
-interface View<Row> {
-  readonly columns: readonly DataTableColumn<Row>[];
-  readonly sort: DataTableSort | null;
-  readonly text: ((row: Row) => string) | undefined;
-  readonly query: string;
-  readonly filters: ColumnFilters;
-}
-
-/** The rows to show: those matching the search and every column filter in force, in the chosen order. */
-function shown<Row>(rows: readonly Row[], { columns, sort, text, query, filters }: View<Row>): readonly Row[] {
-  const needle = query.trim().toLowerCase();
-  const on = filtersOn(columns, filters);
-  const matching = rows.filter((row) => (text === undefined || needle === '' || text(row).toLowerCase().includes(needle)) && passes(row, on, filters));
-  const value = columns.find((column) => column.key === sort?.key)?.sortValue;
-  if (sort === null || value === undefined) return matching;
-  const sign = sort.direction === 'ascending' ? 1 : -1;
-  return [...matching].sort((a, b) => sign * compare(value(a), value(b)));
-}
 
 /** How many rows have their detail open: each is a row of its own, counted with the others. */
 function detailCount<Row>(rows: readonly Row[], detail: ((row: Row) => ReactNode) | undefined): number {
@@ -109,16 +89,20 @@ interface TableProps<Row> {
   /** The search and the column filters in force, in a word: a long table starts from the top as it changes. */
   readonly resetKey: string;
   readonly onSort: (key: string) => void;
+  readonly menuFor: (column: DataTableColumn<Row>) => ReactNode;
 }
 
-function Table<Row>({ props, visible, sort, resetKey, onSort }: TableProps<Row>) {
+/** How the rows are laid out: sideways at every width, or below 768 px as cards or lines that scroll. */
+const narrowOf = <Row,>(props: DataTableProps<Row>) => (props.scrollsSideways === true ? 'sideways' : props.narrowLayout ?? 'cards');
+
+function Table<Row>({ props, visible, sort, resetKey, onSort, menuFor }: TableProps<Row>) {
   const header = useRef<HTMLDivElement>(null);
   // The staff member's own density (decision 0475), unless the table sets one.
   const density = useTableDensity();
   const isVirtual = visible.length > VIRTUAL_FROM;
   const ticks = props.selection === undefined ? null : ticksFor(props.selection, visible.map(props.rowKey));
-  const layout = layoutOf(props.columns, props.narrowLayout ?? 'cards', props.density ?? density, ticks);
-  // In the scroll layout below 768 px the body scrolls sideways, and the header, which has no scrollbar, follows it.
+  const layout = layoutOf(props.columns, narrowOf(props), props.density ?? density, ticks);
+  // Where the body scrolls sideways, the header, which has no scrollbar, follows it.
   const onScrollX = (event: UIEvent<HTMLElement>) => {
     if (header.current !== null) header.current.scrollLeft = event.currentTarget.scrollLeft;
   };
@@ -126,7 +110,7 @@ function Table<Row>({ props, visible, sort, resetKey, onSort }: TableProps<Row>)
   const detail = isVirtual ? undefined : props.rowDetail;
   return (
     <div role="table" aria-label={props.label} aria-rowcount={visible.length + detailCount(visible, detail) + 1} className="flex flex-col">
-      <HeaderRow ref={header} columns={props.columns} sort={sort} onSort={onSort} layout={layout} isVirtual={isVirtual} />
+      <HeaderRow ref={header} columns={props.columns} sort={sort} onSort={onSort} layout={layout} isVirtual={isVirtual} menuFor={menuFor} />
       {isVirtual
         // A new order or filter starts from the top.
         ? <VirtualBody key={`${sort?.key ?? ''}:${sort?.direction ?? ''}:${resetKey}`} {...body} />
@@ -151,112 +135,70 @@ function Instead<Row>({ props, query, isFiltered }: { props: DataTableProps<Row>
   return <div role="status" className="px-3 py-4"><Text tone="muted">{text}</Text></div>;
 }
 
-/** Every filter in force, in words, as an export records them: the screen's, then the table's search and its columns'. */
-function filtersInForce<Row>(props: DataTableProps<Row>, query: string, filters: ColumnFilters): string {
-  const typed = query.trim();
-  const own = typed === '' || props.filter === undefined ? undefined : `${props.filter.label}: ${typed}`;
-  const words = [props.exportFilter, own, ...filtersInWords(filtersOn(props.columns, filters), filters)].filter((part) => part !== undefined && part !== '').join('; ');
-  // The audit log takes 1,000 characters: many values picked are cut short rather than stop the export.
-  return words.length > FILTER_WORDS_MOST ? `${words.slice(0, FILTER_WORDS_MOST - 1)}…` : words;
-}
-
-const FILTER_WORDS_MOST = 1000;
-
-/** What the bar holds: the search typed and the column filters, open or not. */
-interface BarState {
-  readonly query: string;
-  readonly onQuery: (query: string) => void;
-  readonly filters: ColumnFilters;
-  readonly isFiltering: boolean;
-  readonly onFiltering: () => void;
-  /** The panel's id, which the Filters button controls. */
-  readonly panelId: string;
+/**
+ * Where the focus goes once what had it is gone, such as a pill removed: drawn again first, then the first element of the
+ * table matching `selector` (a column's menu, the search box).
+ */
+function useRefocus() {
+  const root = useRef<HTMLDivElement>(null);
+  const refocus = (selector: string) => {
+    setTimeout(() => root.current?.querySelector<HTMLElement>(selector)?.focus(), 0);
+  };
+  return { root, refocus };
 }
 
 /**
- * The Export control for the rows as shown, beneath a DataTableExportProvider and once there are rows: `here`, at the
- * table's top right, or `elsewhere`, drawn in the element `exportIn` names.
+ * The filters in force as pills, once the rows are in: nothing to count while they load or fail to. A filter removed gives
+ * the focus to its column's menu; Clear all, to the search box or the first column's menu.
  */
-function useExportPlaced<Row>(props: DataTableProps<Row>, visible: readonly Row[], query: string, filters: ColumnFilters) {
-  const exporter = useTableExporter();
-  const menu = exporter === null || visible.length === 0 ? null
-    : <ExportBar exporter={exporter} label={props.label} columns={[...props.columns, ...(props.exportColumns ?? []).map(exportOnly)]} rows={visible}
-        filter={filtersInForce(props, query, filters)} />;
-  const target = props.exportIn;
-  if (target === undefined) return { here: menu, elsewhere: null };
-  return { here: null, elsewhere: menu === null || target === null ? null : createPortal(menu, target) };
-}
-
-/** An export-only column as the export reads columns: its own value, and nothing drawn. */
-const exportOnly = <Row,>(column: DataTableExportColumn<Row>) => ({ ...column, cell: () => null });
-
-/** Filters, for a table with a column to filter: open or closed, with how many are in force. */
-function FiltersButton<Row>({ props, state }: { props: DataTableProps<Row>; state: BarState }) {
-  // Nothing to filter while the rows load or fail to.
-  if (!props.columns.some((column) => column.filter !== undefined) || props.status === 'loading' || props.status === 'error') return null;
-  const count = filtersOn(props.columns, state.filters).length;
+function Pills<Row>({ props, table, refocus }: { props: DataTableProps<Row>; table: ReturnType<typeof useTable<Row>>; refocus: (selector: string) => void }) {
+  if (props.status === 'loading' || props.status === 'error') return null;
   return (
-    <Button variant="subtle" size="small" aria-expanded={state.isFiltering} aria-controls={state.panelId} onClick={state.onFiltering}
-      aside={count === 0 ? undefined : String(count)}
-      aria-label={count === 0 ? t('ui.dataTable.filters') : t('ui.dataTable.filtersCount', { count: String(count) })}>
-      {t('ui.dataTable.filters')}
-    </Button>
+    <FilterPills on={table.on} filters={table.view.filters} isSearched={props.filter !== undefined && table.view.query.trim() !== ''}
+      shown={table.visible.length} total={table.source.length}
+      onRemove={(key) => { table.setFilter(key, undefined); refocus(`[data-column-menu="${key}"]`); }}
+      onClearAll={() => { table.clearAll(); refocus('input[type="search"], [data-column-menu]'); }} />
   );
 }
 
-/**
- * Above the table: the filter box, Filters for a table with columns to filter, the caller's toolbar, and, beneath a
- * DataTableExportProvider, the Export control at the top right for the rows as shown with every filter in force, or in
- * the element `exportIn` names; nothing when there is none of these.
- */
-function Bar<Row>({ props, visible, state }: { props: DataTableProps<Row>; visible: readonly Row[]; state: BarState }) {
-  const { here, elsewhere } = useExportPlaced(props, visible, state.query, state.filters);
-  const filters = <FiltersButton props={props} state={state} />;
-  if (props.filter === undefined && props.toolbar === undefined && here === null && !props.columns.some((column) => column.filter !== undefined)) return elsewhere;
-  return (
-    <div className="flex flex-wrap items-end gap-4">
-      {props.filter === undefined ? null : (
-        <div className="min-w-0 flex-1 basis-full medium:basis-0">
-          <Input type="search" label={props.filter.label} value={state.query} onChange={(event) => state.onQuery(event.target.value)} autoComplete="off" />
-        </div>
-      )}
-      {filters}
-      {props.toolbar?.(visible)}
-      {here}
-      {elsewhere}
-    </div>
-  );
+/** Each column's menu, in the header (`icon`) or on a phone's bar (`words`); none for a column with neither filter nor order. */
+function useColumnMenus<Row>(table: ReturnType<typeof useTable<Row>>) {
+  return (column: DataTableColumn<Row>, look: 'icon' | 'words') => {
+    const filtered = table.filtered.find((one) => one.column.key === column.key);
+    if (filtered === undefined && (look === 'icon' || column.sortValue === undefined)) return null;
+    return <ColumnMenu column={column} filtered={filtered} rows={table.source} sort={table.view.sort} onSort={table.setSort} look={look} onClose={table.flush}
+      filter={table.view.filters[column.key]} onFilter={(filter, isTyping) => table.setFilter(column.key, filter, isTyping)} />;
+  };
 }
 
 /**
  * A table of records for the console (`.claude/rules/ui.md`, "Data"): headers that sort, held at the top as the page
- * scrolls, an optional filter box, optional ticks, and the loading, empty and error states. Past 200 rows only the rows
- * in view are drawn, so thousands of rows scroll smoothly. Beneath a DataTableExportProvider, the rows as shown export
- * as CSV or XLSX, each export recorded first (#102).
+ * scrolls, each column's menu to sort it and filter it by its type, the filters in force as pills, an optional search
+ * box, optional ticks, and the loading, empty and error states. Its view is kept beneath a DataTableViewProvider (the
+ * console: the address). Past 200 rows only the rows in view are drawn, so thousands of rows scroll smoothly. Beneath a
+ * DataTableExportProvider, the rows as shown export as CSV or XLSX, each export recorded first (#102).
  */
 export function DataTable<Row>(props: DataTableProps<Row>) {
   const isWide = useIsWide('medium');
-  const [sort, setSort] = useState<DataTableSort | null>(props.initialSort ?? null);
-  const [query, setQuery] = useState('');
-  const [filters, setFilters] = useState<ColumnFilters>(NO_FILTERS);
-  const [isFiltering, setFiltering] = useState(false);
-  const source = props.status === 'loading' || props.status === 'error' ? NO_ROWS : props.rows;
-  const text = props.filter?.text;
-  const visible = useMemo(() => shown(source, { columns: props.columns, sort, text, query, filters }), [source, props.columns, sort, text, query, filters]);
-  const panelId = useId();
-  const state = { query, onQuery: setQuery, filters, isFiltering, onFiltering: () => setFiltering(!isFiltering), panelId };
-  const isFiltered = filtersOn(props.columns, filters).length > 0;
-  const onSort = (key: string) => setSort((current) =>
-    current?.key === key && current.direction === 'ascending' ? { key, direction: 'descending' } : { key, direction: 'ascending' });
+  const table = useTable(props);
+  const { root, refocus } = useRefocus();
+  const menu = useColumnMenus(table);
+  const isCards = !isWide && props.narrowLayout !== 'scroll' && props.scrollsSideways !== true;
+  // Rows the search or filters leave none of: the header stays, with each column's menu, and why there are none under it.
+  const isNarrowedAway = table.visible.length === 0 && table.source.length > 0;
+  // Words searched in a link to a table without a search box are not applied, so never said.
+  const instead = <Instead props={props} query={props.filter === undefined ? '' : table.view.query} isFiltered={table.on.length > 0} />;
   return (
-    <div className="flex flex-col gap-4">
-      <Bar props={props} visible={visible} state={state} />
-      {isFiltering ? <ColumnFiltersPanel id={panelId} columns={props.columns} rows={source} filters={filters} onChange={setFilters} /> : null}
-      {visible.length === 0 ? <Instead props={props} query={query} isFiltered={isFiltered} /> : (
+    <div ref={root} className="flex flex-col gap-4">
+      <TableBar props={props} visible={table.visible} state={{ query: table.view.query, onQuery: table.setQuery, onLeave: table.flush, on: table.on, filters: table.view.filters }} />
+      <Pills props={props} table={table} refocus={refocus} />
+      {table.visible.length === 0 && !isNarrowedAway ? instead : (
         <>
-          {/* Below 768 px the cards sort from a bar above them; the scroll layout keeps its header. */}
-          {isWide || props.narrowLayout === 'scroll' ? null : <PhoneSort label={props.label} columns={props.columns} sort={sort} onSort={onSort} />}
-          <Table props={props} visible={visible} sort={sort} resetKey={`${query}:${JSON.stringify(filters)}`} onSort={onSort} />
+          {/* Below 768 px the cards sort and filter from a bar above them; a layout with lines keeps its header. */}
+          {isCards ? <PhoneSort label={props.label} columns={props.columns} menu={(column) => menu(column, 'words')} /> : null}
+          <Table props={props} visible={table.visible} sort={table.view.sort} resetKey={`${table.view.query}:${JSON.stringify(table.view.filters)}`}
+            onSort={table.toggleSort} menuFor={(column) => menu(column, 'icon')} />
+          {isNarrowedAway ? instead : null}
         </>
       )}
     </div>

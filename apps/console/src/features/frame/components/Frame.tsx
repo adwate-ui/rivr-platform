@@ -3,13 +3,14 @@ import { useAuthStatus, useControlState, useSignOut, useStaffDensity, useStaffQu
 import { useRecordTableExport } from '@rivr/db/exports';
 import { t } from '@rivr/i18n';
 import {
-  ConsoleShell, DataTableDensityProvider, DataTableExportProvider, KillSwitchBanner, PracticeBanner, Screen, ShortcutProvider, TitleCount, ToastProvider, UrgentChime,
+  ConsoleShell, DataTableDensityProvider, DataTableExportProvider, DataTableViewProvider, KillSwitchBanner, PracticeBanner, Screen, ShortcutProvider, TitleCount, ToastProvider, UrgentChime,
 } from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { ConsoleSearch } from './ConsoleSearch.tsx';
 import { FrameClock, FramePulse } from './FrameHeader.tsx';
 import { NotStaff } from './NotStaff.tsx';
+import { useAddressTableViews } from './tableViews.ts';
 import { landingFor, locksWhenIdle, phoneTabsFor, railFor, railItemAt, refusalAt, URGENT_QUEUES, type Refusal } from './rail.ts';
 import { SignOutButton } from './SignOutButton.tsx';
 import { StaffAccount } from './StaffAccount.tsx';
@@ -152,8 +153,11 @@ function FrameBody({ staff, urgent, refusal, landing, children }: FrameBodyProps
   const density = useStaffDensity(venueId);
   // Every table offers its export to staff who export tables, each recorded first (#102).
   const recordExport = useRecordTableExport(venueId);
+  // Every table keeps its order, search and filters in the address (owner, 9 Nov).
+  const views = useAddressTableViews();
   return (
     <DataTableDensityProvider density={density.data ?? 'comfortable'}>
+      <DataTableViewProvider store={views}>
       <DataTableExportProvider exporter={permissions.includes('exports.table') ? recordExport : null}>
         {/* New urgent work chimes and is told to a screen reader, and the tab says how much waits (decision 0301); a venue
             switch starts the chime over, so the other venue's counts sound nothing. */}
@@ -163,6 +167,7 @@ function FrameBody({ staff, urgent, refusal, landing, children }: FrameBodyProps
           {refusal === undefined ? children : <Refused refusal={refusal} landing={landing} />}
         </TitleCount>
       </DataTableExportProvider>
+      </DataTableViewProvider>
     </DataTableDensityProvider>
   );
 }

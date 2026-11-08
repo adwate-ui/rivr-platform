@@ -10,7 +10,8 @@ function boardColumns(): readonly DataTableColumn<RotationDealer>[] {
     { key: 'dealer', header: t('console.dealers.dealer'), cell: (row) => row.dealerName, sortValue: (row) => row.dealerName },
     { key: 'table', header: t('console.dealers.table'), cell: (row) => row.tableName ?? t('console.dealers.resting'), sortValue: (row) => row.tableName ?? '' },
     { key: 'since', header: t('console.dealers.since'), cell: (row) => formatTime(new Date(row.since)), sortValue: (row) => row.since },
-    { key: 'time', header: t('console.dealers.time'), align: 'end', cell: (row) => formatDuration(row.minutes * 60), sortValue: (row) => row.minutes },
+    { key: 'time', header: t('console.dealers.time'), align: 'end', cell: (row) => formatDuration(row.minutes * 60), sortValue: (row) => row.minutes * 60,
+      exportValue: (row) => row.minutes, filter: 'duration' },
     {
       key: 'status', header: t('console.dealers.status'),
       cell: (row) => (row.isDue
@@ -30,7 +31,7 @@ function nightColumns(): readonly DataTableColumn<NightRow>[] {
   return [
     { key: 'dealer', header: t('console.dealers.dealer'), cell: (row) => row.dealerName, sortValue: (row) => row.dealerName },
     { key: 'downs', header: t('console.dealers.downs'), align: 'end', cell: (row) => formatNumber(row.downs), sortValue: (row) => row.downs },
-    { key: 'dealt', header: t('console.dealers.dealt'), align: 'end', cell: (row) => formatDuration(row.dealtSeconds), sortValue: (row) => row.dealtSeconds },
+    { key: 'dealt', filter: 'duration', header: t('console.dealers.dealt'), align: 'end', cell: (row) => formatDuration(row.dealtSeconds), sortValue: (row) => row.dealtSeconds },
     { key: 'hands', header: t('console.dealers.hands'), align: 'end', cell: (row) => formatNumber(row.hands), sortValue: (row) => row.hands },
     {
       key: 'handsPerHour', header: t('console.dealers.handsPerHour'), align: 'end',

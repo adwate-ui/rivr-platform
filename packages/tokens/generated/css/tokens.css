@@ -96,6 +96,8 @@
   --rivr-size-console-header: 60px; /** The console's header and the rail's wordmark row beside it, as the console v3 prototype draws them. */
   --rivr-size-text: 640px; /** Longest comfortable line of text. */
   --rivr-size-photo: 160px; /** A KYC photo beside its member's details, such as in the review queue. */
+  --rivr-size-column: 128px; /** A table column's least width where the table scrolls sideways at every width: the docked Members table (owner, 9 Nov). */
+  --rivr-size-column-menu: 288px; /** A table column's menu: its order and its filter (owner, 9 Nov). */
   --rivr-size-action: 54px; /** The player app's tall action button: a step's one gold action (decision 0320). */
   --rivr-size-field: 60px; /** A field with its label inside the box, a picker's field and a code cell. */
   --rivr-size-round: 52px; /** A round seat action, a rating button and a picker's option row. */

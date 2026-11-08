@@ -48,7 +48,8 @@ function moreColumns(): readonly DataTableColumn<MemberListRow>[] {
       exportValue: (row) => t(`console.members.kycStatuses.${row.kycStatus}`),
     },
     {
-      key: 'played', header: t('console.members.played'), align: 'end', sortValue: (row) => row.minutesPlayed,
+      key: 'played', header: t('console.members.played'), align: 'end', sortValue: (row) => row.minutesPlayed * 60, exportValue: (row) => row.minutesPlayed,
+      filter: 'duration',
       cell: (row) => formatHoursMinutes(row.minutesPlayed * 60),
     },
     { key: 'city', header: t('console.members.city'), priority: 'optional', cell: (row) => row.city ?? '', sortValue: (row) => row.city ?? '', filter: 'choice' },
@@ -59,20 +60,19 @@ function moreColumns(): readonly DataTableColumn<MemberListRow>[] {
   ];
 }
 
-/** How the list is drawn: whether the viewer sees full numbers, and whether a record is open beside it, half the width. */
+/** How the list is drawn: whether the viewer sees full numbers. */
 export interface MemberColumnsFor {
   readonly seesPhone: boolean;
-  readonly isDocked: boolean;
 }
 
 /**
  * Members' columns (console v3; owner, 8 Nov): Name, No., Tier, the mobile for super admins, KYC, Hours played, City,
- * Member since, Tonight and Visits; the name opens the record. With a record open beside the list, only Name, No., Tier,
- * Tonight and Visits, which fit half the width; the record has the rest.
+ * Member since, Tonight and Visits; the name opens the record. With a record open beside the list, every one of them,
+ * the lines scrolling sideways (owner, 9 Nov).
  */
 export function memberColumns(tonight: ReadonlyMap<string, Tonight>, view: MemberColumnsFor): readonly DataTableColumn<MemberListRow>[] {
   const [name, number, tier, ...rest] = coreColumns(tonight);
-  const more = view.isDocked ? [] : [...(view.seesPhone ? [mobileColumn] : []), ...moreColumns()];
+  const more = [...(view.seesPhone ? [mobileColumn] : []), ...moreColumns()];
   return [name, number, tier, ...more, ...rest].filter((column) => column !== undefined);
 }
 

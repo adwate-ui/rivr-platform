@@ -119,6 +119,8 @@
   --spacing-console-header: var(--rivr-size-console-header);
   --spacing-text: var(--rivr-size-text);
   --spacing-photo: var(--rivr-size-photo);
+  --spacing-column: var(--rivr-size-column);
+  --spacing-column-menu: var(--rivr-size-column-menu);
   --spacing-card: var(--rivr-size-card);
   --spacing-action: var(--rivr-size-action);
   --spacing-field: var(--rivr-size-field);

@@ -39,14 +39,14 @@ function ChanceCell({ prize, look }: { prize: SpinPrize; look: WheelLook }) {
 function columnsFor(look: WheelLook): readonly DataTableColumn<SpinPrize>[] {
   const columns: DataTableColumn<SpinPrize>[] = [
     { key: 'prize', header: t('console.spin.prize'), cell: (row) => prizeLabel(row), filter: 'text', filterValue: (row) => prizeLabel(row) },
-    { key: 'odds', header: t('console.spin.odds'), isWide: true, cell: (row) => <OddsCell prize={row} total={look.total} /> },
+    { key: 'odds', filter: false, header: t('console.spin.odds'), isWide: true, cell: (row) => <OddsCell prize={row} total={look.total} /> },
     { key: 'chance', header: t('console.spin.chance'), align: 'end', cell: (row) => <ChanceCell prize={row} look={look} />,
       exportValue: (row) => (row.isDrawable ? oddsText(row, look.total) : t('console.spin.budgetSpent')) },
   ];
   const { onRemove } = look;
   if (onRemove === null) return columns;
   // Asked twice: a removed prize is gone from the wheel at once (F2-21).
-  return [...columns, { key: 'remove', header: t('console.spin.remove'), align: 'end', cell: (row) => (
+  return [...columns, { key: 'remove', filter: false, header: t('console.spin.remove'), align: 'end', cell: (row) => (
     <ConfirmButton variant="text" size="small" label={t('console.spin.remove')} name={t('console.spin.removeName', { prize: prizeLabel(row) })}
       confirm={t('console.spin.confirmRemove', { prize: prizeLabel(row) })} onConfirm={() => onRemove(row)} />
   ) }];

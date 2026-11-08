@@ -84,7 +84,8 @@ describe('the promotions list (console v3)', () => {
     expect(onNavigate).toHaveBeenCalledWith('/promotions?tab=ended');
     resetApi();
     renderList(vi.fn(), 'ended');
-    const ended = await screen.findByRole('table', { name: 'Promotions' });
+    // The Ended tab's table has a name, and so a view in the address, of its own (owner, 9 Nov).
+    const ended = await screen.findByRole('table', { name: 'Ended promotions' });
     expect(within(ended).queryByText('Buy-in bonus Tuesday')).toBeNull();
     const diwali = within(ended).getAllByRole('row').find((row) => row.textContent?.includes('Diwali double points')) ?? ended;
     expect(diwali.textContent).toContain('2 Nov 2026');

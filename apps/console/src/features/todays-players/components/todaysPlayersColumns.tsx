@@ -24,17 +24,18 @@ const tablesOf = (player: TodaysPlayer) => (player.tables.length === 0 ? NONE() 
 export const TODAYS_PLAYERS_COLUMNS: readonly DataTableColumn<TodaysPlayer>[] = [
   { key: 'name', header: t('console.todaysPlayers.name'), cell: (player) => player.fullName, sortValue: (player) => player.fullName, priority: 'primary', isWide: true },
   {
-    key: 'status', header: t('console.todaysPlayers.status'), sortValue: (player) => RANK[player.status], isWide: true,
+    key: 'status', header: t('console.todaysPlayers.status'), sortValue: (player) => RANK[player.status], isWide: true, filter: 'choice',
+    filterValue: (player) => t(`console.todaysPlayers.statuses.${player.status}`),
     cell: (player) => <DotStatus tone={TONE[player.status]} label={t(`console.todaysPlayers.statuses.${player.status}`)} />,
     exportValue: (player) => t(`console.todaysPlayers.statuses.${player.status}`),
   },
   { key: 'in', header: t('console.todaysPlayers.checkedIn'), cell: (player) => at(player.checkedInAt), sortValue: (player) => player.checkedInAt ?? '' },
   { key: 'out', header: t('console.todaysPlayers.checkedOut'), cell: (player) => at(player.checkedOutAt), sortValue: (player) => player.checkedOutAt ?? '' },
-  { key: 'waited', header: t('console.todaysPlayers.waited'), cell: (player) => formatDuration(player.waitingSeconds), sortValue: (player) => player.waitingSeconds, align: 'end' },
+  { key: 'waited', filter: 'duration', header: t('console.todaysPlayers.waited'), cell: (player) => formatDuration(player.waitingSeconds), sortValue: (player) => player.waitingSeconds, align: 'end' },
   { key: 'table', header: t('console.todaysPlayers.table'), cell: tablesOf, sortValue: tablesOf, isWide: true, filter: 'choice',
     filterValue: (player) => player.tables.map((entry) => entry.table) },
   {
-    key: 'played', header: t('console.todaysPlayers.played'), sortValue: playedSeconds, align: 'end', isWide: true,
+    key: 'played', filter: 'duration', header: t('console.todaysPlayers.played'), sortValue: playedSeconds, align: 'end', isWide: true,
     cell: (player) => (player.tables.length === 0 ? NONE() : formatDuration(playedSeconds(player))),
   },
 ];

@@ -2,6 +2,9 @@ import type { ReactNode } from 'react';
 
 // The table's column and sort, apart from DataTable.tsx so that its rows (rows.tsx) can read them without a cycle.
 
+/** The kinds of filter a column takes. */
+export type ColumnFilterKind = 'text' | 'choice' | 'number' | 'duration' | 'date';
+
 /** One column: its header, what each row shows in it, and the value it sorts by (no sorting without one). */
 export interface DataTableColumn<Row> {
   readonly key: string;
@@ -23,10 +26,12 @@ export interface DataTableColumn<Row> {
    */
   readonly exportValue?: (row: Row) => string | number;
   /**
-   * A filter of its own in the table's Filters (owner, 8 Nov: filters on every table): `text`, words typed; `choice`, any
-   * of the values its rows hold. Every filter in force must hold; a choice holds for any value picked.
+   * The column's filter, opened from its header (owner, 9 Nov: every column filtered by its type): `text`, words it
+   * contains; `choice`, any of the values its rows hold; `number`, a figure from and to; `duration`, hours from and to, of
+   * a sort value in seconds; `date`, a day from a preset or from and to, of a sort value that is a moment. Left out, the
+   * rows say which (`filterKindOf`); `false`, none. Every filter in force must hold.
    */
-  readonly filter?: 'text' | 'choice';
+  readonly filter?: ColumnFilterKind | false;
   /** What the filter reads: one value, or several (a player at two tables) any of which a choice may hold; without it, the cell's words. */
   readonly filterValue?: (row: Row) => string | readonly string[];
 }

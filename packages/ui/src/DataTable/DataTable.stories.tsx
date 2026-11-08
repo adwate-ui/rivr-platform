@@ -1,9 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, screen, userEvent } from 'storybook/test';
 import { useState } from 'react';
 import { Money } from '../Money/Money.tsx';
 import { Text } from '../Text/Text.tsx';
 import { DataTable, type DataTableColumn, type DataTableSort } from './DataTable.tsx';
 import { DataTableExportProvider } from './DataTableExport.tsx';
+import { DataTableViewProvider, type TableViewStore } from './DataTableView.tsx';
 
 interface Marker {
   readonly id: string;
@@ -40,8 +42,10 @@ interface MarkerTableProps {
   rows?: readonly Marker[];
   initialSort?: DataTableSort;
   withFilter?: boolean;
-  /** Filters on the member's name and tier (owner, 8 Nov: filters on every table). */
-  withColumnFilters?: boolean;
+  /** Filters in force, held as the console's address holds them: pills, Clear all and how many show (owner, 9 Nov). */
+  isFiltered?: boolean;
+  /** Its lines scroll sideways at every width, each column at least a column's width: beside a docked record. */
+  scrollsSideways?: boolean;
   /** Beneath an export provider, as every console table is for staff who export tables (#102). */
   withExport?: boolean;
   density?: 'comfortable' | 'compact';
@@ -49,20 +53,20 @@ interface MarkerTableProps {
 }
 
 /** The table as the console's Markers screen would hold it: open markers, by member. */
-function MarkerTable({ withExport = false, ...props }: MarkerTableProps) {
-  if (!withExport) return <Markers {...props} />;
-  return <DataTableExportProvider exporter={async () => true}><Markers {...props} /></DataTableExportProvider>;
+function MarkerTable({ withExport = false, isFiltered = false, ...props }: MarkerTableProps) {
+  const table = withExport ? <DataTableExportProvider exporter={async () => true}><Markers {...props} /></DataTableExportProvider> : <Markers {...props} />;
+  return isFiltered ? <DataTableViewProvider store={FILTERED}>{table}</DataTableViewProvider> : table;
 }
 
-// The member's name filtered by words typed, the tier by the tiers the rows hold.
-const FILTERED_COLUMNS: readonly DataTableColumn<Marker>[] = COLUMNS.map((column) => {
-  if (column.key === 'name') return { ...column, filter: 'text' as const };
-  return column.key === 'tier' ? { ...column, filter: 'choice' as const } : column;
-});
+// The view the console's address would hold: two tiers chosen, an age from 10 days, and "kapoor" searched.
+const FILTERED: TableViewStore = {
+  read: () => ({ q: 'kapoor', f: { tier: ['c', 'Black card', 'Member'], age: ['r', '10', ''] } }),
+  write: () => undefined,
+};
 
-function Markers({ state = 'ready', rows = markers(8), initialSort, withFilter = false, withColumnFilters = false, ...look }: Omit<MarkerTableProps, 'withExport'>) {
+function Markers({ state = 'ready', rows = markers(8), initialSort, withFilter = false, ...look }: Omit<MarkerTableProps, 'withExport' | 'isFiltered'>) {
   const base = {
-    label: 'Open markers', columns: withColumnFilters ? FILTERED_COLUMNS : COLUMNS, rowKey: (row: Marker) => row.id, ...look, ...(initialSort ? { initialSort } : {}),
+    label: 'Open markers', columns: COLUMNS, rowKey: (row: Marker) => row.id, ...look, ...(initialSort ? { initialSort } : {}),
     ...(withFilter ? { filter: { label: 'Find a member', text: (row: Marker) => row.name } } : {}),
   };
   if (state === 'loading') return <DataTable {...base} status="loading" />;
@@ -101,8 +105,31 @@ export const Sorted: Story = { args: { initialSort: { key: 'amount', direction: 
 /** With a filter box above, matching a member's name. */
 export const WithFilter: Story = { args: { withFilter: true } };
 
-/** With Filters beside the search and Export: the member's name by words, the tier by its values (owner, 8 Nov). */
-export const WithColumnFilters: Story = { args: { withFilter: true, withColumnFilters: true, withExport: true } };
+/** Filters in force as pills, with Clear all and how many show, beside the search and Export (owner, 9 Nov). */
+export const Filtered: Story = { args: { withFilter: true, isFiltered: true, withExport: true, rows: markers(24) } };
+
+/** Beside a docked record (owner, 9 Nov): every column kept, the lines scrolling sideways. */
+export const ScrollsSideways: Story = { args: { scrollsSideways: true }, tags: ['viewport-phone'] };
+
+/** A column's menu open from its header (owner, 9 Nov): its order, the values it holds with their counts, and Clear. */
+export const MenuOpen: Story = {
+  args: { isFiltered: true, withFilter: true, rows: markers(24) },
+  tags: ['viewport-console'],
+  play: async () => {
+    await userEvent.click(screen.getByRole('button', { name: /^Tier: sort and filter/ }));
+    await expect(screen.getByRole('dialog', { name: 'Tier: sort and filter' })).toBeInTheDocument();
+  },
+};
+
+/** The filters leave no row: the header stays, with each column's menu, and why there are none under it. */
+export const FilteredToNothing: Story = {
+  render: () => (
+    <DataTableViewProvider store={{ read: () => ({ q: 'nobody' }), write: () => undefined }}>
+      <DataTable label="Open markers" columns={COLUMNS} rowKey={(row) => row.id} rows={markers(8)} emptyText="No markers outstanding."
+        filter={{ label: 'Find a member', text: (row) => row.name }} />
+    </DataTableViewProvider>
+  ),
+};
 
 /** For staff who export tables: one small Export control at the top right, offering CSV and XLSX (#102). */
 export const WithExport: Story = { args: { withFilter: true, withExport: true } };

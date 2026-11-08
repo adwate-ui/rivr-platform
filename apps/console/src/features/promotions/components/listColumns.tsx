@@ -127,7 +127,10 @@ export function listColumns(names: PromotionNames, steps: RowSteps): DataTableCo
       key: 'given', header: t('console.promotions.list.columns.given'), align: 'end', priority: 'optional',
       cell: (promotion) => (HAS_RUN.includes(promotion.status) ? <Count value={promotion.givenThisWeek} size="small" /> : null),
     },
-    { key: 'status', header: t('console.promotions.list.columns.status'), cell: (promotion) => <StatusCell promotion={promotion} /> },
+    {
+      key: 'status', header: t('console.promotions.list.columns.status'), cell: (promotion) => <StatusCell promotion={promotion} />,
+      filterValue: (promotion) => t(`console.promotions.statuses.${promotion.status}`),
+    },
     { key: 'actions', header: '', cell: (promotion) => <RowActions promotion={promotion} steps={steps} /> },
   ];
 }

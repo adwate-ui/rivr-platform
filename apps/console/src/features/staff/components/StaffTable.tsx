@@ -54,7 +54,7 @@ function removedColumns(removals: ReadonlyMap<string, StaffRemoval>, restore: Re
       sortValue: (row) => removals.get(row.staffId)?.removedAt ?? '', exportValue: (row) => removedLine(removals.get(row.staffId)),
     },
     {
-      key: 'restore', header: t('console.staff.restore'),
+      key: 'restore', filter: false, header: t('console.staff.restore'),
       cell: (row) => (!grantable.includes(row.role) ? null : (
         <ConfirmButton label={t('console.staff.restore')} name={t('console.staff.restoreNamed', { name: row.fullName })} isBusy={restore.isBusy}
           confirm={t('console.staff.confirmRestore', { name: row.fullName })} variant="subtle" size="small" onConfirm={() => restore.run(row)} />

@@ -20,7 +20,7 @@ function columns(onOpen: (entryId: string) => void): readonly DataTableColumn<Sa
       ),
     },
     { key: 'pattern', header: t('console.aml.pattern'), cell: (row) => t(`console.aml.kinds.${row.kind}`), sortValue: (row) => row.kind },
-    { key: 'found', header: t('console.aml.found'), cell: (row) => <Time at={new Date(row.detectedAt)} show="day" />, sortValue: (row) => Date.parse(row.detectedAt) },
+    { key: 'found', filter: 'date', header: t('console.aml.found'), cell: (row) => <Time at={new Date(row.detectedAt)} show="day" />, sortValue: (row) => Date.parse(row.detectedAt) },
     { key: 'cash', header: t('console.aml.cash'), align: 'end', cell: (row) => <Money paise={row.cash} />, sortValue: (row) => Number(row.cash) },
     { key: 'status', header: t('console.aml.status'), cell: (row) => statusOf(row), sortValue: (row) => (row.isOpen ? 0 : 1) },
   ];
