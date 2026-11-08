@@ -12,6 +12,9 @@ export const shell = {
   shortcuts: 'Keyboard shortcuts',
   /** The practice venue's stripe across the top, and its way out. */
   backToClub: 'Back to the club',
+  /** Across the top for those who can set it (audit F-212). */
+  noAlertNumber: 'No alert number is set, so alerts reach no one.',
+  addAlertNumber: 'Add the number',
   /** The header's counts, each a link: "23 seated · 9 waiting · 6 requests". */
   pulse: {
     label: 'Tonight',

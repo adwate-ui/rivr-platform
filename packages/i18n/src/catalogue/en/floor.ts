@@ -154,7 +154,7 @@ export const todaysPlayers = {
   filter: 'Find a player',
   name: 'Player',
   status: 'Status',
-  statuses: { playing: 'Playing', waiting: 'Waiting', left: 'Left' },
+  statuses: { playing: 'Playing', waiting: 'Waiting', in_room: 'In the room', left: 'Left', never_arrived: 'Never arrived' },
   /** When they checked in and out, short as the prototype's headers, so a phone's scrolling line keeps them on one line. */
   checkedIn: 'In',
   checkedOut: 'Out',

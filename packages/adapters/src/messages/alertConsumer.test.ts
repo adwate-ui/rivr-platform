@@ -3,12 +3,13 @@ import { alerts } from '@rivr/i18n';
 import { describe, expect, it } from 'vitest';
 import type { ClaimedDelivery } from '../outbox/index.ts';
 import { createFakeWhatsApp } from '../whatsapp/fake.ts';
+import { NO_RECIPIENT } from '../outbox/index.ts';
 import { createAlertConsumer, type FindAlertNumber } from './alertConsumer.ts';
 
 const VENUE = 'v1';
 const owner = indianMobileSchema.parse('+919000000901');
 const OLD = '00000000-0000-4000-8000-0000000a1009';
-const findAlertNumber: FindAlertNumber = async (venueId, alertId) => (venueId === VENUE && alertId !== OLD ? owner : null);
+const findAlertNumber: FindAlertNumber = async (venueId, alertId) => (alertId === OLD ? null : venueId === VENUE ? owner : 'no_number');
 
 function delivery(payload: unknown, venueId = VENUE): ClaimedDelivery {
   return { deliveryId: 'd1', eventId: 'e1', venueId, eventType: 'alert.raised', payload, attempts: 1 };
@@ -34,10 +35,10 @@ describe('the alert consumer', () => {
     expect(whatsapp.calls[0]?.params).toEqual(['something needs your attention']);
   });
 
-  it('sends nothing, and nothing is wrong, for a venue with no alert number', async () => {
+  it('sends nothing, and says there was no recipient, for a venue with no alert number (audit F-212)', async () => {
     const whatsapp = createFakeWhatsApp();
     const done = await createAlertConsumer({ whatsapp, findAlertNumber }).deliver(delivery({ alert_id: '00000000-0000-4000-8000-0000000a1003', kind: 'eod.variance' }, 'v2'));
-    expect(done).toEqual({ ok: true, value: null });
+    expect(done).toEqual({ ok: true, value: NO_RECIPIENT });
     expect(whatsapp.calls).toEqual([]);
   });
 

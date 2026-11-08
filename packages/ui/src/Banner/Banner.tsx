@@ -19,6 +19,8 @@ export interface BannerProps {
   onDismiss?: (() => void) | undefined;
   /** False for a banner that only previews another screen's, such as a notice as it is typed (console v3): not read out as it changes. */
   isLive?: boolean;
+  /** Runs the full width of the console above everything, square and edged only below, where a card inside a screen is rounded. */
+  isFullWidth?: boolean;
 }
 
 const TONE: Record<BannerTone, string> = {
@@ -33,9 +35,9 @@ const ACTION =
  * A line at the top of Tonight (decision 0320): a club notice, offline, a refresh that failed, the call time ending, or the
  * club paused in red. It may carry one action and, when neutral, a dismiss. Read out politely as it appears.
  */
-export function Banner({ children, tone = 'neutral', action, onDismiss, isLive = true }: BannerProps) {
+export function Banner({ children, tone = 'neutral', action, onDismiss, isLive = true, isFullWidth = false }: BannerProps) {
   return (
-    <div role={isLive ? 'status' : undefined} className={cx('flex min-h-12 items-center gap-3 rounded-lg border py-2 pr-2 pl-4', TONE[tone])}>
+    <div role={isLive ? 'status' : undefined} className={cx('flex min-h-12 items-center gap-3 py-2 pr-2 pl-4', isFullWidth ? 'shrink-0 border-b' : 'rounded-lg border', TONE[tone])}>
       <span className={cx('flex shrink-0', tone === 'neutral' ? 'text-accent' : 'text-on-alert')}>
         <Icon name="info" size="md" />
       </span>

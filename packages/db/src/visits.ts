@@ -7,7 +7,10 @@ import { queryKeys } from './queryKeys.ts';
 export interface DoorMember {
   readonly memberId: string;
   readonly fullName: string;
+  readonly memberNumber: number;
   readonly tierName: string;
+  /** On the club's lowest tier, which the door leaves unsaid. */
+  readonly isBaseTier: boolean;
   readonly isInRoom: boolean;
   /** When they checked in, or, while expected, when they first joined a waitlist. */
   readonly since: string;
@@ -36,7 +39,10 @@ export function useDoorBoard(venueId: string) {
     queryFn: async (): Promise<DoorMember[]> => {
       const { data, error } = await client.rpc('door_board', { p_venue_id: venueId });
       if (error) throw error;
-      return data.map((row) => ({ memberId: row.member_id, fullName: row.full_name, tierName: row.tier_name, isInRoom: row.is_in_room, since: row.since }));
+      return data.map((row) => ({
+        memberId: row.member_id, fullName: row.full_name, memberNumber: Number(row.member_number), tierName: row.tier_name, isBaseTier: row.is_base_tier,
+        isInRoom: row.is_in_room, since: row.since,
+      }));
     },
   });
 }

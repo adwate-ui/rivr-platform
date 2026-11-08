@@ -60,6 +60,10 @@ describe('the floor today', () => {
         }, {
           member_id: 'm2', full_name: 'Mihir Shah', member_number: 1213, status: 'gone', checked_in_at: null, checked_out_at: null,
           waiting_seconds: 0, tables: null,
+        }, {
+          member_id: 'm3', full_name: 'Kabir Sethi', member_number: 1214, status: 'in_room', checked_in_at: null, checked_out_at: null, waiting_seconds: 0, tables: [],
+        }, {
+          member_id: 'm4', full_name: 'Yash Gupta', member_number: 1215, status: 'never_arrived', checked_in_at: null, checked_out_at: null, waiting_seconds: 0, tables: [],
         }],
       },
     });
@@ -67,6 +71,8 @@ describe('the floor today', () => {
       { memberId: 'm1', fullName: 'Ishaan Verma', memberNumber: 1211, status: 'playing', checkedInAt: '2026-11-01T13:30:00Z', checkedOutAt: null,
         waitingSeconds: 600, tables: [{ table: 'Table 3', seconds: 3600 }] },
       { memberId: 'm2', fullName: 'Mihir Shah', memberNumber: 1213, status: 'left', checkedInAt: null, checkedOutAt: null, waitingSeconds: 0, tables: [] },
+      { memberId: 'm3', fullName: 'Kabir Sethi', memberNumber: 1214, status: 'in_room', checkedInAt: null, checkedOutAt: null, waitingSeconds: 0, tables: [] },
+      { memberId: 'm4', fullName: 'Yash Gupta', memberNumber: 1215, status: 'never_arrived', checkedInAt: null, checkedOutAt: null, waitingSeconds: 0, tables: [] },
     ]));
   });
 

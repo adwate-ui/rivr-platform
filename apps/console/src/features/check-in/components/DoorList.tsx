@@ -17,14 +17,20 @@ interface RowProps {
   onPress: () => void;
 }
 
-/** A member in the room: name, tier, when they checked in, and Check out (#82). */
+/** The member's number, which tells two of one name apart, and their tier unless it is the club's base one (audit F-020). */
+function metaOf(member: DoorMember): string {
+  const number = member.memberNumber;
+  return member.isBaseTier ? t('console.checkIn.memberNumber', { number }) : t('console.checkIn.memberMeta', { number, tier: member.tierName });
+}
+
+/** A member in the room: name, number, when they checked in, and Check out (#82). */
 function InRoomRow({ member, isBusy, onPress }: RowProps) {
   return (
     <Inline gap={3} justify="between">
       {/* The name gives way first, cut with an ellipsis, so the row stays one line on a phone. */}
       <Inline grow><Text variant="row" truncate>{member.fullName}</Text></Inline>
       <Inline gap={4}>
-        <Text variant="secondary" tone="muted">{member.tierName}</Text>
+        <Text variant="secondary" tone="muted">{metaOf(member)}</Text>
         <Text variant="secondary" tone="muted">{formatTime(new Date(member.since))}</Text>
         <Button variant="subtle" size="small" isDisabled={isBusy} aria-label={t('console.checkIn.checkOutMember', { name: member.fullName })}
           onClick={onPress}>{t('console.checkIn.checkOut')}</Button>
@@ -33,13 +39,13 @@ function InRoomRow({ member, isBusy, onPress }: RowProps) {
   );
 }
 
-/** A member expected at the door: name over tier, and Check in. */
+/** A member expected at the door: name over number, and Check in. */
 function ExpectedRow({ member, isBusy, onPress }: RowProps) {
   return (
     <Inline gap={3} justify="between">
       <Stack gap={0}>
         <Text variant="row" weight="medium">{member.fullName}</Text>
-        <Text variant="secondary" tone="muted">{member.tierName}</Text>
+        <Text variant="secondary" tone="muted">{metaOf(member)}</Text>
       </Stack>
       <Button variant="subtle" size="small" isDisabled={isBusy} aria-label={t('console.checkIn.checkInMember', { name: member.fullName })}
         onClick={onPress}>{t('console.checkIn.checkIn')}</Button>

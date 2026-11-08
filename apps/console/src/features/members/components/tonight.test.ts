@@ -13,6 +13,8 @@ describe('tonightByMember', () => {
     const tonight = tonightByMember([], TABLES, [{ memberId: 'm2', status: 'waiting' }, { memberId: 'm3', status: 'left' }]);
     expect(tonight.get('m2')).toEqual({ kind: 'waiting' });
     expect(tonight.get('m3')).toEqual({ kind: 'left' });
+    expect(tonightByMember([], TABLES, [{ memberId: 'm4', status: 'never_arrived' }]).has('m4')).toBe(false);
+    expect(tonightByMember([], TABLES, [{ memberId: 'm5', status: 'in_room' }]).get('m5')).toEqual({ kind: 'in_room' });
     expect(tonight.has('m4')).toBe(false);
   });
 

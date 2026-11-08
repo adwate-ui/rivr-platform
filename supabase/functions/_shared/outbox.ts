@@ -42,10 +42,11 @@ export const outboxStore: OutboxStore = {
     });
     return Array.isArray(rows) ? rows.map(toDelivery) : [];
   },
-  async finish({ deliveryId, attempts, isDelivered, error, retryAfterSeconds }) {
+  async finish({ deliveryId, attempts, isDelivered, hasNoRecipient, error, retryAfterSeconds }) {
     await rpc('finish_outbox_delivery', {
       p_delivery_id: deliveryId, p_delivered: isDelivered, p_error: error,
       p_retry_after: retryAfterSeconds === null ? null : `${retryAfterSeconds} seconds`, p_attempts: attempts,
+      p_no_recipient: hasNoRecipient,
     });
   },
 };

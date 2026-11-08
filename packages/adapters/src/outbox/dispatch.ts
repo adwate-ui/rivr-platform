@@ -21,7 +21,7 @@ export interface OutboxStore {
    * `retryAfterSeconds` null fails the delivery for good: the vendor rejected it. `attempts` is the attempt claimed, so a
    * finish that comes after the delivery was claimed again changes nothing (A5-13).
    */
-  finish(input: { deliveryId: string; attempts: number; isDelivered: boolean; error: string | null; retryAfterSeconds: number | null }): Promise<void>;
+  finish(input: { deliveryId: string; attempts: number; isDelivered: boolean; hasNoRecipient: boolean; error: string | null; retryAfterSeconds: number | null }): Promise<void>;
 }
 
 /** A consumer: its name, the events it takes, and what it does with one of them. */
@@ -36,6 +36,9 @@ export interface Consumer {
   readonly isMessaging: boolean;
   deliver(delivery: ClaimedDelivery): Promise<Result<unknown, AdapterFailure>>;
 }
+
+/** What a consumer answers when there was nobody to send to: finished, not a failure, and not delivered either. */
+export const NO_RECIPIENT = 'no_recipient';
 
 /** Ten attempts, then the delivery fails for good and the owner is alerted (database side). */
 export const MAX_ATTEMPTS = 10;
@@ -73,6 +76,7 @@ export async function runConsumer(store: OutboxStore, consumer: Consumer, limit 
       deliveryId: delivery.deliveryId,
       attempts: delivery.attempts,
       isDelivered: outcome.ok,
+      hasNoRecipient: outcome.ok && outcome.value === NO_RECIPIENT,
       error: outcome.ok ? null : describe(outcome.error),
       retryAfterSeconds: outcome.ok ? 0 : retryAfter(outcome.error, delivery.attempts),
     });

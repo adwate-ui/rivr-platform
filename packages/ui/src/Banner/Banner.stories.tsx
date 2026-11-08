@@ -17,6 +17,11 @@ export const WithAction: Story = {
   args: { children: "Couldn't refresh. Showing 22:41.", action: { label: 'Retry', onPress: () => undefined } },
 };
 
+export const FullWidth: Story = {
+  args: { isFullWidth: true, children: 'No alert number is set, so alerts reach no one.', action: { label: 'Add the number', onPress: () => undefined } },
+  parameters: { layout: 'fullscreen' },
+};
+
 export const Alert: Story = { args: { tone: 'alert', children: 'The club is paused. Ask a member of staff.' } };
 
 export const LongText: Story = {

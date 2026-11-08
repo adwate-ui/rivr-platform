@@ -4,7 +4,7 @@ import { ChoiceChips, DataTable, Screen, Stack, useIsWide } from '@rivr/ui';
 import { useState } from 'react';
 import { TODAYS_PLAYERS_COLUMNS, TODAYS_PLAYERS_PHONE_COLUMNS } from './todaysPlayersColumns.tsx';
 
-const FILTERS = ['all', 'playing', 'waiting', 'left'] as const;
+const FILTERS = ['all', 'playing', 'waiting', 'in_room', 'left', 'never_arrived'] as const;
 type Filter = (typeof FILTERS)[number];
 
 const shownBy = (players: readonly TodaysPlayer[], filter: Filter) => (filter === 'all' ? players : players.filter((player) => player.status === filter));

@@ -15,6 +15,8 @@ select results_eq($$ select schedule from cron.job where jobname = 'outbox-alert
 select throws_ok($$ select private.schedule_outbox_consumer('x''); drop table public.venue; --') $$, '22023', null,
   'a name that is not an Edge Function''s is refused, so nothing is spliced into the job');
 select ok(exists (select 1 from cron.job where jobname = 'cron-history-cleanup'), 'the run history is cleaned up daily');
+select results_eq($$ select schedule from cron.job where jobname = 'outbox-kyc-recheck' $$, $$ values ('*/15 * * * *'::text) $$,
+  'the KYC recheck still runs, every quarter hour, as a desk check relies on it (audit F-109)');
 
 -- Running: nothing until the Vault secrets are there.
 select is(private.run_outbox_consumer('alert-whatsapp'), null, 'with no address or secret in Vault, a run does nothing');

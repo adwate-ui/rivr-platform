@@ -49,7 +49,7 @@ export function useTopUpsTonight(venueId: string, isEnabled = true) {
 }
 
 /** Where a player stands today (#641). */
-export type TodayStatus = 'playing' | 'waiting' | 'left';
+export type TodayStatus = 'playing' | 'waiting' | 'in_room' | 'left' | 'never_arrived';
 
 /** A member at the club today (#641), with the tables they played on and the seconds on each. */
 export interface TodaysPlayer {
@@ -63,7 +63,7 @@ export interface TodaysPlayer {
   readonly tables: readonly { readonly table: string; readonly seconds: number }[];
 }
 
-const statusOf = (value: string): TodayStatus => (value === 'playing' || value === 'waiting' ? value : 'left');
+const statusOf = (value: string): TodayStatus => (value === 'playing' || value === 'waiting' || value === 'in_room' || value === 'never_arrived' ? value : 'left');
 
 /** Each table a player played on, from the database's list; anything else is left out. */
 function tablesOf(tables: unknown): TodaysPlayer['tables'] {
