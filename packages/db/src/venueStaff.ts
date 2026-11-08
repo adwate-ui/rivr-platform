@@ -66,18 +66,17 @@ export function useStaffRemovals(venueId: string) {
   });
 }
 
-/** The venue's staff, active first, then by name. */
+/** The venue's staff, active first, then by name; each number only for staff who manage staff (decision 0513). */
 export function useVenueStaff(venueId: string) {
   const { client, userId } = useRivrData();
   return useQuery({
     queryKey: queryKeys.venueStaff(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<StaffMember[]> => {
-      const { data, error } = await client.from('staff').select('id, full_name, job_title, role, phone, is_active, user_id')
-        .eq('venue_id', venueId).order('is_active', { ascending: false }).order('full_name');
+      const { data, error } = await client.rpc('venue_staff', { p_venue_id: venueId });
       if (error) throw error;
       return data.map((row) => ({
-        staffId: row.id, fullName: row.full_name, jobTitle: row.job_title, role: row.role, phone: row.phone,
+        staffId: row.staff_id, fullName: row.full_name, jobTitle: row.job_title, role: row.role, phone: row.phone,
         isActive: row.is_active, isMe: row.user_id !== null && row.user_id === userId,
       }));
     },

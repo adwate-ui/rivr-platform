@@ -24,7 +24,7 @@ function renderKillSwitch(replies: Record<string, { status?: number; body: unkno
     const rpc = routeOf(input);
     calls.push({ rpc, body: init?.body ? JSON.parse(String(init.body)) : undefined });
     const reply = replies[rpc];
-    return Response.json(reply?.body ?? [], { status: reply?.status ?? 200 });
+    return Response.json(reply === undefined ? [] : reply.body, { status: reply?.status ?? 200 });
   };
   const client: RivrClient = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
     global: { fetch },
@@ -49,12 +49,13 @@ describe('Kill switch', () => {
   });
 
   it('engages a member freeze for the member with that mobile number', async () => {
-    const { result, calls } = renderKillSwitch({ member: { body: [{ id: 'm1' }] }, engage_control: { body: 'c2' } });
+    const { result, calls } = renderKillSwitch({ member_id_for_phone: { body: 'm1' }, engage_control: { body: 'c2' } });
     let outcome: unknown;
     await act(async () => {
       outcome = await result.current.actions.engage.mutateAsync({ level: 'member_freeze', reason: 'Chargeback', feature: null, memberPhone: '+919876543210', staffPhone: null });
     });
     expect(outcome).toEqual({ ok: true, value: 'c2' });
+    expect(calls.find((call) => call.rpc === 'member_id_for_phone')?.body).toEqual({ p_venue_id: VENUE, p_phone: '+919876543210' });
     expect(calls.find((call) => call.rpc === 'engage_control')?.body).toEqual({
       p_venue_id: VENUE, p_level: 'member_freeze', p_reason: 'Chargeback', p_member_id: 'm1',
     });
@@ -62,8 +63,8 @@ describe('Kill switch', () => {
 
   it('says when no member has the number, when the lookup fails, and when a freeze needs a second super admin', async () => {
     const { result } = renderKillSwitch({
-      member: { body: [] },
-      staff: { status: 500, body: { code: 'XX000', message: 'down' } },
+      member_id_for_phone: { body: null },
+      staff_id_for_phone: { status: 500, body: { code: 'XX000', message: 'down' } },
       release_control: { status: 400, body: { code: 'RVTWO', message: 'second' } },
     });
     let engaged: unknown;

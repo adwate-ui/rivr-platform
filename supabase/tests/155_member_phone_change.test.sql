@@ -31,7 +31,8 @@ select throws_ok($$ select public.change_member_phone('00000000-0000-4000-8000-0
 select throws_ok($$ select public.change_member_phone('00000000-0000-4000-8000-000000000213', '+919812345678', 'Old number 98123 45670 lost') $$,
   '22023', null, 'nor a phone number');
 select throws_ok(format($$ select public.change_member_phone('00000000-0000-4000-8000-000000000213', %L, 'Lost his phone') $$,
-                        (select phone from public.member where id = '00000000-0000-4000-8000-000000000214')), 'RVPHN', null,
+                        (select phone from public.member_record('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214'))),
+                 'RVPHN', null,
   'not a number another member holds');
 reset role;
 -- Were Yash's login also a member of staff's, moving it would sign Vikram in as them.

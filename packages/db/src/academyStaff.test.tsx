@@ -63,14 +63,14 @@ describe('the Academy, as staff see it', () => {
   it('books for a company under the member with the contact\'s number, and says so when there is none', async () => {
     const contactPhone = indianMobileSchema.parse('9000000203');
     const booking = { batchId: 'b1', contactPhone, companyName: 'Acme Pvt Ltd', seats: 3, requestId: 'r1', companyGstin: '' };
-    const found = renderStaffAcademy({ '/rest/v1/member': { body: [{ id: 'm203' }] }, '/rpc/book_academy_corporate': { body: 'k1' } });
+    const found = renderStaffAcademy({ '/rpc/member_id_for_phone': { body: 'm203' }, '/rpc/book_academy_corporate': { body: 'k1' } });
     expect(await act(() => found.result.current.actions.bookCompany.mutateAsync(booking))).toEqual({ ok: true, value: null });
     expect(found.calls.find((call) => call.url.includes('/rpc/book_academy_corporate'))?.body).toEqual({
       p_batch_id: 'b1', p_member_id: 'm203', p_company_name: 'Acme Pvt Ltd', p_seats: 3, p_request_id: 'r1', p_company_gstin: '',
     });
     cleanup();
 
-    const missing = renderStaffAcademy({ '/rest/v1/member': { body: [] } });
+    const missing = renderStaffAcademy({ '/rpc/member_id_for_phone': { body: null } });
     expect(await act(() => missing.result.current.actions.bookCompany.mutateAsync(booking))).toEqual({ ok: false, error: 'no_member' });
   });
 
