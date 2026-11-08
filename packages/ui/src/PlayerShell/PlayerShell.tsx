@@ -48,7 +48,7 @@ export function PlayerShell({ children, tabs, currentTab, onNavigate, avatar, is
     <DockContext value={dock}>
       <PlayerFrameContext value={frame}>
         {/* data-shell: the page scrolls a focused control clear of the foot (styles.css, WCAG 2.4.11). */}
-        <div data-shell="player" className={cx('safe-top safe-x relative mx-auto flex min-h-dvh w-full flex-col bg-surface text-content medium:max-w-phone', isTabBarHidden && 'safe-bottom')}>
+        <div data-shell="player" className={cx('safe-top max-medium:safe-x relative mx-auto flex min-h-dvh w-full flex-col bg-surface text-content medium:max-w-phone', isTabBarHidden && 'safe-bottom')}>
           <SkipLink />
           <main id={MAIN_ID} tabIndex={-1} className={cx('flex flex-1 flex-col pt-2 pb-8 outline-none', !isFullBleed && 'px-5')}>{children}</main>
           <div className="sticky bottom-0 z-nav">

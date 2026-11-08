@@ -31,6 +31,10 @@
   padding-top: calc(env(safe-area-inset-top) + var(--rivr-space-4));
 }
 
+@utility safe-pt-12 {
+  padding-top: max(var(--rivr-space-12), env(safe-area-inset-top));
+}
+
 @utility safe-mb {
   margin-bottom: env(safe-area-inset-bottom);
 }

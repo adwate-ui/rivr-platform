@@ -26,6 +26,17 @@ function renderCode() {
 }
 
 describe('Sign in › Code', () => {
+  it('says so when the phone has no connection, and holds the code and a new one back (F-175)', () => {
+    Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false });
+    try {
+      renderCode();
+      expect(screen.getByText('No connection. Enter the code once back online.')).toBeDefined();
+      expect(screen.getByRole('button', { name: 'Verify' })).toHaveProperty('disabled', true);
+    } finally {
+      Reflect.deleteProperty(navigator, 'onLine');
+    }
+  });
+
   it('says the code went by WhatsApp to the number, with six cells and the resend counting down', () => {
     renderCode();
     expect(screen.getByRole('heading', { name: 'Enter the code' })).toBeDefined();

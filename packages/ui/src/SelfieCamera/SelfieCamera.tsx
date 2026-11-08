@@ -48,11 +48,11 @@ function Live({ video, isLive, onTake, onBack }: LiveProps) {
   const guidance = useFaceGuidance(video, isLive, onTake);
   const isGood = guidance === 'steady' || guidance === 'capturing';
   return (
-    <div className="safe-top safe-bottom fixed inset-0 z-modal mx-auto flex flex-col items-center overflow-hidden bg-green-black text-content medium:max-w-phone">
+    <div className="safe-bottom fixed inset-0 z-modal mx-auto flex flex-col items-center overflow-hidden bg-green-black text-content medium:max-w-phone">
       <video ref={video} aria-label={t('ui.camera.preview')} autoPlay playsInline muted className="absolute inset-0 size-full -scale-x-100 object-cover" />
       {/* Three equal columns, so "Selfie" sits in the middle of the screen whatever Back's width (a spacer of a guessed
           width beside it left the title 13 px right of centre). */}
-      <div className="relative grid w-full grid-cols-3 items-center px-5 pt-12">
+      <div className="safe-pt-12 relative grid w-full grid-cols-3 items-center px-5">
         <span className="justify-self-start"><Button variant="text" icon="chevronLeft" onClick={onBack}>{t('ui.selfie.back')}</Button></span>
         <span className="justify-self-center font-text text-16 font-medium">{t('ui.selfie.title')}</span>
       </div>

@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { signInCodeSchema, type IndianMobile } from '@rivr/contracts';
 import { useSignIn, type SignInFailure } from '@rivr/db';
 import { formatMobile, t } from '@rivr/i18n';
-import { Button, CodeInput, Stack, StepScreen } from '@rivr/ui';
+import { Banner, Button, CodeInput, Stack, StepScreen, useIsOnline } from '@rivr/ui';
 import { Controller, useForm, useWatch, type Control } from 'react-hook-form';
 import { z } from 'zod';
 import { FAILURE_COPY } from './failureCopy.ts';
@@ -23,10 +23,12 @@ function CodeField({ control, error, onComplete }: { control: Control<z.input<ty
 /**
  * The second step (decision 0320): Back, "Enter the code", where it went (by WhatsApp, decision 0297), six cells that go on
  * by themselves once full, Verify, and a new code once the minute is up. The phone's offer to fill the code from a message
- * still works (`autocomplete="one-time-code"`); WebOTP is not used, as it reads only SMS.
+ * still works (`autocomplete="one-time-code"`); WebOTP is not used, as it reads only SMS. With no connection it says so
+ * and holds the code and a new one back (F-175).
  */
 export function CodeStep({ phone, onBack, onSignedIn }: { phone: IndianMobile; onBack: () => void; onSignedIn: () => void }) {
   const { verifyCode } = useSignIn();
+  const isOnline = useIsOnline();
   const form = useForm<z.input<typeof codeForm>>({ resolver: zodResolver(codeForm), defaultValues: { code: '' } });
   // A code refused leaves the cells empty for the next, its reason kept beneath them.
   const fail = (failure: SignInFailure) => {
@@ -41,7 +43,7 @@ export function CodeStep({ phone, onBack, onSignedIn }: { phone: IndianMobile; o
   });
   // One check at a time: the sixth digit, Enter and Verify each ask, and a second would come back as an expired code.
   const check = () => {
-    if (!verifyCode.isPending && !form.formState.isSubmitting) void verify();
+    if (isOnline && !verifyCode.isPending && !form.formState.isSubmitting) void verify();
   };
 
   const { errors } = form.formState;
@@ -58,11 +60,12 @@ export function CodeStep({ phone, onBack, onSignedIn }: { phone: IndianMobile; o
       footer={null}
     >
       <Stack gap={6}>
+        {isOnline ? null : <Banner>{t('player.signIn.offlineCode')}</Banner>}
         <CodeField control={form.control} error={error} onComplete={check} />
-        <Button variant="primary" size="tall" type="submit" fullWidth isDisabled={!hasSixDigits} isLoading={verifyCode.isPending}>
+        <Button variant="primary" size="tall" type="submit" fullWidth isDisabled={!hasSixDigits || !isOnline} isLoading={verifyCode.isPending}>
           {t('player.signIn.verify')}
         </Button>
-        <ResendButton phone={phone} onFail={fail} />
+        <ResendButton phone={phone} onFail={fail} isOffline={!isOnline} />
       </Stack>
     </StepScreen>
   );
