@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations, renderIn } from '../test/render.tsx';
@@ -38,12 +38,51 @@ describe('PinPad', () => {
     renderIn(<PinPad label="PIN" value="2" onChange={onChange} />);
 
     await userEvent.tab();
+    expect(screen.getByLabelText('PIN', { selector: 'input' })).toHaveFocus();
+    await userEvent.tab();
     expect(screen.getByRole('button', { name: '1' })).toHaveFocus();
     await userEvent.keyboard(' ');
     await userEvent.keyboard('7');
     await userEvent.keyboard('{Backspace}');
 
     expect(onChange.mock.calls).toEqual([['21'], ['27'], ['']]);
+  });
+
+  it('is backed by a password field a password manager can fill, which the keys write into (F-063)', () => {
+    renderIn(<PinPad label="PIN" value="27" onChange={() => undefined} />);
+    const field = screen.getByLabelText('PIN', { selector: 'input' });
+    expect(field).toHaveAttribute('type', 'password');
+    expect(field).toHaveAttribute('inputmode', 'numeric');
+    expect(field).toHaveAttribute('autocomplete', 'current-password');
+    expect(field).toHaveValue('27');
+    // Set on the element, so the PIN is never in the page's HTML.
+    expect(field).not.toHaveAttribute('value');
+    // A tap on the dots focuses it, so they are a touch target.
+    expect(field.closest('label')).toHaveClass('min-h-touch');
+  });
+
+  it('takes a whole PIN pasted or filled in, and ignores any other, which could burn a try (F-063)', () => {
+    const onChange = vi.fn();
+    renderIn(<PinPad label="PIN" value="" onChange={onChange} />);
+    const field = screen.getByLabelText('PIN', { selector: 'input' });
+    for (const paste of ['27419', ' 27-4', '274']) fireEvent.change(field, { target: { value: paste } });
+    expect(onChange).not.toHaveBeenCalled();
+    expect(field).toHaveValue('');
+    fireEvent.change(field, { target: { value: '2741' } });
+    expect(onChange).toHaveBeenCalledWith('2741');
+  });
+
+  it('counts a digit typed in the field once', async () => {
+    const onChange = vi.fn();
+    renderIn(<PinPad label="PIN" value="2" onChange={onChange} />);
+    screen.getByLabelText('PIN', { selector: 'input' }).focus();
+    await userEvent.keyboard('7');
+    expect(onChange.mock.calls).toEqual([['27']]);
+  });
+
+  it('holds the field shut while disabled', () => {
+    renderIn(<PinPad label="PIN" value="" onChange={() => undefined} isDisabled />);
+    expect(screen.getByLabelText('PIN', { selector: 'input' })).toBeDisabled();
   });
 
   it('ignores presses while disabled, and shows what is wrong', async () => {
