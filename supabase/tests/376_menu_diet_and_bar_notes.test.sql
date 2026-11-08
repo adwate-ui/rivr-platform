@@ -26,6 +26,8 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select isnt(public.save_fnb_item('00000000-0000-4000-8000-000000000001', 'Test paneer roll', 'food', true, 900, null, 'veg', '  With mint chutney  '), null, 'an item is saved with its diet and description');
 select results_eq($$ select diet, description from public.fnb_menu('00000000-0000-4000-8000-000000000001') where name = 'Test paneer roll' $$,
   $$ values ('veg'::text, 'With mint chutney'::text) $$, 'the menu has them, the description trimmed');
+select results_eq($$ select diet, description from public.fnb_item where name = 'Test paneer roll' $$,
+  $$ values ('veg'::text, 'With mint chutney'::text) $$, 'staff read them from the table too, as the console''s menu does');
 select throws_ok($$ select public.save_fnb_item('00000000-0000-4000-8000-000000000001', 'Test bad', 'food', true, 901, null, 'fish') $$, '23514', null, 'a diet not on the list is refused');
 select throws_ok($$ select public.save_fnb_item('00000000-0000-4000-8000-000000000001', 'Test long', 'food', true, 901, null, null, repeat('x', 141)) $$, '23514', null, 'and a description over 140 characters');
 

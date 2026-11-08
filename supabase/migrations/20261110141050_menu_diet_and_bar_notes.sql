@@ -5,6 +5,8 @@
 alter table public.fnb_item
   add column diet text check (diet in ('veg', 'egg', 'non_veg')),
   add column description text check (description is null or length(btrim(description)) between 1 and 140);
+-- The table's select is granted column by column.
+grant select (diet, description) on public.fnb_item to authenticated;
 
 -- A note's words for the KOT, from its comma-separated keys in the list's order; anything not on the list is dropped.
 create function private.fnb_bar_note(p_keys text)
