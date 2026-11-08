@@ -39,9 +39,9 @@ reset role;
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select results_eq(
-  $$ select table_name, other_tables, played_seconds, buy_in_paise, bonus_paise, cash_out_paise, tds_paise, paid_paise, net_paise
+  $$ select table_name, played_seconds, buy_in_paise, bonus_paise, cash_out_paise, tds_paise, paid_paise, net_paise
      from public.my_sessions() $$,
-  $$ values ('Table 3'::text, 0, 10800::bigint, 1000000::bigint, 0::bigint, 5000000::bigint, 1200000::bigint, 3800000::bigint, 2800000::bigint) $$,
+  $$ values ('Table 3'::text, 10800::bigint, 1000000::bigint, 0::bigint, 5000000::bigint, 1200000::bigint, 3800000::bigint, 2800000::bigint) $$,
   'his session: Table 3 for three hours, ₹10,000 in, ₹50,000 out, ₹12,000 TDS, ₹38,000 paid, up ₹28,000');
 select is((select receipt from public.my_sessions()),
   (select upper(left(id::text, 8)) from public.cage_transaction where idempotency_key = '00000000-0000-4000-8000-0000000c5701'),

@@ -20,7 +20,7 @@ function Detail({ session, onHidden }: { session: MySession; onHidden: () => voi
   const toast = useToast();
   const [failed, setFailed] = useState(false);
   const onHide = async () => {
-    const result = await hide.mutateAsync(session.visitId);
+    const result = await hide.mutateAsync(session.sessionId);
     setFailed(!result.ok);
     if (!result.ok) return;
     toast(t('player.sessions.hiddenToast'));
@@ -49,8 +49,8 @@ function Detail({ session, onHidden }: { session: MySession; onHidden: () => voi
  * button does not return here (F3-22); opened by address, it goes to the list.
  */
 export function SessionScreen() {
-  const { visitId = '' } = useParams({ strict: false });
-  const sessions = useMySession(visitId);
+  const { sessionId = '' } = useParams({ strict: false });
+  const sessions = useMySession(sessionId);
   const access = useFeatureStatus('sessions.history');
   const router = useRouter();
   const canGoBack = useCanGoBack();

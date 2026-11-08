@@ -10,7 +10,6 @@ export const playerSessions = {
   /** A tournament's Game in its detail, and the first part of its line in the list. */
   tournamentPlace: 'Tournament · place {place} of {entrants}',
   /** A session at several tables, named by the one played longest: `Table 2 and 1 more`. */
-  moreTables: '{table} and {count} more',
   /** A session's detail (#627): when and how long, and the way to hide it from the member's own list. */
   time: 'Time',
   timeRange: '{from} to {to}',

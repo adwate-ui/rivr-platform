@@ -26,15 +26,15 @@ function MonthStats({ latest }: { latest: MySession | undefined }) {
 
 /** The list: a row a session, newest first, each opening its detail; Show earlier while there are more. */
 function SessionList({ sessions, hasEarlier, isLoadingMore, onMore, onOpen }: {
-  sessions: readonly MySession[]; hasEarlier: boolean; isLoadingMore: boolean; onMore: () => void; onOpen: (visitId: string) => void;
+  sessions: readonly MySession[]; hasEarlier: boolean; isLoadingMore: boolean; onMore: () => void; onOpen: (sessionId: string) => void;
 }) {
   return (
     <Stack gap={6}>
       <MonthStats latest={sessions[0]} />
       <Stack divided>
         {sessions.map((session) => (
-          <HistoryRow key={session.visitId} when={sessionDay(session)} title={sessionTitle(session)} value={<Text>{sessionLine(session)}</Text>}
-            onOpen={() => onOpen(session.visitId)} />
+          <HistoryRow key={session.sessionId} when={sessionDay(session)} title={sessionTitle(session)} value={<Text>{sessionLine(session)}</Text>}
+            onOpen={() => onOpen(session.sessionId)} />
         ))}
       </Stack>
       {hasEarlier ? (
@@ -63,7 +63,7 @@ export function SessionsScreen() {
   return (
     <Screen {...look} title={title}>
       <SessionList sessions={sessions.data.sessions} hasEarlier={sessions.data.hasEarlier} isLoadingMore={sessions.isPlaceholderData}
-        onMore={() => setCount((shown) => shown + PAGE)} onOpen={(visitId) => void navigate({ to: '/sessions/$visitId', params: { visitId } })} />
+        onMore={() => setCount((shown) => shown + PAGE)} onOpen={(sessionId) => void navigate({ to: '/sessions/$sessionId', params: { sessionId } })} />
     </Screen>
   );
 }
