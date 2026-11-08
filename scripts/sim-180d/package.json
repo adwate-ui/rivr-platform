@@ -11,6 +11,7 @@
     "census": "tsx bin/census.ts",
     "walks": "tsx bin/walks.ts",
     "staging:preflight": "tsx staging/preflight.ts",
+    "staging:health": "tsx staging/health.ts",
     "gate": "tsx bin/gate.ts"
   },
   "dependencies": {
