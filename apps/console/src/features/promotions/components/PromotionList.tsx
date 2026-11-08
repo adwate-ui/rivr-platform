@@ -1,11 +1,11 @@
 import type { PromotionStatus } from '@rivr/contracts/promotionModel';
 import { isListedIn, usePromotionsOverview, type PromotionOverview, type PromotionsOverview } from '@rivr/db';
-import type { PromotionNames } from '@rivr/domain/promotions';
 import { t } from '@rivr/i18n';
 import { Button, ChoiceChips, DataTable, ErrorMessage, Screen, Stack, Tabs } from '@rivr/ui';
 import { useState } from 'react';
 import { usePauseResume } from '../hooks/usePauseResume.ts';
 import { canOpen, endedColumns, listColumns } from './listColumns.tsx';
+import type { PromotionNames } from './promotionWords.ts';
 
 type Filter = Exclude<PromotionStatus, 'ended'> | 'all';
 const TABS = ['current', 'ended'] as const;

@@ -1,0 +1,46 @@
+/** A promotion in words, for the builder, the approver, the list and the cards saved with a version (audit F-055). */
+export const promotionWords = {
+  time: { hour: '1 hour', hours: '{count} hours', hoursMinutes: '{hours} h {minutes} min', minutes: '{minutes} min' },
+  buyIn: {
+    fixed: '{chips} bonus chips on a buy-in', percent: '{percent}% of your buy-in in bonus chips', upTo: 'up to {chips} bonus chips',
+    firstN: 'first {count} buy-ins per table',
+  },
+  seat: { first: '{chips} bonus chips on the first seat of a visit', firstN: '{chips} bonus chips for the first {count} seated at a table' },
+  hoursBonus: {
+    after: '{chips} bonus chips after {time}', thenAfter: 'then {chips} after {time}', every: '{chips} bonus chips every {time}',
+    everyHour: '{chips} bonus chips every hour', upToOnce: 'up to once a visit', upToTimes: 'up to {count} times a visit',
+  },
+  bonusChips: {
+    visit: '{chips} bonus chips on each visit', first_buyin: '{chips} bonus chips on the first buy-in of a visit',
+    referral: '{chips} bonus chips for each referral', signup: '{chips} bonus chips on sign-up',
+  },
+  pointsMultiplier: '{multiplier}× points',
+  freeSpin: '1 free spin after {time}',
+  freeSpins: '{count} free spins after {time}',
+  cabHome: 'A cab home from visit {visit} in a month',
+  tournamentEntry: 'An entry to {name}',
+  priority: 'Front of every waitlist',
+  allStakes: 'all stakes',
+  audience: { new_30d: 'new members, first 30 days', lapsed: 'lapsed regulars' },
+  days: { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' },
+  everyDay: 'every day',
+  window: '{days} {from}–{to}',
+  allDay: '{days}, all day',
+  fromHour: '{days}, 24 hours from {from}',
+  perMember: {
+    none: 'No limit per member', per_visit: 'Once per visit per member', per_day: 'Once a day per member',
+    per_week: 'Once a week per member', once: 'Once ever per member',
+  },
+  timesPerMember: {
+    per_visit: 'Up to {count} times per visit per member', per_day: 'Up to {count} times a day per member',
+    per_week: 'Up to {count} times a week per member', once: 'Up to {count} times ever per member',
+  },
+  firstMembers: 'first {count} members a day',
+  atMost: 'at most {count} times',
+  atMostMonth: 'at most {count} times a month',
+  budget: 'budget {count} chips',
+  budgetMonth: 'budget {count} chips a month',
+  line: '{reward}, for {who}, {when}. {limits}. Starts {starts}, {ends}.',
+  noEnd: 'no end date',
+  ends: 'ends {date}',
+};

@@ -1,5 +1,5 @@
 import { usePromotionStakes, useVenueTiers, type PromotionStake, type VenueTier } from '@rivr/db';
-import type { PromotionNames } from '@rivr/domain/promotions';
+import type { PromotionNames } from '../components/promotionWords.ts';
 import type { TemplateTiers } from '../components/builderForm.ts';
 
 /** The venue's stakes and tiers the builder offers, and the names its words give their codes and ids. */

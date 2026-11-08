@@ -1,3 +1,5 @@
+import { promotionWords } from './promotionWords.ts';
+
 /**
  * The console's Promotions (console v3, phase 7; decisions 0471 and 0491 to 0496): the list by status, the builder in
  * five sections with its summary column, and the approver's view of a waiting version. Points, bonus chips, spins and
@@ -10,6 +12,8 @@ export const promotions = {
   allPromotions: 'All promotions',
   /** Above the title on the TV slide preview, as the TV says it. */
   slideLabel: 'Promotion',
+  /** A promotion in words, for the builder, the approver, the list and the cards saved with a version (audit F-055). */
+  words: promotionWords,
   statuses: { draft: 'Draft', awaiting_approval: 'Awaiting approval', scheduled: 'Scheduled', live: 'Live', paused: 'Paused', ended: 'Ended' },
   list: {
     label: 'Promotions',

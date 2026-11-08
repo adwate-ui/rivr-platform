@@ -1,8 +1,8 @@
 import type { PromotionStatus } from '@rivr/contracts/promotionModel';
 import type { PromotionOverview } from '@rivr/db';
-import { whoAndWhen, type PromotionNames } from '@rivr/domain/promotions';
 import { formatDate, t } from '@rivr/i18n';
 import { Button, ConfirmButton, DotStatus, Inline, Number as Count, Stack, Text, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
+import { whoAndWhen, type PromotionNames } from './promotionWords.ts';
 
 // Awaiting approval is the one that needs someone: gold. Running ones are cream; the rest faint (console v3, DotStatus).
 const TONE: Readonly<Record<PromotionStatus, DotStatusTone>> = {

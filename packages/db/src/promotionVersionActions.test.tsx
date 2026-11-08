@@ -50,6 +50,8 @@ function buyIn(n: number, ownChips: number) {
 
 afterEach(cleanup);
 
+const WORDS = { detail: '20% of your buy-in in bonus chips', runs: 'all stakes · Tue, all day' };
+
 describe('promotion version actions', () => {
   it('saves a new draft with its card words and request id, and the next version of a running one by its id', async () => {
     const { result, bodyOf, calls } = renderActions({
@@ -57,14 +59,14 @@ describe('promotion version actions', () => {
     });
     let saved: unknown;
     await act(async () => {
-      saved = await result.current.saveDraft.mutateAsync({ promotionId: null, terms: TUESDAY, requestId: 'r1' });
+      saved = await result.current.saveDraft.mutateAsync({ promotionId: null, terms: TUESDAY, words: WORDS, requestId: 'r1' });
     });
     expect(saved).toEqual({ ok: true, value: { versionId: 'v1', promotionId: 'p1' } });
     expect(bodyOf('save_promotion_draft')).toEqual({
-      p_venue_id: VENUE, p_draft: { terms: TUESDAY, detail: '20% buy-in bonus, up to 2,000', runs: 'all stakes · Tue, all day', request_id: 'r1' },
+      p_venue_id: VENUE, p_draft: { terms: TUESDAY, ...WORDS, request_id: 'r1' },
     });
     await act(async () => {
-      saved = await result.current.saveDraft.mutateAsync({ promotionId: 'p1', terms: TUESDAY, requestId: 'r2' });
+      saved = await result.current.saveDraft.mutateAsync({ promotionId: 'p1', terms: TUESDAY, words: WORDS, requestId: 'r2' });
     });
     expect(saved).toEqual({ ok: true, value: { versionId: 'v1', promotionId: 'p1' } });
     expect(calls.filter((call) => call.url.includes('save_promotion_draft'))[1]?.body).toMatchObject({ p_promotion_id: 'p1' });
@@ -73,12 +75,12 @@ describe('promotion version actions', () => {
   it('says a new draft was not saved when its promotion cannot be read back, or the save is refused', async () => {
     const lost = renderActions({ '/rpc/save_promotion_draft': { body: 'v1' }, '/rest/v1/': { body: [] } });
     await act(async () => {
-      expect(await lost.result.current.saveDraft.mutateAsync({ promotionId: null, terms: TUESDAY, requestId: 'r1' })).toEqual({ ok: false, error: 'unavailable' });
+      expect(await lost.result.current.saveDraft.mutateAsync({ promotionId: null, terms: TUESDAY, words: WORDS, requestId: 'r1' })).toEqual({ ok: false, error: 'unavailable' });
     });
     cleanup();
     const refused = renderActions({ '/rpc/save_promotion_draft': failure('RVDEC') });
     await act(async () => {
-      expect(await refused.result.current.saveDraft.mutateAsync({ promotionId: 'p1', terms: TUESDAY, requestId: 'r1' })).toEqual({ ok: false, error: 'already_decided' });
+      expect(await refused.result.current.saveDraft.mutateAsync({ promotionId: 'p1', terms: TUESDAY, words: WORDS, requestId: 'r1' })).toEqual({ ok: false, error: 'already_decided' });
     });
   });
 
