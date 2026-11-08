@@ -164,13 +164,13 @@ describe('the console frame', () => {
     expect(screen.getByText('Cashier · RIVR Gurugram')).toBeDefined();
   });
 
-  it('shows a role with one tab of a screen that tab alone, under its own title', async () => {
+  it('shows a role with one tab of a screen that tab alone, under the name it has on the rail (F-094)', async () => {
     signIn();
     answerStaff([{ ...CLUB, full_name: 'Isha Rao', role: 'marketing' }]);
     renderAt('/content');
-    expect(await screen.findByRole('heading', { name: 'Website', level: 1 })).toBeDefined();
+    expect(await screen.findByRole('heading', { name: 'Content', level: 1 })).toBeDefined();
     expect(within(screen.getByRole('main')).queryByRole('navigation', { name: 'Content' })).toBeNull();
-    expect(within(screen.getByRole('main')).queryByRole('heading', { name: 'Content' })).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Website', level: 2 })).toBeDefined();
   });
 
   it('offers the density and the keys that work in the staff member’s menu', async () => {

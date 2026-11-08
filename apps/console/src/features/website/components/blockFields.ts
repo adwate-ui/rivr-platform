@@ -1,7 +1,7 @@
 /** The words in a block the editor offers to change; links, pictures and addresses stay as they are. */
 export const TEXT_KEYS = [
-  'eyebrow', 'heading', 'text', 'note', 'body', 'intro', 'title', 'label', 'alt', 'quote', 'question', 'answer', 'apply', 'address', 'hours',
-  'value', 'phone', 'email', 'when', 'lines', 'points', 'rules', 'phrases', 'paragraphs',
+  'eyebrow', 'heading', 'intro', 'title', 'question', 'value', 'label', 'when', 'text', 'body', 'answer', 'quote', 'note', 'alt', 'apply', 'address', 'hours',
+  'phone', 'email', 'lines', 'points', 'rules', 'phrases', 'paragraphs',
 ] as const;
 export type TextKey = (typeof TEXT_KEYS)[number];
 
@@ -9,6 +9,38 @@ export type TextKey = (typeof TEXT_KEYS)[number];
 export type Content = string | number | boolean | null | Content[] | { readonly [key: string]: Content | undefined };
 
 const isTextKey = (key: string): key is TextKey => TEXT_KEYS.some((known) => known === key);
+
+/**
+ * Each kind's keys in the order its `<Kind>Block` draws them, and each list item's under `<kind>.<list>` (F-040). A kind
+ * with one word needs no order, and a key not listed goes after those that are, so none is ever dropped.
+ */
+const PAGE_ORDER: Readonly<Record<string, readonly string[]>> = {
+  hero: ['eyebrow', 'heading', 'text', 'action', 'note'],
+  statement: ['eyebrow', 'lines', 'text', 'action', 'note'],
+  gallery: ['eyebrow', 'heading', 'intro', 'items', 'note'],
+  'gallery.items': ['alt', 'title', 'text'],
+  feature: ['eyebrow', 'heading', 'text', 'points', 'action', 'alt'],
+  story: ['eyebrow', 'heading', 'paragraphs', 'action', 'alt', 'figures'],
+  // Drawn reversed, the figure over its label.
+  'story.figures': ['value', 'label'],
+  cards: ['eyebrow', 'heading', 'intro', 'cards', 'quote', 'action'],
+  'cards.cards': ['label', 'title', 'text', 'points', 'link'],
+  careers: ['heading', 'roles', 'apply'],
+  'careers.roles': ['title', 'body'],
+  timeline: ['eyebrow', 'heading', 'intro', 'items'],
+  'timeline.items': ['when', 'title', 'text', 'link'],
+  faq: ['heading', 'questions'],
+  'faq.questions': ['question', 'answer'],
+  text: ['heading', 'body'],
+  rules: ['heading', 'rules'],
+  map: ['heading', 'address', 'hours', 'phone', 'email'],
+  links: ['heading', 'links'],
+  table: ['heading', 'intro', 'note'],
+  promotions: ['eyebrow', 'heading'],
+  outstation: ['eyebrow', 'heading'],
+  jackpot: ['eyebrow', 'heading'],
+};
+
 const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const isObject = (value: Content): value is { readonly [key: string]: Content | undefined } => typeof value === 'object' && value !== null && !Array.isArray(value);
 
@@ -20,12 +52,58 @@ export interface BlockField {
   readonly number: number | null;
 }
 
-/** The words in a block's content the editor shows, in order, each with its place. */
-export function fieldsOf(value: unknown, path: readonly (string | number)[] = [], key = '', number: number | null = null): BlockField[] {
-  if (typeof value === 'string') return isTextKey(key) ? [{ path, key, value, number }] : [];
-  if (Array.isArray(value)) return value.flatMap((item, index) => fieldsOf(item, [...path, index], key, index + 1));
-  if (isRecord(value)) return Object.entries(value).flatMap(([name, item]) => fieldsOf(item, [...path, name], name, number));
-  return [];
+/** Where the walk through a block has reached: the path and key to it, its place in a list, and which order its keys follow. */
+interface Place {
+  readonly path: readonly (string | number)[];
+  readonly key: string;
+  readonly number: number | null;
+  readonly order: string;
+}
+
+/** An object's entries in the page's order, not as the database keeps them (by the length of their keys). */
+function inPageOrder(value: Readonly<Record<string, unknown>>, order: string): [string, unknown][] {
+  const keys = PAGE_ORDER[order] ?? [];
+  const rankOf = (key: string) => (keys.includes(key) ? keys.indexOf(key) : keys.length);
+  return Object.entries(value).sort(([a], [b]) => rankOf(a) - rankOf(b));
+}
+
+function walk(value: unknown, at: Place): BlockField[] {
+  if (typeof value === 'string') return isTextKey(at.key) ? [{ path: at.path, key: at.key, value, number: at.number }] : [];
+  if (Array.isArray(value)) return value.flatMap((item, index) => walk(item, { ...at, path: [...at.path, index], number: index + 1 }));
+  if (!isRecord(value)) return [];
+  return inPageOrder(value, at.order).flatMap(([key, item]) => walk(item, { path: [...at.path, key], key, number: at.number, order: `${at.order}.${key}` }));
+}
+
+/** The words in a block's content the editor shows, in the order its kind draws them, each with its place. */
+export function fieldsOf(kind: string, content: unknown): BlockField[] {
+  return walk(content, { path: [], key: '', number: null, order: kind });
+}
+
+/** A run of fields in the editor: one item of a list of things under its own heading, or the fields around them. */
+export interface FieldGroup {
+  /** The list it is an item of, and its place from 1; null for the fields outside any such list. */
+  readonly list: string | null;
+  readonly number: number | null;
+  readonly fields: readonly BlockField[];
+}
+
+/** The list a field is an item of, by where it is: a path such as `questions.0.answer`. A plain list of words has no item to head. */
+function itemOf(field: BlockField): { list: string; index: number } | null {
+  const [list, index, inside] = field.path;
+  return typeof list === 'string' && typeof index === 'number' && inside !== undefined ? { list, index } : null;
+}
+
+/** The fields in runs, each item of a list of things in a run of its own. */
+export function fieldGroups(fields: readonly BlockField[]): FieldGroup[] {
+  const groups: { list: string | null; number: number | null; fields: BlockField[] }[] = [];
+  for (const field of fields) {
+    const item = itemOf(field);
+    const [list, number] = item === null ? [null, null] : [item.list, item.index + 1];
+    const last = groups.at(-1);
+    if (last !== undefined && last.list === list && last.number === number) last.fields.push(field);
+    else groups.push({ list, number, fields: [field] });
+  }
+  return groups;
 }
 
 /** The content with the words at a place changed; everything else as it was, and all of it for a place it does not have. */
