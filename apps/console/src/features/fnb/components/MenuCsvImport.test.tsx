@@ -55,6 +55,14 @@ describe('The menu from a CSV', () => {
     }]);
   });
 
+  it('shows the diet and description it will save, and neither for a line that leaves them as they are (F-052)', async () => {
+    renderImport(() => Response.json(2));
+    choose('name,type,diet,description\nClub sandwich,food,non veg,Chicken and egg on toast\nBeer,bar,,\n');
+    expect(await screen.findByRole('img', { name: 'Non-vegetarian' })).toBeDefined();
+    expect(screen.getByText('Chicken and egg on toast')).toBeDefined();
+    expect(screen.getAllByRole('img', { name: /vegetarian|egg/i })).toHaveLength(1);
+  });
+
   it('names what is wrong on each line, and offers no save until the file is right', async () => {
     renderImport(() => Response.json(0));
     choose('name,type\nClub sandwich,food\nTea,dessert\nClub sandwich,food\n');

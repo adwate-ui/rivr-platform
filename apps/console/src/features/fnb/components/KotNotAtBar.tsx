@@ -3,18 +3,21 @@ import { formatTime, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Inline, PrintSheet, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { flushSync } from 'react-dom';
+import { orderNotes } from './orderLanes.ts';
 
 /**
- * The KOT on paper, as the bar printer prints it: its number, the table and seat, when, what, and comp. It names no member:
+ * The KOT on paper, as the bar printer prints it: its number, the table and seat, when, what, the member's note for the whole order, and comp. It names no member:
  * the paper goes to Glaza's bar, a vendor, as the bar printer's KOT does.
  */
 function PrintedKot({ order }: { order: FnbOrderTonight }) {
+  const note = orderNotes(order);
   return (
     <Stack gap={1}>
       <Text weight="semibold">{t('console.fnb.kot', { kot: order.kotNumber })}</Text>
       <Text>{t('console.fnb.kotWhere', { table: order.tableName, seat: order.seat })}</Text>
       <Text>{t('console.fnb.orderedAt', { time: formatTime(new Date(order.createdAt)) })}</Text>
       {order.lines.map((line) => <Text key={line.itemId}>{t('console.fnb.line', { quantity: line.quantity, name: line.name })}</Text>)}
+      {note === null ? null : <Text>{t('console.fnb.note', { note })}</Text>}
       {order.isComp ? <Text>{t('console.fnb.comp')}</Text> : null}
     </Stack>
   );

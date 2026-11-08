@@ -42,7 +42,7 @@ function renderBoard(orders: readonly FnbOrderTonight[]) {
 describe('OrderBoard (decision 0302)', () => {
   it('shows what the member asked of the bar (F-052)', () => {
     renderBoard([{ ...CHAI, lines: [{ itemId: 'chai', name: 'Masala chai', quantity: 1, note: 'No ice, Less spicy' }] }]);
-    expect(screen.getByText('Note: No ice, Less spicy')).toBeDefined();
+    expect(screen.getByText('Whole order: No ice, Less spicy')).toBeDefined();
   });
 
   it('names the KOTs members cancelled themselves, so the bar can drop one it holds (F-048)', () => {

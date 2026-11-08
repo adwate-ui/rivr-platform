@@ -18,6 +18,13 @@ describe('DietMark', () => {
     expect(container.querySelector('path')).toBeNull();
   });
 
+  it('tells egg from veg by a hollow ring, as their colours are close in brightness', () => {
+    const { container, rerender } = renderIn(<DietMark diet="egg" />);
+    expect(container.querySelector('circle')?.getAttribute('fill')).toBe('none');
+    rerender(<DietMark diet="veg" />);
+    expect(container.querySelector('circle')?.getAttribute('fill')).toBe('currentColor');
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<DietMark diet="egg" />);
     expect(await axeViolations(container)).toEqual([]);

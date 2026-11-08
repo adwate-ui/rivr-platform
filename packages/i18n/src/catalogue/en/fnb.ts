@@ -125,7 +125,7 @@ export const consoleFnb = {
   diets: { veg: 'Veg', egg: 'Egg', non_veg: 'Non-veg' },
   description: 'Description',
   /** What the member asked of the bar, on the order's card. */
-  note: 'Note: {note}',
+  note: 'Whole order: {note}',
   /** The menu's kinds and its sections, as the app names them (#799). */
   kinds: { food: 'Food', soft_drink: 'Soft drinks', alcohol: 'Bar' },
   onOffer: 'On offer',

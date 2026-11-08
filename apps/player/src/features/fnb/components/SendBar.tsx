@@ -9,7 +9,7 @@ import { useState } from 'react';
 /**
  * The sticky foot of the Order screen once anything is added (brief 3.5): Send to the bar with how many items. Sent, the
  * phone buzzes, Tonight shows the order on its way and a toast says so. One request id an order, kept to retry one whose
- * reply was lost, and new with any change to it (F3-18). The order's note goes on its last line, the foot of the KOT.
+ * reply was lost, and new with any change to it (F3-18). The order's note goes on its last line, and the KOT prints it as for the whole order.
  */
 export function SendBar({ seat, counts, notes, onSent }: { seat: MySeat; counts: Readonly<Record<string, number>>; notes: readonly FnbBarNote[]; onSent: () => void }) {
   const place = usePlaceFnbOrder();

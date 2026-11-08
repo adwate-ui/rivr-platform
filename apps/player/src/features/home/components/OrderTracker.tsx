@@ -1,11 +1,10 @@
 import { FNB_MEMBER_CANCEL_REASON } from '@rivr/contracts';
 import { useFeature } from '@rivr/db';
-import { useCancelMyFnbOrder, useMyFnbOrders, type CancelMyOrderFailure, type MyFnbOrder } from '@rivr/db/fnb';
+import { useCancelMyFnbOrder, useMyFnbOrders, type MyFnbOrder } from '@rivr/db/fnb';
 import { ORDER_STAGES, orderStage } from '@rivr/domain/fnb';
 import { t } from '@rivr/i18n';
-import { Box, Button, ConfirmButton, ErrorMessage, FeatureGate, Inline, Stack, Stepper, Text, useIsOnline } from '@rivr/ui';
+import { Box, Button, ConfirmButton, FeatureGate, Inline, Stack, Stepper, Text, useIsOnline, useToast } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
 
 /** What was ordered: "Club sandwich, Paneer tikka", or "2 × Beer". */
 function itemsOf(order: MyFnbOrder): string {
@@ -19,21 +18,19 @@ function OrderAgain({ orderId }: { orderId: string }) {
   return <Button variant="outline" fullWidth onClick={() => void navigate({ href: `/fnb?again=${orderId}` })}>{t('player.live.seat.orderAgain')}</Button>;
 }
 
-/** Cancel, asked once more, while the bar has not accepted the order (F-048); it says so if the bar got there first. Off with no connection. */
+/**
+ * Cancel, asked once more, while the bar has not accepted the order (F-048). Off with no connection. What came of it is a
+ * toast, which outlives this button: the orders are read again first, so one the bar got to is past Sent and Cancel has gone.
+ */
 function CancelOrder({ orderId }: { orderId: string }) {
   const cancel = useCancelMyFnbOrder();
   const isOnline = useIsOnline();
-  const [failure, setFailure] = useState<CancelMyOrderFailure | null>(null);
+  const toast = useToast();
   const press = async () => {
     const done = await cancel.mutateAsync(orderId);
-    setFailure(done.ok ? null : done.error);
+    toast(done.ok ? t('player.live.seat.cancelToast') : t(`player.live.seat.cancelFailures.${done.error}`));
   };
-  return (
-    <Stack gap={2}>
-      <ConfirmButton label={t('player.live.seat.cancelOrder')} confirm={t('player.live.seat.cancelOrderConfirm')} isBusy={cancel.isPending} isDisabled={!isOnline} onConfirm={() => void press()} />
-      {failure === null ? null : <ErrorMessage look="dot">{t(`player.live.seat.cancelFailures.${failure}`)}</ErrorMessage>}
-    </Stack>
-  );
+  return <ConfirmButton label={t('player.live.seat.cancelOrder')} confirm={t('player.live.seat.cancelOrderConfirm')} isBusy={cancel.isPending} isDisabled={!isOnline} onConfirm={() => void press()} />;
 }
 
 /** The four steps and where the order stands on them, or, once it was cancelled, that it was and why (decision 0302). */

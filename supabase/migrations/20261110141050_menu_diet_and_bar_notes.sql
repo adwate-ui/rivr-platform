@@ -222,3 +222,6 @@ as $$ select * from private.my_fnb_menu(); $$;
 
 revoke execute on function private.fnb_menu(uuid), public.fnb_menu(uuid), private.my_fnb_menu(), public.my_fnb_menu() from public, anon;
 grant execute on function private.fnb_menu(uuid), public.fnb_menu(uuid), private.my_fnb_menu(), public.my_fnb_menu() to authenticated;
+
+-- The practice venue's seed holds the menu's new columns (database.md, decision 0117).
+select private.capture_practice_seed(v.id) from public.venue v where v.is_practice;

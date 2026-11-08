@@ -6,6 +6,6 @@ Date: 9 Nov 2026 · From the 180-day audit of 8 Nov (I-36, I-37).
 
 **Notes are a fixed list, not free text.** The audit asked for a per-order note. F&B keeps no free text (#567): a member's words would outlive their erasure in the order, its KOT event and the audit log. So a member picks from No ice, Less sugar, Less spicy, No onion and No garlic; `private.fnb_bar_note` keeps only those words, and anything else sent is dropped. A free-text note needs erasure to reach those three places first.
 
-**Where a note goes.** On the order's last line, so the KOT prints it at its foot, with no change to the KOT or the bar's agent.
+**Where a note goes.** On the order's last line, with no change to the bar's agent. It is for the whole order, so the bar printer and a KOT printed by hand both say so after every line: `Whole order: No onion`.
 
-**Veg mark.** `DietMark` draws the veg, egg or non-veg mark as a cream square edged in its colour, with a dot or a triangle, so the shape says it as well as the colour. Diet and description are set when an item is added or from the menu's file. There is no edit on an existing row yet: a one-line file changes an item.
+**Veg mark.** `DietMark` draws the veg, egg or non-veg mark as a cream square edged in its colour, with a dot for veg, a triangle for non-veg and a hollow ring for egg, so the shape says it as well as the colour (veg and egg are close in brightness). FSSAI marks only veg and non-veg: the egg mark is the club's own. Diet and description are set when an item is added or from the menu's file. There is no edit on an existing row yet: a one-line file changes an item.

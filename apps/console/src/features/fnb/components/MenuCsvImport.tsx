@@ -1,20 +1,30 @@
 import { useSaveFnbMenu, type FnbMenuFailure, type FnbMenuFileItem } from '@rivr/db/fnb';
 import { formatNumber, t } from '@rivr/i18n';
-import { Button, CameraButton, ErrorMessage, Heading, Inline, Stack, StatusMessage, Text } from '@rivr/ui';
+import { Button, CameraButton, DietMark, ErrorMessage, Heading, Inline, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { menuItemsToSave, readMenuCsv, type MenuCsv, type MenuCsvLine } from './menuCsv.ts';
 
 // A menu of 300 items fits in a few kilobytes: a larger file is not this one, and is never read.
 const MOST_BYTES = 1_048_576;
 
+/** An item as it will be saved, with its mark and description when the file gives them: blank leaves the menu's as they are. */
+function PreviewItem({ item }: { item: FnbMenuFileItem }) {
+  const { name, isAvailable, diet, description } = item;
+  const kind = t(`console.fnb.kinds.${item.kind}`);
+  return (
+    <Stack gap={1}>
+      <Inline gap={2} align="center">
+        {diet === null ? null : <DietMark diet={diet} />}
+        <Text>{isAvailable === null ? t('console.fnb.menuCsv.itemOnly', { name, kind }) : t('console.fnb.menuCsv.item', { name, kind, offer: t(isAvailable ? 'console.fnb.onOffer' : 'console.fnb.offMenu') })}</Text>
+      </Inline>
+      {description === null ? null : <Text variant="small" tone="muted">{description}</Text>}
+    </Stack>
+  );
+}
+
 /** One line as the preview shows it: the item as it will be saved, or what is wrong. */
 function PreviewLine({ read }: { read: MenuCsvLine }) {
-  if (read.ok) {
-    const { name, isAvailable } = read.item;
-    const kind = t(`console.fnb.kinds.${read.item.kind}`);
-    if (isAvailable === null) return <Text>{t('console.fnb.menuCsv.itemOnly', { name, kind })}</Text>;
-    return <Text>{t('console.fnb.menuCsv.item', { name, kind, offer: t(isAvailable ? 'console.fnb.onOffer' : 'console.fnb.offMenu') })}</Text>;
-  }
+  if (read.ok) return <PreviewItem item={read.item} />;
   const line = formatNumber(read.line);
   if (read.problem === 'twice') return <ErrorMessage>{t('console.fnb.menuCsv.problems.twice', { line, name: read.name })}</ErrorMessage>;
   return <ErrorMessage>{t(`console.fnb.menuCsv.problems.${read.problem}`, { line })}</ErrorMessage>;

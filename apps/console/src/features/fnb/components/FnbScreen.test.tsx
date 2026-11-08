@@ -117,6 +117,14 @@ describe('Food and drink (console v3)', () => {
     expect(paper?.textContent).not.toContain('Lalit Goel');
   });
 
+  it('prints what the member asked of the bar on a KOT printed by hand, for the whole order (F-052)', async () => {
+    vi.stubGlobal('print', vi.fn());
+    const lines = [{ item_id: 'fries', name: 'French fries', quantity: 1, note: 'No onion' }, { item_id: 'beer', name: 'Beer', quantity: 2, note: null }];
+    renderAs('service', undefined, { ...READS, '/rpc/fnb_orders_tonight': [{ ...ORDER, lines, kot_print_failed: true }] });
+    fireEvent.click(await screen.findByRole('button', { name: 'Print KOT 4' }, WAIT));
+    expect(document.querySelector('[data-print-sheet]')?.textContent).toContain('Whole order: No onion');
+  });
+
   it('orders for a seat: the table first, then the seat with who sits there, then the items (F&B order, table then seat)', async () => {
     const { calls } = renderAs('floor');
     fireEvent.click(await screen.findByRole('button', { name: 'New order' }, WAIT));
