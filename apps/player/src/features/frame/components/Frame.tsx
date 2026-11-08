@@ -1,6 +1,6 @@
 import { TAB_FEATURES } from '@rivr/contracts/features';
 import { returnSearchFrom, type ReturnSearch } from '@rivr/contracts/returnPath';
-import { useAuthStatus, useFeature, useKycRecord, useMember, type AuthStatus } from '@rivr/db';
+import { useAuthStatus, useFeature, useKycImageUrl, useKycRecord, useMember, type AuthStatus } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { InstallOffer, PlayerShell, Screen, Stack, type BottomNavItem, type FeatureAccess, type PlayerTab } from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
@@ -53,8 +53,17 @@ function KycGate({ isMember, children }: { isMember: boolean; children: ReactNod
 }
 
 /**
+ * The member's selfie in the header's circle, as on Profile; their initial until it comes (the owner, 9 Nov). A member is
+ * given their own selfie once verified (decision 0300), so none is asked for before.
+ */
+function useHeaderPhoto(): string | undefined {
+  const kyc = useKycRecord().data;
+  return useKycImageUrl(kyc?.status === 'verified' ? kyc.photoPath : null).data ?? undefined;
+}
+
+/**
  * The player app's frame for a signed-in member (decision 0320): Tonight, Sessions, Card and Rewards as tabs, gated by
- * tier; the member's initial top right on a tab screen, which opens Profile; pushed screens (Order, Profile, House rules)
+ * tier; the member's photo or initial top right on a tab screen, which opens Profile; pushed screens (Order, Profile, House rules)
  * without the tabs; and on Tonight the offer to install the app (#16). The club's state (paused, offline) is a banner at
  * the top: Tonight's own, or the frame's on every other screen. Nobody signed in goes to sign-in, and back to this screen once signed in. Until their identity check is
  * verified, a member sees only its steps (#632).
@@ -62,6 +71,7 @@ function KycGate({ isMember, children }: { isMember: boolean; children: ReactNod
 export function Frame({ children }: { children: ReactNode }) {
   const authStatus = useAuthStatus();
   const member = useMember();
+  const photo = useHeaderPhoto();
   const sessions = useFeature(TAB_FEATURES.sessions);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
@@ -79,7 +89,7 @@ export function Frame({ children }: { children: ReactNode }) {
   const currentTab = tabOf(pathname);
   return (
     <PlayerShell tabs={tabs} currentTab={currentTab} onNavigate={(href) => void navigate({ href })}
-      avatar={TAB_FOR_PATH[pathname] === undefined ? undefined : { initial: member.data?.initial, href: '/profile' }}
+      avatar={TAB_FOR_PATH[pathname] === undefined ? undefined : { initial: member.data?.initial, photo, href: '/profile' }}
       isTabBarHidden={PUSHED.includes(pathname)} isFullBleed={pathname === '/'}>
       {pathname === '/' && offer.kind ? <InstallOffer kind={offer.kind} onInstall={offer.install} onDismiss={offer.dismiss} /> : null}
       {member.data ? <BonusToasts /> : null}

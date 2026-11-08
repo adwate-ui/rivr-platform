@@ -13,11 +13,11 @@ export interface PlayerShellProps {
   currentTab?: PlayerTab | undefined;
   onNavigate?: Navigate | undefined;
   /**
-   * The member's initial at the right of the screen's header, opening Profile: on the tab screens. Left out on a screen with
+   * The member's photo, or initial, at the right of the screen's header, opening Profile: on the tab screens. Left out on a screen with
    * its own way back. The screen's header draws it (Screen's heading row, or `PlayerAvatar` in a header of its own), so it
    * is centred on the title beside it and follows the header down under any banner above it.
    */
-  avatar?: { initial: string | undefined; href: string } | undefined;
+  avatar?: { initial: string | undefined; photo?: string | undefined; href: string } | undefined;
   /** Hides the tab bar: a pushed screen with its own way back, such as Order, Profile or House rules. */
   isTabBarHidden?: boolean;
   /** Leaves the screen's sides to it, for a screen whose parts run edge to edge, such as Tonight. */

@@ -1,6 +1,6 @@
 import { useFeature, useKycImageUrl, useKycRecord, useMember, useMembershipCard, usePreferences, useSignedInPhone } from '@rivr/db';
 import { formatMobile, t } from '@rivr/i18n';
-import { BackButton, Box, DetailRow, FeatureGate, Heading, Inline, KycPhoto, kycPhotoStatus, ProfileMark, Screen, Stack, Text } from '@rivr/ui';
+import { BackButton, Box, DetailRow, FeatureGate, Heading, Inline, ProfileMark, Screen, Stack, Text } from '@rivr/ui';
 import { useCanGoBack, useNavigate, useRouter } from '@tanstack/react-router';
 import { useState, type ReactNode } from 'react';
 import { FeedbackSheet } from './FeedbackSection.tsx';
@@ -15,12 +15,6 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
       <Box>{children}</Box>
     </Stack>
   );
-}
-
-/** The member's verified selfie (decision 0300), filling the mark. */
-function HeadPhoto({ path }: { path: string }) {
-  const photo = useKycImageUrl(path);
-  return <KycPhoto isFilling alt={t('player.card.photo')} src={photo.data ?? null} status={kycPhotoStatus(path, photo)} />;
 }
 
 /**
@@ -46,10 +40,11 @@ function TierPhone({ tier }: { tier: string }) {
 function ProfileHead() {
   const member = useMember().data;
   const card = useMembershipCard().data ?? null;
-  const path = card?.photoPath ?? null;
+  // The verified selfie (decision 0300), filling the mark; the initial until it comes.
+  const photo = useKycImageUrl(card?.photoPath ?? null).data ?? undefined;
   return (
     <Inline gap={4} align="center">
-      <ProfileMark initial={member?.initial ?? ''} photo={path === null ? undefined : <HeadPhoto path={path} />} />
+      <ProfileMark initial={member?.initial ?? ''} photo={photo} />
       <Stack gap={1}>
         <Heading level={1} variant="serif" serifSize={28}>{member?.fullName ?? ''}</Heading>
         {card === null ? null : <TierPhone tier={card.tierName} />}

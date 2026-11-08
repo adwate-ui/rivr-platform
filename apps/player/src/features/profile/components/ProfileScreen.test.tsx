@@ -16,8 +16,21 @@ afterEach(() => {
 const FEATURES = ['push.seat_ready', 'push.call_time_complete', 'push.bonus', 'learn.library'].map((feature_key) => ({ feature_key, state: 'enabled', tiers: null }));
 const CARD = { member_number: 901, full_name: 'Meera Iyer', tier_name: 'Founders’ Circle', code: 'c0de', ms_left: 30000, photo_path: null };
 
+/** What each read Profile makes is answered with, by a part of its address; undefined for any other. */
+function readAnswer(url: string, card: object): unknown {
+  const reads: readonly (readonly [string, unknown])[] = [
+    ['/rpc/my_feature_access', FEATURES],
+    ['/rest/v1/member?', { id: 'm1', full_name: 'Meera Iyer' }],
+    ['/rpc/my_membership_card', [card]],
+    ['/rest/v1/member_preference', { games: [], small_blind: null, big_blind: null, name_on_tvs: true }],
+    ['/rpc/has_my_consent', false],
+    ['/functions/v1/kyc-image-url', { signedPath: '/object/sign/kyc/v/m/selfie.jpg?token=one-minute' }],
+  ];
+  return reads.find(([part]) => url.includes(part))?.[1];
+}
+
 /** Meera signed in on +91 90000 00901, opening Profile from Rewards; feedback she sends goes to `sent`. */
-function renderProfile() {
+function renderProfile(card: object = CARD) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000241', aud: 'authenticated', phone: '919000000901', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -25,11 +38,8 @@ function renderProfile() {
   const sent: unknown[] = [];
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (url.includes('/rpc/my_feature_access')) return Response.json(FEATURES);
-    if (url.includes('/rest/v1/member?')) return Response.json({ id: 'm1', full_name: 'Meera Iyer' });
-    if (url.includes('/rpc/my_membership_card')) return Response.json([CARD]);
-    if (url.includes('/rest/v1/member_preference')) return Response.json({ games: [], small_blind: null, big_blind: null, name_on_tvs: true });
-    if (url.includes('/rpc/has_my_consent')) return Response.json(false);
+    const answer = readAnswer(url, card);
+    if (answer !== undefined) return Response.json(answer);
     if (url.includes('/rpc/send_quick_feedback') || url.includes('/rpc/send_detailed_feedback')) {
       sent.push(JSON.parse(String(init?.body)));
       return Response.json(null);
@@ -68,6 +78,17 @@ describe('Profile', () => {
     expect(screen.getByRole('switch', { name: /Bonus chips/ })).toBeDefined();
     expect(screen.queryByText(/limit|take a break|waitlist alerts/i)).toBeNull();
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
+  });
+
+  it('shows her verified selfie filling the mark, and her initial without one', async () => {
+    renderProfile({ ...CARD, photo_path: 'v/m/selfie.jpg' });
+    const photo = await screen.findByRole('img', { name: 'Your photo' }, LATER);
+    expect(photo.getAttribute('src')).toContain('/object/sign/kyc/v/m/selfie.jpg');
+    cleanup();
+    renderProfile();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Meera Iyer' }, LATER)).toBeDefined();
+    expect(await screen.findByText('M', {}, LATER)).toBeDefined();
+    expect(screen.queryByRole('img', { name: 'Your photo' })).toBeNull();
   });
 
   it('shows Learn for a tier with it, and no Events for one without', async () => {
