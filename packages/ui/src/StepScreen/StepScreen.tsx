@@ -28,7 +28,8 @@ export interface StepScreenProps {
   onSubmit?: ((event: FormEvent<HTMLFormElement>) => void | Promise<void>) | undefined;
 }
 
-const ALIGN = { top: 'pt-6', center: 'items-center justify-center' } as const;
+// Under Back, the content keeps 24 px from it; with no Back, a panel's own 40 px is the inset from 768 px (F-065).
+const ALIGN = { top: 'pt-6', topAlone: 'pt-6 medium:pt-0', center: 'items-center justify-center' } as const;
 
 const BACK_CHEVRON = { icon: 'chevronLeft' } as const;
 
@@ -100,7 +101,7 @@ function StepTitle({ title, look }: { title: string; look: StepScreenProps['look
 export function StepScreen({ children, footer, title, back, align = 'top', onSubmit, look }: StepScreenProps) {
   const step = (
     <>
-      <div className={cx('flex flex-1 flex-col gap-6', ALIGN[align])}>
+      <div className={cx('flex flex-1 flex-col gap-6', ALIGN[align === 'top' && back === undefined ? 'topAlone' : align])}>
         {title ? <StepTitle title={title} look={look} /> : null}
         {children}
       </div>

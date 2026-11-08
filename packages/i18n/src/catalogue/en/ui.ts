@@ -288,4 +288,9 @@ export const ui = {
   },
   /** Printed matter, receipts and A4 documents: the club's registration beneath its address. */
   paper: { gstin: 'GSTIN {gstin}' },
+  /** ResendButton, on the player app's and the console's code step alike (F-133): `{time}` counts down, 0:24. */
+  signIn: {
+    resend: 'Resend code',
+    resendIn: 'Resend code in {time}',
+  },
 } as const;

@@ -28,7 +28,8 @@ export function SignedInStep({ name, checking, onContinue }: SignedInStepProps) 
               {t('common.signIn.continueAs', { name })}
             </Button>
           ) : null}
-          <Button variant="subtle" fullWidth isLoading={signOut.isPending} onClick={() => signOut.mutate()}>
+          {/* As tall as Continue above it (F-065). */}
+          <Button variant="subtle" size="large" fullWidth isLoading={signOut.isPending} onClick={() => signOut.mutate()}>
             {t('common.signIn.signOut')}
           </Button>
         </>

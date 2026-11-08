@@ -21,17 +21,19 @@ export function SignedInStep({ name, checking, onContinue, onSignedOut }: Signed
   const signOut = useSignOut();
   const who = checking ? t('common.signIn.signedInChecking') : name ? t('common.signIn.signedInAs', { name }) : t('common.signIn.signedInSomeone');
   return (
+    // The redesign's step, as the steps around it (F-178): the serif title, the tall action and an outlined Sign out of its size.
     <StepScreen
       title={t('common.signIn.signedInTitle')}
+      look={{}}
       footer={
         <>
           {onContinue ? (
-            <Button variant="primary" size="large" fullWidth onClick={onContinue}>
+            <Button variant="primary" size="tall" fullWidth onClick={onContinue}>
               {name ? t('common.signIn.continueAs', { name }) : t('common.signIn.continue')}
             </Button>
           ) : null}
           {/* Awaited, not an onSuccess: signing out replaces this step before such a callback could run. */}
-          <Button variant="secondary" fullWidth isLoading={signOut.isPending} onClick={() => void signOut.mutateAsync().then(onSignedOut)}>
+          <Button variant="outline" size="tall" fullWidth isLoading={signOut.isPending} onClick={() => void signOut.mutateAsync().then(onSignedOut)}>
             {t('common.signIn.signOut')}
           </Button>
         </>

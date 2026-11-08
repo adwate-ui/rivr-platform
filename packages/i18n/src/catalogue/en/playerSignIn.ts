@@ -19,9 +19,6 @@ export const playerSignIn = {
   /** Auth gives no count of tries left, so the prototype's "2 tries left." is not said. */
   codeRejected: 'Wrong or expired code. Check it, or resend.',
   verify: 'Verify',
-  /** `{time}` counts down, 0:24. */
-  resendIn: 'Resend code in {time}',
-  resend: 'Resend code',
   /** The cookie choice, a sheet on first launch (decision 0298). */
   cookies: {
     title: 'Cookies',
