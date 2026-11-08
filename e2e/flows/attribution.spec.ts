@@ -42,7 +42,7 @@ test.describe('Attribution', () => {
     await page.getByRole('textbox', { name: 'Full name, as on Aadhaar' }).fill('Tara Joshi');
     await page.getByRole('textbox', { name: 'City' }).fill('Gurugram');
     await page.getByRole('button', { name: /^Occupation/ }).click();
-    await page.getByRole('dialog', { name: 'Occupation' }).getByRole('button', { name: 'Salaried', exact: true }).click();
+    await page.getByRole('dialog', { name: 'Occupation' }).getByRole('radio', { name: 'Salaried', exact: true }).click();
     await page.getByRole('button', { name: /^When you usually play/ }).click();
     const times = page.getByRole('dialog', { name: 'When you usually play' });
     await times.getByRole('button', { name: 'Weekday evenings', exact: true }).click();

@@ -1,6 +1,7 @@
 import { t } from '@rivr/i18n';
 import { useId, useRef, type KeyboardEvent } from 'react';
 import { cx } from '../internal/classes.ts';
+import { nextRadioIndex } from '../internal/radioKeys.ts';
 import { Stack } from '../Stack/Stack.tsx';
 import { Text } from '../Text/Text.tsx';
 
@@ -61,8 +62,9 @@ const TILE = 'rounded-md border font-text text-18 leading-control font-medium tr
 
 const TILE_ROW: Record<number, string> = { 3: 'grid grid-cols-3 gap-2', 5: 'grid grid-cols-5 gap-2' };
 
-// The Order screen's categories (decision 0320): words over a hairline, the chosen one underlined in gold.
-const TAB = '-mb-px min-h-touch min-w-touch border-b-2 font-text text-16 font-medium transition-colors';
+// The Order screen's categories (decision 0320): words over a hairline, the chosen one underlined in gold under its word
+// alone. Each word keeps 12 px either side, so the gaps between words are even, and the first starts on the column (F-210).
+const TAB = '-mb-px flex min-h-touch min-w-touch items-stretch px-3 font-text text-16 font-medium transition-colors first:pl-0';
 
 // The console's filter chips (console v3): filled rather than outlined, cream words on either fill, never muted ones.
 const SUBTLE =
@@ -78,7 +80,7 @@ const CARD =
 function rowClasses(look: ChipLook, optionCount: number, isOneRow: boolean): string {
   if (look === 'tile') return TILE_ROW[optionCount] ?? 'grid grid-cols-3 gap-2';
   if (look === 'card') return 'grid grid-cols-1 gap-2 medium:grid-cols-2';
-  if (look === 'tabs') return 'flex gap-6 border-b border-hairline';
+  if (look === 'tabs') return 'flex gap-2 border-b border-hairline';
   return cx('flex gap-2', isOneRow ? 'overflow-x-auto' : 'flex-wrap');
 }
 
@@ -90,7 +92,7 @@ function consoleClasses(look: 'subtle' | 'card', isOn: boolean): string {
 
 /** The classes of one choice in each look, on or off. */
 function choiceClasses(look: ChipLook, isOn: boolean, optionCount: number): string {
-  if (look === 'tabs') return cx(TAB, isOn ? 'border-gold text-content' : 'border-transparent text-content-muted');
+  if (look === 'tabs') return cx(TAB, isOn ? 'text-content' : 'text-content-muted');
   if (look === 'subtle' || look === 'card') return consoleClasses(look, isOn);
   if (look === 'chip') return cx(CHIP, isOn ? 'border-action bg-raised text-content' : 'border-control text-content-muted');
   const picked = isOn ? 'border-gold bg-gold-tint text-content' : 'border-control text-content-muted';
@@ -124,22 +126,14 @@ function ChipWords({ chip, descriptionId }: { chip: ChoiceChip<string>; descript
   );
 }
 
-/** Where an arrow key moves in a radio group (#699): on to the next choice or back, round at the ends; Home and End. */
-function nextIndex(key: string, index: number, count: number): number | null {
-  switch (key) {
-    case 'ArrowRight':
-    case 'ArrowDown':
-      return (index + 1) % count;
-    case 'ArrowLeft':
-    case 'ArrowUp':
-      return (index - 1 + count) % count;
-    case 'Home':
-      return 0;
-    case 'End':
-      return count - 1;
-    default:
-      return null;
-  }
+/** A choice's words, and on a tab the gold line under the chosen word, on the row's hairline (F-210). */
+function Words({ chip, look, isOn, descriptionId }: { chip: ChoiceChip<string>; look: ChipLook; isOn: boolean; descriptionId: string }) {
+  if (look !== 'tabs') return <ChipWords chip={chip} descriptionId={descriptionId} />;
+  return (
+    <span className={cx('flex items-center border-b-2', isOn ? 'border-gold' : 'border-transparent')}>
+      <ChipWords chip={chip} descriptionId={descriptionId} />
+    </span>
+  );
 }
 
 interface RowProps<Value extends string> extends ChoiceChipsProps<Value> {
@@ -162,7 +156,7 @@ function RadioChips<Value extends string>({ labelId, options, selected, onChange
   };
   // A press focuses its chip by itself; an arrow key moves the focus along with the choice.
   const move = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
-    const next = nextIndex(event.key, index, options.length);
+    const next = nextRadioIndex(event.key, index, options.length);
     if (next === null) return;
     event.preventDefault();
     choose(next);
@@ -176,7 +170,7 @@ function RadioChips<Value extends string>({ labelId, options, selected, onChange
           <button key={option.value} ref={(node) => { chips.current[index] = node; }} type="button" role="radio" aria-checked={isOn}
             {...namingOf(option, `${labelId}-${String(index)}`)} tabIndex={index === Math.max(chosenAt, 0) ? 0 : -1} disabled={isDisabled}
             onClick={() => choose(index)} onKeyDown={(event) => move(event, index)} className={chipClasses(look, isOn, options.length, isOneRow)}>
-            <ChipWords chip={option} descriptionId={`${labelId}-${String(index)}`} />
+            <Words chip={option} look={look} isOn={isOn} descriptionId={`${labelId}-${String(index)}`} />
           </button>
         );
       })}
@@ -194,7 +188,7 @@ function ToggleChips<Value extends string>({ labelId, options, selected, onChang
         return (
           <button key={option.value} type="button" aria-pressed={isOn} {...namingOf(option, `${labelId}-${String(index)}`)} disabled={isDisabled}
             onClick={() => press(option.value)} className={chipClasses(look, isOn, options.length, isOneRow)}>
-            <ChipWords chip={option} descriptionId={`${labelId}-${String(index)}`} />
+            <Words chip={option} look={look} isOn={isOn} descriptionId={`${labelId}-${String(index)}`} />
           </button>
         );
       })}

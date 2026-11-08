@@ -24,6 +24,12 @@ export const LongText: Story = {
   args: { title: 'Private Room with a much longer name than any table has, and 2 more', detail: '1,000/2,000 · 14 h 50 min, with a straddle on every hand' },
 };
 
+/** A tournament's finish at a phone's width: the long figure wraps beside the title, and the chevron keeps its size (F-211). */
+export const LongValueOnAPhone: Story = {
+  tags: ['viewport-phone'],
+  args: { when: '3 Nov 2026', title: 'Sunday Main Event', value: 'Tournament · place 4 of 61 · 6 h 30 min', detail: undefined },
+};
+
 /** Rows as a history lists them, divided. */
 export const InAList: Story = {
   render: (args) => (

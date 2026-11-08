@@ -41,7 +41,8 @@ function RowBody({ label, value, labelTone = 'default', valueTone = 'default', h
         {label}
       </span>
       {value === undefined ? null : <span className={cx('text-end', TONE[valueTone])}>{value}</span>}
-      {hasChevron ? <span className="text-content-muted"><Icon name="chevronRight" size="sm" /></span> : null}
+      {/* The chevron's ink ends on the row's edge with the values and switches beside it, past its side bearing (F-157). */}
+      {hasChevron ? <span className="-mr-1 text-content-muted"><Icon name="chevronRight" size="sm" /></span> : null}
     </>
   );
 }

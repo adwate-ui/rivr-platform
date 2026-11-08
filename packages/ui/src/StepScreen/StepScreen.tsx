@@ -32,11 +32,12 @@ export interface StepScreenProps {
   onSubmit?: ((event: FormEvent<HTMLFormElement>) => void | Promise<void>) | undefined;
 }
 
-const ALIGN = { top: 'pt-6', center: 'items-center justify-center' } as const;
+// Under Back, the content keeps 24 px from it; with no Back, a panel's own 40 px is the inset from 768 px (F-065).
+const ALIGN = { top: 'pt-6', topAlone: 'pt-6 medium:pt-0', center: 'items-center justify-center' } as const;
 
 const BACK_CHEVRON = { icon: 'chevronLeft' } as const;
 
-const FOOTER_RULED = '-mx-6 border-t border-hairline px-6 pt-3';
+const FOOTER_RULED = '-mx-5 border-t border-hairline px-5 pt-3';
 
 /** The redesign's step: its title's size, eyebrow and subtitle; a bar of the steps in place of Back's words; a ruled footer. */
 export interface StepLook {
@@ -53,7 +54,8 @@ export interface StepLook {
 function StepBack({ back, look }: { back: { label: string; onBack: () => void }; look: StepLook | undefined }) {
   if (look?.progress) return <ProgressBack back={back} progress={look.progress} />;
   return (
-    <header className="-ml-3 self-start">
+    // Its chevron's ink on the page's edge, past the button's padding and the chevron's side bearing (F-157), as BackButton.
+    <header className={cx('self-start', look ? '-ml-5' : '-ml-3')}>
       <Button variant="text" onClick={back.onBack} {...(look ? BACK_CHEVRON : {})}>
         {back.label}
       </Button>
@@ -64,9 +66,11 @@ function StepBack({ back, look }: { back: { label: string; onBack: () => void };
 /** Back as a chevron, then a segment a step, gold up to this one, then where the member is: "1 of 2". */
 function ProgressBack({ back, progress }: { back: { label: string; onBack: () => void }; progress: NonNullable<StepLook['progress']> }) {
   return (
-    <header className="-ml-2 flex items-center gap-4">
+    // The chevron at BackButton's size, its ink on the page's edge (F-157, F-177): the 44 px target's 12 px either side of it
+    // and its side bearing sit outside.
+    <header className="-ml-5 flex items-center gap-4">
       <button type="button" aria-label={back.label} onClick={back.onBack} className="flex size-touch shrink-0 items-center justify-center text-content">
-        <Icon name="chevronLeft" size="lg" />
+        <Icon name="chevronLeft" size="md" />
       </button>
       <span aria-hidden="true" className="grid flex-1 grid-flow-col gap-2">
         {Array.from({ length: progress.of }, (_, index) => (
@@ -104,7 +108,7 @@ export function StepScreen({ children, footer, title, pageTitle, back, align = '
   usePageTitle(title ?? pageTitle);
   const step = (
     <>
-      <div className={cx('flex flex-1 flex-col gap-6', ALIGN[align])}>
+      <div className={cx('flex flex-1 flex-col gap-6', ALIGN[align === 'top' && back === undefined ? 'topAlone' : align])}>
         {title ? <StepTitle title={title} look={look} /> : null}
         {children}
       </div>
@@ -119,7 +123,7 @@ export function StepScreen({ children, footer, title, pageTitle, back, align = '
   };
   return (
     <div className="flex min-h-dvh w-full flex-col bg-surface text-content medium:items-center medium:justify-center medium:px-6 medium:py-12">
-      <div className="mx-auto flex w-full max-w-phone flex-1 flex-col px-6 pt-4 pb-8 medium:flex-none medium:rounded-lg medium:border medium:border-hairline medium:bg-raised medium:px-10 medium:py-10">
+      <div className="mx-auto flex w-full max-w-phone flex-1 flex-col px-5 pt-4 pb-8 medium:flex-none medium:rounded-lg medium:border medium:border-hairline medium:bg-raised medium:px-10 medium:py-10">
         {back ? <StepBack back={back} look={look} /> : null}
         <main className="flex flex-1 flex-col">
           {onSubmit ? (

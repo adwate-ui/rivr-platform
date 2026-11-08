@@ -24,7 +24,31 @@ describe('PickerSheet', () => {
   it('closes as one option is picked, and shows it', async () => {
     renderIn(<Games mode="one" />);
     await userEvent.click(screen.getByRole('button', { name: /Games you play/ }));
-    await userEvent.click(screen.getByRole('button', { name: 'PLO' }));
+    expect(screen.getByRole('radiogroup', { name: 'Games you play' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('radio', { name: 'PLO' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Games you play/ })).toHaveTextContent('PLO');
+  });
+
+  it('makes its radios one stop for Tab, moved along by the arrow keys without closing, and chosen by Enter', async () => {
+    renderIn(<Games mode="one" />);
+    await userEvent.click(screen.getByRole('button', { name: /Games you play/ }));
+    const holdem = screen.getByRole('radio', { name: "Hold'em" });
+    const plo = screen.getByRole('radio', { name: 'PLO' });
+    const bomb = screen.getByRole('radio', { name: 'Bomb pots' });
+    expect([holdem.tabIndex, plo.tabIndex, bomb.tabIndex]).toEqual([0, -1, -1]);
+    holdem.focus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(plo).toHaveFocus();
+    expect([holdem.tabIndex, plo.tabIndex, bomb.tabIndex]).toEqual([-1, 0, -1]);
+    await userEvent.keyboard('{End}');
+    expect(bomb).toHaveFocus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(holdem).toHaveFocus();
+    await userEvent.keyboard('{ArrowUp}{ArrowUp}');
+    expect(plo).toHaveFocus();
+    expect(screen.getByRole('dialog', { name: 'Games you play' })).toBeInTheDocument();
+    await userEvent.keyboard('{Enter}');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Games you play/ })).toHaveTextContent('PLO');
   });

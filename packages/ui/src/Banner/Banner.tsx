@@ -46,7 +46,7 @@ export function Banner({ children, tone = 'neutral', action, onDismiss, isLive =
       {onDismiss && tone === 'neutral' ? (
         <button type="button" aria-label={t('ui.banner.dismiss')} onClick={onDismiss}
           className="flex size-touch shrink-0 items-center justify-center text-content-muted">
-          <Icon name="close" size="sm" />
+          <Icon name="close" size="md" />
         </button>
       ) : null}
     </div>

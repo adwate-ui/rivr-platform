@@ -72,6 +72,12 @@ describe('Screen', () => {
     expect(container.querySelectorAll('[data-skeleton-row]')).toHaveLength(6);
   });
 
+  it('draws a serif-titled screen\u2019s failure in the same face (F-176)', () => {
+    renderIn(<Screen title="Card" titleLook="serif" status="error" />);
+    expect(screen.getByRole('heading', { name: 'Could not load' })).toHaveClass('font-display');
+    expect(screen.getByRole('alert')).toHaveTextContent('Check your connection and try again.');
+  });
+
   it('alerts the error and retries on request', async () => {
     const onRetry = vi.fn();
     renderIn(<Screen title="Balance" status="error" onRetry={onRetry} />);

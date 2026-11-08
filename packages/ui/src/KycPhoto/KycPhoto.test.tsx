@@ -37,6 +37,19 @@ describe('KycPhoto', () => {
     expect(screen.getByRole('img', { name: 'KYC photo' })).toBeInTheDocument();
   });
 
+  it('filling a frame, covers it with no border of its own, and shows the initial named in words when there is no photo (F-201, F-205)', () => {
+    const { container, rerender } = renderIn(<KycPhoto isFilling alt="Your photo" src={SRC} initial="K" />);
+    const frame = container.firstElementChild;
+    expect(frame).toHaveClass('size-full');
+    expect(frame).not.toHaveClass('border', 'aspect-portrait');
+    expect(screen.getByRole('img', { name: 'Your photo' })).toHaveClass('size-full', 'object-cover');
+    rerender(<KycPhoto isFilling alt="Your photo" src={null} status="error" initial="K" />);
+    const initial = screen.getByRole('img', { name: 'Photo not loaded. Reload, or check at the desk.' });
+    expect(initial).toHaveTextContent('K');
+    rerender(<KycPhoto isFilling alt="Your photo" src={null} status="loading" initial="K" />);
+    expect(screen.getByRole('img', { name: 'Loading' })).toHaveTextContent('K');
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<KycPhoto alt="KYC photo of Kabir Sethi" src={SRC} />);
     expect(await axeViolations(container)).toEqual([]);

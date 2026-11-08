@@ -29,7 +29,7 @@ function seasonTitle(row: LeagueBoardRow): string {
 /** The RIVR League (#147; feature league.standings): this month's standings, and the season's when one runs. */
 export function LeagueSection() {
   const league = useMyLeague();
-  const heading = <Heading level={2}>{t('memberRewards.league')}</Heading>;
+  const heading = <Heading level={2} variant="eyebrow">{t('memberRewards.league')}</Heading>;
   if (league.data === undefined) {
     return (
       <Stack gap={3}>

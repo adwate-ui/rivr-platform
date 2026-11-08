@@ -1,9 +1,10 @@
 import { t } from '@rivr/i18n';
-import { useId, useState } from 'react';
+import { useId, useRef, useState, type KeyboardEvent } from 'react';
 import { Button } from '../Button/Button.tsx';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage.tsx';
 import { Icon } from '../Icon/Icon.tsx';
 import { cx } from '../internal/classes.ts';
+import { nextRadioIndex } from '../internal/radioKeys.ts';
 import { Sheet } from '../Sheet/Sheet.tsx';
 
 /** One option: the value stored and what it says. */
@@ -49,14 +50,30 @@ interface OptionsProps<Value extends string> {
   onPress: (value: Value) => void;
 }
 
-/** The sheet's rows, each 52 px with its radio or checkbox at the right. */
+/**
+ * The sheet's rows, each 52 px with its radio or checkbox at the right: radios in a radio group for one choice, toggles in
+ * a group for several (F-177). The radios are one stop for Tab, and the arrow keys move along them; unlike ChoiceChips they
+ * do not choose as they go, because choosing closes the sheet: Space or Enter chooses.
+ */
 function Options<Value extends string>({ label, options, selected, isMany, onPress }: OptionsProps<Value>) {
+  const radios = useRef<(HTMLButtonElement | null)[]>([]);
+  const [stop, setStop] = useState(() => Math.max(0, options.findIndex((option) => selected.includes(option.value))));
+  const moveFrom = (event: KeyboardEvent, index: number) => {
+    const next = nextRadioIndex(event.key, index, options.length);
+    if (next === null) return;
+    event.preventDefault();
+    setStop(next);
+    radios.current[next]?.focus();
+  };
   return (
-    <div role="group" aria-label={label} className="flex flex-col">
-      {options.map((option) => {
+    <div role={isMany ? 'group' : 'radiogroup'} aria-label={label} className="flex flex-col">
+      {options.map((option, index) => {
         const isOn = selected.includes(option.value);
+        const radioStop = index === stop ? 0 : -1;
         return (
-          <button key={option.value} type="button" aria-pressed={isOn} className={OPTION} onClick={() => onPress(option.value)}>
+          <button key={option.value} ref={(element) => { radios.current[index] = element; }} type="button" role={isMany ? undefined : 'radio'}
+            aria-checked={isMany ? undefined : isOn} aria-pressed={isMany ? isOn : undefined} tabIndex={isMany ? undefined : radioStop}
+            onKeyDown={isMany ? undefined : (event) => moveFrom(event, index)} className={OPTION} onClick={() => onPress(option.value)}>
             {option.label}
             <Mark isOn={isOn} isMany={isMany} />
           </button>

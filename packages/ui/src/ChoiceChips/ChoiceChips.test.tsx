@@ -124,8 +124,11 @@ describe('ChoiceChips', () => {
   it('underlines the chosen category in gold as tabs (decision 0320)', () => {
     renderIn(<ChoiceChips label="Menu" look="tabs" mode="one" options={[{ value: 'food', label: 'Food' }, { value: 'bar', label: 'Bar' }]}
       selected={['food']} onChange={() => undefined} />);
-    expect(screen.getByRole('radio', { name: 'Food' })).toHaveClass('border-gold', 'border-b-2');
-    expect(screen.getByRole('radio', { name: 'Bar' })).toHaveClass('border-transparent');
+    // The line under the word alone, so short and long words are underlined alike (F-210).
+    expect(screen.getByText('Food')).toHaveClass('border-gold', 'border-b-2');
+    expect(screen.getByText('Bar')).toHaveClass('border-transparent');
+    // The same 12 px either side of every word, the first starting on the column.
+    expect(screen.getByRole('radio', { name: 'Food' })).toHaveClass('px-3', 'first:pl-0');
   });
 
   it('draws the console\'s subtle chips: a faint cream fill, the chosen one gold-tinted, 34 px at a desk and 44 below', () => {

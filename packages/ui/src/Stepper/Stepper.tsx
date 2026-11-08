@@ -15,7 +15,8 @@ export interface StepperProps {
  */
 export function Stepper({ steps, current, label }: StepperProps) {
   return (
-    <ol aria-label={label} className="grid grid-cols-4 gap-1">
+    // A column for each step, however many there are (F-177).
+    <ol aria-label={label} className="grid gap-1" style={{ gridTemplateColumns: `repeat(${String(steps.length)}, minmax(0, 1fr))` }}>
       {steps.map((step, index) => {
         const isReached = index <= current;
         return (

@@ -249,7 +249,7 @@ function ScreenBody(props: ScreenProps) {
     case 'empty':
       return <Empty text={props.emptyText} action={props.emptyAction} />;
     case 'error':
-      return <LoadState isError errorText={props.errorText} onRetry={props.onRetry} />;
+      return <LoadState isError errorText={props.errorText} onRetry={props.onRetry} look={props.titleLook} />;
     default:
       return <>{props.children}</>;
   }

@@ -64,7 +64,7 @@ export function BonusTile({ chips, isOpen, onToggle }: { chips: Paise | undefine
 export function BonusHistory() {
   return (
     <Stack gap={2}>
-      <Heading level={2} variant="subsection">{t('memberRewards.bonus.history')}</Heading>
+      <Heading level={2} variant="eyebrow">{t('memberRewards.bonus.history')}</Heading>
       <History />
     </Stack>
   );
