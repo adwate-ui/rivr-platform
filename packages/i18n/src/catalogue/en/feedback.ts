@@ -79,7 +79,7 @@ export const playerFeedback = {
   /** The NPS question, 0 to 10. */
   nps: 'How likely are you to recommend RIVR to a friend, 0 to 10?',
   chooseNps: 'Choose from 0 to 10.',
-  openQuestion: 'Anything else you would like to tell us? (optional)',
+  openQuestion: 'Anything else? (optional)',
   failures: {
     not_allowed: 'This visit cannot be rated from here.',
     invalid: 'Rate 1 to 5. Keep the note under 1,000 characters.',

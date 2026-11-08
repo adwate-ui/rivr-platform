@@ -86,7 +86,7 @@ export const webApp = {
     copyright: 'Copyright 2026 RIVR Poker Club',
     cookieSettings: 'Cookie settings',
     club: 'The club',
-    story: 'Our story',
+    story: 'About RIVR',
     room: 'The room',
     membership: 'Membership',
     standard: 'The standard',
