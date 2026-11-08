@@ -17,10 +17,10 @@ const NEW = 'new';
 /** The stakes' columns: name, blinds and straddle, then Change, which opens or closes the stake's form. */
 function stakeColumns(open: string | null, onChange: (stake: SetupStake) => void): readonly DataTableColumn<SetupStake>[] {
   return [
-    { key: 'name', header: t('console.tablesSetup.name'), cell: (stake) => stake.name, sortValue: (stake) => stake.name, priority: 'primary' },
+    { key: 'name', header: t('console.tablesSetup.name'), cell: (stake) => stake.name, sortValue: (stake) => stake.name, priority: 'primary', filter: 'text' },
     { key: 'blinds', header: t('console.tablesSetup.blinds'), cell: (stake) => formatStakes(stake.smallBlind, stake.bigBlind), sortValue: (stake) => Number(stake.bigBlind), align: 'end' },
     {
-      key: 'straddle', header: t('console.tablesSetup.straddle'), align: 'end',
+      key: 'straddle', header: t('console.tablesSetup.straddle'), align: 'end', filter: 'choice',
       cell: (stake) => (stake.straddle === null ? t('console.tablesSetup.noStraddle') : chipsOf(stake.straddle)),
     },
     {

@@ -106,7 +106,8 @@ function RowActions({ promotion, steps }: { promotion: PromotionOverview; steps:
 export function listColumns(names: PromotionNames, steps: RowSteps): DataTableColumn<PromotionOverview>[] {
   return [
     {
-      key: 'promotion', header: t('console.promotions.list.columns.promotion'), priority: 'primary', isWide: true,
+      key: 'promotion', header: t('console.promotions.list.columns.promotion'), priority: 'primary', isWide: true, filter: 'text',
+      filterValue: (promotion) => promotion.name,
       cell: (promotion) => (
         <Stack gap={1}>
           <Text as="span" variant="row" weight="medium">{promotion.name}</Text>
@@ -114,8 +115,14 @@ export function listColumns(names: PromotionNames, steps: RowSteps): DataTableCo
         </Stack>
       ),
     },
-    { key: 'who', header: t('console.promotions.list.columns.who'), cell: (promotion) => whoWhen(promotion, names).who },
-    { key: 'when', header: t('console.promotions.list.columns.when'), cell: (promotion) => whoWhen(promotion, names).when },
+    {
+      key: 'who', header: t('console.promotions.list.columns.who'), cell: (promotion) => whoWhen(promotion, names).who, filter: 'choice',
+      filterValue: (promotion) => whoWhen(promotion, names).who,
+    },
+    {
+      key: 'when', header: t('console.promotions.list.columns.when'), cell: (promotion) => whoWhen(promotion, names).when, filter: 'choice',
+      filterValue: (promotion) => whoWhen(promotion, names).when,
+    },
     {
       key: 'given', header: t('console.promotions.list.columns.given'), align: 'end', priority: 'optional',
       cell: (promotion) => (HAS_RUN.includes(promotion.status) ? <Count value={promotion.givenThisWeek} size="small" /> : null),

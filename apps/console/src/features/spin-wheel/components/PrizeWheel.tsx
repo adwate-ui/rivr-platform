@@ -38,7 +38,7 @@ function ChanceCell({ prize, look }: { prize: SpinPrize; look: WheelLook }) {
 /** What it gives, its odds, its chance, and Remove for staff who keep the wheel. */
 function columnsFor(look: WheelLook): readonly DataTableColumn<SpinPrize>[] {
   const columns: DataTableColumn<SpinPrize>[] = [
-    { key: 'prize', header: t('console.spin.prize'), cell: (row) => prizeLabel(row) },
+    { key: 'prize', header: t('console.spin.prize'), cell: (row) => prizeLabel(row), filter: 'text', filterValue: (row) => prizeLabel(row) },
     { key: 'odds', header: t('console.spin.odds'), isWide: true, cell: (row) => <OddsCell prize={row} total={look.total} /> },
     { key: 'chance', header: t('console.spin.chance'), align: 'end', cell: (row) => <ChanceCell prize={row} look={look} />,
       exportValue: (row) => (row.isDrawable ? oddsText(row, look.total) : t('console.spin.budgetSpent')) },

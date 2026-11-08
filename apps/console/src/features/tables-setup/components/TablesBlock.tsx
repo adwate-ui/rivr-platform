@@ -26,8 +26,8 @@ interface TablesBlockProps {
 function tableColumns(props: TablesBlockProps & { open: string | null; onChange: (table: SetupTable) => void; onOutcome: (outcome: TableOutcome) => void }) {
   const stakeName = (table: SetupTable) => props.stakes.find((stake) => stake.id === table.stakeId)?.name ?? '';
   const columns: readonly DataTableColumn<SetupTable>[] = [
-    { key: 'name', header: t('console.tablesSetup.name'), cell: (table) => table.name, sortValue: (table) => table.name, priority: 'primary' },
-    { key: 'stake', header: t('console.tablesSetup.stake'), cell: stakeName, sortValue: stakeName },
+    { key: 'name', header: t('console.tablesSetup.name'), cell: (table) => table.name, sortValue: (table) => table.name, priority: 'primary', filter: 'text' },
+    { key: 'stake', header: t('console.tablesSetup.stake'), cell: stakeName, sortValue: stakeName, filter: 'choice', filterValue: stakeName },
     { key: 'seats', header: t('console.tablesSetup.seats'), cell: (table) => String(table.seats), sortValue: (table) => table.seats, align: 'end' },
     { key: 'status', header: t('console.tablesSetup.statusColumn'), cell: statusOf, isWide: true },
     {

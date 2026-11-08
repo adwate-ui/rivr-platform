@@ -44,7 +44,7 @@ function columnsFor({ tierName, canChange, changingKey, onChange }: ColumnsFor):
   return [
     { key: 'name', header: t('console.settings.keyColumn'), cell: (setting) => settingName(setting.key), sortValue: (setting) => settingName(setting.key) },
     { key: 'now', header: t('console.settings.nowColumn'), cell: (setting) => nowText(setting, tierName) },
-    { key: 'who', header: t('console.settings.whoColumn'), cell: (setting) => t(isSuperAdminOnly(setting.key) ? 'console.settings.superAdminOnly' : 'console.settings.managers') },
+    { key: 'who', header: t('console.settings.whoColumn'), cell: (setting) => t(isSuperAdminOnly(setting.key) ? 'console.settings.superAdminOnly' : 'console.settings.managers'), filter: 'choice' },
     { key: 'toCome', header: t('console.settings.toComeColumn'), align: 'end', sortValue: toCome,
       cell: (setting) => (toCome(setting) === 0 ? t('console.settings.noneToCome') : formatNumber(toCome(setting))) },
     {

@@ -64,6 +64,7 @@ src/
                       #606; /high-hands opens its tab); the prompt across every other screen while one waits
     certification/    the dealer and cashier certification quizzes in the practice venue, and every attempt for managers (/certification)
     sops/             the SOP library: read and acknowledge; managers add SOPs, publish versions, see who acknowledged (/sops)
+    reports/          the MIS Tables view, money-free (owner, 8 Nov): each table over tonight, the last 7 or 30 club days, with hours run, players, the most at once, player hours and use (/reports); the money reports stay hidden
     staff/            the venue's staff as a table to search (C-03): add behind a button, open a name to change a job title or role, turn off; Removed staff by tab (/staff?tab=removed; owner, 8 Nov, decision 0506), when and by whom each was turned off, and Restore for a role within reach; each hire's onboarding checklist, the SOPs their role must acknowledge, ticked as they do (/staff); the dealers' PINs for the tablet sign-in, by tab (#606; /dealer-pins opens it)
     incidents/        the incident log, the club's contacts and its drills (/incidents)
     feedback/         the General Manager's feedback by tab (/feedback?tab=open|resolved): open tickets, each resolved with what was done, kept with the staff member's name; and the rest of the last 90 days
@@ -82,6 +83,8 @@ src/
                       structures with the calculator (/tournaments; #115 to #121, #149)
     promotions/       current promotions by status with each count, Pause or Resume (Undo), Edit or Review, and End after a second press for one with no new version open; ended ones under their own tab with the day each ended (/promotions?tab=ended; owner, 8 Nov, decision 0506); the builder in five numbered sections from a template, beside the one-line summary, the TV slide, last week's simulation, Save draft and Submit for approval, which waits for a simulation on the terms as they stand; and the approver's view, the builder read only with what the waiting version changes, Approve (never the author's own) or Reject with a reason. Editing a running promotion drafts its next version (/promotions, ?open=new or ?open=<id>; console v3, decisions 0471, 0494 to 0496). |
 ```
+
+Every table a screen shows has Filters for the columns worth narrowing by (owner, 8 Nov): `filter: 'choice'` on a column of few values (a status, a role, a stake) and `filter: 'text'` on names; a column drawn as an element gives its words in `filterValue`.
 
 Staff sign in at `/sign-in`; everyone else is sent there. The console works in one venue at a time, the club unless the staff member turns on "Practice venue", and every screen reads and writes for that venue through `useStaffVenue()` from `@rivr/db`. A screen adds its rail entry, with the permissions that may see it and its tabs, in `features/frame/components/railEntries.ts`; a hidden one (decision 0284) goes in its `HIDDEN` list. An old address that moved redirects from its own route file to its screen and tab. The practice venue's switch, and the staff member's density (decision 0475), are in their menu at the header's end.
 

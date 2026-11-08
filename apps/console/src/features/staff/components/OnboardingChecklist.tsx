@@ -8,7 +8,8 @@ function columns(): readonly DataTableColumn<OnboardingItem>[] {
     { key: 'sop', header: t('console.staff.onboarding.sop'), cell: (item) => item.title, sortValue: (item) => item.title },
     { key: 'version', header: t('console.staff.onboarding.version'), cell: (item) => item.version, sortValue: (item) => item.version, align: 'end' },
     {
-      key: 'at', header: t('console.staff.onboarding.acknowledged'), sortValue: (item) => item.acknowledgedAt ?? '',
+      key: 'at', header: t('console.staff.onboarding.acknowledged'), sortValue: (item) => item.acknowledgedAt ?? '', filter: 'choice',
+      filterValue: (item) => t(item.acknowledgedAt === null ? 'console.staff.onboarding.notYet' : 'console.staff.onboarding.acknowledged'),
       cell: (item) => (item.acknowledgedAt === null
         ? <Text tone="muted">{t('console.staff.onboarding.notYet')}</Text>
         : `${formatDate(new Date(item.acknowledgedAt))}, ${formatTime(new Date(item.acknowledgedAt))}`),

@@ -31,7 +31,7 @@ export const TODAYS_PLAYERS_COLUMNS: readonly DataTableColumn<TodaysPlayer>[] = 
   { key: 'in', header: t('console.todaysPlayers.checkedIn'), cell: (player) => at(player.checkedInAt), sortValue: (player) => player.checkedInAt ?? '' },
   { key: 'out', header: t('console.todaysPlayers.checkedOut'), cell: (player) => at(player.checkedOutAt), sortValue: (player) => player.checkedOutAt ?? '' },
   { key: 'waited', header: t('console.todaysPlayers.waited'), cell: (player) => formatDuration(player.waitingSeconds), sortValue: (player) => player.waitingSeconds, align: 'end' },
-  { key: 'table', header: t('console.todaysPlayers.table'), cell: tablesOf, sortValue: tablesOf, isWide: true },
+  { key: 'table', header: t('console.todaysPlayers.table'), cell: tablesOf, sortValue: tablesOf, isWide: true, filter: 'choice', filterValue: tablesOf },
   {
     key: 'played', header: t('console.todaysPlayers.played'), sortValue: playedSeconds, align: 'end', isWide: true,
     cell: (player) => (player.tables.length === 0 ? NONE() : formatDuration(playedSeconds(player))),

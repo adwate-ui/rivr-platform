@@ -71,10 +71,10 @@ function WaitingActions({ venueId, redemption }: { venueId: string; redemption: 
 function columns(venueId: string, isWaiting: boolean): readonly DataTableColumn<Redemption>[] {
   const common: DataTableColumn<Redemption>[] = [
     {
-      key: 'member', header: t('console.rewards.member'), sortValue: (row) => row.fullName,
+      key: 'member', header: t('console.rewards.member'), sortValue: (row) => row.fullName, filter: 'text', filterValue: (row) => row.fullName,
       cell: (row) => t('console.rewards.memberLine', { name: row.fullName, number: row.memberNumber }),
     },
-    { key: 'reward', header: t('console.rewards.reward'), cell: (row) => row.rewardName, sortValue: (row) => row.rewardName },
+    { key: 'reward', header: t('console.rewards.reward'), cell: (row) => row.rewardName, sortValue: (row) => row.rewardName, filter: 'choice' },
     { key: 'price', header: t('console.rewards.priceColumn'), align: 'end', cell: (row) => priceText(row), sortValue: (row) => row.points ?? 0n },
     { key: 'redeemed', header: t('console.rewards.redeemed'), cell: (row) => formatDayTime(new Date(row.createdAt)), sortValue: (row) => row.createdAt },
   ];

@@ -21,8 +21,8 @@ const stakeText = (row: GamesDay) => {
 
 const COLUMNS: readonly DataTableColumn<GamesDay>[] = [
   { key: 'day', header: t('console.gamesHistory.day'), cell: (row) => dayText(row.clubDay), sortValue: (row) => row.clubDay, priority: 'primary' },
-  { key: 'table', header: t('console.gamesHistory.table'), cell: (row) => row.tableName, sortValue: (row) => row.tableName },
-  { key: 'stake', header: t('console.gamesHistory.stake'), cell: stakeText, sortValue: (row) => Number(row.bigBlind) },
+  { key: 'table', header: t('console.gamesHistory.table'), cell: (row) => row.tableName, sortValue: (row) => row.tableName, filter: 'choice' },
+  { key: 'stake', header: t('console.gamesHistory.stake'), cell: stakeText, sortValue: (row) => Number(row.bigBlind), filter: 'choice', filterValue: stakeText },
   { key: 'runs', header: t('console.gamesHistory.runs'), cell: (row) => String(row.runs), sortValue: (row) => row.runs, align: 'end' },
   { key: 'hours', header: t('console.gamesHistory.hours'), cell: (row) => formatDuration(row.seconds), sortValue: (row) => row.seconds, align: 'end' },
 ];
