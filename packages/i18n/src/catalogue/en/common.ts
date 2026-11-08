@@ -3,6 +3,9 @@ export const common = {
   loading: 'Loading',
   retry: 'Try again',
   loadFailed: 'Not loaded. Try again.',
+  /** A whole player screen that failed (F-176): the serif line, and what to do under it. */
+  loadFailedTitle: 'Could not load',
+  checkConnection: 'Check your connection and try again.',
   /** A screen that failed to draw: its title on the router's error screen. */
   screenFailed: 'Screen unavailable',
   offline: 'Offline.',
@@ -37,9 +40,9 @@ export const common = {
     codeLabelBySms: 'Code sent by SMS to {phone}',
     submit: 'Verify',
     changeNumber: 'Change number',
-    /** A second code goes by SMS: the first may not have reached WhatsApp (#181). */
+    /** A second code goes by SMS: the first may not have reached WhatsApp (#181). `{time}` counts down, 0:24. */
     resend: 'Send by SMS',
-    resendIn: 'Send by SMS in {seconds} s',
+    resendIn: 'Send by SMS in {time}',
     phoneInvalid: 'Enter a 10-digit mobile number.',
     codeInvalid: 'Enter the 6-digit code.',
     codeRejected: 'Wrong or expired code. Check it or send a new one.',

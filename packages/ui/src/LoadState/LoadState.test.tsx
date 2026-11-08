@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations, renderIn } from '../test/render.tsx';
@@ -18,6 +18,22 @@ describe('LoadState', () => {
     screen.getByRole('button').focus();
     await userEvent.keyboard('{Enter}');
     expect(onRetry).toHaveBeenCalledOnce();
+  });
+
+  it('draws a whole player screen that failed as a serif line over what to do, and offers Try again (F-176)', async () => {
+    const onRetry = vi.fn();
+    renderIn(<LoadState isError look="serif" onRetry={onRetry} />);
+    const alert = screen.getByRole('alert');
+    expect(within(alert).getByRole('heading', { name: 'Could not load' })).toHaveClass('font-display', 'text-28');
+    expect(alert).toHaveTextContent('Check your connection and try again.');
+    await userEvent.click(within(alert).getByRole('button', { name: 'Try again' }));
+    expect(onRetry).toHaveBeenCalledOnce();
+  });
+
+  it('keeps the screen\u2019s own words under the serif line', () => {
+    renderIn(<LoadState isError look="serif" errorText="No connection. Give your number at the door." />);
+    expect(screen.getByRole('alert')).toHaveTextContent('No connection. Give your number at the door.');
+    expect(screen.getByRole('alert')).not.toHaveTextContent('Check your connection');
   });
 
   it('says why when told, and offers no Retry without one', () => {

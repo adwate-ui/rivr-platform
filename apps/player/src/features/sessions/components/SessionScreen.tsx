@@ -1,14 +1,15 @@
 import { useFeatureStatus } from '@rivr/db';
 import { useHideMySession, useMySession, type MySession } from '@rivr/db/sessions';
-import { formatHoursMinutes, formatNumber, formatStakes, formatTime, t } from '@rivr/i18n';
+import { formatHoursMinutes, formatNumber, formatTime, t } from '@rivr/i18n';
 import { BackButton, Box, Button, DetailRow, ErrorMessage, FeatureGate, Heading, Screen, Stack, Text, useHeadingFocus, usePageTitle, useToast } from '@rivr/ui';
 import { useCanGoBack, useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import { useId, useState } from 'react';
-import { sessionDay, sessionTitle } from './naming.ts';
+import { sessionDay, sessionStakes, sessionTitle } from './naming.ts';
 
 /** The game a session was: a cash table's stakes, or the tournament with the member's place in its field (#549). */
 function gameOf(session: MySession): string {
-  if (session.kind === 'cash') return formatStakes(session.smallBlind, session.bigBlind);
+  const stakes = sessionStakes(session);
+  if (stakes !== undefined) return stakes;
   return session.place === null || session.entrants === null
     ? t('player.sessions.tournament')
     : t('player.sessions.tournamentPlace', { place: formatNumber(session.place), entrants: formatNumber(session.entrants) });

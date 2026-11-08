@@ -48,7 +48,8 @@ function ConsoleBlocks({ rows, look }: { rows: number; look: 'rows' | 'tiles' })
  */
 export function Skeleton({ rows = 3, look = 'screen' }: SkeletonProps) {
   return (
-    <div role="status" aria-busy="true" className="flex flex-col gap-3 py-6">
+    // No aria-busy on the status itself, which could keep its Loading from being heard (F-177).
+    <div role="status" className="flex flex-col gap-3 py-6">
       <span className="sr-only">{t('common.loading')}</span>
       {look === 'screen' ? <ScreenBlocks rows={rows} /> : <ConsoleBlocks rows={rows} look={look} />}
     </div>

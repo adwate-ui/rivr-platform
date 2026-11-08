@@ -44,6 +44,8 @@ describe('Toast', () => {
     renderIn(<ToastProvider><Trigger onUndo={() => undefined} /></ToastProvider>);
     act(() => screen.getByRole('button', { name: 'Join' }).click());
     const close = screen.getByRole('button', { name: 'Close' });
+    // The one close size, as in banners and sheets (F-177).
+    expect(close.querySelector('svg')).toHaveAttribute('width', '20');
     act(() => close.focus());
     act(() => vi.advanceTimersByTime(UNDO_TOAST_MS * 3));
     expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument();

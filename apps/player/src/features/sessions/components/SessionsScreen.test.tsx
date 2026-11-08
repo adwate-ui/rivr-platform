@@ -100,11 +100,11 @@ describe('Sessions', () => {
     expect(screen.getByText('Loading')).toBeDefined();
   });
 
-  it.each(['/sessions', '/sessions/v1'])('%s says it could not load when the feature map fails, and loads on Try again', async (path) => {
+  it.each([['/sessions', 'Check your connection and try again.'], ['/sessions/v1', 'Not loaded. Try again.']])('%s says it could not load when the feature map fails, and loads on Try again', async (path, words) => {
     renderAt(path, { sessions: [SESSION], map: 'fails once' });
-    expect(await screen.findByText('Not loaded. Try again.')).toBeDefined();
+    expect(await screen.findByText(words)).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
-    await waitFor(() => expect(screen.queryByText('Not loaded. Try again.')).toBeNull());
+    await waitFor(() => expect(screen.queryByText(words)).toBeNull());
     expect(screen.getAllByText(/Table 3/).length).toBeGreaterThan(0);
   });
 

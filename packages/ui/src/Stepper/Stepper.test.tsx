@@ -15,6 +15,11 @@ describe('Stepper', () => {
     expect(screen.getByText('Sent')).toHaveClass('text-content');
   });
 
+  it('gives each step a column, however many there are (F-177)', () => {
+    renderIn(<Stepper steps={['Asked', 'Done']} current={0} label="Request" />);
+    expect(screen.getByRole('list', { name: 'Request' }).style.gridTemplateColumns).toBe('repeat(2, minmax(0, 1fr))');
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<Stepper steps={STEPS} current={0} label="Order" />);
     expect(await axeViolations(container)).toEqual([]);

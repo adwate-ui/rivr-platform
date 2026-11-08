@@ -105,16 +105,19 @@ const CONSOLE_LOOK: Partial<Record<ButtonSize, string>> = { compact: 'rounded-md
 
 const PADDING = (variant: ButtonVariant, shape: ButtonShape) => (variant === 'text' ? 'px-3' : shape === 'pill' ? 'px-4' : 'px-5');
 
-/** The corner, type size and padding: the console's sizes have their own; the rest follow the shape. */
+/** A text button's only icon is the back chevron, 4 px from its word as in the player's prototype (F-176). */
+const GAP = (variant: ButtonVariant) => (variant === 'text' ? 'gap-1' : 'gap-2');
+
+/** The gap, corner, type size and padding: the console's sizes have their own; the rest follow the shape. */
 const lookOf = (variant: ButtonVariant, size: ButtonSize, shape: ButtonShape) =>
-  CONSOLE_LOOK[size] ?? cx(SHAPE[shape], PADDING(variant, shape));
+  cx(GAP(variant), CONSOLE_LOOK[size] ?? cx(SHAPE[shape], PADDING(variant, shape)));
 
 const PRESSED = 'border border-accent font-medium text-accent';
 
 const BASE =
   // wrap-normal: a label breaks at a space, never inside a word, even in a table cell that lets text wrap anywhere.
   // leading-control: a whole-pixel line box, so the centred label starts on a pixel (#762).
-  'inline-flex min-w-touch items-center gap-2 font-text leading-control wrap-normal ' +
+  'inline-flex min-w-touch items-center font-text leading-control wrap-normal ' +
   'select-none transition-colors active:opacity-muted disabled:cursor-not-allowed disabled:opacity-disabled aria-busy:cursor-progress';
 
 /** The link form of a button: it goes somewhere, saves a file, or opens a new tab. */

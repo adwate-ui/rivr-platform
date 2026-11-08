@@ -10,4 +10,9 @@ describe('BackButton', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Tonight' }));
     expect(onBack).toHaveBeenCalledTimes(1);
   });
+
+  it('sets its chevron’s ink on the page edge, past the button’s padding and the chevron’s bearing (F-157)', () => {
+    renderIn(<BackButton label="Sessions" onBack={() => undefined} />);
+    expect(screen.getByRole('button', { name: 'Sessions' }).parentElement).toHaveClass('-ml-5');
+  });
 });

@@ -28,10 +28,12 @@ export function SeatActions({ seat, onOpen }: { seat: MySeat; onOpen: (sheet: Se
   const callTime = useFeature('call_time.view');
   const leaving = useFeature('table.leave');
   useTimeAdded(seat);
+  // A column for each action shown, so two sit evenly rather than in the left two thirds (F-203).
+  const shown = [topUp.state === 'enabled', seat.hasCallTime && callTime.state === 'enabled', leaving.state !== 'hidden'].filter(Boolean).length;
   return (
-    <Box paddingX={6} paddingY={5}>
+    <Box paddingX={5} paddingY={5}>
       <Stack gap={3}>
-        <Grid columns={3} gap={2}>
+        <Grid columns={shown === 1 ? 1 : shown === 2 ? 2 : 3} gap={2}>
           {topUp.state === 'enabled' ? <RoundAction icon="topUp" label={t('player.live.seat.topUp')} isPending={seat.topUp !== null} onPress={() => onOpen('topUp')} /> : null}
           {/* Met or not, more call time may be asked for (decision 0305). */}
           {seat.hasCallTime && callTime.state === 'enabled' ? (

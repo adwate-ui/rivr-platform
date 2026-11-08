@@ -9,7 +9,8 @@ function Rules({ rules }: { rules: HouseRules }) {
     <Stack gap={8}>
       <Stack gap={3} divided>
         {rules.rules.map((rule, index) => (
-          <Inline key={`${String(index)}-${rule}`} gap={4} align="start">
+          // The numeral sits on its rule's first line (F-160).
+          <Inline key={`${String(index)}-${rule}`} gap={4} align="baseline">
             <Figure size="numeral" tone="money">{formatNumber(index + 1)}</Figure>
             <Text>{rule}</Text>
           </Inline>

@@ -5,7 +5,7 @@ import { Button, FeatureGate, HistoryRow, Inline, Screen, Stack, StatRow, Text }
 import { clubDay } from '@rivr/domain/clubDay';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
-import { sessionDay, sessionLine, sessionTitle } from './naming.ts';
+import { sessionDay, sessionLine, sessionStakes, sessionTitle } from './naming.ts';
 
 const PAGE = 30;
 
@@ -33,8 +33,8 @@ function SessionList({ sessions, hasEarlier, isLoadingMore, onMore, onOpen }: {
       <MonthStats latest={sessions[0]} />
       <Stack divided>
         {sessions.map((session) => (
-          <HistoryRow key={session.sessionId} when={sessionDay(session)} title={sessionTitle(session)} value={<Text>{sessionLine(session)}</Text>}
-            onOpen={() => onOpen(session.sessionId)} />
+          <HistoryRow key={session.sessionId} when={sessionDay(session)} title={sessionTitle(session)} detail={sessionStakes(session)}
+            value={<Text>{sessionLine(session)}</Text>} onOpen={() => onOpen(session.sessionId)} />
         ))}
       </Stack>
       {hasEarlier ? (

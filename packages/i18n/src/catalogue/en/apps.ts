@@ -90,6 +90,8 @@ export const playerApp = {
     offline: 'No connection. Give your number at the door.',
     /** The same, when the phone kept the number from the last time (F-053). */
     offlineNumber: 'No connection. Give your number at the door: {number}.',
+    /** Under the QR, the first time the card shows in a session (F-182). */
+    brightness: 'Turn your brightness up.',
   },
   /** The toast on any screen when bonus chips are added or used while the app is open (decision 0504). */
   bonus: {

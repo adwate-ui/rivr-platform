@@ -85,7 +85,7 @@ function Review({ photo, isSending, error, onUse, onRetake }: ReviewProps) {
   const [url] = useState(() => URL.createObjectURL(photo));
   useEffect(() => () => URL.revokeObjectURL(url), [url]);
   return (
-    <div className="safe-pt-4 mx-auto flex min-h-dvh w-full max-w-phone flex-col gap-5 px-6 pb-10">
+    <div className="safe-pt-4 mx-auto flex min-h-dvh w-full max-w-phone flex-col gap-5 px-5 pb-10">
       <Heading level={1} variant="serif" serifSize={32}>{t('ui.selfie.reviewTitle')}</Heading>
       <div className="aspect-portrait w-full overflow-hidden rounded-lg border border-hairline bg-raised">
         <img src={url} alt={t('ui.camera.review')} className="size-full object-cover" />
@@ -123,7 +123,7 @@ export function SelfieCamera({ onPhoto, isSending = false, error, onBack, phoneU
       onRetake={() => { setTaken(null); camera.retry(); }} />;
   }
   if (camera.trouble) {
-    return <div className="mx-auto w-full max-w-phone px-6 pt-16"><Trouble trouble={camera.trouble} phoneUrl={phoneUrl} onRetry={camera.retry} /></div>;
+    return <div className="mx-auto w-full max-w-phone px-5 pt-16"><Trouble trouble={camera.trouble} phoneUrl={phoneUrl} onRetry={camera.retry} /></div>;
   }
   return <Live video={camera.video} isLive={camera.isLive} onTake={() => void take()} onBack={onBack} />;
 }

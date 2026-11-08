@@ -1,13 +1,14 @@
-import { useKycImageUrl, useMembershipCard } from '@rivr/db';
+import { useKycImageUrl, useMember, useMembershipCard } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Box, Inline, KycPhoto, kycPhotoStatus, MembershipCard, Screen, Stack } from '@rivr/ui';
+import { Box, KycPhoto, kycPhotoStatus, MembershipCard, ProgressBar, Screen, Stack, Text } from '@rivr/ui';
 import { QrCode } from '@rivr/ui/qr-code';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
-/** The member's verified selfie on the card (decision 0300), through the kyc-image-url function. */
+/** The member's verified selfie on the card (decision 0300), through the kyc-image-url function; their initial until it shows. */
 function CardPhoto({ path }: { path: string }) {
   const photo = useKycImageUrl(path);
-  return <KycPhoto isFilling alt={t('player.card.photo')} src={photo.data ?? null} status={kycPhotoStatus(path, photo)} />;
+  const initial = useMember().data?.initial;
+  return <KycPhoto isFilling alt={t('player.card.photo')} src={photo.data ?? null} status={kycPhotoStatus(path, photo)} initial={initial} />;
 }
 
 /**
@@ -32,13 +33,53 @@ function useScreenAwake() {
   }, []);
 }
 
+/** How much of the door code's time is left since it came, 1 to 0, read again each second: the bar under the QR (F-182). */
+function useCodeLeft(cameAt: number, msLeft: number): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const tick = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(tick);
+  }, []);
+  return msLeft > 0 ? Math.max(0, cameAt + msLeft - now) / msLeft : 0;
+}
+
+const BRIGHTNESS_HINTED = 'rivr.card.brightnessHinted';
+
+/** Whether this session has yet to see the brightness hint; never, where storage is refused. */
+function isHintDue(): boolean {
+  try {
+    return sessionStorage.getItem(BRIGHTNESS_HINTED) === null;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Once a session, a hint to turn the brightness up (F-182, decision 0542: a web page cannot raise it). Drawn only with the
+ * card itself, so opening Card offline or while it loads does not use it up.
+ */
+function BrightnessHint() {
+  const [isDue] = useState(isHintDue);
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(BRIGHTNESS_HINTED, '1');
+    } catch {
+      // A private window: the hint simply does not show again.
+    }
+  }, []);
+  return isDue ? <Text variant="small" tone="muted" align="center">{t('player.card.brightness')}</Text> : null;
+}
+
 /**
  * The Card tab (decision 0320; #71): the membership card, gold-edged, with the member's number, verified selfie, name and
- * tier, then the QR the door scans on its cream panel. No caption. Offline before the card came, it says to give the number.
+ * tier, then the QR the door scans on its cream panel across the card's column, a gold bar under it running down to the
+ * next code so the desk sees it is live, and once a session a hint to turn the brightness up (F-182, the one line under
+ * it: decision 0542). Offline before the card came, it says to give the number.
  */
 export function CardScreen() {
   const card = useMembershipCard();
   useScreenAwake();
+  const codeLeft = useCodeLeft(card.dataUpdatedAt, card.data?.msLeft ?? 0);
   const title = t('player.card.tab');
   const look = { titleLook: 'serif' } as const;
   if (!navigator.onLine || card.fetchStatus === 'paused') {
@@ -54,9 +95,11 @@ export function CardScreen() {
       <Stack gap={6}>
         <MembershipCard look="redesign" name={fullName} tier={tierName} memberNumber={memberNumber}
           photo={photoPath === null ? undefined : <CardPhoto path={photoPath} />} />
-        <Inline justify="center">
+        <Stack gap={3}>
           <Box surface="cream" padding={4} radius="card"><QrCode value={code} label={t('player.card.qr')} /></Box>
-        </Inline>
+          <ProgressBar fraction={codeLeft} />
+          <BrightnessHint />
+        </Stack>
       </Stack>
     </Screen>
   );
