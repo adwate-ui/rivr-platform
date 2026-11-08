@@ -23,7 +23,12 @@ async function signedIn(browser: Browser, person: Person, signIn: (page: Page, n
   const browserContext = await browser.newContext({ timezoneId: 'Asia/Kolkata', locale: 'en-IN', storageState: answeredBanner() });
   const page = await browserContext.newPage();
   await useSimClock(page, simNow);
-  await signIn(page, number);
+  // A sign-in that fails is itself a finding: it is noted, and that person's screens then show what a stranger sees
+  // (the census flags each as a refusal), rather than stopping the census for everyone else.
+  await signIn(page, number).catch(async (error: unknown) => {
+    test.info().annotations.push({ type: 'sign-in failed', description: `${person}: ${String(error).slice(0, 300)}` });
+    await page.screenshot({ path: test.info().outputPath(`sign-in-failed-${person}.png`), fullPage: true });
+  });
   await browserContext.storageState({ path: sessionFile(context, person) });
   await browserContext.close();
 }
@@ -40,7 +45,9 @@ for (const role of STAFF_ROLES) {
 for (const member of MEMBERS) {
   test(`signs in ${member}`, async ({ browser }) => {
     await signedIn(browser, member, async (page, number) => {
-      await signInToPlayer(page, number);
+      // A member the desk has not checked sees only the identity check (#632), so they land there, not on Home.
+      if (member === 'member_unchecked') await signInToPlayer(page, number, '/kyc');
+      else await signInToPlayer(page, number);
     });
   });
 }
