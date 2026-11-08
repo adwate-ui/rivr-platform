@@ -3,6 +3,9 @@ import { themes } from 'storybook/theming';
 import '../src/styles.css';
 
 const preview: Preview = {
+  // Every font face loads before a story renders, so a story's play measures the page as its picture shows it. A menu
+  // placed by a click before the fonts arrived sat 3 px off its baseline in the visual run of 8 Nov.
+  loaders: [async () => { await Promise.all([...document.fonts].map((face) => face.load())); }],
   parameters: {
     layout: 'padded',
     // The controls panel serialises args as JSON, which cannot hold bigint paise or the
