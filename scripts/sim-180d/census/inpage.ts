@@ -41,6 +41,13 @@ export const LAYOUT_FACTS = `(() => {
     const cuts = style.textOverflow === 'ellipsis' || ['hidden', 'clip'].includes(style.overflowX);
     if (cuts && el.scrollWidth > el.clientWidth + 1) clipped.push(el.innerText.replace(/\\s+/g, ' ').trim().slice(0, 40));
   }
+  for (const el of document.querySelectorAll('body *')) {
+    if (clipped.length >= 15) break;
+    const style = getComputedStyle(el);
+    if (!['hidden', 'clip'].includes(style.overflowY) || !el.innerText || el.scrollHeight <= el.clientHeight + 1) continue;
+    if (['auto', 'scroll'].includes(style.overflowX) || el.clientHeight === 0) continue;
+    clipped.push('cut off below or above: ' + el.innerText.replace(/\\s+/g, ' ').trim().slice(0, 40));
+  }
   const generic = ['system-ui', 'sans-serif', 'serif', 'monospace', '-apple-system', 'ui-monospace', 'ui-sans-serif', 'inherit'];
   const families = new Set();
   for (const el of [document.body, ...document.querySelectorAll('h1, h2, h3, p, button, label, td, th, a, span')].slice(0, 300)) {
@@ -68,6 +75,12 @@ export const LAYOUT_FACTS = `(() => {
   for (const img of document.querySelectorAll('img, svg[role="img"], canvas')) {
     boxes.add(img);
     for (let up = img.parentElement, depth = 0; up && depth < 3; up = up.parentElement, depth += 1) if (framed(up)) { boxes.add(up); break; }
+  }
+  // Photo and avatar frames whether or not their image loaded: small boxes with a border that clip what they hold.
+  for (const el of document.querySelectorAll('body *')) {
+    const r = el.getBoundingClientRect();
+    const style = getComputedStyle(el);
+    if (r.width <= 160 && r.height <= 160 && px(style.borderTopWidth) > 0 && style.overflow !== 'visible') boxes.add(el);
   }
   for (const box of boxes) {
     const r = box.getBoundingClientRect();

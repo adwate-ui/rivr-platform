@@ -9,6 +9,7 @@ import { join } from 'node:path';
 import { z } from 'zod';
 import { say } from '../src/log.ts';
 import { DB_ROOT, runDir, SIM_HOME } from '../src/paths.ts';
+import { realPhotos } from './census-photos.ts';
 import { buildApps, longerTokens, stageCheckpoint } from './census-prep.ts';
 import { sql } from './stack/psql.ts';
 
@@ -58,6 +59,7 @@ const out = join(run, 'walks', `night-${String(night)}`);
 mkdirSync(out, { recursive: true });
 longerTokens();
 stageCheckpoint(repoRoot, join(run, 'snapshots'), night);
+await realPhotos(repoRoot);
 // e2e/support/serviceRole.ts reads `supabase status` in the worktree: point the worktree's own (ignored) config at the copy.
 copyFileSync(join(DB_ROOT, 'supabase', 'config.toml'), join(repoRoot, 'supabase', 'config.toml'));
 buildApps(repoRoot, join(run, 'census', 'walks'));
