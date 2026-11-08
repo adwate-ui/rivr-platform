@@ -39,7 +39,7 @@ export function Toast({ text, onUndo, onClose }: ToastProps) {
           </button>
           <button type="button" aria-label={t('ui.toast.close')} onClick={onClose}
             className="flex size-touch items-center justify-center rounded-md text-green focus-visible:outline-2 focus-visible:outline-focus">
-            <Icon name="close" size="sm" />
+            <Icon name="close" size="md" />
           </button>
         </span>
       ) : null}

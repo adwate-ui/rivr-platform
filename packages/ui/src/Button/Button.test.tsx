@@ -5,6 +5,17 @@ import { axeViolations, renderIn } from '../test/render.tsx';
 import { Button } from './Button.tsx';
 
 describe('Button', () => {
+  it('sits a text button\u2019s back chevron 4 px from its word, and any other icon 8 px (F-176)', () => {
+    renderIn(
+      <>
+        <Button variant="text" icon="chevronLeft">Back</Button>
+        <Button variant="primary" icon="food">Order</Button>
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Back' })).toHaveClass('gap-1');
+    expect(screen.getByRole('button', { name: 'Order' })).toHaveClass('gap-2');
+  });
+
   it('is a button named by its label that responds to a click', async () => {
     const onClick = vi.fn();
     renderIn(<Button onClick={onClick}>Withdraw</Button>);

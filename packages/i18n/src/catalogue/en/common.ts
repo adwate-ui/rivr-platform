@@ -3,6 +3,9 @@ export const common = {
   loading: 'Loading',
   retry: 'Try again',
   loadFailed: 'Not loaded. Try again.',
+  /** A whole player screen that failed (F-176): the serif line, and what to do under it. */
+  loadFailedTitle: 'Could not load',
+  checkConnection: 'Check your connection and try again.',
   /** A screen that failed to draw: its title on the router's error screen. */
   screenFailed: 'Screen unavailable',
   offline: 'Offline.',
