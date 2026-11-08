@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query';
+import { onlineManager, QueryClient } from '@tanstack/react-query';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -24,7 +24,7 @@ function storeSession() {
 }
 
 /** The app's own client, with Auth's logout answering as `logout` does; something cached for Sana. */
-function renderSignOut(logout: () => Promise<Response>) {
+function renderSignOut(logout: () => Promise<Response>, keepsForOffline = false) {
   vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
     const url = String(input instanceof Request ? input.url : input);
     return url.includes('/auth/v1/logout') ? logout() : Response.json([]);
@@ -33,7 +33,7 @@ function renderSignOut(logout: () => Promise<Response>) {
   const queryClient = new QueryClient();
   queryClient.setQueryData(['user', SANA, 'member'], { name: 'Sana Qureshi' });
   const wrapper = ({ children }: { children: ReactNode }) => (
-    <RivrDataProvider client={client} queryClient={queryClient}>
+    <RivrDataProvider client={client} queryClient={queryClient} keepsForOffline={keepsForOffline}>
       {children}
     </RivrDataProvider>
   );
@@ -65,5 +65,33 @@ describe('signing out', () => {
 
     await waitFor(() => expect(result.current.auth).toBe('signed-out'));
     expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
+  });
+
+  it('goes through with the app offline, rather than wait for the connection (F-053)', async () => {
+    storeSession();
+    const { result } = renderSignOut(async () => {
+      throw new TypeError('Failed to fetch');
+    });
+    await waitFor(() => expect(result.current.auth).toBe('signed-in'));
+    onlineManager.setOnline(false);
+    try {
+      await act(() => result.current.signOut.mutateAsync());
+      await waitFor(() => expect(result.current.auth).toBe('signed-out'));
+    } finally {
+      onlineManager.setOnline(true);
+    }
+    expect(localStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
+  });
+
+  it('takes what the phone kept for offline with it (F-053)', async () => {
+    storeSession();
+    localStorage.setItem('rivr.offline.v1', '{"state":{"queries":[]}}');
+    const { result } = renderSignOut(async () => new Response(null, { status: 204 }), true);
+    await waitFor(() => expect(result.current.auth).toBe('signed-in'));
+    expect(localStorage.getItem('rivr.offline.v1')).not.toBeNull();
+
+    await act(() => result.current.signOut.mutateAsync());
+
+    await waitFor(() => expect(localStorage.getItem('rivr.offline.v1')).toBeNull());
   });
 });
