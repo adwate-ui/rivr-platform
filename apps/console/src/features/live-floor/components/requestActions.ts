@@ -32,8 +32,8 @@ const ALERT_ACTION = {
  * An approved player's one action (the owner, 8 Nov): Seat, at the seat held for their call at once, else in the seat
  * sheet; Check ID, the check in person, while their identity check is unfinished; View list while no seat is free.
  */
-function seatAlertActions(alert: SeatAlert, { changes, tableName, onSeatAlert, canCheckId = true }: RequestActionsFor): { primary: RequestAction } {
-  const run = alert.kind === 'seat' && alert.seat !== null ? () => changes.seatCalled(alert, tableName) : () => onSeatAlert?.(alert);
+function seatAlertActions(alert: SeatAlert, { onSeatAlert, canCheckId = true }: RequestActionsFor): { primary: RequestAction } {
+  const run = () => onSeatAlert?.(alert);
   return { primary: { label: t(ALERT_ACTION[alert.kind === 'seat_check' && !canCheckId ? 'seat_wait' : alert.kind]), run } };
 }
 

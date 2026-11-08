@@ -26,5 +26,8 @@ export const FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>> = {
 /** The same for Seat, Hold place and Release, where a refused request means the place or table changed. */
 export const ENTRY_FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>> = { ...FAILURE_COPY, invalid: 'console.waitlist.changed' };
 
+/** Call: the last seat went first, and there is nothing else to choose. */
+export const CALL_FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>> = { ...ENTRY_FAILURE_COPY, seat_taken: 'console.waitlist.noFreeSeat' };
+
 /** Release: refused as too late means the member was away too long, not that a hold ran out (#287). */
 export const RELEASE_FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>> = { ...ENTRY_FAILURE_COPY, too_late: 'console.waitlist.awayTooLong' };

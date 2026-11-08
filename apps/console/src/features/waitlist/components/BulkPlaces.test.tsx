@@ -63,7 +63,7 @@ describe('the bulk bar over the places ticked (console v3)', () => {
   it('asks before holding when a place ticked is called', async () => {
     renderBar(vi.fn(), [place(1, 'Ishaan Verma'), place(2, 'Kabir Sethi', '2026-11-15T15:52:00Z')]);
     fireEvent.click(screen.getByRole('button', { name: 'Hold' }));
-    expect(screen.getByText('Some places ticked are called. Hold them all? Their seats go to the next names.')).toBeDefined();
+    expect(screen.getByText('Some places ticked are called. Hold them all? Their seats are freed.')).toBeDefined();
     expect(calls).toEqual([]);
     fireEvent.click(screen.getByRole('button', { name: 'Yes, hold them' }));
     await waitFor(() => expect(calls).toHaveLength(2));

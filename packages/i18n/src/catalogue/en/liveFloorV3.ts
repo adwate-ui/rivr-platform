@@ -48,6 +48,8 @@ export const floor = {
     seat: 'Seat',
     checkId: 'Check ID',
     viewList: 'View list',
+    /** The rows that wait for a seat, folded under one line that opens the Waitlist (audit F-032). */
+    waitingCount: 'Waiting for a seat ({count})',
     approve: 'Approve',
     decline: 'Decline',
     start: 'Start',
@@ -89,10 +91,11 @@ export const floor = {
     waiting: '{name} · {minutes} min',
     nobody: 'Nobody on this list.',
     number: 'Or a mobile or member number',
+    /** With nobody on the list there is no "or". */
+    numberAlone: 'Mobile or member number',
     tableThenSeat: 'Table, then seat',
     table: 'Table',
     seatNumber: 'Seat',
-    callTime: 'Call time',
     confirm: 'Seat',
     cancel: 'Cancel',
     chooseWho: 'Choose a player or type a number.',
@@ -102,7 +105,8 @@ export const floor = {
     bonusChips: 'Bonus chips to redeem',
     bonusChipsHas: 'Has {chips} bonus chips.',
     bonusChipsNone: 'No bonus chips.',
-    bonusChipsTyped: 'Checked as they sit.',
+    bonusChipsTyped: 'Up to their balance. Taken off when they sit.',
+    badCallTime: 'Enter a call time of 0 to 1,440 minutes.',
     badBonusChips: 'Bonus chips go in whole 50s.',
   },
   table: {

@@ -1,10 +1,10 @@
 import { bonusChipsToRedeemSchema, seatPlayerSchema } from '@rivr/contracts';
-import { CALL_TIME_CHOICES } from '@rivr/domain/callTime';
+import { CALL_TIME_CHOICES, isCallTimeMinutes } from '@rivr/domain/callTime';
 import { seatingCallTime } from '@rivr/domain/tables';
 import { openSeatsAt, useWaitlistBoard, type FloorTable, type HeldSeat, type SeatedPlayer, type WaitlistBoardEntry } from '@rivr/db';
 import { useMemberBonus } from '@rivr/db/bonus';
-import { formatChips, formatDuration, t, type MessageKey } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Input, Sheet, Stack, Text } from '@rivr/ui';
+import { formatChips, t, type MessageKey } from '@rivr/i18n';
+import { Button, CallTimeChoice, ChoiceChips, ErrorMessage, Input, Sheet, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { waitedSeconds } from './requestView.ts';
 import { stakeOf } from './seatState.ts';
@@ -27,7 +27,7 @@ export interface SeatSheetProps {
  * place the sheet opened for (`pinned`) wherever it is on the list.
  */
 function nextOn(board: readonly WaitlistBoardEntry[], tableId: string, pinned: string | undefined): WaitlistBoardEntry[] {
-  return board.filter((entry) => entry.tableId === tableId && entry.callTableName === null && entry.awayUntil === null)
+  return board.filter((entry) => entry.tableId === tableId && (entry.entryId === pinned || (entry.callTableName === null && entry.awayUntil === null)))
     .sort((a, b) => a.place - b.place).filter((entry, index) => index < 4 || entry.entryId === pinned);
 }
 
@@ -49,8 +49,9 @@ function useSeatChoice(start: SeatSheetProps['start']) {
   // is typed instead).
   const [entryId, setEntryId] = useState<string | null | undefined>(start.entryId);
   const [number, setNumber] = useState('');
-  // A call time the floor chose; null takes the table's own (seatingCallTime), as the table changes.
-  const [callMinutes, setCallMinutes] = useState<number | null>(null);
+  // A call time the floor chose; undefined takes the table's own (seatingCallTime), as the table changes; null is a Custom
+  // time not typed yet.
+  const [callMinutes, setCallMinutes] = useState<number | null | undefined>(undefined);
   // Bonus chips the member redeems with their buy-in (decision 0504), as typed; blank is none.
   const [bonusChips, setBonusChips] = useState('');
   const [error, setError] = useState<MessageKey | null>(null);
@@ -67,10 +68,12 @@ function seatOf(free: readonly number[], chosen: number | null): number | null {
 /** The sheet's state and what follows from it: the table, its open seats, the names next on its list, and Seat. */
 function useSeatSheet({ venueId, tables, seats, held, start, changes, onClose }: SeatSheetProps) {
   const board = useWaitlistBoard(venueId).data ?? [];
-  const taken = [...seats, ...held];
+  // The seat held for the member the sheet opened for is theirs to take.
+  const taken = [...seats, ...held.filter((one) => one.entryId !== start.entryId)];
   const choice = useSeatChoice(start);
   const table = tables.find((candidate) => candidate.id === choice.tableId);
-  const callMinutes = choice.callMinutes ?? seatingCallTime(table?.callTimeMinutes ?? 0);
+  const tablesOwn = seatingCallTime(table?.callTimeMinutes ?? 0);
+  const callMinutes = choice.callMinutes === undefined ? tablesOwn : choice.callMinutes;
   const free = table === undefined ? [] : openSeatsAt(table, taken);
   const seat = seatOf(free, choice.seat);
   const next = nextOn(board, choice.tableId, start.entryId);
@@ -80,12 +83,13 @@ function useSeatSheet({ venueId, tables, seats, held, start, changes, onClose }:
     const who = seatingOf(choice.number, isTyped ? undefined : entry);
     if (typeof who === 'string') return choice.setError(who);
     if (table === undefined || seat === null) return choice.setError('console.floor.seat.pickSeat');
+    if (!isCallTimeMinutes(callMinutes)) return choice.setError('console.floor.seat.badCallTime');
     const bonusChips = bonusChipsToRedeemSchema.safeParse(choice.bonusChips);
     if (!bonusChips.success) return choice.setError('console.floor.seat.badBonusChips');
     if (await changes.seat(who, { table, seat, callMinutes, bonusChips: bonusChips.data })) onClose();
   };
   const open = tables.filter((one) => one.isOpen && openSeatsAt(one, taken).length > 0);
-  return { choice, table, free, seat, next, chosen: isTyped ? undefined : entry, open, confirm, callMinutes };
+  return { choice, table, free, seat, next, chosen: isTyped ? undefined : entry, open, confirm, callMinutes, tablesOwn };
 }
 
 type SeatSheetState = ReturnType<typeof useSeatSheet>;
@@ -102,7 +106,7 @@ function Who({ sheet, now }: { sheet: SeatSheetState; now: Date }) {
           options={next.map((one) => ({ value: one.entryId, label: t('console.floor.seat.waiting', { name: one.fullName, minutes: Math.floor(waitedSeconds(one.joinedAt, now) / 60) }) }))}
           onChange={([value]) => { choice.setEntryId(value ?? null); choice.setNumber(''); choice.setError(null); }} />
       )}
-      <Input label={t('console.floor.seat.number')} value={choice.number} inputMode="numeric" autoComplete="off"
+      <Input label={t(next.length === 0 ? 'console.floor.seat.numberAlone' : 'console.floor.seat.number')} value={choice.number} inputMode="numeric" autoComplete="off"
         onChange={(event) => { choice.setNumber(event.target.value); choice.setError(null); }} />
     </Stack>
   );
@@ -116,24 +120,17 @@ function Where({ sheet }: { sheet: SeatSheetState }) {
       <Text variant="caption" tone="muted">{t('console.floor.seat.tableThenSeat')}</Text>
       <ChoiceChips look="subtle" mode="one" label={t('console.floor.seat.table')} isLabelVisuallyHidden selected={[choice.tableId]}
         options={open.map((one) => ({ value: one.id, label: one.name }))}
-        onChange={([value]) => { if (value !== undefined) { choice.setTableId(value); choice.setSeat(null); choice.setEntryId(undefined); } }} />
+        onChange={([value]) => { if (value !== undefined) { choice.setTableId(value); choice.setSeat(null); choice.setEntryId(undefined); if (choice.callMinutes === null) choice.setCallMinutes(undefined); } }} />
       <ChoiceChips look="subtle" mode="one" label={t('console.floor.seat.seatNumber')} isLabelVisuallyHidden selected={seat === null ? [] : [String(seat)]}
         options={free.map((one) => ({ value: String(one), label: String(one) }))} onChange={([value]) => choice.setSeat(value === undefined ? null : Number(value))} />
     </Stack>
   );
 }
 
-/** For how long: 3, 4 or 5 hours (decision 0299), the stake's own chosen first. */
+/** For how long: 3, 4 or 5 hours or another time (decision 0299), the stake's own chosen first; the Waitlist's control (audit F-112). */
 function CallTime({ sheet }: { sheet: SeatSheetState }) {
-  const { choice, callMinutes } = sheet;
-  return (
-    <Stack gap={3}>
-      <Text variant="caption" tone="muted">{t('console.floor.seat.callTime')}</Text>
-      <ChoiceChips look="subtle" mode="one" label={t('console.floor.seat.callTime')} isLabelVisuallyHidden selected={[String(callMinutes)]}
-        options={CALL_TIME_CHOICES.map((minutes) => ({ value: String(minutes), label: formatDuration(minutes * 60) }))}
-        onChange={([value]) => { if (value !== undefined) choice.setCallMinutes(Number(value)); }} />
-    </Stack>
-  );
+  const { choice, callMinutes, tablesOwn } = sheet;
+  return <CallTimeChoice key={choice.tableId} choices={CALL_TIME_CHOICES} initial={callMinutes ?? tablesOwn} onChange={choice.setCallMinutes} />;
 }
 
 /**

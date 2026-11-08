@@ -1,15 +1,15 @@
 import type { RequestTargets } from '@rivr/domain/floorRequests';
 import type { FloorRequest, FloorTable, SeatAlert } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { RequestItem, Stack, Text } from '@rivr/ui';
+import { Button, RequestItem, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { requestActions, type LeaveRequest, type RequestAction } from './requestActions.ts';
-import { requestKey } from './useRequestQueue.ts';
+import { listedRows, requestKey } from './useRequestQueue.ts';
 import type { RequestChanges } from './useRequestChanges.ts';
 import { wordsOf } from './requestView.ts';
 
 export interface RequestListProps {
-  /** Oldest first, as the queue shows them. */
+  /** By when each is due, as the queue shows them. */
   requests: readonly FloorRequest[];
   tables: readonly FloorTable[];
   targets: RequestTargets;
@@ -35,7 +35,7 @@ export interface RequestListProps {
 export const tableNameOf = (tables: readonly FloorTable[], tableId: string) => tables.find((table) => table.id === tableId)?.name ?? '';
 
 /**
- * The floor's requests (console v3), oldest first: each says what is asked and how long ago (late past the club's target,
+ * The floor's requests (console v3), by when each is due: each says what is asked and how long ago (late past the club's target,
  * decision 0479), who asks and where, then its one filled action and the one in words. One that just arrived glows gold.
  */
 export function RequestList({ requests, tables, targets, now, fresh, changes, onLeave, onOpen, canOpen, canCheckId, onSeatAlert, onApproved }: RequestListProps) {
@@ -49,9 +49,12 @@ export function RequestList({ requests, tables, targets, now, fresh, changes, on
       void Promise.resolve(action.run()).finally(() => setBusy(null));
     },
   });
+  const waiting = requests.filter((request): request is SeatAlert => request.kind === 'seat_wait');
+  const toDo = listedRows(requests);
+  const [firstWaiting] = waiting;
   return (
     <Stack gap={0}>
-      {requests.map((request) => {
+      {toDo.map((request) => {
         const key = requestKey(request);
         const tableName = tableNameOf(tables, request.tableId);
         const words = wordsOf(request, { name: tableName, isOpen: tables.find((table) => table.id === request.tableId)?.isOpen ?? true }, now, targets);
@@ -63,6 +66,10 @@ export function RequestList({ requests, tables, targets, now, fresh, changes, on
             secondary={actions.secondary === undefined ? undefined : button(`${key}:secondary`, actions.secondary)} />
         );
       })}
+      {/* The rows that ask for nothing yet, as one line, so the panel's count matches what it lists (audit F-032). */}
+      {firstWaiting === undefined ? null : (
+        <Button variant="text" onClick={() => onSeatAlert(firstWaiting)}>{t('console.floor.requests.waitingCount', { count: waiting.length })}</Button>
+      )}
     </Stack>
   );
 }

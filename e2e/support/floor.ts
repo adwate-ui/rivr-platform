@@ -17,7 +17,7 @@ export async function seatOnFloor(page: Page, { table, seat, number }: { table: 
   await showSeats(page);
   await tableTile(page, table).getByRole('button', { name: `Seat ${String(seat)}, Open` }).click();
   const sheet = page.getByRole('dialog', { name: 'Seat a player' });
-  await sheet.getByRole('textbox', { name: 'Or a mobile or member number' }).fill(number);
+  await sheet.getByRole('textbox', { name: /^(Or a m|M)obile or member number$/ }).fill(number);
   await sheet.getByRole('button', { name: 'Seat', exact: true }).click();
   await expect(page.getByText(`${number} seated at ${table}, seat ${String(seat)}`)).toBeVisible();
 }

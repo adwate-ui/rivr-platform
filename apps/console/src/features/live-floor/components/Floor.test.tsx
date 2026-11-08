@@ -86,12 +86,13 @@ describe('Live floor tiles (console v3)', () => {
 });
 
 describe('The requests panel (console v3)', () => {
-  it('lists every request oldest first, each late past its target in words as well as colour', async () => {
+  it('lists requests by when each is due, the oldest among equals, each late past its target in words as well as colour (audit F-108)', async () => {
     await renderFloor();
     const panel = requests();
     const names = within(panel).getAllByRole('button').map((button) => button.textContent);
+    // Kabir's ask for more time is not due for two hours, so those who need the floor now come first.
     expect(names.filter((name) => ['Ritika Bhalla', 'Vidya Chadha', 'Kabir Sethi', 'Rohan Bhatia'].includes(name ?? ''))).toEqual(
-      ['Ritika Bhalla', 'Vidya Chadha', 'Kabir Sethi', 'Rohan Bhatia']);
+      ['Ritika Bhalla', 'Vidya Chadha', 'Rohan Bhatia', 'Kabir Sethi']);
     expect(within(panel).getByText('Join request')).toBeDefined();
     expect(within(panel).getByText('Table 2 waitlist')).toBeDefined();
     expect(within(panel).getByText('Wants +1 h')).toBeDefined();
@@ -132,15 +133,24 @@ describe('The requests panel (console v3)', () => {
     expect(await screen.findByText('Not undone. It changed since.')).toBeDefined();
   });
 
+  it('puts the ask for more time that runs out first ahead of the one that runs out later, however old (audit F-108)', async () => {
+    await renderFloor({ ...FLOOR, requests: [
+      requestRow({ kind: 'time', id: 'r2', name: 'Asked first', minutes: 20, session_id: 's2', table_id: 't1', seat: 5, asked: 60, call_time_left: 7200 }),
+      requestRow({ kind: 'time', id: 'r3', name: 'Runs out soon', minutes: 1, session_id: 's1', table_id: 't1', seat: 2, asked: 60, call_time_left: 300 }),
+    ] });
+    const names = within(requests()).getAllByRole('button').map((button) => button.textContent);
+    expect(names.filter((name) => name === 'Asked first' || name === 'Runs out soon')).toEqual(['Runs out soon', 'Asked first']);
+  });
+
   it('folds to a strip with its count, and opens again', async () => {
-    // An ID check first and a wait for a seat have nothing for the floor to do yet: they are not counted.
+    // A wait for a seat folds into one line and is not counted; an ID check is a row the floor can act on, and is.
     const quiet = [
       requestRow({ kind: 'seat_check', id: 'e8', name: 'Dev Khanna', minutes: 30, table_id: 't2' }),
       requestRow({ kind: 'seat_wait', id: 'e9', name: 'Mira Shah', minutes: 20, table_id: 't2' }),
     ];
     await renderFloor({ ...FLOOR, requests: [...quiet, ...REQUESTS] });
     fireEvent.click(within(requests()).getByRole('button', { name: 'Collapse' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Open, 4 waiting' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Open, 5 waiting' }));
     expect(within(requests()).getByText('Ritika Bhalla')).toBeDefined();
   });
 });
@@ -169,7 +179,7 @@ describe('The floor\'s keys (console v3)', () => {
     fireEvent.keyDown(window, { key: 's' });
     const sheet = await screen.findByRole('dialog', { name: 'Seat a player' });
     // In the sheet, typing an S is a number's, not the floor's.
-    fireEvent.keyDown(within(sheet).getByRole('textbox', { name: 'Or a mobile or member number' }), { key: 'a' });
+    fireEvent.keyDown(within(sheet).getByRole('textbox', { name: 'Mobile or member number' }), { key: 'a' });
     expect(rpcs('approve_waitlist_request')).toHaveLength(1);
   });
 
