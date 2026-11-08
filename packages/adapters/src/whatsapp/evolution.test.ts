@@ -44,6 +44,28 @@ describe('WhatsApp through the Evolution bridge', () => {
     expect(JSON.parse(String(requests[0]?.init.body))).toMatchObject({ text: 'Your seat is ready. Table 3, seat 6. Hold expires 21:40.' });
   });
 
+  it('says each member notice in the house voice: free to go, what was spent, Offers to stop (8 Nov audit, I-30)', async () => {
+    const { fetch, requests } = fakeFetch(201, accepted);
+    const whatsapp = createWhatsAppEvolution({ ...bridge, fetch });
+    const optedInAt = new Date('2026-11-01T10:00:00Z');
+
+    await whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_released', params: ['Table 3', '4'] });
+    await whatsapp.sendTemplate({ category: 'utility', to, template: 'reward_cancelled', params: ['RIVR cap'] });
+    await whatsapp.sendTemplate({ category: 'utility', to, template: 'kyc_in_review', params: [] });
+    await whatsapp.sendTemplate({ category: 'utility', to, template: 'kyc_verified', params: [] });
+    await whatsapp.sendTemplate({ category: 'marketing', to, template: 'promotion', params: ['Bonus Tuesday.'], optedInAt });
+    await whatsapp.sendTemplate({ category: 'marketing', to, template: 'review_request', params: ['https://g.page/r/rivr'], optedInAt });
+
+    expect(requests.map((request) => JSON.parse(String(request.init.body)).text)).toEqual([
+      'RIVR: you are free to go from Table 3, seat 4. Thank you for playing.',
+      'RIVR cancelled your RIVR cap, and what you spent on it is back. See why in Rewards in the RIVR app.',
+      'RIVR is checking your details. A message follows once it is done.',
+      'Your ID is verified at RIVR Poker Club. You can request a seat in the app.',
+      'RIVR Poker Club: Bonus Tuesday. To stop offers, turn off Offers in Profile in the RIVR app.',
+      'Thank you for playing at RIVR Poker Club. A Google review helps the club: https://g.page/r/rivr To stop these, turn off Offers in Profile in the RIVR app.',
+    ]);
+  });
+
   it('sends a refusal with its reason and the desk, and one for age with neither (8 Nov audit, F-049)', async () => {
     const { fetch, requests } = fakeFetch(201, accepted);
     const whatsapp = createWhatsAppEvolution({ ...bridge, fetch });

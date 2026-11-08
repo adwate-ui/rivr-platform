@@ -13,9 +13,10 @@ export const push = {
     body: '{table}, seat {seat}. Ends at {time}.',
     action: 'Add time',
   },
+  /** The member's call time has run: they may go (8 Nov audit, F-181). */
   callTimeDone: {
-    title: 'Call time complete',
-    body: 'Your call time is complete.',
+    title: 'Call time done',
+    body: 'You may leave any time.',
   },
   sessionReminder: {
     title: 'Session reminder',
