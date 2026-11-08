@@ -1,5 +1,6 @@
 import type { IndianMobile } from '@rivr/contracts';
 import { useSignIn, type SignInFailure } from '@rivr/db';
+import { t } from '@rivr/i18n';
 import { Captcha, ResendButton as ResendCode, Stack, useCaptcha } from '@rivr/ui';
 import { CAPTCHA_SITE_KEY } from '../captcha.ts';
 
@@ -16,7 +17,8 @@ export function ResendButton({ phone, onFail }: { phone: IndianMobile; onFail: (
   return (
     <Stack gap={2}>
       <Captcha {...captcha.props} />
-      <ResendCode onResend={resend} isLoading={requestCode.isPending} isDisabled={!captcha.isReady} />
+      <ResendCode label={t('player.signIn.resend')} waitingLabel={(time) => t('player.signIn.resendIn', { time })} onResend={resend}
+        isLoading={requestCode.isPending} isDisabled={!captcha.isReady} />
     </Stack>
   );
 }

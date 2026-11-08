@@ -5,7 +5,7 @@ import { ResendButton } from './ResendButton.tsx';
 const meta = {
   title: 'Controls/ResendButton',
   component: ResendButton,
-  args: { onResend: async () => true, isLoading: false },
+  args: { label: 'Resend code', waitingLabel: (time: string) => `Resend code in ${time}`, onResend: async () => true, isLoading: false },
 } satisfies Meta<typeof ResendButton>;
 
 export default meta;
