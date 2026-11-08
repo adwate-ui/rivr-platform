@@ -37,6 +37,7 @@ const result = spawnSync('pnpm', ['exec', 'playwright', 'test', '-c', 'staging/p
     E2E_WEB_URL: url('WEB'),
     SIM_SUPER_NUMBER: process.env['SIM_SUPER_NUMBER'] ?? '9000000101',
     STAGING_OUT: out,
+    STAGING_WALK: process.argv.includes('--owner') ? 'owner' : 'journeys',
   },
 });
 say(`staging walk: playwright exited ${String(result.status)}; output in ${out}`);

@@ -11,7 +11,8 @@ const player = process.env['E2E_PLAYER_URL'] ?? 'https://invalid.example';
 
 export default defineConfig({
   testDir: '.',
-  testMatch: /journeys\.walk\.ts$/,
+  // journeys.walk.ts, or the owner's own walk with STAGING_WALK=owner.
+  testMatch: new RegExp(`${process.env['STAGING_WALK'] ?? 'journeys'}\.walk\.ts$`),
   retries: 0,
   workers: 1,
   timeout: 600_000,
