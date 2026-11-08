@@ -70,13 +70,15 @@ test.describe('PWA, a member offline', () => {
     await page.evaluate(async () => {
       await navigator.serviceWorker.ready;
     });
-    // What the app opens with is kept a moment after it is read: the card too, once it has been seen.
+    // What the app opens with is kept a moment after it is read: the card too, once it has been seen, and on later launches.
+    const isKept = (name: string) => page.evaluate((key) => localStorage.getItem('rivr.offline.v1')?.includes(key) ?? false, name);
     await page.goto(`${appUrl('player')}/card`);
     await expect(page.getByRole('img', { name: 'Your door code' })).toBeVisible();
+    await expect.poll(() => isKept('membership-card')).toBe(true);
     await page.goto(appUrl('player'));
     await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeAttached();
-    await expect.poll(() => page.evaluate(() => localStorage.getItem('rivr.offline.v1')?.includes('membership-card') ?? false)).toBe(true);
-    await expect.poll(() => page.evaluate(() => localStorage.getItem('rivr.offline.v1')?.includes('floor-tables') ?? false)).toBe(true);
+    await expect.poll(() => isKept('floor-tables')).toBe(true);
+    expect(await isKept('membership-card')).toBe(true);
 
     await context.setOffline(true);
     await page.reload();

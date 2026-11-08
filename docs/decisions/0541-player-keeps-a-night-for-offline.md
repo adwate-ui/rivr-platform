@@ -8,6 +8,7 @@ Date: 8 Nov 2026 · From the 180-day audit of 8 Nov (F-053, I-33).
 - No new library. `@tanstack/react-query` already has `dehydrate` and `hydrate`; `@rivr/db`'s `offlineCache.ts` writes what it needs to localStorage a moment after each answer. Only the player app turns it on (`RivrDataProvider keepsForOffline`).
 - What is kept: who the member is, the identity check's status, their tabs, the card, and Home's tables, place, seat and notices. Nothing else.
 - The identity check is kept without its documents: no PAN, date of birth, masked Aadhaar or photo path, which are never written to the phone. The card's door code is kept with it; it goes stale in seconds and is checked on scan.
+- A later launch keeps what it did not read, while under 12 hours old, so a launch that never opens Card does not lose the member's number.
 - It is restored only when the phone opens offline, so online the app never shows old data, and only for 12 hours, one club night.
 - Signing out removes it.
 

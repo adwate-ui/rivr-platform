@@ -33,10 +33,17 @@ function decode(_key: string, value: unknown): unknown {
   return BigInt(value.$bigint);
 }
 
+/** What an earlier launch kept and this one has not read, while recent: the card, on a launch that never opened it. */
+function keptEarlier(state: DehydratedState, now: number): DehydratedState['queries'] {
+  const readNow = new Set(state.queries.map((query) => query.queryHash));
+  return (read()?.state.queries ?? []).filter((query) => !readNow.has(query.queryHash) && now - query.state.dataUpdatedAt <= KEPT_FOR_MS);
+}
+
 function save(queryClient: QueryClient): void {
   const state = withoutDocuments(dehydrate(queryClient, { shouldDehydrateQuery: isKept }));
+  const now = Date.now();
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ savedAt: Date.now(), state }, encode));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ savedAt: now, state: { ...state, queries: [...state.queries, ...keptEarlier(state, now)] } }, encode));
   } catch {
     // Storage full or refused: the app simply opens as it would have with nothing kept.
   }

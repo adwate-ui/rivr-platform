@@ -41,6 +41,15 @@ describe('the offline cache', () => {
     expect(stored).not.toContain('secret session');
   });
 
+  it('keeps what an earlier launch read and this one did not, for a club night', () => {
+    kept([[queryKeys.membershipCard(USER), { memberNumber: '14' }]]);
+    // A later launch that reads Home and never opens Card.
+    vi.advanceTimersByTime(11 * 60 * 60 * 1000);
+    expect(kept([[queryKeys.floorTables(USER), []]])).toContain('"memberNumber":"14"');
+    vi.advanceTimersByTime(2 * 60 * 60 * 1000);
+    expect(kept([[queryKeys.floorTables(USER), []]])).not.toContain('"memberNumber":"14"');
+  });
+
   it('keeps of an identity check what the gate reads, and none of its documents', () => {
     const stored = kept([[queryKeys.kycRecord(USER), RECORD]]);
     expect(stored).toContain('"status":"verified"');
