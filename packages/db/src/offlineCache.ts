@@ -26,11 +26,18 @@ function withoutDocuments(state: DehydratedState): DehydratedState {
   };
 }
 
-/** Money is a bigint in the cache, which JSON cannot carry. */
-const encode = (_key: string, value: unknown) => (typeof value === 'bigint' ? { $bigint: value.toString() } : value);
+/** Money is a bigint in the cache and the member's tabs a Map, neither of which JSON can carry. */
+function encode(_key: string, value: unknown): unknown {
+  if (typeof value === 'bigint') return { $bigint: value.toString() };
+  return value instanceof Map ? { $map: [...value] } : value;
+}
+
+const isEntry = (value: unknown): value is [unknown, unknown] => Array.isArray(value) && value.length === 2;
+
 function decode(_key: string, value: unknown): unknown {
-  if (typeof value !== 'object' || value === null || !('$bigint' in value) || typeof value.$bigint !== 'string') return value;
-  return BigInt(value.$bigint);
+  if (typeof value !== 'object' || value === null) return value;
+  if ('$bigint' in value && typeof value.$bigint === 'string') return BigInt(value.$bigint);
+  return '$map' in value && Array.isArray(value.$map) ? new Map(value.$map.filter(isEntry)) : value;
 }
 
 /** What an earlier launch kept and this one has not read, while recent: the card, on a launch that never opened it. */

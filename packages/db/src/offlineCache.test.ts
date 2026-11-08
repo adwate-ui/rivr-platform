@@ -65,6 +65,14 @@ describe('the offline cache', () => {
     expect(onlineManager.isOnline()).toBe(false);
   });
 
+  it('brings the member\u2019s tabs back as the Map the app reads', () => {
+    kept([[queryKeys.featureAccess(USER), new Map([['rewards.catalogue', { state: 'enabled' }]])]]);
+    setOnline(false);
+    const cache = new QueryClient();
+    restoreForOffline(cache);
+    expect(cache.getQueryData(queryKeys.featureAccess(USER))).toEqual(new Map([['rewards.catalogue', { state: 'enabled' }]]));
+  });
+
   it('shows nothing old when the phone opens online', () => {
     kept([[queryKeys.member(USER), { fullName: 'Kavya Rao' }]]);
     const cache = new QueryClient();
