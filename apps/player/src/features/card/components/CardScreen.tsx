@@ -70,6 +70,9 @@ function BrightnessHint() {
   return isDue ? <Text variant="small" tone="muted" align="center">{t('player.card.brightness')}</Text> : null;
 }
 
+/** What Card says with no connection: to give the number, the one the phone kept where it has it (F-053). */
+const offlineWords = (number: string | undefined) => (number === undefined ? t('player.card.offline') : t('player.card.offlineNumber', { number }));
+
 /**
  * The Card tab (decision 0320; #71): the membership card, gold-edged, with the member's number, verified selfie, name and
  * tier, then the QR the door scans on its cream panel across the card's column, a gold bar under it running down to the
@@ -83,9 +86,7 @@ export function CardScreen() {
   const title = t('player.card.tab');
   const look = { titleLook: 'serif' } as const;
   if (!navigator.onLine || card.fetchStatus === 'paused') {
-    const number = card.data?.memberNumber;
-    const offline = number === undefined ? t('player.card.offline') : t('player.card.offlineNumber', { number });
-    return <Screen {...look} title={title} status="error" errorText={offline} onRetry={() => void card.refetch()} />;
+    return <Screen {...look} title={title} status="error" errorText={offlineWords(card.data?.memberNumber)} onRetry={() => void card.refetch()} />;
   }
   if (card.isPending) return <Screen {...look} title={title} status="loading" loadingLook="skeleton" />;
   if (card.isError || card.data === null) return <Screen {...look} title={title} status="error" onRetry={() => void card.refetch()} />;
