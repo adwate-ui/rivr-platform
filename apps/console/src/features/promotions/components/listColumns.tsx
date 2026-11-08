@@ -1,7 +1,7 @@
 import type { PromotionStatus } from '@rivr/contracts/promotionModel';
 import type { PromotionOverview } from '@rivr/db';
-import { formatDate, t } from '@rivr/i18n';
-import { Button, ConfirmButton, DotStatus, Inline, Number as Count, Stack, Text, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
+import { formatDate, formatNumber, t } from '@rivr/i18n';
+import { Button, ConfirmButton, DotStatus, Inline, Stack, Text, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
 import { whoAndWhen, type PromotionNames } from './promotionWords.ts';
 
 // Awaiting approval is the one that needs someone: gold. Running ones are cream; the rest faint (console v3, DotStatus).
@@ -55,11 +55,36 @@ function statusNote(promotion: PromotionOverview): string | null {
   return promotion.status === 'draft' && promotion.rejectedReason !== null ? t('console.promotions.list.sentBack') : null;
 }
 
+/** The budget used so far, in the period the budget is counted over; nothing for a promotion with no budget. */
+function budgetText(promotion: PromotionOverview): string | null {
+  const budget = promotion.terms?.limits.budgetChips;
+  if (budget === undefined || promotion.budgetUsedChips === null) return null;
+  const words = { used: formatNumber(promotion.budgetUsedChips), budget: formatNumber(budget) };
+  return t(promotion.terms?.limits.budgetPeriod === 'month' ? 'console.promotions.list.budgetUsedMonth' : 'console.promotions.list.budgetUsed', words);
+}
+
+/** Given this week (audit F-104): the bonus chips or points, how many times, and the budget used. */
+function GivenCell({ promotion }: { promotion: PromotionOverview }) {
+  const { givenThisWeek: times, chipsGivenThisWeek: chips, pointsGivenThisWeek: points } = promotion;
+  const timesText = times === 1 ? t('console.promotions.list.givenOnce') : t('console.promotions.list.givenTimes', { count: formatNumber(times) });
+  const amount = chips > 0 ? t('console.promotions.list.givenChips', { count: formatNumber(chips) })
+    : points > 0 ? t('console.promotions.list.givenPoints', { count: formatNumber(points) }) : null;
+  const budget = budgetText(promotion);
+  return (
+    <Stack gap={1} align="end">
+      <Text as="span" variant="row">{amount ?? timesText}</Text>
+      {amount === null ? null : <Text as="span" variant="secondary" tone="muted">{timesText}</Text>}
+      {budget === null ? null : <Text as="span" variant="secondary" tone="muted">{budget}</Text>}
+    </Stack>
+  );
+}
+
 function StatusCell({ promotion }: { promotion: PromotionOverview }) {
   const note = statusNote(promotion);
   return (
     <Stack gap={1}>
       <DotStatus tone={TONE[promotion.status]} label={t(`console.promotions.statuses.${promotion.status}`)} />
+      {promotion.isQuiet ? <Text variant="secondary" tone="muted">{t('console.promotions.list.quiet')}</Text> : null}
       {note === null ? null : <Text variant="secondary" tone="muted">{note}</Text>}
     </Stack>
   );
@@ -125,7 +150,7 @@ export function listColumns(names: PromotionNames, steps: RowSteps): DataTableCo
     },
     {
       key: 'given', header: t('console.promotions.list.columns.given'), align: 'end', priority: 'optional',
-      cell: (promotion) => (HAS_RUN.includes(promotion.status) ? <Count value={promotion.givenThisWeek} size="small" /> : null),
+      cell: (promotion) => (HAS_RUN.includes(promotion.status) ? <GivenCell promotion={promotion} /> : null),
     },
     {
       key: 'status', header: t('console.promotions.list.columns.status'), cell: (promotion) => <StatusCell promotion={promotion} />,

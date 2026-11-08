@@ -43,7 +43,7 @@ function overviewRow(more: Record<string, unknown>) {
   return {
     promotion_id: 'p1', template_key: null, status: 'live', name: 'Double points', detail: '2× points', runs: 'all stakes · every day, all day',
     current_version_id: 'v1', current_status: 'live', open_version_id: null, open_status: null, rejected_reason: null, reward: TERMS.reward,
-    eligibility: TERMS.eligibility, schedule: TERMS.schedule, limits: TERMS.limits, channels: TERMS.channels, given_this_week: 41, is_legacy: false, ended_at: null,
+    eligibility: TERMS.eligibility, schedule: TERMS.schedule, limits: TERMS.limits, channels: TERMS.channels, given_this_week: 41, chips_given_this_week: 12_000, points_given_this_week: 0, budget_used_chips: 30_000, is_quiet: true, is_legacy: false, ended_at: null,
     created_at: '2026-11-03T10:00:00+00:00', ...more,
   };
 }
@@ -75,7 +75,7 @@ describe('promotions in versions: the list', () => {
     expect(promotions.map((one) => [one.id, one.status, one.openStatus])).toEqual([
       ['p1', 'live', null], ['p2', 'awaiting_approval', 'awaiting_approval'], ['p3', 'live', 'draft'], ['p4', 'awaiting_approval', null],
     ]);
-    expect(promotions[0]).toMatchObject({ givenThisWeek: 41, terms: { reward: TERMS.reward }, isLegacy: false });
+    expect(promotions[0]).toMatchObject({ givenThisWeek: 41, chipsGivenThisWeek: 12_000, pointsGivenThisWeek: 0, budgetUsedChips: 30_000, isQuiet: true, terms: { reward: TERMS.reward }, isLegacy: false });
     expect(promotions[2]?.rejectedReason).toBe('Too generous');
     expect(promotions[3]?.terms).toBeNull();
     expect(result.current.overview.data?.counts).toEqual({ all: 4, live: 2, awaiting_approval: 2, scheduled: 0, paused: 0, draft: 0, ended: 0 });

@@ -17,6 +17,10 @@ const FILTERS: readonly Filter[] = ['all', 'live', 'scheduled', 'awaiting_approv
 // The Ended tab opens on the promotion that ended last.
 const LATEST_ENDED_FIRST = { key: 'ended', direction: 'descending' } as const;
 
+// Live first, then what is coming, what waits, what is stopped and the drafts, as the chips have them (audit F-104).
+const byStatus = (one: PromotionOverview, other: PromotionOverview) =>
+  FILTERS.findIndex((filter) => filter === one.status) - FILTERS.findIndex((filter) => filter === other.status);
+
 const labelOf = (filter: Filter) => (filter === 'all' ? t('console.promotions.list.all') : t(`console.promotions.statuses.${filter}`));
 
 interface PromotionListProps {
@@ -57,7 +61,7 @@ function Listed({ venueId, names, onOpen, tab, onNavigate, overview }: Promotion
     if (canOpen(promotion)) onOpen(promotion.id);
   };
   const steps = { isBusy: toggles.isBusy, pause: toggles.pause, resume: toggles.resume, end: toggles.end, open };
-  const current = overview.promotions.filter((promotion) => promotion.status !== 'ended');
+  const current = overview.promotions.filter((promotion) => promotion.status !== 'ended').sort(byStatus);
   const ended = overview.promotions.filter((promotion) => promotion.status === 'ended');
   const isEnded = view === 'ended';
   return (

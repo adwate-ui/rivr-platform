@@ -24,7 +24,14 @@ export interface PromotionOverview {
   readonly rejectedReason: string | null;
   /** Null for a promotion still run by its rule, or terms that cannot be read. */
   readonly terms: Terms | null;
+  /** How many times it was given this club week, and the bonus chips and points that went out with them. */
   readonly givenThisWeek: number;
+  readonly chipsGivenThisWeek: number;
+  readonly pointsGivenThisWeek: number;
+  /** The chips counted against its budget, in the budget's period; null with no budget. */
+  readonly budgetUsedChips: number | null;
+  /** Live for a week or more and nothing given in the last seven days (audit F-104). */
+  readonly isQuiet: boolean;
   /** Run by its rule, made before versions (decision 0491): its card and pause only. */
   readonly isLegacy: boolean;
   /** When an ended promotion ended (the owner, 8 Nov); null for one that has not. */
@@ -53,7 +60,7 @@ interface OverviewRow {
   promotion_id: string; template_key: string | null; status: string; name: string; detail: string | null; runs: string | null;
   current_version_id: string | null; current_status: string | null; open_version_id: string | null; open_status: string | null;
   rejected_reason: string | null; reward: Json; eligibility: Json; schedule: Json; limits: Json; given_this_week: number; is_legacy: boolean;
-  ended_at: string | null;
+  ended_at: string | null; chips_given_this_week: number; points_given_this_week: number; budget_used_chips: number | null; is_quiet: boolean;
 }
 
 /** A row of promotions_overview as the list shows it; a rule's promotion waiting reads as awaiting approval. */
@@ -63,7 +70,8 @@ export function toPromotionOverview(row: OverviewRow): PromotionOverview {
     id: row.promotion_id, templateKey: row.template_key, name: row.name, detail: row.detail, runs: row.runs, status: listed ?? 'draft',
     currentVersionId: row.current_version_id, openVersionId: row.open_version_id, openStatus: statusOf(row.open_status),
     rejectedReason: row.rejected_reason, terms: row.is_legacy ? null : termsOf(row), givenThisWeek: Number(row.given_this_week), isLegacy: row.is_legacy,
-    endedAt: row.ended_at,
+    endedAt: row.ended_at, chipsGivenThisWeek: Number(row.chips_given_this_week), pointsGivenThisWeek: Number(row.points_given_this_week),
+    budgetUsedChips: row.budget_used_chips === null ? null : Number(row.budget_used_chips), isQuiet: row.is_quiet,
   };
 }
 
