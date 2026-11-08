@@ -2,6 +2,7 @@ import { useFeature, type MySeat, type WaitlistPlace } from '@rivr/db';
 import { callTimeFraction, isCallTimeEnding, secondsUntil } from '@rivr/domain/callTime';
 import { formatClock, formatHoursMinutes, formatTime, t } from '@rivr/i18n';
 import { FeatureGate, Figure, Inline, ProgressRing, Text } from '@rivr/ui';
+import { NextBonusChips } from './NextBonusChips.tsx';
 import { OrderTracker } from './OrderTracker.tsx';
 import { OrderToSeat, SeatActions, SeatStatus } from './SeatActions.tsx';
 import { SeatSheets, type SeatSheet } from './SeatSheets.tsx';
@@ -39,7 +40,7 @@ interface SeatedViewProps {
 
 /**
  * Seated (brief 3.4 E): the call-time ring with call_time.view, where the seat has call time; the three round actions and
- * their sheets; Order to my seat; tonight's order on its way; and the seat's open requests, any place on a list among them.
+ * their sheets; the next play-time bonus; Order to my seat; tonight's order on its way; and the seat's open requests, any place on a list among them.
  */
 export function SeatedView({ seat, places, now, sheet, onSheet }: SeatedViewProps) {
   const callTime = useFeature('call_time.view');
@@ -51,6 +52,7 @@ export function SeatedView({ seat, places, now, sheet, onSheet }: SeatedViewProp
         </Inline>
       ) : null}
       <SeatActions seat={seat} onOpen={onSheet} />
+      <NextBonusChips />
       <OrderToSeat />
       <OrderTracker />
       <SeatStatus seat={seat} places={places} />

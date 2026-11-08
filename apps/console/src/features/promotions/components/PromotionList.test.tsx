@@ -8,10 +8,10 @@ afterEach(resetApi);
 /** A row of promotions_overview: the Tuesday bonus live, unless changed. */
 function overviewRow(more: Record<string, unknown>) {
   return {
-    promotion_id: 'p1', template_key: null, status: 'live', name: 'Buy-in bonus Tuesday', detail: '20% buy-in bonus, up to 2,000', runs: null,
+    promotion_id: 'p1', template_key: null, status: 'live', name: 'Buy-in bonus Tuesday', detail: '20% of your buy-in in bonus chips, up to 2,000 bonus chips', runs: null,
     current_version_id: 'v1', current_status: 'live', open_version_id: null, open_status: null, rejected_reason: null, reward: TUESDAY.reward,
     eligibility: TUESDAY.eligibility, schedule: TUESDAY.schedule, limits: TUESDAY.limits, channels: TUESDAY.channels, given_this_week: 38, is_legacy: false,
-    created_at: '2026-11-03T10:00:00+00:00', ended_at: null, ...more,
+    created_at: '2026-11-03T10:00:00+00:00', ended_at: null, chips_given_this_week: 0, points_given_this_week: 0, budget_used_chips: null, is_quiet: false, ...more,
   };
 }
 
@@ -29,10 +29,10 @@ const ROWS = [
     given_this_week: 0, ended_at: '2026-11-02T10:00:00+00:00' }),
 ];
 
-function renderList(onOpen = vi.fn(), tab?: string) {
+function renderList(onOpen = vi.fn(), tab?: string, rows: readonly unknown[] = ROWS) {
   const onNavigate = vi.fn();
   const api = renderWithApi(<PromotionList venueId="v1" names={NAMES.names} onOpen={onOpen} tab={tab} onNavigate={onNavigate} />,
-    { '/rpc/promotions_overview': { body: ROWS } });
+    { '/rpc/promotions_overview': { body: rows } });
   return { ...api, onOpen, onNavigate };
 }
 
@@ -41,16 +41,47 @@ describe('the promotions list (console v3)', () => {
     renderList();
     const table = await screen.findByRole('table', { name: 'Promotions' });
     const tuesday = within(table).getAllByRole('row').find((row) => row.textContent?.includes('Buy-in bonus Tuesday')) ?? table;
-    expect(tuesday.textContent).toContain('20% buy-in bonus, up to 2,000');
+    expect(tuesday.textContent).toContain('20% of your buy-in in bonus chips, up to 2,000 bonus chips');
     expect(tuesday.textContent).toContain('All stakes');
     expect(tuesday.textContent).toContain('Tue, all day');
-    expect(tuesday.textContent).toContain('38');
+    expect(tuesday.textContent).toContain('38 times');
     const weekend = within(table).getAllByRole('row').find((row) => row.textContent?.includes('Weekend triple points')) ?? table;
     expect(weekend.textContent).toContain('NLH 100/200');
     expect(weekend.textContent).toContain('Fri, Sat 20:00–02:00');
     expect(screen.getByRole('radio', { name: 'Awaiting approval, 2' })).toBeDefined();
     expect(screen.getByRole('radio', { name: 'Live, 2' })).toBeDefined();
     expect(screen.getByRole('radio', { name: 'All, 4' }).getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('lists what is live first, then what is coming, what waits, what is stopped and the drafts (audit F-104)', async () => {
+    const row = (promotion_id: string, name: string, status: string) => overviewRow({ promotion_id, name, status, current_status: status });
+    renderList(undefined, undefined, [row('a', 'Draft one', 'draft'), row('b', 'Paused one', 'paused'), row('c', 'Waiting one', 'awaiting_approval'),
+      row('d', 'Scheduled one', 'scheduled'), row('e', 'Live one', 'live')]);
+    const rows = within(await screen.findByRole('table', { name: 'Promotions' })).getAllByRole('row');
+    const places = ['Live one', 'Scheduled one', 'Waiting one', 'Paused one', 'Draft one'].map((name) => rows.findIndex((one) => one.textContent?.includes(name)));
+    expect(places).not.toContain(-1);
+    expect(places).toEqual([...places].sort((one, other) => one - other));
+  });
+
+  it('heads the column Given this week, with the bonus chips or points, the times and the budget used (audit F-104)', async () => {
+    renderList(undefined, undefined, [
+      overviewRow({ chips_given_this_week: 12_000, budget_used_chips: 30_000, limits: { perMember: 'none', budgetChips: 50_000 } }),
+      overviewRow({ promotion_id: 'p2', name: 'Weekend triple points', points_given_this_week: 400, given_this_week: 1 }),
+    ]);
+    const table = await screen.findByRole('table', { name: 'Promotions' });
+    expect(within(table).getByText('Given this week')).toBeDefined();
+    const rowOf = (name: string) => within(table).getAllByRole('row').find((row) => row.textContent?.includes(name)) ?? table;
+    expect(rowOf('Buy-in bonus Tuesday').textContent).toContain('12,000 bonus chips');
+    expect(rowOf('Buy-in bonus Tuesday').textContent).toContain('38 times');
+    expect(rowOf('Buy-in bonus Tuesday').textContent).toContain('30,000 of 50,000 budget');
+    expect(rowOf('Weekend triple points').textContent).toContain('400 points');
+    expect(rowOf('Weekend triple points').textContent).toContain('Once');
+  });
+
+  it('marks a live promotion that has given nothing for a week (audit F-104)', async () => {
+    renderList(undefined, undefined, [overviewRow({ is_quiet: true, given_this_week: 0, open_version_id: 'v5', open_status: 'draft' })]);
+    expect(await screen.findByText('Nothing given in 7 days')).toBeDefined();
+    expect(screen.getByText('New version in draft')).toBeDefined();
   });
 
   it('shows the running version and that a new one awaits approval, and a promotion run by its rule', async () => {

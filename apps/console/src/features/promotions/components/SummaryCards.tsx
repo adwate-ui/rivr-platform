@@ -1,6 +1,7 @@
-import { cardWords, describePromotion, type PromotionNames, type Terms } from '@rivr/domain/promotions';
+import type { Terms } from '@rivr/domain/promotions';
 import { t } from '@rivr/i18n';
 import { Box, DisplayPreview, Stack, Text, TvPromotionSlide } from '@rivr/ui';
+import { cardWords, describePromotion, type PromotionNames } from './promotionWords.ts';
 
 interface SummaryCardsProps {
   /** The name members see, or the reward's kind until one is typed. */

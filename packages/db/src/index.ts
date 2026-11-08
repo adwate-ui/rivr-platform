@@ -100,7 +100,7 @@ export {
 export { useGivePoints, useMemberPoints, useMemberPointsOf, useMyLockedPoints, type MemberPoints, type PointsFailure, type PointsOrder } from './pointsByHand.ts';
 export { useFloorTakenSeats, useSeatCallActions } from './seatCall.ts';
 export { useMyUsualFnbItems } from './fnbUsual.ts';
-export { useMySeat, useMySeatActions, type Leaving, type MySeat, type MySeatFailure, type TopUp } from './mySeat.ts';
+export { useMyNextPlayTimeBonus, useMySeat, useMySeatActions, type Leaving, type NextPlayTimeBonus, type MySeat, type MySeatFailure, type TopUp } from './mySeat.ts';
 export { useFloorNight, useTableHands, type FloorNight, type TableHand, type TableNight } from './floorNight.ts';
 export {
   isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberRecord, useMembersOfTier, useMemberSearch, useVenueTiers, useWithdrawEarlyDeparture, type EarlyDeparture, type EarlyDepartureFailure, type MemberFailure, type MemberKycStatus, type MemberListRow,

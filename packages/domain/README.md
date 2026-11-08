@@ -199,8 +199,6 @@ The database's `private.promotion_applies`, `private.promotion_reward` and `priv
 | `stackGrants(candidates)` | For one event: one multiplier, the one giving the most points; chips and spins stack; one perk of each kind. |
 | `hourSteps(reward)`, `stepsReached(reward, minutes)` | A play-time bonus's steps (decision 0507): one after a time, two to six set steps, or every so many minutes up to its times a visit and never past 24 hours; and those reached in the minutes played. |
 | `simulate(promo, events)` | Last week replayed (a play-time bonus a step for each its visits reached): members qualified, times given, points, chips, spins, perks, whether the budget stopped a grant, and every grant. |
-| `describePromotion(promo, names?)` | The one-line summary in English, in chips and points. |
-| `whoAndWhen(promo, names?)` | Who a version is for and when it runs, each on its own, as the summary words them: the console list's Who and When. |
 | `transition(state, action, actor)`, `sameTerms` | The status machine: submit needs a simulation on these terms, approval `promotions.approve` and someone other than the author, an edit of a running version opens the next draft. |
 
 `private.promo_is_eligible`, `private.promo_grant`, `private.promo_check_limits`, `private.promo_stack` and `private.seconds_in_schedule` are proved equal on `promotionRewards.json` and `promotionSchedule.json` in `supabase/tests/024_golden_twins.test.sql`.

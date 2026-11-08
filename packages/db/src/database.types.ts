@@ -5480,6 +5480,11 @@ isOneToOne: false
               "code": string,"full_name": string,"member_number": number,"ms_left": number,"photo_path": string,"tier_name": string
             }[]
                            },
+"my_next_play_time_bonus":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "after_minutes": number,"chips": number,"seconds_left": number
+            }[]
+                           },
 "my_notices":
 { Args: Record<PropertyKey, never>; Returns: {
               "body": string,"notice_id": string
@@ -5697,7 +5702,7 @@ isOneToOne: false
                            },
 "promotions_overview":
 { Args: { "p_venue_id": string }; Returns: {
-              "channels": Json,"created_at": string,"current_status": string,"current_version_id": string,"detail": string,"eligibility": Json,"ended_at": string,"given_this_week": number,"is_legacy": boolean,"limits": Json,"name": string,"open_status": string,"open_version_id": string,"promotion_id": string,"rejected_reason": string,"reward": Json,"runs": string,"schedule": Json,"status": string,"template_key": string
+              "budget_used_chips": number,"channels": Json,"chips_given_this_week": number,"created_at": string,"current_status": string,"current_version_id": string,"detail": string,"eligibility": Json,"ended_at": string,"given_this_week": number,"is_legacy": boolean,"is_quiet": boolean,"limits": Json,"name": string,"open_status": string,"open_version_id": string,"points_given_this_week": number,"promotion_id": string,"rejected_reason": string,"reward": Json,"runs": string,"schedule": Json,"status": string,"template_key": string
             }[]
                            },
 "promotions_sent_back":

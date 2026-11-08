@@ -1,6 +1,6 @@
 import type { PromotionTerms } from '@rivr/contracts/promotionModel';
 import { err, ok, type Result } from '@rivr/contracts/result';
-import { cardWords, type PromotionNames, type Terms } from '@rivr/domain/promotions';
+import type { Terms } from '@rivr/domain/promotions';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { RivrClient } from './client.ts';
 import { simulationOf, type SimulationRun } from './promotionReplay.ts';
@@ -19,11 +19,11 @@ const FAILURE_BY_CODE: Readonly<Record<string, PromotionVersionFailure>> = {
   RVTWO: 'own_promotion', RVDEC: 'already_decided', RVKIL: 'switched_off', RVFRZ: 'paused', P0002: 'not_found',
 };
 
-/** A draft as the builder saves it: a new promotion's (no id) or the next version of one; the names its card words use. */
+/** A draft as the builder saves it: a new promotion's (no id) or the next version of one, with its card's two lines. */
 export interface DraftToSave {
   readonly promotionId: string | null;
   readonly terms: PromotionTerms;
-  readonly names?: PromotionNames | undefined;
+  readonly words: { readonly detail: string; readonly runs: string };
   /** One id a save, kept for a retry after a lost answer, so the retry returns the first draft. */
   readonly requestId: string;
 }
@@ -74,15 +74,14 @@ async function promotionOf(client: RivrClient, versionId: string): Promise<strin
 }
 
 /**
- * Saves the builder's draft with its card words (cardWords): a new promotion, its open draft, or the next version of a
+ * Saves the builder's draft with its card words: a new promotion, its open draft, or the next version of a
  * running one. A new promotion's id is read back, so its next save changes the same draft.
  */
 function useSaveDraft(venueId: string) {
   const { client } = useRivrData();
   const settle = useSettle(venueId);
   return useMutation({
-    mutationFn: async ({ promotionId, terms, names, requestId }: DraftToSave): Promise<Result<SavedDraft, PromotionVersionFailure>> => {
-      const words = cardWords(terms, names);
+    mutationFn: async ({ promotionId, terms, words, requestId }: DraftToSave): Promise<Result<SavedDraft, PromotionVersionFailure>> => {
       const saved = await client.rpc('save_promotion_draft', {
         p_venue_id: venueId, p_draft: { terms, detail: words.detail, runs: words.runs, request_id: requestId },
         ...(promotionId === null ? {} : { p_promotion_id: promotionId }),

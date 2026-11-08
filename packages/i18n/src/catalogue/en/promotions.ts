@@ -1,3 +1,5 @@
+import { promotionWords } from './promotionWords.ts';
+
 /**
  * The console's Promotions (console v3, phase 7; decisions 0471 and 0491 to 0496): the list by status, the builder in
  * five sections with its summary column, and the approver's view of a waiting version. Points, bonus chips, spins and
@@ -10,6 +12,8 @@ export const promotions = {
   allPromotions: 'All promotions',
   /** Above the title on the TV slide preview, as the TV says it. */
   slideLabel: 'Promotion',
+  /** A promotion in words, for the builder, the approver, the list and the cards saved with a version (audit F-055). */
+  words: promotionWords,
   statuses: { draft: 'Draft', awaiting_approval: 'Awaiting approval', scheduled: 'Scheduled', live: 'Live', paused: 'Paused', ended: 'Ended' },
   list: {
     label: 'Promotions',
@@ -21,11 +25,20 @@ export const promotions = {
     /** Current promotions and ended ones, apart under two tabs (owner, 8 Nov), each with how many. */
     tabs: { current: 'Current {count}', ended: 'Ended {count}' },
     noneEnded: 'No promotion has ended.',
-    columns: { promotion: 'Promotion', who: 'Who', when: 'When', given: 'This week', status: 'Status', ended: 'Ended' },
+    columns: { promotion: 'Promotion', who: 'Who', when: 'When', given: 'Given this week', status: 'Status', ended: 'Ended' },
     /** Under a running promotion's status: its next version, beside it. */
     newVersionWaits: 'New version awaits approval',
     newVersionDraft: 'New version in draft',
     sentBack: 'Sent back',
+    /** Under a live promotion that has given nothing for a week (audit F-104). */
+    quiet: 'Nothing given in 7 days',
+    /** In the Given this week column: what went out, how many times, and the budget used so far. */
+    givenOnce: 'Once',
+    givenTimes: '{count} times',
+    givenChips: '{count} bonus chips',
+    givenPoints: '{count} points',
+    budgetUsed: '{used} of {budget} budget',
+    budgetUsedMonth: '{used} of {budget} budget this month',
     /** A promotion still run by its old rule (decision 0491): its words and Pause only. */
     byRule: 'Run by its rule',
     pause: 'Pause',

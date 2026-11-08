@@ -97,6 +97,7 @@ export const queryKeys = {
   tableHands: (userId: string, tableId: string) => ['user', userId, 'table-hands', tableId] as const,
   tabletSeats: (userId: string) => ['user', userId, 'tablet-seats'] as const,
   mySeat: (userId: string) => ['user', userId, 'my-seat'] as const,
+  myNextPlayTimeBonus: (userId: string) => ['user', userId, 'my-next-play-time-bonus'] as const,
   signedInPhone: (userId: string) => ['user', userId, 'signed-in-phone'] as const,
   cageMembers: (userId: string, venueId: string, query: string) => ['user', userId, 'cage-members', venueId, query] as const,
   cageQueue: (userId: string, venueId: string) => ['user', userId, 'cage-queue', venueId] as const,

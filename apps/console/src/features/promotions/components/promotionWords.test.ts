@@ -1,7 +1,17 @@
-import type { Limits, Reward } from '@rivr/contracts/promotionModel';
-import { buildPromotionTerms } from '@rivr/testing';
+import type { Limits, PromotionTerms, Reward } from '@rivr/contracts/promotionModel';
 import { describe, expect, it } from 'vitest';
-import { cardWords, describePromotion, whoAndWhen } from './describe.ts';
+import { cardWords, describePromotion, whoAndWhen } from './promotionWords.ts';
+
+const buildPromotionTerms = (overrides: Partial<PromotionTerms>): PromotionTerms => ({
+  name: 'Double points',
+  reward: { kind: 'points_multiplier', multiplier: 2 },
+  eligibility: { stakes: 'all', tiers: 'all', audience: 'everyone' },
+  schedule: { days: [1, 2, 3, 4, 5, 6, 7], from: '06:00', to: '06:00', startsOn: '2026-11-01', timezone: 'Asia/Kolkata' },
+  limits: { perMember: 'none' },
+  channels: { playerApp: true, tv: true, website: false, whatsapp: false },
+  rulesText: [],
+  ...overrides,
+});
 
 const rewardLine = (reward: Reward) => describePromotion(buildPromotionTerms({ reward })).split(', for ')[0];
 
@@ -13,7 +23,7 @@ describe('describePromotion', () => {
       limits: { perMember: 'none', budgetChips: 50_000 },
     });
     expect(describePromotion(tuesday)).toBe(
-      '20% buy-in bonus, up to 2,000, first 5 buy-ins per table, for all stakes, Tue, all day. No limit per member, budget 50,000 chips. '
+      '20% of your buy-in in bonus chips, up to 2,000 bonus chips, first 5 buy-ins per table, for all stakes, Tue, all day. No limit per member, budget 50,000 chips. '
       + 'Starts 17 Nov 2026, no end date.',
     );
   });
@@ -41,7 +51,7 @@ describe('describePromotion', () => {
   });
 
   it('says each reward plainly', () => {
-    expect(rewardLine({ kind: 'buyin_bonus', mode: 'percent', percent: 10 })).toBe('10% buy-in bonus');
+    expect(rewardLine({ kind: 'buyin_bonus', mode: 'percent', percent: 10 })).toBe('10% of your buy-in in bonus chips');
     expect(rewardLine({ kind: 'buyin_bonus', mode: 'fixed', chips: 500 })).toBe('500 bonus chips on a buy-in');
     expect(rewardLine({ kind: 'buyin_bonus', mode: 'fixed', chips: 500, firstNBuyinsPerTable: 3 })).toBe('500 bonus chips on a buy-in, first 3 buy-ins per table');
     expect(rewardLine({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 })).toBe('1,000 bonus chips after 4 hours');
@@ -89,7 +99,7 @@ describe('cardWords', () => {
       schedule: { days: [2], from: '20:00', to: '02:00', startsOn: '2026-11-17', timezone: 'Asia/Kolkata' },
     });
     expect(cardWords(tuesday, { stakes: { nlh_100_200: 'NLH 100/200' } })).toEqual({
-      detail: '20% buy-in bonus, up to 2,000', runs: 'NLH 100/200 · Tue 20:00–02:00',
+      detail: '20% of your buy-in in bonus chips, up to 2,000 bonus chips', runs: 'NLH 100/200 · Tue 20:00–02:00',
     });
     const long = buildPromotionTerms({ eligibility: { stakes: 'all', tiers: Array.from({ length: 30 }, (_, n) => `tier-number-${n}`), audience: 'everyone' } });
     expect(cardWords(long).runs).toHaveLength(120);

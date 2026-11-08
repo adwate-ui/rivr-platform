@@ -1,8 +1,9 @@
 import type { PromotionSimulationResult, PromotionTerms } from '@rivr/contracts/promotionModel';
 import { ok, type Result } from '@rivr/contracts/result';
 import { usePromotionVersionActions, type PromotionVersionFailure } from '@rivr/db';
-import type { PromotionNames, Terms } from '@rivr/domain/promotions';
+import type { Terms } from '@rivr/domain/promotions';
 import { useRef, useState } from 'react';
+import { cardWords, type PromotionNames } from '../components/promotionWords.ts';
 
 /** A simulation as the builder shows it: the terms it ran on, what it gave, and the club days replayed when known. */
 export interface SimulationOnTerms {
@@ -46,7 +47,7 @@ function useDraftSaver(start: FlowStart, names: PromotionNames, actions: ReturnT
   const save = async (terms: PromotionTerms): Promise<Result<Saved, PromotionVersionFailure>> => {
     const json = JSON.stringify(terms);
     if (saved.current?.json === json) return ok(saved.current);
-    const result = await actions.saveDraft.mutateAsync({ promotionId: promotionId.current, terms, names, requestId: requestIdFor(json) });
+    const result = await actions.saveDraft.mutateAsync({ promotionId: promotionId.current, terms, words: cardWords(terms, names), requestId: requestIdFor(json) });
     if (!result.ok) return result;
     saved.current = { versionId: result.value.versionId, json, hasSimulation: false };
     promotionId.current = result.value.promotionId;
