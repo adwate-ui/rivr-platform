@@ -11,6 +11,7 @@ import { DB_ROOT, runDir, SIM_HOME } from '../src/paths.ts';
 import { realPhotos } from './census-photos.ts';
 import { buildApps, chooseContext, longerTokens, stageCheckpoint } from './census-prep.ts';
 import { writeCensusReport } from './census-report.ts';
+import { freeAppPorts } from './stack/ports.ts';
 import { status } from './stack/supabase.ts';
 
 const HERE = new URL('.', import.meta.url).pathname;
@@ -48,6 +49,7 @@ say(`census ${checkpoint}: browser clock ${context.simNow}; building the apps if
 copyFileSync(join(DB_ROOT, 'supabase', 'config.toml'), join(repoRoot, 'supabase', 'config.toml'));
 buildApps(repoRoot, dir);
 const stack = status(repoRoot);
+freeAppPorts();
 const result = spawnSync('pnpm', ['exec', 'playwright', 'test', '-c', 'census/playwright.config.ts', ...(flag('grep') ? ['--grep', flag('grep') ?? ''] : [])], {
   cwd: join(HERE, '..'),
   stdio: 'inherit',

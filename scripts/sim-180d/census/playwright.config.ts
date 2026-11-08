@@ -32,13 +32,14 @@ const SIZES: readonly [string, string, Record<string, unknown>, boolean][] = [
 
 const projects: Projects = [
   { name: 'sessions', testMatch: /sessions\.setup\.ts/, use: { ...devices['Desktop Chrome'], ...club } },
+  { name: 'devices', testMatch: /devices\.setup\.ts/, dependencies: ['sessions'], use: { ...devices['Desktop Chrome'], ...club } },
   ...SIZES.filter(([, , , first]) => everySize || first).map(([name, spec, use]) => ({
     name,
     testMatch: new RegExp(`${spec}\\.census\\.ts`),
-    dependencies: ['sessions'],
+    dependencies: ['devices'],
     use: { ...use, ...club },
   })),
-  { name: 'states', testMatch: /states\.census\.ts/, dependencies: ['sessions'], use: { ...devices['Desktop Chrome'], ...club } },
+  { name: 'states', testMatch: /states\.census\.ts/, dependencies: ['devices'], use: { ...devices['Desktop Chrome'], ...club } },
 ];
 
 export default defineConfig({

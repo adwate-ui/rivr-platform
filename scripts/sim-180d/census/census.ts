@@ -74,7 +74,9 @@ function screensOf(app: AppName): ReturnType<typeof readScreens> {
 
 export function defineCensus(app: AppName): void {
   const { visits } = planVisits(screensOf(app), app, context.params);
-  const people = [...new Set(visits.map((one) => one.person))];
+  // A member this checkpoint has no one for (night 0 has nobody seated) has no visits.
+  const present = (person: Person): boolean => !person.startsWith('member') || context.numbers[person] !== undefined;
+  const people = [...new Set(visits.map((one) => one.person))].filter(present);
   for (const person of people) {
     test.describe(`${app} as ${person}`, () => {
       // One TV: its board is set per test, so the TV's tests take turns.

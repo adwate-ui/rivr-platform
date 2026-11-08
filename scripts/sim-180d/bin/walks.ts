@@ -11,6 +11,7 @@ import { say } from '../src/log.ts';
 import { DB_ROOT, runDir, SIM_HOME } from '../src/paths.ts';
 import { realPhotos } from './census-photos.ts';
 import { buildApps, longerTokens, stageCheckpoint } from './census-prep.ts';
+import { freeAppPorts } from './stack/ports.ts';
 import { sql } from './stack/psql.ts';
 
 const HERE = new URL('.', import.meta.url).pathname;
@@ -65,6 +66,7 @@ copyFileSync(join(DB_ROOT, 'supabase', 'config.toml'), join(repoRoot, 'supabase'
 buildApps(repoRoot, join(run, 'census', 'walks'));
 const simNow = sql(`select to_char(sim_clock.now() at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')`).trim();
 say(`walks on night ${String(night + 1)}: browser clock ${simNow}`);
+freeAppPorts();
 const grep = flag('grep');
 const result = spawnSync('pnpm', ['exec', 'playwright', 'test', '-c', 'walks/playwright.config.ts', '--tsconfig', 'walks/tsconfig.json', ...(grep ? ['--grep', grep] : [])], {
   cwd: join(HERE, '..'),

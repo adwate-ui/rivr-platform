@@ -25,6 +25,7 @@ function firstOpeners(): Visit[] {
     const seen = new Set<string>();
     return planVisits(readScreens(), app, context.params).visits.filter((one) => {
       if (one.expect !== 'open' || seen.has(one.path)) return false;
+      if (one.person.startsWith('member') && context.numbers[one.person] === undefined) return false;
       seen.add(one.path);
       return true;
     });
