@@ -13,7 +13,10 @@ const CLEAN: Capture = {
   axe: [],
   lcpMs: 1200,
   overflowX: false,
+  tinyTargets: [],
   smallTargets: [],
+  expect: 'open',
+  outcome: 'open',
   clipped: [],
   fallbackFonts: [],
 };
@@ -21,6 +24,21 @@ const CLEAN: Capture = {
 const checks = (change: Partial<Capture>) => checkCapture({ ...CLEAN, ...change }).map((flag) => flag.check);
 
 describe('checkCapture', () => {
+  it('flags a role that opens a screen it should be refused as P0, and one refused a screen it should open as P1', () => {
+    const opened = checkCapture({ ...CLEAN, app: 'console', role: 'service', text: 'Members', expect: 'refused', outcome: 'open' });
+    expect(opened.map((flag) => [flag.check, flag.severity])).toEqual([['access_mismatch', 'P0']]);
+    const refused = checkCapture({ ...CLEAN, app: 'console', role: 'floor', text: 'Members', expect: 'open', outcome: 'refused' });
+    expect(refused.map((flag) => [flag.check, flag.severity])).toEqual([['access_mismatch', 'P1']]);
+    expect(checks({ expect: 'moved', outcome: 'refused' })).toEqual([]);
+  });
+
+  it('flags targets under 24 px as WCAG AA, and under 44 px as polish', () => {
+    expect(checkCapture({ ...CLEAN, tinyTargets: ['×'], smallTargets: ['Back'] }).map((flag) => [flag.check, flag.severity])).toEqual([
+      ['tiny_targets', 'P2'],
+      ['small_targets', 'P3'],
+    ]);
+  });
+
   it('passes a clean screen, with the minimum buy-in as its only ₹', () => {
     expect(checkCapture(CLEAN)).toEqual([]);
   });

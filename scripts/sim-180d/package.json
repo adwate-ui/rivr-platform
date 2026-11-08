@@ -8,6 +8,7 @@
     "test": "vitest run",
     "sim": "tsx bin/run.ts",
     "catalogue": "tsx bin/catalogue.ts",
+    "census": "tsx bin/census.ts",
     "gate": "tsx bin/gate.ts"
   },
   "dependencies": {

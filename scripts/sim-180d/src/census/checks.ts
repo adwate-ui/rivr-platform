@@ -24,8 +24,13 @@ export interface Capture {
   lcpMs: number | null;
   /** Horizontal scrolling on the page itself. */
   overflowX: boolean;
-  /** Clickable elements smaller than 44 × 44 px, by their text or label. */
+  /** Clickable elements under 24 × 24 px (WCAG 2.2 AA, 2.5.8), by their text or label. */
+  tinyTargets: string[];
+  /** Clickable elements from 24 to 44 px (below the 44 px touch size), by their text or label. */
   smallTargets: string[];
+  /** What the person should see (src/census/plan.ts) and what they saw. */
+  expect: string;
+  outcome: string;
   /** Text cut off by its box. */
   clipped: string[];
   /** Font families that fell back instead of loading. */
@@ -74,7 +79,8 @@ function axeFlags(capture: Capture): Flag[] {
 function layoutFlags(capture: Capture): Flag[] {
   const flags: Flag[] = [];
   if (capture.overflowX) flags.push({ check: 'overflow_x', lens: 'design', severity: 'P2', detail: 'the page scrolls sideways' });
-  if (capture.smallTargets.length > 0) flags.push({ check: 'small_targets', lens: 'a11y', severity: 'P2', detail: capture.smallTargets.join(', ') });
+  if (capture.tinyTargets.length > 0) flags.push({ check: 'tiny_targets', lens: 'a11y', severity: 'P2', detail: capture.tinyTargets.join(', ') });
+  if (capture.smallTargets.length > 0) flags.push({ check: 'small_targets', lens: 'a11y', severity: 'P3', detail: capture.smallTargets.join(', ') });
   if (capture.clipped.length > 0) flags.push({ check: 'clipped_text', lens: 'design', severity: 'P3', detail: capture.clipped.join(', ') });
   if (capture.fallbackFonts.length > 0) flags.push({ check: 'fallback_font', lens: 'design', severity: 'P2', detail: capture.fallbackFonts.join(', ') });
   return flags;
@@ -90,6 +96,13 @@ function runtimeFlags(capture: Capture): Flag[] {
   return flags;
 }
 
+// A screen a role should be refused but opens is a privacy failure; one it should open but is refused blocks them.
+function accessFlags(capture: Capture): Flag[] {
+  if (capture.expect === capture.outcome || capture.expect === 'moved') return [];
+  const opened = capture.outcome === 'open';
+  return [{ check: 'access_mismatch', lens: opened ? 'security' : 'function', severity: opened ? 'P0' : 'P1', detail: `expected ${capture.expect}, saw ${capture.outcome}` }];
+}
+
 export function checkCapture(capture: Capture): Flag[] {
-  return [...runtimeFlags(capture), ...textFlags(capture), ...axeFlags(capture), ...layoutFlags(capture)];
+  return [...accessFlags(capture), ...runtimeFlags(capture), ...textFlags(capture), ...axeFlags(capture), ...layoutFlags(capture)];
 }
