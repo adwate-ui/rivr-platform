@@ -19,7 +19,8 @@ const phone = { ...devices['Pixel 7'], viewport: { width: 390, height: 844 } };
 /** [name, spec, how it is shown, first size of its app] */
 const SIZES: readonly [string, string, Record<string, unknown>, boolean][] = [
   ['player-390', 'player', phone, true],
-  ['player-390-webkit', 'player', { ...devices['iPhone 13'], viewport: { width: 390, height: 844 } }, false],
+  // The iPhone preset only names WebKit as its default; the project must ask for it.
+  ['player-390-webkit', 'player', { ...devices['iPhone 13'], browserName: 'webkit', viewport: { width: 390, height: 844 } }, false],
   ['player-1440', 'player', { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } }, false],
   ['console-1440', 'console', { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } }, true],
   ['console-1280', 'console', { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } }, false],
