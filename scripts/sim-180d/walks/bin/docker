@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# The e2e flows reach the database as `docker exec supabase_db_<worktree>`; the simulation's stack runs under the
+# copy's own project (supabase_db_rivr-sim180-db). On the walks' PATH only, this maps one name to the other.
+args=()
+for arg in "$@"; do
+  if [[ "$arg" == "supabase_db_rivr-sim180" ]]; then arg="supabase_db_rivr-sim180-db"; fi
+  args+=("$arg")
+done
+exec /usr/bin/docker "${args[@]}"

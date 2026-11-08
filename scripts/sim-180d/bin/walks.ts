@@ -68,9 +68,12 @@ const simNow = sql(`select to_char(sim_clock.now() at time zone 'UTC', 'YYYY-MM-
 say(`walks on night ${String(night + 1)}: browser clock ${simNow}`);
 freeAppPorts();
 const grep = flag('grep');
-const result = spawnSync('pnpm', ['exec', 'playwright', 'test', '-c', 'walks/playwright.config.ts', '--tsconfig', 'walks/tsconfig.json', ...(grep ? ['--grep', grep] : [])], {
+// --files=a,b runs only flows whose file names match (playwright's own file filter).
+const files = (flag('files') ?? '').split(',').filter((name) => name !== '');
+const result = spawnSync('pnpm', ['exec', 'playwright', 'test', '-c', 'walks/playwright.config.ts', '--tsconfig', 'walks/tsconfig.json', ...(grep ? ['--grep', grep] : []), ...files], {
   cwd: join(HERE, '..'),
   stdio: 'inherit',
-  env: { ...process.env, WALK_SIM_NOW: simNow, WALKS_OUT: out },
+  // walks/bin first: its docker maps the flows' container name to the simulation's (see walks/bin/docker).
+  env: { ...process.env, WALK_SIM_NOW: simNow, WALKS_OUT: out, PATH: `${join(HERE, '..', 'walks', 'bin')}:${process.env['PATH'] ?? ''}` },
 });
 say(`walks: playwright exited ${String(result.status)}; summary ${writeSummary(out, night)}`);
