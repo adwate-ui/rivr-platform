@@ -36,14 +36,14 @@ export const memberRewards = {
   pointsLine: 'Spend on rewards.',
   next: 'Next: {name}',
   /** Every reward in points is within reach: the bar full. */
-  allUnlocked: 'Everything unlocked',
+  allInReach: 'Every reward in reach',
   /** `750 to go`. */
   toGo: '{points} to go',
   /** A hotel-night reward out of reach (F-046): `1 night to go`, `0.75 nights to go`. */
   oneNightToGo: '1 night to go',
   nightsToGo: '{nights} nights to go',
   cost: 'Cost',
-  balanceAfter: 'Balance after',
+  pointsAfter: 'Points after',
   redeemedToast: 'Redeemed',
   readyToCollect: 'Ready to collect',
   noneLeft: 'None left',
@@ -54,7 +54,7 @@ export const memberRewards = {
   /** Refer a friend (#151): the code is RIVR and the member's number. */
   referral: {
     title: 'Refer a friend',
-    how: 'Bonus chips for you both when a friend joins from your link and takes their first seat.',
+    how: 'Bonus chips for you both when a friend joins with your code and takes their first seat.',
     /** The redesign's card (decision 0320): `{chips}` is `1,000`. */
     offer: '{chips} bonus chips each when a friend joins and takes their first seat.',
     joined: '{count} joined',
@@ -68,7 +68,7 @@ export const memberRewards = {
     },
   },
   failures: {
-    not_allowed: 'The catalogue is not part of your tier.',
+    not_allowed: 'Rewards are not on your membership.',
     invalid: 'Not sent. Try again.',
     stock_changed: 'Not sent. Try again.',
     handed_over: 'Not sent. Try again.',
@@ -99,7 +99,7 @@ export const memberRewards = {
   hiddenName: 'A member',
   /** A place: `3`, its name, and its points. */
   placeLine: '{place}. {name}',
-  leaguePoints: '{points} points',
+  leaguePoints: '{points} League points',
   /** The points history the points tile opens (F-054): `Points for the visit · 15 Nov` `+250`. */
   pointsHistory: {
     title: 'Points history',

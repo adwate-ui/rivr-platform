@@ -11,7 +11,6 @@ export const playerLive = {
   /** The referral offer card (it left Home's tables for the carousel): `{chips}` is the bonus, `1,000`. */
   referralTitle: 'Referral',
   referralOffer: '{chips} bonus chips each',
-  referralSchedule: 'Every day',
   /** A club notice's card above the offers (decision 0424): its gold eyebrow. */
   notice: 'From the club',
   allTables: 'All tables',

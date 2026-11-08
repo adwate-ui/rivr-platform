@@ -22,7 +22,7 @@ function toGo({ unit, short }: RewardShortfall): string {
 }
 
 /**
- * The redeem sheet (brief 3.8): Redeem, the reward, its cost and the balance after, how it is collected, then Redeem or
+ * The redeem sheet (brief 3.8): Redeem, the reward, its cost and the points after, how it is collected, then Redeem or
  * Cancel. One request id until the server answers, so a retried tap redeems once; done, a toast says so.
  */
 function RedeemSheet({ item, balance, onClose }: { item: RewardItem; balance: bigint; onClose: () => void }) {
@@ -43,7 +43,7 @@ function RedeemSheet({ item, balance, onClose }: { item: RewardItem; balance: bi
       <Box>
         <DetailRow label={t('memberRewards.cost')} labelTone="muted" value={priceText(item)} />
         {item.points === null ? null : (
-          <DetailRow label={t('memberRewards.balanceAfter')} labelTone="muted" isLast value={t('memberRewards.price', { points: formatNumber(balance - item.points) })} />
+          <DetailRow label={t('memberRewards.pointsAfter')} labelTone="muted" isLast value={t('memberRewards.price', { points: formatNumber(balance - item.points) })} />
         )}
       </Box>
       <Text variant="small" tone="muted">{noteOf(item)}</Text>

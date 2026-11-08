@@ -173,6 +173,7 @@ describe('Rewards', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Redeem Masala chai upgrade' }, LATER));
     const sheet = await screen.findByRole('dialog', { name: 'Masala chai upgrade' });
     expect(within(sheet).getByText('500 points')).toBeDefined();
+    expect(within(sheet).getByText('Points after')).toBeDefined();
     expect(within(sheet).getByText('2,750 points')).toBeDefined();
     fireEvent.click(within(sheet).getByRole('button', { name: 'Redeem' }));
     expect(await screen.findByText('Redeemed')).toBeDefined();
@@ -228,9 +229,9 @@ describe('Rewards', () => {
     expect(writeText).toHaveBeenCalledWith(expect.stringContaining('RIVR4821'));
   });
 
-  it('says Everything unlocked when every reward still to be had is within reach (one with none left is not next)', async () => {
+  it('says Every reward in reach when every reward still to be had is within reach (one with none left is not next)', async () => {
     renderRewards(4500);
-    expect(await screen.findByText('Everything unlocked', {}, LATER)).toBeDefined();
+    expect(await screen.findByText('Every reward in reach', {}, LATER)).toBeDefined();
     expect(screen.queryByText(/ to go$/)).toBeNull();
   });
 });

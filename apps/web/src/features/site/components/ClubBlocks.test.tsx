@@ -34,7 +34,7 @@ describe('the blocks read from the League and the club’s rules', () => {
       rules: { ...NO_RULES, leaguePrizes: { month: 'Top three win a seat in the season final', season: null } },
     });
     const [month] = screen.getAllByRole('table').map((table) => within(table).getAllByRole('row').map((row) => row.textContent));
-    expect(month).toEqual(['PlaceMemberPoints', '1Zoya K.1,200', '2A member800']);
+    expect(month).toEqual(['PlaceMemberLeague points', '1Zoya K.1,200', '2A member800']);
     expect(screen.getByText('Standings for November 2026')).toBeDefined();
     expect(screen.getByText('Prizes: Top three win a seat in the season final')).toBeDefined();
     expect(screen.getByRole('heading', { level: 2, name: 'Winter 2026' })).toBeDefined();
