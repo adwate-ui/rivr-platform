@@ -115,7 +115,7 @@ export const liveFloor = {
   closeTable: 'Close table',
   mustMoveTo: 'Must move to',
   ownTable: 'None',
-  notAllowed: 'Your role does not seat players or change tables.',
+  notAllowed: 'Not in your role. Ask an admin.',
   occupied: 'Someone sits in that seat.',
   held: 'Held for a called member.',
   seated: 'Already seated. Assign them from the waitlist to change tables.',

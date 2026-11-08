@@ -19,7 +19,7 @@ export const reports = {
     percent: '{percent}%',
     empty: 'No table ran in this span.',
   },
-  notAllowed: 'Reports are for managers and the owner.',
+  notAllowed: 'Not in your role. Ask an admin.',
   practice: 'The practice venue has no reports.',
   tonight: 'Tonight',
   tonightHint: 'Rake from the hands logged since 06:00, by table, dealer and game.',

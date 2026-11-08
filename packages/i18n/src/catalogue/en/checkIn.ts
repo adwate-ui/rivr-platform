@@ -20,7 +20,7 @@ export const checkIn = {
   cardCheckOut: 'Check them out from In the room.',
   noneExpected: 'No one expected.',
   noneInRoom: 'No one in the room yet.',
-  notAllowed: 'Not in your role. Ask the front desk.',
+  notAllowed: 'Not in your role. Ask an admin.',
   noMember: 'No member has that number. Sign them up first.',
   cardNotCurrent: 'Code changed. Ask them to show the card again.',
   /** After a check-in by card or number: the field is empty again, so this says it went through. */
