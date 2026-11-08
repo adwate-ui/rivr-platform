@@ -169,7 +169,7 @@ describe('Rewards', () => {
     renderRewards();
     expect(await screen.findByText('RIVR4821', {}, LATER)).toBeDefined();
     expect(screen.getByText('2 joined')).toBeDefined();
-    expect(screen.getByText('1,000 bonus chips each when a friend joins and buys in.')).toBeDefined();
+    expect(screen.getByText('1,000 bonus chips each when a friend joins and takes their first seat.')).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Copy link' }));
     expect(await screen.findByText('Invite link copied')).toBeDefined();
     expect(writeText).toHaveBeenCalledWith(expect.stringContaining('RIVR4821'));

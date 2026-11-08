@@ -1,6 +1,7 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
 import type { Paise } from '@rivr/domain/money';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { detailsOf, type MemberExportDetails } from './memberDetails.ts';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
@@ -30,6 +31,8 @@ export interface MemberListRow extends MemberRow {
   /** The city they gave in their preferences, or null. */
   readonly city: string | null;
   readonly memberSince: string;
+  /** What an export adds (the owner, 9 Nov). */
+  readonly details: MemberExportDetails;
 }
 
 /**
@@ -164,7 +167,7 @@ export function useMembersOfTier(venueId: string, tierId: string | null) {
       return data.map((row) => ({
         memberId: row.member_id, memberNumber: row.member_number, fullName: row.full_name, phone: row.phone, phoneLast4: row.phone_last4,
         tierName: row.tier_name, visits: row.visits, lastVisitAt: row.last_visit_at, kycStatus: kycStatusOf(row.kyc_status),
-        minutesPlayed: Number(row.minutes_played), city: row.city, memberSince: row.member_since,
+        minutesPlayed: Number(row.minutes_played), city: row.city, memberSince: row.member_since, details: detailsOf(row),
       }));
     },
   });

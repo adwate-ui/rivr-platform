@@ -3,6 +3,7 @@ import { t } from '@rivr/i18n';
 import { ChoiceChips, DataTable, Input, Stack } from '@rivr/ui';
 import { useState } from 'react';
 import { memberColumns } from './memberColumns.tsx';
+import { memberExportColumns } from './memberExportColumns.ts';
 import type { Tonight } from './tonight.ts';
 
 /** What the list is given: the venue, where each member is tonight, how a record opens, and where its Export goes. */
@@ -14,6 +15,8 @@ interface ListProps {
   readonly exportIn: HTMLElement | null;
   /** Super admins (members.change_phone) see each full mobile number; other staff only search by its last four digits. */
   readonly seesPhone: boolean;
+  /** Super admins export members' identity documents (the owner, 9 Nov). */
+  readonly seesIdentity: boolean;
   /** A record is open beside the list, so it has half the width and only its first columns. */
   readonly isDocked: boolean;
 }
@@ -51,11 +54,11 @@ function emptyText(query: string, tier: VenueTier | null): string {
 }
 
 /** Every member, or a tier's, as a table, narrowed by the search as typed; or its loading or error state. */
-function Results({ venueId, tonight, onOpen, exportIn, seesPhone, isDocked, query, tier }: ListProps & { query: string; tier: VenueTier | null }) {
+function Results({ venueId, tonight, onOpen, exportIn, seesPhone, seesIdentity, isDocked, query, tier }: ListProps & { query: string; tier: VenueTier | null }) {
   const listed = useMembersOfTier(venueId, tier?.tierId ?? null);
   const base = {
     label: t('console.members.title'), columns: memberColumns(tonight, { seesPhone, isDocked }), rowKey: (row: MemberListRow) => row.memberId,
-    exportFilter: filterWords(query, tier), onRowOpen: (row: MemberListRow) => onOpen(row.memberId), initialSort: { key: 'name', direction: 'ascending' } as const, exportIn,
+    exportFilter: filterWords(query, tier), exportColumns: memberExportColumns(seesIdentity), onRowOpen: (row: MemberListRow) => onOpen(row.memberId), initialSort: { key: 'name', direction: 'ascending' } as const, exportIn,
     // On a phone the table's lines scroll sideways under the names, as in the prototype.
     narrowLayout: 'scroll' as const,
   };
@@ -69,7 +72,7 @@ function Results({ venueId, tonight, onOpen, exportIn, seesPhone, isDocked, quer
  * choice narrow the table of Name, No., Tier, KYC, Hours played, City, Member since, Tonight and Visits, with the mobile
  * for super admins (owner, 8 Nov); a click on a row opens the member's record.
  */
-export function MemberList({ venueId, tonight, onOpen, exportIn, seesPhone, isDocked }: ListProps) {
+export function MemberList({ venueId, tonight, onOpen, exportIn, seesPhone, seesIdentity, isDocked }: ListProps) {
   const [query, setQuery] = useState('');
   const [tierId, setTierId] = useState('');
   const tiers = useVenueTiers(venueId);
@@ -84,7 +87,8 @@ export function MemberList({ venueId, tonight, onOpen, exportIn, seesPhone, isDo
           options={[{ value: '', label: t('console.members.anyTier') }, ...tiers.data.map((choice) => ({ value: choice.tierId, label: choice.name }))]}
           onChange={(picked) => setTierId(picked[0] ?? '')} />
       )}
-      <Results venueId={venueId} tonight={tonight} onOpen={onOpen} exportIn={exportIn} seesPhone={seesPhone} isDocked={isDocked} query={query} tier={tier} />
+      <Results venueId={venueId} tonight={tonight} onOpen={onOpen} exportIn={exportIn} seesPhone={seesPhone} seesIdentity={seesIdentity} isDocked={isDocked}
+        query={query} tier={tier} />
     </Stack>
   );
 }

@@ -10,19 +10,22 @@ const keys = {
   mySessions: (userId: string) => ['user', userId, 'my-sessions'] as const,
   /** The newest `count` of them, for the list (F3-28), and one by its visit, for its detail: both under mySessions, which a hide reloads. */
   page: (userId: string, count: number) => ['user', userId, 'my-sessions', 'page', count] as const,
-  one: (userId: string, visitId: string) => ['user', userId, 'my-sessions', 'one', visitId] as const,
+  one: (userId: string, sessionId: string) => ['user', userId, 'my-sessions', 'one', sessionId] as const,
 };
 
 /**
- * One closed visit of the signed-in member's at which they sat (#127): the table played longest, the hours, the money,
- * and its club month's totals. Net is what came out less the TDS and what went in; what went in counts chips on credit
- * and not bonus chips, which show apart.
+ * One table the signed-in member sat at in a closed visit (#127; the owner, 9 Nov: each table its own session), or a
+ * tournament they played: the hours there, the visit's money on its first table's session, and its club month's totals.
+ * Net is what came out less the TDS and what went in; what went in counts chips on credit and not bonus chips, which
+ * show apart.
  */
 const TDS_BASES = ['session', 'day', 'financial_year'] as const;
 export type TdsBasis = (typeof TDS_BASES)[number];
 
 export interface MySession {
-  /** The visit's id, or the tournament's for a tournament (#549). */
+  /** The session's own id: one table of a visit (the owner, 9 Nov), or a tournament (#549). */
+  readonly sessionId: string;
+  /** The visit it was part of, or the tournament's id for a tournament. */
   readonly visitId: string;
   /** A cash-table visit, or a tournament the member played (#549): its name is `tableName`, its stakes nothing. */
   readonly kind: 'cash' | 'tournament';
@@ -34,8 +37,6 @@ export interface MySession {
   readonly tableName: string;
   readonly smallBlind: Paise;
   readonly bigBlind: Paise;
-  /** How many other tables they played that visit. */
-  readonly otherTables: number;
   readonly playedSeconds: number;
   readonly buyIn: Paise;
   readonly bonus: Paise;
@@ -59,9 +60,9 @@ type SessionRow = Database['public']['Functions']['my_sessions']['Returns'][numb
 
 function sessionOf(row: SessionRow): MySession {
   return {
-        visitId: row.visit_id, kind: row.kind === 'tournament' ? 'tournament' : 'cash', place: row.place, entrants: row.entrants,
+        sessionId: row.session_id, visitId: row.visit_id, kind: row.kind === 'tournament' ? 'tournament' : 'cash', place: row.place, entrants: row.entrants,
         openedAt: row.opened_at, closedAt: row.closed_at, tableName: row.table_name,
-        smallBlind: toPaise(row.small_blind_paise), bigBlind: toPaise(row.big_blind_paise), otherTables: row.other_tables,
+        smallBlind: toPaise(row.small_blind_paise), bigBlind: toPaise(row.big_blind_paise),
         playedSeconds: Number(row.played_seconds), buyIn: toPaise(row.buy_in_paise), bonus: toPaise(row.bonus_paise),
         cashOut: toPaise(row.cash_out_paise), tds: toPaise(row.tds_paise), paid: toPaise(row.paid_paise), net: toPaise(row.net_paise),
         receipt: row.receipt, month: row.month, monthSessions: row.month_sessions, monthPlayedSeconds: Number(row.month_played_seconds),
@@ -88,13 +89,13 @@ export function useMySessions(count: number) {
 }
 
 /** One of the member's sessions, by its visit, or null when it is none of theirs: a detail opened by address needs no list (F3-28). */
-export function useMySession(visitId: string) {
+export function useMySession(sessionId: string) {
   const { client, userId } = useRivrData();
   return useQuery({
-    queryKey: keys.one(userId ?? 'signed-out', visitId),
+    queryKey: keys.one(userId ?? 'signed-out', sessionId),
     enabled: userId !== null,
     queryFn: async (): Promise<MySession | null> => {
-      const { data, error } = await client.rpc('my_sessions').eq('visit_id', visitId);
+      const { data, error } = await client.rpc('my_sessions').eq('session_id', sessionId);
       if (error) throw error;
       const row = data[0];
       return row === undefined ? null : sessionOf(row);

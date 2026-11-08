@@ -111,6 +111,26 @@ describe('DataTable export, recorded first', () => {
     clicked.mockRestore();
   });
 
+  it('carries the columns only an export has after the table\'s own, never drawn in the table (the owner, 9 Nov)', async () => {
+    let saved: Blob | undefined;
+    const created = vi.spyOn(URL, 'createObjectURL').mockImplementation((file) => {
+      saved = file instanceof Blob ? file : undefined;
+      return 'blob:export';
+    });
+    const clicked = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    renderIn(
+      <DataTableExportProvider exporter={async () => true}>
+        <DataTable label="Members" columns={COLUMNS.slice(0, 1)} rowKey={(row) => row.id} rows={ROWS.slice(0, 1)} emptyText="None."
+          exportColumns={[{ key: 'hours', header: 'Hours played', exportValue: (row) => row.hours }, { key: 'card', header: 'Card', exportValue: (row) => row.id }]} />
+      </DataTableExportProvider>,
+    );
+    expect(screen.queryByText('Hours played')).toBeNull();
+    await exportAs('Members', 'CSV');
+    expect(await saved?.text()).toBe('"Member","Hours played","Card"\r\n"Naina Kapoor",12,"c1"\r\n');
+    created.mockRestore();
+    clicked.mockRestore();
+  });
+
   it('saves nothing, and says so, when the export is not recorded', async () => {
     const created = vi.spyOn(URL, 'createObjectURL');
     exportable(async () => false);

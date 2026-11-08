@@ -16,15 +16,15 @@ afterEach(() => {
 
 /** Ishaan's session at Table 3, begun at 02:00 IST on the 14th, so the night of 13 Feb, for six hours. */
 const SESSION = {
-  visit_id: 'v1', opened_at: '2026-02-13T20:30:00+00:00', closed_at: '2026-02-14T02:30:00+00:00', table_name: 'Table 3',
-  small_blind_paise: 10000, big_blind_paise: 20000, other_tables: 0, played_seconds: 21600, buy_in_paise: 1000000, bonus_paise: 0,
+  session_id: 'v1', visit_id: 'v1', opened_at: '2026-02-13T20:30:00+00:00', closed_at: '2026-02-14T02:30:00+00:00', table_name: 'Table 3',
+  small_blind_paise: 10000, big_blind_paise: 20000, played_seconds: 21600, buy_in_paise: 1000000, bonus_paise: 0,
   cash_out_paise: 5000000, tds_paise: 1200000, paid_paise: 3800000, net_paise: 2800000, receipt: 'A1B2C3D4', month: '2026-02-01',
   month_sessions: 1, month_played_seconds: 21600, month_net_paise: 2800000, tds_basis: 'session',
   kind: 'cash', place: null, entrants: null,
 };
 
 interface Api {
-  sessions?: readonly ({ visit_id: string } & Record<string, unknown>)[];
+  sessions?: readonly ({ session_id: string } & Record<string, unknown>)[];
   /** Session history for Ishaan's tier: enabled, or locked to the Black card. */
   access?: 'enabled' | 'locked';
   /** Whether hiding a session goes through. */
@@ -40,10 +40,10 @@ function sentSessionId(init: RequestInit | undefined): string {
 }
 
 /** The rows my_sessions gives for a request: one session by its visit, and no more than its limit, as PostgREST filters a function's rows (F3-28). */
-function rowsFor<Row extends { visit_id: string }>(url: string, rows: readonly Row[]): readonly Row[] {
-  const one = /visit_id=eq\.([^&]+)/.exec(url)?.[1];
+function rowsFor<Row extends { session_id: string }>(url: string, rows: readonly Row[]): readonly Row[] {
+  const one = /session_id=eq\.([^&]+)/.exec(url)?.[1];
   const limit = Number(/[?&]limit=(\d+)/.exec(url)?.[1] ?? Infinity);
-  return (one === undefined ? rows : rows.filter((row) => row.visit_id === one)).slice(0, limit);
+  return (one === undefined ? rows : rows.filter((row) => row.session_id === one)).slice(0, limit);
 }
 
 /**
@@ -70,7 +70,7 @@ function renderAt(path: string, { sessions = [], access = 'enabled', hide = 'wor
       if (hide === 'fails') return Response.json({ message: 'unavailable' }, { status: 503 });
       const id = sentSessionId(init);
       hidden.push(id);
-      listed = listed.filter((one) => one.visit_id !== id);
+      listed = listed.filter((one) => one.session_id !== id);
       return Response.json(null);
     }
     if (url.includes('/rpc/my_sessions')) return Response.json(access === 'locked' ? [] : rowsFor(url, listed));
@@ -79,7 +79,7 @@ function renderAt(path: string, { sessions = [], access = 'enabled', hide = 'wor
   const rootRoute = createRootRoute({ component: () => <ToastProvider><Outlet /></ToastProvider> });
   const routeTree = rootRoute.addChildren([
     createRoute({ getParentRoute: () => rootRoute, path: '/sessions', component: SessionsScreen }),
-    createRoute({ getParentRoute: () => rootRoute, path: '/sessions/$visitId', component: SessionScreen }),
+    createRoute({ getParentRoute: () => rootRoute, path: '/sessions/$sessionId', component: SessionScreen }),
   ]);
   const router = createRouter({ routeTree, history: createMemoryHistory({ initialEntries: [path] }) });
   render(
@@ -113,12 +113,14 @@ describe('Sessions', () => {
     expect(await screen.findByText('No sessions yet. Each night you play at the club shows here.', {}, { timeout: 5000 })).toBeDefined();
   });
 
-  it('lists each session by the day its night began, with its tables and hours and no money', async () => {
-    renderAt('/sessions', { sessions: [SESSION, { ...SESSION, visit_id: 'v2', table_name: 'Table 2', other_tables: 1, played_seconds: 5400 }] });
+  it('lists each session by the day its night began, a table each (the owner, 9 Nov), with its hours and no money', async () => {
+    renderAt('/sessions', { sessions: [SESSION, { ...SESSION, session_id: 's2', table_name: 'Table 2', played_seconds: 5400 }] });
     const row = await screen.findByRole('button', { name: /Table 3/ }, { timeout: 5000 });
     expect(row.textContent).toContain('13 Feb 2026');
     expect(row.textContent).toContain('6 h');
-    expect(screen.getByRole('button', { name: /Table 2 and 1 more/ }).textContent).toContain('1 h 30 min');
+    // A move to Table 2 the same night is a session of its own, named by its table alone.
+    expect(screen.getByRole('button', { name: /Table 2/ }).textContent).toContain('1 h 30 min');
+    expect(screen.queryByText(/and 1 more/)).toBeNull();
     expect(screen.queryByText(/₹/)).toBeNull();
   });
 
@@ -131,7 +133,7 @@ describe('Sessions', () => {
   });
 
   it('reads thirty at a time, with Show earlier sessions (F3-28)', async () => {
-    const many = Array.from({ length: 31 }, (_, at) => ({ ...SESSION, visit_id: `v${String(at + 1)}` }));
+    const many = Array.from({ length: 31 }, (_, at) => ({ ...SESSION, session_id: `v${String(at + 1)}`, visit_id: `v${String(at + 1)}` }));
     renderAt('/sessions', { sessions: many });
     const earlier = await screen.findByRole('button', { name: 'Show earlier sessions' }, { timeout: 5000 });
     expect(screen.getAllByRole('button', { name: /Table 3/ })).toHaveLength(30);
@@ -168,7 +170,7 @@ describe('a session', () => {
   });
 
   it('shows a tournament with its place in the field', async () => {
-    renderAt('/sessions/t1', { sessions: [{ ...SESSION, visit_id: 't1', table_name: 'RIVR Sunday', kind: 'tournament', place: 4, entrants: 61 }] });
+    renderAt('/sessions/t1', { sessions: [{ ...SESSION, session_id: 't1', visit_id: 't1', table_name: 'RIVR Sunday', kind: 'tournament', place: 4, entrants: 61 }] });
     expect(await screen.findByText('Tournament · place 4 of 61', {}, { timeout: 5000 })).toBeDefined();
   });
 

@@ -2,11 +2,9 @@ import type { MySession } from '@rivr/db/sessions';
 import { clubDay } from '@rivr/domain/clubDay';
 import { formatDate, formatDuration, formatNumber, t } from '@rivr/i18n';
 
-/** A session's name: the table played longest, and how many others: `Table 2 and 1 more`. */
+/** A session's name: its table, each table of a night its own session (the owner, 9 Nov), or the tournament. */
 export function sessionTitle(session: MySession): string {
-  return session.otherTables === 0
-    ? session.tableName
-    : t('player.sessions.moreTables', { table: session.tableName, count: formatNumber(session.otherTables) });
+  return session.tableName;
 }
 
 /** A session's line under its name: how long, `6 h 30 min`, and for a tournament (#549) its place in the field first. */

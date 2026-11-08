@@ -29,7 +29,9 @@ test.describe('Attribution', () => {
 
     // The link points at Rewards: sign-in and sign-up return there once joined (#233).
     await page.setViewportSize(VIEWPORT.player);
-    await page.goto(`${appUrl('player')}/rewards?ref=FRIEND1&utm_source=instagram&utm_campaign=launch`);
+    // A member's own referral code: sign-up refuses one that names nobody (the owner, 9 Nov).
+    const code = sql(`select referral_code from public.member where phone = '+919000000213'`);
+    await page.goto(`${appUrl('player')}/rewards?ref=${code}&utm_source=instagram&utm_campaign=launch`);
     await page.getByRole('textbox', { name: 'Mobile number' }).fill(NUMBER);
     await page.getByRole('button', { name: 'Send code' }).click();
     await page.getByRole('textbox', { name: '6-digit code' }).fill('123456');
@@ -51,6 +53,8 @@ test.describe('Attribution', () => {
     await games.getByRole('button', { name: 'PLO', exact: true }).click();
     await games.getByRole('button', { name: 'Bomb pots', exact: true }).click();
     await games.getByRole('button', { name: 'Done' }).click();
+    // The friend's code from the link, shown to keep, change or clear (the owner, 9 Nov).
+    await expect(page.getByRole('textbox', { name: /^Referral code/ })).toHaveValue(code);
     await page.getByRole('button', { name: 'Continue' }).click();
     // A new member's identity check is not done, so they see only its steps first (#632).
     await expect(page.getByRole('heading', { name: 'Verify your identity', level: 1 })).toBeVisible();
@@ -58,7 +62,7 @@ test.describe('Attribution', () => {
     expect(
       sql(`select m.full_name || '|' || a.referral_code || '|' || a.utm_source || '|' || a.utm_campaign
            from public.sign_up_attribution a join public.member m on m.id = a.member_id where m.phone = '+91${NUMBER}'`),
-    ).toBe('Tara Joshi|FRIEND1|instagram|launch');
+    ).toBe(`Tara Joshi|${code}|instagram|launch`);
     expect(sql(`select p.city || '|' || p.occupation || '|' || array_to_string(p.play_times, ',') || '|'
                 || array_to_string(array(select g from unnest(p.games_played) g order by g), ',')
                 from public.member_preference p join public.member m on m.id = p.member_id where m.phone = '+91${NUMBER}'`))

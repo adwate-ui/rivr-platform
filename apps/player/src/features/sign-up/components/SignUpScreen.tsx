@@ -1,6 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { ATTRIBUTION_CODE } from '@rivr/contracts/attribution';
 import {
-  GAMES_PLAYED, OCCUPATIONS, PLAY_TIMES, useAuthStatus, useMember, useSignedInPhone, useSignOut, useSignUp, type SignUpFailure,
+  GAMES_PLAYED, OCCUPATIONS, PLAY_TIMES, storedReferralCode, useAuthStatus, useMember, useSignedInPhone, useSignOut, useSignUp,
+  type SignUpFailure,
 } from '@rivr/db';
 import { formatMobile, t, type MessageKey } from '@rivr/i18n';
 import { Button, ErrorMessage, Input, PickerSheet, Stack, StepScreen, Text } from '@rivr/ui';
@@ -10,18 +12,20 @@ import { Controller, useForm, type Control, type UseFormReturn } from 'react-hoo
 import { z } from 'zod';
 
 // The name as on Aadhaar and the city in English letters, as the database requires; one occupation, when they usually play
-// (any, #631) and any games (#653).
+// (any, #631) and any games (#653); a friend's referral code, optional (the owner, 9 Nov), as a link's code may be.
 const signUpForm = z.object({
   fullName: z.string().trim().min(2).max(100).regex(/^[A-Za-z][A-Za-z .'-]*$/),
   city: z.string().trim().min(2).max(60).regex(/^[A-Za-z][A-Za-z .'-]*$/),
   occupation: z.enum(OCCUPATIONS),
   playTimes: z.array(z.enum(PLAY_TIMES)),
   gamesPlayed: z.array(z.enum(GAMES_PLAYED)),
+  referralCode: z.string().trim().refine((code) => code === '' || ATTRIBUTION_CODE.test(code)),
 });
 type SignUpForm = z.input<typeof signUpForm>;
 
 const FAILURE_COPY: Readonly<Record<SignUpFailure, MessageKey>> = {
   invalid_name: 'player.signUp.nameInvalid',
+  invalid_referral: 'player.signUp.referralUnknown',
   invalid_answers: 'player.signUp.answersInvalid',
   photo_failed: 'player.signUp.photoFailed',
   stopped: 'player.signUp.stopped',
@@ -61,11 +65,12 @@ function YourGame({ control, occupationError }: { control: Control<SignUpForm>; 
 
 type Form = UseFormReturn<SignUpForm, unknown, z.output<typeof signUpForm>>;
 
-/** The name as on Aadhaar and the city, each a box with its label inside, then their game. */
+/** The name as on Aadhaar and the city, each a box with its label inside, then their game, then a friend's referral code. */
 function SignUpFields({ form }: { form: Form }) {
   const { errors } = form.formState;
   const nameField = form.register('fullName');
   const cityField = form.register('city');
+  const referralField = form.register('referralCode');
   return (
     <Stack gap={8}>
       <Stack gap={3}>
@@ -75,6 +80,8 @@ function SignUpFields({ form }: { form: Form }) {
           autoComplete="address-level2" maxLength={60} error={errors.city ? t('player.signUp.cityInvalid') : undefined} />
       </Stack>
       <YourGame control={form.control} occupationError={errors.occupation ? t('player.signUp.occupationNeeded') : undefined} />
+      <Input {...referralField} variant="inset" label={t('player.signUp.referralLabel')}
+        autoComplete="off" maxLength={64} error={errors.referralCode ? t('player.signUp.referralInvalid') : undefined} />
     </Stack>
   );
 }
@@ -94,7 +101,11 @@ export function SignUpScreen() {
   const { next } = useSearch({ from: '/sign-up' });
   const [failure, setFailure] = useState<SignUpFailure | null>(null);
   const [resolver] = useState(() => zodResolver(signUpForm));
-  const form = useForm<SignUpForm, unknown, z.output<typeof signUpForm>>({ resolver, defaultValues: { fullName: '', city: '', playTimes: [], gamesPlayed: [] } });
+  // The code of the friend's link they arrived by, shown to keep, change or clear.
+  const [referralCode] = useState(storedReferralCode);
+  const form = useForm<SignUpForm, unknown, z.output<typeof signUpForm>>({
+    resolver, defaultValues: { fullName: '', city: '', playTimes: [], gamesPlayed: [], referralCode },
+  });
 
   const join = form.handleSubmit(async (answers) => {
     const joined = await signUp.mutateAsync({ ...answers, photo: null });

@@ -1,5 +1,6 @@
--- The referral programme (#151). Yash (214) signed up with Mihir's (213) code; his first buy-in completes the referral
--- and the referral promotion (seeded live) gives each of them ₹1,000 of bonus. 103 seats; 104 is the cashier.
+-- The referral programme (#151). Yash (214) signed up with Mihir's (213) code; his first seat, once past its two minutes
+-- of Undo, completes the referral (the owner, 9 Nov; decision 0509) and the referral promotion (seeded live) gives each of
+-- them ₹1,000 of bonus. A buy-in, or a later seat, completes nothing; nor does a seat undone. 103 seats; 104 is the cashier.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -23,8 +24,8 @@ create function pg_temp.referral_bonus(p_member text) returns bigint language sq
   select coalesce(sum(amount_paise), 0)::bigint from public.bonus_grant where member_id = p_member::uuid and reason = 'Referral';
 $$;
 
-select is((select count(*)::integer from public.cage_transaction where member_id = '00000000-0000-4000-8000-000000000214' and kind = 'buy_in'), 0,
-  'Yash has never bought in');
+select is((select count(*)::integer from public.seat_session where member_id = '00000000-0000-4000-8000-000000000214'), 0,
+  'Yash has never sat at a table');
 insert into public.sign_up_attribution (member_id, venue_id, referral_code)
 select '00000000-0000-4000-8000-000000000214', venue_id, lower(referral_code) from public.member where id = '00000000-0000-4000-8000-000000000213'
 on conflict (member_id) do update set referral_code = excluded.referral_code;
@@ -56,22 +57,33 @@ delete from public.promotion where id = '00000000-0000-4000-8000-0000000000f9';
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select isnt(public.seat_member((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 3'), 5, '9000000214'),
-  null, 'Yash sits at Table 3');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select isnt(public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214', 1000000, 'cash', gen_random_uuid()),
-  null, 'and buys in ₹10,000 for the first time');
+  null, 'Yash sits at Table 3 for the first time');
 reset role;
+select private.sweep_referrals();
+select is((select count(*)::integer from public.referral), 0, 'while his seat may still be undone, nothing is completed');
+-- Three minutes on: his seat is past its Undo.
+update public.seat_session set started_at = now() - interval '3 minutes', seated_here_at = now() - interval '3 minutes'
+where member_id = '00000000-0000-4000-8000-000000000214' and ended_at is null;
+select private.sweep_referrals();
 
 select results_eq($$ select member_id, referrer_member_id from public.referral $$,
-  $$ values ('00000000-0000-4000-8000-000000000214'::uuid, '00000000-0000-4000-8000-000000000213'::uuid) $$, 'his first buy-in completes the referral');
+  $$ values ('00000000-0000-4000-8000-000000000214'::uuid, '00000000-0000-4000-8000-000000000213'::uuid) $$, 'his first seat completes the referral');
 select is(pg_temp.referral_bonus('00000000-0000-4000-8000-000000000214'), 100000::bigint, 'Yash gets ₹1,000 of bonus');
 select is(pg_temp.referral_bonus('00000000-0000-4000-8000-000000000213'), 100000::bigint, 'and so does Mihir');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select isnt(public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214', 1000000, 'cash', gen_random_uuid()),
-  null, 'Yash buys in again');
+  null, 'Yash buys in');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select lives_ok($$ select public.end_seat((select id from public.seat_session where member_id = '00000000-0000-4000-8000-000000000214' and ended_at is null), 'left') $$,
+  'leaves');
+select isnt(public.seat_member((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 3'), 6, '9000000214'),
+  null, 'and sits again');
 reset role;
-select is((select count(*)::integer from public.referral), 1, 'a second buy-in completes nothing more');
+update public.seat_session set started_at = now() - interval '3 minutes', seated_here_at = now() - interval '3 minutes'
+where member_id = '00000000-0000-4000-8000-000000000214' and ended_at is null;
+select private.sweep_referrals();
+select is((select count(*)::integer from public.referral), 1, 'a buy-in or a later seat completes nothing more');
 select is(pg_temp.referral_bonus('00000000-0000-4000-8000-000000000213'), 100000::bigint, 'and gives no more bonus');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
@@ -92,6 +104,52 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is((select count(*)::integer from public.referral where venue_id = '00000000-0000-4000-8000-0000000000e1'), 0,
   'staff see no referral of another venue');
 reset role;
+
+-- Rohan (217) signed up with Mihir's code and played three days ago, before this rule: the minute's sweep looks at the
+-- last day only, and the one-off run pays him (the owner, 9 Nov).
+insert into public.sign_up_attribution (member_id, venue_id, referral_code)
+select '00000000-0000-4000-8000-000000000217', venue_id, referral_code from public.member where id = '00000000-0000-4000-8000-000000000213'
+on conflict (member_id) do update set referral_code = excluded.referral_code;
+insert into public.visit (id, venue_id, member_id, opened_at, closed_at, close_reason)
+values ('00000000-0000-4000-8000-0000000c1661', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000217',
+        now() - interval '3 days', now() - interval '3 days' + interval '2 hours', 'door');
+insert into public.seat_session (venue_id, member_id, visit_id, table_id, seat, started_at, seated_here_at, ended_at, end_reason, call_time_minutes)
+select '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000217', '00000000-0000-4000-8000-0000000c1661', id, 2,
+       now() - interval '3 days', now() - interval '3 days', now() - interval '3 days' + interval '1 hour', 'left', 0
+from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 4';
+select is(private.sweep_referrals(), 0, 'the minute''s sweep does not reach a seat of three days ago');
+select is(private.sweep_referrals('-infinity'), 1, 'the one-off run pays his referral');
+select is((select count(*)::integer from public.referral where member_id = '00000000-0000-4000-8000-000000000217'), 1, 'once');
+
+-- A seat taken by mistake and undone pays nobody: Kunal (216) signed up with Mihir's code, is seated, and the floor undoes it.
+insert into public.sign_up_attribution (member_id, venue_id, referral_code)
+select '00000000-0000-4000-8000-000000000216', venue_id, referral_code from public.member where id = '00000000-0000-4000-8000-000000000213'
+on conflict (member_id) do update set referral_code = excluded.referral_code;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select lives_ok($$ select public.undo_seat(public.seat_member((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001'
+                                                                and name = 'Table 3'), 7, '9000000216')) $$, 'Kunal is seated by mistake, and the floor undoes it');
+reset role;
+select private.sweep_referrals();
+select is((select count(*)::integer from public.referral where member_id = '00000000-0000-4000-8000-000000000216'), 0,
+  'and no referral is completed for a seat undone');
+
+-- Seated again, left, and seated once more before the sweep: his first seat still pays.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select lives_ok($$ select public.end_seat(public.seat_member((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001'
+                                                               and name = 'Table 3'), 7, '9000000216'), 'left') $$, 'Kunal sits and leaves');
+select isnt(public.seat_member((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 1'), 7, '9000000216'),
+  null, 'and sits again at another table');
+reset role;
+update public.seat_session set started_at = started_at - interval '5 minutes', seated_here_at = seated_here_at - interval '5 minutes'
+where member_id = '00000000-0000-4000-8000-000000000216';
+-- While promotions are stopped the sweep waits; released, it pays.
+insert into public.control_state (venue_id, level, feature, reason, engaged_by_staff_id)
+select '00000000-0000-4000-8000-000000000001', 'feature_kill', 'promotions', 'test 166', s.id
+from public.staff s where s.user_id = '00000000-0000-4000-8000-000000000101' and s.venue_id = '00000000-0000-4000-8000-000000000001';
+select is(private.sweep_referrals(), 0, 'while promotions are stopped, nothing is completed');
+update public.control_state set released_at = now(), release_reason = 'test 166 over', released_by_staff_id = engaged_by_staff_id
+where reason = 'test 166';
+select is(private.sweep_referrals(), 1, 'released, his first seat pays, though he sat again after it');
 
 -- A code counts only while its member can refer: their tier has referrals, and they have not excluded themselves.
 insert into public.member (id, venue_id, full_name, phone)
@@ -130,10 +188,11 @@ select is((select count(distinct referral_code)::integer from public.member), (s
 select is((select count(*)::integer from public.member where referral_code = 'RIVR' || member_number::text), 0, 'and none is the member number');
 select isnt((select referral_code from public.member where id = '00000000-0000-4000-8000-0000000000e3'), null, 'a new member gets one as they join');
 
--- A monthly budget counts this month's grants only (#562): the referral's two ₹1,000 grants use a ₹2,000 monthly budget
--- up this month, and next month it is whole again; a budget for the whole promotion stays used.
+-- A monthly budget counts this month's grants only (#562): the three referrals' six ₹1,000 grants (Yash's, Rohan's and
+-- Kunal's, each side) use a ₹6,000 monthly budget up this month, and next month it is whole again; a budget for the whole
+-- promotion stays used.
 insert into public.promotion_budget (venue_id, promotion_id, cap_paise, period)
-select venue_id, id, 200000, 'month' from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key = 'referral';
+select venue_id, id, 600000, 'month' from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key = 'referral';
 create function pg_temp.budget_left(p_day date) returns bigint language sql as $$
   select (private.promotion_candidate(p, 'referral', jsonb_build_object('club_day', p_day),
           jsonb_build_object('member_id', '00000000-0000-4000-8000-000000000213', 'key', 'test:budget')) ->> 'budget_left_paise')::bigint
@@ -142,7 +201,7 @@ $$;
 select is(pg_temp.budget_left((select max(club_day) from public.promotion_grant g join public.promotion p on p.id = g.promotion_id
                                where p.template_key = 'referral')), 0::bigint, 'this month''s referrals have used the monthly budget');
 select is(pg_temp.budget_left(((select max(club_day) from public.promotion_grant g join public.promotion p on p.id = g.promotion_id
-                                where p.template_key = 'referral') + interval '1 month')::date), 200000::bigint, 'next month it is whole again');
+                                where p.template_key = 'referral') + interval '1 month')::date), 600000::bigint, 'next month it is whole again');
 update public.promotion_budget set period = 'promotion' where promotion_id = (select id from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key = 'referral');
 select is(pg_temp.budget_left(((select max(club_day) from public.promotion_grant g join public.promotion p on p.id = g.promotion_id
                                 where p.template_key = 'referral') + interval '1 month')::date), 0::bigint, 'a budget for the whole promotion stays used');

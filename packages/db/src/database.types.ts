@@ -5330,7 +5330,7 @@ isOneToOne: false
                            },
 "members_of_tier":
 { Args: { "p_tier_id"?: string,"p_venue_id": string }; Returns: {
-              "city": string,"full_name": string,"kyc_status": string,"last_visit_at": string,"member_id": string,"member_number": number,"member_since": string,"minutes_played": number,"phone": string,"phone_last4": string,"tier_name": string,"visits": number
+              "aadhaar_name": string,"address": string,"city": string,"creator_code": string,"date_of_birth": string,"first_seen_at": string,"full_name": string,"games_played": (string)[],"known_as": string,"kyc_method": string,"kyc_status": string,"kyc_verified_at": string,"last_visit_at": string,"masked_aadhaar": string,"member_id": string,"member_number": number,"member_since": string,"minutes_played": number,"occupation": string,"own_referral_code": string,"pan": string,"phone": string,"phone_last4": string,"play_times": (string)[],"referral_code": string,"tier_name": string,"utm_campaign": string,"utm_content": string,"utm_medium": string,"utm_source": string,"utm_term": string,"visits": number
             }[]
                            },
 "message_recipient":
@@ -5470,7 +5470,7 @@ isOneToOne: false
                            },
 "my_sessions":
 { Args: Record<PropertyKey, never>; Returns: {
-              "big_blind_paise": number,"bonus_paise": number,"buy_in_paise": number,"cash_out_paise": number,"closed_at": string,"entrants": number,"kind": string,"month": string,"month_net_paise": number,"month_played_seconds": number,"month_sessions": number,"net_paise": number,"opened_at": string,"other_tables": number,"paid_paise": number,"place": number,"played_seconds": number,"receipt": string,"small_blind_paise": number,"table_name": string,"tds_basis": string,"tds_paise": number,"visit_id": string
+              "big_blind_paise": number,"bonus_paise": number,"buy_in_paise": number,"cash_out_paise": number,"closed_at": string,"entrants": number,"kind": string,"month": string,"month_net_paise": number,"month_played_seconds": number,"month_sessions": number,"net_paise": number,"opened_at": string,"paid_paise": number,"place": number,"played_seconds": number,"receipt": string,"session_id": string,"small_blind_paise": number,"table_name": string,"tds_basis": string,"tds_paise": number,"visit_id": string
             }[]
                            },
 "my_stakes":

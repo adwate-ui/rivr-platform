@@ -75,18 +75,32 @@ describe('Members', () => {
       members_of_tier: { body: [{
         member_id: 'm1', member_number: 2, full_name: 'Kabir Sethi', phone: null, phone_last4: '0102', tier_name: 'Member', visits: 0, last_visit_at: null,
         kyc_status: 'at_desk', minutes_played: 135, city: 'Gurugram', member_since: '2026-10-20T10:00:00Z',
+        known_as: null, own_referral_code: 'K7M2PQ9X', occupation: 'salaried', play_times: ['weekends', 'someday'], games_played: ['plo'],
+        referral_code: 'FRIEND1', creator_code: null, utm_source: 'instagram', utm_medium: null, utm_campaign: 'launch', utm_content: null, utm_term: null,
+        first_seen_at: null, kyc_method: 'digilocker', kyc_verified_at: '2026-10-21T15:00:00Z',
+        date_of_birth: null, pan: null, masked_aadhaar: null, aadhaar_name: null, address: null,
       }, {
         member_id: 'm2', member_number: 3, full_name: 'Arjun Mehta', phone: '+919000000103', phone_last4: '0103', tier_name: 'Member', visits: 2,
-        last_visit_at: null, kyc_status: 'pending', minutes_played: 0, city: null, member_since: '2026-10-21T10:00:00Z',
+        last_visit_at: null, kyc_status: 'pending', minutes_played: 0, city: null, member_since: '2026-10-21T10:00:00Z', occupation: 'astronaut',
       }] },
     });
     // The list's more (owner, 8 Nov): the last four digits for all, KYC, time played, city and since when.
     await waitFor(() => expect(result.current.everyone.data?.[0]).toEqual({
       memberId: 'm1', memberNumber: 2, fullName: 'Kabir Sethi', phone: null, phoneLast4: '0102', tierName: 'Member', visits: 0, lastVisitAt: null,
       kycStatus: 'at_desk', minutesPlayed: 135, city: 'Gurugram', memberSince: '2026-10-20T10:00:00Z',
+      // What an export adds (the owner, 9 Nov): the answers sign-up offers (an unknown code dropped), how they came, the check;
+      // no documents for staff who are not super admins.
+      details: {
+        knownAs: null, ownReferralCode: 'K7M2PQ9X', occupation: 'salaried', playTimes: ['weekends'], gamesPlayed: ['plo'],
+        referralCode: 'FRIEND1', creatorCode: null, campaign: { source: 'instagram', medium: null, name: 'launch', content: null, term: null },
+        firstSeenAt: null, kycMethod: 'digilocker', kycVerifiedAt: '2026-10-21T15:00:00Z',
+        dateOfBirth: null, pan: null, maskedAadhaar: null, aadhaarName: null, address: null,
+      },
     }));
     // A KYC status the console does not know reads as not done, never as verified.
     expect(result.current.everyone.data?.[1]).toMatchObject({ phone: '+919000000103', kycStatus: 'not_done', city: null });
+    // A row without the export's fields reads them as none.
+    expect(result.current.everyone.data?.[1]?.details).toMatchObject({ occupation: null, playTimes: [], gamesPlayed: [] });
     await waitFor(() => expect(result.current.ofTier.isSuccess).toBe(true));
     expect(calls.filter((call) => call.rpc === 'members_of_tier').map((call) => call.body)).toEqual(expect.arrayContaining([
       { p_venue_id: VENUE }, { p_venue_id: VENUE, p_tier_id: 't2' },

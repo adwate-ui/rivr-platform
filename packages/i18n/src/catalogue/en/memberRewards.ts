@@ -49,9 +49,9 @@ export const memberRewards = {
   /** Refer a friend (#151): the code is RIVR and the member's number. */
   referral: {
     title: 'Refer a friend',
-    how: 'Bonus chips for you both when a friend joins from your link and buys in.',
+    how: 'Bonus chips for you both when a friend joins from your link and takes their first seat.',
     /** The redesign's card (decision 0320): `{chips}` is `1,000`. */
-    offer: '{chips} bonus chips each when a friend joins and buys in.',
+    offer: '{chips} bonus chips each when a friend joins and takes their first seat.',
     joined: '{count} joined',
     copyLink: 'Copy link',
     shareInvite: 'Share invite',

@@ -12,9 +12,9 @@ import { ExportBar, useTableExporter } from './DataTableExport.tsx';
 import { filtersInWords, filtersOn, NO_FILTERS, passes, type ColumnFilters } from './filters.ts';
 import { HeaderRow, layoutOf, PlainBody, VirtualBody } from './rows.tsx';
 import { ticksFor, type DataTableSelection } from './Selection.tsx';
-import type { DataTableColumn, DataTableSort } from './columns.ts';
+import type { DataTableColumn, DataTableExportColumn, DataTableSort } from './columns.ts';
 
-export type { DataTableColumn, DataTableSelection, DataTableSort };
+export type { DataTableColumn, DataTableExportColumn, DataTableSelection, DataTableSort };
 
 /** The rows, or one of the states every list has. */
 export type DataTableState<Row> =
@@ -34,6 +34,8 @@ export type DataTableProps<Row> = DataTableState<Row> & {
   toolbar?: (rows: readonly Row[]) => ReactNode;
   /** The screen's own filters, in words, which an export records with the table's (#102): `Search: 9000`. */
   exportFilter?: string;
+  /** Columns only an export carries, after the table's own: fields a screen keeps off its table. */
+  exportColumns?: readonly DataTableExportColumn<Row>[];
   /**
    * Where the Export control goes in place of the table's top right: an element in the screen's title row, as the
    * Members prototype has it beside the title. Null while that element is not there yet, and nothing shows.
@@ -178,11 +180,15 @@ interface BarState {
 function useExportPlaced<Row>(props: DataTableProps<Row>, visible: readonly Row[], query: string, filters: ColumnFilters) {
   const exporter = useTableExporter();
   const menu = exporter === null || visible.length === 0 ? null
-    : <ExportBar exporter={exporter} label={props.label} columns={props.columns} rows={visible} filter={filtersInForce(props, query, filters)} />;
+    : <ExportBar exporter={exporter} label={props.label} columns={[...props.columns, ...(props.exportColumns ?? []).map(exportOnly)]} rows={visible}
+        filter={filtersInForce(props, query, filters)} />;
   const target = props.exportIn;
   if (target === undefined) return { here: menu, elsewhere: null };
   return { here: null, elsewhere: menu === null || target === null ? null : createPortal(menu, target) };
 }
+
+/** An export-only column as the export reads columns: its own value, and nothing drawn. */
+const exportOnly = <Row,>(column: DataTableExportColumn<Row>) => ({ ...column, cell: () => null });
 
 /** Filters, for a table with a column to filter: open or closed, with how many are in force. */
 function FiltersButton<Row>({ props, state }: { props: DataTableProps<Row>; state: BarState }) {

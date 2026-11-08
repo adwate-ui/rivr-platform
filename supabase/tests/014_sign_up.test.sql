@@ -22,11 +22,13 @@ begin
 end;
 $$;
 
+-- Mihir's (213) referral code, which the sign-up below came by.
+select set_config('test.code', (select referral_code from public.member where id = '00000000-0000-4000-8000-000000000213'), false);
 select pg_temp.as_user('00000000-0000-4000-8000-0000000000a1');
 select throws_ok($$ select public.sign_up('X', '{}') $$, '22023', null, 'a full name is needed');
 select throws_ok($$ select public.sign_up('Tаra Joshi', '{}') $$, '22023', null, 'a name with a lookalike letter is refused');
-select lives_ok(format($$ select public.sign_up('  Tara   Joshi ', '{"referral": "FRIEND1", "utmSource": "instagram",
-  "utmCampaign": "launch week", "creator": "<bad>", "firstSeenAt": "%s"}') $$,
+select lives_ok(format($$ select public.sign_up('  Tara   Joshi ', '{"referral": "%s", "utmSource": "instagram",
+  "utmCampaign": "launch week", "creator": "<bad>", "firstSeenAt": "%s"}') $$, current_setting('test.code'),
   to_char((now() - interval '1 day') at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')), 'a new number signs up');
 select is(public.sign_up('Someone Else', '{}'), (select m.id from public.member m where m.user_id = '00000000-0000-4000-8000-0000000000a1'),
   'signing up again gives the same member');
@@ -43,11 +45,11 @@ select results_eq(
             a.first_seen_at between now() - interval '2 days' and now()
      from public.sign_up_attribution a join public.member m on m.id = a.member_id
      where m.user_id = '00000000-0000-4000-8000-0000000000a1' $$,
-  $$ values ('FRIEND1'::text, null::text, 'instagram'::text, 'launch week'::text, true) $$,
+  $$ values (current_setting('test.code'), null::text, 'instagram'::text, 'launch week'::text, true) $$,
   'with the codes it arrived with, a malformed one dropped'
 );
 select is((select payload - 'member_id' from public.outbox_event where event_type = 'member.signed_up'),
-  '{"referral_code": "FRIEND1", "utm_source": "instagram", "utm_campaign": "launch week"}'::jsonb,
+  jsonb_build_object('referral_code', current_setting('test.code'), 'utm_source', 'instagram', 'utm_campaign', 'launch week'),
   'member.signed_up carries the codes');
 select is((select count(*)::int from public.outbox_event where event_type = 'member.signed_up'), 1, 'once');
 
@@ -69,7 +71,9 @@ select is((select user_id from public.member where full_name = 'Training record'
 
 -- A first-seen time that is not a real time, or too old, is dropped; the sign-up goes through.
 select pg_temp.as_user('00000000-0000-4000-8000-0000000000a5');
-select lives_ok($$ select public.sign_up('Kiran Rao', '{"referral": "FRIEND2", "firstSeenAt": "2026-02-30T10:00:00Z"}') $$,
+-- A referral code that names no member is refused, so the player can put it right (the owner, 9 Nov).
+select throws_ok($$ select public.sign_up('Kiran Rao', '{"referral": "NOSUCH42"}') $$, 'RVREF', null, 'a code no member has is refused');
+select lives_ok($$ select public.sign_up('Kiran Rao', '{"firstSeenAt": "2026-02-30T10:00:00Z"}') $$,
   'a first-seen time that is not a real date never stops a sign-up');
 reset role;
 select is((select a.first_seen_at from public.sign_up_attribution a join public.member m on m.id = a.member_id

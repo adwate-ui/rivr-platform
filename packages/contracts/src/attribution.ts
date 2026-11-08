@@ -18,8 +18,9 @@ export type AttributionField = (typeof ATTRIBUTION_PARAMS)[number][0];
 export type Attribution = Partial<Record<AttributionField, string>>;
 
 // A code is short and plain: letters, digits, spaces and _ . + -, at most 64. The database holds
-// the same rule (public.attribution_code).
-const CODE = /^[A-Za-z0-9 _.+-]{1,64}$/;
+// the same rule (public.attribution_code); sign-up's referral code field too.
+export const ATTRIBUTION_CODE = /^[A-Za-z0-9 _.+-]{1,64}$/;
+const CODE = ATTRIBUTION_CODE;
 
 /** The codes as a query string, for a link that hands the player on, or for keeping them alone. */
 export function attributionSearch(attribution: Attribution): string {

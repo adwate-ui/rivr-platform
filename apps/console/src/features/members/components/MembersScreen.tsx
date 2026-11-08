@@ -30,6 +30,7 @@ export function MembersScreen(props: MembersScreenProps) {
   const { permissions, venueId } = staff.venue;
   if (!permissions.includes('members.read')) return <Screen title={title} status="error" errorText={t('console.members.notAllowed')} />;
   const can: RecordAccess = {
+    seesIdentity: staff.venue.role === 'super_admin',
     manage: permissions.includes('members.manage'),
     seePhoto: permissions.includes('kyc.review') || permissions.includes('cage.transact'),
     override: permissions.includes('members.override_features'),
@@ -49,7 +50,7 @@ function Members({ title, venueId, can, memberId, part, onNavigate }: MembersScr
       {/* The list stays in place as a record opens, so the search typed stays (C-02). */}
       <SplitView layout="docked" backLabel={t('console.members.back')} onBack={() => onNavigate('/members')}
         list={<MemberList venueId={venueId} tonight={tonight} onOpen={(id) => onNavigate(recordHref(id))} exportIn={exportIn} seesPhone={can.changePhone}
-          isDocked={memberId !== undefined} />}
+          seesIdentity={can.seesIdentity} isDocked={memberId !== undefined} />}
         detail={memberId === undefined ? null : (
           <MemberRecordPanel key={memberId} venueId={venueId} memberId={memberId} can={can} part={part}
             tonight={tonight.get(memberId)} onNavigate={onNavigate} />

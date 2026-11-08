@@ -10,6 +10,6 @@ export const sessionsRoute = createRoute({ getParentRoute: () => frameRoute, pat
 /** One session's detail, with its receipt (#127). */
 export const sessionRoute = createRoute({
   getParentRoute: () => frameRoute,
-  path: '/sessions/$visitId',
+  path: '/sessions/$sessionId',
   component: lazyRouteComponent(sessions, 'SessionScreen'),
 });

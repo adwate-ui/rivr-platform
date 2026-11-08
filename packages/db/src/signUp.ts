@@ -1,13 +1,13 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { forgetAttribution, storedAttribution } from './attribution.ts';
+import { forgetAttribution, storedAttribution, type SignUpAttribution } from './attribution.ts';
 import type { RivrClient } from './client.ts';
 import { toBase64 } from './kyc.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
 /** Why a sign-up did not go through, as the screen tells it: the name, an answer, the photo, paused, or anything else. */
-export type SignUpFailure = 'invalid_name' | 'invalid_answers' | 'photo_failed' | 'stopped' | 'unavailable';
+export type SignUpFailure = 'invalid_name' | 'invalid_referral' | 'invalid_answers' | 'photo_failed' | 'stopped' | 'unavailable';
 
 /** What best describes the member (#631), one of these. */
 export const OCCUPATIONS = [
@@ -32,10 +32,30 @@ export interface SignUpDetails {
   readonly gamesPlayed: readonly GamePlayed[];
   /** A JPEG, as `shrinkPhoto` makes it. */
   readonly photo: Blob | null;
+  /**
+   * The referral code as the player left it (the owner, 9 Nov): typed, kept from their friend's link, or cleared (''). Left
+   * out, the link's own.
+   */
+  readonly referralCode?: string | undefined;
+}
+
+/** The codes the link carried, with the referral code the player typed or cleared in its place. */
+function codesOf(stored: SignUpAttribution | null, referralCode: string | undefined): SignUpAttribution {
+  const codes: SignUpAttribution = { ...stored };
+  if (referralCode === undefined) return codes;
+  delete codes.referral;
+  const typed = referralCode.trim();
+  return typed === '' ? codes : { ...codes, referral: typed };
+}
+
+/** The referral code of the friend's link the player arrived by, for the sign-up form to show; '' for none. */
+export function storedReferralCode(): string {
+  return storedAttribution()?.referral ?? '';
 }
 
 function failureOf(code: string | undefined): SignUpFailure {
   if (code === '22023') return 'invalid_name';
+  if (code === 'RVREF') return 'invalid_referral';
   if (code === 'RVKIL' || code === 'RVFRZ' || code === 'RVMBR') return 'stopped';
   return 'unavailable';
 }
@@ -51,7 +71,7 @@ async function sendPhoto(client: RivrClient, photo: Blob): Promise<boolean> {
 
 /** Becomes a member, saves the answers, then sends the photo; each step may run again after a failure. */
 async function signUpWith(client: RivrClient, details: SignUpDetails): Promise<Result<null, SignUpFailure>> {
-  const joined = await client.rpc('sign_up', { p_full_name: details.fullName, p_attribution: storedAttribution() ?? {} });
+  const joined = await client.rpc('sign_up', { p_full_name: details.fullName, p_attribution: codesOf(storedAttribution(), details.referralCode) });
   if (joined.error) return err(failureOf(joined.error.code));
   const answered = await client.rpc('set_my_sign_up_answers', {
     p_city: details.city, p_occupation: details.occupation, p_play_times: [...details.playTimes], p_games_played: [...details.gamesPlayed],

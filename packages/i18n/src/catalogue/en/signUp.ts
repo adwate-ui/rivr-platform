@@ -18,6 +18,10 @@ export const playerSignUp = {
   cityLabel: 'City',
   cityPlaceholder: 'Gurugram',
   cityInvalid: 'Enter your city.',
+  /** A friend's referral code (the owner, 9 Nov): shown from their invite link, or typed. */
+  referralLabel: 'Referral code (optional)',
+  referralInvalid: 'Letters, numbers, spaces and _ . + - only.',
+  referralUnknown: 'No member has that code. Check it, or leave it empty.',
   yourGame: 'Your game',
   select: 'Select',
   selectAny: 'Select any',

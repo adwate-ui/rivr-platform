@@ -57,6 +57,23 @@ describe('useSignUp', () => {
     expect(storedAttribution()).toBeNull();
   });
 
+  it('carries the referral code the player typed in the link\'s place, or none once they cleared it (the owner, 9 Nov)', async () => {
+    rememberAttribution('?ref=FRIEND1&utm_source=instagram');
+    const sent = (calls: { url: string; body: unknown }[]) => calls.find((call) => call.url.includes('/rpc/sign_up'))?.body;
+    const typed = renderSignUp(JOINED);
+    await act(() => typed.result.current.mutateAsync({ ...DETAILS, referralCode: ' K7M2PQ9X ' }));
+    expect(sent(typed.calls)).toMatchObject({ p_attribution: { referral: 'K7M2PQ9X', utmSource: 'instagram' } });
+
+    rememberAttribution('?ref=FRIEND1&utm_source=instagram');
+    const cleared = renderSignUp(JOINED);
+    await act(() => cleared.result.current.mutateAsync({ ...DETAILS, referralCode: '' }));
+    expect(sent(cleared.calls)).toEqual({ p_full_name: 'Tara Joshi', p_attribution: expect.not.objectContaining({ referral: expect.anything() }) });
+
+    const noLink = renderSignUp(JOINED);
+    await act(() => noLink.result.current.mutateAsync({ ...DETAILS, referralCode: 'K7M2PQ9X' }));
+    expect(sent(noLink.calls)).toEqual({ p_full_name: 'Tara Joshi', p_attribution: { referral: 'K7M2PQ9X' } });
+  });
+
   it('sends the photo through the kyc function, as the selfie goes', async () => {
     const photo = new Blob(['photo'], { type: 'image/jpeg' });
     const { result, calls } = renderSignUp({ ...JOINED, '/functions/v1/kyc': { body: { status: 'kept' } } });
@@ -72,6 +89,11 @@ describe('useSignUp', () => {
 
     const unfit = renderSignUp({ ...JOINED, '/rpc/set_my_sign_up_answers': { status: 400, body: { code: '22023', message: 'Answer from the lists' } } });
     expect(await act(() => unfit.result.current.mutateAsync(DETAILS))).toEqual({ ok: false, error: 'invalid_answers' });
+  });
+
+  it('says when the referral code names no member (the owner, 9 Nov)', async () => {
+    const unknown = renderSignUp({ '/rpc/sign_up': { status: 400, body: { code: 'RVREF', message: 'No member has that referral code' } } });
+    expect(await act(() => unknown.result.current.mutateAsync({ ...DETAILS, referralCode: 'NOSUCH42' }))).toEqual({ ok: false, error: 'invalid_referral' });
   });
 
   it('says when the name was refused or sign-up is switched off', async () => {

@@ -17,7 +17,7 @@ export {
   type DisplayMode, type ShowsAs, type TierCell, type TierCellChange, type TierFailure, type TierMatrix,
 } from './tierMatrix.ts';
 export {
-  GAMES_PLAYED, OCCUPATIONS, PLAY_TIMES, useSignedInPhone, useSignUp, type GamePlayed, type Occupation, type PlayTime, type SignUpDetails,
+  GAMES_PLAYED, OCCUPATIONS, PLAY_TIMES, useSignedInPhone, storedReferralCode, useSignUp, type GamePlayed, type Occupation, type PlayTime, type SignUpDetails,
   type SignUpFailure,
 } from './signUp.ts';
 export { rememberAttribution, storedAttribution, type SignUpAttribution } from './attribution.ts';
@@ -104,6 +104,7 @@ export {
   isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberRecord, useMembersOfTier, useMemberSearch, useVenueTiers, useWithdrawEarlyDeparture, type EarlyDeparture, type EarlyDepartureFailure, type MemberFailure, type MemberKycStatus, type MemberListRow,
   type MemberRecord, type MemberRow, type TierChange, type VenueTier,
 } from './members.ts';
+export type { MemberExportDetails } from './memberDetails.ts';
 export { useMemberSignUp, type MemberSignUp, type SignUpCampaign } from './memberSignUp.ts';
 export { useChangeMemberPhone, type PhoneChangeFailure } from './memberPhone.ts';
 export {
