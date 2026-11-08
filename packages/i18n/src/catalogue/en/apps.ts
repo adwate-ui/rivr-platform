@@ -87,9 +87,9 @@ export const playerApp = {
     /** The member's verified selfie on the card (decision 0300). */
     photo: 'Your photo',
     /** No connection before the card came (F3-25): the door checks a member in by number too. */
-    offline: 'No connection. Give your number at the door.',
-    /** The same, when the phone kept the number from the last time (F-053). */
-    offlineNumber: 'No connection. Give your number at the door: {number}.',
+    offline: 'Give your number at the door.',
+    /** Over the number the phone kept from the last time (F-053). */
+    yourNumber: 'Your number',
     /** Under the QR, the first time the card shows in a session (F-182). */
     brightness: 'Turn your brightness up.',
   },

@@ -49,7 +49,7 @@ describe('Membership card', () => {
     onlineManager.setOnline(false);
     try {
       renderCard('never');
-      expect(await screen.findByText('No connection. Give your number at the door.')).toBeDefined();
+      expect(await screen.findByText('Give your number at the door.')).toBeDefined();
     } finally {
       onlineManager.setOnline(true);
     }
@@ -59,7 +59,10 @@ describe('Membership card', () => {
     Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false });
     try {
       renderCard('never');
-      expect(screen.getByText('No connection. Give your number at the door.')).toBeDefined();
+      expect(screen.getByRole('heading', { name: 'No connection' })).toBeDefined();
+      expect(screen.getByText('Give your number at the door.')).toBeDefined();
+      expect(screen.queryByText('Your number')).toBeNull();
+      expect(screen.getByRole('button', { name: 'Try again' })).toBeDefined();
     } finally {
       Reflect.deleteProperty(navigator, 'onLine');
     }
@@ -69,7 +72,13 @@ describe('Membership card', () => {
     Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false });
     try {
       renderCard('never', CARD, { memberNumber: '1024', fullName: 'Kavya Rao', tierName: 'Member', code: 'old', msLeft: 0, photoPath: null });
-      expect(await screen.findByText('No connection. Give your number at the door: 1024.', {}, { timeout: 5000 })).toBeDefined();
+      expect(await screen.findByRole('heading', { name: 'No connection' }, { timeout: 5000 })).toBeDefined();
+      expect(screen.getByText('Your number')).toBeDefined();
+      // Large and at full contrast, in the card's figure style, with nothing after it to read past.
+      expect(screen.getByText('1024').className).toContain('text-56');
+      expect(screen.getByText('1024').className).not.toContain('muted');
+      expect(screen.getByText('Give your number at the door.')).toBeDefined();
+      expect(screen.getByRole('button', { name: 'Try again' })).toBeDefined();
     } finally {
       Reflect.deleteProperty(navigator, 'onLine');
     }
@@ -116,7 +125,7 @@ describe('Membership card', () => {
     Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false });
     try {
       renderCard('never');
-      expect(screen.getByText('No connection. Give your number at the door.')).toBeDefined();
+      expect(screen.getByText('Give your number at the door.')).toBeDefined();
       expect(screen.queryByText('Turn your brightness up.')).toBeNull();
     } finally {
       Reflect.deleteProperty(navigator, 'onLine');

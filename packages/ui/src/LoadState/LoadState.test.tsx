@@ -36,6 +36,14 @@ describe('LoadState', () => {
     expect(screen.getByRole('alert')).not.toHaveTextContent('Check your connection');
   });
 
+  it('takes the serif line and what the member still needs under it, in the failure\u2019s own alert', () => {
+    renderIn(<LoadState isError look="serif" title="No connection" errorText="Give your number at the door."><span>1024</span></LoadState>);
+    const alert = screen.getByRole('alert');
+    expect(within(alert).getByRole('heading', { name: 'No connection' })).toBeInTheDocument();
+    expect(within(alert).getByText('1024')).toBeInTheDocument();
+    expect(alert).toHaveTextContent('Give your number at the door.');
+  });
+
   it('says why when told, and offers no Retry without one', () => {
     renderIn(<LoadState isError errorText="The archive could not be read." />);
     expect(screen.getByRole('alert')).toHaveTextContent('The archive could not be read.');
