@@ -29,7 +29,7 @@ src/
                       the address under `t.<table>` (`useAddressTableViews`, the club's days for date filters), which a
                       screen's own links keep (`useNavigateKeepingViews`; decision 0512)
     sign-in/          mobile number and code, as in the player app (decision 0032)
-    kyc-review/       identity checks waiting for a KYC reviewer: the queue beside the check open, decided with a reason in words, and Check in person in a sheet, beside the member's app selfie when they registered to be checked at the club (decision 0502) (/kyc-review)
+    kyc-review/       identity checks waiting for a KYC reviewer: the queue beside the check open, decided with a reason in words, and Check in person in a sheet, beside the member's app selfie when they registered to be checked at the club (decision 0502); for the floor and hosts, who is due tonight under the search, a check held for its PAN among them (audit F-010, F-091) (/kyc-review)
     academy/          Academy batches, company bookings, recording a UTR and cancelling (Academy staff,
                       /academy); the payments the cage checks against the bank (/academy/payments)
     live-floor/       the room plan and each table's seats (/): seat (redeeming bonus chips with the buy-in, decision 0504), move, away, leaving, top-ups and a player's call time (#638);
