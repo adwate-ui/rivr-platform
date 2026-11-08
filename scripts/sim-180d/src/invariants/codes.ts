@@ -29,6 +29,7 @@ export const CODES: Readonly<Record<string, Code>> = {
   N10: { area: 'privacy', source: 'The investor reads no member names or phones (90-day P01, audit 28 Oct P0)' },
   N11: { area: 'privacy', source: 'Hidden names never reach a TV (90-day P08, decision on TV names)' },
   N12: { area: 'features', source: 'KYC at the club: a reopened check pays no second welcome grant (5 Nov)' },
+  N13: { area: 'privacy', source: 'Hidden names never reach a TV, checked at 23:00 with the room full' },
   P04: { area: 'privacy', source: '90-day run P04: two people release a freeze' },
   P05: { area: 'privacy', source: '90-day run P05: nothing moves while frozen' },
   P07: { area: 'privacy', source: '90-day run P07: erasure leaves no trace' },

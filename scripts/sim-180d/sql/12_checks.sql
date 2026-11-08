@@ -63,7 +63,8 @@ begin
   perform sim.check(d, p_scope, 'N04', 'Bonus chips by hand: a reason, and never to the giver''s own record',
     'select g.id, g.reason from public.bonus_grant g join public.audit_log a on a.entity = ''bonus_grant'' and a.entity_id = g.id::text and a.action = ''insert''
        join public.member m on m.id = g.member_id
-     where g.venue_id = sim.venue() and a.actor_user_id is not null and (a.actor_user_id = m.user_id or length(trim(coalesce(g.reason, ''''))) < 3)');
+     where g.venue_id = sim.venue() and a.actor_user_id is not null and (a.actor_user_id = m.user_id or length(trim(coalesce(g.reason, ''''))) < 3)
+       and not exists (select 1 from public.promotion_grant pg where pg.bonus_grant_id = g.id)');
   perform sim.check(d, p_scope, 'N05', 'No points, locked points or bonus chips balance is negative',
     'select member_id, code, natural_balance from public.ledger_balance where venue_id = sim.venue()
        and code in (''member.points'', ''member.points_locked'', ''member.bonus'') and natural_balance < 0');

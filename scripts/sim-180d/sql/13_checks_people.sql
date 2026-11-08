@@ -15,8 +15,8 @@ begin
      union all select ''place'', w.id from b join public.waitlist_entry w on w.member_id = b.member_id and w.joined_at between b.from_at and b.to_at
      union all select ''seat'', s.id from b join public.seat_session s on s.member_id = b.member_id and s.started_at between b.from_at and b.to_at');
   perform sim.check(d, p_scope, 'N10', 'The investor reads no member names or phones',
-    'select id from public.member where full_name is not null or phone is not null
-     union all select id from public.audit_log where coalesce(after, before) ?| array[''phone'', ''full_name'']', sim.who('investor'));
+    'select id::text from public.member where full_name is not null or phone is not null
+     union all select id::text from public.audit_log where coalesce(after, before) ?| array[''phone'', ''full_name'']', sim.who('investor'));
   if p_scope <> 'night' then
     perform sim.check(d, p_scope, 'P07', 'An erased member''s name and phone appear nowhere', 'select * from sim.erased_traces()');
     perform sim.check(d, p_scope, 'N11', 'A name hidden from the TVs reaches no TV board and no public view', 'select * from sim.hidden_name_leaks()');
@@ -67,6 +67,13 @@ begin
     'select r.name from sim.rpc r where r.name not like ''edge:%'' and not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
        where n.nspname = ''public'' and p.proname = r.name
          and (has_function_privilege(''authenticated'', p.oid, ''execute'') or has_function_privilege(''anon'', p.oid, ''execute'')))');
+end $$;
+
+-- At 23:00, with the room full, what the paired TV shows: no name a member hid from the TVs.
+create function sim.checks_midnight(d int, p_scope text default 'midnight') returns void language plpgsql as $$
+begin
+  perform sim.check(d, p_scope, 'N13', 'A name hidden from the TVs never shows on a TV board while the club is open',
+    'select * from sim.hidden_name_leaks() where source = ''tv boards''');
 end $$;
 
 create function sim.check_invariants(d int, p_scope text) returns void language plpgsql as $$

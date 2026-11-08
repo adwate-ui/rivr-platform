@@ -48,6 +48,7 @@ begin
   perform sim.spins_tick();
   if i % 6 = 0 then perform sim.by_hand_tick(d); perform sim.host_tick(); end if;
   if i = 12 then perform sim.interest_tick(d); end if;
+  if i = 30 then perform sim.checks_midnight(d); end if;
 end $$;
 
 -- 04:00: every member still seated or waiting goes home through the door, every order is closed, every table shut.
