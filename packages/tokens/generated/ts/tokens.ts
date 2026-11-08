@@ -143,6 +143,8 @@ export const tokens = {
     "consoleHeader": 60,
     "text": 640,
     "photo": 160,
+    "column": 128,
+    "columnMenu": 288,
     "card": 342,
     "action": 54,
     "field": 60,

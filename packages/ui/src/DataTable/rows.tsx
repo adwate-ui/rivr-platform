@@ -1,13 +1,11 @@
 import { tokens } from '@rivr/tokens';
-import { Fragment, useState, type CSSProperties, type MouseEvent, type ReactNode, type Ref, type UIEvent } from 'react';
-import { Icon } from '../Icon/Icon.tsx';
+import { Fragment, useState, type CSSProperties, type MouseEvent, type ReactNode, type UIEvent } from 'react';
 import { cx } from '../internal/classes.ts';
-import { Text } from '../Text/Text.tsx';
 import { useIsWide } from '../useIsWide/useIsWide.ts';
-import type { DataTableColumn, DataTableSort } from './columns.ts';
+import type { DataTableColumn } from './columns.ts';
 import { textOf } from './DataTableExport.tsx';
 import { OpenedRow, placesOf } from './OpenedRow.tsx';
-import { TickCell, TickHeader, type Ticks } from './Selection.tsx';
+import { TickCell, type Ticks } from './Selection.tsx';
 
 // A line's height from 768 px, below 1180 px, where a row stays a 44 px target (decision 0282).
 const ROW_HEIGHT = tokens.space[12];
@@ -21,14 +19,14 @@ const BODY_HEIGHT = ROW_HEIGHT * 12;
 // Rows drawn beyond each edge of the view, so a quick scroll shows no gap.
 const OVERSCAN = 6;
 // A scrolling body and the header above it keep the same room for a scrollbar, so their columns line up.
-const GUTTER = { scrollbarGutter: 'stable' } as const;
+export const GUTTER = { scrollbarGutter: 'stable' } as const;
 
 type Priority = NonNullable<DataTableColumn<unknown>['priority']>;
 
 /** How the header and every row are drawn. */
 export interface Layout {
-  /** Below 768 px: a card per row, or the table's lines scrolling sideways. */
-  readonly narrow: 'cards' | 'scroll';
+  /** Below 768 px: a card per row, or the table's lines scrolling sideways; `sideways`, lines scrolling sideways at every width. */
+  readonly narrow: 'cards' | 'scroll' | 'sideways';
   /** A row's height from 1180 px. */
   readonly density: 'comfortable' | 'compact';
   readonly ticks: Ticks | null;
@@ -38,10 +36,13 @@ export interface Layout {
 
 export function layoutOf<Row>(columns: readonly DataTableColumn<Row>[], narrow: Layout['narrow'], density: Layout['density'], ticks: Ticks | null): Layout {
   const shares = columns.reduce((sum, column) => sum + (column.isWide ? 2 : 1), 0);
-  return { narrow, density, ticks, grid: ticks === null ? undefined : { gridTemplateColumns: `auto repeat(${shares}, minmax(0, 1fr))` } };
+  const ticksColumn = ticks === null ? '' : 'auto ';
+  // Sideways, each share is at least a column's width, so the line grows past the page and scrolls rather than squeeze.
+  if (narrow === 'sideways') return { narrow, density, ticks, grid: { gridTemplateColumns: `${ticksColumn}repeat(${shares}, minmax(${tokens.size.column}px, 1fr))` } };
+  return { narrow, density, ticks, grid: ticks === null ? undefined : { gridTemplateColumns: `${ticksColumn}repeat(${shares}, minmax(0, 1fr))` } };
 }
 
-const priorityOf = (column: DataTableColumn<never>, index: number): Priority => column.priority ?? (index === 0 ? 'primary' : 'secondary');
+export const priorityOf = (column: DataTableColumn<never>, index: number): Priority => column.priority ?? (index === 0 ? 'primary' : 'secondary');
 
 // From 768 px up a row is a line of equal columns; below, it is a card: its title, then a line for each other column.
 const WIDE_GRID = 'medium:grid medium:grid-flow-col medium:auto-cols-fr medium:items-center medium:gap-4';
@@ -51,7 +52,7 @@ const LINE = 'grid grid-flow-col auto-cols-fr items-center gap-4 max-medium:min-
 const HELD = 'max-medium:sticky max-medium:bg-surface';
 
 /** What differs between the layouts below 768 px. */
-const LOOK = {
+export const LOOK = {
   cards: {
     header: WIDE_GRID,
     row: `flex flex-col gap-1 py-3 ${WIDE_GRID}`,
@@ -78,23 +79,39 @@ const LOOK = {
     group: 'max-medium:overflow-x-auto',
     headerGroup: 'max-medium:overflow-x-hidden',
   },
+  // At every width (the docked Members table, owner 9 Nov): lines as wide as their columns need, scrolling sideways.
+  sideways: {
+    header: 'grid items-center gap-4 min-w-min',
+    row: 'grid items-center gap-4 min-w-min',
+    fixed: 'absolute inset-x-0 top-0 overflow-clip',
+    free: 'relative min-h-12 py-2',
+    headerCell: 'flex',
+    cell: { primary: '', secondary: '', optional: '' },
+    span: 'col-span-2',
+    end: 'text-end',
+    group: 'overflow-x-auto',
+    headerGroup: 'overflow-x-hidden',
+  },
 } as const;
 
 const DENSITY = { comfortable: 'tablet:min-h-row tablet:py-1', compact: 'tablet:min-h-row-compact tablet:py-1' } as const;
 
 /** The title's cell in the scroll layout below 768 px: held after the ticks, or at the start. */
-function heldTitle(layout: Layout): string | undefined {
+export function heldTitle(layout: Layout): string | undefined {
   if (layout.narrow === 'cards') return undefined;
+  // Sideways at every width the ticks are held where there are any, else the title.
+  if (layout.narrow === 'sideways') return layout.ticks === null ? 'sticky left-0 bg-surface' : undefined;
   return cx(HELD, layout.ticks === null ? 'max-medium:left-0' : 'max-medium:left-touch');
 }
 
 /** Where a tick sits below 768 px: held with the title, at a card's start, or alone in the cards' header row. */
-function tickPlace(layout: Layout, isHeader: boolean): string {
+export function tickPlace(layout: Layout, isHeader: boolean): string {
+  if (layout.narrow === 'sideways') return 'sticky left-0 bg-surface';
   if (layout.narrow === 'scroll') return `${HELD} max-medium:left-0`;
   return isHeader ? '' : 'absolute inset-y-0 left-0 medium:static';
 }
 
-function headerRowClasses(layout: Layout): string {
+export function headerRowClasses(layout: Layout): string {
   const look = LOOK[layout.narrow];
   // Below 768 px the cards' header shows only the tick for every row, above each card's.
   if (layout.narrow === 'cards' && layout.ticks !== null) return cx('relative flex border-b border-hairline medium:px-3', look.header);
@@ -124,59 +141,6 @@ function cellClasses<Row>(column: DataTableColumn<Row>, priority: Priority, layo
   // The console's type: the title 15 px medium, the rest 13 px, all in the full colour, which stays clear on a row's fill.
   return cx('min-w-0 font-text text-content wrap-anywhere', isTitle ? 'text-15 font-medium' : 'text-13', isOneLine && 'truncate',
     look.cell[priority], isTitle && heldTitle(layout), column.isWide && look.span, column.align === 'end' ? look.end : 'text-start');
-}
-
-interface HeaderCellProps<Row> {
-  readonly column: DataTableColumn<Row>;
-  readonly sort: DataTableSort | null;
-  readonly onSort: (key: string) => void;
-  readonly place: string;
-}
-
-function HeaderCell<Row>({ column, sort, onSort, place }: HeaderCellProps<Row>) {
-  const direction = sort?.key === column.key ? sort.direction : undefined;
-  const classes = cx('min-w-0', column.align === 'end' ? 'justify-end' : 'justify-start', place);
-  if (column.sortValue === undefined) {
-    return <div role="columnheader" className={classes}><Text variant="caption" tone="muted">{column.header}</Text></div>;
-  }
-  return (
-    <div role="columnheader" aria-sort={direction ?? 'none'} className={classes}>
-      <button type="button" onClick={() => onSort(column.key)}
-        className="flex min-h-touch min-w-touch items-center gap-1 font-text text-12 text-content-muted transition-colors hover:text-content focus-visible:text-content tablet:min-h-control tablet:min-w-0">
-        {column.header}
-        {direction === undefined ? null : <Icon name={direction === 'ascending' ? 'chevronUp' : 'chevronDown'} size="sm" />}
-      </button>
-    </div>
-  );
-}
-
-export interface HeaderRowProps<Row> {
-  readonly columns: readonly DataTableColumn<Row>[];
-  readonly sort: DataTableSort | null;
-  readonly onSort: (key: string) => void;
-  readonly layout: Layout;
-  /** Above a long list's scrolling body, which it keeps the same room for a scrollbar as. */
-  readonly isVirtual: boolean;
-  readonly ref: Ref<HTMLDivElement>;
-}
-
-/**
- * The header row: held at the top of the page's scrolling area, on the page's colour, as the rows pass under it. Shown
- * from 768 px, and below in the scroll layout, where it follows the body sideways; the cards name their own columns.
- */
-export function HeaderRow<Row>({ columns, sort, onSort, layout, isVirtual, ref }: HeaderRowProps<Row>) {
-  const look = LOOK[layout.narrow];
-  return (
-    <div role="rowgroup" ref={ref} className={cx('sticky top-0 z-nav bg-surface', look.headerGroup)} style={isVirtual ? { ...GUTTER, overflowY: 'hidden' } : undefined}>
-      <div role="row" aria-rowindex={1} className={headerRowClasses(layout)} style={layout.grid}>
-        {layout.ticks === null ? null : <TickHeader ticks={layout.ticks} place={tickPlace(layout, true)} />}
-        {columns.map((column, at) => (
-          <HeaderCell key={column.key} column={column} sort={sort} onSort={onSort}
-            place={cx(look.headerCell, column.isWide && look.span, priorityOf(column, at) === 'primary' && heldTitle(layout))} />
-        ))}
-      </div>
-    </div>
-  );
 }
 
 /** The title cell's content: when rows open, the button a keyboard and a screen reader open the row with. */

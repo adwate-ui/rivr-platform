@@ -13,6 +13,8 @@ export const promotions = {
   statuses: { draft: 'Draft', awaiting_approval: 'Awaiting approval', scheduled: 'Scheduled', live: 'Live', paused: 'Paused', ended: 'Ended' },
   list: {
     label: 'Promotions',
+    /** The Ended tab's table, which keeps a view of its own in the address (owner, 9 Nov). */
+    endedLabel: 'Ended promotions',
     filter: 'Show',
     all: 'All',
     empty: 'No promotions with this status.',

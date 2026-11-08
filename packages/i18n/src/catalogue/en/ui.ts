@@ -223,18 +223,37 @@ export const ui = {
   /** A console table's filter matching no row (#30): `{query}` is what was typed. */
   dataTable: {
     noMatch: 'Nothing matches {query}.',
-    /** A table's own filters (owner, 8 Nov): the button, with how many are in force, and what an export records. */
-    filters: 'Filters',
-    filtersCount: 'Filters, {count} in force',
-    clearFilters: 'Clear filters',
+    /**
+     * Every column's menu, from its header (owner, 9 Nov): its order and its filter, read as `Tier: sort and filter,
+     * filtered`; the filters in force as pills, each removed alone or all at once, with how many rows show of all.
+     */
+    columnMenu: '{column}: sort and filter',
+    filtered: 'filtered',
+    sorted: 'sorted {direction}',
+    sortAscending: 'Sort ascending',
+    sortDescending: 'Sort descending',
+    contains: 'Contains',
+    from: 'From',
+    to: 'To',
+    days: 'Days',
+    hoursUnit: 'h',
+    clearColumn: 'Clear',
+    clearAll: 'Clear all',
+    removeFilter: 'Remove filter {filter}',
+    shownOf: '{shown} of {total}',
     noFilterMatch: 'Nothing matches these filters.',
     filterInForce: '{label}: {value}',
     or: ' or ',
-    /** Sorting on a phone, where the header row is hidden (#605). */
-    sortBy: 'Sort by',
-    sortTable: 'Sort {table}',
-    sortByColumn: 'Sort by {column}',
-    sortedBy: 'Sorted by {column}, {direction}',
+    /** A filter's from and to in words, on its pill and in an export (owner, 9 Nov: every column filtered by its type). */
+    fromTo: '{from} to {to}',
+    atLeast: 'at least {value}',
+    atMost: 'at most {value}',
+    fromDay: 'from {day}',
+    toDay: 'to {day}',
+    datePresets: { today: 'Today', last7: 'Last 7 days', last30: 'Last 30 days', thisMonth: 'This month' },
+    /** Each column's menu on a phone, where the header row is hidden (#605). */
+    sortBy: 'Sort and filter',
+    sortTable: 'Sort and filter {table}',
     ascending: 'ascending',
     descending: 'descending',
     /**
