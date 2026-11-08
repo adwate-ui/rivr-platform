@@ -137,10 +137,11 @@ describe('Rewards', () => {
 
   it('cannot redeem a reward out of reach or one with none left', async () => {
     renderRewards();
-    const seat = await screen.findByRole('button', { name: 'Redeem Sunday Main Event seat' }, LATER);
+    // Named from what each shows first (WCAG 2.5.3).
+    const seat = await screen.findByRole('button', { name: '750 to go, Sunday Main Event seat' }, LATER);
     expect(seat.hasAttribute('disabled')).toBe(true);
     expect(seat.textContent).toBe('750 to go');
-    const hoodie = screen.getByRole('button', { name: 'Redeem RIVR hoodie' });
+    const hoodie = screen.getByRole('button', { name: 'None left, RIVR hoodie' });
     expect(hoodie.hasAttribute('disabled')).toBe(true);
     expect(hoodie.textContent).toBe('None left');
   });

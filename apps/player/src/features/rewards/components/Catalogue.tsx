@@ -65,7 +65,9 @@ function RewardRow({ item, balance, onRedeem }: { item: RewardItem; balance: big
         <Text variant="small" tone="accent">{priceText(item)}</Text>
         <Text variant="caption" tone="muted">{noteOf(item)}</Text>
       </Stack>
-      <Button variant="outline" shape="pill" isDisabled={isShort || item.stock === 0} aria-label={t('memberRewards.redeemName', { name: item.name })}
+      {/* Named from what it shows first (WCAG 2.5.3): "Redeem RIVR cap", or "1,500 to go, RIVR cap". */}
+      <Button variant="outline" shape="pill" isDisabled={isShort || item.stock === 0}
+        aria-label={isShort || item.stock === 0 ? t('memberRewards.unavailableName', { cta, name: item.name }) : t('memberRewards.redeemName', { name: item.name })}
         onClick={onRedeem}>{cta}</Button>
     </Inline>
   );
