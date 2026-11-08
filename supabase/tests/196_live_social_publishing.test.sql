@@ -61,7 +61,7 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select throws_ok($$ select * from public.social_post_to_send((select id from ids where name = 'club')) $$, '42501', null, 'only the consumer reads what to send');
 select throws_ok($$ select public.record_social_post_channel((select id from ids where name = 'club'), 'x', 'https://x.com/a') $$, '42501', null, 'or records it');
 reset role;
-select ok(exists (select 1 from cron.job where jobname = 'outbox-social-publish'), 'pg_cron runs the consumer');
+select ok(not exists (select 1 from cron.job where jobname = 'outbox-social-publish'), 'pg_cron does not run the consumer until publishing is live (audit F-109)');
 
 select * from finish();
 rollback;

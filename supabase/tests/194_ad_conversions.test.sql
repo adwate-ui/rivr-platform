@@ -53,8 +53,8 @@ insert into public.control_state (venue_id, level, reason) values ('00000000-000
 select is_empty($$ select * from public.conversion_for('00000000-0000-4000-8000-000000000001', 'kyc.completed', '{"member_id": "00000000-0000-4000-8000-000000000211"}') $$,
   'nothing while the venue is frozen, where the same KYC completion gave one above');
 
-select ok(exists (select 1 from cron.job where jobname = 'outbox-meta-conversions') and exists (select 1 from cron.job where jobname = 'outbox-google-ads'),
-  'pg_cron runs both consumers');
+select is_empty($$ select 1 from cron.job where jobname in ('outbox-meta-conversions', 'outbox-google-ads') $$,
+  'neither runs until the ad accounts are live (audit F-109)');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select throws_ok($$ select * from public.conversion_for('00000000-0000-4000-8000-000000000001', 'kyc.completed', '{"member_id": "00000000-0000-4000-8000-000000000211"}') $$,
