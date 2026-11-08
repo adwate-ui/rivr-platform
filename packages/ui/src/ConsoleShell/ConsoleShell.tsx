@@ -81,8 +81,10 @@ export function ConsoleShell(props: ConsoleShellProps) {
         <div className="flex min-w-0 flex-1 flex-col">
           <ConsoleHeader title={labelOf(props)} search={props.search} pulse={props.pulse} clock={props.clock} account={props.account} />
           {/* Focusable, so a keyboard can scroll a screen that has nothing else to focus (loading, empty, read-only). Positioned, so
-              a screen's visually hidden text stays inside it rather than lengthening the page. */}
-          <main id={MAIN_ID} tabIndex={0} className={cx('relative min-h-0 flex-1 overflow-y-auto', props.isFullBleed !== true && 'px-4 pt-7 pb-10 medium:px-8')}>
+              a screen's visually hidden text stays inside it rather than lengthening the page. A focused control scrolls 64 px
+              clear of its top, under which a table's header row (about 45 px) or the bulk bar (48 px, 60 below 1180 px) stays
+              (WCAG 2.4.11). */}
+          <main id={MAIN_ID} tabIndex={0} className={cx('relative min-h-0 flex-1 scroll-pt-16 overflow-y-auto', props.isFullBleed !== true && 'px-4 pt-7 pb-10 medium:px-8')}>
             <ConsoleFrameContext value>{props.children}</ConsoleFrameContext>
           </main>
         </div>

@@ -139,6 +139,7 @@ export const tokens = {
     "paletteList": 420,
     "search": 420,
     "bottomNav": 64,
+    "playerFoot": 140,
     "header": 56,
     "consoleHeader": 60,
     "text": 640,

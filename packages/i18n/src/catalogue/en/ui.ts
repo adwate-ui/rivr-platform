@@ -43,6 +43,16 @@ export const ui = {
   confirm: {
     asking: 'Confirm or cancel.',
   },
+  /** The player app's bottom sheet: its Close at the title's end, for those who cannot press Escape or reach the scrim. */
+  sheet: {
+    close: 'Close',
+  },
+  /** The player app's way to reach the front desk, at the foot of a step and of Profile (WCAG 3.2.6). */
+  deskHelp: {
+    label: 'Front desk',
+    call: 'Call the desk',
+    whatsapp: 'WhatsApp the desk',
+  },
   picker: {
     done: 'Done',
     chooseOne: 'Choose one',

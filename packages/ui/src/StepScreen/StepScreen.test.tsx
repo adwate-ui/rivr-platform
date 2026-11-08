@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { Button } from '../Button/Button.tsx';
+import { DeskHelpProvider } from '../DeskHelp/DeskHelp.tsx';
 import { Input } from '../Input/Input.tsx';
 import { axeViolations, renderIn } from '../test/render.tsx';
 import { StepScreen } from './StepScreen.tsx';
@@ -42,6 +43,22 @@ describe('StepScreen', () => {
     const action = screen.getByRole('button', { name: 'Verify' });
     expect(screen.getByRole('main')).toContainElement(action);
     expect(screen.getByText('Six digits').compareDocumentPosition(action)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it('ends with the way to the front desk, under the action, where the app gives the number (8 Nov audit, F-184)', () => {
+    renderIn(
+      <DeskHelpProvider contact={{ phone: '+918796580435', whatsapp: '918796580435' }}>
+        <StepScreen title="Code" footer={<Button variant="primary" fullWidth>Verify</Button>}><p>Six digits</p></StepScreen>
+      </DeskHelpProvider>,
+    );
+    const help = screen.getByRole('group', { name: 'Front desk' });
+    expect(screen.getByRole('main')).toContainElement(help);
+    expect(screen.getByRole('button', { name: 'Verify' }).compareDocumentPosition(help)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it('has no way to the desk without a number, as on the console', () => {
+    renderStep();
+    expect(screen.queryByRole('group', { name: 'Front desk' })).not.toBeInTheDocument();
   });
 
   it('goes back from Back, in the header and first in focus order', async () => {

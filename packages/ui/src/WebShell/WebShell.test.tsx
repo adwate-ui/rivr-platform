@@ -27,6 +27,11 @@ describe('WebShell', () => {
     expect(screen.getByRole('contentinfo')).toHaveTextContent('Gurugram');
   });
 
+  it('marks its frame, so from 1180 px the page scrolls a focused control clear of the header (WCAG 2.4.11)', () => {
+    renderShell();
+    expect(screen.getByRole('main').closest('[data-shell="web"]')).toContainElement(screen.getByRole('banner'));
+  });
+
   it('links the club name home and routes links through the app', async () => {
     const onNavigate = vi.fn();
     renderShell(onNavigate);
