@@ -10,8 +10,9 @@ const BATCH = 20;
 const MAX_BATCHES = 100;
 
 export interface Messenger {
-  /** Runs every consumer at the simulation's time `at`, and writes what they sent to sim.message. */
-  run(at: Date): Promise<{ delivered: number; failed: number }>;
+  /** Runs every consumer at the simulation's time `at`, but those named by a word in `down`, and writes what they
+   * sent to sim.message. A consumer that is down leaves its deliveries waiting, as an outage would. */
+  run(at: Date, down?: readonly string[]): Promise<{ delivered: number; failed: number }>;
 }
 
 function writeSent(messages: readonly SentMessage[]): void {
@@ -29,10 +30,10 @@ export function createMessenger(status: StackStatus): Messenger {
   let now = new Date(0);
   const { consumers, sent } = createSimConsumers(rpc, () => now);
   return {
-    async run(at) {
+    async run(at, down = []) {
       now = at;
       const total = { delivered: 0, failed: 0 };
-      for (const consumer of consumers) {
+      for (const consumer of consumers.filter((each) => !down.some((word) => each.name.includes(word)))) {
         for (let batch = 0; batch < MAX_BATCHES; batch += 1) {
           const outcome = await runConsumer(store, consumer, BATCH);
           total.delivered += outcome.delivered;
