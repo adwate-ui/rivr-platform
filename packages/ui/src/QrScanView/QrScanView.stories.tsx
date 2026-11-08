@@ -8,7 +8,7 @@ const meta = {
   tags: ['viewport-tablet'],
   parameters: { layout: 'fullscreen' },
   decorators: [(Story) => <TabletShell tableName="Front door"><Story /></TabletShell>],
-  args: { videoRef: null, prompt: 'Hold your RIVR card up to the camera', scannerLabel: 'Card scanner', onScannerCode: () => undefined },
+  args: { videoRef: null, prompt: 'Hold your RIVR card up to the camera', help: 'Open RIVR › Card, brightness up. Hold it here.', scannerLabel: 'Card scanner', retryCameraLabel: 'Retry camera', onRetryCamera: () => undefined, onScannerCode: () => undefined },
 } satisfies Meta<typeof QrScanView>;
 
 export default meta;
@@ -24,10 +24,15 @@ export const CheckedOut: Story = {
 };
 
 export const Refused: Story = {
-  args: { result: { title: 'Not yet, Vihaan.', detail: 'Your call time has 25 min left. Please see the floor.', isRefused: true } },
+  args: { result: { title: 'Not yet.', detail: '25 min of call time left. See the floor.', isRefused: true } },
 };
 
-export const NoCamera: Story = { args: { cameraError: 'The camera is not available. Please see the front desk.' } };
+/** A long name with nowhere to break, on the red-edged panel. */
+export const RefusedLongName: Story = {
+  args: { result: { title: 'Not yet, Venkataraghavankrishnamurthy.', detail: '25 min of call time left. See the floor.', isRefused: true } },
+};
+
+export const NoCamera: Story = { args: { cameraError: 'Camera unavailable. See the front desk.' } };
 
 export const LongText: Story = {
   args: {
