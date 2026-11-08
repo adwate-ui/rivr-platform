@@ -31,9 +31,11 @@ create function sim.name(p_seq int) returns text language sql immutable as $$
 
 -- A made-up auth user, as Auth makes one after a phone sign-in. Auth keeps phones without the plus.
 create function sim.auth_user(p_id uuid, p_phone text) returns uuid language sql as $$
-  insert into auth.users (instance_id, id, aud, role, phone, phone_confirmed_at, created_at, updated_at)
+  -- Auth reads its token columns as text: empty, never NULL, or a sign-in in the browser fails.
+  insert into auth.users (instance_id, id, aud, role, phone, phone_confirmed_at, created_at, updated_at, confirmation_token, recovery_token,
+                          email_change_token_new, email_change, email_change_token_current, phone_change, phone_change_token, reauthentication_token)
   values ('00000000-0000-0000-0000-000000000000', p_id, 'authenticated', 'authenticated', ltrim(p_phone, '+'),
-          sim_clock.now() - interval '2 seconds', sim_clock.now(), sim_clock.now())
+          sim_clock.now() - interval '2 seconds', sim_clock.now(), sim_clock.now(), '', '', '', '', '', '', '', '')
   on conflict (id) do nothing
   returning id $$;
 

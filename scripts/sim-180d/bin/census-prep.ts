@@ -17,6 +17,13 @@ const CENSUS_JWT_EXPIRY = 14_400;
 // Two test numbers no seeded person holds: the two floor managers the simulation hired take them for the census.
 const FLOOR_NUMBERS = { floor1: '9000000901', floor2: '9000000902' } as const;
 const PLAY_TO_STEP = 24;
+// Auth reads its token columns as text and fails a sign-in on a NULL ("Sign-in is down"); the logins the simulation
+// made (floor managers, sign-ups, devices) keep them empty, as Auth's own rows do.
+const EMPTY_TOKENS = `update auth.users set confirmation_token = coalesce(confirmation_token, ''), recovery_token = coalesce(recovery_token, ''),
+  email_change_token_new = coalesce(email_change_token_new, ''), email_change = coalesce(email_change, ''),
+  email_change_token_current = coalesce(email_change_token_current, ''), phone_change = coalesce(phone_change, ''),
+  phone_change_token = coalesce(phone_change_token, ''), reauthentication_token = coalesce(reauthentication_token, '')`;
+
 
 export function longerTokens(): void {
   const file = join(DB_ROOT, 'supabase', 'config.toml');
@@ -27,6 +34,7 @@ export function longerTokens(): void {
 /** The snapshot back, then (past night 0) the next night played to 22:00 without the message consumers. */
 export function stageCheckpoint(repoRoot: string, snapshots: string, night: number): void {
   restore(repoRoot, 'ui', snapshots, `night-${String(night)}`);
+  sql(EMPTY_TOKENS);
   if (night === 0) return;
   const next = night + 1;
   sql(`insert into sim.night (n, date, expected, peak, events) select ${String(next)}, date '2026-11-14' + ${String(next)}, 60, false, '{}'
@@ -39,11 +47,11 @@ const PEOPLE = `select json_build_object(
   'numbers', json_build_object(
     'super_admin', '9000000101', 'admin', '9000000103', 'cashier', '9000000104', 'dealer', '9000000106', 'marketing', '9000000107',
     'host', '9000000108', 'owner_view', '9000000109', 'service', '9000000790', 'floor', '${FLOOR_NUMBERS.floor1}',
-    'member_seated', (select ltrim(p.phone, '+91') from sim.persona p join sim.plan pl using (member_id)
+    'member_seated', (select substr(p.phone, 4) from sim.persona p join sim.plan pl using (member_id)
       where pl.state = 'seated' and p.source = 'seed' and p.verified order by p.visits desc limit 1),
-    'member_waiting', (select ltrim(p.phone, '+91') from sim.persona p join sim.plan pl using (member_id)
+    'member_waiting', (select substr(p.phone, 4) from sim.persona p join sim.plan pl using (member_id)
       where pl.state in ('joined', 'arrived') and pl.entry_id is not null and p.source = 'seed' order by p.number limit 1),
-    'member_unchecked', (select ltrim(p.phone, '+91') from sim.persona p where p.source = 'seed' and not p.verified and not p.erased
+    'member_unchecked', (select substr(p.phone, 4) from sim.persona p where p.source = 'seed' and not p.verified and not p.erased
       order by (select count(*) from sim.plan pl where pl.member_id = p.member_id) desc, p.number limit 1)),
   'dealer', (select full_name from sim.staff where key = 'dealer1'),
   'table', (select g.name from public.game_table g where g.venue_id = sim.venue() and g.is_open order by g.name limit 1),

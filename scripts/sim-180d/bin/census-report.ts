@@ -44,7 +44,7 @@ export interface FlaggedCapture {
 }
 
 export function writeCensusReport(dir: string): string {
-  const captures = filesUnder(dir, '.json').filter((path) => !path.endsWith('context.json')).map((path) => recordSchema.parse(JSON.parse(readFileSync(path, 'utf8'))));
+  const captures = filesUnder(dir, '.json').filter((path) => !/(context|flags|results)\.json$/.test(path)).map((path) => recordSchema.parse(JSON.parse(readFileSync(path, 'utf8'))));
   const flagged: FlaggedCapture[] = captures.map((capture) => {
     const { text: _text, ...rest } = capture;
     return { capture: rest, flags: checkCapture(capture) };
