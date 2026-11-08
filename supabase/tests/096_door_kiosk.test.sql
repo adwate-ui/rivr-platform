@@ -154,7 +154,7 @@ select throws_ok($$ select public.check_in('00000000-0000-4000-8000-000000000001
 select throws_ok($$ select public.check_in_by_phone('00000000-0000-4000-8000-000000000001', '9000000216') $$, '42501', null, 'nor by number');
 select throws_ok($$ select public.check_out('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000290') $$, '42501', null,
   'nor checks anyone out but by their card');
-select is_empty($$ select * from public.member $$, 'it reads no member');
+select is_empty($$ select id from public.member $$, 'it reads no member');
 select is_empty($$ select * from public.visit $$, 'and no visit');
 select is_empty($$ select * from public.floor_seats('00000000-0000-4000-8000-000000000001') $$, 'and nobody''s seat');
 select is_empty($$ select * from public.dealer_down $$, 'nor the dealers'' downs');

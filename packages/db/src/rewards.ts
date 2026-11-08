@@ -65,11 +65,12 @@ export interface Redemption {
  */
 export type RewardFailure =
   | 'not_allowed' | 'invalid' | 'stock_changed' | 'handed_over' | 'not_on_offer' | 'price_changed' | 'not_enough_points' | 'not_enough_nights'
-  | 'stopped' | 'paused' | 'switched_off' | 'cancelled' | 'unavailable';
+  | 'stopped' | 'paused' | 'switched_off' | 'cancelled' | 'own_record' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, RewardFailure>> = {
   '42501': 'not_allowed', '22023': 'invalid', RVCHG: 'stock_changed', RVHND: 'handed_over', RVRWD: 'not_on_offer', RVPRC: 'price_changed',
   RVPTS: 'not_enough_points', RVNGT: 'not_enough_nights', RVMBR: 'stopped', RVFRZ: 'paused', RVKIL: 'switched_off', RVCNL: 'cancelled',
+  RVOWN: 'own_record',
 };
 
 // The console's list of redemptions asks again every half minute: members redeem from the app at any time.

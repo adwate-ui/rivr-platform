@@ -44,8 +44,10 @@ select is_empty(
 select is_empty(
   $$ select p.proname::text from pg_proc p join pg_namespace n on n.oid = p.pronamespace
      where n.nspname = 'private' and has_function_privilege('anon', p.oid, 'execute')
-       and p.proname not like 'public\_%' $$,
-  'the public role can call no private helper except the public_* row functions'
+       and p.proname not like 'public\_%'
+       -- PostgREST runs it before every request, the website's anonymous ones too; it only refuses (decision 0513).
+       and p.proname <> 'refuse_hidden_modules' $$,
+  'the public role can call no private helper except the public_* row functions and the pre-request check'
 );
 
 select is_empty(

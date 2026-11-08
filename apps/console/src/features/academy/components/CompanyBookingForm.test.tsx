@@ -13,7 +13,7 @@ describe('CompanyBookingForm', () => {
     const requestIds: unknown[] = [];
     vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input instanceof Request ? input.url : input);
-      if (url.includes('/rest/v1/member')) return Response.json([{ id: 'm203' }]);
+      if (url.includes('/rpc/member_id_for_phone')) return Response.json('m203');
       const body: { p_request_id?: unknown } = JSON.parse(String(init?.body));
       requestIds.push(body.p_request_id);
       // The first attempt fails as a dropped connection would; the retry books.

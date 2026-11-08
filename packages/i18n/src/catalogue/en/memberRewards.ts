@@ -75,6 +75,7 @@ export const memberRewards = {
     paused: 'The club is paused. Try again later.',
     switched_off: 'Redemptions are paused.',
     cancelled: 'That redemption was cancelled, and its points went back.',
+    own_record: 'Not sent. Try again.',
     unavailable: 'Not sent. Try again.',
   },
   yourRedemptions: 'Your redemptions',

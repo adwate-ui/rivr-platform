@@ -69,14 +69,13 @@ export function useControlActions(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   const reload = () => queryClient.invalidateQueries({ queryKey: ['user', userId ?? 'signed-out'] });
-  // The member or active staff member with that number: null when none is asked for, 'none' when nobody has it, 'failed' when the read failed.
+  // The member or active staff member with that number: null when none is asked for, 'none' when nobody has it, 'failed'
+  // when the read failed. Numbers are not readable from the tables (decision 0513), so the database looks them up.
   const targetOf = async (table: 'member' | 'staff', phone: string | null): Promise<string | null> => {
     if (phone === null) return null;
-    const { data, error } = table === 'staff'
-      ? await client.from('staff').select('id').eq('venue_id', venueId).eq('phone', phone).eq('is_active', true).limit(1)
-      : await client.from('member').select('id').eq('venue_id', venueId).eq('phone', phone).limit(1);
+    const { data, error } = await client.rpc(table === 'staff' ? 'staff_id_for_phone' : 'member_id_for_phone', { p_venue_id: venueId, p_phone: phone });
     if (error) return 'failed';
-    return data[0]?.id ?? 'none';
+    return data ?? 'none';
   };
   const engage = useMutation({
     mutationFn: async (order: EngageOrder): Promise<Result<string, ControlFailure>> => {

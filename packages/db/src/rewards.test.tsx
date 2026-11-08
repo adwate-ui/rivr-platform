@@ -108,6 +108,13 @@ describe('the rewards catalogue (decision 0181)', () => {
     expect(outcome).toEqual({ ok: false, error: 'handed_over' });
     expect(bodyOf(calls, '/rpc/hand_over_redemption')).toEqual({ p_redemption_id: 'd1' });
   });
+
+  it('says when staff try to hand over their own redemption', async () => {
+    const { result } = renderHooks({ '/rpc/hand_over_redemption': { status: 400, body: { code: 'RVOWN', message: 'own' } } });
+    let outcome: unknown;
+    await act(async () => { outcome = await result.current.handOver.mutateAsync('d2'); });
+    expect(outcome).toEqual({ ok: false, error: 'own_record' });
+  });
 });
 
 describe('the League (decision 0182)', () => {
