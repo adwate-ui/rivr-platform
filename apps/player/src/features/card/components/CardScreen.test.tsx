@@ -1,6 +1,6 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { onlineManager, QueryClient } from '@tanstack/react-query';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CardScreen } from './CardScreen.tsx';
 
@@ -35,6 +35,12 @@ function renderCard(first: 'card' | 'fails' | 'never', card: object = CARD) {
     </RivrDataProvider>,
   );
   return { answer: (next: 'card' | 'fails') => { answer = next; } };
+}
+
+/** How much of the bar under the QR is left, 1 to 0. */
+function barLeft(): number {
+  const transform = document.querySelector<HTMLElement>('[data-progress-fill]')?.style.transform ?? '';
+  return Number(transform.replace('scaleX(', '').replace(')', ''));
 }
 
 describe('Membership card', () => {
@@ -86,12 +92,33 @@ describe('Membership card', () => {
     expect(photo.getAttribute('src')).toContain(`/object/sign/kyc/${SELFIE}?token=one-minute`);
   });
 
-  it('shows the code is live, a bar running down to the next code, and once a session the brightness hint (F-182)', async () => {
+  it('runs a bar down to the next code, so the desk can see the code is live (F-182)', async () => {
+    renderCard('card', { ...CARD, ms_left: 10_000 });
+    expect(await screen.findByText('Kavya Rao', {}, { timeout: 5000 })).toBeDefined();
+    await waitFor(() => expect(barLeft()).toBeLessThan(1), { timeout: 3000 });
+    const earlier = barLeft();
+    await waitFor(() => expect(barLeft()).toBeLessThan(earlier), { timeout: 3000 });
+  });
+
+  it('keeps the brightness hint for the card itself: opening Card offline does not use it up (F-182)', async () => {
+    sessionStorage.clear();
+    Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false });
+    try {
+      renderCard('never');
+      expect(screen.getByText('No connection. Give your number at the door.')).toBeDefined();
+      expect(screen.queryByText('Turn your brightness up.')).toBeNull();
+    } finally {
+      Reflect.deleteProperty(navigator, 'onLine');
+    }
+    cleanup();
+    renderCard('card');
+    expect(await screen.findByText('Turn your brightness up.', {}, { timeout: 5000 })).toBeDefined();
+  });
+
+  it('says once a session to turn the brightness up (F-182)', async () => {
     sessionStorage.clear();
     renderCard('card');
     expect(await screen.findByText('Turn your brightness up.', {}, { timeout: 5000 })).toBeDefined();
-    const fill = document.querySelector<HTMLElement>('[data-progress-fill]');
-    expect(fill?.style.transform).toMatch(/^scaleX\(0\.9|^scaleX\(1\)/);
     cleanup();
     renderCard('card');
     expect(await screen.findByText('Kavya Rao', {}, { timeout: 5000 })).toBeDefined();

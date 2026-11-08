@@ -45,15 +45,21 @@ function useCodeLeft(cameAt: number, msLeft: number): number {
 
 const BRIGHTNESS_HINTED = 'rivr.card.brightnessHinted';
 
-/** Whether this is the session's first look at the card, when the brightness hint shows; never, where storage is refused. */
-function useFirstLookThisSession(): boolean {
-  const [isFirst] = useState(() => {
-    try {
-      return sessionStorage.getItem(BRIGHTNESS_HINTED) === null;
-    } catch {
-      return false;
-    }
-  });
+/** Whether this session has yet to see the brightness hint; never, where storage is refused. */
+function isHintDue(): boolean {
+  try {
+    return sessionStorage.getItem(BRIGHTNESS_HINTED) === null;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Once a session, a hint to turn the brightness up (F-182, decision 0542: a web page cannot raise it). Drawn only with the
+ * card itself, so opening Card offline or while it loads does not use it up.
+ */
+function BrightnessHint() {
+  const [isDue] = useState(isHintDue);
   useEffect(() => {
     try {
       sessionStorage.setItem(BRIGHTNESS_HINTED, '1');
@@ -61,20 +67,19 @@ function useFirstLookThisSession(): boolean {
       // A private window: the hint simply does not show again.
     }
   }, []);
-  return isFirst;
+  return isDue ? <Text variant="small" tone="muted" align="center">{t('player.card.brightness')}</Text> : null;
 }
 
 /**
  * The Card tab (decision 0320; #71): the membership card, gold-edged, with the member's number, verified selfie, name and
  * tier, then the QR the door scans on its cream panel across the card's column, a gold bar under it running down to the
- * next code so the desk sees it is live, and once a session a hint to turn the brightness up (F-182). No caption.
- * Offline before the card came, it says to give the number.
+ * next code so the desk sees it is live, and once a session a hint to turn the brightness up (F-182, the one line under
+ * it: decision 0542). Offline before the card came, it says to give the number.
  */
 export function CardScreen() {
   const card = useMembershipCard();
   useScreenAwake();
   const codeLeft = useCodeLeft(card.dataUpdatedAt, card.data?.msLeft ?? 0);
-  const isHinted = useFirstLookThisSession();
   const title = t('player.card.tab');
   const look = { titleLook: 'serif' } as const;
   if (!navigator.onLine || card.fetchStatus === 'paused') {
@@ -91,7 +96,7 @@ export function CardScreen() {
         <Stack gap={3}>
           <Box surface="cream" padding={4} radius="card"><QrCode value={code} label={t('player.card.qr')} /></Box>
           <ProgressBar fraction={codeLeft} />
-          {isHinted ? <Text variant="small" tone="muted" align="center">{t('player.card.brightness')}</Text> : null}
+          <BrightnessHint />
         </Stack>
       </Stack>
     </Screen>
