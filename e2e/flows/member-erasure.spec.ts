@@ -10,6 +10,7 @@ import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { localBinary, localSupabaseEnv, worktreeRoot } from '@rivr/config/worktree';
 import { isRemoteTarget } from '../support/apps.ts';
+import { openAccountMenu } from '../support/console.ts';
 import { signInToConsole } from '../support/signIn.ts';
 
 const FOLDER = '00000000-0000-4000-8000-000000000002/00000000-0000-4000-8000-0000000d0758/';
@@ -33,7 +34,7 @@ test.describe('Member erasure', () => {
 
     await signInToConsole(page, '9000000757');
     // The practice venue switch is in the account menu (console v3); a stripe across the top says it is on.
-    await page.getByRole('button', { name: 'Nisha Bhatt', exact: true }).click();
+    await openAccountMenu(page);
     await page.getByRole('switch', { name: 'Practice venue' }).click();
     await expect(page.getByText('Practice venue: nothing here reaches the club or its members.')).toBeVisible();
     await page.keyboard.press('Escape');

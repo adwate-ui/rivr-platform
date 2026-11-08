@@ -13,7 +13,7 @@ export interface LiveStatusDevice {
 /** What the lock screen shows (decision 0323; the prototype's Lock screen states), in words already. */
 export interface LiveStatus {
   readonly kind: 'waiting' | 'seat_ready' | 'seated';
-  /** Top right: the game, `NLH 50/100`, or the seat, `Table 1 · Seat 4`. */
+  /** Top right: the game, `NLH 50/100`, or the seat, `Table 1, seat 4`. */
   readonly meta: string;
   /** Above the figure: `Waitlist · Table 1`, `Seat ready · held for`, `Call time left`. */
   readonly label: string;

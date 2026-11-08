@@ -40,9 +40,18 @@ describe('the WhatsApp consumer', () => {
   it('puts a refusal in words by its code, never a reviewer\u2019s note', async () => {
     const whatsapp = createFakeWhatsApp();
     const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, now });
-    await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'kyc_refused', params: ['under_18'] }, now()));
+    await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'kyc_refused', params: ['staff_rejected'] }, now()));
     await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'kyc_refused', params: ['something_new'] }, now()));
-    expect(whatsapp.calls.map((call) => call.params)).toEqual([['you must be 18 or over to play.'], ['your details could not be confirmed.']]);
+    expect(whatsapp.calls.map((call) => [call.template, call.params])).toEqual([
+      ['kyc_refused', ['your details did not match']], ['kyc_refused', ['your details could not be confirmed']],
+    ]);
+  });
+
+  it('tells an under-18 refusal only the age rule, in its own text, sending them to no desk (8 Nov audit, F-049)', async () => {
+    const whatsapp = createFakeWhatsApp();
+    const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, now });
+    await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'kyc_refused', params: ['under_18'] }, now()));
+    expect(whatsapp.calls).toEqual([{ category: 'utility', to: phone, template: 'kyc_under_age', params: [] }]);
   });
 
   it('sends no notice claimed long after it happened, as when WhatsApp is switched on, nor one of no known time', async () => {

@@ -90,7 +90,7 @@ test.describe('Promotions', () => {
 
     const member = await browser.newPage();
     await signInToPlayer(member, '9000000280');
-    await expect(member.getByRole('region', { name: 'Tonight' }).getByRole('listitem').filter({ hasText: NAME })).toBeVisible({ timeout: 15_000 });
+    await expect(member.getByRole('region', { name: 'Offers', exact: true }).getByRole('listitem').filter({ hasText: NAME })).toBeVisible({ timeout: 15_000 });
 
     // One grant from this promotion, under its version 1: 20% of 10,000, at its cap of 2,000.
     expect(buyInAtThePrivateRoom(RHEA, `promotions-e2e-${NAME}`)).toBe('2000 1');

@@ -1,9 +1,11 @@
 /**
- * Tonight, as the redesign has it (decision 0320, "Live night"): the member's own state fills the screen, browsing, on a
- * list, called to a seat, or seated, and the floor sits in a sheet.
+ * Home (Tonight until the owner renamed it, 8 Nov), as the redesign has it (decision 0320, "Live night"): the member's own
+ * state fills the screen, browsing, on a list, called to a seat, or seated, and the floor sits in a sheet.
  */
 export const playerLive = {
-  title: 'Tonight',
+  title: 'Home',
+  /** The offers carousel's heading. */
+  offersTitle: 'Offers',
   offers: '{count} offers',
   offersOne: '1 offer',
   /** The referral offer card (it left Home's tables for the carousel): `{chips}` is the bonus, `1,000`. */
@@ -67,7 +69,8 @@ export const playerLive = {
     declinedToast: 'Seat declined',
   },
   seated: {
-    title: '{table} · Seat {seat}',
+    /** `Table 3, seat 4`, as the seated toast and the push say it. */
+    title: '{table}, seat {seat}',
     /** Under the seat: `NLH 50/100 · playing 19 min`. */
     playing: '{game} · playing {time}',
     left: 'call time left · ends {time}',
@@ -85,7 +88,7 @@ export const playerLive = {
     /** `{choice}` is `1 hour`. */
     requestTime: 'Request {choice}',
     /** Every length the club may offer (decision 0305); the club's setting picks which show. */
-    times: { m15: '15 min', m30: '30 min', m45: '45 min', m60: '1 hour', m90: '1 hour 30', m120: '2 hours', m180: '3 hours', m240: '4 hours' },
+    times: { m15: '15 min', m30: '30 min', m45: '45 min', m60: '1 hour', m90: '1 h 30 min', m120: '2 hours', m180: '3 hours', m240: '4 hours' },
     /** Once the floor approves: `1 hour added`. */
     timeAdded: '{choice} added',
     leaveTitle: 'Leave your seat?',
@@ -103,7 +106,7 @@ export const playerLive = {
     statusTopUp: 'Top-up',
     requested: 'Requested',
     inProgress: 'In progress',
-    statusTimes: { m15: '+15 min', m30: '+30 min', m45: '+45 min', m60: '+1 h', m90: '+1 h 30', m120: '+2 h', m180: '+3 h', m240: '+4 h' },
+    statusTimes: { m15: '+15 min', m30: '+30 min', m45: '+45 min', m60: '+1 h', m90: '+1 h 30 min', m120: '+2 h', m180: '+3 h', m240: '+4 h' },
     statusLeaving: 'Leaving list',
     onTheList: 'On the list',
     /** A seated member's place on another list to change tables (#781), with no table asked for: `Waitlist · NLH 100/200`. */
@@ -125,7 +128,7 @@ export const playerLive = {
 
 /** The Order screen (brief 3.5): food and drink to the seat, paid on delivery. */
 export const playerOrder = {
-  back: 'Tonight',
+  back: 'Home',
   title: 'Order',
   /** `Table 1, seat 4 · Pay on delivery`. */
   seat: '{table}, seat {seat} · Pay on delivery',

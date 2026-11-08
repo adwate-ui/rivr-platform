@@ -20,7 +20,7 @@ test.describe('Player shell', () => {
     await page.getByRole('button', { name: 'Send code' }).click();
     await page.getByRole('textbox', { name: '6-digit code' }).fill(CODE);
 
-    await expect(page.getByRole('heading', { name: 'Tonight', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible();
     const tabs = page.getByRole('navigation', { name: 'Main' });
     for (const tab of ['Home', 'Sessions', 'Card', 'Rewards']) await expect(tabs.getByRole('link', { name: tab })).toBeVisible();
     // Balance is hidden (#627): the app shows no rupee.
@@ -32,6 +32,6 @@ test.describe('Player shell', () => {
     // Profile has no tab: the bar goes, and Back returns to the tab it came from.
     await expect(tabs).toHaveCount(0);
     await page.getByRole('button', { name: 'Back', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Tonight', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible();
   });
 });

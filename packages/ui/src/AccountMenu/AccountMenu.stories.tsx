@@ -22,7 +22,8 @@ const settings = (
 
 /** Opens the menu, as a press on the initials does, so the story shows it. */
 async function open({ canvasElement }: { canvasElement: HTMLElement }) {
-  await userEvent.click(within(canvasElement).getByRole('button', { name: /^Vikram|^Ritika/ }));
+  // Named "VR, Vikram Rao": the initials it shows first (WCAG 2.5.3).
+  await userEvent.click(within(canvasElement).getByRole('button', { name: /Vikram|Ritika/ }));
   await expect(within(canvasElement).getByRole('group')).toBeInTheDocument();
 }
 

@@ -26,7 +26,7 @@ export function KycIntro({ at, isResume, action, notice, route = 'app' }: KycInt
   return (
     <StepScreen
       title={t(isResume ? 'player.kyc.resumeTitle' : 'player.kyc.startTitle')}
-      look={{ eyebrow: t('player.kyc.eyebrow'), subtitle: t('player.kyc.startSubtitle') }}
+      look={{ eyebrow: t('player.kyc.eyebrow') }}
       footer={
         <>
           {action}

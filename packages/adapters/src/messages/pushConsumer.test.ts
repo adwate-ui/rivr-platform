@@ -97,7 +97,7 @@ describe('the push consumer', () => {
   it('words each kind, asking for the member\u2019s phones that want it', async () => {
     expect(await sendOne('call_time.completed', { member_id: MEMBER, session_id: SESSION, table_id: OTHER, seat: 4 })).toEqual({
       outcome: { ok: true, value: null }, asked: ['push.call_time_complete'],
-      sent: [{ title: 'Call time complete', body: 'Your call time is complete.', url: '/', tag: `call-time-${SESSION}` }],
+      sent: [{ title: 'Call time done', body: 'You may leave any time.', url: '/', tag: `call-time-${SESSION}` }],
     });
     expect(await sendOne('session.reminder', { member_id: MEMBER, session_id: SESSION, hours: 4 })).toEqual({
       outcome: { ok: true, value: null }, asked: [null],
