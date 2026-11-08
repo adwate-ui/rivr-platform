@@ -63,7 +63,7 @@ describe('GiveBonusChips', () => {
     renderForm({ status: 400, body: { code: 'RVOWN', message: 'own', details: null, hint: null } });
     addChips('500', 'For me');
     fireEvent.click(screen.getByRole('button', { name: 'Yes, add 500 bonus chips' }));
-    expect(await screen.findByText('Not on your own record. Ask another super admin.')).toBeDefined();
+    expect(await screen.findByText('Not to yourself. Ask another super admin.')).toBeDefined();
     expect(screen.getByRole('textbox', { name: /^Bonus chips/ })).toHaveProperty('value', '500');
   });
 });

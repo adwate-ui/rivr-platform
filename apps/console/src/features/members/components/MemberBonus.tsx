@@ -3,7 +3,6 @@ import { useMemberBonus, useMemberBonusHistory, type MemberBonusLine } from '@ri
 import { formatChips, formatDate, formatNumber, t } from '@rivr/i18n';
 import { BalanceTile, Button, DetailRow, Grid, Heading, LoadState, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
-import { GiveBonusChips } from './GiveBonusChips.tsx';
 
 /** Lines shown at first, and how many more each Show earlier adds. */
 const PAGE = 20;
@@ -69,9 +68,10 @@ function Balances({ venueId, memberId }: { venueId: string; memberId: string }) 
 /**
  * Points and bonus chips on the member's record (decision 0504; owner, 8 Nov): each balance its own tile, as Rewards shows
  * them to the member (points cream with a star, to spend on rewards; bonus chips gold with a chip, used with a buy-in),
- * then every bonus line, the newest first. Chips are redeemed in the seat sheets; a super admin adds some by hand.
+ * then every bonus line, the newest first. Chips are redeemed in the seat sheets; a super admin adds some by hand on Rewards,
+ * Points, where points are given (the owner, 9 Nov).
  */
-export function MemberBonus({ venueId, memberId, canGive }: { venueId: string; memberId: string; canGive: boolean }) {
+export function MemberBonus({ venueId, memberId }: { venueId: string; memberId: string }) {
   return (
     <Stack gap={6}>
       <Balances venueId={venueId} memberId={memberId} />
@@ -79,7 +79,6 @@ export function MemberBonus({ venueId, memberId, canGive }: { venueId: string; m
         <Heading level={3}>{t('console.members.bonus.history')}</Heading>
         <BonusHistory venueId={venueId} memberId={memberId} />
       </Stack>
-      {canGive ? <GiveBonusChips venueId={venueId} memberId={memberId} /> : null}
     </Stack>
   );
 }

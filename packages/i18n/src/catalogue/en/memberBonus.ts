@@ -28,14 +28,15 @@ export const memberBonus = {
     intro: 'For super admins. Added to the balance at once, with your reason in their history.',
     chips: 'Bonus chips',
     chipsHint: 'Whole fifties, 50 to 1,00,000.',
-    reason: 'Reason',
+    /** Apart from the points' own Reason in the same card. */
+    reason: 'Reason for chips',
     reasonHint: 'The member sees it in their history.',
     add: 'Add bonus chips',
     confirm: 'Yes, add {chips} bonus chips',
     added: '{chips} bonus chips added.',
     failures: {
       not_allowed: 'Super admins only.',
-      own_record: 'Not on your own record. Ask another super admin.',
+      own_record: 'Not to yourself. Ask another super admin.',
       invalid_chips: 'Give whole fifties from 50 to 1,00,000.',
       invalid_reason: 'Give a reason of 3 to 200 characters.',
       paused: 'Frozen, or promotions stopped. Try once released.',

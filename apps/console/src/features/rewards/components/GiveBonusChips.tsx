@@ -24,8 +24,8 @@ function GiveOutcome({ outcome }: { outcome: Outcome }) {
 }
 
 /**
- * Bonus chips added by hand (the owner, 8 Nov), for super admins on another member's record: how many, in whole fifties,
- * and why, asked twice. One request id until it goes through, is refused or what is typed changes, so pressing again after
+ * Bonus chips added by hand (the owner, 8 Nov), for super admins, to the member found under Points by hand (the owner,
+ * 9 Nov: where points are given by hand): how many, in whole fifties, and why, asked twice. One request id until it goes through, is refused or what is typed changes, so pressing again after
  * a dropped line never adds twice, and an edited press is a grant of its own.
  */
 export function GiveBonusChips({ venueId, memberId }: { venueId: string; memberId: string }) {

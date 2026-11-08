@@ -23,6 +23,8 @@ export const rewards = {
   /** Points by hand (#645): staff who keep the rewards give a member points, earned or locked, and release locked ones. */
   byHand: {
     heading: 'Points by hand',
+    /** A super admin's card, which also adds bonus chips (the owner, 9 Nov). */
+    headingWithBonus: 'Points and bonus chips by hand',
     phone: 'Member’s mobile number',
     find: 'Find',
     notFound: 'No member here has that number.',

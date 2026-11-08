@@ -2,15 +2,17 @@ import { useGiveLeaguePoints, useGivePoints, useMemberPoints, type MemberPoints,
 import { formatNumber, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Grid, Heading, Inline, Input, Number as Figure, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState } from 'react';
+import { GiveBonusChips } from './GiveBonusChips.tsx';
 
 // An Indian mobile number, as member.phone keeps them.
 const isMobile = (digits: string) => /^[6-9]\d{9}$/.test(digits);
 
 /**
  * Points by hand (#645; owner's feedback doc of 29 Oct, super admin module 11), for staff who keep the rewards: find a
- * member by their mobile number, see their earned and locked points, give points as either, or unlock locked ones.
+ * member by their mobile number, see their earned and locked points, give points as either, or unlock locked ones. A super
+ * admin (`canGiveBonus`) also adds bonus chips to the member found here (the owner, 9 Nov).
  */
-export function PointsByHand({ venueId }: { venueId: string }) {
+export function PointsByHand({ venueId, canGiveBonus = false }: { venueId: string; canGiveBonus?: boolean }) {
   const [typed, setTyped] = useState('');
   const [phone, setPhone] = useState<string | null>(null);
   const member = useMemberPoints(venueId, phone);
@@ -18,7 +20,7 @@ export function PointsByHand({ venueId }: { venueId: string }) {
   const digits = typed.replace(/\D/g, '').replace(/^91(?=\d{10}$)/, '');
   return (
     <Stack gap={4}>
-      <Heading level={2} variant="card">{t('console.rewards.byHand.heading')}</Heading>
+      <Heading level={2} variant="card">{t(canGiveBonus ? 'console.rewards.byHand.headingWithBonus' : 'console.rewards.byHand.heading')}</Heading>
       {/* The field and Find, both 36 px at a desk, centred on one line. */}
       <Inline gap={3} align="center">
         <Input variant="subtle" label={t('console.rewards.byHand.phone')} type="tel" inputMode="numeric" maxLength={16} value={typed}
@@ -29,7 +31,17 @@ export function PointsByHand({ venueId }: { venueId: string }) {
       </Inline>
       {member.isError ? <ErrorMessage>{t('common.loadFailed')}</ErrorMessage> : null}
       {member.data === null ? <Text tone="muted">{t('console.rewards.byHand.notFound')}</Text> : null}
-      {member.data ? <PointsForm key={member.data.memberId} venueId={venueId} member={member.data} /> : null}
+      {member.data ? <Found key={member.data.memberId} venueId={venueId} member={member.data} canGiveBonus={canGiveBonus} /> : null}
+    </Stack>
+  );
+}
+
+/** The member found: their points and the form that changes them, then, for a super admin, bonus chips to add. */
+function Found({ venueId, member, canGiveBonus }: { venueId: string; member: MemberPoints; canGiveBonus: boolean }) {
+  return (
+    <Stack gap={8}>
+      <PointsForm venueId={venueId} member={member} />
+      {canGiveBonus ? <GiveBonusChips venueId={venueId} memberId={member.memberId} /> : null}
     </Stack>
   );
 }
