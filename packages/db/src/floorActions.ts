@@ -18,6 +18,12 @@ function useFloorSettle(venueId: string) {
 /** A seating that went through gives its seat session, for Undo; null where it could not be found again. */
 export type Seated = Result<string | null, SeatFailure>;
 
+/** The member's seat session now, for a seating that gives none (Assign, a called place): read before the floor is. */
+async function sessionOf(client: ReturnType<typeof useRivrData>['client'], venueId: string, memberId: string): Promise<string | null> {
+  const seats = await client.rpc('floor_seats', { p_venue_id: venueId });
+  return seats.data?.find((row) => row.member_id === memberId)?.session_id ?? null;
+}
+
 interface SeatByNumber {
   tableId: string;
   seat: number;
@@ -62,10 +68,9 @@ export function useFloorActions(venueId: string) {
         p_entry_id: entryId, p_table_id: tableId, p_seat: number, p_call_minutes: callMinutes, ...bonusArg(bonusChips),
       });
       if (error) return settle(error);
-      // Assign gives no session: it is the member's seat now, read before the floor is.
-      const seats = await client.rpc('floor_seats', { p_venue_id: venueId });
+      const session = await sessionOf(client, venueId, memberId);
       await settle(null);
-      return ok(seats.data?.find((row) => row.member_id === memberId)?.session_id ?? null);
+      return ok(session);
     },
   });
   const move = useMutation({
@@ -77,6 +82,24 @@ export function useFloorActions(venueId: string) {
     mutationFn: async (entryId: string) => settle((await client.rpc('decline_waitlist_request', { p_entry_id: entryId })).error),
   });
   return { seat, seatFromList, move, declineJoin };
+}
+
+/**
+ * A place called to a seat held for it, seated there (decision 0302): a Result with the seat's session for Undo, and the
+ * floor read again.
+ */
+export function useSeatCalled(venueId: string) {
+  const { client } = useRivrData();
+  const settle = useFloorSettle(venueId);
+  return useMutation({
+    mutationFn: async ({ entryId, memberId }: { entryId: string; memberId: string }): Promise<Seated> => {
+      const { error } = await client.rpc('seat_from_waitlist', { p_entry_id: entryId });
+      if (error) return settle(error);
+      const session = await sessionOf(client, venueId, memberId);
+      await settle(null);
+      return ok(session);
+    },
+  });
 }
 
 /**

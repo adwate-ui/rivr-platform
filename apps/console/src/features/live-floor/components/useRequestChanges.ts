@@ -1,5 +1,6 @@
 import {
-  useApproveWaitlistRequest, useDecideCallTime, useFloorActions, useFloorUndo, useSeatActions, useSetTopUp, type FloorRequest,
+  useApproveWaitlistRequest, useDecideCallTime, useFloorActions, useFloorUndo, useSeatActions, useSeatCalled, useSetTopUp,
+  type FloorRequest, type SeatAlert,
 } from '@rivr/db';
 import { formatDuration, t } from '@rivr/i18n';
 import { useChangeToast } from './useChangeToast.ts';
@@ -8,17 +9,30 @@ type Join = Extract<FloorRequest, { kind: 'join' }>;
 type TopUp = Extract<FloorRequest, { kind: 'top_up' }>;
 type Time = Extract<FloorRequest, { kind: 'time' }>;
 
-/** A join approved or declined (#633), each undone by the database's own undo (decision 0480). */
+/**
+ * A join approved (true when it went through) or declined (#633), each undone by the database's own undo (decision 0480);
+ * and an approved player called to a seat held for them, seated there (decision 0302).
+ */
 function useJoinChanges(venueId: string) {
   const say = useChangeToast();
   const undo = useFloorUndo(venueId);
   const approve = useApproveWaitlistRequest();
   const { declineJoin } = useFloorActions(venueId);
+  const seatCalled = useSeatCalled(venueId);
   const undoJoin = (join: Join) => () => undo.mutateAsync({ kind: 'join', entryId: join.id });
   return {
-    approveJoin: async (join: Join, table: string) =>
-      say(await approve.mutateAsync(join.id), t('console.floor.toast.joinApproved', { name: join.fullName, table }), undoJoin(join)),
+    approveJoin: async (join: Join, table: string) => {
+      const outcome = await approve.mutateAsync(join.id);
+      say(outcome, t('console.floor.toast.joinApproved', { name: join.fullName, table }), undoJoin(join));
+      return outcome.ok;
+    },
     declineJoin: async (join: Join) => say(await declineJoin.mutateAsync(join.id), t('console.floor.toast.joinDeclined', { name: join.fullName }), undoJoin(join)),
+    seatCalled: async (alert: SeatAlert, table: string) => {
+      const outcome = await seatCalled.mutateAsync({ entryId: alert.id, memberId: alert.memberId });
+      const sessionId = outcome.ok ? outcome.value : null;
+      say(outcome, t('console.floor.toast.seated', { name: alert.fullName, table, seat: alert.seat ?? 0 }),
+        sessionId === null ? undefined : () => undo.mutateAsync({ kind: 'seat', sessionId }));
+    },
   };
 }
 

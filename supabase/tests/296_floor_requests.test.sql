@@ -14,8 +14,10 @@ create function pg_temp.seat(p_member text, p_seat integer) returns uuid languag
   select public.seat_member((select id from public.game_table where name = 'Table 5' and venue_id = '00000000-0000-4000-8000-000000000001'),
     p_seat, p_member_number => (select member_number from public.member where id = p_member::uuid), p_call_minutes => 180);
 $$;
+-- The requests at Table 5, this test's own; the seed's approved players wait on Table 2's list (their alerts, test 329).
 create function pg_temp.kinds(p_venue text) returns text language sql as $$
-  select string_agg(kind, ',' order by since, request_id) from public.floor_requests(p_venue::uuid);
+  select string_agg(kind, ',' order by since, request_id) from public.floor_requests(p_venue::uuid)
+  where table_id = (select id from public.game_table where name = 'Table 5' and venue_id = '00000000-0000-4000-8000-000000000001');
 $$;
 grant execute on function pg_temp.as_person(text), pg_temp.seat(text, integer), pg_temp.kinds(text) to authenticated;
 

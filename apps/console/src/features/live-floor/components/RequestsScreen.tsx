@@ -25,11 +25,11 @@ function RequestsReady({ venueId, permissions, data }: RequestsProps & { data: F
   const [sheet, setSheet] = useState<FloorSheet | null>(null);
   const queue = useRequestQueue(data.requests, NOTHING);
   const changes = { requests: useRequestChanges(venueId), seats: useSeatChanges(venueId), tables: useTableChanges(venueId) };
-  const { onLeave, onOpen } = useRequestOpeners(data, setSheet);
+  const openers = useRequestOpeners(venueId, data, setSheet);
   return (
     <Stack gap={6}>
       <RequestList requests={queue.shown} tables={data.tables} targets={data.targets} now={now} fresh={queue.fresh} changes={changes.requests}
-        onLeave={onLeave} onOpen={onOpen} />
+        {...openers} />
       <AlsoWaiting venueId={venueId} permissions={permissions} />
       <FloorSheets venueId={venueId} sheet={sheet} data={data} now={now} permissions={permissions} changes={changes} onSheet={setSheet} />
     </Stack>

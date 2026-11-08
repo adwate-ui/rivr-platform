@@ -25,4 +25,8 @@ describe('how long a request may wait on the floor (decision 0479)', () => {
       expect([300, 301].map((seconds) => isRequestLate(kind, seconds, targets))).toEqual([false, true]);
     }
   });
+
+  it('never shows late an approved player to seat, ready or not (the owner, 8 Nov)', () => {
+    for (const kind of ['seat', 'seat_check', 'seat_wait'] as const) expect(isRequestLate(kind, 3600, requestTargets(undefined))).toBe(false);
+  });
 });

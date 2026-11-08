@@ -1,5 +1,5 @@
 import { tableToSeatAt } from '@rivr/domain/tables';
-import { openSeatsAt, type FloorRequest } from '@rivr/db';
+import { isSeatAlert, openSeatsAt, type FloorRequest } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button, DockedPanel, Inline, Screen, Segmented, useIsWide, useShortcut, type ButtonShortcut } from '@rivr/ui';
 import { useCallback, useState } from 'react';
@@ -11,7 +11,7 @@ import { RequestList, tableNameOf } from './RequestList.tsx';
 import { useFloorData, useNow, type FloorData } from './useFloorData.ts';
 import { useFloorFocus } from './useFloorFocus.ts';
 import { useRequestChanges } from './useRequestChanges.ts';
-import { useRequestQueue } from './useRequestQueue.ts';
+import { actionable, useRequestQueue } from './useRequestQueue.ts';
 import { useSeatChanges } from './useSeatChanges.ts';
 import { useTableChanges } from './useTableChanges.ts';
 
@@ -71,20 +71,21 @@ function FloorReady({ venueId, permissions, data }: FloorProps & { data: FloorDa
   const changes = { requests: useRequestChanges(venueId), seats: useSeatChanges(venueId), tables: useTableChanges(venueId) };
   const isFloor = permissions.includes('waitlist.manage');
   const seatAny = isFloor ? seatAnyOf(data) : null;
-  const { onLeave, onOpen } = useRequestOpeners(data, setSheet);
+  const openers = useRequestOpeners(venueId, data, setSheet);
   const focusTableId = useFloorFocus(data, setSheet);
-  const oldest = queue.shown[0];
+  // A and D approve or decline the oldest request; seating an approved player is the floor's own press, never a key.
+  const oldest = queue.shown.find((request) => !isSeatAlert(request));
   const openSeat = seatAny === null ? null : () => setSheet(seatAny);
-  const seatKey = useFloorKeys(oldest, { changes: changes.requests, tableName: tableNameOf(data.tables, oldest?.tableId ?? ''), onLeave }, openSeat);
+  const seatKey = useFloorKeys(oldest, { changes: changes.requests, tableName: tableNameOf(data.tables, oldest?.tableId ?? ''), ...openers }, openSeat);
   const requestsPanel = (
     <>
       <RequestList requests={queue.shown} tables={data.tables} targets={data.targets} now={now} fresh={queue.fresh} changes={changes.requests}
-        onLeave={onLeave} onOpen={onOpen} />
+        {...openers} />
       <AlsoWaiting venueId={venueId} permissions={permissions} />
     </>
   );
   return (
-    <DockedPanel title={t('console.floor.requests.title')} count={data.requests?.length ?? 0} isOpen={panel.isOpen} onToggle={panel.toggle}
+    <DockedPanel title={t('console.floor.requests.title')} count={actionable(data.requests ?? []).length} isOpen={panel.isOpen} onToggle={panel.toggle}
       panel={requestsPanel} onHoverChange={queue.hold} hasPanel={isFloor}>
       <Screen title={t('console.liveFloor.title')} actions={(
         <FloorControls view={view} onView={setView} isNeedsYouOnly={isNeedsYouOnly} onNeedsYou={() => setNeedsYouOnly(!isNeedsYouOnly)}

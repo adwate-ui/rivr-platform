@@ -1,5 +1,6 @@
 import {
-  useFloorTables, useInterestLists, useWaitlistBoard, useWaitlistRequests, type FloorTable, type InterestList, type WaitlistBoardEntry, type WaitlistRequest,
+  useFloorTables, useInterestLists, useReadyToSeat, useWaitlistBoard, useWaitlistRequests, type FloorTable, type InterestList,
+  type WaitlistBoardEntry, type WaitlistRequest,
 } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { ErrorMessage, Grid, LoadState, Skeleton, StaleNotice, Stack, Text } from '@rivr/ui';
@@ -54,6 +55,13 @@ function Cards({ venueId, canOpen, tables, entries, requests, interest }: CardsP
   const ticks = useTicks();
   const navigate = useNavigate();
   const [seating, setSeating] = useState<{ table: FloorTable; place: SeatSheetPlace } | null>(null);
+  const readyToSeat = useReadyToSeat(venueId);
+  // Approve leads on to the seat sheet when a seat is free for the place (the owner, 8 Nov), as on the Live floor.
+  const onApproved = (entryId: string) => void readyToSeat(entryId).then((alert) => {
+    const table = tables.find((one) => one.id === alert?.tableId);
+    // Only while no sheet is open: one the floor opened meanwhile stays.
+    if (alert !== null && table !== undefined) setSeating((open) => open ?? { table, place: { entryId, memberId: alert.memberId, name: alert.fullName } });
+  });
   // Check ID (decision 0503): the check in person, with the member searched by name; Seat comes back once they are verified.
   const checkId = (entry: WaitlistBoardEntry) => void navigate({ to: '/kyc-review', search: { check: entry.fullName } });
   const shown = tablesShown(tables, venueId, entries, new Set(requests.map((request) => request.tableId)));
@@ -69,7 +77,7 @@ function Cards({ venueId, canOpen, tables, entries, requests, interest }: CardsP
             interest={table.isOpen ? undefined : interest.find((list) => list.tableId === table.id)}
             ticked={ticks.ticked} onToggle={ticks.toggle}
             onSeat={(entry) => setSeating({ table, place: { entryId: entry.entryId, memberId: entry.memberId, name: entry.fullName } })}
-            onCheckId={checkId} />
+            onApproved={onApproved} onCheckId={checkId} />
         ))}
       </Grid>
       {seating === null ? null : <SeatSheet venueId={venueId} table={seating.table} place={seating.place} onClose={() => setSeating(null)} />}

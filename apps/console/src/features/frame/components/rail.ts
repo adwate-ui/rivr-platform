@@ -9,7 +9,7 @@ export type { ScreenTab } from './railEntries.ts';
 export type QueueCounts = Readonly<Record<string, number>>;
 
 /** The queues where minutes matter: they chime, and the tab's title counts them (decision 0301). */
-export const URGENT_QUEUES: readonly string[] = ['topUps', 'timeRequests', 'waitlist', 'fnb', 'liveFloor'];
+export const URGENT_QUEUES: readonly string[] = ['topUps', 'timeRequests', 'waitlist', 'fnb', 'liveFloor', 'seating'];
 
 const ENTRIES: readonly RailEntry[] = [...RAIL.flatMap((group) => group.entries), REQUESTS];
 

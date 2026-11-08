@@ -50,7 +50,7 @@ const FLOOR_READERS: readonly Permission[] = ['members.read', 'floor.manage', 'w
 export const RAIL: readonly RailGroup[] = [
   {
     id: 'tonight', label: 'console.rail.groups.tonight', entries: [
-      { id: 'liveFloor', label: 'console.rail.items.liveFloor', href: '/', icon: 'floor', anyOf: FLOOR_READERS, counts: ['topUps', 'timeRequests', 'liveFloor'], isActionable: true },
+      { id: 'liveFloor', label: 'console.rail.items.liveFloor', href: '/', icon: 'floor', anyOf: FLOOR_READERS, counts: ['topUps', 'timeRequests', 'liveFloor', 'seating'], isActionable: true },
       { id: 'waitlist', label: 'console.rail.items.waitlist', href: '/waitlist', icon: 'waitlist', anyOf: [], counts: ['waitlist', 'tournamentInterest'], isActionable: true, tabs: [
         { id: 'lists', label: 'console.rail.items.lists', anyOf: ['waitlist.manage'] },
         { id: 'interest', label: 'console.rail.items.tournamentInterest', anyOf: ['tournaments.manage'] },
@@ -110,7 +110,7 @@ export const RAIL: readonly RailGroup[] = [
  */
 export const REQUESTS: RailEntry = {
   id: 'requests', label: 'console.rail.items.requests', href: '/requests', icon: 'requests', anyOf: ['waitlist.manage'],
-  counts: ['waitlist', 'topUps', 'timeRequests', 'liveFloor'], isActionable: true,
+  counts: ['waitlist', 'topUps', 'timeRequests', 'liveFloor', 'seating'], isActionable: true,
 };
 
 /** Below 768 px, the tab bar's tabs before More: each a screen above, under a shorter name. */

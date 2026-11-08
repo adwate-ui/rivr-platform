@@ -5,6 +5,12 @@ import { useEffect, useRef, useState } from 'react';
 /** A request's own name across reads: its kind and what the floor acts on. */
 export const requestKey = (request: FloorRequest) => `${request.kind}:${request.id}`;
 
+/** An ID check first, or a wait for a seat: nothing for the floor to do yet, so it neither glows nor opens the panel. */
+const isQuiet = (key: string) => key.startsWith('seat_check:') || key.startsWith('seat_wait:');
+
+/** The requests the floor can act on now: all but the quiet ones. */
+export const actionable = (requests: readonly FloorRequest[]) => requests.filter((request) => !isQuiet(requestKey(request)));
+
 /**
  * Requests that arrived since the last read, each for as long as its gold tint fades (decision 0465); `onArrive` hears of
  * them, so a folded panel opens. The first read brings nothing new.
@@ -19,7 +25,7 @@ function useFreshKeys(requests: readonly FloorRequest[] | undefined, onArrive: (
     const now = new Set(keys === '' ? [] : keys.split(' '));
     const before = seen.current;
     seen.current = now;
-    const arrived = before === null ? [] : [...now].filter((key) => !before.has(key));
+    const arrived = before === null ? [] : [...now].filter((key) => !before.has(key) && !isQuiet(key));
     if (arrived.length === 0) return;
     setFresh((current) => new Set([...current, ...arrived]));
     onArrive();
