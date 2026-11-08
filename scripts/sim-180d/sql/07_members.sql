@@ -117,7 +117,11 @@ end $$;
 create function sim.notice_tick(d int) returns void language plpgsql as $$
 begin
   if extract(isodow from sim.night_date(d)) <> 4 then return; end if;
+  -- Marketing is refused ("Staff who manage settings put up notices"): a lead for the review. The admin posts it.
   perform sim.try(sim.who('marketing'), 'marketing.post_notice', format(
+    'select public.post_notice(p_venue_id => %L, p_body => %L, p_starts_at => %L, p_ends_at => %L)',
+    sim.venue(), 'Weekend tables open at 6 pm.', sim_clock.now(), sim.ist(d + 4, '06:00')), true);
+  perform sim.try(sim.who('admin'), 'admin.post_notice', format(
     'select public.post_notice(p_venue_id => %L, p_body => %L, p_starts_at => %L, p_ends_at => %L)',
     sim.venue(), 'Weekend tables open at 6 pm. Ask the floor about the play-time bonus.', sim_clock.now(), sim.ist(d + 4, '06:00')));
 end $$;

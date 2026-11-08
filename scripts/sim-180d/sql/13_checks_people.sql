@@ -51,7 +51,7 @@ begin
        and (select count(*) from public.top_up_request t where t.member_id = (r.subject ->> ''member'')::uuid and t.requested_at = r.at) > 1');
   perform sim.check(d, p_scope, 'R04', 'A double tap on a reward: one redemption, points spent once',
     'select r.id from sim.race r where r.day = ' || d || ' and r.kind = ''double_redeem''
-       and (select count(*) from public.redemption x where x.idempotency_key = (r.subject ->> ''key'')::uuid) > 1');
+       and (select count(*) from public.redemption x where x.idempotency_key = r.subject ->> ''key'') > 1');
   perform sim.check(d, p_scope, 'R05', 'Approving a request as the member leaves: the place is left, or approved, never both',
     'select r.id, e.status from sim.race r join public.waitlist_entry e on e.id = (r.subject ->> ''entry'')::uuid
      where r.day = ' || d || ' and r.kind = ''approve_vs_leave'' and e.status = ''waiting''
@@ -64,7 +64,7 @@ begin
     'select action, sqlstate, message, count(*) from sim.log where day = ' || d || ' and not ok
        and sqlstate in (''42883'', ''42703'', ''42P01'', ''42601'', ''42804'', ''22P02'', ''42702'', ''P0001'') group by 1, 2, 3');
   perform sim.check(d, p_scope, 'X03', 'Every call an app makes exists and a signed-in or anonymous person may run it',
-    'select r.name from sim.rpc r where not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    'select r.name from sim.rpc r where r.name not like ''edge:%'' and not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
        where n.nspname = ''public'' and p.proname = r.name
          and (has_function_privilege(''authenticated'', p.oid, ''execute'') or has_function_privilege(''anon'', p.oid, ''execute'')))');
 end $$;

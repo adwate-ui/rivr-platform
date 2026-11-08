@@ -16,8 +16,9 @@ declare
   v_seats int[];
   v_sql text := 'select public.assign_from_waitlist(p_entry_id => %L, p_table_id => %L, p_seat => %s, p_call_minutes => 180, p_bonus_chips => 0)';
 begin
-  select e.id, e.member_id, e.table_id into w from public.waitlist_entry e join sim.plan pl using (member_id)
-  where e.status = 'waiting' and e.approved_at is not null and e.called_at is null and pl.state = 'arrived' order by e.joined_at limit 1;
+  select e.id, e.member_id, e.table_id into w from public.waitlist_entry e join sim.plan pl using (member_id) join sim.persona p using (member_id)
+  where e.status = 'waiting' and e.approved_at is not null and e.called_at is null and pl.state = 'arrived' and p.verified
+  order by e.joined_at limit 1;
   if w.id is null then return; end if;
   select array_agg(s order by s) into v_seats from generate_series(1, (select seats from public.game_table where id = w.table_id)) s
   where not exists (select 1 from public.seat_session x where x.table_id = w.table_id and x.seat = s and x.ended_at is null);
@@ -49,6 +50,12 @@ begin
     b := sim.as_actor(w.user_id, 'race.leave', format('select public.leave_waitlist(%L)', w.id));
     return next;
     return;
+  end if;
+  if p_kind = 'double_redeem' then
+    select x.* into p from sim.persona x join sim.plan pl using (member_id)
+      join public.ledger_balance b on b.member_id = x.member_id and b.code = 'member.points'
+    where pl.state = 'seated' and b.natural_balance >= (select min(points) from public.reward_item where venue_id = sim.venue() and is_live)
+    order by x.number limit 1;
   end if;
   if p.member_id is null then return; end if;
   v_sql := case p_kind

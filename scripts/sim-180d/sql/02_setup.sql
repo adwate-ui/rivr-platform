@@ -118,8 +118,9 @@ begin
   insert into public.device (venue_id, kind, name, auth_user_id, enrolled_at)
   values (sim.venue(), 'tv', 'Lounge TV', sim.uid('device:tv'), sim_clock.now());
   insert into sim.device select 'tv', id, auth_user_id from public.device where auth_user_id = sim.uid('device:tv');
+  insert into public.tv_screen (device_id, venue_id, mode, rotation) select device_id, sim.venue(), 'waitlist', '{}' from sim.device where key = 'tv';
   perform sim.try(sim.who('admin'), 'tv.rotation', format(
-    'select public.set_tv_rotation(p_device_id => %L, p_rotation => array[''waitlist'', ''call_time'', ''rewards'', ''spin_wheel'']::public.tv_mode[])',
+    'select public.set_tv_rotation(p_device_id => %L, p_rotation => array[''call_time'', ''rewards'', ''spin_wheel'']::public.tv_mode[])',
     (select device_id from sim.device where key = 'tv')));
   -- A super admin, not an admin: can_grant_role lets an admin manage only roles whose every permission they hold, and
   -- a dealer holds hands.log, which an admin does not. (A lead for the review: may an admin set a dealer's PIN?)

@@ -83,16 +83,16 @@ begin
   if v_table is null then return; end if;
   if random() < 0.75 then
     r := sim.try(p.user_id, 'member.join_waitlist', format('select public.join_waitlist_at(p_table_id => %L, p_idempotency_key => %L)',
-      v_table, sim.uid('wl:' || sim.day() || ':' || p_member)));
+      v_table, sim.uid('wl:' || sim_clock.now() || ':' || p_member)));
     -- The app asks for the selfie first: the member takes it, and joins again.
     if r ->> 'state' = 'RVKYC' and not p.selfie_taken and sim.selfie(p_member) then
       r := sim.try(p.user_id, 'member.join_waitlist_after_selfie', format('select public.join_waitlist_at(p_table_id => %L, p_idempotency_key => %L)',
-        v_table, sim.uid('wl:' || sim.day() || ':' || p_member)));
+        v_table, sim.uid('wl:' || sim_clock.now() || ':' || p_member)));
     end if;
   else
     r := sim.try(sim.floor(), 'floor.add_to_waitlist', format(
       'select public.add_to_waitlist(p_idempotency_key => %L, p_phone => %L, p_table_id => %L)',
-      sim.uid('wl:' || sim.day() || ':' || p_member), p.phone, v_table));
+      sim.uid('floor-wl:' || sim_clock.now() || ':' || p_member), p.phone, v_table));
   end if;
   if sim.ok(r) then
     update sim.plan set entry_id = sim.val(r)::uuid, state = case when state = 'planned' then 'joined' else state end

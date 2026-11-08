@@ -24,8 +24,8 @@ declare
 begin
   begin
     if p_actor is not null then
-      perform set_config('role', 'authenticated', true);
       perform set_config('request.jwt.claims', sim.claims(p_actor)::text, true);
+      perform set_config('role', 'authenticated', true);
     end if;
     execute format('select count(*), coalesce(jsonb_agg(x) filter (where rn <= 5), ''[]'') from (select row_number() over () rn, to_jsonb(q) x from (%s) q) z', p_sql)
     into v_n, v_sample;
@@ -68,8 +68,8 @@ declare
     union all select display_name from public.tv_rewards_ticker() union all select display_name from public.tv_spin_wheel()';
   v_n bigint;
 begin
-  perform set_config('role', 'authenticated', true);
   perform set_config('request.jwt.claims', sim.claims((select login from sim.device where key = 'tv'))::text, true);
+  perform set_config('role', 'authenticated', true);
   for p in select pe.full_name, split_part(pe.full_name, ' ', 1) || ' ' || left(split_part(pe.full_name, ' ', 2), 1) as short from sim.persona pe where pe.hides_name loop
     execute format('select count(*) from (%s) b where b.name ilike %L or b.name ilike %L', v_boards, p.full_name, p.short || '%') into v_n;
     if v_n > 0 then source := 'tv boards'; full_name := p.full_name; return next; end if;
