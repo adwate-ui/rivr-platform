@@ -81,7 +81,7 @@ describe('the console frame', () => {
     expect(await screen.findByRole('heading', { name: 'Live floor' })).toBeDefined();
     expect(screen.getByRole('navigation', { name: 'Sections' })).toBeDefined();
     expect(screen.getByRole('link', { name: 'Live floor' })).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'Sana Qureshi' }));
+    fireEvent.click(screen.getByRole('button', { name: 'SQ, Sana Qureshi' }));
     expect(screen.getByRole('group', { name: 'Sana Qureshi' })).toBeDefined();
     expect(screen.getByText('Cashier · RIVR Gurugram')).toBeDefined();
   });
@@ -90,7 +90,7 @@ describe('the console frame', () => {
     signIn();
     answerStaff([CLUB, PRACTICE]);
     renderAt('/');
-    fireEvent.click(await screen.findByRole('button', { name: 'Sana Qureshi' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'SQ, Sana Qureshi' }));
     expect(screen.getByRole('switch', { name: 'Practice venue' })).toBeDefined();
     expect(screen.queryByText('Practice venue: nothing here reaches the club or its members.')).toBeNull();
     fireEvent.click(screen.getByRole('switch', { name: 'Practice venue' }));
@@ -105,7 +105,7 @@ describe('the console frame', () => {
     signIn();
     answerStaff([CLUB]);
     renderAt('/');
-    fireEvent.click(await screen.findByRole('button', { name: 'Sana Qureshi' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'SQ, Sana Qureshi' }));
     expect(screen.getByText('Cashier · RIVR Gurugram')).toBeDefined();
     expect(screen.queryByRole('switch', { name: 'Practice venue' })).toBeNull();
   });
@@ -114,7 +114,7 @@ describe('the console frame', () => {
     signIn();
     answerStaff([CLUB, PRACTICE]);
     renderAt('/');
-    fireEvent.click(await screen.findByRole('button', { name: 'Sana Qureshi' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'SQ, Sana Qureshi' }));
     fireEvent.click(screen.getByRole('switch', { name: 'Practice venue' }));
     expect(await screen.findByRole('region', { name: 'Practice venue' })).toBeDefined();
     // A reload: the page starts again from what the device kept.
@@ -123,7 +123,7 @@ describe('the console frame', () => {
     const stripe = await screen.findByRole('region', { name: 'Practice venue' });
     fireEvent.click(within(stripe).getByRole('button', { name: 'Back to the club' }));
     await waitFor(() => expect(screen.queryByRole('region', { name: 'Practice venue' })).toBeNull());
-    fireEvent.click(screen.getByRole('button', { name: 'Sana Qureshi' }));
+    fireEvent.click(screen.getByRole('button', { name: 'SQ, Sana Qureshi' }));
     expect(screen.getByText('Cashier · RIVR Gurugram')).toBeDefined();
   });
 
@@ -140,7 +140,7 @@ describe('the console frame', () => {
     signIn();
     answerStaff([CLUB]);
     renderAt('/');
-    fireEvent.click(await screen.findByRole('button', { name: 'Sana Qureshi' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'SQ, Sana Qureshi' }));
     const density = screen.getByRole('radiogroup', { name: 'Density' });
     expect(within(density).getByRole('radio', { name: 'Comfortable' }).getAttribute('aria-checked')).toBe('true');
     expect(within(density).getByRole('radio', { name: 'Compact' })).toBeDefined();

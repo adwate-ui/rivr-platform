@@ -32,6 +32,8 @@ export const consoleUi = {
   /** The staff member's menu at the header's end (AccountMenu): the heading over the keys that work. */
   account: {
     shortcuts: 'Shortcuts',
+    /** The account button's name: the initials it shows, then whose they are (WCAG 2.5.3). `AM, Aditya Malhotra`. */
+    button: '{initials}, {name}',
   },
   /** A practice venue's stripe across the top of the console (PracticeBanner): read as the region's name. */
   practice: {
@@ -63,8 +65,8 @@ export const consoleUi = {
     open: 'Open',
   },
   requestItem: {
-    /** Read after an age past its target, which is also shown in the danger colour. */
-    late: 'late',
+    /** An age past its target, shown in words before the danger colour (WCAG 1.4.1): `Late · 130 min`. */
+    late: 'Late · {age}',
   },
   /** ChoiceChips: a chip's count, read with its label as the chip's name: `Pending, 3`. */
   choiceChips: {

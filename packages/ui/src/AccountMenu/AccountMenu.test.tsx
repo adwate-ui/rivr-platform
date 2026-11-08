@@ -18,12 +18,14 @@ function menu(onSignOut = vi.fn()) {
   );
 }
 
-const trigger = () => screen.getByRole('button', { name: 'Vikram Rao' });
+const trigger = () => screen.getByRole('button', { name: 'VR, Vikram Rao' });
 
 describe('AccountMenu', () => {
   it('is a round button with the initials, named for who is signed in, shut at first', () => {
     renderIn(menu());
     expect(trigger()).toHaveTextContent('VR');
+    // Named from the initials it shows, then whose they are (WCAG 2.5.3).
+    expect(trigger()).toHaveAccessibleName('VR, Vikram Rao');
     expect(trigger()).toHaveAttribute('aria-expanded', 'false');
     expect(trigger()).toHaveClass('size-touch', 'tablet:size-control');
     expect(screen.queryByText('Super admin · RIVR Gurugram')).not.toBeInTheDocument();

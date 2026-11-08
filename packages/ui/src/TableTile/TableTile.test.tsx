@@ -24,7 +24,9 @@ describe('TableTile', () => {
     expect(screen.getByRole('group', { name: 'Table 1 50/100' })).toBeInTheDocument();
     expect(screen.getByText('6 of 9 seated')).toBeInTheDocument();
     expect(screen.getByText('2 need you')).toHaveClass('text-gold');
-    expect(screen.getByRole('button', { name: 'Table 1 50/100', description: '4 seated, 2 need you, 3 open' })).toHaveAttribute('aria-expanded', 'false');
+    // Named with what it shows (WCAG 2.5.3), the bar read out as its description.
+    expect(screen.getByRole('button', { name: 'Table 1 50/100 6 of 9 seated 2 need you', description: '4 seated, 2 need you, 3 open' }))
+      .toHaveAttribute('aria-expanded', 'false');
   });
 
   it('says "1 needs you" for one, and Show seats when nobody does', () => {
@@ -45,7 +47,7 @@ describe('TableTile', () => {
     const { onToggle, onSettings } = renderTile();
     await userEvent.click(screen.getByText('Table 1'));
     expect(onToggle).toHaveBeenCalledTimes(1);
-    screen.getByRole('button', { name: 'Table 1 50/100' }).focus();
+    screen.getByRole('button', { name: /^Table 1 50\/100 / }).focus();
     await userEvent.keyboard('{Enter}');
     expect(onToggle).toHaveBeenCalledTimes(2);
     await userEvent.click(screen.getByRole('button', { name: 'Settings for Table 1' }));
@@ -55,7 +57,7 @@ describe('TableTile', () => {
 
   it('lists its seats while expanded', () => {
     renderTile({ isExpanded: true });
-    expect(screen.getByRole('button', { name: 'Table 1 50/100' })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('button', { name: /^Table 1 50\/100 / })).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('button', { name: 'Seat 1, Nakul Dhillon' })).toBeInTheDocument();
     expect(screen.getByText('6 of 9 seated').closest('button')).toHaveAttribute('aria-controls');
   });
