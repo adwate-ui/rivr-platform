@@ -2,7 +2,7 @@ import { useFloorWaitlistActions, useWaitlistCallActions, type FloorTable, type 
 import { t, type MessageKey } from '@rivr/i18n';
 import { Box, ConfirmQuestion, ErrorMessage, Stack, useTableDensity, useToast, WaitlistRow, type OverflowMenuItem } from '@rivr/ui';
 import { useState } from 'react';
-import { RELEASE_FAILURE_COPY, ENTRY_FAILURE_COPY } from './failureCopy.ts';
+import { CALL_FAILURE_COPY, RELEASE_FAILURE_COPY, ENTRY_FAILURE_COPY } from './failureCopy.ts';
 import { placeMeta } from './placeMeta.ts';
 
 type Outcome = { ok: true } | { ok: false; error: WaitlistFailure };
@@ -24,7 +24,7 @@ interface PlaceRowProps {
 /** The place's steps: Seat, Hold place or Release, and Remove, each saying its outcome in a toast or its failure under the row. */
 function usePlaceSteps(venueId: string, entry: WaitlistBoardEntry) {
   const { remove } = useFloorWaitlistActions(venueId);
-  const { seat, away } = useWaitlistCallActions();
+  const { call, away } = useWaitlistCallActions();
   const toast = useToast();
   const [failure, setFailure] = useState<MessageKey | null>(null);
   const name = entry.fullName;
@@ -41,13 +41,12 @@ function usePlaceSteps(venueId: string, entry: WaitlistBoardEntry) {
   const releaseNow = () => run(setAway(false), released, RELEASE_FAILURE_COPY);
   return {
     failure,
-    isBusy: seat.isPending || away.isPending || remove.isPending,
+    isBusy: call.isPending || away.isPending || remove.isPending,
     // Hold and Release undo each other exactly; holding a called place also ends its call, which Release does not bring back.
     hold: () => run(setAway(true), held, ENTRY_FAILURE_COPY, entry.holdUntil === null ? () => void releaseNow() : undefined),
     release: () => void run(setAway(false), released, RELEASE_FAILURE_COPY, () => void holdNow()),
-    seatCalled: () => void run(seat.mutateAsync(entry.entryId),
-      t('console.waitlist.toast.seated', { name, table: entry.callTableName ?? '', seat: entry.callSeat ?? 0 })),
     remove: () => run(remove.mutateAsync(entry.entryId), t('console.waitlist.toast.removed', { name })),
+    call: () => void run(call.mutateAsync(entry.entryId), t('console.waitlist.toast.called', { name }), CALL_FAILURE_COPY),
   };
 }
 
@@ -55,7 +54,7 @@ type Asking = 'hold' | 'remove' | null;
 
 /**
  * The ⋯ menu: Hold place, or Release for a place held, then Remove from list. Remove asks first; so does Hold on a called
- * place, as it ends the call and calls the next name, with no Undo.
+ * place, as it ends the call, with no Undo.
  */
 function menuItems(entry: WaitlistBoardEntry, steps: ReturnType<typeof usePlaceSteps>, ask: (what: Asking) => void): OverflowMenuItem[] {
   const isHeld = entry.awayUntil !== null;
@@ -87,9 +86,17 @@ function rowAction({ entry, table, onSeat, onCheckId }: PlaceRowProps, steps: Re
   const name = entry.fullName;
   if (entry.needsIdCheck) return onCheckId === undefined ? undefined : { label: t('console.waitlist.checkIdShort'), name: t('console.waitlist.checkId', { name }), onClick: onCheckId };
   const isCalled = entry.holdUntil !== null;
-  if (!isCalled && !table.isOpen) return undefined;
-  return { label: t('console.waitlist.seatShort'), name: t('console.waitlist.seat', { name }), isLoading: steps.isBusy,
-    onClick: isCalled ? steps.seatCalled : onSeat };
+  // Closed, or full with no seat held for them: Seat would open a sheet with no seat to pick (audit F-030).
+  if (!isCalled && (!table.isOpen || table.openSeats === 0)) return undefined;
+  // A member called too opens the sheet: their held seat, a call time and any bonus chips to redeem.
+  return { label: t('console.waitlist.seatShort'), name: t('console.waitlist.seat', { name }), isLoading: steps.isBusy, onClick: onSeat };
+}
+
+/** Call (the owner, 8 Nov): for a member waiting with a seat free for them; it holds the seat and tells them. */
+function callAction({ entry, table }: PlaceRowProps, steps: ReturnType<typeof usePlaceSteps>) {
+  const canCall = entry.holdUntil === null && entry.awayUntil === null && !entry.needsIdCheck && table.isOpen && table.openSeats !== 0;
+  if (!canCall) return undefined;
+  return { label: t('console.waitlist.callShort'), name: t('console.waitlist.call', { name: entry.fullName }), isLoading: steps.isBusy, onClick: steps.call };
 }
 
 /** One place on a table's list (console v3): its tick for the bulk bar, its number, who and how long, its button, and the ⋯ menu. */
@@ -106,6 +113,7 @@ export function PlaceRow(props: PlaceRowProps) {
       <WaitlistRow position={entry.place} name={name} meta={meta} isHeld={entry.awayUntil !== null} density={density}
         tick={{ label: t('console.waitlist.card.select', { name }), isTicked, onToggle }}
         action={rowAction(props, steps)}
+        secondary={callAction(props, steps)}
         menu={{ label: t('console.waitlist.card.more', { name }), items: menuItems(entry, steps, setAsking) }} />
       {asking === null ? null : <StepQuestion asking={asking} name={name} steps={steps} onDone={() => setAsking(null)} />}
       {steps.failure === null ? null : <Box paddingX={4}><ErrorMessage>{t(steps.failure)}</ErrorMessage></Box>}

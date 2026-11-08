@@ -1,4 +1,4 @@
-import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, type WaitlistBoardEntry, type WaitlistRequest } from '@rivr/db';
+import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, type FloorTable, type WaitlistBoardEntry, type WaitlistRequest } from '@rivr/db';
 import { ToastProvider } from '@rivr/ui';
 import { QueryClient } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
@@ -38,13 +38,13 @@ afterEach(() => {
 
 function renderCard(props: {
   entries?: readonly WaitlistBoardEntry[]; ticked?: ReadonlySet<string>; onToggle?: (id: string) => void; onSeat?: () => void;
-  onCheckId?: (entry: WaitlistBoardEntry) => void; onApproved?: (entryId: string) => void; cannotCheckId?: boolean;
+  onCheckId?: (entry: WaitlistBoardEntry) => void; onApproved?: (entryId: string) => void; cannotCheckId?: boolean; table?: FloorTable;
 }) {
   return render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
       <ToastProvider place="console">
-        <TableWaitlist venueId="v1" table={TABLE} entries={props.entries ?? [place(1, 'Ishaan Verma'), place(2, 'Mihir Shah')]} requests={[REQUEST]}
+        <TableWaitlist venueId="v1" table={props.table ?? TABLE} entries={props.entries ?? [place(1, 'Ishaan Verma'), place(2, 'Mihir Shah')]} requests={[REQUEST]}
           interest={undefined} canOpen now={NOW} ticked={props.ticked ?? new Set()} onToggle={props.onToggle ?? vi.fn()} onSeat={props.onSeat ?? vi.fn()}
           onApproved={props.onApproved ?? vi.fn()} onCheckId={props.cannotCheckId === true ? undefined : props.onCheckId ?? vi.fn()} />
       </ToastProvider>
@@ -116,6 +116,27 @@ describe("a table's waitlist card (console v3)", () => {
     expect(screen.queryByRole('button', { name: 'Seat Uday Thakur' })).toBeNull();
   });
 
+  it('offers Call beside Seat for a member waiting with a seat free, and sends it (the owner, 8 Nov)', async () => {
+    renderCard({ entries: [place(1, 'Ishaan Verma')] });
+    fireEvent.click(screen.getByRole('button', { name: 'Call Ishaan Verma' }));
+    await waitFor(() => expect(calls.filter((call) => call.rpc === 'call_to_seat')).toHaveLength(1));
+    expect(await screen.findByText('Ishaan Verma called')).toBeDefined();
+  });
+
+  it('offers no Call to a member already called or needing an ID check', () => {
+    renderCard({ entries: [place(1, 'Uday Thakur', { needsIdCheck: true }), place(2, 'Mihir Shah', { callTableName: 'Table 1', callSeat: 4, holdUntil: '2026-11-15T15:52:00Z' })] });
+    expect(screen.queryByRole('button', { name: 'Call Uday Thakur' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Call Mihir Shah' })).toBeNull();
+  });
+
+  it('says a full table is full, with no Seat or Call on its rows, but keeps Seat for a member called (audit F-030)', () => {
+    renderCard({ table: { ...TABLE, openSeats: 0 }, entries: [place(1, 'Ishaan Verma'), place(2, 'Mihir Shah', { callTableName: 'Table 1', callSeat: 4, holdUntil: '2026-11-15T15:52:00Z' })] });
+    expect(screen.getByText('Full. Seat when a seat frees.')).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Seat Ishaan Verma' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Call Ishaan Verma' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Seat Mihir Shah' })).toBeDefined();
+  });
+
   it('marks a place whose ID the desk must check, and offers Check ID in place of Seat, even once called (decision 0503)', () => {
     const onSeat = vi.fn();
     const onCheckId = vi.fn();
@@ -131,20 +152,27 @@ describe("a table's waitlist card (console v3)", () => {
     expect(screen.getByRole('button', { name: 'Seat Mihir Shah' })).toBeDefined();
   });
 
-  it('seats a called member at the seat held for them, with no sheet', async () => {
+  it('opens the sheet for a called member, for their held seat, a call time and any bonus chips', () => {
     const onSeat = vi.fn();
     renderCard({ onSeat, entries: [place(1, 'Kabir Sethi', { callTableName: 'Table 1', callSeat: 4, holdUntil: '2026-11-15T15:52:00Z' })] });
     fireEvent.click(screen.getByRole('button', { name: 'Seat Kabir Sethi' }));
-    await waitFor(() => expect(calls).toContainEqual({ rpc: 'seat_from_waitlist', body: { p_entry_id: 'e1' } }));
-    expect(onSeat).not.toHaveBeenCalled();
-    expect(await screen.findByText('Kabir Sethi seated at Table 1, seat 4')).toBeDefined();
+    expect(onSeat).toHaveBeenCalledOnce();
+    expect(calls.filter((call) => call.rpc === 'seat_from_waitlist')).toEqual([]);
   });
 
-  it('asks before holding a called place, as its call ends and the seat goes to the next name', async () => {
+  it('offers no Call to a member away, or at a closed table', () => {
+    renderCard({ entries: [place(1, 'Naina Kapoor', { awayUntil: '2026-11-15T15:52:00Z' })] });
+    expect(screen.queryByRole('button', { name: 'Call Naina Kapoor' })).toBeNull();
+    cleanup();
+    renderCard({ table: { ...TABLE, isOpen: false }, entries: [place(1, 'Ishaan Verma')] });
+    expect(screen.queryByRole('button', { name: 'Call Ishaan Verma' })).toBeNull();
+  });
+
+  it('asks before holding a called place, as its call ends and the seat is freed', async () => {
     renderCard({ entries: [place(1, 'Kabir Sethi', { callTableName: 'Table 1', callSeat: 4, holdUntil: '2026-11-15T15:52:00Z' })] });
     fireEvent.click(screen.getByRole('button', { name: 'More for Kabir Sethi' }));
     fireEvent.click(screen.getByRole('menuitem', { name: 'Hold place' }));
-    expect(screen.getByText('Hold Kabir Sethi’s place? The seat goes to the next name.')).toBeDefined();
+    expect(screen.getByText('Hold Kabir Sethi’s place? The seat is freed.')).toBeDefined();
     expect(calls.filter((call) => call.rpc === 'step_away')).toEqual([]);
     fireEvent.click(screen.getByRole('button', { name: 'Yes, hold Kabir Sethi’s place' }));
     await waitFor(() => expect(calls).toContainEqual({ rpc: 'step_away', body: { p_entry_id: 'e1', p_is_away: true } }));

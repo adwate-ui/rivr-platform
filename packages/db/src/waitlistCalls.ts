@@ -5,7 +5,7 @@ import { bonusArg } from './seats.ts';
 import { failureOf, type WaitlistFailure } from './waitlist.ts';
 
 /**
- * The floor's call-down (#63, waitlist.manage): `call` a waiting member to a table and seat, which
+ * The floor's call-down (#63, waitlist.manage): `call` a waiting member to the first free seat, which
  * holds it and sends the seat call; `seat` a called member there, which takes the place off every
  * list; `away` steps a place away (Skip) or back. Each resolves to a Result and reloads the lists.
  */
@@ -29,9 +29,13 @@ export function useWaitlistCallActions() {
         p_entry_id: entryId, p_table_id: tableId, p_seat: number, p_call_minutes: callMinutes, ...bonusArg(bonusChips),
       })).error),
   });
+  // Call (the owner, 8 Nov): the first free seat at the list's table held for the member, who is told by WhatsApp and push.
+  const call = useMutation({
+    mutationFn: async (entryId: string) => settle((await client.rpc('call_to_seat', { p_entry_id: entryId })).error),
+  });
   const away = useMutation({
     mutationFn: async ({ entryId, isAway }: { entryId: string; isAway: boolean }) =>
       settle((await client.rpc('step_away', { p_entry_id: entryId, p_is_away: isAway })).error),
   });
-  return { seat, assign, away };
+  return { seat, assign, call, away };
 }

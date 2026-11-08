@@ -144,7 +144,7 @@ select throws_ok($$ select public.step_away(pg_temp.entry('00000000-0000-4000-80
 reset role;
 update public.waitlist_entry set away_used = interval '0' where id = pg_temp.entry('00000000-0000-4000-8000-000000000204');
 
--- A call unanswered when its hold runs out rolls to the next name, for the same seat.
+-- A call unanswered when its hold runs out frees the seat and calls nobody: the floor taps Call (the owner, 8 Nov).
 select pg_temp.as_person('00000000-0000-4000-8000-000000000210');
 select isnt(public.join_waitlist_at(pg_temp.table_id('Table 2'), gen_random_uuid()), null, 'Dev joins behind Rohan');
 select pg_temp.approve_joins();
@@ -156,20 +156,25 @@ update public.waitlist_entry set hold_until = now() - interval '1 second' where 
 select private.expire_waitlist_holds();
 select is((select left_reason from public.waitlist_entry where member_id = '00000000-0000-4000-8000-000000000204'
            and table_type_id = pg_temp.type_id('nlh_100_200')), 'missed', 'the unanswered call lets Rohan''s place go');
-select results_eq($$ select ct.name, e.call_seat from public.waitlist_entry e join public.game_table ct on ct.id = e.call_table_id
-                     where e.member_id = '00000000-0000-4000-8000-000000000210' and e.status = 'waiting' $$,
-  $$ values ('Table 2'::text, 4) $$, 'and calls the next name, Dev, to the same seat');
+select is_empty($$ select 1 from public.waitlist_entry e where e.member_id = '00000000-0000-4000-8000-000000000210' and e.status = 'waiting' and e.called_at is not null $$,
+  'and calls nobody else');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select lives_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000210'), pg_temp.table_id('Table 2'), 4) $$,
+  'the floor calls Dev to the seat');
+reset role;
 
--- A called member who leaves rolls the seat on too; the floor's Skip ends a call and rolls it on.
+-- A called member who leaves frees the seat too; the floor's Skip ends a call.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select isnt(public.join_waitlist_at(pg_temp.table_id('Table 2'), gen_random_uuid()), null, 'Ishaan joins behind Dev');
 select pg_temp.approve_joins();
 select pg_temp.as_person('00000000-0000-4000-8000-000000000210');
 select lives_ok($$ select public.leave_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000210')) $$, 'Dev leaves while called');
 reset role;
-select results_eq($$ select ct.name, e.call_seat from public.waitlist_entry e join public.game_table ct on ct.id = e.call_table_id
-                     where e.member_id = '00000000-0000-4000-8000-000000000211' and e.status = 'waiting' $$,
-  $$ values ('Table 2'::text, 4) $$, 'and Ishaan is called to the seat');
+select is_empty($$ select 1 from public.waitlist_entry e where e.member_id = '00000000-0000-4000-8000-000000000211' and e.status = 'waiting' and e.called_at is not null $$,
+  'and Ishaan is not called until the floor calls him');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select lives_ok($$ select public.call_from_waitlist(pg_temp.entry('00000000-0000-4000-8000-000000000211'), pg_temp.table_id('Table 2'), 4) $$,
+  'the floor calls Ishaan to the seat');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select throws_ok($$ select public.step_away(pg_temp.entry('00000000-0000-4000-8000-000000000211'), true) $$, '22023', null,
   'a called member cannot step away themselves');

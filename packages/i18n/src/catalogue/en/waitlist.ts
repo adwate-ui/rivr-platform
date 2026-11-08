@@ -146,7 +146,7 @@ export const waitlist = {
   invalidCall: 'Choose an open table, a seat at it, and a call time of 0 to 1,440 minutes.',
   seatHeld: 'Held for a called player. Choose another seat.',
   seatTaken: 'Seat taken. Choose another.',
-  tooLate: 'Hold expired. The next name is called shortly.',
+  tooLate: 'Hold expired. The seat is free.',
   noTimeAway: 'No time away left for this place.',
   oneAtATime: 'Already waiting for another game. Remove them from that list first.',
   /** Bonus chips redeemed with the seat (decision 0504), refused: not seated. */
@@ -169,6 +169,15 @@ export const waitlist = {
   /** A place whose member registered with a selfie: the desk checks their ID before they sit (decision 0503). */
   checkId: 'Check {name}’s ID',
   checkIdShort: 'Check ID',
+  /** Holds the first free seat for the member and tells them (the owner, 8 Nov). */
+  call: 'Call {name}',
+  callShort: 'Call',
+  /** On a full table's card, with no Seat on its rows (audit F-030). */
+  tableFull: 'Full. Seat when a seat frees.',
+  /** The same, with who is on their way out. */
+  tableFullLeaving: 'Full. Leaving: {names}.',
+  /** A Call that lost the table's last seat. */
+  noFreeSeat: 'No free seat at this table.',
   /** A place whose ID check waits for the desk, for staff who do not check ID (a cashier). */
   metaIdAtDesk: '{meta} · ask the floor or host',
   confirmSkip: 'Yes, hold {name}’s place',
@@ -202,9 +211,9 @@ export const waitlist = {
     onTheWay: 'on the way',
     idCheckNeeded: 'ID check needed',
     confirmRemove: 'Remove {name} from the list?',
-    /** Hold on a called place: the call ends and the seat goes to the next name. */
-    confirmHoldCalled: 'Hold {name}’s place? The seat goes to the next name.',
-    confirmHoldCalledMany: 'Some places ticked are called. Hold them all? Their seats go to the next names.',
+    /** Hold on a called place: the call ends and the seat is free again. */
+    confirmHoldCalled: 'Hold {name}’s place? The seat is freed.',
+    confirmHoldCalledMany: 'Some places ticked are called. Hold them all? Their seats are freed.',
     confirmHoldMany: 'Yes, hold them',
     confirmRemoveMany: 'Remove the places ticked: {count}?',
     confirmRemoveManyYes: 'Yes, remove them',
@@ -221,6 +230,7 @@ export const waitlist = {
     released: '{name} is back on the list',
     removed: '{name} removed from the list',
     seated: '{name} seated at {table}, seat {seat}',
+    called: '{name} called',
     bulkHeld: 'Places held: {count}',
     bulkRemoved: 'Removed from the lists: {count}',
     failed: 'Not sent. Try again.',

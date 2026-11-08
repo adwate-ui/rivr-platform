@@ -35,7 +35,7 @@ select '00000000-0000-4000-8000-000000000001', m.id, 'verified', 'digilocker', '
        '00000000-0000-4000-8000-000000000001/' || m.id || '/selfie.jpg', now()
 from (values ('00000000-0000-4000-8000-000000000202'::uuid, 'ABCPK2022K'), ('00000000-0000-4000-8000-000000000204'::uuid, 'ABCPR2044R')) as m (id, pan);
 
--- Assign: Kabir to Table 2, seat 9 (his list's table, decision 0467), for four hours. He is seated at once, and the seat-ready message still goes.
+-- Assign: Kabir to Table 2, seat 9 (his list's table, decision 0467), for four hours. He is seated at once, and no seat-ready message goes (the owner, 8 Nov).
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 create temp table kabir_entry as select pg_temp.entry('00000000-0000-4000-8000-000000000202') as id;
 grant select on kabir_entry to authenticated;
@@ -49,7 +49,7 @@ select results_eq($$ select s.seat, s.call_time_minutes, g.name from public.seat
   $$ values (9, 240, 'Table 2'::text) $$, 'he is seated there, with his four hours');
 select is((select status from public.waitlist_entry where id = (select id from kabir_entry)), 'seated', 'and off the list as seated');
 select is((select count(*)::integer from public.outbox_event where event_type = 'waitlist.called'
-           and payload ->> 'member_id' = '00000000-0000-4000-8000-000000000202'), 1, 'the seat-ready message goes out');
+           and payload ->> 'member_id' = '00000000-0000-4000-8000-000000000202'), 0, 'no seat-ready message goes to someone already sitting down (audit F-050)');
 
 -- A dealer is not the floor; a call time over a day is refused, and nothing is left half done.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');

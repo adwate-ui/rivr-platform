@@ -1,6 +1,4 @@
-import {
-  useApproveWaitlistRequest, useFloorWaitlistActions, type FloorTable, type InterestList, type WaitlistBoardEntry, type WaitlistFailure, type WaitlistRequest,
-} from '@rivr/db';
+import { type FloorTable, type InterestList, useApproveWaitlistRequest, useFloorSeats, useFloorWaitlistActions, type WaitlistBoardEntry, type WaitlistFailure, type WaitlistRequest } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Box, ErrorMessage, Heading, Inline, JoinRequestRow, Stack, Text, useToast } from '@rivr/ui';
 import { useState } from 'react';
@@ -65,6 +63,16 @@ function JoinRequests({ venueId, table, requests, onApproved }: {
   );
 }
 
+/** A full table's note: when a seat will come, by who is on their way out (audit F-030). */
+function FullNote({ venueId, tableId }: { venueId: string; tableId: string }) {
+  const leaving = (useFloorSeats(venueId).data ?? []).filter((seat) => seat.tableId === tableId && seat.leavingAt !== null).map((seat) => seat.fullName);
+  return (
+    <Box paddingX={4} paddingY={2}>
+      <Text variant="secondary" tone="muted">{leaving.length === 0 ? t('console.waitlist.tableFull') : t('console.waitlist.tableFullLeaving', { names: leaving.join(', ') })}</Text>
+    </Box>
+  );
+}
+
 /**
  * One table's waitlist as a card (console v3): its name, stake and open seats; the joins asking from the app; the places in
  * order, each with its tick, Seat and ⋯ menu; and a field to add a member by mobile or membership number.
@@ -79,6 +87,7 @@ export function TableWaitlist(props: TableWaitlistProps) {
           <Text as="span" variant="secondary" tone="muted">{tableMeta(table)}</Text>
         </Inline>
       </Box>
+      {table.isOpen && table.openSeats === 0 && entries.length > 0 ? <FullNote venueId={venueId} tableId={table.id} /> : null}
       <JoinRequests venueId={venueId} table={table} requests={requests} onApproved={onApproved} />
       {interest === undefined ? null : (
         <Box paddingX={4} paddingY={2}><InterestNotice venueId={venueId} interest={interest} table={table} canOpen={canOpen} /></Box>

@@ -48,18 +48,19 @@ interface SeatSheetProps {
   onClose: () => void;
 }
 
-/** The seats free at the table, neither taken nor held for a called member (F2-18). */
-function useFreeSeats(venueId: string, table: FloorTable): number[] {
+/** The seats to offer: the one held for this place if it was called, else those neither taken nor held for a called member (F2-18). */
+function useFreeSeats(venueId: string, table: FloorTable, entryId: string): { free: number[]; heldSeat: number | undefined } {
   const seats = useFloorSeats(venueId);
   const held = useHeldSeats(venueId);
-  return openSeatsAt(table, [...(seats.data ?? []), ...(held.data ?? [])]);
+  const heldSeat = held.data?.find((one) => one.entryId === entryId)?.seat;
+  return { free: heldSeat === undefined ? openSeatsAt(table, [...(seats.data ?? []), ...(held.data ?? [])]) : [heldSeat], heldSeat };
 }
 
 /** The sheet's form: a free seat and a call time; Seat, in the sheet's footer, seats the member at once (decision 0299). */
 function useSeatForm({ venueId, table, place, onDone }: { venueId: string; table: FloorTable; place: SeatSheetPlace; onDone: () => void }) {
   const { assign } = useWaitlistCallActions();
   const toast = useToast();
-  const free = useFreeSeats(venueId, table);
+  const { free, heldSeat } = useFreeSeats(venueId, table, place.entryId);
   const [picked, setPicked] = useState<number | null>(null);
   // The stake's own call time to start from (decision 0299); another is the floor's choice.
   const [callMinutes, setCallMinutes] = useState<number | null>(table.callTimeMinutes);
@@ -67,7 +68,7 @@ function useSeatForm({ venueId, table, place, onDone }: { venueId: string; table
   // Bonus chips the member redeems with their buy-in (decision 0504), as typed; blank is none.
   const bonus = useBonusField(venueId, place.memberId, () => setFailure(null));
   // A seat taken since it was chosen (the floor is read every ten seconds) is no choice.
-  const seat = picked !== null && free.includes(picked) ? picked : null;
+  const seat = picked !== null && free.includes(picked) ? picked : (heldSeat ?? null);
   const seatNow = async () => {
     if (seat === null || !isCallTimeMinutes(callMinutes)) return setFailure('choose');
     const bonusChips = bonusChipsToRedeemSchema.safeParse(bonus.text);
@@ -100,7 +101,7 @@ function useSeatForm({ venueId, table, place, onDone }: { venueId: string; table
 /**
  * Seat from a table's list (console v3): the console's sheet with the seats free at the list's own table, a call time, and
  * any bonus chips the member redeems with their buy-in (decision 0504). Seat assigns and seats the member at once
- * (decision 0299); the seat-ready message still goes out by WhatsApp.
+ * (decision 0299), and tells them nothing (the owner, 8 Nov).
  */
 export function SeatSheet({ venueId, table, place, onClose }: SeatSheetProps) {
   return place === null ? null : <OpenSeatSheet key={place.entryId} venueId={venueId} table={table} place={place} onClose={onClose} />;
