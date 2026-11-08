@@ -19,7 +19,7 @@ async function takeSelfie(page: Page) {
   await page.goto(`${appUrl('player')}/kyc`);
   const take = page.getByRole('button', { name: 'Take a selfie' });
   const start = page.getByRole('button', { name: 'Continue to DigiLocker' });
-  await expect(take.or(start).or(page.getByRole('heading', { name: "You're verified." }))).toBeVisible();
+  await expect(take.or(start).or(page.getByRole('heading', { name: 'Verified', exact: true }))).toBeVisible();
   if (!(await take.isVisible())) return;
   await expect(page.getByRole('list', { name: 'Identity check' })).toBeVisible();
   await take.click();
@@ -31,7 +31,7 @@ async function takeSelfie(page: Page) {
 /** After the selfie, sets off for DigiLocker, unless an earlier run already verified this member. */
 async function startDigiLocker(page: Page) {
   const start = page.getByRole('button', { name: 'Continue to DigiLocker' });
-  await expect(start.or(page.getByRole('heading', { name: "You're verified." }))).toBeVisible();
+  await expect(start.or(page.getByRole('heading', { name: 'Verified', exact: true }))).toBeVisible();
   if (await start.isVisible()) await start.click();
 }
 
@@ -41,11 +41,11 @@ test.describe('KYC', () => {
     await signInToPlayer(page, '9000000301', '/kyc');
     await takeSelfie(page);
     await startDigiLocker(page);
-    await expect(page.getByRole('heading', { name: "You're verified." })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Verified', exact: true })).toBeVisible();
     await expect(page.getByText(/^Welcome to RIVR, \w+\.$/)).toBeVisible();
     expect(Date.now() - began).toBeLessThan(180_000);
-    await page.getByRole('button', { name: "See tonight's tables" }).click();
-    await expect(page.getByRole('heading', { name: 'Tonight', level: 1 })).toBeVisible();
+    await page.getByRole('button', { name: 'See the tables' }).click();
+    await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible();
   });
 
   test('a real venue without a KYC vendor fails closed', async ({ page }) => {
@@ -122,9 +122,9 @@ test.describe('Identity › At the club', () => {
     await page.getByRole('button', { name: 'Take a selfie' }).click();
     await page.getByRole('button', { name: 'Take photo' }).click();
     await page.getByRole('button', { name: 'Use photo' }).click();
-    await expect(page.getByRole('heading', { name: "You're registered." })).toBeVisible();
-    await page.getByRole('button', { name: "See tonight's tables" }).click();
-    await expect(page.getByRole('heading', { name: 'Tonight', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Registered', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'See the tables' }).click();
+    await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible();
     await expect(page.getByText('Bring your Aadhaar and PAN on your first visit. The desk checks them before you play.')).toBeVisible();
     expect(sql(`select status || ' ' || (at_club_from is not null) from public.kyc_record where member_id = '${UDAY}'`)).toBe('started true');
 

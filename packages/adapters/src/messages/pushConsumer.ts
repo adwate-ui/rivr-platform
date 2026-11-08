@@ -66,7 +66,7 @@ function callTimeEnding(payload: unknown, now: Date): Built {
   if (left <= 0) return ok(null);
   const title = t('push.callTimeEnding.title', { minutes: String(Math.ceil(left / 60_000)) });
   const body = t('push.callTimeEnding.body', { table, seat: String(seat), time: formatTime(new Date(endsAt)) });
-  // Its tag is the completion's, so "Call time complete" takes its place.
+  // Its tag is the completion's, so "Call time done" takes its place.
   return ok({
     memberId, pushType: 'push.call_time_complete', title, body, url: '/', tag: `call-time-${sessionId}`,
     action: { title: t('push.callTimeEnding.action'), url: '/?sheet=add-time' },

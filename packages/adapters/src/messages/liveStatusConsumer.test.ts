@@ -97,7 +97,7 @@ describe('the live-status consumer', () => {
 
     expect(statuses[0]).toEqual({
       kind: 'seated',
-      meta: 'Table 1 · Seat 4',
+      meta: 'Table 1, seat 4',
       label: 'Call time left',
       value: null,
       countdown: { startsAt: new Date('2026-11-15T15:00:00Z'), endsAt: new Date('2026-11-15T18:00:00Z') },

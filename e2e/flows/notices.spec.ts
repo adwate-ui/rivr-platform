@@ -33,6 +33,6 @@ test('Notices: a notice put up in Settings shows on members\' Home, is edited in
   await page.getByRole('button', { name: 'Yes, end it' }).click();
   await expect(page.getByRole('status').getByText('Notice ended.')).toBeVisible();
   await member.reload();
-  await expect(member.getByRole('heading', { name: 'Tonight', level: 1 })).toBeVisible();
+  await expect(member.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible();
   await expect(member.getByText(edited)).toHaveCount(0);
 });

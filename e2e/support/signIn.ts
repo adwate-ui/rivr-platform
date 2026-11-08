@@ -7,7 +7,7 @@ export const SIGN_IN_CODE = isRemoteTarget() ? (process.env.E2E_SIGN_IN_CODE ?? 
 
 /**
  * Signs a seeded member in on a phone-sized screen. Opened at `path` signed out, the app asks for
- * sign-in and returns there; from sign-in itself it waits for Tonight.
+ * sign-in and returns there; from sign-in itself it waits for Home.
  */
 export async function signInToPlayer(page: Page, number: string, path = '/sign-in') {
   if (SIGN_IN_CODE === '') throw new Error('E2E_SIGN_IN_CODE is not set: the flow cannot sign in on staging');
@@ -17,7 +17,7 @@ export async function signInToPlayer(page: Page, number: string, path = '/sign-i
   await page.getByRole('button', { name: 'Send code' }).click();
   // Six digits in, the code goes on by itself (S-01), in the redesign's code cells (decision 0320).
   await page.getByRole('textbox', { name: '6-digit code' }).fill(SIGN_IN_CODE);
-  if (path === '/sign-in') await expect(page.getByRole('heading', { name: 'Tonight', level: 1 })).toBeVisible();
+  if (path === '/sign-in') await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible();
   else await expect(page).toHaveURL(new RegExp(`${path}$`));
 }
 

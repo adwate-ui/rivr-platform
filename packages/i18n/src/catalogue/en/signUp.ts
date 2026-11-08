@@ -7,8 +7,8 @@
  */
 export const playerSignUp = {
   title: 'About you',
-  /** The top bar's place in joining: sign-up, then identity. */
-  progress: '1 of 2',
+  /** The top bar's place in joining: sign-up, then identity, said as identity's eyebrow says it. */
+  progress: 'Step 1 of 2',
   back: 'Back',
   /** `{phone}` is the number they signed in with: `+91 98765 43210`. */
   phone: 'Signing up with {phone}',
