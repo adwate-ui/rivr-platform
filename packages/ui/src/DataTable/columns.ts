@@ -31,6 +31,16 @@ export interface DataTableColumn<Row> {
   readonly filterValue?: (row: Row) => string | readonly string[];
 }
 
+/**
+ * A column only an export carries, after the table's own (the owner, 9 Nov: a Members export with every member field):
+ * its heading and each row's value, never drawn in the table.
+ */
+export interface DataTableExportColumn<Row> {
+  readonly key: string;
+  readonly header: string;
+  readonly exportValue: (row: Row) => string | number;
+}
+
 /** Which column the rows are sorted by, and which way. */
 export interface DataTableSort {
   readonly key: string;

@@ -104,6 +104,7 @@ export {
   isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberRecord, useMembersOfTier, useMemberSearch, useVenueTiers, useWithdrawEarlyDeparture, type EarlyDeparture, type EarlyDepartureFailure, type MemberFailure, type MemberKycStatus, type MemberListRow,
   type MemberRecord, type MemberRow, type TierChange, type VenueTier,
 } from './members.ts';
+export type { MemberExportDetails } from './memberDetails.ts';
 export { useMemberSignUp, type MemberSignUp, type SignUpCampaign } from './memberSignUp.ts';
 export { useChangeMemberPhone, type PhoneChangeFailure } from './memberPhone.ts';
 export {

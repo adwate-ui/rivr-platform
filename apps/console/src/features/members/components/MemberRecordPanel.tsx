@@ -16,6 +16,8 @@ import type { Tonight } from './tonight.ts';
 
 /** What the staff member may do on a record: change the tier and set a break, see the KYC photo, override features and erase (super admins). */
 export interface RecordAccess {
+  /** A super admin exports members' identity documents (the owner, 9 Nov). */
+  readonly seesIdentity: boolean;
   readonly manage: boolean;
   readonly seePhoto: boolean;
   readonly override: boolean;
