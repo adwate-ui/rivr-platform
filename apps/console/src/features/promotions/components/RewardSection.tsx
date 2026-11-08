@@ -22,34 +22,18 @@ function Fields({ children }: { children: ReactNode }) {
 }
 
 /** A count of bonus chips, in its own field. */
-function ChipsInput({ section, field, label }: { section: SectionProps; field: 'chips' | 'buyChips' | 'capChips'; label: string }) {
+function ChipsInput({ section, field, label }: { section: SectionProps; field: 'chips'; label: string }) {
   return <FormInput section={section} field={field} label={label} suffix={t('console.promotions.builder.fields.chipsSuffix')} inputMode="numeric" />;
 }
 
-function BuyInFields({ section }: { section: SectionProps }) {
-  const { form, onChange, isReadOnly } = section;
-  const isPercent = form.buyMode === 'percent';
-  const bonusAs = t('console.promotions.builder.fields.bonusAs');
-  const modes = [
-    { value: 'percent' as const, label: t('console.promotions.builder.fields.percentMode') },
-    { value: 'fixed' as const, label: t('console.promotions.builder.fields.fixedMode') },
-  ];
+/** A seat bonus (owner, 8 Nov): fixed bonus chips, on a visit's first seat or, with a number, the first seats at each table. */
+function SeatFields({ section }: { section: SectionProps }) {
   return (
-    <>
-      <Labelled label={bonusAs}>
-        <Segmented label={bonusAs} size="small" value={form.buyMode} options={modes}
-          onChange={(buyMode) => { if (!isReadOnly) onChange({ ...form, buyMode }); }} />
-      </Labelled>
-      <Fields>
-        {isPercent ? (
-          <FormInput section={section} field="percent" label={t('console.promotions.builder.fields.percent')}
-            suffix={t('console.promotions.builder.fields.percentSuffix')} inputMode="numeric" />
-        ) : <ChipsInput section={section} field="buyChips" label={t('console.promotions.builder.fields.buyChips')} />}
-        {isPercent ? <ChipsInput section={section} field="capChips" label={t('console.promotions.builder.fields.capChips')} /> : null}
-        <FormInput section={section} field="firstN" label={t('console.promotions.builder.fields.firstN')}
-          suffix={t('console.promotions.builder.fields.firstNSuffix')} inputMode="numeric" />
-      </Fields>
-    </>
+    <Fields>
+      <ChipsInput section={section} field="chips" label={t('console.promotions.builder.fields.chips')} />
+      <FormInput section={section} field="firstN" label={t('console.promotions.builder.fields.firstN')}
+        suffix={t('console.promotions.builder.fields.firstNSuffix')} inputMode="numeric" />
+    </Fields>
   );
 }
 
@@ -61,7 +45,7 @@ function BonusChipsFields({ section }: { section: SectionProps }) {
       <Fields><ChipsInput section={section} field="chips" label={t('console.promotions.builder.fields.chips')} /></Fields>
       <Labelled label={givenOn}>
         <Segmented label={givenOn} size="small" value={form.bonusOn}
-          options={BONUS_CHIPS_ON.map((on) => ({ value: on, label: t(`console.promotions.builder.fields.bonusOn.${on}`) }))}
+          options={BONUS_CHIPS_ON.filter((on) => on !== 'first_buyin').map((on) => ({ value: on, label: t(`console.promotions.builder.fields.bonusOn.${on}`) }))}
           onChange={(bonusOn) => { if (!isReadOnly) onChange({ ...form, bonusOn }); }} />
       </Labelled>
     </>
@@ -86,8 +70,8 @@ function KindFields({ section }: { section: SectionProps }) {
             suffix={t('console.promotions.builder.fields.multiplierSuffix')} inputMode="decimal" />
         </Fields>
       );
-    case 'buyin_bonus':
-      return <BuyInFields section={section} />;
+    case 'seat_bonus':
+      return <SeatFields section={section} />;
     case 'hours_bonus':
       return <HoursBonusFields section={section} />;
     case 'bonus_chips':

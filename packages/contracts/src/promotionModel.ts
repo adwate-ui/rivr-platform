@@ -32,6 +32,9 @@ export const rewardSchema = z.union([
     firstNBuyinsPerTable: firstN.optional(),
   }),
   z.strictObject({ kind: z.literal('buyin_bonus'), mode: z.literal('fixed'), chips, firstNBuyinsPerTable: firstN.optional() }),
+  // On the seat (owner, 8 Nov): fixed chips on the first seat of a visit, or on each of the first N seats at a table in a club day.
+  // A buy-in bonus above is kept for what was published; nothing records a buy-in since the Cage was hidden, and the builder offers none.
+  z.strictObject({ kind: z.literal('seat_bonus'), chips, firstNSeatsPerTable: firstN.optional() }),
   // Play time pays as each step is reached while seated (owner, 8 Nov): once after a time, at set steps, or every so often.
   z.strictObject({ kind: z.literal('hours_bonus'), chips, afterMinutes: minutesPlayed }),
   z.strictObject({ kind: z.literal('hours_bonus'), mode: z.literal('steps'), steps: hourSteps }),
@@ -127,7 +130,7 @@ export const PROMOTION_STATUSES = ['draft', 'awaiting_approval', 'scheduled', 'l
 export type PromotionStatus = (typeof PROMOTION_STATUSES)[number];
 
 const eventBase = {
-  // The event, once: 'buy_in:' and the cage transaction, 'hours_played:' and the visit, 'hours_step:' the visit and step.
+  // The event, once: 'buy_in:' and the cage transaction, 'seated:' and the seat, 'hours_played:' and the visit, 'hours_step:' the visit and step.
   key: z.string().min(1).max(200),
   at: z.iso.datetime({ offset: true }),
   memberId: id,
@@ -143,6 +146,8 @@ const eventBase = {
  */
 export const promotionEventSchema = z.discriminatedUnion('kind', [
   z.strictObject({ ...eventBase, kind: z.literal('buy_in'), ownChips: z.int().min(0), isFirstOfVisit: z.boolean() }),
+  // A seat past its Undo: whether it is the first of the visit.
+  z.strictObject({ ...eventBase, kind: z.literal('seated'), isFirstOfVisit: z.boolean() }),
   z.strictObject({ ...eventBase, kind: z.literal('time_played'), minutes: z.int().min(0), points: z.int().min(0) }),
   // A play-time bonus step reached (owner, 8 Nov): the minutes played so far, and the step's own minutes.
   z.strictObject({ ...eventBase, kind: z.literal('hours_step'), minutes: z.int().min(0), stepMinutes: minutesPlayed }),

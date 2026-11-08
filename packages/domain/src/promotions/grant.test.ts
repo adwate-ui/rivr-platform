@@ -22,6 +22,7 @@ describe('triggerOf', () => {
   it('gives time-played rewards for time played, play-time bonuses for each step, buy-in bonuses for buy-ins and perks for visits', () => {
     expect(triggerOf({ kind: 'points_multiplier', multiplier: 2 })).toBe('time_played');
     expect(triggerOf({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 })).toBe('hours_step');
+    expect(triggerOf({ kind: 'seat_bonus', chips: 1_000 })).toBe('seated');
     expect(triggerOf({ kind: 'hours_bonus', mode: 'every', everyMinutes: 60, chips: 100 })).toBe('hours_step');
     expect(triggerOf({ kind: 'free_spin', spins: 1, afterMinutes: 240 })).toBe('time_played');
     expect(triggerOf({ kind: 'buyin_bonus', mode: 'fixed', chips: 500 })).toBe('buy_in');

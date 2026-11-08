@@ -126,11 +126,16 @@ export function ledgerEntryFor(
 
 type LimitCheck = (promo: { readonly reward: Reward; readonly limits: Limits }, grant: Grant, tally: GrantTally) => boolean;
 
-const firstNOf = (reward: Reward) => (reward.kind === 'buyin_bonus' ? reward.firstNBuyinsPerTable : undefined);
+function firstNOf(reward: Reward): number | undefined {
+  if (reward.kind === 'seat_bonus') return reward.firstNSeatsPerTable;
+  return reward.kind === 'buyin_bonus' ? reward.firstNBuyinsPerTable : undefined;
+}
 
 // In order: the first broken limit is the reason.
 const LIMITS: readonly (readonly [LimitRefusal, LimitCheck])[] = [
-  ['already_given', ({ limits }, _, tally) => tally.periodGiven >= (limits.timesPerMember ?? 1)],
+  ['already_given', ({ limits, reward }, _, tally) => tally.periodGiven >= (limits.timesPerMember ?? 1)
+    // One of a seat bonus's first N a member, a club day: one member never takes the table's places (decision 0543).
+    || (reward.kind === 'seat_bonus' && reward.firstNSeatsPerTable !== undefined && tally.isMemberGrantedToday)],
   ['first_n_taken', ({ reward }, _, tally) => {
     const firstN = firstNOf(reward);
     return firstN !== undefined && (tally.grantsAtTableToday === null || tally.grantsAtTableToday >= firstN);
@@ -143,7 +148,7 @@ const LIMITS: readonly (readonly [LimitRefusal, LimitCheck])[] = [
 
 /**
  * Whether a promotion's limits let a grant through (decisions 0471 and 0499): the member given it fewer times in the
- * period than it allows (once unless it says up to N), among the first N buy-ins at the table this club day, within the
+ * period than it allows (once unless it says up to N), among the first N buy-ins or seats at the table this club day, within the
  * members a day (a member already given it today is not a new one) and the most grants, and the whole grant within what
  * is left of the budget in bonus chips, never part of it; a monthly budget's tally counts the month alone. The
  * database's private.promo_check_limits is proved equal on promotionRewards.json; its unique period key, numbered for

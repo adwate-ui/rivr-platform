@@ -12,7 +12,13 @@ export interface PromotionNames {
 
 const count = (value: number) => value.toLocaleString('en-IN');
 const nameOf = (names: Readonly<Record<string, string>> | undefined, id: string) => names?.[id] ?? id;
-const hours = (minutes: number) => `${minutes / 60} hour${minutes === 60 ? '' : 's'}`;
+/** Whole hours in words, and part hours as 1 h 30 min, never a decimal (audit F-055). */
+function hours(minutes: number): string {
+  const whole = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (rest === 0) return `${whole} hour${whole === 1 ? '' : 's'}`;
+  return whole === 0 ? `${rest} min` : `${whole} h ${rest} min`;
+}
 const BONUS_CHIPS_ON: Readonly<Record<Extract<Reward, { kind: 'bonus_chips' }>['on'], string>> = {
   visit: 'on each visit', first_buyin: 'on the first buy-in of a visit', referral: 'for each referral', signup: 'on sign-up',
 };
@@ -22,6 +28,13 @@ function buyInText(reward: Extract<Reward, { kind: 'buyin_bonus' }>): string {
   if (reward.mode === 'fixed') return `${count(reward.chips)} bonus chips on a buy-in${firstN}`;
   const cap = reward.capChips === undefined ? '' : `, up to ${count(reward.capChips)}`;
   return `${reward.percent}% buy-in bonus${cap}${firstN}`;
+}
+
+/** A seat bonus in words (owner, 8 Nov): on a visit's first seat, or for the first N seated at a table. */
+function seatText(reward: Extract<Reward, { kind: 'seat_bonus' }>): string {
+  return reward.firstNSeatsPerTable === undefined
+    ? `${count(reward.chips)} bonus chips on the first seat of a visit`
+    : `${count(reward.chips)} bonus chips for the first ${reward.firstNSeatsPerTable} seated at a table`;
 }
 
 /**
@@ -45,6 +58,8 @@ function rewardText(reward: Reward, names: PromotionNames): string {
       return `${reward.multiplier}× points`;
     case 'buyin_bonus':
       return buyInText(reward);
+    case 'seat_bonus':
+      return seatText(reward);
     case 'hours_bonus':
       return hoursText(reward);
     case 'bonus_chips':
@@ -56,7 +71,7 @@ function rewardText(reward: Reward, names: PromotionNames): string {
     case 'tournament_entry':
       return `An entry to ${nameOf(names.tournaments, reward.tournamentId)}`;
     default:
-      return 'First call on every waitlist';
+      return 'Front of every waitlist';
   }
 }
 

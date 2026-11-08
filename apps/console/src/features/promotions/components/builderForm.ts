@@ -1,11 +1,15 @@
 import type { BONUS_CHIPS_ON, Channels, Eligibility, Limits, PromotionTerms, Reward } from '@rivr/contracts/promotionModel';
 import { t } from '@rivr/i18n';
 
+/** What the builder makes: a buy-in bonus never pays now that nothing records a buy-in, so it moved to the seat (owner, 8 Nov). */
+type BuilderReward = Exclude<Reward, { kind: 'buyin_bonus' }>;
+
 /** A reward's kind, as the builder's first section offers them. */
-export type RewardKind = Reward['kind'];
+export type RewardKind = BuilderReward['kind'];
 
 export const REWARD_KINDS: readonly RewardKind[] = [
-  'points_multiplier', 'buyin_bonus', 'hours_bonus', 'bonus_chips', 'free_spin', 'cab_home', 'tournament_entry', 'waitlist_priority',
+  // No cab home or tournament entry: both features are off, so a promotion could not give them (audit F-033).
+  'points_multiplier', 'seat_bonus', 'hours_bonus', 'bonus_chips', 'free_spin', 'waitlist_priority',
 ];
 
 /** A play-time bonus step after the first, as typed: its hours played and its bonus chips. */
@@ -19,10 +23,7 @@ export interface BuilderForm {
   readonly name: string;
   readonly kind: RewardKind;
   readonly multiplier: string;
-  readonly buyMode: 'percent' | 'fixed';
-  readonly percent: string;
-  readonly capChips: string;
-  readonly buyChips: string;
+  /** A seat bonus for the first seats at each table; blank for a visit's first seat. */
   readonly firstN: string;
   /** An hours bonus's chips, or bonus chips on an event. */
   readonly chips: string;
@@ -70,7 +71,7 @@ const ALL_DAY = { days: EVERY_DAY, from: '06:00', to: '06:00' } as const;
 /** A blank promotion as the prototype starts one: 2× points on Friday and Saturday 20:00 to 02:00, once a visit, from `today`. */
 export function blankForm(today: string): BuilderForm {
   return {
-    name: '', kind: 'points_multiplier', multiplier: '2', buyMode: 'percent', percent: '20', capChips: '2000', buyChips: '1000', firstN: '5',
+    name: '', kind: 'points_multiplier', multiplier: '2', firstN: '',
     chips: '1000', afterHours: '4', hoursMode: 'steps', moreSteps: [], everyHours: '2', timesPerVisit: '', bonusOn: 'visit', spins: '1', fromVisit: '4', tournament: '', stakes: 'all', tableIds: undefined, tiers: 'all',
     audience: 'everyone', days: [5, 6], from: '20:00', to: '02:00', startsOn: today, endsOn: '', perMember: 'per_visit', timesPerMember: '',
     maxMembersPerDay: '', budgetChips: '', budgetPeriod: 'whole', maxGrants: undefined, channels: { playerApp: true, tv: true, website: false, whatsapp: false }, rulesText: '', link: '',
@@ -80,10 +81,12 @@ export function blankForm(today: string): BuilderForm {
 const text = (value: number | undefined) => (value === undefined ? '' : String(value));
 const hoursOf = (minutes: number) => String(minutes / 60);
 
-function buyInFields(reward: Extract<Reward, { kind: 'buyin_bonus' }>): Partial<BuilderForm> {
-  const firstN = text(reward.firstNBuyinsPerTable);
-  if (reward.mode === 'fixed') return { buyMode: 'fixed', buyChips: String(reward.chips), firstN };
-  return { buyMode: 'percent', percent: String(reward.percent), capChips: text(reward.capChips), firstN };
+/** A reward that paid on a buy-in, as the seat bonus it became: its fixed chips, or a percentage's cap, or 1,000. */
+function onTheSeat(reward: Reward): BuilderReward {
+  if (reward.kind === 'bonus_chips' && reward.on === 'first_buyin') return { kind: 'seat_bonus', chips: reward.chips };
+  if (reward.kind !== 'buyin_bonus') return reward;
+  const chips = reward.mode === 'fixed' ? reward.chips : (reward.capChips ?? 1000);
+  return reward.firstNBuyinsPerTable === undefined ? { kind: 'seat_bonus', chips } : { kind: 'seat_bonus', chips, firstNSeatsPerTable: reward.firstNBuyinsPerTable };
 }
 
 /** A play-time bonus's fields: its first step and those after it, or every so often (owner, 8 Nov). */
@@ -97,12 +100,12 @@ function hoursFields(reward: Extract<Reward, { kind: 'hours_bonus' }>): Partial<
 }
 
 /** The fields of a reward, each kind its own. */
-function rewardFields(reward: Reward): Partial<BuilderForm> {
+function rewardFields(reward: BuilderReward): Partial<BuilderForm> {
   switch (reward.kind) {
     case 'points_multiplier':
       return { multiplier: String(reward.multiplier) };
-    case 'buyin_bonus':
-      return buyInFields(reward);
+    case 'seat_bonus':
+      return { chips: String(reward.chips), firstN: text(reward.firstNSeatsPerTable) };
     case 'hours_bonus':
       return hoursFields(reward);
     case 'bonus_chips':
@@ -121,8 +124,9 @@ function rewardFields(reward: Reward): Partial<BuilderForm> {
 /** A version's terms as the builder's fields, to change into a draft or to read in the approver's view. */
 export function formFromTerms(terms: PromotionTerms): BuilderForm {
   const { eligibility, schedule, limits } = terms;
+  const reward = onTheSeat(terms.reward);
   return {
-    ...blankForm(schedule.startsOn), ...rewardFields(terms.reward), kind: terms.reward.kind, name: terms.name,
+    ...blankForm(schedule.startsOn), ...rewardFields(reward), kind: reward.kind, name: terms.name,
     stakes: eligibility.stakes, tableIds: eligibility.tableIds, tiers: eligibility.tiers, audience: eligibility.audience,
     days: schedule.days, from: schedule.from, to: schedule.to, startsOn: schedule.startsOn, endsOn: schedule.endsOn ?? '',
     perMember: limits.perMember, timesPerMember: text(limits.timesPerMember), maxMembersPerDay: text(limits.maxMembersPerDay),
@@ -131,16 +135,13 @@ export function formFromTerms(terms: PromotionTerms): BuilderForm {
   };
 }
 
-/** The "Start from" templates (console v3 brief): Blank, then the club's seven. */
-export const TEMPLATES = [
-  'blank', 'double_points', 'buyin_bonus', 'four_hour_bonus', 'cab_home', 'spin_the_wheel', 'founders_priority', 'graduate_freeroll',
-] as const;
+/** The "Start from" templates (console v3 brief): Blank, then the club's own, none for a feature that is off (audit F-033). */
+export const TEMPLATES = ['blank', 'double_points', 'seat_bonus', 'four_hour_bonus', 'spin_the_wheel', 'founders_priority'] as const;
 export type TemplateKey = (typeof TEMPLATES)[number];
 
-/** The tiers two templates are for, found among the venue's by name; null where the venue has none of that name. */
+/** The tier a template is for, found among the venue's by name; null where the venue has none of that name. */
 export interface TemplateTiers {
   readonly founders: string | null;
-  readonly graduate: string | null;
 }
 
 const tierOnly = (tierId: string | null): BuilderForm['tiers'] => (tierId === null ? 'all' : [tierId]);
@@ -148,14 +149,10 @@ const tierOnly = (tierId: string | null): BuilderForm['tiers'] => (tierId === nu
 // What each template sets over a blank promotion; the club's own rules where step 2 converted them (decision 0491).
 const TEMPLATE_FIELDS: Readonly<Record<Exclude<TemplateKey, 'blank'>, (tiers: TemplateTiers) => Partial<BuilderForm>>> = {
   double_points: () => ({ kind: 'points_multiplier', multiplier: '2' }),
-  buyin_bonus: () => ({ kind: 'buyin_bonus', buyMode: 'percent', percent: '20', capChips: '2000', firstN: '5', ...ALL_DAY, days: [2], perMember: 'none' }),
+  seat_bonus: () => ({ kind: 'seat_bonus', chips: '1000', firstN: '5', ...ALL_DAY, days: [2], perMember: 'per_day' }),
   four_hour_bonus: () => ({ kind: 'hours_bonus', chips: '1000', afterHours: '4', ...ALL_DAY, perMember: 'per_day' }),
-  cab_home: () => ({ kind: 'cab_home', fromVisit: '4', ...ALL_DAY, perMember: 'per_day' }),
   spin_the_wheel: () => ({ kind: 'free_spin', spins: '1', afterHours: '4', ...ALL_DAY, perMember: 'per_day' }),
   founders_priority: (tiers) => ({ kind: 'waitlist_priority', tiers: tierOnly(tiers.founders), ...ALL_DAY }),
-  graduate_freeroll: (tiers) => ({
-    kind: 'tournament_entry', tournament: t('console.promotions.builder.freerollTournament'), tiers: tierOnly(tiers.graduate), ...ALL_DAY, perMember: 'once',
-  }),
 };
 
 /** The builder as a template fills it, named as the template names it, from `today`. */

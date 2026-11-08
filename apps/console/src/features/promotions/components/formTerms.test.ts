@@ -2,6 +2,7 @@ import type { PromotionTerms } from '@rivr/contracts/promotionModel';
 import { describe, expect, it } from 'vitest';
 import { blankForm, formFromTerms, templateForm, type BuilderForm } from './builderForm.ts';
 import { readForm } from './formTerms.ts';
+import { TUESDAY } from './promotionsTestApi.tsx';
 import { allOrPicked } from './WhoWhenSections.tsx';
 
 const TODAY = '2026-11-10';
@@ -19,19 +20,29 @@ describe('the builder read as terms', () => {
     });
   });
 
-  it('reads a buy-in bonus as a percent with its cap, or fixed chips, and every blank as no limit', () => {
-    const percent = readForm(named({ kind: 'buyin_bonus', maxMembersPerDay: '50', budgetChips: '50,000', rulesText: ' Members only \n\n', link: ' ' }));
-    expect(percent.terms?.reward).toEqual({ kind: 'buyin_bonus', mode: 'percent', percent: 20, capChips: 2_000, firstNBuyinsPerTable: 5 });
-    expect(percent.terms?.limits).toEqual({ perMember: 'per_visit', maxMembersPerDay: 50, budgetChips: 50_000 });
-    expect(percent.terms?.rulesText).toEqual(['Members only']);
-    expect(percent.terms).not.toHaveProperty('link');
-    const fixed = readForm(named({ kind: 'buyin_bonus', buyMode: 'fixed', buyChips: '500', firstN: '' }));
-    expect(fixed.terms?.reward).toEqual({ kind: 'buyin_bonus', mode: 'fixed', chips: 500 });
+  it('reads a seat bonus, on a visit\'s first seat or the first at each table, and every blank as no limit', () => {
+    const firstSeat = readForm(named({ kind: 'seat_bonus', chips: '1,000', firstN: '', maxMembersPerDay: '50', budgetChips: '50,000', rulesText: ' Members only \n\n', link: ' ' }));
+    expect(firstSeat.terms?.reward).toEqual({ kind: 'seat_bonus', chips: 1_000 });
+    expect(firstSeat.terms?.limits).toEqual({ perMember: 'per_visit', maxMembersPerDay: 50, budgetChips: 50_000 });
+    expect(firstSeat.terms?.rulesText).toEqual(['Members only']);
+    expect(firstSeat.terms).not.toHaveProperty('link');
+    expect(readForm(named({ kind: 'seat_bonus', chips: '500', firstN: '5' })).terms?.reward).toEqual({ kind: 'seat_bonus', chips: 500, firstNSeatsPerTable: 5 });
+  });
+
+  it('opens a promotion that paid on a buy-in as the seat bonus it became (owner, 8 Nov)', () => {
+    const opened = (reward: PromotionTerms['reward']) => {
+      const form = formFromTerms({ ...TUESDAY, reward });
+      return [form.kind, form.chips, form.firstN];
+    };
+    expect(opened({ kind: 'buyin_bonus', mode: 'fixed', chips: 500, firstNBuyinsPerTable: 5 })).toEqual(['seat_bonus', '500', '5']);
+    expect(opened({ kind: 'buyin_bonus', mode: 'percent', percent: 20, capChips: 2_000 })).toEqual(['seat_bonus', '2000', '']);
+    expect(opened({ kind: 'buyin_bonus', mode: 'percent', percent: 20 })).toEqual(['seat_bonus', '1000', '']);
+    expect(opened({ kind: 'bonus_chips', chips: 750, on: 'first_buyin' })).toEqual(['seat_bonus', '750', '']);
   });
 
   it('marks each field the terms refuse, and still reads the four parts when only the words are wrong', () => {
     expect([...readForm(named({ multiplier: '2.1' })).errors]).toEqual(['multiplier']);
-    expect([...readForm(named({ kind: 'buyin_bonus', buyMode: 'fixed', buyChips: '1020' })).errors]).toEqual(['buyChips']);
+    expect([...readForm(named({ kind: 'seat_bonus', chips: '1020' })).errors]).toEqual(['chips']);
     expect([...readForm(named({ kind: 'hours_bonus', chips: '', afterHours: '0.2' })).errors].sort()).toEqual(['afterHours', 'chips']);
     expect([...readForm(named({ days: [], from: '25:00' })).errors].sort()).toEqual(['days', 'from']);
     expect([...readForm(named({ endsOn: '2026-11-01' })).errors]).toEqual(['endsOn']);
@@ -91,18 +102,15 @@ describe('the builder read as terms', () => {
   });
 
   it('prefills a template over a blank promotion, named, for the tier it is for', () => {
-    const tuesday = templateForm('buyin_bonus', TODAY, { founders: null, graduate: null });
+    const tuesday = templateForm('seat_bonus', TODAY, { founders: null });
     expect(readForm(tuesday).terms).toMatchObject({
-      name: 'Buy-in bonus Tuesday', reward: { kind: 'buyin_bonus', percent: 20, capChips: 2_000, firstNBuyinsPerTable: 5 },
-      schedule: { days: [2], from: '06:00', to: '06:00' }, limits: { perMember: 'none' },
+      name: 'Tuesday seat bonus chips', reward: { kind: 'seat_bonus', chips: 1_000, firstNSeatsPerTable: 5 },
+      schedule: { days: [2], from: '06:00', to: '06:00' }, limits: { perMember: 'per_day' },
     });
-    expect(readForm(templateForm('founders_priority', TODAY, { founders: 'tier-fc', graduate: null })).terms).toMatchObject({
+    expect(readForm(templateForm('founders_priority', TODAY, { founders: 'tier-fc' })).terms).toMatchObject({
       reward: { kind: 'waitlist_priority' }, eligibility: { tiers: ['tier-fc'] },
     });
-    expect(readForm(templateForm('graduate_freeroll', TODAY, { founders: null, graduate: 'tier-grad' })).terms).toMatchObject({
-      reward: { kind: 'tournament_entry', tournamentId: 'RIVR Sunday' }, eligibility: { tiers: ['tier-grad'] }, limits: { perMember: 'once' },
-    });
-    expect(templateForm('blank', TODAY, { founders: null, graduate: null })).toEqual(blankForm(TODAY));
+    expect(templateForm('blank', TODAY, { founders: null })).toEqual(blankForm(TODAY));
   });
 });
 

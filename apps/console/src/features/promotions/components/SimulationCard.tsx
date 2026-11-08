@@ -1,11 +1,10 @@
-import type { PromotionSimulationResult } from '@rivr/contracts/promotionModel';
+import type { PromotionSimulationResult, Reward } from '@rivr/contracts/promotionModel';
 import { formatDayMonth, t } from '@rivr/i18n';
 import { Box, Button, Grid, Heading, Inline, Number as Count, Stack, Text } from '@rivr/ui';
-import type { RewardKind } from './builderForm.ts';
 
 // What the third figure counts, by what the reward gives.
-const MEASURE: Readonly<Record<RewardKind, keyof PromotionSimulationResult & ('points' | 'chips' | 'spins' | 'perks')>> = {
-  points_multiplier: 'points', buyin_bonus: 'chips', hours_bonus: 'chips', bonus_chips: 'chips', free_spin: 'spins', cab_home: 'perks',
+const MEASURE: Readonly<Record<Reward['kind'], keyof PromotionSimulationResult & ('points' | 'chips' | 'spins' | 'perks')>> = {
+  points_multiplier: 'points', buyin_bonus: 'chips', seat_bonus: 'chips', hours_bonus: 'chips', bonus_chips: 'chips', free_spin: 'spins', cab_home: 'perks',
   tournament_entry: 'perks', waitlist_priority: 'perks',
 };
 
@@ -14,7 +13,7 @@ const DAY_MS = 86_400_000;
 
 /** A simulation's figures: the members qualified, the times given, and what it gave of its kind. */
 export interface SimulationShown {
-  readonly kind: RewardKind;
+  readonly kind: Reward['kind'];
   readonly result: PromotionSimulationResult;
   /** The club days replayed, when known; a simulation stored on a version keeps only its figures. */
   readonly period: { readonly from: Date; readonly to: Date } | null;

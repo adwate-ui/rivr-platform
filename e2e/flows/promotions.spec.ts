@@ -1,9 +1,9 @@
 /**
  * Publish a promotion (console v3, phase 7; decision 0471). Tara Bhalla, a floor manager who manages promotions, starts
- * a new promotion from the Buy-in bonus template, names it, keeps it to the Private Room every day, simulates it on last
+ * a new promotion from the Seat bonus template, names it, keeps it to the Private Room every day, simulates it on last
  * week and submits it. Arjun Batra, a super admin and a second person, reviews it and approves it, and it is live:
- * Rhea Sood's Home shows its card, and a buy-in of 10,000 at the Private Room gives her 2,000 bonus chips (20%, capped
- * at 2,000). The console takes no buy-ins (decision 0284), so the cage's own trigger call stands in for one. 180 Tara,
+ * Rhea Sood's Home shows its card, and a seat at the Private Room gives her its 1,000 bonus chips. The sweep pays a seat
+ * two minutes after it is taken (decision 0480), so the call the sweep makes stands in for it. 180 Tara,
  * 759 Arjun and 280 Rhea are the flow's own: Auth sends one code a minute to a number. Local stack only: it reads the
  * database and pauses the promotion at the end, so no other flow meets it.
  */
@@ -24,29 +24,28 @@ function sql(query: string): string {
 }
 
 /**
- * A buy-in of 10,000 in cash at the Private Room, as the cage's trigger weighs one: what this promotion gave for it, its
- * chips and version. Another live promotion may give for the same buy-in, such as the seed's Tuesday buy-in bonus on a
- * Tuesday: bonus chips from different promotions stack (decision 0470).
+ * A seat at the Private Room, as the sweep weighs one past its Undo: what this promotion gave for it, its chips and version.
+ * Bonus chips from different promotions stack (decision 0470).
  */
-function buyInAtThePrivateRoom(memberId: string, key: string): string {
-  sql(`select private.evaluate_promotions('${CLUB}', 'buy_in', jsonb_build_object(
-    'member_id', '${memberId}', 'key', 'buy_in:${key}', 'amount_paise', 1000000, 'method', 'cash',
+function seatAtThePrivateRoom(memberId: string, key: string): string {
+  sql(`select private.evaluate_promotions('${CLUB}', 'seated', jsonb_build_object(
+    'member_id', '${memberId}', 'key', 'seated:${key}', 'at', now(),
     'table_id', (select id from public.game_table where venue_id = '${CLUB}' and name = 'Private Room')))`);
   return sql(`select string_agg(g.chips || ' ' || v.version, ', ') from public.promotion_grant g
               join public.promotion_version v on v.id = g.promotion_version_id
-              where g.source_key = 'buy_in:${key}' and g.member_id = '${memberId}' and v.name = '${NAME}'`);
+              where g.source_key = 'seated:${key}' and g.member_id = '${memberId}' and v.name = '${NAME}'`);
 }
 
-/** Builds the promotion from the Buy-in bonus template, simulates it on last week and submits it. */
+/** Builds the promotion from the Seat bonus template, simulates it on last week and submits it. */
 async function buildAndSubmit(floor: Page) {
   await floor.goto(`${appUrl('console')}/promotions`);
   await floor.getByRole('button', { name: 'New promotion' }).click();
   await expect(floor.getByRole('heading', { level: 1, name: 'New promotion' })).toBeVisible();
-  await floor.getByRole('radiogroup', { name: 'Start from' }).getByRole('radio', { name: 'Buy-in bonus' }).click();
+  await floor.getByRole('radiogroup', { name: 'Start from' }).getByRole('radio', { name: 'Seat bonus chips' }).click();
   await floor.getByRole('textbox', { name: 'Name members see' }).fill(NAME);
   await floor.getByRole('group', { name: 'Stakes' }).getByRole('button', { name: 'Private Room' }).click();
   await floor.getByRole('button', { name: 'Every day' }).click();
-  await expect(floor.getByText(/^20% buy-in bonus, up to 2,000, first 5 buy-ins per table, for Private Room, every day, all day\./)).toBeVisible();
+  await expect(floor.getByText(/^1,000 bonus chips for the first 5 seated at a table, for Private Room, every day, all day\./)).toBeVisible();
   // Submitting waits for a simulation on the terms as they stand.
   await expect(floor.getByRole('button', { name: 'Submit for approval' })).toBeDisabled();
   await floor.getByRole('button', { name: 'Simulate' }).click();
@@ -69,9 +68,9 @@ async function approve(approver: Page) {
 }
 
 test.describe('Promotions', () => {
-  test.skip(isRemoteTarget(), 'makes a promotion and weighs a buy-in in the local database, so the local stack only');
+  test.skip(isRemoteTarget(), 'makes a promotion and weighs a seat in the local database, so the local stack only');
 
-  test('create, simulate, submit, approve by a second person, live, and a grant at a buy-in', async ({ browser }) => {
+  test('create, simulate, submit, approve by a second person, live, and a grant at a seat', async ({ browser }) => {
     test.setTimeout(150_000);
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000180');
@@ -92,8 +91,8 @@ test.describe('Promotions', () => {
     await signInToPlayer(member, '9000000280');
     await expect(member.getByRole('region', { name: 'Offers', exact: true }).getByRole('listitem').filter({ hasText: NAME })).toBeVisible({ timeout: 15_000 });
 
-    // One grant from this promotion, under its version 1: 20% of 10,000, at its cap of 2,000.
-    expect(buyInAtThePrivateRoom(RHEA, `promotions-e2e-${NAME}`)).toBe('2000 1');
+    // One grant from this promotion, under its version 1: its 1,000 bonus chips.
+    expect(seatAtThePrivateRoom(RHEA, `promotions-e2e-${NAME}`)).toBe('1000 1');
 
     // Paused again, so no other flow meets it.
     await approver.getByRole('button', { name: `Pause ${NAME}` }).click();
