@@ -1,6 +1,6 @@
 import { useKycRecord, useWaitlistActions, type WaitlistFailure, type WaitlistPlace } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
-import { Box, Button, ErrorMessage, Figure, Stack, Text, useToast } from '@rivr/ui';
+import { Box, Button, ErrorMessage, Figure, Stack, Text, useIsOnline, useToast } from '@rivr/ui';
 import { useState, type ReactNode } from 'react';
 import { lineOf, WAITLIST_FAILURE_COPY } from './waitlistCopy.ts';
 
@@ -25,6 +25,7 @@ function useLeave(place: WaitlistPlace) {
  */
 export function WaitingView({ place, offer }: { place: WaitlistPlace; offer: ReactNode }) {
   const leave = useLeave(place);
+  const isOnline = useIsOnline();
   const kyc = useKycRecord();
   const isDeskFirst = kyc.data?.status === 'started' && kyc.data.isAtTheClub;
   const eyebrow = t('player.live.list.eyebrow', { table: place.tableName, game: place.tableTypeName });
@@ -42,7 +43,7 @@ export function WaitingView({ place, offer }: { place: WaitlistPlace; offer: Rea
       </Box>
       <Box paddingX={5}>
         <Stack gap={4}>
-          <Button variant="outline" size="large" fullWidth isLoading={leave.isPending} onClick={() => void leave.go()}>
+          <Button variant="outline" size="large" fullWidth isDisabled={!isOnline} isLoading={leave.isPending} onClick={() => void leave.go()}>
             {t('player.live.list.leave')}
           </Button>
           {leave.failure === null ? null : <ErrorMessage look="dot">{t(WAITLIST_FAILURE_COPY[leave.failure])}</ErrorMessage>}
