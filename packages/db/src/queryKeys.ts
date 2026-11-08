@@ -125,6 +125,8 @@ export const queryKeys = {
   venueLeague: (userId: string, venueId: string, first: string, last: string) => ['user', userId, 'venue-league', venueId, first, last] as const,
   /** The member's Rewards tab (#152): points and tier, the catalogue, their redemptions and the League. */
   myRewards: (userId: string) => ['user', userId, 'my-rewards'] as const,
+  /** Under myRewards, so whatever refreshes the balance refreshes its history. */
+  myPointsHistory: (userId: string, count: number) => ['user', userId, 'my-rewards', 'points-history', count] as const,
   rewardCatalogue: (userId: string) => ['user', userId, 'reward-catalogue'] as const,
   myRedemptions: (userId: string) => ['user', userId, 'my-redemptions'] as const,
   myLeague: (userId: string) => ['user', userId, 'my-league'] as const,

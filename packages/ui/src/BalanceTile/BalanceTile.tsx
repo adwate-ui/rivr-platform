@@ -1,3 +1,4 @@
+import { t } from '@rivr/i18n';
 import { Figure } from '../Figure/Figure.tsx';
 import { Icon, type IconName } from '../Icon/Icon.tsx';
 import { cx } from '../internal/classes.ts';
@@ -13,7 +14,7 @@ export interface BalanceTileProps {
   line: string;
   /** `money` draws the icon and figure gold (bonus chips); `default` cream (points). */
   tone?: 'default' | 'money';
-  /** Opens its history in place; with it the tile is a button. */
+  /** Opens its history in place; with it the tile is a button that says History, with a chevron (F-054). */
   onOpen?: (() => void) | undefined;
   /** For a tile that opens its history in place: whether it is open now. */
   'aria-expanded'?: boolean;
@@ -32,6 +33,12 @@ export function BalanceTile({ icon, figure, label, line, tone = 'default', onOpe
       </span>
       <span className="font-text text-14 font-medium text-content">{label}</span>
       <span className="font-text text-12 text-content-muted">{line}</span>
+      {onOpen ? (
+        <span className="flex items-center gap-1 font-text text-12 text-content-muted">
+          {t('ui.balanceTile.history')}
+          <Icon name={isExpanded === true ? 'chevronUp' : 'chevronDown'} size="sm" />
+        </span>
+      ) : null}
     </>
   );
   const tile = 'flex min-w-0 flex-1 flex-col items-start gap-1 rounded-md border border-hairline bg-raised p-4 text-start';

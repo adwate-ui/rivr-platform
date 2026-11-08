@@ -27,6 +27,9 @@ async function redeem(member: Page) {
   await expect(member.getByText('Redeemed', { exact: true })).toBeVisible({ timeout: 10_000 });
   await expect(sheet).toHaveCount(0);
   await expect(member.getByText('Ready to collect').first()).toBeVisible();
+  // What it took is a line of her points history, one tap from the balance (F-054).
+  await member.getByRole('button', { name: /Spend on rewards/ }).click();
+  await expect(member.getByText(new RegExp(`^Redeemed: ${REWARD} · `))).toBeVisible();
 }
 
 /** Pairs a TV on the console's TVs screen by the code it shows, and gives it a board. */

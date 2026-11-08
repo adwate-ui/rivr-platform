@@ -9,6 +9,7 @@ import { BonusHistory, BonusTile } from './BonusSection.tsx';
 import { Catalogue } from './Catalogue.tsx';
 import { LeagueSection } from './LeagueSection.tsx';
 import { MyRedemptionList } from './MyRedemptionList.tsx';
+import { PointsHistory } from './PointsHistory.tsx';
 import { ReferralSection } from './ReferralSection.tsx';
 
 // The tab's copy loads with the tab, so the app's first load carries none of it (#344).
@@ -64,13 +65,17 @@ function useChips(bonus: FeatureAccess) {
 
 function Balances({ rewards, hasCatalogue, bonus }: { rewards: MyRewards; hasCatalogue: boolean; bonus: FeatureAccess }) {
   const chips = useChips(bonus);
+  const pointsHistory = useFeature('rewards.points_history');
+  const [isHistoryOpen, setHistoryOpen] = useState(false);
   return (
     <Stack gap={3}>
       <Text variant="eyebrow" tone="accent">{rewards.tierName}</Text>
       <Grid columns={chips.hasTile ? 2 : 1} gap={3}>
-        <BalanceTile icon="star" figure={formatNumber(rewards.points)} label={t('memberRewards.pointsLabel')} line={t('memberRewards.pointsLine')} />
+        <BalanceTile icon="star" figure={formatNumber(rewards.points)} label={t('memberRewards.pointsLabel')} line={t('memberRewards.pointsLine')}
+          {...(pointsHistory.state === 'hidden' ? {} : { onOpen: () => setHistoryOpen(!isHistoryOpen), 'aria-expanded': isHistoryOpen })} />
         {chips.tile}
       </Grid>
+      {isHistoryOpen ? <FeatureGate access={pointsHistory}><PointsHistory /></FeatureGate> : null}
       {chips.retry}
       {chips.history}
       <LockedPoints />
@@ -80,8 +85,8 @@ function Balances({ rewards, hasCatalogue, bonus }: { rewards: MyRewards; hasCat
 }
 
 /**
- * Rewards (decision 0320): the tier, the points and the next reward; bonus chips and their history (rewards.bonus, decision
- * 0504); the catalogue with its filters and redeem sheet (rewards.catalogue) and the member's redemptions; hotel nights
+ * Rewards (decision 0320): the tier, the points and their history (rewards.points_history, F-054) and the next reward; bonus
+ * chips and their history (rewards.bonus, decision 0504); the catalogue with its filters and redeem sheet (rewards.catalogue) and the member's redemptions; hotel nights
  * (rewards.accommodation); the league (league.standings); and Refer a friend.
  */
 export function RewardsScreen() {

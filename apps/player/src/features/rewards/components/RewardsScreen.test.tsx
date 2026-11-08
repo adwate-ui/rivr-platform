@@ -11,11 +11,17 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const FEATURES = ['rewards.catalogue', 'referral.share_cards', 'rewards.bonus'].map((feature_key) => ({ feature_key, state: 'enabled', tiers: null }));
+const FEATURES = ['rewards.catalogue', 'referral.share_cards', 'rewards.bonus', 'rewards.points_history'].map((feature_key) => ({ feature_key, state: 'enabled', tiers: null }));
 /** Meera's bonus chips (decision 0504): 1,250 left after a 1,500 welcome and 1,000 used at Table 3, and more given before. */
 const BONUS_LINES = [
   { line_id: 'b2', at: '2026-11-15T18:00:00Z', kind: 'redeemed', amount_paise: 100_000, reason: null, table_name: 'Table 3' },
   { line_id: 'b1', at: '2026-11-14T18:00:00Z', kind: 'credited', amount_paise: 150_000, reason: 'Welcome bonus', table_name: null },
+];
+/** Meera's points, the newest first: spent on a cap, given locked, earned at a visit. */
+const POINTS_LINES = [
+  { line_id: 'p3', at: '2026-11-15T18:00:00Z', kind: 'spent', points: 500, reason: 'Redeemed: RIVR cap' },
+  { line_id: 'p2', at: '2026-11-14T18:00:00Z', kind: 'locked', points: 700, reason: 'Founders pack' },
+  { line_id: 'p1', at: '2026-11-13T18:00:00Z', kind: 'earned', points: 250, reason: 'Points for the visit' },
 ];
 interface BonusReplies { balance: number | 'down'; lines: readonly unknown[] }
 const ITEMS = [
@@ -48,7 +54,7 @@ function renderRewards(points = 3250, bonus: BonusReplies = { balance: 125_000, 
   // Each read's reply by its path; any other is nothing.
   const answers: Record<string, unknown> = {
     '/rpc/my_feature_access': FEATURES, '/rpc/my_rewards': [{ points, tier_name: 'Founders’ Circle', nights: 0 }], '/rpc/my_locked_points': 0,
-    '/rest/v1/reward_item': ITEMS, '/rpc/my_redemptions': [REDEMPTION], '/rpc/my_referral': [{ code: 'RIVR4821', referred: 2, bonus_paise: 100000 }],
+    '/rpc/my_points_history': POINTS_LINES, '/rest/v1/reward_item': ITEMS, '/rpc/my_redemptions': [REDEMPTION], '/rpc/my_referral': [{ code: 'RIVR4821', referred: 2, bonus_paise: 100000 }],
   };
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
@@ -77,7 +83,7 @@ describe('Rewards: points and bonus chips (decision 0504; owner, 8 Nov)', () => 
   it('shows points and bonus chips side by side, each with what it is for, the history closed until the chips tile opens it', async () => {
     const { historyAsked } = renderRewards();
     const chips = await screen.findByRole('button', { name: /Bonus chips/ }, LATER);
-    expect(chips.textContent).toBe('1,250Bonus chipsUse with your buy-in. Never expire.');
+    expect(chips.textContent).toBe('1,250Bonus chipsUse with your buy-in. Never expire.History');
     expect(screen.getByText('Points')).toBeDefined();
     expect(screen.getByText('Spend on rewards.')).toBeDefined();
     expect(chips.getAttribute('aria-expanded')).toBe('false');
@@ -93,6 +99,21 @@ describe('Rewards: points and bonus chips (decision 0504; owner, 8 Nov)', () => 
     expect(historyAsked).toEqual([{ p_limit: 20 }]);
     expect(screen.queryByRole('button', { name: 'Show earlier' })).toBeNull();
     expect(screen.queryByText(/₹/)).toBeNull();
+  });
+
+  it('opens the points history from its tile, each line signed, closed until the member opens it (F-054)', async () => {
+    renderRewards();
+    const points = await screen.findByRole('button', { name: /Spend on rewards/ }, LATER);
+    expect(points.textContent).toContain('History');
+    expect(screen.queryByText('Redeemed: RIVR cap · 15 Nov')).toBeNull();
+    fireEvent.click(points);
+    expect(points.getAttribute('aria-expanded')).toBe('true');
+    expect(await screen.findByRole('heading', { name: 'Points history' }, LATER)).toBeDefined();
+    expect(await screen.findByText('Redeemed: RIVR cap · 15 Nov', {}, LATER)).toBeDefined();
+    expect(screen.getByText('−500')).toBeDefined();
+    expect(screen.getByText('Locked · Founders pack · 14 Nov')).toBeDefined();
+    expect(screen.getByText('Points for the visit · 13 Nov')).toBeDefined();
+    expect(screen.getByText('+250')).toBeDefined();
   });
 
   it('offers earlier lines once twenty are shown', async () => {

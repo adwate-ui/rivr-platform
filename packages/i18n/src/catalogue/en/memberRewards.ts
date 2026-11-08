@@ -97,6 +97,17 @@ export const memberRewards = {
   /** A place: `3`, its name, and its points. */
   placeLine: '{place}. {name}',
   leaguePoints: '{points} points',
+  /** The points history the points tile opens (F-054): `Points for the visit · 15 Nov` `+250`. */
+  pointsHistory: {
+    title: 'Points history',
+    none: 'Nothing here yet.',
+    line: '{reason} · {date}',
+    locked: 'Locked · {reason} · {date}',
+    /** Locked points the club released, the word the member already reads under the tiles. */
+    released: 'Released · {reason} · {date}',
+    plus: '+{points}',
+    minus: '−{points}',
+  },
   /** The member's bonus chips (decision 0504): they never expire, and are used with a buy-in as the floor seats them. */
   bonus: {
     /** The tile beside points (owner, 8 Nov): one name, and one line on what they are for. */
