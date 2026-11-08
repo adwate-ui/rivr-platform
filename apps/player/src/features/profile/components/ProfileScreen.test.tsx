@@ -85,6 +85,15 @@ describe('Profile', () => {
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
   });
 
+  it('shows a phone that cannot take notifications as a switch off, saying what the kinds below still do (F-169)', async () => {
+    renderProfile();
+    const phone = await screen.findByRole('switch', { name: /Notifications on this phone/ }, LATER);
+    expect(phone).toHaveProperty('disabled', true);
+    expect(screen.getByText('These apply once notifications are on. Seat calls still come on WhatsApp.')).toBeDefined();
+    // The kinds are the member's on any phone, so they stay usable.
+    expect(await screen.findByRole('switch', { name: /Seat calls/ }, LATER)).toHaveProperty('disabled', false);
+  });
+
   it('ends with the way to the front desk, after Sign out, as every step does (8 Nov audit, F-184)', async () => {
     renderProfile();
     const help = await screen.findByRole('group', { name: 'Front desk' }, LATER);

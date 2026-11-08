@@ -18,7 +18,7 @@ describe('InstallOffer', () => {
 
   it('tells an iPhone how, since only Safari can add it', () => {
     renderIn(<InstallOffer kind="ios" onDismiss={() => undefined} />);
-    expect(screen.getByText('In Safari, tap Share, then Add to Home Screen.')).toBeInTheDocument();
+    expect(screen.getByText('Tap Share, then Add to Home Screen.')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Install' })).toBeNull();
   });
 

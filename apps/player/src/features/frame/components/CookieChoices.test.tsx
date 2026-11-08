@@ -24,7 +24,10 @@ describe('Sign in › Cookies (decisions 0298, 0320)', () => {
 
   it('loads Google Tag Manager once analytics is allowed, and at once when it was allowed before', async () => {
     render(<CookieChoices />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Allow analytics' }));
+    const allow = await screen.findByRole('button', { name: 'Allow analytics' });
+    // Refusing is as easy as agreeing: the two look alike (F-180).
+    expect(allow.className).toBe(screen.getByRole('button', { name: 'Essential only' }).className);
+    fireEvent.click(allow);
     expect(tagManager()).not.toBeNull();
     cleanup();
     document.head.querySelectorAll('script[data-tag-manager]').forEach((script) => script.remove());
