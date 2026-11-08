@@ -3,6 +3,7 @@ import { Button } from '../Button/Button.tsx';
 import { Heading, type SerifSize } from '../Heading/Heading.tsx';
 import { Icon } from '../Icon/Icon.tsx';
 import { cx } from '../internal/classes.ts';
+import { usePageTitle } from '../Screen/Screen.tsx';
 import { Text } from '../Text/Text.tsx';
 
 export interface StepScreenProps {
@@ -95,6 +96,8 @@ function StepTitle({ title, look }: { title: string; look: StepScreenProps['look
  * content, not the phone's column stretched to the screen's foot (S-01).
  */
 export function StepScreen({ children, footer, title, back, align = 'top', onSubmit, look }: StepScreenProps) {
+  // The step names the page, "Verify with PAN · RIVR", as a screen does (WCAG 2.4.2).
+  usePageTitle(title);
   const step = (
     <>
       <div className={cx('flex flex-1 flex-col gap-6', ALIGN[align])}>

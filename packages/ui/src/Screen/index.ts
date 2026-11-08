@@ -1,1 +1,1 @@
-export { Screen, TitleCount, type ScreenProps, type ScreenState, type TitleCountProps } from './Screen.tsx';
+export { Screen, TitleCount, useHeadingFocus, usePageTitle, type ScreenProps, type ScreenState, type TitleCountProps } from './Screen.tsx';

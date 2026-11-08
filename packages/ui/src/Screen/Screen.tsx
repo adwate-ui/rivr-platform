@@ -80,22 +80,42 @@ function isInOpenMenu(element: Element | null): boolean {
  */
 function useScreenFocus(title: string, headingId: string, isOwnScreen: boolean) {
   const section = useRef<HTMLElement>(null);
-  const count = useContext(TitleCountContext);
-  useEffect(() => {
-    if (!isOwnScreen) return undefined;
-    // The title before it is the page's again when the screen goes, as for the sign-in steps, which are no screen.
-    const before = document.title;
-    document.title = count > 0 ? t('ui.screenTitleCounted', { count, title }) : t('ui.screenTitle', { title });
-    return () => {
-      document.title = before;
-    };
-  }, [isOwnScreen, title, count]);
+  usePageTitle(title, isOwnScreen);
   useEffect(() => {
     const element = section.current;
     if (!isOwnScreen || element === null || element.contains(document.activeElement) || isInOpenMenu(document.activeElement)) return;
     document.getElementById(headingId)?.focus({ preventScroll: true });
   }, [isOwnScreen, headingId]);
   return section;
+}
+
+/**
+ * Names the page "Order · RIVR" while `isOn` (WCAG 2.4.2), as a Screen of its own does; the title before it is the page's
+ * again when it goes. For a step or a detail that draws its own heading rather than a Screen's: the sign-in and identity
+ * steps, Order, Profile, a session.
+ */
+export function usePageTitle(title: string | undefined, isOn = true) {
+  const count = useContext(TitleCountContext);
+  useEffect(() => {
+    if (!isOn || title === undefined || title === '') return undefined;
+    const before = document.title;
+    document.title = count > 0 ? t('ui.screenTitleCounted', { count, title }) : t('ui.screenTitle', { title });
+    return () => {
+      document.title = before;
+    };
+  }, [isOn, title, count]);
+}
+
+/**
+ * Takes the focus to a heading once `isOn` (its content has loaded), as a Screen of its own does, unless the person is
+ * already somewhere on the page: a detail drawn under its own Back button. Give the heading `id` and `isFocusTarget`.
+ */
+export function useHeadingFocus(headingId: string, isOn = true) {
+  useEffect(() => {
+    const active = document.activeElement;
+    if (!isOn || (active !== null && active !== document.body) || isInOpenMenu(active)) return;
+    document.getElementById(headingId)?.focus({ preventScroll: true });
+  }, [isOn, headingId]);
 }
 
 const SERIF_TITLE = { variant: 'serif' } as const;

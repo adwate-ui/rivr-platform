@@ -69,6 +69,8 @@ describe('Profile', () => {
   it('shows the member, then Account, Notifications and Club, and no games, limits or break', async () => {
     renderProfile();
     expect(await screen.findByRole('heading', { level: 1, name: 'Meera Iyer' }, LATER)).toBeDefined();
+    // Drawn under its own Back button, it still names the page (WCAG 2.4.2).
+    expect(document.title).toBe('Profile · RIVR');
     expect(await screen.findByText(/^Founders’ Circle · \+91/, {}, LATER)).toBeDefined();
     for (const group of ['Account', 'Notifications', 'Club']) expect(screen.getByText(group)).toBeDefined();
     expect(screen.getByText('Verified')).toBeDefined();
