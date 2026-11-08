@@ -43,6 +43,7 @@ export interface Rpc {
   source: string;
 }
 
+/** One step of a workflow. Which database calls it makes is recorded by the walk from the browser's requests, not listed here. */
 export interface WorkflowStep {
   actor: Role;
   app: AppName;
@@ -50,8 +51,6 @@ export interface WorkflowStep {
   screen: string;
   /** What the person does, in words. */
   does: string;
-  /** The Rpc names this step calls. */
-  rpcs: string[];
 }
 
 export interface Workflow {
