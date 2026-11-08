@@ -101,7 +101,6 @@ function Move({ player, tables, seats, held, changes }: Pick<PlayerSheetProps, '
  */
 export function PlayerSheet(props: PlayerSheetProps) {
   const { venueId, player, table, requests, targets, now, permissions, changes, onLeave, onClose } = props;
-  const navigate = useNavigate();
   const asks = requests.filter((request) => request.kind !== 'left_owing' && 'sessionId' in request && request.sessionId === player.sessionId);
   const footer = (
     <Inline justify="between" grow>
@@ -124,9 +123,18 @@ export function PlayerSheet(props: PlayerSheetProps) {
       })}
       {permissions.includes('call_time.override') && player.callTimeLeft !== null ? <AddTime venueId={venueId} player={player} changes={changes.seats} /> : null}
       <Move {...props} changes={changes.seats} />
-      <Inline>
-        <Button variant="text" onClick={() => void navigate({ href: `/members?member=${player.memberId}` })}>{t('console.floor.player.memberRecord')}</Button>
-      </Inline>
+      <MemberRecordLink memberId={player.memberId} permissions={permissions} />
     </Sheet>
+  );
+}
+
+/** The member's record, for staff who may open Members; the floor and cashiers may not (audit F-025). */
+function MemberRecordLink({ memberId, permissions }: { memberId: string; permissions: readonly string[] }) {
+  const navigate = useNavigate();
+  if (!permissions.includes('members.manage') && !permissions.includes('host_queue.manage')) return null;
+  return (
+    <Inline>
+      <Button variant="text" onClick={() => void navigate({ href: `/members?member=${memberId}` })}>{t('console.floor.player.memberRecord')}</Button>
+    </Inline>
   );
 }

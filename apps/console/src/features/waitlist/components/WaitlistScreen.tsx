@@ -16,7 +16,7 @@ export function WaitlistScreen() {
   if (!permissions.includes('waitlist.manage')) return <Screen title={title} status="error" errorText={t('console.waitlist.notAllowed')} />;
   return (
     <Screen title={title}>
-      <WaitlistLists venueId={venueId} canOpen={permissions.includes('floor.manage')} />
+      <WaitlistLists venueId={venueId} canOpen={permissions.includes('floor.manage')} canCheckId={permissions.includes('kyc.in_person') || permissions.includes('kyc.review')} />
     </Screen>
   );
 }

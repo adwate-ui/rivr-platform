@@ -217,7 +217,7 @@ export const members = {
     /** `{until}`: 2 Dec 2026, 00:00, with the year, as a break may run for years. */
     started: 'On a break until {until}.',
     failures: {
-      not_allowed: 'Not in your role. Ask a membership manager.',
+      not_allowed: 'Not in your role. Ask an admin.',
       no_member: 'That member is not at this venue.',
       invalid: 'Give a reason of 3 to 300 characters.',
       paused: 'Venue frozen. Try again once it is released.',
@@ -226,7 +226,7 @@ export const members = {
   },
   /** Why a tier change did not go through. */
   failures: {
-    notAllowed: 'Not in your role. Ask a membership manager.',
+    notAllowed: 'Not in your role. Ask an admin.',
     noMember: 'That member is not at this venue.',
     invalid: 'A different tier, a reason of 3 to 500 characters and a future last day.',
     paused: 'Venue frozen. Try again once it is released.',

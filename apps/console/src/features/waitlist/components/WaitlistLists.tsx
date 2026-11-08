@@ -43,6 +43,8 @@ function tablesShown(tables: readonly FloorTable[], venueId: string, board: read
 interface CardsProps {
   venueId: string;
   canOpen: boolean;
+  /** Check ID opens KYC review, which only staff who check members in person may open (audit F-014). */
+  canCheckId: boolean;
   tables: readonly FloorTable[];
   entries: readonly WaitlistBoardEntry[];
   requests: readonly WaitlistRequest[];
@@ -50,7 +52,7 @@ interface CardsProps {
 }
 
 /** The cards once the tables and lists have come, the bulk bar over the places ticked, and the seat sheet. */
-function Cards({ venueId, canOpen, tables, entries, requests, interest }: CardsProps) {
+function Cards({ venueId, canOpen, canCheckId, tables, entries, requests, interest }: CardsProps) {
   const now = useNow();
   const ticks = useTicks();
   const navigate = useNavigate();
@@ -77,7 +79,7 @@ function Cards({ venueId, canOpen, tables, entries, requests, interest }: CardsP
             interest={table.isOpen ? undefined : interest.find((list) => list.tableId === table.id)}
             ticked={ticks.ticked} onToggle={ticks.toggle}
             onSeat={(entry) => setSeating({ table, place: { entryId: entry.entryId, memberId: entry.memberId, name: entry.fullName } })}
-            onApproved={onApproved} onCheckId={checkId} />
+            onApproved={onApproved} onCheckId={canCheckId ? checkId : undefined} />
         ))}
       </Grid>
       {seating === null ? null : <SeatSheet venueId={venueId} table={seating.table} place={seating.place} onClose={() => setSeating(null)} />}
@@ -90,7 +92,7 @@ function Cards({ venueId, canOpen, tables, entries, requests, interest }: CardsP
  * the places ticked, and the sheet that seats a place at its table. Open all night: a list that stops refreshing stays on
  * screen, saying since when.
  */
-export function WaitlistLists({ venueId, canOpen }: { venueId: string; canOpen: boolean }) {
+export function WaitlistLists({ venueId, canOpen, canCheckId }: { venueId: string; canOpen: boolean; canCheckId: boolean }) {
   const tables = useFloorTables();
   const board = useWaitlistBoard(venueId);
   // The interest lists and the joins asking are additions: the lists show while they load, or if they fail.
@@ -105,7 +107,7 @@ export function WaitlistLists({ venueId, canOpen }: { venueId: string; canOpen: 
     <Stack gap={4}>
       {isFailing ? <StaleNotice since={new Date(Math.min(tables.dataUpdatedAt, board.dataUpdatedAt))} onRetry={retry} /> : null}
       {asked.isError ? <ErrorMessage>{t('console.waitlist.requestsFailed')}</ErrorMessage> : null}
-      <Cards venueId={venueId} canOpen={canOpen} tables={tables.data} entries={board.data} requests={asked.data ?? []} interest={interest} />
+      <Cards venueId={venueId} canOpen={canOpen} canCheckId={canCheckId} tables={tables.data} entries={board.data} requests={asked.data ?? []} interest={interest} />
     </Stack>
   );
 }

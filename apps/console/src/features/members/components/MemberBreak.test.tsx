@@ -55,6 +55,6 @@ describe('MemberBreak', () => {
     fireEvent.change(screen.getByRole('textbox', { name: 'Why the break' }), { target: { value: 'Asked at the desk' } });
     fireEvent.click(screen.getByRole('button', { name: 'Start break' }));
     fireEvent.click(screen.getByRole('button', { name: 'Yes, start a break of 7 days' }));
-    expect(await screen.findByText('Not in your role. Ask a membership manager.')).toBeDefined();
+    expect(await screen.findByText('Not in your role. Ask an admin.')).toBeDefined();
   });
 });

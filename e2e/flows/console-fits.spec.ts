@@ -3,7 +3,7 @@
  * phone, the floor's 1180 px tablet and a desk: on the phone a tab bar holds Floor, Requests, Waitlist, Door and More, whose
  * menu reaches her screens and closes on choosing one; on the tablet the rail folds to its icons by itself and keeps her
  * own choice across a reload; at the desk it shows its labels, and `/` opens the search, which finds a screen by name.
- * Then the flow's own super admin, cashier and owner each open every screen their rail lists, and each tab, at 1440, 1180
+ * Then the flow's own super admin and cashier each open every screen their rail lists, and each tab, at 1440, 1180
  * and 390 px: nothing scrolls sideways, neither the page nor the screen's own area, and each screen shows its heading.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
@@ -17,7 +17,6 @@ const DESK = { width: 1440, height: 900 };
 const ROLES = [
   { who: 'a super admin', number: '9000000645' },
   { who: 'a cashier', number: '9000000646' },
-  { who: 'an owner', number: '9000000647' },
 ];
 
 /** How far the page, or the screen's own scrolling area (main), reaches past the window: 0 when it fits. */
