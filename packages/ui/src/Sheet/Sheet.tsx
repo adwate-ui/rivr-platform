@@ -1,6 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog';
+import { t } from '@rivr/i18n';
 import type { ReactNode } from 'react';
-import { cx } from '../internal/classes.ts';
+import { Icon } from '../Icon/Icon.tsx';
 import { ConsoleSheet } from './ConsoleSheet.tsx';
 
 /** `display`, the title in the display face, for an action's sheet; `plain`, a list's, in the text face. */
@@ -8,7 +9,7 @@ export type SheetTitleLook = 'display' | 'plain';
 
 export interface SheetProps {
   isOpen: boolean;
-  /** The scrim, Escape, or a sheet's own Cancel. */
+  /** Close, the scrim, Escape, or a sheet's own Cancel. */
   onClose: () => void;
   /** Names the sheet: "Add time". */
   title: string;
@@ -34,6 +35,11 @@ const TITLE: Record<SheetTitleLook, string> = {
   plain: 'font-text text-20 leading-snug font-medium',
 };
 
+// A 44 px target on the title's line, its room beyond the line taken back by its margins, as the console sheet's Close.
+const CLOSE =
+  'flex size-touch shrink-0 items-center justify-center rounded-md text-content transition-colors hover:bg-subtle ' +
+  '-my-2 -mr-2 focus-visible:outline-2 focus-visible:outline-focus';
+
 /** A sheet over the screen: the player app's (decision 0320), or the console's with `place="console"` (console v3). */
 export function Sheet(props: SheetProps) {
   if (props.place === 'console') return <ConsoleSheet {...props} />;
@@ -41,8 +47,10 @@ export function Sheet(props: SheetProps) {
 }
 
 /**
- * The player app's bottom sheet (decision 0320): a scrim that closes it when tapped, then a raised panel with a grabber that slides up,
- * its title and its content, scrolling inside past 720 px. Focus stays in it until it closes, and Escape closes it.
+ * The player app's bottom sheet (decision 0320): a scrim that closes it when tapped, then a raised panel that slides up, its
+ * title with Close at its end, and its content, scrolling inside past 720 px. Focus stays in it until it closes, and Escape
+ * closes it. Close is for those who cannot press Escape or reach the scrim, as with VoiceOver or TalkBack; the sheet has no
+ * grabber, as it does not drag (8 Nov audit, F-060).
  */
 function PlayerSheet({ isOpen, onClose, title, eyebrow, titleLook = 'display', aside, children }: SheetProps) {
   return (
@@ -55,12 +63,16 @@ function PlayerSheet({ isOpen, onClose, title, eyebrow, titleLook = 'display', a
             event.preventDefault();
             if (event.currentTarget instanceof HTMLElement) event.currentTarget.focus();
           }}
-          className="fixed inset-x-0 bottom-0 z-modal mx-auto flex max-h-sheet flex-col gap-5 overflow-y-auto rounded-t-sheet border-t border-hairline bg-raised px-5 pt-3 pb-8 text-content shadow-modal focus:outline-none medium:max-w-phone">
-          <span aria-hidden="true" className="h-1 w-grabber shrink-0 self-center rounded-full bg-cream-faint" />
-          <div className={cx('flex gap-3', aside ? 'items-baseline justify-between' : 'flex-col gap-1')}>
+          className="fixed inset-x-0 bottom-0 z-modal mx-auto flex max-h-sheet flex-col gap-5 overflow-y-auto rounded-t-sheet border-t border-hairline bg-raised px-5 pt-5 pb-8 text-content shadow-modal focus:outline-none medium:max-w-phone">
+          <div className="flex flex-col gap-1">
             {eyebrow ? <span className="font-text text-12 leading-snug font-medium tracking-wide text-accent uppercase">{eyebrow}</span> : null}
-            <Dialog.Title className={TITLE[titleLook]}>{title}</Dialog.Title>
-            {aside ? <span className="font-text text-13 text-content-muted">{aside}</span> : null}
+            <div className="flex items-center gap-3">
+              <div className="flex min-w-0 flex-1 items-baseline justify-between gap-3">
+                <Dialog.Title className={TITLE[titleLook]}>{title}</Dialog.Title>
+                {aside ? <span className="font-text text-13 text-content-muted">{aside}</span> : null}
+              </div>
+              <Dialog.Close aria-label={t('ui.sheet.close')} className={CLOSE}><Icon name="close" /></Dialog.Close>
+            </div>
           </div>
           {children}
         </Dialog.Content>

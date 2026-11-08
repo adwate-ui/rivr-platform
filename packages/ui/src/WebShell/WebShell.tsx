@@ -120,7 +120,8 @@ function SiteLinks({ links, app, action, onNavigate }: {
  */
 export function WebShell({ children, links, homeHref = '/', action, topBar, footer, after, onNavigate }: WebShellProps) {
   return (
-    <div className="flex min-h-dvh flex-col bg-surface text-content">
+    // data-shell: from 1180 px the page scrolls a focused control clear of the header (styles.css, WCAG 2.4.11).
+    <div data-shell="web" className="flex min-h-dvh flex-col bg-surface text-content">
       {topBar ? <TopBar links={topBar.links} app={topBar.app} /> : null}
       <header className="relative border-b border-hairline bg-raised tablet:sticky tablet:top-0 tablet:z-nav">
         {/* On a phone Menu sits beside the wordmark, its list (with the action) opening under the header, rather than widening the page. */}

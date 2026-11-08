@@ -1,6 +1,6 @@
 import { useFeature, useKycImageUrl, useKycRecord, useMember, useMembershipCard, usePreferences, useSignedInPhone } from '@rivr/db';
 import { formatMobile, t } from '@rivr/i18n';
-import { BackButton, Box, DetailRow, FeatureGate, Heading, Inline, ProfileMark, Screen, Stack, Text, useHeadingFocus, usePageTitle } from '@rivr/ui';
+import { BackButton, Box, DeskHelp, DetailRow, FeatureGate, Heading, Inline, ProfileMark, Screen, Stack, Text, useHeadingFocus, usePageTitle } from '@rivr/ui';
 import { useCanGoBack, useNavigate, useRouter } from '@tanstack/react-router';
 import { useId, useState, type ReactNode } from 'react';
 import { FeedbackSheet } from './FeedbackSection.tsx';
@@ -95,6 +95,7 @@ export function ProfileScreen() {
         {back}
         <Screen title={t('player.profile.title')} isTitleHidden status={preferences.isError ? 'error' : 'loading'} loadingLook="skeleton" onRetry={() => void preferences.refetch()} />
         <SignOutSection />
+        <DeskHelp />
       </Stack>
     );
   }
@@ -109,6 +110,8 @@ export function ProfileScreen() {
       <Group title={t('player.profile.notifications')}><NotificationsSection preferences={preferences.data} /></Group>
       <ClubGroup onFeedback={() => setFeedbackOpen(true)} />
       <SignOutSection />
+      {/* The way to the front desk, last, as at the foot of every step (WCAG 3.2.6). */}
+      <DeskHelp />
       <FeedbackSheet isOpen={isFeedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </Stack>
   );

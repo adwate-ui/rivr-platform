@@ -1,4 +1,5 @@
 import { attributionSearch, PLAYER_DESTINATIONS, type Attribution, type PlayerDestination } from '@rivr/contracts';
+import { CLUB_CONTACT } from '@rivr/contracts/club';
 
 /** `?ref=…&utm_source=…` for the codes the visitor arrived with, or nothing. */
 function query(attribution: Attribution | null): string {
@@ -21,15 +22,6 @@ export function playerHref(playerUrl: string, to: PlayerDestination, attribution
 export function siteHref(slug: string, attribution: Attribution | null, anchor?: string): string {
   return `${slug === 'home' ? '/' : `/${slug}`}${query(attribution)}${anchor ? `#${anchor}` : ''}`;
 }
-
-/** How the club is reached from every page (#616): one number for calls and WhatsApp (the owner, 3 Nov). */
-export const CLUB_CONTACT = {
-  phone: '+918796580435',
-  whatsapp: '918796580435',
-  instagram: 'https://www.instagram.com/rivr.pokerclub/',
-  youtube: 'https://www.youtube.com/@rivr.pokerclub',
-  email: 'info@rivrpoker.com',
-} as const;
 
 /** A WhatsApp chat with the club, with `text` ready to send. */
 export function whatsappHref(text?: string): string {

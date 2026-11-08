@@ -54,6 +54,8 @@ describe('ConsoleShell', () => {
   it('scrolls the screen on its own, focusable, and positioned for its hidden text', () => {
     renderShell();
     expect(screen.getByRole('main')).toHaveClass('overflow-y-auto', 'relative');
+    // A focused control scrolls clear of a sticky header row or bulk bar (WCAG 2.4.11).
+    expect(screen.getByRole('main')).toHaveClass('scroll-pt-16');
     expect(screen.getByRole('main')).toHaveAttribute('tabindex', '0');
   });
 

@@ -92,6 +92,7 @@
   --rivr-size-palette-list: 420px; /** The command palette's results at their tallest; past it they scroll. */
   --rivr-size-search: 420px; /** The console header's search field at its widest. */
   --rivr-size-bottom-nav: 64px; /** Player bottom tab bar. */
+  --rivr-size-player-foot: 140px; /** The player app's foot at its tallest, the tab bar and the peek of all tables above it (about 134 px), with room for a focus ring: how far scrolling keeps a focused control above it (WCAG 2.4.11). */
   --rivr-size-header: 56px; /** Top bar on phone and tablet shells. */
   --rivr-size-console-header: 60px; /** The console's header and the rail's wordmark row beside it, as the console v3 prototype draws them. */
   --rivr-size-text: 640px; /** Longest comfortable line of text. */
