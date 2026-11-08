@@ -37,6 +37,10 @@ export const ui = {
   toast: {
     undo: 'Undo',
   },
+  /** The player app's bottom sheet: its Close at the title's end, for those who cannot press Escape or reach the scrim. */
+  sheet: {
+    close: 'Close',
+  },
   picker: {
     done: 'Done',
     chooseOne: 'Choose one',

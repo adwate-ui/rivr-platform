@@ -31,6 +31,17 @@ describe('Sheet', () => {
     expect(onClose).toHaveBeenCalledTimes(2);
   });
 
+  it('closes with its Close, a 44 px button at the title’s end that a screen reader reaches, and shows no grabber (8 Nov audit, F-060)', async () => {
+    const onClose = renderSheet();
+    const close = screen.getByRole('button', { name: 'Close' });
+    expect(close).toHaveClass('size-touch');
+    // On the title's own line: the title and any aside, then Close.
+    expect(screen.getByRole('heading', { name: 'Add time' }).parentElement?.parentElement).toContainElement(close);
+    expect(document.querySelector('[data-sheet] .w-grabber')).toBeNull();
+    await userEvent.click(close);
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
   it('keeps focus inside', async () => {
     renderSheet();
     await userEvent.tab();
