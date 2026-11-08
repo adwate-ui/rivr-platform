@@ -22,17 +22,23 @@ interface ColumnFiltersProps<Row> {
 export function ColumnFiltersPanel<Row>({ id, columns, rows, filters, onChange }: ColumnFiltersProps<Row>) {
   const set = (key: string, next: { typed?: string; chosen?: readonly string[] }) =>
     onChange({ ...filters, [key]: { typed: next.typed ?? '', chosen: next.chosen ?? [] } });
+  const typed = columns.filter((column) => column.filter === 'text');
+  // A choice column whose rows hold no value has nothing to pick, so it shows nothing.
+  const choices = columns.filter((column) => column.filter === 'choice')
+    .map((column) => ({ column, options: choicesOf(column, rows) })).filter(({ options }) => options.length > 0);
   return (
     <div id={id} role="group" aria-label={t('ui.dataTable.filters')} className="flex flex-col gap-4 rounded-md bg-subtle p-4">
-      <div className="grid grid-cols-1 gap-4 medium:grid-cols-2">
-        {columns.filter((column) => column.filter === 'text').map((column) => (
-          <Input key={column.key} type="search" label={column.header} value={filters[column.key]?.typed ?? ''} autoComplete="off"
-            onChange={(event) => set(column.key, { typed: event.target.value })} />
-        ))}
-      </div>
-      {columns.filter((column) => column.filter === 'choice').map((column) => (
+      {typed.length === 0 ? null : (
+        <div className="grid grid-cols-1 gap-4 medium:grid-cols-2">
+          {typed.map((column) => (
+            <Input key={column.key} type="search" label={column.header} value={filters[column.key]?.typed ?? ''} autoComplete="off"
+              onChange={(event) => set(column.key, { typed: event.target.value })} />
+          ))}
+        </div>
+      )}
+      {choices.map(({ column, options }) => (
         <ChoiceChips key={column.key} label={column.header} mode="many" look="subtle" selected={filters[column.key]?.chosen ?? []}
-          options={choicesOf(column, rows).map(({ value, count }) => ({ value, label: value, count }))}
+          options={options.map(({ value, count }) => ({ value, label: value, count }))}
           onChange={(chosen) => set(column.key, { chosen })} />
       ))}
       <div className="flex">
