@@ -10,16 +10,20 @@ export interface TabletPlayer {
   readonly sessionId: string;
   readonly fullName: string;
   readonly isAway: boolean;
+  /** They have said they are leaving, or the floor has (F-189). */
+  readonly isLeaving: boolean;
   readonly pendingBuyIn: Paise | null;
   /** Whole seconds of call time left (#78); null where the table's type has none. */
   readonly callTimeLeft: number | null;
 }
 
-/** A seat at the tablet's table (#59): who sits there (null when open), and the table's minimum buy-in. */
+/** A seat at the tablet's table (#59): who sits there (null when open), and the table's minimum buy-in and blinds. */
 export interface TabletSeat {
   readonly seat: number;
   readonly player: TabletPlayer | null;
   readonly minimum: Paise;
+  readonly smallBlind: Paise;
+  readonly bigBlind: Paise;
 }
 
 /** Why a seat event did not go through: not this tablet's table, the player gone, a buy-in already with the cage, the venue frozen, or anything else. */
@@ -43,9 +47,9 @@ export function useTabletSeats() {
       const { data, error } = await client.rpc('tablet_seats');
       if (error) throw error;
       return data.map((row) => ({
-        seat: row.seat, minimum: toPaise(row.minimum_paise),
+        seat: row.seat, minimum: toPaise(row.minimum_paise), smallBlind: toPaise(row.small_blind_paise), bigBlind: toPaise(row.big_blind_paise),
         player: row.session_id === null || row.full_name === null ? null : {
-          sessionId: row.session_id, fullName: row.full_name, isAway: row.away_since !== null,
+          sessionId: row.session_id, fullName: row.full_name, isAway: row.away_since !== null, isLeaving: row.leaving_at !== null,
           pendingBuyIn: row.pending_buy_in_paise === null ? null : toPaise(row.pending_buy_in_paise), callTimeLeft: row.call_time_left,
         },
       }));

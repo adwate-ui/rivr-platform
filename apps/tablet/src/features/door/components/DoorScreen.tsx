@@ -2,11 +2,8 @@ import { useDoorScan } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { QrScanView, type QrScanResult } from '@rivr/ui';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { scanResult } from './doorCopy.ts';
+import { resultLastsMs, scanResult } from './doorCopy.ts';
 import { useCardScanner } from './useCardScanner.ts';
-
-// What a scan did stays on screen this long, or until the next scan.
-const RESULT_MS = 6_000;
 
 /**
  * The door kiosk (#331, decision 0164): a member holds up their RIVR card to the camera, or to a card
@@ -18,21 +15,24 @@ export function DoorScreen() {
   const [result, setResult] = useState<QrScanResult | undefined>(undefined);
   const isScanning = useRef(false);
   const onCode = useCallback((code: string) => {
-    if (isScanning.current) return;
+    if (isScanning.current) return null;
     isScanning.current = true;
-    void scan.mutateAsync(code).then((outcome) => {
-      setResult(scanResult(outcome));
+    return scan.mutateAsync(code).then((outcome) => {
+      const said = scanResult(outcome);
+      setResult(said);
       isScanning.current = false;
+      return { mayRetry: said.isRefused };
     });
   }, [scan]);
-  const { videoRef, cameraError } = useCardScanner(onCode);
+  const { videoRef, cameraError, retryCamera } = useCardScanner(onCode);
   useEffect(() => {
-    if (result === undefined) return undefined;
-    const timer = setTimeout(() => setResult(undefined), RESULT_MS);
+    const lasts = result === undefined ? null : resultLastsMs(result);
+    if (lasts === null) return undefined;
+    const timer = setTimeout(() => setResult(undefined), lasts);
     return () => clearTimeout(timer);
   }, [result]);
   return (
-    <QrScanView videoRef={videoRef} prompt={t('tablet.door.prompt')} result={result} scannerLabel={t('tablet.door.scanner')} onScannerCode={onCode}
-      cameraError={cameraError ? t('tablet.door.noCamera') : undefined} />
+    <QrScanView videoRef={videoRef} prompt={t('tablet.door.prompt')} help={t('tablet.door.help')} result={result} scannerLabel={t('tablet.door.scanner')} onScannerCode={(code) => void onCode(code)}
+      cameraError={cameraError ? t('tablet.door.noCamera') : undefined} retryCameraLabel={t('tablet.door.retryCamera')} onRetryCamera={retryCamera} />
   );
 }

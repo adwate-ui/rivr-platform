@@ -11,9 +11,17 @@ const REFUSALS: Partial<Record<DoorScanFailure, { title: MessageKey; detail: Mes
   card_not_current: { title: 'tablet.door.tryAgain', detail: 'tablet.door.cardNotCurrent' },
   on_break: { title: 'tablet.door.seeFrontDesk', detail: 'tablet.door.onBreak' },
   not_allowed: { title: 'tablet.door.seeFrontDesk', detail: 'tablet.door.notPaired' },
-  stopped: { title: 'tablet.door.seeFrontDesk', detail: 'tablet.door.stopped' },
+  stopped: { title: 'tablet.door.stopped', detail: 'tablet.door.askFrontDesk' },
   paused: { title: 'tablet.door.seeFrontDesk', detail: 'tablet.door.paused' },
 };
+
+// A check-in or out stays on screen this long, or until the next scan.
+const RESULT_MS = 6_000;
+
+/** How long what a scan did stays (F-143): a check-in or out for six seconds; a refusal until the next scan, so whoever was refused can read why. */
+export function resultLastsMs(result: QrScanResult): number | null {
+  return result.isRefused ? null : RESULT_MS;
+}
 
 /** What the kiosk says after a scan (decision 0164): welcome, goodbye with the time played, or why nothing happened. */
 export function scanResult(outcome: { ok: true; value: DoorScan } | { ok: false; error: DoorScanRefusal }): QrScanResult {
@@ -27,6 +35,6 @@ export function scanResult(outcome: { ok: true; value: DoorScan } | { ok: false;
   if (reason === 'call_time_owed') {
     return { title: t('tablet.door.notYet'), detail: t('tablet.door.callTimeOwed', { time: formatDuration(owedSeconds) }), isRefused: true };
   }
-  const copy = REFUSALS[reason] ?? { title: 'tablet.door.seeFrontDesk', detail: 'tablet.door.unavailable' };
+  const copy = REFUSALS[reason] ?? { title: 'tablet.door.tryAgain', detail: 'tablet.door.unavailable' };
   return { title: t(copy.title), detail: t(copy.detail), isRefused: true };
 }

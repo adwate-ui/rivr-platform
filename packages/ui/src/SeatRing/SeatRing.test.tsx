@@ -26,11 +26,29 @@ describe('SeatRing', () => {
     expect(screen.getByText('2')).toBeInTheDocument();
   });
 
-  it('puts seat 1 at the top and the rest clockwise', () => {
+  it("starts at the dealer's left and runs clockwise, so seat 1 and the last flank the tray at the foot, as on the felt (F-190)", () => {
     const { container } = renderIn(<SeatRing name="Table 1" stakes="50/100" seats={SEATS} label="Table 1" />);
-    const [first, second] = [...container.querySelectorAll('circle')].map((seat) => ({ x: Number(seat.getAttribute('cx')), y: Number(seat.getAttribute('cy')) }));
-    expect(first).toEqual({ x: 120, y: 15 });
-    expect(second?.x).toBeGreaterThan(120);
+    const [first, second, last] = [...container.querySelectorAll('circle')].map((seat) => ({ x: Number(seat.getAttribute('cx')), y: Number(seat.getAttribute('cy')) }));
+    expect(first?.x).toBeLessThan(120);
+    expect(first?.y).toBeGreaterThan(75);
+    expect(last?.x).toBeCloseTo(240 - (first?.x ?? 0));
+    expect(last?.y).toBeCloseTo(first?.y ?? 0);
+    expect(second?.y).toBeCloseTo(15);
+  });
+
+  it('shows a seat to watch with a ring of its own and a short word, and says so to a screen reader (F-189)', () => {
+    const { container } = renderIn(<SeatRing name="Table 3" stakes="100/200" label="Table 3" onSelectSeat={() => undefined} seats={[
+      { number: 1, initials: 'RV', name: 'Rahul Verma', status: { kind: 'leaving', label: 'Leaving' } },
+      { number: 2, initials: 'NB', name: 'Neha Bose' },
+      { number: 3, initials: 'AK', name: 'Arjun Kapoor', status: { kind: 'away', label: 'Away' } },
+    ]} />);
+    expect(screen.getByText('Leaving')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Seat 1, Rahul Verma, Leaving' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Seat 2, Neha Bose' })).toBeInTheDocument();
+    const [leaving, plain, away] = [...container.querySelectorAll('circle')];
+    expect(leaving).toHaveClass('stroke-alert');
+    expect(plain).toHaveClass('stroke-cream');
+    expect(away).toHaveAttribute('stroke-dasharray');
   });
 
   it('on the tablet, makes each seat a button named by its player, chosen by click or keyboard', async () => {

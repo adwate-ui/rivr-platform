@@ -9,6 +9,8 @@ export const tabletApp = {
   /** The table name in the header before the tablet is assigned to a table. */
   unassignedTable: 'Not assigned',
   title: 'Dealer tablet',
+  /** The header and title until the device is known, and always on a door kiosk: a member may be reading it (F-144, F-145). */
+  neutralTitle: 'RIVR',
   /** The header of a tablet in the practice venue, where dealers train (#50): `{table}` is its table. */
   practiceTable: '{table}, practice venue',
   pairing,
@@ -29,7 +31,10 @@ export const tabletApp = {
     prompt: 'Hold your RIVR card up to the camera',
     /** The field a card scanner plugged into the kiosk types into, for a screen reader. */
     scanner: 'Card scanner',
+    /** Between scans, where the card is: the Card tab of the app (F-145). */
+    help: 'Open RIVR › Card, brightness up. Hold it here.',
     noCamera: 'Camera unavailable. See the front desk.',
+    retryCamera: 'Retry camera',
     welcome: 'Welcome, {name}.',
     welcomeDetail: 'You are checked in. Enjoy the game.',
     goodbye: 'Goodbye, {name}.',
@@ -44,9 +49,10 @@ export const tabletApp = {
     cardNotCurrent: 'Code changed. Hold your card up again.',
     seeFrontDesk: 'See the front desk.',
     onBreak: 'You are on a break from play.',
-    unavailable: 'Card not read. Try again.',
-    /** The member is frozen, or the venue is (F4-15). */
-    stopped: 'Your membership is on hold.',
+    unavailable: 'Card not read. Hold it up again.',
+    /** The member is frozen, or the venue is (F4-15): the shared line, large then beneath (F-146). */
+    stopped: 'Account paused.',
+    askFrontDesk: 'Ask at the front desk.',
     paused: 'Check-in is paused.',
     /** A revoked kiosk: its pairing is gone. */
     notPaired: 'This kiosk is no longer paired.',

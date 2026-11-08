@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { scanResult } from './doorCopy.ts';
+import { resultLastsMs, scanResult } from './doorCopy.ts';
 
 describe('what the door kiosk says (decision 0164)', () => {
   it('welcomes a member in, and says goodbye with the time they played', () => {
@@ -20,7 +20,12 @@ describe('what the door kiosk says (decision 0164)', () => {
     expect(scanResult({ ok: false, error: { reason: 'not_allowed', owedSeconds: 0 } }).detail).toBe('This kiosk is no longer paired.');
     expect(scanResult({ ok: false, error: { reason: 'paused', owedSeconds: 0 } }))
       .toEqual({ title: 'See the front desk.', detail: 'Check-in is paused.', isRefused: true });
-    expect(scanResult({ ok: false, error: { reason: 'stopped', owedSeconds: 0 } }).detail).toBe('Your membership is on hold.');
-    expect(scanResult({ ok: false, error: { reason: 'unavailable', owedSeconds: 0 } }).detail).toBe('Card not read. Try again.');
+    expect(scanResult({ ok: false, error: { reason: 'stopped', owedSeconds: 0 } })).toEqual({ title: 'Account paused.', detail: 'Ask at the front desk.', isRefused: true });
+    expect(scanResult({ ok: false, error: { reason: 'unavailable', owedSeconds: 0 } })).toEqual({ title: 'Try again.', detail: 'Card not read. Hold it up again.', isRefused: true });
+  });
+
+  it('keeps a refusal until the next scan, and clears a check-in by itself (F-143)', () => {
+    expect(resultLastsMs({ title: 'Not yet.', isRefused: true })).toBeNull();
+    expect(resultLastsMs({ title: 'Welcome, Kavya.', isRefused: false })).toBe(6_000);
   });
 });

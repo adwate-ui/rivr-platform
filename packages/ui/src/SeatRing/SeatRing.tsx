@@ -2,12 +2,20 @@ import { t } from '@rivr/i18n';
 import type { KeyboardEvent } from 'react';
 import { cx } from '../internal/classes.ts';
 
+/** What the dealer should see of a seat without tapping it (F-189): drawn as a ring of its own, with the word under the seat. */
+export interface RingSeatStatus {
+  readonly kind: 'away' | 'leaving' | 'ending';
+  /** The word: "Away", "Leaving", "12 min left". */
+  readonly label: string;
+}
+
 /** One seat at the table: its number, and the initials of who sits there, or null when it is open. */
 export interface RingSeat {
   readonly number: number;
   readonly initials: string | null;
   /** Who sits there, for a seat a screen reader can choose. */
   readonly name?: string;
+  readonly status?: RingSeatStatus | undefined;
 }
 
 export interface SeatRingProps {
@@ -26,16 +34,19 @@ export interface SeatRingProps {
 }
 
 const CENTRE = { x: 120, y: 75 };
-// Seats sit on a wider oval than the table, seat 1 at the top and on clockwise, as on the felt.
+// Seats sit on a wider oval than the table, seat 1 at the dealer's left of the tray at the foot and on clockwise, so the first
+// and last flank the tray, as on the felt (F-190).
 const SEAT_ORBIT = { x: 104, y: 60 };
 
 function seatPosition(index: number, count: number): { x: number; y: number } {
-  const angle = -Math.PI / 2 + (index * 2 * Math.PI) / count;
+  const angle = Math.PI / 2 + ((index + 0.5) * 2 * Math.PI) / count;
   return { x: CENTRE.x + SEAT_ORBIT.x * Math.cos(angle), y: CENTRE.y + SEAT_ORBIT.y * Math.sin(angle) };
 }
 
 function seatName(seat: RingSeat): string {
-  return seat.initials === null ? t('ui.seatRing.open', { number: seat.number }) : t('ui.seatRing.taken', { number: seat.number, name: seat.name ?? seat.initials });
+  if (seat.initials === null) return t('ui.seatRing.open', { number: seat.number });
+  const taken = t('ui.seatRing.taken', { number: seat.number, name: seat.name ?? seat.initials });
+  return seat.status === undefined ? taken : t('ui.seatRing.withStatus', { seat: taken, status: seat.status.label });
 }
 
 /**
@@ -44,23 +55,41 @@ function seatName(seat: RingSeat): string {
  * its initials stay legible (UI polish audit UI-14).
  */
 const LOOK = {
-  choosing: { radius: 11, type: 'text-12', labelAbove: 16, labelBelow: 24 },
+  choosing: { radius: 11, type: 'text-12', labelAbove: 16, labelBelow: 24, statusGap: 14 },
   card: { radius: 14, type: 'text-16' },
 } as const;
 
-/** A taken seat's number on the tablet: above a seat in the ring's top half, below one in its bottom half, never over the felt. */
-function SeatLabel({ number, at }: { number: number; at: { x: number; y: number } }) {
-  const y = at.y < CENTRE.y ? at.y - LOOK.choosing.labelAbove : at.y + LOOK.choosing.labelBelow;
-  return <text x={at.x} y={y} textAnchor="middle" className="fill-content-muted font-text text-12">{t('ui.seatRing.seat', { number })}</text>;
+/** A taken seat's number on the tablet, and beyond it the word for a seat to watch: above a seat in the ring's top half, below one in its bottom half, never over the felt. */
+function SeatLabel({ number, status, at }: { number: number; status: RingSeatStatus | undefined; at: { x: number; y: number } }) {
+  const isAbove = at.y < CENTRE.y;
+  const y = isAbove ? at.y - LOOK.choosing.labelAbove : at.y + LOOK.choosing.labelBelow;
+  return (
+    <>
+      <text x={at.x} y={y} textAnchor="middle" className="fill-content-muted font-text text-12">{t('ui.seatRing.seat', { number })}</text>
+      {status === undefined ? null : (
+        <text x={at.x} y={isAbove ? y - LOOK.choosing.statusGap : y + LOOK.choosing.statusGap} textAnchor="middle" className="fill-content font-text text-12 font-semibold">{status.label}</text>
+      )}
+    </>
+  );
+}
+
+const STATUS_RING: Record<RingSeatStatus['kind'], string> = { away: 'stroke-content-muted', leaving: 'stroke-alert', ending: 'stroke-danger' };
+
+/** A seat's edge: gold when chosen, then its status, then cream for someone there and a hairline for an open seat. */
+function ringClass(seat: RingSeat, isSelected: boolean): string {
+  if (isSelected) return 'stroke-gold';
+  if (seat.status !== undefined) return STATUS_RING[seat.status.kind];
+  return seat.initials === null ? 'stroke-hairline' : 'stroke-cream';
 }
 
 /** A seat's circle and what it says: the initials of who sits there, or its number when it is open. */
 function SeatMark({ seat, at, isSelected, look }: { seat: RingSeat; at: { x: number; y: number }; isSelected: boolean; look: (typeof LOOK)[keyof typeof LOOK] }) {
   const isTaken = seat.initials !== null;
-  const ring = isSelected ? 'stroke-gold' : isTaken ? 'stroke-cream' : 'stroke-hairline';
   return (
     <>
-      <circle cx={at.x} cy={at.y} r={look.radius} strokeWidth={isSelected ? 2 : 1} className={cx(isTaken ? 'fill-cream' : 'fill-green', ring)} />
+      {/* Away is dashed as well as coloured: it can be told apart by its shape. */}
+      <circle cx={at.x} cy={at.y} r={look.radius} strokeWidth={isSelected || seat.status !== undefined ? 2 : 1} strokeDasharray={seat.status?.kind === 'away' ? '3 2' : undefined}
+        className={cx(isTaken ? 'fill-cream' : 'fill-green', ringClass(seat, isSelected))} />
       <text x={at.x} y={at.y} textAnchor="middle" dominantBaseline="central"
         className={cx('font-text', look.type, isTaken ? 'fill-on-cream font-semibold' : 'fill-content-muted')}>
         {seat.initials ?? seat.number}
@@ -83,7 +112,7 @@ function Seat({ seat, at, isSelected, onSelect }: { seat: RingSeat; at: { x: num
   return (
     <g {...button} className={onSelect ? 'cursor-pointer focus-visible:outline-2 focus-visible:outline-focus' : undefined}>
       <SeatMark seat={seat} at={at} isSelected={isSelected} look={onSelect ? LOOK.choosing : LOOK.card} />
-      {onSelect && seat.initials !== null ? <SeatLabel number={seat.number} at={at} /> : null}
+      {onSelect && seat.initials !== null ? <SeatLabel number={seat.number} status={seat.status} at={at} /> : null}
     </g>
   );
 }
@@ -137,7 +166,7 @@ function TableArt() {
 export function SeatRing({ name, stakes, seats, label, isClosed, onSelectSeat, selectedSeat = null }: SeatRingProps) {
   const isChoosing = onSelectSeat !== undefined;
   return (
-    <svg viewBox={isChoosing ? '0 -16 240 186' : '0 -4 240 158'} role={isChoosing ? 'group' : 'img'} aria-label={label}
+    <svg viewBox={isChoosing ? '-16 -28 272 204' : '0 -4 240 158'} role={isChoosing ? 'group' : 'img'} aria-label={label}
       className={cx('w-full', isChoosing && 'mx-auto max-w-text', isClosed && 'opacity-muted')}>
       <TableArt />
       {/* A halo of the felt's green behind each glyph keeps the words at their contrast where a long name or stakes runs

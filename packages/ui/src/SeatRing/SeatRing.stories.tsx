@@ -43,4 +43,14 @@ export const Selectable: Story = {
 /** On the dealer tablet's own screen: the whole ring fits it, each taken seat's number off the felt (UI-14, A-19). */
 export const SelectableOnATablet: Story = { ...Selectable, tags: ['!viewport-console', 'viewport-tablet'] };
 
+/** What a dealer should see without tapping (F-189): seat 2 away, seat 4 leaving, seat 9 at the end of the call time. */
+export const SeatsToWatch: Story = {
+  ...SelectableOnATablet,
+  args: { ...Selectable.args, selectedSeat: null, seats: seats(9, { 1: 'VR', 2: 'DM', 3: 'IC', 4: 'MI', 5: 'TA', 6: 'SJ', 7: 'AK', 8: 'FQ', 9: 'OS' }).map((seat) => {
+    if (seat.number === 2) return { ...seat, status: { kind: 'away', label: 'Away' } };
+    if (seat.number === 4) return { ...seat, status: { kind: 'leaving', label: 'Leaving' } };
+    return seat.number === 9 ? { ...seat, status: { kind: 'ending', label: '12 min left' } } : seat;
+  }) },
+};
+
 export const LongText: Story = { args: { name: 'Private Room', stakes: '100/200 · ₹500 straddle', label: 'Private Room, 6 of 9 seats taken' } };
