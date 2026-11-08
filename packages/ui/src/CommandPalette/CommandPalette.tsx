@@ -2,6 +2,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { t } from '@rivr/i18n';
 import { useEffect, useId, useState, type KeyboardEvent } from 'react';
 import { cx } from '../internal/classes.ts';
+import { useShortcutsOn } from '../Shortcuts/Shortcuts.tsx';
 import { Text } from '../Text/Text.tsx';
 
 /** One result: what it says, a muted word at its right ("Table 2, seat 5", "Screen", "S"), and what choosing it does. */
@@ -37,18 +38,20 @@ function isTyping(target: EventTarget | null): boolean {
 
 /** Ctrl or Cmd with K anywhere, or `/` outside a field, opens the palette. */
 function useOpenShortcut(isOpen: boolean, onOpenChange: (isOpen: boolean) => void) {
+  // `/` is a single key, so it follows the staff member's shortcuts switch (WCAG 2.1.4); Ctrl K always works.
+  const isSlashOn = useShortcutsOn();
   useEffect(() => {
     if (isOpen) return undefined;
     const onKey = (event: globalThis.KeyboardEvent) => {
       const isCommandK = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k';
-      const isSlash = event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey && !isTyping(event.target);
+      const isSlash = isSlashOn && event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey && !isTyping(event.target);
       if (!isCommandK && !isSlash) return;
       event.preventDefault();
       onOpenChange(true);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, onOpenChange]);
+  }, [isOpen, onOpenChange, isSlashOn]);
 }
 
 /** Arrow keys move through every result across the groups, wrapping; Enter chooses the one marked. */

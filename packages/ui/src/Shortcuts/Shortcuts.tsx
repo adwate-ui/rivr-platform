@@ -34,6 +34,8 @@ interface Registry {
 }
 
 const ShortcutContext = createContext<Registry | null>(null);
+// The staff member's switch for single-key shortcuts (WCAG 2.1.4): on unless they turn it off in the account menu.
+const ShortcutsOnContext = createContext(true);
 
 const shown = (key: string) => (key.length === 1 ? key.toUpperCase() : key);
 
@@ -78,44 +80,58 @@ function isBusyElsewhere(target: EventTarget | null): boolean {
 
 /**
  * Holds the keys the screen open now offers (console v3), and listens for them: a key does its job unless the staff member
- * is typing in a field, works in a sheet or the search, or holds Ctrl, Cmd or Alt. Wrap the console's frame in it.
+ * is typing in a field, works in a sheet or the search, or holds Ctrl, Cmd or Alt. `isOn` false, the staff member's own
+ * switch, turns every single-key shortcut off, `/` too (WCAG 2.1.4). Wrap the console's frame in it.
  */
-export function ShortcutProvider({ children }: { children: ReactNode }) {
+export function ShortcutProvider({ isOn = true, children }: { isOn?: boolean; children: ReactNode }) {
   const [registry] = useState(createRegistry);
   useEffect(() => {
+    if (!isOn) return undefined;
     const onKey = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.repeat || event.ctrlKey || event.metaKey || event.altKey || isBusyElsewhere(event.target)) return;
       if (registry.press(event.key)) event.preventDefault();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [registry]);
-  return <ShortcutContext.Provider value={registry}>{children}</ShortcutContext.Provider>;
+  }, [registry, isOn]);
+  return (
+    <ShortcutContext.Provider value={registry}>
+      <ShortcutsOnContext.Provider value={isOn}>{children}</ShortcutsOnContext.Provider>
+    </ShortcutContext.Provider>
+  );
+}
+
+/** Whether single-key shortcuts are on: the staff member's switch, given to ShortcutProvider. On outside one. */
+export function useShortcutsOn(): boolean {
+  return useContext(ShortcutsOnContext);
 }
 
 /**
  * Offers a key on the screen while it is mounted and enabled: `useShortcut({ key: 's', label: t('…'), onPress: seat })`.
- * Gives back the key and the tooltip for the button that does the same, `<Button shortcut={…}>`. Outside a
- * ShortcutProvider it offers nothing, but still names the key.
+ * Gives back the key and the tooltip for the button that does the same, `<Button shortcut={…}>`, or nothing while the
+ * staff member has shortcuts off. Outside a ShortcutProvider it offers nothing, but still names the key.
  */
-export function useShortcut({ key, label, onPress, isEnabled = true }: ShortcutBinding): ButtonShortcut {
+export function useShortcut({ key, label, onPress, isEnabled = true }: ShortcutBinding): ButtonShortcut | undefined {
   const registry = useContext(ShortcutContext);
+  const isOn = useContext(ShortcutsOnContext);
   const id = useId();
   const latest = useRef(onPress);
   useEffect(() => {
     latest.current = onPress;
   });
   useEffect(() => {
-    if (registry === null || !isEnabled) return undefined;
+    if (registry === null || !isEnabled || !isOn) return undefined;
     return registry.register(id, { key, label, onPress: () => latest.current() });
-  }, [registry, id, key, label, isEnabled]);
-  return { key: shown(key), hint: t('ui.console.shortcuts.withKey', { label, key: shown(key) }) };
+  }, [registry, id, key, label, isEnabled, isOn]);
+  return isOn ? { key: shown(key), hint: t('ui.console.shortcuts.withKey', { label, key: shown(key) }) } : undefined;
 }
 
 const NONE: readonly ShortcutHint[] = [];
 
-/** The keys the screen open now offers, in the order of their keys, for the shortcuts list. */
+/** The keys the screen open now offers, in the order of their keys, for the shortcuts list; none while they are off. */
 export function useShortcutList(): readonly ShortcutHint[] {
   const registry = useContext(ShortcutContext);
-  return useSyncExternalStore(registry?.subscribe ?? (() => () => undefined), registry?.list ?? (() => NONE));
+  const isOn = useContext(ShortcutsOnContext);
+  const offered = useSyncExternalStore(registry?.subscribe ?? (() => () => undefined), registry?.list ?? (() => NONE));
+  return isOn ? offered : NONE;
 }

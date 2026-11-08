@@ -27,7 +27,7 @@ describe('Tonight › banners', () => {
     const onRetry = vi.fn();
     renderBanners({ hasRefreshFailed: true, onRetry });
     expect(screen.getByText("Couldn't refresh. Showing 22:41.")).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
     expect(onRetry).toHaveBeenCalledOnce();
   });
 
@@ -42,6 +42,6 @@ describe('Tonight › banners', () => {
   it('says it is offline, showing the tables as they last came', () => {
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
     renderBanners();
-    expect(screen.getByText('Offline. Showing tables as of 22:41.')).toBeDefined();
+    expect(screen.getByText('No connection. Showing tables as of 22:41.')).toBeDefined();
   });
 });

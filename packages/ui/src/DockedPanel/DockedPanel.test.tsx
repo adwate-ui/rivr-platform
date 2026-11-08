@@ -21,7 +21,8 @@ describe('DockedPanel', () => {
     const panel = screen.getByRole('complementary', { name: 'Requests' });
     expect(panel).toHaveClass('w-dock', 'hidden', 'medium:block');
     expect(panel).toHaveTextContent('3');
-    expect(screen.getByText('Ritika Bhalla').parentElement).toHaveAttribute('aria-live', 'polite');
+    // Not a live region: every change would be read out again; the console's UrgentChime tells new work once.
+    expect(panel.querySelector('[aria-live]')).toBeNull();
   });
 
   it('folds to a strip with its count, and opens again from the strip', async () => {

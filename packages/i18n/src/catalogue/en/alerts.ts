@@ -1,6 +1,6 @@
 /**
  * What the owner's alert message says each kind of alert is (#100): words only, never an alert's
- * details, so an alert carries no personal data. The details are on the owner dashboard.
+ * details, so an alert carries no personal data. The details are in the console.
  */
 export const alerts = {
   kinds: {

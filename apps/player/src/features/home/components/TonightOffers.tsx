@@ -24,7 +24,7 @@ export function TonightOffers() {
   const offers = [...referral, ...live];
   if (offers.length === 0) return null;
   return (
-    <OfferCarousel title={t('player.live.title')} offers={offers}
+    <OfferCarousel title={t('player.live.offersTitle')} offers={offers}
       countLabel={offers.length === 1 ? t('player.live.offersOne') : t('player.live.offers', { count: offers.length })} />
   );
 }

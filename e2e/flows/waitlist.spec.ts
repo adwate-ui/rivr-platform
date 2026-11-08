@@ -207,7 +207,7 @@ test.describe('Waitlist', () => {
     await player.reload();
     await expect(player.getByRole('button', { name: 'Leave waitlist' })).toHaveCount(0);
     // Seated, he joins no other game from the app (#633): the tables only show.
-    await expect(player.getByRole('heading', { name: 'Table 2 · Seat 9' })).toBeVisible();
+    await expect(player.getByRole('heading', { name: 'Table 2, seat 9' })).toBeVisible();
     await expect(tableRow(player, 'Table 2')).toHaveCount(0);
   });
 
@@ -227,7 +227,7 @@ test.describe('Waitlist', () => {
 
     // Only the floor holds a place now (decision 0300): the member's Tonight offers no Step away.
     await player.reload();
-    await expect(player.getByRole('heading', { name: 'Table 2 · Seat 9' })).toBeVisible();
+    await expect(player.getByRole('heading', { name: 'Table 2, seat 9' })).toBeVisible();
     await expect(player.getByRole('button', { name: /^Step away/ })).toHaveCount(0);
 
     await removeEvery(host, MEMBER);

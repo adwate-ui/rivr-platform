@@ -81,7 +81,7 @@ describe('the console frame', () => {
     expect(await screen.findByRole('heading', { name: 'Live floor' })).toBeDefined();
     expect(screen.getByRole('navigation', { name: 'Sections' })).toBeDefined();
     expect(screen.getByRole('link', { name: 'Live floor' })).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'Sana Qureshi' }));
+    fireEvent.click(screen.getByRole('button', { name: 'SQ, Sana Qureshi' }));
     expect(screen.getByRole('group', { name: 'Sana Qureshi' })).toBeDefined();
     expect(screen.getByText('Cashier · RIVR Gurugram')).toBeDefined();
   });
@@ -90,7 +90,7 @@ describe('the console frame', () => {
     signIn();
     answerStaff([CLUB, PRACTICE]);
     renderAt('/');
-    fireEvent.click(await screen.findByRole('button', { name: 'Sana Qureshi' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'SQ, Sana Qureshi' }));
     expect(screen.getByRole('switch', { name: 'Practice venue' })).toBeDefined();
     expect(screen.queryByText('Practice venue: nothing here reaches the club or its members.')).toBeNull();
     fireEvent.click(screen.getByRole('switch', { name: 'Practice venue' }));
@@ -105,7 +105,7 @@ describe('the console frame', () => {
     signIn();
     answerStaff([CLUB]);
     renderAt('/');
-    fireEvent.click(await screen.findByRole('button', { name: 'Sana Qureshi' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'SQ, Sana Qureshi' }));
     expect(screen.getByText('Cashier · RIVR Gurugram')).toBeDefined();
     expect(screen.queryByRole('switch', { name: 'Practice venue' })).toBeNull();
   });
@@ -114,7 +114,7 @@ describe('the console frame', () => {
     signIn();
     answerStaff([CLUB, PRACTICE]);
     renderAt('/');
-    fireEvent.click(await screen.findByRole('button', { name: 'Sana Qureshi' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'SQ, Sana Qureshi' }));
     fireEvent.click(screen.getByRole('switch', { name: 'Practice venue' }));
     expect(await screen.findByRole('region', { name: 'Practice venue' })).toBeDefined();
     // A reload: the page starts again from what the device kept.
@@ -123,7 +123,7 @@ describe('the console frame', () => {
     const stripe = await screen.findByRole('region', { name: 'Practice venue' });
     fireEvent.click(within(stripe).getByRole('button', { name: 'Back to the club' }));
     await waitFor(() => expect(screen.queryByRole('region', { name: 'Practice venue' })).toBeNull());
-    fireEvent.click(screen.getByRole('button', { name: 'Sana Qureshi' }));
+    fireEvent.click(screen.getByRole('button', { name: 'SQ, Sana Qureshi' }));
     expect(screen.getByText('Cashier · RIVR Gurugram')).toBeDefined();
   });
 
@@ -140,11 +140,37 @@ describe('the console frame', () => {
     signIn();
     answerStaff([CLUB]);
     renderAt('/');
-    fireEvent.click(await screen.findByRole('button', { name: 'Sana Qureshi' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'SQ, Sana Qureshi' }));
     const density = screen.getByRole('radiogroup', { name: 'Density' });
     expect(within(density).getByRole('radio', { name: 'Comfortable' }).getAttribute('aria-checked')).toBe('true');
     expect(within(density).getByRole('radio', { name: 'Compact' })).toBeDefined();
     expect(screen.getByRole('list', { name: 'Shortcuts' }).textContent).toBe('/SearchCtrl KSearchEscClose');
+  });
+
+  it('keeps single-key shortcuts off for a staff member who turned them off, and on again from the menu (WCAG 2.1.4)', async () => {
+    signIn();
+    const writes: unknown[] = [];
+    vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
+      const request = input instanceof Request ? input : new Request(String(input), init);
+      if (request.url.includes('/rest/v1/staff_preference')) {
+        if (request.method === 'GET') return Response.json({ has_shortcuts: false });
+        writes.push(JSON.parse(await request.text()));
+        return new Response(null, { status: 201 });
+      }
+      return request.url.includes('/rest/v1/staff') ? Response.json([CLUB]) : Response.json([]);
+    });
+    renderAt('/');
+    fireEvent.click(await screen.findByRole('button', { name: 'SQ, Sana Qureshi' }));
+    const toggle = screen.getByRole('switch', { name: 'Keyboard shortcuts' });
+    await waitFor(() => expect(toggle.getAttribute('aria-checked')).toBe('false'));
+    expect(screen.getByRole('list', { name: 'Shortcuts' }).textContent).toBe('Ctrl KSearchEscClose');
+    fireEvent.keyDown(document.body, { key: '/' });
+    expect(screen.queryByRole('dialog', { name: 'Search' })).toBeNull();
+    fireEvent.click(toggle);
+    await waitFor(() => expect(writes).toEqual([[expect.objectContaining({ has_shortcuts: true })]]));
+    await waitFor(() => expect(toggle.getAttribute('aria-checked')).toBe('true'));
+    fireEvent.keyDown(document.body, { key: '/' });
+    expect(await screen.findByRole('dialog', { name: 'Search' })).toBeDefined();
   });
 
   it('says on sign-in that the idle lock signed the staff member out', async () => {

@@ -23,6 +23,6 @@ describe('the frame’s banners (decision 0320)', () => {
     );
     expect(screen.queryByRole('status')).toBeNull();
     act(() => goOnline(false));
-    expect(screen.getByText('Offline. What you see may be out of date.')).toBeDefined();
+    expect(screen.getByText('No connection. What you see may be out of date.')).toBeDefined();
   });
 });

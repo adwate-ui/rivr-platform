@@ -13,9 +13,10 @@ export const push = {
     body: '{table}, seat {seat}. Ends at {time}.',
     action: 'Add time',
   },
+  /** The member's call time has run: they may go (8 Nov audit, F-181). */
   callTimeDone: {
-    title: 'Call time complete',
-    body: 'Your call time is complete.',
+    title: 'Call time done',
+    body: 'You may leave any time.',
   },
   sessionReminder: {
     title: 'Session reminder',
@@ -54,8 +55,8 @@ export const push = {
     requested: 'Requested',
     heldFor: 'Seat ready · held for',
     callTimeLeft: 'Call time left',
-    /** Top right while seated: `Table 1 · Seat 4`. */
-    seat: '{table} · Seat {seat}',
+    /** Top right while seated: `Table 1, seat 4`. */
+    seat: '{table}, seat {seat}',
     onMyWay: "I'm on my way",
     order: 'Order',
   },

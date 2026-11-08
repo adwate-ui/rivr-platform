@@ -128,16 +128,16 @@ describe('the player app', () => {
     signIn();
     renderAt('/', clientWithKabir());
     await screen.findByRole('region', { name: 'All tables' }, { timeout: 5000 });
-    expect(screen.queryByText(/^Offline\. Showing tables as of \d\d:\d\d\.$/)).toBeNull();
+    expect(screen.queryByText(/^No connection\. Showing tables as of \d\d:\d\d\.$/)).toBeNull();
     act(() => goOnline(false));
     // A banner at the top of Tonight (decision 0320), naming when the tables shown came.
-    expect(screen.getByText(/^Offline\. Showing tables as of \d\d:\d\d\.$/)).toBeDefined();
+    expect(screen.getByText(/^No connection\. Showing tables as of \d\d:\d\d\.$/)).toBeDefined();
   });
 
   it('opens on Tonight inside the frame', async () => {
     signIn();
     renderAt('/', clientWithKabir());
-    expect(await screen.findByRole('heading', { name: 'Tonight' })).toBeDefined();
+    expect(await screen.findByRole('heading', { name: 'Home' })).toBeDefined();
     expect(await screen.findByRole('region', { name: 'All tables' }, { timeout: 5000 })).toBeDefined();
     expect(screen.getByRole('navigation', { name: 'Main' })).toBeDefined();
   });
@@ -164,7 +164,7 @@ describe('the player app', () => {
   it('has no Balance tab, and its old addresses open Tonight', async () => {
     signIn();
     const router = renderAt('/balance/deposit', clientWithKabir());
-    expect(await screen.findByRole('heading', { name: 'Tonight' })).toBeDefined();
+    expect(await screen.findByRole('heading', { name: 'Home' })).toBeDefined();
     expect(router.state.location.pathname).toBe('/');
     expect(screen.queryByRole('link', { name: 'Balance' })).toBeNull();
   });
@@ -185,7 +185,7 @@ describe('the player app', () => {
   it('Errors › Not found: says the page does not exist, with the tabs and the way to Tonight', async () => {
     signIn();
     renderAt('/nowhere', clientWithKabir());
-    expect(await screen.findByRole('heading', { name: "This page doesn't exist." })).toBeDefined();
+    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeDefined();
     expect(screen.getByText('The link may be old or mistyped.')).toBeDefined();
     expect(screen.getByRole('link', { name: 'Go to Home' }).getAttribute('href')).toBe('/');
     expect(screen.getAllByRole('navigation', { name: 'Main' })).toHaveLength(1);
@@ -291,7 +291,7 @@ describe('Sign up', () => {
   it('About you: Back returns to the number step, signed out', async () => {
     signIn();
     renderAt('/sign-up');
-    expect(await screen.findByText('1 of 2', {}, LAZY_SCREEN)).toBeDefined();
+    expect(await screen.findByText('Step 1 of 2', {}, LAZY_SCREEN)).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Use another number' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Back' }));
     expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();

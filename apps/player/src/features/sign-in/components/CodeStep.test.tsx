@@ -40,7 +40,7 @@ describe('Sign in › Code', () => {
     renderCode();
     const field = screen.getByRole('textbox', { name: '6-digit code' });
     fireEvent.change(field, { target: { value: '000000' } });
-    expect(await screen.findByText("That code didn't match.")).toBeDefined();
+    expect(await screen.findByText('Wrong or expired code. Check it, or resend.')).toBeDefined();
     expect(field).toHaveProperty('value', '');
   });
 

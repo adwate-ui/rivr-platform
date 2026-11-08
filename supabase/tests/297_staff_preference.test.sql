@@ -37,6 +37,14 @@ select lives_ok($$ insert into public.staff_preference (staff_id, venue_id, dens
                    on conflict (staff_id) do update set density = excluded.density $$, 'she changes it as the console does, by upsert');
 select is((select density from public.staff_preference where venue_id = '00000000-0000-4000-8000-000000000001'), 'comfortable',
   'and the change holds');
+-- Her keyboard shortcuts switch (WCAG 2.1.4; audit F-003): on until she turns it off, kept beside her density.
+select is((select has_shortcuts from public.staff_preference where venue_id = '00000000-0000-4000-8000-000000000001'), true,
+  'her single-key shortcuts are on until she turns them off');
+select lives_ok($$ insert into public.staff_preference (staff_id, venue_id, has_shortcuts)
+                   select sana_club, '00000000-0000-4000-8000-000000000001', false from ids
+                   on conflict (staff_id) do update set has_shortcuts = excluded.has_shortcuts $$, 'she turns them off as the console does');
+select is((select (density, has_shortcuts)::text from public.staff_preference where venue_id = '00000000-0000-4000-8000-000000000001'),
+  '(comfortable,f)', 'which leaves her density as it was');
 
 -- Never anyone else's record, nor her own under another venue.
 select throws_ok($$ insert into public.staff_preference (staff_id, venue_id, density)

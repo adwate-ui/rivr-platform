@@ -34,7 +34,7 @@ test.describe('Call time', () => {
     const player = await browser.newPage();
     await signInToPlayer(player, '9000000215');
     // Seated (decision 0320): where, the game and how long she has played, and the ring counting down to the server's end.
-    await expect(player.getByRole('heading', { name: 'Private Room · Seat 1' })).toBeVisible();
+    await expect(player.getByRole('heading', { name: 'Private Room, seat 1' })).toBeVisible();
     await expect(player.getByText(/ · playing /)).toBeVisible();
     await expect(player.getByRole('timer', { name: /^Call time left (3h 00m|2h 5\dm)$/ })).toBeVisible();
 

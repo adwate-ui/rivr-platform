@@ -52,7 +52,7 @@ test.describe('Sign in', { tag: '@staging' }, () => {
     await expect(page.getByText('Sent on WhatsApp to +91 90000 00281')).toBeVisible();
     // Six digits in, the code goes on by itself (S-01).
     await page.getByRole('textbox', { name: '6-digit code' }).fill(CODE);
-    await expect(page.getByRole('heading', { name: 'Tonight', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
     // Signed in, Back does not lead to the sign-in screen again.
     await page.goBack();
@@ -74,7 +74,7 @@ test.describe('Sign in', { tag: '@staging' }, () => {
     await requestCode(page, '9000000203');
     await expect(page.getByRole('button', { name: 'Verify' })).toBeDisabled();
     await page.getByRole('textbox', { name: '6-digit code' }).fill('000000');
-    await expect(page.getByText("That code didn't match.")).toBeVisible();
+    await expect(page.getByText('Wrong or expired code. Check it, or resend.')).toBeVisible();
     await expect(page.getByRole('textbox', { name: '6-digit code' })).toHaveValue('');
     await expect(page.getByRole('button', { name: /^Resend code in \d:\d\d$/ })).toBeDisabled();
   });

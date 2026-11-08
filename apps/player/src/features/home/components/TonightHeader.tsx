@@ -15,7 +15,7 @@ function HeaderTitle({ seat, now }: { seat: MySeat | null; now: Date }) {
 }
 
 /**
- * Tonight's header (decision 0320): the wordmark while the member browses or waits; seated, where ("Table 1 · Seat 4") and
+ * Tonight's header (decision 0320): the wordmark while the member browses or waits; seated, where ("Table 1, seat 4") and
  * the game with how long they have played. The member's initial sits at the right of the same row, centred on either, as
  * in the prototype (Tonight heads itself, so it places the initial; owner, 3 Nov).
  */

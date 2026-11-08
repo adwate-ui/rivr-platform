@@ -55,19 +55,19 @@ async function reviewMessage(delivery: ClaimedDelivery, findRecipient: FindRecip
 /** A notice older than this, or of no known time, is not sent: the member has long since seen it in the app (decision 0303). */
 const NOTICE_FRESH_MS = 6 * 60 * 60 * 1000;
 
-/** A refusal's code in the member's words; an unknown code, the plainest. */
+/** A refusal's code in the member's words, before the template's "Bring your Aadhaar and PAN"; an unknown code, the plainest. */
 const REFUSED_BECAUSE: Readonly<Record<string, string>> = {
-  under_18: 'you must be 18 or over to play.',
-  duplicate_face: 'these details are on another membership.',
-  duplicate_pan: 'these details are on another membership.',
-  duplicate_aadhaar: 'these details are on another membership.',
-  staff_rejected: 'the front desk could not confirm your details.',
+  duplicate_face: 'these details are on another membership',
+  duplicate_pan: 'these details are on another membership',
+  duplicate_aadhaar: 'these details are on another membership',
+  staff_rejected: 'your details did not match',
 };
-const REFUSED_OTHERWISE = 'your details could not be confirmed.';
+const REFUSED_OTHERWISE = 'your details could not be confirmed';
 
 /**
  * What a member hears of while away from the app (decision 0303): a utility message in the notice's own template, the
- * refusal's code put in words. A notice claimed long after it happened, as when WhatsApp is switched on, is not sent.
+ * refusal's code put in words. A refusal for age has its own text, which sends no one to the desk. A notice claimed long
+ * after it happened, as when WhatsApp is switched on, is not sent.
  */
 async function noticeMessage(delivery: ClaimedDelivery, findRecipient: FindRecipient, now: Date): Promise<Result<WhatsAppMessage | null, AdapterFailure>> {
   const notice = memberNoticeSchema.safeParse(delivery.payload);
@@ -77,6 +77,7 @@ async function noticeMessage(delivery: ClaimedDelivery, findRecipient: FindRecip
   const recipient = await findRecipient(delivery.venueId, notice.data.member_id);
   if (!recipient) return rejected('the member is no longer there');
   const { notice: template, params } = notice.data;
+  if (template === 'kyc_refused' && params[0] === 'under_18') return ok({ category: 'utility', to: recipient.phone, template: 'kyc_under_age', params: [] });
   const words = template === 'kyc_refused' ? [REFUSED_BECAUSE[params[0] ?? ''] ?? REFUSED_OTHERWISE] : params;
   return ok({ category: 'utility', to: recipient.phone, template, params: words });
 }

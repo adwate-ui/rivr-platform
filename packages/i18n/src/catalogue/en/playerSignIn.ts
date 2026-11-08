@@ -17,7 +17,7 @@ export const playerSignIn = {
   codeSent: 'Sent on WhatsApp to {phone}',
   codeLabel: '6-digit code',
   /** Auth gives no count of tries left, so the prototype's "2 tries left." is not said. */
-  codeRejected: "That code didn't match.",
+  codeRejected: 'Wrong or expired code. Check it, or resend.',
   verify: 'Verify',
   /** `{time}` counts down, 0:24. */
   resendIn: 'Resend code in {time}',

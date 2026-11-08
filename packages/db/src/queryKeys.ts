@@ -147,6 +147,7 @@ export const queryKeys = {
   staffQueueCounts: (userId: string, venueId: string) => ['user', userId, 'staff-queue-counts', venueId] as const,
   /** The signed-in staff member's console density at a venue (decision 0475). */
   staffDensity: (userId: string, venueId: string) => ['user', userId, 'staff-density', venueId] as const,
+  staffShortcuts: (userId: string, venueId: string) => ['user', userId, 'staff-shortcuts', venueId] as const,
   addTimeChoices: (userId: string, venueId: string) => ['user', userId, 'add-time-choices', venueId] as const,
   todaysPlayers: (userId: string, venueId: string) => ['user', userId, 'todays-players', venueId] as const,
   /** A venue's stakes and tables, for Tables setup (#642). */

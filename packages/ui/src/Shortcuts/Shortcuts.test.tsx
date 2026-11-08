@@ -81,4 +81,20 @@ describe('keyboard shortcuts', () => {
     renderIn(<SeatButton onSeat={vi.fn()} />);
     expect(screen.getByRole('button', { name: 'Seat a player' })).toHaveAttribute('title', 'Seat a player (S)');
   });
+
+  it('turns every single-key shortcut off when the staff member switches them off (WCAG 2.1.4)', () => {
+    const onSeat = vi.fn();
+    const onApprove = vi.fn();
+    renderIn(<ShortcutProvider isOn={false}><Screen onSeat={onSeat} onApprove={onApprove} /><List /></ShortcutProvider>);
+    const event = new KeyboardEvent('keydown', { key: 's', cancelable: true });
+    window.dispatchEvent(event);
+    press('a');
+    expect(onSeat).not.toHaveBeenCalled();
+    expect(onApprove).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBe(false);
+    expect(screen.getByTestId('list')).toHaveTextContent('');
+    const button = screen.getByRole('button', { name: 'Seat a player' });
+    expect(button).not.toHaveAttribute('title');
+    expect(button).not.toHaveAttribute('aria-keyshortcuts');
+  });
 });

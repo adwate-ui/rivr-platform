@@ -8,6 +8,8 @@ export const shell = {
   density: 'Density',
   comfortable: 'Comfortable',
   compact: 'Compact',
+  /** The staff member's switch for single-key shortcuts (A, D, S and /), on until they turn it off (WCAG 2.1.4). */
+  shortcuts: 'Keyboard shortcuts',
   /** The practice venue's stripe across the top, and its way out. */
   backToClub: 'Back to the club',
   /** The header's counts, each a link: "23 seated · 9 waiting · 6 requests". */

@@ -7,6 +7,7 @@
  */
 import { expect, test } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
+import { openAccountMenu } from '../support/console.ts';
 import { signInToConsole } from '../support/signIn.ts';
 
 test.describe('Phone change', () => {
@@ -14,7 +15,7 @@ test.describe('Phone change', () => {
     test.skip(isRemoteTarget(), 'changes a member\'s number, so the local stack only');
     await signInToConsole(page, '9000000780');
     // The practice venue switch is in the account menu (console v3); a stripe across the top says it is on.
-    await page.getByRole('button', { name: 'Kiran Joshi', exact: true }).click();
+    await openAccountMenu(page);
     await page.getByRole('switch', { name: 'Practice venue' }).click();
     await expect(page.getByText('Practice venue: nothing here reaches the club or its members.')).toBeVisible();
     await page.keyboard.press('Escape');

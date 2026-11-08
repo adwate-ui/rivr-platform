@@ -87,7 +87,8 @@ export function AccountMenu({ name, detail, children, shortcuts = [], signOut }:
   const nameId = useId();
   return (
     <div className="relative flex" onKeyDown={menu.onKeyDown} onBlur={menu.onBlur}>
-      <button ref={trigger} type="button" title={name} aria-label={name} aria-expanded={menu.isOpen}
+      {/* Named from the initials it shows first, then whose they are (WCAG 2.5.3): "AM, Aditya Malhotra". */}
+      <button ref={trigger} type="button" title={name} aria-label={t('ui.console.account.button', { initials: initialsOf(name), name })} aria-expanded={menu.isOpen}
         aria-controls={menu.isOpen ? panelId : undefined} onClick={menu.toggle} className={TRIGGER}>
         <span aria-hidden="true">{initialsOf(name)}</span>
       </button>
