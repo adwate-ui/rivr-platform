@@ -1,7 +1,8 @@
 -- Unclaimed balances (#110; decision 0230). New members of the club: Quiet Cash, whose cash has lain 400 days;
 -- Quiet Bonus, who joined 500 days ago and holds only bonus, some of it expiring 5 days ago (the club's doing);
 -- Seen Lately, quiet 400 days but at the door 10 days ago; Active Cash, who moved cash 10 days ago; and Repaid
--- Lately, whose cash has lain 400 days but who repaid a marker 5 days ago. 198 Arjun is the owner (reports.read);
+-- Lately, whose cash has lain 400 days but who repaid a marker 5 days ago. 198 Arjun is an investor, who reads no reports
+-- since 9 Nov (the owner: no Reports for investors);
 -- 104 a cashier, who reads no reports; 103 Aditya an admin at the club and the practice venue; 191 Nisha an admin
 -- at the club only.
 begin;
@@ -44,7 +45,7 @@ insert into public.visit (venue_id, member_id, opened_at, closed_at, close_reaso
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000004d2', now() - interval '10 days', now() - interval '10 days', 'door');
 
 select set_config('role', 'authenticated', true),
-       set_config('request.jwt.claims', '{"sub": "00000000-0000-4000-8000-000000000198", "role": "authenticated"}', true);
+       set_config('request.jwt.claims', '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}', true);
 select results_eq(
   $$ select full_name, cash_paise, bonus_paise from public.unclaimed_balances('00000000-0000-4000-8000-000000000001')
      where full_name in ('Quiet Cash', 'Seen Lately', 'Active Cash', 'Quiet Bonus', 'Repaid Lately') $$,
@@ -56,7 +57,7 @@ reset role;
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
 values ('00000000-0000-4000-8000-000000000001', 'reports.unclaimed_days', '', '{"days": 30}', now() - interval '1 minute', 'test');
 select set_config('role', 'authenticated', true),
-       set_config('request.jwt.claims', '{"sub": "00000000-0000-4000-8000-000000000198", "role": "authenticated"}', true);
+       set_config('request.jwt.claims', '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}', true);
 select ok((select count(*) from public.unclaimed_balances('00000000-0000-4000-8000-000000000001')
            where full_name in ('Quiet Cash', 'Seen Lately', 'Active Cash', 'Quiet Bonus', 'Repaid Lately')) = 2,
   'with 30 days the balances seen 10 days ago still count as claimed');
@@ -66,6 +67,9 @@ select set_config('role', 'authenticated', true),
        set_config('request.jwt.claims', '{"sub": "00000000-0000-4000-8000-000000000104", "role": "authenticated"}', true);
 select throws_ok($$ select * from public.unclaimed_balances('00000000-0000-4000-8000-000000000001') $$, '42501', null,
   'a cashier reads no reports');
+select set_config('request.jwt.claims', '{"sub": "00000000-0000-4000-8000-000000000198", "role": "authenticated"}', true);
+select throws_ok($$ select * from public.unclaimed_balances('00000000-0000-4000-8000-000000000001') $$, '42501', null,
+  'nor does an investor (the owner, 9 Nov)');
 select set_config('request.jwt.claims', '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}', true);
 select throws_ok($$ select * from public.unclaimed_balances('00000000-0000-4000-8000-000000000002') $$, '22023', null,
   'the practice venue has no reports');

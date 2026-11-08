@@ -1,6 +1,6 @@
 /**
  * Console shell (console v3, phase 1; decision 0476). The flow's own super admin opens every old address of a screen that
- * moved and lands on its new screen at its tab; the three tabs that are gone land on the screen that took their place and
+ * moved and lands on its new screen at its tab; the four tabs that are gone land on the screen that took their place and
  * say so in a line; a hidden screen is refused under its own name. The flow's own admin has Admin on the rail without the
  * danger screens, and is refused the purge by its address, under its name.
  */
@@ -20,7 +20,6 @@ const MOVED: readonly (readonly [string, string, string | null, string | null])[
   ['/tournament-interest', '/waitlist?tab=interest', 'Waitlist', null],
   ['/website', '/content?tab=website', 'Content', 'Website'],
   ['/learn-sources', '/content?tab=learn', 'Content', 'Learn content'],
-  ['/games-history', '/settings?tab=games-history', 'Settings', 'Games history'],
   ['/devices', '/settings?tab=devices', 'Settings', 'Devices'],
   ['/tvs', '/settings?tab=devices&part=tvs', 'Settings', 'TVs'],
   ['/tablets', '/settings?tab=devices&part=tablets', 'Settings', 'Tablets'],
@@ -32,6 +31,7 @@ const GONE: readonly (readonly [string, string, string])[] = [
   ['/rake', '/settings?notice=rake', 'Rake is no longer on the console.'],
   ['/cameras', '/settings?tab=devices&notice=cameras', 'Cameras are no longer on the console.'],
   ['/computers', '/settings?tab=devices&notice=computers', 'Computers are no longer on the console.'],
+  ['/games-history', '/settings?notice=gamesHistory', 'Games history moved to Reports, Tables.'],
 ];
 
 const where = (page: Page) => {

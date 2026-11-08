@@ -24,7 +24,7 @@ const RUN = Date.now().toString(36).slice(-5);
 test.describe('Admin tools', () => {
   test.skip(isRemoteTarget(), 'adds tables and points and reads them in the local database, so the local stack only');
 
-  test('the super admin sets up a stake and a table, reads the games run, and builds an hours bonus', async ({ page }) => {
+  test('the super admin sets up a stake and a table, and builds an hours bonus', async ({ page }) => {
     test.setTimeout(90_000);
     await signInToConsole(page, '9000000114');
     await openConsole(page, '/tables');
@@ -54,14 +54,6 @@ test.describe('Admin tools', () => {
     // No game asked, and the straddle kept (decision 0299).
     expect(sql(`select g.seats || ' ' || coalesce(t.game, 'none') || ' ' || t.big_blind_paise || ' ' || t.straddle_paise
                 from public.game_table g join public.table_type t on t.id = g.table_type_id where g.name = 'Setup ${RUN}'`)).toBe('6 none 40000 80000');
-
-    // The seed's open tables have run since it was loaded, within the last seven club days.
-    await page.goto(`${appUrl('console')}/settings?tab=games-history`);
-    const history = page.getByRole('table', { name: 'Tables run each club day' });
-    await expect(history.getByRole('row').filter({ hasText: 'Table 3' }).first()).toBeVisible();
-    await page.getByRole('searchbox', { name: 'Find a table' }).fill('Table 3');
-    await expect(history.getByRole('row').filter({ hasText: 'Table 1' })).toHaveCount(0);
-    await expect(history.getByRole('row').filter({ hasText: 'Table 3' }).first()).toContainText(/\d+ min|\d+ h/);
 
     // A time-based bonus (#646): 1,500 bonus chips after three hours in a visit, built as a version (console v3, decision 0471).
     await page.goto(`${appUrl('console')}/promotions?open=new`);

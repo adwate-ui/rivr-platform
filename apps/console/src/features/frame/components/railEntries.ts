@@ -95,7 +95,6 @@ export const RAIL: readonly RailGroup[] = [
       { id: 'settings', label: 'console.rail.items.settings', href: '/settings', icon: 'settings', anyOf: [], tabs: [
         { id: 'settings', label: 'console.rail.items.settings', anyOf: ['settings.manage', 'venue.configure'] },
         { id: 'devices', label: 'console.rail.items.devices', anyOf: ['devices.manage'] },
-        { id: 'games-history', label: 'console.rail.items.gamesHistory', anyOf: ['tables.manage'] },
       ] },
       { id: 'killSwitch', label: 'console.rail.items.killSwitch', href: '/kill-switch', icon: 'alert', anyOf: ['control.engage'], locksWhenIdle: true, tone: 'danger' },
       { id: 'practiceReset', label: 'console.rail.items.practiceReset', href: '/practice-reset', icon: 'reset', anyOf: ['purge.run'], tone: 'danger' },

@@ -37,7 +37,6 @@ src/
     dealers/          the rotation board, and each dealer's hours, hands, rake, variance and tip-pool share by time dealt (/dealers)
     fnb/              food and drink for staff who run F&B (#123), Service's whole role (#640): Orders in three lanes, to accept, being prepared and delivered tonight, each with its time; a KOT the bar printer missed, as its outbox delivery says, to print or read to the bar and mark handed over; New order, the table then the seat, paid or comp; the Menu tab, by kind, an item at a time or from a CSV (#799) (/fnb?tab=orders|menu, console v3)
     tables-setup/     the stakes the club runs and its tables, each added or changed, for the super admin (#642; /tables)
-    games-history/    the tables run each club day, how often and how long, for the super admin (#643; Settings' Games history tab, /settings?tab=games-history)
     check-in/         the Door's Check-in tab (/door?tab=check-in): one field for the card the scanner reads (#71), a mobile, a member number or a name; then the members expected and in the room
     todays-players/   the Door's Today's players tab (/door?tab=players): every member at the club today by status, with times, tables and time played (#641)
     cage/             buy-ins by cash, UPI or wallet, the tables' requests, and markers signed for on the pad (/cage)

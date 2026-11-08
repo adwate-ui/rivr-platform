@@ -92,7 +92,7 @@ export {
 export { useStaffQueueCounts } from './staffQueues.ts';
 export { DENSITIES, useSetStaffDensity, useStaffDensity, type Density } from './staffPreference.ts';
 export {
-  useGamesHistory, useTablesSetup, useTablesSetupActions, type GamesDay, type SetupStake, type SetupTable, type StakeOrder, type TableGame,
+  useTablesSetup, useTablesSetupActions, type SetupStake, type SetupTable, type StakeOrder, type TableGame,
   type TableOrder, type TablesFailure,
 } from './tablesSetup.ts';
 export { useGivePoints, useMemberPoints, useMemberPointsOf, useMyLockedPoints, type MemberPoints, type PointsFailure, type PointsOrder } from './pointsByHand.ts';

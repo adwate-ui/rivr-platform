@@ -51,7 +51,7 @@ describe('the console frame', () => {
 
   // Screens merged into others (#606, console v3): each old address opens its screen on the rail, and its tab.
   it.each([
-    ['/tablets', 'Settings', 'Tablets'], ['/tvs', 'Settings', 'TVs'], ['/devices', 'Settings', 'Devices'], ['/games-history', 'Settings', 'Games history'],
+    ['/tablets', 'Settings', 'Tablets'], ['/tvs', 'Settings', 'TVs'], ['/devices', 'Settings', 'Devices'],
     ['/dealer-pins', 'Staff', 'Dealer PINs'], ['/check-in', 'Door', 'Check-in'], ['/players-today', 'Door', 'Today’s players'],
     ['/spin-wheel', 'Rewards', 'Spin wheel'], ['/website', 'Content', 'Website'], ['/learn-sources', 'Content', 'Learn content'],
   ])('opens %s on %s, at its tab, %s, for a super admin', async (path, rail, tab) => {
@@ -65,7 +65,7 @@ describe('the console frame', () => {
   // Their old tabs gone, these land on the screen that took their place, saying so (#811).
   it.each([
     ['/rake', 'Rake is no longer on the console.'], ['/cameras', 'Cameras are no longer on the console.'],
-    ['/computers', 'Computers are no longer on the console.'],
+    ['/computers', 'Computers are no longer on the console.'], ['/games-history', 'Games history moved to Reports, Tables.'],
   ])('opens %s on Settings, saying %s', async (path, notice) => {
     signIn();
     answerStaff([{ ...CLUB, full_name: 'Vikram Rao', role: 'super_admin' }]);

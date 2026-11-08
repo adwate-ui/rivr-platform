@@ -38,6 +38,10 @@ function permissionsInMigrations(): Map<string, string[]> {
   for (const [, role = '', list = ''] of sql.matchAll(/select '([a-z_]+)', permission\s+from unnest\(array\[([\s\S]*?)\]\)/g)) {
     granted.set(role, [...(granted.get(role) ?? []), ...[...list.matchAll(/'([a-z_.]+)'/g)].map(([, p]) => p ?? '')].sort());
   }
+  // A permission a later migration takes back (the owner, 9 Nov: no Reports for investors).
+  for (const [, role = '', permission = ''] of sql.matchAll(/delete from public\.role_permission where role = '([a-z_]+)' and permission = '([a-z_.]+)'/g)) {
+    granted.set(role, (granted.get(role) ?? []).filter((one) => one !== permission));
+  }
   return granted;
 }
 

@@ -4,12 +4,12 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
--- Another club, with a reports reader of its own.
+-- Another club, with a reports reader of its own: an admin (investors read no reports since 9 Nov).
 select private.bootstrap_venue('00000000-0000-4000-8000-0000000000ab', 'RIVR Elsewhere', 'test-channels', false, 'RIVR elsewhere', 'Test', 'TCH');
 insert into auth.users (id, instance_id, aud, role, phone) values
   ('00000000-0000-4000-8000-00000000e195', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', '919990001951');
 insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
-values ('00000000-0000-4000-8000-0000000000ab', '00000000-0000-4000-8000-00000000e195', 'Other owner', 'Owner', 'owner_view', '+919990001951');
+values ('00000000-0000-4000-8000-0000000000ab', '00000000-0000-4000-8000-00000000e195', 'Other admin', 'Manager', 'admin', '+919990001951');
 
 create function pg_temp.as_person(p_person text) returns void language sql as $$
   select set_config('role', 'authenticated', true),

@@ -8,7 +8,7 @@ export function tabSearchFrom(search: Record<string, unknown>): { tab?: string }
 }
 
 /** The old addresses whose tab is gone (#811): each lands on the screen that took its place, saying so in a line. */
-export const MOVED_NOTICES = ['rake', 'cameras', 'computers'] as const;
+export const MOVED_NOTICES = ['rake', 'cameras', 'computers', 'gamesHistory'] as const;
 
 export type MovedNotice = (typeof MOVED_NOTICES)[number];
 

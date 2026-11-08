@@ -159,32 +159,3 @@ export function useTablesSetupActions(venueId: string) {
   });
   return { saveStake, saveTable, deactivate, reactivate, remove };
 }
-
-/** One table on one club day (#643): how many times it opened and how long it ran, in whole seconds. */
-export interface GamesDay {
-  readonly clubDay: string;
-  readonly tableId: string;
-  readonly tableName: string;
-  readonly game: TableGame | null;
-  readonly smallBlind: bigint;
-  readonly bigBlind: bigint;
-  readonly runs: number;
-  readonly seconds: number;
-}
-
-/** The games run on each club day from `from` to `to` (ISO dates), newest first, for the super admin (tables.manage). */
-export function useGamesHistory(venueId: string, from: string, to: string) {
-  const { client, userId } = useRivrData();
-  return useQuery({
-    queryKey: queryKeys.gamesHistory(userId ?? 'signed-out', venueId, from, to),
-    enabled: userId !== null,
-    queryFn: async (): Promise<GamesDay[]> => {
-      const { data, error } = await client.rpc('games_history', { p_venue_id: venueId, p_from: from, p_to: to });
-      if (error) throw error;
-      return data.map((row) => ({
-        clubDay: row.club_day, tableId: row.table_id, tableName: row.table_name, game: gameOf(row.game), smallBlind: BigInt(row.small_blind_paise),
-        bigBlind: BigInt(row.big_blind_paise), runs: row.runs, seconds: row.seconds,
-      }));
-    },
-  });
-}

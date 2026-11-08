@@ -52,11 +52,11 @@ describe('the console rail (console v3)', () => {
     expect(phoneTabsFor(ROLE_PERMISSIONS.service)).toEqual([]);
   });
 
-  it('gives marketing its own screens and the floor to look at, a dealer the floor alone, and the owner the floor and Reports', () => {
+  it('gives marketing its own screens and the floor to look at, a dealer the floor alone, and an investor the floor alone', () => {
     expect(items('marketing')).toEqual(['/', '/promotions', '/rewards', '/social', '/content']);
     expect(items('dealer')).toEqual(['/']);
-    // Reports shows only its money-free Tables view (owner, 8 Nov).
-    expect(items('owner_view')).toEqual(['/', '/reports']);
+    // No Reports for investors (the owner, 9 Nov).
+    expect(items('owner_view')).toEqual(['/']);
   });
 
   it('keeps a cashier out of admin screens, whether from the rail or by address, whatever the case', () => {

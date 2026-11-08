@@ -42,6 +42,7 @@ export const shell = {
     rake: 'Rake is no longer on the console.',
     cameras: 'Cameras are no longer on the console.',
     computers: 'Computers are no longer on the console.',
+    gamesHistory: 'Games history moved to Reports, Tables.',
   },
   /** On sign-in after the idle lock signed the staff member out (#811). */
   signedOutIdle: 'Signed out after ten idle minutes.',

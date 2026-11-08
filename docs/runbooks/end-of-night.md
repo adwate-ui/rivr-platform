@@ -6,7 +6,7 @@ close the night themselves, so the numbers each player and table show are right.
 ## Before the last player leaves
 1. **Floor: end every seat.** On Live floor, let each player still seated go (Leaves). A table cannot be closed while
    anyone sits at it.
-2. **Floor: close every table.** That ends each table's run, which games history reads.
+2. **Floor: close every table.** That ends each table's run, which Reports, Tables reads.
 3. **Floor: empty the waitlists.** Remove anyone still waiting on the Waitlist screen.
 4. **Front desk: check out everyone still in the room.** Check-in's room list shows who has not checked out.
 5. **Dealers: end your down** on the tablet before you leave it.

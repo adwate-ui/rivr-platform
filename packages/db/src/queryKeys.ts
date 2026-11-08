@@ -151,8 +151,6 @@ export const queryKeys = {
   todaysPlayers: (userId: string, venueId: string) => ['user', userId, 'todays-players', venueId] as const,
   /** A venue's stakes and tables, for Tables setup (#642). */
   tablesSetup: (userId: string, venueId: string) => ['user', userId, 'tables-setup', venueId] as const,
-  /** The games run from one club day to another (#643). */
-  gamesHistory: (userId: string, venueId: string, from: string, to: string) => ['user', userId, 'games-history', venueId, from, to] as const,
   /** Every member's points looked up by number at a venue (#645), and one of them. */
   memberPointsAll: (userId: string, venueId: string) => ['user', userId, 'member-points', venueId] as const,
   memberPoints: (userId: string, venueId: string, phone: string) => ['user', userId, 'member-points', venueId, phone] as const,
