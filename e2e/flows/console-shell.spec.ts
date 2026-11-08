@@ -61,7 +61,7 @@ test.describe('Console shell', () => {
     // A screen the owner hid is refused to a super admin too, under its own name, not "Console" (#811).
     await page.goto(`${appUrl('console')}/cage`);
     await expect(page.getByRole('heading', { name: 'Cage', level: 1 })).toBeVisible();
-    await expect(page.getByText('This screen is switched off. Ask a super admin.')).toBeVisible();
+    await expect(page.getByText('Not used at RIVR.')).toBeVisible();
   });
 
   test('Console shell: an admin has Admin without the danger screens, and is refused the purge by its address', async ({ page }) => {

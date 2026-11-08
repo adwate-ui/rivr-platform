@@ -235,9 +235,14 @@ export const consoleApp = {
   /** Across the top of every screen while the console works in the practice venue. */
   practiceBanner: 'Practice venue: nothing here reaches the club or its members.',
   /** A screen the club switched off, opened by its address (C-04). */
-  switchedOff: 'This screen is switched off. Ask a super admin.',
+  switchedOff: 'Not used at RIVR.',
   /** A screen opened by address that the staff member's role does not include. */
   notAllowed: 'Not in your role. Ask an admin.',
+  /** A role with no screen on the console: investors and dealers (owner, 8 Nov). */
+  noScreens: {
+    title: 'RIVR console',
+    body: 'Nothing on the console for your role yet.',
+  },
   academy,
   academyPayments,
   academyFailures,

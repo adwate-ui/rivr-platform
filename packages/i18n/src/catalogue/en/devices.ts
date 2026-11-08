@@ -85,7 +85,7 @@ export const handEntry = {
 /** The console's Dealer PINs screen (#41): for staff whose role includes everything a dealer does. */
 export const dealerPins = {
   title: 'Dealer PINs',
-  notAllowed: 'Not in your role. Ask the owner or general manager.',
+  notAllowed: 'Not in your role. Ask an admin.',
   empty: 'No dealers whose PIN you can set.',
   hasPin: 'PIN set',
   noPin: 'No PIN yet',

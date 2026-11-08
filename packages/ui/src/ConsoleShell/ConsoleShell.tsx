@@ -89,7 +89,8 @@ export function ConsoleShell(props: ConsoleShellProps) {
           </main>
         </div>
       </div>
-      <ConsoleTabBar tabs={props.tabs ?? []} sections={props.sections} currentItem={props.currentItem} onNavigate={props.onNavigate} />
+      {/* Nothing to open, no tab bar: only More would be on it, over an empty list. */}
+      {props.sections.length === 0 ? null : <ConsoleTabBar tabs={props.tabs ?? []} sections={props.sections} currentItem={props.currentItem} onNavigate={props.onNavigate} />}
     </div>
   );
 }

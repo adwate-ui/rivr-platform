@@ -20,6 +20,8 @@ export interface RequestActionsFor {
   readonly onSeatAlert?: ((alert: SeatAlert) => void) | undefined;
   /** A join approved: its seat sheet follows once a seat is free for them (the owner, 8 Nov). */
   readonly onApproved?: ((entryId: string) => void) | undefined;
+  /** Whether Check ID leads anywhere for this staff member; without it (a cashier), the list instead. */
+  readonly canCheckId?: boolean | undefined;
 }
 
 const ALERT_ACTION = {
@@ -30,9 +32,9 @@ const ALERT_ACTION = {
  * An approved player's one action (the owner, 8 Nov): Seat, at the seat held for their call at once, else in the seat
  * sheet; Check ID, the check in person, while their identity check is unfinished; View list while no seat is free.
  */
-function seatAlertActions(alert: SeatAlert, { changes, tableName, onSeatAlert }: RequestActionsFor): { primary: RequestAction } {
+function seatAlertActions(alert: SeatAlert, { changes, tableName, onSeatAlert, canCheckId = true }: RequestActionsFor): { primary: RequestAction } {
   const run = alert.kind === 'seat' && alert.seat !== null ? () => changes.seatCalled(alert, tableName) : () => onSeatAlert?.(alert);
-  return { primary: { label: t(ALERT_ACTION[alert.kind]), run } };
+  return { primary: { label: t(ALERT_ACTION[alert.kind === 'seat_check' && !canCheckId ? 'seat_wait' : alert.kind]), run } };
 }
 
 /**

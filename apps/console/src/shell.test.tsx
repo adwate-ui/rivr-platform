@@ -14,14 +14,51 @@ describe('the console frame', () => {
   // A screen outside the role is refused; one the club switched off says so rather than blaming the role (C-04).
   // Under the screen's own name, not "Console" (#811).
   it.each([
-    ['/purge', 'Purge', 'Not in your role. Ask an admin.'], ['/academy', 'Academy', 'This screen is switched off. Ask a super admin.'],
-    ['/rewards?tab=spin-wheel', 'Rewards', 'Not in your role. Ask an admin.'],
+    ['/purge', 'Purge', 'Not in your role. Ask an admin.'], ['/academy', 'Academy', 'Not used at RIVR.'],
+    ['/rewards?tab=spin-wheel', 'Spin wheel', 'Not in your role. Ask an admin.'],
   ])('refuses %s, opened by its address, under its name', async (path, title, text) => {
     signIn();
     answerStaff([CLUB]);
     renderAt(path);
     expect(await screen.findByText(text)).toBeDefined();
     expect(screen.getByRole('heading', { name: title, level: 1 })).toBeDefined();
+  });
+
+  it('offers a way back from a refusal, to the first screen the role has (audit F-106)', async () => {
+    signIn();
+    answerStaff([{ ...CLUB, full_name: 'Karan Gill', role: 'host' }]);
+    renderAt('/settings');
+    expect(await screen.findByRole('button', { name: 'Live floor' })).toBeDefined();
+    expect(screen.getByRole('navigation', { name: 'Main' })).toBeDefined();
+  });
+
+  it.each(['owner_view', 'dealer'])('tells %s, with no screen on the console, so in plain words (owner, 8 Nov)', async (role) => {
+    signIn();
+    answerStaff([{ ...CLUB, full_name: 'Isha Rao', role }]);
+    renderAt('/');
+    expect(await screen.findByText('Nothing on the console for your role yet.')).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'RIVR console', level: 1 })).toBeDefined();
+    // Nothing that leads nowhere: not the name of a screen the role lacks, no search, no phone tab bar.
+    expect(screen.queryByText('Live floor')).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Search/ })).toBeNull();
+    expect(screen.queryByRole('navigation', { name: 'Main' })).toBeNull();
+  });
+
+  it('says what a role can search for: no members for the floor, who do not open Members (audit F-037)', async () => {
+    signIn();
+    answerStaff([{ ...CLUB, full_name: 'Rohan Das', role: 'floor' }]);
+    renderAt('/settings');
+    expect(await screen.findByRole('button', { name: 'Search screens and actions' })).toBeDefined();
+  });
+
+  it('offers Seat a player to a host, who seats from the list without floor.manage (audit F-111)', async () => {
+    signIn();
+    answerStaff([{ ...CLUB, full_name: 'Karan Gill', role: 'host' }]);
+    renderAt('/settings');
+    fireEvent.click(await screen.findByRole('button', { name: 'Search members, screens, actions' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Search' });
+    fireEvent.change(within(dialog).getByRole('combobox'), { target: { value: 'seat' } });
+    expect(await within(dialog).findByText('Seat a player')).toBeDefined();
   });
 
   it('gives a host no Marketing or Admin on the rail, and refuses Settings by its address', async () => {

@@ -1,4 +1,4 @@
-import { useReadyToSeat, type FloorRequest, type SeatAlert, type SeatedPlayer } from '@rivr/db';
+import { useReadyToSeat, useStaffVenue, type FloorRequest, type SeatAlert, type SeatedPlayer } from '@rivr/db';
 import { useNavigate } from '@tanstack/react-router';
 import type { Dispatch, SetStateAction } from 'react';
 import type { FloorData } from './useFloorData.ts';
@@ -47,9 +47,17 @@ const seatSheetOf = (alert: SeatAlert): FloorSheet => ({ kind: 'seat', tableId: 
  */
 export function useRequestOpeners(venueId: string, data: FloorData, onSheet: Dispatch<SetStateAction<FloorSheet | null>>) {
   const navigate = useNavigate();
+  const staff = useStaffVenue();
+  const permissions = staff.status === 'ready' ? staff.venue.permissions : [];
+  // As the rail opens those screens: staff who cannot get a name without a link and no Check ID that ends in a refusal
+  // (audit F-014, F-025).
+  const canCheckId = permissions.some((permission) => permission === 'kyc.in_person' || permission === 'kyc.review');
+  const canOpenMembers = permissions.some((permission) => permission === 'members.manage' || permission === 'host_queue.manage');
   const toRecord = (memberId: string) => void navigate({ href: `/members?member=${memberId}` });
   const readyToSeat = useReadyToSeat(venueId);
   return {
+    canCheckId,
+    canOpen: (request: FloorRequest) => ('sessionId' in request && request.kind !== 'left_owing') || canOpenMembers,
     onLeave: (request: LeaveRequest) => {
       const leaver = leaverOfRequest(request, data);
       if (leaver !== null) onSheet({ kind: 'leave', leaver });
@@ -61,7 +69,7 @@ export function useRequestOpeners(venueId: string, data: FloorData, onSheet: Dis
     onSeatAlert: (alert: SeatAlert) => {
       if (alert.kind === 'seat') onSheet(seatSheetOf(alert));
       // Check ID (decision 0503): the check in person, with the member searched by name, as the Waitlist's lists open it.
-      else if (alert.kind === 'seat_check') void navigate({ to: '/kyc-review', search: { check: alert.fullName } });
+      else if (alert.kind === 'seat_check' && canCheckId) void navigate({ to: '/kyc-review', search: { check: alert.fullName } });
       else void navigate({ href: '/waitlist' });
     },
     // Only while no sheet is open: one the floor opened meanwhile, mid-typing, stays.

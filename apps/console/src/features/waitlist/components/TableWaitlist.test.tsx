@@ -38,7 +38,7 @@ afterEach(() => {
 
 function renderCard(props: {
   entries?: readonly WaitlistBoardEntry[]; ticked?: ReadonlySet<string>; onToggle?: (id: string) => void; onSeat?: () => void;
-  onCheckId?: (entry: WaitlistBoardEntry) => void; onApproved?: (entryId: string) => void;
+  onCheckId?: (entry: WaitlistBoardEntry) => void; onApproved?: (entryId: string) => void; cannotCheckId?: boolean;
 }) {
   return render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
@@ -46,7 +46,7 @@ function renderCard(props: {
       <ToastProvider place="console">
         <TableWaitlist venueId="v1" table={TABLE} entries={props.entries ?? [place(1, 'Ishaan Verma'), place(2, 'Mihir Shah')]} requests={[REQUEST]}
           interest={undefined} canOpen now={NOW} ticked={props.ticked ?? new Set()} onToggle={props.onToggle ?? vi.fn()} onSeat={props.onSeat ?? vi.fn()}
-          onApproved={props.onApproved ?? vi.fn()} onCheckId={props.onCheckId ?? vi.fn()} />
+          onApproved={props.onApproved ?? vi.fn()} onCheckId={props.cannotCheckId === true ? undefined : props.onCheckId ?? vi.fn()} />
       </ToastProvider>
     </RivrDataProvider>,
   );
@@ -107,6 +107,13 @@ describe("a table's waitlist card (console v3)", () => {
     fireEvent.click(screen.getByRole('button', { name: 'Seat Ishaan Verma' }));
     expect(onToggle).toHaveBeenCalledWith('e1');
     expect(onSeat).toHaveBeenCalledOnce();
+  });
+
+  it('tells a cashier, who cannot check ID, who can, with no button that ends in a refusal (audit F-014)', () => {
+    renderCard({ cannotCheckId: true, entries: [place(1, 'Uday Thakur', { needsIdCheck: true }), place(2, 'Mihir Shah')] });
+    expect(screen.getByText(/ID check needed.* · ask the floor or host$/)).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Check Uday Thakur’s ID' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Seat Uday Thakur' })).toBeNull();
   });
 
   it('marks a place whose ID the desk must check, and offers Check ID in place of Seat, even once called (decision 0503)', () => {
