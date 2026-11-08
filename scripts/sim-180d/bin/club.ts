@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { buildCalendar } from '../src/calendar/calendar.ts';
 import type { Catalogue } from '../src/catalogue/catalogue.ts';
 import { joinerRows, nightRows } from '../src/night/rows.ts';
+import { SIM_HOME } from '../src/paths.ts';
 import { joinersOn } from '../src/people/growth.ts';
 import { sql } from './stack/psql.ts';
 
@@ -28,6 +29,14 @@ export function loadClub(catalogue: Catalogue, run: RunIds): void {
   sql(`insert into sim.rpc (name) values ${names.map((name) => `(${quote(name)})`).join(', ')}`);
   sql(`insert into sim.config values ('run', ${quote(run.id)}), ('main', ${quote(run.main)}), ('harness', ${quote(run.harness)})`);
   sql('select sim.day0()');
+}
+
+/** The newest run that has snapshots (run ids are the minute they started, YYYYMMDDHHMM). */
+export function latestRun(): string {
+  const runs = readdirSync(join(SIM_HOME, 'runs')).filter((name) => /^\d{12}$/.test(name)).sort();
+  const latest = runs.at(-1);
+  if (latest === undefined) throw new Error('no run yet: run `pnpm sim -- --reset --to=…` first');
+  return latest;
 }
 
 /** The night the stack's club has reached (0 after night 0). */

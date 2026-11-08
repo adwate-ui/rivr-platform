@@ -3,7 +3,7 @@ import { parseArgs } from './args.ts';
 
 describe('parseArgs', () => {
   it('does nothing by default', () => {
-    expect(parseArgs([])).toEqual({ prepare: false, start: null, reset: false, stop: false, to: null });
+    expect(parseArgs([])).toEqual({ prepare: false, start: null, reset: false, stop: false, to: null, from: null });
   });
 
   it('reads every flag', () => {
@@ -13,12 +13,17 @@ describe('parseArgs', () => {
       reset: true,
       stop: false,
       to: 30,
+      from: null,
     });
     expect(parseArgs(['--start=sim']).start).toBe('sim');
   });
 
   it('skips the -- that pnpm passes through', () => {
     expect(parseArgs(['--', '--reset']).reset).toBe(true);
+  });
+
+  it('carries on from a checkpoint', () => {
+    expect(parseArgs(['--from=47', '--to=90'])).toMatchObject({ from: 47, to: 90 });
   });
 
   it('makes a dry run seven nights', () => {

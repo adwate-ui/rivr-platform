@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Night } from '../calendar/calendar.ts';
-import { downOn, RACE_STEP, RACES, racesFor, runNight, STEPS, type NightDeps } from './runner.ts';
+import { BATCH, downOn, RACE_STEP, RACES, racesFor, runNight, STEPS, type NightDeps } from './runner.ts';
 
 const night = (overrides: Partial<Night> = {}): Night => ({ n: 2, date: '2026-11-16', weekday: 1, expected: 40, peak: false, events: [], ...overrides });
 
@@ -50,13 +50,17 @@ describe('runNight', () => {
     const { deps, calls, started } = fakeDeps();
     const result = await runNight(night(), deps);
     const acts = calls.filter((text) => text.startsWith('select sim.'));
+    const batches = STEPS / BATCH;
     expect(acts[0]).toBe('select sim.open_night(2)');
-    expect(acts.slice(1, STEPS + 1)).toEqual(Array.from({ length: STEPS }, (_, step) => `select sim.step(2, ${step})`));
+    expect(acts[1]).toBe('select sim.step(2, 0);\nselect sim.step(2, 1);\nselect sim.step(2, 2);');
+    expect(acts.slice(1, batches + 1).join('\n').split('\n')).toEqual(Array.from({ length: STEPS }, (_, step) => `select sim.step(2, ${step});`));
     expect(acts.slice(-2)).toEqual(['select sim.close_night(2)', 'select sim.morning(2)']);
-    expect(calls.indexOf(`select a, b from sim.race_plan('${RACES[2]}')`)).toBe(calls.indexOf(`select sim.step(2, ${RACE_STEP})`) + 1);
+    const raceBatch = calls.findIndex((text) => text.includes(`select sim.step(2, ${RACE_STEP});`));
+    expect(calls[raceBatch]?.endsWith(`select sim.step(2, ${RACE_STEP});`)).toBe(true);
+    expect(calls.indexOf(`select a, b from sim.race_plan('${RACES[2]}')`)).toBe(raceBatch + 1);
     expect(started).toEqual(['select 1', 'select 2']);
-    // One delivery round after opening, after each step, after closing and in the morning.
-    expect(result).toEqual({ n: 2, races: [RACES[2]], delivered: 2 * (STEPS + 3), failed: STEPS + 3 });
+    // One delivery round after opening, after each batch, after closing and in the morning.
+    expect(result).toEqual({ n: 2, races: [RACES[2]], delivered: 2 * (batches + 3), failed: batches + 3 });
   });
 
   it('skips a race with nobody to race over', async () => {

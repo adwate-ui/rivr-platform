@@ -5,12 +5,12 @@ import { readCatalogue } from '../src/catalogue/catalogue.ts';
 import { parseArgs, type ServiceSet } from '../src/cli/args.ts';
 import { say } from '../src/log.ts';
 import { runDir } from '../src/paths.ts';
-import { loadClub, runIdOf } from './club.ts';
+import { latestRun, loadClub, runIdOf } from './club.ts';
 import { runNights } from './nights.ts';
 import { writeReport } from './report.ts';
 import { sql } from './stack/psql.ts';
 import { prepare } from './stack/prepare.ts';
-import { snapshot } from './stack/snapshot.ts';
+import { restore, snapshot } from './stack/snapshot.ts';
 import { reset, start, stop } from './stack/supabase.ts';
 
 const repoRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).trim();
@@ -33,6 +33,10 @@ if (args.stop) {
   if (args.prepare) await prepare(repoRoot);
   if (args.start !== null) start(repoRoot, args.start);
   if (args.reset) await freshClub(set);
+  if (args.from !== null) {
+    restore(repoRoot, set, join(runDir(latestRun()), 'snapshots'), `night-${String(args.from)}`);
+    say(`carrying on from night ${String(args.from)} of run ${runIdOf()}`);
+  }
   if (args.to !== null) {
     const started = Date.now();
     await runNights(repoRoot, args.to, set);

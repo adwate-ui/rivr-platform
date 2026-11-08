@@ -12,6 +12,7 @@
     "walks": "tsx bin/walks.ts",
     "staging:preflight": "tsx staging/preflight.ts",
     "staging:health": "tsx staging/health.ts",
+    "staging:walk": "tsx bin/staging-walk.ts",
     "gate": "tsx bin/gate.ts"
   },
   "dependencies": {

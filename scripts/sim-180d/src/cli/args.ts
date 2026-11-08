@@ -12,6 +12,8 @@ export interface RunArgs {
   stop: boolean;
   /** Run nights 1 to this one. */
   to: number | null;
+  /** Restore this night's checkpoint snapshot first, and carry on from it. */
+  from: number | null;
 }
 
 const NIGHTS = 180;
@@ -23,6 +25,7 @@ function setFlag(args: RunArgs, flag: string): void {
   else if (flag === '--dry') args.to = 7;
   else if (flag === '--start=sim' || flag === '--start=ui') args.start = flag === '--start=sim' ? 'sim' : 'ui';
   else if (flag.startsWith('--to=')) args.to = nightsOf(flag.slice('--to='.length));
+  else if (flag.startsWith('--from=')) args.from = nightsOf(flag.slice('--from='.length));
   else throw new Error(`unknown flag ${flag}`);
 }
 
@@ -33,10 +36,10 @@ function nightsOf(value: string): number {
 }
 
 export function parseArgs(argv: readonly string[]): RunArgs {
-  const args: RunArgs = { prepare: false, start: null, reset: false, stop: false, to: null };
+  const args: RunArgs = { prepare: false, start: null, reset: false, stop: false, to: null, from: null };
   // pnpm passes the `--` that separates its own flags from the script's.
   for (const flag of argv) if (flag !== '--') setFlag(args, flag);
-  if (args.stop && (args.prepare || args.start !== null || args.reset || args.to !== null)) {
+  if (args.stop && (args.prepare || args.start !== null || args.reset || args.to !== null || args.from !== null)) {
     throw new Error('--stop takes no other flag');
   }
   return args;

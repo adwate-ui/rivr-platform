@@ -6,7 +6,9 @@
 import type { Night } from '../calendar/calendar.ts';
 
 export const STEPS = 60;
-/** 21:20 IST: the room is full, so every race has someone to race over. */
+/** Steps sent in one psql call; the consumers run after each batch, every 30 simulated minutes. */
+export const BATCH = 3;
+/** 21:20 IST: the room is full, so every race has someone to race over. The last step of its batch. */
 export const RACE_STEP = 20;
 
 export const RACES = ['seat_same_member', 'double_order', 'double_top_up', 'double_redeem', 'approve_vs_leave'] as const;
@@ -64,9 +66,10 @@ export async function runNight(night: Night, deps: NightDeps): Promise<NightResu
   const races = racesFor(night);
   deps.sql(`select sim.open_night(${night.n})`);
   add(await deps.messages(simNow(deps), down));
-  for (let step = 0; step < STEPS; step += 1) {
-    deps.sql(`select sim.step(${night.n}, ${step})`);
-    if (step === RACE_STEP) for (const name of races) await race(deps, name);
+  for (let first = 0; first < STEPS; first += BATCH) {
+    const steps = Array.from({ length: Math.min(BATCH, STEPS - first) }, (_, k) => first + k);
+    deps.sql(steps.map((step) => `select sim.step(${night.n}, ${step});`).join('\n'));
+    if (steps.includes(RACE_STEP)) for (const name of races) await race(deps, name);
     add(await deps.messages(simNow(deps), down));
   }
   deps.sql(`select sim.close_night(${night.n})`);
