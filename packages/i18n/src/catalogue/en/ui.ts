@@ -288,7 +288,7 @@ export const ui = {
   installOffer: {
     title: 'RIVR on your home screen',
     prompt: 'Open RIVR in one tap, full screen, like any app.',
-    ios: 'In Safari, tap Share, then Add to Home Screen.',
+    ios: 'Tap Share, then Add to Home Screen.',
     install: 'Install',
     notNow: 'Not now',
   },

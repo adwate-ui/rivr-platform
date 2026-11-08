@@ -8,8 +8,8 @@ import { Text } from '../Text/Text.tsx';
 
 export interface InstallOfferProps {
   /**
-   * `prompt`: the browser can install the app, so Install asks it to. `ios`: an iPhone, where only
-   * Safari's Share menu adds it to the home screen, so the offer says how.
+   * `prompt`: the browser can install the app, so Install asks it to. `ios`: an iPhone, where the
+   * browser's own Share menu adds it to the home screen (F-183), so the offer says how.
    */
   kind: 'prompt' | 'ios';
   /** Opens the browser's install dialog (`prompt` only). */

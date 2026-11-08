@@ -62,6 +62,8 @@ export function useSignOut() {
   const { client } = useRivrData();
   const queryClient = useQueryClient();
   return useMutation({
+    // Sent whether or not the app is online: offline it must still end the session on this phone, never wait for the connection.
+    networkMode: 'always',
     mutationFn: async () => {
       const { error } = await client.auth.signOut({ scope: 'local' });
       if (error) {

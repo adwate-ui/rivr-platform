@@ -5,7 +5,7 @@ import { Captcha, ResendButton as ResendCode, Stack, useCaptcha } from '@rivr/ui
 import { CAPTCHA_SITE_KEY } from '../captcha.ts';
 
 /** Sends a new code to the number once a minute has passed since the last one (`@rivr/ui`'s ResendButton counts it down). */
-export function ResendButton({ phone, onFail }: { phone: IndianMobile; onFail: (failure: SignInFailure) => void }) {
+export function ResendButton({ phone, onFail, isOffline }: { phone: IndianMobile; onFail: (failure: SignInFailure) => void; isOffline: boolean }) {
   const { requestCode } = useSignIn();
   const captcha = useCaptcha(CAPTCHA_SITE_KEY);
   const resend = async () => {
@@ -18,7 +18,7 @@ export function ResendButton({ phone, onFail }: { phone: IndianMobile; onFail: (
     <Stack gap={2}>
       <Captcha {...captcha.props} />
       <ResendCode label={t('player.signIn.resend')} waitingLabel={(time) => t('player.signIn.resendIn', { time })} onResend={resend}
-        isLoading={requestCode.isPending} isDisabled={!captcha.isReady} />
+        isLoading={requestCode.isPending} isDisabled={!captcha.isReady || isOffline} />
     </Stack>
   );
 }

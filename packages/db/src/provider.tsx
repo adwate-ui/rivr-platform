@@ -1,7 +1,8 @@
 import { isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { RivrClient } from './client.ts';
+import { SESSION_STORAGE_KEY, type RivrClient } from './client.ts';
+import { forgetOffline, keepForOffline, restoreForOffline } from './offlineCache.ts';
 import { queryKeys } from './queryKeys.ts';
 
 /** Whether anyone is signed in; `loading` until the stored session has been read. */
@@ -28,14 +29,38 @@ const TABLES_THAT_CHANGE_ACCESS: ReadonlyArray<readonly [table: string, staleQue
   ['bonus_redemption', queryKeys.bonusAll],
 ];
 
-function useSession(client: RivrClient): { userId: string | null; authStatus: AuthStatus } {
-  const [session, setSession] = useState<{ userId: string | null; authStatus: AuthStatus }>({ userId: null, authStatus: 'loading' });
+interface Session {
+  userId: string | null;
+  authStatus: AuthStatus;
+}
+
+const LOADING: Session = { userId: null, authStatus: 'loading' };
+
+/** Who the phone's stored session belongs to, whatever the age of its token: signed in, or still loading with none. */
+function storedSession(): Session {
+  try {
+    const stored: unknown = JSON.parse(localStorage.getItem(SESSION_STORAGE_KEY) ?? 'null');
+    if (typeof stored !== 'object' || stored === null || !('user' in stored)) return LOADING;
+    const { user } = stored;
+    return typeof user === 'object' && user !== null && 'id' in user && typeof user.id === 'string' ? { userId: user.id, authStatus: 'signed-in' } : LOADING;
+  } catch {
+    return LOADING;
+  }
+}
+
+function useSession(client: RivrClient, keepsForOffline: boolean): Session {
+  // Opened with no connection, the app that keeps a night knows whose it is at once: Auth takes half a minute to give up on a refresh.
+  const [session, setSession] = useState<Session>(() => (keepsForOffline && !navigator.onLine ? storedSession() : LOADING));
   useEffect(() => {
     const signedInAs = (userId: string | null) => setSession({ userId, authStatus: userId === null ? 'signed-out' : 'signed-in' });
     void client.auth.getSession().then(({ data, error }) => {
       // An expired session that cannot be refreshed for want of a network is not a sign-out: stay
-      // loading, and the refresh that follows when the network returns reports the session.
-      if (isAuthRetryableFetchError(error)) return;
+      // loading, or for the app that keeps a night go on as the stored session's member (F-053), and
+      // the refresh that follows when the network returns reports the session.
+      if (isAuthRetryableFetchError(error)) {
+        if (keepsForOffline) setSession(storedSession());
+        return;
+      }
       signedInAs(data.session?.user.id ?? null);
     });
     const { data } = client.auth.onAuthStateChange((event, current) => {
@@ -44,7 +69,7 @@ function useSession(client: RivrClient): { userId: string | null; authStatus: Au
       signedInAs(current?.user.id ?? null);
     });
     return () => data.subscription.unsubscribe();
-  }, [client]);
+  }, [client, keepsForOffline]);
   return session;
 }
 
@@ -72,14 +97,29 @@ function LiveUpdates({ client, userId }: Pick<RivrData, 'client' | 'userId'>) {
   return null;
 }
 
-/** Gives everything below it the Supabase client and the query cache, and keeps access state live. */
-export function RivrDataProvider({ client, queryClient, children }: {
+/** A new cache, with what the phone kept when it opens offline (the installed player app, F-053). */
+function newCache(keepsForOffline: boolean): QueryClient {
+  const cache = new QueryClient();
+  if (keepsForOffline) restoreForOffline(cache);
+  return cache;
+}
+
+/**
+ * Gives everything below it the Supabase client and the query cache, and keeps access state live. `keepsForOffline`, the
+ * player app: what it needs to open with no connection stays on the phone until sign-out (./offlineCache.ts).
+ */
+export function RivrDataProvider({ client, queryClient, keepsForOffline = false, children }: {
   client: RivrClient;
   queryClient?: QueryClient;
+  keepsForOffline?: boolean;
   children: ReactNode;
 }) {
-  const [cache] = useState(() => queryClient ?? new QueryClient());
-  const { userId, authStatus } = useSession(client);
+  const [cache] = useState(() => queryClient ?? newCache(keepsForOffline));
+  const { userId, authStatus } = useSession(client, keepsForOffline);
+  useEffect(() => (keepsForOffline && userId !== null ? keepForOffline(cache, userId) : undefined), [cache, keepsForOffline, userId]);
+  useEffect(() => {
+    if (keepsForOffline && authStatus === 'signed-out') forgetOffline();
+  }, [authStatus, keepsForOffline]);
   return (
     <RivrDataContext.Provider value={{ client, userId, authStatus }}>
       <QueryClientProvider client={cache}>

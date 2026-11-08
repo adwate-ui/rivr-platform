@@ -14,6 +14,31 @@
 /* Only the library's own source is scanned for classes. */
 @source './';
 
+/* The phone's notch, status bar and home indicator, nought everywhere but an installed app drawn under them (viewport-fit=cover). */
+@utility safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+@utility safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@utility safe-x {
+  padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
+}
+
+@utility safe-pt-4 {
+  padding-top: calc(env(safe-area-inset-top) + var(--rivr-space-4));
+}
+
+@utility safe-pt-12 {
+  padding-top: max(var(--rivr-space-12), env(safe-area-inset-top));
+}
+
+@utility safe-mb {
+  margin-bottom: env(safe-area-inset-bottom);
+}
+
 @layer base {
   html {
     color-scheme: dark;

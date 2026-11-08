@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { indianMobileSchema, type IndianMobile } from '@rivr/contracts';
 import { useSignIn } from '@rivr/db';
 import { formatTypedMobile, t } from '@rivr/i18n';
-import { Button, Captcha, Heading, Inline, Input, StepScreen, Text, useCaptcha, Wordmark } from '@rivr/ui';
+import { Banner, Button, Captcha, Heading, Inline, Input, StepScreen, Text, useCaptcha, useIsOnline, Wordmark } from '@rivr/ui';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { CAPTCHA_SITE_KEY } from '../captcha.ts';
@@ -43,6 +43,7 @@ export function PhoneStep({ onCodeSent }: { onCodeSent: (phone: IndianMobile) =>
     else form.setError('phone', { type: 'server', message: t(FAILURE_COPY[sent.error]) });
   });
 
+  const isOnline = useIsOnline();
   const { errors } = form.formState;
   // A refusal from Auth carries its own words; anything else failed the number check.
   const error = errors.phone ? (errors.phone.type === 'server' ? errors.phone.message : t('player.signIn.phoneInvalid')) : undefined;
@@ -59,13 +60,14 @@ export function PhoneStep({ onCodeSent }: { onCodeSent: (phone: IndianMobile) =>
               hint={t('player.signIn.phoneHint')} type="tel" inputMode="tel" autoComplete="tel-national" error={error} />
           )} />
           <Captcha {...captcha.props} />
-          <Button variant="primary" size="tall" type="submit" fullWidth isDisabled={!captcha.isReady} isLoading={requestCode.isPending}>
+          <Button variant="primary" size="tall" type="submit" fullWidth isDisabled={!captcha.isReady || !isOnline} isLoading={requestCode.isPending}>
             {t('player.signIn.sendCode')}
           </Button>
           <LegalLine />
         </>
       }
     >
+      {isOnline ? null : <Banner>{t('player.signIn.offline')}</Banner>}
       <Wordmark size="lg" withTagline withMotto align="center" />
     </StepScreen>
   );

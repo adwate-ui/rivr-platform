@@ -48,11 +48,11 @@ function Live({ video, isLive, onTake, onBack }: LiveProps) {
   const guidance = useFaceGuidance(video, isLive, onTake);
   const isGood = guidance === 'steady' || guidance === 'capturing';
   return (
-    <div className="fixed inset-0 z-modal mx-auto flex flex-col items-center overflow-hidden bg-green-black text-content medium:max-w-phone">
+    <div className="safe-bottom fixed inset-0 z-modal mx-auto flex flex-col items-center overflow-hidden bg-green-black text-content medium:max-w-phone">
       <video ref={video} aria-label={t('ui.camera.preview')} autoPlay playsInline muted className="absolute inset-0 size-full -scale-x-100 object-cover" />
       {/* Three equal columns, so "Selfie" sits in the middle of the screen whatever Back's width (a spacer of a guessed
           width beside it left the title 13 px right of centre). */}
-      <div className="relative grid w-full grid-cols-3 items-center px-5 pt-12">
+      <div className="safe-pt-12 relative grid w-full grid-cols-3 items-center px-5">
         <span className="justify-self-start"><Button variant="text" icon="chevronLeft" onClick={onBack}>{t('ui.selfie.back')}</Button></span>
         <span className="justify-self-center font-text text-16 font-medium">{t('ui.selfie.title')}</span>
       </div>
@@ -85,7 +85,7 @@ function Review({ photo, isSending, error, onUse, onRetake }: ReviewProps) {
   const [url] = useState(() => URL.createObjectURL(photo));
   useEffect(() => () => URL.revokeObjectURL(url), [url]);
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-phone flex-col gap-5 px-5 pt-4 pb-10">
+    <div className="safe-pt-4 mx-auto flex min-h-dvh w-full max-w-phone flex-col gap-5 px-5 pb-10">
       <Heading level={1} variant="serif" serifSize={32}>{t('ui.selfie.reviewTitle')}</Heading>
       <div className="aspect-portrait w-full overflow-hidden rounded-lg border border-hairline bg-raised">
         <img src={url} alt={t('ui.camera.review')} className="size-full object-cover" />

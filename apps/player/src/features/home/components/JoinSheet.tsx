@@ -1,6 +1,6 @@
 import { useControlState, useFeature, useRestrictions, useWaitlistActions, type FloorTable, type WaitlistFailure } from '@rivr/db';
 import { formatDateTime, formatDuration, formatMoney, formatStakes, t } from '@rivr/i18n';
-import { Button, ErrorMessage, FeatureGate, haptic, Sheet, StatRow, Text, useToast } from '@rivr/ui';
+import { Button, ErrorMessage, FeatureGate, haptic, Sheet, StatRow, Text, useIsOnline, useToast } from '@rivr/ui';
 import { useState } from 'react';
 import { WAITLIST_FAILURE_COPY } from './waitlistCopy.ts';
 
@@ -11,9 +11,10 @@ import { WAITLIST_FAILURE_COPY } from './waitlistCopy.ts';
 function JoinButton({ onJoin, isJoining }: { onJoin: () => void; isJoining: boolean }) {
   const { isVenueFrozen } = useControlState();
   const breakUntil = useRestrictions().data?.breakUntil ?? null;
+  const isOnline = useIsOnline();
   if (breakUntil !== null) return <Text tone="muted" align="center">{t('player.tonight.breakActive', { until: formatDateTime(new Date(breakUntil)) })}</Text>;
   return (
-    <Button variant="primary" size="tall" fullWidth isDisabled={isVenueFrozen} isLoading={isJoining} onClick={onJoin}>
+    <Button variant="primary" size="tall" fullWidth isDisabled={isVenueFrozen || !isOnline} isLoading={isJoining} onClick={onJoin}>
       {isVenueFrozen ? t('player.live.join.paused') : t('player.live.join.request')}
     </Button>
   );

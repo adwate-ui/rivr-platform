@@ -1,8 +1,8 @@
 import { TAB_FEATURES } from '@rivr/contracts/features';
 import { returnSearchFrom, type ReturnSearch } from '@rivr/contracts/returnPath';
-import { useAuthStatus, useFeature, useKycImageUrl, useKycRecord, useMember, type AuthStatus } from '@rivr/db';
+import { useAuthStatus, useFeature, useKycImageUrl, useKycRecord, useMember, type AuthStatus, type KycRecord } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { InstallOffer, PlayerShell, Screen, Stack, type BottomNavItem, type FeatureAccess, type PlayerTab } from '@rivr/ui';
+import { InstallOffer, PlayerShell, Screen, Stack, useIsOnline, type BottomNavItem, type FeatureAccess, type PlayerTab } from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useState, type ReactNode } from 'react';
 import { useInstallOffer } from '../install.ts';
@@ -40,6 +40,9 @@ function useReturnSearch(authStatus: AuthStatus): { toSignIn: ReturnSearch; toSi
   return { toSignIn: signedInHere ? returnSearchFrom({}) : next, toSignUp: next };
 }
 
+/** Whether the check lets the member into the app: verified, or their selfie is in while the club checks at the desk. */
+const isLetIn = (kyc: KycRecord | null | undefined) => kyc?.status === 'verified' || (kyc?.status === 'started' && kyc.isAtTheClub);
+
 /**
  * A member's screens once their identity check is verified (#632), or once their selfie let them in to be checked at the
  * club (decision 0502): the server still keeps play for the desk's check. Until then they see only its steps: a member whose
@@ -47,8 +50,13 @@ function useReturnSearch(authStatus: AuthStatus): { toSignIn: ReturnSearch; toSi
  */
 function KycGate({ isMember, children }: { isMember: boolean; children: ReactNode }) {
   const kyc = useKycRecord();
-  if (kyc.data?.status === 'verified' || (kyc.data?.status === 'started' && kyc.data.isAtTheClub)) return children;
+  const isOnline = useIsOnline();
+  if (isLetIn(kyc.data)) return children;
   if (isMember && kyc.isSuccess) return <Navigate to="/kyc" replace />;
+  // Offline with nothing kept of the check, it cannot be read, so it says so rather than loading for ever (F-053).
+  if (!isOnline || kyc.fetchStatus === 'paused') {
+    return <Screen title={t('player.alerts.offlineTitle')} status="error" errorText={t('player.alerts.offlineGate')} onRetry={() => void kyc.refetch()} />;
+  }
   return <Screen title={t('player.kyc.title')} status={kyc.isError ? 'error' : 'loading'} loadingLook="skeleton" onRetry={() => void kyc.refetch()} />;
 }
 

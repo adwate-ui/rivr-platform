@@ -43,7 +43,7 @@ if (!container) throw new Error('index.html has no #root element');
 
 createRoot(container).render(
   <StrictMode>
-    <RivrDataProvider client={client}>
+    <RivrDataProvider client={client} keepsForOffline>
       <RouterProvider router={router} />
     </RivrDataProvider>
   </StrictMode>,
