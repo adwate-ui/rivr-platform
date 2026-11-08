@@ -40,7 +40,7 @@ describe('Button', () => {
 
   it('fills the primary action gold and keeps a 44 px target', () => {
     renderIn(<Button variant="primary">Seat</Button>);
-    expect(screen.getByRole('button', { name: 'Seat' })).toHaveClass('bg-action', 'text-on-action', 'min-h-touch', 'min-w-touch');
+    expect(screen.getByRole('button', { name: 'Seat' })).toHaveClass('bg-action', 'text-on-action', 'min-h-touch', 'min-w-touch', 'inset-ring-gold-edge');
   });
 
   it('fills the console\'s buttons rather than outlining them, 36 or 32 px at a desk and 44 px below (decision 0464)', () => {

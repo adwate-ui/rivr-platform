@@ -14,9 +14,9 @@ describe('ProgressRing', () => {
     expect(container).toHaveTextContent('2:15:00');
   });
 
-  it('turns red in the last minutes and never draws past full or below empty', () => {
+  it('turns danger pink in the last minutes, as red is 2.08:1 on green (F-161), and never draws past full or below empty', () => {
     const { container, rerender } = renderIn(<ProgressRing fraction={1.4} tone="alert">0:12:00</ProgressRing>);
-    expect(arcOf(container)).toHaveClass('stroke-alert');
+    expect(arcOf(container)).toHaveClass('stroke-danger');
     expect(Number(arcOf(container)?.getAttribute('stroke-dashoffset'))).toBe(0);
     rerender(<ProgressRing fraction={-2}>0:00:00</ProgressRing>);
     const arc = arcOf(container);

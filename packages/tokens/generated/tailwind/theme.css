@@ -19,6 +19,7 @@
   --color-red: var(--rivr-color-red);
   --color-ink: var(--rivr-color-ink);
   --color-ink-muted: var(--rivr-color-ink-muted);
+  --color-ink-edge: var(--rivr-color-ink-edge);
   --color-muted: var(--rivr-color-muted);
   --color-hairline: var(--rivr-color-hairline);
   --color-control: var(--rivr-color-control);
