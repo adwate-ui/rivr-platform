@@ -106,7 +106,9 @@ describe('Promotion rewards golden fixtures (packages/testing/golden/promotionRe
       key: String(field(event, 'key')), at: new Date(String(field(event, 'at'))), visitId: textOrNull(field(event, 'visitId')),
       ...(typeof step === 'number' ? { stepMinutes: step } : {}),
     };
-    const base = periodKey(limitsSchema.parse(parse(goldenInput(goldenCase, 'limits'))), when);
+    // A play-time step's place among its promotion's steps comes from its reward (the owner, 9 Nov).
+    const reward = goldenCase.inputs.reward === undefined ? undefined : rewardSchema.parse(parse(goldenCase.inputs.reward));
+    const base = periodKey(limitsSchema.parse(parse(goldenInput(goldenCase, 'limits'))), when, reward);
     expect(slotKey(base, Number(goldenInput(goldenCase, 'given')))).toBe(goldenExpected(goldenCase, 'key'));
   });
 

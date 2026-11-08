@@ -72,6 +72,11 @@ describe('the promotion builder (console v3)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Add a step' }));
     expect(screen.getByRole('textbox', { name: 'Then bonus chips' })).toHaveProperty('value', '1000');
     expect(screen.getByText(/^1,000 bonus chips after 4 hours, then 1,000 after 6 hours, for all stakes/)).toBeDefined();
+    // Steps keep their place (owner, 9 Nov: "Lock step count"): only the last is removed, and the builder says why.
+    fireEvent.click(screen.getByRole('button', { name: 'Add a step' }));
+    expect(screen.queryByRole('button', { name: 'Remove step 2' })).toBeNull();
+    expect(screen.getByText('Steps keep their place: add or remove them at the end. To reorder, end this bonus and start a new one.')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Remove step 3' }));
     fireEvent.click(screen.getByRole('button', { name: 'Remove step 2' }));
     expect(screen.queryByRole('textbox', { name: 'Then bonus chips' })).toBeNull();
     fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Pays' })).getByRole('radio', { name: 'Every few hours' }));

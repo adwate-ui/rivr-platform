@@ -776,7 +776,8 @@ select results_eq(
   $$ select description, private.promo_slot_key(private.promo_period_key((inputs ->> 'limits')::jsonb, (inputs ->> 'event')::jsonb ->> 'key',
                                                                          ((inputs ->> 'event')::jsonb ->> 'at')::timestamptz,
                                                                          ((inputs ->> 'event')::jsonb ->> 'visitId')::uuid,
-                                                                         ((inputs ->> 'event')::jsonb ->> 'stepMinutes')::integer),
+                                                                         private.promo_step_key((inputs ->> 'reward')::jsonb,
+                                                                                                ((inputs ->> 'event')::jsonb ->> 'stepMinutes')::integer)),
                                                 (inputs ->> 'given')::integer)
      from golden.golden_case where file = 'promotionRewards.json' and operation = 'periodKey' order by position $$,
   $$ select description, expected ->> 'key' from golden.golden_case where file = 'promotionRewards.json' and operation = 'periodKey' order by position $$,

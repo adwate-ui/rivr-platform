@@ -6,8 +6,11 @@ import type { HourStepFields } from './builderForm.ts';
 // Two to six set steps (the contracts' hourSteps): the first is the form's own fields.
 const MOST_STEPS = 6;
 
-/** A step after the first: its bonus chips and hours played, and Remove. */
-function MoreStep({ section, step, at }: { section: SectionProps; step: HourStepFields; at: number }) {
+/**
+ * A step after the first: its bonus chips and hours played, and Remove on the last. Steps keep their places (the owner,
+ * 9 Nov: "Lock step count"), so a step is added or removed only at the end.
+ */
+function MoreStep({ section, step, at, isLast }: { section: SectionProps; step: HourStepFields; at: number; isLast: boolean }) {
   const { form, onChange, isReadOnly } = section;
   const change = (next: Partial<HourStepFields>) => onChange({ ...form, moreSteps: form.moreSteps.map((one, index) => (index === at ? { ...one, ...next } : one)) });
   return (
@@ -18,7 +21,7 @@ function MoreStep({ section, step, at }: { section: SectionProps; step: HourStep
       <Stack gap={1}>
         <Input label={t('console.promotions.builder.fields.afterHours')} suffix={t('console.promotions.builder.fields.afterSuffix')} inputMode="decimal"
           value={step.afterHours} readOnly={isReadOnly} onChange={(event) => change({ afterHours: event.target.value })} />
-        {isReadOnly ? null : (
+        {isReadOnly || !isLast ? null : (
           <Inline>
             <Button variant="text" size="small" onClick={() => onChange({ ...form, moreSteps: form.moreSteps.filter((_, index) => index !== at) })}>
               {t('console.promotions.builder.fields.removeStep', { step: String(at + 2) })}
@@ -44,7 +47,8 @@ function SetSteps({ section }: { section: SectionProps }) {
         <FormInput section={section} field="afterHours" label={t('console.promotions.builder.fields.afterHours')}
           suffix={t('console.promotions.builder.fields.afterSuffix')} inputMode="decimal" />
       </Grid>
-      {form.moreSteps.map((step, at) => <MoreStep key={String(at)} section={section} step={step} at={at} />)}
+      {form.moreSteps.map((step, at) => <MoreStep key={String(at)} section={section} step={step} at={at} isLast={at === form.moreSteps.length - 1} />)}
+      {isReadOnly ? null : <Text variant="small" tone="muted">{t('console.promotions.builder.fields.stepsKeepPlace')}</Text>}
       {isRefused ? <ErrorMessage>{t('console.promotions.builder.errors.steps')}</ErrorMessage> : null}
       {isReadOnly || form.moreSteps.length + 1 >= MOST_STEPS ? null : (
         <Stack align="start">

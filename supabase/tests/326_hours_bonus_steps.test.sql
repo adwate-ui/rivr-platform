@@ -36,9 +36,9 @@ $$;
 
 select lives_ok($$ select private.sweep_hours_bonus() $$, 'the minute''s sweep runs');
 select results_eq($$ select * from pg_temp.steps_of('00000000-0000-4000-8000-000000000213') $$,
-  $$ values (500::bigint, 'hours_step:00000000-0000-4000-8000-0000000b2601:120'::text, 'visit:00000000-0000-4000-8000-0000000b2601@120'::text, 'hours_step'::text),
-            (1000::bigint, 'hours_step:00000000-0000-4000-8000-0000000b2601:240'::text, 'visit:00000000-0000-4000-8000-0000000b2601@240'::text, 'hours_step'::text) $$,
-  'Mihir, still seated after 4 h 10 min, is paid both steps, each in a period of its own');
+  $$ values (500::bigint, 'hours_step:00000000-0000-4000-8000-0000000b2601:@1'::text, 'visit:00000000-0000-4000-8000-0000000b2601@1'::text, 'hours_step'::text),
+            (1000::bigint, 'hours_step:00000000-0000-4000-8000-0000000b2601:@2'::text, 'visit:00000000-0000-4000-8000-0000000b2601@2'::text, 'hours_step'::text) $$,
+  'Mihir, still seated after 4 h 10 min, is paid both steps, each in a period of its own, keyed by the visit and its place');
 select is((select sum(b.amount_paise) from public.bonus_grant b where b.member_id = '00000000-0000-4000-8000-000000000213'
            and b.idempotency_key in (select 'promotion:' || g.id from public.promotion_grant g where g.promotion_id = (select promotion_id from bonus))),
   150000::numeric, 'as 1,500 bonus chips on his balance');
@@ -47,6 +47,53 @@ select results_eq($$ select chips from pg_temp.steps_of('00000000-0000-4000-8000
 select lives_ok($$ select private.sweep_hours_bonus() $$, 'the next minute''s sweep');
 select is((select count(*)::integer from public.promotion_grant where promotion_id = (select promotion_id from bonus)), 3,
   'pays no step twice');
+
+-- A new version that moves the first step from two hours to two and a half is the same step: never paid twice (the owner,
+-- 9 Nov). Then the first version again.
+update public.promotion_version set status = 'ended' where id = (select version_id from bonus);
+insert into public.promotion_version (venue_id, promotion_id, version, status, name, reward, eligibility, schedule, limits, channels)
+select venue_id, promotion_id, version + 1, 'live', name,
+       '{"kind": "hours_bonus", "mode": "steps", "steps": [{"afterMinutes": 150, "chips": 500}, {"afterMinutes": 240, "chips": 1000}]}',
+       eligibility, schedule, limits, channels
+from public.promotion_version where id = (select version_id from bonus);
+select private.sync_promotion((select promotion_id from bonus));
+select lives_ok($$ select private.sweep_hours_bonus() $$, 'the sweep under a version that moved the first step');
+select is((select count(*)::integer from public.promotion_grant where promotion_id = (select promotion_id from bonus)), 3,
+  'the moved step is the step already paid, so nothing more');
+-- Up to twice a day: still once a visit, though the moved step's day period has room (money audit, 9 Nov).
+update public.promotion_version set limits = '{"perMember": "per_day", "timesPerMember": 2}'
+where promotion_id = (select promotion_id from bonus) and id <> (select version_id from bonus);
+select lives_ok($$ select private.sweep_hours_bonus() $$, 'the sweep under a version paying up to twice a day');
+select is((select count(*)::integer from public.promotion_grant where promotion_id = (select promotion_id from bonus)), 3,
+  'a step is paid once a visit whatever the limit');
+-- Kunal was paid his two-hour step under a key from before 9 Nov ('hours_step:<visit>:120'). A version whose second step
+-- is now at two hours owes it him: paid, though its minutes are his first step's (money audit, 9 Nov).
+update public.promotion_grant set source_key = 'hours_step:00000000-0000-4000-8000-0000000b2602:120'
+where promotion_id = (select promotion_id from bonus) and member_id = '00000000-0000-4000-8000-000000000216';
+update public.promotion_version
+set reward = '{"kind": "hours_bonus", "mode": "steps", "steps": [{"afterMinutes": 60, "chips": 500}, {"afterMinutes": 120, "chips": 1000}]}'
+where promotion_id = (select promotion_id from bonus) and id <> (select version_id from bonus);
+select lives_ok($$ select private.sweep_hours_bonus() $$, 'the sweep under a version with its steps at one and two hours');
+select results_eq($$ select chips, source_key from pg_temp.steps_of('00000000-0000-4000-8000-000000000216') $$,
+  $$ values (500::bigint, 'hours_step:00000000-0000-4000-8000-0000000b2602:120'::text),
+            (1000::bigint, 'hours_step:00000000-0000-4000-8000-0000000b2602:@2'::text) $$,
+  'Kunal is paid his second step, owed at two hours, once');
+select is((select count(*)::integer from public.promotion_grant where promotion_id = (select promotion_id from bonus)), 4,
+  'and Mihir nothing more');
+update public.promotion_version set status = 'ended' where promotion_id = (select promotion_id from bonus) and id <> (select version_id from bonus);
+update public.promotion_version set status = 'live' where id = (select version_id from bonus);
+select private.sync_promotion((select promotion_id from bonus));
+
+-- A grant keyed by its step's minutes, as before 9 Nov, is keyed again by the step's place.
+update public.promotion_grant set period_key = 'visit:00000000-0000-4000-8000-0000000b2601@240', source_key = 'hours_step:00000000-0000-4000-8000-0000000b2601:240'
+where promotion_id = (select promotion_id from bonus) and member_id = '00000000-0000-4000-8000-000000000213' and chips = 1000;
+select ok(private.rekey_hours_step_grants() > 0, 'the old keys are keyed again');
+select results_eq($$ select period_key from pg_temp.steps_of('00000000-0000-4000-8000-000000000213') $$,
+  $$ values ('visit:00000000-0000-4000-8000-0000000b2601@1'::text), ('visit:00000000-0000-4000-8000-0000000b2601@2') $$,
+  'Mihir''s two-hour and four-hour steps, first and second');
+select is(private.rekey_hours_step_grants(), 0, 'keying again keys nothing (money audit, 9 Nov)');
+select results_eq($$ select period_key from pg_temp.steps_of('00000000-0000-4000-8000-000000000213') $$,
+  $$ values ('visit:00000000-0000-4000-8000-0000000b2601@1'::text), ('visit:00000000-0000-4000-8000-0000000b2601@2') $$, 'and his keys stay as they were');
 
 -- Two promotions with the same step each pay it: a second one-step bonus at two hours, live beside the first.
 create temp table second as select gen_random_uuid() as promotion_id;
@@ -73,7 +120,7 @@ where id = (select version_id from bonus);
 select pg_temp.seat('00000000-0000-4000-8000-0000000b2603', '00000000-0000-4000-8000-000000000290', 'Table 4', 9, 200, 0);
 select lives_ok($$ select private.sweep_hours_bonus() $$, 'the sweep, every 90 minutes once a visit');
 select results_eq($$ select chips, source_key from pg_temp.steps_of('00000000-0000-4000-8000-000000000290') $$,
-  $$ values (250::bigint, 'hours_step:00000000-0000-4000-8000-0000000b2603:90'::text) $$, 'Kavya''s 200 minutes are paid one step, its cap');
+  $$ values (250::bigint, 'hours_step:00000000-0000-4000-8000-0000000b2603:@1'::text) $$, 'Kavya''s 200 minutes are paid one step, its cap');
 
 -- Between sweeps, the close pays a step reached by then.
 update public.promotion_version set reward = '{"kind": "hours_bonus", "chips": 500, "afterMinutes": 120}' where id = (select version_id from bonus);
