@@ -67,7 +67,11 @@ async function numbersChecks(): Promise<{ checks: Check[]; free: string[] }> {
 async function allowlist(): Promise<Check> {
   const rows = z.array(z.object({ alert_whatsapp: z.string().nullable() }))
     .parse(await query(`select alert_whatsapp from public.venue_config where venue_id = '${LIVE_VENUE}'`));
-  const owner = process.env['OWNER_WHATSAPP'] ?? rows[0]?.alert_whatsapp ?? '';
+  const last4 = process.env['OWNER_LAST4'] ?? '';
+  const mine = /^\d{4}$/.test(last4)
+    ? z.array(z.object({ phone: z.string() })).parse(await query(`select phone from public.member where phone like '%${last4}' and erased_at is null`))
+    : [];
+  const owner = process.env['OWNER_WHATSAPP'] || (mine.length === 1 ? mine[0]?.phone : undefined) || rows[0]?.alert_whatsapp || '';
   const secrets = z.array(z.object({ name: z.string(), value: z.string() }))
     .parse(JSON.parse(execFileSync(join(REPO_ROOT, 'node_modules', '.bin', 'supabase'), ['secrets', 'list', '--project-ref', ref, '-o', 'json'], { encoding: 'utf8' })));
   const check = allowlistCheck(secrets, owner);

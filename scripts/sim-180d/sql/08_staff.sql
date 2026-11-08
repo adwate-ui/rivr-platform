@@ -69,8 +69,11 @@ begin
     (select member_id from sim.persona where not erased order by number limit 1), 'During the drill', gen_random_uuid()), true);
   perform sim.goto(sim.ist(d, '15:10'));
   if sim.ok(r) then
-    perform sim.try(sim.who('super1'), 'super.release_freeze', format('select public.release_control(p_control_id => %L, p_reason => %L)',
+    -- One super admin asks for the release; a second releases it (the kill switch's two people, which P04 checks).
+    perform sim.try(sim.who('super1'), 'super.ask_release_freeze', format('select public.release_control(p_control_id => %L, p_reason => %L)',
       sim.val(r), 'Drill over'));
+    perform sim.try(sim.who('super2'), 'super2.release_freeze', format('select public.release_control(p_control_id => %L, p_reason => %L)',
+      sim.val(r), 'Drill over: the second super admin releases'));
   end if;
 end $$;
 

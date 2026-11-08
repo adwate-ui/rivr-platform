@@ -44,7 +44,7 @@ const projects: Projects = [
 export default defineConfig({
   testDir: '.',
   retries: 0,
-  workers: 4,
+  workers: Number(process.env['CENSUS_WORKERS'] ?? '10'),
   fullyParallel: true,
   timeout: 90_000,
   reporter: [['list'], ['json', { outputFile: join(out, 'results.json') }]],
