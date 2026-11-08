@@ -78,6 +78,7 @@ Each was confirmed against RIVR's code before it was fixed. A RIVR defect is a f
 | A stopped run left a preview server on the worktree's ports, which later died mid-census | The app ports are freed before each census or walk |
 | The e2e flows reach the database as `supabase_db_<worktree>`; the copy runs as `supabase_db_rivr-sim180-db` | `walks/bin/docker` maps the one name to the other on the walks' PATH only |
 | The census's error-state pictures are taken about 1.5 s after load, before the apps' retries end | Not fixed: listed under "Not covered" |
+| The census's ₹ check reads the join sheet's "Min buy-in" and "₹5,000", set as a label and a value, as a stray ₹ (one capture on night 90) | Not fixed: the one flag was checked by eye and is no finding |
 
 ## Not covered
 
