@@ -1,6 +1,6 @@
 import { useKycImageUrl, useMember, useMembershipCard } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Box, Inline, KycPhoto, kycPhotoStatus, MembershipCard, ProgressBar, Screen, Stack, Text } from '@rivr/ui';
+import { Box, KycPhoto, kycPhotoStatus, MembershipCard, ProgressBar, Screen, Stack, Text } from '@rivr/ui';
 import { QrCode } from '@rivr/ui/qr-code';
 import { useEffect, useState } from 'react';
 
@@ -66,7 +66,7 @@ function useFirstLookThisSession(): boolean {
 
 /**
  * The Card tab (decision 0320; #71): the membership card, gold-edged, with the member's number, verified selfie, name and
- * tier, then the QR the door scans on its cream panel, a gold bar under it running down to the
+ * tier, then the QR the door scans on its cream panel across the card's column, a gold bar under it running down to the
  * next code so the desk sees it is live, and once a session a hint to turn the brightness up (F-182). No caption.
  * Offline before the card came, it says to give the number.
  */
@@ -89,9 +89,7 @@ export function CardScreen() {
         <MembershipCard look="redesign" name={fullName} tier={tierName} memberNumber={memberNumber}
           photo={photoPath === null ? undefined : <CardPhoto path={photoPath} />} />
         <Stack gap={3}>
-          <Inline justify="center">
-            <Box surface="cream" padding={4} radius="card"><QrCode value={code} label={t('player.card.qr')} /></Box>
-          </Inline>
+          <Box surface="cream" padding={4} radius="card"><QrCode value={code} label={t('player.card.qr')} /></Box>
           <ProgressBar fraction={codeLeft} />
           {isHinted ? <Text variant="small" tone="muted" align="center">{t('player.card.brightness')}</Text> : null}
         </Stack>

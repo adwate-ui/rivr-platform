@@ -70,7 +70,8 @@ function RedesignCard({ name, tier, memberNumber, photo }: Pick<MembershipCardPr
   return (
     <article aria-label={t('ui.membershipCard.label')}
       className="flex aspect-card w-full max-w-phone flex-col justify-between rounded-card border border-gold bg-raised p-5 text-content">
-      <div className="flex items-start justify-between">
+      {/* The number centred on the wordmark's tiles (F-209). */}
+      <div className="flex items-center justify-between">
         <Wordmark />
         <span className="font-text text-12 font-medium tracking-wide text-accent uppercase">{t('ui.membershipCard.number', { number: memberNumber })}</span>
       </div>

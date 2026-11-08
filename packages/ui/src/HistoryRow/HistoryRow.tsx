@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Icon } from '../Icon/Icon.tsx';
 import { Text } from '../Text/Text.tsx';
 
 export interface HistoryRowProps {
@@ -28,7 +29,11 @@ export function HistoryRow({ when, title, value, detail, onOpen }: HistoryRowPro
         <Text as="span" weight="medium">{title}</Text>
         {detail ? <Text as="span" variant="small" tone="muted">{detail}</Text> : null}
       </span>
-      {value}
+      {/* The figure, then the chevron every row that opens something has, its ink on the row's edge (F-211, as DetailRow). */}
+      <span className="flex shrink-0 items-center gap-2">
+        {value}
+        <span className="-mr-1 text-content-muted"><Icon name="chevronRight" size="sm" /></span>
+      </span>
     </button>
   );
 }
