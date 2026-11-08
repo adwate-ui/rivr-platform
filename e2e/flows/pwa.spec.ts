@@ -86,7 +86,7 @@ test.describe('PWA, a member offline', () => {
     await expect(page.getByRole('heading', { name: 'Identity' })).toHaveCount(0);
     await page.goto(`${appUrl('player')}/card`);
     await expect(page.getByRole('heading', { name: 'No connection' })).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText('Your number')).toBeVisible();
+    await expect(page.getByText('Your number', { exact: true })).toBeVisible();
     await expect(page.getByText('Give your number at the door.')).toBeVisible();
     await context.setOffline(false);
   });
