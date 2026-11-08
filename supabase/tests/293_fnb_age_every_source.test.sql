@@ -35,7 +35,7 @@ join public.staff s on s.user_id = '00000000-0000-4000-8000-000000000106' and s.
 insert into public.member_feature_override (venue_id, member_id, feature_key, is_granted, reason)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214', 'fnb.table_side', true, 'Test');
 insert into public.kyc_record (venue_id, member_id, date_of_birth)
-values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214', (now() - interval '20 years')::date)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214', (private.club_day_of(now()) - interval '20 years')::date)
 on conflict (member_id) do update set date_of_birth = excluded.date_of_birth;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select public.seat_member(pg_temp.table_3(), 5, '9000000214');
@@ -55,7 +55,7 @@ select lives_ok($$ select * from public.console_fnb_order('00000000-0000-4000-80
 reset role;
 
 -- At 21 every source serves him.
-update public.kyc_record set date_of_birth = (now() - interval '21 years')::date where member_id = '00000000-0000-4000-8000-000000000214';
+update public.kyc_record set date_of_birth = (private.club_day_of(now()) - interval '21 years')::date where member_id = '00000000-0000-4000-8000-000000000214';
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
 select lives_ok($$ select * from public.tablet_fnb_order(5, pg_temp.lines('Whisky')) $$, 'at 21 the tablet orders his whisky');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
