@@ -15,3 +15,8 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const Loading: Story = { args: { isLoading: true } };
+
+/** Words much longer than either app's: the button holds them. */
+export const LongText: Story = {
+  args: { label: 'Send the sign-in code again by text message', waitingLabel: (time: string) => `Send the sign-in code again by text message in ${time}` },
+};
