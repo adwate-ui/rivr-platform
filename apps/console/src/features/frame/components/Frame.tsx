@@ -17,6 +17,7 @@ import { landingFor, locksWhenIdle, phoneTabsFor, railFor, railItemAt, refusalAt
 import { SignOutButton } from './SignOutButton.tsx';
 import { StaffAccount } from './StaffAccount.tsx';
 import { useIdleLock } from './useIdleLock.ts';
+import { NoAlertNumberBanner } from './NoAlertNumberBanner.tsx';
 
 /** Who is at the console and where, for a prompt the route puts across the top of every screen (#317). */
 export interface FrameStaff {
@@ -141,17 +142,21 @@ function useStaffShell(staff: ReadyStaff, onIdle: () => void) {
 
 /**
  * Across the top, above everything: the kill switch's banner, the practice venue's stripe on every screen while the
- * console works there (F1-07, decision 0477), so nobody takes it for the club, with the way back; and any prompt.
+ * console works there (F1-07, decision 0477), so nobody takes it for the club, with the way back; for those who can set it, that
+ * the club has no alert number; and any prompt.
  */
 function FrameBanner({ staff, prompt, location }: { staff: ReadyStaff; prompt: StaffFrameProps['prompt']; location: { pathname: string; search: string } }) {
   const { venueId, permissions, isPractice } = staff.venue;
   const { isVenueFrozen } = useControlState(venueId);
+  const navigate = useNavigate();
   return (
     <>
       {isVenueFrozen ? <KillSwitchBanner audience="staff" /> : null}
       {isPractice ? (
         <PracticeBanner message={t('console.practiceBanner')} action={{ label: t('console.shell.backToClub'), onPress: () => staff.setPractice(false) }} />
       ) : null}
+      {!isPractice && permissions.includes('venue.configure')
+        ? <NoAlertNumberBanner venueId={venueId} onAdd={() => void navigate({ href: '/settings?tab=settings&part=club' })} /> : null}
       {prompt?.({ venueId, permissions, ...location })}
     </>
   );
