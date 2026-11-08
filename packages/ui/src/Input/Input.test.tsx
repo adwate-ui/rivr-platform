@@ -132,12 +132,19 @@ describe('Input', () => {
     expect(row).not.toHaveClass('items-baseline');
   });
 
-  it("is the console's filled one-line field when subtle: its label read out and shown inside until something is typed (console v3)", async () => {
-    const { container } = renderIn(<Input variant="subtle" label="Add: mobile or member no." error="Not a member number or mobile." />);
+  it('writes a placeholder on a subtle field in cream, as muted falls under 4.5:1 on the fill (F-035)', () => {
+    renderIn(<Input variant="subtle" label="Reason" placeholder="Why" />);
+    expect(screen.getByRole('textbox', { name: 'Reason' })).toHaveClass('placeholder:text-content');
+  });
+
+  it("is the console's filled one-line field when subtle: its label above it, still there once something is typed (F-035)", async () => {
+    const { container } = renderIn(<Input variant="subtle" label="Add: mobile or member no." defaultValue="9000000212" error="Not a member number or mobile." />);
     const field = screen.getByRole('textbox', { name: 'Add: mobile or member no.' });
-    expect(field).toHaveAttribute('placeholder', 'Add: mobile or member no.');
+    expect(field).not.toHaveAttribute('placeholder');
     expect(field).toHaveClass('bg-subtle', 'min-h-touch', 'tablet:min-h-control', 'text-13');
-    expect(screen.getByText('Add: mobile or member no.', { selector: 'label' })).toHaveClass('sr-only');
+    const label = screen.getByText('Add: mobile or member no.', { selector: 'label' });
+    expect(label).not.toHaveClass('sr-only');
+    expect(label).toHaveClass('text-13', 'text-content-muted');
     expect(field).toHaveAccessibleDescription('Not a member number or mobile.');
     expect(await axeViolations(container)).toEqual([]);
   });

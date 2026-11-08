@@ -22,8 +22,8 @@ export function ResolveForm({ venueId, item }: { venueId: string; item: Feedback
   const field = form.register('resolution');
   return (
     <Stack gap={2}>
-      {/* Resolve beside the console's filled field, on its centre line (console v3); what is wrong goes under the row, so they stay level. */}
-      <Inline gap={2} align="center">
+      {/* Resolve beside the console's filled field, level at their foot (console v3); what is wrong goes under the row, so they stay level. */}
+      <Inline gap={2} align="end">
         <Input {...field} variant="subtle" label={t('console.feedback.resolution')} autoComplete="off" maxLength={500} />
         <Button variant="subtle" size="compact" isLoading={resolve.isPending} aria-label={t('console.feedback.resolveName', { name: item.fullName })}
           onClick={() => void submit()}>

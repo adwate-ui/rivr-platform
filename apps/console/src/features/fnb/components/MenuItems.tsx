@@ -31,14 +31,14 @@ function AddItem({ venueId, next }: { venueId: string; next: number }) {
   };
   return (
     <Stack gap={2}>
-      {/* One line, as the console's other add rows (console v3): the field, its kind and Add, on one centre line. */}
-      <Inline gap={3} align="center" wrap>
+      {/* One line, as the console's other add rows (console v3): the field, its kind and Add, level at their foot. */}
+      <Inline gap={3} align="end" wrap>
         <Input variant="subtle" label={t('console.fnb.itemName')} value={name} maxLength={60} autoComplete="off" onChange={(event) => setName(event.target.value)} />
         <ChoiceChips label={t('console.fnb.kind')} isLabelVisuallyHidden look="subtle" mode="one" options={kinds()} selected={[kind]}
           onChange={([picked]) => { const found = FNB_ITEM_KINDS.find((known) => known === picked); if (found) setKind(found); }} />
         <Button variant="subtle" size="compact" isDisabled={name.trim() === ''} isLoading={saveItem.isPending} onClick={() => void add()}>{t('console.fnb.addItem')}</Button>
       </Inline>
-      <Inline gap={3} align="center" wrap>
+      <Inline gap={3} align="end" wrap>
         <ChoiceChips label={t('console.fnb.diet')} isLabelVisuallyHidden look="subtle" mode="one" options={diets()} selected={[diet]}
           onChange={([picked]) => { if (picked !== undefined) setDiet(picked); }} />
         <Input variant="subtle" label={t('console.fnb.description')} value={description} maxLength={140} autoComplete="off" onChange={(event) => setDescription(event.target.value)} />

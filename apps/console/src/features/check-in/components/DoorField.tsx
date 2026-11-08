@@ -67,8 +67,8 @@ export function DoorField({ venueId }: { venueId: string }) {
   const checkOut = <Button variant="text" size="compact" onClick={() => press('out')}>{t('console.checkIn.checkOut')}</Button>;
   return (
     <Stack gap={3}>
-      {/* The console's filled field beside its button (console v3), its name inside it until something is typed. */}
-      <Inline gap={3}>
+      {/* The console's filled field beside its button (console v3), its name above it, the two level at their foot. */}
+      <Inline gap={3} align="end">
         <Input ref={field} variant="subtle" label={t('console.checkIn.field')} value={door.text} autoComplete="off" autoFocus
           onChange={(event) => door.type(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') press('in'); }} />
         <Button variant="primary" size="compact" isLoading={door.isBusy} onClick={() => press('in')}>{t('console.checkIn.checkIn')}</Button>

@@ -32,8 +32,8 @@ export function PinForm({ venueId, staffId, name }: { venueId: string; staffId: 
   const isWrong = form.formState.errors.pin !== undefined;
   return (
     <Stack gap={2}>
-      {/* The console's field beside its button (console v3): one height, centred on one line; the rule under them both. */}
-      <Inline gap={3} wrap>
+      {/* The console's field beside its button (console v3): one height, level at their foot; the rule under them both. */}
+      <Inline gap={3} align="end" wrap>
         <Input {...pinField} variant="subtle" type="password" inputMode="numeric" maxLength={4} autoComplete="off" label={t('console.dealerPins.pin', { name })}
           aria-describedby={noteId} aria-invalid={isWrong || undefined} />
         <Button variant="primary" size="compact" aria-label={t('console.dealerPins.save', { name })} isLoading={setPin.isPending} onClick={() => void submit()}>

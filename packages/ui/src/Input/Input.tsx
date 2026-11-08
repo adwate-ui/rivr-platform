@@ -30,8 +30,7 @@ type NativeInputProps = Pick<
 /**
  * `boxed` for forms; `line`, an underline, for a screen with one field, such as the sign-in
  * number; `inset`, the player redesign's 60 px box with its label inside (decision 0320); `subtle`, the console's one-line
- * field beside its button (console v3), filled, its label read out and shown in it until something is typed. A one-time
- * code is a CodeInput.
+ * field beside its button (console v3), filled, its label above it (F-035). A one-time code is a CodeInput.
  */
 export type InputVariant = 'boxed' | 'line' | 'inset' | 'subtle';
 
@@ -62,6 +61,9 @@ const FRAME: Record<Exclude<InputVariant, 'inset' | 'subtle'>, string> = {
 
 const STATE = 'transition-colors placeholder:text-content-muted disabled:cursor-not-allowed';
 
+// Muted is 4.47:1 on the subtle fill, so a placeholder there is cream (F-035).
+const SUBTLE_STATE = 'transition-colors placeholder:text-content disabled:cursor-not-allowed';
+
 // A plain input dims itself when disabled; with a prefix the whole row dims, prefix included.
 const DIMMED = 'disabled:opacity-disabled';
 const ROW_DIMMED = 'has-disabled:opacity-disabled';
@@ -76,15 +78,15 @@ export function Input({ variant = 'boxed', ...props }: InputProps) {
 
 /**
  * The console's one-line field (console v3), as the prototype's "Add: mobile or member no.": a faint cream fill, 36 px at a
- * desk and 44 px below 1180 px, its label read out and shown inside until something is typed; the error under it.
+ * desk and 44 px below 1180 px, its label above it, so it is there once something is typed (F-035); the error under it.
  */
 function SubtleInput({ id, label, error, type, native }: InsetInputProps) {
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-2">
-      <label htmlFor={id} className="sr-only">{label}</label>
-      <input id={id} type={type} placeholder={label}
+      <Label htmlFor={id}>{label}</Label>
+      <input id={id} type={type}
         className={cx('min-h-touch w-full min-w-0 rounded-md bg-subtle px-3 font-text text-13 text-content tablet:min-h-control',
-          'focus-visible:outline-2 focus-visible:outline-focus', error ? 'outline-1 outline-alert' : undefined, STATE, DIMMED)}
+          'focus-visible:outline-2 focus-visible:outline-focus', error ? 'outline-1 outline-alert' : undefined, SUBTLE_STATE, DIMMED)}
         aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-error` : undefined} {...native} />
       {error ? <ErrorMessage id={`${id}-error`}>{error}</ErrorMessage> : null}
     </div>
