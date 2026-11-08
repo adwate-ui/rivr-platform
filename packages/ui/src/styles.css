@@ -125,6 +125,19 @@
     background-color: transparent;
   }
 
+  /* A control that takes the focus is scrolled clear of the bars that stay on screen (WCAG 2.4.11): above the player app's
+     tab bar and peek, and below the website's header, which stays at the top from 1180 px (its 56 px and hairline, with
+     room for the focus ring). The console's main scrolls on its own, so ConsoleShell sets it there. */
+  html:has([data-shell='player']) {
+    scroll-padding-bottom: var(--rivr-size-player-foot);
+  }
+
+  html:has([data-shell='web']) {
+    @variant tablet {
+      scroll-padding-top: calc(var(--rivr-size-header) + var(--rivr-space-2));
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     ::before,

@@ -81,6 +81,11 @@ describe('PlayerShell', () => {
     expect(screen.getByText("Couldn't load tonight.").closest('.px-5')).not.toBeNull();
   });
 
+  it('marks its frame, so the page scrolls a focused control clear of the tab bar and dock (WCAG 2.4.11)', () => {
+    renderShell();
+    expect(screen.getByRole('main').closest('[data-shell="player"]')).toContainElement(screen.getByRole('navigation', { name: 'Main' }));
+  });
+
   it('hides the tab bar on a pushed screen', () => {
     renderShell({ isTabBarHidden: true });
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
