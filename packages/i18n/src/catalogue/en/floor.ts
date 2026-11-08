@@ -276,23 +276,3 @@ export const timeRequests = {
     changed: 'This request changed. Check the list and try again.',
   },
 } as const;
-
-/** Games history (#643): the tables run each club day and the hours each ran, for the super admin (tables.manage). */
-export const gamesHistory = {
-  title: 'Games history',
-  notAllowed: 'Only the super admin reads games history.',
-  label: 'Tables run each club day',
-  from: 'From',
-  to: 'To',
-  rangeInvalid: 'Choose a first day on or before the last.',
-  day: 'Club day',
-  table: 'Table',
-  stake: 'Stake',
-  /** A stake: `PLO 100/200`. */
-  stakeLine: '{game} {blinds}',
-  games: { nlh: 'NLH', plo: 'PLO' },
-  runs: 'Times opened',
-  hours: 'Time run',
-  filter: 'Find a table',
-  empty: 'No table ran on these days.',
-} as const;

@@ -6,7 +6,7 @@ import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { useGivePoints, useMemberPoints, useMyLockedPoints } from './pointsByHand.ts';
 import { RivrDataProvider } from './provider.tsx';
-import { useGamesHistory, useTablesSetup, useTablesSetupActions } from './tablesSetup.ts';
+import { useTablesSetup, useTablesSetupActions } from './tablesSetup.ts';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const STAFF = '00000000-0000-4000-8000-000000000134';
@@ -28,7 +28,7 @@ function renderSetup(replies: Record<string, { status?: number; body: unknown }>
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
   const { result } = renderHook(() => ({
-    setup: useTablesSetup(VENUE), actions: useTablesSetupActions(VENUE), history: useGamesHistory(VENUE, '2026-10-30', '2026-11-01'),
+    setup: useTablesSetup(VENUE), actions: useTablesSetupActions(VENUE),
     member: useMemberPoints(VENUE, phone), give: useGivePoints(VENUE), locked: useMyLockedPoints(),
   }), { wrapper });
   return { result, calls };
@@ -36,7 +36,7 @@ function renderSetup(replies: Record<string, { status?: number; body: unknown }>
 
 afterEach(cleanup);
 
-describe('tables setup, games history and points by hand', () => {
+describe('tables setup and points by hand', () => {
   it('reads the stakes, an older one with its game and a newer one with none, and the tables', async () => {
     const { result } = renderSetup({
       table_type: { body: [{ id: 's1', name: 'NLH 50/100', game: 'nlh', small_blind_paise: 5000, big_blind_paise: 10000, straddle_paise: null },
@@ -107,16 +107,6 @@ describe('tables setup, games history and points by hand', () => {
     expect(calls.filter((call) => call.path.endsWith('_game_table')).map((call) => [call.path, call.body])).toEqual([
       ['deactivate_game_table', { p_table_id: 't1' }], ['reactivate_game_table', { p_table_id: 't4' }], ['delete_game_table', { p_table_id: 't1' }],
     ]);
-  });
-
-  it('reads the games each club day ran', async () => {
-    const { result } = renderSetup({
-      games_history: { body: [{ club_day: '2026-10-31', table_id: 't1', table_name: 'Table 1', game: 'plo', small_blind_paise: 10000, big_blind_paise: 20000,
-        runs: 2, seconds: 18000 }] },
-    });
-    await waitFor(() => expect(result.current.history.data).toEqual([
-      { clubDay: '2026-10-31', tableId: 't1', tableName: 'Table 1', game: 'plo', smallBlind: 10000n, bigBlind: 20000n, runs: 2, seconds: 18000 },
-    ]));
   });
 
   it('finds a member by number with their points, and gives, locks or unlocks them once a request', async () => {

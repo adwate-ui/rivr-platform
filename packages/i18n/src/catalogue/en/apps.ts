@@ -15,7 +15,7 @@ import { roster, rosterFailures } from './roster.ts';
 import { cameraFailures, cameras } from './cameras.ts';
 import { members, tiers } from './members.ts';
 import { checkIn } from './checkIn.ts';
-import { gamesHistory, liveFloor, tablesSetup, timeRequests, todaysPlayers, topUps } from './floor.ts';
+import { liveFloor, tablesSetup, timeRequests, todaysPlayers, topUps } from './floor.ts';
 import { floor } from './liveFloorV3.ts';
 import { computers, dealerPins, devices, streamOverlay, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
 import { highHands } from './highHands.ts';
@@ -155,7 +155,6 @@ export const consoleApp = {
   floor,
   todaysPlayers,
   tablesSetup,
-  gamesHistory,
   topUps,
   timeRequests,
   fnb: consoleFnb,
