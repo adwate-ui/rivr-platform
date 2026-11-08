@@ -18,11 +18,32 @@ interface Seated {
 }
 
 /**
+ * An approved player not yet seated (the owner, 8 Nov: "once somebody is approved, it should create an alert for seating
+ * him"), `id` their waitlist place at `tableId`: `seat` to seat now, at the seat held for their call (`seat`) or any seat
+ * free there (null); `seat_check` their identity check first; `seat_wait` their table full, until a seat frees.
+ */
+export interface SeatAlert {
+  readonly kind: 'seat' | 'seat_check' | 'seat_wait';
+  readonly id: string;
+  readonly memberId: string;
+  readonly fullName: string;
+  readonly tableId: string;
+  readonly since: string;
+  readonly seat: number | null;
+}
+
+/** Whether a floor request is an approved player to seat, ready or not. */
+export const isSeatAlert = (request: FloorRequest): request is SeatAlert =>
+  request.kind === 'seat' || request.kind === 'seat_check' || request.kind === 'seat_wait';
+
+/**
  * What waits on the Live floor (decision 0479), each with what the floor acts on: a join (`id` the waitlist place), a
  * top-up (`id` its request; started or not), more time (`id` its request, the length asked), a player leaving (`id` the
- * seat session) and one who left owing call time (`id` the member). A seated one has its call time left, null for none.
+ * seat session), one who left owing call time (`id` the member), and an approved player to seat. A seated one has its
+ * call time left, null for none.
  */
 export type FloorRequest =
+  | SeatAlert
   | { readonly kind: 'join'; readonly id: string; readonly memberId: string; readonly fullName: string; readonly tableId: string; readonly since: string }
   | (Seated & { readonly kind: 'top_up'; readonly id: string; readonly sessionId: string; readonly isStarted: boolean; readonly callTimeLeft: number | null })
   | (Seated & { readonly kind: 'time'; readonly id: string; readonly sessionId: string; readonly minutes: number; readonly callTimeLeft: number | null })
@@ -47,10 +68,11 @@ function toSeatedRequest(row: RequestRow, seated: SeatedWho): FloorRequest[] {
   }
 }
 
-/** One row as a request: a join, or one at a seat. */
+/** One row as a request: a join, an approved player to seat, or one at a seat. */
 function toRequest(row: RequestRow): FloorRequest[] {
   const who = { id: row.request_id, memberId: row.member_id, fullName: row.full_name, since: row.since };
   if (row.kind === 'join') return [{ kind: 'join', ...who, tableId: row.table_id ?? '' }];
+  if (row.kind === 'seat' || row.kind === 'seat_check' || row.kind === 'seat_wait') return [{ kind: row.kind, ...who, tableId: row.table_id ?? '', seat: row.seat }];
   return toSeatedRequest(row, { ...who, sessionId: row.session_id ?? '', tableId: row.table_id ?? '', seat: row.seat ?? 0 });
 }
 
@@ -67,6 +89,19 @@ export function useFloorRequests(venueId: string, isEnabled = true) {
       return data.flatMap(toRequest);
     },
   });
+}
+
+/**
+ * Approve leads on to seating (the owner, 8 Nov): reads the floor's requests again and gives the approved place's alert
+ * when a seat is free for it (`seat`, none held for a call), else null: its identity check comes first, or no seat is free
+ * for it yet, and its alert waits on the requests instead.
+ */
+export function useReadyToSeat(venueId: string) {
+  const requests = useFloorRequests(venueId, false);
+  return async (entryId: string): Promise<SeatAlert | null> => {
+    const alert = (await requests.refetch()).data?.filter(isSeatAlert).find((one) => one.id === entryId);
+    return alert?.kind === 'seat' && alert.seat === null ? alert : null;
+  };
 }
 
 /** The club's targets for how long a request waits before it shows late, in seconds; null where it set none (decision 0479). */

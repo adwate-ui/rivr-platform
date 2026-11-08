@@ -133,7 +133,12 @@ describe('The requests panel (console v3)', () => {
   });
 
   it('folds to a strip with its count, and opens again', async () => {
-    await renderFloor();
+    // An ID check first and a wait for a seat have nothing for the floor to do yet: they are not counted.
+    const quiet = [
+      requestRow({ kind: 'seat_check', id: 'e8', name: 'Dev Khanna', minutes: 30, table_id: 't2' }),
+      requestRow({ kind: 'seat_wait', id: 'e9', name: 'Mira Shah', minutes: 20, table_id: 't2' }),
+    ];
+    await renderFloor({ ...FLOOR, requests: [...quiet, ...REQUESTS] });
     fireEvent.click(within(requests()).getByRole('button', { name: 'Collapse' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Open, 4 waiting' }));
     expect(within(requests()).getByText('Ritika Bhalla')).toBeDefined();
@@ -152,5 +157,18 @@ describe('The floor\'s keys (console v3)', () => {
     // In the sheet, typing an S is a number's, not the floor's.
     fireEvent.keyDown(within(sheet).getByRole('textbox', { name: 'Or a mobile or member number' }), { key: 'a' });
     expect(rpcs('approve_waitlist_request')).toHaveLength(1);
+  });
+
+  it('passes over approved players with A: seating one is the floor\'s own press, never a key', async () => {
+    const older = [
+      requestRow({ kind: 'seat', id: 'e7', name: 'Arjun Rao', minutes: 40, table_id: 't2', seat: 4 }),
+      requestRow({ kind: 'seat_check', id: 'e8', name: 'Dev Khanna', minutes: 30, table_id: 't2' }),
+      requestRow({ kind: 'seat_wait', id: 'e9', name: 'Mira Shah', minutes: 20, table_id: 't2' }),
+    ];
+    const { rpcs, router } = await renderFloor({ ...FLOOR, requests: [...older, ...REQUESTS] });
+    fireEvent.keyDown(window, { key: 'a' });
+    await waitFor(() => expect(rpcs('approve_waitlist_request')).toEqual([{ p_entry_id: 'e1' }]));
+    expect(rpcs('seat_from_waitlist')).toEqual([]);
+    expect(router.state.location.pathname).toBe('/');
   });
 });

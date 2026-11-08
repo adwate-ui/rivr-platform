@@ -15,17 +15,20 @@ export interface SeatSheetProps {
   tables: readonly FloorTable[];
   seats: readonly SeatedPlayer[];
   held: readonly HeldSeat[];
-  /** Where it opens: a table, and a seat there, or its first open one. */
-  start: { readonly tableId: string; readonly seat: number | null };
+  /** Where it opens: a table, and a seat there, or its first open one; and who, a place on its list, or its first. */
+  start: { readonly tableId: string; readonly seat: number | null; readonly entryId?: string | undefined };
   now: Date;
   changes: SeatChanges;
   onClose: () => void;
 }
 
-/** The next names on a table's own list (decision 0467), in order: waiting, not called, not away; four at most. */
-function nextOn(board: readonly WaitlistBoardEntry[], tableId: string): WaitlistBoardEntry[] {
+/**
+ * The next names on a table's own list (decision 0467), in order: waiting, not called, not away; four at most, and the
+ * place the sheet opened for (`pinned`) wherever it is on the list.
+ */
+function nextOn(board: readonly WaitlistBoardEntry[], tableId: string, pinned: string | undefined): WaitlistBoardEntry[] {
   return board.filter((entry) => entry.tableId === tableId && entry.callTableName === null && entry.awayUntil === null)
-    .sort((a, b) => a.place - b.place).slice(0, 4);
+    .sort((a, b) => a.place - b.place).filter((entry, index) => index < 4 || entry.entryId === pinned);
 }
 
 /** Who is seated: the number typed, else the name chosen; or why neither will do. */
@@ -42,8 +45,9 @@ function seatingOf(number: string, entry: WaitlistBoardEntry | undefined): Seati
 function useSeatChoice(start: SeatSheetProps['start']) {
   const [tableId, setTableId] = useState(start.tableId);
   const [seat, setSeat] = useState<number | null>(start.seat);
-  // A name chosen from the list; undefined takes the first on it, null none (a number is typed instead).
-  const [entryId, setEntryId] = useState<string | null | undefined>(undefined);
+  // A name chosen from the list, at first the one the sheet opened for; undefined takes the first on it, null none (a number
+  // is typed instead).
+  const [entryId, setEntryId] = useState<string | null | undefined>(start.entryId);
   const [number, setNumber] = useState('');
   // A call time the floor chose; null takes the table's own (seatingCallTime), as the table changes.
   const [callMinutes, setCallMinutes] = useState<number | null>(null);
@@ -69,7 +73,7 @@ function useSeatSheet({ venueId, tables, seats, held, start, changes, onClose }:
   const callMinutes = choice.callMinutes ?? seatingCallTime(table?.callTimeMinutes ?? 0);
   const free = table === undefined ? [] : openSeatsAt(table, taken);
   const seat = seatOf(free, choice.seat);
-  const next = nextOn(board, choice.tableId);
+  const next = nextOn(board, choice.tableId, start.entryId);
   const isTyped = choice.number.trim() !== '';
   const entry = choice.entryId === undefined ? next[0] : next.find((candidate) => candidate.entryId === choice.entryId);
   const confirm = async () => {

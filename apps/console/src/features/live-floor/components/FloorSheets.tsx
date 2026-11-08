@@ -1,5 +1,6 @@
-import type { FloorRequest, SeatedPlayer } from '@rivr/db';
+import { useReadyToSeat, type FloorRequest, type SeatAlert, type SeatedPlayer } from '@rivr/db';
 import { useNavigate } from '@tanstack/react-router';
+import type { Dispatch, SetStateAction } from 'react';
 import type { FloorData } from './useFloorData.ts';
 import { LeaveSheet, type Leaver } from './LeaveSheet.tsx';
 import { PlayerSheet } from './PlayerSheet.tsx';
@@ -14,7 +15,7 @@ import type { TableChanges } from './useTableChanges.ts';
 /** The sheet open on the floor: a player's, an open seat's, a table's, or leaving. */
 export type FloorSheet =
   | { readonly kind: 'player'; readonly sessionId: string }
-  | { readonly kind: 'seat'; readonly tableId: string; readonly seat: number | null }
+  | { readonly kind: 'seat'; readonly tableId: string; readonly seat: number | null; readonly entryId?: string | undefined }
   | { readonly kind: 'table'; readonly tableId: string }
   | { readonly kind: 'leave'; readonly leaver: Leaver };
 
@@ -36,18 +37,37 @@ export function leaverOfRequest(request: LeaveRequest, data: FloorData): Leaver 
   return player === undefined ? null : leaverOf(player, tableName);
 }
 
-/** What a request's Leave and its name open: the leave sheet, the player's sheet, or the record of one not seated. */
-export function useRequestOpeners(data: FloorData, onSheet: (sheet: FloorSheet) => void) {
+/** The seat sheet for an approved player: their table, its first free seat, and them chosen. */
+const seatSheetOf = (alert: SeatAlert): FloorSheet => ({ kind: 'seat', tableId: alert.tableId, seat: null, entryId: alert.id });
+
+
+/**
+ * What a request's Leave, its name and an approved player's action open: the leave sheet, the player's sheet, the record of
+ * one not seated, the seat sheet for an approved player, or the lists; and the seat sheet once a join is approved.
+ */
+export function useRequestOpeners(venueId: string, data: FloorData, onSheet: Dispatch<SetStateAction<FloorSheet | null>>) {
   const navigate = useNavigate();
+  const toRecord = (memberId: string) => void navigate({ href: `/members?member=${memberId}` });
+  const readyToSeat = useReadyToSeat(venueId);
   return {
     onLeave: (request: LeaveRequest) => {
       const leaver = leaverOfRequest(request, data);
       if (leaver !== null) onSheet({ kind: 'leave', leaver });
     },
     onOpen: (request: FloorRequest) => {
-      if (request.kind === 'join' || request.kind === 'left_owing') void navigate({ href: `/members?member=${request.memberId}` });
-      else onSheet({ kind: 'player', sessionId: request.sessionId });
+      if ('sessionId' in request && request.kind !== 'left_owing') onSheet({ kind: 'player', sessionId: request.sessionId });
+      else toRecord(request.memberId);
     },
+    onSeatAlert: (alert: SeatAlert) => {
+      if (alert.kind === 'seat') onSheet(seatSheetOf(alert));
+      // Check ID (decision 0503): the check in person, with the member searched by name, as the Waitlist's lists open it.
+      else if (alert.kind === 'seat_check') void navigate({ to: '/kyc-review', search: { check: alert.fullName } });
+      else void navigate({ href: '/waitlist' });
+    },
+    // Only while no sheet is open: one the floor opened meanwhile, mid-typing, stays.
+    onApproved: (entryId: string) => void readyToSeat(entryId).then((alert) => {
+      if (alert !== null) onSheet((open) => open ?? seatSheetOf(alert));
+    }),
   };
 }
 
@@ -80,7 +100,11 @@ export function FloorSheets(props: FloorSheetsProps) {
   const close = () => onSheet(null);
   switch (sheet?.kind) {
     case 'player': return <PlayerSheetFor {...props} sessionId={sheet.sessionId} />;
-    case 'seat': return <SeatSheet venueId={venueId} tables={data.tables} seats={data.seats} held={data.held} start={sheet} now={now} changes={changes.seats} onClose={close} />;
+    case 'seat': return (
+      // A sheet for another seat or player is a sheet of its own, never the last one's choices.
+      <SeatSheet key={`${sheet.tableId}:${String(sheet.seat)}:${sheet.entryId ?? ''}`} venueId={venueId} tables={data.tables} seats={data.seats}
+        held={data.held} start={sheet} now={now} changes={changes.seats} onClose={close} />
+    );
     case 'leave': return <LeaveSheet leaver={sheet.leaver} canLetGo={permissions.includes('call_time.override')} changes={changes.seats} onClose={close} />;
     case 'table': {
       const table = data.tables.find((one) => one.id === sheet.tableId);

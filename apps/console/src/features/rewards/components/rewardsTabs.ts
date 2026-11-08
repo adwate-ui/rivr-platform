@@ -13,14 +13,17 @@ export interface RewardsAccess {
   readonly handOver: boolean;
   /** points.give: points by hand and League points. */
   readonly give: boolean;
+  /** A super admin: bonus chips by hand, beside points by hand (the owner, 9 Nov). */
+  readonly giveBonus: boolean;
 }
 
-/** The access a staff member's permissions give. */
-export function accessOf(permissions: readonly string[]): RewardsAccess {
+/** The access a staff member's permissions and role give. */
+export function accessOf(permissions: readonly string[], role: string): RewardsAccess {
   return {
     keep: permissions.includes('rewards.manage'),
     handOver: permissions.includes('rewards.hand_over'),
     give: permissions.includes('points.give'),
+    giveBonus: role === 'super_admin',
   };
 }
 

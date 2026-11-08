@@ -38,7 +38,7 @@ afterEach(() => {
 
 function renderCard(props: {
   entries?: readonly WaitlistBoardEntry[]; ticked?: ReadonlySet<string>; onToggle?: (id: string) => void; onSeat?: () => void;
-  onCheckId?: (entry: WaitlistBoardEntry) => void;
+  onCheckId?: (entry: WaitlistBoardEntry) => void; onApproved?: (entryId: string) => void;
 }) {
   return render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
@@ -46,7 +46,7 @@ function renderCard(props: {
       <ToastProvider place="console">
         <TableWaitlist venueId="v1" table={TABLE} entries={props.entries ?? [place(1, 'Ishaan Verma'), place(2, 'Mihir Shah')]} requests={[REQUEST]}
           interest={undefined} canOpen now={NOW} ticked={props.ticked ?? new Set()} onToggle={props.onToggle ?? vi.fn()} onSeat={props.onSeat ?? vi.fn()}
-          onCheckId={props.onCheckId ?? vi.fn()} />
+          onApproved={props.onApproved ?? vi.fn()} onCheckId={props.onCheckId ?? vi.fn()} />
       </ToastProvider>
     </RivrDataProvider>,
   );
@@ -62,11 +62,13 @@ describe("a table's waitlist card (console v3)", () => {
     expect(within(card).getByRole('button', { name: 'Seat Ishaan Verma' })).toBeDefined();
   });
 
-  it('approves a join onto the list and says so', async () => {
-    renderCard({});
+  it('approves a join onto the list, says so, and leads on to seating them (the owner, 8 Nov)', async () => {
+    const onApproved = vi.fn();
+    renderCard({ onApproved });
     fireEvent.click(screen.getByRole('button', { name: 'Approve Ritika Bhalla' }));
     await waitFor(() => expect(calls).toContainEqual({ rpc: 'approve_waitlist_request', body: { p_entry_id: 'r1' } }));
     expect(await screen.findByText('Ritika Bhalla added to the Table 1 list')).toBeDefined();
+    expect(onApproved).toHaveBeenCalledWith('r1');
   });
 
   it('declines a join, which takes the request off', async () => {

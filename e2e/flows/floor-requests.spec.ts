@@ -1,8 +1,8 @@
 /**
  * The floor's requests (console v3, phase 2; decisions 0479 to 0481). Devika Rana, this flow's own floor manager (Auth
  * sends one code a minute to a number), works the requests docked beside the Live floor, oldest first. Neel Bose and
- * Devansh Malik ask to join Table 1 from the app: A approves the oldest, D declines the next, which Undo brings back, and
- * Decline declines it again. Seated, Devansh asks for an hour, which she declines, and says he is leaving: Not leaving,
+ * Devansh Malik ask to join Table 1 from the app: A approves the oldest, which opens the seat sheet with Neel chosen (it
+ * waits, and his alert to seat stays), D declines the next, which Undo brings back, and Decline declines it again. Seated, Devansh asks for an hour, which she declines, and says he is leaving: Not leaving,
  * undone, then Leave with a reason. Karan Gill, a host, frees Neel's seat owing call time, and she records why he was let
  * go. Approving more time and a top-up are in the Call time flow.
  */
@@ -44,7 +44,12 @@ test.describe('Floor requests', () => {
     await requestOf(page, 'Devansh Malik', /Join request/);
     await page.keyboard.press('a');
     await expect(page.getByText('Neel Bose added to the Table 1 list')).toBeVisible();
-    await expect(requestsPanel(page).getByRole('button', { name: 'Neel Bose', exact: true })).toHaveCount(0);
+    // Approved, he is the floor's to seat (the owner, 8 Nov): the seat sheet opens with him chosen. It can wait; his
+    // alert stays until he sits.
+    const seatNeel = page.getByRole('dialog', { name: 'Seat a player' });
+    await expect(seatNeel.getByRole('radio', { name: /^Neel Bose/ })).toHaveAttribute('aria-checked', 'true');
+    await seatNeel.getByRole('button', { name: 'Cancel' }).click();
+    await requestOf(page, 'Neel Bose', /To seat/);
     await page.keyboard.press('d');
     await expect(page.getByText('Devansh Malik: join declined')).toBeVisible();
     await page.getByRole('button', { name: 'Undo' }).click();

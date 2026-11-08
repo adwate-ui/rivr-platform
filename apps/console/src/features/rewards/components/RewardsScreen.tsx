@@ -40,7 +40,7 @@ interface BodyProps {
 function PartContent({ props, editing, onEdit }: { props: BodyProps; editing: Editing; onEdit: (editing: Editing) => void }) {
   const { venueId, access, current } = props;
   if (current === 'handover') return <RedemptionList venueId={venueId} />;
-  if (current === 'points') return <PointsTab venueId={venueId} />;
+  if (current === 'points') return <PointsTab venueId={venueId} canGiveBonus={access.giveBonus} />;
   return <CatalogueTab venueId={venueId} canKeep={access.keep} editing={editing} onEdit={onEdit} />;
 }
 
@@ -79,7 +79,7 @@ export function RewardsParts({ part, onNavigate }: { part: string | undefined; o
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
-  const access = accessOf(staff.venue.permissions);
+  const access = accessOf(staff.venue.permissions, staff.venue.role);
   const parts = partsFor(access);
   const first = parts[0];
   if (first === undefined) return <Screen title={t('console.rewards.title')} status="error" errorText={t('console.rewards.notAllowed')} />;

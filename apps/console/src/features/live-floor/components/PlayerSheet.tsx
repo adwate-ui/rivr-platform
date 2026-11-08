@@ -102,7 +102,7 @@ function Move({ player, tables, seats, held, changes }: Pick<PlayerSheetProps, '
 export function PlayerSheet(props: PlayerSheetProps) {
   const { venueId, player, table, requests, targets, now, permissions, changes, onLeave, onClose } = props;
   const navigate = useNavigate();
-  const asks = requests.filter((request) => request.kind !== 'join' && request.kind !== 'left_owing' && request.sessionId === player.sessionId);
+  const asks = requests.filter((request) => request.kind !== 'left_owing' && 'sessionId' in request && request.sessionId === player.sessionId);
   const footer = (
     <Inline justify="between" grow>
       <Button variant="text" onClick={() => onLeave()}>{t('console.floor.player.leave')}</Button>
@@ -114,7 +114,7 @@ export function PlayerSheet(props: PlayerSheetProps) {
       subtitle={t('console.floor.player.subtitle', { table: table.name, seat: player.seat, tier: player.tierName })}>
       <CallTime player={player} now={now} />
       {asks.map((request) => {
-        const words = wordsOf(request, table.name, now, targets);
+        const words = wordsOf(request, table, now, targets);
         const actions = requestActions(request, { changes: changes.requests, tableName: table.name, onLeave });
         return (
           <RequestItem key={request.kind} look="ask" title={askTitle(request)} age={words.age} isLate={words.isLate}

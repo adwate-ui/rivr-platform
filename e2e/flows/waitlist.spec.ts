@@ -132,6 +132,11 @@ test.describe('Waitlist', () => {
     await expect(higher.getByRole('button', { name: `Decline ${MEMBER}` })).toBeVisible();
     await higher.getByRole('button', { name: `Approve ${MEMBER}` }).click();
     await expect(host.getByText(`${MEMBER} added to the Table 2 list`)).toBeVisible();
+    // Approved with a seat free, the sheet to seat them opens (the owner, 8 Nov); it can wait, and they stay on the list.
+    const seatSheet = host.getByRole('dialog', { name: `Seat ${MEMBER}` });
+    await expect(seatSheet).toBeVisible();
+    await seatSheet.getByRole('button', { name: 'Cancel' }).click();
+    await expect(seatSheet).toHaveCount(0);
     await player.reload();
     await expect(player.getByText(IN_LINE)).toBeVisible();
     await expect(player.getByText('Waitlist · Table 2 · NLH 100/200')).toBeVisible();
