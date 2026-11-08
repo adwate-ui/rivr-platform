@@ -1,5 +1,9 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+/** The repository this harness lives in (scripts/sim-180d/src/ is three levels down). */
+export const REPO_ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 
 /** Everything a run makes lives here, outside the repository. */
 export const SIM_HOME = join(homedir(), '.rivr-sim180');

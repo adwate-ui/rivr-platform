@@ -1,7 +1,8 @@
+import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { DB_CONTAINER, DB_ROOT, runDir, SIM_HOME } from './paths.ts';
+import { DB_CONTAINER, DB_ROOT, REPO_ROOT, runDir, SIM_HOME } from './paths.ts';
 
 describe('paths', () => {
   it('keeps everything under ~/.rivr-sim180, outside the repository', () => {
@@ -11,6 +12,10 @@ describe('paths', () => {
 
   it('names the container after the copy, so it never clashes with a worktree stack', () => {
     expect(DB_CONTAINER).toBe('supabase_db_rivr-sim180-db');
+  });
+
+  it('finds the repository root', () => {
+    expect(existsSync(join(REPO_ROOT, 'pnpm-workspace.yaml'))).toBe(true);
   });
 
   it('keeps one folder per run', () => {
