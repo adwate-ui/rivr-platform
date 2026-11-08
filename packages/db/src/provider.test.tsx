@@ -1,11 +1,11 @@
-import { createClient, type RealtimeChannel } from '@supabase/supabase-js';
+import { AuthRetryableFetchError, createClient, type RealtimeChannel } from '@supabase/supabase-js';
 import { QueryClient } from '@tanstack/react-query';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { RivrClient } from './client.ts';
+import { SESSION_STORAGE_KEY, type RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { useControlState, useFeature, useFeatureStatus } from './hooks.ts';
-import { RivrDataProvider, useAuthStatus } from './provider.tsx';
+import { RivrDataProvider, useAuthStatus, useRivrData } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const ARJUN = '00000000-0000-4000-8000-000000000201';
@@ -117,6 +117,35 @@ describe('useAuthStatus', () => {
 
     await new Promise((resolve) => setTimeout(resolve, 300));
     expect(screen.getByText('auth: loading')).toBeDefined();
+  });
+
+  describe('in the app that keeps a night for offline (F-053)', () => {
+    function WhoProbe() {
+      const { authStatus, userId } = useRivrData();
+      return <p>{`${authStatus} as ${userId ?? 'nobody'}`}</p>;
+    }
+    const unreachable = () => {
+      const client = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
+        auth: { storage: sessionStorageFor(null), storageKey: 'rivr-test-auth', autoRefreshToken: false, detectSessionInUrl: false },
+      });
+      vi.spyOn(client.auth, 'getSession').mockResolvedValue({ data: { session: null }, error: new AuthRetryableFetchError('Failed to fetch', 0) });
+      return client;
+    };
+    const STORED = JSON.stringify({ access_token: 'old', refresh_token: 'old', token_type: 'bearer', expires_in: 3600, expires_at: 1, user: { id: ARJUN } });
+    afterEach(() => localStorage.clear());
+
+    it('goes on as the stored session\u2019s member when its token cannot be refreshed for want of a network', async () => {
+      localStorage.setItem(SESSION_STORAGE_KEY, STORED);
+      render(<RivrDataProvider client={unreachable()} keepsForOffline><WhoProbe /></RivrDataProvider>);
+      expect(await screen.findByText(`signed-in as ${ARJUN}`)).toBeDefined();
+    });
+
+    it.each([['nothing stored', null], ['a stored session it cannot read', 'not json'], ['one with no user', '{}']])('stays loading with %s', async (_name, stored) => {
+      if (stored !== null) localStorage.setItem(SESSION_STORAGE_KEY, stored);
+      render(<RivrDataProvider client={unreachable()} keepsForOffline><WhoProbe /></RivrDataProvider>);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(screen.getByText('loading as nobody')).toBeDefined();
+    });
   });
 });
 

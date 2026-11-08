@@ -15,7 +15,7 @@ const CARD = { member_number: 1024, full_name: 'Kavya Rao', tier_name: 'Member',
 const SELFIE = '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000290/selfie.jpg';
 
 /** Kavya signed in, and my_membership_card answering with her card, a failure, or never; `answer` changes it. */
-function renderCard(first: 'card' | 'fails' | 'never', card: object = CARD) {
+function renderCard(first: 'card' | 'fails' | 'never', card: object = CARD, kept?: object) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: KAVYA, aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -29,6 +29,7 @@ function renderCard(first: 'card' | 'fails' | 'never', card: object = CARD) {
     return answer === 'fails' ? Response.json({ message: 'down' }, { status: 503 }) : Response.json([card]);
   });
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  if (kept !== undefined) cache.setQueryData(['user', KAVYA, 'membership-card'], kept);
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })} queryClient={cache}>
       <CardScreen />
@@ -48,7 +49,7 @@ describe('Membership card', () => {
     onlineManager.setOnline(false);
     try {
       renderCard('never');
-      expect(await screen.findByText('No connection. Give your number at the door.')).toBeDefined();
+      expect(await screen.findByText('Give your number at the door.')).toBeDefined();
     } finally {
       onlineManager.setOnline(true);
     }
@@ -58,7 +59,26 @@ describe('Membership card', () => {
     Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false });
     try {
       renderCard('never');
-      expect(screen.getByText('No connection. Give your number at the door.')).toBeDefined();
+      expect(screen.getByRole('heading', { name: 'No connection' })).toBeDefined();
+      expect(screen.getByText('Give your number at the door.')).toBeDefined();
+      expect(screen.queryByText('Your number')).toBeNull();
+      expect(screen.getByRole('button', { name: 'Try again' })).toBeDefined();
+    } finally {
+      Reflect.deleteProperty(navigator, 'onLine');
+    }
+  });
+
+  it('gives the number the phone kept, opened with no connection (F-053)', async () => {
+    Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false });
+    try {
+      renderCard('never', CARD, { memberNumber: '1024', fullName: 'Kavya Rao', tierName: 'Member', code: 'old', msLeft: 0, photoPath: null });
+      expect(await screen.findByRole('heading', { name: 'No connection' }, { timeout: 5000 })).toBeDefined();
+      expect(screen.getByText('Your number')).toBeDefined();
+      // Large and at full contrast, in the card's figure style, with nothing after it to read past.
+      expect(screen.getByText('1024').className).toContain('text-56');
+      expect(screen.getByText('1024').className).not.toContain('muted');
+      expect(screen.getByText('Give your number at the door.')).toBeDefined();
+      expect(screen.getByRole('button', { name: 'Try again' })).toBeDefined();
     } finally {
       Reflect.deleteProperty(navigator, 'onLine');
     }
@@ -105,7 +125,7 @@ describe('Membership card', () => {
     Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false });
     try {
       renderCard('never');
-      expect(screen.getByText('No connection. Give your number at the door.')).toBeDefined();
+      expect(screen.getByText('Give your number at the door.')).toBeDefined();
       expect(screen.queryByText('Turn your brightness up.')).toBeNull();
     } finally {
       Reflect.deleteProperty(navigator, 'onLine');

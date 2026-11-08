@@ -2,7 +2,7 @@ import { useFeature, useSeatCallActions, useWaitlistActions, type WaitlistFailur
 import { secondsUntil } from '@rivr/domain/callTime';
 import { holdFraction } from '@rivr/domain/waitlist';
 import { formatMinutesSeconds, formatTime, t } from '@rivr/i18n';
-import { Box, Button, ErrorMessage, FeatureGate, Figure, Heading, ProgressBar, Stack, Text, useToast } from '@rivr/ui';
+import { Box, Button, ErrorMessage, FeatureGate, Figure, Heading, ProgressBar, Stack, Text, useIsOnline, useToast } from '@rivr/ui';
 import { useState } from 'react';
 import { WAITLIST_FAILURE_COPY } from './waitlistCopy.ts';
 
@@ -25,6 +25,7 @@ function Answers({ place }: { place: WaitlistPlace }) {
   const { acceptCall } = useSeatCallActions();
   const { leave } = useWaitlistActions();
   const join = useFeature('waitlist.join');
+  const isOnline = useIsOnline();
   const toast = useToast();
   const [failure, setFailure] = useState<WaitlistFailure | null>(null);
   const decline = async () => {
@@ -39,11 +40,11 @@ function Answers({ place }: { place: WaitlistPlace }) {
   return (
     <Stack gap={2}>
       <FeatureGate access={join}>
-        <Button variant="primary" size="tall" fullWidth isLoading={acceptCall.isPending} isDisabled={place.onWayAt !== null} onClick={() => void accept()}>
+        <Button variant="primary" size="tall" fullWidth isLoading={acceptCall.isPending} isDisabled={place.onWayAt !== null || !isOnline} onClick={() => void accept()}>
           {t(acceptCall.isPending ? 'player.live.ready.telling' : 'player.live.ready.onMyWay')}
         </Button>
       </FeatureGate>
-      <Button variant="text" size="large" fullWidth isLoading={leave.isPending} onClick={() => void decline()}>{t('player.live.ready.decline')}</Button>
+      <Button variant="text" size="large" fullWidth isDisabled={!isOnline} isLoading={leave.isPending} onClick={() => void decline()}>{t('player.live.ready.decline')}</Button>
       {failure === null ? null : <ErrorMessage look="dot">{t(WAITLIST_FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>
   );

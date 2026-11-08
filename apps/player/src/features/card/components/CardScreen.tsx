@@ -1,6 +1,6 @@
 import { useKycImageUrl, useMember, useMembershipCard } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Box, KycPhoto, kycPhotoStatus, MembershipCard, ProgressBar, Screen, Stack, Text } from '@rivr/ui';
+import { Box, Figure, KycPhoto, kycPhotoStatus, LoadState, MembershipCard, ProgressBar, Screen, Stack, Text } from '@rivr/ui';
 import { QrCode } from '@rivr/ui/qr-code';
 import { useEffect, useState } from 'react';
 
@@ -70,6 +70,20 @@ function BrightnessHint() {
   return isDue ? <Text variant="small" tone="muted" align="center">{t('player.card.brightness')}</Text> : null;
 }
 
+/** The door with no connection, when no code can be trusted (F-053): the member's number, where the phone kept it, large enough to read out. */
+function OfflineCard({ number, onRetry }: { number: string | undefined; onRetry: () => void }) {
+  return (
+    <LoadState isError look="serif" title={t('player.alerts.offlineTitle')} errorText={t('player.card.offline')} onRetry={onRetry}>
+      {number === undefined ? null : (
+        <Stack gap={1} align="center">
+          <Text variant="small" tone="muted" align="center">{t('player.card.yourNumber')}</Text>
+          <Figure size="display">{number}</Figure>
+        </Stack>
+      )}
+    </LoadState>
+  );
+}
+
 /**
  * The Card tab (decision 0320; #71): the membership card, gold-edged, with the member's number, verified selfie, name and
  * tier, then the QR the door scans on its cream panel across the card's column, a gold bar under it running down to the
@@ -83,7 +97,7 @@ export function CardScreen() {
   const title = t('player.card.tab');
   const look = { titleLook: 'serif' } as const;
   if (!navigator.onLine || card.fetchStatus === 'paused') {
-    return <Screen {...look} title={title} status="error" errorText={t('player.card.offline')} onRetry={() => void card.refetch()} />;
+    return <Screen {...look} title={title}><OfflineCard number={card.data?.memberNumber} onRetry={() => void card.refetch()} /></Screen>;
   }
   if (card.isPending) return <Screen {...look} title={title} status="loading" loadingLook="skeleton" />;
   if (card.isError || card.data === null) return <Screen {...look} title={title} status="error" onRetry={() => void card.refetch()} />;

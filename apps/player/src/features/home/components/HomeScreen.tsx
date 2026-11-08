@@ -1,7 +1,7 @@
 import { useFloorTables, useMySeat, useMyUpcomingTournaments, useMyWaitlist, type FloorTable, type MySeat, type WaitlistPlace } from '@rivr/db';
 import { useMyNotices, type Notice } from '@rivr/db/notices';
 import { t } from '@rivr/i18n';
-import { Box, haptic, PeekBar, PlayerDock, Screen, Sheet, SheetPanel, Stack, useToast } from '@rivr/ui';
+import { Box, haptic, PeekBar, PlayerDock, Screen, Sheet, SheetPanel, Stack, useIsOnline, useToast } from '@rivr/ui';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { isCallTimeEnding, minutesLeftToSay } from '@rivr/domain/callTime';
 import { useNow } from '../hooks/useNow.ts';
@@ -129,6 +129,15 @@ function useTonight() {
   };
 }
 
+/** Home before it has tables to show: loading, or offline with nothing kept of tonight, which says so (F-053), or failed. */
+function HomeNotReady({ isPending, onRetry }: { isPending: boolean; onRetry: () => void }) {
+  const isOnline = useIsOnline();
+  const title = t('player.live.title');
+  if (isPending && !isOnline) return <Screen title={title} isTitleHidden status="error" errorText={t('player.alerts.offlineScreen')} onRetry={onRetry} />;
+  if (isPending) return <Screen title={title} isTitleHidden status="loading" loadingLook="skeleton" />;
+  return <Screen title={title} status="error" onRetry={onRetry} />;
+}
+
 /**
  * Tonight (decision 0320, "Live night"): the member's own state fills the screen and the floor sits in a sheet. Browsing,
  * the offers and the tables, a table opening its join sheet; on a list, their place; called, the seat held for them; seated,
@@ -147,8 +156,7 @@ export function HomeScreen({ offer }: { offer: ReactNode }) {
   usePushAction(pushTargetOf(standing, !tonight.isPending), openAddTime);
   const title = t('player.live.title');
   const tables = tonight.tables.data;
-  if (tonight.isPending) return <Screen title={title} isTitleHidden status="loading" loadingLook="skeleton" />;
-  if (tables === undefined || tonight.places.data === undefined) return <Screen title={title} status="error" onRetry={tonight.retry} />;
+  if (tonight.isPending || tables === undefined || tonight.places.data === undefined) return <HomeNotReady isPending={tonight.isPending} onRetry={tonight.retry} />;
   return (
     <Screen title={title} isTitleHidden>
       <TonightTop seat={seat} now={now} shownAt={tonight.tables.dataUpdatedAt}

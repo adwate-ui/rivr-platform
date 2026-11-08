@@ -25,6 +25,17 @@ describe('Sign in › Phone', () => {
     expect(screen.getByText('Code comes on WhatsApp.')).toBeDefined();
   });
 
+  it('says so when the phone has no connection, and holds Send code back (F-175)', () => {
+    Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false });
+    try {
+      renderPhone();
+      expect(screen.getByText('No connection. Send the code once you are back online.')).toBeDefined();
+      expect(screen.getByRole('button', { name: 'Send code' })).toHaveProperty('disabled', true);
+    } finally {
+      Reflect.deleteProperty(navigator, 'onLine');
+    }
+  });
+
   it('links the terms and the privacy notice on the website, each in a new tab', () => {
     vi.stubEnv('VITE_WEB_URL', 'https://rivr.test');
     renderPhone();

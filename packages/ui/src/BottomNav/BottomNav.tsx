@@ -29,7 +29,7 @@ export interface BottomNavProps {
 export function BottomNav({ items, current, onNavigate }: BottomNavProps) {
   const visible = items.filter((item) => item.access.state !== 'hidden');
   return (
-    <nav aria-label={t('ui.playerTabs.label')} className="border-t border-hairline bg-raised">
+    <nav aria-label={t('ui.playerTabs.label')} className="safe-bottom border-t border-hairline bg-raised">
       <ul className="flex h-bottom-nav">
         {visible.map((item) => (
           <li key={item.tab} className="flex min-w-0 flex-1">

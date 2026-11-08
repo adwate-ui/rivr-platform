@@ -1,6 +1,7 @@
 import { PUSH_CHOICES, useFeature, usePreferenceActions, type Preferences, type PushChoice } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
 import { FeatureGate, Stack, Switch, Text } from '@rivr/ui';
+import { usePhone } from '../hooks/usePhone.ts';
 import { AnalyticsSwitch } from './AnalyticsSwitch.tsx';
 import { PhonePushSwitch } from './PhonePushSwitch.tsx';
 
@@ -31,9 +32,12 @@ function NotificationSwitch({ type, isOn }: { type: PushChoice; isOn: boolean })
  */
 export function NotificationsSection({ preferences }: { preferences: Preferences }) {
   const { setMarketing, setNameOnTvs } = usePreferenceActions();
+  const phone = usePhone();
   return (
     <Stack gap={1}>
-      <PhonePushSwitch />
+      <PhonePushSwitch phone={phone} />
+      {/* The switches below are the member's on any phone, so they stay; they say what they do on this one (F-169). */}
+      {phone.state === 'unsupported' || phone.state === 'blocked' ? <Text variant="small" tone="muted">{t('player.profile.pushOffNote')}</Text> : null}
       {PUSH_CHOICES.map((type) => <NotificationSwitch key={type} type={type} isOn={!preferences.notificationsOff.includes(type)} />)}
       <Switch label={t('player.profile.marketing')} hint={t('player.profile.marketingHint')} isOn={preferences.marketing}
         isDisabled={setMarketing.isPending} onChange={(isOn) => setMarketing.mutate(isOn)} />

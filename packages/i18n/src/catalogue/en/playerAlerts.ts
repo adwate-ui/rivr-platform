@@ -7,6 +7,9 @@ export const playerAlerts = {
   /** A refresh failed: the screen keeps what it last had. `{time}` is when that came, 22:41. */
   failed: "Couldn't refresh. Showing {time}.",
   offline: 'No connection. Showing tables as of {time}.',
+  /** Opened with no connection and nothing kept on the phone (F-053): the screen's name, and what to do. */
+  offlineTitle: 'No connection',
+  offlineGate: 'Open RIVR again once you are online.',
   retry: 'Try again',
   /** Seated, in the call time's last 15 minutes. */
   callEnding: 'Call time ends in {minutes} min',
