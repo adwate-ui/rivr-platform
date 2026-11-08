@@ -273,7 +273,7 @@ export const tokens = {
       "sheet": "240ms",
       "tick": "1000ms",
       "toast": "3200ms",
-      "toastUndo": "5000ms",
+      "toastUndo": "20000ms",
       "fresh": "2500ms",
       "turn": "1000ms"
     },

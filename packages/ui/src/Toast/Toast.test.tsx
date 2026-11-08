@@ -25,22 +25,29 @@ describe('Toast', () => {
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
   });
 
-  it('stays five seconds when it can be undone, so Undo can be pressed (console v3)', () => {
+  it('stays twenty seconds when it can be undone, on the console and the player alike (WCAG 2.2.1)', () => {
     vi.useFakeTimers();
-    renderIn(<ToastProvider place="console"><Trigger onUndo={() => undefined} /></ToastProvider>);
-    act(() => screen.getByRole('button', { name: 'Join' }).click());
-    expect(UNDO_TOAST_MS).toBe(5000);
-    act(() => vi.advanceTimersByTime(TOAST_MS));
-    expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument();
-    act(() => vi.advanceTimersByTime(UNDO_TOAST_MS - TOAST_MS));
-    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    for (const place of ['console', 'player'] as const) {
+      const { unmount } = renderIn(<ToastProvider place={place}><Trigger onUndo={() => undefined} /></ToastProvider>);
+      act(() => screen.getByRole('button', { name: 'Join' }).click());
+      expect(UNDO_TOAST_MS).toBe(20_000);
+      act(() => vi.advanceTimersByTime(UNDO_TOAST_MS - 1));
+      expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument();
+      act(() => vi.advanceTimersByTime(1));
+      expect(screen.getByRole('status')).toBeEmptyDOMElement();
+      unmount();
+    }
   });
 
-  it('keeps the player app\'s Undo to 3.2 seconds (decision 0320)', () => {
+  it('holds its time while the pointer or the focus is on it, and goes on Close', () => {
     vi.useFakeTimers();
     renderIn(<ToastProvider><Trigger onUndo={() => undefined} /></ToastProvider>);
     act(() => screen.getByRole('button', { name: 'Join' }).click());
-    act(() => vi.advanceTimersByTime(TOAST_MS));
+    const close = screen.getByRole('button', { name: 'Close' });
+    act(() => close.focus());
+    act(() => vi.advanceTimersByTime(UNDO_TOAST_MS * 3));
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument();
+    act(() => close.click());
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
   });
 

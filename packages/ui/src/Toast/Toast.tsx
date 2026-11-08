@@ -1,6 +1,7 @@
 import { t } from '@rivr/i18n';
 import { tokens } from '@rivr/tokens';
 import { createContext, use, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Icon } from '../Icon/Icon.tsx';
 
 /** One toast: what the member's own action did, and how to undo it when it can be undone. */
 export interface ToastMessage {
@@ -15,12 +16,15 @@ export interface ToastProps extends ToastMessage {
 
 /** How long a toast stays, from the tokens: 3.2 s. */
 export const TOAST_MS = Number.parseInt(String(tokens.motion.duration.toast), 10);
-/** How long a toast with Undo stays on the console, from the tokens: 5 s, so its change can be taken back (console v3). */
+/**
+ * How long a toast with Undo stays at least, from the tokens: 20 s, paused while hovered or focused, and it has Close, so
+ * its change can be taken back at the member's pace (WCAG 2.2.1).
+ */
 export const UNDO_TOAST_MS = Number.parseInt(String(tokens.motion.duration.toastUndo), 10);
 
 /**
- * A toast on its own, as the provider shows it: cream, with Undo when it can be undone. The provider's status region,
- * there all along, reads it out politely as it comes.
+ * A toast on its own, as the provider shows it: cream, with Undo and Close when it can be undone. The provider's status
+ * region, there all along, reads it out politely as it comes.
  */
 export function Toast({ text, onUndo, onClose }: ToastProps) {
   return (
@@ -28,10 +32,16 @@ export function Toast({ text, onUndo, onClose }: ToastProps) {
       data-toast="">
       <span>{text}</span>
       {onUndo ? (
-        <button type="button" className="min-h-touch shrink-0 font-semibold text-green underline"
-          onClick={() => { onClose(); onUndo(); }}>
-          {t('ui.toast.undo')}
-        </button>
+        <span className="flex shrink-0 items-center gap-1">
+          <button type="button" className="min-h-touch font-semibold text-green underline"
+            onClick={() => { onClose(); onUndo(); }}>
+            {t('ui.toast.undo')}
+          </button>
+          <button type="button" aria-label={t('ui.toast.close')} onClick={onClose}
+            className="flex size-touch items-center justify-center rounded-md text-green focus-visible:outline-2 focus-visible:outline-focus">
+            <Icon name="close" size="sm" />
+          </button>
+        </span>
       ) : null}
     </div>
   );
@@ -55,28 +65,43 @@ const PLACE = {
   console: 'flex justify-center px-4 pb-4 medium:bottom-0 medium:pb-6',
 } as const;
 
+/** The toast's time, held while the person's pointer or focus is on it and counted again from the start when it leaves. */
+function useToastTimer(close: () => void) {
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const duration = useRef(TOAST_MS);
+  const start = useCallback((ms: number) => {
+    clearTimeout(timer.current);
+    duration.current = ms;
+    timer.current = setTimeout(close, ms);
+  }, [close]);
+  const hold = useCallback(() => clearTimeout(timer.current), []);
+  const resume = useCallback(() => start(duration.current), [start]);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  return useMemo(() => ({ start, hold, resume }), [start, hold, resume]);
+}
+
 /**
  * Confirms the staff member's or member's own action at the foot of the screen (decision 0320): "Joined waitlist", with
- * Undo when it can be undone. One at a time; a new one replaces the last. It goes after 3.2 s, or on the console 5 s with Undo. Its status region is there
- * all along, empty between toasts, so each is announced as it comes.
+ * Undo when it can be undone. One at a time; a new one replaces the last. It goes after 3.2 s; with Undo after 20 s, held
+ * while hovered or focused, or on Close (WCAG 2.2.1). Its status region is there all along, empty between toasts, so each
+ * is announced as it comes.
  */
 export function ToastProvider({ children, place = 'player' }: ToastProviderProps) {
   const [message, setMessage] = useState<ToastMessage | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const close = useCallback(() => setMessage(null), []);
+  const timer = useToastTimer(close);
   const show = useCallback<ShowToast>((text, options) => {
-    clearTimeout(timer.current);
     setMessage({ text, onUndo: options?.onUndo });
-    timer.current = setTimeout(close, place === 'console' && options?.onUndo !== undefined ? UNDO_TOAST_MS : TOAST_MS);
-  }, [close, place]);
-  useEffect(() => () => clearTimeout(timer.current), []);
+    timer.start(options?.onUndo === undefined ? TOAST_MS : UNDO_TOAST_MS);
+  }, [timer]);
   const value = useMemo(() => show, [show]);
   return (
     <ToastContext value={value}>
       {children}
       <div role="status" aria-live="polite" className={`pointer-events-none fixed inset-x-0 bottom-bottom-nav z-modal ${PLACE[place]}`}>
         {message ? (
-          <div className="pointer-events-auto max-w-palette">
+          <div className="pointer-events-auto max-w-palette" onPointerEnter={timer.hold} onPointerLeave={timer.resume} onFocus={timer.hold}
+            onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) timer.resume(); }}>
             <Toast text={message.text} onUndo={message.onUndo} onClose={close} />
           </div>
         ) : null}
