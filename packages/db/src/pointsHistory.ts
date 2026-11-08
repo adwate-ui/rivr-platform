@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
@@ -26,6 +26,8 @@ export function useMyPointsHistory(count: number) {
   return useQuery({
     queryKey: queryKeys.myPointsHistory(userId ?? 'signed-out', count),
     enabled: userId !== null,
+    // Asking for more keeps the lines on screen until they come.
+    placeholderData: keepPreviousData,
     queryFn: async (): Promise<PointsLine[]> => {
       const { data, error } = await client.rpc('my_points_history', { p_limit: count });
       if (error) throw error;

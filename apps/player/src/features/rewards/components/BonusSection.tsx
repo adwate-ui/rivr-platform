@@ -24,21 +24,24 @@ function lineCopy(line: BonusLine): { label: string; value: string } {
 function History() {
   const [count, setCount] = useState(PAGE);
   const history = useMyBonusHistory(count);
-  if (history.isError) return <LoadState isError onRetry={() => void history.refetch()} />;
-  if (history.data === undefined) return <Skeleton rows={3} />;
-  if (history.data.length === 0) return <Text tone="muted">{t('memberRewards.bonus.noHistory')}</Text>;
+  // The page before: what is on screen stays if the next page fails.
+  const shown = useMyBonusHistory(Math.max(PAGE, count - PAGE));
+  const lines = history.data ?? shown.data;
+  if (lines === undefined) return history.isError ? <LoadState isError onRetry={() => void history.refetch()} /> : <Skeleton rows={3} />;
+  if (lines.length === 0) return <Text tone="muted">{t('memberRewards.bonus.noHistory')}</Text>;
   return (
     <Stack gap={2}>
       <Box>
-        {history.data.map((line, index) => {
+        {lines.map((line, index) => {
           const copy = lineCopy(line);
           return (
-            <DetailRow key={line.id} label={copy.label} value={copy.value} valueTone={line.kind === 'credited' ? 'accent' : 'muted'}
-              isLast={index === (history.data?.length ?? 0) - 1} />
+            <DetailRow key={line.id} label={copy.label} value={copy.value} valueTone={line.kind === 'credited' ? 'default' : 'muted'}
+              isLast={index === lines.length - 1} />
           );
         })}
       </Box>
-      {history.data.length < count ? null : (
+      {history.isError ? <LoadState isError onRetry={() => void history.refetch()} /> : null}
+      {lines.length < count ? null : (
         <Button variant="text" onClick={() => setCount(count + PAGE)}>{t('memberRewards.bonus.showEarlier')}</Button>
       )}
     </Stack>

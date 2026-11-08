@@ -41,6 +41,26 @@ select is((select array_agg(parameter_name::text) from information_schema.parame
            where r.routine_schema = 'public' and r.routine_name = 'my_points_history' and p.parameter_mode = 'OUT'),
   array['line_id', 'at', 'kind', 'points', 'reason'], 'who posted a line is not shown to members');
 
+-- Newest first: two lines written with their own times, the older first.
+reset role;
+create function pg_temp.dated_line(p_memo text, p_at timestamptz) returns void language plpgsql as $$
+declare
+  v_transaction uuid;
+begin
+  insert into public.ledger_transaction (venue_id, kind, idempotency_key, occurred_at, memo)
+  values ('00000000-0000-4000-8000-000000000001', 'points_earned', 'test:372:' || p_memo, p_at, p_memo) returning id into v_transaction;
+  insert into public.ledger_entry (venue_id, transaction_id, account_id, amount)
+  select '00000000-0000-4000-8000-000000000001', v_transaction, a.id, case when a.code = 'member.points' then -10 else 10 end
+  from public.ledger_account a
+  where a.venue_id = '00000000-0000-4000-8000-000000000001' and ((a.member_id = '00000000-0000-4000-8000-000000000213' and a.code = 'member.points') or (a.member_id is null and a.code = 'venue.points_issued'));
+end;
+$$;
+select pg_temp.dated_line('Test older', now() - interval '2 hours');
+select pg_temp.dated_line('Test newer', now() - interval '1 hour');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
+select results_eq($$ select reason from public.my_points_history(50) where reason in ('Test older', 'Test newer') $$,
+  $$ values ('Test newer'::text), ('Test older') $$, 'the newest line comes first');
+
 -- Another member sees none of his lines.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select is_empty($$ select 1 from public.my_points_history(50) where reason like '%Test%' $$, 'another member sees none of his');

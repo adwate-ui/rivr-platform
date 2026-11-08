@@ -1,6 +1,8 @@
 -- A reward priced in hotel nights is for a tier with rewards.accommodation (audit 8 Nov, F-046; rule 8): the catalogue shows
 -- it only to those tiers, and only they redeem one. A member's hotel-night balance is behind the same feature.
 
+update public.feature set description = 'Hotel nights earned by the hours played, at stakes with an hours-per-night rate, and spending them on rewards.' where key = 'rewards.accommodation';
+
 drop policy "members with the catalogue see their venue's live rewards" on public.reward_item;
 create policy "members with the catalogue see their venue's live rewards" on public.reward_item
   for select to authenticated

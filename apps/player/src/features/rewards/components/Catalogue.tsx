@@ -1,6 +1,7 @@
 import { REWARD_KINDS, type RewardKind } from '@rivr/contracts/rewardKinds';
 import type { RewardItem } from '@rivr/db';
 import { useRedeemReward, useRewardCatalogue } from '@rivr/db/myRewards';
+import { NIGHT } from '@rivr/domain/accommodation';
 import { rewardShortfall, soldOutLast, type RewardShortfall, type RewardsHeld } from '@rivr/domain/rewards';
 import { formatNights, formatNumber, t } from '@rivr/i18n';
 import { Box, Button, ChoiceChips, DetailRow, ErrorMessage, Inline, ItemPhoto, LoadState, Skeleton, Sheet, Stack, Text, useToast } from '@rivr/ui';
@@ -18,7 +19,7 @@ const noteOf = (item: RewardItem) => (item.stock === null ? item.detail : t('mem
 /** How far short the member is, in what the reward is priced in: `750 to go`, `1 night to go`, `0.75 nights to go`. */
 function toGo({ unit, short }: RewardShortfall): string {
   if (unit === 'points') return t('memberRewards.toGo', { points: formatNumber(short) });
-  return short === 1000n ? t('memberRewards.oneNightToGo') : t('memberRewards.nightsToGo', { nights: formatNights(short) });
+  return short === NIGHT ? t('memberRewards.oneNightToGo') : t('memberRewards.nightsToGo', { nights: formatNights(short) });
 }
 
 /**

@@ -1,3 +1,5 @@
+import { NIGHT } from '../accommodation/nights.ts';
+
 /** A reward's price: points, or whole hotel nights. */
 export interface RewardPrice {
   readonly points: bigint | null;
@@ -16,12 +18,10 @@ export interface RewardShortfall {
   readonly short: bigint;
 }
 
-const THOUSANDTHS_A_NIGHT = 1000n;
-
 /** How far short a member is of a reward, in what it is priced in (F-046); null when they hold enough. */
 export function rewardShortfall(price: RewardPrice, held: RewardsHeld): RewardShortfall | null {
   if (price.nights !== null) {
-    const short = BigInt(price.nights) * THOUSANDTHS_A_NIGHT - held.nights;
+    const short = BigInt(price.nights) * NIGHT - held.nights;
     return short > 0n ? { unit: 'nights', short } : null;
   }
   const short = (price.points ?? 0n) - held.points;

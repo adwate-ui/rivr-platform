@@ -35,6 +35,8 @@ export const rewards = {
     lockedHint: 'Rewards spend earned points only.',
     points: 'Points to give or release',
     reason: 'Reason',
+    /** Points given, locked or released show their reason in the member's points history (F-054). */
+    reasonHint: 'The member sees it in their history.',
     giveEarned: 'Give as earned',
     giveLocked: 'Give as locked',
     unlock: 'Release',
