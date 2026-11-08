@@ -96,8 +96,8 @@ describe('The requests panel (console v3)', () => {
     expect(within(panel).getByText('Table 2 waitlist')).toBeDefined();
     expect(within(panel).getByText('Wants +1 h')).toBeDefined();
     // A join six minutes old and a top-up four minutes old are past their targets; more time three minutes old is not.
-    expect(within(panel).getByText('6 min').className).toContain('text-danger');
-    expect(within(panel).getByText('4 min').className).toContain('text-danger');
+    expect(within(panel).getByText('Late · 6 min').className).toContain('text-danger');
+    expect(within(panel).getByText('Late · 4 min').className).toContain('text-danger');
     expect(within(panel).getByText('3 min').className).not.toContain('text-danger');
   });
 
@@ -157,6 +157,15 @@ describe('The floor\'s keys (console v3)', () => {
     // In the sheet, typing an S is a number's, not the floor's.
     fireEvent.keyDown(within(sheet).getByRole('textbox', { name: 'Or a mobile or member number' }), { key: 'a' });
     expect(rpcs('approve_waitlist_request')).toHaveLength(1);
+  });
+
+  it('acts with A on the request whose button holds the focus, not the oldest (WCAG 2.1.4)', async () => {
+    const { rpcs } = await renderFloor({ ...FLOOR, requests: [...REQUESTS, requestRow({ kind: 'join', id: 'e2', name: 'Meher Kapoor', minutes: 1, table_id: 't2' })] });
+    const meher = within(requests()).getByText('Meher Kapoor').closest('[data-request]');
+    if (!(meher instanceof HTMLElement)) throw new Error('no request row for Meher Kapoor');
+    within(meher).getByRole('button', { name: 'Approve' }).focus();
+    fireEvent.keyDown(meher, { key: 'a' });
+    await waitFor(() => expect(rpcs('approve_waitlist_request')).toEqual([{ p_entry_id: 'e2' }]));
   });
 
   it('passes over approved players with A: seating one is the floor\'s own press, never a key', async () => {

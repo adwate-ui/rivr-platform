@@ -25,7 +25,7 @@ describe('RequestItem', () => {
     expect(screen.queryByText('Join request')).not.toBeInTheDocument();
     expect(screen.queryByText('Table 1 waitlist')).not.toBeInTheDocument();
     expect(screen.getByText('Wants +1 h').parentElement?.parentElement).toHaveClass('bg-selected');
-    expect(screen.getByText('6 min')).toHaveClass('text-danger');
+    expect(screen.getByText('Late · 6 min')).toHaveClass('text-danger');
     await userEvent.click(screen.getByRole('button', { name: 'Approve' }));
     expect(approve).toHaveBeenCalledOnce();
   });
@@ -58,9 +58,13 @@ describe('RequestItem', () => {
 
   it('shows an age past its target in the danger colour, and says late, never by colour alone', () => {
     renderItem({ isLate: true });
-    const age = screen.getByText('4 min');
-    expect(age).toHaveClass('text-danger');
-    expect(age).toHaveTextContent('4 min, late');
+    // The word first, then the colour (WCAG 1.4.1).
+    expect(screen.getByText('Late · 4 min')).toHaveClass('text-danger');
+  });
+
+  it('carries the screen\'s key for the request, so the floor\'s keys find the one in focus', () => {
+    renderItem({ requestKey: 'join:e1' });
+    expect(screen.getByRole('button', { name: 'Approve' }).closest('[data-request]')).toHaveAttribute('data-request', 'join:e1');
   });
 
   it('marks a new request so its tint fades, and an old one not', () => {

@@ -90,7 +90,7 @@ export {
   isTopUpWaiting, useTodaysPlayers, useTopUpsTonight, type TodayStatus, type TodaysPlayer, type TopUpStatus, type TopUpTonight,
 } from './floorToday.ts';
 export { useStaffQueueCounts } from './staffQueues.ts';
-export { DENSITIES, useSetStaffDensity, useStaffDensity, type Density } from './staffPreference.ts';
+export { DENSITIES, useSetStaffDensity, useSetStaffShortcuts, useStaffDensity, useStaffShortcuts, type Density } from './staffPreference.ts';
 export {
   useTablesSetup, useTablesSetupActions, type SetupStake, type SetupTable, type StakeOrder, type TableGame,
   type TableOrder, type TablesFailure,

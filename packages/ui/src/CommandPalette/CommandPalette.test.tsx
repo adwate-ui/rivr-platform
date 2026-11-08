@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import { ShortcutProvider } from '../Shortcuts/Shortcuts.tsx';
 import { axeViolations, renderIn } from '../test/render.tsx';
 import { CommandPalette, type PaletteGroup } from './CommandPalette.tsx';
 import { SearchTrigger } from './SearchTrigger.tsx';
@@ -52,6 +53,14 @@ describe('CommandPalette', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
     screen.getByRole('textbox', { name: 'Note' }).blur();
     await userEvent.keyboard('/');
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('leaves / alone while single-key shortcuts are off, and still opens with Ctrl+K (WCAG 2.1.4)', async () => {
+    renderIn(<ShortcutProvider isOn={false}><Harness /></ShortcutProvider>);
+    await userEvent.keyboard('/');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    await openWithKeys();
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 

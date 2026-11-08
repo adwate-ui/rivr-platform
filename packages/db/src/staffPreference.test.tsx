@@ -7,7 +7,7 @@ import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { useStaffVenues } from './staff.tsx';
-import { useSetStaffDensity, useStaffDensity } from './staffPreference.ts';
+import { useSetStaffDensity, useSetStaffShortcuts, useStaffDensity, useStaffShortcuts } from './staffPreference.ts';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const SANA = '00000000-0000-4000-8000-000000000104';
@@ -39,7 +39,10 @@ function renderDensity(stored: unknown, writeStatus = 201) {
   });
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client} queryClient={queryClient}>{children}</RivrDataProvider>;
-  const { result } = renderHook(() => ({ density: useStaffDensity('v1'), set: useSetStaffDensity(), venues: useStaffVenues() }), { wrapper });
+  const { result } = renderHook(() => ({
+    density: useStaffDensity('v1'), set: useSetStaffDensity(), venues: useStaffVenues(),
+    shortcuts: useStaffShortcuts('v1'), setShortcuts: useSetStaffShortcuts(),
+  }), { wrapper });
   return { result, sent };
 }
 
@@ -77,5 +80,35 @@ describe('the console density', () => {
     await act(async () => { outcome = await result.current.set.mutateAsync('compact'); });
     expect(outcome).toEqual({ ok: false, error: 'unavailable' });
     await waitFor(() => expect(result.current.density.data).toBe('comfortable'));
+  });
+});
+
+describe('the keyboard shortcuts switch (WCAG 2.1.4)', () => {
+  it('is on until the staff member turns it off', async () => {
+    const { result } = renderDensity(null);
+    await waitFor(() => expect(result.current.shortcuts.data).toBe(true));
+  });
+
+  it('reads the staff member’s own switch at the venue', async () => {
+    const { result } = renderDensity({ has_shortcuts: false });
+    await waitFor(() => expect(result.current.shortcuts.data).toBe(false));
+  });
+
+  it('keeps the switch at every venue where they are staff, shown at once, and puts it back if refused', async () => {
+    const { result, sent } = renderDensity(null);
+    await waitFor(() => expect(result.current.venues.data).toHaveLength(2));
+    await waitFor(() => expect(result.current.shortcuts.data).toBe(true));
+    let outcome: unknown;
+    await act(async () => { outcome = await result.current.setShortcuts.mutateAsync(false); });
+    expect(outcome).toEqual({ ok: true, value: false });
+    const write = sent.find((one) => one.method === 'POST' && one.url.includes('/staff_preference'));
+    expect(write?.body).toEqual([{ staff_id: 's1', venue_id: 'v1', has_shortcuts: false }, { staff_id: 's2', venue_id: 'v2', has_shortcuts: false }]);
+    await waitFor(() => expect(result.current.shortcuts.data).toBe(false));
+
+    const refused = renderDensity(null, 500);
+    await waitFor(() => expect(refused.result.current.venues.data).toHaveLength(2));
+    await act(async () => { outcome = await refused.result.current.setShortcuts.mutateAsync(false); });
+    expect(outcome).toEqual({ ok: false, error: 'unavailable' });
+    await waitFor(() => expect(refused.result.current.shortcuts.data).toBe(true));
   });
 });

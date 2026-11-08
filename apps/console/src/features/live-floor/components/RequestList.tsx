@@ -52,9 +52,10 @@ export function RequestList({ requests, tables, targets, now, fresh, changes, on
         const tableName = tableNameOf(tables, request.tableId);
         const words = wordsOf(request, { name: tableName, isOpen: tables.find((table) => table.id === request.tableId)?.isOpen ?? true }, now, targets);
         const actions = requestActions(request, { changes, tableName, onLeave, onSeatAlert, onApproved });
+        // Marked with its key, so A and D act on the request whose button holds the focus (useFloorKeys).
         return (
-          <RequestItem key={key} kind={words.kind} age={words.age} isLate={words.isLate} title={request.fullName} onTitle={() => onOpen(request)}
-            detail={words.detail} isNew={fresh.has(key)} primary={button(`${key}:primary`, actions.primary)}
+          <RequestItem key={key} requestKey={key} kind={words.kind} age={words.age} isLate={words.isLate} title={request.fullName}
+            onTitle={() => onOpen(request)} detail={words.detail} isNew={fresh.has(key)} primary={button(`${key}:primary`, actions.primary)}
             secondary={actions.secondary === undefined ? undefined : button(`${key}:secondary`, actions.secondary)} />
         );
       })}

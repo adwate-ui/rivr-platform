@@ -1,5 +1,7 @@
 import type { Permission } from '@rivr/contracts';
-import { useAuthStatus, useControlState, useSignOut, useStaffDensity, useStaffQueueCounts, useStaffVenue, useWaitingHighHands, type StaffVenueState } from '@rivr/db';
+import {
+  useAuthStatus, useControlState, useSignOut, useStaffDensity, useStaffQueueCounts, useStaffShortcuts, useStaffVenue, useWaitingHighHands, type StaffVenueState,
+} from '@rivr/db';
 import { useRecordTableExport } from '@rivr/db/exports';
 import { t } from '@rivr/i18n';
 import {
@@ -31,6 +33,12 @@ type ReadyStaff = Extract<StaffVenueState, { status: 'ready' }>;
  * A screen the role does not include, refused, or one the club switched off, said to be off (C-04), under the screen's own
  * name (#811); but the Live floor's address, for a role without it (#640: Service), opens the first screen the role has.
  */
+/** The keys the screen open now offers, working while the staff member keeps their shortcuts switch on (WCAG 2.1.4). */
+function StaffShortcuts({ venueId, children }: { venueId: string; children: ReactNode }) {
+  const isOn = useStaffShortcuts(venueId);
+  return <ShortcutProvider isOn={isOn.data ?? true}>{children}</ShortcutProvider>;
+}
+
 function Refused({ refusal, landing }: { refusal: Refusal; landing: string | undefined }) {
   const navigate = useNavigate();
   useEffect(() => {
@@ -57,9 +65,9 @@ export function Frame({ children, prompt }: { children: ReactNode; prompt?: (sta
     // The keys the screen open now offers (useShortcut), and the menu's list of them; and the toasts every step raises,
     // with Undo where the step has its own compensating call (console v3).
     return (
-      <ShortcutProvider>
+      <StaffShortcuts venueId={staff.venue.venueId}>
         <ToastProvider place="console"><StaffFrame staff={staff} prompt={prompt} onIdle={onIdle}>{children}</StaffFrame></ToastProvider>
-      </ShortcutProvider>
+      </StaffShortcuts>
     );
   }
   // Until the staff record loads, or if it cannot, the header still offers a way out, and the rail stays empty (#811).
