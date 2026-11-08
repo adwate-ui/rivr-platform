@@ -221,6 +221,13 @@ export const ui = {
   /** A console table's filter matching no row (#30): `{query}` is what was typed. */
   dataTable: {
     noMatch: 'Nothing matches {query}.',
+    /** A table's own filters (owner, 8 Nov): the button, with how many are in force, and what an export records. */
+    filters: 'Filters',
+    filtersCount: 'Filters, {count} in force',
+    clearFilters: 'Clear filters',
+    noFilterMatch: 'Nothing matches these filters.',
+    filterInForce: '{label}: {value}',
+    or: ' or ',
     /** Sorting on a phone, where the header row is hidden (#605). */
     sortBy: 'Sort by',
     sortTable: 'Sort {table}',

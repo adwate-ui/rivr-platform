@@ -25,7 +25,7 @@ const FAILURE_COPY: Readonly<Record<LivePurgeFailure, MessageKey>> = {
 };
 
 const COLUMNS: readonly DataTableColumn<LivePurgeRow>[] = [
-  { key: 'table', header: t('console.purge.table'), cell: (row) => row.table, sortValue: (row) => row.table },
+  { key: 'table', header: t('console.purge.table'), cell: (row) => row.table, sortValue: (row) => row.table, filter: 'text' },
   { key: 'rows', header: t('console.purge.rows'), cell: (row) => formatNumber(row.rows), sortValue: (row) => row.rows, align: 'end' },
 ];
 

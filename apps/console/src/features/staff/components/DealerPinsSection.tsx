@@ -13,8 +13,9 @@ function standing(dealer: VenueDealer): string {
 /** The columns: the dealer, where their PIN stands, and Set PIN or Change, which opens the PIN's field under the row. */
 function pinColumns(openId: string | null, onOpen: (dealer: VenueDealer) => void): readonly DataTableColumn<VenueDealer>[] {
   return [
-    { key: 'dealer', header: t('console.dealerPins.dealer'), cell: (dealer) => dealer.fullName, sortValue: (dealer) => dealer.fullName, priority: 'primary' },
-    { key: 'pin', header: t('console.dealerPins.pinColumn'), cell: standing },
+    { key: 'dealer', header: t('console.dealerPins.dealer'), cell: (dealer) => dealer.fullName, sortValue: (dealer) => dealer.fullName, priority: 'primary', filter: 'text' },
+    { key: 'pin', header: t('console.dealerPins.pinColumn'), cell: standing, filter: 'choice',
+      filterValue: (dealer) => t(dealer.hasPin ? 'console.dealerPins.hasPin' : 'console.dealerPins.noPin') },
     {
       key: 'set', header: '', align: 'end',
       cell: (dealer) => (

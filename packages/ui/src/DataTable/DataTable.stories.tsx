@@ -40,6 +40,8 @@ interface MarkerTableProps {
   rows?: readonly Marker[];
   initialSort?: DataTableSort;
   withFilter?: boolean;
+  /** Filters on the member's name and tier (owner, 8 Nov: filters on every table). */
+  withColumnFilters?: boolean;
   /** Beneath an export provider, as every console table is for staff who export tables (#102). */
   withExport?: boolean;
   density?: 'comfortable' | 'compact';
@@ -52,9 +54,15 @@ function MarkerTable({ withExport = false, ...props }: MarkerTableProps) {
   return <DataTableExportProvider exporter={async () => true}><Markers {...props} /></DataTableExportProvider>;
 }
 
-function Markers({ state = 'ready', rows = markers(8), initialSort, withFilter = false, ...look }: Omit<MarkerTableProps, 'withExport'>) {
+// The member's name filtered by words typed, the tier by the tiers the rows hold.
+const FILTERED_COLUMNS: readonly DataTableColumn<Marker>[] = COLUMNS.map((column) => {
+  if (column.key === 'name') return { ...column, filter: 'text' as const };
+  return column.key === 'tier' ? { ...column, filter: 'choice' as const } : column;
+});
+
+function Markers({ state = 'ready', rows = markers(8), initialSort, withFilter = false, withColumnFilters = false, ...look }: Omit<MarkerTableProps, 'withExport'>) {
   const base = {
-    label: 'Open markers', columns: COLUMNS, rowKey: (row: Marker) => row.id, ...look, ...(initialSort ? { initialSort } : {}),
+    label: 'Open markers', columns: withColumnFilters ? FILTERED_COLUMNS : COLUMNS, rowKey: (row: Marker) => row.id, ...look, ...(initialSort ? { initialSort } : {}),
     ...(withFilter ? { filter: { label: 'Find a member', text: (row: Marker) => row.name } } : {}),
   };
   if (state === 'loading') return <DataTable {...base} status="loading" />;
@@ -92,6 +100,9 @@ export const Sorted: Story = { args: { initialSort: { key: 'amount', direction: 
 
 /** With a filter box above, matching a member's name. */
 export const WithFilter: Story = { args: { withFilter: true } };
+
+/** With Filters beside the search and Export: the member's name by words, the tier by its values (owner, 8 Nov). */
+export const WithColumnFilters: Story = { args: { withFilter: true, withColumnFilters: true, withExport: true } };
 
 /** For staff who export tables: one small Export control at the top right, offering CSV and XLSX (#102). */
 export const WithExport: Story = { args: { withFilter: true, withExport: true } };

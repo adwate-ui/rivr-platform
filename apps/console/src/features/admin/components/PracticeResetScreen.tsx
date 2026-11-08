@@ -15,7 +15,7 @@ const FAILURE_COPY: Readonly<Record<PracticeResetFailure, MessageKey>> = {
 };
 
 const COLUMNS: readonly DataTableColumn<PracticeResetRow>[] = [
-  { key: 'table', header: t('console.practiceReset.table'), cell: (row) => row.table, sortValue: (row) => row.table },
+  { key: 'table', header: t('console.practiceReset.table'), cell: (row) => row.table, sortValue: (row) => row.table, filter: 'text' },
   { key: 'now', header: t('console.practiceReset.now'), cell: (row) => formatNumber(row.now), sortValue: (row) => row.now, align: 'end' },
   { key: 'seed', header: t('console.practiceReset.seed'), cell: (row) => formatNumber(row.seed), sortValue: (row) => row.seed, align: 'end' },
 ];

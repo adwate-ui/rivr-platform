@@ -10,7 +10,7 @@ select no_plan();
 create temp table bonus as
 select v.id as version_id, p.id as promotion_id from public.promotion p join public.promotion_version v on v.promotion_id = p.id
 where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key = 'hours_bonus';
-update public.promotion_version set status = 'live', limits = '{"perMember": "per_visit"}',
+update public.promotion_version set status = 'live', limits = '{"perMember": "per_visit"}', schedule = jsonb_set(schedule, '{startsOn}', to_jsonb(to_char(private.club_day_of(now()) - 1, 'YYYY-MM-DD'))),
   reward = '{"kind": "hours_bonus", "mode": "steps", "steps": [{"afterMinutes": 120, "chips": 500}, {"afterMinutes": 240, "chips": 1000}]}'
 where id = (select version_id from bonus);
 select private.sync_promotion((select promotion_id from bonus));

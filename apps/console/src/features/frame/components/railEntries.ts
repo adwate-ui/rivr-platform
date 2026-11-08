@@ -90,6 +90,8 @@ export const RAIL: readonly RailGroup[] = [
     id: 'admin', label: 'console.rail.groups.admin', isCollapsible: true, entries: [
       { id: 'staff', label: 'console.rail.items.staff', href: '/staff', icon: 'staff', anyOf: ['staff.manage'] },
       { id: 'tables', label: 'console.rail.items.tables', href: '/tables', icon: 'tables', anyOf: ['tables.manage'] },
+      // The money-free Tables view (owner, 8 Nov); the money reports stay hidden.
+      { id: 'reports', label: 'console.rail.items.reports', href: '/reports', icon: 'sessions', anyOf: ['reports.read'] },
       { id: 'settings', label: 'console.rail.items.settings', href: '/settings', icon: 'settings', anyOf: [], tabs: [
         { id: 'settings', label: 'console.rail.items.settings', anyOf: ['settings.manage', 'venue.configure'] },
         { id: 'devices', label: 'console.rail.items.devices', anyOf: ['devices.manage'] },
@@ -142,7 +144,6 @@ export const HIDDEN: readonly HiddenScreen[] = [
   { label: 'console.rail.items.tallyExport', href: '/tally', locksWhenIdle: true },
   { label: 'console.rail.items.shareholders', href: '/shareholders' },
   { label: 'console.rail.items.aml', href: '/aml' },
-  { label: 'console.rail.items.reports', href: '/reports', locksWhenIdle: true },
   { label: 'console.rail.items.hands', href: '/pot-data' },
   { label: 'console.rail.items.roster', href: '/roster' },
   { label: 'console.rail.items.certification', href: '/certification' },

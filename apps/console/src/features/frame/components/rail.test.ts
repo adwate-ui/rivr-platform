@@ -15,7 +15,7 @@ describe('the console rail (console v3)', () => {
       ['Live floor', 'Waitlist', 'Door', 'Food and drink'],
       ['Members', 'KYC review', 'Host queue', 'Feedback'],
       ['Promotions', 'Rewards', 'Social', 'Content'],
-      ['Staff', 'Tables', 'Settings', 'Kill switch', 'Practice reset', 'Purge'],
+      ['Staff', 'Tables', 'Reports', 'Settings', 'Kill switch', 'Practice reset', 'Purge'],
     ]);
     expect(rail.map((section) => section.isCollapsible === true)).toEqual([false, false, false, true]);
     const danger = rail.flatMap((section) => section.items).filter((item) => item.tone === 'danger').map((item) => item.label);
@@ -33,7 +33,7 @@ describe('the console rail (console v3)', () => {
 
   it('gives an admin Admin without the danger screens, which it refuses by address', () => {
     expect(groups('admin')).toEqual(['Tonight', 'Players', 'Marketing', 'Admin']);
-    expect(railFor(ROLE_PERMISSIONS.admin).find((section) => section.label === 'Admin')?.items.map((item) => item.href)).toEqual(['/staff', '/tables', '/settings']);
+    expect(railFor(ROLE_PERMISSIONS.admin).find((section) => section.label === 'Admin')?.items.map((item) => item.href)).toEqual(['/staff', '/tables', '/reports', '/settings']);
     for (const path of ['/kill-switch', '/practice-reset', '/purge']) expect(isAllowedAt(ROLE_PERMISSIONS.admin, path)).toBe(false);
     // Content is the website and Learn content: neither is an admin's.
     expect(items('admin')).not.toContain('/content');
@@ -52,10 +52,11 @@ describe('the console rail (console v3)', () => {
     expect(phoneTabsFor(ROLE_PERMISSIONS.service)).toEqual([]);
   });
 
-  it('gives marketing its own screens and the floor to look at, a dealer and the owner the floor alone', () => {
+  it('gives marketing its own screens and the floor to look at, a dealer the floor alone, and the owner the floor and Reports', () => {
     expect(items('marketing')).toEqual(['/', '/promotions', '/rewards', '/social', '/content']);
     expect(items('dealer')).toEqual(['/']);
-    expect(items('owner_view')).toEqual(['/']);
+    // Reports shows only its money-free Tables view (owner, 8 Nov).
+    expect(items('owner_view')).toEqual(['/', '/reports']);
   });
 
   it('keeps a cashier out of admin screens, whether from the rail or by address, whatever the case', () => {
@@ -87,7 +88,7 @@ describe('the console rail (console v3)', () => {
   it('hides what the owner hid on 29 Oct from everyone, by the rail and by address, naming the screen it refuses', () => {
     const everyone = ROLE_PERMISSIONS.super_admin;
     const hidden = ['/owner', '/tournaments', '/dealers', '/jackpots', '/cage', '/withdrawals', '/academy/payments', '/shift', '/tiers', '/league',
-      '/events', '/creators', '/academy', '/accounts', '/expenses', '/markers', '/tds', '/tally', '/shareholders', '/aml', '/reports', '/pot-data',
+      '/events', '/creators', '/academy', '/accounts', '/expenses', '/markers', '/tds', '/tally', '/shareholders', '/aml', '/pot-data',
       '/roster', '/certification', '/sops', '/incidents', '/exports'];
     for (const screen of hidden) {
       expect(refusalAt(everyone, screen)?.isOff).toBe(true);
@@ -125,7 +126,7 @@ describe('the console rail (console v3)', () => {
   });
 
   it('keeps the cage and money screens locking after ten idle minutes, and none of them on the rail', () => {
-    const money = ['/cage', '/markers', '/shift', '/accounts', '/expenses', '/tds', '/tally', '/reports', '/withdrawals', '/academy/payments'];
+    const money = ['/cage', '/markers', '/shift', '/accounts', '/expenses', '/tds', '/tally', '/withdrawals', '/academy/payments'];
     for (const screen of money) expect(locksWhenIdle(screen)).toBe(true);
     expect(locksWhenIdle('/Markers')).toBe(true);
     expect(items('super_admin').filter((href) => money.includes(href))).toEqual([]);

@@ -42,7 +42,8 @@ const mobileColumn: DataTableColumn<MemberListRow> = {
 function moreColumns(): readonly DataTableColumn<MemberListRow>[] {
   return [
     {
-      key: 'kyc', header: t('console.members.kyc'), sortValue: (row) => KYC_ORDER.indexOf(row.kycStatus),
+      key: 'kyc', header: t('console.members.kyc'), sortValue: (row) => KYC_ORDER.indexOf(row.kycStatus), filter: 'choice',
+      filterValue: (row) => t(`console.members.kycStatuses.${row.kycStatus}`),
       cell: (row) => <DotStatus tone={KYC_TONE[row.kycStatus]} label={t(`console.members.kycStatuses.${row.kycStatus}`)} />,
       exportValue: (row) => t(`console.members.kycStatuses.${row.kycStatus}`),
     },
@@ -50,7 +51,7 @@ function moreColumns(): readonly DataTableColumn<MemberListRow>[] {
       key: 'played', header: t('console.members.played'), align: 'end', sortValue: (row) => row.minutesPlayed,
       cell: (row) => formatHoursMinutes(row.minutesPlayed * 60),
     },
-    { key: 'city', header: t('console.members.city'), priority: 'optional', cell: (row) => row.city ?? '', sortValue: (row) => row.city ?? '' },
+    { key: 'city', header: t('console.members.city'), priority: 'optional', cell: (row) => row.city ?? '', sortValue: (row) => row.city ?? '', filter: 'choice' },
     {
       key: 'since', header: t('console.members.memberSince'), priority: 'optional', sortValue: (row) => row.memberSince,
       cell: (row) => formatMonthYear(new Date(row.memberSince)),
@@ -84,10 +85,17 @@ function coreColumns(tonight: ReadonlyMap<string, Tonight>): readonly DataTableC
     { key: 'tier', header: t('console.members.tier'), cell: (row) => row.tierName, sortValue: (row) => row.tierName },
     {
       key: 'tonight', header: t('console.members.tonight'), cell: (row) => <TonightStatus tonight={tonight.get(row.memberId)} />,
-      sortValue: (row) => tonightOrder(tonight.get(row.memberId)), exportValue: (row) => tonightWords(tonight.get(row.memberId)),
+      sortValue: (row) => tonightOrder(tonight.get(row.memberId)), exportValue: (row) => tonightWords(tonight.get(row.memberId)), filter: 'choice',
+      filterValue: (row) => tonightKind(tonight.get(row.memberId)),
     },
     { key: 'visits', header: t('console.members.visits'), cell: (row) => formatNumber(row.visits), sortValue: (row) => row.visits, align: 'end' },
   ];
+}
+
+/** Tonight as its filter reads it (owner, 8 Nov): Seated, Waiting, Left or Not here, never a seat of its own. */
+function tonightKind(tonight: Tonight | undefined): string {
+  if (tonight === undefined) return t('console.members.tonightKinds.notHere');
+  return tonight.kind === 'seated' ? t('console.members.tonightKinds.seated') : t(`console.members.${tonight.kind}`);
 }
 
 /** Tonight in words for an export: `Table 2, seat 3`, `Waiting` or `Left`. */

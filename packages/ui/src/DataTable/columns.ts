@@ -22,6 +22,13 @@ export interface DataTableColumn<Row> {
    * sort value. A column with no heading, such as a row's buttons, is left out of exports.
    */
   readonly exportValue?: (row: Row) => string | number;
+  /**
+   * A filter of its own in the table's Filters (owner, 8 Nov: filters on every table): `text`, words typed; `choice`, any
+   * of the values its rows hold. Every filter in force must hold; a choice holds for any value picked.
+   */
+  readonly filter?: 'text' | 'choice';
+  /** What the filter reads: one value, or several (a player at two tables) any of which a choice may hold; without it, the cell's words. */
+  readonly filterValue?: (row: Row) => string | readonly string[];
 }
 
 /** Which column the rows are sorted by, and which way. */

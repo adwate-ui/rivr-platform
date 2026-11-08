@@ -18,7 +18,7 @@ function columns(): readonly DataTableColumn<StaffMember>[] {
       key: 'name', header: t('console.staff.name'), sortValue: (row) => row.fullName,
       cell: (row) => (row.isMe ? `${row.fullName} · ${t('console.staff.you')}` : row.fullName),
     },
-    { key: 'jobTitle', header: t('console.staff.jobTitle'), cell: (row) => row.jobTitle, sortValue: (row) => row.jobTitle },
+    { key: 'jobTitle', header: t('console.staff.jobTitle'), cell: (row) => row.jobTitle, sortValue: (row) => row.jobTitle, filter: 'choice' },
     { key: 'role', header: t('console.staff.role'), cell: (row) => roleName(row.role), sortValue: (row) => roleName(row.role) },
     {
       key: 'phone', header: t('console.staff.phone'), priority: 'secondary',

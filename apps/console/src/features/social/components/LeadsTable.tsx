@@ -5,12 +5,12 @@ import { DataTable, type DataTableColumn } from '@rivr/ui';
 /** The table's columns, made when it draws, so t() runs once the app's words are registered, as columns() does elsewhere (F2-31). */
 function columns(): readonly DataTableColumn<Lead>[] {
   return [
-    { key: 'channel', header: t('console.social.leads.channel'), cell: (row) => t(`console.social.leads.channels.${row.channel}`) },
-    { key: 'handle', header: t('console.social.leads.handle'), cell: (row) => row.handle },
+    { key: 'channel', header: t('console.social.leads.channel'), cell: (row) => t(`console.social.leads.channels.${row.channel}`), filter: 'choice' },
+    { key: 'handle', header: t('console.social.leads.handle'), cell: (row) => row.handle, filter: 'text' },
     { key: 'first', header: t('console.social.leads.firstMessage'), cell: (row) => row.firstMessage },
     { key: 'last', header: t('console.social.leads.lastMessage'), sortValue: (row) => row.lastMessageAt, cell: (row) => formatDayTime(new Date(row.lastMessageAt)) },
     { key: 'messages', header: t('console.social.leads.messages'), align: 'end', sortValue: (row) => row.messages, cell: (row) => formatNumber(row.messages) },
-    { key: 'member', header: t('console.social.leads.member'), cell: (row) => row.memberName ?? t('console.social.leads.notMember') },
+    { key: 'member', header: t('console.social.leads.member'), cell: (row) => row.memberName ?? t('console.social.leads.notMember'), filter: 'text' },
   ];
 }
 

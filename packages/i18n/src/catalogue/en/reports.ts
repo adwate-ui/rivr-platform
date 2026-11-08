@@ -3,7 +3,22 @@ export const reports = {
   title: 'Reports',
   /** One report at a time (#605). */
   tabsLabel: 'Reports',
-  tabs: { tonight: 'Tonight', mis: 'Monthly MIS', unclaimed: 'Unclaimed balances', growth: 'Growth and channels' },
+  tabs: { tables: 'Tables', tonight: 'Tonight', mis: 'Monthly MIS', unclaimed: 'Unclaimed balances', growth: 'Growth and channels' },
+  /** The MIS Tables view (owner, 8 Nov), money-free: each table over a span of club days. `{percent}` is a whole number. */
+  tables: {
+    title: 'Tables',
+    span: 'Span',
+    spans: { today: 'Tonight', week: 'Last 7 days', month: 'Last 30 days' },
+    table: 'Table',
+    seats: 'Seats',
+    hoursRun: 'Hours run',
+    players: 'Players',
+    peak: 'Most at once',
+    playerHours: 'Player hours',
+    use: 'Seat use',
+    percent: '{percent}%',
+    empty: 'No table ran in this span.',
+  },
   notAllowed: 'Reports are for managers and the owner.',
   practice: 'The practice venue has no reports.',
   tonight: 'Tonight',

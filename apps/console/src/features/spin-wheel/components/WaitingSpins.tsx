@@ -28,8 +28,8 @@ function WaitingHeading({ saysWhy, count }: { saysWhy: boolean; count: number | 
 /** Who, from which promotion, given when, and the button to spin it. */
 function columnsFor(spinButton: (row: WaitingSpin) => ReactNode): readonly DataTableColumn<WaitingSpin>[] {
   return [
-    { key: 'member', header: t('console.spin.member'), cell: (row) => row.memberName },
-    { key: 'promotion', header: t('console.spin.promotion'), cell: (row) => row.promotionName },
+    { key: 'member', header: t('console.spin.member'), cell: (row) => row.memberName, filter: 'text' },
+    { key: 'promotion', header: t('console.spin.promotion'), cell: (row) => row.promotionName, filter: 'choice' },
     { key: 'granted', header: t('console.spin.granted'), cell: (row) => formatDayTime(new Date(row.grantedAt)) },
     { key: 'spin', header: t('console.spin.spin'), align: 'end', cell: spinButton },
   ];
