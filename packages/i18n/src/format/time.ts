@@ -58,6 +58,17 @@ export function formatDateTime(at: Date): string {
   return `${formatDate(at)}, ${formatTime(at)}`;
 }
 
+/**
+ * When something has waited since (audit F-090): the day and time, with the year when it is not this one, and its age from a
+ * day on: `Sun 15 Nov, 11:00 · 90 days`.
+ */
+export function formatWaitingSince(at: Date, now: Date = new Date()): string {
+  const when = ISO_DAY.format(at).slice(0, 4) === ISO_DAY.format(now).slice(0, 4) ? formatDayTime(at) : formatDateTime(at);
+  const days = Math.floor((now.getTime() - at.getTime()) / 86_400_000);
+  if (days < 1) return when;
+  return `${when} · ${days === 1 ? '1 day' : `${days} days`}`;
+}
+
 /** A time still to run, in whole minutes rounded up: `1 h 12 min`, `2 h`, `45 min`, `1 min`. */
 export function formatDuration(seconds: number): string {
   const minutes = Math.ceil(Math.max(0, seconds) / 60);

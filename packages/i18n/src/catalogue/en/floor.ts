@@ -56,17 +56,17 @@ export const liveFloor = {
   leaveEarly: 'Leave early',
   leaveEarlyName: 'Let {name} leave early',
   leaveEarlyTitle: 'Early departure for {name}',
-  leaveEarlyOwed: '{time} of call time still owed.',
+  leaveEarlyOwed: '{time} call time owed.',
   leaveEarlyReason: 'Why they leave early',
   leaveEarlyHint: 'Recorded with your name.',
   letLeaveEarly: 'Let leave early',
   /** The single Leave's other way (decision 0299): the seat freed, the call time still owed at the cage. */
   leaveOwing: 'Leave owing',
   leftEarly: 'Released early.',
-  callTimeDone: 'Call time complete.',
+  callTimeDone: 'Call time done.',
   /** Members still in the room who left their seat before its call time. `{time}`: 45 min. */
   leftOwingTitle: 'Left before call time',
-  leftOwingLine: '{table} · {time} owed',
+  leftOwingLine: '{table} · {time} call time owed',
   /** A player who is up and wants to go tells the floor, which marks them leaving (decision 0163). */
   leaving: 'Leaving',
   notLeaving: 'Not leaving',
@@ -85,7 +85,7 @@ export const liveFloor = {
   callTimeMinutes: 'Call time in minutes, from when they sat down',
   callTimeHint: 'Minutes. 0 for none.',
   saveCallTime: 'Save call time',
-  callTimeInvalid: 'Enter whole minutes from 0 to 1,440.',
+  callTimeInvalid: 'Enter whole minutes, up to 24 h.',
   /** A seated player's top-up (#634): asked for from the app, then in hand; handled on Top-ups (decision 0299). No amount. */
   topUpRequested: 'Top-up requested',
   topUpInProgress: 'Top-up in progress',
@@ -110,7 +110,7 @@ export const liveFloor = {
   seat: 'Seat',
   invalidPhone: 'Enter a 10-digit mobile number or a member number.',
   /** Seating refused: a custom call time out of range. */
-  invalidCallTime: 'Give a call time of 0 to 1,440 minutes.',
+  invalidCallTime: 'Give a call time of up to 24 h.',
   openTable: 'Open table',
   closeTable: 'Close table',
   mustMoveTo: 'Must move to',
@@ -133,8 +133,8 @@ export const liveFloor = {
   tableOpen: 'Open',
   ringOpen: '{name}, open',
   /** Started, waiting for review, refused or under age: the front desk sees which, and checks in person (C-08). */
-  kycNeeded: 'This member has not finished their identity check. Send them to the front desk.',
-  onBreak: 'On a break. Seating is closed until it ends.',
+  kycNeeded: 'This member has not finished their ID check. Send them to the front desk.',
+  onBreak: 'This member is on a break from play. Not seated.',
   noMember: 'No member has that number. Sign them up first.',
   stopped: 'This member is frozen. Ask a manager.',
   paused: 'Venue frozen. Try again once it is released.',
@@ -268,7 +268,7 @@ export const timeRequests = {
   line: '{table}, seat {seat} · {name}',
   /** `{time}`: 1h 20m. */
   left: '{time} call time left',
-  met: 'Call time met',
+  met: 'Call time done',
   notAllowed: 'Not in your role. Ask an admin.',
   failures: {
     paused: 'Venue frozen. Try again once it is released.',

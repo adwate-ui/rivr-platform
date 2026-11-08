@@ -64,7 +64,7 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   },
   'floor.request_targets': {
     name: 'Request targets',
-    help: 'Seconds a request waits on the Live floor before it shows late. 60 for a top-up and 300 for the rest unless set.',
+    help: 'How long a request waits on the Live floor before it shows late, in seconds: a top-up after 1 min and the rest after 5 min unless set.',
     fields: { top_up_seconds: 'Top-up, seconds', other_seconds: 'Others, seconds' },
   },
   'card.qr_rotation_seconds': {

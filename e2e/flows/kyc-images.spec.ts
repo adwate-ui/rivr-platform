@@ -1,6 +1,6 @@
 /**
  * KYC images (#3): staff get a one-minute link to an image only through the kyc-image-url Edge
- * Function, and only with KYC review or the cage at its venue. Local stack only: it uploads a
+ * Function, and only with ID checks or the cage at its venue. Local stack only: it uploads a
  * test image with the service role, which never leaves this machine.
  */
 import { execFileSync } from 'node:child_process';

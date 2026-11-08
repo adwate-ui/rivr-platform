@@ -142,7 +142,7 @@ export const withdrawals = {
   utrUsed: 'That UTR already paid another withdrawal. Check the bank record.',
   invalid: 'That withdrawal is no longer waiting, or a field is wrong.',
   switchedOff: 'Withdrawals are switched off.',
-  paused: 'The venue is frozen. Nothing changes until it is released.',
+  paused: 'Venue frozen. Try again once it is released.',
   stopped: 'This member is frozen. Nothing changes until the freeze is released.',
   notAllowedFailure: 'Not allowed for your role.',
   unavailable: 'Could not save. Check the connection and try again.',

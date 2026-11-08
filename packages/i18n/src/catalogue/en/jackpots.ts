@@ -48,7 +48,7 @@ export const jackpots = {
   frozenMember: 'One of those players is frozen, so no jackpot is paid to them. A manager releases the freeze first.',
   changed: 'The jackpot changed since these amounts were shown, so nothing was paid. Check the new amounts and pay again.',
   refused: 'That payout was refused. Check the table and that every player is different, then try again.',
-  paused: 'The venue is frozen. Jackpots are paid again once it is released.',
+  paused: 'Venue frozen. Try again once it is released.',
   switchedOff: 'Promotions are switched off, so no jackpot is paid until they are back on.',
   alreadyReversed: 'That payout is already reversed.',
   unavailable: 'That did not go through. Check the connection and try again.',

@@ -43,6 +43,6 @@ export const aml = {
 export const amlFailures = {
   notAllowed: 'Only staff who review AML review the register.',
   invalid: 'Choose an outcome and write a note of 10 to 1,000 characters.',
-  paused: 'The venue is frozen. Release it, then review.',
+  paused: 'Venue frozen. Try again once it is released.',
   unavailable: 'The review did not go through. Check the connection and try again.',
 };

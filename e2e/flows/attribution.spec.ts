@@ -57,7 +57,7 @@ test.describe('Attribution', () => {
     await expect(page.getByRole('textbox', { name: /^Referral code/ })).toHaveValue(code);
     await page.getByRole('button', { name: 'Continue' }).click();
     // A new member's identity check is not done, so they see only its steps first (#632).
-    await expect(page.getByRole('heading', { name: 'Verify your identity', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Verify your ID', level: 1 })).toBeVisible();
 
     expect(
       sql(`select m.full_name || '|' || a.referral_code || '|' || a.utm_source || '|' || a.utm_campaign

@@ -1,5 +1,5 @@
 /**
- * KYC review (#31): checks the vendor could not finish wait for staff; a KYC reviewer sees each with why
+ * ID checks (#31): checks the vendor could not finish wait for staff; a KYC reviewer sees each with why
  * it waits and what the vendor found, approves one and rejects another with a reason, and the rejected
  * one moves to the refused checks. The checks are set up in the local database for each run and taken
  * away after, so the local stack only. Vikram (super admin) is this flow's own reviewer: Auth sends one
@@ -38,7 +38,7 @@ async function decide(page: Page, name: string, reason: string, decision: 'Appro
   await check.getByRole('button', { name: decision }).click();
 }
 
-test.describe('KYC review', () => {
+test.describe('ID checks', () => {
   test.skip(isRemoteTarget(), 'sets up the checks in the local database, so the local stack only');
   test.beforeEach(() => {
     removeChecks();
@@ -49,7 +49,7 @@ test.describe('KYC review', () => {
 
   test('a KYC reviewer approves one check and rejects another, each with a reason', async ({ page }) => {
     await signInToConsole(page, '9000000101');
-    await page.getByRole('link', { name: 'KYC review', exact: true }).click();
+    await page.getByRole('link', { name: 'ID checks', exact: true }).click();
     // The queue down the left, the first check to review open beside it (console v3).
     await expect(page.getByRole('heading', { name: 'To review' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Rohan Bhatia' })).toBeVisible();
@@ -64,7 +64,7 @@ test.describe('KYC review', () => {
     await decide(page, 'Naina Kapoor', 'The person at the desk is not the one in the photo', 'Reject');
     await expect(page.getByRole('heading', { name: 'Refused, last 90 days' })).toBeVisible();
     await expect(page.getByText('Rejected by a reviewer.')).toBeVisible();
-    await expect(page.getByRole('img', { name: 'KYC photo of Naina Kapoor' }).or(page.getByText(/^Photo not loaded/))).toBeVisible();
+    await expect(page.getByRole('img', { name: 'ID check photo of Naina Kapoor' }).or(page.getByText(/^Photo not loaded/))).toBeVisible();
     expect(sql(`select status || ' ' || refusal from public.kyc_record where member_id = '${NAINA}'`)).toBe('refused staff_rejected');
   });
 });

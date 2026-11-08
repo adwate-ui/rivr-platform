@@ -228,7 +228,7 @@ export const ui = {
   callTime: {
     left: 'Call time {time} left',
     paused: 'Call time paused, {time} left',
-    done: 'Call time complete',
+    done: 'Call time done',
     /** Above the time, set large on the member's seat card. */
     figureLeft: 'Call time left',
     figurePaused: 'Call time paused',
@@ -236,7 +236,7 @@ export const ui = {
     choose: 'Call time',
     custom: 'Custom',
     minutes: 'Minutes',
-    minutesHint: 'Up to 1,440 (a day).',
+    minutesHint: 'Up to 24 h.',
   },
   /** A console table's filter matching no row (#30): `{query}` is what was typed. */
   dataTable: {

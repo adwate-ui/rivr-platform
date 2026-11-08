@@ -83,7 +83,7 @@ test.describe('PWA, a member offline', () => {
     await context.setOffline(true);
     await page.reload();
     await expect(page.getByText(/^No connection\. Showing tables as of \d\d:\d\d\.$/)).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByRole('heading', { name: 'Identity' })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'ID check' })).toHaveCount(0);
     await page.goto(`${appUrl('player')}/card`);
     await expect(page.getByRole('heading', { name: 'No connection' })).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText('Your number', { exact: true })).toBeVisible();

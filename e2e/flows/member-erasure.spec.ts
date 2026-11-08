@@ -39,7 +39,7 @@ test.describe('Member erasure', () => {
     await expect(page.getByText('Practice venue: nothing here reaches the club or its members.')).toBeVisible();
     await page.keyboard.press('Escape');
     await page.getByRole('link', { name: 'Members' }).click();
-    await page.getByRole('searchbox', { name: 'Name, member no. or mobile' }).fill('Neel');
+    await page.getByRole('searchbox', { name: 'Name, mobile or member number' }).fill('Neel');
     await page.getByRole('button', { name: 'Neel Kapur', exact: true }).click();
     // The record's parts are tabs (C-02).
     await page.getByRole('link', { name: 'Account', exact: true }).click();

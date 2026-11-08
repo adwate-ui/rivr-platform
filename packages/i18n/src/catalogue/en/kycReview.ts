@@ -1,6 +1,6 @@
 /** The console's KYC review queue (#31). `{name}` is the member's; scores are 0 to 100. */
 export const kycReview = {
-  title: 'KYC review',
+  title: 'ID checks',
   notAllowed: 'Not in your role. Ask an admin.',
   empty: 'No checks waiting for review.',
   /** The queue down the left (console v3), read as its name; then its groups, each with its count. */
@@ -17,8 +17,8 @@ export const kycReview = {
   sinceDays: '{date} · {days} days',
   sinceOneDay: '{date} · 1 day',
   /** On a phone, from the check open back to the queue. */
-  back: 'Back to KYC review',
-  photoOf: 'KYC photo of {name}',
+  back: 'Back to ID checks',
+  photoOf: 'ID check photo of {name}',
   /** Why a check waits for a reviewer. */
   waitPanAlone: 'PAN only, no DigiLocker. Check the card and the person.',
   waitNothingKept: 'DigiLocker gave another name or face. Check the originals.',
@@ -66,7 +66,7 @@ export const kycReviewFailures = {
   needsDateOfBirth: 'Enter the date of birth from the original.',
   needsPan: 'Enter the PAN from the original PAN card to approve.',
   invalid: 'Check the reason, the date of birth and the PAN.',
-  paused: 'KYC is paused: approvals wait. Rejecting still works.',
+  paused: 'ID checks are paused: approvals wait. Rejecting still works.',
   stopped: 'Venue or member frozen. Try again once released.',
   unavailable: 'Not saved. Try again.',
 };

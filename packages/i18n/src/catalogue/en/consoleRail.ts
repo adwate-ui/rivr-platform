@@ -3,6 +3,16 @@
  * the rail's own name stays in `ui.consoleRail`, as the shared shell reads it.
  */
 export const rail = {
+  /** What a count beside a screen is (audit F-129), read out with the screen's name. */
+  counts: {
+    requests: { one: '1 request', other: '{count} requests' },
+    orders: { one: '1 order', other: '{count} orders' },
+    idChecks: { one: '1 ID check', other: '{count} ID checks' },
+    calls: { one: '1 call to make', other: '{count} calls to make' },
+    tickets: { one: '1 open ticket', other: '{count} open tickets' },
+    approvals: { one: '1 awaiting approval', other: '{count} awaiting approval' },
+    handOvers: { one: '1 to hand over', other: '{count} to hand over' },
+  },
   /** Grouped by the job staff are doing (#602). */
   groups: {
     tonight: 'Tonight',
@@ -47,7 +57,7 @@ export const rail = {
     tallyExport: 'Tally export',
     shareholders: 'Shareholders',
     members: 'Members',
-    kycReview: 'KYC review',
+    kycReview: 'ID checks',
     hostQueue: 'Host queue',
     promotions: 'Promotions',
     jackpots: 'Jackpots',

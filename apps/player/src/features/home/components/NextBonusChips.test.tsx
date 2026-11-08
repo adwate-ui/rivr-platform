@@ -39,12 +39,12 @@ describe('Tonight › The next play-time bonus (audit F-173)', () => {
   it('says the next step and how long to it', async () => {
     await renderLine(FEED, [STEP]);
     expect(await screen.findByText('Next: 500 bonus chips')).toBeDefined();
-    expect(screen.getByText('in 1h 20m')).toBeDefined();
+    expect(screen.getByText('in 1 h 20 min')).toBeDefined();
   });
 
   it('says one minute in the last minute, never no time at all', async () => {
     await renderLine(FEED, [{ ...STEP, seconds_left: 20 }]);
-    expect(await screen.findByText('in 0h 01m')).toBeDefined();
+    expect(await screen.findByText('in 1 min')).toBeDefined();
   });
 
   it('says nothing without promotions.feed', async () => {

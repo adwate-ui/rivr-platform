@@ -39,7 +39,7 @@ describe('the MIS Tables view (owner, 8 Nov)', () => {
     const { asked } = renderReport();
     const table = await screen.findByRole('table', { name: 'Tables' });
     const row = (await within(table).findByText('Table 2')).closest('[role="row"]');
-    for (const shown of ['9', '4h 00m', '2', '4h 30m', '12%']) expect(row?.textContent).toContain(shown);
+    for (const shown of ['9', '4 h', '2', '4 h 30 min', '12%']) expect(row?.textContent).toContain(shown);
     const today = clubDay(new Date());
     expect(asked[0]).toEqual({ p_venue_id: 'v1', p_from: dayAfter(today, -6), p_to: today });
   });

@@ -196,7 +196,7 @@ export const consoleFnb = {
     failures: {
       not_allowed: 'Not in your role. Ask an admin.',
       invalid: 'A line is out of bounds or sold outside the club month. Check the file and the month, then import it again.',
-      paused: 'The club is paused: import the file when it reopens.',
+      paused: 'Venue frozen. Try again once it is released.',
       unavailable: 'The import did not go through. Try again.',
     },
   },

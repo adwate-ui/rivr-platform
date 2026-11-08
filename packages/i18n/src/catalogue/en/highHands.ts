@@ -61,7 +61,7 @@ export const highHands = {
   notAllowedAction: 'You cannot decide this claim. Ask a manager who did not deal the hand.',
   decided: 'Someone has just decided this claim. Check the list.',
   changed: 'The payout for this hand has just changed. Check the amount and approve again.',
-  paused: 'The venue is frozen. High hands are decided again once it is released.',
+  paused: 'Venue frozen. Try again once it is released.',
   switchedOff: 'Promotions are switched off, so no high hand is paid for now.',
   invalid: 'That claim cannot be paid now. Check the list.',
   unavailable: 'That did not go through. Check the connection and try again.',

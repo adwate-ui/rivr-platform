@@ -14,7 +14,10 @@ export const members = {
   searchedFor: 'Search: {query}',
   allMembers: 'All members',
   /** The search field's label, shown inside it (console v3): a name as typed, a member number, or four or more digits. */
-  search: 'Name, member no. or mobile',
+  search: 'Name, mobile or member number',
+  /** Beside the search: how many the list shows. */
+  total: '{count} members',
+  totalOne: '1 member',
   /** `{query}` is what was typed. */
   noMatch: 'No member matches {query}.',
   number: 'No.',
@@ -23,8 +26,8 @@ export const members = {
   visits: 'Visits',
   /** More of each member on the list (owner, 8 Nov): their mobile (super admins only), KYC, time played, city and joining day. */
   mobile: 'Mobile',
-  kyc: 'KYC',
-  kycStatuses: { verified: 'Verified', in_review: 'In review', at_desk: 'Desk check', refused: 'Refused', not_done: 'Not done' },
+  kyc: 'ID check',
+  kycStatuses: { verified: 'Checked', in_review: 'In review', at_desk: 'Due', refused: 'Refused', not_done: 'Not done' },
   played: 'Hours played', city: 'City', memberSince: 'Member since',
   lastVisit: 'Last visit',
   never: 'Never',
@@ -33,8 +36,7 @@ export const members = {
   notHere: '–',
   waiting: 'Waiting', left: 'Left',
   tonightKinds: { seated: 'Seated', notHere: 'Not here' },
-  /** `{table}` is the table's name and `{seat}` its number: `Table 2 · 3` in the list, `Table 2, seat 3` in full. */
-  seatShort: '{table} · {seat}',
+  /** `{table}` is the table's name and `{seat}` its number: `Table 2, seat 3`. */
   seatFull: '{table}, seat {seat}',
   /** Opens the member's seat on the live floor. */
   show: 'Show',
@@ -53,8 +55,8 @@ export const members = {
   /** `{date}`: 30 Nov 2026, the tier change's last day. */
   tierUntil: '{tier} until {date}',
   qualifying: 'Qualifies at {stakes}',
-  kycVerified: 'KYC verified',
-  kycIncomplete: 'KYC incomplete',
+  kycVerified: 'ID checked',
+  kycIncomplete: 'ID check due',
   inRoom: 'In the room',
   visitsTitle: 'Visits',
   /** The name a member gave at sign-up, under their Aadhaar name (#803): `Known as Ashu`. */
@@ -138,7 +140,7 @@ export const members = {
     title: 'Phone number',
     intro: 'Their number is their login. They sign in with the new one.',
     newNumber: 'New mobile number',
-    newNumberHint: 'With +91, as +919876543210.',
+    newNumberHint: 'Enter a 10-digit mobile number.',
     /** The member's number now, above the new one (F1-09). */
     current: 'Number now: {phone}',
     again: 'Type the new number again',
@@ -229,6 +231,9 @@ export const members = {
     notAllowed: 'Not in your role. Ask an admin.',
     noMember: 'That member is not at this venue.',
     invalid: 'A different tier, a reason of 3 to 500 characters and a future last day.',
+    badTier: 'Choose a different tier.',
+    badReason: 'Give a reason of 3 to 500 characters.',
+    badLastDay: 'Set a last day still to come.',
     paused: 'Venue frozen. Try again once it is released.',
     unavailable: 'Not sent. Try again.',
   },

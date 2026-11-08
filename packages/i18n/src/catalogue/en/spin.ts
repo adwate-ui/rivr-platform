@@ -43,7 +43,7 @@ export const spin = {
     invalid: 'Whole points, chips in 50s, weight 1 to 1,000.',
     gone: 'Already spun, or the prize is gone.',
     no_prize: 'No prize fits the budget. Add points or nothing, or raise a budget.',
-    paused: 'Paused. Spin when it reopens.',
+    paused: 'Venue frozen or spins stopped. Try again once it is released.',
     unavailable: 'Not sent. Try again.',
   },
 } as const;

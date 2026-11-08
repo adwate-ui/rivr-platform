@@ -17,7 +17,7 @@ describe('CallTimeTimer', () => {
   it('reads a last few seconds as a minute, and nothing left as done', () => {
     renderIn(<><CallTimeTimer secondsLeft={20} /><CallTimeTimer secondsLeft={0} /></>);
     expect(screen.getByText('Call time 1 min left')).toBeInTheDocument();
-    expect(screen.getByText('Call time complete')).toHaveClass('text-content-muted');
+    expect(screen.getByText('Call time done')).toHaveClass('text-content-muted');
   });
 
   it('as the seat card figure, names the clock and sets the time large in tabular figures', () => {
@@ -30,6 +30,6 @@ describe('CallTimeTimer', () => {
     renderIn(<><CallTimeTimer secondsLeft={2400} isPaused size="figure" /><CallTimeTimer secondsLeft={0} size="figure" /></>);
     expect(screen.getByText('Call time paused')).toBeInTheDocument();
     expect(screen.getByText('40 min')).toBeInTheDocument();
-    expect(screen.getByText('Call time complete')).toBeInTheDocument();
+    expect(screen.getByText('Call time done')).toBeInTheDocument();
   });
 });

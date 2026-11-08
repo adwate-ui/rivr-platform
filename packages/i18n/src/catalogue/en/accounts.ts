@@ -52,7 +52,7 @@ export const accounts = {
   failures: {
     not_allowed: 'Only treasury managers add accounts and move money between them.',
     invalid: 'Check the accounts, the amount and the note.',
-    paused: 'The venue is frozen. Money moves again once it is released.',
+    paused: 'Venue frozen. Try again once it is released.',
     no_shift: 'The cage has no shift open. Moving money in or out of the drawer or the bank needs one.',
     unavailable: 'That did not go through. Check the connection and try again.',
   },

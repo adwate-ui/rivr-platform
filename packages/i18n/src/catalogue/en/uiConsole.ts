@@ -19,7 +19,7 @@ export const consoleUi = {
     /** The trigger's key, shown at its end. */
     key: '/',
     label: 'Search',
-    placeholder: 'Type a name, member no., screen or action',
+    placeholder: 'Name, mobile, member number or screen',
   },
   sheet: {
     close: 'Close',
@@ -59,6 +59,7 @@ export const consoleUi = {
     closed: 'Closed',
     /** The seat bar, read out: `6 seated, 2 need you, 1 open`. */
     bar: '{seated} seated, {needs} need you, {open} open',
+    barOne: '{seated} seated, 1 needs you, {open} open',
   },
   seatRow: {
     seat: 'Seat {number}',

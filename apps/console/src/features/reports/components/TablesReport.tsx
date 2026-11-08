@@ -1,7 +1,7 @@
 import { useTableMetrics, type TableMetrics } from '@rivr/db';
 import { clubDay, dayAfter } from '@rivr/domain/clubDay';
 import { tableUse } from '@rivr/domain/tables';
-import { formatHoursMinutes, formatNumber, t } from '@rivr/i18n';
+import { formatDuration, formatNumber, t } from '@rivr/i18n';
 import { ChoiceChips, DataTable, Heading, Stack, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 
@@ -19,13 +19,13 @@ function columns(): readonly DataTableColumn<TableMetrics>[] {
     { key: 'seats', header: t('console.reports.tables.seats'), cell: (row) => formatNumber(row.seats), sortValue: (row) => row.seats, align: 'end' },
     {
       key: 'run', filter: 'duration', header: t('console.reports.tables.hoursRun'), align: 'end', sortValue: (row) => row.runSeconds,
-      cell: (row) => formatHoursMinutes(row.runSeconds), exportValue: (row) => formatHoursMinutes(row.runSeconds),
+      cell: (row) => formatDuration(row.runSeconds), exportValue: (row) => formatDuration(row.runSeconds),
     },
     { key: 'players', header: t('console.reports.tables.players'), cell: (row) => formatNumber(row.players), sortValue: (row) => row.players, align: 'end' },
     { key: 'peak', header: t('console.reports.tables.peak'), cell: (row) => formatNumber(row.peak), sortValue: (row) => row.peak, align: 'end' },
     {
       key: 'played', filter: 'duration', header: t('console.reports.tables.playerHours'), align: 'end', sortValue: (row) => row.playerSeconds,
-      cell: (row) => formatHoursMinutes(row.playerSeconds), exportValue: (row) => formatHoursMinutes(row.playerSeconds),
+      cell: (row) => formatDuration(row.playerSeconds), exportValue: (row) => formatDuration(row.playerSeconds),
     },
     {
       key: 'use', header: t('console.reports.tables.use'), align: 'end', sortValue: (row) => fullnessOf(row) ?? -1,

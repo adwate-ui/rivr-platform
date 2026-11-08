@@ -53,14 +53,14 @@ describe('the console', () => {
     renderAt('/');
     expect(await screen.findByRole('link', { name: 'Live floor' })).toBeDefined();
     for (const hidden of ['Cage', 'Academy payments', 'Academy']) expect(screen.queryByRole('link', { name: hidden })).toBeNull();
-    expect(screen.queryByRole('link', { name: 'KYC review' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'ID checks' })).toBeNull();
   });
 
-  it('and KYC review for an admin, but no Academy', async () => {
+  it('and ID checks for an admin, but no Academy', async () => {
     signIn();
     answerStaff([{ ...CLUB, full_name: 'Aditya Malhotra', role: 'admin' }]);
     renderAt('/');
-    expect(await screen.findByRole('link', { name: 'KYC review' })).toBeDefined();
+    expect(await screen.findByRole('link', { name: 'ID checks' })).toBeDefined();
     expect(screen.queryByRole('link', { name: 'Academy' })).toBeNull();
   });
 
@@ -161,10 +161,10 @@ describe('a screen whose refresh fails', () => {
     signIn();
     answerOnceThenFail({ '/rpc/door_board': [] });
     renderAt('/door?tab=check-in');
-    fireEvent.change(await screen.findByRole('textbox', { name: 'Card, mobile, number or name' }), { target: { value: '9876543210' } });
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Card, name, mobile or member number' }), { target: { value: '9876543210' } });
     await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
     expect(await screen.findByText(/^Not updated since \d{2}:\d{2}\. Check the connection\.$/)).toBeDefined();
-    expect(screen.getByRole<HTMLInputElement>('textbox', { name: 'Card, mobile, number or name' }).value).toBe('9876543210');
+    expect(screen.getByRole<HTMLInputElement>('textbox', { name: 'Card, name, mobile or member number' }).value).toBe('9876543210');
     vi.useRealTimers();
   });
 

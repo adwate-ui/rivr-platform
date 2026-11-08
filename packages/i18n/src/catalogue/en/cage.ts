@@ -42,7 +42,7 @@ export const cage = {
   payoutInvalid: 'That account is no longer waiting, or the reason is missing.',
   payoutNotAllowed: 'Only the cage verifies payout accounts.',
   payoutStopped: 'This member is frozen. Nothing changes until the freeze is released.',
-  payoutPaused: 'The venue is frozen. Nothing changes until it is released.',
+  payoutPaused: 'Venue frozen. Try again once it is released.',
   payoutUnavailable: 'Could not save. Check the connection and try again.',
   /** A KYC photo's description, read out. */
   photoOf: 'KYC photo of {name}',
@@ -83,7 +83,7 @@ export const cage = {
   notSeatedBlock: 'Not seated. Chips are issued to a seat.',
   noMember: 'No such member here.',
   stopped: 'This member is frozen. Ask a manager.',
-  paused: 'The venue is frozen. The cage issues chips again once it is released.',
+  paused: 'Venue frozen. Try again once it is released.',
   onBreak: 'On a break from play. No buy-ins or credit.',
   /** `{amount}` is the amount typed. */
   notChips: '{amount} is not whole ₹50 chips.',
@@ -155,9 +155,9 @@ export const cage = {
   /** At a venue that enforces cage computers (#384), when this one is not enrolled as the cage. */
   notCageComputer: 'This computer is not enrolled as the cage, so the cage takes and pays nothing here. An admin enrols it on Devices, under Computers.',
   /** Call time still owed at the cage (#79). `{time}`: 1 h 12 min. */
-  callTimeOwed: 'Call time not complete: {time} short. An admin lets them leave early on the Live floor.',
-  callTimeLetGo: 'Call time {time} short. An admin has let them leave early.',
-  callTimeOwedBlock: 'Call time is not complete. An admin lets them leave early, with a reason, on the Live floor.',
+  callTimeOwed: '{time} call time owed. An admin lets them leave early on the Live floor.',
+  callTimeLetGo: '{time} call time owed. An admin has let them leave early.',
+  callTimeOwedBlock: 'Call time owed. An admin lets them leave early, with a reason, on the Live floor.',
   /** A final cash-out is the member leaving the club (#76). */
   final: 'Final cash-out',
   finalHint: 'They are leaving: ends their seat and closes their visit.',

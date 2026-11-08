@@ -52,6 +52,11 @@ export function formatStakes(smallBlind: bigint, bigBlind: bigint, straddle: big
   return straddle === null ? blinds : `${blinds}/${formatChips(straddle)}`;
 }
 
+/** A game's stakes, as everyone reads them: `NLH 100/200`, `NLH 100/200/500` with a straddle (audit F-122). */
+export function formatGameStakes(game: string, smallBlind: bigint, bigBlind: bigint, straddle: bigint | null = null): string {
+  return `${game.toUpperCase()} ${formatStakes(smallBlind, bigBlind, straddle)}`;
+}
+
 /**
  * Formats integer paise as a plain rupee figure for a file another program reads, such as a return
  * extract: `20000.00`, no symbol or grouping, always two decimals, `-1000.50` below nothing. Never rounds.

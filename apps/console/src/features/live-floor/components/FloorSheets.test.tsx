@@ -32,7 +32,7 @@ const FLOOR: FloorApi = {
 
 async function renderFloor(api: FloorApi = FLOOR) {
   const view = renderFloorScreen(LiveFloorScreen, api);
-  await screen.findByRole('group', { name: 'Table 1 50/100' }, { timeout: 5000 });
+  await screen.findByRole('group', { name: 'Table 1 NLH 50/100' }, { timeout: 5000 });
   fireEvent.click(screen.getByRole('radio', { name: 'Seats' }));
   return view;
 }
@@ -59,7 +59,7 @@ describe('The player sheet (console v3)', () => {
     const { rpcs } = await renderFloor();
     fireEvent.click(screen.getByRole('button', { name: 'Seat 5, Kabir Sethi, +1 h?' }));
     const player = await sheet('Kabir Sethi');
-    expect(within(player).getByText('Table 1 · seat 5 · Black card')).toBeDefined();
+    expect(within(player).getByText('Table 1, seat 5 · Black card')).toBeDefined();
     expect(within(player).getByText('2 h left')).toBeDefined();
     expect(within(player).getByText('Wants +1 h')).toBeDefined();
     expect(within(player).getByRole('button', { name: 'Open member record' })).toBeDefined();
@@ -113,7 +113,7 @@ describe('Leaving (console v3)', () => {
     const { rpcs } = await renderFloor();
     fireEvent.click(first(within(screen.getByRole('complementary', { name: 'Requests' })).getAllByRole('button', { name: 'Leave' })));
     const leave = await sheet('Let go before call time');
-    expect(within(leave).getByText('Rohan Bhatia still owes 30 min of call time.')).toBeDefined();
+    expect(within(leave).getByText('Rohan Bhatia: 30 min call time owed.')).toBeDefined();
     fireEvent.click(within(leave).getByRole('button', { name: 'Let go early' }));
     expect(within(leave).getByText('Pick a reason to let them go before call time.')).toBeDefined();
     expect(rpcs('let_leave_early')).toEqual([]);
@@ -138,7 +138,7 @@ describe('Leaving (console v3)', () => {
 
   it('lets a player whose call time is met leave, with Undo', async () => {
     const { rpcs } = await renderFloor();
-    fireEvent.click(screen.getByRole('button', { name: 'Seat 1, Naina Kapoor, Done' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Seat 1, Naina Kapoor, Call time done' }));
     fireEvent.click(within(await sheet('Naina Kapoor')).getByRole('button', { name: 'Leave' }));
     fireEvent.click(within(await sheet('Naina Kapoor leaves')).getByRole('button', { name: 'Yes, they leave' }));
     await screen.findByText('Naina Kapoor left Table 2');
@@ -161,7 +161,7 @@ describe('Leaving (console v3)', () => {
 describe('The seat sheet (console v3)', () => {
   it('seats the next on the table\'s list, or a number typed, with the call time chosen; Undo takes the seat back', async () => {
     const { rpcs } = await renderFloor({ ...FLOOR, replies: { seat_member: { status: 200, body: 's9' } } });
-    fireEvent.click(within(tile('Table 1 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
+    fireEvent.click(within(tile('Table 1 NLH 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
     const seat = await sheet('Seat a player');
     expect(within(seat).getByText('Next on the Table 1 list')).toBeDefined();
     expect(within(seat).getByText('Nobody on this list.')).toBeDefined();
@@ -180,7 +180,7 @@ describe('The seat sheet (console v3)', () => {
 
   it('assigns the next on the list in one step (decision 0299)', async () => {
     const { rpcs } = await renderFloor();
-    fireEvent.click(within(tile('Table 2 100/200')).getByRole('button', { name: 'Seat 2, Open' }));
+    fireEvent.click(within(tile('Table 2 NLH 100/200')).getByRole('button', { name: 'Seat 2, Open' }));
     const seat = await sheet('Seat a player');
     // The next on Table 2's list is chosen as the list is read.
     await within(seat).findByRole('radio', { name: 'Leela Menon · 12 min' });
@@ -191,7 +191,7 @@ describe('The seat sheet (console v3)', () => {
 
   it('shows the chosen member’s bonus chips and redeems them with the seat, with no Undo (decision 0504)', async () => {
     const { rpcs } = await renderFloor({ ...FLOOR, replies: { member_bonus: { status: 200, body: [{ bonus_paise: 150_000 }] } } });
-    fireEvent.click(within(tile('Table 2 100/200')).getByRole('button', { name: 'Seat 2, Open' }));
+    fireEvent.click(within(tile('Table 2 NLH 100/200')).getByRole('button', { name: 'Seat 2, Open' }));
     const seat = await sheet('Seat a player');
     await within(seat).findByRole('radio', { name: 'Leela Menon · 12 min' });
     expect(await within(seat).findByText('Has 1,500 bonus chips.')).toBeDefined();
@@ -207,18 +207,18 @@ describe('The seat sheet (console v3)', () => {
 
   it('asks for a call time when Custom holds none, and seats nobody (audit F-112)', async () => {
     const { rpcs } = await renderFloor();
-    fireEvent.click(within(tile('Table 1 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
+    fireEvent.click(within(tile('Table 1 NLH 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
     const seat = await sheet('Seat a player');
     fireEvent.change(within(seat).getByRole('textbox', { name: 'Mobile or member number' }), { target: { value: '42' } });
     fireEvent.click(within(seat).getByRole('radio', { name: 'Custom' }));
     fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
-    expect(await within(seat).findByText('Enter a call time of 0 to 1,440 minutes.')).toBeDefined();
+    expect(await within(seat).findByText('Enter a call time of up to 24 h.')).toBeDefined();
     expect(rpcs('seat_member')).toEqual([]);
   });
 
   it('seats at the new table\'s own call time after Custom was left empty on another table', async () => {
     const { rpcs } = await renderFloor();
-    fireEvent.click(within(tile('Table 1 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
+    fireEvent.click(within(tile('Table 1 NLH 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
     const seat = await sheet('Seat a player');
     fireEvent.change(within(seat).getByRole('textbox', { name: 'Mobile or member number' }), { target: { value: '42' } });
     fireEvent.click(within(seat).getByRole('radio', { name: 'Custom' }));
@@ -230,7 +230,7 @@ describe('The seat sheet (console v3)', () => {
 
   it('says why bonus chips were not redeemed, and seats nobody', async () => {
     await renderFloor({ ...FLOOR, replies: { seat_member: { status: 400, body: { code: 'RVBON', message: 'short' } } } });
-    fireEvent.click(within(tile('Table 1 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
+    fireEvent.click(within(tile('Table 1 NLH 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
     const seat = await sheet('Seat a player');
     expect(within(seat).getByText('Up to their balance. Taken off when they sit.')).toBeDefined();
     fireEvent.change(within(seat).getByRole('textbox', { name: 'Mobile or member number' }), { target: { value: '42' } });
@@ -250,7 +250,7 @@ describe('The Show link of a member record (console v3)', () => {
   it('shows the seats of the table pointed at when nobody sits in that seat', async () => {
     Element.prototype.scrollIntoView = vi.fn();
     renderFloorScreen(LiveFloorScreen, FLOOR, '/?table=t3&seat=2');
-    expect(await within(await screen.findByRole('group', { name: 'Table 3 100/200' }, { timeout: 5000 })).findByRole('button', { name: 'Seat 2, Open' })).toBeDefined();
+    expect(await within(await screen.findByRole('group', { name: 'Table 3 NLH 100/200' }, { timeout: 5000 })).findByRole('button', { name: 'Seat 2, Open' })).toBeDefined();
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
   });

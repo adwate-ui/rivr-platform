@@ -1,5 +1,5 @@
 import { useFeature, useMyNextPlayTimeBonus } from '@rivr/db';
-import { formatHoursMinutes, formatNumber, t } from '@rivr/i18n';
+import { formatDuration, formatNumber, t } from '@rivr/i18n';
 import { Box, FeatureGate, Inline, ProgressBar, Stack, Text } from '@rivr/ui';
 
 /**
@@ -17,7 +17,7 @@ export function NextBonusChips() {
         <Stack gap={2}>
           <Inline justify="between" gap={3}>
             <Text variant="small">{t('player.live.seated.nextBonus', { chips: formatNumber(next.chips) })}</Text>
-            <Text variant="small" tone="muted">{t('player.live.seated.nextBonusIn', { time: formatHoursMinutes(Math.max(60, next.secondsLeft)) })}</Text>
+            <Text variant="small" tone="muted">{t('player.live.seated.nextBonusIn', { time: formatDuration(next.secondsLeft) })}</Text>
           </Inline>
           <ProgressBar fraction={1 - next.secondsLeft / (next.afterMinutes * 60)} />
         </Stack>

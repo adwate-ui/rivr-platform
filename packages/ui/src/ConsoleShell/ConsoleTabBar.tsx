@@ -38,7 +38,7 @@ function TabLink({ tab, isCurrent, onNavigate }: { tab: SideNavItem; isCurrent: 
         {waiting === null ? null : <TabBadge count={waiting} isActionable={tab.isActionable === true} />}
       </span>
       {tab.label}
-      {waiting === null ? null : <span id={descriptionId} aria-hidden="true" className="sr-only">{t('ui.consoleRail.waiting', { count: waiting })}</span>}
+      {waiting === null ? null : <span id={descriptionId} aria-hidden="true" className="sr-only">{tab.countLabel ?? t('ui.consoleRail.waiting', { count: waiting })}</span>}
     </a>
   );
 }

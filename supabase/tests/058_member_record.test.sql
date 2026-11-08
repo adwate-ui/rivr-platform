@@ -45,14 +45,14 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000110');
 select throws_ok($$ update public.member set tier_id = (select id from public.tier where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Black card')
                     where id = '00000000-0000-4000-8000-000000000202' $$, '42501', null, 'the tier is never written directly');
 select throws_ok($$ select public.set_member_tier('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', pg_temp.tier('Founders'' Circle'), 'ok') $$,
-  '22023', null, 'a reason of three characters or more');
+  'RVTRE', null, 'a reason of three characters or more');
 select throws_ok($$ select public.set_member_tier('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', pg_temp.tier('Member'), 'Same') $$,
-  '22023', null, 'a different tier');
+  'RVTTR', null, 'a different tier');
 select throws_ok($$ select public.set_member_tier('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', pg_temp.tier('Founders'' Circle'),
-  'Guest', (now() at time zone 'Asia/Kolkata')::date - 2) $$, '22023', null, 'a last day still to come');
+  'Guest', (now() at time zone 'Asia/Kolkata')::date - 2) $$, 'RVTEN', null, 'a last day still to come');
 select throws_ok($$ select public.set_member_tier('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202',
   (select id from public.tier where venue_id = '00000000-0000-4000-8000-000000000002' limit 1), 'Practice tier') $$,
-  '22023', null, 'a tier of this venue');
+  'RVTTR', null, 'a tier of this venue');
 select isnt(public.set_member_tier('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', pg_temp.tier('Founders'' Circle'),
   'Owner''s guest for the weekend', (now() at time zone 'Asia/Kolkata')::date + 2), null, 'a membership manager changes Kabir''s tier');
 select results_eq($$ select tier_name, tier_until from public.member_record('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202') $$,

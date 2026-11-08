@@ -15,7 +15,7 @@ async function menuOf(page: Page, column: string) {
 
 /** The pills for the two filters, and how many members show of all. */
 async function expectFiltered(page: Page) {
-  await expect(page.getByRole('button', { name: 'Remove filter KYC: Verified' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Remove filter ID check: Checked' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Remove filter Visits: at least 1' })).toBeVisible();
   await expect(page.getByRole('status').filter({ hasText: / of / })).toHaveText(/^\d+ of \d+$/);
 }
@@ -26,10 +26,10 @@ test.describe('table filters', () => {
     const table = page.getByRole('table', { name: 'Members' });
     await expect(table.getByRole('row').nth(1)).toBeVisible();
 
-    const kyc = await menuOf(page, 'KYC');
-    await kyc.getByRole('group', { name: 'KYC' }).getByRole('button', { name: /^Verified/ }).click();
+    const kyc = await menuOf(page, 'ID check');
+    await kyc.getByRole('group', { name: 'ID check' }).getByRole('button', { name: /^Checked/ }).click();
     await page.keyboard.press('Escape');
-    await expect(page.getByRole('button', { name: 'KYC: sort and filter, filtered' })).toBeFocused();
+    await expect(page.getByRole('button', { name: 'ID check: sort and filter, filtered' })).toBeFocused();
     const visits = await menuOf(page, 'Visits');
     await visits.getByRole('textbox', { name: 'From' }).fill('1');
     await page.keyboard.press('Escape');
@@ -40,7 +40,7 @@ test.describe('table filters', () => {
     await table.getByRole('row').nth(1).getByRole('button').first().click();
     await expect(page.getByRole('heading', { level: 2 })).toBeVisible();
     await expect(page).toHaveURL(/member=.*t\.members=|t\.members=.*member=/);
-    for (const column of [/^KYC/, /^City/, /^Hours played/, /^Mobile/]) await expect(table.getByRole('columnheader', { name: column })).toHaveCount(1);
+    for (const column of [/^ID check/, /^City/, /^Hours played/, /^Mobile/]) await expect(table.getByRole('columnheader', { name: column })).toHaveCount(1);
     await expectFiltered(page);
 
     await page.reload();

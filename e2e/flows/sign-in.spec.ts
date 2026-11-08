@@ -63,7 +63,7 @@ test.describe('Sign in', { tag: '@staging' }, () => {
     await requestCode(page, '90000 00202');
     await page.getByRole('textbox', { name: '6-digit code' }).fill(CODE);
     await expect(page).toHaveURL(/\/kyc$/);
-    await expect(page.getByRole('heading', { name: /^(Verify your identity|Pick up where you left off)$/, level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /^(Verify your ID|Pick up where you left off)$/, level: 1 })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Main' })).toHaveCount(0);
     // Every other screen sends them back to it.
     await page.goto(`${appUrl('player')}/rewards`);

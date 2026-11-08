@@ -20,7 +20,7 @@ test.describe('Check-out', () => {
     await signInToConsole(page, '9000000158');
     await page.getByRole('link', { name: 'Door', exact: true }).click();
     // One field for a card, a mobile, a member number or a name (console v3).
-    const phone = page.getByRole('textbox', { name: 'Card, mobile, number or name' });
+    const phone = page.getByRole('textbox', { name: 'Card, name, mobile or member number' });
 
     await phone.fill('9000000253');
     await page.getByRole('button', { name: 'Check in', exact: true }).click();

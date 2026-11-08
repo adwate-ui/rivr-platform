@@ -44,7 +44,7 @@ export const expenses = {
     not_allowed: 'Your role cannot do that here. A second person decides an expense.',
     invalid: 'Check the expense: it may be decided already, or the category or receipt is not this venue’s.',
     receipt_failed: 'The receipt did not upload. Check the connection and try again.',
-    paused: 'The venue is frozen. Expenses go through again once it is released.',
+    paused: 'Venue frozen. Try again once it is released.',
     no_shift: 'The cage has no shift open. Paying from the drawer or the bank needs one.',
     unavailable: 'That did not go through. Check the connection and try again.',
   },

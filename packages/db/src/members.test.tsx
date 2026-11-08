@@ -122,6 +122,15 @@ describe('Members', () => {
     await waitFor(() => expect(result.current.record.data).toBeNull());
   });
 
+  it.each([['RVTTR', 'bad_tier'], ['RVTRE', 'bad_reason'], ['RVTEN', 'bad_last_day']])('says which field a refused tier change got wrong: %s (audit F-071)', async (code, failure) => {
+    const { result } = renderMembers({ set_member_tier: { status: 400, body: { code, message: 'bad' } } });
+    let outcome: unknown;
+    await act(async () => {
+      outcome = await result.current.actions.setTier.mutateAsync({ memberId: 'm1', tierId: 't2', reason: 'Weekend guest', until: '2026-11-22' });
+    });
+    expect(outcome).toEqual({ ok: false, error: failure });
+  });
+
   it('changes a tier with its reason and last day, and says why one is refused', async () => {
     const { result, calls } = renderMembers({ set_member_tier: { status: 400, body: { code: '22023', message: 'bad' } } });
     let outcome: unknown;

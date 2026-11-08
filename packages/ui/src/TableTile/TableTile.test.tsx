@@ -29,6 +29,11 @@ describe('TableTile', () => {
       .toHaveAttribute('aria-expanded', 'false');
   });
 
+  it('reads out one who needs the floor in the singular (audit F-067)', () => {
+    renderTile({ seats: ['needsYou', 'seated', 'open'] });
+    expect(screen.getByText('1 seated, 1 needs you, 1 open')).toBeDefined();
+  });
+
   it('says "1 needs you" for one, and Show seats when nobody does', () => {
     const { rerender } = renderTile({ seats: ['needsYou', 'open'] });
     expect(screen.getByText('1 needs you')).toBeInTheDocument();

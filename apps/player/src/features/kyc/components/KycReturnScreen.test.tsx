@@ -47,7 +47,7 @@ describe('Identity › Back from DigiLocker', () => {
     // Nothing is left to complete, so the kyc function answers 409: no outage.
     renderReturn({ ...RECORD, status: 'verified' }, { status: 409, body: { error: 'conflict' } });
     expect(await screen.findByRole('heading', { name: 'Verified' })).toBeDefined();
-    expect(screen.queryByText('Identity checks are down. Try again shortly.')).toBeNull();
+    expect(screen.queryByText('ID checks are down. Try again shortly.')).toBeNull();
   });
 
   it('sends a member held for a PAN check to the desk\'s selfie while the club checks identity (audit F-010)', async () => {
@@ -63,7 +63,7 @@ describe('Identity › Back from DigiLocker', () => {
 
   it('says checks are down, with Try again, when the pull fails on a check still to complete', async () => {
     renderReturn({ ...RECORD, status: 'started' }, { status: 503, body: { error: 'unavailable' } });
-    expect(await screen.findByText('Identity checks are down. Try again shortly.')).toBeDefined();
+    expect(await screen.findByText('ID checks are down. Try again shortly.')).toBeDefined();
     expect(screen.getByRole('button', { name: 'Try again' })).toBeDefined();
   });
 });

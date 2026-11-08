@@ -16,7 +16,7 @@ export const profile = {
   send: 'Send',
   /** Under the name: `Founders' Circle · +91 90000 00901`. */
   tierPhone: '{tier} · {phone}',
-  identity: 'Identity',
+  identity: 'ID check',
   notifications: 'Notifications',
   /** The switch for push on this phone (#139). */
   phonePush: 'Notifications on this phone',

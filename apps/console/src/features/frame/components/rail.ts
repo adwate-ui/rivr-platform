@@ -28,9 +28,16 @@ const mayOpen = (entry: RailEntry, permissions: readonly Permission[]) =>
 const countOf = (entry: RailEntry, counts: QueueCounts) =>
   entry.counts === undefined ? undefined : entry.counts.reduce((sum, queue) => sum + (counts[queue] ?? 0), 0);
 
+/** The count in words, when the entry says what it counts: `14 requests`. */
+function countLabelOf(entry: RailEntry, counts: QueueCounts): string | undefined {
+  const count = countOf(entry, counts);
+  if (entry.countWords === undefined || count === undefined) return undefined;
+  return count === 1 ? t(`console.rail.counts.${entry.countWords}.one`) : t(`console.rail.counts.${entry.countWords}.other`, { count });
+}
+
 function itemOf(entry: RailEntry, counts: QueueCounts, label: MessageKey = entry.label): SideNavItem {
   return {
-    id: entry.id, label: t(label), href: entry.href, icon: entry.icon, count: countOf(entry, counts),
+    id: entry.id, label: t(label), href: entry.href, icon: entry.icon, count: countOf(entry, counts), countLabel: countLabelOf(entry, counts),
     isActionable: entry.isActionable, tone: entry.tone,
   };
 }

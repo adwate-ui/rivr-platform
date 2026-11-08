@@ -1,6 +1,6 @@
 import { useMembersOfTier, useVenueTiers, type MemberListRow, type VenueTier } from '@rivr/db';
-import { t } from '@rivr/i18n';
-import { ChoiceChips, DataTable } from '@rivr/ui';
+import { t, formatNumber } from '@rivr/i18n';
+import { ChoiceChips, DataTable, Text } from '@rivr/ui';
 import type { ReactNode } from 'react';
 import { useAddressWords } from './addressWords.ts';
 import { memberColumns } from './memberColumns.tsx';
@@ -48,6 +48,11 @@ function emptyText(tier: VenueTier | null): string {
   return tier === null ? t('console.members.none') : t('console.members.noneInTier', { tier: tier.name });
 }
 
+/** How many the list shows, beside the search, once the rows are in (audit F-095). */
+function memberTotal(rows: readonly MemberListRow[]) {
+  return <Text variant="secondary" tone="muted">{rows.length === 1 ? t('console.members.totalOne') : t('console.members.total', { count: formatNumber(rows.length) })}</Text>;
+}
+
 /**
  * Every member, or a tier's, as a table with the search above it and the tiers beside it; or its loading or error state.
  * The search is the table's (owner, 9 Nov): kept in the address, a pill, counted and cleared with its filters.
@@ -65,7 +70,7 @@ function Results({ venueId, tonight, onOpen, exportIn, seesPhone, seesIdentity, 
   };
   if (listed.isError) return <DataTable {...base} status="error" onRetry={() => void listed.refetch()} />;
   if (listed.data === undefined) return <DataTable {...base} status="loading" />;
-  return <DataTable {...base} rows={listed.data} emptyText={emptyText(tier)} />;
+  return <DataTable {...base} rows={listed.data} emptyText={emptyText(tier)} toolbar={memberTotal} />;
 }
 
 /**

@@ -22,7 +22,7 @@ test.describe('Members', () => {
     const table = page.getByRole('table', { name: 'Members' });
     await expect(table.getByRole('row').nth(1)).toBeVisible();
     await expect(page.getByText(/^Search by member number/)).toHaveCount(0);
-    const search = page.getByRole('searchbox', { name: 'Name, member no. or mobile' });
+    const search = page.getByRole('searchbox', { name: 'Name, mobile or member number' });
     await search.fill('Arjun');
     await expect(table.getByRole('button', { name: 'Kabir Sethi', exact: true })).toHaveCount(0);
     await page.getByRole('button', { name: 'Arjun Mehta', exact: true }).click();
@@ -31,7 +31,7 @@ test.describe('Members', () => {
     await expect(page).toHaveURL(/\/members\?member=/);
     // The list stays where it was as the record opens beside it, so the search typed is still there (C-02).
     await expect(search).toHaveValue('Arjun');
-    await expect(page.getByText(/^Member \d+ · Black card · KYC verified/)).toBeVisible();
+    await expect(page.getByText(/^Member \d+ · Black card · ID checked/)).toBeVisible();
     await expect(page.getByText('Qualifies at 100/200')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Early departures' })).toBeVisible();
     // A membership manager sets a break from the record (A5-14); setting one is proved in 046_member_breaks.test.sql.

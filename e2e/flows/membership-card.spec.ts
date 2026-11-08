@@ -38,7 +38,7 @@ test.describe('Membership card', () => {
     await signInToConsole(desk, '9000000190');
     await desk.getByRole('link', { name: 'Door', exact: true }).click();
     // The scanner types the card's code into the door's one field (console v3).
-    const card = desk.getByRole('textbox', { name: 'Card, mobile, number or name' });
+    const card = desk.getByRole('textbox', { name: 'Card, name, mobile or member number' });
     // Past the few seconds' grace a code has once its QR has changed.
     await expect(desk.getByRole('heading', { name: 'Check-in', level: 2 })).toBeVisible();
     await desk.waitForTimeout(6_000);

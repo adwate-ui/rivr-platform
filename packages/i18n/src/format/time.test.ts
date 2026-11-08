@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatClock, formatCountdown, formatTypedDay, isoDayOfTyped, formatDate, formatHoursMinutes, formatMinutesSeconds, isLaterIstDay, istMidnight, formatDateTime, formatDayMonth, formatDayTime, formatDuration, formatIsoDay, formatMonth, formatMonthYear, formatQuarter, formatTime, formatWeekday } from './time.ts';
+import { formatClock, formatCountdown, formatTypedDay, isoDayOfTyped, formatDate, formatHoursMinutes, formatMinutesSeconds, isLaterIstDay, istMidnight, formatDateTime, formatDayMonth, formatDayTime, formatDuration, formatIsoDay, formatMonth, formatMonthYear, formatQuarter, formatTime, formatWeekday, formatWaitingSince } from './time.ts';
 
 // 21:10 UTC on 14 Nov is 02:40 IST on Sunday 15 Nov, the opening night.
 const OPENING_NIGHT = new Date('2026-11-14T21:10:00Z');
@@ -90,5 +90,22 @@ describe('September (F5-11)', () => {
     expect(formatDayTime(new Date('2026-12-31T19:00:00Z'))).toBe('Fri 1 Jan, 00:30');
     expect(formatDate(new Date('2026-12-31T19:00:00Z'))).toBe('1 Jan 2027');
     expect(formatMonthYear(new Date('2026-12-31T19:00:00Z'))).toBe('Jan 2027');
+  });
+});
+
+describe('formatWaitingSince (audit F-090)', () => {
+  const since = new Date('2026-11-15T05:30:00Z');
+
+  it('says the day and time alone inside a day', () => {
+    expect(formatWaitingSince(since, new Date('2026-11-15T15:00:00Z'))).toBe('Sun 15 Nov, 11:00');
+  });
+
+  it('adds the age from a day on, as one day or many', () => {
+    expect(formatWaitingSince(since, new Date('2026-11-16T06:00:00Z'))).toBe('Sun 15 Nov, 11:00 · 1 day');
+    expect(formatWaitingSince(since, new Date('2026-12-15T06:00:00Z'))).toBe('Sun 15 Nov, 11:00 · 30 days');
+  });
+
+  it('gives the year once it is not this one', () => {
+    expect(formatWaitingSince(since, new Date('2027-02-13T06:00:00Z'))).toBe('15 Nov 2026, 11:00 · 90 days');
   });
 });

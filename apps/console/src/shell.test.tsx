@@ -101,7 +101,7 @@ describe('the console frame', () => {
 
   // Their old tabs gone, these land on the screen that took their place, saying so (#811).
   it.each([
-    ['/rake', 'Rake is no longer on the console.'], ['/cameras', 'Cameras are no longer on the console.'],
+    ['/rake', 'Not used at RIVR.'], ['/cameras', 'Cameras are no longer on the console.'],
     ['/computers', 'Computers are no longer on the console.'], ['/games-history', 'Games history moved to Reports, Tables.'],
   ])('opens %s on Settings, saying %s', async (path, notice) => {
     signIn();

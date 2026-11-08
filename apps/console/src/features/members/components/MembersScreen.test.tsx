@@ -80,8 +80,9 @@ describe('Members (console v3)', () => {
     const onNavigate = renderAs('super_admin');
     const table = await screen.findByRole('table', { name: 'Members' }, { timeout: 5000 });
     expect(screen.queryByText(/^Search by/)).toBeNull();
-    expect(await within(table).findByText('Table 2 · 3')).toBeDefined();
+    expect(await within(table).findByText('Table 2, seat 3')).toBeDefined();
     expect(within(table).getByText('Waiting')).toBeDefined();
+    expect(screen.getByText(/^\d+ members?$/)).toBeDefined();
     for (const header of ['Name', 'No.', 'Tier', 'Tonight', 'Visits']) expect(within(table).getByRole('columnheader', { name: new RegExp(header) })).toBeDefined();
     fireEvent.click(within(table).getByRole('button', { name: 'Arjun Mehta' }));
     expect(onNavigate).toHaveBeenCalledWith('/members?member=m2');
@@ -90,20 +91,20 @@ describe('Members (console v3)', () => {
   it('shows each member\'s KYC, hours played, city and member-since day, and the mobile to a super admin (owner, 8 Nov)', async () => {
     renderAs('super_admin');
     const table = await screen.findByRole('table', { name: 'Members' }, { timeout: 5000 });
-    for (const header of ['Mobile', 'KYC', 'Hours played', 'City', 'Member since']) {
+    for (const header of ['Mobile', 'ID check', 'Hours played', 'City', 'Member since']) {
       expect(within(table).getByRole('columnheader', { name: new RegExp(header) })).toBeDefined();
     }
     const sakshi = within(table).getAllByRole('row').find((row) => row.textContent?.includes('Sakshi Tandon')) ?? table;
-    for (const shown of ['+91 90000 00266', 'Verified', '2h 15m', 'Gurugram', 'Oct 2026']) expect(sakshi.textContent).toContain(shown);
+    for (const shown of ['+91 90000 00266', 'Checked', '2 h 15 min', 'Gurugram', 'Oct 2026']) expect(sakshi.textContent).toContain(shown);
     const arjun = within(table).getAllByRole('row').find((row) => row.textContent?.includes('Arjun Mehta')) ?? table;
-    expect(arjun.textContent).toContain('Desk check');
+    expect(arjun.textContent).toContain('Due');
   });
 
   it('keeps the mobile column from other staff, who find a member by the last four digits of their number', async () => {
     renderAs('admin');
     const table = await screen.findByRole('table', { name: 'Members' }, { timeout: 5000 });
     expect(within(table).queryByRole('columnheader', { name: /Mobile/ })).toBeNull();
-    fireEvent.change(screen.getByRole('searchbox', { name: 'Name, member no. or mobile' }), { target: { value: '98100 00263' } });
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Name, mobile or member number' }), { target: { value: '98100 00263' } });
     expect(within(table).getByRole('button', { name: 'Arjun Mehta' })).toBeDefined();
     expect(within(table).queryByRole('button', { name: 'Sakshi Tandon' })).toBeNull();
   });
@@ -111,7 +112,7 @@ describe('Members (console v3)', () => {
   it('narrows the list by a name as typed or a member number, and says when nothing matches', async () => {
     renderAs('super_admin');
     const table = await screen.findByRole('table', { name: 'Members' }, { timeout: 5000 });
-    const search = screen.getByRole('searchbox', { name: 'Name, member no. or mobile' });
+    const search = screen.getByRole('searchbox', { name: 'Name, mobile or member number' });
     fireEvent.change(search, { target: { value: 'sak' } });
     expect(within(table).getByRole('button', { name: 'Sakshi Tandon' })).toBeDefined();
     expect(within(table).queryByRole('button', { name: 'Arjun Mehta' })).toBeNull();
@@ -127,7 +128,7 @@ describe('Members (console v3)', () => {
     expect(await screen.findByRole('heading', { name: 'Sakshi Tandon', level: 2 }, { timeout: 5000 })).toBeDefined();
     // Half the width beside the record, the list keeps every column, its lines scrolling sideways (owner, 9 Nov).
     const table = screen.getByRole('table', { name: 'Members' });
-    for (const column of [/^Mobile/, /^KYC/, /^Hours played/, /^City/, /^Visits/]) expect(within(table).getByRole('columnheader', { name: column })).toBeDefined();
+    for (const column of [/^Mobile/, /^ID check/, /^Hours played/, /^City/, /^Visits/]) expect(within(table).getByRole('columnheader', { name: column })).toBeDefined();
     // The list beside it names her seat too, in its Tonight column's title: the record's line is the one with Show.
     const show = await screen.findByRole('button', { name: 'Show Sakshi Tandon on the floor' });
     expect(show.parentElement?.textContent).toContain('Table 2, seat 3');

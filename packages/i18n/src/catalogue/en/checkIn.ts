@@ -9,8 +9,8 @@ export const checkIn = {
   /** Check in's name for a screen reader, beside one expected member. */
   checkInMember: 'Check in {name}',
   /** The door's one field (console v3): the scanner types a membership card's code into it (#71), or staff type. */
-  field: 'Card, mobile, number or name',
-  unusable: 'Scan the card, or type a mobile, member number or name.',
+  field: 'Card, name, mobile or member number',
+  unusable: 'Scan the card, or type a name, mobile or member number.',
   noMatch: 'No member matches. Check the spelling or the number.',
   /** A name or number that finds several members: they are listed under the field. */
   several: 'More than one match. Pick one below.',
@@ -31,10 +31,10 @@ export const checkIn = {
   checkOutMember: 'Check out {name}',
   checkedOut: 'Checked out.',
   notInRoom: 'Not checked in.',
-  callTimeOwed: '{time} of call time owed. An admin can release them on the Live floor.',
+  callTimeOwed: '{time} call time owed. An admin can release them on the Live floor.',
   stillSeated: 'Still seated. The floor ends the seat first.',
   checkOutPaused: 'Venue frozen. Try again once it is released.',
-  onBreak: 'On a break. Check-in is closed until it ends.',
+  onBreak: 'This member is on a break from play. Not checked in.',
   stopped: 'This member is frozen. Ask a manager.',
   paused: 'Venue frozen. Try again once it is released.',
   unavailable: 'Not sent. Try again.',

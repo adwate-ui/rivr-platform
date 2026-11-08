@@ -73,7 +73,7 @@ async function removeEvery(page: Page, name: string) {
 
 /** Adds a member to a list by their mobile number or membership number. */
 async function addByNumber(list: Locator, number: string) {
-  await list.getByRole('textbox', { name: 'Add: mobile or member no.' }).fill(number);
+  await list.getByRole('textbox', { name: 'Add: mobile or member number' }).fill(number);
   await list.getByRole('button', { name: 'Add', exact: true }).click();
 }
 

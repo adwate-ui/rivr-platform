@@ -20,6 +20,6 @@ describe('what the Certification screen says', () => {
     expect(resultText({ correctCount: 5, questionCount: 6, isPassed: true }, 80)).toBe('Passed: 5 of 6. It is on your staff record.');
     expect(resultText({ correctCount: 4, questionCount: 6, isPassed: false }, 80))
       .toBe('Not a pass: 4 of 6. A pass needs 80% right. Read the procedures again and try once more.');
-    expect(quizFailureText('paused')).toBe('The venue is frozen. Quizzes are taken again once it is released.');
+    expect(quizFailureText('paused')).toBe('Venue frozen. Try again once it is released.');
   });
 });

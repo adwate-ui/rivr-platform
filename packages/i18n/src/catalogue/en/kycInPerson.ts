@@ -2,7 +2,7 @@
 export const kycInPerson = {
   /** How the check was done, in the queue, where a vendor's check says DigiLocker. */
   method: 'In person',
-  title: 'Check in person',
+  title: 'ID check in person',
   hint: 'Originals in hand. Photograph the face, never a document.',
   search: 'Member\'s name or the last digits of their number',
   noMatch: 'No member with an unfinished check matches.',
@@ -24,7 +24,7 @@ export const kycInPerson = {
   takePhoto: 'Take their photo',
   retakePhoto: 'Take the photo again',
   aadhaarLast4For: 'Last four digits of {name}\'s Aadhaar',
-  consentFor: '{name} agrees to this identity check',
+  consentFor: '{name} agrees to this ID check',
   consentHint: 'Ask first. Recorded with your name.',
   verifyName: 'Verify {name}',
   invalid: 'Photo, date of birth, last four Aadhaar digits, PAN and consent are needed.',
@@ -43,6 +43,6 @@ export const kycInPersonFailures = {
   decided: 'Already decided, in review, or waiting for their PAN.',
   noPhoto: 'Photo not received. Take it again.',
   invalid: 'Check the photo, date of birth, Aadhaar digits and PAN.',
-  stopped: 'KYC is paused, or the member is frozen.',
+  stopped: 'ID checks are paused, or the member is frozen.',
   unavailable: 'Not saved. Try again.',
 } as const;

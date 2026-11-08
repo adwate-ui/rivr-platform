@@ -33,7 +33,7 @@ export const certification = {
   pass: 'Passed',
   fail: 'Not passed',
   notAllowed: 'Only staff at this venue take its quizzes. Ask a manager to add you to its staff.',
-  paused: 'The venue is frozen. Quizzes are taken again once it is released.',
+  paused: 'Venue frozen. Try again once it is released.',
   invalid: 'Answer every question, then hand in.',
   unavailable: 'That did not go through. Check the connection and try again.',
 };

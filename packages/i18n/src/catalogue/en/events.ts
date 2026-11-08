@@ -24,7 +24,7 @@ export const consoleEvents = {
     invalid: 'Give a title, a day and time still to come, and 1 to 500 seats.',
     past: 'That event has started.',
     full: 'Every seat is booked.',
-    paused: 'The venue is frozen. Try again once it is released.',
+    paused: 'Venue frozen. Try again once it is released.',
     unavailable: 'That did not save. Try again.',
   },
 } as const;

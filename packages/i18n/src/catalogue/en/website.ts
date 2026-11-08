@@ -60,7 +60,7 @@ export const website = {
     not_allowed: 'Not in your role. Ask an admin.',
     gone: 'That page or version is no longer there.',
     invalid: 'A block has a problem. Check its words.',
-    paused: 'The club is paused: edit the website when it reopens.',
+    paused: 'Venue frozen. Try again once it is released.',
     unavailable: 'Not sent. Try again.',
   },
 } as const;

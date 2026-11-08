@@ -6,7 +6,7 @@ export interface SeatRowProps {
   number: number;
   /** Who sits there; none for an open seat, which says Open. */
   name?: string | undefined;
-  /** At the right: the call time left, "2 h 56 min", or "Done". */
+  /** At the right: the call time left, "2 h 56 min", or "Call time done". */
   meta?: string | undefined;
   /** What the player asks for, "Top-up" or "Wants +1 h": a gold dot and gold words in place of the call time. */
   request?: string | undefined;

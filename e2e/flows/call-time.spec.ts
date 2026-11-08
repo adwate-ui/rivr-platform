@@ -36,7 +36,7 @@ test.describe('Call time', () => {
     // Seated (decision 0320): where, the game and how long she has played, and the ring counting down to the server's end.
     await expect(player.getByRole('heading', { name: 'Private Room, seat 1' })).toBeVisible();
     await expect(player.getByText(/ · playing /)).toBeVisible();
-    await expect(player.getByRole('timer', { name: /^Call time left (3h 00m|2h 5\dm)$/ })).toBeVisible();
+    await expect(player.getByRole('timer', { name: /^Call time left (3 h|2 h 5\d min)$/ })).toBeVisible();
 
     // Add time is a request the floor approves (owner, 3 Nov): an hour, shown waiting, then approved in the requests.
     await player.getByRole('button', { name: 'Add time' }).click();
@@ -48,7 +48,7 @@ test.describe('Call time', () => {
     await showSeats(floor);
     await expect(floor.getByRole('button', { name: /^Seat 1, Ritika Das, (4 h|3 h 59 min)$/ })).toBeVisible();
     await player.reload();
-    await expect(player.getByRole('timer', { name: /^Call time left (4h 00m|3h 5\dm)$/ })).toBeVisible();
+    await expect(player.getByRole('timer', { name: /^Call time left (4 h|3 h 5\d min)$/ })).toBeVisible();
 
     // A top-up the floor starts, then marks done (#634, decision 0299).
     await player.getByRole('button', { name: 'Top up' }).click();

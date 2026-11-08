@@ -74,7 +74,7 @@ test.describe('Waitlist › At the club', () => {
     await host.getByLabel(`Date of birth on ${NAME}'s original document`).fill('1990-04-10');
     await host.getByRole('textbox', { name: `Last four digits of ${NAME}'s Aadhaar` }).fill('4100');
     await host.getByRole('textbox', { name: `${NAME}'s PAN from the original card` }).fill('ragpg4100g');
-    await host.getByRole('switch', { name: `${NAME} agrees to this identity check` }).click();
+    await host.getByRole('switch', { name: `${NAME} agrees to this ID check` }).click();
     await host.getByRole('button', { name: `Verify ${NAME}` }).click();
     await expect(host.getByRole('status').getByText(`${NAME} is verified and can take a seat.`)).toBeVisible();
 

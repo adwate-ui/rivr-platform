@@ -20,7 +20,7 @@ test.describe('Phone change', () => {
     await expect(page.getByText('Practice venue: nothing here reaches the club or its members.')).toBeVisible();
     await page.keyboard.press('Escape');
     await page.getByRole('link', { name: 'Members' }).click();
-    await page.getByRole('searchbox', { name: 'Name, member no. or mobile' }).fill('Omar');
+    await page.getByRole('searchbox', { name: 'Name, mobile or member number' }).fill('Omar');
     await page.getByRole('button', { name: 'Omar Sheikh', exact: true }).click();
     // The record's parts are tabs (C-02).
     await page.getByRole('link', { name: 'Account', exact: true }).click();
@@ -29,15 +29,15 @@ test.describe('Phone change', () => {
     const number = page.getByRole('textbox', { name: 'New mobile number' });
     const again = page.getByRole('textbox', { name: 'Type the new number again' });
     const change = page.getByRole('button', { name: 'Change number' });
-    await number.fill('9000000782');
-    await again.fill('9000000782');
+    await number.fill('12345');
+    await again.fill('12345');
     await page.getByRole('textbox', { name: 'Why it changes' }).fill('Lost his phone; new SIM');
     await change.click();
-    await page.getByRole('button', { name: 'Yes, change it to 9000000782' }).click();
+    await page.getByRole('button', { name: 'Yes, change it to +9112345' }).click();
     await expect(page.getByText('An Indian mobile with +91, and a reason without names or numbers.')).toBeVisible();
 
-    await number.fill('+919000000782');
-    await again.fill('+919000000782');
+    await number.fill('9000000782');
+    await again.fill('9000000782');
     await change.click();
     await page.getByRole('button', { name: 'Yes, change it to +919000000782' }).click();
     await expect(page.getByText('Changed.')).toBeVisible();

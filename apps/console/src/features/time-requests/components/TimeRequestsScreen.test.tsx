@@ -59,7 +59,7 @@ describe('Time requests (decision 0305)', () => {
     // The first read waits as long as other screens' do: CI's machines are slow under load.
     expect(await screen.findByText('Table 3, seat 5 · Kabir Sethi', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.getByText('Table 3, seat 1 · Naina Kapoor')).toBeDefined();
-    expect(screen.getByText('Call time met')).toBeDefined();
+    expect(screen.getByText('Call time done')).toBeDefined();
     expect(screen.getByText(/call time left$/)).toBeDefined();
     expect(screen.queryByText(/Rohan Bhatia/)).toBeNull();
   });

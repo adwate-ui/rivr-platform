@@ -75,7 +75,7 @@ async function checkNaina({ photo = true, consent = true } = {}) {
   fireEvent.change(screen.getByLabelText('Date of birth on Naina Kapoor\'s original document'), { target: { value: '1990-04-12' } });
   fireEvent.change(screen.getByLabelText('Last four digits of Naina Kapoor\'s Aadhaar'), { target: { value: '1234' } });
   fireEvent.change(screen.getByLabelText('Naina Kapoor\'s PAN from the original card'), { target: { value: 'abcpn1234d' } });
-  if (consent) fireEvent.click(screen.getByRole('switch', { name: 'Naina Kapoor agrees to this identity check' }));
+  if (consent) fireEvent.click(screen.getByRole('switch', { name: 'Naina Kapoor agrees to this ID check' }));
   fireEvent.click(screen.getByRole('button', { name: 'Verify Naina Kapoor' }));
 }
 

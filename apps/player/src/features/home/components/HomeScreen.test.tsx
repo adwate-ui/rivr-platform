@@ -141,7 +141,7 @@ describe('Tonight', () => {
     renderTonight([], [SEAT]);
     expect(await screen.findByRole('heading', { name: 'Table 1, seat 4' }, LATER)).toBeDefined();
     expect(screen.getByText('NLH 50/100 · playing 19 min')).toBeDefined();
-    expect(screen.getByRole('timer', { name: 'Call time left 2h 41m' }).textContent).toBe('2:41:08');
+    expect(screen.getByRole('timer', { name: 'Call time left 2 h 42 min' }).textContent).toBe('2:41:08');
   });
 
   // Issue 781: the floor can add a seated member to another list to change tables (#633).
@@ -168,7 +168,7 @@ describe('Tonight', () => {
     expect(screen.getByRole('button', { name: 'Top up' }).getAttribute('aria-disabled')).toBe('true');
     fireEvent.click(screen.getByRole('button', { name: 'Leave seat' }));
     expect(await screen.findByRole('dialog', { name: 'Leave your seat?' })).toBeDefined();
-    expect(screen.getByText('2h 41m call time left.')).toBeDefined();
+    expect(screen.getByText('2 h 42 min call time left.')).toBeDefined();
     expect(screen.getByRole('button', { name: 'Join leaving list' })).toBeDefined();
   });
 

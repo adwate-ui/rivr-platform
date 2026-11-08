@@ -48,7 +48,7 @@ describe('Check-in', () => {
 
   it('shows the one field, then Expected tonight and In the room, each a region with its count', async () => {
     renderAs('host');
-    expect(await screen.findByRole('textbox', { name: 'Card, mobile, number or name' }, { timeout: 5000 })).toBeDefined();
+    expect(await screen.findByRole('textbox', { name: 'Card, name, mobile or member number' }, { timeout: 5000 })).toBeDefined();
     expect(screen.getByRole('heading', { level: 1, name: 'Check-in' })).toBeDefined();
     const expected = screen.getByRole('region', { name: 'Expected tonight' });
     expect(within(expected).getByText('Kabir Sethi')).toBeDefined();

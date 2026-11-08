@@ -34,7 +34,7 @@ const FLOOR: FloorApi = { tables: TABLES, seats: SEATS, requests: REQUESTS, leng
 async function renderFloor(api: FloorApi = FLOOR) {
   const view = renderFloorScreen(LiveFloorScreen, api);
   // The first read waits as long as other screens' do: CI's machines are slow under load.
-  await screen.findByRole('group', { name: 'Table 1 50/100' }, { timeout: 5000 });
+  await screen.findByRole('group', { name: 'Table 1 NLH 50/100' }, { timeout: 5000 });
   return view;
 }
 
@@ -51,8 +51,8 @@ describe('Live floor tiles (console v3)', () => {
   it('groups active tables by room, and a closed table says so with Open table, undone from its toast', async () => {
     const { rpcs } = await renderFloor();
     expect(screen.getByRole('region', { name: 'Main room' })).toBeDefined();
-    expect(within(screen.getByRole('region', { name: 'Private Room' })).getByRole('group', { name: 'Private Room 100/200' })).toBeDefined();
-    const closed = screen.getByRole('group', { name: 'Table 4 100/200' });
+    expect(within(screen.getByRole('region', { name: 'Private Room' })).getByRole('group', { name: 'Private Room NLH 100/200' })).toBeDefined();
+    const closed = screen.getByRole('group', { name: 'Table 4 NLH 100/200' });
     expect(within(closed).getByText('Closed')).toBeDefined();
     fireEvent.click(within(closed).getByRole('button', { name: 'Open table' }));
     await screen.findByText('Table 4 opened');
@@ -68,11 +68,11 @@ describe('Live floor tiles (console v3)', () => {
     fireEvent.click(screen.getByRole('radio', { name: 'Seats' }));
     expect(screen.getByRole('button', { name: 'Seat 2, Vidya Chadha, Top-up' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Seat 5, Kabir Sethi, +1 h?' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Seat 1, Naina Kapoor, Done' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Seat 1, Naina Kapoor, Call time done' })).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Needs you' }));
-    expect(screen.queryByRole('group', { name: 'Private Room 100/200' })).toBeNull();
-    expect(screen.queryByRole('group', { name: 'Table 4 100/200' })).toBeNull();
-    expect(screen.getByRole('group', { name: 'Table 2 100/200' })).toBeDefined();
+    expect(screen.queryByRole('group', { name: 'Private Room NLH 100/200' })).toBeNull();
+    expect(screen.queryByRole('group', { name: 'Table 4 NLH 100/200' })).toBeNull();
+    expect(screen.getByRole('group', { name: 'Table 2 NLH 100/200' })).toBeDefined();
   });
 
   it('has one gold button, Seat a player, which opens the first open table someone waits for', async () => {
@@ -81,7 +81,7 @@ describe('Live floor tiles (console v3)', () => {
     expect(seat.className).toContain('bg-action');
     fireEvent.click(seat);
     const sheet = await screen.findByRole('dialog', { name: 'Seat a player' });
-    expect(within(sheet).getByText('Table 2, seat 2 · 100/200')).toBeDefined();
+    expect(within(sheet).getByText('Table 2, seat 2 · NLH 100/200')).toBeDefined();
   });
 });
 

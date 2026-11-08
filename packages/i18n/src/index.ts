@@ -10,13 +10,13 @@ export { social } from './catalogue/en/social.ts';
 export { push } from './catalogue/en/push.ts';
 export { tv } from './catalogue/en/tv.ts';
 export { registerMessages, t, type Translate } from './translate.ts';
-export { formatChips, formatMoney, formatNights, formatNumber, formatRupeesForFile, formatRupeesForInput, formatStakes } from './format/money.ts';
+export { formatChips, formatGameStakes, formatMoney, formatNights, formatNumber, formatRupeesForFile, formatRupeesForInput, formatStakes } from './format/money.ts';
 export { formatClock,
   formatCountdown,
   formatHoursMinutes,
   formatTypedDay,
   isoDayOfTyped,
-  formatMinutesSeconds, formatDate, formatDateTime, formatMonthYear, formatDayMonth, formatDayTime, formatDuration, formatIsoDay, isLaterIstDay, istMidnight, formatMonth, formatQuarter, formatTime, formatWeekday } from './format/time.ts';
+  formatMinutesSeconds, formatDate, formatDateTime, formatMonthYear, formatDayMonth, formatDayTime, formatWaitingSince, formatDuration, formatIsoDay, isLaterIstDay, istMidnight, formatMonth, formatQuarter, formatTime, formatWeekday } from './format/time.ts';
 export { formatList } from './format/list.ts';
 export { formatOrdinal } from './format/ordinal.ts';
 export { formatBlinds } from './format/chips.ts';

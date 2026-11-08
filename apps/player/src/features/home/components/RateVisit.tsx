@@ -1,7 +1,7 @@
 import { visitRatingSchema } from '@rivr/contracts';
 import { useFeedbackActions, useMyFeedbackVisit, type FeedbackFailure, type FeedbackVisit } from '@rivr/db';
 import { clubDay } from '@rivr/domain/clubDay';
-import { formatDayMonth, formatHoursMinutes, t } from '@rivr/i18n';
+import { formatDayMonth, formatDuration, t } from '@rivr/i18n';
 import { Box, Button, ChoiceChips, ErrorMessage, Heading, Inline, Stack, Text, TextArea, useToast } from '@rivr/ui';
 import { useState } from 'react';
 
@@ -54,7 +54,7 @@ export function RateVisit() {
     <Box paddingX={5} paddingY={5}>
       <Stack gap={4}>
         <Text variant="eyebrow" tone="accent">
-          {visit.tableName === null ? when : t('player.live.rate.eyebrow', { when, duration: formatHoursMinutes(visit.playedSeconds), table: visit.tableName })}
+          {visit.tableName === null ? when : t('player.live.rate.eyebrow', { when, duration: formatDuration(visit.playedSeconds), table: visit.tableName })}
         </Text>
         <Heading level={2} variant="serif">{t('player.live.rate.title')}</Heading>
         <Stack gap={2}>

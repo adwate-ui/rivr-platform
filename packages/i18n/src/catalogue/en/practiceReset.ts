@@ -31,7 +31,7 @@ export const practiceResetFailures = {
   notPractice: 'Only the practice venue resets to its seed.',
   noSeed: 'No seed to reset to.',
   wrongName: 'Type the venue\'s name exactly as the rail shows it.',
-  paused: 'The venue is frozen. Release it, then reset.',
+  paused: 'Venue frozen. Try again once it is released.',
   tooSoon: 'Reset a moment ago. Wait five minutes.',
   held: 'A kill-switch control at the practice venue names a member. Release it, then reset.',
   unavailable: 'Not reset. Try again.',

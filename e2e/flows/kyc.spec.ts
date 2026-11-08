@@ -21,7 +21,7 @@ async function takeSelfie(page: Page) {
   const start = page.getByRole('button', { name: 'Continue to DigiLocker' });
   await expect(take.or(start).or(page.getByRole('heading', { name: 'Verified', exact: true }))).toBeVisible();
   if (!(await take.isVisible())) return;
-  await expect(page.getByRole('list', { name: 'Identity check' })).toBeVisible();
+  await expect(page.getByRole('list', { name: 'ID check' })).toBeVisible();
   await take.click();
   await page.getByRole('button', { name: 'Take photo' }).click();
   await expect(page.getByRole('img', { name: 'Your photo' })).toBeVisible();
@@ -57,7 +57,7 @@ test.describe('KYC', () => {
     // Staging's real venue has Cashfree's sandbox keys, so its KYC is open, not closed: it is proved locally.
     if (isRemoteTarget()) return;
     await takeSelfie(page);
-    await expect(page.getByRole('alert').getByText('Identity checks are not open yet.')).toBeVisible();
+    await expect(page.getByRole('alert').getByText('ID checks are not open yet.')).toBeVisible();
   });
 
   test('a member DigiLocker failed for can try it again from the PAN step; one it matched without a PAN is not offered it', async ({ browser, page, request }) => {
@@ -76,7 +76,7 @@ test.describe('KYC', () => {
     await page.getByRole('button', { name: 'Try DigiLocker again' }).click();
     // The seed keeps no selfie for her, so the kyc function refuses the start and the step says so. A member who reached
     // the PAN step in the app took the selfie first.
-    await expect(page.getByText('Identity checks are down. Try again shortly.')).toBeVisible();
+    await expect(page.getByText('ID checks are down. Try again shortly.')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'PAN', level: 1 })).toBeVisible();
 
     // Shivam Kalra's DigiLocker matched but held no PAN (seed: needs_pan with his date of birth): the PAN alone verifies him.
@@ -141,7 +141,7 @@ test.describe('Identity › At the club', () => {
     await desk.getByLabel('Date of birth on Uday Thakur\'s original document').fill('1991-03-18');
     await desk.getByRole('textbox', { name: 'Last four digits of Uday Thakur\'s Aadhaar' }).fill('4180');
     await desk.getByRole('textbox', { name: 'Uday Thakur\'s PAN from the original card' }).fill('udapt4180t');
-    await desk.getByRole('switch', { name: 'Uday Thakur agrees to this identity check' }).click();
+    await desk.getByRole('switch', { name: 'Uday Thakur agrees to this ID check' }).click();
     await desk.getByRole('button', { name: 'Verify Uday Thakur' }).click();
     await expect(desk.getByRole('status').getByText('Uday Thakur is verified and can take a seat.')).toBeVisible();
 

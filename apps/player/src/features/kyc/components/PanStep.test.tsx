@@ -72,7 +72,7 @@ describe('PanStep', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Try DigiLocker again' }));
 
-    expect(await screen.findByText('Identity checks are down. Try again shortly.')).toBeDefined();
+    expect(await screen.findByText('ID checks are down. Try again shortly.')).toBeDefined();
     expect(requests).toEqual([{ action: 'start' }]);
   });
 
