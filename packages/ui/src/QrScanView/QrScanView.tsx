@@ -33,6 +33,11 @@ function onScannerKey(event: KeyboardEvent<HTMLInputElement>, onScannerCode: (co
   if (code !== '') onScannerCode(code);
 }
 
+/** Whether the focus went to a control the keyboard reaches with Tab, not to nothing or a container focused by script. */
+function isTabStop(next: EventTarget | null): boolean {
+  return next instanceof HTMLElement && next.tabIndex >= 0;
+}
+
 /**
  * The door kiosk's scanner (decision 0164): the camera's picture on the left, framed, with what to do
  * above it; on the right, large, what the last scan did. A card scanner plugged in types into a field
@@ -42,9 +47,10 @@ function onScannerKey(event: KeyboardEvent<HTMLInputElement>, onScannerCode: (co
 export function QrScanView({ videoRef, prompt, result, cameraError, scannerLabel, onScannerCode }: QrScanViewProps) {
   return (
     <div className="grid grid-cols-2 items-center gap-12">
-      {/* A kiosk has nothing else to focus: a tap elsewhere hands the focus back, for the card scanner. */}
+      {/* A tap anywhere else, on nothing or on the shell's main, hands the focus back, for the card scanner; Tab to Skip to
+          content or a banner's action leaves it there, so the keyboard is never trapped (WCAG 2.1.2). */}
       <input className="sr-only" aria-label={scannerLabel} inputMode="none" autoComplete="off" autoFocus
-        onBlur={(event) => event.currentTarget.focus()} onKeyDown={(event) => onScannerKey(event, onScannerCode)} />
+        onBlur={(event) => { if (!isTabStop(event.relatedTarget)) event.currentTarget.focus(); }} onKeyDown={(event) => onScannerKey(event, onScannerCode)} />
       <div className="flex flex-col gap-4">
         <Heading level={1} variant="title">{prompt}</Heading>
         <div className="relative aspect-photo overflow-hidden rounded-lg border border-hairline bg-raised">

@@ -36,6 +36,12 @@ export const ui = {
   },
   toast: {
     undo: 'Undo',
+    /** Closes a toast that stays until it is closed or its time is up (WCAG 2.2.1). */
+    close: 'Close',
+  },
+  /** A step asked twice (ConfirmButton): read out as the danger button takes the first one's place. */
+  confirm: {
+    asking: 'Confirm or cancel.',
   },
   picker: {
     done: 'Done',
@@ -77,6 +83,8 @@ export const ui = {
     noMatch: 'No screen by that name.',
   },
   web: {
+    /** The hero video's button, pressed while the video is paused (WCAG 2.2.2). */
+    pauseVideo: 'Pause the video',
     /** Accessible name of the public website's main navigation. */
     navigation: 'Site',
     /** On a phone, what opens the website's links. */

@@ -1,9 +1,9 @@
 import { useFeatureStatus } from '@rivr/db';
 import { useHideMySession, useMySession, type MySession } from '@rivr/db/sessions';
 import { formatHoursMinutes, formatNumber, formatTime, t } from '@rivr/i18n';
-import { BackButton, Box, Button, DetailRow, ErrorMessage, FeatureGate, Heading, Screen, Stack, Text, useToast } from '@rivr/ui';
+import { BackButton, Box, Button, DetailRow, ErrorMessage, FeatureGate, Heading, Screen, Stack, Text, useHeadingFocus, usePageTitle, useToast } from '@rivr/ui';
 import { useCanGoBack, useNavigate, useParams, useRouter } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { sessionDay, sessionStakes, sessionTitle } from './naming.ts';
 
 /** The game a session was: a cash table's stakes, or the tournament with the member's place in its field (#549). */
@@ -16,7 +16,7 @@ function gameOf(session: MySession): string {
 }
 
 /** The day, the table large, Game, Time and Played, then Hide from my list, which says so with a toast (brief 3.6). */
-function Detail({ session, onHidden }: { session: MySession; onHidden: () => void }) {
+function Detail({ session, onHidden, headingId }: { session: MySession; onHidden: () => void; headingId: string }) {
   const hide = useHideMySession();
   const toast = useToast();
   const [failed, setFailed] = useState(false);
@@ -32,7 +32,7 @@ function Detail({ session, onHidden }: { session: MySession; onHidden: () => voi
     <Stack gap={6}>
       <Stack gap={1}>
         <Text variant="small" tone="muted">{sessionDay(session)}</Text>
-        <Heading level={1} variant="serif">{sessionTitle(session)}</Heading>
+        <Heading level={1} variant="serif" id={headingId} isFocusTarget>{sessionTitle(session)}</Heading>
       </Stack>
       <Box>
         <DetailRow label={t('player.sessions.game')} labelTone="muted" value={gameOf(session)} />
@@ -43,6 +43,22 @@ function Detail({ session, onHidden }: { session: MySession; onHidden: () => voi
       {failed ? <ErrorMessage look="dot">{t('player.sessions.hideFailed')}</ErrorMessage> : null}
     </Stack>
   );
+}
+
+/** Whether the detail shows: the session read, and the tier's access known. */
+function isSessionShown(sessions: { data: unknown; isError: boolean }, accessStatus: string): boolean {
+  return sessions.data !== undefined && !sessions.isError && accessStatus === 'ready';
+}
+
+/**
+ * Drawn under its own Back button, the detail names the page after its session and takes the focus to its heading, as a
+ * Screen would (WCAG 2.4.2), once it shows. Gives back the heading's id.
+ */
+function useSessionPage({ title, session, isShown }: { title: string; session: MySession | undefined; isShown: boolean }): string {
+  const headingId = useId();
+  usePageTitle(session === undefined ? title : sessionTitle(session), isShown);
+  useHeadingFocus(headingId, isShown && session !== undefined);
+  return headingId;
 }
 
 /**
@@ -61,6 +77,7 @@ export function SessionScreen() {
   const session = sessions.data ?? undefined;
   const title = t('player.sessions.title');
   const back = <BackButton label={title} onBack={toList} />;
+  const headingId = useSessionPage({ title, session, isShown: isSessionShown(sessions, access.status) });
   if (access.status === 'error') return <Screen title={title} isTitleHidden status="error" onRetry={access.retry} />;
   if (sessions.isError) return <Screen title={title} isTitleHidden status="error" onRetry={() => void sessions.refetch()} />;
   if (sessions.data === undefined || access.status === 'loading') return <Screen title={title} isTitleHidden status="loading" loadingLook="skeleton" />;
@@ -71,7 +88,7 @@ export function SessionScreen() {
   return (
     <Stack gap={2}>
       {back}
-      {session === undefined ? <Text tone="muted">{t('player.sessions.notFound')}</Text> : <Detail session={session} onHidden={toList} />}
+      {session === undefined ? <Text tone="muted">{t('player.sessions.notFound')}</Text> : <Detail session={session} onHidden={toList} headingId={headingId} />}
     </Stack>
   );
 }
