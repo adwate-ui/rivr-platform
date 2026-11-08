@@ -4,12 +4,13 @@
  * every size, then writes the flags. The apps' preview servers start and stop inside the one Playwright run.
  */
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, readdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { say } from '../src/log.ts';
-import { runDir, SIM_HOME } from '../src/paths.ts';
+import { DB_ROOT, runDir, SIM_HOME } from '../src/paths.ts';
 import { buildApps, chooseContext, longerTokens, stageCheckpoint } from './census-prep.ts';
 import { writeCensusReport } from './census-report.ts';
+import { status } from './stack/supabase.ts';
 
 const HERE = new URL('.', import.meta.url).pathname;
 const flag = (name: string): string | undefined =>
@@ -40,10 +41,18 @@ stageCheckpoint(repoRoot, join(run, 'snapshots'), night);
 const context = chooseContext(checkpoint, dir, sizes);
 writeFileSync(join(dir, 'context.json'), `${JSON.stringify(context, null, 2)}\n`);
 say(`census ${checkpoint}: browser clock ${context.simNow}; building the apps if the key changed`);
+// The apps read the stack's address and key when built and when served (defaultToLocalSupabase reads `supabase status` in
+// the worktree): point the worktree's own, ignored config at the copy first, and pass both in the environment.
+copyFileSync(join(DB_ROOT, 'supabase', 'config.toml'), join(repoRoot, 'supabase', 'config.toml'));
 buildApps(repoRoot, dir);
+const stack = status(repoRoot);
 const result = spawnSync('pnpm', ['exec', 'playwright', 'test', '-c', 'census/playwright.config.ts', ...(flag('grep') ? ['--grep', flag('grep') ?? ''] : [])], {
   cwd: join(HERE, '..'),
   stdio: 'inherit',
-  env: { ...process.env, CENSUS_CONTEXT: join(dir, 'context.json'), CENSUS_SIZES: sizes, CENSUS_OUT: join(dir, 'playwright') },
+  env: {
+    ...process.env, CENSUS_CONTEXT: join(dir, 'context.json'), CENSUS_SIZES: sizes, CENSUS_OUT: join(dir, 'playwright'),
+    VITE_SUPABASE_URL: stack.apiUrl, VITE_SUPABASE_PUBLISHABLE_KEY: stack.publishableKey,
+    PUBLIC_SUPABASE_URL: stack.apiUrl, PUBLIC_SUPABASE_PUBLISHABLE_KEY: stack.publishableKey,
+  },
 });
 say(`census ${checkpoint}: playwright exited ${String(result.status)}; report ${writeCensusReport(dir)}`);

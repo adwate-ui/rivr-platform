@@ -95,7 +95,8 @@ export function buildApps(repoRoot: string, dir: string): void {
   execFileSync('node', ['scripts/turbo.mjs', 'run', 'build', '--filter', './apps/*', '--force', '--output-logs=errors-only'], {
     cwd: repoRoot,
     stdio: 'inherit',
-    env: { ...process.env, VITE_SUPABASE_URL: stack.apiUrl, VITE_SUPABASE_PUBLISHABLE_KEY: stack.publishableKey },
+    env: { ...process.env, VITE_SUPABASE_URL: stack.apiUrl, VITE_SUPABASE_PUBLISHABLE_KEY: stack.publishableKey,
+      PUBLIC_SUPABASE_URL: stack.apiUrl, PUBLIC_SUPABASE_PUBLISHABLE_KEY: stack.publishableKey },
   });
   mkdirSync(join(dir, '..'), { recursive: true });
   writeFileSync(marker, stack.publishableKey);
