@@ -1,0 +1,7 @@
+{
+  "//": "Only for `playwright test --tsconfig walks/tsconfig.json`: the e2e flows' @playwright/test becomes walks/clocked.ts.",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "@playwright/test": ["./clocked.ts"] }
+  }
+}
