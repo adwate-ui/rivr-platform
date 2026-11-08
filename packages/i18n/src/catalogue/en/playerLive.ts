@@ -46,6 +46,8 @@ export const playerLive = {
     /** A join the floor has not approved yet: no number until it does. */
     requested: 'Requested',
     joined: 'Joined {time}',
+    /** How the member hears their seat is ready: the floor's Call (owner, 8 Nov). */
+    called: 'The floor calls you on WhatsApp for your seat.',
     leave: 'Leave waitlist',
     /** A member let in by their selfie, waiting before the desk has checked them (decision 0503). */
     deskFirst: 'Your ID is checked at the desk before you sit.',

@@ -18,6 +18,7 @@ const PLACE: WaitlistPlace = {
 };
 
 const DESK_FIRST = 'Your ID is checked at the desk before you sit.';
+const CALLED = 'The floor calls you on WhatsApp for your seat.';
 
 /** A member signed in on their place, whose own check reads `record`. */
 function renderPlace(record: unknown) {
@@ -44,6 +45,11 @@ describe('On the list (decision 0503)', () => {
     renderPlace({ ...CHECK, status: 'started', at_club_from: '2026-11-14T10:00:00Z' });
     expect(await screen.findByText(DESK_FIRST)).toBeDefined();
     expect(screen.getByText('Next in line')).toBeDefined();
+  });
+
+  it('tells every member on a list how they hear their seat is ready (8 Nov audit, F-188)', async () => {
+    renderPlace({ ...CHECK, status: 'verified', at_club_from: null });
+    expect(await screen.findByText(CALLED)).toBeDefined();
   });
 
   it('says nothing of the desk once the member is verified', async () => {

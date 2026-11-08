@@ -61,7 +61,7 @@ test.describe('Website', { tag: '@staging' }, () => {
     await expect(page.getByRole('heading', { level: 2, name: 'Built for the long session.' })).toBeVisible();
     await expect(page.getByRole('img', { name: 'A dealer in a waistcoat deals at a table' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Done waiting for a seat?' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Join the waitlist' })).toHaveAttribute('href', `${appUrl('player')}/`);
+    await expect(page.getByRole('link', { name: 'Open the app' })).toHaveAttribute('href', `${appUrl('player')}/`);
     await expect(page.getByRole('heading', { level: 2, name: 'Hold your nerve.' })).toBeVisible();
     await expect(page.getByRole('heading', { level: 2, name: 'Find us' })).toBeVisible();
     await expect(page.getByText('Strictly 18+. Poker is a game of skill.')).toBeVisible();

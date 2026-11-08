@@ -12,7 +12,7 @@ test.describe('Link-in-bio', () => {
     await page.goto(`${appUrl('web')}/links?utm_source=instagram`);
     await expect(page.getByRole('heading', { level: 1, name: 'RIVR Poker Club' })).toBeVisible();
     const player = appUrl('player');
-    await expect(page.getByRole('link', { name: 'Join the waitlist' })).toHaveAttribute('href', `${player}/?utm_source=instagram`);
+    await expect(page.getByRole('link', { name: 'Open the app' })).toHaveAttribute('href', `${player}/?utm_source=instagram`);
     await expect(page.getByRole('link', { name: 'Book RIVR Academy' })).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'Join RIVR' })).toHaveAttribute('href', `${player}/sign-in?utm_source=instagram`);
 
