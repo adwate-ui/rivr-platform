@@ -164,6 +164,12 @@ export const publishTournamentSchema = z.strictObject({
   description: z.string().trim().max(500),
 });
 
+/** A moment as its IST day (`2026-11-15`) and 24-hour time (`16:00`), for a form that edits it. */
+export function istParts(at: Date): { readonly day: string; readonly time: string } {
+  const shifted = new Date(at.getTime() + 330 * 60_000).toISOString();
+  return { day: shifted.slice(0, 10), time: shifted.slice(11, 16) };
+}
+
 /** An IST day (`2026-11-15`) and 24-hour time (`16:00`) as the moment it is. IST keeps no daylight saving. */
 export function istMoment(day: string, time: string): Date {
   return new Date(`${day}T${time}:00+05:30`);

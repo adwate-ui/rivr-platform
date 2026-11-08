@@ -264,6 +264,7 @@ export const queryKeys = {
   myTournament: (userId: string) => ['user', userId, 'my-tournament'] as const,
   /** The member's venue's upcoming tournaments and their standing on each (#636); and the floor's list of who asked. */
   myUpcomingTournaments: (userId: string) => ['user', userId, 'my-upcoming-tournaments'] as const,
+  publishedTournaments: (userId: string, venueId: string) => ['user', userId, 'published-tournaments', venueId] as const,
   tournamentInterest: (userId: string, venueId: string) => ['user', userId, 'tournament-interest', venueId] as const,
   /** A tournament's players and the floor's balancing prompts (#120). */
   tournamentSeating: (userId: string, tournamentId: string) => ['user', userId, 'tournament-seating', tournamentId] as const,
