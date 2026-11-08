@@ -51,6 +51,11 @@ const PEOPLE = `select json_build_object(
       where pl.state = 'seated' and p.source = 'seed' and p.verified order by p.visits desc limit 1),
     'member_waiting', (select substr(p.phone, 4) from sim.persona p join sim.plan pl using (member_id)
       where pl.state in ('joined', 'arrived') and pl.entry_id is not null and p.source = 'seed' order by p.number limit 1),
+    'member_browsing', (select substr(p.phone, 4) from sim.persona p where p.source = 'seed' and p.verified and not p.erased
+      and (p.excluded_until is null or p.excluded_until <= current_date)
+      and not exists (select 1 from sim.plan pl where pl.member_id = p.member_id and pl.state in ('seated', 'joined', 'arrived'))
+      and not exists (select 1 from public.waitlist_entry e where e.member_id = p.member_id and e.status = 'waiting')
+      order by p.visits desc, p.number limit 1),
     'member_unchecked', (select substr(p.phone, 4) from sim.persona p where p.source = 'seed' and not p.verified and not p.erased
       order by (select count(*) from sim.plan pl where pl.member_id = p.member_id) desc, p.number limit 1)),
   'dealer', (select full_name from sim.staff where key = 'dealer1'),

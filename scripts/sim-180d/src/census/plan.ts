@@ -2,8 +2,9 @@
 import { ROLE_PERMISSIONS, STAFF_ROLES, type StaffRole } from '@rivr/contracts';
 import type { AppName, Role, Screen } from '../catalogue/types.ts';
 
-/** Members in three states at 22:00: seated at a table, waiting on a list, and not yet checked by the desk. */
-export const MEMBERS = ['member_seated', 'member_waiting', 'member_unchecked'] as const;
+/** Members in four states at 22:00: seated at a table, waiting on a list, browsing the tables (checked, on no list), and
+ * not yet checked by the desk. */
+export const MEMBERS = ['member_seated', 'member_waiting', 'member_browsing', 'member_unchecked'] as const;
 export type Member = (typeof MEMBERS)[number];
 export const DEVICES = ['tablet', 'door', 'tv'] as const;
 export type Device = (typeof DEVICES)[number];

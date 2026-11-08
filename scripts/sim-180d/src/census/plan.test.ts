@@ -67,7 +67,7 @@ describe('planVisits', () => {
 
   it('visits player screens as the three members and the visitor, with parameters filled', () => {
     const { visits } = planVisits(screens, 'player', { sessionId: 's1' });
-    expect(visits.map((visit) => visit.person)).toEqual(['member_seated', 'member_waiting', 'member_unchecked', 'visitor']);
+    expect(visits.map((visit) => visit.person)).toEqual(['member_seated', 'member_waiting', 'member_browsing', 'member_unchecked', 'visitor']);
     expect(visits[0]?.path).toBe('/sessions/s1');
   });
 
