@@ -34,12 +34,12 @@ afterEach(cleanup);
 describe('The door', () => {
   it('gives who is expected and who is in the room', async () => {
     const { result } = renderDoor({ door_board: { body: [
-      { member_id: 'm1', full_name: 'Naina Kapoor', tier_name: 'Member', is_in_room: false, since: '2026-10-19T18:00:00+00:00' },
-      { member_id: 'm2', full_name: 'Kabir Sethi', tier_name: 'Member', is_in_room: true, since: '2026-10-19T18:10:00+00:00' },
+      { member_id: 'm1', full_name: 'Naina Kapoor', member_number: 270, tier_name: 'Member', is_base_tier: true, is_in_room: false, since: '2026-10-19T18:00:00+00:00' },
+      { member_id: 'm2', full_name: 'Kabir Sethi', member_number: 31, tier_name: 'Member', is_base_tier: true, is_in_room: true, since: '2026-10-19T18:10:00+00:00' },
     ] } });
     await waitFor(() => expect(result.current.board.data).toEqual([
-      { memberId: 'm1', fullName: 'Naina Kapoor', tierName: 'Member', isInRoom: false, since: '2026-10-19T18:00:00+00:00' },
-      { memberId: 'm2', fullName: 'Kabir Sethi', tierName: 'Member', isInRoom: true, since: '2026-10-19T18:10:00+00:00' },
+      { memberId: 'm1', fullName: 'Naina Kapoor', memberNumber: 270, tierName: 'Member', isBaseTier: true, isInRoom: false, since: '2026-10-19T18:00:00+00:00' },
+      { memberId: 'm2', fullName: 'Kabir Sethi', memberNumber: 31, tierName: 'Member', isBaseTier: true, isInRoom: true, since: '2026-10-19T18:10:00+00:00' },
     ]));
   });
 

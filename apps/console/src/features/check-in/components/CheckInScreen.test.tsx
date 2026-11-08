@@ -11,8 +11,8 @@ afterEach(() => {
 });
 
 const BOARD = [
-  { member_id: 'm1', full_name: 'Kabir Sethi', tier_name: 'Black card', is_in_room: false, since: '2026-11-03T14:00:00Z' },
-  { member_id: 'm2', full_name: 'Nakul Dhillon', tier_name: 'Member', is_in_room: true, since: '2026-11-03T14:05:00Z' },
+  { member_id: 'm1', full_name: 'Kabir Sethi', member_number: 31, tier_name: 'Black card', is_base_tier: false, is_in_room: false, since: '2026-11-03T14:00:00Z' },
+  { member_id: 'm2', full_name: 'Nakul Dhillon', member_number: 270, tier_name: 'Member', is_base_tier: true, is_in_room: true, since: '2026-11-03T14:05:00Z' },
 ];
 
 /** A staff member in `role` on Check-in; the door board holds one expected member and one in the room. */
@@ -37,6 +37,15 @@ function renderAs(role: string) {
 }
 
 describe('Check-in', () => {
+  it('tells members apart by number, with the tier only above the base one (audit F-020)', async () => {
+    renderAs('host');
+    const expected = await screen.findByRole('region', { name: 'Expected tonight' }, { timeout: 5000 });
+    expect(await within(expected).findByText('No. 31 · Black card')).toBeDefined();
+    const inRoom = screen.getByRole('region', { name: 'In the room' });
+    expect(await within(inRoom).findByText('No. 270')).toBeDefined();
+    expect(within(inRoom).queryByText(/Member/)).toBeNull();
+  });
+
   it('shows the one field, then Expected tonight and In the room, each a region with its count', async () => {
     renderAs('host');
     expect(await screen.findByRole('textbox', { name: 'Card, mobile, number or name' }, { timeout: 5000 })).toBeDefined();

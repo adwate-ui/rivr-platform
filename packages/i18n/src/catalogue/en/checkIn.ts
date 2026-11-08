@@ -16,6 +16,7 @@ export const checkIn = {
   several: 'More than one match. Pick one below.',
   /** `{number}` is the member number. */
   memberMeta: 'No. {number} · {tier}',
+  memberNumber: 'No. {number}',
   /** Check out pressed on a scanned card: the door checks out by number or from the list. */
   cardCheckOut: 'Check them out from In the room.',
   noneExpected: 'No one expected.',
