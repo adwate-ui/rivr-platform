@@ -22,10 +22,21 @@ describe('the bar printer (ESC/POS)', () => {
     expect(Array.from(bytes.slice(0, 2))).toEqual([0x1b, 0x40]);
     expect(Array.from(bytes.slice(-4))).toEqual([0x1d, 0x56, 0x42, 0]);
     const text = printedText(bytes);
-    for (const line of ['KOT 12', 'Table 3, seat 5', 'PAID BY THE MEMBER', '22:00', '2 x Masala chai', '   Less sugar', '1 x Club sandwich']) {
+    for (const line of ['KOT 12', 'Table 3, seat 5', 'PAID BY THE MEMBER', '22:00', '2 x Masala chai', '1 x Club sandwich', 'Whole order: Less sugar']) {
       expect(text).toContain(line);
     }
     expect(printedText(kotBytes({ ...TICKET, isComp: true }))).toContain('COMP - RIVR');
+  });
+
+  it('says a note is for the whole order, after every line, and not under the line that carries it', () => {
+    const items = [{ name: 'Club sandwich', quantity: 1, note: null }, { name: 'Masala chai', quantity: 2, note: 'No onion, Less sugar' }];
+    const text = printedText(kotBytes({ ...TICKET, items }));
+    expect(text.indexOf('Whole order: No onion, Less sugar')).toBeGreaterThan(text.indexOf('2 x Masala chai'));
+    expect(text).not.toContain('   No onion');
+  });
+
+  it('prints no note line with nothing asked', () => {
+    expect(printedText(kotBytes({ ...TICKET, items: [{ name: 'Beer', quantity: 1, note: null }] }))).not.toContain('Whole order');
   });
 
   it('prints what its font cannot as a question mark', () => {

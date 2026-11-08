@@ -19,8 +19,8 @@ const SEAT = {
 };
 const MENU = [
   { item_id: 'chai', name: 'Masala chai', kind: 'soft_drink', photo_path: 'v1/menu-chai.jpg' },
-  { item_id: 'sandwich', name: 'Club sandwich', kind: 'food', photo_path: null },
-  { item_id: 'fries', name: 'French fries', kind: 'food', photo_path: null },
+  { item_id: 'sandwich', name: 'Club sandwich', kind: 'food', photo_path: null, diet: 'non_veg', description: 'Chicken, egg and bacon' },
+  { item_id: 'fries', name: 'French fries', kind: 'food', photo_path: null, diet: null, description: null },
 ];
 
 /** Signed in with table-side food, seated or not, a menu, a usual, and orders whose first reply is lost. */
@@ -80,6 +80,25 @@ describe('Tonight › Order', () => {
     expect(screen.getByRole('button', { name: /Send to the bar/ }).textContent).toContain('1 item');
     fireEvent.click(screen.getByRole('radio', { name: 'Soft drinks' }));
     expect(screen.getByRole('button', { name: 'Add Masala chai' })).toBeDefined();
+  });
+
+  it('marks a dish veg or non-veg and says what it is, where the club has said (F-052)', async () => {
+    renderOrder('seated');
+    expect(await screen.findByRole('img', { name: 'Non-vegetarian' }, LATER)).toBeDefined();
+    expect(screen.getByText('Chicken, egg and bacon')).toBeDefined();
+    expect(screen.getAllByRole('img', { name: /egetarian/ })).toHaveLength(1);
+  });
+
+  it('asks nothing of the bar until something is added, then sends the note on the last line, the foot of the KOT (F-052)', async () => {
+    const { orders } = renderOrder('seated');
+    fireEvent.click(await screen.findByRole('button', { name: 'Add Club sandwich' }, LATER));
+    expect(screen.getByText('Note for the bar')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Add French fries' }));
+    fireEvent.click(screen.getByText('No onion'));
+    fireEvent.click(screen.getByText('Less spicy'));
+    fireEvent.click(screen.getByRole('button', { name: /Send to the bar/ }));
+    await waitFor(() => expect(orders.length).toBeGreaterThan(0));
+    expect(orders[0]).toMatchObject({ p_lines: [{ item_id: 'sandwich', quantity: 1, note: null }, { item_id: 'fries', quantity: 1, note: 'no_onion,less_spicy' }] });
   });
 
   it('Your usual: Add both puts the member\'s two most-ordered items in', async () => {

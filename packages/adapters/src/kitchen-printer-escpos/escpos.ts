@@ -26,10 +26,11 @@ function ascii(text: string): number[] {
 
 /**
  * A ticket as ESC/POS commands, which the usual network kitchen printers take: the KOT's number large, the table and
- * seat, paid or comp, the time, each line with its note beneath, then a feed and a cut.
+ * seat, paid or comp, the time, each line, then what the member asked of the bar, for the whole order, then a feed and a cut.
  */
 export function kotBytes(ticket: KitchenOrderTicket): Uint8Array {
   const text = (line: string) => [...ascii(line), LINE];
+  const notes = ticket.items.flatMap((item) => (item.note === null ? [] : [item.note]));
   const bytes = [
     ESC, 0x40,
     GS, 0x21, 0x11, ESC, 0x45, 1, ...text(t('documents.kot.title', { number: ticket.kotNumber })), GS, 0x21, 0x00,
@@ -37,10 +38,8 @@ export function kotBytes(ticket: KitchenOrderTicket): Uint8Array {
     ...text(t(ticket.isComp ? 'documents.kot.comp' : 'documents.kot.paid')), ESC, 0x45, 0,
     ...text(formatTime(ticket.orderedAt)),
     LINE,
-    ...ticket.items.flatMap((item) => [
-      ...text(t('documents.kot.line', { quantity: item.quantity, name: item.name })),
-      ...(item.note === null ? [] : text(`   ${item.note}`)),
-    ]),
+    ...ticket.items.flatMap((item) => text(t('documents.kot.line', { quantity: item.quantity, name: item.name }))),
+    ...(notes.length === 0 ? [] : [LINE, ...text(t('documents.kot.wholeOrder', { note: notes.join(', ') }))]),
     ESC, 0x64, 4,
     GS, 0x56, 0x42, 0,
   ];

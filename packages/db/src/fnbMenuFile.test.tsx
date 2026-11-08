@@ -29,7 +29,7 @@ function renderSave(reply: { status?: number; body: unknown }) {
   return { result, sent };
 }
 
-const ITEMS = [{ name: ' Club sandwich ', kind: 'food', isAvailable: null }, { name: 'Beer', kind: 'alcohol', isAvailable: false }] as const;
+const ITEMS = [{ name: ' Club sandwich ', kind: 'food', isAvailable: null, diet: 'non_veg', description: 'With fries' }, { name: 'Beer', kind: 'alcohol', isAvailable: false, diet: null, description: null }] as const;
 
 afterEach(cleanup);
 
@@ -41,7 +41,7 @@ describe('the menu from a file', () => {
     expect(saved).toEqual({ ok: true, value: 2 });
     expect(sent).toEqual([{
       p_venue_id: VENUE,
-      p_items: [{ name: 'Club sandwich', kind: 'food', is_available: null }, { name: 'Beer', kind: 'alcohol', is_available: false }],
+      p_items: [{ name: 'Club sandwich', kind: 'food', is_available: null, diet: 'non_veg', description: 'With fries' }, { name: 'Beer', kind: 'alcohol', is_available: false, diet: null, description: null }],
     }]);
   });
 

@@ -286,6 +286,8 @@ export const ui = {
   },
   /** A balance that opens its history (F-054). */
   balanceTile: { history: 'History' },
+  /** A menu item's food mark, read out (F-052). */
+  dietMark: { veg: 'Vegetarian', egg: 'Contains egg', non_veg: 'Non-vegetarian' },
   /** The offer to add the player app to the home screen, on a member's second visit. */
   installOffer: {
     title: 'RIVR on your home screen',

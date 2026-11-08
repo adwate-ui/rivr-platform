@@ -1,10 +1,11 @@
-import { err, ok, type FnbItemKind, type FnbLine, type Result } from '@rivr/contracts';
+import { err, FNB_DIETS, ok, type FnbDiet, type FnbItemKind, type FnbLine, type Result } from '@rivr/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { RivrClient } from './client.ts';
 import { itemPhotoUrl } from './itemPhotos.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
+export { useCancelMyFnbOrder, type CancelMyOrderFailure } from './fnbCancel.ts';
 export { useSaveFnbMenu, type FnbMenuFailure, type FnbMenuFileItem } from './fnbMenuFile.ts';
 
 /** An item on the table-side menu (#123): Glaza's, no price. */
@@ -14,6 +15,10 @@ export interface FnbMenuItem {
   readonly kind: FnbItemKind;
   /** The club's own photo of the dish or drink, or null until one is added (AS-11). */
   readonly photoUrl: string | null;
+  /** Veg, egg or non-veg, for the mark beside its name (F-052); null where nobody has said. */
+  readonly diet: FnbDiet | null;
+  /** A line on what it is, up to 140 characters; null with none. */
+  readonly description: string | null;
 }
 
 /** An item as staff who run F&B keep it: whether it is on offer, and where it sits on the menu. */
@@ -61,26 +66,32 @@ export interface FnbOrderTonight {
 
 /**
  * Why an order did not go through: not allowed (the tier, the role, or not a tablet), nobody seated there, an item no
- * longer on the menu, a second app order inside the minute, alcohol under 21, no dealer on the tablet, the venue
- * frozen, a malformed order, or anything else.
+ * longer on the menu, a second app order inside the minute, alcohol under 21, no dealer on the tablet, the member's account
+ * paused, the venue frozen, a malformed order, or anything else.
  */
 export type FnbFailure =
-  | 'not_allowed' | 'not_seated' | 'not_on_menu' | 'too_soon' | 'too_young' | 'no_dealer' | 'paused' | 'invalid' | 'unavailable'
+  | 'not_allowed' | 'not_seated' | 'not_on_menu' | 'too_soon' | 'too_young' | 'no_dealer' | 'account_paused' | 'paused' | 'invalid' | 'unavailable'
   // Serving (#640): someone else accepted or delivered the order first.
   | 'taken';
 
 const FAILURE_BY_CODE: Readonly<Record<string, FnbFailure>> = {
   '42501': 'not_allowed', '22023': 'invalid', RVFNS: 'not_seated', RVFNI: 'not_on_menu', RVFST: 'too_soon', RVAGE: 'too_young',
-  RVDWN: 'no_dealer', RVFRZ: 'paused', RVMBR: 'not_allowed',
+  RVDWN: 'no_dealer', RVFRZ: 'paused', RVMBR: 'account_paused',
 };
+
+/** A request id already used for another order is no fault in the order's quantities, so it says Not sent (F-152). */
+function failureOf(error: { code: string; message: string }): FnbFailure {
+  if (error.code === '22023' && error.message.startsWith('That request id')) return 'unavailable';
+  return FAILURE_BY_CODE[error.code] ?? 'unavailable';
+}
 
 // The console's KOTs to print and tonight's orders ask again every ten seconds: orders arrive from the tables.
 const ORDERS_CHECK = 10_000;
 
 interface PlacedRow { order_id: string; kot_number: number }
 
-function placed(data: readonly PlacedRow[] | null, error: { code: string } | null): Result<PlacedFnbOrder, FnbFailure> {
-  if (error) return err(FAILURE_BY_CODE[error.code] ?? 'unavailable');
+function placed(data: readonly PlacedRow[] | null, error: { code: string; message: string } | null): Result<PlacedFnbOrder, FnbFailure> {
+  if (error) return err(failureOf(error));
   const row = data?.[0];
   return row ? ok({ orderId: row.order_id, kotNumber: row.kot_number }) : err('unavailable');
 }
@@ -90,8 +101,10 @@ function linesJson(lines: readonly FnbLine[]) {
   return lines.map((line) => ({ item_id: line.item_id, quantity: line.quantity, note: line.note ?? null }));
 }
 
-function menuItem(client: RivrClient, row: { item_id: string; name: string; kind: FnbItemKind; photo_path: string | null }): FnbMenuItem {
-  return { itemId: row.item_id, name: row.name, kind: row.kind, photoUrl: itemPhotoUrl(client, row.photo_path) };
+const dietOf = (text: string | null): FnbDiet | null => FNB_DIETS.find((diet) => diet === text) ?? null;
+
+function menuItem(client: RivrClient, row: { item_id: string; name: string; kind: FnbItemKind; photo_path: string | null; diet: string | null; description: string | null }): FnbMenuItem {
+  return { itemId: row.item_id, name: row.name, kind: row.kind, photoUrl: itemPhotoUrl(client, row.photo_path), diet: dietOf(row.diet), description: row.description };
 }
 
 /** The signed-in member's menu at their venue: alcohol only at 21 or over, nothing without table-side ordering. */
@@ -262,10 +275,12 @@ export function useFnbActions(venueId: string) {
     },
   });
   const saveItem = useMutation({
-    mutationFn: async (item: { itemId: string | null; name: string; kind: FnbItemKind; isAvailable: boolean; position: number }): Promise<Result<null, FnbFailure>> => {
+    mutationFn: async (item: { itemId: string | null; name: string; kind: FnbItemKind; isAvailable: boolean; position: number; diet: FnbDiet | null; description: string | null }): Promise<Result<null, FnbFailure>> => {
       const { error } = await client.rpc('save_fnb_item', {
         p_venue_id: venueId, p_name: item.name.trim(), p_kind: item.kind, p_is_available: item.isAvailable, p_position: item.position,
         ...(item.itemId === null ? {} : { p_item_id: item.itemId }),
+        ...(item.diet === null ? {} : { p_diet: item.diet }),
+        ...(item.description === null ? {} : { p_description: item.description }),
       });
       await reload();
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
@@ -302,11 +317,12 @@ export function useFnbItems(venueId: string) {
     queryKey: queryKeys.fnbItems(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<FnbItem[]> => {
-      const { data, error } = await client.from('fnb_item').select('id, name, kind, is_available, position, photo_path').eq('venue_id', venueId)
+      const { data, error } = await client.from('fnb_item').select('id, name, kind, is_available, position, photo_path, diet, description').eq('venue_id', venueId)
         .order('position').order('name');
       if (error) throw error;
       return data.map((row) => ({
         itemId: row.id, name: row.name, kind: row.kind, isAvailable: row.is_available, position: row.position, photoUrl: itemPhotoUrl(client, row.photo_path),
+        diet: dietOf(row.diet), description: row.description,
       }));
     },
   });

@@ -1,3 +1,4 @@
+import { FNB_MEMBER_CANCEL_REASON } from '@rivr/contracts';
 import type { FnbOrderTonight } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
 
@@ -24,9 +25,21 @@ export function ordersByLane(orders: readonly FnbOrderTonight[]): Record<OrderLa
   return lanes;
 }
 
+/** The KOTs members cancelled themselves tonight, the last three (F-048), so the bar can drop one it already holds: `KOT 12, KOT 15`. */
+export function memberCancelledKots(orders: readonly FnbOrderTonight[]): string | null {
+  const cancelled = orders.filter((order) => order.cancelReason === FNB_MEMBER_CANCEL_REASON).sort((a, b) => b.kotNumber - a.kotNumber).slice(0, 3);
+  return cancelled.length === 0 ? null : cancelled.map((order) => t('console.fnb.kot', { kot: order.kotNumber })).join(', ');
+}
+
 /** What was ordered, in one line: `2 × Beer, 1 × French fries`. */
 export function orderLines(order: FnbOrderTonight): string {
   return order.lines.map((line) => t('console.fnb.line', { quantity: line.quantity, name: line.name })).join(', ');
+}
+
+/** What the member asked of the bar (F-052): `No ice, Less spicy`; null with nothing asked. */
+export function orderNotes(order: FnbOrderTonight): string | null {
+  const notes = order.lines.flatMap((line) => (line.note === null ? [] : [line.note]));
+  return notes.length === 0 ? null : notes.join(', ');
 }
 
 /** Where the order goes: `Private Room, seat 4 · Lalit Goel`. */

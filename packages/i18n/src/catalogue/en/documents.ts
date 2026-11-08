@@ -79,6 +79,7 @@ export const documents = {
     paid: 'PAID BY THE MEMBER',
     comp: 'COMP - RIVR',
     line: '{quantity} x {name}',
+    wholeOrder: 'Whole order: {note}',
   },
   /** The offline pack (#167), printed at the cage when the system is down. */
   offlinePack: {

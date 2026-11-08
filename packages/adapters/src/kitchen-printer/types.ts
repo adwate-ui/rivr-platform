@@ -5,6 +5,7 @@ import type { PrinterFailure } from '../shared/failure.ts';
 export interface KotItem {
   readonly name: string;
   readonly quantity: number;
+  /** What the member asked of the bar. It is for the whole order and only travels on the last line (decision 0545), so it is printed as such. */
   readonly note: string | null;
 }
 

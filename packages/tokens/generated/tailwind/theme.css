@@ -24,6 +24,9 @@
   --color-control: var(--rivr-color-control);
   --color-gold-tint: var(--rivr-color-gold-tint);
   --color-gold-edge: var(--rivr-color-gold-edge);
+  --color-diet-veg: var(--rivr-color-diet-veg);
+  --color-diet-egg: var(--rivr-color-diet-egg);
+  --color-diet-non-veg: var(--rivr-color-diet-non-veg);
   --color-practice-stripe: var(--rivr-color-practice-stripe);
   --color-cream-track: var(--rivr-color-cream-track);
   --color-cream-faint: var(--rivr-color-cream-faint);

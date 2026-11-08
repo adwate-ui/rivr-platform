@@ -12,6 +12,17 @@ export const fnbLineSchema = z.object({
 });
 export type FnbLine = z.infer<typeof fnbLineSchema>;
 
+/** What a menu item is, for the mark beside its name (F-052): as public.fnb_item.diet allows. */
+export const FNB_DIETS = ['veg', 'egg', 'non_veg'] as const;
+export type FnbDiet = (typeof FNB_DIETS)[number];
+
+/** What a member may ask of the bar with an order (F-052), as private.fnb_bar_note words them: fixed, as free text would outlive their erasure (#567). */
+export const FNB_BAR_NOTES = ['no_ice', 'less_sugar', 'less_spicy', 'no_onion', 'no_garlic'] as const;
+export type FnbBarNote = (typeof FNB_BAR_NOTES)[number];
+
+/** The reason on an order its member cancelled before the bar accepted it (F-048), as the database writes it. */
+export const FNB_MEMBER_CANCEL_REASON = 'Cancelled by the member';
+
 /** Why staff void an order not yet delivered (decision 0302): the member sees it. */
 export const cancelFnbOrderSchema = z.object({ reason: z.string().trim().min(3).max(300) });
 

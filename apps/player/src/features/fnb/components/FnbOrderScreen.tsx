@@ -1,20 +1,26 @@
-import { FNB_ITEM_KINDS, type FnbItemKind } from '@rivr/contracts';
+import { FNB_BAR_NOTES, FNB_ITEM_KINDS, type FnbBarNote, type FnbItemKind } from '@rivr/contracts';
 import { useFeatureStatus, useMySeat, useMyUsualFnbItems, type MySeat } from '@rivr/db';
 import { useMyFnbMenu, useMyFnbOrders, type FnbMenuItem } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
-import { BackButton, Button, ChoiceChips, FeatureGate, Heading, Inline, ItemPhoto, LoadState, QuantityStepper, Screen, Skeleton, Stack, SuggestionCard, Text, useHeadingFocus, usePageTitle } from '@rivr/ui';
+import { BackButton, Button, ChoiceChips, DietMark, FeatureGate, Heading, Inline, ItemPhoto, LoadState, QuantityStepper, Screen, Skeleton, Stack, SuggestionCard, Text, useHeadingFocus, usePageTitle } from '@rivr/ui';
 import { Navigate, useCanGoBack, useNavigate, useRouter, useSearch } from '@tanstack/react-router';
 import { useId, useState } from 'react';
 import { SendBar } from './SendBar.tsx';
 
 type Counts = Readonly<Record<string, number>>;
 
-/** One item: its tile and name, then Add, or how many with one fewer and one more once added. */
+/** One item: its tile, its veg mark and name, a line on what it is, then Add, or how many with one fewer and one more once added. */
 function ItemRow({ item, count, onChange }: { item: FnbMenuItem; count: number; onChange: (count: number) => void }) {
   return (
     <Inline gap={3} align="center">
       <ItemPhoto src={item.photoUrl} name={item.name} size="sm" />
-      <Stack grow><Text>{item.name}</Text></Stack>
+      <Stack grow gap={1}>
+        <Inline gap={2} align="center">
+          {item.diet === null ? null : <DietMark diet={item.diet} />}
+          <Text>{item.name}</Text>
+        </Inline>
+        {item.description === null ? null : <Text variant="small" tone="muted">{item.description}</Text>}
+      </Stack>
       {count === 0 ? (
         <Button variant="outline" shape="pill" aria-label={t('player.order.addName', { name: item.name })} onClick={() => onChange(1)}>
           {t('player.order.add')}
@@ -46,10 +52,19 @@ function useStartingCounts(menu: readonly FnbMenuItem[]): Counts {
   return Object.fromEntries(lines.map((line) => [line.itemId, line.quantity]));
 }
 
-/** The menu by category (Food, Soft drinks, Bar), the usual on top, each item addable; the send bar once anything is in. */
+/** What to ask of the bar with this order (F-052), from a fixed list: free text would outlive an erasure (#567). */
+function BarNotes({ notes, onChange }: { notes: readonly FnbBarNote[]; onChange: (notes: FnbBarNote[]) => void }) {
+  return (
+    <ChoiceChips look="pill" mode="many" label={t('player.order.barNote')} selected={notes} onChange={onChange}
+      options={FNB_BAR_NOTES.map((value) => ({ value, label: t(`player.order.barNotes.${value}`) }))} />
+  );
+}
+
+/** The menu by category (Food, Soft drinks, Bar), the usual on top, each item addable; a note and the send bar once anything is in. */
 function Ordering({ seat, menu }: { seat: MySeat; menu: readonly FnbMenuItem[] }) {
   const starting = useStartingCounts(menu);
   const [counts, setCounts] = useState<Counts | null>(null);
+  const [notes, setNotes] = useState<FnbBarNote[]>([]);
   const [kind, setKind] = useState<FnbItemKind>('food');
   const shown = counts ?? starting;
   const set = (itemId: string, count: number) => setCounts({ ...shown, [itemId]: count });
@@ -64,7 +79,8 @@ function Ordering({ seat, menu }: { seat: MySeat; menu: readonly FnbMenuItem[] }
           <ItemRow key={item.itemId} item={item} count={shown[item.itemId] ?? 0} onChange={(count) => set(item.itemId, count)} />
         ))}
       </Stack>
-      <SendBar seat={seat} counts={shown} onSent={() => setCounts({})} />
+      {Object.values(shown).some((count) => count > 0) ? <BarNotes notes={notes} onChange={setNotes} /> : null}
+      <SendBar seat={seat} counts={shown} notes={notes} onSent={() => { setCounts({}); setNotes([]); }} />
     </Stack>
   );
 }

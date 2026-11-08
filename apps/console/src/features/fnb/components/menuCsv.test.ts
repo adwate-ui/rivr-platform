@@ -2,13 +2,25 @@ import { describe, expect, it } from 'vitest';
 import { menuItemsToSave, readMenuCsv } from './menuCsv.ts';
 
 describe('readMenuCsv', () => {
+  it('reads a diet and a description, blank leaving them as they are (F-052)', () => {
+    const csv = readMenuCsv('Name,Type,Diet,Description\nClub sandwich,Food,Non-veg,With fries\nOmelette,food,EGG,\nSalad,food,vegetarian,"Greens, and a lemon dressing"\nBeer,bar,,\n');
+    expect(csv.lines.map((read) => (read.ok ? [read.item.diet, read.item.description] : read.problem))).toEqual([
+      ['non_veg', 'With fries'], ['egg', null], ['veg', 'Greens, and a lemon dressing'], [null, null],
+    ]);
+  });
+
+  it('says which line has a diet it does not know, or too long a description', () => {
+    const csv = readMenuCsv(`Name,Type,Diet,Description\nFish fry,food,pescatarian,\nSalad,food,veg,${'x'.repeat(141)}\n`);
+    expect(csv.lines.map((read) => (read.ok ? 'ok' : read.problem))).toEqual(['diet', 'description']);
+  });
+
   it('reads each line under its heading, in any column order, leaving out a price', () => {
     const csv = readMenuCsv('\uFEFFPrice,Type,Name,On offer\n120,Food,Club sandwich,yes\n90,"Soft drinks","Lime soda, sweet",no\n\n,,,\n350,bar,Beer,\n');
     expect(csv.fileProblem).toBeNull();
     expect(csv.lines).toEqual([
-      { line: 2, ok: true, item: { name: 'Club sandwich', kind: 'food', isAvailable: true } },
-      { line: 3, ok: true, item: { name: 'Lime soda, sweet', kind: 'soft_drink', isAvailable: false } },
-      { line: 6, ok: true, item: { name: 'Beer', kind: 'alcohol', isAvailable: null } },
+      { line: 2, ok: true, item: { name: 'Club sandwich', kind: 'food', isAvailable: true, diet: null, description: null } },
+      { line: 3, ok: true, item: { name: 'Lime soda, sweet', kind: 'soft_drink', isAvailable: false, diet: null, description: null } },
+      { line: 6, ok: true, item: { name: 'Beer', kind: 'alcohol', isAvailable: null, diet: null, description: null } },
     ]);
     expect(menuItemsToSave(csv)).toHaveLength(3);
   });
@@ -20,7 +32,7 @@ describe('readMenuCsv', () => {
 
   it('leaves on offer unsaid when the file has no such column, so an item the menu has stays as it is', () => {
     const csv = readMenuCsv('name,type,price\nBeer,bar,350\n');
-    expect(csv.lines).toEqual([{ line: 2, ok: true, item: { name: 'Beer', kind: 'alcohol', isAvailable: null } }]);
+    expect(csv.lines).toEqual([{ line: 2, ok: true, item: { name: 'Beer', kind: 'alcohol', isAvailable: null, diet: null, description: null } }]);
   });
 
   it('says what is wrong with each line, and saves nothing while one is wrong', () => {
@@ -30,7 +42,7 @@ describe('readMenuCsv', () => {
       { line: 3, ok: false, problem: 'type' },
       { line: 4, ok: false, problem: 'onOffer' },
       { line: 5, ok: false, problem: 'name' },
-      { line: 6, ok: true, item: { name: 'Beer', kind: 'alcohol', isAvailable: null } },
+      { line: 6, ok: true, item: { name: 'Beer', kind: 'alcohol', isAvailable: null, diet: null, description: null } },
       { line: 7, ok: false, problem: 'twice', name: 'beer' },
     ]);
     expect(menuItemsToSave(csv)).toBeNull();

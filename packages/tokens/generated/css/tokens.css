@@ -16,6 +16,9 @@
   --rivr-color-control: #F3EDE080; /** Cream at 50%. A form control's edge: an input, a switch's track when off, an unselected chip, a key. 3.89:1 on the page green and 4.37:1 on raised, past the 3:1 a control needs (F5-04); a hairline is 1.6:1. */
   --rivr-color-gold-tint: #C9A85C24; /** Gold at 14%. A picked chip or time, the member's usual order, an open seat on the seat map (decision 0320). */
   --rivr-color-gold-edge: #C9A85C59; /** Gold at 35%. A neutral banner's edge and the selfie's frame on the membership card. */
+  --rivr-color-diet-veg: #0A7A2F; /** The veg mark on a menu item (FSSAI's green), on cream. */
+  --rivr-color-diet-egg: #A65F00; /** The club's own egg mark on a menu item, on cream: FSSAI marks only veg and non-veg. */
+  --rivr-color-diet-non-veg: #7B3F00; /** The non-veg mark on a menu item (FSSAI's brown), on cream. */
   --rivr-color-practice-stripe: #B8974D; /** The darker stripe between gold ones on the practice venue's banner across the console (console v3, decision 0477). */
   --rivr-color-cream-track: #F3EDE01F; /** Cream at 12%. The track under the call-time ring and a progress bar, and a paused action's fill. */
   --rivr-color-cream-faint: #F3EDE04D; /** Cream at 30%. A sheet's grabber, a picker field's edge and a step not reached. */

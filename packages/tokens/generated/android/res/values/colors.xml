@@ -17,6 +17,9 @@
   <color name="rivr_color_control">#80f3ede0</color>
   <color name="rivr_color_gold_tint">#24c9a85c</color>
   <color name="rivr_color_gold_edge">#59c9a85c</color>
+  <color name="rivr_color_diet_veg">#ff0a7a2f</color>
+  <color name="rivr_color_diet_egg">#ffa65f00</color>
+  <color name="rivr_color_diet_non_veg">#ff7b3f00</color>
   <color name="rivr_color_practice_stripe">#ffb8974d</color>
   <color name="rivr_color_cream_track">#1ff3ede0</color>
   <color name="rivr_color_cream_faint">#4df3ede0</color>

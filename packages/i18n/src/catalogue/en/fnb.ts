@@ -6,7 +6,8 @@ const failures = {
   too_soon: 'One order a minute. Try again shortly.',
   too_young: 'Alcohol is for members 21 and over.',
   no_dealer: 'Sign a dealer in before ordering.',
-  paused: 'The club is paused: orders wait until it reopens.',
+  account_paused: 'Account paused. Ask at the front desk.',
+  paused: 'The club is paused. Order once it reopens.',
   invalid: 'Up to 9 of each item, 20 different items at most.',
   unavailable: 'Not sent. Try again.',
   /** Serving (#640): another steward got there first. */
@@ -42,6 +43,8 @@ export const playerFnb = {
   progress: { placed: 'Placed', in_progress: 'Being prepared', delivered: 'Delivered' },
   /** An order staff voided (decision 0302), with their reason. */
   cancelled: 'Cancelled: {reason}',
+  /** An order the member cancelled themselves (F-048). */
+  cancelledByYou: 'You cancelled this order.',
   ordersFailed: 'Your orders did not load.',
   failures,
 } as const;
@@ -90,6 +93,8 @@ export const consoleFnb = {
   voidReason: 'Why void KOT {kot}',
   voidConfirm: 'Void the order',
   invalidVoidReason: 'Give a reason of 3 to 300 characters.',
+  /** Over the lanes, the last three KOTs members cancelled tonight (F-048): `Cancelled by the member: KOT 12, KOT 15`. */
+  memberCancelled: 'Cancelled by the member: {kots}',
   memberSeesReason: 'The member sees this.',
   /** The bar printer's delivery of the KOT failed or closed unprinted (console v3): never said from a clock. */
   notAtBar: 'The bar printer did not get this KOT. Print it or read it to the bar.',
@@ -114,6 +119,13 @@ export const consoleFnb = {
   sent: 'Sent to the bar: KOT {kot}.',
   itemName: 'Item',
   kind: 'Kind',
+  /** What a dish is (F-052): the mark the app shows beside its name, and a line under it. */
+  diet: 'Diet',
+  dietNone: 'Not set',
+  diets: { veg: 'Veg', egg: 'Egg', non_veg: 'Non-veg' },
+  description: 'Description',
+  /** What the member asked of the bar, on the order's card. */
+  note: 'Whole order: {note}',
   /** The menu's kinds and its sections, as the app names them (#799). */
   kinds: { food: 'Food', soft_drink: 'Soft drinks', alcohol: 'Bar' },
   onOffer: 'On offer',
@@ -126,7 +138,7 @@ export const consoleFnb = {
   menuCsv: {
     heading: 'Menu from a CSV',
     /** The one hint the file needs: its columns and the words each takes. */
-    format: 'Columns: name, type (food, soft drinks or bar), and on offer (yes or no) if it changes.',
+    format: 'Columns: name, type (food, soft drinks or bar), and if they change: on offer (yes or no), diet (veg, egg or non-veg), description.',
     choose: 'Choose a CSV',
     chooseAnother: 'Choose another CSV',
     /** A line of the preview: `Club sandwich · Food · On offer`, or without on offer when the file leaves it as it is. */
@@ -136,6 +148,8 @@ export const consoleFnb = {
       name: 'Line {line}: give a name of 1 to 60 characters.',
       type: 'Line {line}: use food, soft drinks or bar as the type.',
       onOffer: 'Line {line}: write yes, no or nothing under on offer.',
+      diet: 'Line {line}: write veg, egg, non-veg or nothing under diet.',
+      description: 'Line {line}: keep the description to 140 characters.',
       twice: 'Line {line}: {name} is listed twice.',
     },
     columns: 'Name the columns on the first line: name and type.',

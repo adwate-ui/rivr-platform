@@ -1,3 +1,4 @@
+import type { FnbBarNote } from '@rivr/contracts';
 import type { MySeat } from '@rivr/db';
 import { usePlaceFnbOrder, type FnbFailure } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
@@ -8,16 +9,17 @@ import { useState } from 'react';
 /**
  * The sticky foot of the Order screen once anything is added (brief 3.5): Send to the bar with how many items. Sent, the
  * phone buzzes, Tonight shows the order on its way and a toast says so. One request id an order, kept to retry one whose
- * reply was lost, and new with any change to it (F3-18).
+ * reply was lost, and new with any change to it (F3-18). The order's note goes on its last line, and the KOT prints it as for the whole order.
  */
-export function SendBar({ seat, counts, onSent }: { seat: MySeat; counts: Readonly<Record<string, number>>; onSent: () => void }) {
+export function SendBar({ seat, counts, notes, onSent }: { seat: MySeat; counts: Readonly<Record<string, number>>; notes: readonly FnbBarNote[]; onSent: () => void }) {
   const place = usePlaceFnbOrder();
   const router = useRouter();
   const canGoBack = useCanGoBack();
   const navigate = useNavigate();
   const toast = useToast();
   const [failure, setFailure] = useState<FnbFailure | null>(null);
-  const lines = Object.entries(counts).filter(([, quantity]) => quantity > 0).map(([itemId, quantity]) => ({ item_id: itemId, quantity }));
+  const items = Object.entries(counts).filter(([, quantity]) => quantity > 0).map(([itemId, quantity]) => ({ item_id: itemId, quantity }));
+  const lines = notes.length === 0 ? items : items.map((line, index) => (index === items.length - 1 ? { ...line, note: notes.join(',') } : line));
   const key = JSON.stringify(lines);
   const [request, setRequest] = useState({ key, id: crypto.randomUUID() });
   if (request.key !== key) setRequest({ key, id: crypto.randomUUID() });

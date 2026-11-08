@@ -40,6 +40,16 @@ function renderBoard(orders: readonly FnbOrderTonight[]) {
 }
 
 describe('OrderBoard (decision 0302)', () => {
+  it('shows what the member asked of the bar (F-052)', () => {
+    renderBoard([{ ...CHAI, lines: [{ itemId: 'chai', name: 'Masala chai', quantity: 1, note: 'No ice, Less spicy' }] }]);
+    expect(screen.getByText('Whole order: No ice, Less spicy')).toBeDefined();
+  });
+
+  it('names the KOTs members cancelled themselves, so the bar can drop one it holds (F-048)', () => {
+    renderBoard([{ ...CHAI, cancelledAt: '2026-11-15T16:12:00Z', cancelReason: 'Cancelled by the member' }, { ...CHAI, orderId: 'o13', kotNumber: 13, cancelledAt: '2026-11-15T16:13:00Z', cancelReason: 'Out of chai' }]);
+    expect(screen.getByText('Cancelled by the member: KOT 12')).toBeDefined();
+  });
+
   it('voids an order not yet delivered, with a reason the member sees', async () => {
     const sent = renderBoard([CHAI]);
     fireEvent.click(screen.getByRole('button', { name: 'Void KOT 12' }));

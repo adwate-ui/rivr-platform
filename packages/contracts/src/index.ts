@@ -69,13 +69,18 @@ export {
 } from './incidents.ts';
 export { rakeChangeSchema } from './rake.ts';
 export {
+  FNB_BAR_NOTES,
+  FNB_DIETS,
   FNB_ITEM_KINDS,
+  FNB_MEMBER_CANCEL_REASON,
   cancelFnbOrderSchema,
   fnbItemSchema,
   fnbLineSchema,
   fnbOrderedSchema,
   fnbOrderSchema,
   type FnbItemKind,
+  type FnbBarNote,
+  type FnbDiet,
   type FnbLine,
   type FnbOrdered,
 } from './fnb.ts';

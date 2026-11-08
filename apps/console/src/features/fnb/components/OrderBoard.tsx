@@ -3,7 +3,7 @@ import { formatNumber, t } from '@rivr/i18n';
 import { Box, ErrorMessage, Grid, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { OrderCard, type Act } from './OrderCard.tsx';
-import { ORDER_LANES, ordersByLane, type OrderLane } from './orderLanes.ts';
+import { memberCancelledKots, ORDER_LANES, ordersByLane, type OrderLane } from './orderLanes.ts';
 
 interface LaneProps {
   venueId: string;
@@ -46,8 +46,10 @@ export function OrderBoard({ venueId, orders }: { venueId: string; orders: reado
     setFailure(outcome.ok ? null : outcome.error);
   };
   const lanes = ordersByLane(orders);
+  const cancelled = memberCancelledKots(orders);
   return (
     <Stack gap={4}>
+      {cancelled === null ? null : <Text variant="small" tone="muted">{t('console.fnb.memberCancelled', { kots: cancelled })}</Text>}
       {failure === null ? null : <ErrorMessage>{t(`console.fnb.failures.${failure}`)}</ErrorMessage>}
       <Grid columns={3} gap={4} stackBelow="medium">
         {ORDER_LANES.map((lane) => (

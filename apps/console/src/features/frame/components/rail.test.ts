@@ -1,6 +1,6 @@
 import { ROLE_PERMISSIONS, type StaffRole } from '@rivr/contracts';
 import { describe, expect, it } from 'vitest';
-import { isAllowedAt, landingFor, locksWhenIdle, phoneTabsFor, railFor, railItemAt, refusalAt, tabsFor } from './rail.ts';
+import { isAllowedAt, landingFor, locksWhenIdle, phoneTabsFor, railFor, railItemAt, refusalAt, tabsFor, URGENT_QUEUES } from './rail.ts';
 import { RAIL, REQUESTS } from './railEntries.ts';
 
 const items = (role: StaffRole) => railFor(ROLE_PERMISSIONS[role]).flatMap((section) => section.items.map((item) => item.href));
@@ -126,6 +126,10 @@ describe('the console rail (console v3)', () => {
     expect(railItemAt('/requests')).toBe('requests');
     expect(railItemAt('/kill-switch')).toBe('killSwitch');
     expect(railItemAt('/nowhere')).toBeUndefined();
+  });
+
+  it('chimes for an order its member cancelled, as the bar may hold its KOT (F-048)', () => {
+    expect(URGENT_QUEUES).toContain('fnbCancelled');
   });
 
   it('keeps the cage and money screens locking after ten idle minutes, and none of them on the rail', () => {

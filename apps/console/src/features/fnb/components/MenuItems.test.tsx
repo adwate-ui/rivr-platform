@@ -1,5 +1,5 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MenuItems } from './MenuItems.tsx';
 
@@ -23,8 +23,13 @@ function renderMenu(canManage: boolean, items: readonly object[] = [CHAI]) {
       user: { id: '00000000-0000-4000-8000-000000000101', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
     }),
   );
-  vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+  const saved: unknown[] = [];
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
+    if (url.includes('/rpc/save_fnb_item')) {
+      saved.push(JSON.parse(String(init?.body)));
+      return Response.json('new');
+    }
     return Response.json(url.includes('/rest/v1/fnb_item') ? items : []);
   });
   render(
@@ -32,9 +37,24 @@ function renderMenu(canManage: boolean, items: readonly object[] = [CHAI]) {
       <MenuItems venueId="v1" canManage={canManage} />
     </RivrDataProvider>,
   );
+  return saved;
 }
 
 describe('MenuItems', () => {
+  it('adds an item with its veg mark and a line on what it is (F-052)', async () => {
+    const saved = renderMenu(true);
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Item' }, { timeout: 5000 }), { target: { value: 'Paneer roll' } });
+    fireEvent.click(screen.getByRole('radio', { name: 'Veg' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Description' }), { target: { value: ' With mint chutney ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add to the menu' }));
+    await waitFor(() => expect(saved).toEqual([expect.objectContaining({ p_name: 'Paneer roll', p_diet: 'veg', p_description: 'With mint chutney' })]));
+  });
+
+  it('shows an item\u2019s mark beside its name', async () => {
+    renderMenu(false, [{ ...SANDWICH, diet: 'non_veg', description: null }]);
+    expect(await screen.findByRole('img', { name: 'Non-vegetarian' }, { timeout: 5000 })).toBeDefined();
+  });
+
   it('sets each item under its kind, food first, with the name alone', async () => {
     renderMenu(false, [CHAI, SANDWICH, BEER]);
     const headings = await screen.findAllByRole('heading', { level: 2 }, { timeout: 5000 });

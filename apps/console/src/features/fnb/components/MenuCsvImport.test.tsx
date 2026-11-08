@@ -51,8 +51,16 @@ describe('The menu from a CSV', () => {
     expect(await screen.findByText('2 items saved to the menu.')).toBeDefined();
     expect(sent).toEqual([{
       p_venue_id: 'v1',
-      p_items: [{ name: 'Club sandwich', kind: 'food', is_available: true }, { name: 'Beer', kind: 'alcohol', is_available: false }],
+      p_items: [{ name: 'Club sandwich', kind: 'food', is_available: true, diet: null, description: null }, { name: 'Beer', kind: 'alcohol', is_available: false, diet: null, description: null }],
     }]);
+  });
+
+  it('shows the diet and description it will save, and neither for a line that leaves them as they are (F-052)', async () => {
+    renderImport(() => Response.json(2));
+    choose('name,type,diet,description\nClub sandwich,food,non veg,Chicken and egg on toast\nBeer,bar,,\n');
+    expect(await screen.findByRole('img', { name: 'Non-vegetarian' })).toBeDefined();
+    expect(screen.getByText('Chicken and egg on toast')).toBeDefined();
+    expect(screen.getAllByRole('img', { name: /vegetarian|egg/i })).toHaveLength(1);
   });
 
   it('names what is wrong on each line, and offers no save until the file is right', async () => {
@@ -70,7 +78,7 @@ describe('The menu from a CSV', () => {
     expect(await screen.findByText('Beer · Bar')).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Save items' }));
     expect(await screen.findByText('1 item saved to the menu.')).toBeDefined();
-    expect(sent).toEqual([{ p_venue_id: 'v1', p_items: [{ name: 'Beer', kind: 'alcohol', is_available: null }] }]);
+    expect(sent).toEqual([{ p_venue_id: 'v1', p_items: [{ name: 'Beer', kind: 'alcohol', is_available: null, diet: null, description: null }] }]);
   });
 
   it('says a file without its column names is not the menu', async () => {

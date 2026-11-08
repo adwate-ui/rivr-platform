@@ -35,7 +35,7 @@ function renderFnb(replies: Record<string, { status?: number; body: unknown }>) 
   return { result, calls };
 }
 
-const MENU = [{ item_id: CHAI, name: 'Masala chai', kind: 'soft_drink', photo_path: null }];
+const MENU = [{ item_id: CHAI, name: 'Masala chai', kind: 'soft_drink', photo_path: null, diet: null, description: null }];
 const LINES = [{ item_id: CHAI, quantity: 2, note: 'Less sugar' }];
 
 afterEach(() => {
@@ -48,7 +48,7 @@ describe('table-side food and drink', () => {
     const { result } = renderFnb({
       '/rpc/my_fnb_menu': { body: MENU },
       '/rpc/fnb_menu': { body: MENU },
-      '/rest/v1/fnb_item': { body: [{ id: CHAI, name: 'Masala chai', kind: 'soft_drink', is_available: false, position: 1, photo_path: null }] },
+      '/rest/v1/fnb_item': { body: [{ id: CHAI, name: 'Masala chai', kind: 'soft_drink', is_available: false, position: 1, photo_path: null, diet: null, description: null }] },
       '/rpc/fnb_orders_tonight': {
         body: [{
           order_id: 'o1', kot_number: 3, table_name: 'Table 3', seat: 5, member_name: 'Yash Gupta', member_number: 1043,
@@ -57,7 +57,7 @@ describe('table-side food and drink', () => {
         }],
       },
     });
-    const chai = { itemId: CHAI, name: 'Masala chai', kind: 'soft_drink', photoUrl: null };
+    const chai = { itemId: CHAI, name: 'Masala chai', kind: 'soft_drink', photoUrl: null, diet: null, description: null };
     await waitFor(() => expect(result.current.mine.data).toEqual([chai]));
     await waitFor(() => expect(result.current.menu.data).toEqual([chai]));
     await waitFor(() => expect(result.current.items.data).toEqual([{ ...chai, isAvailable: false, position: 1 }]));
@@ -109,13 +109,26 @@ describe('table-side food and drink', () => {
     await act(async () => { marked = await result.current.actions.markSent.mutateAsync('o1'); });
     expect(marked).toEqual({ ok: false, error: 'not_allowed' });
     await act(async () => {
-      await result.current.actions.saveItem.mutateAsync({ itemId: null, name: ' Cold coffee ', kind: 'soft_drink', isAvailable: true, position: 4 });
-      await result.current.actions.saveItem.mutateAsync({ itemId: CHAI, name: 'Masala chai', kind: 'soft_drink', isAvailable: false, position: 1 });
+      await result.current.actions.saveItem.mutateAsync({ itemId: null, name: ' Cold coffee ', kind: 'soft_drink', isAvailable: true, position: 4, diet: null, description: null });
+      await result.current.actions.saveItem.mutateAsync({ itemId: CHAI, name: 'Masala chai', kind: 'soft_drink', isAvailable: false, position: 1, diet: 'veg', description: 'With cardamom' });
     });
     const saves = calls.filter((call) => call.url.includes('/rpc/save_fnb_item')).map((call) => call.body);
     expect(saves).toEqual([
       { p_venue_id: VENUE, p_name: 'Cold coffee', p_kind: 'soft_drink', p_is_available: true, p_position: 4 },
-      { p_venue_id: VENUE, p_name: 'Masala chai', p_kind: 'soft_drink', p_is_available: false, p_position: 1, p_item_id: CHAI },
+      { p_venue_id: VENUE, p_name: 'Masala chai', p_kind: 'soft_drink', p_is_available: false, p_position: 1, p_item_id: CHAI, p_diet: 'veg', p_description: 'With cardamom' },
     ]);
   });
+
+  it.each([
+    ['RVMBR', 'Account paused', 'account_paused'],
+    ['RVFRZ', 'Frozen', 'paused'],
+    ['22023', 'That request id was for another order', 'unavailable'],
+    ['22023', 'An order is 1 to 20 lines', 'invalid'],
+  ])('says %s (%s) as %s (F-152)', async (code, message, failure) => {
+    const { result } = renderFnb({ '/rpc/place_fnb_order': { status: 400, body: { code, message } } });
+    let outcome: unknown;
+    await act(async () => { outcome = await result.current.place.mutateAsync({ lines: LINES, requestId: '00000000-0000-4000-8000-00000000f001' }); });
+    expect(outcome).toEqual({ ok: false, error: failure });
+  });
 });
+

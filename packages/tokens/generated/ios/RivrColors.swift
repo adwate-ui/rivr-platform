@@ -26,6 +26,9 @@ public enum RivrColors {
     public static let colorCreamFaint = Color(red: 0.953, green: 0.929, blue: 0.878, opacity: 0.30196078431372547) /** Cream at 30%. A sheet's grabber, a picker field's edge and a step not reached. */
     public static let colorCreamTrack = Color(red: 0.953, green: 0.929, blue: 0.878, opacity: 0.12156862745098039) /** Cream at 12%. The track under the call-time ring and a progress bar, and a paused action's fill. */
     public static let colorDanger = Color(red: 0.910, green: 0.510, blue: 0.549, opacity: 1) /** Danger text on the console: Remove, Purge, the Kill switch, an age past its target. 4.76:1 on green, 5.86:1 on green-black; never on a subtle fill. */
+    public static let colorDietEgg = Color(red: 0.651, green: 0.373, blue: 0.000, opacity: 1) /** The club's own egg mark on a menu item, on cream: FSSAI marks only veg and non-veg. */
+    public static let colorDietNonVeg = Color(red: 0.482, green: 0.247, blue: 0.000, opacity: 1) /** The non-veg mark on a menu item (FSSAI's brown), on cream. */
+    public static let colorDietVeg = Color(red: 0.039, green: 0.478, blue: 0.184, opacity: 1) /** The veg mark on a menu item (FSSAI's green), on cream. */
     public static let colorFocus = Color(red: 0.953, green: 0.929, blue: 0.878, opacity: 1) /** Keyboard focus ring. */
     public static let colorGold = Color(red: 0.788, green: 0.659, blue: 0.361, opacity: 1) /** The one primary action per screen, money that belongs to the player, hairlines at 25%. */
     public static let colorGoldEdge = Color(red: 0.788, green: 0.659, blue: 0.361, opacity: 0.34901960784313724) /** Gold at 35%. A neutral banner's edge and the selfie's frame on the membership card. */

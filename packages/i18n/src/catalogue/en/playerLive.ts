@@ -97,6 +97,11 @@ export const playerLive = {
     stay: 'Stay seated',
     order: 'Order to my seat',
     orderAgain: 'Order again',
+    /** While the bar has not accepted the order (F-048). */
+    cancelOrder: 'Cancel order',
+    cancelOrderConfirm: 'Yes, cancel it',
+    cancelToast: 'Order cancelled',
+    cancelFailures: { accepted: 'The bar has started it.', unavailable: 'Not sent. Try again.' },
     /** The order tracker's steps, read out as a list named this. */
     orderLabel: 'Order',
     stages: { sent: 'Sent', preparing: 'Preparing', on_its_way: 'On its way', delivered: 'Delivered' },
@@ -141,5 +146,8 @@ export const playerOrder = {
   items: '{count} items',
   itemsOne: '1 item',
   sentToast: 'Order sent',
+  /** What to ask of the bar with an order (F-052), the list private.fnb_bar_note holds. */
+  barNote: 'Note for the bar',
+  barNotes: { no_ice: 'No ice', less_sugar: 'Less sugar', less_spicy: 'Less spicy', no_onion: 'No onion', no_garlic: 'No garlic' },
 } as const;
 
