@@ -5251,6 +5251,11 @@ isOneToOne: false
 "kyc_at_the_club":
 { Args: { "p_venue_id"?: string }; Returns: boolean
                            },
+"kyc_due_tonight":
+{ Args: { "p_venue_id": string }; Returns: {
+              "app_selfie_path": string,"full_name": string,"member_id": string,"phone_last4": string,"status": string
+            }[]
+                           },
 "kyc_in_person_candidates":
 { Args: { "p_search": string,"p_venue_id": string }; Returns: {
               "app_selfie_path": string,"full_name": string,"member_id": string,"phone_last4": string,"status": string

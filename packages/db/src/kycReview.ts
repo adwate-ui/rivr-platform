@@ -155,7 +155,7 @@ export interface KycCandidate {
   readonly fullName: string;
   /** The last four digits of their mobile number, to tell two of the same name apart. */
   readonly phoneLast4: string;
-  readonly status: 'started' | null;
+  readonly status: 'started' | 'needs_pan' | null;
   /**
    * The selfie they took in the app to be checked at the club (decision 0502), for `useKycImageUrl`: their sign-up photo,
    * or the app's KYC selfie for a check reopened from the vendor. Staff compare it with the face at the desk. Null for
@@ -164,7 +164,21 @@ export interface KycCandidate {
   readonly clubSelfiePath: string | null;
 }
 
-const CANDIDATE_STATUSES = ['started'] as const;
+const CANDIDATE_STATUSES = ['started', 'needs_pan'] as const;
+
+interface CandidateRow {
+  member_id: string;
+  full_name: string;
+  phone_last4: string;
+  status: string | null;
+  app_selfie_path: string | null;
+}
+
+const candidateOf = (row: CandidateRow): KycCandidate => ({
+  memberId: row.member_id, fullName: row.full_name, phoneLast4: row.phone_last4,
+  status: row.status === null ? null : oneOf(CANDIDATE_STATUSES, row.status),
+  clubSelfiePath: row.app_selfie_path,
+});
 
 /** The members found by name, or by the last digits of their number, for a check in person (two characters at least). */
 export function useKycInPersonCandidates(venueId: string, search: string) {
@@ -175,11 +189,28 @@ export function useKycInPersonCandidates(venueId: string, search: string) {
     queryFn: async (): Promise<KycCandidate[]> => {
       const { data, error } = await client.rpc('kyc_in_person_candidates', { p_venue_id: venueId, p_search: search.trim() });
       if (error) throw error;
-      return data.map((row) => ({
-        memberId: row.member_id, fullName: row.full_name, phoneLast4: row.phone_last4,
-        status: row.status === null ? null : oneOf(CANDIDATE_STATUSES, row.status),
-        clubSelfiePath: row.app_selfie_path,
-      }));
+      return data.map(candidateOf);
+    },
+  });
+}
+
+// The desk's list for tonight asks again each minute: members arrive and join lists all night.
+const DUE_TONIGHT_CHECK = 60_000;
+
+/**
+ * Who the desk should check tonight (audit F-091): members in the room or on a list whose check is not done, the longest
+ * waiting first, as the same rows the search gives.
+ */
+export function useKycDueTonight(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.kycDueTonight(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    refetchInterval: DUE_TONIGHT_CHECK,
+    queryFn: async (): Promise<KycCandidate[]> => {
+      const { data, error } = await client.rpc('kyc_due_tonight', { p_venue_id: venueId });
+      if (error) throw error;
+      return data.map(candidateOf);
     },
   });
 }

@@ -1,5 +1,5 @@
 import type { KycCheck, KycRefusal, KycReviewFailure, KycWaitReason } from '@rivr/db';
-import { formatDate, formatTime, t, type MessageKey } from '@rivr/i18n';
+import { formatDate, formatIsoDay, formatTime, t, type MessageKey } from '@rivr/i18n';
 
 const REFUSAL_COPY: Readonly<Record<KycRefusal, MessageKey>> = {
   under_18: 'console.kycReview.underEighteen',
@@ -87,19 +87,31 @@ export function checkDetails(check: KycCheck): readonly { label: string; value: 
   return details.flatMap(({ label, value }) => (value === null ? [] : [{ label, value }]));
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** When a check began to wait: the time today, from the second day the date and how many days (audit F-092). */
+export function sinceText(at: Date, now: Date = new Date()): string {
+  // Days in India, not blocks of 24 hours: a wait from last night is yesterday's.
+  const days = Math.round((Date.parse(formatIsoDay(now)) - Date.parse(formatIsoDay(at))) / DAY_MS);
+  if (days < 1) return formatTime(at);
+  return days === 1 ? t('console.kycReview.sinceOneDay', { date: formatDate(at) }) : t('console.kycReview.sinceDays', { date: formatDate(at), days });
+}
+
 /** A check's line in the queue (console v3): how it was made and when it began to wait, or what the member owes, or the day refused. */
-export function queueLine(check: KycCheck): string {
+export function queueLine(check: KycCheck, now: Date = new Date()): string {
   const at = new Date(check.updatedAt);
-  if (check.status === 'needs_pan') return t('console.kycReview.needsPanLine', { time: formatTime(at) });
+  if (check.status === 'needs_pan') return t('console.kycReview.needsPanLine', { since: sinceText(at, now) });
   if (check.status === 'refused') return formatDate(at);
-  return t('console.kycReview.queueLine', { method: t(METHOD_COPY[check.method]), time: formatTime(at) });
+  return t('console.kycReview.queueLine', { method: t(METHOD_COPY[check.method]), since: sinceText(at, now) });
 }
 
 /** The queue in its groups: checks a reviewer decides, checks waiting on the member, and refused ones (C-06). */
 export function checkGroups(checks: readonly KycCheck[]) {
+  // The longest waiting first, so a block of weeks heads its group (audit F-092).
+  const oldestFirst = (list: readonly KycCheck[]) => [...list].sort((a, b) => a.updatedAt.localeCompare(b.updatedAt));
   return {
-    toReview: checks.filter((check) => check.status === 'needs_review'),
-    onMember: checks.filter((check) => check.status === 'needs_pan'),
+    toReview: oldestFirst(checks.filter((check) => check.status === 'needs_review')),
+    onMember: oldestFirst(checks.filter((check) => check.status === 'needs_pan')),
     refused: checks.filter((check) => check.status === 'refused'),
   };
 }
