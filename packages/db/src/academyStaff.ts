@@ -138,11 +138,11 @@ export function useStaffAcademyActions(venueId: string) {
         p_venue_id: venueId, p_name: batch.name, p_starts_on: batch.startsOn, p_ends_on: batch.endsOn, p_seats: batch.seats,
       })),
     bookCompany: useStaffAcademyStep(venueId, async (client, booking: CompanyBooking) => {
-      const contact = await client.from('member').select('id').eq('venue_id', venueId).eq('phone', booking.contactPhone).maybeSingle();
+      const contact = await client.rpc('member_id_for_phone', { p_venue_id: venueId, p_phone: booking.contactPhone });
       if (contact.error) return contact;
       if (contact.data === null) return { error: { code: NO_MEMBER } };
       return client.rpc('book_academy_corporate', {
-        p_batch_id: booking.batchId, p_member_id: contact.data.id, p_company_name: booking.companyName, p_seats: booking.seats,
+        p_batch_id: booking.batchId, p_member_id: contact.data, p_company_name: booking.companyName, p_seats: booking.seats,
         p_request_id: booking.requestId, p_company_gstin: booking.companyGstin,
       });
     }),

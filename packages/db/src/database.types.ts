@@ -5336,6 +5336,9 @@ isOneToOne: false
               "created_at": string,"feature_key": string,"feature_name": string,"is_granted": boolean,"lift_reason": string,"lifted_by": string,"override_id": string,"reason": string,"staff_name": string,"standing": string,"until": string
             }[]
                            },
+"member_id_for_phone":
+{ Args: { "p_phone": string,"p_venue_id": string }; Returns: string
+                           },
 "member_points":
 { Args: { "p_phone": string,"p_venue_id": string }; Returns: {
               "earned": number,"full_name": string,"locked": number,"member_id": string,"member_number": number
@@ -6131,6 +6134,9 @@ isOneToOne: false
               "ends_on": string,"id": string,"is_open": boolean,"name": string,"seats": number,"seats_taken": number,"starts_on": string
             }[]
                            },
+"staff_id_for_phone":
+{ Args: { "p_phone": string,"p_venue_id": string }; Returns: string
+                           },
 "staff_queue_counts":
 { Args: { "p_venue_id": string }; Returns: {
               "queue": string,"waiting": number
@@ -6401,6 +6407,11 @@ isOneToOne: false
 "venue_redemptions":
 { Args: { "p_venue_id": string }; Returns: {
               "created_at": string,"full_name": string,"handed_over_at": string,"handed_over_by": string,"id": string,"kind": string,"member_id": string,"member_number": number,"nights": number,"points": number,"reward_name": string
+            }[]
+                           },
+"venue_staff":
+{ Args: { "p_venue_id": string }; Returns: {
+              "full_name": string,"is_active": boolean,"job_title": string,"phone": string,"role": Database["public"]['Enums']["staff_role"],"staff_id": string,"user_id": string
             }[]
                            },
 "venue_tournaments":
