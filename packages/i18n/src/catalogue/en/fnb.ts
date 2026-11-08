@@ -118,6 +118,13 @@ export const consoleFnb = {
   sent: 'Sent to the bar: KOT {kot}.',
   itemName: 'Item',
   kind: 'Kind',
+  /** What a dish is (F-052): the mark the app shows beside its name, and a line under it. */
+  diet: 'Diet',
+  dietNone: 'Not set',
+  diets: { veg: 'Veg', egg: 'Egg', non_veg: 'Non-veg' },
+  description: 'Description',
+  /** What the member asked of the bar, on the order's card. */
+  note: 'Note: {note}',
   /** The menu's kinds and its sections, as the app names them (#799). */
   kinds: { food: 'Food', soft_drink: 'Soft drinks', alcohol: 'Bar' },
   onOffer: 'On offer',
@@ -130,7 +137,7 @@ export const consoleFnb = {
   menuCsv: {
     heading: 'Menu from a CSV',
     /** The one hint the file needs: its columns and the words each takes. */
-    format: 'Columns: name, type (food, soft drinks or bar), and on offer (yes or no) if it changes.',
+    format: 'Columns: name, type (food, soft drinks or bar), and if they change: on offer (yes or no), diet (veg, egg or non-veg), description.',
     choose: 'Choose a CSV',
     chooseAnother: 'Choose another CSV',
     /** A line of the preview: `Club sandwich · Food · On offer`, or without on offer when the file leaves it as it is. */
@@ -140,6 +147,8 @@ export const consoleFnb = {
       name: 'Line {line}: give a name of 1 to 60 characters.',
       type: 'Line {line}: use food, soft drinks or bar as the type.',
       onOffer: 'Line {line}: write yes, no or nothing under on offer.',
+      diet: 'Line {line}: write veg, egg, non-veg or nothing under diet.',
+      description: 'Line {line}: keep the description to 140 characters.',
       twice: 'Line {line}: {name} is listed twice.',
     },
     columns: 'Name the columns on the first line: name and type.',

@@ -51,7 +51,7 @@ describe('The menu from a CSV', () => {
     expect(await screen.findByText('2 items saved to the menu.')).toBeDefined();
     expect(sent).toEqual([{
       p_venue_id: 'v1',
-      p_items: [{ name: 'Club sandwich', kind: 'food', is_available: true }, { name: 'Beer', kind: 'alcohol', is_available: false }],
+      p_items: [{ name: 'Club sandwich', kind: 'food', is_available: true, diet: null, description: null }, { name: 'Beer', kind: 'alcohol', is_available: false, diet: null, description: null }],
     }]);
   });
 
@@ -70,7 +70,7 @@ describe('The menu from a CSV', () => {
     expect(await screen.findByText('Beer · Bar')).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Save items' }));
     expect(await screen.findByText('1 item saved to the menu.')).toBeDefined();
-    expect(sent).toEqual([{ p_venue_id: 'v1', p_items: [{ name: 'Beer', kind: 'alcohol', is_available: null }] }]);
+    expect(sent).toEqual([{ p_venue_id: 'v1', p_items: [{ name: 'Beer', kind: 'alcohol', is_available: null, diet: null, description: null }] }]);
   });
 
   it('says a file without its column names is not the menu', async () => {

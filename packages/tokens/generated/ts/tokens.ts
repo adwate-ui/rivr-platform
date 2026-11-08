@@ -17,6 +17,11 @@ export const tokens = {
     "control": "#F3EDE080",
     "goldTint": "#C9A85C24",
     "goldEdge": "#C9A85C59",
+    "diet": {
+      "veg": "#0A7A2F",
+      "egg": "#A65F00",
+      "nonVeg": "#7B3F00"
+    },
     "practiceStripe": "#B8974D",
     "creamTrack": "#F3EDE01F",
     "creamFaint": "#F3EDE04D",

@@ -146,5 +146,8 @@ export const playerOrder = {
   items: '{count} items',
   itemsOne: '1 item',
   sentToast: 'Order sent',
+  /** What to ask of the bar with an order (F-052), the list private.fnb_bar_note holds. */
+  barNote: 'Note for the bar',
+  barNotes: { no_ice: 'No ice', less_sugar: 'Less sugar', less_spicy: 'Less spicy', no_onion: 'No onion', no_garlic: 'No garlic' },
 } as const;
 

@@ -1,4 +1,4 @@
-import { err, ok, type FnbItemKind, type Result } from '@rivr/contracts';
+import { err, ok, type FnbDiet, type FnbItemKind, type Result } from '@rivr/contracts';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
@@ -9,6 +9,9 @@ export interface FnbMenuFileItem {
   readonly kind: FnbItemKind;
   /** Null when the file does not say: an item the menu has stays as it is, and a new one is on offer. */
   readonly isAvailable: boolean | null;
+  /** Veg, egg or non-veg, and a line on what it is (F-052); null leaves an item the menu has as it is. */
+  readonly diet: FnbDiet | null;
+  readonly description: string | null;
 }
 
 /** Why the menu from a file was not saved: the role, an item out of bounds or a name twice, the venue frozen, or anything else. */
@@ -26,7 +29,7 @@ export function useSaveFnbMenu(venueId: string) {
   return useMutation({
     mutationFn: async (items: readonly FnbMenuFileItem[]): Promise<Result<number, FnbMenuFailure>> => {
       const { data, error } = await client.rpc('save_fnb_menu', {
-        p_venue_id: venueId, p_items: items.map((item) => ({ name: item.name.trim(), kind: item.kind, is_available: item.isAvailable })),
+        p_venue_id: venueId, p_items: items.map((item) => ({ name: item.name.trim(), kind: item.kind, is_available: item.isAvailable, diet: item.diet, description: item.description })),
       });
       await queryClient.invalidateQueries({ queryKey: queryKeys.fnbItems(userId ?? 'signed-out', venueId) });
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(data);

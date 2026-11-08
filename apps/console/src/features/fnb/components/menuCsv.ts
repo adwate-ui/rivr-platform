@@ -1,4 +1,4 @@
-import type { FnbItemKind } from '@rivr/contracts';
+import type { FnbDiet, FnbItemKind } from '@rivr/contracts';
 import type { FnbMenuFileItem } from '@rivr/db/fnb';
 import { csvFields } from './glazaCsv.ts';
 
@@ -8,7 +8,7 @@ import { csvFields } from './glazaCsv.ts';
  */
 export type MenuCsvLine =
   | { readonly line: number; readonly ok: true; readonly item: FnbMenuFileItem }
-  | { readonly line: number; readonly ok: false; readonly problem: 'name' | 'type' | 'onOffer' }
+  | { readonly line: number; readonly ok: false; readonly problem: 'name' | 'type' | 'onOffer' | 'diet' | 'description' }
   | { readonly line: number; readonly ok: false; readonly problem: 'twice'; readonly name: string };
 
 /** A menu file as read: each line with its item or what is wrong, or what is wrong with the whole file. */
@@ -27,14 +27,28 @@ const KINDS = new Map<string, FnbItemKind>([
 // Blank, or no such column, leaves an item the menu has as it is, and puts a new one on offer.
 const ON_OFFER = new Map<string, boolean | null>([['', null], ['yes', true], ['no', false]]);
 
+// Blank, or no such column, leaves an item's diet as it is.
+const DIETS = new Map<string, FnbDiet | null>([
+  ['', null], ['veg', 'veg'], ['vegetarian', 'veg'], ['egg', 'egg'], ['non veg', 'non_veg'], ['non-veg', 'non_veg'], ['nonveg', 'non_veg'], ['non vegetarian', 'non_veg'], ['non-vegetarian', 'non_veg'],
+]);
+
 /** A heading or a value as compared: lower case, with spaces and underscores as one space. */
 const plain = (text: string) => text.toLowerCase().replace(/[\s_]+/g, ' ').trim();
 
-/** Where each column is, by its heading: the name and type (item and kind, as Glaza's files say) are needed, on offer is not, and any other (a price) is left out. */
+/** Where each column is, by its heading: the name and type (item and kind, as Glaza's files say) are needed, on offer, diet and description are not, and any other (a price) is left out. */
 function columnsOf(heading: readonly string[]) {
   const at = (...names: string[]) => heading.findIndex((cell) => names.includes(plain(cell)));
-  const columns = { name: at('name', 'item'), type: at('type', 'kind'), onOffer: at('on offer', 'available') };
+  const columns = { name: at('name', 'item'), type: at('type', 'kind'), onOffer: at('on offer', 'available'), diet: at('diet', 'veg or non-veg'), description: at('description') };
   return columns.name < 0 || columns.type < 0 ? null : columns;
+}
+
+/** A line's diet and description, or which of them is wrong. */
+function detailsOf(fields: readonly string[], columns: NonNullable<ReturnType<typeof columnsOf>>) {
+  const diet = DIETS.get(plain(fields[columns.diet] ?? ''));
+  const description = (fields[columns.description] ?? '').trim();
+  if (diet === undefined) return 'diet';
+  if (description.length > 140) return 'description';
+  return { diet, description: description === '' ? null : description };
 }
 
 /** One line's item, or what is wrong with it. */
@@ -45,7 +59,9 @@ function lineOf(fields: readonly string[], columns: NonNullable<ReturnType<typeo
   if (name === '' || name.length > 60) return { line, ok: false, problem: 'name' };
   if (kind === undefined) return { line, ok: false, problem: 'type' };
   if (isAvailable === undefined) return { line, ok: false, problem: 'onOffer' };
-  return { line, ok: true, item: { name, kind, isAvailable } };
+  const details = detailsOf(fields, columns);
+  if (typeof details === 'string') return { line, ok: false, problem: details };
+  return { line, ok: true, item: { name, kind, isAvailable, ...details } };
 }
 
 /** The same line with a name listed above it marked as such: the menu holds each name once. */
@@ -61,7 +77,7 @@ function markTwice(lines: readonly MenuCsvLine[]): MenuCsvLine[] {
 }
 
 /**
- * Reads a menu file (#799): a first line naming the columns (name and type, and on offer if wanted), then an item a line.
+ * Reads a menu file (#799): a first line naming the columns (name and type, and on offer, diet and description if wanted), then an item a line.
  * Blank lines, and a spreadsheet's lines of commas alone, are skipped; a price column is left out, as the menu keeps none.
  * On offer left blank, or no such column, leaves an item the menu has as it is (`isAvailable` null).
  */

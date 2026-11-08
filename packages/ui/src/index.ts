@@ -176,6 +176,7 @@ export * from './TableListRow/index.ts';
 export * from './DetailRow/index.ts';
 export * from './StatRow/index.ts';
 export * from './BalanceTile/index.ts';
+export * from './DietMark/index.ts';
 export * from './AvatarLink/index.ts';
 export * from './PlayerAvatar/index.ts';
 export * from './PeekBar/index.ts';

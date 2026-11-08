@@ -1,23 +1,33 @@
-import { FNB_ITEM_KINDS, type FnbItemKind } from '@rivr/contracts';
+import { FNB_DIETS, FNB_ITEM_KINDS, type FnbDiet, type FnbItemKind } from '@rivr/contracts';
 import { useItemPhotoUpload, type ItemPhotoFailure } from '@rivr/db';
 import { useFnbActions, useFnbItems, type FnbFailure, type FnbItem } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
-import { Button, CameraButton, ChoiceChips, ErrorMessage, Heading, Inline, Input, ItemPhoto, LoadState, Stack, Switch, Text, useIsWide } from '@rivr/ui';
+import { Button, CameraButton, ChoiceChips, DietMark, ErrorMessage, Heading, Inline, Input, ItemPhoto, LoadState, Stack, Switch, Text, useIsWide } from '@rivr/ui';
 import { useState } from 'react';
 
 /** The kinds to choose from, made when the form draws, so t() runs once the app's words are registered (F2-31). */
 const kinds = () => FNB_ITEM_KINDS.map((kind) => ({ value: kind, label: t(`console.fnb.kinds.${kind}`) }));
 
-/** Adds an item to the end of the menu: its name and kind. */
+/** The diets to choose from, or not set, made as the form draws (F2-31). */
+const diets = () => [{ value: 'none' as const, label: t('console.fnb.dietNone') }, ...FNB_DIETS.map((diet) => ({ value: diet, label: t(`console.fnb.diets.${diet}`) }))];
+
+/** Adds an item to the end of the menu: its name and kind, then its veg mark and a line on what it is (F-052). */
 function AddItem({ venueId, next }: { venueId: string; next: number }) {
   const { saveItem } = useFnbActions(venueId);
   const [name, setName] = useState('');
   const [kind, setKind] = useState<FnbItemKind>('food');
+  const [diet, setDiet] = useState<FnbDiet | 'none'>('none');
+  const [description, setDescription] = useState('');
   const [failure, setFailure] = useState<FnbFailure | null>(null);
   const add = async () => {
-    const saved = await saveItem.mutateAsync({ itemId: null, name, kind, isAvailable: true, position: Math.min(next, 999) });
+    const saved = await saveItem.mutateAsync({
+      itemId: null, name, kind, isAvailable: true, position: Math.min(next, 999), diet: diet === 'none' ? null : diet, description: description.trim() === '' ? null : description.trim(),
+    });
     setFailure(saved.ok ? null : saved.error);
-    if (saved.ok) setName('');
+    if (!saved.ok) return;
+    setName('');
+    setDescription('');
+    setDiet('none');
   };
   return (
     <Stack gap={2}>
@@ -27,6 +37,11 @@ function AddItem({ venueId, next }: { venueId: string; next: number }) {
         <ChoiceChips label={t('console.fnb.kind')} isLabelVisuallyHidden look="subtle" mode="one" options={kinds()} selected={[kind]}
           onChange={([picked]) => { const found = FNB_ITEM_KINDS.find((known) => known === picked); if (found) setKind(found); }} />
         <Button variant="subtle" size="compact" isDisabled={name.trim() === ''} isLoading={saveItem.isPending} onClick={() => void add()}>{t('console.fnb.addItem')}</Button>
+      </Inline>
+      <Inline gap={3} align="center" wrap>
+        <ChoiceChips label={t('console.fnb.diet')} isLabelVisuallyHidden look="subtle" mode="one" options={diets()} selected={[diet]}
+          onChange={([picked]) => { if (picked !== undefined) setDiet(picked); }} />
+        <Input variant="subtle" label={t('console.fnb.description')} value={description} maxLength={140} autoComplete="off" onChange={(event) => setDescription(event.target.value)} />
       </Inline>
       {failure === null ? null : <ErrorMessage>{t('console.fnb.invalidItem')}</ErrorMessage>}
     </Stack>
@@ -71,6 +86,7 @@ function ItemRow({ venueId, item, canManage, isSaving, onToggle }: ItemRowProps)
   const name = (
     <Inline gap={3} align="center" grow>
       <ItemPhoto src={item.photoUrl} name={item.name} size="sm" />
+      {item.diet === null ? null : <DietMark diet={item.diet} />}
       <Text>{item.name}</Text>
     </Inline>
   );

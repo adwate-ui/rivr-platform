@@ -36,6 +36,12 @@ export function orderLines(order: FnbOrderTonight): string {
   return order.lines.map((line) => t('console.fnb.line', { quantity: line.quantity, name: line.name })).join(', ');
 }
 
+/** What the member asked of the bar (F-052): `No ice, Less spicy`; null with nothing asked. */
+export function orderNotes(order: FnbOrderTonight): string | null {
+  const notes = order.lines.flatMap((line) => (line.note === null ? [] : [line.note]));
+  return notes.length === 0 ? null : notes.join(', ');
+}
+
 /** Where the order goes: `Private Room, seat 4 · Lalit Goel`. */
 export function orderWhere(order: FnbOrderTonight): string {
   return t('console.fnb.where', { table: order.tableName, seat: order.seat, member: order.memberName });

@@ -2,7 +2,7 @@ import { useServeFnbOrder, type FnbFailure, type FnbOrderTonight } from '@rivr/d
 import { formatDuration, t } from '@rivr/i18n';
 import { Box, Button, Inline, Stack, Text } from '@rivr/ui';
 import { KotNotAtBar } from './KotNotAtBar.tsx';
-import { orderLines, orderWhere, type OrderLane } from './orderLanes.ts';
+import { orderLines, orderNotes, orderWhere, type OrderLane } from './orderLanes.ts';
 import { VoidOrder } from './VoidOrder.tsx';
 
 type Serve = ReturnType<typeof useServeFnbOrder>;
@@ -68,6 +68,7 @@ interface OrderCardProps extends StepProps {
 export function OrderCard({ venueId, lane, ...step }: OrderCardProps) {
   const { order } = step;
   const time = formatDuration(order.ageSeconds);
+  const note = orderNotes(order);
   return (
     <Box surface="raised" radius="md" padding={4} hairline={lane === 'toAccept' ? 'all' : 'none'}>
       <Stack gap={2}>
@@ -77,6 +78,7 @@ export function OrderCard({ venueId, lane, ...step }: OrderCardProps) {
         </Inline>
         <Text variant="small">{orderWhere(order)}</Text>
         <Text variant="small" tone="muted">{orderLines(order)}</Text>
+        {note === null ? null : <Text variant="small">{t('console.fnb.note', { note })}</Text>}
         {order.isKotPrintFailed ? <KotNotAtBar venueId={venueId} order={order} /> : null}
         {order.isComp ? <Text variant="caption" weight="semibold">{t('console.fnb.comp')}</Text> : null}
         <CardActions venueId={venueId} lane={lane} {...step} />
