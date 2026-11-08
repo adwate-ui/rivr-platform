@@ -165,6 +165,7 @@ export const rewards = {
     paused: 'Venue frozen. Try again once it is released.',
     switched_off: 'Redemptions are paused.',
     cancelled: 'Cancelled. The points went back to the member.',
+    own_record: 'This is your own reward. Another staff member hands it over.',
     unavailable: 'Not sent. Try again.',
   },
 } as const;
