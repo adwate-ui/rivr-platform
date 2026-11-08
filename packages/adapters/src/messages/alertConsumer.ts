@@ -22,7 +22,7 @@ function kindInWords(kind: string): string {
 /**
  * The owner's alerts by WhatsApp (#100; additions "Alerting"): each alert.raised sends the alert's kind in
  * words to the WhatsApp number in venue configuration, and nothing else, so no personal data leaves in
- * it; the details are on the owner dashboard. Not a messaging consumer (the owner's answer on #468): a
+ * it; the details are in the console. Not a messaging consumer (the owner's answer on #468): a
  * messaging stop holds messages to members, but the owner's alerts still reach the alert number, so the owner
  * hears about the stop itself. A venue with no alert number, or an alert raised more than a day ago, sends
  * nothing, and nothing is wrong.

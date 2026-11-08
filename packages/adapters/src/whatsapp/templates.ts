@@ -5,10 +5,11 @@
  * payment link or a receipt does. English only (decision 0027).
  */
 export const WHATSAPP_TEMPLATES = {
-  // The sign-in code (decision 0025). Meta writes an authentication template's text itself; this is that text.
+  // The sign-in code (decision 0025). Evolution sends it as plain text from the club's own number (decision 0297), so the
+  // text names the club and says what the code is for, as the app does.
   sign_in_code: {
     category: 'authentication',
-    body: '{{1}} is your verification code. For your security, do not share this code.',
+    body: '{{1}} is your RIVR sign-in code. Never share it.',
     urlButton: false,
   },
   seat_ready: {
@@ -26,10 +27,11 @@ export const WHATSAPP_TEMPLATES = {
     body: 'Pay {{1}} for {{2}} with the link below.',
     urlButton: true,
   },
-  // The owner's alerts (#100): what happened in words, never its details; those are on the owner dashboard.
+  // The owner's alerts (#100): what happened in words, never its details; those are in the console (the owner dashboard
+  // is switched off, so the text names no screen).
   owner_alert: {
     category: 'utility',
-    body: 'RIVR alert: {{1}}. The details are on the owner dashboard.',
+    body: 'RIVR alert: {{1}}. Check the RIVR console.',
     urlButton: false,
   },
   // What a member hears of while away from the app (decision 0303): utility messages, so no opt-in is asked.
@@ -43,9 +45,16 @@ export const WHATSAPP_TEMPLATES = {
     body: 'RIVR is checking your details. We will message you when it is done.',
     urlButton: false,
   },
+  // A refusal the desk can look at again: why, in words, then where to go.
   kyc_refused: {
     category: 'utility',
-    body: 'RIVR could not verify you: {{1}} Bring your Aadhaar and PAN to the front desk.',
+    body: 'RIVR could not verify you: {{1}}. Bring your Aadhaar and PAN to the front desk.',
+    urlButton: false,
+  },
+  // A refusal for age, which no document changes. It names no age: the club's minimum is a setting, 18 to 25 (kyc.minimum_age).
+  kyc_under_age: {
+    category: 'utility',
+    body: "RIVR could not verify you. You are under the club's minimum age.",
     urlButton: false,
   },
   reward_cancelled: {

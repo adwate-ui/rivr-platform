@@ -31,7 +31,7 @@ describe('WhatsApp through the Evolution bridge', () => {
     expect(requests[0]?.init.headers).toEqual({ apikey: 'test-key', 'content-type': 'application/json' });
     expect(JSON.parse(String(requests[0]?.init.body))).toEqual({
       number: '919000000201',
-      text: '482913 is your verification code. For your security, do not share this code.',
+      text: '482913 is your RIVR sign-in code. Never share it.',
     });
   });
 
@@ -42,6 +42,19 @@ describe('WhatsApp through the Evolution bridge', () => {
     await whatsapp.sendTemplate({ category: 'utility', to, template: 'seat_ready', params: ['Table 3', '6', '21:40'] });
 
     expect(JSON.parse(String(requests[0]?.init.body))).toMatchObject({ text: 'Your seat is ready. Table 3, seat 6. Hold expires 21:40.' });
+  });
+
+  it('sends a refusal with its reason and the desk, and one for age with neither (8 Nov audit, F-049)', async () => {
+    const { fetch, requests } = fakeFetch(201, accepted);
+    const whatsapp = createWhatsAppEvolution({ ...bridge, fetch });
+
+    await whatsapp.sendTemplate({ category: 'utility', to, template: 'kyc_refused', params: ['your details did not match'] });
+    await whatsapp.sendTemplate({ category: 'utility', to, template: 'kyc_under_age', params: [] });
+
+    expect(requests.map((request) => JSON.parse(String(request.init.body)).text)).toEqual([
+      'RIVR could not verify you: your details did not match. Bring your Aadhaar and PAN to the front desk.',
+      "RIVR could not verify you. You are under the club's minimum age.",
+    ]);
   });
 
   it('refuses a missing parameter, a link button and a marketing template without an opt-in, sending nothing', async () => {
