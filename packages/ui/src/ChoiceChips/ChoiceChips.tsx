@@ -1,6 +1,7 @@
 import { t } from '@rivr/i18n';
 import { useId, useRef, type KeyboardEvent } from 'react';
 import { cx } from '../internal/classes.ts';
+import { nextRadioIndex } from '../internal/radioKeys.ts';
 import { Stack } from '../Stack/Stack.tsx';
 import { Text } from '../Text/Text.tsx';
 
@@ -135,24 +136,6 @@ function Words({ chip, look, isOn, descriptionId }: { chip: ChoiceChip<string>; 
   );
 }
 
-/** Where an arrow key moves in a radio group (#699): on to the next choice or back, round at the ends; Home and End. */
-function nextIndex(key: string, index: number, count: number): number | null {
-  switch (key) {
-    case 'ArrowRight':
-    case 'ArrowDown':
-      return (index + 1) % count;
-    case 'ArrowLeft':
-    case 'ArrowUp':
-      return (index - 1 + count) % count;
-    case 'Home':
-      return 0;
-    case 'End':
-      return count - 1;
-    default:
-      return null;
-  }
-}
-
 interface RowProps<Value extends string> extends ChoiceChipsProps<Value> {
   readonly labelId: string;
 }
@@ -173,7 +156,7 @@ function RadioChips<Value extends string>({ labelId, options, selected, onChange
   };
   // A press focuses its chip by itself; an arrow key moves the focus along with the choice.
   const move = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
-    const next = nextIndex(event.key, index, options.length);
+    const next = nextRadioIndex(event.key, index, options.length);
     if (next === null) return;
     event.preventDefault();
     choose(next);

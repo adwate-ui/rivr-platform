@@ -1,5 +1,6 @@
 import { useRef, type KeyboardEvent } from 'react';
 import { cx } from '../internal/classes.ts';
+import { nextRadioIndex } from '../internal/radioKeys.ts';
 
 /** One option: the value it stands for and what it says. */
 export interface SegmentedOption<Value extends string> {
@@ -33,24 +34,6 @@ const SEGMENT =
 
 const HEIGHT: Record<SegmentedSize, string> = { compact: 'min-h-touch tablet:min-h-8', small: 'min-h-touch tablet:min-h-7' };
 
-/** The option an arrow key, Home or End moves to from `index`, wrapping round at either end; null for any other key. */
-function moveTo(key: string, index: number, count: number): number | null {
-  switch (key) {
-    case 'ArrowRight':
-    case 'ArrowDown':
-      return (index + 1) % count;
-    case 'ArrowLeft':
-    case 'ArrowUp':
-      return (index - 1 + count) % count;
-    case 'Home':
-      return 0;
-    case 'End':
-      return count - 1;
-    default:
-      return null;
-  }
-}
-
 /**
  * One choice of two to four, such as the floor's Summary or Seats (console v3): a radio group on a faint track, the
  * chosen option on cream at 12%. It is one stop for Tab, and the arrow keys move along it and choose as they go.
@@ -63,7 +46,7 @@ export function Segmented<Value extends string>({ label, options, value, onChang
     if (option !== undefined && option.value !== value) onChange(option.value);
   };
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
-    const next = moveTo(event.key, index, options.length);
+    const next = nextRadioIndex(event.key, index, options.length);
     if (next === null) return;
     event.preventDefault();
     buttons.current[next]?.focus();
