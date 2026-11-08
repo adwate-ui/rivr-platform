@@ -29,10 +29,10 @@ export function HistoryRow({ when, title, value, detail, onOpen }: HistoryRowPro
         <Text as="span" weight="medium">{title}</Text>
         {detail ? <Text as="span" variant="small" tone="muted">{detail}</Text> : null}
       </span>
-      {/* The figure, then the chevron every row that opens something has, its ink on the row's edge (F-211, as DetailRow). */}
-      <span className="flex shrink-0 items-center gap-2">
+      {/* The figure, wrapping when it is long, then the chevron every row that opens something has, its ink on the row's edge (F-211, as DetailRow). */}
+      <span className="flex min-w-0 items-center gap-2 text-right">
         {value}
-        <span className="-mr-1 text-content-muted"><Icon name="chevronRight" size="sm" /></span>
+        <span className="-mr-1 shrink-0 text-content-muted"><Icon name="chevronRight" size="sm" /></span>
       </span>
     </button>
   );
