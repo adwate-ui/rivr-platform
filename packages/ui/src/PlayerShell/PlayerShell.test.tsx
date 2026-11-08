@@ -91,6 +91,17 @@ describe('PlayerShell', () => {
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
   });
 
+  it('keeps its content clear of the notch and the home indicator in the installed app (F-167)', () => {
+    const { unmount } = renderShell();
+    expect(screen.getByRole('main').closest('[data-shell="player"]')).toHaveClass('safe-top', 'safe-x');
+    expect(screen.getByRole('main').closest('[data-shell="player"]')).not.toHaveClass('safe-bottom');
+    expect(screen.getByRole('navigation', { name: 'Main' })).toHaveClass('safe-bottom');
+    unmount();
+    // With no tab bar to hold the inset, the frame keeps it.
+    renderShell({ isTabBarHidden: true });
+    expect(screen.getByRole('main').closest('[data-shell="player"]')).toHaveClass('safe-bottom');
+  });
+
   it('keeps a screen\'s dock above the tab bar', () => {
     renderIn(
       <PlayerShell tabs={PLAYER_TABS} currentTab="home">

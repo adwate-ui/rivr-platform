@@ -118,7 +118,7 @@ export function StepScreen({ children, footer, title, pageTitle, back, align = '
     void onSubmit?.(event);
   };
   return (
-    <div className="flex min-h-dvh w-full flex-col bg-surface text-content medium:items-center medium:justify-center medium:px-6 medium:py-12">
+    <div className="safe-top safe-bottom safe-x flex min-h-dvh w-full flex-col bg-surface text-content medium:items-center medium:justify-center medium:px-6 medium:py-12">
       <div className="mx-auto flex w-full max-w-phone flex-1 flex-col px-6 pt-4 pb-8 medium:flex-none medium:rounded-lg medium:border medium:border-hairline medium:bg-raised medium:px-10 medium:py-10">
         {back ? <StepBack back={back} look={look} /> : null}
         <main className="flex flex-1 flex-col">

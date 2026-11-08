@@ -61,7 +61,7 @@ export interface ToastProviderProps {
 }
 
 const PLACE = {
-  player: 'mx-auto px-5 pb-5 medium:max-w-phone',
+  player: 'safe-mb mx-auto px-5 pb-5 medium:max-w-phone',
   console: 'flex justify-center px-4 pb-4 medium:bottom-0 medium:pb-6',
 } as const;
 
