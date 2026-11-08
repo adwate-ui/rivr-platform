@@ -54,6 +54,12 @@ async function findMihir() {
 }
 
 describe('PointsByHand', () => {
+  it('warns that the member sees the reason in their history (F-054)', async () => {
+    renderPoints();
+    await findMihir();
+    expect(screen.getByText('The member sees it in their history.')).toBeDefined();
+  });
+
   it('lets a super admin add bonus chips to the member found, where points are given (the owner, 9 Nov)', async () => {
     const given = renderPoints(true);
     expect(screen.getByRole('heading', { name: 'Points and bonus chips by hand' })).toBeDefined();

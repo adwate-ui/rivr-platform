@@ -26,7 +26,8 @@ const english = [...messages(en), ...messages(settingKeys, 'settingKeys')];
 
 describe('copy rules', () => {
   it.each(BANNED_WORDS)('never uses the banned word "%s"', (word) => {
-    const pattern = new RegExp(`(^|[^\\p{L}])${word}([^\\p{L}]|$)`, 'iu');
+    // With its endings: "unlocked" is the word too (F-148).
+    const pattern = new RegExp(`(^|[^\\p{L}])${word}(s|d|ed|ing)?([^\\p{L}]|$)`, 'iu');
     expect(english.filter(([, text]) => pattern.test(text)).map(([key]) => key)).toEqual([]);
   });
 

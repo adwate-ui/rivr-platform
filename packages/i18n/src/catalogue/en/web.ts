@@ -38,7 +38,7 @@ export const webApp = {
   league: {
     place: 'Place',
     member: 'Member',
-    points: 'Points',
+    points: 'League points',
     /** A member who hid their name on the TVs. */
     hidden: 'A member',
     monthIntro: 'Standings for {month}',

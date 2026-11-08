@@ -5487,6 +5487,11 @@ isOneToOne: false
               "account_number": string,"bank_name": string,"holder_name": string,"id": string,"ifsc": string,"kind": string,"reject_reason": string,"status": string,"vpa": string
             }[]
                            },
+"my_points_history":
+{ Args: { "p_limit"?: number }; Returns: {
+              "at": string,"kind": string,"line_id": string,"points": number,"reason": string
+            }[]
+                           },
 "my_promotion_cards":
 { Args: Record<PropertyKey, never>; Returns: {
               "detail": string,"link": string,"promotion_id": string,"runs": string,"title": string
@@ -5915,6 +5920,11 @@ isOneToOne: false
                            },
 "review_shift_opening":
 { Args: { "p_reason": string,"p_shift_id": string }; Returns: undefined
+                           },
+"reward_redemption_counts":
+{ Args: { "p_venue_id": string }; Returns: {
+              "redeemed": number,"reward_item_id": string
+            }[]
                            },
 "rollback_site_page":
 { Args: { "p_page_id": string,"p_revision_id": string,"p_venue_id": string }; Returns: undefined

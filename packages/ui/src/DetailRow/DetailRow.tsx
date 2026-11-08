@@ -36,11 +36,11 @@ type RowBodyProps = Pick<DetailRowProps, 'label' | 'value' | 'labelTone' | 'valu
 function RowBody({ label, value, labelTone = 'default', valueTone = 'default', hasDot = false, hasChevron }: RowBodyProps) {
   return (
     <>
-      <span className={cx('flex items-center gap-2', TONE[labelTone])}>
+      <span className={cx('flex min-w-0 items-center gap-2 wrap-anywhere', TONE[labelTone])}>
         {hasDot ? <span aria-hidden="true" className="size-pip shrink-0 rounded-full bg-gold" /> : null}
         {label}
       </span>
-      {value === undefined ? null : <span className={cx('text-end', TONE[valueTone])}>{value}</span>}
+      {value === undefined ? null : <span className={cx('shrink-0 text-end', TONE[valueTone])}>{value}</span>}
       {/* The chevron's ink ends on the row's edge with the values and switches beside it, past its side bearing (F-157). */}
       {hasChevron ? <span className="-mr-1 text-content-muted"><Icon name="chevronRight" size="sm" /></span> : null}
     </>

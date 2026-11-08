@@ -9,6 +9,7 @@ import { BonusHistory, BonusTile } from './BonusSection.tsx';
 import { Catalogue } from './Catalogue.tsx';
 import { LeagueSection } from './LeagueSection.tsx';
 import { MyRedemptionList } from './MyRedemptionList.tsx';
+import { PointsHistory } from './PointsHistory.tsx';
 import { ReferralSection } from './ReferralSection.tsx';
 
 // The tab's copy loads with the tab, so the app's first load carries none of it (#344).
@@ -16,8 +17,8 @@ registerMessages({ memberRewards });
 
 /**
  * "Next: Sunday Main Event seat" with how many points short, over a bar of the share held (@rivr/domain nextReward), of the
- * rewards still to be had (one with none left is not next); with every reward in points within reach, "Everything
- * unlocked" over a full bar. Nothing while the catalogue has no reward in points.
+ * rewards still to be had (one with none left is not next); with every reward in points within reach, "Every reward in
+ * reach" over a full bar. Nothing while the catalogue has no reward in points.
  */
 function NextReward({ points }: { points: bigint }) {
   const inStock = (useRewardCatalogue().data ?? []).filter((item) => item.stock !== 0);
@@ -26,7 +27,7 @@ function NextReward({ points }: { points: bigint }) {
   return (
     <Stack gap={2}>
       <Inline justify="between" gap={3}>
-        <Text variant="small">{next === null ? t('memberRewards.allUnlocked') : t('memberRewards.next', { name: next.item.name })}</Text>
+        <Text variant="small">{next === null ? t('memberRewards.allInReach') : t('memberRewards.next', { name: next.item.name })}</Text>
         {next === null ? null : <Text variant="small" tone="muted">{t('memberRewards.toGo', { points: formatNumber(next.gap) })}</Text>}
       </Inline>
       <ProgressBar fraction={next === null ? 1 : next.fraction} />
@@ -64,13 +65,17 @@ function useChips(bonus: FeatureAccess) {
 
 function Balances({ rewards, hasCatalogue, bonus }: { rewards: MyRewards; hasCatalogue: boolean; bonus: FeatureAccess }) {
   const chips = useChips(bonus);
+  const pointsHistory = useFeature('rewards.points_history');
+  const [isHistoryOpen, setHistoryOpen] = useState(false);
   return (
     <Stack gap={3}>
       <Text variant="eyebrow" tone="accent">{rewards.tierName}</Text>
       <Grid columns={chips.hasTile ? 2 : 1} gap={3}>
-        <BalanceTile icon="star" figure={formatNumber(rewards.points)} label={t('memberRewards.pointsLabel')} line={t('memberRewards.pointsLine')} />
+        <BalanceTile icon="star" figure={formatNumber(rewards.points)} label={t('memberRewards.pointsLabel')} line={t('memberRewards.pointsLine')}
+          {...(pointsHistory.state === 'hidden' ? {} : { onOpen: () => setHistoryOpen(!isHistoryOpen), 'aria-expanded': isHistoryOpen })} />
         {chips.tile}
       </Grid>
+      {isHistoryOpen ? <FeatureGate access={pointsHistory}><PointsHistory /></FeatureGate> : null}
       {chips.retry}
       {chips.history}
       <LockedPoints />
@@ -80,8 +85,8 @@ function Balances({ rewards, hasCatalogue, bonus }: { rewards: MyRewards; hasCat
 }
 
 /**
- * Rewards (decision 0320): the tier, the points and the next reward; bonus chips and their history (rewards.bonus, decision
- * 0504); the catalogue with its filters and redeem sheet (rewards.catalogue) and the member's redemptions; hotel nights
+ * Rewards (decision 0320): the tier, the points and their history (rewards.points_history, F-054) and the next reward; bonus
+ * chips and their history (rewards.bonus, decision 0504); the catalogue with its filters and redeem sheet (rewards.catalogue) and the member's redemptions; hotel nights
  * (rewards.accommodation); the league (league.standings); and Refer a friend.
  */
 export function RewardsScreen() {
@@ -107,7 +112,7 @@ export function RewardsScreen() {
         </FeatureGate>
         <FeatureGate access={catalogue}>
           <Stack gap={8}>
-            <Catalogue balance={rewards.data.points} />
+            <Catalogue held={rewards.data} hasNights={accommodation.state === 'enabled'} />
             <MyRedemptionList />
           </Stack>
         </FeatureGate>

@@ -35,6 +35,8 @@ export const rewards = {
     lockedHint: 'Rewards spend earned points only.',
     points: 'Points to give or release',
     reason: 'Reason',
+    /** Points given, locked or released show their reason in the member's points history (F-054). */
+    reasonHint: 'The member sees it in their history.',
     giveEarned: 'Give as earned',
     giveLocked: 'Give as locked',
     unlock: 'Release',
@@ -107,6 +109,11 @@ export const rewards = {
   priceAndStock: '{price} · {stock}',
   noLimit: 'No limit',
   live: 'Live',
+  /** A live reward with none left, in gold: it waits on staff (F-072). */
+  soldOut: 'Sold out',
+  low: 'Low',
+  /** Each reward's row: `Redeemed (30 days): 12`. */
+  redeemed30: 'Redeemed (30 days): {count}',
   retired: 'Retired',
   edit: 'Edit',
   /** The Edit button's name, and the form's heading while it changes that reward. */

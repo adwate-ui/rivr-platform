@@ -99,6 +99,7 @@ function PointsForm({ venueId, member }: { venueId: string; member: MemberPoints
           onChange={(event) => { setPoints(event.target.value.trim()); change.reset(); }} />
         <Input variant="subtle" label={t('console.rewards.byHand.reason')} maxLength={200} value={reason} onChange={(event) => { setReason(event.target.value); change.reset(); }} />
       </Inline>
+      <Text variant="small" tone="muted">{t('console.rewards.byHand.reasonHint')}</Text>
       <Inline gap={3} wrap>
         <Button variant="strong" size="compact" isDisabled={isOff} onClick={() => void run('earned')}>{t('console.rewards.byHand.giveEarned')}</Button>
         <Button variant="subtle" size="compact" isDisabled={isOff} onClick={() => void run('locked')}>{t('console.rewards.byHand.giveLocked')}</Button>

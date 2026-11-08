@@ -1,7 +1,7 @@
 /**
  * Rewards and the TV (#148, #152; decisions 0181 to 0183). Riya Sen, this flow's own member with the seed's
  * 20,000 points, opens Rewards in the player app: her points and tier, the catalogue, the League. She
- * redeems a bar upgrade from its sheet, which shows the cost and her balance after, and finds it under her
+ * redeems a bar upgrade from its sheet, which shows the cost and her points after, and finds it under her
  * redemptions, ready to collect (decision 0320). Meher Lal, its own floor manager, pairs a TV on the rewards ticker, which shows her
  * redemption; turned to the League leaderboard, the TV shows the League. Meher hands the upgrade over on
  * the console, and Riya's app says it was collected. The TV is unpaired at the end. Who may redeem, and
@@ -13,7 +13,7 @@ import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 const REWARD = 'Bar upgrade, one night';
 
-/** Riya redeems the bar upgrade from the catalogue's redeem sheet (decision 0320), which shows the cost and her balance after. */
+/** Riya redeems the bar upgrade from the catalogue's redeem sheet (decision 0320), which shows the cost and her points after. */
 async function redeem(member: Page) {
   await member.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Rewards' }).click();
   await expect(member.getByRole('heading', { name: 'Rewards', level: 1 })).toBeVisible();
@@ -22,11 +22,14 @@ async function redeem(member: Page) {
   await member.getByRole('button', { name: `Redeem ${REWARD}` }).click();
   const sheet = member.getByRole('dialog', { name: REWARD });
   await expect(sheet.getByText('2,500 points')).toBeVisible();
-  await expect(sheet.getByText('Balance after')).toBeVisible();
+  await expect(sheet.getByText('Points after')).toBeVisible();
   await sheet.getByRole('button', { name: 'Redeem', exact: true }).click();
   await expect(member.getByText('Redeemed', { exact: true })).toBeVisible({ timeout: 10_000 });
   await expect(sheet).toHaveCount(0);
   await expect(member.getByText('Ready to collect').first()).toBeVisible();
+  // What it took is a line of her points history, one tap from the balance (F-054).
+  await member.getByRole('button', { name: /Spend on rewards/ }).click();
+  await expect(member.getByText(new RegExp(`^Redeemed: ${REWARD} · `))).toBeVisible();
 }
 
 /** Pairs a TV on the console's TVs screen by the code it shows, and gives it a board. */
