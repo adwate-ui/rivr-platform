@@ -40,6 +40,7 @@ const projects: Projects = [
     dependencies: ['devices'],
     use: { ...use, ...club },
   })),
+  { name: 'sheets', testMatch: /sheets\.census\.ts/, dependencies: ['devices'], use: { ...devices['Desktop Chrome'], ...club } },
   { name: 'states', testMatch: /states\.census\.ts/, dependencies: ['devices'], use: { ...devices['Desktop Chrome'], ...club } },
 ];
 
