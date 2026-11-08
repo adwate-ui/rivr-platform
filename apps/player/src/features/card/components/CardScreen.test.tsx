@@ -86,6 +86,18 @@ describe('Membership card', () => {
     expect(photo.getAttribute('src')).toContain(`/object/sign/kyc/${SELFIE}?token=one-minute`);
   });
 
+  it('shows the code is live, a bar running down to the next code, and once a session the brightness hint (F-182)', async () => {
+    sessionStorage.clear();
+    renderCard('card');
+    expect(await screen.findByText('Turn your brightness up.', {}, { timeout: 5000 })).toBeDefined();
+    const fill = document.querySelector<HTMLElement>('[data-progress-fill]');
+    expect(fill?.style.transform).toMatch(/^scaleX\(0\.9|^scaleX\(1\)/);
+    cleanup();
+    renderCard('card');
+    expect(await screen.findByText('Kavya Rao', {}, { timeout: 5000 })).toBeDefined();
+    expect(screen.queryByText('Turn your brightness up.')).toBeNull();
+  });
+
   it('says it could not load, and loads on Try again', async () => {
     const api = renderCard('fails');
     const retry = await screen.findByRole('button', { name: 'Try again' }, { timeout: 5000 });
