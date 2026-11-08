@@ -42,9 +42,10 @@ function onScannerKey(event: KeyboardEvent<HTMLInputElement>, onScannerCode: (co
 export function QrScanView({ videoRef, prompt, result, cameraError, scannerLabel, onScannerCode }: QrScanViewProps) {
   return (
     <div className="grid grid-cols-2 items-center gap-12">
-      {/* A kiosk has nothing else to focus: a tap elsewhere hands the focus back, for the card scanner. */}
+      {/* A tap on nothing hands the focus back, for the card scanner; Tab to Skip to content or a banner's action leaves it
+          there, so the keyboard is never trapped (WCAG 2.1.2). */}
       <input className="sr-only" aria-label={scannerLabel} inputMode="none" autoComplete="off" autoFocus
-        onBlur={(event) => event.currentTarget.focus()} onKeyDown={(event) => onScannerKey(event, onScannerCode)} />
+        onBlur={(event) => { if (event.relatedTarget === null) event.currentTarget.focus(); }} onKeyDown={(event) => onScannerKey(event, onScannerCode)} />
       <div className="flex flex-col gap-4">
         <Heading level={1} variant="title">{prompt}</Heading>
         <div className="relative aspect-photo overflow-hidden rounded-lg border border-hairline bg-raised">

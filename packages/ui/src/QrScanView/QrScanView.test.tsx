@@ -28,6 +28,19 @@ describe('QrScanView', () => {
     expect(field).toHaveValue('');
   });
 
+  it('takes the focus back from a tap on nothing, but never traps the keyboard (WCAG 2.1.2)', () => {
+    renderIn(<><a href="#main">Skip to content</a><QrScanView videoRef={null} prompt="Hold your RIVR card up to the camera" scannerLabel="Card scanner"
+      onScannerCode={() => undefined} /></>);
+    const field = screen.getByRole('textbox', { name: 'Card scanner' });
+    const skip = screen.getByRole('link', { name: 'Skip to content' });
+    fireEvent.blur(field, { relatedTarget: skip });
+    skip.focus();
+    expect(skip).toHaveFocus();
+    field.focus();
+    fireEvent.blur(field, { relatedTarget: null });
+    expect(field).toHaveFocus();
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<QrScanView videoRef={null} prompt="Hold your RIVR card up to the camera" scannerLabel="Card scanner" onScannerCode={() => undefined}
       result={{ title: 'Not yet, Vihaan.', detail: 'Your call time has 25 min left.', isRefused: true }} />);
