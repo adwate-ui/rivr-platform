@@ -6,7 +6,8 @@ const failures = {
   too_soon: 'One order a minute. Try again shortly.',
   too_young: 'Alcohol is for members 21 and over.',
   no_dealer: 'Sign a dealer in before ordering.',
-  paused: 'The club is paused: orders wait until it reopens.',
+  account_paused: 'Account paused. Ask at the front desk.',
+  paused: 'The club is paused. Order once it reopens.',
   invalid: 'Up to 9 of each item, 20 different items at most.',
   unavailable: 'Not sent. Try again.',
   /** Serving (#640): another steward got there first. */

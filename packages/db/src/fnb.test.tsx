@@ -118,4 +118,17 @@ describe('table-side food and drink', () => {
       { p_venue_id: VENUE, p_name: 'Masala chai', p_kind: 'soft_drink', p_is_available: false, p_position: 1, p_item_id: CHAI, p_diet: 'veg', p_description: 'With cardamom' },
     ]);
   });
+
+  it.each([
+    ['RVMBR', 'Account paused', 'account_paused'],
+    ['RVFRZ', 'Frozen', 'paused'],
+    ['22023', 'That request id was for another order', 'unavailable'],
+    ['22023', 'An order is 1 to 20 lines', 'invalid'],
+  ])('says %s (%s) as %s (F-152)', async (code, message, failure) => {
+    const { result } = renderFnb({ '/rpc/place_fnb_order': { status: 400, body: { code, message } } });
+    let outcome: unknown;
+    await act(async () => { outcome = await result.current.place.mutateAsync({ lines: LINES, requestId: '00000000-0000-4000-8000-00000000f001' }); });
+    expect(outcome).toEqual({ ok: false, error: failure });
+  });
 });
+

@@ -66,26 +66,32 @@ export interface FnbOrderTonight {
 
 /**
  * Why an order did not go through: not allowed (the tier, the role, or not a tablet), nobody seated there, an item no
- * longer on the menu, a second app order inside the minute, alcohol under 21, no dealer on the tablet, the venue
- * frozen, a malformed order, or anything else.
+ * longer on the menu, a second app order inside the minute, alcohol under 21, no dealer on the tablet, the member's account
+ * paused, the venue frozen, a malformed order, or anything else.
  */
 export type FnbFailure =
-  | 'not_allowed' | 'not_seated' | 'not_on_menu' | 'too_soon' | 'too_young' | 'no_dealer' | 'paused' | 'invalid' | 'unavailable'
+  | 'not_allowed' | 'not_seated' | 'not_on_menu' | 'too_soon' | 'too_young' | 'no_dealer' | 'account_paused' | 'paused' | 'invalid' | 'unavailable'
   // Serving (#640): someone else accepted or delivered the order first.
   | 'taken';
 
 const FAILURE_BY_CODE: Readonly<Record<string, FnbFailure>> = {
   '42501': 'not_allowed', '22023': 'invalid', RVFNS: 'not_seated', RVFNI: 'not_on_menu', RVFST: 'too_soon', RVAGE: 'too_young',
-  RVDWN: 'no_dealer', RVFRZ: 'paused', RVMBR: 'not_allowed',
+  RVDWN: 'no_dealer', RVFRZ: 'paused', RVMBR: 'account_paused',
 };
+
+/** A request id already used for another order is no fault in the order's quantities, so it says Not sent (F-152). */
+function failureOf(error: { code: string; message: string }): FnbFailure {
+  if (error.code === '22023' && error.message.startsWith('That request id')) return 'unavailable';
+  return FAILURE_BY_CODE[error.code] ?? 'unavailable';
+}
 
 // The console's KOTs to print and tonight's orders ask again every ten seconds: orders arrive from the tables.
 const ORDERS_CHECK = 10_000;
 
 interface PlacedRow { order_id: string; kot_number: number }
 
-function placed(data: readonly PlacedRow[] | null, error: { code: string } | null): Result<PlacedFnbOrder, FnbFailure> {
-  if (error) return err(FAILURE_BY_CODE[error.code] ?? 'unavailable');
+function placed(data: readonly PlacedRow[] | null, error: { code: string; message: string } | null): Result<PlacedFnbOrder, FnbFailure> {
+  if (error) return err(failureOf(error));
   const row = data?.[0];
   return row ? ok({ orderId: row.order_id, kotNumber: row.kot_number }) : err('unavailable');
 }
