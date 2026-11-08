@@ -11,6 +11,17 @@ const isQuiet = (key: string) => key.startsWith('seat_check:') || key.startsWith
 /** The requests the floor can act on now: all but the quiet ones. */
 export const actionable = (requests: readonly FloorRequest[]) => requests.filter((request) => !isQuiet(requestKey(request)));
 
+/** The rows the panel lists, those waiting for a seat being folded into one line: what its count counts (audit F-032). */
+export const listedRows = (requests: readonly FloorRequest[]) => requests.filter((request) => request.kind !== 'seat_wait');
+
+/** When a request is due, in seconds from now (audit F-108): an ask for more time when the call time runs out, the rest now. */
+const dueIn = (request: FloorRequest) => (request.kind === 'time' && request.callTimeLeft !== null ? Math.max(0, request.callTimeLeft) : 0);
+
+/** The soonest due first, the oldest among equals, and those with nothing to do yet last. */
+function byDue(requests: readonly FloorRequest[]): FloorRequest[] {
+  return [...requests].sort((a, b) => Number(isQuiet(requestKey(a))) - Number(isQuiet(requestKey(b))) || dueIn(a) - dueIn(b) || a.since.localeCompare(b.since));
+}
+
 /**
  * Requests that arrived since the last read, each for as long as its gold tint fades (decision 0465); `onArrive` hears of
  * them, so a folded panel opens. The first read brings nothing new.
@@ -47,14 +58,14 @@ function heldOrder(held: readonly FloorRequest[], latest: readonly FloorRequest[
 }
 
 /**
- * The floor's requests as the panel shows them (console v3): oldest first, never re-sorted under the pointer. While the
- * pointer is on the list its order holds, what was done goes and what arrives joins the end; once it leaves, oldest first
- * again. `fresh` marks those just arrived.
+ * The floor's requests as the panel shows them (console v3): by when each is due, never re-sorted under the pointer. While
+ * the pointer is on the list its order holds, what was done goes and what arrives joins the end; once it leaves, by when
+ * due again. `fresh` marks those just arrived.
  */
 export function useRequestQueue(requests: readonly FloorRequest[] | undefined, onArrive: () => void) {
   const [held, setHeld] = useState<readonly FloorRequest[] | null>(null);
   const fresh = useFreshKeys(requests, onArrive);
-  const latest = requests ?? [];
+  const latest = byDue(requests ?? []);
   return {
     shown: held === null ? latest : heldOrder(held, latest),
     fresh,

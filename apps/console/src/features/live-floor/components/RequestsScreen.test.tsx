@@ -57,28 +57,38 @@ describe('Seating an approved player (the owner, 8 Nov)', () => {
     expect(await screen.findByText('Table 1, seat 4 held', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.getAllByText('To seat')).toHaveLength(2);
     expect(screen.getByText('ID check, then seat')).toBeDefined();
-    expect(screen.getAllByText('Waiting for a seat')).toHaveLength(2);
-    expect(screen.getByText('Table 1 is full')).toBeDefined();
-    expect(screen.getByText('Table 4 is not open')).toBeDefined();
+    // Those with nothing to do yet are one line, after the rest (audit F-032).
+    expect(screen.getByRole('button', { name: 'Waiting for a seat (2)' })).toBeDefined();
     // Their wait counts from approval or call; the alert itself tells the floor, so none shows late.
     expect(screen.getByText('9 min').className).not.toContain('text-danger');
-    expect(screen.getByText('40 min').className).not.toContain('text-danger');
   });
 
-  it('seats one called at the seat held for him, and opens the seat sheet with one a seat is free for', async () => {
-    const { rpcs } = renderFloorScreen(RequestsScreen, APPROVED);
+  it('opens the seat sheet for one called too, so a call time and bonus chips can be given, and seats nobody yet', async () => {
+    const { rpcs } = renderFloorScreen(RequestsScreen, { ...APPROVED, board: [...APPROVED.board, boardRow('e6', 'Arjun Rao', 6)] });
     await screen.findByText('Table 1, seat 4 held', {}, { timeout: 5000 });
-    const [forLeela, forArjun] = screen.getAllByRole('button', { name: 'Seat' });
-    if (forLeela === undefined || forArjun === undefined) throw new Error('Two Seat buttons expected');
+    const [, forArjun] = screen.getAllByRole('button', { name: 'Seat' });
+    if (forArjun === undefined) throw new Error('Two Seat buttons expected');
     fireEvent.click(forArjun);
-    await waitFor(() => expect(rpcs('seat_from_waitlist')).toEqual([{ p_entry_id: 'e6' }]));
-    // Seated with Undo, which takes the seat back (decision 0480).
-    fireEvent.click(await screen.findByRole('button', { name: 'Undo' }));
-    await waitFor(() => expect(rpcs('undo_seat')).toEqual([{ p_session_id: 'e6' }]));
+    const sheet = await screen.findByRole('dialog', { name: 'Seat a player' });
+    await waitFor(() => expect(chosen(sheet, /^Arjun Rao/)).toBe('true'));
+    expect(rpcs('seat_from_waitlist')).toEqual([]);
+  });
+
+  it('opens the seat sheet with one a seat is free for', async () => {
+    renderFloorScreen(RequestsScreen, APPROVED);
+    await screen.findByText('Table 1, seat 4 held', {}, { timeout: 5000 });
+    const [forLeela] = screen.getAllByRole('button', { name: 'Seat' });
+    if (forLeela === undefined) throw new Error('Seat buttons expected');
     fireEvent.click(forLeela);
     const sheet = await screen.findByRole('dialog', { name: 'Seat a player' });
     await waitFor(() => expect(chosen(sheet, /^Leela Menon/)).toBe('true'));
     expect(chosen(sheet, /^Anya Das/)).toBe('false');
+  });
+
+  it('opens the Waitlist from the line of those waiting for a seat (audit F-032)', async () => {
+    const { router } = renderFloorScreen(RequestsScreen, APPROVED);
+    fireEvent.click(await screen.findByRole('button', { name: 'Waiting for a seat (2)' }, { timeout: 5000 }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/waitlist'));
   });
 
   it('opens the check in person, the member searched, for one whose identity check is unfinished (decision 0503)', async () => {
@@ -109,7 +119,7 @@ describe('Seating an approved player (the owner, 8 Nov)', () => {
     const approve = await screen.findByRole('button', { name: 'Approve' }, { timeout: 5000 });
     api.requests = [requestRow({ kind: 'seat_wait', id: 'e5', name: 'Leela Menon', minutes: 0, table_id: 't1' })];
     fireEvent.click(approve);
-    expect(await screen.findByText('Waiting for a seat')).toBeDefined();
+    expect(await screen.findByRole('button', { name: 'Waiting for a seat (1)' })).toBeDefined();
     expect(screen.queryByRole('dialog', { name: 'Seat a player' })).toBeNull();
   });
 });
