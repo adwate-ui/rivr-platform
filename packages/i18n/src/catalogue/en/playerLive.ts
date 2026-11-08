@@ -98,6 +98,10 @@ export const playerLive = {
     stay: 'Stay seated',
     order: 'Order to my seat',
     orderAgain: 'Order again',
+    /** While the bar has not accepted the order (F-048). */
+    cancelOrder: 'Cancel order',
+    cancelOrderConfirm: 'Yes, cancel it',
+    cancelFailures: { accepted: 'The bar has started it.', unavailable: 'Not sent. Try again.' },
     /** The order tracker's steps, read out as a list named this. */
     orderLabel: 'Order',
     stages: { sent: 'Sent', preparing: 'Preparing', on_its_way: 'On its way', delivered: 'Delivered' },

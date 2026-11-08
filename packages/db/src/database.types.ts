@@ -1327,14 +1327,14 @@ isOneToOne: true
                   ]
                 },"fnb_item": {
                   Row: {
-                    "created_at": string,"id": string,"is_available": boolean,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"photo_path": string | null,"position": number,"updated_at": string,"venue_id": string
+                    "created_at": string,"description": string | null,"diet": string | null,"id": string,"is_available": boolean,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"photo_path": string | null,"position": number,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"is_available"?: boolean,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"photo_path"?: string | null,"position"?: number,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"description"?: string | null,"diet"?: string | null,"id"?: string,"is_available"?: boolean,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"photo_path"?: string | null,"position"?: number,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"is_available"?: boolean,"kind"?: Database["public"]['Enums']["fnb_item_kind"],"name"?: string,"photo_path"?: string | null,"position"?: number,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"description"?: string | null,"diet"?: string | null,"id"?: string,"is_available"?: boolean,"kind"?: Database["public"]['Enums']["fnb_item_kind"],"name"?: string,"photo_path"?: string | null,"position"?: number,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -4841,6 +4841,9 @@ isOneToOne: false
 "cancel_fnb_order":
 { Args: { "p_order_id": string,"p_reason": string }; Returns: undefined
                            },
+"cancel_my_fnb_order":
+{ Args: { "p_order_id": string }; Returns: undefined
+                           },
 "cancel_redemption":
 { Args: { "p_reason": string,"p_redemption_id": string }; Returns: undefined
                            },
@@ -5151,7 +5154,7 @@ isOneToOne: false
                            },
 "fnb_menu":
 { Args: { "p_venue_id": string }; Returns: {
-              "item_id": string,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"photo_path": string
+              "description": string,"diet": string,"item_id": string,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"photo_path": string
             }[]
                            },
 "fnb_orders_tonight":
@@ -5453,7 +5456,7 @@ isOneToOne: false
                            },
 "my_fnb_menu":
 { Args: Record<PropertyKey, never>; Returns: {
-              "item_id": string,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"photo_path": string
+              "description": string,"diet": string,"item_id": string,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"photo_path": string
             }[]
                            },
 "my_fnb_orders":
@@ -5936,7 +5939,7 @@ isOneToOne: false
 { Args: { "p_basis": string,"p_code": string,"p_commission_paise": number,"p_name": string,"p_venue_id": string }; Returns: string
                            },
 "save_fnb_item":
-{ Args: { "p_is_available": boolean,"p_item_id"?: string,"p_kind": Database["public"]['Enums']["fnb_item_kind"],"p_name": string,"p_position": number,"p_venue_id": string }; Returns: string
+{ Args: { "p_description"?: string,"p_diet"?: string,"p_is_available": boolean,"p_item_id"?: string,"p_kind": Database["public"]['Enums']["fnb_item_kind"],"p_name": string,"p_position": number,"p_venue_id": string }; Returns: string
                            },
 "save_fnb_menu":
 { Args: { "p_items": Json,"p_venue_id": string }; Returns: number

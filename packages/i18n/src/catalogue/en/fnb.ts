@@ -42,6 +42,8 @@ export const playerFnb = {
   progress: { placed: 'Placed', in_progress: 'Being prepared', delivered: 'Delivered' },
   /** An order staff voided (decision 0302), with their reason. */
   cancelled: 'Cancelled: {reason}',
+  /** An order the member cancelled themselves (F-048). */
+  cancelledByYou: 'You cancelled this order.',
   ordersFailed: 'Your orders did not load.',
   failures,
 } as const;
@@ -90,6 +92,8 @@ export const consoleFnb = {
   voidReason: 'Why void KOT {kot}',
   voidConfirm: 'Void the order',
   invalidVoidReason: 'Give a reason of 3 to 300 characters.',
+  /** Over the lanes, the last three KOTs members cancelled tonight (F-048): `Cancelled by the member: KOT 12, KOT 15`. */
+  memberCancelled: 'Cancelled by the member: {kots}',
   memberSeesReason: 'The member sees this.',
   /** The bar printer's delivery of the KOT failed or closed unprinted (console v3): never said from a clock. */
   notAtBar: 'The bar printer did not get this KOT. Print it or read it to the bar.',

@@ -1,3 +1,4 @@
+import { FNB_MEMBER_CANCEL_REASON } from '@rivr/contracts';
 import type { FnbOrderTonight } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
 
@@ -22,6 +23,12 @@ export function ordersByLane(orders: readonly FnbOrderTonight[]): Record<OrderLa
     if (lane !== null) lanes[lane].push(order);
   }
   return lanes;
+}
+
+/** The KOTs members cancelled themselves tonight, the last three (F-048), so the bar can drop one it already holds: `KOT 12, KOT 15`. */
+export function memberCancelledKots(orders: readonly FnbOrderTonight[]): string | null {
+  const cancelled = orders.filter((order) => order.cancelReason === FNB_MEMBER_CANCEL_REASON).sort((a, b) => b.kotNumber - a.kotNumber).slice(0, 3);
+  return cancelled.length === 0 ? null : cancelled.map((order) => t('console.fnb.kot', { kot: order.kotNumber })).join(', ');
 }
 
 /** What was ordered, in one line: `2 × Beer, 1 × French fries`. */

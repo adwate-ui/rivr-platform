@@ -12,6 +12,9 @@ export const fnbLineSchema = z.object({
 });
 export type FnbLine = z.infer<typeof fnbLineSchema>;
 
+/** The reason on an order its member cancelled before the bar accepted it (F-048), as the database writes it. */
+export const FNB_MEMBER_CANCEL_REASON = 'Cancelled by the member';
+
 /** Why staff void an order not yet delivered (decision 0302): the member sees it. */
 export const cancelFnbOrderSchema = z.object({ reason: z.string().trim().min(3).max(300) });
 

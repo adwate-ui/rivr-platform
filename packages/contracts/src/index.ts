@@ -70,6 +70,7 @@ export {
 export { rakeChangeSchema } from './rake.ts';
 export {
   FNB_ITEM_KINDS,
+  FNB_MEMBER_CANCEL_REASON,
   cancelFnbOrderSchema,
   fnbItemSchema,
   fnbLineSchema,
