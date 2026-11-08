@@ -105,6 +105,8 @@ export const promotions = {
       stepChips: 'Then bonus chips',
       addStep: 'Add a step',
       removeStep: 'Remove step {step}',
+      /** Under a play-time bonus's steps: each keeps its place across versions (the owner, 9 Nov: "Lock step count"). */
+      stepsKeepPlace: 'Steps keep their place: add or remove them at the end. To reorder, end this bonus and start a new one.',
       everyHours: 'Every',
       timesPerVisit: 'Times a visit',
       noCap: 'No cap',

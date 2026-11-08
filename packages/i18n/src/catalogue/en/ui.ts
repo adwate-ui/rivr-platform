@@ -57,8 +57,10 @@ export const ui = {
     learn: 'Learn',
   },
   profile: {
-    /** The member's initial, top right, opens Profile. */
+    /** The member's photo or initial, top right, opens Profile. */
     open: 'Profile',
+    /** The member's selfie in Profile's mark, read out. */
+    photo: 'Your photo',
   },
   /** QuantityStepper's buttons (#123): `{name}` is what it counts. */
   quantity: { fewer: 'One fewer {name}', more: 'One more {name}' },

@@ -15,6 +15,8 @@ export interface KycRecord {
   readonly status: KycStatus;
   /** Whether the selfie, the KYC photo, is in: DigiLocker comes next. */
   readonly hasSelfie: boolean;
+  /** Where the selfie is kept, for `useKycImageUrl`: the member's photo in the app's header. */
+  readonly photoPath: string | null;
   readonly dateOfBirth: string | null;
   readonly maskedAadhaar: string | null;
   readonly pan: string | null;
@@ -48,7 +50,7 @@ export function useKycRecord() {
       const status = toStatus(data?.status);
       if (data === null || status === null) return null;
       return {
-        status, hasSelfie: data.photo_path !== null, dateOfBirth: data.date_of_birth, maskedAadhaar: data.masked_aadhaar, pan: data.pan,
+        status, hasSelfie: data.photo_path !== null, photoPath: data.photo_path, dateOfBirth: data.date_of_birth, maskedAadhaar: data.masked_aadhaar, pan: data.pan,
         isAtTheClub: data.at_club_from !== null,
       };
     },

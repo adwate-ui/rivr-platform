@@ -1,9 +1,12 @@
 import { createContext, use } from 'react';
 import type { Navigate } from './navigation.ts';
 
-/** What a PlayerShell tells the screens in it: the member's initial for a tab screen's header, and whether it runs edge to edge. */
+/**
+ * What a PlayerShell tells the screens in it: the member's initial and photo for a tab screen's header, and whether it runs
+ * edge to edge.
+ */
 export interface PlayerFrame {
-  avatar: { initial: string | undefined; href: string } | undefined;
+  avatar: { initial: string | undefined; photo?: string | undefined; href: string } | undefined;
   onNavigate: Navigate | undefined;
   isFullBleed: boolean;
 }

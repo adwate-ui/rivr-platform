@@ -25,6 +25,21 @@ describe('PlayerShell', () => {
     expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('aria-current', 'page');
   });
 
+  it('shows the member photo top right, filling the circle, when the shell has one (owner, 9 Nov)', () => {
+    renderIn(
+      <PlayerShell tabs={PLAYER_TABS} currentTab="home" avatar={{ initial: 'I', photo: 'https://photos.test/me.jpg', href: '/profile' }}>
+        <h1>Tonight</h1>
+        <PlayerAvatar />
+      </PlayerShell>,
+    );
+    const link = screen.getByRole('link', { name: 'Profile' });
+    const photo = link.querySelector('img');
+    if (photo === null) throw new Error('the photo is not shown');
+    expect(photo).toHaveAttribute('src', 'https://photos.test/me.jpg');
+    expect(photo).toHaveClass('object-cover');
+    expect(link).not.toHaveTextContent('I');
+  });
+
   it('opens Profile from the member initial, top right', async () => {
     const onNavigate = vi.fn();
     renderShell({ onNavigate });

@@ -42,7 +42,7 @@ describe('useKycRecord', () => {
     });
 
     await waitFor(() => expect(result.current.record.data).toEqual({
-      status: 'verified', hasSelfie: true, dateOfBirth: '1990-01-01', maskedAadhaar: 'XXXX XXXX 0000', pan: 'ABCPE1234F', isAtTheClub: false,
+      status: 'verified', hasSelfie: true, photoPath: 'v/m/selfie.jpg', dateOfBirth: '1990-01-01', maskedAadhaar: 'XXXX XXXX 0000', pan: 'ABCPE1234F', isAtTheClub: false,
     }));
   });
 

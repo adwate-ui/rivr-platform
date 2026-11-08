@@ -39,7 +39,7 @@ select set_eq(
      ('academy_attendance'), ('academy_booking'), ('bonus_redemption'), ('buy_in_request'), ('cage_transaction'), ('control_state'), ('credit_line'), ('deposit_request'),
      ('early_departure'), ('fnb_order'), ('invoice'), ('jackpot_event'), ('league_adjustment'), ('league_finish'), ('ledger_account'), ('marker'), ('member_tier_change'),
      ('points_earning'), ('promotion_grant'), ('redemption'), ('referral'), ('sar_entry'), ('seat_session'), ('self_exclusion'), ('spin'), ('tds_withholding'),
-     ('top_up_request'), ('call_time_request'),
+     ('top_up_request'), ('call_time_request'), ('promotion_step_skip'),
      ('tournament_entry'), ('tournament_payout'), ('tournament_purchase'), ('tournament_ticket'), ('visit'), ('waitlist_entry'),
      ('withdrawal_request') $$,
   'every table naming a member is classified for erasure (a new one is a decision: delete, anonymise or keep)'

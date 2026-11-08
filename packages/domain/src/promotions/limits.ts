@@ -1,6 +1,7 @@
 import type { Limits, MemberFacts, Reward } from '@rivr/contracts/promotionModel';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { clubDay, weekOf } from '../clubDay/clubDay.ts';
+import { hourSteps } from './hourSteps.ts';
 import { isEligible } from './eligibility.ts';
 import { computeGrant, type Grant, type GrantRefusal, type PromotionEvent } from './grant.ts';
 import type { Terms } from './terms.ts';
@@ -35,14 +36,26 @@ export type LimitRefusal = 'already_given' | 'first_n_taken' | 'members_per_day'
 type EventWhen = Pick<PromotionEvent, 'key' | 'at' | 'visitId'> & { readonly stepMinutes?: number };
 
 /**
+ * Where a play-time bonus step stands among its promotion's steps, the first 1 (the owner, 9 Nov): a version that moves a
+ * step's minutes keeps it the same step, so an edit never pays it twice. Its minutes where the reward has no such step.
+ */
+function stepKeyOf(reward: Reward | undefined, stepMinutes: number): number {
+  if (reward?.kind !== 'hours_bonus') return stepMinutes;
+  const at = hourSteps(reward).findIndex((step) => step.afterMinutes === stepMinutes);
+  return at === -1 ? stepMinutes : at + 1;
+}
+
+/**
  * The period a member's grant counts in, which the database keeps unique per promotion and member (decision 0471):
  * the visit, the club day, the club week (Monday to Sunday), once ever; with no limit, the event itself, so an event
- * replayed gives nothing more. A play-time bonus step counts in its own: the period and `@` its minutes (owner, 8 Nov),
- * so the member limit holds for each step.
+ * replayed gives nothing more. A play-time bonus step counts in its own: the period and `@` its place among the steps
+ * (owner, 8 and 9 Nov), so the member limit holds for each step across the promotion's versions; with no limit, a step's
+ * period is its visit, as a step is paid once a visit at most.
  */
-export function periodKey(limits: Pick<Limits, 'perMember'>, event: EventWhen): string {
-  const base = basePeriod(limits, event);
-  return event.stepMinutes === undefined ? base : `${base}@${String(event.stepMinutes)}`;
+export function periodKey(limits: Pick<Limits, 'perMember'>, event: EventWhen, reward?: Reward): string {
+  if (event.stepMinutes === undefined) return basePeriod(limits, event);
+  const base = limits.perMember === 'none' ? `visit:${event.visitId ?? event.key}` : basePeriod(limits, event);
+  return `${base}@${String(stepKeyOf(reward, event.stepMinutes))}`;
 }
 
 function basePeriod(limits: Pick<Limits, 'perMember'>, event: EventWhen): string {
@@ -88,11 +101,11 @@ export function remainingBudget(promo: { readonly limits: Limits }, ledger: Ledg
 }
 
 /** The tally for one more grant to the event's member, from the promotion's ledger. */
-export function tallyFor(promo: { readonly limits: Limits }, ledger: Ledger, event: PromotionEvent): GrantTally {
+export function tallyFor(promo: { readonly limits: Limits; readonly reward?: Reward }, ledger: Ledger, event: PromotionEvent): GrantTally {
   const day = clubDay(event.at);
   const today = ledger.filter((entry) => entry.clubDay === day);
   const inBudget = counted(promo.limits, ledger, day);
-  const key = periodKey(promo.limits, event);
+  const key = periodKey(promo.limits, event, promo.reward);
   return {
     chipsGiven: chipsIn(inBudget),
     grantsGiven: inBudget.length,
@@ -104,8 +117,10 @@ export function tallyFor(promo: { readonly limits: Limits }, ledger: Ledger, eve
 }
 
 /** A grant as it enters the ledger, keyed as the member's next in its period. */
-export function ledgerEntryFor(promo: { readonly limits: Limits }, event: PromotionEvent, grant: Grant, tally: Pick<GrantTally, 'periodGiven'>): LedgerEntry {
-  const key = slotKey(periodKey(promo.limits, event), tally.periodGiven);
+export function ledgerEntryFor(
+  promo: { readonly limits: Limits; readonly reward?: Reward }, event: PromotionEvent, grant: Grant, tally: Pick<GrantTally, 'periodGiven'>,
+): LedgerEntry {
+  const key = slotKey(periodKey(promo.limits, event, promo.reward), tally.periodGiven);
   return { ...grant, memberId: event.memberId, clubDay: clubDay(event.at), periodKey: key, tableId: event.tableId };
 }
 

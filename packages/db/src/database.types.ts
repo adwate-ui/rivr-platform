@@ -2737,6 +2737,44 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"promotion_step_skip": {
+                  Row: {
+                    "created_at": string,"id": string,"member_id": string,"promotion_id": string,"reason": string,"step_number": number,"updated_at": string,"venue_id": string,"visit_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"member_id": string,"promotion_id": string,"reason"?: string,"step_number": number,"updated_at"?: string,"venue_id": string,"visit_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"member_id"?: string,"promotion_id"?: string,"reason"?: string,"step_number"?: number,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "promotion_step_skip_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "promotion_step_skip_promotion_id_venue_id_fkey"
+      columns: ["promotion_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "promotion"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "promotion_step_skip_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "promotion_step_skip_visit_id_fkey"
+      columns: ["visit_id"]
+isOneToOne: false
+      referencedRelation: "visit"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"promotion_version": {
                   Row: {
                     "author_staff_id": string | null,"channels": NonNullable<Json>,"created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"detail": string | null,"edited_by_staff_id": string | null,"eligibility": NonNullable<Json>,"id": string,"limits": NonNullable<Json>,"link": string | null,"name": string,"promotion_id": string,"rejected_reason": string | null,"reward": NonNullable<Json>,"rules_text": (string)[],"runs": string | null,"schedule": NonNullable<Json>,"simulated_at": string | null,"simulated_terms": Json | null,"simulation": Json | null,"status": string,"submitted_at": string | null,"updated_at": string,"venue_id": string,"version": number

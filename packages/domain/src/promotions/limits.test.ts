@@ -1,3 +1,4 @@
+import type { Reward } from '@rivr/contracts/promotionModel';
 import { buildMemberFacts, buildPromotionEvent, buildPromotionTerms } from '@rivr/testing';
 import { describe, expect, it } from 'vitest';
 import { NO_GRANT, toPromotionEvent } from './grant.ts';
@@ -10,6 +11,29 @@ const entry = (more: Partial<LedgerEntry>): LedgerEntry => ({
   ...NO_GRANT, chips: 1_000, memberId: 'member-2', clubDay: '2026-11-17', periodKey: 'event:old', tableId: 'table-1', ...more,
 });
 const NOTHING_YET = { chipsGiven: 0, grantsGiven: 0, membersToday: 0, isMemberGrantedToday: false, periodGiven: 0, grantsAtTableToday: 0 };
+
+describe('periodKey for a play-time step (the owner, 9 Nov)', () => {
+  const steps: Reward = { kind: 'hours_bonus', mode: 'steps', steps: [{ afterMinutes: 120, chips: 200 }, { afterMinutes: 240, chips: 500 }] };
+  const moved: Reward = { kind: 'hours_bonus', mode: 'steps', steps: [{ afterMinutes: 180, chips: 200 }, { afterMinutes: 240, chips: 500 }] };
+  const at = new Date('2026-11-17T21:00:00+05:30');
+  const step = (stepMinutes: number) => ({ key: `hours_step:visit-1:${String(stepMinutes)}`, at, visitId: 'visit-1', stepMinutes });
+
+  it('keys a step by its place among the steps, so a version that moves its minutes keeps it the same step', () => {
+    expect(periodKey({ perMember: 'per_day' }, step(240), steps)).toBe('day:2026-11-17@2');
+    expect(periodKey({ perMember: 'per_day' }, step(120), steps)).toBe(periodKey({ perMember: 'per_day' }, step(180), moved));
+  });
+
+  it('gives a step with no limit its visit, as a step is paid once a visit', () => {
+    expect(periodKey({ perMember: 'none' }, step(120), steps)).toBe('visit:visit-1@1');
+    expect(periodKey({ perMember: 'none' }, { ...step(120), visitId: null }, steps)).toBe('visit:hours_step:visit-1:120@1');
+  });
+
+  it('keeps the minutes where the reward has no such step, or is no play-time bonus', () => {
+    expect(periodKey({ perMember: 'once' }, step(90), steps)).toBe('once@90');
+    expect(periodKey({ perMember: 'once' }, step(120))).toBe('once@120');
+    expect(periodKey({ perMember: 'once' }, step(120), { kind: 'bonus_chips', on: 'visit', chips: 100 })).toBe('once@120');
+  });
+});
 
 describe('periodKey', () => {
   const night = buyIn({ at: '2026-11-18T02:00:00+05:30' });
