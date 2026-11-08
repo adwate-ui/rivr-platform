@@ -27,6 +27,7 @@ export { shrinkPhoto } from './photo.ts';
 export { itemPhotoUrl, useItemPhotoUpload, type ItemPhotoFailure, type ItemPhotoKind, type ItemPhotoOrder } from './itemPhotos.ts';
 export {
   useKycInPerson,
+  useKycDueTonight,
   useKycInPersonCandidates,
   useKycReviewActions,
   useKycReviewQueue,

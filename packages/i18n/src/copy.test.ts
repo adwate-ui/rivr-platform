@@ -55,7 +55,8 @@ describe('member-facing copy says the fact, then stops (decision 0289)', () => {
   });
 
   it('never speaks as "we", the system', () => {
-    expect(memberCopy.filter(([, text]) => /\b[Ww]e (check|keep|tell|could|will|send|use)\b/.test(text)).map(([key]) => key)).toEqual([]);
+    // We, we're, we'll, we've, us, our: any of them, not only a few verbs after "we" (audit F-179).
+    expect(memberCopy.filter(([, text]) => /\b([Ww]e|[Ww]e'(re|ll|ve|d)|[Uu]s|[Oo]urs?)\b/.test(text)).map(([key]) => key)).toEqual([]);
   });
 
   it('runs to two sentences at most', () => {

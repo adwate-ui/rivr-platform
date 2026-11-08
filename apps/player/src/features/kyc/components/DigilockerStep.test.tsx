@@ -47,6 +47,6 @@ describe('Identity › Resume', () => {
     renderStep({ status: 200, body: {} });
     expect(screen.queryByText(/front desk/)).toBeNull();
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
-    expect(screen.getByText('We store your photo, date of birth, address, PAN and the last 4 digits of your Aadhaar.')).toBeDefined();
+    expect(screen.getByText('Kept: your photo, date of birth, address, PAN and the last 4 digits of your Aadhaar.')).toBeDefined();
   });
 });

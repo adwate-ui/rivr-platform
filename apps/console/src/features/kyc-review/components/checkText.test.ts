@@ -1,6 +1,7 @@
 import type { KycCheck } from '@rivr/db';
+import { formatDate, formatTime } from '@rivr/i18n';
 import { describe, expect, it } from 'vitest';
-import { checkDetails, checkGroups, mayReopen } from './checkText.ts';
+import { checkDetails, checkGroups, mayReopen, queueLine, sinceText } from './checkText.ts';
 
 const REFUSED: KycCheck = {
   memberId: 'm1', fullName: 'Asha Rao', status: 'refused', method: 'manual', waitingBecause: null, dateOfBirth: null, maskedAadhaar: null,
@@ -31,6 +32,35 @@ describe('checkGroups', () => {
       REFUSED,
     ]);
     expect([groups.toReview, groups.onMember, groups.refused].map((group) => group.map((check) => check.memberId))).toEqual([['review'], ['pan'], ['m1']]);
+  });
+
+  it('puts the longest waiting first, so a check held for weeks heads its group (audit F-092)', () => {
+    const groups = checkGroups([
+      { ...REFUSED, memberId: 'today', status: 'needs_pan', refusal: null, updatedAt: '2026-11-08T10:00:00Z' },
+      { ...REFUSED, memberId: 'october', status: 'needs_pan', refusal: null, updatedAt: '2026-10-20T10:00:00Z' },
+    ]);
+    expect(groups.onMember.map((check) => check.memberId)).toEqual(['october', 'today']);
+  });
+});
+
+describe('sinceText and queueLine', () => {
+  const now = new Date('2026-11-08T15:00:00Z');
+
+  it('gives the time for a wait that began today, and from the second day the date and how many days (audit F-092)', () => {
+    const today = new Date('2026-11-08T09:00:00Z');
+    const october = new Date('2026-10-20T09:00:00Z');
+    expect(sinceText(today, now)).toBe(formatTime(today));
+    expect(sinceText(october, now)).toBe(`${formatDate(october)} · 19 days`);
+    const yesterday = new Date('2026-11-07T09:00:00Z');
+    expect(sinceText(yesterday, now)).toBe(`${formatDate(yesterday)} · 1 day`);
+    // 23:30 last night, read at 20:30: under 24 hours ago, but yesterday.
+    const lastNight = new Date('2026-11-07T18:00:00Z');
+    expect(sinceText(lastNight, now)).toBe(`${formatDate(lastNight)} · 1 day`);
+  });
+
+  it('says a check waits for a PAN, and since when', () => {
+    const check: KycCheck = { ...REFUSED, status: 'needs_pan', refusal: null, updatedAt: '2026-10-20T09:00:00Z' };
+    expect(queueLine(check, now)).toBe(`Needs a PAN · since ${formatDate(new Date(check.updatedAt))} · 19 days`);
   });
 });
 
