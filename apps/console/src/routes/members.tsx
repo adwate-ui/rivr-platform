@@ -1,4 +1,5 @@
-import { createRoute, useNavigate } from '@tanstack/react-router';
+import { createRoute } from '@tanstack/react-router';
+import { useNavigateKeepingViews } from '../features/frame/index.ts';
 import { MembersScreen } from '../features/members/index.ts';
 import { frameRoute } from './frame.tsx';
 
@@ -13,6 +14,7 @@ export const membersRoute = createRoute({ getParentRoute: () => frameRoute, path
 
 function MembersRoute() {
   const { member, part } = membersRoute.useSearch();
-  const navigate = useNavigate();
-  return <MembersScreen memberId={member} part={part} onNavigate={(href) => void navigate({ href })} />;
+  // The list's own search and tier, and its table's view, stay as a record opens (owner, 9 Nov).
+  const navigate = useNavigateKeepingViews(['q', 'tier']);
+  return <MembersScreen memberId={member} part={part} onNavigate={navigate} />;
 }

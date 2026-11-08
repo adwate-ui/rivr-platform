@@ -14,7 +14,7 @@ const COLUMNS: readonly DataTableColumn<SharedWinnerCard>[] = [
   { key: 'won', header: t('console.social.winnerCards.won'), cell: (row) => wonOf(row) },
   { key: 'prize', header: t('console.social.winnerCards.prize'), align: 'end', cell: (row) => formatMoney(row.prizePaise) },
   { key: 'shared', header: t('console.social.winnerCards.shared'), cell: (row) => formatDayTime(new Date(row.sharedAt)) },
-  { key: 'download', header: t('console.social.winnerCards.download'), align: 'end', cell: (row) => (
+  { key: 'download', filter: false, header: t('console.social.winnerCards.download'), align: 'end', cell: (row) => (
     row.imageUrl === null ? null : <Button variant="text" href={row.imageUrl}>{t('console.social.winnerCards.card', { name: row.playerName })}</Button>
   ) },
 ];

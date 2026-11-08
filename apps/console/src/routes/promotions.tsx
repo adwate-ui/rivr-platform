@@ -1,5 +1,5 @@
-import { createRoute, useNavigate } from '@tanstack/react-router';
-import { tabSearchFrom } from '../features/frame/index.ts';
+import { createRoute } from '@tanstack/react-router';
+import { tabSearchFrom, useNavigateKeepingViews } from '../features/frame/index.ts';
 import { PromotionsScreen } from '../features/promotions/index.ts';
 import { frameRoute } from './frame.tsx';
 
@@ -11,10 +11,11 @@ function openSearch(search: Record<string, unknown>): { open?: string; tab?: str
 
 function PromotionsPage() {
   const { open, tab } = promotionsRoute.useSearch();
-  const navigate = useNavigate();
+  // The list's view stays as a promotion opens and closes (owner, 9 Nov).
+  const navigate = useNavigateKeepingViews();
   return (
-    <PromotionsScreen open={open} tab={tab} onNavigate={(href) => void navigate({ href })}
-      onOpen={(next) => void navigate({ href: next === null ? '/promotions' : `/promotions?open=${encodeURIComponent(next)}` })} />
+    <PromotionsScreen open={open} tab={tab} onNavigate={navigate}
+      onOpen={(next) => navigate(next === null ? '/promotions' : `/promotions?open=${encodeURIComponent(next)}`)} />
   );
 }
 

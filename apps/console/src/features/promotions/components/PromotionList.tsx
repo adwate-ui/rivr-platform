@@ -65,7 +65,7 @@ function Listed({ venueId, names, onOpen, tab, onNavigate, overview }: Promotion
       <ViewTabs view={view} counts={{ current: current.length, ended: ended.length }} onNavigate={onNavigate} />
       {isEnded ? null : <StatusChips current={current} filter={filter} onChange={setFilter} />}
       {toggles.failure === null ? null : <ErrorMessage>{t(`console.promotions.failures.${toggles.failure}`)}</ErrorMessage>}
-      <DataTable label={t('console.promotions.list.label')} rowKey={(promotion) => promotion.id} density="comfortable" narrowLayout="scroll"
+      <DataTable label={t(isEnded ? 'console.promotions.list.endedLabel' : 'console.promotions.list.label')} rowKey={(promotion) => promotion.id} density="comfortable" narrowLayout="scroll"
         columns={isEnded ? endedColumns(names, steps) : listColumns(names, steps)} onRowOpen={open} key={view}
         {...(isEnded ? { initialSort: LATEST_ENDED_FIRST } : {})}
         rows={isEnded ? ended : current.filter((promotion) => filter === 'all' || isListedIn(promotion, filter))}

@@ -59,7 +59,7 @@ export function PlayersTable({ rows, prompts, canRun, hasBounty, onAskBust, onCh
       cell: (row) => (row.entryNumber > 1 ? t('console.tournaments.playerEntry', { name: row.fullName, number: row.entryNumber }) : row.fullName) },
     { key: 'where', header: t('console.tournaments.where'), cell: whereOf },
     { key: 'chips', header: t('console.tournaments.chipsColumn'), align: 'end', cell: (row) => formatNumber(row.chips) },
-    { key: 'actions', header: t('console.tournaments.actions'), align: 'end',
+    { key: 'actions', filter: false, header: t('console.tournaments.actions'), align: 'end',
       cell: (row) => <RowActions row={row} prompts={prompts} canRun={canRun} hasBounty={hasBounty} onAskBust={onAskBust} onChange={onChange} /> },
   ];
   return <DataTable label={t('console.tournaments.floor')} columns={columns} rowKey={(row) => row.entryId} rows={rows}

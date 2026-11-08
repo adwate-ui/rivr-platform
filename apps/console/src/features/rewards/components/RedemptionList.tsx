@@ -78,7 +78,7 @@ function columns(venueId: string, isWaiting: boolean): readonly DataTableColumn<
     { key: 'price', header: t('console.rewards.priceColumn'), align: 'end', cell: (row) => priceText(row), sortValue: (row) => row.points ?? 0n },
     { key: 'redeemed', header: t('console.rewards.redeemed'), cell: (row) => formatDayTime(new Date(row.createdAt)), sortValue: (row) => row.createdAt },
   ];
-  if (isWaiting) return [...common, { key: 'handOver', header: t('console.rewards.handOver'), cell: (row) => <WaitingActions venueId={venueId} redemption={row} /> }];
+  if (isWaiting) return [...common, { key: 'handOver', filter: false, header: t('console.rewards.handOver'), cell: (row) => <WaitingActions venueId={venueId} redemption={row} /> }];
   return [...common, {
     key: 'handedOver', header: t('console.rewards.handedOverBy'),
     cell: (row) => t('console.rewards.handedOverLine', { name: row.handedOverBy ?? '', when: row.handedOverAt === null ? '' : formatDayTime(new Date(row.handedOverAt)) }),

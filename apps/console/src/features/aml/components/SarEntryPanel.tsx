@@ -14,8 +14,8 @@ const OUTCOMES: readonly SarOutcome[] = ['no_action', 'monitor', 'reported'];
 
 const BUY_IN_COLUMNS: readonly DataTableColumn<SarBuyIn>[] = [
   { key: 'source', header: t('console.aml.what'), cell: (row) => t(`console.aml.sources.${row.source}`), sortValue: (row) => row.source },
-  { key: 'day', header: t('console.aml.day'), cell: (row) => <Time at={new Date(row.at)} show="day" />, sortValue: (row) => Date.parse(row.at) },
-  { key: 'time', header: t('console.aml.time'), cell: (row) => <Time at={new Date(row.at)} /> },
+  { key: 'day', filter: 'date', header: t('console.aml.day'), cell: (row) => <Time at={new Date(row.at)} show="day" />, sortValue: (row) => Date.parse(row.at) },
+  { key: 'time', filter: false, header: t('console.aml.time'), cell: (row) => <Time at={new Date(row.at)} /> },
   { key: 'amount', header: t('console.aml.amount'), align: 'end', cell: (row) => <Money paise={row.amount} />, sortValue: (row) => Number(row.amount) },
 ];
 

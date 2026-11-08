@@ -15,7 +15,7 @@ function templateColumns(structures: readonly BlindStructure[], onEdit: (templat
     { key: 'registration', header: t('console.tournaments.registrationColumn'), cell: (row) => t('console.tournaments.toLevel', { level: row.lastRegistrationLevel }) },
     { key: 'paid', header: t('console.tournaments.paidColumn'), cell: (row) => t('console.tournaments.placesPaid', { count: row.placesPaid }) },
     {
-      key: 'edit', header: t('console.tournaments.edit'), align: 'end',
+      key: 'edit', filter: false, header: t('console.tournaments.edit'), align: 'end',
       cell: (row) => (
         <Button variant="text" aria-label={t('console.tournaments.editName', { name: row.name })} onClick={() => onEdit(row)}>{t('console.tournaments.edit')}</Button>
       ),

@@ -18,13 +18,13 @@ function columns(): readonly DataTableColumn<TableMetrics>[] {
     { key: 'table', header: t('console.reports.tables.table'), cell: (row) => row.tableName, sortValue: (row) => row.tableName, filter: 'text' },
     { key: 'seats', header: t('console.reports.tables.seats'), cell: (row) => formatNumber(row.seats), sortValue: (row) => row.seats, align: 'end' },
     {
-      key: 'run', header: t('console.reports.tables.hoursRun'), align: 'end', sortValue: (row) => row.runSeconds,
+      key: 'run', filter: 'duration', header: t('console.reports.tables.hoursRun'), align: 'end', sortValue: (row) => row.runSeconds,
       cell: (row) => formatHoursMinutes(row.runSeconds), exportValue: (row) => formatHoursMinutes(row.runSeconds),
     },
     { key: 'players', header: t('console.reports.tables.players'), cell: (row) => formatNumber(row.players), sortValue: (row) => row.players, align: 'end' },
     { key: 'peak', header: t('console.reports.tables.peak'), cell: (row) => formatNumber(row.peak), sortValue: (row) => row.peak, align: 'end' },
     {
-      key: 'played', header: t('console.reports.tables.playerHours'), align: 'end', sortValue: (row) => row.playerSeconds,
+      key: 'played', filter: 'duration', header: t('console.reports.tables.playerHours'), align: 'end', sortValue: (row) => row.playerSeconds,
       cell: (row) => formatHoursMinutes(row.playerSeconds), exportValue: (row) => formatHoursMinutes(row.playerSeconds),
     },
     {
