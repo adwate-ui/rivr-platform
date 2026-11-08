@@ -41,7 +41,7 @@ export interface ChoiceChipsProps<Value extends string> {
   /**
    * `pill`, the redesign's rounded chips, picked in gold tint; `tile`, square choices in a row of equal columns, such as a
    * rating of 1 to 5 or Add time's three lengths (decision 0320). `subtle`, the console's filter chips (console v3): a
-   * faint cream fill, the chosen one gold-tinted, 34 px at a desk and 44 px below 1180 px. `card`, the console's choice
+   * faint cream fill, the chosen one gold-tinted with a gold edge inside it, 34 px at a desk and 44 px below 1180 px. `card`, the console's choice
    * of a kind with a line on each (console v3, a promotion's reward): outlined cards, one a row on a phone and two from
    * 768 px, the chosen one gold-edged and tinted. `chip` elsewhere.
    */
@@ -87,7 +87,8 @@ function rowClasses(look: ChipLook, optionCount: number, isOneRow: boolean): str
 /** The console's looks (console v3): filled chips, and outlined cards with a line each. */
 function consoleClasses(look: 'subtle' | 'card', isOn: boolean): string {
   if (look === 'card') return cx(CARD, isOn ? 'border-gold bg-gold-tint' : 'border-control');
-  return cx(SUBTLE, isOn ? 'bg-selected font-medium' : 'bg-subtle hover:bg-subtle-hover');
+  // The edge is inside the chip, so nothing moves as it is chosen; the tint alone would be 1.11:1 against the others (F-019).
+  return cx(SUBTLE, isOn ? 'bg-selected font-medium inset-ring inset-ring-gold' : 'bg-subtle hover:bg-subtle-hover');
 }
 
 /** The classes of one choice in each look, on or off. */
@@ -108,13 +109,13 @@ function namingOf(chip: ChoiceChip<string>, descriptionId: string) {
   return { 'aria-label': chip.count === undefined ? undefined : t('ui.console.choiceChips.withCount', { label: chip.label, count: chip.count }) };
 }
 
-/** A chip's label, then any count, in the chip's own colour and set apart by its regular weight; a card's label over its line. */
-function ChipWords({ chip, descriptionId }: { chip: ChoiceChip<string>; descriptionId: string }) {
+/** A chip's label, then any count, in the chip's own colour and set apart by its regular weight; a card's label over its line, in cream on a chosen card's tint (F-026). */
+function ChipWords({ chip, descriptionId, isOn }: { chip: ChoiceChip<string>; descriptionId: string; isOn: boolean }) {
   if (chip.description !== undefined) {
     return (
       <>
         <span className="text-14 font-semibold leading-control text-content">{chip.label}</span>
-        <span id={descriptionId} className="text-12 text-content-muted">{chip.description}</span>
+        <span id={descriptionId} className={cx('text-12', isOn ? 'text-content' : 'text-content-muted')}>{chip.description}</span>
       </>
     );
   }
@@ -128,10 +129,10 @@ function ChipWords({ chip, descriptionId }: { chip: ChoiceChip<string>; descript
 
 /** A choice's words, and on a tab the gold line under the chosen word, on the row's hairline (F-210). */
 function Words({ chip, look, isOn, descriptionId }: { chip: ChoiceChip<string>; look: ChipLook; isOn: boolean; descriptionId: string }) {
-  if (look !== 'tabs') return <ChipWords chip={chip} descriptionId={descriptionId} />;
+  if (look !== 'tabs') return <ChipWords chip={chip} descriptionId={descriptionId} isOn={isOn} />;
   return (
     <span className={cx('flex items-center border-b-2', isOn ? 'border-gold' : 'border-transparent')}>
-      <ChipWords chip={chip} descriptionId={descriptionId} />
+      <ChipWords chip={chip} descriptionId={descriptionId} isOn={isOn} />
     </span>
   );
 }

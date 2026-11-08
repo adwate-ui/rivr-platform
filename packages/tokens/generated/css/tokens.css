@@ -11,6 +11,7 @@
   --rivr-color-red: #C4162A; /** Alerts, negatives, the spade card in the mark. Nothing else. */
   --rivr-color-ink: #141414; /** Text on cream: the wordmark's tiles, and the public website's cream bands (decision 0118). */
   --rivr-color-ink-muted: #141414B3; /** Ink at 70%. Secondary text on the website's cream bands; at least 4.5:1 on cream. */
+  --rivr-color-ink-edge: #14141480; /** Ink at 50%. A control's edge and a rule on the website's cream bands (F-193); at least 3:1 on cream. */
   --rivr-color-muted: #F3EDE099; /** Cream at 60%. Secondary text; at least 4.5:1 on green. */
   --rivr-color-hairline: #C9A85C40; /** Gold at 25%. The 1 px rules that separate content. */
   --rivr-color-control: #F3EDE080; /** Cream at 50%. A form control's edge: an input, a switch's track when off, an unselected chip, a key. 3.89:1 on the page green and 4.37:1 on raised, past the 3:1 a control needs (F5-04); a hairline is 1.6:1. */

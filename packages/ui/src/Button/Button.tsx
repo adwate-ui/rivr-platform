@@ -82,7 +82,8 @@ export type ButtonProps = ActionButtonProps | LinkButtonProps;
 
 // The gold action is semibold, as in the prototype; the rest are medium.
 const VARIANT: Record<ButtonVariant, string> = {
-  primary: 'bg-action font-semibold text-on-action',
+  // The edge is gold on gold, so unseen, until a cream band makes it ink (F-193).
+  primary: 'bg-action font-semibold text-on-action inset-ring inset-ring-gold-edge',
   secondary: 'border border-hairline font-medium text-content hover:border-control',
   // The player redesign's outlined button: the control colour's edge (decision 0320).
   outline: 'border border-control font-medium text-content',

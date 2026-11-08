@@ -45,7 +45,7 @@ export function ReviewForm({ venueId, memberId, fullName, needsDateOfBirth, need
     <Stack gap={3}>
       {needsDateOfBirth ? <Input {...dateOfBirth} type="date" label={t('console.kycReview.dateOfBirthFor', { name: fullName })} /> : null}
       {needsPan ? <Input {...pan} label={t('console.kycReview.panFor', { name: fullName })} maxLength={10} autoComplete="off" /> : null}
-      {/* The console's filled field (console v3), its name inside it; the rule for the reason on the line above, as in the prototype. */}
+      {/* The console's filled field (console v3), its name above it; the rule for the reason on the line above, as in the prototype. */}
       <Stack gap={2}>
         <Text variant="secondary" tone="muted">{t('console.kycReview.reasonHint')}</Text>
         <Input {...reason} variant="subtle" label={t('console.kycReview.reasonFor', { name: fullName })} maxLength={500} autoComplete="off" />

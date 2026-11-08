@@ -43,8 +43,8 @@ export function AddTabletForm({ venueId, onCode }: AddTabletFormProps) {
   return (
     <Stack gap={2}>
       <Heading level={3}>{t('console.tablets.addTitle')}</Heading>
-      {/* The console's field beside its button (console v3): one height, centred on one line; the hint under them both. */}
-      <Inline gap={3} wrap>
+      {/* The console's field beside its button (console v3): one height, level at their foot; the hint under them both. */}
+      <Inline gap={3} align="end" wrap>
         <Input {...nameField} variant="subtle" label={t('console.tablets.name')} autoComplete="off" aria-describedby={noteId} aria-invalid={isWrong || undefined} />
         <Button variant="primary" size="compact" isLoading={add.isPending} onClick={() => void submit()}>{t('console.tablets.add')}</Button>
       </Inline>

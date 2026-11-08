@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 export interface ProgressRingProps {
   /** How much is left, from 0 to 1: the gold arc's length. */
   fraction: number;
-  /** `alert` turns the arc red: the call time's last 15 minutes. */
+  /** `alert` turns the arc danger pink, as red would be 2.08:1 on green: the call time's last 15 minutes (F-161). */
   tone?: 'gold' | 'alert';
   /** What sits in the middle: the time left and when it ends. */
   children: ReactNode;
@@ -27,7 +27,7 @@ export function ProgressRing({ fraction, tone = 'gold', children }: ProgressRing
         <circle cx={120} cy={120} r={RADIUS} fill="none" strokeWidth={4} className="stroke-cream-track" />
         <circle cx={120} cy={120} r={RADIUS} fill="none" strokeWidth={4} strokeLinecap="round" data-ring-arc=""
           strokeDasharray={CIRCUMFERENCE} strokeDashoffset={offset} transform="rotate(-90 120 120)"
-          className={tone === 'alert' ? 'stroke-alert' : 'stroke-gold'} />
+          className={tone === 'alert' ? 'stroke-danger' : 'stroke-gold'} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">{children}</div>
     </div>

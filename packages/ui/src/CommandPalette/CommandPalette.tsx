@@ -129,7 +129,7 @@ function PaletteBody({ onOpenChange, query, onQueryChange, groups, status = 'rea
         value={query} placeholder={placeholder ?? t('ui.console.palette.placeholder')}
         onChange={(event) => { setActive(0); onQueryChange(event.target.value); }}
         onKeyDown={(event) => moveOrChoose(event, flat.length, marked, { move: setActive, choose: () => choose(flat[marked]) })}
-        className="h-header w-full shrink-0 border-b border-subtle-hover bg-transparent px-5 font-text text-16 text-content placeholder:text-content-muted focus:outline-none" />
+        className="h-header w-full shrink-0 border-b border-subtle-hover bg-transparent px-5 font-text text-16 text-content placeholder:text-content-muted focus:border-focus focus:outline-none" />
       <div id={listId} role="listbox" aria-label={t('ui.console.palette.label')} className="max-h-palette-list overflow-y-auto p-2">
         {shown.map((group, at) => (
           <ResultGroup key={group.id} group={group} first={firsts[at] ?? 0} marked={marked} optionId={optionId} onMark={setActive} onChoose={choose} />
@@ -160,8 +160,8 @@ function ResultGroup({ group, first, marked, optionId, onMark, onChoose }: Resul
         return (
           <div key={item.id} id={optionId(index)} role="option" aria-selected={index === marked}
             onMouseMove={() => onMark(index)} onClick={() => onChoose(item)}
-            className={cx('flex min-h-touch cursor-pointer items-center justify-between gap-3 rounded-md px-3 font-text text-14 tablet:min-h-10',
-              index === marked && 'bg-subtle-hover')}>
+            className={cx('flex min-h-touch cursor-pointer items-center justify-between gap-3 rounded-md border-s-2 px-3 font-text text-14 tablet:min-h-10',
+              index === marked ? 'border-gold bg-subtle-hover' : 'border-transparent')}>
             <span className="min-w-0 truncate">{item.label}</span>
             {item.meta ? <span className="shrink-0 text-12 text-content-muted">{item.meta}</span> : null}
           </div>

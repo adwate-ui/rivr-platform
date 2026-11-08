@@ -46,8 +46,8 @@ export function PrizeForm({ venueId }: { venueId: string }) {
   const submit = () => void prize.send(kind, amount, weight).then((isAdded) => { if (isAdded) setAmount(''); });
   return (
     <Stack gap={3}>
-      {/* One row of 36 px parts at a desk, centred on one line: the kind, the amount, the weight and Add. */}
-      <Inline gap={3} align="center" wrap>
+      {/* One row of 36 px parts at a desk, level at their foot: the kind, the amount, the weight and Add; the hint under them. */}
+      <Inline gap={3} align="end" wrap>
         <Segmented label={t('console.spin.kind')} size="compact" value={kind} onChange={setKind}
           options={KINDS.map((each) => ({ value: each, label: t(`console.spin.kinds.${each}`) }))} />
         {kind === 'nothing' ? null : (
@@ -56,8 +56,8 @@ export function PrizeForm({ venueId }: { venueId: string }) {
         )}
         <Input variant="subtle" label={t('console.spin.weight')} value={weight} inputMode="numeric" autoComplete="off" onChange={(event) => setWeight(event.target.value)} />
         <Button variant="subtle" size="compact" isLoading={prize.isPending} onClick={submit}>{t('console.spin.add')}</Button>
-        <Text variant="secondary" tone="muted">{t('console.spin.weightHint')}</Text>
       </Inline>
+      <Text variant="secondary" tone="muted">{t('console.spin.weightHint')}</Text>
       <StatusMessage>{prize.outcome?.ok === true ? prize.outcome.text : null}</StatusMessage>
       {prize.outcome?.ok === false ? <ErrorMessage>{prize.outcome.text}</ErrorMessage> : null}
     </Stack>

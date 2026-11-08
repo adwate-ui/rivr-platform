@@ -137,8 +137,20 @@ describe('ChoiceChips', () => {
     const other = screen.getByRole('radio', { name: 'NLH' });
     expect(chosen).toHaveClass('bg-selected', 'text-content', 'rounded-md', 'text-13', 'min-h-touch', 'tablet:min-h-row-compact', 'items-center', 'leading-control');
     expect(chosen).not.toHaveClass('bg-subtle');
+    // A faint fill alone is 1.11:1 against the others: the chosen one has a gold edge (F-019).
+    expect(chosen).toHaveClass('inset-ring', 'inset-ring-gold');
     expect(other).toHaveClass('bg-subtle', 'text-content');
-    expect(other).not.toHaveClass('text-content-muted', 'border');
+    expect(other).not.toHaveClass('text-content-muted', 'border', 'inset-ring');
+  });
+
+  it('sets a chosen card\'s line in cream, as muted falls under 4.5:1 on the tint (F-026)', () => {
+    const kinds = [
+      { value: 'multiplier', label: 'Points multiplier', description: 'Points earned per hour, multiplied' },
+      { value: 'buyin', label: 'Buy-in bonus', description: 'Bonus chips on a buy-in, % or fixed' },
+    ];
+    renderIn(<ChoiceChips label="Reward" look="card" mode="one" options={kinds} selected={['buyin']} onChange={() => undefined} />);
+    expect(screen.getByText('Bonus chips on a buy-in, % or fixed')).toHaveClass('text-content');
+    expect(screen.getByText('Points earned per hour, multiplied')).toHaveClass('text-content-muted');
   });
 
   it('shows a chip\'s count after its label and reads it as part of its name', async () => {

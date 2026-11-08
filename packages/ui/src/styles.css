@@ -373,6 +373,10 @@
   --rivr-color-accent: var(--rivr-color-green);
   --rivr-color-raised: var(--rivr-color-cream);
   --rivr-color-focus: var(--rivr-color-ink);
+  /* Gold and cream edges all but vanish on cream (hairline 1.17:1): they are ink here (F-193). */
+  --rivr-color-hairline: var(--rivr-color-ink-edge);
+  --rivr-color-control: var(--rivr-color-ink-edge);
+  --rivr-color-gold-edge: var(--rivr-color-ink-edge);
 }
 
 /* A website video stops for a visitor who asks for less motion: its still shows instead (decision 0118). */

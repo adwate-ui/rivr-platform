@@ -32,7 +32,7 @@ export function AddPlaceForm({ venueId, table }: { venueId: string; table: { id:
   const field = form.register('number', { onChange: () => setRequestId(crypto.randomUUID()) });
   return (
     <Stack gap={2}>
-      <Inline gap={2} align="center">
+      <Inline gap={2} align="end">
         <Input {...field} variant="subtle" label={t('console.waitlist.card.add')} inputMode="numeric" autoComplete="off"
           onKeyDown={(event) => { if (event.key === 'Enter') void submit(); }} />
         <Button variant="text" size="compact" isLoading={form.formState.isSubmitting || add.isPending} onClick={() => void submit()}>

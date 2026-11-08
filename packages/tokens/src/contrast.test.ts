@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { contrastRatio } from './contrast.ts';
+import { contrastRatio, flatten } from './contrast.ts';
 import { tokenValue } from './token-tree.ts';
 
 function hex(path: string): string {
@@ -40,6 +40,31 @@ describe('text contrast is at least 4.5:1', () => {
   });
 });
 
+describe('text on a tinted fill is at least 4.5:1 (F-026, F-200)', () => {
+  it.each([
+    ['cream on the selected tint over green', 'color.content', 'color.selected', 'color.surface'],
+    ['cream on the selected tint over green-black', 'color.content', 'color.selected', 'color.raised'],
+    ['muted on the selected tint over green-black, as a PickList has it', 'color.contentMuted', 'color.selected', 'color.raised'],
+    ['cream on the subtle fill over green', 'color.content', 'color.subtle', 'color.surface'],
+    ['cream on the gold tint over green, a member\u2019s usual', 'color.content', 'color.goldTint', 'color.surface'],
+  ])('%s', (_name, text, tint, ground) => {
+    expect(contrastRatio(hex(text), flatten(hex(tint), hex(ground)))).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+describe('a chosen state is told from what is around it, at least 3:1 (F-019)', () => {
+  it.each([
+    ['a chosen chip\u2019s gold edge on its tint, over green', 'color.gold', 'color.selected', 'color.surface'],
+    ['a chosen segment\u2019s gold edge on the cream track, over green', 'color.gold', 'color.creamTrack', 'color.surface'],
+  ])('%s', (_name, edge, tint, ground) => {
+    expect(contrastRatio(hex(edge), flatten(hex(tint), hex(ground)))).toBeGreaterThanOrEqual(3);
+  });
+
+  it('a marked palette result\u2019s gold bar on green-black', () => {
+    expect(contrastRatio(hex('color.gold'), hex('color.raised'))).toBeGreaterThanOrEqual(3);
+  });
+});
+
 describe('non-text contrast is at least 3:1', () => {
   it('keeps the focus ring visible on green and on the gold action', () => {
     expect(contrastRatio(hex('color.focus'), hex('color.surface'))).toBeGreaterThanOrEqual(3);
@@ -53,6 +78,10 @@ describe('non-text contrast is at least 3:1', () => {
   it('keeps a form control\u2019s edge visible on green and on raised (F5-04)', () => {
     expect(contrastRatio(hex('color.control'), hex('color.surface'))).toBeGreaterThanOrEqual(3);
     expect(contrastRatio(hex('color.control'), hex('color.raised'))).toBeGreaterThanOrEqual(3);
+  });
+
+  it('keeps an edge visible on the website\u2019s cream bands, where it is ink (F-193)', () => {
+    expect(contrastRatio(hex('color.inkEdge'), hex('color.cream'))).toBeGreaterThanOrEqual(3);
   });
 
   it.each(['1', '2', '3', '4', '5', '6'])('chart colour %s reads on green', (series) => {

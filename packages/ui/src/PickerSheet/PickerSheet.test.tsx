@@ -63,6 +63,11 @@ describe('PickerSheet', () => {
     expect(screen.getByRole('button', { name: /Games you play/ })).toHaveTextContent("Hold'em, Bomb pots");
   });
 
+  it('edges the field in the control colour, as the inset field beside it (F-162)', () => {
+    renderIn(<PickerSheet label="Occupation" options={GAMES} selected={[]} onChange={vi.fn()} placeholder="Select" />);
+    expect(screen.getByRole('button', { name: /Occupation/ })).toHaveClass('border-control');
+  });
+
   it('says what is wrong under the field', () => {
     renderIn(<PickerSheet label="Occupation" options={GAMES} selected={[]} onChange={vi.fn()} placeholder="Select" error="Select your occupation." />);
     expect(screen.getByRole('button', { name: /Occupation/ })).toHaveAccessibleDescription('Select your occupation.');

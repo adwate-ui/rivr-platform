@@ -104,7 +104,7 @@ export function PickerSheet<Value extends string>({ label, options, mode = 'one'
   return (
     <div className="flex flex-col gap-2">
       <button type="button" aria-haspopup="dialog" aria-describedby={error ? errorId : undefined} onClick={() => setOpen(true)}
-        className={cx(FIELD, error ? 'border-alert' : 'border-cream-faint')}>
+        className={cx(FIELD, error ? 'border-alert' : 'border-control')}>
         <span className="flex min-w-0 flex-col gap-1">
           <span className="font-text text-12 text-content-muted">{label}</span>
           <span className={cx('font-text text-16', shown ? 'text-content' : 'text-content-muted')}>{shown || placeholder}</span>

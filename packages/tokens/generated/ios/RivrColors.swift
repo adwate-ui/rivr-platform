@@ -37,6 +37,7 @@ public enum RivrColors {
     public static let colorGreenBlack = Color(red: 0.039, green: 0.165, blue: 0.125, opacity: 1) /** Green-black. Raised surfaces, nav bars, table rows on hover. */
     public static let colorHairline = Color(red: 0.788, green: 0.659, blue: 0.361, opacity: 0.25098039215686274) /** Gold at 25%. The 1 px rules that separate content. */
     public static let colorInk = Color(red: 0.078, green: 0.078, blue: 0.078, opacity: 1) /** Text on cream: the wordmark's tiles, and the public website's cream bands (decision 0118). */
+    public static let colorInkEdge = Color(red: 0.078, green: 0.078, blue: 0.078, opacity: 0.5019607843137255) /** Ink at 50%. A control's edge and a rule on the website's cream bands (F-193); at least 3:1 on cream. */
     public static let colorInkMuted = Color(red: 0.078, green: 0.078, blue: 0.078, opacity: 0.7019607843137254) /** Ink at 70%. Secondary text on the website's cream bands; at least 4.5:1 on cream. */
     public static let colorMoney = Color(red: 0.788, green: 0.659, blue: 0.361, opacity: 1) /** Money that belongs to the player. */
     public static let colorMuted = Color(red: 0.953, green: 0.929, blue: 0.878, opacity: 0.6) /** Cream at 60%. Secondary text; at least 4.5:1 on green. */

@@ -21,8 +21,8 @@ export function PointsByHand({ venueId, canGiveBonus = false }: { venueId: strin
   return (
     <Stack gap={4}>
       <Heading level={2} variant="card">{t(canGiveBonus ? 'console.rewards.byHand.headingWithBonus' : 'console.rewards.byHand.heading')}</Heading>
-      {/* The field and Find, both 36 px at a desk, centred on one line. */}
-      <Inline gap={3} align="center">
+      {/* The field and Find, both 36 px at a desk, level at their foot. */}
+      <Inline gap={3} align="end">
         <Input variant="subtle" label={t('console.rewards.byHand.phone')} type="tel" inputMode="numeric" maxLength={16} value={typed}
           onChange={(event) => setTyped(event.target.value)} />
         <Button variant="subtle" size="compact" isDisabled={!isMobile(digits)} isLoading={phone !== null && member.isFetching} onClick={() => setPhone(digits)}>

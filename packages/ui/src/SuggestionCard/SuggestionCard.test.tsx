@@ -12,6 +12,12 @@ describe('SuggestionCard', () => {
     expect(onPress).toHaveBeenCalledOnce();
   });
 
+  it('sets its eyebrow in cream, as gold on the gold tint is 4.37:1 (F-200)', () => {
+    renderIn(<SuggestionCard title="Your usual" text="Masala chai" actionLabel="Add" onPress={() => undefined} />);
+    expect(screen.getByText('Your usual')).toHaveClass('text-content');
+    expect(screen.getByText('Your usual')).not.toHaveClass('text-accent');
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<SuggestionCard title="Your usual" text="Masala chai" actionLabel="Add" onPress={() => undefined} />);
     expect(await axeViolations(container)).toEqual([]);

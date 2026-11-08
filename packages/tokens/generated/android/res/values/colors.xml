@@ -12,6 +12,7 @@
   <color name="rivr_color_red">#ffc4162a</color>
   <color name="rivr_color_ink">#ff141414</color>
   <color name="rivr_color_ink_muted">#b3141414</color>
+  <color name="rivr_color_ink_edge">#80141414</color>
   <color name="rivr_color_muted">#99f3ede0</color>
   <color name="rivr_color_hairline">#40c9a85c</color>
   <color name="rivr_color_control">#80f3ede0</color>
