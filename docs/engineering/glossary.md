@@ -61,7 +61,7 @@ Poker-room and project terms a new developer meets in this codebase. Add a line 
 | Lane | One of four areas of ownership: A money, B floor, C member and web, D growth and content. Their tasks are worked one at a time, in release-gate order (decision 0024). Lane 0 is the shared foundation built first |
 | Super admin | The owner-level staff role (`super_admin`): all data, purge, full exports, the kill switch, per-member overrides and venue configuration. No other role can be given these |
 | Admin | The floor manager's role: games, the waitlist, call times, promotions, tournaments |
-| Owner view | A read-only role for investors: reports and dashboards |
+| Owner view | A read-only role for investors: dashboards; no Reports (the owner, 9 Nov) |
 | Gateable / core feature | A gateable feature can be switched on or off per tier; a core feature (a member's own balance, sign-in) is never gated |
 | RVFRZ, RVKIL, RVMBR | The error codes the database raises when a write is refused by the kill switch: venue frozen, feature switched off, member frozen |
 | Access revoke | The kill-switch level that ends one staff member's or device's access at once |

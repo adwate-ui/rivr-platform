@@ -97,7 +97,8 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
   dealer: [...EVERY_STAFF_MEMBER, 'hands.log'],
   marketing: [...EVERY_STAFF_MEMBER, 'promotions.manage', 'marketing.publish', 'website.edit', 'rewards.manage'],
   host: [...EVERY_STAFF_MEMBER, 'members.read', 'waitlist.manage', 'host_queue.manage', 'rewards.hand_over', 'kyc.in_person'],
-  owner_view: [...EVERY_STAFF_MEMBER, 'reports.read', 'dashboards.read', 'ledger.read', 'audit.read'],
+  // No Reports for investors (the owner, 9 Nov).
+  owner_view: [...EVERY_STAFF_MEMBER, 'dashboards.read', 'ledger.read', 'audit.read'],
   // Food and drink only: the menu and the orders, with no comp nor Glaza's statement (#640).
   service: [...EVERY_STAFF_MEMBER, 'fnb.serve'],
 };

@@ -1,5 +1,6 @@
 -- AML alerts, audit rows and settings are for staff who review AML (#492, decision 0237; questions #484 and #493 P8).
--- Priya (109, an investor with owner_view) sees the club's other alerts, audit rows, outbox events and settings, but
+-- Priya (109, an investor with owner_view) sees the club's other alerts, audit rows and settings (and, with no Reports since
+-- 9 Nov, no outbox event at all), but
 -- nothing about AML: not on the owner dashboard, in the alerts, the audit log (the alert's own row, the register's,
 -- an AML setting's), the outbox or the settings. Sana (104, a cashier) does not read the AML settings. Kunal (134, a
 -- super admin) sees them all.
@@ -44,8 +45,9 @@ select is((select count(*)::integer from public.outbox_event where event_type = 
   'no outbox event raising an AML alert');
 select is((select count(*)::integer from public.outbox_delivery d
            where d.event_id in (select e.id from public.outbox_event e where e.payload ->> 'kind' like 'aml.%')), 0, 'nor its deliveries');
-select ok(exists (select 1 from public.outbox_event where event_type = 'alert.raised' and payload ->> 'kind' = 'outbox.failures'),
-  'but the other alerts'' events');
+-- With no Reports for investors (the owner, 9 Nov), they read the venue's outbox events no more: those came with reports.read.
+select is((select count(*)::integer from public.outbox_event where event_type = 'alert.raised' and payload ->> 'kind' = 'outbox.failures'), 0,
+  'nor, with no Reports, the other alerts'' events');
 select is((select count(*)::integer from public.setting where key like 'aml.%'), 0, 'and no AML setting');
 
 -- A cashier does not read the AML settings either.
