@@ -58,6 +58,9 @@ describe('CommandPalette', () => {
 
   it('leaves / alone while single-key shortcuts are off, and still opens with Ctrl+K (WCAG 2.1.4)', async () => {
     renderIn(<ShortcutProvider isOn={false}><Harness /></ShortcutProvider>);
+    const trigger = screen.getByRole('button', { name: 'Search members, screens, actions' });
+    expect(trigger).toHaveAttribute('aria-keyshortcuts', 'Control+K Meta+K');
+    expect(trigger).not.toHaveTextContent('/');
     await userEvent.keyboard('/');
     expect(screen.queryByRole('dialog')).toBeNull();
     await openWithKeys();
