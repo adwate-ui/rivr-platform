@@ -9,7 +9,7 @@ export function toRewardsColumns(ticker: TvRewardsTicker): TvWaitlistStake[] {
     {
       id: 'leaders', stake: t('tv.rewards.leaders'), detail: t('tv.rewards.leadersDetail'),
       places: ticker.leaders.map((leader, index) => ({
-        id: `leader-${index}`, place: String(leader.place), name: leader.name ?? t('tv.rewards.hiddenName'),
+        id: `leader-${index}`, place: String(leader.place), name: leader.name ?? '',
         status: t('tv.rewards.points', { points: formatNumber(leader.points) }),
       })),
     },
@@ -17,7 +17,7 @@ export function toRewardsColumns(ticker: TvRewardsTicker): TvWaitlistStake[] {
       id: 'redeemed', stake: t('tv.rewards.redeemed'), detail: t('tv.rewards.redeemedDetail'),
       places: ticker.redemptions.map((redemption, index) => ({
         // Newest first; the board's narrow place column has no room for a time, so it stays empty.
-        id: `redemption-${index}`, place: '', name: redemption.name ?? t('tv.rewards.hiddenName'),
+        id: `redemption-${index}`, place: '', name: redemption.name ?? t('tv.hiddenName'),
         status: redemption.rewardName,
       })),
     },
@@ -32,5 +32,5 @@ export function RewardsMode({ onEmpty }: { onEmpty?: (() => void) | undefined })
   if (ticker.data === undefined) {
     return <Text variant="tvBody" tone="muted">{t(ticker.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
   }
-  return <TvWaitlistBoard title={t('tv.rewards.title')} emptyText={t('tv.rewards.empty')} stakes={stakes ?? []} />;
+  return <TvWaitlistBoard title={t('tv.rewards.title')} emptyText={t('tv.rewards.empty')} moreText={(count) => t('tv.more', { count })} stakes={stakes ?? []} />;
 }

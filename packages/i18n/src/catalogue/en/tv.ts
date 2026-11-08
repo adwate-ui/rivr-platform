@@ -16,17 +16,24 @@ export const tv = {
     social_wall: 'Social wall',
     spin_wheel: 'Spin wheel',
   },
+  /** Under a list on a board cut short (F-044). */
+  more: '+{count} more',
+  /** A member who hid their name on the TVs (#326), on a row with no seat or place to go by: a redemption, a spin. Beside a number, the name is left blank (F-137). */
+  hiddenName: 'A member',
   /** The waitlist board (#65), a list a table (decision 0467). */
   waitlist: {
     title: 'Waitlist',
     empty: 'No one waiting.',
     /** Under a closed table somebody waits for (decision 0467): `{stake}` as `NLH 100/200`. */
     closed: '{stake} · Closed',
+    /** More tables than fit take turns (F-140). */
+    page: 'Page {page} of {pages}',
+    /** The open tables with no list, on one line at the foot (F-140): `Table 4, Table 5: no list`. */
+    noList: '{tables}: no list',
+    footer: '{page} · {folded}',
     /** Beside a player called to a seat: `{table}` is the table's name. */
     called: 'Called to {table}',
     away: 'Away',
-    /** A member who hid their name on the TVs (#326): `{place}` is their place on the list. */
-    hiddenName: 'Player {place}',
   },
   /** The rewards ticker (#148, decision 0183): this month's points leaders, and the week's redemptions with their time. */
   rewards: {
@@ -37,8 +44,6 @@ export const tv = {
     redeemedDetail: 'This week',
     empty: 'Nothing yet.',
     points: '{points} points',
-    /** A member who hid their name on the TVs (#326). */
-    hiddenName: 'A member',
   },
   /** The spin wheel (#150, decision 0266): the prizes and their odds, and tonight's spins as they happen. */
   spin: {
@@ -56,8 +61,6 @@ export const tv = {
     /** `{chips}`: a count of bonus chips, `500` (#628). */
     bonus: '{chips} bonus chips',
     nothing: 'Nothing',
-    /** A member who hid their name on the TVs (#326). */
-    hiddenName: 'A member',
   },
   /** The social wall (#158, decision 0267): the club's approved Instagram posts, one after another. */
   socialWall: {
@@ -74,9 +77,8 @@ export const tv = {
     /** A season's months: `November 2026 to April 2027`. */
     seasonMonths: '{first} to {last}',
     empty: 'No League points yet.',
-    points: '{points} League points',
-    /** A member who hid their name on the TVs (#326). */
-    hiddenName: 'A member',
+    /** Beside a name at 48 px: the board says whose points they are. */
+    points: '{points} points',
   },
   /** The call-time board (decision 0163): the seats about to open, and every table's players on call time. */
   callTime: {
@@ -86,15 +88,11 @@ export const tv = {
     empty: 'No one on call time.',
     /** Where a seat opens: `{table} · Seat {seat}`. */
     where: '{table} · Seat {seat}',
-    /** When it opens: `{time}` is 25 min, or 1 h 5 min. */
+    /** When it opens: `{time}` is 0h 25m, or 1h 05m. */
     opensIn: 'In {time}',
     opensNow: 'Now',
-    /** A player away from the table: their clock stands still. */
-    paused: '{time}, away',
-    /** A member who hid their name on the TVs (#326). */
-    hiddenName: 'Seat {seat}',
-    /** Under a list cut short. */
-    more: '+{count} more',
+    /** A player away from the table, whose clock stands still: one word, so a name beside it is not cut (F-138). */
+    away: 'Away',
     /** More tables than fit take turns: `Tables 1 to 4 of 6`. */
     page: 'Tables {from} to {to} of {count}',
   },

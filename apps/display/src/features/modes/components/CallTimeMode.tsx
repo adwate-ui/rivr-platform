@@ -1,5 +1,5 @@
 import { useTvCallTimeBoard, type TvCallTimeTable, type TvSeated } from '@rivr/db';
-import { formatDuration, t } from '@rivr/i18n';
+import { formatHoursMinutes, t } from '@rivr/i18n';
 import { CALL_TIME_TABLES_SHOWN, Text, TvCallTimeBoard, type TvCallTimeGroup, type TvCallTimeOpening } from '@rivr/ui';
 import { useEffect, useState } from 'react';
 import { usePage } from './usePage.ts';
@@ -22,8 +22,8 @@ function leftNow(player: TvSeated, elapsed: number): number {
 }
 
 function nameOf(player: TvSeated): string {
-  // A member who hid their name on the TVs is their seat (#326).
-  return player.name ?? t('tv.callTime.hiddenName', { seat: player.seat });
+  // A member who hid their name on the TVs is their seat, the name left blank (#326, F-137).
+  return player.name ?? '';
 }
 
 /** The players the floor marked leaving, soonest seat first: their seat opens once their call time is done. */
@@ -33,7 +33,7 @@ export function toOpenings(tables: readonly TvCallTimeTable[], elapsed: number):
     .sort((a, b) => a.left - b.left)
     .map(({ table, player, left }) => ({
       id: `${table.tableId}-${player.seat}`, where: t('tv.callTime.where', { table: table.name, seat: player.seat }), name: nameOf(player),
-      time: left === 0 ? t('tv.callTime.opensNow') : t('tv.callTime.opensIn', { time: formatDuration(left) }), isNow: left === 0,
+      time: left === 0 ? t('tv.callTime.opensNow') : t('tv.callTime.opensIn', { time: formatHoursMinutes(left) }), isNow: left === 0,
     }));
 }
 
@@ -48,7 +48,7 @@ export function toGroups(tables: readonly TvCallTimeTable[], elapsed: number): T
         .sort((a, b) => a.left - b.left)
         .map(({ player, left }) => ({
           id: String(player.seat), seat: String(player.seat), name: nameOf(player),
-          time: player.isAway ? t('tv.callTime.paused', { time: formatDuration(left) }) : formatDuration(left),
+          time: player.isAway ? t('tv.callTime.away') : formatHoursMinutes(left),
         })),
     }))
     .filter((group) => group.rows.length > 0);
@@ -72,7 +72,7 @@ export function CallTimeMode() {
   const page = pages < 2 ? undefined : t('tv.callTime.page', { from: first + 1, to: first + shown.length, count: groups.length });
   return (
     <TvCallTimeBoard title={t('tv.callTime.title')} openingsTitle={t('tv.callTime.openingsTitle')} noOpeningsText={t('tv.callTime.noOpenings')}
-      emptyText={t('tv.callTime.empty')} moreText={(count) => t('tv.callTime.more', { count })} page={page}
+      emptyText={t('tv.callTime.empty')} moreText={(count) => t('tv.more', { count })} page={page}
       openings={toOpenings(board.data, elapsed)} tables={shown} />
   );
 }

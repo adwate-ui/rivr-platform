@@ -15,8 +15,10 @@ create function pg_temp.signals(p_event text) returns integer language sql as $$
   select count(*)::integer from realtime.messages m
   where m.topic = 'tv:00000000-0000-4000-8000-000000000001' and m.event = p_event and m.inserted_at >= now();
 $$;
--- A visit for the member closing now, three hours seated, which earned these points for its hours.
+-- A visit for the member closing now, three hours seated, which earned these points for its hours, and the points credited:
+-- the League counts the one and the points leaders the other.
 create function pg_temp.earn(p_member uuid, p_points bigint) returns uuid language sql as $$
+  select private.credit_points('00000000-0000-4000-8000-000000000001', p_member, p_points, 'Test', 'test:101:' || gen_random_uuid());
   with v as (
     insert into public.visit (venue_id, member_id, opened_at, closed_at, close_reason)
     select m.venue_id, m.id, now() - interval '3 hours', now(), 'door' from public.member m where m.id = p_member
@@ -41,13 +43,14 @@ insert into public.device (id, venue_id, kind, name, auth_user_id) values
 insert into public.tv_screen (device_id, venue_id, mode) values
   ('00000000-0000-4000-8000-00000000d101', '00000000-0000-4000-8000-000000000001', 'waitlist');
 
--- This month: Mihir 30,000 points at the tables, Kunal 20,000 (with his name hidden), Neel more than either
--- but excluded from play.
-select pg_temp.earn('00000000-0000-4000-8000-000000000213', 30000);
+-- This month: Mihir 300,000 points and the 2,500 he redeems below, Kunal 200,000 (with his name hidden), Neel more than either
+-- but excluded from play. Each is far above what the seed credits its own members, who count too.
+select pg_temp.earn('00000000-0000-4000-8000-000000000213', 300000);
 insert into public.points_earning (venue_id, member_id, visit_id, basis, rake_share_paise, rate, points)
 select '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216',
-       pg_temp.earn('00000000-0000-4000-8000-000000000216', 15000), 'rake', 10000000, 500, 5000;
-select pg_temp.earn('00000000-0000-4000-8000-000000000217', 90000);
+       pg_temp.earn('00000000-0000-4000-8000-000000000216', 150000), 'rake', 100000000, 500, 50000;
+select private.credit_points('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', 50000, 'Test', 'test:101:kunal');
+select pg_temp.earn('00000000-0000-4000-8000-000000000217', 900000);
 insert into public.self_exclusion (venue_id, member_id, starts_at, ends_at)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000217', now() - interval '1 day', now() + interval '30 days');
 insert into public.member_preference (member_id, venue_id, name_on_tvs)
@@ -70,8 +73,8 @@ update public.tv_screen set rotation = array['rewards', 'league']::public.tv_mod
 
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e101');
 select results_eq(
-  $$ select place, display_name, points from public.tv_rewards_ticker() where kind = 'leader' and points >= 20000 $$,
-  $$ values (1, 'Mihir S.'::text, 30000::bigint), (2, null, 20000) $$,
+  $$ select place, display_name, points from public.tv_rewards_ticker() where kind = 'leader' and points >= 200000 $$,
+  $$ values (1, 'Mihir S.'::text, 302500::bigint), (2, null, 200000) $$,
   'with both in its rotation: Mihir leads this month, Kunal second with no name, Neel nowhere');
 select ok((select count(*) <= 5 from public.tv_rewards_ticker() where kind = 'leader'), 'five leaders at most');
 select results_eq(

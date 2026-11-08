@@ -45,7 +45,7 @@ function Board({ mode, name, onDone, onEmpty }: BoardProps) {
   if (mode === 'league') return <LeagueMode onEmpty={onEmpty} />;
   if (mode === 'tournament_clock') return <TournamentClockMode name={name} />;
   if (mode === 'spin_wheel') return <SpinMode onEmpty={onEmpty} />;
-  if (mode === 'social_wall') return <SocialWallMode />;
+  if (mode === 'social_wall') return <SocialWallMode onEmpty={onEmpty} />;
   return (
     <Stack gap={4}>
       <Heading level={1} variant="display">{t(`tv.modes.${mode}`)}</Heading>

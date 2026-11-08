@@ -18,27 +18,41 @@ export function toBoardColumn(table: TvTableList): TvWaitlistStake {
     id: table.tableId, stake: table.name, detail: table.isOpen ? table.stake : t('tv.waitlist.closed', { stake: table.stake }),
     places: table.places.map((place) => ({
       id: `${table.tableId}-${place.place}`, place: String(place.place),
-      // A member who hid their name on the TVs is their place on the list (#326).
-      name: place.name ?? t('tv.waitlist.hiddenName', { place: place.place }),
+      // A member who hid their name on the TVs is their place on the list, the name left blank (#326, F-137).
+      name: place.name ?? '',
       status: statusText(place),
     })),
   };
 }
 
+/** The tables as the board lays them out (F-140): those with a list as columns, in order, and the open ones with none named on one line. */
+export function arrangeTables(tables: readonly TvTableList[]): { withList: TvTableList[]; noList: string[] } {
+  return { withList: tables.filter((table) => table.places.length > 0), noList: tables.filter((table) => table.places.length === 0).map((table) => table.name) };
+}
+
+/** The line at the board's foot: which page, and the tables with no list, whichever there are. */
+export function footerOf(shown: number, pages: number, noList: readonly string[]): string | undefined {
+  const page = pages < 2 ? undefined : t('tv.waitlist.page', { page: shown + 1, pages });
+  const folded = noList.length === 0 ? undefined : t('tv.waitlist.noList', { tables: noList.join(', ') });
+  return page !== undefined && folded !== undefined ? t('tv.waitlist.footer', { page, folded }) : page ?? folded;
+}
+
 /**
- * The waitlist board (#65): a list a table (decision 0467), every open table and a closed one somebody waits for, live as
- * players join, are called and leave; more tables than fit take turns.
+ * The waitlist board (#65): a list a table (decision 0467), each table somebody waits for, open or closed, live as players join,
+ * are called and leave; more tables than fit take turns, and the open tables with no list are named at the foot.
  */
 export function WaitlistMode() {
   const board = useTvWaitlistBoard();
-  const tables = board.data ?? [];
-  const pages = Math.ceil(tables.length / WAITLIST_TABLES_SHOWN);
-  const first = usePage(pages) * WAITLIST_TABLES_SHOWN;
+  const { withList, noList } = arrangeTables(board.data ?? []);
+  const pages = Math.ceil(withList.length / WAITLIST_TABLES_SHOWN);
+  const shown = usePage(pages);
+  const first = shown * WAITLIST_TABLES_SHOWN;
   if (board.data === undefined) {
     return <Text variant="tvBody" tone="muted">{t(board.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
   }
   return (
-    <TvWaitlistBoard title={t('tv.waitlist.title')} emptyText={t('tv.waitlist.empty')}
-      stakes={tables.slice(first, first + WAITLIST_TABLES_SHOWN).map(toBoardColumn)} />
+    <TvWaitlistBoard title={t('tv.waitlist.title')} emptyText={t('tv.waitlist.empty')} moreText={(count) => t('tv.more', { count })}
+      stakes={withList.slice(first, first + WAITLIST_TABLES_SHOWN).map(toBoardColumn)}
+      footer={withList.length === 0 ? undefined : footerOf(shown, pages, noList)} />
   );
 }

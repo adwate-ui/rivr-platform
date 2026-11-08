@@ -2,6 +2,7 @@ import { useTvSocialWall, type TvWallPost } from '@rivr/db/social';
 import { t } from '@rivr/i18n';
 import { Heading, Stack, Text, TvPromotionSlide, type TvPromotionSlideProps } from '@rivr/ui';
 import { useSlides } from './PromotionsMode.tsx';
+import { useSkipWhenEmpty } from './useSkipWhenEmpty.ts';
 
 /** A post as its slide: the poster's handle over the caption, with the pager's place. */
 export function wallSlide(post: TvWallPost, current: number, count: number): TvPromotionSlideProps {
@@ -14,10 +15,12 @@ export function wallSlide(post: TvWallPost, current: number, count: number): TvP
 
 /**
  * The TV's social wall (#158; decision 0267): the club's approved Instagram posts, one every 12 seconds with a quiet
- * pager beneath, as the promotions turn. In a TV's rotation it shows for the board's half minute, like the others.
+ * pager beneath, as the promotions turn. In a TV's rotation it shows for the board's half minute, like the others, and with no
+ * posts passes it on (F-142).
  */
-export function SocialWallMode() {
+export function SocialWallMode({ onEmpty }: { onEmpty?: (() => void) | undefined }) {
   const wall = useTvSocialWall();
+  useSkipWhenEmpty(wall.data?.length === 0, onEmpty);
   const shown = useSlides(wall.data?.length ?? (wall.isError ? 0 : undefined), undefined);
   if (wall.data === undefined) {
     return <Text variant="tvBody" tone="muted">{t(wall.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
@@ -26,7 +29,7 @@ export function SocialWallMode() {
   if (post === undefined) {
     return (
       <Stack gap={4}>
-        <Heading level={1} variant="display">{t('tv.modes.social_wall')}</Heading>
+        <Heading level={1} variant="tvTitle">{t('tv.modes.social_wall')}</Heading>
         <Text variant="tvBody" tone="muted">{t('tv.socialWall.none')}</Text>
       </Stack>
     );

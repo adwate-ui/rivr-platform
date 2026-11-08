@@ -8,7 +8,7 @@ function column(id: string, title: string, detail: string, rows: readonly League
   return {
     id, stake: title, detail,
     places: rows.map((row, index) => ({
-      id: `${id}-${index}`, place: String(row.place), name: row.name ?? t('tv.league.hiddenName'),
+      id: `${id}-${index}`, place: String(row.place), name: row.name ?? '',
       status: t('tv.league.points', { points: formatNumber(row.points) }),
     })),
   };

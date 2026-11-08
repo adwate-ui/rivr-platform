@@ -20,19 +20,19 @@ describe('the call-time board (decision 0163)', () => {
   it('opens the leaving players\' seats soonest first, now where no call time is owed', () => {
     expect(toOpenings(TABLES, 0).map((opening) => [opening.where, opening.name, opening.time, opening.isNow])).toEqual([
       ['Table 1 · Seat 1', 'Dev M.', 'Now', true],
-      ['Table 3 · Seat 5', 'Kabir S.', 'In 25 min', false],
+      ['Table 3 · Seat 5', 'Kabir S.', 'In 0h 25m', false],
     ]);
   });
 
   it('counts down from when the board was read', () => {
     expect(toOpenings(TABLES, 1500).find((opening) => opening.name === 'Kabir S.')).toMatchObject({ time: 'Now', isNow: true });
-    expect(toGroups(TABLES, 60)[0]?.rows.map((row) => row.time)).toEqual(['10 min, away', '59 min']);
+    expect(toGroups(TABLES, 60)[0]?.rows.map((row) => row.time)).toEqual(['Away', '0h 59m']);
   });
 
   it('lists each table\'s players still on call time and not leaving, soonest first, a hidden name as the seat', () => {
     expect(toGroups(TABLES, 0).map((group) => [group.name, group.rows.map((row) => [row.seat, row.name, row.time])])).toEqual([
-      ['Table 3', [['7', 'Seat 7', '10 min, away'], ['2', 'Vihaan K.', '1 h']]],
-      ['Private Room', [['1', 'Ishaan V.', '2 h']]],
+      ['Table 3', [['7', '', 'Away'], ['2', 'Vihaan K.', '1h 00m']]],
+      ['Private Room', [['1', 'Ishaan V.', '2h 00m']]],
     ]);
   });
 });

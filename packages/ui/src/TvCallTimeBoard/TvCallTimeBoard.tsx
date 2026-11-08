@@ -11,7 +11,7 @@ export interface TvCallTimeOpening {
   isNow: boolean;
 }
 
-/** A player still playing their call time: the seat, the player (a first name and initial), and the time left ("1 h 20 min"). */
+/** A player still playing their call time: the seat, the player (a first name and initial), and the time left ("1h 20m"), or "Away". */
 export interface TvCallTimeRow {
   id: string;
   seat: string;
@@ -52,7 +52,7 @@ export const CALL_TIME_TABLES_SHOWN = 4;
 const SHOWN_ROWS = 3;
 
 function More({ hidden, moreText }: { hidden: number; moreText: (hidden: number) => string }) {
-  return hidden > 0 ? <p className="pt-2 font-text text-24 text-content-muted">{moreText(hidden)}</p> : null;
+  return hidden > 0 ? <p className="pt-2 font-text text-36 leading-tight text-content">{moreText(hidden)}</p> : null;
 }
 
 interface OpeningsProps {
@@ -65,17 +65,17 @@ interface OpeningsProps {
 function Openings({ title, openings, emptyText, moreText }: OpeningsProps) {
   return (
     <section aria-label={title} className="flex flex-col">
-      <h2 className="border-b border-hairline pb-5 font-text text-28 uppercase tracking-tv text-content-muted">{title}</h2>
+      <h2 className="border-b border-hairline pb-3 font-text text-36 uppercase leading-tight tracking-tv text-content">{title}</h2>
       {openings.length === 0 ? (
-        <p className="py-6 font-text text-36 text-content-muted">{emptyText}</p>
+        <p className="py-6 font-text text-48 text-content">{emptyText}</p>
       ) : (
         <ol>
           {openings.slice(0, SHOWN_OPENINGS).map((opening) => (
-            <li key={opening.id} className="flex flex-col gap-2 border-b border-hairline py-3">
-              <span className="truncate font-text text-28 text-content-muted">{opening.where}</span>
+            <li key={opening.id} className="flex flex-col border-b border-hairline py-2">
+              <span className="font-text text-48 leading-tight text-content">{opening.where}</span>
               <div className="flex items-baseline justify-between gap-6">
-                <span className="min-w-0 truncate font-text text-36 font-medium text-content">{opening.name}</span>
-                <span className={cx('shrink-0 whitespace-nowrap font-text text-36 font-medium tabular-nums', opening.isNow ? 'text-money' : 'text-content')}>
+                <span className="min-w-0 truncate font-text text-48 font-semibold leading-tight text-content">{opening.name}</span>
+                <span className={cx('shrink-0 whitespace-nowrap font-text text-48 font-semibold leading-tight tabular-nums', opening.isNow ? 'text-money' : 'text-content')}>
                   {opening.time}
                 </span>
               </div>
@@ -91,16 +91,16 @@ function Openings({ title, openings, emptyText, moreText }: OpeningsProps) {
 function TableColumn({ table, moreText }: { table: TvCallTimeGroup; moreText: (hidden: number) => string }) {
   return (
     <section aria-label={table.name} className="flex flex-col">
-      <div className="flex items-baseline justify-between gap-6 border-b border-hairline pb-3">
-        <span className="min-w-0 truncate font-text text-48 font-medium text-content">{table.name}</span>
-        <span className="shrink-0 whitespace-nowrap font-text text-24 uppercase tracking-tv text-content-muted">{table.detail}</span>
+      <div className="flex flex-col border-b border-hairline pb-3">
+        <span className="font-text text-48 font-medium leading-tight text-content">{table.name}</span>
+        <span className="font-text text-48 uppercase leading-tight tracking-tv text-content">{table.detail}</span>
       </div>
       <ol>
         {table.rows.slice(0, SHOWN_ROWS).map((row) => (
           <li key={row.id} className="flex items-baseline gap-6 border-b border-hairline py-1">
-            <span className="w-20 shrink-0 font-text text-36 tabular-nums text-content-muted">{row.seat}</span>
-            <span className="min-w-0 flex-1 truncate font-text text-36 font-medium text-content">{row.name}</span>
-            <span className="shrink-0 whitespace-nowrap font-text text-36 tabular-nums text-content">{row.time}</span>
+            <span className="w-20 shrink-0 font-text text-48 leading-tight tabular-nums text-content">{row.seat}</span>
+            <span className="min-w-0 flex-1 truncate font-text text-48 font-semibold leading-tight text-content">{row.name}</span>
+            <span className="shrink-0 whitespace-nowrap font-text text-48 leading-tight tabular-nums text-content">{row.time}</span>
           </li>
         ))}
       </ol>
@@ -118,18 +118,18 @@ function TableColumn({ table, moreText }: { table: TvCallTimeGroup; moreText: (h
  */
 export function TvCallTimeBoard({ title, openingsTitle, openings, noOpeningsText, tables, emptyText, moreText, page }: TvCallTimeBoardProps) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-12 pt-12">
-      <Heading level={1} variant="tvTitle">{title}</Heading>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="absolute inset-x-0 top-16 flex justify-center"><Heading level={1} variant="tvTitle">{title}</Heading></div>
       <div className="grid min-h-0 flex-1 grid-cols-3 content-start gap-x-24">
         <Openings title={openingsTitle} openings={openings} emptyText={noOpeningsText} moreText={moreText} />
         {tables.length === 0 ? (
-          <p className="col-span-2 font-text text-36 text-content-muted">{emptyText}</p>
+          <p className="col-span-2 font-text text-48 text-content">{emptyText}</p>
         ) : (
-          <div className="col-span-2 flex flex-col gap-6">
-            <div className="grid grid-cols-2 content-start gap-x-16 gap-y-10">
+          <div className="col-span-2 flex flex-col gap-4">
+            <div className="grid grid-cols-2 content-start gap-x-16 gap-y-8">
               {tables.slice(0, CALL_TIME_TABLES_SHOWN).map((table) => <TableColumn key={table.id} table={table} moreText={moreText} />)}
             </div>
-            {page === undefined ? null : <p className="font-text text-24 uppercase tracking-tv text-content-muted">{page}</p>}
+            {page === undefined ? null : <p className="font-text text-36 uppercase leading-tight tracking-tv text-content">{page}</p>}
           </div>
         )}
       </div>

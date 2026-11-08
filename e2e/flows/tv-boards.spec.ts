@@ -3,7 +3,7 @@
  * this flow's own sign-in: Auth sends one code a minute to a number):
  * - a TV is paired on the waitlist board: a list a table (decision 0467), its places as first name and initial;
  * - Kunal Mehra has hidden his name on the TVs in Profile (#326), so when the floor adds him to Table 1's list
- *   the TV shows "Player 1", never his name; he turns it back on and the TV shows "Kunal M.". Kunal is
+ *   the TV shows his place with the name left blank (F-137); he turns it back on and the TV shows "Kunal M.". Kunal is
  *   this flow's own member, as no other flow signs in as him;
  * - the floor adds Vihaan Kapoor to Table 1's list, and the TV shows "Vihaan K." within seconds, through
  *   Realtime and not its half-minute read;
@@ -100,18 +100,17 @@ test.describe('TV boards', () => {
     await expect(tv.getByRole('heading', { level: 1, name: 'Waitlist' })).toBeVisible({ timeout: 15_000 });
     // The bar along the foot fills over the board's half minute, so the board reads as live (#628).
     await expect(tv.locator('[data-board-progress]')).toHaveCount(1);
-    // Five open tables take turns three to a screen, a page every ten seconds: Table 1 and 2 are on the first.
+    // A table has a column only while someone waits for it (F-140).
     const fifties = tv.getByRole('region', { name: 'Table 1', exact: true });
-    await expect(tv.getByRole('region', { name: 'Table 2', exact: true })).toBeVisible({ timeout: 25_000 });
 
     await floor.getByRole('link', { name: 'Waitlist' }).click();
     await expect(floor.getByRole('heading', { name: 'Table 1', exact: true })).toBeVisible();
     await removeLeftover(floor, PLAYER);
     await removeLeftover(floor, HIDDEN);
     // Kunal first, on Table 1's empty list: his place, never his name.
-    await expect(fifties.getByText('No one waiting.', { exact: true })).toBeVisible({ timeout: 25_000 });
+    await expect(fifties).toHaveCount(0, { timeout: 25_000 });
     await addToFifties(floor, '9000000216', HIDDEN);
-    await expect(fifties.getByText('Player 1', { exact: true })).toBeVisible({ timeout: 25_000 });
+    await expect(fifties.getByText('1', { exact: true })).toBeVisible({ timeout: 25_000 });
     await expect(tv.getByText(/Kunal/)).toHaveCount(0);
     // Well inside the half-minute read: the signal reaches the TV through Realtime.
     await addToFifties(floor, '9000000212', PLAYER);
@@ -120,7 +119,6 @@ test.describe('TV boards', () => {
     // Turned back on, the TV names him again.
     await nameOnTvs(member, true);
     await expect(fifties.getByText('Kunal M.', { exact: true })).toBeVisible({ timeout: 25_000 });
-    await expect(fifties.getByText('Player 1', { exact: true })).toHaveCount(0);
 
     // TVs are a part of Settings' Devices tab (console v3), opened by address once sign-in is through.
 
@@ -138,7 +136,7 @@ test.describe('TV boards', () => {
     await seatNakul(floor);
     const room = tv.getByRole('region', { name: 'Private Room' });
     await expect(room.getByText('Nakul D.', { exact: true })).toBeVisible({ timeout: 10_000 });
-    await expect(room.getByText(/^(3 h|2 h 59 min)$/)).toBeVisible();
+    await expect(room.getByText(/^(3h 00m|2h 59m)$/)).toBeVisible();
     const nakul = await (await browser.newContext()).newPage();
     await signInToPlayer(nakul, '9000000400');
     // Tonight › Leaving list: Leave seat asks first, as call time is owed (decision 0320).
@@ -152,7 +150,7 @@ test.describe('TV boards', () => {
     const openings = tv.getByRole('region', { name: 'Seats opening' });
     await expect(openings.getByText('Private Room · Seat 8', { exact: true })).toBeVisible({ timeout: 10_000 });
     await expect(openings.getByText('Nakul D.', { exact: true })).toBeVisible();
-    await expect(openings.getByText(/^In (3 h|2 h 59 min)$/)).toBeVisible();
+    await expect(openings.getByText(/^In (3h 00m|2h 59m)$/)).toBeVisible();
     await expect(room.getByText('Nakul D.', { exact: true })).toHaveCount(0);
 
     // The promotions in between: after half a minute on the board, a promotion, and then the board again.

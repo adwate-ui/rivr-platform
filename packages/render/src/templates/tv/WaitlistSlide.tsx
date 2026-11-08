@@ -10,7 +10,7 @@ export interface WaitlistSlideProps {
 export function WaitlistSlide({ stakes }: WaitlistSlideProps) {
   return (
     <DisplayShell>
-      <TvWaitlistBoard title={t('tv.waitlist.title')} stakes={stakes} emptyText={t('tv.waitlist.empty')} />
+      <TvWaitlistBoard title={t('tv.waitlist.title')} stakes={stakes} emptyText={t('tv.waitlist.empty')} moreText={(count) => t('tv.more', { count })} />
     </DisplayShell>
   );
 }

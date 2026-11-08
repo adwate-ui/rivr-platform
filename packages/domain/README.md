@@ -292,6 +292,7 @@ The spin wheel (#150, decision 0266). `packages/testing/golden/spin.json` proves
 | Export | What it does |
 |---|---|
 | `spinPrize(prizes, budgetLeft, roll)`, `SpinPrize` | The prize a roll lands on (from 0), among those that can be drawn in the wheel's order, each taking as many rolls as its weight; null when none can be drawn. |
+| `reducedOdds(weight, total)` | A prize's odds in lowest terms for the TV: 20 in 70 is 2 in 7 (F-139). |
 | `isDrawable(prize, budgetLeft)`, `spinOdds(prizes, budgetLeft)` | A bonus can be drawn only while the budget left covers it: the smaller of what is left of the month's `spin.budget` and of the spin's promotion's own budget (A2-03); the odds are the weights of the prizes that can be drawn. |
 
 ## Usage

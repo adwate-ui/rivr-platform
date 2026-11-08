@@ -14,7 +14,7 @@ describe('the League leaderboard (decision 0182)', () => {
       ['This month', 'November 2026'], ['Season one', 'November 2026 to April 2027'],
     ]);
     expect(columns[0]?.places.map((place) => [place.place, place.name, place.status])).toEqual([
-      ['1', 'Mihir S.', '135 League points'], ['2', 'A member', '25 League points'],
+      ['1', 'Mihir S.', '135 points'], ['2', '', '25 points'],
     ]);
   });
 
