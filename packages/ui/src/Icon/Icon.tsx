@@ -61,7 +61,8 @@ const ICONS = {
   reset: ['M4.5 12A7.5 7.5 0 1 0 18 7.5', 'M18 3V7.5H13.5'],
   purge: ['M4.5 6H19.5', 'M9 6V3.75H15V6', 'M6.75 6L7.8 20.25H16.2L17.25 6'],
   requests: ['M4.5 4.5H19.5V19.5H4.5Z', 'M9 10.5H15', 'M9 15H12'],
-  search: ['M3 10.5A7.5 7.5 0 1 0 18 10.5A7.5 7.5 0 1 0 3 10.5Z', 'M16 16L21 21'],
+  // The owner's redrawn search (9 Nov): a smaller lens, its handle from the rim.
+  search: ['M4 10.5A6.5 6.5 0 0 1 17 10.5A6.5 6.5 0 0 1 4 10.5Z', 'M15.1 15.1L20.5 20.5'],
   // Three dots, each a small ring: a row's or a table's more actions, and the tab bar's More.
   overflow: ['M4 12A1 1 0 1 0 6 12A1 1 0 1 0 4 12Z', 'M11 12A1 1 0 1 0 13 12A1 1 0 1 0 11 12Z', 'M18 12A1 1 0 1 0 20 12A1 1 0 1 0 18 12Z'],
   // A five-point star: points, earned by playing and spent on rewards (owner, 8 Nov: points and bonus chips told apart).
@@ -69,6 +70,19 @@ const ICONS = {
   // A poker chip, its edge marked at four points: bonus chips, used with a buy-in.
   chip: ['M3.5 12A8.5 8.5 0 1 0 20.5 12A8.5 8.5 0 1 0 3.5 12Z', 'M8.5 12A3.5 3.5 0 1 0 15.5 12A3.5 3.5 0 1 0 8.5 12Z',
     'M12 3.5V6', 'M12 18V20.5', 'M3.5 12H6', 'M18 12H20.5'],
+  // Tables' filters and sorting, and Export (the owner's drawings, 9 Nov): a funnel; an arrow beside bars growing or
+  // shrinking; a column that sorts but is not sorted, two chevrons; an arrow into a tray.
+  filter: ['M3.5 5.5H20.5L13.5 12.5V18.5H10.5V12.5Z'],
+  sortAscending: ['M6.5 19.5V4.5', 'M3.5 7.5L6.5 4.5L9.5 7.5', 'M12.5 6.5H15.5M12.5 12H18M12.5 17.5H20.5'],
+  sortDescending: ['M6.5 4.5V19.5', 'M3.5 16.5L6.5 19.5L9.5 16.5', 'M12.5 6.5H20.5M12.5 12H18M12.5 17.5H15.5'],
+  sortable: ['M8 9.5L12 5.5L16 9.5', 'M8 14.5L12 18.5L16 14.5'],
+  download: ['M12 3.5V15', 'M7.5 10.5L12 15L16.5 10.5', 'M3.5 14.5V20.5H20.5V14.5'],
+  // A chair from the front: its rounded back on two posts, the seat, two legs; the owner's side view read as a letter at
+  // 16 px, so redrawn at their word (9 Nov). Two members and a plus, for inviting a friend (the owner's drawing).
+  seat: ['M8 3.5H16A1.5 1.5 0 0 1 17.5 5V11H6.5V5A1.5 1.5 0 0 1 8 3.5Z', 'M5 13.5H19', 'M6.5 11V13.5', 'M17.5 11V13.5', 'M6.5 13.5V20.5',
+    'M17.5 13.5V20.5'],
+  referral: ['M11 9.5A3.5 3.5 0 0 1 18 9.5A3.5 3.5 0 0 1 11 9.5Z', 'M7.5 21.5A7 7 0 0 1 21.5 21.5',
+    'M9.73 12.99A3.5 3.5 0 1 1 9.73 6.01M2.5 21.5A7 7 0 0 1 8.04 14.65', 'M19.5 2.5V5.5M18 4H21'],
 } satisfies Record<string, readonly string[]>;
 
 export type IconName = keyof typeof ICONS;
