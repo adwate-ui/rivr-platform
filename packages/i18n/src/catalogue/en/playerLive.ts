@@ -1,9 +1,11 @@
 /**
- * Tonight, as the redesign has it (decision 0320, "Live night"): the member's own state fills the screen, browsing, on a
- * list, called to a seat, or seated, and the floor sits in a sheet.
+ * Home (Tonight until the owner renamed it, 8 Nov), as the redesign has it (decision 0320, "Live night"): the member's own
+ * state fills the screen, browsing, on a list, called to a seat, or seated, and the floor sits in a sheet.
  */
 export const playerLive = {
-  title: 'Tonight',
+  title: 'Home',
+  /** The offers carousel's heading. */
+  offersTitle: 'Offers',
   offers: '{count} offers',
   offersOne: '1 offer',
   /** The referral offer card (it left Home's tables for the carousel): `{chips}` is the bonus, `1,000`. */
@@ -125,7 +127,7 @@ export const playerLive = {
 
 /** The Order screen (brief 3.5): food and drink to the seat, paid on delivery. */
 export const playerOrder = {
-  back: 'Tonight',
+  back: 'Home',
   title: 'Order',
   /** `Table 1, seat 4 · Pay on delivery`. */
   seat: '{table}, seat {seat} · Pay on delivery',

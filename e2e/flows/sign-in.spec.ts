@@ -52,7 +52,7 @@ test.describe('Sign in', { tag: '@staging' }, () => {
     await expect(page.getByText('Sent on WhatsApp to +91 90000 00281')).toBeVisible();
     // Six digits in, the code goes on by itself (S-01).
     await page.getByRole('textbox', { name: '6-digit code' }).fill(CODE);
-    await expect(page.getByRole('heading', { name: 'Tonight', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
     // Signed in, Back does not lead to the sign-in screen again.
     await page.goBack();

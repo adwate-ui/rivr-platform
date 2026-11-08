@@ -71,7 +71,7 @@ test.describe('Bonus chips', () => {
     await page.getByRole('button', { name: 'Take photo' }).click();
     await page.getByRole('button', { name: 'Use photo' }).click();
     await expect(page.getByRole('heading', { name: "You're registered." })).toBeVisible();
-    await page.getByRole('button', { name: "See tonight's tables" }).click();
+    await page.getByRole('button', { name: 'See the tables' }).click();
     await expect(page.getByText('500 bonus chips added · Welcome bonus')).toBeVisible();
     expect(Number(sql(`select private.bonus_in_force('${JAYESH}', now())`))).toBe(before + 50_000);
 

@@ -37,7 +37,7 @@ export const playerKyc = {
   verifiedTitle: "You're verified.",
   /** `{name}` is the member's first name. */
   welcome: 'Welcome to RIVR, {name}.',
-  toTonight: "See tonight's tables",
+  toTonight: 'See the tables',
   panTitle: 'Verify with PAN',
   panIntro: 'Enter your PAN to finish.',
   panAfterDigilocker: "DigiLocker didn't finish. Use your PAN instead.",

@@ -44,8 +44,8 @@ test.describe('KYC', () => {
     await expect(page.getByRole('heading', { name: "You're verified." })).toBeVisible();
     await expect(page.getByText(/^Welcome to RIVR, \w+\.$/)).toBeVisible();
     expect(Date.now() - began).toBeLessThan(180_000);
-    await page.getByRole('button', { name: "See tonight's tables" }).click();
-    await expect(page.getByRole('heading', { name: 'Tonight', level: 1 })).toBeVisible();
+    await page.getByRole('button', { name: 'See the tables' }).click();
+    await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible();
   });
 
   test('a real venue without a KYC vendor fails closed', async ({ page }) => {
@@ -123,8 +123,8 @@ test.describe('Identity › At the club', () => {
     await page.getByRole('button', { name: 'Take photo' }).click();
     await page.getByRole('button', { name: 'Use photo' }).click();
     await expect(page.getByRole('heading', { name: "You're registered." })).toBeVisible();
-    await page.getByRole('button', { name: "See tonight's tables" }).click();
-    await expect(page.getByRole('heading', { name: 'Tonight', level: 1 })).toBeVisible();
+    await page.getByRole('button', { name: 'See the tables' }).click();
+    await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible();
     await expect(page.getByText('Bring your Aadhaar and PAN on your first visit. The desk checks them before you play.')).toBeVisible();
     expect(sql(`select status || ' ' || (at_club_from is not null) from public.kyc_record where member_id = '${UDAY}'`)).toBe('started true');
 

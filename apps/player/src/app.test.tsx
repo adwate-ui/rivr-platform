@@ -137,7 +137,7 @@ describe('the player app', () => {
   it('opens on Tonight inside the frame', async () => {
     signIn();
     renderAt('/', clientWithKabir());
-    expect(await screen.findByRole('heading', { name: 'Tonight' })).toBeDefined();
+    expect(await screen.findByRole('heading', { name: 'Home' })).toBeDefined();
     expect(await screen.findByRole('region', { name: 'All tables' }, { timeout: 5000 })).toBeDefined();
     expect(screen.getByRole('navigation', { name: 'Main' })).toBeDefined();
   });
@@ -164,7 +164,7 @@ describe('the player app', () => {
   it('has no Balance tab, and its old addresses open Tonight', async () => {
     signIn();
     const router = renderAt('/balance/deposit', clientWithKabir());
-    expect(await screen.findByRole('heading', { name: 'Tonight' })).toBeDefined();
+    expect(await screen.findByRole('heading', { name: 'Home' })).toBeDefined();
     expect(router.state.location.pathname).toBe('/');
     expect(screen.queryByRole('link', { name: 'Balance' })).toBeNull();
   });
