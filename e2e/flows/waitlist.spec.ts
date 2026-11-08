@@ -116,7 +116,7 @@ async function joinAndApprove(player: Page, host: Page) {
 test.describe('Waitlist', () => {
   test('Tonight › Join sheet, On the list: a member asks to join at a table; the floor approves, removes them, then adds them by number', async () => {
     await joinAt(player, 'Table 2');
-    await expect(player.getByText('Joined waitlist')).toBeVisible();
+    await expect(player.getByText('Seat requested')).toBeVisible();
     await expect(player.getByText('Waitlist · Table 2 · NLH 100/200')).toBeVisible();
     await expect(player.getByText('Requested', { exact: true })).toBeVisible();
     await expect(player.getByText(/^Joined \d{2}:\d{2}$/)).toBeVisible();

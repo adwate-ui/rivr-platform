@@ -18,9 +18,9 @@ test.describe('Link-in-bio', () => {
 
     await expect(page.getByRole('heading', { level: 2, name: 'Tonight\'s games' })).toBeVisible();
     await expect(page.getByText('NLH 100/200', { exact: true })).toBeVisible();
-    // Stakes only: no tables running, open seats or waiting, and a seat is reserved on WhatsApp.
+    // Stakes only: no tables running, open seats or waiting, and a seat is requested on WhatsApp.
     await expect(page.getByText(/running|waiting|open seat/)).toHaveCount(0);
-    await expect(page.getByRole('main').getByRole('link', { name: 'Reserve a seat' })).toHaveAttribute('href', /^https:\/\/wa\.me\//);
+    await expect(page.getByRole('main').getByRole('link', { name: 'Request a seat' })).toHaveAttribute('href', /^https:\/\/wa\.me\//);
     await expect(page.getByRole('link', { name: 'Get directions' })).toBeVisible();
     // The site's links wrap under the wordmark: nothing is wider than the phone.
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(VIEWPORT.player.width);

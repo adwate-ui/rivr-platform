@@ -5,9 +5,9 @@ export const webApp = {
   unavailable: 'Try again shortly.',
   /** A missing page's way back (W-07). */
   backHome: 'Front page',
-  /** The header's one action (#441): a WhatsApp message to the club, with these words ready to send (#616). */
-  reserve: 'Reserve a seat',
-  reserveMessage: 'Hi RIVR, I would like to reserve a seat tonight.',
+  /** The header's one action (#441): a WhatsApp message to the club, with these words ready to send (#616), in the app's verb. */
+  reserve: 'Request a seat',
+  reserveMessage: 'Hi RIVR, I would like a seat tonight.',
   /** The header's menu, in grandpokerarena.com's order (#616). */
   menu: {
     club: 'The club',

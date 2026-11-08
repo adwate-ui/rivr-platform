@@ -18,8 +18,8 @@ test.describe('Website', { tag: '@staging' }, () => {
     expect((await page.request.get(`${appUrl('web')}/icons/favicon-32.png`)).status()).toBe(200);
     await expect(page.getByRole('link', { name: 'Join RIVR' }).first()).toHaveAttribute('href', `${appUrl('player')}/sign-in?ref=FRIEND1&utm_source=instagram`);
     await expect(page.getByRole('link', { name: 'Member app' }).first()).toHaveAttribute('href', `${appUrl('player')}/?ref=FRIEND1&utm_source=instagram`);
-    // Reserving a seat is a WhatsApp message to the club (#616).
-    await expect(page.getByRole('banner').getByRole('link', { name: 'Reserve a seat' })).toHaveAttribute('href', /^https:\/\/wa\.me\/\d+\?text=/);
+    // Requesting a seat is a WhatsApp message to the club (#616).
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Request a seat' })).toHaveAttribute('href', /^https:\/\/wa\.me\/\d+\?text=/);
 
     const menu = page.getByRole('navigation', { name: 'Site' });
     await expect(menu.getByRole('link', { name: 'RIVR Academy' })).toHaveCount(0);
