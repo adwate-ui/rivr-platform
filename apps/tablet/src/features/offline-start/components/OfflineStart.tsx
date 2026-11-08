@@ -40,7 +40,7 @@ export function OfflineStart({ shellUrl, reach = canReach, open = openPage }: {
     return () => clearInterval(timer);
   }, [tryNow]);
   return (
-    <TabletShell tableName={t('tablet.title')}>
+    <TabletShell tableName={t('tablet.neutralTitle')}>
       <Screen title={t('tablet.offlineStart.title')}>
         <Stack gap={6}>
           <Text>{t('tablet.offlineStart.body')}</Text>

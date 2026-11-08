@@ -32,4 +32,10 @@ describe('the offline start page', () => {
     });
     expect(open).toHaveBeenCalledWith(SHELL);
   });
+
+  it('names itself RIVR, as it does not know yet whether it is a door kiosk (F-144)', () => {
+    render(<OfflineStart shellUrl={SHELL} reach={() => Promise.resolve(false)} open={() => undefined} />);
+    expect(screen.getByText('RIVR')).toBeDefined();
+    expect(screen.queryByText('Dealer tablet')).toBeNull();
+  });
 });
