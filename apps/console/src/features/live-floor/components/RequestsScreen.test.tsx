@@ -120,7 +120,7 @@ describe('Requests on a phone (console v3)', () => {
     expect(await screen.findByRole('heading', { name: 'Requests' }, { timeout: 5000 })).toBeDefined();
     expect(await screen.findByText('Wants +1 h')).toBeDefined();
     expect(screen.getByText('Table 1, seat 5 · 10 min left')).toBeDefined();
-    expect(screen.getByText('7 min').className).toContain('text-danger');
+    expect(screen.getByText('Late · 7 min').className).toContain('text-danger');
     expect(await screen.findByText('Also waiting')).toBeDefined();
     expect(screen.getByRole('button', { name: /KYC checks/ })).toBeDefined();
     expect(screen.queryByText('Spins to do')).toBeNull();
