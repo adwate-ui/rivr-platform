@@ -17,13 +17,13 @@ function renderIn(element: React.ReactElement) {
 describe('Identity, held', () => {
   it('Identity › Under review: says staff finish the check, with Sign out as the way out', () => {
     renderIn(<KycUnderReview />);
-    expect(screen.getByRole('heading', { level: 1, name: "We're checking your details" })).toBeDefined();
+    expect(screen.getByRole('heading', { level: 1, name: 'Details in review' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
   });
 
   it('Identity › Not verified: names the front desk, with Sign out', () => {
     renderIn(<KycRefused />);
-    expect(screen.getByRole('heading', { level: 1, name: "We couldn't verify you" })).toBeDefined();
+    expect(screen.getByRole('heading', { level: 1, name: 'Not verified' })).toBeDefined();
     expect(screen.getByText('Bring your Aadhaar and PAN to the front desk.')).toBeDefined();
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
   });

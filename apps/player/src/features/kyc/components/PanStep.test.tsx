@@ -76,6 +76,12 @@ describe('PanStep', () => {
     expect(requests).toEqual([{ action: 'start' }]);
   });
 
+  it('lets the member sign out, as every other step does (audit F-057)', () => {
+    renderPanStep({ status: 200, body: { status: 'verified' } });
+
+    expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
+  });
+
   it('does not offer DigiLocker again to a member it matched who has no PAN in it', () => {
     renderPanStep({ status: 200, body: { status: 'verified' } }, true);
 

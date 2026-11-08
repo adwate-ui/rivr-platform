@@ -11,6 +11,11 @@ export const kycInPerson = {
   startedOnApp: 'Started on the app, not finished.',
   /** A member let in by their selfie, to be checked at the club (decision 0502). */
   atTheClub: 'Selfie taken in the app. Check their originals.',
+  /** A check that waited for a PAN check Cashfree no longer runs: the desk completes it (audit F-010). */
+  heldForPan: 'Waiting for a PAN. Check their originals.',
+  /** Under the search before anything is typed: members in the room or on a list whose check is not done (F-091). */
+  dueTonight: 'Due tonight',
+  noneDue: 'No checks due tonight.',
   /** Their app selfie beside the camera, to compare with the face at the desk. */
   appSelfieOf: 'The selfie {name} took in the app',
   /** A found member's button, and its full name for a screen reader. */

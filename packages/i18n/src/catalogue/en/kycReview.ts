@@ -11,8 +11,11 @@ export const kycReview = {
   /** The last 90 days of them (F1-31). */
   refused: 'Refused, last 90 days',
   /** A check's line in the queue: how it was made, and the time it began to wait. */
-  queueLine: '{method} · {time}',
-  needsPanLine: 'Needs a PAN · since {time}',
+  queueLine: '{method} · {since}',
+  needsPanLine: 'Needs a PAN · since {since}',
+  /** How long a check has waited, from the second day: `15 Nov · 47 days`. */
+  sinceDays: '{date} · {days} days',
+  sinceOneDay: '{date} · 1 day',
   /** On a phone, from the check open back to the queue. */
   back: 'Back to KYC review',
   photoOf: 'KYC photo of {name}',

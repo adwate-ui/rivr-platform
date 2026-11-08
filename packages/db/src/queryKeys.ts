@@ -65,6 +65,7 @@ export const queryKeys = {
   /** Every search for a check in person at a venue, to refresh them together. */
   kycInPersonSearches: (userId: string, venueId: string) => ['user', userId, 'kyc-in-person', venueId] as const,
   kycInPersonCandidates: (userId: string, venueId: string, search: string) => ['user', userId, 'kyc-in-person', venueId, search] as const,
+  kycDueTonight: (userId: string, venueId: string) => ['user', userId, 'kyc-due-tonight', venueId] as const,
   /** The venues where the signed-in person is active staff, with their role. */
   staffVenues: (userId: string) => ['user', userId, 'staff-venues'] as const,
   venueStaff: (userId: string, venueId: string) => ['user', userId, 'venue-staff', venueId] as const,

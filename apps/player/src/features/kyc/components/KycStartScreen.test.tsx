@@ -77,6 +77,18 @@ describe('Identity › At the club (decision 0502)', () => {
     expect(screen.getByRole('button', { name: 'See the tables' })).toBeDefined();
   });
 
+  it('sends a member held for a PAN check, which no longer runs, to the desk by their selfie (audit F-010)', async () => {
+    renderIdentity({ id: 'm1', full_name: 'Kabir Sethi' }, { atTheClub: true, record: { ...STARTED, status: 'needs_pan', date_of_birth: '1990-01-01', at_club_from: null } });
+    expect(await screen.findByRole('button', { name: 'Take a selfie' })).toBeDefined();
+    expect(screen.getByText('Aadhaar and PAN at the desk, on your first visit')).toBeDefined();
+  });
+
+  it('offers the selfie, never Registered, to a held member an earlier spell at the club let in (audit F-010)', async () => {
+    renderIdentity({ id: 'm1', full_name: 'Kabir Sethi' }, { atTheClub: true, record: { ...STARTED, status: 'needs_pan', at_club_from: '2026-11-05T09:00:00Z' } });
+    expect(await screen.findByRole('button', { name: 'Take a selfie' })).toBeDefined();
+    expect(screen.queryByRole('heading', { name: 'Registered' })).toBeNull();
+  });
+
   it('offers the app\'s own check again once the switch is off, even to a member let in by their selfie', async () => {
     renderIdentity({ id: 'm1', full_name: 'Kabir Sethi' }, { record: { ...STARTED, at_club_from: '2026-11-05T09:00:00Z' } });
     expect(await screen.findByRole('button', { name: 'Take a selfie' })).toBeDefined();

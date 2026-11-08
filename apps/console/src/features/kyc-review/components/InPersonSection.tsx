@@ -1,4 +1,4 @@
-import { useKycInPersonCandidates, type KycCandidate, type KycInPersonOutcome } from '@rivr/db';
+import { useKycDueTonight, useKycInPersonCandidates, type KycCandidate, type KycInPersonOutcome } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
 import { Button, Heading, Inline, Input, Stack, StatusMessage, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
@@ -45,6 +45,8 @@ export function InPersonSection({ venueId, hasHeading = true, initialSearch }: {
       {member === null ? (
         <Stack gap={4}>
           <Input type="search" label={t('console.kycInPerson.search')} value={search} onChange={(event) => setSearch(event.target.value)} autoComplete="off" />
+          {/* On the full screen, for the floor and hosts; reviewers work from the queue beside the sheet. */}
+          {search.trim().length < 2 && hasHeading ? <DueTonight venueId={venueId} onChoose={choose} /> : null}
           <Candidates venueId={venueId} search={search} onChoose={choose} />
         </Stack>
       ) : (
@@ -60,6 +62,23 @@ interface CandidatesProps {
   onChoose: (member: KycCandidate) => void;
 }
 
+/**
+ * Who the desk should check tonight, under the search before anything is typed (audit F-091): members in the room or on a
+ * list whose check is not done, the longest waiting first.
+ */
+function DueTonight({ venueId, onChoose }: { venueId: string; onChoose: (member: KycCandidate) => void }) {
+  const due = useKycDueTonight(venueId);
+  return (
+    <Stack gap={3}>
+      <Heading level={3}>{t('console.kycInPerson.dueTonight')}</Heading>
+      {due.isPending ? <LoadState /> : null}
+      {due.isError ? <LoadState isError onRetry={() => void due.refetch()} /> : null}
+      {due.data?.length === 0 ? <Text tone="muted">{t('console.kycInPerson.noneDue')}</Text> : null}
+      {due.data !== undefined && due.data.length > 0 ? <CandidateRows members={due.data} onChoose={onChoose} /> : null}
+    </Stack>
+  );
+}
+
 /** The members the search finds, each with the way to check them; nothing until two characters are typed. */
 function Candidates({ venueId, search, onChoose }: CandidatesProps) {
   const found = useKycInPersonCandidates(venueId, search);
@@ -67,17 +86,20 @@ function Candidates({ venueId, search, onChoose }: CandidatesProps) {
   if (found.isPending) return <LoadState />;
   if (found.isError) return <LoadState isError onRetry={() => void found.refetch()} />;
   if (found.data.length === 0) return <Text tone="muted">{t('console.kycInPerson.noMatch')}</Text>;
+  return <CandidateRows members={found.data} onChoose={onChoose} />;
+}
+
+/** Each member with the last digits of their number, where their check stands, and Check. */
+function CandidateRows({ members, onChoose }: { members: readonly KycCandidate[]; onChoose: (member: KycCandidate) => void }) {
   return (
     <Stack gap={4} divided>
-      {found.data.map((member) => (
+      {members.map((member) => (
         <Inline key={member.memberId} gap={4} align="center" justify="between">
           <Stack gap={1}>
             <Text variant="row" weight="medium">{member.fullName}</Text>
             <Text variant="secondary" tone="muted">{t('console.kycInPerson.phoneEnding', { digits: member.phoneLast4 })}</Text>
             {member.status === null ? null : (
-              <Text variant="secondary" tone="muted">
-                {t(member.clubSelfiePath === null ? 'console.kycInPerson.startedOnApp' : 'console.kycInPerson.atTheClub')}
-              </Text>
+              <Text variant="secondary" tone="muted">{t(candidateLine(member))}</Text>
             )}
           </Stack>
           {/* One short word on a row's button (console v3), its full name read out, so it never wraps in the sheet. */}
@@ -88,4 +110,10 @@ function Candidates({ venueId, search, onChoose }: CandidatesProps) {
       ))}
     </Stack>
   );
+}
+
+/** Where a member's check stands: waiting for its PAN, let in by their selfie, or started in the app and never finished. */
+function candidateLine(member: KycCandidate): MessageKey {
+  if (member.status === 'needs_pan') return 'console.kycInPerson.heldForPan';
+  return member.clubSelfiePath === null ? 'console.kycInPerson.startedOnApp' : 'console.kycInPerson.atTheClub';
 }

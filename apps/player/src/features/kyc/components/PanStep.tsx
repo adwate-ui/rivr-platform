@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { panSchema } from '@rivr/contracts';
-import { useKycActions, type KycFailure } from '@rivr/db';
+import { useKycActions, useSignOut, type KycFailure } from '@rivr/db';
 import { formatTypedDay, isoDayOfTyped, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Input, Stack, StepScreen } from '@rivr/ui';
 import { useState } from 'react';
@@ -41,6 +41,12 @@ function DigilockerAgain() {
   );
 }
 
+/** As every other step: the member can sign out, hand the phone over or come back later (audit F-057). */
+function StepSignOut() {
+  const signOut = useSignOut();
+  return <Button variant="text" fullWidth isLoading={signOut.isPending} onClick={() => signOut.mutate()}>{t('common.signIn.signOut')}</Button>;
+}
+
 /**
  * The PAN check, when DigiLocker failed or held no PAN. The PAN is checked against the name the club
  * registered, so there is no name to type. When DigiLocker failed, which left no date of birth, DigiLocker again is
@@ -72,6 +78,7 @@ export function PanStep({ knowsDateOfBirth, onChecked }: { knowsDateOfBirth: boo
             {t('player.kyc.verify')}
           </Button>
           {knowsDateOfBirth ? null : <DigilockerAgain />}
+          <StepSignOut />
         </Stack>
       }
     >

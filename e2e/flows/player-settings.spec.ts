@@ -47,7 +47,7 @@ test.describe('Player settings', () => {
     await rate('The service, 1 to 5', '4');
     await rate('The ambience, 1 to 5', '5');
     await rate('How likely are you to recommend RIVR to a friend, 0 to 10?', '9');
-    await sheet.getByRole('textbox', { name: 'Anything else you would like to tell us? (optional)' }).fill(`More PLO, run ${run}`);
+    await sheet.getByRole('textbox', { name: 'Anything else? (optional)' }).fill(`More PLO, run ${run}`);
     await sheet.getByRole('button', { name: 'Send', exact: true }).click();
     await expect(member.getByText('Feedback sent')).toBeVisible();
 

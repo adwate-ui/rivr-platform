@@ -25,8 +25,11 @@ afterEach(() => {
 
 const NAINA = { member_id: '00000000-0000-4000-8000-000000000203', full_name: 'Naina Kapoor', phone_last4: '0203', status: null, app_selfie_path: null };
 
-/** Vikram, a KYC reviewer, signed in, and a fake API that finds `found` (Naina) and answers her check with `reply`. */
-function renderSection(reply: () => Response, found: unknown = NAINA) {
+/**
+ * Vikram, a KYC reviewer, signed in, and a fake API that finds `found` (Naina), lists `due` as due tonight and answers her
+ * check with `reply`.
+ */
+function renderSection(reply: () => Response, found: unknown = NAINA, due: unknown[] = []) {
   localStorage.setItem(
     SESSION_STORAGE_KEY,
     JSON.stringify({
@@ -39,6 +42,7 @@ function renderSection(reply: () => Response, found: unknown = NAINA) {
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
     if (url.includes('/rpc/kyc_in_person_candidates')) return Response.json([found]);
+    if (url.includes('/rpc/kyc_due_tonight')) return Response.json(due);
     if (url.includes('/functions/v1/kyc-image-url')) return Response.json({ signedPath: '/object/sign/kyc/selfie.jpg?token=t' });
     if (url.includes('/functions/v1/kyc-in-person')) {
       sent.push(JSON.parse(String(init?.body)));
@@ -126,6 +130,22 @@ describe('a check in person', () => {
     expect(await screen.findByText('Started on the app, not finished.')).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Check Naina Kapoor' }));
     expect(screen.queryByRole('img', { name: 'The selfie Naina Kapoor took in the app' })).toBeNull();
+  });
+
+  it('lists who is due tonight before a name is typed, a check held for its PAN among them, and checks one from there (F-010, F-091)', async () => {
+    renderSection(() => Response.json({ status: 'verified' }), NAINA, [{ ...NAINA, status: 'needs_pan' }]);
+    expect(await screen.findByRole('heading', { name: 'Due tonight' })).toBeDefined();
+    expect(await screen.findByText('Waiting for a PAN. Check their originals.')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Check Naina Kapoor' }));
+    expect(await screen.findByRole('button', { name: 'Take their photo' })).toBeDefined();
+  });
+
+  it('says when nobody is due, and leaves the list once a search starts', async () => {
+    renderSection(() => Response.json({ status: 'verified' }));
+    expect(await screen.findByText('No checks due tonight.')).toBeDefined();
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }), { target: { value: 'nai' } });
+    expect(await screen.findByText('Mobile ending 0203')).toBeDefined();
+    expect(screen.queryByRole('heading', { name: 'Due tonight' })).toBeNull();
   });
 
   it('sends nothing without the member\'s photo', async () => {
