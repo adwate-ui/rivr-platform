@@ -33,7 +33,7 @@ export const ADMIN: readonly Workflow[] = [
     title: 'A super admin sets the club’s rules',
     steps: [
       step('super_admin', 'console', '/settings?tab=settings', 'sets the play-time bonus steps and the launch settings'),
-      step('admin', 'console', '/settings?tab=games-history', 'reads the games history'),
+      step('admin', 'console', '/reports', 'reads the money-free Tables view of tonight'),
     ],
     refusals: [],
     endState: 'the rules take effect from their start',

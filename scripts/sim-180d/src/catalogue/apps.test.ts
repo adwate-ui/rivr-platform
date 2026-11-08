@@ -9,7 +9,7 @@ describe('playerScreens', () => {
   it('lists the member screens', () => {
     expect(kindOf('/rewards')).toBe('menu');
     expect(kindOf('/card')).toBe('menu');
-    expect(kindOf('/sessions/$visitId')).toBe('menu');
+    expect(kindOf('/sessions/$sessionId')).toBe('menu');
   });
 
   it('marks Balance and Academy, which redirect, hidden', () => {

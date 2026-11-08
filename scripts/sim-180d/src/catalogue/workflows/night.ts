@@ -95,9 +95,9 @@ export const NIGHT: readonly Workflow[] = [
     title: 'A member rates a visit one star, and the club follows up',
     steps: [
       step('member', 'player', '/sessions', 'opens their last visit'),
-      step('member', 'player', '/sessions/$visitId', 'rates it one star with a comment'),
+      step('member', 'player', '/sessions/$sessionId', 'rates it one star with a comment'),
       step('admin', 'console', '/feedback', 'sees it, and the owner is alerted; records what was done'),
-      step('member', 'player', '/sessions/$visitId', 'sees what was done'),
+      step('member', 'player', '/sessions/$sessionId', 'sees what was done'),
     ],
     refusals: [],
     endState: 'the rating reached the owner and the member saw the answer',
