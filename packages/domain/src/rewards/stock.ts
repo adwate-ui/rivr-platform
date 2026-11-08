@@ -1,4 +1,4 @@
-/** Under this many left, the console says Low (decision 0543). */
+/** Under this many left, the console says Low (decision 0544). */
 export const LOW_STOCK = 5;
 
 /** How a reward's stock stands: none left, few left, or enough (or no limit). */

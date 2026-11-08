@@ -1,4 +1,4 @@
-# 0543: Points history, rewards in hotel nights, and low stock
+# 0544: Points history, rewards in hotel nights, and low stock
 
 Date: 8 Nov 2026 · From the 180-day audit of 8 Nov (I-39, I-40, I-42).
 
