@@ -39,7 +39,7 @@ mkdirSync(join(dir, 'sessions'), { recursive: true });
 
 longerTokens();
 say(`census ${checkpoint}: restoring and playing to 22:00`);
-stageCheckpoint(repoRoot, join(run, 'snapshots'), night);
+stageCheckpoint(repoRoot, join(run, 'snapshots'), night, process.argv.includes('--keep'));
 say(`census ${checkpoint}: ${String(await realPhotos(repoRoot))} photos given a file`);
 const context = chooseContext(checkpoint, dir, sizes);
 writeFileSync(join(dir, 'context.json'), `${JSON.stringify(context, null, 2)}\n`);

@@ -10,7 +10,7 @@ import type { CensusContext } from '../census/context.ts';
 import { DB_ROOT } from '../src/paths.ts';
 import { sql } from './stack/psql.ts';
 import { restore } from './stack/snapshot.ts';
-import { status } from './stack/supabase.ts';
+import { start, status, stop } from './stack/supabase.ts';
 
 // Auth's tokens run on real time; a long census would outlive the local hour. The copy's own config only.
 const CENSUS_JWT_EXPIRY = 14_400;
@@ -31,9 +31,18 @@ export function longerTokens(): void {
   writeFileSync(file, text.replace(/^jwt_expiry = \d+$/m, `jwt_expiry = ${String(CENSUS_JWT_EXPIRY)}`));
 }
 
-/** The snapshot back, then (past night 0) the next night played to 22:00 without the message consumers. */
-export function stageCheckpoint(repoRoot: string, snapshots: string, night: number): void {
-  restore(repoRoot, 'ui', snapshots, `night-${String(night)}`);
+/**
+ * The snapshot back (or, with `keep`, the stack as a run left it, restarted with every service), then (past night 0) the
+ * next night played to 22:00 without the message consumers. `keep` reaches a night no snapshot ends before, such as New
+ * Year's Eve itself: run the simulation to the night before, then census it.
+ */
+export function stageCheckpoint(repoRoot: string, snapshots: string, night: number, keep = false): void {
+  if (keep) {
+    stop(repoRoot);
+    start(repoRoot, 'ui');
+  } else {
+    restore(repoRoot, 'ui', snapshots, `night-${String(night)}`);
+  }
   sql(EMPTY_TOKENS);
   if (night === 0) return;
   const next = night + 1;
