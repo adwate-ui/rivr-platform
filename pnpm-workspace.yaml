@@ -1,6 +1,7 @@
 packages:
   - apps/*
   - packages/*
+  - scripts/sim-180d
 
 # Packages whose install scripts may run. Each downloads or builds a native binary:
 # the Supabase CLI, esbuild, Tailwind's oxide engine, the Parcel file watcher and

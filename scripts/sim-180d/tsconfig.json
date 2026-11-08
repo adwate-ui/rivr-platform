@@ -1,0 +1,7 @@
+{
+  "extends": "@rivr/config/tsconfig/base.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": ["src", "bin", "census", "walks", "staging", "*.ts"]
+}
