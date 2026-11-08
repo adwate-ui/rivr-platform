@@ -1,4 +1,4 @@
-import { useAuthStatus, useKycAtTheClub, useKycRecord, useMember } from '@rivr/db';
+import { useAuthStatus, useKycAtTheClub, useKycRecord, useMember, type KycRecord } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button } from '@rivr/ui';
 import { Navigate } from '@tanstack/react-router';
@@ -40,10 +40,21 @@ function MembersCheck() {
   if (record.isPending || atTheClub.isPending) return <KycLoading />;
   const failed = [record, atTheClub].find((read) => read.isError);
   if (failed) return <KycLoadFailed onRetry={() => void failed.refetch()} />;
-  if (record.data && record.data.status !== 'started') return <KycOutcome record={record.data} onChecked={() => void record.refetch()} />;
-  if (atTheClub.data) return record.data?.isAtTheClub ? <KycRegistered /> : <ClubCheck />;
+  return <CheckAt record={record.data ?? null} isAtTheClub={atTheClub.data === true} onChecked={() => void record.refetch()} />;
+}
+
+/** Let in by their selfie. A held check is not, whatever an earlier spell at the club left on it: the selfie starts it again. */
+const isRegistered = (record: KycRecord | null) => record?.status === 'started' && record.isAtTheClub;
+
+/** The step a read check is at: where it has moved on to, the club's check, or the app's. */
+function CheckAt({ record, isAtTheClub, onChecked }: { record: KycRecord | null; isAtTheClub: boolean; onChecked: () => void }) {
+  // While the desk checks identity, a check waiting for its PAN goes to the desk too: Cashfree's PAN check is gone (owner,
+  // 5 Nov), and the selfie starts the check again (audit F-010).
+  const isHeldForPan = record?.status === 'needs_pan' && isAtTheClub;
+  if (record && record.status !== 'started' && !isHeldForPan) return <KycOutcome record={record} onChecked={onChecked} />;
+  if (isAtTheClub) return isRegistered(record) ? <KycRegistered /> : <ClubCheck />;
   // Once the switch is off, a member let in by their selfie may also check in the app.
-  return <AppCheck hasSelfie={record.data?.hasSelfie === true} />;
+  return <AppCheck hasSelfie={record?.hasSelfie === true} />;
 }
 
 /** In the app (decision 0320): the selfie, then DigiLocker; a member with the selfie in picks up at DigiLocker. */
