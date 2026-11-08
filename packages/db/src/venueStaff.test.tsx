@@ -21,7 +21,7 @@ function renderStaff(list: unknown[], write: Reply = { status: 201, body: null }
     const url = input instanceof Request ? input.url : String(input);
     const method = init?.method ?? 'GET';
     calls.push({ method, url, body: init?.body ? JSON.parse(String(init.body)) : undefined });
-    const reply = method === 'GET' ? { body: list } : write;
+    const reply = method === 'GET' || url.includes('/rpc/venue_staff') ? { body: list } : write;
     return Response.json(reply.body, { status: reply.status ?? 200 });
   };
   const client: RivrClient = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
@@ -33,8 +33,8 @@ function renderStaff(list: unknown[], write: Reply = { status: 201, body: null }
   return { result, calls };
 }
 
-const AYESHA = { id: 's1', full_name: 'Ayesha Thomas', job_title: 'Floor manager', role: 'admin', phone: '+919000000150', is_active: true, user_id: SIGNED_IN };
-const PEMA = { id: 's2', full_name: 'Pema Lepcha', job_title: 'Dealer', role: 'dealer', phone: null, is_active: false, user_id: null };
+const AYESHA = { staff_id: 's1', full_name: 'Ayesha Thomas', job_title: 'Floor manager', role: 'admin', phone: '+919000000150', is_active: true, user_id: SIGNED_IN };
+const PEMA = { staff_id: 's2', full_name: 'Pema Lepcha', job_title: 'Dealer', role: 'dealer', phone: null, is_active: false, user_id: null };
 
 afterEach(cleanup);
 
@@ -74,8 +74,8 @@ describe('useVenueStaff', () => {
       { staffId: 's1', fullName: 'Ayesha Thomas', jobTitle: 'Floor manager', role: 'admin', phone: '+919000000150', isActive: true, isMe: true },
       { staffId: 's2', fullName: 'Pema Lepcha', jobTitle: 'Dealer', role: 'dealer', phone: null, isActive: false, isMe: false },
     ]));
-    expect(calls[0]?.url).toContain(`venue_id=eq.${VENUE}`);
-    expect(decodeURIComponent(calls[0]?.url ?? '')).toContain('order=is_active.desc,full_name.asc');
+    expect(calls[0]?.url).toContain('/rpc/venue_staff');
+    expect(calls[0]?.body).toEqual({ p_venue_id: VENUE });
   });
 });
 
@@ -84,7 +84,7 @@ describe('useStaffActions', () => {
     const { result, calls } = renderStaff([]);
     const added = await act(() => result.current.actions.add.mutateAsync({ fullName: 'Test Host', jobTitle: 'Floor supervisor', role: 'host', phone: null }));
     expect(added).toEqual({ ok: true, value: null });
-    expect(calls.find((call) => call.method === 'POST')?.body).toEqual({ venue_id: VENUE, full_name: 'Test Host', job_title: 'Floor supervisor', role: 'host', phone: null });
+    expect(calls.find((call) => call.method === 'POST' && call.url.includes('/rest/v1/staff'))?.body).toEqual({ venue_id: VENUE, full_name: 'Test Host', job_title: 'Floor supervisor', role: 'host', phone: null });
   });
 
   it('changes one column at a time: job title, role, or whether they\'re active', async () => {
