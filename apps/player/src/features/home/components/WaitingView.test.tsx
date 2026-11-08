@@ -18,7 +18,7 @@ const PLACE: WaitlistPlace = {
 };
 
 const DESK_FIRST = 'Your ID is checked at the desk before you sit.';
-const CALLED = 'The floor calls you on WhatsApp for your seat.';
+const CALLED = 'The floor calls you on WhatsApp.';
 
 /** A member signed in on their place, whose own check reads `record`. */
 function renderPlace(record: unknown) {

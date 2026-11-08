@@ -33,7 +33,7 @@ Pages come from `site_page` and `site_block` through the `public_site_page` and 
 The frame is grandpokerarena.com's (#616, decision 0283):
 - **Top bar:** the club's contacts (`CLUB_CONTACT` in `links.ts`: one number for calls and WhatsApp, the owner's of 3 Nov) and the member app.
 - **Menu:** a fixed list in `SitePage`, whose The Room and Games items go to bands on the front page by their anchors. A band's anchor comes from its eyebrow, or from its kind.
-- **Reserve a seat:** a WhatsApp message to the club.
+- **Request a seat:** a WhatsApp message to the club.
 - **Footer:** columns of links and the helplines.
 - **Cookie banner:** offers Essential and Maps only. `Document.astro`'s script opens it while the browser holds no choice, and gives the Visit map its address once maps are allowed.
 

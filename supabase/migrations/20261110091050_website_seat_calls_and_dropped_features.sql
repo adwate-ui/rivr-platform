@@ -19,6 +19,8 @@ declare
      '"Request a seat before you leave home. When one opens, the floor calls you on WhatsApp."'],
     ['{"to": "waitlist", "label": "Join the waitlist"}', '{"to": "waitlist", "label": "Open the app"}'],
     ['"Join from the app and get called to your seat."', '"Request a seat from the app. The floor calls you on WhatsApp when one opens."'],
+    ['"See tonight''s tables, join the waitlist from home and get called to your seat."',
+     '"Request a seat from home. When one opens, the floor calls you on WhatsApp."'],
     ['"Join the waitlist for a game in the app. It shows your number on the list and tells you when your seat is called."',
      '"Request a seat for a game in the app. It shows your place on the list, and the floor calls you on WhatsApp when a seat opens."'],
     ['Trained dealers who log every hand, a cage', 'Trained dealers at every table, a cage'],
