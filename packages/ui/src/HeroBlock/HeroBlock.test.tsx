@@ -22,6 +22,8 @@ describe('HeroBlock', () => {
     expect(video).toHaveAttribute('data-web-video');
     expect(container.querySelector('img')).toHaveAttribute('src', '/media/hero-room.webp');
     expect(screen.getByText('Concept visualisation')).toBeInTheDocument();
+    // A pause for the loop (WCAG 2.2.2), which the website's script runs.
+    expect(screen.getByRole('button', { name: 'Pause the video' })).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('leaves the line, the action and the video out when it has none', () => {

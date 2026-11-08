@@ -2,9 +2,9 @@ import { FNB_ITEM_KINDS, type FnbItemKind } from '@rivr/contracts';
 import { useFeatureStatus, useMySeat, useMyUsualFnbItems, type MySeat } from '@rivr/db';
 import { useMyFnbMenu, useMyFnbOrders, type FnbMenuItem } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
-import { BackButton, Button, ChoiceChips, FeatureGate, Heading, Inline, ItemPhoto, LoadState, QuantityStepper, Screen, Skeleton, Stack, SuggestionCard, Text } from '@rivr/ui';
+import { BackButton, Button, ChoiceChips, FeatureGate, Heading, Inline, ItemPhoto, LoadState, QuantityStepper, Screen, Skeleton, Stack, SuggestionCard, Text, useHeadingFocus, usePageTitle } from '@rivr/ui';
 import { Navigate, useCanGoBack, useNavigate, useRouter, useSearch } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { SendBar } from './SendBar.tsx';
 
 type Counts = Readonly<Record<string, number>>;
@@ -98,12 +98,16 @@ export function FnbOrderScreen() {
   // Back to where it was opened from, or to / in its place: never a new entry on top (owner, 8 Nov).
   const toHome = () => (canGoBack ? router.history.back() : void navigate({ to: '/', replace: true }));
   const title = t('player.order.title');
+  const headingId = useId();
+  // Drawn under its own Back button, so it names the page and takes the focus as a Screen would (WCAG 2.4.2).
+  usePageTitle(title, feature.status === 'ready');
+  useHeadingFocus(headingId, feature.status === 'ready');
   if (feature.status === 'loading') return <Screen title={title} isTitleHidden status="loading" loadingLook="skeleton" />;
   if (feature.status === 'error') return <Screen title={title} status="error" onRetry={feature.retry} />;
   return (
     <Stack gap={2}>
       <BackButton label={t('player.order.back')} onBack={toHome} />
-      <Heading level={1} variant="serif">{title}</Heading>
+      <Heading level={1} variant="serif" id={headingId} isFocusTarget>{title}</Heading>
       <FeatureGate access={feature.access}><OrderBody /></FeatureGate>
     </Stack>
   );

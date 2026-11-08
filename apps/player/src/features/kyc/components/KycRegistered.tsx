@@ -11,7 +11,7 @@ export function KycRegistered() {
   const navigate = useNavigate();
   const firstName = useMember().data?.fullName.split(' ')[0] ?? '';
   return (
-    <StepScreen
+    <StepScreen pageTitle={t('player.kyc.registeredTitle')}
       align="center"
       footer={
         <Button variant="primary" size="tall" fullWidth onClick={() => void navigate({ to: '/', replace: true })}>

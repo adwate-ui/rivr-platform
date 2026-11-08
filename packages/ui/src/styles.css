@@ -352,7 +352,8 @@
 
 /* A website video stops for a visitor who asks for less motion: its still shows instead (decision 0118). */
 @media (prefers-reduced-motion: reduce) {
-  [data-web-video] {
+  [data-web-video],
+  [data-web-video-toggle] {
     display: none;
   }
 }

@@ -4,6 +4,7 @@ import { DeskHelp } from '../DeskHelp/DeskHelp.tsx';
 import { Heading, type SerifSize } from '../Heading/Heading.tsx';
 import { Icon } from '../Icon/Icon.tsx';
 import { cx } from '../internal/classes.ts';
+import { usePageTitle } from '../Screen/Screen.tsx';
 import { Text } from '../Text/Text.tsx';
 
 export interface StepScreenProps {
@@ -13,6 +14,8 @@ export interface StepScreenProps {
   footer: ReactNode;
   /** The step's heading, a noun ("Code"). Leave it out when the content names the screen itself. */
   title?: string | undefined;
+  /** The page's name when the step draws its own heading in place of `title`: "Sign in", "Verified" (WCAG 2.4.2). */
+  pageTitle?: string | undefined;
   /** A way to the previous step, top left. */
   back?: { label: string; onBack: () => void } | undefined;
   /**
@@ -96,7 +99,9 @@ function StepTitle({ title, look }: { title: string; look: StepScreenProps['look
  * on a tablet or a computer, the step is a panel in the middle of the screen, its action under its
  * content, not the phone's column stretched to the screen's foot (S-01).
  */
-export function StepScreen({ children, footer, title, back, align = 'top', onSubmit, look }: StepScreenProps) {
+export function StepScreen({ children, footer, title, pageTitle, back, align = 'top', onSubmit, look }: StepScreenProps) {
+  // The step names the page, "Verify with PAN · RIVR", as a screen does (WCAG 2.4.2).
+  usePageTitle(title ?? pageTitle);
   const step = (
     <>
       <div className={cx('flex flex-1 flex-col gap-6', ALIGN[align])}>

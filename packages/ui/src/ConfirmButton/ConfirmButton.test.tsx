@@ -34,12 +34,18 @@ describe('ConfirmButton', () => {
     expect(onConfirm).toHaveBeenCalledOnce();
   });
 
-  it('turns back when left alone for five seconds, or on Escape, so a later tap never does the step', async () => {
+  it('turns back when left alone for twenty seconds, or on Escape, so a later tap never does the step', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const onConfirm = vi.fn();
     renderIn(<ConfirmButton label="Remove" confirm="Yes, remove Ritika" onConfirm={onConfirm} />);
     await userEvent.click(screen.getByRole('button', { name: 'Remove' }));
-    act(() => { vi.advanceTimersByTime(5000); });
+    expect(screen.getByText('Confirm or cancel.')).toBeInTheDocument();
+    // While the pointer or the focus is on it, its time is held (WCAG 2.2.1).
+    act(() => { vi.advanceTimersByTime(60_000); });
+    expect(screen.getByRole('button', { name: 'Yes, remove Ritika' })).toBeInTheDocument();
+    await userEvent.unhover(screen.getByRole('button', { name: 'Yes, remove Ritika' }));
+    act(() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); });
+    act(() => { vi.advanceTimersByTime(20_000); });
     expect(screen.getByRole('button', { name: 'Remove' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Remove' }));
     await userEvent.keyboard('{Escape}');

@@ -172,7 +172,7 @@
   --rivr-motion-duration-sheet: 240ms; /** A bottom sheet sliding up (decision 0320). */
   --rivr-motion-duration-tick: 1000ms; /** A live timer's ring or bar moving on by one second, linear. */
   --rivr-motion-duration-toast: 3200ms; /** How long a toast stays before it goes. */
-  --rivr-motion-duration-toast-undo: 5000ms; /** How long a toast with Undo stays, so its change can be taken back (console v3). */
+  --rivr-motion-duration-toast-undo: 20000ms; /** How long a toast with Undo stays, at least, so its change can be taken back: paused while hovered or focused, and closable (WCAG 2.2.1; audit F-009). */
   --rivr-motion-duration-fresh: 2500ms; /** A request just arrived on the console: its gold tint fades over this, ease-out (console v3, decision 0465). */
   --rivr-motion-duration-turn: 1000ms; /** One turn of a busy button's circle, which keeps turning while its action is in flight (F5-17); still under reduced motion. */
   --rivr-motion-easing-out: cubic-bezier(0, 0, 0.58, 1); /** ease-out. */

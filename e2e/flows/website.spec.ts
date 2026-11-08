@@ -74,9 +74,21 @@ test.describe('Website', { tag: '@staging' }, () => {
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(VIEWPORT.player.width);
     await page.goto(appUrl('web'));
 
-    // A visitor who asks for less motion sees the room's still, not the loop.
+    // The loop has a pause (WCAG 2.2.2), and stays paused for the visit, page to page.
+    const pause = page.getByRole('button', { name: 'Pause the video' });
+    await expect(pause).toHaveAttribute('aria-pressed', 'false');
+    await pause.click();
+    await expect(pause).toHaveAttribute('aria-pressed', 'true');
+    await expect.poll(() => page.locator('video[data-web-video]').evaluate((video: HTMLVideoElement) => video.paused)).toBe(true);
+    await page.reload();
+    await expect(page.getByRole('button', { name: 'Pause the video' })).toHaveAttribute('aria-pressed', 'true');
+    await page.getByRole('button', { name: 'Pause the video' }).click();
+    await expect(page.getByRole('button', { name: 'Pause the video' })).toHaveAttribute('aria-pressed', 'false');
+
+    // A visitor who asks for less motion sees the room's still, not the loop, and no pause for it.
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await expect(page.locator('video[data-web-video]')).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Pause the video' })).toBeHidden();
     await expect(page.locator('img[src="/media/hero-room.webp"]')).toBeVisible();
   });
 

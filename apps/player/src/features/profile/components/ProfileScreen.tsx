@@ -1,8 +1,8 @@
 import { useFeature, useKycImageUrl, useKycRecord, useMember, useMembershipCard, usePreferences, useSignedInPhone } from '@rivr/db';
 import { formatMobile, t } from '@rivr/i18n';
-import { BackButton, Box, DeskHelp, DetailRow, FeatureGate, Heading, Inline, ProfileMark, Screen, Stack, Text } from '@rivr/ui';
+import { BackButton, Box, DeskHelp, DetailRow, FeatureGate, Heading, Inline, ProfileMark, Screen, Stack, Text, useHeadingFocus, usePageTitle } from '@rivr/ui';
 import { useCanGoBack, useNavigate, useRouter } from '@tanstack/react-router';
-import { useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { FeedbackSheet } from './FeedbackSection.tsx';
 import { NotificationsSection } from './NotificationsSection.tsx';
 import { SignOutSection } from './SignOutSection.tsx';
@@ -37,7 +37,7 @@ function TierPhone({ tier }: { tier: string }) {
 }
 
 /** The member at the top: their verified selfie or initial, their name, and their tier with their number. */
-function ProfileHead() {
+function ProfileHead({ headingId }: { headingId: string }) {
   const member = useMember().data;
   const card = useMembershipCard().data ?? null;
   // The verified selfie (decision 0300), filling the mark; the initial until it comes.
@@ -46,7 +46,7 @@ function ProfileHead() {
     <Inline gap={4} align="center">
       <ProfileMark initial={member?.initial ?? ''} photo={photo} />
       <Stack gap={1}>
-        <Heading level={1} variant="serif" serifSize={28}>{member?.fullName ?? ''}</Heading>
+        <Heading level={1} variant="serif" serifSize={28} id={headingId} isFocusTarget>{member?.fullName ?? ''}</Heading>
         {card === null ? null : <TierPhone tier={card.tierName} />}
       </Stack>
     </Inline>
@@ -83,6 +83,10 @@ export function ProfileScreen() {
   // Back to where it was opened from, or to / in its place: never a new entry on top (owner, 8 Nov).
   const toTab = () => (canGoBack ? router.history.back() : void navigate({ to: '/', replace: true }));
   const [isFeedbackOpen, setFeedbackOpen] = useState(false);
+  const headingId = useId();
+  // Drawn under its own Back button, so it names the page and takes the focus as a Screen would (WCAG 2.4.2).
+  usePageTitle(t('player.profile.title'), preferences.data !== undefined);
+  useHeadingFocus(headingId, preferences.data !== undefined);
   const back = <BackButton label={t('player.profile.back')} onBack={toTab} />;
   if (preferences.data === undefined) {
     // Sign out works offline, so it stays within reach when Profile cannot load.
@@ -98,7 +102,7 @@ export function ProfileScreen() {
   return (
     <Stack gap={6}>
       {back}
-      <ProfileHead />
+      <ProfileHead headingId={headingId} />
       <Group title={t('player.profile.account')}>
         <DetailRow label={t('player.profile.card')} onOpen={() => void navigate({ to: '/card' })} />
         <IdentityRow />
