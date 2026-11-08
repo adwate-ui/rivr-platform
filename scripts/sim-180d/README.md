@@ -14,6 +14,16 @@ It runs by hand, never in CI. CI runs only its unit tests.
 
 Everything a run makes goes to `~/.rivr-sim180/`, outside the repository.
 
+## Spikes (8 Nov 2026)
+
+| Spike | Question | Result |
+|---|---|---|
+| S1 | Does a signed-in app work with the browser months ahead, on the simulation's clock? | Yes, with `census/clock.ts`. Auth issues tokens on real time, so without it the player app refreshed its token 318 times in an hour of browser time; with each session's `expires_at` moved onto the browser's clock, once. The token itself is untouched. |
+| S2 | Do the real outbox consumers run in Node against the copy? | Yes. On the seeded copy they claimed 79 deliveries and recorded the owner's alert in `sim.message`. |
+| S3 | Does the virtual clock reach every job? | Yes. 1,424 `now()`, 12 `clock_timestamp()` and 7 `current_date` calls rewritten, none left. One quiet night fires all 17 non-outbox jobs with no failures, in 0.6 s. Start and reset take 86 s. |
+
+Sign-in in the browser: Auth sends one code a minute to a number ("Too many tries. Wait a minute."), so every browser that signs in uses its own seeded number.
+
 ## Status
 
 Being built on `chore/sim-180d`. The design and the build plan are the owner's documents of 8 Nov 2026. This README gains the run instructions, the spike results and the harness mistakes as the build goes.
