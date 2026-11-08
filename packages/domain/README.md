@@ -157,6 +157,8 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 
 ### `@rivr/domain/accommodation`
 
+`rewardShortfall(price, held)` (`@rivr/domain/rewards`, F-046): how far short of a reward a member is, in points or in thousandths of a hotel night; null when they hold enough.
+
 Accommodation rewards (#146, decision 0246): hotel nights, kept in thousandths. Proved equal to `private.nights_for_time` by `packages/testing/golden/accommodation.json`.
 
 | Export | What it does |

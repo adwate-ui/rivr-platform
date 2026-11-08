@@ -44,7 +44,7 @@ function bonusReply(url: string, body: string, bonus: BonusReplies, historyAsked
 }
 
 /** Meera signed in with 3,250 points, bonus chips, the catalogue and Refer a friend; redeeming sends its order to `redeemed`. */
-function renderRewards(points = 3250, bonus: BonusReplies = { balance: 125_000, lines: BONUS_LINES }) {
+function renderRewards(points = 3250, bonus: BonusReplies = { balance: 125_000, lines: BONUS_LINES }, more: { items?: readonly unknown[]; features?: readonly string[]; nights?: number } = {}) {
   const historyAsked: unknown[] = [];
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
@@ -53,8 +53,9 @@ function renderRewards(points = 3250, bonus: BonusReplies = { balance: 125_000, 
   const redeemed: unknown[] = [];
   // Each read's reply by its path; any other is nothing.
   const answers: Record<string, unknown> = {
-    '/rpc/my_feature_access': FEATURES, '/rpc/my_rewards': [{ points, tier_name: 'Founders’ Circle', nights: 0 }], '/rpc/my_locked_points': 0,
-    '/rpc/my_points_history': POINTS_LINES, '/rest/v1/reward_item': ITEMS, '/rpc/my_redemptions': [REDEMPTION], '/rpc/my_referral': [{ code: 'RIVR4821', referred: 2, bonus_paise: 100000 }],
+    '/rpc/my_feature_access': [...FEATURES, ...(more.features ?? []).map((feature_key) => ({ feature_key, state: 'enabled', tiers: null }))],
+    '/rpc/my_rewards': [{ points, tier_name: 'Founders’ Circle', nights: more.nights ?? 0 }], '/rpc/my_locked_points': 0,
+    '/rpc/my_points_history': POINTS_LINES, '/rest/v1/reward_item': more.items ?? ITEMS, '/rpc/my_redemptions': [REDEMPTION], '/rpc/my_referral': [{ code: 'RIVR4821', referred: 2, bonus_paise: 100000 }],
   };
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
@@ -177,6 +178,36 @@ describe('Rewards', () => {
     expect(await screen.findByText('Redeemed')).toBeDefined();
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(redeemed).toEqual([expect.objectContaining({ p_item_id: 'chai', p_points: 500, p_idempotency_key: expect.any(String) })]);
+  });
+
+  describe('a reward priced in hotel nights (F-046)', () => {
+    const SUITE = { id: 'suite', kind: 'hotel_night', name: 'Partner hotel suite', detail: 'The host confirms', points: null, nights: 1, stock: null, is_live: true, photo_path: null };
+    const NIGHTS = { items: [SUITE], features: ['rewards.accommodation'] };
+
+    it('says how many nights short, and cannot be redeemed', async () => {
+      renderRewards(3250, undefined, NIGHTS);
+      const suite = await screen.findByRole('button', { name: '1 night to go, Partner hotel suite' }, LATER);
+      expect(suite.hasAttribute('disabled')).toBe(true);
+    });
+
+    it('counts part of a night', async () => {
+      renderRewards(3250, undefined, { ...NIGHTS, nights: 250 });
+      expect(await screen.findByRole('button', { name: '0.75 nights to go, Partner hotel suite' }, LATER)).toBeDefined();
+    });
+
+    it('can be redeemed with the nights held', async () => {
+      renderRewards(3250, undefined, { ...NIGHTS, nights: 1000 });
+      expect((await screen.findByRole('button', { name: 'Redeem Partner hotel suite' }, LATER)).hasAttribute('disabled')).toBe(false);
+    });
+
+    it('has its filter only for a tier with hotel nights', async () => {
+      renderRewards(3250, undefined, NIGHTS);
+      expect(await screen.findByRole('radio', { name: 'Hotel nights' }, LATER)).toBeDefined();
+      cleanup();
+      renderRewards();
+      expect(await screen.findByRole('radio', { name: 'F&B upgrades' }, LATER)).toBeDefined();
+      expect(screen.queryByRole('radio', { name: 'Hotel nights' })).toBeNull();
+    });
   });
 
   it('lists a redemption as Ready to collect until it is handed over', async () => {

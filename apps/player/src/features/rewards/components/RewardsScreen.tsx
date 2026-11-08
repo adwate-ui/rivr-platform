@@ -112,7 +112,7 @@ export function RewardsScreen() {
         </FeatureGate>
         <FeatureGate access={catalogue}>
           <Stack gap={8}>
-            <Catalogue balance={rewards.data.points} />
+            <Catalogue held={rewards.data} hasNights={accommodation.state === 'enabled'} />
             <MyRedemptionList />
           </Stack>
         </FeatureGate>

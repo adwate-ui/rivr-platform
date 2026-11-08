@@ -39,6 +39,9 @@ export const memberRewards = {
   allUnlocked: 'Everything unlocked',
   /** `750 to go`. */
   toGo: '{points} to go',
+  /** A hotel-night reward out of reach (F-046): `1 night to go`, `0.75 nights to go`. */
+  oneNightToGo: '1 night to go',
+  nightsToGo: '{nights} nights to go',
   cost: 'Cost',
   balanceAfter: 'Balance after',
   redeemedToast: 'Redeemed',
