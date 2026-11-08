@@ -7,7 +7,6 @@ export const reports = {
   /** The MIS Tables view (owner, 8 Nov), money-free: each table over a span of club days. `{percent}` is a whole number. */
   tables: {
     title: 'Tables',
-    hint: 'Club days run 06:00 to 06:00. Use is seat time played over seats × hours run.',
     span: 'Span',
     spans: { today: 'Tonight', week: 'Last 7 days', month: 'Last 30 days' },
     table: 'Table',
@@ -16,7 +15,7 @@ export const reports = {
     players: 'Players',
     peak: 'Most at once',
     playerHours: 'Player hours',
-    use: 'Use',
+    use: 'Seat use',
     percent: '{percent}%',
     empty: 'No table ran in this span.',
   },

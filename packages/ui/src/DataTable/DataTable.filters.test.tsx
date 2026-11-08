@@ -42,6 +42,7 @@ describe('DataTable column filters (owner, 8 Nov: filters on every table)', () =
     expect(open).toHaveAttribute('aria-expanded', 'false');
     await userEvent.click(open);
     expect(open).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('group', { name: 'Filters' }).id).toBe(open.getAttribute('aria-controls'));
     expect(screen.getByRole('searchbox', { name: 'Member' })).toBeInTheDocument();
     const tiers = screen.getByRole('group', { name: 'Tier' });
     expect(within(tiers).getAllByRole('button').map((chip) => chip.textContent)).toEqual(['Black card1', "Founders' Circle1", 'Member2']);

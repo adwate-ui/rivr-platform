@@ -2,7 +2,7 @@ import { useTableMetrics, type TableMetrics } from '@rivr/db';
 import { clubDay, dayAfter } from '@rivr/domain/clubDay';
 import { tableUse } from '@rivr/domain/tables';
 import { formatHoursMinutes, formatNumber, t } from '@rivr/i18n';
-import { ChoiceChips, DataTable, Stack, Text, type DataTableColumn } from '@rivr/ui';
+import { ChoiceChips, DataTable, Stack, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 
 /** The spans the view offers: tonight's club day, the last 7 or the last 30. */
@@ -48,7 +48,6 @@ export function TablesReport({ venueId }: { venueId: string }) {
   const base = { label: t('console.reports.tables.title'), columns: columns(), rowKey: (row: TableMetrics) => row.tableId, narrowLayout: 'scroll' as const };
   return (
     <Stack gap={4}>
-      <Text tone="muted">{t('console.reports.tables.hint')}</Text>
       <ChoiceChips label={t('console.reports.tables.span')} isLabelVisuallyHidden mode="one" look="subtle" selected={[span]}
         options={SPAN_KEYS.map((value) => ({ value, label: t(`console.reports.tables.spans.${value}`) }))}
         onChange={([picked]) => setSpan(SPAN_KEYS.find((value) => value === picked) ?? 'week')} />

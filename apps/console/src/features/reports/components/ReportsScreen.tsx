@@ -9,11 +9,15 @@ import { GrowthFunnel } from './GrowthFunnel.tsx';
 import { RakeTonight } from './RakeTonight.tsx';
 import { TablesReport } from './TablesReport.tsx';
 
-const TABS = ['tables', 'tonight', 'mis', 'unclaimed', 'growth'] as const;
-type ReportTab = (typeof TABS)[number];
+type ReportTab = 'tables' | 'tonight' | 'mis' | 'unclaimed' | 'growth';
 
 // Only the money-free Tables view shows (owner, 8 Nov; no rupees on the console, 29 Oct); the rest stay hidden.
 const SHOWN: readonly ReportTab[] = ['tables'];
+
+/** The tab the address opens: a shown one, by the rail or the address; anything else, a hidden money report too, Tables. */
+export function reportTabFor(tab: string | undefined): ReportTab {
+  return SHOWN.find((one) => one === tab) ?? 'tables';
+}
 
 /** The report a tab shows. */
 function TabContent({ tab, venueId }: { tab: ReportTab; venueId: string }) {
@@ -41,12 +45,15 @@ export function ReportsScreen() {
   const { permissions, venueId, isPractice } = staff.venue;
   if (!permissions.includes('reports.read')) return <Screen title={title} status="error" errorText={t('console.reports.notAllowed')} />;
   if (isPractice) return <Screen title={title} status="error" errorText={t('console.reports.practice')} />;
-  const current = TABS.find((one) => one === tab) ?? 'tables';
+  const current = reportTabFor(tab);
   return (
     <Screen title={title}>
       <Stack gap={8}>
-        <Tabs label={t('console.reports.tabsLabel')} current={current} onNavigate={(href) => void navigate({ href })}
-          tabs={SHOWN.map((id) => ({ id, label: t(`console.reports.tabs.${id}`), href: `/reports?tab=${id}` }))} />
+        {/* One report shown has no tab strip of its own. */}
+        {SHOWN.length < 2 ? null : (
+          <Tabs label={t('console.reports.tabsLabel')} current={current} onNavigate={(href) => void navigate({ href })}
+            tabs={SHOWN.map((id) => ({ id, label: t(`console.reports.tabs.${id}`), href: `/reports?tab=${id}` }))} />
+        )}
         <TabContent tab={current} venueId={venueId} />
       </Stack>
     </Screen>

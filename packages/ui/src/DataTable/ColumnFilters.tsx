@@ -6,6 +6,8 @@ import type { DataTableColumn } from './columns.ts';
 import { choicesOf, NO_FILTERS, type ColumnFilters } from './filters.ts';
 
 interface ColumnFiltersProps<Row> {
+  /** Named by the Filters button that opens it (aria-controls). */
+  readonly id: string;
   readonly columns: readonly DataTableColumn<Row>[];
   /** Every row, filtered or not, so a choice never vanishes as others are picked. */
   readonly rows: readonly Row[];
@@ -17,11 +19,11 @@ interface ColumnFiltersProps<Row> {
  * The table's Filters, open below its bar (owner, 8 Nov: filters on every table): a box for each column filtered by its
  * words and chips for each filtered by its values, any of which may be picked; then Clear.
  */
-export function ColumnFiltersPanel<Row>({ columns, rows, filters, onChange }: ColumnFiltersProps<Row>) {
+export function ColumnFiltersPanel<Row>({ id, columns, rows, filters, onChange }: ColumnFiltersProps<Row>) {
   const set = (key: string, next: { typed?: string; chosen?: readonly string[] }) =>
     onChange({ ...filters, [key]: { typed: next.typed ?? '', chosen: next.chosen ?? [] } });
   return (
-    <div className="flex flex-col gap-4 rounded-md bg-subtle p-4">
+    <div id={id} role="group" aria-label={t('ui.dataTable.filters')} className="flex flex-col gap-4 rounded-md bg-subtle p-4">
       <div className="grid grid-cols-1 gap-4 medium:grid-cols-2">
         {columns.filter((column) => column.filter === 'text').map((column) => (
           <Input key={column.key} type="search" label={column.header} value={filters[column.key]?.typed ?? ''} autoComplete="off"

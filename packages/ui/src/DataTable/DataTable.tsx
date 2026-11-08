@@ -1,5 +1,5 @@
 import { t } from '@rivr/i18n';
-import { useMemo, useRef, useState, type ReactNode, type UIEvent } from 'react';
+import { useId, useMemo, useRef, useState, type ReactNode, type UIEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '../Button/Button.tsx';
 import { PhoneSort } from './PhoneSort.tsx';
@@ -104,12 +104,12 @@ interface TableProps<Row> {
   readonly props: DataTableProps<Row>;
   readonly visible: readonly Row[];
   readonly sort: DataTableSort | null;
-  /** The search and the column filters in force, which a long table starts from the top for. */
-  readonly query: string;
+  /** The search and the column filters in force, in a word: a long table starts from the top as it changes. */
+  readonly resetKey: string;
   readonly onSort: (key: string) => void;
 }
 
-function Table<Row>({ props, visible, sort, query, onSort }: TableProps<Row>) {
+function Table<Row>({ props, visible, sort, resetKey, onSort }: TableProps<Row>) {
   const header = useRef<HTMLDivElement>(null);
   // The staff member's own density (decision 0475), unless the table sets one.
   const density = useTableDensity();
@@ -127,7 +127,7 @@ function Table<Row>({ props, visible, sort, query, onSort }: TableProps<Row>) {
       <HeaderRow ref={header} columns={props.columns} sort={sort} onSort={onSort} layout={layout} isVirtual={isVirtual} />
       {isVirtual
         // A new order or filter starts from the top.
-        ? <VirtualBody key={`${sort?.key ?? ''}:${sort?.direction ?? ''}:${query}`} {...body} />
+        ? <VirtualBody key={`${sort?.key ?? ''}:${sort?.direction ?? ''}:${resetKey}`} {...body} />
         : <PlainBody {...body} rowDetail={detail} />}
     </div>
   );
@@ -163,6 +163,8 @@ interface BarState {
   readonly filters: ColumnFilters;
   readonly isFiltering: boolean;
   readonly onFiltering: () => void;
+  /** The panel's id, which the Filters button controls. */
+  readonly panelId: string;
 }
 
 /**
@@ -180,10 +182,12 @@ function useExportPlaced<Row>(props: DataTableProps<Row>, visible: readonly Row[
 
 /** Filters, for a table with a column to filter: open or closed, with how many are in force. */
 function FiltersButton<Row>({ props, state }: { props: DataTableProps<Row>; state: BarState }) {
-  if (!props.columns.some((column) => column.filter !== undefined)) return null;
+  // Nothing to filter while the rows load or fail to.
+  if (!props.columns.some((column) => column.filter !== undefined) || props.status === 'loading' || props.status === 'error') return null;
   const count = filtersOn(props.columns, state.filters).length;
   return (
-    <Button variant="subtle" size="small" aria-expanded={state.isFiltering} onClick={state.onFiltering} aside={count === 0 ? undefined : String(count)}
+    <Button variant="subtle" size="small" aria-expanded={state.isFiltering} aria-controls={state.panelId} onClick={state.onFiltering}
+      aside={count === 0 ? undefined : String(count)}
       aria-label={count === 0 ? t('ui.dataTable.filters') : t('ui.dataTable.filtersCount', { count: String(count) })}>
       {t('ui.dataTable.filters')}
     </Button>
@@ -229,19 +233,20 @@ export function DataTable<Row>(props: DataTableProps<Row>) {
   const source = props.status === 'loading' || props.status === 'error' ? NO_ROWS : props.rows;
   const text = props.filter?.text;
   const visible = useMemo(() => shown(source, { columns: props.columns, sort, text, query, filters }), [source, props.columns, sort, text, query, filters]);
-  const state = { query, onQuery: setQuery, filters, isFiltering, onFiltering: () => setFiltering(!isFiltering) };
+  const panelId = useId();
+  const state = { query, onQuery: setQuery, filters, isFiltering, onFiltering: () => setFiltering(!isFiltering), panelId };
   const isFiltered = filtersOn(props.columns, filters).length > 0;
   const onSort = (key: string) => setSort((current) =>
     current?.key === key && current.direction === 'ascending' ? { key, direction: 'descending' } : { key, direction: 'ascending' });
   return (
     <div className="flex flex-col gap-4">
       <Bar props={props} visible={visible} state={state} />
-      {isFiltering ? <ColumnFiltersPanel columns={props.columns} rows={source} filters={filters} onChange={setFilters} /> : null}
+      {isFiltering ? <ColumnFiltersPanel id={panelId} columns={props.columns} rows={source} filters={filters} onChange={setFilters} /> : null}
       {visible.length === 0 ? <Instead props={props} query={query} isFiltered={isFiltered} /> : (
         <>
           {/* Below 768 px the cards sort from a bar above them; the scroll layout keeps its header. */}
           {isWide || props.narrowLayout === 'scroll' ? null : <PhoneSort label={props.label} columns={props.columns} sort={sort} onSort={onSort} />}
-          <Table props={props} visible={visible} sort={sort} query={`${query}:${JSON.stringify(filters)}`} onSort={onSort} />
+          <Table props={props} visible={visible} sort={sort} resetKey={`${query}:${JSON.stringify(filters)}`} onSort={onSort} />
         </>
       )}
     </div>
