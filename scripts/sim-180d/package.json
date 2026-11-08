@@ -10,6 +10,7 @@
     "catalogue": "tsx bin/catalogue.ts",
     "census": "tsx bin/census.ts",
     "walks": "tsx bin/walks.ts",
+    "staging:preflight": "tsx staging/preflight.ts",
     "gate": "tsx bin/gate.ts"
   },
   "dependencies": {

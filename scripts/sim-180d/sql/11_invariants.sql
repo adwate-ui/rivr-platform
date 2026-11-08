@@ -59,19 +59,28 @@ begin
 end $$;
 
 -- Names of members who chose to stay off the TVs, found in what the TV boards return (as the paired TV) or in a
--- public view. A board shows a first name and an initial, so both forms are looked for.
+-- public view. A board shows a first name and initial (private.first_name_and_initial); another member who shows
+-- their name may share it, so a hidden member is looked for only when no member on the TVs shares their short name.
 create function sim.hidden_name_leaks() returns table (source text, full_name text) language plpgsql as $$
 declare
   p record;
   v record;
+  v_hidden jsonb;
   v_boards text := 'select display_name as name from public.tv_waitlist_board() union all select display_name from public.tv_call_time_board()
     union all select display_name from public.tv_rewards_ticker() union all select display_name from public.tv_spin_wheel()';
   v_n bigint;
 begin
+  -- Chosen as postgres: the TV's own login cannot read members.
+  select coalesce(jsonb_agg(jsonb_build_object('full_name', pe.full_name, 'short', private.first_name_and_initial(pe.full_name))), '[]') into v_hidden
+  from sim.persona pe
+  where pe.hides_name and not exists (
+    select 1 from public.member m left join public.member_preference mp on mp.member_id = m.id
+    where m.venue_id = sim.venue() and m.id <> pe.member_id and coalesce(mp.name_on_tvs, true)
+      and private.first_name_and_initial(m.full_name) = private.first_name_and_initial(pe.full_name));
   perform set_config('request.jwt.claims', sim.claims((select login from sim.device where key = 'tv'))::text, true);
   perform set_config('role', 'authenticated', true);
-  for p in select pe.full_name, split_part(pe.full_name, ' ', 1) || ' ' || left(split_part(pe.full_name, ' ', 2), 1) as short from sim.persona pe where pe.hides_name loop
-    execute format('select count(*) from (%s) b where b.name ilike %L or b.name ilike %L', v_boards, p.full_name, p.short || '%') into v_n;
+  for p in select * from jsonb_to_recordset(v_hidden) as x(full_name text, short text) loop
+    execute format('select count(*) from (%s) b where b.name = %L or b.name ilike %L', v_boards, p.short, p.full_name) into v_n;
     if v_n > 0 then source := 'tv boards'; full_name := p.full_name; return next; end if;
   end loop;
   perform set_config('role', 'none', true);
