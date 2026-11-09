@@ -1,8 +1,5 @@
 import type { SettingField, VenueSetting } from '@rivr/db';
 
-/** One bonus chip is 100 paise, as the promotions' bonus chips are (decision 0472). */
-export const PAISE_PER_BONUS_CHIP = 100;
-
 /**
  * The settings held in paise that the console shows and takes in bonus chips, never in rupees (owner, 3 Nov; decision
  * 0284): the spin wheel's monthly budget, so the Spin wheel's link to it lands on a value staff can read and change.

@@ -1,6 +1,6 @@
 {
   "rule": "money",
-  "about": "Worked examples for the money rules every lane builds on. Amounts are in rupees, written as a receipt shows them. A share is given in basis points: 100 basis points is 1%, so 500 is 5% and 2000 is 20%. A share is rounded down to the paisa, and chip rounding is down to the nearest ₹50; nothing ever rounds up. The smallest chip on the floor is ₹50.",
+  "about": "Worked examples for the money rules every lane builds on. Amounts are in rupees, written as a receipt shows them. A share is given in basis points: 100 basis points is 1%, so 500 is 5% and 2000 is 20%. A share is rounded down to the paisa, and chip rounding is down to the nearest ₹50; nothing ever rounds up. The smallest chip on the floor is ₹50. Blinds and bonus chips are counted in chips of ₹1 each: money becomes a whole count of them, part of a chip dropped, never rounded up.",
   "cases": [
     {
       "description": "Normal pot: 5% of ₹10,000 is ₹500.",
@@ -168,6 +168,60 @@
       "description": "No entries are ₹0.",
       "operation": "times",
       "inputs": { "amount": "₹9,000", "count": "0" },
+      "expected": { "result": "₹0" }
+    },
+    {
+      "description": "Normal: ₹5,000 is 5,000 chips of ₹1.",
+      "operation": "paiseToChips",
+      "inputs": {"amount": "₹5,000"},
+      "expected": { "result": "5000" }
+    },
+    {
+      "description": "At the cap: ₹1 crore, the most a bonus may be, is 1,00,00,000 chips.",
+      "operation": "paiseToChips",
+      "inputs": {"amount": "₹1,00,00,000"},
+      "expected": { "result": "10000000" }
+    },
+    {
+      "description": "On the ₹50 boundary: ₹50, the smallest chip paid, is 50 of these.",
+      "operation": "paiseToChips",
+      "inputs": {"amount": "₹50"},
+      "expected": { "result": "50" }
+    },
+    {
+      "description": "Just under it: ₹49.99 is 49 chips, as part of a chip is dropped and nothing rounds up.",
+      "operation": "paiseToChips",
+      "inputs": {"amount": "₹49.99"},
+      "expected": { "result": "49" }
+    },
+    {
+      "description": "Zero: ₹0 is no chips.",
+      "operation": "paiseToChips",
+      "inputs": {"amount": "₹0"},
+      "expected": { "result": "0" }
+    },
+    {
+      "description": "Normal: 5,000 chips are ₹5,000.",
+      "operation": "chipsToPaise",
+      "inputs": {"chips": "5000"},
+      "expected": { "result": "₹5,000" }
+    },
+    {
+      "description": "At the cap: 1,00,00,000 chips are ₹1 crore.",
+      "operation": "chipsToPaise",
+      "inputs": {"chips": "10000000"},
+      "expected": { "result": "₹1,00,00,000" }
+    },
+    {
+      "description": "On the ₹50 boundary: 50 chips are ₹50.",
+      "operation": "chipsToPaise",
+      "inputs": {"chips": "50"},
+      "expected": { "result": "₹50" }
+    },
+    {
+      "description": "Zero: no chips are ₹0.",
+      "operation": "chipsToPaise",
+      "inputs": {"chips": "0"},
       "expected": { "result": "₹0" }
     }
   ]

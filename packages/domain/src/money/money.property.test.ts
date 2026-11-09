@@ -1,7 +1,7 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { add, subtract, sum, times } from './arithmetic.ts';
-import { CHIP, isChipMultiple, roundDownToChip } from './chips.ts';
+import { CHIP, chipsToPaise, isChipMultiple, paiseToChips, roundDownToChip } from './chips.ts';
 import { fromPaise } from './paise.ts';
 import { parseRupees } from './parse-rupees.ts';
 import { shareOf } from './share.ts';
@@ -75,6 +75,24 @@ describe('money properties', () => {
     fc.assert(
       fc.property(nonNegativeAmount, (amount) => {
         expect(parseRupees(asRupeesText(amount))).toEqual({ ok: true, value: amount });
+      }),
+    );
+  });
+
+  it('turns any count of chips into money and back to the same count', () => {
+    fc.assert(
+      fc.property(fc.bigInt({ min: 0n, max: LIMIT }), (chips) => {
+        expect(paiseToChips(chipsToPaise(chips))).toBe(chips);
+      }),
+    );
+  });
+
+  it('never counts up: the chips counted are worth the money, less under one chip', () => {
+    fc.assert(
+      fc.property(nonNegativeAmount, (amount) => {
+        const counted = chipsToPaise(paiseToChips(amount));
+        expect(counted <= amount).toBe(true);
+        expect(amount - counted < 100n).toBe(true);
       }),
     );
   });

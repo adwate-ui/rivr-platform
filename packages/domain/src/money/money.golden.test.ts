@@ -2,7 +2,7 @@ import { assertOperations, casesFor, goldenExpected, goldenInput, readGolden, ty
 import moneyJson from '@rivr/testing/golden/money.json';
 import { describe, expect, it } from 'vitest';
 import { add, subtract, times } from './arithmetic.ts';
-import { isChipMultiple, roundDownToChip } from './chips.ts';
+import { chipsToPaise, isChipMultiple, paiseToChips, roundDownToChip } from './chips.ts';
 import type { Paise } from './paise.ts';
 import { parseRupees } from './parse-rupees.ts';
 import { shareOf } from './share.ts';
@@ -22,7 +22,7 @@ const expected = (goldenCase: GoldenCase) => goldenExpected(goldenCase, 'result'
 describe('money golden fixtures (packages/testing/golden/money.json)', () => {
   it('tests every operation in the file', () => {
     expect(() =>
-      assertOperations(golden, ['share', 'roundDownToChip', 'isChipMultiple', 'add', 'subtract', 'times']),
+      assertOperations(golden, ['share', 'roundDownToChip', 'isChipMultiple', 'add', 'subtract', 'times', 'paiseToChips', 'chipsToPaise']),
     ).not.toThrow();
   });
 
@@ -33,6 +33,14 @@ describe('money golden fixtures (packages/testing/golden/money.json)', () => {
 
   it.each(casesFor(golden, 'roundDownToChip'))('%s', (_description, goldenCase) => {
     expect(roundDownToChip(input(goldenCase, 'amount'))).toBe(amount(expected(goldenCase)));
+  });
+
+  it.each(casesFor(golden, 'paiseToChips'))('%s', (_description, goldenCase) => {
+    expect(paiseToChips(input(goldenCase, 'amount'))).toBe(BigInt(expected(goldenCase)));
+  });
+
+  it.each(casesFor(golden, 'chipsToPaise'))('%s', (_description, goldenCase) => {
+    expect(chipsToPaise(BigInt(goldenInput(goldenCase, 'chips')))).toBe(amount(expected(goldenCase)));
   });
 
   it.each(casesFor(golden, 'isChipMultiple'))('%s', (_description, goldenCase) => {
