@@ -19,6 +19,9 @@ export interface MessageRecipient {
  */
 export type FindRecipient = (venueId: string, memberId: string, offeredPromotionId?: string) => Promise<MessageRecipient | null>;
 
+/** The number kept to say an account is deleted, for that message alone (decision 0574); null once it is forgotten, or for a practice member. */
+export type FindErasedPhone = (venueId: string, memberId: string) => Promise<IndianMobile | null>;
+
 /** The events the WhatsApp consumer sends a message for. */
 export const WHATSAPP_EVENT_TYPES = ['waitlist.called', 'receipt.ready', 'promotion.offered', 'review.requested', 'member.notice'] as const;
 
@@ -79,11 +82,15 @@ function noticeWords(template: string, params: string[]): string[] {
  * refusal's code put in words. A refusal for age has its own text, which sends no one to the desk. A notice claimed long
  * after it happened, as when WhatsApp is switched on, is not sent.
  */
-async function noticeMessage(delivery: ClaimedDelivery, findRecipient: FindRecipient, now: Date): Promise<Result<WhatsAppMessage | null, AdapterFailure>> {
+async function noticeMessage(delivery: ClaimedDelivery, findRecipient: FindRecipient, now: Date, findErasedPhone: FindErasedPhone): Promise<Result<WhatsAppMessage | null, AdapterFailure>> {
   const notice = memberNoticeSchema.safeParse(delivery.payload);
   if (!notice.success) return rejected('member.notice payload is not a notice');
   const age = delivery.occurredAt === undefined ? Number.NaN : now.getTime() - delivery.occurredAt.getTime();
   if (!(age <= freshFor(notice.data.notice))) return ok(HANDLED);
+  if (notice.data.notice === 'account_erased') {
+    const to = await findErasedPhone(delivery.venueId, notice.data.member_id);
+    return to === null ? ok(HANDLED) : ok({ category: 'utility', to, template: 'account_erased', params: [] });
+  }
   const recipient = await findRecipient(delivery.venueId, notice.data.member_id);
   if (!recipient) return rejected('the member is no longer there');
   const { notice: template, params } = notice.data;
@@ -91,7 +98,7 @@ async function noticeMessage(delivery: ClaimedDelivery, findRecipient: FindRecip
   return ok({ category: 'utility', to: recipient.phone, template, params: noticeWords(template, params) });
 }
 
-type MessageBuilder = (delivery: ClaimedDelivery, findRecipient: FindRecipient, now: Date) => Promise<Result<WhatsAppMessage | null, AdapterFailure>>;
+type MessageBuilder = (delivery: ClaimedDelivery, findRecipient: FindRecipient, now: Date, findErasedPhone: FindErasedPhone) => Promise<Result<WhatsAppMessage | null, AdapterFailure>>;
 
 /** The events whose message is built by a function of its own. */
 const BUILDERS: Readonly<Record<string, MessageBuilder>> = {
@@ -104,7 +111,7 @@ const BUILDERS: Readonly<Record<string, MessageBuilder>> = {
  * The template message for a delivery, null when it needs none, or why it cannot be sent. Neither the
  * number nor the payload is ever logged.
  */
-async function messageFor(delivery: ClaimedDelivery, findRecipient: FindRecipient, now: Date): Promise<Result<WhatsAppMessage | null, AdapterFailure>> {
+async function messageFor(delivery: ClaimedDelivery, findRecipient: FindRecipient, now: Date, findErasedPhone: FindErasedPhone): Promise<Result<WhatsAppMessage | null, AdapterFailure>> {
   if (delivery.eventType === 'waitlist.called') {
     const called = waitlistCalledSchema.safeParse(delivery.payload);
     if (!called.success) return rejected('waitlist.called payload is not a seat call');
@@ -124,7 +131,7 @@ async function messageFor(delivery: ClaimedDelivery, findRecipient: FindRecipien
     return { ok: true, value: { category: 'utility', to: recipient.phone, template: 'receipt_ready', params: [amount], urlButton: receipt.data.link } };
   }
   const build = BUILDERS[delivery.eventType];
-  if (build !== undefined) return build(delivery, findRecipient, now);
+  if (build !== undefined) return build(delivery, findRecipient, now, findErasedPhone);
   return rejected(`no WhatsApp message for ${delivery.eventType}`);
 }
 
@@ -135,9 +142,10 @@ async function messageFor(delivery: ClaimedDelivery, findRecipient: FindRecipien
  * events never reach it. Utility messages need no opt-in; a marketing message needs the member's
  * opt-in, which the message type itself requires.
  */
-export function createWhatsAppConsumer({ whatsapp, findRecipient, now = () => new Date() }: {
+export function createWhatsAppConsumer({ whatsapp, findRecipient, findErasedPhone, now = () => new Date() }: {
   whatsapp: WhatsAppAdapter;
   findRecipient: FindRecipient;
+  findErasedPhone: FindErasedPhone;
   /** For tests; the clock by default. */
   now?: () => Date;
 }): Consumer {
@@ -146,7 +154,7 @@ export function createWhatsAppConsumer({ whatsapp, findRecipient, now = () => ne
     eventTypes: WHATSAPP_EVENT_TYPES,
     isMessaging: true,
     async deliver(delivery) {
-      const message = await messageFor(delivery, findRecipient, now());
+      const message = await messageFor(delivery, findRecipient, now(), findErasedPhone);
       if (!message.ok) return message;
       return message.value === HANDLED ? ok(HANDLED) : whatsapp.sendTemplate(message.value);
     },

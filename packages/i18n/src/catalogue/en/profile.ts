@@ -63,8 +63,16 @@ export const profile = {
   nameOnTvs: 'Name on club TVs',
   /** The prototype's "seat number" is not what the TV shows: off, it shows the member's place on the list. */
   nameOnTvsHint: 'Off shows your place instead',
-  /** How a member asks for their personal data to be erased (F3-27): only a super admin erases, at the club. */
-  erasure: 'To erase your data, ask at the front desk.',
+  /** How a member asks to delete their account (#813, decision 0574): a super admin completes it with the erasure. */
+  deleteAccount: 'Delete my account',
+  deleteRequested: 'Requested {date}',
+  deleteWhen: 'RIVR erases your account and its data within 7 days, once nothing is open at the club.',
+  deleteForfeit: 'Your points and bonus chips are forfeited.',
+  deleteKept: 'Play records the law requires are kept, without your name or number.',
+  deleteConfirmed: 'A WhatsApp message confirms it when done.',
+  deleteSend: 'Send request',
+  deleteSent: 'Request sent.',
+  deleteNotSent: 'Not sent. Try again.',
   /** Shown only to a member with an Academy seat, under the heading RIVR Academy. */
   academyBookings: 'Your Academy bookings',
   /** The way to the membership card (#71). */

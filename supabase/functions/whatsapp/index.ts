@@ -2,7 +2,7 @@
 // the receipt-ready notice, through the Evolution bridge for now (decision 0297). pg_cron runs it every minute (decision 0038);
 // a messaging stop holds every send, and practice-venue events never reach it. The member's number
 // is read from the database at send time, for the event's venue only, and never logged.
-import { createWhatsAppConsumer, type FindRecipient } from '@rivr/adapters/messages';
+import { createWhatsAppConsumer, type FindErasedPhone, type FindRecipient } from '@rivr/adapters/messages';
 import { indianMobileSchema } from '@rivr/contracts';
 import { z } from 'zod';
 import { rpc, serveConsumer } from '../_shared/outbox.ts';
@@ -24,12 +24,18 @@ const findRecipient: FindRecipient = async (venueId, memberId, offeredPromotionI
   return { phone: phone.data, marketingOptedInAt: row.marketing_opted_in_at === null ? null : new Date(row.marketing_opted_in_at) };
 };
 
+/** The number kept to say an account is deleted (decision 0574), through the service role only; null once it is forgotten. */
+const findErasedPhone: FindErasedPhone = async (venueId, memberId) => {
+  const phone = indianMobileSchema.safeParse(await rpc('erased_member_notice_phone', { p_venue_id: venueId, p_member_id: memberId }));
+  return phone.success ? phone.data : null;
+};
+
 // Until WhatsApp is approved and its credentials set, nothing is claimed: deliveries wait, and a seat
 // call whose hold has run out by then is handled unsent when it is claimed. WhatsApp gets 10 seconds, not
 // the sign-in hook's 4, so a slow acceptance is not sent twice.
 const whatsapp = liveWhatsApp(10_000);
 Deno.serve(
   whatsapp
-    ? serveConsumer(createWhatsAppConsumer({ whatsapp: fenced(whatsapp), findRecipient }))
+    ? serveConsumer(createWhatsAppConsumer({ whatsapp: fenced(whatsapp), findRecipient, findErasedPhone }))
     : () => Response.json({ error: 'WhatsApp is not configured' }, { status: 503 }),
 );

@@ -47,6 +47,8 @@ The build writes the manifest and a service worker (`vite-plugin-pwa`, `vite.con
 
 The phone app is a Capacitor shell around the player app (decisions 0323, 0361), as the dealer tablet's APK is: a release sets `RIVR_SHELL_URL` to the hosted player app, so code reaches phones without a store update; without it the shell carries `dist/`. It adds one thing a PWA cannot do, the lock-screen live status: Waiting ("Next in line"), Seat ready (the hold counting down, "I'm on my way") and Seated (the call time counting down, "Order"), each counting down by itself to the server's end. The app's own LiveStatus plugin (`android/…/LiveStatusPlugin.java`, `ios/App/App/LiveStatusPlugin.swift`) gives the phone's push token; Profile's "Notifications on this phone" turns it on and off there (`usePhone`), and signing out ends it. The frame opens the page a tapped status names (`NotificationLinks`): Home, `/?accept=<place>` or `/fnb`, nothing else. The `live-status` consumer sends every word.
 
+Both platforms declare the camera for the sign-up selfie (`android.permission.CAMERA`, `NSCameraUsageDescription`), and the shell counts as installed, so it never offers Add to Home Screen.
+
 **Android** (built locally and checked):
 
 ```

@@ -76,6 +76,8 @@ function refresh(queryClient: QueryClient, user: string, venueId: string, member
     queryClient.invalidateQueries({ queryKey: queryKeys.memberSearchAll(user) }),
     queryClient.invalidateQueries({ queryKey: queryKeys.membersOfTierAll(user) }),
     queryClient.invalidateQueries({ queryKey: queryKeys.memberAccountStatuses(user, venueId) }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.memberErasureRequests(user, venueId) }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.staffQueueCounts(user, venueId) }),
   ]);
 }
 
@@ -128,5 +130,53 @@ export function useRemoveErasedKycFiles(venueId: string, memberId: string) {
   return useMutation({
     mutationFn: () => removeKycFiles(client, memberId),
     onSettled: () => refresh(queryClient, userId ?? 'signed-out', venueId, memberId),
+  });
+}
+
+/** One member's open request to delete their account (#813), as a super admin sees it. */
+export interface ErasureRequest {
+  readonly memberId: string;
+  readonly fullName: string;
+  readonly requestedAt: string;
+}
+
+/** The venue's open requests to delete an account, oldest first; none for anyone who does not erase. */
+export function useMemberErasureRequests(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.memberErasureRequests(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<readonly ErasureRequest[]> => {
+      const { data, error } = await client.rpc('member_erasure_requests', { p_venue_id: venueId });
+      if (error) throw error;
+      return data.map((row) => ({ memberId: row.member_id, fullName: row.full_name, requestedAt: row.requested_at }));
+    },
+  });
+}
+
+/** When the signed-in member asked to delete their account, while the request is open; null otherwise. */
+export function useMyErasureRequest() {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.myErasureRequest(userId ?? 'signed-out'),
+    enabled: userId !== null,
+    queryFn: async (): Promise<string | null> => {
+      const { data, error } = await client.rpc('my_erasure_request');
+      if (error) throw error;
+      return data[0]?.requested_at ?? null;
+    },
+  });
+}
+
+/** Files the signed-in member's request to delete their account. Asking again is no fault. */
+export function useRequestMyErasure() {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (): Promise<Result<null, 'unavailable'>> => {
+      const { error } = await client.rpc('request_my_erasure');
+      return error ? err('unavailable') : ok(null);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.myErasureRequest(userId ?? 'signed-out') }),
   });
 }

@@ -33,6 +33,8 @@ const AREA_OF: Readonly<Record<SettingKey, RuleArea>> = {
   'waitlist.priority_weights': 'floor',
   // Under Settings → Floor, as the floor runs the desk's check (the owner, 5 Nov; decision 0502).
   'kyc.at_the_club': 'floor',
+  // Set by the go-live script on the day the store apps go in for review (decision 0575); never on the screen.
+  'auth.store_reviewer': 'system',
   'rake.config': 'rake',
   'dealer.variance_threshold': 'rake',
   'high_hand.payouts': 'rake',

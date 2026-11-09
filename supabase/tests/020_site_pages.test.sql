@@ -9,6 +9,7 @@ set local role anon;
 select results_eq(
   $$ select venue_slug, slug, title, nav_position from public.public_site_page order by venue_slug, slug $$,
   $$ values ('gurugram'::text, 'about'::text, 'About'::text, 1),
+            ('gurugram', 'delete-account', 'Delete your RIVR account', null),
             ('gurugram', 'home', 'RIVR Poker Club', null), ('gurugram', 'house-rules', 'House rules', null),
             ('gurugram', 'journal', 'Journal', 6), ('gurugram', 'journal-bankroll', 'Bankroll basics', null),
             ('gurugram', 'journal-cash-game-tips', 'Cash game tips for the live table', null),

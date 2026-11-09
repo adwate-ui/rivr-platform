@@ -3,12 +3,13 @@
  * Checks a project's Auth settings once its migrations are in (#187, runbook "Auth and API").
  * While phone sign-in is on, a session must come only from a code: the access-token hook on,
  * calling private.require_code_sign_in; phone confirmations on; the email provider off.
- * Test sign-in numbers sign in with a fixed code (#229): production has none, whether phone sign-in
- * is on or not, and staging only the seed's (supabase/seed/).
+ * Test sign-in numbers sign in with a fixed code (#229): production has none but the app stores' reviewer's
+ * (STORE_REVIEWER_NUMBER, decision 0575), whether phone sign-in is on or not, and staging only the seed's (supabase/seed/).
  * `--warn` is staging: a gap is a warning. Otherwise it is production, and a gap fails the release.
  * Needs SUPABASE_ACCESS_TOKEN and PROJECT_REF.
  */
 import { readdirSync, readFileSync } from 'node:fs';
+import { testNumberGaps } from './authConfigGaps.mjs';
 
 const HOOK_URI = 'pg-functions://postgres/private/require_code_sign_in';
 
@@ -27,20 +28,6 @@ const reply = await fetch(`https://api.supabase.com/v1/projects/${ref}/config/au
 if (!reply.ok) throw new Error(`Reading the Auth settings failed: HTTP ${reply.status}`);
 const auth = await reply.json();
 
-/**
- * The numbers in `sms_test_otp` ("919000000101=123456,…"), as digits, or null for an entry that is
- * not number=code. Only a number's last four digits are ever printed: a malformed entry could hold
- * a code, and a number may be a real person's, in a public log.
- */
-function testNumbers(setting) {
-  // A missing or renamed field must not read as "no test numbers" and wave a release through.
-  if (setting !== null && typeof setting !== 'string') throw new Error('Unexpected Auth settings: sms_test_otp is missing or not text');
-  return (setting ?? '')
-    .split(',')
-    .filter((entry) => entry.trim() !== '')
-    .map((entry) => /^\s*\+?(\d{1,15})\s*=\s*\d+\s*$/.exec(entry)?.[1] ?? null);
-}
-
 /** The seed's phone numbers, as Auth writes them: digits only, no plus sign. */
 function seedNumbers() {
   const folder = new URL('../../supabase/seed/', import.meta.url);
@@ -48,12 +35,10 @@ function seedNumbers() {
   return new Set([...seed.matchAll(/'\+(\d{10,15})'/g)].map((match) => match[1]));
 }
 
-const seeded = staging ? seedNumbers() : new Set();
-const gaps = testNumbers(auth.sms_test_otp).flatMap((number) => {
-  if (number === null) return ['a test sign-in entry is not "number=code" (not shown: it may hold a code)'];
-  if (seeded.has(number)) return [];
-  return [`test sign-in number ending ${number.slice(-4)} is listed (${staging ? 'not a seed number' : 'production has none'})`];
-});
+// Production's one exception: the app stores' reviewer (decision 0575), as digits. None until the store apps go in for review.
+const reviewer = (process.env.STORE_REVIEWER_NUMBER ?? '').replace(/\D/g, '');
+const allowed = staging ? seedNumbers() : new Set(reviewer === '' ? [] : [reviewer]);
+const gaps = testNumberGaps(auth.sms_test_otp, { staging, allowed });
 
 // A missing or renamed field must not read as "phone sign-in off" and wave a release through.
 if (typeof auth.external_phone_enabled !== 'boolean') throw new Error('Unexpected Auth settings: external_phone_enabled is missing');

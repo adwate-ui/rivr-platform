@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { useState, useSyncExternalStore } from 'react';
 
 /** Chromium's install prompt, which TypeScript's DOM types do not describe. */
@@ -93,7 +94,9 @@ export function installOfferKind(state: {
   return state.isIphone ? 'ios' : null;
 }
 
+/** Installed already: the store app (decision 0361), or the web app added to the home screen. */
 function isInstalled(): boolean {
+  if (Capacitor.isNativePlatform()) return true;
   const standalone = typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches;
   return standalone || Reflect.get(navigator, 'standalone') === true;
 }

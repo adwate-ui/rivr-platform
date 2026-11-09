@@ -196,7 +196,7 @@ const FOOTER_PLAY: readonly SiteLink[] = [
 const FOOTER_POLICIES: readonly SiteLink[] = [
   { label: 'web.footer.houseRules', page: 'house-rules' }, { label: 'web.footer.legal', page: 'about', anchor: 'legal-and-compliance' },
   { label: 'web.footer.responsiblePlay', page: 'responsible-play' }, { label: 'web.footer.questions', page: 'questions' },
-  { label: 'web.footer.privacy', page: 'privacy' }, { label: 'web.footer.terms', page: 'terms' },
+  { label: 'web.footer.privacy', page: 'privacy' }, { label: 'web.footer.terms', page: 'terms' }, { label: 'web.footer.deleteAccount', page: 'delete-account' },
 ];
 
 /** The footer every page carries: where the club is, its columns of links, the helplines, its 18+ line and copyright (#441, #616). */

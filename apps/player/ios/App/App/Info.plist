@@ -6,6 +6,8 @@
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<key>NSCameraUsageDescription</key>
+	<string>RIVR takes your membership selfie with the camera.</string>
 	<key>CFBundleDisplayName</key>
         <string>RIVR</string>
 	<key>CFBundleExecutable</key>

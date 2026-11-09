@@ -10,6 +10,7 @@ export const rail = {
     idChecks: { one: '1 ID check', other: '{count} ID checks' },
     calls: { one: '1 call to make', other: '{count} calls to make' },
     tickets: { one: '1 open ticket', other: '{count} open tickets' },
+    deletions: { one: '1 deletion request', other: '{count} deletion requests' },
     approvals: { one: '1 awaiting approval', other: '{count} awaiting approval' },
     handOvers: { one: '1 to hand over', other: '{count} to hand over' },
     posts: { one: '1 post waiting', other: '{count} posts waiting' },

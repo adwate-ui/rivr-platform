@@ -68,6 +68,15 @@ export const kycAtTheClub = {
   value: z.strictObject({ enabled: z.boolean() }),
 } as const satisfies SettingDefinition;
 
+/** The one number the app stores' reviewers sign in with (decision 0575). Set on the day the store apps go in for review; none set is none. */
+export const authStoreReviewer = {
+  key: 'auth.store_reviewer',
+  description: 'The one number the app stores\' reviewers sign in with. Set on the day the store apps go in for review. None set is none.',
+  scope: 'venue',
+  superAdminOnly: true,
+  value: z.strictObject({ phone: z.string().regex(/^\+91[6-9][0-9]{9}$/) }),
+} as const satisfies SettingDefinition;
+
 /**
  * The most bonus chips one staff member adds by hand in a club day (the owner, 9 Nov), 10,000 from the start; super admins are not
  * capped, and only they change it. None set is no cap.

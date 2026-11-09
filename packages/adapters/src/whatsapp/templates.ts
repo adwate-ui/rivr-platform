@@ -79,6 +79,12 @@ export const WHATSAPP_TEMPLATES = {
     body: 'RIVR: {{1}} has moved. It now starts {{2}}.',
     urlButton: false,
   },
+  // A member's own request to delete their account, once a super admin has completed it (decision 0574).
+  account_erased: {
+    category: 'utility',
+    body: 'RIVR: your account is deleted, as you asked.',
+    urlButton: false,
+  },
   promotion: {
     category: 'marketing',
     // Meta refuses a body that is mostly a parameter. Opting out is Profile's Offers switch, until #154 reads replies.
