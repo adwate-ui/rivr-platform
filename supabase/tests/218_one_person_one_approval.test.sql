@@ -87,5 +87,8 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select is((select count(*)::integer from public.staff_shift), 0, 'and none once her access is revoked');
 reset role;
 
+select alike(pg_get_functiondef('private.staff_guard()'::regprocedure), '%''control:''%',
+  'turning a super admin off waits on the kill switch''s lock, so the two cannot race past the floor of two');
+
 select * from finish();
 rollback;
