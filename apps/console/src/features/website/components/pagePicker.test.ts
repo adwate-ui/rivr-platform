@@ -2,7 +2,7 @@ import type { EditorPage } from '@rivr/db/siteEditor';
 import { describe, expect, it } from 'vitest';
 import { pageGroups, pageLabel } from './pagePicker.ts';
 
-const page = (slug: string, title: string): EditorPage => ({ pageId: `id-${slug}`, slug, title });
+const page = (slug: string, title: string): EditorPage => ({ pageId: `id-${slug}`, slug, title, pending: null });
 
 /** The pages the seed gives the club, by address, as the editor reads them. */
 const PAGES = [
@@ -32,5 +32,14 @@ describe('the website’s page picker', () => {
     expect(pageGroups(PAGES, 'RULES').flatMap((group) => group.items.map((item) => item.title))).toEqual(['House rules']);
     expect(pageGroups(PAGES, 'bankroll').map((group) => group.label)).toEqual(['Guides']);
     expect(pageGroups(PAGES, 'nothing like it')).toEqual([]);
+  });
+
+  it('marks a page with a draft or a scheduled publish (F-029)', () => {
+    const [club] = pageGroups([
+      { pageId: 'a', slug: 'about', title: 'About', pending: 'draft' },
+      { pageId: 'b', slug: 'careers', title: 'Careers', pending: 'scheduled' },
+      { pageId: 'c', slug: 'contact', title: 'Contact', pending: null },
+    ], '');
+    expect(club?.items.map((item) => item.detail)).toEqual(['Draft', 'Scheduled', undefined]);
   });
 });

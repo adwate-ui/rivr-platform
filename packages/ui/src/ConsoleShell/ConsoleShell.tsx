@@ -1,6 +1,7 @@
 import { t } from '@rivr/i18n';
 import type { ReactNode } from 'react';
 import { cx } from '../internal/classes.ts';
+import { CONSOLE_MAIN_TOP } from '../internal/consoleMain.ts';
 import { ConsoleFrameContext } from '../internal/consoleFrame.ts';
 import type { Navigate } from '../internal/navigation.ts';
 import { MAIN_ID, SkipLink } from '../internal/SkipLink.tsx';
@@ -84,7 +85,7 @@ export function ConsoleShell(props: ConsoleShellProps) {
               a screen's visually hidden text stays inside it rather than lengthening the page. A focused control scrolls 64 px
               clear of its top, under which a table's header row (about 45 px) or the bulk bar (48 px, 60 below 1180 px) stays
               (WCAG 2.4.11). */}
-          <main id={MAIN_ID} tabIndex={0} className={cx('relative min-h-0 flex-1 scroll-pt-16 overflow-y-auto', props.isFullBleed !== true && 'px-4 pt-7 pb-10 medium:px-8')}>
+          <main id={MAIN_ID} tabIndex={0} className={cx('relative min-h-0 flex-1 scroll-pt-16 overflow-y-auto', props.isFullBleed !== true && `px-4 ${CONSOLE_MAIN_TOP} pb-10 medium:px-8`)}>
             <ConsoleFrameContext value>{props.children}</ConsoleFrameContext>
           </main>
         </div>

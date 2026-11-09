@@ -7,13 +7,13 @@ import { useState } from 'react';
 import { useForm, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
 
-type ListingValues = z.input<typeof publishTournamentSchema>;
-type ListingForm = UseFormReturn<ListingValues, unknown, z.output<typeof publishTournamentSchema>>;
+export type ListingValues = z.input<typeof publishTournamentSchema>;
+export type ListingForm = UseFormReturn<ListingValues, unknown, z.output<typeof publishTournamentSchema>>;
 
 const EMPTY: ListingValues = { name: '', day: '', time: '', game: '', stake: '', description: '' };
 
 /** The name, the IST day and start, the game and stake as text, and a description: no field for money. */
-function Fields({ form }: { form: ListingForm }) {
+export function ListingFields({ form }: { form: ListingForm }) {
   const errors = form.formState.errors;
   const fields = {
     name: form.register('name'), day: form.register('day'), time: form.register('time'), game: form.register('game'),
@@ -59,7 +59,7 @@ export function PublishTournament({ venueId }: { venueId: string }) {
   return (
     <Stack gap={4}>
       <Heading level={2}>{t('console.tournamentInterest.publish.heading')}</Heading>
-      <Fields form={form} />
+      <ListingFields form={form} />
       <Inline gap={4} align="center">
         <Button variant="primary" isLoading={publish.isPending} onClick={() => void submit()}>{t('console.tournamentInterest.publish.publish')}</Button>
         <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>

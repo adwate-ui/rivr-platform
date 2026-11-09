@@ -4005,14 +4005,14 @@ isOneToOne: false
                   ]
                 },"tournament": {
                   Row: {
-                    "add_on_chips": number | null,"add_on_fee_paise": number | null,"add_on_paise": number | null,"bounty_kind": string | null,"bounty_paise": number | null,"buy_in_paise": number | null,"clock_paused_at": string | null,"clock_shift": string,"clock_started_at": string | null,"created_at": string,"day_two_id": string | null,"deal_method": string | null,"deal_stacks": Json | null,"description": string | null,"fee_paise": number,"finished_at": string | null,"format": string,"game": string | null,"guarantee_paise": number | null,"id": string,"is_published": boolean,"last_registration_level": number,"levels": Json | null,"max_buys": number | null,"name": string,"overlay_paise": number | null,"payout_shares": (number)[] | null,"places_paid": number | null,"satellite_target_id": string | null,"seats_per_table": number,"stake": string | null,"starting_stack": number | null,"starts_at": string,"tables": number,"template_id": string | null,"updated_at": string,"venue_id": string
+                    "add_on_chips": number | null,"add_on_fee_paise": number | null,"add_on_paise": number | null,"bounty_kind": string | null,"bounty_paise": number | null,"buy_in_paise": number | null,"clock_paused_at": string | null,"clock_shift": string,"clock_started_at": string | null,"created_at": string,"day_two_id": string | null,"deal_method": string | null,"deal_stacks": Json | null,"description": string | null,"fee_paise": number,"finished_at": string | null,"format": string,"game": string | null,"guarantee_paise": number | null,"id": string,"is_published": boolean,"last_registration_level": number,"levels": Json | null,"max_buys": number | null,"name": string,"overlay_paise": number | null,"payout_shares": (number)[] | null,"places_paid": number | null,"satellite_target_id": string | null,"seats_per_table": number,"stake": string | null,"starting_stack": number | null,"starts_at": string,"tables": number,"template_id": string | null,"updated_at": string,"venue_id": string,"withdrawn_at": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"bounty_kind"?: string | null,"bounty_paise"?: number | null,"buy_in_paise"?: number | null,"clock_paused_at"?: string | null,"clock_shift"?: string,"clock_started_at"?: string | null,"created_at"?: string,"day_two_id"?: string | null,"deal_method"?: string | null,"deal_stacks"?: Json | null,"description"?: string | null,"fee_paise"?: number,"finished_at"?: string | null,"format"?: string,"game"?: string | null,"guarantee_paise"?: number | null,"id"?: string,"is_published"?: boolean,"last_registration_level"?: number,"levels"?: Json | null,"max_buys"?: number | null,"name": string,"overlay_paise"?: number | null,"payout_shares"?: (number)[] | null,"places_paid"?: number | null,"satellite_target_id"?: string | null,"seats_per_table"?: number,"stake"?: string | null,"starting_stack"?: number | null,"starts_at": string,"tables"?: number,"template_id"?: string | null,"updated_at"?: string,"venue_id": string
+                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"bounty_kind"?: string | null,"bounty_paise"?: number | null,"buy_in_paise"?: number | null,"clock_paused_at"?: string | null,"clock_shift"?: string,"clock_started_at"?: string | null,"created_at"?: string,"day_two_id"?: string | null,"deal_method"?: string | null,"deal_stacks"?: Json | null,"description"?: string | null,"fee_paise"?: number,"finished_at"?: string | null,"format"?: string,"game"?: string | null,"guarantee_paise"?: number | null,"id"?: string,"is_published"?: boolean,"last_registration_level"?: number,"levels"?: Json | null,"max_buys"?: number | null,"name": string,"overlay_paise"?: number | null,"payout_shares"?: (number)[] | null,"places_paid"?: number | null,"satellite_target_id"?: string | null,"seats_per_table"?: number,"stake"?: string | null,"starting_stack"?: number | null,"starts_at": string,"tables"?: number,"template_id"?: string | null,"updated_at"?: string,"venue_id": string,"withdrawn_at"?: string | null
                   }
                   Update: {
-                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"bounty_kind"?: string | null,"bounty_paise"?: number | null,"buy_in_paise"?: number | null,"clock_paused_at"?: string | null,"clock_shift"?: string,"clock_started_at"?: string | null,"created_at"?: string,"day_two_id"?: string | null,"deal_method"?: string | null,"deal_stacks"?: Json | null,"description"?: string | null,"fee_paise"?: number,"finished_at"?: string | null,"format"?: string,"game"?: string | null,"guarantee_paise"?: number | null,"id"?: string,"is_published"?: boolean,"last_registration_level"?: number,"levels"?: Json | null,"max_buys"?: number | null,"name"?: string,"overlay_paise"?: number | null,"payout_shares"?: (number)[] | null,"places_paid"?: number | null,"satellite_target_id"?: string | null,"seats_per_table"?: number,"stake"?: string | null,"starting_stack"?: number | null,"starts_at"?: string,"tables"?: number,"template_id"?: string | null,"updated_at"?: string,"venue_id"?: string
+                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"bounty_kind"?: string | null,"bounty_paise"?: number | null,"buy_in_paise"?: number | null,"clock_paused_at"?: string | null,"clock_shift"?: string,"clock_started_at"?: string | null,"created_at"?: string,"day_two_id"?: string | null,"deal_method"?: string | null,"deal_stacks"?: Json | null,"description"?: string | null,"fee_paise"?: number,"finished_at"?: string | null,"format"?: string,"game"?: string | null,"guarantee_paise"?: number | null,"id"?: string,"is_published"?: boolean,"last_registration_level"?: number,"levels"?: Json | null,"max_buys"?: number | null,"name"?: string,"overlay_paise"?: number | null,"payout_shares"?: (number)[] | null,"places_paid"?: number | null,"satellite_target_id"?: string | null,"seats_per_table"?: number,"stake"?: string | null,"starting_stack"?: number | null,"starts_at"?: string,"tables"?: number,"template_id"?: string | null,"updated_at"?: string,"venue_id"?: string,"withdrawn_at"?: string | null
                   }
                   Relationships: [
                     {
@@ -5075,6 +5075,9 @@ isOneToOne: false
               "drop_paise": number,"hand_id": string,"is_cap_applied": boolean,"played_at": string,"pot_paise": number,"rake_paise": number,"variant": Database["public"]['Enums']["hand_variant"]
             }[]
                            },
+"edit_published_tournament":
+{ Args: { "p_description": string,"p_game": string,"p_name": string,"p_stake": string,"p_starts_at": string,"p_tournament_id": string }; Returns: undefined
+                           },
 "end_down":
 { Args: { "p_drop_box_paise": number }; Returns: {
               "logged_paise": number,"variance_paise": number
@@ -5721,6 +5724,14 @@ isOneToOne: false
                            },
 "publish_tournament":
 { Args: { "p_description": string,"p_game": string,"p_name": string,"p_stake": string,"p_starts_at": string,"p_venue_id": string }; Returns: string
+                           },
+"publish_tournament_again":
+{ Args: { "p_tournament_id": string }; Returns: undefined
+                           },
+"published_tournaments":
+{ Args: { "p_venue_id": string }; Returns: {
+              "description": string,"game": string,"has_started": boolean,"interested": number,"is_published": boolean,"name": string,"registered": number,"stake": string,"starts_at": string,"tournament_id": string
+            }[]
                            },
 "purge_files_done":
 { Args: { "p_failed": number,"p_removed": (string)[],"p_venue_id": string }; Returns: number
@@ -6495,6 +6506,9 @@ isOneToOne: false
                            },
 "withdraw_early_departure":
 { Args: { "p_early_departure_id": string,"p_reason": string }; Returns: undefined
+                           },
+"withdraw_tournament":
+{ Args: { "p_tournament_id": string }; Returns: undefined
                            }
           }
           Enums: {

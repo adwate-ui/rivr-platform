@@ -1,7 +1,19 @@
 /** The floor's Tournament interest screen (#636): who registered interest in each upcoming tournament from the app. */
 export const tournamentInterest = {
   title: 'Tournament interest',
-  empty: 'No one has registered interest in an upcoming tournament.',
+  empty: 'No tournament is published.',
+  /** On a published tournament's card (F-027): `{name}` is the tournament. */
+  edit: 'Edit',
+  editName: 'Edit {name}',
+  save: 'Save changes',
+  cancelEdit: 'Cancel',
+  withdraw: 'Withdraw',
+  withdrawName: 'Withdraw {name}',
+  withdrawConfirm: 'Yes, withdraw it',
+  /** On a card once withdrawn: members no longer see it. */
+  withdrawn: 'Withdrawn',
+  publishAgain: 'Publish again',
+  publishAgainName: 'Publish {name} again',
   /** A tournament and when it starts: `RIVR Sunday · Sun 15 Nov, 16:00`. */
   tournament: '{name} · {when}',
   /** A member who asked: `Mihir Shah · No. 1213`. */
@@ -17,7 +29,7 @@ export const tournamentInterest = {
   undoFailed: 'Not taken back. The list now shows it.',
   failures: {
     not_allowed: 'Your role does not register players. The floor does.',
-    invalid: 'Registered already. The list now shows it.',
+    invalid: 'Not marked. The list now shows why.',
     paused: 'Venue frozen. Try again once it is released.',
     unavailable: 'That did not go through. Check the connection and try again.',
   },

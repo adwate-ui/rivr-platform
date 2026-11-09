@@ -23,14 +23,27 @@ export const website = {
   },
   /** `Title 2`: the second in a list. */
   fieldNumber: '{field} {number}',
+  /** What each item of a list is, over its fields: `Question 1` (F-040). */
+  items: { cards: 'Card', questions: 'Question', roles: 'Role', figures: 'Figure', links: 'Link', items: 'Item' },
+  /** A figure's two fields, numbered in their own names, so tabbing through them never hears the same two (F-094). */
+  figureLabel: 'Figure {number} label',
+  figureValue: 'Figure {number} value',
   fields: {
-    eyebrow: 'Eyebrow', heading: 'Heading', text: 'Text', note: 'Note', body: 'Body', intro: 'Introduction', title: 'Title', label: 'Label',
+    eyebrow: 'Line above heading', heading: 'Heading', text: 'Text', note: 'Note', body: 'Body', intro: 'Introduction', title: 'Title', label: 'Label',
     alt: 'Picture description', quote: 'Quote', question: 'Question', answer: 'Answer', apply: 'How to apply', address: 'Address', hours: 'Hours',
     value: 'Figure', phone: 'Phone', email: 'Email', when: 'When', lines: 'Line', points: 'Point', rules: 'Rule', phrases: 'Phrase',
-    paragraphs: 'Paragraph',
+    paragraphs: 'Paragraph', linkLabel: 'Link label', actionLabel: 'Button label',
   },
   save: 'Save draft',
   saved: 'Draft saved.',
+  /** Beside the actions (F-029): `{time}` is 2 min. */
+  savedAgo: 'Saved {time} ago',
+  savedJustNow: 'Saved just now',
+  /** The fields or the preview. */
+  view: 'View',
+  viewEdit: 'Edit',
+  viewPreview: 'Preview',
+  publishLater: 'Publish later',
   publish: 'Publish now',
   published: 'Published.',
   publishOn: 'Publish on',

@@ -26,7 +26,7 @@ test.describe('Tournament interest', () => {
     await expect(floor.getByRole('heading', { name: 'New tournament' })).toBeVisible();
     await expect(floor.getByLabel(/buy-in|prize|guarantee/i)).toHaveCount(0);
     await floor.getByRole('textbox', { name: 'Name' }).fill(name);
-    await floor.getByLabel('Day').fill(dayAfterTomorrow());
+    await floor.getByLabel('Day', { exact: true }).fill(dayAfterTomorrow());
     await floor.getByRole('textbox', { name: 'Start time' }).fill('16:00');
     await floor.getByRole('textbox', { name: 'Game' }).fill('No-limit hold’em');
     await floor.getByRole('textbox', { name: 'Stake' }).fill('25,000 chips');
@@ -55,6 +55,17 @@ test.describe('Tournament interest', () => {
     await expect(card.getByRole('button', { name: 'Mark Ajay Dhillon registered' })).toBeVisible();
     await card.getByRole('button', { name: 'Mark Ajay Dhillon registered' }).click();
     await expect(card.getByText('Registered', { exact: true })).toBeVisible();
+
+    // Withdrawn, it stays on the list with who registered, members no longer see it, and it can be published again (F-027).
+    await card.getByRole('button', { name: `Withdraw ${name}` }).click();
+    await card.getByRole('button', { name: 'Yes, withdraw it' }).click();
+    await expect(card.getByText('Withdrawn', { exact: true })).toBeVisible();
+    await expect(card.getByText('Registered', { exact: true })).toBeVisible();
+    await member.reload();
+    await expect(member.getByRole('heading', { name: 'Tournaments', exact: true })).toBeVisible();
+    await expect(member.getByText(name, { exact: true })).toHaveCount(0);
+    await card.getByRole('button', { name: `Publish ${name} again` }).click();
+    await expect(card.getByText('Withdrawn', { exact: true })).toHaveCount(0);
 
     await member.reload();
     await expect(member.getByText(name, { exact: true }).locator('xpath=../..').getByText('Registered', { exact: true })).toBeVisible();
