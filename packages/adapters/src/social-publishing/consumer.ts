@@ -41,7 +41,8 @@ export function createSocialPublishConsumer({ publishing, find, record }: {
   return {
     name: 'social_publish',
     eventTypes: SOCIAL_PUBLISH_EVENT_TYPES,
-    isMessaging: false,
+    // A messaging stop holds social posts, as a freeze does (the owner, 9 Nov, #690).
+    isMessaging: true,
     async deliver(delivery) {
       const event = publishedSchema.safeParse(delivery.payload);
       if (!event.success) return { ok: false, error: { code: 'rejected', reason: 'social.post_published payload is not readable' } };
