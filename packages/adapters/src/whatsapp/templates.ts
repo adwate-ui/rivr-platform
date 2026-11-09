@@ -68,6 +68,17 @@ export const WHATSAPP_TEMPLATES = {
     body: 'RIVR: you are free to go from {{1}}, seat {{2}}. Thank you for playing.',
     urlButton: false,
   },
+  // A tournament the member asked about or is registered for (the owner, 9 Nov): {{2}} is its new day and time.
+  tournament_withdrawn: {
+    category: 'utility',
+    body: 'RIVR: {{1}} will not run. If you have paid for a place, ask at the desk.',
+    urlButton: false,
+  },
+  tournament_moved: {
+    category: 'utility',
+    body: 'RIVR: {{1}} has moved. It now starts {{2}}.',
+    urlButton: false,
+  },
   promotion: {
     category: 'marketing',
     // Meta refuses a body that is mostly a parameter. Opting out is Profile's Offers switch, until #154 reads replies.

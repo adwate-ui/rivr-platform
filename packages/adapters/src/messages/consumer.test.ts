@@ -37,6 +37,29 @@ describe('the WhatsApp consumer', () => {
     expect(whatsapp.calls).toEqual(notices.map(({ notice, params }) => ({ category: 'utility', to: phone, template: notice, params })));
   });
 
+  it('tells a member a tournament is withdrawn, or has moved, with its new day and time in words (the owner, 9 Nov)', async () => {
+    const whatsapp = createFakeWhatsApp();
+    const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, now });
+    await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'tournament_withdrawn', params: ['Sunday Cup'] }, now()));
+    await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'tournament_moved', params: ['Sunday Cup', '2026-11-22T13:30:00+00:00'] }, now()));
+    expect(whatsapp.calls.map((call) => [call.category, call.template, call.params])).toEqual([
+      ['utility', 'tournament_withdrawn', ['Sunday Cup']], ['utility', 'tournament_moved', ['Sunday Cup', 'Sun 22 Nov, 19:00']],
+    ]);
+  });
+
+  it('keeps a tournament notice worth sending for two days: a withdrawn one has left the list, so the app does not say so', async () => {
+    const hoursAgo = (hours: number) => new Date(now().getTime() - hours * 60 * 60 * 1000);
+    const whatsapp = createFakeWhatsApp();
+    const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, now });
+    const withdrawn = { member_id: MEMBER, notice: 'tournament_withdrawn', params: ['Sunday Cup'] };
+    await consumer.deliver(delivery('member.notice', withdrawn, hoursAgo(47)));
+    expect(whatsapp.calls).toHaveLength(1);
+    await consumer.deliver(delivery('member.notice', withdrawn, hoursAgo(49)));
+    expect(whatsapp.calls).toHaveLength(1);
+    await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'kyc_verified', params: [] }, hoursAgo(7)));
+    expect(whatsapp.calls).toHaveLength(1);
+  });
+
   it('puts a refusal in words by its code, never a reviewer\u2019s note', async () => {
     const whatsapp = createFakeWhatsApp();
     const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, now });

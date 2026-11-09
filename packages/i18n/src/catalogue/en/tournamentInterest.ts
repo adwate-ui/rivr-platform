@@ -31,6 +31,7 @@ export const tournamentInterest = {
     not_allowed: 'Your role does not register players. The floor does.',
     invalid: 'Not marked. The list now shows why.',
     paused: 'Venue frozen. Try again once it is released.',
+    too_often: 'Too many changes in an hour. Try again later.',
     unavailable: 'That did not go through. Check the connection and try again.',
   },
   /** A tournament published without money (#800; decision 0441): members see it in the app at once. */
@@ -56,6 +57,7 @@ export const tournamentInterest = {
       not_allowed: 'Not in your role. Ask an admin.',
       invalid: 'Not published. Choose a start still to come.',
       paused: 'Venue frozen. Try again once it is released.',
+      too_often: 'Members were told of this three times in the last hour. Try again later.',
       unavailable: 'Not sent. Try again.',
     },
   },

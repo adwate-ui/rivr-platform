@@ -85,6 +85,7 @@ export const tonight = {
   standing: { none: 'Not registered', interested: 'Interest registered', registered: 'Registered' },
   payAtTheClub: 'Pay at the club, and the floor registers you.',
   interestFailures: {
+    too_often: 'Too many tries. Try again later.',
     not_allowed: 'Tournament registration is not open to you.',
     invalid: 'That tournament is no longer coming up.',
     paused: 'The club is paused. Try again later.',

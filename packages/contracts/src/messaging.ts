@@ -109,7 +109,7 @@ export const bonusRedeemedSchema = z.object({
  * The notices a member hears of by WhatsApp while away from the app (decision 0303): an identity check verified, waiting for
  * review or refused; a reward cancelled; a seat on the leaving list released.
  */
-export const MEMBER_NOTICES = ['kyc_verified', 'kyc_in_review', 'kyc_refused', 'reward_cancelled', 'seat_released'] as const;
+export const MEMBER_NOTICES = ['kyc_verified', 'kyc_in_review', 'kyc_refused', 'reward_cancelled', 'seat_released', 'tournament_withdrawn', 'tournament_moved'] as const;
 
 /**
  * A notice's word: one line of plain text, never a link nor WhatsApp's formatting marks, so nothing typed into the club's
@@ -120,9 +120,11 @@ const noticeWordSchema = z.string().trim().min(1).max(120)
   .refine((word) => !/https?:\/\/|www\./i.test(word));
 export type MemberNotice = (typeof MEMBER_NOTICES)[number];
 
-/** member.notice: the member, the notice and its words, in the template's order: a refusal's code; a reward's name; the table and seat released. */
+/** member.notice: the member, the notice and its words, in the template's order: a refusal's code; a reward's name; the table and seat released; a tournament's name and, moved, its new start. */
 export const memberNoticeSchema = z.object({
   member_id: z.uuid(),
+  /** A tournament's notice: which, so one change's push replaces only its own. */
+  tournament_id: z.uuid().optional(),
   notice: z.enum(MEMBER_NOTICES),
   params: z.array(noticeWordSchema).max(2),
 });

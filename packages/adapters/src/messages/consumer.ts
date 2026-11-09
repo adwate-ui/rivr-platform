@@ -1,7 +1,7 @@
 import {
   err, memberNoticeSchema, ok, promotionOfferedSchema, receiptReadySchema, reviewRequestedSchema, waitlistCalledSchema, type IndianMobile, type Result,
 } from '@rivr/contracts';
-import { formatMoney, formatTime } from '@rivr/i18n';
+import { formatDayTime, formatMoney, formatTime } from '@rivr/i18n';
 import type { ClaimedDelivery, Consumer } from '../outbox/index.ts';
 import type { AdapterFailure } from '../shared/failure.ts';
 import type { WhatsAppAdapter, WhatsAppMessage } from '../whatsapp/types.ts';
@@ -54,6 +54,9 @@ async function reviewMessage(delivery: ClaimedDelivery, findRecipient: FindRecip
 
 /** A notice older than this, or of no known time, is not sent: the member has long since seen it in the app (decision 0303). */
 const NOTICE_FRESH_MS = 6 * 60 * 60 * 1000;
+/** A tournament's notice stays worth sending for two days: a withdrawn one has left the list, so the app does not say so. */
+const TOURNAMENT_NOTICE_FRESH_MS = 48 * 60 * 60 * 1000;
+const freshFor = (notice: string) => (notice.startsWith('tournament_') ? TOURNAMENT_NOTICE_FRESH_MS : NOTICE_FRESH_MS);
 
 /** A refusal's code in the member's words, before the template's "Bring your Aadhaar and PAN"; an unknown code, the plainest. */
 const REFUSED_BECAUSE: Readonly<Record<string, string>> = {
@@ -64,6 +67,13 @@ const REFUSED_BECAUSE: Readonly<Record<string, string>> = {
 };
 const REFUSED_OTHERWISE = 'your details could not be confirmed';
 
+/** A notice's words as its template takes them: a refusal's code in the member's words, a tournament's new start as a day and time. */
+function noticeWords(template: string, params: string[]): string[] {
+  if (template === 'kyc_refused') return [REFUSED_BECAUSE[params[0] ?? ''] ?? REFUSED_OTHERWISE];
+  if (template === 'tournament_moved') return [params[0] ?? '', formatDayTime(new Date(params[1] ?? ''))];
+  return params;
+}
+
 /**
  * What a member hears of while away from the app (decision 0303): a utility message in the notice's own template, the
  * refusal's code put in words. A refusal for age has its own text, which sends no one to the desk. A notice claimed long
@@ -73,13 +83,12 @@ async function noticeMessage(delivery: ClaimedDelivery, findRecipient: FindRecip
   const notice = memberNoticeSchema.safeParse(delivery.payload);
   if (!notice.success) return rejected('member.notice payload is not a notice');
   const age = delivery.occurredAt === undefined ? Number.NaN : now.getTime() - delivery.occurredAt.getTime();
-  if (!(age <= NOTICE_FRESH_MS)) return ok(HANDLED);
+  if (!(age <= freshFor(notice.data.notice))) return ok(HANDLED);
   const recipient = await findRecipient(delivery.venueId, notice.data.member_id);
   if (!recipient) return rejected('the member is no longer there');
   const { notice: template, params } = notice.data;
   if (template === 'kyc_refused' && params[0] === 'under_18') return ok({ category: 'utility', to: recipient.phone, template: 'kyc_under_age', params: [] });
-  const words = template === 'kyc_refused' ? [REFUSED_BECAUSE[params[0] ?? ''] ?? REFUSED_OTHERWISE] : params;
-  return ok({ category: 'utility', to: recipient.phone, template, params: words });
+  return ok({ category: 'utility', to: recipient.phone, template, params: noticeWords(template, params) });
 }
 
 type MessageBuilder = (delivery: ClaimedDelivery, findRecipient: FindRecipient, now: Date) => Promise<Result<WhatsAppMessage | null, AdapterFailure>>;

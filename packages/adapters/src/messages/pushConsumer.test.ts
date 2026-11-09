@@ -40,8 +40,34 @@ describe('the push consumer', () => {
     const consumer = createPushConsumer({ push: createFakePush(), ...members([]), now });
     expect([consumer.name, consumer.isMessaging, consumer.eventTypes]).toEqual([
       'push', true, ['waitlist.called', 'call_time.ending', 'call_time.completed', 'session.reminder', 'withdrawal.sent', 'tournament.starting', 'promotion.offered',
-        'bonus.credited', 'bonus.redeemed'],
+        'bonus.credited', 'bonus.redeemed', 'member.notice'],
     ]);
+  });
+
+  it('tells a member a tournament is withdrawn or has moved, under their tournament notifications; other notices stay with WhatsApp', async () => {
+    const withdrawn = await sendOne('member.notice', { member_id: MEMBER, tournament_id: OTHER, notice: 'tournament_withdrawn', params: ['Sunday Cup'] });
+    expect(withdrawn.sent).toEqual([{ title: 'Sunday Cup will not run', body: 'It is withdrawn. If you have paid for a place, ask at the desk.', url: '/', tag: `tournament-notice-${OTHER}` }]);
+    expect(withdrawn.asked).toEqual(['push.tournament_starting']);
+    const moved = await sendOne('member.notice', { member_id: MEMBER, tournament_id: OTHER, notice: 'tournament_moved', params: ['Sunday Cup', '2026-11-22T13:30:00+00:00'] });
+    expect(moved.sent).toEqual([{ title: 'Sunday Cup has moved', body: 'It now starts Sun 22 Nov, 19:00.', url: '/', tag: `tournament-notice-${OTHER}` }]);
+    expect(moved.asked).toEqual(['push.tournament_starting']);
+    const other = await sendOne('member.notice', { member_id: MEMBER, notice: 'seat_released', params: ['Table 3', '4'] });
+    expect([other.outcome.ok, other.sent]).toEqual([true, []]);
+  });
+
+  it('pushes no tournament notice to a member who turned those off, keeps one worth sending for two days, and leaves an unreadable notice to WhatsApp', async () => {
+    const hoursAgo = (hours: number) => new Date(now().getTime() - hours * 60 * 60 * 1000);
+    const payload = { member_id: MEMBER, tournament_id: OTHER, notice: 'tournament_withdrawn', params: ['Sunday Cup'] };
+    const turnedOff = createFakePush();
+    await createPushConsumer({ push: turnedOff, ...members([phone('a')], ['push.tournament_starting']), now }).deliver(delivery('member.notice', payload));
+    expect(turnedOff.calls).toEqual([]);
+    const push = createFakePush();
+    const consumer = createPushConsumer({ push, ...members([phone('a')]), now });
+    await consumer.deliver(delivery('member.notice', payload, hoursAgo(47)));
+    expect(push.calls).toHaveLength(1);
+    await consumer.deliver(delivery('member.notice', payload, hoursAgo(49)));
+    expect(push.calls).toHaveLength(1);
+    expect((await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'reward_cancelled', params: ['a*b'] }))).ok).toBe(true);
   });
 
   it('tells the member of bonus chips added and used, under the Bonus chips switch, opening Rewards (decision 0504)', async () => {

@@ -43,7 +43,7 @@ export const profile = {
   withdrawals: 'Withdrawals',
   withdrawalsHint: 'When a withdrawal is sent.',
   tournamentStarts: 'Tournaments',
-  tournamentStartsHint: 'When a tournament starts',
+  tournamentStartsHint: 'When a tournament starts, moves or is withdrawn',
   /** Bonus chips added or used (decision 0504). */
   bonusChips: 'Bonus chips',
   bonusChipsHint: 'When bonus chips are added or used',

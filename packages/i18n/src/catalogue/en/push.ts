@@ -30,6 +30,15 @@ export const push = {
     title: '{name} is starting',
     body: 'The clock has started. Take your seat.',
   },
+  /** A tournament the member asked about or is registered for (the owner, 9 Nov). `{when}` is `Sun 22 Nov, 19:00`. */
+  tournamentWithdrawn: {
+    title: '{name} will not run',
+    body: 'It is withdrawn. If you have paid for a place, ask at the desk.',
+  },
+  tournamentMoved: {
+    title: '{name} has moved',
+    body: 'It now starts {when}.',
+  },
   /** Bonus chips added (decision 0504): `500 bonus chips · Welcome bonus`. */
   bonusCredited: {
     title: 'Bonus chips added',
