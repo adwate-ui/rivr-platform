@@ -7,7 +7,7 @@ afterEach(cleanup);
 
 /** A request with no page to show, from a visitor who arrived by a friend's link. */
 function missing(status: 404 | 503): SiteView {
-  return { status, title: '', description: null, page: null, attribution: { referral: 'FRIEND1' }, playerUrl: 'https://player.invalid' };
+  return { status, title: '', description: null, structuredData: null, page: null, attribution: { referral: 'FRIEND1' }, playerUrl: 'https://player.invalid' };
 }
 
 describe('the website without a page to show', () => {

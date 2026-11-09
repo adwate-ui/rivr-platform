@@ -7,6 +7,6 @@ const view = await loadPage('home', Astro.url);
 Astro.response.status = view.status;
 ---
 
-<Document title={view.title} description={view.description}>
+<Document title={view.title} description={view.description} structuredData={view.structuredData}>
   <Website view={view} />
 </Document>

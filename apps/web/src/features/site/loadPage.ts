@@ -3,6 +3,7 @@ import { attributionFrom, type Attribution } from '@rivr/contracts';
 import { t } from '@rivr/i18n';
 import { createRivrClient } from '@rivr/db';
 import { fetchSitePage, fetchSitePreview, type SitePage } from '@rivr/db/site';
+import { documentTitle, localBusiness } from './documentHead.ts';
 
 /** What one request to the website renders: the page, or why there is none. */
 export interface SiteView {
@@ -10,6 +11,8 @@ export interface SiteView {
   readonly status: 200 | 404 | 503;
   readonly title: string;
   readonly description: string | null;
+  /** The club as data for search engines, ready for its script; null for a page that has none. */
+  readonly structuredData: string | null;
   readonly page: SitePage | null;
   /** The codes of the link the visitor arrived by, carried on every link, even from a missing page. */
   readonly attribution: Attribution | null;
@@ -22,14 +25,14 @@ export interface SiteView {
  * address the website does not have at all.
  */
 export async function loadPage(slug: string | null, url: URL): Promise<SiteView> {
-  const shared = { attribution: attributionFrom(url.search), playerUrl: import.meta.env.PUBLIC_PLAYER_URL, page: null, description: null };
-  if (slug === null) return { ...shared, status: 404, title: t('common.notFoundTitle') };
+  const shared = { attribution: attributionFrom(url.search), playerUrl: import.meta.env.PUBLIC_PLAYER_URL, page: null, description: null, structuredData: null };
+  if (slug === null) return { ...shared, status: 404, title: documentTitle(t('common.notFoundTitle')) };
   const client = createRivrClient({ url: import.meta.env.PUBLIC_SUPABASE_URL, publishableKey: import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY });
   const result = await fetchSitePage(client, slug);
-  if (!result.ok) return { ...shared, status: 503, title: t('web.unavailableTitle') };
+  if (!result.ok) return { ...shared, status: 503, title: documentTitle(t('web.unavailableTitle')) };
   const page = result.value;
-  if (!page) return { ...shared, status: 404, title: t('common.notFoundTitle') };
-  return { ...shared, status: 200, page, title: page.title, description: page.description };
+  if (!page) return { ...shared, status: 404, title: documentTitle(t('common.notFoundTitle')) };
+  return { ...shared, status: 200, page, title: documentTitle(page.title), description: page.description, structuredData: localBusiness(page, url.origin) };
 }
 
 /**
@@ -37,7 +40,7 @@ export async function loadPage(slug: string | null, url: URL): Promise<SiteView>
  * website's own frame. 404 for a token that is no draft's.
  */
 export async function loadPreview(token: string | undefined, url: URL): Promise<SiteView> {
-  const shared = { attribution: attributionFrom(url.search), playerUrl: import.meta.env.PUBLIC_PLAYER_URL, page: null, description: null };
+  const shared = { attribution: attributionFrom(url.search), playerUrl: import.meta.env.PUBLIC_PLAYER_URL, page: null, description: null, structuredData: null };
   if (token === undefined || !/^[0-9a-f-]{36}$/.test(token)) return { ...shared, status: 404, title: t('common.notFoundTitle') };
   const client = createRivrClient({ url: import.meta.env.PUBLIC_SUPABASE_URL, publishableKey: import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY, previewToken: token });
   const result = await fetchSitePreview(client);

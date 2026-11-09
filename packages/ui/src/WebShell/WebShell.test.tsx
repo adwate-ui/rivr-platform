@@ -32,6 +32,14 @@ describe('WebShell', () => {
     expect(screen.getByRole('main').closest('[data-shell="web"]')).toContainElement(screen.getByRole('banner'));
   });
 
+  it('takes the focus to the page on Skip to content, its first stop (8 Nov audit, F-196)', async () => {
+    renderShell();
+    await userEvent.tab();
+    expect(screen.getByRole('link', { name: 'Skip to content' })).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+    expect(screen.getByRole('main')).toHaveFocus();
+  });
+
   it('links the club name home and routes links through the app', async () => {
     const onNavigate = vi.fn();
     renderShell(onNavigate);

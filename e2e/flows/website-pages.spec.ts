@@ -58,6 +58,28 @@ test.describe('Website', () => {
     expect(map?.height ?? 0).toBeGreaterThan(400);
   });
 
+  test('a page names the club in its title, the front page and Visit describe it to search engines, and Skip to content passes the header', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT.web);
+    const described = page.locator('script[type="application/ld+json"]');
+
+    await page.goto(appUrl('web'));
+    await expect(page).toHaveTitle('RIVR Poker Club, Gurugram');
+    await expect(described).toHaveCount(1);
+
+    await page.goto(`${appUrl('web')}/membership`);
+    await expect(page).toHaveTitle('Membership · RIVR Poker Club, Gurugram');
+    await expect(described).toHaveCount(0);
+
+    await page.goto(`${appUrl('web')}/visit`);
+    await expect(page).toHaveTitle('Visit · RIVR Poker Club, Gurugram');
+    expect(JSON.parse(await described.textContent() ?? '')).toMatchObject({ '@type': 'LocalBusiness', name: 'RIVR Poker Club', telephone: '+918796580435' });
+
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('main')).toBeFocused();
+  });
+
   test('the club’s pages: about, membership, promotions, and a journal article, each keeping the visitor’s codes', { tag: '@staging' }, async ({ page }) => {
     await page.setViewportSize(VIEWPORT.web);
     await page.goto(`${appUrl('web')}/?ref=FRIEND1`);

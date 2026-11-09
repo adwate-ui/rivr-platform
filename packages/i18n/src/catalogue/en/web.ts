@@ -1,5 +1,9 @@
 /** The public website's own copy; its pages' words are the club's site content. */
 export const webApp = {
+  /** A page's `<title>` and link preview (F-194): `Visit · RIVR Poker Club, Gurugram`. */
+  pageTitle: '{page} · RIVR Poker Club, Gurugram',
+  /** The same for a page named for the club. */
+  clubTitle: 'RIVR Poker Club, Gurugram',
   /** A website page when its content cannot be read. */
   unavailableTitle: 'Website unavailable',
   unavailable: 'Try again shortly.',
