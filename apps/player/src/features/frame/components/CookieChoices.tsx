@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { keepCookieChoice, loadTagManager, storedCookieChoice, type CookieChoice } from '@rivr/ui';
 import { lazy, Suspense, useEffect, useState } from 'react';
 
@@ -8,7 +9,7 @@ const CookieSheet = lazy(() => import('./CookieSheet.tsx'));
  * The app's cookie choice (decisions 0298, 0320): a sheet on first launch, while this phone holds no choice. Google Tag
  * Manager, with Google Analytics and the Meta pixel inside it, loads only once analytics is allowed, here or in Profile.
  */
-export function CookieChoices() {
+function WebCookieChoices() {
   const [choice, setChoice] = useState<CookieChoice | null>(storedCookieChoice);
   useEffect(() => {
     if (choice?.analytics === true) loadTagManager();
@@ -19,4 +20,9 @@ export function CookieChoices() {
     setChoice(chosen);
   };
   return <Suspense fallback={null}><CookieSheet onChoose={choose} /></Suspense>;
+}
+
+/** The store app asks nothing and loads no analytics, which would be tracking there (decision 0577). */
+export function CookieChoices() {
+  return Capacitor.isNativePlatform() ? null : <WebCookieChoices />;
 }

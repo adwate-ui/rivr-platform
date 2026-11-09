@@ -20,7 +20,36 @@
 		C0FFEE010000000000000004 /* LiveActivityTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE010000000000000003 /* LiveActivityTokens.swift */; };
 		C0FFEE010000000000000006 /* LiveStatusPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE010000000000000005 /* LiveStatusPlugin.swift */; };
 		C0FFEE010000000000000008 /* RivrBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE010000000000000007 /* RivrBridgeViewController.swift */; };
+		C0FFEE020000000000000002 /* RivrLiveStatusWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE020000000000000001 /* RivrLiveStatusWidget.swift */; };
+		C0FFEE020000000000000003 /* RivrLiveAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE010000000000000001 /* RivrLiveAttributes.swift */; };
+		C0FFEE020000000000000005 /* RivrColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE020000000000000004 /* RivrColors.swift */; };
+		C0FFEE020000000000000007 /* RivrLiveStatus.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = C0FFEE020000000000000006 /* RivrLiveStatus.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		C0FFEE02000000000000000B /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C0FFEE02000000000000000A /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C0FFEE020000000000000015 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C0FFEE020000000000000011;
+			remoteInfo = RivrLiveStatus;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C0FFEE020000000000000010 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				C0FFEE020000000000000007 /* RivrLiveStatus.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
@@ -38,6 +67,12 @@
 		C0FFEE010000000000000003 /* LiveActivityTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityTokens.swift; sourceTree = "<group>"; };
 		C0FFEE010000000000000005 /* LiveStatusPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveStatusPlugin.swift; sourceTree = "<group>"; };
 		C0FFEE010000000000000007 /* RivrBridgeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RivrBridgeViewController.swift; sourceTree = "<group>"; };
+		C0FFEE020000000000000001 /* RivrLiveStatusWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RivrLiveStatusWidget.swift; sourceTree = "<group>"; };
+		C0FFEE020000000000000004 /* RivrColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RivrColors.swift; path = ../../../../packages/tokens/generated/ios/RivrColors.swift; sourceTree = SOURCE_ROOT; };
+		C0FFEE020000000000000006 /* RivrLiveStatus.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RivrLiveStatus.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C0FFEE020000000000000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C0FFEE020000000000000009 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
+		C0FFEE02000000000000000A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -49,6 +84,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C0FFEE02000000000000000E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -57,6 +99,7 @@
 			children = (
 				958DCC722DB07C7200EA8C5F /* debug.xcconfig */,
 				504EC3061FED79650016851F /* App */,
+				C0FFEE02000000000000000C /* RivrLiveStatus */,
 				504EC3051FED79650016851F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -65,6 +108,7 @@
 			isa = PBXGroup;
 			children = (
 				504EC3041FED79650016851F /* App.app */,
+				C0FFEE020000000000000006 /* RivrLiveStatus.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -83,10 +127,22 @@
 				504EC30E1FED79650016851F /* Assets.xcassets */,
 				504EC3101FED79650016851F /* LaunchScreen.storyboard */,
 				504EC3131FED79650016851F /* Info.plist */,
+				C0FFEE020000000000000009 /* App.entitlements */,
+				C0FFEE02000000000000000A /* PrivacyInfo.xcprivacy */,
 				2FAD9762203C412B000D30F8 /* config.xml */,
 				50B271D01FEDC1A000F3C39B /* public */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		C0FFEE02000000000000000C /* RivrLiveStatus */ = {
+			isa = PBXGroup;
+			children = (
+				C0FFEE020000000000000001 /* RivrLiveStatusWidget.swift */,
+				C0FFEE020000000000000004 /* RivrColors.swift */,
+				C0FFEE020000000000000008 /* Info.plist */,
+			);
+			path = RivrLiveStatus;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -99,10 +155,12 @@
 				504EC3001FED79650016851F /* Sources */,
 				504EC3011FED79650016851F /* Frameworks */,
 				504EC3021FED79650016851F /* Resources */,
+				C0FFEE020000000000000010 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				C0FFEE020000000000000016 /* PBXTargetDependency */,
 			);
 			name = App;
 			packageProductDependencies = (
@@ -111,6 +169,23 @@
 			productName = App;
 			productReference = 504EC3041FED79650016851F /* App.app */;
 			productType = "com.apple.product-type.application";
+		};
+		C0FFEE020000000000000011 /* RivrLiveStatus */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C0FFEE020000000000000012 /* Build configuration list for PBXNativeTarget "RivrLiveStatus" */;
+			buildPhases = (
+				C0FFEE02000000000000000D /* Sources */,
+				C0FFEE02000000000000000E /* Frameworks */,
+				C0FFEE02000000000000000F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = RivrLiveStatus;
+			productName = RivrLiveStatus;
+			productReference = C0FFEE020000000000000006 /* RivrLiveStatus.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -124,6 +199,9 @@
 					504EC3031FED79650016851F = {
 						CreatedOnToolsVersion = 9.2;
 						LastSwiftMigration = 1100;
+						ProvisioningStyle = Automatic;
+					};
+					C0FFEE020000000000000011 = {
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -145,6 +223,7 @@
 			projectRoot = "";
 			targets = (
 				504EC3031FED79650016851F /* App */,
+				C0FFEE020000000000000011 /* RivrLiveStatus */,
 			);
 		};
 /* End PBXProject section */
@@ -160,6 +239,14 @@
 				50379B232058CBB4000EE86E /* capacitor.config.json in Resources */,
 				504EC30D1FED79650016851F /* Main.storyboard in Resources */,
 				2FAD9763203C412B000D30F8 /* config.xml in Resources */,
+				C0FFEE02000000000000000B /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C0FFEE02000000000000000F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -179,7 +266,25 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C0FFEE02000000000000000D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C0FFEE020000000000000002 /* RivrLiveStatusWidget.swift in Sources */,
+				C0FFEE020000000000000003 /* RivrLiveAttributes.swift in Sources */,
+				C0FFEE020000000000000005 /* RivrColors.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C0FFEE020000000000000016 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C0FFEE020000000000000011 /* RivrLiveStatus */;
+			targetProxy = C0FFEE020000000000000015 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		504EC30B1FED79650016851F /* Main.storyboard */ = {
@@ -315,6 +420,7 @@
 			baseConfigurationReference = 958DCC722DB07C7200EA8C5F /* debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = App/Info.plist;
@@ -337,6 +443,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = App/Info.plist;
@@ -349,6 +456,49 @@
 				PRODUCT_BUNDLE_IDENTIFIER = club.rivr.player;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C0FFEE020000000000000013 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = RivrLiveStatus/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = club.rivr.player.RivrLiveStatus;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C0FFEE020000000000000014 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = RivrLiveStatus/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = club.rivr.player.RivrLiveStatus;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -371,6 +521,15 @@
 			buildConfigurations = (
 				504EC3171FED79650016851F /* Debug */,
 				504EC3181FED79650016851F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C0FFEE020000000000000012 /* Build configuration list for PBXNativeTarget "RivrLiveStatus" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C0FFEE020000000000000013 /* Debug */,
+				C0FFEE020000000000000014 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -1,7 +1,7 @@
 import { err, ok, type Result } from '@rivr/contracts';
 import { z } from 'zod';
 import { signJwt } from '../shared/jwt.ts';
-import type { LiveStatus, LiveStatusAdapter, LiveStatusFailure } from './types.ts';
+import type { LiveStatus, LiveStatusAdapter, PhoneAlertFailure } from './types.ts';
 
 /** The club's Firebase project and the service account that sends for it (decision 0361), from its JSON key. */
 export interface FcmOngoingOptions {
@@ -54,7 +54,7 @@ function codesOf(reply: unknown): { status: string; codes: readonly string[] } {
 }
 
 /** Why Firebase refused: a phone it no longer knows (or another project's) is gone; a bad message is not worth trying again. */
-function failureOf(status: number, reply: unknown): LiveStatusFailure {
+function failureOf(status: number, reply: unknown): PhoneAlertFailure {
   const refusal = codesOf(reply);
   if (status === 404 || refusal.codes.some((code) => code === 'UNREGISTERED' || code === 'SENDER_ID_MISMATCH')) return { code: 'device_gone' };
   if (status === 429) return { code: 'rate_limited' };
@@ -66,7 +66,7 @@ function failureOf(status: number, reply: unknown): LiveStatusFailure {
 function createAccessToken({ clientEmail, privateKey, fetch }: { clientEmail: string; privateKey: string; fetch: typeof globalThis.fetch }) {
   let kept: { readonly token: string; readonly until: number } | null = null;
   return {
-    async at(now: Date): Promise<Result<string, LiveStatusFailure>> {
+    async at(now: Date): Promise<Result<string, PhoneAlertFailure>> {
       if (kept !== null && now.getTime() < kept.until) return ok(kept.token);
       const iat = Math.floor(now.getTime() / 1000);
       const assertion = await signJwt({
@@ -97,13 +97,13 @@ function createAccessToken({ clientEmail, privateKey, fetch }: { clientEmail: st
 export function createFcmOngoing({ projectId, clientEmail, privateKey, fetch = globalThis.fetch, now = () => new Date() }: FcmOngoingOptions): LiveStatusAdapter {
   const access = createAccessToken({ clientEmail, privateKey, fetch });
 
-  async function send(token: string, status: LiveStatus | null): Promise<Result<{ id: string }, LiveStatusFailure>> {
+  async function post(message: Record<string, unknown>): Promise<Result<{ id: string }, PhoneAlertFailure>> {
     const bearer = await access.at(now());
     if (!bearer.ok) return bearer;
     const answer = await fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
       method: 'POST',
       headers: { authorization: `Bearer ${bearer.value}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ message: { token, data: dataOf(status), android: { priority: 'HIGH', ttl: '3600s', collapse_key: 'live_status' } } }),
+      body: JSON.stringify({ message }),
       signal: AbortSignal.timeout(5_000),
     });
     const reply: unknown = await answer.json().catch(() => null);
@@ -114,10 +114,19 @@ export function createFcmOngoing({ projectId, clientEmail, privateKey, fetch = g
   }
 
   return {
+    async alert({ id, platform, token, title, body, url, tag }) {
+      if (platform !== 'android') return err({ code: 'rejected', reason: 'Firebase sends to an Android phone only' });
+      try {
+        // A data message: the app's own service posts it, and shows nothing once the member turned this off or signed out.
+        return await post({ token, data: { kind: 'rivr_alert', id, title, body, url, tag }, android: { priority: 'HIGH', ttl: '3600s' } });
+      } catch {
+        return err({ code: 'unavailable' });
+      }
+    },
     async show({ device, status }) {
       if (device.platform !== 'android') return err({ code: 'rejected', reason: 'Firebase sends to an Android phone only' });
       try {
-        return await send(device.token, status);
+        return await post({ token: device.token, data: dataOf(status), android: { priority: 'HIGH', ttl: '3600s', collapse_key: 'live_status' } });
       } catch {
         return err({ code: 'unavailable' });
       }

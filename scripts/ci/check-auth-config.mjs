@@ -9,7 +9,7 @@
  * Needs SUPABASE_ACCESS_TOKEN and PROJECT_REF.
  */
 import { readdirSync, readFileSync } from 'node:fs';
-import { testNumberGaps } from './authConfigGaps.mjs';
+import { reviewerFenceGaps, testNumberGaps } from './authConfigGaps.mjs';
 
 const HOOK_URI = 'pg-functions://postgres/private/require_code_sign_in';
 
@@ -39,6 +39,17 @@ function seedNumbers() {
 const reviewer = (process.env.STORE_REVIEWER_NUMBER ?? '').replace(/\D/g, '');
 const allowed = staging ? seedNumbers() : new Set(reviewer === '' ? [] : [reviewer]);
 const gaps = testNumberGaps(auth.sms_test_otp, { staging, allowed });
+
+/** The numbers the sign-in hook fences, through the Management API's SQL endpoint. */
+async function fencedPhones() {
+  const query = "select private.setting_at(v.id, 'auth.store_reviewer', '', now()) ->> 'phone' as phone from public.venue v where not v.is_practice";
+  const answer = await fetch(`https://api.supabase.com/v1/projects/${ref}/database/query`, {
+    method: 'POST', headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify({ query }),
+  });
+  if (!answer.ok) throw new Error(`Reading the reviewer's setting failed: HTTP ${answer.status}`);
+  return (await answer.json()).flatMap((row) => (row.phone === null ? [] : [row.phone]));
+}
+if (!staging && reviewer !== '') gaps.push(...reviewerFenceGaps(auth.sms_test_otp, reviewer, await fencedPhones()));
 
 // A missing or renamed field must not read as "phone sign-in off" and wave a release through.
 if (typeof auth.external_phone_enabled !== 'boolean') throw new Error('Unexpected Auth settings: external_phone_enabled is missing');

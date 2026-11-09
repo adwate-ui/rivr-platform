@@ -9,7 +9,7 @@ import UserNotifications
 /// ends the Live Activity when the member turns the live status off or signs out, and tells the app which page a tapped
 /// Live Activity opens. The Android twin is LiveStatusPlugin.java.
 @objc(LiveStatusPlugin)
-public class LiveStatusPlugin: CAPPlugin, CAPBridgedPlugin {
+public class LiveStatusPlugin: CAPPlugin, CAPBridgedPlugin, NotificationHandlerProtocol {
     public let identifier = "LiveStatusPlugin"
     public let jsName = "LiveStatus"
     public let pluginMethods: [CAPPluginMethod] = [
@@ -22,6 +22,18 @@ public class LiveStatusPlugin: CAPPlugin, CAPBridgedPlugin {
 
     override public func load() {
         NotificationCenter.default.addObserver(self, selector: #selector(opened(_:)), name: .capacitorOpenURL, object: nil)
+        bridge?.notificationRouter.pushNotificationHandler = self
+    }
+
+    /// An alert that comes while the app is open still shows (decision 0576).
+    public func willPresent(notification: UNNotification) -> UNNotificationPresentationOptions {
+        [.banner, .sound]
+    }
+
+    /// A tapped alert: the page is kept for the app until it listens.
+    public func didReceive(response: UNNotificationResponse) {
+        guard let path = response.notification.request.content.userInfo["url"] as? String, path.hasPrefix("/") else { return }
+        notifyListeners("opened", data: ["path": path], retainUntilConsumed: true)
     }
 
     /// A Live Activity's link (RivrLiveAttributes.ContentState.link): the page is kept for the app until it listens.
@@ -62,7 +74,8 @@ public class LiveStatusPlugin: CAPPlugin, CAPBridgedPlugin {
                     call.reject("iOS gave no push-to-start token", "unavailable")
                     return
                 }
-                call.resolve(["platform": "ios", "token": token])
+                let alertToken = await LiveActivityTokens.shared.firstAlertToken()
+                call.resolve(["platform": "ios", "token": token, "alertToken": alertToken ?? NSNull()])
             }
         }
     }
@@ -85,6 +98,9 @@ public class LiveStatusPlugin: CAPPlugin, CAPBridgedPlugin {
         let tokens = LiveActivityTokens.shared
         let wasOn = tokens.deviceKey() != nil
         tokens.forgetDeviceKey()
+        tokens.forgetAlertToken()
+        // iOS shows an alert with no app code running, so the phone itself stops them, even when the server could not be told.
+        DispatchQueue.main.async { UIApplication.shared.unregisterForRemoteNotifications() }
         Task {
             await tokens.endAll()
             call.resolve(["token": wasOn ? (tokens.startToken ?? NSNull()) : NSNull()])

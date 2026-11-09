@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { testNumberGaps } from './authConfigGaps.mjs';
+import { reviewerFenceGaps, testNumberGaps } from './authConfigGaps.mjs';
 
 const REVIEWER = '919000000821';
 const production = { staging: false, allowed: new Set([REVIEWER]) };
@@ -33,6 +33,18 @@ test('an entry that cannot be read is a gap, and shows nothing of it', () => {
 
 test("staging passes on the seed's numbers", () => {
   assert.deepEqual(testNumberGaps('919000000101=123456', { staging: true, allowed: new Set(['919000000101']) }), []);
+});
+
+test('the listed reviewer must be the fenced number', () => {
+  assert.deepEqual(reviewerFenceGaps(`${REVIEWER}=123456`, REVIEWER, ['+919000000821']), []);
+  assert.deepEqual(reviewerFenceGaps(`${REVIEWER}=123456`, REVIEWER, []),
+    ['test sign-in number ending 0821 is not the auth.store_reviewer setting, so nothing fences it']);
+  assert.equal(reviewerFenceGaps(`${REVIEWER}=123456`, REVIEWER, ['+919000000822']).length, 1);
+});
+
+test('with the reviewer not yet listed in Auth there is nothing to fence', () => {
+  assert.deepEqual(reviewerFenceGaps('', REVIEWER, []), []);
+  assert.deepEqual(reviewerFenceGaps(`${REVIEWER}=123456`, '', []), []);
 });
 
 test('a missing setting stops the check rather than passing', () => {

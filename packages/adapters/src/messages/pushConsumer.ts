@@ -180,7 +180,8 @@ const BUILDERS: Readonly<Record<(typeof PUSH_EVENT_TYPES)[number], (payload: unk
   'member.notice': tournamentNotice,
 };
 
-function pushFor(delivery: ClaimedDelivery, now: Date): Built {
+/** The notification a delivery makes, null when it needs none, or why it cannot be sent. The native push consumer sends the same words. */
+export function pushFor(delivery: ClaimedDelivery, now: Date): Built {
   const eventType = PUSH_EVENT_TYPES.find((type) => type === delivery.eventType);
   if (eventType === undefined) return err({ code: 'rejected', reason: `no push for ${delivery.eventType}` });
   if (isStale(eventType, delivery.occurredAt, now)) return ok(null);

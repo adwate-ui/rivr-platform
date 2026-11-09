@@ -29,7 +29,7 @@ describe('the social publishing consumer', () => {
       telegram: target('telegram', ok({ kind: 'published', channel: 'telegram', postUrl: 'https://t.me/rivrclub/42' }), sent),
     });
 
-    expect([consumer.name, consumer.isMessaging, consumer.eventTypes]).toEqual(['social_publish', false, ['social.post_published']]);
+    expect([consumer.name, consumer.isMessaging, consumer.eventTypes]).toEqual(['social_publish', true, ['social.post_published']]);
     expect(await consumer.deliver(delivery)).toEqual({ ok: true, value: null });
     expect(sent).toEqual([
       'instagram: RIVR Sunday https://abc.supabase.co/storage/v1/object/public/social-media/v1/post.jpg',

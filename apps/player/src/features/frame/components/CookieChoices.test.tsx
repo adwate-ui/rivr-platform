@@ -1,16 +1,26 @@
+import { Capacitor } from '@capacitor/core';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CookieChoices } from './CookieChoices.tsx';
 
 afterEach(() => {
   cleanup();
   localStorage.clear();
+  vi.restoreAllMocks();
   document.head.querySelectorAll('script[data-tag-manager]').forEach((script) => script.remove());
 });
 
 const tagManager = () => document.head.querySelector('script[data-tag-manager]');
 
 describe('Sign in › Cookies (decisions 0298, 0320)', () => {
+  it('asks nothing and loads no analytics in the store app, even with a choice kept', () => {
+    vi.spyOn(Capacitor, 'isNativePlatform').mockReturnValue(true);
+    localStorage.setItem('rivr.cookies', JSON.stringify({ maps: true, analytics: true }));
+    const { container } = render(<CookieChoices />);
+    expect(container.innerHTML).toBe('');
+    expect(tagManager()).toBeNull();
+  });
+
   it('asks in a sheet while the phone holds no choice, and loads nothing on Essential only', async () => {
     render(<CookieChoices />);
     // The sheet loads only when it is needed (the bundle budget).

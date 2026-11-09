@@ -7,8 +7,9 @@ android {
         applicationId "club.rivr.player"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // A release tag release-20261115-1 builds versionName release-20261115-1 and versionCode 2026111501 (YYYYMMDD * 100 + N).
+        versionCode Integer.parseInt(System.getenv('RIVR_VERSION_CODE') ?: '1')
+        versionName System.getenv('RIVR_VERSION_NAME') ?: '0.0.0-dev'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -22,8 +23,23 @@ android {
             res.srcDirs += ['../../../../packages/tokens/generated/android/res']
         }
     }
+    // The release workflow decodes the signing key from GitHub secrets into a file and names it here. Without it a release build is unsigned.
+    signingConfigs {
+        release {
+            def keystore = System.getenv('RIVR_ANDROID_KEYSTORE_FILE')
+            if (keystore) {
+                storeFile file(keystore)
+                storePassword System.getenv('RIVR_ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('RIVR_ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('RIVR_ANDROID_KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
         release {
+            if (System.getenv('RIVR_ANDROID_KEYSTORE_FILE')) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

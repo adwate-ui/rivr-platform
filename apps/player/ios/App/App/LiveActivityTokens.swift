@@ -11,12 +11,33 @@ final class LiveActivityTokens {
     static let shared = LiveActivityTokens()
 
     private let startTokenDefaultsKey = "rivr.liveStatus.startToken"
+    private let alertTokenDefaultsKey = "rivr.liveStatus.alertToken"
     private let installedDefaultsKey = "rivr.liveStatus.installed"
     private let keychainService = "club.rivr.player.liveStatus"
     private let keychainAccount = "deviceKey"
 
     /// The phone's push-to-start token, as iOS last gave it. The app saves it when it opens (LiveStatusPlugin.register).
     var startToken: String? { UserDefaults.standard.string(forKey: startTokenDefaultsKey) }
+
+    /// The phone's APNs device token, as iOS last gave it: ordinary alerts go to it (decision 0576).
+    var alertToken: String? { UserDefaults.standard.string(forKey: alertTokenDefaultsKey) }
+
+    func keepAlertToken(_ data: Data) {
+        UserDefaults.standard.set(Self.hex(data), forKey: alertTokenDefaultsKey)
+    }
+
+    func forgetAlertToken() {
+        UserDefaults.standard.removeObject(forKey: alertTokenDefaultsKey)
+    }
+
+    /// The APNs device token, waiting up to five seconds for iOS to give one; the app saves it on a later opening if not.
+    func firstAlertToken() async -> String? {
+        for _ in 0..<50 {
+            if let alertToken { return alertToken }
+            try? await Task.sleep(nanoseconds: 100_000_000)
+        }
+        return alertToken
+    }
 
     /// Watches for new tokens and new Live Activities for as long as the app runs.
     func start() {

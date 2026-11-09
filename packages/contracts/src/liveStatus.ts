@@ -14,7 +14,8 @@ const appleTokenSchema = z.string().regex(/^[0-9a-f]{64,200}$/);
  * iPhone's is ActivityKit's push-to-start token; an Android phone's is its Firebase registration token.
  */
 export const liveStatusDeviceSchema = z.discriminatedUnion('platform', [
-  z.object({ platform: z.literal('ios'), token: appleTokenSchema }),
+  // alertToken: the APNs device token ordinary alerts go to (#805); iOS can give it after the push-to-start token.
+  z.object({ platform: z.literal('ios'), token: appleTokenSchema, alertToken: appleTokenSchema.nullish() }),
   z.object({ platform: z.literal('android'), token: z.string().min(20).max(4096).regex(/^[A-Za-z0-9_:-]+$/) }),
 ]);
 

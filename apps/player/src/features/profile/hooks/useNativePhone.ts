@@ -13,7 +13,7 @@ interface Outcome {
 }
 
 /** A registered phone as the database takes it, or null when the plugin gave something else. */
-export function deviceOf(registered: { platform: string; token: string }): LiveStatusDeviceInput | null {
+export function deviceOf(registered: { platform: string; token: string; alertToken?: string | null }): LiveStatusDeviceInput | null {
   const parsed = liveStatusDeviceSchema.safeParse(registered);
   return parsed.success ? parsed.data : null;
 }

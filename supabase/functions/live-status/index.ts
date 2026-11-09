@@ -4,38 +4,11 @@
 // ongoing notification through Firebase. pg_cron runs it every minute (decision 0038); a messaging stop holds it, and
 // practice-venue events never reach it. Apple's push key and the Firebase service account are function secrets the owner
 // sets (docs/runbooks/ci-and-release.md); until one is, nothing is claimed and deliveries wait.
-import { createApnsLiveActivity, createFcmOngoing, createLiveStatus, type LiveStatusAdapter } from '@rivr/adapters';
+import { createLiveStatus } from '@rivr/adapters';
 import { createLiveStatusConsumer, type FindLiveStatusTargets } from '@rivr/adapters/messages';
 import { z } from 'zod';
 import { rpc, serveConsumer } from '../_shared/outbox.ts';
-
-// The player app's bundle id and Android package (apps/player/capacitor.config.ts).
-const APP_ID = 'club.rivr.player';
-const secret = (name: string): string => Deno.env.get(name) ?? '';
-
-/** An iPhone's Live Activity, once the Apple push key is set: APNS_TEAM_ID, APNS_KEY_ID, APNS_PRIVATE_KEY (the .p8). */
-function apple(): LiveStatusAdapter | undefined {
-  const [teamId, keyId, privateKey] = [secret('APNS_TEAM_ID'), secret('APNS_KEY_ID'), secret('APNS_PRIVATE_KEY')];
-  if (teamId === '' || keyId === '' || privateKey === '') return undefined;
-  // Apple's sandbox for a development build until APNS_ENVIRONMENT says production (TestFlight and the App Store).
-  const environment = secret('APNS_ENVIRONMENT') === 'production' ? 'production' : 'sandbox';
-  return createApnsLiveActivity({ teamId, keyId, privateKey, bundleId: APP_ID, environment });
-}
-
-const serviceAccountSchema = z.object({ project_id: z.string().min(1), client_email: z.string().min(1), private_key: z.string().min(1) });
-
-/** An Android phone's notification, once FCM_SERVICE_ACCOUNT holds the Firebase service account's JSON key. */
-function firebase(): LiveStatusAdapter | undefined {
-  let json: unknown = null;
-  try {
-    json = JSON.parse(secret('FCM_SERVICE_ACCOUNT') || 'null');
-  } catch {
-    return undefined;
-  }
-  const account = serviceAccountSchema.safeParse(json);
-  if (!account.success) return undefined;
-  return createFcmOngoing({ projectId: account.data.project_id, clientEmail: account.data.client_email, privateKey: account.data.private_key });
-}
+import { apple, firebase } from '../_shared/phones.ts';
 
 const targetRows = z.array(z.object({
   device_id: z.uuid(),

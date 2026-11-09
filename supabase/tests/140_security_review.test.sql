@@ -116,7 +116,7 @@ select is_empty($$
       'period_key', 'spins', 'spins_used')
     -- Reviewed as safe in #779, for this table only: a phone's push addresses for the live status, which reach it only
     -- with the club's own Apple and Firebase keys (function secrets). The phone's own key is kept as a hash, which never goes.
-    and a.table_name || '.' || c not in ('live_status_device.push_token', 'live_status_device.activity_push_token')
+    and a.table_name || '.' || c not in ('live_status_device.push_token', 'live_status_device.activity_push_token', 'live_status_device.alert_token')
 $$, 'no column that may hold a secret reaches the export archive unreviewed');
 
 select * from finish();
