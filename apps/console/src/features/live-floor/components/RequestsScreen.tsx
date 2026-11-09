@@ -1,6 +1,7 @@
 import { useStaffVenue } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Screen, Stack } from '@rivr/ui';
+import { Screen, Stack, useIsWide } from '@rivr/ui';
+import { Navigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { AlsoWaiting } from './AlsoWaiting.tsx';
 import { FloorSheets, useRequestOpeners, type FloorSheet } from './FloorSheets.tsx';
@@ -54,4 +55,9 @@ export function RequestsScreen() {
   const staff = useStaffVenue();
   if (staff.status !== 'ready') return null;
   return <Requests venueId={staff.venue.venueId} permissions={staff.venue.permissions} />;
+}
+
+/** The address /requests: a screen of its own on a phone; from 768 px the requests are docked beside the tables, so it opens them there (audit F-078). */
+export function RequestsAddress() {
+  return useIsWide('medium') ? <Navigate to="/" search={{ panel: 'open' }} replace /> : <RequestsScreen />;
 }

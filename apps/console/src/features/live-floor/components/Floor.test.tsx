@@ -86,6 +86,15 @@ describe('Live floor tiles (console v3)', () => {
 });
 
 describe('The requests panel (console v3)', () => {
+  it('opens when the address asks, and folding it takes the address back, so the header can open it again (audit F-078)', async () => {
+    const { router } = renderFloorScreen(LiveFloorScreen, FLOOR, '/?panel=open');
+    fireEvent.click(await screen.findByRole('button', { name: 'Collapse' }, { timeout: 5000 }));
+    await waitFor(() => expect(router.state.location.search).toEqual({}));
+    expect(screen.queryByRole('button', { name: 'Collapse' })).toBeNull();
+    await router.navigate({ href: '/?panel=open' });
+    expect(await screen.findByRole('button', { name: 'Collapse' })).toBeDefined();
+  });
+
   it('lists requests by when each is due, the oldest among equals, each late past its target in words as well as colour (audit F-108)', async () => {
     await renderFloor();
     const panel = requests();

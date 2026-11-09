@@ -363,6 +363,12 @@
   }
 }
 
+/* A rail taller than its window fades at the foot, so the screens below read as more to come (audit F-135). The list ends
+   in room as tall as the fade, so its last item is clear of it once scrolled there. */
+@utility rail-fade {
+  mask-image: linear-gradient(to bottom, var(--rivr-color-green) calc(100% - var(--rivr-space-8)), transparent);
+}
+
 /* A table's held header takes the fill of the panel it sits on (audit F-066). */
 [data-surface='raised'] {
   --rivr-table-header: var(--rivr-color-raised);

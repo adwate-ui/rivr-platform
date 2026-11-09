@@ -21,7 +21,7 @@ export interface SideNavProps {
  */
 export function SideNav({ label, sections, current, onNavigate, isCollapsed = false }: SideNavProps) {
   return (
-    <nav aria-label={label} className="flex flex-col gap-5">
+    <nav aria-label={label} className="flex flex-col gap-3">
       {sections.map((section) => (
         <NavGroup key={section.id} section={section} current={current} isCollapsed={isCollapsed} onNavigate={onNavigate} />
       ))}

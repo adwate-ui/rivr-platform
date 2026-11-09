@@ -2,7 +2,9 @@ import { tableToSeatAt } from '@rivr/domain/tables';
 import { isSeatAlert, openSeatsAt, type FloorRequest } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button, DockedPanel, Inline, Screen, Segmented, useIsWide, useShortcut, type ButtonShortcut } from '@rivr/ui';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useCallback, useState } from 'react';
+import { floorSearchFrom } from './floorSearch.ts';
 import { AlsoWaiting } from './AlsoWaiting.tsx';
 import { FloorSheets, useRequestOpeners, type FloorSheet } from './FloorSheets.tsx';
 import { FloorTiles, type FloorView } from './FloorTiles.tsx';
@@ -30,9 +32,17 @@ function seatAnyOf(data: FloorData): FloorSheet | null {
 /** The requests panel: open at a desk from 1200 px, folded below, until the staff member folds or opens it. */
 function usePanel() {
   const isWide = useIsWide('wide');
+  const navigate = useNavigate();
+  const { panel, ...focus } = floorSearchFrom(useSearch({ strict: false }));
+  const isAskedOpen = panel === 'open';
   const [choice, setChoice] = useState<boolean | null>(null);
-  const isOpen = choice ?? isWide;
-  return { isOpen, toggle: () => setChoice(!isOpen), open: useCallback(() => setChoice(true), []) };
+  const isOpen = isAskedOpen || (choice ?? isWide);
+  const toggle = () => {
+    setChoice(!isOpen);
+    // Folded, the address stops asking for it, so the header's requests can open it again (audit F-078).
+    if (isAskedOpen) void navigate({ to: '/', search: focus, replace: true });
+  };
+  return { isOpen, toggle, open: useCallback(() => setChoice(true), []) };
 }
 
 /** The screen's controls: Summary or Seats, Needs you, and the one gold button, Seat a player. */

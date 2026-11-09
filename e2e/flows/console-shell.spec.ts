@@ -13,8 +13,8 @@ const MOVED: readonly (readonly [string, string, string | null, string | null])[
   ['/check-in', '/door?tab=check-in', 'Door', 'Check-in'],
   ['/players-today', '/door?tab=players', 'Door', 'Today’s players'],
   // Requests is one list, oldest first, with no tabs (decision 0479).
-  ['/top-ups', '/requests', null, null],
-  ['/time-requests', '/requests', null, null],
+  ['/top-ups', '/?panel=open', null, null],
+  ['/time-requests', '/?panel=open', null, null],
   ['/spin-wheel', '/rewards?tab=spin-wheel', 'Rewards', 'Spin wheel'],
   // The Waitlist's own tabs are the lead's (routes/waitlist.tsx): the address and the rail are this flow's to check.
   ['/tournament-interest', '/waitlist?tab=interest', 'Waitlist', null],
