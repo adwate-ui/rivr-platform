@@ -37,5 +37,20 @@ select ok(not has_function_privilege('authenticated', 'public.note_kyc_vendor_fa
 select ok(not exists (select 1 from public.audit_log a where a.entity = 'kyc_record' and (a.after ? 'vendor_failure' or a.before ? 'vendor_failure')),
   'and the audit log never copies why');
 
+-- A call that failed on the vendor's side is given back (the owner, 9 Nov, on #791).
+update public.kyc_record k set vendor_calls = 5 from checked c where k.member_id = c.member_id;
+set local role service_role;
+select lives_ok($$ select public.give_back_kyc_vendor_call((select member_id from checked)) $$, 'the kyc function gives a failed call back as the server');
+reset role;
+select is((select k.vendor_calls::integer from public.kyc_record k join checked c using (member_id)), 4, 'so it does not use up one of the five');
+update public.kyc_record k set vendor_calls = 0 from checked c where k.member_id = c.member_id;
+set local role service_role;
+select public.give_back_kyc_vendor_call((select member_id from checked));
+reset role;
+select is((select k.vendor_calls::integer from public.kyc_record k join checked c using (member_id)), 0, 'and the count never goes below nothing');
+select ok(not has_function_privilege('authenticated', 'public.give_back_kyc_vendor_call(uuid)', 'execute')
+          and not has_function_privilege('anon', 'public.give_back_kyc_vendor_call(uuid)', 'execute'),
+  'only the server gives one back');
+
 select * from finish();
 rollback;
