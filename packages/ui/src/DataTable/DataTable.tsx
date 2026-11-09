@@ -1,7 +1,7 @@
 import { t } from '@rivr/i18n';
 import { useRef, type ReactNode, type UIEvent } from 'react';
-import { Button } from '../Button/Button.tsx';
 import { cx } from '../internal/classes.ts';
+import { LoadState } from '../LoadState/LoadState.tsx';
 import { Text } from '../Text/Text.tsx';
 import { useIsWide } from '../useIsWide/useIsWide.ts';
 import { ColumnMenu } from './ColumnMenu.tsx';
@@ -138,15 +138,8 @@ function Table<Row>({ props, visible, sort, resetKey, onSort, menuFor }: TablePr
 function Instead<Row>({ props, query, isFiltered, isUnderHeader }: { props: DataTableProps<Row>; query: string; isFiltered: boolean; isUnderHeader: boolean }) {
   // Under the header it sits on the cells' edge; with none above it, on the panel's own (audit F-066).
   const inset = isUnderHeader ? 'px-3' : '';
-  if (props.status === 'loading') return <div role="status" className={cx('py-4', inset)}><Text tone="muted">{t('common.loading')}</Text></div>;
-  if (props.status === 'error') {
-    return (
-      <div role="alert" className={cx('flex flex-col items-start gap-3 py-4', inset)}>
-        <Text>{props.errorText ?? t('common.loadFailed')}</Text>
-        {props.onRetry ? <Button onClick={props.onRetry}>{t('common.retry')}</Button> : null}
-      </div>
-    );
-  }
+  if (props.status === 'loading') return <div className={cx('py-4', inset)}><LoadState /></div>;
+  if (props.status === 'error') return <div className={cx('py-4', inset)}><LoadState isError errorText={props.errorText} onRetry={props.onRetry} /></div>;
   const why = query.trim() === '' && isFiltered ? t('ui.dataTable.noFilterMatch') : t('ui.dataTable.noMatch', { query: query.trim() });
   const text = props.rows.length === 0 ? props.emptyText : why;
   return <div role="status" className={cx('py-4', inset)}><Text tone="muted">{text}</Text></div>;

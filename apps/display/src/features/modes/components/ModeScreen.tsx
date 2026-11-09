@@ -11,6 +11,7 @@ import { SocialWallMode } from './SocialWallMode.tsx';
 import { SpinMode } from './SpinMode.tsx';
 import { TournamentClockMode } from './TournamentClockMode.tsx';
 import { WaitlistMode } from './WaitlistMode.tsx';
+import { BoardStatus } from './BoardStatus.tsx';
 
 // In a rotation, each board shows for half a minute; the promotions show one after another, then the next board.
 // The bar along the stage's foot fills over the half minute, so a board that is not changing reads as live (#628).
@@ -98,7 +99,7 @@ function Boards({ venueId, mode, rotation, name }: { venueId: string; mode: TvMo
 export function ModeScreen() {
   const screen = useMyTvScreen();
   if (screen.data === undefined) {
-    return <Text variant="tvBody" tone="muted">{t(screen.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
+    return <BoardStatus isError={screen.isError} />;
   }
   // Null while an unpaired TV signs itself out; the code follows.
   if (screen.data === null) return null;

@@ -3,6 +3,7 @@ import { t } from '@rivr/i18n';
 import { Heading, Stack, Text, TvPromotionSlide, type TvPromotionSlideProps } from '@rivr/ui';
 import { useSlides } from './PromotionsMode.tsx';
 import { useSkipWhenEmpty } from './useSkipWhenEmpty.ts';
+import { BoardStatus } from './BoardStatus.tsx';
 
 /** A post as its slide: the poster's handle over the caption, with the pager's place. */
 export function wallSlide(post: TvWallPost, current: number, count: number): TvPromotionSlideProps {
@@ -23,7 +24,7 @@ export function SocialWallMode({ onEmpty }: { onEmpty?: (() => void) | undefined
   useSkipWhenEmpty(wall.data?.length === 0, onEmpty);
   const shown = useSlides(wall.data?.length ?? (wall.isError ? 0 : undefined), undefined);
   if (wall.data === undefined) {
-    return <Text variant="tvBody" tone="muted">{t(wall.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
+    return <BoardStatus isError={wall.isError} />;
   }
   const post = wall.data[shown];
   if (post === undefined) {

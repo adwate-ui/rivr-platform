@@ -1,6 +1,6 @@
 import { useMyDevice, useTabletSeats, type TabletSeat } from '@rivr/db';
 import { formatStakes, t } from '@rivr/i18n';
-import { Button, ErrorMessage, SeatRing, Stack, Text, type RingSeat } from '@rivr/ui';
+import { LoadState, SeatRing, Stack, Text, type RingSeat } from '@rivr/ui';
 import { useState } from 'react';
 import { SeatPanel } from './SeatPanel.tsx';
 import { ringStatus } from './seatStatus.ts';
@@ -36,15 +36,7 @@ export function TableSeats() {
   const seats = useTabletSeats();
   const tableName = useMyDevice().data?.tableName ?? '';
   const [chosen, setChosen] = useState<number | null>(null);
-  if (seats.data === undefined && seats.isError) {
-    return (
-      <Stack gap={3} align="start">
-        <ErrorMessage>{t('common.loadFailed')}</ErrorMessage>
-        <Button onClick={() => void seats.refetch()}>{t('common.retry')}</Button>
-      </Stack>
-    );
-  }
-  if (seats.data === undefined) return <Text tone="muted">{t('common.loading')}</Text>;
+  if (seats.data === undefined) return <LoadState isError={seats.isError} onRetry={() => void seats.refetch()} />;
   const seat = seats.data.find((candidate) => candidate.seat === chosen);
   return (
     <Stack gap={4}>

@@ -1,8 +1,9 @@
 import { useTvCallTimeBoard, type TvCallTimeTable, type TvSeated } from '@rivr/db';
 import { formatHoursMinutes, t } from '@rivr/i18n';
-import { CALL_TIME_TABLES_SHOWN, Text, TvCallTimeBoard, type TvCallTimeGroup, type TvCallTimeOpening } from '@rivr/ui';
+import { CALL_TIME_TABLES_SHOWN, TvCallTimeBoard, type TvCallTimeGroup, type TvCallTimeOpening } from '@rivr/ui';
 import { useEffect, useState } from 'react';
 import { usePage } from './usePage.ts';
+import { BoardStatus } from './BoardStatus.tsx';
 
 
 /** The time now, a second at a time: the board counts down between reads. */
@@ -66,7 +67,7 @@ export function CallTimeMode() {
   const pages = Math.ceil(groups.length / CALL_TIME_TABLES_SHOWN);
   const first = usePage(pages) * CALL_TIME_TABLES_SHOWN;
   if (board.data === undefined) {
-    return <Text variant="tvBody" tone="muted">{t(board.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
+    return <BoardStatus isError={board.isError} />;
   }
   const shown = groups.slice(first, first + CALL_TIME_TABLES_SHOWN);
   const page = pages < 2 ? undefined : t('tv.callTime.page', { from: first + 1, to: first + shown.length, count: groups.length });

@@ -16,13 +16,28 @@ export interface LoadStateProps {
   title?: string | undefined;
   /** With `serif`: anything the member still needs, under the line, such as the number to give at the door. */
   children?: ReactNode;
+  /** `tv`: read from across a room, with no Retry, as nobody can press anything on a TV (F-141). */
+  size?: 'default' | 'tv' | undefined;
 }
 
 /**
  * Something still loading, or that failed to load, with Retry: the same words and roles wherever a list or panel waits
  * (#462), as Screen shows them for a whole screen. Loading is announced politely (`status`), a failure at once (`alert`).
  */
-export function LoadState({ isError = false, errorText, onRetry, look = 'default', title, children }: LoadStateProps) {
+export function LoadState({ size = 'default', ...panel }: LoadStateProps) {
+  return size === 'tv' ? <TvState isError={panel.isError === true} errorText={panel.errorText} /> : <PanelState {...panel} />;
+}
+
+/** On a TV: the line in TV type, muted, and what failed when it did. */
+function TvState({ isError, errorText }: { isError: boolean; errorText: string | undefined }) {
+  return (
+    <div role={isError ? 'alert' : 'status'}>
+      <Text variant="tvBody" tone="muted">{isError ? (errorText ?? t('common.loadFailed')) : t('common.loading')}</Text>
+    </div>
+  );
+}
+
+function PanelState({ isError = false, errorText, onRetry, look = 'default', title, children }: Omit<LoadStateProps, 'size'>) {
   if (!isError) {
     return (
       <div role="status">

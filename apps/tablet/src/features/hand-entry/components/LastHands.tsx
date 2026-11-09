@@ -1,6 +1,6 @@
 import { useDownHands, useHandQueue, useTabletHighHands, type DownHand, type QueuedHand, type TabletHighHand } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Money, Stack, Text } from '@rivr/ui';
+import { Heading, Inline, LoadState, Money, Stack, Text } from '@rivr/ui';
 import { claimStatusText, variantText } from './handCopy.ts';
 
 // The prototype lists the last few; the count above says how many the down has logged.
@@ -35,15 +35,7 @@ export function LastHands({ downId }: { downId: string | null }) {
   const hands = useDownHands(downId);
   const claims = useTabletHighHands();
   const { queued } = useHandQueue();
-  if (hands.data === undefined && hands.isError) {
-    return (
-      <Stack gap={3} align="start">
-        <ErrorMessage>{t('common.loadFailed')}</ErrorMessage>
-        <Button onClick={() => void hands.refetch()}>{t('common.retry')}</Button>
-      </Stack>
-    );
-  }
-  if (hands.data === undefined) return <Text tone="muted">{t('common.loading')}</Text>;
+  if (hands.data === undefined) return <LoadState isError={hands.isError} onRetry={() => void hands.refetch()} />;
   const waiting = queued.toReversed().slice(0, SHOWN);
   return (
     <Stack gap={4}>

@@ -1,7 +1,8 @@
 import { useTvWaitlistBoard, type TvPlace, type TvTableList } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Text, TvWaitlistBoard, type TvWaitlistStake } from '@rivr/ui';
+import { TvWaitlistBoard, type TvWaitlistStake } from '@rivr/ui';
 import { usePage } from './usePage.ts';
+import { BoardStatus } from './BoardStatus.tsx';
 
 // Three tables to a screen; more take turns, a page every ten seconds, as the call-time board's do (decision 0467).
 export const WAITLIST_TABLES_SHOWN = 3;
@@ -48,7 +49,7 @@ export function WaitlistMode() {
   const shown = usePage(pages);
   const first = shown * WAITLIST_TABLES_SHOWN;
   if (board.data === undefined) {
-    return <Text variant="tvBody" tone="muted">{t(board.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
+    return <BoardStatus isError={board.isError} />;
   }
   return (
     <TvWaitlistBoard title={t('tv.waitlist.title')} emptyText={t('tv.waitlist.empty')} moreText={(count) => t('tv.more', { count })}

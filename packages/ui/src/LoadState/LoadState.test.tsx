@@ -49,4 +49,18 @@ describe('LoadState', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('The archive could not be read.');
     expect(screen.queryByRole('button')).toBeNull();
   });
+
+  it('says it is loading in TV type, politely (F-141)', () => {
+    renderIn(<LoadState size="tv" />);
+    const status = screen.getByRole('status');
+    expect(status).toHaveTextContent('Loading');
+    expect(within(status).getByText('Loading').className).toContain('text-36');
+  });
+
+  it('says a TV board failed in its own words, and offers no Retry, as nobody can press one', () => {
+    renderIn(<LoadState size="tv" isError errorText="This board is not available." onRetry={() => undefined} />);
+    const alert = screen.getByRole('alert');
+    expect(within(alert).getByText('This board is not available.').className).toContain('text-36');
+    expect(within(alert).queryByRole('button')).toBeNull();
+  });
 });
