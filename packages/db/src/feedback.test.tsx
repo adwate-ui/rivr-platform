@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { toDoorScan, useDoorScan } from './door.ts';
-import { useFeedbackActions, useMyFeedbackVisit, useResolveFeedback, useVenueFeedback } from './feedback.ts';
+import { useFeedbackActions, useMyFeedbackVisit, useOpenFeedback, useResolveFeedback } from './feedback.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
@@ -28,7 +28,7 @@ function renderHooks(replies: Record<string, { status?: number; body: unknown }>
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
   const { result } = renderHook(() => ({
-    visit: useMyFeedbackVisit(), actions: useFeedbackActions(), list: useVenueFeedback(VENUE), resolve: useResolveFeedback(VENUE), scan: useDoorScan(),
+    visit: useMyFeedbackVisit(), actions: useFeedbackActions(), list: useOpenFeedback(VENUE), resolve: useResolveFeedback(VENUE), scan: useDoorScan(),
   }), { wrapper });
   return { result, calls };
 }
@@ -41,7 +41,7 @@ describe('feedback (decision 0165)', () => {
       '/rpc/my_feedback_visit': { body: [{ visit_id: 'v1', closed_at: '2026-10-25T18:00:00Z' }] },
       '/rpc/rate_visit': { body: 'f1' },
       '/rpc/send_feedback': { status: 400, body: { code: 'RVFRZ', message: 'frozen' } },
-      '/rpc/venue_feedback': { body: [] },
+      '/rpc/open_feedback': { body: [] },
     });
     await waitFor(() => expect(result.current.visit.data).toEqual({ visitId: 'v1', closedAt: '2026-10-25T18:00:00Z' }));
     let outcome: unknown;
@@ -55,19 +55,31 @@ describe('feedback (decision 0165)', () => {
   it('lists the venue\'s feedback for the General Manager and resolves a ticket', async () => {
     const { result } = renderHooks({
       '/rpc/my_feedback_visit': { body: [] },
-      '/rpc/venue_feedback': {
+      '/rpc/open_feedback': {
         body: [{
           id: 'f1', member_id: 'm1', full_name: 'Mihir Shah', member_number: 1213, visit_closed_at: '2026-10-25T18:00:00Z', score: 2,
           note: 'Slow dealer', is_ticket: true, resolved_at: null, resolved_by: null, resolution: null, created_at: '2026-10-26T04:00:00Z',
         }],
       },
-      '/rpc/resolve_feedback': { status: 400, body: { code: '22023', message: 'resolved' } },
+      '/rpc/resolve_feedback_many': { status: 400, body: { code: '22023', message: 'resolved' } },
     });
     await waitFor(() => expect(result.current.list.data?.[0]).toMatchObject({ fullName: 'Mihir Shah', score: 2, isTicket: true, resolvedAt: null }));
     expect(result.current.visit.data).toBeNull();
     let outcome: unknown;
-    await act(async () => { outcome = await result.current.resolve.mutateAsync({ feedbackId: 'f1', resolution: 'Called him' }); });
+    await act(async () => { outcome = await result.current.resolve.mutateAsync({ feedbackIds: ['f1'], resolution: 'Called him' }); });
     expect(outcome).toEqual({ ok: false, error: 'invalid' });
+  });
+
+  it('says when more tickets were sent at once than the database takes (F-013)', async () => {
+    const { result } = renderHooks({
+      '/rpc/my_feedback_visit': { body: [] },
+      '/rpc/open_feedback': { body: [] },
+      '/rpc/resolve_feedback_many': { status: 400, body: { code: 'RVMAX', message: 'too many' } },
+    });
+    await waitFor(() => expect(result.current.list.data).toEqual([]));
+    let outcome: unknown;
+    await act(async () => { outcome = await result.current.resolve.mutateAsync({ feedbackIds: ['f1'], resolution: 'Called him' }); });
+    expect(outcome).toEqual({ ok: false, error: 'too_many' });
   });
 
   it('sends the quick note with its topic and the detailed form with its answers, and reads them back', async () => {
@@ -75,7 +87,7 @@ describe('feedback (decision 0165)', () => {
       '/rpc/my_feedback_visit': { body: [] },
       '/rpc/send_quick_feedback': { body: 'f2' },
       '/rpc/send_detailed_feedback': { status: 400, body: { code: '22023', message: 'ratings' } },
-      '/rpc/venue_feedback': {
+      '/rpc/open_feedback': {
         body: [{
           id: 'f3', member_id: 'm1', full_name: 'Mihir Shah', member_number: 1213, visit_closed_at: null, score: null, note: null, is_ticket: true,
           resolved_at: null, resolved_by: null, resolution: null, created_at: '2026-10-29T04:00:00Z', topic: null,
@@ -106,7 +118,7 @@ describe('the door kiosk (decision 0164)', () => {
   it('scans a card, and says why a scan did nothing, with the call time owed', async () => {
     const { result, calls } = renderHooks({
       '/rpc/my_feedback_visit': { body: [] },
-      '/rpc/venue_feedback': { body: [] },
+      '/rpc/open_feedback': { body: [] },
       '/rpc/door_scan': { status: 400, body: { code: 'RVCTS', message: 'owed', details: '1500' } },
     });
     let outcome: unknown;

@@ -95,5 +95,5 @@ function readWithdrawal(row: { amount: string; utr: string }): Result<{ amount: 
 
 ## Host queue
 
-- `HOST_CHURN_REASONS`, `hostContactSchema`: a host's call to a lapsed regular, the reason they stopped coming and the offer made as a promotion effect (#165, decision 0276). `HOST_OFFER_BONUS_DAYS` is how long a bonus offered from the queue lasts.
+- `HOST_CHURN_REASONS`, `hostContactSchema`: a host's call to a lapsed regular, the reason they stopped coming and the offer made as a promotion effect (#165, decision 0276). A bonus offered carries no expiry, as bonus chips never expire (F-068).
 - `hostLapse`: the `host.lapse` setting, when a regular has lapsed.

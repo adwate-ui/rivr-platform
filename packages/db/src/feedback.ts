@@ -1,6 +1,6 @@
 import { detailedFeedbackSchema, FEEDBACK_TOPICS, type FEEDBACK_RATED, type FeedbackTopic } from '@rivr/contracts/feedback';
 import { err, ok, type Result } from '@rivr/contracts/result';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
@@ -55,8 +55,91 @@ function ratingsOf(value: unknown): FeedbackRatings | null {
   return parsed.success ? parsed.data : null;
 }
 
+/** A row of the console's lists, as the database gives it. */
+interface FeedbackRow {
+  readonly id: string;
+  readonly member_id: string;
+  readonly full_name: string;
+  readonly member_number: number;
+  readonly visit_closed_at: string | null;
+  readonly score: number | null;
+  readonly note: string | null;
+  readonly is_ticket: boolean;
+  readonly resolved_at: string | null;
+  readonly resolved_by: string | null;
+  readonly resolution: string | null;
+  readonly created_at: string;
+  readonly topic: string | null;
+  readonly ratings: unknown;
+  readonly nps: number | null;
+}
+
+function itemOf(row: FeedbackRow): FeedbackItem {
+  return {
+    id: row.id, memberId: row.member_id, fullName: row.full_name, memberNumber: row.member_number, visitClosedAt: row.visit_closed_at,
+    score: row.score, note: row.note, isTicket: row.is_ticket, resolvedAt: row.resolved_at, resolvedBy: row.resolved_by,
+    resolution: row.resolution, createdAt: row.created_at,
+    topic: FEEDBACK_TOPICS.find((topic) => topic === row.topic) ?? null, ratings: ratingsOf(row.ratings), nps: row.nps,
+  };
+}
+
 // The console's list asks again every minute.
 const LIST_CHECK = 60_000;
+
+/** How many are in each list (F-024): open tickets, tickets resolved and everything else of the last 90 days. */
+export interface FeedbackCounts {
+  readonly open: number;
+  readonly resolved: number;
+  readonly other: number;
+}
+
+/** A list read a page at a time: tickets resolved, or the ratings that never were tickets. */
+export type FeedbackListName = 'resolved' | 'other';
+
+/** The database's page: fewer than this means the last. */
+const PAGE_SIZE = 50;
+
+/** Where a page starts: after the row that ended the last one. */
+interface FeedbackCursor {
+  readonly at: string;
+  readonly id: string;
+}
+
+const FIRST_PAGE: FeedbackCursor | null = null;
+
+/** Each list's count, from the server, so a tab says how many there are however long the list (F-024). */
+export function useFeedbackCounts(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.venueFeedbackCounts(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    refetchInterval: LIST_CHECK,
+    queryFn: async (): Promise<FeedbackCounts> => {
+      const { data, error } = await client.rpc('feedback_counts', { p_venue_id: venueId });
+      if (error) throw error;
+      return data[0] ?? { open: 0, resolved: 0, other: 0 };
+    },
+  });
+}
+
+/** Tickets resolved, or the ratings that never were tickets, newest first, a page at a time (F-024). */
+export function useFeedbackPage(venueId: string, list: FeedbackListName) {
+  const { client, userId } = useRivrData();
+  return useInfiniteQuery({
+    queryKey: queryKeys.venueFeedbackPage(userId ?? 'signed-out', venueId, list),
+    enabled: userId !== null,
+    initialPageParam: FIRST_PAGE,
+    queryFn: async ({ pageParam }): Promise<FeedbackItem[]> => {
+      const { data, error } = await client.rpc('feedback_page', { p_venue_id: venueId, p_list: list, ...(pageParam ? { p_before: pageParam.at, p_before_id: pageParam.id } : {}) });
+      if (error) throw error;
+      return data.map(itemOf);
+    },
+    getNextPageParam: (last): FeedbackCursor | null => {
+      const end = last.at(-1);
+      return end === undefined || last.length < PAGE_SIZE ? null : { at: end.createdAt, id: end.id };
+    },
+  });
+}
 
 /** The signed-in member's visit to rate on Home, or null when there is none. */
 export function useMyFeedbackVisit() {
@@ -103,34 +186,41 @@ export function useFeedbackActions() {
   return { rate, send, sendQuick, sendDetailed };
 }
 
-/** The venue's feedback for the General Manager (feedback.manage): open tickets first, then the last 90 days. */
-export function useVenueFeedback(venueId: string) {
+/** An open ticket as the triage table shows it (F-013): the visit's tables, and how long from check-in to a first seat. */
+export interface OpenFeedback extends FeedbackItem {
+  readonly tables: string | null;
+  readonly waitSeconds: number | null;
+}
+
+/** Every open ticket, oldest first; the list is never cut (F-024). */
+export function useOpenFeedback(venueId: string) {
   const { client, userId } = useRivrData();
   return useQuery({
-    queryKey: queryKeys.venueFeedback(userId ?? 'signed-out', venueId),
+    queryKey: queryKeys.venueFeedbackOpen(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     refetchInterval: LIST_CHECK,
-    queryFn: async (): Promise<FeedbackItem[]> => {
-      const { data, error } = await client.rpc('venue_feedback', { p_venue_id: venueId });
+    queryFn: async (): Promise<OpenFeedback[]> => {
+      const { data, error } = await client.rpc('open_feedback', { p_venue_id: venueId });
       if (error) throw error;
       return data.map((row) => ({
-        id: row.id, memberId: row.member_id, fullName: row.full_name, memberNumber: row.member_number, visitClosedAt: row.visit_closed_at,
-        score: row.score, note: row.note, isTicket: row.is_ticket, resolvedAt: row.resolved_at, resolvedBy: row.resolved_by,
-        resolution: row.resolution, createdAt: row.created_at,
-        topic: FEEDBACK_TOPICS.find((topic) => topic === row.topic) ?? null, ratings: ratingsOf(row.ratings), nps: row.nps,
+        ...itemOf({ ...row, is_ticket: true, resolved_at: null, resolved_by: null, resolution: null }), tables: row.tables, waitSeconds: row.wait_seconds,
       }));
     },
   });
 }
 
-/** The General Manager resolves a ticket with what was done; a Result, and the list reloads. */
+/** Why several tickets were not resolved: as any feedback failure, or more than the database takes at once. */
+export type ResolveFeedbackFailure = FeedbackFailure | 'too_many';
+
+/** Resolves several open tickets with one line of what was done, all or none (F-013): a Result, and every list reloads. */
 export function useResolveFeedback(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ feedbackId, resolution }: { feedbackId: string; resolution: string }): Promise<Result<null, FeedbackFailure>> => {
-      const { error } = await client.rpc('resolve_feedback', { p_feedback_id: feedbackId, p_resolution: resolution.trim() });
+    mutationFn: async ({ feedbackIds, resolution }: { feedbackIds: readonly string[]; resolution: string }): Promise<Result<null, ResolveFeedbackFailure>> => {
+      const { error } = await client.rpc('resolve_feedback_many', { p_feedback_ids: [...feedbackIds], p_resolution: resolution.trim() });
       await queryClient.invalidateQueries({ queryKey: queryKeys.venueFeedback(userId ?? 'signed-out', venueId) });
+      if (error?.code === 'RVMAX') return err('too_many');
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },
   });

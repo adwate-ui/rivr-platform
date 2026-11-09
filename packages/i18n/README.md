@@ -18,6 +18,7 @@ Every word a member or staff user reads, and the one formatter for money, number
 | `formatStakes(small, big, straddle?)` | Blinds in paise to `100/200`, and a straddle after them, `100/200/400`; a blind with paise keeps them, `0.50/1`. |
 | `formatTime(date)` | 24-hour IST clock, `02:40`. |
 | `formatYear(date)` | The IST year, `2027`, for the website's copyright (F-192). |
+| `formatHostOffer(offer)` | A host's offer in words, `2,000 bonus chips`, for the console's queue, Door and member record (F-015). |
 | `formatBlinds(small, big, ante?)` | A tournament level's blinds in chips: `400/800 ante 800`, or `400/800` with no ante (#119). |
 | `formatRupeesForInput(paise)` | Paise as the rupees a form's field holds: `10000`, or `2500.50` with paise. |
 | `settingCopy(key)`, `settingKeys` | Each setting key's name, help, field labels and option words, as Settings shows them (#604); undefined for a key with none. The copy test checks them with the catalogue. |

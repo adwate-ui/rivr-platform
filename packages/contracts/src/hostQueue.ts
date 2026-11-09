@@ -8,9 +8,6 @@ export const HOST_CHURN_REASONS = ['moved_away', 'busy', 'budget', 'game_too_big
 /** A churn reason. */
 export type HostChurnReason = (typeof HOST_CHURN_REASONS)[number];
 
-/** How long a bonus offered from the host queue lasts, in days, as the promotion builder's do by default. */
-export const HOST_OFFER_BONUS_DAYS = 30;
-
 /** A host's call to a lapsed regular: why they stopped coming, the offer made as a promotion effect, and a note. */
 export const hostContactSchema = z.strictObject({
   reason: z.enum(HOST_CHURN_REASONS),

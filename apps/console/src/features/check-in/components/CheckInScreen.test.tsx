@@ -26,6 +26,7 @@ function renderAs(role: string) {
     if (url.includes('/rest/v1/staff')) {
       return Response.json([{ id: 'st1', venue_id: 'v1', full_name: 'Sunita Pillai', role, venue: { name: 'RIVR Gurugram', is_practice: false } }]);
     }
+    if (url.includes('/rpc/open_host_offers')) return Response.json([{ member_id: 'm1', offer: { kind: 'points', points: 500 } }]);
     return Response.json(url.includes('/rpc/door_board') ? BOARD : []);
   });
   render(
@@ -37,6 +38,13 @@ function renderAs(role: string) {
 }
 
 describe('Check-in', () => {
+  it('says what a host offered a member, for the floor to give by hand (F-015)', async () => {
+    renderAs('host');
+    const expected = await screen.findByRole('region', { name: 'Expected tonight' }, { timeout: 5000 });
+    expect(await within(expected).findByText('Offered: 500 points')).toBeDefined();
+    expect(within(screen.getByRole('region', { name: 'In the room' })).queryByText(/^Offered/)).toBeNull();
+  });
+
   it('tells members apart by number, with the tier only above the base one (audit F-020)', async () => {
     renderAs('host');
     const expected = await screen.findByRole('region', { name: 'Expected tonight' }, { timeout: 5000 });
