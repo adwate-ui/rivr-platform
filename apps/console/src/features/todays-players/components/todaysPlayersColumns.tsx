@@ -24,8 +24,7 @@ const tablesOf = (player: TodaysPlayer) => (player.tables.length === 0 ? NONE() 
 export const TODAYS_PLAYERS_COLUMNS: readonly DataTableColumn<TodaysPlayer>[] = [
   { key: 'name', header: t('console.todaysPlayers.name'), cell: (player) => player.fullName, sortValue: (player) => player.fullName, priority: 'primary', isWide: true },
   {
-    key: 'status', header: t('console.todaysPlayers.status'), sortValue: (player) => RANK[player.status], isWide: true, filter: 'choice',
-    filterValue: (player) => t(`console.todaysPlayers.statuses.${player.status}`),
+    key: 'status', header: t('console.todaysPlayers.status'), sortValue: (player) => RANK[player.status], isWide: true, filter: false,
     cell: (player) => <DotStatus tone={TONE[player.status]} label={t(`console.todaysPlayers.statuses.${player.status}`)} />,
     exportValue: (player) => t(`console.todaysPlayers.statuses.${player.status}`),
   },

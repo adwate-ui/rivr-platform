@@ -11,7 +11,7 @@ function structureColumns(onEdit: (structure: BlindStructure) => void): DataTabl
     { key: 'levels', header: t('console.tournaments.levelsColumn'), align: 'end', cell: (row) => String(levelCount(row.stages)) },
     { key: 'length', header: t('console.tournaments.lengthColumn'), align: 'end', cell: (row) => formatDuration(structureMinutes(row.stages) * 60) },
     {
-      key: 'edit', filter: false, header: t('console.tournaments.edit'), align: 'end',
+      key: 'edit', header: '', align: 'end',
       cell: (row) => (
         <Button variant="text" aria-label={t('console.tournaments.editName', { name: row.name })} onClick={() => onEdit(row)}>{t('console.tournaments.edit')}</Button>
       ),

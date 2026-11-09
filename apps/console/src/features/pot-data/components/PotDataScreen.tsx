@@ -19,9 +19,9 @@ const highHandText = (hand: PotHand) => {
 function columns(): readonly DataTableColumn<PotHand>[] {
   return [
     { key: 'when', header: t('console.potData.when'), cell: (hand) => formatDayTime(new Date(hand.playedAt)), sortValue: (hand) => hand.playedAt },
-    { key: 'table', header: t('console.potData.table'), cell: (hand) => hand.tableName, sortValue: (hand) => hand.tableName },
-    { key: 'dealer', header: t('console.potData.dealer'), cell: (hand) => hand.dealerName, sortValue: (hand) => hand.dealerName },
-    { key: 'variant', header: t('console.potData.variant'), cell: (hand) => t(VARIANT_COPY[hand.variant]) },
+    { key: 'table', header: t('console.potData.table'), cell: (hand) => hand.tableName, sortValue: (hand) => hand.tableName, filter: false },
+    { key: 'dealer', header: t('console.potData.dealer'), cell: (hand) => hand.dealerName, sortValue: (hand) => hand.dealerName, filter: false },
+    { key: 'variant', header: t('console.potData.variant'), cell: (hand) => t(VARIANT_COPY[hand.variant]), filter: false },
     { key: 'pot', header: t('console.potData.pot'), align: 'end', cell: (hand) => formatMoney(hand.pot), sortValue: (hand) => hand.pot,
       exportValue: (hand) => Number(formatRupeesForFile(hand.pot)) },
     { key: 'rake', header: t('console.potData.rake'), align: 'end', cell: (hand) => formatMoney(hand.rake), sortValue: (hand) => hand.rake,

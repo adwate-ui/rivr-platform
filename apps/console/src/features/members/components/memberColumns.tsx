@@ -68,8 +68,8 @@ export interface MemberColumnsFor {
 }
 
 /**
- * Members' columns (console v3; owner, 8 Nov): Name, No., Tier, the mobile for super admins, KYC, Hours played, City,
- * Member since, Tonight and Visits; the name opens the record. With a record open beside the list, every one of them,
+ * Members' columns (console v3; owner, 8 Nov): Name, No., Tier, the mobile for super admins, ID check, Hours, City,
+ * Joined, Tonight and Visits; the name opens the record. With a record open beside the list, every one of them,
  * the lines scrolling sideways (owner, 9 Nov).
  */
 export function memberColumns(tonight: ReadonlyMap<string, Tonight>, view: MemberColumnsFor): readonly DataTableColumn<MemberListRow>[] {
@@ -84,7 +84,7 @@ function coreColumns(tonight: ReadonlyMap<string, Tonight>): readonly DataTableC
     // Twice a share, so a name stays on one line beside the record (the screenshot index: "Kabir / Sethi").
     { key: 'name', header: t('console.members.name'), cell: (row) => row.fullName, sortValue: (row) => row.fullName, isWide: true },
     { key: 'number', header: t('console.members.number'), cell: (row) => <Text variant="secondary" tone="muted">{String(row.memberNumber)}</Text>, sortValue: (row) => row.memberNumber },
-    { key: 'tier', header: t('console.members.tier'), cell: (row) => row.tierName, sortValue: (row) => row.tierName },
+    { key: 'tier', header: t('console.members.tier'), cell: (row) => row.tierName, sortValue: (row) => row.tierName, filter: false },
     {
       key: 'tonight', header: t('console.members.tonight'), cell: (row) => <TonightStatus tonight={tonight.get(row.memberId)} />,
       sortValue: (row) => tonightOrder(tonight.get(row.memberId)), exportValue: (row) => tonightWords(tonight.get(row.memberId)), filter: 'choice',

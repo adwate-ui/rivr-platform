@@ -24,7 +24,7 @@ export function TournamentList({ tournaments, chosenId, onChoose }: TournamentLi
     { key: 'status', header: t('console.tournaments.status'), cell: statusOf },
     { key: 'event', header: t('console.tournaments.event'), cell: (row) => eventLine(row, tournaments) ?? '' },
     {
-      key: 'open', filter: false, header: t('console.tournaments.open'), align: 'end',
+      key: 'open', header: '', align: 'end',
       cell: (row) => (
         <Button variant="text" isDisabled={row.id === chosenId} aria-label={t('console.tournaments.openName', { name: row.name })}
           onClick={() => onChoose(row.id)}>{t('console.tournaments.open')}</Button>

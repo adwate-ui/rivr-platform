@@ -46,7 +46,7 @@ function columnsFor(look: WheelLook): readonly DataTableColumn<SpinPrize>[] {
   const { onRemove } = look;
   if (onRemove === null) return columns;
   // Asked twice: a removed prize is gone from the wheel at once (F2-21).
-  return [...columns, { key: 'remove', filter: false, header: t('console.spin.remove'), align: 'end', cell: (row) => (
+  return [...columns, { key: 'remove', header: '', align: 'end', cell: (row) => (
     <ConfirmButton variant="text" size="small" label={t('console.spin.remove')} name={t('console.spin.removeName', { prize: prizeLabel(row) })}
       confirm={t('console.spin.confirmRemove', { prize: prizeLabel(row) })} onConfirm={() => onRemove(row)} />
   ) }];

@@ -75,7 +75,7 @@ function Results({ venueId, tonight, onOpen, exportIn, seesPhone, seesIdentity, 
 
 /**
  * Every member of the venue, listed on open (owner, 3 Nov; decision 0483), as console v3 draws it: the search and a tier
- * choice narrow the table of Name, No., Tier, KYC, Hours played, City, Member since, Tonight and Visits, with the mobile
+ * choice narrow the table of Name, No., Tier, ID check, Hours, City, Joined, Tonight and Visits, with the mobile
  * for super admins (owner, 8 Nov); a click on a row opens the member's record.
  */
 export function MemberList(props: ListProps) {

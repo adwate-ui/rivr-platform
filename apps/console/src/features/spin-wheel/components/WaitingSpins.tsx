@@ -31,7 +31,7 @@ function columnsFor(spinButton: (row: WaitingSpin) => ReactNode): readonly DataT
     { key: 'member', header: t('console.spin.member'), cell: (row) => row.memberName, filter: 'text' },
     { key: 'promotion', header: t('console.spin.promotion'), cell: (row) => row.promotionName, filter: 'choice' },
     { key: 'granted', header: t('console.spin.granted'), cell: (row) => formatWaitingSince(new Date(row.grantedAt)) },
-    { key: 'spin', header: t('console.spin.spin'), align: 'end', cell: spinButton },
+    { key: 'spin', header: '', align: 'end', cell: spinButton },
   ];
 }
 
