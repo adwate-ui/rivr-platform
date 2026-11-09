@@ -29,7 +29,7 @@ export function RewardsScreen() {
 
 /**
  * Rewards' Points by hand tab: points by hand, earned or locked, and League points, one member or a CSV (points.give,
- * within the daily limit, #815), and for a super admin bonus chips by hand (the owner, 9 Nov).
+ * within the daily limit, #815), and for those with bonus.give bonus chips by hand (the owner, 9 Nov).
  */
 export function RewardsPointsScreen() {
   const staff = useStaffVenue();
@@ -37,7 +37,7 @@ export function RewardsPointsScreen() {
   if (staff.status !== 'ready') return null;
   return (
     <Screen title={t('console.rewards.tabs.points')}>
-      <PointsTab venueId={staff.venue.venueId} canGiveBonus={staff.venue.role === 'super_admin'} />
+      <PointsTab venueId={staff.venue.venueId} canGiveBonus={staff.venue.permissions.includes('bonus.give')} />
     </Screen>
   );
 }

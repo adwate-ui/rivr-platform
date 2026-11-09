@@ -1,6 +1,7 @@
 // What the kyc function needs from the platform: replies, database calls as the caller or as the
 // server, the member's current record, and the KYC photo in the private kyc bucket.
 import type { AdapterFailure } from '@rivr/adapters';
+import { isVendorCallGivenBack } from '@rivr/domain/identity';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
@@ -41,11 +42,26 @@ export async function noteFailure(memberId: string, step: KycStep, failure: Adap
     .catch(() => undefined);
 }
 
+/**
+ * A paid call that failed on the vendor's side is given back, so it does not use up one of the member's five a day (#791; the
+ * owner, 9 Nov).
+ */
+export async function giveBackCall(memberId: string, failure: AdapterFailure): Promise<void> {
+  if (!isVendorCallGivenBack(failure.code)) return;
+  await rpc('give_back_kyc_vendor_call', { p_member_id: memberId }, null, NOTE_WAIT_MS).catch(() => undefined);
+}
+
 /** A vendor call that failed, as the app's reply, once why is noted; no keys yet is not a failure to note. */
-export async function failed(memberId: string, step: KycStep, failure: AdapterFailure): Promise<Response> {
+export async function failureReply(memberId: string, step: KycStep, failure: AdapterFailure): Promise<Response> {
   if (failure.code === 'not_configured') return reply({ error: 'not_configured' }, 503);
   await noteFailure(memberId, step, failure);
   return reply({ error: 'unavailable' }, 502);
+}
+
+/** The same for the request's one paid call, which is given back if it failed on the vendor's side. */
+export async function failed(memberId: string, step: KycStep, failure: AdapterFailure): Promise<Response> {
+  await giveBackCall(memberId, failure);
+  return failureReply(memberId, step, failure);
 }
 
 /** A database function's refusal, with its SQLSTATE (RVKIL, RVCON, RVRAT and so on). */

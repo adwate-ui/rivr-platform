@@ -106,11 +106,11 @@ export function useMemberBonusHistory(venueId: string, memberId: string, count: 
 }
 
 /**
- * Why bonus chips added by hand did not go through: not a super admin; the super admin's own member record; not whole
- * fifties from 50 to 1,00,000; no reason of 3 to 200 characters; the venue or member frozen, or promotions stopped;
- * anything else.
+ * Why bonus chips added by hand did not go through: not in the staff member's role; their own member record; not whole
+ * fifties from 50 to 1,00,000; no reason of 3 to 200 characters; the venue or member frozen, or promotions stopped; past
+ * their daily limit; anything else.
  */
-export type GiveBonusFailure = 'not_allowed' | 'own_record' | 'invalid_chips' | 'invalid_reason' | 'paused' | 'unavailable';
+export type GiveBonusFailure = 'not_allowed' | 'own_record' | 'invalid_chips' | 'invalid_reason' | 'paused' | 'daily_limit' | 'unavailable';
 
 const GIVE_FAILURE_BY_CODE: Readonly<Record<string, GiveBonusFailure>> = {
   '42501': 'not_allowed', RVOWN: 'own_record', RVCHP: 'invalid_chips', '22023': 'invalid_reason', RVFRZ: 'paused', RVKIL: 'paused', RVMBR: 'paused',
@@ -124,19 +124,22 @@ export interface BonusGift {
 }
 
 /**
- * Adds bonus chips to a member's balance by hand (the owner, 8 Nov): super admins only, with a reason, in whole fifties
- * from 50 to 1,00,000 and no daily cap (`give_bonus_chips`). Resolves to a Result and reads the balance and history again.
+ * Adds bonus chips to a member's balance by hand: super admins, admins and floor managers (the owner, 9 Nov), with a reason, in
+ * whole fifties from 50 to 1,00,000, and below a super admin within a daily limit (`give_bonus_chips`). Resolves to a Result and
+ * reads the balance and history again.
  */
 export function useGiveBonusChips(venueId: string, memberId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (gift: BonusGift): Promise<Result<null, GiveBonusFailure>> => {
-      const { error } = await client.rpc('give_bonus_chips', {
+      const { data, error } = await client.rpc('give_bonus_chips', {
         p_member_id: memberId, p_chips: gift.chips, p_reason: gift.reason, p_request_id: gift.requestId,
       });
       await queryClient.invalidateQueries({ queryKey: queryKeys.memberBonus(userId ?? 'signed-out', venueId, memberId) });
-      return error ? err(GIVE_FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
+      if (error) return err(GIVE_FAILURE_BY_CODE[error.code] ?? 'unavailable');
+      // Past the staff member's daily limit nothing is added and no grant comes back; the owner is alerted.
+      return data === null ? err('daily_limit') : ok(null);
     },
   });
 }

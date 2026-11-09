@@ -7,7 +7,7 @@ import { panSchema } from '@rivr/contracts';
 import { kycIdentityKey } from '@rivr/domain/identity';
 import { takeSignUpPhoto } from './photo.ts';
 import { takeSelfie } from './selfie.ts';
-import { CORS, currentRecord, failed, field, noteFailure, photoUrl, refusal, reply, rpc } from './server.ts';
+import { CORS, currentRecord, failed, failureReply, field, giveBackCall, noteFailure, photoUrl, refusal, reply, rpc } from './server.ts';
 import { subjectFor, type Subject } from './subject.ts';
 
 // A selfie of at most 2 MB, in base64, and the rest of the body.
@@ -67,11 +67,13 @@ async function complete({ memberId, kyc }: Subject): Promise<Response> {
   if (!pulled.ok) {
     // DigiLocker not finished, or refused: why is kept, and the member goes on to a PAN check.
     await noteFailure(memberId, 'complete', pulled.error);
+    await giveBackCall(memberId, pulled.error);
     await rpc('record_kyc_digilocker_failed', { p_member_id: memberId }, null);
     return reply({ status: 'needs_pan' });
   }
   const face = await kyc.matchFace({ selfieUrl: await photoUrl(record.photo_path), referenceUrl: pulled.value.photoUrl });
-  if (!face.ok) return await failed(memberId, 'complete', face.error);
+  // The pull before it went through and was paid for, so this request's call stands: else a resent request pulls for ever.
+  if (!face.ok) return await failureReply(memberId, 'complete', face.error);
   const { name, dateOfBirth, maskedAadhaar, aadhaarReference, pan, address, vendorReference } = pulled.value;
   const status = await rpc('record_kyc_digilocker', {
     p_member_id: memberId, p_date_of_birth: dateOfBirth, p_masked_aadhaar: maskedAadhaar, p_aadhaar_reference: aadhaarReference,

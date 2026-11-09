@@ -15,7 +15,7 @@ $$;
 
 delete from public.feedback where venue_id = '00000000-0000-4000-8000-000000000001';
 
--- Mihir checked in, waited 40 minutes, then played two tables, and rated it 2.
+-- Mihir checked in, waited 40 minutes, then played two tables, and rated it 2 with a note, so it is a ticket.
 insert into public.visit (id, venue_id, member_id, opened_at, closed_at, close_reason) values
   ('00000000-0000-4000-8000-0000000a3831', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000213',
    now() - interval '10 hours', now() - interval '5 hours', 'door');
@@ -28,8 +28,8 @@ insert into public.visit (id, venue_id, member_id, opened_at, closed_at, close_r
   ('00000000-0000-4000-8000-0000000a3832', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216',
    now() - interval '30 hours', now() - interval '26 hours', 'door');
 insert into public.feedback (id, venue_id, member_id, visit_id, score, note, created_at) values
-  ('00000000-0000-4000-8000-0000000f3831', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000213', '00000000-0000-4000-8000-0000000a3831', 2, null, now() - interval '4 hours'),
-  ('00000000-0000-4000-8000-0000000f3834', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', '00000000-0000-4000-8000-0000000a3832', 5, 'Not a ticket', now());
+  ('00000000-0000-4000-8000-0000000f3831', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000213', '00000000-0000-4000-8000-0000000a3831', 2, 'The wait was long', now() - interval '4 hours'),
+  ('00000000-0000-4000-8000-0000000f3834', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', '00000000-0000-4000-8000-0000000a3832', 5, null, now());
 insert into public.feedback (id, venue_id, member_id, note, created_at) values
   ('00000000-0000-4000-8000-0000000f3832', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', 'The older note', now() - interval '3 days'),
   ('00000000-0000-4000-8000-0000000f3833', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', 'A note', now() - interval '1 hour');

@@ -29,8 +29,8 @@ reset role;
 select results_eq($$ select topic, note, ratings, nps, is_ticket from public.feedback where member_id = '00000000-0000-4000-8000-000000000213' and visit_id is null
                      order by created_at, (topic is null) $$,
   $$ values ('dealer'::text, 'The dealer at Table 3 was quick and fair.'::text, null::jsonb, null::smallint, true),
-            (null, null, '{"gameplay": 5, "cashier": 3, "service": 4, "ambience": 5}'::jsonb, 9::smallint, true) $$,
-  'both are kept as tickets, the quick one with its topic, the detailed one with its answers');
+            (null, null, '{"gameplay": 5, "cashier": 3, "service": 4, "ambience": 5}'::jsonb, 9::smallint, false) $$,
+  'both are kept: the quick one a ticket with its topic, the detailed one, with no written note, none (the owner, 9 Nov)');
 select throws_ok($$ insert into public.feedback (venue_id, member_id, ratings) values ('00000000-0000-4000-8000-000000000001',
                      '00000000-0000-4000-8000-000000000213', '{"gameplay": 5, "cashier": 3, "service": 4, "ambience": 5}') $$,
   '23514', null, 'a detailed form always has its recommendation');

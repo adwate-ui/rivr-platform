@@ -49,6 +49,13 @@ describe('chipsFrom', () => {
 });
 
 describe('GiveBonusChips', () => {
+  it('says when the staff member has reached their daily limit (the owner, 9 Nov)', async () => {
+    renderForm({ status: 200, body: null });
+    addChips('500', 'Birthday at the club');
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, add 500 bonus chips' }));
+    expect(await screen.findByText('Past your daily limit for adding bonus chips. A super admin can add more.')).toBeDefined();
+  });
+
   it('adds bonus chips with a reason after a second press, and says so (owner, 8 Nov)', async () => {
     const { sent } = renderForm();
     expect(screen.getByRole('button', { name: 'Add bonus chips' }).hasAttribute('disabled')).toBe(true);
@@ -59,11 +66,11 @@ describe('GiveBonusChips', () => {
     expect(screen.getByRole('textbox', { name: /^Bonus chips/ })).toHaveProperty('value', '');
   });
 
-  it('says why a super admin\'s own record is refused, and keeps what was typed', async () => {
+  it('says why their own record is refused, and keeps what was typed', async () => {
     renderForm({ status: 400, body: { code: 'RVOWN', message: 'own', details: null, hint: null } });
     addChips('500', 'For me');
     fireEvent.click(screen.getByRole('button', { name: 'Yes, add 500 bonus chips' }));
-    expect(await screen.findByText('Not to yourself. Ask another super admin.')).toBeDefined();
+    expect(await screen.findByText('Not to yourself. Ask someone else who can.')).toBeDefined();
     expect(screen.getByRole('textbox', { name: /^Bonus chips/ })).toHaveProperty('value', '500');
   });
 });

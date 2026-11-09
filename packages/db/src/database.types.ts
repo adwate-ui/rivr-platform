@@ -5209,6 +5209,9 @@ isOneToOne: false
               "big_blind_paise": number,"club_day": string,"game": string,"runs": number,"seconds": number,"small_blind_paise": number,"table_id": string,"table_name": string
             }[]
                            },
+"give_back_kyc_vendor_call":
+{ Args: { "p_member_id": string }; Returns: undefined
+                           },
 "give_bonus_chips":
 { Args: { "p_chips": number,"p_member_id": string,"p_reason": string,"p_request_id": string }; Returns: string
                            },

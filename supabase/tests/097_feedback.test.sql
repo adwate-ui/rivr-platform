@@ -1,6 +1,6 @@
 -- Feedback from the player app (#160; decision 0165). Home asks a member about their last visit, closed
--- in the week and not yet rated; they rate it once, 1 to 5 with a note if they like. A score of 3 or
--- below, and a note from Profile, is a ticket the General Manager (feedback.manage: the owner 101 and
+-- in the week and not yet rated; they rate it once, 1 to 5 with a note if they like. Anything with a
+-- written note is a ticket the General Manager (feedback.manage: the owner 101 and
 -- the floor manager 103) resolves with what was done; a cashier (104) sees none. 213 Mihir and 216 Kunal
 -- are members.
 begin;
@@ -32,7 +32,7 @@ select is_empty($$ select * from public.my_feedback_visit() $$, 'and Home stops 
 select is_empty($$ select * from public.feedback $$, 'he reads no feedback rows, not even his own: only through the functions');
 reset role;
 select results_eq($$ select score, note, is_ticket from public.feedback $$, $$ values (2::smallint, 'The dealer at Table 3 was slow.'::text, true) $$,
-  'his 2 is a ticket, the note trimmed');
+  'his 2, with its note, is a ticket, the note trimmed');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 select throws_ok($$ select public.send_feedback('   ') $$, '22023', null, 'a note from Profile says something');
 select lives_ok($$ select public.send_feedback('Please add PLO on Mondays.') $$, 'and he sends the club a note');
@@ -75,6 +75,12 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 select lives_ok($$ select public.rate_visit('00000000-0000-4000-8000-0000000a9701', 5, null) $$, 'a 5, with no note');
 reset role;
 select is((select is_ticket from public.feedback where score = 5), false, 'is no ticket');
+-- A ticket opens only for a written note (the owner, 9 Nov), whatever the score.
+update public.feedback set score = 1 where score = 5;
+select is((select is_ticket from public.feedback where score = 1), false, 'nor is a 1 with no note');
+update public.feedback set note = 'Lovely night' where score = 1;
+select is((select is_ticket from public.feedback where score = 1), true, 'a rating with a note is one');
+update public.feedback set score = 5, note = null where score = 1;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select throws_ok($$ select public.resolve_feedback((select id from public.feedback where score = 5), 'Nothing to do') $$, '22023', null,
   'and there is nothing to resolve');

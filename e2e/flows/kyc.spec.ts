@@ -58,6 +58,9 @@ test.describe('KYC', () => {
     if (isRemoteTarget()) return;
     await takeSelfie(page);
     await expect(page.getByRole('alert').getByText('ID checks are not open yet.')).toBeVisible();
+    // A call that never reached a vendor is given back: it uses up none of the member's five a day (the owner, 9 Nov).
+    expect(sql(`select coalesce((select k.vendor_calls from public.kyc_record k join public.member m on m.id = k.member_id
+                 where m.phone = '+919000000218'), 0)`)).toBe('0');
   });
 
   test('a member DigiLocker failed for can try it again from the PAN step; one it matched without a PAN is not offered it', async ({ browser, page, request }) => {

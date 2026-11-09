@@ -69,7 +69,7 @@ function Balances({ venueId, memberId }: { venueId: string; memberId: string }) 
 /**
  * Points and bonus chips on the member's record (decision 0504; owner, 8 Nov): each balance its own tile, as Rewards shows
  * them to the member (points cream with a star, to spend on rewards; bonus chips gold with a chip, used with a buy-in),
- * then every line of points (F-017) and of bonus chips, the newest first. Chips are redeemed in the seat sheets; a super admin adds some by hand on Rewards,
+ * then every line of points (F-017) and of bonus chips, the newest first. Chips are redeemed in the seat sheets; staff with bonus.give add some by hand on Rewards,
  * Points, where points are given (the owner, 9 Nov).
  */
 export function MemberBonus({ venueId, memberId }: { venueId: string; memberId: string }) {

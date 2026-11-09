@@ -29,7 +29,6 @@ export interface RecordAccess {
   readonly changePhone: boolean;
   /** A super admin withdraws an early departure recorded by mistake (decision 0500). */
   readonly withdrawDeparture: boolean;
-  /** A super admin adds bonus chips by hand (owner, 8 Nov). */
 }
 
 /** Member number, tier (and a change's last day), KYC and whether they are in the room. */

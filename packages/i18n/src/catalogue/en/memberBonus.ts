@@ -1,6 +1,6 @@
 /**
  * The record's Points and bonus chips (decision 0504; owner, 8 Nov): the two balances apart, each with its own name, line
- * and look, as Rewards shows them to the member; then each bonus line, the newest first; super admins add some by hand.
+ * and look, as Rewards shows them to the member; then each bonus line, the newest first; bonus chips are added by hand under Rewards.
  */
 export const memberBonus = {
   pointsLabel: 'Points',
@@ -26,12 +26,12 @@ export const memberBonus = {
   plus: '+{chips}',
   minus: '−{chips}',
   /**
-   * Bonus chips added by hand (the owner, 8 Nov): super admins only, whole fifties from 50 to 1,00,000, with a reason the
+   * Bonus chips added by hand: super admins, admins and floor managers (the owner, 9 Nov), whole fifties from 50 to 1,00,000, with a reason the
    * member's history shows and the audit log keeps. `{chips}` is the number, as `1,500`.
    */
   give: {
     title: 'Add bonus chips',
-    intro: 'For super admins. Added to the balance at once, with your reason in their history.',
+    intro: 'Added to the balance at once, with your reason in their history.',
     chips: 'Bonus chips',
     chipsHint: 'Whole fifties, 50 to 1,00,000.',
     /** Apart from the points' own Reason in the same card. */
@@ -41,11 +41,13 @@ export const memberBonus = {
     confirm: 'Yes, add {chips} bonus chips',
     added: '{chips} bonus chips added.',
     failures: {
-      not_allowed: 'Super admins only.',
-      own_record: 'Not to yourself. Ask another super admin.',
+      not_allowed: 'Not in your role. Ask an admin.',
+      own_record: 'Not to yourself. Ask someone else who can.',
       invalid_chips: 'Give whole fifties from 50 to 1,00,000.',
       invalid_reason: 'Give a reason of 3 to 200 characters.',
       paused: 'Frozen, or promotions stopped. Try once released.',
+      /** Past the staff member's daily limit on bonus chips by hand; the owner is told. */
+      daily_limit: 'Past your daily limit for adding bonus chips. A super admin can add more.',
       unavailable: 'Not added. Try again.',
     },
   },
