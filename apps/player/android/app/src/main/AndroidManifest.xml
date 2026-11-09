@@ -50,4 +50,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- The lock-screen live status (decision 0323): asked for when the member turns it on, on Android 13 and later. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- The sign-up selfie, asked for when the member reaches that step. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Not required, or Play hides the app from phones with only a front or fixed-focus camera. -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 </manifest>
