@@ -23,7 +23,7 @@ export const playerKyc = {
   /** Identity checked at the club (decision 0502): the selfie in the app, the documents at the desk. */
   clubStep: 'At the club',
   clubStepDetail: 'Aadhaar and PAN at the desk, on your first visit',
-  clubKept: 'Kept: your selfie now. At the desk: a photo, your date of birth, PAN and the last 4 digits of your Aadhaar.',
+  clubKept: 'Kept: your selfie now. At the desk: a photo of you, photos of your PAN and Aadhaar front (first 8 digits hidden), your date of birth, PAN and the last 4 digits of your Aadhaar.',
   registeredTitle: 'Registered',
   /** On the registered screen, and on Tonight's card until the desk has checked them. */
   atTheDesk: 'Bring your Aadhaar and PAN on your first visit. The desk checks them before you play.',

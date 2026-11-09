@@ -38,9 +38,12 @@ export {
   type KycInPersonFailure,
   type KycInPersonOutcome,
   type KycRefusal,
+  type KycRetake,
   type KycReviewFailure,
   type KycWaitReason,
 } from './kycReview.ts';
+export type { KycDocumentKind } from '@rivr/contracts';
+export { useKycDocumentRetake, useMemberKycDocuments, useSendBackKycDocument, type KycDocument, type KycSendBackFailure } from './kycDocuments.ts';
 export {
   useAcademyActions,
   useAcademyBatches,

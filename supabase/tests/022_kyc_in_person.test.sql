@@ -15,7 +15,7 @@ declare
   v_path text := public.authorize_in_person_kyc(p_member_id);
 begin
   set local role postgres;
-  insert into storage.objects (bucket_id, name) values ('kyc', v_path);
+  insert into storage.objects (bucket_id, name) values ('kyc', v_path), ('kyc', replace(v_path, '/in-person-', '/doc-pan-')), ('kyc', replace(v_path, '/in-person-', '/doc-aadhaar-'));
   set local role authenticated;
   return v_path;
 end;
@@ -23,7 +23,8 @@ $$;
 
 -- A check as the reviewer, with its own photo.
 create function pg_temp.check(p_member_id uuid, p_date_of_birth date, p_last4 text, p_pan text) returns text language sql as $$
-  select public.check_kyc_in_person(p_member_id, pg_temp.photo_for(p_member_id), p_date_of_birth, p_last4, p_pan, true);
+  select public.check_kyc_in_person(p_member_id, p.path, p_date_of_birth, p_last4, p_pan, true, replace(p.path, '/in-person-', '/doc-pan-'), replace(p.path, '/in-person-', '/doc-aadhaar-'), true)
+  from (select pg_temp.photo_for(p_member_id) as path) p;
 $$;
 
 create function pg_temp.as_user(p_user uuid) returns void language plpgsql as $$

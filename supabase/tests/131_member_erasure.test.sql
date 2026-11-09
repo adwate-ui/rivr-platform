@@ -30,7 +30,7 @@ select set_eq(
             or exists (select 1 from pg_attribute a where a.attrelid = c.oid and a.attname ~ '(^|_)member_ids?$' and not a.attisdropped)) $$,
   $$ values
      -- Deleted.
-     ('feedback'), ('kyc_review'), ('member_feature_override'), ('member_limit'), ('member_preference'), ('membership_card'),
+     ('feedback'), ('kyc_document'), ('kyc_review'), ('member_feature_override'), ('member_limit'), ('member_preference'), ('membership_card'),
      ('notification_preference'), ('review_request'), ('sign_up_attribution'), ('cab_request'), ('club_event_booking'), ('learn_attempt'), ('learn_card'), ('learn_lesson'), ('host_queue_item'), ('learn_session'), ('lead'), ('push_subscription'), ('live_status_device'), ('winner_card'), ('tournament_interest'),
      -- Changed: consent withdrawn, the KYC record kept with the PAN alone when TDS was taken (else deleted), a payout
      -- account a money record names kept and marked removed (others deleted), bonus grants closed by the forfeit.

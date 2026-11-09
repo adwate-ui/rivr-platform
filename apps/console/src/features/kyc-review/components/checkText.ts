@@ -1,4 +1,4 @@
-import type { KycCheck, KycRefusal, KycReviewFailure, KycWaitReason } from '@rivr/db';
+import type { KycCheck, KycInPersonFailure, KycRefusal, KycReviewFailure, KycWaitReason } from '@rivr/db';
 import { formatDate, formatIsoDay, formatTime, t, type MessageKey } from '@rivr/i18n';
 
 const REFUSAL_COPY: Readonly<Record<KycRefusal, MessageKey>> = {
@@ -24,6 +24,16 @@ const METHOD_COPY: Readonly<Record<KycCheck['method'], MessageKey>> = {
   digilocker: 'console.kycReview.digilocker',
   pan: 'console.kycReview.panAlone',
   manual: 'console.kycInPerson.method',
+};
+
+/** What the console says for each way a check in person, or a photo taken again, can fail. */
+export const IN_PERSON_FAILURE_COPY: Readonly<Record<KycInPersonFailure, MessageKey>> = {
+  not_allowed: 'console.kycInPersonFailures.notAllowed',
+  decided: 'console.kycInPersonFailures.decided',
+  no_photo: 'console.kycInPersonFailures.noPhoto',
+  invalid: 'console.kycInPersonFailures.invalid',
+  stopped: 'console.kycInPersonFailures.stopped',
+  unavailable: 'console.kycInPersonFailures.unavailable',
 };
 
 /** What the console says for each way a decision can fail. */

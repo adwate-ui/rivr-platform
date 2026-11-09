@@ -1,4 +1,4 @@
-import type { KycInPerson } from '@rivr/contracts';
+import { KYC_DOCUMENT_KINDS, type KycDocumentKind, type KycInPerson } from '@rivr/contracts';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toBase64 } from './kyc.ts';
@@ -61,7 +61,7 @@ const WAIT_REASONS = [
 const REFUSALS = ['under_18', 'duplicate_face', 'duplicate_pan', 'duplicate_aadhaar', 'staff_rejected', 'on_break'] as const;
 
 /** One of `known`, or a fault: a value this console does not know is never shown as some other. */
-function oneOf<Value extends string>(known: readonly Value[], value: string): Value {
+export function oneOf<Value extends string>(known: readonly Value[], value: string): Value {
   const found = known.find((candidate) => candidate === value);
   if (found === undefined) throw new Error(`Unknown KYC value: ${value}`);
   return found;
@@ -149,22 +149,31 @@ export function useKycReviewActions(venueId: string) {
   return { review, reopen };
 }
 
+const CANDIDATE_STATUSES = ['started', 'needs_pan', 'verified', 'needs_review', 'refused'] as const;
+
 /** A member a KYC reviewer may check in person: no check yet (`status` null), or one the app started and never finished. */
 export interface KycCandidate {
   readonly memberId: string;
   readonly fullName: string;
   /** The last four digits of their mobile number, to tell two of the same name apart. */
   readonly phoneLast4: string;
-  readonly status: 'started' | 'needs_pan' | null;
+  /** `verified`, `needs_review` or `refused` only for a member owed a photo a super admin sent back (`retakes`). */
+  readonly status: (typeof CANDIDATE_STATUSES)[number] | null;
   /**
    * The selfie they took in the app to be checked at the club (decision 0502), for `useKycImageUrl`: their sign-up photo,
    * or the app's KYC selfie for a check reopened from the vendor. Staff compare it with the face at the desk. Null for
    * anyone else.
    */
   readonly clubSelfiePath: string | null;
+  /** The document photos a super admin sent back, to be taken again (decision 0573). */
+  readonly retakes: readonly KycRetake[];
 }
 
-const CANDIDATE_STATUSES = ['started', 'needs_pan'] as const;
+/** A document photo a super admin sent back, and why, in their words. */
+export interface KycRetake {
+  readonly kind: KycDocumentKind;
+  readonly reason: string;
+}
 
 interface CandidateRow {
   member_id: string;
@@ -172,12 +181,15 @@ interface CandidateRow {
   phone_last4: string;
   status: string | null;
   app_selfie_path: string | null;
+  retake_kinds: string[];
+  retake_reasons: string[];
 }
 
 const candidateOf = (row: CandidateRow): KycCandidate => ({
   memberId: row.member_id, fullName: row.full_name, phoneLast4: row.phone_last4,
   status: row.status === null ? null : oneOf(CANDIDATE_STATUSES, row.status),
   clubSelfiePath: row.app_selfie_path,
+  retakes: row.retake_kinds.map((kind, at) => ({ kind: oneOf(KYC_DOCUMENT_KINDS, kind), reason: row.retake_reasons[at] ?? '' })),
 });
 
 /** The members found by name, or by the last digits of their number, for a check in person (two characters at least). */
@@ -220,14 +232,19 @@ export type KycInPersonFailure = 'not_allowed' | 'decided' | 'no_photo' | 'inval
 
 const IN_PERSON_FAILURES: readonly KycInPersonFailure[] = ['not_allowed', 'decided', 'no_photo', 'invalid', 'stopped'];
 
+/** The function's reply as the console tells it; anything else is `unavailable`. */
+export function inPersonFailureOf(code: unknown): KycInPersonFailure {
+  return IN_PERSON_FAILURES.find((known) => known === code) ?? 'unavailable';
+}
+
 /** Where a check in person ended. */
 export type KycInPersonOutcome = 'verified' | 'refused' | 'needs_review';
 
 const IN_PERSON_OUTCOMES: readonly KycInPersonOutcome[] = ['verified', 'needs_review'];
 
 /**
- * A check in person (the kyc-in-person Edge Function): the member's photo (a JPEG) and the details
- * from their originals. Resolves to where the check ended: `verified`, `refused` (the gate refuses
+ * A check in person (the kyc-in-person Edge Function): photos of the member, their PAN and their Aadhaar
+ * front (JPEGs, the Aadhaar's bars already painted in) and the details from their originals. Resolves to where the check ended: `verified`, `refused` (the gate refuses
  * under 18 and a PAN or Aadhaar a verified member holds) or `needs_review` (another check holds the
  * same PAN, Aadhaar or face); or why it did not go through. Then reloads the queue.
  */
@@ -235,18 +252,16 @@ export function useKycInPerson(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   const check = useMutation({
-    mutationFn: async ({ photo, ...details }: KycInPerson & { photo: Blob }): Promise<Result<KycInPersonOutcome, KycInPersonFailure>> => {
-      const { data, error } = await client.functions.invoke('kyc-in-person', { body: { ...details, image: await toBase64(photo) } });
+    mutationFn: async ({ photo, panPhoto, aadhaarPhoto, ...details }: KycInPerson & { photo: Blob; panPhoto: Blob; aadhaarPhoto: Blob }): Promise<Result<KycInPersonOutcome, KycInPersonFailure>> => {
+      const [image, panImage, aadhaarImage] = await Promise.all([toBase64(photo), toBase64(panPhoto), toBase64(aadhaarPhoto)]);
+      const { data, error } = await client.functions.invoke('kyc-in-person', { body: { ...details, image, panImage, aadhaarImage } });
       const user = userId ?? 'signed-out';
       // The queue, which now holds a refused check, and the search, which no longer finds a decided one.
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.kycReview(user, venueId) }),
         queryClient.invalidateQueries({ queryKey: queryKeys.kycInPersonSearches(user, venueId) }),
       ]);
-      if (error) {
-        const code = await functionErrorCode(error);
-        return err(IN_PERSON_FAILURES.find((known) => known === code) ?? 'unavailable');
-      }
+      if (error) return err(inPersonFailureOf(await functionErrorCode(error)));
       const status: unknown = typeof data === 'object' && data !== null ? Reflect.get(data, 'status') : null;
       // Anything else reads as refused, the safe reading.
       return ok(IN_PERSON_OUTCOMES.find((known) => known === status) ?? 'refused');

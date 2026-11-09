@@ -1815,6 +1815,50 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"kyc_document": {
+                  Row: {
+                    "covers_confirmed_by_staff_id": string | null,"created_at": string,"id": string,"kind": string,"member_id": string,"path": string,"retake_asked_at": string | null,"retake_asked_by_staff_id": string | null,"retake_reason": string | null,"taken_at": string,"taken_by_staff_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "covers_confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"kind": string,"member_id": string,"path": string,"retake_asked_at"?: string | null,"retake_asked_by_staff_id"?: string | null,"retake_reason"?: string | null,"taken_at"?: string,"taken_by_staff_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "covers_confirmed_by_staff_id"?: string | null,"created_at"?: string,"id"?: string,"kind"?: string,"member_id"?: string,"path"?: string,"retake_asked_at"?: string | null,"retake_asked_by_staff_id"?: string | null,"retake_reason"?: string | null,"taken_at"?: string,"taken_by_staff_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "kyc_document_covers_confirmed_by_staff_id_venue_id_fkey"
+      columns: ["covers_confirmed_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "kyc_document_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "kyc_document_retake_asked_by_staff_id_venue_id_fkey"
+      columns: ["retake_asked_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "kyc_document_taken_by_staff_id_venue_id_fkey"
+      columns: ["taken_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "kyc_document_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"kyc_record": {
                   Row: {
                     "aadhaar_name": string | null,"aadhaar_reference": string | null,"address": string | null,"at_club_from": string | null,"created_at": string,"date_of_birth": string | null,"digilocker_session_id": string | null,"face_match_score": number | null,"id": string,"identity_key": string | null,"liveness_score": number | null,"masked_aadhaar": string | null,"member_id": string,"method": string,"pan": string | null,"pan_recheck": string | null,"pan_rechecked_at": string | null,"photo_path": string | null,"refusal": string | null,"same_face_as": string | null,"selfie_claimed_at": string | null,"status": string,"updated_at": string,"vendor_calls": number,"vendor_calls_since": string,"vendor_failed_at": string | null,"vendor_failure": string | null,"vendor_reference": string | null,"venue_id": string,"verified_at": string | null
@@ -4792,6 +4836,9 @@ isOneToOne: false
 "approve_waitlist_request":
 { Args: { "p_entry_id": string }; Returns: undefined
                            },
+"ask_kyc_document_retake":
+{ Args: { "p_kind": string,"p_member_id": string,"p_reason": string }; Returns: undefined
+                           },
 "ask_live_purge":
 { Args: { "p_reason": string,"p_venue_id": string }; Returns: string
                            },
@@ -4803,6 +4850,9 @@ isOneToOne: false
                            },
 "authorize_in_person_kyc":
 { Args: { "p_member_id": string }; Returns: string
+                           },
+"authorize_kyc_document_retake":
+{ Args: { "p_kind": string,"p_member_id": string }; Returns: string
                            },
 "authorize_kyc_image":
 { Args: { "p_name": string }; Returns: undefined
@@ -4898,7 +4948,7 @@ isOneToOne: false
 { Args: { "p_phone": string,"p_venue_id": string }; Returns: string
                            },
 "check_kyc_in_person":
-{ Args: { "p_aadhaar_last4": string,"p_consent": boolean,"p_date_of_birth": string,"p_member_id": string,"p_pan": string,"p_photo_path": string }; Returns: string
+{ Args: { "p_aadhaar_last4": string,"p_aadhaar_photo_path"?: string,"p_consent": boolean,"p_covers_confirmed"?: boolean,"p_date_of_birth": string,"p_member_id": string,"p_pan": string,"p_pan_photo_path"?: string,"p_photo_path": string }; Returns: string
                            },
 "check_out":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: string
@@ -5300,12 +5350,12 @@ isOneToOne: false
                            },
 "kyc_due_tonight":
 { Args: { "p_venue_id": string }; Returns: {
-              "app_selfie_path": string,"full_name": string,"member_id": string,"phone_last4": string,"status": string
+              "app_selfie_path": string,"full_name": string,"member_id": string,"phone_last4": string,"retake_kinds": (string)[],"retake_reasons": (string)[],"status": string
             }[]
                            },
 "kyc_in_person_candidates":
 { Args: { "p_search": string,"p_venue_id": string }; Returns: {
-              "app_selfie_path": string,"full_name": string,"member_id": string,"phone_last4": string,"status": string
+              "app_selfie_path": string,"full_name": string,"member_id": string,"phone_last4": string,"retake_kinds": (string)[],"retake_reasons": (string)[],"status": string
             }[]
                            },
 "kyc_review_queue":
@@ -5395,6 +5445,11 @@ isOneToOne: false
                            },
 "member_id_for_phone":
 { Args: { "p_phone": string,"p_venue_id": string }; Returns: string
+                           },
+"member_kyc_documents":
+{ Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
+              "covers_confirmed_by": string,"kind": string,"path": string,"retake_asked_at": string,"retake_reason": string,"taken_at": string,"taken_by": string
+            }[]
                            },
 "member_points":
 { Args: { "p_phone": string,"p_venue_id": string }; Returns: {
@@ -5857,6 +5912,9 @@ isOneToOne: false
                            },
 "record_kyc_digilocker_failed":
 { Args: { "p_member_id": string }; Returns: undefined
+                           },
+"record_kyc_document_retake":
+{ Args: { "p_covers_confirmed": boolean,"p_kind": string,"p_member_id": string,"p_path": string }; Returns: undefined
                            },
 "record_kyc_pan":
 { Args: { "p_date_of_birth": string,"p_member_id": string,"p_pan": string,"p_vendor_reference": string }; Returns: string

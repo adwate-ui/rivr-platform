@@ -12,7 +12,7 @@ beforeEach(() => {
   Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: () => 'blob:photo' });
   Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: () => undefined });
   vi.stubGlobal('createImageBitmap', async () => ({ width: 1200, height: 1600, close: () => undefined }));
-  Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', { configurable: true, value: () => ({ translate: () => undefined, scale: () => undefined, drawImage: () => undefined }) });
+  Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', { configurable: true, value: () => ({ translate: () => undefined, scale: () => undefined, drawImage: () => undefined, fillRect: () => undefined }) });
   vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation((done) => done(new Blob(['jpeg'], { type: 'image/jpeg' })));
 });
 
@@ -23,7 +23,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-const NAINA = { member_id: '00000000-0000-4000-8000-000000000203', full_name: 'Naina Kapoor', phone_last4: '0203', status: null, app_selfie_path: null };
+const NAINA = { member_id: '00000000-0000-4000-8000-000000000203', full_name: 'Naina Kapoor', phone_last4: '0203', status: null, app_selfie_path: null, retake_kinds: [], retake_reasons: [] };
 
 /**
  * Vikram, a KYC reviewer, signed in, and a fake API that finds `found` (Naina), lists `due` as due tonight and answers her
@@ -55,23 +55,35 @@ function renderSection(reply: () => Response, found: unknown = NAINA, due: unkno
   return sent;
 }
 
+/** One photo through its camera: the shutter once it is live, then Use photo. */
+async function takeAndUse(confirmBars = false) {
+  const take = await screen.findByRole('button', { name: 'Take photo' });
+  await waitFor(() => expect(take.hasAttribute('disabled')).toBe(false));
+  fireEvent.click(take);
+  if (confirmBars) fireEvent.click(await screen.findByRole('switch', { name: /^The bars hide/ }));
+  fireEvent.click(await screen.findByRole('button', { name: 'Use photo' }));
+}
+
+/** The three photos in the desk's order, each camera opening as the last photo is kept; never a file (K-07). */
+async function takeThreePhotos() {
+  fireEvent.click(screen.getByRole('button', { name: 'Take their photo' }));
+  await takeAndUse();
+  await screen.findByText('Photo 2 of 3');
+  await takeAndUse();
+  await screen.findByText('Photo 3 of 3');
+  await takeAndUse(true);
+  await screen.findByRole('button', { name: 'Take the photo again' });
+}
+
 /**
- * Finds Naina and fills in every detail from her originals, then verifies; the photo and her consent
+ * Finds Naina and fills in every detail from her originals, then verifies; the photos and her consent
  * unless a test leaves one out.
  */
 async function checkNaina({ photo = true, consent = true } = {}) {
   fireEvent.change(screen.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }), { target: { value: 'nai' } });
   expect(await screen.findByText('Mobile ending 0203')).toBeDefined();
   fireEvent.click(screen.getByRole('button', { name: 'Check Naina Kapoor' }));
-  if (photo) {
-    // Taken with the console's camera, kept, never a file (K-07).
-    fireEvent.click(screen.getByRole('button', { name: 'Take their photo' }));
-    const take = await screen.findByRole('button', { name: 'Take photo' });
-    await waitFor(() => expect(take.hasAttribute('disabled')).toBe(false));
-    fireEvent.click(take);
-    fireEvent.click(await screen.findByRole('button', { name: 'Use photo' }));
-    await screen.findByRole('button', { name: 'Take the photo again' });
-  }
+  if (photo) await takeThreePhotos();
   fireEvent.change(screen.getByLabelText('Date of birth on Naina Kapoor\'s original document'), { target: { value: '1990-04-12' } });
   fireEvent.change(screen.getByLabelText('Last four digits of Naina Kapoor\'s Aadhaar'), { target: { value: '1234' } });
   fireEvent.change(screen.getByLabelText('Naina Kapoor\'s PAN from the original card'), { target: { value: 'abcpn1234d' } });
@@ -85,7 +97,8 @@ describe('a check in person', () => {
     await checkNaina();
     expect(await screen.findByText('Naina Kapoor is verified and can take a seat.')).toBeDefined();
     expect(sent).toEqual([{
-      memberId: NAINA.member_id, dateOfBirth: '1990-04-12', aadhaarLast4: '1234', pan: 'ABCPN1234D', consent: true, image: btoa('jpeg'),
+      memberId: NAINA.member_id, dateOfBirth: '1990-04-12', aadhaarLast4: '1234', pan: 'ABCPN1234D', consent: true, coversConfirmed: true,
+      image: btoa('jpeg'), panImage: btoa('jpeg'), aadhaarImage: btoa('jpeg'),
     }]);
     expect(screen.queryByRole('button', { name: 'Verify Naina Kapoor' })).toBeNull();
   });
@@ -110,7 +123,7 @@ describe('a check in person', () => {
   it('sends nothing without the member\'s consent, however complete the rest', async () => {
     const sent = renderSection(() => Response.json({ status: 'verified' }));
     await checkNaina({ consent: false });
-    expect((await screen.findByRole('alert')).textContent).toMatch(/^Photo, date of birth/);
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^All three photos/);
     expect(sent).toEqual([]);
   });
 
@@ -148,10 +161,56 @@ describe('a check in person', () => {
     expect(screen.queryByRole('heading', { name: 'Due tonight' })).toBeNull();
   });
 
+  it('takes a photo again without losing what was typed, and goes back to the form when the others are there', async () => {
+    renderSection(() => Response.json({ status: 'verified' }));
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }), { target: { value: 'nai' } });
+    fireEvent.click(await screen.findByRole('button', { name: 'Check Naina Kapoor' }));
+    fireEvent.change(screen.getByLabelText('Last four digits of Naina Kapoor\'s Aadhaar'), { target: { value: '1234' } });
+    await takeThreePhotos();
+    expect(screen.getByRole('img', { name: 'PAN card of Naina Kapoor' })).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Take the PAN card again' }));
+    await takeAndUse();
+    await screen.findByRole('button', { name: 'Take the Aadhaar front again' });
+    expect(screen.queryByText(/^Photo \d of 3$/)).toBeNull();
+    expect(screen.getByLabelText<HTMLInputElement>('Last four digits of Naina Kapoor\'s Aadhaar').value).toBe('1234');
+  });
+
+  it('asks only for the photo a super admin sent back, and sends it alone', async () => {
+    const sent = renderSection(() => Response.json({ status: 'retaken' }), { ...NAINA, status: 'verified', retake_kinds: ['pan'], retake_reasons: ['Blurred'] });
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }), { target: { value: 'nai' } });
+    expect(await screen.findByText('A photo was sent back. Take it again.')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Check Naina Kapoor' }));
+    expect(screen.queryByLabelText('Date of birth on Naina Kapoor\'s original document')).toBeNull();
+    expect(await screen.findByText('Sent back: Blurred.')).toBeDefined();
+    fireEvent.click(await screen.findByRole('button', { name: 'Photograph the PAN card' }));
+    await takeAndUse();
+    expect(await screen.findByText('New photo kept for Naina Kapoor.')).toBeDefined();
+    expect(sent).toEqual([{ memberId: NAINA.member_id, kind: 'pan', coversConfirmed: false, image: btoa('jpeg') }]);
+  });
+
+  it('tells the desk why when a reopened check also has a photo sent back, and asks for the whole check', async () => {
+    renderSection(() => Response.json({ status: 'verified' }), { ...NAINA, status: 'started', retake_kinds: ['aadhaar_front'], retake_reasons: ['Digits showing'] });
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }), { target: { value: 'nai' } });
+    expect(await screen.findByText('A photo was sent back. Take it again.')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Check Naina Kapoor' }));
+    expect(await screen.findByText('Sent back: Digits showing.')).toBeDefined();
+    expect(screen.getByLabelText('Date of birth on Naina Kapoor\'s original document')).toBeDefined();
+  });
+
+  it('keeps a sent-back photo owed, and says why, when it was not saved', async () => {
+    renderSection(() => Response.json({ error: 'decided' }, { status: 409 }), { ...NAINA, status: 'verified', retake_kinds: ['pan'], retake_reasons: ['Blurred'] });
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }), { target: { value: 'nai' } });
+    fireEvent.click(await screen.findByRole('button', { name: 'Check Naina Kapoor' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Photograph the PAN card' }));
+    await takeAndUse();
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^Already decided/);
+    expect(screen.getByRole('button', { name: 'Photograph the PAN card' })).toBeDefined();
+  });
+
   it('sends nothing without the member\'s photo', async () => {
     const sent = renderSection(() => Response.json({ status: 'verified' }));
     await checkNaina({ photo: false });
-    expect((await screen.findByRole('alert')).textContent).toMatch(/^Photo, date of birth/);
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^All three photos/);
     expect(sent).toEqual([]);
   });
 });
