@@ -56,8 +56,8 @@ export function FeedbackList({ venueId, tab, onNavigate }: TabbedProps & { venue
 }
 
 /**
- * Feedback (#160, decision 0165), for the General Manager (feedback.manage): the open tickets (a rating of 3 or below, or
- * a note from the app), each resolved with what was done and kept with the staff member's name; on Resolved, the tickets
+ * Feedback (#160, decision 0165), for the General Manager (feedback.manage): the open tickets (anything with a written
+ * note, the owner, 9 Nov), each resolved with what was done and kept with the staff member's name; on Resolved, the tickets
  * resolved in the last 90 days; and on Other, the ratings of those days that never were tickets (F-024).
  */
 export function FeedbackScreen({ tab, onNavigate }: TabbedProps) {

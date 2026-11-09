@@ -73,8 +73,6 @@ export const playerFeedback = {
   note: 'Anything to add (optional)',
   send: 'Send',
   thanks: 'Thank you.',
-  /** After a score of 3 or below. */
-  thanksFollowUp: 'Thank you. The General Manager may call you.',
   /** In Profile. */
   title: 'Feedback',
   intro: 'The General Manager reads every note.',
