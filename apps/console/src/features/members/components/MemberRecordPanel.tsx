@@ -33,7 +33,7 @@ export interface RecordAccess {
 
 /** Member number, tier (and a change's last day), KYC and whether they are in the room. */
 function statusLine(record: MemberRecord): string {
-  const tier = record.tierUntil === null ? record.tierName
+  const tier = record.tierUntil === null ? t('console.members.tierLine', { tier: record.tierName })
     : t('console.members.tierUntil', { tier: record.tierName, date: formatDate(new Date(`${record.tierUntil}T12:00:00+05:30`)) });
   const kyc = record.isKycComplete ? t('console.members.kycVerified') : t('console.members.kycIncomplete');
   const parts = [t('console.members.memberNumber', { number: String(record.memberNumber) }), tier, kyc];

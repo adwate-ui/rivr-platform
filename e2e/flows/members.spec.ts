@@ -31,7 +31,7 @@ test.describe('Members', () => {
     await expect(page).toHaveURL(/\/members\?member=/);
     // The list stays where it was as the record opens beside it, so the search typed is still there (C-02).
     await expect(search).toHaveValue('Arjun');
-    await expect(page.getByText(/^Member \d+ · Black card · ID checked/)).toBeVisible();
+    await expect(page.getByText(/^No\. \d+ · Black card tier · ID checked/)).toBeVisible();
     await expect(page.getByText('Qualifies at 100/200')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Early departures' })).toBeVisible();
     // A membership manager sets a break from the record (A5-14); setting one is proved in 046_member_breaks.test.sql.
@@ -52,11 +52,11 @@ test.describe('Members', () => {
     await page.getByLabel('Last day (optional)').fill(lastDay);
     await page.getByRole('button', { name: 'Change tier', exact: true }).click();
     await expect(page.getByText('Tier changed.')).toBeVisible();
-    await expect(page.getByText(/^Member \d+ · Founders' Circle until \d{1,2} \w{3} \d{4}/)).toBeVisible();
+    await expect(page.getByText(/^No\. \d+ · Founders' Circle until \d{1,2} \w{3} \d{4}/)).toBeVisible();
 
     await page.getByRole('radiogroup', { name: 'New tier' }).getByRole('radio', { name: 'Member', exact: true }).click();
     await page.getByRole('textbox', { name: 'Why', exact: true }).fill('Back after the weekend');
     await page.getByRole('button', { name: 'Change tier', exact: true }).click();
-    await expect(page.getByText(/^Member \d+ · Member · /)).toBeVisible();
+    await expect(page.getByText(/^No\. \d+ · Member tier · /)).toBeVisible();
   });
 });

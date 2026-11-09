@@ -51,7 +51,9 @@ export const members = {
   grantSpins: '{count} spins',
   grantSpin: '1 spin',
   /** The record. `{number}` is the member number. */
-  memberNumber: 'Member {number}',
+  memberNumber: 'No. {number}',
+  /** The record's status line (F-039): `No. 427 · Member tier · ID checked`. */
+  tierLine: '{tier} tier',
   /** `{date}`: 30 Nov 2026, the tier change's last day. */
   tierUntil: '{tier} until {date}',
   qualifying: 'Qualifies at {stakes}',

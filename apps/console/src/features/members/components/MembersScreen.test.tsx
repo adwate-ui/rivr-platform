@@ -160,6 +160,11 @@ describe('Members (console v3)', () => {
     expect(screen.getByText('−500')).toBeDefined();
   });
 
+  it('writes the record\u2019s status on one line, without saying Member twice (F-039)', async () => {
+    renderAs('super_admin', 'm1');
+    expect(await screen.findByText(/^No\. 66 \u00b7 Black card tier \u00b7 /, undefined, { timeout: 5000 })).toBeDefined();
+  });
+
   it('shows a seated member\'s seat with a link to it on the floor, and the promotions they were given', async () => {
     const onNavigate = renderAs('super_admin', 'm1');
     expect(await screen.findByRole('heading', { name: 'Sakshi Tandon', level: 2 }, { timeout: 5000 })).toBeDefined();
