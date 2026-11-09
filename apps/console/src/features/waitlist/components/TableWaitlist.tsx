@@ -1,4 +1,5 @@
 import { type FloorTable, type InterestList, useApproveWaitlistRequest, useFloorSeats, useFloorWaitlistActions, type WaitlistBoardEntry, type WaitlistFailure, type WaitlistRequest } from '@rivr/db';
+import { tableWithRoomFor } from '@rivr/domain/tables';
 import { t } from '@rivr/i18n';
 import { Box, ErrorMessage, Heading, Inline, JoinRequestRow, Stack, Text, useToast } from '@rivr/ui';
 import { useState } from 'react';
@@ -12,6 +13,8 @@ export interface TableWaitlistProps {
   venueId: string;
   /** The table whose list this is (decision 0467): a place is seated only at it. */
   table: FloorTable;
+  /** The venue's tables, to say where else the stake has room (audit F-036). */
+  tables: readonly FloorTable[];
   entries: readonly WaitlistBoardEntry[];
   /** Joins from the app waiting for the floor (#633). */
   requests: readonly WaitlistRequest[];
@@ -78,7 +81,7 @@ function FullNote({ venueId, tableId }: { venueId: string; tableId: string }) {
  * order, each with its tick, Seat and ⋯ menu; and a field to add a member by mobile or membership number.
  */
 export function TableWaitlist(props: TableWaitlistProps) {
-  const { venueId, table, entries, requests, interest, canOpen, now, ticked, onToggle, onSeat, onApproved, onCheckId } = props;
+  const { venueId, table, tables, entries, requests, interest, canOpen, now, ticked, onToggle, onSeat, onApproved, onCheckId } = props;
   return (
     <Box as="section" surface="raised" radius="lg">
       <Box paddingX={4} paddingY={4}>
@@ -97,7 +100,7 @@ export function TableWaitlist(props: TableWaitlistProps) {
       ) : (
         <Stack gap={0}>
           {entries.map((entry) => (
-            <PlaceRow key={entry.entryId} venueId={venueId} entry={entry} table={table} now={now} isTicked={ticked.has(entry.entryId)}
+            <PlaceRow key={entry.entryId} venueId={venueId} entry={entry} table={table} roomAt={tableWithRoomFor(table, tables)} now={now} isTicked={ticked.has(entry.entryId)}
               onToggle={() => onToggle(entry.entryId)} onSeat={() => onSeat(entry)} onCheckId={onCheckId === undefined ? undefined : () => onCheckId(entry)} />
           ))}
         </Stack>

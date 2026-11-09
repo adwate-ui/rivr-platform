@@ -38,3 +38,15 @@ export function isRequestLate(kind: FloorRequestKind, waitedSeconds: number, tar
   if (SEAT_ALERTS.includes(kind)) return false;
   return waitedSeconds > (kind === 'top_up' ? targets.topUpSeconds : targets.otherSeconds);
 }
+
+/** How long a place may wait on a table's list before it shows late (audit F-075): forty-five minutes. */
+export const WAITLIST_TARGET_SECONDS = 45 * 60;
+
+/** How long a ticket may stand at the bar before it shows late (audit F-075): fifteen minutes. */
+export const FNB_TARGET_SECONDS = 15 * 60;
+
+/** Whether a place has waited past the list's target. */
+export const isPlaceLate = (waitedSeconds: number): boolean => waitedSeconds > WAITLIST_TARGET_SECONDS;
+
+/** Whether a ticket has stood past the bar's target. */
+export const isTicketLate = (ageSeconds: number): boolean => ageSeconds > FNB_TARGET_SECONDS;

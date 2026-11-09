@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_REQUEST_TARGETS, isRequestLate, REQUEST_TARGET_SECONDS, requestTargets } from './index.ts';
+import { DEFAULT_REQUEST_TARGETS, FNB_TARGET_SECONDS, isPlaceLate, isRequestLate, isTicketLate, REQUEST_TARGET_SECONDS, requestTargets, WAITLIST_TARGET_SECONDS } from './index.ts';
 
 describe('how long a request may wait on the floor (decision 0479)', () => {
   it('gives a top-up its own sixty seconds and the rest five minutes when the club set none', () => {
@@ -28,5 +28,17 @@ describe('how long a request may wait on the floor (decision 0479)', () => {
 
   it('never shows late an approved player to seat, ready or not (the owner, 8 Nov)', () => {
     for (const kind of ['seat', 'seat_check', 'seat_wait'] as const) expect(isRequestLate(kind, 3600, requestTargets(undefined))).toBe(false);
+  });
+});
+
+describe('ages against a target (audit F-075)', () => {
+  it('holds a place on time up to forty-five minutes and late after', () => {
+    expect(isPlaceLate(WAITLIST_TARGET_SECONDS)).toBe(false);
+    expect(isPlaceLate(WAITLIST_TARGET_SECONDS + 1)).toBe(true);
+  });
+
+  it('holds a ticket on time up to fifteen minutes and late after', () => {
+    expect(isTicketLate(FNB_TARGET_SECONDS)).toBe(false);
+    expect(isTicketLate(FNB_TARGET_SECONDS + 1)).toBe(true);
   });
 });

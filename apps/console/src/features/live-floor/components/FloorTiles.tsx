@@ -37,7 +37,7 @@ function Tile({ table, seats, held, canOpenTables, isExpanded, isScrolledTo, onT
     ? <Button variant="subtle" size="small" onClick={() => onOpenTable(table)}>{t('console.liveFloor.openTable')}</Button>
     : undefined;
   return (
-    <TableTile name={table.name} stake={stakeOf(table)} seats={tileSeats(table, seats, held)} isClosed={!table.isOpen} openAction={openAction}
+    <TableTile name={table.name} stake={stakeOf(table)} seats={tileSeats(table, seats, held)} waiting={table.waiting} isClosed={!table.isOpen} openAction={openAction}
       isExpanded={isExpanded} isScrolledTo={isScrolledTo} onToggle={onToggle} onSettings={() => onTable(table)}>
       {seatsAt(table, seats).map((player, index) => (player === undefined ? (
         <SeatRow key={index} number={index + 1} onSelect={() => onOpenSeat(table, index + 1)} />

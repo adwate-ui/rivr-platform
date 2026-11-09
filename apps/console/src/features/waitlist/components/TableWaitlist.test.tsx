@@ -38,13 +38,13 @@ afterEach(() => {
 
 function renderCard(props: {
   entries?: readonly WaitlistBoardEntry[]; ticked?: ReadonlySet<string>; onToggle?: (id: string) => void; onSeat?: () => void;
-  onCheckId?: (entry: WaitlistBoardEntry) => void; onApproved?: (entryId: string) => void; cannotCheckId?: boolean; table?: FloorTable;
+  onCheckId?: (entry: WaitlistBoardEntry) => void; onApproved?: (entryId: string) => void; cannotCheckId?: boolean; table?: FloorTable; tables?: readonly FloorTable[];
 }) {
   return render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
       <ToastProvider place="console">
-        <TableWaitlist venueId="v1" table={props.table ?? TABLE} entries={props.entries ?? [place(1, 'Ishaan Verma'), place(2, 'Mihir Shah')]} requests={[REQUEST]}
+        <TableWaitlist venueId="v1" table={props.table ?? TABLE} tables={props.tables ?? []} entries={props.entries ?? [place(1, 'Ishaan Verma'), place(2, 'Mihir Shah')]} requests={[REQUEST]}
           interest={undefined} canOpen now={NOW} ticked={props.ticked ?? new Set()} onToggle={props.onToggle ?? vi.fn()} onSeat={props.onSeat ?? vi.fn()}
           onApproved={props.onApproved ?? vi.fn()} onCheckId={props.cannotCheckId === true ? undefined : props.onCheckId ?? vi.fn()} />
       </ToastProvider>

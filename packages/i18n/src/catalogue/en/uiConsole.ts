@@ -52,6 +52,8 @@ export const consoleUi = {
   tableTile: {
     settings: 'Settings for {table}',
     seated: '{seated} of {total} seated',
+    waiting: '{count} waiting',
+    seatedWaiting: '{seated} of {total} seated · {count} waiting',
     needsYouOne: '1 needs you',
     needsYou: '{count} need you',
     showSeats: 'Show seats',

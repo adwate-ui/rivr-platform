@@ -91,4 +91,20 @@ describe('TableTile', () => {
     rerender(<TableTile name="Table 4" stake="100/200" seats={SEATS} isClosed isExpanded={false} onToggle={vi.fn()} onSettings={vi.fn()} />);
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('says how many are on its list beside who is seated, and nothing with none (audit F-036)', () => {
+    renderTile({ waiting: 6 });
+    expect(screen.getByText(/seated · 6 waiting$/)).toBeDefined();
+  });
+
+  it('says how many wait on a closed table too, the reason to open it', () => {
+    renderTile({ isClosed: true, waiting: 4 });
+    expect(screen.getByText('Closed')).toBeDefined();
+    expect(screen.getByText('4 waiting')).toBeDefined();
+  });
+
+  it('says nothing of a list with nobody on it', () => {
+    renderTile({ waiting: 0 });
+    expect(screen.queryByText(/waiting/)).toBeNull();
+  });
 });

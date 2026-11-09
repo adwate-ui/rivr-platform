@@ -73,7 +73,7 @@ function Cards({ venueId, canOpen, canCheckId, tables, entries, requests, intere
       <BulkPlaces venueId={venueId} entries={entries.filter((entry) => ticks.ticked.has(entry.entryId))} onClear={ticks.clear} />
       <Grid columns="cards" gap={4}>
         {shown.map((table) => (
-          <TableWaitlist key={table.id} venueId={venueId} table={table} now={now} canOpen={canOpen}
+          <TableWaitlist key={table.id} venueId={venueId} table={table} tables={tables} now={now} canOpen={canOpen}
             entries={entries.filter((entry) => entry.tableId === table.id)}
             requests={requests.filter((request) => request.tableId === table.id)}
             interest={table.isOpen ? undefined : interest.find((list) => list.tableId === table.id)}

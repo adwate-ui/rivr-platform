@@ -30,6 +30,9 @@ type Story = StoryObj<typeof meta>;
 /** Two players need the floor: gold segments, a gold line and the tile's gold inner ring. */
 export const Default: Story = {};
 
+/** With names on its own list (audit F-036). */
+export const WithAList: Story = { args: { waiting: 6 } };
+
 /** Nobody needs the floor: Show seats. */
 export const Quiet: Story = { args: { name: 'Table 5', stake: '100/200', seats: QUIET } };
 
