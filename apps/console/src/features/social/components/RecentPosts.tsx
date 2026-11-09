@@ -45,12 +45,14 @@ function columns(): readonly DataTableColumn<SocialPost>[] {
 export function RecentPosts({ venueId }: { venueId: string }) {
   const posts = useSocialPosts(venueId);
   const base = { label: t('console.social.posts.table'), columns: columns(), rowKey: (row: SocialPost) => row.postId };
+  // The heading shares the table's bar, so Export has no row of its own (audit F-207).
+  const heading = <Heading level={2} variant="section">{t('console.social.posts.title')}</Heading>;
   return (
     <Stack gap={4}>
-      <Heading level={2} variant="section">{t('console.social.posts.title')}</Heading>
+      {posts.data === undefined ? heading : null}
       {posts.data === undefined && posts.isError ? <DataTable {...base} status="error" onRetry={() => void posts.refetch()} /> : null}
       {posts.data === undefined && !posts.isError ? <DataTable {...base} status="loading" /> : null}
-      {posts.data === undefined ? null : <DataTable {...base} rows={posts.data} emptyText={t('console.social.posts.none')} />}
+      {posts.data === undefined ? null : <DataTable {...base} toolbar={() => heading} rows={posts.data} emptyText={t('console.social.posts.none')} />}
     </Stack>
   );
 }

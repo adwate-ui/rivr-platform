@@ -90,6 +90,7 @@ export const staff = {
   onboarding: {
     progress: 'Onboarding: {count} of {total} SOPs acknowledged.',
     none: 'No SOP in force asks this role.',
+    heading: 'Onboarding checklist',
     show: 'Onboarding checklist for {name}',
     hide: 'Hide onboarding checklist for {name}',
     sop: 'SOP',

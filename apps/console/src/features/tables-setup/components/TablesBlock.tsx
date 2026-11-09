@@ -1,6 +1,6 @@
 import { useTablesSetupActions, type SetupStake, type SetupTable } from '@rivr/db';
 import { formatNumber, t } from '@rivr/i18n';
-import { Button, ChoiceChips, DataTable, ErrorMessage, Grid, Heading, Inline, Input, Stack, StatusMessage, type DataTableColumn } from '@rivr/ui';
+import { Button, ChoiceChips, DataTable, ErrorMessage, Grid, Heading, Inline, Input, Screen, Stack, StatusMessage, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 import { TableActions, type TableOutcome } from './TableActions.tsx';
 
@@ -47,6 +47,7 @@ function tableColumns(props: TablesBlockProps & { open: string | null; onChange:
 export function TablesBlock({ venueId, stakes, tables }: TablesBlockProps) {
   const [open, setOpen] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<TableOutcome | null>(null);
+  const [exportIn, setExportIn] = useState<HTMLElement | null>(null);
   const toggle = (next: string) => { setOutcome(null); setOpen(open === next ? null : next); };
   const form = (table: SetupTable | null) => (
     <TableForm key={table?.id ?? NEW} venueId={venueId} stakes={stakes} table={table} onCancel={() => setOpen(null)}
@@ -54,18 +55,15 @@ export function TablesBlock({ venueId, stakes, tables }: TablesBlockProps) {
   );
   const columns = tableColumns({ venueId, stakes, tables, open, onChange: (table) => toggle(table.id), onOutcome: setOutcome });
   return (
-    <Stack gap={4}>
-      <Inline justify="between" gap={4}>
-        <Heading level={2} variant="section">{t('console.tablesSetup.tables')}</Heading>
-        {/* A table needs a stake: until there is one, New stake is the way in. */}
-        {stakes.length === 0 ? null : <Button variant="subtle" size="compact" aria-expanded={open === NEW} onClick={() => toggle(NEW)}>{t('console.tablesSetup.newTable')}</Button>}
-      </Inline>
+    // A table needs a stake: until there is one, New stake is the way in.
+    <Screen level={2} title={t('console.tablesSetup.tables')} onActionsSlot={setExportIn}
+      actions={stakes.length === 0 ? undefined : <Button variant="subtle" size="compact" aria-expanded={open === NEW} onClick={() => toggle(NEW)}>{t('console.tablesSetup.newTable')}</Button>}>
       {open === NEW ? form(null) : null}
-      <DataTable label={t('console.tablesSetup.tablesLabel')} columns={columns} rows={tables} narrowLayout="scroll" rowKey={(table) => table.id}
+      <DataTable exportIn={exportIn} label={t('console.tablesSetup.tablesLabel')} columns={columns} rows={tables} rowKey={(table) => table.id}
         emptyText={t('console.tablesSetup.tablesEmpty')} rowDetail={(table) => (open === table.id ? form(table) : null)} />
       <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
       {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
-    </Stack>
+    </Screen>
   );
 }
 

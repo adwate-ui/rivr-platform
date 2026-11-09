@@ -23,12 +23,14 @@ const COLUMNS: readonly DataTableColumn<SharedWinnerCard>[] = [
 export function WinnerCards({ venueId }: { venueId: string }) {
   const cards = useWinnerCardsToPost(venueId);
   const base = { label: t('console.social.winnerCards.table'), columns: COLUMNS, rowKey: (row: SharedWinnerCard) => row.cardId };
+  // The heading shares the table's bar, so Export has no row of its own (audit F-207).
+  const heading = <Heading level={2} variant="section">{t('console.social.winnerCards.title')}</Heading>;
   return (
     <Stack gap={4}>
-      <Heading level={2} variant="section">{t('console.social.winnerCards.title')}</Heading>
+      {cards.data === undefined ? heading : null}
       {cards.data === undefined && cards.isError ? <DataTable {...base} status="error" onRetry={() => void cards.refetch()} /> : null}
       {cards.data === undefined && !cards.isError ? <DataTable {...base} status="loading" /> : null}
-      {cards.data === undefined ? null : <DataTable {...base} rows={cards.data} emptyText={t('console.social.winnerCards.none')} />}
+      {cards.data === undefined ? null : <DataTable {...base} toolbar={() => heading} rows={cards.data} emptyText={t('console.social.winnerCards.none')} />}
     </Stack>
   );
 }

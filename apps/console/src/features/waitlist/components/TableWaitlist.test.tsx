@@ -142,7 +142,7 @@ describe("a table's waitlist card (console v3)", () => {
     const onCheckId = vi.fn();
     const uday = place(1, 'Uday Thakur', { needsIdCheck: true, callTableName: 'Table 1', callSeat: 4, holdUntil: '2026-11-15T15:52:00Z' });
     renderCard({ onSeat, onCheckId, entries: [uday, place(2, 'Mihir Shah')] });
-    expect(screen.getByText(/^5 min · ID check needed · added by the floor/)).toBeDefined();
+    expect(screen.getByText(/^5 min · ID check needed · .*seat 4.* · added by the floor/)).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Seat Uday Thakur' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Check Uday Thakur’s ID' }));
     expect(onCheckId).toHaveBeenCalledWith(uday);

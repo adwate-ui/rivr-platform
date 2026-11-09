@@ -1,7 +1,7 @@
 import { useStaffVenue } from '@rivr/db';
 import { useHostQueue, type HostQueueItem } from '@rivr/db/hostQueue';
 import { formatDate, t } from '@rivr/i18n';
-import { Box, PickList, Screen, SplitView } from '@rivr/ui';
+import { Box, PickList, Screen, SplitView, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { HostItem } from './HostItem.tsx';
 
@@ -32,7 +32,8 @@ export function HostQueue({ venueId }: { venueId: string }) {
       ? <Screen title={title} status="error" onRetry={() => void queue.refetch()} />
       : <Screen title={title} status="loading" loadingLook="rows" />;
   }
-  if (queue.data.length === 0) return <Screen title={title} status="empty" emptyText={t('console.hostQueue.none')} />;
+  // A queue with nothing in it is one line on a raised panel, as on KYC review, Hand over and Spins waiting (audit F-206).
+  if (queue.data.length === 0) return <Screen title={title}><Box surface="raised" radius="md" padding={4}><Text variant="small" tone="muted">{t('console.hostQueue.none')}</Text></Box></Screen>;
   return (
     <Screen title={title}>
       <Queue venueId={venueId} items={queue.data} />

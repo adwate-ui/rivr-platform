@@ -23,7 +23,7 @@ function ChecklistTable({ venueId, member }: { venueId: string; member: StaffMem
   const base = { label: t('console.staff.onboarding.show', { name: member.fullName }), columns: columns(), rowKey: (item: OnboardingItem) => item.sopId };
   if (checklist.data === undefined && checklist.isError) return <DataTable {...base} status="error" onRetry={() => void checklist.refetch()} />;
   if (checklist.data === undefined) return <DataTable {...base} status="loading" />;
-  return <DataTable {...base} rows={checklist.data} emptyText={t('console.staff.onboarding.none')} />;
+  return <DataTable {...base} toolbar={() => <Text variant="label">{t('console.staff.onboarding.heading')}</Text>} rows={checklist.data} emptyText={t('console.staff.onboarding.none')} />;
 }
 
 /** How many of the hire's SOPs they have acknowledged; nothing until the checklists have loaded. */

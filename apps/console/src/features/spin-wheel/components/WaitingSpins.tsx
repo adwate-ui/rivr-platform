@@ -61,14 +61,21 @@ export function WaitingSpins({ venueId }: { venueId: string }) {
       {t('console.spin.spin')}
     </Button>
   );
+  const said = (
+    <>
+      <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
+      {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
+    </>
+  );
+  // Nothing waiting is one line on a raised panel, as on the other queues (audit F-206), and what the last spin won.
+  if (waiting.data?.length === 0) return <Stack gap={4}><Box surface="raised" radius="md" padding={4}><Text variant="small" tone="muted">{t('console.spin.noneWaiting')}</Text></Box>{said}</Stack>;
   return (
     <Box surface="raised" radius="md" padding={5}>
       <Stack gap={4}>
         <WaitingHeading saysWhy={saysWhy} count={waiting.data?.length} />
         {/* No export: the spins are the night's work, not a record to keep. */}
         <DataTableExportProvider exporter={null}><WaitingRows waiting={waiting} columns={columnsFor(spinButton)} /></DataTableExportProvider>
-        <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
-        {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
+        {said}
       </Stack>
     </Box>
   );

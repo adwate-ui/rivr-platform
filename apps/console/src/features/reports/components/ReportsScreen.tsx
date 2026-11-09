@@ -2,6 +2,7 @@ import { useStaffVenue } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Screen, Stack, Tabs } from '@rivr/ui';
 import { useNavigate, useSearch } from '@tanstack/react-router';
+import { useState } from 'react';
 import { MonthlyMis } from './MonthlyMis.tsx';
 import { UnclaimedBalances } from './UnclaimedBalances.tsx';
 import { ChannelFunnel } from './ChannelFunnel.tsx';
@@ -20,8 +21,8 @@ export function reportTabFor(tab: string | undefined): ReportTab {
 }
 
 /** The report a tab shows. */
-function TabContent({ tab, venueId }: { tab: ReportTab; venueId: string }) {
-  if (tab === 'tables') return <TablesReport venueId={venueId} />;
+function TabContent({ tab, venueId, exportIn }: { tab: ReportTab; venueId: string; exportIn: HTMLElement | null }) {
+  if (tab === 'tables') return <TablesReport venueId={venueId} exportIn={exportIn} />;
   if (tab === 'mis') return <MonthlyMis venueId={venueId} />;
   if (tab === 'unclaimed') return <UnclaimedBalances venueId={venueId} />;
   if (tab === 'growth') return <Stack gap={8}><GrowthFunnel venueId={venueId} /><ChannelFunnel venueId={venueId} /></Stack>;
@@ -39,6 +40,7 @@ export function ReportsScreen() {
   const navigate = useNavigate();
   // The report open is in the address (`?tab=mis`), so a refresh, Back or a shared link opens it.
   const { tab } = useSearch({ from: '/frame/reports' });
+  const [exportIn, setExportIn] = useState<HTMLElement | null>(null);
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   const title = t('console.reports.title');
@@ -47,14 +49,14 @@ export function ReportsScreen() {
   if (isPractice) return <Screen title={title} status="error" errorText={t('console.reports.practice')} />;
   const current = reportTabFor(tab);
   return (
-    <Screen title={title}>
+    <Screen title={title} onActionsSlot={setExportIn}>
       <Stack gap={8}>
         {/* One report shown has no tab strip of its own. */}
         {SHOWN.length < 2 ? null : (
           <Tabs label={t('console.reports.tabsLabel')} current={current} onNavigate={(href) => void navigate({ href })}
             tabs={SHOWN.map((id) => ({ id, label: t(`console.reports.tabs.${id}`), href: `/reports?tab=${id}` }))} />
         )}
-        <TabContent tab={current} venueId={venueId} />
+        <TabContent tab={current} venueId={venueId} exportIn={exportIn} />
       </Stack>
     </Screen>
   );
