@@ -6298,7 +6298,12 @@ isOneToOne: false
                            },
 "table_metrics":
 { Args: { "p_from": string,"p_to": string,"p_venue_id": string }; Returns: {
-              "peak": number,"player_seconds": number,"players": number,"run_seconds": number,"seats": number,"table_id": string,"table_name": string
+              "peak": number,"player_seconds": number,"players": number,"previous_player_seconds": number,"run_seconds": number,"seats": number,"table_id": string,"table_name": string
+            }[]
+                           },
+"table_metrics_total":
+{ Args: { "p_from": string,"p_to": string,"p_venue_id": string }; Returns: {
+              "peak": number,"player_seconds": number,"players": number,"previous_player_seconds": number,"run_seconds": number,"seat_seconds": number,"seats": number
             }[]
                            },
 "tablet_dealers":

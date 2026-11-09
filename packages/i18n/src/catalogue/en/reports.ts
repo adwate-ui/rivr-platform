@@ -8,7 +8,10 @@ export const reports = {
   tables: {
     title: 'Tables',
     span: 'Span',
-    spans: { today: 'Tonight', week: 'Last 7 days', month: 'Last 30 days' },
+    spans: { today: 'Tonight', week: 'Last 7 days', month: 'Last 30 days', quarter: 'Last 90 days', custom: 'Choose dates' },
+    from: 'From',
+    to: 'To',
+    badDates: 'Choose a From on or before To, up to 92 days, and none ahead of tonight.',
     table: 'Table',
     seats: 'Seats',
     hoursRun: 'Hours run',
@@ -17,7 +20,15 @@ export const reports = {
     playerHours: 'Player hours',
     use: 'Seat use',
     percent: '{percent}%',
-    empty: 'No table ran in this span.',
+    /** Player hours against the span before (F-107). */
+    change: 'Change',
+    up: '+{percent}%',
+    noChange: '–',
+    changeNote: 'Change is player hours against the {days} days before.',
+    changeNoteDay: 'Change is player hours against the day before.',
+    /** The line under the tables, for the whole room. */
+    allTables: 'All tables',
+    empty: 'No tables set up yet.',
   },
   notAllowed: 'Not in your role. Ask an admin.',
   practice: 'The practice venue has no reports.',

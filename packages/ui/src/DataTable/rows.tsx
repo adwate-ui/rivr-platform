@@ -135,11 +135,13 @@ function rowClasses(layout: Layout, isOneLine: boolean, opens: boolean, isTicked
     opens && 'cursor-pointer', fillOf(isTicked, opens));
 }
 
-function cellClasses<Row>(column: DataTableColumn<Row>, priority: Priority, layout: Layout, isOneLine: boolean): string {
+function cellClasses<Row>(column: DataTableColumn<Row>, priority: Priority, layout: Layout, { isOneLine, isTotal }: { readonly isOneLine: boolean; readonly isTotal: boolean }): string {
   const look = LOOK[layout.narrow];
   const isTitle = priority === 'primary';
-  // The console's type: the title 15 px medium, the rest 13 px, all in the full colour, which stays clear on a row's fill.
-  return cx('min-w-0 font-text text-content wrap-anywhere', isTitle ? 'text-15 font-medium' : 'text-13', isOneLine && 'truncate',
+  // The console's type: the title 15 px medium, the rest 13 px, all in the full colour, which stays clear on a row's fill;
+  // a total row one weight throughout.
+  const weight = isTotal ? 'font-semibold' : isTitle && 'font-medium';
+  return cx('min-w-0 font-text text-content wrap-anywhere', isTitle ? 'text-15' : 'text-13', weight, isOneLine && 'truncate',
     look.cell[priority], isTitle && heldTitle(layout), column.isWide && look.span, column.align === 'end' ? look.end : 'text-start');
 }
 
@@ -165,17 +167,18 @@ interface BodyCellProps<Row> {
   readonly priority: Priority;
   readonly layout: Layout;
   readonly isOneLine: boolean;
+  readonly isTotal: boolean;
   readonly onRowOpen: ((row: Row) => void) | undefined;
 }
 
-function BodyCell<Row>({ row, column, priority, layout, isOneLine, onRowOpen }: BodyCellProps<Row>) {
+function BodyCell<Row>({ row, column, priority, layout, isOneLine, isTotal, onRowOpen }: BodyCellProps<Row>) {
   const content = column.cell(row);
   return (
     // A long list's rows are one height, so there a cell keeps to one line and its words are its title (F5-05);
     // elsewhere long text wraps onto the row's next line rather than be cut. On a phone's card, a value with no
     // spaces (a key, a link) breaks rather than spill, and data-label names the column before the value.
     <div role="cell" data-label={layout.narrow === 'cards' && priority === 'secondary' ? column.header : undefined}
-      title={titleOf(content, isOneLine)} className={cellClasses(column, priority, layout, isOneLine)}>
+      title={titleOf(content, isOneLine)} className={cellClasses(column, priority, layout, { isOneLine, isTotal })}>
       {priority === 'primary' ? <Title content={content} onOpen={onRowOpen && (() => onRowOpen(row))} isOneLine={isOneLine} /> : content}
     </div>
   );
@@ -205,21 +208,23 @@ interface BodyRowProps<Row> {
   readonly onRowOpen: ((row: Row) => void) | undefined;
   /** In a long list: where the row is drawn, and its height. */
   readonly place?: { readonly offset: number; readonly height: number };
+  /** The line that adds the table up. */
+  readonly isTotal?: boolean;
 }
 
 /** A row. When rows open, a click anywhere on it opens it; its title's button is how a keyboard does, so the row takes no focus. */
-function BodyRow<Row>({ row, id, columns, index, layout, onRowOpen, place }: BodyRowProps<Row>) {
+function BodyRow<Row>({ row, id, columns, index, layout, onRowOpen, place, isTotal = false }: BodyRowProps<Row>) {
   const isOneLine = place !== undefined;
   const isTicked = layout.ticks?.isTicked(id) === true;
   return (
     <div role="row" aria-rowindex={index + 2} onClick={onRowOpen && ((event) => { if (!isOnControl(event)) onRowOpen(row); })}
-      className={rowClasses(layout, isOneLine, onRowOpen !== undefined, isTicked)}
+      className={cx(rowClasses(layout, isOneLine, onRowOpen !== undefined, isTicked), isTotal && 'border-t border-hairline')}
       style={place === undefined ? layout.grid : { ...layout.grid, transform: `translateY(${place.offset}px)`, height: place.height }}>
       {layout.ticks === null ? null : (
         <TickCell title={titleWords(row, id, columns)} isChecked={isTicked} onToggle={() => layout.ticks?.toggle(id)} place={tickPlace(layout, false)} />
       )}
       {columns.map((column, at) => (
-        <BodyCell key={column.key} row={row} column={column} priority={priorityOf(column, at)} layout={layout} isOneLine={isOneLine} onRowOpen={onRowOpen} />
+        <BodyCell key={column.key} row={row} column={column} priority={priorityOf(column, at)} layout={layout} isOneLine={isOneLine} isTotal={isTotal} onRowOpen={onRowOpen} />
       ))}
     </div>
   );
@@ -235,10 +240,12 @@ export interface BodyProps<Row> {
   readonly onScrollX: (event: UIEvent<HTMLElement>) => void;
   /** What a row opened in place, drawn under it; only when every row is drawn. */
   readonly rowDetail?: ((row: Row) => ReactNode) | undefined;
+  /** The line that adds the table up, last; only when every row is drawn. */
+  readonly totalRow?: Row | undefined;
 }
 
 /** Up to VIRTUAL_FROM rows: every one drawn, each followed by its detail when it has one open. */
-export function PlainBody<Row>({ rows, columns, rowKey, onRowOpen, layout, onScrollX, rowDetail }: BodyProps<Row>) {
+export function PlainBody<Row>({ rows, columns, rowKey, onRowOpen, layout, onScrollX, rowDetail, totalRow }: BodyProps<Row>) {
   const details = rows.map((row) => rowDetail?.(row) ?? null);
   const places = placesOf(details);
   return (
@@ -249,6 +256,9 @@ export function PlainBody<Row>({ rows, columns, rowKey, onRowOpen, layout, onScr
           {details[at] === null ? null : <OpenedRow index={(places[at] ?? at) + 1} columns={columns.length + (layout.ticks === null ? 0 : 1)}>{details[at]}</OpenedRow>}
         </Fragment>
       ))}
+      {totalRow === undefined ? null : (
+        <BodyRow row={totalRow} id={rowKey(totalRow)} columns={columns} index={rows.length + details.filter((detail) => detail !== null).length} layout={layout} onRowOpen={undefined} isTotal />
+      )}
     </div>
   );
 }

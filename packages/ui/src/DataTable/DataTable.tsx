@@ -69,6 +69,12 @@ export type DataTableProps<Row> = DataTableState<Row> & {
    */
   scrollsSideways?: boolean;
   /**
+   * A last line that adds the table up: under the rows whatever their order, staying when filters leave no rows, and in the
+   * export; not drawn when the table has no rows at all. For a short table, which it keeps from drawing as a long list.
+   * Left out where rows can be ticked, as it is no row to tick.
+   */
+  totalRow?: Row | undefined;
+  /**
    * Under a row, across the whole table: what the row opened in place, such as a dealer's new PIN or a setting's new
    * value (console v3); null for none. Not in a long list, whose rows are all one height.
    */
@@ -96,11 +102,19 @@ interface TableProps<Row> {
 /** How the rows are laid out: sideways at every width, or below 768 px as cards or lines that scroll. */
 const narrowOf = <Row,>(props: DataTableProps<Row>) => (props.scrollsSideways === true ? 'sideways' : props.narrowLayout ?? 'cards');
 
+/** A total row is no row to tick, so where rows can be ticked it is left out. */
+function withoutTotalAmongTicks<Row>(props: DataTableProps<Row>): DataTableProps<Row> {
+  return props.selection === undefined ? props : { ...props, totalRow: undefined };
+}
+
+/** The header, and the line that adds the table up when it has one. */
+const linesBesideRows = <Row,>(props: DataTableProps<Row>) => (props.totalRow === undefined ? 1 : 2);
+
 function Table<Row>({ props, visible, sort, resetKey, onSort, menuFor }: TableProps<Row>) {
   const header = useRef<HTMLDivElement>(null);
   // The staff member's own density (decision 0475), unless the table sets one.
   const density = useTableDensity();
-  const isVirtual = visible.length > VIRTUAL_FROM;
+  const isVirtual = visible.length > VIRTUAL_FROM && props.totalRow === undefined;
   const ticks = props.selection === undefined ? null : ticksFor(props.selection, visible.map(props.rowKey));
   const layout = layoutOf(props.columns, narrowOf(props), props.density ?? density, ticks);
   // Where the body scrolls sideways, the header, which has no scrollbar, follows it.
@@ -110,12 +124,12 @@ function Table<Row>({ props, visible, sort, resetKey, onSort, menuFor }: TablePr
   const body = { rows: visible, columns: props.columns, rowKey: props.rowKey, onRowOpen: props.onRowOpen, layout, onScrollX };
   const detail = isVirtual ? undefined : props.rowDetail;
   return (
-    <div role="table" aria-label={props.label} aria-rowcount={visible.length + detailCount(visible, detail) + 1} className="flex flex-col">
+    <div role="table" aria-label={props.label} aria-rowcount={visible.length + detailCount(visible, detail) + linesBesideRows(props)} className="flex flex-col">
       <HeaderRow ref={header} columns={props.columns} sort={sort} onSort={onSort} layout={layout} isVirtual={isVirtual} menuFor={menuFor} />
       {isVirtual
         // A new order or filter starts from the top.
         ? <VirtualBody key={`${sort?.key ?? ''}:${sort?.direction ?? ''}:${resetKey}`} {...body} />
-        : <PlainBody {...body} rowDetail={detail} />}
+        : <PlainBody {...body} rowDetail={detail} totalRow={props.totalRow} />}
     </div>
   );
 }
@@ -181,7 +195,8 @@ function useColumnMenus<Row>(table: ReturnType<typeof useTable<Row>>) {
  * console: the address). Past 200 rows only the rows in view are drawn, so thousands of rows scroll smoothly. Beneath a
  * DataTableExportProvider, the rows as shown export as CSV or XLSX, each export recorded first (#102).
  */
-export function DataTable<Row>(props: DataTableProps<Row>) {
+export function DataTable<Row>(given: DataTableProps<Row>) {
+  const props = withoutTotalAmongTicks(given);
   const isWide = useIsWide('medium');
   const table = useTable(props);
   const { root, refocus } = useRefocus();

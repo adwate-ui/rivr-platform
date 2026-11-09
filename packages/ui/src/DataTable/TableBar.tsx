@@ -20,6 +20,7 @@ export interface BarProps<Row> {
   readonly belowSearch?: ReactNode;
   readonly exportFilter?: string | undefined;
   readonly exportColumns?: readonly DataTableExportColumn<Row>[] | undefined;
+  readonly totalRow?: Row | undefined;
   readonly exportIn?: HTMLElement | null | undefined;
 }
 
@@ -54,7 +55,7 @@ const exportOnly = <Row,>(column: DataTableExportColumn<Row>) => ({ ...column, c
 function useExportPlaced<Row>(props: BarProps<Row>, visible: readonly Row[], state: BarState<Row>) {
   const exporter = useTableExporter();
   const menu = exporter === null || visible.length === 0 ? null
-    : <ExportBar isInBar={props.exportIn === undefined} exporter={exporter} label={props.label} columns={[...props.columns, ...(props.exportColumns ?? []).map(exportOnly)]} rows={visible}
+    : <ExportBar isInBar={props.exportIn === undefined} exporter={exporter} label={props.label} columns={[...props.columns, ...(props.exportColumns ?? []).map(exportOnly)]} rows={props.totalRow === undefined ? visible : [...visible, props.totalRow]}
         filter={filtersInForce(props, state)} />;
   const target = props.exportIn;
   if (target === undefined) return { here: menu, elsewhere: null };
