@@ -13,6 +13,8 @@ import { SourceUpload } from './SourceUpload.tsx';
 export function LearnSources({ venueId }: { venueId: string }) {
   const sources = useLearnSources(venueId);
   const [isAdding, setAdding] = useState(false);
+  // The table's Export stands in the title row (audit F-207).
+  const [exportIn, setExportIn] = useState<HTMLElement | null>(null);
   const title = t('console.learnSources.title');
   if (sources.data === undefined) {
     return sources.isError
@@ -24,9 +26,9 @@ export function LearnSources({ venueId }: { venueId: string }) {
       emptyAction={{ label: t('console.learnSources.addTitle'), onClick: () => setAdding(true) }} />;
   }
   return (
-    <Screen title={title}>
+    <Screen title={title} onActionsSlot={setExportIn}>
       <Stack gap={8}>
-        {sources.data.length === 0 ? null : <SourceTable rows={sources.data} />}
+        {sources.data.length === 0 ? null : <SourceTable rows={sources.data} exportIn={exportIn} />}
         <SourceUpload venueId={venueId} />
       </Stack>
     </Screen>

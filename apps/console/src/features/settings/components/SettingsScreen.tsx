@@ -1,19 +1,13 @@
 import { useStaffVenue } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Screen, Stack, Tabs } from '@rivr/ui';
-import { useNavigate, useSearch } from '@tanstack/react-router';
-import { HIDDEN_AREAS, NOTICE_AREA, RULE_AREAS, VENUE_AREAS, type SettingsArea } from './areas.ts';
+import { Screen, Stack } from '@rivr/ui';
+import type { ComponentType } from 'react';
+import { NOTICE_AREA, type SettingsArea } from './areas.ts';
 import { ChipsSection } from './ChipsSection.tsx';
 import { NoticesSection } from './NoticesSection.tsx';
 import { RakeSection } from './RakeSection.tsx';
 import { RulesArea } from './RulesArea.tsx';
 import { VenueSection } from './VenueSection.tsx';
-
-/** The areas a staff member has: the rules and notices with settings.manage, the club's details as a super admin; none hidden (#626). */
-function areasFor(canSet: boolean, isSuperAdmin: boolean): readonly SettingsArea[] {
-  const rules: readonly SettingsArea[] = canSet ? [...RULE_AREAS, NOTICE_AREA] : [];
-  return [...rules, ...(isSuperAdmin ? VENUE_AREAS : [])].filter((area) => !HIDDEN_AREAS.includes(area));
-}
 
 /** One area's content: its rules (in the Rake area, each table type's rake first), the club's details, or the chips. */
 function AreaContent({ area, venueId, isSuperAdmin }: { area: SettingsArea; venueId: string; isSuperAdmin: boolean }) {
@@ -24,32 +18,26 @@ function AreaContent({ area, venueId, isSuperAdmin }: { area: SettingsArea; venu
   return area === 'rake' ? <Stack gap={10}><RakeSection venueId={venueId} />{rules}</Stack> : rules;
 }
 
-/**
- * Settings (#33, #604), in areas: the rules by what they govern, changed without a release by staff with
- * settings.manage; and for super admins (venue.configure) the club's details and the chips. Cashiers and dealers have
- * neither, so they never see it, and the database refuses them anyway.
- */
-export function SettingsScreen() {
+/** One tab of Settings: an area of rules changed without a release, the notices, or the club's details. */
+function AreaScreen({ area }: { area: SettingsArea }) {
   const staff = useStaffVenue();
-  const navigate = useNavigate();
-  // The area is in the address (`?part=club`, Settings being a tab itself), so a refresh, Back or a shared link opens it.
-  const { part: named } = useSearch({ from: '/frame/settings' });
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   const { permissions, venueId } = staff.venue;
-  const canSet = permissions.includes('settings.manage');
-  const isSuperAdmin = permissions.includes('venue.configure');
-  if (!canSet && !isSuperAdmin) return <Screen title={t('console.settings.title')} status="error" errorText={t('console.settings.notAllowed')} />;
-  const areas = areasFor(canSet, isSuperAdmin);
-  // Never empty here (one with neither returned above); 'club' only satisfies the type.
-  const area = areas.find((one) => one === named) ?? areas[0] ?? 'club';
-  const tabs = areas.map((id) => ({ id, label: t(`console.settings.areas.${id}`), href: `/settings?tab=settings&part=${id}` }));
   return (
-    <Screen title={t('console.settings.title')}>
-      <Stack gap={6}>
-        <Tabs label={t('console.settings.areasLabel')} tabs={tabs} current={area} onNavigate={(href) => void navigate({ href })} />
-        <AreaContent area={area} venueId={venueId} isSuperAdmin={isSuperAdmin} />
-      </Stack>
+    <Screen title={t(`console.settings.areas.${area}`)}>
+      <AreaContent area={area} venueId={venueId} isSuperAdmin={permissions.includes('venue.configure')} />
     </Screen>
   );
 }
+
+/**
+ * Settings' tabs (#33, #604), each area by the rail's own list of who may open it: the rules by what they govern and the
+ * notices for staff with settings.manage, the club's details for super admins (venue.configure). The route adds the devices.
+ */
+export const SETTINGS_PANES: Readonly<Record<string, ComponentType>> = {
+  floor: () => <AreaScreen area="floor" />,
+  members: () => <AreaScreen area="members" />,
+  notices: () => <AreaScreen area="notices" />,
+  club: () => <AreaScreen area="club" />,
+};

@@ -42,14 +42,14 @@ function columns(): readonly DataTableColumn<TableMetrics>[] {
  * The MIS Tables view (the owner, 8 Nov), money-free: each table over tonight, the last 7 or the last 30 club days, with
  * the hours it ran, the members who sat there, the most at once, the hours they played and how full it was.
  */
-export function TablesReport({ venueId }: { venueId: string }) {
+export function TablesReport({ venueId, exportIn }: { venueId: string; exportIn: HTMLElement | null }) {
   const [span, setSpan] = useState<Span>('week');
   const to = clubDay(new Date());
   const metrics = useTableMetrics(venueId, dayAfter(to, 1 - SPANS[span]), to);
   const spanWords = t('console.exportFilters.choice', { label: t('console.reports.tables.span'), value: t(`console.reports.tables.spans.${span}`) });
   const base = {
     label: t('console.reports.tables.title'), columns: columns(), rowKey: (row: TableMetrics) => row.tableId, narrowLayout: 'scroll' as const,
-    exportFilter: spanWords,
+    exportFilter: spanWords, exportIn,
   };
   return (
     <Stack gap={4}>

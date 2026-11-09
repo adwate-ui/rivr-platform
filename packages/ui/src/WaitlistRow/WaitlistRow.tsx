@@ -41,7 +41,8 @@ function RowButton({ action }: { action: WaitlistRowAction | undefined }) {
 
 /**
  * One place on a table's waitlist in the console (console v3): its tick, its number, who and how long, then Seat and the ⋯
- * menu. 44 px below 1180 px, and 42 or 34 px at a desk by the staff member's density; everything centred down the row.
+ * menu. 44 px below 1180 px, and 42 or 34 px at a desk by the staff member's density; everything centred down the row. Its
+ * note wraps rather than cutting off a call's deadline (audit F-077).
  */
 export function WaitlistRow({ position, name, meta, isHeld = false, tick, action, secondary, menu, density = 'comfortable' }: WaitlistRowProps) {
   return (
@@ -50,7 +51,7 @@ export function WaitlistRow({ position, name, meta, isHeld = false, tick, action
       <span className="w-5 shrink-0 font-text text-13 text-content-muted tabular-nums">{position}</span>
       <div className="flex min-w-0 flex-1 flex-col py-1">
         <span className={cx('truncate font-text text-14 leading-snug', isHeld ? 'text-content-muted' : 'text-content')}>{name}</span>
-        {meta === undefined ? null : <span className="truncate font-text text-12 leading-snug text-content-muted">{meta}</span>}
+        {meta === undefined ? null : <span className="font-text text-12 leading-snug text-content-muted">{meta}</span>}
       </div>
       {/* With two buttons the name has no room on a phone: they take a line of their own under it. */}
       <div className={cx('flex items-center gap-3', secondary !== undefined && 'max-medium:order-last max-medium:w-full max-medium:justify-end')}>

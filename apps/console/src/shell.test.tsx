@@ -51,6 +51,15 @@ describe('the console frame', () => {
     expect(await screen.findByRole('button', { name: 'Search screens and actions' })).toBeDefined();
   });
 
+  it.each([['marketing', false], ['floor', true]] as const)('draws the rule before the clock only beside the counts: %s, %s (audit F-087)', async (role, hasRule) => {
+    signIn();
+    answerStaff([{ ...CLUB, full_name: 'Isha Rao', role }]);
+    renderAt('/settings');
+    // The header's search stands once the role is known.
+    await screen.findByRole('button', { name: /^Search/ });
+    expect(document.querySelector('header span.border-l') !== null).toBe(hasRule);
+  });
+
   it('offers Seat a player to a host, who seats from the list without floor.manage (audit F-111)', async () => {
     signIn();
     answerStaff([{ ...CLUB, full_name: 'Karan Gill', role: 'host' }]);
@@ -88,7 +97,7 @@ describe('the console frame', () => {
 
   // Screens merged into others (#606, console v3): each old address opens its screen on the rail, and its tab.
   it.each([
-    ['/tablets', 'Settings', 'Tablets'], ['/tvs', 'Settings', 'TVs'], ['/devices', 'Settings', 'Devices'],
+    ['/tablets', 'Settings', 'Tablets'], ['/tvs', 'Settings', 'TVs'], ['/devices', 'Settings', 'TVs'],
     ['/dealer-pins', 'Staff', 'Dealer PINs'], ['/check-in', 'Door', 'Check-in'], ['/players-today', 'Door', 'Today’s players'],
     ['/spin-wheel', 'Rewards', 'Spin wheel'], ['/website', 'Content', 'Website'], ['/learn-sources', 'Content', 'Learn content'],
   ])('opens %s on %s, at its tab, %s, for a super admin', async (path, rail, tab) => {

@@ -2,6 +2,7 @@ import { useStaffVenue } from '@rivr/db';
 import { useLeads, useWallPosts } from '@rivr/db/social';
 import { t } from '@rivr/i18n';
 import { Screen, Stack, Tabs } from '@rivr/ui';
+import { useState } from 'react';
 import { LeadsTable } from './LeadsTable.tsx';
 import { PublishPost } from './PublishPost.tsx';
 import { RecentPosts } from './RecentPosts.tsx';
@@ -28,9 +29,9 @@ function useTabLabels(venueId: string): Record<SocialTab, string> {
   };
 }
 
-function TabContent({ venueId, tab }: { venueId: string; tab: SocialTab }) {
+function TabContent({ venueId, tab, exportIn }: { venueId: string; tab: SocialTab; exportIn: HTMLElement | null }) {
   if (tab === 'wall') return <WallQueue venueId={venueId} />;
-  if (tab === 'leads') return <LeadsTable venueId={venueId} />;
+  if (tab === 'leads') return <LeadsTable venueId={venueId} exportIn={exportIn} />;
   return (
     <Stack gap={8}>
       <PublishPost venueId={venueId} />
@@ -44,11 +45,13 @@ export function Social({ venueId, tab, onNavigate }: TabbedProps & { venueId: st
   const labels = useTabLabels(venueId);
   const current: SocialTab = TABS.find((one) => one === tab) ?? 'wall';
   const title = t('console.social.title');
+  // The leads table, alone on its tab, has its Export in the title row (audit F-207).
+  const [exportIn, setExportIn] = useState<HTMLElement | null>(null);
   return (
-    <Screen title={title}>
+    <Screen title={title} onActionsSlot={setExportIn}>
       <Stack gap={6}>
         <Tabs label={title} current={current} onNavigate={onNavigate} tabs={TABS.map((id) => ({ id, label: labels[id], href: `/social?tab=${id}` }))} />
-        <TabContent venueId={venueId} tab={current} />
+        <TabContent venueId={venueId} tab={current} exportIn={exportIn} />
       </Stack>
     </Screen>
   );

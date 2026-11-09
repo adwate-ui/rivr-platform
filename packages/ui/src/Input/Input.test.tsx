@@ -141,7 +141,7 @@ describe('Input', () => {
     const { container } = renderIn(<Input variant="subtle" label="Add: mobile or member no." defaultValue="9000000212" error="Not a member number or mobile." />);
     const field = screen.getByRole('textbox', { name: 'Add: mobile or member no.' });
     expect(field).not.toHaveAttribute('placeholder');
-    expect(field).toHaveClass('bg-subtle', 'min-h-touch', 'tablet:min-h-control', 'text-13');
+    expect(field).toHaveClass('bg-subtle', 'min-h-touch', 'tablet:min-h-control', 'text-16', 'tablet:text-13');
     const label = screen.getByText('Add: mobile or member no.', { selector: 'label' });
     expect(label).not.toHaveClass('sr-only');
     expect(label).toHaveClass('text-13', 'text-content-muted');

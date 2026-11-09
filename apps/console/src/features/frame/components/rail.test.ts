@@ -79,8 +79,11 @@ describe('the console rail (console v3)', () => {
   it('opens only the tabs a role has, and refuses a tab outside it by address', () => {
     const rewards = entry('rewards');
     if (rewards === undefined) throw new Error('no Rewards entry');
-    expect(tabsFor(rewards, ROLE_PERMISSIONS.cashier).map((tab) => tab.id)).toEqual(['rewards']);
-    expect(tabsFor(rewards, ROLE_PERMISSIONS.super_admin).map((tab) => tab.id)).toEqual(['rewards', 'spin-wheel']);
+    expect(tabsFor(rewards, ROLE_PERMISSIONS.cashier).map((tab) => tab.id)).toEqual(['rewards', 'points']);
+    expect(tabsFor(rewards, ROLE_PERMISSIONS.super_admin).map((tab) => tab.id)).toEqual(['rewards', 'points', 'spin-wheel']);
+    const settings = entry('settings');
+    if (settings === undefined) throw new Error('no Settings entry');
+    expect(tabsFor(settings, ROLE_PERMISSIONS.super_admin).map((tab) => tab.id)).toEqual(['floor', 'members', 'notices', 'club', 'tvs', 'tablets']);
     expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/rewards', 'rewards')).toBe(true);
     expect(refusalAt(ROLE_PERMISSIONS.cashier, '/rewards', 'spin-wheel')).toEqual({ title: 'Spin wheel', isOff: false });
     expect(isAllowedAt(ROLE_PERMISSIONS.floor, '/waitlist', 'interest')).toBe(false);

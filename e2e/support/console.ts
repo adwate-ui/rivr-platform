@@ -33,7 +33,7 @@ export async function openTab(page: Page, screen: string, tab: string) {
 
 /** Opens Settings' Devices tab at the TVs or the tablets, by its v3 address (decision 0476). */
 export async function openDevices(page: Page, kind: 'TVs' | 'Tablets') {
-  await page.goto(`${appUrl('console')}/settings?tab=devices&part=${kind === 'TVs' ? 'tvs' : 'tablets'}`);
+  await page.goto(`${appUrl('console')}/settings?tab=${kind === 'TVs' ? 'tvs' : 'tablets'}`);
   await expect(page.getByRole('main').getByRole('link', { name: kind, exact: true })).toHaveAttribute('aria-current', 'page');
 }
 

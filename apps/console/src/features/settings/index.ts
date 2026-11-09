@@ -1,1 +1,1 @@
-export { SettingsScreen } from './components/SettingsScreen.tsx';
+export { SETTINGS_PANES } from './components/SettingsScreen.tsx';

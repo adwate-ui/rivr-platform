@@ -30,7 +30,7 @@ test.describe('TV pairing', () => {
 
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000117');
-    await openConsole(floor, '/settings?tab=devices&part=tvs');
+    await openConsole(floor, '/settings?tab=tvs');
     await expect(floor.getByText('A TV paired here joins RIVR Gurugram.')).toBeVisible();
     await floor.getByRole('textbox', { name: 'Code on the TV' }).fill(String((Number(code) + 1) % 1_000_000).padStart(6, '0'));
     await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
@@ -43,10 +43,10 @@ test.describe('TV pairing', () => {
 
     // The TV asks every three seconds whether its code was typed in.
     await expect(tv.getByRole('heading', { name: 'Call time' })).toBeVisible({ timeout: 15_000 });
-    // The console's list asks again every ten seconds, so the TV shows as paired on its own.
+    // The console's list asks again every ten seconds, so the TV shows as on by itself.
     const modes = floor.getByRole('radiogroup', { name: `What ${name} shows`, exact: true });
     // The row is the chips' group's grandparent: this TV's, not another left by an earlier run.
-    await expect(modes.locator('xpath=../..').getByText('Paired', { exact: true })).toBeVisible({ timeout: 15_000 });
+    await expect(modes.locator('xpath=../..').getByText(/^Online/)).toBeVisible({ timeout: 15_000 });
 
     await modes.getByRole('radio', { name: 'Promotions', exact: true }).click();
     await expect(modes.getByRole('radio', { name: 'Promotions', exact: true })).toHaveAttribute('aria-checked', 'true');
@@ -56,7 +56,8 @@ test.describe('TV pairing', () => {
     await tv.reload();
     await expect(promotions).toBeVisible({ timeout: 5_000 });
 
-    await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
+    await floor.getByRole('button', { name: `More for ${name}`, exact: true }).click();
+    await floor.getByRole('menuitem', { name: 'Unpair', exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Unpair the TV' }).click();
     await expect(floor.getByText(name, { exact: true })).toHaveCount(0);
@@ -69,7 +70,7 @@ test.describe('TV pairing', () => {
     // Arvind Rao, a super admin (the owner's switch, venue.configure); his number is otherwise only the Kill switch flow's.
     const owner = await browser.newPage();
     await signInToConsole(owner, '9000000136');
-    await openConsole(owner, '/settings?tab=devices&part=tvs');
+    await openConsole(owner, '/settings?tab=tvs');
     const windowOnly = owner.getByRole('switch', { name: 'Pair TVs only after Pair a TV is pressed' });
     await windowOnly.click();
     try {

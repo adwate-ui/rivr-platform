@@ -1,6 +1,6 @@
 import type { SiteRevision } from '@rivr/db/siteEditor';
 import { formatDayTime, t } from '@rivr/i18n';
-import { ConfirmButton, DataTable, Heading, Stack, type DataTableColumn } from '@rivr/ui';
+import { ConfirmButton, DataTable, Heading, type DataTableColumn } from '@rivr/ui';
 
 /** When a version went up, or is due, or was made. */
 const whenOf = (revision: SiteRevision) => revision.publishedAt ?? revision.publishAt ?? revision.createdAt;
@@ -16,9 +16,7 @@ export function RevisionHistory({ revisions, onRestore }: { revisions: readonly 
     ) : null) },
   ];
   return (
-    <Stack gap={4}>
-      <Heading level={3} variant="subsection">{t('console.website.history.title')}</Heading>
-      <DataTable label={t('console.website.history.title')} columns={columns} rowKey={(row) => row.revisionId} rows={[...revisions]} emptyText={t('console.website.history.none')} />
-    </Stack>
+    // The heading shares the table's bar, so Export has no row of its own (audit F-207).
+    <DataTable toolbar={() => <Heading level={3} variant="subsection">{t('console.website.history.title')}</Heading>} label={t('console.website.history.title')} columns={columns} rowKey={(row) => row.revisionId} rows={[...revisions]} emptyText={t('console.website.history.none')} />
   );
 }

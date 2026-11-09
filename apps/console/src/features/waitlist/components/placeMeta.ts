@@ -1,16 +1,17 @@
 import type { FloorTable, WaitlistBoardEntry } from '@rivr/db';
 import { formatDuration, formatGameStakes, formatTime, t } from '@rivr/i18n';
 
-/** What to know about a place after how long it has waited: why it is ahead, who added it, its call, that it is held. */
+/** What to know about a place after how long it has waited: its ID check, its call, why it is ahead, who added it, that it is held. */
 function notesOf(entry: WaitlistBoardEntry): string[] {
   const notes: string[] = [];
   // First, as the floor must act on it before seating them (decision 0503).
   if (entry.needsIdCheck) notes.push(t('console.waitlist.card.idCheckNeeded'));
-  if (entry.priorityReason !== null) notes.push(entry.priorityReason);
-  if (entry.addedByFloor) notes.push(t('console.waitlist.card.addedByFloor'));
+  // Then a call's deadline, which runs out (audit F-077).
   if (entry.holdUntil !== null) {
     notes.push(t('console.waitlist.card.calledTo', { seat: entry.callSeat ?? 0, time: formatTime(new Date(entry.holdUntil)) }));
   }
+  if (entry.priorityReason !== null) notes.push(entry.priorityReason);
+  if (entry.addedByFloor) notes.push(t('console.waitlist.card.addedByFloor'));
   // The called member said "I'm on my way" from the app (decision 0321).
   if (entry.onWayAt !== null) notes.push(t('console.waitlist.card.onTheWay'));
   if (entry.awayUntil !== null) notes.push(t('console.waitlist.card.placeHeld'));

@@ -16,19 +16,16 @@ export type MovedNotice = (typeof MOVED_NOTICES)[number];
 export interface ScreenSearch {
   /** The screen's tab: `/door?tab=players`. */
   tab?: string;
-  /** A part inside that tab, for a tab with parts of its own: `/settings?tab=devices&part=tablets`. */
-  part?: string;
   /** An old address that moved here, said in a line above the tab. */
   notice?: MovedNotice;
 }
 
-/** Validates the search of a screen that holds others by tab: its tab, the part inside it, and any notice. */
+/** Validates the search of a screen that holds others by tab: its tab and any notice. */
 export function screenSearchFrom(search: Record<string, unknown>): ScreenSearch {
-  const { tab, part } = search;
+  const { tab } = search;
   const notice = MOVED_NOTICES.find((one) => one === search['notice']);
   return {
     ...(typeof tab === 'string' ? { tab } : {}),
-    ...(typeof part === 'string' ? { part } : {}),
     ...(notice === undefined ? {} : { notice }),
   };
 }

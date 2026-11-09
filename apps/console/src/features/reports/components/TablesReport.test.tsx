@@ -28,7 +28,7 @@ function renderReport() {
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <TablesReport venueId="v1" />
+      <TablesReport venueId="v1" exportIn={null} />
     </RivrDataProvider>,
   );
   return { asked };

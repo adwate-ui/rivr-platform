@@ -55,7 +55,8 @@ test.describe('TV reload', () => {
       expect(Date.now() - started, `${mode.chip} within ${BUDGET} ms`).toBeLessThanOrEqual(BUDGET);
     }
 
-    await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
+    await floor.getByRole('button', { name: `More for ${name}`, exact: true }).click();
+    await floor.getByRole('menuitem', { name: 'Unpair', exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Unpair the TV' }).click();
     await expect(floor.getByText(name, { exact: true })).toHaveCount(0);

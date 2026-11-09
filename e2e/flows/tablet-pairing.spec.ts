@@ -27,7 +27,7 @@ test.describe('Dealer tablet', () => {
     const name = `Tablet ${String(Date.now() % 100_000).padStart(5, '0')}`;
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000112');
-    await openConsole(floor, '/settings?tab=devices&part=tablets');
+    await openConsole(floor, '/settings?tab=tablets');
     await floor.getByRole('textbox', { name: 'Tablet name' }).fill(name);
     await floor.getByRole('button', { name: 'Add and pair' }).click();
     const codeLine = floor.getByText(/^Pairing code \d{6}/);
@@ -81,8 +81,9 @@ test.describe('Dealer tablet', () => {
     await tablet.getByRole('button', { name: 'Close the down' }).click();
     await expect(tablet.getByRole('heading', { name: 'Dealer sign-in' })).toBeVisible();
 
-    await floor.goto(`${appUrl('console')}/settings?tab=devices&part=tablets`);
-    await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
+    await floor.goto(`${appUrl('console')}/settings?tab=tablets`);
+    await floor.getByRole('button', { name: `More for ${name}`, exact: true }).click();
+    await floor.getByRole('menuitem', { name: 'Unpair', exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Unpair the tablet' }).click();
     await expect(floor.getByText(name, { exact: true })).toHaveCount(0);

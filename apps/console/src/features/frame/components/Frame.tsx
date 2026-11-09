@@ -10,7 +10,7 @@ import {
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { ConsoleSearch } from './ConsoleSearch.tsx';
-import { FrameClock, FramePulse } from './FrameHeader.tsx';
+import { FrameClock, FramePulse, runsTheFloor } from './FrameHeader.tsx';
 import { NotStaff } from './NotStaff.tsx';
 import { useAddressTableViews } from './tableViews.ts';
 import { landingFor, locksWhenIdle, phoneTabsFor, railFor, railItemAt, refusalAt, URGENT_QUEUES, type Refusal } from './rail.ts';
@@ -156,7 +156,7 @@ function FrameBanner({ staff, prompt, location }: { staff: ReadyStaff; prompt: S
         <PracticeBanner message={t('console.practiceBanner')} action={{ label: t('console.shell.backToClub'), onPress: () => staff.setPractice(false) }} />
       ) : null}
       {!isPractice && permissions.includes('venue.configure')
-        ? <NoAlertNumberBanner venueId={venueId} onAdd={() => void navigate({ href: '/settings?tab=settings&part=club' })} /> : null}
+        ? <NoAlertNumberBanner venueId={venueId} onAdd={() => void navigate({ href: '/settings?tab=club' })} /> : null}
       {prompt?.({ venueId, permissions, ...location })}
     </>
   );
@@ -214,7 +214,7 @@ function StaffFrame({ staff, prompt, onIdle, children }: StaffFrameProps) {
       onNavigate={(href) => void navigate({ href })}
       banner={<FrameBanner staff={staff} prompt={prompt} location={{ pathname, search }} />}
       search={hasNoScreen ? undefined : <ConsoleSearch venueId={venueId} permissions={permissions} sections={sections} />}
-      pulse={<FramePulse venueId={venueId} permissions={permissions} counts={counts} />}
+      pulse={runsTheFloor(permissions) ? <FramePulse venueId={venueId} permissions={permissions} counts={counts} /> : undefined}
       clock={<FrameClock />}
       account={<StaffAccount staff={staff} />}
     >

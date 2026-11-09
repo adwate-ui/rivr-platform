@@ -53,7 +53,7 @@ function ViewTabs({ view, counts, onNavigate }: { view: View; counts: Readonly<R
 }
 
 /** The tabs, the chips and the table once the list has come. */
-function Listed({ venueId, names, onOpen, tab, onNavigate, overview }: PromotionListProps & { overview: PromotionsOverview }) {
+function Listed({ venueId, names, onOpen, tab, onNavigate, overview, exportIn }: PromotionListProps & { overview: PromotionsOverview; exportIn: HTMLElement | null }) {
   const view: View = TABS.find((one) => one === tab) ?? 'current';
   const [filter, setFilter] = useState<Filter>('all');
   const toggles = usePauseResume(venueId);
@@ -69,7 +69,7 @@ function Listed({ venueId, names, onOpen, tab, onNavigate, overview }: Promotion
       <ViewTabs view={view} counts={{ current: current.length, ended: ended.length }} onNavigate={onNavigate} />
       {isEnded ? null : <StatusChips current={current} filter={filter} onChange={setFilter} />}
       {toggles.failure === null ? null : <ErrorMessage>{t(`console.promotions.failures.${toggles.failure}`)}</ErrorMessage>}
-      <DataTable label={t(isEnded ? 'console.promotions.list.endedLabel' : 'console.promotions.list.label')} rowKey={(promotion) => promotion.id} density="comfortable" narrowLayout="scroll"
+      <DataTable exportIn={exportIn} label={t(isEnded ? 'console.promotions.list.endedLabel' : 'console.promotions.list.label')} rowKey={(promotion) => promotion.id} density="comfortable" narrowLayout="scroll"
         columns={isEnded ? endedColumns(names, steps) : listColumns(names, steps)} onRowOpen={open} key={view}
         {...(isEnded ? { initialSort: LATEST_ENDED_FIRST } : {})}
         rows={isEnded ? ended : current.filter((promotion) => filter === 'all' || isListedIn(promotion, filter))}
@@ -87,13 +87,15 @@ export function PromotionList(props: PromotionListProps) {
   const overview = usePromotionsOverview(props.venueId);
   const title = t('console.promotions.title');
   const action = <Button variant="primary" size="compact" onClick={() => props.onOpen('new')}>{t('console.promotions.newPromotion')}</Button>;
+  // A table alone on a screen has its Export beside the title (audit F-207).
+  const [exportIn, setExportIn] = useState<HTMLElement | null>(null);
   if (overview.data === undefined) {
     if (overview.isError) return <Screen title={title} actions={action} status="error" onRetry={() => void overview.refetch()} />;
     return <Screen title={title} actions={action} status="loading" loadingLook="rows" />;
   }
   return (
-    <Screen title={title} actions={action}>
-      <Listed {...props} overview={overview.data} />
+    <Screen title={title} actions={action} onActionsSlot={setExportIn}>
+      <Listed {...props} overview={overview.data} exportIn={exportIn} />
     </Screen>
   );
 }

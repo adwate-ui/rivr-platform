@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { cancelRedemptionSchema } from '@rivr/contracts';
 import { useCancelRedemption, useHandOverRedemption, useVenueRedemptions, type Redemption } from '@rivr/db';
 import { formatDayTime, t } from '@rivr/i18n';
-import { Box, Button, DataTable, ErrorMessage, Heading, Inline, ReasonForm, Stack, type DataTableColumn } from '@rivr/ui';
+import { Box, Button, DataTable, ErrorMessage, Heading, Inline, ReasonForm, Stack, Text, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -97,13 +97,16 @@ function Section({ venueId, isWaiting, rows, onRetry }: SectionProps) {
   const label = t(isWaiting ? 'console.rewards.waiting' : 'console.rewards.handedOver');
   const base = { label, columns: columns(venueId, isWaiting), rowKey: (row: Redemption) => row.id };
   const emptyText = t(isWaiting ? 'console.rewards.noneWaiting' : 'console.rewards.noneHandedOver');
+  // Nothing to hand over is one line on a raised panel, as on the other queues (audit F-206); what was handed over stays below.
+  if (isWaiting && typeof rows === 'object' && rows.length === 0) return <Box surface="raised" radius="md" padding={4}><Text variant="small" tone="muted">{emptyText}</Text></Box>;
+  const heading = <Heading level={2} variant="card">{label}</Heading>;
   return (
     <Box surface="raised" radius="md" padding={5}>
       <Stack gap={4}>
-        <Heading level={2} variant="card">{label}</Heading>
+        {/* The heading shares the table's bar, so Export has no row of its own (audit F-207). */}
+        {typeof rows === 'object' ? <DataTable {...base} toolbar={() => heading} rows={rows} emptyText={emptyText} /> : heading}
         {rows === 'loading' ? <DataTable {...base} status="loading" /> : null}
         {rows === 'error' ? <DataTable {...base} status="error" onRetry={onRetry} /> : null}
-        {typeof rows === 'object' ? <DataTable {...base} rows={rows} emptyText={emptyText} /> : null}
       </Stack>
     </Box>
   );

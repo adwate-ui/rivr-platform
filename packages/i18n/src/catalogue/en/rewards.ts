@@ -11,14 +11,11 @@ const kinds = {
 /** The console's Rewards screen: the catalogue (rewards.manage) and redemptions to hand over (rewards.hand_over). */
 export const rewards = {
   title: 'Rewards',
-  /** Its parts (console v3), each with what waits under it: `Hand over 1`. */
+  /** Its tabs (console v3), and the Door's Hand over. */
   tabs: {
     catalogue: 'Catalogue',
     handover: 'Hand over',
     points: 'Points by hand',
-    counted: '{label} {count}',
-    /** Names the parts' row, apart from the screen's own tabs (Rewards, Spin wheel). */
-    label: 'Parts of Rewards',
   },
   /** Points by hand (#645): staff who keep the rewards give a member points, earned or locked, and release locked ones. */
   byHand: {
@@ -88,7 +85,6 @@ export const rewards = {
       unavailable: 'Not sent. Try again.',
     },
   },
-  notAllowed: 'Not in your role. Ask an admin.',
   catalogue: 'Catalogue',
   noRewards: 'No rewards here yet.',
   kinds,

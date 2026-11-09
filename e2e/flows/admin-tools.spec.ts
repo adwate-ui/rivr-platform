@@ -46,7 +46,7 @@ test.describe('Admin tools', () => {
     await page.getByRole('button', { name: 'Save the table' }).click();
     await expect(page.getByText(`Setup ${RUN} is saved.`)).toBeVisible();
     const tables = page.getByRole('table', { name: 'The club’s tables, in floor order' });
-    await expect(tables.getByRole('row').filter({ hasText: `Setup ${RUN}` })).toContainText('Active · closed tonight');
+    await expect(tables.getByRole('row').filter({ hasText: `Setup ${RUN}` })).toContainText('Closed tonight');
     await tables.getByRole('button', { name: `Change table Setup ${RUN}` }).click();
     await page.getByRole('radiogroup', { name: 'Seats' }).getByRole('radio', { name: '6', exact: true }).click();
     await page.getByRole('button', { name: 'Save the table' }).click();
@@ -75,7 +75,7 @@ test.describe('Admin tools', () => {
     const admin = await browser.newPage();
     await signInToConsole(admin, '9000000113');
     await admin.getByRole('link', { name: 'Rewards', exact: true }).click();
-    // Points by hand is a part of Rewards' Rewards tab (console v3).
+    // Points by hand is a tab of Rewards (audit F-028).
     await admin.getByRole('link', { name: 'Points by hand', exact: true }).click();
     await admin.getByRole('textbox', { name: 'Member’s mobile number' }).fill('9000000752');
     await admin.getByRole('button', { name: 'Find', exact: true }).click();

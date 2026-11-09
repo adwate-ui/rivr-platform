@@ -17,6 +17,6 @@ function columns(): readonly DataTableColumn<LearnSource>[] {
 }
 
 /** The venue's sources with their licences: on until the last day, then off for everyone. */
-export function SourceTable({ rows }: { rows: readonly LearnSource[] }) {
-  return <DataTable label={t('console.learnSources.table')} columns={columns()} rowKey={(row) => row.sourceKey} rows={rows} emptyText={t('console.learnSources.none')} />;
+export function SourceTable({ rows, exportIn }: { rows: readonly LearnSource[]; exportIn: HTMLElement | null }) {
+  return <DataTable exportIn={exportIn} label={t('console.learnSources.table')} columns={columns()} rowKey={(row) => row.sourceKey} rows={rows} emptyText={t('console.learnSources.none')} />;
 }

@@ -48,12 +48,13 @@ function DealerList({ venueId }: { venueId: string }) {
   const dealers = useVenueDealers(venueId);
   const [openId, setOpenId] = useState<string | null>(null);
   const title = t('console.dealerPins.title');
+  const [exportIn, setExportIn] = useState<HTMLElement | null>(null);
   if (dealers.isPending) return <Screen level={2} title={title} status="loading" loadingLook="rows" />;
   if (dealers.data === undefined) return <Screen level={2} title={title} status="error" onRetry={() => void dealers.refetch()} />;
   if (dealers.data.length === 0) return <Screen level={2} title={title} status="empty" emptyText={t('console.dealerPins.empty')} />;
   return (
-    <Screen level={2} title={title}>
-      <DataTable label={title} narrowLayout="scroll" columns={pinColumns(openId, (dealer) => setOpenId(openId === dealer.staffId ? null : dealer.staffId))} rows={dealers.data}
+    <Screen level={2} title={title} onActionsSlot={setExportIn}>
+      <DataTable exportIn={exportIn} label={title} narrowLayout="scroll" columns={pinColumns(openId, (dealer) => setOpenId(openId === dealer.staffId ? null : dealer.staffId))} rows={dealers.data}
         rowKey={(dealer) => dealer.staffId} emptyText={t('console.dealerPins.empty')}
         rowDetail={(dealer) => (openId === dealer.staffId ? <PinForm venueId={venueId} staffId={dealer.staffId} name={dealer.fullName} /> : null)} />
     </Screen>

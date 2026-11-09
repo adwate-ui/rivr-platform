@@ -1,9 +1,10 @@
 import { t } from '@rivr/i18n';
-import { createContext, use, useContext, useEffect, useId, useRef, type ReactNode } from 'react';
+import { createContext, use, useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '../Button/Button.tsx';
 import { Heading } from '../Heading/Heading.tsx';
 import { cx } from '../internal/classes.ts';
-import { ScreenPartContext, useIsInConsole } from '../internal/consoleFrame.ts';
+import { ScreenPartContext, ScreenTitleSlotContext, useIsInConsole } from '../internal/consoleFrame.ts';
 import { usePlayerFrame } from '../internal/playerFrame.ts';
 import { LoadState } from '../LoadState/LoadState.tsx';
 import { PlayerAvatar } from '../PlayerAvatar/PlayerAvatar.tsx';
@@ -33,7 +34,7 @@ export type ScreenProps = ScreenState & {
    * Members table's Export, beside the title as the prototype has it (`DataTable exportIn`).
    */
   onActionsSlot?: (element: HTMLDivElement | null) => void;
-  /** 2 for a part of a screen shown under its tabs (#606), such as Devices' Tablets: its heading is the second level. */
+  /** 2 for a section of a screen, such as Tables setup's Stakes: its heading is the second level, and shows on a phone too. */
   level?: 1 | 2;
   /** `serif`, the player redesign's screen title in the display face at 36 (decision 0320). */
   titleLook?: 'default' | 'serif';
@@ -142,14 +143,20 @@ type HeadingAttributes = { level: 1 | 2; id: string; isFocusTarget: boolean };
 const headingOf = (props: ScreenProps, place: ScreenPlace): HeadingAttributes =>
   ({ level: place.isPart ? 2 : props.level ?? 1, id: place.headingId, isFocusTarget: place.isOwnScreen });
 
+type OnSlot = (element: HTMLDivElement | null) => void;
+
 /** The screen's own title, read out only when hidden; otherwise a row with its actions and, in a player shell, the initial. */
-function ScreenHeading({ props, place }: { props: ScreenProps; place: ScreenPlace }) {
+function ScreenHeading({ props, place, onTitleSlot }: { props: ScreenProps; place: ScreenPlace; onTitleSlot: OnSlot | undefined }) {
   const heading = headingOf(props, place);
-  if (place.isPart) return <PartHeading heading={heading} title={props.title} actions={props.actions} />;
+  if (place.isPart) return <PartHeading heading={heading} title={props.title} actions={props.actions} onActionsSlot={props.onActionsSlot} />;
   if (props.isTitleHidden === true) return <HiddenTitle heading={heading} title={props.title} place={place} />;
-  // On the console's phone the header names the screen: with nothing beside it, the hidden h1 takes no line of its own.
-  if (place.isInConsole && props.actions === undefined && props.onActionsSlot === undefined) return <Heading {...heading} isShownFromMedium>{props.title}</Heading>;
-  return <TitleRow heading={heading} props={props} place={place} />;
+  const isAlone = props.actions === undefined && props.onActionsSlot === undefined && onTitleSlot === undefined;
+  // On the console's phone the header names the screen: with nothing beside it, the hidden h1 takes no line of its own. From
+  // 768 px the row is the same height with or without actions, so titles and tabs stay put between screens (audit F-101).
+  if (place.isInConsole && place.isOwnScreen && isAlone) {
+    return <div className="contents medium:flex medium:min-h-touch medium:items-center"><Heading {...heading} isShownFromMedium>{props.title}</Heading></div>;
+  }
+  return <TitleRow heading={heading} props={props} place={place} onTitleSlot={onTitleSlot} />;
 }
 
 /** A screen headed by something else: its title heard; in a player shell the initial alone until its content shows. */
@@ -167,28 +174,34 @@ function HiddenTitle({ heading, title, place }: { heading: HeadingAttributes; ti
  * An empty element at the title row's end, handed to the part of the screen that draws a control there; at the end on a
  * console phone too, where the title is the header's and the row holds the control alone.
  */
-function ActionsSlot({ onSlot }: { onSlot: (element: HTMLDivElement | null) => void }) {
-  return <div ref={onSlot} className="ms-auto flex items-center" />;
+function ActionsSlot({ onSlot }: { onSlot: OnSlot }) {
+  return <div ref={onSlot} className="ms-auto flex items-center gap-4 empty:hidden" />;
 }
 
 /** The title with its actions, which wrap onto two lines on a narrow screen, and in a player shell the initial at its end. */
-function TitleRow({ heading, props, place }: { heading: HeadingAttributes; props: ScreenProps; place: ScreenPlace }) {
+function TitleRow({ heading, props, place, onTitleSlot }: { heading: HeadingAttributes; props: ScreenProps; place: ScreenPlace; onTitleSlot: OnSlot | undefined }) {
+  // A section's heading (level 2) shows on a phone too: only a screen's own title is the header's there.
+  const isHeaderTitle = place.isInConsole && place.isOwnScreen;
   return (
-    <div className={cx('flex flex-wrap items-center justify-between gap-4', place.isTabHeading && 'min-h-touch', place.gutter)}>
-      <Heading {...heading} {...(props.titleLook === 'serif' ? SERIF_TITLE : {})} isShownFromMedium={place.isInConsole}>{props.title}</Heading>
-      {props.actions}
+    // Over tabs the row dissolves on a phone, so a tab with no action leaves no empty line above them.
+    <div className={cx('flex flex-wrap items-center justify-between gap-4', place.isTabHeading && 'min-h-touch', isHeaderTitle && 'medium:min-h-touch', onTitleSlot !== undefined && 'max-medium:contents', place.gutter)}>
+      <Heading {...heading} {...(props.titleLook === 'serif' ? SERIF_TITLE : {})} isShownFromMedium={isHeaderTitle}>{props.title}</Heading>
       {props.onActionsSlot === undefined ? null : <ActionsSlot onSlot={props.onActionsSlot} />}
+      {onTitleSlot === undefined ? null : <ActionsSlot onSlot={onTitleSlot} />}
+      {props.actions}
       {place.isTabHeading ? <PlayerAvatar /> : null}
     </div>
   );
 }
 
-/** A tab's own screen inside another's tabs: its title heard as an h2, its actions at the row's end. */
-function PartHeading({ heading, title, actions }: { heading: HeadingAttributes; title: string; actions: ReactNode }) {
+/** A tab's own screen inside another's tabs: its title heard as an h2, its actions at the end of the title row over the tabs. */
+function PartHeading({ heading, title, actions, onActionsSlot }: { heading: HeadingAttributes; title: string; actions: ReactNode; onActionsSlot: OnSlot | undefined }) {
+  const titleSlot = use(ScreenTitleSlotContext);
+  const beside = <>{onActionsSlot === undefined ? null : <ActionsSlot onSlot={onActionsSlot} />}{actions}</>;
   return (
     <>
       <Heading {...heading} isVisuallyHidden>{title}</Heading>
-      {actions === undefined ? null : <div className="flex flex-wrap items-center justify-end gap-4">{actions}</div>}
+      {titleSlot === null ? null : createPortal(beside, titleSlot)}
     </>
   );
 }
@@ -215,13 +228,16 @@ export function Screen(props: ScreenProps) {
   const headingId = useId();
   const place = useScreenPlace(props, headingId);
   const section = useScreenFocus(props.title, headingId, place.isOwnScreen);
+  const [titleSlot, setTitleSlot] = useState<HTMLElement | null>(null);
   const body = place.gutter && place.isWaiting ? <div className={place.gutter}><ScreenBody {...props} /></div> : <ScreenBody {...props} />;
   return (
     <section ref={section} aria-labelledby={headingId} aria-busy={props.status === 'loading' || undefined} className="flex flex-col gap-6">
-      <ScreenHeading props={props} place={place} />
+      <ScreenHeading props={props} place={place} onTitleSlot={props.tabs === undefined ? undefined : setTitleSlot} />
       {props.tabs}
-      {/* Under tabs, a screen inside is one part of this one; any deeper is its own again. */}
-      <ScreenPartContext value={props.tabs !== undefined}>{body}</ScreenPartContext>
+      {/* Under tabs, a screen inside is one part of this one, its actions in this title row; any deeper is its own again. */}
+      <ScreenTitleSlotContext value={titleSlot}>
+        <ScreenPartContext value={props.tabs !== undefined}>{body}</ScreenPartContext>
+      </ScreenTitleSlotContext>
     </section>
   );
 }

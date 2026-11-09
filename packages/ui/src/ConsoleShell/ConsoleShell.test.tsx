@@ -59,6 +59,14 @@ describe('ConsoleShell', () => {
     expect(screen.getByRole('main')).toHaveAttribute('tabindex', '0');
   });
 
+  it('brings the current screen into view in a rail taller than the window (audit F-135)', () => {
+    const scrolled = vi.fn();
+    Element.prototype.scrollIntoView = scrolled;
+    renderShell();
+    expect(scrolled).toHaveBeenCalledWith({ block: 'nearest' });
+    expect(scrolled.mock.contexts[0]).toHaveAttribute('aria-current', 'page');
+  });
+
   it('groups the rail by the job and marks the current screen', () => {
     renderShell();
     for (const group of ['Tonight', 'Players', 'Marketing']) expect(within(rail()).getByRole('list', { name: group })).toBeInTheDocument();

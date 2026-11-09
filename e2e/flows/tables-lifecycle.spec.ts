@@ -51,35 +51,38 @@ test.describe('Tables lifecycle', () => {
     await page.getByRole('radiogroup', { name: 'Stake' }).getByRole('radio').first().click();
     await page.getByRole('button', { name: 'Save the table' }).click();
     await expect(page.getByText(`${TABLE} is saved.`)).toBeVisible();
-    await expect(rowOf(page)).toContainText('Active · closed tonight');
+    await expect(rowOf(page)).toContainText('Closed tonight');
     expect(shownLive()).toBe('1');
 
     // Deactivated: hidden from the floor and everything live, its row kept.
-    await page.getByRole('button', { name: `Deactivate ${TABLE}` }).click();
+    await page.getByRole('button', { name: `More for ${TABLE}` }).click();
+    await page.getByRole('menuitem', { name: 'Deactivate', exact: true }).click();
     await expect(page.getByText(`${TABLE} deactivated. Its history stays.`)).toBeVisible();
     await expect(rowOf(page)).toContainText('Inactive · hidden from the floor');
     expect(stateOf()).toBe('false false false');
     expect(shownLive()).toBe('0');
 
     // Reactivated: back, closed until the floor opens it.
-    await page.getByRole('button', { name: `Reactivate ${TABLE}` }).click();
+    await page.getByRole('button', { name: `More for ${TABLE}` }).click();
+    await page.getByRole('menuitem', { name: 'Reactivate', exact: true }).click();
     await expect(page.getByText(`${TABLE} is back, closed.`)).toBeVisible();
-    await expect(rowOf(page)).toContainText('Active · closed tonight');
+    await expect(rowOf(page)).toContainText('Closed tonight');
     expect(stateOf()).toBe('true false false');
     expect(shownLive()).toBe('1');
 
-    // A place on its list keeps it: Delete is refused before it is sent.
+    // A place on its list keeps it: Delete is dimmed, and says why.
     const place = placeOnList();
     await page.reload();
-    await page.getByRole('button', { name: `Delete ${TABLE}` }).click();
-    await expect(page.getByText(`Players wait for ${TABLE}. Take them off its list first.`)).toBeVisible();
-    await expect(page.getByRole('button', { name: `Yes, delete ${TABLE}` })).toHaveCount(0);
+    await page.getByRole('button', { name: `More for ${TABLE}` }).click();
+    await expect(page.getByRole('menuitem', { name: 'Delete · Players waiting', exact: true })).toHaveAttribute('aria-disabled', 'true');
+    await page.keyboard.press('Escape');
     expect(stateOf()).toBe('true false false');
 
     // With the list empty, Delete asks once more, then deletes it for good; its row stays for reports.
     sql(`delete from public.waitlist_entry where id = '${place}'`);
     await page.reload();
-    await page.getByRole('button', { name: `Delete ${TABLE}` }).click();
+    await page.getByRole('button', { name: `More for ${TABLE}` }).click();
+    await page.getByRole('menuitem', { name: 'Delete', exact: true }).click();
     await page.getByRole('button', { name: `Yes, delete ${TABLE}` }).click();
     await expect(page.getByText(`${TABLE} deleted. Its history stays.`)).toBeVisible();
     await expect(rowOf(page)).toHaveCount(0);

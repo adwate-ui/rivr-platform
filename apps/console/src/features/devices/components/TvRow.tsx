@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { deviceRevokeSchema, type TvMode } from '@rivr/contracts';
 import { useTvActions, type TvFailure, type VenueTv } from '@rivr/db';
-import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, ReasonForm, Stack, Text } from '@rivr/ui';
+import { formatDateTime, t } from '@rivr/i18n';
+import { DotStatus, ErrorMessage, Inline, OverflowMenu, ReasonForm, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -26,7 +26,14 @@ function UnpairForm({ venueId, tv, onDone }: { venueId: string; tv: VenueTv; onD
   );
 }
 
-/** One TV: paired or still waiting for the TV, what it shows, what it turns to in between (decision 0163), and Unpair. */
+/** Whether the TV is on and the board it was set to, or when it was last on; before it picks up its login, that it is waited for. */
+export function TvStatus({ tv }: { tv: VenueTv }) {
+  if (!tv.isPaired) return <Text variant="small" tone="muted">{t('console.tvs.waiting')}</Text>;
+  if (tv.isOnline) return <DotStatus tone="active" label={tv.mode === null ? t('console.tvs.online') : t('console.tvs.showing', { board: t(`tv.modes.${tv.mode}`) })} />;
+  return <DotStatus tone="inactive" label={tv.lastSeenAt === null ? t('console.tvs.offline') : t('console.tvs.lastSeen', { when: formatDateTime(new Date(tv.lastSeenAt)) })} />;
+}
+
+/** One TV: whether it is on, what it shows, what it turns to in between (decision 0163), and Unpair behind its ⋯. */
 export function TvRow({ venueId, tv }: { venueId: string; tv: VenueTv }) {
   const { setMode, setRotation } = useTvActions(venueId);
   const [isUnpairing, setIsUnpairing] = useState(false);
@@ -39,9 +46,10 @@ export function TvRow({ venueId, tv }: { venueId: string; tv: VenueTv }) {
       <Inline gap={4} align="center" justify="between" wrap>
         <Stack gap={1}>
           <Text weight="semibold">{tv.name}</Text>
-          <Text variant="small" tone="muted">{t(tv.isPaired ? 'console.tvs.paired' : 'console.tvs.waiting')}</Text>
+          <TvStatus tv={tv} />
         </Stack>
-        <Button variant="text" onClick={() => setIsUnpairing(true)}>{t('console.tvs.unpair', { name: tv.name })}</Button>
+        <OverflowMenu label={t('console.tvs.more', { name: tv.name })}
+          items={[{ id: 'unpair', label: t('console.tvs.unpair'), tone: 'danger', onSelect: () => setIsUnpairing(true) }]} />
       </Inline>
       <ModeChips label={t('console.tvs.modeFor', { name: tv.name })} value={tv.mode} isDisabled={setMode.isPending}
         onChange={(mode) => void show(mode)} />

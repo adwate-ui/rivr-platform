@@ -1,5 +1,5 @@
 import { t } from '@rivr/i18n';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../Icon/Icon.tsx';
 import { cx } from '../internal/classes.ts';
 import type { Navigate } from '../internal/navigation.ts';
@@ -55,17 +55,37 @@ interface ConsoleRailProps {
 }
 
 /**
+ * The rail's list, scrolled so the current screen's item shows in a rail taller than the window (audit F-135): when a
+ * screen opens, and when the rail's height changes, as a banner arriving above it or a shorter window takes room.
+ */
+function useCurrentInView(currentItem: string | undefined) {
+  const list = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const element = list.current;
+    if (element === null) return undefined;
+    const show = () => element.querySelector('[aria-current="page"]')?.scrollIntoView?.({ block: 'nearest' });
+    show();
+    if (typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(show);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [currentItem]);
+  return list;
+}
+
+/**
  * The console's rail from 768 px (console v3): the mark, the screens in their groups, and at its foot Collapse or Expand.
- * 224 px with labels, or 64 px of icons. Its screens scroll on their own; the mark and the foot stay.
+ * 224 px with labels, or 64 px of icons. Its screens scroll on their own, fading at the foot; the mark and the foot stay.
  */
 export function ConsoleRail({ sections, currentItem, onNavigate, isLabelled, onToggle }: ConsoleRailProps) {
   const toggleLabel = t(isLabelled ? 'ui.console.shell.collapse' : 'ui.console.shell.expand');
+  const list = useCurrentInView(currentItem);
   return (
     <aside className={cx('hidden shrink-0 flex-col bg-raised medium:flex', isLabelled ? 'w-rail' : 'w-rail-collapsed')}>
       <div className={cx('flex h-console-header shrink-0 items-center', isLabelled ? 'px-6' : 'justify-center')}>
         {isLabelled ? <Wordmark /> : <span role="img" aria-label={t('ui.brand.label')} className="flex"><WordmarkCard /></span>}
       </div>
-      <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-3 pt-1 pb-3">
+      <div ref={list} className="rail-fade min-h-0 flex-1 scroll-pb-8 overflow-x-hidden overflow-y-auto px-3 pt-1 pb-8">
         <SideNav label={t('ui.consoleRail.label')} sections={sections} current={currentItem} onNavigate={onNavigate} isCollapsed={!isLabelled} />
       </div>
       <div className="shrink-0 p-3">

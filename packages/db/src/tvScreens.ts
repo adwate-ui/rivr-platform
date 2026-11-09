@@ -38,12 +38,20 @@ export interface VenueTv {
   readonly mode: TvMode | null;
   /** The boards it turns to after its main one, in order. */
   readonly rotation: readonly TvMode[];
+  /** When it last reported in; null if it has not yet. */
+  readonly lastSeenAt: string | null;
+  /** It reported in within the last few minutes. */
+  readonly isOnline: boolean;
 }
 
 /** Why a staff action on a TV did not go through: `wrong_code` is no TV showing it, `paused` the venue frozen. */
 export type TvFailure = 'wrong_code' | 'not_allowed' | 'paused' | 'invalid' | 'unavailable';
 
 const TV_FAILURE_BY_CODE: Readonly<Record<string, TvFailure>> = { RVCOD: 'wrong_code', '42501': 'not_allowed', RVFRZ: 'paused', '22023': 'invalid' };
+
+// A TV reports in each minute; after two reports missed, and a moment's grace, Devices says it is off.
+const REPORT_IN = 60_000;
+const ONLINE_WITHIN = 3 * REPORT_IN;
 
 // An unpaired TV asks every three seconds whether its code has been typed in. A request for a code
 // that was refused or failed is made again after a minute.
@@ -115,12 +123,31 @@ export function useTvPairing(): TvPairing {
   return request.data.ok ? { status: 'code', code: request.data.value } : { status: request.data.error };
 }
 
+/** Tells the club this TV is on, now and each minute, for Devices (audit F-083). A report that fails is simply the next one's to make. */
+function useTvReportIn() {
+  const { client, userId } = useRivrData();
+  useQuery({
+    queryKey: queryKeys.tvReportIn(userId ?? 'signed-out'),
+    enabled: userId !== null,
+    gcTime: 0,
+    retry: false,
+    refetchInterval: REPORT_IN,
+    refetchOnWindowFocus: false,
+    queryFn: async (): Promise<true> => {
+      const { error } = await client.rpc('tv_report_in');
+      if (error) throw error;
+      return true;
+    },
+  });
+}
+
 /**
- * The signed-in TV's name and mode. A session that is not a TV's, or a TV's since unpaired, reads
+ * The signed-in TV's name and mode, while it reports in. A session that is not a TV's, or a TV's since unpaired, reads
  * nothing: it is signed out here, and the TV shows a new code.
  */
 export function useMyTvScreen() {
   const { client, userId } = useRivrData();
+  useTvReportIn();
   return useQuery({
     queryKey: queryKeys.myTvScreen(userId ?? 'signed-out'),
     enabled: userId !== null,
@@ -170,17 +197,24 @@ export function useVenueTvs(venueId: string) {
     enabled: userId !== null,
     refetchInterval: SCREEN_CHECK,
     queryFn: async (): Promise<VenueTv[]> => {
-      const [devices, screens] = await Promise.all([
+      const [devices, screens, heartbeats] = await Promise.all([
         client.from('device').select('id, name, auth_user_id').eq('venue_id', venueId).eq('kind', 'tv').is('revoked_at', null).order('name'),
         client.from('tv_screen').select('device_id, mode, rotation').eq('venue_id', venueId),
+        client.from('tv_heartbeat').select('device_id, last_seen_at').eq('venue_id', venueId),
       ]);
       if (devices.error) throw devices.error;
       if (screens.error) throw screens.error;
+      if (heartbeats.error) throw heartbeats.error;
       const screenOf = new Map(screens.data.map((row) => [row.device_id, row]));
-      return devices.data.map((device) => ({
-        deviceId: device.id, name: device.name, isPaired: device.auth_user_id !== null, mode: screenOf.get(device.id)?.mode ?? null,
-        rotation: screenOf.get(device.id)?.rotation ?? [],
-      }));
+      const lastSeenOf = new Map(heartbeats.data.map((row) => [row.device_id, row.last_seen_at]));
+      return devices.data.map((device) => {
+        const lastSeenAt = lastSeenOf.get(device.id) ?? null;
+        return {
+          deviceId: device.id, name: device.name, isPaired: device.auth_user_id !== null, mode: screenOf.get(device.id)?.mode ?? null,
+          rotation: screenOf.get(device.id)?.rotation ?? [], lastSeenAt,
+          isOnline: lastSeenAt !== null && Date.now() - Date.parse(lastSeenAt) < ONLINE_WITHIN,
+        };
+      });
     },
   });
 }

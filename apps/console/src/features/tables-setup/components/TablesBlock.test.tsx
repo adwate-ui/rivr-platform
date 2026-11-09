@@ -50,38 +50,55 @@ const rowOf = (name: string) => {
   return row;
 };
 
+/** Opens a table's ⋯ and presses one of its steps. */
+const pressStep = (table: string, step: string) => {
+  fireEvent.click(screen.getByRole('button', { name: `More for ${table}` }));
+  fireEvent.click(screen.getByRole('menuitem', { name: step }));
+};
+
 describe('tables setup: deactivate, reactivate and delete (decision 0466)', () => {
   it('says where each table stands: seated at an open one, closed tonight, or inactive and hidden', () => {
     renderTables();
-    expect(rowOf('Table 1').textContent).toContain('Active · 7 seated');
-    expect(rowOf('Table 3').textContent).toContain('Active · closed tonight');
+    expect(rowOf('Table 1').textContent).toContain('Open · 7 seated');
+    expect(rowOf('Table 3').textContent).toContain('Closed tonight');
     expect(rowOf('Table 5').textContent).toContain('Inactive · hidden from the floor');
-    expect(within(rowOf('Table 5')).getByRole('button', { name: 'Reactivate Table 5' })).toBeDefined();
-    expect(within(rowOf('Table 1')).getByRole('button', { name: 'Deactivate Table 1' })).toBeDefined();
   });
 
-  it('refuses to deactivate or delete a table in play before anything is sent, seated first, then waiting', async () => {
+  it('keeps Change on the row and the steps that retire a table behind its ⋯ (audit F-118)', () => {
+    renderTables();
+    expect(within(rowOf('Table 3')).getByRole('button', { name: 'Change table Table 3' })).toBeDefined();
+    expect(within(rowOf('Table 3')).queryByRole('button', { name: /Deactivate|Delete/ })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'More for Table 5' }));
+    expect(screen.getByRole('menuitem', { name: 'Reactivate' })).toBeDefined();
+  });
+
+  it('dims Deactivate and Delete on a table in play, saying why, and sends nothing: seated first, then waiting', () => {
     const sent = renderTables();
-    fireEvent.click(screen.getByRole('button', { name: 'Deactivate Table 1' }));
-    expect(screen.getByText('Players sit at Table 1. Move them first.')).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'Delete Table 2' }));
-    expect(screen.getByText('Players wait for Table 2. Take them off its list first.')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'More for Table 1' }));
+    const seated = screen.getByRole('menuitem', { name: 'Deactivate · Players seated' });
+    expect(seated.getAttribute('aria-disabled')).toBe('true');
+    fireEvent.click(seated);
+    fireEvent.click(screen.getByRole('button', { name: 'More for Table 1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'More for Table 2' }));
+    const waiting = screen.getByRole('menuitem', { name: 'Delete · Players waiting' });
+    expect(waiting.getAttribute('aria-disabled')).toBe('true');
+    fireEvent.click(waiting);
     expect(screen.queryByRole('button', { name: 'Yes, delete Table 2' })).toBeNull();
     expect(sent).toEqual([]);
   });
 
   it('deactivates an empty table and reactivates an inactive one, saying so', async () => {
     const sent = renderTables();
-    fireEvent.click(screen.getByRole('button', { name: 'Deactivate Table 3' }));
+    pressStep('Table 3', 'Deactivate');
     await waitFor(() => expect(screen.getByText('Table 3 deactivated. Its history stays.')).toBeDefined());
-    fireEvent.click(screen.getByRole('button', { name: 'Reactivate Table 5' }));
+    pressStep('Table 5', 'Reactivate');
     await waitFor(() => expect(screen.getByText('Table 5 is back, closed.')).toBeDefined());
     expect(sent).toEqual([{ rpc: 'deactivate_game_table', body: { p_table_id: 't3' } }, { rpc: 'reactivate_game_table', body: { p_table_id: 't5' } }]);
   });
 
-  it('deletes only on the second press, and says the history stays', async () => {
+  it('deletes only once asked, and says the history stays', async () => {
     const sent = renderTables();
-    fireEvent.click(screen.getByRole('button', { name: 'Delete Table 3' }));
+    pressStep('Table 3', 'Delete');
     expect(sent).toEqual([]);
     fireEvent.click(screen.getByRole('button', { name: 'Yes, delete Table 3' }));
     await waitFor(() => expect(screen.getByText('Table 3 deleted. Its history stays.')).toBeDefined());
@@ -90,7 +107,7 @@ describe('tables setup: deactivate, reactivate and delete (decision 0466)', () =
 
   it('says why the database refused, on its own count: someone joined the list meanwhile', async () => {
     renderTables({ delete_game_table: 'RVWTG' });
-    fireEvent.click(screen.getByRole('button', { name: 'Delete Table 3' }));
+    pressStep('Table 3', 'Delete');
     fireEvent.click(screen.getByRole('button', { name: 'Yes, delete Table 3' }));
     await waitFor(() => expect(screen.getByText('Players wait for Table 3. Take them off its list first.')).toBeDefined());
   });

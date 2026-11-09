@@ -30,7 +30,7 @@ export async function tabletAtTable3(browser: Browser, floor: Page) {
 export async function tabletAt(browser: Browser, floor: Page, tableName: string) {
   const name = `Tablet ${String(Date.now() % 100_000).padStart(5, '0')}`;
   // Devices is a tab of Settings (console v3), each kind a part in the address.
-  await floor.goto(`${appUrl('console')}/settings?tab=devices&part=tablets`);
+  await floor.goto(`${appUrl('console')}/settings?tab=tablets`);
   await floor.getByRole('textbox', { name: 'Tablet name' }).fill(name);
   await floor.getByRole('button', { name: 'Add and pair' }).click();
   const codeLine = floor.getByText(/^Pairing code \d{6}/);
@@ -61,8 +61,9 @@ export async function dealerSignsIn(tablet: Page) {
 /** Revokes the flow's tablet on the console, so the next run finds Table 3 as it was. */
 export async function revoke(floor: Page, name: string) {
   // Devices is a tab of Settings (console v3), each kind a part in the address.
-  await floor.goto(`${appUrl('console')}/settings?tab=devices&part=tablets`);
-  await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
+  await floor.goto(`${appUrl('console')}/settings?tab=tablets`);
+  await floor.getByRole('button', { name: `More for ${name}`, exact: true }).click();
+  await floor.getByRole('menuitem', { name: 'Unpair', exact: true }).click();
   await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
   await floor.getByRole('button', { name: 'Unpair the tablet' }).click();
   await expect(floor.getByText(name, { exact: true })).toHaveCount(0);

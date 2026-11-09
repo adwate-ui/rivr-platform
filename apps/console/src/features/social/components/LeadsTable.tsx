@@ -15,9 +15,9 @@ function columns(): readonly DataTableColumn<Lead>[] {
 }
 
 /** Leads from the social inbox (#587): each conversation on Instagram, Facebook or WhatsApp, and the member it became. */
-export function LeadsTable({ venueId }: { venueId: string }) {
+export function LeadsTable({ venueId, exportIn }: { venueId: string; exportIn: HTMLElement | null }) {
   const leads = useLeads(venueId);
-  const base = { label: t('console.social.leads.table'), columns: columns(), rowKey: (row: Lead) => row.leadId };
+  const base = { label: t('console.social.leads.table'), columns: columns(), rowKey: (row: Lead) => row.leadId, exportIn };
   if (leads.data === undefined && leads.isError) return <DataTable {...base} status="error" onRetry={() => void leads.refetch()} />;
   if (leads.data === undefined) return <DataTable {...base} status="loading" />;
   return <DataTable {...base} rows={leads.data} emptyText={t('console.social.leads.none')} narrowLayout="scroll" />;

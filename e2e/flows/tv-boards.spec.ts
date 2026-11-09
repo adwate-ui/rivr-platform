@@ -45,7 +45,7 @@ async function pairTv(tv: Page, floor: Page, name: string) {
   const shown = tv.getByRole('heading', { level: 2, name: /^\d{6}$/ });
   await expect(shown).toBeVisible();
   // TVs are a part of Settings' Devices tab (console v3), opened by address once sign-in is through.
-  await openConsole(floor, '/settings?tab=devices&part=tvs');
+  await openConsole(floor, '/settings?tab=tvs');
   await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
   await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
   await floor.getByRole('button', { name: 'Pair the TV' }).click();
@@ -122,7 +122,7 @@ test.describe('TV boards', () => {
 
     // TVs are a part of Settings' Devices tab (console v3), opened by address once sign-in is through.
 
-    await openConsole(floor, '/settings?tab=devices&part=tvs');
+    await openConsole(floor, '/settings?tab=tvs');
     // No jackpot to choose, and no rupee on the TV (#628).
     await expect(floor.getByRole('radiogroup', { name: `What ${name} shows`, exact: true }).getByRole('radio', { name: 'Jackpot and high hand', exact: true }))
       .toHaveCount(0);
@@ -155,7 +155,7 @@ test.describe('TV boards', () => {
 
     // The promotions in between: after half a minute on the board, a promotion, and then the board again.
     // TVs are a part of Settings' Devices tab (console v3), opened by address once sign-in is through.
-    await openConsole(floor, '/settings?tab=devices&part=tvs');
+    await openConsole(floor, '/settings?tab=tvs');
     await floor.getByRole('group', { name: `What ${name} turns to in between`, exact: true }).getByRole('button', { name: 'Promotions', exact: true }).click();
     await expect(floor.getByRole('group', { name: `What ${name} turns to in between`, exact: true })
       .getByRole('button', { name: 'Promotions', exact: true })).toHaveAttribute('aria-pressed', 'true');
@@ -171,8 +171,9 @@ test.describe('TV boards', () => {
     await removePlace(floor, PLAYER);
     await removePlace(floor, HIDDEN);
     // TVs are a part of Settings' Devices tab (console v3), opened by address once sign-in is through.
-    await openConsole(floor, '/settings?tab=devices&part=tvs');
-    await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
+    await openConsole(floor, '/settings?tab=tvs');
+    await floor.getByRole('button', { name: `More for ${name}`, exact: true }).click();
+    await floor.getByRole('menuitem', { name: 'Unpair', exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Unpair the TV' }).click();
     await expect(floor.getByText(name, { exact: true })).toHaveCount(0);

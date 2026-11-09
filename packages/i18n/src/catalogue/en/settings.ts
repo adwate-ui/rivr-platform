@@ -1,11 +1,9 @@
 /** The console's Settings screen (#33): effective-dated settings, the venue configuration and the chips. */
 export const settings = {
   title: 'Settings',
-  notAllowed: 'Not in your role. Ask an admin.',
   loadFailed: 'Settings could not be loaded.',
   rulesHint: 'A change applies from now or a later day, never backwards.',
   /** The screen's areas (#604): the rules by what they govern, then the venue's own details and chips. */
-  areasLabel: 'Areas',
   areas: {
     floor: 'Floor', rake: 'Rake and jackpots', cage: 'Cage and credit', members: 'Members and rewards', academy: 'Academy and Learn',
     tax: 'Tax', compliance: 'Compliance', system: 'System', club: 'Club details', chips: 'Chips', notices: 'Notices',

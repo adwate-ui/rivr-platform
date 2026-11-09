@@ -62,7 +62,7 @@ export const RAIL: readonly RailGroup[] = [
         { id: 'lists', label: 'console.rail.items.lists', anyOf: ['waitlist.manage'] },
         { id: 'interest', label: 'console.rail.items.tournamentInterest', anyOf: ['tournaments.manage'] },
       ] },
-      { id: 'door', label: 'console.rail.items.door', href: '/door', icon: 'door', anyOf: [], tabs: [
+      { id: 'door', label: 'console.rail.items.door', href: '/door', icon: 'door', anyOf: [], counts: ['rewards'], countWords: 'handOvers', tabs: [
         { id: 'check-in', label: 'console.rail.items.checkIn', anyOf: ['waitlist.manage'] },
         { id: 'players', label: 'console.rail.items.todaysPlayers', anyOf: ['members.read'] },
         // Redemptions to hand over at the door, so a host, who has no Marketing (decision 0476), still hands them over.
@@ -82,8 +82,10 @@ export const RAIL: readonly RailGroup[] = [
   {
     id: 'marketing', label: 'console.rail.groups.marketing', entries: [
       { id: 'promotions', label: 'console.rail.items.promotions', href: '/promotions', icon: 'promotions', anyOf: ['promotions.manage'], counts: ['promotions'], countWords: 'approvals' },
-      { id: 'rewards', label: 'console.rail.items.rewards', href: '/rewards', icon: 'rewards', anyOf: [], counts: ['rewards'], countWords: 'handOvers', tabs: [
-        { id: 'rewards', label: 'console.rail.items.rewards', anyOf: ['rewards.manage', 'points.give'] },
+      // Redemptions are handed over at the Door alone (audit F-089).
+      { id: 'rewards', label: 'console.rail.items.rewards', href: '/rewards', icon: 'rewards', anyOf: [], tabs: [
+        { id: 'rewards', label: 'console.rewards.tabs.catalogue', anyOf: ['rewards.manage', 'points.give'] },
+        { id: 'points', label: 'console.rewards.tabs.points', anyOf: ['points.give'] },
         { id: 'spin-wheel', label: 'console.rail.items.spinWheel', anyOf: ['promotions.manage'] },
       ] },
       { id: 'social', label: 'console.rail.items.social', href: '/social', icon: 'social', anyOf: ['marketing.publish'] },
@@ -100,8 +102,13 @@ export const RAIL: readonly RailGroup[] = [
       // The money-free Tables view (owner, 8 Nov); the money reports stay hidden.
       { id: 'reports', label: 'console.rail.items.reports', href: '/reports', icon: 'sessions', anyOf: ['reports.read'] },
       { id: 'settings', label: 'console.rail.items.settings', href: '/settings', icon: 'settings', anyOf: [], tabs: [
-        { id: 'settings', label: 'console.rail.items.settings', anyOf: ['settings.manage', 'venue.configure'] },
-        { id: 'devices', label: 'console.rail.items.devices', anyOf: ['devices.manage'] },
+        // One row (audit F-028): the areas shown (areas.ts hides the rest), then the kinds of device.
+        { id: 'floor', label: 'console.settings.areas.floor', anyOf: ['settings.manage'] },
+        { id: 'members', label: 'console.settings.areas.members', anyOf: ['settings.manage'] },
+        { id: 'notices', label: 'console.settings.areas.notices', anyOf: ['settings.manage'] },
+        { id: 'club', label: 'console.settings.areas.club', anyOf: ['venue.configure'] },
+        { id: 'tvs', label: 'console.tvs.title', anyOf: ['devices.manage'] },
+        { id: 'tablets', label: 'console.tablets.title', anyOf: ['devices.manage'] },
       ] },
       { id: 'killSwitch', label: 'console.rail.items.killSwitch', href: '/kill-switch', icon: 'alert', anyOf: ['control.engage'], locksWhenIdle: true, tone: 'danger' },
       { id: 'practiceReset', label: 'console.rail.items.practiceReset', href: '/practice-reset', icon: 'reset', anyOf: ['purge.run'], tone: 'danger' },

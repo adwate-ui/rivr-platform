@@ -1,6 +1,6 @@
 import { useTablesSetupActions, type SetupStake } from '@rivr/db';
 import { formatStakes, t } from '@rivr/i18n';
-import { Button, DataTable, ErrorMessage, Grid, Heading, Inline, Input, Stack, StatusMessage, Text, type DataTableColumn } from '@rivr/ui';
+import { Button, DataTable, ErrorMessage, Grid, Heading, Inline, Input, Screen, Stack, StatusMessage, Text, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 
 // Paise in one chip: blinds are typed in chips.
@@ -42,22 +42,20 @@ function stakeColumns(open: string | null, onChange: (stake: SetupStake) => void
 export function StakesBlock({ venueId, stakes }: { venueId: string; stakes: readonly SetupStake[] }) {
   const [open, setOpen] = useState<string | null>(stakes.length === 0 ? NEW : null);
   const [saved, setSaved] = useState<string | null>(null);
+  const [exportIn, setExportIn] = useState<HTMLElement | null>(null);
   const toggle = (next: string) => { setSaved(null); setOpen(open === next ? null : next); };
   const form = (stake: SetupStake | null) => (
     <StakeForm key={stake?.id ?? NEW} venueId={venueId} stake={stake} onCancel={() => setOpen(null)}
       onSaved={(text) => { setOpen(null); setSaved(text); }} />
   );
   return (
-    <Stack gap={4}>
-      <Inline justify="between" gap={4}>
-        <Heading level={2} variant="section">{t('console.tablesSetup.stakes')}</Heading>
-        <Button variant="subtle" size="compact" aria-expanded={open === NEW} onClick={() => toggle(NEW)}>{t('console.tablesSetup.newStake')}</Button>
-      </Inline>
+    <Screen level={2} title={t('console.tablesSetup.stakes')} onActionsSlot={setExportIn}
+      actions={<Button variant="subtle" size="compact" aria-expanded={open === NEW} onClick={() => toggle(NEW)}>{t('console.tablesSetup.newStake')}</Button>}>
       {open === NEW ? form(null) : null}
-      <DataTable label={t('console.tablesSetup.stakesLabel')} columns={stakeColumns(open, (stake) => toggle(stake.id))} rows={stakes} narrowLayout="scroll" rowKey={(stake) => stake.id}
+      <DataTable exportIn={exportIn} label={t('console.tablesSetup.stakesLabel')} columns={stakeColumns(open, (stake) => toggle(stake.id))} rows={stakes} narrowLayout="scroll" rowKey={(stake) => stake.id}
         emptyText={t('console.tablesSetup.stakesEmpty')} rowDetail={(stake) => (open === stake.id ? form(stake) : null)} />
       <StatusMessage>{saved}</StatusMessage>
-    </Stack>
+    </Screen>
   );
 }
 

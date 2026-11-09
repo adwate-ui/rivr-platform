@@ -37,7 +37,7 @@ function ItemRow({ item, redeemed, canEdit, onEdit }: ItemRowProps) {
           <Text variant="row" weight="medium">{item.name}</Text>
           <Text variant="secondary" tone="muted">{t('console.rewards.itemLine', { kind: t(`console.rewards.kinds.${item.kind}`), detail: item.detail })}</Text>
         </Stack>
-        <Inline gap={4} align="center">
+        <Inline gap={4} align="center" wrap>
           <Text variant="secondary">{t('console.rewards.priceAndStock', { price: priceText(item), stock: stockText(item) })}</Text>
           {redeemed === undefined ? null : <Text variant="secondary" tone="muted">{t('console.rewards.redeemed30', { count: formatNumber(redeemed) })}</Text>}
           <DotStatus {...statusOf(item)} />

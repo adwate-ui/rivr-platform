@@ -38,7 +38,7 @@ const MENU = 'absolute top-full z-overlay mt-1 flex min-w-32 flex-col rounded-lg
 
 // Danger words on the raised menu are 5.86:1, and 5.14:1 on an item's hover fill.
 const ITEM =
-  'flex w-full items-center rounded-md px-3 py-2 text-start font-text text-13 leading-control whitespace-nowrap transition-colors ' +
+  'flex min-h-touch w-full items-center rounded-md px-3 py-2 text-start font-text text-13 leading-control whitespace-nowrap transition-colors tablet:min-h-control ' +
   'hover:bg-subtle focus-visible:bg-subtle focus-visible:outline-2 focus-visible:outline-focus ' +
   'aria-disabled:cursor-not-allowed aria-disabled:opacity-disabled';
 
