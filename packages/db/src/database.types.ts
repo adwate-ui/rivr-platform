@@ -4719,6 +4719,11 @@ isOneToOne: false
 "acknowledge_sop":
 { Args: { "p_version_id": string }; Returns: string
                            },
+"activity_log":
+{ Args: { "p_before"?: string,"p_before_id"?: number,"p_from"?: string,"p_kind"?: string,"p_limit"?: number,"p_to"?: string,"p_venue_id": string,"p_who"?: string }; Returns: {
+              "about": string,"action": string,"amount": number,"entity": string,"id": number,"is_system": boolean,"kind": string,"occurred_at": string,"reason": string,"who": string
+            }[]
+                           },
 "add_computer":
 { Args: { "p_kind": Database["public"]['Enums']["device_kind"],"p_name": string,"p_venue_id": string }; Returns: {
               "code": string,"device_id": string,"expires_at": string
@@ -5704,6 +5709,11 @@ isOneToOne: false
                            },
 "owner_snapshot":
 { Args: { "p_venue_id": string }; Returns: Json
+                           },
+"past_controls":
+{ Args: { "p_venue_id": string }; Returns: {
+              "control_id": string,"engaged_at": string,"engaged_by": string,"feature": Database["public"]['Enums']["killable_feature"],"level": Database["public"]['Enums']["control_level"],"member_name": string,"reason": string,"release_reason": string,"release_second": string,"released_at": string,"released_by": string,"staff_name": string
+            }[]
                            },
 "pause_tournament_clock":
 { Args: { "p_is_paused": boolean,"p_tournament_id": string }; Returns: undefined

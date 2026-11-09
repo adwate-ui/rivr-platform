@@ -188,6 +188,8 @@ export const queryKeys = {
   dealerRotation: (userId: string, venueId: string) => ['user', userId, 'dealer-rotation', venueId] as const,
   dealerNights: (userId: string, venueId: string, start: string, end: string) => ['user', userId, 'dealer-nights', venueId, start, end] as const,
   engagedControls: (userId: string, venueId: string) => ['user', userId, 'engaged-controls', venueId] as const,
+  pastControls: (userId: string, venueId: string) => ['user', userId, 'past-controls', venueId] as const,
+  activityLog: (userId: string, venueId: string, filters: object) => ['user', userId, 'activity-log', venueId, filters] as const,
   memberSearch: (userId: string, venueId: string, query: string) => ['user', userId, 'member-search', venueId, query] as const,
   /** Every memberSearch key: the prefix an invalidation of them all names. */
   memberSearchAll: (userId: string) => ['user', userId, 'member-search'] as const,

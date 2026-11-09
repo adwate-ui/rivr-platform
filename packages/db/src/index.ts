@@ -74,6 +74,7 @@ export {
   type FeedbackListName, type FeedbackRatings, type OpenFeedback, type ResolveFeedbackFailure,
   type FeedbackVisit,
 } from './feedback.ts';
+export { ACTIVITY_KINDS, useActivityLog, type ActivityFilters, type ActivityKind, type ActivityLine } from './activityLog.ts';
 export * from './rewards.ts';
 export * from './rewardCounts.ts';
 export * from './league.ts';
