@@ -119,7 +119,7 @@ export {
   LIVE_STATUS_PLATFORMS, liveStatusDeviceSchema, liveStatusTokenReportSchema, waitlistMovedSchema, type LiveStatusDeviceInput,
   type LiveStatusPlatform,
 } from './liveStatus.ts';
-export { HOST_CHURN_REASONS, HOST_OFFER_BONUS_DAYS, hostContactSchema, hostLapse, type HostChurnReason, type HostContact } from './hostQueue.ts';
+export { HOST_CHURN_REASONS, hostContactSchema, hostLapse, type HostChurnReason, type HostContact } from './hostQueue.ts';
 export { WINNER_CARD_KINDS, winnerCardImagesSchema, winnerCardRowSchema, winnerCardRowsSchema, type WinnerCardRow } from './winnerCards.ts';
 export { kycInPersonSchema, kycReviewSchema, type KycInPerson } from './kycReview.ts';
 export { erasedKycFilesSchema, type ErasedKycFilesRequest } from './memberErasure.ts';

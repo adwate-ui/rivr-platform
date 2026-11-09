@@ -50,6 +50,29 @@ export function useHostQueue(venueId: string) {
   });
 }
 
+/** A host's offer still to honour (F-015): shown at the Door and on the record, and given by hand (#598). */
+export interface OpenHostOffer {
+  readonly memberId: string;
+  readonly offer: PromotionEffect;
+}
+
+/** The venue's offers still to honour: those out, and those won back tonight. */
+export function useOpenHostOffers(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: ['user', userId ?? 'signed-out', 'open-host-offers', venueId] as const,
+    enabled: userId !== null,
+    queryFn: async (): Promise<OpenHostOffer[]> => {
+      const { data, error } = await client.rpc('open_host_offers', { p_venue_id: venueId });
+      if (error) throw error;
+      return data.flatMap((row) => {
+        const offer = offerOf(row.offer);
+        return offer === null ? [] : [{ memberId: row.member_id, offer }];
+      });
+    },
+  });
+}
+
 /** Records a host's call, or closes a player's item; each a Result, and the queue reloads. */
 export function useHostQueueActions(venueId: string) {
   const { client, userId } = useRivrData();

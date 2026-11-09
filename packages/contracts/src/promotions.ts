@@ -65,7 +65,7 @@ export type PromotionConditions = z.infer<typeof promotionConditionsSchema>;
  * fixed number or a multiplier of the points earned (200 is double). The database checks the same shape.
  */
 export const promotionEffectSchema = z.union([
-  z.strictObject({ kind: z.literal('bonus'), amount_paise: chipPaise, expires_days: expiresDays }),
+  z.strictObject({ kind: z.literal('bonus'), amount_paise: chipPaise, expires_days: expiresDays.optional() }),
   z.strictObject({ kind: z.literal('bonus'), percent_bps: z.int().min(1).max(10_000), cap_paise: chipPaise.optional(), expires_days: expiresDays }),
   z.strictObject({ kind: z.literal('points'), points: z.int().min(1).max(1_000_000) }),
   z.strictObject({ kind: z.literal('points'), multiplier_percent: z.int().min(101).max(1_000) }),
