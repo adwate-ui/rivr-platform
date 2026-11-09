@@ -49,7 +49,7 @@ select throws_ok($$ update public.staff set job_title = 'Head host'
                                 order by s.id desc limit 1) $$,
   'RVFRZ', null, 'but changes nothing else about a login');
 select set_eq($$ select c.relname::text from pg_trigger t join pg_class c on c.oid = t.tgrelid where t.tgname = 'refuse_frozen_write' $$,
-  $$ values ('staff'), ('member'), ('setting'), ('tier'), ('tier_feature'), ('venue_config'), ('chip_denomination'), ('contact') $$,
+  $$ values ('staff'), ('member'), ('setting'), ('tier'), ('tier_feature'), ('venue_config'), ('chip_denomination'), ('contact'), ('device') $$,
   'every table that takes direct writes checks the freeze');
 select is((select (t.tgtype & 4) <> 0 from pg_trigger t where t.tgrelid = 'public.member'::regclass and t.tgname = 'refuse_frozen_write'), false,
   'a member insert is left open, as sign-up was accepted in #495');

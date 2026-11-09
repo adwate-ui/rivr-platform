@@ -5,12 +5,12 @@ import { PairingWindow } from './PairingWindow.tsx';
 import { PairTvForm } from './PairTvForm.tsx';
 import { TvRow } from './TvRow.tsx';
 
-/** The venue's TVs (#49), for staff with devices.manage: pair one by the code it shows, change what it shows, unpair it. */
+/** The venue's TVs (#49), for staff with tvs.manage: pair one by the code it shows, change what it shows, unpair it. */
 export function TvsSection() {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
-  if (!staff.venue.permissions.includes('devices.manage')) {
+  if (!staff.venue.permissions.includes('tvs.manage')) {
     return <Screen level={2} title={t('console.tvs.title')} status="error" errorText={t('console.tvs.notAllowed')} />;
   }
   return <TvList venue={staff.venue} />;

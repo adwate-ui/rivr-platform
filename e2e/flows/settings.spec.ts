@@ -5,7 +5,7 @@
  *   schedules 12 minutes from tomorrow, and withdraws it. He sees no venue configuration.
  * - Leela sets the alert number in the venue configuration, which survives a reload, and uploads the venue's
  *   logo (#397), which is there after a reload. The money areas (rake, cage, tax, chips) are hidden (#626).
- * - Tara has no Settings in her rail, and the address shows a refusal.
+ * - Tara's Settings is TVs alone: the address opens it, and any other tab shows a refusal.
  * The database's side (schemas, the past, who may, the audit log) is proved in supabase/tests/081.
  */
 import { expect, test, type Page } from '@playwright/test';
@@ -35,7 +35,7 @@ async function openArea(page: Page, area: string) {
 }
 
 test.describe('Settings', () => {
-  test('Settings: an admin schedules a setting from tomorrow and withdraws it; a super admin edits the venue, with no money areas; a cashier is kept out', async ({ browser }) => {
+  test('Settings: an admin schedules a setting from tomorrow and withdraws it; a super admin edits the venue, with no money areas; a cashier sees only TVs', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'changes settings and chips, so the local stack only');
     test.setTimeout(120_000);
     const admin = await browser.newPage();
@@ -84,8 +84,9 @@ test.describe('Settings', () => {
     const cashier = await browser.newPage();
     await signInToConsole(cashier, '9000000155');
     await expect(cashier.getByRole('link', { name: 'Live floor', exact: true })).toBeVisible();
-    await expect(cashier.getByRole('link', { name: 'Settings', exact: true })).toHaveCount(0);
     await cashier.goto(`${appUrl('console')}/settings`);
+    await expect(cashier.getByRole('heading', { name: 'TVs', level: 2 })).toBeVisible();
+    await cashier.goto(`${appUrl('console')}/settings?tab=members`);
     await expect(cashier.getByText(REFUSED)).toBeVisible();
   });
 });

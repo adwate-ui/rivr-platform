@@ -15,7 +15,8 @@ export const PERMISSIONS = [
   'venue.configure', // legal entity, GSTIN, payee, bank, invoice prefix
   'settings.manage', // effective-dated rules: rake, caps, call time, bonuses, limits
   'staff.manage',
-  'devices.manage', // enrol and revoke tablets, cage computers, TVs
+  'devices.manage', // enrol and revoke tablets, door kiosks and cage computers, and keep the cameras; TVs are tvs.manage
+  'tvs.manage', // pair TVs, choose what each shows and unpair one: no other device (the owner, 3 Nov)
   'members.read',
   'members.manage',
   'members.override_features', // grant or revoke one feature for one member
@@ -76,24 +77,24 @@ const EVERY_STAFF_MEMBER: readonly Permission[] = ['sops.acknowledge', 'incident
 export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>> = {
   super_admin: PERMISSIONS,
   admin: [
-    ...EVERY_STAFF_MEMBER, 'settings.manage', 'staff.manage', 'devices.manage', 'members.read', 'members.manage',
+    ...EVERY_STAFF_MEMBER, 'settings.manage', 'staff.manage', 'devices.manage', 'tvs.manage', 'members.read', 'members.manage',
     'kyc.review', 'kyc.in_person', 'tiers.manage', 'floor.manage', 'waitlist.manage', 'call_time.override', 'cage.second_approve',
     'markers.manage_limits', 'ledger.read', 'eod.review', 'tournaments.manage', 'promotions.manage', 'jackpots.approve',
     'host_queue.manage', 'fnb.manage', 'fnb.serve', 'reports.read', 'exports.table', 'sops.manage', 'aml.review', 'feedback.manage',
     'rewards.manage', 'rewards.hand_over',
     'treasury.manage', 'tables.manage', 'points.give', 'bonus.give',
   ],
-  // Every super admin module but tables setup, the member list, games history, tournaments and bonus (#644); TVs wait for a
+  // Every super admin module but tables setup, the member list, games history, tournaments and bonus (#644); TVs through a
   // permission of their own, as devices.manage reaches the cage's computers and the cameras. Bonus chips by hand came later (the owner, 9 Nov).
   floor: [
     ...EVERY_STAFF_MEMBER, 'members.read', 'waitlist.manage', 'floor.manage', 'call_time.override', 'fnb.serve',
-    'rewards.manage', 'rewards.hand_over', 'points.give', 'bonus.give', 'kyc.in_person',
+    'rewards.manage', 'rewards.hand_over', 'points.give', 'bonus.give', 'kyc.in_person', 'tvs.manage',
   ],
   // The floor's modules less the food and drink orders (#644), beside the cage's (hidden, decision 0284).
   cashier: [
     ...EVERY_STAFF_MEMBER, 'members.read', 'cage.transact', 'cage.second_approve', 'markers.issue',
     'withdrawals.approve', 'ledger.read', 'rewards.hand_over', 'waitlist.manage', 'floor.manage', 'call_time.override',
-    'rewards.manage', 'points.give',
+    'rewards.manage', 'points.give', 'tvs.manage',
   ],
   dealer: [...EVERY_STAFF_MEMBER, 'hands.log'],
   marketing: [...EVERY_STAFF_MEMBER, 'promotions.manage', 'marketing.publish', 'website.edit', 'rewards.manage'],
