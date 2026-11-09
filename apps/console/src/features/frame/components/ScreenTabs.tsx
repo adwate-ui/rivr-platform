@@ -31,8 +31,9 @@ export function ScreenTabs({ screen, panes }: ScreenTabsProps) {
   const notice = MOVED_NOTICES.find((one) => one === search.get('notice'));
   const line = notice === undefined ? null : <StatusMessage>{t(`console.shell.moved.${notice}`)}</StatusMessage>;
   const pane = current === undefined ? null : <TabPane tab={current} Pane={panes[current.id]} />;
-  // A role with one of the tabs has that tab's screen alone, under its own title.
-  if (tabs.length < 2 || current === undefined) return <Stack gap={6}>{line}{pane}</Stack>;
+  if (current === undefined) return <Stack gap={6}>{line}{pane}</Stack>;
+  // A role with one of the tabs has that tab's screen alone, under the rail's name, as they reached it (F-094).
+  if (tabs.length < 2) return <Screen title={t(entry.label)} tabs={null}>{line}{pane}</Screen>;
   const tabBar = (
     <Tabs look="pill" label={t(entry.label)} current={current.id} onNavigate={(href) => void navigate({ href })}
       tabs={tabs.map((tab) => ({ id: tab.id, label: t(tab.label), href: `${entry.href}?tab=${tab.id}` }))} />

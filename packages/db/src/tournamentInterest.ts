@@ -94,15 +94,70 @@ export interface TournamentListing {
   readonly description: string;
 }
 
+/** A tournament as staff see it (F-027): what members are shown, and how many asked. */
+export interface PublishedTournament extends Omit<TournamentListing, 'startsAt'> {
+  readonly tournamentId: string;
+  readonly startsAt: string;
+  /** False once withdrawn: members no longer see it, and it can be published again. */
+  readonly isPublished: boolean;
+  /** Kept for a day after its start, to mark whoever pays late; it can no longer be changed. */
+  readonly hasStarted: boolean;
+  readonly interested: number;
+  readonly registered: number;
+}
+
+/** Every upcoming tournament members are shown, whether or not anybody has asked, with those started within the day and those withdrawn and still to come (tournaments.manage), soonest first. */
+export function usePublishedTournaments(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.publishedTournaments(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    refetchInterval: 30_000,
+    queryFn: async (): Promise<PublishedTournament[]> => {
+      const { data, error } = await client.rpc('published_tournaments', { p_venue_id: venueId });
+      if (error) throw error;
+      return data.map((row) => ({
+        tournamentId: row.tournament_id, name: row.name, startsAt: row.starts_at, game: row.game ?? '', stake: row.stake ?? '', description: row.description ?? '',
+        isPublished: row.is_published, hasStarted: row.has_started, interested: row.interested, registered: row.registered,
+      }));
+    },
+  });
+}
+
+/** Staff correct, withdraw or publish again what members are shown: each a Result, and the list reloads. */
+export function usePublishedTournamentActions(venueId: string) {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  const settle = async (error: { code: string } | null): Promise<Result<null, TournamentInterestFailure>> => {
+    await queryClient.invalidateQueries({ queryKey: queryKeys.publishedTournaments(userId ?? 'signed-out', venueId) });
+    return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
+  };
+  const edit = useMutation({
+    mutationFn: async ({ tournamentId, listing }: { tournamentId: string; listing: TournamentListing }) => settle((await client.rpc('edit_published_tournament', {
+      p_tournament_id: tournamentId, p_name: listing.name.trim(), p_starts_at: listing.startsAt.toISOString(), p_game: listing.game.trim(),
+      p_stake: listing.stake.trim(), p_description: listing.description.trim(),
+    })).error),
+  });
+  const withdraw = useMutation({
+    mutationFn: async (tournamentId: string) => settle((await client.rpc('withdraw_tournament', { p_tournament_id: tournamentId })).error),
+  });
+  const publishAgain = useMutation({
+    mutationFn: async (tournamentId: string) => settle((await client.rpc('publish_tournament_again', { p_tournament_id: tournamentId })).error),
+  });
+  return { edit, withdraw, publishAgain };
+}
+
 /** Publishes an upcoming tournament without money (tournaments.manage): a Result with its id; members see it at once. */
 export function usePublishTournament(venueId: string) {
-  const { client } = useRivrData();
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (listing: TournamentListing): Promise<Result<string, TournamentInterestFailure>> => {
       const { data, error } = await client.rpc('publish_tournament', {
         p_venue_id: venueId, p_name: listing.name.trim(), p_starts_at: listing.startsAt.toISOString(), p_game: listing.game.trim(),
         p_stake: listing.stake.trim(), p_description: listing.description.trim(),
       });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.publishedTournaments(userId ?? 'signed-out', venueId) });
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(data);
     },
   });
@@ -127,7 +182,11 @@ function useRegistrationChange(venueId: string, rpc: 'mark_tournament_registered
   return useMutation({
     mutationFn: async (interestId: string): Promise<Result<null, TournamentInterestFailure>> => {
       const { error } = await client.rpc(rpc, { p_interest_id: interestId });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.tournamentInterest(userId ?? 'signed-out', venueId) });
+      // The card's counts are the published list's, and its members the interest list's.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.tournamentInterest(userId ?? 'signed-out', venueId) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.publishedTournaments(userId ?? 'signed-out', venueId) }),
+      ]);
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },
   });

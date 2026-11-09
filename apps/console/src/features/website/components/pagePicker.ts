@@ -35,6 +35,6 @@ export function pageGroups(pages: readonly EditorPage[], query: string): PickLis
     .sort((a, b) => COLLATOR.compare(a.label, b.label));
   return GROUPS.map((group) => ({
     label: t(`console.website.groups.${group}`),
-    items: shown.filter(({ page }) => groupOf(page.slug) === group).map(({ page, label }) => ({ id: page.pageId, title: label })),
+    items: shown.filter(({ page }) => groupOf(page.slug) === group).map(({ page, label }) => ({ id: page.pageId, title: label, detail: page.pending === null ? undefined : t(`console.website.history.statuses.${page.pending}`) })),
   })).filter((group) => group.items.length > 0);
 }

@@ -1,23 +1,59 @@
 import { siteBlockSchema } from '@rivr/contracts';
 import { istMoment } from '@rivr/contracts/tournaments';
 import { useEditorPage, useSiteEditor, type EditorBlock, type EditorPage, type SiteEditFailure, type SiteRevision } from '@rivr/db/siteEditor';
-import { formatDayTime, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, LoadState, Stack, StatusMessage, WebPreview } from '@rivr/ui';
-import { useState } from 'react';
+import { formatDayTime, formatDuration, t } from '@rivr/i18n';
+import { Box, Button, ErrorMessage, Inline, Input, LoadState, Segmented, Stack, StatusMessage, Text, WebPreview } from '@rivr/ui';
+import { useEffect, useState } from 'react';
 import { BlockEditor } from './BlockEditor.tsx';
 import { RevisionHistory } from './RevisionHistory.tsx';
 
 type Outcome = { ok: boolean; text: string } | null;
 const WEB_URL = import.meta.env.VITE_WEB_URL;
 
+/** A draft, or one scheduled: the version the editor works on. */
+const isOpenVersion = (revision: SiteRevision) => revision.status === 'draft' || revision.status === 'scheduled';
+
 /** The draft to edit: the page's draft or scheduled version if it has one, else what it shows now. */
 function startingBlocks(blocks: readonly EditorBlock[], revisions: readonly SiteRevision[]): readonly EditorBlock[] {
-  return revisions.find((revision) => revision.status === 'draft' || revision.status === 'scheduled')?.blocks ?? blocks;
+  return revisions.find(isOpenVersion)?.blocks ?? blocks;
 }
 
 /** The preview's address for a draft's token, a new one each save so the frame reads it again. */
 function previewSrc(token: string | null, saves: number): string | null {
   return WEB_URL === undefined || token === null ? null : `${WEB_URL}/preview/${token}?v=${String(saves)}`;
+}
+
+type View = 'edit' | 'preview';
+
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/** When the draft was last saved, kept up to the half minute. */
+function SavedAgo({ at }: { at: string }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
+  const minutes = Math.floor((now - new Date(at).getTime()) / 60_000);
+  return <Text variant="small" tone="muted">{minutes < 1 ? t('console.website.savedJustNow') : t('console.website.savedAgo', { time: formatDuration(minutes * 60) })}</Text>;
+}
+
+/** Publishing at an IST day and 24-hour time, asked for only when wanted. */
+function PublishLater({ canPublish, isPublishing, onPublish }: Pick<ActionsProps, 'canPublish' | 'isPublishing' | 'onPublish'>) {
+  const [day, setDay] = useState('');
+  const [time, setTime] = useState('');
+  const isWhen = DAY.test(day) && TIME.test(time);
+  return (
+    <Inline gap={2} align="end" wrap>
+      <Input type="date" label={t('console.website.publishOn')} value={day} onChange={(event) => setDay(event.target.value)} />
+      <Input label={t('console.website.publishAt')} hint={t('console.website.timeHint')} value={time} inputMode="numeric" autoComplete="off"
+        onChange={(event) => setTime(event.target.value.trim())} />
+      <Button variant="subtle" isDisabled={!canPublish || !isWhen} isLoading={isPublishing} onClick={() => onPublish(istMoment(day, time))}>
+        {t('console.website.schedule')}
+      </Button>
+    </Inline>
+  );
 }
 
 interface ActionsProps {
@@ -26,31 +62,27 @@ interface ActionsProps {
   readonly isPublishing: boolean;
   readonly onSave: () => void;
   readonly onPublish: (when: Date | null) => void;
+  readonly view: View;
+  readonly onView: (view: View) => void;
+  /** When the open draft was last saved; none without one. */
+  readonly savedAt: string | undefined;
 }
 
-const DAY = /^\d{4}-\d{2}-\d{2}$/;
-const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
-
-/** Saving the draft, and publishing it now or on an IST day and 24-hour time; publishing waits until the edits are saved. */
-function Actions({ canPublish, isSaving, isPublishing, onSave, onPublish }: ActionsProps) {
-  const [day, setDay] = useState('');
-  const [time, setTime] = useState('');
-  const isWhen = DAY.test(day) && TIME.test(time);
+/** Saving the draft, publishing it now or later, and the fields or the preview: above the blocks, so a long page needs no scrolling to save (F-029). */
+function Actions({ canPublish, isSaving, isPublishing, onSave, onPublish, view, onView, savedAt }: ActionsProps) {
+  const [isLater, setLater] = useState(false);
+  const views = [{ value: 'edit', label: t('console.website.viewEdit') }, { value: 'preview', label: t('console.website.viewPreview') }] as const;
   return (
-    <>
-      <Inline gap={2}>
+    <Stack gap={3}>
+      <Inline gap={2} align="center" wrap>
         <Button variant="subtle" isLoading={isSaving} onClick={onSave}>{t('console.website.save')}</Button>
         <Button variant="primary" isDisabled={!canPublish} isLoading={isPublishing} onClick={() => onPublish(null)}>{t('console.website.publish')}</Button>
+        <Button variant="subtle" onClick={() => setLater(!isLater)}>{t('console.website.publishLater')}</Button>
+        <Segmented label={t('console.website.view')} options={views} value={view} onChange={onView} />
+        {savedAt === undefined ? null : <SavedAgo at={savedAt} />}
       </Inline>
-      <Inline gap={2}>
-        <Input type="date" label={t('console.website.publishOn')} value={day} onChange={(event) => setDay(event.target.value)} />
-        <Input label={t('console.website.publishAt')} hint={t('console.website.timeHint')} value={time} inputMode="numeric" autoComplete="off"
-          onChange={(event) => setTime(event.target.value.trim())} />
-        <Button variant="subtle" isDisabled={!canPublish || !isWhen} isLoading={isPublishing} onClick={() => onPublish(istMoment(day, time))}>
-          {t('console.website.schedule')}
-        </Button>
-      </Inline>
-    </>
+      {isLater ? <PublishLater canPublish={canPublish} isPublishing={isPublishing} onPublish={onPublish} /> : null}
+    </Stack>
   );
 }
 
@@ -77,7 +109,7 @@ function useDraft({ venueId, page, start, revisions, setOutcome, isEdited, setEd
   const editor = useSiteEditor(venueId, page.pageId);
   const [blocks, setBlocks] = useState(start);
   // The draft's preview token, and how many saves the preview has shown, so the frame reads it again after each.
-  const [preview, setPreview] = useState({ token: revisions.find((revision) => revision.status === 'draft' || revision.status === 'scheduled')?.previewToken ?? null, saves: 0 });
+  const [preview, setPreview] = useState({ token: revisions.find(isOpenVersion)?.previewToken ?? null, saves: 0 });
   const done = (text: string) => setOutcome({ ok: true, text });
   const fail = (error: SiteEditFailure) => setOutcome({ ok: false, text: t(`console.website.failures.${error}`) });
   const save = () => {
@@ -118,19 +150,25 @@ function useDraft({ venueId, page, start, revisions, setOutcome, isEdited, setEd
 function Editor(props: EditorProps) {
   const { page, revisions, outcome, isBehind } = props;
   const draft = useDraft(props);
+  const [view, setView] = useState<View>('edit');
   return (
     <Stack gap={6}>
+      <Box isStickyBar surface="raised" paddingY={3}>
+        <Stack gap={2}>
+          <Actions canPublish={draft.canPublish} isSaving={draft.editor.save.isPending} isPublishing={draft.editor.publish.isPending}
+            onSave={draft.save} onPublish={draft.publish} view={view} onView={setView} savedAt={revisions.find(isOpenVersion)?.updatedAt} />
+          <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
+          {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
+        </Stack>
+      </Box>
       {isBehind ? <ErrorMessage>{t('console.website.newerVersion')}</ErrorMessage> : null}
-      {draft.blocks.map((block, index) => (
+      {view === 'edit' ? draft.blocks.map((block, index) => (
         <BlockEditor key={`${String(index)}-${block.kind}`} block={block} position={index + 1}
           onChange={(next) => draft.edit(index, next)} />
-      ))}
-      <Actions canPublish={draft.canPublish} isSaving={draft.editor.save.isPending} isPublishing={draft.editor.publish.isPending}
-        onSave={draft.save} onPublish={draft.publish} />
-      <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
-      {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
-      <WebPreview label={t('console.website.preview', { page: page.title })} src={previewSrc(draft.token, draft.saves)}
-        emptyText={WEB_URL === undefined ? t('console.website.noPreview') : t('console.website.saveToPreview')} />
+      )) : (
+        <WebPreview label={t('console.website.preview', { page: page.title })} src={previewSrc(draft.token, draft.saves)}
+          emptyText={WEB_URL === undefined ? t('console.website.noPreview') : t('console.website.saveToPreview')} />
+      )}
       <RevisionHistory revisions={revisions} onRestore={draft.restore} />
     </Stack>
   );

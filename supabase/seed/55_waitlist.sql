@@ -1,8 +1,11 @@
 -- The design prompt's waitlist for 100/200: Kabir Sethi 23:52, Naina Kapoor 23:58, then Rohan Bhatia 00:07,
 -- with the seed running at the clock, 00:10 (#38, #54), on Table 2's list (a list per table, decision 0467). 50/100 is empty.
+-- A night's list starts at 06:00 IST (private.tonight_began), so a seed run in the 18 minutes after it would put the first
+-- waiters on the night before, off the list (CI at 06:07 IST on 9 Nov). Their waits shrink to fit the night so far, in order.
 
 insert into public.waitlist_entry (venue_id, member_id, table_type_id, table_id, joined_at, idempotency_key)
-select tt.venue_id, w.member_id, tt.id, g.id, now() - w.ago, w.member_id
+select tt.venue_id, w.member_id, tt.id, g.id,
+  now() - w.ago * least(1, extract(epoch from now() - private.tonight_began(now())) / extract(epoch from interval '19 minutes')), w.member_id
 from (values
   ('00000000-0000-4000-8000-000000000202'::uuid, interval '18 minutes'),
   ('00000000-0000-4000-8000-000000000203'::uuid, interval '12 minutes'),
@@ -14,7 +17,8 @@ on conflict (venue_id, idempotency_key) do nothing;
 
 -- The practice venue's, with its own Kabir, Naina and Rohan (12_people_d.sql, #54).
 insert into public.waitlist_entry (venue_id, member_id, table_type_id, table_id, joined_at, idempotency_key)
-select tt.venue_id, w.member_id, tt.id, g.id, now() - w.ago, w.member_id
+select tt.venue_id, w.member_id, tt.id, g.id,
+  now() - w.ago * least(1, extract(epoch from now() - private.tonight_began(now())) / extract(epoch from interval '19 minutes')), w.member_id
 from (values
   ('00000000-0000-4000-8000-000000000270'::uuid, interval '18 minutes'),
   ('00000000-0000-4000-8000-000000000271'::uuid, interval '12 minutes'),

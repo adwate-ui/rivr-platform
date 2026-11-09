@@ -15,7 +15,7 @@ const PAGES = [
   { id: 'p-about', slug: 'about', title: 'About' }, { id: 'p-home', slug: 'home', title: 'RIVR Poker Club' },
   { id: 'p-links', slug: 'links', title: 'RIVR Poker Club' }, { id: 'p-rules', slug: 'house-rules', title: 'House rules' },
   { id: 'p-bank', slug: 'journal-bankroll', title: 'Bankroll basics' }, { id: 'p-terms', slug: 'terms', title: 'Terms of use' },
-];
+].map((page) => ({ ...page, site_revision: [] }));
 
 function renderWebsite(pages: unknown[] = PAGES) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({

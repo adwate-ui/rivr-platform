@@ -227,7 +227,7 @@ export {
   type LiveField, type LiveTournament, type MyStanding, type MyTournament, type MyTournamentTicket,
 } from './liveTournament.ts';
 export {
-  useMarkTournamentRegistered, useMyUpcomingTournaments, usePublishTournament, useRegisterTournamentInterest, useTournamentInterest, useUnmarkTournamentRegistered,
+  type PublishedTournament, useMarkTournamentRegistered, useMyUpcomingTournaments, usePublishedTournamentActions, usePublishedTournaments, usePublishTournament, useRegisterTournamentInterest, useTournamentInterest, useUnmarkTournamentRegistered,
   type TournamentInterest, type TournamentInterestFailure, type TournamentListing, type TournamentStanding, type UpcomingTournament,
 } from './tournamentInterest.ts';
 export { useTableMetrics, type TableMetrics } from './tableMetrics.ts';

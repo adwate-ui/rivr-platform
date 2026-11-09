@@ -35,7 +35,7 @@ function renderEditor(history: { versions: unknown[] }) {
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })} queryClient={cache}>
-      <PageEditor venueId="v1" page={{ pageId: 'p1', slug: 'home', title: 'Home' }} />
+      <PageEditor venueId="v1" page={{ pageId: 'p1', slug: 'home', title: 'Home', pending: null }} />
     </RivrDataProvider>,
   );
   return cache;
@@ -72,5 +72,25 @@ describe('PageEditor', () => {
     await act(() => cache.invalidateQueries());
     expect(await screen.findByText(NEWER)).toBeDefined();
     expect(screen.getByRole<HTMLInputElement>('textbox', { name: 'Heading' }).value).toBe('Our tables tonight');
+  });
+
+  it('has its actions above the blocks, says when it was saved, and shows the preview behind a toggle (F-029)', async () => {
+    renderEditor({ versions: [version('r2', 'draft', 'Our tables', new Date(Date.now() - 120_000).toISOString())] });
+    const heading = await screen.findByRole('textbox', { name: 'Heading' }, { timeout: 5000 });
+    const save = screen.getByRole('button', { name: 'Save draft' });
+    expect(save.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByText('Saved 2 min ago')).toBeDefined();
+    expect(screen.queryByTitle('Preview of Home')).toBeNull();
+    fireEvent.click(screen.getByRole('radio', { name: 'Preview' }));
+    expect(screen.queryByRole('textbox', { name: 'Heading' })).toBeNull();
+    fireEvent.click(screen.getByRole('radio', { name: 'Edit' }));
+    expect(screen.getByRole('textbox', { name: 'Heading' })).toBeDefined();
+  });
+
+  it('asks for a day and time only when publishing later (F-029)', async () => {
+    renderEditor({ versions: [version('r2', 'draft', 'Our tables')] });
+    fireEvent.click(await screen.findByRole('button', { name: 'Publish later' }, { timeout: 5000 }));
+    expect(screen.getByLabelText('Publish on')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Schedule' })).toBeDefined();
   });
 });
