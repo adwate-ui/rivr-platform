@@ -71,7 +71,7 @@ test.describe('Staff', () => {
     await expect(cashier.getByRole('link', { name: 'Live floor', exact: true })).toBeVisible();
     await expect(cashier.getByRole('link', { name: 'Staff', exact: true })).toHaveCount(0);
     // Old addresses lead to their merged screen (#606), which refuses a cashier just the same; so does Tables setup (#644).
-    for (const screen of ['/staff', '/kill-switch', '/rake', '/dealer-pins', '/tables']) {
+    for (const screen of ['/staff', '/kill-switch', '/tablets', '/dealer-pins', '/tables']) {
       await cashier.goto(`${appUrl('console')}${screen}`);
       await expect(cashier.getByText(REFUSED)).toBeVisible();
     }

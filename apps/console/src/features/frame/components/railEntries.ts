@@ -107,7 +107,7 @@ export const RAIL: readonly RailGroup[] = [
         { id: 'members', label: 'console.settings.areas.members', anyOf: ['settings.manage'] },
         { id: 'notices', label: 'console.settings.areas.notices', anyOf: ['settings.manage'] },
         { id: 'club', label: 'console.settings.areas.club', anyOf: ['venue.configure'] },
-        { id: 'tvs', label: 'console.tvs.title', anyOf: ['devices.manage'] },
+        { id: 'tvs', label: 'console.tvs.title', anyOf: ['tvs.manage'] },
         { id: 'tablets', label: 'console.tablets.title', anyOf: ['devices.manage'] },
       ] },
       { id: 'activity', label: 'console.rail.items.activity', href: '/activity', icon: 'info', anyOf: ['control.engage'], locksWhenIdle: true },

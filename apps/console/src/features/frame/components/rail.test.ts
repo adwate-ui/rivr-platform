@@ -45,10 +45,12 @@ describe('the console rail (console v3)', () => {
     expect(items('admin')).not.toContain('/content');
   });
 
-  it('gives the floor the night, ID checks in person and rewards, and no member list or admin', () => {
-    expect(items('floor')).toEqual(['/', '/waitlist', '/door', '/fnb', '/kyc-review', '/rewards']);
-    expect(items('cashier')).toEqual(['/', '/waitlist', '/door', '/rewards']);
-    for (const kept of ['/tables', '/members', '/promotions', '/settings', '/staff']) expect(isAllowedAt(ROLE_PERMISSIONS.floor, kept)).toBe(false);
+  it('gives the floor the night, ID checks in person, rewards and TVs, and no member list or other admin screen', () => {
+    expect(items('floor')).toEqual(['/', '/waitlist', '/door', '/fnb', '/kyc-review', '/rewards', '/settings']);
+    expect(items('cashier')).toEqual(['/', '/waitlist', '/door', '/rewards', '/settings']);
+    for (const kept of ['/tables', '/members', '/promotions', '/staff']) expect(isAllowedAt(ROLE_PERMISSIONS.floor, kept)).toBe(false);
+    // Settings holds only its TVs tab for them (the owner, 3 Nov).
+    expect(isAllowedAt(ROLE_PERMISSIONS.floor, '/settings', 'floor')).toBe(false);
   });
 
   it('gives Service only food and drink, where it lands in place of the Live floor', () => {
@@ -68,11 +70,12 @@ describe('the console rail (console v3)', () => {
     }
   });
 
-  it('keeps a cashier out of admin screens, whether from the rail or by address, whatever the case', () => {
+  it('keeps a cashier out of admin screens but TVs, whether from the rail or by address, whatever the case', () => {
     expect(items('cashier')).not.toContain('/staff');
-    for (const admin of ['/staff', '/kill-switch', '/settings', '/tables', '/academy', '/STAFF', '/Kill-Switch']) {
+    for (const admin of ['/staff', '/kill-switch', '/tables', '/academy', '/STAFF', '/Kill-Switch']) {
       expect(isAllowedAt(ROLE_PERMISSIONS.cashier, admin)).toBe(false);
     }
+    expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/settings', 'members')).toBe(false);
     expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/')).toBe(true);
   });
 
@@ -84,6 +87,9 @@ describe('the console rail (console v3)', () => {
     const settings = entry('settings');
     if (settings === undefined) throw new Error('no Settings entry');
     expect(tabsFor(settings, ROLE_PERMISSIONS.super_admin).map((tab) => tab.id)).toEqual(['floor', 'members', 'notices', 'club', 'tvs', 'tablets']);
+    expect(tabsFor(settings, ROLE_PERMISSIONS.floor).map((tab) => tab.id)).toEqual(['tvs']);
+    expect(tabsFor(settings, ROLE_PERMISSIONS.cashier).map((tab) => tab.id)).toEqual(['tvs']);
+    expect(tabsFor(settings, ROLE_PERMISSIONS.host)).toEqual([]);
     expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/rewards', 'rewards')).toBe(true);
     expect(refusalAt(ROLE_PERMISSIONS.cashier, '/rewards', 'spin-wheel')).toEqual({ title: 'Spin wheel', isOff: false });
     expect(isAllowedAt(ROLE_PERMISSIONS.floor, '/waitlist', 'interest')).toBe(false);

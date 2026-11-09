@@ -41,7 +41,7 @@ export const pairing = {
   title: 'Tablet pairing',
   /** In the header until the tablet is paired. */
   notPaired: 'Not paired',
-  intro: 'On the console, open Devices, then Tablets, and get a code for this tablet.',
+  intro: 'On the console, open Settings, then Tablets, and get a code for this tablet.',
   code: 'Pairing code',
   pair: 'Pair',
   wrongCode: 'Wrong or expired code. Ask for a new one.',
@@ -177,7 +177,7 @@ export const tvs = {
 /** A TV before it is paired (#49): the code staff type into the console. */
 export const tvPairing = {
   title: 'Screen pairing',
-  intro: 'On the console, open Devices, then TVs, and type in this code.',
+  intro: 'On the console, open Settings, then TVs, and type in this code.',
   /** `{time}` (IST) is when the code runs out and a new one shows. */
   changes: 'The code changes at {time}.',
   loading: 'Getting a code.',

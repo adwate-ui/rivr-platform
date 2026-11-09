@@ -29,7 +29,7 @@ export interface MyTvScreen {
   readonly rotation: readonly TvMode[];
 }
 
-/** One of a venue's TVs, as staff who manage devices see it. */
+/** One of a venue's TVs, as staff who manage TVs see it. */
 export interface VenueTv {
   readonly deviceId: string;
   readonly name: string;
@@ -220,7 +220,7 @@ export function useVenueTvs(venueId: string) {
 }
 
 /**
- * What staff with devices.manage do with TVs: `pair` one by the code it shows, with a name and mode
+ * What staff with tvs.manage do with TVs: `pair` one by the code it shows, with a name and mode
  * (ok with its device id); change what one shows (`setMode`) and the boards it turns to after that (`setRotation`, decision
  * 0163); `unpair` one, with the reason. Each
  * resolves to a Result and reloads the list.
@@ -260,7 +260,7 @@ export interface TvPairingPolicy {
   readonly openUntil: string | null;
 }
 
-/** The venue's TV pairing policy, for staff who manage devices. */
+/** The venue's TV pairing policy, for staff who manage TVs. */
 export function useTvPairingPolicy(venueId: string) {
   const { client, userId } = useRivrData();
   return useQuery({
@@ -275,7 +275,7 @@ export function useTvPairingPolicy(venueId: string) {
   });
 }
 
-/** The owner switches window-only pairing (`setWindowOnly`); staff who manage devices press Pair a TV (`openWindow`). Each a Result. */
+/** The owner switches window-only pairing (`setWindowOnly`); staff who manage TVs press Pair a TV (`openWindow`). Each a Result. */
 export function useTvPairingActions(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
