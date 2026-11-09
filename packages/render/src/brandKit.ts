@@ -23,7 +23,7 @@ const DENSITIES = [
 const SPLASH = { mdpi: [320, 480], hdpi: [480, 800], xhdpi: [720, 1280], xxhdpi: [960, 1600], xxxhdpi: [1280, 1920] } as const;
 
 /** A launcher icon (48 dp), its round form, the adaptive foreground (108 dp) and the splash, per density. */
-function androidApp(app: 'tablet'): BrandOutput[] {
+function androidApp(app: 'tablet' | 'player'): BrandOutput[] {
   const res = `apps/${app}/android/app/src/main/res`;
   const perDensity = DENSITIES.flatMap(([density, dp]): BrandOutput[] => {
     const [short, long] = SPLASH[density];
@@ -57,6 +57,28 @@ function playerPwa(): BrandOutput[] {
   ];
   const launch = IPHONE_SCREENS.map(([width, height]): BrandOutput => ({ path: `${pub}/splash/apple-splash-${width}x${height}.png`, art: 'lockup', width, height }));
   return [...icons, ...launch];
+}
+
+/**
+ * The player app's iOS project: the one App Store icon size, and the launch image at its three scales. The launch screen fills
+ * the phone with this square image and keeps only its middle, which the wide lockup overruns: so the card, inside the safe circle.
+ */
+function playerIos(): BrandOutput[] {
+  const assets = 'apps/player/ios/App/App/Assets.xcassets';
+  const splash = ['splash-2732x2732.png', 'splash-2732x2732-1.png', 'splash-2732x2732-2.png'].map((name): BrandOutput => (
+    { path: `${assets}/Splash.imageset/${name}`, art: 'maskable', width: 2732, height: 2732 }
+  ));
+  return [{ path: `${assets}/AppIcon.appiconset/AppIcon-512@2x.png`, art: 'icon', width: 1024, height: 1024 }, ...splash];
+}
+
+/** What the store listings ask for: Apple's icon, Google's icon and Google Play's feature graphic. */
+function storeListing(): BrandOutput[] {
+  const store = 'docs/brand/store';
+  return [
+    { path: `${store}/app-store-icon.png`, art: 'icon', width: 1024, height: 1024 },
+    { path: `${store}/google-play-icon.png`, art: 'icon', width: 512, height: 512 },
+    { path: `${store}/google-play-feature.png`, art: 'lockup', width: 1024, height: 500 },
+  ];
 }
 
 /** The public website: its tab icon, the home-screen icon, and the image a shared link shows (Open Graph's 1200 by 630). */
@@ -99,5 +121,8 @@ export const BRAND_KIT: readonly BrandOutput[] = [
   ...playerPwa(),
   ...website(),
   ...androidApp('tablet'),
+  ...androidApp('player'),
+  ...playerIos(),
+  ...storeListing(),
   ...CHANNELS.map(([name, width, height]) => channel(name, width, height)),
 ];

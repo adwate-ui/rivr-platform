@@ -38,7 +38,7 @@ describe('the brand kit', () => {
   });
 
   it('gives the Android app a launcher icon, round icon, adaptive foreground and splash at every density', () => {
-    for (const app of ['tablet']) {
+    for (const app of ['tablet', 'player']) {
       const res = `apps/${app}/android/app/src/main/res`;
       for (const [density, dp] of DENSITIES) {
         expect(at(`${res}/mipmap-${density}/ic_launcher.png`)).toMatchObject({ art: 'icon', width: 48 * dp });
@@ -48,6 +48,15 @@ describe('the brand kit', () => {
         expect(at(`${res}/drawable-land-${density}/splash.png`)).toMatchObject({ art: 'lockup' });
       }
     }
+  });
+
+  it('gives the player app\u2019s iOS project its 1024 icon and launch images, and the store listings their art', () => {
+    expect(at('apps/player/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png')).toMatchObject({ art: 'icon', width: 1024, height: 1024 });
+    const launch = BRAND_KIT.filter((output) => output.path.includes('Splash.imageset/'));
+    expect(launch.map((output) => output.art)).toEqual(['maskable', 'maskable', 'maskable']);
+    expect(at('docs/brand/store/app-store-icon.png')).toMatchObject({ art: 'icon', width: 1024, height: 1024 });
+    expect(at('docs/brand/store/google-play-icon.png')).toMatchObject({ art: 'icon', width: 512, height: 512 });
+    expect(at('docs/brand/store/google-play-feature.png')).toMatchObject({ art: 'lockup', width: 1024, height: 500 });
   });
 
   it('gives every publishing channel a profile image that reads as a small circle, and wide covers the wordmark', () => {
