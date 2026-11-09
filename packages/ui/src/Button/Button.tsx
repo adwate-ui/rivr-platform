@@ -1,6 +1,7 @@
 import type { MouseEvent, ReactNode } from 'react';
 import { Icon, type IconName } from '../Icon/Icon.tsx';
 import { cx } from '../internal/classes.ts';
+import { useIsInConsole } from '../internal/consoleFrame.ts';
 
 /**
  * `primary` is the gold filled button: at most one per screen. `secondary` is outlined with a
@@ -122,7 +123,14 @@ const BASE =
   'select-none transition-colors active:opacity-muted disabled:cursor-not-allowed disabled:opacity-disabled aria-busy:cursor-progress';
 
 /** The link form of a button: it goes somewhere, saves a file, or opens a new tab. */
-function LinkButton({ children, variant = 'secondary', size = 'regular', shape = 'rounded', icon, fullWidth, href, download, opensNewTab, ...rest }: LinkButtonProps) {
+/** The look of a button that names none (audit F-125): on the console filled and 36 px at a desk; elsewhere outlined and 44 px. */
+function useDefaults(variant: ButtonVariant | undefined, size: ButtonSize | undefined): { variant: ButtonVariant; size: ButtonSize } {
+  const isBareOnConsole = useIsInConsole() && variant === undefined;
+  return { variant: variant ?? (isBareOnConsole ? 'subtle' : 'secondary'), size: size ?? (isBareOnConsole ? 'compact' : 'regular') };
+}
+
+function LinkButton({ children, variant: namedVariant, size: namedSize, shape = 'rounded', icon, fullWidth, href, download, opensNewTab, ...rest }: LinkButtonProps) {
+  const { variant, size } = useDefaults(namedVariant, namedSize);
   return (
     <a href={href} download={download} className={cx(BASE, 'justify-center', SIZE[size], VARIANT[variant], lookOf(variant, size, shape), fullWidth && 'w-full')}
       target={opensNewTab ? '_blank' : undefined} rel={opensNewTab ? 'noopener noreferrer' : undefined}
@@ -149,7 +157,8 @@ function withDot(children: ReactNode, hasDot: boolean | undefined): ReactNode {
   return hasDot === true ? <><span aria-hidden="true" className="size-pip shrink-0 rounded-full bg-action" />{children}</> : children;
 }
 
-function ActionButton({ children, variant = 'secondary', size = 'regular', shape = 'rounded', type = 'button', onClick, isLoading, isDisabled, isPressed, aside, icon, fullWidth, shortcut, hasDot, ...rest }: ActionButtonProps) {
+function ActionButton({ children, variant: namedVariant, size: namedSize, shape = 'rounded', type = 'button', onClick, isLoading, isDisabled, isPressed, aside, icon, fullWidth, shortcut, hasDot, ...rest }: ActionButtonProps) {
+  const { variant, size } = useDefaults(namedVariant, namedSize);
   const busy = isLoading ? true : undefined;
   const label = withDot(children, hasDot);
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {

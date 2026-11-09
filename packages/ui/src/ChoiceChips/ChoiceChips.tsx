@@ -1,6 +1,7 @@
 import { t } from '@rivr/i18n';
 import { useId, useRef, type KeyboardEvent } from 'react';
 import { cx } from '../internal/classes.ts';
+import { useIsInConsole } from '../internal/consoleFrame.ts';
 import { nextRadioIndex } from '../internal/radioKeys.ts';
 import { Stack } from '../Stack/Stack.tsx';
 import { Text } from '../Text/Text.tsx';
@@ -201,6 +202,9 @@ function ToggleChips<Value extends string>({ labelId, options, selected, onChang
 export function ChoiceChips<Value extends string>(props: ChoiceChipsProps<Value>) {
   const { label, mode = 'many', isLabelVisuallyHidden = false } = props;
   const labelId = useId();
+  // On the console chips are filled unless they name another look (audit F-125).
+  const isInConsole = useIsInConsole();
+  const look = props.look ?? (isInConsole ? 'subtle' : 'chip');
   return (
     <Stack gap={2}>
       {isLabelVisuallyHidden ? (
@@ -210,7 +214,7 @@ export function ChoiceChips<Value extends string>(props: ChoiceChipsProps<Value>
           {label}
         </Text>
       )}
-      {mode === 'one' ? <RadioChips {...props} labelId={labelId} /> : <ToggleChips {...props} labelId={labelId} />}
+      {mode === 'one' ? <RadioChips {...props} look={look} labelId={labelId} /> : <ToggleChips {...props} look={look} labelId={labelId} />}
     </Stack>
   );
 }

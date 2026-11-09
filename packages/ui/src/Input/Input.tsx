@@ -1,6 +1,7 @@
 import { useId, type InputHTMLAttributes, type Ref } from 'react';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage.tsx';
 import { cx } from '../internal/classes.ts';
+import { useIsInConsole } from '../internal/consoleFrame.ts';
 import { Label } from '../Label/Label.tsx';
 import { Stack } from '../Stack/Stack.tsx';
 import { Text } from '../Text/Text.tsx';
@@ -68,26 +69,41 @@ const SUBTLE_STATE = 'transition-colors placeholder:text-content disabled:cursor
 const DIMMED = 'disabled:opacity-disabled';
 const ROW_DIMMED = 'has-disabled:opacity-disabled';
 
+/**
+ * The look of a field that names none: on the console filled, 36 px at a desk (audit F-125). One with a prefix or suffix
+ * stays boxed, as only that frame holds them, at the same height; so does one with a placeholder, as the filled look draws
+ * it in cream and an empty field would read as filled in.
+ */
+function defaultLook(isInConsole: boolean, { prefix, suffix, isTall, placeholder }: Pick<InputProps, 'prefix' | 'suffix' | 'isTall' | 'placeholder'>): InputVariant {
+  const staysBoxed = prefix !== undefined || suffix !== undefined || isTall === true || placeholder !== undefined;
+  return isInConsole && !staysBoxed ? 'subtle' : 'boxed';
+}
+
 /** A labelled text field with an optional prefix, suffix, hint and error message. */
-export function Input({ variant = 'boxed', ...props }: InputProps) {
+export function Input({ variant, ...props }: InputProps) {
   const id = useId();
-  if (variant === 'inset') return <InsetInput id={id} label={props.label} error={props.error} type={props.type ?? 'text'} native={nativeOf(props)} />;
-  if (variant === 'subtle') return <SubtleInput id={id} label={props.label} error={props.error} type={props.type ?? 'text'} native={nativeOf(props)} />;
-  return <FramedInput id={id} variant={variant} {...props} />;
+  const isInConsole = useIsInConsole();
+  const look = variant ?? defaultLook(isInConsole, props);
+  if (look === 'inset') return <InsetInput id={id} label={props.label} error={props.error} type={props.type ?? 'text'} native={nativeOf(props)} />;
+  if (look === 'subtle') return <SubtleInput id={id} label={props.label} hint={props.hint} error={props.error} type={props.type ?? 'text'} native={nativeOf(props)} />;
+  return <FramedInput id={id} variant={look} isCompact={isInConsole && variant === undefined} {...props} />;
 }
 
 /**
  * The console's one-line field (console v3), as the prototype's "Add: mobile or member no.": a faint cream fill, 36 px at a
- * desk and 44 px below 1180 px, its label above it, so it is there once something is typed (F-035); the error under it.
+ * desk and 44 px below 1180 px, its label above it, so it is there once something is typed (F-035); the hint and error
+ * under it. Its text is 16 px below 1180 px, as a phone zooms the page into a smaller field when it is tapped.
  */
-function SubtleInput({ id, label, error, type, native }: InsetInputProps) {
+function SubtleInput({ id, label, hint, error, type, native }: InsetInputProps & { hint: string | undefined }) {
+  const describedBy = cx(hint && `${id}-hint`, error && `${id}-error`) || undefined;
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-2">
       <Label htmlFor={id}>{label}</Label>
       <input id={id} type={type}
-        className={cx('min-h-touch w-full min-w-0 rounded-md bg-subtle px-3 font-text text-13 text-content tablet:min-h-control',
+        className={cx('min-h-touch w-full min-w-0 rounded-md bg-subtle px-3 font-text text-16 text-content tablet:min-h-control tablet:text-13',
           'focus-visible:outline-2 focus-visible:outline-focus', error ? 'outline-1 outline-alert' : undefined, SUBTLE_STATE, DIMMED)}
-        aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-error` : undefined} {...native} />
+        aria-invalid={error ? true : undefined} aria-describedby={describedBy} {...native} />
+      {hint ? <Text variant="small" tone="muted" id={`${id}-hint`}>{hint}</Text> : null}
       {error ? <ErrorMessage id={`${id}-error`}>{error}</ErrorMessage> : null}
     </div>
   );
@@ -99,12 +115,12 @@ function nativeOf({ label: _label, hint: _hint, error: _error, type: _type, pref
 }
 
 /** A boxed or line field: its label above, then the field, its hint and its error. */
-function FramedInput({ id, variant, label, hint, error, type = 'text', prefix, suffix, isTall = false, ...native }: Omit<InputProps, 'variant'> & { id: string; variant: Exclude<InputVariant, 'inset' | 'subtle'> }) {
+function FramedInput({ id, variant, label, hint, error, type = 'text', prefix, suffix, isTall = false, isCompact, ...native }: Omit<InputProps, 'variant'> & { id: string; variant: Exclude<InputVariant, 'inset' | 'subtle'>; isCompact: boolean }) {
   const describedBy = cx(prefix && `${id}-prefix`, suffix && `${id}-suffix`, hint && `${id}-hint`, error && `${id}-error`) || undefined;
   return (
     <Stack gap={2}>
       <Label htmlFor={id}>{label}</Label>
-      <Field id={id} type={type} variant={variant} prefix={prefix} suffix={suffix} isInvalid={Boolean(error)} describedBy={describedBy} native={native} isTall={isTall} />
+      <Field id={id} type={type} variant={variant} prefix={prefix} suffix={suffix} isInvalid={Boolean(error)} describedBy={describedBy} native={native} isTall={isTall} isCompact={isCompact} />
       <FieldNotes id={id} hint={hint} error={error} isTall={isTall} />
     </Stack>
   );
@@ -156,6 +172,8 @@ interface FieldProps {
   describedBy: string | undefined;
   native: NativeInputProps;
   isTall: boolean;
+  /** 36 px at a desk, on the console; 44 px below 1180 px. */
+  isCompact: boolean;
 }
 
 /** Fixed text beside the value: a prefix or a suffix, read with the field. */
@@ -171,23 +189,30 @@ function lineFocusClass(variant: Exclude<InputVariant, 'inset' | 'subtle'>, isIn
 }
 
 /** The frame's classes: its look, a boxed field's height, its edge, and a line field's focus. */
-function frameOf(variant: Exclude<InputVariant, 'inset' | 'subtle'>, isTall: boolean, isInvalid: boolean, isAdorned: boolean): string {
-  const height = variant === 'boxed' ? (isTall ? 'min-h-action' : 'min-h-touch') : undefined;
-  return cx(FRAME[variant], height, isInvalid ? 'border-alert' : 'border-control', lineFocusClass(variant, isInvalid, isAdorned));
+function frameOf(variant: Exclude<InputVariant, 'inset' | 'subtle'>, boxedHeight: string, isInvalid: boolean, isAdorned: boolean): string {
+  return cx(FRAME[variant], variant === 'boxed' ? boxedHeight : undefined, isInvalid ? 'border-alert' : 'border-control', lineFocusClass(variant, isInvalid, isAdorned));
 }
 
+// 36 px at a desk, on the console; 44 px still below 1180 px.
+const COMPACT = 'tablet:min-h-control';
+
+/** A boxed field's height: 54 px when tall, otherwise 44 px, or 36 px at a desk on the console. */
+const boxedHeight = (isTall: boolean, isCompact: boolean) => (isTall ? 'min-h-action' : cx('min-h-touch', isCompact && COMPACT));
+
+// With a prefix the input still fills the row's full touch height, so a tap beside the value focuses it.
+const rowInputClass = (isCompact: boolean) => cx('min-h-touch min-w-0 flex-1 bg-transparent', isCompact && COMPACT, STATE);
+
 /** The input itself, inside its frame. With a prefix or a suffix the frame runs under them and the value together. */
-function Field({ id, type, variant, prefix, suffix, isInvalid, describedBy, native, isTall }: FieldProps) {
+function Field({ id, type, variant, prefix, suffix, isInvalid, describedBy, native, isTall, isCompact }: FieldProps) {
   const isAdorned = Boolean(prefix) || Boolean(suffix);
-  const frame = frameOf(variant, isTall, isInvalid, isAdorned);
+  const frame = frameOf(variant, boxedHeight(isTall, isCompact), isInvalid, isAdorned);
   const line = variant === 'line' ? { 'data-line': '' } : {};
   const input = (
     <input
       id={id}
       type={type}
       {...(isAdorned ? {} : line)}
-      // With a prefix the input still fills the row's full touch height, so a tap beside the value focuses it.
-      className={isAdorned ? cx('min-h-touch min-w-0 flex-1 bg-transparent', STATE) : cx(frame, STATE, DIMMED)}
+      className={isAdorned ? rowInputClass(isCompact) : cx(frame, STATE, DIMMED)}
       aria-invalid={isInvalid || undefined}
       aria-describedby={describedBy}
       {...native}
