@@ -17,18 +17,24 @@ interface HeaderCellProps<Row> {
   readonly menu: ReactNode;
 }
 
-/** A column's heading: its name, a press on which sorts it, and its menu. */
+/** The menu of a column ending at its right, pulled out by its inset; nothing for a column with none. */
+const PulledOut = ({ children }: { children: ReactNode }) => (children === null ? null : <span className="-me-1 inline-flex">{children}</span>);
+
+/**
+ * A column's heading: its name, a press on which sorts it, and its menu. In a column ending at its right the menu is pulled
+ * out by its inset, so at a desk the funnel ends where the figures do (audit F-208); below 1180 px its target is 44 px wide.
+ */
 function HeaderCell<Row>({ column, sort, onSort, place, menu }: HeaderCellProps<Row>) {
   const direction = sort?.key === column.key ? sort.direction : undefined;
   const classes = cx('min-w-0 items-center gap-1', column.align === 'end' ? 'justify-end' : 'justify-start', place);
   const name = column.sortValue === undefined ? <Text variant="caption" tone="muted">{column.header}</Text> : (
     <button type="button" onClick={() => onSort(column.key)} title={column.header}
-      className="flex min-h-touch min-w-touch items-center gap-1 whitespace-nowrap font-text text-12 text-content-muted transition-colors hover:text-content focus-visible:text-content tablet:min-h-control tablet:min-w-0">
+      className="flex min-h-touch min-w-touch items-center gap-1 whitespace-nowrap font-text text-12 text-content-muted transition-colors hover:text-content focus-visible:text-content tablet:min-h-control tablet:min-w-6">
       <span className="truncate">{column.header}</span>
       {direction === undefined ? null : <Icon name={direction === 'ascending' ? 'sortAscending' : 'sortDescending'} size="sm" />}
     </button>
   );
-  return <div role="columnheader" aria-sort={column.sortValue === undefined ? undefined : direction ?? 'none'} className={classes}>{name}{menu}</div>;
+  return <div role="columnheader" aria-sort={column.sortValue === undefined ? undefined : direction ?? 'none'} className={classes}>{name}{column.align === 'end' ? <PulledOut>{menu}</PulledOut> : menu}</div>;
 }
 
 export interface HeaderRowProps<Row> {
@@ -50,7 +56,7 @@ export interface HeaderRowProps<Row> {
 export function HeaderRow<Row>({ columns, sort, onSort, layout, isVirtual, ref, menuFor }: HeaderRowProps<Row>) {
   const look = LOOK[layout.narrow];
   return (
-    <div role="rowgroup" ref={ref} className={cx('sticky top-0 z-nav bg-surface', look.headerGroup)} style={isVirtual ? { ...GUTTER, overflowY: 'hidden' } : undefined}>
+    <div role="rowgroup" ref={ref} className={cx('sticky top-0 z-nav bg-table-header', look.headerGroup)} style={isVirtual ? { ...GUTTER, overflowY: 'hidden' } : undefined}>
       <div role="row" aria-rowindex={1} className={headerRowClasses(layout)} style={layout.grid}>
         {layout.ticks === null ? null : <TickHeader ticks={layout.ticks} place={tickPlace(layout, true)} />}
         {columns.map((column, at) => (

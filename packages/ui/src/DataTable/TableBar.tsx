@@ -54,11 +54,21 @@ const exportOnly = <Row,>(column: DataTableExportColumn<Row>) => ({ ...column, c
 function useExportPlaced<Row>(props: BarProps<Row>, visible: readonly Row[], state: BarState<Row>) {
   const exporter = useTableExporter();
   const menu = exporter === null || visible.length === 0 ? null
-    : <ExportBar exporter={exporter} label={props.label} columns={[...props.columns, ...(props.exportColumns ?? []).map(exportOnly)]} rows={visible}
+    : <ExportBar isInBar={props.exportIn === undefined} exporter={exporter} label={props.label} columns={[...props.columns, ...(props.exportColumns ?? []).map(exportOnly)]} rows={visible}
         filter={filtersInForce(props, state)} />;
   const target = props.exportIn;
   if (target === undefined) return { here: menu, elsewhere: null };
   return { here: null, elsewhere: menu === null || target === null ? null : createPortal(menu, target) };
+}
+
+/** How wide this browser draws a scrollbar, for the bar over a long list to keep the list's edge; none where they overlay. */
+function scrollbarWidth(): number {
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:absolute;visibility:hidden;overflow:scroll;width:100px';
+  document.body.append(probe);
+  const width = probe.offsetWidth - probe.clientWidth;
+  probe.remove();
+  return width;
 }
 
 /**
@@ -66,12 +76,12 @@ function useExportPlaced<Row>(props: BarProps<Row>, visible: readonly Row[], sta
  * the top right for the rows as shown with every filter in force, or in the element `exportIn` names; nothing when there
  * is none of these.
  */
-export function TableBar<Row>({ props, visible, state }: { props: BarProps<Row>; visible: readonly Row[]; state: BarState<Row> }) {
+export function TableBar<Row>({ props, visible, state, reservesGutter }: { props: BarProps<Row>; visible: readonly Row[]; state: BarState<Row>; reservesGutter: boolean }) {
   const { here, elsewhere } = useExportPlaced(props, visible, state);
   if (props.filter === undefined && props.toolbar === undefined && here === null) return <>{elsewhere}{props.belowSearch}</>;
   return (
     <>
-      <div className="flex flex-wrap items-end gap-4">
+      <div className="flex flex-wrap items-end gap-4" style={reservesGutter ? { paddingInlineEnd: scrollbarWidth() } : undefined}>
         {props.filter === undefined ? null : (
           <div className="min-w-0 flex-1 basis-full medium:basis-0">
             <Input type="search" label={props.filter.label} {...(props.filter.variant === undefined ? {} : { variant: props.filter.variant })} value={state.query} autoComplete="off"

@@ -76,7 +76,7 @@ function boxClasses(look: BoxLook): string {
 /** A plain block with token padding, a surface, hairlines and a radius. The base of every layout. */
 export function Box({ children, as: Element = 'div', id, 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy, isLive, ...look }: BoxProps) {
   return (
-    <Element className={boxClasses(look) || undefined} id={id} aria-label={ariaLabel} aria-labelledby={ariaLabelledBy} aria-live={isLive ? 'polite' : undefined}>
+    <Element data-surface={look.surface === 'raised' ? 'raised' : undefined} className={boxClasses(look) || undefined} id={id} aria-label={ariaLabel} aria-labelledby={ariaLabelledBy} aria-live={isLive ? 'polite' : undefined}>
       {children}
     </Element>
   );

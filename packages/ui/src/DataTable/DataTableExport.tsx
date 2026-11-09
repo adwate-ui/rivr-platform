@@ -2,6 +2,7 @@ import { formatIsoDay, formatRupeesForFile, t } from '@rivr/i18n';
 import { createContext, isValidElement, useContext, useState, type ReactNode } from 'react';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage.tsx';
 import { OverflowMenu } from '../OverflowMenu/OverflowMenu.tsx';
+import { cx } from '../internal/classes.ts';
 import { csvFile, saveFile, xlsxFile, type ExportCell } from './exportFiles.ts';
 
 /** What an export asks to be recorded before its file is saved (#102): the table, its filters, the format and the rows. */
@@ -63,6 +64,8 @@ function save(file: Blob, label: string, format: 'csv' | 'xlsx') {
 }
 
 interface ExportBarProps<Row> {
+  /** In the bar beside the search, level with its field; elsewhere, as in a title row, as tall as it needs. */
+  readonly isInBar: boolean;
   readonly exporter: TableExporter;
   /** The table's name, as the audit log records what was exported. */
   readonly label: string;
@@ -78,7 +81,7 @@ interface ExportBarProps<Row> {
  * shown, in the columns that have a heading. The export is recorded first; one that is not recorded saves nothing and
  * says so.
  */
-export function ExportBar<Row>({ exporter, label, columns, rows, filter }: ExportBarProps<Row>) {
+export function ExportBar<Row>({ isInBar, exporter, label, columns, rows, filter }: ExportBarProps<Row>) {
   const [state, setState] = useState<'idle' | 'busy' | 'failed'>('idle');
   const run = async (format: 'csv' | 'xlsx') => {
     setState('busy');
@@ -95,7 +98,7 @@ export function ExportBar<Row>({ exporter, label, columns, rows, filter }: Expor
     { id: 'xlsx', label: t('ui.dataTable.exportXlsx'), isDisabled: state === 'busy', onSelect: () => void run('xlsx') },
   ];
   return (
-    <div className="ms-auto flex flex-col items-end gap-2">
+    <div className={cx('ms-auto flex flex-col items-end justify-center gap-2', isInBar && 'min-h-touch')}>
       <OverflowMenu label={t('ui.dataTable.exportNamed', { what: label })} text={t('ui.dataTable.export')} items={formats} />
       {state === 'failed' ? <ErrorMessage>{t('ui.dataTable.exportFailed')}</ErrorMessage> : null}
     </div>

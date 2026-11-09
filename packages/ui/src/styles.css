@@ -363,6 +363,15 @@
   }
 }
 
+/* A table's held header takes the fill of the panel it sits on (audit F-066). */
+[data-surface='raised'] {
+  --rivr-table-header: var(--rivr-color-raised);
+}
+
+@utility bg-table-header {
+  background-color: var(--rivr-table-header, var(--rivr-color-surface));
+}
+
 /*
  * The public website's cream bands (decision 0118): text in ink, its eyebrows in green, and a hover that stays
  * on cream, so every block reads on cream as it does on green.
