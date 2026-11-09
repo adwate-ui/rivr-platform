@@ -121,7 +121,9 @@ export {
 } from './liveStatus.ts';
 export { HOST_CHURN_REASONS, hostContactSchema, hostLapse, type HostChurnReason, type HostContact } from './hostQueue.ts';
 export { WINNER_CARD_KINDS, winnerCardImagesSchema, winnerCardRowSchema, winnerCardRowsSchema, type WinnerCardRow } from './winnerCards.ts';
-export { kycInPersonSchema, kycReviewSchema, type KycInPerson } from './kycReview.ts';
+export {
+  KYC_DOCUMENT_KINDS, kycDocumentRetakeSchema, kycInPersonSchema, kycReviewSchema, type KycDocumentKind, type KycDocumentRetake, type KycInPerson,
+} from './kycReview.ts';
 export { erasedKycFilesSchema, type ErasedKycFilesRequest } from './memberErasure.ts';
 export { PHONE_CHANGE, sendSmsHookSchema, signInCodeSchema, type SignInCodeToSend } from './auth-hooks.ts';
 export {

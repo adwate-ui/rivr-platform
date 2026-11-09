@@ -64,9 +64,9 @@ declare
   v_path text := public.authorize_in_person_kyc('00000000-0000-4000-8000-000000000418');
 begin
   set local role postgres;
-  insert into storage.objects (bucket_id, name) values ('kyc', v_path);
+  insert into storage.objects (bucket_id, name) values ('kyc', v_path), ('kyc', replace(v_path, '/in-person-', '/doc-pan-')), ('kyc', replace(v_path, '/in-person-', '/doc-aadhaar-'));
   set local role authenticated;
-  return public.check_kyc_in_person('00000000-0000-4000-8000-000000000418', v_path, '1991-03-18', '4180', 'UDAPT4180T', true);
+  return public.check_kyc_in_person('00000000-0000-4000-8000-000000000418', v_path, '1991-03-18', '4180', 'UDAPT4180T', true, replace(v_path, '/in-person-', '/doc-pan-'), replace(v_path, '/in-person-', '/doc-aadhaar-'), true);
 end;
 $$;
 grant execute on function pg_temp.desk_check() to authenticated;

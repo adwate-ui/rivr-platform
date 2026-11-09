@@ -9,6 +9,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { localSupabaseEnv, worktreeName } from '@rivr/config/worktree';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { serviceRoleKey } from '../support/serviceRole.ts';
+import { takeDeskPhotos } from '../support/deskPhotos.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 /**
@@ -34,6 +35,9 @@ async function startDigiLocker(page: Page) {
   await expect(start.or(page.getByRole('heading', { name: 'Verified', exact: true }))).toBeVisible();
   if (await start.isVisible()) await start.click();
 }
+
+// The desk's photos take a phone or tablet's back camera: a computer is sent on to one (decision 0573).
+test.use({ hasTouch: true });
 
 test.describe('KYC', () => {
   test('Identity › Start, Camera, Review selfie, Verified: a practice-venue member is verified with a selfie and DigiLocker in under three minutes', async ({ page }) => {
@@ -138,9 +142,7 @@ test.describe('Identity › At the club', () => {
     await expect(desk.getByText('Selfie taken in the app. Check their originals.')).toBeVisible();
     await desk.getByRole('button', { name: 'Check Uday Thakur' }).click();
     await expect(desk.getByRole('img', { name: 'The selfie Uday Thakur took in the app' })).toBeVisible();
-    await desk.getByRole('button', { name: 'Take their photo' }).click();
-    await desk.getByRole('button', { name: 'Take photo' }).click();
-    await desk.getByRole('button', { name: 'Use photo' }).click();
+    await takeDeskPhotos(desk);
     await desk.getByLabel('Date of birth on Uday Thakur\'s original document').fill('1991-03-18');
     await desk.getByRole('textbox', { name: 'Last four digits of Uday Thakur\'s Aadhaar' }).fill('4180');
     await desk.getByRole('textbox', { name: 'Uday Thakur\'s PAN from the original card' }).fill('udapt4180t');

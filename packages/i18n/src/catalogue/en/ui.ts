@@ -184,11 +184,31 @@ export const ui = {
     /** On Android, where the site's permissions open from the icon left of the address (decision 0423). */
     blockedAndroid: 'Camera blocked. Tap the icon left of the address, then Permissions, allow Camera and tap Try again.',
     none: 'No camera here. Carry on with a phone.',
+    noBack: 'This device has no back camera. Carry on with a phone.',
     failed: 'Camera did not start. Try again.',
     tryAgain: 'Try again',
     /** Beside a QR code that opens the same step on a phone. */
     onPhone: 'Scan with your phone to carry on there.',
     phoneLink: 'Link to this step on your phone',
+  },
+  /** The camera for a PAN or Aadhaar card at the desk: its live line, the close look and the bars. */
+  documentCamera: {
+    find: 'Fit the card inside the outline.',
+    dark: 'Too dark. Move to better light.',
+    glare: 'Glare on the card. Tilt it a little.',
+    blurry: 'Hold still.',
+    steady: 'Hold still.',
+    capturing: 'Taking the photo.',
+    lightOn: 'Turn on the light',
+    lightOff: 'Turn off the light',
+    checkRead: 'Check every character can be read.',
+    closeUp: 'Zoom in',
+    whole: 'Show the whole card',
+    coverHelp: 'Drag each bar onto what must be hidden. Drag the gold dot to resize.',
+    /** `{number}` is the bar's place: 1, 2. */
+    coverName: 'Bar {number}: arrow keys move it, Shift and arrow keys resize it.',
+    addCover: 'Add another bar',
+    coverFailed: 'Photo not saved. Try again.',
   },
   /** The redesign's selfie camera (decision 0320): its live line, three tips and the review. */
   selfie: {

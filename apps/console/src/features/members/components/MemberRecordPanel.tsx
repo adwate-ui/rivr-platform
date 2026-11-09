@@ -9,6 +9,7 @@ import { FeatureOverrides } from './FeatureOverrides.tsx';
 import { AccountStatusDot } from './memberColumns.tsx';
 import { MemberBonus } from './MemberBonus.tsx';
 import { MemberBreak } from './MemberBreak.tsx';
+import { MemberIdDocuments } from './MemberIdDocuments.tsx';
 import { MemberSignUp } from './MemberSignUp.tsx';
 import { MemberVisits } from './MemberVisits.tsx';
 import { PromotionGrants } from './PromotionGrants.tsx';
@@ -85,6 +86,7 @@ function PartContent({ part, venueId, record, can }: PartProps & { part: RecordP
   if (part === 'account') {
     return (
       <Stack gap={6}>
+        {can.seesIdentity ? <MemberIdDocuments venueId={venueId} memberId={record.memberId} /> : null}
         {can.override ? <FeatureOverrides venueId={venueId} memberId={record.memberId} /> : null}
         {can.changePhone ? <ChangePhone venueId={venueId} memberId={record.memberId} currentPhone={record.phone} /> : null}
         {can.erase ? <EraseMember venueId={venueId} memberId={record.memberId} /> : null}

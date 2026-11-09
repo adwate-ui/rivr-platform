@@ -3,23 +3,25 @@ import { t, type MessageKey } from '@rivr/i18n';
 import { Button, Heading, Inline, Input, Stack, StatusMessage, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 import { InPersonForm } from './InPersonForm.tsx';
+import { owesPhotosOnly, RetakeForm } from './RetakeForm.tsx';
 
 /** The last check in person and where it ended, said once the form closes. */
 interface Outcome {
   name: string;
-  status: KycInPersonOutcome;
+  status: KycInPersonOutcome | 'retaken';
 }
 
-const OUTCOME_COPY: Readonly<Record<KycInPersonOutcome, MessageKey>> = {
+const OUTCOME_COPY: Readonly<Record<Outcome['status'], MessageKey>> = {
   verified: 'console.kycInPerson.verified',
   refused: 'console.kycInPerson.refused',
   needs_review: 'console.kycInPerson.needsReview',
+  retaken: 'console.kycInPerson.retaken',
 };
 
 /**
  * A check in person (#246, while no KYC vendor is live): the reviewer finds a member at the club by
  * name or the last digits of their number, then checks them against their original documents. Only
- * members with no check, or one the app never finished, are found; never the reviewer themselves. In its sheet
+ * members with no check, one the app never finished, or a photo a super admin sent back are found; never the reviewer themselves. In its sheet
  * (`hasHeading` false) the sheet's title and subtitle say what the heading and hint say here. `initialSearch` starts the
  * search with a member's name, from the waitlist's Check ID (decision 0503).
  */
@@ -49,6 +51,8 @@ export function InPersonSection({ venueId, hasHeading = true, initialSearch }: {
           {search.trim().length < 2 && hasHeading ? <DueTonight venueId={venueId} onChoose={choose} /> : null}
           <Candidates venueId={venueId} search={search} onChoose={choose} />
         </Stack>
+      ) : owesPhotosOnly(member) ? (
+        <RetakeForm venueId={venueId} member={member} onDone={() => decided('retaken')} onCancel={() => setMember(null)} />
       ) : (
         <InPersonForm venueId={venueId} member={member} onDecided={decided} onCancel={() => setMember(null)} />
       )}
@@ -112,8 +116,9 @@ function CandidateRows({ members, onChoose }: { members: readonly KycCandidate[]
   );
 }
 
-/** Where a member's check stands: waiting for its PAN, let in by their selfie, or started in the app and never finished. */
+/** Where a member's check stands: a photo sent back, waiting for its PAN, let in by their selfie, or started in the app and never finished. */
 function candidateLine(member: KycCandidate): MessageKey {
+  if (member.retakes.length > 0) return 'console.kycInPerson.sentBack';
   if (member.status === 'needs_pan') return 'console.kycInPerson.heldForPan';
   return member.clubSelfiePath === null ? 'console.kycInPerson.startedOnApp' : 'console.kycInPerson.atTheClub';
 }

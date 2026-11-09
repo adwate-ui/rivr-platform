@@ -152,3 +152,31 @@ export async function photoUrl(path: string): Promise<string> {
 export async function removePhoto(path: string): Promise<void> {
   await fetch(`${supabaseUrl}/storage/v1/object/kyc/${path}`, { method: 'DELETE', headers: AS_SERVER });
 }
+
+/**
+ * Removes any PAN or Aadhaar file in a member's folder that no row names (decision 0573): the one a new photo replaced, what a
+ * failed attempt left, or a removal that failed before, so a photo sent back for showing digits does not stay. Nothing when
+ * either list cannot be read, and it never throws: the check has already ended, one way or the other.
+ */
+export async function removeUnnamedDocuments(memberId: string, folder: string): Promise<void> {
+  try {
+    const [listed, onFile] = await Promise.all([
+      fetch(`${supabaseUrl}/storage/v1/object/list/kyc`, {
+        method: 'POST', headers: { ...AS_SERVER, 'content-type': 'application/json' }, body: JSON.stringify({ prefix: folder, limit: 1000, offset: 0 }),
+      }),
+      fetch(`${supabaseUrl}/rest/v1/kyc_document?member_id=eq.${memberId}&select=path`, { headers: AS_SERVER }),
+    ]);
+    if (!listed.ok || !onFile.ok) return;
+    const [entries, rows]: unknown[] = await Promise.all([listed.json(), onFile.json()]);
+    if (!Array.isArray(entries) || !Array.isArray(rows)) return;
+    const named = new Set(rows.map((row: unknown) => field(row, 'path')));
+    const stray = entries.map((entry: unknown) => field(entry, 'name') ?? '').filter((name) => name.startsWith('doc-')).map((name) => `${folder}${name}`).filter((path) => !named.has(path));
+    if (stray.length === 0) return;
+    const remove = () => fetch(`${supabaseUrl}/storage/v1/object/kyc`, {
+      method: 'DELETE', headers: { ...AS_SERVER, 'content-type': 'application/json' }, body: JSON.stringify({ prefixes: stray }),
+    });
+    if (!(await remove()).ok) await remove();
+  } catch {
+    return;
+  }
+}

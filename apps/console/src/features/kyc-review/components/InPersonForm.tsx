@@ -1,60 +1,28 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { kycInPersonSchema } from '@rivr/contracts';
-import {
-  shrinkPhoto, toBase64, useKycImageUrl, useKycInPerson, type KycCandidate, type KycInPersonFailure, type KycInPersonOutcome,
-} from '@rivr/db';
+import { useKycImageUrl, useKycInPerson, type KycCandidate, type KycDocumentKind, type KycInPersonOutcome } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, CameraCapture, ErrorMessage, Inline, Input, KycPhoto, kycPhotoStatus, Stack, Switch } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, Input, KycPhoto, kycPhotoStatus, Stack, Switch } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
+import { IN_PERSON_FAILURE_COPY } from './checkText.ts';
+import { DeskCamera, DeskDocument, useDeskPhotos, type DeskPhoto, type DeskPhotoKind } from './DeskPhotos.tsx';
 
-// The typed details; the photo and the consent are held beside the form.
+// The typed details; the photos and the consent are held beside the form.
 const detailsSchema = kycInPersonSchema.pick({ dateOfBirth: true, aadhaarLast4: true, pan: true });
 type DetailsForm = UseFormReturn<z.input<typeof detailsSchema>, unknown, z.output<typeof detailsSchema>>;
 
-const FAILURE_COPY: Readonly<Record<KycInPersonFailure, MessageKey>> = {
-  not_allowed: 'console.kycInPersonFailures.notAllowed',
-  decided: 'console.kycInPersonFailures.decided',
-  no_photo: 'console.kycInPersonFailures.noPhoto',
-  invalid: 'console.kycInPersonFailures.invalid',
-  stopped: 'console.kycInPersonFailures.stopped',
-  unavailable: 'console.kycInPersonFailures.unavailable',
-};
-
-/** The photo as it is sent, and as the reviewer sees it. */
-interface Photo {
-  jpeg: Blob;
-  preview: string;
-}
-
-/** The photo the camera took, made ready to send and to show; null for one the browser cannot read. */
-async function photoFrom(taken: Blob): Promise<Photo | null> {
-  const jpeg = await shrinkPhoto(taken).catch(() => null);
-  return jpeg === null ? null : { jpeg, preview: `data:image/jpeg;base64,${await toBase64(jpeg)}` };
-}
-
-/** The member's photo, taken there with the console's camera and kept or taken again (K-07); never a file. */
-function PhotoTaker({ hasPhoto, onPhoto }: { hasPhoto: boolean; onPhoto: (taken: Blob) => void }) {
-  const [isTaking, setIsTaking] = useState(false);
-  if (!isTaking) {
-    return <Button variant="subtle" size="compact" onClick={() => setIsTaking(true)}>{t(hasPhoto ? 'console.kycInPerson.retakePhoto' : 'console.kycInPerson.takePhoto')}</Button>;
-  }
-  return (
-    <Stack gap={3}>
-      <CameraCapture facing="environment" phoneUrl={window.location.href} onPhoto={(taken) => { setIsTaking(false); onPhoto(taken); }} />
-      <Button variant="text" size="compact" onClick={() => setIsTaking(false)}>{t('common.cancel')}</Button>
-    </Stack>
-  );
-}
+// In the order the desk takes them (decision 0573).
+const PHOTO_KINDS: readonly DeskPhotoKind[] = ['face', 'pan', 'aadhaar_front'];
 
 /**
  * The photo being taken, and beside it the selfie the member took in the app to be checked at the club (decision 0502),
  * so staff compare the two faces; the photo alone for anyone else.
  */
-function Photos({ member, photo }: { member: KycCandidate; photo: Photo | null }) {
+function Photos({ member, photo }: { member: KycCandidate; photo: DeskPhoto | undefined }) {
   const appSelfie = useKycImageUrl(member.clubSelfiePath);
-  const taken = <KycPhoto alt={t('console.kycReview.photoOf', { name: member.fullName })} src={photo?.preview ?? null} status={photo === null ? 'missing' : 'ready'} />;
+  const taken = <KycPhoto alt={t('console.kycReview.photoOf', { name: member.fullName })} src={photo?.preview ?? null} status={photo === undefined ? 'missing' : 'ready'} />;
   if (member.clubSelfiePath === null) return taken;
   return (
     <Inline gap={3} align="start">
@@ -74,31 +42,38 @@ interface InPersonFormProps {
 }
 
 /**
- * Checking one member in person against their original documents: their photo, the date of birth,
- * the last four Aadhaar digits and the PAN, and their consent, asked there. The database keeps the gate.
+ * Checking one member in person against their original documents: photos of their face, PAN and Aadhaar front, the date of
+ * birth, the last four Aadhaar digits and the PAN, and their consent, asked there. The database keeps the gate.
  */
 export function InPersonForm({ venueId, member, onDecided, onCancel }: InPersonFormProps) {
   const { check } = useKycInPerson(venueId);
-  const [photo, setPhoto] = useState<Photo | null>(null);
   const [consent, setConsent] = useState(false);
   const [problem, setProblem] = useState<MessageKey | null>(null);
+  const desk = useDeskPhotos(PHOTO_KINDS, setProblem);
   const [resolver] = useState(() => zodResolver(detailsSchema));
   const form: DetailsForm = useForm({ resolver, defaultValues: { dateOfBirth: '', aadhaarLast4: '', pan: '' } });
-  const takePhoto = async (taken: Blob) => {
-    const ready = await photoFrom(taken);
-    setPhoto(ready);
-    setProblem(ready === null ? 'console.kycInPersonFailures.noPhoto' : null);
-  };
+  const { face, pan, aadhaar_front: aadhaar } = desk.photos;
+  // A reopened check can also have a photo sent back: the desk is told why here too.
+  const reasonFor = (kind: KycDocumentKind) => member.retakes.find((one) => one.kind === kind)?.reason;
   const submit = form.handleSubmit(async (details) => {
-    if (photo === null || !consent) return setProblem('console.kycInPerson.invalid');
-    const done = await check.mutateAsync({ ...details, memberId: member.memberId, consent: true, photo: photo.jpeg });
-    return done.ok ? onDecided(done.value) : setProblem(FAILURE_COPY[done.error]);
+    if (face === undefined || pan === undefined || aadhaar === undefined || !consent) return setProblem('console.kycInPerson.invalid');
+    // A kept Aadhaar photo has had its bars confirmed: the camera does not give one up before.
+    const done = await check.mutateAsync({
+      ...details, memberId: member.memberId, consent: true, coversConfirmed: true, photo: face.jpeg, panPhoto: pan.jpeg, aadhaarPhoto: aadhaar.jpeg,
+    });
+    return done.ok ? onDecided(done.value) : setProblem(IN_PERSON_FAILURE_COPY[done.error]);
   }, () => setProblem('console.kycInPerson.invalid'));
-  // The photo above the fields (console v3), so the form fits the 440 px sheet it opens in.
+  if (desk.taking !== null) {
+    const { taking } = desk;
+    return <DeskCamera kind={taking} place={PHOTO_KINDS.indexOf(taking) + 1} total={PHOTO_KINDS.length} onPhoto={(taken) => void desk.keep(taking, taken)} onCancel={desk.cancel} />;
+  }
+  // The photos above the fields (console v3), so the form fits the 440 px sheet it opens in.
   return (
     <Stack gap={4}>
-      <Photos member={member} photo={photo} />
-      <PhotoTaker hasPhoto={photo !== null} onPhoto={(taken) => void takePhoto(taken)} />
+      <Photos member={member} photo={face} />
+      <Button variant="subtle" size="compact" onClick={() => desk.take('face')}>{t(face === undefined ? 'console.kycInPerson.takePhoto' : 'console.kycInPerson.retakePhoto')}</Button>
+      <DeskDocument kind="pan" name={member.fullName} photo={pan} reason={reasonFor('pan')} onTake={() => desk.take('pan')} />
+      <DeskDocument kind="aadhaar_front" name={member.fullName} photo={aadhaar} reason={reasonFor('aadhaar_front')} onTake={() => desk.take('aadhaar_front')} />
       <DetailsFields form={form} name={member.fullName} consent={consent} onConsent={setConsent} />
       <Inline gap={3} wrap>
         <Button variant="primary" size="compact" isLoading={check.isPending} onClick={() => void submit()}>

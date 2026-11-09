@@ -9,6 +9,7 @@ import { execFileSync } from 'node:child_process';
 import { expect, test, type Page } from '@playwright/test';
 import { worktreeName } from '@rivr/config/worktree';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
+import { takeDeskPhotos } from '../support/deskPhotos.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 const RAGHAV = '00000000-0000-4000-8000-000000000410';
@@ -36,6 +37,9 @@ function placeRow(host: Page) {
   return list.locator('div').filter({ has: host.getByRole('button', { name: `More for ${NAME}`, exact: true }) })
     .filter({ has: host.getByRole('checkbox', { name: `Select ${NAME}` }) }).last();
 }
+
+// The desk's photos take a phone or tablet's back camera: a computer is sent on to one (decision 0573).
+test.use({ hasTouch: true });
 
 test.describe('Waitlist › At the club', () => {
   test.skip(isRemoteTarget(), 'sets the club checking identity at the desk in the local database, so the local stack only');
@@ -68,9 +72,7 @@ test.describe('Waitlist › At the club', () => {
     await expect(host.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' })).toHaveValue(NAME);
     await expect(host.getByText('Selfie taken in the app. Check their originals.')).toBeVisible();
     await host.getByRole('button', { name: `Check ${NAME}` }).click();
-    await host.getByRole('button', { name: 'Take their photo' }).click();
-    await host.getByRole('button', { name: 'Take photo' }).click();
-    await host.getByRole('button', { name: 'Use photo' }).click();
+    await takeDeskPhotos(host);
     await host.getByLabel(`Date of birth on ${NAME}'s original document`).fill('1990-04-10');
     await host.getByRole('textbox', { name: `Last four digits of ${NAME}'s Aadhaar` }).fill('4100');
     await host.getByRole('textbox', { name: `${NAME}'s PAN from the original card` }).fill('ragpg4100g');
