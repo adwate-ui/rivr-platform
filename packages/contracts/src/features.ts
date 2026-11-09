@@ -78,6 +78,15 @@ export const FEATURES = [
 /** A feature key declared in code. */
 export type FeatureKey = (typeof FEATURES)[number]['key'];
 
+/**
+ * Gateable features the club does not run (audit F-086): no money on any console (owner, 29 Oct), no Academy (3 Nov), Learn
+ * off for members at launch (decision 0284), cab requests off (#709). Staff are not offered them as a member's override.
+ */
+export const HIDDEN_FEATURES: readonly FeatureKey[] = [
+  'academy.booking', 'balance.deposits', 'cab.requests', 'events.book', 'learn.academy_lessons', 'learn.drills', 'learn.library', 'learn.review',
+  'push.withdrawal_sent', 'rewards.accommodation', 'rewards.rakeback', 'social.winner_cards',
+];
+
 /** The key of a licensed Learn source, added at upload. */
 export type LearnSourceFeatureKey = `learn.source.${string}`;
 

@@ -16,7 +16,7 @@ export type SettingsArea = RuleArea | (typeof VENUE_AREAS)[number] | typeof NOTI
  * bonus chips and never in rupees (owner, 3 Nov), so the Spin wheel's link to it lands on it.
  */
 export const HIDDEN_AREAS: readonly SettingsArea[] = ['rake', 'cage', 'tax', 'compliance', 'academy', 'system', 'chips'];
-const HIDDEN_KEYS: readonly string[] = ['points.per_hour', 'points.rewards_rake_share', 'rakeback.rate'];
+const HIDDEN_KEYS: readonly string[] = ['points.per_hour', 'points.rewards_rake_share', 'rakeback.rate', 'cab.minimum_visits'];
 
 /** Whether the Settings screen shows a rule. */
 export const isShownSetting = (key: string) => !HIDDEN_KEYS.includes(key);
