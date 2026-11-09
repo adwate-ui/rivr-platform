@@ -29,10 +29,10 @@ select is(pg_temp.page_kinds((select venue_id from club), 'promotions'), array['
 select ok((select b.content -> 'questions' @> '[{"question": "Is poker a game of skill?"}]' and b.content -> 'questions' @> '[{"question": "What is the RIVR League?"}]'
            from public.site_block b join public.site_page p on p.id = b.page_id where p.venue_id = (select venue_id from club) and p.slug = 'home' and b.kind = 'faq'),
   'the front page answers whether poker is legal and what the League is');
-select ok((select b.content -> 'cards' @> '[{"title": "Open every night"}, {"title": "Parking"}, {"title": "Smoking terrace"}]'
+select ok((select b.content -> 'cards' @> '[{"title": "Open every night"}, {"title": "Getting here"}]'
            from public.site_block b join public.site_page p on p.id = b.page_id
            where p.venue_id = (select venue_id from club) and p.slug = 'home' and b.content ->> 'eyebrow' = 'The room'),
-  'the room carries its hours and amenities');
+  'the room carries its hours and the way to Visit, its empty amenities gone (decision 0551)');
 select results_eq($$ select p.slug, jsonb_array_length(b.content -> 'items'),
                             (select count(*)::integer from jsonb_array_elements(b.content -> 'items') i where i #>> '{link,href}' like 'https://indiankanoon.org/doc/%')
                      from public.site_block b join public.site_page p on p.id = b.page_id
@@ -50,12 +50,15 @@ select is((select count(*) from public.site_block b join public.site_page p on p
   'no page writes in words a rule the settings and promotions now hold');
 select is((select count(*)::integer from public.site_block b join public.site_page p on p.id = b.page_id
            where p.venue_id = (select venue_id from club) and p.slug = 'home' and b.content ->> 'eyebrow' = 'Hospitality'), 0,
-  'the front page no longer repeats hospitality (W-01); the room keeps its parking card');
+  'the front page no longer repeats hospitality (W-01)');
 
--- Again: nothing changes.
-create temporary table before as select b.id, b.position, b.kind, b.content from public.site_block b where b.venue_id = (select venue_id from club);
-select private.add_website_parity((select venue_id from club));
-select is((select count(*) from public.site_block b where b.venue_id = (select venue_id from club)
+-- Again: nothing changes. On a club at this step, as a later one has taken out cards this step would add back (decision 0551).
+insert into public.venue (id, name, slug, is_practice) values ('00000000-0000-4000-8000-0000000000e8', 'Test Again Room', 'test-again-room', false);
+select private.add_website_with_wall('00000000-0000-4000-8000-0000000000e8');
+select private.add_website_parity('00000000-0000-4000-8000-0000000000e8');
+create temporary table before as select b.id, b.position, b.kind, b.content from public.site_block b where b.venue_id = '00000000-0000-4000-8000-0000000000e8';
+select private.add_website_parity('00000000-0000-4000-8000-0000000000e8');
+select is((select count(*) from public.site_block b where b.venue_id = '00000000-0000-4000-8000-0000000000e8'
            and not exists (select 1 from before o where o.id = b.id and o.position = b.position and o.kind = b.kind and o.content = b.content)), 0::bigint,
   'running it again changes nothing');
 

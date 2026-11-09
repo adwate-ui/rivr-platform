@@ -87,7 +87,7 @@ export const webApp = {
   footer: {
     address: 'Upper floor, Glaza, M3M 65th Avenue, Gurugram',
     notice: 'Strictly 18+. Poker is a game of skill.',
-    copyright: 'Copyright 2026 RIVR Poker Club',
+    copyright: 'Copyright {year} RIVR Poker Club',
     cookieSettings: 'Cookie settings',
     club: 'The club',
     story: 'About RIVR',

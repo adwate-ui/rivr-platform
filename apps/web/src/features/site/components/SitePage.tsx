@@ -1,7 +1,7 @@
 import type { Attribution, PlayerDestination, SiteBlock } from '@rivr/contracts';
 import { CLUB_CONTACT } from '@rivr/contracts/club';
 import type { SitePage as SitePageData } from '@rivr/db/site';
-import { formatIsoDay, t, type MessageKey } from '@rivr/i18n';
+import { formatIsoDay, formatYear, t, type MessageKey } from '@rivr/i18n';
 import {
   CalendarBlock, CardsBlock, CareersBlock, CookieBanner, FaqBlock, FeatureBlock, GalleryBlock, GamesBlock, HeroBlock, KillSwitchBanner, LinksBlock, MapBlock,
   MarqueeBlock, PromotionsBlock, RulesBlock, StatementBlock, StoryBlock, TableBlock, TextBlock, TimelineBlock, WebBand, WebFooter, WebShell, type WebBandTone, type WebShellProps,
@@ -209,7 +209,7 @@ export function Footer({ attribution, playerUrl }: { attribution: Attribution | 
     { heading: t('web.footer.helplines'), links: [{ label: t('web.footer.teleManas'), href: 'tel:14416' }, { label: t('web.footer.iCall'), href: 'tel:+919152987821' }] },
   ];
   return (
-    <WebFooter address={t('web.footer.address')} notice={t('web.footer.notice')} columns={columns} copyright={t('web.footer.copyright')}
+    <WebFooter address={t('web.footer.address')} notice={t('web.footer.notice')} columns={columns} copyright={t('web.footer.copyright', { year: formatYear(new Date()) })}
       cookieSettings={t('web.footer.cookieSettings')} />
   );
 }

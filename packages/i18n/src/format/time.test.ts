@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatClock, formatCountdown, formatTypedDay, isoDayOfTyped, formatDate, formatHoursMinutes, formatMinutesSeconds, isLaterIstDay, istMidnight, formatDateTime, formatDayMonth, formatDayTime, formatDuration, formatIsoDay, formatMonth, formatMonthYear, formatQuarter, formatTime, formatWeekday, formatWaitingSince } from './time.ts';
+import { formatYear, formatClock, formatCountdown, formatTypedDay, isoDayOfTyped, formatDate, formatHoursMinutes, formatMinutesSeconds, isLaterIstDay, istMidnight, formatDateTime, formatDayMonth, formatDayTime, formatDuration, formatIsoDay, formatMonth, formatMonthYear, formatQuarter, formatTime, formatWeekday, formatWaitingSince } from './time.ts';
 
 // 21:10 UTC on 14 Nov is 02:40 IST on Sunday 15 Nov, the opening night.
 const OPENING_NIGHT = new Date('2026-11-14T21:10:00Z');
@@ -90,6 +90,7 @@ describe('September (F5-11)', () => {
     expect(formatDayTime(new Date('2026-12-31T19:00:00Z'))).toBe('Fri 1 Jan, 00:30');
     expect(formatDate(new Date('2026-12-31T19:00:00Z'))).toBe('1 Jan 2027');
     expect(formatMonthYear(new Date('2026-12-31T19:00:00Z'))).toBe('Jan 2027');
+    expect(formatYear(new Date('2026-12-31T19:00:00Z'))).toBe('2027');
   });
 });
 

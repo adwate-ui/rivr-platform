@@ -18,7 +18,7 @@ create function pg_temp.saying(p_venue_id uuid, p_words text) returns integer la
   where p.venue_id = p_venue_id and p.slug = 'home' and strpos(b.content::text, p_words) > 0;
 $$;
 
-select is(pg_temp.room_titles('00000000-0000-4000-8000-000000000001'), 'Open every night, Smoking terrace, Parking', 'The room keeps what only it says');
+select is(pg_temp.room_titles('00000000-0000-4000-8000-000000000001'), 'Open every night, Getting here', 'The room keeps what only it says');
 select is(pg_temp.tile_text('00000000-0000-4000-8000-000000000001'), 'Chauffeured rides for regulars. Ask the front desk for a cab home.', 'the cab home joins the photo tile');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'Ask the front desk for a cab home.'), 1, 'and is on the front page once');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'Buy in by UPI or in cash.'), 0, 'The room no longer repeats the cage');
@@ -36,7 +36,7 @@ select set_eq($$ select b.id, b.position, b.content from public.site_block b joi
 select set_config('request.jwt.claims', '', true);
 select private.bootstrap_venue('00000000-0000-4000-8000-0000000000c0', 'RIVR Room', 'room-repeats', false, 'RIVR test', 'Test', 'TRR');
 select private.add_website('00000000-0000-4000-8000-0000000000c0');
-select is(pg_temp.room_titles('00000000-0000-4000-8000-0000000000c0'), 'Open every night, Smoking terrace, Parking', 'a new club''s The room comes without repeats');
+select is(pg_temp.room_titles('00000000-0000-4000-8000-0000000000c0'), 'Open every night, Getting here', 'a new club''s The room comes without repeats');
 select is(pg_temp.saying('00000000-0000-4000-8000-0000000000c0', 'Ask the front desk for a cab home.'), 1, 'with the cab home once');
 
 -- A club's own words stay: a card it rewrote, and a photo tile it rewrote, so the cab home stays in The room.
