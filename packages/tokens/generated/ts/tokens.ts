@@ -138,6 +138,7 @@ export const tokens = {
     "control": 36,
     "row": 42,
     "rowCompact": 34,
+    "rowLine": 48,
     "sidePanel": 440,
     "dock": 320,
     "dockStrip": 52,

@@ -2,6 +2,7 @@ import { useElapsedNow, useTvTournamentClock, type LiveTournament } from '@rivr/
 import { averageStack, clockAt, levelAtOrAfter, nextLevelAfter } from '@rivr/domain/tournament';
 import { formatBlinds, formatCountdown, formatNumber, t } from '@rivr/i18n';
 import { Heading, Stack, Text, TvTournamentClock, type TvTournamentClockProps } from '@rivr/ui';
+import { BoardStatus } from './BoardStatus.tsx';
 
 /**
  * What the TV shows for a running tournament `elapsedSeconds` in: the level or break, its time left, the blinds, ante
@@ -37,7 +38,7 @@ export function TournamentClockMode({ name }: { name: string }) {
   const clock = useTvTournamentClock();
   const elapsed = useElapsedNow(clock.data?.clock);
   if (clock.data === undefined) {
-    return <Text variant="tvBody" tone="muted">{t(clock.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
+    return <BoardStatus isError={clock.isError} />;
   }
   if (clock.data === null) {
     return (

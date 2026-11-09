@@ -1,3 +1,4 @@
+import { tokens } from '@rivr/tokens';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -65,5 +66,10 @@ describe('Chart', () => {
   it('has no accessibility violations', async () => {
     const { container } = render(<Chart kind="bar" title="Rake this week" labelName="Day" labels={DAYS} series={SERIES} emptyText="None" />);
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('draws its plot in the chart token\'s height (F-170)', () => {
+    const { container } = render(<Chart title="Takings" kind="bar" labelName="Day" labels={DAYS} series={SERIES} emptyText="Nothing yet." />);
+    expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe(`0 0 640 ${tokens.size.chart}`);
   });
 });

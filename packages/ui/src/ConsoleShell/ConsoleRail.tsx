@@ -92,7 +92,7 @@ export function ConsoleRail({ sections, currentItem, onNavigate, isLabelled, onT
         <button type="button" onClick={onToggle} title={isLabelled ? undefined : toggleLabel}
           className={cx(
             'flex min-h-touch w-full items-center gap-3 rounded-md font-text text-13 leading-control text-content-muted transition-colors',
-            'hover:bg-subtle hover:text-content focus-visible:outline-2 focus-visible:outline-focus tablet:min-h-control',
+            'hover:bg-subtle hover:text-content focus-visible:outline focus-visible:outline-focus tablet:min-h-control',
             isLabelled ? 'px-3' : 'justify-center',
           )}>
           <Icon name={isLabelled ? 'chevronLeft' : 'chevronRight'} size="sm" />

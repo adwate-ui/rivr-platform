@@ -29,7 +29,7 @@ const BAR = 'sticky top-0 z-nav flex flex-wrap items-center gap-2 rounded-lg bg-
 // The ring is ink, as the focus colour is cream; set off from the ink-filled action so the two never merge.
 const ACTION =
   'inline-flex min-h-touch items-center justify-center gap-2 rounded-md px-3 font-text text-13 leading-control font-medium select-none ' +
-  'transition-colors underline-offset-4 tablet:min-h-8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ' +
+  'transition-colors underline-offset-4 tablet:min-h-8 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-ink ' +
   'aria-busy:cursor-progress';
 
 /** On the cream bar: the main action filled, ink or alert red; the rest words, ink or red, underlined under the pointer. */

@@ -1,7 +1,8 @@
 import { HIGH_HAND_RANKS } from '@rivr/contracts';
 import { useTvJackpot, type TvJackpot } from '@rivr/db';
 import { formatMoney, formatTime, t } from '@rivr/i18n';
-import { Text, TvJackpotBoard } from '@rivr/ui';
+import { TvJackpotBoard } from '@rivr/ui';
+import { BoardStatus } from './BoardStatus.tsx';
 
 /** Tonight's high hand as the TV names it: "Four of a kind, Queens"; and where, when and what it paid. */
 function highHandText(highHand: NonNullable<TvJackpot['highHand']>): { title: string; line: string } {
@@ -17,7 +18,7 @@ function highHandText(highHand: NonNullable<TvJackpot['highHand']>): { title: st
 export function JackpotMode() {
   const jackpot = useTvJackpot();
   if (jackpot.data === undefined || jackpot.data === null) {
-    return <Text variant="tvBody" tone="muted">{t(jackpot.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
+    return <BoardStatus isError={jackpot.isError} />;
   }
   const { main, highHand } = jackpot.data;
   return (

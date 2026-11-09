@@ -16,7 +16,7 @@ export interface ConsoleSheetProps {
 
 const CLOSE =
   'flex size-touch shrink-0 items-center justify-center rounded-md text-content transition-colors hover:bg-subtle ' +
-  '-my-2 -mr-2 focus-visible:outline-2 focus-visible:outline-focus tablet:size-control';
+  '-my-2 -mr-2 focus-visible:outline focus-visible:outline-focus tablet:size-control';
 
 /**
  * The console's sheet (console v3): from 768 px a panel 440 px wide down the right of the screen; below, a sheet from the

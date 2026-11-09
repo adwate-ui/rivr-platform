@@ -8,7 +8,7 @@ import { OpenedRow, placesOf } from './OpenedRow.tsx';
 import { TickCell, type Ticks } from './Selection.tsx';
 
 // A line's height from 768 px, below 1180 px, where a row stays a 44 px target (decision 0282).
-const ROW_HEIGHT = tokens.space[12];
+const ROW_HEIGHT = tokens.size.rowLine;
 // A card below 768 px: each line this high, the gap between lines, the padding above and below, the hairline under it.
 const CARD_LINE = tokens.space[6];
 const CARD_GAP = tokens.space[1];
@@ -57,8 +57,8 @@ export const LOOK = {
     header: WIDE_GRID,
     row: `flex flex-col gap-1 py-3 ${WIDE_GRID}`,
     // A long list's row, of one height; else one whose long text wraps onto its next line (F5-05).
-    fixed: 'absolute inset-x-0 top-0 overflow-clip medium:h-12 medium:py-0',
-    free: 'relative medium:min-h-12 medium:py-2',
+    fixed: 'absolute inset-x-0 top-0 overflow-clip medium:h-row-line medium:py-0',
+    free: 'relative medium:min-h-row-line medium:py-2',
     headerCell: 'hidden medium:flex',
     // On a card a secondary cell names its column before its value, from data-label (styles.css).
     cell: { primary: '', secondary: 'flex justify-between gap-3 medium:block', optional: 'hidden medium:block' },
@@ -71,7 +71,7 @@ export const LOOK = {
     header: LINE,
     row: LINE,
     fixed: 'absolute inset-x-0 top-0 overflow-clip',
-    free: 'relative min-h-12 py-2',
+    free: 'relative min-h-row-line py-2',
     headerCell: 'flex',
     cell: { primary: '', secondary: '', optional: '' },
     span: 'col-span-2',
@@ -84,7 +84,7 @@ export const LOOK = {
     header: 'grid items-center gap-4 min-w-min',
     row: 'grid items-center gap-4 min-w-min',
     fixed: 'absolute inset-x-0 top-0 overflow-clip',
-    free: 'relative min-h-12 py-2',
+    free: 'relative min-h-row-line py-2',
     headerCell: 'flex',
     cell: { primary: '', secondary: '', optional: '' },
     span: 'col-span-2',
@@ -150,7 +150,7 @@ function Title({ content, onOpen, isOneLine }: { content: ReactNode; onOpen: (()
   if (onOpen === undefined) return <>{content}</>;
   return (
     <button type="button" onClick={onOpen}
-      className="flex min-h-touch w-full cursor-pointer items-center text-start text-content underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-focus tablet:min-h-0">
+      className="flex min-h-touch w-full cursor-pointer items-center text-start text-content underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-focus tablet:min-h-0">
       <span className={isOneLine ? 'truncate' : undefined}>{content}</span>
     </button>
   );
@@ -291,7 +291,7 @@ export function VirtualBody<Row>({ rows, columns, rowKey, onRowOpen, layout, onS
   const first = Math.max(0, Math.floor(scrolled / height) - OVERSCAN);
   const last = Math.min(rows.length, Math.ceil((scrolled + BODY_HEIGHT) / height) + OVERSCAN);
   return (
-    <div role="rowgroup" tabIndex={0} className="overflow-y-auto focus-visible:outline-2 focus-visible:outline-focus"
+    <div role="rowgroup" tabIndex={0} className="overflow-y-auto focus-visible:outline focus-visible:outline-focus"
       style={{ ...GUTTER, height: BODY_HEIGHT }} onScroll={(event) => { setScrolled(event.currentTarget.scrollTop); onScrollX(event); }}>
       <div className="relative w-full" style={{ height: rows.length * height }}>
         {rows.slice(first, last).map((row, index) => (

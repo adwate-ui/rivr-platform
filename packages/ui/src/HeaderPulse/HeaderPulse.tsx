@@ -30,7 +30,7 @@ export function HeaderPulse({ label, items, onNavigate }: HeaderPulseProps) {
         {items.map((item) => (
           <li key={item.id} className="flex">
             <a href={item.href} onClick={(event) => routeClick(event, item.href, onNavigate)}
-              className="flex min-h-touch items-center gap-2 rounded-md px-3 font-text text-13 leading-control whitespace-nowrap text-content-muted transition-colors hover:bg-subtle hover:text-content focus-visible:outline-2 focus-visible:outline-focus tablet:min-h-8">
+              className="flex min-h-touch items-center gap-2 rounded-md px-3 font-text text-13 leading-control whitespace-nowrap text-content-muted transition-colors hover:bg-subtle hover:text-content focus-visible:outline focus-visible:outline-focus tablet:min-h-8">
               {item.needsYou === true && item.count > 0 ? <span aria-hidden="true" className="size-pip shrink-0 rounded-full bg-action" /> : null}
               <span><span className="font-semibold text-content tabular-nums">{item.count}</span> {item.label}</span>
             </a>

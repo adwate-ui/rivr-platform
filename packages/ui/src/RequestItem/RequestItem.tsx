@@ -48,7 +48,7 @@ function Title({ title, onTitle }: Pick<RequestItemProps, 'title' | 'onTitle'>) 
   if (onTitle === undefined) return <p className={look}>{title}</p>;
   return (
     <button type="button" onClick={onTitle}
-      className={cx(look, 'self-start text-start underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-focus')}>
+      className={cx(look, 'self-start text-start underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-focus')}>
       {title}
     </button>
   );

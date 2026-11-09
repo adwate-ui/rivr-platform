@@ -27,7 +27,7 @@ export function SeatRow({ number, name, meta, request, density = 'comfortable', 
   return (
     <button type="button" onClick={onSelect} aria-label={[t('ui.console.seatRow.seat', { number }), who, aside].filter(Boolean).join(', ')}
       className={cx('flex min-h-touch w-full items-center gap-3 rounded-md px-3 text-start font-text transition-colors hover:bg-subtle',
-        'focus-visible:outline-2 focus-visible:outline-focus',
+        'focus-visible:outline focus-visible:outline-focus',
         density === 'compact' ? 'tablet:min-h-row-compact' : 'tablet:min-h-row')}>
       <span aria-hidden="true" className="w-5 shrink-0 text-12 text-content-muted tabular-nums">{number}</span>
       <span aria-hidden="true" className={cx('min-w-0 flex-1 truncate text-14', name === undefined ? 'text-content-muted' : 'text-content')}>{who}</span>

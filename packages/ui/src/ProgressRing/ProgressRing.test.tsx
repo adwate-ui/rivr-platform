@@ -1,3 +1,4 @@
+import { tokens } from '@rivr/tokens';
 import { describe, expect, it } from 'vitest';
 import { axeViolations, renderIn } from '../test/render.tsx';
 import { ProgressRing } from './ProgressRing.tsx';
@@ -26,5 +27,14 @@ describe('ProgressRing', () => {
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<ProgressRing fraction={0.5}>1:30:00</ProgressRing>);
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('draws in the ring token\'s own units, the same circle as on 240 units (F-170)', () => {
+    const { container } = renderIn(<ProgressRing fraction={1}>2:15:00</ProgressRing>);
+    expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe(`0 0 ${tokens.size.ring} ${tokens.size.ring}`);
+    const arc = arcOf(container);
+    expect(Number(arc?.getAttribute('r')) / tokens.size.ring).toBeCloseTo(110 / 240, 10);
+    expect(Number(arc?.getAttribute('stroke-width')) / tokens.size.ring).toBeCloseTo(4 / 240, 10);
+    expect(Number(arc?.getAttribute('cx'))).toBe(tokens.size.ring / 2);
   });
 });

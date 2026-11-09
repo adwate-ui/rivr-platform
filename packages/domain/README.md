@@ -16,6 +16,7 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | `compare`, `min`, `max`, `isZero`, `isNegative`, `isPositive` | Comparisons. `compare` sorts. |
 | `shareOf(amount, basisPoints)` | A share rounded down to the paisa: `shareOf(pot, 500n)` is 5%. Throws on a negative amount or a rate outside 0 to 10,000 (bugs). |
 | `CHIP`, `roundDownToChip(amount)`, `isChipMultiple(amount)` | The ₹50 chip. Rounding is always down. |
+| `paiseToChips(amount)`, `chipsToPaise(chips)` | Money as a count of chips of ₹1, as blinds are typed and bonus chips shown, and back. Part of a chip is dropped; a negative throws. |
 | `parseRupees(text)` | Typed rupees (`1,20,000`, `120000`, `₹2,449.50`) to `Result<Paise, 'empty' \| 'negative' \| 'too_many_decimals' \| 'invalid'>`. |
 
 ### `@rivr/domain/ledger`

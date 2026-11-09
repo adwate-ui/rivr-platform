@@ -40,7 +40,7 @@ function Item({ item, isCurrent, onPick }: { item: PickListItem; isCurrent: bool
         className={cx(
           'flex min-h-touch w-full flex-col items-start justify-center gap-1 border-l-2 px-4 text-left transition-colors tablet:min-h-control',
           item.detail ? 'py-3' : 'py-2',
-          'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus',
+          'focus-visible:outline focus-visible:-outline-offset-2 focus-visible:outline-focus',
           isCurrent ? 'border-content bg-selected' : 'border-transparent hover:bg-subtle',
         )}>
         <span className="font-text text-14 leading-snug font-medium text-content">{item.title}</span>

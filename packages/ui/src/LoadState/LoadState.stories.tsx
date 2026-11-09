@@ -10,6 +10,12 @@ type Story = StoryObj<typeof meta>;
 /** Still loading. */
 export const Loading: Story = {};
 
+/** On a TV, read from across a room (F-141). */
+export const LoadingOnATv: Story = { args: { size: 'tv' } };
+
+/** A board that could not be read: its own words, and no Retry, as nobody can press one. */
+export const FailedOnATv: Story = { args: { size: 'tv', isError: true, errorText: 'This board is not available.' } };
+
 /** It failed, with Retry. */
 export const Error: Story = { args: { isError: true, onRetry: () => {} } };
 

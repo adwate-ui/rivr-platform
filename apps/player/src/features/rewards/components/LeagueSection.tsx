@@ -1,6 +1,6 @@
 import { useMyLeague, type LeagueBoardRow } from '@rivr/db/myRewards';
 import { formatMonth, formatNumber, t } from '@rivr/i18n';
-import { Button, Heading, Inline, Stack, Text } from '@rivr/ui';
+import { Heading, Inline, LoadState, Stack, Text } from '@rivr/ui';
 
 const nameOf = (row: LeagueBoardRow) => (row.isMe ? t('memberRewards.you') : row.name ?? t('memberRewards.hiddenName'));
 
@@ -34,8 +34,7 @@ export function LeagueSection() {
     return (
       <Stack gap={3}>
         {heading}
-        <Text tone="muted">{t(league.isError ? 'common.loadFailed' : 'common.loading')}</Text>
-        {league.isError ? <Inline><Button onClick={() => void league.refetch()}>{t('common.retry')}</Button></Inline> : null}
+        <LoadState isError={league.isError} onRetry={() => void league.refetch()} />
       </Stack>
     );
   }

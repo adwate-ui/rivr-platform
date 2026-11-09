@@ -1,4 +1,5 @@
 import { t } from '@rivr/i18n';
+import { tokens } from '@rivr/tokens';
 import { cx } from '../internal/classes.ts';
 
 export interface SeatMapProps {
@@ -10,10 +11,10 @@ export interface SeatMapProps {
   label: string;
 }
 
-// The drawing's own units: the sheet's width at a phone's, 170 high (size.seatMap).
+// The drawing's own units: the sheet's width at a phone's, as high as the map's token, with each seat as wide as its own.
 const WIDTH = 334;
-const HEIGHT = 170;
-const SEAT_RADIUS = 17;
+const HEIGHT = tokens.size.seatMap;
+const SEAT_RADIUS = tokens.size.seat / 2;
 
 /** Seat `n` sits at 270° + n·36° round an ellipse at 44% of the width and 42% of the height, as in the prototype: nine
  * seats leave the dealer's gap at the top, a tenth fills it. */

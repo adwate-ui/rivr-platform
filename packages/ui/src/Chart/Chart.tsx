@@ -1,5 +1,5 @@
-import { t } from '@rivr/i18n';
-import { Button } from '../Button/Button.tsx';
+import { tokens } from '@rivr/tokens';
+import { LoadState } from '../LoadState/LoadState.tsx';
 import { Text } from '../Text/Text.tsx';
 
 /** One series: its name, in the legend and to screen readers, and a value for each label. */
@@ -33,7 +33,7 @@ const MOST_SERIES = FILLS.length;
 // The plot's own units, stretched to the container: strokes keep their width, and every word on the chart is
 // HTML text, so it reads the same on a phone as on the console.
 const WIDTH = 640;
-const HEIGHT = 200;
+const HEIGHT = tokens.size.chart;
 // At most this many labels are written under the plot; every value is in the screen readers' table.
 const MOST_LABELS = 12;
 
@@ -124,15 +124,8 @@ function Legend({ series }: { series: readonly ChartSeries[] }) {
 
 /** What stands in for the chart: loading, the error with a retry, or why there is nothing to draw. */
 function Instead({ props }: { props: ChartProps }) {
-  if (props.status === 'loading') return <div role="status" className="py-4"><Text tone="muted">{t('common.loading')}</Text></div>;
-  if (props.status === 'error') {
-    return (
-      <div role="alert" className="flex flex-col items-start gap-3 py-4">
-        <Text>{props.errorText ?? t('common.loadFailed')}</Text>
-        {props.onRetry ? <Button onClick={props.onRetry}>{t('common.retry')}</Button> : null}
-      </div>
-    );
-  }
+  if (props.status === 'loading') return <div className="py-4"><LoadState /></div>;
+  if (props.status === 'error') return <div className="py-4"><LoadState isError errorText={props.errorText} onRetry={props.onRetry} /></div>;
   return <div role="status" className="py-4"><Text tone="muted">{props.emptyText}</Text></div>;
 }
 

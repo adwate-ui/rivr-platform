@@ -59,6 +59,8 @@ export async function tailwindTheme({ dictionary, file }) {
     '  --default-font-family: var(--rivr-font-family-text);',
     '  --default-transition-duration: var(--rivr-motion-duration-state);',
     '  --default-transition-timing-function: var(--rivr-motion-easing-out);',
+    '  --default-border-width: var(--rivr-border-width-hairline);',
+    '  --default-outline-width: var(--rivr-border-width-focus);',
     ...lines,
     '}\n',
   ].join('\n');

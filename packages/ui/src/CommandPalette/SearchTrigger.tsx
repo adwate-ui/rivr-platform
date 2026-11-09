@@ -11,7 +11,7 @@ export interface SearchTriggerProps {
 
 const TRIGGER =
   'flex min-h-touch min-w-touch items-center justify-center gap-3 rounded-md font-text text-14 leading-control text-content transition-colors ' +
-  'focus-visible:outline-2 focus-visible:outline-focus tablet:min-h-control ' +
+  'focus-visible:outline focus-visible:outline-focus tablet:min-h-control ' +
   'medium:w-full medium:justify-start medium:bg-raised medium:px-3 medium:text-content-muted medium:hover:text-content';
 
 /**

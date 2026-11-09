@@ -2,6 +2,7 @@ import { useTvPromotions } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Text, TvPromotionSlide } from '@rivr/ui';
 import { useEffect, useState } from 'react';
+import { BoardStatus } from './BoardStatus.tsx';
 
 // The prototype's TV turns to the next promotion every 12 seconds; the board's progress bar fills over each (#628).
 export const SLIDE_MS = 12_000;
@@ -39,7 +40,7 @@ export function PromotionsMode({ onDone }: { onDone?: (() => void) | undefined }
   const cards = useTvPromotions();
   const shown = useSlides(cards.data?.length ?? (cards.isError ? 0 : undefined), onDone);
   if (cards.data === undefined) {
-    return <Text variant="tvBody" tone="muted">{t(cards.isError ? 'display.screen.unavailable' : 'common.loading')}</Text>;
+    return <BoardStatus isError={cards.isError} />;
   }
   const card = cards.data[shown];
   if (card === undefined) return <Text variant="tvBody" tone="muted">{t('tv.promotion.none')}</Text>;

@@ -13,5 +13,5 @@ export {
   times,
 } from './arithmetic.ts';
 export { shareOf } from './share.ts';
-export { CHIP, isChipMultiple, roundDownToChip } from './chips.ts';
+export { CHIP, chipsToPaise, isChipMultiple, paiseToChips, roundDownToChip } from './chips.ts';
 export { parseRupees, type ParseRupeesError } from './parse-rupees.ts';

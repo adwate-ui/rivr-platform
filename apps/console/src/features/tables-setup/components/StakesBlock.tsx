@@ -1,15 +1,14 @@
 import { useTablesSetupActions, type SetupStake } from '@rivr/db';
+import { chipsToPaise, fromPaise, paiseToChips } from '@rivr/domain/money';
 import { formatStakes, t } from '@rivr/i18n';
 import { Button, DataTable, ErrorMessage, Grid, Heading, Inline, Input, Screen, Stack, StatusMessage, Text, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 
-// Paise in one chip: blinds are typed in chips.
-const PAISE = 100n;
-
 // A blind in whole 50s of chips, as the table type's check has it.
 const isBlind = (text: string) => /^\d{2,7}$/.test(text) && Number(text) % 50 === 0;
 
-const chipsOf = (paise: bigint) => String(paise / PAISE);
+// Blinds are typed in chips.
+const chipsOf = (paise: bigint) => String(paiseToChips(fromPaise(paise)));
 
 // The form open: a new stake's, above the list, or a stake's own by its id, under its row.
 const NEW = 'new';
@@ -95,8 +94,8 @@ function StakeForm({ venueId, stake, onSaved, onCancel }: StakeFormProps) {
   const isNew = stake === null;
   const submit = async () => {
     const done = await saveStake.mutateAsync({
-      stakeId: isNew ? null : stake.id, name, smallBlind: BigInt(blinds.small) * PAISE, bigBlind: BigInt(blinds.big) * PAISE,
-      straddle: blinds.straddle === '' ? null : BigInt(blinds.straddle) * PAISE,
+      stakeId: isNew ? null : stake.id, name, smallBlind: chipsToPaise(BigInt(blinds.small)), bigBlind: chipsToPaise(BigInt(blinds.big)),
+      straddle: blinds.straddle === '' ? null : chipsToPaise(BigInt(blinds.straddle)),
     });
     if (done.ok) onSaved(t('console.tablesSetup.saved', { name: name.trim() }));
     else setFailure(t(`console.tablesSetup.failures.${done.error}`));

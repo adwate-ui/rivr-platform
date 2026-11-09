@@ -39,7 +39,7 @@ export function TableCard({ name, stakes, seats, ringLabel, isClosed = false, oc
   const id = useId();
   return (
     <button type="button" aria-label={name} aria-describedby={`${id}-ring ${id}-figures`} aria-pressed={isSelected} onClick={onSelect}
-      className={cx('flex w-full flex-col gap-2 rounded-md border bg-raised p-4 text-left focus-visible:outline-2 focus-visible:outline-focus',
+      className={cx('flex w-full flex-col gap-2 rounded-md border bg-raised p-4 text-left focus-visible:outline focus-visible:outline-focus',
         isSelected ? 'border-cream' : 'border-hairline')}>
       <SeatRing name={name} stakes={stakes} seats={seats} label={ringLabel} isClosed={isClosed} />
       <span id={`${id}-ring`} className="sr-only">{ringLabel}</span>

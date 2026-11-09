@@ -30,7 +30,7 @@ const TRACK = 'inline-flex rounded-md border-2 border-transparent bg-subtle';
 
 const SEGMENT =
   'inline-flex items-center justify-center rounded-sm px-3 font-text text-13 leading-control text-content transition-colors ' +
-  'focus-visible:outline-2 focus-visible:outline-focus';
+  'focus-visible:outline focus-visible:outline-focus';
 
 const HEIGHT: Record<SegmentedSize, string> = { compact: 'min-h-touch tablet:min-h-8', small: 'min-h-touch tablet:min-h-7' };
 

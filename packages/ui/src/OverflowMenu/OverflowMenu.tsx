@@ -26,20 +26,20 @@ export interface OverflowMenuProps {
 const TRIGGER =
   'inline-flex size-touch shrink-0 items-center justify-center rounded-md text-content-muted transition-colors tablet:size-8 ' +
   'hover:bg-subtle-hover hover:text-content aria-expanded:bg-subtle-hover aria-expanded:text-content ' +
-  'focus-visible:outline-2 focus-visible:outline-focus';
+  'focus-visible:outline focus-visible:outline-focus';
 
 // The prototype's quiet word-button at a screen's top right: muted words that brighten on hover, as the ⋯ does.
 const TEXT_TRIGGER =
   'inline-flex min-h-touch shrink-0 items-center justify-center rounded-md px-3 font-text text-13 leading-control font-medium text-content-muted ' +
   'transition-colors tablet:min-h-8 hover:bg-subtle-hover hover:text-content aria-expanded:bg-subtle-hover aria-expanded:text-content ' +
-  'focus-visible:outline-2 focus-visible:outline-focus';
+  'focus-visible:outline focus-visible:outline-focus';
 
 const MENU = 'absolute top-full z-overlay mt-1 flex min-w-32 flex-col rounded-lg bg-raised p-1 shadow-modal focus:outline-none';
 
 // Danger words on the raised menu are 5.86:1, and 5.14:1 on an item's hover fill.
 const ITEM =
   'flex min-h-touch w-full items-center rounded-md px-3 py-2 text-start font-text text-13 leading-control whitespace-nowrap transition-colors tablet:min-h-control ' +
-  'hover:bg-subtle focus-visible:bg-subtle focus-visible:outline-2 focus-visible:outline-focus ' +
+  'hover:bg-subtle focus-visible:bg-subtle focus-visible:outline focus-visible:outline-focus ' +
   'aria-disabled:cursor-not-allowed aria-disabled:opacity-disabled';
 
 /** The item an arrow key, Home or End moves to from `index` (-1 for none), wrapping round; null for any other key. */

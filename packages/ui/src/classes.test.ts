@@ -50,4 +50,8 @@ describe('the classes @rivr/ui draws with', () => {
     }
     expect([...missing]).toEqual([]);
   }, 60_000);
+
+  it('take a focus outline\'s width from the token, never a number (F-170)', () => {
+    expect(sources('src').filter((file) => /\boutline-2\b/.test(readFileSync(file, 'utf8')))).toEqual([]);
+  });
 });

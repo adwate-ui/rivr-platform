@@ -12,6 +12,8 @@
   --default-font-family: var(--rivr-font-family-text);
   --default-transition-duration: var(--rivr-motion-duration-state);
   --default-transition-timing-function: var(--rivr-motion-easing-out);
+  --default-border-width: var(--rivr-border-width-hairline);
+  --default-outline-width: var(--rivr-border-width-focus);
   --color-green: var(--rivr-color-green);
   --color-green-black: var(--rivr-color-green-black);
   --color-cream: var(--rivr-color-cream);
@@ -112,6 +114,7 @@
   --spacing-control: var(--rivr-size-control);
   --spacing-row: var(--rivr-size-row);
   --spacing-row-compact: var(--rivr-size-row-compact);
+  --spacing-row-line: var(--rivr-size-row-line);
   --spacing-side-panel: var(--rivr-size-side-panel);
   --spacing-dock: var(--rivr-size-dock);
   --spacing-dock-strip: var(--rivr-size-dock-strip);
