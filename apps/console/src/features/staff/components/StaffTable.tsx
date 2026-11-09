@@ -2,7 +2,7 @@ import type { StaffRole } from '@rivr/contracts';
 import { STAFF_ROLES } from '@rivr/contracts/roles';
 import { useStaffActions, useStaffRemovals, type StaffMember, type StaffRemoval } from '@rivr/db';
 import { formatDate, formatMobile, t } from '@rivr/i18n';
-import { Button, ChoiceChips, ConfirmButton, DataTable, Grid, Inline, Stack, Text, useToast, type DataTableColumn } from '@rivr/ui';
+import { Banner, Button, ChoiceChips, ConfirmButton, DataTable, Grid, Inline, Stack, Text, useToast, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 import { AddStaffForm } from './AddStaffForm.tsx';
 import { roleName, STAFF_FAILURE_COPY } from './staffCopy.ts';
@@ -11,7 +11,16 @@ import { StaffRow } from './StaffRow.tsx';
 /** Staff still working, or those whose login is turned off (owner, 8 Nov), each under its own tab. */
 export type StaffView = 'active' | 'removed';
 
-/** The table's columns: name (You on one's own), job title, role, and the number they sign in with. */
+/** A dealer with no login of their own (decision 0046), who signs in by PIN on the tablet alone. */
+const isPinOnly = (member: StaffMember): boolean => member.role === 'dealer' && !member.hasLogin;
+
+/** When their login last signed in, or that it never has. */
+function lastSignedIn(row: StaffMember): string {
+  if (isPinOnly(row)) return t('console.staff.pinOnly');
+  return row.lastSignedInAt === null ? t('console.staff.neverSignedIn') : formatDate(new Date(row.lastSignedInAt));
+}
+
+/** The table's columns: name (You on one's own), job title, role, the number they sign in with, and when they last did (F-116). */
 function columns(): readonly DataTableColumn<StaffMember>[] {
   return [
     {
@@ -24,6 +33,10 @@ function columns(): readonly DataTableColumn<StaffMember>[] {
       key: 'phone', header: t('console.staff.phone'), priority: 'secondary',
       cell: (row) => (row.phone === null ? <Text tone="muted">{t('console.staff.noPhone')}</Text> : formatMobile(row.phone)),
       exportValue: (row) => row.phone ?? '',
+    },
+    {
+      key: 'signedIn', header: t('console.staff.lastSignedIn'), priority: 'secondary', cell: lastSignedIn, exportValue: lastSignedIn, filter: 'date',
+      sortValue: (row) => row.lastSignedInAt ?? '',
     },
   ];
 }
@@ -70,6 +83,42 @@ function searchText(member: StaffMember): string {
 }
 
 const ALL = 'all';
+
+const STALE_AFTER_DAYS = 30;
+const DAY_MS = 86_400_000;
+const STALE = 'stale';
+/** More super admins than this and the list says so (F-116): few should hold every permission. */
+const MANY_SUPER_ADMINS = 5;
+
+/** A login not used in 30 days, or never; a dealer on a PIN has none to go stale. */
+function isStale(member: StaffMember, now: number): boolean {
+  if (isPinOnly(member)) return false;
+  return member.lastSignedInAt === null || now - new Date(member.lastSignedInAt).getTime() > STALE_AFTER_DAYS * DAY_MS;
+}
+
+/** The role chosen, whether only unused logins show, which narrows the staff working alone, and the people those leave. */
+function useNarrowed(inView: readonly StaffMember[], isWorking: boolean) {
+  const [role, setRole] = useState<string>(ALL);
+  const [isStaleOnly, setIsStaleOnly] = useState(false);
+  const [now] = useState(() => Date.now());
+  const inRole = role === ALL ? inView : inView.filter((member) => member.role === role);
+  const stale = inRole.filter((member) => isStale(member, now));
+  return { role, setRole, isStaleOnly, setIsStaleOnly, staleCount: stale.length, shown: isStaleOnly && isWorking ? stale : inRole };
+}
+
+/** Says so when more of the staff working are super admins than should be. */
+function SuperAdminWarning({ members }: { members: readonly StaffMember[] }) {
+  const count = members.filter((member) => member.role === 'super_admin').length;
+  return count > MANY_SUPER_ADMINS ? <Banner>{t('console.staff.manySuperAdmins', { count: String(count) })}</Banner> : null;
+}
+
+/** Not signed in for 30 days, with how many: narrows the list to the logins nobody is using. */
+function StaleFilter({ count, isOn, onChange }: { count: number; isOn: boolean; onChange: (isOn: boolean) => void }) {
+  return (
+    <ChoiceChips label={t('console.staff.notSignedInLabel')} isLabelVisuallyHidden mode="many" look="subtle" selected={isOn ? [STALE] : []}
+      options={[{ value: STALE, label: t('console.staff.notSignedIn'), count }]} onChange={(chosen) => onChange(chosen.includes(STALE))} />
+  );
+}
 
 /** The role chips (console v3): All, then each role someone holds, in the roles' order, each with how many hold it. */
 function RoleFilter({ members, role, onChange }: { members: readonly StaffMember[]; role: string; onChange: (role: string) => void }) {
@@ -131,15 +180,16 @@ interface StaffTableProps {
  */
 export function StaffTable({ venueId, members, grantable, isAdding, view }: StaffTableProps) {
   const [chosenId, setChosenId] = useState<string | null>(null);
-  const [role, setRole] = useState<string>(ALL);
   const inView = members.filter((member) => member.isActive === (view === 'active'));
   const chosen = inView.find((member) => member.staffId === chosenId) ?? null;
-  const shown = role === ALL ? inView : inView.filter((member) => member.role === role);
+  const { role, setRole, isStaleOnly, setIsStaleOnly, staleCount, shown } = useNarrowed(inView, view === 'active');
   const open = (row: StaffMember) => setChosenId(row.staffId);
   return (
     <Stack gap={8}>
       {isAdding ? <AddStaffForm venueId={venueId} grantable={grantable} /> : null}
+      {view === 'active' ? <SuperAdminWarning members={inView} /> : null}
       <RoleFilter members={inView} role={role} onChange={setRole} />
+      {view === 'active' ? <StaleFilter count={staleCount} isOn={isStaleOnly} onChange={setIsStaleOnly} /> : null}
       {/* The table full width until someone is opened, as on Members; in place, so the search typed stays. */}
       <Grid columns={chosen === null ? 1 : 2} gap={8} stackBelow="medium">
         {view === 'active' ? (

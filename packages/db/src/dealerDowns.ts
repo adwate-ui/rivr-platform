@@ -1,3 +1,4 @@
+import type { StaffRole } from '@rivr/contracts/roles';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import type { Paise } from '@rivr/domain/money';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -9,6 +10,7 @@ import { queryKeys } from './queryKeys.ts';
 export interface VenueDealer {
   readonly staffId: string;
   readonly fullName: string;
+  readonly role: StaffRole;
   readonly hasPin: boolean;
   readonly lockedUntil: string | null;
 }
@@ -65,7 +67,7 @@ export function useVenueDealers(venueId: string) {
     queryFn: async (): Promise<VenueDealer[]> => {
       const { data, error } = await client.rpc('venue_dealers', { p_venue_id: venueId });
       if (error) throw error;
-      return data.map((row) => ({ staffId: row.staff_id, fullName: row.full_name, hasPin: row.has_pin, lockedUntil: row.locked_until }));
+      return data.map((row) => ({ staffId: row.staff_id, fullName: row.full_name, role: row.role, hasPin: row.has_pin, lockedUntil: row.locked_until }));
     },
   });
 }

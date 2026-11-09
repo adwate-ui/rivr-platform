@@ -23,8 +23,8 @@ function renderPins() {
       return Response.json([{ id: 'st1', venue_id: 'v1', full_name: 'Vikram Rao', role: 'super_admin', venue: { name: 'RIVR Gurugram', is_practice: false } }]);
     }
     if (url.includes('/rpc/venue_dealers')) {
-      return Response.json([{ staff_id: 'd1', full_name: 'Bhavna Rawat', has_pin: false, locked_until: null },
-        { staff_id: 'd2', full_name: 'Manoj Thapa', has_pin: true, locked_until: null }]);
+      return Response.json([{ staff_id: 'd1', full_name: 'Bhavna Rawat', role: 'dealer', has_pin: false, locked_until: null },
+        { staff_id: 'd2', full_name: 'Manoj Thapa', role: 'super_admin', has_pin: true, locked_until: null }]);
     }
     if (url.includes('/rpc/set_dealer_pin')) sent.push(JSON.parse(String(init?.body)));
     return url.includes('/rpc/set_dealer_pin') ? new Response(null, { status: 204 }) : Response.json([]);
@@ -37,6 +37,15 @@ function renderPins() {
   );
   return sent;
 }
+
+describe('Dealer PINs roles (F-082)', () => {
+  it('says each person\'s role, so a manager who deals stands apart', async () => {
+    renderPins();
+    const row = (await screen.findByText('Manoj Thapa', {}, { timeout: 5000 })).closest('[role="row"]');
+    expect(row?.textContent).toContain('Super admin');
+    expect(screen.getByText('Bhavna Rawat').closest('[role="row"]')?.textContent).toContain('Dealer');
+  });
+});
 
 describe('Dealer PINs as a table (console v3)', () => {
   it('lists each dealer with where their PIN stands, and Set PIN or Change in the row', async () => {

@@ -3,7 +3,7 @@
  * lanes rarely edit the same export list, and neither nears its length limit (#460).
  */
 export {
-  useControlActions, useEngagedControls, type ControlFailure, type ControlLevel, type EngageOrder, type EngagedControl,
+  useControlActions, useEngagedControls, usePastControls, type PastControl, type ControlFailure, type ControlLevel, type EngageOrder, type EngagedControl,
 } from './killSwitch.ts';
 export {
   useStaffAcademyActions,

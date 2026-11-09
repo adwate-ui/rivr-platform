@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useControlActions, useEngagedControls } from './killSwitch.ts';
+import { useControlActions, useEngagedControls, usePastControls } from './killSwitch.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
@@ -31,13 +31,23 @@ function renderKillSwitch(replies: Record<string, { status?: number; body: unkno
     auth: { storage: sessionStorageFor(STAFF), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
-  const { result } = renderHook(() => ({ engaged: useEngagedControls(VENUE), actions: useControlActions(VENUE) }), { wrapper });
+  const { result } = renderHook(() => ({ engaged: useEngagedControls(VENUE), past: usePastControls(VENUE), actions: useControlActions(VENUE) }), { wrapper });
   return { result, calls };
 }
 
 afterEach(cleanup);
 
 describe('Kill switch', () => {
+  it('gives what has been released, by whom and why (F-034)', async () => {
+    const { result } = renderKillSwitch({ past_controls: { body: [{
+      control_id: 'c1', level: 'member_freeze', feature: null, member_name: 'Kunal Mehra', staff_name: null, reason: 'Dispute', engaged_at: '2026-11-15T20:00:00Z',
+      engaged_by: 'Devika Sharma', released_at: '2026-11-16T20:00:00Z', released_by: 'Arvind Rao', release_second: null, release_reason: 'Settled',
+    }] } });
+    await waitFor(() => expect(result.current.past.data?.[0]).toMatchObject({
+      controlId: 'c1', memberName: 'Kunal Mehra', releasedAt: '2026-11-16T20:00:00Z', releasedBy: 'Arvind Rao', releaseSecond: null, releaseReason: 'Settled',
+    }));
+  });
+
   it('gives engaged controls, with a freeze\'s release ask', async () => {
     const { result } = renderKillSwitch({ engaged_controls: { body: [{
       control_id: 'c1', level: 'venue_freeze', feature: null, member_name: null, staff_name: null, reason: 'Dispute', engaged_at: '2026-11-15T20:00:00Z',

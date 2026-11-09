@@ -21,7 +21,7 @@ describe('the console rail (console v3)', () => {
       ['Live floor', 'Waitlist', 'Door', 'Food and drink'],
       ['Members', 'ID checks', 'Host queue', 'Feedback'],
       ['Promotions', 'Rewards', 'Social', 'Content'],
-      ['Staff', 'Tables', 'Reports', 'Settings', 'Kill switch', 'Practice reset', 'Purge'],
+      ['Staff', 'Tables', 'Reports', 'Settings', 'Activity', 'Kill switch', 'Practice reset', 'Purge'],
     ]);
     expect(rail.map((section) => section.isCollapsible === true)).toEqual([false, false, false, true]);
     const danger = rail.flatMap((section) => section.items).filter((item) => item.tone === 'danger').map((item) => item.label);
@@ -153,7 +153,7 @@ describe('the console rail (console v3)', () => {
     expect(items('super_admin').filter((href) => money.includes(href))).toEqual([]);
   });
 
-  it("locks the rail's screens with members' records and documents, the kill switch and the purge after ten idle minutes, and no other", () => {
-    expect(items('super_admin').filter((href) => locksWhenIdle(href)).sort()).toEqual(['/kill-switch', '/kyc-review', '/members', '/purge']);
+  it("locks the rail's screens with members' records and documents, Activity, the kill switch and the purge after ten idle minutes, and no other", () => {
+    expect(items('super_admin').filter((href) => locksWhenIdle(href)).sort()).toEqual(['/activity', '/kill-switch', '/kyc-review', '/members', '/purge']);
   });
 });

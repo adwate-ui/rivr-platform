@@ -74,6 +74,7 @@ export {
   type FeedbackListName, type FeedbackRatings, type OpenFeedback, type ResolveFeedbackFailure,
   type FeedbackVisit,
 } from './feedback.ts';
+export { ACTIVITY_KINDS, useActivityLog, type ActivityFilters, type ActivityKind, type ActivityLine } from './activityLog.ts';
 export * from './rewards.ts';
 export * from './rewardCounts.ts';
 export * from './league.ts';
@@ -231,4 +232,4 @@ export {
   type PublishedTournament, useMarkTournamentRegistered, useMyUpcomingTournaments, usePublishedTournamentActions, usePublishedTournaments, usePublishTournament, useRegisterTournamentInterest, useTournamentInterest, useUnmarkTournamentRegistered,
   type TournamentInterest, type TournamentInterestFailure, type TournamentListing, type TournamentStanding, type UpcomingTournament,
 } from './tournamentInterest.ts';
-export { useTableMetrics, type TableMetrics } from './tableMetrics.ts';
+export { useTableMetrics, useTableMetricsTotal, type TableMetrics, type TableMetricsTotal } from './tableMetrics.ts';

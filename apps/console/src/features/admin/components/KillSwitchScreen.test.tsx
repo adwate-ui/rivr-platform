@@ -16,7 +16,7 @@ const FREEZE = {
 };
 
 /** A super admin on the kill switch with `engaged` engaged; every engage sent is kept. */
-function renderKillSwitch(engaged: readonly unknown[]) {
+function renderKillSwitch(engaged: readonly unknown[], past: readonly unknown[] = []) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000101', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -28,6 +28,7 @@ function renderKillSwitch(engaged: readonly unknown[]) {
       return Response.json([{ id: 'st1', venue_id: 'v1', full_name: 'Vikram Rao', role: 'super_admin', venue: { name: 'RIVR Gurugram', is_practice: false } }]);
     }
     if (url.includes('/rpc/engaged_controls')) return Response.json(engaged);
+    if (url.includes('/rpc/past_controls')) return Response.json(past);
     if (url.includes('/rpc/engage_control')) {
       engagedSent.push(JSON.parse(String(init?.body)));
       return Response.json('c2');
@@ -44,6 +45,33 @@ function renderKillSwitch(engaged: readonly unknown[]) {
 }
 
 describe('Kill switch (console v3)', () => {
+  it('keeps what has been released, by whom and why (F-034)', async () => {
+    renderKillSwitch([], [{
+      control_id: 'c9', level: 'venue_freeze', feature: null, member_name: null, staff_name: null, reason: 'Night 75 drill', engaged_at: '2026-11-03T16:00:00+00:00',
+      engaged_by: 'Neha Kulkarni', released_at: '2026-11-03T18:00:00+00:00', released_by: 'Arvind Rao', release_second: 'Vikram Rao', release_reason: 'Drill over',
+    }]);
+    const row = (await screen.findByText('Night 75 drill', {}, { timeout: 5000 })).closest('[role="row"]');
+    for (const shown of ['Venue freeze', 'Neha Kulkarni', 'Arvind Rao and Vikram Rao', 'Drill over']) expect(row?.textContent).toContain(shown);
+  });
+
+  it('filters past controls by the day they were engaged or released (decision 0512)', async () => {
+    renderKillSwitch([], [{
+      control_id: 'c9', level: 'venue_freeze', feature: null, member_name: null, staff_name: null, reason: 'Night 75 drill', engaged_at: '2026-11-03T16:00:00+00:00',
+      engaged_by: 'Neha Kulkarni', released_at: '2026-11-03T18:00:00+00:00', released_by: 'Arvind Rao', release_second: 'Vikram Rao', release_reason: 'Drill over',
+    }]);
+    await screen.findByText('Night 75 drill', {}, { timeout: 5000 });
+    for (const heading of ['Engaged', 'Released']) {
+      fireEvent.click(screen.getByRole('button', { name: `${heading}: sort and filter` }));
+      expect(await screen.findByRole('radio', { name: 'Last 7 days' })).toBeDefined();
+      fireEvent.click(screen.getByRole('button', { name: `${heading}: sort and filter` }));
+    }
+  });
+
+  it('says so when nothing has been released', async () => {
+    renderKillSwitch([]);
+    expect(await screen.findByText('Nothing has been released yet.', {}, { timeout: 5000 })).toBeDefined();
+  });
+
   it('shows an engaged control as a red banner with Release', async () => {
     renderKillSwitch([FREEZE]);
     const release = await screen.findByRole('button', { name: 'Release Venue freeze' }, { timeout: 5000 });

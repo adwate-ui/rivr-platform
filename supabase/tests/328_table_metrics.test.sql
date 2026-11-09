@@ -57,7 +57,7 @@ select results_eq(
   $$ values ('Table 2'::text, 14400::bigint, 4, 2, 19800::bigint), ('Table 3'::text, 75600::bigint, 1, 1, 3600::bigint) $$,
   'each table''s hours run, members, most at once and hours played: runs clipped to the day, the move split between tables');
 select is_empty($$ select 1 from public.table_metrics('00000000-0000-4000-8000-000000000001', (select d from day) - 2, (select d from day) - 2)
-                   where table_id in (select id from tbl) $$, 'two club days before shows none of it');
+                   where table_id in (select id from tbl) and (run_seconds > 0 or player_seconds > 0) $$, 'two club days before shows none of it');
 select throws_ok($$ select * from public.table_metrics('00000000-0000-4000-8000-000000000001', (select d from day), (select d from day) - 1) $$,
   '22023', null, 'a span that ends before it starts is refused');
 select throws_ok($$ select * from public.table_metrics('00000000-0000-4000-8000-000000000001', (select d from day) - 92, (select d from day)) $$,

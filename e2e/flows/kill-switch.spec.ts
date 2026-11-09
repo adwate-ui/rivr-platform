@@ -90,6 +90,17 @@ test.describe('Kill switch', () => {
       await expect(second.getByText(STAFF_BANNER)).toHaveCount(0, { timeout: 15_000 });
       await expect(member.getByText(MEMBER_BANNER)).toHaveCount(0, { timeout: 15_000 });
       await expect(tablet.getByText(STAFF_BANNER)).toHaveCount(0, { timeout: 15_000 });
+
+      // It leaves a trace (F-034): on Kill switch with both who released it, and in Activity.
+      await openConsole(second, '/kill-switch');
+      const pastRow = second.getByRole('table', { name: 'Past controls' }).getByRole('row').filter({ hasText: 'Dispute at Table 3' });
+      await expect(pastRow).toContainText('Neha Kulkarni and Arvind Rao');
+      await expect(pastRow).toContainText('Dispute settled');
+      await openConsole(second, '/activity');
+      await second.getByRole('radio', { name: 'Controls' }).click();
+      const lines = second.getByRole('table', { name: 'Activity' }).getByRole('row');
+      await expect(lines.filter({ hasText: 'Neha Kulkarni' }).filter({ hasText: 'Added' }).first()).toBeVisible();
+      await expect(lines.filter({ hasText: 'Arvind Rao' }).filter({ hasText: 'Changed' }).first()).toBeVisible();
     } finally {
       if (frozen) await releaseIfFrozen(browser, first);
       await first.getByRole('link', { name: 'Live floor' }).click();

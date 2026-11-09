@@ -80,6 +80,7 @@ export const rail = {
     incidents: 'Incidents',
     feedback: 'Feedback',
     reports: 'Reports',
+    activity: 'Activity',
     killSwitch: 'Kill switch',
     practiceReset: 'Practice reset',
     purge: 'Purge',
