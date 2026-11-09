@@ -24,7 +24,7 @@ function TextFilter<Row>({ filter, onFilter }: FilterControlProps<Row>) {
 function ChoiceFilter<Row>({ filtered, rows, filter, onFilter }: FilterControlProps<Row>) {
   const options = choicesOf(filtered.column, rows).map(({ value, count }) => ({ value, label: value, count }));
   return (
-    <div className="max-h-paletteList overflow-y-auto">
+    <div>
       <ChoiceChips label={filtered.column.header} isLabelVisuallyHidden mode="many" look="subtle" options={options}
         selected={filter?.kind === 'choice' ? filter.chosen : []}
         onChange={(chosen) => onFilter(chosen.length === 0 ? undefined : { kind: 'choice', chosen })} />

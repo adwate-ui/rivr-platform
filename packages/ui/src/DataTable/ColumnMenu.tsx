@@ -29,7 +29,7 @@ const FOCUS = 'focus-visible:outline-2 focus-visible:outline-focus';
 // 44 px below 1180 px; at a desk 24 px, so a heading keeps to one line beside it.
 const ICON_TRIGGER = `inline-flex size-touch shrink-0 items-center justify-center rounded-md transition-colors tablet:size-6 hover:bg-subtle-hover hover:text-content aria-expanded:bg-subtle-hover aria-expanded:text-content ${FOCUS}`;
 const WORDS_TRIGGER = `flex min-h-touch items-center gap-1 rounded-md px-2 font-text text-14 transition-colors hover:text-content aria-expanded:bg-subtle-hover ${FOCUS}`;
-const PANEL = 'fixed z-overlay flex w-column-menu max-w-full flex-col gap-3 rounded-lg bg-raised p-3 shadow-modal focus:outline-none';
+const PANEL = 'fixed z-overlay flex max-h-palette-list w-column-menu max-w-full flex-col gap-3 overflow-y-auto rounded-lg bg-raised p-3 shadow-modal focus:outline-none';
 
 /**
  * Under its trigger, lined up with its start, or with its end where it would run off the page; never past either edge,

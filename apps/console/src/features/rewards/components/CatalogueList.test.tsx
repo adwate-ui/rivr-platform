@@ -57,7 +57,7 @@ describe('the rewards catalogue (F-072)', () => {
   it('draws Sold out in gold, the status that waits on staff', async () => {
     renderList();
     expect(await screen.findByText('Sold out', {}, LATER)).toBeDefined();
-    expect(screen.getByText('Sold out').querySelector('[data-dot]')?.className).toContain('bg-gold');
+    expect(screen.getByText('Sold out').parentElement?.querySelector('[data-dot]')?.className).toContain('bg-gold');
   });
 
   it('lists sold-out rewards after the other live ones, and retired last', async () => {

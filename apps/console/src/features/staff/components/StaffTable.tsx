@@ -19,7 +19,7 @@ function columns(): readonly DataTableColumn<StaffMember>[] {
       cell: (row) => (row.isMe ? `${row.fullName} · ${t('console.staff.you')}` : row.fullName),
     },
     { key: 'jobTitle', header: t('console.staff.jobTitle'), cell: (row) => row.jobTitle, sortValue: (row) => row.jobTitle, filter: 'choice' },
-    { key: 'role', header: t('console.staff.role'), cell: (row) => roleName(row.role), sortValue: (row) => roleName(row.role) },
+    { key: 'role', header: t('console.staff.role'), cell: (row) => roleName(row.role), sortValue: (row) => roleName(row.role), filter: false },
     {
       key: 'phone', header: t('console.staff.phone'), priority: 'secondary',
       cell: (row) => (row.phone === null ? <Text tone="muted">{t('console.staff.noPhone')}</Text> : formatMobile(row.phone)),
@@ -54,7 +54,7 @@ function removedColumns(removals: ReadonlyMap<string, StaffRemoval>, restore: Re
       sortValue: (row) => removals.get(row.staffId)?.removedAt ?? '', exportValue: (row) => removedLine(removals.get(row.staffId)),
     },
     {
-      key: 'restore', filter: false, header: t('console.staff.restore'),
+      key: 'restore', header: '',
       cell: (row) => (!grantable.includes(row.role) ? null : (
         <ConfirmButton label={t('console.staff.restore')} name={t('console.staff.restoreNamed', { name: row.fullName })} isBusy={restore.isBusy}
           confirm={t('console.staff.confirmRestore', { name: row.fullName })} variant="subtle" size="small" onConfirm={() => restore.run(row)} />

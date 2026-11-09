@@ -1,6 +1,7 @@
 import { t } from '@rivr/i18n';
 import { useRef, type ReactNode, type UIEvent } from 'react';
 import { Button } from '../Button/Button.tsx';
+import { cx } from '../internal/classes.ts';
 import { Text } from '../Text/Text.tsx';
 import { useIsWide } from '../useIsWide/useIsWide.ts';
 import { ColumnMenu } from './ColumnMenu.tsx';
@@ -120,11 +121,13 @@ function Table<Row>({ props, visible, sort, resetKey, onSort, menuFor }: TablePr
 }
 
 /** What stands in for the rows: loading, the error with a retry, or why there are none (announced as the filter changes). */
-function Instead<Row>({ props, query, isFiltered }: { props: DataTableProps<Row>; query: string; isFiltered: boolean }) {
-  if (props.status === 'loading') return <div role="status" className="px-3 py-4"><Text tone="muted">{t('common.loading')}</Text></div>;
+function Instead<Row>({ props, query, isFiltered, isUnderHeader }: { props: DataTableProps<Row>; query: string; isFiltered: boolean; isUnderHeader: boolean }) {
+  // Under the header it sits on the cells' edge; with none above it, on the panel's own (audit F-066).
+  const inset = isUnderHeader ? 'px-3' : '';
+  if (props.status === 'loading') return <div role="status" className={cx('py-4', inset)}><Text tone="muted">{t('common.loading')}</Text></div>;
   if (props.status === 'error') {
     return (
-      <div role="alert" className="flex flex-col items-start gap-3 px-3 py-4">
+      <div role="alert" className={cx('flex flex-col items-start gap-3 py-4', inset)}>
         <Text>{props.errorText ?? t('common.loadFailed')}</Text>
         {props.onRetry ? <Button onClick={props.onRetry}>{t('common.retry')}</Button> : null}
       </div>
@@ -132,7 +135,7 @@ function Instead<Row>({ props, query, isFiltered }: { props: DataTableProps<Row>
   }
   const why = query.trim() === '' && isFiltered ? t('ui.dataTable.noFilterMatch') : t('ui.dataTable.noMatch', { query: query.trim() });
   const text = props.rows.length === 0 ? props.emptyText : why;
-  return <div role="status" className="px-3 py-4"><Text tone="muted">{text}</Text></div>;
+  return <div role="status" className={cx('py-4', inset)}><Text tone="muted">{text}</Text></div>;
 }
 
 /**
@@ -187,10 +190,10 @@ export function DataTable<Row>(props: DataTableProps<Row>) {
   // Rows the search or filters leave none of: the header stays, with each column's menu, and why there are none under it.
   const isNarrowedAway = table.visible.length === 0 && table.source.length > 0;
   // Words searched in a link to a table without a search box are not applied, so never said.
-  const instead = <Instead props={props} query={props.filter === undefined ? '' : table.view.query} isFiltered={table.on.length > 0} />;
+  const instead = <Instead props={props} query={props.filter === undefined ? '' : table.view.query} isFiltered={table.on.length > 0} isUnderHeader={isNarrowedAway && !isCards} />;
   return (
     <div ref={root} className="flex flex-col gap-4">
-      <TableBar props={props} visible={table.visible} state={{ query: table.view.query, onQuery: table.setQuery, onLeave: table.flush, on: table.on, filters: table.view.filters }} />
+      <TableBar props={props} visible={table.visible} reservesGutter={table.visible.length > VIRTUAL_FROM} state={{ query: table.view.query, onQuery: table.setQuery, onLeave: table.flush, on: table.on, filters: table.view.filters }} />
       <Pills props={props} table={table} refocus={refocus} />
       {table.visible.length === 0 && !isNarrowedAway ? instead : (
         <>

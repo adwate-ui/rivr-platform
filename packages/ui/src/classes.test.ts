@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest';
 const THEMED = new RegExp(
   '^-?(?:m[trblxyse]?|p[trblxyse]?|gap(?:-[xy])?|space-[xy]|[wh]|size|min-[wh]|max-[wh]|inset(?:-[xy])?|top|right|bottom|left|start|end|'
   + 'basis|text|font|leading|tracking|rounded(?:-[trblse]{1,2})?|border(?:-[trblxyse])?|outline|ring|divide(?:-[xy])?|fill|stroke|from|via|to|'
-  + 'bg|aspect|z|opacity|shadow|duration|ease|translate-[xy]|scroll-[mp][trblxyse]?)-[a-z0-9./]+$',
+  + 'bg|aspect|z|opacity|shadow|duration|ease|translate-[xy]|scroll-[mp][trblxyse]?)-[a-zA-Z0-9./]+$',
 );
 
 /** The component sources: every .ts and .tsx under src, not tests or stories. */

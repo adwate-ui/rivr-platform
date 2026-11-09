@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, screen, userEvent } from 'storybook/test';
 import { useState } from 'react';
+import { Box } from '../Box/Box.tsx';
 import { Money } from '../Money/Money.tsx';
 import { Text } from '../Text/Text.tsx';
 import { DataTable, type DataTableColumn, type DataTableSort } from './DataTable.tsx';
@@ -96,6 +97,31 @@ const meta = { title: 'Data/DataTable', component: MarkerTable } satisfies Meta<
 
 export default meta;
 type Story = StoryObj<typeof meta>;
+
+/** Two-letter headings and columns ending at their right: the sort target is 24 px, and the funnel ends where the figures do. */
+const SHORT_COLUMNS: readonly DataTableColumn<Marker>[] = [
+  { key: 'name', header: 'Name', priority: 'primary', cell: (row) => row.name, sortValue: (row) => row.name },
+  { key: 'in', header: 'In', align: 'end', cell: (row) => row.ageDays, sortValue: (row) => row.ageDays, filter: 'choice' },
+  { key: 'number', header: 'No.', align: 'end', cell: (row) => row.id.slice(-2), sortValue: (row) => row.id, filter: 'choice' },
+];
+
+export const ShortHeadingsEndingRight: Story = {
+  render: () => <DataTable label="Short headings" columns={SHORT_COLUMNS} rows={markers(4)} rowKey={(row) => row.id} emptyText="None." />,
+  tags: ['viewport-console'],
+};
+
+/** A long list with its search and Export above it: the bar keeps to the list's edge, past the list's scrollbar (audit F-098). */
+export const ManyRowsWithItsBar: Story = { args: { rows: markers(250), withFilter: true, withExport: true }, tags: ['viewport-console'] };
+
+/** On a raised panel, with a held header: the header takes the panel's fill (audit F-066). */
+export const OnARaisedPanel: Story = {
+  render: () => (
+    <Box surface="raised" radius="md" padding={5}>
+      <DataTable label="On a panel" columns={SHORT_COLUMNS} rows={markers(4)} rowKey={(row) => row.id} emptyText="None." />
+    </Box>
+  ),
+  tags: ['viewport-console'],
+};
 
 export const Default: Story = {};
 

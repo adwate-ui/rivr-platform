@@ -120,7 +120,12 @@ describe('DataTable on the console', () => {
 
   it('keeps its header at the top of the scrolling page, on the page colour', () => {
     renderIn(<Ticked />);
-    expect(screen.getAllByRole('rowgroup')[0]).toHaveClass('sticky', 'top-0', 'z-nav', 'bg-surface');
+    expect(screen.getAllByRole('rowgroup')[0]).toHaveClass('sticky', 'top-0', 'z-nav', 'bg-table-header');
+  });
+
+  it('keeps a sort target 24 px wide at a desk, however short its name (audit F-199)', () => {
+    renderIn(<Ticked />);
+    expect(screen.getByRole('button', { name: 'Member' })).toHaveClass('tablet:min-w-6');
   });
 
   it('sets the console type: headers 12 px, the title 15 px medium, the rest 13 px', () => {
@@ -160,8 +165,8 @@ describe('DataTable on the console', () => {
     expect(header?.firstElementChild).toHaveClass('grid', 'max-medium:min-w-text');
     expect(body).toHaveClass('max-medium:overflow-x-auto');
     const [box, title, hours] = within(bodyRows()[0] ?? document.body).getAllByRole('cell');
-    expect(box).toHaveClass('max-medium:sticky', 'max-medium:left-0', 'max-medium:bg-surface');
-    expect(title).toHaveClass('max-medium:sticky', 'max-medium:left-touch', 'max-medium:bg-surface');
+    expect(box).toHaveClass('max-medium:sticky', 'max-medium:left-0', 'max-medium:bg-table-header');
+    expect(title).toHaveClass('max-medium:sticky', 'max-medium:left-touch', 'max-medium:bg-table-header');
     expect(hours).not.toHaveClass('max-medium:sticky');
     expect(hours).not.toHaveAttribute('data-label');
     expect(screen.getByRole('columnheader', { name: 'Member' })).toHaveClass('max-medium:sticky', 'max-medium:left-touch');

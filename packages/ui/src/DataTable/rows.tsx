@@ -48,8 +48,8 @@ export const priorityOf = (column: DataTableColumn<never>, index: number): Prior
 const WIDE_GRID = 'medium:grid medium:grid-flow-col medium:auto-cols-fr medium:items-center medium:gap-4';
 // In the scroll layout a row is a line at every width; below 768 px it is at least a line of text wide and scrolls sideways.
 const LINE = 'grid grid-flow-col auto-cols-fr items-center gap-4 max-medium:min-w-text';
-// The first column in the scroll layout below 768 px: held at the start, on the page's colour, as the rest scrolls under it.
-const HELD = 'max-medium:sticky max-medium:bg-surface';
+// The first column in the scroll layout below 768 px: held at the start, on its panel's colour, as the rest scrolls under it.
+const HELD = 'max-medium:sticky max-medium:bg-table-header';
 
 /** What differs between the layouts below 768 px. */
 export const LOOK = {

@@ -153,8 +153,7 @@ export function listColumns(names: PromotionNames, steps: RowSteps): DataTableCo
       cell: (promotion) => (HAS_RUN.includes(promotion.status) ? <GivenCell promotion={promotion} /> : null),
     },
     {
-      key: 'status', header: t('console.promotions.list.columns.status'), cell: (promotion) => <StatusCell promotion={promotion} />,
-      filterValue: (promotion) => t(`console.promotions.statuses.${promotion.status}`),
+      key: 'status', header: t('console.promotions.list.columns.status'), cell: (promotion) => <StatusCell promotion={promotion} />, filter: false,
     },
     { key: 'actions', header: '', cell: (promotion) => <RowActions promotion={promotion} steps={steps} /> },
   ];
