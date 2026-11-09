@@ -59,13 +59,11 @@ cd apps/player/android && ./gradlew assembleDebug
 
 An ongoing notification with a chronometer, from a Firebase data message (`LiveStatusMessagingService`). A build shows it only with the Firebase app's `google-services.json` in `android/app/` (gitignored); without it the switch says it failed. Colours come from `@rivr/tokens`' generated Android resources.
 
-**iOS** (written, not built: it needs a Mac with Xcode). The app target already compiles `RivrLiveAttributes.swift`, `LiveStatusPlugin.swift`, `LiveActivityTokens.swift` and `RivrBridgeViewController.swift`. On a Mac:
+**iOS** (written, never compiled: it needs a Mac with Xcode, or a macOS runner). The project has the `RivrLiveStatus` widget extension embedded in the app, the app's push entitlement, its privacy manifest and a shared `App` scheme. The project file was edited by hand and has not yet been opened in Xcode. On a Mac, with the Apple account that owns `club.rivr.player`:
 
-1. `pnpm --filter player exec cap sync ios`, then open `ios/App/App.xcodeproj`.
-2. File › New › Target › Widget Extension, named `RivrLiveStatus`, with Include Live Activity on; delete the files it makes and add `ios/App/RivrLiveStatus/RivrLiveStatusWidget.swift` and its `Info.plist`. Add `ios/App/App/RivrLiveAttributes.swift` and `packages/tokens/generated/ios/RivrColors.swift` to that target too. Deployment target iOS 17.2 for the extension.
-3. In Signing & Capabilities, add Push Notifications to the app (the aps-environment entitlement), with the team that owns `club.rivr.player`.
-4. Set the build setting `RIVR_LIVE_STATUS_TOKEN_URL` to `https:/$()/<project-ref>.supabase.co/functions/v1/live-status-token` (an `.xcconfig` reads `//` as a comment).
-5. Run on a device with iOS 17.2 or later, turn Notifications on this phone on in Profile, and join a list from the console.
+1. `pnpm --filter player exec cap sync ios`, then open `ios/App/App.xcodeproj` and choose the team for both targets.
+2. Set the build setting `RIVR_LIVE_STATUS_TOKEN_URL` to `https:/$()/<project-ref>.supabase.co/functions/v1/live-status-token` (an `.xcconfig` reads `//` as a comment).
+3. Run on a device with iOS 17.2 or later, turn Notifications on this phone on in Profile, and join a list from the console.
 
 ## Budgets
 
