@@ -6,7 +6,7 @@ import { PrizeForm } from './PrizeForm.tsx';
 import { prizeLabel } from './prizeLabel.ts';
 
 // The spin budget is a rule of Settings' Members and rewards area (spin.budget), a part of its Settings tab.
-const SPIN_BUDGET_SETTING = '/settings?tab=settings&part=members';
+const SPIN_BUDGET_SETTING = '/settings?tab=members';
 
 /** What the wheel's rows need to draw: the weights of the prizes that can be won now, and who may do what. */
 interface WheelLook {

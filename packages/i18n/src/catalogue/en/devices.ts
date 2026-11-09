@@ -1,11 +1,6 @@
 /** Dealer tablets (#41): the console's Tablets screen, and pairing on the tablet itself. */
 
 /** The console's Tablets screen, for staff who manage devices. */
-/** Devices (#606): the tablets, TVs, computers and cameras, by tab. */
-export const devices = {
-  title: 'Devices',
-};
-
 export const tablets = {
   title: 'Tablets',
   /** The form to add one (console v3), under the tablets paired. */

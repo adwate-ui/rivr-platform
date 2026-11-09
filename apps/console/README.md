@@ -25,7 +25,7 @@ src/
                       Marketing, Admin folded), the phone's tab bar; the header's search, counts, clock and the staff
                       member's menu (density, practice venue, shortcuts, sign out); the practice venue's stripe; the
                       kill-switch banner; refusals under the screen's name; ScreenTabs for a screen that holds others
-                      (`?tab=`, a tab's own parts `?part=`); not found; every table's order, search and filters in
+                      (`?tab=`); not found; every table's order, search and filters in
                       the address under `t.<table>` (`useAddressTableViews`, the club's days for date filters), which a
                       screen's own links keep (`useNavigateKeepingViews`; decision 0512)
     sign-in/          mobile number and code, as in the player app (decision 0032)
@@ -51,12 +51,12 @@ src/
     members/          every member as a table, found by name, mobile or number, with where each is tonight, their KYC, hours played, city and member-since day, and the mobile for super admins (owner, 8 Nov); the record docked beside the list and in the address (/members?member=…&part=…), with the seat and a link to it on the floor, visits, early departures and promotions given, bonus chips (decision 0504), which a super admin adds by hand with a reason (owner, 8 Nov), what they told the club at sign-up and how they came (owner, 8 Nov), a tier change, a break (decision 0053), feature overrides and erasure on request
     admin/            the kill switch for super admins: what is engaged, engaging a level, release by two for a freeze (/kill-switch); reset the practice venue to its seed, after a dry run and its name typed (/practice-reset); purge a frozen live venue after its full archive is saved, a dry run and its name typed (/purge, #432); the full export archive and one member's data (what a member is owed, staff notes in their own folder, #498), locked to the owner's backup key (/exports, #103); the roster, for staff who manage staff: a week's shifts by job title, adding shifts for a job title's staff, copying the week before, and tonight's attendance (/roster, #106)
     aml/              the AML register for staff who review AML: patterns in members' cash buy-ins, their buy-ins, and the review (/aml, #105)
-    devices/          the devices, Settings' Devices tab, by kind (/settings?tab=devices&part=, #606): dealer tablets and door kiosks to add, pair, fix to a
+    devices/          the devices, Settings' TVs and Tablets tabs (/settings?tab=tvs|tablets, #606): dealer tablets and door kiosks to add, pair, fix to a
                       table and unpair; TVs to pair by their code, change and unpair; cage and admin computers to
                       add, enrol and revoke; CCTV cameras over a table or the cage (#122), whose Playback Pot data,
                       Incidents and the cage's receipt link to. /devices, /tablets and /tvs open it; /computers and /cameras say they are gone
     settings/         the rules in areas by job, each by name with its value now, who changes it and what is to come;
-                      the club's details and chips for super admins (/settings, its areas by `?part=`, #604); /rake
+                      the club's details and chips for super admins (/settings, its areas by `?tab=`, #604); /rake
                       opens it, saying rake is no longer on the console. Its Notices part puts a notice up, now or from
                       a start to an end (IST), edits one in place and ends one, with the card members see as its
                       preview (decision 0424)
@@ -73,7 +73,7 @@ src/
     social/           by tab (/social?tab=wall|publish|leads): the social wall's tagged posts to approve or reject, publishing with the posts made, and the inbox's leads
     website/          Content's Website tab (/content?tab=website): the pages found by name in Club, Guides and Legal, beside the open page's draft, preview, publishing and history (#129)
     learn-sources/    Content's Learn content tab (/content?tab=learn), loaded when first opened as it carries the drill engine: licensed encodings and adding one that passes its checks (#131)
-    rewards/          the Rewards tab of /rewards, by part (?part=catalogue|handover|points): the catalogue, its form opened by New reward or a reward's Edit; members' redemptions to hand over; points by hand, earned or locked, and released (#645), and League points from a CSV
+    rewards/          the tabs of /rewards (?tab=rewards|points; the spin wheel is the third), and the Door's Hand over: the catalogue, its form opened by New reward or a reward's Edit; members' redemptions to hand over, at the Door alone; points by hand, earned or locked, and released (#645), and League points from a CSV
     spin-wheel/       the Spin wheel tab of /rewards (?tab=spin-wheel): the spins waiting, and the wheel's prizes with their odds as bars, a bonus the month's spin budget cannot pay saying it is off the wheel, with a link to the budget
     league/           the RIVR League's standings by month or season, and its seasons (/league)
     tournament-interest/ a new tournament published without money: name, start, game and stake as text, description (#800);

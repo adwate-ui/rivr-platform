@@ -20,17 +20,17 @@ const MOVED: readonly (readonly [string, string, string | null, string | null])[
   ['/tournament-interest', '/waitlist?tab=interest', 'Waitlist', null],
   ['/website', '/content?tab=website', 'Content', 'Website'],
   ['/learn-sources', '/content?tab=learn', 'Content', 'Learn content'],
-  ['/devices', '/settings?tab=devices', 'Settings', 'Devices'],
-  ['/tvs', '/settings?tab=devices&part=tvs', 'Settings', 'TVs'],
-  ['/tablets', '/settings?tab=devices&part=tablets', 'Settings', 'Tablets'],
+  ['/devices', '/settings?tab=tvs', 'Settings', 'TVs'],
+  ['/tvs', '/settings?tab=tvs', 'Settings', 'TVs'],
+  ['/tablets', '/settings?tab=tablets', 'Settings', 'Tablets'],
   ['/dealer-pins', '/staff?tab=dealerPins', 'Staff', 'Dealer PINs'],
 ];
 
 /** Old addresses whose tab is gone: where they land, and the line that says so. */
 const GONE: readonly (readonly [string, string, string])[] = [
   ['/rake', '/settings?notice=rake', 'Not used at RIVR.'],
-  ['/cameras', '/settings?tab=devices&notice=cameras', 'Cameras are no longer on the console.'],
-  ['/computers', '/settings?tab=devices&notice=computers', 'Computers are no longer on the console.'],
+  ['/cameras', '/settings?tab=tvs&notice=cameras', 'Cameras are no longer on the console.'],
+  ['/computers', '/settings?tab=tvs&notice=computers', 'Computers are no longer on the console.'],
   ['/games-history', '/settings?notice=gamesHistory', 'Games history moved to Reports, Tables.'],
 ];
 

@@ -34,7 +34,6 @@ export const rail = {
     floor: 'Floor',
     lists: 'Lists',
     /** Screens that hold others by tab (#606). */
-    devices: 'Devices',
     shift: 'Shift',
     liveFloor: 'Live floor',
     overview: 'Overview',

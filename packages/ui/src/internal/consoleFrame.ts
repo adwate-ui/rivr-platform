@@ -16,3 +16,9 @@ export function useIsInConsole(): boolean {
  * shown, since the screen's title and the tab already name it (console v3).
  */
 export const ScreenPartContext = createContext(false);
+
+/**
+ * The end of the title row of the Screen whose tabs hold this one, where a part's actions and Export stand, so a tab's
+ * create button sits beside the title rather than on a row of its own (audit F-028, F-119). Null outside tabs.
+ */
+export const ScreenTitleSlotContext = createContext<HTMLElement | null>(null);

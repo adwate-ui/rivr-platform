@@ -40,7 +40,7 @@ test.describe('Door kiosk', () => {
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000191');
     // Devices is a tab of Settings (console v3), each kind a part in the address.
-    await floor.goto(`${appUrl('console')}/settings?tab=devices&part=tablets`);
+    await floor.goto(`${appUrl('console')}/settings?tab=tablets`);
     await floor.getByRole('textbox', { name: 'Tablet name' }).fill(name);
     await floor.getByRole('switch', { name: 'Door kiosk' }).click();
     await floor.getByRole('button', { name: 'Add and pair' }).click();
@@ -87,7 +87,7 @@ test.describe('Door kiosk', () => {
 
     // Devices is a tab of Settings (console v3), each kind a part in the address.
 
-    await floor.goto(`${appUrl('console')}/settings?tab=devices&part=tablets`);
+    await floor.goto(`${appUrl('console')}/settings?tab=tablets`);
     await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Unpair the tablet' }).click();

@@ -62,7 +62,7 @@ describe('PrizeWheel', () => {
     renderPrizes();
     const row = await screen.findByRole('row', { name: /1,000 bonus chips/ }, { timeout: 5000 });
     expect(within(row).getByText('Off the wheel: this month’s spin budget cannot pay it')).toBeDefined();
-    expect(within(row).getByRole('link', { name: 'Spin budget' }).getAttribute('href')).toBe('/settings?tab=settings&part=members');
+    expect(within(row).getByRole('link', { name: 'Spin budget' }).getAttribute('href')).toBe('/settings?tab=members');
     expect(within(row).queryByText(/ in 9$/)).toBeNull();
   });
 

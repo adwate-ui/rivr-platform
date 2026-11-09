@@ -1,6 +1,8 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactElement } from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import { ConsoleFrameContext } from '../internal/consoleFrame.ts';
 import { axeViolations, renderIn } from '../test/render.tsx';
 import { Screen, TitleCount } from './Screen.tsx';
 
@@ -154,5 +156,29 @@ describe('Screen', () => {
     expect(screen.queryByText('Loading')).toHaveClass('sr-only');
     rerender(<Screen title="Tonight" isTitleHidden>x</Screen>);
     expect(screen.getByRole('heading', { name: 'Tonight' })).toHaveClass('sr-only');
+  });
+});
+
+describe('Screen on the console', () => {
+  const inConsole = (element: ReactElement) => renderIn(<ConsoleFrameContext value>{element}</ConsoleFrameContext>);
+
+  it('holds the title row at one height from 768 px, with or without actions (audit F-101)', () => {
+    const { unmount } = inConsole(<Screen title="Service">x</Screen>);
+    expect(screen.getByRole('heading', { name: 'Service' }).parentElement).toHaveClass('medium:min-h-touch');
+    unmount();
+    inConsole(<Screen title="Floor" actions={<button type="button">New order</button>}>x</Screen>);
+    expect(screen.getByRole('heading', { name: 'Floor' }).parentElement).toHaveClass('medium:min-h-touch');
+  });
+
+  it("stands a tab's action in the title row over the tabs, its own title heard only (audit F-028)", () => {
+    inConsole(<Screen title="Rewards" tabs={<nav aria-label="Tabs" />}><Screen title="Catalogue" actions={<button type="button">New reward</button>}>x</Screen></Screen>);
+    const row = screen.getByRole('heading', { name: 'Rewards', level: 1 }).parentElement;
+    expect(row).toContainElement(screen.getByRole('button', { name: 'New reward' }));
+    expect(screen.getByRole('heading', { name: 'Catalogue', level: 2 })).toHaveClass('sr-only');
+  });
+
+  it('shows a section heading on a phone; only a screen of its own leaves its title to the header', () => {
+    inConsole(<Screen level={2} title="Tables" actions={<button type="button">New table</button>}>x</Screen>);
+    expect(screen.getByRole('heading', { name: 'Tables', level: 2 })).not.toHaveClass('max-medium:sr-only');
   });
 });

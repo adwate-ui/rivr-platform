@@ -11,7 +11,7 @@ test('Notices: a notice put up in Settings shows on members\' Home, is edited in
   const words = `Valet parking from 8 pm tonight (${String(Date.now())}).`;
   const edited = words.replace('8 pm', '9 pm');
   await signInToConsole(page, '9000000126');
-  await openConsole(page, '/settings?tab=settings&part=notices');
+  await openConsole(page, '/settings?tab=notices');
   await page.getByRole('textbox', { name: 'Notice' }).fill(words);
   await page.getByRole('button', { name: 'Put up' }).click();
   await expect(page.getByRole('status').getByText('Notice put up.')).toBeVisible();

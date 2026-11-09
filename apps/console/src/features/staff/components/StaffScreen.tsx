@@ -1,5 +1,5 @@
 import { t } from '@rivr/i18n';
-import { Screen, Stack, Tabs } from '@rivr/ui';
+import { Screen, Tabs } from '@rivr/ui';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { DealerPinsSection } from './DealerPinsSection.tsx';
 import { StaffSection } from './StaffSection.tsx';
@@ -25,12 +25,11 @@ export function StaffScreen() {
   const { tab } = useSearch({ from: '/frame/staff' });
   const current = TABS.find((one) => one === tab) ?? TABS[0];
   return (
-    <Screen title={t('console.staff.title')}>
-      <Stack gap={8}>
-        <Tabs label={t('console.staff.title')} current={current} onNavigate={(href) => void navigate({ href })}
-          tabs={TABS.map((id) => ({ id, label: t(LABELS[id]), href: `/staff?tab=${id}` }))} />
-        <TabContent tab={current} />
-      </Stack>
+    <Screen title={t('console.staff.title')} tabs={(
+      <Tabs look="pill" label={t('console.staff.title')} current={current} onNavigate={(href) => void navigate({ href })}
+        tabs={TABS.map((id) => ({ id, label: t(LABELS[id]), href: `/staff?tab=${id}` }))} />
+    )}>
+      <TabContent tab={current} />
     </Screen>
   );
 }

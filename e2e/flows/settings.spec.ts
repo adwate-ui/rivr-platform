@@ -31,7 +31,7 @@ async function openSetting(page: Page, name: string) {
 
 /** Opens one of Settings' areas from its tabs. */
 async function openArea(page: Page, area: string) {
-  await page.getByRole('navigation', { name: 'Areas' }).getByRole('link', { name: area }).click();
+  await page.getByRole('navigation', { name: 'Settings', exact: true }).getByRole('link', { name: area }).click();
 }
 
 test.describe('Settings', () => {
@@ -78,7 +78,7 @@ test.describe('Settings', () => {
     await expect(owner.getByRole('img', { name: 'The venue’s logo' })).toHaveAttribute('src', /\/brand\/.*\/logo-.*\.png$/);
 
     // No console shows money or rake (#626): Settings has no rake, cage, tax or chips area.
-    const areas = owner.getByRole('navigation', { name: 'Areas' });
+    const areas = owner.getByRole('navigation', { name: 'Settings', exact: true });
     for (const hidden of ['Rake and jackpots', 'Cage and credit', 'Tax', 'Chips']) await expect(areas.getByRole('link', { name: hidden })).toHaveCount(0);
 
     const cashier = await browser.newPage();

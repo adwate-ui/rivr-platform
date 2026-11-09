@@ -14,10 +14,10 @@ export interface ScreenTabsProps {
 }
 
 /**
- * A screen that holds others by tab (console v3): its title, then its tabs as pills, only those the staff member's role
- * opens, the one named in the address (`?tab=`) or the first, and below them that tab's screen, as a part of this one (its
- * own title heard, not shown again). An old address that moved here says so in a line (#811). The frame has already
- * refused a tab outside the role.
+ * A screen that holds others by tab (console v3): its title, then its one row of tabs as pills, only those the staff
+ * member's role opens, the one named in the address (`?tab=`) or the first, and below them that tab's screen, as a part of
+ * this one (its own title heard, not shown again; its actions in the title row). An old address that moved here says so
+ * in a line (#811). The frame has already refused a tab outside the role.
  */
 export function ScreenTabs({ screen, panes }: ScreenTabsProps) {
   const staff = useStaffVenue();

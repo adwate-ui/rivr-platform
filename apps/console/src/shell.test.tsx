@@ -88,7 +88,7 @@ describe('the console frame', () => {
 
   // Screens merged into others (#606, console v3): each old address opens its screen on the rail, and its tab.
   it.each([
-    ['/tablets', 'Settings', 'Tablets'], ['/tvs', 'Settings', 'TVs'], ['/devices', 'Settings', 'Devices'],
+    ['/tablets', 'Settings', 'Tablets'], ['/tvs', 'Settings', 'TVs'], ['/devices', 'Settings', 'TVs'],
     ['/dealer-pins', 'Staff', 'Dealer PINs'], ['/check-in', 'Door', 'Check-in'], ['/players-today', 'Door', 'Today’s players'],
     ['/spin-wheel', 'Rewards', 'Spin wheel'], ['/website', 'Content', 'Website'], ['/learn-sources', 'Content', 'Learn content'],
   ])('opens %s on %s, at its tab, %s, for a super admin', async (path, rail, tab) => {
