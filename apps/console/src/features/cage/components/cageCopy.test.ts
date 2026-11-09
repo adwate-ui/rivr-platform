@@ -10,7 +10,7 @@ const NAINA: CageMember = {
 };
 
 describe('what the cage says of a member\'s identity check (#58)', () => {
-  it('says why it failed, in the KYC review\'s words', () => {
+  it('says why it failed, in the ID checks\'s words', () => {
     expect(kycBlockOf({ ...NAINA, kycRefusal: 'under_18' })).toBe('Refused: under the minimum age.');
     expect(kycBlockOf({ ...NAINA, kycRefusal: 'duplicate_pan' })).toBe('Refused: the PAN of a verified member.');
     expect(kycBlockOf({ ...NAINA, kycRefusal: 'staff_rejected' })).toBe('Rejected by a reviewer.');

@@ -11,8 +11,10 @@ export interface SideNavItem {
   href: string;
   /** Shown beside the label, and alone when the rail is folded to icons or on the phone's tab bar. */
   icon: IconName;
-  /** How many things wait on the screen (#317); shown when above 0 and read as "2 waiting". */
+  /** How many things wait on the screen (#317); shown when above 0 and read as "2 waiting", or as `countLabel`. */
   count?: number | undefined;
+  /** What the count is, read out when it is not people waiting: `14 requests`, `3 open tickets` (audit F-129). */
+  countLabel?: string | undefined;
   /**
    * The count asks the staff member to act, such as requests or orders: a solid gold badge (decision 0463). Otherwise the
    * count is for information, such as feedback tickets, and its badge is muted.
@@ -46,6 +48,9 @@ function itemTone(item: SideNavItem, isCurrent: boolean): string {
   return isCurrent ? 'text-content' : 'text-content-muted hover:text-content';
 }
 
+/** What the count is, in words: the entry's own, or that people wait. */
+const countWords = (item: { countLabel?: string | undefined }, count: number) => item.countLabel ?? t('ui.consoleRail.waiting', { count });
+
 /**
  * One screen in the console's rail (console v3): its icon, its name and what waits on it. Its name is its label whatever
  * waits, and its description says how many (decision 0301), so a screen reader hears both and the link keeps one name.
@@ -70,7 +75,7 @@ export function NavItem({ item, isCurrent, isCollapsed, onNavigate }: NavItemPro
         <>
           <Badge count={waiting} isActionable={item.isActionable === true} isCollapsed={isCollapsed} />
           {/* Out of the name, read as the description, which reaches hidden text by its id. */}
-          <span id={descriptionId} aria-hidden="true" className="sr-only">{t('ui.consoleRail.waiting', { count: waiting })}</span>
+          <span id={descriptionId} aria-hidden="true" className="sr-only">{countWords(item, waiting)}</span>
         </>
       )}
     </a>

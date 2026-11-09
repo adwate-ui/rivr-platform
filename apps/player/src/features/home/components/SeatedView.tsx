@@ -1,6 +1,6 @@
 import { useFeature, type MySeat, type WaitlistPlace } from '@rivr/db';
 import { callTimeFraction, isCallTimeEnding, secondsUntil } from '@rivr/domain/callTime';
-import { formatClock, formatHoursMinutes, formatTime, t } from '@rivr/i18n';
+import { formatClock, formatDuration, formatTime, t } from '@rivr/i18n';
 import { FeatureGate, Figure, Inline, ProgressRing, Text } from '@rivr/ui';
 import { NextBonusChips } from './NextBonusChips.tsx';
 import { OrderTracker } from './OrderTracker.tsx';
@@ -22,7 +22,7 @@ function CallTimeRing({ seat, now }: { seat: MySeat; now: Date }) {
   const endsAt = new Date(now.getTime() + left * 1000);
   return (
     <ProgressRing fraction={callTimeFraction(left, seat.callTimeMinutes ?? 0)} tone={isCallTimeEnding(left) ? 'alert' : 'gold'}>
-      <Figure size="timer" role="timer" aria-label={t('player.live.seated.timer', { time: formatHoursMinutes(left) })}>{formatClock(left)}</Figure>
+      <Figure size="timer" role="timer" aria-label={t('player.live.seated.timer', { time: formatDuration(left) })}>{formatClock(left)}</Figure>
       <Text variant="small" tone="muted">{t('player.live.seated.left', { time: formatTime(endsAt) })}</Text>
     </ProgressRing>
   );

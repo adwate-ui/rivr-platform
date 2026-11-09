@@ -1,17 +1,20 @@
-import { useMemberActions, useVenueTiers, type MemberFailure, type MemberRecord } from '@rivr/db';
+import { useMemberActions, useVenueTiers, type MemberTierFailure, type MemberRecord } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Heading, Input, Stack, LoadState, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 
-const FAILURE_COPY: Readonly<Record<MemberFailure, MessageKey>> = {
+const FAILURE_COPY: Readonly<Record<MemberTierFailure, MessageKey>> = {
   not_allowed: 'console.members.failures.notAllowed',
   no_member: 'console.members.failures.noMember',
   invalid: 'console.members.failures.invalid',
+  bad_tier: 'console.members.failures.badTier',
+  bad_reason: 'console.members.failures.badReason',
+  bad_last_day: 'console.members.failures.badLastDay',
   paused: 'console.members.failures.paused',
   unavailable: 'console.members.failures.unavailable',
 };
 
-function Outcome({ outcome }: { outcome: MemberFailure | 'saved' | null }) {
+function Outcome({ outcome }: { outcome: MemberTierFailure | 'saved' | null }) {
   return (
     <>
       <StatusMessage>{outcome === 'saved' ? t('console.members.saved') : null}</StatusMessage>
@@ -46,7 +49,7 @@ export function TierForm({ venueId, record }: { venueId: string; record: MemberR
   const [tierId, setTierId] = useState<string | null>(null);
   const [reason, setReason] = useState('');
   const [until, setUntil] = useState('');
-  const [outcome, setOutcome] = useState<MemberFailure | 'saved' | null>(null);
+  const [outcome, setOutcome] = useState<MemberTierFailure | 'saved' | null>(null);
   const options = (tiers.data ?? []).filter((tier) => tier.tierId !== record.tierId).map((tier) => ({ value: tier.tierId, label: tier.name }));
   const submit = async () => {
     if (tierId === null) return;

@@ -31,10 +31,10 @@ test.describe('Manual KYC', () => {
 
   test('a KYC reviewer checks a member in person against the originals, and the member is verified', async ({ page }) => {
     await signInToConsole(page, '9000000110');
-    await page.getByRole('link', { name: 'KYC review', exact: true }).click();
-    // Check in person opens its sheet (console v3).
-    await page.getByRole('button', { name: 'Check in person' }).click();
-    await expect(page.getByRole('dialog', { name: 'Check in person' })).toBeVisible();
+    await page.getByRole('link', { name: 'ID checks', exact: true }).click();
+    // ID check in person opens its sheet (console v3).
+    await page.getByRole('button', { name: 'ID check in person' }).click();
+    await expect(page.getByRole('dialog', { name: 'ID check in person' })).toBeVisible();
 
     await page.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }).fill('kabir');
     await expect(page.getByText('Mobile ending 0202')).toBeVisible();
@@ -44,11 +44,11 @@ test.describe('Manual KYC', () => {
     await page.getByRole('button', { name: 'Take their photo' }).click();
     await page.getByRole('button', { name: 'Take photo' }).click();
     await page.getByRole('button', { name: 'Use photo' }).click();
-    await expect(page.getByRole('img', { name: 'KYC photo of Kabir Sethi' })).toBeVisible();
+    await expect(page.getByRole('img', { name: 'ID check photo of Kabir Sethi' })).toBeVisible();
     await page.getByLabel('Date of birth on Kabir Sethi\'s original document').fill('1990-04-12');
     await page.getByRole('textbox', { name: 'Last four digits of Kabir Sethi\'s Aadhaar' }).fill('4321');
     await page.getByRole('textbox', { name: 'Kabir Sethi\'s PAN from the original card' }).fill('abcpk4321k');
-    await page.getByRole('switch', { name: 'Kabir Sethi agrees to this identity check' }).click();
+    await page.getByRole('switch', { name: 'Kabir Sethi agrees to this ID check' }).click();
     await page.getByRole('button', { name: 'Verify Kabir Sethi' }).click();
 
     // Read out as it appears (F1-23).

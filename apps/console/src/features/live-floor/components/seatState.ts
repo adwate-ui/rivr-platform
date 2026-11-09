@@ -1,5 +1,5 @@
 import type { FloorTable, HeldSeat, SeatedPlayer } from '@rivr/db';
-import { formatDuration, formatStakes, t } from '@rivr/i18n';
+import { formatDuration, formatGameStakes, t } from '@rivr/i18n';
 import type { TileSeat } from '@rivr/ui';
 
 /** A seated player who needs the floor: a top-up asked for or in hand, more time asked for, or leaving. */
@@ -27,14 +27,14 @@ export function requestFlag(player: SeatedPlayer): string | undefined {
   return player.leavingAt === null ? undefined : t('console.floor.flagLeaving');
 }
 
-/** A player's call time on their row: what is left, Done once met, or none given. */
+/** A player's call time on their row: what is left, Call time done once met, or none given. */
 export function callTimeMeta(player: SeatedPlayer): string {
   if (player.callTimeLeft === null) return t('console.floor.noCallTime');
   return player.callTimeLeft > 0 ? formatDuration(player.callTimeLeft) : t('console.floor.met');
 }
 
-/** A table's stake as the floor writes it: `50/100`. */
-export const stakeOf = (table: FloorTable) => formatStakes(table.smallBlind, table.bigBlind);
+/** A table's stake as everyone writes it: `NLH 50/100`, `NLH 100/200/500` with a straddle. */
+export const stakeOf = (table: FloorTable) => formatGameStakes(table.game, table.smallBlind, table.bigBlind, table.straddle);
 
 /** A room, as the floor names it. */
 export const roomName = (room: FloorTable['room']) => t(room === 'private' ? 'console.liveFloor.privateRoom' : 'console.liveFloor.mainRoom');

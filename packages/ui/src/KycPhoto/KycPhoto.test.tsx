@@ -16,8 +16,8 @@ describe('kycPhotoStatus', () => {
 
 describe('KycPhoto', () => {
   it('shows the photo, named for screen readers', () => {
-    renderIn(<KycPhoto alt="KYC photo of Kabir Sethi" src={SRC} />);
-    expect(screen.getByRole('img', { name: 'KYC photo of Kabir Sethi' })).toHaveAttribute('src', SRC);
+    renderIn(<KycPhoto alt="ID check photo of Kabir Sethi" src={SRC} />);
+    expect(screen.getByRole('img', { name: 'ID check photo of Kabir Sethi' })).toHaveAttribute('src', SRC);
   });
 
   it('says so while it loads, when there is none, and when it could not be had', () => {
@@ -51,7 +51,7 @@ describe('KycPhoto', () => {
   });
 
   it('has no accessibility violations', async () => {
-    const { container } = renderIn(<KycPhoto alt="KYC photo of Kabir Sethi" src={SRC} />);
+    const { container } = renderIn(<KycPhoto alt="ID check photo of Kabir Sethi" src={SRC} />);
     expect(await axeViolations(container)).toEqual([]);
   });
 });

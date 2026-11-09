@@ -1,5 +1,5 @@
 import { useSpin, useSpinWheel, useWaitingSpins, type WaitingSpin } from '@rivr/db/spin';
-import { formatDayTime, formatNumber, t } from '@rivr/i18n';
+import { formatWaitingSince, formatNumber, t } from '@rivr/i18n';
 import { Box, Button, DataTable, DataTableExportProvider, ErrorMessage, Heading, Inline, Stack, StatusMessage, Text, type DataTableColumn } from '@rivr/ui';
 import { useState, type ReactNode } from 'react';
 import { prizeLabel } from './prizeLabel.ts';
@@ -30,7 +30,7 @@ function columnsFor(spinButton: (row: WaitingSpin) => ReactNode): readonly DataT
   return [
     { key: 'member', header: t('console.spin.member'), cell: (row) => row.memberName, filter: 'text' },
     { key: 'promotion', header: t('console.spin.promotion'), cell: (row) => row.promotionName, filter: 'choice' },
-    { key: 'granted', header: t('console.spin.granted'), cell: (row) => formatDayTime(new Date(row.grantedAt)) },
+    { key: 'granted', header: t('console.spin.granted'), cell: (row) => formatWaitingSince(new Date(row.grantedAt)) },
     { key: 'spin', header: t('console.spin.spin'), align: 'end', cell: spinButton },
   ];
 }

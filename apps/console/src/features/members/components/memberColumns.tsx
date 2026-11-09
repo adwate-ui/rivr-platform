@@ -1,5 +1,5 @@
 import type { MemberKycStatus, MemberListRow } from '@rivr/db';
-import { formatHoursMinutes, formatMobile, formatMonthYear, formatNumber, t } from '@rivr/i18n';
+import { formatDuration, formatMobile, formatMonthYear, formatNumber, t } from '@rivr/i18n';
 import { DotStatus, Text, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
 import type { Tonight } from './tonight.ts';
 
@@ -8,7 +8,7 @@ export function TonightStatus({ tonight }: { tonight: Tonight | undefined }) {
   if (tonight === undefined) return <Text variant="secondary" tone="muted">{t('console.members.notHere')}</Text>;
   if (tonight.kind === 'seated') {
     const seat = { table: tonight.tableName, seat: tonight.seat };
-    return <DotStatus tone="active" label={t('console.members.seatShort', seat)} title={t('console.members.seatFull', seat)} />;
+    return <DotStatus tone="active" label={t('console.members.seatFull', seat)} />;
   }
   // Waiting is gold, as on the door's list of today's players: someone at the club without a seat yet.
   if (tonight.kind === 'in_room') return <DotStatus tone="active" label={t('console.members.inRoom')} />;
@@ -52,9 +52,9 @@ function moreColumns(): readonly DataTableColumn<MemberListRow>[] {
     {
       key: 'played', header: t('console.members.played'), align: 'end', sortValue: (row) => row.minutesPlayed * 60, exportValue: (row) => row.minutesPlayed,
       filter: 'duration',
-      cell: (row) => formatHoursMinutes(row.minutesPlayed * 60),
+      cell: (row) => formatDuration(row.minutesPlayed * 60),
     },
-    { key: 'city', header: t('console.members.city'), priority: 'optional', cell: (row) => row.city ?? '', sortValue: (row) => row.city ?? '', filter: 'choice' },
+    { key: 'city', header: t('console.members.city'), priority: 'optional', cell: (row) => row.city ?? t('console.members.notHere'), exportValue: (row) => row.city ?? '', sortValue: (row) => row.city ?? '', filter: 'choice' },
     {
       key: 'since', header: t('console.members.memberSince'), priority: 'optional', sortValue: (row) => row.memberSince,
       cell: (row) => formatMonthYear(new Date(row.memberSince)),

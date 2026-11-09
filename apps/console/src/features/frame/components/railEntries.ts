@@ -9,6 +9,9 @@ export interface ScreenTab {
   readonly anyOf: readonly Permission[];
 }
 
+/** The count's noun in `console.rail.counts`, one and many. */
+export type RailCountWords = 'requests' | 'orders' | 'idChecks' | 'calls' | 'tickets' | 'approvals' | 'handOvers';
+
 export interface RailEntry {
   readonly id: string;
   readonly label: MessageKey;
@@ -20,6 +23,8 @@ export interface RailEntry {
   readonly tabs?: readonly ScreenTab[];
   /** The queues (`staff_queue_counts`) whose waiting add up to the count beside it. */
   readonly counts?: readonly string[];
+  /** What the count is, when it is not people waiting (audit F-129). */
+  readonly countWords?: RailCountWords;
   /** The count asks for action (requests, orders): a gold badge (decision 0463); otherwise a muted one. */
   readonly isActionable?: true;
   /** Signs the staff member out after ten idle minutes (#384): members' records and documents, kill switch, purge. */
@@ -52,7 +57,7 @@ const FLOOR_READERS: readonly Permission[] = ['members.read', 'floor.manage', 'w
 export const RAIL: readonly RailGroup[] = [
   {
     id: 'tonight', label: 'console.rail.groups.tonight', entries: [
-      { id: 'liveFloor', label: 'console.rail.items.liveFloor', href: '/', icon: 'floor', anyOf: FLOOR_READERS, counts: ['topUps', 'timeRequests', 'liveFloor', 'seating'], isActionable: true },
+      { id: 'liveFloor', label: 'console.rail.items.liveFloor', href: '/', icon: 'floor', anyOf: FLOOR_READERS, counts: ['topUps', 'timeRequests', 'liveFloor', 'seating'], countWords: 'requests', isActionable: true },
       { id: 'waitlist', label: 'console.rail.items.waitlist', href: '/waitlist', icon: 'waitlist', anyOf: [], counts: ['waitlist', 'tournamentInterest'], isActionable: true, tabs: [
         { id: 'lists', label: 'console.rail.items.lists', anyOf: ['waitlist.manage'] },
         { id: 'interest', label: 'console.rail.items.tournamentInterest', anyOf: ['tournaments.manage'] },
@@ -63,21 +68,21 @@ export const RAIL: readonly RailGroup[] = [
         // Redemptions to hand over at the door, so a host, who has no Marketing (decision 0476), still hands them over.
         { id: 'handover', label: 'console.rail.items.handOver', anyOf: ['rewards.hand_over'] },
       ] },
-      { id: 'fnb', label: 'console.rail.items.fnb', href: '/fnb', icon: 'food', anyOf: ['fnb.manage', 'fnb.serve'], counts: ['fnb'], isActionable: true },
+      { id: 'fnb', label: 'console.rail.items.fnb', href: '/fnb', icon: 'food', anyOf: ['fnb.manage', 'fnb.serve'], counts: ['fnb'], countWords: 'orders', isActionable: true },
     ],
   },
   {
     id: 'players', label: 'console.rail.groups.players', entries: [
       { id: 'members', label: 'console.rail.items.members', href: '/members', icon: 'profile', anyOf: ['members.manage', 'host_queue.manage'], locksWhenIdle: true },
-      { id: 'kycReview', label: 'console.rail.items.kycReview', href: '/kyc-review', icon: 'kyc', anyOf: ['kyc.review', 'kyc.in_person'], counts: ['kycReview'], locksWhenIdle: true },
-      { id: 'hostQueue', label: 'console.rail.items.hostQueue', href: '/host-queue', icon: 'phone', anyOf: ['host_queue.manage'], counts: ['hostQueue'] },
-      { id: 'feedback', label: 'console.rail.items.feedback', href: '/feedback', icon: 'feedback', anyOf: ['feedback.manage'], counts: ['feedback'] },
+      { id: 'kycReview', label: 'console.rail.items.kycReview', href: '/kyc-review', icon: 'kyc', anyOf: ['kyc.review', 'kyc.in_person'], counts: ['kycReview'], countWords: 'idChecks', locksWhenIdle: true },
+      { id: 'hostQueue', label: 'console.rail.items.hostQueue', href: '/host-queue', icon: 'phone', anyOf: ['host_queue.manage'], counts: ['hostQueue'], countWords: 'calls' },
+      { id: 'feedback', label: 'console.rail.items.feedback', href: '/feedback', icon: 'feedback', anyOf: ['feedback.manage'], counts: ['feedback'], countWords: 'tickets' },
     ],
   },
   {
     id: 'marketing', label: 'console.rail.groups.marketing', entries: [
-      { id: 'promotions', label: 'console.rail.items.promotions', href: '/promotions', icon: 'promotions', anyOf: ['promotions.manage'], counts: ['promotions'] },
-      { id: 'rewards', label: 'console.rail.items.rewards', href: '/rewards', icon: 'rewards', anyOf: [], counts: ['rewards'], tabs: [
+      { id: 'promotions', label: 'console.rail.items.promotions', href: '/promotions', icon: 'promotions', anyOf: ['promotions.manage'], counts: ['promotions'], countWords: 'approvals' },
+      { id: 'rewards', label: 'console.rail.items.rewards', href: '/rewards', icon: 'rewards', anyOf: [], counts: ['rewards'], countWords: 'handOvers', tabs: [
         { id: 'rewards', label: 'console.rail.items.rewards', anyOf: ['rewards.manage', 'points.give'] },
         { id: 'spin-wheel', label: 'console.rail.items.spinWheel', anyOf: ['promotions.manage'] },
       ] },
@@ -111,7 +116,7 @@ export const RAIL: readonly RailGroup[] = [
  */
 export const REQUESTS: RailEntry = {
   id: 'requests', label: 'console.rail.items.requests', href: '/requests', icon: 'requests', anyOf: ['waitlist.manage'],
-  counts: ['waitlist', 'topUps', 'timeRequests', 'liveFloor', 'seating'], isActionable: true,
+  counts: ['waitlist', 'topUps', 'timeRequests', 'liveFloor', 'seating'], countWords: 'requests', isActionable: true,
 };
 
 /** Below 768 px, the tab bar's tabs before More: each a screen above, under a shorter name. */

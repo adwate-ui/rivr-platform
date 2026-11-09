@@ -53,7 +53,7 @@ function Occupancy({ seats, isExpanded, summaryId, lineId }: { seats: readonly T
       <span aria-hidden="true" className="flex gap-1">
         {seats.map((seat, index) => <span key={index} className={cx('h-pip min-w-0 flex-1 rounded-sm', SEGMENT[seat])} />)}
       </span>
-      <span id={summaryId} className="sr-only">{t('ui.console.tableTile.bar', { seated: count(seats, 'seated'), needs, open: count(seats, 'open') })}</span>
+      <span id={summaryId} className="sr-only">{needs === 1 ? t('ui.console.tableTile.barOne', { seated: count(seats, 'seated'), open: count(seats, 'open') }) : t('ui.console.tableTile.bar', { seated: count(seats, 'seated'), needs, open: count(seats, 'open') })}</span>
       <span id={lineId} className="flex items-center justify-between gap-3 text-13 leading-snug">
         <span className="text-content-muted">{t('ui.console.tableTile.seated', { seated, total: seats.length })}</span>
         {/* A space between, so the button reads "6 of 9 seated 2 need you"; a flex row draws none. */}
@@ -109,7 +109,7 @@ export function TableTile({ name, stake, seats, isClosed = false, openAction, is
       {/* A press anywhere on the head shows or hides the seats, as the button inside it does from the keyboard; ⋯ keeps its own. */}
       <div onClick={isClosed ? undefined : onToggle} className={cx('flex flex-col gap-3 px-4 pt-4 pb-3', !isClosed && 'cursor-pointer transition-colors hover:bg-subtle')}>
         <div className="flex items-center gap-2">
-          <h3 id={nameId} className="flex min-w-0 flex-1 items-baseline gap-2 font-text leading-snug">
+          <h3 id={nameId} className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 font-text leading-snug">
             <span className="truncate text-15 font-semibold">{name}</span>
             {/* A space between, so the name reads "Table 1 50/100"; a flex row draws none. */}
             {' '}

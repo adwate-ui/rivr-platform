@@ -1,5 +1,5 @@
 import type { FloorTable, WaitlistBoardEntry } from '@rivr/db';
-import { formatDuration, formatStakes, formatTime, t } from '@rivr/i18n';
+import { formatDuration, formatGameStakes, formatTime, t } from '@rivr/i18n';
 
 /** What to know about a place after how long it has waited: why it is ahead, who added it, its call, that it is held. */
 function notesOf(entry: WaitlistBoardEntry): string[] {
@@ -23,19 +23,9 @@ export function placeMeta(entry: WaitlistBoardEntry, now: Date): string {
   return [waited, ...notesOf(entry)].join(' · ');
 }
 
-/**
- * Whether a stake's name already says its blinds, as "NLH 50/100" or "NLH 1000/2000" does, written with the grouping
- * commas or without: then they show only once (UI polish audit A-10).
- */
-export function nameGivesBlinds(name: string, smallBlind: bigint, bigBlind: bigint): boolean {
-  const plain = (text: string) => text.replaceAll(',', '');
-  return plain(name).includes(plain(formatStakes(smallBlind, bigBlind)));
-}
-
-/** A table's stake as its card names it: "NLH 100/200", the blinds once. */
+/** A table's stake as everyone writes it: "NLH 100/200", "NLH 100/200/500" with a straddle (audit F-122). */
 export function stakeOf(table: FloorTable): string {
-  const name = table.tableTypeName;
-  return nameGivesBlinds(name, table.smallBlind, table.bigBlind) ? name : `${name} ${formatStakes(table.smallBlind, table.bigBlind)}`;
+  return formatGameStakes(table.game, table.smallBlind, table.bigBlind, table.straddle);
 }
 
 /** The line under a table's name on its card: "NLH 100/200 · 2 open", or that it is closed. */

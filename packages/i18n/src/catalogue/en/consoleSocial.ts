@@ -19,7 +19,7 @@ export const consoleSocial = {
     failures: {
       not_allowed: 'Not in your role. Ask an admin.',
       invalid: 'An image (JPEG, PNG or WebP), a caption and a channel.',
-      paused: 'Social publishing is switched off, or the club is paused.',
+      paused: 'Social publishing is switched off, or the venue is frozen.',
       unavailable: 'Not posted. Try again.',
     },
   },
@@ -83,7 +83,7 @@ export const consoleSocial = {
     failures: {
       not_allowed: 'Not in your role. Ask an admin.',
       gone: 'That post is no longer here.',
-      paused: 'The club is paused: moderate when it reopens.',
+      paused: 'Venue frozen. Try again once it is released.',
       unavailable: 'Not sent. Try again.',
     },
   },

@@ -1,8 +1,8 @@
 /** The Live floor as console v3 draws it (decision 0479): a table's tile, seating by number, a player's sheet, letting go. */
 import { expect, type Page } from '@playwright/test';
 
-/** A table's tile, named for the table and its stake: "Table 5 100/200". */
-export const tableTile = (page: Page, table: string) => page.getByRole('group', { name: new RegExp(`^${table} \\d`) });
+/** A table's tile, named for the table and its stake: "Table 5 NLH 100/200". */
+export const tableTile = (page: Page, table: string) => page.getByRole('group', { name: new RegExp(`^${table} [A-Z]+ \\d`) });
 
 /** The requests docked beside the floor. */
 export const requestsPanel = (page: Page) => page.getByRole('complementary', { name: 'Requests' });

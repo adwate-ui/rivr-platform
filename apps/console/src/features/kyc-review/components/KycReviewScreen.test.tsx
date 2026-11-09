@@ -19,7 +19,7 @@ const check = (memberId: string, name: string, status = 'needs_review', pan: str
 
 const QUEUE = [check('m1', 'Rohan Bhatia'), check('m2', 'Naina Kapoor', 'needs_review', 'ABCPN4444N'), check('m3', 'Puneet Agarwal', 'needs_pan', null)];
 
-/** A staff member in `role` on KYC review, with `queue` waiting, opened from Check ID with `checkName`; returns the decisions sent. */
+/** A staff member in `role` on ID checks, with `queue` waiting, opened from Check ID with `checkName`; returns the decisions sent. */
 function renderAs(role: string, queue: unknown[] = [], checkName?: string) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
@@ -46,18 +46,18 @@ function renderAs(role: string, queue: unknown[] = [], checkName?: string) {
   return decisions;
 }
 
-describe('KYC review (decision 0301)', () => {
+describe('ID checks (decision 0301)', () => {
   it.each(['host', 'floor'])('opens to the check in person alone for the %s, who reviews nothing', async (role) => {
     renderAs(role);
-    expect(await screen.findByRole('heading', { level: 2, name: 'Check in person' }, { timeout: 5000 })).toBeDefined();
+    expect(await screen.findByRole('heading', { level: 2, name: 'ID check in person' }, { timeout: 5000 })).toBeDefined();
     expect(screen.queryByText('No checks waiting for review.')).toBeNull();
   });
 
-  it('gives an admin the checks to review and Check in person, which opens its sheet', async () => {
+  it('gives an admin the checks to review and ID check in person, which opens its sheet', async () => {
     renderAs('admin');
     expect(await screen.findByText('No checks waiting for review.', {}, { timeout: 5000 })).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'Check in person' }));
-    const sheet = screen.getByRole('dialog', { name: 'Check in person' });
+    fireEvent.click(screen.getByRole('button', { name: 'ID check in person' }));
+    const sheet = screen.getByRole('dialog', { name: 'ID check in person' });
     expect(within(sheet).getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' })).toBeDefined();
   });
 
@@ -67,7 +67,7 @@ describe('KYC review (decision 0301)', () => {
       .toHaveProperty('value', 'Uday Thakur');
     cleanup();
     renderAs('admin', [], 'Uday Thakur');
-    const sheet = await screen.findByRole('dialog', { name: 'Check in person' }, { timeout: 5000 });
+    const sheet = await screen.findByRole('dialog', { name: 'ID check in person' }, { timeout: 5000 });
     expect(within(sheet).getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' })).toHaveProperty('value', 'Uday Thakur');
   });
 

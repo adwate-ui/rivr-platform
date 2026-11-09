@@ -14,7 +14,7 @@ export const tally = {
   failures: {
     not_allowed: 'Only treasury managers take the Tally export.',
     invalid: 'Choose a club day that has ended.',
-    paused: 'The venue is frozen. Ledgers can be mapped again once it is released.',
+    paused: 'Venue frozen. Try again once it is released.',
     unavailable: 'That did not go through. Check the connection and try again.',
   },
   ledgers: 'Tally ledgers',

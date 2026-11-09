@@ -46,6 +46,6 @@ export const rosterFailures = {
   notAllowed: 'Only staff who manage staff keep the roster.',
   invalid: 'Choose who and which days from today on, and write the times as HH:MM, such as 18:00. A shift runs at most 16 hours.',
   overlap: 'That would overlap a shift already rostered for one of them. Check the roster and try again.',
-  paused: 'The venue is frozen. Release it, then change the roster.',
+  paused: 'Venue frozen. Try again once it is released.',
   unavailable: 'That did not go through. Check the connection and try again.',
 };

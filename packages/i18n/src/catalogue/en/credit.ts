@@ -43,7 +43,7 @@ export const markers = {
   notChips: 'A limit is whole ₹50 chips.',
   switchedOff: 'Credit is switched off. Ask a super admin.',
   stopped: 'This member is frozen. Ask a manager.',
-  paused: 'The venue is frozen. Limits change again once it is released.',
+  paused: 'Venue frozen. Try again once it is released.',
   changed: 'The limit waiting has changed. Look at it again before you decide.',
   notSetUp: 'Credit is not set up at this venue yet. Ask a super admin.',
   invalid: 'Nothing waits for your approval here: a super admin approves a limit someone else asked for.',
@@ -70,7 +70,7 @@ export const markers = {
   repayMoreThanOwed: 'That is more than this member owes. Take only what they owe.',
   repayUtrUsed: 'That UTR has already paid for something else. Check it with the player.',
   repayStopped: 'This member is frozen. Ask a manager.',
-  repayPaused: 'The venue is frozen. Repayments start again once it is released.',
+  repayPaused: 'Venue frozen. Try again once it is released.',
   repayNoShift: 'The cage has no shift open. Open one on Shift first.',
   repayInvalid: 'Check the amount, how it was paid and the UTR.',
   /** The credit report (#92): what each member owed at the end of a day, by age. */

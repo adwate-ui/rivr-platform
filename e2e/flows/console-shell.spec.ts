@@ -28,7 +28,7 @@ const MOVED: readonly (readonly [string, string, string | null, string | null])[
 
 /** Old addresses whose tab is gone: where they land, and the line that says so. */
 const GONE: readonly (readonly [string, string, string])[] = [
-  ['/rake', '/settings?notice=rake', 'Rake is no longer on the console.'],
+  ['/rake', '/settings?notice=rake', 'Not used at RIVR.'],
   ['/cameras', '/settings?tab=devices&notice=cameras', 'Cameras are no longer on the console.'],
   ['/computers', '/settings?tab=devices&notice=computers', 'Computers are no longer on the console.'],
   ['/games-history', '/settings?notice=gamesHistory', 'Games history moved to Reports, Tables.'],

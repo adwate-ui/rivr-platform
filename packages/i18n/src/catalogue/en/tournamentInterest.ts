@@ -18,7 +18,7 @@ export const tournamentInterest = {
   failures: {
     not_allowed: 'Your role does not register players. The floor does.',
     invalid: 'Registered already. The list now shows it.',
-    paused: 'The venue is frozen. Registration resumes once it is released.',
+    paused: 'Venue frozen. Try again once it is released.',
     unavailable: 'That did not go through. Check the connection and try again.',
   },
   /** A tournament published without money (#800; decision 0441): members see it in the app at once. */

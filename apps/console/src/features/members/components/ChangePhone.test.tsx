@@ -35,15 +35,25 @@ function renderChange() {
 }
 
 describe('ChangePhone', () => {
+  it('takes a pasted number with its +91 or trunk 0, and sends it with one +91 (audit F-080)', async () => {
+    const sent = renderChange();
+    fireEvent.change(screen.getByRole('textbox', { name: 'New mobile number' }), { target: { value: '+91 90000-00782' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Type the new number again' }), { target: { value: '09000000782' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Why it changes' }), { target: { value: 'Lost his phone' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Change number' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Yes, change it to +919000000782' }));
+    await waitFor(() => expect(sent).toEqual([{ p_member_id: 'm1', p_phone: '+919000000782', p_reason: 'Lost his phone' }]));
+  });
+
   it('shows the number now, takes the new one twice, and changes it only on the second press', async () => {
     const sent = renderChange();
     expect(screen.getByText('Number now: +91 90000 00781')).toBeDefined();
-    fireEvent.change(screen.getByRole('textbox', { name: 'New mobile number' }), { target: { value: '+919000000782' } });
-    fireEvent.change(screen.getByRole('textbox', { name: 'Type the new number again' }), { target: { value: '+919000000783' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'New mobile number' }), { target: { value: '9000000782' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Type the new number again' }), { target: { value: '9000000783' } });
     fireEvent.change(screen.getByRole('textbox', { name: 'Why it changes' }), { target: { value: 'Lost his phone' } });
     expect(screen.getByText('The two numbers are not the same.')).toBeDefined();
     expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Change number' }).disabled).toBe(true);
-    fireEvent.change(screen.getByRole('textbox', { name: 'Type the new number again' }), { target: { value: '+919000000782' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Type the new number again' }), { target: { value: '9000000782' } });
     fireEvent.click(screen.getByRole('button', { name: 'Change number' }));
     expect(sent).toEqual([]);
     fireEvent.click(screen.getByRole('button', { name: 'Yes, change it to +919000000782' }));

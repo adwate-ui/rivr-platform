@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { nameGivesBlinds, placeMeta, tableMeta } from './placeMeta.ts';
+import { placeMeta, tableMeta } from './placeMeta.ts';
 import { buildFloorTable, buildPlace } from './waitlistFixtures.ts';
 
 const NOW = new Date('2026-11-15T15:40:00Z');
@@ -25,20 +25,7 @@ describe("a place's line under its name (console v3)", () => {
 describe("a table's line on its card", () => {
   it('names the stake once and how many seats are free, or that it is closed', () => {
     expect(tableMeta(TABLE)).toBe('NLH 100/200 · 3 open');
-    expect(tableMeta({ ...TABLE, tableTypeName: 'Private Room' })).toBe('Private Room 100/200 · 3 open');
+    expect(tableMeta({ ...TABLE, tableTypeName: 'Private Room', straddle: 50000n })).toBe('NLH 100/200/500 · 3 open');
     expect(tableMeta({ ...TABLE, isOpen: false })).toBe('NLH 100/200 · closed');
-  });
-});
-
-describe('a stake heading (UI polish audit A-10)', () => {
-  it('shows the blinds once when the name says them, with or without the grouping commas', () => {
-    expect(nameGivesBlinds('NLH 50/100', 5000n, 10000n)).toBe(true);
-    expect(nameGivesBlinds('NLH 1000/2000', 100000n, 200000n)).toBe(true);
-    expect(nameGivesBlinds('NLH 1,000/2,000', 100000n, 200000n)).toBe(true);
-  });
-
-  it('shows them beside a name that does not', () => {
-    expect(nameGivesBlinds('Private Room', 10000n, 20000n)).toBe(false);
-    expect(nameGivesBlinds('NLH 50/100', 10000n, 20000n)).toBe(false);
   });
 });

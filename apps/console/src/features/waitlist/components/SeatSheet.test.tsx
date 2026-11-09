@@ -52,7 +52,7 @@ describe('the seat sheet', () => {
     await act(() => cache.invalidateQueries());
     await waitFor(() => expect(screen.queryByRole('radio', { name: '4' })).toBeNull(), { timeout: 5000 });
     fireEvent.click(screen.getByRole('button', { name: 'Seat' }));
-    expect(await screen.findByText('Choose an open table, a seat at it, and a call time of 0 to 1,440 minutes.')).toBeDefined();
+    expect(await screen.findByText('Choose an open table, a seat at it, and a call time of up to 24 h.')).toBeDefined();
     expect(calls).toEqual([]);
 
     // A free seat and four hours: assigned, and seated at once (decision 0299).

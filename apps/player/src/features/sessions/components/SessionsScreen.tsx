@@ -1,6 +1,6 @@
 import { useFeatureStatus } from '@rivr/db';
 import { useMySessions, type MySession } from '@rivr/db/sessions';
-import { formatHoursMinutes, formatNumber, t } from '@rivr/i18n';
+import { formatDuration, formatNumber, t } from '@rivr/i18n';
 import { Button, FeatureGate, HistoryRow, Inline, Screen, Stack, StatRow, Text } from '@rivr/ui';
 import { clubDay } from '@rivr/domain/clubDay';
 import { useNavigate } from '@tanstack/react-router';
@@ -19,7 +19,7 @@ function MonthStats({ latest }: { latest: MySession | undefined }) {
   return (
     <StatRow stats={[
       { label: t('player.sessions.thisMonth'), value: formatNumber(month?.monthSessions ?? 0) },
-      { label: t('player.sessions.hoursPlayed'), value: formatHoursMinutes(month?.monthPlayedSeconds ?? 0) },
+      { label: t('player.sessions.hoursPlayed'), value: formatDuration(month?.monthPlayedSeconds ?? 0) },
     ]} />
   );
 }

@@ -6,14 +6,14 @@
  * ever shown.
  */
 export const playerKyc = {
-  title: 'Identity',
+  title: 'ID check',
   /** Above the title: sign-up is step 1. */
   eyebrow: 'Step 2 of 2',
-  startTitle: 'Verify your identity',
+  startTitle: 'Verify your ID',
   /** A member back with the check partly done, at their step. */
   resumeTitle: 'Pick up where you left off',
   /** The three steps (K-09), read out as a list named this. */
-  stepsLabel: 'Identity check',
+  stepsLabel: 'ID check',
   selfieStep: 'Selfie',
   selfieStepDetail: 'A photo of your face',
   digilockerStep: 'DigiLocker',
@@ -28,7 +28,7 @@ export const playerKyc = {
   /** On the registered screen, and on Tonight's card until the desk has checked them. */
   atTheDesk: 'Bring your Aadhaar and PAN on your first visit. The desk checks them before you play.',
   /** The eyebrow of Tonight's card. */
-  deskCheck: 'Identity check',
+  deskCheck: 'ID check',
   takeSelfie: 'Take a selfie',
   notLive: 'Photo unclear. Retake it in good light.',
   start: 'Continue to DigiLocker',
@@ -53,8 +53,8 @@ export const playerKyc = {
   review: 'A message follows once it is done.',
   refusedTitle: 'Not verified',
   refused: 'Bring your Aadhaar and PAN to the front desk.',
-  stopped: 'Identity checks are paused. Try again later.',
+  stopped: 'ID checks are paused. Try again later.',
   tooManyAttempts: 'Too many tries today. Try again tomorrow.',
-  notConfigured: 'Identity checks are not open yet.',
-  unavailable: 'Identity checks are down. Try again shortly.',
+  notConfigured: 'ID checks are not open yet.',
+  unavailable: 'ID checks are down. Try again shortly.',
 } as const;

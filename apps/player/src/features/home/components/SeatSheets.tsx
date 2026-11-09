@@ -1,6 +1,6 @@
 import { useMySeatActions, type MySeat, type MySeatFailure } from '@rivr/db';
 import { isAddTimeChoice, type AddTimeMinutes } from '@rivr/domain/callTime';
-import { formatHoursMinutes, t } from '@rivr/i18n';
+import { formatDuration, t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Sheet, Stack, Text, useIsOnline } from '@rivr/ui';
 import { useState } from 'react';
 
@@ -77,7 +77,7 @@ function LeaveSheet({ seat, secondsLeft, onClose }: SheetProps & { seat: MySeat;
   return (
     <Sheet isOpen onClose={onClose} title={t('player.live.seat.leaveTitle')}>
       <Stack gap={4}>
-        {seat.hasCallTime ? <Text tone="muted">{t('player.live.seat.leaveLeft', { time: formatHoursMinutes(secondsLeft) })}</Text> : null}
+        {seat.hasCallTime ? <Text tone="muted">{t('player.live.seat.leaveLeft', { time: formatDuration(secondsLeft) })}</Text> : null}
         <Button variant="primary" size="tall" fullWidth isDisabled={send.isOffline} isLoading={leave.isPending} onClick={() => void leave.mutateAsync().then(send.settle)}>
           {t('player.live.seat.joinLeaving')}
         </Button>

@@ -147,14 +147,14 @@ describe('Sessions', () => {
     renderAt('/sessions', { sessions: [{ ...SESSION, month, month_sessions: 34, month_played_seconds: 27000 }] });
     const stats = await screen.findByText('This month', {}, { timeout: 5000 });
     expect(stats.nextElementSibling?.textContent).toBe('34');
-    expect(screen.getByText('Hours played').nextElementSibling?.textContent).toBe('7h 30m');
+    expect(screen.getByText('Hours played').nextElementSibling?.textContent).toBe('7 h 30 min');
   });
 
   it('reads 0 this month when the latest session was in an earlier month', async () => {
     renderAt('/sessions', { sessions: [SESSION] });
     const stats = await screen.findByText('This month', {}, { timeout: 5000 });
     expect(stats.nextElementSibling?.textContent).toBe('0');
-    expect(screen.getByText('Hours played').nextElementSibling?.textContent).toBe('0h 00m');
+    expect(screen.getByText('Hours played').nextElementSibling?.textContent).toBe('0 min');
   });
 });
 
@@ -164,7 +164,7 @@ describe('a session', () => {
     expect(await screen.findByText('13 Feb 2026', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.getByText('02:00 to 08:00')).toBeDefined();
     expect(screen.getByText('100/200')).toBeDefined();
-    expect(screen.getByText('6h 00m')).toBeDefined();
+    expect(screen.getByText('6 h')).toBeDefined();
     expect(screen.queryByText(/₹/)).toBeNull();
     expect(screen.queryByText(/TDS|Receipt|Buy-in|Cash-out/)).toBeNull();
     // Drawn under its own Back button, it names the page after the session and takes the focus (WCAG 2.4.2).

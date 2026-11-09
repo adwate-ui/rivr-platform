@@ -102,7 +102,7 @@ export const rewards = {
   nights: '{nights} nights',
   oneNight: '1 night',
   /** The redemptions' price column: points, or nights for a hotel night. */
-  priceColumn: 'Price',
+  priceColumn: 'Cost',
   /** How many are left, or none counted. */
   left: '{count} left',
   /** A reward's price and stock on its row: `4,000 points · 42 left`. */

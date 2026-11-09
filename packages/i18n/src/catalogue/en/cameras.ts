@@ -27,6 +27,6 @@ export const cameraFailures = {
   notAllowed: 'Only staff who manage devices keep the cameras.',
   invalid: 'Write a name and a channel in letters and digits, and choose a table of this venue, the cage or elsewhere.',
   taken: 'That name, table or the cage already has a camera in use. Retire that one first.',
-  paused: 'The venue is frozen. Release it, then change the cameras.',
+  paused: 'Venue frozen. Try again once it is released.',
   unavailable: 'That did not go through. Check the connection and try again.',
 };

@@ -32,7 +32,7 @@ describe('Tonight › the desk check (decision 0502)', () => {
   it('tells a member let in by their selfie what to bring on their first visit', async () => {
     renderNotice({ ...CHECK, status: 'started', at_club_from: '2026-11-05T09:00:00Z' });
     expect(await screen.findByText('Bring your Aadhaar and PAN on your first visit. The desk checks them before you play.')).toBeDefined();
-    expect(screen.getByText('Identity check')).toBeDefined();
+    expect(screen.getByText('ID check')).toBeDefined();
   });
 
   it('shows nothing once the desk has verified them', async () => {

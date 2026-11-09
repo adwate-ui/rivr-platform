@@ -87,7 +87,14 @@ export interface VenueTier {
 /** Why a tier change or a break did not go through: not a member manager, no such member, a bad tier, length, reason or end, the venue frozen. */
 export type MemberFailure = 'not_allowed' | 'no_member' | 'invalid' | 'paused' | 'unavailable';
 
-const FAILURE_BY_CODE: Readonly<Record<string, MemberFailure>> = { '42501': 'not_allowed', RVNOM: 'no_member', '22023': 'invalid', RVFRZ: 'paused' };
+const FAILURE_BY_CODE: Readonly<Record<string, MemberFailure>> = {
+  '42501': 'not_allowed', RVNOM: 'no_member', '22023': 'invalid', RVFRZ: 'paused',
+};
+
+/** Why a tier change did not go through: each refusal says which field (audit F-071). */
+export type MemberTierFailure = MemberFailure | 'bad_tier' | 'bad_reason' | 'bad_last_day';
+
+const TIER_FAILURE_BY_CODE: Readonly<Record<string, MemberTierFailure>> = { ...FAILURE_BY_CODE, RVTTR: 'bad_tier', RVTRE: 'bad_reason', RVTEN: 'bad_last_day' };
 
 /** Whether a search is worth asking: a member number of any length, or two characters or more of a name or mobile. */
 export function isMemberQuery(query: string): boolean {
@@ -200,13 +207,13 @@ export function useMemberActions(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   const setTier = useMutation({
-    mutationFn: async (change: TierChange): Promise<Result<null, MemberFailure>> => {
+    mutationFn: async (change: TierChange): Promise<Result<null, MemberTierFailure>> => {
       const { error } = await client.rpc('set_member_tier', {
         p_venue_id: venueId, p_member_id: change.memberId, p_tier_id: change.tierId, p_reason: change.reason,
         ...(change.until === null ? {} : { p_until: change.until }),
       });
       await queryClient.invalidateQueries({ queryKey: ['user', userId ?? 'signed-out'] });
-      return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
+      return error ? err(TIER_FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },
   });
   // The floor's break for a member (decision 0053): a day to ten years, with a reason. It resolves to when the break ends.

@@ -8,12 +8,18 @@ const groups = (role: StaffRole) => railFor(ROLE_PERMISSIONS[role]).map((section
 const entry = (id: string) => [...RAIL.flatMap((group) => group.entries), REQUESTS].find((one) => one.id === id);
 
 describe('the console rail (console v3)', () => {
+  it('says what each count is: requests, open tickets, one or many (audit F-129)', () => {
+    const items = railFor(['floor.manage', 'feedback.manage'], { liveFloor: 1, feedback: 183 }).flatMap((section) => section.items);
+    expect(items.find((item) => item.id === 'liveFloor')?.countLabel).toBe('1 request');
+    expect(items.find((item) => item.id === 'feedback')?.countLabel).toBe('183 open tickets');
+  });
+
   it('runs Tonight, Players and Marketing, then Admin folded, for a super admin, with the three danger screens in red', () => {
     const rail = railFor(ROLE_PERMISSIONS.super_admin);
     expect(rail.map((section) => section.label)).toEqual(['Tonight', 'Players', 'Marketing', 'Admin']);
     expect(rail.map((section) => section.items.map((item) => item.label))).toEqual([
       ['Live floor', 'Waitlist', 'Door', 'Food and drink'],
-      ['Members', 'KYC review', 'Host queue', 'Feedback'],
+      ['Members', 'ID checks', 'Host queue', 'Feedback'],
       ['Promotions', 'Rewards', 'Social', 'Content'],
       ['Staff', 'Tables', 'Reports', 'Settings', 'Kill switch', 'Practice reset', 'Purge'],
     ]);
@@ -39,7 +45,7 @@ describe('the console rail (console v3)', () => {
     expect(items('admin')).not.toContain('/content');
   });
 
-  it('gives the floor the night, KYC checks in person and rewards, and no member list or admin', () => {
+  it('gives the floor the night, ID checks in person and rewards, and no member list or admin', () => {
     expect(items('floor')).toEqual(['/', '/waitlist', '/door', '/fnb', '/kyc-review', '/rewards']);
     expect(items('cashier')).toEqual(['/', '/waitlist', '/door', '/rewards']);
     for (const kept of ['/tables', '/members', '/promotions', '/settings', '/staff']) expect(isAllowedAt(ROLE_PERMISSIONS.floor, kept)).toBe(false);

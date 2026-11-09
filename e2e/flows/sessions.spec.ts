@@ -22,7 +22,7 @@ test.describe('Sessions', () => {
     await letGoEarly(sahil, 'Rhea Kaul', 'Floor decision');
     await expect(sahil.getByRole('button', { name: /^Seat \d+, Rhea Kaul,/ })).toHaveCount(0);
     await sahil.getByRole('link', { name: 'Door', exact: true }).click();
-    await sahil.getByRole('textbox', { name: 'Card, mobile, number or name' }).fill('9000000297');
+    await sahil.getByRole('textbox', { name: 'Card, name, mobile or member number' }).fill('9000000297');
     await sahil.getByRole('button', { name: 'Check out', exact: true }).click();
     await expect(sahil.getByText('Checked out.')).toBeVisible();
 

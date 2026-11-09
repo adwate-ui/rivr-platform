@@ -1,6 +1,6 @@
 import { useFeatureStatus } from '@rivr/db';
 import { useHideMySession, useMySession, type MySession } from '@rivr/db/sessions';
-import { formatHoursMinutes, formatNumber, formatTime, t } from '@rivr/i18n';
+import { formatDuration, formatNumber, formatTime, t } from '@rivr/i18n';
 import { BackButton, Box, Button, DetailRow, ErrorMessage, FeatureGate, Heading, Screen, Stack, Text, useHeadingFocus, usePageTitle, useToast } from '@rivr/ui';
 import { useCanGoBack, useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import { useId, useState } from 'react';
@@ -37,7 +37,7 @@ function Detail({ session, onHidden, headingId }: { session: MySession; onHidden
       <Box>
         <DetailRow label={t('player.sessions.game')} labelTone="muted" value={gameOf(session)} />
         <DetailRow label={t('player.sessions.time')} labelTone="muted" value={time} />
-        <DetailRow label={t('player.sessions.played')} labelTone="muted" value={formatHoursMinutes(session.playedSeconds)} isLast />
+        <DetailRow label={t('player.sessions.played')} labelTone="muted" value={formatDuration(session.playedSeconds)} isLast />
       </Box>
       <Button variant="outline" size="large" fullWidth onClick={() => void onHide()} isLoading={hide.isPending}>{t('player.sessions.hide')}</Button>
       {failed ? <ErrorMessage look="dot">{t('player.sessions.hideFailed')}</ErrorMessage> : null}

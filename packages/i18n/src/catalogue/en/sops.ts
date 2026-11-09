@@ -57,7 +57,7 @@ export const sops = {
     service: 'F&B',
   },
   notAllowed: 'Your role does not allow this. Ask the general manager.',
-  paused: 'The venue is frozen. Try again once it is released.',
+  paused: 'Venue frozen. Try again once it is released.',
   day: 'That day is before today or before the last version\'s. Choose today or a later day.',
   taken: 'The library already has an SOP with this title. Choose another title, or publish a new version of it.',
   changed: 'A newer version is now in force. Read it, then acknowledge it.',
@@ -118,7 +118,7 @@ export const incidents = {
     not_allowed: 'Your role cannot do that here.',
     invalid: 'The database refused a value. Check each field.',
     held: 'That drill is already marked held.',
-    paused: 'The venue is frozen. Try again once it is released.',
+    paused: 'Venue frozen. Try again once it is released.',
     unavailable: 'That did not go through. Check the connection and try again.',
   },
 };

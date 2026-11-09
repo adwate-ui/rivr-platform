@@ -41,7 +41,7 @@ function renderDoor(found: unknown[] = []) {
   return sent;
 }
 
-const field = () => screen.getByRole<HTMLInputElement>('textbox', { name: 'Card, mobile, number or name' });
+const field = () => screen.getByRole<HTMLInputElement>('textbox', { name: 'Card, name, mobile or member number' });
 const type = (value: string) => fireEvent.change(field(), { target: { value } });
 
 describe('the door field', () => {
@@ -71,7 +71,7 @@ describe('the door field', () => {
     expect(await screen.findByText('Checked in.')).toBeDefined();
     type('k');
     fireEvent.keyDown(field(), { key: 'Enter' });
-    expect(await screen.findByText('Scan the card, or type a mobile, member number or name.')).toBeDefined();
+    expect(await screen.findByText('Scan the card, or type a name, mobile or member number.')).toBeDefined();
     expect(screen.queryByText('Checked in.')).toBeNull();
   });
 

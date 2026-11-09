@@ -13,7 +13,7 @@ describe('Waitlist: Check ID goes by role (audit F-014)', () => {
   it.each([
     ['a host, who checks members in person', ['waitlist.manage', 'kyc.in_person'], 'Check ID offered'],
     ['a reviewer', ['waitlist.manage', 'kyc.review'], 'Check ID offered'],
-    ['a cashier, whom KYC review refuses', ['waitlist.manage'], 'No Check ID'],
+    ['a cashier, whom ID checks refuses', ['waitlist.manage'], 'No Check ID'],
   ])('for %s', (_who, permissions, said) => {
     staff.permissions = permissions;
     render(<WaitlistScreen />);

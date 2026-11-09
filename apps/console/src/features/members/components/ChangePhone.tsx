@@ -1,5 +1,5 @@
 import { useChangeMemberPhone, type PhoneChangeFailure } from '@rivr/db';
-import { formatMobile, t, type MessageKey } from '@rivr/i18n';
+import { formatMobile, formatTypedMobile, t, type MessageKey } from '@rivr/i18n';
 import { ConfirmButton, ErrorMessage, Heading, Input, Stack, Text, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
 
@@ -14,6 +14,10 @@ const FAILURE_COPY: Readonly<Record<PhoneChangeFailure, MessageKey>> = {
   unavailable: 'console.members.changePhone.failures.unavailable',
 };
 
+// Every number here is Indian: the field fixes the prefix, and takes the ten digits (audit F-080).
+const INDIA_PREFIX = '+91';
+const withPrefix = (typed: string) => `${INDIA_PREFIX}${typed.replace(/\D/g, '')}`;
+
 interface NumberFieldsProps {
   phone: string;
   again: string;
@@ -26,10 +30,10 @@ function NumberFields({ phone, again, onPhone, onAgain }: NumberFieldsProps) {
   const differs = again.trim() !== '' && again.trim() !== phone.trim();
   return (
     <>
-      <Input label={t('console.members.changePhone.newNumber')} hint={t('console.members.changePhone.newNumberHint')} value={phone} inputMode="tel"
-        autoComplete="off" onChange={(event) => onPhone(event.target.value)} />
-      <Input label={t('console.members.changePhone.again')} value={again} inputMode="tel" autoComplete="off"
-        error={differs ? t('console.members.changePhone.differs') : undefined} onChange={(event) => onAgain(event.target.value)} />
+      <Input label={t('console.members.changePhone.newNumber')} hint={t('console.members.changePhone.newNumberHint')} prefix={INDIA_PREFIX} value={phone} inputMode="tel"
+        autoComplete="off" onChange={(event) => onPhone(formatTypedMobile(event.target.value))} />
+      <Input label={t('console.members.changePhone.again')} prefix={INDIA_PREFIX} value={again} inputMode="tel" autoComplete="off"
+        error={differs ? t('console.members.changePhone.differs') : undefined} onChange={(event) => onAgain(formatTypedMobile(event.target.value))} />
     </>
   );
 }
@@ -46,7 +50,7 @@ export function ChangePhone({ venueId, memberId, currentPhone }: { venueId: stri
   const [reason, setReason] = useState('');
   const [outcome, setOutcome] = useState<{ ok: boolean; text: string } | null>(null);
   const submit = async () => {
-    const done = await change.mutateAsync({ phone, reason });
+    const done = await change.mutateAsync({ phone: withPrefix(phone), reason });
     setOutcome(done.ok ? { ok: true, text: t('console.members.changePhone.changed') } : { ok: false, text: t(FAILURE_COPY[done.error]) });
     if (done.ok) {
       setPhone('');
@@ -62,7 +66,7 @@ export function ChangePhone({ venueId, memberId, currentPhone }: { venueId: stri
       <NumberFields phone={phone} again={again} onPhone={setPhone} onAgain={setAgain} />
       <Input label={t('console.members.changePhone.reason')} value={reason} maxLength={300} autoComplete="off" onChange={(event) => setReason(event.target.value)} />
       <Stack align="start">
-        <ConfirmButton variant="subtle" label={t('console.members.changePhone.change')} confirm={t('console.members.changePhone.confirm', { phone: phone.trim() })}
+        <ConfirmButton variant="subtle" label={t('console.members.changePhone.change')} confirm={t('console.members.changePhone.confirm', { phone: withPrefix(phone) })}
           isDisabled={phone.trim() === '' || again.trim() !== phone.trim() || reason.trim().length < 3} isBusy={change.isPending} onConfirm={() => void submit()} />
       </Stack>
       <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>

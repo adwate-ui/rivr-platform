@@ -33,7 +33,7 @@ function renderForm(answer: () => Promise<Response> | Response) {
       <ToastProvider place="console"><AddPlaceForm venueId="v1" table={{ id: 't1', name: 'Table 1' }} /></ToastProvider>
     </RivrDataProvider>,
   );
-  return { sent, field: screen.getByRole('textbox', { name: 'Add: mobile or member no.' }), add: screen.getByRole('button', { name: 'Add' }) };
+  return { sent, field: screen.getByRole('textbox', { name: 'Add: mobile or member number' }), add: screen.getByRole('button', { name: 'Add' }) };
 }
 
 describe('adding a member to a table’s list (console v3)', () => {

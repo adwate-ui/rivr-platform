@@ -1,5 +1,5 @@
 import { useModerateWallPost, useWallPosts, type WallPost, type WallStatus } from '@rivr/db/social';
-import { formatDayTime, t } from '@rivr/i18n';
+import { formatWaitingSince, t } from '@rivr/i18n';
 import { Box, Button, DotStatus, ErrorMessage, Inline, LoadState, Skeleton, Stack, Text, type DotStatusTone } from '@rivr/ui';
 import { useState } from 'react';
 
@@ -15,7 +15,7 @@ function PostRow({ post, moderate }: { post: WallPost; moderate: Moderate }) {
       <Inline gap={4} justify="between" align="center" wrap>
         <Stack gap={1}>
           <Text variant="small" weight="medium">{t('console.social.wall.handleValue', { handle: post.handle })}</Text>
-          <Text variant="caption" tone="muted">{t('console.social.wall.line', { caption: post.caption, posted: formatDayTime(new Date(post.postedAt)) })}</Text>
+          <Text variant="caption" tone="muted">{t('console.social.wall.line', { caption: post.caption, posted: formatWaitingSince(new Date(post.postedAt)) })}</Text>
         </Stack>
         <Inline gap={2} align="center" wrap>
           <DotStatus tone={TONE[post.status]} label={t(`console.social.wall.statuses.${post.status}`)} />

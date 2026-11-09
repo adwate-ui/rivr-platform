@@ -21,7 +21,7 @@ afterEach(() => {
 describe('Identity › Resume', () => {
   it('picks up at DigiLocker, the selfie done, with what DigiLocker asks (K-09, decision 0320)', () => {
     renderStep({ status: 200, body: {} });
-    expect(screen.getByRole('list', { name: 'Identity check' })).toBeDefined();
+    expect(screen.getByRole('list', { name: 'ID check' })).toBeDefined();
     expect(screen.getByText('Selfie').textContent).toBe('Selfie, done');
     expect(screen.getByText('DigiLocker').textContent).toBe('DigiLocker, current step');
     expect(screen.getByRole('heading', { name: 'Pick up where you left off' })).toBeDefined();

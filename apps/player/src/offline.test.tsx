@@ -57,7 +57,7 @@ describe('the player app opened with no connection (F-053)', () => {
     openHome([]);
     expect(await screen.findByRole('heading', { name: 'No connection' }, LATER)).toBeDefined();
     expect(screen.getByText('Open RIVR again once you are online.')).toBeDefined();
-    expect(screen.queryByRole('heading', { name: 'Identity' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'ID check' })).toBeNull();
   });
 
   it('lets a kept check through to Home, which says so when it has no tables to show', async () => {

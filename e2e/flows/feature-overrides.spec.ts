@@ -15,7 +15,7 @@ test.describe('Feature overrides', () => {
     const admin = await browser.newPage();
     await signInToConsole(admin, '9000000134');
     await admin.getByRole('link', { name: 'Members' }).click();
-    await admin.getByRole('searchbox', { name: 'Name, member no. or mobile' }).fill('Siddharth');
+    await admin.getByRole('searchbox', { name: 'Name, mobile or member number' }).fill('Siddharth');
     await admin.getByRole('button', { name: 'Siddharth Vaid', exact: true }).click();
     // The record's parts are tabs (C-02).
     await admin.getByRole('link', { name: 'Account', exact: true }).click();
