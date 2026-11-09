@@ -45,7 +45,7 @@ function InfoBlock({ block }: { block: Extract<SiteBlock, { kind: 'rules' | 'faq
       const { heading, address, hours, directionsUrl, phone, email } = block.content;
       // Google's embed of the address needs no key; it loads only once the visitor allows maps (#616).
       const embedUrl = `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
-      return <MapBlock heading={heading} address={address} hours={hours} directionsUrl={directionsUrl} embedUrl={embedUrl} phone={phone} email={email} />;
+      return <MapBlock heading={heading} address={address} hours={hours} directionsUrl={directionsUrl} embedUrl={embedUrl} phone={phone ?? CLUB_CONTACT.phone} whatsappHref={whatsappHref()} email={email} />;
     }
   }
 }

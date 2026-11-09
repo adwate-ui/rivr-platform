@@ -39,6 +39,25 @@ test.describe('Website', () => {
     await expect(page.getByText(/every erasure made since it was taken is made again/)).toBeVisible();
   });
 
+  test('at 1440 px the photo tiles’ titles share a line, and Visit has its map beside the way to reach the club', async ({ page }) => {
+    await page.setViewportSize(VIEWPORT.web);
+    await page.goto(appUrl('web'));
+    const gallery = page.locator('section', { has: page.getByRole('heading', { level: 2, name: 'Built for the long session.' }) });
+    const tops = await gallery.getByRole('heading', { level: 3 }).evaluateAll((titles) => titles.map((title) => Math.round(title.getBoundingClientRect().top)));
+    expect(tops).toHaveLength(8);
+    expect(new Set(tops.slice(0, 4)).size).toBe(1);
+    expect(new Set(tops.slice(4)).size).toBe(1);
+
+    await page.goto(`${appUrl('web')}/visit`);
+    const main = page.getByRole('main');
+    await expect(main.getByRole('link', { name: /^Call / })).toHaveAttribute('href', /^tel:\+91\d{10}$/);
+    await expect(main.getByRole('link', { name: 'WhatsApp' })).toHaveAttribute('href', /^https:\/\/wa\.me\/91\d{10}$/);
+    const details = await main.locator('address').boundingBox();
+    const map = await main.locator('[data-consent="maps"]').boundingBox();
+    expect(map?.x ?? 0).toBeGreaterThanOrEqual((details?.x ?? 0) + (details?.width ?? 0));
+    expect(map?.height ?? 0).toBeGreaterThan(400);
+  });
+
   test('the club’s pages: about, membership, promotions, and a journal article, each keeping the visitor’s codes', { tag: '@staging' }, async ({ page }) => {
     await page.setViewportSize(VIEWPORT.web);
     await page.goto(`${appUrl('web')}/?ref=FRIEND1`);

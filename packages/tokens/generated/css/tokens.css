@@ -98,6 +98,7 @@
   --rivr-size-bottom-nav: 64px; /** Player bottom tab bar. */
   --rivr-size-player-foot: 140px; /** The player app's foot at its tallest, the tab bar and the peek of all tables above it (about 134 px), with room for a focus ring: how far scrolling keeps a focused control above it (WCAG 2.4.11). */
   --rivr-size-header: 56px; /** Top bar on phone and tablet shells. */
+  --rivr-size-gallery-caption: 104px; /** A website photo tile's caption four across: two lines of title and two of text, so titles share a line along a row (F-191). */
   --rivr-size-console-header: 60px; /** The console's header and the rail's wordmark row beside it, as the console v3 prototype draws them. */
   --rivr-size-text: 640px; /** Longest comfortable line of text. */
   --rivr-size-photo: 160px; /** A KYC photo beside its member's details, such as in the review queue. */

@@ -103,6 +103,9 @@ export const ui = {
     noOpenings: 'No openings.',
     /** MapBlock's link to directions in a maps app. */
     directions: 'Get directions',
+    /** MapBlock's buttons to reach the club (F-197): `{number}` as it is read out. */
+    call: 'Call {number}',
+    whatsapp: 'WhatsApp',
     /** MapBlock's embedded map (#616), which loads only once the visitor allows maps. */
     mapTitle: 'A map of where the club is',
     mapConsent: 'Google Maps sets its own cookies. Allow maps to see it.',
