@@ -1,9 +1,10 @@
+import { Capacitor } from '@capacitor/core';
 import { t } from '@rivr/i18n';
 import { keepCookieChoice, loadTagManager, stopAnalytics, storedCookieChoice, Switch } from '@rivr/ui';
 import { useState } from 'react';
 
 /** The cookie banner's analytics choice (decision 0298), changed later: kept on this phone, as the banner keeps it. Turned off, it stops at once. */
-export function AnalyticsSwitch() {
+function WebAnalyticsSwitch() {
   const [isOn, setIsOn] = useState(() => storedCookieChoice()?.analytics === true);
   return (
     <Switch label={t('player.profile.analytics')} hint={t('player.profile.analyticsHint')} isOn={isOn} onChange={(next) => {
@@ -13,4 +14,9 @@ export function AnalyticsSwitch() {
       else stopAnalytics();
     }} />
   );
+}
+
+/** Not in the store app, which loads no analytics (decision 0577). */
+export function AnalyticsSwitch() {
+  return Capacitor.isNativePlatform() ? null : <WebAnalyticsSwitch />;
 }
