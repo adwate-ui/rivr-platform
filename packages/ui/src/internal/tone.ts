@@ -1,5 +1,5 @@
 /** Text colour by meaning. `money` is gold: money that belongs to the player. */
-export type TextTone = 'default' | 'muted' | 'money' | 'accent' | 'onCream' | 'onAction' | 'onAlert' | 'inherit';
+export type TextTone = 'default' | 'muted' | 'money' | 'accent' | 'danger' | 'onCream' | 'onAction' | 'onAlert' | 'inherit';
 
 /** The Tailwind class for each tone; shared by Text, Heading and the figure components. */
 export const TONE: Record<TextTone, string> = {
@@ -8,6 +8,8 @@ export const TONE: Record<TextTone, string> = {
   money: 'text-money',
   /** A website eyebrow: gold, green on a cream band. */
   accent: 'text-accent',
+  /** The console's danger red: what ran past its target, with the word beside it. */
+  danger: 'text-danger',
   onCream: 'text-on-cream',
   onAction: 'text-on-action',
   onAlert: 'text-on-alert',

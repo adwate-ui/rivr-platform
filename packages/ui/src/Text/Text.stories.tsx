@@ -32,6 +32,7 @@ export const Tones: Story = {
       <Text>Default · Balance</Text>
       <Text tone="muted">Muted · Expires Sunday</Text>
       <Text tone="money">Money · ₹4,000 bonus</Text>
+      <Text tone="danger">Danger · Late · 16 min</Text>
     </Stack>
   ),
 };

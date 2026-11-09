@@ -86,7 +86,11 @@ export const consoleFnb = {
   /** A runner leaves with the order (decision 0320). */
   onWay: 'On its way',
   onWayName: 'KOT {kot} on its way',
-  isOnWay: 'On its way',
+  onWayAge: 'On its way · {time}',
+  late: 'Late · {age}',
+  /** A standing order whose guest is going or has gone (audit F-085). */
+  seatLeaving: 'The guest is leaving.',
+  seatLeft: 'Guest left. Deliver at the door or void.',
   /** Voiding an order not yet delivered (decision 0302), with a reason the member sees. */
   void: 'Void',
   voidName: 'Void KOT {kot}',

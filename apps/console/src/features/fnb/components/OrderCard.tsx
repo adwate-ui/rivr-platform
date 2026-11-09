@@ -1,4 +1,5 @@
 import { useServeFnbOrder, type FnbFailure, type FnbOrderTonight } from '@rivr/db/fnb';
+import { isTicketLate } from '@rivr/domain/floorRequests';
 import { formatDuration, t } from '@rivr/i18n';
 import { Box, Button, Inline, Stack, Text } from '@rivr/ui';
 import { KotNotAtBar } from './KotNotAtBar.tsx';
@@ -26,21 +27,21 @@ function AcceptStep({ order, serve, act }: StepProps) {
   );
 }
 
-/** An order being prepared: Delivered, and On its way as a runner leaves with it (the member's tracker reads it, decision 0320). */
+/** An order being prepared, its steps in order: On its way as a runner leaves with it (the member's tracker reads it, decision 0320), then Delivered. */
 function PreparingSteps({ order, serve, act }: StepProps) {
   const { sendOnWay, deliver } = serve;
   return (
     <>
-      <Button variant="strong" size="small" aria-label={t('console.fnb.deliverName', { kot: order.kotNumber })}
-        isLoading={deliver.isPending && deliver.variables === order.orderId} onClick={() => void act(deliver.mutateAsync(order.orderId))}>
-        {t('console.fnb.deliver')}
-      </Button>
       {order.onWayAt === null ? (
         <Button variant="subtle" size="small" aria-label={t('console.fnb.onWayName', { kot: order.kotNumber })}
           isLoading={sendOnWay.isPending && sendOnWay.variables === order.orderId} onClick={() => void act(sendOnWay.mutateAsync(order.orderId))}>
           {t('console.fnb.onWay')}
         </Button>
-      ) : <Text variant="caption" tone="muted">{t('console.fnb.isOnWay')}</Text>}
+      ) : null}
+      <Button variant="strong" size="small" aria-label={t('console.fnb.deliverName', { kot: order.kotNumber })}
+        isLoading={deliver.isPending && deliver.variables === order.orderId} onClick={() => void act(deliver.mutateAsync(order.orderId))}>
+        {t('console.fnb.deliver')}
+      </Button>
     </>
   );
 }
@@ -56,6 +57,20 @@ function CardActions({ venueId, lane, ...step }: StepProps & { venueId: string; 
   );
 }
 
+/** The card's top line: how long a delivered order took; a standing one's age, that it is on its way, and if it is late (audit F-075, F-096). */
+function ageLine(order: FnbOrderTonight, lane: OrderLane): { text: string; isLate: boolean } {
+  const time = formatDuration(order.ageSeconds);
+  if (lane === 'delivered') return { text: t('console.fnb.deliveredIn', { time }), isLate: false };
+  const age = order.onWayAt === null ? time : t('console.fnb.onWayAge', { time });
+  return isTicketLate(order.ageSeconds) ? { text: t('console.fnb.late', { age }), isLate: true } : { text: age, isLate: false };
+}
+
+/** A standing order whose guest is going or has gone (audit F-085): the runner delivers at the door, or voids it with a reason. */
+function SeatNote({ order, lane }: { order: FnbOrderTonight; lane: OrderLane }) {
+  if (lane === 'delivered' || order.seatState === 'seated') return null;
+  return <Text variant="small" weight="semibold">{t(order.seatState === 'left' ? 'console.fnb.seatLeft' : 'console.fnb.seatLeaving')}</Text>;
+}
+
 interface OrderCardProps extends StepProps {
   venueId: string;
   lane: OrderLane;
@@ -67,16 +82,17 @@ interface OrderCardProps extends StepProps {
  */
 export function OrderCard({ venueId, lane, ...step }: OrderCardProps) {
   const { order } = step;
-  const time = formatDuration(order.ageSeconds);
+  const age = ageLine(order, lane);
   const note = orderNotes(order);
   return (
     <Box surface="raised" radius="md" padding={4} hairline={lane === 'toAccept' ? 'all' : 'none'}>
       <Stack gap={2}>
         <Inline gap={3} align="center" justify="between">
           <Text weight="semibold">{t('console.fnb.kot', { kot: order.kotNumber })}</Text>
-          <Text variant="caption" tone="muted">{lane === 'delivered' ? t('console.fnb.deliveredIn', { time }) : time}</Text>
+          <Text variant="caption" tone={age.isLate ? 'danger' : 'muted'}>{age.text}</Text>
         </Inline>
         <Text variant="small">{orderWhere(order)}</Text>
+        <SeatNote order={order} lane={lane} />
         <Text variant="small" tone="muted">{orderLines(order)}</Text>
         {note === null ? null : <Text variant="small">{t('console.fnb.note', { note })}</Text>}
         {order.isKotPrintFailed ? <KotNotAtBar venueId={venueId} order={order} /> : null}

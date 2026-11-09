@@ -52,6 +52,8 @@ export interface FnbOrderTonight {
    * outbox's bar_printer delivery, never a clock; false once the bar has it or the order is void.
    */
   readonly isKotPrintFailed: boolean;
+  /** Whether the guest it goes to is still in that seat (audit F-085): `leaving` once they have asked to go, `left` once it has ended. */
+  readonly seatState: 'seated' | 'leaving' | 'left';
   /** When service accepted it and delivered it (#640); null until then. */
   readonly acceptedAt: string | null;
   readonly deliveredAt: string | null;
@@ -225,7 +227,7 @@ export function useFnbOrdersTonight(venueId: string) {
         memberNumber: Number(row.member_number), lines: linesOf(row.lines), isComp: row.is_comp, source: sourceOf(row.source),
         createdAt: row.created_at, kotSentBy: row.kot_sent_by === 'agent' || row.kot_sent_by === 'staff' ? row.kot_sent_by : null,
         isKotPrintFailed: row.kot_print_failed,
-        acceptedAt: row.accepted_at, deliveredAt: row.delivered_at, ageSeconds: row.age_seconds, onWayAt: row.on_way_at,
+        seatState: row.seat_state === 'leaving' || row.seat_state === 'left' ? row.seat_state : 'seated', acceptedAt: row.accepted_at, deliveredAt: row.delivered_at, ageSeconds: row.age_seconds, onWayAt: row.on_way_at,
         cancelledAt: row.cancelled_at, cancelReason: row.cancel_reason,
       }));
     },
