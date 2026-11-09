@@ -3,7 +3,7 @@ import {
   type PromotionSimulationResult, type PromotionStatus, type PromotionTerms,
 } from '@rivr/contracts/promotionModel';
 import { TERMS_PARTS, termsDiff, type Terms, type TermsPart } from '@rivr/domain/promotions';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { Json } from './database.types.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
@@ -187,14 +187,15 @@ export interface MemberPromotionGrant {
   readonly perk: string | null;
 }
 
-/** The promotions a member was given, newest first, for staff who read members. */
-export function useMemberPromotionGrants(memberId: string) {
+/** The newest `count` promotions a member was given (F-103), for staff who read members. */
+export function useMemberPromotionGrants(memberId: string, count: number) {
   const { client, userId } = useRivrData();
   return useQuery({
-    queryKey: queryKeys.memberPromotionGrants(userId ?? 'signed-out', memberId),
+    queryKey: queryKeys.memberPromotionGrants(userId ?? 'signed-out', memberId, count),
     enabled: userId !== null,
+    placeholderData: keepPreviousData,
     queryFn: async (): Promise<MemberPromotionGrant[]> => {
-      const { data, error } = await client.rpc('member_promotion_grants', { p_member_id: memberId });
+      const { data, error } = await client.rpc('member_promotion_grants', { p_member_id: memberId, p_limit: count });
       if (error) throw error;
       return data.map((row) => ({
         id: row.grant_id, grantedAt: row.granted_at, clubDay: row.club_day, promotion: row.promotion_name, version: row.version,

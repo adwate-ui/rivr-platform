@@ -249,7 +249,7 @@ export const queryKeys = {
   promotionVersions: (userId: string, promotionId: string) => ['user', userId, 'promotion-versions', promotionId] as const,
   /** Last week replayed afresh on a waiting version, for its approver (decision 0495). */
   promotionReplay: (userId: string, versionId: string) => ['user', userId, 'promotion-replay', versionId] as const,
-  memberPromotionGrants: (userId: string, memberId: string) => ['user', userId, 'member-promotion-grants', memberId] as const,
+  memberPromotionGrants: (userId: string, memberId: string, count: number) => ['user', userId, 'member-promotion-grants', memberId, count] as const,
   /** A venue's SOP library (#51), and who has acknowledged each version, for SOP managers. */
   sops: (userId: string, venueId: string) => ['user', userId, 'sops', venueId] as const,
   sopAcknowledgementsAll: (userId: string) => ['user', userId, 'sop-acknowledgements'] as const,
