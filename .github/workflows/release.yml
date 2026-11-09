@@ -168,6 +168,8 @@ jobs:
           fi
           pnpm supabase secrets set "CASHFREE_ENVIRONMENT=$CASHFREE_ENVIRONMENT" --project-ref "$PROJECT_REF"
       - name: Auth settings (sessions only from a code, #187)
+        env:
+          STORE_REVIEWER_NUMBER: ${{ secrets.STORE_REVIEWER_NUMBER }}
         run: node scripts/ci/check-auth-config.mjs
 
   pages:
@@ -193,8 +195,47 @@ jobs:
       - run: pnpm build --filter player --filter console --filter display --filter tablet --filter web
       - run: node scripts/ci/cloudflare-deploy.mjs production main player console display tablet web
 
-  android:
+  # Whether each store build's keys are set (decision 0577). None set is a notice and a skip; some of them is a failure naming the rest.
+  store-keys:
     needs: e2e-staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    outputs:
+      android: ${{ steps.android.outputs.present }}
+      play: ${{ steps.play.outputs.present }}
+      ios: ${{ steps.ios.outputs.present }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - id: android
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: node scripts/ci/store-keys.mjs ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD
+      - id: play
+        if: ${{ !cancelled() }}
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          PLAYER_GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.PLAYER_GOOGLE_SERVICES_JSON_BASE64 }}
+        run: node scripts/ci/store-keys.mjs PLAY_SERVICE_ACCOUNT_JSON PLAYER_GOOGLE_SERVICES_JSON_BASE64
+      - id: ios
+        if: ${{ !cancelled() }}
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: node scripts/ci/store-keys.mjs ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8 APPLE_TEAM_ID
+      - if: ${{ !cancelled() && steps.play.outputs.present == 'true' && steps.android.outputs.present != 'true' }}
+        run: |
+          echo "::error::The Google Play keys are set but the Android signing key is not. See docs/runbooks/store-listing.md."
+          exit 1
+
+  android:
+    needs: [e2e-staging, store-keys]
+    if: needs.store-keys.outputs.android == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     environment: production
@@ -206,9 +247,6 @@ jobs:
         app: [tablet]
     env:
       RIVR_ANDROID_KEYSTORE_FILE: ${{ github.workspace }}/release.keystore
-      RIVR_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-      RIVR_ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-      RIVR_ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
       # The APK is a shell around the hosted, versioned bundle, so code changes need no reinstall.
       RIVR_SHELL_URL: ${{ vars.PROD_TABLET_URL }}
     steps:
@@ -218,10 +256,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Signing key
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-        run: echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RIVR_ANDROID_KEYSTORE_FILE"
       # YYYYMMDD * 100 + N: release-20261115-1 is 2026111501. Always higher than any earlier
       # release, so a tablet never refuses the new APK as a downgrade.
       - name: Version from the tag
@@ -232,8 +266,17 @@ jobs:
           echo "RIVR_VERSION_CODE=$(( 10#$date * 100 + 10#$n ))" >> "$GITHUB_ENV"
       - run: pnpm build --filter ${{ matrix.app }}
       - run: pnpm --filter ${{ matrix.app }} exec cap sync android
-      - run: ./gradlew assembleRelease
+      # The signing key reaches this step alone: nothing the build or cap sync installs can read it.
+      - name: Signed APK
         working-directory: apps/${{ matrix.app }}/android
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          RIVR_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          RIVR_ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          RIVR_ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RIVR_ANDROID_KEYSTORE_FILE"
+          ./gradlew assembleRelease
       - run: cp apps/${{ matrix.app }}/android/app/build/outputs/apk/release/app-release.apk "rivr-${{ matrix.app }}-${GITHUB_REF_NAME}.apk"
       # The key leaves the disk before any third-party action runs; always(), so a failed build removes it too.
       - if: always()
@@ -241,3 +284,112 @@ jobs:
       - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
           files: rivr-${{ matrix.app }}-${{ github.ref_name }}.apk
+
+  # The player app for Google Play's internal track (#806, decision 0577), after the web apps it loads have deployed.
+  player-android:
+    needs: [pages, store-keys]
+    if: needs.store-keys.outputs.android == 'true' && needs.store-keys.outputs.play == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment: production
+    env:
+      RIVR_ANDROID_KEYSTORE_FILE: ${{ github.workspace }}/release.keystore
+      RIVR_SHELL_URL: ${{ vars.PROD_PLAYER_URL }}
+      VITE_SUPABASE_URL: ${{ vars.PROD_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.PROD_SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: ./.github/actions/setup
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Version from the tag
+        run: |
+          date="$(cut -d- -f2 <<< "$GITHUB_REF_NAME")"
+          n="$(cut -d- -f3 <<< "$GITHUB_REF_NAME")"
+          echo "RIVR_VERSION_NAME=$GITHUB_REF_NAME" >> "$GITHUB_ENV"
+          echo "RIVR_VERSION_CODE=$(( 10#$date * 100 + 10#$n ))" >> "$GITHUB_ENV"
+      - run: pnpm build --filter player
+      - run: pnpm --filter player exec cap sync android
+      # The signing key reaches this step alone: nothing the build or cap sync installs can read it.
+      - name: Signed bundle
+        working-directory: apps/player/android
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          PLAYER_GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.PLAYER_GOOGLE_SERVICES_JSON_BASE64 }}
+          RIVR_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          RIVR_ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          RIVR_ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RIVR_ANDROID_KEYSTORE_FILE"
+          echo "$PLAYER_GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > app/google-services.json
+          ./gradlew bundleRelease
+      # The key leaves the disk before any third-party action runs; always(), so a failed build removes it too.
+      - if: always()
+        run: rm -f "$RIVR_ANDROID_KEYSTORE_FILE" apps/player/android/app/google-services.json
+      - uses: r0adkll/upload-google-play@935ef9c68bb393a8e6116b1575626a7f5be3a7fb # v1.1.3
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: club.rivr.player
+          releaseFiles: apps/player/android/app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
+
+  # The player app for TestFlight (#806, decision 0577). Xcode signs it with the App Store Connect key, so nobody needs a Mac.
+  player-ios:
+    needs: [pages, store-keys]
+    if: needs.store-keys.outputs.ios == 'true'
+    runs-on: macos-26
+    timeout-minutes: 60
+    environment: production
+    env:
+      RIVR_SHELL_URL: ${{ vars.PROD_PLAYER_URL }}
+      VITE_SUPABASE_URL: ${{ vars.PROD_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.PROD_SUPABASE_PUBLISHABLE_KEY }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      # Where an iPhone reports a Live Activity's token with no web view running (decision 0361).
+      TOKEN_URL: ${{ vars.PROD_SUPABASE_URL }}/functions/v1/live-status-token
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: ./.github/actions/setup
+      # MARKETING_VERSION is integers and dots: release-20261115-1 is 2026.1115.1. The build number is the tablet's version code.
+      - name: Version from the tag
+        run: |
+          date="$(cut -d- -f2 <<< "$GITHUB_REF_NAME")"
+          n="$(cut -d- -f3 <<< "$GITHUB_REF_NAME")"
+          echo "MARKETING=${date:0:4}.$(( 10#${date:4} )).$(( 10#$n ))" >> "$GITHUB_ENV"
+          echo "BUILD=$(( 10#$date * 100 + 10#$n ))" >> "$GITHUB_ENV"
+      - run: pnpm build --filter player
+      - run: pnpm --filter player exec cap sync ios
+      # The key reaches the disk only now, after everything the build installs has run.
+      - name: App Store Connect key
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          echo "ASC_KEY_PATH=$RUNNER_TEMP/AuthKey.p8" >> "$GITHUB_ENV"
+          printf '%s' "$ASC_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
+      - name: Archive
+        run: |
+          xcodebuild archive -project apps/player/ios/App/App.xcodeproj -scheme App -configuration Release -destination generic/platform=iOS \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" MARKETING_VERSION="$MARKETING" CURRENT_PROJECT_VERSION="$BUILD" RIVR_LIVE_STATUS_TOKEN_URL="$TOKEN_URL"
+      - name: Upload to TestFlight
+        run: |
+          cat > "$RUNNER_TEMP/export.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>teamID</key><string>$APPLE_TEAM_ID</string>
+          </dict></plist>
+          PLIST
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" -exportOptionsPlist "$RUNNER_TEMP/export.plist" -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates -authenticationKeyPath "$ASC_KEY_PATH" -authenticationKeyID "$ASC_KEY_ID" -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+      - if: always()
+        run: rm -f "$ASC_KEY_PATH"

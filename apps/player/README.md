@@ -65,6 +65,8 @@ An ongoing notification with a chronometer, from a Firebase data message (`LiveS
 2. Set the build setting `RIVR_LIVE_STATUS_TOKEN_URL` to `https:/$()/<project-ref>.supabase.co/functions/v1/live-status-token` (an `.xcconfig` reads `//` as a comment).
 3. Run on a device with iOS 17.2 or later, turn Notifications on this phone on in Profile, and join a list from the console.
 
+**Store builds** come from a `release-*` tag once the keys are set (`docs/runbooks/store-listing.md`, decision 0577). With no network the app shows `offline.html`, built into it. It has no cookie sheet or Analytics switch, and loads no analytics.
+
 ## Budgets
 
 Initial JavaScript under 200 KB gzipped, checked in CI by `scripts/check-bundle.mjs`. With the service worker's registration it is about 192 KB (October 2026). The player ships only its own copy (`src/messages.ts`); keep it that way, as every other app's copy would cost several KB.

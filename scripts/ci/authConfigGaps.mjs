@@ -12,6 +12,16 @@ function testNumbers(setting) {
     .map((entry) => /^\s*\+?(\d{1,15})\s*=\s*\d+\s*$/.exec(entry)?.[1] ?? null);
 }
 
+/**
+ * The reviewer's number, once Auth lists it, must be the number the sign-in hook fences (auth.store_reviewer, decision 0575). If it
+ * is not, its fixed code would sign in with nothing checking who that number is.
+ */
+export function reviewerFenceGaps(setting, reviewer, fencedPhones) {
+  if (reviewer === '' || !testNumbers(setting).includes(reviewer)) return [];
+  if (fencedPhones.map((phone) => phone.replace(/\D/g, '')).includes(reviewer)) return [];
+  return [`test sign-in number ending ${reviewer.slice(-4)} is not the auth.store_reviewer setting, so nothing fences it`];
+}
+
 /** What is wrong with a project's test sign-in numbers: each one listed that is not in `allowed`, or that cannot be read. */
 export function testNumberGaps(setting, { staging, allowed }) {
   return testNumbers(setting).flatMap((number) => {

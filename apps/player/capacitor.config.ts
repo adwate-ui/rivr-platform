@@ -10,7 +10,8 @@ const config: CapacitorConfig = {
   appId: 'club.rivr.player',
   appName: 'RIVR',
   webDir: 'dist',
-  ...(shellUrl ? { server: { url: shellUrl } } : {}),
+  // offline.html comes from the app, for when the hosted app cannot load (decision 0577).
+  ...(shellUrl ? { server: { url: shellUrl, errorPath: 'offline.html' } } : {}),
 };
 
 export default config;
