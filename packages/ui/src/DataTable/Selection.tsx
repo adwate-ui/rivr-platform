@@ -49,7 +49,7 @@ export function Tick({ label, isChecked, isMixed, onChange }: TickProps) {
     <label className="flex min-h-touch min-w-touch cursor-pointer items-center justify-center tablet:min-h-0 tablet:min-w-0">
       <input type="checkbox" aria-label={label} checked={isChecked} onChange={onChange}
         ref={(box) => { if (box !== null) box.indeterminate = isMixed; }}
-        className="size-4 cursor-pointer accent-cream focus-visible:outline-2 focus-visible:outline-focus" />
+        className="size-4 cursor-pointer accent-cream focus-visible:outline focus-visible:outline-focus" />
     </label>
   );
 }

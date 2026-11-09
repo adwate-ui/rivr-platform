@@ -25,13 +25,13 @@ export function initialsOf(name: string): string {
 
 const TRIGGER =
   'flex size-touch shrink-0 items-center justify-center rounded-full bg-raised font-text text-12 leading-tight font-semibold text-content ' +
-  'transition-colors hover:bg-subtle-hover aria-expanded:bg-subtle-hover focus-visible:outline-2 focus-visible:outline-focus tablet:size-control';
+  'transition-colors hover:bg-subtle-hover aria-expanded:bg-subtle-hover focus-visible:outline focus-visible:outline-focus tablet:size-control';
 
 const PANEL = 'absolute end-0 top-full z-overlay mt-2 flex w-max min-w-rail max-w-side-panel flex-col gap-1 rounded-lg bg-raised p-2 shadow-modal focus:outline-none';
 
 const SIGN_OUT =
   'flex min-h-touch w-full items-center rounded-md px-3 text-start font-text text-13 leading-control text-content transition-colors ' +
-  'hover:bg-subtle focus-visible:outline-2 focus-visible:outline-focus disabled:opacity-disabled tablet:min-h-control';
+  'hover:bg-subtle focus-visible:outline focus-visible:outline-focus disabled:opacity-disabled tablet:min-h-control';
 
 interface DisclosureRefs {
   readonly trigger: RefObject<HTMLButtonElement | null>;

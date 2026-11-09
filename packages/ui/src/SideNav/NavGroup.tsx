@@ -70,7 +70,7 @@ function GroupHeading({ id, label, isHidden, fold }: GroupHeadingProps) {
     <button type="button" aria-expanded={!fold.isShut} aria-controls={fold.isShut ? undefined : fold.listId} aria-disabled={fold.isLocked || undefined}
       onClick={fold.isLocked ? undefined : fold.onToggle}
       className={cx(HEADING, 'flex min-h-touch items-center justify-between rounded-md px-3 transition-colors hover:text-content tablet:min-h-8',
-        'focus-visible:outline-2 focus-visible:outline-focus')}>
+        'focus-visible:outline focus-visible:outline-focus')}>
       <span id={id}>{label}</span>
       <Icon name={fold.isShut ? 'chevronDown' : 'chevronUp'} size="sm" />
     </button>

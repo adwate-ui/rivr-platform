@@ -9,7 +9,7 @@ export interface PracticeBannerProps {
 
 const ACTION =
   'inline-flex min-h-touch shrink-0 items-center rounded-sm bg-raised px-3 font-text text-12 leading-control font-medium whitespace-nowrap text-content ' +
-  'transition-colors hover:bg-surface focus-visible:outline-2 focus-visible:outline-focus disabled:opacity-disabled tablet:min-h-7';
+  'transition-colors hover:bg-surface focus-visible:outline focus-visible:outline-focus disabled:opacity-disabled tablet:min-h-7';
 
 /**
  * Across the top of the console while it works in the practice venue (console v3, decision 0477): gold stripes, the line

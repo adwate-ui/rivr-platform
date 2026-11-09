@@ -38,7 +38,7 @@ const TITLE: Record<SheetTitleLook, string> = {
 // A 44 px target on the title's line, its room beyond the line taken back by its margins, as the console sheet's Close.
 const CLOSE =
   'flex size-touch shrink-0 items-center justify-center rounded-md text-content transition-colors hover:bg-subtle ' +
-  '-my-2 -mr-2 focus-visible:outline-2 focus-visible:outline-focus';
+  '-my-2 -mr-2 focus-visible:outline focus-visible:outline-focus';
 
 /** A sheet over the screen: the player app's (decision 0320), or the console's with `place="console"` (console v3). */
 export function Sheet(props: SheetProps) {

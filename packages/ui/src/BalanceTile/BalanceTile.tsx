@@ -44,7 +44,7 @@ export function BalanceTile({ icon, figure, label, line, tone = 'default', onOpe
   const tile = 'flex min-w-0 flex-1 flex-col items-start gap-1 rounded-md border border-hairline bg-raised p-4 text-start';
   if (!onOpen) return <div className={tile}>{body}</div>;
   return (
-    <button type="button" className={cx(tile, 'min-h-touch focus-visible:outline-2 focus-visible:outline-focus')} aria-expanded={isExpanded} onClick={onOpen}>
+    <button type="button" className={cx(tile, 'min-h-touch focus-visible:outline focus-visible:outline-focus')} aria-expanded={isExpanded} onClick={onOpen}>
       {body}
     </button>
   );

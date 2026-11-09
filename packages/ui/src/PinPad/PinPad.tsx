@@ -94,7 +94,7 @@ export function PinPad({ label, value, onChange, length = 4, error, isDisabled }
     <Stack gap={4}>
       <Text id={labelId} variant="label">{label}</Text>
       <div role="group" aria-labelledby={labelId} onKeyDown={typed} className="flex flex-col gap-4">
-        <label className="flex min-h-touch w-fit items-center rounded-md focus-within:outline-2 focus-within:outline-focus">
+        <label className="flex min-h-touch w-fit items-center rounded-md focus-within:outline focus-within:outline-focus">
           <PinField labelId={labelId} value={value} length={length} isDisabled={isDisabled} onChange={onChange} />
           <PinDots entered={value.length} length={length} />
         </label>

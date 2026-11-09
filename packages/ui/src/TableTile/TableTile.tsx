@@ -82,7 +82,7 @@ function SeatsButton({ seats, waiting, nameId, seatsId, isOpen }: { seats: reado
   const lineId = useId();
   return (
     <button type="button" aria-expanded={isOpen} aria-controls={isOpen ? seatsId : undefined} aria-labelledby={`${nameId} ${lineId}`}
-      aria-describedby={summaryId} className="-mx-1 flex flex-col gap-3 rounded-md px-1 text-start font-text focus-visible:outline-2 focus-visible:outline-focus">
+      aria-describedby={summaryId} className="-mx-1 flex flex-col gap-3 rounded-md px-1 text-start font-text focus-visible:outline focus-visible:outline-focus">
       <Occupancy seats={seats} waiting={waiting} isExpanded={isOpen} summaryId={summaryId} lineId={lineId} />
     </button>
   );
@@ -135,7 +135,7 @@ export function TableTile({ name, stake, seats, waiting = 0, isClosed = false, o
           </h3>
           <button type="button" aria-label={t('ui.console.tableTile.settings', { table: name })}
             onClick={(event) => { event.stopPropagation(); onSettings(); }}
-            className="-my-2 -mr-2 flex size-touch shrink-0 items-center justify-center rounded-md text-content-muted transition-colors hover:bg-subtle-hover hover:text-content focus-visible:outline-2 focus-visible:outline-focus tablet:size-8">
+            className="-my-2 -mr-2 flex size-touch shrink-0 items-center justify-center rounded-md text-content-muted transition-colors hover:bg-subtle-hover hover:text-content focus-visible:outline focus-visible:outline-focus tablet:size-8">
             <Icon name="overflow" size="sm" />
           </button>
         </div>

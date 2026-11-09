@@ -85,4 +85,14 @@ describe('generated platform colours', () => {
       expect(comments.filter((comment) => comment.slice(4, -3).includes('--'))).toEqual([]);
     }
   });
+
+  it('takes border and outline widths from the tokens (F-170)', () => {
+    const theme = generatedFile('tailwind/theme.css');
+    expect(theme).toContain('--default-border-width: var(--rivr-border-width-hairline);');
+    expect(theme).toContain('--default-outline-width: var(--rivr-border-width-focus);');
+  });
+
+  it('has a token for a long table\'s 48 px line (F-170)', () => {
+    expect(tokens.size.rowLine).toBe(48);
+  });
 });

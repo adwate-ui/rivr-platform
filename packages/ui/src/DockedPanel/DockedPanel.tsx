@@ -24,7 +24,7 @@ export interface DockedPanelProps {
 
 const TOGGLE =
   'flex size-touch shrink-0 items-center justify-center rounded-md text-content-muted transition-colors hover:bg-subtle hover:text-content ' +
-  '-my-2 -mr-2 focus-visible:outline-2 focus-visible:outline-focus tablet:size-7';
+  '-my-2 -mr-2 focus-visible:outline focus-visible:outline-focus tablet:size-7';
 
 /** The panel's count: gold with dark figures while something waits, faint and muted at none. */
 function Count({ count }: { count: number }) {
@@ -66,7 +66,7 @@ export function DockedPanel({ children, title, count, isOpen, onToggle, panel, o
           <>
             <h2 id={headingId} className="sr-only">{title}</h2>
             <button type="button" aria-expanded="false" onClick={onToggle}
-              className="flex min-h-full w-full flex-col items-center gap-3 pt-7 pb-7 transition-colors hover:bg-subtle focus-visible:outline-2 focus-visible:outline-focus">
+              className="flex min-h-full w-full flex-col items-center gap-3 pt-7 pb-7 transition-colors hover:bg-subtle focus-visible:outline focus-visible:outline-focus">
               <span className="sr-only">{t('ui.console.dockedPanel.open', { count })}</span>
               <span aria-hidden="true"><Count count={count} /></span>
               <span aria-hidden="true" data-vertical-label="" className="font-text text-13 text-content-muted">{title}</span>

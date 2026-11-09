@@ -101,7 +101,7 @@ function SubtleInput({ id, label, hint, error, type, native }: InsetInputProps &
       <Label htmlFor={id}>{label}</Label>
       <input id={id} type={type}
         className={cx('min-h-touch w-full min-w-0 rounded-md bg-subtle px-3 font-text text-16 text-content tablet:min-h-control tablet:text-13',
-          'focus-visible:outline-2 focus-visible:outline-focus', error ? 'outline-1 outline-alert' : undefined, SUBTLE_STATE, DIMMED)}
+          'focus-visible:outline focus-visible:outline-focus', error ? 'outline-1 outline-alert' : undefined, SUBTLE_STATE, DIMMED)}
         aria-invalid={error ? true : undefined} aria-describedby={describedBy} {...native} />
       {hint ? <Text variant="small" tone="muted" id={`${id}-hint`}>{hint}</Text> : null}
       {error ? <ErrorMessage id={`${id}-error`}>{error}</ErrorMessage> : null}
@@ -152,7 +152,7 @@ function InsetInput({ id, label, error, type, native }: InsetInputProps) {
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor={id} className={cx('flex min-h-field flex-col justify-center gap-1 rounded-lg border bg-raised px-4 py-2',
-        'has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-focus', error ? 'border-alert' : 'border-control')}>
+        'has-[input:focus-visible]:outline has-[input:focus-visible]:outline-focus', error ? 'border-alert' : 'border-control')}>
         <span className="font-text text-12 text-content-muted">{label}</span>
         <input id={id} type={type} className={cx('w-full bg-transparent p-0 font-text text-16 text-content outline-none', STATE)}
           aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-error` : undefined} {...native} />

@@ -28,8 +28,8 @@ export interface TabsProps {
 const ROW: Record<TabsLook, string> = { line: 'flex min-w-max gap-2 border-b border-hairline', pill: 'flex min-w-max gap-1' };
 
 const LINK: Record<TabsLook, string> = {
-  line: '-mb-px flex min-h-touch items-center border-b-2 px-3 font-text text-16 transition-colors focus-visible:outline-2 focus-visible:outline-focus',
-  pill: 'flex min-h-touch items-center rounded-md px-3 font-text text-13 leading-control transition-colors tablet:min-h-8 focus-visible:outline-2 focus-visible:outline-focus',
+  line: '-mb-px flex min-h-touch items-center border-b-2 px-3 font-text text-16 transition-colors focus-visible:outline focus-visible:outline-focus',
+  pill: 'flex min-h-touch items-center rounded-md px-3 font-text text-13 leading-control transition-colors tablet:min-h-8 focus-visible:outline focus-visible:outline-focus',
 };
 
 // Muted words only on the page itself: the part shown, on its fill, is in cream.

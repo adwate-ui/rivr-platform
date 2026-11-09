@@ -65,7 +65,7 @@ export function SplitView({ list, detail, backLabel, onBack, isChosen = true, la
           <div className="tablet:hidden">
             <Button variant="text" onClick={onBack}>{backLabel}</Button>
           </div>
-          <div ref={record} tabIndex={-1} className="w-full min-w-0 focus-visible:outline-2 focus-visible:outline-focus">{detail}</div>
+          <div ref={record} tabIndex={-1} className="w-full min-w-0 focus-visible:outline focus-visible:outline-focus">{detail}</div>
         </div>
       )}
     </div>

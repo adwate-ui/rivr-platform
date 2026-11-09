@@ -89,6 +89,7 @@
   --rivr-size-control: 36px; /** A console control's height at a desk, from 1180 px: a compact button, the search field, a rail item. Below 1180 px the touch target (decision 0282). */
   --rivr-size-row: 42px; /** A console row at the comfortable density: a table's row, a seat, a list entry. */
   --rivr-size-row-compact: 34px; /** A console row at the compact density. */
+  --rivr-size-row-line: 48px; /** A long table's line, whose rows are all one height, from 768 px. */
   --rivr-size-side-panel: 440px; /** A console sheet at the side of the screen, from 768 px. */
   --rivr-size-dock: 320px; /** The Live floor's requests panel docked at the side of the screen, from 768 px (console v3). */
   --rivr-size-dock-strip: 52px; /** A docked panel folded to a strip with its count (console v3). */

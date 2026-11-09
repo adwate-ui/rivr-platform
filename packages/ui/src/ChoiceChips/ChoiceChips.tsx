@@ -70,12 +70,12 @@ const TAB = '-mb-px flex min-h-touch min-w-touch items-stretch px-3 font-text te
 // The console's filter chips (console v3): filled rather than outlined, cream words on either fill, never muted ones.
 const SUBTLE =
   'inline-flex min-h-touch items-center rounded-md px-3 font-text text-13 leading-control text-content transition-colors tablet:min-h-row-compact ' +
-  'focus-visible:outline-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-disabled';
+  'focus-visible:outline focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-disabled';
 
 // The console's cards (console v3): a semibold label and a muted line under it, both from the card's start.
 const CARD =
   'flex min-h-touch flex-col items-start justify-center gap-1 rounded-md border px-3 py-2 text-start font-text transition-colors ' +
-  'focus-visible:outline-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-disabled';
+  'focus-visible:outline focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-disabled';
 
 /** The row the choices sit in, by look. */
 function rowClasses(look: ChipLook, optionCount: number, isOneRow: boolean): string {

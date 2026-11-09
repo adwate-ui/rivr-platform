@@ -23,7 +23,7 @@ export interface HistoryRowProps {
 export function HistoryRow({ when, title, value, detail, onOpen }: HistoryRowProps) {
   return (
     <button type="button" onClick={onOpen}
-      className="flex min-h-touch w-full items-center justify-between gap-4 py-3 text-left focus-visible:outline-2 focus-visible:outline-focus">
+      className="flex min-h-touch w-full items-center justify-between gap-4 py-3 text-left focus-visible:outline focus-visible:outline-focus">
       <span className="flex min-w-0 flex-col gap-1">
         <Text as="span" variant="small" tone="muted">{when}</Text>
         <Text as="span" weight="medium">{title}</Text>

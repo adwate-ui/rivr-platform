@@ -64,7 +64,7 @@ export function NavItem({ item, isCurrent, isCollapsed, onNavigate }: NavItemPro
       title={isCollapsed ? item.label : undefined} onClick={(event) => routeClick(event, item.href, onNavigate)}
       className={cx(
         'relative flex min-h-touch items-center gap-3 rounded-md font-text text-14 leading-control transition-colors tablet:min-h-control',
-        'focus-visible:outline-2 focus-visible:outline-focus',
+        'focus-visible:outline focus-visible:outline-focus',
         isCollapsed ? 'justify-center' : 'px-3',
         isCurrent ? 'bg-subtle-hover font-semibold' : 'hover:bg-subtle',
         itemTone(item, isCurrent),

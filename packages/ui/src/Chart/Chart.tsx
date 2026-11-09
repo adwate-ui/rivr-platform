@@ -1,3 +1,4 @@
+import { tokens } from '@rivr/tokens';
 import { LoadState } from '../LoadState/LoadState.tsx';
 import { Text } from '../Text/Text.tsx';
 
@@ -32,7 +33,7 @@ const MOST_SERIES = FILLS.length;
 // The plot's own units, stretched to the container: strokes keep their width, and every word on the chart is
 // HTML text, so it reads the same on a phone as on the console.
 const WIDTH = 640;
-const HEIGHT = 200;
+const HEIGHT = tokens.size.chart;
 // At most this many labels are written under the plot; every value is in the screen readers' table.
 const MOST_LABELS = 12;
 

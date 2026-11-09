@@ -1,3 +1,4 @@
+import { tokens } from '@rivr/tokens';
 import type { ReactNode } from 'react';
 
 export interface ProgressRingProps {
@@ -9,7 +10,11 @@ export interface ProgressRingProps {
   children: ReactNode;
 }
 
-const RADIUS = 110;
+// The drawing is in the ring's own units: the arc sits at 11/24 of it and is 1/60 of it wide.
+const SIZE = tokens.size.ring;
+const CENTRE = SIZE / 2;
+const RADIUS = (SIZE * 11) / 24;
+const STROKE = SIZE / 60;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 /** Keeps a fraction between 0 and 1, so an overdue or unknown clock never draws past the ring. */
@@ -23,10 +28,10 @@ export function ProgressRing({ fraction, tone = 'gold', children }: ProgressRing
   const offset = CIRCUMFERENCE * (1 - clamp(fraction));
   return (
     <div className="relative size-ring">
-      <svg aria-hidden="true" viewBox="0 0 240 240" className="absolute inset-0 size-ring">
-        <circle cx={120} cy={120} r={RADIUS} fill="none" strokeWidth={4} className="stroke-cream-track" />
-        <circle cx={120} cy={120} r={RADIUS} fill="none" strokeWidth={4} strokeLinecap="round" data-ring-arc=""
-          strokeDasharray={CIRCUMFERENCE} strokeDashoffset={offset} transform="rotate(-90 120 120)"
+      <svg aria-hidden="true" viewBox={`0 0 ${SIZE} ${SIZE}`} className="absolute inset-0 size-ring">
+        <circle cx={CENTRE} cy={CENTRE} r={RADIUS} fill="none" strokeWidth={STROKE} className="stroke-cream-track" />
+        <circle cx={CENTRE} cy={CENTRE} r={RADIUS} fill="none" strokeWidth={STROKE} strokeLinecap="round" data-ring-arc=""
+          strokeDasharray={CIRCUMFERENCE} strokeDashoffset={offset} transform={`rotate(-90 ${CENTRE} ${CENTRE})`}
           className={tone === 'alert' ? 'stroke-danger' : 'stroke-gold'} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">{children}</div>

@@ -110,7 +110,7 @@ function Seat({ seat, at, isSelected, onSelect }: { seat: RingSeat; at: { x: num
   };
   const button = onSelect ? { role: 'button', tabIndex: 0, 'aria-label': seatName(seat), 'aria-pressed': isSelected, onClick: () => onSelect(seat.number), onKeyDown: press } : {};
   return (
-    <g {...button} className={onSelect ? 'cursor-pointer focus-visible:outline-2 focus-visible:outline-focus' : undefined}>
+    <g {...button} className={onSelect ? 'cursor-pointer focus-visible:outline focus-visible:outline-focus' : undefined}>
       <SeatMark seat={seat} at={at} isSelected={isSelected} look={onSelect ? LOOK.choosing : LOOK.card} />
       {onSelect && seat.initials !== null ? <SeatLabel number={seat.number} status={seat.status} at={at} /> : null}
     </g>
