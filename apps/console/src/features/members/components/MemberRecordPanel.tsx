@@ -9,6 +9,7 @@ import { FeatureOverrides } from './FeatureOverrides.tsx';
 import { MemberBonus } from './MemberBonus.tsx';
 import { MemberBreak } from './MemberBreak.tsx';
 import { MemberSignUp } from './MemberSignUp.tsx';
+import { MemberVisits } from './MemberVisits.tsx';
 import { PromotionGrants } from './PromotionGrants.tsx';
 import { partsFor, recordHref, type RecordPart } from './recordParts.ts';
 import { SeatLine } from './SeatLine.tsx';
@@ -53,7 +54,7 @@ interface PartProps {
   can: RecordAccess;
 }
 
-/** Visits (console v3): how many and the last, early departures, and what promotions gave the member. */
+/** Visits (console v3): how many and the last, each visit (F-017), early departures, and what promotions gave the member. */
 function VisitsPart({ venueId, record, can }: PartProps) {
   const last = record.lastVisitAt === null ? t('console.members.never') : formatDate(new Date(record.lastVisitAt));
   return (
@@ -62,6 +63,7 @@ function VisitsPart({ venueId, record, can }: PartProps) {
         <DetailRow label={t('console.members.visits')} value={formatNumber(record.visits)} labelTone="muted" size="small" />
         <DetailRow label={t('console.members.lastVisit')} value={last} labelTone="muted" size="small" isLast />
       </Stack>
+      <MemberVisits venueId={venueId} memberId={record.memberId} />
       <EarlyDepartures venueId={venueId} memberId={record.memberId} canWithdraw={can.withdrawDeparture} />
       <PromotionGrants memberId={record.memberId} />
     </Stack>

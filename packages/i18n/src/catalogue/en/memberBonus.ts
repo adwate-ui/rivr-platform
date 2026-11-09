@@ -9,7 +9,13 @@ export const memberBonus = {
   chipsLabel: 'Bonus chips',
   /** They never expire; the floor redeems them with a buy-in as it seats the member. */
   chipsLine: 'Used with a buy-in in the seat sheet. Never expire.',
-  history: 'History',
+  history: 'Bonus chips history',
+  /** The record's points, line by line (F-017). */
+  points: {
+    history: 'Points history', none: 'No points yet.', line: '{date} · {reason}', by: '{date} · {reason} · {name}',
+    locked: '{date} · Locked: {reason}', released: '{date} · Released: {reason}',
+    lockedBy: '{date} · Locked by {name}: {reason}', releasedBy: '{date} · Released by {name}: {reason}', plus: '+{points}', minus: '−{points}',
+  },
   none: 'No bonus chips yet.',
   showEarlier: 'Show earlier',
   /** A line: `15 Nov 2026 · Welcome bonus` `+500`; `15 Nov 2026 · Buy-in · Table 3 · seated by Aditya Malhotra` `−1,000`. */

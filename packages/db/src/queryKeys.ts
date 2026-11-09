@@ -143,6 +143,10 @@ export const queryKeys = {
   memberBonus: (userId: string, venueId: string, memberId: string) => ['user', userId, 'bonus', venueId, memberId] as const,
   tableMetrics: (userId: string, venueId: string, from: string, to: string) => ['user', userId, 'table-metrics', venueId, from, to] as const,
   memberSignUp: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-sign-up', venueId, memberId] as const,
+  /** A member's visits and points on their record (F-017). */
+  memberVisits: (userId: string, venueId: string, memberId: string, count: number) => ['user', userId, 'member-visits', venueId, memberId, count] as const,
+  memberVisitsAll: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-visits', venueId, memberId] as const,
+  memberPointsHistory: (userId: string, venueId: string, memberId: string, count: number) => ['user', userId, 'member-points-history', venueId, memberId, count] as const,
   memberBonusHistory: (userId: string, venueId: string, memberId: string, count: number) =>
     ['user', userId, 'bonus', venueId, memberId, 'history', count] as const,
   /** Table-side food and drink (#123): the member's menu, a venue's, its items, and tonight's orders. */

@@ -59,6 +59,11 @@ export const members = {
   kycIncomplete: 'ID check due',
   inRoom: 'In the room',
   visitsTitle: 'Visits',
+  /** Each visit on the record (F-017). */
+  visitHistory: {
+    title: 'Visit history', none: 'No visits yet.', line: '{date} · {tables}', noTable: 'No table',
+    callTimeMet: 'Call time met', callTimeOwed: 'Call time not met', leftEarly: 'Left early',
+  },
   /** The name a member gave at sign-up, under their Aadhaar name (#803): `Known as Ashu`. */
   knownAs: 'Known as {name}',
   /** The record's parts, one shown at a time (C-02); visits takes visitsTitle. `{name}` is the member's. */

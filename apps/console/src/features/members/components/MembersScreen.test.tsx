@@ -35,6 +35,14 @@ const ANSWERS: Record<string, unknown> = {
   '/rest/v1/table_type': [{ id: 'tt1', name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, buy_in_min_paise: 1000000, straddle_paise: null }],
   '/rpc/member_promotion_grants': [GRANT, PERK],
   '/rpc/open_host_offers': [{ member_id: 'm1', offer: { kind: 'bonus', amount_paise: 200_000 } }],
+  '/rpc/member_visits': [
+    { visit_id: 'v1', opened_at: '2026-11-03T14:00:00Z', closed_at: '2026-11-03T20:00:00Z', tables: 'Table 1, Table 3', minutes_played: 300, call_time_met: true, left_early: false },
+    { visit_id: 'v2', opened_at: '2026-11-02T14:00:00Z', closed_at: '2026-11-02T16:00:00Z', tables: 'Table 1', minutes_played: 60, call_time_met: false, left_early: true },
+  ],
+  '/rpc/member_points_history': [
+    { line_id: 'p1', at: '2026-11-03T15:00:00Z', kind: 'earned', points: 300, reason: 'For coming back', staff_name: 'Aditya Malhotra' },
+    { line_id: 'p2', at: '2026-11-02T15:00:00Z', kind: 'spent', points: 500, reason: 'RIVR cap', staff_name: null },
+  ],
   // Bonus chips (decision 0504): the history before the balance, whose path it starts with.
   '/rpc/member_bonus_history': [
     { line_id: 'r1', at: '2026-11-03T14:00:00Z', kind: 'redeemed', amount_paise: 100_000, reason: null, table_name: 'Table 2', staff_name: 'Aditya Malhotra' },
@@ -136,6 +144,22 @@ describe('Members (console v3)', () => {
     expect(await screen.findByText('Offered: 2,000 bonus chips', undefined, { timeout: 5000 })).toBeDefined();
   });
 
+  it('lists each visit with its tables, time played, call time and whether they left early (F-017)', async () => {
+    renderAs('super_admin', 'm1');
+    expect(await screen.findByText('3 Nov 2026 · Table 1, Table 3', undefined, { timeout: 5000 })).toBeDefined();
+    expect(screen.getByText('5 h')).toBeDefined();
+    expect(screen.getByText('Call time met')).toBeDefined();
+    expect(screen.getByText('Call time not met · Left early')).toBeDefined();
+  });
+
+  it('lists points with what they were for and who gave them, beside the bonus chips (F-017)', async () => {
+    renderAs('super_admin', 'm1', 'bonus');
+    expect(await screen.findByText('3 Nov 2026 · For coming back · Aditya Malhotra', undefined, { timeout: 5000 })).toBeDefined();
+    expect(screen.getByText('+300')).toBeDefined();
+    expect(screen.getByText('2 Nov 2026 · RIVR cap')).toBeDefined();
+    expect(screen.getByText('−500')).toBeDefined();
+  });
+
   it('shows a seated member\'s seat with a link to it on the floor, and the promotions they were given', async () => {
     const onNavigate = renderAs('super_admin', 'm1');
     expect(await screen.findByRole('heading', { name: 'Sakshi Tandon', level: 2 }, { timeout: 5000 })).toBeDefined();
@@ -166,6 +190,8 @@ describe('Members (console v3)', () => {
     expect(screen.getByText('−1,000')).toBeDefined();
     expect(screen.getByText(/Welcome bonus$/)).toBeDefined();
     expect(screen.getByText('+2,500')).toBeDefined();
+    // The player's Rewards calls it the same (owner, 8 Nov: one name each).
+    expect(screen.getByRole('heading', { name: 'Bonus chips history' })).toBeDefined();
     expect(screen.queryByRole('button', { name: /Add|Give/ })).toBeNull();
   });
 
