@@ -1,6 +1,7 @@
 import {
   useFeatureOverrideActions, useGateableFeatures, useMemberFeatureOverrides, type FeatureOverride, type OverrideFailure,
 } from '@rivr/db';
+import { HIDDEN_FEATURES } from '@rivr/contracts';
 import { formatDate, t, type MessageKey } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text, LoadState, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
@@ -98,6 +99,10 @@ function OverrideList({ venueId, memberId, onOutcome }: { venueId: string; membe
   );
 }
 
+/** The features staff may override: none the club does not run (audit F-086). */
+export const liveFeatures = <Feature extends { key: string }>(features: readonly Feature[]) =>
+  features.filter((feature) => !HIDDEN_FEATURES.some((hidden) => hidden === feature.key));
+
 /** The gateable features to choose from, once they have loaded; or why not. */
 function FeatureChoice({ featureKey, onChange }: { featureKey: string | null; onChange: (featureKey: string | null) => void }) {
   const features = useGateableFeatures();
@@ -109,7 +114,7 @@ function FeatureChoice({ featureKey, onChange }: { featureKey: string | null; on
   if (features.data === undefined) return <LoadState />;
   return (
     <ChoiceChips label={t('console.members.overrides.feature')} mode="one" selected={featureKey === null ? [] : [featureKey]}
-      options={features.data.map((feature) => ({ value: feature.key, label: feature.name }))} onChange={([chosen]) => onChange(chosen ?? null)} />
+      options={liveFeatures(features.data).map((feature) => ({ value: feature.key, label: feature.name }))} onChange={([chosen]) => onChange(chosen ?? null)} />
   );
 }
 

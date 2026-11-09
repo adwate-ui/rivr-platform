@@ -7,11 +7,10 @@ import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
 /** What must be settled before a member is erased (#424, decision 0207), in the order the database lists it. */
-export type ErasureBlocker = 'frozen' | 'cash' | 'chips' | 'markers' | 'rewards' | 'redemptions' | 'waitlist' | 'tournament' | 'requests'
-  | 'academy';
+export type ErasureBlocker = 'frozen' | 'cash' | 'chips' | 'markers' | 'rewards' | 'redemptions' | 'waitlist' | 'tournament' | 'requests';
 
 const BLOCKERS: readonly ErasureBlocker[] = [
-  'frozen', 'cash', 'chips', 'markers', 'rewards', 'redemptions', 'waitlist', 'tournament', 'requests', 'academy',
+  'frozen', 'cash', 'chips', 'markers', 'rewards', 'redemptions', 'waitlist', 'tournament', 'requests',
 ];
 
 /** What the erase section shows a super admin first. */

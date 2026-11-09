@@ -17,6 +17,8 @@ const KEYS = [
     value_schema: { type: 'object', properties: { minutes: { type: 'integer', minimum: 1, maximum: 120 } }, required: ['minutes'] } },
   { key: 'points.daily_staff_cap', description: 'Daily cap', scope: 'venue',
     value_schema: { type: 'object', properties: { points: { type: 'integer', minimum: 0, maximum: 1000000 } }, required: ['points'] } },
+  { key: 'dealer.rotation_minutes', description: 'Dealer rotation', scope: 'venue',
+    value_schema: { type: 'object', properties: { minutes: { type: 'integer', minimum: 10, maximum: 120 } }, required: ['minutes'] } },
   { key: 'kyc.at_the_club', description: 'Identity checked at the club', scope: 'venue',
     value_schema: { type: 'object', properties: { enabled: { type: 'boolean' } }, required: ['enabled'] } },
 ];
@@ -109,5 +111,21 @@ describe('a setting changed in its row (console v3)', () => {
     cleanup();
     renderArea('members', true);
     expect(await screen.findByRole('button', { name: /^Change / }, { timeout: 5000 })).toBeDefined();
+  });
+
+  it('says what a rule runs on while nothing is set, and Not set only where it has no default (audit F-031)', async () => {
+    renderArea('floor');
+    expect(await screen.findByText('30 minutes (default)', {}, { timeout: 5000 })).toBeDefined();
+    expect(screen.getByText('Off (default)')).toBeDefined();
+  });
+
+  it('says the same once a rule is opened, and Not set only where it has no default (audit F-031)', async () => {
+    renderArea('floor');
+    fireEvent.click(await screen.findByRole('button', { name: 'Seat hold' }, { timeout: 5000 }));
+    expect((await screen.findByRole('heading', { name: 'In force' })).nextElementSibling?.textContent).toBe('20 minutes (default)');
+    cleanup();
+    renderArea('members');
+    fireEvent.click(await screen.findByRole('button', { name: /Daily/ }, { timeout: 5000 }));
+    expect((await screen.findByRole('heading', { name: 'In force' })).nextElementSibling?.textContent).toBe('Not set');
   });
 });

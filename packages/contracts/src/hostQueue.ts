@@ -21,6 +21,7 @@ export type HostContact = z.infer<typeof hostContactSchema>;
 /** When a regular has lapsed, for the host queue (#165): visits in the six months before, and days since the last. */
 export const hostLapse = {
   key: 'host.lapse',
+  defaultValue: { visits: 3, days: 21 },
   description: 'When a regular has lapsed, for the host queue: at least this many visits in the six months before, and none for this many days; none set is 3 and 21.',
   scope: 'venue',
   value: z.strictObject({ visits: z.int().min(1).max(100), days: z.int().min(7).max(365) }),

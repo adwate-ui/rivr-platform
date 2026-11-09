@@ -1,9 +1,9 @@
 import { STAFF_ROLES } from '@rivr/contracts/roles';
-import { useSettingActions, type SettingEntry, type SettingFailure, type SettingSubjectRules, type VenueSetting } from '@rivr/db';
+import { useSettingActions, type SettingEntry, type SettingFailure, type SettingSubjectRules, type SettingValue, type VenueSetting } from '@rivr/db';
 import { formatDayTime, t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
-import { isSuperAdminOnly, settingFailureText, settingHelp, settingName, valueText } from './settingsCopy.ts';
+import { defaultOf, isSuperAdminOnly, settingFailureText, settingHelp, settingName, valueText } from './settingsCopy.ts';
 import { ValueForm } from './ValueForm.tsx';
 
 type Subject = { readonly subject: string; readonly label: string };
@@ -24,13 +24,15 @@ function detailOf(entry: SettingEntry): string {
 interface SubjectRulesProps {
   venueId: string;
   rules: SettingSubjectRules;
-  describe: (entry: SettingEntry) => string;
+  describe: (value: SettingValue) => string;
+  /** What shows while nothing is set: the default the club runs on, or that there is none. */
+  unsetText: string;
   /** False for a super admin's setting seen by an admin: the changes to come stay. */
   canWithdraw: boolean;
 }
 
 /** What the setting is for this subject: in force now, the changes to come (each can be withdrawn), and before. */
-function SubjectRules({ venueId, rules, describe, canWithdraw }: SubjectRulesProps) {
+function SubjectRules({ venueId, rules, describe, unsetText, canWithdraw }: SubjectRulesProps) {
   const { withdraw } = useSettingActions(venueId);
   const [outcome, setOutcome] = useState<SettingFailure | 'withdrawn' | null>(null);
   const take = async (entry: SettingEntry) => {
@@ -40,14 +42,14 @@ function SubjectRules({ venueId, rules, describe, canWithdraw }: SubjectRulesPro
   return (
     <Stack gap={4}>
       <Heading level={3}>{t('console.settings.inForce')}</Heading>
-      {rules.inForce === null ? <Text tone="muted">{t('console.settings.notSet')}</Text>
-        : <Text>{t('console.settings.entry', { value: describe(rules.inForce), since: detailOf(rules.inForce) })}</Text>}
+      {rules.inForce === null ? <Text tone="muted">{unsetText}</Text>
+        : <Text>{t('console.settings.entry', { value: describe(rules.inForce.value), since: detailOf(rules.inForce) })}</Text>}
       <Heading level={3}>{t('console.settings.toCome')}</Heading>
       {rules.scheduled.length === 0 ? <Text tone="muted">{t('console.settings.noneToCome')}</Text> : rules.scheduled.map((entry) => {
         const from = entry.effectiveFrom === null ? '' : formatDayTime(new Date(entry.effectiveFrom));
         return (
           <Inline key={entry.settingId} gap={4} wrap>
-            <Text>{t('console.settings.fromEntry', { date: from, value: describe(entry) })}</Text>
+            <Text>{t('console.settings.fromEntry', { date: from, value: describe(entry.value) })}</Text>
             {canWithdraw ? <Button variant="text" isLoading={withdraw.isPending} onClick={() => void take(entry)}>{t('console.settings.withdrawFrom', { date: from })}</Button> : null}
           </Inline>
         );
@@ -56,7 +58,7 @@ function SubjectRules({ venueId, rules, describe, canWithdraw }: SubjectRulesPro
       {outcome !== null && outcome !== 'withdrawn' ? <ErrorMessage>{settingFailureText(outcome)}</ErrorMessage> : null}
       <Heading level={3}>{t('console.settings.before')}</Heading>
       {rules.history.length === 0 ? <Text tone="muted">{t('console.settings.noneBefore')}</Text>
-        : rules.history.map((entry) => <Text key={entry.settingId} tone="muted">{t('console.settings.entry', { value: describe(entry), since: detailOf(entry) })}</Text>)}
+        : rules.history.map((entry) => <Text key={entry.settingId} tone="muted">{t('console.settings.entry', { value: describe(entry.value), since: detailOf(entry) })}</Text>)}
     </Stack>
   );
 }
@@ -81,9 +83,9 @@ function SettingHeading({ setting }: { setting: VenueSetting }) {
 }
 
 /** A value as one line, with a tier by its name. */
-function describerFor(setting: VenueSetting, tiers: readonly Subject[]): (entry: SettingEntry) => string {
+function describerFor(setting: VenueSetting, tiers: readonly Subject[]): (value: SettingValue) => string {
   const tierName = (id: string) => tiers.find((tier) => tier.subject === id)?.label ?? id;
-  return (entry) => valueText(setting.key, setting.fields, entry.value, tierName);
+  return (value) => valueText(setting.key, setting.fields, value, tierName);
 }
 
 export const firstSubject = (setting: VenueSetting) => setting.subjects[0]?.subject ?? '';
@@ -97,6 +99,8 @@ export function SettingPanel({ venueId, setting, tiers, isSuperAdmin }: SettingP
   const [subject, setSubject] = useState(() => firstSubject(setting));
   const rules = setting.subjects.find((one) => one.subject === subject);
   const describe = describerFor(setting, tiers);
+  const fallback = defaultOf(setting.key);
+  const unsetText = fallback === undefined ? t('console.settings.notSet') : t('console.settings.byDefault', { value: describe(fallback) });
   const isLocked = isSuperAdminOnly(setting.key) && !isSuperAdmin;
   // A scoped setting needs its subject first: the database refuses one without.
   const canChange = !isLocked && (setting.scope === 'venue' || subject !== '');
@@ -104,7 +108,7 @@ export function SettingPanel({ venueId, setting, tiers, isSuperAdmin }: SettingP
     <Stack gap={6}>
       <SettingHeading setting={setting} />
       {setting.scope === 'venue' ? null : <SubjectChoice setting={setting} subject={subject} onChange={setSubject} />}
-      {rules === undefined ? null : <SubjectRules venueId={venueId} rules={rules} describe={describe} canWithdraw={!isLocked} />}
+      {rules === undefined ? null : <SubjectRules venueId={venueId} rules={rules} describe={describe} unsetText={unsetText} canWithdraw={!isLocked} />}
       {canChange ? <ValueForm key={`${setting.key}:${subject}`} venueId={venueId} setting={setting} subject={subject} inForce={inForceOf(rules)} tiers={tiers} /> : null}
     </Stack>
   );

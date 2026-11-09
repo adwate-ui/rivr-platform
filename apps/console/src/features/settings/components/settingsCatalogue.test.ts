@@ -1,7 +1,9 @@
+import { DEFAULT_REQUEST_TARGETS } from '@rivr/domain/floorRequests';
+import { defaultOf } from './settingsCopy.ts';
 import { SETTINGS, settingValueJsonSchema } from '@rivr/contracts/settings';
 import { settingCopy, settingKeys } from '@rivr/i18n';
 import { describe, expect, it } from 'vitest';
-import { areaOf, RULE_AREAS } from './areas.ts';
+import { areaOf, RULE_AREAS, isShownSetting } from './areas.ts';
 
 /** The schema's fields and, for a choice or a list, its options. */
 function fieldsOf(schema: Record<string, unknown>): [string, readonly string[]][] {
@@ -34,5 +36,26 @@ describe('every setting the contracts declare, as the Settings screen shows it',
   it('gives no words to a key the contracts no longer declare', () => {
     expect(Object.keys(settingKeys).sort()).toEqual(SETTINGS.map((definition) => definition.key).sort());
     expect(settingCopy('no.such_key')).toBeUndefined();
+  });
+
+  it('gives each default in the shape its setting takes (audit F-031)', () => {
+    for (const definition of SETTINGS) {
+      if ('defaultValue' in definition) expect(definition.value.safeParse(definition.defaultValue).success, definition.key).toBe(true);
+    }
+  });
+
+  it('states the request targets the floor really runs on', () => {
+    expect(defaultOf('floor.request_targets')).toEqual({ top_up_seconds: DEFAULT_REQUEST_TARGETS.topUpSeconds, other_seconds: DEFAULT_REQUEST_TARGETS.otherSeconds });
+  });
+
+  it('gives a rule that is off until set no default', () => {
+    expect(defaultOf('waitlist.hold_minutes')).toEqual({ minutes: 20 });
+    expect(defaultOf('kyc.at_the_club')).toEqual({ enabled: false });
+    expect(defaultOf('waitlist.interest_to_open')).toBeUndefined();
+    expect(defaultOf('points.daily_staff_cap')).toBeUndefined();
+  });
+
+  it('hides the cab offer while cab requests are off (audit F-113)', () => {
+    expect(isShownSetting('cab.minimum_visits')).toBe(false);
   });
 });

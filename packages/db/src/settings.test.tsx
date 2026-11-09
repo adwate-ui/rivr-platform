@@ -17,12 +17,12 @@ const inHours = (hours: number) => new Date(Date.now() + hours * HOUR).toISOStri
 
 /** A fake API: each method and table, as `GET /setting`, answers with its reply; returns the requests made. */
 function renderSettings(replies: Record<string, { status?: number; body: unknown }>) {
-  const calls: { method: string; path: string; body: unknown }[] = [];
+  const calls: { method: string; path: string; search: string; body: unknown }[] = [];
   const fetch: typeof globalThis.fetch = async (input, init) => {
     const url = new URL(input instanceof Request ? input.url : String(input));
     const method = init?.method ?? 'GET';
     const path = url.pathname.replace('/rest/v1', '');
-    calls.push({ method, path, body: init?.body ? JSON.parse(String(init.body)) : undefined });
+    calls.push({ method, path, search: url.search, body: init?.body ? JSON.parse(String(init.body)) : undefined });
     const reply = replies[`${method} ${path}`];
     return Response.json(reply?.body ?? null, { status: reply?.status ?? 200 });
   };
@@ -97,6 +97,12 @@ describe('settings (#33)', () => {
       history: [{ settingId: 'c1', value: { minutes: 30 }, effectiveFrom: null, reason: 'Seed' }],
     });
     expect(tds?.subjects).toEqual([{ subject: '', label: '', inForce: null, scheduled: [], history: [] }]);
+  });
+
+  it('offers only the tiers still in use, as a retired tier is on no chip (audit F-120)', async () => {
+    const { result, calls } = renderSettings(READS);
+    await waitFor(() => expect(result.current.settings.data).toBeDefined());
+    expect(calls.find((call) => call.path === '/tier')?.search).toContain('is_retired=eq.false');
   });
 
   it('schedules a value from now by the database\'s clock, sending no time, and says when a money key is too soon', async () => {

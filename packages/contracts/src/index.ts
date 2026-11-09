@@ -135,6 +135,7 @@ export {
 } from './channels.ts';
 export {
   FEATURES,
+  HIDDEN_FEATURES,
   TAB_FEATURES,
   type FeatureDefinition,
   type FeatureKey,

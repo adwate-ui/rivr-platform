@@ -26,7 +26,7 @@ const callTimeMinutes = {
 
 /** The lengths of more call time offered (decision 0305), ticked from eight presets; none set is 30 min, 1 hour, 2 hours. */
 const callTimeAddChoices = {
-  key: 'call_time.add_choices',
+  key: 'call_time.add_choices', defaultValue: { minutes: ['30', '60', '120'] },
   description: 'The lengths of more call time offered: a member asks for one from the seat, the floor adds one. None set is 30 minutes, 1 hour and 2 hours.',
   scope: 'venue',
   value: z.strictObject({ minutes: z.array(z.enum(['15', '30', '45', '60', '90', '120', '180', '240'])).min(1).max(8) }),
@@ -126,7 +126,7 @@ const dealerVarianceThreshold = {
 } as const satisfies SettingDefinition;
 
 const dealerRotationMinutes = {
-  key: 'dealer.rotation_minutes',
+  key: 'dealer.rotation_minutes', defaultValue: { minutes: 30 },
   description: 'How long a dealer deals at one table before the floor rotates them, in minutes (scope-v1 module 10). 30 when not set.',
   scope: 'venue',
   value: z.strictObject({ minutes: z.int().min(10).max(120) }),
@@ -143,7 +143,7 @@ const waitlistPriorityWeights = {
 } as const satisfies SettingDefinition;
 
 const waitlistHoldMinutes = {
-  key: 'waitlist.hold_minutes',
+  key: 'waitlist.hold_minutes', defaultValue: { minutes: 20 },
   description: 'How long a called seat is held, and how long a member who steps away keeps their place, in minutes (scope-v1 module 2).',
   scope: 'venue',
   value: z.strictObject({ minutes: z.int().min(1).max(120) }),
@@ -233,7 +233,7 @@ const waitlistInterestToOpen = {
 } as const satisfies SettingDefinition;
 
 const cardQrRotationSeconds = {
-  key: 'card.qr_rotation_seconds',
+  key: 'card.qr_rotation_seconds', defaultValue: { seconds: 30 },
   description: 'How often the membership card\'s QR changes, in seconds; a code from before a change no longer checks in (#71). 30 unless set.',
   scope: 'venue',
   value: z.strictObject({ seconds: z.int().min(10).max(300) }),
