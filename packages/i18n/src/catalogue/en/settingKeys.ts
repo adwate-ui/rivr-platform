@@ -1,3 +1,5 @@
+import { identitySettingKeys } from './settingKeysIdentity.ts';
+
 /**
  * Each setting as staff read it on the Settings screen (#604): its name, one line on what it does, each field's label,
  * and a choice field's options. Keyed by the setting's key. The console's catalogue test holds it to every key and
@@ -11,6 +13,7 @@ export interface SettingCopy {
 }
 
 export const settingKeys: Readonly<Record<string, SettingCopy>> = {
+  ...identitySettingKeys,
   'academy.gst': {
     name: 'GST on Academy fees',
     help: 'The GST taken out of each Academy fee. It is kept apart from GST on club services, as training may be taxed differently.',
@@ -128,11 +131,6 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     help: 'The parts of every jackpot drop kept for the season and freeroll pools, up to 50% each. The main pool takes the rest.',
     fields: { season_basis_points: 'Season pool', freeroll_basis_points: 'Freeroll pool' },
   },
-  'kyc.minimum_age': {
-    name: 'Minimum age',
-    help: 'The age a member must have reached to be verified and to play. Never below 18.',
-    fields: { years: 'Age' },
-  },
   'league.points': {
     name: 'League points',
     help: 'RIVR League points for a tournament finish: every finisher earns the entry points, and more for first, second, third and the rest of the final table.',
@@ -171,11 +169,6 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   'bonus.daily_staff_cap': {
     name: 'Daily bonus chips limit', fields: { chips: 'Bonus chips' },
     help: 'The most bonus chips one staff member adds by hand in a club day. Past it, an addition is refused and you are told. Super admins have no limit, and only they change it. No limit unless set.',
-  },
-  'kyc.at_the_club': {
-    name: 'Identity (KYC) checked at the club',
-    help: 'On while Cashfree KYC is not live: a new member takes a selfie in the app and is let in, and staff check their Aadhaar and PAN at the desk on their first visit. Play waits for that check. Off, new members do KYC in the app again.',
-    fields: { enabled: 'Check KYC at the club' },
   },
   'points.verified_bonus': {
     name: 'Points on verification',
