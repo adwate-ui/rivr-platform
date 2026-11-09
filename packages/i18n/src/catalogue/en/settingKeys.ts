@@ -168,6 +168,10 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     help: 'The most points one staff member gives by hand in a club day. Past it, a change is refused and you are told. Super admins have no limit, and only they change it. No limit unless set.',
     fields: { points: 'Points' },
   },
+  'bonus.daily_staff_cap': {
+    name: 'Daily bonus chips limit', fields: { chips: 'Bonus chips' },
+    help: 'The most bonus chips one staff member adds by hand in a club day. Past it, an addition is refused and you are told. Super admins have no limit, and only they change it. No limit unless set.',
+  },
   'kyc.at_the_club': {
     name: 'Identity (KYC) checked at the club',
     help: 'On while Cashfree KYC is not live: a new member takes a selfie in the app and is let in, and staff check their Aadhaar and PAN at the desk on their first visit. Play waits for that check. Off, new members do KYC in the app again.',

@@ -69,6 +69,18 @@ export const kycAtTheClub = {
 } as const satisfies SettingDefinition;
 
 /**
+ * The most bonus chips one staff member adds by hand in a club day (the owner, 9 Nov), 10,000 from the start; super admins are not
+ * capped, and only they change it. None set is no cap.
+ */
+export const bonusDailyStaffCap = {
+  key: 'bonus.daily_staff_cap',
+  description: 'The most bonus chips one staff member adds by hand in a club day; an addition past it is refused and the owner hears of it. Super admins are not capped. None set is no cap.',
+  scope: 'venue',
+  superAdminOnly: true,
+  value: z.strictObject({ chips: z.int().min(50).max(1000000) }),
+} as const satisfies SettingDefinition;
+
+/**
  * The most points one staff member gives by hand in a club day (#798), 10,000 from the start; super admins are not capped,
  * and only they change it. None set is no cap.
  */

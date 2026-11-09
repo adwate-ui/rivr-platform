@@ -55,6 +55,18 @@ describe('Rewards', () => {
   it('keeps points by hand and League points from a file together on their tab', async () => {
     renderAs('floor', RewardsPointsScreen);
     expect(await screen.findByRole('heading', { name: 'League points from a CSV' }, LAZY)).toBeDefined();
-    expect(screen.getAllByRole('heading', { name: 'Points by hand' }).length).toBeGreaterThan(0);
+    expect(screen.getByRole('heading', { name: 'Points and bonus chips by hand' })).toBeDefined();
+  });
+
+  it('offers bonus chips by hand to a floor manager and an admin, and not to a cashier (the owner, 9 Nov)', async () => {
+    renderAs('floor', RewardsPointsScreen);
+    expect(await screen.findByRole('heading', { name: 'Points and bonus chips by hand' }, LAZY)).toBeDefined();
+    cleanup();
+    renderAs('admin', RewardsPointsScreen);
+    expect(await screen.findByRole('heading', { name: 'Points and bonus chips by hand' }, LAZY)).toBeDefined();
+    cleanup();
+    renderAs('cashier', RewardsPointsScreen);
+    await screen.findByRole('heading', { name: 'League points from a CSV' }, LAZY);
+    expect(screen.queryByRole('heading', { name: 'Points and bonus chips by hand' })).toBeNull();
   });
 });

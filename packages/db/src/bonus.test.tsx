@@ -95,6 +95,10 @@ describe('bonus chips', () => {
     expect(outcome).toEqual({ ok: true, value: null });
     expect(done.calls.find((call) => call.url.includes('/rpc/give_bonus_chips'))?.body)
       .toEqual({ p_member_id: MEMBER, p_chips: 500, p_reason: 'Birthday', p_request_id: 'r-1' });
+    const capped = clientFor({ '/rpc/give_bonus_chips': { body: null } });
+    const overLimit = renderHook(() => useGiveBonusChips(VENUE, MEMBER), { wrapper: capped.wrapper });
+    await act(async () => { outcome = await overLimit.result.current.mutateAsync({ chips: 500, reason: 'Birthday', requestId: 'r-3' }); });
+    expect(outcome).toEqual({ ok: false, error: 'daily_limit' });
     for (const [code, failure] of [['RVCHP', 'invalid_chips'], ['RVOWN', 'own_record'], ['42501', 'not_allowed'], ['XX000', 'unavailable']] as const) {
       const refused = clientFor({ '/rpc/give_bonus_chips': { status: 400, body: { code, message: 'no' } } });
       const hook = renderHook(() => useGiveBonusChips(VENUE, MEMBER), { wrapper: refused.wrapper });

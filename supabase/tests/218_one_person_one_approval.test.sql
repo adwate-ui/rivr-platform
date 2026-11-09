@@ -1,5 +1,5 @@
 -- One person, one approval (B3 of the Fix Tracker; the 28 Oct audit): Aditya (103, an admin) makes no second admin
--- login, and the owner hears when Vikram (101, a super admin) grants one; a staff row with no login is no second super
+-- login, and the owner hears when Vikram (101, a super admin) grants one, and when a Floor login is made; a staff row with no login is no second super
 -- admin for releasing a freeze; nobody changes their own member record's tier or feature overrides; a revoked staff
 -- member reads their own shifts no more. 216 Nikhil and 217 Neel are members.
 begin;
@@ -21,7 +21,8 @@ select lives_ok($$ insert into public.staff (venue_id, full_name, job_title, rol
                    values ('00000000-0000-4000-8000-000000000001', 'New Floor', 'Floor supervisor', 'floor', '+919000000982') $$,
   'but still adds a Floor member');
 reset role;
-select is((select count(*)::integer from public.alert where kind = 'staff.role_granted'), 0, 'which tells the owner nothing');
+select results_eq($$ select detail ->> 'role' from public.alert where kind = 'staff.role_granted' $$, $$ values ('floor'::text) $$,
+  'and the owner hears of it, as Floor adds bonus chips (the owner, 9 Nov)');
 
 -- A super admin grants one, and the owner hears of it.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
@@ -29,7 +30,7 @@ select lives_ok($$ insert into public.staff (venue_id, full_name, job_title, rol
                    values ('00000000-0000-4000-8000-000000000001', 'Duty Manager', 'Duty manager', 'admin', '+919000000983') $$,
   'a super admin adds an admin');
 reset role;
-select results_eq($$ select detail ->> 'role' from public.alert where kind = 'staff.role_granted' $$, $$ values ('admin'::text) $$,
+select results_eq($$ select detail ->> 'role' from public.alert where kind = 'staff.role_granted' order by 1 $$, $$ values ('admin'::text), ('floor') $$,
   'and the owner is told, with the role and no name');
 
 -- Nobody changes their own number or name, which the own-record checks compare; the owner hears when a manager's row
@@ -45,7 +46,7 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select lives_ok($$ update public.staff set phone = '+919000000985' where full_name = 'Duty Manager' and venue_id = '00000000-0000-4000-8000-000000000001' $$,
   'a super admin gives the new admin''s row another number');
 reset role;
-select is((select count(*)::integer from public.alert where kind = 'staff.role_granted'), 2, 'and the owner hears of that too');
+select is((select count(*)::integer from public.alert where kind = 'staff.role_granted'), 3, 'and the owner hears of that too');
 
 -- A placeholder super admin with no login does not count among those able to release a freeze.
 create temp table able as select private.engagers('00000000-0000-4000-8000-000000000001', null) as before;

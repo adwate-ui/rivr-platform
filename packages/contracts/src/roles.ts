@@ -61,6 +61,7 @@ export const PERMISSIONS = [
   'rewards.manage', // the rewards catalogue and the League's seasons (decisions 0181, 0182)
   'rewards.hand_over', // hand a member what they redeemed (decision 0181)
   'points.give', // give a member points by hand, earned or locked, and release locked ones, never to oneself (#645)
+  'bonus.give', // add bonus chips to a member by hand, never to oneself: super admins, admins and floor managers (the owner, 9 Nov)
   'treasury.manage', // payment accounts, transfers, expense categories and approving expenses (decision 0167)
   'shareholding.manage', // the shareholding register, super_admin only (decision 0170)
   'pot_data.read', // every hand by table, dealer, variant and period (decision 0185)
@@ -80,13 +81,13 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
     'markers.manage_limits', 'ledger.read', 'eod.review', 'tournaments.manage', 'promotions.manage', 'jackpots.approve',
     'host_queue.manage', 'fnb.manage', 'fnb.serve', 'reports.read', 'exports.table', 'sops.manage', 'aml.review', 'feedback.manage',
     'rewards.manage', 'rewards.hand_over',
-    'treasury.manage', 'tables.manage', 'points.give',
+    'treasury.manage', 'tables.manage', 'points.give', 'bonus.give',
   ],
   // Every super admin module but tables setup, the member list, games history, tournaments and bonus (#644); TVs wait for a
-  // permission of their own, as devices.manage reaches the cage's computers and the cameras.
+  // permission of their own, as devices.manage reaches the cage's computers and the cameras. Bonus chips by hand came later (the owner, 9 Nov).
   floor: [
     ...EVERY_STAFF_MEMBER, 'members.read', 'waitlist.manage', 'floor.manage', 'call_time.override', 'fnb.serve',
-    'rewards.manage', 'rewards.hand_over', 'points.give', 'kyc.in_person',
+    'rewards.manage', 'rewards.hand_over', 'points.give', 'bonus.give', 'kyc.in_person',
   ],
   // The floor's modules less the food and drink orders (#644), beside the cage's (hidden, decision 0284).
   cashier: [

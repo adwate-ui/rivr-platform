@@ -9,8 +9,8 @@ const isMobile = (digits: string) => /^[6-9]\d{9}$/.test(digits);
 
 /**
  * Points by hand (#645; owner's feedback doc of 29 Oct, super admin module 11), for staff who keep the rewards: find a
- * member by their mobile number, see their earned and locked points, give points as either, or unlock locked ones. A super
- * admin (`canGiveBonus`) also adds bonus chips to the member found here (the owner, 9 Nov).
+ * member by their mobile number, see their earned and locked points, give points as either, or unlock locked ones. Super
+ * admins, admins and floor managers (`canGiveBonus`) also add bonus chips to the member found here (the owner, 9 Nov).
  */
 export function PointsByHand({ venueId, canGiveBonus = false }: { venueId: string; canGiveBonus?: boolean }) {
   const [typed, setTyped] = useState('');
@@ -36,7 +36,7 @@ export function PointsByHand({ venueId, canGiveBonus = false }: { venueId: strin
   );
 }
 
-/** The member found: their points and the form that changes them, then, for a super admin, bonus chips to add. */
+/** The member found: their points and the form that changes them, then, for those who may, bonus chips to add. */
 function Found({ venueId, member, canGiveBonus }: { venueId: string; member: MemberPoints; canGiveBonus: boolean }) {
   return (
     <Stack gap={8}>

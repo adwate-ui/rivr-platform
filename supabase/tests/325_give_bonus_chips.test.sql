@@ -1,6 +1,6 @@
 -- Bonus chips added by hand (the owner, 8 Nov). 101 Vikram, a super admin, adds 500 bonus chips to member 211 with a
 -- reason: the member's balance rises by 500, the ledger stays balanced, and the audit log keeps it once, even when the
--- same request comes again. Odd amounts, no reason, an admin, and a super admin on their own member record are refused.
+-- same request comes again. Odd amounts, no reason, a cashier, and a super admin on their own member record are refused.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -54,9 +54,9 @@ select lives_ok($$ select public.give_bonus_chips((select id from ids where name
 select throws_ok($$ select public.give_bonus_chips((select id from ids where name = 'ira'), 500, 'ok', gen_random_uuid()) $$,
   '22023', null, 'a reason of two characters: refused');
 
-select pg_temp.as_user('00000000-0000-4000-8000-000000000103');
+select pg_temp.as_user('00000000-0000-4000-8000-000000000104');
 select throws_ok($$ select public.give_bonus_chips((select id from ids where name = 'ira'), 500, 'Birthday', gen_random_uuid()) $$,
-  '42501', null, 'an admin adds no bonus chips');
+  '42501', null, 'a cashier adds no bonus chips');
 
 -- Vikram signs up on his own login: his own record is refused.
 select pg_temp.as_user('00000000-0000-4000-8000-000000000101');
