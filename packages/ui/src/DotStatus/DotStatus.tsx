@@ -25,11 +25,11 @@ const WORDS: Record<DotStatusTone, string> = { needsYou: 'text-content', active:
 /** A status as a 6 px dot and its words, never the colour alone (console v3): a member's state in a row, a promotion's. */
 export function DotStatus({ tone, label, title }: DotStatusProps) {
   return (
-    <span title={title} className={cx('inline-flex items-center gap-2 font-text text-13 leading-control', WORDS[tone])}>
+    <span title={title} className={cx('inline-flex max-w-full min-w-0 items-center gap-2 font-text text-13 leading-control', WORDS[tone])}>
       <span data-dot="" aria-hidden="true" className={cx('size-pip shrink-0 rounded-full', DOT[tone])} />
-      {title === undefined ? label : (
+      {title === undefined ? <span title={label} className="min-w-0 truncate">{label}</span> : (
         <>
-          <span aria-hidden="true">{label}</span>
+          <span aria-hidden="true" className="min-w-0 truncate">{label}</span>
           <span className="sr-only">{title}</span>
         </>
       )}

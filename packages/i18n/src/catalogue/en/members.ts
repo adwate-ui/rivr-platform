@@ -28,7 +28,7 @@ export const members = {
   mobile: 'Mobile',
   kyc: 'ID check',
   kycStatuses: { verified: 'Checked', in_review: 'In review', at_desk: 'Due', refused: 'Refused', not_done: 'Not done' },
-  played: 'Hours played', city: 'City', memberSince: 'Member since',
+  played: 'Hours', city: 'City', memberSince: 'Joined',
   lastVisit: 'Last visit',
   never: 'Never',
   /** Where a member is tonight (console v3): their seat, waiting for one, gone home, or not at the club (`notHere`). */

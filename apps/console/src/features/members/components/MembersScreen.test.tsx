@@ -76,6 +76,13 @@ function renderAs(role: string, memberId?: string, part?: string) {
 }
 
 describe('Members (console v3)', () => {
+  it('has no funnel on Tier, which the chips above it already filter (audit F-093)', async () => {
+    renderAs('super_admin');
+    const table = await screen.findByRole('table', { name: 'Members' }, { timeout: 5000 });
+    expect(within(table).queryByRole('button', { name: /^Tier: sort and filter/ })).toBeNull();
+    expect(within(table).getByRole('button', { name: /^City: sort and filter/ })).toBeDefined();
+  });
+
   it('lists every member on open with where each is tonight, and opens a record in the address', async () => {
     const onNavigate = renderAs('super_admin');
     const table = await screen.findByRole('table', { name: 'Members' }, { timeout: 5000 });
@@ -91,7 +98,7 @@ describe('Members (console v3)', () => {
   it('shows each member\'s KYC, hours played, city and member-since day, and the mobile to a super admin (owner, 8 Nov)', async () => {
     renderAs('super_admin');
     const table = await screen.findByRole('table', { name: 'Members' }, { timeout: 5000 });
-    for (const header of ['Mobile', 'ID check', 'Hours played', 'City', 'Member since']) {
+    for (const header of ['Mobile', 'ID check', 'Hours', 'City', 'Joined']) {
       expect(within(table).getByRole('columnheader', { name: new RegExp(header) })).toBeDefined();
     }
     const sakshi = within(table).getAllByRole('row').find((row) => row.textContent?.includes('Sakshi Tandon')) ?? table;
@@ -128,7 +135,7 @@ describe('Members (console v3)', () => {
     expect(await screen.findByRole('heading', { name: 'Sakshi Tandon', level: 2 }, { timeout: 5000 })).toBeDefined();
     // Half the width beside the record, the list keeps every column, its lines scrolling sideways (owner, 9 Nov).
     const table = screen.getByRole('table', { name: 'Members' });
-    for (const column of [/^Mobile/, /^ID check/, /^Hours played/, /^City/, /^Visits/]) expect(within(table).getByRole('columnheader', { name: column })).toBeDefined();
+    for (const column of [/^Mobile/, /^ID check/, /^Hours/, /^City/, /^Visits/]) expect(within(table).getByRole('columnheader', { name: column })).toBeDefined();
     // The list beside it names her seat too, in its Tonight column's title: the record's line is the one with Show.
     const show = await screen.findByRole('button', { name: 'Show Sakshi Tandon on the floor' });
     expect(show.parentElement?.textContent).toContain('Table 2, seat 3');

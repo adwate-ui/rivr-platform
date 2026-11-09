@@ -40,7 +40,7 @@ test.describe('table filters', () => {
     await table.getByRole('row').nth(1).getByRole('button').first().click();
     await expect(page.getByRole('heading', { level: 2 })).toBeVisible();
     await expect(page).toHaveURL(/member=.*t\.members=|t\.members=.*member=/);
-    for (const column of [/^ID check/, /^City/, /^Hours played/, /^Mobile/]) await expect(table.getByRole('columnheader', { name: column })).toHaveCount(1);
+    for (const column of [/^ID check/, /^City/, /^Hours/, /^Mobile/]) await expect(table.getByRole('columnheader', { name: column })).toHaveCount(1);
     await expectFiltered(page);
 
     await page.reload();
