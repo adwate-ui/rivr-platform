@@ -4,6 +4,7 @@ import { Screen, SplitView } from '@rivr/ui';
 import { useState } from 'react';
 import { useTonight } from '../hooks/useTonight.ts';
 import { MemberList } from './MemberList.tsx';
+import { ErasureRequests } from './ErasureRequests.tsx';
 import { MemberRecordPanel, type RecordAccess } from './MemberRecordPanel.tsx';
 import { recordHref } from './recordParts.ts';
 
@@ -47,6 +48,7 @@ function Members({ title, venueId, can, memberId, part, onNavigate }: MembersScr
   const [exportIn, setExportIn] = useState<HTMLElement | null>(null);
   return (
     <Screen title={title} onActionsSlot={setExportIn}>
+      {can.erase ? <ErasureRequests venueId={venueId} onOpen={(id) => onNavigate(recordHref(id))} /> : null}
       {/* The list stays in place as a record opens, so the search typed stays (C-02). */}
       <SplitView layout="docked" backLabel={t('console.members.back')} onBack={() => onNavigate('/members')}
         list={<MemberList venueId={venueId} tonight={tonight} onOpen={(id) => onNavigate(recordHref(id))} exportIn={exportIn} seesPhone={can.changePhone}

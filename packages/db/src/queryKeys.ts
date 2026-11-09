@@ -84,6 +84,8 @@ export const queryKeys = {
   purgeFilesLeft: (userId: string, venueId: string) => ['user', userId, 'purgeFilesLeft', venueId] as const,
   purgeAsk: (userId: string, venueId: string) => ['user', userId, 'purgeAsk', venueId] as const,
   memberErasurePreview: (userId: string, memberId: string) => ['user', userId, 'member-erasure-preview', memberId] as const,
+  memberErasureRequests: (userId: string, venueId: string) => ['user', userId, 'member-erasure-requests', venueId] as const,
+  myErasureRequest: (userId: string) => ['user', userId, 'my-erasure-request'] as const,
   /** The signed-in member's waitlist places. */
   myWaitlist: (userId: string) => ['user', userId, 'my-waitlist'] as const,
   /** A venue's waitlists, as the floor sees them. */

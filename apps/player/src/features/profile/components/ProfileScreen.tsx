@@ -3,6 +3,7 @@ import { formatMobile, t } from '@rivr/i18n';
 import { BackButton, Box, DeskHelp, DetailRow, FeatureGate, Heading, Inline, ProfileMark, Screen, Stack, Text, useHeadingFocus, usePageTitle } from '@rivr/ui';
 import { useCanGoBack, useNavigate, useRouter } from '@tanstack/react-router';
 import { useId, useState, type ReactNode } from 'react';
+import { DeleteAccountRow } from './DeleteAccount.tsx';
 import { FeedbackSheet } from './FeedbackSection.tsx';
 import { NotificationsSection } from './NotificationsSection.tsx';
 import { SignOutSection } from './SignOutSection.tsx';
@@ -53,11 +54,12 @@ function ProfileHead({ headingId }: { headingId: string }) {
   );
 }
 
-/** Club: House rules, Learn and Events where the member has them, Send feedback, and how to have their data erased. */
+/** Club: House rules, Learn and Events where the member has them, Send feedback, and Delete my account. */
 function ClubGroup({ onFeedback }: { onFeedback: () => void }) {
   const navigate = useNavigate();
   const learn = useFeature('learn.library');
   const events = useFeature('events.book');
+  const deleteAccount = useFeature('account.delete');
   return (
     <Group title={t('player.profile.club')}>
       <DetailRow label={t('player.houseRules.title')} onOpen={() => void navigate({ to: '/profile/rules' })} />
@@ -65,7 +67,7 @@ function ClubGroup({ onFeedback }: { onFeedback: () => void }) {
       <FeatureGate access={learn}><DetailRow label={t('player.profile.learn')} onOpen={() => void navigate({ to: '/learn' })} /></FeatureGate>
       <FeatureGate access={events}><DetailRow label={t('player.profile.events')} onOpen={() => void navigate({ to: '/events' })} /></FeatureGate>
       <DetailRow label={t('player.profile.sendFeedback')} onOpen={onFeedback} />
-      <Box paddingY={3} hairline="top"><Text variant="small" tone="muted">{t('player.profile.erasure')}</Text></Box>
+      <FeatureGate access={deleteAccount}><DeleteAccountRow /></FeatureGate>
     </Group>
   );
 }

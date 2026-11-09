@@ -14,7 +14,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const FEATURES = ['push.seat_ready', 'push.call_time_complete', 'push.bonus', 'learn.library'].map((feature_key) => ({ feature_key, state: 'enabled', tiers: null }));
+const FEATURES = ['push.seat_ready', 'push.call_time_complete', 'push.bonus', 'learn.library', 'account.delete'].map((feature_key) => ({ feature_key, state: 'enabled', tiers: null }));
 const CARD = { member_number: 901, full_name: 'Meera Iyer', tier_name: 'Founders’ Circle', code: 'c0de', ms_left: 30000, photo_path: null };
 
 /** What each read Profile makes is answered with, by a part of its address; undefined for any other. */
@@ -31,12 +31,14 @@ function readAnswer(url: string, card: object): unknown {
 }
 
 /** Meera signed in on +91 90000 00901, opening Profile from Rewards; feedback she sends goes to `sent`. */
-function renderProfile(card: object = CARD) {
+function renderProfile(card: object = CARD, erasure: { asked?: string; fails?: boolean } = {}) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000241', aud: 'authenticated', phone: '919000000901', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
   }));
   const sent: unknown[] = [];
+  let asked = erasure.asked ?? null;
+  let asks = 0;
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
     const answer = readAnswer(url, card);
@@ -44,6 +46,13 @@ function renderProfile(card: object = CARD) {
     if (url.includes('/rpc/send_quick_feedback') || url.includes('/rpc/send_detailed_feedback')) {
       sent.push(JSON.parse(String(init?.body)));
       return Response.json(null);
+    }
+    if (url.includes('/rpc/my_erasure_request')) return Response.json(asked === null ? [] : [{ requested_at: asked }]);
+    if (url.includes('/rpc/request_my_erasure')) {
+      if (erasure.fails === true) return Response.json({ code: 'XX000', message: 'No' }, { status: 500 });
+      asks += 1;
+      asked = '2026-11-09T05:00:00Z';
+      return Response.json(asked);
     }
     return Response.json([]);
   });
@@ -62,7 +71,7 @@ function renderProfile(card: object = CARD) {
       <RouterProvider router={router} />
     </RivrDataProvider>,
   );
-  return { router, sent };
+  return { router, sent, asks: () => asks };
 }
 
 const LATER = { timeout: 5000 };
@@ -92,6 +101,35 @@ describe('Profile', () => {
     expect(screen.getByText('These apply once notifications are on.')).toBeDefined();
     // The kinds are the member's on any phone, so they stay usable.
     expect(await screen.findByRole('switch', { name: /Seat calls/ }, LATER)).toHaveProperty('disabled', false);
+  });
+
+  it('says what deleting the account does, and files the request only once confirmed', async () => {
+    const { asks } = renderProfile();
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete my account' }, LATER));
+    const sheet = await screen.findByRole('dialog', { name: 'Delete my account' }, LATER);
+    expect(within(sheet).getByText(/within 7 days/)).toBeDefined();
+    expect(within(sheet).getByText('Your points and bonus chips are forfeited.')).toBeDefined();
+    expect(within(sheet).getByText(/Play records the law requires/)).toBeDefined();
+    expect(asks()).toBe(0);
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Send request' }));
+    expect(await screen.findByText('Request sent.', {}, LATER)).toBeDefined();
+    expect(await screen.findByText('Requested 9 Nov', {}, LATER)).toBeDefined();
+    expect(asks()).toBe(1);
+    expect(screen.queryByRole('button', { name: 'Delete my account' })).toBeNull();
+  });
+
+  it('shows a request already sent, with nothing to open', async () => {
+    renderProfile(CARD, { asked: '2026-11-08T05:00:00Z' });
+    expect(await screen.findByText('Requested 8 Nov', {}, LATER)).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Delete my account' })).toBeNull();
+  });
+
+  it('keeps the sheet open and says so when the request does not go through', async () => {
+    renderProfile(CARD, { fails: true });
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete my account' }, LATER));
+    const sheet = await screen.findByRole('dialog', { name: 'Delete my account' }, LATER);
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Send request' }));
+    expect(await within(sheet).findByText('Not sent. Try again.', {}, LATER)).toBeDefined();
   });
 
   it('ends with the way to the front desk, after Sign out, as every step does (8 Nov audit, F-184)', async () => {

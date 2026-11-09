@@ -50,6 +50,7 @@ export const FEATURES = [
   gateable('table.top_up', 'Top-up requests', 'Asking the floor for more chips from the seat.', ['player:home']),
   core('table.leave', 'Leave the seat', 'Leaving the seat from the app.', ['player:home']),
   core('notices.view', 'Notices', 'The club’s notices at the top of Home, such as when it opens.', ['player:home']),
+  core('account.delete', 'Delete my account', 'Asking the club to erase the account and its data.', ['player:profile']),
   gateable('tournaments.register', 'Tournament registration', 'Registering and re-entering from the app.', ['player:home/tournament']),
   gateable('promotions.feed', 'Promotions feed', 'Promotion cards on Home.', ['player:home']),
   gateable('floor.live_view', 'Live floor view', 'Tables running, open seats and waitlist lengths.', ['player:home']),

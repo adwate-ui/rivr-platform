@@ -108,6 +108,7 @@ export const webApp = {
     responsiblePlay: 'Responsible play',
     privacy: 'Privacy',
     terms: 'Terms of use',
+    deleteAccount: 'Delete your account',
     /** Free, confidential helplines for anyone whose play worries them, as grandpokerarena.com lists them. */
     helplines: 'Helplines',
     teleManas: 'Tele-MANAS 14416 (24 hours)',

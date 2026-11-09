@@ -127,11 +127,12 @@ describe('the console rail (console v3)', () => {
   });
 
   it('counts beside a screen what waits on it, in gold where it asks for action', () => {
-    const rail = railFor(ROLE_PERMISSIONS.super_admin, { topUps: 2, timeRequests: 1, liveFloor: 3, waitlist: 4, kycReview: 2 }).flatMap((section) => section.items);
+    const rail = railFor(ROLE_PERMISSIONS.super_admin, { topUps: 2, timeRequests: 1, liveFloor: 3, waitlist: 4, kycReview: 2, erasureRequests: 1 }).flatMap((section) => section.items);
     expect(rail.find((item) => item.id === 'liveFloor')).toMatchObject({ count: 6, isActionable: true });
     expect(rail.find((item) => item.id === 'waitlist')).toMatchObject({ count: 4, isActionable: true });
     expect(rail.find((item) => item.id === 'kycReview')).toMatchObject({ count: 2, isActionable: undefined });
-    expect(rail.find((item) => item.id === 'members')?.count).toBeUndefined();
+    expect(rail.find((item) => item.id === 'members')).toMatchObject({ count: 1, isActionable: undefined });
+    expect(rail.find((item) => item.id === 'content')?.count).toBeUndefined();
   });
 
   it('puts Floor, Requests, Waitlist and Door on the phone tab bar, Requests counting every request', () => {

@@ -161,6 +161,7 @@ describe('a website page', () => {
     expect(screen.getByRole('cell', { name: '5' })).toBeDefined();
     expect(screen.getByRole('heading', { level: 3, name: 'Referral' })).toBeDefined();
     expect(screen.getByRole('contentinfo').querySelector('a[href="/house-rules?ref=FRIEND1"]')?.textContent).toBe('House rules');
+    expect(screen.getByRole('contentinfo').querySelector('a[href="/delete-account?ref=FRIEND1"]')?.textContent).toBe('Delete your account');
   });
 
   it('shows the social wall’s approved posts with their links, and no block while there are none', () => {

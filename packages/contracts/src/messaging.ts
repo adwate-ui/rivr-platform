@@ -107,9 +107,9 @@ export const bonusRedeemedSchema = z.object({
 
 /**
  * The notices a member hears of by WhatsApp while away from the app (decision 0303): an identity check verified, waiting for
- * review or refused; a reward cancelled; a seat on the leaving list released.
+ * review or refused; a reward cancelled; a seat on the leaving list released; an account deleted as the member asked.
  */
-export const MEMBER_NOTICES = ['kyc_verified', 'kyc_in_review', 'kyc_refused', 'reward_cancelled', 'seat_released', 'tournament_withdrawn', 'tournament_moved'] as const;
+export const MEMBER_NOTICES = ['kyc_verified', 'kyc_in_review', 'kyc_refused', 'reward_cancelled', 'seat_released', 'tournament_withdrawn', 'tournament_moved', 'account_erased'] as const;
 
 /**
  * A notice's word: one line of plain text, never a link nor WhatsApp's formatting marks, so nothing typed into the club's

@@ -2303,6 +2303,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"member_erasure_request": {
+                  Row: {
+                    "completed_at": string | null,"created_at": string,"id": string,"member_id": string,"requested_at": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "completed_at"?: string | null,"created_at"?: string,"id"?: string,"member_id": string,"requested_at"?: string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "completed_at"?: string | null,"created_at"?: string,"id"?: string,"member_id"?: string,"requested_at"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "member_erasure_request_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"member_feature_override": {
                   Row: {
                     "created_at": string,"created_by_staff_id": string | null,"ends_at": string | null,"feature_key": string,"id": string,"is_granted": boolean,"lift_reason": string | null,"lifted_by_staff_id": string | null,"member_id": string,"reason": string,"revoked_at": string | null,"updated_at": string,"venue_id": string
@@ -5188,6 +5208,9 @@ isOneToOne: false
 "erased_member_kyc_folder":
 { Args: { "p_member_id": string }; Returns: string
                            },
+"erased_member_notice_phone":
+{ Args: { "p_member_id": string,"p_venue_id": string }; Returns: string
+                           },
 "export_archive_rows":
 { Args: { "p_after"?: Json,"p_archive_id": string,"p_limit"?: number,"p_table": string }; Returns: Json
                            },
@@ -5438,6 +5461,11 @@ isOneToOne: false
               "blocked_until": string,"blockers": (string)[],"bonus_paise": number,"is_erased": boolean,"kyc_files": number,"nights": number,"points": number
             }[]
                            },
+"member_erasure_requests":
+{ Args: { "p_venue_id": string }; Returns: {
+              "full_name": string,"member_id": string,"requested_at": string
+            }[]
+                           },
 "member_feature_overrides":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
               "created_at": string,"feature_key": string,"feature_name": string,"is_granted": boolean,"lift_reason": string,"lifted_by": string,"override_id": string,"reason": string,"staff_name": string,"standing": string,"until": string
@@ -5556,6 +5584,11 @@ isOneToOne: false
 "my_device":
 { Args: Record<PropertyKey, never>; Returns: {
               "device_id": string,"is_practice": boolean,"kind": Database["public"]['Enums']["device_kind"],"name": string,"table_id": string,"table_name": string,"venue_id": string
+            }[]
+                           },
+"my_erasure_request":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "requested_at": string
             }[]
                            },
 "my_feature_access":
@@ -6033,6 +6066,9 @@ isOneToOne: false
                            },
 "request_expense":
 { Args: { "p_amount_paise": number,"p_category_id": string,"p_expense_id": string,"p_note": string,"p_payee": string,"p_payment_account_id": string,"p_receipt_path": string,"p_venue_id": string }; Returns: string
+                           },
+"request_my_erasure":
+{ Args: Record<PropertyKey, never>; Returns: string
                            },
 "request_top_up":
 { Args: Record<PropertyKey, never>; Returns: undefined

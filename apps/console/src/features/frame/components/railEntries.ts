@@ -10,7 +10,7 @@ export interface ScreenTab {
 }
 
 /** The count's noun in `console.rail.counts`, one and many. */
-export type RailCountWords = 'requests' | 'orders' | 'idChecks' | 'calls' | 'tickets' | 'approvals' | 'handOvers' | 'posts';
+export type RailCountWords = 'requests' | 'orders' | 'idChecks' | 'calls' | 'tickets' | 'approvals' | 'handOvers' | 'posts' | 'deletions';
 
 export interface RailEntry {
   readonly id: string;
@@ -73,7 +73,7 @@ export const RAIL: readonly RailGroup[] = [
   },
   {
     id: 'players', label: 'console.rail.groups.players', entries: [
-      { id: 'members', label: 'console.rail.items.members', href: '/members', icon: 'profile', anyOf: ['members.manage', 'host_queue.manage'], locksWhenIdle: true },
+      { id: 'members', label: 'console.rail.items.members', href: '/members', icon: 'profile', anyOf: ['members.manage', 'host_queue.manage'], counts: ['erasureRequests'], countWords: 'deletions', locksWhenIdle: true },
       { id: 'kycReview', label: 'console.rail.items.kycReview', href: '/kyc-review', icon: 'kyc', anyOf: ['kyc.review', 'kyc.in_person'], counts: ['kycReview'], countWords: 'idChecks', locksWhenIdle: true },
       { id: 'hostQueue', label: 'console.rail.items.hostQueue', href: '/host-queue', icon: 'phone', anyOf: ['host_queue.manage'], counts: ['hostQueue'], countWords: 'calls' },
       { id: 'feedback', label: 'console.rail.items.feedback', href: '/feedback', icon: 'feedback', anyOf: ['feedback.manage'], counts: ['feedback'], countWords: 'tickets' },

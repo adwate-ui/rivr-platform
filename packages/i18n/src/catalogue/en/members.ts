@@ -170,6 +170,9 @@ export const members = {
       unavailable: 'Not sent. Try again.',
     },
   },
+  /** Members who asked to delete their account from the app (#813). */
+  erasureRequests: 'Deletion requests',
+  erasureRequest: '{name} · Asked {date}',
   erase: {
     title: 'Erasure on request',
     intro: 'Removes this member\'s personal data for good: name, mobile number, login, KYC files and preferences. Visit and reward records stay, by member number, without the person.',

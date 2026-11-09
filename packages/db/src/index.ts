@@ -115,7 +115,8 @@ export type { MemberExportDetails } from './memberDetails.ts';
 export { useMemberSignUp, type MemberSignUp, type SignUpCampaign } from './memberSignUp.ts';
 export { useChangeMemberPhone, type PhoneChangeFailure } from './memberPhone.ts';
 export {
-  useEraseMember, useMemberErasurePreview, useRemoveErasedKycFiles, type Erasure, type ErasureBlocker, type ErasureFailure, type ErasurePreview,
+  useEraseMember, useMemberErasurePreview, useMemberErasureRequests, useMyErasureRequest, useRemoveErasedKycFiles, useRequestMyErasure, type Erasure,
+  type ErasureBlocker, type ErasureFailure, type ErasurePreview, type ErasureRequest,
 } from './memberErasure.ts';
 export {
   useApproveWaitlistRequest,
