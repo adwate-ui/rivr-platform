@@ -10,7 +10,7 @@ export interface ScreenTab {
 }
 
 /** The count's noun in `console.rail.counts`, one and many. */
-export type RailCountWords = 'requests' | 'orders' | 'idChecks' | 'calls' | 'tickets' | 'approvals' | 'handOvers';
+export type RailCountWords = 'requests' | 'orders' | 'idChecks' | 'calls' | 'tickets' | 'approvals' | 'handOvers' | 'posts';
 
 export interface RailEntry {
   readonly id: string;
@@ -88,7 +88,7 @@ export const RAIL: readonly RailGroup[] = [
         { id: 'points', label: 'console.rewards.tabs.points', anyOf: ['points.give'] },
         { id: 'spin-wheel', label: 'console.rail.items.spinWheel', anyOf: ['promotions.manage'] },
       ] },
-      { id: 'social', label: 'console.rail.items.social', href: '/social', icon: 'social', anyOf: ['marketing.publish'] },
+      { id: 'social', label: 'console.rail.items.social', href: '/social', icon: 'social', anyOf: ['marketing.publish'], counts: ['wallPosts'], countWords: 'posts' },
       { id: 'content', label: 'console.rail.items.content', href: '/content', icon: 'content', anyOf: [], tabs: [
         { id: 'website', label: 'console.rail.items.website', anyOf: ['website.edit'] },
         { id: 'learn', label: 'console.rail.items.learnContent', anyOf: ['learn.manage_sources'] },

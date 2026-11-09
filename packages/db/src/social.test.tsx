@@ -38,9 +38,20 @@ const bodyOf = (calls: { url: string; body: unknown }[], path: string) => calls.
 afterEach(cleanup);
 
 describe('social', () => {
+  it('shows every post waiting, however old, beside the newest fifty decided: nothing expires (the owner, 9 Nov)', async () => {
+    const post = (id: string, status: string, postedAt: string) => ({ id, handle: 'h', caption: '', media_url: 'https://cdn.example/1.jpg', permalink: 'https://www.instagram.com/p/1/', posted_at: postedAt, status });
+    const { result, calls } = renderHooks({
+      'status=eq.pending': { body: [post('old', 'pending', '2026-01-01T00:00:00+00:00')] },
+      'status=neq.pending': { body: [post('new', 'approved', '2026-11-15T18:00:00+00:00')] },
+    });
+    await waitFor(() => expect(result.current.wall.data?.map((one) => one.postId)).toEqual(['new', 'old']));
+    expect(calls.find((call) => call.url.includes('status=neq.pending'))?.url).toContain('limit=50');
+    expect(calls.find((call) => call.url.includes('status=eq.pending'))?.url).not.toContain('limit=');
+  });
+
   it('reads the wall\u2019s posts, the leads, the posts published and the TV\u2019s wall', async () => {
     const { result } = renderHooks({
-      '/rest/v1/wall_post': { body: [{ id: 'w1', handle: 'zoya.plays', caption: 'Final table', media_url: 'https://cdn.example/1.jpg',
+      'status=neq.pending': { body: [{ id: 'w1', handle: 'zoya.plays', caption: 'Final table', media_url: 'https://cdn.example/1.jpg',
         permalink: 'https://www.instagram.com/p/1/', posted_at: '2026-11-15T18:00:00+00:00', status: 'approved' }] },
       '/rpc/venue_leads': { body: [
         { lead_id: 'l1', channel: 'whatsapp', handle: '+919876543210', first_message: 'Hi', last_message_at: '2026-11-15T18:10:00+00:00', messages: 2, member_name: 'Yash Gupta' },

@@ -115,6 +115,11 @@ describe('the console rail (console v3)', () => {
     for (const old of ['/check-in', '/tvs', '/somewhere-new']) expect(isAllowedAt(ROLE_PERMISSIONS.dealer, old)).toBe(true);
   });
 
+  it('counts the wall posts waiting beside Social (the owner, 9 Nov)', () => {
+    const items = railFor(['marketing.publish'], { wallPosts: 3 }).flatMap((section) => section.items);
+    expect(items.find((item) => item.id === 'social')).toMatchObject({ count: 3, countLabel: '3 posts waiting' });
+  });
+
   it('counts beside a screen what waits on it, in gold where it asks for action', () => {
     const rail = railFor(ROLE_PERMISSIONS.super_admin, { topUps: 2, timeRequests: 1, liveFloor: 3, waitlist: 4, kycReview: 2 }).flatMap((section) => section.items);
     expect(rail.find((item) => item.id === 'liveFloor')).toMatchObject({ count: 6, isActionable: true });
