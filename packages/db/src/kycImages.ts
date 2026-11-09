@@ -27,13 +27,15 @@ export async function signedKycImageUrl(client: RivrClient, path: string): Promi
 }
 
 /** One KYC image's signed URL, kept fresh: the one way any app shows a KYC image. */
-export function useKycImageUrl(path: string | null) {
+export function useKycImageUrl(path: string | null, { isForgottenOnClose = false }: { isForgottenOnClose?: boolean } = {}) {
   const { client, userId } = useRivrData();
   return useQuery({
     queryKey: queryKeys.kycImageUrl(userId ?? 'signed-out', path ?? ''),
     enabled: userId !== null && path !== null,
     // Ask for a fresh link before this one runs out.
     staleTime: (KYC_IMAGE_URL_SECONDS - 10) * 1000,
+    // Where every opening is audited, opening it again asks again.
+    ...(isForgottenOnClose ? { gcTime: 0 } : {}),
     // A refusal stays a refusal; the screen's error state offers Try again.
     retry: false,
     queryFn: () => signedKycImageUrl(client, path ?? ''),
