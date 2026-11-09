@@ -116,6 +116,7 @@ export const queryKeys = {
   myFeedbackVisit: (userId: string) => ['user', userId, 'my-feedback-visit'] as const,
   venueFeedback: (userId: string, venueId: string) => ['user', userId, 'venue-feedback', venueId] as const,
   /** Under the prefix above, which a resolve refreshes: each list's count and a list's pages (F-024). */
+  venueFeedbackOpen: (userId: string, venueId: string) => ['user', userId, 'venue-feedback', venueId, 'open'] as const,
   venueFeedbackCounts: (userId: string, venueId: string) => ['user', userId, 'venue-feedback', venueId, 'counts'] as const,
   venueFeedbackPage: (userId: string, venueId: string, list: string) => ['user', userId, 'venue-feedback', venueId, 'page', list] as const,
   /** The suspicious-activity register (#105). */

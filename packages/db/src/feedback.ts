@@ -186,29 +186,41 @@ export function useFeedbackActions() {
   return { rate, send, sendQuick, sendDetailed };
 }
 
-/** The venue's feedback for the General Manager (feedback.manage): open tickets first, then the last 90 days. */
-export function useVenueFeedback(venueId: string) {
+/** An open ticket as the triage table shows it (F-013): the visit's tables, and how long from check-in to a first seat. */
+export interface OpenFeedback extends FeedbackItem {
+  readonly tables: string | null;
+  readonly waitSeconds: number | null;
+}
+
+/** Every open ticket, oldest first; the list is never cut (F-024). */
+export function useOpenFeedback(venueId: string) {
   const { client, userId } = useRivrData();
   return useQuery({
-    queryKey: queryKeys.venueFeedback(userId ?? 'signed-out', venueId),
+    queryKey: queryKeys.venueFeedbackOpen(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     refetchInterval: LIST_CHECK,
-    queryFn: async (): Promise<FeedbackItem[]> => {
-      const { data, error } = await client.rpc('venue_feedback', { p_venue_id: venueId });
+    queryFn: async (): Promise<OpenFeedback[]> => {
+      const { data, error } = await client.rpc('open_feedback', { p_venue_id: venueId });
       if (error) throw error;
-      return data.map(itemOf);
+      return data.map((row) => ({
+        ...itemOf({ ...row, is_ticket: true, resolved_at: null, resolved_by: null, resolution: null }), tables: row.tables, waitSeconds: row.wait_seconds,
+      }));
     },
   });
 }
 
-/** The General Manager resolves a ticket with what was done; a Result, and the list reloads. */
+/** Why several tickets were not resolved: as any feedback failure, or more than the database takes at once. */
+export type ResolveFeedbackFailure = FeedbackFailure | 'too_many';
+
+/** Resolves several open tickets with one line of what was done, all or none (F-013): a Result, and every list reloads. */
 export function useResolveFeedback(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ feedbackId, resolution }: { feedbackId: string; resolution: string }): Promise<Result<null, FeedbackFailure>> => {
-      const { error } = await client.rpc('resolve_feedback', { p_feedback_id: feedbackId, p_resolution: resolution.trim() });
+    mutationFn: async ({ feedbackIds, resolution }: { feedbackIds: readonly string[]; resolution: string }): Promise<Result<null, ResolveFeedbackFailure>> => {
+      const { error } = await client.rpc('resolve_feedback_many', { p_feedback_ids: [...feedbackIds], p_resolution: resolution.trim() });
       await queryClient.invalidateQueries({ queryKey: queryKeys.venueFeedback(userId ?? 'signed-out', venueId) });
+      if (error?.code === 'RVMAX') return err('too_many');
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },
   });

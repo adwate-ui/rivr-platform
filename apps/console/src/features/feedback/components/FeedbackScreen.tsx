@@ -1,7 +1,8 @@
-import { useFeedbackCounts, useFeedbackPage, useStaffVenue, useVenueFeedback, type FeedbackItem, type FeedbackListName } from '@rivr/db';
+import { useFeedbackCounts, useFeedbackPage, useStaffVenue, type FeedbackItem, type FeedbackListName } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button, Inline, LoadState, Screen, Stack, Tabs, Text } from '@rivr/ui';
 import { FeedbackCard } from './FeedbackCard.tsx';
+import { OpenTickets } from './OpenTickets.tsx';
 
 const TABS = ['open', 'resolved', 'all'] as const;
 type FeedbackTab = (typeof TABS)[number];
@@ -12,21 +13,10 @@ export interface TabbedProps {
   readonly onNavigate: (href: string) => void;
 }
 
-/** An open ticket: a rating of 3 or below, or a note from the app, not yet resolved. */
-const isOpen = (item: FeedbackItem) => item.isTicket && item.resolvedAt === null;
-
 /** The tab's cards, or its one line when it has none. */
-function Cards({ venueId, items, emptyText }: { venueId: string; items: readonly FeedbackItem[]; emptyText: string }) {
+function Cards({ items, emptyText }: { items: readonly FeedbackItem[]; emptyText: string }) {
   if (items.length === 0) return <Text tone="muted">{emptyText}</Text>;
-  return <Stack gap={3}>{items.map((item) => <FeedbackCard key={item.id} venueId={venueId} item={item} />)}</Stack>;
-}
-
-/** Every open ticket: the list is never cut (F-024). */
-function OpenList({ venueId }: { venueId: string }) {
-  const list = useVenueFeedback(venueId);
-  if (list.isError) return <LoadState isError onRetry={() => void list.refetch()} />;
-  if (list.data === undefined) return <LoadState />;
-  return <Cards venueId={venueId} items={list.data.filter(isOpen)} emptyText={t('console.feedback.noneOpen')} />;
+  return <Stack gap={3}>{items.map((item) => <FeedbackCard key={item.id} item={item} />)}</Stack>;
 }
 
 /** A list read a page at a time, with Show more while there is another (F-024). */
@@ -36,7 +26,7 @@ function PagedList({ venueId, list, emptyText }: { venueId: string; list: Feedba
   if (page.data === undefined) return <LoadState />;
   return (
     <Stack gap={3}>
-      <Cards venueId={venueId} items={page.data.pages.flat()} emptyText={emptyText} />
+      <Cards items={page.data.pages.flat()} emptyText={emptyText} />
       {page.hasNextPage ? (
         <Inline><Button variant="subtle" isLoading={page.isFetchingNextPage} onClick={() => void page.fetchNextPage()}>{t('console.feedback.more')}</Button></Inline>
       ) : null}
@@ -57,7 +47,7 @@ export function FeedbackList({ venueId, tab, onNavigate }: TabbedProps & { venue
       <Stack gap={6}>
         <Tabs label={title} current={current} onNavigate={onNavigate}
           tabs={TABS.map((id) => ({ id, label: t(`console.feedback.tabs.${id}`, { count: String(count[id]) }), href: `/feedback?tab=${id}` }))} />
-        {current === 'open' ? <OpenList venueId={venueId} /> : null}
+        {current === 'open' ? <OpenTickets venueId={venueId} onNavigate={onNavigate} /> : null}
         {current === 'resolved' ? <PagedList key="resolved" venueId={venueId} list="resolved" emptyText={t('console.feedback.noneResolved')} /> : null}
         {current === 'all' ? <PagedList key="all" venueId={venueId} list="other" emptyText={t('console.feedback.noneOther')} /> : null}
       </Stack>

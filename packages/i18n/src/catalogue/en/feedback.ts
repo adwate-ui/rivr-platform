@@ -4,13 +4,28 @@
 export const feedback = {
   title: 'Feedback',
   notAllowed: 'Not in your role. Ask an admin.',
-  /** The three tabs (F-024): open tickets, those resolved, and the ratings that never were tickets; each with how many. */
-  tabs: { open: 'Open {count}', resolved: 'Resolved {count}', all: 'All feedback {count}' },
+  /** The three tabs (F-024): open tickets, those resolved, and the ratings that never were tickets (`all`, in the address); each with how many. */
+  tabs: { open: 'Open {count}', resolved: 'Resolved {count}', all: 'Other {count}' },
   noneOpen: 'No open tickets.',
   noneResolved: 'Nothing resolved in the last 90 days.',
   noneOther: 'No other feedback in the last 90 days.',
   /** The next page of a list. */
   more: 'Show more',
+  /** The open tickets' table (F-013). */
+  openLabel: 'Open tickets',
+  columns: { age: 'Age', rating: 'Rating', member: 'Member', visit: 'Visit', note: 'Note' },
+  /** A ticket's rating; a note from the app has none. */
+  score: '{score} of 5',
+  noRating: 'No rating',
+  /** A visit's tables, and how long from check-in to a first seat. */
+  visitLine: '{tables} · waited {wait}',
+  noVisit: 'No visit',
+  notSeated: 'Not seated',
+  /** An age past its target: gold, and says so (0463). */
+  overdue: '{age} · overdue',
+  /** Over the line of what was done, for the tickets ticked. */
+  resolveCount: 'Resolve {count}',
+  resolvedCount: '{count} resolved',
   /** A card's member: `Mihir Shah · No. 1213`. */
   who: '{name} · No. {number}',
   /** A rating: `{score}` of 5, and the day of the visit (IST): `2 of 5 · visit 25 Oct`. */
@@ -33,12 +48,14 @@ export const feedback = {
   resolution: 'What was done',
   invalidResolution: 'Say what was done, in at most 500 characters.',
   resolve: 'Resolve',
-  resolveName: 'Resolve {name}’s ticket',
+  cancel: 'Cancel',
   failures: {
     not_allowed: 'Not in your role. Ask an admin.',
     invalid: 'Already resolved.',
     already_rated: 'Already resolved.',
     too_old: 'Already resolved.',
+    /** More tickets at once than the database takes. */
+    too_many: 'Tick 500 at most.',
     stopped: 'That member is frozen.',
     paused: 'Venue frozen. Try again once it is released.',
     unavailable: 'Not sent. Try again.',
