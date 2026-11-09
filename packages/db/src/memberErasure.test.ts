@@ -21,7 +21,6 @@ describe('erasureFailureOf', () => {
 describe('erasureBlockerOf', () => {
   it('knows what the database lists', () => {
     expect(erasureBlockerOf('cash')).toBe('cash');
-    expect(erasureBlockerOf('academy')).toBe('academy');
   });
 
   it('never shows a blocker it does not know as another', () => {

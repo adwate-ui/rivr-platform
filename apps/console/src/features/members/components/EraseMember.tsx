@@ -15,7 +15,6 @@ const BLOCKER_COPY: Readonly<Record<ErasureBlocker, MessageKey>> = {
   waitlist: 'console.members.erase.blockers.waitlist',
   tournament: 'console.members.erase.blockers.tournament',
   requests: 'console.members.erase.blockers.requests',
-  academy: 'console.members.erase.blockers.academy',
 };
 
 const FAILURE_COPY: Readonly<Record<ErasureFailure, MessageKey>> = {
