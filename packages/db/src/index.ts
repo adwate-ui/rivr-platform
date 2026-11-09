@@ -70,7 +70,8 @@ export { useLiveStatusDeviceActions, type LiveStatusDeviceToSave } from './liveS
 export { useCheckInActions, useCheckOutActions, useDoorBoard, type CheckInFailure, type CheckOutFailure, type CheckOutRefusal, type DoorMember } from './visits.ts';
 export { useDoorScan, type DoorScan, type DoorScanFailure, type DoorScanRefusal } from './door.ts';
 export {
-  useFeedbackActions, useMyFeedbackVisit, useResolveFeedback, useVenueFeedback, type FeedbackFailure, type FeedbackItem, type FeedbackRatings,
+  useFeedbackActions, useFeedbackCounts, useFeedbackPage, useMyFeedbackVisit, useResolveFeedback, useVenueFeedback, type FeedbackCounts, type FeedbackFailure, type FeedbackItem,
+  type FeedbackListName, type FeedbackRatings,
   type FeedbackVisit,
 } from './feedback.ts';
 export * from './rewards.ts';

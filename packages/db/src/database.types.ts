@@ -5119,6 +5119,16 @@ isOneToOne: false
 "extend_my_call_time":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
+"feedback_counts":
+{ Args: { "p_venue_id": string }; Returns: {
+              "open": number,"other": number,"resolved": number
+            }[]
+                           },
+"feedback_page":
+{ Args: { "p_before"?: string,"p_before_id"?: string,"p_list": string,"p_venue_id": string }; Returns: {
+              "created_at": string,"full_name": string,"id": string,"is_ticket": boolean,"member_id": string,"member_number": number,"note": string,"nps": number,"ratings": Json,"resolution": string,"resolved_at": string,"resolved_by": string,"score": number,"topic": string,"visit_closed_at": string
+            }[]
+                           },
 "finish_agent_kot":
 { Args: { "p_attempts"?: number,"p_delivered": boolean,"p_delivery_id": string,"p_device_id": string,"p_error": string,"p_retry_after_seconds": number }; Returns: undefined
                            },
@@ -5631,6 +5641,16 @@ isOneToOne: false
 "open_cage_shift":
 { Args: { "p_counts": Json,"p_float_paise": number,"p_idempotency_key": string,"p_venue_id": string }; Returns: string
                            },
+"open_feedback":
+{ Args: { "p_venue_id": string }; Returns: {
+              "created_at": string,"full_name": string,"id": string,"member_id": string,"member_number": number,"note": string,"nps": number,"ratings": Json,"score": number,"tables": string,"topic": string,"visit_closed_at": string,"wait_seconds": number
+            }[]
+                           },
+"open_host_offers":
+{ Args: { "p_venue_id": string }; Returns: {
+              "member_id": string,"offer": Json
+            }[]
+                           },
 "open_markers":
 { Args: { "p_venue_id": string }; Returns: {
               "age_days": number,"amount_paise": number,"due_at": string,"full_name": string,"is_past_due": boolean,"issued_at": string,"limit_paise": number,"marker_id": string,"member_id": string,"outstanding_paise": number
@@ -5921,6 +5941,9 @@ isOneToOne: false
                            },
 "resolve_feedback":
 { Args: { "p_feedback_id": string,"p_resolution": string }; Returns: undefined
+                           },
+"resolve_feedback_many":
+{ Args: { "p_feedback_ids": (string)[],"p_resolution": string }; Returns: undefined
                            },
 "reverse_high_hand":
 { Args: { "p_claim_id": string,"p_reason": string }; Returns: undefined

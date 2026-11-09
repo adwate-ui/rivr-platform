@@ -115,6 +115,9 @@ export const queryKeys = {
   /** The member's visit to rate on Home, and the General Manager's list of feedback (decision 0165). */
   myFeedbackVisit: (userId: string) => ['user', userId, 'my-feedback-visit'] as const,
   venueFeedback: (userId: string, venueId: string) => ['user', userId, 'venue-feedback', venueId] as const,
+  /** Under the prefix above, which a resolve refreshes: each list's count and a list's pages (F-024). */
+  venueFeedbackCounts: (userId: string, venueId: string) => ['user', userId, 'venue-feedback', venueId, 'counts'] as const,
+  venueFeedbackPage: (userId: string, venueId: string, list: string) => ['user', userId, 'venue-feedback', venueId, 'page', list] as const,
   /** The suspicious-activity register (#105). */
   amlRegister: (userId: string, venueId: string) => ['user', userId, 'aml-register', venueId] as const,
   /** A venue's rewards catalogue and redemptions, as the console keeps them (decision 0181). */

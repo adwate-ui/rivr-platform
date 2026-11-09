@@ -4,10 +4,13 @@
 export const feedback = {
   title: 'Feedback',
   notAllowed: 'Not in your role. Ask an admin.',
-  /** The two tabs (console v3): open tickets, and everything else of the last 90 days; each with how many. */
-  tabs: { open: 'Open {count}', resolved: 'Resolved {count}' },
+  /** The three tabs (F-024): open tickets, those resolved, and the ratings that never were tickets; each with how many. */
+  tabs: { open: 'Open {count}', resolved: 'Resolved {count}', all: 'All feedback {count}' },
   noneOpen: 'No open tickets.',
   noneResolved: 'Nothing resolved in the last 90 days.',
+  noneOther: 'No other feedback in the last 90 days.',
+  /** The next page of a list. */
+  more: 'Show more',
   /** A card's member: `Mihir Shah · No. 1213`. */
   who: '{name} · No. {number}',
   /** A rating: `{score}` of 5, and the day of the visit (IST): `2 of 5 · visit 25 Oct`. */
