@@ -11,6 +11,8 @@ export interface SettingDefinition<Schema extends z.ZodType = z.ZodType> {
   readonly description: string;
   readonly scope: SettingScope;
   readonly value: Schema;
+  /** What the rule runs on while nothing is set, shown as "(default)" (audit F-031). None for a rule that is off until set. */
+  readonly defaultValue?: Readonly<Record<string, number | boolean | string | readonly string[]>>;
   /**
    * Only a super admin adds or withdraws a change to it: the database's guard triggers on public.setting
    * (setting_control_*, which also needs a reason and alerts the owner; setting_aml_*; setting_archive_recipient_*).

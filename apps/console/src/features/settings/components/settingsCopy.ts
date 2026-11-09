@@ -11,8 +11,8 @@ export const isBasisPoints = (name: string) => name === 'basis_points' || name.e
 export const isMoney = (field: SettingField) => field.kind === 'integer' && field.isMoney;
 
 /** The unit a number is typed and shown in (#604). */
-export type Unit = 'percent' | 'minutes' | 'days' | 'seconds' | 'hours' | 'years';
-const ENDINGS: readonly Exclude<Unit, 'percent'>[] = ['minutes', 'days', 'seconds', 'hours', 'years'];
+export type Unit = 'percent' | 'minutes' | 'days' | 'seconds' | 'hours' | 'years' | 'players';
+const ENDINGS: readonly Exclude<Unit, 'percent'>[] = ['minutes', 'days', 'seconds', 'hours', 'years', 'players'];
 
 /**
  * A number's unit, from its name: a rate in %, `window_minutes` in minutes; none for money (₹) or counts. A new unit
@@ -37,6 +37,12 @@ export const settingHelp = (key: string, description: string) => settingCopy(key
 export const fieldLabel = (key: string, name: string) => settingCopy(key)?.fields[name] ?? fromWords(name);
 export const optionLabel = (key: string, option: string) => settingCopy(key)?.options?.[option] ?? fromWords(option);
 /** Only a super admin changes it: the database's guard triggers (SettingDefinition.superAdminOnly). */
+/** What a setting runs on while nothing is set (audit F-031); none for a rule that is off until set. */
+export function defaultOf(key: string): SettingValue | undefined {
+  const definition = SETTINGS.find((one) => one.key === key);
+  return definition !== undefined && 'defaultValue' in definition ? definition.defaultValue : undefined;
+}
+
 export const isSuperAdminOnly = (key: string) => SETTINGS.some((definition) => definition.key === key && 'superAdminOnly' in definition);
 
 /** A number in its unit: ₹3,000, 5%, 30 minutes, 5,000 bonus chips or a plain count. */

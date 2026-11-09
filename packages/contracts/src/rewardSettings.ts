@@ -61,7 +61,7 @@ export const pointsVerifiedBonus = {
 
 /** Identity checked at the club (decision 0502): while Cashfree is not live, a selfie lets a new member in and staff check them at the desk. */
 export const kycAtTheClub = {
-  key: 'kyc.at_the_club',
+  key: 'kyc.at_the_club', defaultValue: { enabled: false },
   description: 'Identity checked at the club: a new member takes a selfie in the app and is let in, and staff check their Aadhaar and PAN in person on their first visit, which is final while this is on. Off, members check in the app. None set is off. Only a super admin changes it, with a reason.',
   scope: 'venue',
   superAdminOnly: true,

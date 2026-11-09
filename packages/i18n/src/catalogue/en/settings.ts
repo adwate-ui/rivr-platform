@@ -21,10 +21,10 @@ export const settings = {
   by: 'by {name}',
   /** Units: as shown after a value, and after a field. */
   units: {
-    percent: '{value}%', minutes: '{value} minutes', days: '{value} days', seconds: '{value} seconds', hours: '{value} hours', years: '{value} years',
+    percent: '{value}%', minutes: '{value} minutes', days: '{value} days', seconds: '{value} seconds', hours: '{value} hours', years: '{value} years', players: '{value} players waiting',
     bonusChips: '{value} bonus chips',
   },
-  suffixes: { percent: '%', minutes: 'minutes', days: 'days', seconds: 'seconds', hours: 'hours', years: 'years', bonusChips: 'bonus chips' },
+  suffixes: { percent: '%', minutes: 'minutes', days: 'days', seconds: 'seconds', hours: 'hours', years: 'years', players: 'players waiting', bonusChips: 'bonus chips' },
   /** A field's limits, as its hint and as its error. */
   between: 'Between {min} and {max}.',
   atLeast: '{min} or more.',
@@ -53,6 +53,8 @@ export const settings = {
   stakeHint: 'For example, 100/200.',
   inForce: 'In force',
   notSet: 'Not set',
+  /** A rule running on its default (audit F-031): `30 seconds (default)`. */
+  byDefault: '{value} (default)',
   sinceOpening: 'Since the venue opened',
   since: 'Since {date}',
   /** A value with when it began: "Minutes: 30 · Since 20 Oct, 18:00". */

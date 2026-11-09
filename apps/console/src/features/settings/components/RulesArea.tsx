@@ -6,7 +6,7 @@ import { areaOf, isShownSetting, type RuleArea } from './areas.ts';
 import { shownInBonusChips } from './bonusChips.ts';
 import { SettingChange } from './SettingChange.tsx';
 import { SettingPanel } from './SettingPanel.tsx';
-import { isSuperAdminOnly, settingHelp, settingName, valueText } from './settingsCopy.ts';
+import { defaultOf, isSuperAdminOnly, settingHelp, settingName, valueText } from './settingsCopy.ts';
 
 const toCome = (setting: VenueSetting) => setting.subjects.reduce((count, subject) => count + subject.scheduled.length, 0);
 
@@ -14,7 +14,9 @@ const toCome = (setting: VenueSetting) => setting.subjects.reduce((count, subjec
 function nowText(setting: VenueSetting, tierName: (id: string) => string): string {
   if (setting.scope === 'venue') {
     const inForce = setting.subjects[0]?.inForce ?? null;
-    return inForce === null ? t('console.settings.notSet') : valueText(setting.key, setting.fields, inForce.value, tierName);
+    if (inForce !== null) return valueText(setting.key, setting.fields, inForce.value, tierName);
+    const fallback = defaultOf(setting.key);
+    return fallback === undefined ? t('console.settings.notSet') : t('console.settings.byDefault', { value: valueText(setting.key, setting.fields, fallback, tierName) });
   }
   const set = setting.subjects.filter((subject) => subject.inForce !== null).length;
   return set === 1 ? t(`console.settings.setForOne.${setting.scope}`) : t(`console.settings.setFor.${setting.scope}`, { count: formatNumber(set) });
