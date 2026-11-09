@@ -9,6 +9,9 @@ import { Text } from '../Text/Text.tsx';
 
 export type CameraFacing = 'user' | 'environment';
 
+/** `photo` for a face; `document` asks for the most the camera has, to read a card's print. */
+export type CameraResolution = 'photo' | 'document';
+
 export interface CameraCaptureProps {
   /** `user`, the front camera, for a selfie; `environment`, the back one, for a member's photo taken at the desk. */
   facing?: CameraFacing;
@@ -24,13 +27,16 @@ export interface CameraCaptureProps {
   error?: string | undefined;
 }
 
-/** Why the camera did not start: blocked by the person or the browser, no camera at all, or anything else. */
-export type CameraTrouble = 'blocked' | 'none' | 'failed';
+/** Why the camera did not start: blocked by the person or the browser, no camera at all, only a computer's own where a back one is needed, or anything else. */
+export type CameraTrouble = 'blocked' | 'none' | 'noBack' | 'failed';
 
-/** The browser's refusal as one of the three, by its DOMException's name. */
+const NO_BACK_CAMERA = 'NoBackCameraError';
+
+/** The browser's refusal as one of the four, by its DOMException's name. */
 export function troubleOf(error: unknown): CameraTrouble {
   const name: unknown = typeof error === 'object' && error !== null ? Reflect.get(error, 'name') : '';
   if (name === 'NotAllowedError' || name === 'SecurityError') return 'blocked';
+  if (name === NO_BACK_CAMERA) return 'noBack';
   if (name === 'NotFoundError' || name === 'OverconstrainedError' || name === 'NotSupportedError') return 'none';
   return 'failed';
 }
@@ -91,17 +97,39 @@ const stopAll = (stream: MediaStream) => stream.getTracks().forEach((track) => t
 
 type CameraStatus = 'starting' | 'live' | CameraTrouble;
 
-/** The camera facing that way, at up to 1280 by 960. An insecure page or an old browser has none to offer. */
-async function openCamera(facing: CameraFacing): Promise<MediaStream> {
+const SIZES: Readonly<Record<CameraResolution, { readonly width: { ideal: number }; readonly height: { ideal: number } }>> = {
+  photo: { width: { ideal: 1280 }, height: { ideal: 960 } },
+  document: { width: { ideal: 2560 }, height: { ideal: 1440 } },
+};
+
+/**
+ * Whether the picture comes from a back camera, as a card or a member at the desk needs (decision 0573): a browser asked for
+ * one still opens a computer's webcam when that is all there is. A phone or tablet that does not say which camera it opened
+ * is taken at its word.
+ */
+function isBackCamera(stream: MediaStream): boolean {
+  const track = 'getVideoTracks' in stream ? stream.getVideoTracks()[0] : undefined;
+  if (track === undefined) return true;
+  const { facingMode } = track.getSettings();
+  return facingMode === 'environment' || (!facingMode && navigator.maxTouchPoints > 0);
+}
+
+/** The camera facing that way, at the size asked for. An insecure page or an old browser has none to offer. */
+async function openCamera(facing: CameraFacing, resolution: CameraResolution): Promise<MediaStream> {
   if (!window.isSecureContext || !('mediaDevices' in navigator)) throw new DOMException('No camera here', 'NotSupportedError');
-  return await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 960 } } });
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: facing, ...SIZES[resolution] } });
+  if (facing === 'environment' && !isBackCamera(stream)) {
+    stopAll(stream);
+    throw new DOMException('No back camera here', NO_BACK_CAMERA);
+  }
+  return stream;
 }
 
 /**
  * The camera, on while `isOn`: the video element to show its picture in, and how starting it went; `retry` starts it again.
  * Every track stops when it goes off, so the camera's light goes out once the photo is taken.
  */
-export function useCamera(facing: CameraFacing, isOn: boolean) {
+export function useCamera(facing: CameraFacing, isOn: boolean, resolution: CameraResolution = 'photo') {
   const video = useRef<HTMLVideoElement>(null);
   const [status, setStatus] = useState<CameraStatus>('starting');
   const [attempt, setAttempt] = useState(0);
@@ -112,7 +140,7 @@ export function useCamera(facing: CameraFacing, isOn: boolean) {
     const start = async () => {
       let next: CameraStatus = 'live';
       try {
-        const opened = await openCamera(facing);
+        const opened = await openCamera(facing, resolution);
         if (isOver) {
           stopAll(opened);
           return;
@@ -133,7 +161,7 @@ export function useCamera(facing: CameraFacing, isOn: boolean) {
       isOver = true;
       if (stream) stopAll(stream);
     };
-  }, [facing, isOn, attempt]);
+  }, [facing, isOn, resolution, attempt]);
   const retry = () => {
     setStatus('starting');
     setAttempt((count) => count + 1);
@@ -172,7 +200,7 @@ export function Trouble({ trouble, phoneUrl, onRetry }: { trouble: CameraTrouble
   return (
     <Stack gap={6}>
       <div role="alert"><Text>{trouble === 'blocked' ? blockedHelpOf(navigator.userAgent, isInstalledApp()) : t(`ui.camera.${trouble}`)}</Text></div>
-      {trouble === 'none' && phoneUrl ? (
+      {(trouble === 'none' || trouble === 'noBack') && phoneUrl ? (
         <Stack gap={3} align="center">
           <div className="size-photo rounded-md bg-cream p-3">
             <QrCode value={phoneUrl} label={t('ui.camera.phoneLink')} />

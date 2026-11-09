@@ -32,6 +32,7 @@ export * from './Wordmark/index.ts';
 export * from './Button/index.ts';
 export * from './CameraButton/index.ts';
 export * from './CameraCapture/index.ts';
+export * from './DocumentCamera/index.ts';
 export * from './Captcha/index.ts';
 export * from './ChoiceChips/index.ts';
 export * from './Switch/index.ts';

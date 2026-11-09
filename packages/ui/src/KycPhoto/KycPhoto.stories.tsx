@@ -27,3 +27,5 @@ export const Loading: Story = { args: { src: null, status: 'loading' } };
 export const Missing: Story = { args: { src: null, status: 'missing' } };
 
 export const WithError: Story = { args: { src: null, status: 'error' } };
+
+export const CardShaped: Story = { args: { shape: 'card' } };

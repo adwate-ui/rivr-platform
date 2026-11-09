@@ -1,5 +1,6 @@
 import { t } from '@rivr/i18n';
 import { useState } from 'react';
+import { cx } from '../internal/classes.ts';
 import { Text } from '../Text/Text.tsx';
 
 export interface KycPhotoProps {
@@ -16,7 +17,11 @@ export interface KycPhotoProps {
   isFilling?: boolean;
   /** The member's initial, shown in a filling frame when there is no photo to show (8 Nov audit, F-205). */
   initial?: string | undefined;
+  /** `card` for a photo of a PAN or Aadhaar: the width it is given, in a card's shape. A face otherwise. */
+  shape?: 'portrait' | 'card' | undefined;
 }
+
+const SHAPE_CLASSES = { portrait: 'aspect-portrait w-photo shrink-0', card: 'aspect-card w-full' };
 
 /** Its state in words: loading, could not load, or none kept. */
 function wordsOf(status: KycPhotoProps['status'], isFailed: boolean): string {
@@ -53,7 +58,7 @@ export function kycPhotoStatus(path: string | null, address: { isError: boolean;
  * could not load; filling, the member's initial in their place, with the words as its name, as a frame that small cannot
  * hold a sentence (F-205).
  */
-export function KycPhoto({ alt, src, status = 'ready', isFilling, initial }: KycPhotoProps) {
+export function KycPhoto({ alt, src, status = 'ready', isFilling, initial, shape = 'portrait' }: KycPhotoProps) {
   // The address that failed to load, so a new address is tried again.
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const isFailed = status === 'error' || (src !== null && src === failedSrc);
@@ -61,7 +66,7 @@ export function KycPhoto({ alt, src, status = 'ready', isFilling, initial }: Kyc
   const words = wordsOf(status, isFailed);
   if (isFilling === true) return <FillingPhoto alt={alt} src={isShown ? src : null} words={words} initial={initial} onFailed={setFailedSrc} />;
   return (
-    <div className="flex aspect-portrait w-photo shrink-0 items-center justify-center overflow-hidden rounded-md border border-hairline bg-raised">
+    <div className={cx('flex items-center justify-center overflow-hidden rounded-md border border-hairline bg-raised', SHAPE_CLASSES[shape])}>
       {isShown ? (
         <img src={src} alt={alt} className="h-full w-full object-cover" onError={() => setFailedSrc(src)} />
       ) : (

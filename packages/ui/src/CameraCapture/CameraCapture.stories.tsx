@@ -26,6 +26,8 @@ function camera(answer: 'still' | 'never' | 'NotAllowedError' | 'NotFoundError' 
   return (Story) => {
     // The visual tests serve Storybook over plain http, where a browser offers no camera: this page counts as secure.
     Object.defineProperty(window, 'isSecureContext', { configurable: true, value: true });
+    // A phone or tablet, which is taken at its word about its camera: a canvas does not say which way it faces.
+    Object.defineProperty(navigator, 'maxTouchPoints', { configurable: true, value: 1 });
     Object.defineProperty(navigator, 'mediaDevices', {
       configurable: true,
       value: {
