@@ -33,8 +33,8 @@ function renderStaff(list: unknown[], write: Reply = { status: 201, body: null }
   return { result, calls };
 }
 
-const AYESHA = { staff_id: 's1', full_name: 'Ayesha Thomas', job_title: 'Floor manager', role: 'admin', phone: '+919000000150', is_active: true, user_id: SIGNED_IN };
-const PEMA = { staff_id: 's2', full_name: 'Pema Lepcha', job_title: 'Dealer', role: 'dealer', phone: null, is_active: false, user_id: null };
+const AYESHA = { staff_id: 's1', full_name: 'Ayesha Thomas', job_title: 'Floor manager', role: 'admin', phone: '+919000000150', is_active: true, user_id: SIGNED_IN, last_signed_in_at: '2026-11-01T10:00:00Z' };
+const PEMA = { staff_id: 's2', full_name: 'Pema Lepcha', job_title: 'Dealer', role: 'dealer', phone: null, is_active: false, user_id: null, last_signed_in_at: null };
 
 afterEach(cleanup);
 
@@ -71,8 +71,8 @@ describe('useVenueStaff', () => {
   it('lists the venue\'s staff with job title and role apart, and marks the signed-in one', async () => {
     const { result, calls } = renderStaff([AYESHA, PEMA]);
     await waitFor(() => expect(result.current.staff.data).toEqual([
-      { staffId: 's1', fullName: 'Ayesha Thomas', jobTitle: 'Floor manager', role: 'admin', phone: '+919000000150', isActive: true, isMe: true },
-      { staffId: 's2', fullName: 'Pema Lepcha', jobTitle: 'Dealer', role: 'dealer', phone: null, isActive: false, isMe: false },
+      { staffId: 's1', fullName: 'Ayesha Thomas', jobTitle: 'Floor manager', role: 'admin', phone: '+919000000150', isActive: true, isMe: true, hasLogin: true, lastSignedInAt: '2026-11-01T10:00:00Z' },
+      { staffId: 's2', fullName: 'Pema Lepcha', jobTitle: 'Dealer', role: 'dealer', phone: null, isActive: false, isMe: false, hasLogin: false, lastSignedInAt: null },
     ]));
     expect(calls[0]?.url).toContain('/rpc/venue_staff');
     expect(calls[0]?.body).toEqual({ p_venue_id: VENUE });

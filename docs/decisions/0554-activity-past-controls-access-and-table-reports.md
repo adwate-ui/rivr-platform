@@ -1,6 +1,6 @@
 # 0554: Activity, Past controls, who has access, and fuller table reports
 
-Date: 9 Nov 2026 · 8 Nov audit, I-75 (F-034).
+Date: 9 Nov 2026 · 8 Nov audit, I-75 (F-034), I-76 (F-082, F-116).
 
 **Activity is for super admins alone.** The screen and `activity_log` go by `control.engage`, not `audit.read`: an investor holds `audit.read`, and this log names who was frozen and why (#493 P5). The read never returns a row's before or after, which hold whole records.
 
@@ -13,3 +13,7 @@ Date: 9 Nov 2026 · 8 Nov audit, I-75 (F-034).
 **Codes become words in `@rivr/i18n`** (`activityActionWord`, `activityEntityWord`). A code added later reads `Recorded` or `Record`, never as the code.
 
 **Past controls** on Kill switch lists every released control, with both super admins for a freeze. A control is rare enough to need no cap.
+
+**Who has access.** Staff shows `Last signed in` on the terms of the mobile number, to staff who manage staff. `Not signed in for 30 days` counts a login never used and leaves out a dealer with no login of their own (`user_id` null, decision 0046), who signs in by PIN. It narrows the staff working, not Removed staff. The warning above five super admins stays at five, as the owner ruled on 9 Nov.
+
+**Dealer PINs** lists dealers, and a manager who deals for themselves alone; `set_dealer_pin` refuses another manager's, so nobody deals under their name. The owner ruled on 9 Nov to keep this: a super admin cannot set another super admin's dealer PIN. It supersedes decision 0046 on setting another manager's PIN; a dealer's is still set by whoever may grant the dealer's role.

@@ -6487,7 +6487,7 @@ isOneToOne: false
                            },
 "venue_dealers":
 { Args: { "p_venue_id": string }; Returns: {
-              "full_name": string,"has_pin": boolean,"locked_until": string,"staff_id": string
+              "full_name": string,"has_pin": boolean,"locked_until": string,"role": Database["public"]['Enums']["staff_role"],"staff_id": string
             }[]
                            },
 "venue_expenses":
@@ -6522,7 +6522,7 @@ isOneToOne: false
                            },
 "venue_staff":
 { Args: { "p_venue_id": string }; Returns: {
-              "full_name": string,"is_active": boolean,"job_title": string,"phone": string,"role": Database["public"]['Enums']["staff_role"],"staff_id": string,"user_id": string
+              "full_name": string,"is_active": boolean,"job_title": string,"last_signed_in_at": string,"phone": string,"role": Database["public"]['Enums']["staff_role"],"staff_id": string,"user_id": string
             }[]
                            },
 "venue_tournaments":
