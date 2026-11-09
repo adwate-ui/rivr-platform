@@ -54,13 +54,13 @@ test.describe('Player settings', () => {
     const manager = await browser.newPage();
     await signInToConsole(manager, '9000000115');
     await manager.getByRole('link', { name: 'Feedback' }).click();
-    // Each is an open ticket, on its own card: who sent it, then what it is and when (console v3).
-    const quick = manager.getByRole('article').filter({ hasText: `Quick and fair at Table 3, run ${run}` });
+    // Each is an open ticket, on its own row: who sent it, then what it is and when, and all they said.
+    const quick = manager.getByRole('row').filter({ hasText: `Quick and fair at Table 3, run ${run}` });
     await expect(quick.getByText(/^Naveen Iyer · No\. \d+$/)).toBeVisible();
     await expect(quick.getByText(/^Dealer · /)).toBeVisible();
-    const detailed = manager.getByRole('article').filter({ hasText: `More PLO, run ${run}` });
+    const detailed = manager.getByRole('row').filter({ hasText: `More PLO, run ${run}` });
     await expect(detailed.getByText(/^Naveen Iyer · No\. \d+$/)).toBeVisible();
     await expect(detailed.getByText(/^Detailed feedback, would recommend 9 of 10 · /)).toBeVisible();
-    await expect(detailed.getByText('Gameplay 5 · Cashier 3 · Service 4 · Ambience 5')).toBeVisible();
+    await expect(detailed.getByText(/Gameplay 5 · Cashier 3 · Service 4 · Ambience 5/)).toBeVisible();
   });
 });

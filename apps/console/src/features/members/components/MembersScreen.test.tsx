@@ -34,6 +34,7 @@ const ANSWERS: Record<string, unknown> = {
   '/rest/v1/game_table': [{ id: 't2', venue_id: 'v1', name: 'Table 2', is_open: true, seats: 9, position: 2, table_type_id: 'tt1', must_move_to_table_id: null, room: 'main' }],
   '/rest/v1/table_type': [{ id: 'tt1', name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, buy_in_min_paise: 1000000, straddle_paise: null }],
   '/rpc/member_promotion_grants': [GRANT, PERK],
+  '/rpc/open_host_offers': [{ member_id: 'm1', offer: { kind: 'bonus', amount_paise: 200_000 } }],
   // Bonus chips (decision 0504): the history before the balance, whose path it starts with.
   '/rpc/member_bonus_history': [
     { line_id: 'r1', at: '2026-11-03T14:00:00Z', kind: 'redeemed', amount_paise: 100_000, reason: null, table_name: 'Table 2', staff_name: 'Aditya Malhotra' },
@@ -128,6 +129,11 @@ describe('Members (console v3)', () => {
     expect(within(table).queryByRole('button', { name: 'Sakshi Tandon' })).toBeNull();
     fireEvent.change(search, { target: { value: 'Zoya' } });
     expect(await screen.findByText('Nothing matches Zoya.')).toBeDefined();
+  });
+
+  it('says on the record what a host offered, for the floor to give by hand (F-015)', async () => {
+    renderAs('super_admin', 'm1');
+    expect(await screen.findByText('Offered: 2,000 bonus chips', undefined, { timeout: 5000 })).toBeDefined();
   });
 
   it('shows a seated member\'s seat with a link to it on the floor, and the promotions they were given', async () => {

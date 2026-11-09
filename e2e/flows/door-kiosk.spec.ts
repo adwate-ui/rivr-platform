@@ -79,8 +79,10 @@ test.describe('Door kiosk', () => {
 
     await floor.getByRole('link', { name: 'Feedback' }).click();
     await expect(floor.getByText('The door queue was slow.')).toBeVisible();
-    await floor.getByRole('textbox', { name: 'What was done' }).first().fill('Second host on the door from Friday.');
-    await floor.getByRole('button', { name: 'Resolve Vidya Chadha’s ticket' }).first().click();
+    await floor.getByRole('row').filter({ hasText: 'The door queue was slow.' }).getByRole('checkbox').check();
+    await floor.getByRole('button', { name: 'Resolve', exact: true }).click();
+    await floor.getByRole('textbox', { name: 'What was done' }).fill('Second host on the door from Friday.');
+    await floor.getByRole('button', { name: 'Resolve 1', exact: true }).click();
     // A resolved ticket leaves Open for Resolved, kept with the name of who resolved it (console v3).
     await floor.getByRole('link', { name: /^Resolved \d+$/ }).click();
     await expect(floor.getByText(/^Resolved by Nisha Arora on .*: Second host on the door from Friday\.$/)).toBeVisible();

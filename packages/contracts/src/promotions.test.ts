@@ -31,6 +31,8 @@ describe('promotion schemas (#83)', () => {
   it('gives a bonus as an amount or a share, never both, in whole ₹50 chips', () => {
     expect(promotionEffectSchema.safeParse({ kind: 'bonus', percent_bps: 2000, cap_paise: 200_000, expires_days: 7 }).success).toBe(true);
     expect(promotionEffectSchema.safeParse({ kind: 'bonus', amount_paise: 100_000, expires_days: 30 }).success).toBe(true);
+    // A host's offer carries no expiry, as bonus chips never expire (F-068).
+    expect(promotionEffectSchema.safeParse({ kind: 'bonus', amount_paise: 100_000 }).success).toBe(true);
     expect(promotionEffectSchema.safeParse({ kind: 'bonus', amount_paise: 100_000, percent_bps: 2000, expires_days: 7 }).success).toBe(false);
     expect(promotionEffectSchema.safeParse({ kind: 'bonus', amount_paise: 102_000, expires_days: 7 }).success).toBe(false);
     expect(promotionEffectSchema.safeParse({ kind: 'bonus', percent_bps: 2000 }).success).toBe(false);

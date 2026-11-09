@@ -10,6 +10,7 @@ export { social } from './catalogue/en/social.ts';
 export { push } from './catalogue/en/push.ts';
 export { tv } from './catalogue/en/tv.ts';
 export { registerMessages, t, type Translate } from './translate.ts';
+export { formatHostOffer, type HostOfferWords } from './format/hostOffer.ts';
 export { formatChips, formatGameStakes, formatMoney, formatNights, formatNumber, formatRupeesForFile, formatRupeesForInput, formatStakes } from './format/money.ts';
 export { formatClock,
   formatCountdown,

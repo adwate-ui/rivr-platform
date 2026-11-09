@@ -1,5 +1,6 @@
 import { useKycImageUrl, useMemberRecord, type MemberRecord } from '@rivr/db';
-import { formatDate, formatNumber, formatStakes, t } from '@rivr/i18n';
+import { useOpenHostOffers } from '@rivr/db/hostQueue';
+import { formatDate, formatHostOffer, formatNumber, formatStakes, t } from '@rivr/i18n';
 import { Box, DetailRow, ErrorMessage, Heading, Inline, KycPhoto, kycPhotoStatus, LoadState, Stack, Tabs, Text } from '@rivr/ui';
 import { ChangePhone } from './ChangePhone.tsx';
 import { EarlyDepartures } from './EarlyDepartures.tsx';
@@ -91,8 +92,14 @@ function PartContent({ part, venueId, record, can }: PartProps & { part: RecordP
   return <VisitsPart venueId={venueId} record={record} can={can} />;
 }
 
-/** The record's header: the KYC photo for those who may see it, the name, and its status lines. */
-function RecordHeader({ record, can }: { record: MemberRecord; can: RecordAccess }) {
+/** What a host promised this member, for the floor to give by hand (F-015); nothing when no offer is open. */
+function OfferLine({ venueId, memberId }: { venueId: string; memberId: string }) {
+  const offer = useOpenHostOffers(venueId).data?.find((one) => one.memberId === memberId)?.offer;
+  return offer === undefined ? null : <Text variant="small" tone="accent">{t('console.hostQueue.offered', { offer: formatHostOffer(offer) })}</Text>;
+}
+
+/** The record's header: the KYC photo for those who may see it, the name, its status lines and a host's open offer. */
+function RecordHeader({ venueId, record, can }: { venueId: string; record: MemberRecord; can: RecordAccess }) {
   // KYC photos are for KYC reviewers and the cage (authorize_kyc_image); other staff see none rather than an error.
   const photo = useKycImageUrl(can.seePhoto ? record.photoPath : null);
   return (
@@ -107,6 +114,7 @@ function RecordHeader({ record, can }: { record: MemberRecord; can: RecordAccess
         {record.qualifying === null ? null : (
           <Text variant="small" tone="muted">{t('console.members.qualifying', { stakes: formatStakes(record.qualifying.smallBlind, record.qualifying.bigBlind) })}</Text>
         )}
+        <OfferLine venueId={venueId} memberId={record.memberId} />
       </Stack>
     </Inline>
   );
@@ -127,7 +135,7 @@ function Record({ venueId, record, can, part, tonight, onNavigate }: RecordProps
   const current = parts.find((one) => one === part) ?? 'visits';
   return (
     <Stack gap={6}>
-      <RecordHeader record={record} can={can} />
+      <RecordHeader venueId={venueId} record={record} can={can} />
       {tonight?.kind === 'seated' ? <SeatLine name={record.fullName} seat={tonight} onNavigate={onNavigate} /> : null}
       {parts.length > 1 ? (
         <Tabs label={t('console.members.parts.label', { name: record.fullName })} current={current} onNavigate={onNavigate}

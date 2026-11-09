@@ -1,9 +1,9 @@
 import { HOST_CHURN_REASONS, hostContactSchema, type HostChurnReason } from '@rivr/contracts';
 import { useHostQueueActions, type HostQueueFailure, type HostQueueItem } from '@rivr/db/hostQueue';
-import { formatDate, formatMobile, t } from '@rivr/i18n';
+import { formatDate, formatMobile, t, formatHostOffer } from '@rivr/i18n';
 import { Button, ChoiceChips, ConfirmButton, ErrorMessage, Heading, Inline, Input, Stack, StatusMessage, Text, TextArea } from '@rivr/ui';
 import { useState } from 'react';
-import { OFFER_KINDS, offerDraft, offerFrom, offerText, type OfferKind } from './offer.ts';
+import { OFFER_KINDS, offerDraft, offerFrom, type OfferKind } from './offer.ts';
 
 /** The call as the host fills it in: the reason, the offer and its amount or words, and a note. */
 function useCallForm(item: HostQueueItem) {
@@ -49,7 +49,7 @@ function Who({ item }: { item: HostQueueItem }) {
       <Text variant="secondary" tone="muted">
         {t('console.hostQueue.lapse', { phone: formatMobile(item.phone), last: formatDate(new Date(item.lastVisitAt)), visits: String(item.visits) })}
       </Text>
-      {item.offer === null ? null : <Text variant="secondary">{t('console.hostQueue.offered', { offer: offerText(item.offer) })}</Text>}
+      {item.offer === null ? null : <Text variant="secondary">{t('console.hostQueue.offered', { offer: formatHostOffer(item.offer) })}</Text>}
     </Stack>
   );
 }
