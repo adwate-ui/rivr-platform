@@ -76,7 +76,7 @@ From what the code collects today, with `kyc.at_the_club` on. Answer again if KY
 | Aadhaar and PAN | Not in the app | Checked at the desk |
 | Location, contacts, payments | No | |
 
-**Tracking:** none in the app, so Apple's App Tracking answer is No. No Google Analytics or Meta pixel loads in the store app (decision 0577), and the server's Meta and Google Ads conversion jobs are off (`20261110402000_unused_jobs_off.sql`). If either job is turned back on, this answer becomes Yes and the app needs Apple's permission prompt first. The website's privacy notice still describes those reports: make it agree with this answer before submitting.
+**Tracking:** none in the app, so Apple's App Tracking answer is No. No Google Analytics or Meta pixel loads in the store app (decision 0577), and the server's Meta and Google Ads conversion jobs are off (`20261110402000_unused_jobs_off.sql`). If either job is turned back on, this answer becomes Yes and the app needs Apple's permission prompt first. The website's privacy notice still describes those reports, and the owner chose to keep that wording (9 Nov). If a reviewer asks, the reports are off.
 
 **Sold:** no. **Deletable:** yes, in the app and at the page above.
 
