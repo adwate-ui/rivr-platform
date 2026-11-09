@@ -1,5 +1,5 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SitePage } from './SitePage.tsx';
 
 afterEach(cleanup);
@@ -63,6 +63,21 @@ describe('a website page', () => {
     expect(within(footer).getByRole('link', { name: 'Legal standing' }).getAttribute('href')).toBe('/about#legal-and-compliance');
     expect(within(footer).getByRole('link', { name: 'Tele-MANAS 14416 (24 hours)' }).getAttribute('href')).toBe('tel:14416');
     expect(document.querySelector('[data-cookie-banner]')).not.toBeNull();
+  });
+
+  it('gives a map band the club’s number and WhatsApp, as its content has neither (8 Nov audit, F-197)', () => {
+    const map = { kind: 'map' as const, content: { address: 'Glaza, Gurugram', directionsUrl: 'https://www.google.com/maps/search/?api=1&query=Glaza' } };
+    render(<SitePage page={{ ...PAGE, blocks: [map] }} playerUrl="https://player.invalid" attribution={null} />);
+    const main = within(screen.getByRole('main'));
+    expect(main.getByRole('link', { name: 'Call +91 87965 80435' }).getAttribute('href')).toBe('tel:+918796580435');
+    expect(main.getByRole('link', { name: 'WhatsApp' }).getAttribute('href')).toBe('https://wa.me/918796580435');
+  });
+
+  it('dates the copyright with this year in India (8 Nov audit, F-192)', () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2027-12-31T19:00:00Z') });
+    render(<SitePage page={PAGE} playerUrl="https://player.invalid" attribution={null} />);
+    expect(screen.getByText('Copyright 2028 RIVR Poker Club')).toBeDefined();
+    vi.useRealTimers();
   });
 
   it('gives each band the anchor of its eyebrow, or of its kind, once a page', () => {

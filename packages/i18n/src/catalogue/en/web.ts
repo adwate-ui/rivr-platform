@@ -1,5 +1,9 @@
 /** The public website's own copy; its pages' words are the club's site content. */
 export const webApp = {
+  /** A page's `<title>` and link preview (F-194): `Visit · RIVR Poker Club, Gurugram`. */
+  pageTitle: '{page} · RIVR Poker Club, Gurugram',
+  /** The same for a page named for the club. */
+  clubTitle: 'RIVR Poker Club, Gurugram',
   /** A website page when its content cannot be read. */
   unavailableTitle: 'Website unavailable',
   unavailable: 'Try again shortly.',
@@ -83,7 +87,7 @@ export const webApp = {
   footer: {
     address: 'Upper floor, Glaza, M3M 65th Avenue, Gurugram',
     notice: 'Strictly 18+. Poker is a game of skill.',
-    copyright: 'Copyright 2026 RIVR Poker Club',
+    copyright: 'Copyright {year} RIVR Poker Club',
     cookieSettings: 'Cookie settings',
     club: 'The club',
     story: 'About RIVR',

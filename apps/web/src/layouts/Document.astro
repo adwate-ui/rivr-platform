@@ -6,9 +6,11 @@ import '@rivr/ui/styles.css';
 interface Props {
   title: string;
   description?: string | null | undefined;
+  /** The club as data for search engines, already safe to put in a script (F-194). */
+  structuredData?: string | null | undefined;
 }
 
-const { title, description } = Astro.props;
+const { title, description, structuredData } = Astro.props;
 // The page's own address without the visitor's codes, for search engines and link previews (F3-30); a draft's preview
 // page has none, as it is not the page.
 const isPreview = Astro.url.pathname.startsWith('/preview/');
@@ -33,6 +35,7 @@ const previewImage = new URL('/og-image.png', Astro.url.origin).href;
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
+    {structuredData ? <script type="application/ld+json" set:html={structuredData} /> : null}
   </head>
   <body>
     <slot />

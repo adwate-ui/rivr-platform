@@ -43,9 +43,12 @@ export function GalleryBlock({ eyebrow, heading, intro, items, note }: GalleryBl
         {items.map((item) => (
           <li key={item.title} className="relative aspect-photo overflow-hidden rounded-lg">
             <WebImage src={item.image} alt={item.alt} span="quarter" className="absolute inset-0 size-full object-cover" />
-            <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1 bg-linear-to-t from-green-black px-4 pt-16 pb-4">
-              <h3 className="font-display text-24 leading-tight text-cream">{item.title}</h3>
-              {item.text ? <p className="font-text text-14 leading-snug text-cream opacity-muted">{item.text}</p> : null}
+            <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-green-black px-4 pt-16 pb-4 tablet:via-green-black">
+              {/* Four across, every caption is the same height, so titles of one line or two start level along a row (F-191). */}
+              <div className="flex flex-col gap-1 tablet:min-h-gallery-caption">
+                <h3 className="font-display text-24 leading-tight text-cream">{item.title}</h3>
+                {item.text ? <p className="font-text text-14 leading-snug text-cream opacity-muted">{item.text}</p> : null}
+              </div>
             </div>
           </li>
         ))}

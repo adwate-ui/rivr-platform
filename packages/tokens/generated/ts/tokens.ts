@@ -147,6 +147,7 @@ export const tokens = {
     "bottomNav": 64,
     "playerFoot": 140,
     "header": 56,
+    "galleryCaption": 104,
     "consoleHeader": 60,
     "text": 640,
     "photo": 160,

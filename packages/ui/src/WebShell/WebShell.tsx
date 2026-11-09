@@ -4,6 +4,7 @@ import { BrandIcon, BRAND_ICON_NAMES, type BrandIconName } from '../BrandIcon/Br
 import { Button } from '../Button/Button.tsx';
 import { Icon } from '../Icon/Icon.tsx';
 import { routeClick, type Navigate } from '../internal/navigation.ts';
+import { MAIN_ID, SkipLink } from '../internal/SkipLink.tsx';
 import { Wordmark } from '../Wordmark/Wordmark.tsx';
 
 export interface WebShellLink {
@@ -122,6 +123,7 @@ export function WebShell({ children, links, homeHref = '/', action, topBar, foot
   return (
     // data-shell: from 1180 px the page scrolls a focused control clear of the header (styles.css, WCAG 2.4.11).
     <div data-shell="web" className="flex min-h-dvh flex-col bg-surface text-content">
+      <SkipLink />
       {topBar ? <TopBar links={topBar.links} app={topBar.app} /> : null}
       <header className="relative border-b border-hairline bg-raised tablet:sticky tablet:top-0 tablet:z-nav">
         {/* On a phone Menu sits beside the wordmark, its list (with the action) opening under the header, rather than widening the page. */}
@@ -133,7 +135,7 @@ export function WebShell({ children, links, homeHref = '/', action, topBar, foot
           {action ? <div className="hidden tablet:flex"><Button variant="secondary" href={action.href}>{action.label}</Button></div> : null}
         </div>
       </header>
-      <main className="flex-1">{children}</main>
+      <main id={MAIN_ID} tabIndex={-1} className="flex-1 outline-none">{children}</main>
       {footer ? (
         <footer className="border-t border-hairline bg-raised">
           <div className="mx-auto max-w-console px-6 py-12">{footer}</div>

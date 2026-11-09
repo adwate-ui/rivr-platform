@@ -18,6 +18,8 @@ const DAY_MONTH = new Intl.DateTimeFormat('en-GB', { timeZone: TIME_ZONE, day: '
 
 const MONTH_YEAR = new Intl.DateTimeFormat('en-GB', { timeZone: TIME_ZONE, month: 'short', year: 'numeric' });
 
+const YEAR = new Intl.DateTimeFormat('en-GB', { timeZone: TIME_ZONE, year: 'numeric' });
+
 // Three letters for every month: en-GB gives September as "Sept", alone among them, so the names are our own (F5-11).
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
 const MONTH_NUMBER = new Intl.DateTimeFormat('en-GB', { timeZone: TIME_ZONE, month: 'numeric' });
@@ -41,6 +43,11 @@ export function formatDate(at: Date): string {
 /** The IST month and year, as a list says since when: `Aug 2026` (Members' Member since; owner, 8 Nov). */
 export function formatMonthYear(at: Date): string {
   return withMonth(MONTH_YEAR, at);
+}
+
+/** The IST year, as a copyright gives it: `2027`. */
+export function formatYear(at: Date): string {
+  return YEAR.format(at);
 }
 
 /** The IST day and month, for a date within the year: `13 Feb`, as in a movement or "Issued 2 Feb · due 4 Mar". */
