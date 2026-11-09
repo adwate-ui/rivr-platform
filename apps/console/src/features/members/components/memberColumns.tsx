@@ -1,5 +1,5 @@
-import type { MemberKycStatus, MemberListRow } from '@rivr/db';
-import { formatDuration, formatMobile, formatMonthYear, formatNumber, t } from '@rivr/i18n';
+import type { MemberAccountStatus, MemberKycStatus, MemberListRow } from '@rivr/db';
+import { formatDate, formatDuration, formatMobile, formatMonthYear, formatNumber, t } from '@rivr/i18n';
 import { DotStatus, Text, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
 import type { Tonight } from './tonight.ts';
 
@@ -15,6 +15,41 @@ export function TonightStatus({ tonight }: { tonight: Tonight | undefined }) {
   return tonight.kind === 'waiting'
     ? <DotStatus tone="needsYou" label={t('console.members.waiting')} />
     : <DotStatus tone="inactive" label={t('console.members.left')} />;
+}
+
+/** An account that is not simply active stands out: a break needs staff's eye, and frozen or erased stops the member. */
+const ACCOUNT_TONE: Readonly<Record<MemberAccountStatus['state'], DotStatusTone>> = { on_break: 'needsYou', frozen: 'danger', erased: 'danger' };
+
+/** An account's state alone, as its filter reads it. */
+const accountKind = (status: MemberAccountStatus | undefined): string => t(`console.members.accountStatus.${status?.state ?? 'active'}`);
+
+/** An account's state in words, a break with its last day. */
+function accountWords(status: MemberAccountStatus | undefined): string {
+  if (status?.state !== 'on_break' || status.until === null) return accountKind(status);
+  return t('console.members.accountStatus.on_breakUntil', { date: formatDate(new Date(status.until)) });
+}
+
+/** The same, short enough for the list's column at 1440 px, where a date does not fit: `Break`. */
+function accountShort(status: MemberAccountStatus | undefined): string {
+  return status?.state === 'on_break' ? t('console.members.accountStatus.on_breakShort') : accountKind(status);
+}
+
+/** How an account stands, as a dot and words (F-121); on the list, short, with the full words as its title. */
+export function AccountStatusDot({ status, isShort = false }: { status: MemberAccountStatus | undefined; isShort?: boolean }) {
+  const tone = status === undefined ? 'active' : ACCOUNT_TONE[status.state];
+  const words = accountWords(status);
+  const label = isShort ? accountShort(status) : words;
+  return <DotStatus tone={tone} label={label} title={label === words ? undefined : words} />;
+}
+
+/** Status on the list; a dash until the statuses are read, so a failed read never calls a frozen or erased member active. */
+function accountColumn(statuses: ReadonlyMap<string, MemberAccountStatus> | undefined): DataTableColumn<MemberListRow> {
+  const kindOf = (row: MemberListRow) => (statuses === undefined ? t('console.members.notHere') : accountKind(statuses.get(row.memberId)));
+  return {
+    key: 'status', header: t('console.members.accountStatus.header'), filter: 'choice', filterValue: kindOf, sortValue: kindOf,
+    exportValue: (row) => (statuses === undefined ? '' : accountWords(statuses.get(row.memberId))),
+    cell: (row) => (statuses === undefined ? <Text variant="secondary" tone="muted">{t('console.members.notHere')}</Text> : <AccountStatusDot status={statuses.get(row.memberId)} isShort />),
+  };
 }
 
 /** Seated first, by table and seat, then waiting, in the room, left, and members not at the club. */
@@ -65,16 +100,18 @@ function moreColumns(): readonly DataTableColumn<MemberListRow>[] {
 /** How the list is drawn: whether the viewer sees full numbers. */
 export interface MemberColumnsFor {
   readonly seesPhone: boolean;
+  /** Members on a break, frozen or erased, anyone else active; undefined until that is known. */
+  readonly statuses: ReadonlyMap<string, MemberAccountStatus> | undefined;
 }
 
 /**
- * Members' columns (console v3; owner, 8 Nov): Name, No., Tier, the mobile for super admins, ID check, Hours, City,
+ * Members' columns (console v3; owner, 8 Nov): Name, No., Tier, the mobile for super admins, Status (F-121), ID check, Hours, City,
  * Joined, Tonight and Visits; the name opens the record. With a record open beside the list, every one of them,
  * the lines scrolling sideways (owner, 9 Nov).
  */
 export function memberColumns(tonight: ReadonlyMap<string, Tonight>, view: MemberColumnsFor): readonly DataTableColumn<MemberListRow>[] {
   const [name, number, tier, ...rest] = coreColumns(tonight);
-  const more = [...(view.seesPhone ? [mobileColumn] : []), ...moreColumns()];
+  const more = [...(view.seesPhone ? [mobileColumn] : []), accountColumn(view.statuses), ...moreColumns()];
   return [name, number, tier, ...more, ...rest].filter((column) => column !== undefined);
 }
 

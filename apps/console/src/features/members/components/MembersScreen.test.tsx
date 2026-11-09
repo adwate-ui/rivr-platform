@@ -1,7 +1,7 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, StaffVenueProvider } from '@rivr/db';
 import { QueryClient } from '@tanstack/react-query';
 import { createMemoryHistory, createRootRoute, createRouter, RouterProvider } from '@tanstack/react-router';
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { waitFor, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MembersScreen } from './MembersScreen.tsx';
 
@@ -35,6 +35,7 @@ const ANSWERS: Record<string, unknown> = {
   '/rest/v1/table_type': [{ id: 'tt1', name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, buy_in_min_paise: 1000000, straddle_paise: null }],
   '/rpc/member_promotion_grants': [GRANT, PERK],
   '/rpc/open_host_offers': [{ member_id: 'm1', offer: { kind: 'bonus', amount_paise: 200_000 } }],
+  '/rpc/member_account_statuses': [{ member_id: 'm1', status: 'on_break', until: '2026-12-13T12:00:00Z' }],
   '/rpc/member_visits': [
     { visit_id: 'v1', opened_at: '2026-11-03T14:00:00Z', closed_at: '2026-11-03T20:00:00Z', tables: 'Table 1, Table 3', minutes_played: 300, call_time_met: true, left_early: false },
     { visit_id: 'v2', opened_at: '2026-11-02T14:00:00Z', closed_at: '2026-11-02T16:00:00Z', tables: 'Table 1', minutes_played: 60, call_time_met: false, left_early: true },
@@ -58,13 +59,26 @@ const ANSWERS: Record<string, unknown> = {
 };
 
 /** A staff member in `role` on Members, with the member `memberId`'s record open when given. */
-function renderAs(role: string, memberId?: string, part?: string) {
+/** A test's own answer to a read: given how many were asked for, the rows, or a Response for a failure. */
+type Overrides = Readonly<Record<string, (limit: number) => unknown>>;
+
+function answerOf(override: (limit: number) => unknown, init?: RequestInit): Response {
+  const answer = override(Number(/"p_limit":(\d+)/.exec(String(init?.body))?.[1] ?? 20));
+  return answer instanceof Response ? answer : Response.json(answer);
+}
+
+/** Rows of a paged list, each from `row`, as many as were asked for up to `total`. */
+const paged = (total: number, row: (n: number) => unknown) => (limit: number) => Array.from({ length: Math.min(total, limit) }, (_, n) => row(n));
+
+function renderAs(role: string, memberId?: string, part?: string, overrides: Overrides = {}) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000101', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
   }));
-  vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
+    const override = Object.entries(overrides).find(([path]) => url.includes(path))?.[1];
+    if (override !== undefined) return answerOf(override, init);
     if (url.includes('/rest/v1/staff')) {
       return Response.json([{ id: 'st1', venue_id: 'v1', full_name: 'Vikram Rao', role, venue: { name: 'RIVR Gurugram', is_practice: false } }]);
     }
@@ -107,7 +121,7 @@ describe('Members (console v3)', () => {
   it('shows each member\'s KYC, hours played, city and member-since day, and the mobile to a super admin (owner, 8 Nov)', async () => {
     renderAs('super_admin');
     const table = await screen.findByRole('table', { name: 'Members' }, { timeout: 5000 });
-    for (const header of ['Mobile', 'ID check', 'Hours', 'City', 'Joined']) {
+    for (const header of ['Mobile', 'Status', 'ID check', 'Hours', 'City', 'Joined']) {
       expect(within(table).getByRole('columnheader', { name: new RegExp(header) })).toBeDefined();
     }
     const sakshi = within(table).getAllByRole('row').find((row) => row.textContent?.includes('Sakshi Tandon')) ?? table;
@@ -163,6 +177,58 @@ describe('Members (console v3)', () => {
   it('writes the record\u2019s status on one line, without saying Member twice (F-039)', async () => {
     renderAs('super_admin', 'm1');
     expect(await screen.findByText(/^No\. 66 \u00b7 Black card tier \u00b7 /, undefined, { timeout: 5000 })).toBeDefined();
+  });
+
+  it('says Frozen and Erased on the list, and filters by status (F-121)', async () => {
+    renderAs('super_admin', undefined, undefined, { '/rpc/member_account_statuses': () => [{ member_id: 'm1', status: 'frozen', until: null }, { member_id: 'm2', status: 'erased', until: null }] });
+    const table = await screen.findByRole('table', { name: 'Members' }, { timeout: 5000 });
+    expect(await within(table).findByText('Frozen')).toBeDefined();
+    expect(within(table).getByText('Erased')).toBeDefined();
+    fireEvent.click(within(table).getByRole('button', { name: /^Status: sort and filter/ }));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Status: sort and filter' })).getByRole('button', { name: /^Frozen/ }));
+    await waitFor(() => expect(within(table).queryByRole('button', { name: 'Arjun Mehta' })).toBeNull());
+    expect(within(table).getByRole('button', { name: 'Sakshi Tandon' })).toBeDefined();
+  });
+
+  it('never calls anyone active when the statuses could not be read (F-121)', async () => {
+    renderAs('super_admin', 'm1', undefined, { '/rpc/member_account_statuses': () => Response.json({ message: 'no' }, { status: 500 }) });
+    const table = await screen.findByRole('table', { name: 'Members' }, { timeout: 5000 });
+    await waitFor(() => expect(within(table).getAllByText('–').length).toBeGreaterThan(1));
+    expect(screen.queryByText('Active')).toBeNull();
+  });
+
+  it('shortens a break on the list, with the whole of it as the title (F-121)', async () => {
+    renderAs('super_admin');
+    expect((await screen.findByText('Break', undefined, { timeout: 5000 })).closest('[title]')?.getAttribute('title')).toBe('On a break until 13 Dec 2026');
+  });
+
+  it('shows earlier visits until there are no more (F-017)', async () => {
+    const visit = (n: number) => ({ visit_id: `v${String(n)}`, opened_at: '2026-11-03T14:00:00Z', closed_at: null, tables: 'Table 9', minutes_played: 60, call_time_met: null, left_early: false });
+    renderAs('super_admin', 'm1', undefined, { '/rpc/member_visits': paged(25, visit) });
+    fireEvent.click(await screen.findByRole('button', { name: 'Show earlier' }, { timeout: 5000 }));
+    await waitFor(() => expect(screen.getAllByText('3 Nov 2026 · Table 9')).toHaveLength(25));
+    expect(screen.queryByRole('button', { name: 'Show earlier' })).toBeNull();
+  });
+
+  it('shows earlier points until there are no more, and who locked some (F-017)', async () => {
+    const line = (n: number) => ({ line_id: `p${String(n)}`, at: '2026-11-03T15:00:00Z', kind: 'locked', points: 10, reason: 'Held back', staff_name: 'Aditya Malhotra' });
+    renderAs('super_admin', 'm1', 'bonus', { '/rpc/member_points_history': paged(25, line) });
+    fireEvent.click(await screen.findByRole('button', { name: 'Show earlier' }, { timeout: 5000 }));
+    await waitFor(() => expect(screen.getAllByText('3 Nov 2026 · Locked by Aditya Malhotra: Held back')).toHaveLength(25));
+    expect(screen.queryByRole('button', { name: 'Show earlier' })).toBeNull();
+  });
+
+  it('shows earlier promotions until there are no more (F-103)', async () => {
+    renderAs('super_admin', 'm1', undefined, { '/rpc/member_promotion_grants': paged(25, (n) => ({ ...GRANT, grant_id: `g${String(n)}`, promotion_name: 'Nightly steps' })) });
+    fireEvent.click(await screen.findByRole('button', { name: 'Show earlier' }, { timeout: 5000 }));
+    await waitFor(() => expect(screen.getAllByText(/Nightly steps/)).toHaveLength(25));
+    expect(screen.queryByRole('button', { name: 'Show earlier' })).toBeNull();
+  });
+
+  it('says on the list and the record how an account stands (F-121)', async () => {
+    renderAs('super_admin', 'm1');
+    await waitFor(() => expect(screen.getAllByText('On a break until 13 Dec 2026')).toHaveLength(2), { timeout: 5000 });
+    expect(screen.getByText('Active')).toBeDefined();
   });
 
   it('shows a seated member\'s seat with a link to it on the floor, and the promotions they were given', async () => {

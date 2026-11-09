@@ -61,6 +61,8 @@ export const members = {
   kycIncomplete: 'ID check due',
   inRoom: 'In the room',
   visitsTitle: 'Visits',
+  /** How a member's account stands (F-121). */
+  accountStatus: { header: 'Status', active: 'Active', on_break: 'On a break', on_breakUntil: 'On a break until {date}', on_breakShort: 'Break', frozen: 'Frozen', erased: 'Erased' },
   /** Each visit on the record (F-017). */
   visitHistory: {
     title: 'Visit history', none: 'No visits yet.', line: '{date} · {tables}', noTable: 'No table',

@@ -1,4 +1,4 @@
-import { useKycImageUrl, useMemberRecord, type MemberRecord } from '@rivr/db';
+import { useKycImageUrl, useMemberAccountStatuses, useMemberRecord, type MemberRecord } from '@rivr/db';
 import { useOpenHostOffers } from '@rivr/db/hostQueue';
 import { formatDate, formatHostOffer, formatNumber, formatStakes, t } from '@rivr/i18n';
 import { Box, DetailRow, ErrorMessage, Heading, Inline, KycPhoto, kycPhotoStatus, LoadState, Stack, Tabs, Text } from '@rivr/ui';
@@ -6,6 +6,7 @@ import { ChangePhone } from './ChangePhone.tsx';
 import { EarlyDepartures } from './EarlyDepartures.tsx';
 import { EraseMember } from './EraseMember.tsx';
 import { FeatureOverrides } from './FeatureOverrides.tsx';
+import { AccountStatusDot } from './memberColumns.tsx';
 import { MemberBonus } from './MemberBonus.tsx';
 import { MemberBreak } from './MemberBreak.tsx';
 import { MemberSignUp } from './MemberSignUp.tsx';
@@ -100,6 +101,14 @@ function OfferLine({ venueId, memberId }: { venueId: string; memberId: string })
   return offer === undefined ? null : <Text variant="small" tone="accent">{t('console.hostQueue.offered', { offer: formatHostOffer(offer) })}</Text>;
 }
 
+/** How the account stands when it is not simply active; a dash until that is known, so a failed read never passes as active (F-121). */
+function AccountLine({ venueId, memberId }: { venueId: string; memberId: string }) {
+  const statuses = useMemberAccountStatuses(venueId).data;
+  if (statuses === undefined) return <Text variant="small" tone="muted">{t('console.members.notHere')}</Text>;
+  const status = statuses.get(memberId);
+  return status === undefined ? null : <AccountStatusDot status={status} />;
+}
+
 /** The record's header: the KYC photo for those who may see it, the name, its status lines and a host's open offer. */
 function RecordHeader({ venueId, record, can }: { venueId: string; record: MemberRecord; can: RecordAccess }) {
   // KYC photos are for KYC reviewers and the cage (authorize_kyc_image); other staff see none rather than an error.
@@ -113,6 +122,7 @@ function RecordHeader({ venueId, record, can }: { venueId: string; record: Membe
         <Heading level={2}>{record.fullName}</Heading>
         {record.knownAs === null ? null : <Text variant="small" tone="muted">{t('console.members.knownAs', { name: record.knownAs })}</Text>}
         <Text variant="small" tone="muted">{statusLine(record)}</Text>
+        <AccountLine venueId={venueId} memberId={record.memberId} />
         {record.qualifying === null ? null : (
           <Text variant="small" tone="muted">{t('console.members.qualifying', { stakes: formatStakes(record.qualifying.smallBlind, record.qualifying.bigBlind) })}</Text>
         )}

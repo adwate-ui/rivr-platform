@@ -141,6 +141,35 @@ export function useMemberRecord(venueId: string, memberId: string) {
   });
 }
 
+/** How a member's account stands when it is not simply active (F-121). */
+export type MemberAccountState = 'on_break' | 'frozen' | 'erased';
+
+/** A member whose account is not simply active; `until` is the day a break ends. */
+export interface MemberAccountStatus {
+  readonly memberId: string;
+  readonly state: MemberAccountState;
+  readonly until: string | null;
+}
+
+const ACCOUNT_STATES: readonly MemberAccountState[] = ['on_break', 'frozen', 'erased'];
+
+/** The venue's members who are on a break, frozen or erased, by member (members.read); everyone else is active. */
+export function useMemberAccountStatuses(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.memberAccountStatuses(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<ReadonlyMap<string, MemberAccountStatus>> => {
+      const { data, error } = await client.rpc('member_account_statuses', { p_venue_id: venueId });
+      if (error) throw error;
+      return new Map(data.flatMap((row) => {
+        const state = ACCOUNT_STATES.find((known) => known === row.status);
+        return state === undefined ? [] : [[row.member_id, { memberId: row.member_id, state, until: row.until }] as const];
+      }));
+    },
+  });
+}
+
 /** One visit on a member's record (F-017). */
 export interface MemberVisit {
   readonly visitId: string;
