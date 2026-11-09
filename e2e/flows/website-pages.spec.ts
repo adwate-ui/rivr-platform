@@ -98,9 +98,9 @@ test.describe('Website', () => {
     await expect(page.getByRole('row', { name: /Private Room/ })).toHaveCount(0);
     await expect(page.getByText(/of your rake comes back as points/)).toHaveCount(0);
 
-    // The seed publishes Buy-in bonus Tuesday, high hands and the referral (57_promotions.sql).
+    // The referral runs everywhere. Staging's percentage buy-in bonus stopped with 20261110130000_seat_bonus.sql.
     await site.getByRole('link', { name: 'Prizes and calendar' }).click();
-    await expect(page.getByRole('heading', { level: 3, name: 'Buy-in bonus Tuesday' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 3, name: 'Referral' })).toBeVisible();
 
     await site.getByRole('link', { name: 'Journal' }).click();
     await page.getByRole('main').getByRole('link', { name: "Read: Texas Hold'em for beginners" }).click();
