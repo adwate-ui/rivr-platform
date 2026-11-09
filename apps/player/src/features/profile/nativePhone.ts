@@ -9,7 +9,7 @@ export interface LiveStatusPlugin {
   /** Whether the phone may show notifications: granted, denied, or not asked yet. */
   checkPermissions(): Promise<{ notifications: PermissionState | 'prompt-with-rationale' }>;
   /** Asks the member's leave when not asked yet, then gives the phone's push token; rejects when refused or not set up. */
-  register(options: { channelName: string }): Promise<{ platform: string; token: string }>;
+  register(options: { channelName: string }): Promise<{ platform: string; token: string; alertToken?: string | null }>;
   /** The token and key the phone kept when it last registered; nulls when it has not, or was turned off. */
   current(): Promise<{ token: string | null; deviceKey: string | null }>;
   /** Keeps the key the database gave the phone. */

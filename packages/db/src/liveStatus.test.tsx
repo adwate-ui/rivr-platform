@@ -33,6 +33,15 @@ function renderActions({ status = 200, reply = KEY }: { status?: number; reply?:
 afterEach(cleanup);
 
 describe('useLiveStatusDeviceActions', () => {
+  it('saves an iPhone with its alert token', async () => {
+    const { result, calls } = renderActions();
+    const apple = 'a1'.repeat(32);
+    await act(() => result.current.save.mutateAsync({ platform: 'ios', token: apple, alertToken: 'b2'.repeat(32), deviceKey: null }));
+    expect(calls()).toEqual([
+      { url: 'http://127.0.0.1:9/rest/v1/rpc/save_live_status_device', body: { p_platform: 'ios', p_token: apple, p_alert_token: 'b2'.repeat(32) } },
+    ]);
+  });
+
   it('saves the phone with the key it kept, gives back its new key, and removes it by its token', async () => {
     const { result, calls } = renderActions();
 

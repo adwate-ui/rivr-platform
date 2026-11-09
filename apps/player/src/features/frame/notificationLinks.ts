@@ -9,9 +9,9 @@ interface OpenedLinks {
 /** The plugin in the native app; null in a browser, where the push service worker opens a tapped push's page. */
 const LIVE_STATUS_LINKS: OpenedLinks | null = Capacitor.isNativePlatform() ? registerPlugin<OpenedLinks>('LiveStatus') : null;
 
-// Only the pages a status opens (decision 0321): Tonight, Tonight answering a seat call, and Order. A link from elsewhere
-// that reaches the app's address cannot send it anywhere else.
-const NOTIFICATION_PATH = /^\/(\?accept=[0-9a-f-]{36}|fnb)?$/;
+// Only the pages a status or an alert opens (decisions 0321, 0576): Tonight, Tonight answering a seat call, Order, and Rewards
+// for bonus chips. A link from elsewhere that reaches the app's address cannot send it anywhere else.
+const NOTIFICATION_PATH = /^\/(\?accept=[0-9a-f-]{36}|fnb|rewards)?$/;
 
 /** Calls `open` with each page a lock-screen status opens, in the native app (decision 0361); returns how to stop. */
 export function onNotificationOpened(open: (path: string) => void, links = LIVE_STATUS_LINKS): () => void {

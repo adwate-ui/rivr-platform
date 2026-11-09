@@ -14,9 +14,11 @@ export type LiveStatusDeviceToSave = LiveStatusDeviceInput & { readonly deviceKe
 export function useLiveStatusDeviceActions() {
   const { client } = useRivrData();
   const save = useMutation({
-    mutationFn: async ({ platform, token, deviceKey }: LiveStatusDeviceToSave): Promise<Result<string, 'unavailable'>> => {
+    mutationFn: async (device: LiveStatusDeviceToSave): Promise<Result<string, 'unavailable'>> => {
+      const { platform, token, deviceKey } = device;
+      const alertToken = device.platform === 'ios' ? device.alertToken : null;
       const { data, error } = await client.rpc('save_live_status_device', {
-        p_platform: platform, p_token: token, ...(deviceKey === null ? {} : { p_device_key: deviceKey }),
+        p_platform: platform, p_token: token, ...(deviceKey === null ? {} : { p_device_key: deviceKey }), ...(alertToken ? { p_alert_token: alertToken } : {}),
       });
       return error || typeof data !== 'string' ? err('unavailable') : ok(data);
     },

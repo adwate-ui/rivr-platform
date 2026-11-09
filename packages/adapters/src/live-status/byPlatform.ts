@@ -11,5 +11,9 @@ export function createLiveStatus({ ios, android }: { ios?: LiveStatusAdapter; an
       const adapter = input.device.platform === 'ios' ? ios : android;
       return adapter === undefined ? err({ code: 'not_configured' }) : adapter.show(input);
     },
+    async alert(input) {
+      const adapter = input.platform === 'ios' ? ios : android;
+      return adapter === undefined ? err({ code: 'not_configured' }) : adapter.alert(input);
+    },
   };
 }

@@ -7,12 +7,17 @@ import java.util.Map;
 
 /**
  * Firebase's messages to this phone (decision 0323): the live-status consumer's data messages, which show or remove the
- * ongoing notification whether or not the app is open. Nothing shows once the member turned it off or signed out.
+ * ongoing notification whether or not the app is open, and the push consumer's alerts (decision 0576). Nothing shows once
+ * the member turned it off or signed out.
  */
 public class LiveStatusMessagingService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(@NonNull RemoteMessage message) {
         Map<String, String> data = message.getData();
+        if ("rivr_alert".equals(data.get("kind"))) {
+            if (LiveStatusStore.deviceKey(this) != null && LiveStatusStore.isNewAlert(this, data.get("id"))) LiveStatusNotification.alert(this, data);
+            return;
+        }
         if (!"rivr_live_status".equals(data.get("kind"))) return;
         if (LiveStatusStore.deviceKey(this) == null) {
             LiveStatusNotification.cancel(this);

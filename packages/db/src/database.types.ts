@@ -2195,14 +2195,14 @@ isOneToOne: false
                   ]
                 },"live_status_device": {
                   Row: {
-                    "activity_push_token": string | null,"created_at": string,"device_key_hash": string,"id": string,"member_id": string,"platform": string,"push_token": string,"shown": string | null,"updated_at": string,"venue_id": string
+                    "activity_push_token": string | null,"alert_token": string | null,"created_at": string,"device_key_hash": string,"id": string,"member_id": string,"platform": string,"push_token": string,"shown": string | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "activity_push_token"?: string | null,"created_at"?: string,"device_key_hash": string,"id"?: string,"member_id": string,"platform": string,"push_token": string,"shown"?: string | null,"updated_at"?: string,"venue_id": string
+                    "activity_push_token"?: string | null,"alert_token"?: string | null,"created_at"?: string,"device_key_hash": string,"id"?: string,"member_id": string,"platform": string,"push_token": string,"shown"?: string | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "activity_push_token"?: string | null,"created_at"?: string,"device_key_hash"?: string,"id"?: string,"member_id"?: string,"platform"?: string,"push_token"?: string,"shown"?: string | null,"updated_at"?: string,"venue_id"?: string
+                    "activity_push_token"?: string | null,"alert_token"?: string | null,"created_at"?: string,"device_key_hash"?: string,"id"?: string,"member_id"?: string,"platform"?: string,"push_token"?: string,"shown"?: string | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -5279,6 +5279,9 @@ isOneToOne: false
 "forget_live_status_device":
 { Args: { "p_device_id": string }; Returns: undefined
                            },
+"forget_native_alert":
+{ Args: { "p_device_id": string }; Returns: undefined
+                           },
 "forget_push_subscription":
 { Args: { "p_endpoint": string }; Returns: undefined
                            },
@@ -5739,6 +5742,11 @@ isOneToOne: false
               "amount_paise": number,"bank_name": string,"decided_at": string,"decline_reason": string,"id": string,"kind": string,"requested_at": string,"status": string,"utr": string
             }[]
                            },
+"native_push_targets":
+{ Args: { "p_member_id": string,"p_promotion_id"?: string,"p_push_type"?: string,"p_venue_id": string }; Returns: {
+              "device_id": string,"platform": string,"token": string
+            }[]
+                           },
 "note_kyc_vendor_failure":
 { Args: { "p_member_id": string,"p_reason": string,"p_step": string }; Returns: undefined
                            },
@@ -6142,7 +6150,7 @@ isOneToOne: false
 { Args: { "p_first_month": string,"p_last_month": string,"p_name": string,"p_season_id"?: string,"p_venue_id": string }; Returns: string
                            },
 "save_live_status_device":
-{ Args: { "p_device_key"?: string,"p_platform": string,"p_token": string }; Returns: string
+{ Args: { "p_alert_token"?: string,"p_device_key"?: string,"p_platform": string,"p_token": string }; Returns: string
                            },
 "save_my_preferences":
 { Args: { "p_big_blind"?: number,"p_games": (string)[],"p_small_blind"?: number }; Returns: undefined

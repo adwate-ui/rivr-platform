@@ -23,6 +23,7 @@ final class LiveStatusNotification {
     static final String CHANNEL_ID = "live_status";
     static final String EXTRA_PATH = "club.rivr.player.PATH";
     private static final int NOTIFICATION_ID = 323;
+    private static final int ALERT_ID = 575;
 
     private LiveStatusNotification() {}
 
@@ -66,6 +67,22 @@ final class LiveStatusNotification {
             builder.addAction(0, actionTitle, open(context, actionUrl, 1));
         }
         NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, builder.build());
+    }
+
+    /** An ordinary alert beside the status (decision 0576): Call time ending and the other pushes. A repeat with its tag replaces it. */
+    static void alert(Context context, Map<String, String> data) {
+        if (!mayNotify(context)) return;
+        String tag = data.get("tag");
+        String url = data.get("url");
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_stat_rivr)
+            .setColor(ContextCompat.getColor(context, R.color.rivr_color_gold))
+            .setContentTitle(data.get("title"))
+            .setContentText(data.get("body"))
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(open(context, url != null && url.startsWith("/") ? url : "/", tag == null ? 2 : tag.hashCode()));
+        NotificationManagerCompat.from(context).notify(tag, ALERT_ID, builder.build());
     }
 
     /** Removes what shows: the member left, or turned it off, or signed out. */

@@ -39,8 +39,28 @@ export interface LiveStatusShow {
   readonly status: LiveStatus | null;
 }
 
+/** An ordinary alert on one phone in the native app, beside the live status (#805): Call time ending and the other pushes. */
+export interface PhoneAlert {
+  /** The event it is for: a phone that shows the same one twice stays quiet the second time. */
+  readonly id: string;
+  readonly platform: LiveStatusPlatform;
+  /** An Android phone's Firebase registration token, or an iPhone's APNs device token. */
+  readonly token: string;
+  readonly title: string;
+  readonly body: string;
+  /** The app page a tap opens. */
+  readonly url: string;
+  /** A repeat with the same tag replaces the last, so a retried delivery shows once. */
+  readonly tag: string;
+}
+
+/** Why an alert did not go: a vendor failure, or a phone whose token the push service no longer knows (forget the phone). */
+export type PhoneAlertFailure = AdapterFailure | { readonly code: 'device_gone' };
+
 /** The lock-screen live status: Apple's push service for an iPhone's Live Activity, Firebase for an Android phone's notification. */
 export interface LiveStatusAdapter {
   /** Shows the status on the phone, or ends what it shows. */
   show(input: LiveStatusShow): Promise<Result<{ readonly id: string }, LiveStatusFailure>>;
+  /** Sends the phone an ordinary alert. */
+  alert(input: PhoneAlert): Promise<Result<{ readonly id: string }, PhoneAlertFailure>>;
 }

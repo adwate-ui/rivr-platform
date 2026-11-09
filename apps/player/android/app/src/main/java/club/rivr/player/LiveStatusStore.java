@@ -11,6 +11,7 @@ final class LiveStatusStore {
     private static final String FILE = "rivr_live_status";
     private static final String TOKEN = "token";
     private static final String DEVICE_KEY = "device_key";
+    private static final String LAST_ALERT = "last_alert";
 
     private LiveStatusStore() {}
 
@@ -24,6 +25,14 @@ final class LiveStatusStore {
 
     static String deviceKey(Context context) {
         return prefs(context).getString(DEVICE_KEY, null);
+    }
+
+    /** Whether this alert is new to the phone: a retried delivery sends it again, and it should not sound twice. */
+    static boolean isNewAlert(Context context, String id) {
+        if (id == null) return true;
+        if (id.equals(prefs(context).getString(LAST_ALERT, null))) return false;
+        prefs(context).edit().putString(LAST_ALERT, id).apply();
+        return true;
     }
 
     static void keepToken(Context context, String token) {

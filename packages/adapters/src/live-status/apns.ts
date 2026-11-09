@@ -1,7 +1,7 @@
 import { err, ok, type Result } from '@rivr/contracts';
 import { z } from 'zod';
 import { signJwt } from '../shared/jwt.ts';
-import type { LiveStatus, LiveStatusAdapter, LiveStatusDevice, LiveStatusFailure } from './types.ts';
+import type { LiveStatus, LiveStatusAdapter, LiveStatusDevice, LiveStatusFailure, PhoneAlert, PhoneAlertFailure } from './types.ts';
 
 /** The club's Apple push key and the app it sends for (decision 0361). */
 export interface ApnsLiveActivityOptions {
@@ -106,6 +106,49 @@ function createProviderToken({ teamId, keyId, privateKey }: Pick<ApnsLiveActivit
   };
 }
 
+/** What sending an alert needs from the adapter. */
+interface AlertSender {
+  readonly host: string;
+  readonly bundleId: string;
+  readonly provider: ReturnType<typeof createProviderToken>;
+  readonly fetch: typeof globalThis.fetch;
+  readonly now: () => Date;
+}
+
+/** An ordinary alert to an iPhone's device token (decision 0576), replacing an earlier one with its tag. */
+async function postAlert({ host, bundleId, provider, fetch, now }: AlertSender, { token, title, body, url, tag }: PhoneAlert): Promise<Result<{ id: string }, PhoneAlertFailure>> {
+  const answer = await fetch(`${host}/3/device/${token}`, {
+    method: 'POST',
+    headers: {
+      authorization: `bearer ${await provider.at(now())}`,
+      'apns-push-type': 'alert',
+      'apns-topic': bundleId,
+      'apns-priority': '10',
+      // An hour, as web push and Firebase keep one: "15 minutes left" is no use to a phone that comes back later.
+      'apns-expiration': String(seconds(now()) + 3600),
+      // Apple takes at most 64 bytes.
+      'apns-collapse-id': tag.slice(0, 64),
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({ aps: { alert: { title, body }, sound: 'default' }, url }),
+    signal: AbortSignal.timeout(5_000),
+  });
+  if (answer.ok) return ok({ id: answer.headers.get('apns-id') ?? '' });
+  const reason = replySchema.safeParse(await answer.json().catch(() => null)).data?.reason ?? '';
+  if (reason === 'ExpiredProviderToken') provider.drop();
+  const failure = failureOf(answer.status, reason, false);
+  return err(failure.code === 'activity_gone' ? { code: 'unavailable' } : failure);
+}
+
+async function sendAlert(sender: AlertSender, alert: PhoneAlert): Promise<Result<{ id: string }, PhoneAlertFailure>> {
+  if (alert.platform !== 'ios') return err({ code: 'rejected', reason: 'Apple sends to an iPhone only' });
+  try {
+    return await postAlert(sender, alert);
+  } catch {
+    return err({ code: 'unavailable' });
+  }
+}
+
 /**
  * An iPhone's Live Activity through Apple's push service (decision 0323): started with the phone's push-to-start token
  * when none runs, then updated and ended through the Live Activity's own token. The phone counts down by itself to the
@@ -138,6 +181,7 @@ export function createApnsLiveActivity(options: ApnsLiveActivityOptions): LiveSt
   }
 
   return {
+    alert: (input) => sendAlert({ host, bundleId, provider, fetch, now }, input),
     async show({ device, status }) {
       if (device.platform !== 'ios') return err({ code: 'rejected', reason: 'Apple sends to an iPhone only' });
       const route = routeOf(device, status);
