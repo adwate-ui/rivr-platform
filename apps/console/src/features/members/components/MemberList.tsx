@@ -1,4 +1,4 @@
-import { useMembersOfTier, useVenueTiers, type MemberListRow, type VenueTier } from '@rivr/db';
+import { useMemberAccountStatuses, useMembersOfTier, useVenueTiers, type MemberListRow, type VenueTier } from '@rivr/db';
 import { t, formatNumber } from '@rivr/i18n';
 import { ChoiceChips, DataTable, Text } from '@rivr/ui';
 import type { ReactNode } from 'react';
@@ -59,9 +59,10 @@ function memberTotal(rows: readonly MemberListRow[]) {
  */
 function Results({ venueId, tonight, onOpen, exportIn, seesPhone, seesIdentity, isDocked, tier, tiers }: ListProps & { tier: VenueTier | null; tiers: ReactNode }) {
   const listed = useMembersOfTier(venueId, tier?.tierId ?? null);
+  const statuses = useMemberAccountStatuses(venueId).data;
   const chosen = tierWords(tier);
   const base = {
-    label: t('console.members.title'), columns: memberColumns(tonight, { seesPhone }), rowKey: (row: MemberListRow) => row.memberId, scrollsSideways: isDocked,
+    label: t('console.members.title'), columns: memberColumns(tonight, { seesPhone, statuses }), rowKey: (row: MemberListRow) => row.memberId, scrollsSideways: isDocked,
     filter: { label: t('console.members.search'), variant: 'subtle' as const, matches: isFound }, belowSearch: tiers,
     ...(chosen === undefined ? {} : { exportFilter: chosen }), exportColumns: memberExportColumns(seesIdentity),
     onRowOpen: (row: MemberListRow) => onOpen(row.memberId), initialSort: { key: 'name', direction: 'ascending' } as const, exportIn,

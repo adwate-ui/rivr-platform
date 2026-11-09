@@ -5355,6 +5355,11 @@ isOneToOne: false
 "mark_tournament_registered":
 { Args: { "p_interest_id": string }; Returns: undefined
                            },
+"member_account_statuses":
+{ Args: { "p_venue_id": string }; Returns: {
+              "member_id": string,"status": string,"until": string
+            }[]
+                           },
 "member_bonus":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
               "bonus_paise": number
@@ -5388,13 +5393,18 @@ isOneToOne: false
               "earned": number,"full_name": string,"locked": number,"member_id": string,"member_number": number
             }[]
                            },
+"member_points_history":
+{ Args: { "p_limit"?: number,"p_member_id": string,"p_venue_id": string }; Returns: {
+              "at": string,"kind": string,"line_id": string,"points": number,"reason": string,"staff_name": string
+            }[]
+                           },
 "member_points_of":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
               "earned": number,"locked": number
             }[]
                            },
 "member_promotion_grants":
-{ Args: { "p_member_id": string }; Returns: {
+{ Args: { "p_limit"?: number,"p_member_id": string }; Returns: {
               "chips": number,"club_day": string,"grant_id": string,"granted_at": string,"perk": string,"points": number,"promotion_name": string,"spins": number,"version": number
             }[]
                            },
@@ -5411,6 +5421,11 @@ isOneToOne: false
 "member_sign_up":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
               "city": string,"creator_code": string,"first_seen_at": string,"games_played": (string)[],"occupation": string,"play_times": (string)[],"referral_code": string,"signed_up_at": string,"utm_campaign": string,"utm_content": string,"utm_medium": string,"utm_source": string,"utm_term": string
+            }[]
+                           },
+"member_visits":
+{ Args: { "p_limit"?: number,"p_member_id": string,"p_venue_id": string }; Returns: {
+              "call_time_met": boolean,"closed_at": string,"left_early": boolean,"minutes_played": number,"opened_at": string,"tables": string,"visit_id": string
             }[]
                            },
 "members_of_tier":

@@ -1,6 +1,6 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
 import type { Paise } from '@rivr/domain/money';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { detailsOf, type MemberExportDetails } from './memberDetails.ts';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
@@ -141,6 +141,65 @@ export function useMemberRecord(venueId: string, memberId: string) {
   });
 }
 
+/** How a member's account stands when it is not simply active (F-121). */
+export type MemberAccountState = 'on_break' | 'frozen' | 'erased';
+
+/** A member whose account is not simply active; `until` is the day a break ends. */
+export interface MemberAccountStatus {
+  readonly memberId: string;
+  readonly state: MemberAccountState;
+  readonly until: string | null;
+}
+
+const ACCOUNT_STATES: readonly MemberAccountState[] = ['on_break', 'frozen', 'erased'];
+
+/** The venue's members who are on a break, frozen or erased, by member (members.read); everyone else is active. */
+export function useMemberAccountStatuses(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.memberAccountStatuses(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<ReadonlyMap<string, MemberAccountStatus>> => {
+      const { data, error } = await client.rpc('member_account_statuses', { p_venue_id: venueId });
+      if (error) throw error;
+      return new Map(data.flatMap((row) => {
+        const state = ACCOUNT_STATES.find((known) => known === row.status);
+        return state === undefined ? [] : [[row.member_id, { memberId: row.member_id, state, until: row.until }] as const];
+      }));
+    },
+  });
+}
+
+/** One visit on a member's record (F-017). */
+export interface MemberVisit {
+  readonly visitId: string;
+  readonly openedAt: string;
+  /** Every table of the visit; null with no seat. */
+  readonly tables: string | null;
+  readonly minutesPlayed: number;
+  /** Whether the call time owed was met; null when no seat owed any. */
+  readonly callTimeMet: boolean | null;
+  readonly leftEarly: boolean;
+}
+
+/** A member's newest `count` visits, newest first (members.read). */
+export function useMemberVisits(venueId: string, memberId: string, count: number) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.memberVisits(userId ?? 'signed-out', venueId, memberId, count),
+    enabled: userId !== null,
+    // Asking for more keeps the lines on screen until they come.
+    placeholderData: keepPreviousData,
+    queryFn: async (): Promise<MemberVisit[]> => {
+      const { data, error } = await client.rpc('member_visits', { p_venue_id: venueId, p_member_id: memberId, p_limit: count });
+      if (error) throw error;
+      return data.map((row) => ({
+        visitId: row.visit_id, openedAt: row.opened_at, tables: row.tables, minutesPlayed: row.minutes_played, callTimeMet: row.call_time_met, leftEarly: row.left_early,
+      }));
+    },
+  });
+}
+
 /** A member's early departures, newest first. */
 export function useMemberEarlyDepartures(venueId: string, memberId: string) {
   const { client, userId } = useRivrData();
@@ -248,6 +307,7 @@ export function useWithdrawEarlyDeparture(venueId: string, memberId: string) {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.memberEarlyDepartures(user, venueId, memberId) }),
         queryClient.invalidateQueries({ queryKey: queryKeys.memberRecord(user, venueId, memberId) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.memberVisitsAll(user, venueId, memberId) }),
       ]);
       return error ? err(WITHDRAWAL_FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },

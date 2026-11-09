@@ -33,7 +33,7 @@ function renderVersions(replies: Record<string, unknown>) {
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
   const { result } = renderHook(
-    () => ({ overview: usePromotionsOverview(VENUE), versions: usePromotionVersions('p1'), grants: useMemberPromotionGrants('m1') }),
+    () => ({ overview: usePromotionsOverview(VENUE), versions: usePromotionVersions('p1'), grants: useMemberPromotionGrants('m1', 20) }),
     { wrapper },
   );
   return { result, calls };

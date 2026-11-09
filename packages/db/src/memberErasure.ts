@@ -76,6 +76,7 @@ function refresh(queryClient: QueryClient, user: string, venueId: string, member
     queryClient.invalidateQueries({ queryKey: queryKeys.memberRecord(user, venueId, memberId) }),
     queryClient.invalidateQueries({ queryKey: queryKeys.memberSearchAll(user) }),
     queryClient.invalidateQueries({ queryKey: queryKeys.membersOfTierAll(user) }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.memberAccountStatuses(user, venueId) }),
   ]);
 }
 

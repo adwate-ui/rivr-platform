@@ -51,7 +51,9 @@ export const members = {
   grantSpins: '{count} spins',
   grantSpin: '1 spin',
   /** The record. `{number}` is the member number. */
-  memberNumber: 'Member {number}',
+  memberNumber: 'No. {number}',
+  /** The record's status line (F-039): `No. 427 · Member tier · ID checked`. */
+  tierLine: '{tier} tier',
   /** `{date}`: 30 Nov 2026, the tier change's last day. */
   tierUntil: '{tier} until {date}',
   qualifying: 'Qualifies at {stakes}',
@@ -59,6 +61,13 @@ export const members = {
   kycIncomplete: 'ID check due',
   inRoom: 'In the room',
   visitsTitle: 'Visits',
+  /** How a member's account stands (F-121). */
+  accountStatus: { header: 'Status', active: 'Active', on_break: 'On a break', on_breakUntil: 'On a break until {date}', on_breakShort: 'Break', frozen: 'Frozen', erased: 'Erased' },
+  /** Each visit on the record (F-017). */
+  visitHistory: {
+    title: 'Visit history', none: 'No visits yet.', line: '{date} · {tables}', noTable: 'No table',
+    callTimeMet: 'Call time met', callTimeOwed: 'Call time not met', leftEarly: 'Left early',
+  },
   /** The name a member gave at sign-up, under their Aadhaar name (#803): `Known as Ashu`. */
   knownAs: 'Known as {name}',
   /** The record's parts, one shown at a time (C-02); visits takes visitsTitle. `{name}` is the member's. */

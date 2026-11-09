@@ -35,3 +35,23 @@ export function useMyPointsHistory(count: number) {
     },
   });
 }
+
+/** A line as staff read it on the record (F-017): who posted it, when it was someone. */
+export interface MemberPointsLine extends PointsLine {
+  readonly staffName: string | null;
+}
+
+/** A member's newest `count` lines of points, newest first (members.read). */
+export function useMemberPointsHistory(venueId: string, memberId: string, count: number) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.memberPointsHistory(userId ?? 'signed-out', venueId, memberId, count),
+    enabled: userId !== null,
+    placeholderData: keepPreviousData,
+    queryFn: async (): Promise<MemberPointsLine[]> => {
+      const { data, error } = await client.rpc('member_points_history', { p_venue_id: venueId, p_member_id: memberId, p_limit: count });
+      if (error) throw error;
+      return data.map((row) => ({ id: row.line_id, at: row.at, kind: kindOf(row.kind), points: BigInt(row.points), reason: row.reason, staffName: row.staff_name }));
+    },
+  });
+}
