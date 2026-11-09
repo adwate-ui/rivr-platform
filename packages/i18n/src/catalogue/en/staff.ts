@@ -35,6 +35,14 @@ export const staff = {
   line: '{jobTitle} · {role}',
   /** A dealer with no number, who signs in on a tablet with a PIN. */
   noPhone: 'No number',
+  /** Who still has access (8 Nov audit, F-116). */
+  lastSignedIn: 'Last signed in',
+  neverSignedIn: 'Never',
+  /** A dealer with no login signs in on the tablet alone. */
+  pinOnly: 'PIN only',
+  notSignedInLabel: 'Sign-ins',
+  notSignedIn: 'Not signed in for 30 days',
+  manySuperAdmins: '{count} people are super admins. Keep it to those who need it.',
   inactive: 'Turned off',
   /** Removed staff (owner, 8 Nov): a removal's date and who did it, and Restore. */
   removedOn: 'Removed',

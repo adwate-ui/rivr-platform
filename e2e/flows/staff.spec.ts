@@ -22,6 +22,7 @@ test.describe('Staff', () => {
     await signInToConsole(admin, '9000000150');
     await openConsole(admin, '/staff');
     await expect(admin.getByRole('heading', { name: 'Staff', level: 1 })).toBeVisible();
+    await expect(admin.getByRole('columnheader', { name: /Last signed in/ })).toBeVisible();
     // The staff are a table (C-03): a name opens the person beside it, and their changes open in place on Change (A-17).
     await admin.getByRole('button', { name: 'Ayesha Thomas · You', exact: true }).click();
     await admin.getByRole('button', { name: 'Change Ayesha Thomas' }).click();

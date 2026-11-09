@@ -3,6 +3,7 @@ import { formatTime, t } from '@rivr/i18n';
 import { Button, DataTable, Screen, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 import { PinForm } from './PinForm.tsx';
+import { roleName } from './staffCopy.ts';
 
 /** Where a dealer's PIN stands: set, not yet, or locked after five wrong PINs and until when. */
 function standing(dealer: VenueDealer): string {
@@ -10,10 +11,11 @@ function standing(dealer: VenueDealer): string {
   return t(dealer.hasPin ? 'console.dealerPins.hasPin' : 'console.dealerPins.noPin');
 }
 
-/** The columns: the dealer, where their PIN stands, and Set PIN or Change, which opens the PIN's field under the row. */
+/** The columns: the dealer, their role (F-082), where their PIN stands, and Set PIN or Change, which opens the PIN's field under the row. */
 function pinColumns(openId: string | null, onOpen: (dealer: VenueDealer) => void): readonly DataTableColumn<VenueDealer>[] {
   return [
     { key: 'dealer', header: t('console.dealerPins.dealer'), cell: (dealer) => dealer.fullName, sortValue: (dealer) => dealer.fullName, priority: 'primary', filter: 'text' },
+    { key: 'role', header: t('console.dealerPins.role'), cell: (dealer) => roleName(dealer.role), sortValue: (dealer) => roleName(dealer.role), filter: 'choice' },
     { key: 'pin', header: t('console.dealerPins.pinColumn'), cell: standing, filter: 'choice',
       filterValue: (dealer) => t(dealer.hasPin ? 'console.dealerPins.hasPin' : 'console.dealerPins.noPin') },
     {
@@ -29,7 +31,7 @@ function pinColumns(openId: string | null, onOpen: (dealer: VenueDealer) => void
 }
 
 /**
- * Dealer PINs (#41, console v3): a table of the dealers whose PIN the signed-in manager may set, each with Set PIN in its
+ * Dealer PINs (#41, console v3): a table of the dealers, and the manager themselves if they deal (F-082), whose PIN the signed-in manager may set, each with Set PIN in its
  * row, which opens the PIN's field under it, rather than a form for every dealer. A dealer then enters it on the tablet
  * to start a down. Only staff whose role includes everything a dealer does set one (decision 0046), so an admin sees the
  * list empty.

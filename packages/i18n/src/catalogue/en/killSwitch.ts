@@ -4,6 +4,11 @@ export const killSwitch = {
   notAllowed: 'Only a super admin uses the kill switch.',
   engagedTitle: 'Engaged now',
   noneEngaged: 'Nothing is engaged.',
+  /** What has been released (8 Nov audit, F-034). */
+  past: {
+    title: 'Past controls', empty: 'Nothing has been released yet.', control: 'Control', engaged: 'Engaged', engagedBy: 'Engaged by', why: 'Why engaged',
+    released: 'Released', releasedBy: 'Released by', releaseWhy: 'Why released',
+  },
   levels: {
     venue_freeze: 'Venue freeze',
     feature_kill: 'Feature off',
@@ -17,7 +22,7 @@ export const killSwitch = {
     feature_kill: 'Turns one feature off for everyone, such as promotions.',
     messaging_stop: 'Holds every message to members: WhatsApp, texts and notifications.',
     member_freeze: 'Freezes one member: no waitlist, no points, no requests.',
-    access_revoke: 'Ends one staff member’s sessions and blocks their sign-in.',
+    access_revoke: 'Removes all of one staff member’s access at once.',
   },
   features: {
     withdrawals: 'Withdrawals',

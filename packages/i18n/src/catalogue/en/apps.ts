@@ -7,6 +7,7 @@ import { rail } from './consoleRail.ts';
 import { shell } from './consoleShell.ts';
 import { cage } from './cage.ts';
 import { markers } from './credit.ts';
+import { activity } from './activity.ts';
 import { killSwitch } from './killSwitch.ts';
 import { practiceReset, practiceResetFailures, purge, purgeFailures } from './practiceReset.ts';
 import { exportArchive, exportArchiveFailures } from './exportArchive.ts';
@@ -188,6 +189,7 @@ export const consoleApp = {
   endOfDayFailures,
   members,
   tiers,
+  activity,
   killSwitch,
   practiceReset,
   purge,

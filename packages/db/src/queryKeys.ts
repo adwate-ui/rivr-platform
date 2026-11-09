@@ -142,6 +142,7 @@ export const queryKeys = {
   myBonusHistory: (userId: string, count: number) => ['user', userId, 'bonus', 'mine', 'history', count] as const,
   memberBonus: (userId: string, venueId: string, memberId: string) => ['user', userId, 'bonus', venueId, memberId] as const,
   tableMetrics: (userId: string, venueId: string, from: string, to: string) => ['user', userId, 'table-metrics', venueId, from, to] as const,
+  tableMetricsTotal: (userId: string, venueId: string, from: string, to: string) => ['user', userId, 'table-metrics-total', venueId, from, to] as const,
   memberSignUp: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-sign-up', venueId, memberId] as const,
   /** The members whose account is not simply active (F-121). */
   memberAccountStatuses: (userId: string, venueId: string) => ['user', userId, 'member-account-statuses', venueId] as const,
@@ -188,6 +189,8 @@ export const queryKeys = {
   dealerRotation: (userId: string, venueId: string) => ['user', userId, 'dealer-rotation', venueId] as const,
   dealerNights: (userId: string, venueId: string, start: string, end: string) => ['user', userId, 'dealer-nights', venueId, start, end] as const,
   engagedControls: (userId: string, venueId: string) => ['user', userId, 'engaged-controls', venueId] as const,
+  pastControls: (userId: string, venueId: string) => ['user', userId, 'past-controls', venueId] as const,
+  activityLog: (userId: string, venueId: string, filters: object) => ['user', userId, 'activity-log', venueId, filters] as const,
   memberSearch: (userId: string, venueId: string, query: string) => ['user', userId, 'member-search', venueId, query] as const,
   /** Every memberSearch key: the prefix an invalidation of them all names. */
   memberSearchAll: (userId: string) => ['user', userId, 'member-search'] as const,

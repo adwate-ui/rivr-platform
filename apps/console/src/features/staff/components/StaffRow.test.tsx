@@ -11,7 +11,7 @@ afterEach(() => {
 });
 
 const AYESHA: StaffMember = {
-  staffId: 's1', fullName: 'Ayesha Thomas', jobTitle: 'Floor supervisor', role: 'cashier', phone: '+919000000150', isActive: true, isMe: false,
+  staffId: 's1', fullName: 'Ayesha Thomas', jobTitle: 'Floor supervisor', role: 'cashier', phone: '+919000000150', isActive: true, isMe: false, hasLogin: true, lastSignedInAt: null,
 };
 
 /** Aditya, an admin, signed in, and a fake API that keeps every change sent to the staff table. */

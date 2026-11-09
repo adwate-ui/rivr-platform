@@ -13,7 +13,7 @@ export const CONTROL_FAILURE_COPY: Readonly<Record<ControlFailure, MessageKey>> 
 };
 
 /** What a control is: its level, and its feature, member or staff member when it has one. */
-export function controlName(control: EngagedControl): string {
+export function controlName(control: Pick<EngagedControl, 'level' | 'feature' | 'memberName' | 'staffName'>): string {
   const level = t(`console.killSwitch.levels.${control.level}`);
   const target = control.feature === null ? (control.memberName ?? control.staffName) : t(`console.killSwitch.features.${control.feature}`);
   return target === null ? level : t('console.killSwitch.withTarget', { level, target });

@@ -51,6 +51,8 @@ interface MarkerTableProps {
   withExport?: boolean;
   density?: 'comfortable' | 'compact';
   narrowLayout?: 'cards' | 'scroll';
+  /** A last line that adds the table up, under the rows whatever their order (F-107). */
+  totalRow?: Marker;
 }
 
 /** The table as the console's Markers screen would hold it: open markers, by member. */
@@ -124,6 +126,16 @@ export const OnARaisedPanel: Story = {
 };
 
 export const Default: Story = {};
+
+/** A line under the rows that adds them up, whatever their order (F-107). */
+export const WithTotalRow: Story = {
+  args: {
+    rows: markers(4), initialSort: { key: 'amount', direction: 'descending' },
+    totalRow: {
+      id: 'All', name: 'All members', tier: '', amount: markers(4).reduce((sum, row) => sum + row.amount, 0n), ageDays: markers(4).reduce((sum, row) => sum + row.ageDays, 0),
+    },
+  },
+};
 
 /** Sorted by the amount outstanding, largest first: the header shows which way. */
 export const Sorted: Story = { args: { initialSort: { key: 'amount', direction: 'descending' } } };

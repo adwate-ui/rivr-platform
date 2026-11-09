@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react';
+import { cleanup, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations, renderIn } from '../test/render.tsx';
@@ -20,6 +20,58 @@ const ROWS: readonly Player[] = [
   { id: 'c2', name: 'Arjun Mehta', hours: 30 },
   { id: 'c3', name: 'Kabir Sethi', hours: 4 },
 ];
+
+describe('a total row (F-107)', () => {
+  const TOTAL: Player = { id: 'all', name: 'All members', hours: 46 };
+  const names = () => screen.getAllByRole('row').slice(1).map((row) => within(row).getAllByRole('cell')[0]?.textContent);
+
+  it('stays last under both sort directions, and counts as a row of the table', async () => {
+    renderIn(<DataTable label="Players" columns={COLUMNS} rows={ROWS} rowKey={(row) => row.id} emptyText="None" totalRow={TOTAL} />);
+    expect(names()).toEqual(['Naina Kapoor', 'Arjun Mehta', 'Kabir Sethi', 'All members']);
+    await userEvent.click(screen.getByRole('button', { name: 'Hours' }));
+    expect(names()).toEqual(['Kabir Sethi', 'Naina Kapoor', 'Arjun Mehta', 'All members']);
+    await userEvent.click(screen.getByRole('button', { name: 'Hours' }));
+    expect(names()).toEqual(['Arjun Mehta', 'Naina Kapoor', 'Kabir Sethi', 'All members']);
+    expect(screen.getByRole('table').getAttribute('aria-rowcount')).toBe('5');
+  });
+
+  it('reads as one line: a rule above it and every cell the same weight', () => {
+    renderIn(<DataTable label="Players" columns={COLUMNS} rows={ROWS} rowKey={(row) => row.id} emptyText="None" totalRow={TOTAL} />);
+    const line = screen.getAllByRole('row').at(-1);
+    expect(line?.className).toContain('border-t');
+    for (const cell of within(line ?? document.body).getAllByRole('cell')) {
+      expect(cell.className).toContain('font-semibold');
+      expect(cell.className).not.toContain('font-medium');
+    }
+  });
+
+  it('is left out among ticks, as it is no row to tick', () => {
+    renderIn(<DataTable label="Players" columns={COLUMNS} rows={ROWS} rowKey={(row) => row.id} emptyText="None" totalRow={TOTAL} selection={{ selected: [], onChange: () => undefined }} />);
+    expect(screen.queryByText('All members')).toBeNull();
+    expect(screen.getAllByRole('checkbox')).toHaveLength(ROWS.length + 1);
+  });
+
+  it('stays when filters leave no rows, and is not drawn for a table with none at all', async () => {
+    renderIn(<DataTable label="Players" columns={COLUMNS} rows={ROWS} rowKey={(row) => row.id} emptyText="None" totalRow={TOTAL} filter={{ label: 'Find', text: (row: Player) => row.name }} />);
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Find' }), 'zzz');
+    expect(await screen.findByText('All members')).toBeDefined();
+    cleanup();
+    renderIn(<DataTable label="Players" columns={COLUMNS} rows={[]} rowKey={(row) => row.id} emptyText="None" totalRow={TOTAL} />);
+    expect(screen.queryByText('All members')).toBeNull();
+    expect(screen.getByText('None')).toBeDefined();
+  });
+
+  it('leaves no accessibility violation', async () => {
+    const { container } = renderIn(<DataTable label="Players" columns={COLUMNS} rows={ROWS} rowKey={(row) => row.id} emptyText="None" totalRow={TOTAL} />);
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('draws every row when there is one, however many', () => {
+    const many = Array.from({ length: VIRTUAL_FROM + 2 }, (_, at) => ({ id: `c${at}`, name: `Member ${at}`, hours: at }));
+    renderIn(<DataTable label="Players" columns={COLUMNS} rows={many} rowKey={(row) => row.id} emptyText="None" totalRow={TOTAL} />);
+    expect(screen.getAllByRole('row')).toHaveLength(VIRTUAL_FROM + 4);
+  });
+});
 
 function table(rows: readonly Player[] = ROWS, extra: { filter?: boolean } = {}) {
   return renderIn(

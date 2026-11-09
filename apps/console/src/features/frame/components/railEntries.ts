@@ -110,6 +110,7 @@ export const RAIL: readonly RailGroup[] = [
         { id: 'tvs', label: 'console.tvs.title', anyOf: ['devices.manage'] },
         { id: 'tablets', label: 'console.tablets.title', anyOf: ['devices.manage'] },
       ] },
+      { id: 'activity', label: 'console.rail.items.activity', href: '/activity', icon: 'info', anyOf: ['control.engage'], locksWhenIdle: true },
       { id: 'killSwitch', label: 'console.rail.items.killSwitch', href: '/kill-switch', icon: 'alert', anyOf: ['control.engage'], locksWhenIdle: true, tone: 'danger' },
       { id: 'practiceReset', label: 'console.rail.items.practiceReset', href: '/practice-reset', icon: 'reset', anyOf: ['purge.run'], tone: 'danger' },
       { id: 'purge', label: 'console.rail.items.purge', href: '/purge', icon: 'purge', anyOf: ['purge.run'], locksWhenIdle: true, tone: 'danger' },

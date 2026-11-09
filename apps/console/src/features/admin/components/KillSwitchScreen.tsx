@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { CONTROL_FAILURE_COPY } from './controlCopy.ts';
 import { EngagedControls } from './EngagedControls.tsx';
 import { EngageForm } from './EngageForm.tsx';
+import { PastControls } from './PastControls.tsx';
 
 const DONE_COPY = {
   engaged: 'console.killSwitch.engaged',
@@ -29,7 +30,7 @@ function OutcomeLine({ outcome }: { outcome: Outcome }) {
 /**
  * Kill switch (#27; features "Kill switch"; additions flow 15), for super admins: what is engaged now,
  * each released with a reason (a venue freeze by a second super admin), and a new control engaged at
- * any level with a reason. Every app shows the venue-freeze banner within seconds; the owner is alerted.
+ * any level with a reason, and what has been released. Every app shows the venue-freeze banner within seconds; the owner is alerted.
  */
 export function KillSwitchScreen() {
   const staff = useStaffVenue();
@@ -44,6 +45,7 @@ export function KillSwitchScreen() {
         <OutcomeLine outcome={outcome} />
         <EngagedControls venueId={staff.venue.venueId} onOutcome={setOutcome} />
         <EngageForm venueId={staff.venue.venueId} onOutcome={setOutcome} />
+        <PastControls venueId={staff.venue.venueId} />
       </Stack>
     </Screen>
   );

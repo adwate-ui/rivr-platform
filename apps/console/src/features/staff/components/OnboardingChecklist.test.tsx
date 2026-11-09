@@ -10,7 +10,7 @@ afterEach(() => {
 });
 
 const SANA: StaffMember = {
-  staffId: 'st1', fullName: 'Sana Qureshi', jobTitle: 'Cashier', role: 'cashier', phone: '+919000000104', isActive: true, isMe: false,
+  staffId: 'st1', fullName: 'Sana Qureshi', jobTitle: 'Cashier', role: 'cashier', phone: '+919000000104', isActive: true, isMe: false, hasLogin: true, lastSignedInAt: null,
 };
 const CAGE = { staff_id: 'st1', sop_id: 's1', title: 'Cage', version_id: 'v1', version: 2, acknowledged_at: '2026-10-21T08:30:00+00:00' };
 const AML = { staff_id: 'st1', sop_id: 's2', title: 'Anti-money laundering', version_id: 'v2', version: 1, acknowledged_at: null };

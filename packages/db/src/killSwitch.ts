@@ -22,6 +22,15 @@ export interface EngagedControl {
   readonly releaseAsk: { readonly by: string; readonly reason: string } | null;
 }
 
+/** A control since released (F-034): what it was, why and by whom it was engaged, and when, by whom and why it was released. */
+export interface PastControl extends Pick<EngagedControl, 'controlId' | 'level' | 'feature' | 'memberName' | 'staffName' | 'reason' | 'engagedAt' | 'engagedBy'> {
+  readonly releasedAt: string;
+  readonly releasedBy: string | null;
+  /** A venue freeze's second super admin. */
+  readonly releaseSecond: string | null;
+  readonly releaseReason: string | null;
+}
+
 /** A control to engage: the level, why, and for some levels its target, by mobile number (+91, from engageControlSchema) for a member or staff member. */
 export interface EngageOrder {
   readonly level: ControlLevel;
@@ -55,6 +64,24 @@ export function useEngagedControls(venueId: string) {
         controlId: row.control_id, level: row.level, feature: row.feature, memberName: row.member_name, staffName: row.staff_name,
         reason: row.reason, engagedAt: row.engaged_at, engagedBy: row.engaged_by,
         releaseAsk: row.release_asked_by === null || row.release_reason === null ? null : { by: row.release_asked_by, reason: row.release_reason },
+      }));
+    },
+  });
+}
+
+/** What has been released at the venue, latest first, for super admins (control.engage). Reloads with the controls. */
+export function usePastControls(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.pastControls(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<PastControl[]> => {
+      const { data, error } = await client.rpc('past_controls', { p_venue_id: venueId });
+      if (error) throw error;
+      return data.map((row) => ({
+        controlId: row.control_id, level: row.level, feature: row.feature, memberName: row.member_name, staffName: row.staff_name, reason: row.reason,
+        engagedAt: row.engaged_at, engagedBy: row.engaged_by, releasedAt: row.released_at, releasedBy: row.released_by, releaseSecond: row.release_second,
+        releaseReason: row.release_reason,
       }));
     },
   });

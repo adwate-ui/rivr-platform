@@ -17,6 +17,10 @@ export interface StaffMember {
   readonly isActive: boolean;
   /** The signed-in staff member, who changes neither their own role nor whether they are active. */
   readonly isMe: boolean;
+  /** Whether they have a login of their own; a dealer without one signs in by PIN alone (decision 0046). */
+  readonly hasLogin: boolean;
+  /** When their login last signed in, for staff who manage staff; null if never, or for anyone else. */
+  readonly lastSignedInAt: string | null;
 }
 
 /** A change to one staff member: their job title, role or whether they're active. */
@@ -77,7 +81,7 @@ export function useVenueStaff(venueId: string) {
       if (error) throw error;
       return data.map((row) => ({
         staffId: row.staff_id, fullName: row.full_name, jobTitle: row.job_title, role: row.role, phone: row.phone,
-        isActive: row.is_active, isMe: row.user_id !== null && row.user_id === userId,
+        isActive: row.is_active, isMe: row.user_id !== null && row.user_id === userId, hasLogin: row.user_id !== null, lastSignedInAt: row.last_signed_in_at,
       }));
     },
   });
