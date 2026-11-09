@@ -73,7 +73,8 @@ describe('Membership card', () => {
     try {
       renderCard('never', CARD, { memberNumber: '1024', fullName: 'Kavya Rao', tierName: 'Member', code: 'old', msLeft: 0, photoPath: null });
       expect(await screen.findByRole('heading', { name: 'No connection' }, { timeout: 5000 })).toBeDefined();
-      expect(screen.getByText('Your number')).toBeDefined();
+      // The first paint comes before the stored session is read: the number follows once it is.
+      expect(await screen.findByText('Your number', {}, { timeout: 5000 })).toBeDefined();
       // Large and at full contrast, in the card's figure style, with nothing after it to read past.
       expect(screen.getByText('1024').className).toContain('text-56');
       expect(screen.getByText('1024').className).not.toContain('muted');
