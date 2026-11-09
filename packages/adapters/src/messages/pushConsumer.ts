@@ -1,8 +1,8 @@
 import {
-  bonusCreditedSchema, bonusRedeemedSchema, callTimeCompletedSchema, callTimeEndingSchema, err, ok, promotionOfferedSchema, sessionReminderSchema,
+  bonusCreditedSchema, bonusRedeemedSchema, callTimeCompletedSchema, callTimeEndingSchema, err, memberNoticeSchema, ok, promotionOfferedSchema, sessionReminderSchema,
   tournamentStartingSchema, waitlistCalledSchema, withdrawalSentSchema, type Result,
 } from '@rivr/contracts';
-import { formatChips, formatMoney, formatTime, push as pushCopy, registerMessages, t } from '@rivr/i18n';
+import { formatChips, formatDayTime, formatMoney, formatTime, push as pushCopy, registerMessages, t } from '@rivr/i18n';
 import type { ClaimedDelivery, Consumer } from '../outbox/index.ts';
 import type { PushAdapter, WebPushSubscription } from '../push/types.ts';
 import type { AdapterFailure } from '../shared/failure.ts';
@@ -13,7 +13,7 @@ registerMessages({ push: pushCopy });
 /** The events the push consumer sends a notification for (#139, #338). */
 export const PUSH_EVENT_TYPES = [
   'waitlist.called', 'call_time.ending', 'call_time.completed', 'session.reminder', 'withdrawal.sent', 'tournament.starting', 'promotion.offered',
-  'bonus.credited', 'bonus.redeemed',
+  'bonus.credited', 'bonus.redeemed', 'member.notice',
 ] as const;
 
 /**
@@ -104,6 +104,19 @@ function tournamentStarting(payload: unknown): Built {
   return ok({ memberId, pushType: 'push.tournament_starting', title, body: t('push.tournamentStarting.body'), url: '/', tag: `tournament-${tournamentId}` });
 }
 
+/** A tournament the member asked about or is registered for, withdrawn or moved (the owner, 9 Nov). Other notices are WhatsApp's alone. */
+function tournamentNotice(payload: unknown): Built {
+  // WhatsApp's consumer reports a notice it cannot read; push sends only these two.
+  const notice = memberNoticeSchema.safeParse(payload);
+  if (!notice.success) return ok(null);
+  const { member_id: memberId, tournament_id: tournamentId, notice: kind, params: [name = '', startsAt = ''] } = notice.data;
+  if (kind !== 'tournament_withdrawn' && kind !== 'tournament_moved') return ok(null);
+  const words = kind === 'tournament_moved'
+    ? { title: t('push.tournamentMoved.title', { name }), body: t('push.tournamentMoved.body', { when: formatDayTime(new Date(startsAt)) }) }
+    : { title: t('push.tournamentWithdrawn.title', { name }), body: t('push.tournamentWithdrawn.body') };
+  return ok({ memberId, pushType: 'push.tournament_starting', ...words, url: '/', tag: `tournament-notice-${tournamentId ?? name}` });
+}
+
 /** A published promotion offered to one member (#86): its title, and what it gives and when it runs. */
 function promotionOffered(payload: unknown): Built {
   const offer = promotionOfferedSchema.safeParse(payload);
@@ -145,6 +158,7 @@ const USEFUL_FOR_MS: Readonly<Partial<Record<(typeof PUSH_EVENT_TYPES)[number], 
   'promotion.offered': 24 * HOUR_MS,
   'bonus.credited': 24 * HOUR_MS,
   'bonus.redeemed': 24 * HOUR_MS,
+  'member.notice': 48 * HOUR_MS,
 };
 
 function isStale(eventType: (typeof PUSH_EVENT_TYPES)[number], occurredAt: Date | undefined, now: Date): boolean {
@@ -163,6 +177,7 @@ const BUILDERS: Readonly<Record<(typeof PUSH_EVENT_TYPES)[number], (payload: unk
   'promotion.offered': promotionOffered,
   'bonus.credited': bonusCredited,
   'bonus.redeemed': bonusRedeemed,
+  'member.notice': tournamentNotice,
 };
 
 function pushFor(delivery: ClaimedDelivery, now: Date): Built {

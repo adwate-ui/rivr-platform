@@ -30,7 +30,7 @@ function renderTab(tab: string | undefined, onNavigate = vi.fn()) {
       moderated.push(String(init?.body ?? ''));
       return new Response(null, { status: 204 });
     }
-    return Response.json(url.includes('/rest/v1/wall_post') ? WALL : []);
+    return Response.json(url.includes('/rest/v1/wall_post') ? WALL.filter((post) => (post.status === 'pending') === url.includes('status=eq.pending')) : []);
   });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}

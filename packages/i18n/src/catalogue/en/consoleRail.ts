@@ -12,6 +12,7 @@ export const rail = {
     tickets: { one: '1 open ticket', other: '{count} open tickets' },
     approvals: { one: '1 awaiting approval', other: '{count} awaiting approval' },
     handOvers: { one: '1 to hand over', other: '{count} to hand over' },
+    posts: { one: '1 post waiting', other: '{count} posts waiting' },
   },
   /** Grouped by the job staff are doing (#602). */
   groups: {

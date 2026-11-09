@@ -61,5 +61,14 @@ select is((select count(*)::integer from public.staff_queue_counts('00000000-000
 reset role;
 select ok(not has_function_privilege('anon', 'public.staff_queue_counts(uuid)', 'execute'), 'the public counts nothing');
 
+-- The wall posts waiting for approval, for those who approve them (the owner, 9 Nov).
+delete from public.wall_post where venue_id = '00000000-0000-4000-8000-000000000001';
+insert into public.wall_post (venue_id, source_id, handle, media_url, media_kind, permalink, posted_at, status, moderated_at) values
+  ('00000000-0000-4000-8000-000000000001', 'w249a', 'kabir.s', 'https://example.test/a.jpg', 'image', 'https://example.test/a', now(), 'pending', null),
+  ('00000000-0000-4000-8000-000000000001', 'w249b', 'zoya.plays', 'https://example.test/b.jpg', 'image', 'https://example.test/b', now(), 'pending', null),
+  ('00000000-0000-4000-8000-000000000001', 'w249c', 'dev.r', 'https://example.test/c.jpg', 'image', 'https://example.test/c', now(), 'rejected', now());
+select is(pg_temp.waiting('00000000-0000-4000-8000-000000000107', 'wallPosts'), 2, 'marketing counts the wall posts waiting, not the one decided');
+select is(pg_temp.waiting('00000000-0000-4000-8000-000000000108', 'wallPosts'), 0, 'a host, who approves none, counts none');
+
 select * from finish();
 rollback;

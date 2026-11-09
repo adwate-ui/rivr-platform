@@ -28,10 +28,10 @@ export interface TournamentInterest {
 }
 
 /** Why registering interest or marking someone registered did not go through. */
-export type TournamentInterestFailure = 'not_allowed' | 'invalid' | 'paused' | 'unavailable';
+export type TournamentInterestFailure = 'not_allowed' | 'invalid' | 'paused' | 'too_often' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, TournamentInterestFailure>> = {
-  '42501': 'not_allowed', '22023': 'invalid', RVFRZ: 'paused', RVMBR: 'not_allowed',
+  '42501': 'not_allowed', '22023': 'invalid', RVFRZ: 'paused', RVMBR: 'not_allowed', RVRAT: 'too_often',
 };
 
 const STANDINGS: readonly TournamentStanding[] = ['none', 'interested', 'registered'];

@@ -30,8 +30,8 @@ export interface WallPost {
 export type WallFailure = 'not_allowed' | 'gone' | 'paused' | 'unavailable';
 const FAILURE_BY_CODE: Readonly<Record<string, WallFailure>> = { '42501': 'not_allowed', P0002: 'gone', RVFRZ: 'paused' };
 
-// The queue shows the newest posts; older ones have been moderated long since.
-const SHOWN = 50;
+// Every post waiting, however old, as nothing expires (the owner, 9 Nov); of those decided, the newest.
+const DECIDED_SHOWN = 50;
 
 /** The wall's posts, newest first, for staff who publish marketing. */
 export function useWallPosts(venueId: string) {
@@ -40,10 +40,13 @@ export function useWallPosts(venueId: string) {
     queryKey: keys.wall(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<WallPost[]> => {
-      const { data, error } = await client.from('wall_post').select('id, handle, caption, media_url, permalink, posted_at, status').eq('venue_id', venueId)
-        .order('posted_at', { ascending: false }).limit(SHOWN);
-      if (error) throw error;
-      return data.map((row) => ({
+      const posts = () => client.from('wall_post').select('id, handle, caption, media_url, permalink, posted_at, status').eq('venue_id', venueId)
+        .order('posted_at', { ascending: false });
+      const [waiting, decided] = await Promise.all([posts().eq('status', 'pending'), posts().neq('status', 'pending').limit(DECIDED_SHOWN)]);
+      if (waiting.error) throw waiting.error;
+      if (decided.error) throw decided.error;
+      const rows = [...waiting.data, ...decided.data].sort((a, b) => b.posted_at.localeCompare(a.posted_at));
+      return rows.map((row) => ({
         postId: row.id, handle: row.handle, caption: row.caption, mediaUrl: row.media_url, permalink: row.permalink, postedAt: row.posted_at,
         status: STATUSES.find((status) => status === row.status) ?? 'pending',
       }));

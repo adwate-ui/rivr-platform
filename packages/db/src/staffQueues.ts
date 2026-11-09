@@ -8,7 +8,7 @@ const QUEUES_LIVE = 10_000;
 /**
  * How many wait in each queue the signed-in staff member acts on, by the console rail entry they show beside
  * (`staff_queue_counts`, decision 0301): join requests, top-ups, time requests (decision 0305), food and drink orders, the leaving list, checks to
- * review, redemptions, feedback, promotions to approve, the host queue and tournament interest. A queue with nothing
+ * review, redemptions, feedback, promotions to approve, the host queue, tournament interest and wall posts. A queue with nothing
  * waiting, or one the staff member does not act on, is absent.
  */
 export function useStaffQueueCounts(venueId: string) {
