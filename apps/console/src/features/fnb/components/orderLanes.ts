@@ -14,7 +14,7 @@ export function laneOf(order: FnbOrderTonight): OrderLane | null {
   return order.deliveredAt === null ? 'preparing' : 'delivered';
 }
 
-/** Tonight's orders in their lanes, oldest first. */
+/** Tonight's orders in their lanes, oldest first; those delivered newest first, the last one at the top (audit F-096). */
 export function ordersByLane(orders: readonly FnbOrderTonight[]): Record<OrderLane, FnbOrderTonight[]> {
   const lanes: Record<OrderLane, FnbOrderTonight[]> = { toAccept: [], preparing: [], delivered: [] };
   const oldestFirst = [...orders].sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.kotNumber - b.kotNumber);
@@ -22,6 +22,7 @@ export function ordersByLane(orders: readonly FnbOrderTonight[]): Record<OrderLa
     const lane = laneOf(order);
     if (lane !== null) lanes[lane].push(order);
   }
+  lanes.delivered.reverse();
   return lanes;
 }
 

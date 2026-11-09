@@ -3,7 +3,7 @@ import { t, type MessageKey } from '@rivr/i18n';
 import { Box, ConfirmQuestion, ErrorMessage, Stack, useTableDensity, useToast, WaitlistRow, type OverflowMenuItem } from '@rivr/ui';
 import { useState } from 'react';
 import { CALL_FAILURE_COPY, RELEASE_FAILURE_COPY, ENTRY_FAILURE_COPY } from './failureCopy.ts';
-import { placeMeta } from './placeMeta.ts';
+import { isLatePlace, placeMeta } from './placeMeta.ts';
 
 type Outcome = { ok: true } | { ok: false; error: WaitlistFailure };
 
@@ -12,6 +12,8 @@ interface PlaceRowProps {
   entry: WaitlistBoardEntry;
   /** The table whose list it is: Seat opens its sheet while it is open. */
   table: FloorTable;
+  /** Another open table at the stake with room, while this one has none. */
+  roomAt: FloorTable | null;
   now: Date;
   isTicked: boolean;
   onToggle: () => void;
@@ -101,16 +103,17 @@ function callAction({ entry, table }: PlaceRowProps, steps: ReturnType<typeof us
 
 /** One place on a table's list (console v3): its tick for the bulk bar, its number, who and how long, its button, and the ⋯ menu. */
 export function PlaceRow(props: PlaceRowProps) {
-  const { venueId, entry, now, isTicked, onToggle, onCheckId } = props;
+  const { venueId, entry, table, now, roomAt, isTicked, onToggle, onCheckId } = props;
   const steps = usePlaceSteps(venueId, entry);
   const density = useTableDensity();
   const [asking, setAsking] = useState<Asking>(null);
   const name = entry.fullName;
   // No Check ID of their own (a cashier): the state in words, and no dead button (audit F-014).
-  const meta = entry.needsIdCheck && onCheckId === undefined ? t('console.waitlist.metaIdAtDesk', { meta: placeMeta(entry, now) }) : placeMeta(entry, now);
+  const line = placeMeta(entry, now, { isTableOpen: table.isOpen, roomAt });
+  const meta = entry.needsIdCheck && onCheckId === undefined ? t('console.waitlist.metaIdAtDesk', { meta: line }) : line;
   return (
     <Stack gap={2}>
-      <WaitlistRow position={entry.place} name={name} meta={meta} isHeld={entry.awayUntil !== null} density={density}
+      <WaitlistRow position={entry.place} name={name} meta={meta} isLate={isLatePlace(entry, now, table.isOpen)} isHeld={entry.awayUntil !== null} density={density}
         tick={{ label: t('console.waitlist.card.select', { name }), isTicked, onToggle }}
         action={rowAction(props, steps)}
         secondary={callAction(props, steps)}

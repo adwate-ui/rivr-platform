@@ -77,6 +77,7 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | Export | What it does |
 |---|---|
 | `tableRetireRefusal({ seated, waiting })`, `TableInPlay`, `TableRetireRefusal` | Whether a table may be deactivated or deleted (decision 0466): `players_seated` while anyone sits at it, else `players_waiting` while a place waits on its list or is called to it, else null. `private.assert_table_empty` refuses with the same reasons (RVSTD, RVWTG). |
+| `tableWithRoomFor(own, tables)`, `TableWithRoom` | For a list whose table is full, the open table at the same stake with seats beyond its own list: a prompt, never a move (audit F-036). |
 | `tableToSeatAt(tables)`, `TableToSeat`, `seatingCallTime(stakeMinutes)` | Where the Live floor's Seat a player seats (decision 0479): the first open table, in floor order, with a free seat and someone on its list; else the first open table with a free seat; else null. And the call time its sheet starts with: the stake's own where it is one of `CALL_TIME_CHOICES`, else 3 hours (decision 0299). |
 
 ### `@rivr/domain/credit`
@@ -140,6 +141,7 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 
 | Export | What it does |
 |---|---|
+| `isPlaceLate(seconds)`, `isTicketLate(seconds)`, `WAITLIST_TARGET_SECONDS`, `FNB_TARGET_SECONDS` | When a place on a list (45 min) or a ticket at the bar (15 min) shows late (audit F-075, decision 0564). |
 | `requestTargets(set)`, `DEFAULT_REQUEST_TARGETS`, `REQUEST_TARGET_SECONDS`, `isRequestLate(kind, seconds, targets)`, `FloorRequestKind`, `RequestTargets` | How long a request may wait on the Live floor's panel before its age shows late (decision 0479): the club's setting `floor.request_targets` where set, each side on its own; else a top-up's `TOP_UP_TARGET_SECONDS` and five minutes for a join, more time, a player leaving, one who left owing call time, An approved player to seat (`seat`, `seat_check`, `seat_wait`) is never late: their wait counts from their approval or call, and their alert, its count and chime tell the floor. Late is strictly past the target. |
 
 ### `@rivr/domain/tds`

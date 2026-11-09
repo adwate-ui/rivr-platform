@@ -22,6 +22,9 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+/** Waited past the list's target: its line in the danger red, and in words (audit F-075). */
+export const Late: Story = { args: { meta: 'Late · 50 min · added by the floor', isLate: true } };
+
 export const Default: Story = {};
 
 export const Ticked: Story = { args: { tick: { label: 'Select Ishaan Verma', isTicked: true, onToggle: noop } } };

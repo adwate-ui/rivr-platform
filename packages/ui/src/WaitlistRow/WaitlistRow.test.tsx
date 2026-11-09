@@ -63,4 +63,9 @@ describe('WaitlistRow', () => {
     );
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('marks a place waiting past the target in the danger red, its line saying so in words (audit F-075)', () => {
+    renderIn(<WaitlistRow position={1} name="Mira Shah" meta="Late · 50 min" isLate />);
+    expect(screen.getByText('Late · 50 min')).toHaveClass('text-danger');
+  });
 });

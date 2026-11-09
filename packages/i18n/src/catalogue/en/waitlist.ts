@@ -205,6 +205,9 @@ export const waitlist = {
     release: 'Release',
     removeFromList: 'Remove from list',
     /** A place's line under its name: how long they have waited, then what to know. */
+    late: 'Late · {age}',
+    /** Room at another table of the stake, for a list whose own table is full (audit F-036). */
+    roomElsewhere: '{table} has {count} open',
     addedByFloor: 'added by the floor',
     placeHeld: 'place held',
     calledTo: 'called to seat {seat} until {time}',

@@ -13,7 +13,7 @@ afterEach(() => {
 const CHAI: FnbOrderTonight = {
   orderId: 'o12', kotNumber: 12, tableName: 'Table 3', seat: 5, memberName: 'Yash Gupta', memberNumber: 1043,
   lines: [{ itemId: 'chai', name: 'Masala chai', quantity: 1, note: null }], isComp: false, source: 'app', createdAt: '2026-11-15T16:10:00Z',
-  kotSentBy: 'agent', isKotPrintFailed: false, acceptedAt: null, deliveredAt: null, ageSeconds: 240, cancelledAt: null, cancelReason: null, onWayAt: null,
+  kotSentBy: 'agent', isKotPrintFailed: false, seatState: 'seated', acceptedAt: null, deliveredAt: null, ageSeconds: 240, cancelledAt: null, cancelReason: null, onWayAt: null,
 };
 
 /** Sameer, who serves, with tonight's `orders`, and a fake API that keeps every serving call sent. */
@@ -92,5 +92,32 @@ describe('OrderBoard (decision 0302)', () => {
   it('says each lane with nothing on it is empty', () => {
     renderBoard([]);
     expect(screen.getAllByText('Nothing here.')).toHaveLength(3);
+  });
+
+  it('says on its top line that an order is on its way, its steps in order (audit F-096)', () => {
+    renderBoard([{ ...CHAI, acceptedAt: '2026-11-15T16:12:00Z' }]);
+    const steps = screen.getAllByRole('button').map((button) => button.getAttribute('aria-label'));
+    expect(steps.indexOf('Mark KOT 12 on its way')).toBeLessThan(steps.indexOf('Mark KOT 12 delivered'));
+  });
+
+  it('says on its way and how long, in the top line, once the runner has left', () => {
+    renderBoard([{ ...CHAI, acceptedAt: '2026-11-15T16:12:00Z', onWayAt: '2026-11-15T16:13:00Z' }]);
+    expect(screen.getByText('On its way · 4 min')).toBeDefined();
+  });
+
+  it('says a ticket is late past fifteen minutes, in words (audit F-075)', () => {
+    renderBoard([{ ...CHAI, ageSeconds: 16 * 60 }]);
+    expect(screen.getByText('Late · 16 min').className).toContain('text-danger');
+  });
+
+  it('says the guest is leaving or has left, while the order stands (audit F-085)', () => {
+    renderBoard([{ ...CHAI, seatState: 'leaving' }, { ...CHAI, orderId: 'o13', kotNumber: 13, seatState: 'left' }]);
+    expect(screen.getByText('The guest is leaving.')).toBeDefined();
+    expect(screen.getByText('Guest left. Deliver at the door or void.')).toBeDefined();
+  });
+
+  it('says nothing of a guest gone once the order is delivered', () => {
+    renderBoard([{ ...CHAI, acceptedAt: '2026-11-15T16:12:00Z', deliveredAt: '2026-11-15T16:20:00Z', seatState: 'left' }]);
+    expect(screen.queryByText(/Guest left/)).toBeNull();
   });
 });
