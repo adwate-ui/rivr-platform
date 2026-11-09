@@ -4275,6 +4275,26 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"tv_heartbeat": {
+                  Row: {
+                    "created_at": string,"device_id": string,"last_seen_at": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"device_id": string,"last_seen_at"?: string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"device_id"?: string,"last_seen_at"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tv_heartbeat_device_id_venue_id_fkey"
+      columns: ["device_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "device"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
                 },"tv_screen": {
                   Row: {
                     "created_at": string,"device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"rotation": (Database["public"]['Enums']["tv_mode"])[],"set_by_staff_id": string | null,"updated_at": string,"venue_id": string
@@ -6348,6 +6368,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "detail": string,"promotion_id": string,"runs": string,"title": string
             }[]
+                           },
+"tv_report_in":
+{ Args: Record<PropertyKey, never>; Returns: undefined
                            },
 "tv_rewards_ticker":
 { Args: Record<PropertyKey, never>; Returns: {

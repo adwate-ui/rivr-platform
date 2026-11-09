@@ -82,7 +82,8 @@ test.describe('Dealer tablet', () => {
     await expect(tablet.getByRole('heading', { name: 'Dealer sign-in' })).toBeVisible();
 
     await floor.goto(`${appUrl('console')}/settings?tab=tablets`);
-    await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
+    await floor.getByRole('button', { name: `More for ${name}`, exact: true }).click();
+    await floor.getByRole('menuitem', { name: 'Unpair', exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Unpair the tablet' }).click();
     await expect(floor.getByText(name, { exact: true })).toHaveCount(0);

@@ -24,7 +24,8 @@ export const tablets = {
   isDoorHint: 'Scans members in and out at the door.',
   doorKiosk: 'Door kiosk',
   /** Unpaired, as a TV is (D-05): the word for ending a pairing. */
-  revoke: 'Unpair {name}',
+  more: 'More for {name}',
+  revoke: 'Unpair',
   revokeReason: 'Why it is unpaired',
   revokeConfirm: 'Unpair the tablet',
   invalidName: 'Give the tablet a name.',
@@ -150,14 +151,19 @@ export const tvs = {
   pairedNow: '{name} is paired.',
   wrongCode: 'No TV shows that code. Check it and type it again.',
   /** The TV has signed in. */
-  paired: 'Paired',
+  /** Whether a TV is on, from its last report: `Online · showing Call time`. */
+  online: 'Online',
+  showing: 'Online · showing {board}',
+  offline: 'Offline',
+  lastSeen: 'Offline · last seen {when}',
+  more: 'More for {name}',
   /** Paired on the console, but the TV has not picked up its login yet. */
   waiting: 'Waiting for the TV',
   modeFor: 'What {name} shows',
   /** The boards a TV turns to after its main one (decision 0163). */
   rotationFor: 'What {name} turns to in between',
   rotationHint: 'Each board shows for 30 seconds.',
-  unpair: 'Unpair {name}',
+  unpair: 'Unpair',
   unpairReason: 'Why it is unpaired',
   unpairConfirm: 'Unpair the TV',
   invalidReason: 'Say why the TV is unpaired.',

@@ -43,10 +43,10 @@ test.describe('TV pairing', () => {
 
     // The TV asks every three seconds whether its code was typed in.
     await expect(tv.getByRole('heading', { name: 'Call time' })).toBeVisible({ timeout: 15_000 });
-    // The console's list asks again every ten seconds, so the TV shows as paired on its own.
+    // The console's list asks again every ten seconds, so the TV shows as on by itself.
     const modes = floor.getByRole('radiogroup', { name: `What ${name} shows`, exact: true });
     // The row is the chips' group's grandparent: this TV's, not another left by an earlier run.
-    await expect(modes.locator('xpath=../..').getByText('Paired', { exact: true })).toBeVisible({ timeout: 15_000 });
+    await expect(modes.locator('xpath=../..').getByText(/^Online/)).toBeVisible({ timeout: 15_000 });
 
     await modes.getByRole('radio', { name: 'Promotions', exact: true }).click();
     await expect(modes.getByRole('radio', { name: 'Promotions', exact: true })).toHaveAttribute('aria-checked', 'true');
@@ -56,7 +56,8 @@ test.describe('TV pairing', () => {
     await tv.reload();
     await expect(promotions).toBeVisible({ timeout: 5_000 });
 
-    await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
+    await floor.getByRole('button', { name: `More for ${name}`, exact: true }).click();
+    await floor.getByRole('menuitem', { name: 'Unpair', exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Unpair the TV' }).click();
     await expect(floor.getByText(name, { exact: true })).toHaveCount(0);

@@ -131,15 +131,19 @@ describe('A paired TV', () => {
 });
 
 describe('The console\'s TVs', () => {
-  it('lists the venue\'s TVs with whether each is paired and what it shows', async () => {
+  it('lists the venue\'s TVs with whether each is paired, on and what it shows', async () => {
+    const JUST_NOW = new Date(Date.now() - 30_000).toISOString();
+    const LONG_AGO = new Date(Date.now() - 10 * 60_000).toISOString();
     const { wrapper } = renderTvs(STAFF, {
-      '/rest/v1/device': { body: [{ id: 'd1', name: 'Bar TV', auth_user_id: 'u1' }, { id: 'd2', name: 'Door TV', auth_user_id: null }] },
+      '/rest/v1/device': { body: [{ id: 'd1', name: 'Bar TV', auth_user_id: 'u1' }, { id: 'd2', name: 'Door TV', auth_user_id: null }, { id: 'd3', name: 'Old TV', auth_user_id: 'u3' }] },
       '/rest/v1/tv_screen': { body: [{ device_id: 'd1', mode: 'jackpot', rotation: ['call_time', 'promotions'] }] },
+      '/rest/v1/tv_heartbeat': { body: [{ device_id: 'd1', last_seen_at: JUST_NOW }, { device_id: 'd3', last_seen_at: LONG_AGO }] },
     });
     const { result } = renderHook(() => useVenueTvs(VENUE), { wrapper });
     await waitFor(() => expect(result.current.data).toEqual([
-      { deviceId: 'd1', name: 'Bar TV', isPaired: true, mode: 'jackpot', rotation: ['call_time', 'promotions'] },
-      { deviceId: 'd2', name: 'Door TV', isPaired: false, mode: null, rotation: [] },
+      { deviceId: 'd1', name: 'Bar TV', isPaired: true, mode: 'jackpot', rotation: ['call_time', 'promotions'], lastSeenAt: JUST_NOW, isOnline: true },
+      { deviceId: 'd2', name: 'Door TV', isPaired: false, mode: null, rotation: [], lastSeenAt: null, isOnline: false },
+      { deviceId: 'd3', name: 'Old TV', isPaired: true, mode: null, rotation: [], lastSeenAt: LONG_AGO, isOnline: false },
     ]));
   });
 

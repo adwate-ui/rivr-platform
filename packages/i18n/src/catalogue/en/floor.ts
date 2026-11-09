@@ -206,15 +206,17 @@ export const tablesSetup = {
   saved: '{name} is saved.',
   /** The tables' status column (decision 0466): `{count}` players seated at an open table. */
   statusColumn: 'Status',
-  status: { inactive: 'Inactive · hidden from the floor', closed: 'Active · closed tonight', open: 'Active · {count} seated' },
+  status: { inactive: 'Inactive · hidden from the floor', closed: 'Closed tonight', open: 'Open · {count} seated' },
   /** A table's actions (decision 0466); each `...Name` is the button's name for a screen reader, `{name}` the table. */
   deactivate: 'Deactivate',
-  deactivateName: 'Deactivate {name}',
   reactivate: 'Reactivate',
-  reactivateName: 'Reactivate {name}',
   delete: 'Delete',
-  deleteName: 'Delete {name}',
   deleteConfirm: 'Yes, delete {name}',
+  deleteQuestion: 'Delete {name}? Its history stays.',
+  more: 'More for {name}',
+  /** A step refused while players are at the table: `Delete · Players seated`. */
+  stepInPlay: '{step} · {why}',
+  inPlay: { players_seated: 'Players seated', players_waiting: 'Players waiting' },
   deactivated: '{name} deactivated. Its history stays.',
   reactivated: '{name} is back, closed.',
   deleted: '{name} deleted. Its history stays.',

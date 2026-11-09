@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { deviceRevokeSchema } from '@rivr/contracts';
 import { useDeviceActions, type DealerTablet, type DeviceFailure, type FloorTable, type PairingCode } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Inline, ReasonForm, Stack, Text } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Inline, OverflowMenu, ReasonForm, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -38,6 +38,18 @@ function TableChoice({ venueId, tablet, tables, onResult }: { venueId: string; t
   );
 }
 
+/** The tablet's name and kind, whether it is paired, and the code to pair it while one is out. */
+function TabletSummary({ tablet, shownCode }: { tablet: DealerTablet; shownCode: PairingCode | null }) {
+  return (
+    <Stack gap={1}>
+      <Text weight="semibold">{tablet.name}</Text>
+      {tablet.isDoor ? <Text variant="small">{t('console.tablets.doorKiosk')}</Text> : null}
+      <Text variant="small" tone="muted">{t(tablet.isPaired ? 'console.tablets.paired' : 'console.tablets.notPaired')}</Text>
+      {shownCode === null ? null : <Text>{t('console.tablets.code', { code: shownCode.code, time: formatTime(new Date(shownCode.expiresAt)) })}</Text>}
+    </Stack>
+  );
+}
+
 interface TabletRowProps {
   venueId: string;
   tablet: DealerTablet;
@@ -68,15 +80,11 @@ export function TabletRow({ venueId, tablet, tables, code, onCode }: TabletRowPr
   return (
     <Stack gap={3}>
       <Inline gap={4} align="center" justify="between" wrap>
-        <Stack gap={1}>
-          <Text weight="semibold">{name}</Text>
-          {tablet.isDoor ? <Text variant="small">{t('console.tablets.doorKiosk')}</Text> : null}
-          <Text variant="small" tone="muted">{t(tablet.isPaired ? 'console.tablets.paired' : 'console.tablets.notPaired')}</Text>
-          {code === null || (tablet.isPaired && !isForRepair) ? null : <Text>{t('console.tablets.code', { code: code.code, time: formatTime(new Date(code.expiresAt)) })}</Text>}
-        </Stack>
+        <TabletSummary tablet={tablet} shownCode={tablet.isPaired && !isForRepair ? null : code} />
         <Inline gap={2} wrap>
           <Button variant="subtle" isLoading={pair.isPending} onClick={() => void newCode()}>{t('console.tablets.newCode', { name })}</Button>
-          <Button variant="text" onClick={() => setIsRevoking(true)}>{t('console.tablets.revoke', { name })}</Button>
+          <OverflowMenu label={t('console.tablets.more', { name })}
+            items={[{ id: 'revoke', label: t('console.tablets.revoke'), tone: 'danger', onSelect: () => setIsRevoking(true) }]} />
         </Inline>
       </Inline>
       {tablet.isDoor ? null : <TableChoice venueId={venueId} tablet={tablet} tables={tables} onResult={settle} />}

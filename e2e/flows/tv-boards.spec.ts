@@ -172,7 +172,8 @@ test.describe('TV boards', () => {
     await removePlace(floor, HIDDEN);
     // TVs are a part of Settings' Devices tab (console v3), opened by address once sign-in is through.
     await openConsole(floor, '/settings?tab=tvs');
-    await floor.getByRole('button', { name: `Unpair ${name}`, exact: true }).click();
+    await floor.getByRole('button', { name: `More for ${name}`, exact: true }).click();
+    await floor.getByRole('menuitem', { name: 'Unpair', exact: true }).click();
     await floor.getByRole('textbox', { name: 'Why it is unpaired' }).fill('End of the test run');
     await floor.getByRole('button', { name: 'Unpair the TV' }).click();
     await expect(floor.getByText(name, { exact: true })).toHaveCount(0);

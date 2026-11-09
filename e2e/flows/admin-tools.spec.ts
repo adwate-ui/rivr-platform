@@ -46,7 +46,7 @@ test.describe('Admin tools', () => {
     await page.getByRole('button', { name: 'Save the table' }).click();
     await expect(page.getByText(`Setup ${RUN} is saved.`)).toBeVisible();
     const tables = page.getByRole('table', { name: 'The club’s tables, in floor order' });
-    await expect(tables.getByRole('row').filter({ hasText: `Setup ${RUN}` })).toContainText('Active · closed tonight');
+    await expect(tables.getByRole('row').filter({ hasText: `Setup ${RUN}` })).toContainText('Closed tonight');
     await tables.getByRole('button', { name: `Change table Setup ${RUN}` }).click();
     await page.getByRole('radiogroup', { name: 'Seats' }).getByRole('radio', { name: '6', exact: true }).click();
     await page.getByRole('button', { name: 'Save the table' }).click();
