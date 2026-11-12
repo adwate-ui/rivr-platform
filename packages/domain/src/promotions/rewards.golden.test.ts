@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { isEligible } from './eligibility.ts';
 import { computeGrant, toPromotionEvent, type Grant, type Perk } from './grant.ts';
 import { stepsReached } from './hourSteps.ts';
-import { checkLimits, periodKey, slotKey, tallyFor, type GrantTally, type LedgerEntry } from './limits.ts';
+import { checkLimits, periodKey, slotKey, tallyFor, tierChips, type GrantTally, type LedgerEntry } from './limits.ts';
 import { stackGrants } from './stacking.ts';
 
 const golden = readGolden(rewardsJson);
@@ -55,7 +55,7 @@ function tallyEvent(text: string) {
 
 describe('Promotion rewards golden fixtures (packages/testing/golden/promotionRewards.json)', () => {
   it('tests every operation in the file', () => {
-    expect(() => assertOperations(golden, ['eligible', 'grant', 'limits', 'stack', 'tally', 'periodKey', 'steps'])).not.toThrow();
+    expect(() => assertOperations(golden, ['eligible', 'grant', 'limits', 'stack', 'tally', 'periodKey', 'steps', 'tier'])).not.toThrow();
   });
 
   it.each(casesFor(golden, 'eligible'))('%s', (_, goldenCase) => {
@@ -89,6 +89,14 @@ describe('Promotion rewards golden fixtures (packages/testing/golden/promotionRe
     const promo = { reward: rewardSchema.parse(parse(goldenInput(goldenCase, 'reward'))), limits: limitsSchema.parse(parse(goldenInput(goldenCase, 'limits'))) };
     const result = checkLimits(promo, grantOf(parse(goldenInput(goldenCase, 'grant'))), tallyOf(goldenInput(goldenCase, 'tally')));
     expect([result.ok ? 'yes' : 'no', result.ok ? '' : result.error]).toEqual([goldenExpected(goldenCase, 'given'), goldenExpected(goldenCase, 'refusal')]);
+  });
+
+  // Decision 0580: a seat bonus's tier for the next claim.
+  it.each(casesFor(golden, 'tier'))('%s', (_, goldenCase) => {
+    const reward = rewardSchema.parse({ kind: 'seat_bonus', tiers: parse(goldenInput(goldenCase, 'tiers')) });
+    if (!('tiers' in reward)) throw new Error('Golden tiers are not a seat bonus in tiers');
+    const chips = tierChips(reward.tiers, Number(goldenInput(goldenCase, 'claimed')));
+    expect(chips === null ? 'used_up' : String(chips)).toBe(goldenExpected(goldenCase, 'chips'));
   });
 
   it.each(casesFor(golden, 'tally'))('%s', (_, goldenCase) => {

@@ -763,8 +763,15 @@ select results_eq(
 -- (packages/testing/golden/promotionRewards.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'promotionRewards.json'), 'the promotion reward cases are loaded');
 select is_empty($$ select operation from golden.golden_case where file = 'promotionRewards.json'
-                   and operation not in ('eligible', 'grant', 'limits', 'stack', 'tally', 'periodKey', 'steps') $$,
+                   and operation not in ('eligible', 'grant', 'limits', 'stack', 'tally', 'periodKey', 'steps', 'tier') $$,
   'every operation in promotionRewards.json is proved here');
+-- Decision 0580: a seat bonus's tier for the next claim (@rivr/domain tierChips).
+select results_eq(
+  $$ select description, coalesce(private.promo_tier_chips(jsonb_build_object('kind', 'seat_bonus', 'tiers', (inputs ->> 'tiers')::jsonb),
+                                                          (inputs ->> 'claimed')::integer)::text, 'used_up')
+     from golden.golden_case where file = 'promotionRewards.json' and operation = 'tier' order by position $$,
+  $$ select description, expected ->> 'chips' from golden.golden_case where file = 'promotionRewards.json' and operation = 'tier' order by position $$,
+  'private.promo_tier_chips gives every tier in the golden file');
 select results_eq(
   $$ select description, case when private.promo_is_eligible((inputs ->> 'terms')::jsonb, (inputs ->> 'member')::jsonb, (inputs ->> 'context')::jsonb)
                               then 'yes' else 'no' end

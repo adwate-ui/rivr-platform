@@ -15,6 +15,9 @@ const minutesPlayed = z.int().min(30).max(1_440).multipleOf(30);
 const hourSteps = z.array(z.strictObject({ afterMinutes: minutesPlayed, chips })).min(2).max(6)
   .refine((steps) => steps.every((step, at) => at === 0 || step.afterMinutes > (steps[at - 1]?.afterMinutes ?? 0)));
 const firstN = z.int().min(1).max(100);
+// A seat bonus in tiers (the owner, 12 Nov; decision 0580): the first `count` members to claim it get `chips`, the next
+// tier's count the next, and so on, over the promotion's life; one to ten tiers.
+const seatTiers = z.array(z.strictObject({ count: z.int().min(1).max(10_000), chips })).min(1).max(10);
 // A 24-hour IST time, "20:00".
 const clockTime = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 const id = z.string().min(1).max(64);
@@ -35,6 +38,8 @@ export const rewardSchema = z.union([
   // On the seat (owner, 8 Nov): fixed chips on the first seat of a visit, or on each of the first N seats at a table in a club day.
   // A buy-in bonus above is kept for what was published; nothing records a buy-in since the Cage was hidden, and the builder offers none.
   z.strictObject({ kind: z.literal('seat_bonus'), chips, firstNSeatsPerTable: firstN.optional() }),
+  // Or in tiers (owner, 12 Nov), on a member's first seat of a visit, once a member: promotionTermsSchema holds it to once.
+  z.strictObject({ kind: z.literal('seat_bonus'), tiers: seatTiers }),
   // Play time pays as each step is reached while seated (owner, 8 Nov): once after a time, at set steps, or every so often.
   z.strictObject({ kind: z.literal('hours_bonus'), chips, afterMinutes: minutesPlayed }),
   z.strictObject({ kind: z.literal('hours_bonus'), mode: z.literal('steps'), steps: hourSteps }),
@@ -122,7 +127,10 @@ export const promotionTermsSchema = z.strictObject({
   rulesText: z.array(z.string().trim().min(1).max(200)).max(12),
   // The card's link (#776): a plain https address, so the host the approver reads is the one the card opens.
   link: z.string().max(500).regex(/^https:\/\/[A-Za-z0-9.-]+(:[0-9]{1,5})?([/?#][!-~]*)?$/).optional(),
-});
+})
+  // A seat bonus in tiers counts its claims over the promotion's life, each member once (decision 0580): no monthly reset.
+  .refine(({ reward, limits }) => !('tiers' in reward) || (limits.perMember === 'once' && limits.budgetPeriod !== 'month'),
+    { path: ['limits', 'perMember'] });
 export type PromotionTerms = z.infer<typeof promotionTermsSchema>;
 
 /** A version's status: drafted, waiting for a second person, approved for a later day, running, paused or over. */

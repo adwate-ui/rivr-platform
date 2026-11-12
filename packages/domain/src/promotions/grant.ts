@@ -84,9 +84,14 @@ function buyInGrant(reward: Reward, event: EventOf<'buy_in'>): Result<Grant, Gra
   return event.ownChips > 0 ? ok(chipsGrant(reward.chips)) : err('nothing_earned');
 }
 
-/** A seat bonus (owner, 8 Nov): its chips on the first seat of a visit; with first N on any seat, and checkLimits counts them at the table. */
+/**
+ * A seat bonus (owner, 8 Nov): its chips on the first seat of a visit; with first N on any seat, and checkLimits counts them at
+ * the table. In tiers (owner, 12 Nov; decision 0580) on the first seat of a visit, at the first tier's chips until
+ * checkLimits sets the tier the claims so far fall in.
+ */
 function seatGrant(reward: Reward, event: EventOf<'seated'>): Result<Grant, GrantRefusal> {
   if (reward.kind !== 'seat_bonus') return err('other_event');
+  if ('tiers' in reward) return event.isFirstOfVisit ? ok(chipsGrant(reward.tiers[0]?.chips ?? 0)) : err('not_first_seat');
   return reward.firstNSeatsPerTable === undefined && !event.isFirstOfVisit ? err('not_first_seat') : ok(chipsGrant(reward.chips));
 }
 

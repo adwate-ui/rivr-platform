@@ -18,6 +18,12 @@ export interface HourStepFields {
   readonly chips: string;
 }
 
+/** A seat bonus tier, as typed (decision 0580): how many claims it covers and its bonus chips. */
+export interface SeatTierFields {
+  readonly count: string;
+  readonly chips: string;
+}
+
 /** The builder's fields as typed (console v3): numbers stay text until the terms are read from them (formTerms). */
 export interface BuilderForm {
   readonly name: string;
@@ -25,6 +31,9 @@ export interface BuilderForm {
   readonly multiplier: string;
   /** A seat bonus for the first seats at each table; blank for a visit's first seat. */
   readonly firstN: string;
+  /** A seat bonus of one amount (`chips`, `firstN`), or in tiers over the promotion's life, once a member (decision 0580). */
+  readonly seatMode: 'fixed' | 'tiers';
+  readonly seatTiers: readonly SeatTierFields[];
   /** An hours bonus's chips, or bonus chips on an event. */
   readonly chips: string;
   /** Hours played before an hours bonus or a free spin; a play-time bonus's first step. */
@@ -71,7 +80,7 @@ const ALL_DAY = { days: EVERY_DAY, from: '06:00', to: '06:00' } as const;
 /** A blank promotion as the prototype starts one: 2× points on Friday and Saturday 20:00 to 02:00, once a visit, from `today`. */
 export function blankForm(today: string): BuilderForm {
   return {
-    name: '', kind: 'points_multiplier', multiplier: '2', firstN: '',
+    name: '', kind: 'points_multiplier', multiplier: '2', firstN: '', seatMode: 'fixed', seatTiers: [{ count: '10', chips: '1000' }],
     chips: '1000', afterHours: '4', hoursMode: 'steps', moreSteps: [], everyHours: '2', timesPerVisit: '', bonusOn: 'visit', spins: '1', fromVisit: '4', tournament: '', stakes: 'all', tableIds: undefined, tiers: 'all',
     audience: 'everyone', days: [5, 6], from: '20:00', to: '02:00', startsOn: today, endsOn: '', perMember: 'per_visit', timesPerMember: '',
     maxMembersPerDay: '', budgetChips: '', budgetPeriod: 'whole', maxGrants: undefined, channels: { playerApp: true, tv: true, website: false, whatsapp: false }, rulesText: '', link: '',
@@ -105,7 +114,9 @@ function rewardFields(reward: BuilderReward): Partial<BuilderForm> {
     case 'points_multiplier':
       return { multiplier: String(reward.multiplier) };
     case 'seat_bonus':
-      return { chips: String(reward.chips), firstN: text(reward.firstNSeatsPerTable) };
+      return 'tiers' in reward
+        ? { seatMode: 'tiers', seatTiers: reward.tiers.map((tier) => ({ count: String(tier.count), chips: String(tier.chips) })) }
+        : { seatMode: 'fixed', chips: String(reward.chips), firstN: text(reward.firstNSeatsPerTable) };
     case 'hours_bonus':
       return hoursFields(reward);
     case 'bonus_chips':

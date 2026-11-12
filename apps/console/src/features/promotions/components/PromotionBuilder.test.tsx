@@ -91,6 +91,24 @@ describe('the promotion builder (console v3)', () => {
     expect(screen.getByText(/^1,000 bonus chips every 2 hours, up to 3 times a visit, for all stakes/)).toBeDefined();
   });
 
+  // Decision 0580: the first members to claim it get one amount, the next another, once a member.
+  it('builds a seat bonus in tiers, a tier at a time, and says how they count', () => {
+    renderBuilder(NEW);
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Reward' })).getByRole('radio', { name: 'Seat bonus chips' }));
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Pays' })).getByRole('radio', { name: 'In tiers' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Tier 1: the first' }), { target: { value: '10' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Tier 1 bonus chips' }), { target: { value: '5000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add a tier' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Tier 2: the next' }), { target: { value: '20' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Tier 2 bonus chips' }), { target: { value: '2000' } });
+    expect(screen.getByText(/^On a first seat, the first 10 get 5,000 bonus chips, the next 20 get 2,000, for all stakes/)).toBeDefined();
+    expect(screen.getByText(/^Each member gets it once, on a first seat\./)).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Remove tier 1' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Remove tier 2' }));
+    expect(screen.queryByRole('textbox', { name: 'Tier 2: the next' })).toBeNull();
+    expect(screen.getByText(/^On a first seat, the first 10 get 5,000 bonus chips, for all stakes/)).toBeDefined();
+  });
+
   it('marks the fields the terms refuse and sends nothing', async () => {
     const { calls } = renderBuilder(NEW);
     fireEvent.change(screen.getByRole('textbox', { name: 'Multiplier' }), { target: { value: '2.1' } });
