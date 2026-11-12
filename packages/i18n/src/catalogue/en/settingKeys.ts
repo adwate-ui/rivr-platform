@@ -231,6 +231,12 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     },
     options: { session: 'Each session', day: 'Each club day', financial_year: 'The financial year' },
   },
+  'tv.leaderboard': {
+    name: 'TV hours leaderboard',
+    help: 'Who the hours leaderboard on the TVs shows: the period it counts, and the top few, those past some hours, or both. Tonight\'s top 10 unless set.',
+    fields: { period: 'Period', top: 'Top', min_hours: 'Played at least' },
+    options: { tonight: 'Tonight', week: 'This week', month: 'This month', all: 'All time' },
+  },
   'tier.default': {
     name: 'Starting tier',
     help: 'The tier every new member starts in.',

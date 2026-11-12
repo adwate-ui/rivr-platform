@@ -1,3 +1,4 @@
+import type { TvLeaderboardPeriod } from '@rivr/contracts';
 import type { Paise } from '@rivr/domain/money';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
@@ -200,6 +201,49 @@ export function useTvWaitlistBoard() {
       const { data, error } = await client.rpc('tv_waitlist_board');
       if (error) throw error;
       return toTvTables(data);
+    },
+  });
+}
+
+/**
+ * A place on the TVs' hours leaderboard (decision 0581), in the period the club set: a first name and initial, or for a member
+ * who hid their name on the TVs their member number, and the whole minutes played.
+ */
+export interface TvLeaderboardRow {
+  readonly period: TvLeaderboardPeriod;
+  readonly place: number;
+  readonly name: string | null;
+  readonly memberNumber: number | null;
+  readonly minutes: number;
+}
+
+interface LeaderboardRecord {
+  period: string;
+  place: number;
+  display_name: string | null;
+  member_number: number | null;
+  played_minutes: number;
+}
+
+/** The board's rows as the TV shows them; a period the app does not know reads as tonight, the board's own default. */
+export function toTvLeaderboard(rows: readonly LeaderboardRecord[]): TvLeaderboardRow[] {
+  return rows.map((row) => ({
+    period: row.period === 'week' || row.period === 'month' || row.period === 'all' ? row.period : 'tonight',
+    place: row.place, name: row.display_name, memberNumber: row.member_number, minutes: row.played_minutes,
+  }));
+}
+
+/** The signed-in TV's hours leaderboard at its venue, in order; read every half minute, as hours grow while members play. */
+export function useTvLeaderboard() {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.tvLeaderboard(userId ?? 'signed-out'),
+    enabled: userId !== null,
+    refetchInterval: BOARD_CHECK,
+    queryFn: async (): Promise<TvLeaderboardRow[]> => {
+      const { data, error } = await client.rpc('tv_leaderboard');
+      if (error) throw error;
+      return toTvLeaderboard(data);
     },
   });
 }

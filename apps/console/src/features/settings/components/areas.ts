@@ -31,6 +31,7 @@ const AREA_OF: Readonly<Record<SettingKey, RuleArea>> = {
   'waitlist.hold_minutes': 'floor',
   'waitlist.interest_to_open': 'floor',
   'waitlist.priority_weights': 'floor',
+  'tv.leaderboard': 'floor',
   // Under Settings → Floor, as the floor runs the desk's check (the owner, 5 Nov; decision 0502).
   'kyc.at_the_club': 'floor',
   // Set by the go-live script on the day the store apps go in for review (decision 0575); never on the screen.
