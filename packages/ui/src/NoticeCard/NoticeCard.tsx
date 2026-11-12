@@ -15,10 +15,10 @@ export interface NoticeCardProps {
   tone?: 'club' | 'alert';
 }
 
-// The alert's eyebrow is cream: the danger red is never text on a tinted fill (@rivr/tokens).
+// The alert's eyebrow is the danger red: 4.86:1 on the red tint over green (packages/tokens contrast.test.ts).
 const LOOK = {
   club: { card: 'border-gold-edge bg-raised', eyebrow: 'text-accent' },
-  alert: { card: 'border-red-edge bg-red-tint', eyebrow: 'text-content' },
+  alert: { card: 'border-red-edge bg-red-tint', eyebrow: 'text-danger' },
 } as const;
 
 /**
