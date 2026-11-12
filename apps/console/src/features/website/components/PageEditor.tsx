@@ -6,7 +6,7 @@ import { Box, Button, ErrorMessage, Inline, Input, LoadState, Segmented, Stack, 
 import { useEffect, useState } from 'react';
 import { RevisionHistory } from './RevisionHistory.tsx';
 import { AddAtEnd, Section } from './Section.tsx';
-import { moved, newSection, retyped } from './sections.ts';
+import { kindsFor, moved, newSection, retyped } from './sections.ts';
 
 type Outcome = { ok: boolean; text: string } | null;
 const WEB_URL = import.meta.env.VITE_WEB_URL;
@@ -19,6 +19,7 @@ interface DraftSection {
 
 let lastSectionId = 0;
 const draftSection = (block: EditorBlock): DraftSection => ({ id: (lastSectionId += 1), block });
+const blocksOf = (sections: readonly DraftSection[]) => sections.map((section) => section.block);
 
 /** A draft, or one scheduled: the version the editor works on. */
 const isOpenVersion = (revision: SiteRevision) => revision.status === 'draft' || revision.status === 'scheduled';
@@ -199,9 +200,10 @@ function Editor(props: EditorProps) {
       {view === 'edit' ? (
         <>
           {draft.sections.map((section, index) => (
-            <Section key={section.id} block={section.block} position={index + 1} count={draft.sections.length} actions={draft.actionsFor(section.id)} />
+            <Section key={section.id} block={section.block} position={index + 1} count={draft.sections.length} actions={draft.actionsFor(section.id)}
+              kinds={{ add: kindsFor(blocksOf(draft.sections), null), change: kindsFor(blocksOf(draft.sections), section.block) }} />
           ))}
-          <AddAtEnd onAdd={draft.addAtEnd} />
+          <AddAtEnd kinds={kindsFor(blocksOf(draft.sections), null)} onAdd={draft.addAtEnd} />
         </>
       ) : (
         <WebPreview label={t('console.website.preview', { page: page.title })} src={previewSrc(draft.token, draft.saves)}

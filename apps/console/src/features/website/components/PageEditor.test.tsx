@@ -93,6 +93,20 @@ describe('PageEditor › sections and lists', () => {
     expect(screen.getByRole('menuitem', { name: 'Delete section' }).getAttribute('aria-disabled')).toBe('true');
   });
 
+  // The Careers page starts with no role (review of #906).
+  it('adds the first item to a list with none, and offers no second hero', async () => {
+    const saved = renderDraft([{ kind: 'hero', content: { heading: 'Careers' } }, { kind: 'careers', content: { heading: 'Open roles', roles: [] } }]);
+    fireEvent.click(await screen.findByRole('button', { name: 'Add a role' }, { timeout: 5000 }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Title' }), { target: { value: 'Dealer' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Body' }), { target: { value: 'Deals the cards.' } });
+    fromMenu(2, 'Add a section below');
+    expect(within(screen.getByRole('radiogroup', { name: 'New section below section 2' })).queryByRole('radio', { name: 'Hero' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save draft' }));
+    expect(await screen.findByText('Draft saved.')).toBeDefined();
+    expect(saved).toEqual([[{ kind: 'hero', content: { heading: 'Careers' } }, { kind: 'careers', content: { heading: 'Open roles', roles: [{ title: 'Dealer', body: 'Deals the cards.' }] } }]]);
+  });
+
   it('adds a section below another, moves it up, changes a section’s kind and deletes one', async () => {
     const saved = renderDraft([{ kind: 'text', content: { heading: 'Our tables', body: 'Six of them.' } }, RULES]);
     await screen.findByRole('heading', { name: 'Section 1 · Text' }, { timeout: 5000 });

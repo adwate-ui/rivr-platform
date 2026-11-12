@@ -38,6 +38,42 @@ const NEW_CONTENT: Readonly<Record<string, Content>> = {
 /** The kinds a section can be added as, or changed into, in the editor's order. */
 export const ADDABLE_KINDS: readonly string[] = Object.keys(NEW_CONTENT);
 
+/** How many items a list may hold, as siteBlockSchema allows, and a new item's empty words. */
+export interface ListRule {
+  readonly min: number;
+  readonly max: number;
+  /** None where an item needs a picture or a link the editor cannot set: such a list only loses items. */
+  readonly item?: Content;
+}
+
+// By kind and list, the item numbers left out (#906); sections.test.ts holds each to siteBlockSchema.
+export const LIST_RULES: Readonly<Record<string, ListRule>> = {
+  'statement.lines': { min: 1, max: 3, item: '' },
+  'gallery.items': { min: 2, max: 8 },
+  'feature.points': { min: 0, max: 4, item: '' },
+  'rules.rules': { min: 1, max: 40, item: '' },
+  'faq.questions': { min: 1, max: 40, item: { question: '', answer: '' } },
+  'careers.roles': { min: 0, max: 20, item: { title: '', body: '' } },
+  'links.links': { min: 1, max: 6 },
+  'story.paragraphs': { min: 1, max: 3, item: '' },
+  'story.figures': { min: 0, max: 4, item: { value: '', label: '' } },
+  'cards.cards': { min: 2, max: 12, item: { title: '', text: '' } },
+  'cards.cards.points': { min: 0, max: 6, item: '' },
+  'marquee.phrases': { min: 2, max: 12, item: '' },
+  'timeline.items': { min: 1, max: 10, item: { when: '', title: '', text: '' } },
+};
+
+/** The rule for the list at a place in a kind's content: `cards` and `['cards', 1, 'points']` is `cards.cards.points`. Null for one with none. */
+export function listRule(kind: string, path: readonly (string | number)[]): ListRule | null {
+  return LIST_RULES[[kind, ...path.filter((step): step is string => typeof step === 'string')].join('.')] ?? null;
+}
+
+/** The kinds a section may be added as, or changed into: a page holds one hero at most, as the website shows one. */
+export function kindsFor(sections: readonly EditorBlock[], current: EditorBlock | null): readonly string[] {
+  const hasOtherHero = sections.some((section) => section.kind === 'hero' && section !== current);
+  return hasOtherHero ? ADDABLE_KINDS.filter((kind) => kind !== 'hero') : ADDABLE_KINDS;
+}
+
 /** A new section of a kind, with its own copy of the empty words. */
 export function newSection(kind: string): EditorBlock {
   return { kind, content: structuredClone(NEW_CONTENT[kind] ?? {}) };
@@ -52,15 +88,20 @@ const isRecord = (value: Content): value is { readonly [key: string]: Content | 
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
 /**
- * A section changed into another kind (#906): the new kind's empty words, with each field of the same name the old section
- * had and the new kind takes as it is. One it would read differently (too long, or a list of other things) starts empty.
+ * A section changed into another kind (#906): the new kind's empty words, with each of them the old section had under the
+ * same name and the new kind takes as it is. One it would read differently (too long, or a list of other things) starts
+ * empty, and a picture, a link or a button, which the editor cannot set, is left behind.
  */
 export function retyped(section: EditorBlock, kind: string): EditorBlock {
-  const fresh = newSection(kind);
+  const fresh = newSection(kind).content;
   const taken = fieldsTakenBy(kind);
   const old = isRecord(section.content) ? section.content : {};
-  const kept = Object.entries(old).filter(([key, value]) => value !== undefined && taken[key]?.safeParse(value).success === true);
-  return { kind, content: { ...(isRecord(fresh.content) ? fresh.content : {}), ...Object.fromEntries(kept) } };
+  const words = isRecord(fresh) ? fresh : {};
+  const kept = Object.keys(words).flatMap((key) => {
+    const value = old[key];
+    return value !== undefined && taken[key]?.safeParse(value).success === true ? [[key, value] as const] : [];
+  });
+  return { kind, content: { ...words, ...Object.fromEntries(kept) } };
 }
 
 /** The list with the item at `index` moved one place (`by` -1 up, 1 down); as it was at either end. */

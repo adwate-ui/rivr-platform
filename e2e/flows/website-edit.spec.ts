@@ -57,8 +57,10 @@ test.describe('Website edit', () => {
     await page.getByRole('button', { name: 'Add a rule' }).click();
     const rules = page.getByRole('textbox', { name: /^Rule \d+$/ });
     await rules.last().fill(`No phones at the table, run ${run}`);
-    const removed = await rules.first().inputValue();
-    await page.getByRole('button', { name: 'Remove Rule 1' }).click();
+    // The last of the club's own rules: the first, which other flows read, stays even if this test stops half way.
+    const lastOwn = (await rules.count()) - 1;
+    const removed = await rules.nth(lastOwn - 1).inputValue();
+    await page.getByRole('button', { name: `Remove Rule ${String(lastOwn)}` }).click();
     await page.getByRole('button', { name: /^More for section / }).last().click();
     await page.getByRole('menuitem', { name: 'Add a section below' }).click();
     await page.getByRole('radiogroup', { name: /^New section below section / }).getByRole('radio', { name: 'Text' }).click();

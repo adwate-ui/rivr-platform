@@ -3,7 +3,7 @@ import { t } from '@rivr/i18n';
 import { Button, Heading, Inline, Input, Stack, TextArea } from '@rivr/ui';
 import { useState, type ReactNode } from 'react';
 import { fieldGroups, fieldsOf, itemAdded, itemRemoved, listAt, setAt, type BlockField, type FieldGroup } from './blockFields.ts';
-import { kindName } from './sections.ts';
+import { kindName, listRule } from './sections.ts';
 
 // Words longer than this are edited in a box of several lines.
 const LONG = 80;
@@ -50,28 +50,39 @@ interface ListProps {
   readonly onChange: (next: EditorBlock) => void;
 }
 
-/** "Add a rule" at a list's end: a new item like the last, its words empty (#906). */
+/** "Add a rule" at a list's end, up to as many as the website takes; none for a list whose items need a picture or a link (#906). */
 function AddItem({ block, onChange, list }: ListProps & { list: Path }) {
+  const rule = listRule(block.kind, list);
+  if (rule?.item === undefined) return null;
+  const { item } = rule;
   const name = list.findLast((step): step is string => typeof step === 'string');
   const known = ADDABLE_LISTS.find((each) => each === name);
   return (
     <Inline gap={2}>
-      <Button variant="subtle" onClick={() => onChange({ ...block, content: itemAdded(block.content, list) })}>
+      <Button variant="subtle" isDisabled={(listAt(block.content, list)?.length ?? 0) >= rule.max}
+        onClick={() => onChange({ ...block, content: itemAdded(block.content, list, item) })}>
         {t(`console.website.add.${known ?? 'items'}`)}
       </Button>
     </Inline>
   );
 }
 
-/** Taking one item out of a list; never its last, which the website needs (#906). */
+/** Taking one item out of a list, down to as few as the website needs (#906). */
 function RemoveItem({ block, onChange, list, index, name }: ListProps & { list: Path; index: number; name: string }) {
-  const isLast = (listAt(block.content, list)?.length ?? 0) <= 1;
+  const rule = listRule(block.kind, list);
+  if (rule === null) return null;
   return (
-    <Button variant="text" isDisabled={isLast} aria-label={t('console.website.removeItem', { item: name })}
+    <Button variant="text" isDisabled={(listAt(block.content, list)?.length ?? 0) <= rule.min} aria-label={t('console.website.removeItem', { item: name })}
       onClick={() => onChange({ ...block, content: itemRemoved(block.content, list, index) })}>
       {t('console.website.remove')}
     </Button>
   );
+}
+
+/** The block's lists with no item yet, such as a Careers page with no role: each gets its "Add …" below the block's fields. */
+function emptyLists(content: EditorBlock['content']): Path[] {
+  if (typeof content !== 'object' || content === null || Array.isArray(content)) return [];
+  return Object.entries(content).flatMap(([key, value]) => (Array.isArray(value) && value.length === 0 ? [[key]] : []));
 }
 
 /** One field's box: several lines for long words. */
@@ -103,14 +114,16 @@ function Group({ block, onChange, group, after, long }: GroupProps) {
       )}
       {group.fields.map((field, place) => {
         const key = field.path.join('.');
-        const input = <FieldInput field={field} isLong={long.has(key)} onType={(value) => onChange({ ...block, content: setAt(block.content, field.path, value) })} />;
+        const isLong = long.has(key);
+        const input = <FieldInput field={field} isLong={isLong} onType={(value) => onChange({ ...block, content: setAt(block.content, field.path, value) })} />;
         const word = wordOf(field);
         if (word === null) return <Stack key={key} gap={1}>{input}</Stack>;
         const next = group.fields[place + 1];
         const nextWord = next === undefined ? null : wordOf(next);
         return (
           <Stack key={key} gap={2}>
-            <Inline gap={2} align="end">
+            {/* Beside a box of several lines, Remove sits at its top, by its name. */}
+            <Inline gap={2} align={isLong ? 'start' : 'end'}>
               <Stack gap={1} grow>{input}</Stack>
               <RemoveItem {...list} list={word.list} index={word.index} name={labelOf(field)} />
             </Inline>
@@ -141,6 +154,7 @@ export function BlockEditor({ block, position, onChange, tools }: { block: Edito
       {groups.map((group, place) => (
         <Group key={group.fields[0]?.path.join('.')} block={block} onChange={onChange} group={group} after={groups[place + 1]} long={long} />
       ))}
+      {emptyLists(block.content).map((list) => <AddItem key={list.join('.')} block={block} onChange={onChange} list={list} />)}
     </Stack>
   );
 }

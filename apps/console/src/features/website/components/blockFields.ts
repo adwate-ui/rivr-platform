@@ -134,20 +134,12 @@ export function listAt(value: Content, path: readonly (string | number)[]): read
   return Array.isArray(at) ? at : null;
 }
 
-/** An item like `value` with its words emptied: a link's page or a picture stays, and a list inside keeps one empty item. */
-function emptied(value: Content, key: string | null): Content {
-  if (typeof value === 'string') return key === null || isTextKey(key) ? '' : value;
-  if (Array.isArray(value)) return value.slice(0, 1).map((item) => emptied(item, key));
-  if (isObject(value)) return Object.fromEntries(Object.entries(value).map(([name, item]) => [name, item === undefined ? item : emptied(item, name)]));
-  return value;
-}
-
-/** The content with a new item at the end of the list at a place, like the list's last with its words emptied (#906). */
-export function itemAdded(value: Content, path: readonly (string | number)[]): Content {
-  return changeAt(value, path, (list) => {
-    const last = Array.isArray(list) ? list.at(-1) : undefined;
-    return Array.isArray(list) && last !== undefined ? [...list, emptied(last, null)] : list;
-  });
+/**
+ * The content with `item`, a new item's empty words, at the end of the list at a place (#906). Never a copy of another item,
+ * which could carry a link or a picture the editor cannot show.
+ */
+export function itemAdded(value: Content, path: readonly (string | number)[], item: Content): Content {
+  return changeAt(value, path, (list) => (Array.isArray(list) ? [...list, structuredClone(item)] : list));
 }
 
 /** The content without the item at `index` of the list at a place (#906). */

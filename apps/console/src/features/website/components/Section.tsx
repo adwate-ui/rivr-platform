@@ -3,19 +3,25 @@ import { t } from '@rivr/i18n';
 import { Button, ChoiceChips, Inline, OverflowMenu, Stack } from '@rivr/ui';
 import { useState } from 'react';
 import { BlockEditor } from './BlockEditor.tsx';
-import { ADDABLE_KINDS, kindName } from './sections.ts';
+import { kindName } from './sections.ts';
 
 /** Where a new section goes, beside this one; or this one's new kind. */
 type Asking = 'above' | 'below' | 'kind';
 
-/** The kinds a section can be, in words. */
-const KINDS = ADDABLE_KINDS.map((kind) => ({ value: kind, label: kindName(kind) }));
+interface KindChoiceProps {
+  readonly label: string;
+  /** The kinds to offer: sections.ts kindsFor, without a second hero. */
+  readonly kinds: readonly string[];
+  readonly current: string | null;
+  readonly onPick: (kind: string) => void;
+  readonly onCancel: () => void;
+}
 
 /** The kinds to choose one from, for a new section or this one, and a way back (#906). */
-export function KindChoice({ label, current, onPick, onCancel }: { label: string; current: string | null; onPick: (kind: string) => void; onCancel: () => void }) {
+export function KindChoice({ label, kinds, current, onPick, onCancel }: KindChoiceProps) {
   return (
     <Stack gap={2}>
-      <ChoiceChips label={label} mode="one" options={KINDS} selected={current === null ? [] : [current]}
+      <ChoiceChips label={label} mode="one" options={kinds.map((kind) => ({ value: kind, label: kindName(kind) }))} selected={current === null ? [] : [current]}
         onChange={([kind]) => { if (kind !== undefined && kind !== current) onPick(kind); }} />
       <Inline gap={2}><Button variant="subtle" onClick={onCancel}>{t('console.website.cancel')}</Button></Inline>
     </Stack>
@@ -31,11 +37,20 @@ export interface SectionActions {
   readonly onDelete: () => void;
 }
 
+interface SectionProps {
+  readonly block: EditorBlock;
+  readonly position: number;
+  readonly count: number;
+  /** The kinds a new section may be, and this one may become. */
+  readonly kinds: { readonly add: readonly string[]; readonly change: readonly string[] };
+  readonly actions: SectionActions;
+}
+
 /**
  * One section of a page's draft (#906): its words, and from its menu a new section above or below it, another kind for it,
  * a place up or down, or taking it out. A page keeps at least one section.
  */
-export function Section({ block, position, count, actions }: { block: EditorBlock; position: number; count: number; actions: SectionActions }) {
+export function Section({ block, position, count, kinds, actions }: SectionProps) {
   const [asking, setAsking] = useState<Asking | null>(null);
   const number = String(position);
   const pick = (kind: string) => {
@@ -44,8 +59,8 @@ export function Section({ block, position, count, actions }: { block: EditorBloc
     setAsking(null);
   };
   const choice = asking === null ? null : (
-    <KindChoice label={t(`console.website.chooseKind.${asking}`, { number })} current={asking === 'kind' ? block.kind : null} onPick={pick}
-      onCancel={() => setAsking(null)} />
+    <KindChoice label={t(`console.website.chooseKind.${asking}`, { number })} kinds={asking === 'kind' ? kinds.change : kinds.add}
+      current={asking === 'kind' ? block.kind : null} onPick={pick} onCancel={() => setAsking(null)} />
   );
   const menu = (
     <OverflowMenu label={t('console.website.sectionMenu', { number })} items={[
@@ -67,8 +82,8 @@ export function Section({ block, position, count, actions }: { block: EditorBloc
 }
 
 /** A new section at the page's end (#906). */
-export function AddAtEnd({ onAdd }: { onAdd: (kind: string) => void }) {
+export function AddAtEnd({ kinds, onAdd }: { kinds: readonly string[]; onAdd: (kind: string) => void }) {
   const [isAsking, setAsking] = useState(false);
   if (!isAsking) return <Inline gap={2}><Button variant="subtle" onClick={() => setAsking(true)}>{t('console.website.addSection')}</Button></Inline>;
-  return <KindChoice label={t('console.website.chooseKind.end')} current={null} onCancel={() => setAsking(false)} onPick={(kind) => { onAdd(kind); setAsking(false); }} />;
+  return <KindChoice label={t('console.website.chooseKind.end')} kinds={kinds} current={null} onCancel={() => setAsking(false)} onPick={(kind) => { onAdd(kind); setAsking(false); }} />;
 }
