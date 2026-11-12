@@ -1,8 +1,8 @@
 import type { Decorator, Meta, StoryObj } from '@storybook/react-vite';
 import { DeskHelp, DeskHelpProvider } from './DeskHelp.tsx';
 
-/** The club's number, as the player app's AppRoot gives it. */
-const withNumber: Decorator = (Story) => <DeskHelpProvider contact={{ phone: '+918796580435', whatsapp: '918796580435' }}><Story /></DeskHelpProvider>;
+/** The club's numbers, as the player app's AppRoot gives them. */
+const withNumber: Decorator = (Story) => <DeskHelpProvider contact={{ phone: '+918796580435', whatsapp: '+918796580435' }}><Story /></DeskHelpProvider>;
 
 // Two links and nothing to load: no loading or error state.
 const meta = {

@@ -16,10 +16,10 @@ export interface ClubContact {
 /** Neither number: what a page shows when the club has set none, or they cannot be read. */
 export const NO_CLUB_CONTACT: ClubContact = { phone: null, whatsapp: null };
 
-// They change seldom: read again after an hour.
-const CONTACT_STALE_MS = 60 * 60 * 1000;
+// They change seldom: an open app reads them again after ten minutes, and every launch reads them afresh.
+const CONTACT_STALE_MS = 10 * 60 * 1000;
 
-/** The club's row of public_club_contact; there is one club, as sign-up holds. */
+/** The club's row of public_club_contact, which holds the club's alone. */
 function contactFrom(rows: readonly { phone: string | null; whatsapp: string | null }[]): ClubContact {
   const row = rows[0];
   return row === undefined ? NO_CLUB_CONTACT : { phone: row.phone, whatsapp: row.whatsapp };

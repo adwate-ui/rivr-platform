@@ -55,4 +55,11 @@ describe('a page\u2019s document head (8 Nov audit, F-194)', () => {
     const written = { ...MAP, content: { ...MAP.content, address: '</script><script>alert(1)</script>' } };
     expect(localBusiness({ slug: 'visit', blocks: [written] }, ORIGIN, CONTACT)).not.toContain('<');
   });
+
+  // Decision 0582: the map band's own number, set in the website editor, before the club's.
+  it('gives search engines the map band’s own number before the club’s', () => {
+    const own = { ...MAP, content: { ...MAP.content, phone: '+919000000000' } };
+    expect(JSON.parse(localBusiness({ slug: 'visit', blocks: [own] }, ORIGIN, CONTACT) ?? '')).toMatchObject({ telephone: '+919000000000' });
+    expect(JSON.parse(localBusiness({ slug: 'visit', blocks: [MAP] }, ORIGIN, { phone: null, whatsapp: null }) ?? '')).not.toHaveProperty('telephone');
+  });
 });

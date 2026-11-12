@@ -16,6 +16,12 @@ create function pg_temp.last_change() returns jsonb language sql security define
 $$;
 grant execute on function pg_temp.last_change() to authenticated;
 
+-- A later live venue, with its own super admins and numbers (the security review of #918). Made first, as a venue's
+-- settings take effect from the transaction's start.
+select private.bootstrap_venue('41100000-0000-4000-8000-000000000001', 'Later room', 'test-411-room', false, 'Later Room Pvt Ltd', 'Gurugram', 'R411');
+update public.venue_config set contact_phone = '+919999999999', contact_whatsapp = '+919999999999'
+where venue_id = '41100000-0000-4000-8000-000000000001';
+
 -- The number in use until now, filled in for the club only.
 select results_eq($$ select contact_phone, contact_whatsapp from public.venue_config where venue_id = '00000000-0000-4000-8000-000000000001' $$,
   $$ values ('+918796580435'::text, '+918796580435'::text) $$, 'the club starts with the number it had in code');
@@ -50,6 +56,12 @@ reset role;
 set local role anon;
 select results_eq($$ select phone, whatsapp from public.public_club_contact $$,
   $$ values ('+911244000000'::text, '+919811100022'::text) $$, 'the website and the app read the change at once');
+reset role;
+
+-- The later room, still: its numbers never reach the website or the app.
+set local role anon;
+select results_eq($$ select venue_slug, phone, whatsapp from public.public_club_contact $$,
+  $$ values ('gurugram'::text, '+911244000000'::text, '+919811100022'::text) $$, 'a later live venue never takes the club''s place');
 reset role;
 
 select * from finish();

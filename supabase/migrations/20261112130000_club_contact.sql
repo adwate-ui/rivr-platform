@@ -15,12 +15,14 @@ with (security_invoker = true)
 as
 select * from private.venue_config_detail_rows();
 
+-- The club is the first venue that is not the practice venue, as alerting and the website take it
+-- (20261026234000_alerting.sql, 20261027000200_website_comes_with_the_venue.sql).
 update public.venue_config c
 set contact_phone = '+918796580435', contact_whatsapp = '+918796580435'
-from public.venue v
-where v.id = c.venue_id and not v.is_practice;
+where c.venue_id = (select v.id from public.venue v where not v.is_practice order by v.created_at limit 1);
 
--- The club's two numbers, for the website and the app, signed in or not; nothing else of its details.
+-- The club's two numbers, for the website and the app, signed in or not; nothing else of its details. Only the club's: a
+-- later live venue, or one being purged, has its own super admins, who must not change what the club's members are sent to.
 create function private.public_club_contact_rows()
 returns table (venue_slug text, phone text, whatsapp text)
 language sql
@@ -31,7 +33,7 @@ as $$
   select v.slug, c.contact_phone, c.contact_whatsapp
   from public.venue v
   join public.venue_config c on c.venue_id = v.id
-  where not v.is_practice;
+  where v.id = (select f.id from public.venue f where not f.is_practice order by f.created_at limit 1);
 $$;
 
 grant execute on function private.public_club_contact_rows() to anon, authenticated;

@@ -86,6 +86,12 @@ describe('a website page', () => {
     expect(screen.queryByRole('link', { name: 'Request a seat' })).toBeNull();
   });
 
+  it('calls a map band’s own number, set in the website editor, before the club’s (decision 0582)', () => {
+    const map = { kind: 'map' as const, content: { address: 'Glaza, Gurugram', directionsUrl: 'https://www.google.com/maps/search/?api=1&query=Glaza', phone: '+919000000000' } };
+    render(<SitePage page={{ ...PAGE, blocks: [map] }} playerUrl="https://player.invalid" attribution={null} contact={CONTACT} />);
+    expect(within(screen.getByRole('main')).getByRole('link', { name: 'Call +91 90000 00000' }).getAttribute('href')).toBe('tel:+919000000000');
+  });
+
   it('dates the copyright with this year in India (8 Nov audit, F-192)', () => {
     vi.useFakeTimers({ toFake: ['Date'], now: new Date('2027-12-31T19:00:00Z') });
     render(<SitePage page={PAGE} playerUrl="https://player.invalid" attribution={null} contact={CONTACT} />);

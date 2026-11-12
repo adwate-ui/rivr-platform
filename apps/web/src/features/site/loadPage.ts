@@ -58,8 +58,8 @@ export async function loadPreview(token: string | undefined, url: URL): Promise<
   if (token === undefined || !/^[0-9a-f-]{36}$/.test(token)) return { ...shared, status: 404, title: t('common.notFoundTitle') };
   const client = createRivrClient({ url: import.meta.env.PUBLIC_SUPABASE_URL, publishableKey: import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY, previewToken: token });
   const [result, contact] = await Promise.all([fetchSitePreview(client), contactOf(client)]);
-  if (!result.ok) return { ...shared, status: 503, title: t('web.unavailableTitle') };
+  if (!result.ok) return { ...shared, contact, status: 503, title: t('web.unavailableTitle') };
   const page = result.value;
-  if (!page) return { ...shared, status: 404, title: t('common.notFoundTitle') };
+  if (!page) return { ...shared, contact, status: 404, title: t('common.notFoundTitle') };
   return { ...shared, status: 200, page, title: page.title, description: page.description, contact };
 }

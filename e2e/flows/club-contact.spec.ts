@@ -13,7 +13,7 @@ const CLUB_WHATSAPP = '+918796580435';
 /** Saves `whatsapp` as the club's WhatsApp number on Settings, Club details. */
 async function setWhatsapp(page: Page, whatsapp: string) {
   await page.goto(`${appUrl('console')}/settings?tab=club`);
-  const field = page.getByRole('textbox', { name: 'Number to WhatsApp the club' });
+  const field = page.getByRole('textbox', { name: 'WhatsApp number', exact: true });
   await field.fill(whatsapp);
   await page.getByRole('button', { name: 'Save configuration' }).click();
   await expect(page.getByText('Configuration saved.')).toBeVisible();
@@ -24,8 +24,8 @@ test.describe('the club contact', () => {
     test.skip(isRemoteTarget(), 'changes the club\'s numbers, so the local stack only');
     const staff = await browser.newPage();
     await signInToConsole(staff, '9000000182');
-    await setWhatsapp(staff, '98111 00022');
     try {
+      await setWhatsapp(staff, '98111 00022');
       const site = await browser.newPage();
       await site.goto(`${appUrl('web')}/`);
       const contacts = site.getByRole('list', { name: 'Contact' });
