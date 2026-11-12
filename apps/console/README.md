@@ -56,7 +56,8 @@ src/
                       add, enrol and revoke; CCTV cameras over a table or the cage (#122), whose Playback Pot data,
                       Incidents and the cage's receipt link to. /devices, /tablets and /tvs open it; /computers and /cameras say they are gone
     settings/         the rules in areas by job, each by name with its value now, who changes it and what is to come;
-                      the club's details and chips for super admins (/settings, its areas by `?tab=`, #604); /rake
+                      the club's details, its numbers for calls and WhatsApp among them (decision 0582), and chips for super admins
+                      (/settings, its areas by `?tab=`, #604); /rake
                       opens it, saying rake is no longer on the console. Its Notices part puts a notice up, now or from
                       a start to an end (IST), edits one in place and ends one, with the card members see as its
                       preview (decision 0424)

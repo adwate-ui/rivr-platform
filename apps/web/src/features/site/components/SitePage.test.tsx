@@ -4,6 +4,8 @@ import { SitePage } from './SitePage.tsx';
 
 afterEach(cleanup);
 
+// The club's numbers as Settings, Club holds them (decision 0582).
+const CONTACT = { phone: '+918796580435', whatsapp: '+918796580435' };
 const PAGE = {
   slug: 'home',
   title: 'RIVR Poker Club',
@@ -23,7 +25,7 @@ const PAGE = {
 
 describe('a website page', () => {
   it('shows its blocks in order under the menu', () => {
-    render(<SitePage page={PAGE} playerUrl="https://player.invalid" attribution={null} />);
+    render(<SitePage page={PAGE} playerUrl="https://player.invalid" attribution={null} contact={CONTACT} />);
     expect(screen.getByRole('heading', { level: 1, name: 'RIVR Poker Club' })).toBeDefined();
     expect(screen.getByRole('heading', { level: 2, name: "A members' club" })).toBeDefined();
     expect(screen.getByRole('link', { name: 'The club' }).getAttribute('href')).toBe('/about');
@@ -31,7 +33,7 @@ describe('a website page', () => {
   });
 
   it('carries the codes the visitor arrived with on every link, into the player app and across the website', () => {
-    render(<SitePage page={PAGE} playerUrl="https://player.invalid" attribution={{ referral: 'FRIEND1', utmSource: 'instagram' }} />);
+    render(<SitePage page={PAGE} playerUrl="https://player.invalid" attribution={{ referral: 'FRIEND1', utmSource: 'instagram' }} contact={CONTACT} />);
     expect(screen.getByRole('link', { name: 'Join RIVR' }).getAttribute('href')).toBe('https://player.invalid/sign-in?ref=FRIEND1&utm_source=instagram');
     const menu = screen.getByRole('navigation', { name: 'Site' });
     expect(within(menu).getByRole('link', { name: 'Membership' }).getAttribute('href')).toBe('/membership?ref=FRIEND1&utm_source=instagram');
@@ -40,7 +42,7 @@ describe('a website page', () => {
   });
 
   it('has grandpokerarena.com’s menu, top bar, footer columns and cookie banner, and no Academy in the menu', () => {
-    render(<SitePage page={PAGE} playerUrl="https://player.invalid" attribution={null} />);
+    render(<SitePage page={PAGE} playerUrl="https://player.invalid" attribution={null} contact={CONTACT} />);
     const menu = screen.getByRole('navigation', { name: 'Site' });
     // On a phone the member app leads the links and the header's action ends them; from a tablet up they sit in the top
     // bar and beside the menu (UI polish audit A-25, W-03).
@@ -67,15 +69,26 @@ describe('a website page', () => {
 
   it('gives a map band the club’s number and WhatsApp, as its content has neither (8 Nov audit, F-197)', () => {
     const map = { kind: 'map' as const, content: { address: 'Glaza, Gurugram', directionsUrl: 'https://www.google.com/maps/search/?api=1&query=Glaza' } };
-    render(<SitePage page={{ ...PAGE, blocks: [map] }} playerUrl="https://player.invalid" attribution={null} />);
+    render(<SitePage page={{ ...PAGE, blocks: [map] }} playerUrl="https://player.invalid" attribution={null} contact={CONTACT} />);
     const main = within(screen.getByRole('main'));
     expect(main.getByRole('link', { name: 'Call +91 87965 80435' }).getAttribute('href')).toBe('tel:+918796580435');
     expect(main.getByRole('link', { name: 'WhatsApp' }).getAttribute('href')).toBe('https://wa.me/918796580435');
   });
 
+  // Decision 0582: the club's numbers are its setting; a number not set is left out, and with no WhatsApp none reserves by it.
+  it('uses the club’s numbers as set, leaving out one not set', () => {
+    render(<SitePage page={PAGE} playerUrl="https://player.invalid" attribution={null} contact={{ phone: '+911244000000', whatsapp: null }} />);
+    const contacts = within(screen.getByRole('list', { name: 'Contact' })).getAllByRole('link');
+    expect(contacts.map((link) => link.getAttribute('href'))).toEqual([
+      'tel:+911244000000', 'https://www.instagram.com/rivr.pokerclub/', 'https://www.youtube.com/@rivr.pokerclub', 'mailto:info@rivrpoker.com',
+    ]);
+    expect(contacts[0]?.textContent).toBe('+91 12440 00000');
+    expect(screen.queryByRole('link', { name: 'Request a seat' })).toBeNull();
+  });
+
   it('dates the copyright with this year in India (8 Nov audit, F-192)', () => {
     vi.useFakeTimers({ toFake: ['Date'], now: new Date('2027-12-31T19:00:00Z') });
-    render(<SitePage page={PAGE} playerUrl="https://player.invalid" attribution={null} />);
+    render(<SitePage page={PAGE} playerUrl="https://player.invalid" attribution={null} contact={CONTACT} />);
     expect(screen.getByText('Copyright 2028 RIVR Poker Club')).toBeDefined();
     vi.useRealTimers();
   });
@@ -89,12 +102,12 @@ describe('a website page', () => {
         { kind: 'cards' as const, content: { eyebrow: 'The room', heading: 'Again', cards: [{ title: 'Kitchen' }] } },
       ],
     };
-    const { container } = render(<SitePage page={page} playerUrl="https://player.invalid" attribution={null} />);
+    const { container } = render(<SitePage page={page} playerUrl="https://player.invalid" attribution={null} contact={CONTACT} />);
     expect(Array.from(container.querySelectorAll('[data-band]'), (band) => band.id)).toEqual(['the-room', 'games', '']);
   });
 
   it('joins the player app\'s address however it was written', () => {
-    render(<SitePage page={PAGE} playerUrl="https://player.invalid/" attribution={null} />);
+    render(<SitePage page={PAGE} playerUrl="https://player.invalid/" attribution={null} contact={CONTACT} />);
     expect(screen.getByRole('link', { name: 'Join RIVR' }).getAttribute('href')).toBe('https://player.invalid/sign-in');
   });
 
@@ -116,7 +129,7 @@ describe('a website page', () => {
         } },
       ],
     };
-    const { container } = render(<SitePage page={front} playerUrl="https://player.invalid" attribution={{ referral: 'FRIEND1' }} />);
+    const { container } = render(<SitePage page={front} playerUrl="https://player.invalid" attribution={{ referral: 'FRIEND1' }} contact={CONTACT} />);
     expect(Array.from(container.querySelectorAll('[data-band]'), (band) => band.getAttribute('data-band'))).toEqual(['dark', 'deep', 'cream', 'dark']);
     expect(screen.getByRole('heading', { level: 1, name: 'Bring your poker face.' })).toBeDefined();
     expect(screen.getByRole('img', { name: 'A dealer deals at a table' })).toBeDefined();
@@ -131,7 +144,7 @@ describe('a website page', () => {
       games: [{ name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, buyInMax: 500000n, straddle: null }],
       tournaments: [{ name: 'RIVR Sunday', startsAt: new Date('2026-11-15T10:30:00Z'), buyIn: 1000000n, guarantee: 50000000n }],
     };
-    const { container } = render(<SitePage page={live} playerUrl="https://player.invalid/" attribution={null} />);
+    const { container } = render(<SitePage page={live} playerUrl="https://player.invalid/" attribution={null} contact={CONTACT} />);
     expect(screen.getByText('Buy-in ₹5,000')).toBeDefined();
     expect(screen.queryByText(/running|waiting/)).toBeNull();
     // The header's Request a seat, the phone menu's, and the games block's.
@@ -154,7 +167,7 @@ describe('a website page', () => {
       ],
       promotions: [{ title: 'Referral', detail: '₹1,000 to each side', runs: 'Every day', rules: [], questions: [], isWelcome: false }],
     };
-    const { container } = render(<SitePage page={page} playerUrl="https://player.invalid" attribution={{ referral: 'FRIEND1' }} />);
+    const { container } = render(<SitePage page={page} playerUrl="https://player.invalid" attribution={{ referral: 'FRIEND1' }} contact={CONTACT} />);
     expect(Array.from(container.querySelectorAll('[data-band]'), (band) => band.getAttribute('data-band'))).toEqual(['deep', 'cream', 'dark', 'deep', 'cream', 'deep']);
     expect(screen.getByRole('heading', { level: 2, name: 'Good hands. Better company.' })).toBeDefined();
     expect(screen.getByRole('link', { name: 'Full calendar: Tournament nights' }).getAttribute('href')).toBe('/tournaments?ref=FRIEND1');
@@ -167,12 +180,12 @@ describe('a website page', () => {
   it('shows the social wall’s approved posts with their links, and no block while there are none', () => {
     const wall = { kind: 'social_wall' as const, content: { heading: 'On Instagram' } };
     const posts = [{ handle: 'zoya.plays', caption: 'Final table at RIVR', permalink: 'https://www.instagram.com/p/1/' }];
-    render(<SitePage page={{ ...PAGE, blocks: [wall], wallPosts: posts }} playerUrl="https://player.invalid" attribution={null} />);
+    render(<SitePage page={{ ...PAGE, blocks: [wall], wallPosts: posts }} playerUrl="https://player.invalid" attribution={null} contact={CONTACT} />);
     expect(screen.getByRole('heading', { name: 'On Instagram' })).toBeDefined();
     expect(screen.getByText('@zoya.plays')).toBeDefined();
     expect(screen.getByRole('link', { name: /See it on Instagram/ }).getAttribute('href')).toBe('https://www.instagram.com/p/1/');
     cleanup();
-    render(<SitePage page={{ ...PAGE, blocks: [wall] }} playerUrl="https://player.invalid" attribution={null} />);
+    render(<SitePage page={{ ...PAGE, blocks: [wall] }} playerUrl="https://player.invalid" attribution={null} contact={CONTACT} />);
     expect(screen.queryByRole('heading', { name: 'On Instagram' })).toBeNull();
   });
 });

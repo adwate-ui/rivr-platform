@@ -37,7 +37,7 @@ export const alerts = {
     'rakeback.unpaid': 'a week\'s rakeback held by a freeze or the kill switch for over five weeks was not given',
     'staff.role_granted': 'a staff member was given a role that moves money, approves a second time, stops the venue, runs promotions or adds bonus chips, or such a row was given another number',
     'venue.purged': 'the venue\'s data was purged',
-    'venue.config_changed': 'a super admin changed the venue’s networks, payment details or alert number',
+    'venue.config_changed': 'a super admin changed the venue’s networks, payment details, alert number or contact numbers',
     'settings.control_changed': 'a super admin changed a control setting: credit, second approval, TDS, alert thresholds, GST, high-hand or jackpot payouts, or rakeback',
     'website.publish_failed': 'a website page scheduled to publish could not be published: its draft is waiting in the console',
     'withdrawal.payout_orphaned': 'Cashfree paid a withdrawal the cage had already paid another way or given up on',

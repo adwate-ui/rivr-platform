@@ -1,4 +1,3 @@
-import { CLUB_CONTACT } from '@rivr/contracts/club';
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { DeskHelpProvider, Text, ToastProvider } from '@rivr/ui';
 import { QueryClient } from '@tanstack/react-query';
@@ -57,7 +56,7 @@ function renderProfile(card: object = CARD, erasure: { asked?: string; fails?: b
     return Response.json([]);
   });
   // As AppRoot gives every screen: the toasts and the club's number for the front desk.
-  const rootRoute = createRootRoute({ component: () => <DeskHelpProvider contact={CLUB_CONTACT}><ToastProvider><Outlet /></ToastProvider></DeskHelpProvider> });
+  const rootRoute = createRootRoute({ component: () => <DeskHelpProvider contact={{ phone: '+918796580435', whatsapp: '+918796580435' }}><ToastProvider><Outlet /></ToastProvider></DeskHelpProvider> });
   const page = (path: string, name: string) => createRoute({ getParentRoute: () => rootRoute, path, component: () => <Text>{name}</Text> });
   const profile = createRoute({ getParentRoute: () => rootRoute, path: '/profile', component: ProfileScreen });
   const rules = createRoute({ getParentRoute: () => rootRoute, path: '/profile/rules', component: HouseRulesScreen });

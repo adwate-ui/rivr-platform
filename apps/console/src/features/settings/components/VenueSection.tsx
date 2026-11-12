@@ -14,6 +14,9 @@ const FIELDS: readonly { readonly name: keyof VenueConfigInput; readonly label: 
   { name: 'gstin', label: 'console.settings.gstin' },
   { name: 'tan', label: 'console.settings.tan', hint: 'console.settings.tanHint' },
   { name: 'address', label: 'console.settings.address' },
+  // Side by side, the club's numbers for the website and the app (decision 0582).
+  { name: 'contactPhone', label: 'console.settings.contactPhone', hint: 'console.settings.contactHint' },
+  { name: 'contactWhatsapp', label: 'console.settings.contactWhatsapp', hint: 'console.settings.contactHint' },
   { name: 'upiPayeeName', label: 'console.settings.upiPayeeName' },
   { name: 'upiVpa', label: 'console.settings.upiVpa' },
   { name: 'bankName', label: 'console.settings.bankName' },
@@ -35,12 +38,15 @@ const invoiceInput = (config: VenueConfig) => ({
   signatoryDesignation: config.signatoryDesignation ?? '',
 });
 
+/** The club's numbers for calls and WhatsApp (decision 0582), as the form types them: empty for none. */
+const contactInput = (config: VenueConfig) => ({ contactPhone: config.contactPhone ?? '', contactWhatsapp: config.contactWhatsapp ?? '' });
+
 /** The configuration as the form types it: empty for nothing, the networks separated by commas. */
 const toInput = (config: VenueConfig): VenueConfigInput => ({
   legalName: config.legalName, gstin: config.gstin ?? '', tan: config.tan ?? '', address: config.address, upiPayeeName: config.upiPayeeName ?? '',
   upiVpa: config.upiVpa ?? '', bankName: config.bankName ?? '', bankAccountName: config.bankAccountName ?? '',
   bankAccountNumber: config.bankAccountNumber ?? '', bankIfsc: config.bankIfsc ?? '', invoicePrefix: config.invoicePrefix,
-  staffIpAllowlist: config.staffIpAllowlist.join(', '), alertWhatsapp: config.alertWhatsapp ?? '', ...invoiceInput(config),
+  staffIpAllowlist: config.staffIpAllowlist.join(', '), alertWhatsapp: config.alertWhatsapp ?? '', ...contactInput(config), ...invoiceInput(config),
 });
 
 function VenueForm({ venueId, config }: { venueId: string; config: VenueConfig }) {

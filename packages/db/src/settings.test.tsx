@@ -183,11 +183,12 @@ describe('venue configuration and chips (#33)', () => {
     const change = {
       legalName: 'RIVR', gstin: null, tan: null, address: 'Gurugram', upiPayeeName: null, upiVpa: null, bankName: null, bankAccountName: null,
       bankAccountNumber: null, bankIfsc: null, invoicePrefix: 'RIVR', staffIpAllowlist: ['203.0.113.7'], alertWhatsapp: null,
-      sacClubServices: '999692', sacAcademy: null, signatoryName: null, signatoryDesignation: null,
+      contactPhone: '+911244000000', contactWhatsapp: null, sacClubServices: '999692', sacAcademy: null, signatoryName: null, signatoryDesignation: null,
     };
     const saved = renderSettings({ 'PATCH /venue_config': { body: [{ venue_id: VENUE }] } });
     expect(await outcomeOf(() => saved.result.current.configActions.save.mutateAsync(change))).toEqual({ ok: true, value: null });
-    expect(saved.calls.find((call) => call.method === 'PATCH')?.body).toMatchObject({ legal_name: 'RIVR', tan: null, staff_ip_allowlist: ['203.0.113.7'], sac_club_services: '999692' });
+    expect(saved.calls.find((call) => call.method === 'PATCH')?.body).toMatchObject({ legal_name: 'RIVR', tan: null, staff_ip_allowlist: ['203.0.113.7'], sac_club_services: '999692',
+      contact_phone: '+911244000000', contact_whatsapp: null });
     cleanup();
     const hidden = renderSettings({ 'PATCH /venue_config': { body: [] } });
     expect(await outcomeOf(() => hidden.result.current.configActions.save.mutateAsync(change))).toEqual({ ok: false, error: 'not_allowed' });

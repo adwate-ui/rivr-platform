@@ -1,4 +1,5 @@
 import { CLUB_CONTACT } from '@rivr/contracts/club';
+import type { ClubContact } from '@rivr/db';
 import type { SitePage } from '@rivr/db/site';
 import { t } from '@rivr/i18n';
 
@@ -20,10 +21,10 @@ function openingHours(hours: string | undefined) {
 
 /**
  * The club as schema.org `LocalBusiness`, for the front page and Visit (F-194): the address and hours as the page's map
- * band has them, so the club's own edits carry through. No map coordinates, as the club has given none. Safe to put in a
- * script: no `<` is left in it to close one.
+ * band has them, so the club's own edits carry through, and its number to call as set under Settings, Club (decision 0582). No
+ * map coordinates, as the club has given none. Safe to put in a script: no `<` is left in it to close one.
  */
-export function localBusiness(page: Pick<SitePage, 'slug' | 'blocks'>, origin: string): string | null {
+export function localBusiness(page: Pick<SitePage, 'slug' | 'blocks'>, origin: string, contact: ClubContact): string | null {
   const map = page.blocks.flatMap((block) => (block.kind === 'map' ? [block.content] : []))[0];
   if (map === undefined || !BUSINESS_PAGES.includes(page.slug)) return null;
   return JSON.stringify({
@@ -31,7 +32,7 @@ export function localBusiness(page: Pick<SitePage, 'slug' | 'blocks'>, origin: s
     '@type': 'LocalBusiness',
     name: t('ui.brand.label'),
     url: origin,
-    telephone: map.phone ?? CLUB_CONTACT.phone,
+    telephone: map.phone ?? contact.phone ?? undefined,
     email: map.email ?? CLUB_CONTACT.email,
     address: { '@type': 'PostalAddress', streetAddress: map.address, addressLocality: 'Gurugram', addressRegion: 'Haryana', addressCountry: 'IN' },
     sameAs: [CLUB_CONTACT.instagram, CLUB_CONTACT.youtube],

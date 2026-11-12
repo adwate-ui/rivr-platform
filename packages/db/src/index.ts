@@ -163,6 +163,7 @@ export {
   useTvCallTimeBoard, useTvJackpot, useTvLeaderboard, useTvSignals, useTvWaitlistBoard, type TvCallTimeTable, type TvJackpot, type TvLeaderboardRow, type TvPlace,
   type TvSeated, type TvTableList,
 } from './tvBoards.ts';
+export { fetchClubContact, NO_CLUB_CONTACT, useClubContact, type ClubContact } from './clubContact.ts';
 export { useMyPromotionCards, type PromotionCardData } from './promotionCards.ts';
 export { useTvPromotions } from './tvPromotions.ts';
 export {

@@ -14,6 +14,8 @@ export const queryKeys = {
   venueSettings: (userId: string, venueId: string) => ['user', userId, 'venue-settings', venueId] as const,
   /** A venue's configuration, for a super admin (#33). */
   venueConfig: (userId: string, venueId: string) => ['user', userId, 'venue-config', venueId] as const,
+  /** The club's numbers for calls and WhatsApp (decision 0582), the same for everyone. */
+  clubContact: (userId: string) => ['user', userId, 'club-contact'] as const,
   /** A venue's chip denominations (#33). */
   chipDenominations: (userId: string, venueId: string) => ['user', userId, 'chip-denominations', venueId] as const,
   /** The signed-in member's membership card and its door code for now (#71). */

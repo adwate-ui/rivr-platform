@@ -21,6 +21,9 @@ where venue_id = '00000000-0000-4000-8000-000000000001' and gstin is null;
 -- real codes are the CA's, set in venue configuration.
 update public.venue_config set sac_club_services = '999692', sac_academy = '999293', signatory_name = 'Rhea Kapoor', signatory_designation = 'Partner'
 where venue_id = '00000000-0000-4000-8000-000000000001' and sac_club_services is null;
+-- The club's numbers for calls and WhatsApp, as 20261112130000_club_contact.sql fills them where the club already is (#917).
+update public.venue_config set contact_phone = '+918796580435', contact_whatsapp = '+918796580435'
+where venue_id = '00000000-0000-4000-8000-000000000001' and contact_phone is null;
 -- And one for the practice venue, also in Haryana, so a trainee's invoice to a company from another state
 -- shows IGST as the club's would (#380). Its invoices never carry it and are never tax invoices.
 update public.venue_config set gstin = '06AABCP1234Q1Z5'
