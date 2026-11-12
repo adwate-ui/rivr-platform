@@ -1,7 +1,8 @@
 /**
  * Website editing, additions flow 17 (#129; decision 0270). Sara Iqbal, this flow's own marketing manager, changes House
  * rules' heading in place, saves the draft and sees it in the preview, publishes it and finds it on the website at once,
- * then publishes the page's earlier version again from its history, so the website is as it was. Scheduled publishing
+ * then publishes the page's earlier version again from its history, so the website is as it was. She also adds a house
+ * rule, takes one out and adds a section, then puts the page back the same way (#906). Scheduled publishing
  * and the refusals are proved in supabase/tests/187_site_editor.test.sql.
  */
 import { expect, test } from '@playwright/test';
@@ -11,7 +12,7 @@ import { signInToConsole } from '../support/signIn.ts';
 test.describe('Website edit', () => {
   test('marketing edits a page, previews it, publishes it and rolls it back', async ({ page, browser }) => {
     test.skip(isRemoteTarget(), 'edits the club\u2019s website, so the local stack only');
-    test.setTimeout(60_000);
+    test.setTimeout(90_000);
     const heading = `House rules ${String(Date.now()).slice(-6)}`;
     await signInToConsole(page, '9000000637');
     // The website is Content's first tab, its pages listed beside the editor (console v3).
@@ -49,5 +50,35 @@ test.describe('Website edit', () => {
     await expect(page.getByText('That version is published again.')).toBeVisible();
     await site.reload();
     await expect(site.getByRole('heading', { name: original })).toBeVisible();
+
+    // The owner, 12 Nov (#906): house rules gain and lose points, and the page gains a section, then goes back as it was.
+    // In the same test, as Auth sends Sara one code a minute.
+    const run = String(Date.now()).slice(-6);
+    await page.getByRole('button', { name: 'Add a rule' }).click();
+    const rules = page.getByRole('textbox', { name: /^Rule \d+$/ });
+    await rules.last().fill(`No phones at the table, run ${run}`);
+    // The last of the club's own rules: the first, which other flows read, stays even if this test stops half way.
+    const lastOwn = (await rules.count()) - 1;
+    const removed = await rules.nth(lastOwn - 1).inputValue();
+    await page.getByRole('button', { name: `Remove Rule ${String(lastOwn)}` }).click();
+    await page.getByRole('button', { name: /^More for section / }).last().click();
+    await page.getByRole('menuitem', { name: 'Add a section below' }).click();
+    await page.getByRole('radiogroup', { name: /^New section below section / }).getByRole('radio', { name: 'Text' }).click();
+    await page.getByRole('textbox', { name: 'Body' }).last().fill(`Ask the floor, run ${run}`);
+    await page.getByRole('button', { name: 'Save draft' }).click();
+    await expect(page.getByText('Draft saved.')).toBeVisible();
+    await page.getByRole('button', { name: 'Publish now' }).click();
+    await expect(page.getByText('Published.')).toBeVisible();
+    await site.reload();
+    await expect(site.getByText(`No phones at the table, run ${run}`)).toBeVisible();
+    await expect(site.getByText(`Ask the floor, run ${run}`)).toBeVisible();
+    await expect(site.getByText(removed, { exact: true })).toHaveCount(0);
+
+    await page.getByRole('button', { name: /^Publish the version of / }).first().click();
+    await page.getByRole('button', { name: 'Yes, publish it now' }).click();
+    await expect(page.getByText('That version is published again.')).toBeVisible();
+    await site.reload();
+    await expect(site.getByText(removed, { exact: true })).toBeVisible();
+    await expect(site.getByText(`Ask the floor, run ${run}`)).toHaveCount(0);
   });
 });

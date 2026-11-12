@@ -1,6 +1,6 @@
 import { SITE_BLOCK_KINDS } from '@rivr/contracts';
 import { describe, expect, it } from 'vitest';
-import { fieldGroups, fieldsOf, setAt } from './blockFields.ts';
+import { fieldGroups, fieldsOf, itemAdded, itemRemoved, listAt, setAt } from './blockFields.ts';
 
 const CARDS = { heading: 'What\u2019s on', cards: [{ title: 'Tournament nights', link: { label: 'Full calendar', page: 'tournaments' } }, { title: 'On the house', points: ['Tea', 'Coffee'] }] };
 
@@ -76,5 +76,35 @@ describe('the block editor\u2019s fields', () => {
       ['questions', 2, ['question', 'answer']],
       [null, null, ['points', 'points']],
     ]);
+  });
+});
+
+// The owner, 12 Nov: points of the house rules, and any other list, gain and lose items in the editor.
+describe('a block’s lists', () => {
+  it('adds an empty word to a list of words', () => {
+    expect(itemAdded({ heading: 'House rules', rules: ['One player to a hand.'] }, ['rules'], ''))
+      .toEqual({ heading: 'House rules', rules: ['One player to a hand.', ''] });
+    expect(itemAdded(CARDS, ['cards', 1, 'points'], '')).toEqual({ ...CARDS, cards: [CARDS.cards[0], { title: 'On the house', points: ['Tea', 'Coffee', ''] }] });
+  });
+
+  // A copy of the last ruling would have carried its link, which the editor cannot show or change (review of #906).
+  it('adds the new item’s own empty words, never a copy of another item', () => {
+    const rulings = { items: [{ when: '2024', title: 'Varun Gumber', link: { label: 'Read it', href: 'https://indiankanoon.org/doc/1/' } }] };
+    expect(listAt(itemAdded(rulings, ['items'], { when: '', title: '', text: '' }), ['items'])?.at(-1)).toEqual({ when: '', title: '', text: '' });
+  });
+
+  it('adds to a list with no item yet', () => {
+    expect(itemAdded({ heading: 'Careers', roles: [] }, ['roles'], { title: '', body: '' })).toEqual({ heading: 'Careers', roles: [{ title: '', body: '' }] });
+  });
+
+  it('removes the item at a place and nothing else', () => {
+    expect(itemRemoved({ rules: ['a', 'b', 'c'] }, ['rules'], 1)).toEqual({ rules: ['a', 'c'] });
+    expect(itemRemoved(CARDS, ['cards'], 0)).toEqual({ ...CARDS, cards: [CARDS.cards[1]] });
+  });
+
+  it('reads the list at a place, and nothing where there is none', () => {
+    expect(listAt(CARDS, ['cards', 1, 'points'])).toEqual(['Tea', 'Coffee']);
+    expect(listAt(CARDS, ['heading'])).toBeNull();
+    expect(itemAdded(CARDS, ['heading'], '')).toEqual(CARDS);
   });
 });

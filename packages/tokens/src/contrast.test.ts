@@ -47,6 +47,8 @@ describe('text on a tinted fill is at least 4.5:1 (F-026, F-200)', () => {
     ['muted on the selected tint over green-black, as a PickList has it', 'color.contentMuted', 'color.selected', 'color.raised'],
     ['cream on the subtle fill over green', 'color.content', 'color.subtle', 'color.surface'],
     ['cream on the gold tint over green, a member\u2019s usual', 'color.content', 'color.goldTint', 'color.surface'],
+    ['cream on the red tint over green, the member\u2019s ID check on Tonight', 'color.content', 'color.redTint', 'color.surface'],
+    ['the danger red on the red tint over green, the ID check\u2019s eyebrow', 'color.danger', 'color.redTint', 'color.surface'],
   ])('%s', (_name, text, tint, ground) => {
     expect(contrastRatio(hex(text), flatten(hex(tint), hex(ground)))).toBeGreaterThanOrEqual(4.5);
   });

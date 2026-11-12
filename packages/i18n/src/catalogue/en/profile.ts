@@ -81,12 +81,10 @@ export const profile = {
   card: 'Membership card',
 };
 
-/** House rules in the player's Settings (#637): the club's house rules and the legal standing, from its website. */
+/** House rules in the player's Settings (#637): the club's house rules, from its website. */
 export const playerHouseRules = {
   title: 'House rules',
   /** Under the title (brief 3.10), where the club has written no line of its own. */
   appliesAtEveryTable: 'The floor applies these at every table.',
-  /** Above the legal cases when the website gives them no heading. */
-  legal: 'The legal standing',
   empty: 'The club has not published its house rules yet.',
 };

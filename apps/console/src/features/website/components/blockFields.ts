@@ -106,14 +106,43 @@ export function fieldGroups(fields: readonly BlockField[]): FieldGroup[] {
   return groups;
 }
 
-/** The content with the words at a place changed; everything else as it was, and all of it for a place it does not have. */
-export function setAt(value: Content, path: readonly (string | number)[], next: string): Content {
+/** The content with what is at a place replaced by `change` of it; everything else as it was, and all of it for a place it does not have. */
+function changeAt(value: Content, path: readonly (string | number)[], change: (old: Content) => Content): Content {
   const [head, ...rest] = path;
-  if (head === undefined) return next;
-  if (Array.isArray(value) && typeof head === 'number') return value.map((item, index) => (index === head ? setAt(item, rest, next) : item));
+  if (head === undefined) return change(value);
+  if (Array.isArray(value) && typeof head === 'number') return value.map((item, index) => (index === head ? changeAt(item, rest, change) : item));
   if (isObject(value) && typeof head === 'string') {
     const child = value[head];
-    return child === undefined ? value : { ...value, [head]: setAt(child, rest, next) };
+    return child === undefined ? value : { ...value, [head]: changeAt(child, rest, change) };
   }
   return value;
+}
+
+/** The content with the words at a place changed; everything else as it was, and all of it for a place it does not have. */
+export function setAt(value: Content, path: readonly (string | number)[], next: string): Content {
+  return changeAt(value, path, () => next);
+}
+
+/** The list at a place, or null where there is none. */
+export function listAt(value: Content, path: readonly (string | number)[]): readonly Content[] | null {
+  let at: Content | undefined = value;
+  for (const step of path) {
+    if (Array.isArray(at) && typeof step === 'number') at = at[step];
+    else if (at !== undefined && isObject(at) && typeof step === 'string') at = at[step];
+    else return null;
+  }
+  return Array.isArray(at) ? at : null;
+}
+
+/**
+ * The content with `item`, a new item's empty words, at the end of the list at a place (#906). Never a copy of another item,
+ * which could carry a link or a picture the editor cannot show.
+ */
+export function itemAdded(value: Content, path: readonly (string | number)[], item: Content): Content {
+  return changeAt(value, path, (list) => (Array.isArray(list) ? [...list, structuredClone(item)] : list));
+}
+
+/** The content without the item at `index` of the list at a place (#906). */
+export function itemRemoved(value: Content, path: readonly (string | number)[], index: number): Content {
+  return changeAt(value, path, (list) => (Array.isArray(list) ? list.filter((_, place) => place !== index) : list));
 }
