@@ -62,7 +62,7 @@ export const profile = {
   seatReadyOn: 'This phone will tell you when your seat is ready.',
   nameOnTvs: 'Name on club TVs',
   /** The prototype's "seat number" is not what the TV shows: off, it shows the member's place on the list. */
-  nameOnTvsHint: 'Off shows your place instead',
+  nameOnTvsHint: 'Off shows your place instead, or your member number on the hours board',
   /** The page the store app shows when the hosted app cannot load at start (decision 0577). */
   offlineStart: { title: 'No network', body: 'Opens when your network is back.', retry: 'Retry' },
   /** How a member asks to delete their account (#813, decision 0574): a super admin completes it with the erasure. */

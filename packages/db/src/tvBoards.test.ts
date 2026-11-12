@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { toPaise } from './parse/hands.ts';
-import { toTvCallTimeTables, toTvJackpot, toTvTables } from './tvBoards.ts';
+import { toTvCallTimeTables, toTvJackpot, toTvLeaderboard, toTvTables } from './tvBoards.ts';
 
 const STAKE = { table_type_name: 'NLH 100/200', small_blind_paise: 10000, big_blind_paise: 20000 };
 
@@ -48,5 +48,17 @@ describe('the TV boards (#65)', () => {
     expect(tables.map((table) => [table.name, table.stake, table.seated.length])).toEqual([['Table 3', 'NLH 100/200', 2], ['Private Room', 'NLH 200/400', 1]]);
     expect(tables[0]?.seated[1]).toEqual({ seat: 5, name: null, callTimeLeft: 0, isAway: true, isLeaving: false });
     expect(tables[1]?.seated[0]).toEqual({ seat: 1, name: 'Ishaan V.', callTimeLeft: 7200, isAway: false, isLeaving: true });
+  });
+
+  // Decision 0581: a hidden name comes as the member number alone.
+  it('reads the hours leaderboard in order, by name or member number, in the period the club set', () => {
+    expect(toTvLeaderboard([
+      { period: 'week', place: 1, display_name: 'Kabir S.', member_number: null, played_minutes: 300 },
+      { period: 'week', place: 2, display_name: null, member_number: 17, played_minutes: 210 },
+    ])).toEqual([
+      { period: 'week', place: 1, name: 'Kabir S.', memberNumber: null, minutes: 300 },
+      { period: 'week', place: 2, name: null, memberNumber: 17, minutes: 210 },
+    ]);
+    expect(toTvLeaderboard([{ period: 'season', place: 1, display_name: 'Kabir S.', member_number: null, played_minutes: 60 }])[0]?.period).toBe('tonight');
   });
 });

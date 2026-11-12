@@ -15,6 +15,7 @@ export const tv = {
     league: 'League leaderboard',
     social_wall: 'Social wall',
     spin_wheel: 'Spin wheel',
+    leaderboard: 'Hours leaderboard',
   },
   /** Under a list on a board cut short (F-044). */
   more: '+{count} more',
@@ -69,6 +70,18 @@ export const tv = {
     none: 'No posts on the wall yet.',
     /** `Post 2 of 6`. */
     pager: 'Post {current} of {count}',
+  },
+  /** The hours leaderboard (decision 0581): members by the hours they played in the period the club set. */
+  leaderboard: {
+    title: 'Most hours played',
+    empty: 'No hours played yet.',
+    periods: { tonight: 'Tonight', week: 'This week', month: 'This month', all: 'All time' },
+    /** Over a column: `Places 1 to 6`. */
+    places: 'Places {from} to {to}',
+    /** Over a column whose rows all share a place. */
+    place: 'Place {place}',
+    /** A member who hid their name on the TVs, by their member number (the owner, 12 Nov). */
+    member: 'Member #{number}',
   },
   /** The League leaderboard (#148, decision 0182): this month's places, and the season's. */
   league: {

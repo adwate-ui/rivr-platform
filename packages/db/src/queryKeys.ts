@@ -184,6 +184,8 @@ export const queryKeys = {
   /** The TV's rewards ticker and League leaderboard (#148, decision 0183). */
   tvRewardsTicker: (userId: string) => ['user', userId, 'tv-rewards-ticker'] as const,
   tvLeagueBoard: (userId: string) => ['user', userId, 'tv-league-board'] as const,
+  /** The TV's hours leaderboard (decision 0581). */
+  tvLeaderboard: (userId: string) => ['user', userId, 'tv-leaderboard'] as const,
   /** The TV's spin wheel (#150). */
   tvSpinWheel: (userId: string) => ['user', userId, 'tv-spin-wheel'] as const,
   /** The TV's social wall (#158). */

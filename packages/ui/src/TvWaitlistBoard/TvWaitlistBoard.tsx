@@ -63,6 +63,14 @@ function placesThatFit(stake: TvWaitlistStake, isNarrow: boolean, hasFooter: boo
   return count;
 }
 
+/**
+ * How many of a column's places the stage holds with `columns` side by side, any more going to "+N more": for a board that
+ * runs one ranked list down its columns, so column one ends where it fills and no place is hidden between them (decision 0581).
+ */
+export function tvPlacesThatFit(stake: TvWaitlistStake, columns: number): number {
+  return placesThatFit(stake, columns > 2, false);
+}
+
 /** A place: its number, the name, and what is beside it: under the name where there is no room beside it. */
 function PlaceRow({ place, isNarrow }: { place: TvWaitlistPlace; isNarrow: boolean }) {
   const status = place.status === undefined ? null : <span className="truncate whitespace-nowrap font-text text-48 text-money">{place.status}</span>;

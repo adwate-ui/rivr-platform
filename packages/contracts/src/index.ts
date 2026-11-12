@@ -48,11 +48,13 @@ export {
   deviceRevokeSchema,
   HIDDEN_TV_MODES,
   pairingCodeSchema,
+  TV_LEADERBOARD_PERIODS,
   TV_MODES,
   tvPairingSchema,
   tvPairSchema,
   type CageAgentRequest,
   type DevicePairRequest,
+  type TvLeaderboardPeriod,
   type TvMode,
 } from './devices.ts';
 export { dropBoxCountSchema, HAND_VARIANTS, handEntrySchema } from './hands.ts';
