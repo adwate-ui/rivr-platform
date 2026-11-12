@@ -10,15 +10,39 @@ import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const ASHA = '00000000-0000-4000-8000-000000000301';
 
-/** A fake API: the kyc function answers with `kyc`, PostgREST's kyc_record with `record`, kyc_at_the_club with `atTheClub`. */
-function renderKyc(replies: { kyc?: { status: number; body: unknown }; record?: unknown; atTheClub?: unknown }) {
+/**
+ * PostgREST's kyc_record under row-level security: Asha's own `record`, and with it every other member's to a login that is
+ * also a KYC reviewer, unless the read asks for hers through her member row.
+ */
+function kycRows(url: string, own: unknown, othersSeenAsStaff: readonly unknown[]): unknown[] {
+  const owns = own === undefined || own === null ? [] : [own];
+  return url.includes(`member.user_id=eq.${ASHA}`) ? owns : [...owns, ...othersSeenAsStaff];
+}
+
+interface Replies {
+  kyc?: { status: number; body: unknown };
+  record?: unknown;
+  othersSeenAsStaff?: readonly unknown[];
+  atTheClub?: unknown;
+}
+
+/**
+ * A fake API: the kyc function answers with `kyc`, kyc_at_the_club with `atTheClub`, and kyc_record with Asha's `record`
+ * (and `othersSeenAsStaff`, as kycRows).
+ */
+function replyTo(url: string, replies: Replies): { status: number; body: unknown } {
+  if (url.includes('/functions/v1/kyc')) return replies.kyc ?? { status: 200, body: {} };
+  if (url.includes('/rpc/kyc_at_the_club')) return { status: 200, body: replies.atTheClub ?? false };
+  if (url.includes('/rest/v1/kyc_record')) return { status: 200, body: kycRows(url, replies.record, replies.othersSeenAsStaff ?? []) };
+  return { status: 200, body: null };
+}
+
+function renderKyc(replies: Replies) {
   const calls: { url: string; body: unknown }[] = [];
   const fetch: typeof globalThis.fetch = async (input, init) => {
     const url = input instanceof Request ? input.url : String(input);
     calls.push({ url, body: init?.body ? JSON.parse(String(init.body)) : undefined });
-    const reply = url.includes('/functions/v1/kyc') ? (replies.kyc ?? { status: 200, body: {} })
-      : url.includes('/rpc/kyc_at_the_club') ? { status: 200, body: replies.atTheClub ?? false }
-      : { status: 200, body: replies.record ?? null };
+    const reply = replyTo(url, replies);
     return new Response(JSON.stringify(reply.body), { status: reply.status, headers: { 'content-type': 'application/json' } });
   };
   const client: RivrClient = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
@@ -52,6 +76,19 @@ describe('useKycRecord', () => {
     });
 
     await waitFor(() => expect(result.current.record.data).toMatchObject({ status: 'started', hasSelfie: false, isAtTheClub: true }));
+  });
+
+  // Production, 12 Nov: an admin who had joined as a member read the venue's every check, which maybeSingle refuses, and
+  // the app stayed on its loading screen.
+  it('reads only the member\'s own check when their login is also staff who see every member\'s', async () => {
+    const other = { status: 'verified', photo_path: 'v/o/selfie.jpg', date_of_birth: null, masked_aadhaar: null, pan: null, at_club_from: null };
+    const none = renderKyc({ record: null, othersSeenAsStaff: [other, other] });
+    await waitFor(() => expect(none.result.current.record.isSuccess).toBe(true));
+    expect(none.result.current.record.data).toBeNull();
+    expect(none.calls.find((call) => call.url.includes('/rest/v1/kyc_record'))?.url).toContain(`member.user_id=eq.${ASHA}`);
+    cleanup();
+    const own = renderKyc({ record: { ...other, status: 'started', photo_path: 'v/a/selfie.jpg' }, othersSeenAsStaff: [other] });
+    await waitFor(() => expect(own.result.current.record.data).toMatchObject({ status: 'started', photoPath: 'v/a/selfie.jpg' }));
   });
 });
 
