@@ -9,14 +9,16 @@ export interface NoticeCardProps {
   text: string;
   /**
    * `club`, the default, a notice staff write: a gold eyebrow and edge. `alert`, the member's own ID check: a slight red
-   * tinge, so it reads apart from the club's notices (the owner, 12 Nov).
+   * tinge in its edge and ground, so it reads apart from the club's notices (the owner, 12 Nov). Lighter than Banner's
+   * alert, a full red line, which is for what needs acting on now.
    */
   tone?: 'club' | 'alert';
 }
 
+// The alert's eyebrow is cream: the danger red is never text on a tinted fill (@rivr/tokens).
 const LOOK = {
   club: { card: 'border-gold-edge bg-raised', eyebrow: 'text-accent' },
-  alert: { card: 'border-red-edge bg-red-tint', eyebrow: 'text-danger' },
+  alert: { card: 'border-red-edge bg-red-tint', eyebrow: 'text-content' },
 } as const;
 
 /**
