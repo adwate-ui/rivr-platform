@@ -78,6 +78,8 @@ export const tv = {
     periods: { tonight: 'Tonight', week: 'This week', month: 'This month', all: 'All time' },
     /** Over a column: `Places 1 to 6`. */
     places: 'Places {from} to {to}',
+    /** Over a column whose rows all share a place. */
+    place: 'Place {place}',
     /** A member who hid their name on the TVs, by their member number (the owner, 12 Nov). */
     member: 'Member #{number}',
   },

@@ -47,6 +47,15 @@ select pg_temp.seat('216', '2025-10-08 18:00', '2025-10-08 23:00');
 select pg_temp.seat('217', '2025-10-08 10:00', '2025-10-08 22:00');
 select pg_temp.seat('214', '2025-09-30 20:00', '2025-09-30 23:00');
 select pg_temp.seat('214', '2025-10-08 23:30', '2025-10-09 02:00');
+-- Asha (301) at the practice venue, ten hours tonight: never on the club's board.
+with v as (
+  insert into public.visit (venue_id, member_id, opened_at, closed_at, close_reason)
+  values ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000301', '2025-10-08 12:00+05:30', '2025-10-08 22:00+05:30', 'door')
+  returning id, venue_id, member_id, opened_at, closed_at
+)
+insert into public.seat_session (venue_id, member_id, visit_id, table_id, seat, started_at, seated_here_at, ended_at, end_reason)
+select v.venue_id, v.member_id, v.id, g.id, 1, v.opened_at, v.opened_at, v.closed_at, 'left'
+from v join public.game_table g on g.venue_id = v.venue_id and g.name = 'Table 1';
 insert into public.self_exclusion (venue_id, member_id, starts_at, ends_at)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000217', now() - interval '1 day', now() + interval '30 days');
 insert into public.member_preference (member_id, venue_id, name_on_tvs)
@@ -55,7 +64,10 @@ on conflict (member_id) do update set name_on_tvs = false;
 
 select set_eq($$ select * from pg_temp.board('tonight') $$,
   $$ values (1, '216', 300), (2, '211', 210), (3, '212', 120), (3, '213', 120) $$,
-  'tonight: time away does not count, a seat still going counts to now, ties share a place, and the self-excluded are left out');
+  'tonight: time away does not count, a seat still going counts to now, ties share a place, the self-excluded are left out, and the practice venue never shows');
+select set_eq($$ select place, right(member_id::text, 3), played_minutes from private.hours_leaderboard('00000000-0000-4000-8000-000000000002', 'tonight',
+                   null, null, '2025-10-08 23:00+05:30') $$,
+  $$ values (1, '301', 600) $$, 'and the practice venue''s board holds its own seats alone');
 select set_eq($$ select * from pg_temp.board('week') $$,
   $$ values (1, '212', 300), (1, '216', 300), (3, '211', 210), (4, '213', 120) $$,
   'this week adds Monday''s seats');
@@ -82,8 +94,12 @@ select results_eq($$ select display_name, member_number from private.hours_leade
 select throws_ok($$ insert into public.setting (venue_id, key, subject, value, effective_from, reason)
                     values ('00000000-0000-4000-8000-000000000001', 'tv.leaderboard', '', '{"period": "week", "top": 13}', '-infinity', 'Test 410') $$,
   null, 'more than the board''s twelve is refused');
+select throws_ok($$ insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+                    values ('00000000-0000-4000-8000-000000000001', 'tv.leaderboard', '', '{"period": "week", "min_hours": 0}', '-infinity', 'Test 410') $$,
+  null, 'and a cutoff under an hour');
+-- 3.0 passes the schema as a whole number; the board reads it as 3 (the security review of #907).
 select lives_ok($$ insert into public.setting (venue_id, key, subject, value, effective_from, reason)
-                   values ('00000000-0000-4000-8000-000000000001', 'tv.leaderboard', '', '{"period": "all", "top": 3}', '-infinity', 'Test 410') $$,
+                   values ('00000000-0000-4000-8000-000000000001', 'tv.leaderboard', '', '{"period": "all", "top": 3.0}', '-infinity', 'Test 410') $$,
   'all time, the top 3');
 
 -- A paired TV reads it only while it shows the board, as its main mode or in its rotation.

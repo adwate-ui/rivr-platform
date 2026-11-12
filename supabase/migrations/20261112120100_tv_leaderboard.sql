@@ -31,11 +31,11 @@ $$;
 
 -- The board at `p_at`: each member's minutes in the seats they took in the period up to `p_at`, ranked, ties sharing a place
 -- (1, 2, 2, 4), and the places up to `p_top`, or every member past `p_min_hours` (at most 100), or the top places of those.
+-- It runs as its caller, private.tv_leaderboard, and no API role may call it: it ranks any venue.
 create function private.hours_leaderboard(p_venue_id uuid, p_period text, p_top integer, p_min_hours integer, p_at timestamptz)
 returns table (place integer, member_id uuid, display_name text, member_number bigint, played_minutes integer)
 language sql
 stable
-security definer
 set search_path = ''
 as $$
   with played as (
@@ -58,7 +58,7 @@ as $$
   join public.member m on m.id = r.member_id
   left join public.member_preference pr on pr.member_id = r.member_id
   where r.place <= coalesce(p_top, case when p_min_hours is null then 10 else 100 end)
-  order by r.place, m.full_name;
+  order by r.place, m.member_number;
 $$;
 
 -- The signed-in TV's board while the leaderboard is its mode or in its rotation, as its venue sets it, with the period it counts.
@@ -70,8 +70,8 @@ security definer
 set search_path = ''
 as $$
   with board as (
-    select v.venue_id, coalesce(c.value ->> 'period', 'tonight') as period, (c.value ->> 'top')::integer as top,
-           (c.value ->> 'min_hours')::integer as min_hours
+    select v.venue_id, coalesce(c.value ->> 'period', 'tonight') as period, (c.value -> 'top')::integer as top,
+           (c.value -> 'min_hours')::integer as min_hours
     from (select private.tv_showing('leaderboard') as venue_id) v
     cross join lateral (select private.setting_at(v.venue_id, 'tv.leaderboard', '', now()) as value) c
     where v.venue_id is not null
@@ -91,3 +91,7 @@ revoke execute on function private.leaderboard_from(text, timestamptz), private.
   from public, anon, authenticated;
 revoke execute on function private.tv_leaderboard(), public.tv_leaderboard() from public, anon;
 grant execute on function private.tv_leaderboard(), public.tv_leaderboard() to authenticated;
+
+-- What the member's switch now covers (the security review of #907): the hours board shows a hidden name's member number.
+comment on column public.member_preference.name_on_tvs is
+  'Whether the TVs show the member''s first name and initial; off, the boards show their place, and the hours leaderboard their member number (decision 0581).';

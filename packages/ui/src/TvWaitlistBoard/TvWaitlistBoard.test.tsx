@@ -1,7 +1,7 @@
 import { screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { axeViolations, renderIn } from '../test/render.tsx';
-import { TvWaitlistBoard } from './TvWaitlistBoard.tsx';
+import { TvWaitlistBoard, tvPlacesThatFit, type TvWaitlistStake } from './TvWaitlistBoard.tsx';
 
 const STAKES = [
   { id: 'a', stake: '₹50/100', detail: '1 table open', places: [] },
@@ -86,5 +86,17 @@ describe('TvWaitlistBoard', () => {
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<TvWaitlistBoard title="Waitlist" stakes={STAKES} emptyText="No one waiting." moreText={MORE} />);
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  // Decision 0581: the hours leaderboard runs one list down two columns, column one ending where it fills.
+  it('counts what a column holds for a board that runs one list down its columns, a long name taking two lines', () => {
+    const column = (names: readonly string[]): TvWaitlistStake => ({
+      id: 'c', stake: 'All time', detail: 'Places 1 to 12', places: names.map((name, index) => ({ id: String(index), place: String(index + 1), name, status: '9h 55m' })),
+    });
+    const short = Array.from({ length: 12 }, (_, index) => `Player ${String(index + 1)}`);
+    expect(tvPlacesThatFit(column(short), 2)).toBe(6);
+    expect(tvPlacesThatFit(column(short.map((name, index) => (index === 2 ? 'Siddharth M.' : name))), 2)).toBe(5);
+    expect(tvPlacesThatFit(column(short.slice(0, 4)), 2)).toBe(4);
+    expect(tvPlacesThatFit(column(short), 3)).toBe(3);
   });
 });

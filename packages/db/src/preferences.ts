@@ -28,7 +28,7 @@ export interface Preferences {
   readonly notificationsOff: readonly PushChoice[];
   /** Marketing consent in force: promotions by WhatsApp and push. */
   readonly marketing: boolean;
-  /** Whether the TVs' waitlist board shows their first name and initial; off, only their place (#326). */
+  /** Whether the TVs show their first name and initial (#326); off, their place, or on the hours board their member number (decision 0581). */
   readonly nameOnTvs: boolean;
 }
 
