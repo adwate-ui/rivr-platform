@@ -6,6 +6,9 @@ import type { SeatTierFields } from './builderForm.ts';
 // One to ten tiers (the contracts' seatTiers).
 const MOST_TIERS = 10;
 
+// What tiers need of the limits (decision 0580): once a member, never up to N times, never afresh each month.
+const TIERS_LIMITS = { perMember: 'once', timesPerMember: '', budgetPeriod: 'whole' } as const;
+
 /** One tier: how many members it covers and its bonus chips; Remove on the last of two or more, so tiers keep their order. */
 function Tier({ section, tier, at, isLast }: { section: SectionProps; tier: SeatTierFields; at: number; isLast: boolean }) {
   const { form, onChange, isReadOnly } = section;
@@ -68,7 +71,7 @@ export function SeatBonusFields({ section }: { section: SectionProps }) {
       <Stack gap={2} align="start">
         <Text as="span" variant="label">{pays}</Text>
         <Segmented label={pays} size="small" value={form.seatMode} options={modes}
-          onChange={(seatMode) => { if (!isReadOnly) onChange({ ...form, seatMode }); }} />
+          onChange={(seatMode) => { if (!isReadOnly) onChange(seatMode === 'tiers' ? { ...form, seatMode, ...TIERS_LIMITS } : { ...form, seatMode }); }} />
       </Stack>
       {form.seatMode === 'tiers' ? <Tiers section={section} /> : (
         <Grid columns={2} gap={4} stackBelow="medium">

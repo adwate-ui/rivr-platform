@@ -72,5 +72,22 @@ select is(pg_temp.paid('211'), 1000::bigint, 'a member claims it once');
 select is((select count(*)::integer from public.promotion_grant where promotion_id = '40900000-0000-4000-8000-000000000001'), 2,
   'two grants in all');
 
+-- The money audit of #909: never up to N times a member, never a switch to a fixed amount, and the count carries across versions.
+select ok(not pg_temp.terms_ok('{"kind": "seat_bonus", "tiers": [{"count": 10, "chips": 5000}]}', '{"perMember": "once", "timesPerMember": 3}'),
+  'never up to N times a member');
+select throws_ok($$ insert into public.promotion_version (venue_id, promotion_id, version, status, name, reward, eligibility, schedule, limits, channels)
+                    select venue_id, promotion_id, 2, 'draft', name, '{"kind": "seat_bonus", "chips": 1000}', eligibility, schedule, '{"perMember": "none"}', channels
+                    from public.promotion_version where promotion_id = '40900000-0000-4000-8000-000000000001' and version = 1 $$,
+  'RVTIR', null, 'a promotion paying in tiers never turns into a fixed amount');
+update public.promotion_version set status = 'draft' where promotion_id = '40900000-0000-4000-8000-000000000001' and version = 1;
+insert into public.promotion_version (venue_id, promotion_id, version, status, name, reward, eligibility, schedule, limits, channels)
+select venue_id, promotion_id, 2, 'live', name, '{"kind": "seat_bonus", "tiers": [{"count": 1, "chips": 1000}, {"count": 1, "chips": 500}, {"count": 1, "chips": 250}]}',
+       eligibility, schedule, limits, channels
+from public.promotion_version where promotion_id = '40900000-0000-4000-8000-000000000001' and version = 1;
+select private.sync_promotion('40900000-0000-4000-8000-000000000001');
+select pg_temp.first_seat('214', interval '15 minutes');
+select private.sweep_seat_bonus();
+select is(pg_temp.paid('214'), 250::bigint, 'a third tier added in version 2 pays the next claimant: version 1''s two claims still count');
+
 select * from finish();
 rollback;

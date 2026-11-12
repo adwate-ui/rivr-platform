@@ -117,7 +117,7 @@ AS $function$
     }', p_channels)
     -- A seat bonus in tiers counts its claims over the promotion's life, each member once (decision 0580): no monthly reset.
     and (not (p_reward ->> 'kind' = 'seat_bonus' and p_reward ? 'tiers')
-         or (p_limits ->> 'perMember' = 'once' and coalesce(p_limits ->> 'budgetPeriod', '') <> 'month'));
+         or (p_limits ->> 'perMember' = 'once' and not p_limits ? 'timesPerMember' and coalesce(p_limits ->> 'budgetPeriod', '') <> 'month'));
 $function$;
 
 -- As before, with a seat bonus in tiers on the first seat of a visit.
@@ -294,3 +294,22 @@ begin
   end loop;
 end;
 $function$;
+
+-- A promotion pays its seat bonus in tiers from its first version or never (the money audit of #909): another kind's grants are not
+-- claims of its tiers, nor a member's earlier grant under another period. To change how it pays, end it and start a new one (RVTIR).
+create function private.guard_promotion_tiers()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if exists (select 1 from public.promotion_version v where v.promotion_id = new.promotion_id and v.id <> new.id
+             and (v.reward ->> 'kind' = 'seat_bonus' and v.reward ? 'tiers') <> (new.reward ->> 'kind' = 'seat_bonus' and new.reward ? 'tiers')) then
+    raise exception 'A promotion pays in tiers from its first version or never: start a new promotion' using errcode = 'RVTIR';
+  end if;
+  return new;
+end;
+$$;
+create trigger promotion_version_keeps_its_tiers before insert or update of reward on public.promotion_version
+  for each row execute function private.guard_promotion_tiers();
+revoke execute on function private.guard_promotion_tiers() from public, anon, authenticated;

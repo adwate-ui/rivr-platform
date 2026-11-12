@@ -116,4 +116,19 @@ describe('the promotion model schemas', () => {
     expect(promotionVersionReplaySchema.safeParse(replay).success).toBe(true);
     expect(promotionVersionReplaySchema.safeParse({ ...replay, events: [{ event: replay.events[0]?.event }] }).success).toBe(false);
   });
+
+  // Decision 0580: tiers count claims over the promotion's life, each member once.
+  it('takes a seat bonus in tiers once a member only, never up to N times or afresh each month, in one to ten tiers', () => {
+    const tiers = (count: number) => ({ kind: 'seat_bonus', tiers: Array.from({ length: count }, () => ({ count: 10, chips: 1_000 })) });
+    const tiered = (limits: object, reward: object = tiers(2)) => promotionTermsSchema.safeParse({ ...TERMS, reward, limits }).success;
+    expect(tiered({ perMember: 'once' })).toBe(true);
+    expect(tiered({ perMember: 'once', budgetChips: 50_000 })).toBe(true);
+    expect(tiered({ perMember: 'per_visit' })).toBe(false);
+    expect(tiered({ perMember: 'once', timesPerMember: 3 })).toBe(false);
+    expect(tiered({ perMember: 'once', budgetChips: 50_000, budgetPeriod: 'month' })).toBe(false);
+    expect(tiered({ perMember: 'once' }, tiers(0))).toBe(false);
+    expect(tiered({ perMember: 'once' }, tiers(11))).toBe(false);
+    expect(tiered({ perMember: 'once' }, { kind: 'seat_bonus', tiers: [{ count: 0, chips: 1_000 }] })).toBe(false);
+    expect(tiered({ perMember: 'once' }, { kind: 'seat_bonus', chips: 1_000, tiers: [{ count: 10, chips: 1_000 }] })).toBe(false);
+  });
 });

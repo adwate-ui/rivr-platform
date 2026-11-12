@@ -129,7 +129,8 @@ export const promotionTermsSchema = z.strictObject({
   link: z.string().max(500).regex(/^https:\/\/[A-Za-z0-9.-]+(:[0-9]{1,5})?([/?#][!-~]*)?$/).optional(),
 })
   // A seat bonus in tiers counts its claims over the promotion's life, each member once (decision 0580): no monthly reset.
-  .refine(({ reward, limits }) => !('tiers' in reward) || (limits.perMember === 'once' && limits.budgetPeriod !== 'month'),
+  .refine(({ reward, limits }) => !('tiers' in reward)
+    || (limits.perMember === 'once' && limits.timesPerMember === undefined && limits.budgetPeriod !== 'month'),
     { path: ['limits', 'perMember'] });
 export type PromotionTerms = z.infer<typeof promotionTermsSchema>;
 

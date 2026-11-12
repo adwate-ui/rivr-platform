@@ -253,6 +253,7 @@ export const promotions = {
     needs_simulation: 'Not sent. Simulate it on last week first.',
     own_promotion: 'Not approved. Another super admin approves your version.',
     already_decided: 'Already decided. Reload the list.',
+    tiers_fixed: 'Not saved. To pay in tiers, or to stop paying in tiers, end this promotion and start a new one.',
     switched_off: 'Promotions are switched off.',
     paused: 'Venue frozen. Try again once it is released.',
     not_found: 'Promotion not found. Reload the list.',

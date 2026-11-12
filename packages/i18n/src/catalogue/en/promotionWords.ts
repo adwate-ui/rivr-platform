@@ -6,8 +6,8 @@ export const promotionWords = {
     firstN: 'first {count} buy-ins per table',
   },
   seat: {
-    /** In tiers (decision 0580): `On a first seat, the first 10 get 5,000 bonus chips, the next 20 get 2,000`. */
-    tiers: 'On a first seat, {tiers}', tierFirst: 'the first {count} get {chips} bonus chips', tierNext: 'the next {count} get {chips}',
+    /** In tiers (decision 0580), short enough for ten tiers: `Bonus chips on a first seat, once a member: first 10 get 5,000, next 20 2,000`. */
+    tiers: 'Bonus chips on a first seat, once a member: {tiers}', tierFirst: 'first {count} get {chips}', tierNext: 'next {count} {chips}',
     first: '{chips} bonus chips on the first seat of a visit', firstN: '{chips} bonus chips for the first {count} seated at a table' },
   hoursBonus: {
     after: '{chips} bonus chips after {time}', thenAfter: 'then {chips} after {time}', every: '{chips} bonus chips every {time}',
