@@ -34,7 +34,7 @@ function Tier({ section, tier, at, isLast }: { section: SectionProps; tier: Seat
   );
 }
 
-/** The tiers in order, how they count, and Add a tier up to ten. */
+/** The tiers in order, how they count (for the approver too), and Add a tier up to five. */
 function Tiers({ section }: { section: SectionProps }) {
   const { form, onChange, isReadOnly, errors } = section;
   const last = form.seatTiers.at(-1) ?? { count: '10', chips: '1000' };

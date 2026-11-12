@@ -112,7 +112,7 @@ export const promotions = {
       tierChips: 'Tier {tier} bonus chips',
       addTier: 'Add a tier',
       removeTier: 'Remove tier {tier}',
-      tiersOnce: 'Each member gets it once, on a first seat. The tiers count claims from the start of the promotion, then it pays nothing.',
+      tiersOnce: 'Each member gets it once, on a first seat. Nothing after the last tier.',
       afterHours: 'After',
       afterSuffix: 'hours played',
       /** A play-time bonus pays at set times or every so often (owner, 8 Nov); `{step}` is a step's number, from 2. */
