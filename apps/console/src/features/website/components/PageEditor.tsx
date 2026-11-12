@@ -4,11 +4,21 @@ import { useEditorPage, useSiteEditor, type EditorBlock, type EditorPage, type S
 import { formatDayTime, formatDuration, t } from '@rivr/i18n';
 import { Box, Button, ErrorMessage, Inline, Input, LoadState, Segmented, Stack, StatusMessage, Text, WebPreview } from '@rivr/ui';
 import { useEffect, useState } from 'react';
-import { BlockEditor } from './BlockEditor.tsx';
 import { RevisionHistory } from './RevisionHistory.tsx';
+import { AddAtEnd, Section } from './Section.tsx';
+import { moved, newSection, retyped } from './sections.ts';
 
 type Outcome = { ok: boolean; text: string } | null;
 const WEB_URL = import.meta.env.VITE_WEB_URL;
+
+/** A section of the draft with its own id, so moving or taking one out never gives another its place in the editor (#906). */
+interface DraftSection {
+  readonly id: number;
+  readonly block: EditorBlock;
+}
+
+let lastSectionId = 0;
+const draftSection = (block: EditorBlock): DraftSection => ({ id: (lastSectionId += 1), block });
 
 /** A draft, or one scheduled: the version the editor works on. */
 const isOpenVersion = (revision: SiteRevision) => revision.status === 'draft' || revision.status === 'scheduled';
@@ -104,10 +114,36 @@ interface EditorProps {
 /** A time to publish at, or null to publish now: a time already past publishes now. */
 const laterOrNow = (at: Date | null): Date | null => (at !== null && at.getTime() > Date.now() ? at : null);
 
+/** The draft's sections, and what each one's menu does to them, or a new one at the end (#906): each marks the draft edited. */
+function useSections(start: readonly EditorBlock[], setEdited: (isEdited: boolean) => void) {
+  const [sections, setSections] = useState(() => start.map(draftSection));
+  const change = (next: (current: readonly DraftSection[]) => readonly DraftSection[]) => {
+    setSections((current) => [...next(current)]);
+    setEdited(true);
+  };
+  const actionsFor = (id: number) => {
+    const placeOf = (current: readonly DraftSection[]) => current.findIndex((section) => section.id === id);
+    const replace = (make: (block: EditorBlock) => EditorBlock) => change((current) => current.map((section) => (section.id === id ? { id, block: make(section.block) } : section)));
+    return {
+      onChange: (next: EditorBlock) => replace(() => next),
+      onRetype: (kind: string) => replace((block) => retyped(block, kind)),
+      onMove: (by: -1 | 1) => change((current) => moved(current, placeOf(current), by)),
+      onDelete: () => change((current) => (current.length > 1 ? current.filter((section) => section.id !== id) : current)),
+      onAdd: (kind: string, where: 'above' | 'below') => change((current) => {
+        const at = placeOf(current) + (where === 'below' ? 1 : 0);
+        return [...current.slice(0, at), draftSection(newSection(kind)), ...current.slice(at)];
+      }),
+    };
+  };
+  const addAtEnd = (kind: string) => change((current) => [...current, draftSection(newSection(kind))]);
+  return { sections, actionsFor, addAtEnd };
+}
+
 /** A page's draft in the editor: its blocks, its preview token and saves, what last happened, and saving, publishing and restoring. */
 function useDraft({ venueId, page, start, revisions, setOutcome, isEdited, setEdited }: EditorProps) {
   const editor = useSiteEditor(venueId, page.pageId);
-  const [blocks, setBlocks] = useState(start);
+  const { sections, actionsFor, addAtEnd } = useSections(start, setEdited);
+  const blocks = sections.map((section) => section.block);
   // The draft's preview token, and how many saves the preview has shown, so the frame reads it again after each.
   const [preview, setPreview] = useState({ token: revisions.find(isOpenVersion)?.previewToken ?? null, saves: 0 });
   const done = (text: string) => setOutcome({ ok: true, text });
@@ -134,15 +170,13 @@ function useDraft({ venueId, page, start, revisions, setOutcome, isEdited, setEd
       else fail(result.error);
     }, () => fail('unavailable'));
   };
-  const edit = (index: number, next: EditorBlock) => {
-    setBlocks((current) => current.map((each, place) => (place === index ? next : each)));
-    setEdited(true);
-  };
   const restore = (revision: SiteRevision) => void editor.rollback.mutateAsync(revision.revisionId).then((result) => {
     if (result.ok) done(t('console.website.restored'));
     else fail(result.error);
   }, () => fail('unavailable'));
-  return { editor, blocks, edit, canPublish: preview.token !== null && !isEdited, token: preview.token, saves: preview.saves, save, publish, restore };
+  return {
+    editor, sections, actionsFor, addAtEnd, canPublish: preview.token !== null && !isEdited, token: preview.token, saves: preview.saves, save, publish, restore,
+  };
 }
 
 /** The page's blocks in place, the draft saved and previewed, then published now or at a time; and its history. */
@@ -162,10 +196,14 @@ function Editor(props: EditorProps) {
         </Stack>
       </Box>
       {isBehind ? <ErrorMessage>{t('console.website.newerVersion')}</ErrorMessage> : null}
-      {view === 'edit' ? draft.blocks.map((block, index) => (
-        <BlockEditor key={`${String(index)}-${block.kind}`} block={block} position={index + 1}
-          onChange={(next) => draft.edit(index, next)} />
-      )) : (
+      {view === 'edit' ? (
+        <>
+          {draft.sections.map((section, index) => (
+            <Section key={section.id} block={section.block} position={index + 1} count={draft.sections.length} actions={draft.actionsFor(section.id)} />
+          ))}
+          <AddAtEnd onAdd={draft.addAtEnd} />
+        </>
+      ) : (
         <WebPreview label={t('console.website.preview', { page: page.title })} src={previewSrc(draft.token, draft.saves)}
           emptyText={WEB_URL === undefined ? t('console.website.noPreview') : t('console.website.saveToPreview')} />
       )}

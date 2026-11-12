@@ -12,8 +12,32 @@ export const website = {
   /** On a phone, from the editor back to the pages. */
   back: 'Back to the pages',
   noPages: 'The website has no pages yet.',
-  /** `Block 2 · Cards`. */
-  block: 'Block {number} · {kind}',
+  /** `Section 2 · Cards`. */
+  block: 'Section {number} · {kind}',
+  /** A section's menu (#906). */
+  sectionMenu: 'More for section {number}',
+  addAbove: 'Add a section above',
+  addBelow: 'Add a section below',
+  changeKind: 'Change kind',
+  moveUp: 'Move up',
+  moveDown: 'Move down',
+  deleteSection: 'Delete section',
+  addSection: 'Add a section',
+  /** Over the kinds to choose from. */
+  chooseKind: {
+    above: 'New section above section {number}',
+    below: 'New section below section {number}',
+    kind: 'Change section {number} to',
+    end: 'New section at the end',
+  },
+  cancel: 'Cancel',
+  /** A list's items (#906): `Remove`, read as `Remove Rule 3`. */
+  remove: 'Remove',
+  removeItem: 'Remove {item}',
+  add: {
+    rules: 'Add a rule', points: 'Add a point', lines: 'Add a line', paragraphs: 'Add a paragraph', phrases: 'Add a phrase', cards: 'Add a card',
+    questions: 'Add a question', roles: 'Add a role', figures: 'Add a figure', links: 'Add a link', items: 'Add an item',
+  },
   /** Each kind of block, as the editor names it. */
   kinds: {
     hero: 'Hero', statement: 'Statement', gallery: 'Gallery', feature: 'Feature', text: 'Text', rules: 'Rules', faq: 'Questions',
@@ -72,7 +96,7 @@ export const website = {
   failures: {
     not_allowed: 'Not in your role. Ask an admin.',
     gone: 'That page or version is no longer there.',
-    invalid: 'A block has a problem. Check its words.',
+    invalid: 'A section has a problem. Check its words.',
     paused: 'Venue frozen. Try again once it is released.',
     unavailable: 'Not sent. Try again.',
   },

@@ -1,6 +1,6 @@
 import { SITE_BLOCK_KINDS } from '@rivr/contracts';
 import { describe, expect, it } from 'vitest';
-import { fieldGroups, fieldsOf, setAt } from './blockFields.ts';
+import { fieldGroups, fieldsOf, itemAdded, itemRemoved, listAt, setAt } from './blockFields.ts';
 
 const CARDS = { heading: 'What\u2019s on', cards: [{ title: 'Tournament nights', link: { label: 'Full calendar', page: 'tournaments' } }, { title: 'On the house', points: ['Tea', 'Coffee'] }] };
 
@@ -76,5 +76,31 @@ describe('the block editor\u2019s fields', () => {
       ['questions', 2, ['question', 'answer']],
       [null, null, ['points', 'points']],
     ]);
+  });
+});
+
+// The owner, 12 Nov: points of the house rules, and any other list, gain and lose items in the editor.
+describe('a block’s lists', () => {
+  it('adds an empty word to a list of words', () => {
+    expect(itemAdded({ heading: 'House rules', rules: ['One player to a hand.'] }, ['rules']))
+      .toEqual({ heading: 'House rules', rules: ['One player to a hand.', ''] });
+  });
+
+  it('adds an item like the last, its words emptied and its link’s page kept', () => {
+    expect(itemAdded(CARDS, ['cards'])).toEqual({ ...CARDS, cards: [...CARDS.cards, { title: '', points: [''] }] });
+    expect(itemAdded(CARDS, ['cards', 1, 'points'])).toEqual({ ...CARDS, cards: [CARDS.cards[0], { title: 'On the house', points: ['Tea', 'Coffee', ''] }] });
+    const linkedLast = { cards: [{ title: 'On the house' }, { title: 'Tournament nights', link: { label: 'Full calendar', page: 'tournaments' } }] };
+    expect(listAt(itemAdded(linkedLast, ['cards']), ['cards'])?.at(-1)).toEqual({ title: '', link: { label: '', page: 'tournaments' } });
+  });
+
+  it('removes the item at a place and nothing else', () => {
+    expect(itemRemoved({ rules: ['a', 'b', 'c'] }, ['rules'], 1)).toEqual({ rules: ['a', 'c'] });
+    expect(itemRemoved(CARDS, ['cards'], 0)).toEqual({ ...CARDS, cards: [CARDS.cards[1]] });
+  });
+
+  it('reads the list at a place, and nothing where there is none', () => {
+    expect(listAt(CARDS, ['cards', 1, 'points'])).toEqual(['Tea', 'Coffee']);
+    expect(listAt(CARDS, ['heading'])).toBeNull();
+    expect(itemAdded(CARDS, ['heading'])).toEqual(CARDS);
   });
 });
