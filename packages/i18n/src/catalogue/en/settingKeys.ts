@@ -170,6 +170,14 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     name: 'Daily bonus chips limit', fields: { chips: 'Bonus chips' },
     help: 'The most bonus chips one staff member adds by hand in a club day. Past it, an addition is refused and you are told. Super admins have no limit, and only they change it. No limit unless set.',
   },
+  'bonus.expiry_days': {
+    name: 'Bonus chips expire', fields: { days: 'Days' },
+    help: 'How many days bonus chips last after they are given. Chips already held last that long from when this starts. 0 is never. Only super admins change it. Never unless set.',
+  },
+  'bonus.visit_cap': {
+    name: 'Bonus per visit', fields: { basis_points: 'Share' },
+    help: "The most of their bonus a member can use in one visit: this share of what they held at the visit's first seat, in whole 50s. Only super admins change it. No limit unless set.",
+  },
   'points.verified_bonus': {
     name: 'Points on verification',
     help: 'The points a member gets once, when their identity check is verified. Not set gives none. Ends at launch: 0 from 15 November.',

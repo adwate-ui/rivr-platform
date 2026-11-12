@@ -4,7 +4,7 @@ import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { computeGrant, triggerOf, type Grant, type PromotionEvent } from './grant.ts';
 import { clubDay } from '../clubDay/clubDay.ts';
-import { checkLimits, remainingBudget, tallyFor, type LedgerEntry } from './limits.ts';
+import { checkLimits, remainingBudget, tallyFor, tierChips, type LedgerEntry } from './limits.ts';
 import { simulate } from './simulation.ts';
 import { stackGrants } from './stacking.ts';
 
@@ -76,10 +76,21 @@ const ledger: fc.Arbitrary<LedgerEntry[]> = fc.array(fc.tuple(grant, fc.constant
 describe('promotion reward properties', () => {
   it('pays a seat bonus its exact chips or nothing, and on a later seat of a visit only with a first N (audit F-005)', () => {
     fc.assert(fc.property(seatBonus, place, fc.boolean(), (given, where, isFirstOfVisit) => {
-      if (given.kind !== 'seat_bonus') return;
+      if (given.kind !== 'seat_bonus' || 'tiers' in given) return;
       const result = computeGrant({ reward: given }, { ...where, kind: 'seated', isFirstOfVisit });
       expect(result.ok).toBe(isFirstOfVisit || given.firstNSeatsPerTable !== undefined);
       if (result.ok) expect(result.value).toEqual({ points: 0, chips: given.chips, spins: 0, perk: null });
+    }));
+  });
+
+  // Decision 0580: claims in order take the tiers in order, each tier its count, and nothing after the last.
+  it('gives each tier of a seat bonus to exactly its count of claims, in order, then nothing', () => {
+    const tiers = fc.array(fc.record({ count: fc.integer({ min: 1, max: 20 }), chips: fc.integer({ min: 1, max: 200 }).map((n) => n * 50) }), { minLength: 1, maxLength: 5 });
+    fc.assert(fc.property(tiers, (given) => {
+      const total = given.reduce((sum, tier) => sum + tier.count, 0);
+      const paid = Array.from({ length: total + 3 }, (_, claimed) => tierChips(given, claimed));
+      expect(paid.slice(total)).toEqual([null, null, null]);
+      expect(paid.slice(0, total)).toEqual(given.flatMap((tier) => Array.from({ length: tier.count }, () => tier.chips)));
     }));
   });
 

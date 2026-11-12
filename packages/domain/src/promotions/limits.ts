@@ -31,7 +31,26 @@ export interface GrantTally {
 }
 
 /** Why the limits stop a grant the reward would give. */
-export type LimitRefusal = 'already_given' | 'first_n_taken' | 'members_per_day' | 'max_grants' | 'budget_exhausted';
+export type LimitRefusal = 'already_given' | 'tiers_used_up' | 'first_n_taken' | 'members_per_day' | 'max_grants' | 'budget_exhausted';
+
+/**
+ * A tiered seat bonus's chips for the next claim (the owner, 12 Nov; decision 0580): those of the tier the claims so far fall
+ * in, the first `count` claims the first tier's; null once every tier is used up. private.promo_tier_chips is its twin.
+ */
+export function tierChips(tiers: readonly { readonly count: number; readonly chips: number }[], claimed: number): number | null {
+  let upTo = 0;
+  for (const tier of tiers) {
+    upTo += tier.count;
+    if (claimed < upTo) return tier.chips;
+  }
+  return null;
+}
+
+/** The grant at its tier's chips, for a seat bonus in tiers with one left; as it is otherwise. */
+function atTier(reward: Reward, grant: Grant, tally: GrantTally): Grant {
+  const chips = reward.kind === 'seat_bonus' && 'tiers' in reward ? tierChips(reward.tiers, tally.grantsGiven) : null;
+  return chips === null ? grant : { ...grant, chips };
+}
 
 type EventWhen = Pick<PromotionEvent, 'key' | 'at' | 'visitId'> & { readonly stepMinutes?: number };
 
@@ -127,7 +146,7 @@ export function ledgerEntryFor(
 type LimitCheck = (promo: { readonly reward: Reward; readonly limits: Limits }, grant: Grant, tally: GrantTally) => boolean;
 
 function firstNOf(reward: Reward): number | undefined {
-  if (reward.kind === 'seat_bonus') return reward.firstNSeatsPerTable;
+  if (reward.kind === 'seat_bonus') return 'tiers' in reward ? undefined : reward.firstNSeatsPerTable;
   return reward.kind === 'buyin_bonus' ? reward.firstNBuyinsPerTable : undefined;
 }
 
@@ -135,7 +154,9 @@ function firstNOf(reward: Reward): number | undefined {
 const LIMITS: readonly (readonly [LimitRefusal, LimitCheck])[] = [
   ['already_given', ({ limits, reward }, _, tally) => tally.periodGiven >= (limits.timesPerMember ?? 1)
     // One of a seat bonus's first N a member, a club day: one member never takes the table's places (decision 0543).
-    || (reward.kind === 'seat_bonus' && reward.firstNSeatsPerTable !== undefined && tally.isMemberGrantedToday)],
+    || (reward.kind === 'seat_bonus' && firstNOf(reward) !== undefined && tally.isMemberGrantedToday)],
+  // A seat bonus in tiers pays nothing once its last tier is claimed (decision 0580).
+  ['tiers_used_up', ({ reward }, _, tally) => reward.kind === 'seat_bonus' && 'tiers' in reward && tierChips(reward.tiers, tally.grantsGiven) === null],
   ['first_n_taken', ({ reward }, _, tally) => {
     const firstN = firstNOf(reward);
     return firstN !== undefined && (tally.grantsAtTableToday === null || tally.grantsAtTableToday >= firstN);
@@ -155,8 +176,10 @@ const LIMITS: readonly (readonly [LimitRefusal, LimitCheck])[] = [
  * each grant in a period (slotKey), holds the per-member limit under concurrency.
  */
 export function checkLimits(promo: { readonly reward: Reward; readonly limits: Limits }, grant: Grant, tally: GrantTally): Result<Grant, LimitRefusal> {
-  const broken = LIMITS.find(([, isBroken]) => isBroken(promo, grant, tally));
-  return broken === undefined ? ok(grant) : err(broken[0]);
+  // A seat bonus in tiers gives its tier's chips, which the budget then counts (decision 0580).
+  const tiered = atTier(promo.reward, grant, tally);
+  const broken = LIMITS.find(([, isBroken]) => isBroken(promo, tiered, tally));
+  return broken === undefined ? ok(tiered) : err(broken[0]);
 }
 
 /** Why a promotion gives a member nothing for an event. */

@@ -17,6 +17,7 @@ export const CAGE_FAILURE_COPY: Readonly<Record<CageFailure, MessageKey>> = {
   below_minimum: 'console.cage.belowMinimum',
   wallet_short: 'console.cage.walletShort',
   bonus_short: 'console.cage.bonusShort',
+  visit_cap: 'console.cage.visitCap',
   utr_used: 'console.cage.utrUsed',
   moved: 'console.cage.moved',
   not_in_room: 'console.cage.notInRoom',

@@ -4421,14 +4421,14 @@ isOneToOne: true
                   ]
                 },"visit": {
                   Row: {
-                    "close_reason": string | null,"closed_at": string | null,"created_at": string,"id": string,"member_id": string,"opened_at": string,"opened_by_device_id": string | null,"opened_by_staff_id": string | null,"updated_at": string,"venue_id": string
+                    "bonus_at_first_seat_paise": number | null,"close_reason": string | null,"closed_at": string | null,"created_at": string,"id": string,"member_id": string,"opened_at": string,"opened_by_device_id": string | null,"opened_by_staff_id": string | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "close_reason"?: string | null,"closed_at"?: string | null,"created_at"?: string,"id"?: string,"member_id": string,"opened_at"?: string,"opened_by_device_id"?: string | null,"opened_by_staff_id"?: string | null,"updated_at"?: string,"venue_id": string
+                    "bonus_at_first_seat_paise"?: number | null,"close_reason"?: string | null,"closed_at"?: string | null,"created_at"?: string,"id"?: string,"member_id": string,"opened_at"?: string,"opened_by_device_id"?: string | null,"opened_by_staff_id"?: string | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "close_reason"?: string | null,"closed_at"?: string | null,"created_at"?: string,"id"?: string,"member_id"?: string,"opened_at"?: string,"opened_by_device_id"?: string | null,"opened_by_staff_id"?: string | null,"updated_at"?: string,"venue_id"?: string
+                    "bonus_at_first_seat_paise"?: number | null,"close_reason"?: string | null,"closed_at"?: string | null,"created_at"?: string,"id"?: string,"member_id"?: string,"opened_at"?: string,"opened_by_device_id"?: string | null,"opened_by_staff_id"?: string | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -5452,6 +5452,11 @@ isOneToOne: false
 "member_bonus_history":
 { Args: { "p_limit"?: number,"p_member_id": string,"p_venue_id": string }; Returns: {
               "amount_paise": number,"at": string,"kind": string,"line_id": string,"reason": string,"staff_name": string,"table_name": string
+            }[]
+                           },
+"member_bonus_visit_left":
+{ Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
+              "left_paise": number
             }[]
                            },
 "member_early_departures":

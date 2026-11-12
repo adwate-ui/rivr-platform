@@ -90,6 +90,8 @@ export const cage = {
   belowMinimum: '{amount} is below the table\'s minimum buy-in.',
   walletShort: 'The wallet holds less than {amount}. Take cash at the cage or decline.',
   bonusShort: 'The bonus chips in force are less than {amount}. Take cash, UPI or the wallet instead.',
+  /** Past what the visit may redeem under the club's cap (decision 0579). */
+  visitCap: 'More bonus chips than this visit allows. Take cash, UPI or the wallet instead.',
   utrUsed: 'That UTR already paid for another buy-in. Check the bank record.',
   cashLimitVisit: 'That would take this member past the cash limit for one visit. Take UPI or the wallet instead.',
   cashLimitDay: 'That would take this member past the cash limit for one club day. Take UPI or the wallet instead.',

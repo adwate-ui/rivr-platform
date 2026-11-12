@@ -3,7 +3,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { useGiveBonusChips, useMemberBonus, useMemberBonusHistory, useMyBonus, useMyBonusHistory } from './bonus.ts';
+import { useGiveBonusChips, useMemberBonus, useMemberBonusHistory, useMemberBonusVisitLeft, useMyBonus, useMyBonusHistory } from './bonus.ts';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
@@ -72,6 +72,18 @@ describe('bonus chips', () => {
     await waitFor(() => expect(result.current.history.data?.[0]).toMatchObject({ kind: 'redeemed', amount: 100_000n, staffName: 'Aditya Malhotra' }));
     expect(calls.find((call) => call.url.includes('/rpc/member_bonus?') || call.url.endsWith('/rpc/member_bonus'))?.body)
       .toEqual({ p_venue_id: VENUE, p_member_id: MEMBER });
+  });
+
+  // Decision 0579: what the member's visit may still redeem under the club's cap.
+  it('reads what a member\'s visit may still redeem, and none where the club sets no cap', async () => {
+    const capped = clientFor({ '/rpc/member_bonus_visit_left': { body: [{ left_paise: 300_000 }] } });
+    const left = renderHook(() => useMemberBonusVisitLeft(VENUE, MEMBER), { wrapper: capped.wrapper });
+    await waitFor(() => expect(left.result.current.data).toBe(300_000n));
+    expect(capped.calls.find((call) => call.url.includes('/rpc/member_bonus_visit_left'))?.body).toEqual({ p_venue_id: VENUE, p_member_id: MEMBER });
+    const open = clientFor({ '/rpc/member_bonus_visit_left': { body: [{ left_paise: null }] } });
+    const none = renderHook(() => useMemberBonusVisitLeft(VENUE, MEMBER), { wrapper: open.wrapper });
+    await waitFor(() => expect(none.result.current.isSuccess).toBe(true));
+    expect(none.result.current.data).toBeNull();
   });
 
   it('asks nothing until the seat sheet knows the member', async () => {

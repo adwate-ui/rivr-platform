@@ -3,7 +3,7 @@ import bonusJson from '@rivr/testing/golden/bonus.json';
 import { describe, expect, it } from 'vitest';
 import { fromPaise, type Paise } from '../money/index.ts';
 import { parseRupees } from '../money/parse-rupees.ts';
-import { bonusExpired, bonusSpend, type BonusGrant } from './bonus.ts';
+import { bonusEnd, bonusExpired, bonusSpend, visitBonusCap, visitBonusLeft, type BonusGrant } from './bonus.ts';
 
 const golden = readGolden(bonusJson);
 
@@ -30,7 +30,23 @@ function grants(text: string): BonusGrant[] {
 
 describe('Bonus golden fixtures (packages/testing/golden/bonus.json)', () => {
   it('tests every operation in the file', () => {
-    expect(() => assertOperations(golden, ['spend', 'expire'])).not.toThrow();
+    expect(() => assertOperations(golden, ['spend', 'expire', 'end', 'visitCap', 'visitLeft'])).not.toThrow();
+  });
+
+  it.each(casesFor(golden, 'end'))('%s', (_description, goldenCase) => {
+    const ends = bonusEnd(new Date(goldenInput(goldenCase, 'given')), Number(goldenInput(goldenCase, 'days')), new Date(goldenInput(goldenCase, 'since')));
+    const expected = goldenExpected(goldenCase, 'ends');
+    expect(ends).toEqual(expected === 'never' ? null : new Date(expected));
+  });
+
+  it.each(casesFor(golden, 'visitCap'))('%s', (_description, goldenCase) => {
+    expect(visitBonusCap(amount(goldenInput(goldenCase, 'held')), BigInt(goldenInput(goldenCase, 'basisPoints'))))
+      .toEqual(amount(goldenExpected(goldenCase, 'cap')));
+  });
+
+  it.each(casesFor(golden, 'visitLeft'))('%s', (_description, goldenCase) => {
+    expect(visitBonusLeft(amount(goldenInput(goldenCase, 'cap')), amount(goldenInput(goldenCase, 'redeemed'))))
+      .toEqual(amount(goldenExpected(goldenCase, 'left')));
   });
 
   it.each(casesFor(golden, 'spend'))('%s', (_description, goldenCase) => {

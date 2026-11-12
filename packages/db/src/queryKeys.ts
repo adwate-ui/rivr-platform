@@ -144,6 +144,8 @@ export const queryKeys = {
   myBonus: (userId: string) => ['user', userId, 'bonus', 'mine'] as const,
   myBonusHistory: (userId: string, count: number) => ['user', userId, 'bonus', 'mine', 'history', count] as const,
   memberBonus: (userId: string, venueId: string, memberId: string) => ['user', userId, 'bonus', venueId, memberId] as const,
+  /** What a member's visit may still redeem under bonus.visit_cap (decision 0579), under memberBonus so a seating refreshes both. */
+  memberBonusVisitLeft: (userId: string, venueId: string, memberId: string) => ['user', userId, 'bonus', venueId, memberId, 'visit-left'] as const,
   tableMetrics: (userId: string, venueId: string, from: string, to: string) => ['user', userId, 'table-metrics', venueId, from, to] as const,
   tableMetricsTotal: (userId: string, venueId: string, from: string, to: string) => ['user', userId, 'table-metrics-total', venueId, from, to] as const,
   memberSignUp: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-sign-up', venueId, memberId] as const,

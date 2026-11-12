@@ -4,7 +4,7 @@ import type { BuilderForm } from './builderForm.ts';
 
 /** A field the builder marks when the terms cannot take what it holds. */
 export type FormField =
-  | 'name' | 'multiplier' | 'firstN' | 'chips' | 'afterHours' | 'everyHours' | 'timesPerVisit' | 'steps'
+  | 'name' | 'multiplier' | 'firstN' | 'chips' | 'afterHours' | 'everyHours' | 'timesPerVisit' | 'steps' | 'tierList'
   | 'spins' | 'fromVisit' | 'tournament'
   | 'who' | 'days' | 'from' | 'to' | 'startsOn' | 'endsOn' | 'timesPerMember' | 'maxMembersPerDay' | 'budgetChips' | 'rulesText' | 'link';
 
@@ -49,7 +49,9 @@ function rewardOf(form: BuilderForm): Record<string, unknown> {
     case 'points_multiplier':
       return defined({ kind: form.kind, multiplier: numberOf(form.multiplier) });
     case 'seat_bonus':
-      return defined({ kind: form.kind, chips: numberOf(form.chips), firstNSeatsPerTable: numberOf(form.firstN) });
+      return form.seatMode === 'tiers'
+        ? { kind: form.kind, tiers: form.seatTiers.map((tier) => defined({ count: numberOf(tier.count), chips: numberOf(tier.chips) })) }
+        : defined({ kind: form.kind, chips: numberOf(form.chips), firstNSeatsPerTable: numberOf(form.firstN) });
     case 'hours_bonus':
       return hoursOf(form);
     case 'bonus_chips':
@@ -68,7 +70,7 @@ function rewardOf(form: BuilderForm): Record<string, unknown> {
 // The reward's own keys and the field each is typed in.
 const REWARD_FIELDS: Readonly<Record<string, FormField>> = {
   multiplier: 'multiplier', firstNSeatsPerTable: 'firstN', afterMinutes: 'afterHours', spins: 'spins',
-  fromVisitInMonth: 'fromVisit', tournamentId: 'tournament', everyMinutes: 'everyHours', timesPerVisit: 'timesPerVisit', steps: 'steps',
+  fromVisitInMonth: 'fromVisit', tournamentId: 'tournament', everyMinutes: 'everyHours', timesPerVisit: 'timesPerVisit', steps: 'steps', tiers: 'tierList',
 };
 
 /** The mode of the shape the fields make: a play-time bonus's set steps or every so often; none for the rest. */
@@ -78,10 +80,12 @@ function modeOf(form: BuilderForm): string | undefined {
   return form.moreSteps.length > 0 ? 'steps' : undefined;
 }
 
-/** The one shape of the reward union for the kind (and its mode) chosen, so its refusals name their fields. */
+/** The one shape of the reward union for the kind (and its mode, or a seat bonus's tiers) chosen, so its refusals name their fields. */
 function rewardShapeFor(form: BuilderForm) {
   const mode = modeOf(form);
-  return rewardSchema.options.find((option) => option.shape.kind.value === form.kind && ('mode' in option.shape ? option.shape.mode.value === mode : mode === undefined));
+  const isTiers = form.kind === 'seat_bonus' && form.seatMode === 'tiers';
+  return rewardSchema.options.find((option) => option.shape.kind.value === form.kind
+    && ('mode' in option.shape ? option.shape.mode.value === mode : mode === undefined) && ('tiers' in option.shape) === isTiers);
 }
 
 function rewardErrors(form: BuilderForm, reward: Record<string, unknown>): FormField[] {
@@ -118,6 +122,10 @@ function scheduleOf(form: BuilderForm): Record<string, unknown> {
 function limitsOf(form: BuilderForm) {
   const budgetChips = numberOf(form.budgetChips);
   const hasBudget = budgetChips !== undefined || form.maxGrants !== undefined;
+  // A seat bonus in tiers is once a member, its claims counted over the promotion's life (decision 0580).
+  if (form.kind === 'seat_bonus' && form.seatMode === 'tiers') {
+    return defined({ perMember: 'once' as const, maxMembersPerDay: numberOf(form.maxMembersPerDay), budgetChips, maxGrants: form.maxGrants });
+  }
   return defined({
     perMember: form.perMember, timesPerMember: form.perMember === 'none' ? undefined : numberOf(form.timesPerMember),
     maxMembersPerDay: numberOf(form.maxMembersPerDay), budgetChips, maxGrants: form.maxGrants,

@@ -1489,6 +1489,156 @@
         "given": "no",
         "refusal": "already_given"
       }
+    },
+    {
+      "description": "A seat bonus in tiers on a member's first seat of a visit: the first tier's 5,000 chips, which the limits set to the tier reached.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"seat_bonus\", \"tiers\": [{\"count\": 10, \"chips\": 5000}, {\"count\": 20, \"chips\": 2000}]}",
+        "event": "{\"key\": \"seated:s1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"seated\", \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "points": "0",
+        "chips": "5000",
+        "spins": "0",
+        "perk": ""
+      }
+    },
+    {
+      "description": "A seat bonus in tiers on a later seat of the visit: nothing.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"seat_bonus\", \"tiers\": [{\"count\": 10, \"chips\": 5000}, {\"count\": 20, \"chips\": 2000}]}",
+        "event": "{\"key\": \"seated:s1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"seated\", \"isFirstOfVisit\": false}"
+      },
+      "expected": {
+        "refusal": "not_first_seat"
+      }
+    },
+    {
+      "description": "Tiers of the first 10 at 5,000 and the next 20 at 2,000: the first claim is in the first tier.",
+      "operation": "tier",
+      "inputs": {
+        "tiers": "[{\"count\": 10, \"chips\": 5000}, {\"count\": 20, \"chips\": 2000}]",
+        "claimed": "0"
+      },
+      "expected": {
+        "chips": "5000"
+      }
+    },
+    {
+      "description": "The tenth claim, the last of the first 10: still 5,000.",
+      "operation": "tier",
+      "inputs": {
+        "tiers": "[{\"count\": 10, \"chips\": 5000}, {\"count\": 20, \"chips\": 2000}]",
+        "claimed": "9"
+      },
+      "expected": {
+        "chips": "5000"
+      }
+    },
+    {
+      "description": "The eleventh claim: the next tier, 2,000.",
+      "operation": "tier",
+      "inputs": {
+        "tiers": "[{\"count\": 10, \"chips\": 5000}, {\"count\": 20, \"chips\": 2000}]",
+        "claimed": "10"
+      },
+      "expected": {
+        "chips": "2000"
+      }
+    },
+    {
+      "description": "The thirtieth claim, the last of the next 20: still 2,000.",
+      "operation": "tier",
+      "inputs": {
+        "tiers": "[{\"count\": 10, \"chips\": 5000}, {\"count\": 20, \"chips\": 2000}]",
+        "claimed": "29"
+      },
+      "expected": {
+        "chips": "2000"
+      }
+    },
+    {
+      "description": "Every tier claimed: nothing more.",
+      "operation": "tier",
+      "inputs": {
+        "tiers": "[{\"count\": 10, \"chips\": 5000}, {\"count\": 20, \"chips\": 2000}]",
+        "claimed": "30"
+      },
+      "expected": {
+        "chips": "used_up"
+      }
+    },
+    {
+      "description": "A seat bonus in tiers with claims left: given.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"seat_bonus\", \"tiers\": [{\"count\": 10, \"chips\": 5000}, {\"count\": 20, \"chips\": 2000}]}",
+        "limits": "{\"perMember\": \"once\"}",
+        "grant": "{\"points\": 0, \"chips\": 5000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 10, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
+      }
+    },
+    {
+      "description": "A seat bonus in tiers with every tier claimed: stopped.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"seat_bonus\", \"tiers\": [{\"count\": 10, \"chips\": 5000}, {\"count\": 20, \"chips\": 2000}]}",
+        "limits": "{\"perMember\": \"once\"}",
+        "grant": "{\"points\": 0, \"chips\": 5000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 30, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "no",
+        "refusal": "tiers_used_up"
+      }
+    },
+    {
+      "description": "A member already given a seat bonus in tiers: already given, whatever the tiers.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"seat_bonus\", \"tiers\": [{\"count\": 10, \"chips\": 5000}, {\"count\": 20, \"chips\": 2000}]}",
+        "limits": "{\"perMember\": \"once\"}",
+        "grant": "{\"points\": 0, \"chips\": 5000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 30, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 1, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "no",
+        "refusal": "already_given"
+      }
+    },
+    {
+      "description": "The budget counts the tier's chips: 4,000 of 6,000 given, the eleventh claim at 2,000 is given.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"seat_bonus\", \"tiers\": [{\"count\": 10, \"chips\": 5000}, {\"count\": 20, \"chips\": 2000}]}",
+        "limits": "{\"perMember\": \"once\", \"budgetChips\": 6000}",
+        "grant": "{\"points\": 0, \"chips\": 5000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 4000, \"grantsGiven\": 10, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
+      }
+    },
+    {
+      "description": "While the first claim at 5,000 would pass the same budget: stopped.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"seat_bonus\", \"tiers\": [{\"count\": 10, \"chips\": 5000}, {\"count\": 20, \"chips\": 2000}]}",
+        "limits": "{\"perMember\": \"once\", \"budgetChips\": 6000}",
+        "grant": "{\"points\": 0, \"chips\": 5000, \"spins\": 0, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 4000, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
+      },
+      "expected": {
+        "given": "no",
+        "refusal": "budget_exhausted"
+      }
     }
   ]
 }

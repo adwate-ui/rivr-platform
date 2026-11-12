@@ -94,4 +94,32 @@ describe('the seat sheet', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Seat' }));
     await waitFor(() => expect(calls).toEqual([{ p_entry_id: 'e1', p_table_id: 't3', p_seat: 6, p_call_minutes: TABLE.callTimeMinutes, p_bonus_chips: 1000 }]));
   });
+
+  // Decision 0579: the club caps what one visit redeems.
+  it('shows what this visit may still redeem, and says when a seat asks for more', async () => {
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
+      access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
+      user: { id: '00000000-0000-4000-8000-000000000103', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
+    }));
+    vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+      const url = String(input instanceof Request ? input.url : input);
+      if (url.includes('/rpc/member_bonus_visit_left')) return Response.json([{ left_paise: 50_000 }]);
+      if (url.includes('/rpc/member_bonus')) return Response.json([{ bonus_paise: 150_000 }]);
+      if (url.includes('/rpc/assign_from_waitlist')) return Response.json({ code: 'RVVCP', message: 'cap' }, { status: 400 });
+      return Response.json([]);
+    });
+    render(
+      <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
+        queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <ToastProvider place="console">
+          <SeatSheet venueId="v1" table={TABLE} place={{ entryId: 'e1', memberId: 'm9', name: 'Naina Kapoor' }} onClose={vi.fn()} />
+        </ToastProvider>
+      </RivrDataProvider>,
+    );
+    expect(await screen.findByText('Has 1,500 bonus chips. Up to 500 this visit.', {}, { timeout: 5000 })).toBeDefined();
+    fireEvent.click(await screen.findByRole('radio', { name: '6' }, { timeout: 5000 }));
+    fireEvent.change(screen.getByLabelText('Bonus chips to redeem'), { target: { value: '1000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Seat' }));
+    expect(await screen.findByText('More bonus chips than this visit allows. Not seated.')).toBeDefined();
+  });
 });

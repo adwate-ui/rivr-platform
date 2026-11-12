@@ -2,7 +2,7 @@ import { bonusChipsToRedeemSchema, seatPlayerSchema } from '@rivr/contracts';
 import { CALL_TIME_CHOICES, isCallTimeMinutes } from '@rivr/domain/callTime';
 import { seatingCallTime } from '@rivr/domain/tables';
 import { openSeatsAt, useWaitlistBoard, type FloorTable, type HeldSeat, type SeatedPlayer, type WaitlistBoardEntry } from '@rivr/db';
-import { useMemberBonus } from '@rivr/db/bonus';
+import { useMemberBonus, useMemberBonusVisitLeft } from '@rivr/db/bonus';
 import { formatChips, t, type MessageKey } from '@rivr/i18n';
 import { Button, CallTimeChoice, ChoiceChips, ErrorMessage, Input, Sheet, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
@@ -133,16 +133,23 @@ function CallTime({ sheet }: { sheet: SeatSheetState }) {
   return <CallTimeChoice key={choice.tableId} choices={CALL_TIME_CHOICES} initial={callMinutes ?? tablesOwn} onChange={choice.setCallMinutes} />;
 }
 
+/** The member's bonus chips under the field: their balance, and what this visit may still redeem where the club caps it (decision 0579). */
+function bonusHint(balance: bigint | null | undefined, left: bigint | null | undefined): string | undefined {
+  if (balance === undefined || balance === null) return undefined;
+  if (balance === 0n) return t('console.floor.seat.bonusChipsNone');
+  if (left === undefined || left === null) return t('console.floor.seat.bonusChipsHas', { chips: formatChips(balance) });
+  return t('console.floor.seat.bonusChipsLeft', { chips: formatChips(balance), left: formatChips(left) });
+}
+
 /**
- * Bonus chips the member redeems with their buy-in (decision 0504): their balance once a name from the list is chosen; a
- * number typed is checked as they sit.
+ * Bonus chips the member redeems with their buy-in (decision 0504): their balance once a name from the list is chosen, and
+ * what this visit may still redeem (decision 0579); a number typed is checked as they sit.
  */
 function BonusChips({ sheet, venueId }: { sheet: SeatSheetState; venueId: string }) {
   const { choice, chosen } = sheet;
   const balance = useMemberBonus(venueId, chosen?.memberId ?? null).data;
-  const hint = chosen === undefined ? t('console.floor.seat.bonusChipsTyped')
-    : balance === undefined || balance === null ? undefined
-      : balance === 0n ? t('console.floor.seat.bonusChipsNone') : t('console.floor.seat.bonusChipsHas', { chips: formatChips(balance) });
+  const left = useMemberBonusVisitLeft(venueId, chosen?.memberId ?? null).data;
+  const hint = chosen === undefined ? t('console.floor.seat.bonusChipsTyped') : bonusHint(balance, left);
   return (
     <Input label={t('console.floor.seat.bonusChips')} hint={hint} value={choice.bonusChips} inputMode="numeric" autoComplete="off"
       onChange={(event) => { choice.setBonusChips(event.target.value); choice.setError(null); }} />

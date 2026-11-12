@@ -91,6 +91,24 @@ export function useMemberBonus(venueId: string, memberId: string | null) {
   });
 }
 
+/**
+ * What a member may still redeem this visit under the venue's bonus.visit_cap (decision 0579), for staff who open member
+ * records: null where no cap is set, or for a member not at the venue.
+ */
+export function useMemberBonusVisitLeft(venueId: string, memberId: string | null) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.memberBonusVisitLeft(userId ?? 'signed-out', venueId, memberId ?? 'none'),
+    enabled: userId !== null && memberId !== null,
+    queryFn: async (): Promise<Paise | null> => {
+      const { data, error } = await client.rpc('member_bonus_visit_left', { p_venue_id: venueId, p_member_id: memberId ?? '' });
+      if (error) throw error;
+      const left = data[0]?.left_paise;
+      return left === undefined || left === null ? null : toPaise(left);
+    },
+  });
+}
+
 /** A member's newest `count` lines of bonus history, newest first, with who seated them, for staff who open member records. */
 export function useMemberBonusHistory(venueId: string, memberId: string, count: number) {
   const { client, userId } = useRivrData();

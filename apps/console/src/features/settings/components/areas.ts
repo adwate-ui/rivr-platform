@@ -50,6 +50,8 @@ const AREA_OF: Readonly<Record<SettingKey, RuleArea>> = {
   'points.verified_bonus': 'members',
   'points.daily_staff_cap': 'members',
   'bonus.daily_staff_cap': 'members',
+  'bonus.expiry_days': 'members',
+  'bonus.visit_cap': 'members',
   'host.lapse': 'members',
   'league.points': 'members',
   'league.prizes': 'members',

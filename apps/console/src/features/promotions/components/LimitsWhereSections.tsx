@@ -15,20 +15,22 @@ export function LimitsSection({ section }: { section: SectionProps }) {
   const limits = PER_MEMBER.map((limit) => ({ value: limit, label: t(`console.promotions.builder.fields.perMemberChoices.${limit}`) }));
   const periods = BUDGET_PERIODS.map((period) => ({ value: period, label: t(`console.promotions.builder.fields.budgetPeriods.${period}`) }));
   const hasBudget = form.budgetChips.trim() !== '' || form.maxGrants !== undefined;
+  // A seat bonus in tiers is once a member, its claims counted over the promotion's life (decision 0580).
+  const isTiers = form.kind === 'seat_bonus' && form.seatMode === 'tiers';
   return (
     <BuilderCard label={t('console.promotions.builder.sections.limits')} isChanged={section.isChanged}>
-      <ChoiceChips label={t('console.promotions.builder.fields.perMember')} mode="one" look="subtle" selected={[form.perMember]}
-        options={offered(section, limits, [form.perMember])}
+      <ChoiceChips label={t('console.promotions.builder.fields.perMember')} mode="one" look="subtle" selected={[isTiers ? 'once' : form.perMember]}
+        options={isTiers ? limits.filter((limit) => limit.value === 'once') : offered(section, limits, [form.perMember])}
         onChange={(picked) => onChange({ ...form, perMember: PER_MEMBER.find((limit) => limit === picked[0]) ?? form.perMember })} />
       <Grid columns={2} gap={4} stackBelow="medium">
-        {form.perMember === 'none' ? null : (
+        {form.perMember === 'none' || isTiers ? null : (
           <FormInput section={section} field="timesPerMember" label={t('console.promotions.builder.fields.timesPerMember')} inputMode="numeric"
             placeholder={t('console.promotions.builder.fields.once')} />
         )}
         <FormInput section={section} field="maxMembersPerDay" label={t('console.promotions.builder.fields.maxMembersPerDay')} inputMode="numeric"
           placeholder={noLimit} />
         <FormInput section={section} field="budgetChips" label={t('console.promotions.builder.fields.budgetChips')} inputMode="numeric" placeholder={noLimit} />
-        {hasBudget ? (
+        {hasBudget && !isTiers ? (
           <ChoiceChips label={t('console.promotions.builder.fields.budgetPeriod')} mode="one" look="subtle" selected={[form.budgetPeriod]}
             options={offered(section, periods, [form.budgetPeriod])}
             onChange={(picked) => onChange({ ...form, budgetPeriod: BUDGET_PERIODS.find((period) => period === picked[0]) ?? form.budgetPeriod })} />

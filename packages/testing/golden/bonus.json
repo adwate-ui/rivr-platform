@@ -1,6 +1,6 @@
 {
   "rule": "bonus",
-  "about": "A bonus balance (scope-v1 module 5; #17): each grant has an amount and an end, or none: bonus chips given since decision 0504 never end (written @ never). Bonus is playable, not withdrawable: it buys chips, in whole ₹50 chips above nothing, drawn from the grants in force, the soonest to end first and those with no end last (in the order listed when two end together or neither ends: the oldest first), each as far as it goes; more than the bonus in force is refused. A grant is in force before its end, never at it: at its end its remainder expires and is reversed. A grant with no end is always in force and never expires. Grants are listed as amount @ end, separated by |; what each grant gives, or what expires of it, is listed in the same order. Nothing is rounded.",
+  "about": "A bonus balance (scope-v1 module 5; #17): each grant has an amount and an end, or none: bonus chips given since decision 0504 never end (written @ never). Bonus is playable, not withdrawable: it buys chips, in whole ₹50 chips above nothing, drawn from the grants in force, the soonest to end first and those with no end last (in the order listed when two end together or neither ends: the oldest first), each as far as it goes; more than the bonus in force is refused. A grant is in force before its end, never at it: at its end its remainder expires and is reversed. A grant with no end is always in force and never expires. Grants are listed as amount @ end, separated by |; what each grant gives, or what expires of it, is listed in the same order. Nothing is rounded. Since 12 Nov (decision 0579) a venue can make bonus chips end N days after they are given (end), chips held when it is switched on ending N days from then, and none with it off (0 days); and can let a visit redeem only x% of the bonus held at its first seat, in whole ₹50 chips (visitCap), less what the visit has redeemed (visitLeft).",
   "cases": [
     {
       "description": "₹2,000 from Arjun's ₹4,000 bonus expiring Sunday: half of it, ₹2,000 left.",
@@ -133,6 +133,84 @@
       "operation": "expire",
       "inputs": { "at": "2036-11-15T20:00:00+05:30", "grants": "₹4,000 @ never | ₹2,000 @ 2026-11-20T06:00:00+05:30" },
       "expected": { "expired": "₹0 | ₹2,000" }
+    },
+    {
+      "description": "Expiry after 30 days: a grant given on Sunday night ends 30 days later, at the same time.",
+      "operation": "end",
+      "inputs": { "given": "2026-11-15T20:00:00+05:30", "days": "30", "since": "2026-11-13T00:00:00+05:30" },
+      "expected": { "ends": "2026-12-15T20:00:00+05:30" }
+    },
+    {
+      "description": "Chips held when expiry was switched on end 30 days from the switch-on, not from when they were given.",
+      "operation": "end",
+      "inputs": { "given": "2026-11-01T20:00:00+05:30", "days": "30", "since": "2026-11-13T00:00:00+05:30" },
+      "expected": { "ends": "2026-12-13T00:00:00+05:30" }
+    },
+    {
+      "description": "One day: a grant ends at the same time the next day.",
+      "operation": "end",
+      "inputs": { "given": "2026-11-15T23:30:00+05:30", "days": "1", "since": "2026-11-13T00:00:00+05:30" },
+      "expected": { "ends": "2026-11-16T23:30:00+05:30" }
+    },
+    {
+      "description": "Expiry off (0 days): a grant never ends.",
+      "operation": "end",
+      "inputs": { "given": "2026-11-15T20:00:00+05:30", "days": "0", "since": "2026-11-13T00:00:00+05:30" },
+      "expected": { "ends": "never" }
+    },
+    {
+      "description": "Half of a ₹10,000 balance at the first seat: ₹5,000 this visit.",
+      "operation": "visitCap",
+      "inputs": { "held": "₹10,000", "basisPoints": "5000" },
+      "expected": { "cap": "₹5,000" }
+    },
+    {
+      "description": "Half of ₹1,250 is ₹625, which rounds down to whole ₹50 chips: ₹600.",
+      "operation": "visitCap",
+      "inputs": { "held": "₹1,250", "basisPoints": "5000" },
+      "expected": { "cap": "₹600" }
+    },
+    {
+      "description": "Half of ₹1,300 is ₹650, already whole ₹50 chips.",
+      "operation": "visitCap",
+      "inputs": { "held": "₹1,300", "basisPoints": "5000" },
+      "expected": { "cap": "₹650" }
+    },
+    {
+      "description": "At 100%, the whole balance in whole ₹50 chips: ₹1,275.50 gives ₹1,250.",
+      "operation": "visitCap",
+      "inputs": { "held": "₹1,275.50", "basisPoints": "10000" },
+      "expected": { "cap": "₹1,250" }
+    },
+    {
+      "description": "Nothing held at the first seat: nothing this visit.",
+      "operation": "visitCap",
+      "inputs": { "held": "₹0", "basisPoints": "5000" },
+      "expected": { "cap": "₹0" }
+    },
+    {
+      "description": "A ₹5,000 cap with ₹2,000 redeemed: ₹3,000 left.",
+      "operation": "visitLeft",
+      "inputs": { "cap": "₹5,000", "redeemed": "₹2,000" },
+      "expected": { "left": "₹3,000" }
+    },
+    {
+      "description": "The cap reached: nothing left.",
+      "operation": "visitLeft",
+      "inputs": { "cap": "₹5,000", "redeemed": "₹5,000" },
+      "expected": { "left": "₹0" }
+    },
+    {
+      "description": "Never below nothing, even past the cap.",
+      "operation": "visitLeft",
+      "inputs": { "cap": "₹5,000", "redeemed": "₹5,500" },
+      "expected": { "left": "₹0" }
+    },
+    {
+      "description": "A cap of nothing and nothing redeemed: nothing left.",
+      "operation": "visitLeft",
+      "inputs": { "cap": "₹0", "redeemed": "₹0" },
+      "expected": { "left": "₹0" }
     }
   ]
 }

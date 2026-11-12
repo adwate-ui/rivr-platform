@@ -30,8 +30,13 @@ function buyInText(reward: Extract<Reward, { kind: 'buyin_bonus' }>): string {
   return [t('console.promotions.words.buyIn.percent', { percent: reward.percent }), cap, firstN].filter(isPart).join(', ');
 }
 
-/** A seat bonus in words (owner, 8 Nov): on a visit's first seat, or for the first N seated at a table. */
+/** A seat bonus in words (owner, 8 Nov): on a visit's first seat, for the first N seated at a table, or in tiers (decision 0580). */
 function seatText(reward: Extract<Reward, { kind: 'seat_bonus' }>): string {
+  if ('tiers' in reward) {
+    const tiers = reward.tiers.map((tier, at) =>
+      t(at === 0 ? 'console.promotions.words.seat.tierFirst' : 'console.promotions.words.seat.tierNext', { count: count(tier.count), chips: count(tier.chips) }));
+    return t('console.promotions.words.seat.tiers', { tiers: tiers.join(', ') });
+  }
   return reward.firstNSeatsPerTable === undefined
     ? t('console.promotions.words.seat.first', { chips: count(reward.chips) })
     : t('console.promotions.words.seat.firstN', { chips: count(reward.chips), count: reward.firstNSeatsPerTable });

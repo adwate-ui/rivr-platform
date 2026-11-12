@@ -43,7 +43,7 @@ export function offered<Option extends { readonly value: string }>(section: Sect
 }
 
 /** A field typed as text in the builder; a play-time bonus's steps are a list of their own. */
-export type TextField = Exclude<FormField, 'who' | 'days' | 'steps'>;
+export type TextField = Exclude<FormField, 'who' | 'days' | 'steps' | 'tierList'>;
 
 interface FieldProps {
   readonly section: SectionProps;

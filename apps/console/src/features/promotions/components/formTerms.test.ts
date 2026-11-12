@@ -29,6 +29,21 @@ describe('the builder read as terms', () => {
     expect(readForm(named({ kind: 'seat_bonus', chips: '500', firstN: '5' })).terms?.reward).toEqual({ kind: 'seat_bonus', chips: 500, firstNSeatsPerTable: 5 });
   });
 
+  // Decision 0580: tiers count claims over the promotion's life, each member once, whatever the limits section held.
+  it('reads a seat bonus in tiers as once a member, with no monthly reset, and reads it back', () => {
+    const form = named({
+      kind: 'seat_bonus', seatMode: 'tiers', seatTiers: [{ count: '10', chips: '5,000' }, { count: '20', chips: '2000' }],
+      perMember: 'per_day', timesPerMember: '3', budgetChips: '100000', budgetPeriod: 'month',
+    });
+    const { terms, errors } = readForm(form);
+    expect(errors.size).toBe(0);
+    expect(terms?.reward).toEqual({ kind: 'seat_bonus', tiers: [{ count: 10, chips: 5_000 }, { count: 20, chips: 2_000 }] });
+    expect(terms?.limits).toEqual({ perMember: 'once', budgetChips: 100_000 });
+    if (terms === null) return;
+    expect(formFromTerms(terms)).toMatchObject({ seatMode: 'tiers', seatTiers: [{ count: '10', chips: '5000' }, { count: '20', chips: '2000' }] });
+    expect(readForm(named({ kind: 'seat_bonus', seatMode: 'tiers', seatTiers: [{ count: '0', chips: '75' }] })).errors).toEqual(new Set(['tierList']));
+  });
+
   it('opens a promotion that paid on a buy-in as the seat bonus it became (owner, 8 Nov)', () => {
     const opened = (reward: PromotionTerms['reward']) => {
       const form = formFromTerms({ ...TUESDAY, reward });

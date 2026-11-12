@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { BuilderCard, FormInput, offered, type SectionProps } from './BuilderCard.tsx';
 import { REWARD_KINDS } from './builderForm.ts';
 import { HoursBonusFields } from './HoursBonusFields.tsx';
+import { SeatBonusFields } from './SeatBonusFields.tsx';
 
 /** A choice of two to four with its label shown above it, as the prototype's "Bonus as" and "Given on". */
 function Labelled({ label, children }: { label: string; children: ReactNode }) {
@@ -24,17 +25,6 @@ function Fields({ children }: { children: ReactNode }) {
 /** A count of bonus chips, in its own field. */
 function ChipsInput({ section, field, label }: { section: SectionProps; field: 'chips'; label: string }) {
   return <FormInput section={section} field={field} label={label} suffix={t('console.promotions.builder.fields.chipsSuffix')} inputMode="numeric" />;
-}
-
-/** A seat bonus (owner, 8 Nov): fixed bonus chips, on a visit's first seat or, with a number, the first seats at each table. */
-function SeatFields({ section }: { section: SectionProps }) {
-  return (
-    <Fields>
-      <ChipsInput section={section} field="chips" label={t('console.promotions.builder.fields.chips')} />
-      <FormInput section={section} field="firstN" label={t('console.promotions.builder.fields.firstN')}
-        suffix={t('console.promotions.builder.fields.firstNSuffix')} inputMode="numeric" />
-    </Fields>
-  );
 }
 
 function BonusChipsFields({ section }: { section: SectionProps }) {
@@ -71,7 +61,7 @@ function KindFields({ section }: { section: SectionProps }) {
         </Fields>
       );
     case 'seat_bonus':
-      return <SeatFields section={section} />;
+      return <SeatBonusFields section={section} />;
     case 'hours_bonus':
       return <HoursBonusFields section={section} />;
     case 'bonus_chips':

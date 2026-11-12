@@ -1,7 +1,7 @@
 import { bonusChipsToRedeemSchema } from '@rivr/contracts';
 import { CALL_TIME_CHOICES, isCallTimeMinutes } from '@rivr/domain/callTime';
 import { openSeatsAt, useFloorSeats, useHeldSeats, useWaitlistCallActions, type FloorTable, type WaitlistFailure } from '@rivr/db';
-import { useMemberBonus } from '@rivr/db/bonus';
+import { useMemberBonus, useMemberBonusVisitLeft } from '@rivr/db/bonus';
 import { formatChips, t, type MessageKey } from '@rivr/i18n';
 import { Button, CallTimeChoice, ChoiceChips, ErrorMessage, Inline, Input, Sheet, Stack, useToast } from '@rivr/ui';
 import { useState } from 'react';
@@ -15,10 +15,15 @@ export interface SeatSheetPlace {
   readonly name: string;
 }
 
-/** The member's bonus chips, under the field for those they redeem: nothing until it has come. */
-function bonusHint(balance: bigint | null | undefined): string | undefined {
+/**
+ * The member's bonus chips, under the field for those they redeem: nothing until it has come; with what this visit may
+ * still redeem where the club caps it (decision 0579).
+ */
+function bonusHint(balance: bigint | null | undefined, left: bigint | null | undefined): string | undefined {
   if (balance === undefined || balance === null) return undefined;
-  return balance === 0n ? t('console.waitlist.bonusChipsNone') : t('console.waitlist.bonusChipsHas', { chips: formatChips(balance) });
+  if (balance === 0n) return t('console.waitlist.bonusChipsNone');
+  if (left === undefined || left === null) return t('console.waitlist.bonusChipsHas', { chips: formatChips(balance) });
+  return t('console.waitlist.bonusChipsLeft', { chips: formatChips(balance), left: formatChips(left) });
 }
 
 /** Why Seat did not go through: no seat or call time chosen, bonus chips not whole 50s, or the database's refusal. */
@@ -31,10 +36,11 @@ function failureCopy(failure: WaitlistFailure | 'choose' | 'bonus'): MessageKey 
 function useBonusField(venueId: string, memberId: string, onChange: () => void) {
   const [text, setText] = useState('');
   const balance = useMemberBonus(venueId, memberId).data;
+  const left = useMemberBonusVisitLeft(venueId, memberId).data;
   return {
     text,
     field: (
-      <Input label={t('console.waitlist.bonusChips')} hint={bonusHint(balance)} value={text} inputMode="numeric" autoComplete="off"
+      <Input label={t('console.waitlist.bonusChips')} hint={bonusHint(balance, left)} value={text} inputMode="numeric" autoComplete="off"
         onChange={(event) => { setText(event.target.value); onChange(); }} />
     ),
   };
