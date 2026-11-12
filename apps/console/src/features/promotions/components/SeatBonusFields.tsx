@@ -3,8 +3,8 @@ import { Button, ErrorMessage, Grid, Inline, Input, Segmented, Stack, Text } fro
 import { FormInput, type SectionProps } from './BuilderCard.tsx';
 import type { SeatTierFields } from './builderForm.ts';
 
-// One to ten tiers (the contracts' seatTiers).
-const MOST_TIERS = 10;
+// One to five tiers (the contracts' seatTiers).
+const MOST_TIERS = 5;
 
 // What tiers need of the limits (decision 0580): once a member, never up to N times, never afresh each month.
 const TIERS_LIMITS = { perMember: 'once', timesPerMember: '', budgetPeriod: 'whole' } as const;

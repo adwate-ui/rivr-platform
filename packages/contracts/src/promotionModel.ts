@@ -16,8 +16,8 @@ const hourSteps = z.array(z.strictObject({ afterMinutes: minutesPlayed, chips })
   .refine((steps) => steps.every((step, at) => at === 0 || step.afterMinutes > (steps[at - 1]?.afterMinutes ?? 0)));
 const firstN = z.int().min(1).max(100);
 // A seat bonus in tiers (the owner, 12 Nov; decision 0580): the first `count` members to claim it get `chips`, the next
-// tier's count the next, and so on, over the promotion's life; one to ten tiers.
-const seatTiers = z.array(z.strictObject({ count: z.int().min(1).max(10_000), chips })).min(1).max(10);
+// tier's count the next, and so on, over the promotion's life; one to five tiers, so the card holds every one.
+const seatTiers = z.array(z.strictObject({ count: z.int().min(1).max(10_000), chips })).min(1).max(5);
 // A 24-hour IST time, "20:00".
 const clockTime = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 const id = z.string().min(1).max(64);

@@ -101,7 +101,7 @@ describe('the promotion builder (console v3)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Add a tier' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Tier 2: the next' }), { target: { value: '20' } });
     fireEvent.change(screen.getByRole('textbox', { name: 'Tier 2 bonus chips' }), { target: { value: '2000' } });
-    expect(screen.getByText(/^Bonus chips on a first seat, once a member: first 10 get 5,000, next 20 2,000, for all stakes/)).toBeDefined();
+    expect(screen.getByText(/^Bonus chips on a first seat, once a member: first 10 get 5,000, next 20 get 2,000, for all stakes/)).toBeDefined();
     expect(screen.getByText(/^Each member gets it once, on a first seat\./)).toBeDefined();
     // Limits hold to once a member: no other period, no times, no month (the review of #909).
     const perMember = within(screen.getByRole('radiogroup', { name: 'Each member' }));

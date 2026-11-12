@@ -19,7 +19,7 @@ export function LimitsSection({ section }: { section: SectionProps }) {
   const isTiers = form.kind === 'seat_bonus' && form.seatMode === 'tiers';
   return (
     <BuilderCard label={t('console.promotions.builder.sections.limits')} isChanged={section.isChanged}>
-      <ChoiceChips label={t('console.promotions.builder.fields.perMember')} mode="one" look="subtle" selected={[form.perMember]}
+      <ChoiceChips label={t('console.promotions.builder.fields.perMember')} mode="one" look="subtle" selected={[isTiers ? 'once' : form.perMember]}
         options={isTiers ? limits.filter((limit) => limit.value === 'once') : offered(section, limits, [form.perMember])}
         onChange={(picked) => onChange({ ...form, perMember: PER_MEMBER.find((limit) => limit === picked[0]) ?? form.perMember })} />
       <Grid columns={2} gap={4} stackBelow="medium">

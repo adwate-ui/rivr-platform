@@ -46,7 +46,7 @@ AS $function$
         {"type": "object", "additionalProperties": false, "required": ["kind", "chips"],
          "properties": {"kind": {"const": "seat_bonus"}, "chips": {"$ref": "#/$defs/chips"}, "firstNSeatsPerTable": {"$ref": "#/$defs/firstN"}}},
         {"type": "object", "additionalProperties": false, "required": ["kind", "tiers"],
-         "properties": {"kind": {"const": "seat_bonus"}, "tiers": {"type": "array", "minItems": 1, "maxItems": 10,
+         "properties": {"kind": {"const": "seat_bonus"}, "tiers": {"type": "array", "minItems": 1, "maxItems": 5,
            "items": {"type": "object", "additionalProperties": false, "required": ["count", "chips"],
                      "properties": {"count": {"type": "integer", "minimum": 1, "maximum": 10000}, "chips": {"$ref": "#/$defs/chips"}}}}}},
         {"type": "object", "additionalProperties": false, "required": ["kind", "chips", "afterMinutes"],

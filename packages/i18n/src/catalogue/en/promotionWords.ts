@@ -6,8 +6,11 @@ export const promotionWords = {
     firstN: 'first {count} buy-ins per table',
   },
   seat: {
-    /** In tiers (decision 0580), short enough for ten tiers: `Bonus chips on a first seat, once a member: first 10 get 5,000, next 20 2,000`. */
-    tiers: 'Bonus chips on a first seat, once a member: {tiers}', tierFirst: 'first {count} get {chips}', tierNext: 'next {count} {chips}',
+    /**
+     * In tiers (decision 0580): `Bonus chips on a first seat, once a member: first 10 get 5,000, next 20 get 2,000`. Five tiers at
+     * their longest (10,000 claims at 1,00,00,000 chips) come to 188 characters, inside the card's 200.
+     */
+    tiers: 'Bonus chips on a first seat, once a member: {tiers}', tierFirst: 'first {count} get {chips}', tierNext: 'next {count} get {chips}',
     first: '{chips} bonus chips on the first seat of a visit', firstN: '{chips} bonus chips for the first {count} seated at a table' },
   hoursBonus: {
     after: '{chips} bonus chips after {time}', thenAfter: 'then {chips} after {time}', every: '{chips} bonus chips every {time}',

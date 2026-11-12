@@ -169,7 +169,7 @@ export const promotions = {
       name: 'Name it in 3 to 80 characters.',
       multiplier: '1.25 to 5, in quarters.',
       chips: 'Whole 50s of chips, from 50.',
-      tierList: 'Each tier: 1 to 10,000 members and whole 50s of chips. 1 to 10 tiers.',
+      tierList: 'Each tier: 1 to 10,000 members and whole 50s of chips. 1 to 5 tiers.',
       firstN: '1 to 100, or blank for a visit’s first seat.',
       afterHours: 'Half hours, from 0.5 to 24.',
       everyHours: 'Half hours, from 0.5 to 12.',
