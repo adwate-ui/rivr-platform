@@ -1,43 +1,27 @@
 import { useHouseRules, type HouseRules } from '@rivr/db/houseRules';
 import { formatNumber, t } from '@rivr/i18n';
-import { BackButton, Figure, Heading, Inline, Screen, Stack, Text } from '@rivr/ui';
+import { BackButton, Figure, Inline, Screen, Stack, Text } from '@rivr/ui';
 import { useCanGoBack, useNavigate, useRouter } from '@tanstack/react-router';
 
-/** The rules, each with its number in gold, then the legal standing and its cases, each between hairlines (brief 3.10). */
+/** The rules, each with its number in gold, between hairlines (brief 3.10). */
 function Rules({ rules }: { rules: HouseRules }) {
   return (
-    <Stack gap={8}>
-      <Stack gap={3} divided>
-        {rules.rules.map((rule, index) => (
-          // The numeral sits on its rule's first line (F-160).
-          <Inline key={`${String(index)}-${rule}`} gap={4} align="baseline">
-            <Figure size="numeral" tone="money">{formatNumber(index + 1)}</Figure>
-            <Text>{rule}</Text>
-          </Inline>
-        ))}
-      </Stack>
-      {rules.legal === null ? null : (
-        <Stack gap={3}>
-          <Heading level={2} variant="serif" serifSize={28}>{rules.legal.heading ?? t('player.houseRules.legal')}</Heading>
-          {rules.legal.intro === null ? null : <Text tone="muted">{rules.legal.intro}</Text>}
-          <Stack gap={3} divided>
-            {rules.legal.cases.map((legalCase) => (
-              <Stack key={`${legalCase.when}-${legalCase.title}`} gap={1}>
-                <Text variant="small" tone="accent">{legalCase.when}</Text>
-                <Text weight="medium">{legalCase.title}</Text>
-                {legalCase.text === null ? null : <Text variant="small" tone="muted">{legalCase.text}</Text>}
-              </Stack>
-            ))}
-          </Stack>
-        </Stack>
-      )}
+    <Stack gap={3} divided>
+      {rules.rules.map((rule, index) => (
+        // The numeral sits on its rule's first line (F-160).
+        <Inline key={`${String(index)}-${rule}`} gap={4} align="baseline">
+          <Figure size="numeral" tone="money">{formatNumber(index + 1)}</Figure>
+          <Text>{rule}</Text>
+        </Inline>
+      ))}
     </Stack>
   );
 }
 
 /**
- * House rules (brief 3.10; #637), from Profile: back to Profile, the title and its line, the club's rules numbered in gold,
- * then that poker is a game of skill and the cases that say so. The club writes them (decision 0296).
+ * House rules (brief 3.10; #637), from Profile: back to Profile, the title and its line, and the club's rules numbered in
+ * gold. The club writes them on the website (decision 0296); the game's legal standing stays on its About page (the owner,
+ * 12 Nov).
  */
 export function HouseRulesScreen() {
   const rules = useHouseRules();
@@ -51,7 +35,7 @@ export function HouseRulesScreen() {
   const look = { titleLook: 'serif' } as const;
   if (rules.isError) return <Stack gap={2}>{back}<Screen {...look} title={title} status="error" onRetry={() => void rules.refetch()} /></Stack>;
   if (rules.data === undefined) return <Stack gap={2}>{back}<Screen {...look} title={title} status="loading" loadingLook="skeleton" /></Stack>;
-  if (rules.data.rules.length === 0 && rules.data.legal === null) {
+  if (rules.data.rules.length === 0) {
     return <Stack gap={2}>{back}<Screen {...look} title={title} status="empty" emptyText={t('player.houseRules.empty')} /></Stack>;
   }
   return (

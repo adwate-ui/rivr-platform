@@ -13,6 +13,10 @@ afterEach(() => {
 });
 
 const RULES = { page_slug: 'house-rules', kind: 'rules', content: { rules: ['One player to a hand.', 'English only at the table.'] } };
+const LEGAL = {
+  page_slug: 'about', kind: 'timeline',
+  content: { heading: 'Poker is a game of skill', items: [{ when: '1996', title: 'K.R. Lakshmanan v. State of Tamil Nadu' }] },
+};
 
 /** A member opening House rules from Profile, with the club's rules and no line of its own under the title. */
 function renderRules(blocks: unknown[]) {
@@ -49,6 +53,14 @@ describe('House rules', () => {
     expect(screen.getByText('The floor applies these at every table.')).toBeDefined();
     expect(screen.getByText('1')).toBeDefined();
     expect(screen.getByText('2')).toBeDefined();
+  });
+
+  // The owner, 12 Nov: the legal standing stays on the website's About page.
+  it('shows the rules alone, never the game\'s legal standing', async () => {
+    renderRules([RULES, LEGAL]);
+    expect(await screen.findByText('English only at the table.', {}, { timeout: 5000 })).toBeDefined();
+    expect(screen.queryByText('Poker is a game of skill')).toBeNull();
+    expect(screen.queryByText('K.R. Lakshmanan v. State of Tamil Nadu')).toBeNull();
   });
 
   it('says there are none yet when the club has published none', async () => {

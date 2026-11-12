@@ -1,6 +1,6 @@
 /**
  * Player settings (#637; decision 0320). Naveen Iyer, this flow's own member, opens Profile: no Learn or Events row and no
- * Academy, as they are off for every tier; House rules shows the club's rules and the legal standing from its website.
+ * Academy, as they are off for every tier; House rules shows the club's rules from its website, without the legal standing.
  * From Send feedback, Naveen sends a quick note about the dealer, then the detailed form: the gameplay, cashier, service and ambience rated,
  * and 9 for how likely they are to recommend the club. Farhan Siddiqui, this flow's own admin, reads both on Feedback
  * with their answers. The forms' rules are proved in supabase/tests/203_feedback_forms.test.sql.
@@ -21,11 +21,11 @@ test.describe('Player settings', () => {
     for (const row of ['Learn', 'Events']) await expect(member.getByRole('button', { name: row, exact: true })).toHaveCount(0);
     await expect(member.getByRole('heading', { name: 'RIVR Academy' })).toHaveCount(0);
 
-    // Profile › House rules: the club's rules numbered in gold, then the legal standing, from its website.
+    // Profile › House rules: the club's rules numbered in gold, from its website; the legal standing stays on its About page.
     await member.getByRole('button', { name: 'House rules' }).click();
     await expect(member.getByRole('heading', { name: 'House rules', level: 1 })).toBeVisible();
     await expect(member.getByText(/^Members only, 18 and over\./)).toBeVisible();
-    await expect(member.getByText('K.R. Lakshmanan v. State of Tamil Nadu')).toBeVisible();
+    await expect(member.getByText('K.R. Lakshmanan v. State of Tamil Nadu')).toHaveCount(0);
     await member.getByRole('button', { name: 'Profile' }).click();
 
     // Profile › Feedback: the quick note in a sheet, then the detailed form a tab away.
