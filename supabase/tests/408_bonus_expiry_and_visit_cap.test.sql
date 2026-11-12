@@ -74,6 +74,17 @@ select is(pg_temp.ends((select later from g)), null, 'nor the later one');
 select is((select expired_at is not null from public.bonus_grant where id = (select old from g)), true, 'the ended one stays ended');
 select is(pg_temp.ends(pg_temp.give(50, 'test-408-off')), null, 'and a grant given now has no end');
 
+-- The money audit of #908: an end between the switch-off (30 seconds ago) and the sweep goes too; one before it still ends.
+alter table g add column after_off uuid, add column before_off uuid;
+update g set after_off = pg_temp.give(100, 'test-408-after-off'), before_off = pg_temp.give(100, 'test-408-before-off');
+update public.bonus_grant set expires_at = now() - interval '10 seconds' where id = (select after_off from g);
+update public.bonus_grant set expires_at = now() - interval '5 minutes' where id = (select before_off from g);
+select private.expire_bonus();
+select results_eq($$ select expires_at, expired_at, remaining_paise from public.bonus_grant where id = (select after_off from g) $$,
+  $$ values (null::timestamptz, null::timestamptz, 10000::bigint) $$, 'an end after the switch-off is taken off, the chips kept');
+select is((select expired_at is not null from public.bonus_grant where id = (select before_off from g)), true,
+  'an end before the switch-off still ends');
+
 -- The visit's cap: half the bonus held at its first seat, in whole 50s.
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
 values ('00000000-0000-4000-8000-000000000001', 'bonus.visit_cap', '', '{"basis_points": 5000}', '-infinity', 'Test 408');
@@ -107,6 +118,22 @@ select set_config('request.jwt.claims', jsonb_build_object('sub', '00000000-0000
 select throws_ok($$ select private.redeem_bonus_at_seat((select id from public.seat_session where member_id = '00000000-0000-4000-8000-000000000211'
                      and ended_at is null), 50) $$, 'RVVCP', null, 'not 50 more in the same visit');
 select set_config('request.jwt.claims', '', true);
+-- The cage's bonus buy-in draws through the same check (the money audit of #908).
+select throws_ok($$ select private.draw_bonus('00000000-0000-4000-8000-000000000211', 5000) $$, 'RVVCP', null,
+  'nor at the cage');
+
+-- A visit's only seat undone takes its note with it (the money audit of #908): Kabir (202), seated and undone.
+create temp table undone as
+  with v as (insert into public.visit (venue_id, member_id, opened_at, close_reason)
+             values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', now() - interval '5 minutes', null)
+             returning id, venue_id, member_id)
+  select v.id as visit_id, v.venue_id, v.member_id from v;
+insert into public.seat_session (venue_id, member_id, visit_id, table_id, seat, started_at, seated_here_at, ended_at, end_reason)
+select u.venue_id, u.member_id, u.visit_id, pg_temp.table_id('Table 2'), 6, now() - interval '1 minute', now() - interval '1 minute', now(), 'left'
+from undone u;
+select isnt((select bonus_at_first_seat_paise from public.visit where id = (select visit_id from undone)), null, 'the seat noted what Kabir held');
+delete from public.seat_session where visit_id = (select visit_id from undone);
+select is((select bonus_at_first_seat_paise from public.visit where id = (select visit_id from undone)), null, 'undone, the note goes with it');
 
 delete from public.setting where key = 'bonus.visit_cap';
 select is(private.bonus_visit_left('00000000-0000-4000-8000-000000000211'), null, 'with no cap set, nothing holds a visit back');

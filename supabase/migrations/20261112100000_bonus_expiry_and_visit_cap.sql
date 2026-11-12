@@ -7,7 +7,7 @@
 -- Each expiry is a bonus_expiry ledger entry, as before, and the activity log has every grant's dating and ending.
 --
 -- bonus.visit_cap: a visit redeems at most x% of the bonus the member held at its first seat, in whole 50s. The first seat
--- notes that bonus on the visit; private.redeem_bonus_at_seat refuses more (RVVCP).
+-- notes that bonus on the visit; private.draw_bonus, at the seat or the cage, refuses more (RVVCP).
 --
 -- @rivr/domain bonusEnd, visitBonusCap and visitBonusLeft are the twins of private.bonus_end, visit_bonus_cap and
 -- visit_bonus_left, proved equal on packages/testing/golden/bonus.json (024).
@@ -126,9 +126,10 @@ begin
   update public.bonus_grant g set expires_at = private.bonus_end(g.created_at, e.days, e.since)
   from public.venue v cross join lateral private.bonus_expiry(v.id) e
   where g.venue_id = v.id and g.expired_at is null and g.expires_at is null and e.days > 0;
+  -- Every end after the switch-off goes, though the sweep comes up to an hour later (the money audit of #908).
   update public.bonus_grant g set expires_at = null
   from public.venue v cross join lateral private.bonus_expiry(v.id) e
-  where g.venue_id = v.id and g.expired_at is null and g.expires_at > now() and e.days = 0;
+  where g.venue_id = v.id and g.expired_at is null and g.expires_at > e.since and e.days = 0;
   for v_grant in
     select * from public.bonus_grant g
     where g.expired_at is null and g.expires_at <= now()
@@ -174,6 +175,22 @@ $$;
 create trigger seat_session_notes_bonus after insert on public.seat_session
   for each row execute function private.note_bonus_at_first_seat();
 
+-- A visit's only seat undone takes its note with it, so the next first seat notes the bonus held then (the money audit of #908).
+create function private.forget_bonus_at_first_seat()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  update public.visit v set bonus_at_first_seat_paise = null
+  where v.id = old.visit_id and not exists (select 1 from public.seat_session s where s.visit_id = old.visit_id);
+  return null;
+end;
+$$;
+create trigger seat_session_forgets_bonus after delete on public.seat_session
+  for each row execute function private.forget_bonus_at_first_seat();
+
 -- What a member's open visit may still redeem under bonus.visit_cap, in paise; null where the venue sets no cap. Before the
 -- visit's first seat, the share of what they hold now, which that seat will note.
 create function private.bonus_visit_left(p_member_id uuid)
@@ -192,8 +209,11 @@ as $$
   select case when s.basis_points is null then null else
     private.visit_bonus_left(
       private.visit_bonus_cap(coalesce((select o.bonus_at_first_seat_paise from open_visit o), private.bonus_in_force(p_member_id, now())), s.basis_points),
-      coalesce((select sum(r.amount_paise) from public.bonus_redemption r join public.seat_session ss on ss.id = r.session_id
-                where ss.visit_id = (select o.id from open_visit o)), 0)::bigint)
+      (coalesce((select sum(r.amount_paise) from public.bonus_redemption r join public.seat_session ss on ss.id = r.session_id
+                 where ss.visit_id = (select o.id from open_visit o)), 0)
+       -- and bonus buy-ins at the cage, hidden since decision 0284 but still there (the money audit of #908).
+       + coalesce((select sum(c.amount_paise) from public.cage_transaction c join public.seat_session ss on ss.id = c.session_id
+                   where c.kind = 'buy_in' and c.method = 'bonus' and ss.visit_id = (select o.id from open_visit o)), 0))::bigint)
   end
   from share s;
 $$;
@@ -213,60 +233,45 @@ create function public.member_bonus_visit_left(p_venue_id uuid, p_member_id uuid
 returns table (left_paise bigint) language sql stable security invoker set search_path = ''
 as $$ select * from private.member_bonus_visit_left(p_venue_id, p_member_id); $$;
 
--- As 20261109090000_bonus_chips.sql made it, refusing more than the visit's cap leaves (RVVCP).
-create or replace function private.redeem_bonus_at_seat(p_session_id uuid, p_chips integer)
+-- As 20261019093100_bonus.sql made it, holding every draw of bonus, at the seat or at the cage, to what the member's visit may
+-- still redeem under bonus.visit_cap (RVVCP), once the member's grants are locked, so two draws cannot both pass (the money
+-- audit of #908).
+create or replace function private.draw_bonus(p_member_id uuid, p_amount_paise bigint)
 returns void
 language plpgsql
 security definer
 set search_path = ''
 as $$
 declare
-  v_session public.seat_session;
-  v_amount bigint := p_chips::bigint * 100;
-  v_id uuid := gen_random_uuid();
-  v_txn uuid;
-  v_table_name text;
+  v_ids uuid[];
+  v_remaining bigint[];
+  v_expires timestamptz[];
+  v_result text;
+  v_taken bigint[];
   v_left bigint;
 begin
-  if coalesce(p_chips, 0) = 0 then
-    return;
-  end if;
-  select * into v_session from public.seat_session s where s.id = p_session_id;
-  if v_session.id is null or not coalesce(private.has_permission(v_session.venue_id, 'members.read'), false) then
-    raise exception 'Only staff who open member records redeem bonus chips' using errcode = '42501';
-  end if;
-  if private.is_own_cage_record(v_session.member_id) then
-    raise exception 'Staff never redeem their own bonus chips' using errcode = 'RVOWN';
-  end if;
-  if p_chips < 0 or p_chips % 50 <> 0 then
-    raise exception 'Bonus chips are redeemed in whole 50s' using errcode = 'RVCHP';
-  end if;
-  v_left := private.bonus_visit_left(v_session.member_id);
-  if v_left is not null and v_amount > v_left then
+  select array_agg(g.id order by g.created_at, g.id), array_agg(g.remaining_paise order by g.created_at, g.id),
+         array_agg(g.expires_at order by g.created_at, g.id)
+  into v_ids, v_remaining, v_expires
+  from (select * from public.bonus_grant g where g.member_id = p_member_id and g.expired_at is null for update) g;
+  v_left := private.bonus_visit_left(p_member_id);
+  if v_left is not null and p_amount_paise > v_left then
     raise exception 'More bonus than this visit allows: % chips left', v_left / 100 using errcode = 'RVVCP';
   end if;
-  perform private.assert_rate(v_session.venue_id, 'bonus.redeem');
-  perform private.draw_bonus(v_session.member_id, v_amount);
-  v_txn := private.post_ledger_transaction(v_session.venue_id, 'bonus_buy_in', 'bonus_buy_in:' || v_id,
-    jsonb_build_array(
-      jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.member_id = v_session.member_id and a.code = 'member.bonus'),
-                         'amount', v_amount::text),
-      jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.venue_id = v_session.venue_id
-                                         and a.code = 'venue.chips_outstanding'), 'amount', (-v_amount)::text)),
-    'promotions', 'Bonus chips redeemed at the seat');
-  insert into public.bonus_redemption (id, venue_id, member_id, session_id, table_id, amount_paise, ledger_transaction_id, staff_id)
-  values (v_id, v_session.venue_id, v_session.member_id, v_session.id, v_session.table_id, v_amount, v_txn,
-          private.current_staff_id(v_session.venue_id));
-  select t.name into v_table_name from public.game_table t where t.id = v_session.table_id;
-  perform private.emit(v_session.venue_id, 'bonus.redeemed',
-                       jsonb_build_object('bonus_redemption_id', v_id, 'member_id', v_session.member_id, 'amount_paise', v_amount,
-                                          'table_id', v_session.table_id, 'table_name', v_table_name),
-                       'bonus.redeemed:' || v_id);
+  select d.result, d.taken into v_result, v_taken from private.bonus_draws(p_amount_paise, v_remaining, v_expires, now()) d;
+  if v_result <> 'ok' then
+    raise exception 'More than the bonus in force' using errcode = 'RVBON';
+  end if;
+  for i in 1 .. coalesce(array_length(v_ids, 1), 0) loop
+    continue when v_taken[i] = 0;
+    update public.bonus_grant set remaining_paise = remaining_paise - v_taken[i] where id = v_ids[i];
+  end loop;
 end;
 $$;
 
 revoke execute on function private.bonus_end(timestamptz, integer, timestamptz), private.visit_bonus_cap(bigint, integer),
-  private.visit_bonus_left(bigint, bigint), private.bonus_expiry(uuid), private.note_bonus_at_first_seat(), private.bonus_visit_left(uuid),
+  private.visit_bonus_left(bigint, bigint), private.bonus_expiry(uuid), private.note_bonus_at_first_seat(), private.forget_bonus_at_first_seat(),
+  private.bonus_visit_left(uuid),
   private.member_bonus_visit_left(uuid, uuid) from public, anon, authenticated;
 revoke execute on function public.member_bonus_visit_left(uuid, uuid) from public, anon;
 grant execute on function private.member_bonus_visit_left(uuid, uuid), public.member_bonus_visit_left(uuid, uuid) to authenticated;
