@@ -152,6 +152,31 @@ begin
 end;
 $$;
 
+-- A grant's end as it stands now: none once expiry is switched off, for an end after the switch-off, though the hourly sweep
+-- has not yet taken it off (the money audit of #909).
+create function private.bonus_end_in_force(p_venue_id uuid, p_expires_at timestamptz)
+returns timestamptz
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select case when exists (select 1 from private.bonus_expiry(p_venue_id) e where e.days = 0 and p_expires_at > e.since) then null else p_expires_at end;
+$$;
+
+-- As 20261109090000_bonus_chips.sql made it, with an end after a switch-off already gone.
+create or replace function private.bonus_in_force(p_member_id uuid, p_at timestamptz)
+returns bigint
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(sum(g.remaining_paise), 0)::bigint from public.bonus_grant g
+  where g.member_id = p_member_id and g.expired_at is null
+    and coalesce(private.bonus_end_in_force(g.venue_id, g.expires_at) > p_at, true);
+$$;
+
 -- The bonus held as a visit's first seat began, which bonus.visit_cap takes its share of.
 alter table public.visit add column bonus_at_first_seat_paise bigint check (bonus_at_first_seat_paise >= 0);
 comment on column public.visit.bonus_at_first_seat_paise is
@@ -253,7 +278,8 @@ begin
   select array_agg(g.id order by g.created_at, g.id), array_agg(g.remaining_paise order by g.created_at, g.id),
          array_agg(g.expires_at order by g.created_at, g.id)
   into v_ids, v_remaining, v_expires
-  from (select * from public.bonus_grant g where g.member_id = p_member_id and g.expired_at is null for update) g;
+  from (select g.id, g.created_at, g.remaining_paise, private.bonus_end_in_force(g.venue_id, g.expires_at) as expires_at
+        from public.bonus_grant g where g.member_id = p_member_id and g.expired_at is null for update) g;
   v_left := private.bonus_visit_left(p_member_id);
   if v_left is not null and p_amount_paise > v_left then
     raise exception 'More bonus than this visit allows: % chips left', v_left / 100 using errcode = 'RVVCP';
@@ -270,7 +296,7 @@ end;
 $$;
 
 revoke execute on function private.bonus_end(timestamptz, integer, timestamptz), private.visit_bonus_cap(bigint, integer),
-  private.visit_bonus_left(bigint, bigint), private.bonus_expiry(uuid), private.note_bonus_at_first_seat(), private.forget_bonus_at_first_seat(),
+  private.visit_bonus_left(bigint, bigint), private.bonus_expiry(uuid), private.bonus_end_in_force(uuid, timestamptz), private.note_bonus_at_first_seat(), private.forget_bonus_at_first_seat(),
   private.bonus_visit_left(uuid),
   private.member_bonus_visit_left(uuid, uuid) from public, anon, authenticated;
 revoke execute on function public.member_bonus_visit_left(uuid, uuid) from public, anon;

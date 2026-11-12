@@ -11,6 +11,6 @@ The owner, 12 Nov 2026 (#908): bonus chips can expire on a rolling basis and are
 - **Logging:** each expiry is a `bonus_expiry` ledger entry and an activity-log line, and shows as Expired in the member's bonus history, as before.
 - **`bonus.visit_cap`** (1% to 100% in basis points; super admins only; none set is all):
   - A visit redeems at most that share of the bonus held at its first seat, rounded down to whole ₹50 chips.
-  - The first seat notes the balance on the visit, and `redeem_bonus_at_seat` refuses more (RVVCP).
+  - The first seat notes the balance on the visit, and `draw_bonus` refuses more at the seat or the cage (RVVCP).
   - The seat sheets show what is left this visit.
 - **Twins:** `@rivr/domain` `bonusEnd`, `visitBonusCap` and `visitBonusLeft` are proved equal to their SQL twins on `packages/testing/golden/bonus.json`.

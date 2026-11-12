@@ -56,6 +56,11 @@ select results_eq($$ select x.kind, e.amount from public.ledger_transaction x jo
                      join public.ledger_account a on a.id = e.account_id
                      where x.idempotency_key = 'bonus_expiry:' || (select old from g) and a.code = 'member.bonus' $$,
   $$ values ('bonus_expiry'::text, 100000::bigint) $$, 'logged as a bonus expiry of all 1,000 left');
+select ok(exists (select 1 from public.audit_log a where a.entity in ('bonus_grant', 'public.bonus_grant') and a.entity_id::text = (select old from g)::text
+                  and a.after ->> 'expired_at' is not null),
+  'in the activity log too');
+select ok(exists (select 1 from private.bonus_history('00000000-0000-4000-8000-000000000211', 100) h where h.kind = 'expired' and h.reason = 'Test 408'),
+  'and the member''s bonus history shows it');
 select is(pg_temp.ends((select fresh from g)), now() + interval '720 hours', 'the fresh grant keeps its end');
 
 -- A new number of days: only grants given after it.
@@ -79,6 +84,9 @@ alter table g add column after_off uuid, add column before_off uuid;
 update g set after_off = pg_temp.give(100, 'test-408-after-off'), before_off = pg_temp.give(100, 'test-408-before-off');
 update public.bonus_grant set expires_at = now() - interval '10 seconds' where id = (select after_off from g);
 update public.bonus_grant set expires_at = now() - interval '5 minutes' where id = (select before_off from g);
+-- The money audit of #909: an end after the switch-off is gone at once, before the sweep comes, so nothing counts it as spent.
+select is(private.bonus_end_in_force('00000000-0000-4000-8000-000000000001', now() - interval '10 seconds'), null,
+  'switched off, an end after the switch-off is already gone, before the sweep');
 select private.expire_bonus();
 select results_eq($$ select expires_at, expired_at, remaining_paise from public.bonus_grant where id = (select after_off from g) $$,
   $$ values (null::timestamptz, null::timestamptz, 10000::bigint) $$, 'an end after the switch-off is taken off, the chips kept');

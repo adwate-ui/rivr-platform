@@ -172,7 +172,7 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   },
   'bonus.expiry_days': {
     name: 'Bonus chips expire', fields: { days: 'Days' },
-    help: 'How many days bonus chips last after they are given. Chips already held last that long from when this starts. Spent oldest first. 0 is never. Only super admins change it. Never unless set.',
+    help: 'How many days bonus chips last after they are given. Chips already held last that long from when this starts. 0 is never. Only super admins change it. Never unless set.',
   },
   'bonus.visit_cap': {
     name: 'Bonus per visit', fields: { basis_points: 'Share' },
