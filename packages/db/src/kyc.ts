@@ -38,14 +38,19 @@ export async function toBase64(photo: Blob): Promise<string> {
   return btoa(binary);
 }
 
-/** The signed-in member's KYC record, or null before their first check. */
+/**
+ * The signed-in member's KYC record, or null before their first check. It is read through their own member row, not left to
+ * row-level security: a login that is also staff with `kyc.review` can read every member's record in the venue.
+ */
 export function useKycRecord() {
   const { client, userId } = useRivrData();
   return useQuery({
     queryKey: queryKeys.kycRecord(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<KycRecord | null> => {
-      const { data, error } = await client.from('kyc_record').select('status, photo_path, date_of_birth, masked_aadhaar, pan, at_club_from').maybeSingle();
+      const { data, error } = await client.from('kyc_record')
+        .select('status, photo_path, date_of_birth, masked_aadhaar, pan, at_club_from, member!inner(user_id)')
+        .eq('member.user_id', userId ?? '').maybeSingle();
       if (error) throw error;
       const status = toStatus(data?.status);
       if (data === null || status === null) return null;
