@@ -87,7 +87,10 @@ update public.bonus_grant set expires_at = now() - interval '5 minutes' where id
 -- The money audit of #909: an end after the switch-off is gone at once, before the sweep comes, so nothing counts it as spent.
 select is(private.bonus_end_in_force('00000000-0000-4000-8000-000000000001', now() - interval '10 seconds'), null,
   'switched off, an end after the switch-off is already gone, before the sweep');
+create temp table gap as select private.bonus_in_force('00000000-0000-4000-8000-000000000211', now()) as before_sweep;
 select private.expire_bonus();
+select is(private.bonus_in_force('00000000-0000-4000-8000-000000000211', now()), (select before_sweep from gap),
+  'so the balance before the sweep is the balance after it: the grant ending after the switch-off counts in both');
 select results_eq($$ select expires_at, expired_at, remaining_paise from public.bonus_grant where id = (select after_off from g) $$,
   $$ values (null::timestamptz, null::timestamptz, 10000::bigint) $$, 'an end after the switch-off is taken off, the chips kept');
 select is((select expired_at is not null from public.bonus_grant where id = (select before_off from g)), true,
