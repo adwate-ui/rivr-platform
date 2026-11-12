@@ -21,5 +21,6 @@ export const SEAT_FAILURE_COPY: Readonly<Record<SeatFailure, MessageKey>> = {
   own_record: 'console.liveFloor.ownRecord',
   bonus_off: 'console.liveFloor.bonusOff',
   too_many: 'console.liveFloor.tooMany',
+  visit_cap: 'console.liveFloor.visitCap',
   unavailable: 'console.liveFloor.unavailable',
 };

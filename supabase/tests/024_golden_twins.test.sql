@@ -273,8 +273,28 @@ create function pg_temp.grant_ends(p_text text) returns timestamptz[] language s
   from unnest(string_to_array(nullif(p_text, ''), '|')) with ordinality as u (part, n);
 $$;
 select ok((select count(*) > 0 from golden.golden_case where file = 'bonus.json'), 'the bonus cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'bonus.json' and operation not in ('spend', 'expire') $$,
+select is_empty($$ select operation from golden.golden_case where file = 'bonus.json'
+                   and operation not in ('spend', 'expire', 'end', 'visitCap', 'visitLeft') $$,
   'every operation in bonus.json is proved here');
+-- Decision 0579: when a grant ends, and a visit's cap and what is left of it (bonusEnd, visitBonusCap, visitBonusLeft).
+select results_eq(
+  $$ select description, private.bonus_end((inputs ->> 'given')::timestamptz, (inputs ->> 'days')::integer, (inputs ->> 'since')::timestamptz)
+     from golden.golden_case where file = 'bonus.json' and operation = 'end' order by position $$,
+  $$ select description, nullif(expected ->> 'ends', 'never')::timestamptz
+     from golden.golden_case where file = 'bonus.json' and operation = 'end' order by position $$,
+  'private.bonus_end gives every end in the golden file');
+select results_eq(
+  $$ select description, private.visit_bonus_cap(pg_temp.paise(inputs ->> 'held'), (inputs ->> 'basisPoints')::integer)
+     from golden.golden_case where file = 'bonus.json' and operation = 'visitCap' order by position $$,
+  $$ select description, pg_temp.paise(expected ->> 'cap')
+     from golden.golden_case where file = 'bonus.json' and operation = 'visitCap' order by position $$,
+  'private.visit_bonus_cap gives every visit cap in the golden file');
+select results_eq(
+  $$ select description, private.visit_bonus_left(pg_temp.paise(inputs ->> 'cap'), pg_temp.paise(inputs ->> 'redeemed'))
+     from golden.golden_case where file = 'bonus.json' and operation = 'visitLeft' order by position $$,
+  $$ select description, pg_temp.paise(expected ->> 'left')
+     from golden.golden_case where file = 'bonus.json' and operation = 'visitLeft' order by position $$,
+  'private.visit_bonus_left gives what every visit has left in the golden file');
 select results_eq(
   $$ select description, case when d.result = 'ok' then d.taken::text else d.result end
      from golden.golden_case

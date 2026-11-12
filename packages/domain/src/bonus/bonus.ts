@@ -1,5 +1,9 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
-import { add, compare, isChipMultiple, isPositive, min, subtract, ZERO, type Paise } from '../money/index.ts';
+import { add, compare, isChipMultiple, isPositive, max, min, roundDownToChip, shareOf, subtract, ZERO, type Paise } from '../money/index.ts';
+
+const DAY_MS = 86_400_000;
+/** The longest expiry the setting allows, ten years. */
+const MOST_DAYS = 3650;
 
 /**
  * A bonus grant (#17): what is left of it, and when it ends. It is usable before that moment, never at it. Bonus chips
@@ -59,6 +63,31 @@ export function bonusSpend(amount: Paise, grants: readonly BonusGrant[], at: Dat
 function compareEnds(a: BonusGrant, b: BonusGrant): number {
   const [first, second] = [endOrder(a), endOrder(b)];
   return first === second ? 0 : first < second ? -1 : 1;
+}
+
+/**
+ * When a grant ends once a venue makes bonus chips expire (the owner, 12 Nov; decision 0579): `days` after it was given, or
+ * after expiry was switched on (`since`) for chips held before then; never with expiry off (0 days). Ending N days after it
+ * was given, every grant ends in the order it was given, so bonusSpend draws the oldest first. Throws on days outside 0 to
+ * 3,650, because that is a bug in the caller. The database's private.bonus_end is proved equal by bonus.json.
+ */
+export function bonusEnd(givenAt: Date, days: number, since: Date): Date | null {
+  if (!Number.isInteger(days) || days < 0 || days > MOST_DAYS) throw new RangeError(`Bonus chips expire after 0 to ${String(MOST_DAYS)} days, not ${String(days)}`);
+  if (days === 0) return null;
+  return new Date(Math.max(givenAt.getTime(), since.getTime()) + days * DAY_MS);
+}
+
+/**
+ * The most bonus a member may redeem in one visit (the owner, 12 Nov; decision 0579): `basisPoints` (5,000 is half) of the
+ * bonus they held at the visit's first seat, rounded down to whole ₹50 chips. private.visit_bonus_cap is its twin.
+ */
+export function visitBonusCap(heldAtFirstSeat: Paise, basisPoints: bigint): Paise {
+  return roundDownToChip(shareOf(heldAtFirstSeat, basisPoints));
+}
+
+/** What a visit may still redeem: its cap less what it has redeemed, never below nothing. private.visit_bonus_left is its twin. */
+export function visitBonusLeft(cap: Paise, redeemed: Paise): Paise {
+  return max(ZERO, subtract(cap, redeemed));
 }
 
 /** What expires at `at`: the remainder of each grant whose end has come (nothing from one in force or with no end), in the order given. */

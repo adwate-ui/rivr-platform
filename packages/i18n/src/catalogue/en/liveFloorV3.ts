@@ -104,6 +104,8 @@ export const floor = {
     /** Bonus chips the member redeems with their buy-in (decision 0504): their balance once known, else checked as they sit. */
     bonusChips: 'Bonus chips to redeem',
     bonusChipsHas: 'Has {chips} bonus chips.',
+    /** With a cap on what one visit redeems (decision 0579). */
+    bonusChipsLeft: 'Has {chips} bonus chips. Up to {left} this visit.',
     bonusChipsNone: 'No bonus chips.',
     bonusChipsTyped: 'Up to their balance. Taken off when they sit.',
     badCallTime: 'Enter a call time of up to 24 h.',

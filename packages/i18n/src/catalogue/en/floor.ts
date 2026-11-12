@@ -123,6 +123,8 @@ export const liveFloor = {
   mustMoveInvalid: 'A must-move table needs an open main table of its game.',
   /** Bonus chips redeemed with the seat (decision 0504), refused: not seated. */
   bonusShort: 'More bonus chips than the member has. Not seated.',
+  /** Past what the visit may redeem (decision 0579): the seat sheet says how much is left. */
+  visitCap: 'More bonus chips than this visit allows. Not seated.',
   notChips: 'Bonus chips go in whole 50s. Not seated.',
   ownRecord: 'You cannot use your own bonus chips. Ask another member of staff.',
   bonusOff: 'Promotions are switched off, so no bonus chips. Not seated.',

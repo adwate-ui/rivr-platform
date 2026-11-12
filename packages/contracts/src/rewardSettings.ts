@@ -90,6 +90,30 @@ export const bonusDailyStaffCap = {
 } as const satisfies SettingDefinition;
 
 /**
+ * How many days bonus chips last (the owner, 12 Nov; decision 0579): each grant ends that long after it is given, and chips
+ * held when it is switched on end that long from then. 0 is never. Only super admins change it. None set is never.
+ */
+export const bonusExpiryDays = {
+  key: 'bonus.expiry_days',
+  description: 'How many days bonus chips last after they are given; chips held when it is switched on last that long from then. 0 is never. None set is never.',
+  scope: 'venue',
+  superAdminOnly: true,
+  value: z.strictObject({ days: z.int().min(0).max(3650) }),
+} as const satisfies SettingDefinition;
+
+/**
+ * The share of a member's bonus one visit may redeem (the owner, 12 Nov; decision 0579): of what they held at its first seat,
+ * in whole 50s. Only super admins change it. None set is all of it.
+ */
+export const bonusVisitCap = {
+  key: 'bonus.visit_cap',
+  description: 'The share of the bonus a member held at a visit\'s first seat that they may redeem in that visit, in whole 50s. None set is all of it.',
+  scope: 'venue',
+  superAdminOnly: true,
+  value: z.strictObject({ basis_points: z.int().min(100).max(10000) }),
+} as const satisfies SettingDefinition;
+
+/**
  * The most points one staff member gives by hand in a club day (#798), 10,000 from the start; super admins are not capped,
  * and only they change it. None set is no cap.
  */

@@ -152,6 +152,8 @@ export const waitlist = {
   oneAtATime: 'Already waiting for another game. Remove them from that list first.',
   /** Bonus chips redeemed with the seat (decision 0504), refused: not seated. */
   bonusShort: 'More bonus chips than the member has. Not seated.',
+  /** Past what the visit may redeem (decision 0579): the seat sheet says how much is left. */
+  visitCap: 'More bonus chips than this visit allows. Not seated.',
   notChips: 'Bonus chips go in whole 50s. Not seated.',
   ownRecord: 'You cannot use your own bonus chips. Ask another member of staff.',
   bonusOff: 'Promotions are switched off, so no bonus chips. Not seated.',
@@ -159,6 +161,8 @@ export const waitlist = {
   /** The seat sheet's bonus chips (decision 0504), with the member's balance under it. */
   bonusChips: 'Bonus chips to redeem',
   bonusChipsHas: 'Has {chips} bonus chips.',
+  /** With a cap on what one visit redeems (decision 0579). */
+  bonusChipsLeft: 'Has {chips} bonus chips. Up to {left} this visit.',
   bonusChipsNone: 'No bonus chips.',
   badBonusChips: 'Bonus chips go in whole 50s.',
   /** Back refused: the member was away past their time, so the place has gone (#287). */

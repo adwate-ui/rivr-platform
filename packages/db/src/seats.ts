@@ -45,16 +45,16 @@ export interface HeldSeat {
  * early (`call_time_done`, #79), a table to close that still has players or held calls (`table_in_use`), a must-move
  * link to anything but an open main table of the same game (`must_move_invalid`), bonus chips redeemed with the seat
  * that are more than the member has, not whole 50s, on the staff member's own record, with promotions switched off, or
- * too many a minute (decision 0504), or anything else (#333).
+ * too many a minute (decision 0504), past what the visit may redeem (`visit_cap`, decision 0579), or anything else (#333).
  */
 export type SeatFailure = 'not_allowed' | 'occupied' | 'held' | 'seated' | 'kyc_needed' | 'on_break' | 'no_member' | 'stopped' | 'paused' | 'invalid'
-  | 'call_time_done' | 'table_in_use' | 'must_move_invalid' | 'bonus_short' | 'not_chips' | 'own_record' | 'bonus_off' | 'too_many' | 'unavailable';
+  | 'call_time_done' | 'table_in_use' | 'must_move_invalid' | 'bonus_short' | 'not_chips' | 'own_record' | 'bonus_off' | 'too_many' | 'visit_cap' | 'unavailable';
 
 /** The failure each database refusal of a seat change stands for; anything else is `unavailable`. */
 export const SEAT_FAILURE_BY_CODE: Readonly<Record<string, SeatFailure>> = {
   '42501': 'not_allowed', RVOCC: 'occupied', RVHLD: 'held', RVSTD: 'seated', RVKYC: 'kyc_needed', RVBRK: 'on_break', RVNOM: 'no_member',
   RVMBR: 'stopped', RVFRZ: 'paused', '22023': 'invalid', RVCTD: 'call_time_done', RVBON: 'bonus_short', RVCHP: 'not_chips', RVOWN: 'own_record',
-  RVKIL: 'bonus_off', RVRAT: 'too_many',
+  RVKIL: 'bonus_off', RVRAT: 'too_many', RVVCP: 'visit_cap',
 };
 
 /** A seating's bonus chips argument (decision 0504): none when there are none to redeem. */
