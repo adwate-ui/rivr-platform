@@ -47,6 +47,8 @@ public enum RivrColors {
     public static let colorPracticeStripe = Color(red: 0.722, green: 0.592, blue: 0.302, opacity: 1) /** The darker stripe between gold ones on the practice venue's banner across the console (console v3, decision 0477). */
     public static let colorRaised = Color(red: 0.039, green: 0.165, blue: 0.125, opacity: 1) /** Raised surfaces: nav bars, rails, sheets, row hover. */
     public static let colorRed = Color(red: 0.769, green: 0.086, blue: 0.165, opacity: 1) /** Alerts, negatives, the spade card in the mark. Nothing else. */
+    public static let colorRedEdge = Color(red: 0.769, green: 0.086, blue: 0.165, opacity: 0.6) /** Red at 60%. The edge of the member's own ID check on Tonight (the owner, 12 Nov). */
+    public static let colorRedTint = Color(red: 0.769, green: 0.086, blue: 0.165, opacity: 0.1607843137254902) /** Red at 16%. The ground of the member's own ID check on Tonight, apart from the club's notices (the owner, 12 Nov). */
     public static let colorRim = Color(red: 0.227, green: 0.165, blue: 0.078, opacity: 1) /** The wooden rim round the felt on the seat map. */
     public static let colorScrim = Color(red: 0.020, green: 0.059, blue: 0.043, opacity: 0.6) /** The dark veil behind an open sheet, and round the selfie's oval. */
     public static let colorSeatTaken = Color(red: 0.953, green: 0.929, blue: 0.878, opacity: 0.34901960784313724) /** Cream at 35%. A taken seat's dot on the tables list. */

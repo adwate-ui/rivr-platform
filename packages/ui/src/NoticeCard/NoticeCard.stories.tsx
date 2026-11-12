@@ -16,6 +16,11 @@ export const Default: Story = {};
 
 export const OneLine: Story = { args: { text: 'Open till 4 tonight.' } };
 
+/** The member's own ID check (the owner, 12 Nov): a slight red tinge, apart from the club's notices. */
+export const IdCheck: Story = {
+  args: { tone: 'alert', label: 'ID check', text: 'Bring your Aadhaar and PAN on your first visit. The desk checks them before you play.' },
+};
+
 export const LongText: Story = {
   args: {
     text: 'The club is closed on Diwali, Thursday 12 November, and opens again on Friday at 6 pm.\n\nTournaments that night move to Saturday; buy-ins already paid carry over. Ask the front desk about seat holds.\n\nThe full calendar for the festive week is at https://rivrpoker.com/calendar/festive-week-2026-with-every-session-and-start-time.',

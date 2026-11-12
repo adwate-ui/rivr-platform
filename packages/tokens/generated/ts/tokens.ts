@@ -18,6 +18,8 @@ export const tokens = {
     "control": "#F3EDE080",
     "goldTint": "#C9A85C24",
     "goldEdge": "#C9A85C59",
+    "redTint": "#C4162A29",
+    "redEdge": "#C4162A99",
     "diet": {
       "veg": "#0A7A2F",
       "egg": "#A65F00",
