@@ -4401,14 +4401,14 @@ isOneToOne: false
                   ]
                 },"venue_config": {
                   Row: {
-                    "address": string,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"created_at": string,"gstin": string | null,"invoice_prefix": string,"legal_name": string,"logo_path": string | null,"sac_academy": string | null,"sac_club_services": string | null,"signatory_designation": string | null,"signatory_name": string | null,"staff_ip_allowlist": (unknown)[],"tan": string | null,"tv_pairing_window_at": string | null,"tv_pairing_window_only": boolean,"updated_at": string,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string
+                    "address": string,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"contact_phone": string | null,"contact_whatsapp": string | null,"created_at": string,"gstin": string | null,"invoice_prefix": string,"legal_name": string,"logo_path": string | null,"sac_academy": string | null,"sac_club_services": string | null,"signatory_designation": string | null,"signatory_name": string | null,"staff_ip_allowlist": (unknown)[],"tan": string | null,"tv_pairing_window_at": string | null,"tv_pairing_window_only": boolean,"updated_at": string,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address": string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix": string,"legal_name": string,"logo_path"?: string | null,"sac_academy"?: string | null,"sac_club_services"?: string | null,"signatory_designation"?: string | null,"signatory_name"?: string | null,"staff_ip_allowlist"?: (unknown)[],"tan"?: string | null,"tv_pairing_window_at"?: string | null,"tv_pairing_window_only"?: boolean,"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id": string
+                    "address": string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"contact_phone"?: string | null,"contact_whatsapp"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix": string,"legal_name": string,"logo_path"?: string | null,"sac_academy"?: string | null,"sac_club_services"?: string | null,"signatory_designation"?: string | null,"signatory_name"?: string | null,"staff_ip_allowlist"?: (unknown)[],"tan"?: string | null,"tv_pairing_window_at"?: string | null,"tv_pairing_window_only"?: boolean,"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "address"?: string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix"?: string,"legal_name"?: string,"logo_path"?: string | null,"sac_academy"?: string | null,"sac_club_services"?: string | null,"signatory_designation"?: string | null,"signatory_name"?: string | null,"staff_ip_allowlist"?: (unknown)[],"tan"?: string | null,"tv_pairing_window_at"?: string | null,"tv_pairing_window_only"?: boolean,"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id"?: string
+                    "address"?: string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"contact_phone"?: string | null,"contact_whatsapp"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix"?: string,"legal_name"?: string,"logo_path"?: string | null,"sac_academy"?: string | null,"sac_club_services"?: string | null,"signatory_designation"?: string | null,"signatory_name"?: string | null,"staff_ip_allowlist"?: (unknown)[],"tan"?: string | null,"tv_pairing_window_at"?: string | null,"tv_pairing_window_only"?: boolean,"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -4636,6 +4636,14 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"public_club_contact": {
+                  Row: {
+                    "phone": string | null,"venue_slug": string | null,"whatsapp": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
+                  ]
                 },"public_club_rules": {
                   Row: {
                     "key": string | null,"subject": string | null,"subject_name": string | null,"subject_order": number | null,"value": Json | null,"venue_slug": string | null
@@ -4750,7 +4758,7 @@ isOneToOne: false
                   ]
                 },"venue_config_detail": {
                   Row: {
-                    "address": string | null,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"created_at": string | null,"gstin": string | null,"invoice_prefix": string | null,"legal_name": string | null,"logo_path": string | null,"sac_academy": string | null,"sac_club_services": string | null,"signatory_designation": string | null,"signatory_name": string | null,"staff_ip_allowlist": (unknown)[] | null,"tan": string | null,"updated_at": string | null,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string | null
+                    "address": string | null,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"contact_phone": string | null,"contact_whatsapp": string | null,"created_at": string | null,"gstin": string | null,"invoice_prefix": string | null,"legal_name": string | null,"logo_path": string | null,"sac_academy": string | null,"sac_club_services": string | null,"signatory_designation": string | null,"signatory_name": string | null,"staff_ip_allowlist": (unknown)[] | null,"tan": string | null,"tv_pairing_window_at": string | null,"tv_pairing_window_only": boolean | null,"updated_at": string | null,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string | null
                   }
                   ComputedFields: never
                   Relationships: [

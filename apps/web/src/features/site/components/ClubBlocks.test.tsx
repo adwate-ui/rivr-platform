@@ -21,7 +21,7 @@ const PAGE: SitePageData = {
 };
 
 function renderPage(page: Partial<SitePageData>) {
-  return render(<SitePage page={{ ...PAGE, ...page }} playerUrl="https://player.invalid" attribution={null} />);
+  return render(<SitePage page={{ ...PAGE, ...page }} playerUrl="https://player.invalid" attribution={null} contact={{ phone: '+918796580435', whatsapp: '+918796580435' }} />);
 }
 
 describe('the blocks read from the League and the club’s rules', () => {

@@ -47,7 +47,7 @@ describe('StepScreen', () => {
 
   it('ends with the way to the front desk, under the action, where the app gives the number (8 Nov audit, F-184)', () => {
     renderIn(
-      <DeskHelpProvider contact={{ phone: '+918796580435', whatsapp: '918796580435' }}>
+      <DeskHelpProvider contact={{ phone: '+918796580435', whatsapp: '+918796580435' }}>
         <StepScreen title="Code" footer={<Button variant="primary" fullWidth>Verify</Button>}><p>Six digits</p></StepScreen>
       </DeskHelpProvider>,
     );

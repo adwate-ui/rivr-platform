@@ -26,7 +26,6 @@ export const webApp = {
   },
   /** The bar above the header (#616): how to reach the club, and the member app. */
   top: {
-    phone: '+91 87965 80435',
     whatsapp: 'WhatsApp',
     instagram: 'Instagram',
     youtube: 'YouTube',

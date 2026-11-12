@@ -1,5 +1,4 @@
 import { attributionSearch, PLAYER_DESTINATIONS, type Attribution, type PlayerDestination } from '@rivr/contracts';
-import { CLUB_CONTACT } from '@rivr/contracts/club';
 
 /** `?ref=…&utm_source=…` for the codes the visitor arrived with, or nothing. */
 function query(attribution: Attribution | null): string {
@@ -23,7 +22,7 @@ export function siteHref(slug: string, attribution: Attribution | null, anchor?:
   return `${slug === 'home' ? '/' : `/${slug}`}${query(attribution)}${anchor ? `#${anchor}` : ''}`;
 }
 
-/** A WhatsApp chat with the club, with `text` ready to send. */
-export function whatsappHref(text?: string): string {
-  return `https://wa.me/${CLUB_CONTACT.whatsapp}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
+/** A WhatsApp chat on the club's number (decision 0582), with `text` ready to send; wa.me takes the number without its plus. */
+export function whatsappHref(whatsapp: string, text?: string): string {
+  return `https://wa.me/${whatsapp.replace(/^\+/, '')}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
 }

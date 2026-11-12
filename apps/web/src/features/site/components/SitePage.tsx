@@ -1,7 +1,8 @@
 import type { Attribution, PlayerDestination, SiteBlock } from '@rivr/contracts';
 import { CLUB_CONTACT } from '@rivr/contracts/club';
+import type { ClubContact } from '@rivr/db';
 import type { SitePage as SitePageData } from '@rivr/db/site';
-import { formatIsoDay, formatYear, t, type MessageKey } from '@rivr/i18n';
+import { formatIsoDay, formatMobile, formatYear, t, type MessageKey } from '@rivr/i18n';
 import {
   CalendarBlock, CardsBlock, CareersBlock, CookieBanner, FaqBlock, FeatureBlock, GalleryBlock, GamesBlock, HeroBlock, KillSwitchBanner, LinksBlock, MapBlock,
   MarqueeBlock, PromotionsBlock, RulesBlock, StatementBlock, StoryBlock, TableBlock, TextBlock, TimelineBlock, WebBand, WebFooter, WebShell, type WebBandTone, type WebShellProps,
@@ -13,6 +14,8 @@ interface SitePageProps {
   page: SitePageData;
   /** The player app's address. */
   playerUrl: string;
+  /** The club's numbers for calls and WhatsApp, as set under Settings, Club (decision 0582). */
+  contact: ClubContact;
   /** The codes of the link the visitor arrived by, carried on every link. */
   attribution: Attribution | null;
 }
@@ -33,7 +36,7 @@ const BAND: Record<SiteBlock['kind'], WebBandTone> = {
 type Link = (action: { label: string; to: PlayerDestination } | undefined) => { label: string; href: string } | undefined;
 
 /** A block of the club's information: rules, questions, careers or how to find it. */
-function InfoBlock({ block }: { block: Extract<SiteBlock, { kind: 'rules' | 'faq' | 'careers' | 'map' }> }) {
+function InfoBlock({ block, contact }: { block: Extract<SiteBlock, { kind: 'rules' | 'faq' | 'careers' | 'map' }>; contact: ClubContact }) {
   switch (block.kind) {
     case 'rules':
       return <RulesBlock heading={block.content.heading} rules={block.content.rules} />;
@@ -45,7 +48,9 @@ function InfoBlock({ block }: { block: Extract<SiteBlock, { kind: 'rules' | 'faq
       const { heading, address, hours, directionsUrl, phone, email } = block.content;
       // Google's embed of the address needs no key; it loads only once the visitor allows maps (#616).
       const embedUrl = `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
-      return <MapBlock heading={heading} address={address} hours={hours} directionsUrl={directionsUrl} embedUrl={embedUrl} phone={phone ?? CLUB_CONTACT.phone} whatsappHref={whatsappHref()} email={email} />;
+      // The band's own number, set in the website editor, before the club's (decision 0582).
+      return <MapBlock heading={heading} address={address} hours={hours} directionsUrl={directionsUrl} embedUrl={embedUrl} phone={phone ?? contact.phone ?? undefined}
+        whatsappHref={contact.whatsapp === null ? undefined : whatsappHref(contact.whatsapp)} email={email} />;
     }
   }
 }
@@ -110,18 +115,20 @@ function shownPromotions(block: Extract<SiteBlock, { kind: 'promotions' }>, page
   return block.content.only === 'welcome' ? page.promotions.filter((promotion) => promotion.isWelcome) : page.promotions;
 }
 
-/** Reserving a seat: a WhatsApp message to the club (#616), none while the club is paused (#278). */
-function reserveOf(page: SitePageData) {
-  return page.isPaused ? undefined : { label: t('web.reserve'), href: whatsappHref(t('web.reserveMessage')) };
+/** Reserving a seat: a WhatsApp message to the club (#616), none while the club is paused (#278) or has no WhatsApp number set. */
+function reserveOf(page: SitePageData, contact: ClubContact) {
+  return page.isPaused || contact.whatsapp === null ? undefined : { label: t('web.reserve'), href: whatsappHref(contact.whatsapp, t('web.reserveMessage')) };
 }
 
 /** A block of the club's own text, or one of its live rows: games, tournaments, promotions, links into the app, or the social wall. */
-function LiveBlock({ block, page, link }: { block: Extract<SiteBlock, { kind: 'text' | 'games' | 'calendar' | 'promotions' | 'links' | 'social_wall' }>; page: SitePageData; link: Link }) {
+function LiveBlock({ block, page, link, contact }: {
+  block: Extract<SiteBlock, { kind: 'text' | 'games' | 'calendar' | 'promotions' | 'links' | 'social_wall' }>; page: SitePageData; link: Link; contact: ClubContact;
+}) {
   switch (block.kind) {
     case 'text':
       return <TextBlock heading={block.content.heading} body={block.content.body} />;
     case 'games':
-      return <GamesBlock heading={block.content.heading} games={page.games} reserve={reserveOf(page)} />;
+      return <GamesBlock heading={block.content.heading} games={page.games} reserve={reserveOf(page, contact)} />;
     case 'calendar':
       // This month day by day, as the club's day falls in IST (#617).
       return <CalendarBlock heading={block.content.heading} tournaments={page.tournaments} month={formatIsoDay(new Date()).slice(0, 7)} />;
@@ -144,12 +151,12 @@ function LiveBlock({ block, page, link }: { block: Extract<SiteBlock, { kind: 't
 }
 
 /** One block of a page, as its kind draws it; the live ones from the rows the page loaded. */
-function Block({ block, page, link, pageLink }: { block: SiteBlock; page: SitePageData; link: Link; pageLink: PageLink }) {
+function Block({ block, page, link, pageLink, contact }: { block: SiteBlock; page: SitePageData; link: Link; pageLink: PageLink; contact: ClubContact }) {
   if (isKind(block, ['hero', 'statement', 'gallery', 'feature'])) return <MediaBlock block={block} link={link} />;
   if (isKind(block, ['story', 'cards', 'marquee', 'timeline', 'table'])) return <WordsBlock block={block} link={link} pageLink={pageLink} />;
-  if (isKind(block, ['text', 'games', 'calendar', 'promotions', 'links', 'social_wall'])) return <LiveBlock block={block} page={page} link={link} />;
+  if (isKind(block, ['text', 'games', 'calendar', 'promotions', 'links', 'social_wall'])) return <LiveBlock block={block} page={page} link={link} contact={contact} />;
   if (isKind(block, ['league', 'rewards', 'outstation', 'jackpot'])) return <ClubBlock block={block} page={page} />;
-  return <InfoBlock block={block} />;
+  return <InfoBlock block={block} contact={contact} />;
 }
 
 /**
@@ -214,12 +221,19 @@ export function Footer({ attribution, playerUrl }: { attribution: Attribution | 
   );
 }
 
-/** The bar above the header: the club's number, WhatsApp and socials, and the member app (#616). */
-export function topBar(playerUrl: string, attribution: Attribution | null): NonNullable<WebShellProps['topBar']> {
+/**
+ * The bar above the header: the club's number, WhatsApp and socials, and the member app (#616). The numbers are the club's
+ * setting (decision 0582); one not set is left out.
+ */
+export function topBar(playerUrl: string, attribution: Attribution | null, contact: ClubContact): NonNullable<WebShellProps['topBar']> {
+  type TopLink = NonNullable<WebShellProps['topBar']>['links'][number];
+  const numbers: TopLink[] = [
+    ...(contact.phone === null ? [] : [{ label: formatMobile(contact.phone), href: `tel:${contact.phone}`, icon: 'phone' as const, showsLabel: true }]),
+    ...(contact.whatsapp === null ? [] : [{ label: t('web.top.whatsapp'), href: whatsappHref(contact.whatsapp), icon: 'whatsapp' as const }]),
+  ];
   return {
     links: [
-      { label: t('web.top.phone'), href: `tel:${CLUB_CONTACT.phone}`, icon: 'phone', showsLabel: true },
-      { label: t('web.top.whatsapp'), href: whatsappHref(), icon: 'whatsapp' },
+      ...numbers,
       { label: t('web.top.instagram'), href: CLUB_CONTACT.instagram, icon: 'instagram' },
       { label: t('web.top.youtube'), href: CLUB_CONTACT.youtube, icon: 'youtube' },
       { label: t('web.top.email'), href: `mailto:${CLUB_CONTACT.email}`, icon: 'mail' },
@@ -249,7 +263,7 @@ function anchorsOf(blocks: readonly SiteBlock[]): (string | undefined)[] {
 }
 
 /** A page of the website: the navigation and its one action, the page's blocks in their bands, and the footer. */
-export function SitePage({ page, playerUrl, attribution }: SitePageProps) {
+export function SitePage({ page, playerUrl, attribution, contact }: SitePageProps) {
   const links = menuLinks(attribution);
   // While the club is paused (#278) nothing leads to the waitlist: seating is refused.
   const link: Link = (action) => (action && !(page.isPaused && action.to === 'waitlist')
@@ -258,12 +272,12 @@ export function SitePage({ page, playerUrl, attribution }: SitePageProps) {
   const blocks = page.blocks.filter((block) => !isEmptyBlock(block, page));
   const anchors = anchorsOf(blocks);
   return (
-    <WebShell links={links} homeHref={siteHref('home', attribution)} action={reserveOf(page)} topBar={topBar(playerUrl, attribution)}
+    <WebShell links={links} homeHref={siteHref('home', attribution)} action={reserveOf(page, contact)} topBar={topBar(playerUrl, attribution, contact)}
       footer={<Footer attribution={attribution} playerUrl={playerUrl} />} after={<CookieBanner />}>
       {page.isPaused ? <KillSwitchBanner audience="visitor" /> : null}
       {blocks.map((block, position) => (
         <WebBand key={`${String(position)}-${block.kind}`} tone={BAND[block.kind]} anchor={anchors[position]}>
-          <Block block={block} page={page} link={link} pageLink={pageLink} />
+          <Block block={block} page={page} link={link} pageLink={pageLink} contact={contact} />
         </WebBand>
       ))}
     </WebShell>

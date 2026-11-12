@@ -8,9 +8,10 @@ const SAVE_AFTER_MS = 1000;
 
 /**
  * The third part of each person's query key (queryKeys.ts) for what an installed app needs to open with no connection:
- * who they are, that their identity check let them in, their tabs, card, and Home's tables, place, seat and notices.
+ * who they are, that their identity check let them in, their tabs, card, and Home's tables, place, seat and notices, and the
+ * club's numbers, to call the desk with (decision 0582).
  */
-const KEPT = new Set<unknown>(['member', 'kyc-record', 'feature-access', 'membership-card', 'floor-tables', 'my-waitlist', 'my-seat', 'my-notices']);
+const KEPT = new Set<unknown>(['member', 'kyc-record', 'feature-access', 'membership-card', 'floor-tables', 'my-waitlist', 'my-seat', 'my-notices', 'club-contact']);
 
 /** Restored entries stay for as long as they may be shown: nothing reads Card on a long offline Home, and TanStack drops what nothing reads. */
 const KEEP_RESTORED = { defaultOptions: { queries: { gcTime: KEPT_FOR_MS } } };

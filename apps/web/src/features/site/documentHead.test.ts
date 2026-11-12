@@ -6,6 +6,7 @@ const MAP = {
   content: { address: 'Upper floor, Glaza, Gurugram', hours: 'Open 14:00 to 08:00.', directionsUrl: 'https://www.google.com/maps/search/?api=1&query=Glaza' },
 };
 const ORIGIN = 'https://rivrpoker.com';
+const CONTACT = { phone: '+918796580435', whatsapp: '+918796580435' };
 
 describe('a page\u2019s document head (8 Nov audit, F-194)', () => {
   it('names the page, the club and the city in its title', () => {
@@ -18,7 +19,7 @@ describe('a page\u2019s document head (8 Nov audit, F-194)', () => {
   });
 
   it('describes the club on Visit, from the map band\u2019s address and hours', () => {
-    expect(JSON.parse(localBusiness({ slug: 'visit', blocks: [MAP] }, ORIGIN) ?? '')).toEqual({
+    expect(JSON.parse(localBusiness({ slug: 'visit', blocks: [MAP] }, ORIGIN, CONTACT) ?? '')).toEqual({
       '@context': 'https://schema.org',
       '@type': 'LocalBusiness',
       name: 'RIVR Poker Club',
@@ -37,21 +38,28 @@ describe('a page\u2019s document head (8 Nov audit, F-194)', () => {
   });
 
   it('describes it on the front page too, and on no other', () => {
-    expect(localBusiness({ slug: 'home', blocks: [MAP] }, ORIGIN)).not.toBeNull();
-    expect(localBusiness({ slug: 'about', blocks: [MAP] }, ORIGIN)).toBeNull();
+    expect(localBusiness({ slug: 'home', blocks: [MAP] }, ORIGIN, CONTACT)).not.toBeNull();
+    expect(localBusiness({ slug: 'about', blocks: [MAP] }, ORIGIN, CONTACT)).toBeNull();
   });
 
   it('says nothing without a map band to take the address from', () => {
-    expect(localBusiness({ slug: 'visit', blocks: [] }, ORIGIN)).toBeNull();
+    expect(localBusiness({ slug: 'visit', blocks: [] }, ORIGIN, CONTACT)).toBeNull();
   });
 
   it('leaves the hours out when the club has written them another way', () => {
     const noted = { ...MAP, content: { ...MAP.content, hours: 'Evenings until late.' } };
-    expect(JSON.parse(localBusiness({ slug: 'visit', blocks: [noted] }, ORIGIN) ?? '')).not.toHaveProperty('openingHoursSpecification');
+    expect(JSON.parse(localBusiness({ slug: 'visit', blocks: [noted] }, ORIGIN, CONTACT) ?? '')).not.toHaveProperty('openingHoursSpecification');
   });
 
   it('cannot close its script, whatever the club writes', () => {
     const written = { ...MAP, content: { ...MAP.content, address: '</script><script>alert(1)</script>' } };
-    expect(localBusiness({ slug: 'visit', blocks: [written] }, ORIGIN)).not.toContain('<');
+    expect(localBusiness({ slug: 'visit', blocks: [written] }, ORIGIN, CONTACT)).not.toContain('<');
+  });
+
+  // Decision 0582: the map band's own number, set in the website editor, before the club's.
+  it('gives search engines the map band’s own number before the club’s', () => {
+    const own = { ...MAP, content: { ...MAP.content, phone: '+919000000000' } };
+    expect(JSON.parse(localBusiness({ slug: 'visit', blocks: [own] }, ORIGIN, CONTACT) ?? '')).toMatchObject({ telephone: '+919000000000' });
+    expect(JSON.parse(localBusiness({ slug: 'visit', blocks: [MAP] }, ORIGIN, { phone: null, whatsapp: null }) ?? '')).not.toHaveProperty('telephone');
   });
 });

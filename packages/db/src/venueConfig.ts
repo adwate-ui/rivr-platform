@@ -24,6 +24,9 @@ export interface VenueConfig {
   readonly staffIpAllowlist: readonly string[];
   /** The WhatsApp number alerts go to, `+919876543210`. */
   readonly alertWhatsapp: string | null;
+  /** The club's numbers members and visitors call and WhatsApp (decision 0582), `+918796580435`. */
+  readonly contactPhone: string | null;
+  readonly contactWhatsapp: string | null;
   /** The SAC codes of the club services (S) and Academy (A) invoice series, and the authorised signatory (#423). */
   readonly sacClubServices: string | null;
   readonly sacAcademy: string | null;
@@ -77,6 +80,7 @@ export function useVenueConfig(venueId: string) {
         legalName: data.legal_name ?? '', gstin: data.gstin, tan: data.tan, address: data.address ?? '', upiPayeeName: data.upi_payee_name, upiVpa: data.upi_vpa,
         bankName: data.bank_name, bankAccountName: data.bank_account_name, bankAccountNumber: data.bank_account_number, bankIfsc: data.bank_ifsc,
         invoicePrefix: data.invoice_prefix ?? '', staffIpAllowlist: (data.staff_ip_allowlist ?? []).map(String), alertWhatsapp: data.alert_whatsapp,
+        contactPhone: data.contact_phone, contactWhatsapp: data.contact_whatsapp,
         sacClubServices: data.sac_club_services, sacAcademy: data.sac_academy, signatoryName: data.signatory_name, signatoryDesignation: data.signatory_designation,
         logoUrl: data.logo_path === null ? null : client.storage.from(BRAND_BUCKET).getPublicUrl(data.logo_path).data.publicUrl,
       };
@@ -116,6 +120,7 @@ export function useVenueConfigActions(venueId: string) {
         legal_name: change.legalName, gstin: change.gstin, tan: change.tan, address: change.address, upi_payee_name: change.upiPayeeName, upi_vpa: change.upiVpa,
         bank_name: change.bankName, bank_account_name: change.bankAccountName, bank_account_number: change.bankAccountNumber, bank_ifsc: change.bankIfsc,
         invoice_prefix: change.invoicePrefix, staff_ip_allowlist: [...change.staffIpAllowlist], alert_whatsapp: change.alertWhatsapp,
+        contact_phone: change.contactPhone, contact_whatsapp: change.contactWhatsapp,
         sac_club_services: change.sacClubServices, sac_academy: change.sacAcademy, signatory_name: change.signatoryName,
         signatory_designation: change.signatoryDesignation,
       }).eq('venue_id', venueId).select('venue_id');
