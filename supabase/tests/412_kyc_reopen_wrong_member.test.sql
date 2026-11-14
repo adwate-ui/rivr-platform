@@ -34,6 +34,18 @@ select results_eq($$ select full_name from public.kyc_duplicate_holder('00000000
 select is_empty($$ select 1 from public.kyc_duplicate_holder('00000000-0000-4000-8000-0000000002e1') $$, 'nothing for a check that is not a duplicate');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-00000000dead", "role": "authenticated"}';
 select is_empty($$ select 1 from public.kyc_duplicate_holder('00000000-0000-4000-8000-0000000002e2') $$, 'nobody else is told');
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000105", "role": "authenticated"}';
+select is_empty($$ select 1 from public.kyc_duplicate_holder('00000000-0000-4000-8000-0000000002e2') $$, 'nor staff who check no members');
+reset role;
+select set_config('request.jwt.claims', '', true);
+-- A reviewer of another venue only.
+insert into auth.users (instance_id, id, aud, role, phone, phone_confirmed_at, created_at, updated_at)
+values ('00000000-0000-0000-0000-000000000000', '00000000-0000-4000-8000-00000000be11', 'authenticated', 'authenticated', '919000077299', now(), now(), now());
+insert into public.staff (venue_id, user_id, full_name, job_title, role, phone)
+values ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-00000000be11', 'Other Venue', 'Manager', 'admin', '+919000077299');
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-00000000be11", "role": "authenticated"}';
+select is_empty($$ select 1 from public.kyc_duplicate_holder('00000000-0000-4000-8000-0000000002e2') $$, 'nor a reviewer of another venue');
 
 -- Only a super admin reopens the verified check, and only one done in person.
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}';
@@ -46,6 +58,8 @@ select lives_ok($$ select public.reopen_kyc_check('00000000-0000-4000-8000-00000
   'a super admin reopens a verified check done in person');
 select throws_ok($$ select public.authorize_in_person_kyc('00000000-0000-4000-8000-0000000002e1') $$,
   '42501', null, 'and does not do the check that follows');
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000108", "role": "authenticated"}';
+select lives_ok($$ select public.authorize_in_person_kyc('00000000-0000-4000-8000-0000000002e1') $$, 'someone else at the desk may check her again');
 reset role;
 select set_config('request.jwt.claims', '', true);
 
@@ -59,8 +73,9 @@ select is((select reason from public.audit_log where entity = 'kyc_record' and a
 select is(private.kyc_refusal('00000000-0000-4000-8000-0000000002e2'), null, 'the other member''s documents clash with no one now');
 
 -- The server reads which document files are on file, to clear the rest, and nothing else of the table.
-select is(has_column_privilege('service_role', 'public.kyc_document', 'path', 'select'), true, 'the server reads the paths');
-select is(has_column_privilege('service_role', 'public.kyc_document', 'retake_reason', 'select'), false, 'and no other column');
+select is((select string_agg(column_name::text, ', ' order by column_name::text collate "C") from information_schema.column_privileges
+           where grantee = 'service_role' and table_schema = 'public' and table_name = 'kyc_document' and privilege_type = 'SELECT'),
+  'member_id, path', 'the server reads each member''s paths, and no other column');
 select is(has_table_privilege('service_role', 'public.kyc_document', 'insert, update, delete'), false, 'and writes none');
 select is(has_function_privilege('anon', 'public.kyc_duplicate_holder(uuid)', 'execute'), false, 'nobody signed out asks who holds a document');
 

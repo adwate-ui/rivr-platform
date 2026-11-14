@@ -48,10 +48,12 @@ begin
         digilocker_session_id = null, vendor_failure = null, vendor_failed_at = null, pan_recheck = null, pan_rechecked_at = null
     where id = v_record.id;
   elsif v_is_verified_in_person then
-    -- What the desk entered may be someone else's: none of it stays, and the files go at the member's next check.
+    -- What the desk entered may be someone else's: none of it stays, and the files go at the member's next check. While the
+    -- club checks identity at the desk they stay let into the app, as one whose selfie came in the day their check began.
     update public.kyc_record
     set status = 'started', refusal = null, verified_at = null, date_of_birth = null, masked_aadhaar = null, pan = null,
-        photo_path = null, pan_recheck = null, pan_rechecked_at = null
+        photo_path = null, pan_recheck = null, pan_rechecked_at = null,
+        at_club_from = case when private.kyc_at_the_club(v_record.venue_id, now()) then coalesce(at_club_from, created_at) else at_club_from end
     where id = v_record.id;
     delete from public.kyc_document d where d.member_id = p_member_id;
   else

@@ -7,6 +7,7 @@ The trial run, 13 Nov, left two members wrongly verified (#919, #920, #921). The
   - Never their own check, and whoever reopened does not do the check that follows, as for a refused one.
   - A check the vendor verified stays: nobody typed it.
   - A verification bonus already paid stays paid; its key stops a second.
-  - The files stay in the member's folder until their next desk check clears them. Nothing lists them meanwhile.
+  - The files (the face photo and the two documents) stay in the member's folder until their next desk check, which clears whatever the check no longer names. No screen lists them meanwhile. Clearing them at the reopening itself is #931.
+  - While the club checks identity at the desk, the member stays let into the app.
 - **Who holds a duplicate.** Where a check is refused as a duplicate, staff who check members see which member holds the documents (`kyc_duplicate_holder`), so a check saved on the wrong member is seen at the desk.
 - **Stray document files are cleared.** The clearing of decision 0573 never ran: the server's role could not read `kyc_document`. It now reads `member_id` and `path`, nothing else.

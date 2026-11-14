@@ -27,7 +27,8 @@ function renderDocuments(rows: unknown, answer: () => Response = () => new Respo
   const reopened: unknown[] = [];
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (url.includes('/rpc/member_kyc_documents')) return Response.json(rows);
+    // Once reopened, nothing is on file.
+    if (url.includes('/rpc/member_kyc_documents')) return Response.json(reopened.length > 0 ? [] : rows);
     if (url.includes('/rpc/ask_kyc_document_retake')) {
       sentBack.push(JSON.parse(String(init?.body)));
       return answer();
@@ -111,7 +112,10 @@ describe('MemberIdDocuments', () => {
     fireEvent.change(await screen.findByRole('textbox', { name: 'Saved on the wrong member? Say why, and reopen the check' }), { target: { value: ' Saved on the wrong member ' } });
     fireEvent.click(screen.getByRole('button', { name: 'Reopen the check' }));
     await waitFor(() => expect(reopened).toEqual([{ p_member_id: 'm1', p_reason: 'Saved on the wrong member' }]));
-    expect(await screen.findByText('Reopened. The desk checks them again.')).toBeDefined();
+    // The photos and the form go with the check; the word that it was done stays.
+    expect(await screen.findByText('No ID photos on file.')).toBeDefined();
+    expect(screen.getByText('Reopened. The desk checks them again.')).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Reopen the check' })).toBeNull();
   });
 
   it('reopens nothing without a reason in words, and offers it only for a verified check with photos on file', async () => {

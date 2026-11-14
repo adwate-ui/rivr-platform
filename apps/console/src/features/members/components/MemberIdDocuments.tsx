@@ -75,22 +75,18 @@ function DocumentOnFile({ venueId, memberId, document }: MemberProps & { documen
  * A verified desk check saved on the wrong member (decision 0583): a super admin reopens it, saying why. What the desk
  * entered goes, with these photos, and the member waits for the desk again. The database keeps who may.
  */
-function ReopenVerified({ venueId, memberId }: MemberProps) {
+function ReopenVerified({ venueId, memberId, onReopened }: MemberProps & { onReopened: () => void }) {
   const { reopen } = useKycReviewActions(venueId);
   const [reason, setReason] = useState('');
   const [failure, setFailure] = useState<KycSendBackFailure | null>(null);
-  const [isReopened, setReopened] = useState(false);
   const submit = async () => {
     if (!isReasonInWords(reason, 500)) return setFailure('invalid');
     const done = await reopen.mutateAsync({ memberId, reason: reason.trim() });
-    setReopened(done.ok);
-    if (done.ok) return setFailure(null);
+    if (done.ok) return onReopened();
     return setFailure(done.error === 'not_allowed' || done.error === 'invalid' ? done.error : 'unavailable');
   };
   return (
     <Stack gap={3}>
-      {/* Always there, so the outcome is read out as it appears. */}
-      <StatusMessage>{isReopened ? t('console.kycInPerson.reopened') : null}</StatusMessage>
       <Input label={t('console.kycInPerson.reopenVerified')} hint={t('console.kycInPerson.reopenHint')} value={reason}
         onChange={(event) => setReason(event.target.value)} maxLength={500} autoComplete="off" />
       <Inline gap={3}>
@@ -104,6 +100,8 @@ function ReopenVerified({ venueId, memberId }: MemberProps) {
 /** A member's PAN and Aadhaar photos, for super admins (decision 0573), and the way to reopen a verified check they belong to. */
 export function MemberIdDocuments({ venueId, memberId, isVerified }: MemberProps & { isVerified: boolean }) {
   const documents = useMemberKycDocuments(venueId, memberId);
+  // Kept here: once reopened, the photos and the form are gone, and the word that it was done stays.
+  const [isReopened, setReopened] = useState(false);
   return (
     <Stack gap={4}>
       <Stack gap={1}>
@@ -115,7 +113,10 @@ export function MemberIdDocuments({ venueId, memberId, isVerified }: MemberProps
       {documents.data?.length === 0 ? <Text tone="muted">{t('console.kycInPerson.documentsNone')}</Text> : null}
       {documents.data?.map((document) => <DocumentOnFile key={document.kind} venueId={venueId} memberId={memberId} document={document} />)}
       {/* Photos on file mean the desk did the check: only that kind is reopened once verified. */}
-      {isVerified && documents.data !== undefined && documents.data.length > 0 ? <ReopenVerified venueId={venueId} memberId={memberId} /> : null}
+      {isVerified && documents.data !== undefined && documents.data.length > 0
+        ? <ReopenVerified venueId={venueId} memberId={memberId} onReopened={() => setReopened(true)} /> : null}
+      {/* Always there, so the outcome is read out as it appears. */}
+      <StatusMessage>{isReopened ? t('console.kycInPerson.reopened') : null}</StatusMessage>
     </Stack>
   );
 }
