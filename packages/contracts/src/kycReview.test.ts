@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { kycDocumentRetakeSchema, kycInPersonSchema, kycReviewSchema } from './kycReview.ts';
+import { isReasonInWords, kycDocumentRetakeSchema, kycInPersonSchema, kycReviewSchema } from './kycReview.ts';
 
 const IN_PERSON = { memberId: '00000000-0000-4000-8000-000000000203', dateOfBirth: '1990-04-12', aadhaarLast4: '1234', pan: ' abcpn1234d ', consent: true, coversConfirmed: true };
 
@@ -52,5 +52,20 @@ describe('kycDocumentRetakeSchema', () => {
 
   it('refuses any other document', () => {
     expect(kycDocumentRetakeSchema.safeParse({ memberId, kind: 'passport', coversConfirmed: true }).success).toBe(false);
+  });
+});
+
+describe('isReasonInWords', () => {
+  it('takes a reason of three characters or more, up to the most the database keeps', () => {
+    expect(isReasonInWords('  Saved on the wrong member  ', 500)).toBe(true);
+    expect(isReasonInWords('Dim', 200)).toBe(true);
+    expect(isReasonInWords('x'.repeat(200), 200)).toBe(true);
+  });
+
+  it('refuses one too short once trimmed, too long, or with any digit, Devanagari included', () => {
+    expect(isReasonInWords('  no ', 500)).toBe(false);
+    expect(isReasonInWords('x'.repeat(201), 200)).toBe(false);
+    expect(isReasonInWords('Born in 1990', 500)).toBe(false);
+    expect(isReasonInWords(`Aadhaar ends ${String.fromCodePoint(0x096a, 0x0969)}`, 500)).toBe(false);
   });
 });

@@ -70,6 +70,10 @@ reset role;
 select is((select at_club_from from public.kyc_record where member_id = (select id from ids where name = 'meera')), now() - interval '2 days',
   'and keeps when her selfie came in');
 select is(private.is_kyc_complete((select id from ids where name = 'meera')), false, 'she still cannot play: seating, the cage and money wait for the desk');
+-- A phone still running the app from before the switch asks for the vendor's check: the gate refuses, as while sign-up is stopped.
+select throws_ok(format($$ select public.begin_kyc_vendor_call(%L, true) $$, (select id from ids where name = 'meera')), 'RVKIL', null,
+  'while the desk checks identity, nothing goes to the vendor');
+select is((select vendor_calls from public.kyc_record where member_id = (select id from ids where name = 'meera')), 0, 'and no call is counted');
 select pg_temp.as_user('00000000-0000-4000-8000-00000000ac1b');
 select is((select at_club_from is not null from public.kyc_record), true, 'she reads that her check waits for the desk');
 reset role;
@@ -172,10 +176,7 @@ select is(pg_temp.desk_check('00000000-0000-4000-8000-000000000410', 'RAGPG4100G
 reset role;
 select is((select full_name from public.member where id = '00000000-0000-4000-8000-000000000410'), 'Raghav Grewal',
   'and the sandbox''s name never becomes his');
-select pg_temp.as_user('00000000-0000-4000-8000-000000000101');
-select throws_ok($$ select public.reopen_kyc_check('00000000-0000-4000-8000-000000000410', 'Again') $$,
-  'RVKYC', null, 'a verified check is never reopened');
-reset role;
+-- A verified check done in person is reopened only as one saved on the wrong member (decision 0583; 412_kyc_reopen_wrong_member).
 select is((select status from public.kyc_record where member_id = '00000000-0000-4000-8000-000000000412'), 'started',
   'Jayesh, refused as the sandbox''s duplicate, waits for the desk too');
 
@@ -207,6 +208,8 @@ select is(pg_temp.bonus((select id from ids where name = 'meera')), 500::bigint,
 select pg_temp.as_user('00000000-0000-4000-8000-00000000ac1b');
 select is(public.kyc_at_the_club(), false, 'new members check in the app again');
 reset role;
+select lives_ok(format($$ select public.begin_kyc_vendor_call(%L, true) $$, (select id from ids where name = 'meera')),
+  'and the vendor is asked again');
 
 select is(has_function_privilege('anon', 'public.kyc_at_the_club(uuid)', 'execute'), false, 'nobody signed out asks');
 select is(has_function_privilege('anon', 'public.take_kyc_at_the_club()', 'execute'), false, 'or marks a check');

@@ -4,6 +4,8 @@
  * four Aadhaar digits and the PAN from the originals with Kabir's consent, and Kabir is verified. His
  * check is taken away before and after, so the local stack only (the photo stays in storage, and the
  * next run's photo replaces it). Rhea is this flow's own reviewer: Auth sends one code a minute.
+ * Then the same documents are entered for Naina, as if Kabir's check had been saved on the wrong member
+ * (decision 0583): the desk is told who holds them, and a super admin reopens Kabir's check.
  */
 import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
@@ -13,16 +15,19 @@ import { takeDeskPhotos } from '../support/deskPhotos.ts';
 import { signInToConsole } from '../support/signIn.ts';
 
 const KABIR = '00000000-0000-4000-8000-000000000202';
+const NAINA = '00000000-0000-4000-8000-000000000203';
 
 function sql(query: string): string {
   return execFileSync('docker', ['exec', `supabase_db_${worktreeName()}`, 'psql', '-U', 'postgres', '-tAc', query], { encoding: 'utf8' }).trim();
 }
 
 function removeCheck() {
-  sql(`delete from public.kyc_document where member_id = '${KABIR}'`);
-  sql(`delete from public.kyc_review where member_id = '${KABIR}'`);
-  sql(`delete from public.consent where member_id = '${KABIR}' and purpose = 'kyc_verification'`);
-  sql(`delete from public.kyc_record where member_id = '${KABIR}'`);
+  for (const member of [KABIR, NAINA]) {
+    sql(`delete from public.kyc_document where member_id = '${member}'`);
+    sql(`delete from public.kyc_review where member_id = '${member}'`);
+    sql(`delete from public.consent where member_id = '${member}' and purpose = 'kyc_verification'`);
+    sql(`delete from public.kyc_record where member_id = '${member}'`);
+  }
 }
 
 
@@ -34,7 +39,9 @@ test.describe('Manual KYC', () => {
   test.beforeEach(removeCheck);
   test.afterEach(removeCheck);
 
-  test('a KYC reviewer checks a member in person against the originals, a super admin sends a photo back, and the desk takes it again', async ({ page, browser }) => {
+  test('a KYC reviewer checks a member in person against the originals, a super admin sends a photo back, the desk takes it again, and a check saved on the wrong member is reopened', async ({ page, browser }) => {
+    // Two desk checks, six photos and two sign-ins.
+    test.setTimeout(90_000);
     await signInToConsole(page, '9000000110');
     await page.getByRole('link', { name: 'ID checks', exact: true }).click();
     // ID check in person opens its sheet (console v3).
@@ -75,7 +82,6 @@ test.describe('Manual KYC', () => {
     await expect(admin.getByText('Sent back: Digits showing. Waiting for the desk.')).toBeVisible();
     expect(sql(`select count(*) from public.audit_log where action = 'kyc_image.view'
                 and entity_id = (select path from public.kyc_document where member_id = '${KABIR}' and kind = 'aadhaar_front')`)).toBe('1');
-    await context.close();
 
     // The desk is told why, and takes that photo alone.
     await page.goto(`${appUrl('console')}/kyc-review`);
@@ -90,5 +96,26 @@ test.describe('Manual KYC', () => {
     await page.getByRole('button', { name: 'Use photo' }).click();
     await expect(page.getByRole('status').getByText('New photo kept for Kabir Sethi.')).toBeVisible();
     expect(sql(`select retake_asked_at is null from public.kyc_document where member_id = '${KABIR}' and kind = 'aadhaar_front'`)).toBe('t');
+
+    // The same documents for Naina: refused as a duplicate, and the desk is told who holds them (decision 0583).
+    await page.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }).fill('naina');
+    await page.getByRole('button', { name: 'Check Naina Kapoor' }).click();
+    await takeDeskPhotos(page);
+    await page.getByLabel('Date of birth on Naina Kapoor\'s original document').fill('1990-04-12');
+    await page.getByRole('textbox', { name: 'Last four digits of Naina Kapoor\'s Aadhaar' }).fill('4321');
+    await page.getByRole('textbox', { name: 'Naina Kapoor\'s PAN from the original card' }).fill('abcpk4321k');
+    await page.getByRole('switch', { name: 'Naina Kapoor agrees to this ID check' }).click();
+    await page.getByRole('button', { name: 'Verify Naina Kapoor' }).click();
+    await expect(page.getByText(/^These documents are on file for Kabir Sethi, member \d+\.$/)).toBeVisible();
+
+    // The super admin reopens Kabir's check from his record, saying why: what the desk entered goes.
+    await admin.reload();
+    await admin.getByRole('textbox', { name: 'Saved on the wrong member? Say why, and reopen the check' }).fill('Saved on the wrong member');
+    await admin.getByRole('button', { name: 'Reopen the check' }).click();
+    await expect(admin.getByRole('status').getByText('Reopened. The desk checks them again.')).toBeVisible();
+    await expect(admin.getByText('No ID photos on file.')).toBeVisible();
+    expect(sql(`select k.status || ' ' || (k.pan is null) || ' ' || (select count(*) from public.kyc_document d where d.member_id = k.member_id)
+                from public.kyc_record k where k.member_id = '${KABIR}'`)).toBe('started true 0');
+    await context.close();
   });
 });

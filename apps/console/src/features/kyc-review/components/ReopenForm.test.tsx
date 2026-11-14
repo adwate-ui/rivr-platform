@@ -48,4 +48,14 @@ describe('ReopenForm', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Reopen the check' }));
     expect((await screen.findByRole('alert')).textContent).toMatch(/^Not allowed: nobody decides their own check/);
   });
+
+  it('sends nothing for a reason too short or with a number, and says the rule', async () => {
+    const sent = renderForm(() => new Response(null, { status: 204 }));
+    fireEvent.change(screen.getByLabelText('Reason for reopening Naina Kapoor\'s check'), { target: { value: 'Born in 1990' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Reopen the check' }));
+    expect((await screen.findByRole('alert')).textContent).toBe('Say why in words: three letters at least, no numbers.');
+    fireEvent.change(screen.getByLabelText('Reason for reopening Naina Kapoor\'s check'), { target: { value: 'no' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Reopen the check' }));
+    expect(sent).toEqual([]);
+  });
 });
