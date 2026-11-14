@@ -6,6 +6,18 @@ const AADHAAR_LIKE = /[0-9]{4}[^0-9]?[0-9]{4}[^0-9]?[0-9]{4}/;
 const PAN_LIKE = /[a-z]{5}[0-9]{4}[a-z]/i;
 const PAN = /^[A-Z]{3}[ABCFGHJLPT][A-Z][0-9]{4}[A-Z]$/;
 
+// A reason the audit log keeps for good holds no digit at all, Devanagari included (reopen_kyc_check, ask_kyc_document_retake).
+const ANY_DIGIT = /[0-9०-९]/;
+
+/**
+ * Whether a reason is in words: three characters at least, `max` at most, and no digit. The database asks the same of a
+ * reopened check (500) and of a photo sent back (200), so the form says so before anything is sent.
+ */
+export function isReasonInWords(reason: string, max: number): boolean {
+  const length = reason.trim().length;
+  return length >= 3 && length <= max && !ANY_DIGIT.test(reason);
+}
+
 /** An empty field is "not given". */
 const notGiven = (value: string) => (value === '' ? undefined : value);
 

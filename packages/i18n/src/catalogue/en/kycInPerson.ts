@@ -53,6 +53,11 @@ export const kycInPerson = {
   reopenFor: 'Reason for reopening {name}\'s check',
   reopenHint: 'In words only: no numbers or dates.',
   reopen: 'Reopen the check',
+  /** A verified check saved on the wrong member (decision 0583): reopened from the member's record. */
+  reopenVerified: 'Saved on the wrong member? Say why, and reopen the check',
+  reopened: 'Reopened. The desk checks them again.',
+  /** Who holds the documents a duplicate clashed with. */
+  heldBy: 'These documents are on file for {name}, member {number}.',
   /** A member's record, for super admins (decision 0573). */
   documentsTitle: 'ID documents',
   documentsHint: 'Each opening is recorded.',

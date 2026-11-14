@@ -86,7 +86,7 @@ function PartContent({ part, venueId, record, can }: PartProps & { part: RecordP
   if (part === 'account') {
     return (
       <Stack gap={6}>
-        {can.seesIdentity ? <MemberIdDocuments venueId={venueId} memberId={record.memberId} /> : null}
+        {can.seesIdentity ? <MemberIdDocuments venueId={venueId} memberId={record.memberId} isVerified={record.isKycComplete} /> : null}
         {can.override ? <FeatureOverrides venueId={venueId} memberId={record.memberId} /> : null}
         {can.changePhone ? <ChangePhone venueId={venueId} memberId={record.memberId} currentPhone={record.phone} /> : null}
         {can.erase ? <EraseMember venueId={venueId} memberId={record.memberId} /> : null}

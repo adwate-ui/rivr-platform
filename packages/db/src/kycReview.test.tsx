@@ -4,14 +4,14 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useKycReviewActions, useKycReviewQueue } from './kycReview.ts';
+import { useKycDuplicateHolder, useKycReviewActions, useKycReviewQueue } from './kycReview.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const ADITYA = '00000000-0000-4000-8000-000000000103';
 
 /** A fake API: each path answers with its reply; the calls are recorded. */
-function renderReview(replies: Record<string, { status?: number; body: unknown }>) {
+function renderReview(replies: Record<string, { status?: number; body: unknown }>, holderOf: string | null = null) {
   const calls: { url: string; body: unknown }[] = [];
   const fetch: typeof globalThis.fetch = async (input, init) => {
     const url = input instanceof Request ? input.url : String(input);
@@ -25,7 +25,7 @@ function renderReview(replies: Record<string, { status?: number; body: unknown }
     auth: { storage: sessionStorageFor(ADITYA), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
-  const { result } = renderHook(() => ({ queue: useKycReviewQueue('v1'), actions: useKycReviewActions('v1') }), { wrapper });
+  const { result } = renderHook(() => ({ queue: useKycReviewQueue('v1'), actions: useKycReviewActions('v1'), holder: useKycDuplicateHolder(holderOf) }), { wrapper });
   return { result, calls };
 }
 
@@ -61,5 +61,32 @@ describe('KYC review', () => {
     const refused = renderReview({ '/rpc/kyc_review_queue': { body: [] }, '/rpc/review_kyc': { status: 400, body: { code: 'RVDOB', message: 'Enter the date of birth' } } });
     expect(await act(() => refused.result.current.actions.review.mutateAsync({ memberId: 'm203', approve: true, reason: 'Aadhaar seen' })))
       .toEqual({ ok: false, error: 'needs_date_of_birth' });
+  });
+
+  it('reopens a check with the reason, and says why one was not reopened', async () => {
+    const reopened = renderReview({ '/rpc/kyc_review_queue': { body: [] }, '/rpc/reopen_kyc_check': { body: null } });
+    expect(await act(() => reopened.result.current.actions.reopen.mutateAsync({ memberId: 'm203', reason: 'Saved on the wrong member' })))
+      .toEqual({ ok: true, value: 'reopened' });
+    expect(reopened.calls.find((call) => call.url.includes('/rpc/reopen_kyc_check'))?.body).toEqual({ p_member_id: 'm203', p_reason: 'Saved on the wrong member' });
+    cleanup();
+
+    const refused = renderReview({ '/rpc/kyc_review_queue': { body: [] }, '/rpc/reopen_kyc_check': { status: 400, body: { code: 'RVKYC', message: 'no' } } });
+    expect(await act(() => refused.result.current.actions.reopen.mutateAsync({ memberId: 'm203', reason: 'Saved on the wrong member' })))
+      .toEqual({ ok: false, error: 'decided' });
+  });
+
+  it('says who holds the documents a duplicate clashed with, and asks nothing without a member', async () => {
+    const held = renderReview({ '/rpc/kyc_review_queue': { body: [] }, '/rpc/kyc_duplicate_holder': { body: [{ member_number: 25, full_name: 'Arjun Mehta' }] } }, 'm203');
+    await waitFor(() => expect(held.result.current.holder.data).toEqual({ memberNumber: 25, fullName: 'Arjun Mehta' }));
+    expect(held.calls.find((call) => call.url.includes('/rpc/kyc_duplicate_holder'))?.body).toEqual({ p_member_id: 'm203' });
+    cleanup();
+
+    const none = renderReview({ '/rpc/kyc_review_queue': { body: [] }, '/rpc/kyc_duplicate_holder': { body: [] } }, 'm204');
+    await waitFor(() => expect(none.result.current.holder.data).toBeNull());
+    cleanup();
+
+    const unasked = renderReview({ '/rpc/kyc_review_queue': { body: [] } });
+    await waitFor(() => expect(unasked.result.current.queue.data).toEqual([]));
+    expect(unasked.calls.some((call) => call.url.includes('/rpc/kyc_duplicate_holder'))).toBe(false);
   });
 });
