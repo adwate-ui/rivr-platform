@@ -52,7 +52,8 @@ select is_empty($$ select * from public.native_push_targets('00000000-0000-4000-
                 'a promotion the member is not offered reaches no phone');
 
 select pg_temp.as_owner();
-select ok(exists (select 1 from cron.job j where j.jobname = 'outbox-native-push'), 'the consumer runs every minute');
+select is_empty($$ select 1 from cron.job j where j.jobname in ('outbox-native-push', 'outbox-live-status', 'outbox-social-wall', 'outbox-channel-analytics') $$,
+  'no consumer runs for a function that is not set up: native push, the live status, the Instagram wall, the channels'' numbers');
 insert into public.notification_preference (member_id, venue_id, push_type, is_on)
 values ('00000000-0000-4000-8000-000000000211', '00000000-0000-4000-8000-000000000001', 'push.call_time_complete', false);
 select pg_temp.as_service();

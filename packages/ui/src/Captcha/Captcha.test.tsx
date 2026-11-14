@@ -1,6 +1,6 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, renderHook, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Captcha } from './Captcha.tsx';
+import { Captcha, useCaptcha } from './Captcha.tsx';
 
 /** Cloudflare's Turnstile as the page would have it, recording what the widget asks of it. */
 function fakeTurnstile() {
@@ -92,5 +92,34 @@ describe('Captcha', () => {
     expect(onToken).toHaveBeenLastCalledWith(null);
     view.unmount();
     expect(turnstile.remove).toHaveBeenCalledWith('w1');
+  });
+});
+
+describe('useCaptcha', () => {
+  /** The member leaves the page, or comes back to it. */
+  function show(state: DocumentVisibilityState) {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state });
+    act(() => void document.dispatchEvent(new Event('visibilitychange')));
+  }
+
+  afterEach(() => {
+    Reflect.deleteProperty(document, 'visibilityState');
+  });
+
+  it('asks for a fresh token when the member comes back to the page, as the one from before may have run out', () => {
+    const { result } = renderHook(() => useCaptcha('0x4AAA'));
+    act(() => result.current.props.onToken('token-1'));
+    expect(result.current.isReady).toBe(true);
+    show('hidden');
+    expect(result.current.props.renewKey).toBe(0);
+    show('visible');
+    expect(result.current.props.renewKey).toBe(1);
+  });
+
+  it('needs no token, and renews nothing, without a site key', () => {
+    const { result } = renderHook(() => useCaptcha(''));
+    show('visible');
+    expect(result.current.isReady).toBe(true);
+    expect(result.current.props.renewKey).toBe(0);
   });
 });

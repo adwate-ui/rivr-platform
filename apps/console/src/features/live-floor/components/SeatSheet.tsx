@@ -19,6 +19,8 @@ export interface SeatSheetProps {
   start: { readonly tableId: string; readonly seat: number | null; readonly entryId?: string | undefined };
   now: Date;
   changes: SeatChanges;
+  /** Opens the check in person for a member on the list whose identity check is not done (decision 0503); none for staff who may not check. */
+  onCheckId?: ((fullName: string) => void) | undefined;
   onClose: () => void;
 }
 
@@ -38,6 +40,8 @@ function seatingOf(number: string, entry: WaitlistBoardEntry | undefined): Seati
     return parsed.success ? { kind: 'number', who: parsed.data.number, typed: number.trim() } : 'console.floor.seat.badNumber';
   }
   if (entry === undefined) return 'console.floor.seat.chooseWho';
+  // Not checked yet (decision 0503): the database refuses the seat, so the sheet says the desk comes first.
+  if (entry.needsIdCheck) return 'console.liveFloor.kycNeeded';
   return { kind: 'list', entryId: entry.entryId, memberId: entry.memberId, fullName: entry.fullName };
 }
 
@@ -79,17 +83,26 @@ function useSeatSheet({ venueId, tables, seats, held, start, changes, onClose }:
   const next = nextOn(board, choice.tableId, start.entryId);
   const isTyped = choice.number.trim() !== '';
   const entry = choice.entryId === undefined ? next[0] : next.find((candidate) => candidate.entryId === choice.entryId);
+  // Busy from the press until the answer: a second press would ask again (the trial run: seventeen in eight seconds).
+  const [isSeating, setSeating] = useState(false);
   const confirm = async () => {
+    if (isSeating) return undefined;
     const who = seatingOf(choice.number, isTyped ? undefined : entry);
     if (typeof who === 'string') return choice.setError(who);
     if (table === undefined || seat === null) return choice.setError('console.floor.seat.pickSeat');
     if (!isCallTimeMinutes(callMinutes)) return choice.setError('console.floor.seat.badCallTime');
     const bonusChips = bonusChipsToRedeemSchema.safeParse(choice.bonusChips);
     if (!bonusChips.success) return choice.setError('console.floor.seat.badBonusChips');
-    if (await changes.seat(who, { table, seat, callMinutes, bonusChips: bonusChips.data })) onClose();
+    setSeating(true);
+    try {
+      if (await changes.seat(who, { table, seat, callMinutes, bonusChips: bonusChips.data })) onClose();
+    } finally {
+      setSeating(false);
+    }
+    return undefined;
   };
   const open = tables.filter((one) => one.isOpen && openSeatsAt(one, taken).length > 0);
-  return { choice, table, free, seat, next, chosen: isTyped ? undefined : entry, open, confirm, callMinutes, tablesOwn };
+  return { choice, table, free, seat, next, chosen: isTyped ? undefined : entry, open, confirm, isSeating, callMinutes, tablesOwn };
 }
 
 type SeatSheetState = ReturnType<typeof useSeatSheet>;
@@ -163,11 +176,16 @@ function BonusChips({ sheet, venueId }: { sheet: SeatSheetState; venueId: string
  */
 export function SeatSheet(props: SeatSheetProps) {
   const sheet = useSeatSheet(props);
-  const { table, seat } = sheet;
+  const { table, seat, chosen } = sheet;
+  const { onCheckId } = props;
+  // A member on the list not checked yet goes to the desk first: Check ID in place of Seat, for staff who may check.
+  const toCheck = chosen?.needsIdCheck === true && onCheckId !== undefined ? chosen : undefined;
   const footer = (
     <>
       <Button variant="text" onClick={props.onClose}>{t('console.floor.seat.cancel')}</Button>
-      <Button variant="primary" onClick={() => void sheet.confirm()}>{t('console.floor.seat.confirm')}</Button>
+      {toCheck === undefined
+        ? <Button variant="primary" isLoading={sheet.isSeating} onClick={() => void sheet.confirm()}>{t('console.floor.seat.confirm')}</Button>
+        : <Button variant="primary" aria-label={t('console.waitlist.checkId', { name: toCheck.fullName })} onClick={() => onCheckId?.(toCheck.fullName)}>{t('console.waitlist.checkIdShort')}</Button>}
     </>
   );
   return (
