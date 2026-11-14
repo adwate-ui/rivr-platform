@@ -19,7 +19,7 @@ export const alerts = {
     'points.daily_cap': 'a staff member tried to give points past their daily limit',
     'bonus.daily_cap': 'a staff member tried to add bonus chips past their daily limit',
     'kyc.recheck_failed': 'a member\'s in-person check failed its PAN recheck',
-    'floor.seats_left_open': 'seats were still open after the night ended: end them on the floor, so play time is not counted to the morning',
+    'floor.seats_left_open': 'seats were still open after the night ended: end them on the floor',
     'eod.opening_variance': 'a cage shift opened with a variance',
     'eod.variance': 'a cage shift closed with a variance',
     'export.large': 'a large export was taken: a table, or an archive',

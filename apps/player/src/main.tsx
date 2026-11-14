@@ -5,7 +5,7 @@ import { RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { registerSW } from 'virtual:pwa-register';
-import { startInstallWatch, takeUpdateWhenHidden, takeWaitingUpdate, watchLaunch } from './features/frame/index.ts';
+import { startInstallWatch, takeUpdateWhenHidden, takeWaitingUpdateAtNewScreens, watchLaunch } from './features/frame/index.ts';
 import { router } from './router.tsx';
 
 // The codes of the link the app opened with, kept until sign-up (#10).
@@ -16,13 +16,11 @@ rememberAttribution(window.location.search);
 // page, so it asks for a new version every hour. One that arrives waits until the page is out of
 // sight, then takes over and reloads it (#252); a closed app opens on it anyway. A phone that opens
 // the app after days starts on the copy it kept: the new one is taken as the app starts, before
-// anything is typed, or at the next screen (the trial run, 13 Nov).
+// the first touch or key, or at the next screen (the trial run, 13 Nov).
 const HOUR = 60 * 60 * 1000;
 startInstallWatch();
 watchLaunch();
-router.subscribe('onResolved', (event) => {
-  if (event.pathChanged) takeWaitingUpdate();
-});
+takeWaitingUpdateAtNewScreens(router);
 // Reloaded here, not by the plugin: it reloads only a page a worker already served when it loaded,
 // and a first visit (an iPhone Home Screen app's first launch) would keep the old code.
 const reloadOnNewWorker = () => {
