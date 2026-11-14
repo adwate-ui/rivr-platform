@@ -55,7 +55,7 @@ select throws_ok($$ select * from public.channel_funnel('00000000-0000-4000-8000
 select is_empty($$ select * from public.channel_metric $$, 'nor sees the counts');
 select throws_ok($$ select public.record_channel_followers('00000000-0000-4000-8000-000000000001', '[]') $$, '42501', null, 'only the job, as the service role, records them');
 reset role;
-select ok(exists (select 1 from cron.job where jobname = 'outbox-channel-analytics' and schedule = '30 18 * * *'), 'pg_cron runs the job nightly at 00:00 IST');
+select is_empty($$ select 1 from cron.job where jobname = 'outbox-channel-analytics' $$, 'the job does not run until its venue is set');
 
 select * from finish();
 rollback;
