@@ -105,13 +105,17 @@ function PlayerSheetFor({ venueId, sessionId, data, now, permissions, changes, o
 /** Whichever sheet is open on the floor, built from what the floor read last; none once its subject is gone. */
 export function FloorSheets(props: FloorSheetsProps) {
   const { venueId, sheet, data, now, permissions, changes, onSheet } = props;
+  const navigate = useNavigate();
   const close = () => onSheet(null);
+  // Check ID (decision 0503), as the Waitlist's lists open it: only for staff who may check.
+  const canCheckId = permissions.some((permission) => permission === 'kyc.in_person' || permission === 'kyc.review');
+  const checkId = (fullName: string) => void navigate({ to: '/kyc-review', search: { check: fullName } });
   switch (sheet?.kind) {
     case 'player': return <PlayerSheetFor {...props} sessionId={sheet.sessionId} />;
     case 'seat': return (
       // A sheet for another seat or player is a sheet of its own, never the last one's choices.
       <SeatSheet key={`${sheet.tableId}:${String(sheet.seat)}:${sheet.entryId ?? ''}`} venueId={venueId} tables={data.tables} seats={data.seats}
-        held={data.held} start={sheet} now={now} changes={changes.seats} onClose={close} />
+        held={data.held} start={sheet} now={now} changes={changes.seats} onCheckId={canCheckId ? checkId : undefined} onClose={close} />
     );
     case 'leave': return <LeaveSheet leaver={sheet.leaver} canLetGo={permissions.includes('call_time.override')} changes={changes.seats} onClose={close} />;
     case 'table': {

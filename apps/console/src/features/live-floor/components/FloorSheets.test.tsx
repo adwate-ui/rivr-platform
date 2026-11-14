@@ -15,6 +15,9 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+const LEELA = { entry_id: 'e7', table_type_id: 'tt2', member_id: 'm7', full_name: 'Leela Menon', joined_at: '2026-11-15T16:18:00Z', place: 1, added_by_floor: false,
+  priority_reason: null, call_table_name: null, call_seat: null, hold_until: null, away_until: null, asked_table_id: 't2', on_way_at: null };
+
 const FLOOR: FloorApi = {
   tables: [tableRow('t1', 'Table 1', { type: 'tt1' }), tableRow('t2', 'Table 2'), tableRow('t3', 'Table 3'), tableRow('t4', 'Table 4', { is_open: false })],
   seats: [
@@ -26,8 +29,7 @@ const FLOOR: FloorApi = {
     requestRow({ kind: 'leaving', id: 's4', name: 'Rohan Bhatia', minutes: 2, session_id: 's4', table_id: 't2', seat: 3, call_time_left: 1800 }),
     requestRow({ kind: 'left_owing', id: 'm9', name: 'Yash Gupta', minutes: 1, session_id: 's9', table_id: 't3', seat: 4, owed_seconds: 2700 }),
   ],
-  board: [{ entry_id: 'e7', table_type_id: 'tt2', member_id: 'm7', full_name: 'Leela Menon', joined_at: '2026-11-15T16:18:00Z', place: 1, added_by_floor: false,
-    priority_reason: null, call_table_name: null, call_seat: null, hold_until: null, away_until: null, asked_table_id: 't2', on_way_at: null }],
+  board: [LEELA],
 };
 
 async function renderFloor(api: FloorApi = FLOOR) {
@@ -187,6 +189,39 @@ describe('The seat sheet (console v3)', () => {
     fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
     await screen.findByText('Leela Menon seated at Table 2, seat 2');
     expect(rpcs('assign_from_waitlist')).toEqual([{ p_entry_id: 'e7', p_table_id: 't2', p_seat: 2, p_call_minutes: 180 }]);
+  });
+
+  /** The seat sheet opened on Table 2's free seat, with the next on its list chosen. */
+  async function openForLeela(api: FloorApi = FLOOR) {
+    const view = await renderFloor(api);
+    fireEvent.click(within(tile('Table 2 NLH 100/200')).getByRole('button', { name: 'Seat 2, Open' }));
+    const seat = await sheet('Seat a player');
+    await within(seat).findByRole('radio', { name: 'Leela Menon · 12 min' });
+    return { ...view, seat };
+  }
+  const UNCHECKED = { ...FLOOR, board: [{ ...LEELA, needs_id_check: true }] };
+
+  it('sends one seating however often Seat is pressed while it is being answered', async () => {
+    const { rpcs, seat } = await openForLeela();
+    const press = within(seat).getByRole('button', { name: 'Seat' });
+    for (let pressed = 0; pressed < 3; pressed += 1) fireEvent.click(press);
+    await screen.findByText('Leela Menon seated at Table 2, seat 2');
+    expect(rpcs('assign_from_waitlist')).toHaveLength(1);
+  });
+
+  it('offers Check ID in place of Seat for a member on the list not checked yet (decision 0503)', async () => {
+    const { rpcs, router, seat } = await openForLeela(UNCHECKED);
+    expect(within(seat).queryByRole('button', { name: 'Seat' })).toBeNull();
+    fireEvent.click(within(seat).getByRole('button', { name: 'Check Leela Menon’s ID' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/kyc-review'));
+    expect(rpcs('assign_from_waitlist')).toEqual([]);
+  });
+
+  it('tells staff who may not check to send such a member to the desk, and seats nobody', async () => {
+    const { rpcs, seat } = await openForLeela({ ...UNCHECKED, role: 'cashier' });
+    fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
+    expect(await within(seat).findByText('This member has not finished their ID check. Send them to the front desk.')).toBeDefined();
+    expect(rpcs('assign_from_waitlist')).toEqual([]);
   });
 
   it('asks for a call time when Custom holds none, and seats nobody (audit F-112)', async () => {
