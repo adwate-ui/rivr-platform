@@ -147,6 +147,16 @@ function useTurnstileWidget({ host, siteKey, attempt, handler, onFailed }: Widge
 export function useCaptcha(siteKey: string) {
   const [token, setToken] = useState<string | null>(null);
   const [renewKey, setRenewKey] = useState(0);
+  // A token runs out after a few minutes, and a page out of sight does not hear of it. A member back from WhatsApp would
+  // send the old one and be refused, so coming back to the page asks for a fresh one.
+  useEffect(() => {
+    if (!siteKey) return undefined;
+    const onShow = () => {
+      if (document.visibilityState === 'visible') setRenewKey((count) => count + 1);
+    };
+    document.addEventListener('visibilitychange', onShow);
+    return () => document.removeEventListener('visibilitychange', onShow);
+  }, [siteKey]);
   return {
     isReady: !siteKey || token !== null,
     token: token ?? undefined,
