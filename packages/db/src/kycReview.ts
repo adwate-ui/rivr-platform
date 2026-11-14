@@ -142,11 +142,38 @@ export function useKycReviewActions(venueId: string) {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.kycReview(user, venueId) }),
         queryClient.invalidateQueries({ queryKey: queryKeys.kycInPersonSearches(user, venueId) }),
+        // A verified check reopened from the member's record (decision 0583): its documents go, and the record says so.
+        queryClient.invalidateQueries({ queryKey: queryKeys.memberKycDocuments(user, venueId, memberId) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.memberRecord(user, venueId, memberId) }),
       ]);
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok('reopened');
     },
   });
   return { review, reopen };
+}
+
+/** The verified member whose documents a duplicate clashed with. */
+export interface KycDuplicateHolder {
+  memberNumber: number;
+  fullName: string;
+}
+
+/**
+ * Who holds the documents a check refused as a duplicate clashed with (decision 0583), so the desk sees a check saved on the
+ * wrong member; null for any other check, and for anyone who does not check members.
+ */
+export function useKycDuplicateHolder(memberId: string | null) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.kycDuplicateHolder(userId ?? 'signed-out', memberId ?? ''),
+    enabled: userId !== null && memberId !== null,
+    queryFn: async (): Promise<KycDuplicateHolder | null> => {
+      const { data, error } = await client.rpc('kyc_duplicate_holder', { p_member_id: memberId ?? '' });
+      if (error) throw error;
+      const [row] = data;
+      return row === undefined ? null : { memberNumber: row.member_number, fullName: row.full_name };
+    },
+  });
 }
 
 const CANDIDATE_STATUSES = ['started', 'needs_pan', 'verified', 'needs_review', 'refused'] as const;

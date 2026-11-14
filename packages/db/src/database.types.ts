@@ -5387,6 +5387,11 @@ isOneToOne: false
               "app_selfie_path": string,"full_name": string,"member_id": string,"phone_last4": string,"retake_kinds": (string)[],"retake_reasons": (string)[],"status": string
             }[]
                            },
+"kyc_duplicate_holder":
+{ Args: { "p_member_id": string }; Returns: {
+              "full_name": string,"member_number": number
+            }[]
+                           },
 "kyc_in_person_candidates":
 { Args: { "p_search": string,"p_venue_id": string }; Returns: {
               "app_selfie_path": string,"full_name": string,"member_id": string,"phone_last4": string,"retake_kinds": (string)[],"retake_reasons": (string)[],"status": string

@@ -1,4 +1,4 @@
-import { useKycDueTonight, useKycInPersonCandidates, type KycCandidate, type KycInPersonOutcome } from '@rivr/db';
+import { useKycDueTonight, useKycDuplicateHolder, useKycInPersonCandidates, type KycCandidate, type KycInPersonOutcome } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
 import { Button, Heading, Inline, Input, Stack, StatusMessage, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
@@ -7,6 +7,7 @@ import { owesPhotosOnly, RetakeForm } from './RetakeForm.tsx';
 
 /** The last check in person and where it ended, said once the form closes. */
 interface Outcome {
+  memberId: string;
   name: string;
   status: KycInPersonOutcome | 'retaken';
 }
@@ -34,7 +35,7 @@ export function InPersonSection({ venueId, hasHeading = true, initialSearch }: {
     setMember(chosen);
   };
   const decided = (status: Outcome['status']) => {
-    setOutcome(member === null ? null : { name: member.fullName, status });
+    setOutcome(member === null ? null : { memberId: member.memberId, name: member.fullName, status });
     setMember(null);
     setSearch('');
   };
@@ -44,6 +45,7 @@ export function InPersonSection({ venueId, hasHeading = true, initialSearch }: {
       {hasHeading ? <Text tone="muted">{t('console.kycInPerson.hint')}</Text> : null}
       {/* Always there, so the outcome is read out as it appears (F1-23). */}
       <StatusMessage>{outcome === null ? null : t(OUTCOME_COPY[outcome.status], { name: outcome.name })}</StatusMessage>
+      <HeldBy outcome={outcome} />
       {member === null ? (
         <Stack gap={4}>
           <Input type="search" label={t('console.kycInPerson.search')} value={search} onChange={(event) => setSearch(event.target.value)} autoComplete="off" />
@@ -58,6 +60,17 @@ export function InPersonSection({ venueId, hasHeading = true, initialSearch }: {
       )}
     </Stack>
   );
+}
+
+/**
+ * After a check refused as a duplicate: which member holds the documents (decision 0583), so the desk sees at once a check
+ * saved on the wrong member. Nothing for any other refusal.
+ */
+function HeldBy({ outcome }: { outcome: Outcome | null }) {
+  const memberId = outcome?.status === 'refused' ? outcome.memberId : null;
+  const holder = useKycDuplicateHolder(memberId).data;
+  if (memberId === null || !holder) return null;
+  return <Text>{t('console.kycInPerson.heldBy', { name: holder.fullName, number: String(holder.memberNumber) })}</Text>;
 }
 
 interface CandidatesProps {

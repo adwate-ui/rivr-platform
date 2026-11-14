@@ -17,18 +17,24 @@ const PAN = {
 const AADHAAR = { ...PAN, kind: 'aadhaar_front', path: 'v1/m1/doc-aadhaar-1.jpg', covers_confirmed_by: 'Rhea Kulkarni' };
 
 /** Vikram, a super admin, signed in, and a fake API that lists `rows` and counts each photo opened. */
-function renderDocuments(rows: unknown, answer: () => Response = () => new Response(null, { status: 204 })) {
+function renderDocuments(rows: unknown, answer: () => Response = () => new Response(null, { status: 204 }), isVerified = false) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000101', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
   }));
   const opened: unknown[] = [];
   const sentBack: unknown[] = [];
+  const reopened: unknown[] = [];
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (url.includes('/rpc/member_kyc_documents')) return Response.json(rows);
+    // Once reopened, nothing is on file.
+    if (url.includes('/rpc/member_kyc_documents')) return Response.json(reopened.length > 0 ? [] : rows);
     if (url.includes('/rpc/ask_kyc_document_retake')) {
       sentBack.push(JSON.parse(String(init?.body)));
+      return answer();
+    }
+    if (url.includes('/rpc/reopen_kyc_check')) {
+      reopened.push(JSON.parse(String(init?.body)));
       return answer();
     }
     if (url.includes('/functions/v1/kyc-image-url')) {
@@ -40,10 +46,10 @@ function renderDocuments(rows: unknown, answer: () => Response = () => new Respo
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })} queryClient={cache}>
-      <MemberIdDocuments venueId="v1" memberId="m1" />
+      <MemberIdDocuments venueId="v1" memberId="m1" isVerified={isVerified} />
     </RivrDataProvider>,
   );
-  return { opened, sentBack };
+  return { opened, sentBack, reopened };
 }
 
 describe('MemberIdDocuments', () => {
@@ -84,10 +90,47 @@ describe('MemberIdDocuments', () => {
   });
 
   it('says why a photo could not be sent back', async () => {
-    renderDocuments([PAN], () => Response.json({ code: '22023', message: 'no' }, { status: 400 }));
+    renderDocuments([PAN], () => Response.json({ code: '42501', message: 'no' }, { status: 403 }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Open the PAN card' }));
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Why the PAN card needs taking again' }), { target: { value: 'Blurred' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send back' }));
+    expect((await screen.findByRole('alert')).textContent).toBe('Super admins only.');
+  });
+
+  it('sends nothing back for a reason too short or with a number, and says the rule', async () => {
+    const { sentBack } = renderDocuments([PAN]);
     fireEvent.click(await screen.findByRole('button', { name: 'Open the PAN card' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Send back' }));
     expect((await screen.findByRole('alert')).textContent).toMatch(/^Say why in words/);
+    fireEvent.change(screen.getByRole('textbox', { name: 'Why the PAN card needs taking again' }), { target: { value: 'Test 2' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Send back' }));
+    expect(sentBack).toEqual([]);
+  });
+
+  it('reopens a verified check saved on the wrong member, with the reason (decision 0583)', async () => {
+    const { reopened } = renderDocuments([AADHAAR, PAN], undefined, true);
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Saved on the wrong member? Say why, and reopen the check' }), { target: { value: ' Saved on the wrong member ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Reopen the check' }));
+    await waitFor(() => expect(reopened).toEqual([{ p_member_id: 'm1', p_reason: 'Saved on the wrong member' }]));
+    // The photos and the form go with the check; the word that it was done stays.
+    expect(await screen.findByText('No ID photos on file.')).toBeDefined();
+    expect(screen.getByText('Reopened. The desk checks them again.')).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Reopen the check' })).toBeNull();
+  });
+
+  it('reopens nothing without a reason in words, and offers it only for a verified check with photos on file', async () => {
+    const { reopened } = renderDocuments([PAN], undefined, true);
+    fireEvent.click(await screen.findByRole('button', { name: 'Reopen the check' }));
+    expect((await screen.findByRole('alert')).textContent).toMatch(/^Say why in words/);
+    expect(reopened).toEqual([]);
+    cleanup();
+    renderDocuments([PAN]);
+    await screen.findByText('PAN card');
+    expect(screen.queryByRole('button', { name: 'Reopen the check' })).toBeNull();
+    cleanup();
+    renderDocuments([], undefined, true);
+    await screen.findByText('No ID photos on file.');
+    expect(screen.queryByRole('button', { name: 'Reopen the check' })).toBeNull();
   });
 
   it('shows why a photo was sent back, and offers no second sending', async () => {

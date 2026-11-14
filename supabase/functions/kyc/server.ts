@@ -155,22 +155,25 @@ export async function removePhoto(path: string): Promise<void> {
 
 /**
  * Removes any PAN or Aadhaar file in a member's folder that no row names (decision 0573): the one a new photo replaced, what a
- * failed attempt left, or a removal that failed before, so a photo sent back for showing digits does not stay. Nothing when
- * either list cannot be read, and it never throws: the check has already ended, one way or the other.
+ * failed attempt left, or a removal that failed before, so a photo sent back for showing digits does not stay. And any desk
+ * photo of the face that the member's check does not name: an earlier check's, or one reopened as saved on the wrong member
+ * (decision 0583). Nothing when a list cannot be read, and it never throws: the check has already ended, one way or the other.
  */
 export async function removeUnnamedDocuments(memberId: string, folder: string): Promise<void> {
   try {
-    const [listed, onFile] = await Promise.all([
+    const [listed, onFile, checks] = await Promise.all([
       fetch(`${supabaseUrl}/storage/v1/object/list/kyc`, {
         method: 'POST', headers: { ...AS_SERVER, 'content-type': 'application/json' }, body: JSON.stringify({ prefix: folder, limit: 1000, offset: 0 }),
       }),
       fetch(`${supabaseUrl}/rest/v1/kyc_document?member_id=eq.${memberId}&select=path`, { headers: AS_SERVER }),
+      fetch(`${supabaseUrl}/rest/v1/kyc_record?member_id=eq.${memberId}&select=photo_path`, { headers: AS_SERVER }),
     ]);
-    if (!listed.ok || !onFile.ok) return;
-    const [entries, rows]: unknown[] = await Promise.all([listed.json(), onFile.json()]);
-    if (!Array.isArray(entries) || !Array.isArray(rows)) return;
-    const named = new Set(rows.map((row: unknown) => field(row, 'path')));
-    const stray = entries.map((entry: unknown) => field(entry, 'name') ?? '').filter((name) => name.startsWith('doc-')).map((name) => `${folder}${name}`).filter((path) => !named.has(path));
+    if (!listed.ok || !onFile.ok || !checks.ok) return;
+    const [entries, rows, records]: unknown[] = await Promise.all([listed.json(), onFile.json(), checks.json()]);
+    if (!Array.isArray(entries) || !Array.isArray(rows) || !Array.isArray(records)) return;
+    const named = new Set([...rows.map((row: unknown) => field(row, 'path')), ...records.map((row: unknown) => field(row, 'photo_path'))]);
+    const isDeskFile = (name: string) => name.startsWith('doc-') || name.startsWith('in-person-');
+    const stray = entries.map((entry: unknown) => field(entry, 'name') ?? '').filter(isDeskFile).map((name) => `${folder}${name}`).filter((path) => !named.has(path));
     if (stray.length === 0) return;
     const remove = () => fetch(`${supabaseUrl}/storage/v1/object/kyc`, {
       method: 'DELETE', headers: { ...AS_SERVER, 'content-type': 'application/json' }, body: JSON.stringify({ prefixes: stray }),

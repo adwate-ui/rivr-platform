@@ -1,6 +1,7 @@
-import { useKycImageUrl, useMemberKycDocuments, useSendBackKycDocument, type KycDocument, type KycSendBackFailure } from '@rivr/db';
+import { isReasonInWords } from '@rivr/contracts';
+import { useKycImageUrl, useKycReviewActions, useMemberKycDocuments, useSendBackKycDocument, type KycDocument, type KycSendBackFailure } from '@rivr/db';
 import { formatDate, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Input, KycPhoto, kycPhotoStatus, LoadState, Stack, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Input, KycPhoto, kycPhotoStatus, LoadState, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState } from 'react';
 
 interface MemberProps {
@@ -14,8 +15,10 @@ function SendBack({ venueId, memberId, document }: MemberProps & { document: Kyc
   const [reason, setReason] = useState('');
   const [failure, setFailure] = useState<KycSendBackFailure | null>(null);
   const submit = async () => {
+    // The database refuses a short reason or one with a digit: the form says so first.
+    if (!isReasonInWords(reason, 200)) return setFailure('invalid');
     const done = await sendBack.mutateAsync({ kind: document.kind, reason: reason.trim() });
-    setFailure(done.ok ? null : done.error);
+    return setFailure(done.ok ? null : done.error);
   };
   return (
     <Stack gap={3}>
@@ -68,9 +71,37 @@ function DocumentOnFile({ venueId, memberId, document }: MemberProps & { documen
   );
 }
 
-/** A member's PAN and Aadhaar photos, for super admins (decision 0573). */
-export function MemberIdDocuments({ venueId, memberId }: MemberProps) {
+/**
+ * A verified desk check saved on the wrong member (decision 0583): a super admin reopens it, saying why. What the desk
+ * entered goes, with these photos, and the member waits for the desk again. The database keeps who may.
+ */
+function ReopenVerified({ venueId, memberId, onReopened }: MemberProps & { onReopened: () => void }) {
+  const { reopen } = useKycReviewActions(venueId);
+  const [reason, setReason] = useState('');
+  const [failure, setFailure] = useState<KycSendBackFailure | null>(null);
+  const submit = async () => {
+    if (!isReasonInWords(reason, 500)) return setFailure('invalid');
+    const done = await reopen.mutateAsync({ memberId, reason: reason.trim() });
+    if (done.ok) return onReopened();
+    return setFailure(done.error === 'not_allowed' || done.error === 'invalid' ? done.error : 'unavailable');
+  };
+  return (
+    <Stack gap={3}>
+      <Input label={t('console.kycInPerson.reopenVerified')} hint={t('console.kycInPerson.reopenHint')} value={reason}
+        onChange={(event) => setReason(event.target.value)} maxLength={500} autoComplete="off" />
+      <Inline gap={3}>
+        <Button variant="subtle" size="compact" isLoading={reopen.isPending} onClick={() => void submit()}>{t('console.kycInPerson.reopen')}</Button>
+      </Inline>
+      {failure === null ? null : <ErrorMessage>{t(`console.kycInPerson.sendBackFailures.${failure}`)}</ErrorMessage>}
+    </Stack>
+  );
+}
+
+/** A member's PAN and Aadhaar photos, for super admins (decision 0573), and the way to reopen a verified check they belong to. */
+export function MemberIdDocuments({ venueId, memberId, isVerified }: MemberProps & { isVerified: boolean }) {
   const documents = useMemberKycDocuments(venueId, memberId);
+  // Kept here: once reopened, the photos and the form are gone, and the word that it was done stays.
+  const [isReopened, setReopened] = useState(false);
   return (
     <Stack gap={4}>
       <Stack gap={1}>
@@ -81,6 +112,11 @@ export function MemberIdDocuments({ venueId, memberId }: MemberProps) {
       {documents.isError ? <LoadState isError onRetry={() => void documents.refetch()} /> : null}
       {documents.data?.length === 0 ? <Text tone="muted">{t('console.kycInPerson.documentsNone')}</Text> : null}
       {documents.data?.map((document) => <DocumentOnFile key={document.kind} venueId={venueId} memberId={memberId} document={document} />)}
+      {/* Photos on file mean the desk did the check: only that kind is reopened once verified. */}
+      {isVerified && documents.data !== undefined && documents.data.length > 0
+        ? <ReopenVerified venueId={venueId} memberId={memberId} onReopened={() => setReopened(true)} /> : null}
+      {/* Always there, so the outcome is read out as it appears. */}
+      <StatusMessage>{isReopened ? t('console.kycInPerson.reopened') : null}</StatusMessage>
     </Stack>
   );
 }

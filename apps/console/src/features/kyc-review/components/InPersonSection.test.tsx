@@ -29,7 +29,7 @@ const NAINA = { member_id: '00000000-0000-4000-8000-000000000203', full_name: 'N
  * Vikram, a KYC reviewer, signed in, and a fake API that finds `found` (Naina), lists `due` as due tonight and answers her
  * check with `reply`.
  */
-function renderSection(reply: () => Response, found: unknown = NAINA, due: unknown[] = []) {
+function renderSection(reply: () => Response, found: unknown = NAINA, due: unknown[] = [], holder: unknown[] = []) {
   localStorage.setItem(
     SESSION_STORAGE_KEY,
     JSON.stringify({
@@ -43,6 +43,7 @@ function renderSection(reply: () => Response, found: unknown = NAINA, due: unkno
     const url = String(input instanceof Request ? input.url : input);
     if (url.includes('/rpc/kyc_in_person_candidates')) return Response.json([found]);
     if (url.includes('/rpc/kyc_due_tonight')) return Response.json(due);
+    if (url.includes('/rpc/kyc_duplicate_holder')) return Response.json(holder);
     if (url.includes('/functions/v1/kyc-image-url')) return Response.json({ signedPath: '/object/sign/kyc/selfie.jpg?token=t' });
     if (url.includes('/functions/v1/kyc-in-person')) {
       sent.push(JSON.parse(String(init?.body)));
@@ -111,6 +112,17 @@ describe('a check in person', () => {
     renderSection(() => Response.json({ status: 'needs_review' }));
     await checkNaina();
     expect(await screen.findByText(/^Naina Kapoor goes to review/)).toBeDefined();
+  });
+
+  it('says which member holds the documents when a check is refused as a duplicate (decision 0583)', async () => {
+    renderSection(() => Response.json({ status: 'refused' }), NAINA, [], [{ member_number: 25, full_name: 'Arjun Mehta' }]);
+    await checkNaina();
+    expect(await screen.findByText('These documents are on file for Arjun Mehta, member 25.')).toBeDefined();
+    cleanup();
+    renderSection(() => Response.json({ status: 'verified' }), NAINA, [], [{ member_number: 25, full_name: 'Arjun Mehta' }]);
+    await checkNaina();
+    await screen.findByText(/^Naina Kapoor/);
+    expect(screen.queryByText(/on file for/)).toBeNull();
   });
 
   it('keeps the form, and says why, when the check did not go through', async () => {
