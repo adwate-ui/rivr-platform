@@ -29,9 +29,7 @@ select pg_temp.as_user('00000000-0000-4000-8000-000000000211');
 select results_eq($$ select is_kyc_complete, jackpot_paise from public.my_tonight() $$,
   $$ select true, jackpot from jackpots where venue_id = '00000000-0000-4000-8000-000000000001' $$,
   'a member with a finished check reads the club''s jackpot');
-select set_eq($$ select table_id, open_seats from public.floor_open_seats() $$,
-  $$ select table_id, open_seats from seats where venue_id = '00000000-0000-4000-8000-000000000001' $$,
-  'and each of the club''s tables with its open seats, and no other venue''s');
+select is_empty($$ select * from public.floor_open_seats() $$, 'and no count of open seats: players never see one (redesign RD-20)');
 
 select pg_temp.as_user('00000000-0000-4000-8000-000000000218');
 select is((select is_kyc_complete from public.my_tonight()), false, 'a member without a finished check is told Join needs one');
@@ -42,9 +40,10 @@ select results_eq($$ select jackpot_paise from public.my_tonight() $$,
   'a practice member reads the practice venue''s, never the club''s');
 
 select pg_temp.as_user('00000000-0000-4000-8000-000000000104');
-select set_eq($$ select table_id from public.floor_open_seats() $$,
-  $$ select table_id from seats where venue_id in ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000002') $$,
-  'staff read the open seats at each venue they work at');
+select set_eq($$ select table_id, open_seats from public.floor_open_seats() $$,
+  $$ select s.table_id, s.open_seats from seats s join public.game_table g on g.id = s.table_id
+     where g.active and s.venue_id in ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000002') $$,
+  'staff read each table with its open seats at each venue they work at');
 
 -- A seat held for a called member is not open: the floor calls a waiting member, not seated anywhere, to
 -- an empty seat at an open table of their game.
@@ -69,7 +68,7 @@ with called as (
 )
 insert into held select * from called;
 select is((select count(*)::integer from held), 1, 'the floor calls a waiting member to a seat');
-select pg_temp.as_user('00000000-0000-4000-8000-000000000211');
+select pg_temp.as_user('00000000-0000-4000-8000-000000000104');
 select is((select o.open_seats from public.floor_open_seats() o join held h on h.table_id = o.table_id),
   (select s.open_seats - 1 from seats s join held h on h.table_id = s.table_id), 'and the seat held for them is not open');
 
@@ -82,7 +81,7 @@ insert into public.seat_session (venue_id, member_id, visit_id, table_id, seat)
 select '00000000-0000-4000-8000-000000000001', h.member_id,
        (select v.id from public.visit v where v.member_id = h.member_id and v.closed_at is null), h.table_id, h.seat
 from held h;
-select pg_temp.as_user('00000000-0000-4000-8000-000000000211');
+select pg_temp.as_user('00000000-0000-4000-8000-000000000104');
 select is((select o.open_seats from public.floor_open_seats() o join held h on h.table_id = o.table_id),
   (select s.open_seats - 1 from seats s join held h on h.table_id = s.table_id), 'a held seat the member sits in counts once');
 

@@ -5,6 +5,8 @@ import { TONE, type TextTone } from '../internal/tone.ts';
 export interface DetailRowProps {
   /** At the left: "Game", "Top-up", "House rules". */
   label: string;
+  /** Under the label, small and muted, such as a line of history's day, "15 Nov"; the label is then in medium weight. */
+  detail?: string | undefined;
   /** At the right: "NLH 50/100", "Requested", "Verified". */
   value?: string | undefined;
   labelTone?: Extract<TextTone, 'default' | 'muted'>;
@@ -30,15 +32,20 @@ export function DetailRow({ size = 'body', isLast = false, onOpen, ...look }: De
   return <div className={row}><RowBody {...look} hasChevron={false} /></div>;
 }
 
-type RowBodyProps = Pick<DetailRowProps, 'label' | 'value' | 'labelTone' | 'valueTone' | 'hasDot'> & { hasChevron: boolean };
+type RowBodyProps = Pick<DetailRowProps, 'label' | 'detail' | 'value' | 'labelTone' | 'valueTone' | 'hasDot'> & { hasChevron: boolean };
 
-/** The label (with its dot), the value and, on a row that opens something, the chevron. */
-function RowBody({ label, value, labelTone = 'default', valueTone = 'default', hasDot = false, hasChevron }: RowBodyProps) {
+/** The label (with its dot, and any line under it), the value and, on a row that opens something, the chevron. */
+function RowBody({ label, detail, value, labelTone = 'default', valueTone = 'default', hasDot = false, hasChevron }: RowBodyProps) {
   return (
     <>
       <span className={cx('flex min-w-0 items-center gap-2 wrap-anywhere', TONE[labelTone])}>
         {hasDot ? <span aria-hidden="true" className="size-pip shrink-0 rounded-full bg-gold" /> : null}
-        {label}
+        {detail === undefined ? label : (
+          <span className="flex min-w-0 flex-col gap-1">
+            <span className="font-medium">{label}</span>
+            <span className="text-12 text-content-muted">{detail}</span>
+          </span>
+        )}
       </span>
       {value === undefined ? null : <span className={cx('shrink-0 text-end', TONE[valueTone])}>{value}</span>}
       {/* The chevron's ink ends on the row's edge with the values and switches beside it, past its side bearing (F-157). */}

@@ -1,12 +1,12 @@
 import { useFloorTables, useMySeat, useMyUpcomingTournaments, useMyWaitlist, type FloorTable, type MySeat, type WaitlistPlace } from '@rivr/db';
-import { useMyNotices, type Notice } from '@rivr/db/notices';
+import { useMyNotices, type MyNotice } from '@rivr/db/notices';
+import type { SeatStanding } from '@rivr/domain/notices';
 import { t } from '@rivr/i18n';
 import { Box, haptic, PeekBar, PlayerDock, Screen, Sheet, SheetPanel, Stack, useIsOnline, useToast } from '@rivr/ui';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { isCallTimeEnding, minutesLeftToSay } from '@rivr/domain/callTime';
 import { useNow } from '../hooks/useNow.ts';
 import { usePushAction, type PushTarget } from '../hooks/usePushAction.ts';
-import { DeskCheckNotice } from './DeskCheckNotice.tsx';
 import { JoinSheet } from './JoinSheet.tsx';
 import { RateVisit } from './RateVisit.tsx';
 import { callSecondsLeft, SeatedView } from './SeatedView.tsx';
@@ -15,8 +15,8 @@ import { SeatReadyView } from './SeatReadyView.tsx';
 import { runningLine, TablesList } from './TablesList.tsx';
 import { TonightBanners } from './TonightBanners.tsx';
 import { TonightHeader } from './TonightHeader.tsx';
-import { TonightNotices } from './TonightNotices.tsx';
 import { TonightOffers } from './TonightOffers.tsx';
+import { TopSlot } from './TopSlot.tsx';
 import { WaitingView } from './WaitingView.tsx';
 
 /** Where the member stands tonight, which fills the screen (decision 0320). */
@@ -59,22 +59,35 @@ function useArrivals(standing: Standing) {
   }, [standing, toast]);
 }
 
+/** The member's seat as Home's top slot reads it: called for them, taken, or none while they browse or wait. */
+function seatOf(standing: Standing): SeatStanding {
+  if (standing.kind === 'seated') return 'taken';
+  return standing.kind === 'ready' ? 'called' : 'none';
+}
+
 /**
- * What the member's standing shows: while browsing, the club's notices, then the offers and the tables (decision 0424);
- * else their place, their seat call or their seat.
+ * What the member's standing shows (redesign RD-20). Browsing: the one card of the top slot, then the offers and the
+ * tables. On a list: their place, then the card and the offers. Called: the seat held for them, alone. Seated: their seat,
+ * then the offers. The top slot is asked in every standing and draws nothing while a seat is called or taken.
  */
 function StandingView({ standing, now, offer, onJoin, tables, notices, sheet }: {
   standing: Standing; now: Date; offer: ReactNode; onJoin: (table: FloorTable) => void; tables: readonly FloorTable[];
-  notices: readonly Notice[]; sheet: { open: SeatSheet | null; set: (sheet: SeatSheet | null) => void };
+  notices: readonly MyNotice[]; sheet: { open: SeatSheet | null; set: (sheet: SeatSheet | null) => void };
 }) {
+  const slot = <TopSlot seat={seatOf(standing)} notices={notices} />;
   switch (standing.kind) {
-    case 'waiting': return <WaitingView place={standing.place} offer={offer} />;
-    case 'ready': return <SeatReadyView place={standing.place} now={now} />;
-    case 'seated': return <SeatedView seat={standing.seat} places={standing.places} now={now} sheet={sheet.open} onSheet={sheet.set} />;
+    case 'waiting': return <Stack gap={4}><WaitingView place={standing.place} offer={offer} />{slot}<TonightOffers /></Stack>;
+    case 'ready': return <>{slot}<SeatReadyView place={standing.place} now={now} /></>;
+    case 'seated': return (
+      <>
+        {slot}
+        <SeatedView seat={standing.seat} places={standing.places} now={now} sheet={sheet.open} onSheet={sheet.set} />
+        <TonightOffers />
+      </>
+    );
     default: return (
       <Stack gap={4}>
-        <DeskCheckNotice />
-        <TonightNotices notices={notices} />
+        {slot}
         <RateVisit />
         <TonightOffers />
         <SheetPanel title={t('player.live.allTables')} aside={runningLine(tables, 0)}><TablesList tables={tables} onOpen={onJoin} /></SheetPanel>
@@ -140,8 +153,9 @@ function HomeNotReady({ isPending, onRetry }: { isPending: boolean; onRetry: () 
 
 /**
  * Tonight (decision 0320, "Live night"): the member's own state fills the screen and the floor sits in a sheet. Browsing,
- * the offers and the tables, a table opening its join sheet; on a list, their place; called, the seat held for them; seated,
- * the call-time ring and what they do from the seat. Banners under the header. A first load is a skeleton; a refresh that
+ * the top slot's one card, the offers and the tables, a table opening its join sheet; on a list, their place; called, the
+ * seat held for them; seated, the call-time ring and what they do from the seat, then the offers (redesign RD-20).
+ * Banners under the header. A first load is a skeleton; a refresh that
  * fails keeps what was shown, under a banner. `offer` is Profile's offer of seat-ready push, through the route.
  */
 export function HomeScreen({ offer }: { offer: ReactNode }) {

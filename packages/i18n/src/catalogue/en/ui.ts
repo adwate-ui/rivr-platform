@@ -293,6 +293,8 @@ export const ui = {
   },
   /** A balance that opens its history (F-054). */
   balanceTile: { history: 'History' },
+  /** A position dot under Home's offers, read out (redesign RD-20): `Offer 2 of 4`. */
+  offerCarousel: { dot: 'Offer {number} of {count}' },
   /** A menu item's food mark, read out (F-052). */
   dietMark: { veg: 'Vegetarian', egg: 'Contains egg', non_veg: 'Non-vegetarian' },
   /** The offer to add the player app to the home screen, on a member's second visit. */

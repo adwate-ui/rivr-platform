@@ -4,13 +4,12 @@
  */
 export const playerLive = {
   title: 'Home',
-  /** The offers carousel's heading. */
+  /** The offers carousel's name, read out; it has no heading (redesign RD-20). */
   offersTitle: 'Offers',
-  offers: '{count} offers',
-  offersOne: '1 offer',
-  /** The referral offer card (it left Home's tables for the carousel): `{chips}` is the bonus, `1,000`. */
-  referralTitle: 'Referral',
-  referralOffer: '{chips} bonus chips each',
+  /** The referral offer's card, only while a referral promotion is live: `{chips}` is the Bonus, `1,000`. */
+  referralTitle: 'Refer a friend',
+  referralOffer: '{chips} Bonus each',
+  referralLine: 'When a friend joins and takes a first seat',
   /** The high hand's offer card (redesign RD-25): its eyebrow, and a hand with its Bonus, `Royal flush 25,000`. */
   highHandTitle: 'High hand bonus',
   highHandEach: '{hand} {chips}',

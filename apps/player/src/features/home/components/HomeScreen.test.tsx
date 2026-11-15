@@ -1,76 +1,12 @@
-import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
-import { ToastProvider } from '@rivr/ui';
-import { QueryClient } from '@tanstack/react-query';
-import { createMemoryHistory, createRootRoute, createRouter, RouterProvider } from '@tanstack/react-router';
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { HomeScreen } from './HomeScreen.tsx';
+import { FEATURES, LATER, NOW, PLACE, renderTonight, SEAT, TABLES, TYPES } from './homeTestKit.tsx';
 
 afterEach(() => {
   cleanup();
   localStorage.clear();
   vi.unstubAllGlobals();
 });
-
-const NOW = Date.parse('2026-11-15T17:14:00Z');
-const TABLES = [
-  // Its own minimum, ₹7,350: not the ₹5,000 its stake still carries (redesign RD-16).
-  { id: 't1', venue_id: 'v1', name: 'Table 1', is_open: true, seats: 9, position: 1, table_type_id: 'tt1', must_move_to_table_id: null, room: 'main', min_buy_in_paise: 735000 },
-  { id: 't4', venue_id: 'v1', name: 'Table 4', is_open: false, seats: 9, position: 4, table_type_id: 'tt1', must_move_to_table_id: null, room: 'main', min_buy_in_paise: 500000 },
-];
-const TYPES = [{ id: 'tt1', name: 'NLH 50/100', game: 'nlh', small_blind_paise: 5000, big_blind_paise: 10000, straddle_paise: null, buy_in_min_paise: 500000 }];
-const FEATURES = ['floor.live_view', 'waitlist.join', 'call_time.view', 'table.top_up', 'table.leave', 'fnb.table_side'].map((key) => ({ feature_key: key, state: 'enabled', tiers: null }));
-const PLACE = {
-  entry_id: 'e1', table_type_id: 'tt1', table_type_name: 'NLH 50/100', small_blind_paise: 5000, big_blind_paise: 10000, joined_at: '2026-11-15T17:14:00Z',
-  place: 1, call_table_name: null, call_seat: null, hold_until: null, away_until: null, is_request: false, table_id: 't1', table_name: 'Table 1',
-  called_at: null, on_way_at: null,
-};
-const SEAT = {
-  table_name: 'Table 1', seat: 4, is_away: false, has_call_time: true, call_time_left: 9668, played_seconds: 1140, is_leaving: false, top_up: null,
-  call_time_minutes: 180, started_at: '2026-11-15T16:55:30Z', call_time_ends_at: new Date(NOW + 9668 * 1000).toISOString(),
-  table_type_name: 'NLH 50/100', small_blind_paise: 5000, big_blind_paise: 10000, time_request_minutes: null, add_time_choices: [30, 60, 120],
-};
-
-/** The answers the screen's reads get: each table, the member's places and seat as the test says, then the test's own. */
-function answers(places: unknown[], seat: unknown[], more: Record<string, unknown>): Record<string, unknown> {
-  return {
-    '/rest/v1/game_table': TABLES, '/rest/v1/table_type': TYPES, '/rpc/my_feature_access': FEATURES,
-    '/rpc/waitlist_lengths': [{ table_id: 't1', waiting: 0, call_time_minutes: 180 }, { table_id: 't4', waiting: 0, call_time_minutes: 180 }],
-    '/rpc/floor_open_seats': [{ table_id: 't1', open_seats: 3 }, { table_id: 't4', open_seats: 9 }],
-    '/rpc/floor_taken_seats': [1, 3, 5, 6, 8, 9].map((seatNumber) => ({ table_id: 't1', seat: seatNumber })),
-    '/rpc/my_waitlist': places, '/rpc/my_seat': seat,
-    ...more,
-  };
-}
-
-function renderTonight(places: unknown[] = [], seat: unknown[] = [], more: Record<string, unknown> = {}, at = '/') {
-  vi.useFakeTimers({ now: NOW, shouldAdvanceTime: true });
-  localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
-    access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(NOW / 1000) + 3600,
-    user: { id: '00000000-0000-4000-8000-000000000211', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
-  }));
-  const replies = answers(places, seat, more);
-  const asked: string[] = [];
-  vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = String(input instanceof Request ? input.url : input);
-    if (init?.method === 'POST') asked.push(`${url.replace(/^.*\/rpc\//, '')} ${String(init.body)}`);
-    const key = Object.keys(replies).find((path) => url.includes(`${path}?`) || url.endsWith(path));
-    const reply = key === undefined ? [] : replies[key];
-    // A reply may be a whole Response, as a refusal is.
-    return reply instanceof Response ? reply.clone() : Response.json(reply);
-  });
-  const rootRoute = createRootRoute({ component: () => <ToastProvider><HomeScreen offer={null} /></ToastProvider> });
-  const router = createRouter({ routeTree: rootRoute, history: createMemoryHistory({ initialEntries: [at] }) });
-  render(
-    <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
-      queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <RouterProvider router={router} />
-    </RivrDataProvider>,
-  );
-  return { router, asked };
-}
-
-const LATER = { timeout: 5000 };
 
 describe('Tonight', () => {
   it('Browsing: lists the tables by stakes with their minimum buy-in, a closed one dimmed, and opens the join sheet', async () => {
@@ -114,10 +50,13 @@ describe('Tonight', () => {
           link: 'https://glaza.example/tuesday' },
       ],
     });
-    const offers = (await screen.findByText('3 offers', {}, LATER)).closest('section');
-    if (offers === null) throw new Error('No offers row');
-    expect(within(offers).getAllByText('Referral')).toHaveLength(1);
+    const offers = await screen.findByRole('region', { name: 'Offers' }, LATER);
+    await within(offers).findByText('Refer a friend', {}, LATER);
+    expect(within(offers).getAllByText('Refer a friend')).toHaveLength(1);
+    expect(within(offers).getByText('1,000 Bonus each')).toBeDefined();
     expect(within(offers).getAllByRole('listitem')).toHaveLength(3);
+    // One carousel through all three, a dot each (redesign RD-20).
+    expect(within(offers).getAllByRole('button', { name: /^Offer \d of 3$/ })).toHaveLength(3);
     // A card with a link opens it (issue 776); one without only says its offer.
     expect(within(offers).getByRole('link', { name: /Buy-in bonus Tuesday/ }).getAttribute('href')).toBe('https://glaza.example/tuesday');
     expect(within(offers).queryByRole('link', { name: /High hands/ })).toBeNull();

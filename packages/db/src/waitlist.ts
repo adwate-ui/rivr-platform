@@ -24,11 +24,11 @@ export interface FloorTable {
   readonly buyIn: bigint;
   /** A compulsory straddle in paise, as in the Private Room; null where there is none. */
   readonly straddle: bigint | null;
-  /** Members on this table's own list (decision 0467): approved, not still asking (#633). */
+  /** Members on this table's own list (decision 0467): approved, not still asking (#633). The floor's to read: 0 for a member, who is told no count (redesign RD-20). */
   readonly waiting: number;
   /** The stake's call time in minutes (#633); 0 where it has none. */
   readonly callTimeMinutes: number;
-  /** Seats free tonight: not sat in, nor held for a called member (#87); null where the person may not read them. */
+  /** Seats free tonight: not sat in, nor held for a called member (#87). The floor's to read: null for a member, who is told no count (redesign RD-20). */
   readonly openSeats: number | null;
   /** The main table a must-move table feeds (#77); null for a table of its own. */
   readonly mustMoveToTableId: string | null;

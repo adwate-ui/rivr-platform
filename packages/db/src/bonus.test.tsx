@@ -44,10 +44,11 @@ describe('bonus chips', () => {
   it('reads the member\'s balance and their newest lines, as many as asked for', async () => {
     const { wrapper, calls } = clientFor({
       '/rpc/my_bonus_history': { body: LINES.map(({ staff_name: _, ...line }) => line) },
-      '/rpc/my_bonus': { body: [{ bonus_paise: 50_000 }] },
+      '/rpc/my_bonus': { body: [{ bonus_paise: 50_000, expiry_days: 30 }] },
     });
     const { result } = renderHook(() => ({ bonus: useMyBonus(), history: useMyBonusHistory(20) }), { wrapper });
-    await waitFor(() => expect(result.current.bonus.data).toBe(50_000n));
+    // With the days Bonus lasts at the venue, for the balance's line (redesign RD-20).
+    await waitFor(() => expect(result.current.bonus.data).toEqual({ balance: 50_000n, expiryDays: 30 }));
     await waitFor(() => expect(result.current.history.data).toEqual([
       { id: 'r1', at: '2026-11-15T18:00:00Z', kind: 'redeemed', amount: 100_000n, reason: null, tableName: 'Table 3', highHand: null },
       { id: 'g1', at: '2026-11-14T18:00:00Z', kind: 'credited', amount: 150_000n, reason: 'Welcome', tableName: null, highHand: null },
