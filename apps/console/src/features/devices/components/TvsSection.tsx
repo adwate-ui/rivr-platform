@@ -28,16 +28,15 @@ function TvList({ venue, above }: { venue: StaffVenue; above: ReactNode }) {
   // A failed refresh keeps what was known, so a code half typed stays put.
   if (tvs.data === undefined) return <Screen level={2} title={title} status="error" onRetry={() => void tvs.refetch()} />;
   return (
-    <Screen level={2} title={title}>
+    <Screen level={2} title={title} actions={<PairTvForm venueId={venueId} venueName={venue.venueName} isPractice={venue.isPractice} />}>
       <Stack gap={8}>
         {above}
-        {/* The TVs paired, then the form to pair one (console v3), with its own heading so staff the TV sends here find it. */}
+        {/* The TVs paired; Add a TV, in the title row, opens the panel that pairs one (redesign RD-38). */}
         {tvs.data.length === 0 ? <Text tone="muted">{t('console.tvs.empty')}</Text> : (
           <Stack gap={4} divided>
             {tvs.data.map((tv) => <TvRow key={tv.deviceId} venueId={venueId} tv={tv} />)}
           </Stack>
         )}
-        <PairTvForm venueId={venueId} venueName={venue.venueName} isPractice={venue.isPractice} />
         {venue.isPractice ? null : <PairingWindow venueId={venueId} canSwitch={venue.permissions.includes('venue.configure')} />}
       </Stack>
     </Screen>

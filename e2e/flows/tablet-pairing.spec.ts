@@ -28,6 +28,7 @@ test.describe('Dealer tablet', () => {
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000112');
     await openConsole(floor, '/settings?tab=tablets');
+    await floor.getByRole('button', { name: 'Add a tablet' }).click();
     await floor.getByRole('textbox', { name: 'Tablet name' }).fill(name);
     await floor.getByRole('button', { name: 'Add and pair' }).click();
     const codeLine = floor.getByText(/^Pairing code \d{6}/);

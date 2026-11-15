@@ -110,6 +110,8 @@ export const tvs = {
   title: 'TVs',
   /** The form to pair one (console v3), under the TVs paired. */
   pairTitle: 'Pair a TV',
+  /** Opens the panel that pairs one (redesign RD-38). */
+  pairOpen: 'Add a TV',
   /** Window-only pairing (#325): the owner's switch, and Pair a TV for staff who manage devices. */
   windowOnly: 'Pair TVs only after Pair a TV is pressed',
   openWindow: 'Pair a TV',

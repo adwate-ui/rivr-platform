@@ -31,6 +31,7 @@ export async function tabletAt(browser: Browser, floor: Page, tableName: string)
   const name = `Tablet ${String(Date.now() % 100_000).padStart(5, '0')}`;
   // Devices is a tab of Settings (console v3), each kind a part in the address.
   await floor.goto(`${appUrl('console')}/settings?tab=tablets`);
+  await floor.getByRole('button', { name: 'Add a tablet' }).click();
   await floor.getByRole('textbox', { name: 'Tablet name' }).fill(name);
   await floor.getByRole('button', { name: 'Add and pair' }).click();
   const codeLine = floor.getByText(/^Pairing code \d{6}/);

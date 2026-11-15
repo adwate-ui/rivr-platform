@@ -31,6 +31,7 @@ test.describe('TV pairing', () => {
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000117');
     await openConsole(floor, '/settings?tab=tvs');
+    await floor.getByRole('button', { name: 'Add a TV' }).click();
     await expect(floor.getByText('A TV paired here joins RIVR Gurugram.')).toBeVisible();
     await floor.getByRole('textbox', { name: 'Code on the TV' }).fill(String((Number(code) + 1) % 1_000_000).padStart(6, '0'));
     await floor.getByRole('textbox', { name: 'TV name' }).fill(name);

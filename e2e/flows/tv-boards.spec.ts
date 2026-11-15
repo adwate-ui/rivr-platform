@@ -40,6 +40,7 @@ async function pairTv(tv: Page, floor: Page, name: string) {
   await expect(shown).toBeVisible();
   // TVs are a part of Settings' Devices tab (console v3), opened by address once sign-in is through.
   await openConsole(floor, '/settings?tab=tvs');
+  await floor.getByRole('button', { name: 'Add a TV' }).click();
   await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
   await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
   await floor.getByRole('button', { name: 'Pair the TV' }).click();

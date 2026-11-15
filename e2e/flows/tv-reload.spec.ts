@@ -34,6 +34,7 @@ test.describe('TV reload', () => {
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000120');
     await openDevices(floor, 'TVs');
+    await floor.getByRole('button', { name: 'Add a TV' }).click();
     await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
     await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
     await floor.getByRole('button', { name: 'Pair the TV' }).click();

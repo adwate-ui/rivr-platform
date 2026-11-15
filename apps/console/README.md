@@ -41,7 +41,8 @@ src/
     admin/            Activity for super admins (/activity): the audit log in words, who did what, about whom, why and when, newest first, narrowed by person, kind and club day, a page of fifty at a time by the table's foot, with its export of every line
     devices/          the devices, Settings' TVs and Tablets tabs (/settings?tab=tvs|tablets, #606): dealer tablets to add, pair, fix to a
                       table and unpair; TVs to pair by their code, change and unpair; cage and admin computers to
-                      add, enrol and revoke; CCTV cameras over a table or the cage (#122).
+                      add, enrol and revoke; CCTV cameras over a table or the cage (#122). Add a TV and Add a tablet,
+                      in each part's title row, open the panel at the side (decision 0607).
                       /devices, /tablets and /tvs open it; /computers and /cameras say they are gone
     settings/         the rules in groups by tab (Floor: Seating, Time at the table, Identity; Members: Bonus,
                       Membership; TVs: Rotation; redesign RD-18), each with its one line, its value now, who changes
