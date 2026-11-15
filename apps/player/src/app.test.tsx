@@ -285,7 +285,7 @@ describe('Sign up', () => {
     expect(screen.getByRole('button', { name: /^Games you play/ }).textContent).toContain('Select any');
     await waitFor(() => expect(screen.getByRole('button', { name: 'Continue' }).getAttribute('aria-busy')).toBeNull());
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
-    expect(await screen.findByText('Enter your name in English, as on Aadhaar.')).toBeDefined();
+    expect(await screen.findByText('Use English letters only, as on Aadhaar.')).toBeDefined();
     expect(screen.getByText('Enter your city.')).toBeDefined();
     expect(screen.getByText('Select your occupation.')).toBeDefined();
     expect(name.getAttribute('aria-invalid')).toBe('true');
