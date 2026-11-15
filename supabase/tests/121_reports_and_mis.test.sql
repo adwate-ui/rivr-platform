@@ -154,14 +154,14 @@ create temporary table other_promo as
 insert into public.promotion_budget (venue_id, promotion_id, cap_paise)
 select '00000000-0000-4000-8000-000000000001', id, 100000 from promo
 on conflict (promotion_id) do update set cap_paise = excluded.cap_paise, cap_count = null;
-insert into public.promotion_grant (venue_id, promotion_id, promotion_rule_id, member_id, trigger, effect, cost_paise, points, source_key, club_day)
-select '00000000-0000-4000-8000-000000000001'::uuid, p.id, p.rule_id, '00000000-0000-4000-8000-000000000290'::uuid, p.trigger, '{}'::jsonb, g.cost, 0,
+insert into public.promotion_grant (venue_id, promotion_id, promotion_rule_id, member_id, trigger, effect, cost_paise, source_key, club_day)
+select '00000000-0000-4000-8000-000000000001'::uuid, p.id, p.rule_id, '00000000-0000-4000-8000-000000000290'::uuid, p.trigger, '{}'::jsonb, g.cost,
        g.source_key, g.club_day
 from promo p, (values (50000::bigint, 'mis-test:feb', '2026-02-10'::date), (30000, 'mis-test:jan', '2026-01-25'), (20000, 'mis-test:mar', '2026-03-01'))
   as g (cost, source_key, club_day)
 union all
 select '00000000-0000-4000-8000-000000000001'::uuid, o.id, o.rule_id, '00000000-0000-4000-8000-000000000290'::uuid, o.trigger, '{}'::jsonb, 40000::bigint,
-       0, 'mis-test:other', '2026-01-15'::date
+       'mis-test:other', '2026-01-15'::date
 from other_promo o;
 insert into public.visit (venue_id, member_id, opened_at, closed_at, close_reason) values
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000296', '2026-01-10T20:00:00+05:30', '2026-01-11T01:00:00+05:30', 'door'),

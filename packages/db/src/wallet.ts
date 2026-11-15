@@ -20,10 +20,9 @@ export interface WalletMarker {
   readonly dueAt: string;
 }
 
-/** The signed-in member's Balance (#18): wallet cash, bonus in force, points, open markers and credit limit (null with none). */
+/** The signed-in member's Balance (#18): wallet cash, bonus in force, open markers and credit limit (null with none). */
 export interface Wallet {
   readonly cash: Paise;
-  readonly points: bigint;
   readonly bonus: readonly WalletBonus[];
   readonly markers: readonly WalletMarker[];
   readonly creditLimit: Paise | null;
@@ -60,7 +59,7 @@ export function useWallet() {
       if (row === undefined) return null;
       const held = await grantsAndMarkers(client, row.member_id);
       return {
-        cash: toPaise(row.cash_paise), points: BigInt(row.points), ...held,
+        cash: toPaise(row.cash_paise), ...held,
         creditLimit: row.credit_limit_paise === null ? null : toPaise(row.credit_limit_paise),
       };
     },
@@ -72,7 +71,7 @@ export const MOVEMENT_KINDS = ['buy_in', 'cash_out', 'marker', 'bonus', 'bonus_e
   'opening_balance', 'other'] as const;
 export type MovementKind = (typeof MOVEMENT_KINDS)[number];
 
-/** Which of the member's money accounts moved: wallet cash, bonus, or what they owe on markers (points history is Rewards', decision 0062). */
+/** Which of the member's money accounts moved: wallet cash, bonus, or what they owe on markers. */
 export const MOVEMENT_ACCOUNTS = ['cash', 'bonus', 'receivable'] as const;
 export type MovementAccount = (typeof MOVEMENT_ACCOUNTS)[number];
 

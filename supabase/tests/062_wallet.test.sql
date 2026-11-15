@@ -1,5 +1,5 @@
 -- Balance (#18). 201 Arjun (design prompt): cash ₹1,85,000, a ₹4,000 bonus, an open ₹50,000 marker
--- against a ₹2,00,000 limit, 18,420 points. 211 Ishaan buys in at Table 3 and is credited a bonus, so
+-- against a ₹2,00,000 limit. 211 Ishaan buys in at Table 3 and is credited a bonus, so
 -- his movements name the table and the bonus's reason. 101 the owner reads the ledger; 301 Asha is the
 -- practice venue's member.
 begin;
@@ -20,15 +20,15 @@ grant execute on function pg_temp.as_person(text) to authenticated;
 
 -- Arjun's wallet, as the design prompt has it.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
-select results_eq($$ select member_id, cash_paise, points, credit_limit_paise from public.my_wallet() $$,
-  $$ values ('00000000-0000-4000-8000-000000000201'::uuid, 18500000::bigint, 18420::bigint, 20000000::bigint) $$,
-  'Arjun has ₹1,85,000 of cash, 18,420 points and a ₹2,00,000 limit');
+select results_eq($$ select member_id, cash_paise, credit_limit_paise from public.my_wallet() $$,
+  $$ values ('00000000-0000-4000-8000-000000000201'::uuid, 18500000::bigint, 20000000::bigint) $$,
+  'Arjun has ₹1,85,000 of cash and a ₹2,00,000 limit');
 select results_eq($$ select account, amount, kind from public.my_wallet_movement order by account $$,
   $$ values ('bonus'::text, 400000::bigint, 'opening_balance'::text), ('cash', 18500000, 'opening_balance'), ('receivable', 5000000, 'opening_balance') $$,
   'his movements: cash and bonus as more he holds, the marker as more he owes');
 select is((select bonus_reason from public.my_wallet_movement where account = 'bonus'), 'Buy-in bonus Tuesday', 'the bonus line has its reason');
 select is_empty($$ select * from public.my_wallet_movement where account not in ('cash', 'bonus', 'receivable') $$,
-  'only his money: points history is Rewards'', behind its tier (decision 0062)');
+  'only his money');
 
 -- A buy-in at Table 3 and a bonus: the movement names the table and the reason.
 reset role;
@@ -46,8 +46,8 @@ select results_eq($$ select kind, account, amount, table_name, bonus_reason from
   $$ values ('bonus'::text, 'bonus'::text, 100000::bigint, null::text, 'Referral'::text), ('buy_in', 'cash', -1000000, 'Table 3', null),
             ('deposit', 'cash', 2000000, null, null) $$,
   'Ishaan''s deposit, his bonus with its reason, and his buy-in at Table 3 as less cash');
-select results_eq($$ select cash_paise, points, credit_limit_paise from public.my_wallet() $$,
-  $$ values (1000000::bigint, 0::bigint, null::bigint) $$, 'he holds ₹10,000 of cash, no points and no credit line');
+select results_eq($$ select cash_paise, credit_limit_paise from public.my_wallet() $$,
+  $$ values (1000000::bigint, null::bigint) $$, 'he holds ₹10,000 of cash and no credit line');
 reset role;
 insert into public.credit_line (venue_id, member_id, limit_paise, reason)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 0, 'Waiting for a super admin');

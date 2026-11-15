@@ -107,7 +107,7 @@ describe('Profile', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Delete my account' }, LATER));
     const sheet = await screen.findByRole('dialog', { name: 'Delete my account' }, LATER);
     expect(within(sheet).getByText(/within 7 days/)).toBeDefined();
-    expect(within(sheet).getByText('Your points and bonus chips are forfeited.')).toBeDefined();
+    expect(within(sheet).getByText('Your bonus chips are forfeited.')).toBeDefined();
     expect(within(sheet).getByText(/Play records the law requires/)).toBeDefined();
     expect(asks()).toBe(0);
     fireEvent.click(within(sheet).getByRole('button', { name: 'Send request' }));

@@ -83,14 +83,12 @@ export function promotionApplies(conditions: PromotionConditions, facts: Promoti
   ].every(Boolean);
 }
 
-/** What a rule gives for one event: its rupee cost, counted against the promotion's budget, and points. */
+/** What a rule gives for one event: its rupee cost, counted against the promotion's budget. */
 export interface PromotionReward {
   readonly cost: Paise;
-  readonly points: bigint;
 }
 
 type BonusEffect = Extract<PromotionEffect, { kind: 'bonus' }>;
-type PointsEffect = Extract<PromotionEffect, { kind: 'points' }>;
 
 /** A fixed bonus, or the share of the amount rounded down to whole ₹50 chips and held to the cap. */
 function bonusAmount(effect: BonusEffect, amount: Paise): Paise {
@@ -99,34 +97,24 @@ function bonusAmount(effect: BonusEffect, amount: Paise): Paise {
   return effect.cap_paise === undefined ? share : min(share, fromPaise(BigInt(effect.cap_paise)));
 }
 
-/** Fixed points, or the extra of the multiplier on the points earned, rounded down: double on 120 is 120 more. */
-function extraPoints(effect: PointsEffect, earned: bigint): bigint {
-  if ('points' in effect) return BigInt(effect.points);
-  return (earned * BigInt(effect.multiplier_percent - 100)) / 100n;
-}
-
 /**
- * What a rule's effect gives for an event with this amount (a buy-in) and these points earned, or
- * null when a bonus or points come to nothing. A cab, a ticket or a message costs ₹0; a
+ * What a rule's effect gives for an event with this amount (a buy-in), or
+ * null when a bonus comes to nothing. A cab, a ticket or a message costs ₹0; a
  * prize its value; a jackpot payout its amount. The database's private.promotion_reward is proved
  * equal by packages/testing/golden/promotions.json.
  */
-export function promotionReward(effect: PromotionEffect, earned: { amount: Paise; points: bigint }): PromotionReward | null {
+export function promotionReward(effect: PromotionEffect, earned: { amount: Paise }): PromotionReward | null {
   switch (effect.kind) {
     case 'bonus': {
       const bonus = bonusAmount(effect, earned.amount);
-      return bonus > 0n ? { cost: bonus, points: 0n } : null;
-    }
-    case 'points': {
-      const points = extraPoints(effect, earned.points);
-      return points > 0n ? { cost: ZERO, points } : null;
+      return bonus > 0n ? { cost: bonus } : null;
     }
     case 'jackpot_payout':
-      return { cost: fromPaise(BigInt(effect.amount_paise)), points: 0n };
+      return { cost: fromPaise(BigInt(effect.amount_paise)) };
     case 'physical_prize':
-      return { cost: fromPaise(BigInt(effect.value_paise ?? 0)), points: 0n };
+      return { cost: fromPaise(BigInt(effect.value_paise ?? 0)) };
     default:
-      return { cost: ZERO, points: 0n };
+      return { cost: ZERO };
   }
 }
 

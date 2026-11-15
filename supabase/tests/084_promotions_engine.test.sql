@@ -51,14 +51,14 @@ with p as (insert into public.promotion (venue_id, name, status, priority)
             values ('00000000-0000-4000-8000-000000000001', 'Buy-in bonus Tuesday', 'live', 10) returning id)
 insert into ids select 'tuesday', id from p;
 with p as (insert into public.promotion (venue_id, name, status, priority, per_player_limit, per_player_period)
-            values ('00000000-0000-4000-8000-000000000001', 'Double points', 'live', 5, 1, 'day') returning id)
-insert into ids select 'points', id from p;
+            values ('00000000-0000-4000-8000-000000000001', 'Welcome back', 'live', 5, 1, 'day') returning id)
+insert into ids select 'welcome', id from p;
 insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, effect) values
   ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'graduate'), 'buy_in', '{"new_player": true}',
    '{"kind": "bonus", "amount_paise": 100000, "expires_days": 30}'),
   ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"first_n": {"count": 2, "per": "table"}}',
    '{"kind": "bonus", "percent_bps": 2000, "expires_days": 7}'),
-  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'points'), 'buy_in', '{}', '{"kind": "points", "points": 500}');
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'welcome'), 'buy_in', '{}', '{"kind": "message", "text": "Welcome back"}');
 insert into public.promotion_budget (venue_id, promotion_id, cap_paise, cap_count) values
   ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'graduate'), null, 1),
   ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 500000, null);
@@ -89,10 +89,10 @@ delete from public.promotion_rule where position = 9;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select throws_ok($$ insert into public.promotion (venue_id, name, status) values ('00000000-0000-4000-8000-000000000001', 'Straight to live', 'live') $$,
   '42501', null, 'an admin inserts no promotion straight into the table, live or not');
-select throws_ok($$ update public.promotion set status = 'live' where id = (select id from ids where name = 'points') $$, '42501', null,
+select throws_ok($$ update public.promotion set status = 'live' where id = (select id from ids where name = 'welcome') $$, '42501', null,
   'nor changes one');
 select throws_ok($$ insert into public.promotion_rule (venue_id, promotion_id, trigger, effect) values
-  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"kind": "points", "points": 1}') $$,
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"kind": "message", "text": "Hello"}') $$,
   '42501', null, 'nor writes a rule');
 select throws_ok($$ update public.promotion_budget set cap_paise = null $$, '42501', null, 'or a budget');
 select throws_ok($$ delete from public.promotion_rule $$, '42501', null, 'or removes a rule');
@@ -168,30 +168,30 @@ select results_eq($$ select b.reason, b.expires_at is null, g.fulfilled_at is no
 select is(pg_temp.buy_in('211', 'Table 3', 'test-1'), 0, 'a replay of the buy-in gives nothing more');
 select is((select count(*)::integer from public.bonus_grant where member_id = '00000000-0000-4000-8000-000000000211'), 1, 'and credits nothing more');
 
--- Regulars: the Tuesday bonus and the points, which stack; the first two at Table 3 only.
+-- Regulars: the Tuesday bonus and the welcome, which stack; the first two at Table 3 only.
 select is(pg_temp.buy_in('216', 'Table 3', 'test-2'), 2, 'Kunal''s buy-in gives two promotions');
 select is(pg_temp.held('member.bonus', '00000000-0000-4000-8000-000000000216'), 200000::bigint, '20% of ₹10,000 is ₹2,000 of bonus');
 select is(pg_temp.buy_in('217', 'Table 3', 'test-3'), 2, 'Neel, the second at Table 3, has both');
-select is(pg_temp.buy_in('212', 'Table 3', 'test-4'), 1, 'Vihaan has only the points');
+select is(pg_temp.buy_in('212', 'Table 3', 'test-4'), 1, 'Vihaan has only the welcome');
 select is(pg_temp.grants('Buy-in bonus Tuesday'), '216 217', 'the third at the table has no Tuesday bonus');
 select is(pg_temp.grants('Graduate first buy-in'), '211', 'and a new player no graduate bonus once its one grant is given');
-select results_eq($$ select g.points, g.cost_paise, g.fulfilled_at is null from public.promotion_grant g join public.promotion p on p.id = g.promotion_id
-                     where p.name = 'Double points' and g.member_id = '00000000-0000-4000-8000-000000000212' $$,
-  $$ values (500::bigint, 0::bigint, true) $$, 'the points wait for the points ledger');
+select results_eq($$ select g.cost_paise, g.fulfilled_at is null from public.promotion_grant g join public.promotion p on p.id = g.promotion_id
+                     where p.name = 'Welcome back' and g.member_id = '00000000-0000-4000-8000-000000000212' $$,
+  $$ values (0::bigint, true) $$, 'a message costs nothing and credits nothing');
 select isnt_empty($$ select 1 from public.outbox_event e join public.promotion_grant g on e.idempotency_key = 'promotion.granted:' || g.id
-                     where e.event_type = 'promotion.granted' and (e.payload ->> 'points')::bigint = 500
+                     where e.event_type = 'promotion.granted' and e.payload #>> '{effect,kind}' = 'message'
                        and g.member_id = '00000000-0000-4000-8000-000000000212' $$,
-  'and promotion.granted announces them');
+  'and promotion.granted announces it');
 
 -- The rupee budget: ₹1,000 of ₹5,000 is left, less than a ₹2,000 bonus, so none is given at Table 5.
 reset role;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 insert into ids select 'seat 9000000213', public.seat_member((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 5'), 1, '9000000213');
 reset role;
-select is(pg_temp.buy_in('213', 'Table 5', 'test-5'), 1, 'Mihir, first at Table 5, has the points only');
+select is(pg_temp.buy_in('213', 'Table 5', 'test-5'), 1, 'Mihir, first at Table 5, has the welcome only');
 select is(pg_temp.held('member.bonus', '00000000-0000-4000-8000-000000000213'), 0::bigint, 'never part of a bonus');
 
--- The per-player limit: the points once a club day.
+-- The per-player limit: the welcome once a club day.
 select is(pg_temp.buy_in('216', 'Table 3', 'test-6'), 0, 'Kunal''s second buy-in gives nothing');
 
 -- A date window: everyone in the club is weighed once a club day.
@@ -210,7 +210,7 @@ create temporary table all_grants on commit drop as select count(*)::integer as 
 grant select on all_grants to authenticated;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select is((select count(*)::integer from public.promotion_grant), (select grants from all_grants), 'marketing sees every grant');
-select throws_ok($$ update public.promotion_grant set points = 5000 $$, '42501', null, 'and changes none');
+select throws_ok($$ update public.promotion_grant set cost_paise = 5000 $$, '42501', null, 'and changes none');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select is_empty($$ select * from public.promotion_grant $$, 'a cashier sees none');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000216');

@@ -113,11 +113,11 @@ describe('the offline cache', () => {
   });
 
   it('brings the member\u2019s tabs back as the Map the app reads', () => {
-    kept([[queryKeys.featureAccess(USER), new Map([['rewards.catalogue', { state: 'enabled' }]])]]);
+    kept([[queryKeys.featureAccess(USER), new Map([['sessions.history', { state: 'enabled' }]])]]);
     setOnline(false);
     const cache = new QueryClient();
     restoreForOffline(cache);
-    expect(cache.getQueryData(queryKeys.featureAccess(USER))).toEqual(new Map([['rewards.catalogue', { state: 'enabled' }]]));
+    expect(cache.getQueryData(queryKeys.featureAccess(USER))).toEqual(new Map([['sessions.history', { state: 'enabled' }]]));
   });
 
   it('shows nothing old when the phone opens online', () => {

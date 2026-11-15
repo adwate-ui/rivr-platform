@@ -6,8 +6,7 @@ const TUESDAY_NIGHT = { at: new Date('2026-11-17T21:00:00+05:30'), stake: 'nlh_5
 const BUY_IN_BONUS = { kind: 'buyin_bonus', mode: 'percent', percent: 20 } as const;
 
 describe('isTimeBased', () => {
-  it('is true for the rewards measured in time played, and only those', () => {
-    expect(isTimeBased({ kind: 'points_multiplier', multiplier: 2 })).toBe(true);
+  it('is true for a play-time bonus, the reward measured in time played, and only that', () => {
     expect(isTimeBased({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 })).toBe(true);
     expect(isTimeBased(BUY_IN_BONUS)).toBe(false);
     expect(isTimeBased({ kind: 'cab_home', fromVisitInMonth: 4 })).toBe(false);
@@ -25,13 +24,13 @@ describe('isAtEligibleTable', () => {
 
 describe('isEligible', () => {
   it('weighs a time-played reward on tier and audience only, whatever the moment or the table', () => {
-    const lateNightPoints = buildPromotionTerms({
+    const lateNightPlay = buildPromotionTerms({
       eligibility: { stakes: ['nlh_100_200'], tiers: ['tier-founders'], audience: 'everyone' },
       schedule: { days: [5], from: '20:00', to: '22:00', startsOn: '2026-11-01', timezone: 'Asia/Kolkata' },
     });
-    expect(isEligible(lateNightPoints, buildMemberFacts({ tierId: 'tier-founders' }), TUESDAY_NIGHT)).toBe(true);
-    expect(isEligible(lateNightPoints, buildMemberFacts(), TUESDAY_NIGHT)).toBe(false);
-    expect(isEligible({ ...lateNightPoints, eligibility: { ...lateNightPoints.eligibility, audience: 'new_30d' } },
+    expect(isEligible(lateNightPlay, buildMemberFacts({ tierId: 'tier-founders' }), TUESDAY_NIGHT)).toBe(true);
+    expect(isEligible(lateNightPlay, buildMemberFacts(), TUESDAY_NIGHT)).toBe(false);
+    expect(isEligible({ ...lateNightPlay, eligibility: { ...lateNightPlay.eligibility, audience: 'new_30d' } },
       buildMemberFacts({ tierId: 'tier-founders' }), TUESDAY_NIGHT)).toBe(false);
   });
 

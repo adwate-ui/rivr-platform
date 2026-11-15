@@ -25,7 +25,7 @@ import { certification } from './training.ts';
 import { jackpots } from './jackpots.ts';
 import { incidents, sops } from './sops.ts';
 import { feedback, playerFeedback } from './feedback.ts';
-import { itemPhoto, league, rewards } from './rewards.ts';
+import { itemPhoto } from './itemPhoto.ts';
 import { tournamentInterest } from './tournamentInterest.ts';
 import { tournaments } from './tournaments.ts';
 import { dealers } from './dealers.ts';
@@ -222,8 +222,6 @@ export const consoleApp = {
   sops,
   incidents,
   feedback,
-  rewards,
-  league,
   itemPhoto,
   tournaments,
   tournamentInterest,

@@ -10,7 +10,7 @@ export interface ScreenTab {
 }
 
 /** The count's noun in `console.rail.counts`, one and many. */
-export type RailCountWords = 'requests' | 'orders' | 'idChecks' | 'calls' | 'tickets' | 'approvals' | 'handOvers' | 'posts' | 'deletions';
+export type RailCountWords = 'requests' | 'orders' | 'idChecks' | 'calls' | 'tickets' | 'approvals' | 'posts' | 'deletions';
 
 export interface RailEntry {
   readonly id: string;
@@ -52,8 +52,7 @@ export interface HiddenScreen {
 // dealers have no Live floor (owner, 8 Nov; audit F-004).
 const FLOOR_READERS: readonly Permission[] = ['members.read', 'floor.manage', 'waitlist.manage'];
 
-// The rail in the order of a club night (console v3, phase 1). A host has no Marketing or Admin: Rewards is for those who
-// run the catalogue or give points, not for handing over (decision 0476).
+// The rail in the order of a club night (console v3, phase 1). A host has no Marketing or Admin.
 export const RAIL: readonly RailGroup[] = [
   {
     id: 'tonight', label: 'console.rail.groups.tonight', entries: [
@@ -62,11 +61,9 @@ export const RAIL: readonly RailGroup[] = [
         { id: 'lists', label: 'console.rail.items.lists', anyOf: ['waitlist.manage'] },
         { id: 'interest', label: 'console.rail.items.tournamentInterest', anyOf: ['tournaments.manage'] },
       ] },
-      { id: 'door', label: 'console.rail.items.door', href: '/door', icon: 'door', anyOf: [], counts: ['rewards'], countWords: 'handOvers', tabs: [
+      { id: 'door', label: 'console.rail.items.door', href: '/door', icon: 'door', anyOf: [], tabs: [
         { id: 'check-in', label: 'console.rail.items.checkIn', anyOf: ['waitlist.manage'] },
         { id: 'players', label: 'console.rail.items.todaysPlayers', anyOf: ['members.read'] },
-        // Redemptions to hand over at the door, so a host, who has no Marketing (decision 0476), still hands them over.
-        { id: 'handover', label: 'console.rail.items.handOver', anyOf: ['rewards.hand_over'] },
       ] },
       { id: 'fnb', label: 'console.rail.items.fnb', href: '/fnb', icon: 'food', anyOf: ['fnb.manage', 'fnb.serve'], counts: ['fnb'], countWords: 'orders', isActionable: true },
     ],
@@ -82,11 +79,6 @@ export const RAIL: readonly RailGroup[] = [
   {
     id: 'marketing', label: 'console.rail.groups.marketing', entries: [
       { id: 'promotions', label: 'console.rail.items.promotions', href: '/promotions', icon: 'promotions', anyOf: ['promotions.manage'], counts: ['promotions'], countWords: 'approvals' },
-      // Redemptions are handed over at the Door alone (audit F-089).
-      { id: 'rewards', label: 'console.rail.items.rewards', href: '/rewards', icon: 'rewards', anyOf: [], tabs: [
-        { id: 'rewards', label: 'console.rewards.tabs.catalogue', anyOf: ['rewards.manage', 'points.give'] },
-        { id: 'points', label: 'console.rewards.tabs.points', anyOf: ['points.give'] },
-      ] },
       { id: 'social', label: 'console.rail.items.social', href: '/social', icon: 'social', anyOf: ['marketing.publish'], counts: ['wallPosts'], countWords: 'posts' },
       { id: 'content', label: 'console.rail.items.content', href: '/content', icon: 'content', anyOf: [], tabs: [
         { id: 'website', label: 'console.rail.items.website', anyOf: ['website.edit'] },
@@ -146,7 +138,6 @@ export const HIDDEN: readonly HiddenScreen[] = [
   { label: 'console.rail.items.academyPayments', href: '/academy/payments', locksWhenIdle: true },
   { label: 'console.rail.items.shift', href: '/shift', locksWhenIdle: true },
   { label: 'console.rail.items.tiers', href: '/tiers' },
-  { label: 'console.rail.items.league', href: '/league' },
   { label: 'console.rail.items.events', href: '/events' },
   { label: 'console.rail.items.creators', href: '/creators' },
   { label: 'console.rail.items.academy', href: '/academy' },

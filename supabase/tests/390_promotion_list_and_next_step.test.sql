@@ -54,9 +54,9 @@ reset role;
 
 -- The list, read by marketing.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
-select results_eq($$ select given_this_week, chips_given_this_week, points_given_this_week, budget_used_chips, is_quiet
+select results_eq($$ select given_this_week, chips_given_this_week, budget_used_chips, is_quiet
                      from public.promotions_overview('00000000-0000-4000-8000-000000000001') where current_version_id = (select version_id from bonus) $$,
-  $$ values (1::bigint, 500::bigint, 0::bigint, null::bigint, false) $$, 'the list has the 500 given once, and no budget to report');
+  $$ values (1::bigint, 500::bigint, null::bigint, false) $$, 'the list has the 500 given once, and no budget to report');
 select is((select is_quiet from public.promotions_overview('00000000-0000-4000-8000-000000000001') where name = 'Referral'), false,
   'a promotion live for less than a week is not marked');
 reset role;

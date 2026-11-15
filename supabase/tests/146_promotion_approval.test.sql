@@ -13,8 +13,8 @@ grant execute on function pg_temp.as_person(text) to authenticated;
 create temp table ids (name text primary key, id uuid);
 grant select, insert on ids to authenticated;
 create temp table body as select jsonb_build_object(
-  'name', 'Late night points', 'runs', 'Every night, 00:00 to 04:00',
-  'rule', jsonb_build_object('trigger', 'hours_played', 'effect', '{"kind": "points", "points": 50}'::jsonb)) as promotion;
+  'name', 'Late night thanks', 'runs', 'Every night, 00:00 to 04:00',
+  'rule', jsonb_build_object('trigger', 'hours_played', 'effect', '{"kind": "message", "text": "Thanks for playing"}'::jsonb)) as promotion;
 grant select on body to authenticated;
 create function pg_temp.staff_of(p_person text) returns uuid language sql as $$
   select id from public.staff where user_id = ('00000000-0000-4000-8000-000000000' || p_person)::uuid
@@ -25,10 +25,10 @@ $$;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 insert into ids select 'late', public.submit_promotion('00000000-0000-4000-8000-000000000001', (select promotion from body));
 select results_eq($$ select name, requested_by, is_mine from public.promotions_awaiting_approval('00000000-0000-4000-8000-000000000001') $$,
-  $$ values ('Late night points'::text, 'Ishita Bose'::text, true) $$, 'marketing''s submission waits, and the list says it is hers');
+  $$ values ('Late night thanks'::text, 'Ishita Bose'::text, true) $$, 'marketing''s submission waits, and the list says it is hers');
 select results_eq($$ select rules -> 0 -> 'effect', rules -> 0 ->> 'trigger', per_player_limit, budget_paise
                      from public.promotions_awaiting_approval('00000000-0000-4000-8000-000000000001') $$,
-  $$ values ('{"kind": "points", "points": 50}'::jsonb, 'hours_played'::text, null::integer, null::bigint) $$,
+  $$ values ('{"kind": "message", "text": "Thanks for playing"}'::jsonb, 'hours_played'::text, null::integer, null::bigint) $$,
   'with what it actually does: the rule as stored, its limit and its budget, not only the words typed');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select throws_ok($$ select public.set_promotion_live((select id from ids where name = 'late'), true) $$, '42501', null,
@@ -63,12 +63,12 @@ reset role;
 select results_eq($$ select status, decided_by_staff_id from public.promotion where id = (select id from ids where name = 'late') $$,
   $$ select 'live'::text, pg_temp.staff_of('101') $$, 'it is live, with who approved it');
 select is((select payload ->> 'name' from public.outbox_event where idempotency_key = 'promotion.published:' || (select id from ids where name = 'late')),
-  'Late night points', 'and promotion.published goes out');
+  'Late night thanks', 'and promotion.published goes out');
 
 -- Never one's own: a super admin's submission needs another super admin.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000102');
 insert into ids select 'own', public.submit_promotion('00000000-0000-4000-8000-000000000001',
-  (select jsonb_set(promotion, '{name}', '"Own points"') from body));
+  (select jsonb_set(promotion, '{name}', '"Own thanks"') from body));
 select throws_ok($$ select public.approve_promotion((select id from ids where name = 'own')) $$, 'RVTWO', null,
   'a super admin does not approve their own');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
@@ -82,15 +82,15 @@ select throws_ok($$ select public.refuse_promotion((select id from ids where nam
   'marketing refuses nothing');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select throws_ok($$ select public.refuse_promotion((select id from ids where name = 'refused'), 'No') $$, '22023', null, 'a refusal says why');
-select lives_ok($$ select public.refuse_promotion((select id from ids where name = 'refused'), 'Fifty points a night is too many') $$,
+select lives_ok($$ select public.refuse_promotion((select id from ids where name = 'refused'), 'A message a night is too many') $$,
   'a super admin refuses it');
 select throws_ok($$ select public.approve_promotion((select id from ids where name = 'refused')) $$, 'RVDEC', null, 'and it cannot then be approved');
 reset role;
 select results_eq($$ select status, refused_reason from public.promotion where id = (select id from ids where name = 'refused') $$,
-  $$ values ('draft'::text, 'Fifty points a night is too many'::text) $$, 'it is a draft again, with the reason');
+  $$ values ('draft'::text, 'A message a night is too many'::text) $$, 'it is a draft again, with the reason');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select results_eq($$ select name, refused_by, refused_reason from public.promotions_sent_back('00000000-0000-4000-8000-000000000001') $$,
-  $$ values ('Too generous'::text, 'Vikram Rao'::text, 'Fifty points a night is too many'::text) $$,
+  $$ values ('Too generous'::text, 'Vikram Rao'::text, 'A message a night is too many'::text) $$,
   'and the one who submitted it reads who sent it back, and why');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select is_empty($$ select * from public.promotions_sent_back('00000000-0000-4000-8000-000000000001') $$, 'a cashier reads none of it');

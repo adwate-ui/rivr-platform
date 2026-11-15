@@ -1,15 +1,14 @@
 /**
- * Admin tools (owner's feedback doc of 29 Oct). Anjali Nair and Rohit Chawla are super admins and this flow's own (Auth
- * sends one code a minute to a number). Anjali sets up a stake and a table and changes the table's seats (#642), reads
- * the games each club day ran (#643) and builds a time-based bonus in bonus chips (#646). Rohit gives Neha Bhalla locked
- * points, then releases some (#645), which Neha sees on Rewards. Each role's modules are proved in the console's rail tests and
+ * Admin tools (owner's feedback doc of 29 Oct). Anjali Nair is a super admin and this flow's own (Auth
+ * sends one code a minute to a number). She sets up a stake and a table and changes the table's seats (#642), reads
+ * the games each club day ran (#643) and builds a time-based bonus in bonus chips (#646). Each role's modules are proved in the console's rail tests and
  * supabase/tests/216_role_modules. Local stack only: it reads the database.
  */
 import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { worktreeName } from '@rivr/config/worktree';
 import { appUrl, isRemoteTarget } from '../support/apps.ts';
-import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
+import { signInToConsole } from '../support/signIn.ts';
 import { openConsole } from '../support/console.ts';
 
 /** Runs SQL in this worktree's local database and returns its unaligned output. */
@@ -22,7 +21,7 @@ function sql(query: string): string {
 const RUN = Date.now().toString(36).slice(-5);
 
 test.describe('Admin tools', () => {
-  test.skip(isRemoteTarget(), 'adds tables and points and reads them in the local database, so the local stack only');
+  test.skip(isRemoteTarget(), 'adds tables and reads them in the local database, so the local stack only');
 
   test('the super admin sets up a stake and a table, and builds an hours bonus', async ({ page }) => {
     test.setTimeout(90_000);
@@ -82,27 +81,4 @@ test.describe('Admin tools', () => {
                 where name = 'Hours bonus ${RUN}'`)).toBe('1500 180 awaiting_approval');
   });
 
-  test('the super admin gives a member locked points and releases some, and the member sees what stays locked', async ({ browser }) => {
-    test.setTimeout(90_000);
-    const admin = await browser.newPage();
-    await signInToConsole(admin, '9000000113');
-    await admin.getByRole('link', { name: 'Rewards', exact: true }).click();
-    // Points by hand is a tab of Rewards (audit F-028).
-    await admin.getByRole('link', { name: 'Points by hand', exact: true }).click();
-    await admin.getByRole('textbox', { name: 'Member’s mobile number' }).fill('9000000752');
-    await admin.getByRole('button', { name: 'Find', exact: true }).click();
-    await expect(admin.getByText(/^Neha Bhalla · No\. \d+$/)).toBeVisible();
-    await admin.getByRole('textbox', { name: 'Points to give or release' }).fill('300');
-    await admin.getByRole('textbox', { name: 'Reason', exact: true }).fill('Welcome to RIVR');
-    await admin.getByRole('button', { name: 'Give as locked' }).click();
-    await expect(admin.getByText('300 points locked for Neha Bhalla.')).toBeVisible();
-    await admin.getByRole('textbox', { name: 'Points to give or release' }).fill('100');
-    await admin.getByRole('textbox', { name: 'Reason', exact: true }).fill('Played the month');
-    await admin.getByRole('button', { name: 'Release', exact: true }).click();
-    await expect(admin.getByText('100 of Neha Bhalla’s locked points released to spend.')).toBeVisible();
-
-    const neha = await browser.newPage();
-    await signInToPlayer(neha, '9000000752', '/rewards');
-    await expect(neha.getByText(/^And [\d,]+ locked, for the club to release$/)).toBeVisible();
-  });
 });

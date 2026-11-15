@@ -42,11 +42,10 @@ export const members = {
   show: 'Show',
   showOnFloor: 'Show {name} on the floor',
   back: 'Back to Members',
-  /** What promotions gave the member (console v3), newest first: `3 Nov 2026 · Triple points: 300 points`. */
+  /** What promotions gave the member (console v3), newest first: `3 Nov 2026 · Tuesday bonus: 1,000 bonus chips`. */
   grantsTitle: 'Promotions given',
   noGrants: 'None yet.',
   grantLine: '{date} · {promotion}: {given}',
-  grantPoints: '{count} points',
   grantChips: '{count} bonus chips',
   /** The record. `{number}` is the member number. */
   memberNumber: 'No. {number}',
@@ -69,7 +68,7 @@ export const members = {
   /** The name a member gave at sign-up, under their Aadhaar name (#803): `Known as Ashu`. */
   knownAs: 'Known as {name}',
   /** The record's parts, one shown at a time (C-02); visits takes visitsTitle. `{name}` is the member's. */
-  parts: { label: 'Record of {name}', bonus: 'Points and bonus chips', signUp: 'Sign-up', membership: 'Tier and break', account: 'Account' },
+  parts: { label: 'Record of {name}', bonus: 'Bonus chips', signUp: 'Sign-up', membership: 'Tier and break', account: 'Account' },
   /** The record's Sign-up (owner, 8 Nov). */
   signUp: memberSignUp,
   bonus: memberBonus,
@@ -173,7 +172,7 @@ export const members = {
   erasureRequest: '{name} · Asked {date}',
   erase: {
     title: 'Erasure on request',
-    intro: 'Removes this member\'s personal data for good: name, mobile number, login, KYC files and preferences. Visit and reward records stay, by member number, without the person.',
+    intro: 'Removes this member\'s personal data for good: name, mobile number, login, KYC files and preferences. Visit and bonus records stay, by member number, without the person.',
     erased: 'This member\'s personal data was erased on request.',
     settleFirst: 'Clear these first: {items}.',
     blockers: {
@@ -181,24 +180,21 @@ export const members = {
       cash: 'a balance to settle',
       chips: 'a visit or a seat still open',
       markers: 'markers not settled',
-      rewards: 'points or bonus chips owed to the club',
-      redemptions: 'a reward not yet handed over',
+      bonus: 'bonus chips owed to the club',
       waitlist: 'a place on a waitlist',
       tournament: 'a run in a tournament not yet finished',
       requests: 'a request still waiting',
     },
     /** `{bonus}`: bonus chips, `2,000` (#629). */
-    forfeit: 'Forfeited to the club: {points} points and {bonus} bonus chips.',
-    nothingToForfeit: 'No points or bonus chips to forfeit.',
-    /** Hotel nights the erasure forfeits, or forfeited (#146): `1.25`. */
-    nightsForfeit: 'Hotel nights forfeited to the club: {nights}.',
+    forfeit: 'Forfeited to the club: {bonus} bonus chips.',
+    nothingToForfeit: 'No bonus chips to forfeit.',
     blockNote: 'On a break until {date}: their number and ID stay blocked until then.',
     typeName: 'Type the member\'s full name to confirm',
     reason: 'Why the member is erased',
     reasonHint: 'Who asked, and how. No names or numbers.',
     erase: 'Erase personal data',
-    done: 'Erased. Forfeited {points} points and {bonus} bonus chips; KYC files removed: {files}.',
-    doneFilesLeft: 'Erased. Forfeited {points} points and {bonus} bonus chips. The KYC files are still to remove.',
+    done: 'Erased. Forfeited {bonus} bonus chips; KYC files removed: {files}.',
+    doneFilesLeft: 'Erased. Forfeited {bonus} bonus chips. The KYC files are still to remove.',
     filesLeft: 'KYC files still to remove: {count}.',
     removeFiles: 'Remove KYC files',
     filesRemoved: 'KYC files removed: {count}.',

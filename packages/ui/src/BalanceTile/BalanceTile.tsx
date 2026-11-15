@@ -4,15 +4,15 @@ import { Icon, type IconName } from '../Icon/Icon.tsx';
 import { cx } from '../internal/classes.ts';
 
 export interface BalanceTileProps {
-  /** `star` for points, `chip` for bonus chips. */
+  /** `chip` for bonus chips. */
   icon: IconName;
   /** The figure: `3,250`. */
   figure: string;
-  /** What it is: `Points`, `Bonus chips`. */
+  /** What it is: `Bonus chips`. */
   label: string;
-  /** What it is for, one line: `Spend on rewards.` */
+  /** What it is for, one line: `Used with a buy-in.` */
   line: string;
-  /** `money` draws the icon and figure gold (bonus chips); `default` cream (points). */
+  /** `money` draws the icon and figure gold (bonus chips); `default` cream. */
   tone?: 'default' | 'money';
   /** Opens its history in place; with it the tile is a button that says History, with a chevron (F-054). */
   onOpen?: (() => void) | undefined;
@@ -21,8 +21,8 @@ export interface BalanceTileProps {
 }
 
 /**
- * One of the member's balances at the top of Rewards (owner, 8 Nov: points and bonus chips told apart at a glance): its
- * icon and figure, what it is, and one line on what it is for. Two sit side by side.
+ * A balance of the member's at the top of Bonus (owner, 8 Nov): its icon and figure, what it is, and one line on what
+ * it is for.
  */
 export function BalanceTile({ icon, figure, label, line, tone = 'default', onOpen, 'aria-expanded': isExpanded }: BalanceTileProps) {
   const body = (

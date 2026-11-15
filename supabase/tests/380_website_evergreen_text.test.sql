@@ -26,9 +26,8 @@ select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'home', 'Smokin
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'home', '"title": "Parking"'), 0, 'for parking either');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'home', '"title": "Getting here"'), 1, 'it leads to Visit instead');
 select is((select count(*)::integer from public.site_block b join public.site_page p on p.id = b.page_id
-           where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.slug <> 'leaderboard' and strpos(b.content::text, 'Details to follow.') > 0), 0,
-  'no page but the League says Details to follow');
-select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'leaderboard', 'Details to follow.'), 1, 'and the League keeps its two cards, as the owner said (#710)');
+           where p.venue_id = '00000000-0000-4000-8000-000000000001' and strpos(b.content::text, 'Details to follow.') > 0), 0,
+  'no page says Details to follow');
 select is((select count(*)::integer from public.site_block b join public.site_page p on p.id = b.page_id
            where p.venue_id = '00000000-0000-4000-8000-000000000001' and b.kind = 'cards' and jsonb_array_length(b.content -> 'cards') < 2), 0,
   'every cards block still has the two cards the website asks for');

@@ -209,11 +209,9 @@ export const siteBlockSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('promotions'), content: z.object({ eyebrow: eyebrowSchema, heading: headingSchema, only: z.literal('welcome').optional() }) }),
   // Live: the club's approved Instagram posts (public_wall_posts, #157).
   z.object({ kind: z.literal('social_wall'), content: z.object({ heading: headingSchema }) }),
-  // Live, read from the League and the club's rules in force rather than written into the page (#617, decision 0283):
-  // this month's and this season's League standings with their prizes (public_league_table, league.prizes); what play
-  // earns by table (points.per_hour, rakeback.rate, points.rewards_rake_share); and the cab and hotel nights
-  // (cab.minimum_visits, accommodation.hours_per_night), all through public_club_rules.
-  z.object({ kind: z.literal('league'), content: z.object({ heading: headingSchema }) }),
+  // Live, read from the club's rules in force rather than written into the page (#617, decision 0283): rakeback by
+  // table (rakeback.rate) and the cab (cab.minimum_visits), through public_club_rules. Points, hotel nights and the
+  // League went on 15 Nov (decision 0585).
   z.object({ kind: z.literal('rewards'), content: z.object({ heading: headingSchema }) }),
   z.object({ kind: z.literal('outstation'), content: z.object({ eyebrow: eyebrowSchema, heading: headingSchema }) }),
   // Live (#618): the Bad Beat Jackpot's pool and how a bad beat shares it (public_jackpot, jackpot.payout), and what each

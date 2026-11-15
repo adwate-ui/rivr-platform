@@ -20,7 +20,6 @@ export const promotionWords = {
     visit: '{chips} bonus chips on each visit', first_buyin: '{chips} bonus chips on the first buy-in of a visit',
     referral: '{chips} bonus chips for each referral', signup: '{chips} bonus chips on sign-up',
   },
-  pointsMultiplier: '{multiplier}× points',
   cabHome: 'A cab home from visit {visit} in a month',
   tournamentEntry: 'An entry to {name}',
   priority: 'Front of every waitlist',

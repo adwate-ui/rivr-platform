@@ -26,7 +26,7 @@ export const checkIn = {
   cardNotCurrent: 'Code changed. Ask them to show the card again.',
   /** After a check-in by card or number: the field is empty again, so this says it went through. */
   checkedIn: 'Checked in.',
-  /** Check-out at the door (#82): the visit closes, with its hours; points are given by hand (#629). */
+  /** Check-out at the door (#82): the visit closes, with its hours. */
   checkOut: 'Check out',
   checkOutMember: 'Check out {name}',
   checkedOut: 'Checked out.',

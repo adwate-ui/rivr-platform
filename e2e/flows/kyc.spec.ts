@@ -115,14 +115,10 @@ test.describe('Identity › At the club', () => {
   test.beforeEach(resetAtTheClub);
   test.afterEach(resetAtTheClub);
 
-  test('switched on, a member registers with a selfie, is let in, and the desk verifies them with the bonus of their selfie day', async ({ browser, page }) => {
-    // The switch as a super admin sets it from Settings, with its reason (decision 0502); the bonus as it stood that day.
+  test('switched on, a member registers with a selfie, is let in, and the desk verifies them', async ({ browser, page }) => {
+    // The switch as a super admin sets it from Settings, with its reason (decision 0502).
     sql(`insert into public.setting (venue_id, key, subject, value, effective_from, reason)
          values ('${CLUB}', 'kyc.at_the_club', '', '{"enabled": true}', now() - interval '1 minute', 'Cashfree is not live')`);
-    const bonusBefore = Number(sql(`select coalesce(-sum(private.account_balance(a.id)), 0) from public.ledger_account a
-                                    where a.member_id = '${UDAY}' and a.code = 'member.points'`));
-    // The ledger is append-only: an earlier run's bonus stays, and the bonus is paid once.
-    const wasPaid = sql(`select exists (select 1 from public.ledger_transaction where idempotency_key = 'verified_bonus:${UDAY}')`) === 't';
 
     await signInToPlayer(page, '9000000418', '/kyc');
     await expect(page.getByText('Aadhaar and PAN at the desk, on your first visit')).toBeVisible();
@@ -151,10 +147,5 @@ test.describe('Identity › At the club', () => {
     await expect(desk.getByRole('status').getByText('Uday Thakur is verified and can take a seat.')).toBeVisible();
 
     expect(sql(`select status || ' ' || method from public.kyc_record where member_id = '${UDAY}'`)).toBe('verified manual');
-    const bonusDue = Number(sql(`select coalesce((private.setting_at('${CLUB}', 'points.verified_bonus', '',
-                                   (select at_club_from from public.kyc_record where member_id = '${UDAY}')) ->> 'points')::bigint, 0)`));
-    const bonusAfter = Number(sql(`select coalesce(-sum(private.account_balance(a.id)), 0) from public.ledger_account a
-                                   where a.member_id = '${UDAY}' and a.code = 'member.points'`));
-    expect(bonusAfter - bonusBefore).toBe(wasPaid ? 0 : bonusDue);
   });
 });

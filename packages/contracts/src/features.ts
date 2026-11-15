@@ -36,12 +36,8 @@ export const FEATURES = [
   gateable('learn.academy_lessons', 'Academy lessons', 'RIVR Academy Level 1 to 3 lessons and quizzes.', ['player:learn/academy']),
   gateable('sessions.history', 'Session history', 'Past sessions with buy-in, cash-out, net and receipts.', ['player:sessions']),
   gateable('balance.deposits', 'Deposits', 'UPI deposit details and UTR entry.', ['player:balance/deposit']),
-  gateable('rewards.catalogue', 'Rewards catalogue', 'Redeeming points for seats, upgrades and merchandise.', ['player:rewards/catalogue']),
-  gateable('rewards.points_history', 'Points history', 'The movements on a member’s points ledger.', ['player:rewards/points']),
-  gateable('rewards.accommodation', 'Hotel nights', 'Hotel nights earned by the hours played, at stakes with an hours-per-night rate, and spending them on rewards.', ['player:rewards']),
   gateable('rewards.rakeback', 'Hourly rakeback', 'Bonus each Monday on a member’s share of last week’s rake, at stakes with a rakeback rate.', []),
-  gateable('league.standings', 'League', 'RIVR League standings and season.', ['player:rewards/league']),
-  gateable('referral.share_cards', 'Referral and share cards', 'Referral code and rendered share cards.', ['player:rewards/referral']),
+  gateable('referral.share_cards', 'Referral and share cards', 'Referral code and rendered share cards.', ['player:bonus/referral']),
   gateable('cab.requests', 'Cab requests', 'Pickup and drop requests when eligible.', ['player:rewards/cab']),
   gateable('events.book', 'Events', 'The events calendar: pro nights, corporate tables and Academy batches, booked from the app.', ['player:events']),
   gateable('social.winner_cards', 'Winner cards', 'Cards celebrating a member’s wins, posted on the club’s social only while they share them.', ['player:profile']),
@@ -72,7 +68,7 @@ export const FEATURES = [
   core('core.kill_switch_banner', 'Kill-switch banner', 'The banner shown while the venue is frozen.', ['player:*']),
   core('core.house_rules', 'House rules', 'The club’s house rules.', ['player:profile/rules', 'web:house-rules']),
   core('core.feedback', 'Feedback', 'Rating a visit, and sending the club a note.', ['player:home', 'player:profile']),
-  core('rewards.bonus', 'Bonus chips', 'The member’s bonus chips and their history, in Rewards.', ['player:rewards']),
+  core('rewards.bonus', 'Bonus chips', 'The member’s bonus chips and their history, in Bonus.', ['player:bonus']),
   core('push.bonus', 'Bonus chip notifications', 'Push when bonus chips are added or used.', ['player:profile/notifications']),
 ] as const satisfies readonly FeatureDefinition[];
 
@@ -85,7 +81,7 @@ export type FeatureKey = (typeof FEATURES)[number]['key'];
  */
 export const HIDDEN_FEATURES: readonly FeatureKey[] = [
   'academy.booking', 'balance.deposits', 'cab.requests', 'events.book', 'learn.academy_lessons', 'learn.drills', 'learn.library', 'learn.review',
-  'push.withdrawal_sent', 'rewards.accommodation', 'rewards.rakeback', 'social.winner_cards',
+  'push.withdrawal_sent', 'rewards.rakeback', 'social.winner_cards',
 ];
 
 /** The key of a licensed Learn source, added at upload. */
@@ -93,7 +89,7 @@ export type LearnSourceFeatureKey = `learn.source.${string}`;
 
 /**
  * The player app's tabs a feature gates, for the app's tab bar and the console's preview of a tier (#32):
- * Sessions and Learn follow their feature; Home, Balance and Rewards always show.
+ * Sessions and Learn follow their feature; Home, Balance and Bonus always show.
  */
 export const TAB_FEATURES = { sessions: 'sessions.history', learn: 'learn.library' } as const satisfies Readonly<Record<string, FeatureKey>>;
 

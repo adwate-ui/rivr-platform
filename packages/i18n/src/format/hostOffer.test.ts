@@ -7,12 +7,11 @@ beforeAll(() => registerMessages({ console: consoleApp }));
 
 describe('a host\u2019s offer in words', () => {
   it('names what was offered, a bonus as chips, never rupees', () => {
-    expect(formatHostOffer({ kind: 'points', points: 500 })).toBe('500 points');
     expect(formatHostOffer({ kind: 'bonus', amount_paise: 200000 })).toBe('2,000 bonus chips');
     expect(formatHostOffer({ kind: 'message' })).toBe('a message');
   });
 
-  it('says an offer for anything the queue does not make, or a points multiplier', () => {
+  it('says an offer for anything the queue does not make', () => {
     expect(formatHostOffer({ kind: 'cab_eligibility' })).toBe('an offer');
     expect(formatHostOffer({ kind: 'points' })).toBe('an offer');
   });

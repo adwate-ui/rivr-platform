@@ -36,7 +36,6 @@ export const promotions = {
     givenOnce: 'Once',
     givenTimes: '{count} times',
     givenChips: '{count} bonus chips',
-    givenPoints: '{count} points',
     budgetUsed: '{used} of {budget} budget',
     budgetUsedMonth: '{used} of {budget} budget this month',
     /** A promotion still run by its old rule (decision 0491): its words and Pause only. */
@@ -78,15 +77,14 @@ export const promotions = {
     rewardKind: 'Reward',
     /** The templates that prefill the builder, and the names they give. */
     templates: {
-      blank: 'Blank', double_points: 'Points multiplier', seat_bonus: 'Seat bonus chips', four_hour_bonus: 'Four-hour bonus chips',
+      blank: 'Blank', seat_bonus: 'Seat bonus chips', four_hour_bonus: 'Four-hour bonus chips',
       founders_priority: 'Founders’ Circle priority',
     },
     templateNames: {
-      double_points: 'Double points', seat_bonus: 'Tuesday seat bonus chips', four_hour_bonus: 'Four-hour bonus chips',
+      seat_bonus: 'Tuesday seat bonus chips', four_hour_bonus: 'Four-hour bonus chips',
       founders_priority: 'Founders’ Circle priority',
     },
     rewards: {
-      points_multiplier: { label: 'Points multiplier', description: 'Points earned per hour, multiplied' },
       seat_bonus: { label: 'Seat bonus chips', description: 'Fixed bonus chips on a first seat' },
       hours_bonus: { label: 'Hours-played bonus chips', description: 'Bonus chips after time at the tables' },
       bonus_chips: { label: 'Bonus chips', description: 'Fixed bonus chips on a visit or referral' },
@@ -95,8 +93,6 @@ export const promotions = {
       waitlist_priority: { label: 'Waitlist priority', description: 'Front of every waitlist' },
     },
     fields: {
-      multiplier: 'Multiplier',
-      multiplierSuffix: '× points',
       chips: 'Bonus chips',
       chipsSuffix: 'chips',
       firstN: 'On the first',
@@ -164,7 +160,6 @@ export const promotions = {
     /** Under a field the terms cannot take, after Save draft, Simulate or Submit. */
     errors: {
       name: 'Name it in 3 to 80 characters.',
-      multiplier: '1.25 to 5, in quarters.',
       chips: 'Whole 50s of chips, from 50.',
       tierList: 'Each tier: 1 to 10,000 members and whole 50s of chips. 1 to 5 tiers.',
       firstN: '1 to 100, or blank for a visit’s first seat.',
@@ -203,7 +198,7 @@ export const promotions = {
     period: '{from} to {to}',
     membersQualified: 'members qualified',
     timesGiven: 'times given',
-    measures: { points: 'extra points', chips: 'bonus chips', perks: 'perks' },
+    measures: { chips: 'bonus chips', perks: 'perks' },
     budgetReached: 'The budget would have run out.',
     /** The approver's view replays last week afresh (decision 0495). */
     replaying: 'Replaying last week.',

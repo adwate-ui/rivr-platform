@@ -75,11 +75,10 @@ describe('Promotions golden fixtures (packages/testing/golden/promotions.json)',
 
   it.each(casesFor(golden, 'reward'))('%s', (_description, goldenCase) => {
     const effect = promotionEffectSchema.parse(JSON.parse(goldenInput(goldenCase, 'effect')));
-    const reward = promotionReward(effect, { amount: amount(goldenInput(goldenCase, 'amount')), points: BigInt(goldenInput(goldenCase, 'points')) });
+    const reward = promotionReward(effect, { amount: amount(goldenInput(goldenCase, 'amount')) });
     const expected = goldenExpected(goldenCase, 'reward');
     if (expected === 'nothing') expect(reward).toBeNull();
-    else if (expected.endsWith(' points')) expect(reward).toEqual({ cost: fromPaise(0n), points: BigInt(expected.replace(' points', '')) });
-    else expect(reward).toEqual({ cost: amount(expected), points: 0n });
+    else expect(reward).toEqual({ cost: amount(expected) });
   });
 
   it.each(casesFor(golden, 'select'))('%s', (_description, goldenCase) => {

@@ -16,7 +16,7 @@ describe('transition', () => {
 
   it('refuses to submit a draft not simulated, or simulated before an edit', () => {
     expect(take({ simulatedTerms: null }, { kind: 'submit' }, MANAGER)).toEqual({ ok: false, error: 'needs_simulation' });
-    const edited = buildPromotionTerms({ reward: { kind: 'points_multiplier', multiplier: 3 } });
+    const edited = buildPromotionTerms({ reward: { kind: 'hours_bonus', chips: 2_000, afterMinutes: 240 } });
     expect(take({ terms: edited }, { kind: 'submit' }, MANAGER)).toEqual({ ok: false, error: 'needs_simulation' });
   });
 

@@ -86,30 +86,16 @@ select is((select count(*)::integer from public.activity_log('00000000-0000-4000
 -- Once erased, a member's name goes from the screen, and the words written about them.
 reset role;
 insert into public.audit_log (venue_id, occurred_at, actor_user_id, action, entity, entity_id, after, reason) values
-  ('00000000-0000-4000-8000-000000000001', pg_temp.at('11:00'), '00000000-0000-4000-8000-000000000101', 'points.grant', 'member', '00000000-0000-4000-8000-000000000213', '{"points": 500}', 'For his wife''s birthday'),
   ('00000000-0000-4000-8000-000000000001', pg_temp.at('10:00'), '00000000-0000-4000-8000-000000000101', 'member.erase', 'member', '00000000-0000-4000-8000-000000000213', null, 'Asked to be erased');
 update public.member set erased_at = now(), full_name = 'Erased member', phone = null, user_id = null where id = '00000000-0000-4000-8000-000000000213';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select results_eq($$ select about, reason from public.activity_log('00000000-0000-4000-8000-000000000001', (select d from day), (select d from day), p_kind => 'bonus_chips') $$,
   $$ values (null::text, null::text) $$, 'an erased member is not named, nor what was written about them');
-select results_eq($$ select action, about, reason, amount from public.activity_log('00000000-0000-4000-8000-000000000001', (select d from day), (select d from day), p_kind => 'points') $$,
-  $$ values ('points.grant'::text, null::text, null::text, 500::bigint) $$, 'a points line loses its reason too, and keeps how many');
 select results_eq($$ select reason from public.activity_log('00000000-0000-4000-8000-000000000001', (select d from day), (select d from day), p_kind => 'members') where action = 'member.erase' $$,
   $$ values ('Asked to be erased'::text) $$, 'the erasure keeps its own reason');
 
--- Points by hand are in the log, once each for a repeated request; as bonus chips by hand are, with the staff member and the reason.
 reset role;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select public.grant_points('00000000-0000-4000-8000-000000000216', 500, false, 'Welcome back', '00000000-0000-4000-8000-0000000f3871');
-select public.grant_points('00000000-0000-4000-8000-000000000216', 500, false, 'Welcome back', '00000000-0000-4000-8000-0000000f3871');
-select public.grant_points('00000000-0000-4000-8000-000000000216', 200, true, 'Until his test', '00000000-0000-4000-8000-0000000f3872');
-select public.unlock_points('00000000-0000-4000-8000-000000000216', 100, 'Test passed', '00000000-0000-4000-8000-0000000f3873');
-select public.unlock_points('00000000-0000-4000-8000-000000000216', 100, 'Test passed', '00000000-0000-4000-8000-0000000f3873');
-select results_eq($$ select who, action, kind, about, reason, amount from public.activity_log('00000000-0000-4000-8000-000000000001', p_who => 'Vikram', p_kind => 'points', p_limit => 3) $$,
-  $$ values ('Vikram Rao'::text, 'points.unlock'::text, 'points'::text, 'Kunal Mehra'::text, 'Test passed'::text, 100::bigint),
-            ('Vikram Rao', 'points.lock', 'points', 'Kunal Mehra', 'Until his test', 200),
-            ('Vikram Rao', 'points.grant', 'points', 'Kunal Mehra', 'Welcome back', 500) $$,
-  'giving, locking and releasing points by hand, a repeat of a request once');
 
 -- Past controls: released ones only, latest first, a freeze with both who released it.
 reset role;

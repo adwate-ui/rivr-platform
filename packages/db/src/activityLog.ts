@@ -3,7 +3,7 @@ import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
 /** The kinds of thing the Activity screen narrows to (`private.activity_kind`). */
-export const ACTIVITY_KINDS = ['controls', 'exports', 'staff', 'bonus_chips', 'points', 'tiers', 'members', 'settings', 'floor', 'other'] as const;
+export const ACTIVITY_KINDS = ['controls', 'exports', 'staff', 'bonus_chips', 'tiers', 'members', 'settings', 'floor', 'other'] as const;
 export type ActivityKind = (typeof ACTIVITY_KINDS)[number];
 
 /** What the Activity screen narrows the log by: club days (YYYY-MM-DD), part of a name and a kind; each may be left out. */
@@ -28,7 +28,7 @@ export interface ActivityLine {
   /** The member, staff member or table it was about, when it names one. */
   readonly about: string | null;
   readonly reason: string | null;
-  /** How many points or bonus chips were given by hand; null for anything else. */
+  /** How many bonus chips were given by hand; null for anything else. */
   readonly amount: number | null;
 }
 

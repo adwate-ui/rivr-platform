@@ -16,7 +16,7 @@ describe('sameTerms', () => {
 
   it('reads any change to the reward, who, when or the limits as different', () => {
     const terms = buildPromotionTerms();
-    expect(sameTerms(terms, { ...terms, reward: { kind: 'points_multiplier', multiplier: 3 } })).toBe(false);
+    expect(sameTerms(terms, { ...terms, reward: { kind: 'hours_bonus', chips: 2_000, afterMinutes: 240 } })).toBe(false);
     expect(sameTerms(terms, { ...terms, eligibility: { ...terms.eligibility, audience: 'lapsed' } })).toBe(false);
     expect(sameTerms(terms, { ...terms, schedule: { ...terms.schedule, days: [7, 1, 2, 3, 4, 5, 6] } })).toBe(false);
     expect(sameTerms(terms, { ...terms, limits: { perMember: 'once' } })).toBe(false);
@@ -28,7 +28,7 @@ describe('termsDiff', () => {
   it('names the parts a waiting version changes against the live one, in the order the builder shows them', () => {
     const live = buildPromotionTerms();
     expect(termsDiff(live, live)).toEqual([]);
-    const waiting = { ...live, name: 'Triple points', reward: { kind: 'points_multiplier' as const, multiplier: 3 }, channels: { ...live.channels, website: true },
+    const waiting = { ...live, name: 'Longer play', reward: { kind: 'hours_bonus' as const, chips: 2_000, afterMinutes: 240 }, channels: { ...live.channels, website: true },
       rulesText: ['New rule'], link: 'https://rivr.club/promotions' };
     expect(termsDiff(live, waiting)).toEqual(['name', 'reward', 'channels', 'rulesText', 'link']);
     expect(termsDiff(live, { ...live, limits: { perMember: 'once' as const }, schedule: { ...live.schedule, endsOn: '2026-12-31' } }))

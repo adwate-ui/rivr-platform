@@ -21,7 +21,7 @@ grant execute on function pg_temp.as_person(text) to authenticated;
 -- then approved by a super admin.
 create function pg_temp.submit_version(p_key text) returns void language sql as $$
   select public.record_promotion_simulation(v.id,
-    '{"events": 0, "membersQualified": 0, "timesGiven": 0, "points": 0, "chips": 0, "perks": 0, "isBudgetReached": false}',
+    '{"events": 0, "membersQualified": 0, "timesGiven": 0, "chips": 0, "perks": 0, "isBudgetReached": false}',
     jsonb_build_object('reward', v.reward, 'eligibility', v.eligibility, 'schedule', v.schedule, 'limits', v.limits))
   from public.promotion_version v join public.promotion p on p.id = v.promotion_id
   where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key = p_key and v.version = 1;
@@ -47,8 +47,8 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select is_empty($$ select * from public.my_promotion_cards() $$, 'with nothing published, Home has no card');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 insert into ids select 'flow7', public.submit_promotion('00000000-0000-4000-8000-000000000001', jsonb_build_object(
-  'name', 'Double points', 'runs', 'NLH 100/200 · Thursday, 14:00 to 20:00',
-  'rule', jsonb_build_object('trigger', 'hours_played', 'conditions', '{"days": [4]}'::jsonb, 'effect', '{"kind": "points", "multiplier_percent": 200}'::jsonb)));
+  'name', 'Thursday thanks', 'runs', 'NLH 100/200 · Thursday, 14:00 to 20:00',
+  'rule', jsonb_build_object('trigger', 'hours_played', 'conditions', '{"days": [4]}'::jsonb, 'effect', '{"kind": "message", "text": "Thanks for playing"}'::jsonb)));
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select public.approve_promotion((select id from ids where name = 'flow7'));
 reset role;
@@ -56,7 +56,7 @@ reset role;
 -- Home: the member's venue's live cards, with promotions.feed.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select results_eq($$ select title, detail, runs from public.my_promotion_cards() $$,
-  $$ values ('Double points'::text, null::text, 'NLH 100/200 · Thursday, 14:00 to 20:00'::text) $$, 'Ishaan''s Home shows the published card');
+  $$ values ('Thursday thanks'::text, null::text, 'NLH 100/200 · Thursday, 14:00 to 20:00'::text) $$, 'Ishaan''s Home shows the published card');
 reset role;
 insert into public.member_feature_override (venue_id, member_id, feature_key, is_granted, reason)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 'promotions.feed', false, 'Test');
@@ -68,13 +68,13 @@ reset role;
 
 -- The website: every club's live cards, never the practice venue's.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
-insert into ids select 'practice', public.submit_promotion('00000000-0000-4000-8000-000000000002', jsonb_build_object('name', 'Practice points',
-  'runs', 'Every day', 'rule', jsonb_build_object('trigger', 'hours_played', 'effect', '{"kind": "points", "points": 5}'::jsonb)));
+insert into ids select 'practice', public.submit_promotion('00000000-0000-4000-8000-000000000002', jsonb_build_object('name', 'Practice thanks',
+  'runs', 'Every day', 'rule', jsonb_build_object('trigger', 'hours_played', 'effect', '{"kind": "message", "text": "Thanks for playing"}'::jsonb)));
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select lives_ok($$ select public.approve_promotion((select id from ids where name = 'practice')) $$, 'a practice promotion goes live');
 reset role;
 set local role anon;
-select results_eq($$ select venue_slug, title from public.public_promotion_cards $$, $$ values ('gurugram'::text, 'Double points'::text) $$,
+select results_eq($$ select venue_slug, title from public.public_promotion_cards $$, $$ values ('gurugram'::text, 'Thursday thanks'::text) $$,
   'the website reads the club''s card, and never the practice venue''s');
 reset role;
 
@@ -86,9 +86,9 @@ insert into public.device (id, venue_id, kind, name, auth_user_id) values
   ('00000000-0000-4000-8000-00000000d861', '00000000-0000-4000-8000-000000000001', 'tv', 'Promotions TV', '00000000-0000-4000-8000-00000000e861'),
   ('00000000-0000-4000-8000-00000000d862', '00000000-0000-4000-8000-000000000002', 'tv', 'Practice promotions TV', '00000000-0000-4000-8000-00000000e862');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e861');
-select results_eq($$ select title from public.tv_promotions() $$, $$ values ('Double points'::text) $$, 'a TV at the club reads the club''s card');
+select results_eq($$ select title from public.tv_promotions() $$, $$ values ('Thursday thanks'::text) $$, 'a TV at the club reads the club''s card');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e862');
-select results_eq($$ select title from public.tv_promotions() $$, $$ values ('Practice points'::text) $$, 'the practice venue''s TV reads its own');
+select results_eq($$ select title from public.tv_promotions() $$, $$ values ('Practice thanks'::text) $$, 'the practice venue''s TV reads its own');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
 select is_empty($$ select * from public.tv_promotions() $$, 'and a member reads none as a TV');
 reset role;
@@ -97,7 +97,7 @@ reset role;
 select is(pg_temp.offers((select id from ids where name = 'flow7')), '212', 'publishing offers it to Vihaan, who opted in, and not to Ishaan');
 select results_eq($$ select payload ->> 'title', payload ->> 'runs' from public.outbox_event where event_type = 'promotion.offered'
                      and payload ->> 'promotion_id' = (select id::text from ids where name = 'flow7') $$,
-  $$ values ('Double points'::text, 'NLH 100/200 · Thursday, 14:00 to 20:00'::text) $$, 'with its card');
+  $$ values ('Thursday thanks'::text, 'NLH 100/200 · Thursday, 14:00 to 20:00'::text) $$, 'with its card');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select public.set_promotion_live((select id from ids where name = 'flow7'), false);
 reset role;

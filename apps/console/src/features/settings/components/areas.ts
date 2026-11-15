@@ -11,11 +11,10 @@ export type SettingsArea = RuleArea | (typeof VENUE_AREAS)[number] | typeof NOTI
 
 /**
  * The areas and rules hidden at the owner's word (29 Oct, #626, decision 0284): no rupee, rake or reporting on any
- * console. A rule set before stays in force; it is only not shown. Points are given by hand now (#629), so the
- * hourly rate is hidden with the rules that turn rake or money into points and bonus.
+ * console. A rule set before stays in force; it is only not shown.
  */
 export const HIDDEN_AREAS: readonly SettingsArea[] = ['rake', 'cage', 'tax', 'compliance', 'academy', 'system', 'chips'];
-const HIDDEN_KEYS: readonly string[] = ['points.per_hour', 'points.rewards_rake_share', 'rakeback.rate', 'cab.minimum_visits'];
+const HIDDEN_KEYS: readonly string[] = ['rakeback.rate', 'cab.minimum_visits'];
 
 /** Whether the Settings screen shows a rule. */
 export const isShownSetting = (key: string) => !HIDDEN_KEYS.includes(key);
@@ -45,18 +44,11 @@ const AREA_OF: Readonly<Record<SettingKey, RuleArea>> = {
   'cage.second_approver_threshold': 'cage',
   'credit.config': 'cage',
   'markers.due_days': 'cage',
-  'accommodation.hours_per_night': 'members',
   'cab.minimum_visits': 'members',
-  'points.verified_bonus': 'members',
-  'points.daily_staff_cap': 'members',
   'bonus.daily_staff_cap': 'members',
   'bonus.expiry_days': 'members',
   'bonus.visit_cap': 'members',
   'host.lapse': 'members',
-  'league.points': 'members',
-  'league.prizes': 'members',
-  'points.per_hour': 'members',
-  'points.rewards_rake_share': 'members',
   'rakeback.rate': 'members',
   'reviews.google_url': 'members',
   'tier.default': 'members',

@@ -78,7 +78,7 @@ insert into public.control_state (venue_id, level, reason, engaged_by_staff_id, 
 select '00000000-0000-4000-8000-000000000001', 'venue_freeze', 'test 391 freeze', s.id, now()
 from public.staff s where s.user_id = '00000000-0000-4000-8000-000000000101' and s.venue_id = '00000000-0000-4000-8000-000000000001';
 select lives_ok($$ select private.close_stale_visits() $$, 'the job runs during a freeze');
-select ok((select closed_at is null from public.visit where id = '00000000-0000-4000-8000-0000000c3907'), 'and closes nothing, as closing credits points');
+select ok((select closed_at is null from public.visit where id = '00000000-0000-4000-8000-0000000c3907'), 'and closes nothing: a visit does not close during a freeze');
 update public.control_state set released_at = now(), release_reason = 'test 391 over', released_by_staff_id = engaged_by_staff_id,
   release_second_staff_id = (select s.id from public.staff s where s.user_id = '00000000-0000-4000-8000-000000000102' and s.venue_id = '00000000-0000-4000-8000-000000000001')
 where reason = 'test 391 freeze';

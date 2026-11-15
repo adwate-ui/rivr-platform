@@ -29,19 +29,6 @@ select bag_eq($$ select * from pg_temp.notices('00000000-0000-4000-8000-00000000
   $$ values ('{"notice": "kyc_in_review", "params": []}'::jsonb), ('{"notice": "kyc_refused", "params": ["staff_rejected"]}'::jsonb) $$,
   'waiting for review, then refused by its code, never a reviewer''s words');
 
--- Mihir redeems a cap, which sends nothing (he did it in the app), then Karan, a host, cancels it: Mihir hears which, not why.
-select private.credit_points('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000213', 5000, 'Test', 'test:255:mihir');
-insert into public.reward_item (venue_id, kind, name, detail, points, stock)
-values ('00000000-0000-4000-8000-000000000001', 'merchandise', 'Notice test cap', 'At the host desk', 1000, 2);
-insert into ids select 'item', id from public.reward_item where name = 'Notice test cap';
-select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
-insert into ids select 'redemption', public.redeem_reward((select id from ids where name = 'item'), 1000, 'notice-1');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
-select public.cancel_redemption((select id from ids where name = 'redemption'), 'Out of caps at the desk');
-reset role;
-select results_eq($$ select n from pg_temp.notices('00000000-0000-4000-8000-000000000213') n where n ->> 'notice' like 'reward%' $$,
-  $$ values ('{"notice": "reward_cancelled", "params": ["Notice test cap"]}'::jsonb) $$,
-  'a reward cancelled names the reward, never staff''s words');
 
 -- Ishaan, seated, goes on the leaving list; when the floor frees his seat he hears it. A seat not on the list says nothing.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');

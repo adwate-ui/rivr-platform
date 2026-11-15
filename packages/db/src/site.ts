@@ -2,11 +2,11 @@ import { err, ok, type Result } from '@rivr/contracts/result';
 import { siteBlockSchema, type SiteBlock } from '@rivr/contracts/site';
 import type { RivrClient } from './client.ts';
 import {
-  fetchSiteCalendar, fetchSiteGames, fetchSiteJackpot, fetchSiteLeague, fetchSitePromotions, fetchSiteRules, fetchSiteWall, rulesFrom, type SiteGame, type SiteLeague,
+  fetchSiteCalendar, fetchSiteGames, fetchSiteJackpot, fetchSitePromotions, fetchSiteRules, fetchSiteWall, rulesFrom, type SiteGame,
   type SitePromotion, type SiteRules, type SiteTournament, type SiteWallPost,
 } from './siteLive.ts';
 
-export type { SiteGame, SiteLeague, SitePromotion, SiteRules, SiteStanding, SiteTableRule, SiteTournament, SiteWallPost } from './siteLive.ts';
+export type { SiteGame, SitePromotion, SiteRules, SiteTableRule, SiteTournament, SiteWallPost } from './siteLive.ts';
 
 /** A page in the website's navigation. */
 export interface SiteLink {
@@ -29,8 +29,6 @@ export interface SitePage {
   readonly promotions: readonly SitePromotion[];
   /** The approved Instagram posts, when the page has a social wall block; otherwise empty (#157). */
   readonly wallPosts: readonly SiteWallPost[];
-  /** The League's standings, when the page has a league block; otherwise none (#617). */
-  readonly league: SiteLeague;
   /** The club's rules in force, when the page has a block that shows them; otherwise none set (#617). */
   readonly rules: SiteRules;
   /** The Bad Beat Jackpot's main pool in paise, when the page has a jackpot block; otherwise null (#618). */
@@ -39,25 +37,22 @@ export interface SitePage {
   readonly isPaused: boolean;
 }
 
-const NO_LEAGUE: SiteLeague = { month: null, season: null };
-
 /** The live rows a page's blocks show, read only when one of its blocks needs them. */
 async function fetchLive(client: RivrClient, blocks: readonly SiteBlock[]) {
   const needs = (...kinds: SiteBlock['kind'][]) => blocks.some((block) => kinds.includes(block.kind));
   // Read only when needed; otherwise what the page shows without them.
   const readIf = <T,>(isNeeded: boolean, read: () => Promise<Result<T, 'unavailable'>>, none: T) => (isNeeded ? read() : Promise.resolve(ok(none)));
-  const [games, tournaments, promotions, wallPosts, league, rules, jackpotPool] = await Promise.all([
+  const [games, tournaments, promotions, wallPosts, rules, jackpotPool] = await Promise.all([
     readIf(needs('games'), () => fetchSiteGames(client), []),
     readIf(needs('calendar'), () => fetchSiteCalendar(client), []),
     readIf(needs('promotions'), () => fetchSitePromotions(client), []),
     readIf(needs('social_wall'), () => fetchSiteWall(client), []),
-    readIf(needs('league'), () => fetchSiteLeague(client), NO_LEAGUE),
-    readIf(needs('league', 'rewards', 'outstation', 'jackpot'), () => fetchSiteRules(client), rulesFrom([])),
+    readIf(needs('rewards', 'outstation', 'jackpot'), () => fetchSiteRules(client), rulesFrom([])),
     readIf<bigint | null>(needs('jackpot'), () => fetchSiteJackpot(client), null),
   ]);
-  if (!games.ok || !tournaments.ok || !promotions.ok || !wallPosts.ok || !league.ok || !rules.ok || !jackpotPool.ok) return err('unavailable' as const);
+  if (!games.ok || !tournaments.ok || !promotions.ok || !wallPosts.ok || !rules.ok || !jackpotPool.ok) return err('unavailable' as const);
   return ok({
-    games: games.value, tournaments: tournaments.value, promotions: promotions.value, wallPosts: wallPosts.value, league: league.value, rules: rules.value,
+    games: games.value, tournaments: tournaments.value, promotions: promotions.value, wallPosts: wallPosts.value, rules: rules.value,
     jackpotPool: jackpotPool.value,
   });
 }

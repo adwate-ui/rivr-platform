@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 /**
  * The typed promotion model (console v3, phase 7; decision 0472): what a promotion's version gives (Reward), to whom
- * (Eligibility), when (Schedule), how often (Limits) and where it shows (Channels). Rewards are points, bonus chips
- * and perks, never rupees or paise (decision 0284). `promotion_version` holds each part as jsonb, and the database
+ * (Eligibility), when (Schedule), how often (Limits) and where it shows (Channels). Rewards are bonus chips and
+ * perks, never rupees or paise (decision 0284). `promotion_version` holds each part as jsonb, and the database
  * checks the same shapes.
  */
 
@@ -25,11 +25,7 @@ const id = z.string().min(1).max(64);
 /** What bonus chips are given on. */
 export const BONUS_CHIPS_ON = ['visit', 'first_buyin', 'referral', 'signup'] as const;
 
-// 1.25 to 5, in quarters: 2 is double points, 3 triple.
-const multiplier = z.number().min(1.25).max(5).refine((value) => Number.isInteger(value * 4));
-
 export const rewardSchema = z.union([
-  z.strictObject({ kind: z.literal('points_multiplier'), multiplier }),
   z.strictObject({
     kind: z.literal('buyin_bonus'), mode: z.literal('percent'), percent: z.int().min(1).max(100), capChips: chips.optional(),
     firstNBuyinsPerTable: firstN.optional(),
@@ -149,14 +145,13 @@ const eventBase = {
 
 /**
  * An event a promotion weighs, as the engine and last week's replay give it: a buy-in (the member's own chips, 0 when
- * paid from bonus), time played (the minutes inside the version's schedule at its stakes and tables, and the points
- * earned in them), a play-time bonus step reached, a visit (its number in the calendar month), a referral or a sign-up.
+ * paid from bonus), time played (the minutes inside the version's schedule at its stakes and tables), a play-time bonus step reached, a visit (its number in the calendar month), a referral or a sign-up.
  */
 export const promotionEventSchema = z.discriminatedUnion('kind', [
   z.strictObject({ ...eventBase, kind: z.literal('buy_in'), ownChips: z.int().min(0), isFirstOfVisit: z.boolean() }),
   // A seat past its Undo: whether it is the first of the visit.
   z.strictObject({ ...eventBase, kind: z.literal('seated'), isFirstOfVisit: z.boolean() }),
-  z.strictObject({ ...eventBase, kind: z.literal('time_played'), minutes: z.int().min(0), points: z.int().min(0) }),
+  z.strictObject({ ...eventBase, kind: z.literal('time_played'), minutes: z.int().min(0) }),
   // A play-time bonus step reached (owner, 8 Nov): the minutes played so far, and the step's own minutes.
   z.strictObject({ ...eventBase, kind: z.literal('hours_step'), minutes: z.int().min(0), stepMinutes: minutesPlayed }),
   z.strictObject({ ...eventBase, kind: z.literal('visit'), visitInMonth: z.int().min(1) }),
@@ -178,7 +173,6 @@ export const promotionSimulationSchema = z.strictObject({
   events: z.int().min(0),
   membersQualified: z.int().min(0),
   timesGiven: z.int().min(0),
-  points: z.int().min(0),
   chips: z.int().min(0),
   perks: z.int().min(0),
   isBudgetReached: z.boolean(),

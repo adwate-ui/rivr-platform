@@ -22,7 +22,7 @@ export function consoleSections(): SideNavSection[] {
       item('feedback', 'Feedback', 'feedback', { count: 4 }),
     ] },
     { id: 'marketing', label: 'Marketing', items: [
-      item('promotions', 'Promotions', 'promotions'), item('rewards', 'Rewards', 'rewards'), item('social', 'Social', 'social', { count: 2 }),
+      item('promotions', 'Promotions', 'promotions'), item('social', 'Social', 'social', { count: 2 }),
       item('content', 'Content', 'content'),
     ] },
     { id: 'admin', label: 'Admin', isCollapsible: true, items: [
@@ -50,5 +50,5 @@ export const PLAYER_TABS: BottomNavItem[] = [
   { tab: 'home', href: '#home', access: ENABLED },
   { tab: 'sessions', href: '#sessions', access: ENABLED },
   { tab: 'card', href: '#card', access: ENABLED },
-  { tab: 'rewards', href: '#rewards', access: ENABLED },
+  { tab: 'bonus', href: '#bonus', access: ENABLED },
 ];

@@ -12,10 +12,10 @@ import { queryKeys } from './queryKeys.ts';
 
 export type { TvCode };
 
-// The database's list of boards still names one the club dropped, the spin wheel, until the TVs' own issue rebuilds the
-// list: a TV still set to it shows the waitlist, and a rotation leaves it out.
+// The database's list of boards still names the ones the club dropped (the spin wheel, the rewards ticker, the League), until the TVs' own issue rebuilds the
+// list: a TV still set to one shows the waitlist, and a rotation leaves it out.
 type StoredTvMode = Database['public']['Enums']['tv_mode'];
-const isBoard = (mode: StoredTvMode): mode is TvMode => mode !== 'spin_wheel';
+const isBoard = (mode: StoredTvMode): mode is TvMode => mode !== 'spin_wheel' && mode !== 'rewards' && mode !== 'league';
 const boardOf = (mode: StoredTvMode): TvMode => (isBoard(mode) ? mode : 'waitlist');
 
 /**

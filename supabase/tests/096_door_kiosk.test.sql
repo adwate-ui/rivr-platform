@@ -40,15 +40,15 @@ insert into public.device (id, venue_id, kind, name, auth_user_id, revoked_at, r
   ('00000000-0000-4000-8000-00000000d961', '00000000-0000-4000-8000-000000000001', 'door', 'Front door', '00000000-0000-4000-8000-00000000e961', null, null),
   ('00000000-0000-4000-8000-00000000d962', '00000000-0000-4000-8000-000000000001', 'door', 'Old door', '00000000-0000-4000-8000-00000000e962', now(), 'Lost');
 
--- The four-hour bonus published, and a check-in welcome of 50 points.
+-- The four-hour bonus published, and a check-in welcome.
 -- It runs in versions (decision 0491): its first version goes live, and the promotion copies it.
 update public.promotion_version v set status = 'live', schedule = jsonb_set(v.schedule, '{startsOn}', to_jsonb(to_char(private.club_day_of(now()) - 1, 'YYYY-MM-DD'))) from public.promotion p
 where p.id = v.promotion_id and p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key = 'hours_bonus';
 select private.sync_promotion(id) from public.promotion where venue_id = '00000000-0000-4000-8000-000000000001' and template_key = 'hours_bonus';
 insert into public.promotion (id, venue_id, name, status, starts_at) values
-  ('00000000-0000-4000-8000-0000000c9601', '00000000-0000-4000-8000-000000000001', 'Welcome points', 'live', now() - interval '1 day');
+  ('00000000-0000-4000-8000-0000000c9601', '00000000-0000-4000-8000-000000000001', 'Welcome', 'live', now() - interval '1 day');
 insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, effect) values
-  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000c9601', 'check_in', '{}', '{"kind": "points", "points": 50}');
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000c9601', 'check_in', '{}', '{"kind": "message", "text": "Welcome back"}');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000290');
 insert into code select 'kavya', c.code from public.my_membership_card() c;
@@ -67,7 +67,7 @@ select results_eq($$ select opened_by_device_id, opened_by_staff_id from public.
   $$ values ('00000000-0000-4000-8000-00000000d961'::uuid, null::uuid) $$, 'her visit names the kiosk');
 select is((select count(*)::integer from public.promotion_grant
            where promotion_id = '00000000-0000-4000-8000-0000000c9601' and member_id = '00000000-0000-4000-8000-000000000290'), 1,
-  'and her check-in earns the welcome points');
+  'and her check-in gives the welcome');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e961');
 select results_eq($$ select * from public.door_scan(pg_temp.card('kavya')) $$, $$ values ('in'::text, 'Kavya'::text, 0::bigint) $$,
   'her card scanned again as she walks in only says she is in');
@@ -91,7 +91,7 @@ select results_eq($$ select action from public.door_scan(pg_temp.card('kavya')) 
 reset role;
 select is((select count(*)::integer from public.promotion_grant
            where promotion_id = '00000000-0000-4000-8000-0000000c9601' and member_id = '00000000-0000-4000-8000-000000000290'), 1,
-  'but the welcome points come once a club day, however often she scans in');
+  'but the welcome comes once a club day, however often she scans in');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e961');
 
 -- Four and a half hours at Table 2: the scan out earns the four-hour bonus.

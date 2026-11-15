@@ -91,7 +91,6 @@ export {
   detailedFeedbackSchema, FEEDBACK_RATED, FEEDBACK_TOPICS, feedbackNoteSchema, feedbackResolveSchema, quickFeedbackSchema, visitRatingSchema,
   type FeedbackTopic,
 } from './feedback.ts';
-export { leagueSeasonSchema, REWARD_KINDS, rewardItemSchema, type RewardKind, cancelRedemptionSchema } from './rewards.ts';
 export {
   BUY_IN_METHODS, CASH_OUT_TO, cageBuyInSchema, cashOutSchema, chipCountSchema, closeShiftSchema, eodReviewSchema, openShiftSchema, type BuyInMethodKey,
 } from './cage.ts';

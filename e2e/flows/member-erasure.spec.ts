@@ -1,6 +1,6 @@
 /**
  * Member erasure (#424; decision 0207). Nisha Bhatt, this flow's own super admin (Auth sends one code a minute to a
- * number), erases Neel Kapur at the practice venue on his request. His record shows the 500 points he will forfeit
+ * number), erases Neel Kapur at the practice venue on his request. His record shows nothing to forfeit
  * and nothing left to clear; a name not typed exactly is refused; typed exactly, with a reason, his personal data is
  * erased, his KYC selfie leaves Storage, and the record keeps only his member number. Local stack only: it uploads
  * the selfie with the service role. What is deleted, kept, blocked and audited, that the practice seed is taken
@@ -45,7 +45,7 @@ test.describe('Member erasure', () => {
     await page.getByRole('link', { name: 'Account', exact: true }).click();
 
     await expect(page.getByRole('heading', { name: 'Erasure on request' })).toBeVisible();
-    await expect(page.getByText('Forfeited to the club: 500 points and 0 bonus chips.')).toBeVisible();
+    await expect(page.getByText('No bonus chips to forfeit.')).toBeVisible();
     const name = page.getByRole('textbox', { name: 'Type the member\'s full name to confirm' });
     const erase = page.getByRole('button', { name: 'Erase personal data' });
     await name.fill('Neel');
@@ -55,7 +55,7 @@ test.describe('Member erasure', () => {
 
     await name.fill('Neel Kapur');
     await erase.click();
-    await expect(page.getByText('Erased. Forfeited 500 points and 0 bonus chips; KYC files removed: 1.')).toBeVisible();
+    await expect(page.getByText('Erased. Forfeited 0 bonus chips; KYC files removed: 1.')).toBeVisible();
     await expect(page.getByText('This member\'s personal data was erased on request.')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Erased member' })).toBeVisible();
     const left = await request.post(`${url}/storage/v1/object/list/kyc`, { headers: server, data: { prefix: FOLDER, limit: 10, offset: 0 } });

@@ -20,8 +20,8 @@ insert into public.member (id, venue_id, full_name, phone) values
   ('00000000-0000-4000-8000-000000000b96', '00000000-0000-4000-8000-000000000001', 'Active Asha', '+919000000856');
 
 -- Grants of one of the club's versions; the seed gives none since the spin wheel went.
-insert into public.promotion_grant (venue_id, member_id, promotion_id, promotion_version_id, trigger, effect, cost_paise, points, source_key, club_day, created_at)
-select v.venue_id, '00000000-0000-4000-8000-000000000b91', v.promotion_id, v.id, 'check_in', v.reward, 0, 10, 'test:' || n, current_date - n, now() - make_interval(days => n)
+insert into public.promotion_grant (venue_id, member_id, promotion_id, promotion_version_id, trigger, effect, cost_paise, source_key, club_day, created_at)
+select v.venue_id, '00000000-0000-4000-8000-000000000b91', v.promotion_id, v.id, 'check_in', v.reward, 0, 'test:' || n, current_date - n, now() - make_interval(days => n)
 from (select * from public.promotion_version where venue_id = '00000000-0000-4000-8000-000000000001' order by created_at, id limit 1) v, generate_series(1, 230) n;
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');

@@ -10,8 +10,8 @@ create function pg_temp.as_person(p_person text) returns void language sql as $$
 $$;
 grant execute on function pg_temp.as_person(text) to authenticated;
 create temp table body as select jsonb_build_object(
-  'name', 'Late night points', 'runs', 'Every night, 00:00 to 04:00',
-  'rule', jsonb_build_object('trigger', 'hours_played', 'effect', '{"kind": "points", "points": 50}'::jsonb)) as promotion;
+  'name', 'Late night thanks', 'runs', 'Every night, 00:00 to 04:00',
+  'rule', jsonb_build_object('trigger', 'hours_played', 'effect', '{"kind": "message", "text": "Thanks for playing"}'::jsonb)) as promotion;
 grant select on body to authenticated;
 create temp table ids (name text primary key, id uuid);
 grant select, insert on ids to authenticated;

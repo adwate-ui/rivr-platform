@@ -28,7 +28,6 @@ const NEW_CONTENT: Readonly<Record<string, Content>> = {
   promotions: { eyebrow: '', heading: '' },
   games: { heading: '' },
   calendar: { heading: '' },
-  league: { heading: '' },
   rewards: { heading: '' },
   outstation: { eyebrow: '', heading: '' },
   jackpot: { eyebrow: '', heading: '' },

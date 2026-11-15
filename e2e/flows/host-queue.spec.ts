@@ -21,10 +21,10 @@ test('Host queue: a host records why a lapsed regular stopped coming and an offe
   await page.getByRole('button', { name: 'Save the call to Ritika Bhalla' }).click();
   await expect(page.getByText('Choose why they stopped coming.')).toBeVisible();
   await page.getByRole('radiogroup', { name: 'Why they stopped coming' }).getByRole('radio', { name: 'Busy' }).click();
-  await page.getByRole('radiogroup', { name: 'Offer', exact: true }).getByRole('radio', { name: 'Points' }).click();
-  await page.getByRole('textbox', { name: 'Points', exact: true }).fill('500');
+  await page.getByRole('radiogroup', { name: 'Offer', exact: true }).getByRole('radio', { name: 'Bonus chips' }).click();
+  await page.getByRole('textbox', { name: 'Bonus chips', exact: true }).fill('500');
   await page.getByRole('button', { name: 'Save the call to Ritika Bhalla' }).click();
-  await expect(page.getByText('Offered: 500 points')).toBeVisible();
+  await expect(page.getByText('Offered: 500 bonus chips')).toBeVisible();
   await expect(page.getByRole('status').getByText('Call to Ritika Bhalla saved.')).toBeVisible();
   // Taking her off the queue is for good, so it is asked twice (F2-19).
   await page.getByRole('button', { name: 'Take off the queue: Ritika Bhalla' }).click();

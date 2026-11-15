@@ -22,10 +22,8 @@ insert into public.kyc_record (venue_id, member_id, status, method, date_of_birt
 on conflict do nothing;
 
 -- The Paper fallback flow's own duty managers, super admins at both venues: one runs the drill and asks
--- to release the freeze, the other releases it (#52). The Rewards catalogue flow's marketing manager,
--- who keeps the catalogue and the League's seasons, and its floor manager, who reads the standings (#145, #147).
--- The Rewards flow's member, who redeems from the app, and its floor manager, who pairs a TV on the rewards
--- ticker and hands the redemption over (#148, #152). The Pot data flow's super admin (#114). The Tournament clock flow's floor manager and
+-- to release the freeze, the other releases it (#52). A marketing manager, two floor managers and a
+-- member the rewards flows had, kept because other tests count them. The Pot data flow's super admin (#114). The Tournament clock flow's floor manager and
 -- member, who watches the clock on Home (#119). The Tournament registration flow's member, who registers and re-enters
 -- from the app, and its floor manager (#118, #120). The Member erasure flow's super admin (#424). The super admins who
 -- approve the Publish a promotion and Promotion simulation flows' promotions (#144). A row with no role is a member.
@@ -88,10 +86,6 @@ from lane_d_person p
 where p.role is null
 on conflict (id) do nothing;
 
--- Riya's 20,000 points, once, to redeem in the Rewards flow.
-select private.credit_points('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0702', 20000, 'Seed',
-                             'seed:rewards-flow:0d0702');
-
 -- The Tournament registration flow's Neha has passed the identity check and has ₹1,00,000 in her wallet, once,
 -- to register and re-enter from the app (#118).
 insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, pan, photo_path, verified_at) values
@@ -121,8 +115,8 @@ select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', '
   null)
 from public.member m where m.id in ('00000000-0000-4000-8000-0000000d0755', '00000000-0000-4000-8000-0000000d0756');
 
--- The practice member the Member erasure flow erases on request (#424): an identity check and 500 points to
--- forfeit, once. Practice records never sign in.
+-- The practice member the Member erasure flow erases on request (#424): an identity check, once. Practice records never
+-- sign in.
 insert into public.member (id, venue_id, full_name, phone)
 values ('00000000-0000-4000-8000-0000000d0758', '00000000-0000-4000-8000-000000000002', 'Neel Kapur', '+919000000758')
 on conflict (id) do nothing;
@@ -130,8 +124,6 @@ insert into public.kyc_record (venue_id, member_id, status, method, date_of_birt
   ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-0000000d0758', 'verified', 'digilocker', '1991-07-14', 'ABCPK7581S',
    '00000000-0000-4000-8000-000000000002/00000000-0000-4000-8000-0000000d0758/selfie.jpg', now())
 on conflict do nothing;
-select private.credit_points('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-0000000d0758', 500, 'Seed',
-                             'seed:member-erasure-flow:0d0758');
 
 -- The practice member whose number the Phone change flow changes (#502). Practice records never sign in.
 insert into public.member (id, venue_id, full_name, phone)

@@ -16,14 +16,13 @@ export function toPromotionEvent(json: PromotionEventJson): PromotionEvent {
 /** A perk the floor fulfils: a cab home, a tournament entry, first call on the waitlist. */
 export type Perk = 'cab_home' | 'tournament_entry' | 'waitlist_priority';
 
-/** What one promotion gives for one event: points, bonus chips or a perk, never paise; the rest are 0 or null. */
+/** What one promotion gives for one event: bonus chips or a perk, never paise; the other is 0 or null. */
 export interface Grant {
-  readonly points: number;
   readonly chips: number;
   readonly perk: Perk | null;
 }
 
-export const NO_GRANT: Grant = { points: 0, chips: 0, perk: null };
+export const NO_GRANT: Grant = { chips: 0, perk: null };
 
 /**
  * Why a promotion gives nothing for an event: it is for another kind of event, nothing comes to anything, the time
@@ -45,8 +44,6 @@ const BONUS_CHIPS_EVENT: Readonly<Record<Extract<Reward, { kind: 'bonus_chips' }
 /** The kind of event a reward is given for: the engine weighs a version only for its own. */
 export function triggerOf(reward: Reward): PromotionEventKind {
   switch (reward.kind) {
-    case 'points_multiplier':
-      return 'time_played';
     case 'hours_bonus':
       return 'hours_step';
     case 'buyin_bonus':
@@ -60,9 +57,9 @@ export function triggerOf(reward: Reward): PromotionEventKind {
   }
 }
 
-/** Points and chips of nothing are not a grant. */
+/** Chips of nothing are not a grant. */
 function given(grant: Grant): Result<Grant, GrantRefusal> {
-  return grant.points + grant.chips > 0 ? ok(grant) : err('nothing_earned');
+  return grant.chips > 0 ? ok(grant) : err('nothing_earned');
 }
 
 const chipsGrant = (chips: number): Grant => ({ ...NO_GRANT, chips });
@@ -93,20 +90,6 @@ function seatGrant(reward: Reward, event: EventOf<'seated'>): Result<Grant, Gran
   return reward.firstNSeatsPerTable === undefined && !event.isFirstOfVisit ? err('not_first_seat') : ok(chipsGrant(reward.chips));
 }
 
-/** The extra of a multiplier on the points earned, rounded down: double on 120 is 120 more. Quarters keep it in whole numbers. */
-function extraPoints(multiplier: number, earned: number): number {
-  return Math.floor((earned * (Math.round(multiplier * 4) - 4)) / 4);
-}
-
-function timeGrant(reward: Reward, event: EventOf<'time_played'>): Result<Grant, GrantRefusal> {
-  switch (reward.kind) {
-    case 'points_multiplier':
-      return given({ ...NO_GRANT, points: extraPoints(reward.multiplier, event.points) });
-    default:
-      return err('other_event');
-  }
-}
-
 /** A play-time bonus step reached (owner, 8 Nov): that step's chips, once its minutes are played. */
 function stepGrant(reward: Reward, event: EventOf<'hours_step'>): Result<Grant, GrantRefusal> {
   if (reward.kind !== 'hours_bonus') return err('other_event');
@@ -130,12 +113,12 @@ function visitGrant(reward: Reward, event: EventOf<'visit'>): Result<Grant, Gran
 }
 
 /**
- * What a promotion's reward gives for one event (decision 0472), before its limits: points or chips, never paise. A
+ * What a promotion's reward gives for one event (decision 0472), before its limits: chips or a perk, never paise. A
  * buy-in bonus is a percent of the member's own chips, rounded down to whole 50s and held to its cap, or fixed chips,
- * and nothing on a buy-in paid from bonus; a multiplier the extra points on those earned in the window; a play-time bonus step's chips as each step is reached (owner, 8 Nov);
+ * and nothing on a buy-in paid from bonus; a play-time bonus step's chips as each step is reached (owner, 8 Nov);
  * bonus chips on their event; a cab home from the visit's
- * number in the month; an entry or waitlist priority on a visit. The database's private.promo_grant is proved equal on
- * promotionRewards.json.
+ * number in the month; an entry or waitlist priority on a visit. Time played gives nothing itself: a play-time bonus is
+ * weighed as each of its steps is reached. The database's private.promo_grant is proved equal on promotionRewards.json.
  */
 export function computeGrant(promo: { readonly reward: Reward }, event: PromotionEvent): Result<Grant, GrantRefusal> {
   const { reward } = promo;
@@ -145,7 +128,7 @@ export function computeGrant(promo: { readonly reward: Reward }, event: Promotio
     case 'seated':
       return seatGrant(reward, event);
     case 'time_played':
-      return timeGrant(reward, event);
+      return err('other_event');
     case 'hours_step':
       return stepGrant(reward, event);
     case 'visit':

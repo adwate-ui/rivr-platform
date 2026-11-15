@@ -1,21 +1,12 @@
 /**
- * The record's Points and bonus chips (decision 0504; owner, 8 Nov): the two balances apart, each with its own name, line
- * and look, as the app shows them to the member; then each bonus line, the newest first; bonus chips are added by hand here, on the record.
+ * The record's bonus chips (decision 0504; owner, 8 Nov): the balance with its name, line and look, as the app shows it to the
+ * member; then each bonus line, the newest first; bonus chips are added by hand here, on the record.
  */
 export const memberBonus = {
-  pointsLabel: 'Points',
-  pointsLine: 'Spend on rewards.',
-  pointsLineLocked: 'Spend on rewards. {locked} more locked.',
   chipsLabel: 'Bonus chips',
   /** They never expire; the floor redeems them with a buy-in as it seats the member. */
   chipsLine: 'Used with a buy-in in the seat sheet. Never expire.',
   history: 'Bonus chips history',
-  /** The record's points, line by line (F-017). */
-  points: {
-    history: 'Points history', none: 'No points yet.', line: '{date} · {reason}', by: '{date} · {reason} · {name}',
-    locked: '{date} · Locked: {reason}', released: '{date} · Released: {reason}',
-    lockedBy: '{date} · Locked by {name}: {reason}', releasedBy: '{date} · Released by {name}: {reason}', plus: '+{points}', minus: '−{points}',
-  },
   none: 'No bonus chips yet.',
   showEarlier: 'Show earlier',
   /** A line: `15 Nov 2026 · Welcome bonus` `+500`; `15 Nov 2026 · Buy-in · Table 3 · seated by Aditya Malhotra` `−1,000`. */

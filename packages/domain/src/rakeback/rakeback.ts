@@ -1,5 +1,5 @@
 import { fromPaise, min, roundDownToChip, shareOf, type Paise } from '../money/index.ts';
-import { rakeShare } from '../points/points.ts';
+import { rakeShare } from '../shares/shares.ts';
 
 /** One hand of the week: its table's stake (a table type code), its rake, and the members seated at the table when it was played. */
 export interface RakeHand {

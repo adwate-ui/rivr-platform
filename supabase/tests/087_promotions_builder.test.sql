@@ -12,19 +12,19 @@ $$;
 grant execute on function pg_temp.as_person(text) to authenticated;
 create temp table ids (name text primary key, id uuid);
 grant select, insert on ids to authenticated;
--- Flow 7's promotion as the builder sends it: Thursday 14:00 to 20:00, 100/200, double points, no limits.
+-- Flow 7's promotion as the builder sends it: Thursday 14:00 to 20:00, 100/200, a message, no limits.
 create temp table flow7 as select jsonb_build_object(
-  'name', 'Double points', 'runs', 'NLH 100/200 · Thursday, 14:00 to 20:00',
+  'name', 'Thursday thanks', 'runs', 'NLH 100/200 · Thursday, 14:00 to 20:00',
   'rule', jsonb_build_object('trigger', 'hours_played', 'conditions', '{"days": [4], "from": "14:00", "until": "20:00", "stakes": ["nlh_100_200"]}'::jsonb,
-                             'effect', '{"kind": "points", "multiplier_percent": 200}'::jsonb)) as body;
+                             'effect', '{"kind": "message", "text": "Thanks for playing"}'::jsonb)) as body;
 grant select on flow7 to authenticated;
 
 -- Submitted, it waits with its rule and card words; approved by a super admin, it goes live and is announced.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 insert into ids select 'flow7', public.submit_promotion('00000000-0000-4000-8000-000000000001', (select body from flow7));
-select results_eq($$ select p.name, p.status, p.runs, p.detail, r.trigger, r.effect ->> 'multiplier_percent'
+select results_eq($$ select p.name, p.status, p.runs, p.detail, r.trigger, r.effect ->> 'kind'
                      from public.promotion p join public.promotion_rule r on r.promotion_id = p.id where p.id = (select id from ids where name = 'flow7') $$,
-  $$ values ('Double points'::text, 'pending'::text, 'NLH 100/200 · Thursday, 14:00 to 20:00'::text, null::text, 'hours_played'::text, '200'::text) $$,
+  $$ values ('Thursday thanks'::text, 'pending'::text, 'NLH 100/200 · Thursday, 14:00 to 20:00'::text, null::text, 'hours_played'::text, 'message'::text) $$,
   'marketing submits flow 7''s promotion, with its rule and card words, to wait for a super admin');
 reset role;
 select is_empty($$ select 1 from public.outbox_event where event_type = 'promotion.published'
@@ -43,11 +43,11 @@ select throws_ok($$ select public.submit_promotion('00000000-0000-4000-8000-0000
   'a cashier submits nothing');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select throws_ok($$ select public.submit_promotion('00000000-0000-4000-8000-000000000001',
-  (select jsonb_set(body, '{rule,effect}', '{"kind": "points", "multiplier_percent": 50}') from flow7)) $$, '23514', null,
-  'a rule the engine does not know is refused');
+  (select jsonb_set(body, '{rule,effect}', '{"kind": "points", "points": 50}') from flow7)) $$, '23514', null,
+  'a rule the engine does not know, as points are since they went, is refused');
 select throws_ok($$ select public.submit_promotion('00000000-0000-4000-8000-000000000001', (select body - 'rule' from flow7)) $$, '22023', null,
   'so is a promotion without its rule');
-select is((select count(*)::integer from public.promotion where name = 'Double points' and template_key is null), 1, 'and nothing is left of either');
+select is((select count(*)::integer from public.promotion where name = 'Thursday thanks' and template_key is null), 1, 'and nothing is left of either');
 
 -- Paused and resumed by its status: nothing is given while paused.
 reset role;
@@ -87,7 +87,7 @@ select is((select count(*)::integer from private.evaluate_promotions('00000000-0
   '{"member_id": "00000000-0000-4000-8000-000000000211", "key": "hours:test-3", "hours_played": 2}')), 1,
   'resumed, it is given once call time is complete');
 
--- At check-out the visit has just closed, as when points are earned: its call time still counts.
+-- At check-out the visit has just closed: its call time still counts.
 select lives_ok($$ select private.close_visit('00000000-0000-4000-8000-000000000211', now(), 'door') $$, 'Ishaan checks out');
 select is(private.promotion_facts('00000000-0000-4000-8000-000000000211', null, now()) -> 'call_time_complete', 'true'::jsonb,
   'his completed call time counts at the moment the visit closes');

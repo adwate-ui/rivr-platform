@@ -52,7 +52,7 @@ describe('every setting the contracts declare, as the Settings screen shows it',
     expect(defaultOf('waitlist.hold_minutes')).toEqual({ minutes: 20 });
     expect(defaultOf('kyc.at_the_club')).toEqual({ enabled: false });
     expect(defaultOf('waitlist.interest_to_open')).toBeUndefined();
-    expect(defaultOf('points.daily_staff_cap')).toBeUndefined();
+    expect(defaultOf('bonus.daily_staff_cap')).toBeUndefined();
   });
 
   it('hides the cab offer while cab requests are off (audit F-113)', () => {

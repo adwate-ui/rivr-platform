@@ -23,7 +23,7 @@ select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'rake back as p
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'Call time kept for every seat'), 0,
   'the line that said call time is kept went with the front page''s repeated bands (W-01)');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'the bad-beat jackpot and the next tournament'), 0, 'and its picture of the app names no jackpot');
-select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'Points and rewards'), 1, 'and Membership''s rewards are headed Points and rewards');
+select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', '"heading": "Rakeback"'), 1, 'and Membership''s rakeback table is headed Rakeback');
 
 -- Words the club wrote stay as written.
 update public.site_block b set content = jsonb_set(b.content, '{text}', '"Every hand logged at the table, by our dealers."')

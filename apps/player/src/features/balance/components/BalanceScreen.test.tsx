@@ -12,7 +12,7 @@ afterEach(() => {
 });
 
 const ARJUN = '00000000-0000-4000-8000-000000000201';
-const WALLET = [{ member_id: ARJUN, cash_paise: 18_500_000, points: 18_420, credit_limit_paise: 20_000_000 }];
+const WALLET = [{ member_id: ARJUN, cash_paise: 18_500_000, credit_limit_paise: 20_000_000 }];
 const DAY = 24 * 60 * 60 * 1000;
 const daysFromNow = (days: number) => new Date(Date.now() + days * DAY).toISOString();
 // A marker issued a fortnight ago, due in a fortnight: not past due, whatever day the tests run.
@@ -79,10 +79,9 @@ describe('Balance', () => {
     expect(screen.getByRole('heading', { name: 'Balance' })).toBeDefined();
   });
 
-  it('shows cash, points and markers against the limit, and "No movements yet." with none', async () => {
+  it('shows cash and markers against the limit, and "No movements yet." with none', async () => {
     renderBalance({});
     expect(await screen.findByText('₹1,85,000')).toBeDefined();
-    expect(screen.getByText('18,420 points')).toBeDefined();
     expect(screen.getByText('Limit ₹2,00,000 · available ₹1,50,000')).toBeDefined();
     expect(screen.getByText('No movements yet.')).toBeDefined();
   });

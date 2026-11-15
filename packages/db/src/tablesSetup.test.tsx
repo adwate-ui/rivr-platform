@@ -4,7 +4,6 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useGivePoints, useMemberPoints, useMyLockedPoints } from './pointsByHand.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { useTablesSetup, useTablesSetupActions } from './tablesSetup.ts';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
@@ -13,7 +12,7 @@ const STAFF = '00000000-0000-4000-8000-000000000134';
 const VENUE = '00000000-0000-4000-8000-000000000001';
 
 /** A fake API: each table or RPC answers with its reply; every call is kept with what it was sent. */
-function renderSetup(replies: Record<string, { status?: number; body: unknown }>, phone: string | null = null) {
+function renderSetup(replies: Record<string, { status?: number; body: unknown }>) {
   const calls: { path: string; body: unknown }[] = [];
   const fetch: typeof globalThis.fetch = async (input, init) => {
     const url = new URL(input instanceof Request ? input.url : String(input));
@@ -27,16 +26,13 @@ function renderSetup(replies: Record<string, { status?: number; body: unknown }>
     auth: { storage: sessionStorageFor(STAFF), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
-  const { result } = renderHook(() => ({
-    setup: useTablesSetup(VENUE), actions: useTablesSetupActions(VENUE),
-    member: useMemberPoints(VENUE, phone), give: useGivePoints(VENUE), locked: useMyLockedPoints(),
-  }), { wrapper });
+  const { result } = renderHook(() => ({ setup: useTablesSetup(VENUE), actions: useTablesSetupActions(VENUE) }), { wrapper });
   return { result, calls };
 }
 
 afterEach(cleanup);
 
-describe('tables setup and points by hand', () => {
+describe('tables setup', () => {
   it('reads the stakes, an older one with its game and a newer one with none, and the tables', async () => {
     const { result } = renderSetup({
       table_type: { body: [{ id: 's1', name: 'NLH 50/100', game: 'nlh', small_blind_paise: 5000, big_blind_paise: 10000, straddle_paise: null },
@@ -136,35 +132,5 @@ describe('tables setup and points by hand', () => {
     expect(calls.filter((call) => call.path.endsWith('_game_table')).map((call) => [call.path, call.body])).toEqual([
       ['deactivate_game_table', { p_table_id: 't1' }], ['reactivate_game_table', { p_table_id: 't4' }], ['delete_game_table', { p_table_id: 't1' }],
     ]);
-  });
-
-  it('finds a member by number with their points, and gives, locks or unlocks them once a request', async () => {
-    const { result, calls } = renderSetup({
-      member_points: { body: [{ member_id: 'm1', full_name: 'Mihir Shah', member_number: 1213, earned: 120, locked: 500 }] },
-      unlock_points: { status: 400, body: { code: 'RVPTS', message: 'Not enough locked points' } },
-      my_locked_points: { body: 250 },
-    }, '9000000213');
-    await waitFor(() => expect(result.current.member.data).toEqual({ memberId: 'm1', fullName: 'Mihir Shah', memberNumber: 1213, earned: 120n, locked: 500n }));
-    await waitFor(() => expect(result.current.locked.data).toBe(250n));
-    let given: unknown;
-    let unlocked: unknown;
-    await act(async () => {
-      given = await result.current.give.mutateAsync({ memberId: 'm1', action: 'locked', points: 300n, reason: ' Welcome ', requestId: 'r1' });
-      unlocked = await result.current.give.mutateAsync({ memberId: 'm1', action: 'unlock', points: 900n, reason: 'Played the month', requestId: 'r2' });
-    });
-    expect(given).toEqual({ ok: true, value: null });
-    expect(calls.find((call) => call.path === 'grant_points')?.body).toEqual({
-      p_member_id: 'm1', p_points: 300, p_reason: 'Welcome', p_idempotency_key: 'r1', p_is_locked: true,
-    });
-    expect(unlocked).toEqual({ ok: false, error: 'not_enough_locked' });
-  });
-
-  it('says the daily limit is reached when a change past the staff member\'s cap gives nothing', async () => {
-    const { result } = renderSetup({ grant_points: { body: null } });
-    let given: unknown;
-    await act(async () => {
-      given = await result.current.give.mutateAsync({ memberId: 'm1', action: 'earned', points: 500n, reason: 'Birthday', requestId: 'r3' });
-    });
-    expect(given).toEqual({ ok: false, error: 'daily_limit' });
   });
 });

@@ -57,15 +57,13 @@ describe('fetchSitePage', () => {
       tournaments: [],
       promotions: [],
       wallPosts: [],
-      league: { month: null, season: null },
-      rules: { pointsPerHour: [], rakebackBasisPoints: [], hotelNightHours: [], rewardsRakeShareBasisPoints: null, cabVisits: null,
-        leaguePrizes: { month: null, season: null }, badBeat: null, highHands: null },
+      rules: { rakebackBasisPoints: [], cabVisits: null, badBeat: null, highHands: null },
       jackpotPool: null,
       isPaused: false,
     }));
     expect(urls.find((url) => url.includes('/public_site_block'))).toContain('page_slug=eq.home');
     // A page without live blocks reads no live view.
-    const live = ['/public_table_status', '/public_tournament_calendar', '/public_promotion_cards', '/public_league_table', '/public_club_rules'];
+    const live = ['/public_table_status', '/public_tournament_calendar', '/public_promotion_cards', '/public_club_rules'];
     expect(urls.filter((url) => live.some((view) => url.includes(view)))).toEqual([]);
   });
 
@@ -114,35 +112,19 @@ describe('fetchSitePage', () => {
     expect(await fetchSitePage(client, 'home')).toEqual(err('unavailable'));
   });
 
-  it('reads the League and the club’s rules when the page has their blocks', async () => {
-    const { client } = siteClient(PAGES, [{ kind: 'league', content: { heading: 'The RIVR League' } }, { kind: 'rewards', content: {} }], {
-      public_league_table: { body: [
-        { standing: 'month', season_name: null, first_month: '2026-11-01', place: 1, display_name: 'Zoya K.', points: 120 },
-        { standing: 'month', season_name: null, first_month: '2026-11-01', place: 2, display_name: null, points: 80 },
-        { standing: 'season', season_name: 'Winter 2026', first_month: '2026-11-01', place: 1, display_name: 'Zoya K.', points: 120 },
-      ] },
+  it('reads the club’s rules when the page has a block that shows them', async () => {
+    const { client } = siteClient(PAGES, [{ kind: 'rewards', content: {} }], {
       public_club_rules: { body: [
-        { key: 'points.rewards_rake_share', subject_name: null, subject_order: null, value: { basis_points: 500 } },
-        { key: 'league.prizes', subject_name: null, subject_order: null, value: { month: 'A seat in the final' } },
-        { key: 'points.per_hour', subject_name: 'NLH 50/100', subject_order: 10000, value: { points: 5 } },
         { key: 'rakeback.rate', subject_name: 'NLH 50/100', subject_order: 10000, value: { basis_points: 1000, expires_days: 7 } },
         { key: 'rakeback.rate', subject_name: 'NLH 100/200', subject_order: 20000, value: { basis_points: 0, expires_days: 7 } },
         { key: 'cab.minimum_visits', subject_name: null, subject_order: null, value: { visits: 4 } },
       ] },
     });
     const page = await fetchSitePage(client, 'home');
-    expect(page.ok && page.value?.league).toEqual({
-      month: { first: '2026-11-01', standings: [{ place: 1, name: 'Zoya K.', points: 120 }, { place: 2, name: null, points: 80 }] },
-      season: { name: 'Winter 2026', standings: [{ place: 1, name: 'Zoya K.', points: 120 }] },
-    });
     expect(page.ok && page.value?.rules).toEqual({
-      pointsPerHour: [{ table: 'NLH 50/100', value: 5 }],
       // A rakeback of 0 gives none, so it is not shown.
       rakebackBasisPoints: [{ table: 'NLH 50/100', value: 1000 }],
-      hotelNightHours: [],
-      rewardsRakeShareBasisPoints: 500,
       cabVisits: 4,
-      leaguePrizes: { month: 'A seat in the final', season: null },
       badBeat: null,
       highHands: null,
     });

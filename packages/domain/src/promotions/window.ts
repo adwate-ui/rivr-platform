@@ -1,5 +1,5 @@
 import type { PromotionConditions } from '@rivr/contracts/promotions';
-import { tablePlayedSeconds } from '../points/points.ts';
+import { tablePlayedSeconds } from '../shares/shares.ts';
 import { CLUB_CLOCK_OFFSET_MS, clubMinute, MINUTES_IN_DAY } from './promotions.ts';
 
 const DAY_MS = 86_400_000;
@@ -46,7 +46,7 @@ export function secondsInWindow(stint: Stint, conditions: PromotionConditions): 
 /**
  * The seconds played at one table of a session inside a window: its stints' seconds inside the window,
  * less a share of the time away, as tablePlayedSeconds shares it. No record says when time away was
- * taken, so it is spread evenly. Its points are pointsForTime at the table's rate. The database does the
+ * taken, so it is spread evenly. The database does the
  * same in private.visit_window_time.
  */
 export function playedSecondsInWindow(time: TableTime, conditions: PromotionConditions): bigint {

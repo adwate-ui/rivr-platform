@@ -1,24 +1,9 @@
 /**
- * The settings for what members earn by playing: points by the hour and from rake (RIVR Rewards), and hourly
- * rakeback; and the members' own: the verification bonus and where identity is checked. Part of SETTINGS in settings.ts,
+ * The settings for what members earn by playing: hourly rakeback; and the members' own: the verification bonus and where identity is checked. Part of SETTINGS in settings.ts,
  * kept here to hold that file to its size.
  */
 import { z } from 'zod';
 import type { SettingDefinition } from './settingDefinition.ts';
-
-export const pointsPerHour = {
-  key: 'points.per_hour',
-  description: 'Points a member earns for each hour played, per table type, so by stake (#89, decision 0161); none set earns none.',
-  scope: 'table_type',
-  value: z.strictObject({ points: z.int().min(0).max(10_000) }),
-} as const satisfies SettingDefinition;
-
-export const pointsRewardsRakeShare = {
-  key: 'points.rewards_rake_share',
-  description: 'RIVR Rewards (#89, decision 0161): the share of a member\'s rake, in basis points (500 is 5%), earned as points at one a rupee; none set earns none.',
-  scope: 'venue',
-  value: z.strictObject({ basis_points: z.int().min(0).max(10_000) }),
-} as const satisfies SettingDefinition;
 
 // The cap is the most bonus one member gets at one stake in one club week, in whole ₹50 chips.
 export const rakebackRate = {
@@ -49,14 +34,6 @@ export const learnSessionPoints = {
   description: 'Learn points for a completed drill session and for each principle mastered for the first time; none set is 10 and 25.',
   scope: 'venue',
   value: z.strictObject({ per_session: z.int().min(0).max(1000), per_principle: z.int().min(0).max(1000) }),
-} as const satisfies SettingDefinition;
-
-/** The pre-registration bonus (owner, 2 Nov; decision 0298): points given once, when a member's identity check is verified. */
-export const pointsVerifiedBonus = {
-  key: 'points.verified_bonus',
-  description: 'Points a member gets once, when their identity check is verified (the pre-registration bonus); none set, or 0, gives none.',
-  scope: 'venue',
-  value: z.strictObject({ points: z.int().min(0).max(10000) }),
 } as const satisfies SettingDefinition;
 
 /** Identity checked at the club (decision 0502): while Cashfree is not live, a selfie lets a new member in and staff check them at the desk. */
@@ -113,18 +90,6 @@ export const bonusVisitCap = {
   value: z.strictObject({ basis_points: z.int().min(100).max(10000) }),
 } as const satisfies SettingDefinition;
 
-/**
- * The most points one staff member gives by hand in a club day (#798), 10,000 from the start; super admins are not capped,
- * and only they change it. None set is no cap.
- */
-export const pointsDailyStaffCap = {
-  key: 'points.daily_staff_cap',
-  description: 'The most points one staff member gives by hand in a club day, earned and locked together; a change past it is refused and the owner hears of it. Super admins are not capped. None set is no cap. Only a super admin changes it, with a reason.',
-  scope: 'venue',
-  superAdminOnly: true,
-  value: z.strictObject({ points: z.int().min(1).max(1000000) }),
-} as const satisfies SettingDefinition;
-
 /** The most Learn points a member earns in an IST day (#135), so re-drilling cannot farm them; none set is 100. */
 export const learnDailyPointsCap = {
   key: 'learn.daily_points_cap',
@@ -139,22 +104,4 @@ export const cabMinimumVisits = {
   description: 'The visits a member needs this month before the app offers them a cab; none set is four.',
   scope: 'venue',
   value: z.strictObject({ visits: z.int().min(1).max(31) }),
-} as const satisfies SettingDefinition;
-
-/** The RIVR League's prizes (#617), in words, as the website's Leaderboard shows them beside the standings. */
-export const leaguePrizes = {
-  key: 'league.prizes',
-  description: 'The RIVR League prizes the website shows beside the standings, in words: this month\'s and this season\'s; none set shows none.',
-  scope: 'venue',
-  value: z.strictObject({
-    month: z.string().trim().min(1).max(300).optional(),
-    season: z.string().trim().min(1).max(300).optional(),
-  }),
-} as const satisfies SettingDefinition;
-
-export const accommodationHoursPerNight = {
-  key: 'accommodation.hours_per_night',
-  description: 'Accommodation rewards (decision 0246): the hours played at this table type that earn one hotel night; none set earns none.',
-  scope: 'table_type',
-  value: z.strictObject({ hours: z.int().min(1).max(1_000) }),
 } as const satisfies SettingDefinition;

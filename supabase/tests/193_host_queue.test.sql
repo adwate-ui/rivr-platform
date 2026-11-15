@@ -59,9 +59,9 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select results_eq($$ select full_name, visits, status from public.host_queue('00000000-0000-4000-8000-000000000001') where full_name = 'Lata Iyer' $$,
   $$ values ('Lata Iyer'::text, 4, 'open'::text) $$, 'a host sees her, with her visits');
 select lives_ok($$ select public.record_host_contact((select item_id from public.host_queue('00000000-0000-4000-8000-000000000001') where full_name = 'Lata Iyer'), 'busy',
-  '{"kind": "points", "points": 500}', 'Call back on Friday') $$, 'records that she is busy, and an offer of 500 points');
+  '{"kind": "message", "text": "A table held for Friday"}', 'Call back on Friday') $$, 'records that she is busy, and an offer made');
 select results_eq($$ select status, churn_reason, offer ->> 'kind', note from public.host_queue('00000000-0000-4000-8000-000000000001') where full_name = 'Lata Iyer' $$,
-  $$ values ('offered'::text, 'busy'::text, 'points'::text, 'Call back on Friday'::text) $$, 'and the queue shows it');
+  $$ values ('offered'::text, 'busy'::text, 'message'::text, 'Call back on Friday'::text) $$, 'and the queue shows it');
 select throws_ok($$ select public.record_host_contact((select item_id from public.host_queue('00000000-0000-4000-8000-000000000001') where full_name = 'Lata Iyer'), 'tired', null, null) $$,
   '22023', null, 'a reason is one of the list');
 select throws_ok($$ select public.record_host_contact((select item_id from public.host_queue('00000000-0000-4000-8000-000000000001') where full_name = 'Lata Iyer'), 'busy',

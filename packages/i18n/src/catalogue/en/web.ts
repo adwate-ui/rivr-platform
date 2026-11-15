@@ -18,7 +18,6 @@ export const webApp = {
     room: 'The room',
     games: 'Games',
     membership: 'Membership',
-    leaderboard: 'Leaderboard',
     whatsOn: 'What’s on',
     prizes: 'Prizes and calendar',
     journal: 'Journal',
@@ -37,35 +36,17 @@ export const webApp = {
   /** A post on the website's social wall (#157). */
   wallHandle: '@{handle}',
   wallOpen: 'See it on Instagram',
-  /** The Leaderboard (#617): the RIVR League's standings, names as the TVs show them, and the prizes from league.prizes. */
-  league: {
-    place: 'Place',
-    member: 'Member',
-    points: 'League points',
-    /** A member who hid their name on the TVs. */
-    hidden: 'A member',
-    monthIntro: 'Standings for {month}',
-    none: 'No standings yet.',
-    prizes: 'Prizes: {prizes}',
-  },
-  /** What play earns (#617), read from the club's rules in force. */
+  /** The rakeback each table gives (#617), read from the club's rules in force. */
   rewards: {
-    intro: 'Points are given by the club and spent on rewards.',
     table: 'Table',
-    points: 'Points an hour',
     rakeback: 'Rakeback',
     rakebackRate: '{percent}% of your rake',
-    none: 'None',
-    rounding: 'Points are for rewards and never turn into cash.',
     rakebackPaid: 'Rakeback is paid as bonus chips each Monday.',
-    rakeShare: 'RIVR Rewards: {percent}% of your rake comes back as points.',
   },
-  /** The cab and hotel nights the club gives (#617), read from the club's rules in force. */
+  /** The cab the club gives (#617), read from the club's rules in force. */
   outstation: {
     cab: 'Pick-up and drop',
     cabText: 'A cab to the club and home again, once you have played {visits} times this month.',
-    hotel: 'Hotel nights',
-    hotelAt: '{table}: a night for every {hours} hours played',
   },
   /** The Bad Beat Jackpot and rare-hand bonuses (#618), read from the live pool and the club's rules in force. */
   jackpot: {
@@ -95,7 +76,6 @@ export const webApp = {
     standard: 'The standard',
     play: 'Play',
     games: 'Games',
-    leaderboard: 'Leaderboard',
     tournaments: 'Tournaments',
     promotions: 'Promotions',
     app: 'Member app',

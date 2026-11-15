@@ -11,8 +11,6 @@ export const tv = {
     jackpot: 'Jackpot and high hand',
     tournament_clock: 'Tournament clock',
     promotions: 'Promotions',
-    rewards: 'Rewards ticker',
-    league: 'League leaderboard',
     social_wall: 'Social wall',
     leaderboard: 'Hours leaderboard',
   },
@@ -35,16 +33,6 @@ export const tv = {
     called: 'Called to {table}',
     away: 'Away',
   },
-  /** The rewards ticker (#148, decision 0183): this month's points leaders, and the week's redemptions with their time. */
-  rewards: {
-    title: 'Rewards',
-    leaders: 'Points leaders',
-    leadersDetail: 'This month',
-    redeemed: 'Recently redeemed',
-    redeemedDetail: 'This week',
-    empty: 'Nothing yet.',
-    points: '{points} points',
-  },
   /** The social wall (#158, decision 0267): the club's approved Instagram posts, one after another. */
   socialWall: {
     label: 'On Instagram',
@@ -64,16 +52,6 @@ export const tv = {
     place: 'Place {place}',
     /** A member who hid their name on the TVs, by their member number (the owner, 12 Nov). */
     member: 'Member #{number}',
-  },
-  /** The League leaderboard (#148, decision 0182): this month's places, and the season's. */
-  league: {
-    title: 'RIVR League',
-    thisMonth: 'This month',
-    /** A season's months: `November 2026 to April 2027`. */
-    seasonMonths: '{first} to {last}',
-    empty: 'No League points yet.',
-    /** Beside a name at 48 px: the board says whose points they are. */
-    points: '{points} points',
   },
   /** The call-time board (decision 0163): the seats about to open, and every table's players on call time. */
   callTime: {

@@ -9,14 +9,13 @@ import { useInstallOffer } from '../install.ts';
 import { BonusToasts } from './BonusToasts.tsx';
 import { FrameBanners } from './FrameBanners.tsx';
 
-// Tonight, Card, Rewards and Bonus always show as tabs; the features inside them are gated one by one (decision 0320).
+// Tonight, Card and Bonus always show as tabs; the features inside them are gated one by one (decision 0320).
 const ALWAYS: FeatureAccess = { state: 'enabled' };
 
 const TAB_FOR_PATH: Readonly<Record<string, PlayerTab>> = {
   '/': 'home',
   '/sessions': 'sessions',
   '/card': 'card',
-  '/rewards': 'rewards',
   '/bonus': 'bonus',
 };
 
@@ -71,7 +70,7 @@ function useHeaderPhoto(): string | undefined {
 }
 
 /**
- * The player app's frame for a signed-in member (decision 0320): Tonight, Sessions, Card, Rewards and Bonus as tabs, gated by
+ * The player app's frame for a signed-in member (decision 0320): Tonight, Sessions, Card and Bonus as tabs, gated by
  * tier; the member's photo or initial top right on a tab screen, which opens Profile; pushed screens (Order, Profile, House rules)
  * without the tabs; and on Tonight the offer to install the app (#16). The club's state (paused, offline) is a banner at
  * the top: Tonight's own, or the frame's on every other screen. Nobody signed in goes to sign-in, and back to this screen once signed in. Until their identity check is
@@ -93,7 +92,6 @@ export function Frame({ children }: { children: ReactNode }) {
     { tab: 'home', href: '/', access: ALWAYS },
     { tab: 'sessions', href: '/sessions', access: sessions },
     { tab: 'card', href: '/card', access: ALWAYS },
-    { tab: 'rewards', href: '/rewards', access: ALWAYS },
     { tab: 'bonus', href: '/bonus', access: ALWAYS },
   ];
   const currentTab = tabOf(pathname);

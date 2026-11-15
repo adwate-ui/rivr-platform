@@ -1,6 +1,6 @@
 import { attributionSearch } from '@rivr/contracts/attribution';
 import { useFeature } from '@rivr/db';
-import { useMyReferral, type MyReferral } from '@rivr/db/myRewards';
+import { useMyReferral, type MyReferral } from '@rivr/db/referral';
 import { formatChips, t } from '@rivr/i18n';
 import { Box, Button, FeatureGate, Figure, Grid, Inline, LoadState, Skeleton, Stack, Text, useToast } from '@rivr/ui';
 

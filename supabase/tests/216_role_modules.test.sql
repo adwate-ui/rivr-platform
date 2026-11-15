@@ -12,14 +12,14 @@ grant execute on function pg_temp.as_person(text) to authenticated;
 
 select results_eq($$ select permission from public.role_permission where role = 'floor' order by 1 $$,
   $$ values ('bonus.give'::text), ('call_time.override'), ('floor.manage'), ('fnb.serve'), ('incidents.log'), ('kyc.in_person'), ('members.read'),
-            ('points.give'), ('rewards.hand_over'), ('rewards.manage'), ('sops.acknowledge'), ('tvs.manage'), ('waitlist.manage') $$,
-  'the floor runs tonight, the waitlist, call time, today''s players, orders, rewards, points and bonus chips by hand, checks members in person (decision 0301) and manages TVs');
+            ('sops.acknowledge'), ('tvs.manage'), ('waitlist.manage') $$,
+  'the floor runs tonight, the waitlist, call time, today''s players, orders and bonus chips by hand, checks members in person (decision 0301) and manages TVs');
 select ok(not exists (select 1 from public.role_permission where role = 'floor'
                       and permission in ('tables.manage', 'members.manage', 'tournaments.manage', 'promotions.manage', 'devices.manage')),
   'but not tables setup, the member list, games history, tournaments, promotions or the cage''s computers');
 select results_eq($$ select permission from public.role_permission where role = 'cashier'
-                    and permission in ('waitlist.manage', 'floor.manage', 'call_time.override', 'devices.manage', 'rewards.manage', 'points.give', 'fnb.serve') order by 1 $$,
-  $$ values ('call_time.override'::text), ('floor.manage'), ('points.give'), ('rewards.manage'), ('waitlist.manage') $$,
+                    and permission in ('waitlist.manage', 'floor.manage', 'call_time.override', 'devices.manage', 'fnb.serve') order by 1 $$,
+  $$ values ('call_time.override'::text), ('floor.manage'), ('waitlist.manage') $$,
   'the cashier sees the same, less the food and drink orders');
 
 -- Interest in a tournament (the seed's next one), which the cashier now sees the waitlist beside, is for tournaments.manage.

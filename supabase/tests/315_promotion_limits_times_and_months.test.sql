@@ -54,9 +54,9 @@ select results_eq($$ select period_key from public.promotion_grant where promoti
   $$ values ('day:' || to_char(private.club_day_of(now()), 'YYYY-MM-DD')), ('day:' || to_char(private.club_day_of(now()), 'YYYY-MM-DD') || '#2') $$,
   'the first keyed by the day, the second as the member''s second that day');
 select is(pg_temp.buy_in('212', 't-4'), 1, 'another member has it too');
-select throws_ok($$ insert into public.promotion_grant (venue_id, promotion_id, promotion_version_id, member_id, trigger, effect, cost_paise, points,
+select throws_ok($$ insert into public.promotion_grant (venue_id, promotion_id, promotion_version_id, member_id, trigger, effect, cost_paise,
                                                           source_key, period_key, club_day)
-                    select '00000000-0000-4000-8000-000000000001', v.promotion_id, v.id, '00000000-0000-4000-8000-000000000211', 'buy_in', '{}', 0, 0,
+                    select '00000000-0000-4000-8000-000000000001', v.promotion_id, v.id, '00000000-0000-4000-8000-000000000211', 'buy_in', '{}', 0,
                            'buy_in:race', 'day:' || to_char(private.club_day_of(now()), 'YYYY-MM-DD') || '#2', private.club_day_of(now())
                     from public.promotion_version v where v.promotion_id = (select id from ids where name = 'twice') $$,
   '23505', null, 'a racing second grant on the same key is refused by the unique key');
@@ -65,9 +65,9 @@ update public.promotion_version set status = 'ended' where promotion_id = (selec
 -- A monthly budget of 1,000 chips: last month's 1,000 do not count; this month's 1,000 do.
 insert into ids select 'monthly', pg_temp.live('Monthly', '{"kind": "buyin_bonus", "mode": "fixed", "chips": 500}',
   '{"perMember": "none", "budgetChips": 1000, "budgetPeriod": "month"}');
-insert into public.promotion_grant (venue_id, promotion_id, promotion_version_id, member_id, trigger, effect, cost_paise, points, chips, source_key,
+insert into public.promotion_grant (venue_id, promotion_id, promotion_version_id, member_id, trigger, effect, cost_paise, chips, source_key,
                                     period_key, club_day)
-select '00000000-0000-4000-8000-000000000001', v.promotion_id, v.id, '00000000-0000-4000-8000-000000000213', 'buy_in', '{}', 100000, 0, 1000,
+select '00000000-0000-4000-8000-000000000001', v.promotion_id, v.id, '00000000-0000-4000-8000-000000000213', 'buy_in', '{}', 100000, 1000,
        'buy_in:last-month', 'event:buy_in:last-month', (date_trunc('month', private.club_day_of(now())) - interval '1 day')::date
 from public.promotion_version v where v.promotion_id = (select id from ids where name = 'monthly');
 select is(pg_temp.buy_in('213', 'm-1') + pg_temp.buy_in('214', 'm-2'), 2, 'last month''s spend does not count: 500 and 500 are given this month');
@@ -106,9 +106,9 @@ insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, 
 values ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'old'), 'buy_in', '{}', '{"kind": "bonus", "amount_paise": 50000, "expires_days": 7}');
 insert into public.promotion_budget (venue_id, promotion_id, cap_paise, cap_count, period)
 values ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'old'), 1000000, null, 'month');
-insert into public.promotion_grant (venue_id, promotion_id, promotion_rule_id, member_id, trigger, effect, cost_paise, points, source_key, club_day, created_at)
+insert into public.promotion_grant (venue_id, promotion_id, promotion_rule_id, member_id, trigger, effect, cost_paise, source_key, club_day, created_at)
 select '00000000-0000-4000-8000-000000000001', (select id from ids where name = 'old'), r.id, '00000000-0000-4000-8000-000000000216', 'buy_in',
-       r.effect, 50000, 0, g.key, private.club_day_of(g.at), g.at
+       r.effect, 50000, g.key, private.club_day_of(g.at), g.at
 from public.promotion_rule r,
      (values ('buy_in:old-1', '2026-11-03T20:00:00+05:30'::timestamptz), ('buy_in:old-2', '2026-11-03T21:00:00+05:30'::timestamptz)) as g (key, at)
 where r.promotion_id = (select id from ids where name = 'old');
@@ -137,8 +137,8 @@ begin
 end;
 $$;
 insert into ids select 'spent', pg_temp.old_rule('Spent this month', 2, 'day', 100000, 'month');
-insert into public.promotion_grant (venue_id, promotion_id, promotion_rule_id, member_id, trigger, effect, cost_paise, points, source_key, club_day)
-select '00000000-0000-4000-8000-000000000001', r.promotion_id, r.id, '00000000-0000-4000-8000-000000000217', 'buy_in', r.effect, 50000, 0, k.key,
+insert into public.promotion_grant (venue_id, promotion_id, promotion_rule_id, member_id, trigger, effect, cost_paise, source_key, club_day)
+select '00000000-0000-4000-8000-000000000001', r.promotion_id, r.id, '00000000-0000-4000-8000-000000000217', 'buy_in', r.effect, 50000, k.key,
        private.club_day_of(now())
 from public.promotion_rule r, (values ('buy_in:spent-1'), ('buy_in:spent-2')) as k (key)
 where r.promotion_id = (select id from ids where name = 'spent');

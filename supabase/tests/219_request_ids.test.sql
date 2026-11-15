@@ -13,8 +13,8 @@ grant execute on function pg_temp.as_person(text) to authenticated;
 create temp table ids (name text primary key, id uuid);
 grant select, insert on ids to authenticated;
 create temp table promo as select jsonb_build_object(
-  'name', 'Double points', 'runs', 'Thursday', 'request_id', 'c2190000-0000-4000-8000-000000000001',
-  'rule', jsonb_build_object('trigger', 'hours_played', 'conditions', '{}'::jsonb, 'effect', jsonb_build_object('kind', 'points', 'multiplier_percent', 200))) as body;
+  'name', 'Thursday thanks', 'runs', 'Thursday', 'request_id', 'c2190000-0000-4000-8000-000000000001',
+  'rule', jsonb_build_object('trigger', 'hours_played', 'conditions', '{}'::jsonb, 'effect', jsonb_build_object('kind', 'message', 'text', 'Thanks for playing'))) as body;
 grant select on promo to authenticated;
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
@@ -23,7 +23,7 @@ insert into ids select 'again', public.submit_promotion('00000000-0000-4000-8000
 select is((select id from ids where name = 'again'), (select id from ids where name = 'first'), 'a promotion submitted again with its request id is the first');
 select is((select count(*)::integer from public.promotion where idempotency_key = 'c2190000-0000-4000-8000-000000000001'), 1, 'one promotion');
 select is((select count(*)::integer from public.promotion_rule where promotion_id = (select id from ids where name = 'first')), 1, 'with one rule');
-select throws_ok($$ select public.submit_promotion('00000000-0000-4000-8000-000000000001', (select jsonb_set(body, '{name}', '"Triple points"') from promo)) $$,
+select throws_ok($$ select public.submit_promotion('00000000-0000-4000-8000-000000000001', (select jsonb_set(body, '{name}', '"Friday thanks"') from promo)) $$,
   '22023', null, 'the same request id for another promotion is refused');
 select isnt(public.submit_promotion('00000000-0000-4000-8000-000000000001', (select body - 'request_id' from promo)), (select id from ids where name = 'first'),
   'without one, a submission is a new promotion, as before');

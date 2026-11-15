@@ -30,7 +30,7 @@ $$;
 -- The simulation the browser stores, on the version's own terms.
 create function pg_temp.simulate(p_version uuid) returns void language sql as $$
   select public.record_promotion_simulation(v.id,
-    '{"events": 3, "membersQualified": 2, "timesGiven": 2, "points": 0, "chips": 2000, "perks": 0, "isBudgetReached": false}',
+    '{"events": 3, "membersQualified": 2, "timesGiven": 2, "chips": 2000, "perks": 0, "isBudgetReached": false}',
     jsonb_build_object('reward', v.reward, 'eligibility', v.eligibility, 'schedule', v.schedule, 'limits', v.limits))
   from public.promotion_version v where v.id = p_version;
 $$;

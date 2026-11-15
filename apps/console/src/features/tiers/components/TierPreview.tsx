@@ -29,7 +29,7 @@ export function TierPreview({ matrix }: { matrix: TierMatrix }) {
     { tab: 'home', href: '/', access: ENABLED },
     { tab: 'sessions', href: '/sessions', access: access(TAB_FEATURES.sessions) },
     { tab: 'balance', href: '/balance', access: ENABLED },
-    { tab: 'rewards', href: '/rewards', access: ENABLED },
+    { tab: 'bonus', href: '/bonus', access: ENABLED },
     { tab: 'learn', href: '/learn', access: access(TAB_FEATURES.learn) },
   ];
   const namesShowing = (showsAs: ShowsAs) =>

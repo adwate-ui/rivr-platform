@@ -38,14 +38,14 @@ async function settle({ result }: ReturnType<typeof renderWallet>) {
 }
 
 describe('Wallet', () => {
-  it('gives Arjun\'s cash, bonus in force, points, open markers and limit, reading only his own grants and markers', async () => {
+  it('gives Arjun\'s cash, bonus in force, open markers and limit, reading only his own grants and markers', async () => {
     const { result, urls } = renderWallet({
-      my_wallet: [{ member_id: ARJUN, cash_paise: 18_500_000, points: 18_420, credit_limit_paise: 20_000_000 }],
+      my_wallet: [{ member_id: ARJUN, cash_paise: 18_500_000, credit_limit_paise: 20_000_000 }],
       bonus_grant: [{ id: 'g1', remaining_paise: 400_000, expires_at: null }],
       marker: [{ id: 'm1', outstanding_paise: 5_000_000, issued_at: '2026-10-06T12:00:00+00:00', due_at: '2026-11-05T12:00:00+00:00' }],
     });
     await waitFor(() => expect(result.current.wallet.data).toEqual({
-      cash: 18_500_000n, points: 18_420n, creditLimit: 20_000_000n,
+      cash: 18_500_000n, creditLimit: 20_000_000n,
       bonus: [{ grantId: 'g1', remaining: 400_000n, expiresAt: null }],
       markers: [{ markerId: 'm1', outstanding: 5_000_000n, issuedAt: '2026-10-06T12:00:00+00:00', dueAt: '2026-11-05T12:00:00+00:00' }],
     }));
@@ -58,7 +58,7 @@ describe('Wallet', () => {
 
   it('is null for someone signed in who is not a member, and has no limit without a credit line', async () => {
     expect((await settle(renderWallet({ my_wallet: [] }))).wallet.data).toBeNull();
-    const noLine = await settle(renderWallet({ my_wallet: [{ member_id: ARJUN, cash_paise: 0, points: 0, credit_limit_paise: null }] }));
+    const noLine = await settle(renderWallet({ my_wallet: [{ member_id: ARJUN, cash_paise: 0, credit_limit_paise: null }] }));
     expect(noLine.wallet.data?.creditLimit).toBeNull();
   });
 });

@@ -57,11 +57,6 @@ export const WHATSAPP_TEMPLATES = {
     body: "RIVR could not verify you. You are under the club's minimum age.",
     urlButton: false,
   },
-  reward_cancelled: {
-    category: 'utility',
-    body: 'RIVR cancelled your {{1}}, and what you spent on it is back. See why in Rewards in the RIVR app.',
-    urlButton: false,
-  },
   // A seat on the leaving list has ended, whether its call time ran out or the member left early.
   seat_released: {
     category: 'utility',

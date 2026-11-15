@@ -4,6 +4,7 @@ import { formatDuration, formatTime, t } from '@rivr/i18n';
 import { Button, ChoiceChips, Figure, Grid, Inline, ProgressBar, RequestItem, Sheet, Stack, Text } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
+import { useBonusByHand } from './bonusByHand.ts';
 import { requestActions, type LeaveRequest } from './requestActions.ts';
 import { wordsOf, waitedSeconds } from './requestView.ts';
 import type { RequestChanges } from './useRequestChanges.ts';
@@ -98,10 +99,11 @@ function Move({ player, tables, seats, held, changes }: Pick<PlayerSheetProps, '
 
 /**
  * A seated player's sheet (console v3): their call time left over a bar, what they ask with its actions, Add time for the
- * floor's managers, Move (table, then seat), their member record; Leave in the foot.
+ * floor's managers, Move (table, then seat), Bonus by hand for staff who may add it, their member record; Leave in the foot.
  */
 export function PlayerSheet(props: PlayerSheetProps) {
   const { venueId, player, table, requests, targets, now, permissions, changes, onLeave, onClose } = props;
+  const drawBonusByHand = useBonusByHand();
   const asks = requests.filter((request) => request.kind !== 'left_owing' && 'sessionId' in request && request.sessionId === player.sessionId);
   // One Leave: the card's, when the player has asked to go (audit F-131).
   const hasAskedToLeave = asks.some((request) => request.kind === 'leaving');
@@ -126,6 +128,7 @@ export function PlayerSheet(props: PlayerSheetProps) {
       })}
       {permissions.includes('call_time.override') && player.callTimeLeft !== null ? <AddTime venueId={venueId} player={player} changes={changes.seats} /> : null}
       <Move {...props} changes={changes.seats} />
+      {drawBonusByHand !== null && permissions.includes('bonus.give') ? drawBonusByHand({ venueId, memberId: player.memberId }) : null}
       <MemberRecordLink memberId={player.memberId} permissions={permissions} />
     </Sheet>
   );

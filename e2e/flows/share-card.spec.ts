@@ -9,7 +9,7 @@ import { appUrl, isRemoteTarget } from '../support/apps.ts';
 import { signInToPlayer } from '../support/signIn.ts';
 
 test.describe('Share card', () => {
-  test('Sessions, card, rewards › Bonus: a member copies her referral link, with her code, and shares her invite', async ({ page }) => {
+  test('Sessions, card, bonus › Bonus: a member copies her referral link, with her code, and shares her invite', async ({ page }) => {
     test.skip(isRemoteTarget(), 'signs in a seeded member, so the local stack only');
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await signInToPlayer(page, '9000000299');

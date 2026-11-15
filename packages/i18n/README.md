@@ -8,12 +8,11 @@ Every word a member or staff user reads, and the one formatter for money, number
 |---|---|
 | `t(key, params?)` | The message for a key, placeholders filled: `t('common.retry')`. The one way to get copy, anywhere: components, Astro pages, Edge Functions, render templates, tests. It knows `common` and `ui` from the start; anything else must be registered first. |
 | `registerMessages(namespaces)` | Adds namespaces to what `t` knows. Each app does it once, in `src/messages.ts`, imported first by its entry (`main.tsx`; on the website, the server modules that read its copy) and by its tests (`setupFiles`): `registerMessages({ player: playerApp })`. So an app ships only its own copy, and the player stays within its JavaScript budget. |
-| `playerApp`, `consoleApp`, `tabletApp`, `displayApp`, `webApp`, `tv`, `social`, `documents`, `memberRewards` | The namespaces an app registers: its own, plus `tv` where it names hands or TV modes (console, tablet, display); `@rivr/render` registers `social`, `tv` and `documents` (receipts, invoices and statements). A screen loaded on demand may register its own copy when it loads, so the app's first load does not carry it: the player's Academy invoice registers `documents`, its Rewards tab `memberRewards` (#152). |
+| `playerApp`, `consoleApp`, `tabletApp`, `displayApp`, `webApp`, `tv`, `social`, `documents` | The namespaces an app registers: its own, plus `tv` where it names hands or TV modes (console, tablet, display); `@rivr/render` registers `social`, `tv` and `documents` (receipts, invoices and statements). A screen loaded on demand may register its own copy when it loads, so the app's first load does not carry it: the player's Academy invoice registers `documents`. |
 | `activityActionWord(action)`, `activityEntityWord(entity)` | An audit row's action and kind of record in words, for the console's Activity screen (F-034); a code added later reads as `Recorded` or `Record`, never as the code. |
 | `formatMoney(paise)` | `₹1,20,000`. Indian grouping, no decimals on whole rupees, never rounded, `−₹1,000` for negatives. |
 | `formatChips(paise)` | `5,000`: chips, such as bonus chips, as a count with no rupee symbol, for the screens that show no rupee (#627). Otherwise as `formatMoney`. |
 | `formatNumber(n)` | A count: `18,420`, `−5` with the minus sign money uses; −0 is `0` (F5-12). |
-| `formatNights(thousandths)` | Hotel nights kept in thousandths: `1.25`, `0.175`, `2` (#146). |
 | `formatGameStakes(game, small, big, straddle?)` | A game's stakes as everyone writes them: `NLH 100/200/500`. |
 | `formatWaitingSince(at, now?)` | When something has waited since, with the year when it is not this one and its age from a day on: `Sun 15 Nov, 11:00 · 90 days`. |
 | `formatStakes(small, big, straddle?)` | Blinds in paise to `100/200`, and a straddle after them, `100/200/400`; a blind with paise keeps them, `0.50/1`. |
@@ -26,7 +25,7 @@ Every word a member or staff user reads, and the one formatter for money, number
 | `formatCountdown(seconds)` | A clock counting down, whole seconds: `11:29`, `05:00`, `1:15:00` from an hour up. The tournament clock. |
 | `formatDate(date)`, `formatWeekday(date)`, `formatDayTime(date)`, `formatDateTime(date)` | `15 Nov 2026`, `Sunday`, `Sun 15 Nov, 02:40` (within the coming weeks), `15 Nov 2026, 02:40` (a moment that may be months away, as a break's end), in IST; every month in three letters, September `Sep` (F5-11). |
 | `formatIsoDay(date)`, `istMidnight(day)`, `isLaterIstDay(day)` | `2026-11-15`, the IST calendar day as a date field gives it; `2026-11-15T00:00:00+05:30`, its midnight; whether a day is after today in IST, for a setting from a later day. The console's one way to name today (F1-30). |
-| `formatMonth(month)` | A calendar month from `2026-11` or `2026-11-01`: `November 2026`, as a League month is named. |
+| `formatMonth(month)` | A calendar month from `2026-11` or `2026-11-01`: `November 2026`. |
 | `formatList(items)` | `Black card and Founders' Circle`. |
 | `formatMobile(e164)` | `+919876543210` to `+91 98765 43210`. |
 | `en` | The catalogue itself, for code that needs a key's type (`keyof typeof en.ui.consoleRail.items`) or every message (the copy test). Screens use `t`, not this: importing it as a value ships every app's copy. |

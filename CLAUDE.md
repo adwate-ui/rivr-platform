@@ -19,7 +19,7 @@ Specification lives in `docs/spec/`; start with `docs/spec/README.md`, which set
 
 - `packages/tokens` `tokens.json`, the single design source, and its generated outputs. Nowhere else may hold a raw design value.
 - `packages/ui` every visible element. Apps assemble it; they never style.
-- `packages/domain` every business rule (money, rake, call time, TDS, GST, priority, payouts, points). Pure TypeScript.
+- `packages/domain` every business rule (money, rake, call time, TDS, GST, priority, payouts). Pure TypeScript.
 - `packages/db` the only code that talks to Supabase.
 - `packages/contracts` Zod schemas shared by apps and Edge Functions.
 - `packages/i18n` every user-facing string (English only) and the money/time formatters.

@@ -60,34 +60,6 @@ export async function fetchSiteGames(client: RivrClient): Promise<Result<SiteGam
   return ok(gamesFrom(data));
 }
 
-/** A place in the RIVR League's standings, as the TVs show it: a first name and initial, or null for a member who hid it. */
-export interface SiteStanding {
-  readonly place: number;
-  readonly name: string | null;
-  readonly points: number;
-}
-
-/** This month's and this season's League standings (#617), each null when the League has none. */
-export interface SiteLeague {
-  /** The month's first day: `2026-11-01`. */
-  readonly month: { readonly first: string; readonly standings: readonly SiteStanding[] } | null;
-  readonly season: { readonly name: string; readonly standings: readonly SiteStanding[] } | null;
-}
-
-/** The League's standings from the public view (`public_league_table`), best first. */
-export async function fetchSiteLeague(client: RivrClient): Promise<Result<SiteLeague, 'unavailable'>> {
-  const { data, error } = await client.from('public_league_table').select('standing, season_name, first_month, place, display_name, points').order('place');
-  if (error) return err('unavailable');
-  const standings = (standing: string) => data.flatMap((row) => (row.standing === standing && row.place !== null && row.points !== null
-    ? [{ place: row.place, name: row.display_name, points: row.points }] : []));
-  const month = data.find((row) => row.standing === 'month');
-  const season = data.find((row) => row.standing === 'season');
-  return ok({
-    month: month?.first_month ? { first: month.first_month, standings: standings('month') } : null,
-    season: season?.season_name ? { name: season.season_name, standings: standings('season') } : null,
-  });
-}
-
 /** A rule set for one table type, by its name, in the order of its stakes. */
 export interface SiteTableRule<T> {
   readonly table: string;
@@ -99,13 +71,9 @@ export interface SiteTableRule<T> {
  * Rates are in basis points (500 is 5%).
  */
 export interface SiteRules {
-  readonly pointsPerHour: readonly SiteTableRule<number>[];
   readonly rakebackBasisPoints: readonly SiteTableRule<number>[];
-  readonly hotelNightHours: readonly SiteTableRule<number>[];
-  readonly rewardsRakeShareBasisPoints: number | null;
   /** The visits this month after which the app offers a cab; null while no tier has cab requests. */
   readonly cabVisits: number | null;
-  readonly leaguePrizes: { readonly month: string | null; readonly season: string | null };
   /** How a bad beat pays (jackpot.payout, #618): the share of the main pool, and its split, which makes 100%. */
   readonly badBeat: { readonly poolBasisPoints: number; readonly loserBasisPoints: number; readonly winnerBasisPoints: number; readonly tableBasisPoints: number } | null;
   /** What each rare hand pays, in paise (high_hand.payouts, #618); 0 pays nothing. */
@@ -133,15 +101,9 @@ export function rulesFrom(rows: readonly RuleRow[]): SiteRules {
     return value !== null && row.subject_name !== null ? [{ table: row.subject_name, value }] : [];
   });
   const venueWide = (key: string) => rows.find((row) => row.key === key)?.value;
-  const prizes = venueWide('league.prizes');
-  const rakeShare = numberIn(venueWide('points.rewards_rake_share'), 'basis_points');
   return {
-    pointsPerHour: byTable('points.per_hour', 'points'),
     rakebackBasisPoints: byTable('rakeback.rate', 'basis_points').filter((rule) => rule.value > 0),
-    hotelNightHours: byTable('accommodation.hours_per_night', 'hours'),
-    rewardsRakeShareBasisPoints: rakeShare === 0 ? null : rakeShare,
     cabVisits: numberIn(venueWide('cab.minimum_visits'), 'visits'),
-    leaguePrizes: { month: wordsIn(prizes, 'month'), season: wordsIn(prizes, 'season') },
     badBeat: badBeatFrom(venueWide('jackpot.payout')),
     highHands: highHandsFrom(venueWide('high_hand.payouts')),
   };

@@ -86,9 +86,9 @@ from public.promotion_version where promotion_id = (select id from ids where nam
 select private.sync_promotion((select id from ids where name = 'once'));
 select is(pg_temp.buy_in('216', 'o-2'), 0, 'and not again under version 2');
 select is(pg_temp.buy_in('217', 'o-3'), 1, 'which Neel has');
-select throws_ok($$ insert into public.promotion_grant (venue_id, promotion_id, promotion_version_id, member_id, trigger, effect, cost_paise, points,
+select throws_ok($$ insert into public.promotion_grant (venue_id, promotion_id, promotion_version_id, member_id, trigger, effect, cost_paise,
                                                           source_key, period_key, club_day)
-                    select venue_id, promotion_id, promotion_version_id, member_id, trigger, effect, 0, 0, 'race', period_key, club_day
+                    select venue_id, promotion_id, promotion_version_id, member_id, trigger, effect, 0, 'race', period_key, club_day
                     from public.promotion_grant where source_key = 'buy_in:o-1' $$,
   '23505', null, 'the period key is unique per promotion and member, so a race cannot give twice');
 update public.promotion_version set status = 'ended' where promotion_id = (select id from ids where name = 'once');

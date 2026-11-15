@@ -1,6 +1,6 @@
 # @rivr/domain
 
-Every business rule, as pure TypeScript over `@rivr/contracts`. Lane 0 ships money and the ledger; lanes add rake, caps, call time, TDS, GST, markers, payouts, priority and points as folders beside them.
+Every business rule, as pure TypeScript over `@rivr/contracts`. Lane 0 ships money and the ledger; lanes add rake, caps, call time, TDS, GST, markers, payouts and priority as folders beside them.
 
 ## Public API
 
@@ -119,7 +119,7 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 
 | Export | What it does |
 |---|---|
-| `withdrawalCheck(amount, walletCash)`, `WithdrawalRefusal` | A withdrawal from the member's wallet (#21; design prompt flow 9): whole rupees above nothing (`not_rupees`), no more than the wallet's cash (`wallet_short`); bonus and points are never withdrawn. The database's `private.withdrawal_check` is proved equal by `packages/testing/golden/wallet.json`. |
+| `withdrawalCheck(amount, walletCash)`, `WithdrawalRefusal` | A withdrawal from the member's wallet (#21; design prompt flow 9): whole rupees above nothing (`not_rupees`), no more than the wallet's cash (`wallet_short`); bonus is never withdrawn. The database's `private.withdrawal_check` is proved equal by `packages/testing/golden/wallet.json`. |
 
 ### `@rivr/domain/fnb`
 
@@ -162,18 +162,11 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | `gstIncluded(inclusive, rate)`, `GstSplit` | GST taken out of an amount that includes it (#23, decision 0071): equal CGST and SGST halves, each rounded to the nearest paisa (a half up), and the taxable value as what is left, so the three add up to the amount. Throws on a negative amount or a rate outside 0 to 10,000 basis points (bugs). The database's `private.gst_included` is proved equal by `packages/testing/golden/gst.json`. |
 | `igstIncluded(inclusive, rate)`, `IgstSplit` | IGST taken out of an amount that includes it, for a buyer registered in another state (#380, decision 0102): the whole tax at the full rate, rounded once to the nearest paisa (a half up), and the taxable value as the rest. Same refusals as `gstIncluded`. The database's `private.igst_included` is proved equal on the same golden file. |
 
-### `@rivr/domain/accommodation`
-
-`stockLevel(stock)`, `soldOutLast(items)` (`@rivr/domain/rewards`, F-072, F-187): a reward's stock as sold out, low (under `LOW_STOCK`, 5) or enough, and rewards with none left at the end, the rest in their order.
-
-`rewardShortfall(price, held)` (`@rivr/domain/rewards`, F-046): how far short of a reward a member is, in points or in thousandths of a hotel night; null when they hold enough.
-
-Accommodation rewards (#146, decision 0246): hotel nights, kept in thousandths. Proved equal to `private.nights_for_time` by `packages/testing/golden/accommodation.json`.
+### `@rivr/domain/learnPoints`
 
 | Export | What it does |
 |---|---|
 | `learnPoints(mastered, earnedToday, rates)`, `LearnPointRates` | Learn points (#135, `@rivr/domain/learnPoints`): a completed session's `perSession`, and `perPrinciple` for each principle first mastered in it, but no more than `dailyCap` less what Learn gave that IST day, never below nothing. The database's `private.learn_points` is proved equal on `golden/learnPoints.json`. |
-| `nightsForTime(playedSeconds, hoursPerNight)`, `NIGHT` | The thousandths of a night (`NIGHT` is 1,000) a table type's hours a night gives for the seconds played there, rounded down. At 20 hours a night, 5 hours is 250. |
 
 ### `@rivr/domain/rakeback`
 
@@ -189,24 +182,24 @@ Hourly rakeback (#108, decision 0245), in paise. `packages/testing/golden/rakeba
 | Export | What it does |
 |---|---|
 | `promotionApplies(conditions, facts)`, `PromotionFacts` | Whether a promotion rule applies (#83, decision 0140): every condition it names holds (tier, stake, table, day, time window, first N per table or day, new or lapsed, visits this month, call time completed, hours played, the hand). Days and windows are the club's, 06:00 to 06:00 IST. |
-| `promotionReward(effect, { amount, points })`, `PromotionReward` | What an effect gives: its rupee cost against the budget, and points. A bonus share is rounded down to whole ₹50 chips, then held to its cap; double points on 120 earned is 120 more; a bonus or points of nothing is `null`. |
+| `promotionReward(effect, { amount })`, `PromotionReward` | What an effect gives: its rupee cost against the budget. A bonus share is rounded down to whole ₹50 chips, then held to its cap; a bonus of nothing is `null`. |
 | `promotionsToGive(candidates)`, `PromotionCandidate` | Of the promotions that apply to one event, in priority order, which to give: each while its count budget, rupee budget and per-player limit allow, never part of one; one that does not stack only alone. |
-| `secondsInWindow(stint, conditions)`, `playedSecondsInWindow(time, conditions)` | Hours-played promotions with days or times (#457, decision 0186): a stint's whole seconds inside the window on the club days it touches, and a table's time inside the window less its share of the time away, which earns points at the table's rate (`pointsForTime`). |
+| `secondsInWindow(stint, conditions)`, `playedSecondsInWindow(time, conditions)` | Hours-played promotions with days or times (#457, decision 0186): a stint's whole seconds inside the window on the club days it touches, and a table's time inside the window less its share of the time away. |
 
 The database's `private.promotion_applies`, `private.promotion_reward` and `private.promotions_to_give` are proved equal on `packages/testing/golden/promotions.json`, and `private.seconds_in_window` on `promotionWindow.json`; `private.evaluate_promotions` puts them together.
 
-**The typed model (console v3; decisions 0470 to 0472).** A promotion's version holds a Reward, Eligibility, Schedule, Limits and Channels (`@rivr/contracts/promotionModel`), in points, bonus chips and perks, never paise. The console builds versions only (decision 0491); the rules above stay for the promotions that still run by a rule, which the engine weighs before the versions.
+**The typed model (console v3; decisions 0470 to 0472).** A promotion's version holds a Reward, Eligibility, Schedule, Limits and Channels (`@rivr/contracts/promotionModel`), in bonus chips and perks, never paise. The console builds versions only (decision 0491); the rules above stay for the promotions that still run by a rule, which the engine weighs before the versions.
 
 | Export | What it does |
 |---|---|
 | `isInSchedule(schedule, at)`, `secondsInSchedule(span, schedule)`, `openingMinutes` | When a version runs: on its club days from its start day to its end day, an opening from `from` to the next `to`, across midnight or the 06:00 turnover; the same time at both ends is 24 hours. Time-played rewards count the whole seconds of play inside the openings. Proved on `promotionSchedule.json`. |
 | `isEligible(promo, member, context)`, `MemberFacts` | The member's tier and audience (everyone, new in 30 days or lapsed 30 days; no audience of women, decision 0497), and for an event at a moment its stake, table and moment. |
-| `computeGrant(promo, event)`, `triggerOf(reward)`, `Grant` | What the reward gives for one event, before limits: a seat bonus its fixed chips on a visit's first seat or on the first N at a table (owner, 8 Nov); a buy-in bonus as a percent of own chips in whole 50s held to its cap, or fixed; a multiplier's extra points; a play-time bonus step's chips on its own `hours_step` event (decision 0507); bonus chips on their event; a cab, an entry or priority on a visit. `Result` with the reason for nothing. |
+| `computeGrant(promo, event)`, `triggerOf(reward)`, `Grant` | What the reward gives for one event, before limits: a seat bonus its fixed chips on a visit's first seat or on the first N at a table (owner, 8 Nov); a buy-in bonus as a percent of own chips in whole 50s held to its cap, or fixed; a play-time bonus step's chips on its own `hours_step` event (decision 0507); bonus chips on their event; a cab, an entry or priority on a visit. `Result` with the reason for nothing. |
 | `checkLimits(promo, grant, tally)`, `tallyFor`, `periodKey`, `slotKey`, `remainingBudget(promo, ledger, day)`, `decideGrant` | The limits in order: the member's period (up to `timesPerMember` times, each grant keyed as the member's Nth there by `slotKey`; a play-time bonus step's period `@` its place among the promotion's steps, so an edit that moves a step never pays it twice, and with no limit its visit; `periodKey` takes the reward for that, decisions 0507 and 0511), first N per table, members a day, most grants, the budget in chips whole or not at all; counted over all versions, and a monthly budget (`budgetPeriod` `month`) over the event's club month alone (decision 0499). |
 | `tierChips(tiers, claimed)` | A seat bonus in tiers (decision 0580): the chips of the tier the claims so far fall in, null once every tier is claimed; `checkLimits` gives a tiered grant its tier's chips and refuses it `tiers_used_up` past the last. `private.promo_tier_chips` is its twin on `promotionRewards.json`. |
-| `stackGrants(candidates)` | For one event: one multiplier, the one giving the most points; chips stack; one perk of each kind. |
+| `stackGrants(candidates)` | For one event: chips stack; one perk of each kind. |
 | `hourSteps(reward)`, `stepsReached(reward, minutes)` | A play-time bonus's steps (decision 0507): one after a time, two to six set steps, or every so many minutes up to its times a visit and never past 24 hours; and those reached in the minutes played. |
-| `simulate(promo, events)` | Last week replayed (a play-time bonus a step for each its visits reached): members qualified, times given, points, chips, perks, whether the budget stopped a grant, and every grant. |
+| `simulate(promo, events)` | Last week replayed (a play-time bonus a step for each its visits reached): members qualified, times given, chips, perks, whether the budget stopped a grant, and every grant. |
 | `transition(state, action, actor)`, `sameTerms` | The status machine: submit needs a simulation on these terms, approval `promotions.approve` and someone other than the author, an edit of a running version opens the next draft. |
 
 `private.promo_is_eligible`, `private.promo_grant`, `private.promo_check_limits`, `private.promo_stack` and `private.seconds_in_schedule` are proved equal on `promotionRewards.json` and `promotionSchedule.json` in `supabase/tests/024_golden_twins.test.sql`.
@@ -224,16 +217,14 @@ The database's `private.promotion_applies`, `private.promotion_reward` and `priv
 |---|---|
 | `holderShare(net, basisPoints)` | A partner's or investor's share of a club month's net result (#98, decision 0189): the net times their holding in basis points on the month's last day, rounded towards nothing to the paisa, so a loss is shared as a profit is. Proved on `packages/testing/golden/holderShare.json`. |
 
-### `@rivr/domain/points`
+### `@rivr/domain/shares`
 
-Points (#89, decision 0161, question #395), in whole points (bigint); they never convert to cash. Each is proved equal to its `private.` twin by `packages/testing/golden/points.json`.
+A session's time shared among its tables and a hand's rake among its seats, which rakeback reads (decision 0585). Each is proved equal to its `private.` twin by `packages/testing/golden/shares.json`.
 
 | Export | What it does |
 |---|---|
-| `pointsForTime(seconds, perHour)` | Hours by stake: a table type's points an hour for the seconds played there, rounded down. 2 h 59 min at 10 an hour is 29. |
 | `tablePlayedSeconds(table, session, played)` | A session that moved tables shares its time played (seating to leaving, less away) among them in proportion to the time at each, rounded down to the second. |
-| `rakeShare(rake, seated)` | RIVR Rewards: a hand's rake split equally among the members seated at its table, rounded down to the paisa. |
-| `rakePoints(share, rate)` | A share (basis points, 500 is 5%) of a member's rake for a visit, as points at one a rupee, rounded down. ₹612.40 at 5% is 30. |
+| `rakeShare(rake, seated)` | A hand's rake split equally among the members seated at its table, rounded down to the paisa. |
 
 ### `@rivr/domain/aml`
 
@@ -254,15 +245,6 @@ The club's day runs 06:00 to 06:00 IST, so a night past midnight belongs to the 
 | `recentClubMonths(at, count)`, `lastDayOfMonth(first)` | The first days of the last club months, the one a moment falls in first, and a month's last day: Reports and the partner statements choose months by them (#99, #98). |
 | `clubDaysPeriod(first, last)` | A run of club days as the moments it begins and ends: 06:00 IST on the first to 06:00 IST after the last. Pot data reads hands by it (#114). |
 | `dayAfter(day, count)`, `weekOf(day)` | The club day `count` days after another (before, when negative), and the Monday of a club day's week: the roster shows a week by them (#106). |
-
-### `@rivr/domain/league`
-
-The RIVR League (#147, decision 0182, question #452). A month's League points are the points cash play earned for hours at the tables, plus tournament finishes. Each is proved equal to its `private.` twin by `packages/testing/golden/league.json`.
-
-| Export | What it does |
-|---|---|
-| `leagueFinishPoints(place, schedule)`, `LeagueFinishPoints` | A tournament finish, from `league.points`: the points for taking part, plus first's, second's or third's, or the final table's for fourth to ninth; nothing more below ninth. With 100, 70, 50, 20 and 5, the winner earns 105 and tenth 5. |
-| `leagueMonth(at)` | The League month of a moment, as its first day: the month of the club's day (06:00 to 06:00 IST), so 02:00 on 1 December is November. |
 
 ### `@rivr/domain/tournament`
 

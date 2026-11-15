@@ -5,7 +5,7 @@ import { axeViolations, renderIn } from '../test/render.tsx';
 import { BottomNav, type BottomNavItem, type PlayerTab } from './BottomNav.tsx';
 
 function tabs(overrides: Partial<Record<PlayerTab, BottomNavItem['access']>> = {}): BottomNavItem[] {
-  return (['home', 'sessions', 'food', 'rewards', 'learn'] as const).map((tab) => ({
+  return (['home', 'sessions', 'food', 'bonus', 'learn'] as const).map((tab) => ({
     tab,
     href: `/${tab}`,
     access: overrides[tab] ?? { state: 'enabled' },
@@ -22,7 +22,7 @@ describe('BottomNav', () => {
     renderIn(<BottomNav items={tabs()} current="home" />);
     const nav = screen.getByRole('navigation', { name: 'Main' });
     const names = within(nav).getAllByRole('link').map((link) => link.textContent);
-    expect(names).toEqual(['Home', 'Sessions', 'Menu', 'Rewards', 'Learn']);
+    expect(names).toEqual(['Home', 'Sessions', 'Menu', 'Bonus', 'Learn']);
   });
 
   it('marks the current tab as the current page', () => {
@@ -50,8 +50,8 @@ describe('BottomNav', () => {
   it('hands a plain click to the router instead of reloading the page', async () => {
     const onNavigate = vi.fn();
     renderIn(<BottomNav items={tabs()} onNavigate={onNavigate} />);
-    await userEvent.click(screen.getByRole('link', { name: 'Rewards' }));
-    expect(onNavigate).toHaveBeenCalledWith('/rewards');
+    await userEvent.click(screen.getByRole('link', { name: 'Bonus' }));
+    expect(onNavigate).toHaveBeenCalledWith('/bonus');
   });
 
   it('can be walked with Tab and followed with Enter', async () => {

@@ -12,7 +12,6 @@ export const rail = {
     tickets: { one: '1 open ticket', other: '{count} open tickets' },
     deletions: { one: '1 deletion request', other: '{count} deletion requests' },
     approvals: { one: '1 awaiting approval', other: '{count} awaiting approval' },
-    handOvers: { one: '1 to hand over', other: '{count} to hand over' },
     posts: { one: '1 post waiting', other: '{count} posts waiting' },
   },
   /** Grouped by the job staff are doing (#602). */
@@ -29,7 +28,6 @@ export const rail = {
   items: {
     /** Console v3's screens that hold others by tab, and the phone's tab bar (phase 1). */
     door: 'Door',
-    handOver: 'Hand over',
     content: 'Content',
     tables: 'Tables',
     requests: 'Requests',
@@ -63,8 +61,6 @@ export const rail = {
     promotions: 'Promotions',
     jackpots: 'Jackpots',
     fnb: 'Food and drink',
-    rewards: 'Rewards',
-    league: 'League',
     creators: 'Creators',
     social: 'Social',
     website: 'Website',

@@ -2,7 +2,7 @@
  * Website pages (#35; decision 0166): the policies are in every page's footer and the club's pages in the
  * navigation, and each draws its blocks: house rules as a numbered list, questions that open to their
  * answers, how to find the club with a link to directions, responsible play, and the privacy notice with
- * its backups (#386); about, membership with the points the rules in force give (#617), the live promotions, and a
+ * its backups (#386); about, membership with the rakeback the rules in force give (#617), the live promotions, and a
  * journal article from the journal's list. A visitor answers the cookie banner first, as it covers the foot of the page. The front page shows the games and the calendar, live.
  */
 import { expect, test } from '@playwright/test';
@@ -94,9 +94,9 @@ test.describe('Website', () => {
 
     await site.getByRole('link', { name: 'Membership' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'RIVR membership' })).toBeVisible();
-    // The points are the rules in force, not words in the page: points by hand only (#629), so none by table or rake.
+    // Rakeback is the rule in force, not words in the page: the club sets none, so the page shows no table of it.
     await expect(page.getByRole('row', { name: /Private Room/ })).toHaveCount(0);
-    await expect(page.getByText(/of your rake comes back as points/)).toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'Leaderboard' })).toHaveCount(0);
 
     // The referral runs everywhere. Staging's percentage buy-in bonus stopped with 20261110130000_seat_bonus.sql.
     await site.getByRole('link', { name: 'Prizes and calendar' }).click();

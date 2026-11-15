@@ -63,8 +63,6 @@ function hoursText(reward: HoursBonus): string {
 
 function rewardText(reward: Reward, names: PromotionNames): string {
   switch (reward.kind) {
-    case 'points_multiplier':
-      return t('console.promotions.words.pointsMultiplier', { multiplier: reward.multiplier });
     case 'buyin_bonus':
       return buyInText(reward);
     case 'seat_bonus':
@@ -126,7 +124,7 @@ const dateText = (day: string) =>
   new Date(`${day}T00:00:00Z`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 
 /**
- * The one-line summary the builder and the approver read, in bonus chips and points, never rupees: "500 bonus chips on the
+ * The one-line summary the builder and the approver read, in bonus chips, never rupees: "500 bonus chips on the
  * first seat of a visit, for all stakes, Tue, all day. No limit per member, budget 50,000 chips. Starts 17 Nov 2026, no end
  * date."
  */

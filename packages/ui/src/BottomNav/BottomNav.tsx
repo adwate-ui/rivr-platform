@@ -7,10 +7,10 @@ import { cx } from '../internal/classes.ts';
 import { routeClick, type Navigate } from '../internal/navigation.ts';
 
 /**
- * The player app's tabs: since the redesign (decision 0320) Tonight, Sessions, Card and Rewards, and Bonus since the
- * redesign of 15 Nov. Profile sits behind the member's initial instead. `food`, `balance` and `learn` remain for the console's preview of a tier's tabs.
+ * The player app's tabs: since the redesign (decision 0320) Tonight, Sessions and Card, and Bonus since the redesign of
+ * 15 Nov, when Rewards went. Profile sits behind the member's initial instead. `food`, `balance` and `learn` remain for the console's preview of a tier's tabs.
  */
-export type PlayerTab = 'home' | 'sessions' | 'card' | 'food' | 'balance' | 'rewards' | 'bonus' | 'learn';
+export type PlayerTab = 'home' | 'sessions' | 'card' | 'food' | 'balance' | 'bonus' | 'learn';
 
 /** The icon a tab wears: the one of its own name, and for Bonus the chip. */
 const iconOf = (tab: PlayerTab): IconName => (tab === 'bonus' ? 'chip' : tab);

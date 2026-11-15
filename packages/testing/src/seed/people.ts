@@ -27,7 +27,6 @@ export const arjun: SeedDemoMember = {
   bonus: { amount: paise(400_000n), expiresAt: null }, // ₹4,000, never ends (decision 0504)
   openMarker: { amount: paise(5_000_000n), issuedAt: ist('2026-11-03 00:10') }, // ₹50,000, 14 days ago
   creditLimit: paise(20_000_000n), // ₹2,00,000
-  points: 18_420,
   visitsThisMonth: 5,
   payoutAccount: { bankName: 'HDFC Bank', vpa: upiVpaSchema.parse('arjun.mehta@hdfcbank'), isVerified: true },
 };

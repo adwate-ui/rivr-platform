@@ -36,7 +36,7 @@ export const Empty: Story = {
 };
 
 export const WithError: Story = {
-  args: { currentTab: 'rewards', children: <Screen title="Rewards" titleLook="serif" status="error" onRetry={() => undefined} /> },
+  args: { currentTab: 'bonus', children: <Screen title="Bonus" titleLook="serif" status="error" onRetry={() => undefined} /> },
 };
 
 export const WithDock: Story = {

@@ -14,7 +14,7 @@ const meta = {
     cookieSettings: 'Cookie settings',
     columns: [
       { heading: 'The club', links: [{ label: 'Our story', href: '/about' }, { label: 'The room', href: '/#the-room' }, { label: 'Membership', href: '/membership' }] },
-      { heading: 'Play', links: [{ label: 'Games', href: '/#games' }, { label: 'Leaderboard', href: '/leaderboard' }, { label: 'Tournaments', href: '/tournaments' }] },
+      { heading: 'Play', links: [{ label: 'Games', href: '/#games' }, { label: 'Tournaments', href: '/tournaments' }] },
       { heading: 'Policies', links: [{ label: 'House rules', href: '/house-rules' }, { label: 'Legal standing', href: '/about#legal' }, { label: 'Privacy', href: '/privacy' }] },
       { heading: 'Need to talk?', links: [{ label: 'Tele-MANAS 14416 (24 hours)', href: 'tel:14416' }, { label: 'iCall 91529 87821', href: 'tel:+919152987821' }] },
     ],

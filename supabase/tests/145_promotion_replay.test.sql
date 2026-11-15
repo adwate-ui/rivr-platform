@@ -55,10 +55,6 @@ insert into played select session.id, session.visit_id from session;
 insert into public.seat_move (venue_id, session_id, from_table_id, from_seat, to_table_id, to_seat, created_at)
 select '00000000-0000-4000-8000-000000000001', played.session_id, at_club.table_1, 7, at_club.table_3, 7, day_began + interval '9 hours 30 minutes'
 from played, at_club;
-insert into public.points_earning (venue_id, member_id, visit_id, basis, session_id, table_id, played_seconds, rate, points)
-select '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000002d1', played.visit_id, 'hours', played.session_id,
-       at_club.table_3, 21600, 10, 60
-from played, at_club;
 select pg_temp.buy_in(session_id, 'cash', 1000000, (select day_began + interval '9 hours' from at_club)) from played;
 select pg_temp.buy_in(session_id, 'bonus', 500000, (select day_began + interval '10 hours' from at_club)) from played;
 select pg_temp.buy_in(session_id, 'cash', 500000, private.tonight_began(now()) - interval '8 days') from played;
@@ -103,10 +99,10 @@ select is_empty($$ select 1 from jsonb_array_elements(public.promotion_replay('0
   'a member is a number within the replay, never an id');
 
 -- Hours played: the whole visit, or only the time inside a rule's window.
-select results_eq($$ select (e ->> 'hours_played')::numeric, (e ->> 'points')::bigint, e ->> 'stake', (e ->> 'at')::timestamptz
+select results_eq($$ select (e ->> 'hours_played')::numeric, e ->> 'stake', (e ->> 'at')::timestamptz
                      from pg_temp.events('hours_played', '{"stakes": ["nlh_100_200"]}') e $$,
-  $$ select 6.00::numeric, 60::bigint, 'nlh_100_200'::text, day_began + interval '14 hours 30 minutes' from at_club $$,
-  'her six hours and 60 points, at the table she played longest, when the visit closed');
+  $$ select 6.00::numeric, 'nlh_100_200'::text, day_began + interval '14 hours 30 minutes' from at_club $$,
+  'her six hours, at the table she played longest, when the visit closed');
 select is((select (e ->> 'hours_played')::numeric from pg_temp.events('hours_played',
             jsonb_build_object('days', jsonb_build_array(extract(isodow from (select day_began from at_club) at time zone 'Asia/Kolkata')::integer),
                                'from', '14:00', 'until', '17:00')) e),
