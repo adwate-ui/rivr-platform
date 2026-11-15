@@ -14,13 +14,13 @@ export interface FnbMenuFileItem {
   readonly description: string | null;
 }
 
-/** Why the menu from a file was not saved: the role, an item out of bounds or a name twice, the venue frozen, or anything else. */
+/** Why the menu was not changed, from a file or an item at a time: the role, an item out of bounds or a name twice, the venue frozen, or anything else. */
 export type FnbMenuFailure = 'not_allowed' | 'invalid' | 'paused' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, FnbMenuFailure>> = { '42501': 'not_allowed', '22023': 'invalid', RVFRZ: 'paused' };
 
 /**
- * Saves the menu from a file (#799; staff who run or serve F&B): every item at once, all or none, a name the menu has (in any
+ * Saves the menu from a file (#799; staff who run F&B, redesign RD-33): every item at once, all or none, a name the menu has (in any
  * case) changed and a new one added. A Result with how many were saved, and the menu reloads.
  */
 export function useSaveFnbMenu(venueId: string) {
@@ -35,4 +35,25 @@ export function useSaveFnbMenu(venueId: string) {
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(data);
     },
   });
+}
+
+/**
+ * An item of the menu hidden or shown again, by anyone who serves food and drink, and an item deleted, by staff who run
+ * it (redesign RD-33). Each is a Result, and the menu reloads. An order that had a deleted item keeps its own line.
+ */
+export function useFnbMenuItemActions(venueId: string) {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  const settle = async (error: { code: string } | null): Promise<Result<null, FnbMenuFailure>> => {
+    await queryClient.invalidateQueries({ queryKey: queryKeys.fnbItems(userId ?? 'signed-out', venueId) });
+    return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
+  };
+  const setItemAvailable = useMutation({
+    mutationFn: async ({ itemId, isAvailable }: { itemId: string; isAvailable: boolean }) =>
+      settle((await client.rpc('set_fnb_item_available', { p_item_id: itemId, p_is_available: isAvailable })).error),
+  });
+  const deleteItem = useMutation({
+    mutationFn: async (itemId: string) => settle((await client.rpc('delete_fnb_item', { p_item_id: itemId })).error),
+  });
+  return { setItemAvailable, deleteItem };
 }

@@ -6,8 +6,9 @@
  * app's order from its lane, sends it on its way and delivers it, and the member follows it on Tonight's order tracker
  * (decision 0320). No cage agent runs, so the bar printer has failed no KOT and no card says the bar did not get one,
  * however long it waits (console v3: the flag is the outbox's, never a clock). From New order she picks Table 3, then seat 1 with Ishan beside it, and comps a club sandwich; the tablet is revoked and
- * he leaves early, so Table 3 is as it was. On the Menu tab, Meera sees each item under its kind, and saves two from a CSV
- * once it shows each line and the one it cannot read (decision 0440). The agent printing KOTs, the flag's every state,
+ * he leaves early, so Table 3 is as it was. On the Menu tab, Sameer hides an item and shows it again, with no way to add,
+ * upload or delete one (redesign RD-33); Meera sees each item under its kind, saves two from a CSV once it shows each line
+ * and the one it cannot read (decision 0440), and deletes one. The agent printing KOTs, the flag's every state,
  * alcohol at 21 or over and one order a minute are proved in supabase/tests/171_fnb_orders.test.sql,
  * 310_kot_print_failed.test.sql and apps/cage-agent's tests.
  */
@@ -25,7 +26,7 @@ async function kotIn(page: Page, sent: RegExp) {
 }
 
 test.describe('F&B', () => {
-  test('F&B order (table then seat): a seated member and the dealer order to his seat, no KOT is flagged while the bar printer has failed none, and the floor comps an order and saves menu items from a CSV', async ({ page, browser }) => {
+  test('F&B order (table then seat): a seated member and the dealer order to his seat, no KOT is flagged while the bar printer has failed none, and the floor comps an order; Menu: Service hides an item, staff who run F&B save items from a CSV and delete one', async ({ page, browser }) => {
     test.skip(isRemoteTarget(), 'seats a seeded member, pairs a tablet and places orders, so the local stack only');
     test.setTimeout(120_000);
     await signInToConsole(page, '9000000615');
@@ -69,6 +70,17 @@ test.describe('F&B', () => {
     await member.reload();
     await expect(tracker.locator('[aria-current="step"]')).toHaveText('Delivered');
     await expect(member.getByRole('button', { name: 'Order again' })).toBeVisible();
+    // The Menu, for Service (redesign RD-33): he hides an item and shows it again, and has no way to add, upload or delete one.
+    await steward.getByRole('link', { name: 'Menu', exact: true }).click();
+    const sandwich = steward.getByText('Club sandwich', { exact: true }).locator('xpath=ancestor::div[.//button[@role="switch"]][1]').getByRole('switch');
+    await expect(sandwich).toHaveAccessibleName('On offer');
+    await sandwich.click();
+    await expect(sandwich).toHaveAccessibleName('Off the menu');
+    await sandwich.click();
+    await expect(sandwich).toHaveAccessibleName('On offer');
+    await expect(steward.getByRole('button', { name: 'Add to the menu' })).toHaveCount(0);
+    await expect(steward.locator('input[type="file"]')).toHaveCount(0);
+    await expect(steward.getByRole('button', { name: 'More for Club sandwich' })).toHaveCount(0);
     await steward.close();
 
     const { tablet, name } = await tabletAtTable3(browser, page);
@@ -119,6 +131,12 @@ test.describe('F&B', () => {
     await page.getByRole('button', { name: 'Save items' }).click();
     await expect(page.getByText('2 items saved to the menu.')).toBeVisible();
     await expect(page.getByText('Gin and tonic', { exact: true })).toBeVisible();
+    // Delete, for staff who run F&B (redesign RD-33): asked first, then the item is gone from the menu.
+    await page.getByRole('button', { name: 'More for Gin and tonic' }).click();
+    await page.getByRole('menuitem', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'Yes, delete Gin and tonic' }).click();
+    await expect(page.getByText('Gin and tonic deleted.')).toBeVisible();
+    await expect(page.getByText('Gin and tonic', { exact: true })).toHaveCount(0);
     await expect(page.getByText(/₹/)).toHaveCount(0);
 
     await revoke(page, name);

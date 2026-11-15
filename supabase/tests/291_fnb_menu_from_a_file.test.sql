@@ -1,7 +1,7 @@
--- The menu from a file (#799): staff who run or serve F&B save many items at once, all or none. A name the menu has (in
+-- The menu from a file (#799): staff who run F&B (since the redesign of 15 Nov, RD-33) save many items at once, all or none. A name the menu has (in
 -- any case) takes the file's kind, and whether it is on offer when the file says; a new one goes after the last item, in the
 -- file's order. No price is kept.
--- 103 Aditya (admin) and a Service steward save; 106 Pema, a dealer, and another venue's admin do not.
+-- 103 Aditya (admin) saves; a Service steward, 106 Pema, a dealer, and another venue's admin do not.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -74,7 +74,8 @@ select is((select count(*)::integer from public.fnb_item where venue_id = '00000
 reset role;
 
 select pg_temp.as_person('00000000-0000-4000-8000-0000000000f1');
-select is(pg_temp.save(jsonb_build_array(pg_temp.item('Cold coffee', 'soft_drink', true))), 1, 'Service sets up the menu from a file too');
+select throws_ok($$ select pg_temp.save(jsonb_build_array(pg_temp.item('Cold coffee', 'soft_drink', true))) $$, '42501', null,
+  'Service uploads no menu (redesign RD-33)');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select throws_ok($$ select pg_temp.save(jsonb_build_array(pg_temp.item('Lassi', 'soft_drink', true))) $$, '42501', null, 'a dealer does not');
 select pg_temp.as_person('00000000-0000-4000-8000-0000000000e2');

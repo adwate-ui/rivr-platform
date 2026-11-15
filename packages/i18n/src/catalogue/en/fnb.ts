@@ -135,6 +135,13 @@ export const consoleFnb = {
   onOffer: 'On offer',
   offMenu: 'Off the menu',
   addItem: 'Add to the menu',
+  /** An item's row, for staff who run F&B (redesign RD-33): its menu, and Delete asked first. */
+  moreForItem: 'More for {name}',
+  deleteItem: 'Delete',
+  deleteItemQuestion: 'Delete {name}? Past orders keep it.',
+  deleteItemConfirm: 'Yes, delete {name}',
+  itemDeleted: '{name} deleted.',
+  menuFailures: { not_allowed: 'Not yours to change.', paused: 'The club is paused. Nothing changes until it reopens.', unavailable: 'Not saved. Try again.' },
   empty,
   invalidItem: 'A name of 1 to 60 characters, a place from 1 to 999.',
   failures,

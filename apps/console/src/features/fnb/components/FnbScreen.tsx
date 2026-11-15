@@ -87,12 +87,12 @@ function Fnb({ access, tab, onNavigate }: { access: FnbAccess; tab: FnbTab; onNa
   );
 }
 
-/** The menu by kind (#823), a dish's photo for staff who run F&B (AS-11), and the menu from a CSV (#799). */
+/** The menu by kind (#823); for staff who run F&B (redesign RD-33), a dish's photo (AS-11) and the menu from a CSV (#799). */
 function MenuTab({ access }: { access: FnbAccess }) {
   return (
     <Stack gap={10}>
       <MenuItems venueId={access.venueId} canManage={access.canManage} />
-      <MenuCsvImport venueId={access.venueId} />
+      {access.canManage ? <MenuCsvImport venueId={access.venueId} /> : null}
     </Stack>
   );
 }

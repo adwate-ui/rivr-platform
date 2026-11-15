@@ -3599,6 +3599,9 @@ isOneToOne: false
 "set_feature_override":
 { Args: { "p_feature_key": string,"p_is_granted": boolean,"p_member_id": string,"p_reason": string,"p_until"?: string,"p_venue_id": string }; Returns: string
                            },
+"set_fnb_item_available":
+{ Args: { "p_is_available": boolean,"p_item_id": string }; Returns: undefined
+                           },
 "set_game_table":
 { Args: { "p_min_buy_in_paise"?: number,"p_name": string,"p_seats": number,"p_table_id": string,"p_table_type_id": string }; Returns: undefined
                            },

@@ -6,7 +6,7 @@ import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
 export { useCancelMyFnbOrder, type CancelMyOrderFailure } from './fnbCancel.ts';
-export { useSaveFnbMenu, type FnbMenuFailure, type FnbMenuFileItem } from './fnbMenuFile.ts';
+export { useFnbMenuItemActions, useSaveFnbMenu, type FnbMenuFailure, type FnbMenuFileItem } from './fnbMenuFile.ts';
 
 /** An item on the table-side menu (#123): Glaza's, no price. */
 export interface FnbMenuItem {
@@ -250,7 +250,7 @@ function linesOf(lines: unknown): FnbOrderTonight['lines'] {
 
 /**
  * The console's actions: order for a seat (`comp` only here), once per request id so a retry returns the first order (A3), mark
- * a KOT given to the bar by hand, and keep the menu.
+ * a KOT given to the bar by hand, and add or change an item of the menu (staff who run F&B, redesign RD-33).
  */
 export function useFnbActions(venueId: string) {
   const { client, userId } = useRivrData();

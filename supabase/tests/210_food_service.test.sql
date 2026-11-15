@@ -56,7 +56,8 @@ select throws_ok($$ select * from public.console_fnb_order('00000000-0000-4000-8
   jsonb_build_array(jsonb_build_object('item_id', (select id from ids where name = 'chai'), 'quantity', 1)), true) $$, '42501', null,
   'nor comps an order');
 select is((select count(*)::integer from public.fnb_item where venue_id = '00000000-0000-4000-8000-000000000001') > 0, true, 'but reads the menu');
-select isnt(public.save_fnb_item('00000000-0000-4000-8000-000000000001', 'Filter coffee', 'soft_drink', true, 40), null, 'and sets it up');
+select throws_ok($$ select public.save_fnb_item('00000000-0000-4000-8000-000000000001', 'Filter coffee', 'soft_drink', true, 40) $$, '42501', null,
+  'and adds nothing to it (redesign RD-33)');
 select throws_ok($$ select * from public.glaza_statement('00000000-0000-4000-8000-000000000001', date '2026-11-01') $$, '42501', null,
   'and reads no Glaza statement');
 reset role;
