@@ -95,12 +95,13 @@ select results_eq($$ select v.status, p.status, p.current_version, b.cap_paise, 
                      where v.id = pg_temp.id('v1') $$,
   $$ values ('live'::text, 'live'::text, 1, 500000::bigint, null::integer) $$, 'it is live from today, and its 5,000 chips are its budget');
 
--- It gives: its 600 chips, credited as bonus, once a club day.
+-- It gives: its 600 chips, as Bonus once a super admin approves it (decision 0670), once a club day.
 select is(pg_temp.check_in('211', 'v300-1'), 1, 'Ishaan''s check-in is given');
 select results_eq($$ select chips, cost_paise, period_key, promotion_version_id from public.promotion_grant where source_key = 'check_in:v300-1' $$,
   $$ select 600::bigint, 60000::bigint, 'day:' || (select day from today), pg_temp.id('v1') $$, '600 chips, keyed by the club day');
-select is((select amount_paise from public.bonus_grant where member_id = '00000000-0000-4000-8000-000000000211' and reason = 'Six hundred'), 60000::bigint,
-  'credited as bonus at once');
+select is((select status from public.promotion_grant where source_key = 'check_in:v300-1'), 'waiting', 'waiting for a super admin (decision 0670)');
+select is((select count(*)::integer from public.bonus_grant where member_id = '00000000-0000-4000-8000-000000000211' and reason = 'Six hundred'), 0,
+  'and not yet credited as bonus');
 select is(pg_temp.check_in('211', 'v300-2'), 0, 'and once a club day');
 
 -- Editing the live promotion drafts version 2; version 1 runs until version 2 is approved.

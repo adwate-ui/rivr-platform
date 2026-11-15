@@ -39,9 +39,9 @@ select results_eq($$ select * from pg_temp.steps_of('00000000-0000-4000-8000-000
   $$ values (500::bigint, 'hours_step:00000000-0000-4000-8000-0000000b2601:@1'::text, 'visit:00000000-0000-4000-8000-0000000b2601@1'::text, 'hours_step'::text),
             (1000::bigint, 'hours_step:00000000-0000-4000-8000-0000000b2601:@2'::text, 'visit:00000000-0000-4000-8000-0000000b2601@2'::text, 'hours_step'::text) $$,
   'Mihir, still seated after 4 h 10 min, is paid both steps, each in a period of its own, keyed by the visit and its place');
-select is((select sum(b.amount_paise) from public.bonus_grant b where b.member_id = '00000000-0000-4000-8000-000000000213'
-           and b.idempotency_key in (select 'promotion:' || g.id from public.promotion_grant g where g.promotion_id = (select promotion_id from bonus))),
-  150000::numeric, 'as 1,500 bonus chips on his balance');
+select is((select sum(g.cost_paise) from public.promotion_grant g where g.member_id = '00000000-0000-4000-8000-000000000213'
+           and g.promotion_id = (select promotion_id from bonus) and g.status = 'waiting'),
+  150000::numeric, 'as 1,500 Bonus, waiting for a super admin (decision 0670)');
 select results_eq($$ select chips from pg_temp.steps_of('00000000-0000-4000-8000-000000000216') $$, $$ values (500::bigint) $$,
   'Kunal, away for the last 70 of his 200 minutes, has reached two hours and no more');
 select lives_ok($$ select private.sweep_hours_bonus() $$, 'the next minute''s sweep');

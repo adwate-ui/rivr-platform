@@ -24,6 +24,7 @@ The renderer templates (TV layouts, social templates, winner and high-hand cards
 | Function | Used by | What it does |
 |---|---|---|
 | `private.evaluate_promotions(venue, trigger, context)` | A (buy-in), B (hand logged, tournament entry), C (check-in) | Applies every live promotion whose trigger and conditions match; posts effects (bonus through lane A's `private.credit_bonus`, freeroll ticket, cab eligibility, spin); respects budgets and limits |
+| `public.bonus_waiting_page(venue, view)`, `public.approve_promotion_bonus(venue, grant_ids, request_id)`, `public.refuse_promotion_bonus(venue, grant_ids, reason, request_id)` | console (Promotions, Bonus to approve) | A promotion's Bonus waits for a super admin (decision 0670): the queue a page at a time, then approve (posted through `private.credit_bonus`) or refuse with a reason (nothing posted); super admins only, never their own record |
 | `public.growth_funnel(venue)` | console (Reports, #166) | Every member of the venue by source (`referral`, `creator` with its code, `link` with its utm_source, or `direct`) and how many finished KYC, came in and bought in; counts only, for `reports.read`, never the practice venue (22023) |
 | `public.give_card_consent(card)`, `public.withdraw_card_consent(card)` | player app | Consent per winner card; withdrawal takes the post down |
 | Views `public_promotion_cards`, `public_wall_posts` | web (C), TVs (B) | No personal data beyond first name and initial; never the practice venue |

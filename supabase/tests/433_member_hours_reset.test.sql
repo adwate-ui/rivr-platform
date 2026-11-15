@@ -25,8 +25,10 @@ create function pg_temp.board_minutes(p_member_id uuid) returns integer language
   select coalesce((select l.played_minutes from private.hours_leaderboard('00000000-0000-4000-8000-000000000001', 'all', 1000, null, now()) l
                    where l.member_id = p_member_id), 0);
 $$;
+-- A play-time Bonus given tonight, waiting for a super admin or approved (decision 0670).
 create function pg_temp.bonus(p_member_id uuid) returns bigint language sql as $$
-  select coalesce(sum(g.amount_paise), 0)::bigint from public.bonus_grant g where g.member_id = p_member_id and g.created_at >= now();
+  select coalesce(sum(g.cost_paise), 0)::bigint from public.promotion_grant g
+  where g.member_id = p_member_id and g.status <> 'refused' and g.created_at >= now();
 $$;
 
 -- Ishaan sat three hours yesterday (a closed visit), and has sat two hours tonight, at Table 3; Vihaan two hours tonight.

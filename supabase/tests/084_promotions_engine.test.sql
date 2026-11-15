@@ -45,6 +45,21 @@ create function pg_temp.grants(p_promotion text) returns text language sql as $$
   select coalesce(string_agg(right(g.member_id::text, 3), ' ' order by g.created_at, g.member_id), 'none')
   from public.promotion_grant g join public.promotion p on p.id = g.promotion_id where p.name = p_promotion;
 $$;
+-- A promotion's Bonus waits for a super admin (decision 0670): 101, a super admin, approves a member's (those of one event, if named), and the count is returned.
+create function pg_temp.approve(p_member uuid, p_key text default null) returns integer language plpgsql as $$
+declare
+  v_claims text := current_setting('request.jwt.claims', true);
+  v_count integer;
+begin
+  perform set_config('request.jwt.claims', '{"sub": "00000000-0000-4000-8000-000000000101", "role": "authenticated"}', true);
+  select coalesce(sum(d.grants), 0)::integer into v_count
+  from (select g.venue_id, array_agg(g.id) as ids from public.promotion_grant g where g.member_id = p_member and g.status = 'waiting'
+          and (p_key is null or g.source_key = p_key) group by g.venue_id) w
+  cross join lateral private.decide_promotion_bonus(w.venue_id, w.ids, 'approved', null, gen_random_uuid()) d;
+  perform set_config('request.jwt.claims', coalesce(v_claims, ''), true);
+  return v_count;
+end;
+$$;
 create temp table ids (name text primary key, id uuid);
 grant select, insert on ids to authenticated;
 
@@ -167,16 +182,19 @@ select is(private.promotion_facts('00000000-0000-4000-8000-000000000218', null, 
 -- A new player: the new player bonus, alone, though the others apply too.
 select is(pg_temp.hand('211', 'Table 3', 'test-1'), 1, 'Ishaan''s hand gives one promotion');
 select is(pg_temp.grants('New player welcome'), '211', 'the new player bonus, which does not stack');
+select is(pg_temp.held('member.bonus', '00000000-0000-4000-8000-000000000211'), 0::bigint, 'Ishaan''s ₹1,000 of bonus waits for a super admin');
+select is(pg_temp.approve('00000000-0000-4000-8000-000000000211'), 1, 'who approves it');
 select is(pg_temp.held('member.bonus', '00000000-0000-4000-8000-000000000211'), 100000::bigint, 'Ishaan holds ₹1,000 of bonus');
 select results_eq($$ select b.reason, b.expires_at is null, g.fulfilled_at is not null
                      from public.promotion_grant g join public.bonus_grant b on b.id = g.bonus_grant_id
                      where g.member_id = '00000000-0000-4000-8000-000000000211' $$,
-  $$ values ('New player welcome'::text, true, true) $$, 'credited at once through the bonus, which never ends (decision 0504)');
+  $$ values ('New player welcome'::text, true, true) $$, 'credited on approval through the bonus, which never ends (decision 0504)');
 select is(pg_temp.hand('211', 'Table 3', 'test-1'), 0, 'a replay of the hand gives nothing more');
 select is((select count(*)::integer from public.bonus_grant where member_id = '00000000-0000-4000-8000-000000000211'), 1, 'and credits nothing more');
 
 -- Regulars: the Tuesday bonus and the welcome, which stack; the first two at Table 3 only.
 select is(pg_temp.hand('216', 'Table 3', 'test-2'), 2, 'Kunal''s hand gives two promotions');
+select is(pg_temp.approve('00000000-0000-4000-8000-000000000216'), 1, 'its bonus, once approved (the welcome is a message)');
 select is(pg_temp.held('member.bonus', '00000000-0000-4000-8000-000000000216'), 200000::bigint, 'the Tuesday bonus is ₹2,000 of bonus');
 select is(pg_temp.hand('217', 'Table 3', 'test-3'), 2, 'Neel, the second at Table 3, has both');
 select is(pg_temp.hand('212', 'Table 3', 'test-4'), 1, 'Vihaan has only the welcome');
@@ -270,6 +288,7 @@ select is(pg_temp.weigh('hand_logged', '213', jsonb_build_object('key', 'hand:te
 select is(pg_temp.weigh('hand_logged', '213', jsonb_build_object('key', 'hand:test-9', 'amount_paise', 1000000, 'method', 'cash',
   'table_id', (select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 5'))), 1,
   'one paid in cash earns 10%');
+select is(pg_temp.approve('00000000-0000-4000-8000-000000000213'), 1, 'approved');
 select is(pg_temp.held('member.bonus', '00000000-0000-4000-8000-000000000213'), 100000::bigint, 'Mihir holds ₹1,000 of bonus');
 
 -- A frozen member is given nothing, and the caller goes on.
