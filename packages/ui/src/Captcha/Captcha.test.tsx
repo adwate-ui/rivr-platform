@@ -52,9 +52,12 @@ describe('Captcha', () => {
   it('says when the check fails, and Try again draws it again, so sign-in is never stuck without a word', async () => {
     const { turnstile, options, fire } = fakeTurnstile();
     const onToken = vi.fn();
-    render(<Captcha siteKey="0x4AAA" onToken={onToken} />);
+    const onTrouble = vi.fn();
+    render(<Captcha siteKey="0x4AAA" onToken={onToken} onTrouble={onTrouble} />);
     await vi.waitFor(() => expect(options).toHaveLength(1));
-    fire('error-callback');
+    // Cloudflare's own code for the refusal: never passed on.
+    fire('error-callback', '110200');
+    expect(onTrouble.mock.calls).toEqual([['refused']]);
     expect(onToken).toHaveBeenLastCalledWith(null);
     expect(screen.getByRole('alert').textContent).toMatch(/^Security check incomplete/);
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
@@ -66,11 +69,13 @@ describe('Captcha', () => {
   });
 
   it('says when the script cannot load, and Try again asks for it afresh, even after a page answered in its place', async () => {
-    render(<Captcha siteKey="0x4AAA" onToken={vi.fn()} />);
+    const onTrouble = vi.fn();
+    render(<Captcha siteKey="0x4AAA" onToken={vi.fn()} onTrouble={onTrouble} />);
     await vi.waitFor(() => expect(cloudflareScripts()).toHaveLength(1));
     // A network's block page answered: the script loaded, but no Turnstile came with it.
     act(() => void cloudflareScripts()[0]?.dispatchEvent(new Event('load')));
     expect((await screen.findByRole('alert')).textContent).toMatch(/^Security check incomplete/);
+    expect(onTrouble.mock.calls).toEqual([['not_loaded']]);
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
     await vi.waitFor(() => expect(cloudflareScripts()).toHaveLength(2));
     // Refused outright this time.

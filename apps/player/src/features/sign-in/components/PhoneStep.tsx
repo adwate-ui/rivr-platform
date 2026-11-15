@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { indianMobileSchema, type IndianMobile } from '@rivr/contracts';
-import { useSignIn } from '@rivr/db';
+import { useReportFailure, useSignIn } from '@rivr/db';
 import { formatTypedMobile, t } from '@rivr/i18n';
 import { Banner, Button, Captcha, Heading, Inline, Input, StepScreen, Text, useCaptcha, useIsOnline, Wordmark } from '@rivr/ui';
 import { Controller, useForm } from 'react-hook-form';
@@ -33,6 +33,7 @@ function LegalLine() {
 export function PhoneStep({ onCodeSent }: { onCodeSent: (phone: IndianMobile) => void }) {
   const { requestCode } = useSignIn();
   const captcha = useCaptcha(CAPTCHA_SITE_KEY);
+  const reportFailure = useReportFailure();
   const form = useForm<z.input<typeof phoneForm>, unknown, z.output<typeof phoneForm>>({ resolver: zodResolver(phoneForm), defaultValues: { phone: '' } });
 
   const send = form.handleSubmit(async ({ phone }) => {
@@ -59,7 +60,7 @@ export function PhoneStep({ onCodeSent }: { onCodeSent: (phone: IndianMobile) =>
               label={t('player.signIn.phoneLabel')} prefix={t('common.signIn.countryCode')} isTall placeholder={t('player.signIn.phonePlaceholder')}
               hint={t('player.signIn.phoneHint')} type="tel" inputMode="tel" autoComplete="tel-national" error={error} />
           )} />
-          <Captcha {...captcha.props} />
+          <Captcha {...captcha.props} onTrouble={(trouble) => reportFailure(`captcha:${trouble}`)} />
           <Button variant="primary" size="tall" type="submit" fullWidth isDisabled={!captcha.isReady || !isOnline} isLoading={requestCode.isPending}>
             {t('player.signIn.sendCode')}
           </Button>

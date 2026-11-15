@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderIn } from '../test/render.tsx';
 import { SelfieCamera } from './SelfieCamera.tsx';
@@ -48,9 +48,23 @@ describe('Identity › Camera', () => {
     expect(title.parentElement).toHaveClass('grid', 'grid-cols-3');
   });
 
-  it('says what to do when the browser has no camera', async () => {
+  it('says what to do when the browser has no camera, and tells the app which kind of trouble it was', async () => {
     Object.defineProperty(navigator, 'mediaDevices', { value: undefined, configurable: true });
-    renderIn(<SelfieCamera onPhoto={() => undefined} onBack={() => undefined} />);
+    const onTrouble = vi.fn();
+    renderIn(<SelfieCamera onPhoto={() => undefined} onBack={() => undefined} onTrouble={onTrouble} />);
     expect(await screen.findByRole('alert')).toHaveTextContent('No camera here. Carry on with a phone.');
+    // Told once the screen has drawn, which on a busy machine is a moment after the words are there.
+    await waitFor(() => expect(onTrouble.mock.calls).toEqual([['none']]));
+  });
+
+  it('tells the app when a photo could not be made, as the screen itself shows nothing then', async () => {
+    cameraThatStarts();
+    // jsdom has no canvas to draw on, as a phone short of memory has none.
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+    const onTrouble = vi.fn();
+    renderIn(<SelfieCamera onPhoto={() => undefined} onBack={() => undefined} onTrouble={onTrouble} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Take photo' }));
+    await waitFor(() => expect(onTrouble.mock.calls).toEqual([['photo']]));
+    expect(screen.getByRole('button', { name: 'Take photo' })).toBeDefined();
   });
 });

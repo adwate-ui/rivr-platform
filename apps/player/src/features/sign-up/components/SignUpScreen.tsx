@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ATTRIBUTION_CODE } from '@rivr/contracts/attribution';
 import {
-  GAMES_PLAYED, OCCUPATIONS, PLAY_TIMES, storedReferralCode, useAuthStatus, useMember, useSignedInPhone, useSignOut, useSignUp,
+  GAMES_PLAYED, OCCUPATIONS, PLAY_TIMES, storedReferralCode, useAuthStatus, useMember, useReportFailure, useSignedInPhone, useSignOut, useSignUp,
   type SignUpFailure,
 } from '@rivr/db';
 import { formatMobile, t, type MessageKey } from '@rivr/i18n';
@@ -107,11 +107,13 @@ export function SignUpScreen() {
     resolver, defaultValues: { fullName: '', city: '', playTimes: [], gamesPlayed: [], referralCode },
   });
 
+  const reportFailure = useReportFailure();
+  // Stopped by the form's own checks, it reports which fields (#928), never what was typed in them.
   const join = form.handleSubmit(async (answers) => {
     const joined = await signUp.mutateAsync({ ...answers, photo: null });
     setFailure(joined.ok ? null : joined.error);
     if (joined.ok) await navigate({ href: next ?? '/', replace: true });
-  });
+  }, (refused) => reportFailure(`sign_up_invalid:${Object.keys(refused).join(',')}`));
   if (authStatus === 'signed-out') return <Navigate to="/sign-in" search={{ next }} replace />;
   if (member.data) return <GoTo href={next ?? '/'} />;
   return (

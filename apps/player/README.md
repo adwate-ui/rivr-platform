@@ -11,6 +11,8 @@ pnpm dev --filter player
 
 The dev server listens on this worktree's port block (`player` is port `<block>40`, so `54340`-style on the root checkout; see `docs/decisions/0003`). `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` default to the local stack; CI and deploys set them. `VITE_WEB_URL`, the website's address for the terms and privacy links under the sign-in line (#775), defaults to this worktree's website; the workflows set it (#825), and a build without it shows the line with no links. Sign in with a seed phone number and code `123456` (`supabase/seed/10_people.sql`).
 
+`VITE_SENTRY_DSN` turns error reporting on (#928, decision 0604). A build that names it loads Sentry after the first paint and reports errors nothing caught, screens that failed to draw and the failures screens handle themselves (a read that fails, a change the server refuses, the camera, the captcha, the sign-up form's checks), each of those by a short code. There is no user, and numbers, tokens, ids, quoted values and query strings are scrubbed (`features/error-reporting`). A member of the practice venue reports nothing. A build without the variable, which is every local build, test and e2e run, keeps nothing, never fetches Sentry (the service worker leaves its chunk out) and sends nothing. `VITE_APP_VERSION`, when set, is sent as the release. No workflow passes either yet (the owner said later, 15 Nov), so no deployed build reports.
+
 `pnpm test --filter player` runs the app's tests; `pnpm e2e --grep "<flow>"` runs a flow across apps.
 
 ## Structure
@@ -24,6 +26,8 @@ src/
                       (the tabs) and root.tsx are the only eager routes; sign-in sits outside the frame
   features/<name>/    components/ and hooks/, imported only through index.ts
     frame/            the app's shell: navigation, the kill-switch banner, not found
+    error-reporting/  Sentry: main.tsx imports it first, so it hears errors from the start (errorReporting.ts); what
+                      may be sent (scrub.ts); the SDK, loaded late (sentry.ts); whose venue it is (ReportingVenue)
 ```
 
 A link to any screen opened signed out goes to `/sign-in?next=<that screen>`, and a new number then to `/sign-up?next=…`, which shows the number and takes an optional photo, the name, the city, what best describes the member, when they usually play (#631) and the games they play (#653). Each returns there when done, which is how the website's links land where they point. `next` is checked by `returnSearchFrom` (`@rivr/contracts/returnPath`): only a path in the app, never another site (#233).

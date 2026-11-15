@@ -1,6 +1,7 @@
 import { t } from '@rivr/i18n';
 import { Screen } from '@rivr/ui';
 import { createRouter, type ErrorComponentProps, type RouterHistory } from '@tanstack/react-router';
+import { reportError } from './features/error-reporting/index.ts';
 import { balanceRoute, depositRoute, withdrawRoute } from './routes/balance.tsx';
 import { bonusRoute } from './routes/bonus.tsx';
 import { cardRoute } from './routes/card.tsx';
@@ -28,9 +29,17 @@ function ScreenFailed({ reset }: ErrorComponentProps) {
   return <Screen title={t('common.screenFailed')} status="error" onRetry={reset} />;
 }
 
-/** The player app's router; tests pass a memory history. */
+/** The player app's router; tests pass a memory history. A screen that fails to draw is reported (#928) as well as shown. */
 export function createAppRouter(history?: RouterHistory) {
-  return createRouter({ routeTree, defaultErrorComponent: ScreenFailed, ...(history ? { history } : {}) });
+  return createRouter({ routeTree, defaultErrorComponent: ScreenFailed, defaultOnCatch: reportError, ...(history ? { history } : {}) });
+}
+
+/**
+ * The pattern of the route a router shows, such as `/sessions/$sessionId`: never the address, which holds ids. Error
+ * reports are labelled with it as it is, unscrubbed, so it must stay a pattern.
+ */
+export function routePatternOf(shown: ReturnType<typeof createAppRouter>): string {
+  return shown.state.matches.at(-1)?.fullPath ?? '';
 }
 
 export const router = createAppRouter();

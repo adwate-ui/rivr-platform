@@ -1,6 +1,6 @@
 export { createRivrClient, SESSION_STORAGE_KEY, type RivrClient, type RivrClientOptions } from './client.ts';
 export type { Database } from './database.types.ts';
-export { RivrDataProvider, useAuthStatus, useRivrData, type AuthStatus } from './provider.tsx';
+export { RivrDataProvider, useAuthStatus, useReportFailure, useRivrData, type AuthStatus, type FailureReport } from './provider.tsx';
 export { useMember, type Member } from './member.ts';
 export { useMembershipCard, type MembershipCardView } from './membershipCard.ts';
 export { useControlState, useFeature, useFeatureStatus, type FeatureStatus } from './hooks.ts';

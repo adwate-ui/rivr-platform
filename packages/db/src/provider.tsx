@@ -1,19 +1,27 @@
 import { isAuthRetryableFetchError } from '@supabase/supabase-js';
-import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { SESSION_STORAGE_KEY, type RivrClient } from './client.ts';
+import { readFailureCode, refusalCodeOf } from './failureCode.ts';
 import { forgetOffline, keepForOffline, restoreForOffline } from './offlineCache.ts';
 import { queryKeys } from './queryKeys.ts';
 
 /** Whether anyone is signed in; `loading` until the stored session has been read. */
 export type AuthStatus = 'loading' | 'signed-in' | 'signed-out';
 
+/** Told of a failure a screen handles itself, by its short code (./failureCode.ts): never a value someone typed. */
+export type FailureReport = (code: string) => void;
+
 interface RivrData {
   readonly client: RivrClient;
   /** The signed-in user, or null before sign-in and while the session loads. */
   readonly userId: string | null;
   readonly authStatus: AuthStatus;
+  /** The app's `onFailure`; does nothing in an app that gives none. */
+  readonly reportFailure: FailureReport;
 }
+
+const reportNothing: FailureReport = () => undefined;
 
 const RivrDataContext = createContext<RivrData | null>(null);
 
@@ -97,31 +105,44 @@ function LiveUpdates({ client, userId }: Pick<RivrData, 'client' | 'userId'>) {
   return null;
 }
 
-/** A new cache, with what the phone kept when it opens offline (the installed player app, F-053). */
-function newCache(keepsForOffline: boolean): QueryClient {
-  const cache = new QueryClient();
+/**
+ * A new cache, with what the phone kept when it opens offline (the installed player app, F-053). With `onFailure`, every
+ * read that fails and every change the server refuses (`{ ok: false }`) is told to it by its code, whatever the screen shows.
+ */
+function newCache(keepsForOffline: boolean, onFailure: FailureReport | undefined): QueryClient {
+  const cache = new QueryClient(onFailure ? {
+    queryCache: new QueryCache({ onError: (error, query) => onFailure(readFailureCode(query.queryKey, error)) }),
+    mutationCache: new MutationCache({
+      onSuccess: (answer) => {
+        const refusal = refusalCodeOf(answer);
+        if (refusal !== null) onFailure(refusal);
+      },
+    }),
+  } : {});
   if (keepsForOffline) restoreForOffline(cache);
   return cache;
 }
 
 /**
  * Gives everything below it the Supabase client and the query cache, and keeps access state live. `keepsForOffline`, the
- * player app: what it needs to open with no connection stays on the phone until sign-out (./offlineCache.ts).
+ * player app: what it needs to open with no connection stays on the phone until sign-out (./offlineCache.ts). `onFailure`,
+ * the player app (decision 0604): the failures its screens handle themselves, each by a short code.
  */
-export function RivrDataProvider({ client, queryClient, keepsForOffline = false, children }: {
+export function RivrDataProvider({ client, queryClient, keepsForOffline = false, onFailure, children }: {
   client: RivrClient;
   queryClient?: QueryClient;
   keepsForOffline?: boolean;
+  onFailure?: FailureReport;
   children: ReactNode;
 }) {
-  const [cache] = useState(() => queryClient ?? newCache(keepsForOffline));
+  const [cache] = useState(() => queryClient ?? newCache(keepsForOffline, onFailure));
   const { userId, authStatus } = useSession(client, keepsForOffline);
   useEffect(() => (keepsForOffline && userId !== null ? keepForOffline(cache, userId) : undefined), [cache, keepsForOffline, userId]);
   useEffect(() => {
     if (keepsForOffline && authStatus === 'signed-out') forgetOffline();
   }, [authStatus, keepsForOffline]);
   return (
-    <RivrDataContext.Provider value={{ client, userId, authStatus }}>
+    <RivrDataContext.Provider value={{ client, userId, authStatus, reportFailure: onFailure ?? reportNothing }}>
       <QueryClientProvider client={cache}>
         <LiveUpdates client={client} userId={userId} />
         {children}
@@ -135,6 +156,11 @@ export function useRivrData(): RivrData {
   const data = useContext(RivrDataContext);
   if (data === null) throw new Error('useRivrData must be used inside RivrDataProvider');
   return data;
+}
+
+/** How a screen reports a failure it handles itself and no read or change shows, such as a camera that would not start. */
+export function useReportFailure(): FailureReport {
+  return useRivrData().reportFailure;
 }
 
 /** Whether anyone is signed in, for an app deciding between sign-in and its screens. */

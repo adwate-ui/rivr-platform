@@ -11,7 +11,12 @@ export interface CaptchaProps {
   onToken: (token: string | null) => void;
   /** Changing it asks for a new token, once the last one has been used. */
   renewKey?: number;
+  /** Told each time the check fails, by kind only, for the app to report. */
+  onTrouble?: ((trouble: CaptchaTrouble) => void) | undefined;
 }
+
+/** Why the check failed: Cloudflare's script did not load or draw, or Cloudflare refused the check. */
+export type CaptchaTrouble = 'not_loaded' | 'refused';
 
 /** The parts of Cloudflare's Turnstile API the widget uses. */
 interface Turnstile {
@@ -61,15 +66,17 @@ function loadTurnstile(): Promise<Turnstile> {
  * Cloudflare is unsure; otherwise nothing shows. When the check cannot load or fails, as when
  * Cloudflare is blocked, it says so with Try again, so the step is never stuck without a word (F1-15).
  */
-export function Captcha({ siteKey, onToken, renewKey = 0 }: CaptchaProps) {
+export function Captcha({ siteKey, onToken, renewKey = 0, onTrouble }: CaptchaProps) {
   const host = useRef<HTMLDivElement>(null);
   const handler = useRef(onToken);
+  const tell = useRef(onTrouble);
   const [attempt, setAttempt] = useState(0);
   const [isFailed, setFailed] = useState(false);
   useEffect(() => {
     handler.current = onToken;
+    tell.current = onTrouble;
   });
-  const widget = useTurnstileWidget({ host, siteKey, attempt, handler, onFailed: setFailed });
+  const widget = useTurnstileWidget({ host, siteKey, attempt, handler, tell, onFailed: setFailed });
 
   useEffect(() => {
     if (renewKey === 0 || !widget.current) return;
@@ -97,20 +104,22 @@ interface WidgetOptions {
   /** Each new attempt draws the widget again, as Try again asks. */
   attempt: number;
   handler: RefObject<(token: string | null) => void>;
+  tell: RefObject<CaptchaProps['onTrouble']>;
   onFailed: (isFailed: boolean) => void;
 }
 
 /** Draws Turnstile's widget in `host`, handing each token to `handler`, and says when it cannot load or fails. */
-function useTurnstileWidget({ host, siteKey, attempt, handler, onFailed }: WidgetOptions) {
+function useTurnstileWidget({ host, siteKey, attempt, handler, tell, onFailed }: WidgetOptions) {
   const widget = useRef<{ turnstile: Turnstile; id: string } | null>(null);
   useEffect(() => {
     const element = host.current;
     if (!siteKey || !element) return undefined;
     let isGone = false;
-    const fail = () => {
+    const fail = (trouble: CaptchaTrouble) => {
       if (isGone) return;
       onFailed(true);
       handler.current(null);
+      tell.current?.(trouble);
     };
     loadTurnstile()
       .then((turnstile) => {
@@ -125,17 +134,18 @@ function useTurnstileWidget({ host, siteKey, attempt, handler, onFailed }: Widge
             handler.current(token);
           },
           'expired-callback': () => handler.current(null),
-          'error-callback': fail,
+          // Cloudflare's own code for the refusal is a number, and is not passed on.
+          'error-callback': () => fail('refused'),
         });
         widget.current = { turnstile, id };
       })
-      .catch(fail);
+      .catch(() => fail('not_loaded'));
     return () => {
       isGone = true;
       if (widget.current) widget.current.turnstile.remove(widget.current.id);
       widget.current = null;
     };
-  }, [host, siteKey, attempt, handler, onFailed]);
+  }, [host, siteKey, attempt, handler, tell, onFailed]);
   return widget;
 }
 
