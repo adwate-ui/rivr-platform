@@ -52,6 +52,36 @@ export const consoleUi = {
     page: 'Page {page}',
     pagesGap: '…',
   },
+  /** A group of settings (SettingsGroup; redesign RD-14): its columns, a row's Change, named for its setting, and a group with none. */
+  settingsGroup: {
+    setting: 'Setting',
+    now: 'Now',
+    who: 'Who changes it',
+    toCome: 'Changes to come',
+    change: 'Change',
+    changeNamed: 'Change {name}',
+    empty: 'No settings.',
+  },
+  /** A number typed in its unit (UnitInput): the unit after it, `1 minute` or `20 minutes`, and what a refused number is told. */
+  unitInput: {
+    one: { minutes: 'minute', hours: 'hour', days: 'day', players: 'player', seconds: 'second', bonus: 'Bonus' },
+    many: { minutes: 'minutes', hours: 'hours', days: 'days', players: 'players', seconds: 'seconds', bonus: 'Bonus' },
+    between: 'Between {min} and {max} {unit}.',
+  },
+  /** A list an admin adds to, edits and removes from (EditableList): an entry's name, `Choice 2`, its Remove, and why one is refused. */
+  editableList: {
+    entry: '{label} {number}',
+    remove: 'Remove',
+    removeNamed: 'Remove {entry}',
+    empty: 'Type a value or remove it.',
+    repeated: 'Already in the list.',
+    none: 'None yet.',
+  },
+  /** One value for each stake (StakeValues): the line under a stake that has none, and a club with no stakes. */
+  stakeValues: {
+    none: 'Not set',
+    empty: 'No stakes yet.',
+  },
   /** Stepper's `progress` look (redesign RD-15): the step reached, said to a screen reader as it changes. `Step 3 of 5: PAN card`. */
   stepper: {
     position: 'Step {number} of {total}: {name}',

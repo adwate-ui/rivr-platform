@@ -191,4 +191,8 @@ export * from './ProfileMark/index.ts';
 export * from './BackButton/index.ts';
 export * from './DeskHelp/index.ts';
 export * from './ResendButton/index.ts';
+export * from './SettingsGroup/index.ts';
+export * from './UnitInput/index.ts';
+export * from './EditableList/index.ts';
+export * from './StakeValues/index.ts';
 export { haptic } from './haptic/index.ts';
