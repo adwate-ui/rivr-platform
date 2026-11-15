@@ -5,16 +5,18 @@ import { LoadState } from '../LoadState/LoadState.tsx';
 import { Text } from '../Text/Text.tsx';
 import { useIsWide } from '../useIsWide/useIsWide.ts';
 import { ColumnMenu } from './ColumnMenu.tsx';
-import type { DataTableColumn, DataTableExportColumn, DataTableSort } from './columns.ts';
+import type { ColumnChoice, DataTableColumn, DataTableExportColumn, DataTableSort } from './columns.ts';
 import { useTableDensity } from './DataTableDensity.tsx';
 import { PhoneSort } from './PhoneSort.tsx';
 import { HeaderRow } from './header.tsx';
+import { Pages } from './Pages.tsx';
 import { layoutOf, PlainBody, VirtualBody } from './rows.tsx';
 import { ticksFor, type DataTableSelection } from './Selection.tsx';
+import type { DataTableRequest, DataTableServer } from './server.ts';
 import { FilterPills, TableBar } from './TableBar.tsx';
 import { useTable, type DataTableSearch } from './useTable.ts';
 
-export type { DataTableColumn, DataTableExportColumn, DataTableSearch, DataTableSelection, DataTableSort };
+export type { ColumnChoice, DataTableColumn, DataTableExportColumn, DataTableRequest, DataTableSearch, DataTableSelection, DataTableServer, DataTableSort };
 
 /** The rows, or one of the states every list has. */
 export type DataTableState<Row> =
@@ -79,6 +81,13 @@ export type DataTableProps<Row> = DataTableState<Row> & {
    * value (console v3); null for none. Not in a long list, whose rows are all one height.
    */
   rowDetail?: (row: Row) => ReactNode;
+  /**
+   * Server mode (redesign RD-13), for a list too long to load whole: the screen sorts, searches, filters and pages, and
+   * gives one page as `rows` with the `total`. The table hands it the view in force (`onRequest`), draws the rows as
+   * given, the pages in its foot, and how many rows show of all. A page of rows cannot tell a column's kind of filter, so
+   * a column says it (`filter`; left out, words to type), and a choice gives its `choices`. An export holds the page shown.
+   */
+  server?: DataTableServer;
 };
 
 /** Past this many rows, only the rows in view are drawn (additions, "Performance budgets"). */
@@ -134,15 +143,33 @@ function Table<Row>({ props, visible, sort, resetKey, onSort, menuFor }: TablePr
   );
 }
 
+interface InsteadProps<Row> {
+  readonly props: DataTableProps<Row>;
+  /** The words searched, trimmed. */
+  readonly query: string;
+  readonly isFiltered: boolean;
+  /** The search or filters leave no row: it says so, not that there are none at all. */
+  readonly isNarrowedAway: boolean;
+  readonly isUnderHeader: boolean;
+}
+
 /** What stands in for the rows: loading, the error with a retry, or why there are none (announced as the filter changes). */
-function Instead<Row>({ props, query, isFiltered, isUnderHeader }: { props: DataTableProps<Row>; query: string; isFiltered: boolean; isUnderHeader: boolean }) {
+function Instead<Row>({ props, query, isFiltered, isNarrowedAway, isUnderHeader }: InsteadProps<Row>) {
   // Under the header it sits on the cells' edge; with none above it, on the panel's own (audit F-066).
   const inset = isUnderHeader ? 'px-3' : '';
   if (props.status === 'loading') return <div className={cx('py-4', inset)}><LoadState /></div>;
   if (props.status === 'error') return <div className={cx('py-4', inset)}><LoadState isError errorText={props.errorText} onRetry={props.onRetry} /></div>;
-  const why = query.trim() === '' && isFiltered ? t('ui.dataTable.noFilterMatch') : t('ui.dataTable.noMatch', { query: query.trim() });
-  const text = props.rows.length === 0 ? props.emptyText : why;
-  return <div role="status" className={cx('py-4', inset)}><Text tone="muted">{text}</Text></div>;
+  const why = query === '' && isFiltered ? t('ui.dataTable.noFilterMatch') : t('ui.dataTable.noMatch', { query });
+  return <div role="status" className={cx('py-4', inset)}><Text tone="muted">{isNarrowedAway ? why : props.emptyText}</Text></div>;
+}
+
+/**
+ * Whether the search or filters leave no row of those there are. In server mode, which holds one page: none came back
+ * while something narrows them.
+ */
+function isNarrowedAway<Row>(table: ReturnType<typeof useTable<Row>>, isServer: boolean): boolean {
+  if (table.visible.length > 0) return false;
+  return isServer ? table.isReady && (table.on.length > 0 || table.query !== '') : table.source.length > 0;
 }
 
 /**
@@ -163,9 +190,11 @@ function useRefocus() {
  */
 function Pills<Row>({ props, table, refocus }: { props: DataTableProps<Row>; table: ReturnType<typeof useTable<Row>>; refocus: (selector: string) => void }) {
   if (props.status === 'loading' || props.status === 'error') return null;
+  // In server mode the rows shown are a page of the total, so how many show of all is said whatever narrows them.
+  const total = props.server?.total ?? table.source.length;
   return (
-    <FilterPills on={table.on} filters={table.view.filters} isSearched={props.filter !== undefined && table.view.query.trim() !== ''}
-      shown={table.visible.length} total={table.source.length}
+    <FilterPills on={table.on} filters={table.view.filters} isSearched={table.query !== ''}
+      shown={table.visible.length} total={total} isCountAlways={props.server !== undefined && total > 0}
       onRemove={(key) => { table.setFilter(key, undefined); refocus(`[data-column-menu="${key}"]`); }}
       onClearAll={() => { table.clearAll(); refocus('input[type="search"], [data-column-menu]'); }} />
   );
@@ -176,9 +205,15 @@ function useColumnMenus<Row>(table: ReturnType<typeof useTable<Row>>) {
   return (column: DataTableColumn<Row>, look: 'icon' | 'words') => {
     const filtered = table.filtered.find((one) => one.column.key === column.key);
     if (filtered === undefined && (look === 'icon' || column.sortValue === undefined)) return null;
-    return <ColumnMenu column={column} filtered={filtered} rows={table.source} sort={table.view.sort} onSort={table.setSort} look={look} onClose={table.flush}
+    return <ColumnMenu column={column} filtered={filtered} rows={table.counted} sort={table.view.sort} onSort={table.setSort} look={look} onClose={table.flush}
       filter={table.view.filters[column.key]} onFilter={(filter, isTyping) => table.setFilter(column.key, filter, isTyping)} />;
   };
+}
+
+/** The table's foot, in server mode: the pages, once the rows are in and there is more than one. */
+function Foot<Row>({ props, table }: { props: DataTableProps<Row>; table: ReturnType<typeof useTable<Row>> }) {
+  if (props.server === undefined || !table.isReady || table.pageCount < 2) return null;
+  return <Pages label={props.label} page={table.page} count={table.pageCount} onPage={table.setPage} />;
 }
 
 /**
@@ -186,7 +221,8 @@ function useColumnMenus<Row>(table: ReturnType<typeof useTable<Row>>) {
  * scrolls, each column's menu to sort it and filter it by its type, the filters in force as pills, an optional search
  * box, optional ticks, and the loading, empty and error states. Its view is kept beneath a DataTableViewProvider (the
  * console: the address). Past 200 rows only the rows in view are drawn, so thousands of rows scroll smoothly. Beneath a
- * DataTableExportProvider, the rows as shown export as CSV or XLSX, each export recorded first (#102).
+ * DataTableExportProvider, the rows as shown export as CSV or XLSX, each export recorded first (#102). With `server`, the
+ * screen sorts, filters and pages, and the table draws the page it is given.
  */
 export function DataTable<Row>(given: DataTableProps<Row>) {
   const props = withoutTotalAmongTicks(given);
@@ -196,22 +232,22 @@ export function DataTable<Row>(given: DataTableProps<Row>) {
   const menu = useColumnMenus(table);
   const isCards = !isWide && props.narrowLayout !== 'scroll' && props.scrollsSideways !== true;
   // Rows the search or filters leave none of: the header stays, with each column's menu, and why there are none under it.
-  const isNarrowedAway = table.visible.length === 0 && table.source.length > 0;
-  // Words searched in a link to a table without a search box are not applied, so never said.
-  const instead = <Instead props={props} query={props.filter === undefined ? '' : table.view.query} isFiltered={table.on.length > 0} isUnderHeader={isNarrowedAway && !isCards} />;
+  const isEmptied = isNarrowedAway(table, props.server !== undefined);
+  const instead = <Instead props={props} query={table.query} isFiltered={table.on.length > 0} isNarrowedAway={isEmptied} isUnderHeader={isEmptied && !isCards} />;
   return (
     <div ref={root} className="flex flex-col gap-4">
       <TableBar props={props} visible={table.visible} reservesGutter={table.visible.length > VIRTUAL_FROM} state={{ query: table.view.query, onQuery: table.setQuery, onLeave: table.flush, on: table.on, filters: table.view.filters }} />
       <Pills props={props} table={table} refocus={refocus} />
-      {table.visible.length === 0 && !isNarrowedAway ? instead : (
+      {table.visible.length === 0 && !isEmptied ? instead : (
         <>
           {/* Below 768 px the cards sort and filter from a bar above them; a layout with lines keeps its header. */}
           {isCards ? <PhoneSort label={props.label} columns={props.columns} menu={(column) => menu(column, 'words')} /> : null}
           <Table props={props} visible={table.visible} sort={table.view.sort} resetKey={`${table.view.query}:${JSON.stringify(table.view.filters)}`}
             onSort={table.toggleSort} menuFor={(column) => menu(column, 'icon')} />
-          {isNarrowedAway ? instead : null}
+          {isEmptied ? instead : null}
         </>
       )}
+      <Foot props={props} table={table} />
     </div>
   );
 }

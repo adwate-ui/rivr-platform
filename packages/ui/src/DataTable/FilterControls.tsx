@@ -20,9 +20,9 @@ function TextFilter<Row>({ filter, onFilter }: FilterControlProps<Row>) {
   );
 }
 
-/** Each of the column's values with how many rows hold it; a long list scrolls in the menu. */
+/** Each of the column's values with how many rows hold it, as the screen gives them or else counted here; a long list scrolls in the menu. */
 function ChoiceFilter<Row>({ filtered, rows, filter, onFilter }: FilterControlProps<Row>) {
-  const options = choicesOf(filtered.column, rows).map(({ value, count }) => ({ value, label: value, count }));
+  const options = (filtered.column.choices ?? choicesOf(filtered.column, rows)).map(({ value, count }) => ({ value, label: value, count }));
   return (
     <div>
       <ChoiceChips label={filtered.column.header} isLabelVisuallyHidden mode="many" look="subtle" options={options}

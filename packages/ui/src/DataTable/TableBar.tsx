@@ -105,16 +105,20 @@ export interface PillsProps<Row> {
   readonly isSearched: boolean;
   readonly shown: number;
   readonly total: number;
+  /** How many show of all is said though nothing narrows the rows: a table in server mode, which shows a page of them. */
+  readonly isCountAlways?: boolean;
   readonly onRemove: (key: string) => void;
   readonly onClearAll: () => void;
 }
 
 /**
- * The filters in force as pills (owner, 9 Nov), each removed with its ×; Clear all, which clears the search too; and how
- * many rows show of all, said politely as it changes. Nothing while nothing narrows the rows.
+ * The filters in force as pills (owner, 9 Nov), each removed with its ×; Clear all, which clears the search too, only
+ * while a filter or the search is on; and how many rows show of all, said politely as it changes. Nothing while nothing
+ * narrows the rows, unless the count is always said.
  */
-export function FilterPills<Row>({ on, filters, isSearched, shown, total, onRemove, onClearAll }: PillsProps<Row>) {
-  if (on.length === 0 && !isSearched) return null;
+export function FilterPills<Row>({ on, filters, isSearched, shown, total, isCountAlways = false, onRemove, onClearAll }: PillsProps<Row>) {
+  const isNarrowed = on.length > 0 || isSearched;
+  if (!isNarrowed && !isCountAlways) return null;
   return (
     <div className="flex flex-wrap items-center gap-2">
       {on.map(({ column, kind }) => {
@@ -128,7 +132,7 @@ export function FilterPills<Row>({ on, filters, isSearched, shown, total, onRemo
           </Button>
         );
       })}
-      <Button variant="text" size="small" onClick={onClearAll}>{t('ui.dataTable.clearAll')}</Button>
+      {isNarrowed ? <Button variant="text" size="small" onClick={onClearAll}>{t('ui.dataTable.clearAll')}</Button> : null}
       <span role="status" className="ms-auto">
         <Text variant="small" tone="muted">{t('ui.dataTable.shownOf', { shown: formatNumber(shown), total: formatNumber(total) })}</Text>
       </span>

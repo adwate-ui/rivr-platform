@@ -25,8 +25,9 @@ export function useDayOf(): (at: Date) => string {
   return use(ViewStoreContext)?.dayOf ?? indiaDayOf;
 }
 
-// Words typed are kept once the typing pauses, so the address is not rewritten at each key.
-const TYPING_MS = 300;
+// Words typed are kept once the typing pauses, so the address is not rewritten at each key; a table in server mode
+// hands them to its screen then too.
+export const TYPING_MS = 300;
 
 /** A change not yet kept, with the store's view it was made on. */
 interface Pending {

@@ -47,6 +47,10 @@ export const consoleUi = {
   dataTable: {
     selectRow: 'Select {row}',
     selectAll: 'Select all',
+    /** A table the screen pages (redesign RD-13): its pages in its foot, named for the table, each `Page 2`. */
+    pages: '{table}: pages',
+    page: 'Page {page}',
+    pagesGap: '…',
   },
   /** A table on the live floor. */
   tableTile: {

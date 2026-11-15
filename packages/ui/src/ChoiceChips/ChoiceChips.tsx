@@ -1,4 +1,4 @@
-import { t } from '@rivr/i18n';
+import { formatNumber, t } from '@rivr/i18n';
 import { useId, useRef, type KeyboardEvent } from 'react';
 import { cx } from '../internal/classes.ts';
 import { useIsInConsole } from '../internal/consoleFrame.ts';
@@ -102,12 +102,12 @@ function choiceClasses(look: ChipLook, isOn: boolean, optionCount: number): stri
 }
 
 /**
- * A chip's name: with its count, `Pending, 3`; a card's, its label alone, its line read as its description; otherwise
+ * A chip's name: with its count, `Pending, 3` or `All, 4,812`; a card's, its label alone, its line read as its description; otherwise
  * none, so its words name it.
  */
 function namingOf(chip: ChoiceChip<string>, descriptionId: string) {
   if (chip.description !== undefined) return { 'aria-label': chip.label, 'aria-describedby': descriptionId };
-  return { 'aria-label': chip.count === undefined ? undefined : t('ui.console.choiceChips.withCount', { label: chip.label, count: chip.count }) };
+  return { 'aria-label': chip.count === undefined ? undefined : t('ui.console.choiceChips.withCount', { label: chip.label, count: formatNumber(chip.count) }) };
 }
 
 /** A chip's label, then any count, in the chip's own colour and set apart by its regular weight; a card's label over its line, in cream on a chosen card's tint (F-026). */
@@ -123,7 +123,7 @@ function ChipWords({ chip, descriptionId, isOn }: { chip: ChoiceChip<string>; de
   return (
     <>
       {chip.label}
-      {chip.count === undefined ? null : <span className="ms-2 font-regular tabular-nums">{chip.count}</span>}
+      {chip.count === undefined ? null : <span className="ms-2 font-regular tabular-nums">{formatNumber(chip.count)}</span>}
     </>
   );
 }
