@@ -50,6 +50,13 @@ export const kycInPerson = {
   consentHint: 'Ask first: their PAN and Aadhaar photos are kept. Recorded with your name.',
   verifyName: 'Verify {name}',
   invalid: 'All three photos, date of birth, last four Aadhaar digits, PAN and consent are needed.',
+  /** Under a field of the Details step, and under the consent, when Verify finds it missing or malformed. */
+  errors: {
+    dateOfBirth: 'Give the date of birth on the document.',
+    aadhaarLast4: 'Give the last four digits.',
+    pan: 'Give the PAN as on the card.',
+    consent: 'Ask for their consent, then switch this on.',
+  },
   verified: '{name} is verified and can take a seat.',
   refused: '{name} refused. See the checks below.',
   needsReview: '{name} goes to review: it matches another check. See the list below.',

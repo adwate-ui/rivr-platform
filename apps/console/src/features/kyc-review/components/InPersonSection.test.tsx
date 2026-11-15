@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { chooseNaina, NAINA, renderSection, stubCamera, takeThreePhotos } from './inPersonTestApi.tsx';
+import { chooseNaina, NAINA, renderSection, stubCamera, takeThreePhotos, typeDetails } from './inPersonTestApi.tsx';
 
 beforeEach(stubCamera);
 
@@ -18,9 +18,7 @@ afterEach(() => {
 async function checkNaina({ consent = true } = {}) {
   await chooseNaina();
   await takeThreePhotos();
-  fireEvent.change(screen.getByLabelText('Date of birth on Naina Kapoor\'s original document'), { target: { value: '1990-04-12' } });
-  fireEvent.change(screen.getByLabelText('Last four digits of Naina Kapoor\'s Aadhaar'), { target: { value: '1234' } });
-  fireEvent.change(screen.getByLabelText('Naina Kapoor\'s PAN from the original card'), { target: { value: 'abcpn1234d' } });
+  typeDetails();
   if (consent) fireEvent.click(screen.getByRole('switch', { name: 'Naina Kapoor agrees to this ID check' }));
   fireEvent.click(screen.getByRole('button', { name: 'Verify Naina Kapoor' }));
 }
@@ -68,7 +66,7 @@ describe('a check in person', () => {
   it('sends nothing without the member\'s consent, however complete the rest', async () => {
     const sent = renderSection(() => Response.json({ status: 'verified' }));
     await checkNaina({ consent: false });
-    expect((await screen.findByRole('alert')).textContent).toMatch(/^All three photos/);
+    expect((await screen.findByRole('alert')).textContent).toBe('Ask for their consent, then switch this on.');
     expect(sent).toEqual([]);
   });
 

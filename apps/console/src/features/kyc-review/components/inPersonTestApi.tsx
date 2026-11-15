@@ -1,7 +1,9 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import type { ReactElement } from 'react';
 import { expect, vi } from 'vitest';
 import { InPersonSection } from './InPersonSection.tsx';
+import { InPersonSheet } from './InPersonSheet.tsx';
 
 /**
  * jsdom has no camera, plays and draws nothing: the console's camera opens on a stand-in, and the photo comes back from
@@ -20,11 +22,11 @@ export function stubCamera() {
 
 export const NAINA = { member_id: '00000000-0000-4000-8000-000000000203', full_name: 'Naina Kapoor', phone_last4: '0203', status: null, app_selfie_path: null, retake_kinds: [], retake_reasons: [] };
 
-/**
- * Vikram, a KYC reviewer, signed in, and a fake API that finds `found` (Naina), lists `due` as due tonight and answers her
- * check with `reply`. Gives what was sent to the check.
- */
-export function renderSection(reply: () => Response, found: unknown = NAINA, due: unknown[] = [], holder: unknown[] = []) {
+/** What the check's function answers: at once, or when a test lets it. */
+type Reply = () => Response | Promise<Response>;
+
+/** Vikram, a KYC reviewer, signed in, over a fake API; gives what was sent to the check. */
+function renderOver(ui: ReactElement, reply: Reply, lists: { found: unknown; due: unknown[]; holder: unknown[] }) {
   localStorage.setItem(
     SESSION_STORAGE_KEY,
     JSON.stringify({
@@ -36,9 +38,9 @@ export function renderSection(reply: () => Response, found: unknown = NAINA, due
   const sent: unknown[] = [];
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (url.includes('/rpc/kyc_in_person_candidates')) return Response.json([found]);
-    if (url.includes('/rpc/kyc_due_tonight')) return Response.json(due);
-    if (url.includes('/rpc/kyc_duplicate_holder')) return Response.json(holder);
+    if (url.includes('/rpc/kyc_in_person_candidates')) return Response.json([lists.found]);
+    if (url.includes('/rpc/kyc_due_tonight')) return Response.json(lists.due);
+    if (url.includes('/rpc/kyc_duplicate_holder')) return Response.json(lists.holder);
     if (url.includes('/functions/v1/kyc-image-url')) return Response.json({ signedPath: '/object/sign/kyc/selfie.jpg?token=t' });
     if (url.includes('/functions/v1/kyc-in-person')) {
       sent.push(JSON.parse(String(init?.body)));
@@ -47,8 +49,18 @@ export function renderSection(reply: () => Response, found: unknown = NAINA, due
     return Response.json([]);
   });
   const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
-  render(<RivrDataProvider client={client}><InPersonSection venueId="v1" /></RivrDataProvider>);
+  render(<RivrDataProvider client={client}>{ui}</RivrDataProvider>);
   return sent;
+}
+
+/** The check on its screen: the API finds `found` (Naina), lists `due` as due tonight and answers her check with `reply`. */
+export function renderSection(reply: Reply, found: unknown = NAINA, due: unknown[] = [], holder: unknown[] = []) {
+  return renderOver(<InPersonSection venueId="v1" />, reply, { found, due, holder });
+}
+
+/** The check behind its button, in the console's sheet. */
+export function renderSheet(reply: Reply) {
+  return renderOver(<InPersonSheet venueId="v1" />, reply, { found: NAINA, due: [], holder: [] });
 }
 
 /** Searches for Naina and presses her Check. */
@@ -76,4 +88,11 @@ export async function takeThreePhotos() {
   await screen.findByText('Photo 3 of 3');
   await takeAndUse(true);
   await screen.findByRole('button', { name: 'Verify Naina Kapoor' });
+}
+
+/** The details from Naina's originals, typed on the Details step. */
+export function typeDetails() {
+  fireEvent.change(screen.getByLabelText('Date of birth on Naina Kapoor\'s original document'), { target: { value: '1990-04-12' } });
+  fireEvent.change(screen.getByLabelText('Last four digits of Naina Kapoor\'s Aadhaar'), { target: { value: '1234' } });
+  fireEvent.change(screen.getByLabelText('Naina Kapoor\'s PAN from the original card'), { target: { value: 'abcpn1234d' } });
 }
