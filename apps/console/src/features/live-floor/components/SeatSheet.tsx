@@ -5,7 +5,7 @@ import {
 } from '@rivr/db';
 import { useMemberBonus, useMemberBonusVisitLeft } from '@rivr/db/bonus';
 import { formatChips, t, type MessageKey } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Input, Sheet, Stack, Text, UnitInput } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Inline, Input, Sheet, Stack, Text, UnitInput } from '@rivr/ui';
 import { useState } from 'react';
 import { waitedSeconds } from './requestView.ts';
 import { stakeOf } from './seatState.ts';
@@ -37,8 +37,14 @@ function nextOn(board: readonly WaitlistBoardEntry[], tableId: string, pinned: s
 /** The members suggested as the floor types: a few at most (the owner, 15 Nov night). */
 const MATCHES_MOST = 8;
 
-/** Who is seated: the member chosen from those matching what is typed, else the number typed, else the name chosen; or why none will do. */
-function seatingOf(number: string, entry: WaitlistBoardEntry | undefined, match: MemberRow | null): Seating | MessageKey {
+/** Whether typed text names someone, not a number alone. */
+const hasLetters = (text: string) => /\p{L}/u.test(text);
+
+/**
+ * Who is seated: the member chosen from those matching what is typed, else the number typed, else the name chosen; or why
+ * none will do: part of a name asks for one of its matches to be chosen, or says it found no one.
+ */
+function seatingOf(number: string, entry: WaitlistBoardEntry | undefined, match: MemberRow | null, hasMatches: boolean): Seating | MessageKey {
   if (match !== null) {
     const parsed = seatPlayerSchema.safeParse({ number: String(match.memberNumber) });
     return parsed.success ? { kind: 'number', who: parsed.data.number, typed: match.fullName } : 'console.floor.seat.badNumber';
@@ -46,8 +52,8 @@ function seatingOf(number: string, entry: WaitlistBoardEntry | undefined, match:
   if (number.trim() !== '') {
     const parsed = seatPlayerSchema.safeParse({ number });
     if (parsed.success) return { kind: 'number', who: parsed.data.number, typed: number.trim() };
-    // A name, or part of one: the member is chosen from those it matches.
-    return /\p{L}/u.test(number) ? 'console.floor.seat.chooseMatch' : 'console.floor.seat.badNumber';
+    if (!hasLetters(number)) return 'console.floor.seat.badNumber';
+    return hasMatches ? 'console.floor.seat.chooseMatch' : 'console.floor.seat.noMatch';
   }
   if (entry === undefined) return 'console.floor.seat.chooseWho';
   // Not checked yet (decision 0503): the database refuses the seat, so the sheet says the desk comes first.
@@ -77,10 +83,28 @@ function useSeatChoice(start: SeatSheetProps['start']) {
   };
 }
 
-/** The members matching what is typed, by name, member number or the mobile's last digits, through the bounded member search. */
-function useMatches(venueId: string, typed: string): readonly MemberRow[] {
+/** Whether a member's name, member number or mobile starts with what was typed, so they come first ("Ish": Ishaan before Girish). */
+function isStartedBy(row: MemberRow, typed: string): boolean {
+  const text = typed.trim().toLowerCase();
+  const digits = text.replace(/\D/g, '');
+  if (row.fullName.toLowerCase().startsWith(text)) return true;
+  return digits !== '' && (String(row.memberNumber).startsWith(digits) || (row.phone ?? '').replace(/\D/g, '').slice(-10).startsWith(digits));
+}
+
+/**
+ * The members matching what is typed, by name, member number or the mobile's last digits, through the bounded member search:
+ * those it starts first, eight at most; whether a name found no one; and whether the search failed, with a way to ask again.
+ */
+function useMatches(venueId: string, typed: string) {
   const found = useMemberSearch(venueId, typed);
-  return typed.trim() === '' ? [] : (found.data ?? []).slice(0, MATCHES_MOST);
+  const isTyped = typed.trim() !== '';
+  const rows = isTyped ? [...(found.data ?? [])].sort((a, b) => Number(isStartedBy(b, typed)) - Number(isStartedBy(a, typed))).slice(0, MATCHES_MOST) : [];
+  return {
+    rows,
+    isNoOne: hasLetters(typed) && found.isSuccess && rows.length === 0,
+    hasFailed: isTyped && found.isError,
+    retry: () => void found.refetch(),
+  };
 }
 
 /** Whose bonus the sheet shows: the member chosen from the matches while something is typed, else the one chosen from the list. */
@@ -111,7 +135,7 @@ function useSeatSheet({ venueId, tables, seats, held, start, changes, onClose }:
   const [isSeating, setSeating] = useState(false);
   const confirm = async () => {
     if (isSeating) return undefined;
-    const who = seatingOf(choice.number, isTyped ? undefined : entry, choice.match);
+    const who = seatingOf(choice.number, isTyped ? undefined : entry, choice.match, matches.rows.length > 0);
     if (typeof who === 'string') return choice.setError(who);
     if (table === undefined || seat === null) return choice.setError('console.floor.seat.pickSeat');
     if (!isCallTimeMinutes(callMinutes)) return choice.setError('console.floor.seat.badCallTime');
@@ -135,27 +159,59 @@ function useSeatSheet({ venueId, tables, seats, held, start, changes, onClose }:
 type SeatSheetState = ReturnType<typeof useSeatSheet>;
 
 /**
- * Who: the next names on the table's list, or a name, mobile or member number typed, with the members it matches to choose
- * from by a tap or the arrow keys (the owner, 15 Nov night).
+ * The members matching what is typed, to choose from by a tap or the arrow keys (the owner, 15 Nov night); a name that finds
+ * no one says so, and a search that failed says so, with Try again. The Bonus typed is for the member chosen: choosing
+ * another empties it.
+ */
+function Matches({ sheet }: { sheet: SeatSheetState }) {
+  const { choice, matches } = sheet;
+  if (matches.hasFailed) {
+    return (
+      <Inline gap={3} align="center">
+        <ErrorMessage>{t('console.floor.seat.searchFailed')}</ErrorMessage>
+        <Button variant="text" size="compact" onClick={matches.retry}>{t('common.retry')}</Button>
+      </Inline>
+    );
+  }
+  if (matches.isNoOne) return <Text tone="muted">{t('console.floor.seat.noMatch')}</Text>;
+  if (matches.rows.length === 0) return null;
+  const choose = (memberId: string | undefined) => {
+    choice.setMatch(matches.rows.find((row) => row.memberId === memberId) ?? null);
+    choice.setEntryId(null);
+    choice.setBonusChips('');
+    choice.setError(null);
+  };
+  return (
+    <ChoiceChips look="subtle" mode="one" label={t('console.floor.seat.matches')} isLabelVisuallyHidden selected={choice.match === null ? [] : [choice.match.memberId]}
+      options={matches.rows.map((row) => ({ value: row.memberId, label: t('console.floor.seat.match', { name: row.fullName, number: row.memberNumber }) }))}
+      onChange={([value]) => choose(value)} />
+  );
+}
+
+/**
+ * Who: the next names on the table's list, or a name, mobile or member number typed, with the members it matches. The Bonus
+ * typed goes with the member it was typed for: choosing another, or typing in place of a member chosen, empties it.
  */
 function Who({ sheet, now }: { sheet: SeatSheetState; now: Date }) {
-  const { choice, table, next, chosen, matches } = sheet;
+  const { choice, table, next, chosen } = sheet;
   const heading = t('console.floor.seat.nextOn', { table: table?.name ?? '' });
+  const type = (text: string) => {
+    if (choice.match !== null || (chosen !== undefined && choice.number.trim() === '')) choice.setBonusChips('');
+    choice.setNumber(text);
+    choice.setMatch(null);
+    choice.setError(null);
+  };
   return (
     <Stack gap={3}>
       <Text variant="caption" tone="muted">{heading}</Text>
       {next.length === 0 ? <Text tone="muted">{t('console.floor.seat.nobody')}</Text> : (
         <ChoiceChips look="subtle" mode="one" label={heading} isLabelVisuallyHidden selected={chosen === undefined ? [] : [chosen.entryId]}
           options={next.map((one) => ({ value: one.entryId, label: t('console.floor.seat.waiting', { name: one.fullName, minutes: Math.floor(waitedSeconds(one.joinedAt, now) / 60) }) }))}
-          onChange={([value]) => { choice.setEntryId(value ?? null); choice.setNumber(''); choice.setMatch(null); choice.setError(null); }} />
+          onChange={([value]) => { choice.setEntryId(value ?? null); choice.setNumber(''); choice.setMatch(null); choice.setBonusChips(''); choice.setError(null); }} />
       )}
-      <Input label={t(next.length === 0 ? 'console.floor.seat.numberAlone' : 'console.floor.seat.number')} value={choice.number} inputMode="numeric" autoComplete="off"
-        onChange={(event) => { choice.setNumber(event.target.value); choice.setMatch(null); choice.setError(null); }} />
-      {matches.length === 0 ? null : (
-        <ChoiceChips look="subtle" mode="one" label={t('console.floor.seat.matches')} isLabelVisuallyHidden selected={choice.match === null ? [] : [choice.match.memberId]}
-          options={matches.map((row) => ({ value: row.memberId, label: t('console.floor.seat.match', { name: row.fullName, number: row.memberNumber }) }))}
-          onChange={([value]) => { choice.setMatch(matches.find((row) => row.memberId === value) ?? null); choice.setEntryId(null); choice.setError(null); }} />
-      )}
+      <Input label={t(next.length === 0 ? 'console.floor.seat.numberAlone' : 'console.floor.seat.number')} value={choice.number} autoComplete="off"
+        onChange={(event) => type(event.target.value)} />
+      <Matches sheet={sheet} />
     </Stack>
   );
 }

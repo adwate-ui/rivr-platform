@@ -95,6 +95,9 @@ export const floor = {
     matches: 'Members matching',
     match: '{name} · No. {number}',
     chooseMatch: 'Choose the member below.',
+    /** A name typed that finds no one, under the field and as Seat's answer. */
+    noMatch: 'No member found.',
+    searchFailed: 'Search failed.',
     tableThenSeat: 'Table, then seat',
     table: 'Table',
     seatNumber: 'Seat',
