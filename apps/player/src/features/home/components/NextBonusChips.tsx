@@ -3,7 +3,7 @@ import { formatDuration, formatNumber, t } from '@rivr/i18n';
 import { Box, FeatureGate, Inline, ProgressBar, Stack, Text } from '@rivr/ui';
 
 /**
- * How close the member is to the next play-time bonus on this seat (audit F-173), laid out as Rewards' next reward. Nothing
+ * How close the member is to the next play-time bonus on this seat (audit F-173): its name, what is left and a bar. Nothing
  * while none is counting (the server gives none without promotions.feed), and in the last minute it says one minute, as the
  * sweep pays on the minute.
  */

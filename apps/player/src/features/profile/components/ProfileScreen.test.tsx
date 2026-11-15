@@ -33,7 +33,7 @@ function readAnswer(url: string, kyc: unknown, photoPath: string | null): unknow
 }
 
 /**
- * Meera signed in on +91 90000 00901, opening Profile from Rewards; feedback she sends goes to `sent`. `photoPath` is where
+ * Meera signed in on +91 90000 00901, opening Profile from Bonus; feedback she sends goes to `sent`. `photoPath` is where
  * her own photo is kept (my_photo_path), and `bodiesTo` gives what was sent to an address.
  */
 function renderProfile(kyc: unknown = null, erasure: { asked?: string; fails?: boolean } = {}, photoPath: string | null = null) {

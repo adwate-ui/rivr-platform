@@ -35,7 +35,7 @@ describe('TvWaitlistBoard', () => {
   });
 
   it('draws no empty place column, so names sit under their heading (F-139)', () => {
-    const { container } = renderIn(<TvWaitlistBoard title="Rewards" stakes={[{ id: 'a', stake: 'Recently redeemed', detail: 'This week', places: [{ id: '1', place: '', name: 'Neel B.', status: 'Bar upgrade' }] }]} emptyText="Nothing yet." moreText={MORE} />);
+    const { container } = renderIn(<TvWaitlistBoard title="Most hours" stakes={[{ id: 'a', stake: 'This week', detail: 'Since Monday', places: [{ id: '1', place: '', name: 'Neel B.', status: '12 h' }] }]} emptyText="Nothing yet." moreText={MORE} />);
     expect(container.querySelector('li')?.children).toHaveLength(2);
   });
 

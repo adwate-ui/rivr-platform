@@ -171,10 +171,10 @@ describe('Screen on the console', () => {
   });
 
   it("stands a tab's action in the title row over the tabs, its own title heard only (audit F-028)", () => {
-    inConsole(<Screen title="Rewards" tabs={<nav aria-label="Tabs" />}><Screen title="Catalogue" actions={<button type="button">New reward</button>}>x</Screen></Screen>);
-    const row = screen.getByRole('heading', { name: 'Rewards', level: 1 }).parentElement;
-    expect(row).toContainElement(screen.getByRole('button', { name: 'New reward' }));
-    expect(screen.getByRole('heading', { name: 'Catalogue', level: 2 })).toHaveClass('sr-only');
+    inConsole(<Screen title="Promotions" tabs={<nav aria-label="Tabs" />}><Screen title="Live" actions={<button type="button">New promotion</button>}>x</Screen></Screen>);
+    const row = screen.getByRole('heading', { name: 'Promotions', level: 1 }).parentElement;
+    expect(row).toContainElement(screen.getByRole('button', { name: 'New promotion' }));
+    expect(screen.getByRole('heading', { name: 'Live', level: 2 })).toHaveClass('sr-only');
   });
 
   it('shows a section heading on a phone; only a screen of its own leaves its title to the header', () => {

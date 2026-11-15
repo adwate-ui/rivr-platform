@@ -36,7 +36,7 @@ export const OneStake: Story = {
 
 export const Saving: Story = { args: { isDisabled: true } };
 
-/** A filter on a phone: one row that scrolls, fading at its end (the member's Rewards). */
+/** A filter on a phone: one row that scrolls, fading at its end (the member's Sessions). */
 export const OneRowOnAPhone: Story = {
   args: {
     label: 'Show', mode: 'one', selected: ['all'],

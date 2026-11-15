@@ -1,6 +1,5 @@
 /**
- * The player app's Bonus tab (redesign of 15 Nov 2026): the member's Bonus, its history and Refer a friend, which sat
- * inside Rewards. Registered when the tab first opens, so the app's first load carries none of it (#344).
+ * The player app's Bonus tab (redesign of 15 Nov 2026): the member's Bonus, its history and Refer a friend. Registered when the tab first opens, so the app's first load carries none of it (#344).
  */
 export const playerBonus = {
   title: 'Bonus',

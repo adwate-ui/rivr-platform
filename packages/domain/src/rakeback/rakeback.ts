@@ -10,7 +10,7 @@ export interface RakeHand {
 
 /**
  * Each member's rake at each stake over a club week (#108, decision 0245): every hand's rake split equally among the
- * members seated at its table when it was played, rounded down to the paisa per hand as RIVR Rewards splits it
+ * members seated at its table when it was played, rounded down to the paisa per hand
  * (decision 0161), and summed by member and stake. packages/testing/golden/rakeback.json proves the split and the sum
  * against private.rake_share summed, as private.week_rake_shares sums it; who sat where is tested by 147_rakeback.
  */
