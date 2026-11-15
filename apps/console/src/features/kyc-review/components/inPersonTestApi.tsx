@@ -1,0 +1,79 @@
+import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { expect, vi } from 'vitest';
+import { InPersonSection } from './InPersonSection.tsx';
+
+/**
+ * jsdom has no camera, plays and draws nothing: the console's camera opens on a stand-in, and the photo comes back from
+ * the canvas as these bytes. For a test's `beforeEach`.
+ */
+export function stubCamera() {
+  vi.stubGlobal('isSecureContext', true);
+  Object.defineProperty(navigator, 'mediaDevices', { configurable: true, value: { getUserMedia: async () => ({ getTracks: () => [{ stop: () => undefined }] }) } });
+  Object.defineProperty(HTMLMediaElement.prototype, 'play', { configurable: true, value: () => Promise.resolve() });
+  Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: () => 'blob:photo' });
+  Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: () => undefined });
+  vi.stubGlobal('createImageBitmap', async () => ({ width: 1200, height: 1600, close: () => undefined }));
+  Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', { configurable: true, value: () => ({ translate: () => undefined, scale: () => undefined, drawImage: () => undefined, fillRect: () => undefined }) });
+  vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation((done) => done(new Blob(['jpeg'], { type: 'image/jpeg' })));
+}
+
+export const NAINA = { member_id: '00000000-0000-4000-8000-000000000203', full_name: 'Naina Kapoor', phone_last4: '0203', status: null, app_selfie_path: null, retake_kinds: [], retake_reasons: [] };
+
+/**
+ * Vikram, a KYC reviewer, signed in, and a fake API that finds `found` (Naina), lists `due` as due tonight and answers her
+ * check with `reply`. Gives what was sent to the check.
+ */
+export function renderSection(reply: () => Response, found: unknown = NAINA, due: unknown[] = [], holder: unknown[] = []) {
+  localStorage.setItem(
+    SESSION_STORAGE_KEY,
+    JSON.stringify({
+      access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600,
+      expires_at: Math.floor(Date.now() / 1000) + 3600,
+      user: { id: '00000000-0000-4000-8000-000000000101', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
+    }),
+  );
+  const sent: unknown[] = [];
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input instanceof Request ? input.url : input);
+    if (url.includes('/rpc/kyc_in_person_candidates')) return Response.json([found]);
+    if (url.includes('/rpc/kyc_due_tonight')) return Response.json(due);
+    if (url.includes('/rpc/kyc_duplicate_holder')) return Response.json(holder);
+    if (url.includes('/functions/v1/kyc-image-url')) return Response.json({ signedPath: '/object/sign/kyc/selfie.jpg?token=t' });
+    if (url.includes('/functions/v1/kyc-in-person')) {
+      sent.push(JSON.parse(String(init?.body)));
+      return reply();
+    }
+    return Response.json([]);
+  });
+  const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
+  render(<RivrDataProvider client={client}><InPersonSection venueId="v1" /></RivrDataProvider>);
+  return sent;
+}
+
+/** Searches for Naina and presses her Check. */
+export async function chooseNaina() {
+  fireEvent.change(screen.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }), { target: { value: 'nai' } });
+  fireEvent.click(await screen.findByRole('button', { name: 'Check Naina Kapoor' }));
+}
+
+/** One photo through its camera: the shutter once it is live, then Use photo. */
+export async function takeAndUse(confirmBars = false) {
+  const take = await screen.findByRole('button', { name: 'Take photo' });
+  await waitFor(() => expect(take.hasAttribute('disabled')).toBe(false));
+  fireEvent.click(take);
+  if (confirmBars) fireEvent.click(await screen.findByRole('switch', { name: /^The bars hide/ }));
+  fireEvent.click(await screen.findByRole('button', { name: 'Use photo' }));
+}
+
+/** From the Member step through the three photo steps to Details, each "Use photo" moving on; never a file (K-07). */
+export async function takeThreePhotos() {
+  fireEvent.click(await screen.findByRole('button', { name: 'Start the check' }));
+  await screen.findByText('Photo 1 of 3');
+  await takeAndUse();
+  await screen.findByText('Photo 2 of 3');
+  await takeAndUse();
+  await screen.findByText('Photo 3 of 3');
+  await takeAndUse(true);
+  await screen.findByRole('button', { name: 'Verify Naina Kapoor' });
+}

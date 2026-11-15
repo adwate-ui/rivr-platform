@@ -1,7 +1,8 @@
 /**
  * Manual KYC (#246): while no KYC vendor is live, a KYC reviewer checks a member in person at the
- * club. Rhea (membership manager) finds Kabir by name, takes his photo, enters the date of birth, the last
- * four Aadhaar digits and the PAN from the originals with Kabir's consent, and Kabir is verified. His
+ * club, in five steps under a progress bar (redesign RD-21). Rhea (membership manager) finds Kabir by name, starts the
+ * check, takes his face, PAN card and Aadhaar front, each "Use photo" moving on, goes back a step and forward again, enters
+ * the date of birth, the last four Aadhaar digits and the PAN from the originals with Kabir's consent, and Kabir is verified. His
  * check is taken away before and after, so the local stack only (the photo stays in storage, and the
  * next run's photo replaces it). Rhea is this flow's own reviewer: Auth sends one code a minute.
  * Then the same documents are entered for Naina, as if Kabir's check had been saved on the wrong member
@@ -39,7 +40,7 @@ test.describe('Manual KYC', () => {
   test.beforeEach(removeCheck);
   test.afterEach(removeCheck);
 
-  test('a KYC reviewer checks a member in person against the originals, a super admin sends a photo back, the desk takes it again, and a check saved on the wrong member is reopened', async ({ page, browser }) => {
+  test('ID check in person: a KYC reviewer goes through its five steps against the originals, a super admin sends a photo back, the desk takes it again, and a check saved on the wrong member is reopened', async ({ page, browser }) => {
     // Two desk checks, six photos and two sign-ins.
     test.setTimeout(90_000);
     await signInToConsole(page, '9000000110');
@@ -51,10 +52,19 @@ test.describe('Manual KYC', () => {
     await page.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }).fill('kabir');
     await expect(page.getByText('Mobile ending 0202')).toBeVisible();
     await page.getByRole('button', { name: 'Check Kabir Sethi' }).click();
+    // The first of five steps: who is being checked.
+    const steps = page.getByRole('list', { name: 'ID check in person' });
+    await expect(steps.locator('[aria-current="step"]')).toHaveText(/^Member/);
 
     // Taken with the console's camera, the browser's fake one here (playwright.config.ts), never a file (K-07).
     await takeDeskPhotos(page);
+    await expect(steps.locator('[aria-current="step"]')).toHaveText(/^Details/);
     await expect(page.getByRole('img', { name: 'ID check photo of Kabir Sethi' })).toBeVisible();
+    // Back goes one step back and keeps what was taken; Next comes forward again.
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await expect(steps.locator('[aria-current="step"]')).toHaveText(/^Aadhaar front/);
+    await expect(page.getByRole('img', { name: 'Aadhaar front of Kabir Sethi' })).toBeVisible();
+    await page.getByRole('button', { name: 'Next', exact: true }).click();
     await page.getByLabel('Date of birth on Kabir Sethi\'s original document').fill('1990-04-12');
     await page.getByRole('textbox', { name: 'Last four digits of Kabir Sethi\'s Aadhaar' }).fill('4321');
     await page.getByRole('textbox', { name: 'Kabir Sethi\'s PAN from the original card' }).fill('abcpk4321k');
@@ -83,14 +93,14 @@ test.describe('Manual KYC', () => {
     expect(sql(`select count(*) from public.audit_log where action = 'kyc_image.view'
                 and entity_id = (select path from public.kyc_document where member_id = '${KABIR}' and kind = 'aadhaar_front')`)).toBe('1');
 
-    // The desk is told why, and takes that photo alone.
+    // The desk is told why, and takes that photo alone: the check opens on its step, the camera ready.
     await page.goto(`${appUrl('console')}/kyc-review`);
     await page.getByRole('button', { name: 'ID check in person' }).click();
     await page.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }).fill('kabir');
     await expect(page.getByText('A photo was sent back. Take it again.')).toBeVisible();
     await page.getByRole('button', { name: 'Check Kabir Sethi' }).click();
     await expect(page.getByText('Sent back: Digits showing.')).toBeVisible();
-    await page.getByRole('button', { name: 'Photograph the Aadhaar front' }).click();
+    await expect(page.getByRole('list', { name: 'ID check in person' }).locator('[aria-current="step"]')).toHaveText(/^Aadhaar front/);
     await page.getByRole('button', { name: 'Take photo' }).click();
     await page.getByRole('switch', { name: /^The bars hide/ }).click();
     await page.getByRole('button', { name: 'Use photo' }).click();

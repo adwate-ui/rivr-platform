@@ -1,62 +1,28 @@
-import { shrinkPhoto, toBase64, type KycDocumentKind } from '@rivr/db';
-import { t, type MessageKey } from '@rivr/i18n';
+import type { KycDocumentKind } from '@rivr/db';
+import { t } from '@rivr/i18n';
 import { AADHAAR_FRONT_COVERS, Button, CameraCapture, DocumentCamera, Inline, KycPhoto, Stack, Text } from '@rivr/ui';
-import { useState } from 'react';
-
-/** A photo the desk takes: the member's face, or one of their cards (decision 0573). */
-export type DeskPhotoKind = 'face' | KycDocumentKind;
-
-/** A photo as it is sent, and as staff see it. */
-export interface DeskPhoto {
-  jpeg: Blob;
-  preview: string;
-}
-
-/**
- * The photo the camera took, ready to send and to show; null for one the browser cannot read. The face is made small, as
- * for the app's selfie; a card stays as the card camera made it, or its characters could not be read later.
- */
-async function readyPhoto(kind: DeskPhotoKind, taken: Blob): Promise<DeskPhoto | null> {
-  const jpeg = kind === 'face' ? await shrinkPhoto(taken).catch(() => null) : taken;
-  return jpeg === null ? null : { jpeg, preview: `data:image/jpeg;base64,${await toBase64(jpeg)}` };
-}
-
-/**
- * The photos of one check and the one being taken. Each photo kept opens the camera for the next still missing, so the
- * desk goes straight through; a photo taken again goes back to the form when the others are there.
- */
-export function useDeskPhotos(kinds: readonly DeskPhotoKind[], onProblem: (problem: MessageKey | null) => void) {
-  const [photos, setPhotos] = useState<Partial<Record<DeskPhotoKind, DeskPhoto>>>({});
-  const [taking, setTaking] = useState<DeskPhotoKind | null>(null);
-  const keep = async (kind: DeskPhotoKind, taken: Blob) => {
-    const ready = await readyPhoto(kind, taken);
-    if (ready === null) {
-      setTaking(null);
-      onProblem('console.kycInPersonFailures.noPhoto');
-      return;
-    }
-    const kept = { ...photos, [kind]: ready };
-    setPhotos(kept);
-    onProblem(null);
-    setTaking(kinds.find((other) => kept[other] === undefined) ?? null);
-  };
-  return { photos, taking, take: setTaking, cancel: () => setTaking(null), keep };
-}
+import type { DeskPhoto, DeskPhotoKind } from './deskSteps.ts';
 
 interface DeskCameraProps {
   kind: DeskPhotoKind;
   place: number;
   total: number;
+  /** Why a super admin sent this photo back, when they did. */
+  reason?: string | undefined;
+  /** The photo, once "Use photo" keeps it. */
   onPhoto: (photo: Blob) => void;
-  onCancel: () => void;
 }
 
-/** The camera for one photo, in the form's place until it is kept. Never a file: the card is in the hand of the person taking it. */
-export function DeskCamera({ kind, place, total, onPhoto, onCancel }: DeskCameraProps) {
+/**
+ * The camera for one photo, on its step until the photo is kept; the step gives the way back. Never a file: the card is in
+ * the hand of the person taking it.
+ */
+export function DeskCamera({ kind, place, total, reason, onPhoto }: DeskCameraProps) {
   const phoneUrl = window.location.href;
   return (
     <Stack gap={3}>
       <Text variant="secondary" tone="muted">{t('console.kycInPerson.photoStep', { place, total })}</Text>
+      {reason === undefined ? null : <Text variant="secondary" tone="muted">{t('console.kycInPerson.sentBackReason', { reason })}</Text>}
       {kind === 'face' ? <CameraCapture facing="environment" phoneUrl={phoneUrl} onPhoto={onPhoto} /> : (
         <DocumentCamera
           key={kind}
@@ -67,7 +33,6 @@ export function DeskCamera({ kind, place, total, onPhoto, onCancel }: DeskCamera
           onPhoto={onPhoto}
         />
       )}
-      <Button variant="text" size="compact" onClick={onCancel}>{t('common.cancel')}</Button>
     </Stack>
   );
 }

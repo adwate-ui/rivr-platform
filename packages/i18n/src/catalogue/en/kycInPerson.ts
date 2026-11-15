@@ -25,7 +25,11 @@ export const kycInPerson = {
   /** A found member's button, and its full name for a screen reader. */
   check: 'Check',
   checkName: 'Check {name}',
-  takePhoto: 'Take their photo',
+  /** The check's five steps (redesign RD-21), as its progress bar names them; the first step's buttons, and a kept photo's. */
+  steps: { member: 'Member', face: 'Face', pan: 'PAN card', aadhaar_front: 'Aadhaar front', details: 'Details' },
+  start: 'Start the check',
+  another: 'Choose another member',
+  next: 'Next',
   retakePhoto: 'Take the photo again',
   /** The two cards photographed at the desk (decision 0573). */
   document: { pan: 'PAN card', aadhaar_front: 'Aadhaar front' },

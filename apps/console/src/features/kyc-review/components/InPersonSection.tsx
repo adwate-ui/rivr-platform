@@ -2,7 +2,7 @@ import { useKycDueTonight, useKycDuplicateHolder, useKycInPersonCandidates, type
 import { t, type MessageKey } from '@rivr/i18n';
 import { Button, Heading, Inline, Input, Stack, StatusMessage, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
-import { InPersonForm } from './InPersonForm.tsx';
+import { InPersonSteps } from './InPersonSteps.tsx';
 import { owesPhotosOnly, RetakeForm } from './RetakeForm.tsx';
 
 /** The last check in person and where it ended, said once the form closes. */
@@ -21,7 +21,8 @@ const OUTCOME_COPY: Readonly<Record<Outcome['status'], MessageKey>> = {
 
 /**
  * A check in person (#246, while no KYC vendor is live): the reviewer finds a member at the club by
- * name or the last digits of their number, then checks them against their original documents. Only
+ * name or the last digits of their number, then checks them against their original documents, in five steps under a
+ * progress bar (redesign RD-21). Only
  * members with no check, one the app never finished, or a photo a super admin sent back are found; never the reviewer themselves. In its sheet
  * (`hasHeading` false) the sheet's title and subtitle say what the heading and hint say here. `initialSearch` starts the
  * search with a member's name, from the waitlist's Check ID (decision 0503).
@@ -54,9 +55,10 @@ export function InPersonSection({ venueId, hasHeading = true, initialSearch }: {
           <Candidates venueId={venueId} search={search} onChoose={choose} />
         </Stack>
       ) : owesPhotosOnly(member) ? (
-        <RetakeForm venueId={venueId} member={member} onDone={() => decided('retaken')} onCancel={() => setMember(null)} />
+        // Keyed by the member, here and below: a photo, a detail or a consent taken for one never carries to another.
+        <RetakeForm key={member.memberId} venueId={venueId} member={member} onDone={() => decided('retaken')} onCancel={() => setMember(null)} />
       ) : (
-        <InPersonForm venueId={venueId} member={member} onDecided={decided} onCancel={() => setMember(null)} />
+        <InPersonSteps key={member.memberId} venueId={venueId} member={member} onDecided={decided} onCancel={() => setMember(null)} />
       )}
     </Stack>
   );
