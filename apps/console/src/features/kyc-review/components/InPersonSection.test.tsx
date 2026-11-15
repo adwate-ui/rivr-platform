@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { chooseNaina, NAINA, renderSection, stubCamera, takeThreePhotos, typeDetails } from './inPersonTestApi.tsx';
+import { chooseNaina, NAINA, renderSection, renderSectionWithBars, stubCamera, takeAndUse, takeThreePhotos, typeDetails } from './inPersonTestApi.tsx';
 
 beforeEach(stubCamera);
 
@@ -29,10 +29,28 @@ describe('a check in person', () => {
     await checkNaina();
     expect(await screen.findByText('Naina Kapoor is verified and can take a seat.')).toBeDefined();
     expect(sent).toEqual([{
-      memberId: NAINA.member_id, dateOfBirth: '1990-04-12', aadhaarLast4: '1234', pan: 'ABCPN1234D', consent: true, coversConfirmed: true,
+      memberId: NAINA.member_id, dateOfBirth: '1990-04-12', aadhaarLast4: '1234', pan: 'ABCPN1234D', consent: true, coversConfirmed: false,
       image: btoa('jpeg'), panImage: btoa('jpeg'), aadhaarImage: btoa('jpeg'),
     }]);
     expect(screen.queryByRole('button', { name: 'Verify Naina Kapoor' })).toBeNull();
+  });
+
+  it('puts the Aadhaar under the bars, and sends the word on them, only while the venue asks for them (decision 0663)', async () => {
+    const sent = renderSectionWithBars(() => Response.json({ status: 'verified' }));
+    await chooseNaina();
+    fireEvent.click(await screen.findByRole('button', { name: 'Start the check' }));
+    await screen.findByText('Photo 1 of 3');
+    await takeAndUse();
+    await screen.findByText('Photo 2 of 3');
+    await takeAndUse();
+    await screen.findByText('Photo 3 of 3');
+    await takeAndUse(true);
+    await screen.findByRole('button', { name: 'Verify Naina Kapoor' });
+    typeDetails();
+    fireEvent.click(screen.getByRole('switch', { name: 'Naina Kapoor agrees to this ID check' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Verify Naina Kapoor' }));
+    expect(await screen.findByText('Naina Kapoor is verified and can take a seat.')).toBeDefined();
+    expect(sent).toEqual([expect.objectContaining({ coversConfirmed: true })]);
   });
 
   it('says where the gate sent a check it did not verify', async () => {

@@ -40,6 +40,9 @@ export const reviewRequestedSchema = z.object({
 });
 export type ReviewRequested = z.infer<typeof reviewRequestedSchema>;
 
+/** member.signed_up: the member who joined, whom the welcome greets (decision 0661). */
+export const memberSignedUpSchema = z.object({ member_id: z.uuid() });
+
 /** promotion.offered (#86): a published promotion's card, offered to one member who opted in to marketing. */
 export const promotionOfferedSchema = z.object({
   promotion_id: z.uuid(),

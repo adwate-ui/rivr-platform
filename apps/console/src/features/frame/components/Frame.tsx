@@ -1,6 +1,6 @@
 import type { Permission } from '@rivr/contracts';
 import {
-  useAuthStatus, useSignOut, useStaffDensity, useStaffQueueCounts, useStaffShortcuts, useStaffVenue, type StaffVenueState,
+  useAuthStatus, useStaffDensity, useStaffQueueCounts, useStaffShortcuts, useStaffVenue, type StaffVenueState,
 } from '@rivr/db';
 import { useRecordTableExport } from '@rivr/db/exports';
 import { t } from '@rivr/i18n';
@@ -8,15 +8,14 @@ import {
   ConsoleShell, DataTableDensityProvider, DataTableExportProvider, DataTableViewProvider, PracticeBanner, Screen, ShortcutProvider, TitleCount, ToastProvider, UrgentChime,
 } from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { ConsoleSearch } from './ConsoleSearch.tsx';
 import { FrameClock, FramePulse, runsTheFloor } from './FrameHeader.tsx';
 import { NotStaff } from './NotStaff.tsx';
 import { useAddressTableViews } from './tableViews.ts';
-import { landingFor, locksWhenIdle, phoneTabsFor, railFor, railItemAt, refusalAt, URGENT_QUEUES, type Refusal } from './rail.ts';
+import { landingFor, phoneTabsFor, railFor, railItemAt, refusalAt, URGENT_QUEUES, type Refusal } from './rail.ts';
 import { SignOutButton } from './SignOutButton.tsx';
 import { StaffAccount } from './StaffAccount.tsx';
-import { useIdleLock } from './useIdleLock.ts';
 import { NoAlertNumberBanner } from './NoAlertNumberBanner.tsx';
 
 /** Who is at the console and where, for a prompt the route puts across the top of every screen (#317). */
@@ -62,23 +61,21 @@ function Refused({ refusal, isHome, landing }: RefusedProps) {
 
 /**
  * The console's frame for signed-in staff: the rail for their role at the venue the console works in, the header,
- * and the export of every table for staff who export them. Nobody signed in goes to sign-in, told why
- * when the idle lock signed them out (#811); someone who is not staff can only sign out. `prompt` is what waits for the
+ * and the export of every table for staff who export them. Nobody signed in goes to sign-in; a session ends only when
+ * the staff member signs out (the owner, 15 Nov; decision 0660). Someone who is not staff can only sign out. `prompt` is what waits for the
  * staff member, across the top of every screen.
  */
 export function Frame({ children, prompt }: { children: ReactNode; prompt?: (staff: FrameStaff) => ReactNode }) {
   const authStatus = useAuthStatus();
   const staff = useStaffVenue();
-  const [isIdleLocked, setIdleLocked] = useState(false);
-  const onIdle = useCallback(() => setIdleLocked(true), []);
-  if (authStatus === 'signed-out') return <Navigate to="/sign-in" search={isIdleLocked ? { why: 'idle' } : {}} replace />;
+  if (authStatus === 'signed-out') return <Navigate to="/sign-in" replace />;
   if (staff.status === 'not-staff') return <NotStaff />;
   if (staff.status === 'ready') {
     // The keys the screen open now offers (useShortcut), and the menu's list of them; and the toasts every step raises,
     // with Undo where the step has its own compensating call (console v3).
     return (
       <StaffShortcuts venueId={staff.venue.venueId}>
-        <ToastProvider place="console"><StaffFrame staff={staff} prompt={prompt} onIdle={onIdle}>{children}</StaffFrame></ToastProvider>
+        <ToastProvider place="console"><StaffFrame staff={staff} prompt={prompt}>{children}</StaffFrame></ToastProvider>
       </StaffShortcuts>
     );
   }
@@ -97,8 +94,6 @@ export function Frame({ children, prompt }: { children: ReactNode; prompt?: (sta
 interface StaffFrameProps {
   staff: ReadyStaff;
   prompt: ((staff: FrameStaff) => ReactNode) | undefined;
-  /** The idle lock is signing the staff member out. */
-  onIdle: () => void;
   children: ReactNode;
 }
 
@@ -120,17 +115,10 @@ function useLocation() {
   return { pathname, search, tab: new URLSearchParams(search).get('tab') ?? undefined };
 }
 
-/** Where the staff member is and what waits for them: the rail and tabs with their counts, any refusal, and the idle lock. */
-function useStaffShell(staff: ReadyStaff, onIdle: () => void) {
+/** Where the staff member is and what waits for them: the rail and tabs with their counts, and any refusal. */
+function useStaffShell(staff: ReadyStaff) {
   const { venueId, permissions } = staff.venue;
   const location = useLocation();
-  const { mutate: signOut } = useSignOut();
-  // Ten idle minutes on a screen that locks sign the staff member out (#384), and sign-in says why (#811).
-  const lock = useCallback(() => {
-    onIdle();
-    signOut();
-  }, [onIdle, signOut]);
-  useIdleLock(locksWhenIdle(location.pathname), lock);
   const { counts, urgent } = useRailCounts(venueId);
   return {
     ...location, counts, urgent, sections: railFor(permissions, counts), tabs: phoneTabsFor(permissions, counts),
@@ -193,10 +181,10 @@ function FrameBody({ staff, urgent, refusal, isHome, landing, children }: FrameB
   );
 }
 
-function StaffFrame({ staff, prompt, onIdle, children }: StaffFrameProps) {
+function StaffFrame({ staff, prompt, children }: StaffFrameProps) {
   const { venueId, permissions } = staff.venue;
   const navigate = useNavigate();
-  const { pathname, search, counts, urgent, sections, tabs, refusal } = useStaffShell(staff, onIdle);
+  const { pathname, search, counts, urgent, sections, tabs, refusal } = useStaffShell(staff);
   // A role with no screen (an investor, a dealer) has nothing to search for, and the name of a screen it does not have is wrong.
   const hasNoScreen = sections.length === 0;
   return (

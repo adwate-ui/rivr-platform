@@ -19,7 +19,8 @@ export interface SplitViewProps {
   /**
    * How the width is shared from 1180 px: `record`, three parts in five for the record (the default); `even`, half each,
    * a queue beside the item open (console v3: KYC review, Host queue, Website); `docked`, the record a 440 px panel at
-   * the right and the list the rest, so a table of members keeps its names on one line (console v3: Members).
+   * the right and the list the rest, so a table of members keeps its names on one line (console v3: Members). The docked
+   * record stays in view as the list scrolls, and one taller than the screen scrolls on its own (the owner, 15 Nov night).
    */
   layout?: 'record' | 'even' | 'docked';
 }
@@ -28,7 +29,10 @@ export interface SplitViewProps {
 const LAYOUTS = {
   record: { frame: 'grid gap-6 tablet:grid-cols-5', alone: 'tablet:col-span-5', beside: 'tablet:col-span-2', record: 'tablet:col-span-3' },
   even: { frame: 'grid gap-6 tablet:grid-cols-2', alone: 'tablet:col-span-2', beside: 'tablet:col-span-1', record: 'tablet:col-span-1' },
-  docked: { frame: 'flex flex-col gap-6 tablet:flex-row tablet:items-start', alone: 'tablet:flex-1', beside: 'tablet:flex-1', record: 'tablet:w-side-panel tablet:shrink-0' },
+  docked: {
+    frame: 'flex flex-col gap-6 tablet:flex-row tablet:items-start', alone: 'tablet:flex-1', beside: 'tablet:flex-1',
+    record: 'tablet:w-side-panel tablet:shrink-0 tablet:sticky tablet:top-0 tablet:max-h-console-view tablet:overflow-y-auto',
+  },
 } as const;
 
 /**

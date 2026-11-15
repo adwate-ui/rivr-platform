@@ -67,10 +67,10 @@ describe('useSendBackKycDocument', () => {
     const { result, calls } = renderDocuments({});
     let done: unknown;
     await act(async () => {
-      done = await result.current.sendBack.mutateAsync({ kind: 'aadhaar_front', reason: 'Digits showing' });
+      done = await result.current.sendBack.mutateAsync({ kind: 'aadhaar_front', reason: 'Glare on the card' });
     });
     expect(done).toMatchObject({ ok: true, value: 'sent_back' });
-    expect(calls.find(({ url }) => url.includes('ask_kyc_document_retake'))?.body).toEqual({ p_member_id: NAINA, p_kind: 'aadhaar_front', p_reason: 'Digits showing' });
+    expect(calls.find(({ url }) => url.includes('ask_kyc_document_retake'))?.body).toEqual({ p_member_id: NAINA, p_kind: 'aadhaar_front', p_reason: 'Glare on the card' });
   });
 
   it.each([['22023', 'invalid'], ['42501', 'not_allowed'], ['XX000', 'unavailable']])('reads the refusal %s as %s', async (code, failure) => {

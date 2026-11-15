@@ -27,8 +27,6 @@ export interface RailEntry {
   readonly countWords?: RailCountWords;
   /** The count asks for action (requests, orders): a gold badge (decision 0463); otherwise a muted one. */
   readonly isActionable?: true;
-  /** Signs the staff member out after ten idle minutes (#384): members' records and documents, and Activity. */
-  readonly locksWhenIdle?: true;
 }
 
 export interface RailGroup {
@@ -62,8 +60,8 @@ export const RAIL: readonly RailGroup[] = [
   },
   {
     id: 'players', label: 'console.rail.groups.players', entries: [
-      { id: 'members', label: 'console.rail.items.members', href: '/members', icon: 'profile', anyOf: ['members.manage', 'host_queue.manage'], counts: ['erasureRequests'], countWords: 'deletions', locksWhenIdle: true },
-      { id: 'kycReview', label: 'console.rail.items.kycReview', href: '/kyc-review', icon: 'kyc', anyOf: ['kyc.review', 'kyc.in_person'], counts: ['kycReview'], countWords: 'idChecks', locksWhenIdle: true },
+      { id: 'members', label: 'console.rail.items.members', href: '/members', icon: 'profile', anyOf: ['members.manage', 'host_queue.manage'], counts: ['erasureRequests'], countWords: 'deletions' },
+      { id: 'kycReview', label: 'console.rail.items.kycReview', href: '/kyc-review', icon: 'kyc', anyOf: ['kyc.review', 'kyc.in_person'], counts: ['kycReview'], countWords: 'idChecks' },
       { id: 'feedback', label: 'console.rail.items.feedback', href: '/feedback', icon: 'feedback', anyOf: ['feedback.manage'], counts: ['feedback'], countWords: 'tickets' },
     ],
   },
@@ -91,7 +89,7 @@ export const RAIL: readonly RailGroup[] = [
         { id: 'tvs', label: 'console.tvs.title', anyOf: ['tvs.manage'] },
         { id: 'tablets', label: 'console.tablets.title', anyOf: ['devices.manage'] },
       ] },
-      { id: 'activity', label: 'console.rail.items.activity', href: '/activity', icon: 'info', anyOf: ['activity.read'], locksWhenIdle: true },
+      { id: 'activity', label: 'console.rail.items.activity', href: '/activity', icon: 'info', anyOf: ['activity.read'] },
     ],
   },
 ];

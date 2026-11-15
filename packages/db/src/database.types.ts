@@ -2956,6 +2956,9 @@ isOneToOne: false
 "join_waitlist_at":
 { Args: { "p_idempotency_key": string,"p_table_id": string }; Returns: string
                            },
+"kyc_aadhaar_covers":
+{ Args: { "p_venue_id": string }; Returns: boolean
+                           },
 "kyc_at_the_club":
 { Args: { "p_venue_id"?: string }; Returns: boolean
                            },
@@ -3118,7 +3121,7 @@ isOneToOne: false
                            },
 "message_recipient":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
-              "marketing_opted_in_at": string,"phone": string
+              "first_name": string,"marketing_opted_in_at": string,"member_number": number,"phone": string
             }[]
                            },
 "mis_report_for":
@@ -3266,7 +3269,7 @@ isOneToOne: false
                            },
 "offer_recipient":
 { Args: { "p_member_id": string,"p_promotion_id": string,"p_venue_id": string }; Returns: {
-              "marketing_opted_in_at": string,"phone": string
+              "first_name": string,"marketing_opted_in_at": string,"member_number": number,"phone": string
             }[]
                            },
 "open_feedback":

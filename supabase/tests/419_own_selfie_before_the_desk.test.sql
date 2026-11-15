@@ -1,7 +1,7 @@
 -- A member sees the photos of themselves that they took, whatever the state of their identity check (decision 0588): the
 -- selfie the check points to, or else the selfie they took at sign-up (photo.jpg), which is all there is until the desk has
--- checked them (decision 0502). A photo the desk took is theirs only once the check is verified: until then it may be of
--- someone else (decision 0583). Never another member's, never a PAN or Aadhaar photo, and staff see what they saw before.
+-- checked them (decision 0502). A photo the desk took is never theirs, in any state of the check (decision 0662). Never
+-- another member's, never a PAN or Aadhaar photo, and staff see what they saw before.
 -- 202 has a selfie under review; 203 took a selfie for the desk; 204 has a sign-up photo and no check; 210 was verified, then
 -- reopened for the desk; 209 has no photo; 201 is verified. Checked in person: 250 refused, 251 under review, 253 refused and
 -- reopened. 218 is a member and, here, a host too. 101 is a super admin, 103 an admin (kyc.review), 104 a cashier, 108 a host
@@ -130,8 +130,8 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select is(public.my_photo_path(), pg_temp.kept('211', 'photo.jpg'), 'and their sign-up selfie, if that is kept');
 reset role;
 
--- A photo the desk took may be of someone else, the desk having picked the wrong member (decision 0583): the member does
--- not see it, refused, under review or reopened, and is shown their own sign-up selfie instead, or nothing.
+-- A photo the desk took is staff's, never the member's own (decisions 0583 and 0662): the member does not see it, refused,
+-- under review, reopened or verified, and is shown their own sign-up selfie instead, or nothing.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000250');
 select throws_ok(pg_temp.asks('250', 'in-person-00000000-0000-4000-9000-000000000250.jpg'), '42501', null,
   'the photo the desk took for a refused check is not its member''s to see');
@@ -153,11 +153,21 @@ select throws_ok(pg_temp.asks('253', 'in-person-00000000-0000-4000-9000-00000000
 select is(public.my_photo_path(), pg_temp.kept('253', 'photo.jpg'), 'they are told of their sign-up selfie');
 select lives_ok(pg_temp.asks('253', 'photo.jpg'), 'which they may see');
 reset role;
--- Verified, the desk's photo is the member's, as it was before.
+-- Verified, the desk's photo is still not the member's (the owner, 15 Nov night): their own selfie is, or their initial.
 update public.kyc_record set status = 'verified', verified_at = now(), date_of_birth = '1992-05-01' where member_id = '00000000-0000-4000-8000-000000000251';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000251');
-select lives_ok(pg_temp.asks('251', 'in-person-00000000-0000-4000-9000-000000000251.jpg'), 'once the check is verified the desk''s photo is its member''s to see');
-select is(public.my_photo_path(), pg_temp.kept('251', 'in-person-00000000-0000-4000-9000-000000000251.jpg'), 'and is the photo they are told of');
+select throws_ok(pg_temp.asks('251', 'in-person-00000000-0000-4000-9000-000000000251.jpg'), '42501', null,
+  'nor the desk''s photo once the check is verified');
+select is(public.my_photo_path(), pg_temp.kept('251', 'photo.jpg'), 'they are still told of their sign-up selfie');
+reset role;
+insert into public.kyc_record (venue_id, member_id, status, method, date_of_birth, verified_at, photo_path)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000209', 'verified', 'manual', '1990-03-01', now(),
+        pg_temp.kept('209', 'in-person-00000000-0000-4000-9000-000000000209.jpg'));
+insert into storage.objects (bucket_id, name) values ('kyc', pg_temp.kept('209', 'in-person-00000000-0000-4000-9000-000000000209.jpg'));
+select pg_temp.as_person('00000000-0000-4000-8000-000000000209');
+select throws_ok(pg_temp.asks('209', 'in-person-00000000-0000-4000-9000-000000000209.jpg'), '42501', null,
+  'a verified member whose one photo is the desk''s may not see it');
+select is(public.my_photo_path(), null, 'and is told of none, so the app shows their initial');
 reset role;
 
 -- The photo a check points to is only ever in the member's own folder: their selfie, or the desk's photo for them.

@@ -87,7 +87,7 @@ Enforced by ESLint and dependency-cruiser in CI.
 ## Security checks in CI
 
 - Row-level security on every table, default deny. The service-role key exists only in Edge Functions and CI secrets.
-- Staff authentication with role, device binding and IP allowlist for cage and admin. Cage sessions time out after 10 minutes idle.
+- Staff authentication with role, device binding and IP allowlist for cage and admin. A session ends only when someone signs out (decision 0660).
 - Rate limits on OTP, login, withdrawal and marker endpoints.
 - Webhooks verify signatures. Secrets live in the Supabase vault and GitHub secrets.
 - CI runs `supabase db lint`, the Supabase security advisors, dependency audit and secret scanning; a new finding fails the build.

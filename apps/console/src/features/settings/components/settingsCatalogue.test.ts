@@ -50,6 +50,7 @@ describe('every setting the contracts declare, as the Settings screen shows it',
   it('gives a rule that is off until set no default', () => {
     expect(defaultOf('waitlist.hold_minutes')).toEqual({ minutes: 20 });
     expect(defaultOf('kyc.at_the_club')).toEqual({ enabled: false });
+    expect(defaultOf('kyc.aadhaar_covers')).toEqual({ enabled: false });
     expect(defaultOf('waitlist.interest_to_open')).toBeUndefined();
     expect(defaultOf('bonus.daily_staff_cap')).toBeUndefined();
   });
@@ -58,7 +59,7 @@ describe('every setting the contracts declare, as the Settings screen shows it',
     expect(Object.fromEntries(Object.values(AREA_GROUPS).flat().map((group) => [group, keysOf(group)]))).toEqual({
       seating: ['waitlist.hold_minutes', 'waitlist.interest_to_open', 'waitlist.priority_weights', 'floor.request_targets'],
       time: ['call_time.minutes', 'call_time.add_choices'],
-      identity: ['kyc.at_the_club'],
+      identity: ['kyc.at_the_club', 'kyc.aadhaar_covers'],
       bonus: ['bonus.expiry_days', 'bonus.daily_staff_cap', 'bonus.by_hand_cap', 'bonus.visit_cap'],
       membership: ['tier.default'],
       rotation: ['tv.boards', 'tv.board_seconds', 'tv.leaderboard'],

@@ -34,6 +34,12 @@ export const WHATSAPP_TEMPLATES = {
     body: 'RIVR alert: {{1}}. Check the RIVR console.',
     urlButton: false,
   },
+  // The welcome once someone signs up, in the owner's words (15 Nov night, decision 0661): their first name, then their member number.
+  member_welcome: {
+    category: 'utility',
+    body: 'Hi {{1}}, congratulations on becoming a member of RIVR poker club. Your membership ID is: {{2}}.',
+    urlButton: false,
+  },
   // What a member hears of while away from the app (decision 0303): utility messages, so no opt-in is asked.
   kyc_verified: {
     category: 'utility',

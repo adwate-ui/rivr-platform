@@ -99,7 +99,7 @@ test.describe('Bonus', () => {
     await floor.getByRole('button', { name: 'Seat a player' }).click();
     const sheet = floor.getByRole('dialog', { name: 'Seat a player' });
     await sheet.getByRole('radio', { name: 'Table 5' }).click();
-    await sheet.getByRole('textbox', { name: /^(Or a m|M)obile or member number$/ }).fill('9000000412');
+    await sheet.getByRole('textbox', { name: /^(Or a n|N)ame, mobile or member number$/ }).fill('9000000412');
     await expect(sheet.getByText('Up to their balance. Taken off when they sit.')).toBeVisible();
     await sheet.getByRole('textbox', { name: 'Bonus to redeem' }).fill('500');
     await sheet.getByRole('button', { name: 'Seat', exact: true }).click();

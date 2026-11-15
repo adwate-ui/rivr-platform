@@ -66,6 +66,11 @@ describe('SplitView', () => {
     expect(screen.getByText('Sakshi').parentElement?.parentElement).toHaveClass('tablet:w-side-panel', 'tablet:shrink-0');
   });
 
+  it('keeps the docked record in view as a long list scrolls, a record taller than the screen scrolling on its own (the owner, 15 Nov night)', () => {
+    renderIn(<SplitView layout="docked" list={<p>Members</p>} detail={<p>Sakshi</p>} backLabel="Back" onBack={vi.fn()} />);
+    expect(screen.getByText('Sakshi').parentElement?.parentElement).toHaveClass('tablet:sticky', 'tablet:top-0', 'tablet:max-h-console-view', 'tablet:overflow-y-auto');
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<SplitView list={<p>List</p>} detail={<p>Record</p>} backLabel="Back" onBack={vi.fn()} />);
     expect(await axeViolations(container)).toEqual([]);

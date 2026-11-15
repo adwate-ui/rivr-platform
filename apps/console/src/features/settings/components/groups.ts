@@ -24,6 +24,7 @@ const GROUP_OF: Readonly<Partial<Record<SettingKey, SettingGroup>>> = {
   'call_time.add_choices': 'time',
   // The floor runs the desk's check (the owner, 5 Nov; decision 0502).
   'kyc.at_the_club': 'identity',
+  'kyc.aadhaar_covers': 'identity',
   'bonus.expiry_days': 'bonus',
   'bonus.daily_staff_cap': 'bonus',
   'bonus.by_hand_cap': 'bonus',

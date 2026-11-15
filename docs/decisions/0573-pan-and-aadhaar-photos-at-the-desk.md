@@ -11,3 +11,5 @@ The full Aadhaar number must never be kept. Bars go over the first eight digits 
 Only super admins can open these photos, one at a time, each opening audited through the same `kyc-image-url` gateway as every KYC image. They go with the member on erasure.
 
 A photo that is replaced, by a retake or by a reopened check done again, goes at once: after each check or retake the function clears every PAN or Aadhaar file in the member's folder that no row names, so a photo sent back for showing digits does not stay. Whoever sent a photo back does not also retake it.
+
+**Superseded in part by 0663:** the bars on the Aadhaar front, and the word on them, are asked for only while the venue's `kyc.aadhaar_covers` is on; it is off until a super admin turns it on.

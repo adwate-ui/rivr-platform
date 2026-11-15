@@ -32,7 +32,7 @@ describe('the check in person as five steps (redesign RD-21)', () => {
     await expectOpen('Step 3 of 5: PAN card', 'PAN card');
     await takeAndUse();
     await expectOpen('Step 4 of 5: Aadhaar front', 'Aadhaar front');
-    await takeAndUse(true);
+    await takeAndUse();
     await expectOpen('Step 5 of 5: Details', 'Details');
     // Details: the three photos, each with the way to take it again, the typed fields, the consent, then Verify.
     for (const name of ['ID check photo of Naina Kapoor', 'PAN card of Naina Kapoor', 'Aadhaar front of Naina Kapoor']) expect(screen.getByRole('img', { name })).toBeDefined();
@@ -46,11 +46,11 @@ describe('the check in person as five steps (redesign RD-21)', () => {
     renderSection(verified);
     await chooseNaina();
     fireEvent.click(await screen.findByRole('button', { name: 'Start the check' }));
-    for (const [position, confirmBars] of [['Photo 1 of 3', false], ['Photo 2 of 3', false], ['Photo 3 of 3', true]] as const) {
+    for (const position of ['Photo 1 of 3', 'Photo 2 of 3', 'Photo 3 of 3']) {
       await screen.findByText(position);
       expect(screen.queryByRole('button', { name: 'Next' })).toBeNull();
       expect(screen.queryByRole('button', { name: 'Verify Naina Kapoor' })).toBeNull();
-      await takeAndUse(confirmBars);
+      await takeAndUse();
     }
     expect(await screen.findByRole('button', { name: 'Verify Naina Kapoor' })).toBeDefined();
   });
@@ -153,20 +153,20 @@ describe('the check in person as five steps (redesign RD-21)', () => {
   });
 
   it('tells the desk why when a reopened check also has a photo sent back, on that photo\'s step and on Details, and asks for the whole check', async () => {
-    renderSection(verified, { ...NAINA, status: 'started', retake_kinds: ['aadhaar_front'], retake_reasons: ['Digits showing'] });
+    renderSection(verified, { ...NAINA, status: 'started', retake_kinds: ['aadhaar_front'], retake_reasons: ['Glare on the card'] });
     fireEvent.change(screen.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }), { target: { value: 'nai' } });
     expect(await screen.findByText('A photo was sent back. Take it again.')).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Check Naina Kapoor' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Start the check' }));
     await takeAndUse();
     await screen.findByText('Step 3 of 5: PAN card');
-    expect(screen.queryByText('Sent back: Digits showing.')).toBeNull();
+    expect(screen.queryByText('Sent back: Glare on the card.')).toBeNull();
     await takeAndUse();
     await screen.findByText('Step 4 of 5: Aadhaar front');
-    expect(screen.getByText('Sent back: Digits showing.')).toBeDefined();
-    await takeAndUse(true);
+    expect(screen.getByText('Sent back: Glare on the card.')).toBeDefined();
+    await takeAndUse();
     expect(await screen.findByLabelText('Date of birth on Naina Kapoor\'s original document')).toBeDefined();
-    expect(screen.getByText('Sent back: Digits showing.')).toBeDefined();
+    expect(screen.getByText('Sent back: Glare on the card.')).toBeDefined();
   });
 });
 
@@ -188,7 +188,7 @@ describe('a check started again has nothing of the one before', () => {
     await screen.findByText('Photo 2 of 3');
     expect(screen.queryByRole('button', { name: 'Next' })).toBeNull();
     await takeAndUse();
-    await takeAndUse(true);
+    await takeAndUse();
     await screen.findByRole('button', { name: 'Verify Naina Kapoor' });
     expect(screen.getByLabelText<HTMLInputElement>('Date of birth on Naina Kapoor\'s original document').value).toBe('');
     expect(screen.getByLabelText<HTMLInputElement>('Last four digits of Naina Kapoor\'s Aadhaar').value).toBe('');

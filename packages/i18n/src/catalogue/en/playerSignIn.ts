@@ -26,6 +26,17 @@ export const playerSignIn = {
   /** `{time}` counts down, 0:24. */
   resendIn: 'Resend code in {time}',
   resend: 'Resend code',
+  /** Before sign-in inside Instagram's or Facebook's own browser (the owner, 15 Nov): to Safari or Chrome, to stay signed in. */
+  inAppBrowser: {
+    title: { iphone: 'Open RIVR in Safari', android: 'Open RIVR in Chrome', other: 'Open RIVR in your browser' },
+    why: 'Sign in there, so you stay signed in.',
+    how: 'Tap ••• at the top, then Open in browser.',
+    openChrome: 'Open in Chrome',
+    copyLink: 'Copy link',
+    copied: 'Link copied.',
+    copyFailed: 'Not copied. Use the ••• menu.',
+    continueHere: 'Continue here',
+  },
   /** The cookie choice, a sheet on first launch (decision 0298). */
   cookies: {
     title: 'Cookies',

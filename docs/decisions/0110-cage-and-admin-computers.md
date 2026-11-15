@@ -30,3 +30,5 @@ This is not decision 0022's forgeable device id: only the browser holds the secr
 - the last activity is kept in local storage, so a reload past the limit locks at once;
 - the first key after the limit locks rather than counting;
 - another tab's activity counts too.
+
+**Superseded by 0660** for the idle lock: it is removed, and a session ends only when someone signs out.

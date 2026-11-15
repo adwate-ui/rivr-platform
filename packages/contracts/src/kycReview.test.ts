@@ -14,8 +14,9 @@ describe('kycInPersonSchema', () => {
     expect(kycInPersonSchema.safeParse({ ...IN_PERSON, consent: false }).success).toBe(false);
   });
 
-  it('refuses a check without the word that the Aadhaar\'s bars are in place', () => {
-    expect(kycInPersonSchema.safeParse({ ...IN_PERSON, coversConfirmed: false }).success).toBe(false);
+  it('takes the word on the Aadhaar\'s bars as given or not: the database asks for it while the venue asks for the bars (decision 0663)', () => {
+    expect(kycInPersonSchema.safeParse({ ...IN_PERSON, coversConfirmed: false }).success).toBe(true);
+    expect(kycInPersonSchema.safeParse({ ...IN_PERSON, coversConfirmed: undefined }).success).toBe(false);
   });
 });
 
@@ -45,9 +46,9 @@ describe('kycDocumentRetakeSchema', () => {
     expect(kycDocumentRetakeSchema.safeParse({ memberId, kind: 'pan', coversConfirmed: false }).success).toBe(true);
   });
 
-  it('takes an Aadhaar only with the word on its bars', () => {
+  it('takes an Aadhaar with the word on its bars or without: the database asks for it while the bars are on (decision 0663)', () => {
     expect(kycDocumentRetakeSchema.safeParse({ memberId, kind: 'aadhaar_front', coversConfirmed: true }).success).toBe(true);
-    expect(kycDocumentRetakeSchema.safeParse({ memberId, kind: 'aadhaar_front', coversConfirmed: false }).success).toBe(false);
+    expect(kycDocumentRetakeSchema.safeParse({ memberId, kind: 'aadhaar_front', coversConfirmed: false }).success).toBe(true);
   });
 
   it('refuses any other document', () => {
