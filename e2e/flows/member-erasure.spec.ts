@@ -45,7 +45,7 @@ test.describe('Member erasure', () => {
     await page.getByRole('link', { name: 'Account', exact: true }).click();
 
     await expect(page.getByRole('heading', { name: 'Erasure on request' })).toBeVisible();
-    await expect(page.getByText('No bonus chips to forfeit.')).toBeVisible();
+    await expect(page.getByText('No Bonus to forfeit.')).toBeVisible();
     const name = page.getByRole('textbox', { name: 'Type the member\'s full name to confirm' });
     const erase = page.getByRole('button', { name: 'Erase personal data' });
     await name.fill('Neel');
@@ -55,7 +55,7 @@ test.describe('Member erasure', () => {
 
     await name.fill('Neel Kapur');
     await erase.click();
-    await expect(page.getByText('Erased. Forfeited 0 bonus chips; KYC files removed: 1.')).toBeVisible();
+    await expect(page.getByText('Erased. Forfeited 0 Bonus; KYC files removed: 1.')).toBeVisible();
     await expect(page.getByText('This member\'s personal data was erased on request.')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Erased member' })).toBeVisible();
     const left = await request.post(`${url}/storage/v1/object/list/kyc`, { headers: server, data: { prefix: FOLDER, limit: 10, offset: 0 } });

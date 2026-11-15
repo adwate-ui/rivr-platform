@@ -37,10 +37,10 @@ describe('the promotion builder (console v3)', () => {
     expect(screen.getByText('2 Nov to 8 Nov')).toBeDefined();
     expect(submitButton()).toHaveProperty('disabled', false);
     expect(bodiesOf('save_promotion_draft')[0]).toMatchObject({
-      p_venue_id: 'v1', p_draft: { terms: { name: 'Weekend seat bonus', reward: { kind: 'seat_bonus', chips: 1_000 } }, detail: '1,000 bonus chips on the first seat of a visit' },
+      p_venue_id: 'v1', p_draft: { terms: { name: 'Weekend seat bonus', reward: { kind: 'seat_bonus', chips: 1_000 } }, detail: '1,000 Bonus on the first seat of a visit' },
     });
     expect(bodiesOf('record_promotion_simulation')).toHaveLength(1);
-    fireEvent.change(screen.getByRole('textbox', { name: 'Bonus chips' }), { target: { value: '1500' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Amount' }), { target: { value: '1500' } });
     expect(submitButton()).toHaveProperty('disabled', true);
   });
 
@@ -57,12 +57,12 @@ describe('the promotion builder (console v3)', () => {
 
   it('shows the promotion in one line and on the TV slide as it is built, from a template', () => {
     renderBuilder(NEW);
-    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Start from' })).getByRole('radio', { name: 'Seat bonus chips' }));
-    expect(screen.getByRole('textbox', { name: 'Name members see' })).toHaveProperty('value', 'Tuesday seat bonus chips');
-    expect(within(screen.getByRole('radiogroup', { name: 'Reward' })).getByRole('radio', { name: 'Seat bonus chips' }).getAttribute('aria-checked')).toBe('true');
-    expect(screen.getByText(/^1,000 bonus chips for the first 5 seated at a table, for all stakes, Tue, all day\./)).toBeDefined();
-    expect(within(screen.getByRole('group', { name: 'TV slide' })).getByText('Tuesday seat bonus chips')).toBeDefined();
-    expect(screen.getByRole('textbox', { name: 'Bonus chips' })).toHaveProperty('value', '1000');
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Start from' })).getByRole('radio', { name: 'Seat bonus' }));
+    expect(screen.getByRole('textbox', { name: 'Name members see' })).toHaveProperty('value', 'Tuesday seat bonus');
+    expect(within(screen.getByRole('radiogroup', { name: 'Reward' })).getByRole('radio', { name: 'First seat' }).getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByText(/^1,000 Bonus for the first 5 seated at a table, for all stakes, Tue, all day\./)).toBeDefined();
+    expect(within(screen.getByRole('group', { name: 'TV slide' })).getByText('Tuesday seat bonus')).toBeDefined();
+    expect(screen.getByRole('textbox', { name: 'Amount' })).toHaveProperty('value', '1000');
   });
 
   it('offers no buy-in bonus, cab home or tournament entry: nothing could pay them (audit F-005, F-033)', () => {
@@ -75,33 +75,33 @@ describe('the promotion builder (console v3)', () => {
 
   it('builds a play-time bonus at set times, a step at a time, or every so often (owner, 8 Nov)', () => {
     renderBuilder(NEW);
-    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Reward' })).getByRole('radio', { name: 'Hours-played bonus chips' }));
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Reward' })).getByRole('radio', { name: 'Hours played' }));
     fireEvent.click(screen.getByRole('button', { name: 'Add a step' }));
-    expect(screen.getByRole('textbox', { name: 'Then bonus chips' })).toHaveProperty('value', '1000');
-    expect(screen.getByText(/^1,000 bonus chips after 4 hours, then 1,000 after 6 hours, for all stakes/)).toBeDefined();
+    expect(screen.getByRole('textbox', { name: 'Then Bonus' })).toHaveProperty('value', '1000');
+    expect(screen.getByText(/^1,000 Bonus after 4 hours, then 1,000 after 6 hours, for all stakes/)).toBeDefined();
     // Steps keep their place (owner, 9 Nov: "Lock step count"): only the last is removed, and the builder says why.
     fireEvent.click(screen.getByRole('button', { name: 'Add a step' }));
     expect(screen.queryByRole('button', { name: 'Remove step 2' })).toBeNull();
     expect(screen.getByText('Steps keep their place: add or remove them at the end. To reorder, end this promotion and start a new one.')).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Remove step 3' }));
     fireEvent.click(screen.getByRole('button', { name: 'Remove step 2' }));
-    expect(screen.queryByRole('textbox', { name: 'Then bonus chips' })).toBeNull();
+    expect(screen.queryByRole('textbox', { name: 'Then Bonus' })).toBeNull();
     fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Pays' })).getByRole('radio', { name: 'Every few hours' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Times a visit' }), { target: { value: '3' } });
-    expect(screen.getByText(/^1,000 bonus chips every 2 hours, up to 3 times a visit, for all stakes/)).toBeDefined();
+    expect(screen.getByText(/^1,000 Bonus every 2 hours, up to 3 times a visit, for all stakes/)).toBeDefined();
   });
 
   // Decision 0580: the first members to claim it get one amount, the next another, once a member.
   it('builds a seat bonus in tiers, a tier at a time, and says how they count', () => {
     renderBuilder(NEW);
-    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Reward' })).getByRole('radio', { name: 'Seat bonus chips' }));
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Reward' })).getByRole('radio', { name: 'First seat' }));
     fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Pays' })).getByRole('radio', { name: 'In tiers' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Tier 1: the first' }), { target: { value: '10' } });
-    fireEvent.change(screen.getByRole('textbox', { name: 'Tier 1 bonus chips' }), { target: { value: '5000' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Tier 1 Bonus' }), { target: { value: '5000' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add a tier' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Tier 2: the next' }), { target: { value: '20' } });
-    fireEvent.change(screen.getByRole('textbox', { name: 'Tier 2 bonus chips' }), { target: { value: '2000' } });
-    expect(screen.getByText(/^Bonus chips on a first seat, once a member: first 10 get 5,000, next 20 get 2,000, for all stakes/)).toBeDefined();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Tier 2 Bonus' }), { target: { value: '2000' } });
+    expect(screen.getByText(/^Bonus on a first seat, once a member: first 10 get 5,000, next 20 get 2,000, for all stakes/)).toBeDefined();
     expect(screen.getByText(/^Each member gets it once, on a first seat\./)).toBeDefined();
     // Limits hold to once a member: no other period, no times, no month (the review of #909).
     const perMember = within(screen.getByRole('radiogroup', { name: 'Each member' }));
@@ -111,15 +111,15 @@ describe('the promotion builder (console v3)', () => {
     expect(screen.queryByRole('button', { name: 'Remove tier 1' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Remove tier 2' }));
     expect(screen.queryByRole('textbox', { name: 'Tier 2: the next' })).toBeNull();
-    expect(screen.getByText(/^Bonus chips on a first seat, once a member: first 10 get 5,000, for all stakes/)).toBeDefined();
+    expect(screen.getByText(/^Bonus on a first seat, once a member: first 10 get 5,000, for all stakes/)).toBeDefined();
   });
 
   it('marks the fields the terms refuse and sends nothing', async () => {
     const { calls } = renderBuilder(NEW);
-    fireEvent.change(screen.getByRole('textbox', { name: 'Bonus chips' }), { target: { value: '1020' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Amount' }), { target: { value: '1020' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save draft' }));
     expect(await screen.findByText('Name it in 3 to 80 characters.')).toBeDefined();
-    expect(screen.getByText('Whole 50s of chips, from 50.')).toBeDefined();
+    expect(screen.getByText('Whole 50s, from 50.')).toBeDefined();
     expect(screen.getAllByText('Not saved. Check the fields marked.').length).toBeGreaterThan(0);
     expect(calls.filter((call) => call.url.includes('/rpc/'))).toEqual([]);
   });
@@ -138,7 +138,7 @@ describe('the promotion builder (console v3)', () => {
       '/rpc/save_promotion_draft': refused('RVFRZ'),
     });
     expect(screen.getByText('Changes make version 2.')).toBeDefined();
-    fireEvent.change(screen.getByRole('textbox', { name: 'Bonus chips' }), { target: { value: '1500' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Amount' }), { target: { value: '1500' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save draft' }));
     expect(await screen.findByText('Venue frozen. Try again once it is released.')).toBeDefined();
     expect(bodiesOf('save_promotion_draft')[0]).toMatchObject({ p_promotion_id: 'p1', p_draft: { terms: { reward: { chips: 1_500 } } } });

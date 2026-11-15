@@ -41,11 +41,11 @@ async function buildAndSubmit(floor: Page) {
   await floor.goto(`${appUrl('console')}/promotions`);
   await floor.getByRole('button', { name: 'New promotion' }).click();
   await expect(floor.getByRole('heading', { level: 1, name: 'New promotion' })).toBeVisible();
-  await floor.getByRole('radiogroup', { name: 'Start from' }).getByRole('radio', { name: 'Seat bonus chips' }).click();
+  await floor.getByRole('radiogroup', { name: 'Start from' }).getByRole('radio', { name: 'Seat bonus' }).click();
   await floor.getByRole('textbox', { name: 'Name members see' }).fill(NAME);
   await floor.getByRole('group', { name: 'Stakes' }).getByRole('button', { name: 'Private Room' }).click();
   await floor.getByRole('button', { name: 'Every day' }).click();
-  await expect(floor.getByText(/^1,000 bonus chips for the first 5 seated at a table, for Private Room, every day, all day\./)).toBeVisible();
+  await expect(floor.getByText(/^1,000 Bonus for the first 5 seated at a table, for Private Room, every day, all day\./)).toBeVisible();
   // Submitting waits for a simulation on the terms as they stand.
   await expect(floor.getByRole('button', { name: 'Submit for approval' })).toBeDisabled();
   await floor.getByRole('button', { name: 'Simulate' }).click();

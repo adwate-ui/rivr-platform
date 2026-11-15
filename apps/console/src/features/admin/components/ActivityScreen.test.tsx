@@ -62,7 +62,7 @@ describe('Activity (8 Nov audit, F-034)', () => {
     const table = await screen.findByRole('table', { name: 'Activity' }, LOADS);
     const rows = await within(table).findAllByText('Member · Mihir Shah', {}, LOADS);
     const first = rows[0]?.closest('[role="row"]');
-    for (const shown of ['Vikram Rao', 'Bonus chips', 'Gave bonus chips: 1,500', 'Welcome back']) expect(first?.textContent).toContain(shown);
+    for (const shown of ['Vikram Rao', 'Bonus', 'Gave Bonus: 1,500', 'Welcome back']) expect(first?.textContent).toContain(shown);
     // Points went on 15 Nov; a line from before still reads in words, with no figure (decision 0585).
     expect(rows[1]?.closest('[role="row"]')?.textContent).toContain('Gave points');
     const second = within(table).getByText('Waitlist place').closest('[role="row"]');

@@ -52,8 +52,8 @@ export const FEATURES = [
   core('core.notification_settings', 'Notification settings', 'Choosing which notifications to receive.', ['player:profile/notifications']),
   core('core.house_rules', 'House rules', 'The club’s house rules.', ['player:profile/rules', 'web:house-rules']),
   core('core.feedback', 'Feedback', 'Rating a visit, and sending the club a note.', ['player:home', 'player:profile']),
-  core('rewards.bonus', 'Bonus chips', 'The member’s bonus chips and their history, in Bonus.', ['player:bonus']),
-  core('push.bonus', 'Bonus chip notifications', 'Push when bonus chips are added or used.', ['player:profile/notifications']),
+  core('rewards.bonus', 'Bonus', 'The member’s Bonus and its history.', ['player:bonus']),
+  core('push.bonus', 'Bonus notifications', 'Push when Bonus is added or used.', ['player:profile/notifications']),
 ] as const satisfies readonly FeatureDefinition[];
 
 /** A feature key declared in code. */

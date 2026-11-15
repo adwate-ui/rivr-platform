@@ -29,7 +29,7 @@ describe('triggerOf', () => {
     expect(triggerOf({ kind: 'waitlist_priority' })).toBe('visit');
   });
 
-  it('gives bonus chips for the event they are on', () => {
+  it('gives Bonus for the event they are on', () => {
     expect(triggerOf({ kind: 'bonus_chips', chips: 500, on: 'visit' })).toBe('visit');
     expect(triggerOf({ kind: 'bonus_chips', chips: 500, on: 'first_buyin' })).toBe('buy_in');
     expect(triggerOf({ kind: 'bonus_chips', chips: 500, on: 'referral' })).toBe('referral');
@@ -75,7 +75,7 @@ describe('computeGrant', () => {
     expect(grantOf(every, step(270))).toEqual({ ok: false, error: 'not_a_step' });
   });
 
-  it('gives bonus chips for a referral only on a referral', () => {
+  it('gives Bonus for a referral only on a referral', () => {
     const referral = event({ kind: 'referral' });
     expect(grantOf({ kind: 'bonus_chips', chips: 1_000, on: 'referral' }, referral).ok).toBe(true);
     expect(grantOf({ kind: 'bonus_chips', chips: 1_000, on: 'signup' }, referral)).toEqual({ ok: false, error: 'other_event' });

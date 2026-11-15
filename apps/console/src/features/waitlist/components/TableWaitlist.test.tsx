@@ -152,7 +152,7 @@ describe("a table's waitlist card (console v3)", () => {
     expect(screen.getByRole('button', { name: 'Seat Mihir Shah' })).toBeDefined();
   });
 
-  it('opens the sheet for a called member, for their held seat, a call time and any bonus chips', () => {
+  it('opens the sheet for a called member, for their held seat, a call time and any Bonus', () => {
     const onSeat = vi.fn();
     renderCard({ onSeat, entries: [place(1, 'Kabir Sethi', { callTableName: 'Table 1', callSeat: 4, holdUntil: '2026-11-15T15:52:00Z' })] });
     fireEvent.click(screen.getByRole('button', { name: 'Seat Kabir Sethi' }));

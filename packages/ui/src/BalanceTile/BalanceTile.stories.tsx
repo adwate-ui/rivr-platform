@@ -5,7 +5,7 @@ import { BalanceTile } from './BalanceTile.tsx';
 const meta = {
   title: 'Data/BalanceTile',
   component: BalanceTile,
-  args: { icon: 'chip', figure: '1,500', label: 'Bonus chips', line: 'Use with your buy-in. Never expire.', tone: 'money' },
+  args: { icon: 'chip', figure: '1,500', label: 'Bonus', line: 'Use with your buy-in. Never expires.', tone: 'money' },
 } satisfies Meta<typeof BalanceTile>;
 
 export default meta;
@@ -13,4 +13,4 @@ type Story = StoryObj<typeof meta>;
 
 export const BonusChips: Story = { args: { onOpen: () => undefined, 'aria-expanded': false } };
 
-export const LongText: Story = { args: { figure: '12,34,56,789', line: 'Use with your buy-in at any table in the club, on any night. Never expire.' } };
+export const LongText: Story = { args: { figure: '12,34,56,789', line: 'Use with your buy-in at any table in the club, on any night. Never expires.' } };

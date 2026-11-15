@@ -146,10 +146,10 @@ describe('ChoiceChips', () => {
   it('sets a chosen card\'s line in cream, as muted falls under 4.5:1 on the tint (F-026)', () => {
     const kinds = [
       { value: 'multiplier', label: 'Points multiplier', description: 'Points earned per hour, multiplied' },
-      { value: 'buyin', label: 'Buy-in bonus', description: 'Bonus chips on a buy-in, % or fixed' },
+      { value: 'buyin', label: 'Buy-in bonus', description: 'Bonus on a buy-in, % or fixed' },
     ];
     renderIn(<ChoiceChips label="Reward" look="card" mode="one" options={kinds} selected={['buyin']} onChange={() => undefined} />);
-    expect(screen.getByText('Bonus chips on a buy-in, % or fixed')).toHaveClass('text-content');
+    expect(screen.getByText('Bonus on a buy-in, % or fixed')).toHaveClass('text-content');
     expect(screen.getByText('Points earned per hour, multiplied')).toHaveClass('text-content-muted');
   });
 
@@ -179,11 +179,11 @@ describe('ChoiceChips', () => {
     const onChange = vi.fn();
     const kinds = [
       { value: 'multiplier', label: 'Points multiplier', description: 'Points earned per hour, multiplied' },
-      { value: 'buyin', label: 'Buy-in bonus', description: 'Bonus chips on a buy-in, % or fixed' },
+      { value: 'buyin', label: 'Buy-in bonus', description: 'Bonus on a buy-in, % or fixed' },
     ];
     const { container } = renderIn(<ChoiceChips label="Reward" look="card" mode="one" options={kinds} selected={['buyin']} onChange={onChange} />);
     const chosen = screen.getByRole('radio', { name: 'Buy-in bonus' });
-    expect(chosen).toHaveAccessibleDescription('Bonus chips on a buy-in, % or fixed');
+    expect(chosen).toHaveAccessibleDescription('Bonus on a buy-in, % or fixed');
     expect(chosen).toHaveClass('border-gold', 'bg-gold-tint', 'items-start', 'text-start');
     expect(screen.getByRole('radio', { name: 'Points multiplier' })).toHaveClass('border-control');
     expect(screen.getByRole('radiogroup', { name: 'Reward' })).toHaveClass('grid-cols-1', 'medium:grid-cols-2');

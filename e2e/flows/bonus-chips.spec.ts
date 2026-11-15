@@ -60,7 +60,7 @@ function setUp() {
        where v.venue_id = '${CLUB}' and v.status = 'live' and v.reward ->> 'on' = 'signup'`);
 }
 
-test.describe('Bonus chips', () => {
+test.describe('Bonus', () => {
   test.skip(isRemoteTarget(), 'switches the club to checking identity at the desk and puts a promotion live in the local database, so the local stack only');
   test.beforeEach(reset);
   test.afterEach(reset);
@@ -76,7 +76,7 @@ test.describe('Bonus chips', () => {
     await page.getByRole('button', { name: 'Use photo' }).click();
     await expect(page.getByRole('heading', { name: 'Registered', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'See the tables' }).click();
-    await expect(page.getByText('500 bonus chips added · Welcome bonus')).toBeVisible();
+    await expect(page.getByText('500 Bonus added · Welcome bonus')).toBeVisible();
     expect(Number(sql(`select private.bonus_in_force('${JAYESH}', now())`))).toBe(before + 50_000);
 
     // Bonus: his balance, and the welcome bonus in his history.
@@ -98,27 +98,27 @@ test.describe('Bonus chips', () => {
     await sheet.getByRole('radio', { name: 'Table 5' }).click();
     await sheet.getByRole('textbox', { name: /^(Or a m|M)obile or member number$/ }).fill('9000000412');
     await expect(sheet.getByText('Up to their balance. Taken off when they sit.')).toBeVisible();
-    await sheet.getByRole('textbox', { name: 'Bonus chips to redeem' }).fill('500');
+    await sheet.getByRole('textbox', { name: 'Bonus to redeem' }).fill('500');
     await sheet.getByRole('button', { name: 'Seat', exact: true }).click();
     await expect(floor.getByText(/^9000000412 seated at Table 5, seat \d$/)).toBeVisible();
     await expect(floor.getByRole('button', { name: 'Undo' })).toHaveCount(0);
     expect(Number(sql(`select private.bonus_in_force('${JAYESH}', now())`))).toBe(before);
 
     // He is told, and his history shows the buy-in.
-    await expect(page.getByText('500 bonus chips used for your buy-in at Table 5')).toBeVisible();
+    await expect(page.getByText('500 Bonus used for your buy-in at Table 5')).toBeVisible();
     await expect(page.getByText(/^Buy-in · Table 5 · /).first()).toBeVisible();
 
     // His record's Bonus chips tab, read only, names who seated him.
     await floor.goto(`${appUrl('console')}/members?member=${JAYESH}&part=bonus`);
-    await expect(floor.getByRole('link', { name: 'Bonus chips' })).toHaveAttribute('aria-current', 'page');
+    await expect(floor.getByRole('link', { name: 'Bonus' })).toHaveAttribute('aria-current', 'page');
     await expect(floor.getByText(/Buy-in · Table 5 · seated by Ishaan Grover$/)).toBeVisible();
 
     // Bonus by hand, on the record: 50 with a reason, asked twice; his app shows it.
-    await floor.getByRole('textbox', { name: /^Bonus chips/ }).fill('50');
+    await floor.getByRole('textbox', { name: /^Bonus/ }).fill('50');
     await floor.getByRole('textbox', { name: /^Reason/ }).fill(REASON);
-    await floor.getByRole('button', { name: 'Add bonus chips' }).click();
-    await floor.getByRole('button', { name: 'Yes, add 50 bonus chips' }).click();
-    await expect(floor.getByText('50 bonus chips added.')).toBeVisible();
+    await floor.getByRole('button', { name: 'Add Bonus' }).click();
+    await floor.getByRole('button', { name: 'Yes, add 50 Bonus' }).click();
+    await expect(floor.getByText('50 Bonus added.')).toBeVisible();
     expect(Number(sql(`select private.bonus_in_force('${JAYESH}', now())`))).toBe(before + 5_000);
     await expect(page.getByText(new RegExp(`^${REASON} · `)).first()).toBeVisible({ timeout: 15_000 });
   });

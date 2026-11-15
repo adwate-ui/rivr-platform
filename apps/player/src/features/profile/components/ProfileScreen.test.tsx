@@ -98,7 +98,7 @@ describe('Profile', () => {
     expect(await screen.findByRole('switch', { name: /Seat calls/ }, LATER)).toBeDefined();
     expect(screen.getByRole('switch', { name: /Call time/ })).toBeDefined();
     // Bonus chips added or used (decision 0504).
-    expect(screen.getByRole('switch', { name: /Bonus chips/ })).toBeDefined();
+    expect(screen.getByRole('switch', { name: /Bonus/ })).toBeDefined();
     expect(screen.queryByText(/limit|take a break|waitlist alerts/i)).toBeNull();
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
   });
@@ -117,7 +117,7 @@ describe('Profile', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Delete my account' }, LATER));
     const sheet = await screen.findByRole('dialog', { name: 'Delete my account' }, LATER);
     expect(within(sheet).getByText(/within 7 days/)).toBeDefined();
-    expect(within(sheet).getByText('Your bonus chips are forfeited.')).toBeDefined();
+    expect(within(sheet).getByText('Your Bonus is forfeited.')).toBeDefined();
     expect(within(sheet).getByText(/Play records the law requires/)).toBeDefined();
     expect(asks()).toBe(0);
     fireEvent.click(within(sheet).getByRole('button', { name: 'Send request' }));

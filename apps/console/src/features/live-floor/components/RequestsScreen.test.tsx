@@ -63,7 +63,7 @@ describe('Seating an approved player (the owner, 8 Nov)', () => {
     expect(screen.getByText('9 min').className).not.toContain('text-danger');
   });
 
-  it('opens the seat sheet for one called too, so a call time and bonus chips can be given, and seats nobody yet', async () => {
+  it('opens the seat sheet for one called too, so a call time and Bonus can be given, and seats nobody yet', async () => {
     const { rpcs } = renderFloorScreen(RequestsScreen, { ...APPROVED, board: [...APPROVED.board, boardRow('e6', 'Arjun Rao', 6)] });
     await screen.findByText('Table 1, seat 4 held', {}, { timeout: 5000 });
     const [, forArjun] = screen.getAllByRole('button', { name: 'Seat' });

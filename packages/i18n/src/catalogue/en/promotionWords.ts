@@ -2,7 +2,7 @@
 export const promotionWords = {
   time: { hour: '1 hour', hours: '{count} hours', hoursMinutes: '{hours} h {minutes} min', minutes: '{minutes} min' },
   buyIn: {
-    fixed: '{chips} bonus chips on a buy-in', percent: '{percent}% of your buy-in in bonus chips', upTo: 'up to {chips} bonus chips',
+    fixed: '{chips} Bonus on a buy-in', percent: '{percent}% of your buy-in in Bonus', upTo: 'up to {chips} Bonus',
     firstN: 'first {count} buy-ins per table',
   },
   seat: {
@@ -10,15 +10,15 @@ export const promotionWords = {
      * In tiers (decision 0580): `Bonus chips on a first seat, once a member: first 10 get 5,000, next 20 get 2,000`. Five tiers at
      * their longest (10,000 claims at 1,00,00,000 chips) come to 188 characters, inside the card's 200.
      */
-    tiers: 'Bonus chips on a first seat, once a member: {tiers}', tierFirst: 'first {count} get {chips}', tierNext: 'next {count} get {chips}',
-    first: '{chips} bonus chips on the first seat of a visit', firstN: '{chips} bonus chips for the first {count} seated at a table' },
+    tiers: 'Bonus on a first seat, once a member: {tiers}', tierFirst: 'first {count} get {chips}', tierNext: 'next {count} get {chips}',
+    first: '{chips} Bonus on the first seat of a visit', firstN: '{chips} Bonus for the first {count} seated at a table' },
   hoursBonus: {
-    after: '{chips} bonus chips after {time}', thenAfter: 'then {chips} after {time}', every: '{chips} bonus chips every {time}',
-    everyHour: '{chips} bonus chips every hour', upToOnce: 'up to once a visit', upToTimes: 'up to {count} times a visit',
+    after: '{chips} Bonus after {time}', thenAfter: 'then {chips} after {time}', every: '{chips} Bonus every {time}',
+    everyHour: '{chips} Bonus every hour', upToOnce: 'up to once a visit', upToTimes: 'up to {count} times a visit',
   },
   bonusChips: {
-    visit: '{chips} bonus chips on each visit', first_buyin: '{chips} bonus chips on the first buy-in of a visit',
-    referral: '{chips} bonus chips for each referral', signup: '{chips} bonus chips on sign-up',
+    visit: '{chips} Bonus on each visit', first_buyin: '{chips} Bonus on the first buy-in of a visit',
+    referral: '{chips} Bonus for each referral', signup: '{chips} Bonus on sign-up',
   },
   cabHome: 'A cab home from visit {visit} in a month',
   tournamentEntry: 'An entry to {name}',
@@ -41,8 +41,8 @@ export const promotionWords = {
   firstMembers: 'first {count} members a day',
   atMost: 'at most {count} times',
   atMostMonth: 'at most {count} times a month',
-  budget: 'budget {count} chips',
-  budgetMonth: 'budget {count} chips a month',
+  budget: 'budget {count} Bonus',
+  budgetMonth: 'budget {count} Bonus a month',
   line: '{reward}, for {who}, {when}. {limits}. Starts {starts}, {ends}.',
   noEnd: 'no end date',
   ends: 'ends {date}',

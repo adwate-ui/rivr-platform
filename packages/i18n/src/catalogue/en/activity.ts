@@ -22,7 +22,7 @@ export const activity = {
   /** In what an export records, while earlier lines are not loaded. */
   partial: 'Partial: the latest {count} lines only',
   kinds: {
-    controls: 'Controls', exports: 'Exports', staff: 'Staff', bonus_chips: 'Bonus chips', tiers: 'Tiers', members: 'Members',
+    controls: 'Controls', exports: 'Exports', staff: 'Staff', bonus_chips: 'Bonus', tiers: 'Tiers', members: 'Members',
     settings: 'Settings', floor: 'Floor', other: 'Other',
   },
 } as const;
@@ -30,7 +30,7 @@ export const activity = {
 /** What was done, by the audit log's own codes: a change to a row, or a named action. */
 const ACTION_WORDS: Readonly<Record<string, string>> = {
   insert: 'Added', update: 'Changed', delete: 'Removed',
-  'aml.flag': 'Flagged', 'aml.review': 'Reviewed', 'bonus.give': 'Gave bonus chips',
+  'aml.flag': 'Flagged', 'aml.review': 'Reviewed', 'bonus.give': 'Gave Bonus',
   'points.grant': 'Gave points', 'points.lock': 'Locked points', 'points.unlock': 'Released points',
   'device.enrolled': 'Enrolled', 'device.enrolment_started': 'Started enrolling', 'device.paired': 'Paired', 'device.pairing_started': 'Started pairing',
   'export.archive_saved': 'Saved an archive', 'export.table': 'Exported', 'export.tally_day': 'Exported', 'export.tds_return': 'Exported',
@@ -42,7 +42,7 @@ const ACTION_WORDS: Readonly<Record<string, string>> = {
 /** What kind of record it was about, by the audit log's own names. */
 const ENTITY_WORDS: Readonly<Record<string, string>> = {
   academy_attendance: 'Academy attendance', academy_batch: 'Academy batch', academy_booking: 'Academy booking', academy_utr_rejection: 'Academy payment refused',
-  account_transfer: 'Account transfer', alert: 'Alert', blind_structure: 'Blind structure', bonus_grant: 'Bonus chips given', bonus_redemption: 'Bonus chips used',
+  account_transfer: 'Account transfer', alert: 'Alert', blind_structure: 'Blind structure', bonus_grant: 'Bonus given', bonus_redemption: 'Bonus used',
   buy_in_request: 'Buy-in request', cab_request: 'Cab request', cage_shift: 'Cage shift', cage_transaction: 'Cage transaction', camera: 'Camera',
   chip_denomination: 'Chip denomination', chip_inventory_count: 'Chip count', chip_inventory_line: 'Chip count line', club_event: 'Event', club_event_booking: 'Event booking',
   consent: 'Consent', contact: 'Contact', control_state: 'Control', creator: 'Creator', credit_line: 'Credit line', dealer_down: 'Dealer down', deposit_request: 'Deposit request',

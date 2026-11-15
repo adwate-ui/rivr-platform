@@ -122,13 +122,13 @@ export const liveFloor = {
   tableInUse: 'Move the players and called members first.',
   mustMoveInvalid: 'A must-move table needs an open main table of its game.',
   /** Bonus chips redeemed with the seat (decision 0504), refused: not seated. */
-  bonusShort: 'More bonus chips than the member has. Not seated.',
+  bonusShort: 'More Bonus than the member has. Not seated.',
   /** Past what the visit may redeem (decision 0579): the seat sheet says how much is left. */
-  visitCap: 'More bonus chips than this visit allows. Not seated.',
-  notChips: 'Bonus chips go in whole 50s. Not seated.',
-  ownRecord: 'You cannot use your own bonus chips. Ask another member of staff.',
-  bonusOff: 'Promotions are switched off, so no bonus chips. Not seated.',
-  tooMany: 'Too many bonus chips used this minute. Wait a moment.',
+  visitCap: 'More Bonus than this visit allows. Not seated.',
+  notChips: 'Bonus goes in whole 50s. Not seated.',
+  ownRecord: 'You cannot use your own Bonus. Ask another member of staff.',
+  bonusOff: 'Promotions are switched off, so no Bonus. Not seated.',
+  tooMany: 'Bonus used too often this minute. Wait a moment.',
   /** For staff whose role does not read members (#333): the dealer, marketing, the owner's view. */
   noSeatMap: 'Your role does not see the seat map.',
   /** A table's card and ring for a role without the seat map. */

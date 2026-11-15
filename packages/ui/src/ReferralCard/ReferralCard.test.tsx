@@ -42,10 +42,10 @@ describe('ReferralCard', () => {
   });
 
   it('sets a line that would cross the frame as two: at a sentence\'s end, or else where the halves are most even', () => {
-    const footer = 'Join from my link. On your first buy-in, we both get bonus chips.';
+    const footer = 'Join from my link. On your first buy-in, we both get Bonus.';
     const svg = referralCardSvg({ ...text, footer, heading: 'Come and play with me at RIVR Poker Club' });
     expect(svg).toContain('>Join from my link.</text>');
-    expect(svg).toContain('>On your first buy-in, we both get bonus chips.</text>');
+    expect(svg).toContain('>On your first buy-in, we both get Bonus.</text>');
     expect(svg).toContain('>Come and play with me</text>');
     expect(svg).toContain('>at RIVR Poker Club</text>');
     expect(referralCardSvg(text)).toContain('>Play with me at RIVR</text>');

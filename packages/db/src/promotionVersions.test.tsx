@@ -41,7 +41,7 @@ function renderVersions(replies: Record<string, unknown>) {
 
 function overviewRow(more: Record<string, unknown>) {
   return {
-    promotion_id: 'p1', template_key: null, status: 'live', name: 'Play-time bonus', detail: '1,000 bonus chips after 4 hours', runs: 'all stakes · every day, all day',
+    promotion_id: 'p1', template_key: null, status: 'live', name: 'Play-time bonus', detail: '1,000 Bonus after 4 hours', runs: 'all stakes · every day, all day',
     current_version_id: 'v1', current_status: 'live', open_version_id: null, open_status: null, rejected_reason: null, reward: TERMS.reward,
     eligibility: TERMS.eligibility, schedule: TERMS.schedule, limits: TERMS.limits, channels: TERMS.channels, given_this_week: 41, chips_given_this_week: 12_000, budget_used_chips: 30_000, is_quiet: true, is_legacy: false, ended_at: null,
     created_at: '2026-11-03T10:00:00+00:00', ...more,
@@ -51,7 +51,7 @@ function overviewRow(more: Record<string, unknown>) {
 function versionRow(more: Record<string, unknown>) {
   return {
     id: 'v1', version: 1, status: 'live', name: TERMS.name, reward: TERMS.reward, eligibility: TERMS.eligibility, schedule: TERMS.schedule,
-    limits: TERMS.limits, channels: TERMS.channels, rules_text: [], link: null, detail: '1,000 bonus chips after 4 hours', runs: 'Every day', author: 'Ishita Bose',
+    limits: TERMS.limits, channels: TERMS.channels, rules_text: [], link: null, detail: '1,000 Bonus after 4 hours', runs: 'Every day', author: 'Ishita Bose',
     is_mine: false, submitted_at: '2026-11-02T10:00:00+00:00', decided_by: 'Vikram Rao', decided_at: '2026-11-02T11:00:00+00:00', rejected_reason: null,
     simulation: { events: 3, membersQualified: 2, timesGiven: 2, chips: 2_000, perks: 0, isBudgetReached: false }, simulated_terms: null,
     ...more,

@@ -30,7 +30,7 @@ select private.bootstrap_venue('00000000-0000-4000-8000-0000000000af', 'RIVR Hol
 select private.add_website('00000000-0000-4000-8000-0000000000af');
 select is(pg_temp.saying('00000000-0000-4000-8000-0000000000af', 'held for 10 minutes'), 0, 'a new club''s house rules say no 10-minute hold');
 select is(pg_temp.saying('00000000-0000-4000-8000-0000000000af', 'A seat is held for 20 minutes once it is called.'), 1, 'but 20');
-select is(pg_temp.saying('00000000-0000-4000-8000-0000000000af', '1,000 bonus chips for each side of a referral'), 1, 'and still the referral in chips');
+select is(pg_temp.saying('00000000-0000-4000-8000-0000000000af', '1,000 Bonus for each side of a referral'), 1, 'and still the referral in Bonus');
 
 select * from finish();
 rollback;

@@ -42,7 +42,7 @@ export const authStoreReviewer = {
  */
 export const bonusDailyStaffCap = {
   key: 'bonus.daily_staff_cap',
-  description: 'The most bonus chips one staff member adds by hand in a club day; an addition past it is refused and the owner hears of it. Super admins are not capped. None set is no cap.',
+  description: 'The most Bonus one staff member adds by hand in a club day; an addition past it is refused and the owner hears of it. Super admins are not capped. None set is no cap.',
   scope: 'venue',
   superAdminOnly: true,
   value: z.strictObject({ chips: z.int().min(50).max(1000000) }),
@@ -66,7 +66,7 @@ export const bonusByHandCap = {
  */
 export const bonusExpiryDays = {
   key: 'bonus.expiry_days',
-  description: 'How many days bonus chips last after they are given; chips held when it is switched on last that long from then. 0 is never. None set is never.',
+  description: 'How many days Bonus lasts after it is given; Bonus held when it is switched on lasts that long from then. 0 is never. None set is never.',
   scope: 'venue',
   superAdminOnly: true,
   value: z.strictObject({ days: z.int().min(0).max(3650) }),

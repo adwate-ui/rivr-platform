@@ -40,6 +40,13 @@ describe('copy rules', () => {
     expect(offending.map(([key]) => key)).toEqual([]);
   });
 
+  it('says "Bonus", never "bonus chips" (redesign RD-12)', () => {
+    // The cage's and the Host queue's words go with their screens (redesign RD-09, RD-10) and are left as they were until then.
+    const leaving = ['console.cage.', 'console.hostQueue.'];
+    const staying = english.filter(([key]) => !leaving.some((prefix) => key.startsWith(prefix)));
+    expect(staying.filter(([, text]) => /bonus chips?/i.test(text))).toEqual([]);
+  });
+
   it('has no empty messages', () => {
     expect(english.filter(([, text]) => text.trim() === '').map(([key]) => key)).toEqual([]);
   });

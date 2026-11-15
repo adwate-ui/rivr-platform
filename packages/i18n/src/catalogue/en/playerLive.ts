@@ -10,7 +10,7 @@ export const playerLive = {
   offersOne: '1 offer',
   /** The referral offer card (it left Home's tables for the carousel): `{chips}` is the bonus, `1,000`. */
   referralTitle: 'Referral',
-  referralOffer: '{chips} bonus chips each',
+  referralOffer: '{chips} Bonus each',
   /** A club notice's card above the offers (decision 0424): its gold eyebrow. */
   notice: 'From the club',
   allTables: 'All tables',
@@ -75,7 +75,7 @@ export const playerLive = {
     /** The ring's clock, read out: `Call time left 2h 41m`. */
     timer: 'Call time left {time}',
     /** The next play-time bonus on this seat (audit F-173). */
-    nextBonus: 'Next: {chips} bonus chips',
+    nextBonus: 'Next: {chips} Bonus',
     nextBonusIn: 'in {time}',
     seatedToast: 'Seated at {table}, seat {seat}',
   },

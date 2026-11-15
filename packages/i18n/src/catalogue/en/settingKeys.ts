@@ -81,7 +81,7 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     fields: { season_basis_points: 'Season pool', freeroll_basis_points: 'Freeroll pool' },
   },
   'bonus.daily_staff_cap': {
-    name: 'Daily bonus chips limit', fields: { chips: 'Bonus chips' },
+    name: 'Daily Bonus limit', fields: { chips: 'Bonus' },
     help: 'Most one staff member adds in a day',
     hints: { chips: 'Past it an addition is refused and you are told. Super admins have no limit. No limit unless set.' },
   },
@@ -91,7 +91,7 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     hints: { chips: 'For admins and floor managers. Super admins have no limit.' },
   },
   'bonus.expiry_days': {
-    name: 'Bonus chips expire', fields: { days: 'Days' },
+    name: 'Bonus expires', fields: { days: 'Days' },
     help: 'Unused Bonus is removed after this long',
     hints: { days: '0 is never. What is held already lasts this long from when it starts.' },
   },
@@ -107,8 +107,8 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   },
   'rakeback.rate': {
     name: 'Rakeback',
-    help: "The share of a member's rake at this table type over a club week, given back as bonus chips each Monday, held to a cap and lasting the days given. Not set gives none.",
-    fields: { basis_points: 'Share', cap_paise: 'Cap', expires_days: 'Bonus chips last' },
+    help: "The share of a member's rake at this table type over a club week, given back as Bonus each Monday, held to a cap and lasting the days given. Not set gives none.",
+    fields: { basis_points: 'Share', cap_paise: 'Cap', expires_days: 'Bonus lasts' },
   },
   'reports.unclaimed_days': {
     name: 'Unclaimed balance after',

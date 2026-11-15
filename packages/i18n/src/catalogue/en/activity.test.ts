@@ -6,7 +6,7 @@ describe('the audit log in words (F-034)', () => {
     expect(activityActionWord('update')).toBe('Changed');
     expect(activityActionWord('points.lock')).toBe('Locked points');
     expect(activityEntityWord('member_tier_change')).toBe('Tier change');
-    expect(activityEntityWord('bonus_grant')).toBe('Bonus chips given');
+    expect(activityEntityWord('bonus_grant')).toBe('Bonus given');
     expect(activityEntityWord('points_earning')).toBe('Points earned');
   });
 

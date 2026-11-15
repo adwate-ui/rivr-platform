@@ -38,9 +38,9 @@ function renderForm(reply: { status: number; body: unknown } = { status: 200, bo
 
 /** Types the chips and the reason, then presses Add and its confirmation. */
 function addChips(chips: string, reason: string) {
-  fireEvent.change(screen.getByRole('textbox', { name: /^Bonus chips/ }), { target: { value: chips } });
+  fireEvent.change(screen.getByRole('textbox', { name: /^Bonus/ }), { target: { value: chips } });
   fireEvent.change(screen.getByRole('textbox', { name: /^Reason/ }), { target: { value: reason } });
-  fireEvent.click(screen.getByRole('button', { name: 'Add bonus chips' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Add Bonus' }));
 }
 
 describe('chipsFrom', () => {
@@ -56,44 +56,44 @@ describe('GiveBonusChips', () => {
   it('says when the staff member has reached their daily limit (the owner, 9 Nov)', async () => {
     renderForm({ status: 200, body: null });
     addChips('500', 'Birthday at the club');
-    fireEvent.click(screen.getByRole('button', { name: 'Yes, add 500 bonus chips' }));
-    expect(await screen.findByText('Past your daily limit for adding bonus chips. A super admin can add more.')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, add 500 Bonus' }));
+    expect(await screen.findByText('Past your daily limit for adding Bonus. A super admin can add more.')).toBeDefined();
   });
 
-  it('adds bonus chips with a reason after a second press, and says so (owner, 8 Nov)', async () => {
+  it('adds Bonus with a reason after a second press, and says so (owner, 8 Nov)', async () => {
     const { sent } = renderForm();
-    expect(screen.getByRole('button', { name: 'Add bonus chips' }).hasAttribute('disabled')).toBe(true);
+    expect(screen.getByRole('button', { name: 'Add Bonus' }).hasAttribute('disabled')).toBe(true);
     addChips('1,500', 'Birthday at the club');
-    fireEvent.click(screen.getByRole('button', { name: 'Yes, add 1,500 bonus chips' }));
-    expect(await screen.findByText('1,500 bonus chips added.')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, add 1,500 Bonus' }));
+    expect(await screen.findByText('1,500 Bonus added.')).toBeDefined();
     expect(sent).toEqual([{ p_member_id: 'm1', p_chips: 1500, p_reason: 'Birthday at the club', p_request_id: expect.any(String) }]);
-    expect(screen.getByRole('textbox', { name: /^Bonus chips/ })).toHaveProperty('value', '');
+    expect(screen.getByRole('textbox', { name: /^Bonus/ })).toHaveProperty('value', '');
   });
 
   it('says why their own record is refused, and keeps what was typed', async () => {
     renderForm({ status: 400, body: { code: 'RVOWN', message: 'own', details: null, hint: null } });
     addChips('500', 'For me');
-    fireEvent.click(screen.getByRole('button', { name: 'Yes, add 500 bonus chips' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, add 500 Bonus' }));
     expect(await screen.findByText('Not to yourself. Ask someone else who can.')).toBeDefined();
-    expect(screen.getByRole('textbox', { name: /^Bonus chips/ })).toHaveProperty('value', '500');
+    expect(screen.getByRole('textbox', { name: /^Bonus/ })).toHaveProperty('value', '500');
   });
 
   it('says the most this person adds at once under the field, and offers no Add above it (redesign RD-19)', async () => {
     renderForm(undefined, 5000);
     expect(screen.getByText('Whole fifties, 50 to 1,00,000.')).toBeDefined();
     expect(await screen.findByText('Whole fifties, 50 to 5,000.')).toBeDefined();
-    fireEvent.change(screen.getByRole('textbox', { name: /^Bonus chips/ }), { target: { value: '5,050' } });
+    fireEvent.change(screen.getByRole('textbox', { name: /^Bonus/ }), { target: { value: '5,050' } });
     fireEvent.change(screen.getByRole('textbox', { name: /^Reason/ }), { target: { value: 'High hand night' } });
-    expect(screen.getByRole('button', { name: 'Add bonus chips' }).hasAttribute('disabled')).toBe(true);
-    fireEvent.change(screen.getByRole('textbox', { name: /^Bonus chips/ }), { target: { value: '5,000' } });
-    expect(screen.getByRole('button', { name: 'Add bonus chips' }).hasAttribute('disabled')).toBe(false);
+    expect(screen.getByRole('button', { name: 'Add Bonus' }).hasAttribute('disabled')).toBe(true);
+    fireEvent.change(screen.getByRole('textbox', { name: /^Bonus/ }), { target: { value: '5,000' } });
+    expect(screen.getByRole('button', { name: 'Add Bonus' }).hasAttribute('disabled')).toBe(false);
   });
 
   it('says when the database refuses an amount above the cap, set since the form was drawn, and keeps it to type less', async () => {
     renderForm({ status: 400, body: { code: 'RVCAP', message: 'cap', details: null, hint: null } });
     addChips('5,050', 'High hand night');
-    fireEvent.click(screen.getByRole('button', { name: 'Yes, add 5,050 bonus chips' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, add 5,050 Bonus' }));
     expect(await screen.findByText('More than staff add at once. Type less, or ask a super admin.')).toBeDefined();
-    expect(screen.getByRole('textbox', { name: /^Bonus chips/ })).toHaveProperty('value', '5,050');
+    expect(screen.getByRole('textbox', { name: /^Bonus/ })).toHaveProperty('value', '5,050');
   });
 });

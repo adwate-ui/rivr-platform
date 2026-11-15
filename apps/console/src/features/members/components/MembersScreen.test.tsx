@@ -215,24 +215,24 @@ describe('Members (console v3)', () => {
     expect(show.parentElement?.textContent).toContain('Table 2, seat 3');
     fireEvent.click(show);
     expect(onNavigate).toHaveBeenCalledWith('/?table=t2&seat=3');
-    expect(await screen.findByText(/Tuesday bonus: 1,000 bonus chips/)).toBeDefined();
+    expect(await screen.findByText(/Tuesday bonus: 1,000 Bonus/)).toBeDefined();
     // A perk reads as the promotion builder names it, never its code.
     expect(screen.getByText(/Cab home: Cab home$/)).toBeDefined();
     expect(screen.getByRole('link', { name: 'Account' })).toBeDefined();
   });
 
-  it('shows bonus chips on the record, then each bonus line, newest first (decision 0504; owner, 8 Nov)', async () => {
+  it('shows Bonus on the record, then each bonus line, newest first (decision 0504; owner, 8 Nov)', async () => {
     renderAs('host', 'm1', 'bonus');
     expect(await screen.findByRole('heading', { name: 'Sakshi Tandon', level: 2 }, { timeout: 5000 })).toBeDefined();
-    expect(screen.getByRole('link', { name: 'Bonus chips' }).getAttribute('aria-current')).toBe('page');
+    expect(screen.getByRole('link', { name: 'Bonus' }).getAttribute('aria-current')).toBe('page');
     expect(await screen.findByText('1,500', {}, { timeout: 5000 })).toBeDefined();
-    expect(screen.getByText('Used with a buy-in in the seat sheet. Never expire.')).toBeDefined();
+    expect(screen.getByText('Used with a buy-in in the seat sheet. Never expires.')).toBeDefined();
     expect(await screen.findByText(/Buy-in · Table 2 · seated by Aditya Malhotra$/, {}, { timeout: 5000 })).toBeDefined();
     expect(screen.getByText('−1,000')).toBeDefined();
     expect(screen.getByText(/Welcome bonus$/)).toBeDefined();
     expect(screen.getByText('+2,500')).toBeDefined();
     // The player's Bonus calls it the same (owner, 8 Nov: one name each).
-    expect(screen.getByRole('heading', { name: 'Bonus chips history' })).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'Bonus history' })).toBeDefined();
     expect(screen.queryByRole('button', { name: /Add|Give/ })).toBeNull();
   });
 

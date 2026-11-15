@@ -191,7 +191,7 @@ describe('RivrDataProvider and useFeature', () => {
     expect(await screen.findByText('learn: enabled')).toBeDefined();
   });
 
-  it('listens to every table that changes what a person may do or holds: access and bonus chips', async () => {
+  it('listens to every table that changes what a person may do or holds: access and Bonus', async () => {
     const { client, channels } = testClient(freshDatabase(), ARJUN);
     render(
       <RivrDataProvider client={client}>

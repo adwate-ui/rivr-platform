@@ -55,7 +55,7 @@ describe('the floor\u2019s call-down (#63)', () => {
     expect(outcome).toEqual({ ok: false, error: 'paused' });
   });
 
-  it('assigns with bonus chips the member redeems (decision 0504), and says when they have too few', async () => {
+  it('assigns with Bonus the member redeems (decision 0504), and says when they have too few', async () => {
     const { result, calls } = renderCalls({});
     await act(async () => { await result.current.assign.mutateAsync({ entryId: 'e1', tableId: 't3', seat: 9, callMinutes: 240, bonusChips: 500 }); });
     expect(bodyOf(calls, '/rpc/assign_from_waitlist')).toEqual({ p_entry_id: 'e1', p_table_id: 't3', p_seat: 9, p_call_minutes: 240, p_bonus_chips: 500 });

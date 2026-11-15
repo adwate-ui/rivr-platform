@@ -35,7 +35,7 @@ export const promotions = {
     /** In the Given this week column: what went out, how many times, and the budget used so far. */
     givenOnce: 'Once',
     givenTimes: '{count} times',
-    givenChips: '{count} bonus chips',
+    givenChips: '{count} Bonus',
     budgetUsed: '{used} of {budget} budget',
     budgetUsedMonth: '{used} of {budget} budget this month',
     /** A promotion still run by its old rule (decision 0491): its words and Pause only. */
@@ -77,24 +77,24 @@ export const promotions = {
     rewardKind: 'Reward',
     /** The templates that prefill the builder, and the names they give. */
     templates: {
-      blank: 'Blank', seat_bonus: 'Seat bonus chips', four_hour_bonus: 'Four-hour bonus chips',
+      blank: 'Blank', seat_bonus: 'Seat bonus', four_hour_bonus: 'Four-hour bonus',
       founders_priority: 'Founders’ Circle priority',
     },
     templateNames: {
-      seat_bonus: 'Tuesday seat bonus chips', four_hour_bonus: 'Four-hour bonus chips',
+      seat_bonus: 'Tuesday seat bonus', four_hour_bonus: 'Four-hour bonus',
       founders_priority: 'Founders’ Circle priority',
     },
     rewards: {
-      seat_bonus: { label: 'Seat bonus chips', description: 'Fixed bonus chips on a first seat' },
-      hours_bonus: { label: 'Hours-played bonus chips', description: 'Bonus chips after time at the tables' },
-      bonus_chips: { label: 'Bonus chips', description: 'Fixed bonus chips on a visit or referral' },
+      seat_bonus: { label: 'First seat', description: 'Fixed Bonus on a first seat' },
+      hours_bonus: { label: 'Hours played', description: 'Bonus after time at the tables' },
+      bonus_chips: { label: 'Visit or referral', description: 'Fixed Bonus on a visit or referral' },
       cab_home: { label: 'Cab home', description: 'A ride home after a set visit count' },
       tournament_entry: { label: 'Tournament entry', description: 'A seat in a tournament' },
       waitlist_priority: { label: 'Waitlist priority', description: 'Front of every waitlist' },
     },
     fields: {
-      chips: 'Bonus chips',
-      chipsSuffix: 'chips',
+      chips: 'Amount',
+      chipsSuffix: 'Bonus',
       firstN: 'On the first',
       firstNSuffix: 'seats at each table',
       /** A seat bonus of one amount or in tiers (decision 0580); `{tier}` is a tier's number, from 1. */
@@ -104,7 +104,7 @@ export const promotions = {
       tierCount: 'Tier {tier}: the next',
       tierCountFirst: 'Tier 1: the first',
       tierCountSuffix: 'members',
-      tierChips: 'Tier {tier} bonus chips',
+      tierChips: 'Tier {tier} Bonus',
       addTier: 'Add a tier',
       removeTier: 'Remove tier {tier}',
       tiersOnce: 'Each member gets it once, on a first seat. Nothing after the last tier.',
@@ -114,7 +114,7 @@ export const promotions = {
       hoursMode: 'Pays',
       hoursSteps: 'At set times',
       hoursEvery: 'Every few hours',
-      stepChips: 'Then bonus chips',
+      stepChips: 'Then Bonus',
       addStep: 'Add a step',
       removeStep: 'Remove step {step}',
       /** Under a play-time bonus's steps: each keeps its place across versions (the owner, 9 Nov: "Lock step count"). */
@@ -147,7 +147,7 @@ export const promotions = {
       timesPerMember: 'Up to how many times',
       once: 'Once',
       maxMembersPerDay: 'Most members a day',
-      budgetChips: 'Budget in bonus chips',
+      budgetChips: 'Budget in Bonus',
       /** Whether the budget and the most grants are for the whole promotion or start again each month. */
       budgetPeriod: 'Budget runs',
       budgetPeriods: { whole: 'For the whole promotion', month: 'Each month' },
@@ -160,13 +160,13 @@ export const promotions = {
     /** Under a field the terms cannot take, after Save draft, Simulate or Submit. */
     errors: {
       name: 'Name it in 3 to 80 characters.',
-      chips: 'Whole 50s of chips, from 50.',
-      tierList: 'Each tier: 1 to 10,000 members and whole 50s of chips. 1 to 5 tiers.',
+      chips: 'Whole 50s, from 50.',
+      tierList: 'Each tier: 1 to 10,000 members and whole 50s. 1 to 5 tiers.',
       firstN: '1 to 100, or blank for a visit’s first seat.',
       afterHours: 'Half hours, from 0.5 to 24.',
       everyHours: 'Half hours, from 0.5 to 12.',
       timesPerVisit: 'A whole number from 1 to 20, or blank for no cap.',
-      steps: 'Each step later than the one before, in half hours to 24, with whole 50s of chips.',
+      steps: 'Each step later than the one before, in half hours to 24, with whole 50s.',
       fromVisit: 'A visit from 1 to 31.',
       tournament: 'Name the tournament.',
       who: 'Pick who qualifies again.',
@@ -177,7 +177,7 @@ export const promotions = {
       endsOn: 'On or after the first day, or blank.',
       timesPerMember: 'A whole number from 2 to 20, or blank for once.',
       maxMembersPerDay: 'A whole number from 1, or blank.',
-      budgetChips: 'Whole 50s of chips, or blank.',
+      budgetChips: 'Whole 50s, or blank.',
       rulesText: 'At most 12 lines of 200 characters.',
       link: 'An https address, or blank.',
     },
@@ -198,7 +198,7 @@ export const promotions = {
     period: '{from} to {to}',
     membersQualified: 'members qualified',
     timesGiven: 'times given',
-    measures: { chips: 'bonus chips', perks: 'perks' },
+    measures: { chips: 'Bonus', perks: 'perks' },
     budgetReached: 'The budget would have run out.',
     /** The approver's view replays last week afresh (decision 0495). */
     replaying: 'Replaying last week.',

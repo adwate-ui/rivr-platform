@@ -9,7 +9,7 @@ const TODAY = '2026-11-10';
 const named = (more: Partial<BuilderForm> = {}): BuilderForm => ({ ...blankForm(TODAY), name: 'Weekend seat bonus', ...more });
 
 describe('the builder read as terms', () => {
-  it('reads a blank promotion: 1,000 bonus chips on a visit\'s first seat, Friday and Saturday 20:00 to 02:00, once a visit', () => {
+  it('reads a blank promotion: 1,000 Bonus on a visit\'s first seat, Friday and Saturday 20:00 to 02:00, once a visit', () => {
     const { terms, errors } = readForm(named());
     expect(errors.size).toBe(0);
     expect(terms).toEqual({
@@ -118,7 +118,7 @@ describe('the builder read as terms', () => {
   it('prefills a template over a blank promotion, named, for the tier it is for', () => {
     const tuesday = templateForm('seat_bonus', TODAY, { founders: null });
     expect(readForm(tuesday).terms).toMatchObject({
-      name: 'Tuesday seat bonus chips', reward: { kind: 'seat_bonus', chips: 1_000, firstNSeatsPerTable: 5 },
+      name: 'Tuesday seat bonus', reward: { kind: 'seat_bonus', chips: 1_000, firstNSeatsPerTable: 5 },
       schedule: { days: [2], from: '06:00', to: '06:00' }, limits: { perMember: 'per_day' },
     });
     expect(readForm(templateForm('founders_priority', TODAY, { founders: 'tier-fc' })).terms).toMatchObject({

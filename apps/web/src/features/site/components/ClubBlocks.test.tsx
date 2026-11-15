@@ -24,7 +24,7 @@ describe('the blocks read from the club’s rules', () => {
   it('shows the rakeback each table gives and how it is paid, from the rules in force', () => {
     renderPage({ blocks: [REWARDS], rules: { ...NO_RULES, rakebackBasisPoints: [{ table: 'NLH 100/200', value: 1000 }, { table: 'PLO 100/200', value: 250 }] } });
     expect(screen.getAllByRole('row').map((row) => row.textContent)).toEqual(['TableRakeback', 'NLH 100/20010% of your rake', 'PLO 100/2002.5% of your rake']);
-    expect(screen.getByText('Rakeback is paid as bonus chips each Monday.')).toBeDefined();
+    expect(screen.getByText('Rakeback is paid as Bonus each Monday.')).toBeDefined();
   });
 
   it('shows the cab the club gives, and leaves out a block with no rule set', () => {
