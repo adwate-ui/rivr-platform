@@ -1,6 +1,6 @@
 {
   "rule": "promotionRewards",
-  "about": "What a promotion gives (console v3 phase 7; decisions 0470 and 0472), in bonus chips or a perk, never rupees. Days are the club's, 06:00 to 06:00 IST, and its weeks run Monday to Sunday. Eligible: the member's tier and audience must be the promotion's (new members have fewer than 30 whole days since joining; lapsed regulars' last visit before this one was 30 or more whole days before). The time-played reward is the play-time (hours) bonus: for it only the minutes inside the schedule at its stakes and tables count, so the moment and table of the event do not matter. For every other reward the event's stake, table and moment must be the promotion's, so a promotion for some stakes gives nothing for an event away from a table. Grant: a seat bonus is its chips on the first seat of a visit, or on any seat when it is for the first N at a table, and in tiers the first tier's chips until the limits set the tier; a play-time bonus pays each step as it is reached (owner, 8 Nov): its one step after a time, its set steps (two to six, rising), or one every so many minutes up to its times a visit and never past 24 hours, each step's chips once its minutes are played, nothing for a step it does not have, and nothing for time played at a visit's close; bonus chips come on a visit, a referral or a sign-up; a cab home from the Nth visit of the calendar month; an entry or waitlist priority on a visit; nothing comes to nothing. Limits, in this order: the member's period already given as often as it allows, once unless it says up to N (2 to 20) times (the same visit, club day, club week, ever, or with no limit the same event, and for a play-time bonus step that period @ the step's place among the promotion's steps, the first 1, so the limit holds for each step and a version that moves a step's minutes never pays it twice (the owner, 9 Nov), and with no limit a step's period is its visit; each grant in a period is keyed as the member's Nth there, the first by the period itself, then #2 and on), the first N seats per table, which counts this promotion's grants at that table this club day, members a day (a member already given it today is not a new one), the most grants, and the budget in bonus chips, whole or not at all; a monthly budget and most grants count the grants of the event's calendar month of club days alone, starting again at 06:00 IST on the first. Stacking for one event: bonus chips from different promotions stack; one perk of each kind, the first given. Inputs are written as the database holds them.",
+  "about": "What a promotion gives (console v3 phase 7; decisions 0470 and 0472), in bonus chips or a perk, never rupees. Days are the club's, 06:00 to 06:00 IST, and its weeks run Monday to Sunday. Eligible: the member's tier and audience must be the promotion's (new members have fewer than 30 whole days since joining; lapsed regulars' last visit before this one was 30 or more whole days before). The time-played reward is the play-time (hours) bonus: for it only the minutes inside the schedule at its stakes and tables count, so the moment and table of the event do not matter. For every other reward the event's stake, table and moment must be the promotion's, so a promotion for some stakes gives nothing for an event away from a table. Grant: a seat bonus is its chips on the first seat of a visit, or on any seat when it is for the first N at a table, and in tiers the first tier's chips until the limits set the tier; a play-time bonus pays each step as it is reached (owner, 8 Nov): its one step after a time, its set steps (two to six, rising), or one every so many minutes up to its times a visit and never past 24 hours, each step's chips once its minutes are played, nothing for a step it does not have, and nothing for time played at a visit's close; bonus chips come on a visit, a referral or a sign-up; a cab home from the Nth visit of the calendar month; an entry or waitlist priority on a visit; nothing comes to nothing. Limits, in this order: the member's period already given as often as it allows, once unless it says up to N (2 to 20) times (the same visit, club day, club week, ever, or with no limit the same event, and for a play-time bonus step that period @ the step's place among the promotion's steps, the first 1, so the limit holds for each step and a version that moves a step's minutes never pays it twice (the owner, 9 Nov), and with no limit a step's period is its visit; each grant in a period is keyed as the member's Nth there, the first by the period itself, then #2 and on), the first N seats per table, which counts this promotion's grants at that table this club day, members a day (a member already given it today is not a new one), the most grants, and the budget in bonus chips, whole or not at all; a monthly budget and most grants count the grants of the event's calendar month of club days alone, starting again at 06:00 IST on the first. Stacking for one event: bonus chips from different promotions stack; one perk of each kind, the first given. Inputs are written as the database holds them. A high hand bonus (redesign RD-22) lists hands from a fixed list (royal flush, straight flush, four of a kind, Aces full, any full house), each with its own Bonus, and holds rules: both hole cards must play, shown at showdown, and a least number of players dealt in. The floor logs a hit: a hand, its rank where the hand has one (a straight flush's high card, king to five; which four of a kind; the three of a full house; none for a royal flush or Aces full), and each rule confirmed. A hit pays its listed hand's Bonus, whole, every time: a full house of three aces is Aces full where the promotion lists it and any full house otherwise; a hand not listed, a rank the hand cannot have, or a rule the promotion holds left unconfirmed (the players dealt in always) pays nothing and says which, the first in that order. Its only limit is the promotion's budget, which it must have, whole or not at all; what is left of a budget is the budget less what was paid, never below nothing.",
   "cases": [
     {
       "description": "Everyone, every stake, Tuesdays: a seat at 21:00 on Tuesday qualifies.",
@@ -1260,6 +1260,496 @@
       "expected": {
         "given": "no",
         "refusal": "budget_exhausted"
+      }
+    },
+    {
+      "description": "High hand: a royal flush listed at 25,000 pays 25,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"royal_flush\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "25000",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: a straight flush, nine high, pays its 10,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"straight_flush\", \"rank\": \"nine\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "10000",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: four jacks pay the four of a kind, 5,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"four_of_a_kind\", \"rank\": \"jack\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "5000",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: Aces full pays its own 2,000, not any full house's 1,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"aces_full\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "2000",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: a full house logged with three aces is Aces full where the promotion lists it: 2,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"full_house\", \"rank\": \"ace\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "2000",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: kings full pays any full house, 1,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"full_house\", \"rank\": \"king\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "1000",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: Aces full where only any full house is listed is a full house: 500.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"full_house\", \"chips\": 500}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"aces_full\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "500",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: the smallest Bonus, 50, is paid whole.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"four_of_a_kind\", \"chips\": 50}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"four_of_a_kind\", \"rank\": \"two\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "50",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: kings full where only Aces full is listed is not a listed hand.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"aces_full\", \"chips\": 2000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"full_house\", \"rank\": \"king\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "hand_not_listed"
+      }
+    },
+    {
+      "description": "High hand: four of a kind where the promotion lists none is not a listed hand.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"aces_full\", \"chips\": 2000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"four_of_a_kind\", \"rank\": \"ace\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "hand_not_listed"
+      }
+    },
+    {
+      "description": "High hand: four of a kind with no rank named is refused for its rank.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"four_of_a_kind\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "wrong_rank"
+      }
+    },
+    {
+      "description": "High hand: a straight flush cannot be ace high, which is a royal flush.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"straight_flush\", \"rank\": \"ace\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "wrong_rank"
+      }
+    },
+    {
+      "description": "High hand: a straight flush cannot be four high.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"straight_flush\", \"rank\": \"four\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "wrong_rank"
+      }
+    },
+    {
+      "description": "High hand: a straight flush, five high, the lowest there is, pays.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"straight_flush\", \"rank\": \"five\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "10000",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: a royal flush has no rank to name.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"royal_flush\", \"rank\": \"ace\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "wrong_rank"
+      }
+    },
+    {
+      "description": "High hand: both hole cards not confirmed is refused, and says so.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"royal_flush\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": false, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "both_hole_cards_not_confirmed"
+      }
+    },
+    {
+      "description": "High hand: not confirmed as shown at showdown is refused, and says so.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"royal_flush\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": false, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "showdown_not_confirmed"
+      }
+    },
+    {
+      "description": "High hand: the players dealt in not confirmed is refused, and says so.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"royal_flush\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": false}}"
+      },
+      "expected": {
+        "refusal": "players_not_confirmed"
+      }
+    },
+    {
+      "description": "High hand: with two rules unconfirmed, the first is the one named.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"royal_flush\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": false, \"shownAtShowdown\": true, \"playersDealt\": false}}"
+      },
+      "expected": {
+        "refusal": "both_hole_cards_not_confirmed"
+      }
+    },
+    {
+      "description": "High hand: a promotion that does not hold the hole cards or showdown rules pays without them confirmed.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": false, \"shownAtShowdown\": false, \"minPlayersDealt\": 2}, \"hands\": [{\"hand\": \"four_of_a_kind\", \"chips\": 5000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"four_of_a_kind\", \"rank\": \"nine\", \"confirmed\": {\"bothHoleCards\": false, \"shownAtShowdown\": false, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "5000",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: but the players dealt in are always confirmed.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": false, \"shownAtShowdown\": false, \"minPlayersDealt\": 2}, \"hands\": [{\"hand\": \"four_of_a_kind\", \"chips\": 5000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"four_of_a_kind\", \"rank\": \"nine\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": false}}"
+      },
+      "expected": {
+        "refusal": "players_not_confirmed"
+      }
+    },
+    {
+      "description": "A high hand bonus is not paid for a seat.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"seated:s1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"seated\", \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "refusal": "other_event"
+      }
+    },
+    {
+      "description": "A seat bonus is not paid for a high hand.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"seat_bonus\", \"chips\": 1000}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"royal_flush\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "other_event"
+      }
+    },
+    {
+      "description": "High hand order: a hand not listed, with no rank and a rule unconfirmed, is refused as not listed.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"four_of_a_kind\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": false}}"
+      },
+      "expected": {
+        "refusal": "hand_not_listed"
+      }
+    },
+    {
+      "description": "High hand order: a listed hand with no rank and a rule unconfirmed is refused for its rank.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"four_of_a_kind\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": false}}"
+      },
+      "expected": {
+        "refusal": "wrong_rank"
+      }
+    },
+    {
+      "description": "High hand order: showdown and the players dealt in both unconfirmed: showdown is named.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"royal_flush\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": false, \"playersDealt\": false}}"
+      },
+      "expected": {
+        "refusal": "showdown_not_confirmed"
+      }
+    },
+    {
+      "description": "High hand order: a full house of three aces where only Aces full is listed pays Aces full, 2,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"aces_full\", \"chips\": 2000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"full_house\", \"rank\": \"ace\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "2000",
+        "perk": ""
+      }
+    },
+    {
+      "description": "Paid as: four jacks are a four of a kind, jacks.",
+      "operation": "paid",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "hit": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"four_of_a_kind\", \"rank\": \"jack\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "hand": "four_of_a_kind",
+        "rank": "jack"
+      }
+    },
+    {
+      "description": "Paid as: a royal flush, with no rank.",
+      "operation": "paid",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "hit": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"royal_flush\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "hand": "royal_flush",
+        "rank": ""
+      }
+    },
+    {
+      "description": "Paid as: a full house with three aces is Aces full where it is listed, and Aces full has no rank.",
+      "operation": "paid",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "hit": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"full_house\", \"rank\": \"ace\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "hand": "aces_full",
+        "rank": ""
+      }
+    },
+    {
+      "description": "Paid as: Aces full where only any full house is listed is a full house, aces.",
+      "operation": "paid",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"full_house\", \"chips\": 500}]}",
+        "hit": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"aces_full\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "hand": "full_house",
+        "rank": "ace"
+      }
+    },
+    {
+      "description": "Paid as: kings full is a full house, kings.",
+      "operation": "paid",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "hit": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"full_house\", \"rank\": \"king\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "hand": "full_house",
+        "rank": "king"
+      }
+    },
+    {
+      "description": "Paid as: nothing where the hand is not listed.",
+      "operation": "paid",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"aces_full\", \"chips\": 2000}]}",
+        "hit": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"straight_flush\", \"rank\": \"nine\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "hand_not_listed"
+      }
+    },
+    {
+      "description": "High hand budget: 10,00,000 with 5,00,000 paid: a royal flush's 25,000 is paid.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 1000000}",
+        "grant": "{\"chips\": 25000, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 500000, \"grantsGiven\": 3, \"membersToday\": 2, \"isMemberGrantedToday\": true, \"periodGiven\": 0, \"grantsAtTableToday\": 1}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
+      }
+    },
+    {
+      "description": "High hand budget: 50,000 with 25,000 paid: a royal flush's 25,000 uses the last of it.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 50000}",
+        "grant": "{\"chips\": 25000, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 25000, \"grantsGiven\": 3, \"membersToday\": 2, \"isMemberGrantedToday\": true, \"periodGiven\": 0, \"grantsAtTableToday\": 1}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
+      }
+    },
+    {
+      "description": "High hand budget: 50,000 with 30,000 paid: 25,000 more is not paid, nor part of it.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 50000}",
+        "grant": "{\"chips\": 25000, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 30000, \"grantsGiven\": 3, \"membersToday\": 2, \"isMemberGrantedToday\": true, \"periodGiven\": 0, \"grantsAtTableToday\": 1}"
+      },
+      "expected": {
+        "given": "no",
+        "refusal": "budget_exhausted"
+      }
+    },
+    {
+      "description": "High hand budget: the smallest hit, 50, past a spent budget is not paid.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 50000}",
+        "grant": "{\"chips\": 50, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 50000, \"grantsGiven\": 3, \"membersToday\": 2, \"isMemberGrantedToday\": true, \"periodGiven\": 0, \"grantsAtTableToday\": 1}"
+      },
+      "expected": {
+        "given": "no",
+        "refusal": "budget_exhausted"
+      }
+    },
+    {
+      "description": "Budget left: 50,000 with 30,000 paid leaves 20,000.",
+      "operation": "left",
+      "inputs": {
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 50000}",
+        "tally": "{\"chipsGiven\": 30000}"
+      },
+      "expected": {
+        "left": "20000"
+      }
+    },
+    {
+      "description": "Budget left: 50,000 with nothing paid leaves it all.",
+      "operation": "left",
+      "inputs": {
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 50000}",
+        "tally": "{\"chipsGiven\": 0}"
+      },
+      "expected": {
+        "left": "50000"
+      }
+    },
+    {
+      "description": "Budget left: a budget all paid leaves nothing.",
+      "operation": "left",
+      "inputs": {
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 50000}",
+        "tally": "{\"chipsGiven\": 50000}"
+      },
+      "expected": {
+        "left": "0"
+      }
+    },
+    {
+      "description": "Budget left: more paid than a budget since made smaller still leaves nothing, never less.",
+      "operation": "left",
+      "inputs": {
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 50000}",
+        "tally": "{\"chipsGiven\": 60000}"
+      },
+      "expected": {
+        "left": "0"
+      }
+    },
+    {
+      "description": "Budget left: no budget has nothing to say.",
+      "operation": "left",
+      "inputs": {
+        "limits": "{\"perMember\": \"none\"}",
+        "tally": "{\"chipsGiven\": 30000}"
+      },
+      "expected": {
+        "left": "none"
       }
     }
   ]

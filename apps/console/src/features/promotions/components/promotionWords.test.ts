@@ -63,6 +63,10 @@ describe('describePromotion', () => {
       .toBe('250 Bonus every 1 h 30 min, up to once a visit');
     expect(rewardLine({ kind: 'bonus_chips', chips: 1_000, on: 'referral' })).toBe('1,000 Bonus for each referral');
     expect(rewardLine({ kind: 'cab_home', fromVisitInMonth: 4 })).toBe('A cab home from visit 4 in a month');
+    expect(rewardLine({
+      kind: 'high_hand', hands: [{ hand: 'four_of_a_kind', chips: 5_000 }, { hand: 'royal_flush', chips: 25_000 }],
+      rules: { bothHoleCards: true, shownAtShowdown: true, minPlayersDealt: 4 },
+    })).toBe('Up to 25,000 Bonus a hand');
     expect(rewardLine({ kind: 'tournament_entry', tournamentId: 'RIVR Sunday' })).toBe('An entry to RIVR Sunday');
     expect(rewardLine({ kind: 'waitlist_priority' })).toBe('Front of every waitlist');
     expect(rewardLine({ kind: 'seat_bonus', chips: 1_000 })).toBe('1,000 Bonus on the first seat of a visit');

@@ -5,7 +5,7 @@ import { Box, Button, Grid, Heading, Inline, Number as Count, Stack, Text } from
 // What the third figure counts, by what the reward gives.
 const MEASURE: Readonly<Record<Reward['kind'], keyof PromotionSimulationResult & ('chips' | 'perks')>> = {
   seat_bonus: 'chips', hours_bonus: 'chips', bonus_chips: 'chips', cab_home: 'perks',
-  tournament_entry: 'perks', waitlist_priority: 'perks',
+  tournament_entry: 'perks', waitlist_priority: 'perks', high_hand: 'chips',
 };
 
 // The replay ends at 06:00 IST, where today's club day begins; its last club day began a day before.

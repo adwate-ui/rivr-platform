@@ -1,5 +1,6 @@
 import type { PromotionEventJson, Reward } from '@rivr/contracts/promotionModel';
 import { err, ok, type Result } from '@rivr/contracts/result';
+import { highHandPayout, type HighHandRefusal } from './highHand.ts';
 import { hourSteps } from './hourSteps.ts';
 
 type WithMoment<E> = E extends unknown ? Omit<E, 'at'> & { readonly at: Date } : never;
@@ -27,9 +28,9 @@ export const NO_GRANT: Grant = { chips: 0, perk: null };
 /**
  * Why a promotion gives nothing for an event: it is for another kind of event, nothing comes to anything, the time
  * played is short of its minutes, the step reached is not one of the play-time bonus's own, the visit is before its
- * number in the month, or the seat is not the visit's first.
+ * number in the month, the seat is not the visit's first, or a high hand is not one it pays (HighHandRefusal).
  */
-export type GrantRefusal = 'other_event' | 'too_short' | 'not_a_step' | 'not_yet' | 'not_first_seat';
+export type GrantRefusal = 'other_event' | 'too_short' | 'not_a_step' | 'not_yet' | 'not_first_seat' | HighHandRefusal;
 
 type EventOf<K extends PromotionEventKind> = Extract<PromotionEvent, { kind: K }>;
 
@@ -46,6 +47,8 @@ export function triggerOf(reward: Reward): PromotionEventKind {
       return 'seated';
     case 'bonus_chips':
       return BONUS_CHIPS_EVENT[reward.on];
+    case 'high_hand':
+      return 'high_hand';
     default:
       return 'visit';
   }
@@ -72,6 +75,13 @@ function stepGrant(reward: Reward, event: EventOf<'hours_step'>): Result<Grant, 
   return event.minutes >= step.afterMinutes ? ok(chipsGrant(step.chips)) : err('too_short');
 }
 
+/** A high hand hit (redesign RD-22): its listed hand's Bonus, whole, every time. */
+function highHandGrant(reward: Reward, event: EventOf<'high_hand'>): Result<Grant, GrantRefusal> {
+  if (reward.kind !== 'high_hand') return err('other_event');
+  const payout = highHandPayout(reward, event);
+  return payout.ok ? ok(chipsGrant(payout.value.chips)) : payout;
+}
+
 function visitGrant(reward: Reward, event: EventOf<'visit'>): Result<Grant, GrantRefusal> {
   switch (reward.kind) {
     case 'bonus_chips':
@@ -91,7 +101,8 @@ function visitGrant(reward: Reward, event: EventOf<'visit'>): Result<Grant, Gran
  * seat bonus's chips on a seat; a play-time bonus step's chips as each step is reached (owner, 8 Nov);
  * bonus chips on their event; a cab home from the visit's
  * number in the month; an entry or waitlist priority on a visit. Time played gives nothing itself: a play-time bonus is
- * weighed as each of its steps is reached. The database's private.promo_grant is proved equal on promotionRewards.json.
+ * weighed as each of its steps is reached. A high hand pays its listed hand's Bonus (highHandPayout). The database's
+ * private.promo_grant is proved equal on promotionRewards.json.
  */
 export function computeGrant(promo: { readonly reward: Reward }, event: PromotionEvent): Result<Grant, GrantRefusal> {
   const { reward } = promo;
@@ -104,6 +115,8 @@ export function computeGrant(promo: { readonly reward: Reward }, event: Promotio
       return stepGrant(reward, event);
     case 'visit':
       return visitGrant(reward, event);
+    case 'high_hand':
+      return highHandGrant(reward, event);
     default:
       return reward.kind === 'bonus_chips' && reward.on === event.kind ? ok(chipsGrant(reward.chips)) : err('other_event');
   }

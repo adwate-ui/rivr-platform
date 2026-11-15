@@ -4,8 +4,9 @@ import rewardsJson from '@rivr/testing/golden/promotionRewards.json';
 import { describe, expect, it } from 'vitest';
 import { isEligible } from './eligibility.ts';
 import { computeGrant, toPromotionEvent, type Grant, type Perk } from './grant.ts';
+import { highHandPayout } from './highHand.ts';
 import { stepsReached } from './hourSteps.ts';
-import { checkLimits, periodKey, slotKey, tallyFor, tierChips, type GrantTally, type LedgerEntry } from './limits.ts';
+import { budgetLeft, checkLimits, periodKey, slotKey, tallyFor, tierChips, type GrantTally, type LedgerEntry } from './limits.ts';
 import { stackGrants } from './stacking.ts';
 
 const golden = readGolden(rewardsJson);
@@ -55,7 +56,7 @@ function tallyEvent(text: string) {
 
 describe('Promotion rewards golden fixtures (packages/testing/golden/promotionRewards.json)', () => {
   it('tests every operation in the file', () => {
-    expect(() => assertOperations(golden, ['eligible', 'grant', 'limits', 'stack', 'tally', 'periodKey', 'steps', 'tier'])).not.toThrow();
+    expect(() => assertOperations(golden, ['eligible', 'grant', 'limits', 'stack', 'tally', 'periodKey', 'steps', 'tier', 'paid', 'left'])).not.toThrow();
   });
 
   it.each(casesFor(golden, 'eligible'))('%s', (_, goldenCase) => {
@@ -87,6 +88,25 @@ describe('Promotion rewards golden fixtures (packages/testing/golden/promotionRe
     const promo = { reward: rewardSchema.parse(parse(goldenInput(goldenCase, 'reward'))), limits: limitsSchema.parse(parse(goldenInput(goldenCase, 'limits'))) };
     const result = checkLimits(promo, grantOf(parse(goldenInput(goldenCase, 'grant'))), tallyOf(goldenInput(goldenCase, 'tally')));
     expect([result.ok ? 'yes' : 'no', result.ok ? '' : result.error]).toEqual([goldenExpected(goldenCase, 'given'), goldenExpected(goldenCase, 'refusal')]);
+  });
+
+  // Redesign RD-22: the listed hand a high hand hit is paid as, with its rank.
+  it.each(casesFor(golden, 'paid'))('%s', (_, goldenCase) => {
+    const reward = rewardSchema.parse(parse(goldenInput(goldenCase, 'reward')));
+    const hit = promotionEventSchema.parse(parse(goldenInput(goldenCase, 'hit')));
+    if (reward.kind !== 'high_hand' || hit.kind !== 'high_hand') throw new Error('Golden paid cases need a high hand and its hit');
+    const payout = highHandPayout(reward, hit);
+    if (!payout.ok) {
+      expect(payout.error).toBe(goldenExpected(goldenCase, 'refusal'));
+      return;
+    }
+    expect([payout.value.hand, payout.value.rank ?? '']).toEqual([goldenExpected(goldenCase, 'hand'), goldenExpected(goldenCase, 'rank')]);
+  });
+
+  // Redesign RD-22: what is left of a budget, which a refusal for the budget says.
+  it.each(casesFor(golden, 'left'))('%s', (_, goldenCase) => {
+    const left = budgetLeft(limitsSchema.parse(parse(goldenInput(goldenCase, 'limits'))), tallyOf(goldenInput(goldenCase, 'tally')));
+    expect(left === null ? 'none' : String(left)).toBe(goldenExpected(goldenCase, 'left'));
   });
 
   // Decision 0580: a seat bonus's tier for the next claim.

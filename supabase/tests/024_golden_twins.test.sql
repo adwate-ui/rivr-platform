@@ -380,11 +380,26 @@ select results_eq(
 
 -- Promotion rewards (console v3, decisions 0470 and 0472): private.promo_is_eligible, private.promo_grant,
 -- private.promo_check_limits and private.promo_stack, and @rivr/domain isEligible, computeGrant, checkLimits and stackGrants
--- (packages/testing/golden/promotionRewards.json).
+-- (packages/testing/golden/promotionRewards.json). The high hand bonus's cases (redesign RD-22) are grants and limits like
+-- any other, with the hand a hit is paid as and what is left of a budget.
 select ok((select count(*) > 0 from golden.golden_case where file = 'promotionRewards.json'), 'the promotion reward cases are loaded');
 select is_empty($$ select operation from golden.golden_case where file = 'promotionRewards.json'
-                   and operation not in ('eligible', 'grant', 'limits', 'stack', 'tally', 'periodKey', 'steps', 'tier') $$,
+                   and operation not in ('eligible', 'grant', 'limits', 'stack', 'tally', 'periodKey', 'steps', 'tier', 'paid', 'left') $$,
   'every operation in promotionRewards.json is proved here');
+-- Redesign RD-22: the listed hand a high hand hit is paid as, with its rank (@rivr/domain highHandPayout).
+select results_eq(
+  $$ select description, coalesce(h.o_refusal, h.o_hand || ' ' || coalesce(h.o_rank, ''))
+     from golden.golden_case cross join lateral private.high_hand_payout((inputs ->> 'reward')::jsonb, (inputs ->> 'hit')::jsonb) h
+     where file = 'promotionRewards.json' and operation = 'paid' order by position $$,
+  $$ select description, coalesce(expected ->> 'refusal', (expected ->> 'hand') || ' ' || (expected ->> 'rank'))
+     from golden.golden_case where file = 'promotionRewards.json' and operation = 'paid' order by position $$,
+  'private.high_hand_payout pays every hit in the golden file as its listed hand');
+-- And what is left of a budget, which a refusal for the budget says (@rivr/domain budgetLeft).
+select results_eq(
+  $$ select description, coalesce(private.promo_budget_left((inputs ->> 'limits')::jsonb, (inputs ->> 'tally')::jsonb)::text, 'none')
+     from golden.golden_case where file = 'promotionRewards.json' and operation = 'left' order by position $$,
+  $$ select description, expected ->> 'left' from golden.golden_case where file = 'promotionRewards.json' and operation = 'left' order by position $$,
+  'private.promo_budget_left leaves every budget in the golden file what it should');
 -- Decision 0580: a seat bonus's tier for the next claim (@rivr/domain tierChips).
 select results_eq(
   $$ select description, coalesce(private.promo_tier_chips(jsonb_build_object('kind', 'seat_bonus', 'tiers', (inputs ->> 'tiers')::jsonb),

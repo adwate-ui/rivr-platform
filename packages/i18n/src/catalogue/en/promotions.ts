@@ -91,6 +91,7 @@ export const promotions = {
       cab_home: { label: 'Cab home', description: 'A ride home after a set visit count' },
       tournament_entry: { label: 'Tournament entry', description: 'A seat in a tournament' },
       waitlist_priority: { label: 'Waitlist priority', description: 'Front of every waitlist' },
+      high_hand: { label: 'High hand', description: 'A Bonus for each listed hand' },
     },
     fields: {
       chips: 'Amount',

@@ -2,7 +2,7 @@ import type { Reward } from '@rivr/contracts/promotionModel';
 import { buildMemberFacts, buildPromotionEvent, buildPromotionTerms } from '@rivr/testing';
 import { describe, expect, it } from 'vitest';
 import { NO_GRANT, toPromotionEvent } from './grant.ts';
-import { checkLimits, decideGrant, ledgerEntryFor, periodKey, remainingBudget, slotKey, tallyFor, type LedgerEntry } from './limits.ts';
+import { budgetLeft, checkLimits, decideGrant, ledgerEntryFor, periodKey, remainingBudget, slotKey, tallyFor, type LedgerEntry } from './limits.ts';
 
 const BONUS = { kind: 'bonus_chips', chips: 2_000, on: 'visit' } as const;
 const visit = (place: Parameters<typeof buildPromotionEvent>[1] = {}) =>
@@ -56,6 +56,15 @@ describe('slotKey', () => {
     expect(slotKey('day:2026-11-17', 0)).toBe('day:2026-11-17');
     expect(slotKey('day:2026-11-17', 1)).toBe('day:2026-11-17#2');
     expect(slotKey('once', 19)).toBe('once#20');
+  });
+});
+
+describe('budgetLeft', () => {
+  it('is the budget less what the tally gave, never below nothing, and none with no budget', () => {
+    expect(budgetLeft({ budgetChips: 50_000 }, { chipsGiven: 30_000 })).toBe(20_000);
+    expect(budgetLeft({ budgetChips: 50_000 }, { chipsGiven: 50_000 })).toBe(0);
+    expect(budgetLeft({ budgetChips: 50_000 }, { chipsGiven: 50_050 })).toBe(0);
+    expect(budgetLeft({}, { chipsGiven: 30_000 })).toBeNull();
   });
 });
 
