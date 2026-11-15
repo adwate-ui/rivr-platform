@@ -40,7 +40,7 @@ test.describe('Call time', () => {
 
     // Add time is a request the floor approves (owner, 3 Nov): an hour, shown waiting, then approved in the requests.
     await player.getByRole('button', { name: 'Add time' }).click();
-    await player.getByRole('dialog', { name: 'Add time' }).getByRole('button', { name: 'Request 1 hour' }).click();
+    await player.getByRole('dialog', { name: 'Add time' }).getByRole('button', { name: 'Request 1 h' }).click();
     await expect(player.getByText('+1 h')).toBeVisible();
     await expect(player.getByRole('button', { name: 'Add time' })).toHaveAttribute('aria-disabled', 'true');
     await (await ritikasRequest(floor, /Wants \+1 h/)).getByRole('button', { name: 'Approve' }).click();

@@ -27,6 +27,8 @@ export interface SettingSubjectRules {
   readonly subject: string;
   /** The table type's or tier's name; the subject itself for a role or a stake. */
   readonly label: string;
+  /** One the scope offers today; false for one only its rows name, such as a stake since deleted, which keeps its history. */
+  readonly isListed: boolean;
   readonly inForce: SettingEntry | null;
   /** Changes to come, soonest first; each can be withdrawn until it takes effect. */
   readonly scheduled: readonly SettingEntry[];
@@ -99,11 +101,12 @@ function subjectsOf(known: readonly Subject[], rows: readonly SettingRow[], now:
   const named = new Set(known.map((one) => one.subject));
   const others = [...new Set(rows.map((row) => row.subject))].filter((subject) => !named.has(subject)).map((subject) => ({ subject, label: subject }));
   return [...known, ...others].map(({ subject, label }) => {
+    const isListed = named.has(subject);
     const own = rows.filter((row) => row.subject === subject);
     const { inForce, scheduled } = ruleAt(own, now);
     const history = own.filter((row) => row !== inForce && !scheduled.includes(row))
       .sort((a, b) => (b.effectiveFrom ?? '').localeCompare(a.effectiveFrom ?? ''));
-    return { subject, label, inForce: inForce && toEntry(inForce), scheduled: scheduled.map(toEntry), history: history.map(toEntry) };
+    return { subject, label, isListed, inForce: inForce && toEntry(inForce), scheduled: scheduled.map(toEntry), history: history.map(toEntry) };
   });
 }
 

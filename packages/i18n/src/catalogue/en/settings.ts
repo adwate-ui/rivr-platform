@@ -2,18 +2,15 @@
 export const settings = {
   title: 'Settings',
   loadFailed: 'Settings could not be loaded.',
-  rulesHint: 'A change applies from now or a later day, never backwards.',
   /** The screen's areas (#604): the rules by what they govern, then the venue's own details and chips. */
   areas: {
     floor: 'Floor', rake: 'Rake and jackpots', cage: 'Cage and credit', members: 'Members and bonus',
     tax: 'Tax', compliance: 'Compliance', system: 'System', club: 'Club details', chips: 'Chips', notices: 'Notices',
   },
-  backTo: 'Back to {area}',
-  nowColumn: 'Now',
-  whoColumn: 'Who changes it',
+  /** The groups each tab's rules sit in (redesign RD-18). */
+  groups: { seating: 'Seating', time: 'Time at the table', identity: 'Identity', bonus: 'Bonus', membership: 'Membership', rotation: 'Rotation' },
   superAdminOnly: 'Super admin',
   managers: 'Admins',
-  superAdminNote: 'Only a super admin changes this.',
   /** A scoped setting's state in the list: "4 of 5 table types set". */
   setFor: { table_type: '{count} table types set', stake: '{count} stakes set', tier: '{count} tiers set', role: '{count} roles set' },
   setForOne: { table_type: '1 table type set', stake: '1 stake set', tier: '1 tier set', role: '1 role set' },
@@ -32,21 +29,23 @@ export const settings = {
   twoDecimals: 'Up to two decimals.',
   optional: 'Optional.',
   required: 'Required.',
-  invalidText: "Not this setting's form. See the help above.",
+  invalidText: "Not this setting's form.",
   noChoice: 'Choose one.',
-  notTogether: 'These values do not fit together. See the help above.',
+  /** A list the club types (redesign RD-19): what an entry is called, its button, and a list saved with none. */
+  listEntry: 'Choice',
+  listAdd: 'Add a choice',
+  invalidList: 'Add at least one.',
+  unchanged: 'Nothing changed.',
+  notTogether: 'These values do not fit together.',
   noneChosen: 'None',
   /** Before a money field's value. */
   rupee: '₹',
-  /** The table of setting keys. */
-  table: 'Settings',
   filter: 'Find a setting',
-  empty: 'No settings yet.',
-  keyColumn: 'Setting',
-  toComeColumn: 'Changes to come',
+  /** A row with no change to come. */
+  none: '–',
   noneToCome: 'None',
   /** What a scoped setting is given for. */
-  subjects: { table_type: 'Table type', stake: 'Stake', tier: 'Tier', role: 'Role' },
+  subjects: { table_type: 'Stake', stake: 'Stake', tier: 'Tier', role: 'Role' },
   stakeHint: 'For example, 100/200.',
   inForce: 'In force',
   notSet: 'Not set',
@@ -58,6 +57,8 @@ export const settings = {
   entry: '{value} · {since}',
   toCome: 'Changes to come',
   fromEntry: 'From {date}: {value}',
+  /** In a row, above the stakes that change then. */
+  fromMoment: 'From {date}:',
   withdraw: 'Withdraw',
   withdrawFrom: 'Withdraw the change from {date}',
   withdrawn: 'Change withdrawn.',
@@ -71,15 +72,14 @@ export const settings = {
   off: 'Off',
   when: 'Takes effect',
   now: 'Now',
-  fromDate: 'From a later day',
+  fromDate: 'From a day and time',
   date: 'Day',
-  invalidDate: 'Choose a day after today.',
+  time: 'Time',
+  timeHint: 'As 18:00.',
+  invalidDate: 'Choose a day and time still to come.',
   /** The rule in the label (console v3): the database refuses a control setting's shorter reason. */
   reason: 'Reason, 3 characters or more',
   invalidReason: 'Say why, in 3 to 200 characters.',
-  /** A row's Change (console v3), which opens a new value in the row; its name for a screen reader. */
-  change: 'Change',
-  changeName: 'Change {name}',
   chooseSubject: 'Choose what it applies to.',
   schedule: 'Save change',
   saved: 'Change saved.',

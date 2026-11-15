@@ -199,7 +199,7 @@ test.describe('Waitlist', () => {
     const sheet = host.getByRole('dialog', { name: `Seat ${MEMBER}` });
     await expect(sheet.getByText(/^Table 2 · /)).toBeVisible();
     await sheet.getByRole('radiogroup', { name: 'Seat', exact: true }).getByRole('radio', { name: '9', exact: true }).click();
-    await sheet.getByRole('radiogroup', { name: 'Call time' }).getByRole('radio', { name: '4 h', exact: true }).click();
+    await sheet.getByRole('textbox', { name: 'Call time' }).fill('240');
     await sheet.getByRole('button', { name: 'Seat', exact: true }).click();
     await expect(host.getByText(`${MEMBER} seated at Table 2, seat 9`)).toBeVisible();
     // Assigned is seated: off the list at once, with no hold to wait out.

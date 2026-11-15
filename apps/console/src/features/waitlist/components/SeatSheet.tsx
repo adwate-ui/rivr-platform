@@ -1,9 +1,9 @@
 import { bonusChipsToRedeemSchema } from '@rivr/contracts';
-import { CALL_TIME_CHOICES, isCallTimeMinutes } from '@rivr/domain/callTime';
+import { isCallTimeMinutes } from '@rivr/domain/callTime';
 import { openSeatsAt, useFloorSeats, useHeldSeats, useWaitlistCallActions, type FloorTable, type WaitlistFailure } from '@rivr/db';
 import { useMemberBonus, useMemberBonusVisitLeft } from '@rivr/db/bonus';
 import { formatChips, t, type MessageKey } from '@rivr/i18n';
-import { Button, CallTimeChoice, ChoiceChips, ErrorMessage, Inline, Input, Sheet, Stack, useToast } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Inline, Input, Sheet, Stack, UnitInput, useToast } from '@rivr/ui';
 import { useState } from 'react';
 import { ENTRY_FAILURE_COPY } from './failureCopy.ts';
 import { stakeOf } from './placeMeta.ts';
@@ -68,7 +68,7 @@ function useSeatForm({ venueId, table, place, onDone }: { venueId: string; table
   const toast = useToast();
   const { free, heldSeat } = useFreeSeats(venueId, table, place.entryId);
   const [picked, setPicked] = useState<number | null>(null);
-  // The stake's own call time to start from (decision 0299); another is the floor's choice.
+  // The stake's own call time to start from (decision 0299); another is typed (redesign RD-19).
   const [callMinutes, setCallMinutes] = useState<number | null>(table.callTimeMinutes);
   const [failure, setFailure] = useState<WaitlistFailure | 'choose' | 'bonus' | null>(null);
   // Bonus chips the member redeems with their buy-in (decision 0504), as typed; blank is none.
@@ -90,7 +90,7 @@ function useSeatForm({ venueId, table, place, onDone }: { venueId: string; table
         <ChoiceChips label={t('console.waitlist.callSeat')} mode="one" look="subtle" selected={seat === null ? [] : [String(seat)]}
           options={free.map((number) => ({ value: String(number), label: String(number) }))}
           onChange={([value]) => setPicked(value === undefined ? null : Number(value))} />
-        <CallTimeChoice choices={CALL_TIME_CHOICES} initial={table.callTimeMinutes} onChange={setCallMinutes} />
+        <UnitInput label={t('console.waitlist.callTime')} unit="minutes" min={0} max={1440} initialValue={table.callTimeMinutes} hint={t('console.waitlist.callTimeHint')} onChange={setCallMinutes} />
         {bonus.field}
         {failure === null ? null : <ErrorMessage>{t(failureCopy(failure))}</ErrorMessage>}
       </Stack>

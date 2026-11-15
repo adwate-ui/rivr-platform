@@ -132,6 +132,8 @@
     @variant max-medium {
       content: attr(data-label);
       color: var(--rivr-color-content-muted);
+      /* The column's name keeps its line; a long value wraps beside it. */
+      flex-shrink: 0;
     }
   }
 

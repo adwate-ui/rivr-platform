@@ -162,7 +162,7 @@ describe('Tonight', () => {
     expect(screen.queryByRole('button', { name: 'Leave waitlist' })).toBeNull();
   });
 
-  it('Add time: asks the floor for 30 min, 1 hour or 2 hours, and shows the request waiting', async () => {
+  it('Add time: asks the floor for 30 min, 1 h or 2 h, and shows the request waiting', async () => {
     renderTonight([], [{ ...SEAT, top_up: 'requested', time_request_minutes: 60 }]);
     expect(await screen.findByText('+1 h', {}, LATER)).toBeDefined();
     expect(screen.getByText('Top-up')).toBeDefined();
@@ -178,18 +178,18 @@ describe('Tonight', () => {
     renderTonight([], [SEAT]);
     fireEvent.click(await screen.findByRole('button', { name: 'Add time' }, LATER));
     expect(await screen.findByRole('dialog', { name: 'Add time' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Request 1 hour' })).toBeDefined();
-    fireEvent.click(screen.getByRole('radio', { name: '2 hours' }));
-    expect(screen.getByRole('button', { name: 'Request 2 hours' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Request 1 h' })).toBeDefined();
+    fireEvent.click(screen.getByRole('radio', { name: '2 h' }));
+    expect(screen.getByRole('button', { name: 'Request 2 h' })).toBeDefined();
   });
 
-  it('Add time once the call time is met, with the lengths the club ticked (decision 0305)', async () => {
-    renderTonight([], [{ ...SEAT, call_time_left: 0, call_time_ends_at: null, add_time_choices: [45, 90] }]);
+  it('Add time once the call time is met: every length the club types, however many, and the one chosen is asked for (decision 0305, redesign RD-19)', async () => {
+    const { asked } = renderTonight([], [{ ...SEAT, call_time_left: 0, call_time_ends_at: null, add_time_choices: [20, 45, 50, 75, 90, 200, 300] }]);
     fireEvent.click(await screen.findByRole('button', { name: 'Add time' }, LATER));
-    expect(await screen.findByRole('dialog', { name: 'Add time' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Request 45 min' })).toBeDefined();
-    expect(screen.getByRole('radio', { name: '1 h 30 min' })).toBeDefined();
-    expect(screen.queryByRole('radio', { name: '2 hours' })).toBeNull();
+    expect((await screen.findAllByRole('radio')).map((choice) => choice.textContent)).toEqual(['20 min', '45 min', '50 min', '1 h 15 min', '1 h 30 min', '3 h 20 min', '5 h']);
+    fireEvent.click(screen.getByRole('radio', { name: '3 h 20 min' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Request 3 h 20 min' }));
+    await vi.waitFor(() => expect(asked.filter((call) => call.startsWith('request_call_time')).map((call) => call.includes('"p_minutes":200'))).toEqual([true]));
   });
 
   it('Order on its way: the tracker reads where the order is, from the bar\'s steps', async () => {

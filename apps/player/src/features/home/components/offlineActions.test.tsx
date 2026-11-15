@@ -67,7 +67,7 @@ describe('with no connection, nothing acts on a seat or a place (F-053)', () => 
 
   it('holds back more time', async () => {
     renderOffline(<SeatSheets open="addTime" seat={SEAT} secondsLeft={600} onClose={() => undefined} />);
-    await expectDisabled('Request 1 hour');
+    await expectDisabled('Request 1 h');
   });
 
   it('holds back leaving the seat', async () => {

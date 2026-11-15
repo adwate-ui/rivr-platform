@@ -11,6 +11,7 @@ const SEATING: readonly SettingsRow[] = [
   { key: 'seat_hold', name: 'Seat hold', line: 'How long a called seat waits', now: '20 minutes', who: 'Admins', toCome: '25 minutes from 16 Nov 2026', onChange: onSeatHold },
   { key: 'priority', name: 'Waitlist priority', line: 'Who is seated first', now: 'Black card first', who: 'Super admin', toCome: '–' },
 ];
+const onHistory = vi.fn();
 
 const cellsOf = (row: HTMLElement) => within(row).getAllByRole('cell').map((cell) => cell.textContent);
 
@@ -35,6 +36,15 @@ describe('SettingsGroup', () => {
     change.focus();
     await userEvent.keyboard('{Enter}');
     expect(onSeatHold).toHaveBeenCalledTimes(1);
+  });
+
+  it('gives a setting the staff member only reads History in place of Change, named for the setting', async () => {
+    renderIn(<SettingsGroup heading="Seating" settings={SEATING.map((setting) => (setting.onChange === undefined ? { ...setting, onHistory } : setting))} />);
+    expect(screen.getAllByRole('button', { name: /^Change/ })).toHaveLength(1);
+    const history = screen.getByRole('button', { name: 'History of Waitlist priority' });
+    expect(history).toHaveTextContent('History');
+    await userEvent.click(history);
+    expect(onHistory).toHaveBeenCalledTimes(1);
   });
 
   it('has nothing to sort or filter within a group, and no Export of its own', () => {

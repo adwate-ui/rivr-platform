@@ -52,12 +52,12 @@ describe('the seat sheet', () => {
     await act(() => cache.invalidateQueries());
     await waitFor(() => expect(screen.queryByRole('radio', { name: '4' })).toBeNull(), { timeout: 5000 });
     fireEvent.click(screen.getByRole('button', { name: 'Seat' }));
-    expect(await screen.findByText('Choose an open table, a seat at it, and a call time of up to 24 h.')).toBeDefined();
+    expect(await screen.findByText('Choose an open table, a seat at it, and a call time of 0 to 1,440 minutes.')).toBeDefined();
     expect(calls).toEqual([]);
 
-    // A free seat and four hours: assigned, and seated at once (decision 0299).
+    // A free seat and four hours, typed over the stake's own (redesign RD-19): assigned, and seated at once (decision 0299).
     fireEvent.click(screen.getByRole('radio', { name: '6' }));
-    fireEvent.click(screen.getByRole('radio', { name: '4 h' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Call time' }), { target: { value: '240' } });
     fireEvent.click(screen.getByRole('button', { name: 'Seat' }));
     await waitFor(() => expect(calls).toEqual([{ p_entry_id: 'e1', p_table_id: 't3', p_seat: 6, p_call_minutes: 240 }]));
     expect(await screen.findByText('Naina Kapoor seated at Table 3, seat 6')).toBeDefined();

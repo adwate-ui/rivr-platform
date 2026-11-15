@@ -1,1 +1,1 @@
-export { SETTINGS_PANES } from './components/SettingsScreen.tsx';
+export { SETTINGS_PANES, TvRules } from './components/SettingsScreen.tsx';

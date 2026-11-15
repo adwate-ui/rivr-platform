@@ -1,5 +1,4 @@
 import { useMySeatActions, type MySeat, type MySeatFailure } from '@rivr/db';
-import { isAddTimeChoice, type AddTimeMinutes } from '@rivr/domain/callTime';
 import { formatDuration, t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Sheet, Stack, Text, useIsOnline } from '@rivr/ui';
 import { useState } from 'react';
@@ -43,16 +42,16 @@ function TopUpSheet({ onClose }: SheetProps) {
 }
 
 /**
- * "Add time": the lengths the club offers (decision 0305; an hour first if offered), then Request it of the floor
- * (decision 0320), met or not.
+ * "Add time": every length the club offers, however many (decision 0305, redesign RD-19; an hour first if offered), then
+ * Request it of the floor (decision 0320), met or not.
  */
 function AddTimeSheet({ seat, onClose }: SheetProps & { seat: MySeat }) {
   const { requestTime } = useMySeatActions();
   const send = useSend(onClose);
-  const choices = seat.addTimeChoices.filter(isAddTimeChoice);
-  const [choice, setChoice] = useState<AddTimeMinutes>(choices.find((minutes) => minutes === 60) ?? choices[0] ?? 60);
+  const choices = seat.addTimeChoices;
+  const [choice, setChoice] = useState(choices.find((minutes) => minutes === 60) ?? choices[0] ?? 60);
   const [requestId] = useState(() => crypto.randomUUID());
-  const label = (minutes: AddTimeMinutes) => t(`player.live.seat.times.m${minutes}`);
+  const label = (minutes: number) => formatDuration(minutes * 60);
   return (
     <Sheet isOpen onClose={onClose} title={t('player.live.seat.addTime')}>
       <Stack gap={4}>

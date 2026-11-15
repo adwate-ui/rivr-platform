@@ -12,6 +12,9 @@ export const NOW = new Date('2026-11-15T16:30:00Z');
 const minutesAgo = (minutes: number) => new Date(NOW.getTime() - minutes * 60_000).toISOString();
 
 /** A table of the club's main room at 50/100 or 100/200, open unless said. */
+/** With no lists given: nobody waits, and every table's stake has three hours of call time, as a stake must have one. */
+const STAKES_OWN = ['t1', 't2', 't3', 't4', 't5', 't6'].map((id) => ({ table_id: id, waiting: 0, call_time_minutes: 180 }));
+
 export function tableRow(id: string, name: string, extra: Partial<{ is_open: boolean; room: string; type: string; must_move_to_table_id: string | null }> = {}) {
   return {
     id, venue_id: 'v1', name, is_open: extra.is_open ?? true, seats: 9, position: Number(id.replace(/\D/g, '')) || 1,
@@ -65,7 +68,7 @@ const TYPES = [
 function readsOf(api: FloorApi): Record<string, unknown> {
   return {
     floor_seats: api.seats ?? [], floor_requests: api.requests ?? [], waitlist_board: api.board ?? [], staff_queue_counts: api.queues ?? [],
-    waitlist_lengths: api.lengths ?? [], floor_request_targets: [{ top_up_seconds: null, other_seconds: null }], add_time_choices: [30, 60, 120],
+    waitlist_lengths: api.lengths ?? STAKES_OWN, floor_request_targets: [{ top_up_seconds: null, other_seconds: null }], add_time_choices: [30, 60, 120],
     held_seats: [], floor_open_seats: [], floor_tonight: [],
   };
 }

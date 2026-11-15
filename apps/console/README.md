@@ -53,8 +53,12 @@ src/
                       table and unpair; TVs to pair by their code, change and unpair; cage and admin computers to
                       add, enrol and revoke; CCTV cameras over a table or the cage (#122), whose Playback Pot data,
                       Incidents and the cage's receipt link to. /devices, /tablets and /tvs open it; /computers and /cameras say they are gone
-    settings/         the rules in areas by job, each by name with its value now, who changes it and what is to come;
-                      the club's details, its numbers for calls and WhatsApp among them (decision 0582), and chips for super admins
+    settings/         the rules in groups by tab (Floor: Seating, Time at the table, Identity; Members: Bonus,
+                      Membership; TVs: Rotation; redesign RD-18), each with its one line, its value now, who changes
+                      it and what is to come; Change opens the setting's panel on the right, for a new value from now
+                      or a day and time to come, Cancel and Save in its foot; History opens it to read, for a setting
+                      the staff member may not change. Values are typed (RD-19): Add time choices a list of lengths, Call time one value for
+                      each stake at once; the club's details, its numbers for calls and WhatsApp among them (decision 0582), and chips for super admins
                       (/settings, its areas by `?tab=`, #604); /rake
                       opens it, saying rake is no longer on the console. Its Notices part puts a notice up, now or from
                       a start to an end (IST), edits one in place and ends one, with the card members see as its

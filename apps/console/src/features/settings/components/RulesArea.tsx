@@ -1,95 +1,103 @@
-import { useVenueSettings, type VenueSetting } from '@rivr/db';
-import { formatNumber, t } from '@rivr/i18n';
-import { Button, DataTable, SplitView, Stack, Text, type DataTableColumn, type DataTableState } from '@rivr/ui';
+import { useVenueSettings, type SettingEntry, type SettingValue, type VenueSetting } from '@rivr/db';
+import { formatDayTime, formatDuration, formatNumber, t } from '@rivr/i18n';
+import { LoadState, SettingsGroups, type SettingsRow, type SettingsValue } from '@rivr/ui';
 import { useState } from 'react';
-import { areaOf, isShownSetting, type RuleArea } from './areas.ts';
-import { SettingChange } from './SettingChange.tsx';
-import { SettingPanel } from './SettingPanel.tsx';
+import { AREA_GROUPS, keysOf, type GroupedArea } from './groups.ts';
+import { offeredSubjects } from './SettingHistory.tsx';
+import { SettingSheet } from './SettingSheet.tsx';
 import { defaultOf, isSuperAdminOnly, settingHelp, settingName, valueText } from './settingsCopy.ts';
 
-const toCome = (setting: VenueSetting) => setting.subjects.reduce((count, subject) => count + subject.scheduled.length, 0);
+type TierName = (id: string) => string;
 
-/** The value now, in words, for the venue; for a table type, tier or stake, how many have one. */
-function nowText(setting: VenueSetting, tierName: (id: string) => string): string {
+/** A stake's value in one word or two: its call time in the short form, `3 h`; anything else as the setting writes it. */
+function stakeText(setting: VenueSetting, value: SettingValue, tierName: TierName): string {
+  const minutes = setting.key === 'call_time.minutes' ? value['minutes'] : undefined;
+  return typeof minutes === 'number' ? formatDuration(minutes * 60) : valueText(setting.key, setting.fields, value, tierName);
+}
+
+/**
+ * The value now, in words, for the venue; a line for each stake the club has today, with its name (RD-19); for a tier or
+ * a role, how many have one.
+ */
+function nowValue(setting: VenueSetting, tierName: TierName): SettingsValue {
   if (setting.scope === 'venue') {
     const inForce = setting.subjects[0]?.inForce ?? null;
     if (inForce !== null) return valueText(setting.key, setting.fields, inForce.value, tierName);
     const fallback = defaultOf(setting.key);
     return fallback === undefined ? t('console.settings.notSet') : t('console.settings.byDefault', { value: valueText(setting.key, setting.fields, fallback, tierName) });
   }
+  if (setting.scope === 'table_type') {
+    const stakes = offeredSubjects(setting).flatMap((rules) => (rules.inForce === null ? [] : [`${rules.label} ${stakeText(setting, rules.inForce.value, tierName)}`]));
+    return stakes.length === 0 ? t('console.settings.notSet') : stakes;
+  }
   const set = setting.subjects.filter((subject) => subject.inForce !== null).length;
   return set === 1 ? t(`console.settings.setForOne.${setting.scope}`) : t(`console.settings.setFor.${setting.scope}`, { count: formatNumber(set) });
 }
 
-/** The area's settings, or loading, or why they could not be read. A failed refresh keeps what was known. */
-function tableState(settings: ReturnType<typeof useVenueSettings>, area: RuleArea): DataTableState<VenueSetting> {
-  if (settings.data !== undefined) {
-    const rows = settings.data.settings.filter((setting) => areaOf(setting.key) === area && isShownSetting(setting.key));
-    return { rows, emptyText: t('console.settings.empty') };
+const dayTime = (entry: SettingEntry) => (entry.effectiveFrom === null ? '' : formatDayTime(new Date(entry.effectiveFrom)));
+
+/**
+ * The changes to come, soonest first, in words, or a dash for none: for the venue "From Mon 16 Nov, 18:00: 12 minutes";
+ * for a scoped setting each moment on a line, then a line for each subject changing then.
+ */
+function toComeValue(setting: VenueSetting, tierName: TierName): SettingsValue {
+  const changes = offeredSubjects(setting).flatMap((rules) => rules.scheduled.map((entry) => ({ entry, label: rules.label })))
+    .sort((a, b) => (a.entry.effectiveFrom ?? '').localeCompare(b.entry.effectiveFrom ?? ''));
+  if (changes.length === 0) return t('console.settings.none');
+  if (setting.scope === 'venue') {
+    return changes.map(({ entry }) => t('console.settings.fromEntry', { date: dayTime(entry), value: stakeText(setting, entry.value, tierName) })).join(t('console.settings.fieldSeparator'));
   }
-  if (settings.isError) return { status: 'error', errorText: t('console.settings.loadFailed'), onRetry: () => void settings.refetch() };
-  return { status: 'loading' };
+  return changes.flatMap(({ entry, label }, at) => {
+    const line = `${label} ${stakeText(setting, entry.value, tierName)}`;
+    const isNewMoment = changes[at - 1]?.entry.effectiveFrom !== entry.effectiveFrom;
+    return isNewMoment ? [t('console.settings.fromMoment', { date: dayTime(entry) }), line] : [line];
+  });
 }
 
-interface ColumnsFor {
-  tierName: (id: string) => string;
-  /** Whether the staff member may change a setting: a super admin's only by a super admin. */
-  canChange: (setting: VenueSetting) => boolean;
-  /** The setting whose change is open in its row. */
-  changingKey: string | null;
-  onChange: (setting: VenueSetting) => void;
+interface RowFor {
+  tierName: TierName;
+  /** A super admin, who changes the settings only a super admin may. */
+  isSuperAdmin: boolean;
+  onOpen: (key: string) => void;
 }
 
-/** The list's columns: name, value now, who changes it and the changes to come, then Change where the staff member may. */
-function columnsFor({ tierName, canChange, changingKey, onChange }: ColumnsFor): readonly DataTableColumn<VenueSetting>[] {
-  return [
-    { key: 'name', header: t('console.settings.keyColumn'), cell: (setting) => settingName(setting.key), sortValue: (setting) => settingName(setting.key) },
-    { key: 'now', header: t('console.settings.nowColumn'), cell: (setting) => nowText(setting, tierName) },
-    { key: 'who', header: t('console.settings.whoColumn'), cell: (setting) => t(isSuperAdminOnly(setting.key) ? 'console.settings.superAdminOnly' : 'console.settings.managers'), filter: 'choice' },
-    { key: 'toCome', header: t('console.settings.toComeColumn'), align: 'end', sortValue: toCome,
-      cell: (setting) => (toCome(setting) === 0 ? t('console.settings.noneToCome') : formatNumber(toCome(setting))) },
-    {
-      key: 'change', header: '', align: 'end',
-      cell: (setting) => (canChange(setting) ? (
-        <Button variant="subtle" size="small" aria-label={t('console.settings.changeName', { name: settingName(setting.key) })}
-          aria-expanded={changingKey === setting.key} onClick={() => onChange(setting)}>
-          {t('console.settings.change')}
-        </Button>
-      ) : null),
-    },
-  ];
+/** Whether the staff member only reads the setting: a super admin's, seen by anyone else. */
+const isLocked = (setting: VenueSetting, isSuperAdmin: boolean) => isSuperAdminOnly(setting.key) && !isSuperAdmin;
+
+/** A setting as its group lists it: Change where the staff member may change it, else History. */
+function rowOf(setting: VenueSetting, { tierName, isSuperAdmin, onOpen }: RowFor): SettingsRow {
+  const open = () => onOpen(setting.key);
+  return {
+    key: setting.key, name: settingName(setting.key), line: settingHelp(setting.key, setting.description), now: nowValue(setting, tierName),
+    who: t(isSuperAdminOnly(setting.key) ? 'console.settings.superAdminOnly' : 'console.settings.managers'),
+    toCome: toComeValue(setting, tierName), ...(isLocked(setting, isSuperAdmin) ? { onHistory: open } : { onChange: open }),
+  };
 }
 
 /**
- * One area's settings (#604): each by name, its value now, who changes it and the changes to come. Change opens a new
- * value in the setting's row (console v3); opening the setting shows its history beside the list from 1180 px, and in
- * its place below. One or the other is open at a time.
+ * One tab's settings in their groups (redesign RD-18): each with its one line, its value now, who changes it and the
+ * changes to come. A row opens the setting's panel on the right: Change, a new value from now or a day and time to come,
+ * never backwards, then what is in force, to come and before; History, the same to read, for a setting the staff member
+ * may not change.
  */
-export function RulesArea({ venueId, area, isSuperAdmin }: { venueId: string; area: RuleArea; isSuperAdmin: boolean }) {
+export function RulesArea({ venueId, area, isSuperAdmin }: { venueId: string; area: GroupedArea; isSuperAdmin: boolean }) {
   const settings = useVenueSettings(venueId);
   const [openKey, setOpenKey] = useState<string | null>(null);
-  const [changingKey, setChangingKey] = useState<string | null>(null);
-  const tiers = settings.data?.tiers ?? [];
-  const columns = columnsFor({
-    tierName: (id) => tiers.find((tier) => tier.subject === id)?.label ?? id,
-    canChange: (setting) => isSuperAdmin || !isSuperAdminOnly(setting.key),
-    changingKey,
-    onChange: (setting) => { setOpenKey(null); setChangingKey(changingKey === setting.key ? null : setting.key); },
-  });
-  const found = settings.data?.settings.find((setting) => setting.key === openKey);
-  const open = found;
-  const list = (
-    <Stack gap={4}>
-      <Text tone="muted">{t('console.settings.rulesHint')}</Text>
-      <DataTable label={t('console.settings.table')} narrowLayout="scroll" columns={columns} rowKey={(setting) => setting.key} {...tableState(settings, area)}
-        filter={{ label: t('console.settings.filter'), text: (setting) => `${settingName(setting.key)} ${settingHelp(setting.key, setting.description)}` }}
-        onRowOpen={(setting) => { setChangingKey(null); setOpenKey(setting.key); }}
-        rowDetail={(setting) => (setting.key === changingKey ? <SettingChange key={setting.key} venueId={venueId} setting={setting} tiers={tiers} /> : null)} />
-    </Stack>
-  );
-  const detail = open === undefined ? null : <SettingPanel key={open.key} venueId={venueId} setting={open} tiers={tiers} isSuperAdmin={isSuperAdmin} />;
+  // A failed refresh keeps what was known.
+  if (settings.data === undefined) return <LoadState isError={settings.isError} errorText={t('console.settings.loadFailed')} onRetry={() => void settings.refetch()} />;
+  const { tiers, settings: all } = settings.data;
+  const rowFor = { tierName: (id: string) => tiers.find((tier) => tier.subject === id)?.label ?? id, isSuperAdmin, onOpen: setOpenKey };
+  const groups = AREA_GROUPS[area].map((group) => ({
+    heading: t(`console.settings.groups.${group}`),
+    settings: keysOf(group).flatMap((key) => all.filter((setting) => setting.key === key).map((setting) => rowOf(setting, rowFor))),
+  }));
+  const open = all.find((setting) => setting.key === openKey);
   return (
-    <SplitView list={list} detail={detail} backLabel={t('console.settings.backTo', { area: t(`console.settings.areas.${area}`) })}
-      onBack={() => setOpenKey(null)} />
+    <>
+      <SettingsGroups label={t('console.settings.title')} searchLabel={t('console.settings.filter')} groups={groups} />
+      {open === undefined ? null : (
+        <SettingSheet key={open.key} venueId={venueId} setting={open} tiers={tiers} isReadOnly={isLocked(open, isSuperAdmin)} onClose={() => setOpenKey(null)} />
+      )}
+    </>
   );
 }

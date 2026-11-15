@@ -1,11 +1,13 @@
 /**
  * Settings (#33; scope-v1 module 2, "weights sit in config so Rahul can tune them without a release").
  * This flow has its own admin (Imran Qureshi), super admin (Leela Menon) and cashier (Tara Bose).
- * - Imran opens Admin → Settings, opens Seat hold under Floor, is told a value past its limits is wrong,
- *   schedules 12 minutes from tomorrow, and withdraws it. He sees no venue configuration.
+ * - Imran opens Admin → Settings, where Floor lists its settings in groups (redesign RD-18). Change on Seat hold opens
+ *   its panel on the right: he is told a value past its limits is wrong, schedules 12 minutes from tomorrow at 18:00,
+ *   and withdraws it. He sees no venue configuration.
  * - Leela sets the alert number in the venue configuration, which survives a reload, and uploads the venue's
- *   logo (#397), which is there after a reload. The money areas (rake, cage, tax, chips) are hidden (#626).
- * - Tara's Settings is TVs alone: the address opens it, and any other tab shows a refusal.
+ *   logo (#397), which is there after a reload. The money areas (rake, cage, tax, chips) are hidden (#626). Her TVs tab
+ *   holds the TVs' own setting under Rotation.
+ * - Tara's Settings is TVs alone, with no settings on it: the address opens it, and any other tab shows a refusal.
  * The database's side (schemas, the past, who may, the audit log) is proved in supabase/tests/081.
  */
 import { expect, test, type Page } from '@playwright/test';
@@ -21,12 +23,14 @@ const LOGO = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQV
 /** Tomorrow on the club's clock, as a date field takes it. */
 const tomorrow = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date(Date.now() + 24 * 3_600_000));
 
-/** Opens Settings and one setting, by its name, from its area's list. */
+/** Opens Settings and one setting's change, by its name, from its group; gives the panel it opens on the right. */
 async function openSetting(page: Page, name: string) {
   await openConsole(page, '/settings');
   await page.getByRole('searchbox', { name: 'Find a setting' }).fill(name);
-  await page.getByRole('button', { name, exact: true }).click();
-  await expect(page.getByRole('heading', { name, level: 2 })).toBeVisible();
+  await page.getByRole('button', { name: `Change ${name}`, exact: true }).click();
+  const panel = page.getByRole('dialog', { name });
+  await expect(panel).toBeVisible();
+  return panel;
 }
 
 /** Opens one of Settings' areas from its tabs. */
@@ -40,25 +44,32 @@ test.describe('Settings', () => {
     test.setTimeout(120_000);
     const admin = await browser.newPage();
     await signInToConsole(admin, '9000000153');
-    await openSetting(admin, 'Seat hold');
+    await openConsole(admin, '/settings');
+    await expect(admin.getByRole('heading', { name: 'Seating', level: 2 })).toBeVisible();
+    await expect(admin.getByRole('heading', { name: 'Time at the table', level: 2 })).toBeVisible();
+    await expect(admin.getByRole('table', { name: 'Seating' }).getByText('How long a called seat is held')).toBeVisible();
+    const panel = await openSetting(admin, 'Seat hold');
     // A run stopped part-way may have left its change to come.
-    const leftOver = admin.getByRole('button', { name: /^Withdraw the change from/ });
+    const leftOver = panel.getByRole('button', { name: /^Withdraw the change from/ });
     if (await leftOver.count() > 0) await leftOver.first().click();
     await expect(admin.getByRole('heading', { name: 'Venue configuration' })).toHaveCount(0);
 
-    await admin.getByRole('textbox', { name: 'Minutes' }).fill('500');
-    await admin.getByRole('textbox', { name: 'Reason' }).fill('Busier nights');
-    await admin.getByRole('button', { name: 'Save change' }).click();
-    await expect(admin.getByRole('textbox', { name: 'Minutes' })).toHaveAttribute('aria-invalid', 'true');
-    await expect(admin.getByText('Between 1 and 120 minutes.')).toBeVisible();
-    await admin.getByRole('textbox', { name: 'Minutes' }).fill('12');
-    await admin.getByRole('radiogroup', { name: 'Takes effect' }).getByRole('radio', { name: 'From a later day' }).click();
-    await admin.getByLabel('Day').fill(tomorrow());
-    await admin.getByRole('button', { name: 'Save change' }).click();
-    await expect(admin.getByText('Change saved.')).toBeVisible();
-    await expect(admin.getByText(/^From .*: 12 minutes$/)).toBeVisible();
-    await admin.getByRole('button', { name: /^Withdraw the change from/ }).click();
-    await expect(admin.getByText('Change withdrawn.')).toBeVisible();
+    await panel.getByRole('textbox', { name: 'Minutes' }).fill('500');
+    await panel.getByRole('textbox', { name: 'Reason' }).fill('Busier nights');
+    await panel.getByRole('button', { name: 'Save change' }).click();
+    await expect(panel.getByRole('textbox', { name: 'Minutes' })).toHaveAttribute('aria-invalid', 'true');
+    await expect(panel.getByText('Between 1 and 120 minutes.')).toBeVisible();
+    await panel.getByRole('textbox', { name: 'Minutes' }).fill('12');
+    await panel.getByRole('radiogroup', { name: 'Takes effect' }).getByRole('radio', { name: 'From a day and time' }).click();
+    await panel.getByLabel('Day').fill(tomorrow());
+    await panel.getByRole('textbox', { name: 'Time' }).fill('18:00');
+    await panel.getByRole('button', { name: 'Save change' }).click();
+    await expect(panel.getByText('Change saved.')).toBeVisible();
+    await expect(panel.getByText(/^From .*, 18:00: 12 minutes$/)).toBeVisible();
+    // Its row, behind the panel, says the change to come too.
+    await expect(admin.getByText(/^From .*, 18:00: 12 minutes$/)).toHaveCount(2);
+    await panel.getByRole('button', { name: /^Withdraw the change from/ }).click();
+    await expect(panel.getByText('Change withdrawn.')).toBeVisible();
     await expect(admin.getByText(/^From .*: 12 minutes$/)).toHaveCount(0);
 
     const owner = await browser.newPage();
@@ -80,12 +91,15 @@ test.describe('Settings', () => {
     // No console shows money or rake (#626): Settings has no rake, cage, tax or chips area.
     const areas = owner.getByRole('navigation', { name: 'Settings', exact: true });
     for (const hidden of ['Rake and jackpots', 'Cage and credit', 'Tax', 'Chips']) await expect(areas.getByRole('link', { name: hidden })).toHaveCount(0);
+    await openArea(owner, 'TVs');
+    await expect(owner.getByRole('table', { name: 'Rotation' }).getByText('TV hours leaderboard')).toBeVisible();
 
     const cashier = await browser.newPage();
     await signInToConsole(cashier, '9000000155');
     await expect(cashier.getByRole('link', { name: 'Live floor', exact: true })).toBeVisible();
     await cashier.goto(`${appUrl('console')}/settings`);
     await expect(cashier.getByRole('heading', { name: 'TVs', level: 2 })).toBeVisible();
+    await expect(cashier.getByRole('heading', { name: 'Rotation' })).toHaveCount(0);
     await cashier.goto(`${appUrl('console')}/settings?tab=members`);
     await expect(cashier.getByText(REFUSED)).toBeVisible();
   });

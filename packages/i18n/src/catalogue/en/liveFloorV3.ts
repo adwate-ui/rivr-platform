@@ -95,6 +95,8 @@ export const floor = {
     tableThenSeat: 'Table, then seat',
     table: 'Table',
     seatNumber: 'Seat',
+    callTime: 'Call time',
+    callTimeHint: '0 for no call time.',
     confirm: 'Seat',
     cancel: 'Cancel',
     chooseWho: 'Choose a player or type a number.',
@@ -107,7 +109,7 @@ export const floor = {
     bonusChipsLeft: 'Has {chips} bonus chips. Up to {left} this visit.',
     bonusChipsNone: 'No bonus chips.',
     bonusChipsTyped: 'Up to their balance. Taken off when they sit.',
-    badCallTime: 'Enter a call time of up to 24 h.',
+    badCallTime: 'Type the call time in minutes, 0 to 1,440.',
     badBonusChips: 'Bonus chips go in whole 50s.',
   },
   table: {

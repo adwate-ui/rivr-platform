@@ -53,9 +53,9 @@ describe('Tonight › Seat actions', () => {
 describe('Tonight › Time requested', () => {
   it('says how much the floor added once it approves: the request goes and the call time grows', () => {
     const { rerender } = render(<Seat seat={SEAT} />);
-    expect(screen.queryByText('1 hour added')).toBeNull();
+    expect(screen.queryByText('1 h added')).toBeNull();
     rerender(<Seat seat={{ ...SEAT, timeRequestMinutes: null, callTimeMinutes: 240, callTimeLeft: 13268 }} />);
-    expect(screen.getByText('1 hour added')).toBeDefined();
+    expect(screen.getByText('1 h added')).toBeDefined();
   });
 
   it('says nothing when the floor declines: the request goes and the call time stays', () => {

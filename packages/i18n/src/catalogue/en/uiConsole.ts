@@ -60,6 +60,9 @@ export const consoleUi = {
     toCome: 'Changes to come',
     change: 'Change',
     changeNamed: 'Change {name}',
+    /** A row the staff member only reads: what the setting was, is and will be. */
+    history: 'History',
+    historyNamed: 'History of {name}',
     empty: 'No settings.',
   },
   /** A number typed in its unit (UnitInput): the unit after it, `1 minute` or `20 minutes`, and what a refused number is told. */
@@ -76,6 +79,8 @@ export const consoleUi = {
     empty: 'Type a value or remove it.',
     repeated: 'Already in the list.',
     none: 'None yet.',
+    /** Beside Add once the list holds its most: `12 at most.` */
+    full: '{count} at most.',
   },
   /** One value for each stake (StakeValues): the line under a stake that has none, and a club with no stakes. */
   stakeValues: {

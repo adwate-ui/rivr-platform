@@ -18,16 +18,6 @@ export const rakebackRate = {
   }),
 } as const satisfies SettingDefinition;
 
-export const reviewsGoogleUrl = {
-  key: 'reviews.google_url',
-  description: 'The venue\'s Google review link, sent once to each member after their third visit, whatever their feedback and with no reward; none set asks for none.',
-  scope: 'venue',
-  // Only Google's review addresses, so the club's WhatsApp sender can carry no other link.
-  value: z.strictObject({
-    url: z.string().regex(/^https:\/\/(g\.page|search\.google\.com|www\.google\.com|maps\.google\.com|maps\.app\.goo\.gl)\//).max(500),
-  }),
-} as const satisfies SettingDefinition;
-
 /** Identity checked at the club (decision 0502): while Cashfree is not live, a selfie lets a new member in and staff check them at the desk. */
 export const kycAtTheClub = {
   key: 'kyc.at_the_club', defaultValue: { enabled: false },
@@ -56,6 +46,18 @@ export const bonusDailyStaffCap = {
   scope: 'venue',
   superAdminOnly: true,
   value: z.strictObject({ chips: z.int().min(50).max(1000000) }),
+} as const satisfies SettingDefinition;
+
+/**
+ * The most bonus an admin or a floor manager adds by hand at once (redesign RD-19): more is refused. Super admins are not
+ * capped (the owner, 15 Nov), and only they change it. None set is the most any addition may be, 1,00,000.
+ */
+export const bonusByHandCap = {
+  key: 'bonus.by_hand_cap', defaultValue: { chips: 100000 },
+  description: 'The most bonus an admin or a floor manager adds by hand at once; more is refused. Super admins are not capped. None set is 1,00,000.',
+  scope: 'venue',
+  superAdminOnly: true,
+  value: z.strictObject({ chips: z.int().min(50).max(100000) }),
 } as const satisfies SettingDefinition;
 
 /**

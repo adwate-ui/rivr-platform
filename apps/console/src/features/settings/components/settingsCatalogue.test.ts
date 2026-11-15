@@ -3,7 +3,7 @@ import { defaultOf } from './settingsCopy.ts';
 import { SETTINGS, settingValueJsonSchema } from '@rivr/contracts/settings';
 import { settingCopy, settingKeys } from '@rivr/i18n';
 import { describe, expect, it } from 'vitest';
-import { areaOf, RULE_AREAS, isShownSetting } from './areas.ts';
+import { AREA_GROUPS, keysOf } from './groups.ts';
 
 /** The schema's fields and, for a choice or a list, its options. */
 function fieldsOf(schema: Record<string, unknown>): [string, readonly string[]][] {
@@ -19,12 +19,11 @@ function fieldsOf(schema: Record<string, unknown>): [string, readonly string[]][
 }
 
 describe('every setting the contracts declare, as the Settings screen shows it', () => {
-  it('has a name, a line of help, an area, a label for every field and a word for every option', () => {
+  it('has a name, a line of help, a label for every field and a word for every option', () => {
     for (const definition of SETTINGS) {
       const copy = settingCopy(definition.key);
       expect(copy?.name, definition.key).toBeTruthy();
       expect(copy?.help, definition.key).toBeTruthy();
-      expect(RULE_AREAS, definition.key).toContain(areaOf(definition.key));
       for (const [field, options] of fieldsOf(settingValueJsonSchema(definition))) {
         expect(copy?.fields[field], `${definition.key} ${field}`).toBeTruthy();
         // A tier's options are the venue's own tiers, named by the venue.
@@ -55,7 +54,25 @@ describe('every setting the contracts declare, as the Settings screen shows it',
     expect(defaultOf('bonus.daily_staff_cap')).toBeUndefined();
   });
 
-  it('hides the cab offer while cab requests are off (audit F-113)', () => {
-    expect(isShownSetting('cab.minimum_visits')).toBe(false);
+  it('shows each setting in one group of one tab, in this order (redesign RD-18)', () => {
+    expect(Object.fromEntries(Object.values(AREA_GROUPS).flat().map((group) => [group, keysOf(group)]))).toEqual({
+      seating: ['waitlist.hold_minutes', 'waitlist.interest_to_open', 'waitlist.priority_weights', 'floor.request_targets'],
+      time: ['call_time.minutes', 'call_time.add_choices'],
+      identity: ['kyc.at_the_club'],
+      bonus: ['bonus.expiry_days', 'bonus.daily_staff_cap', 'bonus.by_hand_cap', 'bonus.visit_cap'],
+      membership: ['tier.default', 'host.lapse'],
+      rotation: ['tv.leaderboard'],
+    });
+  });
+
+  it('gives each of them one line of eight words or fewer', () => {
+    for (const key of Object.values(AREA_GROUPS).flat().flatMap(keysOf)) {
+      expect(settingCopy(key)?.help.split(' ').length, key).toBeLessThanOrEqual(8);
+    }
+  });
+
+  it('shows no cab offer while cab requests are off (audit F-113), no door code and no dealer rotation (owner, 15 Nov)', () => {
+    const shown = Object.values(AREA_GROUPS).flat().flatMap(keysOf);
+    for (const key of ['cab.minimum_visits', 'card.qr_rotation_seconds', 'dealer.rotation_minutes']) expect(shown).not.toContain(key);
   });
 });

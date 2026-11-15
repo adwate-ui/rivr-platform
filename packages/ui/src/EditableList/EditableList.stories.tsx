@@ -34,5 +34,8 @@ export const LongText: Story = { args: { entryLabel: 'A length of extra time a s
 /** At a desk the fields and Remove are 36 px, level at their foot. */
 export const AtADesk: Story = { tags: ['viewport-console'] };
 
+/** Full: with a most of three, Add is off and the list says so. */
+export const Full: Story = { args: { maxEntries: 3 } };
+
 /** On a phone the panel is the screen's width. */
 export const OnAPhone: Story = { tags: ['viewport-phone'] };

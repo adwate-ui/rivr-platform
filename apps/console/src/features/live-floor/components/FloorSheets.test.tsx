@@ -190,10 +190,13 @@ describe('The seat sheet (console v3)', () => {
     fireEvent.click(within(seat).getByRole('radio', { name: 'Table 2' }));
     expect(within(seat).getByRole('radio', { name: 'Leela Menon · 12 min' }).getAttribute('aria-checked')).toBe('true');
     fireEvent.change(within(seat).getByRole('textbox', { name: 'Or a mobile or member number' }), { target: { value: '42' } });
-    fireEvent.click(within(seat).getByRole('radio', { name: '4 h' }));
+    // The call time starts from the stake's own and is typed over (redesign RD-19).
+    expect(within(seat).getByRole('textbox', { name: 'Call time' })).toHaveProperty('value', '180');
+    expect(within(seat).getByText('0 for no call time.')).toBeDefined();
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Call time' }), { target: { value: '250' } });
     fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
     await screen.findByText('42 seated at Table 2, seat 2');
-    expect(rpcs('seat_member')).toEqual([{ p_table_id: 't2', p_seat: 2, p_member_number: 42, p_call_minutes: 240 }]);
+    expect(rpcs('seat_member')).toEqual([{ p_table_id: 't2', p_seat: 2, p_member_number: 42, p_call_minutes: 250 }]);
     fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
     await waitFor(() => expect(rpcs('undo_seat')).toEqual([{ p_session_id: 's9' }]));
   });
@@ -209,27 +212,31 @@ describe('The seat sheet (console v3)', () => {
     expect(rpcs('assign_from_waitlist')).toEqual([{ p_entry_id: 'e7', p_table_id: 't2', p_seat: 2, p_call_minutes: 180 }]);
   });
 
-  it('asks for a call time when Custom holds none, and seats nobody (audit F-112)', async () => {
+  it('asks for a call time when the field is blank or past a day, and seats nobody (audit F-112)', async () => {
     const { rpcs } = await renderFloor();
     fireEvent.click(within(tile('Table 1 NLH 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
     const seat = await sheet('Seat a player');
     fireEvent.change(within(seat).getByRole('textbox', { name: 'Mobile or member number' }), { target: { value: '42' } });
-    fireEvent.click(within(seat).getByRole('radio', { name: 'Custom' }));
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Call time' }), { target: { value: '' } });
     fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
-    expect(await within(seat).findByText('Enter a call time of up to 24 h.')).toBeDefined();
+    expect(await within(seat).findByText('Type the call time in minutes, 0 to 1,440.')).toBeDefined();
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Call time' }), { target: { value: '1441' } });
+    expect(within(seat).getByText('Between 0 and 1,440 minutes.')).toBeDefined();
+    fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
     expect(rpcs('seat_member')).toEqual([]);
   });
 
-  it('seats at the new table\'s own call time after Custom was left empty on another table', async () => {
+  it('starts again from the new table\'s own call time when the table changes', async () => {
     const { rpcs } = await renderFloor();
     fireEvent.click(within(tile('Table 1 NLH 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
     const seat = await sheet('Seat a player');
     fireEvent.change(within(seat).getByRole('textbox', { name: 'Mobile or member number' }), { target: { value: '42' } });
-    fireEvent.click(within(seat).getByRole('radio', { name: 'Custom' }));
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Call time' }), { target: { value: '' } });
     fireEvent.click(within(seat).getByRole('radio', { name: 'Table 2' }));
+    expect(within(seat).getByRole('textbox', { name: 'Call time' })).toHaveProperty('value', '180');
     fireEvent.change(within(seat).getByRole('textbox', { name: /obile or member number$/ }), { target: { value: '42' } });
     fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
-    await waitFor(() => expect(rpcs('seat_member')).toHaveLength(1));
+    await waitFor(() => expect(rpcs('seat_member')).toEqual([expect.objectContaining({ p_table_id: 't2', p_call_minutes: 180 })]));
   });
 
 });
