@@ -52,6 +52,10 @@ export const consoleUi = {
     page: 'Page {page}',
     pagesGap: '…',
   },
+  /** Stepper's `progress` look (redesign RD-15): the step reached, said to a screen reader as it changes. `Step 3 of 5: PAN card`. */
+  stepper: {
+    position: 'Step {number} of {total}: {name}',
+  },
   /** A table on the live floor. */
   tableTile: {
     settings: 'Settings for {table}',
