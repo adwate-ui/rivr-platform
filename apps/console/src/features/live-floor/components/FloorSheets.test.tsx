@@ -192,6 +192,7 @@ describe('The seat sheet (console v3)', () => {
     fireEvent.change(within(seat).getByRole('textbox', { name: 'Or a mobile or member number' }), { target: { value: '42' } });
     // The call time starts from the stake's own and is typed over (redesign RD-19).
     expect(within(seat).getByRole('textbox', { name: 'Call time' })).toHaveProperty('value', '180');
+    expect(within(seat).getByText('0 for no call time.')).toBeDefined();
     fireEvent.change(within(seat).getByRole('textbox', { name: 'Call time' }), { target: { value: '250' } });
     fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
     await screen.findByText('42 seated at Table 2, seat 2');
@@ -218,7 +219,7 @@ describe('The seat sheet (console v3)', () => {
     fireEvent.change(within(seat).getByRole('textbox', { name: 'Mobile or member number' }), { target: { value: '42' } });
     fireEvent.change(within(seat).getByRole('textbox', { name: 'Call time' }), { target: { value: '' } });
     fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
-    expect(await within(seat).findByText('Enter a call time of up to 24 h.')).toBeDefined();
+    expect(await within(seat).findByText('Type the call time in minutes, 0 to 1,440.')).toBeDefined();
     fireEvent.change(within(seat).getByRole('textbox', { name: 'Call time' }), { target: { value: '1441' } });
     expect(within(seat).getByText('Between 0 and 1,440 minutes.')).toBeDefined();
     fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));

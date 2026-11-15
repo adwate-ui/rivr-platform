@@ -96,7 +96,7 @@ describe('settings (#33)', () => {
       inForce: { settingId: 'c2' }, scheduled: [{ settingId: 'c3' }],
       history: [{ settingId: 'c1', value: { minutes: 30 }, effectiveFrom: null, reason: 'Seed' }],
     });
-    expect(tds?.subjects).toEqual([{ subject: '', label: '', inForce: null, scheduled: [], history: [] }]);
+    expect(tds?.subjects).toEqual([{ subject: '', label: '', isListed: true, inForce: null, scheduled: [], history: [] }]);
   });
 
   it('offers only the tiers still in use, as a retired tier is on no chip (audit F-120)', async () => {

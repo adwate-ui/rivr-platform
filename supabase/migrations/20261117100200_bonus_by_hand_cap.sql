@@ -1,12 +1,13 @@
 -- Bonus added by hand is capped by its own setting (redesign of 15 Nov, RD-19): bonus.by_hand_cap is the most one addition
--- may be, and give_bonus_chips refuses more (RVCAP), whoever asks: the cap is on the addition, not on the person, unlike
--- bonus.daily_staff_cap, which stays as it is. None set leaves the most any addition may be, 1,00,000. A retry of an
--- addition that went through before the cap was set is still answered with it. The cap is a limit on the amount, as the
--- whole fifties are, so it answers before the daily limit does: an addition above both is refused here, and alerts no one.
+-- may be for an admin or a floor manager, and give_bonus_chips refuses them more (RVCAP). A super admin is not held to it
+-- (the owner, 15 Nov), as they are not held to bonus.daily_staff_cap, which stays as it is. None set leaves the most any
+-- addition may be, 1,00,000. A retry of an addition that went through before the cap was set is still answered with it.
+-- The cap is a limit on the amount, as the whole fifties are, so it answers before the daily limit does: an addition above
+-- both is refused here, and alerts no one.
 
 insert into public.setting_key (key, description, scope, value_schema) values
   ('bonus.by_hand_cap',
-   'The most bonus added by hand at once; an addition above it is refused. None set is 1,00,000.',
+   'The most bonus an admin or a floor manager adds by hand at once; more is refused. Super admins are not capped. None set is 1,00,000.',
    'venue',
    '{"type":"object","properties":{"chips":{"type":"integer","minimum":50,"maximum":100000}},"required":["chips"],"additionalProperties":false}');
 
@@ -26,7 +27,8 @@ create trigger setting_control_removed before delete on public.setting
                                  'bonus.by_hand_cap'))
   execute function private.guard_control_settings();
 
--- As 20261110647000_bonus_chips_by_hand_for_staff.sql, and an addition above bonus.by_hand_cap is refused.
+-- As 20261110647000_bonus_chips_by_hand_for_staff.sql, and an addition above bonus.by_hand_cap is refused below a super
+-- admin. Both limits are read as numbers before they are whole: a value written with a point (5000.0) passes its schema.
 create or replace function private.give_bonus_chips(p_member_id uuid, p_chips integer, p_reason text, p_request_id uuid)
 returns uuid
 language plpgsql
@@ -37,6 +39,7 @@ declare
   v_venue_id uuid := (select m.venue_id from public.member m where m.id = p_member_id and m.erased_at is null);
   v_key text := 'bonus.hand:' || p_request_id;
   v_is_retry boolean;
+  v_is_super_admin boolean;
   v_most integer;
   v_cap bigint;
   v_is_capped boolean;
@@ -56,18 +59,19 @@ begin
     raise exception 'A reason of 3 to 200 characters, and a request id' using errcode = '22023';
   end if;
   perform private.assert_writable(v_venue_id, 'promotions', p_member_id);
-  v_cap := (private.setting_at(v_venue_id, 'bonus.daily_staff_cap', '', now()) ->> 'chips')::bigint;
-  v_is_capped := v_cap is not null and not private.is_super_admin(v_venue_id);
+  v_is_super_admin := private.is_super_admin(v_venue_id);
+  v_cap := (private.setting_at(v_venue_id, 'bonus.daily_staff_cap', '', now()) ->> 'chips')::numeric::bigint;
+  v_is_capped := v_cap is not null and not v_is_super_admin;
   -- One person's additions wait for each other, so two at once, to different members, cannot both fit under the limit, and a
   -- retry that waited here finds the first one done.
   if v_is_capped then
     perform pg_advisory_xact_lock(hashtextextended('bonus.daily_cap:' || v_venue_id::text || ':' || (select auth.uid())::text, 0));
   end if;
   v_is_retry := exists (select 1 from public.bonus_grant g where g.venue_id = v_venue_id and g.idempotency_key = v_key);
-  -- The most at once binds everyone, a super admin too; a retry of one that went through is answered below, not refused.
+  -- The most at once, for admins and floor managers; a retry of one that went through is answered below, not refused.
   v_most := (private.setting_at(v_venue_id, 'bonus.by_hand_cap', '', now()) ->> 'chips')::numeric::integer;
-  if not v_is_retry and v_most is not null and p_chips > v_most then
-    raise exception 'More bonus than the club adds by hand at once' using errcode = 'RVCAP';
+  if not v_is_retry and not v_is_super_admin and v_most is not null and p_chips > v_most then
+    raise exception 'More bonus than staff add by hand at once' using errcode = 'RVCAP';
   end if;
   if v_is_capped and not v_is_retry
      and private.bonus_given_tonight(v_venue_id, (select auth.uid())) + p_chips::bigint * 100 > v_cap * 100 then

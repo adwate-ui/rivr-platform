@@ -184,12 +184,12 @@ describe('Tonight', () => {
   });
 
   it('Add time once the call time is met: every length the club types, however many, and the one chosen is asked for (decision 0305, redesign RD-19)', async () => {
-    renderTonight([], [{ ...SEAT, call_time_left: 0, call_time_ends_at: null, add_time_choices: [20, 45, 50, 75, 90, 200, 300] }]);
+    const { asked } = renderTonight([], [{ ...SEAT, call_time_left: 0, call_time_ends_at: null, add_time_choices: [20, 45, 50, 75, 90, 200, 300] }]);
     fireEvent.click(await screen.findByRole('button', { name: 'Add time' }, LATER));
-    expect(await screen.findByRole('dialog', { name: 'Add time' })).toBeDefined();
-    expect(screen.getAllByRole('radio').map((choice) => choice.textContent)).toEqual(['20 min', '45 min', '50 min', '1 h 15 min', '1 h 30 min', '3 h 20 min', '5 h']);
+    expect((await screen.findAllByRole('radio')).map((choice) => choice.textContent)).toEqual(['20 min', '45 min', '50 min', '1 h 15 min', '1 h 30 min', '3 h 20 min', '5 h']);
     fireEvent.click(screen.getByRole('radio', { name: '3 h 20 min' }));
-    expect(screen.getByRole('button', { name: 'Request 3 h 20 min' })).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Request 3 h 20 min' }));
+    await vi.waitFor(() => expect(asked.filter((call) => call.startsWith('request_call_time')).map((call) => call.includes('"p_minutes":200'))).toEqual([true]));
   });
 
   it('Order on its way: the tracker reads where the order is, from the bar\'s steps', async () => {

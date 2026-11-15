@@ -90,7 +90,7 @@ function useSeatForm({ venueId, table, place, onDone }: { venueId: string; table
         <ChoiceChips label={t('console.waitlist.callSeat')} mode="one" look="subtle" selected={seat === null ? [] : [String(seat)]}
           options={free.map((number) => ({ value: String(number), label: String(number) }))}
           onChange={([value]) => setPicked(value === undefined ? null : Number(value))} />
-        <UnitInput label={t('console.waitlist.callTime')} unit="minutes" min={0} max={1440} initialValue={table.callTimeMinutes} onChange={setCallMinutes} />
+        <UnitInput label={t('console.waitlist.callTime')} unit="minutes" min={0} max={1440} initialValue={table.callTimeMinutes} hint={t('console.waitlist.callTimeHint')} onChange={setCallMinutes} />
         {bonus.field}
         {failure === null ? null : <ErrorMessage>{t(failureCopy(failure))}</ErrorMessage>}
       </Stack>

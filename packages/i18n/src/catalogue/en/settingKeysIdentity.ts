@@ -13,6 +13,7 @@ export const identitySettingKeys = {
   'kyc.at_the_club': {
     name: 'Identity (KYC) checked at the club',
     help: 'Staff check Aadhaar and PAN at the desk',
+    hints: { enabled: 'On: a selfie in the app lets a new member in, and the desk checks their Aadhaar and PAN on the first visit, before they play. Off: KYC in the app.' },
     fields: { enabled: 'Check KYC at the club' },
   },
 };

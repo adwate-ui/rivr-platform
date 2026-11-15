@@ -126,13 +126,34 @@ export function useMemberBonusHistory(venueId: string, memberId: string, count: 
 /**
  * Why bonus chips added by hand did not go through: not in the staff member's role; their own member record; not whole
  * fifties from 50 to 1,00,000; no reason of 3 to 200 characters; the venue or member frozen, or promotions stopped; past
- * their daily limit; more than the club lets anyone add at once (bonus.by_hand_cap, redesign RD-19); anything else.
+ * their daily limit; more than the club lets an admin or a floor manager add at once (bonus.by_hand_cap, redesign RD-19);
+ * anything else.
  */
 export type GiveBonusFailure = 'not_allowed' | 'own_record' | 'invalid_chips' | 'invalid_reason' | 'paused' | 'daily_limit' | 'over_cap' | 'unavailable';
 
 const GIVE_FAILURE_BY_CODE: Readonly<Record<string, GiveBonusFailure>> = {
   '42501': 'not_allowed', RVOWN: 'own_record', RVCHP: 'invalid_chips', RVCAP: 'over_cap', '22023': 'invalid_reason', RVFRZ: 'paused', RVKIL: 'paused', RVMBR: 'paused',
 };
+
+/**
+ * The most the club lets an admin or a floor manager add by hand at once (bonus.by_hand_cap) as it is in force now, for the
+ * form's hint; null while none is set. Every member of staff reads their venue's settings. The database is what refuses.
+ */
+export function useBonusByHandCap(venueId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.bonusByHandCap(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<number | null> => {
+      const { data, error } = await client.from('setting').select('value').eq('venue_id', venueId).eq('key', 'bonus.by_hand_cap')
+        .lte('effective_from', new Date().toISOString()).order('effective_from', { ascending: false }).limit(1);
+      if (error) throw error;
+      const value = data[0]?.value;
+      const chips = typeof value === 'object' && value !== null && !Array.isArray(value) ? value['chips'] : undefined;
+      return typeof chips === 'number' ? chips : null;
+    },
+  });
+}
 
 /** Bonus chips added by hand: how many, why, and the request id that makes a retry the same grant. */
 export interface BonusGift {

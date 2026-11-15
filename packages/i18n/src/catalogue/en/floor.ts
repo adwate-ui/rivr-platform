@@ -110,7 +110,7 @@ export const liveFloor = {
   seat: 'Seat',
   invalidPhone: 'Enter a 10-digit mobile number or a member number.',
   /** Seating refused: a custom call time out of range. */
-  invalidCallTime: 'Give a call time of up to 24 h.',
+  invalidCallTime: 'Give a call time of 0 to 1,440 minutes.',
   openTable: 'Open table',
   closeTable: 'Close table',
   mustMoveTo: 'Must move to',

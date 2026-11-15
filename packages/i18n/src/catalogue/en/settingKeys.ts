@@ -11,6 +11,8 @@ export interface SettingCopy {
   readonly name: string;
   readonly help: string;
   readonly fields: Readonly<Record<string, string>>;
+  /** Under a field in the setting's panel: what a value means where its limits do not say ("0 is never."). */
+  readonly hints?: Readonly<Record<string, string>>;
   readonly options?: Readonly<Record<string, string>>;
 }
 
@@ -76,6 +78,7 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   'host.lapse': {
     name: 'Lapsed regular',
     help: 'When a regular goes to the host queue',
+    hints: { days: 'With that many visits, then none for this long.' },
     fields: { visits: 'Visits in six months', days: 'Then away for' },
   },
   'jackpot.drop': {
@@ -101,18 +104,22 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   'bonus.daily_staff_cap': {
     name: 'Daily bonus chips limit', fields: { chips: 'Bonus chips' },
     help: 'Most one staff member adds in a day',
+    hints: { chips: 'Past it an addition is refused and you are told. Super admins have no limit. No limit unless set.' },
   },
   'bonus.by_hand_cap': {
     name: 'Bonus added by hand', fields: { chips: 'Bonus' },
     help: 'Most staff can add at once',
+    hints: { chips: 'For admins and floor managers. Super admins have no limit.' },
   },
   'bonus.expiry_days': {
     name: 'Bonus chips expire', fields: { days: 'Days' },
     help: 'Unused Bonus is removed after this long',
+    hints: { days: '0 is never. What is held already lasts this long from when it starts.' },
   },
   'bonus.visit_cap': {
     name: 'Bonus per visit', fields: { basis_points: 'Share' },
     help: 'Share of their Bonus used in one visit',
+    hints: { basis_points: "Of what they held at the visit's first seat, in whole 50s. No limit unless set." },
   },
   'rake.config': {
     name: 'Rake',

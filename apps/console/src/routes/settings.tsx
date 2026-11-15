@@ -1,12 +1,11 @@
-import { Stack } from '@rivr/ui';
 import { createRoute } from '@tanstack/react-router';
 import { TabletsSection, TvsSection } from '../features/devices/index.ts';
 import { ScreenTabs, screenSearchFrom } from '../features/frame/index.ts';
 import { SETTINGS_PANES, TvRules } from '../features/settings/index.ts';
 import { frameRoute } from './frame.tsx';
 
-/** The TVs tab: its own settings (redesign RD-18), then its screens. */
-const TvsPane = () => <Stack gap={8}><TvRules /><TvsSection /></Stack>;
+/** The TVs tab: under its title, its own settings (redesign RD-18), then its screens. */
+const TvsPane = () => <TvsSection above={<TvRules />} />;
 
 /**
  * Settings (#33, #604; console v3): one row of tabs, the settings' areas then the kinds of device (`?tab=floor|tvs`, audit

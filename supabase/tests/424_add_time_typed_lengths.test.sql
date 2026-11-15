@@ -69,5 +69,13 @@ select is((select array_agg(minutes order by minutes) from public.call_time_requ
 select throws_ok($$ update public.call_time_request set minutes = 0 where session_id = (select id from sess) $$, '23514', null, 'a request is never for nought minutes');
 select throws_ok($$ update public.call_time_request set minutes = 1441 where session_id = (select id from sess) $$, '23514', null, 'nor for more than a day');
 
+-- A stake's call time written with a point is read as the whole number it is.
+insert into public.setting (venue_id, key, subject, value, reason)
+select t.venue_id, 'call_time.minutes', t.code, '{"minutes": 180.0}', 'test 424'
+from public.table_type t where t.venue_id = '00000000-0000-4000-8000-000000000001' order by t.code limit 1;
+select is(private.stake_call_time('00000000-0000-4000-8000-000000000001',
+            (select t.code from public.table_type t where t.venue_id = '00000000-0000-4000-8000-000000000001' order by t.code limit 1)),
+  180, 'a call time written 180.0 is 180 minutes');
+
 select * from finish();
 rollback;

@@ -1,7 +1,7 @@
 import type { SettingField } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { ChoiceChips, EditableList, ErrorMessage, Input, Stack, Switch } from '@rivr/ui';
-import { fieldLabel, limitsText, optionLabel, unitOf } from './settingsCopy.ts';
+import { fieldHint, fieldLabel, limitsText, optionLabel, unitOf } from './settingsCopy.ts';
 import type { FieldDraft } from './valueDraft.ts';
 
 interface FieldInputProps {
@@ -35,7 +35,7 @@ const LIST_UNITS = ['minutes', 'hours', 'days', 'seconds'] as const;
 
 /**
  * A list the club types (redesign RD-19): add, edit and remove, each entry within the schema's limits. The list says under
- * an entry why it is refused; how many it may hold is said here once Save finds too few or too many. A list in a unit its
+ * an entry why it is refused, and beside Add once it holds its most; too few is said here once Save finds it. A list in a unit its
  * editor does not write has no editor: no setting declares one.
  */
 function ListField({ settingKey, field, draft, isInvalid, onChange }: FieldInputProps & { field: Extract<SettingField, { kind: 'numbers' }> }) {
@@ -44,7 +44,7 @@ function ListField({ settingKey, field, draft, isInvalid, onChange }: FieldInput
   return (
     <Stack gap={2}>
       <EditableList label={fieldLabel(settingKey, field.name)} entryLabel={t('console.settings.listEntry')} addLabel={t('console.settings.listAdd')} unit={unit}
-        min={field.min} max={field.max} initialValues={typeof draft === 'object' && draft !== null ? [...draft].map(Number) : []} onChange={onChange} />
+        min={field.min} max={field.max} maxEntries={field.most ?? undefined} initialValues={typeof draft === 'object' && draft !== null ? [...draft].map(Number) : []} onChange={onChange} />
       {isInvalid && draft !== null ? <ErrorMessage>{t('console.settings.invalidList')}</ErrorMessage> : null}
     </Stack>
   );
@@ -59,7 +59,8 @@ function suffixOf(field: Extract<SettingField, { kind: 'integer' }>): string | u
 /** A number in its unit: ₹ before money, % or a time after the value, its limits as the hint and, when wrong, the error. */
 function NumberField({ settingKey, field, draft, isInvalid, onChange }: FieldInputProps & { field: Extract<SettingField, { kind: 'integer' }> }) {
   const limits = limitsText(field);
-  const hint = field.isRequired ? limits : `${limits} ${t('console.settings.optional')}`.trim();
+  // The limits, then what a value means where they do not say, then whether it may be left empty.
+  const hint = [limits, fieldHint(settingKey, field.name), field.isRequired ? undefined : t('console.settings.optional')].filter((part) => part !== undefined && part !== '').join(' ');
   return (
     <Input label={fieldLabel(settingKey, field.name)} hint={isInvalid ? undefined : hint} error={isInvalid ? limits : undefined}
       value={typeof draft === 'string' ? draft : ''} inputMode="decimal" prefix={field.isMoney ? t('console.settings.rupee') : undefined}
@@ -73,10 +74,16 @@ function textError(draft: FieldDraft, isInvalid: boolean): string | undefined {
   return typeof draft === 'string' && draft.trim() !== '' ? t('console.settings.invalidText') : t('console.settings.required');
 }
 
+/** A switch, with what on and off mean under it where the setting says. */
+function SwitchField({ settingKey, field, draft, onChange }: FieldInputProps) {
+  const hint = fieldHint(settingKey, field.name);
+  return <Switch label={fieldLabel(settingKey, field.name)} {...(hint === undefined ? {} : { hint })} isOn={draft === true} onChange={onChange} />;
+}
+
 /** One field of a setting's value, as its schema gives it: a number, a switch, a choice, a list, a tier or text. */
 export function FieldInput(props: FieldInputProps) {
   const { settingKey, field, draft, isInvalid, onChange } = props;
-  if (field.kind === 'boolean') return <Switch label={fieldLabel(settingKey, field.name)} isOn={draft === true} onChange={onChange} />;
+  if (field.kind === 'boolean') return <SwitchField {...props} />;
   if (field.kind === 'choice' || field.kind === 'tier' || field.kind === 'choices') return <ChoiceField {...props} field={field} />;
   if (field.kind === 'integer') return <NumberField {...props} field={field} />;
   if (field.kind === 'numbers') return <ListField {...props} field={field} />;

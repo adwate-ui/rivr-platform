@@ -17,6 +17,18 @@ const field = (number: number) => screen.getByRole('textbox', { name: `Choice ${
 const values = () => screen.getAllByRole('textbox').map((one) => one.getAttribute('value'));
 
 describe('EditableList', () => {
+  it('holds no more than its most: Add is off once full, the list says so, and Add is back once an entry is removed', async () => {
+    renderIn(<EditableList label="Add time choices" entryLabel="Choice" addLabel="Add a choice" unit="minutes" min={5} max={480} maxEntries={3} initialValues={[30, 60]} onChange={vi.fn()} />);
+    const add = screen.getByRole('button', { name: 'Add a choice' });
+    expect(add).toBeEnabled();
+    expect(screen.queryByText('3 at most.')).toBeNull();
+    await userEvent.click(add);
+    expect(add).toBeDisabled();
+    expect(screen.getByText('3 at most.')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Remove Choice 3' }));
+    expect(add).toBeEnabled();
+  });
+
   it('lists each entry as a numbered field with its unit and its own Remove', async () => {
     const { list, container } = choices();
     expect(values()).toEqual(['30', '60', '120']);

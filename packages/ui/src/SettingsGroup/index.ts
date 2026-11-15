@@ -1,2 +1,1 @@
-export { SettingsGroup, type SettingsGroupProps, type SettingsRow } from './SettingsGroup.tsx';
-export { SettingsGroups, type SettingsGroupsProps } from './SettingsGroups.tsx';
+export { SettingsGroup, type SettingsGroupProps, type SettingsRow, type SettingsValue } from './SettingsGroup.tsx';

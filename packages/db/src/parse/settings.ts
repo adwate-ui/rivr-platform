@@ -13,7 +13,7 @@ export type SettingField = (
   /** Any number of a fixed set, such as the connected social channels. */
   | { readonly kind: 'choices'; readonly name: string; readonly options: readonly string[] }
   /** A list of whole numbers the club types, each from `min` to `max`, such as the lengths of more call time (redesign RD-19). */
-  | { readonly kind: 'numbers'; readonly name: string; readonly min: number; readonly max: number }
+  | { readonly kind: 'numbers'; readonly name: string; readonly min: number; readonly max: number; /** The most the list holds, or null. */ readonly most: number | null }
   /** A tier's id (`tier_id`), chosen from the venue's tiers. */
   | { readonly kind: 'tier'; readonly name: string }
   | { readonly kind: 'text'; readonly name: string }
@@ -27,6 +27,7 @@ interface SchemaProperty {
   readonly minimum?: number;
   readonly maximum?: number;
   readonly multipleOf?: number;
+  readonly maxItems?: number;
   readonly enum?: readonly string[];
   readonly items?: { readonly type?: string; readonly enum?: readonly string[]; readonly minimum?: number; readonly maximum?: number };
 }
@@ -45,9 +46,9 @@ function numberField(name: string, property: SchemaProperty, isRequired: boolean
 }
 
 /** A list: whole numbers the club types, each within the schema's limits, or any number of the schema's words. */
-function listField(name: string, { items }: SchemaProperty, isRequired: boolean): SettingField {
+function listField(name: string, { items, maxItems }: SchemaProperty, isRequired: boolean): SettingField {
   if (items?.type !== 'integer') return { kind: 'choices', name, options: items?.enum ?? [], isRequired };
-  return { kind: 'numbers', name, min: items.minimum ?? 0, max: items.maximum ?? Number.MAX_SAFE_INTEGER, isRequired };
+  return { kind: 'numbers', name, min: items.minimum ?? 0, max: items.maximum ?? Number.MAX_SAFE_INTEGER, most: maxItems ?? null, isRequired };
 }
 
 function toField(name: string, property: SchemaProperty, isRequired: boolean): SettingField {

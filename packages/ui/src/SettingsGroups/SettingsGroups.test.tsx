@@ -1,19 +1,21 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { DataTableExportProvider } from '../DataTable/DataTableExport.tsx';
 import { renderIn } from '../test/render.tsx';
 import { SettingsGroups } from './SettingsGroups.tsx';
 
+const onSeatHold = vi.fn();
+const onKyc = vi.fn();
 const GROUPS = [
   {
     heading: 'Seating',
     settings: [
-      { key: 'seat_hold', name: 'Seat hold', line: 'How long a called seat is held', now: '20 minutes', who: 'Admins', toCome: '–' },
-      { key: 'open_at', name: 'Open a game at', line: 'Players waiting before the floor is told', now: '6 players waiting', who: 'Admins', toCome: '–' },
+      { key: 'seat_hold', name: 'Seat hold', line: 'How long a called seat is held', now: '20 minutes', who: 'Admins', toCome: '–', onChange: onSeatHold },
+      { key: 'open_at', name: 'Open a game at', line: 'Players waiting before the floor is told', now: ['NLH 50/100 6', 'PLO 4'], who: 'Admins', toCome: '–' },
     ],
   },
-  { heading: 'Identity', settings: [{ key: 'kyc', name: 'Identity (KYC) checked at the club', line: 'Staff check Aadhaar and PAN at the desk', now: 'On', who: 'Super admin', toCome: '–' }] },
+  { heading: 'Identity', settings: [{ key: 'kyc', name: 'Identity (KYC) checked at the club', line: 'Staff check Aadhaar and PAN at the desk', now: 'On', who: 'Super admin', toCome: '–', onHistory: onKyc }] },
 ];
 
 const headings = () => screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent);
@@ -37,7 +39,11 @@ describe('SettingsGroups', () => {
     expect(screen.queryByText('Seat hold')).toBeNull();
   });
 
-  it('says so in one line when the search finds no setting, and offers no Export of nothing', async () => {
+  it('says so in one line when there is no group, or the search finds no setting, and offers no Export of nothing', async () => {
+    const { unmount } = renderIn(<DataTableExportProvider exporter={async () => true}><SettingsGroups label="Settings" searchLabel="Find a setting" groups={[]} /></DataTableExportProvider>);
+    expect(screen.getByText('No settings.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Export Settings' })).toBeNull();
+    unmount();
     renderIn(<DataTableExportProvider exporter={async () => true}><SettingsGroups label="Settings" searchLabel="Find a setting" groups={GROUPS} /></DataTableExportProvider>);
     await userEvent.type(screen.getByRole('searchbox'), 'rake');
     expect(screen.queryByRole('heading', { level: 2 })).toBeNull();
@@ -55,5 +61,25 @@ describe('SettingsGroups', () => {
     unmount();
     renderIn(<SettingsGroups label="Settings" searchLabel="Find a setting" groups={GROUPS} />);
     expect(screen.queryByRole('button', { name: 'Export Settings' })).toBeNull();
+  });
+
+  it('works from the keyboard: Tab from the search reaches a row\'s Change, Enter opens it; then History the same way', async () => {
+    renderIn(<SettingsGroups label="Settings" searchLabel="Find a setting" groups={GROUPS} />);
+    screen.getByRole('searchbox').focus();
+    await userEvent.tab();
+    expect(screen.getByRole('button', { name: 'Change Seat hold' })).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+    expect(onSeatHold).toHaveBeenCalledTimes(1);
+    await userEvent.tab();
+    expect(screen.getByRole('button', { name: 'History of Identity (KYC) checked at the club' })).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+    expect(onKyc).toHaveBeenCalledTimes(1);
+  });
+
+  it('gives a value of several lines a line each', () => {
+    renderIn(<SettingsGroups label="Settings" searchLabel="Find a setting" groups={GROUPS} />);
+    const row = within(screen.getByRole('table', { name: 'Seating' })).getAllByRole('row')[2];
+    expect(within(row ?? document.body).getByText('NLH 50/100 6')).toBeInTheDocument();
+    expect(within(row ?? document.body).getByText('PLO 4')).toBeInTheDocument();
   });
 });

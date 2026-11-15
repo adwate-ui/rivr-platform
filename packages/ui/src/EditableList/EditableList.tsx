@@ -19,6 +19,8 @@ export interface EditableListProps {
   min: number;
   /** The most an entry may be. */
   max: number;
+  /** The most entries the list may hold; at it, Add is off and the list says so. Left out, any number. */
+  maxEntries?: number | undefined;
   /** The entries at first, in order. */
   initialValues: readonly number[];
   /** Every entry in order; null while any entry is blank, repeated or outside the range, so the screen saves nothing. */
@@ -87,9 +89,10 @@ function EntryRow({ name, unit, entry, error, isNew, onTyped, onRemove }: EntryR
  * A list of numbers in one unit that an admin adds to, edits and removes from (redesign RD-14), such as the lengths a
  * seated member can ask for. An entry left blank, repeating an earlier one or outside `min` to `max` is refused, with why
  * under it, and the list gives the screen nothing until every entry stands. A new entry takes the focus; after Remove the
- * focus stays on the list. It keeps what is typed, so the screen mounts it anew (a `key`) to start from other values.
+ * focus stays on the list. With `maxEntries`, Add is off once the list is full, and a line says how many it holds. It keeps
+ * what is typed, so the screen mounts it anew (a `key`) to start from other values.
  */
-export function EditableList({ label, entryLabel, addLabel, unit, min, max, initialValues, onChange }: EditableListProps) {
+export function EditableList({ label, entryLabel, addLabel, unit, min, max, maxEntries, initialValues, onChange }: EditableListProps) {
   const rule = { unit, range: { min, max } };
   const [entries, setEntries] = useState<readonly Entry[]>(() => initialValues.map((value, id) => ({ id, typed: String(value) })));
   const [firstNewId] = useState(initialValues.length);
@@ -103,6 +106,7 @@ export function EditableList({ label, entryLabel, addLabel, unit, min, max, init
     change([...entries, { id: nextId.current, typed: '' }]);
     nextId.current += 1;
   };
+  const isFull = maxEntries !== undefined && entries.length >= maxEntries;
   const remove = (id: number) => {
     change(entries.filter((entry) => entry.id !== id));
     list.current?.focus();
@@ -115,8 +119,9 @@ export function EditableList({ label, entryLabel, addLabel, unit, min, max, init
           error={refusalOf(entries, at, rule)} isNew={entry.id >= firstNewId} onRemove={() => remove(entry.id)}
           onTyped={(typed) => change(entries.map((one) => (one.id === entry.id ? { ...one, typed } : one)))} />
       ))}
-      <div className="flex">
-        <Button variant="subtle" size="compact" onClick={add}>{addLabel}</Button>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button variant="subtle" size="compact" isDisabled={isFull} onClick={add}>{addLabel}</Button>
+        {isFull ? <Text variant="small" tone="muted">{t('ui.console.editableList.full', { count: formatNumber(entries.length) })}</Text> : null}
       </div>
     </div>
   );

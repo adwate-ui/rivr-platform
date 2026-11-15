@@ -34,6 +34,8 @@ export const settingName = (key: string) => settingCopy(key)?.name ?? key;
 /** What a setting does, in one line; the database's description, for one with no words yet. */
 export const settingHelp = (key: string, description: string) => settingCopy(key)?.help ?? description;
 export const fieldLabel = (key: string, name: string) => settingCopy(key)?.fields[name] ?? fromWords(name);
+/** What a field's value means where its limits do not say: "0 is never." */
+export const fieldHint = (key: string, name: string) => settingCopy(key)?.hints?.[name];
 export const optionLabel = (key: string, option: string) => settingCopy(key)?.options?.[option] ?? fromWords(option);
 /** Only a super admin changes it: the database's guard triggers (SettingDefinition.superAdminOnly). */
 /** What a setting runs on while nothing is set (audit F-031); none for a rule that is off until set. */

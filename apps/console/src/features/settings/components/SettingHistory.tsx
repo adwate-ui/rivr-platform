@@ -1,0 +1,108 @@
+import { STAFF_ROLES } from '@rivr/contracts/roles';
+import { useSettingActions, type SettingEntry, type SettingFailure, type SettingSubjectRules, type SettingValue, type VenueSetting } from '@rivr/db';
+import { formatDayTime, t } from '@rivr/i18n';
+import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
+import { useState } from 'react';
+import { defaultOf, settingFailureText, settingHelp, settingName, valueText } from './settingsCopy.ts';
+
+export type Tiers = readonly { readonly subject: string; readonly label: string }[];
+
+/** What every panel of a setting is given. */
+export interface SettingSheetProps {
+  venueId: string;
+  setting: VenueSetting;
+  tiers: Tiers;
+  onClose: () => void;
+}
+
+/** A panel's title and, under it, the setting's one line. */
+export const sheetWords = (setting: VenueSetting) => ({ title: settingName(setting.key), subtitle: settingHelp(setting.key, setting.description) });
+
+/** A role's name as the Staff screen gives it; a table type or tier by its own name; a stake as written. */
+function subjectLabel(setting: VenueSetting, rules: SettingSubjectRules): string {
+  const role = setting.scope === 'role' ? STAFF_ROLES.find((one) => one === rules.subject) : undefined;
+  return role === undefined ? rules.label : t(`console.staff.roles.${role}`);
+}
+
+/** When a value began, who set it and why: "Since 20 Oct, 18:00 · by Vikram Rao · Busier nights" (#604). */
+function detailOf(entry: SettingEntry): string {
+  const since = entry.effectiveFrom === null ? t('console.settings.sinceOpening') : t('console.settings.since', { date: formatDayTime(new Date(entry.effectiveFrom)) });
+  const by = entry.createdBy === null ? null : t('console.settings.by', { name: entry.createdBy });
+  return [since, by, entry.reason].filter((part) => part !== null && part !== '').join(t('console.settings.fieldSeparator'));
+}
+
+/** The changes to come for one subject, each withdrawn with its own button by staff who may change the setting. */
+function ToCome({ venueId, rules, describe, canWithdraw }: { venueId: string; rules: SettingSubjectRules; describe: (value: SettingValue) => string; canWithdraw: boolean }) {
+  const { withdraw } = useSettingActions(venueId);
+  const [outcome, setOutcome] = useState<SettingFailure | 'withdrawn' | null>(null);
+  const take = async (entry: SettingEntry) => {
+    const done = await withdraw.mutateAsync(entry.settingId);
+    setOutcome(done.ok ? 'withdrawn' : done.error);
+  };
+  return (
+    <>
+      {rules.scheduled.length === 0 ? <Text tone="muted">{t('console.settings.noneToCome')}</Text> : rules.scheduled.map((entry) => {
+        const from = entry.effectiveFrom === null ? '' : formatDayTime(new Date(entry.effectiveFrom));
+        return (
+          <Inline key={entry.settingId} gap={4} wrap>
+            <Text>{t('console.settings.fromEntry', { date: from, value: describe(entry.value) })}</Text>
+            {canWithdraw ? <Button variant="text" isLoading={withdraw.isPending} onClick={() => void take(entry)}>{t('console.settings.withdrawFrom', { date: from })}</Button> : null}
+          </Inline>
+        );
+      })}
+      {outcome === 'withdrawn' ? <Text variant="small">{t('console.settings.withdrawn')}</Text> : null}
+      {outcome !== null && outcome !== 'withdrawn' ? <ErrorMessage>{settingFailureText(outcome)}</ErrorMessage> : null}
+    </>
+  );
+}
+
+interface SettingHistoryProps {
+  venueId: string;
+  setting: VenueSetting;
+  tiers: Tiers;
+  /** What it is for: a stake's code, a tier's id or a role; empty for the venue. */
+  subject: string;
+  /** False for staff who only read the setting: the changes to come stay. */
+  canWithdraw: boolean;
+}
+
+/** What the setting is for one subject: in force now, the changes to come, and before, each with who set it and why. */
+export function SettingHistory({ venueId, setting, tiers, subject, canWithdraw }: SettingHistoryProps) {
+  const rules = setting.subjects.find((one) => one.subject === subject);
+  if (rules === undefined) return null;
+  const tierName = (id: string) => tiers.find((tier) => tier.subject === id)?.label ?? id;
+  const describe = (value: SettingValue) => valueText(setting.key, setting.fields, value, tierName);
+  const fallback = defaultOf(setting.key);
+  return (
+    <Stack gap={4}>
+      <Heading level={3}>{t('console.settings.inForce')}</Heading>
+      {rules.inForce === null
+        ? <Text tone="muted">{fallback === undefined ? t('console.settings.notSet') : t('console.settings.byDefault', { value: describe(fallback) })}</Text>
+        : <Text>{t('console.settings.entry', { value: describe(rules.inForce.value), since: detailOf(rules.inForce) })}</Text>}
+      <Heading level={3}>{t('console.settings.toCome')}</Heading>
+      <ToCome venueId={venueId} rules={rules} describe={describe} canWithdraw={canWithdraw} />
+      <Heading level={3}>{t('console.settings.before')}</Heading>
+      {rules.history.length === 0 ? <Text tone="muted">{t('console.settings.noneBefore')}</Text>
+        : rules.history.map((entry) => <Text key={entry.settingId} tone="muted">{t('console.settings.entry', { value: describe(entry.value), since: detailOf(entry) })}</Text>)}
+    </Stack>
+  );
+}
+
+/** The subjects a panel offers: for stakes, those the club has today; a stake since deleted keeps its rows, unseen. */
+export const offeredSubjects = (setting: VenueSetting) => (setting.scope === 'table_type' ? setting.subjects.filter((rules) => rules.isListed) : setting.subjects);
+
+export const firstSubject = (setting: VenueSetting) => offeredSubjects(setting)[0]?.subject ?? '';
+
+/** What a scoped setting is given for: one of the scope's subjects, or a stake as typed. */
+export function SubjectChoice({ setting, subject, onChange }: { setting: VenueSetting; subject: string; onChange: (subject: string) => void }) {
+  const scope = setting.scope === 'venue' ? 'table_type' : setting.scope;
+  const label = t(`console.settings.subjects.${scope}`);
+  const options = offeredSubjects(setting).map((rules) => ({ value: rules.subject, label: subjectLabel(setting, rules) }));
+  return (
+    <Stack gap={3}>
+      {options.length > 0 ? <ChoiceChips label={label} mode="one" selected={subject === '' ? [] : [subject]} options={options} onChange={(chosen) => onChange(chosen[0] ?? '')} /> : null}
+      {setting.scope === 'stake' ? <Input label={label} hint={t('console.settings.stakeHint')} value={subject} onChange={(event) => onChange(event.target.value.trim())} /> : null}
+      {subject === '' ? <ErrorMessage>{t('console.settings.chooseSubject')}</ErrorMessage> : null}
+    </Stack>
+  );
+}

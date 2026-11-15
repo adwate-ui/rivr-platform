@@ -145,7 +145,7 @@ function Where({ sheet }: { sheet: SeatSheetState }) {
  */
 function CallTime({ sheet }: { sheet: SeatSheetState }) {
   const { choice, tablesOwn } = sheet;
-  return <UnitInput key={choice.tableId} label={t('console.floor.seat.callTime')} unit="minutes" min={0} max={1440} initialValue={tablesOwn} onChange={choice.setCallMinutes} />;
+  return <UnitInput key={choice.tableId} label={t('console.floor.seat.callTime')} unit="minutes" min={0} max={1440} initialValue={tablesOwn} hint={t('console.floor.seat.callTimeHint')} onChange={choice.setCallMinutes} />;
 }
 
 /** The member's bonus chips under the field: their balance, and what this visit may still redeem where the club caps it (decision 0579). */

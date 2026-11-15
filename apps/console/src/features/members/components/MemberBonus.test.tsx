@@ -1,4 +1,4 @@
-import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
+import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, StaffVenueProvider } from '@rivr/db';
 import { QueryClient } from '@tanstack/react-query';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -20,7 +20,7 @@ function renderPart(canGive: boolean) {
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <MemberBonus venueId="v1" memberId="m1" canGive={canGive} />
+      <StaffVenueProvider><MemberBonus venueId="v1" memberId="m1" canGive={canGive} /></StaffVenueProvider>
     </RivrDataProvider>,
   );
 }

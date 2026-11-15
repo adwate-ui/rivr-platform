@@ -2,8 +2,8 @@ import { formatNumber, t } from '@rivr/i18n';
 import { useState } from 'react';
 import { ExportBar, useTableExporter } from '../DataTable/DataTableExport.tsx';
 import { Input } from '../Input/Input.tsx';
+import { SettingsGroup, settingsValueText, type SettingsGroupProps, type SettingsRow } from '../SettingsGroup/SettingsGroup.tsx';
 import { Text } from '../Text/Text.tsx';
-import { SettingsGroup, type SettingsGroupProps, type SettingsRow } from './SettingsGroup.tsx';
 
 export interface SettingsGroupsProps {
   /** What the settings are, as their export is named: "Settings". */
@@ -18,9 +18,9 @@ export interface SettingsGroupsProps {
 function exportColumns() {
   return [
     { header: t('ui.console.settingsGroup.setting'), cell: (setting: SettingsRow) => setting.name },
-    { header: t('ui.console.settingsGroup.now'), cell: (setting: SettingsRow) => setting.now },
+    { header: t('ui.console.settingsGroup.now'), cell: (setting: SettingsRow) => settingsValueText(setting.now) },
     { header: t('ui.console.settingsGroup.who'), cell: (setting: SettingsRow) => setting.who },
-    { header: t('ui.console.settingsGroup.toCome'), cell: (setting: SettingsRow) => setting.toCome },
+    { header: t('ui.console.settingsGroup.toCome'), cell: (setting: SettingsRow) => settingsValueText(setting.toCome) },
   ];
 }
 

@@ -28,6 +28,18 @@ as $$
     array[30, 60, 120]);
 $$;
 
+-- A stake's call time, read the same way (20261116100000_stake_call_time.sql read it as text straight to an integer, which
+-- a value written 180.0 breaks for Tables setup, Settings and seating at that stake).
+create or replace function private.stake_call_time(p_venue_id uuid, p_code text)
+returns integer
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce((private.setting_at(p_venue_id, 'call_time.minutes', p_code, now()) ->> 'minutes')::numeric::integer, 0);
+$$;
+
 -- A request is for any length the club may type.
 alter table public.call_time_request drop constraint call_time_request_minutes_check;
 alter table public.call_time_request add constraint call_time_request_minutes_check check (minutes between 1 and 1440);

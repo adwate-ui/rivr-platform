@@ -31,10 +31,10 @@ export const settings = {
   required: 'Required.',
   invalidText: "Not this setting's form.",
   noChoice: 'Choose one.',
-  /** A list the club types (redesign RD-19): what an entry is called, its button, and too few or too many of them. */
+  /** A list the club types (redesign RD-19): what an entry is called, its button, and a list saved with none. */
   listEntry: 'Choice',
   listAdd: 'Add a choice',
-  invalidList: 'Too few or too many. Add or remove one.',
+  invalidList: 'Add at least one.',
   unchanged: 'Nothing changed.',
   notTogether: 'These values do not fit together.',
   noneChosen: 'None',
@@ -57,6 +57,8 @@ export const settings = {
   entry: '{value} · {since}',
   toCome: 'Changes to come',
   fromEntry: 'From {date}: {value}',
+  /** In a row, above the stakes that change then. */
+  fromMoment: 'From {date}:',
   withdraw: 'Withdraw',
   withdrawFrom: 'Withdraw the change from {date}',
   withdrawn: 'Change withdrawn.',

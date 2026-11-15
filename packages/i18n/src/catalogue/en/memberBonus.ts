@@ -24,7 +24,8 @@ export const memberBonus = {
     title: 'Add bonus chips',
     intro: 'Added to the balance at once, with your reason in their history.',
     chips: 'Bonus chips',
-    chipsHint: 'Whole fifties, 50 to 1,00,000.',
+    /** `{most}` is the most this person adds at once: the club's cap for an admin or a floor manager, else 1,00,000. */
+    chipsHint: 'Whole fifties, 50 to {most}.',
     reason: 'Reason for chips',
     reasonHint: 'The member sees it in their history.',
     add: 'Add bonus chips',
@@ -38,8 +39,8 @@ export const memberBonus = {
       paused: 'Frozen, or promotions stopped. Try once released.',
       /** Past the staff member's daily limit on bonus chips by hand; the owner is told. */
       daily_limit: 'Past your daily limit for adding bonus chips. A super admin can add more.',
-      /** Above the most the club adds by hand at once (bonus.by_hand_cap). */
-      over_cap: 'More than the club adds at once. Type less.',
+      /** Above the most an admin or a floor manager adds by hand at once (bonus.by_hand_cap). */
+      over_cap: 'More than staff add at once. Type less, or ask a super admin.',
       unavailable: 'Not added. Try again.',
     },
   },

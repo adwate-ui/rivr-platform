@@ -49,12 +49,12 @@ export const bonusDailyStaffCap = {
 } as const satisfies SettingDefinition;
 
 /**
- * The most bonus one person adds by hand at once (redesign RD-19): more is refused, whoever asks. Only super admins change
- * it. None set is the most any addition may be, 1,00,000.
+ * The most bonus an admin or a floor manager adds by hand at once (redesign RD-19): more is refused. Super admins are not
+ * capped (the owner, 15 Nov), and only they change it. None set is the most any addition may be, 1,00,000.
  */
 export const bonusByHandCap = {
-  key: 'bonus.by_hand_cap',
-  description: 'The most bonus added by hand at once; an addition above it is refused. None set is 1,00,000.',
+  key: 'bonus.by_hand_cap', defaultValue: { chips: 100000 },
+  description: 'The most bonus an admin or a floor manager adds by hand at once; more is refused. Super admins are not capped. None set is 1,00,000.',
   scope: 'venue',
   superAdminOnly: true,
   value: z.strictObject({ chips: z.int().min(50).max(100000) }),
