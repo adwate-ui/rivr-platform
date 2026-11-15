@@ -94,8 +94,7 @@ select is((select count(*)::integer from public.top_up_history('00000000-0000-40
   'and never more than 200 rows are asked of the database at once');
 
 -- Nothing else is theirs: no seat map, no waitlist, no member, visit, seat, Bonus, identity check, order or audit line, and
--- nothing to change. What every staff sign-in reads of its own venue (its name, tables, stakes, settings and colleagues'
--- names, by policies that name no permission) is not narrowed here (decision 0610).
+-- nothing to change.
 select is((select count(*)::integer from public.floor_seats('00000000-0000-4000-8000-000000000001')), 0, 'guest relations read no seat map');
 select is((select count(*)::integer from public.waitlist_board('00000000-0000-4000-8000-000000000001')), 0, 'nor the waitlist');
 select is((select count(*)::integer from public.members_of_tier('00000000-0000-4000-8000-000000000001')), 0, 'nor the members');
@@ -128,6 +127,62 @@ values ('00000000-0000-4000-8000-0000000434e1', '00000000-0000-4000-8000-0000000
 select pg_temp.as_person('00000000-0000-4000-8000-0000000434e2');
 select is((select count(*)::integer from public.top_ups_tonight('00000000-0000-4000-8000-000000000001')), 0, 'another venue''s guest relations read none here');
 select throws_ok($$ select public.set_top_up((select id from ids where name = 'vihaan'), false) $$, '42501', null, 'and handle none here');
+
+-- The guard (the security review of the pull request): of every table in public with a policy to read it by, guest relations
+-- read no row, but for the few named here. A table added later is in the loop at once.
+reset role;
+select set_config('request.jwt.claims', '', true);
+-- Rows in the tables that matter, so that none read means refused and not empty.
+insert into public.camera (venue_id, name, channel) values ('00000000-0000-4000-8000-000000000001', 'Guard camera', '9');
+insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'messaging_stop', 'The guard''s own row');
+insert into public.tablet_assignment (venue_id, device_id, table_id)
+select d.venue_id, d.id, pg_temp.t('Table 3') from public.device d
+where d.venue_id = '00000000-0000-4000-8000-000000000001' and d.kind = 'dealer_tablet' order by d.id limit 1;
+create function pg_temp.reads(p_table text) returns bigint language plpgsql as $$
+declare
+  v_rows bigint;
+begin
+  execute format('select count(*) from public.%I', p_table) into v_rows;
+  return v_rows;
+exception when insufficient_privilege then
+  return 0;
+end;
+$$;
+grant execute on function pg_temp.reads(text) to authenticated;
+create temp table held as
+  select c.relname::text as tbl, pg_temp.reads(c.relname::text) as held
+  from pg_class c join pg_namespace ns on ns.oid = c.relnamespace
+  where ns.nspname = 'public' and c.relkind = 'r'
+    and exists (select 1 from pg_policy p where p.polrelid = c.oid and p.polcmd in ('r', '*'));
+-- What the role may read: the venues it works at (the seed's desk works at the club and the practice venue), the role matrix,
+-- the feature catalogue every signed-in person reads, its own staff record at each, and its own preferences.
+create temp table allowed as
+  select 'venue' as tbl, (select count(*) from public.staff s where s.user_id = '00000000-0000-4000-8000-0000000d0791') as rows
+  union all select 'staff', (select count(*) from public.staff s where s.user_id = '00000000-0000-4000-8000-0000000d0791')
+  union all select 'role_permission', (select h.held from held h where h.tbl = 'role_permission')
+  union all select 'feature', (select h.held from held h where h.tbl = 'feature')
+  union all select 'staff_preference', (select count(*) from public.staff_preference sp join public.staff s on s.id = sp.staff_id
+                                        where s.user_id = '00000000-0000-4000-8000-0000000d0791');
+grant select on held, allowed to authenticated;
+select cmp_ok((select h.held from held h where h.tbl = m.tbl), '>', 0::bigint, m.tbl || ' holds rows, so none read is a refusal')
+from unnest(array['staff', 'contact', 'setting', 'setting_key', 'device', 'venue_config', 'game_table', 'table_type', 'tier', 'tier_feature', 'tournament',
+                  'dealer_down', 'tablet_assignment', 'camera', 'control_state', 'member', 'visit', 'seat_session', 'promotion']) as m(tbl);
+select cmp_ok((select count(*) from held), '>', 60::bigint, 'the loop finds every table with a policy to read it by');
+select pg_temp.as_person('00000000-0000-4000-8000-0000000d0791');
+select is(pg_temp.reads(h.tbl), coalesce((select a.rows from allowed a where a.tbl = h.tbl), 0),
+          'guest relations read ' || coalesce((select 'only what is theirs of ' from allowed a where a.tbl = h.tbl), 'nothing of ') || h.tbl)
+from held h order by h.tbl;
+select is((select count(*)::integer from public.staff where user_id <> '00000000-0000-4000-8000-0000000d0791'), 0, 'no colleague''s record');
+select is((select count(*)::integer from public.venue_staff('00000000-0000-4000-8000-000000000001')), 0, 'nor the staff list');
+select is((select count(*)::integer from public.cameras('00000000-0000-4000-8000-000000000001')), 0, 'nor the cameras');
+select is((select count(*)::integer from public.floor_open_seats()), 0, 'nor the open seats');
+select is((select count(*)::integer from public.waitlist_lengths()), 0, 'nor how long the lists are');
+select is((select count(*)::integer from public.stake_call_times('00000000-0000-4000-8000-000000000001')), 0, 'nor the stakes'' call times');
+select is((select count(*)::integer from public.top_ups_tonight('00000000-0000-4000-8000-000000000001')), 2, 'and still the top-ups');
+-- A dealer reads what the floor's devices need, as before: the narrowing is the one role's.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
+select cmp_ok(pg_temp.reads('game_table'), '>', 0::bigint, 'a dealer still reads the tables');
+select cmp_ok(pg_temp.reads('staff'), '>', 1::bigint, 'and their colleagues');
 
 reset role;
 select is(has_function_privilege('anon', 'public.top_up_history(uuid, date, integer, integer)', 'execute'), false, 'no one signed out reads a past day');
