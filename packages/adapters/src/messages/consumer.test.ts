@@ -1,14 +1,16 @@
 import { indianMobileSchema } from '@rivr/contracts';
 import { describe, expect, it } from 'vitest';
+import { z } from 'zod';
 import type { ClaimedDelivery } from '../outbox/index.ts';
+import { createWhatsAppEvolution } from '../whatsapp/evolution.ts';
 import { createFakeWhatsApp } from '../whatsapp/fake.ts';
 import { createWhatsAppConsumer, type FindErasedPhone, type FindRecipient } from './consumer.ts';
 
 const MEMBER = '00000000-0000-4000-8000-000000000211';
 const phone = indianMobileSchema.parse('+919000000211');
 const VENUE = 'v1';
-const findRecipient: FindRecipient = async (venueId, memberId) =>
-  (venueId === VENUE && memberId === MEMBER ? { phone, marketingOptedInAt: null } : null);
+const recipient = { phone, marketingOptedInAt: null, firstName: 'Neha', memberNumber: '1042' };
+const findRecipient: FindRecipient = async (venueId, memberId) => (venueId === VENUE && memberId === MEMBER ? recipient : null);
 const findErasedPhone: FindErasedPhone = async () => null;
 
 // Ten minutes before the hold in these calls runs out.
@@ -19,10 +21,10 @@ function delivery(eventType: string, payload: unknown, occurredAt?: Date): Claim
 }
 
 describe('the WhatsApp consumer', () => {
-  it('is a messaging consumer of the seat call, promotion offers, review requests and member notices, so a messaging stop holds it', () => {
+  it('is a messaging consumer of the seat call, promotion offers, review requests, member notices and sign-ups, so a messaging stop holds it', () => {
     const consumer = createWhatsAppConsumer({ whatsapp: createFakeWhatsApp(), findRecipient, findErasedPhone, now });
     expect([consumer.name, consumer.isMessaging, consumer.eventTypes])
-      .toEqual(['whatsapp', true, ['waitlist.called', 'promotion.offered', 'review.requested', 'member.notice']]);
+      .toEqual(['whatsapp', true, ['waitlist.called', 'promotion.offered', 'review.requested', 'member.notice', 'member.signed_up']]);
   });
 
   it('tells a member, by a utility message, what happened while they were away from the app (decision 0303)', async () => {
@@ -120,6 +122,35 @@ describe('the WhatsApp consumer', () => {
     expect(whatsapp.calls).toEqual([]);
   });
 
+  it('welcomes someone who signed up, in the owner\u2019s words, with the first word of their name and their member number (decision 0661)', async () => {
+    const texts: string[] = [];
+    const fetch: typeof globalThis.fetch = async (_input, init = {}) => {
+      texts.push(z.object({ text: z.string() }).parse(JSON.parse(String(init.body))).text);
+      return Response.json({ key: { id: 'welcome-1' } }, { status: 201 });
+    };
+    const whatsapp = createWhatsAppEvolution({ baseUrl: 'https://wa.example.test', apiKey: 'test-key', instance: 'rivr test', fetch });
+    const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, findErasedPhone, now });
+    const signedUp = { member_id: MEMBER, utm_source: 'instagram' };
+
+    expect(await consumer.deliver(delivery('member.signed_up', signedUp, now()))).toEqual({ ok: true, value: { messageId: 'welcome-1' } });
+    expect(texts).toEqual(['Hi Neha, congratulations on becoming a member of RIVR poker club. Your membership ID is: 1042.']);
+  });
+
+  it('sends no welcome claimed over six hours after the sign-up, as when it began, and refuses one for a member no longer there', async () => {
+    const whatsapp = createFakeWhatsApp();
+    const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, findErasedPhone, now });
+    const hoursAgo = (hours: number) => new Date(now().getTime() - hours * 60 * 60 * 1000);
+
+    expect(await consumer.deliver(delivery('member.signed_up', { member_id: MEMBER }, hoursAgo(7)))).toEqual({ ok: true, value: null });
+    expect(await consumer.deliver(delivery('member.signed_up', { member_id: MEMBER }))).toEqual({ ok: true, value: null });
+    const gone = await consumer.deliver(delivery('member.signed_up', { member_id: '00000000-0000-4000-8000-000000000999' }, now()));
+    expect(gone).toMatchObject({ ok: false, error: { code: 'rejected' } });
+    expect(await consumer.deliver(delivery('member.signed_up', {}, now()))).toMatchObject({ ok: false, error: { code: 'rejected' } });
+    expect(whatsapp.calls).toEqual([]);
+    await consumer.deliver(delivery('member.signed_up', { member_id: MEMBER }, hoursAgo(5)));
+    expect(whatsapp.calls).toEqual([{ category: 'utility', to: phone, template: 'member_welcome', params: ['Neha', '1042'] }]);
+  });
+
   it('sends the seat call: the table, the seat and when the hold expires, in IST', async () => {
     const whatsapp = createFakeWhatsApp();
     const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, findErasedPhone, now });
@@ -169,7 +200,7 @@ describe('the WhatsApp consumer', () => {
     const whatsapp = createFakeWhatsApp();
     const review = { review_request_id: '00000000-0000-4000-8000-000000000b01', member_id: MEMBER, url: 'https://g.page/r/rivr-gurugram/review' };
 
-    const asking = createWhatsAppConsumer({ whatsapp, now, findErasedPhone, findRecipient: async () => ({ phone, marketingOptedInAt: optedIn }) });
+    const asking = createWhatsAppConsumer({ whatsapp, now, findErasedPhone, findRecipient: async () => ({ ...recipient, marketingOptedInAt: optedIn }) });
     expect((await asking.deliver(delivery('review.requested', review))).ok).toBe(true);
     expect(whatsapp.calls).toEqual([{ category: 'marketing', optedInAt: optedIn, to: phone, template: 'review_request', params: [review.url] }]);
 
@@ -185,7 +216,7 @@ describe('the WhatsApp consumer', () => {
     const asked: (string | undefined)[] = [];
     const consumer = createWhatsAppConsumer({ whatsapp, now, findErasedPhone, findRecipient: async (_venueId, _memberId, offeredPromotionId) => {
       asked.push(offeredPromotionId);
-      return { phone, marketingOptedInAt: optedIn };
+      return { ...recipient, marketingOptedInAt: optedIn };
     } });
     const offer = { promotion_id: '00000000-0000-4000-8000-000000000a01', member_id: MEMBER, title: 'Thursday bonus', detail: null, runs: 'NLH 100/200 · Thursday, 14:00 to 20:00' };
 
