@@ -99,6 +99,8 @@ describe('the console rail (console v3)', () => {
     const door = entry('door');
     if (door === undefined) throw new Error('no Door entry');
     expect(tabsFor(door, ROLE_PERMISSIONS.host).map((tab) => tab.id)).toEqual(['check-in', 'players']);
+    // The floor reads Today's players, with each member's number (the owner, 15 Nov night; pgTAP 501).
+    expect(tabsFor(door, ROLE_PERMISSIONS.floor).map((tab) => tab.id)).toEqual(['check-in', 'players']);
     expect(tabsFor(door, ROLE_PERMISSIONS.service).map((tab) => tab.id)).toEqual([]);
     expect(isAllowedAt(ROLE_PERMISSIONS.admin, '/tournaments')).toBe(true);
     // A tab the screen does not have is the screen's first: the role's, not a refusal.
