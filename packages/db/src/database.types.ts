@@ -2624,11 +2624,6 @@ isOneToOne: false
 "add_to_waitlist":
 { Args: { "p_idempotency_key": string,"p_member_number"?: number,"p_phone": string,"p_table_id": string }; Returns: string
                            },
-"agent_device":
-{ Args: { "p_token_hash": string }; Returns: {
-              "device_id": string,"venue_id": string
-            }[]
-                           },
 "alert_recipient":
 { Args: { "p_alert_id": string,"p_venue_id": string }; Returns: {
               "alert_whatsapp": string
@@ -2710,16 +2705,6 @@ isOneToOne: false
 "check_tv_pairing":
 { Args: { "p_secret": string }; Returns: {
               "device_id": string,"previous_user_id": string,"refusal": string
-            }[]
-                           },
-"claim_agent":
-{ Args: { "p_client": string,"p_code": string,"p_token_hash": string }; Returns: {
-              "device_id": string,"refusal": string,"venue_id": string
-            }[]
-                           },
-"claim_agent_kots":
-{ Args: { "p_device_id": string,"p_limit": number }; Returns: {
-              "attempts": number,"delivery_id": string,"event_id": string,"event_type": string,"payload": Json,"venue_id": string
             }[]
                            },
 "claim_computer":
@@ -2832,9 +2817,6 @@ isOneToOne: false
 { Args: { "p_before"?: string,"p_before_id"?: string,"p_list": string,"p_venue_id": string }; Returns: {
               "created_at": string,"full_name": string,"id": string,"is_ticket": boolean,"member_id": string,"member_number": number,"note": string,"nps": number,"ratings": Json,"resolution": string,"resolved_at": string,"resolved_by": string,"score": number,"topic": string,"visit_closed_at": string
             }[]
-                           },
-"finish_agent_kot":
-{ Args: { "p_attempts"?: number,"p_delivered": boolean,"p_delivery_id": string,"p_device_id": string,"p_error": string,"p_retry_after_seconds": number }; Returns: undefined
                            },
 "finish_outbox_delivery":
 { Args: { "p_attempts"?: number,"p_delivered": boolean,"p_delivery_id": string,"p_error"?: string,"p_no_recipient"?: boolean,"p_retry_after"?: string }; Returns: undefined
@@ -3235,14 +3217,6 @@ isOneToOne: false
 "offer_recipient":
 { Args: { "p_member_id": string,"p_promotion_id": string,"p_venue_id": string }; Returns: {
               "marketing_opted_in_at": string,"phone": string
-            }[]
-                           },
-"offline_pack":
-{ Args: { "p_venue_id": string }; Returns: Json
-                           },
-"offline_pack_venues":
-{ Args: Record<PropertyKey, never>; Returns: {
-              "venue_id": string
             }[]
                            },
 "open_feedback":

@@ -37,7 +37,6 @@ export {
   dealerPinEntrySchema,
   dealerPinSchema,
   cameraSchema,
-  computerEnrolSchema,
   dealerTabletAddSchema,
   devicePairRequestSchema,
   devicePairSchema,
