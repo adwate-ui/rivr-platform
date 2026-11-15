@@ -115,6 +115,34 @@ describe('useAuthStatus', () => {
     expect(screen.getByText('auth: loading')).toBeDefined();
   });
 
+  // Redesign RD-34 (decision 0641): Auth failing outright to read the session left every app loading for ever.
+  describe('when Auth cannot read the session at all', () => {
+    function WhoProbe() {
+      const { authStatus, userId } = useRivrData();
+      return <p>{`${authStatus} as ${userId ?? 'nobody'}`}</p>;
+    }
+    const broken = () => {
+      const client = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
+        auth: { storage: sessionStorageFor(null), storageKey: 'rivr-test-auth', autoRefreshToken: false, detectSessionInUrl: false },
+      });
+      vi.spyOn(client.auth, 'getSession').mockRejectedValue(new Error('The lock could not be taken'));
+      return client;
+    };
+    afterEach(() => localStorage.clear());
+
+    it.each([['the app that keeps a night', true], ['any other app', false]])('goes on as the stored session\u2019s member, in %s', async (_name, keepsForOffline) => {
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ access_token: 'old', refresh_token: 'old', token_type: 'bearer', expires_in: 3600, expires_at: 1, user: { id: ARJUN } }));
+      render(<RivrDataProvider client={broken()} keepsForOffline={keepsForOffline}><WhoProbe /></RivrDataProvider>);
+      expect(await screen.findByText(`signed-in as ${ARJUN}`)).toBeDefined();
+    });
+
+    it.each([['nothing stored', null], ['a stored session it cannot read', 'not json'], ['one with no user', '{}']])('is signed out, never loading for ever, with %s', async (_name, stored) => {
+      if (stored !== null) localStorage.setItem(SESSION_STORAGE_KEY, stored);
+      render(<RivrDataProvider client={broken()} keepsForOffline><WhoProbe /></RivrDataProvider>);
+      expect(await screen.findByText('signed-out as nobody')).toBeDefined();
+    });
+  });
+
   describe('in the app that keeps a night for offline (F-053)', () => {
     function WhoProbe() {
       const { authStatus, userId } = useRivrData();
