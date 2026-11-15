@@ -114,10 +114,6 @@ reset role;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 insert into ids select 'mihir again', public.join_waitlist_at(pg_temp.table_id('Table 2'), gen_random_uuid());
 reset role;
-select is((select count(*)::integer from public.public_waitlist_length l where l.table_type_code = 'nlh_100_200'), 1, 'the website has the game');
-select is((select waiting from public.public_waitlist_length l join public.venue v on v.slug = l.venue_slug
-           where l.table_type_code = 'nlh_100_200' and v.id = '00000000-0000-4000-8000-000000000001'), 4,
-  'and counts the four on its list, not the request');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is(public.add_to_waitlist(pg_temp.table_id('Table 2'), '9000000213', gen_random_uuid()), (select id from ids where name = 'mihir again'),
   'the floor adding Mihir to the table he asked for keeps his one place');

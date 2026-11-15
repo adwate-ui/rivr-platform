@@ -63,9 +63,6 @@ select results_eq($$ select table_name, place from public.my_waitlist() $$, $$ v
 reset role;
 select results_eq($$ select table_name, place from private.live_status_of('00000000-0000-4000-8000-000000000211') $$,
   $$ values ('Table 3'::text, 1) $$, 'and his phone''s live status says so');
-select is((select waiting from public.public_waitlist_length l join public.venue v on v.slug = l.venue_slug
-           where l.table_type_code = 'nlh_100_200' and v.id = '00000000-0000-4000-8000-000000000001'), 5,
-  'the website still counts the stake''s five, never a table''s');
 
 -- One list at a time; the floor switches a member by removing and adding.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');

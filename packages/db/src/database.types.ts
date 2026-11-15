@@ -2574,14 +2574,6 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
-                },"public_waitlist_length": {
-                  Row: {
-                    "table_type_code": string | null,"venue_slug": string | null,"waiting": number | null
-                  }
-                  ComputedFields: never
-                  Relationships: [
-                    
-                  ]
                 },"venue_config_detail": {
                   Row: {
                     "address": string | null,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"contact_phone": string | null,"contact_whatsapp": string | null,"created_at": string | null,"gstin": string | null,"invoice_prefix": string | null,"legal_name": string | null,"logo_path": string | null,"sac_club_services": string | null,"signatory_designation": string | null,"signatory_name": string | null,"tan": string | null,"tv_pairing_window_at": string | null,"tv_pairing_window_only": boolean | null,"updated_at": string | null,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string | null
@@ -3237,7 +3229,7 @@ isOneToOne: false
                            },
 "my_tv_screen":
 { Args: Record<PropertyKey, never>; Returns: {
-              "boards": (Database["public"]['Enums']["tv_mode"])[],"device_id": string,"name": string,"seconds": (number)[],"venue_id": string
+              "boards": (Database["public"]['Enums']["tv_mode"])[],"device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"name": string,"rotation": (Database["public"]['Enums']["tv_mode"])[],"seconds": (number)[],"venue_id": string
             }[]
                            },
 "my_upcoming_tournaments":

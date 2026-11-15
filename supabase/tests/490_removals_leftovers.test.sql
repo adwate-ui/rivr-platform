@@ -1,5 +1,6 @@
 -- What the removals left in the database (issue 1012; decision 0650): the owner dashboard's signals are gone; a purge in
--- hand is one set in the database owner's own session; and a refused duplicate done in person, reopened, keeps no photo.
+-- hand is one set in the database owner's own session; and a refused duplicate done in person, reopened, keeps no photo
+-- and nothing typed for it.
 -- 101 Vikram is a super admin; 203 Naina was refused by hand; 204 Rohan is verified by hand.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -51,6 +52,11 @@ select lives_ok($$ select public.reopen_kyc_check('00000000-0000-4000-8000-00000
 reset role;
 select results_eq($$ select status::text, refusal is null, photo_path is null from public.kyc_record where member_id = '00000000-0000-4000-8000-000000000203' $$,
   $$ values ('started', true, true) $$, 'it starts again with no refusal and no photo of the refused check');
+select set_config('role', 'authenticated', true),
+       set_config('request.jwt.claims', '{"sub": "00000000-0000-4000-8000-000000000203", "role": "authenticated"}', true);
+select results_eq($$ select date_of_birth is null, masked_aadhaar is null, pan is null from public.kyc_record where member_id = '00000000-0000-4000-8000-000000000203' $$,
+  $$ values (true, true, true) $$, 'and the member reads no date of birth, Aadhaar digits or PAN typed for it, which were another person''s');
+reset role;
 
 select * from finish();
 rollback;

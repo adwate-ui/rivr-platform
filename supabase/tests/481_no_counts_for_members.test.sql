@@ -48,6 +48,13 @@ select is((select count(*)::integer from public.public_table_status where seats_
 set local role anon;
 select is((select count(*)::integer from public.public_table_status where seats_taken is not null), 0, 'nor to someone signed out');
 reset role;
+-- Nor how many wait for each game, which anyone could read until 20261120500200.
+select hasnt_view('public', 'public_waitlist_length', 'no view counts who waits for each game');
+select hasnt_function('private', 'public_waitlist_length_rows', 'nor are its rows read');
+select is_empty($$ select c.table_name from information_schema.columns c
+                   where c.table_schema = 'public' and c.column_name in ('waiting', 'open_seats', 'seats_open')
+                     and has_table_privilege('anon', format('%I.%I', c.table_schema, c.table_name), 'select') $$,
+  'and nothing someone signed out may read has a count of who waits or of open seats');
 
 select * from finish();
 rollback;

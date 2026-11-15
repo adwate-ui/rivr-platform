@@ -39,19 +39,7 @@ select results_eq(
             ('Table 5', true, 'NLH 100/200', 10000, 20000), ('Private Room', true, 'Private Room', 10000, 20000) $$,
   'anyone reads the club''s tables, games and stakes, and only the club''s');
 select is((select count(distinct venue_slug)::int from public.public_table_status), 1, 'one venue, never the practice venue');
--- How many wait for each game (#39): counts only, the club's only.
-select results_eq($$ select table_type_code, waiting from public.public_waitlist_length order by table_type_code $$,
-  $$ values ('nlh_100_200'::text, 3), ('nlh_50_100', 0), ('private_room', 0) $$,
-  'anyone reads how many wait for each of the club''s games, never who');
-select is((select count(distinct venue_slug)::int from public.public_waitlist_length), 1, 'and never the practice venue''s');
-select columns_are('public', 'public_waitlist_length', array['venue_slug', 'table_type_code', 'waiting'],
-  'the view holds a venue, a game and a count, never a member');
-reset role;
-update public.waitlist_entry set status = 'left', left_at = now(), left_reason = 'left'
-where member_id = '00000000-0000-4000-8000-000000000204' and status = 'waiting';
-set local role anon;
-select is((select waiting from public.public_waitlist_length where table_type_code = 'nlh_100_200'), 2,
-  'a member who left is not counted');
+-- How many wait for each game is no one's to read since 20261120500200 (481_no_counts_for_members).
 reset role;
 -- The calendar keeps a tournament until twelve hours after its start, so tonight's stays up while it
 -- runs. Dates are set from now, so this holds on any day.

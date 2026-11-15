@@ -50,6 +50,9 @@ select pg_temp.as_tv();
 select results_eq($$ select name, boards, seconds from public.my_tv_screen() $$,
   $$ values ('Bar TV'::text, array['call_time', 'promotions', 'high_hand', 'leaderboard']::public.tv_mode[], array[30, 12, 30, 30]) $$,
   'the TV reads its own board, then those it turns to, each with its seconds');
+select results_eq($$ select mode, rotation from public.my_tv_screen() $$,
+  $$ values ('call_time'::public.tv_mode, array['promotions', 'high_hand', 'leaderboard']::public.tv_mode[]) $$,
+  'and, for a TV still on the build before, its mode and rotation as they were (for this release only)');
 reset role;
 select isnt(private.tv_showing('high_hand'), null, 'and may read the high hand bonus board, which it shows');
 select is(private.tv_showing('waitlist'), null, 'not the waitlist, which it does not');
