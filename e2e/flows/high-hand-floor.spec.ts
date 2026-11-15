@@ -54,6 +54,8 @@ test.describe('Log a high hand', () => {
     await signInToConsole(floor, '9000000163');
     await expect(stripOf(floor).getByText('No hands paid tonight')).toBeVisible({ timeout: 15_000 });
     await seatOnFloor(floor, { table: 'Table 2', seat: 3, number: '9000000261' });
+    // The seat's toast closed, so the log panel's picture shows the panel alone.
+    await floor.getByRole('status').filter({ hasText: '9000000261 seated at Table 2, seat 3' }).getByRole('button', { name: 'Close', exact: true }).click();
 
     await logHit(floor, { hand: 'Four of a kind · 5,000', rank: { label: 'Four of', value: 'Jacks' }, pays: '5,000 Bonus to Devansh Malik now. Four Jacks', shot: 'console-log-panel-1440' });
     await expect(floor.getByText('5,000 Bonus paid to Devansh Malik for Four Jacks')).toBeVisible({ timeout: 10_000 });
