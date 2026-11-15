@@ -61,3 +61,11 @@ as $$
 $$;
 revoke execute on function private.offer_recipient(uuid, uuid, uuid), public.offer_recipient(uuid, uuid, uuid) from public, anon, authenticated;
 grant execute on function private.offer_recipient(uuid, uuid, uuid), public.offer_recipient(uuid, uuid, uuid) to service_role;
+
+-- Every sign-up made before the welcome began counts as welcomed: the consumer's first run would otherwise claim sign-ups up
+-- to 30 days old and send those under six hours old, late. Marked delivered for WhatsApp, they are never offered to it.
+insert into public.outbox_delivery (venue_id, event_id, consumer, status, delivered_at)
+select e.venue_id, e.id, 'whatsapp', 'delivered', now()
+from public.outbox_event e
+where e.event_type = 'member.signed_up'
+on conflict (event_id, consumer) do nothing;

@@ -1,6 +1,7 @@
 -- The welcome message (the owner, 15 Nov night, decision 0661): member.signed_up names the member who joined, once, and what
 -- the message needs is read with their number when it is sent: the first word of their name and their member number. The
--- WhatsApp consumer is offered the sign-up once, and never one of the practice venue, whose members are never read.
+-- WhatsApp consumer is offered the sign-up once, never one made before the welcome began (the migration marks those
+-- delivered, as below), and never one of the practice venue, whose members are never read.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -38,12 +39,18 @@ select is_empty($$ select * from public.message_recipient('00000000-0000-4000-80
   'never a practice member''s');
 reset role;
 
+-- A sign-up made before the welcome began, marked delivered for WhatsApp as 20261121100000 marks every earlier one.
+select private.emit('00000000-0000-4000-8000-000000000001', 'member.signed_up',
+  jsonb_build_object('member_id', '00000000-0000-4000-8000-000000000202'), 'member.signed_up:00000000-0000-4000-8000-000000000202');
+insert into public.outbox_delivery (venue_id, event_id, consumer, status, delivered_at)
+select e.venue_id, e.id, 'whatsapp', 'delivered', now() from public.outbox_event e
+where e.idempotency_key = 'member.signed_up:00000000-0000-4000-8000-000000000202';
 -- A sign-up event at the practice venue, which sign-up never makes, is never offered.
 select private.emit('00000000-0000-4000-8000-000000000002', 'member.signed_up',
   jsonb_build_object('member_id', '00000000-0000-4000-8000-000000000301'), 'member.signed_up:00000000-0000-4000-8000-000000000301');
 select results_eq($$ select venue_id, payload ->> 'member_id' from public.claim_outbox_deliveries('whatsapp', array['member.signed_up']) $$,
   $$ values ('00000000-0000-4000-8000-000000000001'::uuid, current_setting('test.member')) $$,
-  'the WhatsApp consumer is offered the club''s sign-up, never the practice venue''s');
+  'the WhatsApp consumer is offered the club''s new sign-up, never one made before the welcome began, nor the practice venue''s');
 select is_empty($$ select * from public.claim_outbox_deliveries('whatsapp', array['member.signed_up']) $$,
   'and only once: claimed, it is not offered again');
 
