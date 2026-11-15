@@ -46,11 +46,13 @@ test.describe('Tables lifecycle', () => {
     test.setTimeout(90_000);
     await signInToConsole(page, '9000000176');
     await openConsole(page, '/tables');
+    // In the panel at the side (redesign RD-17), its minimum buy-in filled in from the stake chosen.
     await page.getByRole('button', { name: 'New table' }).click();
-    await page.getByRole('textbox', { name: 'Table name' }).fill(TABLE);
-    await page.getByRole('radiogroup', { name: 'Stake' }).getByRole('radio').first().click();
-    await page.getByRole('button', { name: 'Save the table' }).click();
-    await expect(page.getByText(`${TABLE} is saved.`)).toBeVisible();
+    const panel = page.getByRole('dialog', { name: 'New table' });
+    await panel.getByRole('textbox', { name: 'Table name' }).fill(TABLE);
+    await panel.getByRole('radiogroup', { name: 'Stake' }).getByRole('radio').first().click();
+    await panel.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByText(`${TABLE} added, closed.`)).toBeVisible();
     await expect(rowOf(page)).toContainText('Closed tonight');
     expect(shownLive()).toBe('1');
 

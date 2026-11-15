@@ -5088,6 +5088,9 @@ isOneToOne: false
 "delete_game_table":
 { Args: { "p_table_id": string }; Returns: undefined
                            },
+"delete_table_type":
+{ Args: { "p_type_id": string }; Returns: undefined
+                           },
 "deliver_fnb_order":
 { Args: { "p_order_id": string }; Returns: undefined
                            },

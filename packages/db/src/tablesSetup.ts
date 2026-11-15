@@ -40,14 +40,15 @@ export interface SetupTable {
 /**
  * Why a setup change was refused. `players_seated` and `players_waiting` are @rivr/domain's tableRetireRefusal reasons
  * (decision 0466); a stake change refused for players seated or waiting is `players_seated`. `stake_without_call_time` is
- * its stakeTableRefusal (redesign RD-16): a table given a stake that has no call time yet.
+ * its stakeTableRefusal (redesign RD-16): a table given a stake that has no call time yet. `stake_in_use`: a stake a table,
+ * or a deleted table's history, still uses is not deleted (redesign RD-17).
  */
-export type TablesFailure = 'not_allowed' | 'invalid' | 'players_seated' | 'players_waiting' | 'seats_taken' | 'stake_without_call_time' | 'paused'
-  | 'unavailable';
+export type TablesFailure = 'not_allowed' | 'invalid' | 'players_seated' | 'players_waiting' | 'seats_taken' | 'stake_without_call_time' | 'stake_in_use'
+  | 'paused' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, TablesFailure>> = {
   '42501': 'not_allowed', '22023': 'invalid', '23505': 'invalid', '23514': 'invalid', RVSTD: 'players_seated', RVWTG: 'players_waiting',
-  RVOCC: 'seats_taken', RVNCT: 'stake_without_call_time', RVFRZ: 'paused',
+  RVOCC: 'seats_taken', RVNCT: 'stake_without_call_time', RVUSE: 'stake_in_use', RVFRZ: 'paused',
 };
 
 /**
@@ -130,9 +131,22 @@ export interface TableOrder {
   readonly minBuyIn: bigint;
 }
 
+/** Sends a stake: a new one is added, one with an id changed. A new stake with no straddle has none; a changed stake's 0 takes its straddle off (decision 0299). */
+async function sendStake(client: RivrClient, venueId: string, order: StakeOrder) {
+  const blinds = {
+    p_name: order.name.trim(), p_small_blind_paise: Number(order.smallBlind), p_big_blind_paise: Number(order.bigBlind),
+    ...(order.callTimeMinutes === null ? {} : { p_call_time_minutes: order.callTimeMinutes }),
+  };
+  const { error } = order.stakeId === null
+    ? await client.rpc('add_table_type', { p_venue_id: venueId, ...blinds, ...(order.straddle === null ? {} : { p_straddle_paise: Number(order.straddle) }) })
+    : await client.rpc('set_table_type', { p_type_id: order.stakeId, ...blinds, p_straddle_paise: Number(order.straddle ?? 0n) });
+  return error;
+}
+
 /**
- * Adds or changes stakes and tables, and deactivates, reactivates or deletes a table (tables.manage; decision 0466); each a
- * Result, and everything the person reads reloads, as a table leaving or coming back changes the live floor and the lists.
+ * Adds or changes stakes and tables, deletes a stake no table uses (redesign RD-17), and deactivates, reactivates or deletes a
+ * table (tables.manage; decision 0466); each a Result, and everything the person reads reloads, as a table leaving or coming
+ * back changes the live floor and the lists.
  */
 export function useTablesSetupActions(venueId: string) {
   const { client, userId } = useRivrData();
@@ -141,19 +155,7 @@ export function useTablesSetupActions(venueId: string) {
     await queryClient.invalidateQueries({ queryKey: ['user', userId ?? 'signed-out'] });
     return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
   };
-  const saveStake = useMutation({
-    mutationFn: async (order: StakeOrder) => {
-      const blinds = {
-        p_name: order.name.trim(), p_small_blind_paise: Number(order.smallBlind), p_big_blind_paise: Number(order.bigBlind),
-        ...(order.callTimeMinutes === null ? {} : { p_call_time_minutes: order.callTimeMinutes }),
-      };
-      // A new stake with no straddle has none; a changed stake's 0 takes its straddle off (decision 0299).
-      const { error } = order.stakeId === null
-        ? await client.rpc('add_table_type', { p_venue_id: venueId, ...blinds, ...(order.straddle === null ? {} : { p_straddle_paise: Number(order.straddle) }) })
-        : await client.rpc('set_table_type', { p_type_id: order.stakeId, ...blinds, p_straddle_paise: Number(order.straddle ?? 0n) });
-      return settle(error);
-    },
-  });
+  const saveStake = useMutation({ mutationFn: async (order: StakeOrder) => settle(await sendStake(client, venueId, order)) });
   const saveTable = useMutation({
     mutationFn: async (order: TableOrder) => {
       const table = { p_name: order.name.trim(), p_table_type_id: order.stakeId, p_seats: order.seats, p_min_buy_in_paise: Number(order.minBuyIn) };
@@ -172,5 +174,8 @@ export function useTablesSetupActions(venueId: string) {
   const remove = useMutation({
     mutationFn: async (tableId: string) => settle((await client.rpc('delete_game_table', { p_table_id: tableId })).error),
   });
-  return { saveStake, saveTable, deactivate, reactivate, remove };
+  const removeStake = useMutation({
+    mutationFn: async (stakeId: string) => settle((await client.rpc('delete_table_type', { p_type_id: stakeId })).error),
+  });
+  return { saveStake, removeStake, saveTable, deactivate, reactivate, remove };
 }

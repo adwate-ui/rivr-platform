@@ -1,4 +1,5 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
+import { useState } from 'react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations, renderIn } from '../test/render.tsx';
@@ -91,6 +92,24 @@ describe('Sheet', () => {
       if (!(scrim instanceof HTMLElement)) throw new Error('no scrim');
       await userEvent.click(scrim);
       expect(onClose).toHaveBeenCalledTimes(3);
+    });
+
+    it('gives the focus back to what opened it as it closes, such as a row\'s Change', async () => {
+      function Row() {
+        const [isOpen, setIsOpen] = useState(false);
+        return (
+          <>
+            <button type="button" onClick={() => setIsOpen(true)}>Change</button>
+            {/* Taken away whole as it closes, as a screen that keys its panel does. */}
+            {isOpen ? <Sheet place="console" isOpen onClose={() => setIsOpen(false)} title="Change stake">x</Sheet> : null}
+          </>
+        );
+      }
+      renderIn(<Row />);
+      await userEvent.click(screen.getByRole('button', { name: 'Change' }));
+      expect(screen.getByRole('dialog', { name: 'Change stake' })).toHaveFocus();
+      await userEvent.keyboard('{Escape}');
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Change' })).toHaveFocus());
     });
 
     it('scrolls its content between a title and actions that stay', () => {

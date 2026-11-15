@@ -107,6 +107,18 @@ describe('tables setup and points by hand', () => {
     expect(refused).toEqual({ ok: false, error: 'stake_without_call_time' });
   });
 
+  it('deletes a stake, and says when a table still uses it (redesign RD-17)', async () => {
+    const { result, calls } = renderSetup({});
+    let deleted: unknown;
+    await act(async () => { deleted = await result.current.actions.removeStake.mutateAsync('s2'); });
+    expect(deleted).toEqual({ ok: true, value: null });
+    expect(calls.find((call) => call.path === 'delete_table_type')?.body).toEqual({ p_type_id: 's2' });
+    const refusing = renderSetup({ delete_table_type: { status: 400, body: { code: 'RVUSE', message: 'A table still uses that stake' } } });
+    let refused: unknown;
+    await act(async () => { refused = await refusing.result.current.actions.removeStake.mutateAsync('s1'); });
+    expect(refused).toEqual({ ok: false, error: 'stake_in_use' });
+  });
+
   it('deactivates, reactivates and deletes a table, and says why one was refused (decision 0466)', async () => {
     const { result, calls } = renderSetup({
       deactivate_game_table: { status: 400, body: { code: 'RVWTG', message: 'Take the players off its waitlist first' } },
