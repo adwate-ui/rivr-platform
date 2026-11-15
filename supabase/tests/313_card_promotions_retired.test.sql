@@ -1,6 +1,6 @@
 -- The word-only promotion cards retire (owner, 3 Nov; decision 0498): no venue runs one, a new venue gets none, and an
 -- ended card, kept for history, shows on no screen (the player's Tonight, the TVs and the website read
--- private.promotion_cards) and cannot be resumed. The high-hand and jackpot features do not need them.
+-- private.promotion_cards) and cannot be resumed.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -36,10 +36,6 @@ grant select on ids to authenticated;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select throws_ok($$ select public.set_promotion_live((select id from ids), true) $$, '22023', null, 'and is not resumed');
 reset role;
-
--- The high hands and the bad beat go on without their cards.
-select has_function('private', 'high_hands', array['uuid'], 'high hands are still claimed and paid at the tables');
-select has_function('public', 'pay_bad_beat', 'and the bad beat is still paid from its jackpot');
 
 select * from finish();
 rollback;

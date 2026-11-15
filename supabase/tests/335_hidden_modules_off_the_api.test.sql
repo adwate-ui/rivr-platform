@@ -13,21 +13,21 @@ create function pg_temp.request(p_role text, p_path text) returns void language 
 $$;
 grant execute on function pg_temp.request(text, text) to anon, authenticated, service_role;
 
-select pg_temp.request('authenticated', '/rpc/cage_buy_in');
+select pg_temp.request('authenticated', '/rpc/mis_report_for');
 select throws_ok($$ select private.refuse_hidden_modules() $$, '42501', 'That part of RIVR is not in use',
-                 'a signed-in caller is refused a cage buy-in');
+                 'a signed-in caller is refused the MIS report');
 reset role;
-select pg_temp.request('authenticated', '/rpc/issue_marker');
-select throws_ok($$ select private.refuse_hidden_modules() $$, '42501', null, 'and a marker');
+select pg_temp.request('authenticated', '/rpc/rake_tonight');
+select throws_ok($$ select private.refuse_hidden_modules() $$, '42501', null, 'and tonight''s rake');
 reset role;
-select pg_temp.request('authenticated', '/rpc/payout_accounts_to_verify');
-select throws_ok($$ select private.refuse_hidden_modules() $$, '42501', null, 'and members'' bank accounts waiting to be checked');
+select pg_temp.request('authenticated', '/rpc/unclaimed_balances');
+select throws_ok($$ select private.refuse_hidden_modules() $$, '42501', null, 'and the balances left unclaimed');
 reset role;
-select pg_temp.request('authenticated', '/rpc/tv_jackpot');
-select lives_ok($$ select private.refuse_hidden_modules() $$, 'but the TV''s jackpot board, which a live screen reads, passes');
+select pg_temp.request('authenticated', '/rpc/tv_waitlist_board');
+select lives_ok($$ select private.refuse_hidden_modules() $$, 'but the TV''s waitlist board, which a live screen reads, passes');
 reset role;
-select pg_temp.request('anon', '/rpc/my_wallet');
-select throws_ok($$ select private.refuse_hidden_modules() $$, '42501', null, 'an anonymous caller is refused the wallet');
+select pg_temp.request('anon', '/rpc/mis_report_for');
+select throws_ok($$ select private.refuse_hidden_modules() $$, '42501', null, 'an anonymous caller is refused the MIS report');
 reset role;
 select pg_temp.request('authenticated', '/rpc/member_search');
 select lives_ok($$ select private.refuse_hidden_modules() $$, 'a live function passes');
@@ -35,7 +35,7 @@ reset role;
 select pg_temp.request('authenticated', '/member');
 select lives_ok($$ select private.refuse_hidden_modules() $$, 'and so does a table');
 reset role;
-select pg_temp.request('service_role', '/rpc/send_withdrawal');
+select pg_temp.request('service_role', '/rpc/rake_tonight');
 select lives_ok($$ select private.refuse_hidden_modules() $$, 'the service role is never refused');
 reset role;
 

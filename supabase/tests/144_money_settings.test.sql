@@ -16,15 +16,21 @@ create function pg_temp.in_force(p_key text) returns jsonb language sql as $$
 $$;
 grant execute on function pg_temp.in_force(text) to authenticated;
 create temp table current as
-  select k.key, pg_temp.in_force(k.key) as value from unnest(array['gst.config', 'high_hand.payouts', 'jackpot.payout']) k(key);
+  select k.key, pg_temp.in_force(k.key) as value from unnest(array['gst.config', 'jackpot.payout']) k(key);
 grant select on current to authenticated;
+
+-- The credit rules in force, which the seed gave until credit went: a raise is a raise of what is in force.
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+values ('00000000-0000-4000-8000-000000000001', 'credit.config', '',
+        '{"approval_threshold_paise": 10000000, "minimum_visits": 3, "exposure_cap_paise": 250000000}', '-infinity', 'Seed')
+on conflict (venue_id, key, subject, effective_from) do nothing;
 
 -- An admin changes none of them.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select throws_ok(format($$ insert into public.setting (venue_id, key, subject, value, effective_from, reason)
                             values ('00000000-0000-4000-8000-000000000001', %L, '', (select value from current where key = %L), now(), 'Adjusted') $$, k, k),
                  '42501', null, format('an admin does not change %s', k))
-from unnest(array['gst.config', 'high_hand.payouts', 'jackpot.payout']) k;
+from unnest(array['gst.config', 'jackpot.payout']) k;
 
 -- A super admin's raise waits a day; a cut does not.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000134');

@@ -20,9 +20,6 @@ export const tablets = {
   newCode: 'New pairing code for {name}',
   table: 'Table for {name}',
   /** A door kiosk (decision 0164): a tablet at the door that scans members' cards in and out. */
-  isDoor: 'Door kiosk',
-  isDoorHint: 'Scans members in and out at the door.',
-  doorKiosk: 'Door kiosk',
   /** Unpaired, as a TV is (D-05): the word for ending a pairing. */
   more: 'More for {name}',
   revoke: 'Unpair',
@@ -190,19 +187,6 @@ export const tvPairing = {
 /** A paired TV that cannot read what it shows. */
 export const tvScreen = {
   unavailable: 'No connection. Retrying shortly.',
-};
-
-/** The final-table stream's overlay for OBS (#125, decision 0256). */
-export const streamOverlay = {
-  title: 'Stream overlay',
-  /** The overlay's address has no hole-card delay, or one it does not take. */
-  noDelay: 'This address has no hole-card delay. Add it in seconds, up to 3,600: /overlay?delay=900 holds the clock 15 minutes behind the table, and /overlay?delay=0 shows it live when OBS delays the whole stream.',
-  /** The overlay was paired at the practice venue, which never reaches anyone outside the club. */
-  practice: 'This overlay is paired at the practice venue, which never reaches a stream. Unpair it on the console, reload it in OBS, and pair it at the club.',
-  /** Paired, but given another mode than the tournament clock (#559): said at once, not after the delay. */
-  notClock: 'This overlay shows the tournament clock, which is off while tournaments are hidden.',
-  /** For a screen reader only, until the delay has passed since the overlay opened. `{seconds}` is the delay. */
-  waiting: 'The clock shows {seconds} seconds behind the table. It starts once that delay has passed.',
 };
 
 /** End of down on the tablet (#44): the table handed over, with no drop-box count (#630). */

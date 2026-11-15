@@ -10,7 +10,7 @@ export interface ScreenTab {
 }
 
 /** The count's noun in `console.rail.counts`, one and many. */
-export type RailCountWords = 'requests' | 'orders' | 'idChecks' | 'calls' | 'tickets' | 'approvals' | 'posts' | 'deletions';
+export type RailCountWords = 'requests' | 'orders' | 'idChecks' | 'tickets' | 'approvals' | 'deletions';
 
 export interface RailEntry {
   readonly id: string;
@@ -27,10 +27,8 @@ export interface RailEntry {
   readonly countWords?: RailCountWords;
   /** The count asks for action (requests, orders): a gold badge (decision 0463); otherwise a muted one. */
   readonly isActionable?: true;
-  /** Signs the staff member out after ten idle minutes (#384): members' records and documents, kill switch, purge. */
+  /** Signs the staff member out after ten idle minutes (#384): members' records and documents, and Activity. */
   readonly locksWhenIdle?: true;
-  /** A screen that stops or destroys things: its name in the danger colour. */
-  readonly tone?: 'danger';
 }
 
 export interface RailGroup {
@@ -39,13 +37,6 @@ export interface RailGroup {
   readonly entries: readonly RailEntry[];
   /** Folded under its heading until opened (Admin). */
   readonly isCollapsible?: true;
-}
-
-/** A screen hidden at the owner's word (decision 0284): never on the rail, its address refused to everyone as switched off. */
-export interface HiddenScreen {
-  readonly label: MessageKey;
-  readonly href: string;
-  readonly locksWhenIdle?: true;
 }
 
 // The floor's seats come from reads that need members.read: without it every seat reads empty, so investors, marketing and
@@ -72,14 +63,12 @@ export const RAIL: readonly RailGroup[] = [
     id: 'players', label: 'console.rail.groups.players', entries: [
       { id: 'members', label: 'console.rail.items.members', href: '/members', icon: 'profile', anyOf: ['members.manage', 'host_queue.manage'], counts: ['erasureRequests'], countWords: 'deletions', locksWhenIdle: true },
       { id: 'kycReview', label: 'console.rail.items.kycReview', href: '/kyc-review', icon: 'kyc', anyOf: ['kyc.review', 'kyc.in_person'], counts: ['kycReview'], countWords: 'idChecks', locksWhenIdle: true },
-      { id: 'hostQueue', label: 'console.rail.items.hostQueue', href: '/host-queue', icon: 'phone', anyOf: ['host_queue.manage'], counts: ['hostQueue'], countWords: 'calls' },
       { id: 'feedback', label: 'console.rail.items.feedback', href: '/feedback', icon: 'feedback', anyOf: ['feedback.manage'], counts: ['feedback'], countWords: 'tickets' },
     ],
   },
   {
     id: 'marketing', label: 'console.rail.groups.marketing', entries: [
       { id: 'promotions', label: 'console.rail.items.promotions', href: '/promotions', icon: 'promotions', anyOf: ['promotions.manage'], counts: ['promotions'], countWords: 'approvals' },
-      { id: 'social', label: 'console.rail.items.social', href: '/social', icon: 'social', anyOf: ['marketing.publish'], counts: ['wallPosts'], countWords: 'posts' },
       { id: 'content', label: 'console.rail.items.content', href: '/content', icon: 'content', anyOf: [], tabs: [
         { id: 'website', label: 'console.rail.items.website', anyOf: ['website.edit'] },
       ] },
@@ -87,9 +76,9 @@ export const RAIL: readonly RailGroup[] = [
   },
   {
     id: 'admin', label: 'console.rail.groups.admin', isCollapsible: true, entries: [
-      { id: 'staff', label: 'console.rail.items.staff', href: '/staff', icon: 'staff', anyOf: ['staff.manage'] },
       { id: 'tables', label: 'console.rail.items.tables', href: '/tables', icon: 'tables', anyOf: ['tables.manage'] },
-      // The money-free Tables view (owner, 8 Nov); the money reports stay hidden.
+      { id: 'staff', label: 'console.rail.items.staff', href: '/staff', icon: 'staff', anyOf: ['staff.manage'] },
+      // The money-free Tables view (owner, 8 Nov).
       { id: 'reports', label: 'console.rail.items.reports', href: '/reports', icon: 'sessions', anyOf: ['reports.read'] },
       { id: 'settings', label: 'console.rail.items.settings', href: '/settings', icon: 'settings', anyOf: [], tabs: [
         // One row (audit F-028): the areas shown (areas.ts hides the rest), then the kinds of device.
@@ -100,10 +89,7 @@ export const RAIL: readonly RailGroup[] = [
         { id: 'tvs', label: 'console.tvs.title', anyOf: ['tvs.manage'] },
         { id: 'tablets', label: 'console.tablets.title', anyOf: ['devices.manage'] },
       ] },
-      { id: 'activity', label: 'console.rail.items.activity', href: '/activity', icon: 'info', anyOf: ['control.engage'], locksWhenIdle: true },
-      { id: 'killSwitch', label: 'console.rail.items.killSwitch', href: '/kill-switch', icon: 'alert', anyOf: ['control.engage'], locksWhenIdle: true, tone: 'danger' },
-      { id: 'practiceReset', label: 'console.rail.items.practiceReset', href: '/practice-reset', icon: 'reset', anyOf: ['purge.run'], tone: 'danger' },
-      { id: 'purge', label: 'console.rail.items.purge', href: '/purge', icon: 'purge', anyOf: ['purge.run'], locksWhenIdle: true, tone: 'danger' },
+      { id: 'activity', label: 'console.rail.items.activity', href: '/activity', icon: 'info', anyOf: ['activity.read'], locksWhenIdle: true },
     ],
   },
 ];
@@ -123,32 +109,4 @@ export const PHONE_TABS: readonly { readonly entry: string; readonly label: Mess
   { entry: 'requests', label: 'console.rail.items.requests' },
   { entry: 'waitlist', label: 'console.rail.items.waitlist' },
   { entry: 'door', label: 'console.rail.items.door' },
-];
-
-// Hidden at the owner's word (29 Oct, #626, decision 0284): no rupee, rake or reporting on any console. Each screen stays
-// for when the club wants it back; the cage and money ones still lock when idle.
-export const HIDDEN: readonly HiddenScreen[] = [
-  { label: 'console.rail.items.overview', href: '/owner' },
-  { label: 'console.rail.items.tournaments', href: '/tournaments' },
-  { label: 'console.rail.items.dealers', href: '/dealers' },
-  { label: 'console.rail.items.jackpots', href: '/jackpots' },
-  { label: 'console.rail.items.cage', href: '/cage', locksWhenIdle: true },
-  { label: 'console.rail.items.withdrawals', href: '/withdrawals', locksWhenIdle: true },
-  { label: 'console.rail.items.shift', href: '/shift', locksWhenIdle: true },
-  { label: 'console.rail.items.tiers', href: '/tiers' },
-  { label: 'console.rail.items.events', href: '/events' },
-  { label: 'console.rail.items.creators', href: '/creators' },
-  { label: 'console.rail.items.paymentAccounts', href: '/accounts', locksWhenIdle: true },
-  { label: 'console.rail.items.expenses', href: '/expenses', locksWhenIdle: true },
-  { label: 'console.rail.items.markers', href: '/markers', locksWhenIdle: true },
-  { label: 'console.rail.items.tds', href: '/tds', locksWhenIdle: true },
-  { label: 'console.rail.items.tallyExport', href: '/tally', locksWhenIdle: true },
-  { label: 'console.rail.items.shareholders', href: '/shareholders' },
-  { label: 'console.rail.items.aml', href: '/aml' },
-  { label: 'console.rail.items.hands', href: '/pot-data' },
-  { label: 'console.rail.items.roster', href: '/roster' },
-  { label: 'console.rail.items.certification', href: '/certification' },
-  { label: 'console.rail.items.sops', href: '/sops' },
-  { label: 'console.rail.items.incidents', href: '/incidents' },
-  { label: 'console.rail.items.exports', href: '/exports' },
 ];

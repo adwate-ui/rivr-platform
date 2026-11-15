@@ -1,4 +1,4 @@
--- Activity and Past controls (8 Nov audit, I-75, F-034), for super admins alone: who did what, about whom, why and when, filtered and
+-- Activity (8 Nov audit, I-75, F-034), for super admins alone: who did what, about whom, why and when, filtered and
 -- read a page at a time, and never a row's before or after. Forty days ago, so the seed's rows stay out of the day read.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -94,49 +94,19 @@ select results_eq($$ select about, reason from public.activity_log('00000000-000
 select results_eq($$ select reason from public.activity_log('00000000-0000-4000-8000-000000000001', (select d from day), (select d from day), p_kind => 'members') where action = 'member.erase' $$,
   $$ values ('Asked to be erased'::text) $$, 'the erasure keeps its own reason');
 
-reset role;
-select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-
--- Past controls: released ones only, latest first, a freeze with both who released it.
-reset role;
-insert into public.control_state (venue_id, level, reason, engaged_at, engaged_by_staff_id, released_at, released_by_staff_id, release_second_staff_id, release_reason) values
-  ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Drill', now() - interval '6 days', pg_temp.staff_of('00000000-0000-4000-8000-000000000101'),
-   now() - interval '5 days', pg_temp.staff_of('00000000-0000-4000-8000-000000000135'), pg_temp.staff_of('00000000-0000-4000-8000-000000000136'), 'Drill over');
-insert into public.control_state (venue_id, level, member_id, reason, engaged_at, engaged_by_staff_id, released_at, released_by_staff_id, release_reason) values
-  ('00000000-0000-4000-8000-000000000001', 'member_freeze', '00000000-0000-4000-8000-000000000216', 'Dispute', now() - interval '3 days', pg_temp.staff_of('00000000-0000-4000-8000-000000000101'),
-   now() - interval '2 days', pg_temp.staff_of('00000000-0000-4000-8000-000000000135'), 'Settled'),
-  ('00000000-0000-4000-8000-000000000001', 'member_freeze', '00000000-0000-4000-8000-000000000213', 'About an erased member', now() - interval '2 days', pg_temp.staff_of('00000000-0000-4000-8000-000000000101'),
-   now() - interval '1 day', pg_temp.staff_of('00000000-0000-4000-8000-000000000135'), 'Closed');
-insert into public.control_state (venue_id, level, member_id, reason, engaged_by_staff_id) values
-  ('00000000-0000-4000-8000-000000000001', 'member_freeze', '00000000-0000-4000-8000-000000000211', 'Still on', pg_temp.staff_of('00000000-0000-4000-8000-000000000101'));
-
-select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select results_eq(
-  $$ select level::text, member_name, reason, engaged_by, released_by, release_second, release_reason from public.past_controls('00000000-0000-4000-8000-000000000001') $$,
-  $$ values ('member_freeze'::text, null::text, ''::text, 'Vikram Rao'::text, 'Neha Kulkarni'::text, null::text, null::text),
-            ('member_freeze', 'Kunal Mehra', 'Dispute', 'Vikram Rao', 'Neha Kulkarni', null, 'Settled'),
-            ('venue_freeze', null, 'Drill', 'Vikram Rao', 'Neha Kulkarni', 'Arvind Rao', 'Drill over') $$,
-  'what was released, latest first, by whom and why, an erased member''s words gone; not what is still on');
-select is_empty($$ select 1 from public.past_controls('00000000-0000-4000-8000-000000000002') $$, 'nothing from the practice venue');
-
 -- Every other role is refused: an admin and a dealer, an investor (who holds audit.read), marketing, service, a member, signed out.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is_empty($$ select 1 from public.activity_log('00000000-0000-4000-8000-000000000001') $$, 'an admin reads no activity');
-select is_empty($$ select 1 from public.past_controls('00000000-0000-4000-8000-000000000001') $$, 'and no past controls');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000109');
 select is_empty($$ select 1 from public.activity_log('00000000-0000-4000-8000-000000000001') $$, 'an investor, who holds audit.read, reads no activity');
-select is_empty($$ select 1 from public.past_controls('00000000-0000-4000-8000-000000000001') $$, 'and no past controls');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select is_empty($$ select 1 from public.activity_log('00000000-0000-4000-8000-000000000001') $$, 'marketing reads none');
-select is_empty($$ select 1 from public.past_controls('00000000-0000-4000-8000-000000000001') $$, 'and no past controls');
 select pg_temp.as_person('00000000-0000-4000-8000-0000000d0790');
 select is_empty($$ select 1 from public.activity_log('00000000-0000-4000-8000-000000000001') $$, 'service staff read none');
-select is_empty($$ select 1 from public.past_controls('00000000-0000-4000-8000-000000000001') $$, 'and no past controls');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select is_empty($$ select 1 from public.activity_log('00000000-0000-4000-8000-000000000001') $$, 'a dealer reads none');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000216');
 select is_empty($$ select 1 from public.activity_log('00000000-0000-4000-8000-000000000001') $$, 'a member reads none');
-select is_empty($$ select 1 from public.past_controls('00000000-0000-4000-8000-000000000001') $$, 'and no past controls');
 
 -- A super admin of another venue alone reads that venue's log, and nothing of this one.
 reset role;
@@ -146,13 +116,11 @@ insert into public.audit_log (venue_id, occurred_at, actor_user_id, action, enti
   ('00000000-0000-4000-8000-000000000002', pg_temp.at('12:00'), '00000000-0000-4000-8000-000000000216', 'practice.reset', 'venue', 'practice');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000216');
 select is_empty($$ select 1 from public.activity_log('00000000-0000-4000-8000-000000000001') $$, 'another venue''s super admin reads none of this one');
-select is_empty($$ select 1 from public.past_controls('00000000-0000-4000-8000-000000000001') $$, 'and no past controls of it');
 select results_eq($$ select who, action from public.activity_log('00000000-0000-4000-8000-000000000002', (select d from day), (select d from day)) $$,
   $$ values ('Practice Owner'::text, 'practice.reset'::text) $$, 'but reads their own');
 
 reset role;
 select ok(not has_function_privilege('anon', 'public.activity_log(uuid, date, date, text, text, timestamptz, bigint, integer)', 'execute'), 'nobody signed out runs it');
-select ok(not has_function_privilege('anon', 'public.past_controls(uuid)', 'execute'), 'nor the past controls');
 select ok(not has_function_privilege('authenticated', 'private.uuid_or_null(text)', 'execute'), 'the helpers are the definer''s alone');
 select ok(not has_function_privilege('authenticated', 'private.activity_kind(text, text)', 'execute'), 'both of them');
 

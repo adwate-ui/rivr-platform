@@ -82,7 +82,13 @@ select results_eq($$ select i.total_paise, i.taxable_paise, i.cgst_paise, i.sgst
   'a night with fees and no rake has its invoice too, GST taken out of the fees');
 create temporary table fees_before as
 select private.day_tournament_fees('00000000-0000-4000-8000-000000000001', (private.tonight_began(now()) at time zone 'Asia/Kolkata')::date) as fees;
-select private.reverse_ledger_transaction(pg_temp.fee_at('refunded', 70000, now()), 'fee-test:refund', 'An entry refunded');
+-- A refunded entry: its fee posted back, naming the transaction it reverses.
+create temporary table refunded as select pg_temp.fee_at('refunded', 70000, now()) as id;
+select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'reversal', 'fee-test:refund',
+         (select jsonb_agg(jsonb_build_object('account_id', e.account_id, 'amount', (-e.amount)::text))
+          from public.ledger_entry e where e.transaction_id = r.id),
+         null, 'An entry refunded', r.id)
+from refunded r;
 select pg_temp.fee_at('kept', 30000, now());
 select is(private.day_tournament_fees('00000000-0000-4000-8000-000000000001', (private.tonight_began(now()) at time zone 'Asia/Kolkata')::date),
   (select fees from fees_before) + 30000, 'less any fee reversed');

@@ -1,8 +1,8 @@
 -- Who sees a control's reason and whom it names (#497; question #493 P5). The club is frozen, and Kabir (202) is frozen
 -- as a member. Rahul (106, a dealer), Aditya (103, an admin) and a dealer tablet see that the club is frozen, and its
 -- level, but not Kabir's freeze, and no reason. Priya (109, an investor) sees neither the controls' audit rows nor their
--- outbox events. Kunal (134, a super admin) sees both controls, with their reasons, in all three places. Kabir still
--- sees his own freeze.
+-- outbox events. Kunal (134, a super admin) sees both controls and whom the freeze names, with their reasons in the
+-- audit log, and their events. Kabir still sees his own freeze.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -31,12 +31,10 @@ select private.emit('00000000-0000-4000-8000-000000000001', 'control.engaged',
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select results_eq($$ select level::text, member_id from public.control_state where released_at is null and venue_id = '00000000-0000-4000-8000-000000000001' $$,
   $$ values ('venue_freeze'::text, null::uuid) $$, 'a dealer sees the club is frozen, and only that');
-select is_empty($$ select * from public.control_state_detail $$, 'and reads no reason');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select results_eq($$ select level::text from public.control_state where released_at is null and venue_id = '00000000-0000-4000-8000-000000000001' $$,
   $$ values ('venue_freeze'::text) $$, 'an admin, who engages no control, sees the same');
-select is_empty($$ select * from public.control_state_detail $$, 'and no reason either');
 select is_empty($$ select * from public.outbox_event where event_type like 'control.%' $$, 'nor the control events, though he reads the outbox');
 
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e143');
@@ -48,14 +46,14 @@ select is_empty($$ select id from public.audit_log where entity = 'control_state
 select is_empty($$ select * from public.outbox_event where event_type like 'control.%' $$, 'nor its events');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000134');
-select results_eq($$ select level::text, member_id, reason from public.control_state_detail
+select results_eq($$ select level::text, member_id from public.control_state
                      where released_at is null and venue_id = '00000000-0000-4000-8000-000000000001' order by level::text $$,
-  $$ values ('member_freeze'::text, '00000000-0000-4000-8000-000000000202'::uuid, 'Suspected chip dumping'::text),
-            ('venue_freeze', null::uuid, 'Police inspection') $$,
-  'a super admin sees both, whom the freeze names, and why');
+  $$ values ('member_freeze'::text, '00000000-0000-4000-8000-000000000202'::uuid),
+            ('venue_freeze', null::uuid) $$,
+  'a super admin sees both, and whom the freeze names');
 select is((select count(*)::integer from public.control_state where released_at is null and venue_id = '00000000-0000-4000-8000-000000000001'), 2,
-  'in the table too');
-select ok(exists (select 1 from public.audit_log where entity = 'control_state' and after ->> 'reason' = 'Suspected chip dumping'), 'and in the audit log');
+  'two in all');
+select ok(exists (select 1 from public.audit_log where entity = 'control_state' and after ->> 'reason' = 'Suspected chip dumping'), 'and why, in the audit log');
 select ok(exists (select 1 from public.outbox_event where event_type = 'control.engaged'), 'and the events');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000202');

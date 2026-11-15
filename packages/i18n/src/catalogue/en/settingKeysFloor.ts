@@ -15,16 +15,6 @@ export const floorSettingKeys = {
     help: 'When a waiting request shows late',
     fields: { top_up_seconds: 'Top-up, seconds', other_seconds: 'Others, seconds' },
   },
-  'card.qr_rotation_seconds': {
-    name: 'Door code refresh',
-    help: "How often the card's code changes. Every 30 seconds unless set.",
-    fields: { seconds: 'Every' },
-  },
-  'dealer.rotation_minutes': {
-    name: 'Dealer rotation',
-    help: 'How long a dealer deals at one table before the floor rotates them. 30 minutes unless set.',
-    fields: { minutes: 'Minutes' },
-  },
   'waitlist.hold_minutes': {
     name: 'Seat hold',
     help: 'How long a called seat is held',

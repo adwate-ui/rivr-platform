@@ -28,10 +28,8 @@ const PAGE_ORDERS: readonly (readonly [string, Record<string, unknown>, readonly
   ['marquee', { phrases: ['p'] }, ['phrases']],
   ['promotions', { eyebrow: 'e', heading: 'h' }, ['eyebrow', 'heading']],
   ['outstation', { eyebrow: 'e', heading: 'h' }, ['eyebrow', 'heading']],
-  ['jackpot', { eyebrow: 'e', heading: 'h' }, ['eyebrow', 'heading']],
   ['games', { heading: 'h' }, ['heading']],
   ['calendar', { heading: 'h' }, ['heading']],
-  ['social_wall', { heading: 'h' }, ['heading']],
   ['rewards', { heading: 'h' }, ['heading']],
 ];
 

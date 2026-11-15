@@ -8,10 +8,10 @@ const SAVE_AFTER_MS = 1000;
 
 /**
  * The third part of each person's query key (queryKeys.ts) for what an installed app needs to open with no connection:
- * who they are, that their identity check let them in, their tabs, card, and Home's tables, place, seat and notices, and the
+ * who they are, that their identity check let them in, their tabs, and Home's tables, place, seat and notices, and the
  * club's numbers, to call the desk with (decision 0582).
  */
-const KEPT = new Set<unknown>(['member', 'kyc-record', 'feature-access', 'membership-card', 'floor-tables', 'my-waitlist', 'my-seat', 'my-notices', 'club-contact']);
+const KEPT = new Set<unknown>(['member', 'kyc-record', 'feature-access', 'floor-tables', 'my-waitlist', 'my-seat', 'my-notices', 'club-contact']);
 
 /** Restored entries stay for as long as they may be shown: nothing reads Card on a long offline Home, and TanStack drops what nothing reads. */
 const KEEP_RESTORED = { defaultOptions: { queries: { gcTime: KEPT_FOR_MS } } };
@@ -27,7 +27,6 @@ const isRecent = (query: KeptQuery, now: number) => now - query.state.dataUpdate
 /** What may not lie on a phone, by the query it is in: the identity check's documents and the path to the selfie. */
 const BLANKED: Readonly<Partial<Record<string, Readonly<Record<string, null>>>>> = {
   'kyc-record': { photoPath: null, dateOfBirth: null, maskedAadhaar: null, pan: null },
-  'membership-card': { photoPath: null },
 };
 
 /** The answers as they may lie on a phone: what the app reads, and none of the documents behind it. */
@@ -57,7 +56,7 @@ function decode(_key: string, value: unknown): unknown {
   return '$map' in value && Array.isArray(value.$map) ? new Map(value.$map.filter(isEntry)) : value;
 }
 
-/** What an earlier launch kept for this member and this one has not read: the card, on a launch that never opened it. */
+/** What an earlier launch kept for this member and this one has not read: the member's own record, on a launch that never read it. */
 function keptEarlier(state: DehydratedState, userId: string): KeptQuery[] {
   const readNow = new Set(state.queries.map((query) => query.queryHash));
   return (read()?.state.queries ?? []).filter((query) => query.queryKey[1] === userId && !readNow.has(query.queryHash));

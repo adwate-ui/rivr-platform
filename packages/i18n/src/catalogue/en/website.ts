@@ -42,8 +42,8 @@ export const website = {
   kinds: {
     hero: 'Hero', statement: 'Statement', gallery: 'Gallery', feature: 'Feature', text: 'Text', rules: 'Rules', faq: 'Questions',
     careers: 'Careers', map: 'Map', games: 'Games', calendar: 'Calendar', links: 'Links', story: 'Story', cards: 'Cards',
-    marquee: 'Phrases', timeline: 'Timeline', table: 'Table', promotions: 'Promotions', social_wall: 'Social wall',
-    rewards: 'Rakeback by table', outstation: 'Cab', jackpot: 'Jackpot and rare hands', other: 'Block',
+    marquee: 'Phrases', timeline: 'Timeline', table: 'Table', promotions: 'Promotions',
+    rewards: 'Rakeback by table', outstation: 'Cab', other: 'Block',
   },
   /** `Title 2`: the second in a list. */
   fieldNumber: '{field} {number}',

@@ -1,6 +1,5 @@
 /** The dealer tablet's own screens, moved out of apps.ts once that file grew past its limit. */
 import { dealerSignIn, endOfDown, handEntry, pairing, queue, seats } from './devices.ts';
-import { highHand } from './highHands.ts';
 import { tabletFnb } from './fnb.ts';
 
 export const tabletApp = {
@@ -19,7 +18,6 @@ export const tabletApp = {
   endOfDown,
   queue,
   seats,
-  highHand,
   /** The page the APK shows when the tablet starts before the network is up (#292). */
   offlineStart: {
     title: 'No network',

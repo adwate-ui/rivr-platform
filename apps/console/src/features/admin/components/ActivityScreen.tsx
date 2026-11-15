@@ -112,6 +112,6 @@ export function ActivityScreen() {
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   const title = t('console.activity.title');
-  if (!staff.venue.permissions.includes('control.engage')) return <Screen title={title} status="error" errorText={t('console.activity.notAllowed')} />;
+  if (!staff.venue.permissions.includes('activity.read')) return <Screen title={title} status="error" errorText={t('console.activity.notAllowed')} />;
   return <Body venueId={staff.venue.venueId} />;
 }

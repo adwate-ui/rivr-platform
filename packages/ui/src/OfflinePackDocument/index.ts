@@ -5,7 +5,6 @@ export {
   type OfflinePackContact,
   type OfflinePackContactKind,
   type OfflinePackSeat,
-  type OfflinePackSop,
   type OfflinePackTable,
   type OfflinePackWaiting,
 } from './OfflinePackDocument.tsx';

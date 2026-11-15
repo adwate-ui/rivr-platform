@@ -1,6 +1,6 @@
 -- Members' mobile numbers reach signed-in callers only through functions (decision 0513; audit F-001, F-042). Vikram
 -- (101, super admin) reads them in full; Aditya (103, an admin) and the host (108) read none, from the table or from
--- search and the record, but find a member by a number they already hold; a dealer (106) finds nobody.
+-- search and the record, but find a member by the digits of a number they already hold.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -32,9 +32,6 @@ select is((select member_id from public.member_search('00000000-0000-4000-8000-0
           (select id from known), 'but still finds the member by digits of their number');
 select is((select phone from public.member_record('00000000-0000-4000-8000-000000000001', (select id from known))), null,
           'the record gives an admin no number');
-select is(public.member_id_for_phone('00000000-0000-4000-8000-000000000001', (select phone from known)), (select id from known),
-          'an admin finds the member who has a number they hold');
-select is(public.member_id_for_phone('00000000-0000-4000-8000-000000000001', '+919999999999'), null, 'and nobody for a number nobody has');
 reset role;
 
 -- A member the desk may check in person, for the identity list's search.
@@ -61,11 +58,6 @@ select is_empty($$ select 1 from public.kyc_in_person_candidates('00000000-0000-
                    where member_id = (select id from candidate) $$, 'six digits find nobody to check at the desk either');
 select ok(exists (select 1 from public.kyc_in_person_candidates('00000000-0000-4000-8000-000000000001', right((select phone from candidate), 4))
                   where member_id = (select id from candidate)), 'the last four do, as the list shows them');
-reset role;
-
-select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
-select is(public.member_id_for_phone('00000000-0000-4000-8000-000000000001', (select phone from known)), null,
-          'a dealer, without member access, finds nobody by number');
 reset role;
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');

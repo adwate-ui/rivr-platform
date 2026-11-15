@@ -45,13 +45,12 @@ select results_eq(
      from golden.golden_case where file = 'rake.json' order by position $$,
   'private.pot_take gives every rake, drop, pull and cap applied in the golden file');
 
--- The jackpot's pools: private.split_drop and private.bad_beat_payout, and @rivr/domain splitDrop and
--- badBeatPayout (packages/testing/golden/jackpot.json).
+-- The jackpot's pools: private.split_drop and @rivr/domain splitDrop (packages/testing/golden/jackpot.json).
 create function pg_temp.basis_points(p_share text) returns integer language sql immutable as $$
   select (replace(p_share, '%', '')::numeric * 100)::integer;
 $$;
 select ok((select count(*) > 0 from golden.golden_case where file = 'jackpot.json'), 'the jackpot cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'jackpot.json' and operation not in ('split', 'payout') $$,
+select is_empty($$ select operation from golden.golden_case where file = 'jackpot.json' and operation <> 'split' $$,
   'every operation in jackpot.json is proved here');
 select results_eq(
   $$ select description, s.main, s.season, s.freeroll
@@ -62,17 +61,6 @@ select results_eq(
   $$ select description, pg_temp.paise(expected ->> 'main'), pg_temp.paise(expected ->> 'season'), pg_temp.paise(expected ->> 'freeroll')
      from golden.golden_case where file = 'jackpot.json' and operation = 'split' order by position $$,
   'private.split_drop gives every split in the golden file');
-select results_eq(
-  $$ select description, p.loser, p.winner, p.each_at_table, p.total
-     from golden.golden_case
-     cross join lateral private.bad_beat_payout(pg_temp.paise(inputs ->> 'pool'), pg_temp.basis_points(inputs ->> 'poolShare'),
-                                                pg_temp.basis_points(inputs ->> 'loserShare'), pg_temp.basis_points(inputs ->> 'winnerShare'),
-                                                pg_temp.basis_points(inputs ->> 'tableShare'), (inputs ->> 'others')::integer) p
-     where file = 'jackpot.json' and operation = 'payout' order by position $$,
-  $$ select description, pg_temp.paise(expected ->> 'loser'), pg_temp.paise(expected ->> 'winner'),
-            pg_temp.paise(expected ->> 'eachAtTable'), pg_temp.paise(expected ->> 'total')
-     from golden.golden_case where file = 'jackpot.json' and operation = 'payout' order by position $$,
-  'private.bad_beat_payout gives every payout in the golden file');
 
 -- Effective-dated rules: private.setting_at and @rivr/domain ruleAt (packages/testing/golden/settings.json).
 -- Each case's history becomes rake.config rows under its own subject, written as a migration writes
@@ -117,38 +105,6 @@ select results_eq(
      from golden.golden_case where file = 'variance.json' order by position $$,
   'private.down_variance gives every variance and alert in the golden file');
 
--- A shift's close: private.shift_close and @rivr/domain shiftClose (packages/testing/golden/eod.json).
-select ok((select count(*) > 0 from golden.golden_case where file = 'eod.json'), 'the shift close cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'eod.json' and operation <> 'close' $$,
-  'every operation in eod.json is proved here');
-select results_eq(
-  $$ select description, v.cash_paise, v.chips_paise, v.receipts_paise, v.markers_paise, v.is_anomaly
-     from golden.golden_case
-     cross join lateral private.shift_close(pg_temp.paise(inputs ->> 'countedCash'), pg_temp.paise(inputs ->> 'expectedCash'),
-       pg_temp.paise(inputs ->> 'countedChips'), pg_temp.paise(inputs ->> 'expectedChips'),
-       pg_temp.paise(inputs ->> 'countedReceipts'), pg_temp.paise(inputs ->> 'expectedReceipts'),
-       pg_temp.paise(inputs ->> 'countedMarkers'), pg_temp.paise(inputs ->> 'expectedMarkers')) v
-     where file = 'eod.json' order by position $$,
-  $$ select description, pg_temp.signed_paise(expected ->> 'cash'), pg_temp.signed_paise(expected ->> 'chips'),
-            pg_temp.signed_paise(expected ->> 'receipts'), pg_temp.signed_paise(expected ->> 'markers'), expected ->> 'anomaly' = 'yes'
-     from golden.golden_case where file = 'eod.json' order by position $$,
-  'private.shift_close gives every variance and anomaly in the golden file');
-
--- TDS on a cash-out: private.tds_amount and @rivr/domain tdsOnCashOut (packages/testing/golden/tds.json).
-select ok((select count(*) > 0 from golden.golden_case where file = 'tds.json'), 'the TDS cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'tds.json' and operation <> 'tds' $$,
-  'every operation in tds.json is proved here');
-select results_eq(
-  $$ select description, t.rate_basis_points, t.due_paise, t.amount_paise
-     from golden.golden_case
-     cross join lateral private.tds_amount(pg_temp.signed_paise(inputs ->> 'winnings'), pg_temp.paise(inputs ->> 'already'), pg_temp.paise(inputs ->> 'payout'),
-       inputs ->> 'hasPan' = 'yes', (inputs ->> 'rate')::integer, pg_temp.paise(inputs ->> 'threshold'), inputs ->> 'panRequired' = 'yes',
-       (inputs ->> 'noPanRate')::integer) t
-     where file = 'tds.json' order by position $$,
-  $$ select description, (expected ->> 'rate')::integer, pg_temp.paise(expected ->> 'due'), pg_temp.paise(expected ->> 'amount')
-     from golden.golden_case where file = 'tds.json' order by position $$,
-  'private.tds_amount gives every rate, amount due and amount withheld in the golden file');
-
 -- GST included in an amount: private.gst_included and @rivr/domain gstIncluded, and for a buyer from another
 -- state private.igst_included and igstIncluded (packages/testing/golden/gst.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'gst.json' and operation = 'gst_included'), 'the GST cases are loaded');
@@ -171,19 +127,6 @@ select results_eq(
   $$ select description, pg_temp.paise(expected ->> 'taxable'), pg_temp.paise(expected ->> 'igst')
      from golden.golden_case where file = 'gst.json' and operation = 'igst_included' order by position $$,
   'private.igst_included gives every taxable value and IGST in the golden file');
-
--- A buy-in at the cage: private.buy_in_check and @rivr/domain buyIn (packages/testing/golden/cage.json).
-select ok((select count(*) > 0 from golden.golden_case where file = 'cage.json'), 'the cage buy-in cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'cage.json' and operation <> 'buy_in' $$,
-  'every operation in cage.json is proved here');
-select results_eq(
-  $$ select description, c.result, c.debit
-     from golden.golden_case
-     cross join lateral private.buy_in_check(inputs ->> 'method', pg_temp.paise(inputs ->> 'amount'), pg_temp.paise(inputs ->> 'minimum'),
-                                             pg_temp.paise(inputs ->> 'wallet'), pg_temp.paise(inputs ->> 'bonus')) c
-     where file = 'cage.json' order by position $$,
-  $$ select description, expected ->> 'result', expected ->> 'debit' from golden.golden_case where file = 'cage.json' order by position $$,
-  'private.buy_in_check gives every buy-in in the golden file');
 
 -- Call time: private.call_time_left and @rivr/domain callTime (packages/testing/golden/callTime.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'callTime.json'), 'the call time cases are loaded');
@@ -208,50 +151,12 @@ select results_eq(
   $$ select description, nullif(expected ->> 'minutes', '')::integer from golden.golden_case where file = 'callTimeExtension.json' order by position $$,
   'private.extended_call_time gives every call time in the golden file, and refuses every refusal');
 
--- A credit limit: private.credit_limit_check and @rivr/domain creditLimit (packages/testing/golden/credit.json).
-select ok((select count(*) > 0 from golden.golden_case where file = 'credit.json'), 'the credit limit cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'credit.json' and operation <> 'limit' $$,
-  'every operation in credit.json is proved here');
-select results_eq(
-  $$ select description, private.credit_limit_check(pg_temp.paise(inputs ->> 'limit'), pg_temp.paise(inputs ->> 'threshold'),
-                                                     pg_temp.paise(inputs ->> 'current'))
-     from golden.golden_case where file = 'credit.json' order by position $$,
-  $$ select description, expected ->> 'result' from golden.golden_case where file = 'credit.json' order by position $$,
-  'private.credit_limit_check gives every limit in the golden file');
-
--- A marker: private.marker_check and @rivr/domain markerCheck (packages/testing/golden/markers.json).
-select ok((select count(*) > 0 from golden.golden_case where file = 'markers.json'), 'the marker cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'markers.json' and operation <> 'issue' $$,
-  'every operation in markers.json is proved here');
-select results_eq(
-  $$ select description, private.marker_check(pg_temp.paise(inputs ->> 'amount'), pg_temp.paise(inputs ->> 'outstanding'),
-                                             pg_temp.paise(inputs ->> 'limit'), pg_temp.paise(inputs ->> 'exposure'),
-                                             pg_temp.paise(inputs ->> 'cap'), inputs ->> 'pastDue' = 'yes')
-     from golden.golden_case where file = 'markers.json' order by position $$,
-  $$ select description, expected ->> 'result' from golden.golden_case where file = 'markers.json' order by position $$,
-  'private.marker_check gives every marker in the golden file');
-
--- A cash-out: private.cash_out_split and @rivr/domain cashOut (packages/testing/golden/cashOut.json).
+-- A bonus: private.bonus_draws and private.bonus_expiring, and @rivr/domain bonusSpend and bonusExpired
+-- (packages/testing/golden/bonus.json). Grants are written "amount @ end | ...", the end "never" for one with none.
+-- A golden list of amounts, '₹500 | ₹1,000', in paise.
 create function pg_temp.paise_list(p_text text) returns bigint[] language sql immutable as $$
   select coalesce(array_agg(pg_temp.paise(trim(part)) order by n), '{}') from unnest(string_to_array(nullif(p_text, ''), '|')) with ordinality as u (part, n);
 $$;
-select ok((select count(*) > 0 from golden.golden_case where file = 'cashOut.json'), 'the cash-out cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'cashOut.json' and operation <> 'cash_out' $$,
-  'every operation in cashOut.json is proved here');
-select results_eq(
-  $$ select description, coalesce(s.settled_paise::text, 'not_chips'), coalesce(s.to_member_paise::text, 'not_chips')
-     from golden.golden_case
-     cross join lateral private.cash_out_split(pg_temp.paise(inputs ->> 'chips'), pg_temp.paise_list(inputs ->> 'markers')) s
-     where file = 'cashOut.json' order by position $$,
-  $$ select description,
-            case when expected ->> 'settled' = 'not_chips' then 'not_chips' else pg_temp.paise_list(expected ->> 'settled')::text end,
-            case when expected ->> 'toMember' = 'not_chips' then 'not_chips' when expected ->> 'toMember' = '₹0' then '0'
-                 else pg_temp.paise(expected ->> 'toMember')::text end
-     from golden.golden_case where file = 'cashOut.json' order by position $$,
-  'private.cash_out_split gives every cash-out in the golden file');
-
--- A bonus: private.bonus_draws and private.bonus_expiring, and @rivr/domain bonusSpend and bonusExpired
--- (packages/testing/golden/bonus.json). Grants are written "amount @ end | ...", the end "never" for one with none.
 create function pg_temp.grant_amounts(p_text text) returns bigint[] language sql immutable as $$
   select pg_temp.paise_list(regexp_replace(coalesce(p_text, ''), '\s*@[^|]*', '', 'g'));
 $$;
@@ -300,16 +205,6 @@ select results_eq(
      from golden.golden_case where file = 'bonus.json' and operation = 'expire' order by position $$,
   'private.bonus_expiring gives every expiry in the golden file');
 
--- A withdrawal: private.withdrawal_check and @rivr/domain withdrawalCheck (packages/testing/golden/wallet.json).
-select ok((select count(*) > 0 from golden.golden_case where file = 'wallet.json'), 'the withdrawal cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'wallet.json' and operation <> 'withdraw' $$,
-  'every operation in wallet.json is proved here');
-select results_eq(
-  $$ select description, private.withdrawal_check(pg_temp.paise(inputs ->> 'amount'), pg_temp.paise(inputs ->> 'cash'))
-     from golden.golden_case where file = 'wallet.json' order by position $$,
-  $$ select description, expected ->> 'result' from golden.golden_case where file = 'wallet.json' order by position $$,
-  'private.withdrawal_check gives every withdrawal in the golden file');
-
 -- Promotions: private.promotion_applies, private.promotion_reward and private.promotions_to_give, and
 -- @rivr/domain promotionApplies, promotionReward and promotionsToGive (packages/testing/golden/promotions.json).
 -- Conditions, facts, effects and candidates are the JSON the database holds.
@@ -349,36 +244,6 @@ select results_eq(
        else pg_temp.paise(expected ->> 'share') end
      from golden.golden_case where file = 'shares.json' order by position $$,
   'the share rules give every case in the golden file');
-
--- Credit: private.credit_age_bucket and private.repayment_split, and @rivr/domain ageingBucket and repayment
--- (packages/testing/golden/creditAgeing.json).
-select ok((select count(*) > 0 from golden.golden_case where file = 'creditAgeing.json'), 'the credit ageing cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'creditAgeing.json' and operation not in ('bucket', 'repay') $$,
-  'every operation in creditAgeing.json is proved here');
-select results_eq(
-  $$ select description, private.credit_age_bucket((inputs ->> 'issued')::timestamptz, (inputs ->> 'at')::timestamptz)
-     from golden.golden_case where file = 'creditAgeing.json' and operation = 'bucket' order by position $$,
-  $$ select description, expected ->> 'bucket' from golden.golden_case where file = 'creditAgeing.json' and operation = 'bucket' order by position $$,
-  'private.credit_age_bucket puts every marker in the golden file in its bucket');
-select results_eq(
-  $$ select description, coalesce(r.refusal, r.settled_paise::text)
-     from golden.golden_case
-     cross join lateral private.repayment_split(pg_temp.paise(inputs ->> 'amount'), pg_temp.paise_list(inputs ->> 'markers')) r
-     where file = 'creditAgeing.json' and operation = 'repay' order by position $$,
-  $$ select description, case when expected ->> 'settled' in ('not_chips', 'nothing_owed', 'more_than_owed') then expected ->> 'settled'
-                              else pg_temp.paise_list(expected ->> 'settled')::text end
-     from golden.golden_case where file = 'creditAgeing.json' and operation = 'repay' order by position $$,
-  'private.repayment_split settles or refuses every repayment in the golden file');
-
--- The return's taxed winnings: private.tds_taxed_winnings and @rivr/domain tdsTaxedWinnings (packages/testing/golden/tdsReturn.json).
-select ok((select count(*) > 0 from golden.golden_case where file = 'tdsReturn.json'), 'the TDS return cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'tdsReturn.json' and operation <> 'taxed' $$,
-  'every operation in tdsReturn.json is proved here');
-select results_eq(
-  $$ select description, private.tds_taxed_winnings(pg_temp.paise(inputs ->> 'winnings'), pg_temp.paise(inputs ->> 'taxedBefore'))
-     from golden.golden_case where file = 'tdsReturn.json' order by position $$,
-  $$ select description, pg_temp.paise(expected ->> 'taxed') from golden.golden_case where file = 'tdsReturn.json' order by position $$,
-  'private.tds_taxed_winnings gives every case in the golden file');
 
 -- Hours played inside a promotion's window: private.seconds_in_window, and private.table_played_seconds as
 -- private.visit_window_time applies it, and @rivr/domain secondsInWindow and playedSecondsInWindow
@@ -433,172 +298,9 @@ select is_empty($$ select description from golden.golden_case where file = 'tour
                    and private.blind_levels_problem(pg_temp.stages(inputs ->> 'levels')) is not null $$,
   'and every golden structure is one the clock can run');
 
--- Tournament entry rules: private.tournament_purchase_refusal and @rivr/domain checkPurchase
--- (packages/testing/golden/tournamentEntry.json).
-select ok((select count(*) > 0 from golden.golden_case where file = 'tournamentEntry.json'), 'the tournament entry cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'tournamentEntry.json' and operation <> 'purchase' $$,
-  'every operation in tournamentEntry.json is proved here');
-select results_eq(
-  $$ select description, coalesce(private.tournament_purchase_refusal(
-       inputs ->> 'purchase', inputs ->> 'format', (inputs ->> 'lastRegistrationLevel')::integer, nullif(inputs ->> 'maxBuys', '')::integer,
-       inputs ->> 'addOn' = 'yes', (inputs ->> 'level')::integer, (inputs ->> 'buys')::integer, inputs ->> 'alive' = 'yes',
-       inputs ->> 'addOnTaken' = 'yes'), 'allowed')
-     from golden.golden_case where file = 'tournamentEntry.json' order by position $$,
-  $$ select description, expected ->> 'result' from golden.golden_case where file = 'tournamentEntry.json' order by position $$,
-  'private.tournament_purchase_refusal allows or refuses every purchase in the golden file');
-
--- Tournament money: private.tournament_pool_share and @rivr/domain poolShare (packages/testing/golden/tournamentMoney.json).
-create function pg_temp.pool_share_or_refused(p_price bigint, p_fee bigint) returns text language plpgsql as $$
-begin
-  return private.tournament_pool_share(p_price, p_fee)::text;
-exception when invalid_parameter_value then
-  return 'refused';
-end;
-$$;
-select ok((select count(*) > 0 from golden.golden_case where file = 'tournamentMoney.json'), 'the tournament money cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'tournamentMoney.json' and operation <> 'share' $$,
-  'every operation in tournamentMoney.json is proved here');
-select results_eq(
-  $$ select description, pg_temp.pool_share_or_refused(pg_temp.paise(replace(inputs ->> 'price', '-', '')) * case when inputs ->> 'price' like '-%' then -1 else 1 end,
-                                                        pg_temp.paise(replace(inputs ->> 'fee', '-', '')) * case when inputs ->> 'fee' like '-%' then -1 else 1 end)
-     from golden.golden_case where file = 'tournamentMoney.json' order by position $$,
-  $$ select description, case when expected ->> 'pool' = 'refused' then 'refused' else pg_temp.paise(expected ->> 'pool')::text end
-     from golden.golden_case where file = 'tournamentMoney.json' order by position $$,
-  'private.tournament_pool_share splits or refuses every buy in the golden file');
-
--- Tournament seating: private.tournament_eligible_seats and tournament_balancing_moves, and @rivr/domain
--- eligibleSeats and balancingMoves (packages/testing/golden/tournamentSeating.json).
-create function pg_temp.seats(p_text text) returns jsonb language sql immutable as $$
-  select coalesce(jsonb_agg(jsonb_build_array(split_part(s, '/', 1)::integer, split_part(s, '/', 2)::integer)), '[]')
-  from unnest(string_to_array(nullif(p_text, ''), ' ')) s;
-$$;
-select ok((select count(*) > 0 from golden.golden_case where file = 'tournamentSeating.json'), 'the tournament seating cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'tournamentSeating.json' and operation not in ('eligible', 'balance', 'place', 'day_two') $$,
-  'every operation in tournamentSeating.json is proved here');
-select results_eq(
-  $$ select description, coalesce((select string_agg(e.table_number || '/' || e.seat_number, ' ' order by e.table_number, e.seat_number)
-                                   from private.tournament_eligible_seats(pg_temp.seats(inputs ->> 'occupied'), (inputs ->> 'tables')::integer,
-                                                                          (inputs ->> 'seatsPerTable')::integer) e), '')
-     from golden.golden_case where file = 'tournamentSeating.json' and operation = 'eligible' order by position $$,
-  $$ select description, expected ->> 'seats' from golden.golden_case where file = 'tournamentSeating.json' and operation = 'eligible' order by position $$,
-  'private.tournament_eligible_seats offers every seat the golden file does');
-select results_eq(
-  $$ select description, coalesce((select string_agg(m.from_table || '>' || m.to_table, ' ' order by m.move)
-                                   from private.tournament_balancing_moves(string_to_array(inputs ->> 'counts', ' ')::integer[]) m), '')
-     from golden.golden_case where file = 'tournamentSeating.json' and operation = 'balance' order by position $$,
-  $$ select description, expected ->> 'moves' from golden.golden_case where file = 'tournamentSeating.json' and operation = 'balance' order by position $$,
-  'private.tournament_balancing_moves balances every room in the golden file');
-create function pg_temp.finish_place_or_refused(p_runs integer, p_rank integer) returns text language plpgsql as $$
-begin
-  return private.tournament_finish_place(p_runs, p_rank)::text;
-exception when invalid_parameter_value then
-  return 'refused';
-end;
-$$;
-select results_eq(
-  $$ select description, pg_temp.finish_place_or_refused((inputs ->> 'runs')::integer, (inputs ->> 'bustRank')::integer)
-     from golden.golden_case where file = 'tournamentSeating.json' and operation = 'place' order by position $$,
-  $$ select description, expected ->> 'place' from golden.golden_case where file = 'tournamentSeating.json' and operation = 'place' order by position $$,
-  'private.tournament_finish_place places every bust in the golden file');
-
--- Day 2's field: private.tournament_day_two_field and @rivr/domain dayTwoField (tournamentSeating.json). Runs are
--- written 'player bags chips' or 'player out place of runs'.
-create function pg_temp.flight_runs(p_text text) returns jsonb language sql immutable as $$
-  select coalesce(jsonb_agg(case when m[2] is not null then jsonb_build_object('member', m[1], 'chips', m[2]::bigint)
-                                 else jsonb_build_object('member', m[1], 'place', m[3]::integer, 'runs', m[4]::integer) end order by u.n), '[]')
-  from unnest(string_to_array(nullif(p_text, ''), ' | ')) with ordinality u (run, n)
-  cross join lateral regexp_match(u.run, '^(\S+) (?:bags (\d+)|out (\d+) of (\d+))$') m;
-$$;
-create function pg_temp.day_two_or_refused(p_runs jsonb) returns text language plpgsql as $$
-begin
-  return (select coalesce(string_agg((p_runs -> f.run_index ->> 'member') || ' ' || (p_runs -> f.run_index ->> 'chips'), ' | ' order by f.run_index)
-                            filter (where f.goes_through), '')
-                 || ' / ' || coalesce(string_agg((p_runs -> f.run_index ->> 'member') || ' ' || (p_runs -> f.run_index ->> 'place') || ' of '
-                                                 || (p_runs -> f.run_index ->> 'runs'), ' | ' order by f.out_rank) filter (where not f.goes_through), '')
-          from private.tournament_day_two_field(p_runs) f);
-exception when invalid_parameter_value then
-  return 'refused';
-end;
-$$;
-select results_eq(
-  $$ select description, pg_temp.day_two_or_refused(pg_temp.flight_runs(inputs ->> 'runs'))
-     from golden.golden_case where file = 'tournamentSeating.json' and operation = 'day_two' order by position $$,
-  $$ select description, case when expected ->> 'through' = 'refused' then 'refused' else (expected ->> 'through') || ' / ' || (expected ->> 'out') end
-     from golden.golden_case where file = 'tournamentSeating.json' and operation = 'day_two' order by position $$,
-  'private.tournament_day_two_field picks Day 2''s field as the golden file does');
-
--- Tournament payouts, deals and bounties: private.tournament_prize_pool, tournament_payout_table,
--- tournament_chip_chop, tournament_icm and tournament_bounty_split, and @rivr/domain prizePool, payoutTable,
--- chipChop, icmDeal and bountyOnBust (packages/testing/golden/tournamentPayouts.json).
-create function pg_temp.amounts(p_text text) returns bigint[] language sql immutable as $$
-  select array(select pg_temp.paise(a) from unnest(string_to_array(p_text, ' ')) with ordinality u (a, n) order by n);
-$$;
-create function pg_temp.paid_or_refused(p_operation text, p_inputs jsonb) returns text language plpgsql as $$
-begin
-  return array_to_string(case p_operation
-    -- Percent to two places, as basis points: "62.5" is 6,250.
-    when 'payouts' then private.tournament_payout_table(pg_temp.paise(p_inputs ->> 'pool'),
-                          array(select (s::numeric * 100)::integer from unnest(string_to_array(p_inputs ->> 'shares', ' ')) with ordinality u (s, n) order by n),
-                          (p_inputs ->> 'runs')::integer)
-    when 'chop' then private.tournament_chip_chop(string_to_array(p_inputs ->> 'stacks', ' ')::bigint[], pg_temp.amounts(p_inputs ->> 'prizes'))
-    else private.tournament_icm(string_to_array(p_inputs ->> 'stacks', ' ')::bigint[], pg_temp.amounts(p_inputs ->> 'prizes')) end, ' ');
-exception when invalid_parameter_value then
-  return 'refused';
-end;
-$$;
-create function pg_temp.bounty_or_refused(p_bounty bigint, p_kind text) returns text language plpgsql as $$
-begin
-  return (select b.paid_paise || ' ' || b.head_paise from private.tournament_bounty_split(p_bounty, p_kind) b);
-exception when invalid_parameter_value then
-  return 'refused';
-end;
-$$;
-select ok((select count(*) > 0 from golden.golden_case where file = 'tournamentPayouts.json'), 'the tournament payout cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'tournamentPayouts.json'
-                   and operation not in ('pool', 'payouts', 'chop', 'icm', 'bounty', 'satellite') $$,
-  'every operation in tournamentPayouts.json is proved here');
-select results_eq(
-  $$ select description, p.pool_paise, p.overlay_paise from golden.golden_case
-     cross join lateral private.tournament_prize_pool(pg_temp.paise(inputs ->> 'collected'), pg_temp.paise(nullif(inputs ->> 'guarantee', ''))) p
-     where file = 'tournamentPayouts.json' and operation = 'pool' order by position $$,
-  $$ select description, pg_temp.paise(expected ->> 'pool'), pg_temp.paise(expected ->> 'overlay') from golden.golden_case
-     where file = 'tournamentPayouts.json' and operation = 'pool' order by position $$,
-  'private.tournament_prize_pool tops up every pool in the golden file');
-select results_eq(
-  $$ select description, pg_temp.paid_or_refused(operation, inputs) from golden.golden_case
-     where file = 'tournamentPayouts.json' and operation in ('payouts', 'chop', 'icm') order by position $$,
-  $$ select description, case when coalesce(expected ->> 'prizes', expected ->> 'amounts') = 'refused' then 'refused'
-                              else array_to_string(pg_temp.amounts(coalesce(expected ->> 'prizes', expected ->> 'amounts')), ' ') end
-     from golden.golden_case where file = 'tournamentPayouts.json' and operation in ('payouts', 'chop', 'icm') order by position $$,
-  'private.tournament_payout_table, tournament_chip_chop and tournament_icm pay every case in the golden file');
-select results_eq(
-  $$ select description, pg_temp.bounty_or_refused(pg_temp.paise(inputs ->> 'bounty'), inputs ->> 'kind') from golden.golden_case
-     where file = 'tournamentPayouts.json' and operation = 'bounty' order by position $$,
-  $$ select description, case when expected ->> 'paid' = 'refused' then 'refused'
-                              else pg_temp.paise(expected ->> 'paid') || ' ' || pg_temp.paise(expected ->> 'head') end
-     from golden.golden_case where file = 'tournamentPayouts.json' and operation = 'bounty' order by position $$,
-  'private.tournament_bounty_split splits every bounty in the golden file');
-
--- Satellite seats: private.tournament_satellite_seats and @rivr/domain satelliteSeats (tournamentPayouts.json).
-create function pg_temp.seats_or_refused(p_pool bigint, p_buy_in bigint, p_runs integer) returns text language plpgsql as $$
-begin
-  return (select s.seats || ' ' || s.leftover_paise || ' ' || s.leftover_place from private.tournament_satellite_seats(p_pool, p_buy_in, p_runs) s);
-exception when invalid_parameter_value then
-  return 'refused';
-end;
-$$;
-select results_eq(
-  $$ select description, pg_temp.seats_or_refused(pg_temp.paise(inputs ->> 'pool'), pg_temp.paise(inputs ->> 'buyIn'), (inputs ->> 'runs')::integer)
-     from golden.golden_case where file = 'tournamentPayouts.json' and operation = 'satellite' order by position $$,
-  $$ select description, case when expected ->> 'seats' = 'refused' then 'refused'
-                              else (expected ->> 'seats') || ' ' || pg_temp.paise(expected ->> 'leftover') || ' ' || (expected ->> 'leftoverPlace') end
-     from golden.golden_case where file = 'tournamentPayouts.json' and operation = 'satellite' order by position $$,
-  'private.tournament_satellite_seats seats every satellite in the golden file');
-
--- AML cash limits and structuring: private.cash_limit_hit and private.is_near_limit, and @rivr/domain cashLimitHit and
--- isNearLimit (packages/testing/golden/aml.json).
+-- AML cash limits: private.cash_limit_hit and @rivr/domain cashLimitHit (packages/testing/golden/aml.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'aml.json'), 'the AML cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'aml.json' and operation not in ('cash_limit', 'near_limit') $$,
+select is_empty($$ select operation from golden.golden_case where file = 'aml.json' and operation <> 'cash_limit' $$,
   'every operation in aml.json is proved here');
 select results_eq(
   $$ select description, coalesce(private.cash_limit_hit(pg_temp.paise(inputs ->> 'perVisit'), pg_temp.paise(inputs ->> 'perDay'),
@@ -607,12 +309,6 @@ select results_eq(
      from golden.golden_case where file = 'aml.json' and operation = 'cash_limit' order by position $$,
   $$ select description, expected ->> 'hit' from golden.golden_case where file = 'aml.json' and operation = 'cash_limit' order by position $$,
   'private.cash_limit_hit gives every limit in the golden file');
-select results_eq(
-  $$ select description, private.is_near_limit(pg_temp.paise(inputs ->> 'total'), pg_temp.paise(inputs ->> 'limit'),
-                                               (inputs ->> 'marginBasisPoints')::integer)::text
-     from golden.golden_case where file = 'aml.json' and operation = 'near_limit' order by position $$,
-  $$ select description, expected ->> 'near' from golden.golden_case where file = 'aml.json' and operation = 'near_limit' order by position $$,
-  'private.is_near_limit gives every total in the golden file');
 
 -- The Glaza statement: private.glaza_payable and @rivr/domain glazaPayable (packages/testing/golden/glaza.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'glaza.json'), 'the Glaza statement cases are loaded');

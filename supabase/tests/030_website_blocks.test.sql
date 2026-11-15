@@ -12,8 +12,8 @@ values ('00000000-0000-4000-8000-0000000000e1', 'Elsewhere Open', now() + interv
 
 select results_eq(
   $$ select distinct kind from public.site_block order by kind $$,
-  $$ values ('calendar'::text), ('cards'), ('careers'), ('faq'), ('feature'), ('gallery'), ('games'), ('hero'), ('jackpot'), ('links'), ('map'),
-            ('outstation'), ('promotions'), ('rewards'), ('rules'), ('social_wall'), ('statement'), ('story'), ('text'), ('timeline') $$,
+  $$ values ('calendar'::text), ('cards'), ('careers'), ('faq'), ('feature'), ('gallery'), ('games'), ('hero'), ('links'), ('map'),
+            ('outstation'), ('promotions'), ('rewards'), ('rules'), ('statement'), ('story'), ('text'), ('timeline') $$,
   'the club''s website uses every kind of block but the table, which the rules in force replaced (#619), and the phrase strip, which repeated the front page (W-01)');
 select throws_ok(
   $$ insert into public.site_block (venue_id, page_id, position, kind, content)

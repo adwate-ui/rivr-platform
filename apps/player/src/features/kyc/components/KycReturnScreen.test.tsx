@@ -22,7 +22,7 @@ function renderReturn(record: unknown, pull: { status: number; body: unknown }, 
     if (url.includes('/functions/v1/kyc')) return Response.json(pull.body, { status: pull.status });
     if (url.includes('/rpc/kyc_at_the_club')) return Response.json(atTheClub);
     if (url.includes('/rest/v1/kyc_record')) return Response.json(record);
-    if (url.includes('/rest/v1/member')) return Response.json({ id: 'm1', full_name: 'Kabir Sethi' });
+    if (url.includes('/rest/v1/member')) return Response.json({ id: 'm1', full_name: 'Kabir Sethi', member_number: 41, tier: { name: 'Member' } });
     return Response.json([]);
   });
   const rootRoute = createRootRoute();

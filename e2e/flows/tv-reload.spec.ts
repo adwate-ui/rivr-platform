@@ -2,8 +2,7 @@
  * @perf TV modes recover within 5 seconds of a reload (#66; additions "Performance budgets"): a
  * power cut costs a reload, not a reset. Signed in once on the console as a floor manager (Ritu
  * Malik, this flow's own sign-in: Auth sends one code a minute to a number), a TV is paired, then
- * put on each of the eight modes the console offers in turn (the jackpot is hidden, #628, and the tournament clock while
- * tournaments are, D-03); after each change the TV is reloaded and must show that
+ * put on each of the four modes the console offers in turn; after each change the TV is reloaded and must show that
  * mode within five seconds. The TV is unpaired at the end.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
@@ -20,8 +19,6 @@ const MODES: readonly { chip: string; rendered: (tv: Page) => Locator }[] = [
   // A live promotion's slide, or that none is running (#86).
   { chip: 'Promotions', rendered: (tv) => tv.getByText('Promotion', { exact: true }).or(tv.getByText('No promotions running.', { exact: true })) },
   { chip: 'Hours leaderboard', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Most hours played' }) },
-  // An approved post's slide, or that none is on the wall yet (#158).
-  { chip: 'Social wall', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Social wall' }).or(tv.getByText('On Instagram', { exact: true })) },
 ];
 
 test.describe('TV reload', () => {

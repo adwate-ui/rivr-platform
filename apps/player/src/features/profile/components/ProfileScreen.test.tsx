@@ -14,14 +14,13 @@ afterEach(() => {
 });
 
 const FEATURES = ['push.seat_ready', 'push.call_time_complete', 'push.bonus', 'account.delete'].map((feature_key) => ({ feature_key, state: 'enabled', tiers: null }));
-const CARD = { member_number: 901, full_name: 'Meera Iyer', tier_name: 'Founders’ Circle', code: 'c0de', ms_left: 30000, photo_path: null };
 
 /** What each read Profile makes is answered with, by a part of its address; undefined for any other. */
-function readAnswer(url: string, card: object): unknown {
+function readAnswer(url: string, kyc: unknown): unknown {
   const reads: readonly (readonly [string, unknown])[] = [
     ['/rpc/my_feature_access', FEATURES],
-    ['/rest/v1/member?', { id: 'm1', full_name: 'Meera Iyer' }],
-    ['/rpc/my_membership_card', [card]],
+    ['/rest/v1/member?', { id: 'm1', full_name: 'Meera Iyer', member_number: 1024, tier: { name: 'Founders’ Circle' } }],
+    ['/rest/v1/kyc_record', kyc],
     ['/rest/v1/member_preference', { games: [], small_blind: null, big_blind: null, name_on_tvs: true }],
     ['/rpc/has_my_consent', false],
     ['/functions/v1/kyc-image-url', { signedPath: '/object/sign/kyc/v/m/selfie.jpg?token=one-minute' }],
@@ -30,7 +29,7 @@ function readAnswer(url: string, card: object): unknown {
 }
 
 /** Meera signed in on +91 90000 00901, opening Profile from Rewards; feedback she sends goes to `sent`. */
-function renderProfile(card: object = CARD, erasure: { asked?: string; fails?: boolean } = {}) {
+function renderProfile(kyc: unknown = null, erasure: { asked?: string; fails?: boolean } = {}) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000241', aud: 'authenticated', phone: '919000000901', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -40,7 +39,7 @@ function renderProfile(card: object = CARD, erasure: { asked?: string; fails?: b
   let asks = 0;
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    const answer = readAnswer(url, card);
+    const answer = readAnswer(url, kyc);
     if (answer !== undefined) return Response.json(answer);
     if (url.includes('/rpc/send_quick_feedback') || url.includes('/rpc/send_detailed_feedback')) {
       sent.push(JSON.parse(String(init?.body)));
@@ -61,7 +60,7 @@ function renderProfile(card: object = CARD, erasure: { asked?: string; fails?: b
   const profile = createRoute({ getParentRoute: () => rootRoute, path: '/profile', component: ProfileScreen });
   const rules = createRoute({ getParentRoute: () => rootRoute, path: '/profile/rules', component: HouseRulesScreen });
   const router = createRouter({
-    routeTree: rootRoute.addChildren([page('/rewards', 'Rewards screen'), page('/card', 'Card screen'), rules, profile]),
+    routeTree: rootRoute.addChildren([page('/rewards', 'Rewards screen'), rules, profile]),
     history: createMemoryHistory({ initialEntries: ['/rewards', '/profile'], initialIndex: 1 }),
   });
   render(
@@ -79,10 +78,12 @@ describe('Profile', () => {
   it('shows the member, then Account, Notifications and Club, and no games, limits or break', async () => {
     renderProfile();
     expect(await screen.findByRole('heading', { level: 1, name: 'Meera Iyer' }, LATER)).toBeDefined();
-    // Drawn under its own Back button, it still names the page (WCAG 2.4.2).
+    // Drawn without a Screen's title, it still names the page (WCAG 2.4.2).
     expect(document.title).toBe('Profile · RIVR');
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Meera Iyer' }));
     expect(await screen.findByText(/^Founders’ Circle · \+91/, {}, LATER)).toBeDefined();
+    // From her own record, now the card that showed it is gone.
+    expect(screen.getByText('Member number 1024')).toBeDefined();
     for (const group of ['Account', 'Notifications', 'Club']) expect(screen.getByText(group)).toBeDefined();
     expect(screen.getByText('Verified')).toBeDefined();
     expect(await screen.findByRole('switch', { name: /Seat calls/ }, LATER)).toBeDefined();
@@ -118,13 +119,13 @@ describe('Profile', () => {
   });
 
   it('shows a request already sent, with nothing to open', async () => {
-    renderProfile(CARD, { asked: '2026-11-08T05:00:00Z' });
+    renderProfile(null, { asked: '2026-11-08T05:00:00Z' });
     expect(await screen.findByText('Requested 8 Nov', {}, LATER)).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Delete my account' })).toBeNull();
   });
 
   it('keeps the sheet open and says so when the request does not go through', async () => {
-    renderProfile(CARD, { fails: true });
+    renderProfile(null, { fails: true });
     fireEvent.click(await screen.findByRole('button', { name: 'Delete my account' }, LATER));
     const sheet = await screen.findByRole('dialog', { name: 'Delete my account' }, LATER);
     fireEvent.click(within(sheet).getByRole('button', { name: 'Send request' }));
@@ -140,7 +141,7 @@ describe('Profile', () => {
   });
 
   it('shows her verified selfie filling the mark, and her initial without one', async () => {
-    renderProfile({ ...CARD, photo_path: 'v/m/selfie.jpg' });
+    renderProfile({ status: 'verified', photo_path: 'v/m/selfie.jpg', date_of_birth: null, masked_aadhaar: null, pan: null, at_club_from: null });
     const photo = await screen.findByRole('img', { name: 'Your photo' }, LATER);
     expect(photo.getAttribute('src')).toContain('/object/sign/kyc/v/m/selfie.jpg');
     cleanup();
@@ -157,26 +158,14 @@ describe('Profile', () => {
     expect(screen.queryByRole('button', { name: /Events/ })).toBeNull();
   });
 
-  it('opens the card from its row', async () => {
-    const { router } = renderProfile();
-    fireEvent.click(await screen.findByRole('button', { name: /Membership card/ }, LATER));
-    await waitFor(() => expect(router.state.location.pathname).toBe('/card'));
-  });
-
-  it('goes back to the tab it was opened from', async () => {
-    const { router } = renderProfile();
-    fireEvent.click(await screen.findByRole('button', { name: 'Back' }, LATER));
-    await waitFor(() => expect(router.state.location.pathname).toBe('/rewards'));
-  });
-
-  it('goes back from House rules to Profile, and from Profile to the tab: never to House rules again', async () => {
+  it('goes back from House rules to Profile, a tab with no Back of its own', async () => {
     const { router } = renderProfile();
     fireEvent.click(await screen.findByRole('button', { name: /House rules/ }, LATER));
     await waitFor(() => expect(router.state.location.pathname).toBe('/profile/rules'));
     fireEvent.click(await screen.findByRole('button', { name: 'Profile' }, LATER));
     await waitFor(() => expect(router.state.location.pathname).toBe('/profile'));
-    fireEvent.click(await screen.findByRole('button', { name: 'Back' }, LATER));
-    await waitFor(() => expect(router.state.location.pathname).toBe('/rewards'));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Meera Iyer' }, LATER)).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Back' })).toBeNull();
   });
 
   it('sends feedback from its sheet, with a topic, then says so', async () => {

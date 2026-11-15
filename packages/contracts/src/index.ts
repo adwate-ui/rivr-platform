@@ -34,7 +34,7 @@ export {
   bankAmountSchema, depositSchema, withdrawalSchema, type Ifsc, type PayoutAccountInput, type PayoutKind,
   type UpiVpa, type Utr,
 } from './payments.ts';
-export { bonusChipsToRedeemSchema, doorCardSchema, doorCheckInSchema, floorWaitlistAddSchema, seatPlayerSchema, type SeatWho } from './waitlist.ts';
+export { bonusChipsToRedeemSchema, doorCheckInSchema, floorWaitlistAddSchema, seatPlayerSchema, type SeatWho } from './waitlist.ts';
 export {
   dealerPinEntrySchema,
   dealerPinSchema,
@@ -45,7 +45,6 @@ export {
   devicePairRequestSchema,
   devicePairSchema,
   deviceRevokeSchema,
-  HIDDEN_TV_MODES,
   pairingCodeSchema,
   TV_LEADERBOARD_PERIODS,
   TV_MODES,
@@ -57,8 +56,6 @@ export {
   type TvMode,
 } from './devices.ts';
 export { dropBoxCountSchema, HAND_VARIANTS, handEntrySchema } from './hands.ts';
-export { quizAnswersSchema } from './training.ts';
-export { sopSchema, sopVersionSchema, sopWaitingSchema } from './sops.ts';
 export {
   CONTACT_KINDS,
   contactSchema,
@@ -91,23 +88,9 @@ export {
   type FeedbackTopic,
 } from './feedback.ts';
 export {
-  BUY_IN_METHODS, CASH_OUT_TO, cageBuyInSchema, cashOutSchema, chipCountSchema, closeShiftSchema, eodReviewSchema, openShiftSchema, type BuyInMethodKey,
-} from './cage.ts';
-export { creditLimitSchema, markerIssueSchema } from './credit.ts';
-export {
   PROMOTION_EFFECTS, PROMOTION_HANDS, PROMOTION_TRIGGERS, promotionConditionsSchema, promotionEffectSchema, promotionRefusalSchema, type PromotionConditions,
   type PromotionEffect, type PromotionEffectKind, type PromotionTrigger,
 } from './promotions.ts';
-export { CONTROL_LEVELS, engageControlSchema, KILLABLE_FEATURES } from './killSwitch.ts';
-export { badBeatSchema, jackpotReversalSchema } from './jackpot.ts';
-export {
-  HIGH_HAND_CATEGORIES,
-  HIGH_HAND_RANKS,
-  highHandClaimSchema,
-  highHandRejectSchema,
-  type HighHandCategory,
-  type HighHandRank,
-} from './highHands.ts';
 export {
   alertRaisedSchema, bonusCreditedSchema, bonusRedeemedSchema, callTimeCompletedSchema, callTimeEndingSchema, callTimeUpdatedSchema, linkSuffixSchema,
   MEMBER_NOTICES, memberNoticeSchema,
@@ -119,22 +102,11 @@ export {
   LIVE_STATUS_PLATFORMS, liveStatusDeviceSchema, liveStatusTokenReportSchema, waitlistMovedSchema, type LiveStatusDeviceInput,
   type LiveStatusPlatform,
 } from './liveStatus.ts';
-export { HOST_CHURN_REASONS, hostContactSchema, hostLapse, type HostChurnReason, type HostContact } from './hostQueue.ts';
-export { WINNER_CARD_KINDS, winnerCardImagesSchema, winnerCardRowSchema, winnerCardRowsSchema, type WinnerCardRow } from './winnerCards.ts';
 export {
   isReasonInWords, KYC_DOCUMENT_KINDS, kycDocumentRetakeSchema, kycInPersonSchema, kycReviewSchema, type KycDocumentKind, type KycDocumentRetake, type KycInPerson,
 } from './kycReview.ts';
 export { erasedKycFilesSchema, type ErasedKycFilesRequest } from './memberErasure.ts';
 export { PHONE_CHANGE, sendSmsHookSchema, signInCodeSchema, type SignInCodeToSend } from './auth-hooks.ts';
-export {
-  INBOX_CHANNELS,
-  SOCIAL_CHANNELS,
-  inboxChannelSchema,
-  socialChannelSchema,
-  socialPostSchema,
-  type InboxChannel,
-  type SocialChannel,
-} from './channels.ts';
 export {
   FEATURES,
   HIDDEN_FEATURES,

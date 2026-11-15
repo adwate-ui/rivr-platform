@@ -8,11 +8,11 @@ import { PACK } from './offlinePack.fixture.ts';
 registerMessages({ documents });
 
 describe('OfflinePackDocument', () => {
-  it('has who to call, open balances, the floor and the SOPs, each under its heading', async () => {
+  it('has who to call, open balances and the floor, each under its heading', async () => {
     const { container } = renderIn(<OfflinePackDocument pack={PACK} />);
     expect(screen.getByRole('article', { name: 'Offline pack' })).toBeInTheDocument();
     expect(screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent))
-      .toEqual(['Who to call', 'Open balances', 'The floor', 'Procedures in force']);
+      .toEqual(['Who to call', 'Open balances', 'The floor']);
     expect(screen.getByRole('table', { name: 'Who to call' })).toHaveTextContent('Glaza front desk · Ask for the duty manager');
     const balances = screen.getByRole('table', { name: 'Open balances' });
     expect(within(balances).getByText('Yash Gupta (1043)')).toBeInTheDocument();
@@ -21,20 +21,14 @@ describe('OfflinePackDocument', () => {
     expect(screen.getByRole('table', { name: 'Who sits at Table 3' })).toHaveTextContent('Mihir Shah (1042)');
     // Each place names the table whose list it is on (decision 0467).
     expect(screen.getByRole('table', { name: 'Waitlist' })).toHaveTextContent('Table 3NLH 100/2001Ritika Das (1051)');
-    expect(screen.getByText(/^Version 2, in force from/)).toBeInTheDocument();
     expect(await axeViolations(container)).toEqual([]);
   });
 
   it('says so where there is nothing to list', () => {
-    renderIn(<OfflinePackDocument pack={{ ...PACK, contacts: [], balances: [], tables: [], waitlist: [], sops: [] }} />);
-    for (const line of ['No member has money held or owed.', 'No table was open.', 'Nobody waiting.', 'No SOP is in force.']) {
+    renderIn(<OfflinePackDocument pack={{ ...PACK, contacts: [], balances: [], tables: [], waitlist: [] }} />);
+    for (const line of ['No member has money held or owed.', 'No table was open.', 'Nobody waiting.']) {
       expect(screen.getByText(line)).toBeInTheDocument();
     }
     expect(screen.getByText(/^No contacts are set/)).toBeInTheDocument();
-  });
-
-  it('says no shift was open rather than a float of nothing', () => {
-    renderIn(<OfflinePackDocument pack={{ ...PACK, cageFloatPaise: null }} />);
-    expect(screen.getByRole('table', { name: 'The cage' })).toHaveTextContent('Cage floatNo shift open');
   });
 });

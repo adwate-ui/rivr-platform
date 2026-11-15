@@ -38,7 +38,6 @@ const PAGE_ORDER: Readonly<Record<string, readonly string[]>> = {
   table: ['heading', 'intro', 'note'],
   promotions: ['eyebrow', 'heading'],
   outstation: ['eyebrow', 'heading'],
-  jackpot: ['eyebrow', 'heading'],
 };
 
 const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> => typeof value === 'object' && value !== null && !Array.isArray(value);

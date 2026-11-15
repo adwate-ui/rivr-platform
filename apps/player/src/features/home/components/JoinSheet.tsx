@@ -1,4 +1,4 @@
-import { useControlState, useFeature, useRestrictions, useWaitlistActions, type FloorTable, type WaitlistFailure } from '@rivr/db';
+import { useFeature, useRestrictions, useWaitlistActions, type FloorTable, type WaitlistFailure } from '@rivr/db';
 import { formatDateTime, formatDuration, formatMoney, formatStakes, t } from '@rivr/i18n';
 import { Button, ErrorMessage, FeatureGate, haptic, Sheet, StatRow, Text, useIsOnline, useToast } from '@rivr/ui';
 import { useState } from 'react';
@@ -9,13 +9,12 @@ import { WAITLIST_FAILURE_COPY } from './waitlistCopy.ts';
  * goes. On a break (decision 0300) there is none, only until when, as the club would refuse the join.
  */
 function JoinButton({ onJoin, isJoining }: { onJoin: () => void; isJoining: boolean }) {
-  const { isVenueFrozen } = useControlState();
   const breakUntil = useRestrictions().data?.breakUntil ?? null;
   const isOnline = useIsOnline();
   if (breakUntil !== null) return <Text tone="muted" align="center">{t('player.tonight.breakActive', { until: formatDateTime(new Date(breakUntil)) })}</Text>;
   return (
-    <Button variant="primary" size="tall" fullWidth isDisabled={isVenueFrozen || !isOnline} isLoading={isJoining} onClick={onJoin}>
-      {isVenueFrozen ? t('player.live.join.paused') : t('player.live.join.request')}
+    <Button variant="primary" size="tall" fullWidth isDisabled={!isOnline} isLoading={isJoining} onClick={onJoin}>
+      {t('player.live.join.request')}
     </Button>
   );
 }

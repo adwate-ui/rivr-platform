@@ -1,7 +1,7 @@
 import type { Permission } from '@rivr/contracts';
 import { t, type MessageKey } from '@rivr/i18n';
 import type { SideNavItem, SideNavSection } from '@rivr/ui';
-import { HIDDEN, PHONE_TABS, RAIL, REQUESTS, type RailEntry, type ScreenTab } from './railEntries.ts';
+import { PHONE_TABS, RAIL, REQUESTS, type RailEntry, type ScreenTab } from './railEntries.ts';
 
 export type { ScreenTab } from './railEntries.ts';
 
@@ -38,7 +38,7 @@ function countLabelOf(entry: RailEntry, counts: QueueCounts): string | undefined
 function itemOf(entry: RailEntry, counts: QueueCounts, label: MessageKey = entry.label): SideNavItem {
   return {
     id: entry.id, label: t(label), href: entry.href, icon: entry.icon, count: countOf(entry, counts), countLabel: countLabelOf(entry, counts),
-    isActionable: entry.isActionable, tone: entry.tone,
+    isActionable: entry.isActionable,
   };
 }
 
@@ -76,31 +76,22 @@ function entryAt(pathname: string): RailEntry | undefined {
   return ENTRIES.filter((entry) => under(entry.href)).sort((a, b) => b.href.length - a.href.length)[0];
 }
 
-function hiddenAt(pathname: string) {
-  const path = pathname.toLowerCase();
-  return HIDDEN.find((screen) => path === screen.href || path.startsWith(`${screen.href}/`));
-}
-
-/** Why a screen is refused, and its name for the refusal's title (#811): switched off for everyone, or outside the role. */
+/** A screen refused as outside the staff member's role: its name, for the refusal's title (#811). */
 export interface Refusal {
   readonly title: string;
-  readonly isOff: boolean;
 }
 
 /**
  * Whether a staff member may open the screen at `pathname`, and the tab `tab` of it, held to the same rule as the rail
- * (#28): a cashier who types an admin screen's address is refused, and so is a host who types a tab outside the role. A
- * hidden screen, and any below it, is refused to everyone (#626). An address with no entry, such as an old one that
- * moves on, is open to all staff.
+ * (#28): a cashier who types an admin screen's address is refused, and so is a host who types a tab outside the role. An
+ * address with no entry, such as an old one that moves on, is open to all staff.
  */
 export function refusalAt(permissions: readonly Permission[], pathname: string, tab?: string): Refusal | undefined {
-  const hidden = hiddenAt(pathname);
-  if (hidden !== undefined) return { title: t(hidden.label), isOff: true };
   const entry = entryAt(pathname);
   if (entry === undefined) return undefined;
   const named = entry.tabs?.find((one) => one.id === tab);
   const isAllowed = named === undefined ? mayOpen(entry, permissions) : holdsAny(named.anyOf, permissions);
-  return isAllowed ? undefined : { title: t(named?.label ?? entry.label), isOff: false };
+  return isAllowed ? undefined : { title: t(named?.label ?? entry.label) };
 }
 
 /** True when `refusalAt` lets the staff member in. */
@@ -108,9 +99,9 @@ export function isAllowedAt(permissions: readonly Permission[], pathname: string
   return refusalAt(permissions, pathname, tab) === undefined;
 }
 
-/** True on the screens that lock after ten idle minutes (#384), hidden ones too. */
+/** True on the screens that lock after ten idle minutes (#384). */
 export function locksWhenIdle(pathname: string): boolean {
-  return (hiddenAt(pathname)?.locksWhenIdle ?? entryAt(pathname)?.locksWhenIdle) === true;
+  return entryAt(pathname)?.locksWhenIdle === true;
 }
 
 /** The first screen a staff member's rail shows: where a role without the Live floor lands (#640: Service), and a refusal's way back. */

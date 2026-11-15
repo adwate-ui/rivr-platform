@@ -109,7 +109,6 @@ export const reports = {
   signedUp: 'Signed up',
   kycDone: 'ID checked',
   visited: 'Came in',
-  boughtIn: 'Bought in',
   stage: '{count} ({percent}%)',
   /** Channel analytics (#164). */
   channels: 'Channels',

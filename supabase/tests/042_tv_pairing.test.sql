@@ -62,7 +62,7 @@ select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-0000
 create temporary table bar_tv on commit drop as
   select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', (select code from bar), '  Bar TV ', 'waitlist') as device_id;
 grant select on bar_tv to authenticated, service_role;
-select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', (select code from bar), 'Bar TV', 'jackpot') $$,
+select throws_ok($$ select public.claim_tv_pairing('00000000-0000-4000-8000-000000000001', (select code from bar), 'Bar TV', 'promotions') $$,
   'RVCOD', null, 'a code is claimed once');
 reset role;
 select results_eq($$ select d.venue_id, d.kind, d.name, s.user_id, d.auth_user_id from public.device d
@@ -123,7 +123,7 @@ select results_eq($$ select device_id, name, mode from public.my_tv_screen() $$,
   $$ select device_id, 'Bar TV'::text, 'waitlist'::public.tv_mode from bar_tv $$, 'the TV knows its name and mode');
 select results_eq($$ select count(*)::int from public.tv_screen $$, $$ values (1) $$, 'and sees only its own screen');
 select is_empty($$ select * from public.dealer_down $$, 'a TV sees none of the venue''s dealer downs, which are for its tablets');
-select throws_ok($$ select public.set_tv_mode((select device_id from bar_tv), 'jackpot') $$, '42501', null, 'a TV cannot change its mode');
+select throws_ok($$ select public.set_tv_mode((select device_id from bar_tv), 'promotions') $$, '42501', null, 'a TV cannot change its mode');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
 select is_empty($$ select * from public.tv_screen $$, 'a member sees no TV screens');
 select is_empty($$ select * from public.my_tv_screen() $$, 'and is not a TV');
@@ -132,13 +132,13 @@ select is_empty($$ select * from public.my_tv_screen() $$, 'nor is staff');
 
 -- Changing what it shows.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
-select throws_ok($$ select public.set_tv_mode((select device_id from bar_tv), 'jackpot') $$, '42501', null, 'a dealer cannot change a TV''s mode');
+select throws_ok($$ select public.set_tv_mode((select device_id from bar_tv), 'promotions') $$, '42501', null, 'a dealer cannot change a TV''s mode');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select public.set_tv_mode('00000000-0000-4000-8000-00000000d101', 'jackpot') $$, '22023', null,
+select throws_ok($$ select public.set_tv_mode('00000000-0000-4000-8000-00000000d101', 'promotions') $$, '22023', null,
   'a tablet has no display mode');
-select lives_ok($$ select public.set_tv_mode((select device_id from bar_tv), 'jackpot') $$, 'a floor manager puts the jackpot on the bar TV');
+select lives_ok($$ select public.set_tv_mode((select device_id from bar_tv), 'promotions') $$, 'a floor manager puts the promotions on the bar TV');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e101');
-select results_eq($$ select mode from public.my_tv_screen() $$, $$ values ('jackpot'::public.tv_mode) $$, 'which the TV reads next');
+select results_eq($$ select mode from public.my_tv_screen() $$, $$ values ('promotions'::public.tv_mode) $$, 'which the TV reads next');
 
 -- The practice venue pairs its own TVs, and a frozen venue pairs none.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');

@@ -5,11 +5,6 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
--- Events is off since #637 (decision 0284): this test turns it back on for every tier.
-insert into public.tier_feature (venue_id, tier_id, feature_key, is_enabled, display_mode, effective_from)
-select t.venue_id, t.id, k.key, true, 'locked', now() - interval '1 second'
-from public.tier t cross join (values ('events.book')) as k (key);
-
 create function pg_temp.as_person(p_person text) returns void language sql as $$
   select set_config('role', 'authenticated', true),
          set_config('request.jwt.claims', jsonb_build_object('sub', p_person, 'role', 'authenticated')::text, true);
@@ -20,35 +15,35 @@ grant select, insert on ids to authenticated;
 
 -- Only a super admin; never written directly.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000110');
-select throws_ok($$ select public.set_feature_override('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', 'events.book',
+select throws_ok($$ select public.set_feature_override('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', 'floor.live_view',
   false, 'Not yet') $$, '42501', null, 'a membership manager does not override features');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select throws_ok($$ insert into public.member_feature_override (venue_id, member_id, feature_key, is_granted, reason)
-  values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', 'events.book', false, 'Direct') $$,
+  values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', 'floor.live_view', false, 'Direct') $$,
   '42501', null, 'nor does a super admin write one directly');
 select throws_ok($$ select public.set_feature_override('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', 'core.kyc',
   false, 'Core') $$, '22023', null, 'a core feature is never overridden');
-select throws_ok($$ select public.set_feature_override('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', 'events.book',
+select throws_ok($$ select public.set_feature_override('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', 'floor.live_view',
   false, 'no') $$, '22023', null, 'a reason of three characters or more');
-select throws_ok($$ select public.set_feature_override('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', 'events.book',
+select throws_ok($$ select public.set_feature_override('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', 'floor.live_view',
   false, 'Past', (now() at time zone 'Asia/Kolkata')::date - 2) $$, '22023', null, 'a last day still to come');
-select throws_ok($$ select public.set_feature_override('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000301', 'events.book',
+select throws_ok($$ select public.set_feature_override('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000301', 'floor.live_view',
   false, 'Other venue') $$, 'RVNOM', null, 'a member of this venue');
 
--- Events taken away from Kabir alone, then replaced, then lifted.
+-- The live floor view taken away from Kabir alone, then replaced, then lifted.
 insert into ids select 'away', public.set_feature_override('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202',
-  'events.book', false, 'Reselling seats at events', (now() at time zone 'Asia/Kolkata')::date + 7);
+  'floor.live_view', false, 'Passing the floor on to others', (now() at time zone 'Asia/Kolkata')::date + 7);
 reset role;
-select ok(not private.has_feature('00000000-0000-4000-8000-000000000202', 'events.book'), 'Kabir loses Events');
-select ok(private.has_feature('00000000-0000-4000-8000-000000000203', 'events.book'), 'Naina keeps it');
+select ok(not private.has_feature('00000000-0000-4000-8000-000000000202', 'floor.live_view'), 'Kabir loses the live floor view');
+select ok(private.has_feature('00000000-0000-4000-8000-000000000203', 'floor.live_view'), 'Naina keeps it');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select results_eq($$ select feature_name, is_granted, reason, until, standing, staff_name
                      from public.member_feature_overrides('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202') $$,
-  $$ select 'Events'::text, false, 'Reselling seats at events'::text, (now() at time zone 'Asia/Kolkata')::date + 7, 'in_force'::text,
+  $$ select 'Live floor view'::text, false, 'Passing the floor on to others'::text, (now() at time zone 'Asia/Kolkata')::date + 7, 'in_force'::text,
             (select full_name from public.staff where user_id = '00000000-0000-4000-8000-000000000101' and venue_id = '00000000-0000-4000-8000-000000000001') $$,
   'the super admin sees it: feature, taken away, why, the last day, in force, and who');
 insert into ids select 'back', public.set_feature_override('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202',
-  'events.book', true, 'Sorted out with the owner');
+  'floor.live_view', true, 'Sorted out with the owner');
 select results_eq($$ select is_granted, standing from public.member_feature_overrides('00000000-0000-4000-8000-000000000001',
                      '00000000-0000-4000-8000-000000000202') order by is_granted $$,
   $$ values (false, 'replaced'::text), (true, 'in_force') $$, 'a new override replaces the one in force');
@@ -63,7 +58,7 @@ select results_eq($$ select standing, lifted_by, lift_reason from public.member_
   $$ select 'lifted'::text, (select full_name from public.staff where user_id = '00000000-0000-4000-8000-000000000101'
             and venue_id = '00000000-0000-4000-8000-000000000001'), 'Settled for good'::text $$, 'the lift keeps who and why');
 reset role;
-select ok(private.has_feature('00000000-0000-4000-8000-000000000202', 'events.book'), 'lifted, his tier decides again');
+select ok(private.has_feature('00000000-0000-4000-8000-000000000202', 'floor.live_view'), 'lifted, his tier decides again');
 
 -- Hidden from every other role; the member sees their own.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
@@ -88,7 +83,7 @@ update public.staff set is_active = true where user_id = '00000000-0000-4000-800
 -- Not while the venue is frozen.
 insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Test');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select throws_ok($$ select public.set_feature_override('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', 'events.book',
+select throws_ok($$ select public.set_feature_override('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', 'floor.live_view',
   false, 'Frozen') $$, 'RVFRZ', null, 'no override while the venue is frozen');
 reset role;
 

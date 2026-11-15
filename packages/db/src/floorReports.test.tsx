@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useInterestLists, usePotData } from './floorReports.ts';
+import { useInterestLists } from './floorReports.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
@@ -25,27 +25,17 @@ function renderHooks(replies: Record<string, { body: unknown }>) {
     auth: { storage: sessionStorageFor(SIGNED_IN), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
-  const { result } = renderHook(() => ({ interest: useInterestLists(VENUE), hands: usePotData(VENUE, '2026-11-15', '2026-11-16') }), { wrapper });
+  const { result } = renderHook(() => ({ interest: useInterestLists(VENUE) }), { wrapper });
   return { result, calls };
 }
 
 afterEach(cleanup);
 
-describe('interest lists and pot data', () => {
-  it('reads the games not running, and the period\'s hands in paise', async () => {
-    const { result, calls } = renderHooks({
+describe('interest lists', () => {
+  it('reads the games not running', async () => {
+    const { result } = renderHooks({
       '/rpc/interest_lists': { body: [{ table_id: 'pr', waiting: 4, players_to_open: 4, is_ready: true }] },
-      '/rpc/pot_data': {
-        body: [{
-          hand_id: 'h1', played_at: '2026-11-15T15:30:00Z', table_id: 't2', table_name: 'Table 2', dealer_id: 's1', dealer_name: 'Pema Lepcha',
-          variant: 'plo', pot_paise: 1000000, rake_paise: 50000, drop_paise: 10000, is_cap_applied: false, high_hand: null,
-        }],
-      },
     });
     await waitFor(() => expect(result.current.interest.data).toEqual([{ tableId: 'pr', waiting: 4, playersToOpen: 4, isReady: true }]));
-    await waitFor(() => expect(result.current.hands.data?.[0]).toMatchObject({ tableName: 'Table 2', variant: 'plo', pot: 1000000n, rake: 50000n }));
-    expect(calls.find((call) => call.url.includes('/rpc/pot_data'))?.body).toEqual({
-      p_venue_id: VENUE, p_from: '2026-11-15T00:30:00.000Z', p_until: '2026-11-17T00:30:00.000Z',
-    });
   });
 });

@@ -6,13 +6,13 @@ select no_plan();
 
 select lives_ok($$ select private.assert_writable('00000000-0000-4000-8000-000000000001') $$, 'writes are allowed normally');
 
--- Feature kill: withdrawals off, everything else on.
+-- Feature kill: promotions off, everything else on.
 insert into public.control_state (venue_id, level, feature, reason, engaged_by_staff_id)
-select '00000000-0000-4000-8000-000000000001', 'feature_kill', 'withdrawals', 'Bank outage', s.id
+select '00000000-0000-4000-8000-000000000001', 'feature_kill', 'promotions', 'Wrong offer', s.id
 from public.staff s where s.user_id = '00000000-0000-4000-8000-000000000101' and s.venue_id = '00000000-0000-4000-8000-000000000001';
-select throws_ok($$ select private.assert_writable('00000000-0000-4000-8000-000000000001', 'withdrawals') $$,
+select throws_ok($$ select private.assert_writable('00000000-0000-4000-8000-000000000001', 'promotions') $$,
   'RVKIL', null, 'a killed feature refuses its writes');
-select lives_ok($$ select private.assert_writable('00000000-0000-4000-8000-000000000001', 'credit') $$,
+select lives_ok($$ select private.assert_writable('00000000-0000-4000-8000-000000000001', 'kyc_signup') $$,
   'other features keep working');
 
 -- Member freeze: Arjun alone.
@@ -45,7 +45,6 @@ set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';
 select is((select count(*) from public.control_state where level = 'venue_freeze')::int, 1, 'a member sees the venue freeze');
 select throws_ok($$ select reason from public.control_state $$, '42501', null, 'a member cannot read why');
-select is((select count(*) from public.control_state_detail)::int, 0, 'a member gets no control details');
 reset role;
 
 -- Release needs a reason and, for a venue freeze, two different super admins.
@@ -94,20 +93,20 @@ insert into public.control_state (venue_id, level, reason)
 values ('00000000-0000-4000-8000-000000000001', 'messaging_stop', 'Wrong template');
 select is_empty($$ select * from public.claim_outbox_deliveries('whatsapp', array['visit.closed'], true) $$,
   'messaging consumers hold while a messaging stop is engaged');
-select is_empty($$ select * from public.claim_outbox_deliveries('social', array['visit.closed']) $$,
+select is_empty($$ select * from public.claim_outbox_deliveries('push', array['visit.closed']) $$,
   'a consumer that does not say it sends nothing to people holds too');
-select isnt_empty($$ select * from public.claim_outbox_deliveries('tally', array['visit.closed'], false) $$,
+select isnt_empty($$ select * from public.claim_outbox_deliveries('reports', array['visit.closed'], false) $$,
   'other consumers carry on');
--- The tally consumer dies holding its delivery; once the lock expires it is offered again.
-update public.outbox_delivery set locked_until = now() - interval '1 second' where consumer = 'tally';
-select isnt_empty($$ select * from public.claim_outbox_deliveries('tally', array['visit.closed'], false) $$,
+-- The reports consumer dies holding its delivery; once the lock expires it is offered again.
+update public.outbox_delivery set locked_until = now() - interval '1 second' where consumer = 'reports';
+select isnt_empty($$ select * from public.claim_outbox_deliveries('reports', array['visit.closed'], false) $$,
   'a delivery whose lock expired is claimed again');
 -- It dies again on its tenth and last attempt: the next claim marks it failed, so the owner's
 -- alert on failed deliveries sees it instead of it sitting in processing for good.
-update public.outbox_delivery set attempts = 10, locked_until = now() - interval '1 second' where consumer = 'tally';
-select is_empty($$ select * from public.claim_outbox_deliveries('tally', array['visit.closed'], false) $$,
+update public.outbox_delivery set attempts = 10, locked_until = now() - interval '1 second' where consumer = 'reports';
+select is_empty($$ select * from public.claim_outbox_deliveries('reports', array['visit.closed'], false) $$,
   'a delivery out of attempts is not offered again');
-select is((select status::text from public.outbox_delivery where consumer = 'tally'), 'failed',
+select is((select status::text from public.outbox_delivery where consumer = 'reports'), 'failed',
   'and is marked failed');
 select lives_ok(
   $$ select public.finish_outbox_delivery((select id from public.outbox_delivery where consumer = 'feedback'), true) $$,

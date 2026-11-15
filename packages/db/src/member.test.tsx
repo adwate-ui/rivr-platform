@@ -32,23 +32,27 @@ afterEach(cleanup);
 
 describe('the signed-in member', () => {
   it('reads the member of this login, with the initial the shell shows', async () => {
-    const { result, calls } = renderMember([{ id: 'm1', full_name: ' asha Verma', venue: { is_practice: false } }]);
-    await waitFor(() => expect(result.current.data).toEqual({ id: 'm1', fullName: ' asha Verma', initial: 'A', isPractice: false }));
+    const { result, calls } = renderMember([{ id: 'm1', full_name: ' asha Verma', member_number: 14, venue: { is_practice: false }, tier: { name: 'Member' } }]);
+    await waitFor(() => expect(result.current.data).toEqual({
+      id: 'm1', fullName: ' asha Verma', initial: 'A', memberNumber: '14', tierName: 'Member', isPractice: false,
+    }));
     expect(calls.some((url) => url.includes('/rpc/link_my_login'))).toBe(false);
   });
 
   it('says when their venue is the practice one, and does not know where the venue was not read', async () => {
-    const practice = renderMember([{ id: 'm1', full_name: 'Asha Verma', venue: { is_practice: true } }]);
+    const practice = renderMember([{ id: 'm1', full_name: 'Asha Verma', member_number: 14, venue: { is_practice: true }, tier: { name: 'Member' } }]);
     await waitFor(() => expect(practice.result.current.data?.isPractice).toBe(true));
-    expect(practice.calls[0]).toContain('select=id%2Cfull_name%2Cvenue%28is_practice%29');
+    expect(practice.calls[0]).toContain('select=id%2Cfull_name%2Cmember_number%2Cvenue%28is_practice%29%2Ctier%28name%29');
     cleanup();
-    const withheld = renderMember([{ id: 'm1', full_name: 'Asha Verma', venue: null }]);
+    const withheld = renderMember([{ id: 'm1', full_name: 'Asha Verma', member_number: 14, venue: null, tier: { name: 'Member' } }]);
     await waitFor(() => expect(withheld.result.current.data?.isPractice).toBeNull());
   });
 
   it('links a login with no member yet once, then asks again, as the app may have closed between the code and the link', async () => {
-    const { result, calls } = renderMember([null, { id: 'm1', full_name: 'Asha Verma', venue: { is_practice: false } }]);
-    await waitFor(() => expect(result.current.data).toEqual({ id: 'm1', fullName: 'Asha Verma', initial: 'A', isPractice: false }));
+    const { result, calls } = renderMember([null, { id: 'm1', full_name: 'Asha Verma', member_number: 14, venue: { is_practice: false }, tier: { name: 'Member' } }]);
+    await waitFor(() => expect(result.current.data).toEqual({
+      id: 'm1', fullName: 'Asha Verma', initial: 'A', memberNumber: '14', tierName: 'Member', isPractice: false,
+    }));
     expect(calls.filter((url) => url.includes('/rpc/link_my_login'))).toHaveLength(1);
   });
 

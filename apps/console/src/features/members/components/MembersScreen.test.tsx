@@ -148,11 +148,6 @@ describe('Members (console v3)', () => {
     expect(await screen.findByText('Nothing matches Zoya.')).toBeDefined();
   });
 
-  it('says on the record what a host offered, for the floor to give by hand (F-015)', async () => {
-    renderAs('super_admin', 'm1');
-    expect(await screen.findByText('Offered: 2,000 bonus chips', undefined, { timeout: 5000 })).toBeDefined();
-  });
-
   it('lists each visit with its tables, time played, call time and whether they left early (F-017)', async () => {
     renderAs('super_admin', 'm1');
     expect(await screen.findByText('3 Nov 2026 · Table 1, Table 3', undefined, { timeout: 5000 })).toBeDefined();

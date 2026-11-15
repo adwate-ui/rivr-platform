@@ -16,38 +16,13 @@ export const queryKeys = {
   venueConfig: (userId: string, venueId: string) => ['user', userId, 'venue-config', venueId] as const,
   /** The club's numbers for calls and WhatsApp (decision 0582), the same for everyone. */
   clubContact: (userId: string) => ['user', userId, 'club-contact'] as const,
-  /** A venue's chip denominations (#33). */
-  chipDenominations: (userId: string, venueId: string) => ['user', userId, 'chip-denominations', venueId] as const,
-  /** The signed-in member's membership card and its door code for now (#71). */
-  membershipCard: (userId: string) => ['user', userId, 'membership-card'] as const,
   /** Every feature's state for the signed-in member. */
   featureAccess: (userId: string) => ['user', userId, 'feature-access'] as const,
-  /** Kill-switch controls the signed-in person can see. */
-  controlState: (userId: string) => ['user', userId, 'control-state'] as const,
   /** The signed-in member's games, stake, notification choices and marketing consent. */
   preferences: (userId: string) => ['user', userId, 'preferences'] as const,
   /** The stakes the club runs, for Profile's waitlist alerts (#206). */
   stakes: (userId: string) => ['user', userId, 'stakes'] as const,
   restrictions: (userId: string) => ['user', userId, 'restrictions'] as const,
-  /** The signed-in member's Balance (#18), and their newest movements. */
-  wallet: (userId: string) => ['user', userId, 'wallet'] as const,
-  walletMovements: (userId: string, count: number) => ['user', userId, 'wallet', 'movements', count] as const,
-  /** The signed-in member's payout accounts (#19), and the venue's waiting for the cage. */
-  payoutAccounts: (userId: string) => ['user', userId, 'payout-accounts'] as const,
-  payoutAccountsToVerify: (userId: string, venueId: string) => ['user', userId, 'payout-accounts-to-verify', venueId] as const,
-  /** The signed-in member's withdrawals (#21), and the venue's waiting for the cage. */
-  withdrawals: (userId: string) => ['user', userId, 'withdrawals'] as const,
-  waitingWithdrawals: (userId: string, venueId: string) => ['user', userId, 'waiting-withdrawals', venueId] as const,
-  /** The signed-in member's deposits and where to pay them (#29), and the venue's waiting for the cage. */
-  deposits: (userId: string) => ['user', userId, 'deposits'] as const,
-  depositDetails: (userId: string) => ['user', userId, 'deposits', 'details'] as const,
-  waitingDeposits: (userId: string, venueId: string) => ['user', userId, 'waiting-deposits', venueId] as const,
-  /** The venue's Treasury and the cage's chip count (#24): refreshed together after a shift opens or a count. */
-  treasury: (userId: string, venueId: string) => ['user', userId, 'treasury', venueId] as const,
-  /** The venue's end-of-day closes (#45). */
-  eodCloses: (userId: string, venueId: string) => ['user', userId, 'eod-closes', venueId] as const,
-  /** A venue's shift openings that differed from the last close (#376). */
-  shiftOpenings: (userId: string, venueId: string) => ['user', userId, 'shift-openings', venueId] as const,
   /** The signed-in member's KYC record. */
   kycRecord: (userId: string) => ['user', userId, 'kyc-record'] as const,
   /** Whether the signed-in member's venue checks identity at the club. */
@@ -65,7 +40,6 @@ export const queryKeys = {
   /** The venues where the signed-in person is active staff, with their role. */
   staffVenues: (userId: string) => ['user', userId, 'staff-venues'] as const,
   venueStaff: (userId: string, venueId: string) => ['user', userId, 'venue-staff', venueId] as const,
-  tierMatrix: (userId: string, venueId: string) => ['user', userId, 'tier-matrix', venueId] as const,
   /** A signed URL for one KYC image. */
   kycImageUrl: (userId: string, path: string) => ['user', userId, 'kyc-image-url', path] as const,
   /** Tonight's tables and each game's waitlist length, as a member or staff sees them. */
@@ -73,11 +47,6 @@ export const queryKeys = {
   floorTakenSeats: (userId: string) => ['user', userId, 'floor-taken-seats'] as const,
   myUsualFnbItems: (userId: string) => ['user', userId, 'my-usual-fnb-items'] as const,
   myTonight: (userId: string) => ['user', userId, 'my-tonight'] as const,
-  practiceResetPreview: (userId: string, venueId: string) => ['user', userId, 'practice-reset-preview', venueId] as const,
-  /** A live venue's purge (#432): what it would remove, the files left after one, and a second super admin's ask. */
-  livePurgePreview: (userId: string, venueId: string) => ['user', userId, 'livePurgePreview', venueId] as const,
-  purgeFilesLeft: (userId: string, venueId: string) => ['user', userId, 'purgeFilesLeft', venueId] as const,
-  purgeAsk: (userId: string, venueId: string) => ['user', userId, 'purgeAsk', venueId] as const,
   memberErasurePreview: (userId: string, memberId: string) => ['user', userId, 'member-erasure-preview', memberId] as const,
   memberErasureRequests: (userId: string, venueId: string) => ['user', userId, 'member-erasure-requests', venueId] as const,
   myErasureRequest: (userId: string) => ['user', userId, 'my-erasure-request'] as const,
@@ -97,18 +66,6 @@ export const queryKeys = {
   mySeat: (userId: string) => ['user', userId, 'my-seat'] as const,
   myNextPlayTimeBonus: (userId: string) => ['user', userId, 'my-next-play-time-bonus'] as const,
   signedInPhone: (userId: string) => ['user', userId, 'signed-in-phone'] as const,
-  cageMembers: (userId: string, venueId: string, query: string) => ['user', userId, 'cage-members', venueId, query] as const,
-  cageQueue: (userId: string, venueId: string) => ['user', userId, 'cage-queue', venueId] as const,
-  creditLines: (userId: string, venueId: string) => ['user', userId, 'credit-lines', venueId] as const,
-  creditRoom: (userId: string, venueId: string) => ['user', userId, 'credit-room', venueId] as const,
-  openMarkers: (userId: string, venueId: string) => ['user', userId, 'open-markers', venueId] as const,
-  /** The credit report at a moment ('now' for the present), the payment accounts, a statement, and expenses (#92, #94, #95). */
-  creditReport: (userId: string, venueId: string, at: string) => ['user', userId, 'credit-report', venueId, at] as const,
-  paymentAccounts: (userId: string, venueId: string) => ['user', userId, 'payment-accounts', venueId] as const,
-  accountStatement: (userId: string, accountId: string, from: string, to: string) => ['user', userId, 'account-statement', accountId, from, to] as const,
-  expenseCategories: (userId: string, venueId: string) => ['user', userId, 'expense-categories', venueId] as const,
-  venueExpenses: (userId: string, venueId: string) => ['user', userId, 'venue-expenses', venueId] as const,
-  receiptUrl: (userId: string, path: string) => ['user', userId, 'receipt-url', path] as const,
   doorBoard: (userId: string, venueId: string) => ['user', userId, 'door-board', venueId] as const,
   /** The member's visit to rate on Home, and the General Manager's list of feedback (decision 0165). */
   myFeedbackVisit: (userId: string) => ['user', userId, 'my-feedback-visit'] as const,
@@ -117,8 +74,6 @@ export const queryKeys = {
   venueFeedbackOpen: (userId: string, venueId: string) => ['user', userId, 'venue-feedback', venueId, 'open'] as const,
   venueFeedbackCounts: (userId: string, venueId: string) => ['user', userId, 'venue-feedback', venueId, 'counts'] as const,
   venueFeedbackPage: (userId: string, venueId: string, list: string) => ['user', userId, 'venue-feedback', venueId, 'page', list] as const,
-  /** The suspicious-activity register (#105). */
-  amlRegister: (userId: string, venueId: string) => ['user', userId, 'aml-register', venueId] as const,
   /** Bonus chips (decision 0504): the member's own, or a member's for staff. Every key starts with bonusAll, which a live change makes stale. */
   bonusAll: (userId: string) => ['user', userId, 'bonus'] as const,
   myBonus: (userId: string) => ['user', userId, 'bonus', 'mine'] as const,
@@ -157,15 +112,8 @@ export const queryKeys = {
   myReferral: (userId: string) => ['user', userId, 'my-referral'] as const,
   /** The TV's hours leaderboard (decision 0581). */
   tvLeaderboard: (userId: string) => ['user', userId, 'tv-leaderboard'] as const,
-  /** The TV's social wall (#158). */
-  tvSocialWall: (userId: string) => ['user', userId, 'tv-social-wall'] as const,
   /** A venue's games not running and their interest (#113), and its hands over a period (#114). */
   interestLists: (userId: string, venueId: string) => ['user', userId, 'interest-lists', venueId] as const,
-  potData: (userId: string, venueId: string, start: string, end: string) => ['user', userId, 'pot-data', venueId, start, end] as const,
-  dealerRotation: (userId: string, venueId: string) => ['user', userId, 'dealer-rotation', venueId] as const,
-  dealerNights: (userId: string, venueId: string, start: string, end: string) => ['user', userId, 'dealer-nights', venueId, start, end] as const,
-  engagedControls: (userId: string, venueId: string) => ['user', userId, 'engaged-controls', venueId] as const,
-  pastControls: (userId: string, venueId: string) => ['user', userId, 'past-controls', venueId] as const,
   activityLog: (userId: string, venueId: string, filters: object) => ['user', userId, 'activity-log', venueId, filters] as const,
   memberSearch: (userId: string, venueId: string, query: string) => ['user', userId, 'member-search', venueId, query] as const,
   /** Every memberSearch key: the prefix an invalidation of them all names. */
@@ -185,15 +133,10 @@ export const queryKeys = {
   venueIssuer: (userId: string, venueId: string) => ['user', userId, 'venue-issuer', venueId] as const,
   computers: (userId: string, venueId: string) => ['user', userId, 'computers', venueId] as const,
   thisComputer: (userId: string, venueId: string) => ['user', userId, 'this-computer', venueId] as const,
-  contacts: (userId: string, venueId: string) => ['user', userId, 'contacts', venueId] as const,
-  incidents: (userId: string, venueId: string) => ['user', userId, 'incidents', venueId] as const,
-  drills: (userId: string, venueId: string) => ['user', userId, 'drills', venueId] as const,
   /** A venue's dealers whose PIN the signed-in manager may set. */
   venueDealers: (userId: string, venueId: string) => ['user', userId, 'venue-dealers', venueId] as const,
   /** A venue's table types with their rake now and the changes to come. */
   tableTypeRake: (userId: string, venueId: string) => ['user', userId, 'table-type-rake', venueId] as const,
-  /** A venue's jackpot: pools, payout rule and history. */
-  jackpot: (userId: string, venueId: string) => ['user', userId, 'jackpot', venueId] as const,
   /** The dealers who can sign in on this tablet. */
   tabletDealers: (userId: string) => ['user', userId, 'tablet-dealers'] as const,
   /** The down at this tablet's table. */
@@ -216,13 +159,6 @@ export const queryKeys = {
   /** A venue's TVs, for staff who manage devices. */
   venueTvs: (userId: string, venueId: string) => ['user', userId, 'venue-tvs', venueId] as const,
   tvPairingPolicy: (userId: string, venueId: string) => ['user', userId, 'tv-pairing-policy', venueId] as const,
-  /** The tablet's own high-hand claims. */
-  tabletHighHands: (userId: string) => ['user', userId, 'tablet-high-hands'] as const,
-  /** A venue's high hands, for the console. */
-  highHands: (userId: string, venueId: string) => ['user', userId, 'high-hands', venueId] as const,
-  /** A venue's certification quizzes, and the attempts at them the signed-in staff member may see (#50): all, or one person's, under it. */
-  quizzes: (userId: string, venueId: string) => ['user', userId, 'quizzes', venueId] as const,
-  quizAttempts: (userId: string, venueId: string) => ['user', userId, 'quiz-attempts', venueId] as const,
   /** A venue's stakes for the promotion builder (#84). */
   promotionStakes: (userId: string, venueId: string) => ['user', userId, 'promotion-stakes', venueId] as const,
   /** The console's promotions list, a promotion's versions and a member's grants (console v3 phase 7). */
@@ -231,40 +167,17 @@ export const queryKeys = {
   /** Last week replayed afresh on a waiting version, for its approver (decision 0495). */
   promotionReplay: (userId: string, versionId: string) => ['user', userId, 'promotion-replay', versionId] as const,
   memberPromotionGrants: (userId: string, memberId: string, count: number) => ['user', userId, 'member-promotion-grants', memberId, count] as const,
-  /** A venue's SOP library (#51), and who has acknowledged each version, for SOP managers. */
-  sops: (userId: string, venueId: string) => ['user', userId, 'sops', venueId] as const,
-  sopAcknowledgementsAll: (userId: string) => ['user', userId, 'sop-acknowledgements'] as const,
-  sopAcknowledgements: (userId: string, versionId: string) => ['user', userId, 'sop-acknowledgements', versionId] as const,
   /** Each active hire's onboarding checklist at a venue (#107), for staff who manage staff. */
   onboardingChecklists: (userId: string, venueId: string) => ['user', userId, 'onboarding-checklists', venueId] as const,
   /** The signed-in TV's waitlist board (#65). */
   tvWaitlistBoard: (userId: string) => ['user', userId, 'tv-waitlist-board'] as const,
   /** The signed-in TV's call-time board (decision 0163). */
   tvCallTimeBoard: (userId: string) => ['user', userId, 'tv-call-time-board'] as const,
-  /** The signed-in TV's jackpot and tonight's high hand (#65). */
-  tvJackpot: (userId: string) => ['user', userId, 'tv-jackpot'] as const,
   /** The paired TV's promotions rotation (#86), and the member's Home cards. */
   tvPromotions: (userId: string) => ['user', userId, 'tv-promotions'] as const,
   myPromotionCards: (userId: string) => ['user', userId, 'my-promotion-cards'] as const,
-  /** The console's tournaments, blind structures and templates at a venue (#115, #119). */
-  venueTournaments: (userId: string, venueId: string) => ['user', userId, 'venue-tournaments', venueId] as const,
-  blindStructures: (userId: string, venueId: string) => ['user', userId, 'blind-structures', venueId] as const,
-  tournamentTemplates: (userId: string, venueId: string) => ['user', userId, 'tournament-templates', venueId] as const,
-  /** Home's tournament for the member (#118, #119). */
-  myTournament: (userId: string) => ['user', userId, 'my-tournament'] as const,
   /** The member's venue's upcoming tournaments and their standing on each (#636); and the floor's list of who asked. */
   myUpcomingTournaments: (userId: string) => ['user', userId, 'my-upcoming-tournaments'] as const,
   publishedTournaments: (userId: string, venueId: string) => ['user', userId, 'published-tournaments', venueId] as const,
   tournamentInterest: (userId: string, venueId: string) => ['user', userId, 'tournament-interest', venueId] as const,
-  /** A tournament's players and the floor's balancing prompts (#120). */
-  tournamentSeating: (userId: string, tournamentId: string) => ['user', userId, 'tournament-seating', tournamentId] as const,
-  tournamentBalance: (userId: string, tournamentId: string) => ['user', userId, 'tournament-balance', tournamentId] as const,
-  /** What a tournament paid: prizes and bounties (#117, #121). */
-  tournamentPayouts: (userId: string, tournamentId: string) => ['user', userId, 'tournament-payouts', tournamentId] as const,
-  /** The tickets a satellite issued (#519). */
-  satelliteTickets: (userId: string, tournamentId: string) => ['user', userId, 'satellite-tickets', tournamentId] as const,
-  /** The tickets the member holds, for Home (#519). */
-  myTournamentTickets: (userId: string) => ['user', userId, 'my-tournament-tickets'] as const,
-  /** The paired TV's tournament clock (#119). */
-  tvTournamentClock: (userId: string) => ['user', userId, 'tv-tournament-clock'] as const,
 };

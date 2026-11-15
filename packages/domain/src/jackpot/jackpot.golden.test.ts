@@ -3,7 +3,7 @@ import jackpotJson from '@rivr/testing/golden/jackpot.json';
 import { describe, expect, it } from 'vitest';
 import type { Paise } from '../money/index.ts';
 import { parseRupees } from '../money/parse-rupees.ts';
-import { badBeatPayout, splitDrop } from './jackpot.ts';
+import { splitDrop } from './jackpot.ts';
 
 const golden = readGolden(jackpotJson);
 
@@ -27,7 +27,7 @@ function share(goldenCase: GoldenCase, name: string): bigint {
 
 describe('Jackpot golden fixtures (packages/testing/golden/jackpot.json)', () => {
   it('tests every operation in the file', () => {
-    expect(() => assertOperations(golden, ['split', 'payout'])).not.toThrow();
+    expect(() => assertOperations(golden, ['split'])).not.toThrow();
   });
 
   it.each(casesFor(golden, 'split'))('%s', (_description, goldenCase) => {
@@ -37,20 +37,5 @@ describe('Jackpot golden fixtures (packages/testing/golden/jackpot.json)', () =>
         season: amount(goldenExpected(goldenCase, 'season')),
         freeroll: amount(goldenExpected(goldenCase, 'freeroll')),
       });
-  });
-
-  it.each(casesFor(golden, 'payout'))('%s', (_description, goldenCase) => {
-    const rule = {
-      poolShare: share(goldenCase, 'poolShare'),
-      loser: share(goldenCase, 'loserShare'),
-      winner: share(goldenCase, 'winnerShare'),
-      table: share(goldenCase, 'tableShare'),
-    };
-    expect(badBeatPayout(amount(goldenInput(goldenCase, 'pool')), rule, Number(goldenInput(goldenCase, 'others')))).toEqual({
-      loser: amount(goldenExpected(goldenCase, 'loser')),
-      winner: amount(goldenExpected(goldenCase, 'winner')),
-      eachAtTable: amount(goldenExpected(goldenCase, 'eachAtTable')),
-      total: amount(goldenExpected(goldenCase, 'total')),
-    });
   });
 });

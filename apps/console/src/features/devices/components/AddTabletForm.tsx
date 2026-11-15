@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { dealerTabletAddSchema } from '@rivr/contracts';
 import { useDeviceActions, type DeviceFailure, type PairingCode } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Input, Stack, StatusMessage, Switch, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, Input, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useId, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -15,7 +15,7 @@ interface AddTabletFormProps {
 }
 
 /**
- * Adds a dealer tablet, or a door kiosk (decision 0164), by name and starts pairing it: the code shows
+ * Adds a dealer tablet by name and starts pairing it: the code shows
  * on its row. Added but not paired (a dropped connection, say), the form says so: New pairing code on
  * its row pairs it.
  */
@@ -23,13 +23,12 @@ export function AddTabletForm({ venueId, onCode }: AddTabletFormProps) {
   const { add } = useDeviceActions(venueId);
   const [failure, setFailure] = useState<DeviceFailure | null>(null);
   const [isAddedWithoutCode, setIsAddedWithoutCode] = useState(false);
-  const [isDoor, setIsDoor] = useState(false);
   const [resolver] = useState(() => zodResolver(dealerTabletAddSchema));
   const form = useForm<z.input<typeof dealerTabletAddSchema>, unknown, z.output<typeof dealerTabletAddSchema>>({
     resolver, defaultValues: { name: '' },
   });
   const submit = form.handleSubmit(async ({ name }) => {
-    const added = await add.mutateAsync({ name, isDoor });
+    const added = await add.mutateAsync({ name });
     setFailure(added.ok ? null : added.error);
     setIsAddedWithoutCode(added.ok && added.value === null);
     if (!added.ok) return;
@@ -50,7 +49,6 @@ export function AddTabletForm({ venueId, onCode }: AddTabletFormProps) {
       </Inline>
       {isWrong ? <ErrorMessage id={noteId}>{t('console.tablets.invalidName')}</ErrorMessage>
         : <Text id={noteId} variant="small" tone="muted">{t('console.tablets.nameHint')}</Text>}
-      <Switch label={t('console.tablets.isDoor')} hint={t('console.tablets.isDoorHint')} isOn={isDoor} onChange={setIsDoor} />
       <StatusMessage>{isAddedWithoutCode ? t('console.tablets.addedWithoutCode') : null}</StatusMessage>
       {failure === null ? null : <ErrorMessage>{t(DEVICE_FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>

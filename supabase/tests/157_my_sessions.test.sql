@@ -1,8 +1,7 @@
--- A member's own session history (#127). Ishaan (211) checks in, sits at Table 3 for three hours, buys in ₹10,000 and
--- cashes out ₹50,000 with TDS on per session: ₹40,000 won owes ₹12,000, so he is paid ₹38,000 and is up ₹28,000.
--- Kunal (216) plays on a ₹50,000 marker and ₹10,000 of bonus chips and cashes out ₹80,000: ₹30,000 won owes ₹9,000,
--- the marker settles first, so he is paid ₹21,000 and is up ₹21,000, his bonus chips shown apart.
--- 103 Aditya is the floor manager; 104 Sana a cashier; 201 Arjun another member.
+-- A member's own session history (#127). Ishaan (211) checks in, sits at Table 3 for three hours and leaves by the
+-- door: his session has its table and its time, and no money, since the cage that recorded buy-ins and cash-outs went
+-- on 15 Nov. Kunal (216) plays two hours and hides his session. Mihir (213) plays a tournament.
+-- 103 Aditya is the floor manager; 201 Arjun another member.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -24,32 +23,23 @@ reset role;
 update public.visit set opened_at = now() - interval '3 hours' where member_id = '00000000-0000-4000-8000-000000000211' and closed_at is null;
 update public.seat_session set started_at = now() - interval '3 hours', seated_here_at = now() - interval '3 hours'
 where member_id = '00000000-0000-4000-8000-000000000211' and ended_at is null;
-select set_config('request.jwt.claims', '', true);
-insert into public.setting (venue_id, key, subject, value, effective_from, reason)
-values ('00000000-0000-4000-8000-000000000001', 'tds.config', '',
-        '{"enabled": true, "section": "194B", "rate_basis_points": 3000, "threshold_paise": 1000000, "basis": "session", "pan_required": true, "no_pan_rate_basis_points": 3000}',
-        now() - interval '3 seconds', 'Sessions test');
 
-select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select isnt(public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 1000000, 'cash', gen_random_uuid()),
-  null, 'Sana issues him ₹10,000 of chips');
-select is((select to_member_paise from public.cage_cash_out('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211',
-  5000000, 'cash', '00000000-0000-4000-8000-0000000c5701', true)), 3800000::bigint, 'and cashes him out: ₹38,000 after ₹12,000 of TDS');
+-- He leaves: the floor ends his seat and the door closes his visit.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select public.end_seat((select id from public.seat_session where member_id = '00000000-0000-4000-8000-000000000211' and ended_at is null), 'left');
+select public.check_out('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211');
 reset role;
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select results_eq(
   $$ select table_name, played_seconds, buy_in_paise, bonus_paise, cash_out_paise, tds_paise, paid_paise, net_paise
      from public.my_sessions() $$,
-  $$ values ('Table 3'::text, 10800::bigint, 1000000::bigint, 0::bigint, 5000000::bigint, 1200000::bigint, 3800000::bigint, 2800000::bigint) $$,
-  'his session: Table 3 for three hours, ₹10,000 in, ₹50,000 out, ₹12,000 TDS, ₹38,000 paid, up ₹28,000');
-select is((select receipt from public.my_sessions()),
-  (select upper(left(id::text, 8)) from public.cage_transaction where idempotency_key = '00000000-0000-4000-8000-0000000c5701'),
-  'with the cash-out''s receipt, as the cage printed it');
-select is((select tds_basis from public.my_sessions()), 'session', 'and the basis its TDS was withheld on (#563)');
+  $$ values ('Table 3'::text, 10800::bigint, 0::bigint, 0::bigint, 0::bigint, 0::bigint, 0::bigint, 0::bigint) $$,
+  'his session: Table 3 for three hours, with no money recorded on a cash session');
+select is((select receipt from public.my_sessions()), null, 'and no receipt, with no cage to print one');
 select results_eq(
   $$ select month, month_sessions, month_played_seconds, month_net_paise from public.my_sessions() $$,
-  $$ select date_trunc('month', (now() - interval '3 hours') at time zone 'Asia/Kolkata' - interval '6 hours')::date, 1, 10800::bigint, 2800000::bigint $$,
+  $$ select date_trunc('month', (now() - interval '3 hours') at time zone 'Asia/Kolkata' - interval '6 hours')::date, 1, 10800::bigint, 0::bigint $$,
   'and the club month''s totals');
 select results_eq($$ select small_blind_paise, big_blind_paise from public.my_sessions() $$,
   $$ select tt.small_blind_paise, tt.big_blind_paise from public.game_table g join public.table_type tt on tt.id = g.table_type_id
@@ -64,13 +54,13 @@ select isnt(public.seat_member((select id from public.game_table where venue_id 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select is((select count(*)::integer from public.my_sessions()), 1, 'his open visit is not listed');
 
--- Markers count as money in, bonus chips apart; the marker settles from the cash-out first.
+-- Kunal's session, which he hides below. An earlier visit of his at which he never sat, as the seed gave him until
+-- credit went, is made here.
 reset role;
 select set_config('request.jwt.claims', '', true);
-select private.credit_bonus('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', 1000000, 'Sessions test',
-  now() + interval '2 days', 'test:sessions:bonus') is not null as credited;
+insert into public.visit (venue_id, member_id, opened_at, closed_at, close_reason)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', now() - interval '3 days', now() - interval '3 days' + interval '5 hours', 'door');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select is(public.set_credit_limit('00000000-0000-4000-8000-000000000001', '9000000216', 5000000, 'A regular'), 'active', 'Kunal has ₹50,000 of credit');
 select isnt(public.seat_member((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 3'), 4, '9000000216'),
   null, 'and sits at Table 3');
 select isnt(public.let_leave_early('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', 'Sessions test'), null,
@@ -79,18 +69,10 @@ reset role;
 update public.visit set opened_at = now() - interval '2 hours' where member_id = '00000000-0000-4000-8000-000000000216' and closed_at is null;
 update public.seat_session set started_at = now() - interval '2 hours', seated_here_at = now() - interval '2 hours'
 where member_id = '00000000-0000-4000-8000-000000000216' and ended_at is null;
-select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select isnt(public.issue_marker('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', 5000000,
-  'M10 40 C 30 10, 50 70, 70 40', gen_random_uuid()), null, 'Sana issues him ₹50,000 on a marker');
-select isnt(public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216', 1000000, 'bonus', gen_random_uuid()),
-  null, 'and ₹10,000 of chips from his bonus');
-select is((select to_member_paise from public.cage_cash_out('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216',
-  8000000, 'cash', '00000000-0000-4000-8000-0000000c5702', true)), 2100000::bigint, 'he cashes out ₹80,000: ₹21,000 after the marker and ₹9,000 of TDS');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select public.end_seat((select id from public.seat_session where member_id = '00000000-0000-4000-8000-000000000216' and ended_at is null), 'left');
+select public.check_out('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000216');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000216');
-select results_eq(
-  $$ select buy_in_paise, bonus_paise, cash_out_paise, tds_paise, paid_paise, net_paise from public.my_sessions() $$,
-  $$ values (5000000::bigint, 1000000::bigint, 8000000::bigint, 900000::bigint, 2100000::bigint, 2100000::bigint) $$,
-  'his session: the marker is money in, the bonus chips apart; paid ₹21,000, up ₹21,000');
 select is((select count(*)::integer from public.my_sessions()), 1, 'his earlier visits, at which he never sat, are not sessions');
 reset role;
 
@@ -102,8 +84,9 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
 select is((select count(*)::integer from public.my_sessions() where visit_id in (select id from ishaan_visits)), 0, 'Arjun does not see Ishaan''s');
 reset role;
 
--- A tournament is a session of its own (#549): Mihir plays a knockout, places first of one and wins ₹3,000 (under the
--- ₹10,000 TDS threshold); once it finishes, his history has it with what he paid in and won.
+-- A tournament is a session of its own (#549): Mihir plays a knockout, places first of one and wins ₹3,000; once it
+-- finishes, his history has it with what he paid in and won. Its rows are written here as the database itself: the
+-- screens that sold entries and paid prizes went with the cage.
 create function pg_temp.named(p_name text) returns uuid language sql security definer as $$ select id from public.tournament where name = p_name; $$;
 grant execute on function pg_temp.named(text) to authenticated;
 select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'deposit', 'test-fund:sessions', jsonb_build_array(
@@ -111,16 +94,24 @@ select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', '
                                     and a.code = 'venue.bank' and a.member_id is null), 'amount', '5000000'),
   jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.member_id = '00000000-0000-4000-8000-000000000213'
                                     and a.code = 'member.cash'), 'amount', '-5000000')), null, 'Test deposit') is not null as funded;
-select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select lives_ok($$ select public.create_tournament('00000000-0000-4000-8000-0000000007c8', 'Sessions Knockout', now(), true) $$, 'a knockout');
-select public.set_tournament_room(pg_temp.named('Sessions Knockout'), 2, 9);
-select public.start_tournament_clock(pg_temp.named('Sessions Knockout'));
+insert into public.tournament (venue_id, name, starts_at, buy_in_paise, is_published)
+values ('00000000-0000-4000-8000-000000000001', 'Sessions Knockout', now(), 500000, true);
+insert into public.tournament_entry (id, venue_id, tournament_id, member_id, entry_number, status, table_number, seat_number)
+values ('00000000-0000-4000-8000-00000000f157', '00000000-0000-4000-8000-000000000001', pg_temp.named('Sessions Knockout'),
+        '00000000-0000-4000-8000-000000000213', 1, 'seated', 1, 1);
+insert into public.tournament_purchase (venue_id, tournament_id, entry_id, member_id, kind, paid_by, price_paise, fee_paise, chips,
+                                        ledger_transaction_id, idempotency_key)
+values ('00000000-0000-4000-8000-000000000001', pg_temp.named('Sessions Knockout'), '00000000-0000-4000-8000-00000000f157',
+        '00000000-0000-4000-8000-000000000213', 'entry', 'wallet', 500000, 0, 10000,
+        (select id from public.ledger_transaction where idempotency_key = 'test-fund:sessions'), 'sessions-knockout-entry');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
-select public.register_tournament_entry(pg_temp.named('Sessions Knockout'), 'entry', '00000000-0000-4000-8000-00000000f157');
 select is((select count(*)::integer from public.my_sessions() where kind = 'tournament'), 0, 'a tournament not yet finished is not a session');
 reset role;
-select private.pay_tournament_run((select id from public.tournament_entry where tournament_id = pg_temp.named('Sessions Knockout')
-                                   and member_id = '00000000-0000-4000-8000-000000000213'), 1, 300000, 0, 0, null);
+insert into public.tournament_payout (venue_id, tournament_id, entry_id, member_id, kind, place, prize_paise, bounty_paise, tds_paise, is_tds_shadow,
+                                      ledger_transaction_id)
+values ('00000000-0000-4000-8000-000000000001', pg_temp.named('Sessions Knockout'), '00000000-0000-4000-8000-00000000f157',
+        '00000000-0000-4000-8000-000000000213', 'prize', 1, 300000, 0, 0, false,
+        (select id from public.ledger_transaction where idempotency_key = 'test-fund:sessions'));
 update public.tournament set finished_at = now(), overlay_paise = 0 where id = pg_temp.named('Sessions Knockout');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 select results_eq(

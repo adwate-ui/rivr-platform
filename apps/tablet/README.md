@@ -1,6 +1,6 @@
 # tablet
 
-The dealer tablet: the table's seats with each player's call time, away and back, leaving and food for a seat, and the dealer's down. It is optional: the console does all of it too (#630). No tablet shows money (decision 0284), so hand entry with its rake and jackpot drop, buy-in requests and the down's drop-box count are off it; their code stays in `features/hand-entry` for when the club wants them back. It must keep working offline: hands and their high-hand claims go through `useHandQueue` (`@rivr/offline`), so Log hand confirms at once and the hand arrives in order once the connection is back; a slim banner says how many are queued ("Offline. 3 hands queued."), and a hand refused for good is set aside and counted there for a supervisor (#43).
+The dealer tablet: the table's seats with each player's call time, away and back, leaving and food for a seat, and the dealer's down. It is optional: the console does all of it too (#630). No tablet shows money (decision 0284), so hand entry with its rake and jackpot drop, buy-in requests and the down's drop-box count are off it. It must keep working offline: hands go through `useHandQueue` (`@rivr/offline`), so Log hand confirms at once and the hand arrives in order once the connection is back; a slim banner says how many are queued ("Offline. 3 hands queued."), and a hand refused for good is set aside and counted there for a supervisor (#43).
 
 ## Run it
 
@@ -39,14 +39,10 @@ src/
   router.tsx          every route, in one list
   routes/             one file per URL; renders a feature's screen and nothing else
   features/<name>/    components/ and hooks/, imported only through index.ts
-    frame/            the app's shell: the table it is fixed to (and the practice venue, for a training tablet), the kill-switch banner, not found
+    frame/            the app's shell: the table it is fixed to (and the practice venue, for a training tablet), not found
     pairing/          the pairing code, until the tablet is signed in as itself
-    door/             a door kiosk's card scanner (decision 0164): the front camera read with jsQR, or a card scanner plugged in; in, then out
     dealer-sign-in/   between downs: the dealer's name and PIN, which starts their down
-    hand-entry/       during a down (#42): the pot keypad, the game, the rake, drop and pull as the pot is
-                      typed (@rivr/domain potTake on the table's rules), Log hand, and the down's last hands,
-                      with what the floor made of each high-hand claim; the High hand switch sends one with a hand (#47);
-                      a seat's Food and drink orders to it, paid by the player (#123)
+    hand-entry/       during a down (#42): a seat's Food and drink orders to it, paid by the player (#123)
 ```
 
 Everything visible comes from `@rivr/ui`, every word from `@rivr/i18n`, every read through `@rivr/db`. A route imports only features, and a feature never imports another feature; `pnpm lint:deps` fails either (`.claude/rules/apps.md`).

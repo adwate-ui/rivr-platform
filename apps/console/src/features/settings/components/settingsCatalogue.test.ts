@@ -60,7 +60,7 @@ describe('every setting the contracts declare, as the Settings screen shows it',
       time: ['call_time.minutes', 'call_time.add_choices'],
       identity: ['kyc.at_the_club'],
       bonus: ['bonus.expiry_days', 'bonus.daily_staff_cap', 'bonus.by_hand_cap', 'bonus.visit_cap'],
-      membership: ['tier.default', 'host.lapse'],
+      membership: ['tier.default'],
       rotation: ['tv.leaderboard'],
     });
   });

@@ -30,8 +30,6 @@ const NEW_CONTENT: Readonly<Record<string, Content>> = {
   calendar: { heading: '' },
   rewards: { heading: '' },
   outstation: { eyebrow: '', heading: '' },
-  jackpot: { eyebrow: '', heading: '' },
-  social_wall: { heading: '' },
 };
 
 /** The kinds a section can be added as, or changed into, in the editor's order. */

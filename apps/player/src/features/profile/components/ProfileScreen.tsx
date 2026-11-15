@@ -1,7 +1,7 @@
-import { useFeature, useKycImageUrl, useKycRecord, useMember, useMembershipCard, usePreferences, useSignedInPhone } from '@rivr/db';
+import { useFeature, useKycImageUrl, useKycRecord, useMember, usePreferences, useSignedInPhone } from '@rivr/db';
 import { formatMobile, t } from '@rivr/i18n';
-import { BackButton, Box, DeskHelp, DetailRow, FeatureGate, Heading, Inline, ProfileMark, Screen, Stack, Text, useHeadingFocus, usePageTitle } from '@rivr/ui';
-import { useCanGoBack, useNavigate, useRouter } from '@tanstack/react-router';
+import { Box, DeskHelp, DetailRow, FeatureGate, Heading, Inline, ProfileMark, Screen, Stack, Text, useHeadingFocus, usePageTitle } from '@rivr/ui';
+import { useNavigate } from '@tanstack/react-router';
 import { useId, useState, type ReactNode } from 'react';
 import { DeleteAccountRow } from './DeleteAccount.tsx';
 import { FeedbackSheet } from './FeedbackSection.tsx';
@@ -37,33 +37,31 @@ function TierPhone({ tier }: { tier: string }) {
   return phone === null ? null : <Text variant="small" tone="muted">{t('player.profile.tierPhone', { tier, phone: formatMobile(phone) })}</Text>;
 }
 
-/** The member at the top: their verified selfie or initial, their name, and their tier with their number. */
+/** The member at the top, from their own record: their verified selfie or initial, their name, their tier with their phone, and their member number. */
 function ProfileHead({ headingId }: { headingId: string }) {
   const member = useMember().data;
-  const card = useMembershipCard().data ?? null;
+  const kyc = useKycRecord().data;
   // The verified selfie (decision 0300), filling the mark; the initial until it comes.
-  const photo = useKycImageUrl(card?.photoPath ?? null).data ?? undefined;
+  const photo = useKycImageUrl(kyc?.status === 'verified' ? kyc.photoPath : null).data ?? undefined;
   return (
     <Inline gap={4} align="center">
       <ProfileMark initial={member?.initial ?? ''} photo={photo} />
       <Stack gap={1}>
         <Heading level={1} variant="serif" serifSize={28} id={headingId} isFocusTarget>{member?.fullName ?? ''}</Heading>
-        {card === null ? null : <TierPhone tier={card.tierName} />}
+        {member ? <TierPhone tier={member.tierName} /> : null}
+        {member ? <Text variant="small" tone="muted">{t('player.profile.memberNumber', { number: member.memberNumber })}</Text> : null}
       </Stack>
     </Inline>
   );
 }
 
-/** Club: House rules, Events where the member has them, Send feedback, and Delete my account. */
+/** Club: House rules, Send feedback, and Delete my account. */
 function ClubGroup({ onFeedback }: { onFeedback: () => void }) {
   const navigate = useNavigate();
-  const events = useFeature('events.book');
   const deleteAccount = useFeature('account.delete');
   return (
     <Group title={t('player.profile.club')}>
       <DetailRow label={t('player.houseRules.title')} onOpen={() => void navigate({ to: '/profile/rules' })} />
-      {/* Events lost its tab in the redesign; the owner decides where it lives (decision 0322). */}
-      <FeatureGate access={events}><DetailRow label={t('player.profile.events')} onOpen={() => void navigate({ to: '/events' })} /></FeatureGate>
       <DetailRow label={t('player.profile.sendFeedback')} onOpen={onFeedback} />
       <FeatureGate access={deleteAccount}><DeleteAccountRow /></FeatureGate>
     </Group>
@@ -71,28 +69,20 @@ function ClubGroup({ onFeedback }: { onFeedback: () => void }) {
 }
 
 /**
- * Profile (brief 3.9), behind the member's initial, with no tab: Back to the last tab; the member; Account (the card, the
- * identity check); Notifications; Club; Sign out. The games, limits and break sections are gone from the app (decision
- * 0322); their data and the server's enforcement stay.
+ * Profile, the fourth tab (redesign, 15 Nov): the member; Account (the identity check); Notifications; Club; Sign out.
+ * The games, limits and break sections are gone from the app (decision 0322); their data and the server's enforcement stay.
  */
 export function ProfileScreen() {
   const preferences = usePreferences();
-  const navigate = useNavigate();
-  const router = useRouter();
-  const canGoBack = useCanGoBack();
-  // Back to where it was opened from, or to / in its place: never a new entry on top (owner, 8 Nov).
-  const toTab = () => (canGoBack ? router.history.back() : void navigate({ to: '/', replace: true }));
   const [isFeedbackOpen, setFeedbackOpen] = useState(false);
   const headingId = useId();
-  // Drawn under its own Back button, so it names the page and takes the focus as a Screen would (WCAG 2.4.2).
+  // Drawn without a Screen's title, so it names the page and takes the focus as a Screen would (WCAG 2.4.2).
   usePageTitle(t('player.profile.title'), preferences.data !== undefined);
   useHeadingFocus(headingId, preferences.data !== undefined);
-  const back = <BackButton label={t('player.profile.back')} onBack={toTab} />;
   if (preferences.data === undefined) {
     // Sign out works offline, so it stays within reach when Profile cannot load.
     return (
       <Stack gap={4}>
-        {back}
         <Screen title={t('player.profile.title')} isTitleHidden status={preferences.isError ? 'error' : 'loading'} loadingLook="skeleton" onRetry={() => void preferences.refetch()} />
         <SignOutSection />
         <DeskHelp />
@@ -101,10 +91,8 @@ export function ProfileScreen() {
   }
   return (
     <Stack gap={6}>
-      {back}
       <ProfileHead headingId={headingId} />
       <Group title={t('player.profile.account')}>
-        <DetailRow label={t('player.profile.card')} onOpen={() => void navigate({ to: '/card' })} />
         <IdentityRow />
       </Group>
       <Group title={t('player.profile.notifications')}><NotificationsSection preferences={preferences.data} /></Group>

@@ -2,7 +2,6 @@
 export * from './money/index.ts';
 export * from './ledger/index.ts';
 export * from './identity/index.ts';
-export * from './cage/index.ts';
 export * from './rake/index.ts';
 export * from './variance/index.ts';
 export * from './jackpot/index.ts';

@@ -1,7 +1,7 @@
 -- Bonus balances (#17). 211 Ishaan (identity check finished) is granted two bonuses, sits at Table 3
--- (NLH 100/200, buy-in ₹10,000) and buys chips with bonus, the grant ending sooner drawn first; what
+-- (NLH 100/200) redeeming ₹10,000 of it as chips, the grant ending sooner drawn first; what
 -- is left expires at its end, reversed by the sweep. 201 Arjun's ₹4,000 is the seed's. 103 Aditya is
--- the floor; 104 a cashier (cage.transact); 106 Pema a dealer; 212 Vihaan another member.
+-- the floor; 104 a cashier; 106 Pema a dealer; 212 Vihaan another member.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -50,32 +50,24 @@ select throws_ok($$ select private.credit_bonus('00000000-0000-4000-8000-0000000
   'Referral', now() + interval '1 day', gen_random_uuid()::text) $$, '42501', null, 'no app credits bonus, not even an owner''s');
 reset role;
 
--- Playable: a buy-in from bonus draws the grant ending sooner first.
+-- Playable: bonus redeemed at the seat draws the grant ending sooner first.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-insert into ids select 'session', public.seat_member((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 3'), 1, '9000000211');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select isnt(public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 1000000, 'bonus', '00000000-0000-4000-8000-0000000b0001'),
-  null, 'a cashier issues ₹10,000 of chips from Ishaan''s bonus');
-select throws_ok($$ select public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 1000000, 'bonus', gen_random_uuid()) $$,
-  'RVBON', null, 'never more than the bonus in force');
-select throws_ok($$ select public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 300000, 'bonus', gen_random_uuid()) $$,
-  'RVMIN', null, 'nor below the table''s minimum');
+select throws_ok($$ select public.seat_member((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 3'), 1, '9000000211',
+  p_bonus_chips => 15000) $$, 'RVBON', null, 'never more than the bonus in force');
+insert into ids select 'session', public.seat_member((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 3'), 1, '9000000211',
+  p_bonus_chips => 10000);
+select isnt((select id from ids where name = 'session'), null, 'the floor seats Ishaan with ₹10,000 of chips from his bonus');
 reset role;
 select results_eq($$ select remaining_paise from public.bonus_grant where member_id = '00000000-0000-4000-8000-000000000211' order by expires_at $$,
   $$ values (0::bigint), (400000::bigint) $$, 'the ₹6,000 ending tomorrow is used up first, then ₹4,000 of the ₹8,000');
 select is(pg_temp.held('member.bonus', '00000000-0000-4000-8000-000000000211'), 400000::bigint, 'Ishaan holds ₹4,000 of bonus');
 select is((select chips from opening) - pg_temp.held('venue.chips_outstanding'), 1000000::bigint, 'and ₹10,000 of chips are out');
-select is((select method from public.cage_transaction where idempotency_key = '00000000-0000-4000-8000-0000000b0001'), 'bonus', 'the buy-in is recorded as bonus');
 
--- Not withdrawable: nothing but a buy-in and its end ever take bonus from a member.
+-- Not withdrawable: nothing but chips at the seat and its end ever take bonus from a member.
 select is_empty($$ select t.kind from public.ledger_entry e join public.ledger_account a on a.id = e.account_id
                    join public.ledger_transaction t on t.id = e.transaction_id
-                   where a.code = 'member.bonus' and e.amount > 0 and t.kind not in ('buy_in', 'bonus_expiry') $$,
+                   where a.code = 'member.bonus' and e.amount > 0 and t.kind not in ('bonus_buy_in', 'bonus_expiry') $$,
   'no bonus leaves a member but as chips or at its end');
-select throws_ok($$ select private.reverse_ledger_transaction((select ledger_transaction_id from public.bonus_grant where idempotency_key = 'test:bonus:later'),
-  gen_random_uuid()::text, 'Mistake') $$, 'RVBON', null, 'a ledger reversal of a credit is refused: bonus moves only through its grants');
-select throws_ok($$ select private.reverse_ledger_transaction((select ledger_transaction_id from public.cage_transaction where idempotency_key = '00000000-0000-4000-8000-0000000b0001'),
-  gen_random_uuid()::text, 'Mistake') $$, 'RVBON', null, 'and of a buy-in from bonus');
 
 -- Who sees grants: the member his own, the cage and ledger staff the venue's, nobody else.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');

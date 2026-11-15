@@ -1,4 +1,3 @@
-import { fromPaise } from '@rivr/domain/money';
 import { createClient } from '@supabase/supabase-js';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
@@ -8,7 +7,7 @@ import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { useSettingActions, useVenueSettings } from './settings.ts';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
-import { useChipDenominations, useVenueConfig, useVenueConfigActions, useVenueLogoUpload } from './venueConfig.ts';
+import { useVenueConfig, useVenueConfigActions, useVenueLogoUpload } from './venueConfig.ts';
 
 const SUPER_ADMIN = '00000000-0000-4000-8000-000000000101';
 const VENUE = '00000000-0000-4000-8000-000000000001';
@@ -33,7 +32,7 @@ function renderSettings(replies: Record<string, { status?: number; body: unknown
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
   const { result } = renderHook(() => ({
     settings: useVenueSettings(VENUE), actions: useSettingActions(VENUE),
-    config: useVenueConfig(VENUE), chips: useChipDenominations(VENUE), configActions: useVenueConfigActions(VENUE), logo: useVenueLogoUpload(VENUE),
+    config: useVenueConfig(VENUE), configActions: useVenueConfigActions(VENUE), logo: useVenueLogoUpload(VENUE),
   }), { wrapper });
   return { result, calls };
 }
@@ -146,10 +145,10 @@ describe('settings (#33)', () => {
   });
 });
 
-describe('venue configuration and chips (#33)', () => {
+describe('venue configuration (#33)', () => {
   const DETAIL = {
     venue_id: VENUE, legal_name: 'RIVR Gaming Pvt Ltd', gstin: null, tan: 'DELR12345E', address: 'Gurugram', upi_payee_name: null, upi_vpa: null, bank_name: null,
-    bank_account_name: null, bank_account_number: null, bank_ifsc: null, invoice_prefix: 'RIVR', staff_ip_allowlist: ['203.0.113.0/24'],
+    bank_account_name: null, bank_account_number: null, bank_ifsc: null, invoice_prefix: 'RIVR',
     alert_whatsapp: '+919876543210', logo_path: null, created_at: '', updated_at: '',
     sac_club_services: '999692', signatory_name: 'Rhea Kapoor', signatory_designation: 'Partner',
   };
@@ -157,7 +156,7 @@ describe('venue configuration and chips (#33)', () => {
   it('reads the configuration for a super admin, and nothing for anyone else', async () => {
     const { result } = renderSettings({ 'GET /venue_config_detail': { body: DETAIL } });
     await waitFor(() => expect(result.current.config.data).toMatchObject({
-      legalName: 'RIVR Gaming Pvt Ltd', tan: 'DELR12345E', staffIpAllowlist: ['203.0.113.0/24'], sacClubServices: '999692', signatoryName: 'Rhea Kapoor',
+      legalName: 'RIVR Gaming Pvt Ltd', tan: 'DELR12345E', sacClubServices: '999692', signatoryName: 'Rhea Kapoor',
     }));
     expect(result.current.config.data?.logoUrl).toBeNull();
     cleanup();
@@ -182,25 +181,15 @@ describe('venue configuration and chips (#33)', () => {
   it('saves the configuration, and reads a change RLS hid as not allowed', async () => {
     const change = {
       legalName: 'RIVR', gstin: null, tan: null, address: 'Gurugram', upiPayeeName: null, upiVpa: null, bankName: null, bankAccountName: null,
-      bankAccountNumber: null, bankIfsc: null, invoicePrefix: 'RIVR', staffIpAllowlist: ['203.0.113.7'], alertWhatsapp: null,
+      bankAccountNumber: null, bankIfsc: null, invoicePrefix: 'RIVR', alertWhatsapp: null,
       contactPhone: '+911244000000', contactWhatsapp: null, sacClubServices: '999692', signatoryName: null, signatoryDesignation: null,
     };
     const saved = renderSettings({ 'PATCH /venue_config': { body: [{ venue_id: VENUE }] } });
     expect(await outcomeOf(() => saved.result.current.configActions.save.mutateAsync(change))).toEqual({ ok: true, value: null });
-    expect(saved.calls.find((call) => call.method === 'PATCH')?.body).toMatchObject({ legal_name: 'RIVR', tan: null, staff_ip_allowlist: ['203.0.113.7'], sac_club_services: '999692',
+    expect(saved.calls.find((call) => call.method === 'PATCH')?.body).toMatchObject({ legal_name: 'RIVR', tan: null, sac_club_services: '999692',
       contact_phone: '+911244000000', contact_whatsapp: null });
     cleanup();
     const hidden = renderSettings({ 'PATCH /venue_config': { body: [] } });
     expect(await outcomeOf(() => hidden.result.current.configActions.save.mutateAsync(change))).toEqual({ ok: false, error: 'not_allowed' });
-  });
-
-  it('lists the chips, adds one in paise, and says when one of that value is listed', async () => {
-    const { result, calls } = renderSettings({
-      'GET /chip_denomination': { body: [{ id: 'k1', value_paise: 5000, name: '₹50', is_active: true }] },
-      'POST /chip_denomination': { status: 409, body: { code: '23505', message: 'dup' } },
-    });
-    await waitFor(() => expect(result.current.chips.data).toEqual([{ chipId: 'k1', value: 5000n, name: '₹50', isActive: true }]));
-    expect(await outcomeOf(() => result.current.configActions.addChip.mutateAsync({ value: fromPaise(5000n), name: '₹50' }))).toEqual({ ok: false, error: 'taken' });
-    expect(calls.find((call) => call.method === 'POST')?.body).toEqual({ venue_id: VENUE, value_paise: 5000, name: '₹50' });
   });
 });

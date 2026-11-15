@@ -1,6 +1,6 @@
 import { act, cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { OverlayFailed, ScreenFailed } from './ScreenFailed.tsx';
+import { ScreenFailed } from './ScreenFailed.tsx';
 
 afterEach(() => {
   cleanup();
@@ -13,15 +13,6 @@ describe('a screen that fails to draw on a TV', () => {
     const reset = vi.fn();
     render(<ScreenFailed error={new Error('A bad mode')} reset={reset} />);
     expect(screen.getByText('No connection. Retrying shortly.')).toBeDefined();
-    act(() => { vi.advanceTimersByTime(30_000); });
-    expect(reset).toHaveBeenCalledOnce();
-  });
-
-  it('shows nothing in the stream overlay, and tries again all the same', () => {
-    vi.useFakeTimers();
-    const reset = vi.fn();
-    const { container } = render(<OverlayFailed error={new Error('A bad clock')} reset={reset} />);
-    expect(container.textContent).toBe('');
     act(() => { vi.advanceTimersByTime(30_000); });
     expect(reset).toHaveBeenCalledOnce();
   });

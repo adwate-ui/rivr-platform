@@ -183,9 +183,9 @@ select ok((select count(*) from public.staff where full_name = 'Linked Cashier')
 -- The matrix itself refuses to give a super_admin-only permission to any other role.
 reset role;
 select throws_ok(
-  $$ insert into public.role_permission (role, permission) values ('admin', 'purge.run') $$,
+  $$ insert into public.role_permission (role, permission) values ('admin', 'members.erase') $$,
   '23514', null,
-  'purge.run can never be granted to a role other than super_admin'
+  'members.erase can never be granted to a role other than super_admin'
 );
 
 select * from finish();

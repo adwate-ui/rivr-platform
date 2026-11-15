@@ -19,15 +19,6 @@ function pageSizeInPoints(pdf: Buffer): number[] {
 
 // Each is compared with its baseline; after a deliberate design change,
 // RIVR_UPDATE_BASELINES=1 pnpm --filter @rivr/render test -- paper rewrites them.
-describe('the membership card', () => {
-  it('draws at three times the card size, its QR square empty', async () => {
-    const { width, height } = tokens.viewport.card;
-    const png = await renderToPng({ template: 'card.membership', props: { name: 'Arjun Mehta', tier: 'Black card', memberNumber: '1024' }, width, height, scale: 3 });
-    expect(pngSize(png)).toEqual({ chunk: 'IHDR', width: width * 3, height: height * 3 });
-    expect(await differenceFromBaseline(png, 'card-membership')).toBeLessThanOrEqual(allowedDifference(width * 3, height * 3));
-  });
-});
-
 describe('the thermal receipt', () => {
   it('draws at printer width, one pixel to a dot, as tall as its lines', async () => {
     const png = await renderToPng({ template: 'receipt.thermal', props: CASH_OUT, width: tokens.size.receipt });

@@ -99,18 +99,14 @@ select throws_ok($$ select public.export_archive_rows((select id from archive), 
 -- One member, for an access request: Arjun's rows only.
 create temp table arjun as select public.start_export_archive('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000201') as p;
 create temp table arjun_archive as select (p ->> 'archive_id')::uuid as id from arjun;
-select ok((select p -> 'tables' @> '[{"name": "ledger_entry"}, {"name": "jackpot_event"}, {"name": "kyc_record"}, {"name": "seat_move"}]' from arjun),
-  'his archive holds his ledger, his jackpots, his KYC and his seat moves');
+select ok((select p -> 'tables' @> '[{"name": "ledger_entry"}, {"name": "kyc_record"}, {"name": "seat_move"}]' from arjun),
+  'his archive holds his ledger, his KYC and his seat moves');
 select ok((select not p -> 'tables' @> '[{"name": "staff"}]' and not p -> 'tables' @> '[{"name": "venue"}]' from arjun),
   'and no table that is not about him');
 select results_eq($$ select total from pg_temp.read_all((select id from arjun_archive), 'member', 10) $$, $$ values (1) $$, 'his member row alone');
 select results_eq($$ select total from pg_temp.read_all((select id from arjun_archive), 'ledger_entry', 10) $$,
   $$ select count(*)::integer from public.ledger_entry e join public.ledger_account a on a.id = e.account_id
      where a.member_id = '00000000-0000-4000-8000-000000000201' $$, 'every entry on his accounts');
-select results_eq($$ select total from pg_temp.read_all((select id from arjun_archive), 'jackpot_event', 10) $$,
-  $$ select count(*)::integer from public.jackpot_event j where j.venue_id = '00000000-0000-4000-8000-000000000001'
-     and ('00000000-0000-4000-8000-000000000201' in (j.winner_member_id, j.loser_member_id) or '00000000-0000-4000-8000-000000000201' = any(j.table_member_ids)) $$,
-  'every jackpot he won, lost or sat at');
 select throws_ok($$ select public.export_archive_rows((select id from arjun_archive), 'staff', null, 10) $$,
   '22023', null, 'a table not about him reads nothing');
 reset role;

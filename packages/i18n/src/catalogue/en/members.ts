@@ -49,6 +49,7 @@ export const members = {
   grantChips: '{count} bonus chips',
   /** The record. `{number}` is the member number. */
   memberNumber: 'No. {number}',
+  photoOf: 'KYC photo of {name}',
   /** The record's status line (F-039): `No. 427 · Member tier · ID checked`. */
   tierLine: '{tier} tier',
   /** `{date}`: 30 Nov 2026, the tier change's last day. */

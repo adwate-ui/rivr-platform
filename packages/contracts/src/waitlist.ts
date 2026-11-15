@@ -4,9 +4,6 @@ import { indianMobileSchema } from './identity.ts';
 /** The door's check-in by mobile number (#72). */
 export const doorCheckInSchema = z.object({ phone: indianMobileSchema });
 
-/** The door's check-in by membership card (#71): what the scanner read from the card's QR. */
-export const doorCardSchema = z.object({ code: z.string().trim().min(1).max(200) });
-
 // Ten digits, or +91 and ten, are a mobile number; one to nine digits a membership number.
 const mobileOrMemberNumberSchema = z.union([
   indianMobileSchema.transform((phone) => ({ phone })),

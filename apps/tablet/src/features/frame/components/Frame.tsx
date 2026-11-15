@@ -1,6 +1,6 @@
-import { useAuthStatus, useControlState, useCurrentDown, useMyDevice, type MyDevice } from '@rivr/db';
+import { useAuthStatus, useCurrentDown, useMyDevice, type MyDevice } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
-import { Button, KillSwitchBanner, Screen, TabletShell, Text } from '@rivr/ui';
+import { Button, Screen, TabletShell, Text } from '@rivr/ui';
 import { useState, type ReactNode } from 'react';
 import { EndDownForm } from './EndDownForm.tsx';
 import { HandQueueBanner } from './HandQueueBanner.tsx';
@@ -11,8 +11,6 @@ interface FrameProps {
   unpaired: ReactNode;
   /** What a tablet fixed to a table shows between downs: dealer sign-in. */
   signIn: ReactNode;
-  /** What a door kiosk shows in place of the table's screens (decision 0164): the card scanner. */
-  door: ReactNode;
 }
 
 interface TableFrameProps {
@@ -70,30 +68,23 @@ function TableFrame({ device, banner, signIn, children }: TableFrameProps) {
 /** What the banner says offline with no hand held (F-045): only that, until the device is known; then what it means here. */
 function offlineLine(device: MyDevice | null | undefined): string {
   if (device === undefined || device === null) return t('tablet.queue.offline');
-  return t(device.isDoor ? 'tablet.queue.offlineDoor' : 'tablet.queue.offlineTable');
+  return t('tablet.queue.offlineTable');
 }
 
-/** What runs across the top of every screen: a freeze, in the words of whoever may be reading it, and the offline line. */
+/** What runs across the top of every screen: the offline line. */
 function FrameBanner({ device }: { device: MyDevice | null | undefined }) {
-  const { isVenueFrozen } = useControlState();
-  return (
-    <>
-      {isVenueFrozen ? <KillSwitchBanner audience={device?.isDoor === false ? 'staff' : 'member'} /> : null}
-      <HandQueueBanner offlineLine={offlineLine(device)} />
-    </>
-  );
+  return <HandQueueBanner offlineLine={offlineLine(device)} />;
 }
 
 /**
- * The dealer tablet's frame: the table it is fixed to (#41) and the kill-switch banner. A tablet
- * that is not signed in as a paired device shows `unpaired` instead of its screens; one fixed to a
- * table asks a dealer to sign in between downs; a door kiosk shows `door`, under RIVR, as its name is staff's (F-145). Lane B adds the offline banner from @rivr/offline.
+ * The dealer tablet's frame: the table it is fixed to (#41). A tablet that is not signed in as a
+ * paired device shows `unpaired` instead of its screens; one fixed to a table asks a dealer to sign
+ * in between downs.
  */
-export function Frame({ children, unpaired, signIn, door }: FrameProps) {
+export function Frame({ children, unpaired, signIn }: FrameProps) {
   const authStatus = useAuthStatus();
   const device = useMyDevice();
   const banner = <FrameBanner device={device.data} />;
-  // Until the device is known it may be a door kiosk, with a member reading it (F-144).
   const title = t('tablet.neutralTitle');
   if (authStatus === 'loading' || (authStatus === 'signed-in' && device.isPending)) {
     return <TabletShell tableName={title} banner={banner}><Screen title={title} status="loading" /></TabletShell>;
@@ -105,6 +96,5 @@ export function Frame({ children, unpaired, signIn, door }: FrameProps) {
   if (authStatus === 'signed-out' || !device.data) {
     return <TabletShell tableName={t('tablet.pairing.notPaired')} banner={banner}>{unpaired}</TabletShell>;
   }
-  if (device.data.isDoor) return <TabletShell tableName={title} banner={banner}>{door}</TabletShell>;
   return <TableFrame device={device.data} banner={banner} signIn={signIn}>{children}</TableFrame>;
 }

@@ -12,7 +12,6 @@ function problemOf(outcome: DoorOutcome | null): string | null {
     case 'out_failed': return checkOutRefusalText(outcome.refusal);
     case 'unusable': return t('console.checkIn.unusable');
     case 'no_match': return t('console.checkIn.noMatch');
-    case 'card_out': return t('console.checkIn.cardCheckOut');
     default: return null;
   }
 }

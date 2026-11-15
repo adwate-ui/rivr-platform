@@ -1,8 +1,6 @@
 # display
 
-The TV app at 1920 px: waitlist and call-time boards, the tournament clock, the promotions rotation and the other TV modes, with no rupee (#628, decision 0284): the jackpot mode is hidden, and the tournament clock and the stream overlay while tournaments are (D-03); the clock has no prize pool or payouts panel (F3-05). Each board has a bar along the stage's foot that fills over its half minute. When the TV's reads fail, as in a network drop, the boards keep what they had and a quiet line at the foot says since when (F3-24). A TV pairs with a six-digit code and then shows the mode a manager assigns it.
-
-The final-table stream's overlay (#125, decision 0256) is an OBS browser source at `/overlay?delay=<seconds>`, 1920 by 1080: the tournament clock on a transparent page, held back by the hole-card delay (`delay=900` for 15 minutes; `delay=0` when OBS delays the whole stream). Pair it like a TV, at the club (never the practice venue), and give it the tournament clock on the console's TVs screen. Set it up before the final table, with OBS's "Shutdown source when not visible" and "Refresh browser when scene becomes active" off: after a reload it shows nothing until the delay has passed, and once paired it never shows a code again until OBS reloads it.
+The TV app at 1920 px: waitlist and call-time boards, the promotions rotation and the other TV modes, with no rupee (#628, decision 0284). Each board has a bar along the stage's foot that fills over its half minute. When the TV's reads fail, as in a network drop, the boards keep what they had and a quiet line at the foot says since when (F3-24). A TV pairs with a six-digit code and then shows the mode a manager assigns it.
 
 ## Run it
 
@@ -23,15 +21,12 @@ src/
   router.tsx          every route, in one list
   routes/             one file per URL; renders a feature's screen and nothing else
   features/<name>/    components/ and hooks/, imported only through index.ts
-    frame/            the app's shell: navigation, the kill-switch banner, not found; the pairing code until the TV is paired
+    frame/            the app's shell: navigation, not found; the pairing code until the TV is paired
     pairing/          a TV that is not paired shows a six-digit code for the console's TVs screen (#49)
-    modes/            a paired TV shows the mode the console gave it (one still set to the hidden jackpot shows
-                      the waitlist board, #628): the waitlist board (#65), the promotions (#86) and the call-time board with the
+    modes/            a paired TV shows the mode the console gave it: the waitlist board (#65), the promotions (#86) and the call-time board with the
                       seats opening (decision 0163),
-                      the hours leaderboard in the period the club set (decision 0581), and the tournament clock counting down from the server's reading
-                      (#119, decision 0201), live through Realtime; in between, the boards the console
-                      chose for it to turn to, half a minute each, the promotions one after another; other modes show their name;
-                      and the stream overlay, the tournament clock held back by the hole-card delay (#125)
+                      and the hours leaderboard in the period the club set (decision 0581), live through Realtime; in between, the boards the console
+                      chose for it to turn to, half a minute each, the promotions one after another
 ```
 
 Everything visible comes from `@rivr/ui`, every word from `@rivr/i18n`, every read through `@rivr/db`. A route imports only features, and a feature never imports another feature; `pnpm lint:deps` fails either (`.claude/rules/apps.md`).

@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { Banner } from '../Banner/Banner.tsx';
@@ -17,6 +17,9 @@ function renderShell(props: { isTabBarHidden?: boolean; onNavigate?: () => void 
   );
 }
 
+// The member's initial sits in the screen; the tab bar under it has a Profile tab of its own.
+const inScreen = () => within(screen.getByRole('main'));
+
 describe('PlayerShell', () => {
   it('puts the screen in the main landmark and the tabs in navigation', () => {
     renderShell();
@@ -32,7 +35,7 @@ describe('PlayerShell', () => {
         <PlayerAvatar />
       </PlayerShell>,
     );
-    const link = screen.getByRole('link', { name: 'Profile' });
+    const link = inScreen().getByRole('link', { name: 'Profile' });
     const photo = link.querySelector('img');
     if (photo === null) throw new Error('the photo is not shown');
     expect(photo).toHaveAttribute('src', 'https://photos.test/me.jpg');
@@ -43,7 +46,7 @@ describe('PlayerShell', () => {
   it('opens Profile from the member initial, top right', async () => {
     const onNavigate = vi.fn();
     renderShell({ onNavigate });
-    await userEvent.click(screen.getByRole('link', { name: 'Profile' }));
+    await userEvent.click(inScreen().getByRole('link', { name: 'Profile' }));
     expect(onNavigate).toHaveBeenCalledWith('/profile');
   });
 
@@ -57,7 +60,7 @@ describe('PlayerShell', () => {
     const row = screen.getByRole('heading', { name: 'Sessions' }).parentElement;
     if (row === null) throw new Error('The heading has no row');
     expect(row).toHaveClass('min-h-touch', 'items-center');
-    expect(row).toContainElement(screen.getByRole('link', { name: 'Profile' }));
+    expect(row).toContainElement(inScreen().getByRole('link', { name: 'Profile' }));
     expect(screen.getByRole('status').compareDocumentPosition(row)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
@@ -67,8 +70,8 @@ describe('PlayerShell', () => {
         <Screen title="Tonight" isTitleHidden><p><span>RIVR</span><PlayerAvatar /></p></Screen>
       </PlayerShell>,
     );
-    expect(screen.getAllByRole('link', { name: 'Profile' })).toHaveLength(1);
-    expect(screen.getByText('RIVR').parentElement).toContainElement(screen.getByRole('link', { name: 'Profile' }));
+    expect(inScreen().getAllByRole('link', { name: 'Profile' })).toHaveLength(1);
+    expect(screen.getByText('RIVR').parentElement).toContainElement(inScreen().getByRole('link', { name: 'Profile' }));
   });
 
   it('keeps the gutter for a loading screen in an edge-to-edge shell, and the initial beside it', () => {
@@ -77,7 +80,7 @@ describe('PlayerShell', () => {
         <Screen title="Tonight" isTitleHidden status="error" errorText="Couldn't load tonight." />
       </PlayerShell>,
     );
-    expect(screen.getByRole('link', { name: 'Profile' }).parentElement).toHaveClass('px-5');
+    expect(inScreen().getByRole('link', { name: 'Profile' }).parentElement).toHaveClass('px-5');
     expect(screen.getByText("Couldn't load tonight.").closest('.px-5')).not.toBeNull();
   });
 

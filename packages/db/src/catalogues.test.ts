@@ -47,7 +47,15 @@ function permissionsInMigrations(): Map<string, string[]> {
   for (const [, role = '', permission = ''] of sql.matchAll(/delete from public\.role_permission where role = '([a-z_]+)' and permission = '([a-z_.]+)'/g)) {
     granted.set(role, (granted.get(role) ?? []).filter((one) => one !== permission));
   }
+  const gone = permissionsTakenFromEveryRole();
+  for (const [role, held] of granted) granted.set(role, held.filter((one) => !gone.includes(one)));
   return granted;
+}
+
+/** The permissions a later migration takes from every role (the redesign of 15 Nov: `delete from public.role_permission where permission in (...)`). */
+function permissionsTakenFromEveryRole(): string[] {
+  const lists = [...sql.matchAll(/delete from public\.role_permission where permission in \(([^)]*)\)/g)].map(([, list]) => list ?? '');
+  return lists.flatMap((list) => [...list.matchAll(/'([a-z_.]+)'/g)].map(([, permission]) => permission ?? ''));
 }
 
 function settingKeysInMigrations(): Map<string, { scope: string; schema: unknown }> {

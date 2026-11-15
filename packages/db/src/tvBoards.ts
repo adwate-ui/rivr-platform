@@ -2,12 +2,9 @@ import type { TvLeaderboardPeriod } from '@rivr/contracts';
 import type { Paise } from '@rivr/domain/money';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import type { Database } from './database.types.ts';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
-
-type HighHandCategory = Database['public']['Enums']['high_hand_category'];
 
 /** A place on the TV's waitlist board (#65): the player as a first name and initial. */
 export interface TvPlace {
@@ -56,30 +53,15 @@ export interface TvCallTimeTable {
   readonly seated: readonly TvSeated[];
 }
 
-/** The TV's jackpot: the main pool, and tonight's best high hand (null before one is paid). */
-export interface TvJackpot {
-  readonly main: Paise;
-  readonly highHand: {
-    readonly category: HighHandCategory;
-    /** The rank of a four of a kind (Q for Queens); null otherwise. */
-    readonly rank: string | null;
-    readonly tableName: string;
-    readonly playedAt: string;
-    readonly payout: Paise;
-  } | null;
-}
-
 // Realtime tells the TV when a board changes; it also asks again every half minute, in case a
 // signal is missed while the connection drops.
 const BOARD_CHECK = 30_000;
 // However many signals arrive, the board is read again at most once every two seconds.
 const SIGNAL_SETTLE = 2_000;
 
-// The query each board's signal reads again; promotions is the Promotions rotation's (#86), tournament the clock's (#119). The TV's screen listens (useTvSignals).
+// The query each board's signal reads again; promotions is the Promotions rotation's (#86). The TV's screen listens (useTvSignals).
 const BOARD_KEYS = {
-  waitlist: queryKeys.tvWaitlistBoard, call_time: queryKeys.tvCallTimeBoard, jackpot: queryKeys.tvJackpot, promotions: queryKeys.tvPromotions,
-  tournament: queryKeys.tvTournamentClock,
-  social_wall: queryKeys.tvSocialWall,
+  waitlist: queryKeys.tvWaitlistBoard, call_time: queryKeys.tvCallTimeBoard, promotions: queryKeys.tvPromotions,
 };
 
 /**
@@ -173,23 +155,6 @@ export function toTvCallTimeTables(rows: readonly CallTimeRow[]): TvCallTimeTabl
   return tables.map(({ table, seated }) => ({ ...table, seated }));
 }
 
-interface JackpotRow {
-  main_paise: number;
-  high_hand_category: HighHandCategory | null;
-  high_hand_rank: string | null;
-  high_hand_table_name: string | null;
-  high_hand_played_at: string | null;
-  high_hand_payout_paise: number | null;
-}
-
-/** The jackpot row: the main pool, and tonight's high hand when every part of it is there. */
-export function toTvJackpot(row: JackpotRow): TvJackpot {
-  const { high_hand_category: category, high_hand_table_name: tableName, high_hand_played_at: playedAt, high_hand_payout_paise: payout } = row;
-  const highHand = category === null || tableName === null || playedAt === null || payout === null ? null
-    : { category, rank: row.high_hand_rank, tableName, playedAt, payout: toPaise(payout) };
-  return { main: toPaise(row.main_paise), highHand };
-}
-
 /** The signed-in TV's waitlist board at its venue, a list a table, live while the TV's screen listens for signals (useTvSignals). */
 export function useTvWaitlistBoard() {
   const { client, userId } = useRivrData();
@@ -262,22 +227,6 @@ export function useTvCallTimeBoard() {
       const { data, error } = await client.rpc('tv_call_time_board');
       if (error) throw error;
       return toTvCallTimeTables(data);
-    },
-  });
-}
-
-/** The signed-in TV's jackpot and tonight's high hand at its venue, live while the TV's screen listens for signals. */
-export function useTvJackpot() {
-  const { client, userId } = useRivrData();
-  return useQuery({
-    queryKey: queryKeys.tvJackpot(userId ?? 'signed-out'),
-    enabled: userId !== null,
-    refetchInterval: BOARD_CHECK,
-    queryFn: async (): Promise<TvJackpot | null> => {
-      const { data, error } = await client.rpc('tv_jackpot');
-      if (error) throw error;
-      const row = data[0];
-      return row === undefined ? null : toTvJackpot(row);
     },
   });
 }

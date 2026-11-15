@@ -38,13 +38,6 @@ function renderAs(role: string) {
 }
 
 describe('Check-in', () => {
-  it('says what a host offered a member, for the floor to give by hand (F-015)', async () => {
-    renderAs('host');
-    const expected = await screen.findByRole('region', { name: 'Expected tonight' }, { timeout: 5000 });
-    expect(await within(expected).findByText('Offered: 500 bonus chips')).toBeDefined();
-    expect(within(screen.getByRole('region', { name: 'In the room' })).queryByText(/^Offered/)).toBeNull();
-  });
-
   it('tells members apart by number, with the tier only above the base one (audit F-020)', async () => {
     renderAs('host');
     const expected = await screen.findByRole('region', { name: 'Expected tonight' }, { timeout: 5000 });
@@ -56,7 +49,7 @@ describe('Check-in', () => {
 
   it('shows the one field, then Expected tonight and In the room, each a region with its count', async () => {
     renderAs('host');
-    expect(await screen.findByRole('textbox', { name: 'Card, name, mobile or member number' }, { timeout: 5000 })).toBeDefined();
+    expect(await screen.findByRole('textbox', { name: 'Name, mobile or member number' }, { timeout: 5000 })).toBeDefined();
     expect(screen.getByRole('heading', { level: 1, name: 'Check-in' })).toBeDefined();
     const expected = screen.getByRole('region', { name: 'Expected tonight' });
     expect(within(expected).getByText('Kabir Sethi')).toBeDefined();

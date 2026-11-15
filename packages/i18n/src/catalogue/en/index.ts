@@ -8,7 +8,6 @@ import { alerts } from './alerts.ts';
 import { documents } from './documents.ts';
 import { playerBonus } from './playerBonus.ts';
 import { push } from './push.ts';
-import { social } from './social.ts';
 import { tv } from './tv.ts';
 import { ui } from './ui.ts';
 
@@ -16,7 +15,6 @@ export const en = {
   common,
   ui,
   tv,
-  social,
   alerts,
   documents,
   playerBonus,

@@ -63,14 +63,11 @@ export const ui = {
     label: 'Main',
     /** The member's own night (decision 0320): the first tab. */
     home: 'Home',
-    /** The membership card, a tab since the redesign. */
-    card: 'Card',
     sessions: 'Sessions',
-    balance: 'Balance',
-    /** Food and drink to the seat (#635). */
-    food: 'Menu',
     /** The member's Bonus, its history and Refer a friend (redesign of 15 Nov). */
     bonus: 'Bonus',
+    /** The member, their notifications and the club's rules: a tab since the redesign of 15 Nov. */
+    profile: 'Profile',
   },
   profile: {
     /** The member's photo or initial, top right, opens Profile. */

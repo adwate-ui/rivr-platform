@@ -8,7 +8,7 @@ Every word a member or staff user reads, and the one formatter for money, number
 |---|---|
 | `t(key, params?)` | The message for a key, placeholders filled: `t('common.retry')`. The one way to get copy, anywhere: components, Astro pages, Edge Functions, render templates, tests. It knows `common` and `ui` from the start; anything else must be registered first. |
 | `registerMessages(namespaces)` | Adds namespaces to what `t` knows. Each app does it once, in `src/messages.ts`, imported first by its entry (`main.tsx`; on the website, the server modules that read its copy) and by its tests (`setupFiles`): `registerMessages({ player: playerApp })`. So an app ships only its own copy, and the player stays within its JavaScript budget. |
-| `playerApp`, `consoleApp`, `tabletApp`, `displayApp`, `webApp`, `tv`, `social`, `documents` | The namespaces an app registers: its own, plus `tv` where it names hands or TV modes (console, tablet, display); `@rivr/render` registers `social`, `tv` and `documents` (receipts, invoices and statements). A screen loaded on demand may register its own copy when it loads, so the app's first load does not carry it. |
+| `playerApp`, `consoleApp`, `tabletApp`, `displayApp`, `webApp`, `tv`, `documents` | The namespaces an app registers: its own, plus `tv` where it names hands or TV modes (console, tablet, display); `@rivr/render` registers `tv` and `documents` (receipts, invoices and statements). A screen loaded on demand may register its own copy when it loads, so the app's first load does not carry it. |
 | `activityActionWord(action)`, `activityEntityWord(entity)` | An audit row's action and kind of record in words, for the console's Activity screen (F-034); a code added later reads as `Recorded` or `Record`, never as the code. |
 | `formatMoney(paise)` | `₹1,20,000`. Indian grouping, no decimals on whole rupees, never rounded, `−₹1,000` for negatives. |
 | `formatChips(paise)` | `5,000`: chips, such as bonus chips, as a count with no rupee symbol, for the screens that show no rupee (#627). Otherwise as `formatMoney`. |
@@ -18,11 +18,10 @@ Every word a member or staff user reads, and the one formatter for money, number
 | `formatStakes(small, big, straddle?)` | Blinds in paise to `100/200`, and a straddle after them, `100/200/400`; a blind with paise keeps them, `0.50/1`. |
 | `formatTime(date)` | 24-hour IST clock, `02:40`. |
 | `formatYear(date)` | The IST year, `2027`, for the website's copyright (F-192). |
-| `formatHostOffer(offer)` | A host's offer in words, `2,000 bonus chips`, for the console's queue, Door and member record (F-015). |
 | `formatBlinds(small, big, ante?)` | A tournament level's blinds in chips: `400/800 ante 800`, or `400/800` with no ante (#119). |
 | `formatRupeesForInput(paise)` | Paise as the rupees a form's field holds: `10000`, or `2500.50` with paise. |
 | `settingCopy(key)`, `settingKeys` | Each setting key's name, help, field labels and option words, as Settings shows them (#604); undefined for a key with none. The copy test checks them with the catalogue. |
-| `formatCountdown(seconds)` | A clock counting down, whole seconds: `11:29`, `05:00`, `1:15:00` from an hour up. The tournament clock. |
+| `formatCountdown(seconds)` | A clock counting down, whole seconds: `11:29`, `05:00`, `1:15:00` from an hour up. |
 | `formatDate(date)`, `formatWeekday(date)`, `formatDayTime(date)`, `formatDateTime(date)` | `15 Nov 2026`, `Sunday`, `Sun 15 Nov, 02:40` (within the coming weeks), `15 Nov 2026, 02:40` (a moment that may be months away, as a break's end), in IST; every month in three letters, September `Sep` (F5-11). |
 | `formatIsoDay(date)`, `istMidnight(day)`, `isLaterIstDay(day)` | `2026-11-15`, the IST calendar day as a date field gives it; `2026-11-15T00:00:00+05:30`, its midnight; whether a day is after today in IST, for a setting from a later day. The console's one way to name today (F1-30). |
 | `formatMonth(month)` | A calendar month from `2026-11` or `2026-11-01`: `November 2026`. |

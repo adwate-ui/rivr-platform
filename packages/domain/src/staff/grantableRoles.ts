@@ -2,7 +2,7 @@ import { ROLE_PERMISSIONS, STAFF_ROLES, type Permission, type StaffRole } from '
 
 // Roles that move the venue's money, give a second approval or stop the venue: a super admin's to give (B3), so nobody
 // makes themselves a second login to approve their own request.
-const DUAL_CONTROL: readonly Permission[] = ['treasury.manage', 'cage.second_approve', 'control.engage'];
+const DUAL_CONTROL: readonly Permission[] = ['treasury.manage', 'cage.second_approve'];
 
 /**
  * The roles a staff member may give, as the database's private.can_grant_role decides (#28, decision

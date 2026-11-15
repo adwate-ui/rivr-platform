@@ -47,13 +47,13 @@ describe('ReportingVenue', () => {
 
   it('sends nothing for a member of the practice venue', async () => {
     signIn();
-    renderWith({ id: 'm1', full_name: 'Kabir Sethi', venue: { is_practice: true } });
+    renderWith({ id: 'm1', full_name: 'Kabir Sethi', member_number: 58, venue: { is_practice: true }, tier: { name: 'Member' } });
     await waitFor(() => expect(told()).toEqual([null, true]));
   });
 
   it('lets errors go for a member of the club, and for someone signed in who is joining and has no venue yet', async () => {
     signIn();
-    renderWith({ id: 'm1', full_name: 'Kabir Sethi', venue: { is_practice: false } });
+    renderWith({ id: 'm1', full_name: 'Kabir Sethi', member_number: 58, venue: { is_practice: false }, tier: { name: 'Member' } });
     await waitFor(() => expect(told()).toEqual([null, false]));
     cleanup();
     vi.clearAllMocks();
@@ -63,7 +63,7 @@ describe('ReportingVenue', () => {
 
   it('holds errors where the venue was not read with the member, as on a phone that kept an older answer', async () => {
     signIn();
-    renderWith({ id: 'm1', full_name: 'Kabir Sethi' });
+    renderWith({ id: 'm1', full_name: 'Kabir Sethi', member_number: 58, tier: { name: 'Member' } });
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(told()).toEqual([null]);
   });

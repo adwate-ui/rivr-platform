@@ -47,7 +47,6 @@ export const shell = {
   },
   /** An old address whose tab is gone, opened on the screen that took its place (#811). */
   moved: {
-    rake: 'Not used at RIVR.',
     cameras: 'Cameras are no longer on the console.',
     computers: 'Computers are no longer on the console.',
     gamesHistory: 'Games history moved to Reports, Tables.',

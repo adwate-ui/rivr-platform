@@ -207,16 +207,11 @@ export const siteBlockSchema = z.discriminatedUnion('kind', [
   // Live: the club's promotions, as their cards with their rules and questions (public_promotion_cards, #618); `only:
   // 'welcome'` shows the welcome offer alone, the promotions for new players.
   z.object({ kind: z.literal('promotions'), content: z.object({ eyebrow: eyebrowSchema, heading: headingSchema, only: z.literal('welcome').optional() }) }),
-  // Live: the club's approved Instagram posts (public_wall_posts, #157).
-  z.object({ kind: z.literal('social_wall'), content: z.object({ heading: headingSchema }) }),
   // Live, read from the club's rules in force rather than written into the page (#617, decision 0283): rakeback by
   // table (rakeback.rate) and the cab (cab.minimum_visits), through public_club_rules. Points, hotel nights and the
   // League went on 15 Nov (decision 0585).
   z.object({ kind: z.literal('rewards'), content: z.object({ heading: headingSchema }) }),
   z.object({ kind: z.literal('outstation'), content: z.object({ eyebrow: eyebrowSchema, heading: headingSchema }) }),
-  // Live (#618): the Bad Beat Jackpot's pool and how a bad beat shares it (public_jackpot, jackpot.payout), and what each
-  // rare hand pays (high_hand.payouts).
-  z.object({ kind: z.literal('jackpot'), content: z.object({ eyebrow: eyebrowSchema, heading: headingSchema }) }),
 ]);
 
 /** A website block the website can show. */

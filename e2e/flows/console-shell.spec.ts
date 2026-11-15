@@ -1,8 +1,8 @@
 /**
  * Console shell (console v3, phase 1; decision 0476). The flow's own super admin opens every old address of a screen that
- * moved and lands on its new screen at its tab; the four tabs that are gone land on the screen that took their place and
- * say so in a line; a hidden screen is refused under its own name. The flow's own admin has Admin on the rail without the
- * danger screens, and is refused the purge by its address, under its name.
+ * moved and lands on its new screen at its tab; the three tabs that are gone land on the screen that took their place and
+ * say so in a line. The flow's own admin has Admin on the rail without Activity, and is refused it by its address, under
+ * its name.
  */
 import { expect, test, type Page } from '@playwright/test';
 import { appUrl } from '../support/apps.ts';
@@ -26,7 +26,6 @@ const MOVED: readonly (readonly [string, string, string | null, string | null])[
 
 /** Old addresses whose tab is gone: where they land, and the line that says so. */
 const GONE: readonly (readonly [string, string, string])[] = [
-  ['/rake', '/settings?notice=rake', 'Not used at RIVR.'],
   ['/cameras', '/settings?tab=tvs&notice=cameras', 'Cameras are no longer on the console.'],
   ['/computers', '/settings?tab=tvs&notice=computers', 'Computers are no longer on the console.'],
   ['/games-history', '/settings?notice=gamesHistory', 'Games history moved to Reports, Tables.'],
@@ -56,21 +55,20 @@ test.describe('Console shell', () => {
       await expect(page.getByRole('main').getByText(notice)).toBeVisible();
       await expect(rail(page).getByRole('link', { name: 'Settings', exact: true })).toHaveAttribute('aria-current', 'page');
     }
-    // A screen the owner hid is refused to a super admin too, under its own name, not "Console" (#811).
+    // A screen that went shows the ordinary not-found screen (redesign RD-09).
     await page.goto(`${appUrl('console')}/cage`);
-    await expect(page.getByRole('heading', { name: 'Cage', level: 1 })).toBeVisible();
-    await expect(page.getByText('Not used at RIVR.')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Page not found', level: 1 })).toBeVisible();
   });
 
-  test('Console shell: an admin has Admin without the danger screens, and is refused the purge by its address', async ({ page }) => {
+  test('Console shell: an admin has Admin without Activity, and is refused it by its address', async ({ page }) => {
     await signInToConsole(page, '9000000197');
     await expect(page.getByRole('heading', { name: 'Live floor', level: 1 })).toBeVisible();
     for (const group of ['Tonight', 'Players', 'Marketing']) await expect(rail(page).getByText(group, { exact: true })).toBeVisible();
     await rail(page).getByRole('button', { name: 'Admin' }).click();
     for (const screen of ['Staff', 'Tables', 'Settings']) await expect(rail(page).getByRole('link', { name: screen, exact: true })).toBeVisible();
-    for (const screen of ['Kill switch', 'Practice reset', 'Purge']) await expect(rail(page).getByRole('link', { name: screen })).toHaveCount(0);
-    await page.goto(`${appUrl('console')}/purge`);
-    await expect(page.getByRole('heading', { name: 'Purge', level: 1 })).toBeVisible();
+    await expect(rail(page).getByRole('link', { name: 'Activity', exact: true })).toHaveCount(0);
+    await page.goto(`${appUrl('console')}/activity`);
+    await expect(page.getByRole('heading', { name: 'Activity', level: 1 })).toBeVisible();
     await expect(page.getByText('Not in your role. Ask an admin.')).toBeVisible();
   });
 });

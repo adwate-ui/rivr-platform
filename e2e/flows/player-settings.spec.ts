@@ -16,7 +16,7 @@ test.describe('Player settings', () => {
     const member = await browser.newPage();
     await signInToPlayer(member, '9000000254', '/profile');
     await expect(member.getByRole('heading', { name: 'Naveen Iyer', level: 1 })).toBeVisible();
-    await expect(member.getByRole('navigation', { name: 'Main' })).toHaveCount(0);
+    await expect(member.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Profile' })).toHaveAttribute('aria-current', 'page');
     // Learn and Events are rows under Club only for a tier with them (decision 0322): off for every tier.
     for (const row of ['Learn', 'Events']) await expect(member.getByRole('button', { name: row, exact: true })).toHaveCount(0);
     await expect(member.getByRole('heading', { name: 'RIVR Academy' })).toHaveCount(0);

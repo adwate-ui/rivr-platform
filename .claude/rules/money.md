@@ -2,8 +2,6 @@
 paths:
   - "packages/domain/**"
   - "supabase/**"
-  - "apps/console/src/features/cage/**"
-  - "apps/console/src/features/markers/**"
   - "apps/tablet/**"
 ---
 

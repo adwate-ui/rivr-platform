@@ -1,11 +1,11 @@
 import type { Permission } from '@rivr/contracts';
 import {
-  useAuthStatus, useControlState, useSignOut, useStaffDensity, useStaffQueueCounts, useStaffShortcuts, useStaffVenue, useWaitingHighHands, type StaffVenueState,
+  useAuthStatus, useSignOut, useStaffDensity, useStaffQueueCounts, useStaffShortcuts, useStaffVenue, type StaffVenueState,
 } from '@rivr/db';
 import { useRecordTableExport } from '@rivr/db/exports';
 import { t } from '@rivr/i18n';
 import {
-  ConsoleShell, DataTableDensityProvider, DataTableExportProvider, DataTableViewProvider, KillSwitchBanner, PracticeBanner, Screen, ShortcutProvider, TitleCount, ToastProvider, UrgentChime,
+  ConsoleShell, DataTableDensityProvider, DataTableExportProvider, DataTableViewProvider, PracticeBanner, Screen, ShortcutProvider, TitleCount, ToastProvider, UrgentChime,
 } from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
@@ -57,7 +57,7 @@ function Refused({ refusal, isHome, landing }: RefusedProps) {
   }, [isHome, href, navigate]);
   if (isHome) return href === undefined ? <Screen title={t('console.noScreens.title')} status="empty" emptyText={t('console.noScreens.body')} /> : null;
   const action = landing === undefined ? undefined : { label: landing.label, onClick: () => void navigate({ href: landing.href }) };
-  return <Screen title={refusal.title} status="empty" emptyText={t(refusal.isOff ? 'console.switchedOff' : 'console.notAllowed')} emptyAction={action} />;
+  return <Screen title={refusal.title} status="empty" emptyText={t('console.notAllowed')} emptyAction={action} />;
 }
 
 /**
@@ -103,14 +103,12 @@ interface StaffFrameProps {
 }
 
 /** The rail's counts, and the urgent queues' own: null until the first read, so the first read sounds nothing. */
-function useRailCounts(venueId: string, permissions: readonly Permission[]) {
-  // The high-hand claims waiting for staff who approve them (#317).
-  const waiting = useWaitingHighHands(venueId, permissions.includes('jackpots.approve'));
-  // And every queue the staff member acts on (decision 0301).
+function useRailCounts(venueId: string) {
+  // Every queue the staff member acts on (decision 0301).
   const queues = useStaffQueueCounts(venueId);
   const data = queues.data;
   const urgent = data === undefined ? null : Object.fromEntries(URGENT_QUEUES.map((queue) => [queue, data[queue] ?? 0]));
-  return { counts: { jackpots: waiting.length, ...data }, urgent };
+  return { counts: { ...data }, urgent };
 }
 
 const totalOf = (counts: Readonly<Record<string, number>> | null) => Object.values(counts ?? {}).reduce((sum, count) => sum + count, 0);
@@ -133,7 +131,7 @@ function useStaffShell(staff: ReadyStaff, onIdle: () => void) {
     signOut();
   }, [onIdle, signOut]);
   useIdleLock(locksWhenIdle(location.pathname), lock);
-  const { counts, urgent } = useRailCounts(venueId, permissions);
+  const { counts, urgent } = useRailCounts(venueId);
   return {
     ...location, counts, urgent, sections: railFor(permissions, counts), tabs: phoneTabsFor(permissions, counts),
     refusal: refusalAt(permissions, location.pathname, location.tab),
@@ -147,11 +145,9 @@ function useStaffShell(staff: ReadyStaff, onIdle: () => void) {
  */
 function FrameBanner({ staff, prompt, location }: { staff: ReadyStaff; prompt: StaffFrameProps['prompt']; location: { pathname: string; search: string } }) {
   const { venueId, permissions, isPractice } = staff.venue;
-  const { isVenueFrozen } = useControlState(venueId);
   const navigate = useNavigate();
   return (
     <>
-      {isVenueFrozen ? <KillSwitchBanner audience="staff" /> : null}
       {isPractice ? (
         <PracticeBanner message={t('console.practiceBanner')} action={{ label: t('console.shell.backToClub'), onPress: () => staff.setPractice(false) }} />
       ) : null}

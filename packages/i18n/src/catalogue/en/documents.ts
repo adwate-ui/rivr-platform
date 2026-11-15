@@ -110,9 +110,6 @@ export const documents = {
     markersTotal: 'All markers owed',
     cage: 'The cage',
     amount: 'Amount',
-    cageFloat: 'Cage float',
-    /** In the float's place when no cage shift was open as the pack was made. */
-    noShift: 'No shift open',
     chipsInPlay: 'Chips in play',
     floor: 'The floor',
     /** `{game}` as `NLH 100/200`. */
@@ -127,10 +124,6 @@ export const documents = {
     waitingAt: 'Table',
     game: 'Game',
     place: 'Place',
-    sops: 'Procedures in force',
-    noSops: 'No SOP is in force.',
-    /** `{day}` the day it took effect. */
-    sopVersion: 'Version {version}, in force from {day}',
   },
   /** At the foot of every A4 document. */
   computerGenerated: 'Computer-generated.',

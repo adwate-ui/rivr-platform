@@ -20,10 +20,10 @@ describe('the TV display', () => {
     expect(await screen.findByText('No connection. Retrying in a minute.')).toBeDefined();
   });
 
-  it.each(['/overlay?delay=900', '/nowhere'])('asks to be paired at %s too: the stream overlay pairs as a TV', async (address) => {
+  it('asks to be paired at an address it has no screen for, too', async () => {
     render(
       <RivrDataProvider client={client}>
-        <RouterProvider router={createAppRouter(createMemoryHistory({ initialEntries: [address] }))} />
+        <RouterProvider router={createAppRouter(createMemoryHistory({ initialEntries: ['/nowhere'] }))} />
       </RivrDataProvider>,
     );
     expect(await screen.findByRole('heading', { name: 'Screen pairing' })).toBeDefined();

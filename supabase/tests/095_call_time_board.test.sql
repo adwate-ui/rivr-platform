@@ -69,7 +69,7 @@ select lives_ok($$ select public.set_tv_rotation('00000000-0000-4000-8000-000000
   'the floor manager has the TV turn to the call-time board and the promotions after the waitlist');
 select throws_ok($$ select public.set_tv_rotation('00000000-0000-4000-8000-00000000d951', array['waitlist']::public.tv_mode[]) $$, '22023', null,
   'a rotation never names the main board');
-select throws_ok($$ select public.set_tv_rotation('00000000-0000-4000-8000-00000000d951', array['jackpot', 'jackpot']::public.tv_mode[]) $$, '22023', null,
+select throws_ok($$ select public.set_tv_rotation('00000000-0000-4000-8000-00000000d951', array['leaderboard', 'leaderboard']::public.tv_mode[]) $$, '22023', null,
   'nor a board twice');
 select throws_ok($$ select public.set_tv_rotation('00000000-0000-4000-8000-00000000d951', null) $$, '22023', null, 'and is a list');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');

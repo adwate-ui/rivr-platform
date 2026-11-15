@@ -8,7 +8,7 @@ import { expect, test, type Browser } from '@playwright/test';
 import { signInToPlayer } from '../support/signIn.ts';
 
 const OUT = 'docs/brand/store/screenshots';
-const SCREENS = [['card', '/card'], ['house-rules', '/profile/rules']] as const;
+const SCREENS = [['house-rules', '/profile/rules']] as const;
 
 async function shoot(browser: Browser, device: { name: string; number: string; width: number; height: number }) {
   const context = await browser.newContext({ deviceScaleFactor: 3 });

@@ -32,8 +32,8 @@ export interface CameraChange {
 /** Why a camera was not saved: `taken` is a name, table or cage that already has an active camera. */
 export type CameraFailure = 'not_allowed' | 'invalid' | 'taken' | 'paused' | 'unavailable';
 
-/** What a playback link is for: a hand, a cage transaction or an incident. */
-export type CctvKind = 'hand' | 'cage_transaction' | 'incident';
+/** What a playback link is for: a hand. */
+export type CctvKind = 'hand';
 
 /** Why there is no playback link: no camera saw it, or the caller may not see it. */
 export type PlaybackFailure = 'no_camera' | 'not_allowed' | 'unavailable';

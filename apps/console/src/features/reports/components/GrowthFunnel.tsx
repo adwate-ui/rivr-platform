@@ -17,10 +17,9 @@ const COLUMNS: readonly DataTableColumn<FunnelRow>[] = [
   { key: 'signedUp', header: t('console.reports.signedUp'), align: 'end', sortValue: (row) => row.signedUp, cell: (row) => formatNumber(row.signedUp) },
   { key: 'kycDone', header: t('console.reports.kycDone'), align: 'end', sortValue: (row) => row.kycDone, cell: (row) => stage(row.kycDone, row) },
   { key: 'visited', header: t('console.reports.visited'), align: 'end', sortValue: (row) => row.visited, cell: (row) => stage(row.visited, row) },
-  { key: 'boughtIn', header: t('console.reports.boughtIn'), align: 'end', sortValue: (row) => row.boughtIn, cell: (row) => stage(row.boughtIn, row) },
 ];
 
-/** The growth funnel (#166; S-G3): sign-up, KYC, a first visit and a first buy-in by source, from our own data. */
+/** The growth funnel (#166; S-G3): sign-up, KYC and a first visit by source, from our own data. */
 export function GrowthFunnel({ venueId }: { venueId: string }) {
   const funnel = useGrowthFunnel(venueId);
   const base = { label: t('console.reports.funnelTable'), columns: COLUMNS, rowKey: (row: FunnelRow) => `${row.sourceKind}:${row.sourceCode ?? ''}` };

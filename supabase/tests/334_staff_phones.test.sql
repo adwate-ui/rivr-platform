@@ -1,6 +1,5 @@
 -- Colleagues' mobile numbers reach signed-in staff only through functions (decision 0513; audit F-022). Aditya (103, an
--- admin, staff.manage) reads them on the staff list; a dealer (106) reads the list without them; only a super admin
--- (101, control.engage) finds a staff member by number, for the kill switch.
+-- admin, staff.manage) reads them on the staff list; a dealer (106) reads the list without them.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -29,8 +28,6 @@ select throws_ok($$ select phone from public.staff limit 1 $$, '42501', null, 'a
 select is((select phone from public.venue_staff('00000000-0000-4000-8000-000000000001') where staff_id = (select id from cashier)),
           null, 'nor from the staff list');
 select ok((select count(*) from public.venue_staff('00000000-0000-4000-8000-000000000001')) > 1, 'but sees the colleagues on it');
-select is(public.staff_id_for_phone('00000000-0000-4000-8000-000000000001', (select phone from cashier)), null,
-          'and finds nobody by number');
 reset role;
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
@@ -39,13 +36,6 @@ select is((select phone from public.venue_staff('00000000-0000-4000-8000-0000000
 select is((select staff_id from public.venue_staff('00000000-0000-4000-8000-000000000001') limit 1),
           (select s.id from public.staff s where s.venue_id = '00000000-0000-4000-8000-000000000001'
            order by s.is_active desc, s.full_name limit 1), 'active first, then by name');
-select is(public.staff_id_for_phone('00000000-0000-4000-8000-000000000001', (select phone from cashier)), null,
-          'but only the kill switch finds a staff member by number');
-reset role;
-
-select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select is(public.staff_id_for_phone('00000000-0000-4000-8000-000000000001', (select phone from cashier)), (select id from cashier),
-          'a super admin finds the staff member with that number');
 reset role;
 
 select pg_temp.as_person('00000000-0000-4000-8000-0000000000e9');

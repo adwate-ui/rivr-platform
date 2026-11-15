@@ -77,19 +77,19 @@ select throws_ok(
 select throws_ok($$ update public.ledger_entry set amount = 1 $$, '42501', null, 'entries cannot be edited');
 select throws_ok($$ delete from public.ledger_entry $$, '42501', null, 'entries cannot be deleted');
 
--- A mistake is corrected by a reversing transaction, once.
-select lives_ok(
-  $$ select private.reverse_ledger_transaction((select id from public.ledger_transaction where idempotency_key = 'test-buy-in-1'),
-       'test-reverse-1', 'Wrong member') $$,
-  'a transaction is reversed');
+-- A mistake is corrected by a reversing transaction, once: its entries posted back, naming the transaction reversed.
+create function pg_temp.reverse(p_of text, p_key text, p_reason text) returns uuid language sql as $$
+  select private.post_ledger_transaction(t.venue_id, 'reversal', p_key,
+           (select jsonb_agg(jsonb_build_object('account_id', e.account_id, 'amount', (-e.amount)::text))
+            from public.ledger_entry e where e.transaction_id = t.id),
+           null, p_reason, t.id)
+  from public.ledger_transaction t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.idempotency_key = p_of;
+$$;
+select lives_ok($$ select pg_temp.reverse('test-buy-in-1', 'test-reverse-1', 'Wrong member') $$, 'a transaction is reversed');
 select is(pg_temp.cash('00000000-0000-4000-8000-000000000202'), 0::bigint, 'the reversal restores the balance');
-select throws_ok(
-  $$ select private.reverse_ledger_transaction((select id from public.ledger_transaction where idempotency_key = 'test-buy-in-1'),
-       'test-reverse-2', 'Again') $$,
+select throws_ok($$ select pg_temp.reverse('test-buy-in-1', 'test-reverse-2', 'Again') $$,
   '23505', null, 'a transaction is reversed at most once');
-select throws_ok(
-  $$ select private.reverse_ledger_transaction((select id from public.ledger_transaction where idempotency_key = 'seed:jackpot:main'),
-       'seed:arjun:cash', 'Key belongs to another transaction') $$,
+select throws_ok($$ select pg_temp.reverse('seed:jackpot:main', 'seed:arjun:cash', 'Key belongs to another transaction') $$,
   '23505', null, 'a reversal cannot reuse another transaction''s key');
 
 -- A member freeze stops money moving through that member's accounts.
@@ -100,11 +100,11 @@ select throws_ok(
        pg_temp.lines(pg_temp.account('venue.cash_drawer'), pg_temp.account('member.cash', '00000000-0000-4000-8000-000000000202'), 500000), null) $$,
   'RVMBR', null, 'a frozen member''s accounts take no postings');
 insert into public.control_state (venue_id, level, feature, reason)
-values ('00000000-0000-4000-8000-000000000001', 'feature_kill', 'withdrawals', 'Bank issue');
+values ('00000000-0000-4000-8000-000000000001', 'feature_kill', 'promotions', 'Wrong offer');
 select throws_ok(
-  $$ select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'withdrawal', 'test-withdrawal-killed',
-       pg_temp.lines(pg_temp.account('member.cash', '00000000-0000-4000-8000-000000000201'), pg_temp.account('venue.cash_drawer'), 500000),
-       'withdrawals') $$,
+  $$ select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'bonus', 'test-bonus-killed',
+       pg_temp.lines(pg_temp.account('venue.bonus_expense'), pg_temp.account('member.bonus', '00000000-0000-4000-8000-000000000201'), 500000),
+       'promotions') $$,
   'RVKIL', null, 'a switched-off feature''s postings are refused');
 
 -- Purge (lane A) deletes whole transactions, here the seeded jackpot's (no record refers to it).
@@ -130,10 +130,6 @@ select lives_ok(
   $$ select pg_temp.purge('delete from public.ledger_entry where transaction_id = (select id from public.ledger_transaction where idempotency_key = ''seed:jackpot:main'');
        delete from public.ledger_transaction where idempotency_key = ''seed:jackpot:main''') $$,
   'purge removes a whole transaction');
-
-select throws_ok(
-  $$ insert into public.chip_denomination (venue_id, value_paise, name) values ('00000000-0000-4000-8000-000000000001', 7500, '₹75') $$,
-  '23514', null, 'every chip is a multiple of ₹50');
 
 -- Who sees what: a member sees his accounts, and the entries of his money accounts alone.
 set local role authenticated;

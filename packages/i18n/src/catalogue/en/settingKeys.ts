@@ -24,11 +24,6 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     help: 'The owner is alerted when this many messages fail for good within this many minutes. 5 within 60 minutes unless set.',
     fields: { failed_deliveries: 'Failed messages', window_minutes: 'Within' },
   },
-  'aml.structuring': {
-    name: 'Structuring pattern',
-    help: 'Flags a member whose cash buy-ins end just under the limit this many times within this many days. 3 in 7 days, within 10%, unless set.',
-    fields: { count: 'Times', window_days: 'Within', margin_basis_points: 'Under the limit by up to' },
-  },
   'cab.minimum_visits': {
     name: 'Cab offer after',
     help: 'Visits this month before a cab home is offered. 4 unless set.',
@@ -70,17 +65,6 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     fields: { rate_basis_points: 'Rate', basis: 'Charged on' },
     options: { rake: 'The rake', table_fee: 'A table fee' },
   },
-  'high_hand.payouts': {
-    name: 'High-hand prizes',
-    help: 'What each high hand pays. 0 pays nothing.',
-    fields: { royal_flush: 'Royal flush', straight_flush: 'Straight flush', four_of_a_kind: 'Four of a kind' },
-  },
-  'host.lapse': {
-    name: 'Lapsed regular',
-    help: 'When a regular goes to the host queue',
-    hints: { days: 'With that many visits, then none for this long.' },
-    fields: { visits: 'Visits in six months', days: 'Then away for' },
-  },
   'jackpot.drop': {
     name: 'Jackpot drop',
     help: 'What every pot above a size drops into the bad-beat jackpot while it is live.',
@@ -95,11 +79,6 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     name: 'Jackpot pool shares',
     help: 'The parts of every jackpot drop kept for the season and freeroll pools, up to 50% each. The main pool takes the rest.',
     fields: { season_basis_points: 'Season pool', freeroll_basis_points: 'Freeroll pool' },
-  },
-  'markers.due_days': {
-    name: 'Marker due after',
-    help: 'How long after it is issued a marker falls due. A member with a marker past due gets no new credit.',
-    fields: { days: 'Days' },
   },
   'bonus.daily_staff_cap': {
     name: 'Daily bonus chips limit', fields: { chips: 'Bonus chips' },
@@ -135,15 +114,6 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     name: 'Unclaimed balance after',
     help: 'A balance is unclaimed after this long with no money moved and no visit. 365 days unless set.',
     fields: { days: 'Days' },
-  },
-  'social.connected_channels': {
-    name: 'Connected social channels',
-    help: 'Channels that post by themselves. Others offer a download.',
-    fields: { channels: 'Channels' },
-    options: {
-      instagram: 'Instagram', facebook: 'Facebook', x: 'X', linkedin: 'LinkedIn', youtube: 'YouTube', telegram: 'Telegram',
-      google_business_profile: 'Google Business Profile', whatsapp: 'WhatsApp',
-    },
   },
   'tds.config': {
     name: 'TDS on winnings',

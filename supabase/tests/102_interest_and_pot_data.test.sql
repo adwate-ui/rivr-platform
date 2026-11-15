@@ -1,7 +1,7 @@
--- Interest lists (#113; decision 0184) and pot data (#114; decision 0185). The Private Room is closed here: its own
+-- Interest lists (#113; decision 0184). The Private Room is closed here: its own
 -- waitlist (decision 0467) is its interest list, and once as many wait as the venue's
 -- waitlist.interest_to_open (3), the floor (103 Aditya, waitlist.manage) is told. A dealer (106 Pema) is
--- not. Pot data is the super admin's (101 Vikram): every hand in a period; the admin and the cashier see none.
+-- not.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -54,7 +54,6 @@ select results_eq($$ select waiting, is_ready from public.interest_lists('000000
 -- Elsewhere's floor sees nothing of the club's.
 select pg_temp.as_person('00000000-0000-4000-8000-0000000000e2');
 select is_empty($$ select * from public.interest_lists('00000000-0000-4000-8000-000000000001') $$, 'Elsewhere''s floor sees no interest at the club');
-select is_empty($$ select * from public.pot_data('00000000-0000-4000-8000-000000000001', '-infinity', 'infinity') $$, 'nor its hands');
 select ok(not exists (select 1 from public.interest_lists('00000000-0000-4000-8000-000000000001') l
                       join public.game_table g on g.id = l.table_id and g.is_open),
   'an open table has no interest list');
@@ -67,38 +66,6 @@ select is_empty($$ select * from public.interest_lists('00000000-0000-4000-8000-
   'once the table opens, the list is its waitlist again');
 select is((select count(*)::integer from public.waitlist_entry where status = 'waiting' and table_type_id = (select id from game)), 3,
   'with the three in the order they registered');
-
--- Pot data: a hand on Sunday 4 January 2026 at 21:00 IST.
-reset role;
-insert into auth.users (id, instance_id, aud, role, phone) values
-  ('00000000-0000-4000-8000-00000000e102', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', '999000000001021');
-insert into public.device (id, venue_id, kind, name, auth_user_id) values
-  ('00000000-0000-4000-8000-00000000d102', '00000000-0000-4000-8000-000000000001', 'dealer_tablet', 'Tablet Q', '00000000-0000-4000-8000-00000000e102');
-insert into public.dealer_down (id, venue_id, table_id, staff_id, device_id, started_at, ended_at)
-select '00000000-0000-4000-8000-00000000c102', '00000000-0000-4000-8000-000000000001', g.id, s.id, '00000000-0000-4000-8000-00000000d102',
-       '2026-01-04T20:00:00+05:30', '2026-01-04T22:00:00+05:30'
-from public.staff s cross join public.game_table g
-where s.user_id = '00000000-0000-4000-8000-000000000106' and s.venue_id = '00000000-0000-4000-8000-000000000001'
-  and g.venue_id = '00000000-0000-4000-8000-000000000001' and g.name = 'Table 2';
-insert into public.hand (venue_id, table_id, down_id, staff_id, device_id, variant, pot_paise, rake_paise, drop_paise, is_cap_applied,
-                         played_at, idempotency_key)
-select d.venue_id, d.table_id, d.id, d.staff_id, d.device_id, 'plo', 1000000, 50000, 10000, false, '2026-01-04T21:00:00+05:30', 'pot-data-hand-1'
-from public.dealer_down d where d.id = '00000000-0000-4000-8000-00000000c102';
-
-select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select results_eq(
-  $$ select table_name, dealer_name, variant, pot_paise, rake_paise, drop_paise, is_cap_applied, high_hand
-     from public.pot_data('00000000-0000-4000-8000-000000000001', '2026-01-04T06:00:00+05:30', '2026-01-05T06:00:00+05:30') $$,
-  $$ values ('Table 2'::text, 'Pema Lepcha'::text, 'plo'::text, 1000000::bigint, 50000::bigint, 10000::bigint, false, null::text) $$,
-  'the super admin sees the club day''s hand: table, dealer, variant, pot, rake and drop');
-select is_empty($$ select * from public.pot_data('00000000-0000-4000-8000-000000000001', '2026-01-05T06:00:00+05:30', '2026-01-06T06:00:00+05:30') $$,
-  'and none on the next day');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select is_empty($$ select * from public.pot_data('00000000-0000-4000-8000-000000000001', '2026-01-04T06:00:00+05:30', '2026-01-05T06:00:00+05:30') $$,
-  'an admin sees no pot data');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select is_empty($$ select * from public.pot_data('00000000-0000-4000-8000-000000000001', '2026-01-04T06:00:00+05:30', '2026-01-05T06:00:00+05:30') $$,
-  'nor does the cage');
 
 select * from finish();
 rollback;

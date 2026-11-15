@@ -19,10 +19,10 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-/** A quiet night: nobody to call yet, nothing held or owed, no table open, no SOP. */
+/** A quiet night: nobody to call yet, nothing held or owed, no table open. */
 export const Empty: Story = {
   args: {
-    pack: { ...PACK, contacts: [], balances: [], walletsPaise: 0n, markersPaise: 0n, chipsInPlayPaise: 0n, tables: [], waitlist: [], sops: [] },
+    pack: { ...PACK, contacts: [], balances: [], walletsPaise: 0n, markersPaise: 0n, chipsInPlayPaise: 0n, tables: [], waitlist: [] },
   },
 };
 

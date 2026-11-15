@@ -21,17 +21,15 @@ describe('the offline pack', () => {
     const pack = offlinePackFromRow({
       issuer: null, venue_name: 'RIVR Gurugram', generated_at: '2026-11-15T11:30:00Z', contacts: [],
       balances: [{ name: 'Mihir Shah', member_number: '1042', wallet_paise: 2_500_000, markers_paise: 0 }],
-      wallets_paise: 2_500_000, markers_paise: 0, chips_in_play_paise: 48_600_000, cage_float_paise: 0,
+      wallets_paise: 2_500_000, markers_paise: 0, chips_in_play_paise: 48_600_000,
       tables: [{ name: 'Table 3', game: 'NLH 100/200', seats: [{ seat: 2, name: 'Mihir Shah', member_number: '1042' }] }],
       waitlist: [{ table: 'Table 3', game: 'NLH 100/200', place: 1, name: 'Ritika Das', member_number: '1051' }],
-      sops: [{ title: 'Cash-out', version: 1, in_force_from: '2026-11-01', body: 'Count the chips.' }],
     });
     expect(pack.issuer).toEqual({ legalName: 'RIVR Gurugram', address: '' });
     expect(pack.balances).toEqual([{ name: 'Mihir Shah', memberNumber: '1042', walletPaise: 2_500_000n, markersPaise: 0n }]);
     expect(pack.chipsInPlayPaise).toBe(48_600_000n);
     expect(pack.tables[0]?.seats).toEqual([{ seat: 2, name: 'Mihir Shah', memberNumber: '1042' }]);
     expect(pack.waitlist).toEqual([{ table: 'Table 3', game: 'NLH 100/200', place: 1, name: 'Ritika Das', memberNumber: '1051' }]);
-    expect(pack.sops[0]?.inForceFrom).toBe('2026-11-01');
   });
 
   it('draws its first page as a PNG of an A4 page that matches its baseline', async () => {
@@ -40,12 +38,12 @@ describe('the offline pack', () => {
     expect(await differenceFromBaseline(png, 'document-offline-pack')).toBeLessThanOrEqual(allowedDifference(A4.width, A4.height));
   });
 
-  it('draws as a PDF of A4 pages, as many as it needs: each part from a new page, a long SOP running on', async () => {
+  it('draws as a PDF of A4 pages, as many as it needs: each part from a new page', async () => {
     const pdf = await renderToPdf({ ...job, ...A4 });
     expect(pdf.toString('latin1', 0, 5)).toBe('%PDF-');
     const sizes = pageSizes(pdf);
-    // Who to call, balances, the floor, and the SOPs over at least two pages.
-    expect(sizes.length).toBeGreaterThanOrEqual(5);
+    // Who to call, balances and the floor.
+    expect(sizes.length).toBeGreaterThanOrEqual(3);
     // A4 at 72 points to the inch: 794 by 1123 CSS pixels.
     for (const size of sizes) {
       expect(Math.abs(size.width - A4.width * 0.75)).toBeLessThanOrEqual(1.5);

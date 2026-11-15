@@ -8,7 +8,7 @@ function TvFrame({ children }: { children: ReactNode }) {
   return <Frame unpaired={<PairingScreen />}>{children}</Frame>;
 }
 
-/** Every route sits under the root; the stream overlay (#125) draws its own page, outside the TV's frame. */
+/** Every route sits under the root. */
 export const rootRoute = createRootRoute({
   component: Outlet,
   notFoundComponent: () => <TvFrame><NotFound /></TvFrame>,

@@ -7,7 +7,6 @@ import { SeatFnbOrder } from './SeatFnbOrder.tsx';
 const FAILURE_COPY: Readonly<Record<SeatEventFailure, MessageKey>> = {
   not_allowed: 'tablet.seats.notAllowed',
   invalid: 'tablet.seats.invalid',
-  pending: 'tablet.seats.pending',
   paused: 'tablet.seats.paused',
   unavailable: 'tablet.seats.unavailable',
 };

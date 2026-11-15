@@ -1,34 +1,24 @@
-/** Profile, behind the member's initial. */
+/** Profile, the player's fourth tab. */
 export const profile = {
   title: 'Profile',
-  /** The redesign's Profile (decision 0320): Back to the last tab, its three groups and their rows. */
-  back: 'Back',
+  /** Profile's three groups and their rows (decision 0320). */
   account: 'Account',
   club: 'Club',
   verified: 'Verified',
   /** A member let in by their selfie, whose identity is checked at the club (decision 0502). */
   atTheDesk: 'At the desk, first visit',
-  events: 'Events',
   sendFeedback: 'Send feedback',
   feedbackSent: 'Feedback sent',
   whatHappened: 'What happened?',
   send: 'Send',
   /** Under the name: `Founders' Circle · +91 90000 00901`. */
   tierPhone: '{tier} · {phone}',
+  /** Under it: the number the Door finds the member by, which only the card showed. */
+  memberNumber: 'Member number {number}',
   identity: 'ID check',
   notifications: 'Notifications',
   /** The switch for push on this phone (#139). */
   phonePush: 'Notifications on this phone',
-  /** Winner cards (#155): each win as a card, shared on the club's social only while the member says so. */
-  winnerCards: 'Winner cards',
-  winnerCardsHint: "RIVR posts a card of your win only while you share it. Stop sharing and it comes down.",
-  winnerCardTournament: '{event}: {prize}',
-  winnerCardHighHand: 'High hand: {prize}',
-  winnerCardJackpot: 'Bad-beat jackpot: {prize}',
-  winnerCardDrawing: 'Your card is being drawn. It is ready by 17:00 the day after your win at the latest.',
-  winnerCardSee: 'See the card',
-  /** Named by the card and its date, so each card's switch is told apart. */
-  winnerCardShare: "Share {what} from {date} on RIVR's social",
   phonePushBlocked: "Blocked in your phone's settings.",
   phonePushUnsupported: 'Not supported here. Open RIVR from your home screen.',
   /** Under a phone that cannot take notifications, above the kinds of notification (F-169). */
@@ -74,8 +64,6 @@ export const profile = {
   deleteSend: 'Send request',
   deleteSent: 'Request sent.',
   deleteNotSent: 'Not sent. Try again.',
-  /** The way to the membership card (#71). */
-  card: 'Membership card',
 };
 
 /** House rules in the player's Settings (#637): the club's house rules, from its website. */

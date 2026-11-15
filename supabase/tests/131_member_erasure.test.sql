@@ -1,5 +1,5 @@
 -- Erasing one member's personal data on request (#424; decision 0207). Tara (0797) signs in, has a KYC check
--- with TDS taken on a cash-out, bonus, a payout account a deposit names and one nothing names, feedback
+-- with TDS taken on a tournament prize, bonus, feedback
 -- and preferences; she is erased by Vikram (101), a super admin. Dev (0798) is on a break for a month: he is
 -- erased too, and a block stands on his number and identity until the break ends. Uma (0799) is a practice
 -- venue member. Aditya (103) is an admin, who erases no one.
@@ -30,19 +30,18 @@ select set_eq(
             or exists (select 1 from pg_attribute a where a.attrelid = c.oid and a.attname ~ '(^|_)member_ids?$' and not a.attisdropped)) $$,
   $$ values
      -- Deleted.
-     ('feedback'), ('kyc_document'), ('kyc_review'), ('member_feature_override'), ('member_limit'), ('member_preference'), ('membership_card'),
-     ('notification_preference'), ('review_request'), ('sign_up_attribution'), ('cab_request'), ('club_event_booking'), ('host_queue_item'), ('lead'), ('push_subscription'), ('live_status_device'), ('winner_card'), ('tournament_interest'),
-     -- Changed: consent withdrawn, the KYC record kept with the PAN alone when TDS was taken (else deleted), a payout
-     -- account a money record names kept and marked removed (others deleted), bonus grants closed by the forfeit.
-     ('consent'), ('kyc_record'), ('payout_account'), ('bonus_grant'),
+     ('feedback'), ('kyc_document'), ('kyc_review'), ('member_feature_override'), ('member_limit'), ('member_preference'),
+     ('notification_preference'), ('review_request'), ('sign_up_attribution'), ('cab_request'), ('push_subscription'), ('live_status_device'), ('tournament_interest'),
+     -- Changed: consent withdrawn, the KYC record kept with the PAN alone when TDS was taken (else deleted),
+     -- bonus grants closed by the forfeit.
+     ('consent'), ('kyc_record'), ('bonus_grant'),
      -- Kept, naming only the member's id: money, tax, play and safer-gambling records.
      ('member_erasure_request'),
-     ('bonus_redemption'), ('buy_in_request'), ('cage_transaction'), ('control_state'), ('credit_line'), ('deposit_request'),
-     ('early_departure'), ('fnb_order'), ('invoice'), ('jackpot_event'), ('ledger_account'), ('marker'), ('member_tier_change'),
-     ('promotion_grant'), ('referral'), ('sar_entry'), ('seat_session'), ('self_exclusion'), ('tds_withholding'),
+     ('bonus_redemption'), ('control_state'),
+     ('early_departure'), ('fnb_order'), ('invoice'), ('ledger_account'), ('member_tier_change'),
+     ('promotion_grant'), ('referral'), ('seat_session'), ('self_exclusion'),
      ('top_up_request'), ('call_time_request'), ('promotion_step_skip'),
-     ('tournament_entry'), ('tournament_payout'), ('tournament_purchase'), ('tournament_ticket'), ('visit'), ('waitlist_entry'),
-     ('withdrawal_request') $$,
+     ('tournament_entry'), ('tournament_payout'), ('tournament_purchase'), ('tournament_ticket'), ('visit'), ('waitlist_entry') $$,
   'every table naming a member is classified for erasure (a new one is a decision: delete, anonymise or keep)'
 );
 
@@ -88,51 +87,39 @@ insert into public.member_feature_override (venue_id, member_id, feature_key, is
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', 'sessions.history', true, 'Asked for it by Tara Mehta');
 insert into public.sign_up_attribution (member_id, venue_id, referral_code)
 values ('00000000-0000-4000-8000-0000000d0797', '00000000-0000-4000-8000-000000000001', 'FRIEND10');
-insert into public.membership_card (venue_id, member_id) values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797');
 insert into public.feedback (venue_id, member_id, note)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', 'Tara Mehta here: the chairs are hard');
 insert into public.consent (venue_id, member_id, purpose) values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', 'marketing');
-insert into public.payout_account (id, venue_id, member_id, kind, bank_name, vpa) values
-  ('00000000-0000-4000-8000-0000000e0797', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', 'upi', 'HDFC Bank', 'tara@okhdfc'),
-  ('00000000-0000-4000-8000-0000000f0797', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', 'upi', 'SBI', 'tara@oksbi');
-insert into public.deposit_request (venue_id, member_id, amount_paise, utr, payout_account_id, status, decided_at, idempotency_key)
-values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', 100000, '797979797979', '00000000-0000-4000-8000-0000000e0797',
-        'not_found', now(), gen_random_uuid());
 insert into storage.objects (bucket_id, name)
 values ('kyc', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000d0797/selfie.jpg');
 insert into public.outbox_event (venue_id, event_type, payload)
 values ('00000000-0000-4000-8000-000000000001', 'kyc.completed', jsonb_build_object('member_id', '00000000-0000-4000-8000-0000000d0797'));
--- A cash-out with TDS taken, as the cage records it (its ledger side is not this test's).
-insert into public.cage_transaction (id, venue_id, member_id, kind, method, amount_paise, ledger_transaction_id, cashier_staff_id, idempotency_key)
-values ('00000000-0000-4000-8000-0000000c0797', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', 'cash_out', 'cash',
-        1000000,
-        private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'erasure_test', 'erasure-test:cash-out', jsonb_build_array(
-          jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'venue.cash_drawer'), 'amount', '-1000000'),
-          jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'venue.chips_outstanding'), 'amount', '1000000')), null),
-        (select id from public.staff where user_id = '00000000-0000-4000-8000-000000000104' and venue_id = '00000000-0000-4000-8000-000000000001'),
-        gen_random_uuid());
-insert into public.tds_withholding (venue_id, member_id, cage_transaction_id, section, basis, period_start, winnings_paise, already_paise, has_pan,
-                                    rate_basis_points, due_paise, amount_paise, is_shadow)
-values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', '00000000-0000-4000-8000-0000000c0797', '194B', 'session', now(),
-        1000000, 0, true, 3000, 300000, 300000, false);
+-- A tournament prize with TDS taken, in a run since refunded so that nothing of hers is open (its ledger side is not
+-- this test's; the transaction is the one Isha's prize below names too).
+select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'erasure_test', 'erasure-test:cash-out', jsonb_build_array(
+  jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'venue.cash_drawer'), 'amount', '-1000000'),
+  jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'venue.chips_outstanding'), 'amount', '1000000')), null);
+insert into public.tournament_entry (id, venue_id, tournament_id, member_id, entry_number, status)
+values ('00000000-0000-4000-8000-0000000c0797', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000007a2',
+        '00000000-0000-4000-8000-0000000d0797', 9797, 'refunded');
+insert into public.tournament_payout (venue_id, tournament_id, entry_id, member_id, kind, place, prize_paise, bounty_paise, tds_paise, is_tds_shadow,
+                                      ledger_transaction_id)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000007a2', '00000000-0000-4000-8000-0000000c0797',
+        '00000000-0000-4000-8000-0000000d0797', 'prize', 8, 1000000, 0, 300000, false,
+        (select id from public.ledger_transaction where idempotency_key = 'erasure-test:cash-out'));
 select isnt(private.credit_bonus('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', 50000, 'Welcome bonus',
   now() + interval '30 days', 'erasure-test:bonus'), null, 'and ₹500 of bonus');
 -- A break Tara took last month, over; and Dev's, a month from now.
 insert into public.self_exclusion (venue_id, member_id, starts_at, ends_at) values
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', now() - interval '40 days', now() - interval '10 days'),
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0798', now() - interval '1 day', now() + interval '30 days');
--- Dev is in the club, his wallet holds ₹1,000 and a deposit of his waits.
+-- Dev is in the club and his wallet holds ₹1,000.
 insert into public.visit (id, venue_id, member_id)
 values ('00000000-0000-4000-8000-0000000b0798', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0798');
 select isnt(private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'opening_balance', 'erasure-test:dev-cash', jsonb_build_array(
   jsonb_build_object('account_id', (select id from public.ledger_account where member_id = '00000000-0000-4000-8000-0000000d0798' and code = 'member.cash'), 'amount', '-100000'),
   jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'venue.opening_balance'), 'amount', '100000')),
   null), null, 'Dev holds ₹1,000');
-insert into public.payout_account (id, venue_id, member_id, kind, bank_name, vpa)
-values ('00000000-0000-4000-8000-0000000e0798', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0798', 'upi', 'HDFC Bank', 'dev@okhdfc');
-insert into public.deposit_request (id, venue_id, member_id, amount_paise, utr, payout_account_id, idempotency_key)
-values ('00000000-0000-4000-8000-0000000a0798', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0798', 100000, '798798798798',
-        '00000000-0000-4000-8000-0000000e0798', gen_random_uuid());
 
 -- ---------------------------------------------------------------------------------------------------
 -- Who may, and what must be settled first.
@@ -145,8 +132,8 @@ select results_eq($$ select is_erased, blockers, bonus_paise, blocked_until is n
   $$ values (false, '{}'::text[], 50000::bigint, true) $$,
   'Vikram sees Tara has nothing open, and the bonus she will forfeit');
 select results_eq($$ select blockers, blocked_until > now() + interval '29 days' from public.member_erasure_preview('00000000-0000-4000-8000-0000000d0798') $$,
-  $$ values (array['cash', 'chips', 'requests'], true) $$,
-  'and that Dev''s wallet, his visit and his waiting deposit must be settled first, and his break will be kept');
+  $$ values (array['cash', 'chips'], true) $$,
+  'and that Dev''s wallet and his visit must be settled first, and his break will be kept');
 select throws_ok($$ select * from public.erase_member('00000000-0000-4000-8000-0000000d0798', 'Dev Khanna', 'Asked at the desk') $$, 'RVERA', null,
   'so Dev is not erased yet');
 select throws_ok($$ select * from public.erase_member('00000000-0000-4000-8000-0000000d0797', 'Tara', 'Asked by email') $$, 'RVNAM', null,
@@ -196,24 +183,20 @@ select is((select count(*)::int from public.member_preference where member_id = 
           + (select count(*)::int from public.member_limit where member_id = '00000000-0000-4000-8000-0000000d0797')
           + (select count(*)::int from public.member_feature_override where member_id = '00000000-0000-4000-8000-0000000d0797')
           + (select count(*)::int from public.sign_up_attribution where member_id = '00000000-0000-4000-8000-0000000d0797')
-          + (select count(*)::int from public.membership_card where member_id = '00000000-0000-4000-8000-0000000d0797')
           + (select count(*)::int from public.feedback where member_id = '00000000-0000-4000-8000-0000000d0797')
           + (select count(*)::int from public.kyc_review where member_id = '00000000-0000-4000-8000-0000000d0797'), 0,
-  'her preferences, limits, overrides, attribution, card, feedback and KYC reviews are deleted');
+  'her preferences, limits, overrides, attribution, feedback and KYC reviews are deleted');
 select results_eq($$ select status, pan, date_of_birth, address, masked_aadhaar, photo_path, identity_key, verified_at, vendor_failure, vendor_failed_at
                      from public.kyc_record where member_id = '00000000-0000-4000-8000-0000000d0797' $$,
   $$ values ('erased'::text, 'ABCPM7971K'::text, null::date, null::text, null::text, null::text, null::text, null::timestamptz, null::text,
              null::timestamptz) $$,
   'her KYC record keeps the PAN alone, for the TDS taken from her');
-select is((select count(*)::int from public.tds_withholding where member_id = '00000000-0000-4000-8000-0000000d0797'), 1, 'which is kept');
+select is((select count(*)::int from public.tournament_payout where member_id = '00000000-0000-4000-8000-0000000d0797' and tds_paise > 0), 1, 'which is kept');
 insert into public.member (id, venue_id, full_name, phone)
 values ('00000000-0000-4000-8000-0000000d0795', '00000000-0000-4000-8000-000000000001', 'Tara M', '+919000000795');
 insert into public.kyc_record (venue_id, member_id, status, method, pan)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0795', 'needs_review', 'pan', 'ABCPM7971K');
 select is(private.kyc_clashes('00000000-0000-4000-8000-0000000d0795'), false, 'a new check with the same PAN is not held as her duplicate');
-select results_eq($$ select id, removed_at is not null from public.payout_account where member_id = '00000000-0000-4000-8000-0000000d0797' $$,
-  $$ values ('00000000-0000-4000-8000-0000000e0797'::uuid, true) $$,
-  'the payout account her deposit names is kept, removed; the other is deleted');
 select is((select withdrawn_at is not null from public.consent where member_id = '00000000-0000-4000-8000-0000000d0797'), true, 'her consent is withdrawn');
 select is_empty($$ select 1 from public.outbox_event where payload ->> 'member_id' = '00000000-0000-4000-8000-0000000d0797' $$,
   'no message about her waits to go out, and none names her after: there is no CRM to tell (#797)');
@@ -238,8 +221,8 @@ select is_empty($$ select 1 from public.ledger_transaction t where t.kind = 'bon
 
 -- The audit log: personal fields stripped from the rows about her, and the erasure recorded without them.
 select is_empty($$ select 1 from pg_temp.audit_about('00000000-0000-4000-8000-0000000d0797')
-                   where concat(before::text, after::text) ~ '(Tara|9000000797|chairs|tara@)' $$,
-  'no audit row about her holds her name, number, words or payout address');
+                   where concat(before::text, after::text) ~ '(Tara|9000000797|chairs)' $$,
+  'no audit row about her holds her name, number or words');
 -- The KYC record and its reviews are audited by a list of safe fields, so the audit log never held her identity details
 -- for an erasure to strip: the PAN, date of birth and Aadhaar stay in her KYC record alone, which keeps only the PAN.
 select isnt_empty($$ select 1 from pg_temp.audit_about('00000000-0000-4000-8000-0000000d0797') where entity in ('kyc_record', 'kyc_review') $$,
@@ -284,7 +267,6 @@ select isnt(private.post_ledger_transaction('00000000-0000-4000-8000-00000000000
   jsonb_build_object('account_id', (select id from public.ledger_account where member_id = '00000000-0000-4000-8000-0000000d0798' and code = 'member.cash'), 'amount', '100000'),
   jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'venue.opening_balance'), 'amount', '-100000')),
   null), null, 'Dev''s wallet is paid out');
-update public.deposit_request set status = 'not_found', decided_at = now() where id = '00000000-0000-4000-8000-0000000a0798';
 update public.visit set closed_at = now(), close_reason = 'door' where id = '00000000-0000-4000-8000-0000000b0798';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select results_eq($$ select forfeited_bonus_paise, blocked_until > now() + interval '29 days'
@@ -345,17 +327,12 @@ select lives_ok($$ insert into public.member (venue_id, full_name, phone) values
   'and his number may join again');
 
 -- ---------------------------------------------------------------------------------------------------
--- The practice venue erases as the club does, its seed taken again so a reset cannot bring Uma back, and nothing
--- leaves for an outside system.
+-- The practice venue erases as the club does, and nothing leaves for an outside system.
 create temp table outbox_before as select count(*) as n from public.outbox_event;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select results_eq($$ select forfeited_bonus_paise from public.erase_member('00000000-0000-4000-8000-0000000d0799', 'Uma Rao', 'Practice erasure') $$,
   $$ values (0::bigint) $$, 'Vikram erases Uma at the practice venue');
 select pg_temp.as_owner();
-select is((select row_data ->> 'full_name' from private.practice_seed
-           where venue_id = '00000000-0000-4000-8000-000000000002' and table_name = 'member' and row_data ->> 'id' = '00000000-0000-4000-8000-0000000d0799'),
-  'Erased member', 'the practice seed holds her erased');
-select is_empty($$ select 1 from private.practice_seed where row_data::text like '%Uma Rao%' $$, 'and nowhere her name');
 select is((select count(*) from public.outbox_event), (select n from outbox_before), 'an erasure sends nothing out');
 select isnt_empty($$ select 1 from auth.users where id = '00000000-0000-4000-8000-000000000104' $$,
   'and a login a staff record uses stays');
@@ -408,7 +385,7 @@ create temp table isha_grants as select
     now() + interval '30 days', 'erasure-test:isha-bonus') as played,
   private.credit_bonus('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0793', 40000, 'Welcome bonus',
     now() + interval '30 days', 'erasure-test:isha-bonus-2') as expired;
--- ₹300 of the first played at a buy-in, as the cage draws it.
+-- ₹300 of the first played, as a seat draws it.
 update public.bonus_grant set remaining_paise = 20000 where id = (select played from isha_grants);
 select isnt(private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'erasure_test', 'erasure-test:isha-play', jsonb_build_array(
   jsonb_build_object('account_id', (select id from public.ledger_account where member_id = '00000000-0000-4000-8000-0000000d0793' and code = 'member.bonus'), 'amount', '30000'),

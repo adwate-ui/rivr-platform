@@ -177,11 +177,11 @@ describe('The console\'s TVs', () => {
     });
     const { result } = renderHook(() => useTvActions(VENUE), { wrapper });
     let outcome: unknown;
-    await act(async () => { outcome = await result.current.setMode.mutateAsync({ deviceId: 'd1', mode: 'jackpot' }); });
+    await act(async () => { outcome = await result.current.setMode.mutateAsync({ deviceId: 'd1', mode: 'promotions' }); });
     expect(outcome).toEqual({ ok: false, error: 'not_allowed' });
-    await act(async () => { outcome = await result.current.setRotation.mutateAsync({ deviceId: 'd1', rotation: ['jackpot', 'jackpot'] }); });
+    await act(async () => { outcome = await result.current.setRotation.mutateAsync({ deviceId: 'd1', rotation: ['promotions', 'promotions'] }); });
     expect(outcome).toEqual({ ok: false, error: 'invalid' });
-    expect(calls.find((call) => call.url.includes('/rpc/set_tv_rotation'))?.body).toEqual({ p_device_id: 'd1', p_rotation: ['jackpot', 'jackpot'] });
+    expect(calls.find((call) => call.url.includes('/rpc/set_tv_rotation'))?.body).toEqual({ p_device_id: 'd1', p_rotation: ['promotions', 'promotions'] });
     await act(async () => { outcome = await result.current.unpair.mutateAsync({ deviceId: 'd1', reason: ' Moved ' }); });
     expect(outcome).toEqual({ ok: true, value: null });
     expect(calls.find((call) => call.url.includes('/rest/v1/device'))?.body).toEqual({ revoked_at: 'now', revoked_reason: 'Moved' });

@@ -14,33 +14,31 @@ describe('the console rail (console v3)', () => {
     expect(items.find((item) => item.id === 'feedback')?.countLabel).toBe('183 open tickets');
   });
 
-  it('runs Tonight, Players and Marketing, then Admin folded, for a super admin, with the three danger screens in red', () => {
+  it('runs Tonight, Players and Marketing, then Admin folded, for a super admin', () => {
     const rail = railFor(ROLE_PERMISSIONS.super_admin);
     expect(rail.map((section) => section.label)).toEqual(['Tonight', 'Players', 'Marketing', 'Admin']);
     expect(rail.map((section) => section.items.map((item) => item.label))).toEqual([
       ['Live floor', 'Waitlist', 'Door', 'Food and drink'],
-      ['Members', 'ID checks', 'Host queue', 'Feedback'],
-      ['Promotions', 'Social', 'Content'],
-      ['Staff', 'Tables', 'Reports', 'Settings', 'Activity', 'Kill switch', 'Practice reset', 'Purge'],
+      ['Members', 'ID checks', 'Feedback'],
+      ['Promotions', 'Content'],
+      ['Tables', 'Staff', 'Reports', 'Settings', 'Activity'],
     ]);
     expect(rail.map((section) => section.isCollapsible === true)).toEqual([false, false, false, true]);
-    const danger = rail.flatMap((section) => section.items).filter((item) => item.tone === 'danger').map((item) => item.label);
-    expect(danger).toEqual(['Kill switch', 'Practice reset', 'Purge']);
     expect(rail.flatMap((section) => section.items).every((item) => item.icon.length > 0)).toBe(true);
   });
 
   it('gives a host no Marketing or Admin, and refuses their screens by address under their own names', () => {
     expect(groups('host')).toEqual(['Tonight', 'Players']);
-    expect(items('host')).toEqual(['/', '/waitlist', '/door', '/members', '/kyc-review', '/host-queue']);
+    expect(items('host')).toEqual(['/', '/waitlist', '/door', '/members', '/kyc-review']);
     for (const [path, title] of [['/settings', 'Settings'], ['/promotions', 'Promotions'], ['/staff', 'Staff'], ['/tables', 'Tables'], ['/content', 'Content']]) {
-      expect(refusalAt(ROLE_PERMISSIONS.host, path ?? '')).toEqual({ title, isOff: false });
+      expect(refusalAt(ROLE_PERMISSIONS.host, path ?? '')).toEqual({ title });
     }
   });
 
-  it('gives an admin Admin without the danger screens, which it refuses by address', () => {
+  it('gives an admin Admin without Activity, which it refuses by address', () => {
     expect(groups('admin')).toEqual(['Tonight', 'Players', 'Marketing', 'Admin']);
-    expect(railFor(ROLE_PERMISSIONS.admin).find((section) => section.label === 'Admin')?.items.map((item) => item.href)).toEqual(['/staff', '/tables', '/reports', '/settings']);
-    for (const path of ['/kill-switch', '/practice-reset', '/purge']) expect(isAllowedAt(ROLE_PERMISSIONS.admin, path)).toBe(false);
+    expect(railFor(ROLE_PERMISSIONS.admin).find((section) => section.label === 'Admin')?.items.map((item) => item.href)).toEqual(['/tables', '/staff', '/reports', '/settings']);
+    expect(isAllowedAt(ROLE_PERMISSIONS.admin, '/activity')).toBe(false);
     // Content is the website, which is not an admin's.
     expect(items('admin')).not.toContain('/content');
   });
@@ -61,7 +59,7 @@ describe('the console rail (console v3)', () => {
   });
 
   it('gives marketing its own screens and a dealer and an investor none: the Live floor would read empty without members.read (audit F-004)', () => {
-    expect(items('marketing')).toEqual(['/promotions', '/social', '/content']);
+    expect(items('marketing')).toEqual(['/promotions', '/content']);
     expect(landingFor(railFor(ROLE_PERMISSIONS.marketing))?.href).toBe('/promotions');
     for (const role of ['dealer', 'owner_view'] as const) {
       expect(items(role)).toEqual([]);
@@ -72,7 +70,7 @@ describe('the console rail (console v3)', () => {
 
   it('keeps a cashier out of admin screens but TVs, whether from the rail or by address, whatever the case', () => {
     expect(items('cashier')).not.toContain('/staff');
-    for (const admin of ['/staff', '/kill-switch', '/tables', '/STAFF', '/Kill-Switch']) {
+    for (const admin of ['/staff', '/activity', '/tables', '/STAFF', '/Activity']) {
       expect(isAllowedAt(ROLE_PERMISSIONS.cashier, admin)).toBe(false);
     }
     expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/settings', 'members')).toBe(false);
@@ -96,26 +94,16 @@ describe('the console rail (console v3)', () => {
     expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/settings', 'nowhere')).toBe(true);
   });
 
-  it('hides what the owner hid on 29 Oct from everyone, by the rail and by address, naming the screen it refuses', () => {
-    const everyone = ROLE_PERMISSIONS.super_admin;
-    const hidden = ['/owner', '/tournaments', '/dealers', '/jackpots', '/cage', '/withdrawals', '/shift', '/tiers',
-      '/events', '/creators', '/accounts', '/expenses', '/markers', '/tds', '/tally', '/shareholders', '/aml', '/pot-data',
-      '/roster', '/certification', '/sops', '/incidents', '/exports'];
-    for (const screen of hidden) {
-      expect(refusalAt(everyone, screen)?.isOff).toBe(true);
+  it('keeps no entry for a screen the redesign removed: its address is the not-found screen for everyone, and nothing on the rail', () => {
+    for (const screen of ['/cage', '/tournaments', '/kill-switch', '/purge', '/social', '/host-queue', '/practice-reset']) {
+      expect(refusalAt(ROLE_PERMISSIONS.dealer, screen)).toBeUndefined();
       expect(items('super_admin')).not.toContain(screen);
     }
-    expect(refusalAt(everyone, '/cage/receipt')).toEqual({ title: 'Cage', isOff: true });
-    expect(refusalAt(ROLE_PERMISSIONS.cashier, '/purge')).toEqual({ title: 'Purge', isOff: false });
+    expect(refusalAt(ROLE_PERMISSIONS.cashier, '/activity')).toEqual({ title: 'Activity' });
   });
 
   it('leaves an address with no screen of its own, an old one that moves on, open to all staff', () => {
     for (const old of ['/check-in', '/tvs', '/somewhere-new']) expect(isAllowedAt(ROLE_PERMISSIONS.dealer, old)).toBe(true);
-  });
-
-  it('counts the wall posts waiting beside Social (the owner, 9 Nov)', () => {
-    const items = railFor(['marketing.publish'], { wallPosts: 3 }).flatMap((section) => section.items);
-    expect(items.find((item) => item.id === 'social')).toMatchObject({ count: 3, countLabel: '3 posts waiting' });
   });
 
   it('counts beside a screen what waits on it, in gold where it asks for action', () => {
@@ -137,7 +125,7 @@ describe('the console rail (console v3)', () => {
     expect(railItemAt('/')).toBe('liveFloor');
     expect(railItemAt('/door')).toBe('door');
     expect(railItemAt('/requests')).toBe('requests');
-    expect(railItemAt('/kill-switch')).toBe('killSwitch');
+    expect(railItemAt('/activity')).toBe('activity');
     expect(railItemAt('/nowhere')).toBeUndefined();
   });
 
@@ -145,14 +133,7 @@ describe('the console rail (console v3)', () => {
     expect(URGENT_QUEUES).toContain('fnbCancelled');
   });
 
-  it('keeps the cage and money screens locking after ten idle minutes, and none of them on the rail', () => {
-    const money = ['/cage', '/markers', '/shift', '/accounts', '/expenses', '/tds', '/tally', '/withdrawals'];
-    for (const screen of money) expect(locksWhenIdle(screen)).toBe(true);
-    expect(locksWhenIdle('/Markers')).toBe(true);
-    expect(items('super_admin').filter((href) => money.includes(href))).toEqual([]);
-  });
-
-  it("locks the rail's screens with members' records and documents, Activity, the kill switch and the purge after ten idle minutes, and no other", () => {
-    expect(items('super_admin').filter((href) => locksWhenIdle(href)).sort()).toEqual(['/activity', '/kill-switch', '/kyc-review', '/members', '/purge']);
+  it("locks the rail's screens with members' records and documents, and Activity after ten idle minutes, and no other", () => {
+    expect(items('super_admin').filter((href) => locksWhenIdle(href)).sort()).toEqual(['/activity', '/kyc-review', '/members']);
   });
 });

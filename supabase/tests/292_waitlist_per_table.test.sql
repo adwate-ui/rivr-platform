@@ -40,9 +40,6 @@ select is_empty($$ select 1 from public.waitlist_entry where status = 'waiting' 
 select results_eq($$ select g.name, count(*)::integer from public.waitlist_entry e join public.game_table g on g.id = e.table_id
                      where e.status = 'waiting' and e.venue_id = '00000000-0000-4000-8000-000000000001' group by g.name $$,
   $$ values ('Table 2'::text, 3) $$, 'the seed''s three wait on Table 2''s list');
-select ok((select bool_and(s.row_data ->> 'table_id' is not null) from private.practice_seed s
-           where s.table_name = 'waitlist_entry' and s.row_data ->> 'status' = 'waiting'),
-  'and the practice venue''s seed keeps its places on their table, so a reset passes the check');
 
 -- Ishaan joins Table 3's list from the app; the floor adds Mihir to it. Table 3 has a list of its own, numbered from 1.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');

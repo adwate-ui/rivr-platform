@@ -1,6 +1,6 @@
 -- The referral programme (#151). Yash (214) signed up with Mihir's (213) code; his first seat, once past its two minutes
 -- of Undo, completes the referral (the owner, 9 Nov; decision 0509) and the referral promotion (seeded live) gives each of
--- them ₹1,000 of bonus. A buy-in, or a later seat, completes nothing; nor does a seat undone. 103 seats; 104 is the cashier.
+-- them ₹1,000 of bonus. A later seat completes nothing; nor does a seat undone. 103 seats; 104 is the cashier.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -71,9 +71,6 @@ select results_eq($$ select member_id, referrer_member_id from public.referral $
 select is(pg_temp.referral_bonus('00000000-0000-4000-8000-000000000214'), 100000::bigint, 'Yash gets ₹1,000 of bonus');
 select is(pg_temp.referral_bonus('00000000-0000-4000-8000-000000000213'), 100000::bigint, 'and so does Mihir');
 
-select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select isnt(public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000214', 1000000, 'cash', gen_random_uuid()),
-  null, 'Yash buys in');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select lives_ok($$ select public.end_seat((select id from public.seat_session where member_id = '00000000-0000-4000-8000-000000000214' and ended_at is null), 'left') $$,
   'leaves');
@@ -83,7 +80,7 @@ reset role;
 update public.seat_session set started_at = now() - interval '3 minutes', seated_here_at = now() - interval '3 minutes'
 where member_id = '00000000-0000-4000-8000-000000000214' and ended_at is null;
 select private.sweep_referrals();
-select is((select count(*)::integer from public.referral), 1, 'a buy-in or a later seat completes nothing more');
+select is((select count(*)::integer from public.referral), 1, 'a later seat completes nothing more');
 select is(pg_temp.referral_bonus('00000000-0000-4000-8000-000000000213'), 100000::bigint, 'and gives no more bonus');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
