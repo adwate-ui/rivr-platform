@@ -75,7 +75,7 @@ function SignUpFields({ form }: { form: Form }) {
   return (
     <Stack gap={8}>
       <Stack gap={3}>
-        <Input {...nameField} variant="inset" label={t('player.signUp.nameLabel')} placeholder={t('player.signUp.namePlaceholder')}
+        <Input {...nameField} variant="inset" label={t('player.signUp.nameLabel')} placeholder={t('player.signUp.namePlaceholder')} hint={t('player.signUp.nameHint')}
           autoComplete="name" maxLength={100} error={errors.fullName ? t('player.signUp.nameInvalid') : undefined} />
         <Input {...cityField} variant="inset" label={t('player.signUp.cityLabel')} placeholder={t('player.signUp.cityPlaceholder')}
           autoComplete="address-level2" maxLength={60} error={errors.city ? t('player.signUp.cityInvalid') : undefined} />

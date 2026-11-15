@@ -111,6 +111,14 @@ describe('Input', () => {
     expect(screen.getByText('%')).toBeInTheDocument();
   });
 
+  it('says an inset field’s hint under its box, and its error in the hint’s place', () => {
+    const { rerender } = renderIn(<Input variant="inset" label="Full name" hint="English letters only." />);
+    expect(screen.getByRole('textbox', { name: 'Full name' })).toHaveAccessibleDescription('English letters only.');
+    rerender(<Input variant="inset" label="Full name" hint="English letters only." error="Use English letters only." />);
+    expect(screen.queryByText('English letters only.')).toBeNull();
+    expect(screen.getByRole('textbox', { name: 'Full name' })).toHaveAccessibleDescription('Use English letters only.');
+  });
+
   it('sets its label inside a 60 px box when inset, with a dotted error under it (decision 0320)', () => {
     renderIn(<Input variant="inset" label="City" error="Enter your city." />);
     const field = screen.getByRole('textbox', { name: 'City' });

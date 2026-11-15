@@ -98,3 +98,16 @@ export const LongText: Story = {
     ],
   },
 };
+
+/** A stake with a straddle under a name the club typed: the name, then its figures (the owner, 15 Nov; redesign RD-17). */
+export const StakeWithAStraddle: Story = {
+  args: {
+    stakes: [
+      { id: 'a', stake: 'NLH 50/100', detail: '1 table open', places: [{ id: '1', place: '1', name: 'Kabir S.' }] },
+      { id: 'b', stake: 'Private Room · NLH 100/200/500', detail: '1 table open', places: [{ id: '2', place: '1', name: 'Naina K.' }, { id: '3', place: '2', name: 'Rohan B.', status: 'Away' }] },
+    ],
+  },
+};
+
+/** The same at a phone's width, as a preview shows the board. */
+export const StakeWithAStraddleAt390: Story = { ...StakeWithAStraddle, tags: ['!viewport-tv', 'viewport-phone'] };

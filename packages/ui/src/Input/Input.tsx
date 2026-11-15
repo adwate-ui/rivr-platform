@@ -84,7 +84,7 @@ export function Input({ variant, ...props }: InputProps) {
   const id = useId();
   const isInConsole = useIsInConsole();
   const look = variant ?? defaultLook(isInConsole, props);
-  if (look === 'inset') return <InsetInput id={id} label={props.label} error={props.error} type={props.type ?? 'text'} native={nativeOf(props)} />;
+  if (look === 'inset') return <InsetInput id={id} label={props.label} hint={props.hint} error={props.error} type={props.type ?? 'text'} native={nativeOf(props)} />;
   if (look === 'subtle') return <SubtleInput id={id} label={props.label} hint={props.hint} error={props.error} type={props.type ?? 'text'} native={nativeOf(props)} />;
   return <FramedInput id={id} variant={look} isCompact={isInConsole && variant === undefined} {...props} />;
 }
@@ -146,17 +146,20 @@ interface InsetInputProps {
 
 /**
  * The player redesign's field (decision 0320): a raised 60 px box with its label small and muted inside, above the value; a
- * red edge and the dotted error under it while it is wrong. The whole box is the field's label, so a tap anywhere focuses it.
+ * red edge and the dotted error under it while it is wrong; a hint, when it has one, is the line under the box until then.
+ * The whole box is the field's label, so a tap anywhere focuses it.
  */
-function InsetInput({ id, label, error, type, native }: InsetInputProps) {
+function InsetInput({ id, label, hint, error, type, native }: InsetInputProps & { hint: string | undefined }) {
+  const describedBy = cx(hint && !error && `${id}-hint`, error && `${id}-error`) || undefined;
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor={id} className={cx('flex min-h-field flex-col justify-center gap-1 rounded-lg border bg-raised px-4 py-2',
         'has-[input:focus-visible]:outline has-[input:focus-visible]:outline-focus', error ? 'border-alert' : 'border-control')}>
         <span className="font-text text-12 text-content-muted">{label}</span>
         <input id={id} type={type} className={cx('w-full bg-transparent p-0 font-text text-16 text-content outline-none', STATE)}
-          aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-error` : undefined} {...native} />
+          aria-invalid={error ? true : undefined} aria-describedby={describedBy} {...native} />
       </label>
+      {hint && !error ? <Text variant="small" tone="muted" id={`${id}-hint`}>{hint}</Text> : null}
       {error ? <ErrorMessage id={`${id}-error`} look="dot">{error}</ErrorMessage> : null}
     </div>
   );
