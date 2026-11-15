@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { DisplayShell } from '../DisplayShell/DisplayShell.tsx';
+import { TvStage } from '../TvStage/TvStage.tsx';
 import { TvHighHandBoard } from './TvHighHandBoard.tsx';
 
 const HANDS = [
@@ -11,16 +13,19 @@ const PAID = [
   { id: 'h1', name: 'Rhea S.', detail: 'Straight flush, Nine high · Table 2 · 23:40', bonus: '10,000' },
 ];
 
-// The board is the stage's body: the stage draws the title, the clock and the notice line. Each story sits in a plain box
-// of the body's size on the TV's background, as it will sit in the stage: on the 1920 by 1080 screen, the stage's 80 px
-// at each side leave 1760, and 256 above (its header) with 84 below (its foot) leave 740, a pixel more than the body's
-// 739; the spacing scale stops at 128, so two boxes make the 256. It has no loading or error state of its own: the TV app shows those in the board's place.
+// The board is the stage's body: the stage draws the title, the clock and the notice line, and the TV app stands the
+// board in it (HighHandMode). Each story shows it so. It has no loading or error state of its own: the TV app shows
+// those in the board's place.
 const meta = {
   title: 'TV/TvHighHandBoard',
   component: TvHighHandBoard,
   tags: ['viewport-tv'],
   parameters: { layout: 'fullscreen' },
-  decorators: [(Story) => <div className="h-dvh w-full bg-surface px-20 pt-32 pb-20"><div className="h-full pt-32 pb-1"><Story /></div></div>],
+  decorators: [(Story) => (
+    <DisplayShell clockAt={new Date('2026-11-15T21:13:00Z')} notice="Table 4 opens at 9 tonight: Pot-Limit Omaha 100/200. Ask the floor for a seat.">
+      <TvStage title="High hand bonus"><Story /></TvStage>
+    </DisplayShell>
+  )],
   args: {
     handsTitle: 'Hit one, get paid', hands: HANDS, rules: 'Both hole cards must play · Shown at showdown · 4 or more players dealt in',
     payoutsTitle: 'Paid tonight', payouts: PAID, emptyText: 'None yet tonight.',

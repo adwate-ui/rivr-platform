@@ -30,9 +30,10 @@ insert into public.device (id, venue_id, kind, name, auth_user_id) values
   ('00000000-0000-4000-8000-00000000d451', '00000000-0000-4000-8000-000000000001', 'tv', 'Bar TV', '00000000-0000-4000-8000-00000000e451'),
   ('00000000-0000-4000-8000-00000000d452', '00000000-0000-4000-8000-000000000002', 'tv', 'Practice TV', '00000000-0000-4000-8000-00000000e452'),
   ('00000000-0000-4000-8000-00000000d453', '00000000-0000-4000-8000-000000000001', 'dealer_tablet', 'Tablet', '00000000-0000-4000-8000-00000000e453');
-insert into public.tv_screen (device_id, venue_id, mode) values
-  ('00000000-0000-4000-8000-00000000d451', '00000000-0000-4000-8000-000000000001', 'waitlist'),
-  ('00000000-0000-4000-8000-00000000d452', '00000000-0000-4000-8000-000000000002', 'waitlist');
+-- Each shows the waitlist and turns to the High hand bonus board in between.
+insert into public.tv_screen (device_id, venue_id, mode, rotation) values
+  ('00000000-0000-4000-8000-00000000d451', '00000000-0000-4000-8000-000000000001', 'waitlist', '{high_hand}'),
+  ('00000000-0000-4000-8000-00000000d452', '00000000-0000-4000-8000-000000000002', 'waitlist', '{high_hand}');
 
 -- 1. No high hand runs ---------------------------------------------------------------------------------------------------
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
@@ -105,6 +106,22 @@ select results_eq($$ select p ->> 'name', p -> 'member_number', p ->> 'hand', p 
                      from public.tv_high_hand() b cross join lateral jsonb_array_elements(b.payouts) p $$,
   $$ values ('Ishaan V.'::text, 'null'::jsonb, 'four_of_a_kind'::text, 'jack'::text, 'Table 3'::text, 5000) $$,
   'a payout shows the member by first name and initial, the hand, the table and the Bonus');
+reset role;
+-- Only a TV that shows the board reads it: one that does not turn to it, or whose venue switched the board off, reads none.
+update public.tv_screen set rotation = '{}' where device_id = '00000000-0000-4000-8000-00000000d451';
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e451');
+select is_empty($$ select 1 from public.tv_high_hand() $$, 'a TV that does not show the board reads none of it');
+reset role;
+update public.tv_screen set mode = 'high_hand' where device_id = '00000000-0000-4000-8000-00000000d451';
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+values ('00000000-0000-4000-8000-000000000001', 'tv.boards', '',
+        '{"waitlist": true, "call_time": true, "promotions": true, "leaderboard": true, "high_hand": false}', now() - interval '1 second', 'test');
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e451');
+select is_empty($$ select 1 from public.tv_high_hand() $$, 'nor one whose venue switched the board off');
+reset role;
+delete from public.setting where venue_id = '00000000-0000-4000-8000-000000000001' and key = 'tv.boards' and reason = 'test';
+select pg_temp.as_person('00000000-0000-4000-8000-00000000e451');
+select is((select jsonb_array_length(payouts) from public.tv_high_hand()), 1, 'with the board as its own, the TV reads it again');
 reset role;
 -- A member who hid their name on the TVs is shown by number, as the hours leaderboard shows them.
 insert into public.member_preference (member_id, venue_id, name_on_tvs) values ('00000000-0000-4000-8000-000000000211', '00000000-0000-4000-8000-000000000001', false)
