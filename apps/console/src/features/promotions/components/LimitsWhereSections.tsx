@@ -2,6 +2,7 @@ import { PER_MEMBER, type Channels } from '@rivr/contracts/promotionModel';
 import { t } from '@rivr/i18n';
 import { ChoiceChips, Grid, TextArea } from '@rivr/ui';
 import { BuilderCard, FormInput, offered, type SectionProps } from './BuilderCard.tsx';
+import { HighHandLimits } from './HighHandFields.tsx';
 
 const BUDGET_PERIODS = ['whole', 'month'] as const;
 
@@ -10,6 +11,11 @@ const BUDGET_PERIODS = ['whole', 'month'] as const;
  * bonus chips for the whole promotion or each month (decision 0499); blank is no limit, and blank times is once.
  */
 export function LimitsSection({ section }: { section: SectionProps }) {
+  if (section.form.kind === 'high_hand') return <HighHandLimits section={section} />;
+  return <OtherLimits section={section} />;
+}
+
+function OtherLimits({ section }: { section: SectionProps }) {
   const { form, onChange } = section;
   const noLimit = t('console.promotions.builder.fields.noLimit');
   const limits = PER_MEMBER.map((limit) => ({ value: limit, label: t(`console.promotions.builder.fields.perMemberChoices.${limit}`) }));

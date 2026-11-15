@@ -173,6 +173,9 @@ export const queryKeys = {
   /** The console's promotions list, a promotion's versions and a member's grants (console v3 phase 7). */
   promotionsOverview: (userId: string, venueId: string) => ['user', userId, 'promotions-overview', venueId] as const,
   promotionVersions: (userId: string, promotionId: string) => ['user', userId, 'promotion-versions', promotionId] as const,
+  /** Tonight's high hands at a venue, or one promotion's of them (redesign RD-23): a payout makes it stale. */
+  highHandTonight: (userId: string, venueId: string, promotionId: string | null = null) =>
+    ['user', userId, 'high-hand-tonight', venueId, promotionId ?? 'all'] as const,
   /** Last week replayed afresh on a waiting version, for its approver (decision 0495). */
   promotionReplay: (userId: string, versionId: string) => ['user', userId, 'promotion-replay', versionId] as const,
   memberPromotionGrants: (userId: string, memberId: string, count: number) => ['user', userId, 'member-promotion-grants', memberId, count] as const,

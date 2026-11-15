@@ -23,8 +23,6 @@ describe('triggerOf', () => {
     expect(triggerOf({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 })).toBe('hours_step');
     expect(triggerOf({ kind: 'seat_bonus', chips: 1_000 })).toBe('seated');
     expect(triggerOf({ kind: 'hours_bonus', mode: 'every', everyMinutes: 60, chips: 100 })).toBe('hours_step');
-    expect(triggerOf({ kind: 'cab_home', fromVisitInMonth: 4 })).toBe('visit');
-    expect(triggerOf({ kind: 'tournament_entry', tournamentId: 'RIVR Sunday' })).toBe('visit');
     expect(triggerOf({ kind: 'waitlist_priority' })).toBe('visit');
   });
 
@@ -54,13 +52,14 @@ describe('computeGrant', () => {
   });
 
   it('gives nothing for time played or a visit for a reward of another event', () => {
-    expect(grantOf({ kind: 'cab_home', fromVisitInMonth: 1 }, played)).toEqual({ ok: false, error: 'other_event' });
+    expect(grantOf({ kind: 'waitlist_priority' }, played)).toEqual({ ok: false, error: 'other_event' });
     expect(grantOf({ kind: 'seat_bonus', chips: 500 }, visit)).toEqual({ ok: false, error: 'other_event' });
   });
 
-  it('gives a cab from its visit on, the visit itself included', () => {
-    expect(grantOf({ kind: 'cab_home', fromVisitInMonth: 5 }, visit)).toEqual({ ok: true, value: { chips: 0, perk: 'cab_home' } });
-    expect(grantOf({ kind: 'cab_home', fromVisitInMonth: 6 }, visit)).toEqual({ ok: false, error: 'not_yet' });
+  it('gives waitlist priority on a visit, whichever of the month it is', () => {
+    expect(grantOf({ kind: 'waitlist_priority' }, visit)).toEqual({ ok: true, value: { chips: 0, perk: 'waitlist_priority' } });
+    expect(grantOf({ kind: 'bonus_chips', chips: 500, on: 'visit' }, visit)).toEqual({ ok: true, value: { chips: 500, perk: null } });
+    expect(grantOf({ kind: 'bonus_chips', chips: 500, on: 'referral' }, visit)).toEqual({ ok: false, error: 'other_event' });
   });
 
   it('gives a play-time bonus only for its own step, never for time played alone', () => {

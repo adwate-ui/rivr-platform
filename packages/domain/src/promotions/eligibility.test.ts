@@ -9,7 +9,7 @@ describe('isTimeBased', () => {
   it('is true for a play-time bonus, the reward measured in time played, and only that', () => {
     expect(isTimeBased({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 })).toBe(true);
     expect(isTimeBased(SEAT_BONUS)).toBe(false);
-    expect(isTimeBased({ kind: 'cab_home', fromVisitInMonth: 4 })).toBe(false);
+    expect(isTimeBased({ kind: 'waitlist_priority' })).toBe(false);
   });
 });
 

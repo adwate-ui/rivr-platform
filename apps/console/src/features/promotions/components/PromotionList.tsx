@@ -4,6 +4,7 @@ import { t } from '@rivr/i18n';
 import { Button, ChoiceChips, DataTable, ErrorMessage, Screen, Stack, Tabs } from '@rivr/ui';
 import { useState } from 'react';
 import { usePauseResume } from '../hooks/usePauseResume.ts';
+import { HighHandRecord, hasRecord } from './HighHandRecord.tsx';
 import { canOpen, endedColumns, listColumns } from './listColumns.tsx';
 import type { PromotionNames } from './promotionWords.ts';
 
@@ -31,6 +32,8 @@ interface PromotionListProps {
   /** The tab in the address: Current, or Ended with `?tab=ended` (owner, 8 Nov); and how a tab opens. */
   tab: string | undefined;
   onNavigate: (href: string) => void;
+  /** Opens the Live floor's Log a high hand; none for staff who may not log one. */
+  onLogHighHand?: (() => void) | undefined;
 }
 
 /** The status chips over the current promotions: All, then each status, with how many each lists. */
@@ -53,13 +56,17 @@ function ViewTabs({ view, counts, onNavigate }: { view: View; counts: Readonly<R
 }
 
 /** The tabs, the chips and the table once the list has come. */
-function Listed({ venueId, names, onOpen, tab, onNavigate, overview, exportIn }: PromotionListProps & { overview: PromotionsOverview; exportIn: HTMLElement | null }) {
+function Listed({ venueId, names, onOpen, tab, onNavigate, onLogHighHand, overview, exportIn }: PromotionListProps & { overview: PromotionsOverview; exportIn: HTMLElement | null }) {
   const view: View = TABS.find((one) => one === tab) ?? 'current';
   const [filter, setFilter] = useState<Filter>('all');
+  // A high hand's record, open beside the list (redesign RD-23), read from the list so a pause or a payout shows in it.
+  const [recordId, setRecordId] = useState<string | null>(null);
+  const record = overview.promotions.find((promotion) => promotion.id === recordId && hasRecord(promotion));
   const toggles = usePauseResume(venueId);
   const open = (promotion: PromotionOverview) => {
     if (canOpen(promotion)) onOpen(promotion.id);
   };
+  const openRow = (promotion: PromotionOverview) => (hasRecord(promotion) ? setRecordId(promotion.id) : open(promotion));
   const steps = { isBusy: toggles.isBusy, pause: toggles.pause, resume: toggles.resume, end: toggles.end, open };
   const current = overview.promotions.filter((promotion) => promotion.status !== 'ended').sort(byStatus);
   const ended = overview.promotions.filter((promotion) => promotion.status === 'ended');
@@ -70,10 +77,13 @@ function Listed({ venueId, names, onOpen, tab, onNavigate, overview, exportIn }:
       {isEnded ? null : <StatusChips current={current} filter={filter} onChange={setFilter} />}
       {toggles.failure === null ? null : <ErrorMessage>{t(`console.promotions.failures.${toggles.failure}`)}</ErrorMessage>}
       <DataTable exportIn={exportIn} label={t(isEnded ? 'console.promotions.list.endedLabel' : 'console.promotions.list.label')} rowKey={(promotion) => promotion.id} density="comfortable" narrowLayout="scroll"
-        columns={isEnded ? endedColumns(names, steps) : listColumns(names, steps)} onRowOpen={open} key={view}
+        columns={isEnded ? endedColumns(names, steps) : listColumns(names, steps)} onRowOpen={openRow} key={view}
         {...(isEnded ? { initialSort: LATEST_ENDED_FIRST } : {})}
         rows={isEnded ? ended : current.filter((promotion) => filter === 'all' || isListedIn(promotion, filter))}
         emptyText={t(isEnded ? 'console.promotions.list.noneEnded' : 'console.promotions.list.empty')} />
+      {record === undefined ? null : (
+        <HighHandRecord venueId={venueId} promotion={record} names={names} steps={steps} onLog={onLogHighHand} onClose={() => setRecordId(null)} />
+      )}
     </Stack>
   );
 }

@@ -62,25 +62,38 @@ describe('describePromotion', () => {
     expect(rewardLine({ kind: 'hours_bonus', mode: 'every', everyMinutes: 90, chips: 250, timesPerVisit: 1 }))
       .toBe('250 Bonus every 1 h 30 min, up to once a visit');
     expect(rewardLine({ kind: 'bonus_chips', chips: 1_000, on: 'referral' })).toBe('1,000 Bonus for each referral');
-    expect(rewardLine({ kind: 'cab_home', fromVisitInMonth: 4 })).toBe('A cab home from visit 4 in a month');
     expect(rewardLine({
       kind: 'high_hand', hands: [{ hand: 'four_of_a_kind', chips: 5_000 }, { hand: 'royal_flush', chips: 25_000 }],
       rules: { bothHoleCards: true, shownAtShowdown: true, minPlayersDealt: 4 },
-    })).toBe('Up to 25,000 Bonus a hand');
-    expect(rewardLine({ kind: 'tournament_entry', tournamentId: 'RIVR Sunday' })).toBe('An entry to RIVR Sunday');
+    })).toBe('Four of a kind 5,000, Royal flush 25,000 Bonus, paid each time');
     expect(rewardLine({ kind: 'waitlist_priority' })).toBe('Front of every waitlist');
     expect(rewardLine({ kind: 'seat_bonus', chips: 1_000 })).toBe('1,000 Bonus on the first seat of a visit');
     expect(rewardLine({ kind: 'seat_bonus', chips: 500, firstNSeatsPerTable: 5 })).toBe('500 Bonus for the first 5 seated at a table');
   });
 
-  it('names a tournament by its name, and a 24-hour opening by its start', () => {
-    const entry = buildPromotionTerms({
-      reward: { kind: 'tournament_entry', tournamentId: 'tour-1' },
+  it('says a high hand hand by hand in its one line, and by the most it pays on its card (redesign RD-23)', () => {
+    const highHand = buildPromotionTerms({
+      reward: {
+        kind: 'high_hand', rules: { bothHoleCards: true, shownAtShowdown: true, minPlayersDealt: 4 },
+        hands: [{ hand: 'royal_flush', chips: 25_000 }, { hand: 'straight_flush', chips: 10_000 }, { hand: 'full_house', chips: 1_000 }],
+      },
+      limits: { perMember: 'none', budgetChips: 200_000, budgetPeriod: 'month' },
+    });
+    expect(describePromotion(highHand)).toBe(
+      'Royal flush 25,000, Straight flush 10,000, Any full house 1,000 Bonus, paid each time, for all stakes, every day, all day. '
+      + 'No limit per member, budget 2,00,000 Bonus a month. Starts 1 Nov 2026, no end date.',
+    );
+    expect(cardWords(highHand).detail).toBe('Up to 25,000 Bonus a hand');
+  });
+
+  it('says a 24-hour opening by its start', () => {
+    const priority = buildPromotionTerms({
+      reward: { kind: 'waitlist_priority' },
       schedule: { days: [1, 2, 3, 4, 5, 6, 7], from: '14:00', to: '14:00', startsOn: '2026-11-01', timezone: 'Asia/Kolkata' },
       limits: { perMember: 'once' },
     });
-    expect(describePromotion(entry, { tournaments: { 'tour-1': 'Sunday freeroll' } })).toBe(
-      'An entry to Sunday freeroll, for all stakes, every day, 24 hours from 14:00. Once ever per member. Starts 1 Nov 2026, no end date.',
+    expect(describePromotion(priority)).toBe(
+      'Front of every waitlist, for all stakes, every day, 24 hours from 14:00. Once ever per member. Starts 1 Nov 2026, no end date.',
     );
     const weekly = buildPromotionTerms({ limits: { perMember: 'per_week' } });
     expect(describePromotion(weekly)).toContain('every day, all day. Once a week per member.');

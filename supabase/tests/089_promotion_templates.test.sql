@@ -28,7 +28,7 @@ select private.sync_promotion(id) from public.promotion where template_key = 're
 select results_eq(
   $$ select template_key, status, (select count(*)::integer from public.promotion_rule r where r.promotion_id = p.id)
      from public.promotion p where p.venue_id = '00000000-0000-4000-8000-000000000001' and template_key is not null order by template_key $$,
-  $$ values ('cab'::text, 'draft'::text, 0), ('founders_priority', 'draft', 0),
+  $$ values ('founders_priority'::text, 'draft'::text, 0),
             ('hours_bonus', 'draft', 1),
             ('referral', 'draft', 1) $$,
   'the club has every scheme in the deck as a draft; the three the engine runs carry their rule');
@@ -43,8 +43,7 @@ select results_eq(
   $$ select p.template_key, v.version, v.status, v.reward, v.limits
      from public.promotion p join public.promotion_version v on v.promotion_id = p.id
      where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key is not null order by p.template_key $$,
-  $$ values ('cab'::text, 1, 'draft'::text, '{"kind": "cab_home", "fromVisitInMonth": 4}'::jsonb, '{"perMember": "none"}'::jsonb),
-            ('founders_priority', 1, 'draft', '{"kind": "waitlist_priority"}', '{"perMember": "none"}'),
+  $$ values ('founders_priority'::text, 1, 'draft'::text, '{"kind": "waitlist_priority"}'::jsonb, '{"perMember": "none"}'::jsonb),
             ('hours_bonus', 1, 'draft', '{"kind": "hours_bonus", "chips": 1000, "afterMinutes": 240}', '{"perMember": "per_day"}'),
             ('referral', 1, 'draft', '{"kind": "bonus_chips", "chips": 1000, "on": "referral"}', '{"perMember": "none"}') $$,
   'the templates the typed model can say are versions (decision 0491)');
@@ -58,7 +57,7 @@ select is_empty($$ select 1 from public.promotion where template_key in ('high_h
 select results_eq(
   $$ select p.venue_id::text, count(distinct p.id)::integer, count(r.id)::integer from public.promotion p left join public.promotion_rule r on r.promotion_id = p.id
      where p.template_key is not null group by p.venue_id order by p.venue_id $$,
-  $$ values ('00000000-0000-4000-8000-000000000001'::text, 4, 2), ('00000000-0000-4000-8000-000000000002', 4, 2) $$,
+  $$ values ('00000000-0000-4000-8000-000000000001'::text, 3, 2), ('00000000-0000-4000-8000-000000000002', 3, 2) $$,
   'the practice venue has the same');
 
 -- Adding them again adds nothing; a new venue gets them.
@@ -69,7 +68,7 @@ select private.bootstrap_venue('00000000-0000-4000-8000-0000000000aa', 'RIVR Tes
 select is((select count(*)::integer from public.promotion p join public.promotion_rule r on r.promotion_id = p.id
            where p.venue_id = '00000000-0000-4000-8000-0000000000aa' and p.template_key is not null), 2,
   'a new venue starts with every template and its rules');
-select is((select count(*)::integer from public.promotion_version v where v.venue_id = '00000000-0000-4000-8000-0000000000aa'), 4,
+select is((select count(*)::integer from public.promotion_version v where v.venue_id = '00000000-0000-4000-8000-0000000000aa'), 3,
   'and their versions');
 
 -- Submitting a template: promotion managers only, from its draft; a super admin approves it, and it is announced.

@@ -16,11 +16,12 @@ export const promotionWords = {
     visit: '{chips} Bonus on each visit',
     referral: '{chips} Bonus for each referral', signup: '{chips} Bonus on sign-up',
   },
-  cabHome: 'A cab home from visit {visit} in a month',
-  tournamentEntry: 'An entry to {name}',
   priority: 'Front of every waitlist',
   /** A high hand bonus by the most it pays (redesign correction 30). */
   highHand: 'Up to {chips} Bonus a hand',
+  /** The same promotion in the one-line summary: `Royal flush 25,000, Straight flush 10,000 Bonus, paid each time`. */
+  highHandEach: '{hand} {chips}',
+  highHandLine: '{hands} Bonus, paid each time',
   allStakes: 'all stakes',
   audience: { new_30d: 'new members, first 30 days', lapsed: 'lapsed regulars' },
   days: { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' },

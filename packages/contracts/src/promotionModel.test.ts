@@ -16,8 +16,11 @@ const TERMS = {
 } as const;
 
 describe('the promotion model schemas', () => {
-  it('knows no free spin (redesign of 15 Nov)', () => {
+  it('knows no points multiplier, free spin, cab home or tournament entry (redesign of 15 Nov)', () => {
+    expect(rewardSchema.safeParse({ kind: 'points_multiplier', multiplier: 2 }).success).toBe(false);
     expect(rewardSchema.safeParse({ kind: 'free_spin', spins: 1, afterMinutes: 240 }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'cab_home', fromVisitInMonth: 4 }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'tournament_entry', tournamentId: 'RIVR Sunday' }).success).toBe(false);
   });
 
   it('gives nothing on a buy-in, which nothing records (question 1009)', () => {
@@ -31,8 +34,6 @@ describe('the promotion model schemas', () => {
     expect(rewardSchema.safeParse({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 245 }).success).toBe(false);
     expect(rewardSchema.safeParse({ kind: 'bonus_chips', chips: 1_000, on: 'referral' }).success).toBe(true);
     expect(rewardSchema.safeParse({ kind: 'bonus_chips', chips: 1_000, on: 'birthday' }).success).toBe(false);
-    expect(rewardSchema.safeParse({ kind: 'cab_home', fromVisitInMonth: 4 }).success).toBe(true);
-    expect(rewardSchema.safeParse({ kind: 'tournament_entry', tournamentId: 'RIVR Sunday' }).success).toBe(true);
     expect(rewardSchema.safeParse({ kind: 'waitlist_priority' }).success).toBe(true);
     expect(rewardSchema.safeParse({ kind: 'cash', amount: 100 }).success).toBe(false);
   });

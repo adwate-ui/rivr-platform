@@ -4,6 +4,7 @@ import { ChoiceChips, Grid, Segmented, Stack, Text } from '@rivr/ui';
 import type { ReactNode } from 'react';
 import { BuilderCard, FormInput, offered, type SectionProps } from './BuilderCard.tsx';
 import { REWARD_KINDS } from './builderForm.ts';
+import { HighHandFields } from './HighHandFields.tsx';
 import { HoursBonusFields } from './HoursBonusFields.tsx';
 import { SeatBonusFields } from './SeatBonusFields.tsx';
 
@@ -51,15 +52,8 @@ function KindFields({ section }: { section: SectionProps }) {
       return <HoursBonusFields section={section} />;
     case 'bonus_chips':
       return <BonusChipsFields section={section} />;
-    case 'cab_home':
-      return (
-        <Fields>
-          <FormInput section={section} field="fromVisit" label={t('console.promotions.builder.fields.fromVisit')}
-            suffix={t('console.promotions.builder.fields.fromVisitSuffix')} inputMode="numeric" />
-        </Fields>
-      );
-    case 'tournament_entry':
-      return <Fields><FormInput section={section} field="tournament" label={t('console.promotions.builder.fields.tournament')} /></Fields>;
+    case 'high_hand':
+      return <HighHandFields section={section} />;
     default:
       return null;
   }

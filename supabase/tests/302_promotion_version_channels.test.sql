@@ -1,7 +1,6 @@
 -- Where a version shows (console v3 phase 7; owner's decisions 2 and 4): the player app's cards (with promotions.feed),
--- the TVs, the website (never the practice venue) and the WhatsApp offer, each only on its version's channel. A cab home
--- shows nowhere while no tier offers cab requests. An offer goes out only through the outbox, which never claims a
--- practice venue's events. 212 Vihaan has promotions.feed and opts in to marketing; 301 Asha is the practice venue's.
+-- the TVs, the website (never the practice venue) and the WhatsApp offer, each only on its version's channel. An offer
+-- goes out only through the outbox, which never claims a practice venue's events. 212 Vihaan has promotions.feed and opts in to marketing; 301 Asha is the practice venue's.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -43,15 +42,13 @@ insert into ids select 'web', pg_temp.live('00000000-0000-4000-8000-000000000001
   '{"playerApp": false, "tv": false, "website": true, "whatsapp": false}');
 insert into ids select 'whatsapp', pg_temp.live('00000000-0000-4000-8000-000000000001', 'On WhatsApp', '{"kind": "bonus_chips", "chips": 100, "on": "visit"}',
   '{"playerApp": false, "tv": false, "website": false, "whatsapp": true}');
-insert into ids select 'cab', pg_temp.live('00000000-0000-4000-8000-000000000001', 'Cab home', '{"kind": "cab_home", "fromVisitInMonth": 4}',
-  '{"playerApp": true, "tv": true, "website": true, "whatsapp": true}');
 insert into ids select 'practice', pg_temp.live('00000000-0000-4000-8000-000000000002', 'Practice offer', '{"kind": "bonus_chips", "chips": 100, "on": "visit"}',
   '{"playerApp": true, "tv": true, "website": true, "whatsapp": true}');
 
 -- Each channel shows its own.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
 select results_eq($$ select title from public.my_promotion_cards() order by title $$, $$ values ('App and TVs'::text) $$,
-  'Home shows only the version on the player app, and no cab home while cab requests are off');
+  'Home shows only the version on the player app');
 reset role;
 select results_eq($$ select c.title from private.promotion_cards('00000000-0000-4000-8000-000000000001') c
                      where private.promotion_shows_on(c.promotion_id, 'tv') order by c.title $$,
@@ -65,7 +62,7 @@ reset role;
 select is((select count(*)::integer from public.outbox_event where event_type = 'promotion.offered'
            and payload ->> 'promotion_id' = (select id::text from ids where name = 'whatsapp')), 1, 'the version on WhatsApp is offered to Vihaan');
 select is((select count(*)::integer from public.outbox_event where event_type = 'promotion.offered'
-           and payload ->> 'promotion_id' in (select id::text from ids where name in ('app', 'web', 'cab'))), 0, 'the others to nobody');
+           and payload ->> 'promotion_id' in (select id::text from ids where name in ('app', 'web'))), 0, 'the others to nobody');
 select is_empty($$ select * from public.offer_recipient('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212',
                    (select id from ids where name = 'app')) $$, 'nor sent at send time');
 select isnt_empty($$ select * from public.offer_recipient('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212',
@@ -73,19 +70,11 @@ select isnt_empty($$ select * from public.offer_recipient('00000000-0000-4000-80
 select is_empty($$ select * from public.claim_outbox_deliveries('whatsapp', array['promotion.offered'], true, 100)
                    where venue_id = '00000000-0000-4000-8000-000000000002' $$, 'no practice venue offer is ever claimed for sending');
 
--- A cab home shows once a tier offers cab requests.
-insert into public.tier_feature (venue_id, tier_id, feature_key, is_enabled, display_mode, effective_from)
-select t.venue_id, t.id, 'cab.requests', true, 'locked', now() from public.tier t where t.venue_id = '00000000-0000-4000-8000-000000000001';
-select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
-select results_eq($$ select title from public.my_promotion_cards() order by title $$, $$ values ('App and TVs'::text), ('Cab home') $$,
-  'with cab requests on, the cab home shows');
-reset role;
-
 -- Paused, a version leaves every channel.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select public.set_promotion_version_live(v.id, false) from public.promotion_version v where v.promotion_id = (select id from ids where name = 'app');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
-select results_eq($$ select title from public.my_promotion_cards() order by title $$, $$ values ('Cab home'::text) $$, 'paused, it leaves Home');
+select is_empty($$ select title from public.my_promotion_cards() $$, 'paused, it leaves Home');
 reset role;
 
 select * from finish();

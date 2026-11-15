@@ -43,12 +43,44 @@ describe('the builder read as terms', () => {
     expect(readForm(named({ kind: 'seat_bonus', seatMode: 'tiers', seatTiers: [{ count: '0', chips: '75' }] })).errors).toEqual(new Set(['tierList']));
   });
 
+  it('reads a high hand: its hands, each with its Bonus, its three rules, and its budget alone for limits (redesign RD-23)', () => {
+    const highHand = named({
+      kind: 'high_hand', hands: [{ hand: 'royal_flush', chips: '25,000' }, { hand: 'aces_full', chips: '2000' }], bothHoleCards: true,
+      shownAtShowdown: false, minPlayers: '5', perMember: 'per_day', maxMembersPerDay: '3', budgetChips: '200000', budgetPeriod: 'month',
+    });
+    const { terms, errors } = readForm(highHand);
+    expect(errors.size).toBe(0);
+    expect(terms?.reward).toEqual({
+      kind: 'high_hand', hands: [{ hand: 'royal_flush', chips: 25_000 }, { hand: 'aces_full', chips: 2_000 }],
+      rules: { bothHoleCards: true, shownAtShowdown: false, minPlayersDealt: 5 },
+    });
+    // Paid every time: whatever the other fields held, its limits are its budget.
+    expect(terms?.limits).toEqual({ perMember: 'none', budgetChips: 200_000, budgetPeriod: 'month' });
+    if (terms === null) return;
+    expect(formFromTerms(terms)).toMatchObject({ kind: 'high_hand', hands: [{ hand: 'royal_flush', chips: '25000' }, { hand: 'aces_full', chips: '2000' }],
+      bothHoleCards: true, shownAtShowdown: false, minPlayers: '5', budgetChips: '200000', budgetPeriod: 'month' });
+  });
+
+  it('refuses a high hand while a hand has no Bonus, its players are out of range, or it has no budget', () => {
+    const highHand = named({ kind: 'high_hand', budgetChips: '50000' });
+    expect(readForm(highHand).terms).not.toBeNull();
+    const noBonus = readForm({ ...highHand, hands: [...highHand.hands, { hand: 'aces_full', chips: '' }] });
+    expect([...noBonus.errors]).toEqual(['hands']);
+    expect(noBonus.terms).toBeNull();
+    expect([...readForm({ ...highHand, hands: [{ hand: 'royal_flush', chips: '25020' }] }).errors]).toEqual(['hands']);
+    expect([...readForm({ ...highHand, minPlayers: '1' }).errors]).toEqual(['minPlayers']);
+    const noBudget = readForm({ ...highHand, budgetChips: '' });
+    expect([...noBudget.errors]).toEqual(['budgetChips']);
+    expect(noBudget.terms).toBeNull();
+    // Its summary still reads, so the builder shows what it would give.
+    expect(noBudget.core?.reward.kind).toBe('high_hand');
+  });
+
   it('marks each field the terms refuse, and still reads the four parts when only the words are wrong', () => {
     expect([...readForm(named({ kind: 'seat_bonus', chips: '1020' })).errors]).toEqual(['chips']);
     expect([...readForm(named({ kind: 'hours_bonus', chips: '', afterHours: '0.2' })).errors].sort()).toEqual(['afterHours', 'chips']);
     expect([...readForm(named({ days: [], from: '25:00' })).errors].sort()).toEqual(['days', 'from']);
     expect([...readForm(named({ endsOn: '2026-11-01' })).errors]).toEqual(['endsOn']);
-    expect([...readForm(named({ kind: 'tournament_entry', tournament: ' ' })).errors]).toEqual(['tournament']);
     const unnamed = readForm(named({ name: '', link: 'http://rivr.club' }));
     expect([...unnamed.errors].sort()).toEqual(['link', 'name']);
     expect(unnamed.terms).toBeNull();

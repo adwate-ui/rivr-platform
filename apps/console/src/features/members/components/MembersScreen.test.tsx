@@ -63,7 +63,7 @@ describe('Members (console v3)', () => {
     expect(onNavigate).toHaveBeenCalledWith('/?table=t2&seat=3');
     expect(await screen.findByText(/Tuesday bonus: 1,000 Bonus/)).toBeDefined();
     // A perk reads as the promotion builder names it, never its code.
-    expect(screen.getByText(/Cab home: Cab home$/)).toBeDefined();
+    expect(screen.getByText(/Founders priority: Waitlist priority$/)).toBeDefined();
     expect(screen.getByRole('link', { name: 'Account' })).toBeDefined();
   });
 
