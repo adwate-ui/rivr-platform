@@ -25,7 +25,11 @@ export const kycInPerson = {
   /** A found member's button, and its full name for a screen reader. */
   check: 'Check',
   checkName: 'Check {name}',
-  takePhoto: 'Take their photo',
+  /** The check's five steps (redesign RD-21), as its progress bar names them; the first step's buttons, and a kept photo's. */
+  steps: { member: 'Member', face: 'Face', pan: 'PAN card', aadhaar_front: 'Aadhaar front', details: 'Details' },
+  start: 'Start the check',
+  another: 'Choose another member',
+  next: 'Next',
   retakePhoto: 'Take the photo again',
   /** The two cards photographed at the desk (decision 0573). */
   document: { pan: 'PAN card', aadhaar_front: 'Aadhaar front' },
@@ -46,6 +50,13 @@ export const kycInPerson = {
   consentHint: 'Ask first: their PAN and Aadhaar photos are kept. Recorded with your name.',
   verifyName: 'Verify {name}',
   invalid: 'All three photos, date of birth, last four Aadhaar digits, PAN and consent are needed.',
+  /** Under a field of the Details step, and under the consent, when Verify finds it missing or malformed. */
+  errors: {
+    dateOfBirth: 'Give the date of birth on the document.',
+    aadhaarLast4: 'Give the last four digits.',
+    pan: 'Give the PAN as on the card.',
+    consent: 'Ask for their consent, then switch this on.',
+  },
   verified: '{name} is verified and can take a seat.',
   refused: '{name} refused. See the checks below.',
   needsReview: '{name} goes to review: it matches another check. See the list below.',
