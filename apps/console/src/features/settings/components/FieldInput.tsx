@@ -1,6 +1,6 @@
 import type { SettingField } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { ChoiceChips, ErrorMessage, Input, Stack, Switch } from '@rivr/ui';
+import { ChoiceChips, EditableList, ErrorMessage, Input, Stack, Switch } from '@rivr/ui';
 import { fieldLabel, limitsText, optionLabel, unitOf } from './settingsCopy.ts';
 import type { FieldDraft } from './valueDraft.ts';
 
@@ -20,12 +20,32 @@ function ChoiceField({ settingKey, field, draft, isInvalid, tiers, onChange }: F
     ? tiers.map((tier) => ({ value: tier.subject, label: tier.label }))
     : field.options.map((option) => ({ value: option, label: optionLabel(settingKey, option) }));
   const one = typeof draft === 'string' && draft !== '' ? [draft] : [];
-  const selected = typeof draft === 'object' ? [...draft] : one;
+  const selected = typeof draft === 'object' && draft !== null ? draft.map(String) : one;
   return (
     <Stack gap={2}>
       <ChoiceChips label={fieldLabel(settingKey, field.name)} mode={field.kind === 'choices' ? 'many' : 'one'} selected={selected} options={options}
         onChange={(chosen) => onChange(field.kind === 'choices' ? chosen : chosen[0] ?? '')} />
       {isInvalid ? <ErrorMessage>{t('console.settings.noChoice')}</ErrorMessage> : null}
+    </Stack>
+  );
+}
+
+/** The units a typed list can be in: the ones its editor writes after each entry. */
+const LIST_UNITS = ['minutes', 'hours', 'days', 'seconds'] as const;
+
+/**
+ * A list the club types (redesign RD-19): add, edit and remove, each entry within the schema's limits. The list says under
+ * an entry why it is refused; how many it may hold is said here once Save finds too few or too many. A list in a unit its
+ * editor does not write has no editor: no setting declares one.
+ */
+function ListField({ settingKey, field, draft, isInvalid, onChange }: FieldInputProps & { field: Extract<SettingField, { kind: 'numbers' }> }) {
+  const unit = LIST_UNITS.find((one) => one === unitOf(field));
+  if (unit === undefined) return null;
+  return (
+    <Stack gap={2}>
+      <EditableList label={fieldLabel(settingKey, field.name)} entryLabel={t('console.settings.listEntry')} addLabel={t('console.settings.listAdd')} unit={unit}
+        min={field.min} max={field.max} initialValues={typeof draft === 'object' && draft !== null ? [...draft].map(Number) : []} onChange={onChange} />
+      {isInvalid && draft !== null ? <ErrorMessage>{t('console.settings.invalidList')}</ErrorMessage> : null}
     </Stack>
   );
 }
@@ -59,6 +79,7 @@ export function FieldInput(props: FieldInputProps) {
   if (field.kind === 'boolean') return <Switch label={fieldLabel(settingKey, field.name)} isOn={draft === true} onChange={onChange} />;
   if (field.kind === 'choice' || field.kind === 'tier' || field.kind === 'choices') return <ChoiceField {...props} field={field} />;
   if (field.kind === 'integer') return <NumberField {...props} field={field} />;
+  if (field.kind === 'numbers') return <ListField {...props} field={field} />;
   return (
     <Input label={fieldLabel(settingKey, field.name)} hint={field.isRequired ? undefined : t('console.settings.optional')}
       error={textError(draft, isInvalid)} value={typeof draft === 'string' ? draft : ''}

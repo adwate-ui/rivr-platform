@@ -26,6 +26,7 @@ const GROUP_OF: Readonly<Partial<Record<SettingKey, SettingGroup>>> = {
   'kyc.at_the_club': 'identity',
   'bonus.expiry_days': 'bonus',
   'bonus.daily_staff_cap': 'bonus',
+  'bonus.by_hand_cap': 'bonus',
   'bonus.visit_cap': 'bonus',
   'tier.default': 'membership',
   'host.lapse': 'membership',

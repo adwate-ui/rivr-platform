@@ -1,5 +1,5 @@
-import { useVenueSettings, type VenueSetting } from '@rivr/db';
-import { formatDayTime, formatNumber, t } from '@rivr/i18n';
+import { useVenueSettings, type SettingValue, type VenueSetting } from '@rivr/db';
+import { formatDayTime, formatDuration, formatNumber, t } from '@rivr/i18n';
 import { LoadState, SettingsGroups, Sheet, type SettingsRow } from '@rivr/ui';
 import { useState } from 'react';
 import { AREA_GROUPS, keysOf, type GroupedArea } from './groups.ts';
@@ -8,13 +8,23 @@ import { defaultOf, isSuperAdminOnly, settingHelp, settingName, valueText } from
 
 type TierName = (id: string) => string;
 
-/** The value now, in words, for the venue; for a table type, tier or stake, how many have one. */
+/** A stake's value in one word or two: its call time in the short form, `3 h`; anything else as the setting writes it. */
+function stakeText(setting: VenueSetting, value: SettingValue, tierName: TierName): string {
+  const minutes = setting.key === 'call_time.minutes' ? value['minutes'] : undefined;
+  return typeof minutes === 'number' ? formatDuration(minutes * 60) : valueText(setting.key, setting.fields, value, tierName);
+}
+
+/** The value now, in words, for the venue; each stake's with its name (RD-19); for a tier or a role, how many have one. */
 function nowText(setting: VenueSetting, tierName: TierName): string {
   if (setting.scope === 'venue') {
     const inForce = setting.subjects[0]?.inForce ?? null;
     if (inForce !== null) return valueText(setting.key, setting.fields, inForce.value, tierName);
     const fallback = defaultOf(setting.key);
     return fallback === undefined ? t('console.settings.notSet') : t('console.settings.byDefault', { value: valueText(setting.key, setting.fields, fallback, tierName) });
+  }
+  if (setting.scope === 'table_type') {
+    const stakes = setting.subjects.flatMap((rules) => (rules.inForce === null ? [] : [`${rules.label} ${stakeText(setting, rules.inForce.value, tierName)}`]));
+    return stakes.length === 0 ? t('console.settings.notSet') : stakes.join(t('console.settings.fieldSeparator'));
   }
   const set = setting.subjects.filter((subject) => subject.inForce !== null).length;
   return set === 1 ? t(`console.settings.setForOne.${setting.scope}`) : t(`console.settings.setFor.${setting.scope}`, { count: formatNumber(set) });
@@ -26,7 +36,7 @@ function toComeText(setting: VenueSetting, tierName: TierName): string {
     .sort((a, b) => (a.entry.effectiveFrom ?? '').localeCompare(b.entry.effectiveFrom ?? ''));
   if (changes.length === 0) return t('console.settings.none');
   return changes.map(({ entry, label }) => {
-    const value = valueText(setting.key, setting.fields, entry.value, tierName);
+    const value = stakeText(setting, entry.value, tierName);
     const date = entry.effectiveFrom === null ? '' : formatDayTime(new Date(entry.effectiveFrom));
     // A scoped setting's change says what it is for: "Black card Weight: 3".
     return t('console.settings.fromEntry', { date, value: label === '' ? value : `${label} ${value}` });

@@ -3,6 +3,7 @@ import { Stack } from '@rivr/ui';
 import { Controller } from 'react-hook-form';
 import { ChangeForm, type ChangeFormApi } from './ChangeForm.tsx';
 import { FieldInput } from './FieldInput.tsx';
+import { defaultOf } from './settingsCopy.ts';
 import { draftsFrom, readValue } from './valueDraft.ts';
 
 type Tiers = readonly { readonly subject: string; readonly label: string }[];
@@ -34,12 +35,13 @@ interface ValueFormProps {
 }
 
 /**
- * A new value for one setting and subject, its fields built from the key's schema and filled with the value in force.
+ * A new value for one setting and subject, its fields built from the key's schema and filled with the value in force, or
+ * with what the club runs on while nothing is set.
  * The value is checked by the key's schema before it is sent, and by the database again.
  */
 export function ValueForm({ venueId, setting, subject, inForce, tiers }: ValueFormProps) {
   return (
-    <ChangeForm venueId={venueId} settingKey={setting.key} drafts={draftsFrom(setting.fields, inForce)}
+    <ChangeForm venueId={venueId} settingKey={setting.key} drafts={draftsFrom(setting.fields, inForce ?? defaultOf(setting.key) ?? null)}
       read={(drafts) => {
         const read = readValue(setting.key, setting.fields, drafts);
         return 'value' in read ? { changes: [{ subject, value: read.value }] } : read;

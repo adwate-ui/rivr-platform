@@ -56,7 +56,6 @@ export * from './KycPhoto/index.ts';
 export * from './VenueLogo/index.ts';
 export * from './ItemPhoto/index.ts';
 export * from './SeatRing/index.ts';
-export * from './CallTimeChoice/index.ts';
 export * from './CallTimeTimer/index.ts';
 export * from './WaitTimer/index.ts';
 export * from './TableCard/index.ts';

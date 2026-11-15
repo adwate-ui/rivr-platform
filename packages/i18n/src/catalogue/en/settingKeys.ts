@@ -102,6 +102,10 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     name: 'Daily bonus chips limit', fields: { chips: 'Bonus chips' },
     help: 'Most one staff member adds in a day',
   },
+  'bonus.by_hand_cap': {
+    name: 'Bonus added by hand', fields: { chips: 'Bonus' },
+    help: 'Most staff can add at once',
+  },
   'bonus.expiry_days': {
     name: 'Bonus chips expire', fields: { days: 'Days' },
     help: 'Unused Bonus is removed after this long',

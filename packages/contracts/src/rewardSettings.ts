@@ -49,6 +49,18 @@ export const bonusDailyStaffCap = {
 } as const satisfies SettingDefinition;
 
 /**
+ * The most bonus one person adds by hand at once (redesign RD-19): more is refused, whoever asks. Only super admins change
+ * it. None set is the most any addition may be, 1,00,000.
+ */
+export const bonusByHandCap = {
+  key: 'bonus.by_hand_cap',
+  description: 'The most bonus added by hand at once; an addition above it is refused. None set is 1,00,000.',
+  scope: 'venue',
+  superAdminOnly: true,
+  value: z.strictObject({ chips: z.int().min(50).max(100000) }),
+} as const satisfies SettingDefinition;
+
+/**
  * How many days bonus chips last (the owner, 12 Nov; decision 0579): each grant ends that long after it is given, and chips
  * held when it is switched on end that long from then. 0 is never. Only super admins change it. None set is never.
  */

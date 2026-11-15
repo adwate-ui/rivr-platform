@@ -1,26 +1,21 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
 
 /**
- * Every length the club may offer for more call time, in minutes (decision 0305): the club ticks which in Settings
- * (call_time.add_choices); the member asks for one from the seat and the floor approves it, or the floor adds one.
+ * The lengths of more call time offered while the club has typed none, in minutes: 30 min, 1 hour, 2 hours (decision
+ * 0320). The club types its own in Settings (call_time.add_choices, redesign RD-19); the member asks for one from the seat
+ * and the floor approves it, or the floor adds one.
  */
-export const ADD_TIME_PRESETS = [15, 30, 45, 60, 90, 120, 180, 240] as const;
-
-/** One of the lengths the club may offer. */
-export type AddTimeMinutes = (typeof ADD_TIME_PRESETS)[number];
-
-/** The lengths offered while the club has ticked none: 30 min, 1 hour, 2 hours (decision 0320). */
-export const ADD_TIME_CHOICES: readonly AddTimeMinutes[] = [30, 60, 120];
+export const ADD_TIME_CHOICES: readonly number[] = [30, 60, 120];
 
 /** A call time is at most a day, in all. */
 export const CALL_TIME_CAP_MINUTES = 24 * 60;
 
-/** Why more call time is refused: not a length the club may offer, a seat with no call time, or past a day in all. */
+/** Why more call time is refused: not a length (whole minutes, 1 to a day), a seat with no call time, or past a day in all. */
 export type ExtensionRefusal = 'not_a_choice' | 'no_call_time' | 'over_a_day';
 
-/** Whether the minutes are one of the lengths the club may offer. */
-export function isAddTimeChoice(minutes: number): minutes is AddTimeMinutes {
-  return ADD_TIME_PRESETS.some((choice) => choice === minutes);
+/** Whether the minutes are a length of more call time: whole minutes, from 1 to a day. Which the club offers is its setting. */
+export function isAddTimeLength(minutes: number): boolean {
+  return Number.isInteger(minutes) && minutes >= 1 && minutes <= CALL_TIME_CAP_MINUTES;
 }
 
 /**
@@ -30,7 +25,7 @@ export function isAddTimeChoice(minutes: number): minutes is AddTimeMinutes {
  * a call time, up to a day in all; anything else refused, never cut down.
  */
 export function extendedCallTime(currentMinutes: number, playedMinutes: number, addMinutes: number): Result<number, ExtensionRefusal> {
-  if (!isAddTimeChoice(addMinutes)) return err('not_a_choice');
+  if (!isAddTimeLength(addMinutes)) return err('not_a_choice');
   // A call time is whole minutes, as the database keeps it: anything else is none to add to.
   if (!Number.isInteger(currentMinutes) || currentMinutes <= 0) return err('no_call_time');
   // Whole minutes played, floored as the database counts them; none, or not a number, counts as nought.

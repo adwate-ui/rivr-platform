@@ -31,6 +31,11 @@ export const settings = {
   required: 'Required.',
   invalidText: "Not this setting's form.",
   noChoice: 'Choose one.',
+  /** A list the club types (redesign RD-19): what an entry is called, its button, and too few or too many of them. */
+  listEntry: 'Choice',
+  listAdd: 'Add a choice',
+  invalidList: 'Too few or too many. Add or remove one.',
+  unchanged: 'Nothing changed.',
   notTogether: 'These values do not fit together.',
   noneChosen: 'None',
   /** Before a money field's value. */
@@ -40,7 +45,7 @@ export const settings = {
   none: '–',
   noneToCome: 'None',
   /** What a scoped setting is given for. */
-  subjects: { table_type: 'Table type', stake: 'Stake', tier: 'Tier', role: 'Role' },
+  subjects: { table_type: 'Stake', stake: 'Stake', tier: 'Tier', role: 'Role' },
   stakeHint: 'For example, 100/200.',
   inForce: 'In force',
   notSet: 'Not set',

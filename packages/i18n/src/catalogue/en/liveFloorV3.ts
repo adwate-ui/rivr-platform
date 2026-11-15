@@ -95,6 +95,7 @@ export const floor = {
     tableThenSeat: 'Table, then seat',
     table: 'Table',
     seatNumber: 'Seat',
+    callTime: 'Call time',
     confirm: 'Seat',
     cancel: 'Cancel',
     chooseWho: 'Choose a player or type a number.',

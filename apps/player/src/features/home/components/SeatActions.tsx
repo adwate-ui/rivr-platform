@@ -1,6 +1,5 @@
 import { useFeature, type MySeat, type WaitlistPlace } from '@rivr/db';
-import { isAddTimeChoice } from '@rivr/domain/callTime';
-import { t } from '@rivr/i18n';
+import { formatDuration, t } from '@rivr/i18n';
 import { Box, Button, DetailRow, FeatureGate, Grid, LockedNotice, RoundAction, Stack, useToast } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
@@ -15,7 +14,7 @@ function useTimeAdded(seat: MySeat) {
     const { asked, minutes } = last.current;
     last.current = { asked: seat.timeRequestMinutes, minutes: seat.callTimeMinutes };
     const isAdded = asked !== null && seat.timeRequestMinutes === null && (seat.callTimeMinutes ?? 0) > (minutes ?? 0);
-    if (isAdded && isAddTimeChoice(asked)) toast(t('player.live.seat.timeAdded', { choice: t(`player.live.seat.times.m${asked}`) }));
+    if (isAdded) toast(t('player.live.seat.timeAdded', { choice: formatDuration(asked * 60) }));
   }, [seat.timeRequestMinutes, seat.callTimeMinutes, toast]);
 }
 
@@ -74,8 +73,8 @@ export function SeatStatus({ seat, places }: { seat: MySeat; places: readonly Wa
         <DetailRow size="small" hasDot label={t('player.live.seat.statusTopUp')} valueTone="accent"
           value={t(seat.topUp === 'requested' ? 'player.live.seat.requested' : 'player.live.seat.inProgress')} />
       )}
-      {asked !== null && isAddTimeChoice(asked) ? (
-        <DetailRow size="small" hasDot label={t(`player.live.seat.statusTimes.m${asked}`)} valueTone="accent" value={t('player.live.seat.requested')} />
+      {asked !== null ? (
+        <DetailRow size="small" hasDot label={t('player.live.seat.statusTime', { time: formatDuration(asked * 60) })} valueTone="accent" value={t('player.live.seat.requested')} />
       ) : null}
       {seat.isLeaving ? <DetailRow size="small" hasDot label={t('player.live.seat.statusLeaving')} valueTone="muted" value={t('player.live.seat.onTheList')} /> : null}
       {places.map((place) => (

@@ -26,8 +26,11 @@ export interface ValueChange {
   readonly value: SettingValue;
 }
 
-/** What the drafts read as: the values to save, or the fields that are wrong, or that they do not fit together. */
-export type DraftsRead = { changes: readonly ValueChange[] } | { invalid: readonly string[] } | { notTogether: true };
+/**
+ * What the drafts read as: the values to save, or the fields that are wrong, or that they do not fit together, or that
+ * nothing differs from what is in force.
+ */
+export type DraftsRead = { changes: readonly ValueChange[] } | { invalid: readonly string[] } | { notTogether: true } | { unchanged: true };
 
 /** The form as saved: the values, from now (null) or a moment, and why. */
 interface ChangeFormOutput {
@@ -63,6 +66,7 @@ function resolverFor(read: ChangeFormProps['read']): Resolver<ChangeFormValues, 
     const errors: FieldErrors<ChangeFormValues> = {};
     if ('invalid' in drafts) errors.drafts = Object.fromEntries(drafts.invalid.map((name) => [name, { type: 'value', message: '' }]));
     if ('notTogether' in drafts) errors.root = { together: { type: 'together', message: '' } };
+    if ('unchanged' in drafts) errors.root = { unchanged: { type: 'unchanged', message: '' } };
     if (effectiveFrom === undefined) errors.date = { type: 'date', message: '' };
     if (reason.length < REASON_MIN || reason.length > 200) errors.reason = { type: 'reason', message: '' };
     if (!('changes' in drafts) || effectiveFrom === undefined || errors.reason) return { values: {}, errors };
@@ -118,8 +122,8 @@ interface ChangeFormProps {
 export function ChangeForm({ venueId, settingKey, drafts, read, children }: ChangeFormProps) {
   const { schedule } = useSettingActions(venueId);
   const [outcome, setOutcome] = useState<SettingFailure | 'saved' | null>(null);
-  const [resolver] = useState(() => resolverFor(read));
-  const form = useForm<ChangeFormValues, unknown, ChangeFormOutput>({ resolver, defaultValues: { drafts, when: 'now', date: '', time: '', reason: '' } });
+  // The reader as it is now, each time: what is in force changes under an open form once a change is saved.
+  const form = useForm<ChangeFormValues, unknown, ChangeFormOutput>({ resolver: resolverFor(read), defaultValues: { drafts, when: 'now', date: '', time: '', reason: '' } });
   const submit = form.handleSubmit(async ({ changes, effectiveFrom, reason }) => {
     const refused = await saveEach(changes.map((change) => ({ key: settingKey, ...change, effectiveFrom, reason })), (change) => schedule.mutateAsync(change));
     setOutcome(refused ?? 'saved');
@@ -127,11 +131,16 @@ export function ChangeForm({ venueId, settingKey, drafts, read, children }: Chan
   });
   const { errors } = form.formState;
   const reason = form.register('reason', { onChange: () => setOutcome(null) });
+  const onEdit = () => {
+    setOutcome(null);
+    form.clearErrors('root');
+  };
   return (
     <Stack gap={4}>
       <Heading level={3}>{t('console.settings.newValue')}</Heading>
-      {children(form, () => setOutcome(null))}
+      {children(form, onEdit)}
       {errors.root?.['together'] ? <ErrorMessage>{t('console.settings.notTogether')}</ErrorMessage> : null}
+      {errors.root?.['unchanged'] ? <ErrorMessage>{t('console.settings.unchanged')}</ErrorMessage> : null}
       <WhenField form={form} />
       <Input {...reason} label={t('console.settings.reason')} maxLength={200}
         error={errors.reason === undefined ? undefined : t('console.settings.invalidReason')} />

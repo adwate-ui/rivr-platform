@@ -61,7 +61,7 @@ test.describe('Floor requests', () => {
     await seatOnFloor(page, { table: 'Table 1', seat: 9, number: '9000000296' });
     await devansh.reload();
     await devansh.getByRole('button', { name: 'Add time' }).click();
-    await devansh.getByRole('dialog', { name: 'Add time' }).getByRole('button', { name: 'Request 1 hour' }).click();
+    await devansh.getByRole('dialog', { name: 'Add time' }).getByRole('button', { name: 'Request 1 h' }).click();
     await (await requestOf(page, 'Devansh Malik', /Wants \+1 h/)).getByRole('button', { name: 'Decline' }).click();
     await expect(page.getByText('Devansh Malik: time request declined')).toBeVisible();
 

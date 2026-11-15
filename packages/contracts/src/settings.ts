@@ -10,7 +10,7 @@ import { socialConnectedChannels } from './channels.ts';
 import { floorRequestTargets, tvLeaderboard } from './floorSettings.ts';
 import { hostLapse } from './hostQueue.ts';
 import {
-  authStoreReviewer, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, cabMinimumVisits, kycAtTheClub, rakebackRate,
+  authStoreReviewer, bonusByHandCap, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, cabMinimumVisits, kycAtTheClub, rakebackRate,
 } from './rewardSettings.ts';
 import type { SettingDefinition } from './settingDefinition.ts';
 
@@ -23,12 +23,15 @@ const callTimeMinutes = {
   value: z.strictObject({ minutes: z.int().min(0).max(24 * 60) }),
 } as const satisfies SettingDefinition;
 
-/** The lengths of more call time offered (decision 0305), ticked from eight presets; none set is 30 min, 1 hour, 2 hours. */
+/**
+ * The lengths of more call time offered (decision 0305), a list the club types, in whole minutes from 1 to a day (redesign
+ * RD-19); none set is 30 min, 1 hour, 2 hours. A value set before 15 Nov holds its minutes as text, and is read as numbers.
+ */
 const callTimeAddChoices = {
-  key: 'call_time.add_choices', defaultValue: { minutes: ['30', '60', '120'] },
+  key: 'call_time.add_choices', defaultValue: { minutes: [30, 60, 120] },
   description: 'The lengths of more call time offered: a member asks for one from the seat, the floor adds one. None set is 30 minutes, 1 hour and 2 hours.',
   scope: 'venue',
-  value: z.strictObject({ minutes: z.array(z.enum(['15', '30', '45', '60', '90', '120', '180', '240'])).min(1).max(8) }),
+  value: z.strictObject({ minutes: z.array(z.int().min(1).max(24 * 60)).min(1).max(12) }),
 } as const satisfies SettingDefinition;
 
 const defaultTier = {
@@ -257,7 +260,7 @@ const reportsUnclaimedDays = {
 export const SETTINGS = [
   callTimeMinutes, callTimeAddChoices, floorRequestTargets, tvLeaderboard, defaultTier, kycMinimumAge, kycAtTheClub, authStoreReviewer, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, dealerRotationMinutes, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, cardQrRotationSeconds, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
-  cageCashBuyInLimit, amlStructuring, rakebackRate, cabMinimumVisits, hostLapse, socialConnectedChannels, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, ] as const;
+  cageCashBuyInLimit, amlStructuring, rakebackRate, cabMinimumVisits, hostLapse, socialConnectedChannels, bonusByHandCap, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, ] as const;
 
 /** A setting key declared in code. */
 export type SettingKey = (typeof SETTINGS)[number]['key'];

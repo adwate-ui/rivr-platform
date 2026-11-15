@@ -27,7 +27,7 @@ reset role;
 create temp table sess on commit drop as select (pg_temp.session()).id as id;
 grant select on sess to authenticated;
 
--- None ticked: 30 minutes, 1 hour and 2 hours, to the floor and on the member's seat.
+-- None set: 30 minutes, 1 hour and 2 hours, to the floor and on the member's seat.
 select is(public.add_time_choices('00000000-0000-4000-8000-000000000001'), array[30, 60, 120], 'none set: 30 min, 1 hour, 2 hours');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
 select is(public.add_time_choices('00000000-0000-4000-8000-000000000001'), array[30, 60, 120], 'a host reads them too');
@@ -37,13 +37,14 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select is((select add_time_choices from public.my_seat()), array[30, 60, 120], 'the seat offers them');
 reset role;
 
--- The club ticks 45 minutes and 1 hour 30: those are offered, shortest first, and nothing else is asked for or added.
+-- The club's choices from before 15 Nov carry over (redesign RD-19): ticked from presets then and kept as text, 45 minutes
+-- and 1 hour 30 are still offered, shortest first, and nothing else is asked for or added. Such a value is set no more
+-- (the lengths are typed, as numbers: 424), so the check that would refuse it stands aside for this one row.
 select set_config('request.jwt.claims', '', true);
+alter table public.setting disable trigger setting_check;
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
 values ('00000000-0000-4000-8000-000000000001', 'call_time.add_choices', '', '{"minutes": ["90", "45"]}', '-infinity', 'test 277');
-select throws_ok($$ insert into public.setting (venue_id, key, subject, value, effective_from, reason)
-                    values ('00000000-0000-4000-8000-000000000001', 'call_time.add_choices', '', '{"minutes": ["50"]}', now() + interval '1 day', 'test 277') $$,
-  null, null, 'a length that is not a preset is no setting');
+alter table public.setting enable trigger setting_check;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select is((select add_time_choices from public.my_seat()), array[45, 90], 'the seat offers 45 minutes and 1 hour 30');
 select throws_ok($$ select public.request_call_time(60, gen_random_uuid()) $$, '22023', null, 'an hour is not offered now');

@@ -38,6 +38,8 @@ export const memberBonus = {
       paused: 'Frozen, or promotions stopped. Try once released.',
       /** Past the staff member's daily limit on bonus chips by hand; the owner is told. */
       daily_limit: 'Past your daily limit for adding bonus chips. A super admin can add more.',
+      /** Above the most the club adds by hand at once (bonus.by_hand_cap). */
+      over_cap: 'More than the club adds at once. Type less.',
       unavailable: 'Not added. Try again.',
     },
   },

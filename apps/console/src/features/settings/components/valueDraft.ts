@@ -4,15 +4,20 @@ import { parseRupees } from '@rivr/domain/money';
 import { formatRupeesForInput } from '@rivr/i18n';
 import { isMoney, unitOf } from './settingsCopy.ts';
 
-/** What a field holds while it is typed: text for numbers, words and tiers; a switch's state; a list's choices. */
-export type FieldDraft = string | boolean | readonly string[];
+/**
+ * What a field holds while it is typed: text for numbers, words and tiers; a switch's state; a list's choices; a typed
+ * list's numbers, or null while any entry of it is refused.
+ */
+export type FieldDraft = string | boolean | readonly string[] | readonly number[] | null;
 
 type FieldValue = SettingValue[string];
 
 /** A field's draft from its stored value: money in rupees (after the ₹), a rate in percent, a list as chosen. */
 function draftOf(field: SettingField, current: FieldValue | undefined): FieldDraft {
   if (field.kind === 'boolean') return current === true;
-  if (field.kind === 'choices') return typeof current === 'object' ? current : [];
+  // A list set before the lengths were typed holds its numbers as text (call_time.add_choices before 15 Nov).
+  if (field.kind === 'numbers') return typeof current === 'object' ? [...current].map(Number) : [];
+  if (field.kind === 'choices') return typeof current === 'object' ? current.map(String) : [];
   if (typeof current !== 'number') return typeof current === 'string' ? current : '';
   if (isMoney(field)) return formatRupeesForInput(BigInt(current));
   // 525 basis points is typed as 5.25.
@@ -44,10 +49,17 @@ function readInteger(field: Extract<SettingField, { kind: 'integer' }>, text: st
   return number;
 }
 
+/** A list's value from its draft: the numbers typed, or null while an entry is refused; of the options chosen, those the schema has. */
+function readList(field: Extract<SettingField, { kind: 'numbers' | 'choices' }>, draft: FieldDraft | undefined): FieldValue | null {
+  const entries = typeof draft === 'object' && draft !== null ? [...draft] : null;
+  if (field.kind === 'numbers') return entries === null ? null : entries.map(Number);
+  return (entries ?? []).map(String).filter((option) => field.options.includes(option));
+}
+
 /** One field's value from its draft: null when it is wrong; undefined for an optional field left empty. */
 function readField(field: SettingField, draft: FieldDraft | undefined): FieldValue | null | undefined {
   if (field.kind === 'boolean') return draft === true;
-  if (field.kind === 'choices') return typeof draft === 'object' ? draft.filter((option) => field.options.includes(option)) : [];
+  if (field.kind === 'numbers' || field.kind === 'choices') return readList(field, draft);
   if (typeof draft !== 'string' || draft.trim() === '') return field.isRequired ? null : undefined;
   return field.kind === 'integer' ? readInteger(field, draft) : draft.trim();
 }

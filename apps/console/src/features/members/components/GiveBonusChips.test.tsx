@@ -73,4 +73,12 @@ describe('GiveBonusChips', () => {
     expect(await screen.findByText('Not to yourself. Ask someone else who can.')).toBeDefined();
     expect(screen.getByRole('textbox', { name: /^Bonus chips/ })).toHaveProperty('value', '500');
   });
+
+  it('says when the amount typed is above the most the club adds at once, and keeps it to type less (redesign RD-19)', async () => {
+    renderForm({ status: 400, body: { code: 'RVCAP', message: 'cap', details: null, hint: null } });
+    addChips('5,050', 'High hand night');
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, add 5,050 bonus chips' }));
+    expect(await screen.findByText('More than the club adds at once. Type less.')).toBeDefined();
+    expect(screen.getByRole('textbox', { name: /^Bonus chips/ })).toHaveProperty('value', '5,050');
+  });
 });

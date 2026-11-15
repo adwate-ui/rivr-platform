@@ -9,7 +9,6 @@ export const floorSettingKeys = {
     name: 'Add time choices',
     help: 'Lengths a seated member can ask for',
     fields: { minutes: 'Lengths offered' },
-    options: { 15: '15 min', 30: '30 min', 45: '45 min', 60: '1 hour', 90: '1 hour 30', 120: '2 hours', 180: '3 hours', 240: '4 hours' },
   },
   'floor.request_targets': {
     name: 'Request targets',

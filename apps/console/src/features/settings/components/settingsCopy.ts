@@ -1,7 +1,7 @@
 import { SETTINGS } from '@rivr/contracts/settings';
 import type { SettingFailure, SettingField, SettingValue, VenueConfigFailure } from '@rivr/db';
 import { fromPaise } from '@rivr/domain/money';
-import { formatList, formatMoney, formatNumber, settingCopy, t } from '@rivr/i18n';
+import { formatDuration, formatList, formatMoney, formatNumber, settingCopy, t } from '@rivr/i18n';
 
 /** A field holding basis points (hundredths of a percent) is a percentage on screen: 500 is 5%. */
 export const isBasisPoints = (name: string) => name === 'basis_points' || name.endsWith('_basis_points');
@@ -18,7 +18,7 @@ const ENDINGS: readonly Exclude<Unit, 'percent'>[] = ['minutes', 'days', 'second
  * needs its ending here and its words in console.settings.units and console.settings.suffixes.
  */
 export function unitOf(field: SettingField): Unit | null {
-  if (field.kind !== 'integer' || field.isMoney) return null;
+  if ((field.kind !== 'integer' && field.kind !== 'numbers') || (field.kind === 'integer' && field.isMoney)) return null;
   if (isBasisPoints(field.name)) return 'percent';
   return ENDINGS.find((ending) => field.name === ending || field.name.endsWith(`_${ending}`)) ?? null;
 }
@@ -52,12 +52,21 @@ function numberText(field: SettingField, value: number): string {
   return unit === null ? formatNumber(value) : t(`console.settings.units.${unit}`, { value: formatNumber(value) });
 }
 
+/** One entry of a typed list: a length in minutes in the short form, `1 h 30 min`; any other number as it is. */
+const listEntryText = (field: SettingField, value: number) => (unitOf(field) === 'minutes' ? formatDuration(value * 60) : formatNumber(value));
+
+/** A list in words: typed numbers each in its unit, options chosen by their names; "None" for an empty one. */
+function listText(key: string, field: SettingField, value: readonly string[] | readonly number[]): string {
+  if (value.length === 0) return t('console.settings.noneChosen');
+  return formatList([...value].map((entry) => (field.kind === 'numbers' ? listEntryText(field, Number(entry)) : optionLabel(key, String(entry)))));
+}
+
 /** One field's value: in its unit, a switch as on or off, a choice or a list in words, a tier by name. */
 function fieldText(key: string, field: SettingField, value: SettingValue[string] | undefined, tierName: (id: string) => string): string {
   if (value === undefined) return t('console.settings.notSet');
   if (typeof value === 'boolean') return value ? t('console.settings.on') : t('console.settings.off');
   if (typeof value === 'number') return numberText(field, value);
-  if (typeof value !== 'string') return value.length === 0 ? t('console.settings.noneChosen') : formatList(value.map((option) => optionLabel(key, option)));
+  if (typeof value !== 'string') return listText(key, field, value);
   if (field.kind === 'tier') return tierName(value);
   return field.kind === 'choice' ? optionLabel(key, value) : value;
 }

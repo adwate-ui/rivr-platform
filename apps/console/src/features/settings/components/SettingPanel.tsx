@@ -4,6 +4,7 @@ import { formatDayTime, t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { defaultOf, settingFailureText, valueText } from './settingsCopy.ts';
+import { StakeTimesForm } from './StakeTimes.tsx';
 import { ValueForm } from './ValueForm.tsx';
 
 type Subject = { readonly subject: string; readonly label: string };
@@ -78,7 +79,8 @@ export const inForceOf = (rules: SettingSubjectRules | undefined) => rules?.inFo
 
 /**
  * One setting's change, in the panel its Change opens (redesign RD-18): for a scoped one, what it applies to first; then
- * the new value, and the value now, the changes to come and before, each with who set it and why.
+ * the new value, and the value now, the changes to come and before, each with who set it and why. Call time is typed for
+ * every stake at once (RD-19), and the stake chosen under it is the one whose history shows.
  */
 export function SettingPanel({ venueId, setting, tiers }: SettingPanelProps) {
   const [subject, setSubject] = useState(() => firstSubject(setting));
@@ -88,10 +90,12 @@ export function SettingPanel({ venueId, setting, tiers }: SettingPanelProps) {
   const unsetText = fallback === undefined ? t('console.settings.notSet') : t('console.settings.byDefault', { value: describe(fallback) });
   // A scoped setting needs its subject first: the database refuses one without.
   const canChange = setting.scope === 'venue' || subject !== '';
+  const isPerStake = setting.key === 'call_time.minutes';
   return (
     <Stack gap={6}>
+      {isPerStake ? <StakeTimesForm venueId={venueId} setting={setting} /> : null}
       {setting.scope === 'venue' ? null : <SubjectChoice setting={setting} subject={subject} onChange={setSubject} />}
-      {canChange ? <ValueForm key={`${setting.key}:${subject}`} venueId={venueId} setting={setting} subject={subject} inForce={inForceOf(rules)} tiers={tiers} /> : null}
+      {canChange && !isPerStake ? <ValueForm key={`${setting.key}:${subject}`} venueId={venueId} setting={setting} subject={subject} inForce={inForceOf(rules)} tiers={tiers} /> : null}
       {rules === undefined ? null : <SubjectRules venueId={venueId} rules={rules} describe={describe} unsetText={unsetText} />}
     </Stack>
   );

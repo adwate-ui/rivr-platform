@@ -144,6 +144,7 @@ export const waitlist = {
   approveShort: 'Approve',
   confirmRemove: 'Yes, remove {name}',
   callSeat: 'Seat',
+  callTime: 'Call time',
   invalidCall: 'Choose an open table, a seat at it, and a call time of up to 24 h.',
   seatHeld: 'Held for a called player. Choose another seat.',
   seatTaken: 'Seat taken. Choose another.',

@@ -59,7 +59,7 @@ describe('every setting the contracts declare, as the Settings screen shows it',
       seating: ['waitlist.hold_minutes', 'waitlist.interest_to_open', 'waitlist.priority_weights', 'floor.request_targets'],
       time: ['call_time.minutes', 'call_time.add_choices'],
       identity: ['kyc.at_the_club'],
-      bonus: ['bonus.expiry_days', 'bonus.daily_staff_cap', 'bonus.visit_cap'],
+      bonus: ['bonus.expiry_days', 'bonus.daily_staff_cap', 'bonus.by_hand_cap', 'bonus.visit_cap'],
       membership: ['tier.default', 'host.lapse'],
       rotation: ['tv.leaderboard'],
     });
