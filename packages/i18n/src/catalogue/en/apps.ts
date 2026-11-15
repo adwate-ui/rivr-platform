@@ -53,6 +53,8 @@ export const playerApp = {
     /** `1,000 bonus chips used for your buy-in at Table 3`. */
     redeemed: '{chips} Bonus used for your buy-in at {table}',
     redeemedNoTable: '{chips} Bonus used for your buy-in',
+    /** A high hand paid (redesign RD-25): `High hand: Straight flush, Nine high. 10,000 Bonus added.` */
+    highHand: 'High hand: {hand}. {chips} Bonus added.',
   },
   profile,
   houseRules: playerHouseRules,

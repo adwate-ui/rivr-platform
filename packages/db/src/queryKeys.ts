@@ -179,6 +179,9 @@ export const queryKeys = {
     ['user', userId, 'high-hand-tonight', venueId, promotionId ?? 'all'] as const,
   /** The high hand that runs at a venue now, for the Live floor (redesign RD-24). */
   highHandLive: (userId: string, venueId: string) => ['user', userId, 'high-hand-live', venueId] as const,
+  /** The high hand among the signed-in member's offers, and the signed-in TV's High hand bonus board (redesign RD-25). */
+  myHighHand: (userId: string) => ['user', userId, 'my-high-hand'] as const,
+  tvHighHand: (userId: string) => ['user', userId, 'tv-high-hand'] as const,
   /** Last week replayed afresh on a waiting version, for its approver (decision 0495). */
   promotionReplay: (userId: string, versionId: string) => ['user', userId, 'promotion-replay', versionId] as const,
   memberPromotionGrants: (userId: string, memberId: string, count: number) => ['user', userId, 'member-promotion-grants', memberId, count] as const,

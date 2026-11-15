@@ -79,4 +79,12 @@ describe('the bonus toast (decision 0504)', () => {
     await landed([line('x1', 'expired', 20_000, { reason: 'Old bonus' })]);
     expect(screen.queryByText(/Old bonus/)).toBeNull();
   });
+
+  it('names the hand and the Bonus when a high hand is paid (redesign RD-25)', async () => {
+    const { landed, read } = renderToasts({ lines: [] });
+    await read();
+    await landed([{ ...line('h1', 'credited', 1_000_000, { reason: 'High hand bonus' }), hand: 'straight_flush', rank: 'nine' }]);
+    expect(await screen.findByText('High hand: Straight flush, Nine high. 10,000 Bonus added.')).toBeDefined();
+    expect(screen.queryByText(/High hand bonus/)).toBeNull();
+  });
 });

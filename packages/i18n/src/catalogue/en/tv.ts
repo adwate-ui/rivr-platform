@@ -41,6 +41,14 @@ export const tv = {
     /** A member who hid their name on the TVs, by their member number (the owner, 12 Nov). */
     member: 'Member #{number}',
   },
+  /** The High hand bonus board's body (redesign RD-25): the hands, and tonight's payouts. `{hand}` is the hit named exactly. */
+  highHand: {
+    hands: 'Hit one, get paid',
+    paidTonight: 'Paid tonight',
+    noneYet: 'None yet tonight.',
+    /** Under a player's name: `Four Jacks · Table 2 · 02:43`. */
+    payout: '{hand} · {table} · {time}',
+  },
   /** The call-time board (decision 0163): the seats about to open, and every table's players on call time. */
   callTime: {
     title: 'Call time',

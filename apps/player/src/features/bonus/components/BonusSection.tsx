@@ -1,15 +1,18 @@
 import { useMyBonusHistory, type BonusLine } from '@rivr/db/bonus';
-import { formatChips, formatDayMonth, t } from '@rivr/i18n';
+import { formatChips, formatDayMonth, formatHighHand, t } from '@rivr/i18n';
 import { Box, Button, DetailRow, Heading, LoadState, Skeleton, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
 
 /** Lines shown at first, and how many more each Show earlier adds. */
 const PAGE = 20;
 
-/** A line's label and its signed Bonus: `Welcome bonus · 15 Nov` `+500`; `Buy-in · Table 3 · 15 Nov` `−1,000`. */
+/** A line's label and its signed Bonus: `Welcome bonus · 15 Nov` `+500`; `High hand: Four Jacks · 15 Nov` `+5,000`; `Buy-in · Table 3 · 15 Nov` `−1,000`. */
 function lineCopy(line: BonusLine): { label: string; value: string } {
   const date = formatDayMonth(new Date(line.at));
   const chips = formatChips(line.amount);
+  if (line.kind === 'credited' && line.highHand !== null) {
+    return { label: t('playerBonus.highHand', { hand: formatHighHand(line.highHand.hand, line.highHand.rank), date }), value: t('playerBonus.plus', { chips }) };
+  }
   if (line.kind === 'credited') return { label: t('playerBonus.credited', { reason: line.reason ?? '', date }), value: t('playerBonus.plus', { chips }) };
   const value = t('playerBonus.minus', { chips });
   if (line.kind === 'expired') return { label: t('playerBonus.expired', { reason: line.reason ?? '', date }), value };

@@ -184,9 +184,10 @@ export {
 } from './promotionVersionActions.ts';
 export { useLastWeekReplay, type SimulationRun } from './promotionReplay.ts';
 export {
-  toHighHandTonight, useHighHandLive, useHighHandTonight, useLogHighHand, type HighHandHit, type HighHandLive, type HighHandLog, type HighHandTonight,
-  type LogHighHandFailure, type LogHighHandReason,
+  toHighHandTonight, useHighHandLive, useHighHandTonight, useLogHighHand, useMyHighHand, type HighHandHit, type HighHandLive, type HighHandLog,
+  type HighHandTonight, type LogHighHandFailure, type LogHighHandReason,
 } from './highHand.ts';
+export { toTvHighHand, useTvHighHand, type TvHighHand, type TvHighHandPayout } from './tvHighHand.ts';
 export { toKycFailure, type KycFailure } from './parse/kycFailure.ts';
 export { toSignInFailure, type SignInFailure } from './parse/signInFailure.ts';
 export { queryKeys } from './queryKeys.ts';

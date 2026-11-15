@@ -75,6 +75,13 @@ export interface HighHandLive {
 // A promotion going live or being paused is rare, and no signal tells of it: the strip asks again each minute.
 const LIVE_EVERY_MS = 60_000;
 
+/** A row of high_hand_live or my_high_hand as the apps hold it; null when its reward cannot be read as a high hand. */
+function liveOf(row: { promotion_id: string; name: string; reward: unknown } | undefined): HighHandLive | null {
+  const reward = rewardSchema.safeParse(row?.reward);
+  if (row === undefined || !reward.success || reward.data.kind !== 'high_hand') return null;
+  return { promotionId: row.promotion_id, name: row.name, reward: reward.data };
+}
+
 /**
  * The high hand that runs at a venue now (`high_hand_live`, redesign RD-24), for the Live floor's strip and its logging
  * panel; null while none runs, or for someone who may not read it.
@@ -88,10 +95,25 @@ export function useHighHandLive(venueId: string) {
     queryFn: async (): Promise<HighHandLive | null> => {
       const { data, error } = await client.rpc('high_hand_live', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
-      const row = data[0];
-      const reward = rewardSchema.safeParse(row?.reward);
-      if (row === undefined || !reward.success || reward.data.kind !== 'high_hand') return null;
-      return { promotionId: row.promotion_id, name: row.name, reward: reward.data };
+      return liveOf(data[0]);
+    },
+  });
+}
+
+/**
+ * The high hand among the signed-in member's offers (`my_high_hand`, redesign RD-25): the one that runs at their club,
+ * where their tier has the offers and the promotion shows in the app; null otherwise. Read every minute, as the offers are.
+ */
+export function useMyHighHand() {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.myHighHand(userId ?? 'signed-out'),
+    enabled: userId !== null,
+    refetchInterval: LIVE_EVERY_MS,
+    queryFn: async (): Promise<HighHandLive | null> => {
+      const { data, error } = await client.rpc('my_high_hand').limit(LIST_MOST);
+      if (error) throw error;
+      return liveOf(data[0]);
     },
   });
 }

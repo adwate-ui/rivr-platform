@@ -183,4 +183,5 @@ export * from './UnitInput/index.ts';
 export * from './EditableList/index.ts';
 export * from './StakeValues/index.ts';
 export * from './SummaryStrip/index.ts';
+export * from './TvHighHandBoard/index.ts';
 export { haptic } from './haptic/index.ts';

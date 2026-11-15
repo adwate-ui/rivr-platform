@@ -23,7 +23,7 @@ src/
   features/<name>/    components/ and hooks/, imported only through index.ts
     frame/            the app's shell: navigation, not found; the pairing code until the TV is paired
     pairing/          a TV that is not paired shows a six-digit code for the console's TVs screen (#49)
-    modes/            a paired TV shows the mode the console gave it: the waitlist board (#65), the promotions (#86) and the call-time board with the
+    modes/            `toHighHandBoard`, the High hand bonus board's body from what the TV read (redesign RD-25; listing the board among the modes is issue #971's); a paired TV shows the mode the console gave it: the waitlist board (#65), the promotions (#86) and the call-time board with the
                       seats opening (decision 0163),
                       and the hours leaderboard in the period the club set (decision 0581), live through Realtime; in between, the boards the console
                       chose for it to turn to, half a minute each, the promotions one after another
