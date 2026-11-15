@@ -130,6 +130,9 @@ test.describe('Identity › At the club', () => {
     await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible();
     await expect(page.getByText('Bring your Aadhaar and PAN on your first visit. The desk checks them before you play.')).toBeVisible();
     expect(sql(`select status || ' ' || (at_club_from is not null) from public.kyc_record where member_id = '${UDAY}'`)).toBe('started true');
+    // Before the desk has checked him, Profile shows the selfie he just took (decision 0588).
+    await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Profile' }).click();
+    await expect.poll(() => page.getByRole('img', { name: 'Your photo' }).evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
 
     // At the desk: Sunita (host) finds Uday, sees his app selfie beside the camera, and checks his originals.
     const desk = await browser.newPage();

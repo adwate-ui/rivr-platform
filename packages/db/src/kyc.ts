@@ -15,7 +15,7 @@ export interface KycRecord {
   readonly status: KycStatus;
   /** Whether the selfie, the KYC photo, is in: DigiLocker comes next. */
   readonly hasSelfie: boolean;
-  /** Where the selfie is kept, for `useKycImageUrl`: the member's photo in the app's header. */
+  /** Where the check's own photo is kept. The member's photo in the app is `useMyPhotoPath`, which has it before the desk's check too. */
   readonly photoPath: string | null;
   readonly dateOfBirth: string | null;
   readonly maskedAadhaar: string | null;

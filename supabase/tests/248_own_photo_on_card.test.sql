@@ -1,6 +1,6 @@
 -- The member's own KYC selfie (decision 0300). Arjun (201) is verified, his selfie kept; Kabir (202)
--- has a selfie waiting for review. A member sees their own verified selfie and nothing else in the bucket, and
--- every view is audited. The membership card that showed it went on 15 Nov.
+-- has a selfie waiting for review. A member sees their own selfie, verified or not (decision 0588), and nothing else
+-- in the bucket, and every view is audited. The membership card that showed it went on 15 Nov.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -36,8 +36,8 @@ select is((select count(*)::int from public.audit_log where action = 'kyc_image.
   'his view is audited with his name');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000202');
-select throws_ok($$ select public.authorize_kyc_image('00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000202/selfie.jpg') $$,
-  '42501', null, 'a selfie still under review is not its member''s to see until it is verified');
+select lives_ok($$ select public.authorize_kyc_image('00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000202/selfie.jpg') $$,
+  'a selfie still under review is its own member''s to see (decision 0588)');
 reset role;
 
 -- Staff are unchanged: a KYC reviewer sees both, a host neither.

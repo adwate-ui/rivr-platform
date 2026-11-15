@@ -1,0 +1,10 @@
+# 0588. A member sees their own selfie before the desk
+
+The owner, 15 Nov: fix the photograph issue. Read on production that day: the 25 members waiting for the desk saw no photo of themselves in the app, and two whose check went from verified back to started lost theirs. No file was lost; all are in the private `kyc` bucket.
+
+- **Why.** Decision 0300 gave a member their own selfie only once their check was verified. Decision 0502 moved verification to the desk: the selfie is kept as the sign-up photo, `<venue>/<member>/photo.jpg`, and the check points to no photo (`kyc_record.photo_path`) and is not verified until the first visit.
+- **The rule.** A member may read the photos they took themselves in any state of their check, the check's `selfie.jpg` and their sign-up `photo.jpg`; a photo the desk took (`in-person-….jpg`) only once the check is verified, as before, because the desk may have photographed someone else under their name (decision 0583). Both `authorize_kyc_image` and `my_photo_path()` apply it (migration `20261117220000`).
+- **What the app shows.** The header's circle and Profile ask `my_photo_path()`: the check's photo if the rule gives it and the file is kept, otherwise the sign-up selfie if that file is kept, otherwise nothing. The database answers because only it can see whether a file is there; with no photo the app asks for no image, and the initial shows as before.
+- **What did not change.** Another member's photo is refused. PAN and Aadhaar photos are for super admins alone, the member's own included. Staff see what they saw: KYC review, the cage, and at the desk the sign-up selfies and the reopened checks. Each view is audited, links last a minute, and no client reads the bucket. The console's member record was fixed apart (#983).
+- **The view cap is as written**, ten views a minute of one image: a member now has two images of their own at most, so twenty.
+- **One old assertion changed.** Test 248 said "a selfie still under review is not its member's to see until it is verified"; it now says the opposite. Tests 009, 294, 317 and 403 pass as they were.
