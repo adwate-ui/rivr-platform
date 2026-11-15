@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { stakeOf } from './waitlistCopy.ts';
 
-const STAKE = { tableTypeName: 'NLH 100/200', game: 'nlh', smallBlind: 10_000n, bigBlind: 20_000n, straddle: null };
+const STAKE = { tableTypeName: 'NLH 100/200', game: 'nlh' as const, smallBlind: 10_000n, bigBlind: 20_000n, straddle: null };
 
 describe('the stake of a place or a seat (issue 990)', () => {
   it('is its name, as before, while the stake has no straddle', () => {

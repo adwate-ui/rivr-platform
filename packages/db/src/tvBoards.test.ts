@@ -48,6 +48,15 @@ describe('the TV boards (#65)', () => {
   });
 
   // Decision 0581: a hidden name comes as the member number alone.
+  it('reads a stake that names no game as NLH, as the console does', () => {
+    const place = { table_id: 't1', table_name: 'Table 1', is_open: true, place: null, display_name: null, call_table_name: null, is_away: null };
+    const seated = { table_id: 't1', table_name: 'Table 1', stake_name: '100/200', game: null, small_blind_paise: 10000, big_blind_paise: 20000,
+      straddle_paise: null, seat: 1, display_name: null, call_time_left: null, is_away: false, leaving_at: null };
+    expect(toTvTables([{ ...place, ...STAKE, table_type_name: '100/200', game: null }, { ...place, ...STAKE, table_id: 't2', game: 'plo' }])
+      .map((table) => table.game)).toEqual(['nlh', 'plo']);
+    expect(toTvCallTimeTables([seated])[0]?.game).toBe('nlh');
+  });
+
   it('reads the hours leaderboard in order, by name or member number, in the period the club set', () => {
     expect(toTvLeaderboard([
       { period: 'week', place: 1, display_name: 'Kabir S.', member_number: null, played_minutes: 300 },

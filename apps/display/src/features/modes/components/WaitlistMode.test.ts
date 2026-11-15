@@ -3,7 +3,7 @@ import { fromPaise } from '@rivr/domain/money';
 import { describe, expect, it } from 'vitest';
 import { tablesWithList, toBoardColumn } from './WaitlistMode.tsx';
 
-const STAKE = { stake: 'NLH 100/200', game: 'nlh', smallBlind: fromPaise(10_000n), bigBlind: fromPaise(20_000n), straddle: null };
+const STAKE = { stake: 'NLH 100/200', game: 'nlh' as const, smallBlind: fromPaise(10_000n), bigBlind: fromPaise(20_000n), straddle: null };
 
 describe('the waitlist board, a list a table (decision 0467)', () => {
   it('heads each column with the table, its stake under it, and its places in order', () => {

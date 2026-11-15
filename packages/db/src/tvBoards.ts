@@ -6,6 +6,7 @@ import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 import { LIST_MOST } from './limits.ts';
+import { playedGame } from './parse/game.ts';
 
 /** A place on the TV's waitlist board (#65): the player as a first name and initial. */
 export interface TvPlace {
@@ -26,8 +27,8 @@ export interface TvTableList {
   readonly name: string;
   /** The stake's name: "NLH 100/200". */
   readonly stake: string;
-  /** The stake's game, as `nlh`, or null where it names none; its figures: the blinds, and the straddle or null with none (issue 990). */
-  readonly game: string | null;
+  /** The stake's game, `nlh` where it names none (`playedGame`); its figures: the blinds, and the straddle or null with none (issue 990). */
+  readonly game: 'nlh' | 'plo';
   readonly smallBlind: Paise;
   readonly bigBlind: Paise;
   readonly straddle: Paise | null;
@@ -54,8 +55,8 @@ export interface TvCallTimeTable {
   readonly name: string;
   /** The table's game and stake: "NLH 100/200". */
   readonly stake: string;
-  /** The stake's game, as `nlh`, or null where it names none; its figures: the blinds, and the straddle or null with none (issue 990). */
-  readonly game: string | null;
+  /** The stake's game, `nlh` where it names none (`playedGame`); its figures: the blinds, and the straddle or null with none (issue 990). */
+  readonly game: 'nlh' | 'plo';
   readonly smallBlind: Paise;
   readonly bigBlind: Paise;
   readonly straddle: Paise | null;
@@ -109,7 +110,7 @@ interface BoardRow {
   table_id: string;
   table_name: string;
   table_type_name: string;
-  game: string;
+  game: string | null;
   small_blind_paise: number;
   big_blind_paise: number;
   straddle_paise: number | null;
@@ -120,10 +121,10 @@ interface BoardRow {
   is_away: boolean | null;
 }
 
-/** A row's stake in figures: its game, its blinds and its straddle, or null with none. */
+/** A row's stake in figures: its game (`nlh` where it names none, as the console reads it), its blinds and its straddle, or null with none. */
 function figuresOf(row: { game: string | null; small_blind_paise: number; big_blind_paise: number; straddle_paise: number | null }) {
   return {
-    game: row.game, smallBlind: toPaise(row.small_blind_paise), bigBlind: toPaise(row.big_blind_paise),
+    game: playedGame(row.game), smallBlind: toPaise(row.small_blind_paise), bigBlind: toPaise(row.big_blind_paise),
     straddle: row.straddle_paise === null ? null : toPaise(row.straddle_paise),
   };
 }
@@ -151,7 +152,7 @@ interface CallTimeRow {
   table_id: string;
   table_name: string;
   stake_name: string;
-  game: string;
+  game: string | null;
   small_blind_paise: number;
   big_blind_paise: number;
   straddle_paise: number | null;

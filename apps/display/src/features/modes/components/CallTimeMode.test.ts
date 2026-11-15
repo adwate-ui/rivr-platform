@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { toSeats } from './CallTimeMode.tsx';
 
 // 100/200 with no straddle, but the Private Room, which has one of 500.
-const FIGURES = { game: 'nlh', smallBlind: fromPaise(10_000n), bigBlind: fromPaise(20_000n), straddle: null };
+const FIGURES = { game: 'nlh' as const, smallBlind: fromPaise(10_000n), bigBlind: fromPaise(20_000n), straddle: null };
 
 const TABLES: TvCallTimeTable[] = [
   {
