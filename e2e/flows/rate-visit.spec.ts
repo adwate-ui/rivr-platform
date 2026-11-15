@@ -15,17 +15,15 @@ test.describe('Rate your visit', () => {
     test.setTimeout(90_000);
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000191');
-    const member = await (await browser.newContext()).newPage();
-    await signInToPlayer(member, '9000000401');
-
     await floor.getByRole('link', { name: 'Door', exact: true }).click();
     await floor.getByRole('textbox', { name: 'Name, mobile or member number' }).fill('9000000401');
     await floor.getByRole('button', { name: 'Check in', exact: true }).click();
     await floor.getByRole('button', { name: 'Check out Vidya Chadha' }).click();
     await expect(floor.getByRole('button', { name: 'Check out Vidya Chadha' })).toHaveCount(0);
 
-    // Home › Rate your visit: a 2 with a note is a ticket for the General Manager.
-    await member.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Home' }).click();
+    // Home › Rate your visit, on opening the app after the visit: a 2 with a note is a ticket for the General Manager.
+    const member = await (await browser.newContext()).newPage();
+    await signInToPlayer(member, '9000000401');
     await expect(member.getByRole('heading', { name: 'How was your night?' })).toBeVisible();
     await member.getByRole('radiogroup', { name: 'Your rating, 1 to 5' }).getByRole('radio', { name: '2', exact: true }).click();
     await member.getByRole('textbox', { name: 'Anything to add? (optional)' }).fill('The door queue was slow.');
