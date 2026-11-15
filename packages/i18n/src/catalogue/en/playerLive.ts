@@ -11,6 +11,9 @@ export const playerLive = {
   /** The referral offer card (it left Home's tables for the carousel): `{chips}` is the bonus, `1,000`. */
   referralTitle: 'Referral',
   referralOffer: '{chips} bonus chips each',
+  /** The high hand's offer card (redesign RD-25): its eyebrow, and a hand with its Bonus, `Royal flush 25,000`. */
+  highHandTitle: 'High hand bonus',
+  highHandEach: '{hand} {chips}',
   /** A club notice's card above the offers (decision 0424): its gold eyebrow. */
   notice: 'From the club',
   allTables: 'All tables',

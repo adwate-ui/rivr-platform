@@ -3344,7 +3344,7 @@ isOneToOne: false
                            },
 "my_bonus_history":
 { Args: { "p_limit"?: number }; Returns: {
-              "amount_paise": number,"at": string,"kind": string,"line_id": string,"reason": string,"table_name": string
+              "amount_paise": number,"at": string,"hand": string,"kind": string,"line_id": string,"rank": string,"reason": string,"table_name": string
             }[]
                            },
 "my_cab":
@@ -3380,6 +3380,11 @@ isOneToOne: false
 "my_fnb_orders":
 { Args: Record<PropertyKey, never>; Returns: {
               "accepted_at": string,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"kot_number": number,"lines": Json,"on_way_at": string,"order_id": string
+            }[]
+                           },
+"my_high_hand":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "name": string,"promotion_id": string,"reward": Json
             }[]
                            },
 "my_next_play_time_bonus":
@@ -3855,6 +3860,11 @@ isOneToOne: false
 "tv_call_time_board":
 { Args: Record<PropertyKey, never>; Returns: {
               "call_time_left": number,"display_name": string,"is_away": boolean,"leaving_at": string,"seat": number,"stake_name": string,"table_id": string,"table_name": string
+            }[]
+                           },
+"tv_high_hand":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "name": string,"payouts": Json,"promotion_id": string,"reward": Json
             }[]
                            },
 "tv_leaderboard":

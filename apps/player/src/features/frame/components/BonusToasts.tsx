@@ -1,12 +1,15 @@
 import { useFeature } from '@rivr/db';
 import { useMyBonusHistory, type BonusLine } from '@rivr/db/bonus';
-import { formatChips, t } from '@rivr/i18n';
+import { formatChips, formatHighHand, t } from '@rivr/i18n';
 import { useToast } from '@rivr/ui';
 import { useEffect, useRef } from 'react';
 
-/** The toast's words for a line: chips added and why, or used and where. Nothing for chips that expired. */
+/** The toast's words for a line: chips added and why (a high hand by its hand), or used and where. Nothing for chips that expired. */
 function toastOf(line: BonusLine): string | null {
   const chips = formatChips(line.amount);
+  if (line.kind === 'credited' && line.highHand !== null) {
+    return t('player.bonus.highHand', { hand: formatHighHand(line.highHand.hand, line.highHand.rank), chips });
+  }
   if (line.kind === 'credited') return t('player.bonus.credited', { chips, reason: line.reason ?? '' });
   if (line.kind === 'expired') return null;
   return line.tableName === null ? t('player.bonus.redeemedNoTable', { chips }) : t('player.bonus.redeemed', { chips, table: line.tableName });

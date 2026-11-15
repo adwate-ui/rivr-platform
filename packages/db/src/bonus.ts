@@ -19,6 +19,8 @@ export interface BonusLine {
   readonly amount: Paise;
   readonly reason: string | null;
   readonly tableName: string | null;
+  /** The hand a high hand paid for chips given (redesign RD-25); null for any other line, and on a member's record. */
+  readonly highHand: { readonly hand: string; readonly rank: string | null } | null;
 }
 
 /** A line as staff see it on the member's record: also who seated the member when the chips were used. */
@@ -39,10 +41,14 @@ interface LineRow {
   amount_paise: number;
   reason: string | null;
   table_name: string | null;
+  /** The member's own history alone has them (my_bonus_history). */
+  hand?: string | null;
+  rank?: string | null;
 }
 
 function lineOf(row: LineRow): BonusLine {
-  return { id: row.line_id, at: row.at, kind: kindOf(row.kind), amount: toPaise(row.amount_paise), reason: row.reason, tableName: row.table_name };
+  const highHand = typeof row.hand === 'string' ? { hand: row.hand, rank: row.rank ?? null } : null;
+  return { id: row.line_id, at: row.at, kind: kindOf(row.kind), amount: toPaise(row.amount_paise), reason: row.reason, tableName: row.table_name, highHand };
 }
 
 /** The signed-in member's bonus chips in force; null for someone who is no member. */

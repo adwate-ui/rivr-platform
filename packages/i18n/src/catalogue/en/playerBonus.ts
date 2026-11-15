@@ -14,6 +14,8 @@ export const playerBonus = {
   noHistory: 'Nothing here yet.',
   /** A line's label, with its day: `Welcome bonus · 15 Nov`; `Buy-in · Table 3 · 15 Nov`; `Expired · Buy-in bonus Tuesday · 9 Nov`. */
   credited: '{reason} · {date}',
+  /** A high hand paid (redesign RD-25): `High hand: Straight flush, Nine high · 15 Nov`. */
+  highHand: 'High hand: {hand} · {date}',
   redeemed: 'Buy-in · {table} · {date}',
   redeemedNoTable: 'Buy-in · {date}',
   expired: 'Expired · {reason} · {date}',

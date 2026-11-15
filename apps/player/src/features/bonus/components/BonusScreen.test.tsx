@@ -28,6 +28,16 @@ describe('Bonus (redesign of 15 Nov)', () => {
     expect(screen.queryByText(/chips/i)).toBeNull();
   });
 
+  it('names the hand on a line a high hand paid (redesign RD-25)', async () => {
+    renderBonus({ balance: 1_400_000, lines: [
+      { line_id: 'h1', at: '2026-11-15T21:13:00Z', kind: 'credited', amount_paise: 1_000_000, reason: 'High hand bonus', table_name: null, hand: 'straight_flush', rank: 'nine' },
+      ...BONUS_LINES,
+    ] });
+    expect(await screen.findByText('High hand: Straight flush, Nine high · 16 Nov', {}, LATER)).toBeDefined();
+    expect(screen.getByText('+10,000')).toBeDefined();
+    expect(screen.queryByText(/High hand bonus/)).toBeNull();
+  });
+
   it('offers earlier lines once twenty are shown', async () => {
     const { historyAsked } = renderBonus({ balance: 3_000_000, lines: TWENTY });
     fireEvent.click(await screen.findByRole('button', { name: 'Show earlier' }, LATER));
