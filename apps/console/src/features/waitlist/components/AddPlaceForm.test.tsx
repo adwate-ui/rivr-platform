@@ -1,7 +1,7 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { ToastProvider } from '@rivr/ui';
 import { QueryClient } from '@tanstack/react-query';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AddPlaceForm } from './AddPlaceForm.tsx';
 
@@ -33,7 +33,10 @@ function renderForm(answer: () => Promise<Response> | Response) {
       <ToastProvider place="console"><AddPlaceForm venueId="v1" table={{ id: 't1', name: 'Table 1' }} /></ToastProvider>
     </RivrDataProvider>,
   );
-  return { sent, field: screen.getByRole('textbox', { name: 'Add: mobile or member number' }), add: screen.getByRole('button', { name: 'Add' }) };
+  // Add on the table's list opens the panel at the side (redesign RD-38), where the number is typed.
+  fireEvent.click(screen.getByRole('button', { name: 'Add to Table 1' }));
+  const panel = within(screen.getByRole('dialog', { name: 'Add to Table 1' }));
+  return { sent, field: panel.getByRole('textbox', { name: 'Add: mobile or member number' }), add: panel.getByRole('button', { name: 'Add' }) };
 }
 
 describe('adding a member to a table’s list (console v3)', () => {
@@ -49,6 +52,8 @@ describe('adding a member to a table’s list (console v3)', () => {
     fireEvent.change(field, { target: { value: '63' } });
     fireEvent.click(add);
     expect(await screen.findByText('Added to Table 1')).toBeDefined();
+    // Added, the panel closes.
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(sent).toEqual([{ p_table_id: 't1', p_phone: '', p_member_number: 63, p_idempotency_key: expect.any(String) }]);
   });
 

@@ -168,6 +168,8 @@ export const waitlist = {
     declineShort: 'Decline',
     add: 'Add: mobile or member number',
     addShort: 'Add',
+    /** The Add button read out, and the title of the panel it opens (redesign RD-38). */
+    addTo: 'Add to {table}',
     addInvalid: 'Enter a mobile or member number.',
     select: 'Select {name}',
     more: 'More for {name}',

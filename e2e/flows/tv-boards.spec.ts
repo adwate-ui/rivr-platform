@@ -68,8 +68,11 @@ async function removeLeftover(floor: Page, name: string) {
 
 /** Adds a member to the console's Table 1 list (50/100) by number. */
 async function addToFifties(floor: Page, number: string, name: string) {
-  await gameList(floor, 'Table 1').getByRole('textbox', { name: 'Add: mobile or member number' }).fill(number);
-  await gameList(floor, 'Table 1').getByRole('button', { name: 'Add', exact: true }).click();
+  await gameList(floor, 'Table 1').getByRole('button', { name: /^Add to / }).click();
+  const panel = floor.getByRole('dialog');
+  await panel.getByRole('textbox', { name: 'Add: mobile or member number' }).fill(number);
+  await panel.getByRole('button', { name: 'Add', exact: true }).click();
+  await expect(panel).toHaveCount(0);
   await expect(floor.getByRole('button', { name: `More for ${name}`, exact: true })).toBeVisible();
 }
 

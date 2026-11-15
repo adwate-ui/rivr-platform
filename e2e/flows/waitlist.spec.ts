@@ -71,10 +71,13 @@ async function removeEvery(page: Page, name: string) {
   }
 }
 
-/** Adds a member to a list by their mobile number or membership number. */
+/** Adds a member to a list by their mobile number or membership number, in the panel its Add opens (redesign RD-38). */
 async function addByNumber(list: Locator, number: string) {
-  await list.getByRole('textbox', { name: 'Add: mobile or member number' }).fill(number);
-  await list.getByRole('button', { name: 'Add', exact: true }).click();
+  await list.getByRole('button', { name: /^Add to / }).click();
+  const panel = list.page().getByRole('dialog');
+  await panel.getByRole('textbox', { name: 'Add: mobile or member number' }).fill(number);
+  await panel.getByRole('button', { name: 'Add', exact: true }).click();
+  await expect(panel).toHaveCount(0);
 }
 
 test.beforeAll(async ({ browser }) => {

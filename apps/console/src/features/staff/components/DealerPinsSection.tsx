@@ -2,7 +2,7 @@ import { useStaffVenue, useVenueDealers, type VenueDealer } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
 import { Button, DataTable, Screen, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
-import { PinForm } from './PinForm.tsx';
+import { PinSheet } from './PinForm.tsx';
 import { roleName } from './staffCopy.ts';
 
 /** Where a dealer's PIN stands: set, not yet, or locked after five wrong PINs and until when. */
@@ -11,8 +11,8 @@ function standing(dealer: VenueDealer): string {
   return t(dealer.hasPin ? 'console.dealerPins.hasPin' : 'console.dealerPins.noPin');
 }
 
-/** The columns: the dealer, their role (F-082), where their PIN stands, and Set PIN or Change, which opens the PIN's field under the row. */
-function pinColumns(openId: string | null, onOpen: (dealer: VenueDealer) => void): readonly DataTableColumn<VenueDealer>[] {
+/** The columns: the dealer, their role (F-082), where their PIN stands, and Set PIN or Change, which opens the PIN's field in the panel at the side. */
+function pinColumns(onOpen: (dealer: VenueDealer) => void): readonly DataTableColumn<VenueDealer>[] {
   return [
     { key: 'dealer', header: t('console.dealerPins.dealer'), cell: (dealer) => dealer.fullName, sortValue: (dealer) => dealer.fullName, priority: 'primary', filter: 'text' },
     { key: 'role', header: t('console.dealerPins.role'), cell: (dealer) => roleName(dealer.role), sortValue: (dealer) => roleName(dealer.role), filter: 'choice' },
@@ -22,7 +22,7 @@ function pinColumns(openId: string | null, onOpen: (dealer: VenueDealer) => void
       key: 'set', header: '', align: 'end',
       cell: (dealer) => (
         <Button variant="subtle" size="small" aria-label={t(dealer.hasPin ? 'console.dealerPins.changeFor' : 'console.dealerPins.setFor', { name: dealer.fullName })}
-          aria-expanded={openId === dealer.staffId} onClick={() => onOpen(dealer)}>
+          onClick={() => onOpen(dealer)}>
           {dealer.hasPin ? t('console.dealerPins.change') : t('console.dealerPins.set')}
         </Button>
       ),
@@ -32,7 +32,7 @@ function pinColumns(openId: string | null, onOpen: (dealer: VenueDealer) => void
 
 /**
  * Dealer PINs (#41, console v3): a table of the dealers, and the manager themselves if they deal (F-082), whose PIN the signed-in manager may set, each with Set PIN in its
- * row, which opens the PIN's field under it, rather than a form for every dealer. A dealer then enters it on the tablet
+ * row, which opens the PIN's field in the panel at the side (redesign RD-38), rather than a form for every dealer. A dealer then enters it on the tablet
  * to start a down. Only staff whose role includes everything a dealer does set one (decision 0046), so an admin sees the
  * list empty.
  */
@@ -48,7 +48,7 @@ export function DealerPinsSection() {
 
 function DealerList({ venueId }: { venueId: string }) {
   const dealers = useVenueDealers(venueId);
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [open, setOpen] = useState<VenueDealer | null>(null);
   const title = t('console.dealerPins.title');
   const [exportIn, setExportIn] = useState<HTMLElement | null>(null);
   if (dealers.isPending) return <Screen level={2} title={title} status="loading" loadingLook="rows" />;
@@ -56,9 +56,11 @@ function DealerList({ venueId }: { venueId: string }) {
   if (dealers.data.length === 0) return <Screen level={2} title={title} status="empty" emptyText={t('console.dealerPins.empty')} />;
   return (
     <Screen level={2} title={title} onActionsSlot={setExportIn}>
-      <DataTable exportIn={exportIn} label={title} narrowLayout="scroll" columns={pinColumns(openId, (dealer) => setOpenId(openId === dealer.staffId ? null : dealer.staffId))} rows={dealers.data}
-        rowKey={(dealer) => dealer.staffId} emptyText={t('console.dealerPins.empty')}
-        rowDetail={(dealer) => (openId === dealer.staffId ? <PinForm venueId={venueId} staffId={dealer.staffId} name={dealer.fullName} /> : null)} />
+      <DataTable exportIn={exportIn} label={title} narrowLayout="scroll" columns={pinColumns(setOpen)} rows={dealers.data}
+        rowKey={(dealer) => dealer.staffId} emptyText={t('console.dealerPins.empty')} />
+      {open === null ? null : (
+        <PinSheet key={open.staffId} venueId={venueId} staffId={open.staffId} name={open.fullName} hasPin={open.hasPin} onClose={() => setOpen(null)} />
+      )}
     </Screen>
   );
 }

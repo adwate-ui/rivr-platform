@@ -2,17 +2,24 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { floorWaitlistAddSchema } from '@rivr/contracts';
 import { useFloorWaitlistActions, type WaitlistFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, Stack, useToast } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, Input, Sheet, Stack, useToast } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import { FAILURE_COPY } from './failureCopy.ts';
 
+interface AddPlaceSheetProps {
+  venueId: string;
+  table: { id: string; name: string };
+  onClose: () => void;
+}
+
 /**
- * Adds a member to one table's list (decision 0467) by their mobile number or membership number (console v3). A new
- * request id for each number added, so a retried tap adds the member once and the next number is a new request.
+ * Adds a member to one table's list (decision 0467) by their mobile number or membership number, in the panel at the side
+ * (redesign RD-38). One request id for the number as typed, so a retried tap adds the member once; a number changed is a
+ * new request. Added, it says so in a toast and closes.
  */
-export function AddPlaceForm({ venueId, table }: { venueId: string; table: { id: string; name: string } }) {
+function AddPlaceSheet({ venueId, table, onClose }: AddPlaceSheetProps) {
   const { add } = useFloorWaitlistActions(venueId);
   const toast = useToast();
   const [requestId, setRequestId] = useState(() => crypto.randomUUID());
@@ -26,21 +33,39 @@ export function AddPlaceForm({ venueId, table }: { venueId: string; table: { id:
     setFailure(added.ok ? null : added.error);
     if (!added.ok) return;
     toast(t('console.waitlist.toast.added', { table: table.name }));
-    form.reset();
-    setRequestId(crypto.randomUUID());
+    onClose();
   });
   const field = form.register('number', { onChange: () => setRequestId(crypto.randomUUID()) });
+  const footer = (
+    <Inline gap={2} justify="end">
+      <Button variant="text" size="compact" onClick={onClose}>{t('common.cancel')}</Button>
+      <Button variant="primary" size="compact" isLoading={form.formState.isSubmitting || add.isPending} onClick={() => void submit()}>
+        {t('console.waitlist.card.addShort')}
+      </Button>
+    </Inline>
+  );
   return (
-    <Stack gap={2}>
-      <Inline gap={2} align="end">
-        <Input {...field} variant="subtle" label={t('console.waitlist.card.add')} inputMode="numeric" autoComplete="off"
+    <Sheet place="console" isOpen onClose={onClose} footer={footer} title={t('console.waitlist.card.addTo', { table: table.name })}>
+      <Stack gap={3}>
+        <Input {...field} label={t('console.waitlist.card.add')} inputMode="numeric" autoComplete="off"
+          error={form.formState.errors.number ? t('console.waitlist.card.addInvalid') : undefined}
           onKeyDown={(event) => { if (event.key === 'Enter') void submit(); }} />
-        <Button variant="text" size="compact" isLoading={form.formState.isSubmitting || add.isPending} onClick={() => void submit()}>
-          {t('console.waitlist.card.addShort')}
-        </Button>
-      </Inline>
-      {form.formState.errors.number ? <ErrorMessage>{t('console.waitlist.card.addInvalid')}</ErrorMessage> : null}
-      {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
-    </Stack>
+        {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
+      </Stack>
+    </Sheet>
+  );
+}
+
+/** Add, on a table's list: it opens the panel for that table, a fresh one each time. */
+export function AddPlaceForm({ venueId, table }: { venueId: string; table: { id: string; name: string } }) {
+  const [opened, setOpened] = useState(0);
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <Inline>
+      <Button variant="text" size="compact" aria-label={t('console.waitlist.card.addTo', { table: table.name })} onClick={() => { setOpened(opened + 1); setIsOpen(true); }}>
+        {t('console.waitlist.card.addShort')}
+      </Button>
+      {isOpen ? <AddPlaceSheet key={opened} venueId={venueId} table={table} onClose={() => setIsOpen(false)} /> : null}
+    </Inline>
   );
 }
