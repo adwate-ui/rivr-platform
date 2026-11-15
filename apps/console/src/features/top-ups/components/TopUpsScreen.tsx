@@ -1,8 +1,10 @@
+import type { Permission } from '@rivr/contracts';
 import { isTopUpLate, secondsWaiting } from '@rivr/domain/topUps';
 import { isTopUpWaiting, useSetTopUp, useStaffVenue, useTopUpsTonight, type SeatFailure, type TopUpTonight } from '@rivr/db';
-import { formatDuration, formatTime, t } from '@rivr/i18n';
+import { formatDuration, formatMinutesSeconds, formatTime, t } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Inline, Screen, Stack, Text, WaitTimer } from '@rivr/ui';
 import { useEffect, useState } from 'react';
+import { PastTopUps } from './PastTopUps.tsx';
 
 /** The time now, once a second, so each wait counts up on screen. */
 function useNow(): Date {
@@ -20,14 +22,26 @@ function statusOf(request: TopUpTonight): string {
   return t(`console.topUps.status.${request.status}`);
 }
 
-/** Who and where, when they asked; for a waiting one, its wait against the minute. */
+/** Who took each step of a request and how long it took (redesign RD-32): accepted, then done; nothing for a step not taken. */
+function stepsOf(request: TopUpTonight): string[] {
+  const accepted = request.acceptedBy === null || request.acceptedSeconds === null ? []
+    : [t('console.topUps.acceptedBy', { name: request.acceptedBy, time: formatMinutesSeconds(request.acceptedSeconds) })];
+  const done = request.doneBy === null || request.doneSeconds === null ? []
+    : [t('console.topUps.doneBy', { name: request.doneBy, time: formatMinutesSeconds(request.doneSeconds) })];
+  return [...accepted, ...done];
+}
+
+/** Who and where, when they asked; for a waiting one, its wait against the minute; then who took each step and how long it took. */
 function Who({ request, now }: { request: TopUpTonight; now: Date | null }) {
   return (
-    <Inline gap={3} align="center" wrap>
-      <Text>{t('console.topUps.line', { table: request.tableName, seat: request.seat, name: request.fullName })}</Text>
-      <Text variant="small" tone="muted">{t('console.topUps.askedAt', { time: formatTime(new Date(request.requestedAt)) })}</Text>
-      {now === null ? null : <WaitTimer seconds={secondsWaiting(new Date(request.requestedAt), now)} isLate={isTopUpLate(secondsWaiting(new Date(request.requestedAt), now))} />}
-    </Inline>
+    <Stack gap={1}>
+      <Inline gap={3} align="center" wrap>
+        <Text>{t('console.topUps.line', { table: request.tableName, seat: request.seat, name: request.fullName })}</Text>
+        <Text variant="small" tone="muted">{t('console.topUps.askedAt', { time: formatTime(new Date(request.requestedAt)) })}</Text>
+        {now === null ? null : <WaitTimer seconds={secondsWaiting(new Date(request.requestedAt), now)} isLate={isTopUpLate(secondsWaiting(new Date(request.requestedAt), now))} />}
+      </Inline>
+      {stepsOf(request).map((step) => <Text key={step} variant="small" tone="muted">{step}</Text>)}
+    </Stack>
   );
 }
 
@@ -51,10 +65,14 @@ function WaitingRow({ request, now, isBusy, onSet }: { request: TopUpTonight; no
   );
 }
 
+/** Who handles top-ups: the floor, by its own permission, and guest relations and admins by theirs (redesign RD-32). */
+const handlesTopUps = (permissions: readonly Permission[]) => permissions.includes('waitlist.manage') || permissions.includes('top_ups.manage');
+
 /**
  * Top-ups (decision 0299): the requests waiting, oldest first, each with its wait counting up and red once past the minute,
- * the floor starting and finishing each from its line; then tonight's closed ones with how long each took. For the floor
- * (waitlist.manage); the rail counts the waiting ones in red.
+ * whoever handles them starting and finishing each from its line; then tonight's closed ones with how long each took, and
+ * past days a page at a time. Each says who accepted it, who marked it done and how long each step took (redesign RD-32).
+ * For the floor (waitlist.manage) and for guest relations (top_ups.manage), whose whole console this is.
  */
 export function TopUpsScreen() {
   const staff = useStaffVenue();
@@ -65,7 +83,7 @@ export function TopUpsScreen() {
   const [failure, setFailure] = useState<SeatFailure | null>(null);
   const title = t('console.topUps.title');
   if (staff.status !== 'ready') return null;
-  if (!staff.venue.permissions.includes('waitlist.manage')) return <Screen title={title} status="error" errorText={t('console.topUps.notAllowed')} />;
+  if (!handlesTopUps(staff.venue.permissions)) return <Screen title={title} status="error" errorText={t('console.topUps.notAllowed')} />;
   if (requests.data === undefined) {
     return requests.isError ? <Screen title={title} status="error" onRetry={() => void requests.refetch()} /> : <Screen title={title} status="loading" />;
   }
@@ -88,6 +106,7 @@ export function TopUpsScreen() {
           {failure === null ? null : <ErrorMessage>{t(`console.topUps.failures.${failure === 'paused' || failure === 'not_allowed' ? failure : 'changed'}`)}</ErrorMessage>}
         </Stack>
         <Earlier requests={requests.data.filter((request) => !isTopUpWaiting(request))} />
+        <PastTopUps venueId={venueId} />
       </Stack>
     </Screen>
   );

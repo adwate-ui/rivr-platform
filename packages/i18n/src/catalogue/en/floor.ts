@@ -178,6 +178,19 @@ export const topUps = {
   line: '{table}, seat {seat} · {name}',
   askedAt: 'Asked {time}',
   status: { requested: 'Asked', in_progress: 'In progress', fulfilled: 'Fulfilled in {time}', reset: 'Reset', left: 'Left before it was done' },
+  /** Who took each step and how long it took (redesign RD-32): under a request in hand or done. `{time}` is minutes and seconds, `1:20`. */
+  acceptedBy: 'Accepted by {name} in {time}',
+  doneBy: 'Done by {name} in {time}',
+  /** Past requests, a club day at a time. */
+  past: 'By day',
+  /** An empty cell: a step nobody took. */
+  none: '–',
+  day: 'Day',
+  pastLabel: 'Top-ups of the day',
+  nonePast: 'No top-ups that day.',
+  columns: { where: 'Table and seat', member: 'Member', asked: 'Asked', acceptedBy: 'Accepted by', accepted: 'Asked to accepted', doneBy: 'Done by', done: 'Accepted to done', status: 'Status' },
+  where: '{table}, seat {seat}',
+  statusShort: { requested: 'Asked', in_progress: 'In progress', fulfilled: 'Done', reset: 'Reset', left: 'Left before it was done' },
   start: 'Start',
   startName: 'The top-up for {name} is in progress',
   done: 'Done',

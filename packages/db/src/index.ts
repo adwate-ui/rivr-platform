@@ -92,6 +92,7 @@ export type { MemberExportDetails } from './memberDetails.ts';
 export { useMemberSignUp, type MemberSignUp, type SignUpCampaign } from './memberSignUp.ts';
 export { useResetMemberHours, type ResetHoursFailure } from './memberHours.ts';
 export { useChangeMemberPhone, type PhoneChangeFailure } from './memberPhone.ts';
+export { TOP_UP_HISTORY_PAGE, useTopUpHistory, type PastTopUp, type TopUpHistoryPage } from './topUpHistory.ts';
 export {
   useEraseMember, useMemberErasurePreview, useMemberErasureRequests, useMyErasureRequest, useRemoveErasedKycFiles, useRequestMyErasure, type Erasure,
   type ErasureBlocker, type ErasureFailure, type ErasurePreview, type ErasureRequest,

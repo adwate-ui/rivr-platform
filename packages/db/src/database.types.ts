@@ -3764,9 +3764,14 @@ isOneToOne: false
               "checked_in_at": string,"checked_out_at": string,"full_name": string,"member_id": string,"member_number": number,"status": string,"tables": Json,"waiting_seconds": number
             }[]
                            },
+"top_up_history":
+{ Args: { "p_day": string,"p_page"?: number,"p_page_size"?: number,"p_venue_id": string }; Returns: {
+              "accepted_by": string,"accepted_seconds": number,"done_by": string,"done_seconds": number,"full_name": string,"request_id": string,"requested_at": string,"seat": number,"status": string,"table_name": string,"total": number
+            }[]
+                           },
 "top_ups_tonight":
 { Args: { "p_venue_id": string }; Returns: {
-              "fulfilled_seconds": number,"full_name": string,"request_id": string,"requested_at": string,"seat": number,"session_id": string,"status": string,"table_name": string
+              "accepted_by": string,"accepted_seconds": number,"done_by": string,"done_seconds": number,"fulfilled_seconds": number,"full_name": string,"request_id": string,"requested_at": string,"seat": number,"session_id": string,"status": string,"table_name": string
             }[]
                            },
 "tournament_interest_list":

@@ -19,6 +19,12 @@ export interface TopUpTonight {
   readonly requestedAt: string;
   /** Whole seconds from asking to fulfilled; null until it is. */
   readonly fulfilledSeconds: number | null;
+  /** Who accepted it and the seconds from asking to then; null until someone has (redesign RD-32). */
+  readonly acceptedBy: string | null;
+  readonly acceptedSeconds: number | null;
+  /** Who marked it done and the seconds from accepted to then; null unless it was fulfilled. */
+  readonly doneBy: string | null;
+  readonly doneSeconds: number | null;
 }
 
 const TOP_UP_STATUSES: readonly TopUpStatus[] = ['requested', 'in_progress', 'fulfilled', 'reset', 'left'];
@@ -30,7 +36,7 @@ const topUpStatusOf = (value: string): TopUpStatus => TOP_UP_STATUSES.find((stat
 /** Read every five seconds: the floor has sixty to bring a top-up (decision 0299). */
 const TOP_UPS_LIVE = 5_000;
 
-/** Tonight's top-up requests at the venue, by table, for staff who read members (`top_ups_tonight`). */
+/** Tonight's top-up requests at the venue, by table, for staff who handle them: the floor, and guest relations (`top_ups_tonight`). */
 export function useTopUpsTonight(venueId: string, isEnabled = true) {
   const { client, userId } = useRivrData();
   return useQuery({
@@ -43,6 +49,7 @@ export function useTopUpsTonight(venueId: string, isEnabled = true) {
       return data.map((row) => ({
         requestId: row.request_id, sessionId: row.session_id, tableName: row.table_name, seat: row.seat, fullName: row.full_name, status: topUpStatusOf(row.status),
         requestedAt: row.requested_at, fulfilledSeconds: row.fulfilled_seconds,
+        acceptedBy: row.accepted_by, acceptedSeconds: row.accepted_seconds, doneBy: row.done_by, doneSeconds: row.done_seconds,
       }));
     },
   });

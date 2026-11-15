@@ -102,6 +102,9 @@ export const queryKeys = {
   fnbItems: (userId: string, venueId: string) => ['user', userId, 'fnb-items', venueId] as const,
   fnbOrdersTonight: (userId: string, venueId: string) => ['user', userId, 'fnb-orders-tonight', venueId] as const,
   topUpsTonight: (userId: string, venueId: string) => ['user', userId, 'top-ups-tonight', venueId] as const,
+  /** A club day's top-up requests, a page at a time (redesign RD-32); every page starts with topUpHistoryAll, which a step taken makes stale. */
+  topUpHistoryAll: (userId: string, venueId: string) => ['user', userId, 'top-up-history', venueId] as const,
+  topUpHistory: (userId: string, venueId: string, day: string, page: number) => ['user', userId, 'top-up-history', venueId, day, page] as const,
   staffQueueCounts: (userId: string, venueId: string) => ['user', userId, 'staff-queue-counts', venueId] as const,
   /** The signed-in staff member's console density at a venue (decision 0475). */
   staffDensity: (userId: string, venueId: string) => ['user', userId, 'staff-density', venueId] as const,

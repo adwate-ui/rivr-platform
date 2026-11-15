@@ -8,9 +8,9 @@ describe('grantableRoles', () => {
   });
 
   it('gives an admin only roles within their own permissions: not the cage, the dealer\'s hand logging, marketing, the owner\'s view or a super admin', () => {
-    // Service holds only food and drink (#640), which an admin holds too. Not another admin: a role that moves money or
-    // gives a second approval is a super admin's to give.
-    expect(grantableRoles(ROLE_PERMISSIONS.admin)).toEqual(['host', 'service', 'floor']);
+    // Service holds only food and drink (#640) and guest relations only top-ups (redesign RD-32), which an admin holds too.
+    // Not another admin: a role that moves money or gives a second approval is a super admin's to give.
+    expect(grantableRoles(ROLE_PERMISSIONS.admin)).toEqual(['host', 'service', 'floor', 'guest_relations']);
   });
 
   it('gives a cashier no cashier, which gives a second approval, and a dealer only a dealer', () => {

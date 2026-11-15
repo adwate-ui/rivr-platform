@@ -143,7 +143,7 @@ function useSeatSettle(venueId: string) {
     // Tonight's top-ups too, so Top-ups moves on as soon as the floor starts or finishes one (decision 0299), and the rail's
     // counts, so a time request decided leaves its red count at once (decision 0305).
     const reread = [queryKeys.floorSeats(user, venueId), queryKeys.heldSeats(user, venueId), queryKeys.leftOwingCallTime(user, venueId), queryKeys.floorTables(user),
-      queryKeys.topUpsTonight(user, venueId), queryKeys.staffQueueCounts(user, venueId), queryKeys.floorRequests(user, venueId)];
+      queryKeys.topUpsTonight(user, venueId), queryKeys.topUpHistoryAll(user, venueId), queryKeys.staffQueueCounts(user, venueId), queryKeys.floorRequests(user, venueId)];
     await Promise.all(reread.map((queryKey) => queryClient.invalidateQueries({ queryKey })));
     return error ? err(codes[error.code] ?? 'unavailable') : ok(null);
   };
