@@ -4,7 +4,7 @@ import { axeViolations, renderIn } from '../test/render.tsx';
 import { DisplayPreview } from './DisplayPreview.tsx';
 
 describe('DisplayPreview', () => {
-  it('shows a TV stage, wordmark and all, named for what it previews, inside the console\'s own main', () => {
+  it('shows a TV stage, named for what it previews, inside the console\'s own main', () => {
     renderIn(<main><DisplayPreview label="TV slide"><p>Double points</p></DisplayPreview></main>);
     expect(screen.getByRole('group', { name: 'TV slide' })).toHaveTextContent('Double points');
     expect(screen.getAllByRole('main')).toHaveLength(1);

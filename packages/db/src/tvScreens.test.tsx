@@ -102,20 +102,23 @@ describe('An unpaired TV', () => {
 });
 
 describe('A paired TV', () => {
-  it('reads its name, mode and the boards it turns to in between', async () => {
+  it('reads its name and its boards in order, each with its seconds', async () => {
     const { wrapper } = renderTvs('tv-login', {
-      '/rpc/my_tv_screen': { body: [{ device_id: 'd1', venue_id: VENUE, name: 'Bar TV', mode: 'waitlist', rotation: ['promotions'] }] },
+      '/rpc/my_tv_screen': { body: [{ device_id: 'd1', venue_id: VENUE, name: 'Bar TV', boards: ['waitlist', 'promotions', 'high_hand'], seconds: [30, 12, 45] }] },
     });
     const { result } = renderHook(() => useMyTvScreen(), { wrapper });
-    await waitFor(() => expect(result.current.data).toEqual({ deviceId: 'd1', venueId: VENUE, name: 'Bar TV', mode: 'waitlist', rotation: ['promotions'] }));
+    await waitFor(() => expect(result.current.data).toEqual({
+      deviceId: 'd1', venueId: VENUE, name: 'Bar TV',
+      boards: [{ mode: 'waitlist', seconds: 30 }, { mode: 'promotions', seconds: 12 }, { mode: 'high_hand', seconds: 45 }],
+    }));
   });
 
-  it('shows the waitlist in place of a board the club dropped, and leaves that board out of its turns', async () => {
+  it('leaves out a board that went, and shows the waitlist when none is left', async () => {
     const { wrapper } = renderTvs('tv-login', {
-      '/rpc/my_tv_screen': { body: [{ device_id: 'd1', venue_id: VENUE, name: 'Bar TV', mode: 'spin_wheel', rotation: ['spin_wheel', 'promotions'] }] },
+      '/rpc/my_tv_screen': { body: [{ device_id: 'd1', venue_id: VENUE, name: 'Bar TV', boards: ['spin_wheel'], seconds: [30] }] },
     });
     const { result } = renderHook(() => useMyTvScreen(), { wrapper });
-    await waitFor(() => expect(result.current.data).toEqual({ deviceId: 'd1', venueId: VENUE, name: 'Bar TV', mode: 'waitlist', rotation: ['promotions'] }));
+    await waitFor(() => expect(result.current.data).toEqual({ deviceId: 'd1', venueId: VENUE, name: 'Bar TV', boards: [{ mode: 'waitlist', seconds: 30 }] }));
   });
 
   it('signs itself out once it reads nothing, so it shows a new code', async () => {
@@ -149,7 +152,8 @@ describe('The console\'s TVs', () => {
     });
     const { result } = renderHook(() => useVenueTvs(VENUE), { wrapper });
     await waitFor(() => expect(result.current.data).toEqual([
-      { deviceId: 'd1', name: 'Bar TV', isPaired: true, mode: 'jackpot', rotation: ['call_time', 'promotions'], lastSeenAt: JUST_NOW, isOnline: true },
+      // A board that went reads as the waitlist: the database holds none now, and the type still names them.
+      { deviceId: 'd1', name: 'Bar TV', isPaired: true, mode: 'waitlist', rotation: ['call_time', 'promotions'], lastSeenAt: JUST_NOW, isOnline: true },
       { deviceId: 'd2', name: 'Door TV', isPaired: false, mode: null, rotation: [], lastSeenAt: null, isOnline: false },
       { deviceId: 'd3', name: 'Old TV', isPaired: true, mode: null, rotation: [], lastSeenAt: LONG_AGO, isOnline: false },
     ]));

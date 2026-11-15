@@ -172,7 +172,7 @@ export function useTvWaitlistBoard() {
 }
 
 /**
- * A place on the TVs' hours leaderboard (decision 0581), in the period the club set: a first name and initial, or for a member
+ * A place on one of the TVs' hours leaderboard's lists (decision 0581), tonight's or the period's the club set: a first name and initial, or for a member
  * who hid their name on the TVs their member number, and the whole minutes played.
  */
 export interface TvLeaderboardRow {
@@ -199,7 +199,7 @@ export function toTvLeaderboard(rows: readonly LeaderboardRecord[]): TvLeaderboa
   }));
 }
 
-/** The signed-in TV's hours leaderboard at its venue, in order; read every half minute, as hours grow while members play. */
+/** The signed-in TV's hours leaderboard at its venue: tonight's list, then the period's the club set, each in order; read every half minute, as hours grow while members play. */
 export function useTvLeaderboard() {
   const { client, userId } = useRivrData();
   return useQuery({
@@ -210,6 +210,24 @@ export function useTvLeaderboard() {
       const { data, error } = await client.rpc('tv_leaderboard');
       if (error) throw error;
       return toTvLeaderboard(data);
+    },
+  });
+}
+
+/**
+ * The club's notice for the foot of the signed-in TV's boards (redesign RD-28): the text of its venue's notice in force
+ * that started last, or null with none. Read every half minute, so a notice staff put up or end shows without a reload.
+ */
+export function useTvNotice() {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.tvNotice(userId ?? 'signed-out'),
+    enabled: userId !== null,
+    refetchInterval: BOARD_CHECK,
+    queryFn: async (): Promise<string | null> => {
+      const { data, error } = await client.rpc('tv_notice');
+      if (error) throw error;
+      return data;
     },
   });
 }

@@ -61,7 +61,7 @@ describe('every setting the contracts declare, as the Settings screen shows it',
       identity: ['kyc.at_the_club'],
       bonus: ['bonus.expiry_days', 'bonus.daily_staff_cap', 'bonus.by_hand_cap', 'bonus.visit_cap'],
       membership: ['tier.default'],
-      rotation: ['tv.leaderboard'],
+      rotation: ['tv.boards', 'tv.board_seconds', 'tv.leaderboard'],
     });
   });
 

@@ -94,6 +94,8 @@ export * from './TabletShell/index.ts';
 export * from './DisplayShell/index.ts';
 export * from './TvWaitlistBoard/index.ts';
 export * from './TvCallTimeBoard/index.ts';
+export * from './TvHoursBoard/index.ts';
+export * from './TvStage/index.ts';
 export * from './TournamentClock/index.ts';
 export * from './TvPromotionSlide/index.ts';
 export * from './TvBoardProgress/index.ts';

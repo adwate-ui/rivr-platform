@@ -2,7 +2,7 @@
  * @perf TV modes recover within 5 seconds of a reload (#66; additions "Performance budgets"): a
  * power cut costs a reload, not a reset. Signed in once on the console as a floor manager (Ritu
  * Malik, this flow's own sign-in: Auth sends one code a minute to a number), a TV is paired, then
- * put on each of the four modes the console offers in turn; after each change the TV is reloaded and must show that
+ * put on each of the five boards the console offers in turn (redesign RD-28); after each change the TV is reloaded and must show that
  * mode within five seconds. The TV is unpaired at the end.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
@@ -15,10 +15,11 @@ const BUDGET = 5_000;
 /** Each mode, by its chip on the console, and what shows the TV has rendered it. */
 const MODES: readonly { chip: string; rendered: (tv: Page) => Locator }[] = [
   { chip: 'Waitlist board', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Waitlist' }) },
-  { chip: 'Call-time board', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Call time' }) },
+  { chip: 'Call-time board', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Seats opening' }) },
   // A live promotion's slide, or that none is running (#86).
-  { chip: 'Promotions', rendered: (tv) => tv.getByText('Promotion', { exact: true }).or(tv.getByText('No promotions running.', { exact: true })) },
+  { chip: 'Promotions', rendered: (tv) => tv.getByText('Offer', { exact: true }).or(tv.getByText('No promotions running.', { exact: true })) },
   { chip: 'Hours leaderboard', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Most hours played' }) },
+  { chip: 'High hand bonus', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'High hand bonus' }) },
 ];
 
 test.describe('TV reload', () => {

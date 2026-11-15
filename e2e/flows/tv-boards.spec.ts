@@ -8,10 +8,13 @@
  * - the floor adds Vihaan Kapoor to Table 1's list, and the TV shows "Vihaan K." within seconds, through
  *   Realtime and not its half-minute read;
  * - the console offers no jackpot board, and the TV shows no rupee; each board has its progress bar (#628);
- * - on the call-time board (decision 0163), the floor seats Nakul Dhillon in the Private Room, where call
- *   time is three hours (#634): the TV shows him at his table with the time left. Marked leaving, he is among the
- *   console's requests and the TV shows his seat opening, within seconds. Given the promotions to turn
- *   to in between, the TV shows a promotion slide, then the call-time board again. Nakul is from the
+ * - the club's notice, put up in Settings, runs along the foot of the board, and is gone once ended (redesign RD-28);
+ * - on the call-time board (decision 0163), titled Seats opening, the floor seats Nakul Dhillon in the Private Room, where
+ *   call time is three hours (#634): the TV lists his seat with the time left. Marked leaving, he is among the console's
+ *   requests, and his seat stays on the TV's one list with the call time he still owes. In Settings, TVs, Rotation (redesign RD-28)
+ *   Pooja types the seconds on each board; given the high hand bonus and the promotions to turn to in between, the TV
+ *   passes over the high hand bonus, which has nothing to show, shows a promotion slide, then Seats opening again; with
+ *   the promotions switched off under Boards shown it stays on Seats opening, and they are switched on again. Nakul is from the
  *   seed's hundred more members, whom no other flow seats; Pooja, an admin, lets him leave early, and he leaves.
  * Both leave the list and the TV is unpaired at the end.
  */
@@ -24,6 +27,44 @@ import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 const PLAYER = 'Vihaan Kapoor';
 const HIDDEN = 'Kunal Mehra';
 const LEAVING = 'Nakul Dhillon';
+
+/** Changes one of Settings' Rotation rules from now: opens its panel from its row, lets `change` type in it, saves and closes. */
+async function saveRotation(page: Page, setting: string, change: (panel: Locator) => Promise<void>) {
+  await page.getByRole('button', { name: `Change ${setting}`, exact: true }).click();
+  const panel = page.getByRole('dialog', { name: setting });
+  await change(panel);
+  await panel.getByRole('textbox', { name: 'Reason' }).fill('TV boards flow');
+  await panel.getByRole('button', { name: 'Save change' }).click();
+  await expect(panel.getByText('Change saved.')).toBeVisible();
+  await panel.getByRole('button', { name: 'Close' }).click();
+}
+
+/** Puts a notice up in Settings, Notices, as the Notices flow does. */
+async function putUpNotice(floor: Page, words: string) {
+  await openConsole(floor, '/settings?tab=notices');
+  await floor.getByRole('textbox', { name: 'Notice' }).fill(words);
+  await floor.getByRole('button', { name: 'Put up' }).click();
+  await expect(floor.getByRole('status').getByText('Notice put up.')).toBeVisible();
+}
+
+/** Ends that notice again, asked first. */
+async function endNotice(floor: Page, words: string) {
+  await floor.getByRole('button', { name: `End the notice: ${words}` }).click();
+  await floor.getByRole('button', { name: 'Yes, end it' }).click();
+  await expect(floor.getByRole('status').getByText('Notice ended.')).toBeVisible();
+}
+
+/** The club's notice along the foot of the TV's board (redesign RD-28): there once put up, the TV reading it as it loads; gone once ended. */
+async function noticeOnTheFoot(tv: Page, floor: Page) {
+  const words = `Table 4 opens at 9 tonight (${String(Date.now())}).`;
+  await putUpNotice(floor, words);
+  await tv.reload();
+  await expect(tv.getByText(words, { exact: true })).toBeVisible({ timeout: 15_000 });
+  await endNotice(floor, words);
+  await tv.reload();
+  await expect(tv.getByRole('heading', { level: 1, name: 'Waitlist' })).toBeVisible({ timeout: 15_000 });
+  await expect(tv.getByText(words, { exact: true })).toHaveCount(0);
+}
 
 /** The console's card for one table's list (decision 0467), found by its heading (console v3). */
 function gameList(page: Page, name: string): Locator {
@@ -100,6 +141,7 @@ test.describe('TV boards', () => {
     await expect(tv.getByRole('heading', { level: 1, name: 'Waitlist' })).toBeVisible({ timeout: 15_000 });
     // The bar along the foot fills over the board's half minute, so the board reads as live (#628).
     await expect(tv.locator('[data-board-progress]')).toHaveCount(1);
+    await noticeOnTheFoot(tv, floor);
     // A table has a column only while someone waits for it (F-140).
     const fifties = tv.getByRole('region', { name: 'Table 1', exact: true });
 
@@ -128,15 +170,15 @@ test.describe('TV boards', () => {
       .toHaveCount(0);
     await expect(tv.getByText(/₹/)).toHaveCount(0);
 
-    // The call-time board: Nakul at his table with three hours to play, then his seat opening once he says he is leaving, from
-    // his seat in the app (the console's Mark leaving is hidden, decision 0299).
+    // The call-time board: Nakul's seat with three hours to play, before and after he says he is leaving, from his seat in the
+    // app (the console's Mark leaving is hidden, decision 0299).
     const modes = floor.getByRole('radiogroup', { name: `What ${name} shows`, exact: true });
     await modes.getByRole('radio', { name: 'Call-time board', exact: true }).click();
-    await expect(tv.getByRole('heading', { level: 1, name: 'Call time' })).toBeVisible({ timeout: 15_000 });
+    await expect(tv.getByRole('heading', { level: 1, name: 'Seats opening' })).toBeVisible({ timeout: 15_000 });
     await seatNakul(floor);
-    const room = tv.getByRole('region', { name: 'Private Room' });
-    await expect(room.getByText('Nakul D.', { exact: true })).toBeVisible({ timeout: 10_000 });
-    await expect(room.getByText(/^(3h 00m|2h 59m)$/)).toBeVisible();
+    const seat = tv.getByRole('listitem').filter({ hasText: 'Nakul D.' });
+    await expect(seat.getByText('Private Room · seat 8', { exact: true })).toBeVisible({ timeout: 10_000 });
+    await expect(seat.getByText(/^(3 h|2 h 5\d min)$/)).toBeVisible();
     const nakul = await (await browser.newContext()).newPage();
     await signInToPlayer(nakul, '9000000400');
     // Tonight › Leaving list: Leave seat asks first, as call time is owed (decision 0320).
@@ -147,20 +189,33 @@ test.describe('TV boards', () => {
       .filter({ hasText: /^Leaving/ }).last();
     await expect(leaving).toBeVisible({ timeout: 20_000 });
     await expect(leaving).toContainText('Private Room, seat 8');
-    const openings = tv.getByRole('region', { name: 'Seats opening' });
-    await expect(openings.getByText('Private Room · Seat 8', { exact: true })).toBeVisible({ timeout: 10_000 });
-    await expect(openings.getByText('Nakul D.', { exact: true })).toBeVisible();
-    await expect(openings.getByText(/^In (3h 00m|2h 59m)$/)).toBeVisible();
-    await expect(room.getByText('Nakul D.', { exact: true })).toHaveCount(0);
+    // Leaving or not, his seat is on the board's one list, with the call time he still owes.
+    await expect(seat.getByText('Private Room · seat 8', { exact: true })).toBeVisible();
+    await expect(seat.getByText(/^(3 h|2 h 5\d min)$/)).toBeVisible();
 
-    // The promotions in between: after half a minute on the board, a promotion, and then the board again.
-    // TVs are a part of Settings' Devices tab (console v3), opened by address once sign-in is through.
+    // Settings, TVs, Rotation (redesign RD-28): the seconds on each board, typed. TVs are a part of Settings (console v3).
     await openConsole(floor, '/settings?tab=tvs');
-    await floor.getByRole('group', { name: `What ${name} turns to in between`, exact: true }).getByRole('button', { name: 'Promotions', exact: true }).click();
-    await expect(floor.getByRole('group', { name: `What ${name} turns to in between`, exact: true })
-      .getByRole('button', { name: 'Promotions', exact: true })).toHaveAttribute('aria-pressed', 'true');
-    await expect(tv.getByText('Promotion', { exact: true })).toBeVisible({ timeout: 50_000 });
-    await expect(tv.getByRole('heading', { level: 1, name: 'Call time' })).toBeVisible({ timeout: 60_000 });
+    await saveRotation(floor, 'Time on each board', async (panel) => {
+      await panel.getByRole('textbox', { name: 'Call time' }).fill('8');
+      await panel.getByRole('textbox', { name: 'Promotions' }).fill('5');
+    });
+    // The high hand bonus and the promotions in between: the TV passes over the high hand bonus, which has nothing to show,
+    // and after eight seconds on the board shows a promotion, and then the board again.
+    const turns = floor.getByRole('group', { name: `What ${name} turns to in between`, exact: true });
+    await turns.getByRole('button', { name: 'High hand bonus', exact: true }).click();
+    await expect(turns.getByRole('button', { name: 'High hand bonus', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await turns.getByRole('button', { name: 'Promotions', exact: true }).click();
+    await expect(turns.getByRole('button', { name: 'Promotions', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(tv.getByText('Offer', { exact: true })).toBeVisible({ timeout: 30_000 });
+    await expect(tv.getByRole('heading', { level: 1, name: 'High hand bonus' })).toHaveCount(0);
+    await expect(tv.getByRole('heading', { level: 1, name: 'Seats opening' })).toBeVisible({ timeout: 30_000 });
+    // Boards shown: the promotions switched off show on no TV, so this one stays on Seats opening; then on again.
+    await saveRotation(floor, 'Boards shown', async (panel) => panel.getByRole('switch', { name: 'Promotions' }).click());
+    await expect(tv.getByRole('heading', { level: 1, name: 'Seats opening' })).toBeVisible({ timeout: 15_000 });
+    await tv.waitForTimeout(12_000);
+    await expect(tv.getByText('Offer', { exact: true })).toHaveCount(0);
+    await expect(tv.getByRole('heading', { level: 1, name: 'Seats opening' })).toBeVisible();
+    await saveRotation(floor, 'Boards shown', async (panel) => panel.getByRole('switch', { name: 'Promotions' }).click());
 
     // Pooja, an admin, lets Nakul go before his call time, and he leaves.
     await floor.getByRole('link', { name: 'Live floor' }).click();

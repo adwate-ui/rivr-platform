@@ -42,7 +42,7 @@ test.describe('TV pairing', () => {
     await expect(floor.getByText(`${name} is paired.`)).toBeVisible();
 
     // The TV asks every three seconds whether its code was typed in.
-    await expect(tv.getByRole('heading', { name: 'Call time' })).toBeVisible({ timeout: 15_000 });
+    await expect(tv.getByRole('heading', { level: 1, name: 'Seats opening' })).toBeVisible({ timeout: 15_000 });
     // The console's list asks again every ten seconds, so the TV shows as on by itself.
     const modes = floor.getByRole('radiogroup', { name: `What ${name} shows`, exact: true });
     // The row is the chips' group's grandparent: this TV's, not another left by an earlier run.
@@ -51,7 +51,7 @@ test.describe('TV pairing', () => {
     await modes.getByRole('radio', { name: 'Promotions', exact: true }).click();
     await expect(modes.getByRole('radio', { name: 'Promotions', exact: true })).toHaveAttribute('aria-checked', 'true');
     // Promotions shows a live promotion's slide, or that none is running (#86).
-    const promotions = tv.getByText('Promotion', { exact: true }).or(tv.getByText('No promotions running.', { exact: true }));
+    const promotions = tv.getByText('Offer', { exact: true }).or(tv.getByText('No promotions running.', { exact: true }));
     await expect(promotions).toBeVisible({ timeout: 15_000 });
     await tv.reload();
     await expect(promotions).toBeVisible({ timeout: 5_000 });

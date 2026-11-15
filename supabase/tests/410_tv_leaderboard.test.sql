@@ -114,8 +114,8 @@ select is_empty($$ select * from public.tv_leaderboard() $$, 'a TV on the waitli
 reset role;
 update public.tv_screen set rotation = array['leaderboard']::public.tv_mode[] where device_id = '00000000-0000-4000-8000-00000000d410';
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e410');
-select ok((select count(*) > 0 and bool_and(period = 'all') and max(place) <= 3 from public.tv_leaderboard()),
-  'in its rotation, the board as the club set it: all time, places 1 to 3');
+select ok((select bool_or(period = 'all') and bool_and(period in ('tonight', 'all')) and max(place) <= 3 from public.tv_leaderboard()),
+  'in its rotation, the board as the club set it: all time, beside tonight (test 462), places 1 to 3');
 reset role;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is_empty($$ select * from public.tv_leaderboard() $$, 'staff, not a TV, read nothing');

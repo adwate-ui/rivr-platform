@@ -1,22 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Money } from '../Money/Money.tsx';
-import { Stack } from '../Stack/Stack.tsx';
+import { TV_STORY_NOTICE, TV_STORY_NOW } from '../test/tvStory.tsx';
 import { Text } from '../Text/Text.tsx';
-import { Time } from '../Time/Time.tsx';
+import { TvStage } from '../TvStage/TvStage.tsx';
 import { DisplayShell } from './DisplayShell.tsx';
-
-// 00:10 IST.
-const NOW = new Date('2026-11-15T18:40:00Z');
-
-const jackpot = (label: string, highHand: string) => (
-  <Stack grow justify="center" gap={6}>
-    <Text variant="tvLabel" tone="muted">
-      {label}
-    </Text>
-    <Money paise={34_260_000n} size="jackpot" tone="player" />
-    <Text variant="tvBody">{highHand}</Text>
-  </Stack>
-);
 
 const meta = {
   title: 'Shells/DisplayShell',
@@ -24,8 +10,9 @@ const meta = {
   tags: ['viewport-tv'],
   parameters: { layout: 'fullscreen' },
   args: {
-    corner: <Time at={NOW} size="title" />,
-    children: jackpot('Bad-beat jackpot', 'High hand tonight · Four nines · Table 3'),
+    clockAt: TV_STORY_NOW,
+    notice: TV_STORY_NOTICE,
+    children: <TvStage title="Waitlist"><Text variant="tvBody" tone="muted">No one waiting.</Text></TvStage>,
   },
 } satisfies Meta<typeof DisplayShell>;
 
@@ -34,16 +21,18 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
+/** A TV not yet paired: no board, no clock and no notice. */
 export const Empty: Story = {
   args: {
-    children: (
-      <Text variant="tvBody" tone="muted">
-        No promotions running.
-      </Text>
-    ),
+    clockAt: undefined,
+    notice: undefined,
+    children: <TvStage><Text variant="tvBody" tone="muted">This TV is not set up yet.</Text></TvStage>,
   },
 };
 
 export const LongText: Story = {
-  args: { children: jackpot('Bad-beat jackpot, main pool plus the season pool', 'High hand tonight · Straight flush, nine high · Private Room · 01:12') },
+  args: {
+    notice: 'The Private Room opens at 9 tonight for Pot-Limit Omaha 1,000/2,000 with a three-hour call time. Ask the floor manager for a seat before 8.',
+    children: <TvStage title="High hand bonus and promotions"><Text variant="tvBody">Straight flush, nine high · Private Room · 01:12</Text></TvStage>,
+  },
 };

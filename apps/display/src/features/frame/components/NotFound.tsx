@@ -1,7 +1,7 @@
 import { t } from '@rivr/i18n';
-import { Text } from '@rivr/ui';
+import { Text, TvStage } from '@rivr/ui';
 
 /** Shown for an address the app does not have. */
 export function NotFound() {
-  return <Text variant="tvBody">{t('common.notFound')}</Text>;
+  return <TvStage><Text variant="tvBody">{t('common.notFound')}</Text></TvStage>;
 }

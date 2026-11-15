@@ -1,88 +1,83 @@
 import type { TvMode } from '@rivr/contracts';
-import { useMyTvScreen, useTvSignals } from '@rivr/db';
-import { t } from '@rivr/i18n';
-import { Heading, StaleNotice, Stack, Text, TvBoardProgress } from '@rivr/ui';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMyTvScreen, useTvSignals, type TvBoardTurn } from '@rivr/db';
+import { StaleNotice, TvBoardProgress } from '@rivr/ui';
+import { useCallback, useEffect, useMemo, useState, type ReactElement } from 'react';
 import { CallTimeMode } from './CallTimeMode.tsx';
+import { HighHandMode } from './HighHandMode.tsx';
 import { LeaderboardMode } from './LeaderboardMode.tsx';
-import { PromotionsMode, SLIDE_MS } from './PromotionsMode.tsx';
+import { PromotionsMode } from './PromotionsMode.tsx';
 import { WaitlistMode } from './WaitlistMode.tsx';
 import { BoardStatus } from './BoardStatus.tsx';
 
-// In a rotation, each board shows for half a minute; the promotions show one after another, then the next board.
-// The bar along the stage's foot fills over the half minute, so a board that is not changing reads as live (#628).
-const BOARD_MS = 30_000;
-// The promotions turn every 12 seconds, so there the bar fills over each slide.
-const progressFor = (mode: TvMode) => (mode === 'promotions' ? SLIDE_MS : BOARD_MS);
+// A board with no turn of its own to read still shows: the waitlist, for half a minute.
+const WAITLIST: TvBoardTurn = { mode: 'waitlist', seconds: 30 };
 
-/** The boards a TV shows: its main one, then those it turns to (decision 0163). */
-export function boardsFor(mode: TvMode, rotation: readonly TvMode[]): TvMode[] {
-  return [mode, ...rotation];
-}
+/** A board's time on the screen, in milliseconds: the seconds Settings, TVs, Rotation gives it; for the promotions, each slide's. */
+export const turnMs = (board: TvBoardTurn) => board.seconds * 1_000;
 
 interface BoardProps {
-  mode: TvMode;
-  name: string;
+  board: TvBoardTurn;
   /** In a rotation: the promotions call it once each has shown. */
   onDone?: (() => void) | undefined;
-  /** In a rotation, except the main board: a board with nothing to show calls it to pass on (D-03). */
+  /** In a rotation, except the first board: a board with nothing to show calls it to pass on (D-03). */
   onEmpty?: (() => void) | undefined;
 }
 
-/** One board: the waitlist (#65), the promotions (#86), the call-time board (decision 0163) and the hours leaderboard (decision 0581). */
-function Board({ mode, name, onDone, onEmpty }: BoardProps) {
-  if (mode === 'waitlist') return <WaitlistMode />;
-  if (mode === 'call_time') return <CallTimeMode />;
-  if (mode === 'promotions') return <PromotionsMode onDone={onDone} />;
-  if (mode === 'leaderboard') return <LeaderboardMode onEmpty={onEmpty} />;
-  return (
-    <Stack gap={4}>
-      <Heading level={1} variant="display">{t(`tv.modes.${mode}`)}</Heading>
-      <Text variant="tvBody" tone="muted">{name}</Text>
-    </Stack>
-  );
+// The five boards (redesign RD-28), and nothing else.
+const BOARDS: Readonly<Record<TvMode, (props: BoardProps) => ReactElement>> = {
+  waitlist: () => <WaitlistMode />,
+  call_time: () => <CallTimeMode />,
+  promotions: ({ board, onDone }) => <PromotionsMode slideMs={turnMs(board)} onDone={onDone} />,
+  leaderboard: ({ onEmpty }) => <LeaderboardMode onEmpty={onEmpty} />,
+  high_hand: ({ onEmpty }) => <HighHandMode onEmpty={onEmpty} />,
+};
+
+/** One board: the waitlist (#65), call time (decision 0163), the promotions (#86), the hours leaderboard (decision 0581) or the high hand bonus. */
+function Board(props: BoardProps) {
+  return BOARDS[props.board.mode](props);
 }
 
-/** The TV's main board, then each board it turns to (decision 0163), round and round, each with its progress from empty. */
-function Rotation({ boards, name }: { boards: readonly TvMode[]; name: string }) {
+/** The TV's boards in turn (decision 0163), round and round, each for its own seconds, with its progress from empty. */
+function Rotation({ boards }: { boards: readonly TvBoardTurn[] }) {
   const [turn, setTurn] = useState(0);
   const next = useCallback(() => setTurn((current) => current + 1), []);
   // Once a turn whoever asks: an empty board and its effect run twice in development, and must not skip two boards (D-03).
   const done = useMemo(() => () => setTurn((current) => (current === turn ? current + 1 : current)), [turn]);
-  const mode = boards[turn % boards.length] ?? 'waitlist';
+  const board = boards[turn % boards.length] ?? WAITLIST;
   useEffect(() => {
-    if (mode === 'promotions') return undefined;
-    const timer = setTimeout(next, BOARD_MS);
+    // The promotions hand on themselves, once each has shown.
+    if (board.mode === 'promotions') return undefined;
+    const timer = setTimeout(next, turnMs(board));
     return () => clearTimeout(timer);
-  }, [mode, turn, next]);
+  }, [board, turn, next]);
   return (
     <>
-      <Board key={turn} mode={mode} name={name} onDone={done} onEmpty={turn % boards.length === 0 ? undefined : done} />
-      <TvBoardProgress key={`progress-${turn}`} durationMs={progressFor(mode)} />
+      <Board key={turn} board={board} onDone={done} onEmpty={turn % boards.length === 0 ? undefined : done} />
+      <TvBoardProgress key={`progress-${turn}`} durationMs={turnMs(board)} />
     </>
   );
 }
 
 /** The paired TV's boards, live: one Realtime channel for all of them, however they turn (decision 0163). */
-function Boards({ venueId, mode, rotation, name }: { venueId: string; mode: TvMode; rotation: readonly TvMode[]; name: string }) {
+function Boards({ venueId, boards }: { venueId: string; boards: readonly TvBoardTurn[] }) {
   useTvSignals(venueId);
-  const boards = boardsFor(mode, rotation);
-  if (boards.length === 1) {
+  const [first = WAITLIST, ...rest] = boards;
+  if (rest.length === 0) {
     return (
       <>
-        <Board mode={boards[0] ?? 'waitlist'} name={name} />
-        <TvBoardProgress durationMs={progressFor(boards[0] ?? 'waitlist')} />
+        <Board board={first} />
+        <TvBoardProgress durationMs={turnMs(first)} />
       </>
     );
   }
-  return <Rotation key={boards.join()} boards={boards} name={name} />;
+  return <Rotation key={boards.map((board) => `${board.mode}:${String(board.seconds)}`).join()} boards={boards} />;
 }
 
 /**
- * A paired TV: the mode the console gave it, and the boards it turns to in between (decision 0163). It
- * asks again every ten seconds, so a new mode shows without a reload, and an unpaired TV signs itself
- * out and shows a new code. When that ask fails, as every read does in a network drop, the boards keep
- * what they last had and a quiet line says since when (F3-24); no one can press anything on a TV.
+ * A paired TV: the boards the console gave it, less any switched off in Settings, each for the seconds set there (redesign
+ * RD-28). It asks again every ten seconds, so a change shows without a reload, and an unpaired TV signs itself out and
+ * shows a new code. When that ask fails, as every read does in a network drop, the boards keep what they last had and a
+ * quiet line says since when (F3-24); no one can press anything on a TV.
  */
 export function ModeScreen() {
   const screen = useMyTvScreen();
@@ -93,7 +88,7 @@ export function ModeScreen() {
   if (screen.data === null) return null;
   return (
     <>
-      <Boards venueId={screen.data.venueId} mode={screen.data.mode} rotation={screen.data.rotation} name={screen.data.name} />
+      <Boards venueId={screen.data.venueId} boards={screen.data.boards} />
       {screen.isError ? <StaleNotice since={new Date(screen.dataUpdatedAt)} variant="tv" /> : null}
     </>
   );

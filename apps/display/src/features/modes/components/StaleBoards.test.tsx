@@ -24,7 +24,7 @@ function renderTv(drop: 'answers 503' | 'unreachable' = 'answers 503') {
     asked += 1;
     if (asked > 1 && drop === 'unreachable') throw new TypeError('Failed to fetch');
     if (asked > 1) return Response.json({ message: 'unreachable' }, { status: 503 });
-    return Response.json([{ device_id: 'd1', venue_id: 'v1', name: 'Lobby TV', mode: 'waitlist', rotation: [] }]);
+    return Response.json([{ device_id: 'd1', venue_id: 'v1', name: 'Lobby TV', boards: ['waitlist'], seconds: [30] }]);
   });
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(

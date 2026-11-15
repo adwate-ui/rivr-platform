@@ -76,8 +76,8 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select throws_ok($$ select public.set_tv_rotation('00000000-0000-4000-8000-00000000d951', '{}') $$, '42501', null, 'a dealer cannot change a TV''s rotation');
 
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e951');
-select results_eq($$ select mode, rotation from public.my_tv_screen() $$,
-  $$ values ('waitlist'::public.tv_mode, array['call_time', 'promotions']::public.tv_mode[]) $$, 'the TV reads what it turns to');
+select results_eq($$ select boards from public.my_tv_screen() $$,
+  $$ values (array['waitlist', 'call_time', 'promotions']::public.tv_mode[]) $$, 'the TV reads what it turns to');
 select results_eq($$ select table_name, seat, display_name, call_time_left, is_away, leaving_at is not null from public.tv_call_time_board() $$,
   $$ values ('Table 3'::text, 2, 'Vihaan K.'::text, 10800, false, false), ('Private Room', 1, 'Ishaan V.', 10800, false, true) $$,
   'in its rotation, the TV reads every seated player by table: a first name and initial, call time left, and who is leaving');
@@ -104,8 +104,8 @@ select is((select display_name from public.tv_call_time_board() where seat = 2),
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select lives_ok($$ select public.set_tv_mode('00000000-0000-4000-8000-00000000d951', 'call_time') $$, 'the call-time board becomes the main one');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e951');
-select results_eq($$ select mode, rotation from public.my_tv_screen() $$,
-  $$ values ('call_time'::public.tv_mode, array['promotions']::public.tv_mode[]) $$, 'and leaves the rotation');
+select results_eq($$ select boards from public.my_tv_screen() $$,
+  $$ values (array['call_time', 'promotions']::public.tv_mode[]) $$, 'and leaves the rotation');
 select is_empty($$ select * from public.tv_waitlist_board() $$, 'the waitlist is no longer on the TV, so it reads no names there');
 select is((select count(*)::integer from public.tv_call_time_board()), 2, 'but reads the call-time board');
 

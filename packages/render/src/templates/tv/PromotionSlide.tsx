@@ -17,7 +17,7 @@ export function PromotionSlide({ title, detail, when, position }: PromotionSlide
   const pager = position === undefined ? undefined : { ...position, label: t('tv.promotion.pager', position) };
   return (
     <DisplayShell>
-      <TvPromotionSlide label={t('tv.promotion.label')} title={title} detail={detail} when={when} pager={pager} />
+      <TvPromotionSlide board={t('tv.promotion.title')} label={t('tv.promotion.label')} title={title} detail={detail} when={when} pager={pager} />
     </DisplayShell>
   );
 }

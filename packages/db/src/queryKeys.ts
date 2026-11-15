@@ -182,6 +182,8 @@ export const queryKeys = {
   onboardingChecklists: (userId: string, venueId: string) => ['user', userId, 'onboarding-checklists', venueId] as const,
   /** The signed-in TV's waitlist board (#65). */
   tvWaitlistBoard: (userId: string) => ['user', userId, 'tv-waitlist-board'] as const,
+  /** The club's notice along the foot of the signed-in TV's boards (redesign RD-28). */
+  tvNotice: (userId: string) => ['user', userId, 'tv-notice'] as const,
   /** The signed-in TV's call-time board (decision 0163). */
   tvCallTimeBoard: (userId: string) => ['user', userId, 'tv-call-time-board'] as const,
   /** The paired TV's promotions rotation (#86), and the member's Home cards. */

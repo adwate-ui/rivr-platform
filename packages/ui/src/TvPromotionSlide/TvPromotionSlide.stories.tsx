@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { DisplayShell } from '../DisplayShell/DisplayShell.tsx';
+import { onTv } from '../test/tvStory.tsx';
 import { TvPromotionSlide } from './TvPromotionSlide.tsx';
 
 const meta = {
@@ -7,13 +7,14 @@ const meta = {
   component: TvPromotionSlide,
   tags: ['viewport-tv'],
   parameters: { layout: 'fullscreen' },
-  decorators: [(Story) => <DisplayShell><Story /></DisplayShell>],
+  decorators: [onTv],
   args: {
-    label: 'Promotion',
-    title: 'High hands',
-    detail: 'Royal flush ₹25,000 · Straight flush ₹10,000 · Four of a kind ₹2,000',
-    when: 'Every night',
-    pager: { current: 2, count: 3, label: 'Promotion 2 of 3' },
+    board: 'Promotions',
+    label: 'Offer',
+    title: 'Friday four-hour bonus',
+    detail: '1,000 Bonus after 4 hours',
+    when: 'Every day, all tables',
+    pager: { current: 1, count: 4, label: 'Promotion 1 of 4' },
   },
 } satisfies Meta<typeof TvPromotionSlide>;
 
@@ -31,8 +32,8 @@ export const Empty: Story = { args: { detail: undefined, when: undefined, pager:
 export const LongText: Story = {
   args: {
     title: 'Buy-in bonus Tuesday at every table',
-    detail: '20% on the first five buy-ins at each table, up to ₹2,000 a buy-in, played as bonus within a week',
+    detail: '20% on the first five buy-ins at each table, up to 2,000 a buy-in, played as Bonus within a week',
     when: 'Tuesday, 18:00 to 04:00 · Every stake',
-    pager: { current: 1, count: 6, label: 'Promotion 1 of 6' },
+    pager: { current: 3, count: 6, label: 'Promotion 3 of 6' },
   },
 };

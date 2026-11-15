@@ -143,7 +143,7 @@ export const tvs = {
   modeFor: 'What {name} shows',
   /** The boards a TV turns to after its main one (decision 0163). */
   rotationFor: 'What {name} turns to in between',
-  rotationHint: 'Each board shows for 30 seconds.',
+  rotationHint: 'Each board shows for the time set in Rotation.',
   unpair: 'Unpair',
   unpairReason: 'Why it is unpaired',
   unpairConfirm: 'Unpair the TV',

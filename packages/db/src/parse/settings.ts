@@ -61,13 +61,18 @@ function toField(name: string, property: SchemaProperty, isRequired: boolean): S
 }
 
 /**
- * A key's fields, in the schema's order. Every key's schema is an object of named fields
- * (`settingValueJsonSchema` in @rivr/contracts writes them, and a migration stores them).
+ * A key's fields. Every key's schema is an object of named fields (`settingValueJsonSchema` in @rivr/contracts writes
+ * them, and a migration stores them). The database keeps a schema's properties in its own order, shortest name first,
+ * but its `required` list in the order the fields were written: so the fields a value must hold come first, in that
+ * order (the TVs' boards in board order, redesign RD-28), then the optional ones as stored.
  */
 export function toSettingFields(valueSchema: Json): SettingField[] {
   const schema = valueSchema as { properties?: Readonly<Record<string, SchemaProperty>>; required?: readonly string[] };
-  const required = new Set(schema.required ?? []);
-  return Object.entries(schema.properties ?? {}).map(([name, property]) => toField(name, property, required.has(name)));
+  const written = new Map((schema.required ?? []).map((name, index) => [name, index]));
+  const place = (name: string) => written.get(name) ?? Number.MAX_SAFE_INTEGER;
+  return Object.entries(schema.properties ?? {})
+    .sort(([a], [b]) => place(a) - place(b))
+    .map(([name, property]) => toField(name, property, written.has(name)));
 }
 
 /** A stored value. The database checked it against its key's schema, whose fields are numbers, switches, text or lists. */

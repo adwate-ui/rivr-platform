@@ -1,33 +1,26 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { DisplayShell } from '../DisplayShell/DisplayShell.tsx';
+import { onTv } from '../test/tvStory.tsx';
 import { TvCallTimeBoard } from './TvCallTimeBoard.tsx';
+
+const NAMES = ['Yash G.', 'Devansh M.', 'Sakshi T.', 'Neel B.', 'Siddharth V.', 'Eshan T.', 'Kabir S.', 'Naina K.', 'Rohan B.'];
 
 const meta = {
   title: 'TV/TvCallTimeBoard',
   component: TvCallTimeBoard,
   tags: ['viewport-tv'],
   parameters: { layout: 'fullscreen' },
-  decorators: [(Story) => <DisplayShell><Story /></DisplayShell>],
+  decorators: [onTv],
   args: {
-    title: 'Call time',
-    openingsTitle: 'Seats opening',
-    noOpeningsText: 'No seats opening yet.',
+    title: 'Seats opening',
     emptyText: 'No one on call time.',
     moreText: (hidden: number) => `+${hidden} more`,
-    openings: [
-      { id: 'o1', where: 'Table 3 · Seat 5', name: 'Kabir S.', time: 'Now', isNow: true },
-      { id: 'o2', where: 'Private Room · Seat 2', name: 'Naina K.', time: 'In 0h 25m', isNow: false },
-    ],
-    tables: [
-      {
-        id: 't2', name: 'Table 2', detail: 'NLH 100/200',
-        rows: [
-          { id: 'r1', seat: '1', name: 'Rohan B.', time: '1h 52m' },
-          { id: 'r2', seat: '4', name: 'Rohan B.', time: 'Away' },
-        ],
-      },
-      { id: 't3', name: 'Table 3', detail: 'NLH 100/200', rows: [{ id: 'r3', seat: '2', name: 'Vihaan K.', time: '1h 00m' }] },
-      { id: 'pr', name: 'Private Room', detail: 'Private Room', rows: [{ id: 'r4', seat: '1', name: 'Ishaan V.', time: '1h 52m' }] },
+    seats: [
+      { id: 's1', where: 'Table 1 · seat 3', name: 'Yash G.', time: '12 min' },
+      { id: 's2', where: 'Table 2 · seat 6', name: 'Devansh M.', time: '18 min' },
+      { id: 's3', where: 'Table 5 · seat 3', name: 'Sakshi T.', time: '41 min' },
+      { id: 's4', where: 'Table 1 · seat 6', name: 'Neel B.', time: '1 h 5 min' },
+      { id: 's5', where: 'Table 3 · seat 5', name: 'Siddharth V.', time: '1 h 29 min' },
+      { id: 's6', where: 'Private Room · seat 2', name: 'Eshan T.', time: '2 h 10 min' },
     ],
   },
 } satisfies Meta<typeof TvCallTimeBoard>;
@@ -37,28 +30,27 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-/** Nobody leaving and nobody on call time. */
-export const Empty: Story = { args: { openings: [], tables: [] } };
+/** Nobody on call time. */
+export const Empty: Story = { args: { seats: [] } };
 
-/** More than fit: four openings and four players a table, each saying how many more; the tables a page at a time. */
+/** More seats than the stage holds: fourteen, and how many more. */
 export const Full: Story = {
   args: {
-    page: 'Tables 1 to 4 of 5',
-    openings: ['Kabir S.', 'Naina K.', 'Rohan B.', 'Arjun M.', 'Dev M.'].map((name, index) => ({
-      id: `o${index}`, where: `Table ${index + 2} · Seat ${index + 1}`, name, time: `In 0h ${(index + 1) * 10}m`, isNow: false,
-    })),
-    tables: ['Table 2', 'Table 3', 'Table 5', 'Private Room', 'Table 6'].map((table) => ({
-      id: table, name: table, detail: 'NLH 100/200',
-      rows: ['Rohan B.', 'Arjun M.', 'Ishaan V.', 'Vihaan K.', 'Dev M.'].map((name, index) => ({
-        id: `${table}-${index}`, seat: String(index + 1), name, time: index === 1 ? 'Away' : `1h ${(index + 1) * 11}m`,
-      })),
+    seats: Array.from({ length: 17 }, (_, index) => ({
+      id: `s${index}`, where: `Table ${(index % 5) + 1} · seat ${(index % 9) + 1}`, name: NAMES[index % NAMES.length] ?? '',
+      time: index === 0 ? 'Now' : index === 3 ? 'Away' : `${index * 9} min`,
     })),
   },
 };
 
+/** A long name keeps its whole width: its time goes under it (correction 34). A member who hid their name is their seat alone. */
 export const LongText: Story = {
   args: {
-    openings: [{ id: 'o1', where: 'Private Room · Seat 9', name: 'Venkataraghavan R.', time: 'In 1h 59m', isNow: false }],
-    tables: [{ id: 'pr', name: 'Private Room', detail: 'PLO 1,000/2,000', rows: [{ id: 'r1', seat: '9', name: 'Venkataraghavan R.', time: '1h 59m' }] }],
+    seats: [
+      { id: 's1', where: 'Private Room · seat 9', name: 'Venkataraghavan R.', time: '1 h 59 min' },
+      { id: 's2', where: 'Table 2 · seat 6', name: 'Devansh M.', time: '2 h 5 min' },
+      { id: 's3', where: 'Table 12 · seat 10', name: 'Chandrashekhar P.', time: '2 h 41 min' },
+      { id: 's4', where: 'Table 1 · seat 6', name: '', time: '2 h 50 min' },
+    ],
   },
 };

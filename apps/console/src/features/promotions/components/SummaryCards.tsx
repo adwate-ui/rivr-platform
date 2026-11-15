@@ -37,7 +37,8 @@ export function SummaryCards({ title, core, names, before }: SummaryCardsProps) 
       <OneLine label={t('console.promotions.builder.inOneLine')}
         line={core === null ? t('console.promotions.builder.incomplete') : describePromotion(core, names)} />
       <DisplayPreview label={t('console.promotions.builder.tvSlide')}>
-        <TvPromotionSlide level={2} label={t('console.promotions.slideLabel')} title={title} detail={words?.detail} when={words?.runs} />
+        <TvPromotionSlide level={2} board={t('tv.promotion.title')} label={t('console.promotions.slideLabel')} title={title} detail={words?.detail}
+          when={words?.runs} />
       </DisplayPreview>
     </>
   );
