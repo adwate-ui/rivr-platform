@@ -27,8 +27,8 @@ src/
     pairing/          a TV that is not paired shows a six-digit code for the console's TVs screen (#49)
     modes/            a paired TV shows the mode the console gave it (one still set to the hidden jackpot shows
                       the waitlist board, #628): the waitlist board (#65), the promotions (#86) and the call-time board with the
-                      seats opening (decision 0163), the rewards ticker and the League leaderboard (#148,
-                      decision 0183), the hours leaderboard in the period the club set (decision 0581), and the tournament clock counting down from the server's reading
+                      seats opening (decision 0163),
+                      the hours leaderboard in the period the club set (decision 0581), and the tournament clock counting down from the server's reading
                       (#119, decision 0201), live through Realtime; in between, the boards the console
                       chose for it to turn to, half a minute each, the promotions one after another; other modes show their name;
                       and the stream overlay, the tournament clock held back by the hole-card delay (#125)
@@ -44,4 +44,4 @@ Lane B owns every mode, built from `@rivr/ui` and lane D's templates.
 
 A TV recovers its mode within 5 seconds of a reload.
 
-In a rotation, a board with nothing to show (rewards, League) passes its half minute on; the main board never does, and promotions with none live show for one slide's time (D-03, decision 0293).
+In a rotation, a board with nothing to show passes its half minute on; the main board never does, and promotions with none live show for one slide's time (D-03, decision 0293).

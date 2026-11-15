@@ -32,7 +32,6 @@ const PAGE_ORDERS: readonly (readonly [string, Record<string, unknown>, readonly
   ['games', { heading: 'h' }, ['heading']],
   ['calendar', { heading: 'h' }, ['heading']],
   ['social_wall', { heading: 'h' }, ['heading']],
-  ['league', { heading: 'h' }, ['heading']],
   ['rewards', { heading: 'h' }, ['heading']],
 ];
 

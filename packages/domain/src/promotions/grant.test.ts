@@ -5,7 +5,7 @@ import { computeGrant, toPromotionEvent, triggerOf, type PromotionEvent } from '
 
 const event = (...args: Parameters<typeof buildPromotionEvent>): PromotionEvent => toPromotionEvent(buildPromotionEvent(...args));
 const buyIn = event({ kind: 'buy_in', ownChips: 10_000, isFirstOfVisit: true });
-const played = event({ kind: 'time_played', minutes: 300, points: 200 });
+const played = event({ kind: 'time_played', minutes: 300 });
 // A play-time bonus step: 300 minutes played, the 240-minute step reached.
 const step = (stepMinutes: number, minutes = 300) => event({ kind: 'hours_step', minutes, stepMinutes }, { key: `hours_step:visit-1:${String(stepMinutes)}` });
 const visit = event({ kind: 'visit', visitInMonth: 5 }, { tableId: null, stake: null });
@@ -19,8 +19,7 @@ describe('toPromotionEvent', () => {
 });
 
 describe('triggerOf', () => {
-  it('gives time-played rewards for time played, play-time bonuses for each step, buy-in bonuses for buy-ins and perks for visits', () => {
-    expect(triggerOf({ kind: 'points_multiplier', multiplier: 2 })).toBe('time_played');
+  it('gives play-time bonuses for each step, seat bonuses for a seat, buy-in bonuses for buy-ins and perks for visits', () => {
     expect(triggerOf({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 })).toBe('hours_step');
     expect(triggerOf({ kind: 'seat_bonus', chips: 1_000 })).toBe('seated');
     expect(triggerOf({ kind: 'hours_bonus', mode: 'every', everyMinutes: 60, chips: 100 })).toBe('hours_step');
@@ -49,13 +48,12 @@ describe('computeGrant', () => {
     expect(grantOf({ kind: 'buyin_bonus', mode: 'fixed', chips: 500 }, visit)).toEqual({ ok: false, error: 'other_event' });
   });
 
-  it('gives a points multiplier only as points, and a cap only to a percent', () => {
-    expect(grantOf({ kind: 'points_multiplier', multiplier: 1.75 }, played)).toEqual({ ok: true, value: { points: 150, chips: 0, perk: null } });
-    expect(grantOf({ kind: 'buyin_bonus', mode: 'percent', percent: 100 }, buyIn)).toEqual({ ok: true, value: { points: 0, chips: 10_000, perk: null } });
+  it('gives a percent with no cap the whole share', () => {
+    expect(grantOf({ kind: 'buyin_bonus', mode: 'percent', percent: 100 }, buyIn)).toEqual({ ok: true, value: { chips: 10_000, perk: null } });
   });
 
   it('gives a cab from its visit on, the visit itself included', () => {
-    expect(grantOf({ kind: 'cab_home', fromVisitInMonth: 5 }, visit)).toEqual({ ok: true, value: { points: 0, chips: 0, perk: 'cab_home' } });
+    expect(grantOf({ kind: 'cab_home', fromVisitInMonth: 5 }, visit)).toEqual({ ok: true, value: { chips: 0, perk: 'cab_home' } });
     expect(grantOf({ kind: 'cab_home', fromVisitInMonth: 6 }, visit)).toEqual({ ok: false, error: 'not_yet' });
   });
 
@@ -64,7 +62,7 @@ describe('computeGrant', () => {
   });
 
   it('gives a play-time bonus step its own chips once its minutes are played, and nothing for a step it does not have (owner, 8 Nov)', () => {
-    const chipsOf = (chips: number) => ({ ok: true, value: { points: 0, chips, perk: null } });
+    const chipsOf = (chips: number) => ({ ok: true, value: { chips, perk: null } });
     expect(grantOf({ kind: 'hours_bonus', chips: 500, afterMinutes: 240 }, step(240))).toEqual(chipsOf(500));
     expect(grantOf({ kind: 'hours_bonus', chips: 500, afterMinutes: 330 }, step(330))).toEqual({ ok: false, error: 'too_short' });
     expect(grantOf({ kind: 'hours_bonus', chips: 500, afterMinutes: 240 }, step(120))).toEqual({ ok: false, error: 'not_a_step' });

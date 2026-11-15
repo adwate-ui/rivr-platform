@@ -35,9 +35,8 @@ function eventsFor(promo: Terms, replayed: ReplayedEvent): readonly ReplayedEven
 const byTime = (one: ReplayedEvent, other: ReplayedEvent) =>
   one.event.at.getTime() - other.event.at.getTime() || (one.event.key < other.event.key ? -1 : Number(one.event.key > other.event.key));
 
-function totalsOf(grants: readonly LedgerEntry[]): Pick<Simulation, 'points' | 'chips' | 'perks'> {
+function totalsOf(grants: readonly LedgerEntry[]): Pick<Simulation, 'chips' | 'perks'> {
   return {
-    points: grants.reduce((total, grant) => total + grant.points, 0),
     chips: grants.reduce((total, grant) => total + grant.chips, 0),
     perks: grants.filter((grant) => grant.perk !== null).length,
   };
@@ -48,7 +47,7 @@ function totalsOf(grants: readonly LedgerEntry[]): Pick<Simulation, 'points' | '
  * as the engine weighs them live, each is weighed with isEligible, computeGrant and checkLimits against the grants the
  * replay has given so far, so the replay cannot disagree with the engine. Members qualified are those the promotion
  * would have given something before its limits; times given and the totals are the grants its limits let through. It
- * weighs the one promotion alone: stacking with others is not replayed, so a multiplier's points err high.
+ * weighs the one promotion alone: stacking with others is not replayed.
  */
 export function simulate(promo: Terms, events: readonly ReplayedEvent[]): Simulation {
   const grants: LedgerEntry[] = [];

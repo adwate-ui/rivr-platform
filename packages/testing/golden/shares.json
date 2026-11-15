@@ -1,0 +1,60 @@
+{
+  "rule": "shares",
+  "about": "Shares (#89; decision 0161). A session that moved tables shares its time played among them in proportion to the time at each, rounded down to the second: time played is the call-time clock's, seating to leaving, less time away. Each hand's rake is shared equally among the members seated at its table, rounded down to the paisa.",
+  "cases": [
+    {
+      "description": "No move: two hours at one table with 20 minutes away is 100 minutes played there.",
+      "operation": "table_time",
+      "inputs": { "tableSeconds": "7200", "sessionSeconds": "7200", "playedSeconds": "6000" },
+      "expected": { "seconds": "6000" }
+    },
+    {
+      "description": "Moved after an hour of a three-hour session with 30 minutes away: the first table gets a third of the 2 h 30 min played, 50 minutes.",
+      "operation": "table_time",
+      "inputs": { "tableSeconds": "3600", "sessionSeconds": "10800", "playedSeconds": "9000" },
+      "expected": { "seconds": "3000" }
+    },
+    {
+      "description": "The same session's second table gets the other two thirds, 100 minutes: the two add up to the time played.",
+      "operation": "table_time",
+      "inputs": { "tableSeconds": "7200", "sessionSeconds": "10800", "playedSeconds": "9000" },
+      "expected": { "seconds": "6000" }
+    },
+    {
+      "description": "A third of 2,000 seconds is 666.67: rounded down to 666 (the other table's 1,333.33 to 1,333, a second lost).",
+      "operation": "table_time",
+      "inputs": { "tableSeconds": "1000", "sessionSeconds": "3000", "playedSeconds": "2000" },
+      "expected": { "seconds": "666" }
+    },
+    {
+      "description": "A session that ended as it began: nothing played anywhere.",
+      "operation": "table_time",
+      "inputs": { "tableSeconds": "0", "sessionSeconds": "0", "playedSeconds": "0" },
+      "expected": { "seconds": "0" }
+    },
+    {
+      "description": "₹300 of rake among six seated: ₹50 each.",
+      "operation": "rake_share",
+      "inputs": { "rake": "₹300", "seated": "6" },
+      "expected": { "share": "₹50" }
+    },
+    {
+      "description": "₹350 among nine is ₹38.888...: rounded down to ₹38.88.",
+      "operation": "rake_share",
+      "inputs": { "rake": "₹350", "seated": "9" },
+      "expected": { "share": "₹38.88" }
+    },
+    {
+      "description": "Heads up in the Private Room at the ₹12,000 cap, one member seated: all of it.",
+      "operation": "rake_share",
+      "inputs": { "rake": "₹12,000", "seated": "1" },
+      "expected": { "share": "₹12,000" }
+    },
+    {
+      "description": "A hand with no rake: nothing to share.",
+      "operation": "rake_share",
+      "inputs": { "rake": "₹0", "seated": "9" },
+      "expected": { "share": "₹0" }
+    }
+  ]
+}

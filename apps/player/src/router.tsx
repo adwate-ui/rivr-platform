@@ -11,7 +11,6 @@ import { academyInvoiceRoute, academyPaymentRoute, academyRoute } from './routes
 import { houseRulesRoute, profileRoute } from './routes/profile.tsx';
 import { fnbRoute } from './routes/fnb.tsx';
 import { eventsRoute } from './routes/events.tsx';
-import { rewardsRoute } from './routes/rewards.tsx';
 import { rootRoute } from './routes/root.tsx';
 import { sessionRoute, sessionsRoute } from './routes/sessions.tsx';
 import { signInRoute } from './routes/sign-in.tsx';
@@ -24,7 +23,7 @@ const routeTree = rootRoute.addChildren([
   signUpRoute,
   kycRoute,
   kycReturnRoute,
-  frameRoute.addChildren([tonightRoute, sessionsRoute, sessionRoute, balanceRoute, withdrawRoute, depositRoute, rewardsRoute, bonusRoute, learnRoute, learnBookRoute, academyRoute, academyPaymentRoute, profileRoute, houseRulesRoute, cardRoute, fnbRoute, eventsRoute]),
+  frameRoute.addChildren([tonightRoute, sessionsRoute, sessionRoute, balanceRoute, withdrawRoute, depositRoute, bonusRoute, learnRoute, learnBookRoute, academyRoute, academyPaymentRoute, profileRoute, houseRulesRoute, cardRoute, fnbRoute, eventsRoute]),
 ]);
 
 /** A screen that failed to draw: the app's error screen, with Try again, in place of the router's unstyled default. */

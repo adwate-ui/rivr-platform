@@ -3,8 +3,8 @@ import { formatDayMonth, t } from '@rivr/i18n';
 import { Box, Button, Grid, Heading, Inline, Number as Count, Stack, Text } from '@rivr/ui';
 
 // What the third figure counts, by what the reward gives.
-const MEASURE: Readonly<Record<Reward['kind'], keyof PromotionSimulationResult & ('points' | 'chips' | 'perks')>> = {
-  points_multiplier: 'points', buyin_bonus: 'chips', seat_bonus: 'chips', hours_bonus: 'chips', bonus_chips: 'chips', cab_home: 'perks',
+const MEASURE: Readonly<Record<Reward['kind'], keyof PromotionSimulationResult & ('chips' | 'perks')>> = {
+  buyin_bonus: 'chips', seat_bonus: 'chips', hours_bonus: 'chips', bonus_chips: 'chips', cab_home: 'perks',
   tournament_entry: 'perks', waitlist_priority: 'perks',
 };
 

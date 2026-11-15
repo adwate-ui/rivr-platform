@@ -7,7 +7,7 @@ import { NAMES, refused, renderWithApi, resetApi, TUESDAY, type Reply } from './
 afterEach(resetApi);
 
 const NEW: BuilderStart = { promotionId: null, draft: null, form: blankForm('2026-11-10'), title: 'New promotion', notice: null };
-const SIMULATION = { events: 4, membersQualified: 3, timesGiven: 3, points: 0, chips: 4_500, perks: 0, isBudgetReached: false };
+const SIMULATION = { events: 4, membersQualified: 3, timesGiven: 3, chips: 4_500, perks: 0, isBudgetReached: false };
 
 // The calls a new draft's Save and Simulate make, answered: its version and promotion, and last week with no events.
 const SAVED_AND_REPLAYED: Readonly<Record<string, Reply>> = {
@@ -29,7 +29,7 @@ const submitButton = () => screen.getByRole('button', { name: 'Submit for approv
 describe('the promotion builder (console v3)', () => {
   it('keeps Submit for approval until a simulation has run on the terms as they stand', async () => {
     const { bodiesOf } = renderBuilder(NEW);
-    fireEvent.change(screen.getByRole('textbox', { name: 'Name members see' }), { target: { value: 'Weekend double points' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Name members see' }), { target: { value: 'Weekend seat bonus' } });
     expect(submitButton()).toHaveProperty('disabled', true);
     expect(screen.getByText('Run it before submitting, so the approver sees what it gives.')).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Simulate' }));
@@ -37,20 +37,20 @@ describe('the promotion builder (console v3)', () => {
     expect(screen.getByText('2 Nov to 8 Nov')).toBeDefined();
     expect(submitButton()).toHaveProperty('disabled', false);
     expect(bodiesOf('save_promotion_draft')[0]).toMatchObject({
-      p_venue_id: 'v1', p_draft: { terms: { name: 'Weekend double points', reward: { kind: 'points_multiplier', multiplier: 2 } }, detail: '2× points' },
+      p_venue_id: 'v1', p_draft: { terms: { name: 'Weekend seat bonus', reward: { kind: 'seat_bonus', chips: 1_000 } }, detail: '1,000 bonus chips on the first seat of a visit' },
     });
     expect(bodiesOf('record_promotion_simulation')).toHaveLength(1);
-    fireEvent.change(screen.getByRole('textbox', { name: 'Multiplier' }), { target: { value: '3' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Bonus chips' }), { target: { value: '1500' } });
     expect(submitButton()).toHaveProperty('disabled', true);
   });
 
   it('submits the simulated draft for approval, says so and goes back to the list', async () => {
     const { bodiesOf, onDone } = renderBuilder(NEW);
-    fireEvent.change(screen.getByRole('textbox', { name: 'Name members see' }), { target: { value: 'Weekend double points' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Name members see' }), { target: { value: 'Weekend seat bonus' } });
     fireEvent.click(screen.getByRole('button', { name: 'Simulate' }));
     await waitFor(() => expect(submitButton()).toHaveProperty('disabled', false));
     fireEvent.click(submitButton());
-    expect(await screen.findByText('Weekend double points sent for approval')).toBeDefined();
+    expect(await screen.findByText('Weekend seat bonus sent for approval')).toBeDefined();
     expect(bodiesOf('submit_promotion_version')).toEqual([{ p_version_id: 'v1' }]);
     expect(onDone).toHaveBeenCalledOnce();
   });
@@ -116,10 +116,10 @@ describe('the promotion builder (console v3)', () => {
 
   it('marks the fields the terms refuse and sends nothing', async () => {
     const { calls } = renderBuilder(NEW);
-    fireEvent.change(screen.getByRole('textbox', { name: 'Multiplier' }), { target: { value: '2.1' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Bonus chips' }), { target: { value: '1020' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save draft' }));
     expect(await screen.findByText('Name it in 3 to 80 characters.')).toBeDefined();
-    expect(screen.getByText('1.25 to 5, in quarters.')).toBeDefined();
+    expect(screen.getByText('Whole 50s of chips, from 50.')).toBeDefined();
     expect(screen.getAllByText('Not saved. Check the fields marked.').length).toBeGreaterThan(0);
     expect(calls.filter((call) => call.url.includes('/rpc/'))).toEqual([]);
   });

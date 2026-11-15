@@ -11,7 +11,7 @@ import { letGoEarly, seatOnFloor } from '../support/floor.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 test.describe('Sessions', () => {
-  test('Sessions, card, rewards › Sessions, Session detail: a member reads a session in her history, with no money, and hides it from her list', async ({ browser }) => {
+  test('Sessions, card, bonus › Sessions, Session detail: a member reads a session in her history, with no money, and hides it from her list', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'seats a member and closes her visit, so the local stack only');
     test.setTimeout(120_000);
     const sahil = await browser.newPage();

@@ -10,8 +10,7 @@ import { socialConnectedChannels } from './channels.ts';
 import { floorRequestTargets, tvLeaderboard } from './floorSettings.ts';
 import { hostLapse } from './hostQueue.ts';
 import {
-  accommodationHoursPerNight, authStoreReviewer, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, cabMinimumVisits, kycAtTheClub, leaguePrizes, learnDailyPointsCap, learnSessionPoints, pointsDailyStaffCap, pointsPerHour, pointsRewardsRakeShare,
-  pointsVerifiedBonus, rakebackRate, reviewsGoogleUrl,
+  authStoreReviewer, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, cabMinimumVisits, kycAtTheClub, learnDailyPointsCap, learnSessionPoints,   rakebackRate, reviewsGoogleUrl,
 } from './rewardSettings.ts';
 import type { SettingDefinition } from './settingDefinition.ts';
 
@@ -212,19 +211,6 @@ const academyGst = {
   value: z.strictObject({ rate_basis_points: z.int().min(0).max(10_000) }),
 } as const satisfies SettingDefinition;
 
-const leaguePoints = {
-  key: 'league.points',
-  description: 'RIVR League points for a tournament finish (decision 0182): every finisher\'s for taking part, and more for first, second, third and the rest of the final table (fourth to ninth); none set earns none.',
-  scope: 'venue',
-  value: z.strictObject({
-    first: z.int().min(0).max(100_000),
-    second: z.int().min(0).max(100_000),
-    third: z.int().min(0).max(100_000),
-    final_table: z.int().min(0).max(100_000),
-    entry: z.int().min(0).max(100_000),
-  }),
-} as const satisfies SettingDefinition;
-
 const waitlistInterestToOpen = {
   key: 'waitlist.interest_to_open',
   description: 'Interest lists (decision 0184): how many members waiting for a game with no open table tell the floor to open one; none set never tells.',
@@ -287,10 +273,8 @@ const reportsUnclaimedDays = {
 /** Every setting key declared in code. */
 export const SETTINGS = [
   callTimeMinutes, callTimeAddChoices, floorRequestTargets, tvLeaderboard, defaultTier, kycMinimumAge, kycAtTheClub, authStoreReviewer, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, dealerRotationMinutes, waitlistPriorityWeights, waitlistHoldMinutes,
-  creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
-  cardQrRotationSeconds, leaguePoints, leaguePrizes, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
-  cageCashBuyInLimit, amlStructuring, rakebackRate, accommodationHoursPerNight, reviewsGoogleUrl, cabMinimumVisits, learnSessionPoints, learnDailyPointsCap, hostLapse, socialConnectedChannels, pointsDailyStaffCap, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, pointsVerifiedBonus,
-] as const;
+  creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst,   cardQrRotationSeconds, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
+  cageCashBuyInLimit, amlStructuring, rakebackRate, reviewsGoogleUrl, cabMinimumVisits, learnSessionPoints, learnDailyPointsCap, hostLapse, socialConnectedChannels, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, ] as const;
 
 /** A setting key declared in code. */
 export type SettingKey = (typeof SETTINGS)[number]['key'];

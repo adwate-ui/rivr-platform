@@ -49,7 +49,6 @@ export interface SeedDemoMember extends SeedMember {
   readonly bonus: { readonly amount: Paise; readonly expiresAt: Date | null };
   readonly openMarker: { readonly amount: Paise; readonly issuedAt: Date };
   readonly creditLimit: Paise;
-  readonly points: number;
   readonly visitsThisMonth: number;
   readonly payoutAccount: { readonly bankName: string; readonly vpa: UpiVpa; readonly isVerified: boolean };
 }

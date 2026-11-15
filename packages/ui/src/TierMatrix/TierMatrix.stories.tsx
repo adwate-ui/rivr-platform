@@ -21,7 +21,7 @@ function row(key: string, name: string, description: string, member: string): Ti
 
 const ROWS = [
   row('learn.library', 'Learn library', 'The Learn tab and its library of sources.', 'locked'),
-  row('league.standings', 'League', 'RIVR League standings and season.', 'hidden'),
+  row('events.book', 'Events', 'The events calendar, booked from the app.', 'hidden'),
   row('sessions.history', 'Session history', 'Past sessions with buy-in, cash-out, net and receipts.', 'on'),
 ];
 

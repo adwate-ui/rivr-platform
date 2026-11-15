@@ -9,7 +9,7 @@ export type RewardKind = BuilderReward['kind'];
 
 export const REWARD_KINDS: readonly RewardKind[] = [
   // No cab home or tournament entry: both features are off, so a promotion could not give them (audit F-033).
-  'points_multiplier', 'seat_bonus', 'hours_bonus', 'bonus_chips', 'waitlist_priority',
+  'seat_bonus', 'hours_bonus', 'bonus_chips', 'waitlist_priority',
 ];
 
 /** A play-time bonus step after the first, as typed: its hours played and its bonus chips. */
@@ -28,7 +28,6 @@ export interface SeatTierFields {
 export interface BuilderForm {
   readonly name: string;
   readonly kind: RewardKind;
-  readonly multiplier: string;
   /** A seat bonus for the first seats at each table; blank for a visit's first seat. */
   readonly firstN: string;
   /** A seat bonus of one amount (`chips`, `firstN`), or in tiers over the promotion's life, once a member (decision 0580). */
@@ -76,10 +75,10 @@ export const EVERY_DAY: readonly number[] = [1, 2, 3, 4, 5, 6, 7];
 // The club's whole day, 06:00 to 06:00 (decision 0472).
 const ALL_DAY = { days: EVERY_DAY, from: '06:00', to: '06:00' } as const;
 
-/** A blank promotion as the prototype starts one: 2× points on Friday and Saturday 20:00 to 02:00, once a visit, from `today`. */
+/** A blank promotion: 1,000 bonus chips on a visit's first seat, on Friday and Saturday 20:00 to 02:00, once a visit, from `today`. */
 export function blankForm(today: string): BuilderForm {
   return {
-    name: '', kind: 'points_multiplier', multiplier: '2', firstN: '', seatMode: 'fixed', seatTiers: [{ count: '10', chips: '1000' }],
+    name: '', kind: 'seat_bonus', firstN: '', seatMode: 'fixed', seatTiers: [{ count: '10', chips: '1000' }],
     chips: '1000', afterHours: '4', hoursMode: 'steps', moreSteps: [], everyHours: '2', timesPerVisit: '', bonusOn: 'visit', fromVisit: '4', tournament: '', stakes: 'all', tableIds: undefined, tiers: 'all',
     audience: 'everyone', days: [5, 6], from: '20:00', to: '02:00', startsOn: today, endsOn: '', perMember: 'per_visit', timesPerMember: '',
     maxMembersPerDay: '', budgetChips: '', budgetPeriod: 'whole', maxGrants: undefined, channels: { playerApp: true, tv: true, website: false, whatsapp: false }, rulesText: '', link: '',
@@ -110,8 +109,6 @@ function hoursFields(reward: Extract<Reward, { kind: 'hours_bonus' }>): Partial<
 /** The fields of a reward, each kind its own. */
 function rewardFields(reward: BuilderReward): Partial<BuilderForm> {
   switch (reward.kind) {
-    case 'points_multiplier':
-      return { multiplier: String(reward.multiplier) };
     case 'seat_bonus':
       return 'tiers' in reward
         ? { seatMode: 'tiers', seatTiers: reward.tiers.map((tier) => ({ count: String(tier.count), chips: String(tier.chips) })) }
@@ -144,7 +141,7 @@ export function formFromTerms(terms: PromotionTerms): BuilderForm {
 }
 
 /** The "Start from" templates (console v3 brief): Blank, then the club's own, none for a feature that is off (audit F-033). */
-export const TEMPLATES = ['blank', 'double_points', 'seat_bonus', 'four_hour_bonus', 'founders_priority'] as const;
+export const TEMPLATES = ['blank', 'seat_bonus', 'four_hour_bonus', 'founders_priority'] as const;
 export type TemplateKey = (typeof TEMPLATES)[number];
 
 /** The tier a template is for, found among the venue's by name; null where the venue has none of that name. */
@@ -156,7 +153,6 @@ const tierOnly = (tierId: string | null): BuilderForm['tiers'] => (tierId === nu
 
 // What each template sets over a blank promotion; the club's own rules where step 2 converted them (decision 0491).
 const TEMPLATE_FIELDS: Readonly<Record<Exclude<TemplateKey, 'blank'>, (tiers: TemplateTiers) => Partial<BuilderForm>>> = {
-  double_points: () => ({ kind: 'points_multiplier', multiplier: '2' }),
   seat_bonus: () => ({ kind: 'seat_bonus', chips: '1000', firstN: '5', ...ALL_DAY, days: [2], perMember: 'per_day' }),
   four_hour_bonus: () => ({ kind: 'hours_bonus', chips: '1000', afterHours: '4', ...ALL_DAY, perMember: 'per_day' }),
   founders_priority: (tiers) => ({ kind: 'waitlist_priority', tiers: tierOnly(tiers.founders), ...ALL_DAY }),

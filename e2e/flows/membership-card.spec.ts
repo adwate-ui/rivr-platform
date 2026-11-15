@@ -20,7 +20,7 @@ function doorList(page: Page, name: string): Locator {
 }
 
 test.describe('Membership card', () => {
-  test('Sessions, card, rewards › Card: the door checks a member in by the QR on her card, and refuses a code from before it changed', async ({ browser }) => {
+  test('Sessions, card, bonus › Card: the door checks a member in by the QR on her card, and refuses a code from before it changed', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'opens a visit that only check-out (#82) closes, so the local stack only');
     // The QR changes every 30 seconds, and the flow waits for one change.
     test.setTimeout(150_000);

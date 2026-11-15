@@ -4,7 +4,7 @@ import type { BuilderForm } from './builderForm.ts';
 
 /** A field the builder marks when the terms cannot take what it holds. */
 export type FormField =
-  | 'name' | 'multiplier' | 'firstN' | 'chips' | 'afterHours' | 'everyHours' | 'timesPerVisit' | 'steps' | 'tierList'
+  | 'name' | 'firstN' | 'chips' | 'afterHours' | 'everyHours' | 'timesPerVisit' | 'steps' | 'tierList'
   | 'fromVisit' | 'tournament'
   | 'who' | 'days' | 'from' | 'to' | 'startsOn' | 'endsOn' | 'timesPerMember' | 'maxMembersPerDay' | 'budgetChips' | 'rulesText' | 'link';
 
@@ -46,8 +46,6 @@ function hoursOf(form: BuilderForm): Record<string, unknown> {
 /** The reward the fields of its kind give. */
 function rewardOf(form: BuilderForm): Record<string, unknown> {
   switch (form.kind) {
-    case 'points_multiplier':
-      return defined({ kind: form.kind, multiplier: numberOf(form.multiplier) });
     case 'seat_bonus':
       return form.seatMode === 'tiers'
         ? { kind: form.kind, tiers: form.seatTiers.map((tier) => defined({ count: numberOf(tier.count), chips: numberOf(tier.chips) })) }
@@ -67,7 +65,7 @@ function rewardOf(form: BuilderForm): Record<string, unknown> {
 
 // The reward's own keys and the field each is typed in.
 const REWARD_FIELDS: Readonly<Record<string, FormField>> = {
-  multiplier: 'multiplier', firstNSeatsPerTable: 'firstN', afterMinutes: 'afterHours',
+  firstNSeatsPerTable: 'firstN', afterMinutes: 'afterHours',
   fromVisitInMonth: 'fromVisit', tournamentId: 'tournament', everyMinutes: 'everyHours', timesPerVisit: 'timesPerVisit', steps: 'steps', tiers: 'tierList',
 };
 

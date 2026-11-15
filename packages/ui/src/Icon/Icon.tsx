@@ -14,7 +14,6 @@ const ICONS = {
     'M7 17H8.5', 'M11.25 17H12.75'],
   food: ['M10.5 5.5H13.5', 'M12 5.5V8.5', 'M4.5 16A7.5 7.5 0 0 1 19.5 16', 'M3 16H21', 'M5.5 19H18.5'],
   balance: ['M6.5 4.5H17.5', 'M6.5 8.5H17.5', 'M10 4.5A4.5 4.5 0 0 1 10 13.5H6.5L15 20.5'],
-  rewards: ['M6.5 9.5A5.5 5.5 0 1 0 17.5 9.5A5.5 5.5 0 1 0 6.5 9.5Z', 'M9 14.1V20.5L12 18.5L15 20.5V14.1'],
   learn: ['M12 7.5V19.5', 'M12 7.5L3.5 6V18L12 19.5L20.5 18V6Z'],
   profile: ['M8.5 8.5A3.5 3.5 0 1 0 15.5 8.5A3.5 3.5 0 1 0 8.5 8.5Z', 'M5 20.5A7 7 0 0 1 19 20.5'],
   chevronLeft: ['M15 6L9 12L15 18'],
@@ -45,7 +44,7 @@ const ICONS = {
   leave: ['M14 4H19V20H14', 'M10 8L6 12L10 16', 'M6 12H15'],
   arrowRight: ['M5 12H19', 'M13 6L19 12L13 18'],
   // The console v3 rail and tab bar (decision 0465), from its prototype's 16 px icons at one and a half times. The rail's
-  // other screens reuse the set: food and drink `food`, members `profile`, the host queue `phone`, rewards `rewards`, the
+  // other screens reuse the set: food and drink `food`, members `profile`, the host queue `phone`, the
   // kill switch `alert`, folding the rail `chevronLeft` and `chevronRight`; More is `overflow`.
   floor: ['M3 7.5H21V16.5H3Z', 'M7.5 12H16.5'],
   waitlist: ['M4.5 6H19.5', 'M4.5 12H19.5', 'M4.5 18H13.5'],
@@ -68,8 +67,6 @@ const ICONS = {
   search: ['M4 10.5A6.5 6.5 0 0 1 17 10.5A6.5 6.5 0 0 1 4 10.5Z', 'M15.1 15.1L20.5 20.5'],
   // Three dots, each a small ring: a row's or a table's more actions, and the tab bar's More.
   overflow: ['M4 12A1 1 0 1 0 6 12A1 1 0 1 0 4 12Z', 'M11 12A1 1 0 1 0 13 12A1 1 0 1 0 11 12Z', 'M18 12A1 1 0 1 0 20 12A1 1 0 1 0 18 12Z'],
-  // A five-point star: points, earned by playing and spent on rewards (owner, 8 Nov: points and bonus chips told apart).
-  star: ['M12 3.5L14.6 8.9L20.5 9.7L16.2 13.8L17.3 19.6L12 16.8L6.7 19.6L7.8 13.8L3.5 9.7L9.4 8.9Z'],
   // A poker chip, its edge marked at four points: bonus chips, used with a buy-in.
   chip: ['M3.5 12A8.5 8.5 0 1 0 20.5 12A8.5 8.5 0 1 0 3.5 12Z', 'M8.5 12A3.5 3.5 0 1 0 15.5 12A3.5 3.5 0 1 0 8.5 12Z',
     'M12 3.5V6', 'M12 18V20.5', 'M3.5 12H6', 'M18 12H20.5'],

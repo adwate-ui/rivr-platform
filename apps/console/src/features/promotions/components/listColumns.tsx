@@ -63,12 +63,11 @@ function budgetText(promotion: PromotionOverview): string | null {
   return t(promotion.terms?.limits.budgetPeriod === 'month' ? 'console.promotions.list.budgetUsedMonth' : 'console.promotions.list.budgetUsed', words);
 }
 
-/** Given this week (audit F-104): the bonus chips or points, how many times, and the budget used. */
+/** Given this week (audit F-104): the bonus chips, how many times, and the budget used. */
 function GivenCell({ promotion }: { promotion: PromotionOverview }) {
-  const { givenThisWeek: times, chipsGivenThisWeek: chips, pointsGivenThisWeek: points } = promotion;
+  const { givenThisWeek: times, chipsGivenThisWeek: chips } = promotion;
   const timesText = times === 1 ? t('console.promotions.list.givenOnce') : t('console.promotions.list.givenTimes', { count: formatNumber(times) });
-  const amount = chips > 0 ? t('console.promotions.list.givenChips', { count: formatNumber(chips) })
-    : points > 0 ? t('console.promotions.list.givenPoints', { count: formatNumber(points) }) : null;
+  const amount = chips > 0 ? t('console.promotions.list.givenChips', { count: formatNumber(chips) }) : null;
   const budget = budgetText(promotion);
   return (
     <Stack gap={1} align="end">

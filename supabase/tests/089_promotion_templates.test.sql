@@ -1,6 +1,6 @@
 -- Templates for every scheme in the deck (#85). Every venue has them as drafts; six carry the engine's rule (the
 -- four-hour bonus since decision 0164). Since decision 0491 those the typed model can say run in versions, with Founders'
--- Circle priority, the cab home, and Double and Triple points as points multipliers. The word-only cards are retired
+-- Circle priority and the cab home. The word-only cards are retired
 -- (decision 0498): no venue gets one. 107 Ishita (marketing) submits one and 101, a super admin, approves it (#144); 104 Sana (cashier) may do neither.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -28,9 +28,9 @@ select private.sync_promotion(id) from public.promotion where template_key in ('
 select results_eq(
   $$ select template_key, status, (select count(*)::integer from public.promotion_rule r where r.promotion_id = p.id)
      from public.promotion p where p.venue_id = '00000000-0000-4000-8000-000000000001' and template_key is not null order by template_key $$,
-  $$ values ('cab'::text, 'draft'::text, 0), ('double_points', 'draft', 0), ('founders_priority', 'draft', 0),
+  $$ values ('cab'::text, 'draft'::text, 0), ('founders_priority', 'draft', 0),
             ('graduate_first_buy_in', 'draft', 1), ('graduate_freeroll', 'draft', 1), ('hours_bonus', 'draft', 1),
-            ('referral', 'draft', 1), ('triple_points', 'draft', 0), ('tuesday_bonus', 'draft', 1) $$,
+            ('referral', 'draft', 1), ('tuesday_bonus', 'draft', 1) $$,
   'the club has every scheme in the deck as a draft; the five the engine runs carry their rule');
 select results_eq(
   $$ select p.template_key, r.trigger, r.conditions - 'tier_ids', r.effect, p.per_player_limit, p.per_player_period
@@ -47,15 +47,13 @@ select results_eq(
      from public.promotion p join public.promotion_version v on v.promotion_id = p.id
      where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key is not null order by p.template_key $$,
   $$ values ('cab'::text, 1, 'draft'::text, '{"kind": "cab_home", "fromVisitInMonth": 4}'::jsonb, '{"perMember": "none"}'::jsonb),
-            ('double_points', 1, 'draft', '{"kind": "points_multiplier", "multiplier": 2}', '{"perMember": "per_visit"}'),
             ('founders_priority', 1, 'draft', '{"kind": "waitlist_priority"}', '{"perMember": "none"}'),
             ('graduate_first_buy_in', 1, 'draft', '{"kind": "bonus_chips", "chips": 1000, "on": "first_buyin"}', '{"perMember": "once"}'),
             ('graduate_freeroll', 1, 'draft', '{"kind": "tournament_entry", "tournamentId": "RIVR Sunday"}', '{"perMember": "once"}'),
             ('hours_bonus', 1, 'draft', '{"kind": "hours_bonus", "chips": 1000, "afterMinutes": 240}', '{"perMember": "per_day"}'),
             ('referral', 1, 'draft', '{"kind": "bonus_chips", "chips": 1000, "on": "referral"}', '{"perMember": "none"}'),
-            ('triple_points', 1, 'draft', '{"kind": "points_multiplier", "multiplier": 3}', '{"perMember": "per_visit"}'),
             ('tuesday_bonus', 1, 'draft', '{"kind": "buyin_bonus", "mode": "percent", "percent": 20, "firstNBuyinsPerTable": 5}', '{"perMember": "none"}') $$,
-  'the templates the typed model can say are versions: double and triple points as multipliers (decision 0491)');
+  'the templates the typed model can say are versions (decision 0491)');
 select is((select v.eligibility -> 'tiers' ->> 0 from public.promotion_version v where v.id = pg_temp.version_of('founders_priority')),
   (select id::text from public.tier where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Founders'' Circle'),
   'Founders'' Circle priority is for that tier');
@@ -70,7 +68,7 @@ select is_empty($$ select 1 from public.promotion where template_key in ('high_h
 select results_eq(
   $$ select p.venue_id::text, count(distinct p.id)::integer, count(r.id)::integer from public.promotion p left join public.promotion_rule r on r.promotion_id = p.id
      where p.template_key is not null group by p.venue_id order by p.venue_id $$,
-  $$ values ('00000000-0000-4000-8000-000000000001'::text, 9, 5), ('00000000-0000-4000-8000-000000000002', 9, 5) $$,
+  $$ values ('00000000-0000-4000-8000-000000000001'::text, 7, 5), ('00000000-0000-4000-8000-000000000002', 7, 5) $$,
   'the practice venue has the same');
 
 -- Adding them again adds nothing; a new venue gets them.
@@ -81,7 +79,7 @@ select private.bootstrap_venue('00000000-0000-4000-8000-0000000000aa', 'RIVR Tes
 select is((select count(*)::integer from public.promotion p join public.promotion_rule r on r.promotion_id = p.id
            where p.venue_id = '00000000-0000-4000-8000-0000000000aa' and p.template_key is not null), 5,
   'a new venue starts with every template and its rules');
-select is((select count(*)::integer from public.promotion_version v where v.venue_id = '00000000-0000-4000-8000-0000000000aa'), 9,
+select is((select count(*)::integer from public.promotion_version v where v.venue_id = '00000000-0000-4000-8000-0000000000aa'), 7,
   'and their versions');
 
 -- Submitting a template: promotion managers only, from its draft; a super admin approves it, and it is announced.
@@ -91,7 +89,7 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select throws_ok($$ select public.submit_promotion_template(pg_temp.template('referral')) $$, 'RVVER', null,
   'the referral runs in versions, so the old way is refused');
 select lives_ok($$ select public.record_promotion_simulation(pg_temp.version_of('referral'),
-  '{"events": 0, "membersQualified": 0, "timesGiven": 0, "points": 0, "chips": 0, "perks": 0, "isBudgetReached": false}',
+  '{"events": 0, "membersQualified": 0, "timesGiven": 0, "chips": 0, "perks": 0, "isBudgetReached": false}',
   (select jsonb_build_object('reward', v.reward, 'eligibility', v.eligibility, 'schedule', v.schedule, 'limits', v.limits)
    from public.promotion_version v where v.id = pg_temp.version_of('referral'))) $$, 'marketing simulates the referral template');
 select lives_ok($$ select public.submit_promotion_version(pg_temp.version_of('referral')) $$, 'and submits it');

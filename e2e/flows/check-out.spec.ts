@@ -2,8 +2,7 @@
  * Check-out (#82; features "Check-in and check-out"; additions flow 14). Deepa Kulkarni, this flow's own
  * front desk, checks Varun Malhotra in by his number and out from the room list as he leaves; then in again
  * and out by the number on his card, which closes his visit and counts its hours. A member who owes call
- * time is refused at the door until an admin lets them go, and that a closed visit earns no points by play
- * (#629), are proved in supabase/tests/084_check_out.test.sql.
+ * time is refused at the door until an admin lets them go, which supabase/tests/084_check_out.test.sql proves.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';

@@ -18,7 +18,7 @@ $$;
 grant execute on function pg_temp.as_person(text) to authenticated;
 create temp table body as select jsonb_build_object(
   'name', 'Happy hour', 'runs', 'Daily, 19:00 to 21:00',
-  'rule', jsonb_build_object('trigger', 'hours_played', 'effect', '{"kind": "points", "points": 50}'::jsonb)) as promotion;
+  'rule', jsonb_build_object('trigger', 'hours_played', 'effect', '{"kind": "message", "text": "Thanks for playing"}'::jsonb)) as promotion;
 grant select on body to authenticated;
 create temp table ids (name text primary key, id uuid);
 grant select, insert on ids to authenticated;
@@ -27,7 +27,7 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 insert into ids select 'linked', public.submit_promotion('00000000-0000-4000-8000-000000000001',
   (select promotion || '{"link": " https://glaza.example/happy-hour "}'::jsonb from body));
 insert into ids select 'plain', public.submit_promotion('00000000-0000-4000-8000-000000000001',
-  (select promotion || '{"name": "Late night points", "link": ""}'::jsonb from body));
+  (select promotion || '{"name": "Late night thanks", "link": ""}'::jsonb from body));
 select throws_ok($$ select public.submit_promotion('00000000-0000-4000-8000-000000000001',
   (select promotion || '{"name": "Elsewhere", "link": "javascript:alert(1)"}'::jsonb from body)) $$, '23514', null,
   'a link that is not an https address is refused');
@@ -41,14 +41,14 @@ select throws_ok($$ select public.submit_promotion('00000000-0000-4000-8000-0000
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select results_eq($$ select name, link from public.promotions_awaiting_approval('00000000-0000-4000-8000-000000000001')
                      where promotion_id in (select id from ids) order by name $$,
-  $$ values ('Happy hour'::text, 'https://glaza.example/happy-hour'::text), ('Late night points', null) $$,
+  $$ values ('Happy hour'::text, 'https://glaza.example/happy-hour'::text), ('Late night thanks', null) $$,
   'the approver reads the link the card will open, trimmed, and none when none was typed');
 select public.approve_promotion(id) from ids;
 reset role;
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select results_eq($$ select title, link from public.my_promotion_cards() order by title $$,
-  $$ values ('Happy hour'::text, 'https://glaza.example/happy-hour'::text), ('Late night points', null) $$,
+  $$ values ('Happy hour'::text, 'https://glaza.example/happy-hour'::text), ('Late night thanks', null) $$,
   'the member''s card carries its link, and a card without one has none');
 reset role;
 

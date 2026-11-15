@@ -81,7 +81,7 @@ describe('design prompt seed: people', () => {
     expect(seed.arjun.openMarker.amount).toBe(5_000_000n);
     expect(seed.clock.getTime() - seed.arjun.openMarker.issuedAt.getTime()).toBe(14 * DAY_MS);
     expect(seed.arjun.creditLimit).toBe(20_000_000n);
-    expect([seed.arjun.points, seed.arjun.visitsThisMonth]).toEqual([18_420, 5]);
+    expect(seed.arjun.visitsThisMonth).toBe(5);
     expect(seed.arjun.payoutAccount).toEqual({ bankName: 'HDFC Bank', vpa: 'arjun.mehta@hdfcbank', isVerified: true });
   });
 

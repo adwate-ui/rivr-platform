@@ -21,7 +21,7 @@ const PERKS: readonly Perk[] = ['cab_home', 'tournament_entry', 'waitlist_priori
 const perkOf = (value: unknown): Perk | null => PERKS.find((perk) => perk === value) ?? null;
 
 function grantOf(json: unknown): Grant {
-  return { points: numberOf(field(json, 'points')), chips: numberOf(field(json, 'chips')), perk: perkOf(field(json, 'perk')) };
+  return { chips: numberOf(field(json, 'chips')), perk: perkOf(field(json, 'perk')) };
 }
 
 function tallyOf(text: string): GrantTally {
@@ -79,10 +79,8 @@ describe('Promotion rewards golden fixtures (packages/testing/golden/promotionRe
       expect(result.error).toBe(goldenExpected(goldenCase, 'refusal'));
       return;
     }
-    const { points, chips, perk } = result.value;
-    expect([String(points), String(chips), perk ?? '']).toEqual(
-      ['points', 'chips', 'perk'].map((name) => goldenExpected(goldenCase, name)),
-    );
+    const { chips, perk } = result.value;
+    expect([String(chips), perk ?? '']).toEqual(['chips', 'perk'].map((name) => goldenExpected(goldenCase, name)));
   });
 
   it.each(casesFor(golden, 'limits'))('%s', (_, goldenCase) => {

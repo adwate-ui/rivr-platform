@@ -11,7 +11,7 @@ import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 const ADITYA = '00000000-0000-4000-8000-000000000103';
 const ROW = {
   item_id: 'h1', member_id: 'm1', full_name: 'Lata Iyer', phone: '+919000000881', last_visit_at: '2026-09-28T19:00:00+00:00', visits: 4,
-  status: 'offered', churn_reason: 'busy', offer: { kind: 'points', points: 500 }, note: 'Call back on Friday', handled_at: '2026-10-28T10:00:00+00:00',
+  status: 'offered', churn_reason: 'busy', offer: { kind: 'message', text: 'A table held for Friday' }, note: 'Call back on Friday', handled_at: '2026-10-28T10:00:00+00:00',
 };
 
 /** A fake API: the queue answers with its rows; a call is kept, or refused with the given code. */
@@ -38,7 +38,7 @@ describe('the host queue', () => {
   it('gives the lapsed regulars with the call so far, an offer only when it is a promotion effect', async () => {
     const { result } = renderQueue();
     await waitFor(() => expect(result.current.queue.data).toHaveLength(2));
-    expect(result.current.queue.data?.[0]).toMatchObject({ fullName: 'Lata Iyer', status: 'offered', reason: 'busy', offer: { kind: 'points', points: 500 } });
+    expect(result.current.queue.data?.[0]).toMatchObject({ fullName: 'Lata Iyer', status: 'offered', reason: 'busy', offer: { kind: 'message', text: 'A table held for Friday' } });
     expect(result.current.queue.data?.[1]).toMatchObject({ status: 'open', reason: null, offer: null });
   });
 

@@ -26,7 +26,7 @@ function CallFields({ form }: { form: CallForm }) {
       <ChoiceChips label={t('console.hostQueue.offerTo')} mode="one" look="subtle" selected={[form.kind]}
         options={OFFER_KINDS.map((value) => ({ value, label: t(`console.hostQueue.kinds.${value}`) }))}
         onChange={(chosen) => { form.setKind(chosen[0] ?? 'none'); form.setValue(''); }} />
-      {form.kind === 'points' || form.kind === 'bonus' || form.kind === 'message'
+      {form.kind === 'bonus' || form.kind === 'message'
         ? <Input label={t(`console.hostQueue.values.${form.kind}`)} value={form.value} maxLength={500} onChange={(event) => form.setValue(event.target.value)}
           error={form.value.trim() !== '' && form.offer === undefined ? t(`console.hostQueue.invalid.${form.kind}`) : undefined} />
         : null}

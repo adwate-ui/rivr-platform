@@ -67,7 +67,7 @@ describe('the push consumer', () => {
     expect(push.calls).toHaveLength(1);
     await consumer.deliver(delivery('member.notice', payload, hoursAgo(49)));
     expect(push.calls).toHaveLength(1);
-    expect((await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'reward_cancelled', params: ['a*b'] }))).ok).toBe(true);
+    expect((await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'seat_released', params: ['a*b', '4'] }))).ok).toBe(true);
   });
 
   it('tells the member of bonus chips added and used, under the Bonus chips switch, opening Bonus (decision 0504)', async () => {

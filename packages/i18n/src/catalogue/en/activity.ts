@@ -22,7 +22,7 @@ export const activity = {
   /** In what an export records, while earlier lines are not loaded. */
   partial: 'Partial: the latest {count} lines only',
   kinds: {
-    controls: 'Controls', exports: 'Exports', staff: 'Staff', bonus_chips: 'Bonus chips', points: 'Points', tiers: 'Tiers', members: 'Members',
+    controls: 'Controls', exports: 'Exports', staff: 'Staff', bonus_chips: 'Bonus chips', tiers: 'Tiers', members: 'Members',
     settings: 'Settings', floor: 'Floor', other: 'Other',
   },
 } as const;

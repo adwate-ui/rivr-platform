@@ -34,7 +34,7 @@ select results_eq(
   $$ select full_name from public.host_queue('00000000-0000-4000-8000-000000000001')
      where member_id in ('00000000-0000-4000-8000-000000000c01', '00000000-0000-4000-8000-000000000c02') order by 1 $$,
   $$ values ('Kiran Das'::text), ('Lata Iyer') $$, 'a host reads the queue');
-select lives_ok($$ select public.record_host_contact('00000000-0000-4000-8000-0000000c0101', 'busy', '{"kind": "points", "points": 500}', 'Calls back Friday') $$,
+select lives_ok($$ select public.record_host_contact('00000000-0000-4000-8000-0000000c0101', 'busy', '{"kind": "message", "text": "A table held for Friday"}', 'Calls back Friday') $$,
   'a host records a call, with an offer');
 select lives_ok($$ select public.close_host_item('00000000-0000-4000-8000-0000000c0102') $$, 'a host closes a call');
 

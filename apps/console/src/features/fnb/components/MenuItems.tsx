@@ -54,7 +54,7 @@ function DishPhoto({ venueId, item }: { venueId: string; item: FnbItem }) {
   const [failure, setFailure] = useState<ItemPhotoFailure | null>(null);
   const put = async (photo: File) => {
     setFailure(null);
-    const done = await upload.mutateAsync({ kind: 'menu', itemId: item.itemId, photo });
+    const done = await upload.mutateAsync({ itemId: item.itemId, photo });
     setFailure(done.ok ? null : done.error);
   };
   const isNew = item.photoUrl === null;

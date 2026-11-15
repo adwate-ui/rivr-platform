@@ -69,7 +69,7 @@ export const profile = {
   deleteAccount: 'Delete my account',
   deleteRequested: 'Requested {date}',
   deleteWhen: 'RIVR erases your account and its data within 7 days, once nothing is open at the club.',
-  deleteForfeit: 'Your points and bonus chips are forfeited.',
+  deleteForfeit: 'Your bonus chips are forfeited.',
   deleteKept: 'Play records the law requires are kept, without your name or number.',
   deleteConfirmed: 'A WhatsApp message confirms it when done.',
   deleteSend: 'Send request',

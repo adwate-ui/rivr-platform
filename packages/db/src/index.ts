@@ -24,7 +24,7 @@ export { rememberAttribution, storedAttribution, type SignUpAttribution } from '
 export { KYC_IMAGE_URL_SECONDS, useKycImageUrl } from './kycImages.ts';
 export { toBase64, useKycActions, useKycAtTheClub, useKycRecord, type KycRecord, type KycStatus } from './kyc.ts';
 export { shrinkPhoto } from './photo.ts';
-export { itemPhotoUrl, useItemPhotoUpload, type ItemPhotoFailure, type ItemPhotoKind, type ItemPhotoOrder } from './itemPhotos.ts';
+export { itemPhotoUrl, useItemPhotoUpload, type ItemPhotoFailure, type ItemPhotoOrder } from './itemPhotos.ts';
 export {
   useKycDuplicateHolder,
   useKycInPerson,
@@ -79,9 +79,6 @@ export {
   type FeedbackVisit,
 } from './feedback.ts';
 export { ACTIVITY_KINDS, useActivityLog, type ActivityFilters, type ActivityKind, type ActivityLine } from './activityLog.ts';
-export * from './rewards.ts';
-export * from './rewardCounts.ts';
-export * from './league.ts';
 export * from './dealers.ts';
 export * from './floorReports.ts';
 export {
@@ -103,7 +100,6 @@ export {
   useTablesSetup, useTablesSetupActions, type SetupStake, type SetupTable, type StakeOrder, type TableGame,
   type TableOrder, type TablesFailure,
 } from './tablesSetup.ts';
-export { useGivePoints, useMemberPoints, useMemberPointsOf, useMyLockedPoints, type MemberPoints, type PointsFailure, type PointsOrder } from './pointsByHand.ts';
 export { useFloorTakenSeats, useSeatCallActions } from './seatCall.ts';
 export { useMyUsualFnbItems } from './fnbUsual.ts';
 export { useMyNextPlayTimeBonus, useMySeat, useMySeatActions, type Leaving, type NextPlayTimeBonus, type MySeat, type MySeatFailure, type TopUp } from './mySeat.ts';

@@ -8,7 +8,7 @@ export type PromotionTrigger = (typeof PROMOTION_TRIGGERS)[number];
 
 /** What a promotion rule gives (scope-v1 module 7). */
 export const PROMOTION_EFFECTS = [
-  'bonus', 'points', 'freeroll_ticket', 'cab_eligibility', 'physical_prize', 'jackpot_payout', 'message',
+  'bonus', 'freeroll_ticket', 'cab_eligibility', 'physical_prize', 'jackpot_payout', 'message',
 ] as const;
 export type PromotionEffectKind = (typeof PROMOTION_EFFECTS)[number];
 
@@ -61,14 +61,11 @@ export type PromotionConditions = z.infer<typeof promotionConditionsSchema>;
 
 /**
  * What a rule gives, as `promotion_rule.effect` holds it. A bonus is a fixed amount or a share of the
- * buy-in in basis points (2000 is 20%) with an optional cap, and ends after some days; points are a
- * fixed number or a multiplier of the points earned (200 is double). The database checks the same shape.
+ * buy-in in basis points (2000 is 20%) with an optional cap, and ends after some days. The database checks the same shape.
  */
 export const promotionEffectSchema = z.union([
   z.strictObject({ kind: z.literal('bonus'), amount_paise: chipPaise, expires_days: expiresDays.optional() }),
   z.strictObject({ kind: z.literal('bonus'), percent_bps: z.int().min(1).max(10_000), cap_paise: chipPaise.optional(), expires_days: expiresDays }),
-  z.strictObject({ kind: z.literal('points'), points: z.int().min(1).max(1_000_000) }),
-  z.strictObject({ kind: z.literal('points'), multiplier_percent: z.int().min(101).max(1_000) }),
   z.strictObject({ kind: z.literal('freeroll_ticket'), tournament: z.string().trim().min(1).max(80) }),
   z.strictObject({ kind: z.literal('cab_eligibility') }),
   z.strictObject({ kind: z.literal('physical_prize'), prize: z.string().trim().min(1).max(80), value_paise: z.int().min(0).max(1_000_000_000).optional() }),

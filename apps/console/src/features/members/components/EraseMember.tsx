@@ -1,7 +1,7 @@
 import {
   useEraseMember, useMemberErasurePreview, useRemoveErasedKycFiles, type Erasure, type ErasureBlocker, type ErasureFailure, type ErasurePreview,
 } from '@rivr/db';
-import { formatChips, formatDate, formatList, formatNights, formatNumber, t, type MessageKey } from '@rivr/i18n';
+import { formatChips, formatDate, formatList, formatNumber, t, type MessageKey } from '@rivr/i18n';
 import { Button, ErrorMessage, Heading, Input, Stack, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 
@@ -10,8 +10,7 @@ const BLOCKER_COPY: Readonly<Record<ErasureBlocker, MessageKey>> = {
   cash: 'console.members.erase.blockers.cash',
   chips: 'console.members.erase.blockers.chips',
   markers: 'console.members.erase.blockers.markers',
-  rewards: 'console.members.erase.blockers.rewards',
-  redemptions: 'console.members.erase.blockers.redemptions',
+  bonus: 'console.members.erase.blockers.bonus',
   waitlist: 'console.members.erase.blockers.waitlist',
   tournament: 'console.members.erase.blockers.tournament',
   requests: 'console.members.erase.blockers.requests',
@@ -33,31 +32,25 @@ type Outcome = { readonly erasure: Erasure } | { readonly failure: ErasureFailur
 function OutcomeLine({ outcome }: { outcome: Outcome }) {
   if (outcome === null) return null;
   if ('failure' in outcome) return <ErrorMessage>{t(FAILURE_COPY[outcome.failure])}</ErrorMessage>;
-  const { forfeitedPoints, forfeitedBonus, forfeitedNights, filesRemoved } = outcome.erasure;
-  const forfeit = { points: formatNumber(forfeitedPoints), bonus: formatChips(forfeitedBonus) };
+  const { forfeitedBonus, filesRemoved } = outcome.erasure;
+  const forfeit = { bonus: formatChips(forfeitedBonus) };
   return (
-    <Stack gap={1}>
-      <Text>
-        {filesRemoved === null
-          ? t('console.members.erase.doneFilesLeft', forfeit)
-          : t('console.members.erase.done', { ...forfeit, files: formatNumber(filesRemoved) })}
-      </Text>
-      {forfeitedNights > 0n ? <Text>{t('console.members.erase.nightsForfeit', { nights: formatNights(forfeitedNights) })}</Text> : null}
-    </Stack>
+    <Text>
+      {filesRemoved === null
+        ? t('console.members.erase.doneFilesLeft', forfeit)
+        : t('console.members.erase.done', { ...forfeit, files: formatNumber(filesRemoved) })}
+    </Text>
   );
 }
 
 /** What erasing would do: what must be cleared first, what the club takes back, and a break's block. */
 function Consequences({ preview }: { preview: ErasurePreview }) {
-  const forfeit = preview.points === 0 && preview.bonus === 0n
-    ? t('console.members.erase.nothingToForfeit')
-    : t('console.members.erase.forfeit', { points: formatNumber(preview.points), bonus: formatChips(preview.bonus) });
+  const forfeit = preview.bonus === 0n ? t('console.members.erase.nothingToForfeit') : t('console.members.erase.forfeit', { bonus: formatChips(preview.bonus) });
   const open = formatList(preview.blockers.map((blocker) => t(BLOCKER_COPY[blocker])));
   return (
     <Stack gap={2}>
       {preview.blockers.length > 0 ? <ErrorMessage>{t('console.members.erase.settleFirst', { items: open })}</ErrorMessage> : null}
       <Text>{forfeit}</Text>
-      {preview.nights > 0n ? <Text>{t('console.members.erase.nightsForfeit', { nights: formatNights(preview.nights) })}</Text> : null}
       {preview.blockedUntil === null ? null : (
         <Text tone="muted">{t('console.members.erase.blockNote', { date: formatDate(new Date(preview.blockedUntil)) })}</Text>
       )}

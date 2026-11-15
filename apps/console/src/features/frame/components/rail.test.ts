@@ -20,7 +20,7 @@ describe('the console rail (console v3)', () => {
     expect(rail.map((section) => section.items.map((item) => item.label))).toEqual([
       ['Live floor', 'Waitlist', 'Door', 'Food and drink'],
       ['Members', 'ID checks', 'Host queue', 'Feedback'],
-      ['Promotions', 'Rewards', 'Social', 'Content'],
+      ['Promotions', 'Social', 'Content'],
       ['Staff', 'Tables', 'Reports', 'Settings', 'Activity', 'Kill switch', 'Practice reset', 'Purge'],
     ]);
     expect(rail.map((section) => section.isCollapsible === true)).toEqual([false, false, false, true]);
@@ -32,7 +32,7 @@ describe('the console rail (console v3)', () => {
   it('gives a host no Marketing or Admin, and refuses their screens by address under their own names', () => {
     expect(groups('host')).toEqual(['Tonight', 'Players']);
     expect(items('host')).toEqual(['/', '/waitlist', '/door', '/members', '/kyc-review', '/host-queue']);
-    for (const [path, title] of [['/settings', 'Settings'], ['/rewards', 'Rewards'], ['/promotions', 'Promotions'], ['/staff', 'Staff'], ['/tables', 'Tables'], ['/content', 'Content']]) {
+    for (const [path, title] of [['/settings', 'Settings'], ['/promotions', 'Promotions'], ['/staff', 'Staff'], ['/tables', 'Tables'], ['/content', 'Content']]) {
       expect(refusalAt(ROLE_PERMISSIONS.host, path ?? '')).toEqual({ title, isOff: false });
     }
   });
@@ -45,9 +45,9 @@ describe('the console rail (console v3)', () => {
     expect(items('admin')).not.toContain('/content');
   });
 
-  it('gives the floor the night, ID checks in person, rewards and TVs, and no member list or other admin screen', () => {
-    expect(items('floor')).toEqual(['/', '/waitlist', '/door', '/fnb', '/kyc-review', '/rewards', '/settings']);
-    expect(items('cashier')).toEqual(['/', '/waitlist', '/door', '/rewards', '/settings']);
+  it('gives the floor the night, ID checks in person and TVs, and no member list or other admin screen', () => {
+    expect(items('floor')).toEqual(['/', '/waitlist', '/door', '/fnb', '/kyc-review', '/settings']);
+    expect(items('cashier')).toEqual(['/', '/waitlist', '/door', '/settings']);
     for (const kept of ['/tables', '/members', '/promotions', '/staff']) expect(isAllowedAt(ROLE_PERMISSIONS.floor, kept)).toBe(false);
     // Settings holds only its TVs tab for them (the owner, 3 Nov).
     expect(isAllowedAt(ROLE_PERMISSIONS.floor, '/settings', 'floor')).toBe(false);
@@ -61,7 +61,7 @@ describe('the console rail (console v3)', () => {
   });
 
   it('gives marketing its own screens and a dealer and an investor none: the Live floor would read empty without members.read (audit F-004)', () => {
-    expect(items('marketing')).toEqual(['/promotions', '/rewards', '/social', '/content']);
+    expect(items('marketing')).toEqual(['/promotions', '/social', '/content']);
     expect(landingFor(railFor(ROLE_PERMISSIONS.marketing))?.href).toBe('/promotions');
     for (const role of ['dealer', 'owner_view'] as const) {
       expect(items(role)).toEqual([]);
@@ -80,31 +80,25 @@ describe('the console rail (console v3)', () => {
   });
 
   it('opens only the tabs a role has, and refuses a tab outside it by address', () => {
-    const rewards = entry('rewards');
-    if (rewards === undefined) throw new Error('no Rewards entry');
-    expect(tabsFor(rewards, ROLE_PERMISSIONS.cashier).map((tab) => tab.id)).toEqual(['rewards', 'points']);
-    expect(tabsFor(rewards, ROLE_PERMISSIONS.super_admin).map((tab) => tab.id)).toEqual(['rewards', 'points']);
     const settings = entry('settings');
     if (settings === undefined) throw new Error('no Settings entry');
     expect(tabsFor(settings, ROLE_PERMISSIONS.super_admin).map((tab) => tab.id)).toEqual(['floor', 'members', 'notices', 'club', 'tvs', 'tablets']);
     expect(tabsFor(settings, ROLE_PERMISSIONS.floor).map((tab) => tab.id)).toEqual(['tvs']);
     expect(tabsFor(settings, ROLE_PERMISSIONS.cashier).map((tab) => tab.id)).toEqual(['tvs']);
     expect(tabsFor(settings, ROLE_PERMISSIONS.host)).toEqual([]);
-    expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/rewards', 'rewards')).toBe(true);
     expect(isAllowedAt(ROLE_PERMISSIONS.floor, '/waitlist', 'interest')).toBe(false);
-    // A host has no Marketing, so hands redemptions over at the Door.
     const door = entry('door');
     if (door === undefined) throw new Error('no Door entry');
-    expect(tabsFor(door, ROLE_PERMISSIONS.host).map((tab) => tab.id)).toEqual(['check-in', 'players', 'handover']);
+    expect(tabsFor(door, ROLE_PERMISSIONS.host).map((tab) => tab.id)).toEqual(['check-in', 'players']);
     expect(tabsFor(door, ROLE_PERMISSIONS.service).map((tab) => tab.id)).toEqual([]);
     expect(isAllowedAt(ROLE_PERMISSIONS.admin, '/waitlist', 'interest')).toBe(true);
     // A tab the screen does not have is the screen's first: the role's, not a refusal.
-    expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/rewards', 'nowhere')).toBe(true);
+    expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/settings', 'nowhere')).toBe(true);
   });
 
   it('hides what the owner hid on 29 Oct from everyone, by the rail and by address, naming the screen it refuses', () => {
     const everyone = ROLE_PERMISSIONS.super_admin;
-    const hidden = ['/owner', '/tournaments', '/dealers', '/jackpots', '/cage', '/withdrawals', '/academy/payments', '/shift', '/tiers', '/league',
+    const hidden = ['/owner', '/tournaments', '/dealers', '/jackpots', '/cage', '/withdrawals', '/academy/payments', '/shift', '/tiers',
       '/events', '/creators', '/academy', '/accounts', '/expenses', '/markers', '/tds', '/tally', '/shareholders', '/aml', '/pot-data',
       '/roster', '/certification', '/sops', '/incidents', '/exports'];
     for (const screen of hidden) {

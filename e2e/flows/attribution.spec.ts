@@ -1,5 +1,5 @@
 /**
- * Attribution (#10): a new player opens a link to Rewards with a referral and UTM codes, signs in
+ * Attribution (#10): a new player opens a link to Bonus with a referral and UTM codes, signs in
  * with a code, sees the number they signed in with, gives their name, city, occupation, when they usually play (#631) and
  * the games they play (#653) in the redesign's pickers (decision 0320), and joins; as their identity check is not done, they see only it (#632); the codes are kept with the sign-up (supabase/tests/014_sign_up proves
  * member.signed_up carries them). Local stack only: it frees its number from the member an earlier run
@@ -27,11 +27,11 @@ test.describe('Attribution', () => {
     sql(`update public.member set user_id = null, phone = '+916' || lpad(floor(random() * 1e9)::bigint::text, 9, '0')
          where phone = '+91${NUMBER}'`);
 
-    // The link points at Rewards: sign-in and sign-up return there once joined (#233).
+    // The link points at Bonus: sign-in and sign-up return there once joined (#233).
     await page.setViewportSize(VIEWPORT.player);
     // A member's own referral code: sign-up refuses one that names nobody (the owner, 9 Nov).
     const code = sql(`select referral_code from public.member where phone = '+919000000213'`);
-    await page.goto(`${appUrl('player')}/rewards?ref=${code}&utm_source=instagram&utm_campaign=launch`);
+    await page.goto(`${appUrl('player')}/bonus?ref=${code}&utm_source=instagram&utm_campaign=launch`);
     await page.getByRole('textbox', { name: 'Mobile number' }).fill(NUMBER);
     await page.getByRole('button', { name: 'Send code' }).click();
     await page.getByRole('textbox', { name: '6-digit code' }).fill('123456');

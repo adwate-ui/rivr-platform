@@ -6,20 +6,20 @@ import { BalanceTile } from './BalanceTile.tsx';
 
 describe('BalanceTile', () => {
   it('shows the figure, what it is and what it is for', () => {
-    renderIn(<BalanceTile icon="star" figure="3,250" label="Points" line="Spend on rewards." />);
-    expect(screen.getByText('3,250')).toBeInTheDocument();
-    expect(screen.getByText('Points')).toBeInTheDocument();
-    expect(screen.getByText('Spend on rewards.')).toBeInTheDocument();
+    renderIn(<BalanceTile icon="chip" figure="1,500" label="Bonus chips" line="Use with your buy-in." />);
+    expect(screen.getByText('1,500')).toBeInTheDocument();
+    expect(screen.getByText('Bonus chips')).toBeInTheDocument();
+    expect(screen.getByText('Use with your buy-in.')).toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
     expect(screen.queryByText('History')).not.toBeInTheDocument();
   });
 
   it('says it opens a history, with a chevron that turns as it opens (F-054)', () => {
-    const { container, rerender } = renderIn(<BalanceTile icon="star" figure="3,250" label="Points" line="Spend on rewards." onOpen={() => undefined} aria-expanded={false} />);
-    expect(screen.getByRole('button', { name: /Points/ })).toHaveTextContent('History');
+    const { container, rerender } = renderIn(<BalanceTile icon="chip" figure="1,500" label="Bonus chips" line="Use with your buy-in." onOpen={() => undefined} aria-expanded={false} />);
+    expect(screen.getByRole('button', { name: /Bonus chips/ })).toHaveTextContent('History');
     const chevron = () => container.querySelector('button > span:last-child svg path')?.getAttribute('d');
     const closed = chevron();
-    rerender(<BalanceTile icon="star" figure="3,250" label="Points" line="Spend on rewards." onOpen={() => undefined} aria-expanded />);
+    rerender(<BalanceTile icon="chip" figure="1,500" label="Bonus chips" line="Use with your buy-in." onOpen={() => undefined} aria-expanded />);
     expect(chevron()).not.toBe(closed);
   });
 

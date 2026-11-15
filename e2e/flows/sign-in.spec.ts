@@ -66,7 +66,7 @@ test.describe('Sign in', { tag: '@staging' }, () => {
     await expect(page.getByRole('heading', { name: /^(Verify your ID|Pick up where you left off)$/, level: 1 })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Main' })).toHaveCount(0);
     // Every other screen sends them back to it.
-    await page.goto(`${appUrl('player')}/rewards`);
+    await page.goto(`${appUrl('player')}/bonus`);
     await expect(page).toHaveURL(/\/kyc$/);
   });
 

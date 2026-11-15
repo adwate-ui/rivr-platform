@@ -2,11 +2,11 @@ import type { MemberFacts, PromotionEventJson, PromotionTerms } from '@rivr/cont
 
 // Each factory fills every field with a sensible default, so a test names only what it is about.
 
-/** Double points for everyone at every stake, every day, all day, from 1 November 2026, with no limits, on the app and the TVs. */
+/** 1,000 bonus chips after four hours' play, for everyone at every stake, every day, all day, from 1 November 2026, with no limits, on the app and the TVs. */
 export function buildPromotionTerms(overrides: Partial<PromotionTerms> = {}): PromotionTerms {
   return {
-    name: 'Double points',
-    reward: { kind: 'points_multiplier', multiplier: 2 },
+    name: 'Play-time bonus',
+    reward: { kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 },
     eligibility: { stakes: 'all', tiers: 'all', audience: 'everyone' },
     schedule: { days: [1, 2, 3, 4, 5, 6, 7], from: '06:00', to: '06:00', startsOn: '2026-11-01', timezone: 'Asia/Kolkata' },
     limits: { perMember: 'none' },

@@ -1,5 +1,7 @@
+import { Text } from '@rivr/ui';
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { BonusByHandProvider } from './bonusByHand.ts';
 import { NOW, renderFloorScreen, requestRow, seatRow, tableRow, type FloorApi } from './floorTestApi.tsx';
 import { LiveFloorScreen } from './LiveFloorScreen.tsx';
 
@@ -47,7 +49,25 @@ function first<T>(found: T[]): T {
   return one;
 }
 
+/** The floor with a form for Bonus by hand handed in, as the route hands in the member record's. */
+const drawBonusStub = ({ memberId }: { venueId: string; memberId: string }) => <Text>{`Bonus by hand for ${memberId}`}</Text>;
+const FloorWithBonus = () => <BonusByHandProvider value={drawBonusStub}><LiveFloorScreen /></BonusByHandProvider>;
+
 describe('The player sheet (console v3)', () => {
+  it('offers Bonus by hand to staff who may add it, as floor managers cannot open Members (redesign of 15 Nov)', async () => {
+    renderFloorScreen(FloorWithBonus, { ...FLOOR, role: 'floor' });
+    await screen.findByRole('group', { name: 'Table 1 NLH 50/100' }, { timeout: 5000 });
+    fireEvent.click(screen.getByRole('radio', { name: 'Seats' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Seat 5, Kabir Sethi, +1 h?' }));
+    expect(within(await sheet('Kabir Sethi')).getByText('Bonus by hand for m-s2')).toBeDefined();
+    cleanup();
+    renderFloorScreen(FloorWithBonus, { ...FLOOR, role: 'cashier' });
+    await screen.findByRole('group', { name: 'Table 1 NLH 50/100' }, { timeout: 5000 });
+    fireEvent.click(screen.getByRole('radio', { name: 'Seats' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Seat 5, Kabir Sethi, +1 h?' }));
+    expect(within(await sheet('Kabir Sethi')).queryByText(/^Bonus by hand for /)).toBeNull();
+  });
+
   it('offers the member record only to staff who may open Members, so a cashier is not sent to a refusal (audit F-025)', async () => {
     await renderFloor({ ...FLOOR, role: 'cashier' });
     fireEvent.click(screen.getByRole('button', { name: 'Seat 5, Kabir Sethi, +1 h?' }));

@@ -56,7 +56,7 @@ select is(
 );
 select is(
   (select count(*) from public.ledger_account a join public.member m on m.id = a.member_id where m.phone = '+919000000777')::int,
-  4, 'a new member gets cash, bonus, points and receivable accounts'
+  3, 'a new member gets cash, bonus and receivable accounts'
 );
 
 select * from finish();

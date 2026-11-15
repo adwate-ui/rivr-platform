@@ -18,10 +18,9 @@ function perkWords(perk: string): string {
   return key === undefined ? '' : t(key);
 }
 
-/** What a grant gave, in words: points, bonus chips and a perk, as many as it gave. */
+/** What a grant gave, in words: bonus chips and a perk, as many as it gave. */
 function given(grant: MemberPromotionGrant): string {
   const parts = [
-    ...(grant.points > 0 ? [t('console.members.grantPoints', { count: formatNumber(grant.points) })] : []),
     ...(grant.chips > 0 ? [t('console.members.grantChips', { count: formatNumber(grant.chips) })] : []),
     ...(grant.perk === null ? [] : [perkWords(grant.perk)]),
   ];

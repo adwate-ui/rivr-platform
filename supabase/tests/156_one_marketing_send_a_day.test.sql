@@ -27,7 +27,7 @@ begin
   perform pg_temp.as_person('00000000-0000-4000-8000-000000000107');
   v_id := public.submit_promotion('00000000-0000-4000-8000-000000000001', jsonb_build_object(
     'name', p_name, 'runs', 'Every night',
-    'rule', jsonb_build_object('trigger', 'hours_played', 'conditions', '{}'::jsonb, 'effect', '{"kind": "points", "multiplier_percent": 200}'::jsonb)));
+    'rule', jsonb_build_object('trigger', 'hours_played', 'conditions', '{}'::jsonb, 'effect', '{"kind": "message", "text": "Thanks for playing"}'::jsonb)));
   perform pg_temp.as_person('00000000-0000-4000-8000-000000000101');
   perform public.approve_promotion(v_id);
   reset role;
@@ -41,15 +41,15 @@ values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select public.submit_promotion('00000000-0000-4000-8000-000000000001', jsonb_build_object(
   'name', 'Waiting', 'runs', 'Every night',
-  'rule', jsonb_build_object('trigger', 'hours_played', 'conditions', '{}'::jsonb, 'effect', '{"kind": "points", "multiplier_percent": 200}'::jsonb)));
+  'rule', jsonb_build_object('trigger', 'hours_played', 'conditions', '{}'::jsonb, 'effect', '{"kind": "message", "text": "Thanks for playing"}'::jsonb)));
 reset role;
 select is(pg_temp.offered('Waiting'), 'none', 'a submitted promotion is offered to nobody until a super admin approves it');
 
 -- The first promotion tonight is offered to Vihaan; the second, the same night, is not.
-select pg_temp.publish('Double points');
-select is(pg_temp.offered('Double points'), '212', 'the first promotion tonight is offered to Vihaan');
-select pg_temp.publish('Triple points');
-select is(pg_temp.offered('Triple points'), 'none', 'a second the same night is not: one marketing send a day');
+select pg_temp.publish('Thursday thanks');
+select is(pg_temp.offered('Thursday thanks'), '212', 'the first promotion tonight is offered to Vihaan');
+select pg_temp.publish('Friday thanks');
+select is(pg_temp.offered('Friday thanks'), 'none', 'a second the same night is not: one marketing send a day');
 
 -- Per member: Yash, who opts in now and has had none tonight, is offered the next one; Vihaan still not.
 insert into public.consent (venue_id, member_id, purpose)

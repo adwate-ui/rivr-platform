@@ -31,7 +31,6 @@ describe('the WhatsApp consumer', () => {
     const notices = [
       { notice: 'kyc_verified', params: [] },
       { notice: 'kyc_in_review', params: [] },
-      { notice: 'reward_cancelled', params: ['RIVR cap'] },
       { notice: 'seat_released', params: ['Table 3', '4'] },
     ];
     for (const notice of notices) expect((await consumer.deliver(delivery('member.notice', { member_id: MEMBER, ...notice }, now()))).ok).toBe(true);
@@ -108,7 +107,7 @@ describe('the WhatsApp consumer', () => {
     const whatsapp = createFakeWhatsApp();
     const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, findErasedPhone, now });
     for (const word of ['Pay at https://example.com', 'Cap\nPay now', '*Urgent*']) {
-      const outcome = await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'reward_cancelled', params: [word] }, now()));
+      const outcome = await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'seat_released', params: [word, '4'] }, now()));
       expect(outcome.ok).toBe(false);
     }
     expect(whatsapp.calls).toEqual([]);

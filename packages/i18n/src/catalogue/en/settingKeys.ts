@@ -26,11 +26,6 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     help: 'What an Academy seat costs: for one person, and for each person on a corporate booking.',
     fields: { individual_paise: 'One person', corporate_per_head_paise: 'Each person, corporate' },
   },
-  'accommodation.hours_per_night': {
-    name: 'Hotel night per hours played',
-    help: 'The hours played at this table type that earn one hotel night. Not set earns none.',
-    fields: { hours: 'Hours played' },
-  },
   'alert.thresholds': {
     name: 'Delivery failure alert',
     help: 'The owner is alerted when this many messages fail for good within this many minutes. 5 within 60 minutes unless set.',
@@ -107,16 +102,6 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     help: 'The parts of every jackpot drop kept for the season and freeroll pools, up to 50% each. The main pool takes the rest.',
     fields: { season_basis_points: 'Season pool', freeroll_basis_points: 'Freeroll pool' },
   },
-  'league.points': {
-    name: 'League points',
-    help: 'RIVR League points for a tournament finish: every finisher earns the entry points, and more for first, second, third and the rest of the final table.',
-    fields: { entry: 'Taking part', first: 'First', second: 'Second', third: 'Third', final_table: 'Rest of the final table' },
-  },
-  'league.prizes': {
-    name: 'League prizes',
-    help: "The RIVR League's prizes, in words, as the website's Leaderboard shows them: this month's and this season's. Not set shows none.",
-    fields: { month: 'This month', season: 'This season' },
-  },
   'learn.daily_points_cap': {
     name: 'Learn points, daily cap',
     help: 'The most Learn points a member earns in a day, so drilling again cannot farm them. 100 unless set.',
@@ -132,16 +117,6 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     help: 'How long after it is issued a marker falls due. A member with a marker past due gets no new credit.',
     fields: { days: 'Days' },
   },
-  'points.per_hour': {
-    name: 'Points per hour',
-    help: 'The points a member earns for each hour played at this table type. Not set earns none.',
-    fields: { points: 'Points' },
-  },
-  'points.daily_staff_cap': {
-    name: 'Daily points limit',
-    help: 'The most points one staff member gives by hand in a club day. Past it, a change is refused and you are told. Super admins have no limit, and only they change it. No limit unless set.',
-    fields: { points: 'Points' },
-  },
   'bonus.daily_staff_cap': {
     name: 'Daily bonus chips limit', fields: { chips: 'Bonus chips' },
     help: 'The most bonus chips one staff member adds by hand in a club day. Past it, an addition is refused and you are told. Super admins have no limit, and only they change it. No limit unless set.',
@@ -153,16 +128,6 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   'bonus.visit_cap': {
     name: 'Bonus per visit', fields: { basis_points: 'Share' },
     help: "The most of their bonus a member can use in one visit: this share of what they held at the visit's first seat, in whole 50s. Only super admins change it. No limit unless set.",
-  },
-  'points.verified_bonus': {
-    name: 'Points on verification',
-    help: 'The points a member gets once, when their identity check is verified. Not set gives none. Ends at launch: 0 from 15 November.',
-    fields: { points: 'Points' },
-  },
-  'points.rewards_rake_share': {
-    name: 'Points from rake',
-    help: "The share of a member's rake they earn back as points, one a rupee. Not set earns none.",
-    fields: { basis_points: 'Share' },
   },
   'rake.config': {
     name: 'Rake',

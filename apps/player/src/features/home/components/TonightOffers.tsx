@@ -1,5 +1,5 @@
 import { useFeature, useMyPromotionCards } from '@rivr/db';
-import { useMyReferral } from '@rivr/db/myRewards';
+import { useMyReferral } from '@rivr/db/referral';
 import { formatChips, t } from '@rivr/i18n';
 import { OfferCarousel, type Offer } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';

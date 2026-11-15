@@ -59,10 +59,16 @@ begin
 end;
 $$;
 select throws_ok($$ select pg_temp.write_one_sided_and_commit_checks() $$, '23514', null, 'a one-sided transaction cannot commit');
+-- Accounts in another unit, as the points accounts kept from before points went are (decision 0585), with an entry.
+insert into public.ledger_account (venue_id, code, name, kind, unit, member_id, is_players_money) values
+  ('00000000-0000-4000-8000-000000000001', 'member.points', 'Points', 'liability', 'points', '00000000-0000-4000-8000-000000000201', false),
+  ('00000000-0000-4000-8000-000000000001', 'venue.points_issued', 'Points issued', 'expense', 'points', null, false);
+select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'adjustment', 'test-old-points',
+  pg_temp.lines(pg_temp.account('venue.points_issued'), pg_temp.account('member.points', '00000000-0000-4000-8000-000000000201'), 100), null);
 select throws_ok(
   $$ select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'adjustment', 'test-mixed-units',
-       pg_temp.lines(pg_temp.account('member.points', '00000000-0000-4000-8000-000000000202'), pg_temp.account('venue.rake'), 100), null) $$,
-  '23514', null, 'points and money never share a transaction');
+       pg_temp.lines(pg_temp.account('member.points', '00000000-0000-4000-8000-000000000201'), pg_temp.account('venue.rake'), 100), null) $$,
+  '23514', null, 'another unit and money never share a transaction');
 select throws_ok(
   $$ select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'adjustment', 'test-cross-venue',
        pg_temp.lines(pg_temp.account('venue.cash_drawer'), pg_temp.account('venue.rake', null, '00000000-0000-4000-8000-000000000002'), 5000), null) $$,
@@ -82,7 +88,7 @@ select throws_ok(
        'test-reverse-2', 'Again') $$,
   '23505', null, 'a transaction is reversed at most once');
 select throws_ok(
-  $$ select private.reverse_ledger_transaction((select id from public.ledger_transaction where idempotency_key = 'seed:arjun:points'),
+  $$ select private.reverse_ledger_transaction((select id from public.ledger_transaction where idempotency_key = 'seed:jackpot:main'),
        'seed:arjun:cash', 'Key belongs to another transaction') $$,
   '23505', null, 'a reversal cannot reuse another transaction''s key');
 
@@ -129,18 +135,13 @@ select throws_ok(
   $$ insert into public.chip_denomination (venue_id, value_paise, name) values ('00000000-0000-4000-8000-000000000001', 7500, '₹75') $$,
   '23514', null, 'every chip is a multiple of ₹50');
 
--- Who sees what. Arjun's points history is switched off for him, so his points entries hide
--- while his points balance still shows.
-insert into public.member_feature_override (venue_id, member_id, feature_key, is_granted, reason)
-values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000201', 'rewards.points_history', false, 'Test');
+-- Who sees what: a member sees his accounts, and the entries of his money accounts alone.
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';
 select is((select count(*) from public.ledger_account)::int, 4, 'a member sees his four accounts');
 select is((select natural_balance from public.ledger_balance where code = 'member.cash'), 18500000::bigint, 'and his cash balance');
 select is((select count(*) from public.ledger_entry e join public.ledger_account a on a.id = e.account_id where a.unit = 'points')::int, 0,
-  'his points history is hidden when his tier does not have it');
-select is((select natural_balance from public.ledger_balance where code = 'member.points'), 18420::bigint,
-  'but his points balance is still right');
+  'the entries of a points account kept from before are shown to no member');
 select is((select count(*) from public.ledger_entry e join public.ledger_account a on a.id = e.account_id where a.member_id <> '00000000-0000-4000-8000-000000000201')::int, 0,
   'he sees no one else''s entries');
 select throws_ok(

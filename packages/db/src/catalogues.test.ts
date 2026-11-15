@@ -29,7 +29,12 @@ const sql = readdirSync(MIGRATIONS)
 function featuresInMigrations(): Map<string, boolean> {
   const blocks = sql.match(/insert into public\.feature \([^)]*\) values[\s\S]*?;/g) ?? [];
   const rows = blocks.flatMap((block) => [...block.matchAll(/\(\s*'([a-z_]+\.[a-z0-9_.-]+)',[\s\S]*?,\s*(true|false)\)/g)]);
-  return new Map(rows.map(([, key, gateable]) => [key ?? '', gateable === 'true']));
+  const features = new Map(rows.map(([, key, gateable]) => [key ?? '', gateable === 'true']));
+  // A feature a later migration removes (the redesign of 15 Nov: `delete from public.feature where key in (...)`) is no longer the database's.
+  for (const [, removed = ''] of sql.matchAll(/delete from public\.feature where key in \(([^)]*)\)/g)) {
+    for (const [, key = ''] of removed.matchAll(/'([a-z_.]+)'/g)) features.delete(key);
+  }
+  return features;
 }
 
 // A role's permissions may be granted over several migrations: each later block adds to the earlier.

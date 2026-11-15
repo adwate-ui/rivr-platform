@@ -93,7 +93,7 @@ describe('promotion version actions', () => {
     await act(async () => {
       run = await result.current.simulate.mutateAsync({ versionId: 'v1', terms: TUESDAY });
     });
-    const simulation = { events: 2, membersQualified: 2, timesGiven: 2, points: 0, chips: 3_000, perks: 0, isBudgetReached: false };
+    const simulation = { events: 2, membersQualified: 2, timesGiven: 2, chips: 3_000, perks: 0, isBudgetReached: false };
     expect(run).toEqual({ ok: true, value: { ...simulation, from: new Date('2026-10-27T00:30:00Z'), to: new Date('2026-11-03T00:30:00Z') } });
     expect(bodyOf('record_promotion_simulation')).toEqual({
       p_version_id: 'v1', p_simulation: simulation,

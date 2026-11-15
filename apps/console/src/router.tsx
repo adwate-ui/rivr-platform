@@ -48,7 +48,6 @@ import { topUpsRoute } from './routes/top-ups.tsx';
 import { timeRequestsRoute } from './routes/time-requests.tsx';
 import { tablesRoute } from './routes/tables.tsx';
 import { gamesHistoryRoute } from './routes/games-history.tsx';
-import { leagueRoute } from './routes/league.tsx';
 import { creatorsRoute } from './routes/creators.tsx';
 import { socialRoute } from './routes/social.tsx';
 import { hostQueueRoute } from './routes/host-queue.tsx';
@@ -56,7 +55,6 @@ import { websiteRoute } from './routes/website.tsx';
 import { eventsRoute } from './routes/events.tsx';
 import { learnSourcesRoute } from './routes/learn-sources.tsx';
 import { tournamentsRoute } from './routes/tournaments.tsx';
-import { rewardsRoute } from './routes/rewards.tsx';
 import { potDataRoute } from './routes/pot-data.tsx';
 import { dealersRoute } from './routes/dealers.tsx';
 import { incidentsRoute } from './routes/incidents.tsx';
@@ -91,8 +89,6 @@ const routeTree = rootRoute.addChildren([
     timeRequestsRoute,
     tablesRoute,
     gamesHistoryRoute,
-    rewardsRoute,
-    leagueRoute,
     creatorsRoute,
     socialRoute,
     hostQueueRoute,

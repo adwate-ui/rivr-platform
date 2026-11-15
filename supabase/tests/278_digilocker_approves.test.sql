@@ -22,14 +22,6 @@ insert into public.member (id, venue_id, full_name, phone) values
   ('00000000-0000-4000-8000-0000000004d9', '00000000-0000-4000-8000-000000000001', 'Tara Nair', '+919000098809'),
   ('00000000-0000-4000-8000-0000000004da', '00000000-0000-4000-8000-000000000001', 'Uma Iyer', '+919000098810');
 
--- The club gives 500 points for a verified check, whatever day the test runs on.
-delete from public.setting where key = 'points.verified_bonus';
-insert into public.setting (venue_id, key, subject, value, effective_from, reason)
-values ('00000000-0000-4000-8000-000000000001', 'points.verified_bonus', '', '{"points": 500}', '-infinity', 'DigiLocker test');
-
-create function pg_temp.points(p_member uuid) returns bigint language sql as $$
-  select -private.account_balance(a.id) from public.ledger_account a where a.member_id = p_member and a.code = 'member.points';
-$$;
 
 -- A check whose selfie is in and whose DigiLocker hand-off has begun.
 create function pg_temp.started(p_member uuid) returns void language sql as $$
@@ -46,7 +38,6 @@ select is(public.record_kyc_digilocker('00000000-0000-4000-8000-0000000004d1', '
 select is((select row(date_of_birth, masked_aadhaar, identity_key is not null, verified_at is not null)::text
            from public.kyc_record where member_id = '00000000-0000-4000-8000-0000000004d1'),
   '(1990-06-15,"XXXX XXXX 4821",t,t)', 'the identity is kept, the identity key with it, and the time it was verified');
-select is(pg_temp.points('00000000-0000-4000-8000-0000000004d1'), 500::bigint, 'the verified bonus is given, as on every route');
 select is((select count(*)::integer from public.outbox_event e where e.event_type = 'kyc.completed'
            and e.payload ->> 'member_id' = '00000000-0000-4000-8000-0000000004d1'), 1, 'and kyc.completed tells the rest of the system');
 
@@ -64,7 +55,6 @@ select is(public.record_kyc_digilocker('00000000-0000-4000-8000-0000000004d3', '
 select is((select row(date_of_birth, masked_aadhaar, pan, address, identity_key)::text
            from public.kyc_record where member_id = '00000000-0000-4000-8000-0000000004d3'),
   '(,,,,)', 'and keeps none of that person''s identity');
-select is(pg_temp.points('00000000-0000-4000-8000-0000000004d3'), 0::bigint, 'and gives no bonus');
 
 -- Under 18 on DigiLocker's date of birth is refused.
 select pg_temp.started('00000000-0000-4000-8000-0000000004d4');

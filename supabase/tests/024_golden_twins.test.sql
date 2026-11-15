@@ -335,12 +335,10 @@ select results_eq(
   $$ select description, expected ->> 'applies' from golden.golden_case where file = 'promotions.json' and operation = 'applies' order by position $$,
   'private.promotion_applies decides every rule in the golden file');
 select results_eq(
-  $$ select description, coalesce((select case when r.points > 0 then r.points || ' points' else r.cost_paise::text end
-                                   from private.promotion_reward((inputs ->> 'effect')::jsonb, pg_temp.paise(inputs ->> 'amount'), (inputs ->> 'points')::bigint) r),
+  $$ select description, coalesce((select r.cost_paise::text from private.promotion_reward((inputs ->> 'effect')::jsonb, pg_temp.paise(inputs ->> 'amount')) r),
                                   'nothing')
      from golden.golden_case where file = 'promotions.json' and operation = 'reward' order by position $$,
-  $$ select description, case when expected ->> 'reward' = 'nothing' or expected ->> 'reward' like '% points' then expected ->> 'reward'
-                              else pg_temp.paise(expected ->> 'reward')::text end
+  $$ select description, case when expected ->> 'reward' = 'nothing' then 'nothing' else pg_temp.paise(expected ->> 'reward')::text end
      from golden.golden_case where file = 'promotions.json' and operation = 'reward' order by position $$,
   'private.promotion_reward gives every reward in the golden file');
 select results_eq(
@@ -349,43 +347,22 @@ select results_eq(
   $$ select description, expected ->> 'given' from golden.golden_case where file = 'promotions.json' and operation = 'select' order by position $$,
   'private.promotions_to_give gives every selection in the golden file');
 
--- Points: private.points_for_time, table_played_seconds, rake_share and rake_points, and @rivr/domain's
--- (packages/testing/golden/points.json).
-select ok((select count(*) > 0 from golden.golden_case where file = 'points.json'), 'the points cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'points.json'
-                   and operation not in ('time', 'table_time', 'rake_share', 'rake_points') $$,
-  'every operation in points.json is proved here');
+-- Shares: private.table_played_seconds and rake_share, and @rivr/domain's (packages/testing/golden/shares.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'shares.json'), 'the shares cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'shares.json' and operation not in ('table_time', 'rake_share') $$,
+  'every operation in shares.json is proved here');
 select results_eq(
   $$ select description, case operation
-       when 'time' then private.points_for_time((inputs ->> 'seconds')::bigint, (inputs ->> 'perHour')::bigint)
        when 'table_time' then private.table_played_seconds((inputs ->> 'tableSeconds')::bigint, (inputs ->> 'sessionSeconds')::bigint,
                                                            (inputs ->> 'playedSeconds')::bigint)
-       when 'rake_share' then private.rake_share(pg_temp.paise(inputs ->> 'rake'), (inputs ->> 'seated')::integer)
-       else private.rake_points(pg_temp.paise(inputs ->> 'share'), (inputs ->> 'rate')::integer) end
-     from golden.golden_case where file = 'points.json' order by position $$,
+       else private.rake_share(pg_temp.paise(inputs ->> 'rake'), (inputs ->> 'seated')::integer) end
+     from golden.golden_case where file = 'shares.json' order by position $$,
   $$ select description, case operation
-       when 'time' then (expected ->> 'points')::bigint
        when 'table_time' then (expected ->> 'seconds')::bigint
-       when 'rake_share' then pg_temp.paise(expected ->> 'share')
-       else (expected ->> 'points')::bigint end
-     from golden.golden_case where file = 'points.json' order by position $$,
-  'the points rules give every case in the golden file');
+       else pg_temp.paise(expected ->> 'share') end
+     from golden.golden_case where file = 'shares.json' order by position $$,
+  'the share rules give every case in the golden file');
 
--- The League: private.league_finish_points and league_month, and @rivr/domain's (packages/testing/golden/league.json).
-select ok((select count(*) > 0 from golden.golden_case where file = 'league.json'), 'the League cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'league.json' and operation not in ('finish', 'month') $$,
-  'every operation in league.json is proved here');
-select results_eq(
-  $$ select description, case operation
-       when 'finish' then private.league_finish_points((inputs ->> 'place')::integer,
-                            jsonb_build_object('first', (inputs ->> 'first')::bigint, 'second', (inputs ->> 'second')::bigint,
-                                               'third', (inputs ->> 'third')::bigint, 'final_table', (inputs ->> 'finalTable')::bigint,
-                                               'entry', (inputs ->> 'entry')::bigint))::text
-       else private.league_month((inputs ->> 'at')::timestamptz)::text end
-     from golden.golden_case where file = 'league.json' order by position $$,
-  $$ select description, case operation when 'finish' then expected ->> 'points' else expected ->> 'month' end
-     from golden.golden_case where file = 'league.json' order by position $$,
-  'the League rules give every case in the golden file');
 -- Credit: private.credit_age_bucket and private.repayment_split, and @rivr/domain ageingBucket and repayment
 -- (packages/testing/golden/creditAgeing.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'creditAgeing.json'), 'the credit ageing cases are loaded');
@@ -712,15 +689,6 @@ select results_eq(
   $$ select description, (expected ->> 'points')::bigint from golden.golden_case where file = 'learnPoints.json' order by position $$,
   'private.learn_points gives every case in the golden file');
 
--- Accommodation nights: private.nights_for_time, and @rivr/domain nightsForTime (packages/testing/golden/accommodation.json).
-select ok((select count(*) > 0 from golden.golden_case where file = 'accommodation.json'), 'the accommodation cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'accommodation.json' and operation <> 'nights' $$,
-  'every operation in accommodation.json is proved here');
-select results_eq(
-  $$ select description, private.nights_for_time((inputs ->> 'seconds')::bigint, (inputs ->> 'hoursPerNight')::integer)
-     from golden.golden_case where file = 'accommodation.json' order by position $$,
-  $$ select description, (expected ->> 'thousandths')::bigint from golden.golden_case where file = 'accommodation.json' order by position $$,
-  'private.nights_for_time gives every case in the golden file');
 
 -- Promotion schedules (console v3, decision 0472): private.is_in_schedule and private.seconds_in_schedule, and @rivr/domain
 -- isInSchedule and secondsInSchedule (packages/testing/golden/promotionSchedule.json).
@@ -759,11 +727,11 @@ select results_eq(
   $$ select description, expected ->> 'eligible' from golden.golden_case where file = 'promotionRewards.json' and operation = 'eligible' order by position $$,
   'private.promo_is_eligible decides every member in the golden file');
 select results_eq(
-  $$ select description, coalesce(g.o_refusal, g.o_points || ' | ' || g.o_chips || ' | ' || coalesce(g.o_perk, ''))
+  $$ select description, coalesce(g.o_refusal, g.o_chips || ' | ' || coalesce(g.o_perk, ''))
      from golden.golden_case cross join lateral private.promo_grant((inputs ->> 'reward')::jsonb, (inputs ->> 'event')::jsonb) g
      where file = 'promotionRewards.json' and operation = 'grant' order by position $$,
   $$ select description, coalesce(expected ->> 'refusal',
-                                   (expected ->> 'points') || ' | ' || (expected ->> 'chips') || ' | ' || (expected ->> 'perk'))
+                                   (expected ->> 'chips') || ' | ' || (expected ->> 'perk'))
      from golden.golden_case where file = 'promotionRewards.json' and operation = 'grant' order by position $$,
   'private.promo_grant gives every grant in the golden file');
 select results_eq(
@@ -820,10 +788,10 @@ begin
           '{"days": [1, 2, 3, 4, 5, 6, 7], "from": "06:00", "to": "06:00", "startsOn": "2026-10-01", "timezone": "Asia/Kolkata"}', v_limits,
           '{"playerApp": false, "tv": false, "website": false, "whatsapp": false}')
   returning id into v_version;
-  insert into public.promotion_grant (venue_id, promotion_id, promotion_version_id, member_id, table_id, trigger, effect, cost_paise, points, chips,
+  insert into public.promotion_grant (venue_id, promotion_id, promotion_version_id, member_id, table_id, trigger, effect, cost_paise, chips,
                                       perk, source_key, period_key, club_day)
   select '00000000-0000-4000-8000-000000000001', v_promotion, v_version, (e ->> 'memberId')::uuid, pg_temp.golden_table(e ->> 'tableId'), 'buy_in', '{}',
-         (e ->> 'chips')::bigint * 100, (e ->> 'points')::bigint, (e ->> 'chips')::bigint, e ->> 'perk', 'golden:' || n,
+         (e ->> 'chips')::bigint * 100, (e ->> 'chips')::bigint, e ->> 'perk', 'golden:' || n,
          e ->> 'periodKey', (e ->> 'clubDay')::date
   from jsonb_array_elements((p_inputs ->> 'ledger')::jsonb) with ordinality as l (e, n);
   v_tally := private.promotion_tally(v_promotion, (v_event ->> 'memberId')::uuid,

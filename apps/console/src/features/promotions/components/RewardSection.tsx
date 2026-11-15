@@ -45,13 +45,6 @@ function BonusChipsFields({ section }: { section: SectionProps }) {
 /** The fields of the kind chosen; waitlist priority has none. */
 function KindFields({ section }: { section: SectionProps }) {
   switch (section.form.kind) {
-    case 'points_multiplier':
-      return (
-        <Fields>
-          <FormInput section={section} field="multiplier" label={t('console.promotions.builder.fields.multiplier')}
-            suffix={t('console.promotions.builder.fields.multiplierSuffix')} inputMode="decimal" />
-        </Fields>
-      );
     case 'seat_bonus':
       return <SeatBonusFields section={section} />;
     case 'hours_bonus':

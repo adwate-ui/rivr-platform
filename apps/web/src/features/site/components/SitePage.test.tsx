@@ -47,7 +47,7 @@ describe('a website page', () => {
     // On a phone the member app leads the links and the header's action ends them; from a tablet up they sit in the top
     // bar and beside the menu (UI polish audit A-25, W-03).
     expect(within(menu).getAllByRole('link').map((link) => link.textContent)).toEqual([
-      'Member app', 'The club', 'The room', 'Games', 'Membership', 'Leaderboard', "What’s on", 'Prizes and calendar', 'Journal', 'Visit and contact',
+      'Member app', 'The club', 'The room', 'Games', 'Membership', "What’s on", 'Prizes and calendar', 'Journal', 'Visit and contact',
       'Request a seat',
     ]);
     const reserve = screen.getAllByRole('link', { name: 'Request a seat' })[0]?.getAttribute('href') ?? '';
@@ -168,7 +168,7 @@ describe('a website page', () => {
         { kind: 'story' as const, content: { heading: 'Good hands. Better company.', paragraphs: ['RIVR opens.'], figures: [{ value: '6', label: 'Tables' }] } },
         { kind: 'cards' as const, content: { heading: 'What’s on', cards: [{ title: 'Tournament nights', link: { label: 'Full calendar', page: 'tournaments' } }, { title: 'On the house' }] } },
         { kind: 'timeline' as const, content: { items: [{ when: '1996', title: 'The predominance test' }] } },
-        { kind: 'table' as const, content: { columns: ['Stake', 'Points an hour'], rows: [['NLH 50/100', '5']] } },
+        { kind: 'table' as const, content: { columns: ['Stake', 'Call time'], rows: [['NLH 50/100', '3 hours']] } },
         { kind: 'promotions' as const, content: { heading: 'Running now' } },
       ],
       promotions: [{ title: 'Referral', detail: '₹1,000 to each side', runs: 'Every day', rules: [], questions: [], isWelcome: false }],
@@ -177,7 +177,7 @@ describe('a website page', () => {
     expect(Array.from(container.querySelectorAll('[data-band]'), (band) => band.getAttribute('data-band'))).toEqual(['deep', 'cream', 'dark', 'deep', 'cream', 'deep']);
     expect(screen.getByRole('heading', { level: 2, name: 'Good hands. Better company.' })).toBeDefined();
     expect(screen.getByRole('link', { name: 'Full calendar: Tournament nights' }).getAttribute('href')).toBe('/tournaments?ref=FRIEND1');
-    expect(screen.getByRole('cell', { name: '5' })).toBeDefined();
+    expect(screen.getByRole('cell', { name: '3 hours' })).toBeDefined();
     expect(screen.getByRole('heading', { level: 3, name: 'Referral' })).toBeDefined();
     expect(screen.getByRole('contentinfo').querySelector('a[href="/house-rules?ref=FRIEND1"]')?.textContent).toBe('House rules');
     expect(screen.getByRole('contentinfo').querySelector('a[href="/delete-account?ref=FRIEND1"]')?.textContent).toBe('Delete your account');

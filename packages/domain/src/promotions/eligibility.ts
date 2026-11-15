@@ -29,9 +29,9 @@ function isInAudience(audience: Eligibility['audience'], member: MemberFacts): b
   }
 }
 
-/** Rewards for time played: the minutes inside the schedule, at its stakes and tables, decide them, not the moment of the event. */
+/** The reward for time played, a play-time bonus: the minutes inside the schedule, at its stakes and tables, decide it, not the moment of the event. */
 export function isTimeBased(reward: Reward): boolean {
-  return reward.kind === 'points_multiplier' || reward.kind === 'hours_bonus';
+  return reward.kind === 'hours_bonus';
 }
 
 /** Whether a table is one the promotion runs at: any, or one of its stakes and tables. A promotion for some stakes runs at no table-less event. */

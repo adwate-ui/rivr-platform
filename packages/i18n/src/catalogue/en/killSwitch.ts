@@ -21,7 +21,7 @@ export const killSwitch = {
     venue_freeze: 'Stops every change at the venue. Before a purge, or in a serious incident.',
     feature_kill: 'Turns one feature off for everyone, such as promotions.',
     messaging_stop: 'Holds every message to members: WhatsApp, texts and notifications.',
-    member_freeze: 'Freezes one member: no waitlist, no points, no requests.',
+    member_freeze: 'Freezes one member: no waitlist, no requests.',
     access_revoke: 'Removes all of one staff member’s access at once.',
   },
   features: {

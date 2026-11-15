@@ -15,8 +15,8 @@ const VENUE = '00000000-0000-4000-8000-000000000001';
 const KEYS = [
   { key: 'waitlist.hold_minutes', description: 'Seat hold', scope: 'venue',
     value_schema: { type: 'object', properties: { minutes: { type: 'integer', minimum: 1, maximum: 120 } }, required: ['minutes'] } },
-  { key: 'points.daily_staff_cap', description: 'Daily cap', scope: 'venue',
-    value_schema: { type: 'object', properties: { points: { type: 'integer', minimum: 0, maximum: 1000000 } }, required: ['points'] } },
+  { key: 'bonus.daily_staff_cap', description: 'Daily cap', scope: 'venue',
+    value_schema: { type: 'object', properties: { chips: { type: 'integer', minimum: 50, maximum: 1000000 } }, required: ['chips'] } },
   { key: 'dealer.rotation_minutes', description: 'Dealer rotation', scope: 'venue',
     value_schema: { type: 'object', properties: { minutes: { type: 'integer', minimum: 10, maximum: 120 } }, required: ['minutes'] } },
   { key: 'kyc.at_the_club', description: 'Identity checked at the club', scope: 'venue',
@@ -59,7 +59,7 @@ describe('the KYC switch (decision 0502)', () => {
     expect(screen.queryByText('Seat hold')).toBeNull();
   });
 
-  it('is no longer under Members and rewards', async () => {
+  it('is no longer under Members and bonus', async () => {
     renderArea('members', true);
     await screen.findByText(/Daily/, {}, { timeout: 5000 }).catch(() => undefined);
     expect(screen.queryByText('Identity (KYC) checked at the club')).toBeNull();

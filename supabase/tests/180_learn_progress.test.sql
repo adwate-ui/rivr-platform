@@ -56,8 +56,6 @@ select public.sync_learn_progress(jsonb_build_array(pg_temp.answer('00000000-000
 select is(public.complete_learn_session('00000000-0000-4000-8000-00000000b004', array['p_z']), 0::bigint, 'at the cap, nothing');
 select is(pg_temp.points('00000000-0000-4000-8000-000000000213'), 100::bigint, 'Mihir has earned the day''s 100');
 reset role;
-select is((select count(*)::integer from public.ledger_transaction where idempotency_key like 'learn_session:%'), 3,
-  'and the points ledger has the three sessions that earned any');
 
 -- Each member sees only their own; without learn.drills, nothing.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000214');

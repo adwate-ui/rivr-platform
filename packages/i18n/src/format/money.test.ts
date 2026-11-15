@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatChips, formatMoney, formatNights, formatNumber, formatRupeesForFile, formatRupeesForInput, formatStakes } from './money.ts';
+import { formatChips, formatMoney, formatNumber, formatRupeesForFile, formatRupeesForInput, formatStakes } from './money.ts';
 
 describe('formatMoney', () => {
   it.each([
@@ -58,16 +58,6 @@ describe('formatStakes', () => {
   });
 });
 
-describe('formatNights', () => {
-  it('gives nights from thousandths, with no trailing zeros and Indian grouping', () => {
-    expect(formatNights(0n)).toBe('0');
-    expect(formatNights(2_000n)).toBe('2');
-    expect(formatNights(1_250n)).toBe('1.25');
-    expect(formatNights(175n)).toBe('0.175');
-    expect(formatNights(1_200_500n)).toBe('1,200.5');
-    expect(formatNights(-1_250n)).toBe('−1.25');
-  });
-});
 
 describe('formatNumber', () => {
   it('groups points the Indian way', () => {

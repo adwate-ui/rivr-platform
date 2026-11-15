@@ -95,7 +95,7 @@ function refusal(error: { code: string; details: string } | null): CheckOutRefus
 
 /**
  * Checks a member out at the door (#82), from the room list or by mobile number: their visit closes, which
- * fixes its hours and earns its points. Each resolves to the visit's id and reloads the lists.
+ * fixes its hours. Each resolves to the visit's id and reloads the lists.
  */
 export function useCheckOutActions(venueId: string) {
   const { client, userId } = useRivrData();

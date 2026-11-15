@@ -1931,78 +1931,6 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"league_adjustment": {
-                  Row: {
-                    "created_at": string,"given_by_staff_id": string,"id": string,"member_id": string,"month": string,"points": number,"reason": string,"request_id": string,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "created_at"?: string,"given_by_staff_id": string,"id"?: string,"member_id": string,"month": string,"points": number,"reason": string,"request_id": string,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "created_at"?: string,"given_by_staff_id"?: string,"id"?: string,"member_id"?: string,"month"?: string,"points"?: number,"reason"?: string,"request_id"?: string,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "league_adjustment_given_by_staff_id_venue_id_fkey"
-      columns: ["given_by_staff_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "staff"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "league_adjustment_member_id_venue_id_fkey"
-      columns: ["member_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "member"
-      referencedColumns: ["id","venue_id"]
-    }
-                  ]
-                },"league_finish": {
-                  Row: {
-                    "created_at": string,"id": string,"member_id": string,"month": string,"place": number,"points": number,"tournament_id": string,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "created_at"?: string,"id"?: string,"member_id": string,"month": string,"place": number,"points": number,"tournament_id": string,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "created_at"?: string,"id"?: string,"member_id"?: string,"month"?: string,"place"?: number,"points"?: number,"tournament_id"?: string,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "league_finish_member_id_venue_id_fkey"
-      columns: ["member_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "member"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "league_finish_tournament_id_venue_id_fkey"
-      columns: ["tournament_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "tournament"
-      referencedColumns: ["id","venue_id"]
-    }
-                  ]
-                },"league_season": {
-                  Row: {
-                    "created_at": string,"first_month": string,"id": string,"last_month": string,"name": string,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "created_at"?: string,"first_month": string,"id"?: string,"last_month": string,"name": string,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "created_at"?: string,"first_month"?: string,"id"?: string,"last_month"?: string,"name"?: string,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "league_season_venue_id_fkey"
-      columns: ["venue_id"]
-isOneToOne: false
-      referencedRelation: "venue"
-      referencedColumns: ["id"]
-    }
-                  ]
                 },"learn_attempt": {
                   Row: {
                     "answered_at": string,"attempt": NonNullable<Json>,"created_at": string,"id": string,"member_id": string,"principle_id": string,"session_id": string,"source_key": string,"updated_at": string,"venue_id": string
@@ -2641,44 +2569,6 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
-                },"points_earning": {
-                  Row: {
-                    "basis": string,"created_at": string,"id": string,"member_id": string,"played_seconds": number | null,"points": number,"rake_share_paise": number | null,"rate": number,"session_id": string | null,"table_id": string | null,"updated_at": string,"venue_id": string,"visit_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "basis": string,"created_at"?: string,"id"?: string,"member_id": string,"played_seconds"?: number | null,"points": number,"rake_share_paise"?: number | null,"rate": number,"session_id"?: string | null,"table_id"?: string | null,"updated_at"?: string,"venue_id": string,"visit_id": string
-                  }
-                  Update: {
-                    "basis"?: string,"created_at"?: string,"id"?: string,"member_id"?: string,"played_seconds"?: number | null,"points"?: number,"rake_share_paise"?: number | null,"rate"?: number,"session_id"?: string | null,"table_id"?: string | null,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "points_earning_member_id_venue_id_fkey"
-      columns: ["member_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "member"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "points_earning_session_id_fkey"
-      columns: ["session_id"]
-isOneToOne: false
-      referencedRelation: "seat_session"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "points_earning_table_id_venue_id_fkey"
-      columns: ["table_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "game_table"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "points_earning_visit_id_fkey"
-      columns: ["visit_id"]
-isOneToOne: false
-      referencedRelation: "visit"
-      referencedColumns: ["id"]
-    }
-                  ]
                 },"promotion": {
                   Row: {
                     "created_at": string,"current_version": number | null,"decided_at": string | null,"decided_by_staff_id": string | null,"detail": string | null,"ends_at": string | null,"id": string,"idempotency_key": string | null,"link": string | null,"name": string,"per_player_limit": number | null,"per_player_period": string | null,"priority": number,"questions": NonNullable<Json>,"refused_reason": string | null,"requested_at": string | null,"requested_by_staff_id": string | null,"rules": (string)[],"runs": string | null,"stacks": boolean,"starts_at": string,"status": string,"template_key": string | null,"updated_at": string,"venue_id": string
@@ -2733,14 +2623,14 @@ isOneToOne: false
                   ]
                 },"promotion_grant": {
                   Row: {
-                    "bonus_grant_id": string | null,"chips": number,"club_day": string,"cost_paise": number,"created_at": string,"effect": NonNullable<Json>,"fulfilled_at": string | null,"id": string,"member_id": string,"period_key": string | null,"perk": string | null,"points": number,"promotion_id": string,"promotion_rule_id": string | null,"promotion_version_id": string | null,"source_key": string,"table_id": string | null,"trigger": string,"updated_at": string,"venue_id": string
+                    "bonus_grant_id": string | null,"chips": number,"club_day": string,"cost_paise": number,"created_at": string,"effect": NonNullable<Json>,"fulfilled_at": string | null,"id": string,"member_id": string,"period_key": string | null,"perk": string | null,"promotion_id": string,"promotion_rule_id": string | null,"promotion_version_id": string | null,"source_key": string,"table_id": string | null,"trigger": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "bonus_grant_id"?: string | null,"chips"?: number,"club_day": string,"cost_paise": number,"created_at"?: string,"effect": NonNullable<Json>,"fulfilled_at"?: string | null,"id"?: string,"member_id": string,"period_key"?: string | null,"perk"?: string | null,"points": number,"promotion_id": string,"promotion_rule_id"?: string | null,"promotion_version_id"?: string | null,"source_key": string,"table_id"?: string | null,"trigger": string,"updated_at"?: string,"venue_id": string
+                    "bonus_grant_id"?: string | null,"chips"?: number,"club_day": string,"cost_paise": number,"created_at"?: string,"effect": NonNullable<Json>,"fulfilled_at"?: string | null,"id"?: string,"member_id": string,"period_key"?: string | null,"perk"?: string | null,"promotion_id": string,"promotion_rule_id"?: string | null,"promotion_version_id"?: string | null,"source_key": string,"table_id"?: string | null,"trigger": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "bonus_grant_id"?: string | null,"chips"?: number,"club_day"?: string,"cost_paise"?: number,"created_at"?: string,"effect"?: NonNullable<Json>,"fulfilled_at"?: string | null,"id"?: string,"member_id"?: string,"period_key"?: string | null,"perk"?: string | null,"points"?: number,"promotion_id"?: string,"promotion_rule_id"?: string | null,"promotion_version_id"?: string | null,"source_key"?: string,"table_id"?: string | null,"trigger"?: string,"updated_at"?: string,"venue_id"?: string
+                    "bonus_grant_id"?: string | null,"chips"?: number,"club_day"?: string,"cost_paise"?: number,"created_at"?: string,"effect"?: NonNullable<Json>,"fulfilled_at"?: string | null,"id"?: string,"member_id"?: string,"period_key"?: string | null,"perk"?: string | null,"promotion_id"?: string,"promotion_rule_id"?: string | null,"promotion_version_id"?: string | null,"source_key"?: string,"table_id"?: string | null,"trigger"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -2981,50 +2871,6 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"redemption": {
-                  Row: {
-                    "cancel_reason": string | null,"cancelled_at": string | null,"cancelled_by_staff_id": string | null,"created_at": string,"handed_over_at": string | null,"handed_over_by_staff_id": string | null,"id": string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"nights": number | null,"points": number | null,"reward_item_id": string,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "cancel_reason"?: string | null,"cancelled_at"?: string | null,"cancelled_by_staff_id"?: string | null,"created_at"?: string,"handed_over_at"?: string | null,"handed_over_by_staff_id"?: string | null,"id"?: string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"nights"?: number | null,"points"?: number | null,"reward_item_id": string,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "cancel_reason"?: string | null,"cancelled_at"?: string | null,"cancelled_by_staff_id"?: string | null,"created_at"?: string,"handed_over_at"?: string | null,"handed_over_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"nights"?: number | null,"points"?: number | null,"reward_item_id"?: string,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "redemption_cancelled_by_staff_id_venue_id_fkey"
-      columns: ["cancelled_by_staff_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "staff"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "redemption_handed_over_by_staff_id_venue_id_fkey"
-      columns: ["handed_over_by_staff_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "staff"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "redemption_ledger_transaction_id_fkey"
-      columns: ["ledger_transaction_id"]
-isOneToOne: true
-      referencedRelation: "ledger_transaction"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "redemption_member_id_venue_id_fkey"
-      columns: ["member_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "member"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "redemption_reward_item_id_venue_id_fkey"
-      columns: ["reward_item_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "reward_item"
-      referencedColumns: ["id","venue_id"]
-    }
-                  ]
                 },"referral": {
                   Row: {
                     "code": string,"completed_at": string,"created_at": string,"id": string,"member_id": string,"referrer_member_id": string,"updated_at": string,"venue_id": string
@@ -3086,26 +2932,6 @@ isOneToOne: false
       columns: ["visit_id"]
 isOneToOne: false
       referencedRelation: "visit"
-      referencedColumns: ["id"]
-    }
-                  ]
-                },"reward_item": {
-                  Row: {
-                    "created_at": string,"detail": string,"id": string,"is_live": boolean,"kind": string,"name": string,"nights": number | null,"photo_path": string | null,"points": number | null,"stock": number | null,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "created_at"?: string,"detail": string,"id"?: string,"is_live"?: boolean,"kind": string,"name": string,"nights"?: number | null,"photo_path"?: string | null,"points"?: number | null,"stock"?: number | null,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "created_at"?: string,"detail"?: string,"id"?: string,"is_live"?: boolean,"kind"?: string,"name"?: string,"nights"?: number | null,"photo_path"?: string | null,"points"?: number | null,"stock"?: number | null,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "reward_item_venue_id_fkey"
-      columns: ["venue_id"]
-isOneToOne: false
-      referencedRelation: "venue"
       referencedColumns: ["id"]
     }
                   ]
@@ -4604,14 +4430,6 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
-                },"public_league_table": {
-                  Row: {
-                    "display_name": string | null,"first_month": string | null,"last_month": string | null,"place": number | null,"points": number | null,"season_name": string | null,"standing": string | null,"venue_slug": string | null
-                  }
-                  ComputedFields: never
-                  Relationships: [
-                    
-                  ]
                 },"public_promotion_cards": {
                   Row: {
                     "detail": string | null,"is_welcome": boolean | null,"questions": Json | null,"rules": (string)[] | null,"runs": string | null,"title": string | null,"venue_slug": string | null
@@ -4883,9 +4701,6 @@ isOneToOne: false
 "cancel_my_fnb_order":
 { Args: { "p_order_id": string }; Returns: undefined
                            },
-"cancel_redemption":
-{ Args: { "p_reason": string,"p_redemption_id": string }; Returns: undefined
-                           },
 "cctv_reference":
 { Args: { "p_id": string,"p_kind": string }; Returns: {
               "at": string,"camera_name": string,"channel": string,"is_practice": boolean
@@ -5146,7 +4961,7 @@ isOneToOne: false
                            },
 "erase_member":
 { Args: { "p_full_name": string,"p_member_id": string,"p_reason": string }; Returns: {
-              "blocked_until": string,"forfeited_bonus_paise": number,"forfeited_nights": number,"forfeited_points": number,"venue_id": string
+              "blocked_until": string,"forfeited_bonus_paise": number,"venue_id": string
             }[]
                            },
 "erased_member_kyc_folder":
@@ -5243,11 +5058,6 @@ isOneToOne: false
 "give_consent":
 { Args: { "p_purpose": string }; Returns: undefined
                            },
-"give_league_points":
-{ Args: { "p_reason": string,"p_request_id": string,"p_rows": Json,"p_venue_id": string }; Returns: {
-              "members": number,"points": number
-            }[]
-                           },
 "glaza_statement":
 { Args: { "p_month": string,"p_venue_id": string }; Returns: {
               "alcohol_comps_paise": number,"alcohol_cost_paise": number,"alcohol_margin_paise": number,"alcohol_sales_paise": number,"comps_paise": number,"food_comps_paise": number,"import_id": string,"imported_at": string,"lines": number,"matched": number,"payable_paise": number,"rivr_share_paise": number,"soft_drink_comps_paise": number
@@ -5256,16 +5066,10 @@ isOneToOne: false
 "graduate_academy_member":
 { Args: { "p_booking_id": string }; Returns: undefined
                            },
-"grant_points":
-{ Args: { "p_idempotency_key": string,"p_is_locked": boolean,"p_member_id": string,"p_points": number,"p_reason": string }; Returns: string
-                           },
 "growth_funnel":
 { Args: { "p_venue_id": string }; Returns: {
               "bought_in": number,"kyc_done": number,"signed_up": number,"source_code": string,"source_kind": string,"visited": number
             }[]
-                           },
-"hand_over_redemption":
-{ Args: { "p_redemption_id": string }; Returns: undefined
                            },
 "has_my_consent":
 { Args: { "p_purpose": string }; Returns: boolean
@@ -5415,7 +5219,7 @@ isOneToOne: false
                            },
 "member_erasure_preview":
 { Args: { "p_member_id": string }; Returns: {
-              "blocked_until": string,"blockers": (string)[],"bonus_paise": number,"is_erased": boolean,"kyc_files": number,"nights": number,"points": number
+              "blocked_until": string,"blockers": (string)[],"bonus_paise": number,"is_erased": boolean,"kyc_files": number
             }[]
                            },
 "member_erasure_requests":
@@ -5436,24 +5240,9 @@ isOneToOne: false
               "covers_confirmed_by": string,"kind": string,"path": string,"retake_asked_at": string,"retake_reason": string,"taken_at": string,"taken_by": string
             }[]
                            },
-"member_points":
-{ Args: { "p_phone": string,"p_venue_id": string }; Returns: {
-              "earned": number,"full_name": string,"locked": number,"member_id": string,"member_number": number
-            }[]
-                           },
-"member_points_history":
-{ Args: { "p_limit"?: number,"p_member_id": string,"p_venue_id": string }; Returns: {
-              "at": string,"kind": string,"line_id": string,"points": number,"reason": string,"staff_name": string
-            }[]
-                           },
-"member_points_of":
-{ Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
-              "earned": number,"locked": number
-            }[]
-                           },
 "member_promotion_grants":
 { Args: { "p_limit"?: number,"p_member_id": string }; Returns: {
-              "chips": number,"club_day": string,"grant_id": string,"granted_at": string,"perk": string,"points": number,"promotion_name": string,"version": number
+              "chips": number,"club_day": string,"grant_id": string,"granted_at": string,"perk": string,"promotion_name": string,"version": number
             }[]
                            },
 "member_record":
@@ -5568,14 +5357,6 @@ isOneToOne: false
               "accepted_at": string,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"kot_number": number,"lines": Json,"on_way_at": string,"order_id": string
             }[]
                            },
-"my_league":
-{ Args: Record<PropertyKey, never>; Returns: {
-              "display_name": string,"first_month": string,"is_me": boolean,"last_month": string,"place": number,"points": number,"season_name": string,"standing": string
-            }[]
-                           },
-"my_locked_points":
-{ Args: Record<PropertyKey, never>; Returns: number
-                           },
 "my_membership_card":
 { Args: Record<PropertyKey, never>; Returns: {
               "code": string,"full_name": string,"member_number": number,"ms_left": number,"photo_path": string,"tier_name": string
@@ -5596,19 +5377,9 @@ isOneToOne: false
               "account_number": string,"bank_name": string,"holder_name": string,"id": string,"ifsc": string,"kind": string,"reject_reason": string,"status": string,"vpa": string
             }[]
                            },
-"my_points_history":
-{ Args: { "p_limit"?: number }; Returns: {
-              "at": string,"kind": string,"line_id": string,"points": number,"reason": string
-            }[]
-                           },
 "my_promotion_cards":
 { Args: Record<PropertyKey, never>; Returns: {
               "detail": string,"link": string,"promotion_id": string,"runs": string,"title": string
-            }[]
-                           },
-"my_redemptions":
-{ Args: Record<PropertyKey, never>; Returns: {
-              "cancel_reason": string,"cancelled_at": string,"created_at": string,"detail": string,"handed_over_at": string,"id": string,"kind": string,"nights": number,"points": number,"reward_name": string
             }[]
                            },
 "my_referral":
@@ -5619,11 +5390,6 @@ isOneToOne: false
 "my_restrictions":
 { Args: Record<PropertyKey, never>; Returns: {
               "break_until": string,"session_reminder_hours": number
-            }[]
-                           },
-"my_rewards":
-{ Args: Record<PropertyKey, never>; Returns: {
-              "nights": number,"points": number,"tier_name": string
             }[]
                            },
 "my_seat":
@@ -5683,7 +5449,7 @@ isOneToOne: false
                            },
 "my_wallet":
 { Args: Record<PropertyKey, never>; Returns: {
-              "cash_paise": number,"credit_limit_paise": number,"member_id": string,"points": number
+              "cash_paise": number,"credit_limit_paise": number,"member_id": string
             }[]
                            },
 "my_winner_cards":
@@ -5823,7 +5589,7 @@ isOneToOne: false
                            },
 "promotions_overview":
 { Args: { "p_venue_id": string }; Returns: {
-              "budget_used_chips": number,"channels": Json,"chips_given_this_week": number,"created_at": string,"current_status": string,"current_version_id": string,"detail": string,"eligibility": Json,"ended_at": string,"given_this_week": number,"is_legacy": boolean,"is_quiet": boolean,"limits": Json,"name": string,"open_status": string,"open_version_id": string,"points_given_this_week": number,"promotion_id": string,"rejected_reason": string,"reward": Json,"runs": string,"schedule": Json,"status": string,"template_key": string
+              "budget_used_chips": number,"channels": Json,"chips_given_this_week": number,"created_at": string,"current_status": string,"current_version_id": string,"detail": string,"eligibility": Json,"ended_at": string,"given_this_week": number,"is_legacy": boolean,"is_quiet": boolean,"limits": Json,"name": string,"open_status": string,"open_version_id": string,"promotion_id": string,"rejected_reason": string,"reward": Json,"runs": string,"schedule": Json,"status": string,"template_key": string
             }[]
                            },
 "promotions_sent_back":
@@ -5949,9 +5715,6 @@ isOneToOne: false
               "device_id": string,"previous_user_id": string,"refusal": string
             }[]
                            },
-"redeem_reward":
-{ Args: { "p_idempotency_key"?: string,"p_item_id": string,"p_nights"?: number,"p_points"?: number }; Returns: string
-                           },
 "refund_tournament_alternate":
 { Args: { "p_entry_id": string }; Returns: undefined
                            },
@@ -6064,11 +5827,6 @@ isOneToOne: false
 "review_shift_opening":
 { Args: { "p_reason": string,"p_shift_id": string }; Returns: undefined
                            },
-"reward_redemption_counts":
-{ Args: { "p_venue_id": string }; Returns: {
-              "redeemed": number,"reward_item_id": string
-            }[]
-                           },
 "rollback_site_page":
 { Args: { "p_page_id": string,"p_revision_id": string,"p_venue_id": string }; Returns: undefined
                            },
@@ -6097,9 +5855,6 @@ isOneToOne: false
 "save_fnb_menu":
 { Args: { "p_items": Json,"p_venue_id": string }; Returns: number
                            },
-"save_league_season":
-{ Args: { "p_first_month": string,"p_last_month": string,"p_name": string,"p_season_id"?: string,"p_venue_id": string }; Returns: string
-                           },
 "save_live_status_device":
 { Args: { "p_alert_token"?: string,"p_device_key"?: string,"p_platform": string,"p_token": string }; Returns: string
                            },
@@ -6111,9 +5866,6 @@ isOneToOne: false
                            },
 "save_push_subscription":
 { Args: { "p_auth": string,"p_endpoint": string,"p_p256dh": string }; Returns: undefined
-                           },
-"save_reward_item":
-{ Args: { "p_detail": string,"p_is_live"?: boolean,"p_item_id"?: string,"p_kind": string,"p_name": string,"p_nights"?: number,"p_points"?: number,"p_stock"?: number,"p_stock_was"?: number,"p_venue_id": string }; Returns: string
                            },
 "save_site_draft":
 { Args: { "p_blocks": Json,"p_page_id": string,"p_venue_id": string }; Returns: string
@@ -6463,11 +6215,6 @@ isOneToOne: false
               "display_name": string,"member_number": number,"period": string,"place": number,"played_minutes": number
             }[]
                            },
-"tv_league_board":
-{ Args: Record<PropertyKey, never>; Returns: {
-              "display_name": string,"first_month": string,"last_month": string,"place": number,"points": number,"season_name": string,"standing": string
-            }[]
-                           },
 "tv_pairing_policy":
 { Args: { "p_venue_id": string }; Returns: {
               "is_window_only": boolean,"open_until": string
@@ -6480,11 +6227,6 @@ isOneToOne: false
                            },
 "tv_report_in":
 { Args: Record<PropertyKey, never>; Returns: undefined
-                           },
-"tv_rewards_ticker":
-{ Args: Record<PropertyKey, never>; Returns: {
-              "at": string,"display_name": string,"kind": string,"place": number,"points": number,"reward_name": string
-            }[]
                            },
 "tv_social_wall":
 { Args: Record<PropertyKey, never>; Returns: {
@@ -6521,9 +6263,6 @@ isOneToOne: false
 "undo_waitlist_decision":
 { Args: { "p_entry_id": string }; Returns: undefined
                            },
-"unlock_points":
-{ Args: { "p_idempotency_key": string,"p_member_id": string,"p_points": number,"p_reason": string }; Returns: string
-                           },
 "unmark_tournament_registered":
 { Args: { "p_interest_id": string }; Returns: undefined
                            },
@@ -6558,19 +6297,9 @@ isOneToOne: false
               "channel": string,"first_message": string,"handle": string,"last_message_at": string,"lead_id": string,"member_name": string,"messages": number
             }[]
                            },
-"venue_league":
-{ Args: { "p_first": string,"p_last": string,"p_venue_id": string }; Returns: {
-              "cash_points": number,"full_name": string,"hand_points": number,"member_id": string,"member_number": number,"place": number,"points": number,"tournament_points": number
-            }[]
-                           },
 "venue_notices":
 { Args: { "p_venue_id": string }; Returns: {
               "body": string,"ends_at": string,"notice_id": string,"starts_at": string
-            }[]
-                           },
-"venue_redemptions":
-{ Args: { "p_venue_id": string }; Returns: {
-              "created_at": string,"full_name": string,"handed_over_at": string,"handed_over_by": string,"id": string,"kind": string,"member_id": string,"member_number": number,"nights": number,"points": number,"reward_name": string
             }[]
                            },
 "venue_staff":

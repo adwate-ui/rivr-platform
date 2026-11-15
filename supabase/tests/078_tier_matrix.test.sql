@@ -55,8 +55,8 @@ select ok(exists (select 1 from public.audit_log a where a.entity = 'tier_featur
 -- Hidden, and a change scheduled for later.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select public.schedule_tier_cells('00000000-0000-4000-8000-000000000001',
-  jsonb_build_array(jsonb_build_object('tier_id', (select member_tier from ids), 'feature_key', 'league.standings', 'is_enabled', false, 'display_mode', 'hidden')));
-select is((select shows_as from pg_temp.cell('Member', 'league.standings')), 'hidden', 'a feature off and hidden shows not at all');
+  jsonb_build_array(jsonb_build_object('tier_id', (select member_tier from ids), 'feature_key', 'sessions.history', 'is_enabled', false, 'display_mode', 'hidden')));
+select is((select shows_as from pg_temp.cell('Member', 'sessions.history')), 'hidden', 'a feature off and hidden shows not at all');
 select public.schedule_tier_cells('00000000-0000-4000-8000-000000000001',
   jsonb_build_array(jsonb_build_object('tier_id', (select member_tier from ids), 'feature_key', 'learn.library', 'is_enabled', true, 'display_mode', 'locked')),
   now() + interval '1 day');

@@ -29,22 +29,17 @@ describe('gamesFrom', () => {
 
 describe('rulesFrom', () => {
   it('has no rule set when there are no rows', () => {
-    expect(rulesFrom([])).toEqual({
-      pointsPerHour: [], rakebackBasisPoints: [], hotelNightHours: [], rewardsRakeShareBasisPoints: null, cabVisits: null,
-      leaguePrizes: { month: null, season: null }, badBeat: null, highHands: null,
-    });
+    expect(rulesFrom([])).toEqual({ rakebackBasisPoints: [], cabVisits: null, badBeat: null, highHands: null });
   });
 
-  it('reads each table type’s rule by its name, and leaves out one whose value it cannot read or a share of nothing', () => {
+  it('reads each table type’s rule by its name, and leaves out one it cannot read, one for no table and a rate of nothing', () => {
     const rules = rulesFrom([
-      { key: 'accommodation.hours_per_night', subject_name: 'Private Room', value: { hours: 20 } },
-      { key: 'accommodation.hours_per_night', subject_name: 'NLH 50/100', value: { hours: 'many' } },
-      { key: 'points.per_hour', subject_name: null, value: { points: 5 } },
-      { key: 'points.rewards_rake_share', subject_name: null, value: { basis_points: 0 } },
+      { key: 'rakeback.rate', subject_name: 'Private Room', value: { basis_points: 500 } },
+      { key: 'rakeback.rate', subject_name: 'NLH 50/100', value: { basis_points: 'some' } },
+      { key: 'rakeback.rate', subject_name: null, value: { basis_points: 500 } },
+      { key: 'rakeback.rate', subject_name: 'NLH 100/200', value: { basis_points: 0 } },
     ]);
-    expect(rules.hotelNightHours).toEqual([{ table: 'Private Room', value: 20 }]);
-    expect(rules.pointsPerHour).toEqual([]);
-    expect(rules.rewardsRakeShareBasisPoints).toBeNull();
+    expect(rules.rakebackBasisPoints).toEqual([{ table: 'Private Room', value: 500 }]);
   });
 
   it('reads how a bad beat pays and what each rare hand pays, or none when a field is missing', () => {

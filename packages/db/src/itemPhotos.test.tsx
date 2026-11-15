@@ -43,23 +43,23 @@ afterEach(() => {
 });
 
 describe('item photos (AS-11)', () => {
-  it('puts a reward\'s photo up under a name of its own, then makes it the reward\'s photo', async () => {
+  it('puts a dish\'s photo up under a name of its own, then makes it the dish\'s photo', async () => {
     photoOf(2000);
     const { result, calls } = renderUpload();
-    expect(await act(() => result.current.mutateAsync({ kind: 'reward', itemId: 'r1', photo: new Blob(['raw']) }))).toEqual({ ok: true, value: null });
+    expect(await act(() => result.current.mutateAsync({ itemId: 'chai', photo: new Blob(['raw']) }))).toEqual({ ok: true, value: null });
     const path = calls.find((call) => call.url.includes(UPLOADS))?.url.split(UPLOADS)[1];
-    expect(path).toMatch(/^v1\/reward-[0-9a-f-]{36}\.jpg$/);
-    expect(calls.find((call) => call.url.includes('/rpc/set_item_photo'))?.body).toEqual({ p_kind: 'reward', p_item_id: 'r1', p_path: path });
+    expect(path).toMatch(/^v1\/menu-[0-9a-f-]{36}\.jpg$/);
+    expect(calls.find((call) => call.url.includes('/rpc/set_item_photo'))?.body).toEqual({ p_kind: 'menu', p_item_id: 'chai', p_path: path });
   });
 
   it('turns away a file that is not a photo, and one still over 1 MB once made small, sending nothing', async () => {
     vi.stubGlobal('createImageBitmap', async () => { throw new Error('Not an image'); });
     const notPhoto = renderUpload();
-    expect(await act(() => notPhoto.result.current.mutateAsync({ kind: 'menu', itemId: 'chai', photo: new Blob(['text']) })))
+    expect(await act(() => notPhoto.result.current.mutateAsync({ itemId: 'chai', photo: new Blob(['text']) })))
       .toEqual({ ok: false, error: 'not_a_photo' });
     photoOf(1_048_577);
     const tooBig = renderUpload();
-    expect(await act(() => tooBig.result.current.mutateAsync({ kind: 'menu', itemId: 'chai', photo: new Blob(['raw']) })))
+    expect(await act(() => tooBig.result.current.mutateAsync({ itemId: 'chai', photo: new Blob(['raw']) })))
       .toEqual({ ok: false, error: 'too_big' });
     expect([...notPhoto.calls, ...tooBig.calls].filter((call) => call.url.includes(UPLOADS))).toEqual([]);
   });
@@ -67,10 +67,10 @@ describe('item photos (AS-11)', () => {
   it('says when the role may not set a photo, and when the photo did not go up', async () => {
     photoOf(2000);
     const refused = renderUpload(200, { status: 403, body: { code: '42501', message: 'Only staff who keep the menu', details: null, hint: null } });
-    expect(await act(() => refused.result.current.mutateAsync({ kind: 'menu', itemId: 'chai', photo: new Blob(['raw']) })))
+    expect(await act(() => refused.result.current.mutateAsync({ itemId: 'chai', photo: new Blob(['raw']) })))
       .toEqual({ ok: false, error: 'not_allowed' });
     const lost = renderUpload(400);
-    expect(await act(() => lost.result.current.mutateAsync({ kind: 'menu', itemId: 'chai', photo: new Blob(['raw']) })))
+    expect(await act(() => lost.result.current.mutateAsync({ itemId: 'chai', photo: new Blob(['raw']) })))
       .toEqual({ ok: false, error: 'unavailable' });
     expect(lost.calls.some((call) => call.url.includes('/rpc/set_item_photo'))).toBe(false);
   });

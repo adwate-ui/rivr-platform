@@ -63,9 +63,7 @@ reset role;
 select set_config('request.jwt.claims', '', true);
 select results_eq($$ select close_reason, closed_at is not null from public.visit where id = '00000000-0000-4000-8000-0000000a8401' $$,
   $$ values ('door'::text, true) $$, 'his visit closes at the door');
-select ok((select sum(e.points) = 0 and sum(e.played_seconds) between 14300 and 14500 from public.points_earning e
-           where e.visit_id = '00000000-0000-4000-8000-0000000a8401'),
-  'his four hours are counted, and earn him no points: points are given by hand (#629)');
+select ok((select h.o_played between 14300 and 14500 from private.visit_hours('00000000-0000-4000-8000-0000000a8401') h), 'his four hours are counted');
 select is((select count(*)::integer from public.outbox_event where event_type = 'visit.closed' and payload ->> 'visit_id' = '00000000-0000-4000-8000-0000000a8401'), 1,
   'visit.closed is emitted once');
 

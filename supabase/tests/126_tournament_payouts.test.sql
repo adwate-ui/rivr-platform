@@ -108,10 +108,6 @@ select is(pg_temp.balance('venue.tournament_overlay') - (select overlay from bef
 select is(pg_temp.balance('venue.tournament_pool'), (select pool from before), 'the pool pays out to nothing');
 select is(private.wallet_cash('00000000-0000-4000-8000-000000000215') - (select ritika from before), 23440000::bigint - 1000000,
   'Ritika''s wallet has her ₹2,34,400, less her entry');
-select results_eq($$ select m.full_name, f.place, f.points from public.league_finish f join public.member m on m.id = f.member_id
-                     where f.tournament_id = pg_temp.named('Payout Sunday') order by f.place $$,
-  $$ values ('Ritika Das'::text, 1, 105::bigint), ('Yash Gupta', 2, 75), ('Mihir Shah', 3, 55) $$,
-  'each place earns its League points, and the entry its own');
 select is((select count(*)::integer from public.outbox_event where event_type = 'tournament.finished'
            and payload ->> 'tournament_id' = pg_temp.named('Payout Sunday')::text), 1, 'tournament.finished, once');
 
@@ -211,9 +207,6 @@ select results_eq($$ select p.place, p.full_name, p.entry_number, p.prize_paise,
 reset role;
 select is(pg_temp.balance('venue.tournament_pool'), (select pool from knockout_before), 'every rupee in comes out: prizes and bounties');
 select is(pg_temp.balance('venue.tds_payable') - (select tds from knockout_before), -426000::bigint, 'the TDS withheld is owed');
-select results_eq($$ select m.full_name, f.place from public.league_finish f join public.member m on m.id = f.member_id
-                     where f.tournament_id = pg_temp.named('Test Knockout') order by f.place $$,
-  $$ values ('Yash Gupta'::text, 1), ('Mihir Shah', 2), ('Ritika Das', 3) $$, 'Mihir''s best run earns his League points');
 select results_eq($$ select deal_method, (select sum(s.value::text::bigint) from jsonb_each(deal_stacks) s)::bigint from public.tournament
                      where id = pg_temp.named('Test Knockout') $$, $$ values ('icm'::text, 60000::bigint) $$, 'the deal and its stacks are kept');
 

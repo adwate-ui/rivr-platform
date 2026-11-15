@@ -89,9 +89,9 @@ select is((select ended_at from public.seat_session where id = '00000000-0000-40
 
 -- Mihir, never checked in, is seated: his visit opens as check-in does, with the check-in welcome.
 insert into public.promotion (id, venue_id, name, status, starts_at) values
-  ('00000000-0000-4000-8000-0000000c2203', '00000000-0000-4000-8000-000000000001', 'Welcome points', 'live', now() - interval '1 day');
+  ('00000000-0000-4000-8000-0000000c2203', '00000000-0000-4000-8000-000000000001', 'Welcome', 'live', now() - interval '1 day');
 insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, effect) values
-  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000c2203', 'check_in', '{}', '{"kind": "points", "points": 50}');
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000c2203', 'check_in', '{}', '{"kind": "message", "text": "Welcome back"}');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select isnt(public.seat_member(pg_temp.table_id('Table 3'), 9, '9000000213'), null, 'the floor seats Mihir, never checked in');
 reset role;

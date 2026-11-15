@@ -200,12 +200,6 @@ select lives_ok($$ select public.finish_tournament(pg_temp.named('Event Day 2'))
 select results_eq($$ select p.place, p.full_name, p.prize_paise from public.tournament_payouts(pg_temp.named('Event Day 2')) p $$,
   $$ values (1, 'Yash Gupta'::text, 980000::bigint), (2, 'Mihir Shah', 725000), (3, 'Ritika Das', 485000), (4, 'Neel Bose', 240000) $$,
   'the event''s pool is paid by its places: Neel''s from Day 1 in the money, Kunal''s below it');
-select results_eq($$ select m.full_name, f.place from public.league_finish f join public.member m on m.id = f.member_id
-                     where f.tournament_id = pg_temp.named('Event Day 2') order by f.place $$,
-  $$ values ('Yash Gupta'::text, 1), ('Mihir Shah', 2), ('Ritika Das', 3), ('Neel Bose', 4), ('Kunal Mehra', 5) $$,
-  'each player''s League finish is the event''s');
-select is_empty($$ select 1 from public.league_finish where tournament_id in (pg_temp.named('Flight 1A'), pg_temp.named('Flight 1B'), pg_temp.named('Flight 1C')) $$,
-  'and the flights earn none of their own');
 reset role;
 select is(pg_temp.balance('venue.tournament_pool') - (select pool from before), -270000::bigint,
   'the flights'' buys are paid out whole (the Entered Turbo''s ₹2,700 waits in its own pool)');

@@ -29,8 +29,8 @@ const BAND: Record<SiteBlock['kind'], WebBandTone> = {
   text: 'deep', rules: 'deep', faq: 'cream', careers: 'deep', links: 'deep',
   // The bands added in decision 0166.
   story: 'cream', cards: 'dark', marquee: 'deep', timeline: 'deep', table: 'cream', promotions: 'deep', social_wall: 'cream',
-  // The bands read from the League and the club's rules (decision 0283).
-  league: 'cream', rewards: 'cream', outstation: 'deep', jackpot: 'dark',
+  // The bands read from the club's rules (decision 0283).
+  rewards: 'cream', outstation: 'deep', jackpot: 'dark',
 };
 
 type Link = (action: { label: string; to: PlayerDestination } | undefined) => { label: string; href: string } | undefined;
@@ -155,7 +155,7 @@ function Block({ block, page, link, pageLink, contact }: { block: SiteBlock; pag
   if (isKind(block, ['hero', 'statement', 'gallery', 'feature'])) return <MediaBlock block={block} link={link} />;
   if (isKind(block, ['story', 'cards', 'marquee', 'timeline', 'table'])) return <WordsBlock block={block} link={link} pageLink={pageLink} />;
   if (isKind(block, ['text', 'games', 'calendar', 'promotions', 'links', 'social_wall'])) return <LiveBlock block={block} page={page} link={link} contact={contact} />;
-  if (isKind(block, ['league', 'rewards', 'outstation', 'jackpot'])) return <ClubBlock block={block} page={page} />;
+  if (isKind(block, ['rewards', 'outstation', 'jackpot'])) return <ClubBlock block={block} page={page} />;
   return <InfoBlock block={block} contact={contact} />;
 }
 
@@ -181,9 +181,8 @@ interface SiteLink {
 const MENU: readonly SiteLink[] = [
   { label: 'web.menu.club', page: 'about' }, { label: 'web.menu.room', page: 'home', anchor: 'the-room' },
   { label: 'web.menu.games', page: 'home', anchor: 'games' }, { label: 'web.menu.membership', page: 'membership' },
-  { label: 'web.menu.leaderboard', page: 'leaderboard' }, { label: 'web.menu.whatsOn', page: 'tournaments' },
-  { label: 'web.menu.prizes', page: 'promotions' }, { label: 'web.menu.journal', page: 'journal' },
-  { label: 'web.menu.visit', page: 'visit' },
+  { label: 'web.menu.whatsOn', page: 'tournaments' }, { label: 'web.menu.prizes', page: 'promotions' },
+  { label: 'web.menu.journal', page: 'journal' }, { label: 'web.menu.visit', page: 'visit' },
 ];
 
 /** The header's menu, keeping the codes the visitor arrived by: every page's, and a missing page's (W-07). */
@@ -197,8 +196,8 @@ const FOOTER_CLUB: readonly SiteLink[] = [
   { label: 'web.footer.membership', page: 'membership' }, { label: 'web.footer.standard', page: 'home', anchor: 'the-standard' },
 ];
 const FOOTER_PLAY: readonly SiteLink[] = [
-  { label: 'web.footer.games', page: 'home', anchor: 'games' }, { label: 'web.footer.leaderboard', page: 'leaderboard' },
-  { label: 'web.footer.tournaments', page: 'tournaments' }, { label: 'web.footer.promotions', page: 'promotions' },
+  { label: 'web.footer.games', page: 'home', anchor: 'games' }, { label: 'web.footer.tournaments', page: 'tournaments' },
+  { label: 'web.footer.promotions', page: 'promotions' },
 ];
 const FOOTER_POLICIES: readonly SiteLink[] = [
   { label: 'web.footer.houseRules', page: 'house-rules' }, { label: 'web.footer.legal', page: 'about', anchor: 'legal-and-compliance' },

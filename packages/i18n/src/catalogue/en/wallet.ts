@@ -1,11 +1,10 @@
-/** The member's Balance (#18; design prompt "Balance"): cash, bonus, points, markers and every movement. */
+/** The member's Balance (#18; design prompt "Balance"): cash, bonus, markers and every movement. */
 export const balance = {
   title: 'Balance',
   empty: 'No movements yet.',
   cash: 'Cash',
   /** A bonus grant in force, which never expires (decision 0504), in chips as the app shows no rupee: "4,000 bonus chips". */
   bonusLine: '{chips} bonus chips',
-  points: '{points} points',
   markers: 'Markers',
   marker: 'Issued {issued} · due {due}',
   /** A marker past its due date (#55): {due} is when it fell due. */

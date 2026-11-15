@@ -57,7 +57,7 @@ describe('promotion properties', () => {
       const effect = capPaise === undefined
         ? { kind: 'bonus' as const, percent_bps: bps, expires_days: 7 }
         : { kind: 'bonus' as const, percent_bps: bps, cap_paise: capPaise, expires_days: 7 };
-      const reward = promotionReward(effect, { amount: buyIn, points: 0n });
+      const reward = promotionReward(effect, { amount: buyIn });
       const share = shareOf(buyIn, BigInt(bps));
       if (reward === null) {
         expect(share < CHIP).toBe(true);

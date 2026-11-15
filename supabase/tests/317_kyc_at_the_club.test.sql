@@ -99,13 +99,6 @@ select throws_ok(format($$ select private.authorize_kyc_image('00000000-0000-400
 reset role;
 
 select set_config('request.jwt.claims', '', true);
-delete from public.setting where key = 'points.verified_bonus';
-insert into public.setting (venue_id, key, subject, value, effective_from, reason) values
-  ('00000000-0000-4000-8000-000000000001', 'points.verified_bonus', '', '{"points": 500}', '-infinity', 'Bonus test'),
-  ('00000000-0000-4000-8000-000000000001', 'points.verified_bonus', '', '{"points": 0}', now() - interval '1 day', 'Bonus test');
-create function pg_temp.bonus(p_member uuid) returns bigint language sql as $$
-  select coalesce(-private.account_balance(a.id), 0) from public.ledger_account a where a.member_id = p_member and a.code = 'member.points'
-$$;
 -- The desk's check, with each member's own PAN and last Aadhaar digits (Meera's by default): one held by a verified member
 -- is a duplicate.
 create function pg_temp.desk_check(p_member_id uuid, p_pan text default 'MEEPJ7171K', p_aadhaar_last4 text default '7171')
@@ -119,14 +112,12 @@ begin
   return public.check_kyc_in_person(p_member_id, v_path, '1994-07-17', p_aadhaar_last4, p_pan, true, replace(v_path, '/in-person-', '/doc-pan-'), replace(v_path, '/in-person-', '/doc-aadhaar-'), true);
 end;
 $$;
-grant execute on function pg_temp.desk_check(uuid, text, text), pg_temp.bonus(uuid) to authenticated;
+grant execute on function pg_temp.desk_check(uuid, text, text) to authenticated;
 
 select pg_temp.as_user('00000000-0000-4000-8000-000000000108');
 select is(pg_temp.desk_check((select id from ids where name = 'meera')), 'verified', 'the host''s check verifies her');
 reset role;
 select is(private.is_kyc_complete((select id from ids where name = 'meera')), true, 'and she may play');
-select is(pg_temp.bonus((select id from ids where name = 'meera')), 500::bigint,
-  'the bonus comes at once, at the amount when her selfie came in, though it is 0 today');
 select is_empty($$ select 1 from private.claim_kyc_rechecks(true) r where r.member_id = (select id from ids where name = 'meera') $$,
   'her PAN recheck waits while the club checks identity');
 
@@ -195,7 +186,6 @@ reset role;
 select is_empty($$ select 1 from public.outbox_event e where e.event_type = 'member.notice'
                     and e.payload ->> 'member_id' = '00000000-0000-4000-8000-000000000302' $$,
   'the practice venue tells him nothing outside');
-select is(pg_temp.bonus('00000000-0000-4000-8000-000000000302'), 0::bigint, 'and pays no bonus');
 
 -- Switched off: her recheck is asked, she stays verified, and a match pays nothing more.
 select pg_temp.as_user('00000000-0000-4000-8000-000000000101');
@@ -204,7 +194,6 @@ reset role;
 select isnt_empty($$ select 1 from private.claim_kyc_rechecks(true) r where r.member_id = (select id from ids where name = 'meera') $$,
   'her PAN recheck is asked once it is off');
 select private.record_kyc_recheck((select id from ids where name = 'meera'), 'matched');
-select is(pg_temp.bonus((select id from ids where name = 'meera')), 500::bigint, 'a match pays no second bonus');
 select pg_temp.as_user('00000000-0000-4000-8000-00000000ac1b');
 select is(public.kyc_at_the_club(), false, 'new members check in the app again');
 reset role;

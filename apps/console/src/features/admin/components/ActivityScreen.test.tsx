@@ -57,13 +57,14 @@ describe('Activity (8 Nov audit, F-034)', () => {
       line({}),
       line({ id: 2, who: null, is_system: true, action: 'update', entity: 'waitlist_entry', kind: 'floor', about: null, reason: null, amount: null }),
       line({ id: 3, who: null, is_system: false, action: 'made.up', entity: 'made_up', kind: 'other', about: null, reason: null, amount: null }),
-      line({ id: 4, action: 'points.grant', kind: 'points', amount: 500 }),
+      line({ id: 4, action: 'points.grant', kind: 'other', amount: null }),
     ]);
     const table = await screen.findByRole('table', { name: 'Activity' }, LOADS);
     const rows = await within(table).findAllByText('Member · Mihir Shah', {}, LOADS);
     const first = rows[0]?.closest('[role="row"]');
     for (const shown of ['Vikram Rao', 'Bonus chips', 'Gave bonus chips: 1,500', 'Welcome back']) expect(first?.textContent).toContain(shown);
-    expect(rows[1]?.closest('[role="row"]')?.textContent).toContain('Gave points: 500');
+    // Points went on 15 Nov; a line from before still reads in words, with no figure (decision 0585).
+    expect(rows[1]?.closest('[role="row"]')?.textContent).toContain('Gave points');
     const second = within(table).getByText('Waitlist place').closest('[role="row"]');
     for (const shown of ['System', 'Floor', 'Changed']) expect(second?.textContent).toContain(shown);
     // A code from later on never reads as a code, and a login no longer on record is not called the system.

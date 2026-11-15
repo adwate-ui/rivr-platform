@@ -17,7 +17,7 @@ select results_eq(
             ('gurugram', 'journal-live-etiquette', 'Live poker etiquette', null),
             ('gurugram', 'journal-plo-basics', 'Pot-Limit Omaha: what changes', null),
             ('gurugram', 'journal-poker-legal-gurugram', 'Is poker legal in Gurugram?', null),
-            ('gurugram', 'journal-tournaments-gurugram', 'Poker tournaments in Gurugram', null), ('gurugram', 'leaderboard', 'Leaderboard', null),
+            ('gurugram', 'journal-tournaments-gurugram', 'Poker tournaments in Gurugram', null),
             ('gurugram', 'links', 'RIVR Poker Club', null), ('gurugram', 'membership', 'Membership', 2),
             ('gurugram', 'privacy', 'Privacy', null), ('gurugram', 'promotions', 'Promotions', 3),
             ('gurugram', 'questions', 'Questions', null), ('gurugram', 'responsible-play', 'Responsible play', null),

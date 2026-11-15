@@ -6,14 +6,14 @@ import { TUESDAY } from './promotionsTestApi.tsx';
 import { allOrPicked } from './WhoWhenSections.tsx';
 
 const TODAY = '2026-11-10';
-const named = (more: Partial<BuilderForm> = {}): BuilderForm => ({ ...blankForm(TODAY), name: 'Weekend double points', ...more });
+const named = (more: Partial<BuilderForm> = {}): BuilderForm => ({ ...blankForm(TODAY), name: 'Weekend seat bonus', ...more });
 
 describe('the builder read as terms', () => {
-  it('reads a blank promotion as the prototype starts one: 2× points, Friday and Saturday 20:00 to 02:00, once a visit', () => {
+  it('reads a blank promotion: 1,000 bonus chips on a visit\'s first seat, Friday and Saturday 20:00 to 02:00, once a visit', () => {
     const { terms, errors } = readForm(named());
     expect(errors.size).toBe(0);
     expect(terms).toEqual({
-      name: 'Weekend double points', reward: { kind: 'points_multiplier', multiplier: 2 },
+      name: 'Weekend seat bonus', reward: { kind: 'seat_bonus', chips: 1_000 },
       eligibility: { stakes: 'all', tiers: 'all', audience: 'everyone' },
       schedule: { days: [5, 6], from: '20:00', to: '02:00', startsOn: TODAY, timezone: 'Asia/Kolkata' },
       limits: { perMember: 'per_visit' }, channels: { playerApp: true, tv: true, website: false, whatsapp: false }, rulesText: [],
@@ -56,7 +56,6 @@ describe('the builder read as terms', () => {
   });
 
   it('marks each field the terms refuse, and still reads the four parts when only the words are wrong', () => {
-    expect([...readForm(named({ multiplier: '2.1' })).errors]).toEqual(['multiplier']);
     expect([...readForm(named({ kind: 'seat_bonus', chips: '1020' })).errors]).toEqual(['chips']);
     expect([...readForm(named({ kind: 'hours_bonus', chips: '', afterHours: '0.2' })).errors].sort()).toEqual(['afterHours', 'chips']);
     expect([...readForm(named({ days: [], from: '25:00' })).errors].sort()).toEqual(['days', 'from']);
@@ -65,7 +64,7 @@ describe('the builder read as terms', () => {
     const unnamed = readForm(named({ name: '', link: 'http://rivr.club' }));
     expect([...unnamed.errors].sort()).toEqual(['link', 'name']);
     expect(unnamed.terms).toBeNull();
-    expect(unnamed.core?.reward).toEqual({ kind: 'points_multiplier', multiplier: 2 });
+    expect(unnamed.core?.reward).toEqual({ kind: 'seat_bonus', chips: 1_000 });
   });
 
   it('reads up to N times a member, and a budget each month, leaving either out where it means nothing (decision 0499)', () => {

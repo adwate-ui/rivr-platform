@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { cardWords, describePromotion, whoAndWhen } from './promotionWords.ts';
 
 const buildPromotionTerms = (overrides: Partial<PromotionTerms>): PromotionTerms => ({
-  name: 'Double points',
-  reward: { kind: 'points_multiplier', multiplier: 2 },
+  name: 'Seat bonus',
+  reward: { kind: 'seat_bonus', chips: 500 },
   eligibility: { stakes: 'all', tiers: 'all', audience: 'everyone' },
   schedule: { days: [1, 2, 3, 4, 5, 6, 7], from: '06:00', to: '06:00', startsOn: '2026-11-01', timezone: 'Asia/Kolkata' },
   limits: { perMember: 'none' },
@@ -16,7 +16,7 @@ const buildPromotionTerms = (overrides: Partial<PromotionTerms>): PromotionTerms
 const rewardLine = (reward: Reward) => describePromotion(buildPromotionTerms({ reward })).split(', for ')[0];
 
 describe('describePromotion', () => {
-  it('says the whole promotion in one line, in chips and points', () => {
+  it('says the whole promotion in one line, in chips', () => {
     const tuesday = buildPromotionTerms({
       reward: { kind: 'buyin_bonus', mode: 'percent', percent: 20, capChips: 2_000, firstNBuyinsPerTable: 5 },
       schedule: { days: [2], from: '06:00', to: '06:00', startsOn: '2026-11-17', timezone: 'Asia/Kolkata' },
@@ -30,13 +30,13 @@ describe('describePromotion', () => {
 
   it('names stakes, tables and tiers, and the audience, when given', () => {
     const weekend = buildPromotionTerms({
-      reward: { kind: 'points_multiplier', multiplier: 3 },
+      reward: { kind: 'seat_bonus', chips: 500, firstNSeatsPerTable: 5 },
       eligibility: { stakes: ['nlh_100_200'], tableIds: ['t3'], tiers: ['tier-black'], audience: 'new_30d' },
       schedule: { days: [6, 5], from: '20:00', to: '02:00', startsOn: '2026-11-06', endsOn: '2026-12-31', timezone: 'Asia/Kolkata' },
       limits: { perMember: 'per_visit', maxMembersPerDay: 50, maxGrants: 1_000 },
     });
     expect(describePromotion(weekend, { stakes: { nlh_100_200: 'NLH 100/200' }, tiers: { 'tier-black': 'Black card' } })).toBe(
-      '3× points, for NLH 100/200 · t3 · Black card · new members, first 30 days, Fri, Sat 20:00–02:00. Once per visit per member, first 50 members a day, '
+      '500 bonus chips for the first 5 seated at a table, for NLH 100/200 · t3 · Black card · new members, first 30 days, Fri, Sat 20:00–02:00. Once per visit per member, first 50 members a day, '
       + 'at most 1,000 times. Starts 6 Nov 2026, ends 31 Dec 2026.',
     );
   });
@@ -71,7 +71,6 @@ describe('describePromotion', () => {
     expect(rewardLine({ kind: 'waitlist_priority' })).toBe('Front of every waitlist');
     expect(rewardLine({ kind: 'seat_bonus', chips: 1_000 })).toBe('1,000 bonus chips on the first seat of a visit');
     expect(rewardLine({ kind: 'seat_bonus', chips: 500, firstNSeatsPerTable: 5 })).toBe('500 bonus chips for the first 5 seated at a table');
-    expect(rewardLine({ kind: 'points_multiplier', multiplier: 1.25 })).toBe('1.25× points');
   });
 
   it('names a tournament by its name, and a 24-hour opening by its start', () => {

@@ -127,21 +127,6 @@ export const queryKeys = {
   venueFeedbackPage: (userId: string, venueId: string, list: string) => ['user', userId, 'venue-feedback', venueId, 'page', list] as const,
   /** The suspicious-activity register (#105). */
   amlRegister: (userId: string, venueId: string) => ['user', userId, 'aml-register', venueId] as const,
-  /** A venue's rewards catalogue and redemptions, as the console keeps them (decision 0181). */
-  rewardItems: (userId: string, venueId: string) => ['user', userId, 'reward-items', venueId] as const,
-  rewardRedemptionCounts: (userId: string, venueId: string) => ['user', userId, 'reward-redemption-counts', venueId] as const,
-  venueRedemptions: (userId: string, venueId: string) => ['user', userId, 'venue-redemptions', venueId] as const,
-  /** A venue's League seasons, and its standings over some months (decision 0182). */
-  leagueSeasons: (userId: string, venueId: string) => ['user', userId, 'league-seasons', venueId] as const,
-  venueLeagueAll: (userId: string, venueId: string) => ['user', userId, 'venue-league', venueId] as const,
-  venueLeague: (userId: string, venueId: string, first: string, last: string) => ['user', userId, 'venue-league', venueId, first, last] as const,
-  /** The member's Rewards tab (#152): points and tier, the catalogue, their redemptions and the League. */
-  myRewards: (userId: string) => ['user', userId, 'my-rewards'] as const,
-  /** Under myRewards, so whatever refreshes the balance refreshes its history. */
-  myPointsHistory: (userId: string, count: number) => ['user', userId, 'my-rewards', 'points-history', count] as const,
-  rewardCatalogue: (userId: string) => ['user', userId, 'reward-catalogue'] as const,
-  myRedemptions: (userId: string) => ['user', userId, 'my-redemptions'] as const,
-  myLeague: (userId: string) => ['user', userId, 'my-league'] as const,
   /** Bonus chips (decision 0504): the member's own, or a member's for staff. Every key starts with bonusAll, which a live change makes stale. */
   bonusAll: (userId: string) => ['user', userId, 'bonus'] as const,
   myBonus: (userId: string) => ['user', userId, 'bonus', 'mine'] as const,
@@ -154,10 +139,9 @@ export const queryKeys = {
   memberSignUp: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-sign-up', venueId, memberId] as const,
   /** The members whose account is not simply active (F-121). */
   memberAccountStatuses: (userId: string, venueId: string) => ['user', userId, 'member-account-statuses', venueId] as const,
-  /** A member's visits and points on their record (F-017). */
+  /** A member's visits on their record (F-017). */
   memberVisits: (userId: string, venueId: string, memberId: string, count: number) => ['user', userId, 'member-visits', venueId, memberId, count] as const,
   memberVisitsAll: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-visits', venueId, memberId] as const,
-  memberPointsHistory: (userId: string, venueId: string, memberId: string, count: number) => ['user', userId, 'member-points-history', venueId, memberId, count] as const,
   memberBonusHistory: (userId: string, venueId: string, memberId: string, count: number) =>
     ['user', userId, 'bonus', venueId, memberId, 'history', count] as const,
   /** Table-side food and drink (#123): the member's menu, a venue's, its items, and tonight's orders. */
@@ -176,17 +160,8 @@ export const queryKeys = {
   todaysPlayers: (userId: string, venueId: string) => ['user', userId, 'todays-players', venueId] as const,
   /** A venue's stakes and tables, for Tables setup (#642). */
   tablesSetup: (userId: string, venueId: string) => ['user', userId, 'tables-setup', venueId] as const,
-  /** Every member's points looked up by number at a venue (#645), and one of them. */
-  memberPointsAll: (userId: string, venueId: string) => ['user', userId, 'member-points', venueId] as const,
-  memberPoints: (userId: string, venueId: string, phone: string) => ['user', userId, 'member-points', venueId, phone] as const,
-  memberPointsOf: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-points-of', venueId, memberId] as const,
-  /** The signed-in member's locked points (#645). */
-  myLockedPoints: (userId: string) => ['user', userId, 'my-locked-points'] as const,
   /** The member's referral code (#151). */
   myReferral: (userId: string) => ['user', userId, 'my-referral'] as const,
-  /** The TV's rewards ticker and League leaderboard (#148, decision 0183). */
-  tvRewardsTicker: (userId: string) => ['user', userId, 'tv-rewards-ticker'] as const,
-  tvLeagueBoard: (userId: string) => ['user', userId, 'tv-league-board'] as const,
   /** The TV's hours leaderboard (decision 0581). */
   tvLeaderboard: (userId: string) => ['user', userId, 'tv-leaderboard'] as const,
   /** The TV's social wall (#158). */

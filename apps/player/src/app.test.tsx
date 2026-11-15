@@ -101,7 +101,7 @@ describe('the install offer', () => {
     browserOffersInstall();
     expect(offer()).toBeNull();
     cleanup();
-    await memberOpens('/rewards', 2);
+    await memberOpens('/bonus', 2);
     expect(offer()).toBeNull();
   });
 
@@ -146,7 +146,7 @@ describe('the player app', () => {
     signIn();
     renderAt('/');
     await screen.findByRole('navigation', { name: 'Main' });
-    expect(screen.getByRole('link', { name: 'Rewards' })).toBeDefined();
+    expect(screen.getByRole('link', { name: 'Bonus' })).toBeDefined();
     expect(screen.queryByRole('link', { name: 'Learn' })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Sessions' })).toBeNull();
   });
@@ -155,9 +155,9 @@ describe('the player app', () => {
     'shows a member nothing but the identity check until it is verified, $when',
     async ({ kyc }) => {
       signIn();
-      const router = renderAt('/rewards', clientWithKabir(kyc));
+      const router = renderAt('/bonus', clientWithKabir(kyc));
       await waitFor(() => expect(router.state.location.pathname).toBe('/kyc'));
-      expect(screen.queryByRole('heading', { name: 'Rewards' })).toBeNull();
+      expect(screen.queryByRole('heading', { name: 'Bonus' })).toBeNull();
     },
   );
 
@@ -205,10 +205,10 @@ describe('sign-in', () => {
   });
 
   it('keeps the screen a link pointed at, to open once signed in', async () => {
-    const router = renderAt('/rewards?ref=FRIEND1');
+    const router = renderAt('/bonus?ref=FRIEND1');
     expect(await screen.findByRole('textbox', { name: 'Mobile number' }, LAZY_SCREEN)).toBeDefined();
     expect(router.state.location.pathname).toBe('/sign-in');
-    expect(router.state.location.search).toEqual({ next: '/rewards' });
+    expect(router.state.location.search).toEqual({ next: '/bonus' });
   });
 
   it('never keeps an address outside the app', async () => {
@@ -226,7 +226,7 @@ describe('sign-in', () => {
 
   it('says someone is signed in when opened over a live session, and lets the next person start afresh', async () => {
     signIn();
-    const router = renderAt('/sign-in?next=/rewards');
+    const router = renderAt('/sign-in?next=/bonus');
     // Nothing answers at the client's address, so the member's name is not known: it says someone.
     expect(await screen.findByText('Someone is signed in on this device.', {}, LAZY_SCREEN)).toBeDefined();
     expect(screen.queryByRole('textbox', { name: 'Mobile number' })).toBeNull();
@@ -247,11 +247,11 @@ describe('sign-in', () => {
 
   it('names the member signed in, and continues to the screen the link pointed at', async () => {
     signIn();
-    const router = renderAt('/sign-in?next=/rewards', clientWithKabir());
+    const router = renderAt('/sign-in?next=/bonus', clientWithKabir());
     expect(await screen.findByText('Kabir Sethi is signed in on this device.', {}, LAZY_SCREEN)).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Continue as Kabir Sethi' }));
     await screen.findByRole('navigation', { name: 'Main' }, LAZY_SCREEN);
-    expect(router.state.location.pathname).toBe('/rewards');
+    expect(router.state.location.pathname).toBe('/bonus');
   });
 
   it('opens on its own with the lockup and the motto, once, and no tab bar', async () => {

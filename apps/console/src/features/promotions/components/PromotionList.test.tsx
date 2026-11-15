@@ -11,21 +11,21 @@ function overviewRow(more: Record<string, unknown>) {
     promotion_id: 'p1', template_key: null, status: 'live', name: 'Buy-in bonus Tuesday', detail: '20% of your buy-in in bonus chips, up to 2,000 bonus chips', runs: null,
     current_version_id: 'v1', current_status: 'live', open_version_id: null, open_status: null, rejected_reason: null, reward: TUESDAY.reward,
     eligibility: TUESDAY.eligibility, schedule: TUESDAY.schedule, limits: TUESDAY.limits, channels: TUESDAY.channels, given_this_week: 38, is_legacy: false,
-    created_at: '2026-11-03T10:00:00+00:00', ended_at: null, chips_given_this_week: 0, points_given_this_week: 0, budget_used_chips: null, is_quiet: false, ...more,
+    created_at: '2026-11-03T10:00:00+00:00', ended_at: null, chips_given_this_week: 0, budget_used_chips: null, is_quiet: false, ...more,
   };
 }
 
 const ROWS = [
   overviewRow({}),
   overviewRow({
-    promotion_id: 'p2', name: 'Weekend triple points', detail: '3× points', status: 'pending', current_version_id: null, current_status: null,
-    open_version_id: 'v9', open_status: 'awaiting_approval', reward: { kind: 'points_multiplier', multiplier: 3 },
+    promotion_id: 'p2', name: 'Weekend seat bonus', detail: '500 bonus chips on the first seat of a visit', status: 'pending', current_version_id: null, current_status: null,
+    open_version_id: 'v9', open_status: 'awaiting_approval', reward: { kind: 'seat_bonus', chips: 500 },
     eligibility: { stakes: ['nlh_100_200'], tiers: 'all', audience: 'everyone' }, schedule: { ...TUESDAY.schedule, days: [5, 6], from: '20:00', to: '02:00' },
   }),
   overviewRow({ promotion_id: 'p3', name: 'Four-hour bonus', open_version_id: 'v5', open_status: 'awaiting_approval', given_this_week: 4 }),
   overviewRow({ promotion_id: 'p4', name: 'Lapsed regulars bonus', status: 'paused', detail: '500 bonus chips', runs: 'Every night',
     current_version_id: null, current_status: null, is_legacy: true, given_this_week: 3 }),
-  overviewRow({ promotion_id: 'p5', name: 'Diwali double points', status: 'ended', current_version_id: 'v7', current_status: 'ended',
+  overviewRow({ promotion_id: 'p5', name: 'Diwali seat bonus', status: 'ended', current_version_id: 'v7', current_status: 'ended',
     given_this_week: 0, ended_at: '2026-11-02T10:00:00+00:00' }),
 ];
 
@@ -45,7 +45,7 @@ describe('the promotions list (console v3)', () => {
     expect(tuesday.textContent).toContain('All stakes');
     expect(tuesday.textContent).toContain('Tue, all day');
     expect(tuesday.textContent).toContain('38 times');
-    const weekend = within(table).getAllByRole('row').find((row) => row.textContent?.includes('Weekend triple points')) ?? table;
+    const weekend = within(table).getAllByRole('row').find((row) => row.textContent?.includes('Weekend seat bonus')) ?? table;
     expect(weekend.textContent).toContain('NLH 100/200');
     expect(weekend.textContent).toContain('Fri, Sat 20:00–02:00');
     expect(screen.getByRole('radio', { name: 'Awaiting approval, 2' })).toBeDefined();
@@ -63,10 +63,10 @@ describe('the promotions list (console v3)', () => {
     expect(places).toEqual([...places].sort((one, other) => one - other));
   });
 
-  it('heads the column Given this week, with the bonus chips or points, the times and the budget used (audit F-104)', async () => {
+  it('heads the column Given this week, with the bonus chips, the times and the budget used (audit F-104)', async () => {
     renderList(undefined, undefined, [
       overviewRow({ chips_given_this_week: 12_000, budget_used_chips: 30_000, limits: { perMember: 'none', budgetChips: 50_000 } }),
-      overviewRow({ promotion_id: 'p2', name: 'Weekend triple points', points_given_this_week: 400, given_this_week: 1 }),
+      overviewRow({ promotion_id: 'p2', name: 'Weekend seat bonus', chips_given_this_week: 400, given_this_week: 1 }),
     ]);
     const table = await screen.findByRole('table', { name: 'Promotions' });
     expect(within(table).getByText('Given this week')).toBeDefined();
@@ -74,8 +74,8 @@ describe('the promotions list (console v3)', () => {
     expect(rowOf('Buy-in bonus Tuesday').textContent).toContain('12,000 bonus chips');
     expect(rowOf('Buy-in bonus Tuesday').textContent).toContain('38 times');
     expect(rowOf('Buy-in bonus Tuesday').textContent).toContain('30,000 of 50,000 budget');
-    expect(rowOf('Weekend triple points').textContent).toContain('400 points');
-    expect(rowOf('Weekend triple points').textContent).toContain('Once');
+    expect(rowOf('Weekend seat bonus').textContent).toContain('400 bonus chips');
+    expect(rowOf('Weekend seat bonus').textContent).toContain('Once');
   });
 
   it('marks a live promotion that has given nothing for a week (audit F-104)', async () => {
@@ -100,7 +100,7 @@ describe('the promotions list (console v3)', () => {
     fireEvent.click(await screen.findByRole('radio', { name: 'Awaiting approval, 2' }));
     const table = screen.getByRole('table', { name: 'Promotions' });
     expect(within(table).queryByText('Buy-in bonus Tuesday')).toBeNull();
-    expect(within(table).getByText('Weekend triple points')).toBeDefined();
+    expect(within(table).getByText('Weekend seat bonus')).toBeDefined();
     expect(within(table).getByText('Four-hour bonus')).toBeDefined();
     fireEvent.click(screen.getByRole('radio', { name: 'Draft, 0' }));
     expect(screen.getByText('No promotions with this status.')).toBeDefined();
@@ -109,7 +109,7 @@ describe('the promotions list (console v3)', () => {
   it('keeps ended promotions apart, under their own tab in the address, with the day each ended (owner, 8 Nov)', async () => {
     const { onNavigate } = renderList();
     const table = await screen.findByRole('table', { name: 'Promotions' });
-    expect(within(table).queryByText('Diwali double points')).toBeNull();
+    expect(within(table).queryByText('Diwali seat bonus')).toBeNull();
     expect(screen.getByRole('link', { name: 'Current 4' }).getAttribute('aria-current')).toBe('page');
     fireEvent.click(screen.getByRole('link', { name: 'Ended 1' }));
     expect(onNavigate).toHaveBeenCalledWith('/promotions?tab=ended');
@@ -118,7 +118,7 @@ describe('the promotions list (console v3)', () => {
     // The Ended tab's table has a name, and so a view in the address, of its own (owner, 9 Nov).
     const ended = await screen.findByRole('table', { name: 'Ended promotions' });
     expect(within(ended).queryByText('Buy-in bonus Tuesday')).toBeNull();
-    const diwali = within(ended).getAllByRole('row').find((row) => row.textContent?.includes('Diwali double points')) ?? ended;
+    const diwali = within(ended).getAllByRole('row').find((row) => row.textContent?.includes('Diwali seat bonus')) ?? ended;
     expect(diwali.textContent).toContain('2 Nov 2026');
     expect(screen.queryByRole('radio', { name: 'All, 4' })).toBeNull();
   });
@@ -132,13 +132,13 @@ describe('the promotions list (console v3)', () => {
     expect(screen.queryByRole('button', { name: 'End Lapsed regulars bonus' })).toBeNull();
     // Its next version waits for approval: it is decided first, so the end is never undone by an approval.
     expect(screen.queryByRole('button', { name: 'End Four-hour bonus' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'End Weekend triple points' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'End Weekend seat bonus' })).toBeNull();
   });
 
   it('opens a promotion to edit or review, and the builder for a new one', async () => {
     const { onOpen } = renderList();
     fireEvent.click(await screen.findByRole('button', { name: 'Edit Buy-in bonus Tuesday' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Review Weekend triple points' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Review Weekend seat bonus' }));
     fireEvent.click(screen.getByRole('button', { name: 'New promotion' }));
     expect(onOpen.mock.calls).toEqual([['p1'], ['p2'], ['new']]);
   });

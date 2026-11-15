@@ -5,7 +5,7 @@ export const settings = {
   rulesHint: 'A change applies from now or a later day, never backwards.',
   /** The screen's areas (#604): the rules by what they govern, then the venue's own details and chips. */
   areas: {
-    floor: 'Floor', rake: 'Rake and jackpots', cage: 'Cage and credit', members: 'Members and rewards', academy: 'Academy and Learn',
+    floor: 'Floor', rake: 'Rake and jackpots', cage: 'Cage and credit', members: 'Members and bonus', academy: 'Academy and Learn',
     tax: 'Tax', compliance: 'Compliance', system: 'System', club: 'Club details', chips: 'Chips', notices: 'Notices',
   },
   backTo: 'Back to {area}',

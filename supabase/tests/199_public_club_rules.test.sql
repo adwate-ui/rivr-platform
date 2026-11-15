@@ -1,7 +1,6 @@
 -- The website reads the club's rules in force (#617): public_club_rules shows only the rules a visitor may read, each as in
--- force now (not one still to come), by table type with its name. It shows the cab while a tier has cab requests, never
--- the practice venue's rules, and League prizes in words, which league.prizes holds to their shape. A points rate of
--- zero is no rule (#629).
+-- force now (not one still to come), by table type with its name. It shows the cab while a tier has cab requests, and never
+-- the practice venue's rules. Points, the League and hotel nights went with the redesign of 15 Nov 2026: none is a rule now.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -14,26 +13,20 @@ select '00000000-0000-4000-8000-000000000001'::uuid as venue_id,
 grant select on club to anon;
 
 insert into public.setting (venue_id, key, subject, value, effective_from)
-select venue_id, 'points.per_hour', code, '{"points": 7}'::jsonb, now() - interval '1 second' from club
-union all select venue_id, 'points.per_hour', code, '{"points": 99}'::jsonb, now() + interval '1 day' from club
-union all select venue_id, 'league.prizes', '', '{"month": "Top three win a seat in the season final"}'::jsonb, now() - interval '1 second' from club
-union all select venue_id, 'rakeback.rate', code, '{"basis_points": 1000, "cap_paise": 500000, "expires_days": 7}'::jsonb, now() - interval '1 second' from club
-union all select '00000000-0000-4000-8000-000000000002', 'points.rewards_rake_share', '', '{"basis_points": 900}'::jsonb, now() - interval '1 second';
+select venue_id, 'rakeback.rate', code, '{"basis_points": 1000, "cap_paise": 500000, "expires_days": 7}'::jsonb, now() - interval '1 second' from club
+union all select venue_id, 'rakeback.rate', code, '{"basis_points": 2500, "cap_paise": 500000, "expires_days": 7}'::jsonb, now() + interval '1 day' from club
+union all select '00000000-0000-4000-8000-000000000002', 'jackpot.payout', '',
+  '{"pool_basis_points": 10000, "loser_basis_points": 5000, "winner_basis_points": 2500, "table_basis_points": 2500}'::jsonb, now() - interval '1 second';
 
 select columns_are('public', 'public_club_rules', array['venue_slug', 'key', 'subject', 'subject_name', 'subject_order', 'value'],
   'public_club_rules shows the venue, the rule, what it applies to and its value, nothing more');
 
 set local role anon;
-select is((select value from public.public_club_rules r, club c where r.key = 'points.per_hour' and r.subject = c.code),
-  '{"points": 7}'::jsonb, 'a rule shows as in force now, not as it will be tomorrow');
-select is((select subject_name from public.public_club_rules r, club c where r.key = 'points.per_hour' and r.subject = c.code),
-  (select name from club), 'a table type''s rule carries the table type''s name');
 select is((select value from public.public_club_rules r, club c where r.key = 'rakeback.rate' and r.subject = c.code), '{"basis_points": 1000}'::jsonb,
-  'rakeback shows its rate alone, not its cap or how long its bonus lasts');
-select is((select value ->> 'month' from public.public_club_rules where key = 'league.prizes'), 'Top three win a seat in the season final',
-  'the League''s prizes show in words');
-select is((select count(*) from public.public_club_rules where key not in ('points.per_hour', 'rakeback.rate', 'accommodation.hours_per_night',
-  'points.rewards_rake_share', 'jackpot.payout', 'high_hand.payouts', 'league.prizes', 'cab.minimum_visits')), 0::bigint,
+  'a rule shows as in force now, not as it will be tomorrow; rakeback its rate alone, not its cap or how long its bonus lasts');
+select is((select subject_name from public.public_club_rules r, club c where r.key = 'rakeback.rate' and r.subject = c.code),
+  (select name from club), 'a table type''s rule carries the table type''s name');
+select is((select count(*) from public.public_club_rules where key not in ('rakeback.rate', 'jackpot.payout', 'high_hand.payouts', 'cab.minimum_visits')), 0::bigint,
   'no other rule shows, such as the rake or the cage''s limits');
 select is((select count(*) from public.public_club_rules where venue_slug = (select practice_slug from club)), 0::bigint,
   'the practice venue''s rules never show');
@@ -55,21 +48,14 @@ set local role anon;
 select is((select count(*) from public.public_club_rules where key = 'cab.minimum_visits'), 0::bigint, 'and not once no tier has them');
 reset role;
 
--- Points by hand only (#629): a points rate set to zero is no rule, so the website promises none.
-insert into public.setting (venue_id, key, subject, value, effective_from)
-select venue_id, 'points.per_hour', code, '{"points": 0}'::jsonb, now() - interval '1 millisecond' from club
-union all select venue_id, 'points.rewards_rake_share', '', '{"basis_points": 0}'::jsonb, now() - interval '1 millisecond' from club;
-set local role anon;
-select is((select count(*) from public.public_club_rules where key in ('points.per_hour', 'points.rewards_rake_share')), 0::bigint,
-  'a points rate of zero does not show');
-select is((select value from public.public_club_rules r, club c where r.key = 'rakeback.rate' and r.subject = c.code), '{"basis_points": 1000}'::jsonb,
-  'and rakeback still does, at the owner''s word');
-reset role;
-
 select throws_ok(
   $$ insert into public.setting (venue_id, key, subject, value, effective_from)
-     values ('00000000-0000-4000-8000-000000000001', 'league.prizes', '', '{"month": "A seat", "week": "A seat"}', now() + interval '2 days') $$,
-  null, null, 'league.prizes holds only this month''s and this season''s prizes');
+     values ('00000000-0000-4000-8000-000000000001', 'points.per_hour', (select code from club), '{"points": 5}', now() + interval '2 days') $$,
+  '23503', null, 'a points rate is no longer a setting a venue has');
+select throws_ok(
+  $$ insert into public.setting (venue_id, key, subject, value, effective_from)
+     values ('00000000-0000-4000-8000-000000000001', 'league.prizes', '', '{"month": "A seat"}', now() + interval '2 days') $$,
+  '23503', null, 'nor the League''s prizes');
 
 select * from finish();
 rollback;

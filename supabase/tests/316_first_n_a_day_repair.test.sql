@@ -43,9 +43,9 @@ values ('00000000-0000-4000-8000-000000000001', (select id from ids where name =
                            'timezone', 'Asia/Kolkata'),
         '{"perMember": "none", "maxMembersPerDay": 2}', '{"playerApp": true, "tv": true, "website": true, "whatsapp": true}');
 select private.sync_promotion((select id from ids where name = 'old'));
-insert into public.promotion_grant (venue_id, promotion_id, promotion_version_id, member_id, trigger, effect, cost_paise, points, chips, source_key,
+insert into public.promotion_grant (venue_id, promotion_id, promotion_version_id, member_id, trigger, effect, cost_paise, chips, source_key,
                                     period_key, club_day)
-select '00000000-0000-4000-8000-000000000001', v.promotion_id, v.id, '00000000-0000-4000-8000-000000000211', 'buy_in', v.reward, 50000, 0, 500,
+select '00000000-0000-4000-8000-000000000001', v.promotion_id, v.id, '00000000-0000-4000-8000-000000000211', 'buy_in', v.reward, 50000, 500,
        'buy_in:r-0', 'event:buy_in:r-0', private.club_day_of(now())
 from public.promotion_version v where v.promotion_id = (select id from ids where name = 'old');
 create function pg_temp.second_today_refusal() returns text language sql as $$
@@ -79,9 +79,9 @@ select '00000000-0000-4000-8000-000000000001', (select id from ids where name = 
                           'timezone', 'Asia/Kolkata'),
        l, '{"playerApp": true, "tv": true, "website": true, "whatsapp": true}'
 from (values (1, 'ended', '{"perMember": "none", "maxMembersPerDay": 2}'::jsonb), (2, 'live', '{"perMember": "once"}'::jsonb)) as x (n, s, l);
-insert into public.promotion_grant (venue_id, promotion_id, promotion_version_id, member_id, trigger, effect, cost_paise, points, chips, source_key,
+insert into public.promotion_grant (venue_id, promotion_id, promotion_version_id, member_id, trigger, effect, cost_paise, chips, source_key,
                                     period_key, club_day)
-select '00000000-0000-4000-8000-000000000001', v.promotion_id, v.id, '00000000-0000-4000-8000-000000000211', 'buy_in', v.reward, 50000, 0, 500,
+select '00000000-0000-4000-8000-000000000001', v.promotion_id, v.id, '00000000-0000-4000-8000-000000000211', 'buy_in', v.reward, 50000, 500,
        'buy_in:l-0', 'once', private.club_day_of(now()) - 1
 from public.promotion_version v where v.promotion_id = (select id from ids where name = 'later') and v.version = 2;
 select is(private.repair_first_n_a_day_versions(), 0, 'a promotion with a later version is not repaired');

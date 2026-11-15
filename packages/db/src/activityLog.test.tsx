@@ -46,8 +46,8 @@ describe('useActivityLog (F-034)', () => {
   });
 
   it('gives how much was given', async () => {
-    const { result } = renderLog(NONE, () => [{ ...line(1, 'points'), action: 'points.grant', amount: 500 }]);
-    await waitFor(() => expect(result.current.data?.pages[0]?.[0]?.amount).toBe(500));
+    const { result } = renderLog(NONE, () => [{ ...line(1, 'bonus_chips'), action: 'bonus.grant', amount: 1500 }]);
+    await waitFor(() => expect(result.current.data?.pages[0]?.[0]?.amount).toBe(1500));
   });
 
   it('calls a kind it does not know other', async () => {

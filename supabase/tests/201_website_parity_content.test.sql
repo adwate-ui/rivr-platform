@@ -14,21 +14,20 @@ create function pg_temp.page_kinds(p_venue_id uuid, p_slug text) returns text[] 
 $$;
 
 select results_eq($$ select slug, is_published from public.site_page
-                     where venue_id = (select venue_id from club) and slug in ('leaderboard', 'journal-cash-game-tips', 'journal-tournaments-gurugram', 'journal-poker-legal-gurugram')
+                     where venue_id = (select venue_id from club) and slug in ('journal-cash-game-tips', 'journal-tournaments-gurugram', 'journal-poker-legal-gurugram')
                      order by slug $$,
-  $$ values ('journal-cash-game-tips'::text, true), ('journal-poker-legal-gurugram', true), ('journal-tournaments-gurugram', true), ('leaderboard', true) $$,
-  'the club has the Leaderboard and the new articles, "Is poker legal in Gurugram?" published once the owner confirmed rake is allowed (#794)');
-select is(pg_temp.page_kinds((select venue_id from club), 'leaderboard'), array['hero', 'league', 'cards'], 'the Leaderboard shows the League''s standings');
+  $$ values ('journal-cash-game-tips'::text, true), ('journal-poker-legal-gurugram', true), ('journal-tournaments-gurugram', true) $$,
+  'the club has the new articles, "Is poker legal in Gurugram?" published once the owner confirmed rake is allowed (#794)');
 select is(pg_temp.page_kinds((select venue_id from club), 'membership'),
   array['hero', 'cards', 'cards', 'rewards', 'outstation', 'cards', 'promotions', 'faq'],
-  'Membership reads the rules in force in place of the example rates, the cab and hotel after them, and the welcome offer after the steps to join');
+  'Membership reads the rules in force in place of the example rates, the cab after them, and the welcome offer after the steps to join');
 select is((select b.content ->> 'only' from public.site_block b join public.site_page p on p.id = b.page_id
            where p.venue_id = (select venue_id from club) and p.slug = 'membership' and b.kind = 'promotions'), 'welcome', 'which shows the welcome offer alone');
 select is(pg_temp.page_kinds((select venue_id from club), 'promotions'), array['hero', 'jackpot', 'promotions', 'cards'], 'Promotions shows the jackpot after its hero');
 
-select ok((select b.content -> 'questions' @> '[{"question": "Is poker a game of skill?"}]' and b.content -> 'questions' @> '[{"question": "What is the RIVR League?"}]'
+select ok((select b.content -> 'questions' @> '[{"question": "Is poker a game of skill?"}]'
            from public.site_block b join public.site_page p on p.id = b.page_id where p.venue_id = (select venue_id from club) and p.slug = 'home' and b.kind = 'faq'),
-  'the front page answers whether poker is legal and what the League is');
+  'the front page answers whether poker is legal');
 select ok((select b.content -> 'cards' @> '[{"title": "Open every night"}, {"title": "Getting here"}]'
            from public.site_block b join public.site_page p on p.id = b.page_id
            where p.venue_id = (select venue_id from club) and p.slug = 'home' and b.content ->> 'eyebrow' = 'The room'),
@@ -71,7 +70,7 @@ select private.add_website_parity('00000000-0000-4000-8000-0000000000e9');
 select is(pg_temp.page_kinds('00000000-0000-4000-8000-0000000000e9', 'membership'),
   array['hero', 'cards', 'cards', 'rewards', 'outstation', 'table', 'cards', 'promotions', 'faq'], 'an edited points table stays, the rules in force placed after the tiers');
 
-select is((select count(*) from public.site_page p where p.venue_id = '00000000-0000-4000-8000-000000000002' and p.slug = 'leaderboard'), 0::bigint,
+select is((select count(*) from public.site_page p where p.venue_id = '00000000-0000-4000-8000-000000000002' and p.slug = 'journal-cash-game-tips'), 0::bigint,
   'the practice venue gets none of it');
 insert into public.venue (id, name, slug, is_practice) values ('00000000-0000-4000-8000-0000000000ea', 'Test New Room', 'test-new-room', false);
 select private.add_website('00000000-0000-4000-8000-0000000000ea');

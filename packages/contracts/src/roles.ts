@@ -59,9 +59,6 @@ export const PERMISSIONS = [
   'aml.review',
   'learn.manage_sources', // upload licensed Learn encodings
   'feedback.manage', // the General Manager's feedback tickets (decision 0165)
-  'rewards.manage', // the rewards catalogue and the League's seasons (decisions 0181, 0182)
-  'rewards.hand_over', // hand a member what they redeemed (decision 0181)
-  'points.give', // give a member points by hand, earned or locked, and release locked ones, never to oneself (#645)
   'bonus.give', // add bonus chips to a member by hand, never to oneself: super admins, admins and floor managers (the owner, 9 Nov)
   'treasury.manage', // payment accounts, transfers, expense categories and approving expenses (decision 0167)
   'shareholding.manage', // the shareholding register, super_admin only (decision 0170)
@@ -81,24 +78,21 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
     'kyc.review', 'kyc.in_person', 'tiers.manage', 'floor.manage', 'waitlist.manage', 'call_time.override', 'cage.second_approve',
     'markers.manage_limits', 'ledger.read', 'eod.review', 'tournaments.manage', 'promotions.manage', 'jackpots.approve',
     'host_queue.manage', 'fnb.manage', 'fnb.serve', 'reports.read', 'exports.table', 'sops.manage', 'aml.review', 'feedback.manage',
-    'rewards.manage', 'rewards.hand_over',
-    'treasury.manage', 'tables.manage', 'points.give', 'bonus.give',
+    'treasury.manage', 'tables.manage', 'bonus.give',
   ],
   // Every super admin module but tables setup, the member list, games history, tournaments and bonus (#644); TVs through a
   // permission of their own, as devices.manage reaches the cage's computers and the cameras. Bonus chips by hand came later (the owner, 9 Nov).
   floor: [
-    ...EVERY_STAFF_MEMBER, 'members.read', 'waitlist.manage', 'floor.manage', 'call_time.override', 'fnb.serve',
-    'rewards.manage', 'rewards.hand_over', 'points.give', 'bonus.give', 'kyc.in_person', 'tvs.manage',
+    ...EVERY_STAFF_MEMBER, 'members.read', 'waitlist.manage', 'floor.manage', 'call_time.override', 'fnb.serve', 'bonus.give', 'kyc.in_person', 'tvs.manage',
   ],
   // The floor's modules less the food and drink orders (#644), beside the cage's (hidden, decision 0284).
   cashier: [
     ...EVERY_STAFF_MEMBER, 'members.read', 'cage.transact', 'cage.second_approve', 'markers.issue',
-    'withdrawals.approve', 'ledger.read', 'rewards.hand_over', 'waitlist.manage', 'floor.manage', 'call_time.override',
-    'rewards.manage', 'points.give', 'tvs.manage',
+    'withdrawals.approve', 'ledger.read', 'waitlist.manage', 'floor.manage', 'call_time.override', 'tvs.manage',
   ],
   dealer: [...EVERY_STAFF_MEMBER, 'hands.log'],
-  marketing: [...EVERY_STAFF_MEMBER, 'promotions.manage', 'marketing.publish', 'website.edit', 'rewards.manage'],
-  host: [...EVERY_STAFF_MEMBER, 'members.read', 'waitlist.manage', 'host_queue.manage', 'rewards.hand_over', 'kyc.in_person'],
+  marketing: [...EVERY_STAFF_MEMBER, 'promotions.manage', 'marketing.publish', 'website.edit'],
+  host: [...EVERY_STAFF_MEMBER, 'members.read', 'waitlist.manage', 'host_queue.manage', 'kyc.in_person'],
   // No Reports for investors (the owner, 9 Nov).
   owner_view: [...EVERY_STAFF_MEMBER, 'dashboards.read', 'ledger.read', 'audit.read'],
   // Food and drink only: the menu and the orders, with no comp nor Glaza's statement (#640).
