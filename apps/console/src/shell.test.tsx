@@ -236,7 +236,11 @@ describe('the console frame', () => {
       localStorage.setItem('rivr-console-active-at', String(Date.now() - 31 * 60_000));
       renderAt('/members');
       expect(await screen.findByRole('heading', { level: 1, name: 'Members' }, LAZY_SCREEN)).toBeDefined();
-      await vi.advanceTimersByTimeAsync(30 * 60_000);
+      // Half an hour passes at once, as a console left alone sees it; then a minute of timers, and the staff member is back.
+      vi.setSystemTime(Date.now() + 31 * 60_000);
+      await vi.advanceTimersByTimeAsync(60_000);
+      fireEvent.keyDown(document.body, { key: 'Shift' });
+      fireEvent.pointerDown(document.body);
       expect(screen.getByRole('heading', { level: 1, name: 'Members' })).toBeDefined();
       expect(screen.queryByRole('textbox', { name: 'Mobile number' })).toBeNull();
       expect(localStorage.getItem(SESSION_STORAGE_KEY)).not.toBeNull();
