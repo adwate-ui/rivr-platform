@@ -8,7 +8,7 @@ const meta = {
   tags: ['viewport-console'],
   args: {
     label: 'TV slide',
-    children: <TvPromotionSlide label="Promotion" title="Double points" when="NLH 100/200 · Thursday, 14:00 to 20:00" />,
+    children: <TvPromotionSlide label="Promotion" title="Thursday bonus" when="NLH 100/200 · Thursday, 14:00 to 20:00" />,
   },
 } satisfies Meta<typeof DisplayPreview>;
 

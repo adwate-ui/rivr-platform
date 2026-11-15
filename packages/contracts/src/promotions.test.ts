@@ -38,8 +38,7 @@ describe('promotion schemas (#83)', () => {
     expect(promotionEffectSchema.safeParse({ kind: 'bonus', percent_bps: 2000 }).success).toBe(false);
   });
 
-  it('gives items and messages by kind, and no points (redesign of 15 Nov)', () => {
-    expect(promotionEffectSchema.safeParse({ kind: 'points', points: 500 }).success).toBe(false);
+  it('gives items and messages by kind', () => {
     expect(promotionEffectSchema.safeParse({ kind: 'cab_eligibility' }).success).toBe(true);
     expect(promotionEffectSchema.safeParse({ kind: 'jackpot_payout', pool: 'season', amount_paise: 500_000 }).success).toBe(true);
     expect(promotionEffectSchema.safeParse({ kind: 'message', text: '  ' }).success).toBe(false);

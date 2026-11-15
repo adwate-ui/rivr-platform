@@ -147,7 +147,6 @@ describe('the player app', () => {
     renderAt('/');
     await screen.findByRole('navigation', { name: 'Main' });
     expect(screen.getByRole('link', { name: 'Bonus' })).toBeDefined();
-    expect(screen.queryByRole('link', { name: 'Learn' })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Sessions' })).toBeNull();
   });
 

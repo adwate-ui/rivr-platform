@@ -80,7 +80,7 @@ describe('formatStakeName (issue 990)', () => {
 
 
 describe('formatNumber', () => {
-  it('groups points the Indian way', () => {
+  it('groups a count the Indian way', () => {
     expect(formatNumber(18_420)).toBe('18,420');
     expect(formatNumber(1_234_567n)).toBe('12,34,567');
   });

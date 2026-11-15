@@ -13,7 +13,6 @@ Poker-room and project terms a new developer meets in this codebase. Add a line 
 | Cap | Maximum rake on one hand. A rakeback rate's cap is different: the most bonus one member gets at one stake in one club week |
 | Club week | Monday 06:00 IST to the next Monday 06:00 IST, as the club day runs 06:00 to 06:00 |
 | Rakeback | Bonus each Monday on a member's share of last club week's rake at each stake, at the stake's `rakeback.rate` (decision 0245) |
-| RIVR Rewards | Points from a member's share of the rake, 5% at one point a rupee, earned as each visit closes (decision 0161) |
 | Drop box | Box under the table where the dealer puts rake and jackpot chips |
 | Down | One dealer's shift at one table |
 | Pull | Total chips the dealer takes from a pot: rake plus jackpot drop |
@@ -45,8 +44,8 @@ Poker-room and project terms a new developer meets in this codebase. Add a line 
 | Ledger line | One account and a signed amount (debit positive) inside a ledger transaction; a transaction's lines sum to zero |
 | Reversal | A transaction that is the exact opposite of an earlier one; the only way to correct the ledger |
 | Natural balance | An account's balance shown on its normal side, so a member's cash or a jackpot pool reads as a positive amount |
-| Feature key | The name of a member-facing feature, such as `learn.library`, checked by `has_feature` and `useFeature` |
-| Tier | A membership level (Member, Academy graduate, Founders' Circle, Black card); decides which features a member has |
+| Feature key | The name of a member-facing feature, such as `sessions.history`, checked by `has_feature` and `useFeature` |
+| Tier | A membership level (Member, Founders' Circle, Black card); decides which features a member has |
 | Feature override | A super admin's grant or revoke of one feature for one member, with a reason and an optional end date |
 | Display mode | How a feature a member lacks appears: hidden (no entry point) or locked (shown with the tiers that have it) |
 | Consumer | An outbox worker for one external system (WhatsApp, Tally...); claims deliveries and marks them done |
@@ -71,12 +70,7 @@ Poker-room and project terms a new developer meets in this codebase. Add a line 
 | AML | Anti-money-laundering; the console keeps an AML register of money movements to review |
 | SOP | Standard operating procedure: a written routine staff acknowledge, kept in the console |
 | Host queue | The console's list of members a host should contact, with the churn reason and the offer to make |
-| Academy | RIVR's poker course, booked individually or by a company; graduates move to the Academy graduate tier |
 | Founders' Circle | A seeded tier with waitlist priority: after Black card, ahead of everyone else, who wait in join order |
-| League | A points leaderboard members compete on, shown under Rewards and on the TVs |
-| Learn | The player app's study section: drills and licensed books |
-| Learn source | One licensed book or course in Learn, switched on per source; its licence expiry switches it off |
-| Drill | A practice question in Learn, built from an encoded hand by the drill engine (`@rivr/drills`) |
 | Encoding | The structured form of a book's hands and quizzes the drill engine reads; book encodings never enter this public repository |
 | RLS | Row-level security: Postgres policies that decide which rows each signed-in person can read or write |
 | Policy | One row-level security rule on a table, such as "members see their own entries" |

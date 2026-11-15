@@ -69,8 +69,8 @@ function renderProfile(kyc: unknown = null, erasure: { asked?: string; fails?: b
   const profile = createRoute({ getParentRoute: () => rootRoute, path: '/profile', component: ProfileScreen });
   const rules = createRoute({ getParentRoute: () => rootRoute, path: '/profile/rules', component: HouseRulesScreen });
   const router = createRouter({
-    routeTree: rootRoute.addChildren([page('/rewards', 'Rewards screen'), rules, profile]),
-    history: createMemoryHistory({ initialEntries: ['/rewards', '/profile'], initialIndex: 1 }),
+    routeTree: rootRoute.addChildren([page('/bonus', 'Bonus screen'), rules, profile]),
+    history: createMemoryHistory({ initialEntries: ['/bonus', '/profile'], initialIndex: 1 }),
   });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}

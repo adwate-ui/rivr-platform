@@ -191,10 +191,10 @@ describe('the WhatsApp consumer', () => {
       asked.push(offeredPromotionId);
       return { phone, marketingOptedInAt: optedIn };
     } });
-    const offer = { promotion_id: '00000000-0000-4000-8000-000000000a01', member_id: MEMBER, title: 'Double points', detail: null, runs: 'NLH 100/200 · Thursday, 14:00 to 20:00' };
+    const offer = { promotion_id: '00000000-0000-4000-8000-000000000a01', member_id: MEMBER, title: 'Thursday bonus', detail: null, runs: 'NLH 100/200 · Thursday, 14:00 to 20:00' };
 
     expect((await consumer.deliver(delivery('promotion.offered', offer))).ok).toBe(true);
-    expect(whatsapp.calls).toEqual([{ category: 'marketing', optedInAt: optedIn, to: phone, template: 'promotion', params: ['Double points · NLH 100/200 · Thursday, 14:00 to 20:00.'] }]);
+    expect(whatsapp.calls).toEqual([{ category: 'marketing', optedInAt: optedIn, to: phone, template: 'promotion', params: ['Thursday bonus · NLH 100/200 · Thursday, 14:00 to 20:00.'] }]);
     // The member is found for the offer's own promotion, so one no longer running finds nobody.
     expect(asked).toEqual([offer.promotion_id]);
 

@@ -14,7 +14,7 @@ function recordOf(line: ActivityLine): string {
   return line.about === null ? thing : t('console.activity.recordOf', { thing, name: line.about });
 }
 
-/** What was done, and how much for points and bonus chips by hand. */
+/** What was done, and how much for Bonus by hand. */
 function whatOf(line: ActivityLine): string {
   const what = activityActionWord(line.action);
   return line.amount === null ? what : t('console.activity.withAmount', { what, amount: formatNumber(line.amount) });

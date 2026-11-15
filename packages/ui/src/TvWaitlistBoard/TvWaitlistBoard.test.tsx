@@ -63,7 +63,7 @@ describe('TvWaitlistBoard', () => {
 
   it('says nothing of how many more on a top-N list', () => {
     const places = Array.from({ length: 10 }, (_, index) => ({ id: String(index), place: String(index + 1), name: `Player ${index + 1}` }));
-    renderIn(<TvWaitlistBoard title="RIVR League" stakes={[{ id: 'a', stake: 'This month', detail: 'November 2026', places }]} emptyText="No League points yet." />);
+    renderIn(<TvWaitlistBoard title="Most hours" stakes={[{ id: 'a', stake: 'This month', detail: 'November 2026', places }]} emptyText="No hours played yet." />);
     expect(screen.queryByText(/more$/)).toBeNull();
   });
 

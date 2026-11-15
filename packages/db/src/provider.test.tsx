@@ -63,10 +63,10 @@ function fireChange(channel: RealtimeChannel, table: string) {
 }
 
 function Probe() {
-  const learn = useFeature('events.book');
+  const events = useFeature('events.book');
   return (
     <p>
-      {`learn: ${learn.state}`}
+      {`events: ${events.state}`}
     </p>
   );
 }
@@ -156,7 +156,7 @@ describe('RivrDataProvider and useFeature', () => {
       </RivrDataProvider>,
     );
 
-    expect(await screen.findByText('learn: hidden')).toBeDefined();
+    expect(await screen.findByText('events: hidden')).toBeDefined();
     expect(database.rpcCalls).toBe(0);
     expect(channels).toEqual([]);
   });
@@ -171,7 +171,7 @@ describe('RivrDataProvider and useFeature', () => {
       </RivrDataProvider>,
     );
 
-    expect(await screen.findByText('learn: locked')).toBeDefined();
+    expect(await screen.findByText('events: locked')).toBeDefined();
   });
 
   it('refreshes open screens when the tier matrix changes', async () => {
@@ -182,13 +182,13 @@ describe('RivrDataProvider and useFeature', () => {
         <Probe />
       </RivrDataProvider>,
     );
-    await screen.findByText('learn: locked');
+    await screen.findByText('events: locked');
     const [channel] = channels;
     if (channel === undefined) throw new Error('The provider opened no Realtime channel');
 
     database.featureRows = [{ feature_key: 'events.book', state: 'enabled', tiers: null }];
     fireChange(channel, 'tier_feature');
-    expect(await screen.findByText('learn: enabled')).toBeDefined();
+    expect(await screen.findByText('events: enabled')).toBeDefined();
   });
 
   it('listens to every table that changes what a person may do or holds: access and Bonus', async () => {
@@ -206,9 +206,9 @@ describe('RivrDataProvider and useFeature', () => {
 });
 
 function StatusProbe() {
-  const learn = useFeatureStatus('events.book');
-  if (learn.status === 'error') return <button type="button" onClick={learn.retry}>learn: error</button>;
-  return <p>{`learn: ${learn.status === 'ready' ? learn.access.state : learn.status}`}</p>;
+  const events = useFeatureStatus('events.book');
+  if (events.status === 'error') return <button type="button" onClick={events.retry}>events: error</button>;
+  return <p>{`events: ${events.status === 'ready' ? events.access.state : events.status}`}</p>;
 }
 
 describe('useFeatureStatus', () => {
@@ -219,16 +219,16 @@ describe('useFeatureStatus', () => {
     const noRetries = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(<RivrDataProvider client={client} queryClient={noRetries}><StatusProbe /></RivrDataProvider>);
 
-    expect(screen.getByText('learn: loading')).toBeDefined();
-    const retry = await screen.findByRole('button', { name: 'learn: error' });
+    expect(screen.getByText('events: loading')).toBeDefined();
+    const retry = await screen.findByRole('button', { name: 'events: error' });
     database.featuresFail = false;
     fireEvent.click(retry);
-    expect(await screen.findByText('learn: locked')).toBeDefined();
+    expect(await screen.findByText('events: locked')).toBeDefined();
   });
 
   it('is known, and hidden, while signed out', async () => {
     const { client } = testClient(freshDatabase(), null);
     render(<RivrDataProvider client={client}><StatusProbe /></RivrDataProvider>);
-    expect(await screen.findByText('learn: hidden')).toBeDefined();
+    expect(await screen.findByText('events: hidden')).toBeDefined();
   });
 });

@@ -7,7 +7,7 @@ import { NAMES, renderWithApi, resetApi, TUESDAY } from './promotionsTestApi.tsx
 
 afterEach(resetApi);
 
-const SIMULATION = { events: 9, membersQualified: 6, timesGiven: 8, points: 0, chips: 12_000, perks: 0, isBudgetReached: true };
+const SIMULATION = { events: 9, membersQualified: 6, timesGiven: 8, chips: 12_000, perks: 0, isBudgetReached: true };
 
 /** A version as promotion_versions_of gives it: the Tuesday bonus, live, unless changed. */
 function version(more: Partial<PromotionVersionView>): PromotionVersionView {

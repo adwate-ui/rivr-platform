@@ -91,11 +91,11 @@ describe('Button', () => {
   it('as a link, only goes somewhere: it cannot be disabled, loading or pressed', () => {
     renderIn(
       // @ts-expect-error A link cannot be disabled; it would still be followed.
-      <Button href="/academy" isDisabled>
-        Academy
+      <Button href="/tournaments" isDisabled>
+        Tournaments
       </Button>,
     );
-    expect(screen.getByRole('link', { name: 'Academy' })).toHaveAttribute('href', '/academy');
+    expect(screen.getByRole('link', { name: 'Tournaments' })).toHaveAttribute('href', '/tournaments');
   });
 
   it('sets an aside at its right end and the label at its left, the turning circle with the label (owner, 3 Nov)', () => {

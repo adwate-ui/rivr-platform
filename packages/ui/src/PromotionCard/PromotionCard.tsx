@@ -1,7 +1,7 @@
 import { Text } from '../Text/Text.tsx';
 
 export interface PromotionCardProps {
-  /** The promotion, as published: "Double points". */
+  /** The promotion, as published: "Thursday bonus". */
   title: string;
   /** What it gives, as published; absent when the title says it. */
   detail?: string | undefined;

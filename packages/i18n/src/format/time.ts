@@ -141,7 +141,7 @@ export function isLaterIstDay(day: string, now: Date = new Date()): boolean {
 // A calendar month is a name, not a moment, so it is read in UTC where its first day starts at midnight.
 const MONTH = new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', month: 'long', year: 'numeric' });
 
-/** A calendar month given as `2026-11` or its first day `2026-11-01`: `November 2026`, as a League month is named. */
+/** A calendar month given as `2026-11` or its first day `2026-11-01`: `November 2026`, as a report names a month. */
 export function formatMonth(month: string): string {
   return MONTH.format(new Date(`${month.slice(0, 7)}-01T00:00:00Z`));
 }

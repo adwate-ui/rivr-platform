@@ -195,15 +195,15 @@
       "expected": { "applies": "no" }
     },
     {
-      "description": "Graduate first buy-in (template): an Academy graduate.",
+      "description": "Black card first buy-in (template): a Black card member.",
       "operation": "applies",
-      "inputs": { "conditions": "{\"tier_ids\": [\"graduate\"]}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"tier_id\": \"graduate\"}" },
+      "inputs": { "conditions": "{\"tier_ids\": [\"black\"]}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"tier_id\": \"black\"}" },
       "expected": { "applies": "yes" }
     },
     {
-      "description": "Graduate first buy-in (template): a member who has not graduated.",
+      "description": "Black card first buy-in (template): a member of another tier.",
       "operation": "applies",
-      "inputs": { "conditions": "{\"tier_ids\": [\"graduate\"]}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"tier_id\": \"member\"}" },
+      "inputs": { "conditions": "{\"tier_ids\": [\"black\"]}", "facts": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"tier_id\": \"member\"}" },
       "expected": { "applies": "no" }
     },
     {
@@ -291,7 +291,7 @@
       "expected": { "reward": "nothing" }
     },
     {
-      "description": "Graduate first buy-in: a fixed ₹1,000, whatever the buy-in.",
+      "description": "Black card first buy-in: a fixed ₹1,000, whatever the buy-in.",
       "operation": "reward",
       "inputs": { "effect": "{\"kind\": \"bonus\", \"amount_paise\": 100000, \"expires_days\": 30}", "amount": "₹5,000" },
       "expected": { "reward": "₹1,000" }
@@ -347,19 +347,19 @@
     {
       "description": "One that does not stack, first in priority: given alone.",
       "operation": "select",
-      "inputs": { "candidates": "[{\"promotion\": \"Graduate first buy-in\", \"stacks\": false, \"cost_paise\": 100000}, {\"promotion\": \"Tuesday bonus\", \"stacks\": true, \"cost_paise\": 200000}]" },
-      "expected": { "given": "Graduate first buy-in" }
+      "inputs": { "candidates": "[{\"promotion\": \"Black card first buy-in\", \"stacks\": false, \"cost_paise\": 100000}, {\"promotion\": \"Tuesday bonus\", \"stacks\": true, \"cost_paise\": 200000}]" },
+      "expected": { "given": "Black card first buy-in" }
     },
     {
       "description": "One that does not stack, after one already given: skipped, and a later one that stacks is still given.",
       "operation": "select",
-      "inputs": { "candidates": "[{\"promotion\": \"Tuesday bonus\", \"stacks\": true, \"cost_paise\": 200000}, {\"promotion\": \"Graduate first buy-in\", \"stacks\": false, \"cost_paise\": 100000}, {\"promotion\": \"Cab home\", \"stacks\": true, \"cost_paise\": 0}]" },
+      "inputs": { "candidates": "[{\"promotion\": \"Tuesday bonus\", \"stacks\": true, \"cost_paise\": 200000}, {\"promotion\": \"Black card first buy-in\", \"stacks\": false, \"cost_paise\": 100000}, {\"promotion\": \"Cab home\", \"stacks\": true, \"cost_paise\": 0}]" },
       "expected": { "given": "Tuesday bonus | Cab home" }
     },
     {
       "description": "One that does not stack but is over its budget: skipped, so the next is given.",
       "operation": "select",
-      "inputs": { "candidates": "[{\"promotion\": \"Graduate first buy-in\", \"stacks\": false, \"cost_paise\": 100000, \"budget_left_paise\": 50000}, {\"promotion\": \"Tuesday bonus\", \"stacks\": true, \"cost_paise\": 200000}]" },
+      "inputs": { "candidates": "[{\"promotion\": \"Black card first buy-in\", \"stacks\": false, \"cost_paise\": 100000, \"budget_left_paise\": 50000}, {\"promotion\": \"Tuesday bonus\", \"stacks\": true, \"cost_paise\": 200000}]" },
       "expected": { "given": "Tuesday bonus" }
     },
     {

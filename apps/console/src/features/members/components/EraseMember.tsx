@@ -136,7 +136,7 @@ function EraseBody({ venueId, memberId, preview }: { venueId: string; memberId: 
 
 /**
  * Erasure on request (#424, decision 0207), for super admins: what erasing would do (what must be cleared first,
- * the points and bonus forfeited, a break's block), then the member's full name typed, a reason, and Erase; once
+ * the Bonus forfeited, a break's block), then the member's full name typed, a reason, and Erase; once
  * erased, any KYC files still in Storage, with Remove.
  */
 export function EraseMember({ venueId, memberId }: { venueId: string; memberId: string }) {

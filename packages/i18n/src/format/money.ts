@@ -26,7 +26,7 @@ export function formatChips(paise: bigint): string {
 }
 
 /**
- * Formats a count with Indian grouping and no currency: points `18,420`, `−5`; −0 is `0`. For counts: a fraction keeps
+ * Formats a count with Indian grouping and no currency: hands `18,420`, `−5`; −0 is `0`. For counts: a fraction keeps
  * at most three places (`1,234.568`), so money is formatMoney's and chips formatChips'.
  */
 export function formatNumber(value: number | bigint): string {

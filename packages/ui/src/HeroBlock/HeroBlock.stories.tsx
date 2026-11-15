@@ -27,13 +27,13 @@ export const OnAPhone: Story = { tags: ['!viewport-console', 'viewport-phone'] }
 // A word wider than a phone breaks inside the heading rather than scroll the page sideways (#621).
 export const LongWordOnAPhone: Story = { tags: ['!viewport-console', 'viewport-phone'], args: { heading: 'Internationalisation nights', video: undefined, note: undefined } };
 
-export const WithoutVideo: Story = { args: { eyebrow: undefined, heading: 'RIVR Academy', text: 'Learn the game in a small batch with a RIVR coach.', video: undefined, note: undefined } };
+export const WithoutVideo: Story = { args: { eyebrow: undefined, heading: 'Sunday tournament', text: 'Cards in the air at 16:00, with re-entry until the end of level eight.', video: undefined, note: undefined } };
 
 export const WithoutAction: Story = { args: { action: undefined } };
 
 export const LongText: Story = {
   args: {
-    heading: 'RIVR Academy: learn the game in a small batch',
-    text: 'Three evenings with a RIVR coach: hand rankings and the rules first, then position, starting hands and how to read a table, with hands dealt at a real table between the lessons.',
+    heading: 'The Sunday tournament: cards in the air at 16:00',
+    text: 'Every Sunday at the club: re-entry until the end of level eight, a guaranteed prize pool, a break for dinner after level six, and a seat at the final table for the last nine players.',
   },
 };

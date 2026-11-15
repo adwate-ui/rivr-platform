@@ -12,7 +12,7 @@ export interface ProgressBarProps {
 const clamp = (fraction: number) => (Number.isFinite(fraction) ? Math.min(1, Math.max(0, fraction)) : 0);
 
 /**
- * A thin gold bar on a faint track (decision 0320): a seat's hold running out, or points on the way to a reward. The fill
+ * A thin gold bar on a faint track (decision 0320): a seat's hold running out, or hours on the way to a Bonus. The fill
  * is scaled to the fraction and moves linearly over each second's tick (brief 2.6), so a hold drains, never jumps.
  */
 export function ProgressBar({ fraction, width = 'full', tone = 'gold' }: ProgressBarProps) {

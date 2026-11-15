@@ -55,7 +55,7 @@ describe('play-time bonus step properties (owner, 8 Nov)', () => {
   it('replays a visit once per step: last week never gives a visit more than its steps reached', () => {
     fc.assert(fc.property(hoursBonus, played, (reward, minutes) => {
       const terms = { ...buildPromotionTerms(), reward, limits: { perMember: 'per_visit' as const } };
-      const closed = { kind: 'time_played' as const, key: 'hours_played:v1', at: new Date('2026-11-17T23:00:00+05:30'), memberId: 'm1', visitId: 'v1', tableId: 't1', stake: 'nlh_50_100', minutes, points: 0 };
+      const closed = { kind: 'time_played' as const, key: 'hours_played:v1', at: new Date('2026-11-17T23:00:00+05:30'), memberId: 'm1', visitId: 'v1', tableId: 't1', stake: 'nlh_50_100', minutes };
       const run = simulate(terms, [{ event: closed, member: buildMemberFacts() }]);
       const owed = hourSteps(reward).filter((step) => step.afterMinutes <= minutes).reduce((total, step) => total + step.chips, 0);
       expect(run.chips).toBe(owed);

@@ -16,8 +16,7 @@ const TERMS = {
 } as const;
 
 describe('the promotion model schemas', () => {
-  it('knows no points multiplier and no free spin (redesign of 15 Nov)', () => {
-    expect(rewardSchema.safeParse({ kind: 'points_multiplier', multiplier: 2 }).success).toBe(false);
+  it('knows no free spin (redesign of 15 Nov)', () => {
     expect(rewardSchema.safeParse({ kind: 'free_spin', spins: 1, afterMinutes: 240 }).success).toBe(false);
   });
 

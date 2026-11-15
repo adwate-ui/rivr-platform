@@ -137,10 +137,10 @@ describe('the push consumer', () => {
       outcome: { ok: true, value: null }, asked: ['push.tournament_starting'],
       sent: [{ title: 'RIVR Sunday is starting', body: 'The clock has started. Take your seat.', url: '/', tag: `tournament-${OTHER}` }],
     });
-    const offer = { member_id: MEMBER, promotion_id: OTHER, title: 'Double points', detail: '2x points on every hour', runs: 'Tonight' };
+    const offer = { member_id: MEMBER, promotion_id: OTHER, title: 'Thursday bonus', detail: '500 Bonus after two hours', runs: 'Tonight' };
     expect(await sendOne('promotion.offered', offer)).toEqual({
       outcome: { ok: true, value: null }, asked: [`push.promotion_published for ${OTHER}`],
-      sent: [{ title: 'Double points', body: '2x points on every hour · Tonight', url: '/', tag: `promotion-${OTHER}` }],
+      sent: [{ title: 'Thursday bonus', body: '500 Bonus after two hours · Tonight', url: '/', tag: `promotion-${OTHER}` }],
     });
   });
 

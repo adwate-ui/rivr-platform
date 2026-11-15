@@ -70,7 +70,7 @@ describe('the promotion builder (console v3)', () => {
     const rewards = within(screen.getByRole('radiogroup', { name: 'Reward' }));
     for (const gone of ['Buy-in bonus', 'Cab home', 'Tournament entry']) expect(rewards.queryByRole('radio', { name: gone })).toBeNull();
     const templates = within(screen.getByRole('radiogroup', { name: 'Start from' }));
-    for (const gone of ['Buy-in bonus', 'Cab home', 'Graduate freeroll']) expect(templates.queryByRole('radio', { name: gone })).toBeNull();
+    for (const gone of ['Buy-in bonus', 'Cab home']) expect(templates.queryByRole('radio', { name: gone })).toBeNull();
   });
 
   it('builds a play-time bonus at set times, a step at a time, or every so often (owner, 8 Nov)', () => {

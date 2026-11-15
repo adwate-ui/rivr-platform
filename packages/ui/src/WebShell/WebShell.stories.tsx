@@ -77,7 +77,7 @@ export const LongText: Story = {
   args: {
     children: hero(
       'RIVR Sunday',
-      'The weekly tournament runs every Sunday from 16:00 with re-entry until the end of level eight, a guaranteed prize pool and a seat for the top three in the monthly League final.',
+      'The weekly tournament runs every Sunday from 16:00 with re-entry until the end of level eight, a guaranteed prize pool and a seat for the top three in the monthly final.',
     ),
   },
 };

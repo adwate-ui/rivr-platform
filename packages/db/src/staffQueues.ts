@@ -3,7 +3,7 @@ import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 import { LIST_MOST } from './limits.ts';
 
-/** Read every ten seconds on every console screen, so staff learn of new work without opening its screen (decision 0301). */
+/** Read every ten seconds on every console screen, so staff see new work without opening its screen (decision 0301). */
 const QUEUES_LIVE = 10_000;
 
 /**

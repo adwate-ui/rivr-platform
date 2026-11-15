@@ -90,10 +90,10 @@ describe('ChoiceChips', () => {
   });
 
   it('keeps a visually hidden label as the group\'s name for screen readers', async () => {
-    const { container } = renderIn(<ChoiceChips label="Learn library for Member" options={GAMES} selected={[]} onChange={() => undefined} isLabelVisuallyHidden />);
+    const { container } = renderIn(<ChoiceChips label="Events for Member" options={GAMES} selected={[]} onChange={() => undefined} isLabelVisuallyHidden />);
 
-    expect(screen.getByRole('group', { name: 'Learn library for Member' })).toBeInTheDocument();
-    expect(screen.getByText('Learn library for Member')).toHaveClass('sr-only');
+    expect(screen.getByRole('group', { name: 'Events for Member' })).toBeInTheDocument();
+    expect(screen.getByText('Events for Member')).toHaveClass('sr-only');
     expect(await axeViolations(container)).toEqual([]);
   });
 
@@ -145,12 +145,12 @@ describe('ChoiceChips', () => {
 
   it('sets a chosen card\'s line in cream, as muted falls under 4.5:1 on the tint (F-026)', () => {
     const kinds = [
-      { value: 'multiplier', label: 'Points multiplier', description: 'Points earned per hour, multiplied' },
+      { value: 'referral', label: 'Referral bonus', description: 'Bonus when a friend first sits' },
       { value: 'buyin', label: 'Buy-in bonus', description: 'Bonus on a buy-in, % or fixed' },
     ];
     renderIn(<ChoiceChips label="Reward" look="card" mode="one" options={kinds} selected={['buyin']} onChange={() => undefined} />);
     expect(screen.getByText('Bonus on a buy-in, % or fixed')).toHaveClass('text-content');
-    expect(screen.getByText('Points earned per hour, multiplied')).toHaveClass('text-content-muted');
+    expect(screen.getByText('Bonus when a friend first sits')).toHaveClass('text-content-muted');
   });
 
   it('groups a count in the thousands, as a list counted on the server has', () => {
@@ -178,17 +178,17 @@ describe('ChoiceChips', () => {
   it("draws the console's cards, each named by its label and described by its line, the chosen one gold-edged", async () => {
     const onChange = vi.fn();
     const kinds = [
-      { value: 'multiplier', label: 'Points multiplier', description: 'Points earned per hour, multiplied' },
+      { value: 'referral', label: 'Referral bonus', description: 'Bonus when a friend first sits' },
       { value: 'buyin', label: 'Buy-in bonus', description: 'Bonus on a buy-in, % or fixed' },
     ];
     const { container } = renderIn(<ChoiceChips label="Reward" look="card" mode="one" options={kinds} selected={['buyin']} onChange={onChange} />);
     const chosen = screen.getByRole('radio', { name: 'Buy-in bonus' });
     expect(chosen).toHaveAccessibleDescription('Bonus on a buy-in, % or fixed');
     expect(chosen).toHaveClass('border-gold', 'bg-gold-tint', 'items-start', 'text-start');
-    expect(screen.getByRole('radio', { name: 'Points multiplier' })).toHaveClass('border-control');
+    expect(screen.getByRole('radio', { name: 'Referral bonus' })).toHaveClass('border-control');
     expect(screen.getByRole('radiogroup', { name: 'Reward' })).toHaveClass('grid-cols-1', 'medium:grid-cols-2');
-    await userEvent.click(screen.getByRole('radio', { name: 'Points multiplier' }));
-    expect(onChange).toHaveBeenCalledWith(['multiplier']);
+    await userEvent.click(screen.getByRole('radio', { name: 'Referral bonus' }));
+    expect(onChange).toHaveBeenCalledWith(['referral']);
     expect(await axeViolations(container)).toEqual([]);
   });
 });

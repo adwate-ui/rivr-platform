@@ -42,7 +42,7 @@ describe('waitlistCalledSchema', () => {
 
 describe('promotionOfferedSchema (#86)', () => {
   it('reads an offer as the database emits it, a card with or without its detail', () => {
-    const offer = { promotion_id: '00000000-0000-4000-8000-000000000a01', member_id: '00000000-0000-4000-8000-000000000212', title: 'Double points', detail: null, runs: 'Every day' };
+    const offer = { promotion_id: '00000000-0000-4000-8000-000000000a01', member_id: '00000000-0000-4000-8000-000000000212', title: 'Thursday bonus', detail: null, runs: 'Every day' };
     expect(promotionOfferedSchema.safeParse(offer).success).toBe(true);
     expect(promotionOfferedSchema.safeParse({ ...offer, title: ' ' }).success).toBe(false);
     expect(promotionOfferedSchema.safeParse({ ...offer, member_id: 'not-a-member' }).success).toBe(false);

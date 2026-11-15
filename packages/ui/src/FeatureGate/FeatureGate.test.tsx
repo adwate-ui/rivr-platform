@@ -12,9 +12,9 @@ describe('FeatureGate', () => {
   });
 
   it('renders the locked notice, naming the tiers, in place of a locked feature', () => {
-    renderIn(<FeatureGate access={{ state: 'locked', tiers: ['Academy graduate', 'Black card'] }}>{drill}</FeatureGate>);
+    renderIn(<FeatureGate access={{ state: 'locked', tiers: ['High roller', 'Black card'] }}>{drill}</FeatureGate>);
     expect(screen.queryByRole('button', { name: 'Start drill' })).not.toBeInTheDocument();
-    expect(screen.getByText('Academy graduate and Black card only.')).toBeInTheDocument();
+    expect(screen.getByText('High roller and Black card only.')).toBeInTheDocument();
   });
 
   it('renders nothing for a hidden feature', () => {

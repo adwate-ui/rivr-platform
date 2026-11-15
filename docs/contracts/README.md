@@ -13,7 +13,7 @@ Four lanes: A money, B floor, C member and web, D growth and content. Their task
 - **Calling another lane.** A lane calls another lane only through the functions in that lane's contract, never by reading or writing its tables. Function signatures in a contract are stable; a change goes through a `question` issue.
 - **Money.** Every rupee moves through `private.post_ledger_transaction` with an idempotency key, using the account codes in [the chart of accounts](#chart-of-accounts). Its `p_feature` argument has no default: pass the kill switch that stops the movement (`withdrawals`, `credit`...) or `null` when none does. The ledger refuses postings during a venue freeze, a switched-off `p_feature`, or a member freeze on any member account in the lines. A retry must repeat the original exactly; a key reused for different lines is refused (`23505`). Write functions still call `private.assert_writable` first, before any other write. Money rules live in `@rivr/domain`; when SQL computes money it has a golden test against domain.
 - **Events.** A business event writes one `outbox_event` row through `private.emit` in the same transaction. Event types are `area.past_tense` (`hand.logged`). The emitting lane lists them in its contract; consumers list what they consume.
-- **Member-facing features.** Each has a key in `packages/contracts/src/features.ts` (and a migration inserting it), a `FeatureGate` in the app, and `private.has_feature` in its policies and write functions. The member side of a read policy checks the feature too: a gated history (sessions, points) is hidden in the database, not only on screen.
+- **Member-facing features.** Each has a key in `packages/contracts/src/features.ts` (and a migration inserting it), a `FeatureGate` in the app, and `private.has_feature` in its policies and write functions. The member side of a read policy checks the feature too: a gated history (sessions) is hidden in the database, not only on screen.
 - **Logins.** No client writes `staff.user_id`, `member.user_id` or `device.auth_user_id`. Apps call `public.link_my_login()` after every sign-in; it links the records registered under the login's verified phone. A device login is bound by its enrolment (lane A, service role). A member's phone changes only through a lane C function that verifies the new number.
 - **Access revoke.** An engaged `access_revoke` removes the staff member or device from every access helper at once, so no policy or write check needs to look for it.
 - **Settings.** Rules that change over time are setting keys (`packages/contracts/src/settings.ts` and a migration), read with `private.setting_at(venue, key, subject, at)` at the transaction's own time. Nobody signed in backdates one. A money key a logged hand may depend on (`private.is_money_setting`: `rake.config`, `jackpot.drop`, `jackpot.shares`) takes effect, and is withdrawn, only more than a minute ahead, and a `jackpot.drop` threshold is never below the drop (#323, answers to #302 and #296).
@@ -46,16 +46,14 @@ Account codes posted to by each lane. Lane A owns the chart and adds accounts by
 |---|---|---|---|
 | `member.cash` | liability, players' money | every member | A (cage, wallet, withdrawals), B (tournament entries from the wallet, through A's functions) |
 | `member.bonus` | liability | every member | A, D (promotion effects through `private.credit_bonus`) |
-| `member.points` | liability, points | every member | D (earning, redemption through `private.credit_points` and `private.debit_points`) |
 | `member.receivable` | asset | every member | A (markers) |
 | `venue.cash_drawer`, `venue.bank` | asset | bootstrap | A |
 | `venue.chips_outstanding` | liability, players' money | bootstrap | A (buy-ins, cash-outs), B (rake and drops leave play, through `private.post_hand`) |
 | `venue.rake` | revenue | bootstrap | B (hands, through `private.post_hand`) |
 | `venue.jackpot.main`, `.season`, `.freeroll` | liability, players' money | bootstrap | B (drops and payouts) |
 | `venue.bonus_expense` | expense | bootstrap | A, D |
-| `venue.points_issued` | expense, points | bootstrap | D |
 | `venue.opening_balance`, `venue.points_opening_balance` | equity | bootstrap | seed and A (opening balances) |
 | `venue.tds_payable` | liability, the government's | bootstrap (#22) | A (TDS withheld at cash-outs); B (prize TDS, through A's functions) |
-| `venue.gst_payable` | liability, the government's | made on first use (#249) | C (GST on Academy fees) |
+| `venue.gst_payable` | liability, the government's | made on first use (#249) | C |
 
 Lane A adds the GST payable, tournament prize pool, fee revenue, overlay expense, expense and payment-account accounts in its migrations.

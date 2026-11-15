@@ -64,7 +64,7 @@ export const LongText: Story = {
 /** In a table cell under its column's header: the label is for screen readers only. */
 export const LabelVisuallyHidden: Story = {
   render: () => (
-    <ChoiceChips label="Learn library for Member" selected={['locked']} onChange={() => undefined} isLabelVisuallyHidden
+    <ChoiceChips label="Events for Member" selected={['locked']} onChange={() => undefined} isLabelVisuallyHidden
       options={[{ value: 'on', label: 'On' }, { value: 'locked', label: 'Locked' }, { value: 'hidden', label: 'Hidden' }]} />
   ),
 };
@@ -109,7 +109,7 @@ export const ConsoleSubtleOnAPortraitTablet: Story = { ...ConsoleSubtle, tags: [
 export const ConsoleCards: Story = {
   args: { look: 'card', mode: 'one', label: 'Reward', selected: ['buyin'],
     options: [
-      { value: 'multiplier', label: 'Points multiplier', description: 'Points earned per hour, multiplied' },
+      { value: 'referral', label: 'Referral bonus', description: 'Bonus when a friend first sits' },
       { value: 'buyin', label: 'Buy-in bonus', description: 'Bonus on a buy-in, % or fixed' },
       { value: 'hours', label: 'Hours-played bonus', description: 'Bonus after time at the tables' },
       { value: 'priority', label: 'Waitlist priority', description: 'First call on every waitlist' },

@@ -11,7 +11,7 @@ describe('promotion factories', () => {
   });
 
   it('let a test name only what it is about', () => {
-    expect(buildPromotionTerms({ name: 'Triple points' }).name).toBe('Triple points');
+    expect(buildPromotionTerms({ name: 'Thursday bonus' }).name).toBe('Thursday bonus');
     expect(buildPromotionEvent({ kind: 'visit', visitInMonth: 4 }, { memberId: 'member-2' }).memberId).toBe('member-2');
   });
 });

@@ -822,10 +822,10 @@
       "description": "Bonus chips from two promotions stack.",
       "operation": "stack",
       "inputs": {
-        "candidates": "[{\"promotion\": \"tuesday\", \"chips\": 2000, \"perk\": null}, {\"promotion\": \"graduate\", \"chips\": 1000, \"perk\": null}]"
+        "candidates": "[{\"promotion\": \"tuesday\", \"chips\": 2000, \"perk\": null}, {\"promotion\": \"welcome\", \"chips\": 1000, \"perk\": null}]"
       },
       "expected": {
-        "given": "tuesday | graduate"
+        "given": "tuesday | welcome"
       }
     },
     {

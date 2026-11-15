@@ -43,7 +43,7 @@ insert into seed_person_c (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000613', '+919000000613', 'Sahil Arora'),
   -- The Tournament events flow's own floor manager, who makes satellites and flights (#519, #524).
   ('00000000-0000-4000-8000-000000000623', '+919000000623', 'Neel Desai'),
-  -- A spare super admin and cashier (the Graduation flow's, until the Academy went on 15 Nov).
+  -- A spare super admin and cashier.
   ('00000000-0000-4000-8000-000000000624', '+919000000624', 'Anika Rao'),
   ('00000000-0000-4000-8000-000000000625', '+919000000625', 'Omar Siddiqui'),
   -- The Events flow's own marketing manager, who adds a pro night, and member, who books it (#143); the Creators flow's
@@ -51,7 +51,7 @@ insert into seed_person_c (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000626', '+919000000626', 'Leela Nair'),
   ('00000000-0000-4000-8000-000000000627', '+919000000627', 'Aman Bedi'),
   ('00000000-0000-4000-8000-000000000628', '+919000000628', 'Rohan Das'),
-  -- A spare member and super admin (the Learn flow's, until Learn went on 15 Nov).
+  -- A spare member and super admin.
   ('00000000-0000-4000-8000-000000000630', '+919000000630', 'Mira Shah'),
   ('00000000-0000-4000-8000-000000000631', '+919000000631', 'Dev Malhotra'),
   -- The Glaza flow's own finance manager, who imports Glaza's CSV (#109).
@@ -70,7 +70,7 @@ insert into seed_person_c (id, phone, full_name) values
   -- The Winner card flow's own member, whose card the seed draws, and marketing manager, who downloads it (#155).
   ('00000000-0000-4000-8000-000000000639', '+919000000639', 'Kavya Rao'),
   ('00000000-0000-4000-8000-000000000640', '+919000000640', 'Nikhil Batra'),
-  -- A spare member (the Academy lessons flow's, until 15 Nov).
+  -- A spare member.
   ('00000000-0000-4000-8000-000000000641', '+919000000641', 'Vivaan Rao'),
   -- The Host queue flow's own lapsed regular, and host, who calls her (#165).
   ('00000000-0000-4000-8000-000000000642', '+919000000642', 'Ritika Bhalla'),
@@ -81,7 +81,7 @@ insert into seed_person_c (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000645', '+919000000645', 'Arnav Sood'),
   ('00000000-0000-4000-8000-000000000646', '+919000000646', 'Tara Menezes'),
   ('00000000-0000-4000-8000-000000000647', '+919000000647', 'Kunal Bajaj'),
-  -- A spare super admin (the Learn sources flow's, until 15 Nov).
+  -- A spare super admin.
   ('00000000-0000-4000-8000-000000000629', '+919000000629', 'Isha Kapoor'),
   ('00000000-0000-4000-8000-000000000297', '+919000000297', 'Rhea Kaul'),
   -- The Share card flow's own member, who shares her referral card (#153).

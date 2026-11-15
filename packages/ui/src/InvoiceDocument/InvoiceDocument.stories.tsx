@@ -11,7 +11,7 @@ const STORED: StoredInvoice = {
   issuedAt: '2026-11-15T13:30:00Z',
   supplier: { legalName: 'RIVR Hospitality LLP', gstin: '06AAAAA0000A1Z5', address: 'Upper floor, Glaza, M3M 65th Avenue, Sector 65, Gurugram 122018' },
   buyer: { name: 'Arjun Mehta', gstin: null },
-  description: 'Poker Academy, Level 1, November',
+  description: 'Private table hire, November',
   rateBasisPoints: 1800,
   taxablePaise: 169_492n,
   cgstPaise: 15_254n,
@@ -43,7 +43,7 @@ export const WithSave: Story = { args: { onSave: () => undefined } };
 export const Igst: Story = {
   args: {
     invoice: {
-      ...STORED, buyer: { name: 'Southern Cards Private Limited', gstin: '29CCCCC2222C1Z7' }, description: 'Poker Academy, Level 1, November, 2 heads',
+      ...STORED, buyer: { name: 'Southern Cards Private Limited', gstin: '29CCCCC2222C1Z7' }, description: 'Private table hire, November, 2 heads',
       taxablePaise: 254_237n, cgstPaise: 0n, sgstPaise: 0n, igstPaise: 45_763n, totalPaise: 300_000n,
     },
   },
@@ -58,7 +58,7 @@ export const LongText: Story = {
   args: {
     invoice: {
       ...STORED, buyer: { name: 'The Northern Gaming and Hospitality Company of Gurugram Private Limited', gstin: '06BBBBB1111B1Z6' },
-      description: 'Poker Academy, Level 1 for beginners, the November weekday evening batch at the club, 12 heads booked by the company',
+      description: 'Private table hire, the November weekday evening sessions at the club, 12 seats booked by the company',
     },
   },
 };

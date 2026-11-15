@@ -32,10 +32,10 @@ describe('Heading', () => {
   it('sets the poster variant in the display face at its largest, for a social post with no figure', () => {
     renderIn(
       <Heading level={1} variant="poster">
-        Double points
+        Thursday bonus
       </Heading>,
     );
-    expect(screen.getByRole('heading', { name: 'Double points' })).toHaveClass('font-display', 'text-96');
+    expect(screen.getByRole('heading', { name: 'Thursday bonus' })).toHaveClass('font-display', 'text-96');
   });
 
   it('sets a serif title in the display face at 36 px, or at the size asked (decision 0320)', () => {

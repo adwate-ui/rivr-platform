@@ -52,16 +52,15 @@ describe('the console', () => {
     answerStaff([CLUB]);
     renderAt('/');
     expect(await screen.findByRole('link', { name: 'Live floor' })).toBeDefined();
-    for (const hidden of ['Cage', 'Academy payments', 'Academy']) expect(screen.queryByRole('link', { name: hidden })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Cage' })).toBeNull();
     expect(screen.queryByRole('link', { name: 'ID checks' })).toBeNull();
   });
 
-  it('and ID checks for an admin, but no Academy', async () => {
+  it('and ID checks for an admin', async () => {
     signIn();
     answerStaff([{ ...CLUB, full_name: 'Aditya Malhotra', role: 'admin' }]);
     renderAt('/');
     expect(await screen.findByRole('link', { name: 'ID checks' })).toBeDefined();
-    expect(screen.queryByRole('link', { name: 'Academy' })).toBeNull();
   });
 
   // The old addresses of tabs the owner hid (#626): none opens its tab, a super admin's either.

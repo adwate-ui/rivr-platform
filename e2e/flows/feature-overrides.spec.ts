@@ -1,7 +1,7 @@
 /**
  * Feature overrides (#61; additions flow 21, the override). Kavya Menon, this flow's own super admin
  * (Auth sends one code a minute to a number), opens Siddharth Vaid's record and takes session history away from him
- * alone, with a reason: his Sessions tab shows it locked (Learn is off for every tier, #637). She lifts it, with a reason, and his tier decides
+ * alone, with a reason: his Sessions tab shows it locked. She lifts it, with a reason, and his tier decides
  * again. That only super admins see overrides, and the member's own, is proved in
  * supabase/tests/059_feature_overrides.test.sql; the matrix side of flow 21 is #32's.
  */
