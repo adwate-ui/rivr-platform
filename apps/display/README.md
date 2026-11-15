@@ -23,10 +23,10 @@ src/
   features/<name>/    components/ and hooks/, imported only through index.ts
     frame/            the app's shell: navigation, not found; the pairing code until the TV is paired; the clock and the club's notice for every board
     pairing/          a TV that is not paired shows a six-digit code for the console's TVs screen (#49)
-    modes/            `toHighHandBoard`, the High hand bonus board's body from what the TV read (redesign RD-25; listing the board among the modes is issue #971's); a paired TV shows the mode the console gave it: the waitlist board (#65), the promotions (#86) and the call-time board with the
-                      seats opening (decision 0163),
-                      and the hours leaderboard, tonight's and the period's the club set (decision 0581), live through Realtime; in between, the boards the console
-                      chose for it to turn to, half a minute each, the promotions one after another
+    modes/            the five boards (decision 0631), each a mode on one stage: the waitlist (#65), seats opening (decision 0163), the promotions (#86),
+                      the hours played, tonight's and the period's the club set (decision 0581), and the high hand bonus (`toHighHandBoard`, redesign RD-25),
+                      live through Realtime; a paired TV shows its own board, then those it turns to, less any the club switched off, each for the seconds
+                      Settings, TVs, Rotation gives it (`tv.board_seconds`)
 ```
 
 Everything visible comes from `@rivr/ui`, every word from `@rivr/i18n`, every read through `@rivr/db`. A route imports only features, and a feature never imports another feature; `pnpm lint:deps` fails either (`.claude/rules/apps.md`).

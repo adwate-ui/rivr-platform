@@ -12,4 +12,4 @@ Redesign RD-28 (#971), corrections 16, 17 and 34, owner 15 Nov; built to renders
 - **A name keeps its width** (correction 34): on the lists the place wraps and the time goes under the name before a name is cut; on the waitlist a status sits under the name and a long name steps down a size.
 - **One form for a length of time** (correction 17): `formatDuration`, "25 min", "1 h 5 min". The renders' "1 h 05 min" and "5 h 39 m" are two of the five forms the correction removes.
 - **Sizes are the nearest steps of the type and spacing scales** to the prototype's. The promotion's title stays at 96 px: the prototype's 132 px is not on the scale, which has 96 and 160. The gold name on the renders is the prototype's own signed-in member; a TV has none.
-- **The High hand bonus board is a place held.** `HighHandMode` shows the stage with its title and passes on in a rotation; the board and its read come with issue 968, on `TvStage`.
+- **The High hand bonus board** came with issue 968 (decision 0624), on `TvStage`: the hands with their Bonus, the rules and the hits paid. With no high hand running it has nothing to show, and a rotation passes over it.
