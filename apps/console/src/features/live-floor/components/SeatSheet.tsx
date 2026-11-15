@@ -5,7 +5,7 @@ import {
 } from '@rivr/db';
 import { useMemberBonus, useMemberBonusVisitLeft } from '@rivr/db/bonus';
 import { formatChips, t, type MessageKey } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Inline, Input, Sheet, Stack, Text, UnitInput } from '@rivr/ui';
+import { Button, ChoiceChips, ErrorMessage, Input, LoadState, Sheet, Stack, Text, UnitInput } from '@rivr/ui';
 import { useState } from 'react';
 import { waitedSeconds } from './requestView.ts';
 import { stakeOf } from './seatState.ts';
@@ -165,14 +165,7 @@ type SeatSheetState = ReturnType<typeof useSeatSheet>;
  */
 function Matches({ sheet }: { sheet: SeatSheetState }) {
   const { choice, matches } = sheet;
-  if (matches.hasFailed) {
-    return (
-      <Inline gap={3} align="center">
-        <ErrorMessage>{t('console.floor.seat.searchFailed')}</ErrorMessage>
-        <Button variant="text" size="compact" onClick={matches.retry}>{t('common.retry')}</Button>
-      </Inline>
-    );
-  }
+  if (matches.hasFailed) return <LoadState isError errorText={t('console.floor.seat.searchFailed')} onRetry={matches.retry} />;
   if (matches.isNoOne) return <Text tone="muted">{t('console.floor.seat.noMatch')}</Text>;
   if (matches.rows.length === 0) return null;
   const choose = (memberId: string | undefined) => {
