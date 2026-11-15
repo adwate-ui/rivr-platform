@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { chooseNaina, NAINA, renderSection, stubCamera, takeAndUse } from './inPersonTestApi.tsx';
+import { chooseNaina, NAINA, renderSection, renderSectionWithBars, stubCamera, takeAndUse } from './inPersonTestApi.tsx';
 
 beforeEach(stubCamera);
 
@@ -46,6 +46,17 @@ describe('a check where only photos were sent back (decision 0573, redesign RD-2
     await takeAndUse();
     expect(await screen.findByText('New photo kept for Naina Kapoor.')).toBeDefined();
     expect(sent).toEqual([expect.objectContaining({ kind: 'pan', coversConfirmed: false }), expect.objectContaining({ kind: 'aadhaar_front', coversConfirmed: false })]);
+  });
+
+  it('with the venue\'s Aadhaar bars on, puts the Aadhaar taken again under them and sends the word on them (decision 0663)', async () => {
+    const sent = renderSectionWithBars(retaken, bothSentBack);
+    await chooseNaina();
+    expect(await screen.findByText('Step 3 of 5: PAN card')).toBeDefined();
+    await takeAndUse();
+    expect(await screen.findByText('Step 4 of 5: Aadhaar front')).toBeDefined();
+    await takeAndUse(true);
+    expect(await screen.findByText('New photo kept for Naina Kapoor.')).toBeDefined();
+    expect(sent).toEqual([expect.objectContaining({ kind: 'pan', coversConfirmed: false }), expect.objectContaining({ kind: 'aadhaar_front', coversConfirmed: true })]);
   });
 
   it('keeps the bar while a photo is saved', async () => {

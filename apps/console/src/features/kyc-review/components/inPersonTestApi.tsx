@@ -60,9 +60,9 @@ export function renderSection(reply: Reply, found: unknown = NAINA, due: unknown
   return renderOver(<InPersonSection venueId="v1" />, reply, { found, due, holder });
 }
 
-/** The same for Naina, with the venue's Aadhaar bars on (decision 0663). */
-export function renderSectionWithBars(reply: Reply) {
-  return renderOver(<InPersonSection venueId="v1" />, reply, { found: NAINA, due: [], holder: [], covers: true });
+/** The same, with the venue's Aadhaar bars on (decision 0663); Naina unless `found` says otherwise. */
+export function renderSectionWithBars(reply: Reply, found: unknown = NAINA) {
+  return renderOver(<InPersonSection venueId="v1" />, reply, { found, due: [], holder: [], covers: true });
 }
 
 /** The check behind its button, in the console's sheet. */
