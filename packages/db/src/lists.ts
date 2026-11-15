@@ -37,7 +37,7 @@ export interface ListPage<Row> {
 }
 
 /** The lists the server names (`private.list_spec`). */
-export type ListName = 'feedback_open' | 'kyc_review' | 'fnb_orders' | 'door' | 'waitlist';
+export type ListName = 'feedback_open' | 'kyc_review' | 'fnb_orders' | 'door' | 'waitlist' | 'bonus_waiting';
 
 /** What a list's column menus and chips offer: each counted column's values with how many rows hold each; the values are the server's codes. */
 export type ListChoices = Readonly<Record<string, readonly { readonly value: string; readonly count: number }[]>>;
@@ -47,7 +47,7 @@ export const LIST_PAGE = 50;
 export const EXPORT_PAGE = 1000;
 
 /** How often a live list asks again, in milliseconds: its pages and its counts together, so a chip's count is the table's. */
-const LIST_EVERY: Readonly<Partial<Record<ListName, number>>> = { feedback_open: 60_000, fnb_orders: 10_000, door: 10_000, waitlist: 10_000 };
+const LIST_EVERY: Readonly<Partial<Record<ListName, number>>> = { feedback_open: 60_000, fnb_orders: 10_000, door: 10_000, waitlist: 10_000, bonus_waiting: 60_000 };
 
 /** A page of rows as the server gives it, each row with the count of all. */
 type PageAnswer<Raw> = PromiseLike<{ data: Raw[] | null; error: Error | null }>;
@@ -70,6 +70,7 @@ export async function readEveryRow<Raw extends { total: number }, Row>(read: (pa
 /** Each list's own query key, which its pages' and counts' keys start with: whatever makes the list stale makes them stale. */
 const LIST_KEY: Readonly<Record<ListName, (userId: string, venueId: string) => readonly unknown[]>> = {
   feedback_open: queryKeys.venueFeedbackOpen, kyc_review: queryKeys.kycReview, fnb_orders: queryKeys.fnbOrdersTonight, door: queryKeys.doorBoard, waitlist: queryKeys.waitlistBoard,
+  bonus_waiting: queryKeys.bonusWaiting,
 };
 
 /** A filter as JSON for the server. */

@@ -34,6 +34,21 @@ $$;
 create function pg_temp.chips(p_promotion uuid) returns bigint language sql as $$
   select coalesce(sum(chips), 0)::bigint from public.promotion_grant where promotion_id = p_promotion;
 $$;
+-- A promotion's Bonus waits for a super admin (decision 0670): 101, a super admin, approves a member's (those of one event, if named), and the count is returned.
+create function pg_temp.approve(p_member uuid, p_key text default null) returns integer language plpgsql as $$
+declare
+  v_claims text := current_setting('request.jwt.claims', true);
+  v_count integer;
+begin
+  perform set_config('request.jwt.claims', '{"sub": "00000000-0000-4000-8000-000000000101", "role": "authenticated"}', true);
+  select coalesce(sum(d.grants), 0)::integer into v_count
+  from (select g.venue_id, array_agg(g.id) as ids from public.promotion_grant g where g.member_id = p_member and g.status = 'waiting'
+          and (p_key is null or g.source_key = p_key) group by g.venue_id) w
+  cross join lateral private.decide_promotion_bonus(w.venue_id, w.ids, 'approved', null, gen_random_uuid()) d;
+  perform set_config('request.jwt.claims', coalesce(v_claims, ''), true);
+  return v_count;
+end;
+$$;
 create temporary table ids (name text primary key, id uuid) on commit drop;
 
 -- A budget in chips, whole or not at all: 2,000 of 3,000 given; with 1,000 left, 2,000 more is not, nor part of it.
@@ -80,6 +95,9 @@ select results_eq($$ select coalesce(g.perk, p.name), g.chips from public.promot
                      where g.source_key = 'check_in:s-1' order by 1 $$,
   $$ values ('Chips A'::text, 100::bigint), ('Chips B', 200), ('waitlist_priority', 0) $$, 'both bonuses, and one waitlist priority (the older promotion''s)');
 select is(pg_temp.check_in('214', 's-1'), 0, 'the same check-in again gives nothing more');
+select is((select count(*)::integer from public.promotion_grant where source_key = 'check_in:s-1' and status = 'waiting'), 2,
+  'both bonuses wait for a super admin, the priority does not (decision 0670)');
+select is(pg_temp.approve('00000000-0000-4000-8000-000000000214', 'check_in:s-1'), 2, 'who approves them');
 select is((select count(*)::integer from public.bonus_grant where member_id = '00000000-0000-4000-8000-000000000214' and reason in ('Chips A', 'Chips B')
            and expires_at is null), 2, 'each credited as bonus that never ends (decision 0504)');
 update public.promotion_version set status = 'ended' where promotion_id in (select id from ids where name in ('chips-a', 'chips-b', 'priority-a', 'priority-b'));

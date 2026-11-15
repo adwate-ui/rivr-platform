@@ -1477,6 +1477,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"promotion_bonus_decision": {
+                  Row: {
+                    "amount_paise": number,"created_at": string,"decided_by_staff_id": string | null,"decision": string,"grants": number,"id": string,"left_waiting": number,"reason": string | null,"request_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_paise": number,"created_at"?: string,"decided_by_staff_id"?: string | null,"decision": string,"grants": number,"id"?: string,"left_waiting"?: number,"reason"?: string | null,"request_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "amount_paise"?: number,"created_at"?: string,"decided_by_staff_id"?: string | null,"decision"?: string,"grants"?: number,"id"?: string,"left_waiting"?: number,"reason"?: string | null,"request_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "promotion_bonus_decision_decided_by_staff_id_venue_id_fkey"
+      columns: ["decided_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "promotion_bonus_decision_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"promotion_budget": {
                   Row: {
                     "cap_count": number | null,"cap_paise": number | null,"created_at": string,"id": string,"period": string,"promotion_id": string,"updated_at": string,"venue_id": string
@@ -1499,14 +1525,14 @@ isOneToOne: false
                   ]
                 },"promotion_grant": {
                   Row: {
-                    "bonus_grant_id": string | null,"chips": number,"club_day": string,"cost_paise": number,"created_at": string,"effect": NonNullable<Json>,"fulfilled_at": string | null,"id": string,"member_id": string,"period_key": string | null,"perk": string | null,"promotion_id": string,"promotion_rule_id": string | null,"promotion_version_id": string | null,"source_key": string,"table_id": string | null,"trigger": string,"updated_at": string,"venue_id": string
+                    "bonus_grant_id": string | null,"chips": number,"club_day": string,"cost_paise": number,"created_at": string,"decision_id": string | null,"effect": NonNullable<Json>,"event": Json | null,"fulfilled_at": string | null,"id": string,"member_id": string,"period_key": string | null,"perk": string | null,"promotion_id": string,"promotion_rule_id": string | null,"promotion_version_id": string | null,"source_key": string,"status": string,"table_id": string | null,"trigger": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "bonus_grant_id"?: string | null,"chips"?: number,"club_day": string,"cost_paise": number,"created_at"?: string,"effect": NonNullable<Json>,"fulfilled_at"?: string | null,"id"?: string,"member_id": string,"period_key"?: string | null,"perk"?: string | null,"promotion_id": string,"promotion_rule_id"?: string | null,"promotion_version_id"?: string | null,"source_key": string,"table_id"?: string | null,"trigger": string,"updated_at"?: string,"venue_id": string
+                    "bonus_grant_id"?: string | null,"chips"?: number,"club_day": string,"cost_paise": number,"created_at"?: string,"decision_id"?: string | null,"effect": NonNullable<Json>,"event"?: Json | null,"fulfilled_at"?: string | null,"id"?: string,"member_id": string,"period_key"?: string | null,"perk"?: string | null,"promotion_id": string,"promotion_rule_id"?: string | null,"promotion_version_id"?: string | null,"source_key": string,"status"?: string,"table_id"?: string | null,"trigger": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "bonus_grant_id"?: string | null,"chips"?: number,"club_day"?: string,"cost_paise"?: number,"created_at"?: string,"effect"?: NonNullable<Json>,"fulfilled_at"?: string | null,"id"?: string,"member_id"?: string,"period_key"?: string | null,"perk"?: string | null,"promotion_id"?: string,"promotion_rule_id"?: string | null,"promotion_version_id"?: string | null,"source_key"?: string,"table_id"?: string | null,"trigger"?: string,"updated_at"?: string,"venue_id"?: string
+                    "bonus_grant_id"?: string | null,"chips"?: number,"club_day"?: string,"cost_paise"?: number,"created_at"?: string,"decision_id"?: string | null,"effect"?: NonNullable<Json>,"event"?: Json | null,"fulfilled_at"?: string | null,"id"?: string,"member_id"?: string,"period_key"?: string | null,"perk"?: string | null,"promotion_id"?: string,"promotion_rule_id"?: string | null,"promotion_version_id"?: string | null,"source_key"?: string,"status"?: string,"table_id"?: string | null,"trigger"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -1515,6 +1541,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "bonus_grant"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "promotion_grant_decision_fkey"
+      columns: ["decision_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "promotion_bonus_decision"
+      referencedColumns: ["id","venue_id"]
     },{
       foreignKeyName: "promotion_grant_member_id_venue_id_fkey"
       columns: ["member_id","venue_id"]
@@ -2629,6 +2661,11 @@ isOneToOne: false
 "approve_promotion":
 { Args: { "p_promotion_id": string }; Returns: undefined
                            },
+"approve_promotion_bonus":
+{ Args: { "p_grant_ids": (string)[],"p_request_id": string,"p_venue_id": string }; Returns: {
+              "amount_paise": number,"decision_id": string,"grants": number,"left_waiting": number
+            }[]
+                           },
 "approve_promotion_version":
 { Args: { "p_version_id": string }; Returns: undefined
                            },
@@ -2662,6 +2699,11 @@ isOneToOne: false
 "bonus_report":
 { Args: { "p_from": string,"p_to": string,"p_venue_id": string }; Returns: {
               "given_paise": number,"grants": number,"label": string,"members": number,"source": string
+            }[]
+                           },
+"bonus_waiting_page":
+{ Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
+              "amount_paise": number,"club_day": string,"event_at": string,"full_name": string,"grant_id": string,"member_id": string,"member_number": number,"promotion_id": string,"promotion_name": string,"step_minutes": number,"table_name": string,"total": number,"trigger": string
             }[]
                            },
 "call_from_waitlist":
@@ -3375,6 +3417,11 @@ isOneToOne: false
                            },
 "refuse_promotion":
 { Args: { "p_promotion_id": string,"p_reason": string }; Returns: undefined
+                           },
+"refuse_promotion_bonus":
+{ Args: { "p_grant_ids": (string)[],"p_reason": string,"p_request_id": string,"p_venue_id": string }; Returns: {
+              "amount_paise": number,"decision_id": string,"grants": number,"left_waiting": number
+            }[]
                            },
 "register_tournament_interest":
 { Args: { "p_tournament_id": string }; Returns: undefined

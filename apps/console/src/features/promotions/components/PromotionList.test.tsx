@@ -29,10 +29,10 @@ const ROWS = [
     given_this_week: 0, ended_at: '2026-11-02T10:00:00+00:00' }),
 ];
 
-function renderList(onOpen = vi.fn(), tab?: string, rows: readonly unknown[] = ROWS) {
+function renderList(onOpen = vi.fn(), tab?: string, rows: readonly unknown[] = ROWS, canApprove = false) {
   const onNavigate = vi.fn();
-  const api = renderWithApi(<PromotionList venueId="v1" names={NAMES.names} onOpen={onOpen} tab={tab} onNavigate={onNavigate} />,
-    { '/rpc/promotions_overview': { body: rows } });
+  const api = renderWithApi(<PromotionList venueId="v1" names={NAMES.names} onOpen={onOpen} tab={tab} onNavigate={onNavigate} canApprove={canApprove} />,
+    { '/rpc/promotions_overview': { body: rows }, '/rpc/staff_queue_counts': { body: [{ queue: 'bonusApprovals', waiting: 3 }] } });
   return { ...api, onOpen, onNavigate };
 }
 
@@ -54,7 +54,7 @@ describe('a high hand on the promotions list (redesign RD-23)', () => {
   function renderHighHand(more: Record<string, unknown> = {}) {
     const onOpen = vi.fn();
     const onLog = vi.fn();
-    const api = renderWithApi(<PromotionList venueId="v1" names={NAMES.names} onOpen={onOpen} tab={undefined} onNavigate={vi.fn()} onLogHighHand={onLog} />,
+    const api = renderWithApi(<PromotionList venueId="v1" names={NAMES.names} onOpen={onOpen} tab={undefined} onNavigate={vi.fn()} onLogHighHand={onLog} canApprove={false} />,
       { '/rpc/promotions_overview': { body: [{ ...HIGH_HAND, ...more }] }, '/rpc/high_hand_tonight': { body: HITS } });
     return { ...api, onOpen, onLog };
   }
@@ -105,7 +105,7 @@ describe('a high hand on the promotions list (redesign RD-23)', () => {
   });
 
   it('offers no Log a high hand to staff who may not log one', async () => {
-    renderWithApi(<PromotionList venueId="v1" names={NAMES.names} onOpen={vi.fn()} tab={undefined} onNavigate={vi.fn()} />,
+    renderWithApi(<PromotionList venueId="v1" names={NAMES.names} onOpen={vi.fn()} tab={undefined} onNavigate={vi.fn()} canApprove={false} />,
       { '/rpc/promotions_overview': { body: [HIGH_HAND] }, '/rpc/high_hand_tonight': { body: [] } });
     fireEvent.click((await rowOf()) ?? document.body);
     const record = within(await screen.findByRole('dialog', { name: 'High hand bonus' }));
@@ -199,6 +199,20 @@ describe('the promotions list (console v3)', () => {
     const diwali = within(ended).getAllByRole('row').find((row) => row.textContent?.includes('Diwali seat bonus')) ?? ended;
     expect(diwali.textContent).toContain('2 Nov 2026');
     expect(screen.queryByRole('radio', { name: 'All, 4' })).toBeNull();
+  });
+
+  it('gives a super admin the Bonus waiting for approval its own tab, with how many wait (decision 0670); nobody else', async () => {
+    renderList();
+    await screen.findByRole('table', { name: 'Promotions' });
+    expect(screen.queryByRole('link', { name: /^To approve/ })).toBeNull();
+    resetApi();
+    const { onNavigate } = renderList(vi.fn(), undefined, ROWS, true);
+    fireEvent.click(await screen.findByRole('link', { name: 'To approve 3' }));
+    expect(onNavigate).toHaveBeenCalledWith('/promotions?tab=bonus');
+    resetApi();
+    renderList(vi.fn(), 'bonus', ROWS, true);
+    expect(await screen.findByText('Nothing waits for approval.')).toBeDefined();
+    expect(screen.queryByRole('table', { name: 'Promotions' })).toBeNull();
   });
 
   it('ends a running promotion in versions after a second press; one run by its rule and a new one have no End', async () => {

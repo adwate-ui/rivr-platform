@@ -37,7 +37,8 @@ function PromotionsBody({ venueId, actor, open, onOpen, tab, onNavigate }: Promo
   // Those who add Bonus by hand log a high hand (decision 0621).
   const logHighHand = actor.permissions.includes('bonus.give') ? () => onNavigate(LOG_HIGH_HAND) : undefined;
   if (open === undefined) {
-    return <PromotionList venueId={venueId} names={names.value.names} onOpen={onOpen} tab={tab} onNavigate={onNavigate} onLogHighHand={logHighHand} />;
+    return <PromotionList venueId={venueId} names={names.value.names} onOpen={onOpen} tab={tab} onNavigate={onNavigate} onLogHighHand={logHighHand}
+      canApprove={actor.permissions.includes('promotions.approve')} />;
   }
   if (open === 'new') return <PromotionBuilder venueId={venueId} names={names.value} actor={actor} start={newStart()} onDone={back} />;
   return <PromotionOpen key={open} venueId={venueId} promotionId={open} names={names.value} actor={actor} onDone={back} />;

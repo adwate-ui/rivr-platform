@@ -30,7 +30,7 @@ export const activity = {
 /** What was done, by the audit log's own codes: a change to a row, or a named action. */
 const ACTION_WORDS: Readonly<Record<string, string>> = {
   insert: 'Added', update: 'Changed', delete: 'Removed',
-  'aml.flag': 'Flagged', 'aml.review': 'Reviewed', 'bonus.give': 'Gave Bonus',
+  'aml.flag': 'Flagged', 'aml.review': 'Reviewed', 'bonus.give': 'Gave Bonus', 'bonus.approve': 'Approved Bonus', 'bonus.refuse': 'Refused Bonus',
   'points.grant': 'Gave points', 'points.lock': 'Locked points', 'points.unlock': 'Released points',
   'device.enrolled': 'Enrolled', 'device.enrolment_started': 'Started enrolling', 'device.paired': 'Paired', 'device.pairing_started': 'Started pairing',
   'export.archive_saved': 'Saved an archive',
@@ -53,7 +53,7 @@ const ENTITY_WORDS: Readonly<Record<string, string>> = {
   league_adjustment: 'League adjustment', league_finish: 'League finish', league_season: 'League season', learn_source: 'Learn source', ledger_account: 'Ledger account',
   ledger_transaction: 'Ledger entry', marker: 'Marker', marker_settlement: 'Marker settled', member: 'Member', member_feature_override: 'Member feature', member_limit: 'Member limit',
   member_tier_change: 'Tier change', notice: 'Notice', payment_account: 'Payment account', points_earning: 'Points earned', promotion: 'Promotion', promotion_budget: 'Promotion budget',
-  promotion_grant: 'Promotion given', promotion_rule: 'Promotion rule', promotion_step_skip: 'Promotion step skipped', promotion_version: 'Promotion version', purge_request: 'Purge request',
+  promotion_bonus_decision: 'Bonus from promotions', promotion_grant: 'Promotion given', promotion_rule: 'Promotion rule', promotion_step_skip: 'Promotion step skipped', promotion_version: 'Promotion version', purge_request: 'Purge request',
   redemption: 'Redemption', referral: 'Referral', review_request: 'Review request', reward_item: 'Reward', sar_entry: 'AML entry', seat_move: 'Seat move', seat_session: 'Seat',
   second_approval: 'Second approval', self_exclusion: 'Break from play', setting: 'Setting', shareholder: 'Shareholder', shareholding: 'Shareholding', sign_up_attribution: 'Sign-up source',
   site_block: 'Website block', site_page: 'Website page', site_revision: 'Website version', social_post: 'Social post', sop: 'SOP', sop_ack: 'SOP read', sop_version: 'SOP version',

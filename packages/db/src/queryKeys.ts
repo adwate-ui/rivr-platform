@@ -69,6 +69,8 @@ export const queryKeys = {
   myNextPlayTimeBonus: (userId: string) => ['user', userId, 'my-next-play-time-bonus'] as const,
   signedInPhone: (userId: string) => ['user', userId, 'signed-in-phone'] as const,
   doorBoard: (userId: string, venueId: string) => ['user', userId, 'door-board', venueId] as const,
+  /** Bonus a promotion calculated, waiting for a super admin (decision 0670). */
+  bonusWaiting: (userId: string, venueId: string) => ['user', userId, 'bonus-waiting', venueId] as const,
   /** The member's visit to rate on Home, and the General Manager's list of feedback (decision 0165). */
   myFeedbackVisit: (userId: string) => ['user', userId, 'my-feedback-visit'] as const,
   venueFeedback: (userId: string, venueId: string) => ['user', userId, 'venue-feedback', venueId] as const,

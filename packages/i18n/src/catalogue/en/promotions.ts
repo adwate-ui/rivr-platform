@@ -1,3 +1,4 @@
+import { promotionApprovals } from './promotionApprovals.ts';
 import { promotionWords } from './promotionWords.ts';
 
 /**
@@ -23,7 +24,7 @@ export const promotions = {
     all: 'All',
     empty: 'No promotions with this status.',
     /** Current promotions and ended ones, apart under two tabs (owner, 8 Nov), each with how many. */
-    tabs: { current: 'Current {count}', ended: 'Ended {count}' },
+    tabs: { current: 'Current {count}', ended: 'Ended {count}', bonus: 'To approve {count}' },
     noneEnded: 'No promotion has ended.',
     columns: { promotion: 'Promotion', who: 'Who', when: 'When', given: 'Given this week', status: 'Status', ended: 'Ended' },
     /** Under a running promotion's status: its next version, beside it. */
@@ -67,6 +68,8 @@ export const promotions = {
     scheduled: '{name} starts {date}',
     sentBack: '{name} sent back to draft',
   },
+  /** Bonus a promotion calculated, waiting for a super admin (decision 0670): the Promotions tab of super admins. */
+  approvals: promotionApprovals,
   builder: {
     newTitle: 'New promotion',
     editTitle: 'Edit: {name}',

@@ -95,8 +95,8 @@ select is((select payload ->> 'detail' from public.outbox_event where idempotenc
 -- Approved, a template runs: ₹1,000 bonus on a referral.
 select is((select count(*)::integer from private.evaluate_promotions('00000000-0000-4000-8000-000000000001', 'referral',
   '{"member_id": "00000000-0000-4000-8000-000000000211", "key": "referral:test-1"}')), 1, 'a referral gives Ishaan a promotion');
-select is((select amount_paise from public.bonus_grant where member_id = '00000000-0000-4000-8000-000000000211' and reason = 'Referral'), 100000::bigint,
-  'a ₹1,000 bonus');
+select is((select cost_paise from public.promotion_grant where member_id = '00000000-0000-4000-8000-000000000211' and source_key = 'referral:test-1'
+           and status = 'waiting'), 100000::bigint, 'a ₹1,000 bonus, waiting for a super admin (decision 0670)');
 
 -- A template still run the old way, as a venue may have one from before versions (decision 0491).
 insert into public.promotion (venue_id, template_key, name, detail, runs)

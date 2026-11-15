@@ -20,8 +20,10 @@ create function pg_temp.referral_cards(p_shown_to text) returns integer language
   select count(*)::integer from cards c join public.promotion_rule r on r.promotion_id = c.promotion_id
   where c.shown_to = p_shown_to and r.trigger = 'referral';
 $$;
+-- The referral's Bonus a member was given, waiting for a super admin or approved (decision 0670).
 create function pg_temp.referral_bonus(p_member text) returns bigint language sql as $$
-  select coalesce(sum(amount_paise), 0)::bigint from public.bonus_grant where member_id = p_member::uuid and reason = 'Referral';
+  select coalesce(sum(g.cost_paise), 0)::bigint from public.promotion_grant g join public.promotion p on p.id = g.promotion_id
+  where g.member_id = p_member::uuid and g.status <> 'refused' and p.name = 'Referral';
 $$;
 
 -- Another promotion live beside the referral: the four-hour bonus, which the seed leaves a draft.
