@@ -119,6 +119,11 @@ test.describe('Website', () => {
     // The seed puts the Weeknight Turbo a week from each seeding, so it is always coming. Its card is last: the month
     // at a glance above names it too while that week falls in this month.
     await expect(page.getByText('Weeknight Turbo', { exact: true }).last()).toBeVisible();
-    await expect(page.getByText('Buy-in ₹3,000', { exact: true })).toBeVisible();
+    // A tournament is a name, a start and a game (decision 0630): its card says its name and when, at 20:00 a week on,
+    // and the calendar has no word of a buy-in. The tables above keep their minimum buy-in.
+    const calendar = page.locator('section').filter({ has: page.getByRole('heading', { level: 2, name: 'Tournaments' }) }).last();
+    await expect(calendar.getByRole('listitem').filter({ hasText: 'Weeknight Turbo' }))
+      .toHaveText(/^Weeknight Turbo(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day \d{1,2} [A-Z][a-z]{2} \d{4}, 20:00$/);
+    await expect(calendar.getByText(/buy-in/i)).toHaveCount(0);
   });
 });
