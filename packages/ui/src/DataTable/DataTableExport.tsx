@@ -74,22 +74,30 @@ interface ExportBarProps<Row> {
   readonly rows: readonly Row[];
   /** Every filter in force, in words: the screen's, then the table's own. */
   readonly filter: string;
+  /**
+   * Server mode (redesign RD-29), where `rows` is one page: how many rows the view leaves in all, which the export
+   * records, and every one of them, read once it is recorded.
+   */
+  readonly every?: { readonly count: number; readonly rows: () => Promise<readonly Row[]> } | undefined;
 }
 
 /**
  * One small Export control at the top right, as the prototype has it, whose menu offers CSV and XLSX (#102): the rows as
- * shown, in the columns that have a heading. The export is recorded first; one that is not recorded saves nothing and
+ * shown, in the columns that have a heading; in server mode every row the view leaves (`every`), read once the export is
+ * recorded. The export is recorded first; one that is not recorded, or whose rows could not be read, saves nothing and
  * says so.
  */
-export function ExportBar<Row>({ isInBar, exporter, label, columns, rows, filter }: ExportBarProps<Row>) {
+export function ExportBar<Row>({ isInBar, exporter, label, columns, rows, filter, every }: ExportBarProps<Row>) {
   const [state, setState] = useState<'idle' | 'busy' | 'failed'>('idle');
   const run = async (format: 'csv' | 'xlsx') => {
     setState('busy');
-    const isRecorded = await exporter({ what: label, filter, format, rows: rows.length }).catch(() => false);
+    const isRecorded = await exporter({ what: label, filter, format, rows: every?.count ?? rows.length }).catch(() => false);
     if (!isRecorded) return setState('failed');
+    const all = every === undefined ? rows : await every.rows().catch(() => null);
+    if (all === null) return setState('failed');
     const named = columns.filter((column) => column.header !== '');
     const headers = named.map((column) => column.header);
-    const cells = rows.map((row) => named.map((column) => exportCell(column, row)));
+    const cells = all.map((row) => named.map((column) => exportCell(column, row)));
     save(format === 'csv' ? csvFile(headers, cells) : xlsxFile(label, headers, cells), label, format);
     setState('idle');
   };

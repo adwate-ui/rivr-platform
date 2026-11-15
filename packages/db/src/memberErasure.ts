@@ -69,7 +69,7 @@ function refresh(queryClient: QueryClient, user: string, venueId: string, member
     queryClient.invalidateQueries({ queryKey: queryKeys.memberErasurePreview(user, memberId) }),
     queryClient.invalidateQueries({ queryKey: queryKeys.memberRecord(user, venueId, memberId) }),
     queryClient.invalidateQueries({ queryKey: queryKeys.memberSearchAll(user) }),
-    queryClient.invalidateQueries({ queryKey: queryKeys.membersOfTierAll(user) }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.membersListAll(user) }),
     queryClient.invalidateQueries({ queryKey: queryKeys.memberAccountStatuses(user, venueId) }),
     queryClient.invalidateQueries({ queryKey: queryKeys.memberErasureRequests(user, venueId) }),
     queryClient.invalidateQueries({ queryKey: queryKeys.staffQueueCounts(user, venueId) }),

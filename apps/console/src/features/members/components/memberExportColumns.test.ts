@@ -1,10 +1,11 @@
 import type { MemberListRow } from '@rivr/db';
+import { fromPaise } from '@rivr/domain/money';
 import { describe, expect, it } from 'vitest';
 import { memberExportColumns } from './memberExportColumns.ts';
 
 const SAKSHI: MemberListRow = {
   memberId: 'm1', memberNumber: 66, fullName: 'Sakshi Tandon', phone: '+919000000266', phoneLast4: '0266', tierName: 'Black card', visits: 1,
-  lastVisitAt: '2026-11-03T12:00:00Z', kycStatus: 'verified', minutesPlayed: 135, city: 'Gurugram', memberSince: '2026-10-20T10:00:00Z',
+  lastVisitAt: '2026-11-03T12:00:00Z', kycStatus: 'verified', minutesPlayed: 135, city: 'Gurugram', memberSince: '2026-10-20T10:00:00Z', bonus: fromPaise(150_000n),
   details: {
     knownAs: 'Sakshi', ownReferralCode: 'K7M2PQ9X', occupation: 'salaried', playTimes: ['weekday_evenings', 'weekends'], gamesPlayed: ['poker', 'plo'],
     referralCode: 'FRIEND1', creatorCode: 'ASHU', campaign: { source: 'instagram', medium: 'social', name: 'diwali', content: null, term: null },

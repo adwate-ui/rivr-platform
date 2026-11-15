@@ -1,6 +1,7 @@
-import type { MemberAccountStatus, MemberKycStatus, MemberListRow } from '@rivr/db';
-import { formatDate, formatDuration, formatMobile, formatMonthYear, formatNumber, t } from '@rivr/i18n';
+import type { MemberAccountStatus, MemberChoices, MemberKycStatus, MemberListRow } from '@rivr/db';
+import { formatChips, formatDate, formatDuration, formatMobile, formatMonthYear, formatNumber, formatRupeesForFile, t } from '@rivr/i18n';
 import { DotStatus, Text, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
+import { choicesIn } from './memberChoices.ts';
 import type { Tonight } from './tonight.ts';
 
 /** A member's place tonight as a dot and a short status (console v3): a seat, waiting, left, or a dash when not here. */
@@ -43,10 +44,10 @@ export function AccountStatusDot({ status, isShort = false }: { status: MemberAc
 }
 
 /** Status on the list; a dash until the statuses are read, so a failed read never calls a frozen or erased member active. */
-function accountColumn(statuses: ReadonlyMap<string, MemberAccountStatus> | undefined): DataTableColumn<MemberListRow> {
+function accountColumn(statuses: ReadonlyMap<string, MemberAccountStatus> | undefined, choices: MemberChoices | undefined): DataTableColumn<MemberListRow> {
   const kindOf = (row: MemberListRow) => (statuses === undefined ? t('console.members.notHere') : accountKind(statuses.get(row.memberId)));
   return {
-    key: 'status', header: t('console.members.accountStatus.header'), filter: 'choice', filterValue: kindOf, sortValue: kindOf,
+    key: 'status', header: t('console.members.accountStatus.header'), filter: 'choice', choices: choicesIn('status', choices), filterValue: kindOf, sortValue: kindOf,
     exportValue: (row) => (statuses === undefined ? '' : accountWords(statuses.get(row.memberId))),
     cell: (row) => (statuses === undefined ? <Text variant="secondary" tone="muted">{t('console.members.notHere')}</Text> : <AccountStatusDot status={statuses.get(row.memberId)} isShort />),
   };
@@ -71,15 +72,15 @@ const KYC_ORDER: readonly MemberKycStatus[] = ['at_desk', 'in_review', 'not_done
  * shares, so a number stays on one line beside the other columns at 1440 px.
  */
 const mobileColumn: DataTableColumn<MemberListRow> = {
-  key: 'mobile', header: t('console.members.mobile'), priority: 'secondary', isWide: true,
+  key: 'mobile', header: t('console.members.mobile'), priority: 'secondary', isWide: true, filter: 'text',
   cell: (row) => (row.phone === null ? '' : formatMobile(row.phone)), exportValue: (row) => row.phone ?? '',
 };
 
 /** KYC, time played, city and the day they joined (owner, 8 Nov); city and joining day give way first on a narrow screen. */
-function moreColumns(): readonly DataTableColumn<MemberListRow>[] {
+function moreColumns(choices: MemberChoices | undefined): readonly DataTableColumn<MemberListRow>[] {
   return [
     {
-      key: 'kyc', header: t('console.members.kyc'), sortValue: (row) => KYC_ORDER.indexOf(row.kycStatus), filter: 'choice',
+      key: 'kyc', header: t('console.members.kyc'), sortValue: (row) => KYC_ORDER.indexOf(row.kycStatus), filter: 'choice', choices: choicesIn('kyc', choices),
       filterValue: (row) => t(`console.members.kycStatuses.${row.kycStatus}`),
       cell: (row) => <DotStatus tone={KYC_TONE[row.kycStatus]} label={t(`console.members.kycStatuses.${row.kycStatus}`)} />,
       exportValue: (row) => t(`console.members.kycStatuses.${row.kycStatus}`),
@@ -89,45 +90,52 @@ function moreColumns(): readonly DataTableColumn<MemberListRow>[] {
       filter: 'duration',
       cell: (row) => formatDuration(row.minutesPlayed * 60),
     },
-    { key: 'city', header: t('console.members.city'), priority: 'optional', cell: (row) => row.city ?? t('console.members.notHere'), exportValue: (row) => row.city ?? '', sortValue: (row) => row.city ?? '', filter: 'choice' },
+    { key: 'city', header: t('console.members.city'), priority: 'optional', cell: (row) => row.city ?? t('console.members.notHere'), exportValue: (row) => row.city ?? '', sortValue: (row) => row.city ?? '', filter: 'choice', choices: choicesIn('city', choices) },
     {
-      key: 'since', header: t('console.members.memberSince'), priority: 'optional', sortValue: (row) => row.memberSince,
+      key: 'since', header: t('console.members.memberSince'), priority: 'optional', sortValue: (row) => row.memberSince, filter: 'date',
       cell: (row) => formatMonthYear(new Date(row.memberSince)),
     },
   ];
 }
 
-/** How the list is drawn: whether the viewer sees full numbers. */
+/** How the list is drawn: whether the viewer sees full numbers, and what the server counted for each column's menu. */
 export interface MemberColumnsFor {
   readonly seesPhone: boolean;
+  /** Each choice column's values with the server's counts (redesign correction 4); undefined until they are read. */
+  readonly choices: MemberChoices | undefined;
   /** Members on a break, frozen or erased, anyone else active; undefined until that is known. */
   readonly statuses: ReadonlyMap<string, MemberAccountStatus> | undefined;
 }
 
 /**
  * Members' columns (console v3; owner, 8 Nov): Name, No., Tier, the mobile for super admins, Status (F-121), ID check, Hours, City,
- * Joined, Tonight and Visits; the name opens the record. With a record open beside the list, every one of them,
- * the lines scrolling sideways (owner, 9 Nov).
+ * Joined, Tonight, Visits and Bonus (redesign RD-29); the name opens the record. With a record open beside the list, every
+ * one of them, the lines scrolling sideways (owner, 9 Nov). The list is one page from the server, so each column says its
+ * kind of filter, and what it sorts by here only names the order the server gives.
  */
 export function memberColumns(tonight: ReadonlyMap<string, Tonight>, view: MemberColumnsFor): readonly DataTableColumn<MemberListRow>[] {
-  const [name, number, tier, ...rest] = coreColumns(tonight);
-  const more = [...(view.seesPhone ? [mobileColumn] : []), accountColumn(view.statuses), ...moreColumns()];
+  const [name, number, tier, ...rest] = coreColumns(tonight, view.choices);
+  const more = [...(view.seesPhone ? [mobileColumn] : []), accountColumn(view.statuses, view.choices), ...moreColumns(view.choices)];
   return [name, number, tier, ...more, ...rest].filter((column) => column !== undefined);
 }
 
-/** Name, No., Tier, Tonight and Visits: the list as console v3 drew it. */
-function coreColumns(tonight: ReadonlyMap<string, Tonight>): readonly DataTableColumn<MemberListRow>[] {
+/** Name, No., Tier, Tonight and Visits, as console v3 drew the list, then each member's Bonus in force (redesign RD-29). */
+function coreColumns(tonight: ReadonlyMap<string, Tonight>, choices: MemberChoices | undefined): readonly DataTableColumn<MemberListRow>[] {
   return [
     // Twice a share, so a name stays on one line beside the record (the screenshot index: "Kabir / Sethi").
-    { key: 'name', header: t('console.members.name'), cell: (row) => row.fullName, sortValue: (row) => row.fullName, isWide: true },
-    { key: 'number', header: t('console.members.number'), cell: (row) => <Text variant="secondary" tone="muted">{String(row.memberNumber)}</Text>, sortValue: (row) => row.memberNumber },
+    { key: 'name', header: t('console.members.name'), cell: (row) => row.fullName, sortValue: (row) => row.fullName, isWide: true, filter: 'text' },
+    { key: 'number', header: t('console.members.number'), cell: (row) => <Text variant="secondary" tone="muted">{String(row.memberNumber)}</Text>, sortValue: (row) => row.memberNumber, filter: 'number' },
     { key: 'tier', header: t('console.members.tier'), cell: (row) => row.tierName, sortValue: (row) => row.tierName, filter: false },
     {
       key: 'tonight', header: t('console.members.tonight'), cell: (row) => <TonightStatus tonight={tonight.get(row.memberId)} />,
-      sortValue: (row) => tonightOrder(tonight.get(row.memberId)), exportValue: (row) => tonightWords(tonight.get(row.memberId)), filter: 'choice',
+      sortValue: (row) => tonightOrder(tonight.get(row.memberId)), exportValue: (row) => tonightWords(tonight.get(row.memberId)), filter: 'choice', choices: choicesIn('tonight', choices),
       filterValue: (row) => tonightKind(tonight.get(row.memberId)),
     },
-    { key: 'visits', header: t('console.members.visits'), cell: (row) => formatNumber(row.visits), sortValue: (row) => row.visits, align: 'end' },
+    { key: 'visits', header: t('console.members.visits'), cell: (row) => formatNumber(row.visits), sortValue: (row) => row.visits, align: 'end', filter: 'number' },
+    {
+      key: 'bonus', header: t('console.members.bonus.column'), cell: (row) => formatChips(row.bonus), sortValue: (row) => Number(formatRupeesForFile(row.bonus)),
+      exportValue: (row) => Number(formatRupeesForFile(row.bonus)), align: 'end', filter: 'number',
+    },
   ];
 }
 

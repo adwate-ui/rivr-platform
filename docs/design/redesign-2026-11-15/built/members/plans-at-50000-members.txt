@@ -1,0 +1,197 @@
+ name_index_merged | phone_index_merged 
+-------------------+--------------------
+ t                 | t
+(1 row)
+
+ members_in_the_club 
+---------------------
+               50140
+(1 row)
+
+== The view the screen opens on: the page
+select m.id from public.member m where m.venue_id = '00000000-0000-4000-8000-000000000001'::uuid order by m.full_name asc, m.id asc limit 50 offset 0
+   Limit (actual rows=50 loops=1)
+     ->  Index Only Scan using member_venue_name_idx on member m (actual rows=50 loops=1)
+           Index Cond: (venue_id = '00000000-0000-4000-8000-000000000001'::uuid)
+           Heap Fetches: 50
+   Planning Time: 0.068 ms
+   Execution Time: 0.054 ms
+== The view the screen opens on: how many
+select count(*) from public.member m where m.venue_id = '00000000-0000-4000-8000-000000000001'::uuid
+   Aggregate (actual rows=1 loops=1)
+     ->  Seq Scan on member m (actual rows=50140 loops=1)
+           Filter: (venue_id = '00000000-0000-4000-8000-000000000001'::uuid)
+           Rows Removed by Filter: 8
+   Planning Time: 0.035 ms
+   Execution Time: 4.151 ms
+== A search by a common surname, "verma": the page
+select m.id from public.member m where m.venue_id = '00000000-0000-4000-8000-000000000001'::uuid and (m.full_name ilike '%verma%') order by m.full_name asc, m.id asc limit 50 offset 0
+   Limit (actual rows=50 loops=1)
+     ->  Index Only Scan using member_venue_name_idx on member m (actual rows=50 loops=1)
+           Index Cond: (venue_id = '00000000-0000-4000-8000-000000000001'::uuid)
+           Filter: (full_name ~~* '%verma%'::text)
+           Rows Removed by Filter: 2317
+           Heap Fetches: 2367
+   Planning Time: 0.224 ms
+   Execution Time: 2.797 ms
+== A search by a common surname, "verma": how many
+select count(*) from public.member m where m.venue_id = '00000000-0000-4000-8000-000000000001'::uuid and (m.full_name ilike '%verma%')
+   Aggregate (actual rows=1 loops=1)
+     ->  Bitmap Heap Scan on member m (actual rows=1251 loops=1)
+           Recheck Cond: (full_name ~~* '%verma%'::text)
+           Filter: (venue_id = '00000000-0000-4000-8000-000000000001'::uuid)
+           Rows Removed by Filter: 1
+           Heap Blocks: exact=962
+           ->  Bitmap Index Scan on member_name_trgm_idx (actual rows=1252 loops=1)
+                 Index Cond: (full_name ~~* '%verma%'::text)
+   Planning Time: 0.178 ms
+   Execution Time: 1.836 ms
+== A search by a rare name, "zoya zutshi": the page
+select m.id from public.member m where m.venue_id = '00000000-0000-4000-8000-000000000001'::uuid and (m.full_name ilike '%zoya zutshi%') order by m.full_name asc, m.id asc limit 50 offset 0
+   Limit (actual rows=31 loops=1)
+     ->  Sort (actual rows=31 loops=1)
+           Sort Key: full_name, id
+           Sort Method: quicksort  Memory: 27kB
+           ->  Bitmap Heap Scan on member m (actual rows=31 loops=1)
+                 Recheck Cond: (full_name ~~* '%zoya zutshi%'::text)
+                 Filter: (venue_id = '00000000-0000-4000-8000-000000000001'::uuid)
+                 Heap Blocks: exact=31
+                 ->  Bitmap Index Scan on member_name_trgm_idx (actual rows=31 loops=1)
+                       Index Cond: (full_name ~~* '%zoya zutshi%'::text)
+   Planning Time: 0.206 ms
+   Execution Time: 0.320 ms
+== A search by a rare name, "zoya zutshi": how many
+select count(*) from public.member m where m.venue_id = '00000000-0000-4000-8000-000000000001'::uuid and (m.full_name ilike '%zoya zutshi%')
+   Aggregate (actual rows=1 loops=1)
+     ->  Bitmap Heap Scan on member m (actual rows=31 loops=1)
+           Recheck Cond: (full_name ~~* '%zoya zutshi%'::text)
+           Filter: (venue_id = '00000000-0000-4000-8000-000000000001'::uuid)
+           Heap Blocks: exact=31
+           ->  Bitmap Index Scan on member_name_trgm_idx (actual rows=31 loops=1)
+                 Index Cond: (full_name ~~* '%zoya zutshi%'::text)
+   Planning Time: 0.145 ms
+   Execution Time: 0.272 ms
+== A search by a mobile's last four digits, for staff who read no numbers: the page
+select m.id from public.member m where m.venue_id = '00000000-0000-4000-8000-000000000001'::uuid and (m.full_name ilike '%4821%' or m.member_number = '4821'::bigint or right(m.phone, 4) = '4821') order by m.full_name asc, m.id asc limit 50 offset 0
+   Limit (actual rows=6 loops=1)
+     ->  Sort (actual rows=6 loops=1)
+           Sort Key: full_name, id
+           Sort Method: quicksort  Memory: 25kB
+           ->  Bitmap Heap Scan on member m (actual rows=6 loops=1)
+                 Recheck Cond: ((full_name ~~* '%4821%'::text) OR (member_number = '4821'::bigint) OR ((venue_id = '00000000-0000-4000-8000-000000000001'::uuid) AND ("right"(phone, 4) = '4821'::text)))
+                 Filter: (venue_id = '00000000-0000-4000-8000-000000000001'::uuid)
+                 Heap Blocks: exact=6
+                 ->  BitmapOr (actual rows=0 loops=1)
+                       ->  Bitmap Index Scan on member_name_trgm_idx (actual rows=0 loops=1)
+                             Index Cond: (full_name ~~* '%4821%'::text)
+                       ->  Bitmap Index Scan on member_member_number_key (actual rows=1 loops=1)
+                             Index Cond: (member_number = '4821'::bigint)
+                       ->  Bitmap Index Scan on member_venue_phone_last4_idx (actual rows=5 loops=1)
+                             Index Cond: ((venue_id = '00000000-0000-4000-8000-000000000001'::uuid) AND ("right"(phone, 4) = '4821'::text))
+   Planning Time: 0.179 ms
+   Execution Time: 0.040 ms
+== A search by a mobile's last four digits, for staff who read no numbers: how many
+select count(*) from public.member m where m.venue_id = '00000000-0000-4000-8000-000000000001'::uuid and (m.full_name ilike '%4821%' or m.member_number = '4821'::bigint or right(m.phone, 4) = '4821')
+   Aggregate (actual rows=1 loops=1)
+     ->  Bitmap Heap Scan on member m (actual rows=6 loops=1)
+           Recheck Cond: ((full_name ~~* '%4821%'::text) OR (member_number = '4821'::bigint) OR ((venue_id = '00000000-0000-4000-8000-000000000001'::uuid) AND ("right"(phone, 4) = '4821'::text)))
+           Filter: (venue_id = '00000000-0000-4000-8000-000000000001'::uuid)
+           Heap Blocks: exact=6
+           ->  BitmapOr (actual rows=0 loops=1)
+                 ->  Bitmap Index Scan on member_name_trgm_idx (actual rows=0 loops=1)
+                       Index Cond: (full_name ~~* '%4821%'::text)
+                 ->  Bitmap Index Scan on member_member_number_key (actual rows=1 loops=1)
+                       Index Cond: (member_number = '4821'::bigint)
+                 ->  Bitmap Index Scan on member_venue_phone_last4_idx (actual rows=5 loops=1)
+                       Index Cond: ((venue_id = '00000000-0000-4000-8000-000000000001'::uuid) AND ("right"(phone, 4) = '4821'::text))
+   Planning Time: 0.152 ms
+   Execution Time: 0.026 ms
+== A search by part of a mobile, for a super admin: the page
+select m.id from public.member m where m.venue_id = '00000000-0000-4000-8000-000000000001'::uuid and (m.full_name ilike '%70395%' or m.member_number = '70395'::bigint or m.phone like '%70395%') order by m.full_name asc, m.id asc limit 50 offset 0
+   Limit (actual rows=14 loops=1)
+     ->  Sort (actual rows=14 loops=1)
+           Sort Key: full_name, id
+           Sort Method: quicksort  Memory: 25kB
+           ->  Bitmap Heap Scan on member m (actual rows=14 loops=1)
+                 Recheck Cond: ((full_name ~~* '%70395%'::text) OR (member_number = '70395'::bigint) OR (phone ~~ '%70395%'::text))
+                 Filter: (venue_id = '00000000-0000-4000-8000-000000000001'::uuid)
+                 Heap Blocks: exact=3
+                 ->  BitmapOr (actual rows=0 loops=1)
+                       ->  Bitmap Index Scan on member_name_trgm_idx (actual rows=0 loops=1)
+                             Index Cond: (full_name ~~* '%70395%'::text)
+                       ->  Bitmap Index Scan on member_member_number_key (actual rows=0 loops=1)
+                             Index Cond: (member_number = '70395'::bigint)
+                       ->  Bitmap Index Scan on member_phone_trgm_idx (actual rows=14 loops=1)
+                             Index Cond: (phone ~~ '%70395%'::text)
+   Planning Time: 0.335 ms
+   Execution Time: 0.120 ms
+== A search by part of a mobile, for a super admin: how many
+select count(*) from public.member m where m.venue_id = '00000000-0000-4000-8000-000000000001'::uuid and (m.full_name ilike '%70395%' or m.member_number = '70395'::bigint or m.phone like '%70395%')
+   Aggregate (actual rows=1 loops=1)
+     ->  Bitmap Heap Scan on member m (actual rows=14 loops=1)
+           Recheck Cond: ((full_name ~~* '%70395%'::text) OR (member_number = '70395'::bigint) OR (phone ~~ '%70395%'::text))
+           Filter: (venue_id = '00000000-0000-4000-8000-000000000001'::uuid)
+           Heap Blocks: exact=3
+           ->  BitmapOr (actual rows=0 loops=1)
+                 ->  Bitmap Index Scan on member_name_trgm_idx (actual rows=0 loops=1)
+                       Index Cond: (full_name ~~* '%70395%'::text)
+                 ->  Bitmap Index Scan on member_member_number_key (actual rows=0 loops=1)
+                       Index Cond: (member_number = '70395'::bigint)
+                 ->  Bitmap Index Scan on member_phone_trgm_idx (actual rows=14 loops=1)
+                       Index Cond: (phone ~~ '%70395%'::text)
+   Planning Time: 0.234 ms
+   Execution Time: 0.071 ms
+== A search by member number: the page
+select m.id from public.member m where m.venue_id = '00000000-0000-4000-8000-000000000001'::uuid and (m.full_name ilike '%211%' or m.member_number = '211'::bigint) order by m.full_name asc, m.id asc limit 50 offset 0
+   Limit (actual rows=1 loops=1)
+     ->  Sort (actual rows=1 loops=1)
+           Sort Key: full_name, id
+           Sort Method: quicksort  Memory: 25kB
+           ->  Bitmap Heap Scan on member m (actual rows=1 loops=1)
+                 Recheck Cond: ((full_name ~~* '%211%'::text) OR (member_number = '211'::bigint))
+                 Filter: (venue_id = '00000000-0000-4000-8000-000000000001'::uuid)
+                 Heap Blocks: exact=1
+                 ->  BitmapOr (actual rows=0 loops=1)
+                       ->  Bitmap Index Scan on member_name_trgm_idx (actual rows=0 loops=1)
+                             Index Cond: (full_name ~~* '%211%'::text)
+                       ->  Bitmap Index Scan on member_member_number_key (actual rows=1 loops=1)
+                             Index Cond: (member_number = '211'::bigint)
+   Planning Time: 0.204 ms
+   Execution Time: 0.025 ms
+== A search by member number: how many
+select count(*) from public.member m where m.venue_id = '00000000-0000-4000-8000-000000000001'::uuid and (m.full_name ilike '%211%' or m.member_number = '211'::bigint)
+   Aggregate (actual rows=1 loops=1)
+     ->  Bitmap Heap Scan on member m (actual rows=1 loops=1)
+           Recheck Cond: ((full_name ~~* '%211%'::text) OR (member_number = '211'::bigint))
+           Filter: (venue_id = '00000000-0000-4000-8000-000000000001'::uuid)
+           Heap Blocks: exact=1
+           ->  BitmapOr (actual rows=0 loops=1)
+                 ->  Bitmap Index Scan on member_name_trgm_idx (actual rows=0 loops=1)
+                       Index Cond: (full_name ~~* '%211%'::text)
+                 ->  Bitmap Index Scan on member_member_number_key (actual rows=1 loops=1)
+                       Index Cond: (member_number = '211'::bigint)
+   Planning Time: 0.146 ms
+   Execution Time: 0.018 ms
+{"sub": "00000000-0000-4000-8000-000000000101", "role": "authenticated"}
+50|50140
+Time: 16.951 ms
+50|1251
+Time: 10.531 ms
+50|50140
+Time: 30.585 ms
+50|50140
+Time: 47.186 ms
+50|35634
+Time: 109.617 ms
+1000|50140
+Time: 61.079 ms
+kyc|2|50140
+status|1|50140
+tonight|3|50140
+Time: 155.958 ms
+0
+Time: 1.687 ms
+50|50140
+Time: 35.278 ms
+50|50140
+Time: 99.739 ms

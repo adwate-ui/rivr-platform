@@ -85,10 +85,14 @@ export { useMyUsualFnbItems } from './fnbUsual.ts';
 export { useMyNextPlayTimeBonus, useMySeat, useMySeatActions, type Leaving, type NextPlayTimeBonus, type MySeat, type MySeatFailure, type TopUp } from './mySeat.ts';
 export { useFloorNight, useTableHands, type FloorNight, type TableHand, type TableNight } from './floorNight.ts';
 export {
-  isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberAccountStatuses, type MemberAccountState, type MemberAccountStatus, useMemberVisits, type MemberVisit, useMemberRecord, useMembersOfTier, useMemberSearch, useVenueTiers, useWithdrawEarlyDeparture, type EarlyDeparture, type EarlyDepartureFailure, type MemberFailure, type MemberTierFailure, type MemberKycStatus, type MemberListRow,
+  isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberAccountStatuses, type MemberAccountState, type MemberAccountStatus, useMemberVisits, type MemberVisit, useMemberRecord, useMemberSearch, useVenueTiers, useWithdrawEarlyDeparture, type EarlyDeparture, type EarlyDepartureFailure, type MemberFailure, type MemberTierFailure, type MemberKycStatus, type MemberListRow,
   type MemberRecord, type MemberRow, type TierChange, type VenueTier,
 } from './members.ts';
 export type { MemberExportDetails } from './memberDetails.ts';
+export {
+  MEMBERS_PAGE, useEveryMember, useMemberChoices, useMembersPage, type ListFilter, type ListView, type MemberChoiceColumn, type MemberChoices, type MembersPage,
+  type MembersView,
+} from './membersList.ts';
 export { useMemberSignUp, type MemberSignUp, type SignUpCampaign } from './memberSignUp.ts';
 export { useResetMemberHours, type ResetHoursFailure } from './memberHours.ts';
 export { useChangeMemberPhone, type PhoneChangeFailure } from './memberPhone.ts';

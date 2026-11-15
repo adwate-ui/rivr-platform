@@ -170,7 +170,7 @@ describe('DataTable in server mode, beside the screen\'s own filters and export'
     expect(onRequest).toHaveBeenLastCalledWith(FIRST);
   });
 
-  it('offers no Export, as the rows shown are one page of the list', () => {
+  it('offers no Export where the screen does not read every row, as the rows shown are one page of the list', () => {
     renderIn(scoped('tier: all', vi.fn(), { read: () => undefined, write: () => undefined }));
     expect(screen.getByRole('table', { name: 'Members' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Export/ })).toBeNull();

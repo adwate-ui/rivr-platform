@@ -37,8 +37,11 @@ test.describe('table filters', () => {
     await expect(page).toHaveURL(/t\.members=/);
 
     // A record opens beside the list, which keeps every column and its filters (owner, 9 Nov).
-    await table.getByRole('row').nth(1).getByRole('button').first().click();
-    await expect(page.getByRole('heading', { level: 2 })).toBeVisible();
+    const opened = table.getByRole('row').nth(1).getByRole('button').first();
+    const name = (await opened.innerText()).trim();
+    await opened.click();
+    // The record's own heading, by the member's name: Members may hold other headings, such as Deletion requests.
+    await expect(page.getByRole('heading', { level: 2, name, exact: true })).toBeVisible();
     await expect(page).toHaveURL(/member=.*t\.members=|t\.members=.*member=/);
     for (const column of [/^ID check/, /^City/, /^Hours/, /^Mobile/]) await expect(table.getByRole('columnheader', { name: column })).toHaveCount(1);
     await expectFiltered(page);

@@ -123,9 +123,11 @@ export const queryKeys = {
   memberSearch: (userId: string, venueId: string, query: string) => ['user', userId, 'member-search', venueId, query] as const,
   /** Every memberSearch key: the prefix an invalidation of them all names. */
   memberSearchAll: (userId: string) => ['user', userId, 'member-search'] as const,
-  membersOfTier: (userId: string, venueId: string, tierId: string) => ['user', userId, 'members-of-tier', venueId, tierId] as const,
-  /** Every membersOfTier key: the prefix an invalidation of them all names. */
-  membersOfTierAll: (userId: string) => ['user', userId, 'members-of-tier'] as const,
+  /** A page of the Members list by its view, and a column menu's counts for it (redesign RD-29). */
+  membersList: (userId: string, venueId: string, view: unknown) => ['user', userId, 'members-list', 'page', venueId, view] as const,
+  memberChoices: (userId: string, venueId: string, view: unknown) => ['user', userId, 'members-list', 'choices', venueId, view] as const,
+  /** Every membersList and memberChoices key: the prefix an invalidation of them all names. */
+  membersListAll: (userId: string) => ['user', userId, 'members-list'] as const,
   memberRecord: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-record', venueId, memberId] as const,
   memberEarlyDepartures: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-early-departures', venueId, memberId] as const,
   venueTiers: (userId: string, venueId: string) => ['user', userId, 'venue-tiers', venueId] as const,

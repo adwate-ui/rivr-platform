@@ -16,9 +16,6 @@ export const members = {
   allMembers: 'All members',
   /** The search field's label, shown inside it (console v3): a name as typed, a member number, or four or more digits. */
   search: 'Name, mobile or member number',
-  /** Beside the search: how many the list shows. */
-  total: '{count} members',
-  totalOne: '1 member',
   /** `{query}` is what was typed. */
   noMatch: 'No member matches {query}.',
   number: 'No.',

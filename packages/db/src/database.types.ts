@@ -2939,6 +2939,9 @@ isOneToOne: false
 "decline_waitlist_request":
 { Args: { "p_entry_id": string }; Returns: undefined
                            },
+"delete_fnb_item":
+{ Args: { "p_item_id": string }; Returns: undefined
+                           },
 "delete_game_table":
 { Args: { "p_table_id": string }; Returns: undefined
                            },
@@ -3238,9 +3241,19 @@ isOneToOne: false
               "call_time_met": boolean,"closed_at": string,"left_early": boolean,"minutes_played": number,"opened_at": string,"tables": string,"visit_id": string
             }[]
                            },
+"members_choices":
+{ Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
+              "column_key": string,"members": number,"value": string
+            }[]
+                           },
 "members_of_tier":
 { Args: { "p_tier_id"?: string,"p_venue_id": string }; Returns: {
               "aadhaar_name": string,"address": string,"city": string,"creator_code": string,"date_of_birth": string,"first_seen_at": string,"full_name": string,"games_played": (string)[],"known_as": string,"kyc_method": string,"kyc_status": string,"kyc_verified_at": string,"last_visit_at": string,"masked_aadhaar": string,"member_id": string,"member_number": number,"member_since": string,"minutes_played": number,"occupation": string,"own_referral_code": string,"pan": string,"phone": string,"phone_last4": string,"play_times": (string)[],"referral_code": string,"tier_name": string,"utm_campaign": string,"utm_content": string,"utm_medium": string,"utm_source": string,"utm_term": string,"visits": number
+            }[]
+                           },
+"members_page":
+{ Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
+              "aadhaar_name": string,"address": string,"bonus_paise": number,"city": string,"creator_code": string,"date_of_birth": string,"first_seen_at": string,"full_name": string,"games_played": (string)[],"known_as": string,"kyc_method": string,"kyc_status": string,"kyc_verified_at": string,"last_visit_at": string,"masked_aadhaar": string,"member_id": string,"member_number": number,"member_since": string,"minutes_played": number,"occupation": string,"own_referral_code": string,"pan": string,"phone": string,"phone_last4": string,"play_times": (string)[],"referral_code": string,"tier_name": string,"total": number,"utm_campaign": string,"utm_content": string,"utm_medium": string,"utm_source": string,"utm_term": string,"visits": number
             }[]
                            },
 "message_recipient":
@@ -3536,6 +3549,9 @@ isOneToOne: false
 "request_top_up":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
+"reset_member_hours":
+{ Args: { "p_member_id": string,"p_reason": string }; Returns: string
+                           },
 "resolve_feedback":
 { Args: { "p_feedback_id": string,"p_resolution": string }; Returns: undefined
                            },
@@ -3740,7 +3756,7 @@ isOneToOne: false
                            },
 "tablet_seats":
 { Args: Record<PropertyKey, never>; Returns: {
-              "away_since": string,"big_blind_paise": number,"call_time_left": number,"full_name": string,"leaving_at": string,"member_id": string,"minimum_paise": number,"seat": number,"session_id": string,"small_blind_paise": number
+              "away_since": string,"big_blind_paise": number,"call_time_left": number,"full_name": string,"leaving_at": string,"member_id": string,"minimum_paise": number,"seat": number,"session_id": string,"small_blind_paise": number,"straddle_paise": number
             }[]
                            },
 "take_break":
@@ -3879,7 +3895,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "contact_kind": "escalation"|"vendor"|"glaza"|"police"|"fire"|"electricity","control_level": "venue_freeze"|"feature_kill"|"messaging_stop"|"member_freeze"|"access_revoke","device_kind": "dealer_tablet"|"cage"|"console"|"tv"|"door"|"driver_phone"|"agent","feature_display_mode": "hidden"|"locked","fnb_item_kind": "food"|"soft_drink"|"alcohol","hand_variant": "holdem"|"plo"|"bomb_pot","killable_feature": "withdrawals"|"credit"|"kyc_signup"|"marketing_sends"|"social_publishing"|"promotions"|"tournament_registration"|"redemptions","ledger_account_kind": "asset"|"liability"|"equity"|"revenue"|"expense","ledger_unit": "paise"|"points"|"nights","outbox_status": "pending"|"processing"|"delivered"|"failed"|"no_recipient","setting_scope": "venue"|"table_type"|"stake"|"tier"|"role","staff_role": "super_admin"|"admin"|"cashier"|"dealer"|"marketing"|"host"|"owner_view"|"service"|"floor","tv_mode": "waitlist"|"call_time"|"jackpot"|"tournament_clock"|"promotions"|"rewards"|"league"|"social_wall"|"spin_wheel"|"leaderboard"
+            "contact_kind": "escalation"|"vendor"|"glaza"|"police"|"fire"|"electricity","control_level": "venue_freeze"|"feature_kill"|"messaging_stop"|"member_freeze"|"access_revoke","device_kind": "dealer_tablet"|"cage"|"console"|"tv"|"door"|"driver_phone"|"agent","feature_display_mode": "hidden"|"locked","fnb_item_kind": "food"|"soft_drink"|"alcohol","hand_variant": "holdem"|"plo"|"bomb_pot","killable_feature": "withdrawals"|"credit"|"kyc_signup"|"marketing_sends"|"social_publishing"|"promotions"|"tournament_registration"|"redemptions","ledger_account_kind": "asset"|"liability"|"equity"|"revenue"|"expense","ledger_unit": "paise"|"points"|"nights","outbox_status": "pending"|"processing"|"delivered"|"failed"|"no_recipient","setting_scope": "venue"|"table_type"|"stake"|"tier"|"role","staff_role": "super_admin"|"admin"|"cashier"|"dealer"|"marketing"|"host"|"owner_view"|"service"|"floor"|"guest_relations","tv_mode": "waitlist"|"call_time"|"jackpot"|"tournament_clock"|"promotions"|"rewards"|"league"|"social_wall"|"spin_wheel"|"leaderboard"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -3999,7 +4015,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "contact_kind": ["escalation", "vendor", "glaza", "police", "fire", "electricity"],"control_level": ["venue_freeze", "feature_kill", "messaging_stop", "member_freeze", "access_revoke"],"device_kind": ["dealer_tablet", "cage", "console", "tv", "door", "driver_phone", "agent"],"feature_display_mode": ["hidden", "locked"],"fnb_item_kind": ["food", "soft_drink", "alcohol"],"hand_variant": ["holdem", "plo", "bomb_pot"],"killable_feature": ["withdrawals", "credit", "kyc_signup", "marketing_sends", "social_publishing", "promotions", "tournament_registration", "redemptions"],"ledger_account_kind": ["asset", "liability", "equity", "revenue", "expense"],"ledger_unit": ["paise", "points", "nights"],"outbox_status": ["pending", "processing", "delivered", "failed", "no_recipient"],"setting_scope": ["venue", "table_type", "stake", "tier", "role"],"staff_role": ["super_admin", "admin", "cashier", "dealer", "marketing", "host", "owner_view", "service", "floor"],"tv_mode": ["waitlist", "call_time", "jackpot", "tournament_clock", "promotions", "rewards", "league", "social_wall", "spin_wheel", "leaderboard"]
+            "contact_kind": ["escalation", "vendor", "glaza", "police", "fire", "electricity"],"control_level": ["venue_freeze", "feature_kill", "messaging_stop", "member_freeze", "access_revoke"],"device_kind": ["dealer_tablet", "cage", "console", "tv", "door", "driver_phone", "agent"],"feature_display_mode": ["hidden", "locked"],"fnb_item_kind": ["food", "soft_drink", "alcohol"],"hand_variant": ["holdem", "plo", "bomb_pot"],"killable_feature": ["withdrawals", "credit", "kyc_signup", "marketing_sends", "social_publishing", "promotions", "tournament_registration", "redemptions"],"ledger_account_kind": ["asset", "liability", "equity", "revenue", "expense"],"ledger_unit": ["paise", "points", "nights"],"outbox_status": ["pending", "processing", "delivered", "failed", "no_recipient"],"setting_scope": ["venue", "table_type", "stake", "tier", "role"],"staff_role": ["super_admin", "admin", "cashier", "dealer", "marketing", "host", "owner_view", "service", "floor", "guest_relations"],"tv_mode": ["waitlist", "call_time", "jackpot", "tournament_clock", "promotions", "rewards", "league", "social_wall", "spin_wheel", "leaderboard"]
           }
         }
 } as const

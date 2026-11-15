@@ -22,7 +22,7 @@ export function useResetMemberHours(venueId: string, memberId: string) {
       const user = userId ?? 'signed-out';
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.memberRecord(user, venueId, memberId) }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.membersOfTierAll(user) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.membersListAll(user) }),
       ]);
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },

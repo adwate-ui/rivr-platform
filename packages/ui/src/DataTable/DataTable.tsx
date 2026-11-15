@@ -85,10 +85,15 @@ export type DataTableProps<Row> = DataTableState<Row> & {
    * Server mode (redesign RD-13), for a list too long to load whole: the screen sorts, searches, filters and pages, and
    * gives one page as `rows` with the `total`. The table hands it the view in force (`onRequest`), draws the rows as
    * given, the pages in its foot, and how many rows show of all. A page of rows cannot tell a column's kind of filter, so
-   * a column says it (`filter`; left out, words to type), and a choice gives its `choices`. There is no Export: the rows
-   * shown are one page.
+   * a column says it (`filter`; left out, words to type), and a choice gives its `choices`. The rows shown are one page,
+   * so there is an Export only with `exportRows`.
    */
   server?: DataTableServer;
+  /**
+   * In server mode, every row the view in force leaves, for an Export (redesign RD-29): read when an export is chosen,
+   * once it is recorded, and given the columns' export values as the rows shown are.
+   */
+  exportRows?: () => Promise<readonly Row[]>;
 };
 
 /** Past this many rows, only the rows in view are drawn (additions, "Performance budgets"). */

@@ -1,7 +1,8 @@
 import type { Database } from './database.types.ts';
 import { GAMES_PLAYED, OCCUPATIONS, PLAY_TIMES, type GamePlayed, type Occupation, type PlayTime } from './signUp.ts';
 
-type ListRow = Database['public']['Functions']['members_of_tier']['Returns'][number];
+/** A member as `members_page` gives them. */
+export type MemberPageRow = Database['public']['Functions']['members_page']['Returns'][number];
 
 /**
  * What a Members export adds beside the list (the owner, 9 Nov: "include all the member related fields"): the name given
@@ -33,7 +34,7 @@ export interface MemberExportDetails {
 const known = <T extends string>(codes: readonly T[], given: readonly string[] | null) => codes.filter((code) => (given ?? []).includes(code));
 
 /** A list row's export details. */
-export function detailsOf(row: ListRow): MemberExportDetails {
+export function detailsOf(row: MemberPageRow): MemberExportDetails {
   return {
     knownAs: row.known_as, ownReferralCode: row.own_referral_code, occupation: OCCUPATIONS.find((code) => code === row.occupation) ?? null,
     playTimes: known(PLAY_TIMES, row.play_times), gamesPlayed: known(GAMES_PLAYED, row.games_played),
