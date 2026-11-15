@@ -57,12 +57,36 @@ describe('Bonus to approve (decision 0670)', () => {
     expect(sent).toHaveProperty('p_request_id', expect.stringMatching(/^[0-9a-f-]{36}$/));
   });
 
-  it('approves all shown at once', async () => {
-    const { bodiesOf } = renderQueue({ '/rpc/approve_promotion_bonus': { body: [{ decision_id: 'd1', grants: 3, amount_paise: 200_000 }] } });
+  it('asks before approving all shown, with how many and how much, then approves them at once', async () => {
+    const { bodiesOf } = renderQueue({ '/rpc/approve_promotion_bonus': { body: [{ decision_id: 'd1', grants: 3, amount_paise: 200_000, left_waiting: 0 }] } });
     await rowOf('Ishaan Verma');
     fireEvent.click(screen.getByRole('button', { name: 'Approve all shown' }));
+    expect(await screen.findByText('Approve 3 · 2,000 Bonus?')).toBeDefined();
+    expect(bodiesOf('approve_promotion_bonus')).toEqual([]);
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, approve 3' }));
     expect(await screen.findByText('3 approved · 2,000 Bonus')).toBeDefined();
     expect(bodiesOf('approve_promotion_bonus')[0]).toMatchObject({ p_grant_ids: ['g1', 'g2', 'g3'] });
+  });
+
+  it('asks before approving the ones ticked, and says how many a frozen member left waiting', async () => {
+    const { bodiesOf } = renderQueue({ '/rpc/approve_promotion_bonus': { body: [{ decision_id: 'd1', grants: 1, amount_paise: 50_000, left_waiting: 1 }] } });
+    fireEvent.click(within(await rowOf('Vihaan Kapoor')).getByRole('checkbox'));
+    fireEvent.click(within(await rowOf('Mihir Shah')).getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button', { name: 'Approve' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Yes, approve 2' }));
+    expect(await screen.findByText('1 approved · 500 Bonus · 1 left waiting (frozen)')).toBeDefined();
+    expect(bodiesOf('approve_promotion_bonus')[0]).toMatchObject({ p_grant_ids: ['g2', 'g3'] });
+  });
+
+  it('keeps one request id for the same Bonus until it goes through', async () => {
+    const { bodiesOf } = renderQueue({ '/rpc/approve_promotion_bonus': { status: 503, body: { message: 'unavailable' } } });
+    const approveIshaan = async () => fireEvent.click(within(await rowOf('Ishaan Verma')).getByRole('button', { name: 'Approve 1,000 Bonus for Ishaan Verma' }));
+    await approveIshaan();
+    expect(await screen.findByText('Not saved. Try again.')).toBeDefined();
+    await approveIshaan();
+    await waitFor(() => expect(bodiesOf('approve_promotion_bonus')).toHaveLength(2));
+    // The same Bonus and the same request id, twice.
+    expect(new Set(bodiesOf('approve_promotion_bonus').map((body) => JSON.stringify(body))).size).toBe(1);
   });
 
   it('refuses the ones ticked with one reason, in the panel', async () => {

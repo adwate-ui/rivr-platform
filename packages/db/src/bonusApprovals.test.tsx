@@ -53,12 +53,12 @@ describe('Bonus to approve (decision 0670)', () => {
     expect(calls[0]?.body).toMatchObject({ p_venue_id: VENUE, p_view: { page: 1, page_size: 50 } });
   });
 
-  it('approves the chosen with a request id, and says how many and how much', async () => {
-    const { wrapper, calls } = clientFor({ '/rpc/approve_promotion_bonus': { body: [{ decision_id: 'd1', grants: 2, amount_paise: 150_000 }] } });
+  it('approves the chosen with a request id, and says how many, how much and how many a frozen member left waiting', async () => {
+    const { wrapper, calls } = clientFor({ '/rpc/approve_promotion_bonus': { body: [{ decision_id: 'd1', grants: 2, amount_paise: 150_000, left_waiting: 1 }] } });
     const { result } = renderHook(() => useDecideBonus(VENUE), { wrapper });
     let outcome: Awaited<ReturnType<typeof result.current.mutateAsync>> | undefined;
     await act(async () => { outcome = await result.current.mutateAsync({ grantIds: ['g1', 'g2'], requestId: REQUEST, refusal: null }); });
-    expect(outcome).toEqual({ ok: true, value: { grants: 2, amount: 150_000n } });
+    expect(outcome).toEqual({ ok: true, value: { grants: 2, amount: 150_000n, leftWaiting: 1 } });
     expect(calls.find((call) => call.url.includes('approve_promotion_bonus'))?.body).toEqual({ p_venue_id: VENUE, p_grant_ids: ['g1', 'g2'], p_request_id: REQUEST });
   });
 

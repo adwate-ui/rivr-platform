@@ -70,7 +70,8 @@ test.describe('Bonus to approve', () => {
     // Her Bonus shows nothing of it while it waits.
     await signInToPlayer(page, '9000000411', '/bonus');
     await expect(page.getByRole('heading', { name: 'Bonus', level: 1 })).toBeVisible();
-    await expect(page.getByText(new RegExp(`^${NAME} · `))).toHaveCount(0);
+    // A line of history is what it was, with its day beneath (redesign RD-20).
+    await expect(page.getByText(NAME, { exact: true })).toHaveCount(0);
     expect(held()).toBe(before);
 
     // A super admin approves it, from the queue under Promotions.
@@ -86,7 +87,7 @@ test.describe('Bonus to approve', () => {
 
     // Her app is told, and her Bonus shows it.
     await expect(page.getByText(`500 Bonus added · ${NAME}`)).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText(new RegExp(`^${NAME} · `)).first()).toBeVisible();
+    await expect(page.getByText(NAME, { exact: true }).first()).toBeVisible();
     expect(held()).toBe(before + 50_000);
   });
 });

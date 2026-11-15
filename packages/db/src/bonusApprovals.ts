@@ -62,18 +62,27 @@ export function useWaitingBonusPage(venueId: string, view: ListView | null) {
 
 /**
  * Why a decision was refused: not a super admin, a Bonus for one's own record, nothing chosen or no reason to refuse, the venue
- * frozen, promotions switched off, a member frozen, or anything else.
+ * frozen, promotions switched off, or anything else. A frozen member's Bonus is left waiting, not refused (`leftWaiting`).
  */
-export type BonusDecisionFailure = 'not_allowed' | 'own_record' | 'invalid' | 'paused' | 'switched_off' | 'member_frozen' | 'unavailable';
+export type BonusDecisionFailure = 'not_allowed' | 'own_record' | 'invalid' | 'paused' | 'switched_off' | 'unavailable';
 
 const DECISION_FAILURE_BY_CODE: Readonly<Record<string, BonusDecisionFailure>> = {
-  '42501': 'not_allowed', RVOWN: 'own_record', '22023': 'invalid', RVFRZ: 'paused', RVKIL: 'switched_off', RVMBR: 'member_frozen',
+  '42501': 'not_allowed', RVOWN: 'own_record', '22023': 'invalid', RVFRZ: 'paused', RVKIL: 'switched_off',
 };
 
-/** What a decision did: how many it decided and their total; none when another super admin had decided them all. */
+/**
+ * What a decision did: how many it decided and their total, none when another super admin had decided them all; and how
+ * many an approval left waiting, a frozen member's.
+ */
 export interface BonusDecision {
   readonly grants: number;
   readonly amount: Paise;
+  readonly leftWaiting: number;
+}
+
+/** A decision as the database answers it; none when nothing was decided. */
+function decisionOf(row: { grants: number; amount_paise: number; left_waiting: number } | undefined): BonusDecision {
+  return { grants: row?.grants ?? 0, amount: toPaise(row?.amount_paise ?? 0), leftWaiting: row?.left_waiting ?? 0 };
 }
 
 /** The Bonus chosen, the request id that makes a second press the same decision, and a refusal's reason or null to approve. */
@@ -101,8 +110,7 @@ export function useDecideBonus(venueId: string) {
         queryClient.invalidateQueries({ queryKey: queryKeys.staffQueueCounts(user, venueId) }),
       ]);
       if (error) return err(DECISION_FAILURE_BY_CODE[error.code] ?? 'unavailable');
-      const decided = data[0];
-      return ok({ grants: decided?.grants ?? 0, amount: toPaise(decided?.amount_paise ?? 0) });
+      return ok(decisionOf(data[0]));
     },
   });
 }

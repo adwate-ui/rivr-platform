@@ -1,6 +1,7 @@
-import { LIST_PAGE, useDecideBonus, useListChoices, useWaitingBonusPage, type BonusDecisionFailure, type ListChoices, type WaitingBonus } from '@rivr/db';
+import { LIST_PAGE, useDecideBonus, useListChoices, useWaitingBonusPage, type BonusDecision, type BonusDecisionFailure, type ListChoices, type WaitingBonus } from '@rivr/db';
+import { sum } from '@rivr/domain/money';
 import { formatChips, formatDayTime, formatDuration, t } from '@rivr/i18n';
-import { BulkBar, Button, DataTable, ErrorMessage, Inline, Stack, useToast, type DataTableColumn, type DataTableRequest } from '@rivr/ui';
+import { BulkBar, Button, ConfirmQuestion, DataTable, ErrorMessage, Inline, Stack, useToast, type DataTableColumn, type DataTableRequest } from '@rivr/ui';
 import { useState } from 'react';
 import { RefuseBonus } from './RefuseBonus.tsx';
 
@@ -61,20 +62,81 @@ function stateOf(list: ReturnType<typeof useWaitingBonusPage>) {
   return list.isError ? { status: 'error' as const, onRetry: () => void list.refetch() } : { status: 'loading' as const };
 }
 
-/** Approves the Bonus given, and says what it did: how many and how much, or that another super admin had decided them. */
+/** What an approval did: how many and how much, any frozen member's left waiting, or that another super admin had decided them. */
+function saidOf({ grants, amount, leftWaiting }: BonusDecision): string {
+  if (grants === 0 && leftWaiting === 0) return t('console.promotions.approvals.alreadyDecided');
+  const approved = { count: grants, amount: formatChips(amount) };
+  return leftWaiting === 0 ? t('console.promotions.approvals.approved', approved) : t('console.promotions.approvals.approvedLeft', { ...approved, left: leftWaiting });
+}
+
+/**
+ * Approves the Bonus given and says what it did. The same Bonus keeps one request id until it goes through, so a retry after
+ * a lost reply is the same request, answered with its first try.
+ */
 function useApprove(venueId: string, onDone: () => void) {
   const decide = useDecideBonus(venueId);
   const toast = useToast();
   const [failure, setFailure] = useState<BonusDecisionFailure | null>(null);
+  const [pending, setPending] = useState<{ readonly key: string; readonly requestId: string } | null>(null);
   const approve = async (ids: readonly string[]) => {
-    const outcome = await decide.mutateAsync({ grantIds: ids, requestId: crypto.randomUUID(), refusal: null });
+    const key = ids.join(' ');
+    const requestId = pending?.key === key ? pending.requestId : crypto.randomUUID();
+    setPending({ key, requestId });
+    const outcome = await decide.mutateAsync({ grantIds: ids, requestId, refusal: null });
     setFailure(outcome.ok ? null : outcome.error);
+    // Only a reply lost on the way keeps the request for a retry.
+    if (outcome.ok || outcome.error !== 'unavailable') setPending(null);
     if (!outcome.ok) return;
-    const { grants, amount } = outcome.value;
-    toast(grants === 0 ? t('console.promotions.approvals.alreadyDecided') : t('console.promotions.approvals.approved', { count: grants, amount: formatChips(amount) }));
+    toast(saidOf(outcome.value));
     onDone();
   };
   return { approve, failure, isBusy: decide.isPending };
+}
+
+/** The question before Bonus is approved in bulk, ticked or all shown: how many and how much. One row's Approve asks nothing. */
+function ApproveQuestion({ asking, isBusy, onConfirm, onCancel }: { asking: readonly WaitingBonus[]; isBusy: boolean; onConfirm: () => void; onCancel: () => void }) {
+  const total = formatChips(sum(asking.map((bonus) => bonus.amount)));
+  return (
+    <ConfirmQuestion question={t('console.promotions.approvals.confirmApprove', { count: asking.length, amount: total })}
+      confirm={t('console.promotions.approvals.confirmApproveYes', { count: asking.length })} isBusy={isBusy} onConfirm={onConfirm} onCancel={onCancel} />
+  );
+}
+
+interface QueueActionsProps {
+  venueId: string;
+  shown: readonly WaitingBonus[];
+  ticked: readonly string[];
+  decision: ReturnType<typeof useApprove>;
+  refusing: readonly string[] | null;
+  setRefusing: (ids: readonly string[] | null) => void;
+  onDone: () => void;
+}
+
+/** Over the table: the bar of the ones ticked, Approve all shown, the question before a bulk approval, and the refusal's panel. */
+function QueueActions({ venueId, shown, ticked, decision, refusing, setRefusing, onDone }: QueueActionsProps) {
+  const [asking, setAsking] = useState<readonly WaitingBonus[] | null>(null);
+  const confirm = (bonuses: readonly WaitingBonus[]) => {
+    setAsking(null);
+    void decision.approve(bonuses.map((bonus) => bonus.grantId));
+  };
+  return (
+    <>
+      <BulkBar count={ticked.length} onClear={onDone} actions={[
+        { id: 'approve', label: t('console.promotions.approvals.approve'), onClick: () => setAsking(shown.filter((bonus) => ticked.includes(bonus.grantId))), isMain: true },
+        { id: 'refuse', label: t('console.promotions.approvals.refuse'), onClick: () => setRefusing(ticked) },
+      ]} />
+      {shown.length === 0 ? null : (
+        <Inline justify="end">
+          <Button variant="subtle" size="compact" isLoading={decision.isBusy} onClick={() => setAsking(shown)}>{t('console.promotions.approvals.approveShown')}</Button>
+        </Inline>
+      )}
+      {asking === null || asking.length === 0 ? null : (
+        <ApproveQuestion asking={asking} isBusy={decision.isBusy} onCancel={() => setAsking(null)} onConfirm={() => confirm(asking)} />
+      )}
+      {decision.failure === null ? null : <ErrorMessage>{t(`console.promotions.approvals.failures.${decision.failure}`)}</ErrorMessage>}
+      {refusing === null || refusing.length === 0 ? null : <RefuseBonus venueId={venueId} ids={refusing} onDone={onDone} onCancel={() => setRefusing(null)} />}
+    </>
+  );
 }
 
 /**
@@ -101,19 +163,7 @@ export function BonusApprovals({ venueId, onNavigate, exportIn }: { venueId: str
   const search = { label: t('console.promotions.approvals.search'), variant: 'subtle' as const, text: (bonus: WaitingBonus) => `${bonus.fullName} ${bonus.promotionName}` };
   return (
     <Stack gap={3}>
-      <BulkBar count={ticked.length} onClear={clear} actions={[
-        { id: 'approve', label: t('console.promotions.approvals.approve'), onClick: () => steps.approve(ticked), isMain: true },
-        { id: 'refuse', label: t('console.promotions.approvals.refuse'), onClick: () => setRefusing(ticked) },
-      ]} />
-      {shown.length === 0 ? null : (
-        <Inline justify="end">
-          <Button variant="subtle" size="compact" isLoading={decision.isBusy} onClick={() => steps.approve(shown.map((bonus) => bonus.grantId))}>
-            {t('console.promotions.approvals.approveShown')}
-          </Button>
-        </Inline>
-      )}
-      {decision.failure === null ? null : <ErrorMessage>{t(`console.promotions.approvals.failures.${decision.failure}`)}</ErrorMessage>}
-      {refusing === null || refusing.length === 0 ? null : <RefuseBonus venueId={venueId} ids={refusing} onDone={clear} onCancel={() => setRefusing(null)} />}
+      <QueueActions venueId={venueId} shown={shown} ticked={ticked} decision={decision} refusing={refusing} setRefusing={setRefusing} onDone={clear} />
       <DataTable {...stateOf(list)} label={t('console.promotions.approvals.label')} columns={columnsOf(counted, steps)} rowKey={(bonus) => bonus.grantId}
         filter={search} exportIn={exportIn}
         server={{ total: list.data?.total ?? 0, pageSize: LIST_PAGE, onRequest: setRequest }} exportRows={list.readEvery}

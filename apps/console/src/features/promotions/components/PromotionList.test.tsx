@@ -54,7 +54,7 @@ describe('a high hand on the promotions list (redesign RD-23)', () => {
   function renderHighHand(more: Record<string, unknown> = {}) {
     const onOpen = vi.fn();
     const onLog = vi.fn();
-    const api = renderWithApi(<PromotionList venueId="v1" names={NAMES.names} onOpen={onOpen} tab={undefined} onNavigate={vi.fn()} onLogHighHand={onLog} />,
+    const api = renderWithApi(<PromotionList venueId="v1" names={NAMES.names} onOpen={onOpen} tab={undefined} onNavigate={vi.fn()} onLogHighHand={onLog} canApprove={false} />,
       { '/rpc/promotions_overview': { body: [{ ...HIGH_HAND, ...more }] }, '/rpc/high_hand_tonight': { body: HITS } });
     return { ...api, onOpen, onLog };
   }
@@ -105,7 +105,7 @@ describe('a high hand on the promotions list (redesign RD-23)', () => {
   });
 
   it('offers no Log a high hand to staff who may not log one', async () => {
-    renderWithApi(<PromotionList venueId="v1" names={NAMES.names} onOpen={vi.fn()} tab={undefined} onNavigate={vi.fn()} />,
+    renderWithApi(<PromotionList venueId="v1" names={NAMES.names} onOpen={vi.fn()} tab={undefined} onNavigate={vi.fn()} canApprove={false} />,
       { '/rpc/promotions_overview': { body: [HIGH_HAND] }, '/rpc/high_hand_tonight': { body: [] } });
     fireEvent.click((await rowOf()) ?? document.body);
     const record = within(await screen.findByRole('dialog', { name: 'High hand bonus' }));
@@ -204,10 +204,10 @@ describe('the promotions list (console v3)', () => {
   it('gives a super admin the Bonus waiting for approval its own tab, with how many wait (decision 0670); nobody else', async () => {
     renderList();
     await screen.findByRole('table', { name: 'Promotions' });
-    expect(screen.queryByRole('link', { name: /^Bonus to approve/ })).toBeNull();
+    expect(screen.queryByRole('link', { name: /^To approve/ })).toBeNull();
     resetApi();
     const { onNavigate } = renderList(vi.fn(), undefined, ROWS, true);
-    fireEvent.click(await screen.findByRole('link', { name: 'Bonus to approve 3' }));
+    fireEvent.click(await screen.findByRole('link', { name: 'To approve 3' }));
     expect(onNavigate).toHaveBeenCalledWith('/promotions?tab=bonus');
     resetApi();
     renderList(vi.fn(), 'bonus', ROWS, true);
