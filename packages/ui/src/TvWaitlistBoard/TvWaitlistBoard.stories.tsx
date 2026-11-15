@@ -81,12 +81,12 @@ export const LongText: Story = {
   },
 };
 
-/** A stake with a straddle under a name the club typed, under its table: the name, then its figures (the owner, 15 Nov; redesign RD-17). */
+/** A stake with a straddle, under its table's name: its figures with the straddle (the owner, 15 Nov; redesign RD-17). */
 export const StakeWithAStraddle: Story = {
   args: {
     stakes: [
       { id: 'a', stake: 'Table 1', detail: 'NLH 50/100', places: [{ id: '1', place: '1', name: 'Kabir S.' }] },
-      { id: 'b', stake: 'Private Room', detail: 'Private Room · NLH 100/200/500', places: [{ id: '2', place: '1', name: 'Naina K.' }, { id: '3', place: '2', name: 'Rohan B.', status: 'Away' }] },
+      { id: 'b', stake: 'Private Room', detail: 'NLH 100/200/500', places: [{ id: '2', place: '1', name: 'Naina K.' }, { id: '3', place: '2', name: 'Rohan B.', status: 'Away' }] },
     ],
   },
 };

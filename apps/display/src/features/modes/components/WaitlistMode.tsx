@@ -1,5 +1,5 @@
 import { useTvWaitlistBoard, type TvPlace, type TvTableList } from '@rivr/db';
-import { formatStakeName, t } from '@rivr/i18n';
+import { formatGameStakes, t } from '@rivr/i18n';
 import { TV_WAITLIST_TABLES_SHOWN, TvWaitlistBoard, type TvWaitlistStake } from '@rivr/ui';
 import { BoardStatus } from './BoardStatus.tsx';
 import { usePage } from './usePage.ts';
@@ -12,8 +12,8 @@ function statusText(place: TvPlace): string | undefined {
 
 /** A table's column: its name, its stake (and that it is closed while it is), and its places in order. */
 export function toBoardColumn(table: TvTableList): TvWaitlistStake {
-  // The stake as its name, with the figures once it has a straddle (issue 990).
-  const stake = formatStakeName(table.stake, table);
+  // The heading names the table, so under it the stake's figures alone, with its straddle where it has one (issue 990).
+  const stake = formatGameStakes(table.game, table.smallBlind, table.bigBlind, table.straddle);
   return {
     id: table.tableId, stake: table.name, detail: table.isOpen ? stake : t('tv.waitlist.closed', { stake }),
     places: table.places.map((place) => ({

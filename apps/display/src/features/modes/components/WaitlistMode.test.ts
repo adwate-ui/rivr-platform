@@ -20,11 +20,11 @@ describe('the waitlist board, a list a table (decision 0467)', () => {
     });
   });
 
-  it('writes a stake with its straddle, after a name that is its own (issue 990)', () => {
+  it('writes the stake as its figures under the table\'s name, with its straddle (issue 990)', () => {
     const straddle = fromPaise(50_000n);
     expect(toBoardColumn({ tableId: 't4', name: 'Table 4', ...STAKE, straddle, isOpen: true, places: [] }).detail).toBe('NLH 100/200/500');
     expect(toBoardColumn({ tableId: 'pr', name: 'Private Room', ...STAKE, stake: 'Private Room', straddle, isOpen: false, places: [] }).detail)
-      .toBe('Private Room · NLH 100/200/500 · Closed');
+      .toBe('NLH 100/200/500 · Closed');
   });
 
   it('says a closed table somebody waits for is closed', () => {
