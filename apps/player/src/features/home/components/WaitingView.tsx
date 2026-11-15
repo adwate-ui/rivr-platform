@@ -2,7 +2,7 @@ import { useKycRecord, useWaitlistActions, type WaitlistFailure, type WaitlistPl
 import { formatTime, t } from '@rivr/i18n';
 import { Box, Button, ErrorMessage, Figure, Stack, Text, useIsOnline, useToast } from '@rivr/ui';
 import { useState, type ReactNode } from 'react';
-import { lineOf, WAITLIST_FAILURE_COPY } from './waitlistCopy.ts';
+import { lineOf, stakeOf, WAITLIST_FAILURE_COPY } from './waitlistCopy.ts';
 
 /** Leaving the list, with Undo: back on the same table's list (at its end: a place is not kept). */
 function useLeave(place: WaitlistPlace) {
@@ -28,7 +28,7 @@ export function WaitingView({ place, offer }: { place: WaitlistPlace; offer: Rea
   const isOnline = useIsOnline();
   const kyc = useKycRecord();
   const isDeskFirst = kyc.data?.status === 'started' && kyc.data.isAtTheClub;
-  const eyebrow = t('player.live.list.eyebrow', { table: place.tableName, game: place.tableTypeName });
+  const eyebrow = t('player.live.list.eyebrow', { table: place.tableName, game: stakeOf(place) });
   return (
     <Stack gap={8}>
       <Box paddingX={6} paddingY={8}>

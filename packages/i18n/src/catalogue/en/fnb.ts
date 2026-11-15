@@ -71,10 +71,16 @@ export const consoleFnb = {
   toAccept: 'To accept',
   preparing: 'Being prepared',
   delivered: 'Delivered tonight',
-  laneEmpty: 'Nothing here.',
+  /** The orders as one table (redesign RD-30): its name, search, chips of where orders stand, day, columns and a seat. */
+  orders: {
+    label: 'Orders', search: 'KOT, table, member or item', day: 'Day', none: 'No orders.',
+    stateNames: { toAccept: 'To accept', preparing: 'Being prepared', delivered: 'Delivered', void: 'Void' },
+    states: { open: 'Open', delivered: 'Delivered', void: 'Void', all: 'All' },
+    columns: { kot: 'KOT', age: 'Age', table: 'Table and seat', member: 'Member', order: 'Order', state: 'State' },
+    seat: '{table}, seat {seat}',
+  },
   /** An order's card: `KOT 4`, then where it goes, `Private Room, seat 4 · Lalit Goel`, then its lines. */
   kot: 'KOT {kot}',
-  where: '{table}, seat {seat} · {member}',
   line: '{quantity} × {name}',
   comp: 'Comp',
   /** How long a delivered order took, `{time}`: 6 min. */
@@ -135,6 +141,14 @@ export const consoleFnb = {
   onOffer: 'On offer',
   offMenu: 'Off the menu',
   addItem: 'Add to the menu',
+  /** An item's row, for staff who run F&B (redesign RD-33): its menu, and Delete asked first. */
+  moreForItem: 'More for {name}',
+  deleteItem: 'Delete',
+  deleteItemQuestion: 'Delete {name}? Past orders keep it.',
+  deleteItemConfirm: 'Yes, delete {name}',
+  itemDeleted: '{name} deleted.',
+  itemAdded: '{name} added.',
+  menuFailures: { not_allowed: 'Not yours to change.', paused: 'The club is paused. Nothing changes until it reopens.', unavailable: 'Not saved. Try again.' },
   empty,
   invalidItem: 'A name of 1 to 60 characters, a place from 1 to 999.',
   failures,

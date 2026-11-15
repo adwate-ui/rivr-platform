@@ -22,12 +22,9 @@ test.describe('Website', { tag: '@staging' }, () => {
     await expect(page.getByRole('banner').getByRole('link', { name: 'Request a seat' })).toHaveAttribute('href', /^https:\/\/wa\.me\/\d+\?text=/);
 
     const menu = page.getByRole('navigation', { name: 'Site' });
-    await expect(menu.getByRole('link', { name: 'RIVR Academy' })).toHaveCount(0);
     await menu.getByRole('link', { name: 'Membership' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'RIVR membership' })).toBeVisible();
 
-    // The Academy is off at launch (decision 0308): out of the menu, and its page is not there.
-    expect((await page.request.get(`${appUrl('web')}/academy`)).status()).toBe(404);
   });
 
   test('the cookie banner asks once, and the map loads only once maps are allowed (#616)', async ({ page }) => {
@@ -99,7 +96,7 @@ test.describe('Website', { tag: '@staging' }, () => {
 
   test('a missing page keeps the visitor\'s codes on the way home', async ({ page }) => {
     await page.setViewportSize(VIEWPORT.web);
-    for (const address of ['/careers', '/academy/no-such-page']) {
+    for (const address of ['/careers', '/journal/no-such-page']) {
       const response = await page.goto(`${appUrl('web')}${address}?ref=FRIEND1`);
       expect(response?.status()).toBe(404);
       await expect(page.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible();

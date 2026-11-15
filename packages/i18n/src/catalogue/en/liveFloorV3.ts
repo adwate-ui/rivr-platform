@@ -103,14 +103,14 @@ export const floor = {
     badNumber: 'Not a member number or a mobile.',
     pickSeat: 'Pick a seat.',
     /** Bonus chips the member redeems with their buy-in (decision 0504): their balance once known, else checked as they sit. */
-    bonusChips: 'Bonus chips to redeem',
-    bonusChipsHas: 'Has {chips} bonus chips.',
+    bonusChips: 'Bonus to redeem',
+    bonusChipsHas: 'Has {chips} Bonus.',
     /** With a cap on what one visit redeems (decision 0579). */
-    bonusChipsLeft: 'Has {chips} bonus chips. Up to {left} this visit.',
-    bonusChipsNone: 'No bonus chips.',
+    bonusChipsLeft: 'Has {chips} Bonus. Up to {left} this visit.',
+    bonusChipsNone: 'No Bonus.',
     bonusChipsTyped: 'Up to their balance. Taken off when they sit.',
     badCallTime: 'Type the call time in minutes, 0 to 1,440.',
-    badBonusChips: 'Bonus chips go in whole 50s.',
+    badBonusChips: 'Bonus goes in whole 50s.',
   },
   table: {
     subtitle: '{stake} · {room}',

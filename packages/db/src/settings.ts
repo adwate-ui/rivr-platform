@@ -8,6 +8,7 @@ import type { Json } from './database.types.ts';
 import { toSettingFields, toSettingValue, type SettingField, type SettingValue } from './parse/settings.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 export type { SettingField, SettingValue };
 
@@ -112,10 +113,10 @@ function subjectsOf(known: readonly Subject[], rows: readonly SettingRow[], now:
 
 async function readSettings(client: RivrClient, venueId: string): Promise<VenueSettings> {
   const [keys, rows, types, tiers] = await Promise.all([
-    client.from('setting_key').select('key, description, scope, value_schema').order('key'),
-    client.from('setting').select('id, key, subject, value, effective_from, reason, creator:staff!created_by_staff_id(full_name)').eq('venue_id', venueId),
-    client.from('table_type').select('code, name').eq('venue_id', venueId).order('small_blind_paise').order('name'),
-    client.from('tier').select('id, name').eq('venue_id', venueId).eq('is_retired', false).order('rank'),
+    client.from('setting_key').select('key, description, scope, value_schema').order('key').limit(LIST_MOST),
+    client.from('setting').select('id, key, subject, value, effective_from, reason, creator:staff!created_by_staff_id(full_name)').eq('venue_id', venueId).limit(LIST_MOST),
+    client.from('table_type').select('code, name').eq('venue_id', venueId).order('small_blind_paise').order('name').limit(LIST_MOST),
+    client.from('tier').select('id, name').eq('venue_id', venueId).eq('is_retired', false).order('rank').limit(LIST_MOST),
   ]);
   for (const read of [keys, rows, types, tiers]) if (read.error) throw read.error;
   const tierSubjects = (tiers.data ?? []).map((tier) => ({ subject: tier.id, label: tier.name }));

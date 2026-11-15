@@ -8,7 +8,7 @@ describe('OfferCarousel', () => {
   it('heads the offers with the title and the count, and opens a linked one', async () => {
     const onOpen = vi.fn();
     renderIn(<OfferCarousel title="Tonight" countLabel="2 offers" offers={[
-      { id: 'a', title: 'Referral', offer: '1,000 bonus chips each', schedule: 'Every day', onOpen },
+      { id: 'a', title: 'Referral', offer: '1,000 Bonus each', schedule: 'Every day', onOpen },
       { id: 'b', title: 'Happy hour', offer: '2-for-1 at the Glaza bar' },
     ]} />);
     expect(screen.getByRole('heading', { name: 'Tonight' })).toBeInTheDocument();

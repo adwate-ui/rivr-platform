@@ -34,8 +34,8 @@ export const profile = {
   tournamentStarts: 'Tournaments',
   tournamentStartsHint: 'When a tournament starts, moves or is withdrawn',
   /** Bonus chips added or used (decision 0504). */
-  bonusChips: 'Bonus chips',
-  bonusChipsHint: 'When bonus chips are added or used',
+  bonusChips: 'Bonus',
+  bonusChipsHint: 'When Bonus is added or used',
   marketing: 'Offers',
   marketingHint: 'By WhatsApp and app. Stop any time.',
   /** The cookie banner's analytics choice, changed later (decision 0298). */
@@ -58,7 +58,7 @@ export const profile = {
   deleteAccount: 'Delete my account',
   deleteRequested: 'Requested {date}',
   deleteWhen: 'RIVR erases your account and its data within 7 days, once nothing is open at the club.',
-  deleteForfeit: 'Your bonus chips are forfeited.',
+  deleteForfeit: 'Your Bonus is forfeited.',
   deleteKept: 'Play records the law requires are kept, without your name or number.',
   deleteConfirmed: 'A WhatsApp message confirms it when done.',
   deleteSend: 'Send request',

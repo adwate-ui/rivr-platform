@@ -59,7 +59,7 @@ function renderTab(tab: string | undefined, onNavigate = vi.fn()) {
       if (body.includes('"p_list":"other"')) return Response.json([OTHER]);
       return Response.json(body.includes('p_before') ? [RESOLVED] : resolvedPage);
     }
-    if (url.includes('/rpc/open_feedback')) return Response.json(openRows);
+    if (url.includes('/rpc/feedback_open_page')) return Response.json(openRows);
     if (url.includes('/rpc/resolve_feedback_many')) return resolveResponse(init);
     return Response.json([]);
   });
@@ -115,6 +115,8 @@ describe('Feedback', () => {
     await screen.findByText('Rhea Kaul \u00b7 No. 42', undefined, { timeout: 5000 });
     for (const box of screen.getAllByRole('checkbox').slice(1)) fireEvent.click(box);
     fireEvent.click(screen.getByRole('button', { name: 'Resolve' }));
+    // What was done is typed in the panel at the side (redesign RD-38).
+    expect(screen.getByRole('dialog', { name: 'Resolve 2' })).toBeDefined();
     fireEvent.change(screen.getByRole('textbox', { name: 'What was done' }), { target: { value: 'Called them both' } });
     fireEvent.click(screen.getByRole('button', { name: 'Resolve 2' }));
     await waitFor(() => expect(resolves).toEqual([{ p_feedback_ids: ['f1', 'f2'], p_resolution: 'Called them both' }]));

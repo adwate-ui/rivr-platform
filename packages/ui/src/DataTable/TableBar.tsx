@@ -24,6 +24,7 @@ export interface BarProps<Row> {
   readonly totalRow?: Row | undefined;
   readonly exportIn?: HTMLElement | null | undefined;
   readonly server?: DataTableServer | undefined;
+  readonly exportRows?: (() => Promise<readonly Row[]>) | undefined;
 }
 
 /** What the bar holds: the words searched, and the column filters in force. */
@@ -51,15 +52,26 @@ function filtersInForce<Row>(props: BarProps<Row>, { query, on, filters }: BarSt
 const exportOnly = <Row,>(column: DataTableExportColumn<Row>) => ({ ...column, cell: () => null });
 
 /**
+ * How many rows an export would hold: the rows shown, or in server mode every row the view leaves, where the screen
+ * reads them (`every`: how many, and the read); none where it does not.
+ */
+function exportedRows<Row>(props: BarProps<Row>, visible: readonly Row[]) {
+  if (props.server === undefined) return { count: visible.length, every: undefined };
+  if (props.exportRows === undefined) return { count: 0, every: undefined };
+  return { count: props.server.total, every: { count: props.server.total, rows: props.exportRows } };
+}
+
+/**
  * The Export control for the rows as shown, beneath a DataTableExportProvider and once there are rows: `here`, at the
- * table's top right, or `elsewhere`, drawn in the element `exportIn` names. None in server mode, where the rows shown
- * are one page of the list: an export of every row is the screen's own.
+ * table's top right, or `elsewhere`, drawn in the element `exportIn` names. In server mode the rows shown are one page of
+ * the list, so there is an Export only where the screen reads every row the view leaves (`exportRows`).
  */
 function useExportPlaced<Row>(props: BarProps<Row>, visible: readonly Row[], state: BarState<Row>) {
   const exporter = useTableExporter();
-  const menu = exporter === null || visible.length === 0 || props.server !== undefined ? null
+  const { count, every } = exportedRows(props, visible);
+  const menu = exporter === null || count === 0 ? null
     : <ExportBar isInBar={props.exportIn === undefined} exporter={exporter} label={props.label} columns={[...props.columns, ...(props.exportColumns ?? []).map(exportOnly)]} rows={props.totalRow === undefined ? visible : [...visible, props.totalRow]}
-        filter={filtersInForce(props, state)} />;
+        filter={filtersInForce(props, state)} every={every} />;
   const target = props.exportIn;
   if (target === undefined) return { here: menu, elsewhere: null };
   return { here: null, elsewhere: menu === null || target === null ? null : createPortal(menu, target) };

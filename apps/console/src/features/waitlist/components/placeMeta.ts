@@ -3,7 +3,7 @@ import { isPlaceLate } from '@rivr/domain/floorRequests';
 import { formatDuration, formatGameStakes, formatTime, t } from '@rivr/i18n';
 
 /** What to know about a place after how long it has waited: its ID check, its call, why it is ahead, who added it, that it is held. */
-function notesOf(entry: WaitlistBoardEntry): string[] {
+function notesOf(entry: WaitlistBoardEntry, byFloor: string = t('console.waitlist.card.addedByFloor')): string[] {
   const notes: string[] = [];
   // First, as the floor must act on it before seating them (decision 0503).
   if (entry.needsIdCheck) notes.push(t('console.waitlist.card.idCheckNeeded'));
@@ -12,7 +12,7 @@ function notesOf(entry: WaitlistBoardEntry): string[] {
     notes.push(t('console.waitlist.card.calledTo', { seat: entry.callSeat ?? 0, time: formatTime(new Date(entry.holdUntil)) }));
   }
   if (entry.priorityReason !== null) notes.push(entry.priorityReason);
-  if (entry.addedByFloor) notes.push(t('console.waitlist.card.addedByFloor'));
+  if (entry.addedByFloor) notes.push(byFloor);
   // The called member said "I'm on my way" from the app (decision 0321).
   if (entry.onWayAt !== null) notes.push(t('console.waitlist.card.onTheWay'));
   if (entry.awayUntil !== null) notes.push(t('console.waitlist.card.placeHeld'));
@@ -20,7 +20,7 @@ function notesOf(entry: WaitlistBoardEntry): string[] {
 }
 
 /** How long a place has waited, in seconds. */
-const waitedSeconds = (entry: WaitlistBoardEntry, now: Date) => (now.getTime() - new Date(entry.joinedAt).getTime()) / 1000;
+export const waitedSeconds = (entry: WaitlistBoardEntry, now: Date) => (now.getTime() - new Date(entry.joinedAt).getTime()) / 1000;
 
 /**
  * Whether a place waits past the list's target (audit F-075): not one called or held, whose hold runs its own clock, nor
@@ -39,6 +39,21 @@ export function placeMeta(entry: WaitlistBoardEntry, now: Date, context: { isTab
   // A place called has a seat held for it: nowhere else to point it.
   const room = context.roomAt === null || entry.holdUntil !== null ? [] : [t('console.waitlist.card.roomElsewhere', { table: context.roomAt.name, count: context.roomAt.openSeats ?? 0 })];
   return [waited, ...notesOf(entry), ...room].join(' · ');
+}
+
+/**
+ * What to know about a place beside how long it has waited (redesign RD-31, the table's Notes column): its ID check, a
+ * call, why it is ahead, who added it, that it is held, and where else its stake has room when its own table has none
+ * (audit F-036). For staff with no Check ID of their own (a cashier), who to ask (audit F-014). A dash with nothing to say.
+ */
+export function placeNotes(entry: WaitlistBoardEntry, context: { roomAt: FloorTable | null; hasOwnCheck: boolean }): string {
+  // A place called has a seat held for it: nowhere else to point it.
+  const room = context.roomAt === null || entry.holdUntil !== null ? [] : [t('console.waitlist.card.roomElsewhere', { table: context.roomAt.name, count: context.roomAt.openSeats ?? 0 })];
+  const notes = [...notesOf(entry, t('console.waitlist.table.byFloor')), ...room].join(' · ');
+  // A column's words start with a capital, whichever note comes first.
+  const line = notes.charAt(0).toUpperCase() + notes.slice(1);
+  if (entry.needsIdCheck && !context.hasOwnCheck) return t('console.waitlist.metaIdAtDesk', { meta: line });
+  return line === '' ? t('console.waitlist.table.none') : line;
 }
 
 /** A table's stake as everyone writes it: "NLH 100/200", "NLH 100/200/500" with a straddle (audit F-122). */

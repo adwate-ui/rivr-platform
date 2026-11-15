@@ -36,7 +36,7 @@ async function sendOne(eventType: string, payload: unknown) {
 }
 
 describe('the push consumer', () => {
-  it('is a messaging consumer of seat calls, call time, session reminders, withdrawals, tournaments, promotion offers and bonus chips', () => {
+  it('is a messaging consumer of seat calls, call time, session reminders, withdrawals, tournaments, promotion offers and Bonus', () => {
     const consumer = createPushConsumer({ push: createFakePush(), ...members([]), now });
     expect([consumer.name, consumer.isMessaging, consumer.eventTypes]).toEqual([
       'push', true, ['waitlist.called', 'call_time.ending', 'call_time.completed', 'session.reminder', 'withdrawal.sent', 'tournament.starting', 'promotion.offered',
@@ -70,15 +70,15 @@ describe('the push consumer', () => {
     expect((await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'seat_released', params: ['a*b', '4'] }))).ok).toBe(true);
   });
 
-  it('tells the member of bonus chips added and used, under the Bonus chips switch, opening Bonus (decision 0504)', async () => {
+  it('tells the member of Bonus added and used, under the Bonus switch, opening Bonus (decision 0504)', async () => {
     expect(await sendOne('bonus.credited', { member_id: MEMBER, bonus_grant_id: OTHER, amount_paise: 50_000, reason: 'Welcome bonus' })).toEqual({
       outcome: { ok: true, value: null }, asked: ['push.bonus'],
-      sent: [{ title: 'Bonus chips added', body: '500 bonus chips · Welcome bonus', url: '/bonus', tag: `bonus-${OTHER}` }],
+      sent: [{ title: 'Bonus added', body: '500 Bonus · Welcome bonus', url: '/bonus', tag: `bonus-${OTHER}` }],
     });
     const redeemed = { member_id: MEMBER, bonus_redemption_id: OTHER, amount_paise: 100_000, table_id: SESSION, table_name: 'Table 3' };
     expect(await sendOne('bonus.redeemed', redeemed)).toEqual({
       outcome: { ok: true, value: null }, asked: ['push.bonus'],
-      sent: [{ title: 'Bonus chips used', body: '1,000 bonus chips with your buy-in at Table 3.', url: '/bonus', tag: `bonus-used-${OTHER}` }],
+      sent: [{ title: 'Bonus used', body: '1,000 Bonus with your buy-in at Table 3.', url: '/bonus', tag: `bonus-used-${OTHER}` }],
     });
     expect((await sendOne('bonus.redeemed', { ...redeemed, amount_paise: 1_000 })).outcome)
       .toEqual({ ok: false, error: { code: 'rejected', reason: 'bonus.redeemed payload is not readable' } });
@@ -137,10 +137,10 @@ describe('the push consumer', () => {
       outcome: { ok: true, value: null }, asked: ['push.tournament_starting'],
       sent: [{ title: 'RIVR Sunday is starting', body: 'The clock has started. Take your seat.', url: '/', tag: `tournament-${OTHER}` }],
     });
-    const offer = { member_id: MEMBER, promotion_id: OTHER, title: 'Double points', detail: '2x points on every hour', runs: 'Tonight' };
+    const offer = { member_id: MEMBER, promotion_id: OTHER, title: 'Thursday bonus', detail: '500 Bonus after two hours', runs: 'Tonight' };
     expect(await sendOne('promotion.offered', offer)).toEqual({
       outcome: { ok: true, value: null }, asked: [`push.promotion_published for ${OTHER}`],
-      sent: [{ title: 'Double points', body: '2x points on every hour · Tonight', url: '/', tag: `promotion-${OTHER}` }],
+      sent: [{ title: 'Thursday bonus', body: '500 Bonus after two hours · Tonight', url: '/', tag: `promotion-${OTHER}` }],
     });
   });
 

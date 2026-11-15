@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatChips, formatMoney, formatNumber, formatRupeesForFile, formatRupeesForInput, formatStakes } from './money.ts';
+import { formatChips, formatGameStakes, formatMoney, formatNumber, formatRupeesForFile, formatRupeesForInput, formatStakeName, formatStakes } from './money.ts';
 
 describe('formatMoney', () => {
   it.each([
@@ -58,9 +58,52 @@ describe('formatStakes', () => {
   });
 });
 
+describe('formatStakeName (issue 990)', () => {
+  const STAKE = { game: 'nlh', smallBlind: 10_000n, bigBlind: 20_000n };
+
+  it('is the name as typed while the stake has no straddle', () => {
+    expect(formatStakeName('Private Room', { ...STAKE, straddle: null })).toBe('Private Room');
+    expect(formatStakeName('NLH 100/200', { ...STAKE, straddle: null })).toBe('NLH 100/200');
+  });
+
+  it('writes the figures with the straddle in place of a name that is only the figures', () => {
+    expect(formatStakeName('NLH 100/200', { ...STAKE, straddle: 50_000n })).toBe('NLH 100/200/500');
+    expect(formatStakeName(' nlh  100/200 ', { ...STAKE, straddle: 50_000n })).toBe('NLH 100/200/500');
+    expect(formatStakeName('100/200', { ...STAKE, straddle: 50_000n })).toBe('NLH 100/200/500');
+  });
+
+  it('writes the figures once for a name that already has the straddle, or groups its figures another way', () => {
+    expect(formatStakeName('NLH 100/200/500', { ...STAKE, straddle: 50_000n })).toBe('NLH 100/200/500');
+    expect(formatStakeName(' Nlh 100 / 200 / 500 ', { ...STAKE, straddle: 50_000n })).toBe('NLH 100/200/500');
+    expect(formatStakeName('100/200/500', { ...STAKE, straddle: 50_000n })).toBe('NLH 100/200/500');
+    // The money review's case: the name typed without the grouping comma the figures are written with.
+    const big = { game: 'nlh', smallBlind: 1_00_000n, bigBlind: 2_00_000n, straddle: 5_00_000n };
+    expect(formatStakeName('NLH 1000/2000', big)).toBe('NLH 1,000/2,000/5,000');
+    expect(formatStakeName('nlh 1000/2000/5000', big)).toBe('NLH 1,000/2,000/5,000');
+  });
+
+  it('writes a stake that names no game as its figures alone, or with the game its name writes', () => {
+    // Production's one straddled stake, 15 Nov: named "100/200/500", no game, 100/200 with a 500 straddle.
+    const noGame = { game: null, smallBlind: 10_000n, bigBlind: 20_000n, straddle: 50_000n };
+    expect(formatStakeName('100/200/500', noGame)).toBe('100/200/500');
+    expect(formatStakeName('100/200', noGame)).toBe('100/200/500');
+    expect(formatStakeName('NLH 100/200/500', noGame)).toBe('NLH 100/200/500');
+    expect(formatStakeName('Private Room', noGame)).toBe('Private Room · 100/200/500');
+    expect(formatStakeName('100/200/500', { ...noGame, straddle: null })).toBe('100/200/500');
+    expect(formatGameStakes(null, 10_000n, 20_000n, 50_000n)).toBe('100/200/500');
+    expect(formatGameStakes('plo', 10_000n, 20_000n)).toBe('PLO 100/200');
+  });
+
+  it('writes them after any other name', () => {
+    expect(formatStakeName('Private Room', { ...STAKE, straddle: 50_000n })).toBe('Private Room · NLH 100/200/500');
+    expect(formatStakeName('PLO 100/200', { ...STAKE, straddle: 50_000n })).toBe('PLO 100/200 · NLH 100/200/500');
+    expect(formatStakeName('Private Room 100/200/500', { ...STAKE, straddle: 50_000n })).toBe('Private Room 100/200/500 · NLH 100/200/500');
+  });
+});
+
 
 describe('formatNumber', () => {
-  it('groups points the Indian way', () => {
+  it('groups a count the Indian way', () => {
     expect(formatNumber(18_420)).toBe('18,420');
     expect(formatNumber(1_234_567n)).toBe('12,34,567');
   });

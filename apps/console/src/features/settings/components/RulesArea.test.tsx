@@ -60,7 +60,7 @@ describe('a tab of Settings in its groups (redesign RD-18)', () => {
     ] });
     expect(await screen.findByText('Super admin', {}, { timeout: 5000 })).toBeDefined();
     expect(screen.queryByRole('button', { name: /^Change / })).toBeNull();
-    const panel = await openPanel('Daily bonus chips limit', 'History of');
+    const panel = await openPanel('Daily Bonus limit', 'History of');
     expect(panel.getByRole('heading', { name: 'In force' }).nextElementSibling?.textContent).toMatch(/^10,000 · Since .* · by Leela Menon · Opening$/);
     expect(panel.getByText(/^From .*, 18:00: 20,000$/)).toBeDefined();
     expect(panel.getByRole('heading', { name: 'Before' })).toBeDefined();
@@ -71,7 +71,7 @@ describe('a tab of Settings in its groups (redesign RD-18)', () => {
 
   it('gives a super admin Change on the same setting', async () => {
     renderArea('members', { isSuperAdmin: true });
-    expect(await screen.findByRole('button', { name: 'Change Daily bonus chips limit' }, { timeout: 5000 })).toBeDefined();
+    expect(await screen.findByRole('button', { name: 'Change Daily Bonus limit' }, { timeout: 5000 })).toBeDefined();
     expect(screen.queryByRole('button', { name: /^History of/ })).toBeNull();
   });
 });
@@ -104,7 +104,7 @@ describe('a setting changed in the panel on the right (redesign RD-18)', () => {
 
   it('says Not set in the panel only where a rule has no default, and what a value means under its field (audit F-031)', async () => {
     renderArea('members', { isSuperAdmin: true });
-    const panel = await openPanel('Daily bonus chips limit');
+    const panel = await openPanel('Daily Bonus limit');
     expect(panel.getByRole('heading', { name: 'In force' }).nextElementSibling?.textContent).toBe('Not set');
     expect(panel.getByText(/Super admins have no limit\. No limit unless set\.$/)).toBeDefined();
   });

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 import { failureOf, type WaitlistFailure } from './waitlist.ts';
+import { LIST_MOST } from './limits.ts';
 
 // Read as often as the floor's tables, which the seat map sits beside.
 const LIVE = 10_000;
@@ -18,7 +19,7 @@ export function useFloorTakenSeats() {
     enabled: userId !== null,
     refetchInterval: LIVE,
     queryFn: async (): Promise<ReadonlyMap<string, readonly number[]>> => {
-      const { data, error } = await client.rpc('floor_taken_seats');
+      const { data, error } = await client.rpc('floor_taken_seats').limit(LIST_MOST);
       if (error) throw error;
       const taken = new Map<string, number[]>();
       for (const row of data) taken.set(row.table_id, [...(taken.get(row.table_id) ?? []), row.seat]);

@@ -14,11 +14,22 @@ describe('the console rail (console v3)', () => {
     expect(items.find((item) => item.id === 'feedback')?.countLabel).toBe('183 open tickets');
   });
 
+  it('shows guest relations top-up requests and nothing else, which is where they land (redesign RD-32)', () => {
+    const rail = railFor(ROLE_PERMISSIONS.guest_relations, { topUps: 2, waitlist: 4 });
+    expect(rail.map((section) => section.items.map((item) => [item.label, item.count]))).toEqual([[['Top-ups', 2]]]);
+    expect(landingFor(rail)?.href).toBe('/top-ups');
+    expect(isAllowedAt(ROLE_PERMISSIONS.guest_relations, '/top-ups')).toBe(true);
+    for (const elsewhere of ['/', '/requests', '/waitlist', '/door', '/members', '/fnb', '/staff', '/settings']) expect(isAllowedAt(ROLE_PERMISSIONS.guest_relations, elsewhere)).toBe(false);
+    expect(phoneTabsFor(ROLE_PERMISSIONS.guest_relations)).toEqual([]);
+    // The floor, who have top-ups among their Requests, get no second entry for them.
+    expect(railFor(ROLE_PERMISSIONS.floor).flatMap((section) => section.items.map((item) => item.label))).not.toContain('Top-ups');
+  });
+
   it('runs Tonight, Players and Marketing, then Admin folded, for a super admin', () => {
     const rail = railFor(ROLE_PERMISSIONS.super_admin);
     expect(rail.map((section) => section.label)).toEqual(['Tonight', 'Players', 'Marketing', 'Admin']);
     expect(rail.map((section) => section.items.map((item) => item.label))).toEqual([
-      ['Live floor', 'Waitlist', 'Door', 'Food and drink'],
+      ['Live floor', 'Waitlist', 'Door', 'Food and drink', 'Top-ups'],
       ['Members', 'ID checks', 'Feedback'],
       ['Promotions', 'Content'],
       ['Tables', 'Staff', 'Reports', 'Settings', 'Activity'],

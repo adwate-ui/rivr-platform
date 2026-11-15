@@ -5,6 +5,9 @@ export const kycReview = {
   empty: 'No checks waiting for review.',
   /** The queue down the left (console v3), read as its name; then its groups, each with its count. */
   queue: 'Checks',
+  /** The queue's search, by name (redesign RD-30), and its one line when nothing matches. */
+  queueSearch: 'Find by name',
+  noneFound: 'No check matches.',
   waiting: 'To review',
   /** Checks that wait for the member, for a PAN: nothing for a reviewer to decide yet (C-06). */
   onMember: 'Waiting on the member',

@@ -17,8 +17,11 @@ export const checkIn = {
   /** `{number}` is the member number. */
   memberMeta: 'No. {number} · {tier}',
   memberNumber: 'No. {number}',
-  noneExpected: 'No one expected.',
-  noneInRoom: 'No one in the room yet.',
+  /** The door as one table (redesign RD-30): its name, its chips as a group, the third chip, and its one line when a chip holds nobody. */
+  doorLabel: 'At the door today',
+  lists: 'List',
+  left: 'Left',
+  noneOnList: 'No one on this list.',
   notAllowed: 'Not in your role. Ask an admin.',
   noMember: 'No member has that number. Sign them up first.',
   /** After a check-in by number: the field is empty again, so this says it went through. */

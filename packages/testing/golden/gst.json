@@ -3,7 +3,7 @@
   "about": "GST included in an amount (#23; decision 0071). What the club collects already includes GST, so the tax is taken out of it, never added on. Each half of the tax (CGST and SGST, always equal) is the amount times half the rate over one plus the rate, rounded to the nearest paisa, a half paisa up. The taxable value is what is left, so taxable, CGST and SGST always add up to the amount. Rates are in basis points: 1800 is 18%. For a buyer registered in another state (igst_included; #380, decision 0102) the tax is IGST, one figure at the full rate: the amount times the rate over one plus the rate, rounded once to the nearest paisa, a half up, with the taxable value the rest.",
   "cases": [
     {
-      "description": "An Academy seat of ₹2,000 at 18%: each half is ₹152.542..., so ₹152.54, and ₹1,694.92 is taxable.",
+      "description": "A fee of ₹2,000 at 18%: each half is ₹152.542..., so ₹152.54, and ₹1,694.92 is taxable.",
       "operation": "gst_included",
       "inputs": { "inclusive": "₹2,000", "rate": "1800" },
       "expected": { "taxable": "₹1,694.92", "cgst": "₹152.54", "sgst": "₹152.54" }

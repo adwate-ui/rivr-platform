@@ -11,11 +11,12 @@ import { useEffect, useState } from 'react';
 import { Controller, useForm, type Control, type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 
-// The name as on Aadhaar and the city in English letters, as the database requires; one occupation, when they usually play
+// The name as on Aadhaar, in English letters, and the city, which also takes digits and commas (issue 1006: "Sector 65",
+// "Gurugram, Haryana") but starts with a letter or digit, both as the database requires; one occupation, when they usually play
 // (any, #631) and any games (#653); a friend's referral code, optional (the owner, 9 Nov), as a link's code may be.
 const signUpForm = z.object({
   fullName: z.string().trim().min(2).max(100).regex(/^[A-Za-z][A-Za-z .'-]*$/),
-  city: z.string().trim().min(2).max(60).regex(/^[A-Za-z][A-Za-z .'-]*$/),
+  city: z.string().trim().min(2).max(60).regex(/^[A-Za-z0-9][A-Za-z0-9 .,'-]*$/),
   occupation: z.enum(OCCUPATIONS),
   playTimes: z.array(z.enum(PLAY_TIMES)),
   gamesPlayed: z.array(z.enum(GAMES_PLAYED)),
@@ -74,7 +75,7 @@ function SignUpFields({ form }: { form: Form }) {
   return (
     <Stack gap={8}>
       <Stack gap={3}>
-        <Input {...nameField} variant="inset" label={t('player.signUp.nameLabel')} placeholder={t('player.signUp.namePlaceholder')}
+        <Input {...nameField} variant="inset" label={t('player.signUp.nameLabel')} placeholder={t('player.signUp.namePlaceholder')} hint={t('player.signUp.nameHint')}
           autoComplete="name" maxLength={100} error={errors.fullName ? t('player.signUp.nameInvalid') : undefined} />
         <Input {...cityField} variant="inset" label={t('player.signUp.cityLabel')} placeholder={t('player.signUp.cityPlaceholder')}
           autoComplete="address-level2" maxLength={60} error={errors.city ? t('player.signUp.cityInvalid') : undefined} />

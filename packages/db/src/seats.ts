@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import type { TopUp } from './mySeat.ts';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** Who sits where (#77): a seated player's session, table and seat, since when they play, and their must-move turn. */
 export interface SeatedPlayer {
@@ -82,7 +83,7 @@ export function useFloorSeats(venueId: string, isEnabled = true) {
     enabled: userId !== null && isEnabled,
     refetchInterval: LIVE,
     queryFn: async (): Promise<SeatedPlayer[]> => {
-      const { data, error } = await client.rpc('floor_seats', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('floor_seats', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         sessionId: row.session_id, tableId: row.table_id, seat: row.seat, memberId: row.member_id, fullName: row.full_name,
@@ -103,7 +104,7 @@ export function useHeldSeats(venueId: string) {
     enabled: userId !== null,
     refetchInterval: LIVE,
     queryFn: async (): Promise<HeldSeat[]> => {
-      const { data, error } = await client.rpc('held_seats', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('held_seats', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({ tableId: row.table_id, seat: row.seat, fullName: row.full_name, entryId: row.entry_id }));
     },
@@ -127,7 +128,7 @@ export function useLeftOwingCallTime(venueId: string) {
     enabled: userId !== null,
     refetchInterval: LIVE,
     queryFn: async (): Promise<LeftOwing[]> => {
-      const { data, error } = await client.rpc('left_owing_call_time', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('left_owing_call_time', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({ memberId: row.member_id, fullName: row.full_name, tableName: row.table_name, owed: row.owed_seconds }));
     },
@@ -143,7 +144,7 @@ function useSeatSettle(venueId: string) {
     // Tonight's top-ups too, so Top-ups moves on as soon as the floor starts or finishes one (decision 0299), and the rail's
     // counts, so a time request decided leaves its red count at once (decision 0305).
     const reread = [queryKeys.floorSeats(user, venueId), queryKeys.heldSeats(user, venueId), queryKeys.leftOwingCallTime(user, venueId), queryKeys.floorTables(user),
-      queryKeys.topUpsTonight(user, venueId), queryKeys.staffQueueCounts(user, venueId), queryKeys.floorRequests(user, venueId)];
+      queryKeys.topUpsTonight(user, venueId), queryKeys.topUpHistoryAll(user, venueId), queryKeys.staffQueueCounts(user, venueId), queryKeys.floorRequests(user, venueId)];
     await Promise.all(reread.map((queryKey) => queryClient.invalidateQueries({ queryKey })));
     return error ? err(codes[error.code] ?? 'unavailable') : ok(null);
   };

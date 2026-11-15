@@ -14,7 +14,7 @@ const PAGE = {
     { kind: 'hero' as const, content: { heading: 'RIVR Poker Club', text: 'Opens Sunday 15 November.', action: { label: 'Join RIVR', to: 'sign-up' as const } } },
     { kind: 'text' as const, content: { heading: "A members' club", body: 'Cash games every night.' } },
   ],
-  navigation: [{ slug: 'academy', title: 'RIVR Academy' }],
+  navigation: [{ slug: 'tournaments', title: 'Tournaments' }],
   games: [],
   tournaments: [], promotions: [],
   rules: { rakebackBasisPoints: [], cabVisits: null },
@@ -38,7 +38,7 @@ describe('a website page', () => {
     expect(screen.getAllByRole('link', { name: 'Member app' })[0]?.getAttribute('href')).toBe('https://player.invalid/?ref=FRIEND1&utm_source=instagram');
   });
 
-  it('has grandpokerarena.com’s menu, top bar, footer columns and cookie banner, and no Academy in the menu', () => {
+  it('has grandpokerarena.com’s menu, top bar, footer columns and cookie banner, and no page of its own in the menu', () => {
     render(<SitePage page={PAGE} playerUrl="https://player.invalid" attribution={null} contact={CONTACT} />);
     const menu = screen.getByRole('navigation', { name: 'Site' });
     // On a phone the member app leads the links and the header's action ends them; from a tablet up they sit in the top

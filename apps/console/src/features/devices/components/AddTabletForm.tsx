@@ -2,8 +2,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { dealerTabletAddSchema } from '@rivr/contracts';
 import { useDeviceActions, type DeviceFailure, type PairingCode } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Input, Stack, StatusMessage, Text } from '@rivr/ui';
-import { useId, useState } from 'react';
+import { Button, ErrorMessage, Inline, Input, Sheet, Stack, useToast } from '@rivr/ui';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import { DEVICE_FAILURE_COPY } from './failureCopy.ts';
@@ -15,42 +15,50 @@ interface AddTabletFormProps {
 }
 
 /**
- * Adds a dealer tablet by name and starts pairing it: the code shows
- * on its row. Added but not paired (a dropped connection, say), the form says so: New pairing code on
- * its row pairs it.
+ * Adds a dealer tablet by name and starts pairing it, in the panel at the side (redesign RD-38): the code shows on its
+ * row. Added but not paired (a dropped connection, say), a toast says so: New pairing code on its row pairs it.
  */
-export function AddTabletForm({ venueId, onCode }: AddTabletFormProps) {
+function AddTabletSheet({ venueId, onCode, onClose }: AddTabletFormProps & { onClose: () => void }) {
   const { add } = useDeviceActions(venueId);
+  const toast = useToast();
   const [failure, setFailure] = useState<DeviceFailure | null>(null);
-  const [isAddedWithoutCode, setIsAddedWithoutCode] = useState(false);
   const [resolver] = useState(() => zodResolver(dealerTabletAddSchema));
-  const form = useForm<z.input<typeof dealerTabletAddSchema>, unknown, z.output<typeof dealerTabletAddSchema>>({
-    resolver, defaultValues: { name: '' },
-  });
+  const form = useForm<z.input<typeof dealerTabletAddSchema>, unknown, z.output<typeof dealerTabletAddSchema>>({ resolver, defaultValues: { name: '' } });
   const submit = form.handleSubmit(async ({ name }) => {
     const added = await add.mutateAsync({ name });
     setFailure(added.ok ? null : added.error);
-    setIsAddedWithoutCode(added.ok && added.value === null);
     if (!added.ok) return;
-    form.reset();
-    if (added.value !== null) onCode(added.value);
+    if (added.value === null) toast(t('console.tablets.addedWithoutCode'));
+    else onCode(added.value);
+    onClose();
   });
   const nameField = form.register('name');
-  // The hint, or what is wrong, sits under the row and is read with the field.
-  const noteId = useId();
-  const isWrong = form.formState.errors.name !== undefined;
+  const footer = (
+    <Inline gap={2} justify="end">
+      <Button variant="text" size="compact" onClick={onClose}>{t('common.cancel')}</Button>
+      <Button variant="primary" size="compact" isLoading={add.isPending} onClick={() => void submit()}>{t('console.tablets.add')}</Button>
+    </Inline>
+  );
   return (
-    <Stack gap={2}>
-      <Heading level={3}>{t('console.tablets.addTitle')}</Heading>
-      {/* The console's field beside its button (console v3): one height, level at their foot; the hint under them both. */}
-      <Inline gap={3} align="end" wrap>
-        <Input {...nameField} variant="subtle" label={t('console.tablets.name')} autoComplete="off" aria-describedby={noteId} aria-invalid={isWrong || undefined} />
-        <Button variant="primary" size="compact" isLoading={add.isPending} onClick={() => void submit()}>{t('console.tablets.add')}</Button>
-      </Inline>
-      {isWrong ? <ErrorMessage id={noteId}>{t('console.tablets.invalidName')}</ErrorMessage>
-        : <Text id={noteId} variant="small" tone="muted">{t('console.tablets.nameHint')}</Text>}
-      <StatusMessage>{isAddedWithoutCode ? t('console.tablets.addedWithoutCode') : null}</StatusMessage>
-      {failure === null ? null : <ErrorMessage>{t(DEVICE_FAILURE_COPY[failure])}</ErrorMessage>}
-    </Stack>
+    <Sheet place="console" isOpen onClose={onClose} footer={footer} title={t('console.tablets.addTitle')}>
+      <Stack gap={3}>
+        <Input {...nameField} label={t('console.tablets.name')} hint={t('console.tablets.nameHint')} autoComplete="off"
+          error={form.formState.errors.name ? t('console.tablets.invalidName') : undefined}
+          onKeyDown={(event) => { if (event.key === 'Enter') void submit(); }} />
+        {failure === null ? null : <ErrorMessage>{t(DEVICE_FAILURE_COPY[failure])}</ErrorMessage>}
+      </Stack>
+    </Sheet>
+  );
+}
+
+/** Add a tablet, in the tablets' title row: it opens the panel, a fresh one each time. */
+export function AddTabletForm(props: AddTabletFormProps) {
+  const [opened, setOpened] = useState(0);
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <>
+      <Button variant="primary" size="compact" onClick={() => { setOpened(opened + 1); setIsOpen(true); }}>{t('console.tablets.addTitle')}</Button>
+      {isOpen ? <AddTabletSheet key={opened} {...props} onClose={() => setIsOpen(false)} /> : null}
+    </>
   );
 }

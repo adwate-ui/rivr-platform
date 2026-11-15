@@ -7,9 +7,9 @@ export function sessionTitle(session: MySession): string {
   return session.tableName;
 }
 
-/** A cash session's stakes, `100/200`, under its table in the list (F-211); a tournament's place is in its line already. */
+/** A cash session's stakes, `100/200` or `100/200/500` with a straddle, under its table in the list (F-211); a tournament's place is in its line already. */
 export function sessionStakes(session: MySession): string | undefined {
-  return session.kind === 'cash' ? formatStakes(session.smallBlind, session.bigBlind) : undefined;
+  return session.kind === 'cash' ? formatStakes(session.smallBlind, session.bigBlind, session.straddle) : undefined;
 }
 
 /** A session's line under its name: how long, `6 h 30 min`, and for a tournament (#549) its place in the field first. */

@@ -16,3 +16,8 @@ export const Default: Story = {};
 export const JoinSheet: Story = {
   args: { size: 'medium', stats: [{ label: 'Seats open', value: '3 of 9' }, { label: 'Waiting', value: 'None' }, { label: 'Call time', value: '3 h' }] },
 };
+
+/** A report's four figures on the console (redesign RD-27). */
+export const Four: Story = {
+  args: { stats: [{ label: 'Orders', value: '212' }, { label: 'Items', value: '318' }, { label: 'To accept', value: '2 min' }, { label: 'To serve', value: '9 min' }] },
+};

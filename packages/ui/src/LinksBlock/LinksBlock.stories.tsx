@@ -9,7 +9,7 @@ const meta = {
   args: {
     links: [
       { label: 'Join the waitlist', href: '#waitlist' },
-      { label: 'Book RIVR Academy', href: '#academy' },
+      { label: 'See the tournaments', href: '#tournaments' },
       { label: 'Join RIVR', href: '#sign-up' },
     ],
   },

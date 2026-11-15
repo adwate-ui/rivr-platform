@@ -1,4 +1,5 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, StaffVenueProvider } from '@rivr/db';
+import { ToastProvider } from '@rivr/ui';
 import { QueryClient } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -32,7 +33,7 @@ function renderPins() {
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <StaffVenueProvider><DealerPinsSection /></StaffVenueProvider>
+      <ToastProvider place="console"><StaffVenueProvider><DealerPinsSection /></StaffVenueProvider></ToastProvider>
     </RivrDataProvider>,
   );
   return sent;
@@ -58,13 +59,15 @@ describe('Dealer PINs as a table (console v3)', () => {
     expect(screen.queryByLabelText('New PIN for Bhavna Rawat')).toBeNull();
   });
 
-  it('opens one dealer’s PIN under their row, and sets it there', async () => {
+  it('opens one dealer’s PIN in the panel at the side, sets it there, says so and closes (redesign RD-38)', async () => {
     const sent = renderPins();
     fireEvent.click(await screen.findByRole('button', { name: 'Set PIN for Bhavna Rawat' }, { timeout: 5000 }));
+    expect(screen.getByRole('dialog', { name: 'Set PIN for Bhavna Rawat' })).toBeDefined();
     expect(screen.queryByLabelText('New PIN for Manoj Thapa')).toBeNull();
     fireEvent.change(screen.getByLabelText('New PIN for Bhavna Rawat'), { target: { value: '4826' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save PIN for Bhavna Rawat' }));
     await waitFor(() => expect(sent).toEqual([{ p_staff_id: 'd1', p_pin: '4826' }]));
     expect(await screen.findByText('PIN saved for Bhavna Rawat.')).toBeDefined();
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   });
 });

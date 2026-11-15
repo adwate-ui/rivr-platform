@@ -2,6 +2,7 @@ import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** Where a member stands on an upcoming tournament (#636): no interest yet, interested, or registered by the floor. */
 export type TournamentStanding = 'none' | 'interested' | 'registered';
@@ -43,7 +44,7 @@ export function useMyUpcomingTournaments() {
     queryKey: queryKeys.myUpcomingTournaments(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<UpcomingTournament[]> => {
-      const { data, error } = await client.rpc('my_upcoming_tournaments');
+      const { data, error } = await client.rpc('my_upcoming_tournaments').limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         tournamentId: row.tournament_id, name: row.name, startsAt: row.starts_at,
@@ -74,7 +75,7 @@ export function useTournamentInterest(venueId: string) {
     enabled: userId !== null,
     refetchInterval: 30_000,
     queryFn: async (): Promise<TournamentInterest[]> => {
-      const { data, error } = await client.rpc('tournament_interest_list', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('tournament_interest_list', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         interestId: row.interest_id, tournamentId: row.tournament_id, tournamentName: row.tournament_name, startsAt: row.starts_at,
@@ -114,7 +115,7 @@ export function usePublishedTournaments(venueId: string) {
     enabled: userId !== null,
     refetchInterval: 30_000,
     queryFn: async (): Promise<PublishedTournament[]> => {
-      const { data, error } = await client.rpc('published_tournaments', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('published_tournaments', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         tournamentId: row.tournament_id, name: row.name, startsAt: row.starts_at, game: row.game ?? '', stake: row.stake ?? '', description: row.description ?? '',

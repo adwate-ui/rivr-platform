@@ -2,6 +2,7 @@ import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** The session reminders a member chooses from, in hours seated. */
 export const SESSION_REMINDERS = [4, 6, 8] as const;
@@ -30,7 +31,7 @@ export function useRestrictions() {
     queryKey: queryKeys.restrictions(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<Restrictions> => {
-      const { data, error } = await client.rpc('my_restrictions');
+      const { data, error } = await client.rpc('my_restrictions').limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       return { breakUntil: row?.break_until ?? null, sessionReminder: reminderOf(row?.session_reminder_hours ?? null) };

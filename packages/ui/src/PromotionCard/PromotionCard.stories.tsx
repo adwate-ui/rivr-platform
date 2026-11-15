@@ -5,7 +5,7 @@ const meta = {
   title: 'Player/PromotionCard',
   tags: ['viewport-phone'],
   component: PromotionCard,
-  args: { title: 'Double points', runs: 'NLH 100/200 · Thursday, 14:00 to 20:00' },
+  args: { title: 'Thursday bonus', runs: 'NLH 100/200 · Thursday, 14:00 to 20:00' },
 } satisfies Meta<typeof PromotionCard>;
 
 export default meta;

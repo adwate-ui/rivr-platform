@@ -1,0 +1,12 @@
+# 0610 A sign-in for top-ups only
+
+Date: 15 Nov 2026. Issue 975 (redesign RD-32; the owner, 15 Nov: a role for guest relations that sees only top-up requests).
+
+- A new role, `guest_relations`, with one permission, `top_ups.manage`. Its rail has one entry, Top-ups, which is where it lands; every other address refuses it.
+- Admins and super admins hold `top_ups.manage` too. The database lets a staff member give only a role whose every permission they hold (`private.can_grant_role`), so this is what lets an admin give the role on the Staff screen. They get the Top-ups entry with it. The floor, hosts and cashiers go on handling top-ups from Requests by `waitlist.manage`, and get no second entry.
+- `top_ups.manage` appears in no policy on any table. Top-up requests have no policy at all: they are read and changed only through `top_ups_tonight`, `top_up_history`, `set_top_up` and `undo_top_up`, which let in whoever handles top-ups (`private.may_handle_top_ups`: the floor's permission or this one).
+- Each request says who accepted it and who marked it done, and how long each step took: asked to accepted, accepted to done, in minutes and seconds as the wait beside a request already counts. The table already kept both people and both moments; nothing new is stored.
+- Past requests are read a club day at a time, fifty to a page, counted and paged on the server (`top_up_history`), in the shared data table's server mode.
+- `/top-ups` is a screen again; since console v3 it only led to Requests.
+- The role reads nothing else of the venue (the security review of the pull request). Nineteen policies and six functions let in whoever works at a venue, by `private.staff_venues()`, which asks for no permission; through them the role read its colleagues, the contacts, the settings, the devices, the tables and the venue's configuration. Migration 20261118101100 points all but three at `private.staff_venues_beyond_top_ups()`: the venues where the caller's role is more than guest relations. Kept, since the console cannot load without them: the venue's own row, the role matrix, and the computer signed in at; and a staff member reads their own record by a policy of its own. The feature catalogue, which every signed-in person reads, stays.
+- pgTAP 434 guards it: it loops over every table in `public` with a policy to read it by and asserts the role reads no row of each, but for an allow list written in the test, so a table added later is covered at once.

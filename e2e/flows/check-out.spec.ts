@@ -8,9 +8,10 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole } from '../support/signIn.ts';
 
-/** One of the door's lists, a region named by its heading (console v3). */
-function doorList(page: Page, name: string): Locator {
-  return page.getByRole('region', { name });
+/** The door's table (redesign RD-30), showing the list its chip names: In the room when the screen opens. */
+async function doorList(page: Page, name: string): Promise<Locator> {
+  await page.getByRole('radiogroup', { name: 'List' }).getByRole('radio', { name: new RegExp(`^${name}`) }).click();
+  return page.getByRole('table', { name: 'At the door today' });
 }
 
 test.describe('Check-out', () => {
@@ -23,17 +24,17 @@ test.describe('Check-out', () => {
 
     await phone.fill('9000000253');
     await page.getByRole('button', { name: 'Check in', exact: true }).click();
-    await expect(doorList(page, 'In the room').getByText('Varun Malhotra')).toBeVisible();
+    await expect((await doorList(page, 'In the room')).getByText('Varun Malhotra')).toBeVisible();
     await page.getByRole('button', { name: 'Check out Varun Malhotra' }).click();
-    await expect(doorList(page, 'In the room').getByText('Varun Malhotra')).toHaveCount(0);
+    await expect((await doorList(page, 'In the room')).getByText('Varun Malhotra')).toHaveCount(0);
 
     await phone.fill('9000000253');
     await page.getByRole('button', { name: 'Check in', exact: true }).click();
-    await expect(doorList(page, 'In the room').getByText('Varun Malhotra')).toBeVisible();
+    await expect((await doorList(page, 'In the room')).getByText('Varun Malhotra')).toBeVisible();
     await phone.fill('9000000253');
     await page.getByRole('button', { name: 'Check out', exact: true }).click();
     await expect(page.getByText('Checked out.')).toBeVisible();
-    await expect(doorList(page, 'In the room').getByText('Varun Malhotra')).toHaveCount(0);
+    await expect((await doorList(page, 'In the room')).getByText('Varun Malhotra')).toHaveCount(0);
 
     await phone.fill('9000000253');
     await page.getByRole('button', { name: 'Check out', exact: true }).click();

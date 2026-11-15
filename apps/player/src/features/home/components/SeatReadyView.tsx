@@ -4,7 +4,7 @@ import { holdFraction } from '@rivr/domain/waitlist';
 import { formatMinutesSeconds, formatTime, t } from '@rivr/i18n';
 import { Box, Button, ErrorMessage, FeatureGate, Figure, Heading, ProgressBar, Stack, Text, useIsOnline, useToast } from '@rivr/ui';
 import { useState } from 'react';
-import { WAITLIST_FAILURE_COPY } from './waitlistCopy.ts';
+import { stakeOf, WAITLIST_FAILURE_COPY } from './waitlistCopy.ts';
 
 /** The hold counting down each second to the time the server gave, and the bar draining over the hold. */
 function HoldClock({ place, now }: { place: WaitlistPlace & { holdUntil: string }; now: Date }) {
@@ -63,7 +63,7 @@ export function SeatReadyView({ place, now }: { place: WaitlistPlace & { holdUnt
           <Heading level={2} variant="serif" serifSize={48} align="center">
             {t('player.live.ready.title', { table: place.callTableName ?? '', seat: place.callSeat ?? 0 })}
           </Heading>
-          <Text tone="muted" align="center">{place.tableTypeName}</Text>
+          <Text tone="muted" align="center">{stakeOf(place)}</Text>
           <Box paddingY={4}><HoldClock place={place} now={now} /></Box>
         </Stack>
       </Box>

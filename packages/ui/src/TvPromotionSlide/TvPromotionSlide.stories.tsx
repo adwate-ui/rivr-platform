@@ -23,7 +23,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 /** The only promotion live: no pager. */
-export const Alone: Story = { args: { title: 'Double points', detail: undefined, when: 'Thursday, 14:00 to 20:00 · 100/200', pager: undefined } };
+export const Alone: Story = { args: { title: 'Thursday bonus', detail: undefined, when: 'Thursday, 14:00 to 20:00 · 100/200', pager: undefined } };
 
 /** The least a promotion has: its title. */
 export const Empty: Story = { args: { detail: undefined, when: undefined, pager: undefined } };

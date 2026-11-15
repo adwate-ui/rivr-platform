@@ -15,7 +15,7 @@ const TABLET = '00000000-0000-4000-8000-00000000e001';
 function renderTablet(replies: Record<string, { status?: number; body: unknown }>) {
   const calls: { rpc: string; body: unknown }[] = [];
   const fetch: typeof globalThis.fetch = async (input, init) => {
-    const rpc = (input instanceof Request ? input.url : String(input)).split('/rpc/')[1] ?? '';
+    const rpc = (input instanceof Request ? input.url : String(input)).split('/rpc/')[1]?.split('?')[0] ?? '';
     calls.push({ rpc, body: init?.body ? JSON.parse(String(init.body)) : undefined });
     const reply = replies[rpc];
     return Response.json(reply?.body ?? null, { status: reply?.status ?? 200 });
@@ -37,13 +37,13 @@ afterEach(() => {
 describe('The tablet\'s seats', () => {
   it('gives every seat: an open one, and a player away with a buy-in waiting at the cage', async () => {
     const { result } = renderTablet({ tablet_seats: { body: [
-      { seat: 1, session_id: null, member_id: null, full_name: null, away_since: null, minimum_paise: 1000000, leaving_at: null, small_blind_paise: 10000, big_blind_paise: 20000 },
+      { seat: 1, session_id: null, member_id: null, full_name: null, away_since: null, minimum_paise: 1000000, leaving_at: null, small_blind_paise: 10000, big_blind_paise: 20000, straddle_paise: 50000 },
       { seat: 9, session_id: 's9', member_id: 'm9', full_name: 'Yash Gupta', away_since: '2026-10-19T18:00:00+00:00', minimum_paise: 1000000,
-        leaving_at: '2026-10-19T18:05:00+00:00', small_blind_paise: 10000, big_blind_paise: 20000 },
+        leaving_at: '2026-10-19T18:05:00+00:00', small_blind_paise: 10000, big_blind_paise: 20000, straddle_paise: 50000 },
     ] } });
     await waitFor(() => expect(result.current.seats.data).toEqual([
-      { seat: 1, minimum: 1_000_000n, smallBlind: 10_000n, bigBlind: 20_000n, player: null },
-      { seat: 9, minimum: 1_000_000n, smallBlind: 10_000n, bigBlind: 20_000n, player: { sessionId: 's9', fullName: 'Yash Gupta', isAway: true, isLeaving: true } },
+      { seat: 1, minimum: 1_000_000n, smallBlind: 10_000n, bigBlind: 20_000n, straddle: 50_000n, player: null },
+      { seat: 9, minimum: 1_000_000n, smallBlind: 10_000n, bigBlind: 20_000n, straddle: 50_000n, player: { sessionId: 's9', fullName: 'Yash Gupta', isAway: true, isLeaving: true } },
     ]));
   });
 

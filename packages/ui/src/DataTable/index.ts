@@ -8,3 +8,4 @@ export { DataTableExportProvider, type TableExporter, type TableExportRequest } 
 export { DataTableViewProvider, type TableViewStore } from './DataTableView.tsx';
 export { isViewKey, type ViewWire } from './tableView.ts';
 export { saveFile, zipStored } from './exportFiles.ts';
+export { Pages, type PagesProps } from './Pages.tsx';

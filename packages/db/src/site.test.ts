@@ -22,7 +22,7 @@ function siteClient(pages: unknown[], blocks: unknown[], live: Record<string, { 
 const PAGES = [
   { venue_slug: 'rivr-gurugram', slug: 'home', title: 'RIVR Poker Club', description: 'A members\' poker club.', nav_position: null },
   { venue_slug: 'rivr-gurugram', slug: 'faq', title: 'FAQ', description: null, nav_position: 2 },
-  { venue_slug: 'rivr-gurugram', slug: 'academy', title: 'RIVR Academy', description: null, nav_position: 1 },
+  { venue_slug: 'rivr-gurugram', slug: 'tournaments', title: 'Tournaments', description: null, nav_position: 1 },
 ];
 
 describe('fetchSitePage', () => {
@@ -38,7 +38,7 @@ describe('fetchSitePage', () => {
         { kind: 'hero', content: { heading: 'RIVR Poker Club', action: { label: 'Join RIVR', to: 'sign-up' } } },
         { kind: 'text', content: { body: 'Cash games every night.' } },
       ],
-      navigation: [{ slug: 'academy', title: 'RIVR Academy' }, { slug: 'faq', title: 'FAQ' }],
+      navigation: [{ slug: 'tournaments', title: 'Tournaments' }, { slug: 'faq', title: 'FAQ' }],
       games: [],
       tournaments: [],
       promotions: [],

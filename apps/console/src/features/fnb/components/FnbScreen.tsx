@@ -1,12 +1,11 @@
 import { useStaffVenue } from '@rivr/db';
-import { useFnbOrdersTonight } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
 import { Button, Inline, Screen, Stack, StatusMessage, Tabs } from '@rivr/ui';
 import { useState } from 'react';
-import { MenuCsvImport } from './MenuCsvImport.tsx';
+import { MenuCsvPanel } from './MenuCsvImport.tsx';
 import { MenuItems } from './MenuItems.tsx';
 import { NewOrderSheet } from './NewOrderSheet.tsx';
-import { OrderBoard } from './OrderBoard.tsx';
+import { OrdersTable } from './OrdersTable.tsx';
 
 const TABS = ['orders', 'menu'] as const;
 type FnbTab = (typeof TABS)[number];
@@ -28,7 +27,7 @@ interface FnbScreenProps {
 
 /**
  * Food and drink (#123; console v3), for staff who run it (fnb.manage) or serve it (fnb.serve, Service's whole role, #640):
- * tonight's orders in three lanes, each KOT the bar printer missed flagged from the outbox, New order for a seat, and the
+ * the day's orders as a table from the server (redesign RD-30), each KOT the bar printer missed flagged from the outbox, New order for a seat, and the
  * menu on its own tab, also from a CSV (#799). Glaza's monthly statement (#109) is hidden: no console shows money (#626).
  */
 export function FnbScreen({ tab, onNavigate }: FnbScreenProps) {
@@ -58,7 +57,6 @@ function useNewOrder() {
 }
 
 function Fnb({ access, tab, onNavigate }: { access: FnbAccess; tab: FnbTab; onNavigate: (href: string) => void }) {
-  const orders = useFnbOrdersTonight(access.venueId);
   const newOrder = useNewOrder();
   const title = t('console.fnb.title');
   const action = access.canOrder ? <Button variant="primary" size="compact" onClick={newOrder.open}>{t('console.fnb.newOrder')}</Button> : undefined;
@@ -66,18 +64,13 @@ function Fnb({ access, tab, onNavigate }: { access: FnbAccess; tab: FnbTab; onNa
     <Tabs label={title} current={tab} onNavigate={onNavigate}
       tabs={TABS.map((id) => ({ id, label: t(`console.fnb.tabs.${id}`), href: `/fnb?tab=${id}` }))} />
   );
-  if (tab === 'orders' && orders.data === undefined) {
-    return orders.isError
-      ? <Screen title={title} actions={action} status="error" onRetry={() => void orders.refetch()} />
-      : <Screen title={title} actions={action} status="loading" loadingLook="rows" />;
-  }
   // What was sent is said beside New order, where it was asked for, and takes no line above the lanes while empty.
   const sent = <StatusMessage>{newOrder.sentKot === null ? null : t('console.fnb.sent', { kot: newOrder.sentKot })}</StatusMessage>;
   return (
     <Screen title={title} actions={action === undefined ? undefined : <Inline gap={4} align="center" wrap>{sent}{action}</Inline>}>
       <Stack gap={6}>
         {tabs}
-        {tab === 'menu' ? <MenuTab access={access} /> : <OrderBoard venueId={access.venueId} orders={orders.data ?? []} />}
+        {tab === 'menu' ? <MenuTab access={access} /> : <OrdersTable venueId={access.venueId} />}
       </Stack>
       {access.canOrder ? (
         <NewOrderSheet key={newOrder.opened} venueId={access.venueId} isOpen={newOrder.isOpen} canComp={access.canManage}
@@ -87,12 +80,12 @@ function Fnb({ access, tab, onNavigate }: { access: FnbAccess; tab: FnbTab; onNa
   );
 }
 
-/** The menu by kind (#823), a dish's photo for staff who run F&B (AS-11), and the menu from a CSV (#799). */
+/** The menu by kind (#823); for staff who run F&B (redesign RD-33), a dish's photo (AS-11) and the menu from a CSV (#799), which opens in the panel. */
 function MenuTab({ access }: { access: FnbAccess }) {
   return (
     <Stack gap={10}>
       <MenuItems venueId={access.venueId} canManage={access.canManage} />
-      <MenuCsvImport venueId={access.venueId} />
+      {access.canManage ? <MenuCsvPanel venueId={access.venueId} /> : null}
     </Stack>
   );
 }

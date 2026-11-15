@@ -15,7 +15,7 @@
  *   seed's hundred more members, whom no other flow seats; Pooja, an admin, lets him leave early, and he leaves.
  * Both leave the list and the TV is unpaired at the end.
  */
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
 import { letGoEarly, requestsPanel, seatOnFloor, showSeats, tableTile } from '../support/floor.ts';
 import { openConsole } from '../support/console.ts';
@@ -24,12 +24,6 @@ import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 const PLAYER = 'Vihaan Kapoor';
 const HIDDEN = 'Kunal Mehra';
 const LEAVING = 'Nakul Dhillon';
-
-/** The console's card for one table's list (decision 0467), found by its heading (console v3). */
-function gameList(page: Page, name: string): Locator {
-  // The card is the innermost section that holds the heading; the screen's own section holds every card.
-  return page.locator('section').filter({ has: page.getByRole('heading', { level: 2, name, exact: true }) }).last();
-}
 
 /** Takes a member's place off the lists from its ⋯ menu, asked first (decision 0469). */
 async function removePlace(floor: Page, name: string) {
@@ -46,6 +40,7 @@ async function pairTv(tv: Page, floor: Page, name: string) {
   await expect(shown).toBeVisible();
   // TVs are a part of Settings' Devices tab (console v3), opened by address once sign-in is through.
   await openConsole(floor, '/settings?tab=tvs');
+  await floor.getByRole('button', { name: 'Add a TV' }).click();
   await floor.getByRole('textbox', { name: 'Code on the TV' }).fill((await shown.textContent()) ?? '');
   await floor.getByRole('textbox', { name: 'TV name' }).fill(name);
   await floor.getByRole('button', { name: 'Pair the TV' }).click();
@@ -68,8 +63,12 @@ async function removeLeftover(floor: Page, name: string) {
 
 /** Adds a member to the console's Table 1 list (50/100) by number. */
 async function addToFifties(floor: Page, number: string, name: string) {
-  await gameList(floor, 'Table 1').getByRole('textbox', { name: 'Add: mobile or member number' }).fill(number);
-  await gameList(floor, 'Table 1').getByRole('button', { name: 'Add', exact: true }).click();
+  await floor.getByRole('button', { name: 'Add to a list' }).click();
+  const panel = floor.getByRole('dialog', { name: 'Add to a list' });
+  await panel.getByRole('textbox', { name: 'Add: mobile or member number' }).fill(number);
+  await panel.getByRole('radiogroup', { name: 'Table' }).getByRole('radio', { name: 'Table 1', exact: true }).click();
+  await panel.getByRole('button', { name: 'Add', exact: true }).click();
+  await expect(panel).toHaveCount(0);
   await expect(floor.getByRole('button', { name: `More for ${name}`, exact: true })).toBeVisible();
 }
 
@@ -104,7 +103,7 @@ test.describe('TV boards', () => {
     const fifties = tv.getByRole('region', { name: 'Table 1', exact: true });
 
     await floor.getByRole('link', { name: 'Waitlist' }).click();
-    await expect(floor.getByRole('heading', { name: 'Table 1', exact: true })).toBeVisible();
+    await expect(floor.getByRole('table', { name: 'Places' }).or(floor.getByText('No one is waiting.')).first()).toBeVisible();
     await removeLeftover(floor, PLAYER);
     await removeLeftover(floor, HIDDEN);
     // Kunal first, on Table 1's empty list: his place, never his name.

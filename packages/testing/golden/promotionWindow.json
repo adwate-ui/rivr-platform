@@ -1,6 +1,6 @@
 {
   "rule": "hours played inside a promotion's window",
-  "about": "For hours-played promotions with days or times (#457; the owner's answer on question #445): only seated time inside the window counts, whenever the visit closes. A stint's seconds inside the window are summed over the club days it touches that the window's days allow; days and times are the club's, 06:00 to 06:00 IST. A table's in-window seconds in a session bear their share of the time away, rounded down, as tablePlayedSeconds shares it; their points are pointsForTime at the table's rate. 19 November 2026 is a Thursday.",
+  "about": "For hours-played promotions with days or times (#457; the owner's answer on question #445): only seated time inside the window counts, whenever the visit closes. A stint's seconds inside the window are summed over the club days it touches that the window's days allow; days and times are the club's, 06:00 to 06:00 IST. A table's in-window seconds in a session bear their share of the time away, rounded down, as tablePlayedSeconds shares it. 19 November 2026 is a Thursday.",
   "cases": [
     {
       "description": "Thursday 14:00 to 20:30 against a Thursday 14:00 to 20:00 window: its 6 hours.",

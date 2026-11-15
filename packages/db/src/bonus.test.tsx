@@ -40,7 +40,7 @@ const LINES = [
 
 afterEach(cleanup);
 
-describe('bonus chips', () => {
+describe('Bonus', () => {
   it('reads the member\'s balance and their newest lines, as many as asked for', async () => {
     const { wrapper, calls } = clientFor({
       '/rpc/my_bonus_history': { body: LINES.map(({ staff_name: _, ...line }) => line) },
@@ -99,7 +99,7 @@ describe('bonus chips', () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
   });
 
-  it('adds bonus chips by hand with a reason and the request id, and says why it is refused (owner, 8 Nov)', async () => {
+  it('adds Bonus by hand with a reason and the request id, and says why it is refused (owner, 8 Nov)', async () => {
     const done = clientFor({ '/rpc/give_bonus_chips': { body: 'g9' } });
     const added = renderHook(() => useGiveBonusChips(VENUE, MEMBER), { wrapper: done.wrapper });
     let outcome: unknown;

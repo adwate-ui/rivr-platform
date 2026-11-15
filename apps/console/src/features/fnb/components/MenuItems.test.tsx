@@ -1,5 +1,6 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { ToastProvider } from '@rivr/ui';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MenuItems } from './MenuItems.tsx';
 
@@ -30,11 +31,16 @@ function renderMenu(canManage: boolean, items: readonly object[] = [CHAI]) {
       saved.push(JSON.parse(String(init?.body)));
       return Response.json('new');
     }
+    const step = ['set_fnb_item_available', 'delete_fnb_item'].find((rpc) => url.includes(`/rpc/${rpc}`));
+    if (step !== undefined) {
+      saved.push({ rpc: step, ...JSON.parse(String(init?.body)) });
+      return Response.json(null);
+    }
     return Response.json(url.includes('/rest/v1/fnb_item') ? items : []);
   });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}>
-      <MenuItems venueId="v1" canManage={canManage} />
+      <ToastProvider><MenuItems venueId="v1" canManage={canManage} /></ToastProvider>
     </RivrDataProvider>,
   );
   return saved;
@@ -43,11 +49,16 @@ function renderMenu(canManage: boolean, items: readonly object[] = [CHAI]) {
 describe('MenuItems', () => {
   it('adds an item with its veg mark and a line on what it is (F-052)', async () => {
     const saved = renderMenu(true);
-    fireEvent.change(await screen.findByRole('textbox', { name: 'Item' }, { timeout: 5000 }), { target: { value: 'Paneer roll' } });
-    fireEvent.click(screen.getByRole('radio', { name: 'Veg' }));
-    fireEvent.change(screen.getByRole('textbox', { name: 'Description' }), { target: { value: ' With mint chutney ' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Add to the menu' }));
+    // Add to the menu opens the panel at the side (redesign RD-38); saved, it says so and closes.
+    fireEvent.click(await screen.findByRole('button', { name: 'Add to the menu' }, { timeout: 5000 }));
+    const panel = within(screen.getByRole('dialog', { name: 'Add to the menu' }));
+    fireEvent.change(panel.getByRole('textbox', { name: 'Item' }), { target: { value: 'Paneer roll' } });
+    fireEvent.click(panel.getByRole('radio', { name: 'Veg' }));
+    fireEvent.change(panel.getByRole('textbox', { name: 'Description' }), { target: { value: ' With mint chutney ' } });
+    fireEvent.click(panel.getByRole('button', { name: 'Add to the menu' }));
     await waitFor(() => expect(saved).toEqual([expect.objectContaining({ p_name: 'Paneer roll', p_diet: 'veg', p_description: 'With mint chutney' })]));
+    expect(await screen.findByText('Paneer roll added.')).toBeDefined();
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   });
 
   it('shows an item\u2019s mark beside its name', async () => {
@@ -73,6 +84,28 @@ describe('MenuItems', () => {
     if (picker === null) throw new Error('No file picker');
     fireEvent.change(picker, { target: { files: [new File(['not a photo'], 'menu.txt', { type: 'text/plain' })] } });
     expect(await screen.findByText('Not a photo. Choose a JPEG, PNG or WebP.')).toBeDefined();
+  });
+
+  it('lets staff who only serve hide an item and show it again, with no way to add or delete one (redesign RD-33)', async () => {
+    const saved = renderMenu(false, [CHAI, BEER]);
+    fireEvent.click(await screen.findByRole('switch', { name: 'On offer' }, { timeout: 5000 }));
+    await waitFor(() => expect(saved).toEqual([{ rpc: 'set_fnb_item_available', p_item_id: 'chai', p_is_available: false }]));
+    fireEvent.click(screen.getByRole('switch', { name: 'Off the menu' }));
+    await waitFor(() => expect(saved[1]).toEqual({ rpc: 'set_fnb_item_available', p_item_id: 'beer', p_is_available: true }));
+    expect(screen.queryByRole('textbox', { name: 'Item' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Add to the menu' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'More for Masala chai' })).toBeNull();
+  });
+
+  it('deletes an item for staff who run F&B once they say yes, and says so', async () => {
+    const saved = renderMenu(true);
+    fireEvent.click(await screen.findByRole('button', { name: 'More for Masala chai' }, { timeout: 5000 }));
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }));
+    expect(await screen.findByText('Delete Masala chai? Past orders keep it.')).toBeDefined();
+    expect(saved).toEqual([]);
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, delete Masala chai' }));
+    await waitFor(() => expect(saved).toEqual([{ rpc: 'delete_fnb_item', p_item_id: 'chai' }]));
+    expect(await screen.findByText('Masala chai deleted.')).toBeDefined();
   });
 
   it('shows Service the menu with no photo to add: the photos are for staff who run F&B', async () => {

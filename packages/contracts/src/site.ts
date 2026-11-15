@@ -160,7 +160,7 @@ export const siteBlockSchema = z.discriminatedUnion('kind', [
       heading: headingSchema,
       intro: z.string().trim().max(400).optional(),
       cards: z.array(z.object({
-        // A line above the title: `01`, `Tier I · 1× points`, `Play`.
+        // A line above the title: `01`, `Tier I`, `Play`.
         label: z.string().trim().min(1).max(40).optional(),
         title: z.string().trim().min(1).max(60),
         text: z.string().trim().max(300).optional(),
@@ -193,7 +193,7 @@ export const siteBlockSchema = z.discriminatedUnion('kind', [
       })).min(1).max(10),
     }),
   }),
-  // A small table of figures, such as points by stake: every row as long as the columns.
+  // A small table of figures, such as call time by stake: every row as long as the columns.
   z.object({
     kind: z.literal('table'),
     content: z.object({
@@ -208,8 +208,7 @@ export const siteBlockSchema = z.discriminatedUnion('kind', [
   // 'welcome'` shows the welcome offer alone, the promotions for new players.
   z.object({ kind: z.literal('promotions'), content: z.object({ eyebrow: eyebrowSchema, heading: headingSchema, only: z.literal('welcome').optional() }) }),
   // Live, read from the club's rules in force rather than written into the page (#617, decision 0283): rakeback by
-  // table (rakeback.rate) and the cab (cab.minimum_visits), through public_club_rules. Points, hotel nights and the
-  // League went on 15 Nov (decision 0585).
+  // table (rakeback.rate) and the cab (cab.minimum_visits), through public_club_rules.
   z.object({ kind: z.literal('rewards'), content: z.object({ heading: headingSchema }) }),
   z.object({ kind: z.literal('outstation'), content: z.object({ eyebrow: eyebrowSchema, heading: headingSchema }) }),
 ]);

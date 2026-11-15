@@ -5,6 +5,7 @@ import type { RivrClient } from './client.ts';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** What must be settled before a member is erased (#424, decision 0207), in the order the database lists it. */
 export type ErasureBlocker = 'frozen' | 'cash' | 'chips' | 'markers' | 'bonus' | 'waitlist' | 'tournament' | 'requests';
@@ -69,7 +70,7 @@ function refresh(queryClient: QueryClient, user: string, venueId: string, member
     queryClient.invalidateQueries({ queryKey: queryKeys.memberErasurePreview(user, memberId) }),
     queryClient.invalidateQueries({ queryKey: queryKeys.memberRecord(user, venueId, memberId) }),
     queryClient.invalidateQueries({ queryKey: queryKeys.memberSearchAll(user) }),
-    queryClient.invalidateQueries({ queryKey: queryKeys.membersOfTierAll(user) }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.membersListAll(user) }),
     queryClient.invalidateQueries({ queryKey: queryKeys.memberAccountStatuses(user, venueId) }),
     queryClient.invalidateQueries({ queryKey: queryKeys.memberErasureRequests(user, venueId) }),
     queryClient.invalidateQueries({ queryKey: queryKeys.staffQueueCounts(user, venueId) }),
@@ -83,7 +84,7 @@ export function useMemberErasurePreview(memberId: string) {
     queryKey: queryKeys.memberErasurePreview(userId ?? 'signed-out', memberId),
     enabled: userId !== null,
     queryFn: async (): Promise<ErasurePreview | null> => {
-      const { data, error } = await client.rpc('member_erasure_preview', { p_member_id: memberId });
+      const { data, error } = await client.rpc('member_erasure_preview', { p_member_id: memberId }).limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       if (row === undefined) return null;
@@ -104,7 +105,7 @@ export function useEraseMember(venueId: string, memberId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ fullName, reason }: { fullName: string; reason: string }): Promise<Result<Erasure, ErasureFailure>> => {
-      const { data, error } = await client.rpc('erase_member', { p_member_id: memberId, p_full_name: fullName, p_reason: reason });
+      const { data, error } = await client.rpc('erase_member', { p_member_id: memberId, p_full_name: fullName, p_reason: reason }).limit(LIST_MOST);
       if (error) return err(erasureFailureOf(error));
       const row = data[0];
       if (row === undefined) return err('unavailable');
@@ -142,7 +143,7 @@ export function useMemberErasureRequests(venueId: string) {
     queryKey: queryKeys.memberErasureRequests(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<readonly ErasureRequest[]> => {
-      const { data, error } = await client.rpc('member_erasure_requests', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('member_erasure_requests', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({ memberId: row.member_id, fullName: row.full_name, requestedAt: row.requested_at }));
     },
@@ -156,7 +157,7 @@ export function useMyErasureRequest() {
     queryKey: queryKeys.myErasureRequest(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<string | null> => {
-      const { data, error } = await client.rpc('my_erasure_request');
+      const { data, error } = await client.rpc('my_erasure_request').limit(LIST_MOST);
       if (error) throw error;
       return data[0]?.requested_at ?? null;
     },

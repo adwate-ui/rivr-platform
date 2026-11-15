@@ -14,7 +14,10 @@ export const playerSignUp = {
   phone: 'Signing up with {phone}',
   nameLabel: 'Full name, as on Aadhaar',
   namePlaceholder: 'Ira Kapoor',
-  nameInvalid: 'Enter your name in English, as on Aadhaar.',
+  /** One line under the name, before anything is wrong with it (issue 1006). */
+  nameHint: 'English letters only.',
+  /** Under the name when it is refused (issue 1006): what it takes, said plainly. */
+  nameInvalid: 'Use English letters only, as on Aadhaar.',
   cityLabel: 'City',
   cityPlaceholder: 'Gurugram',
   cityInvalid: 'Enter your city.',

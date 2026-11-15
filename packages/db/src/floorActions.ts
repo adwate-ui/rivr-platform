@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { floorQueryKeys } from './floorRequests.ts';
 import { useRivrData } from './provider.tsx';
 import { bonusArg, SEAT_FAILURE_BY_CODE, type SeatFailure } from './seats.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** How a floor change ends: every read of the floor again, and an error as its failure (or `unavailable`). */
 function useFloorSettle(venueId: string) {
@@ -20,7 +21,7 @@ export type Seated = Result<string | null, SeatFailure>;
 
 /** The member's seat session now, for a seating that gives none (Assign, a called place): read before the floor is. */
 async function sessionOf(client: ReturnType<typeof useRivrData>['client'], venueId: string, memberId: string): Promise<string | null> {
-  const seats = await client.rpc('floor_seats', { p_venue_id: venueId });
+  const seats = await client.rpc('floor_seats', { p_venue_id: venueId }).limit(LIST_MOST);
   return seats.data?.find((row) => row.member_id === memberId)?.session_id ?? null;
 }
 

@@ -4,7 +4,7 @@ import { partsFor, recordHref } from './recordParts.ts';
 const NONE = { manage: false, seePhoto: false, override: false, erase: false, changePhone: false };
 
 describe('partsFor', () => {
-  it('gives every staff member who reads members the visits, bonus chips (decision 0504) and sign-up (owner, 8 Nov)', () => {
+  it('gives every staff member who reads members the visits, Bonus (decision 0504) and sign-up (owner, 8 Nov)', () => {
     expect(partsFor(NONE)).toEqual(['visits', 'bonus', 'signUp']);
   });
 

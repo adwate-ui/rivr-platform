@@ -14,7 +14,7 @@ const STORED: StoredInvoice = {
   issuedAt: '2026-11-15T13:30:00Z',
   supplier: { legalName: 'RIVR Hospitality LLP', gstin: '06AAAAA0000A1Z5', address: 'Sector 65, Gurugram' },
   buyer: { name: 'Northern Gaming Private Limited', gstin: '06BBBBB1111B1Z6' },
-  description: 'Poker Academy, Level 1, November',
+  description: 'Private table hire, November',
   rateBasisPoints: 1800,
   taxablePaise: 169_492n,
   cgstPaise: 15_254n,

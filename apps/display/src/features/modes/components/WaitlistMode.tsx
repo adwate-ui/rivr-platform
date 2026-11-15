@@ -1,5 +1,5 @@
 import { useTvWaitlistBoard, type TvPlace, type TvTableList } from '@rivr/db';
-import { t } from '@rivr/i18n';
+import { formatStakeName, t } from '@rivr/i18n';
 import { TvWaitlistBoard, type TvWaitlistStake } from '@rivr/ui';
 import { usePage } from './usePage.ts';
 import { BoardStatus } from './BoardStatus.tsx';
@@ -15,8 +15,10 @@ function statusText(place: TvPlace): string | undefined {
 
 /** A table's column: its name, its stake (and that it is closed while it is), and its places in order. */
 export function toBoardColumn(table: TvTableList): TvWaitlistStake {
+  // The stake as its name, with the figures once it has a straddle (issue 990).
+  const stake = formatStakeName(table.stake, table);
   return {
-    id: table.tableId, stake: table.name, detail: table.isOpen ? table.stake : t('tv.waitlist.closed', { stake: table.stake }),
+    id: table.tableId, stake: table.name, detail: table.isOpen ? stake : t('tv.waitlist.closed', { stake }),
     places: table.places.map((place) => ({
       id: `${table.tableId}-${place.place}`, place: String(place.place),
       // A member who hid their name on the TVs is their place on the list, the name left blank (#326, F-137).

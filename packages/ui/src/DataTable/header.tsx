@@ -1,6 +1,8 @@
 import type { ReactNode, Ref } from 'react';
 import { Icon } from '../Icon/Icon.tsx';
 import { cx } from '../internal/classes.ts';
+import { useIsInConsole } from '../internal/consoleFrame.ts';
+import { STICKY_BAR_TOP } from '../internal/consoleMain.ts';
 import { Text } from '../Text/Text.tsx';
 import type { DataTableColumn, DataTableSort } from './columns.ts';
 import { GUTTER, headerRowClasses, heldTitle, LOOK, priorityOf, tickPlace, type Layout } from './rows.tsx';
@@ -50,18 +52,21 @@ export interface HeaderRowProps<Row> {
 }
 
 /**
- * The header row: held at the top of the page's scrolling area, on the page's colour, as the rows pass under it. Shown
+ * The header row: held at the top of the page's scrolling area, on the page's colour, as the rows pass under it. In the
+ * console that area keeps a space above a screen, and a held box stops at it: the header is taken up by as much, to the
+ * area's top edge, or the rows would show in the gap over it (the UI review of redesign RD-29). Shown
  * from 768 px, and below in the scroll layout, where it follows the body sideways; the cards name their own columns.
  */
 export function HeaderRow<Row>({ columns, sort, onSort, layout, isVirtual, ref, menuFor }: HeaderRowProps<Row>) {
   const look = LOOK[layout.narrow];
+  const held = cx('sticky z-nav bg-table-header', useIsInConsole() ? STICKY_BAR_TOP : 'top-0', look.headerGroup);
   return (
-    <div role="rowgroup" ref={ref} className={cx('sticky top-0 z-nav bg-table-header', look.headerGroup)} style={isVirtual ? { ...GUTTER, overflowY: 'hidden' } : undefined}>
+    <div role="rowgroup" ref={ref} className={held} style={isVirtual ? { ...GUTTER, overflowY: 'hidden' } : undefined}>
       <div role="row" aria-rowindex={1} className={headerRowClasses(layout)} style={layout.grid}>
         {layout.ticks === null ? null : <TickHeader ticks={layout.ticks} place={tickPlace(layout, true)} />}
         {columns.map((column, at) => (
           <HeaderCell key={column.key} column={column} sort={sort} onSort={onSort} menu={menuFor(column)}
-            place={cx(look.headerCell, column.isWide && look.span, priorityOf(column, at) === 'primary' && heldTitle(layout))} />
+            place={cx(look.headerCell, column.isWide && layout.isShared !== true && look.span, priorityOf(column, at) === 'primary' && heldTitle(layout))} />
         ))}
       </div>
     </div>

@@ -5,7 +5,7 @@ import { LinksBlock } from './LinksBlock.tsx';
 
 const LINKS = [
   { label: 'Join the waitlist', href: 'https://player.invalid/' },
-  { label: 'Book RIVR Academy', href: 'https://player.invalid/academy' },
+  { label: 'See the tournaments', href: 'https://player.invalid/tournaments' },
 ];
 
 describe('LinksBlock', () => {
@@ -14,7 +14,7 @@ describe('LinksBlock', () => {
     const links = screen.getAllByRole('link');
     expect(links.map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
       ['Join the waitlist', 'https://player.invalid/'],
-      ['Book RIVR Academy', 'https://player.invalid/academy'],
+      ['See the tournaments', 'https://player.invalid/tournaments'],
     ]);
     expect(links[0]?.className).not.toEqual(links[1]?.className);
   });

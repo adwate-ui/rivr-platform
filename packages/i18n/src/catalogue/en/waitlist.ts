@@ -103,6 +103,8 @@ export const waitlist = {
   openNotAllowed: 'Not in your role. Ask an admin.',
   openPaused: 'Venue frozen. Try again once it is released.',
   requestsFailed: 'Requests not loaded. Reload the page.',
+  /** Every place as one table (redesign RD-31): its name, search and columns, and the dash in a column with nothing to say. */
+  table: { label: 'Places', search: 'Find a player', place: 'No.', player: 'Player', table: 'Table', waited: 'Waited', notes: 'Notes', none: '–', tableLine: '{table} · {stake}', byFloor: 'by the floor' },
   approve: 'Approve {name}',
   approveShort: 'Approve',
   confirmRemove: 'Yes, remove {name}',
@@ -116,20 +118,20 @@ export const waitlist = {
   noTimeAway: 'No time away left for this place.',
   oneAtATime: 'Already waiting for another game. Remove them from that list first.',
   /** Bonus chips redeemed with the seat (decision 0504), refused: not seated. */
-  bonusShort: 'More bonus chips than the member has. Not seated.',
+  bonusShort: 'More Bonus than the member has. Not seated.',
   /** Past what the visit may redeem (decision 0579): the seat sheet says how much is left. */
-  visitCap: 'More bonus chips than this visit allows. Not seated.',
-  notChips: 'Bonus chips go in whole 50s. Not seated.',
-  ownRecord: 'You cannot use your own bonus chips. Ask another member of staff.',
-  bonusOff: 'Promotions are switched off, so no bonus chips. Not seated.',
-  tooMany: 'Too many bonus chips used this minute. Wait a moment.',
+  visitCap: 'More Bonus than this visit allows. Not seated.',
+  notChips: 'Bonus goes in whole 50s. Not seated.',
+  ownRecord: 'You cannot use your own Bonus. Ask another member of staff.',
+  bonusOff: 'Promotions are switched off, so no Bonus. Not seated.',
+  tooMany: 'Bonus used too often this minute. Wait a moment.',
   /** The seat sheet's bonus chips (decision 0504), with the member's balance under it. */
-  bonusChips: 'Bonus chips to redeem',
-  bonusChipsHas: 'Has {chips} bonus chips.',
+  bonusChips: 'Bonus to redeem',
+  bonusChipsHas: 'Has {chips} Bonus.',
   /** With a cap on what one visit redeems (decision 0579). */
-  bonusChipsLeft: 'Has {chips} bonus chips. Up to {left} this visit.',
-  bonusChipsNone: 'No bonus chips.',
-  badBonusChips: 'Bonus chips go in whole 50s.',
+  bonusChipsLeft: 'Has {chips} Bonus. Up to {left} this visit.',
+  bonusChipsNone: 'No Bonus.',
+  badBonusChips: 'Bonus goes in whole 50s.',
   /** Back refused: the member was away past their time, so the place has gone (#287). */
   awayTooLong: 'Away too long. Add them again if they are here.',
   /** Call, Seat, Skip or Back refused because someone else changed the place or the table first. */
@@ -168,6 +170,8 @@ export const waitlist = {
     declineShort: 'Decline',
     add: 'Add: mobile or member number',
     addShort: 'Add',
+    /** Add in the Waitlist's title row, and the title of the panel it opens (redesign RD-31, RD-38). */
+    addToList: 'Add to a list',
     addInvalid: 'Enter a mobile or member number.',
     select: 'Select {name}',
     more: 'More for {name}',

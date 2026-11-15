@@ -127,15 +127,16 @@ export function checkGroups(checks: readonly KycCheck[]) {
 }
 
 /** The queue as PickList groups (console v3): to review, waiting on the member and refused, each with its count; an empty one is left out. */
-export function queueGroups(checks: readonly KycCheck[]) {
+export function queueGroups(checks: readonly KycCheck[], countOf: (status: KycCheck['status']) => number | undefined = () => undefined) {
   const groups = checkGroups(checks);
-  const group = (label: string, list: readonly KycCheck[]) => ({
-    label, count: list.length, items: list.map((check) => ({ id: check.memberId, title: check.fullName, detail: queueLine(check) })),
+  // The count is the server's over the whole queue, where it is known: the checks here are one page of it (redesign RD-30).
+  const group = (label: string, list: readonly KycCheck[], status: KycCheck['status']) => ({
+    label, count: countOf(status) ?? list.length, items: list.map((check) => ({ id: check.memberId, title: check.fullName, detail: queueLine(check) })),
   });
   return [
-    group(t('console.kycReview.waiting'), groups.toReview),
-    group(t('console.kycReview.onMember'), groups.onMember),
-    group(t('console.kycReview.refused'), groups.refused),
+    group(t('console.kycReview.waiting'), groups.toReview, 'needs_review'),
+    group(t('console.kycReview.onMember'), groups.onMember, 'needs_pan'),
+    group(t('console.kycReview.refused'), groups.refused, 'refused'),
   ];
 }
 

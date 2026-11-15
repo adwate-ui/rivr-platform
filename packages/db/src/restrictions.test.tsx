@@ -14,7 +14,7 @@ const MEMBER = '00000000-0000-4000-8000-000000000211';
 function renderRestrictions(row: { break_until: string | null; session_reminder_hours: number | null }) {
   const calls: { rpc: string; body: unknown }[] = [];
   const fetch: typeof globalThis.fetch = async (input, init) => {
-    const rpc = (input instanceof Request ? input.url : String(input)).split('/rpc/')[1] ?? '';
+    const rpc = (input instanceof Request ? input.url : String(input)).split('/rpc/')[1]?.split('?')[0] ?? '';
     calls.push({ rpc, body: init?.body ? JSON.parse(String(init.body)) : undefined });
     if (rpc === 'my_restrictions') return Response.json([row]);
     if (rpc === 'take_break') return Response.json('2026-10-26T18:30:00+00:00');

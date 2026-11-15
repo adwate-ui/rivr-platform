@@ -2,12 +2,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { feedbackResolveSchema } from '@rivr/contracts';
 import { useResolveFeedback, type ResolveFeedbackFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, Stack, useToast } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, Input, Sheet, Stack, useToast } from '@rivr/ui';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
-/** One line of what was done, for every ticket ticked (F-013); the lists then show them resolved, with the staff member's name. */
+/**
+ * One line of what was done, for every ticket ticked (F-013), typed in the panel at the side (redesign RD-38); the lists
+ * then show them resolved, with the staff member's name. The caller draws it only while tickets are being resolved.
+ */
 export function ResolveTickets({ venueId, ids, onDone, onCancel }: { venueId: string; ids: readonly string[]; onDone: () => void; onCancel: () => void }) {
   const resolve = useResolveFeedback(venueId);
   const toast = useToast();
@@ -25,16 +28,20 @@ export function ResolveTickets({ venueId, ids, onDone, onCancel }: { venueId: st
     }
   });
   const field = form.register('resolution');
+  const title = t('console.feedback.resolveCount', { count: ids.length });
+  const footer = (
+    <Inline gap={2} justify="end">
+      <Button variant="text" size="compact" onClick={onCancel}>{t('console.feedback.cancel')}</Button>
+      <Button variant="primary" size="compact" isLoading={resolve.isPending} onClick={() => void submit()}>{title}</Button>
+    </Inline>
+  );
   return (
-    <Stack gap={2}>
-      {/* Resolve beside the console's filled field, level at their foot (console v3); what is wrong goes under the row, so they stay level. */}
-      <Inline gap={2} align="end">
-        <Input {...field} variant="subtle" label={t('console.feedback.resolution')} autoComplete="off" maxLength={500} />
-        <Button variant="subtle" size="compact" isLoading={resolve.isPending} onClick={() => void submit()}>{t('console.feedback.resolveCount', { count: ids.length })}</Button>
-        <Button variant="text" size="compact" onClick={onCancel}>{t('console.feedback.cancel')}</Button>
-      </Inline>
-      {form.formState.errors.resolution ? <ErrorMessage>{t('console.feedback.invalidResolution')}</ErrorMessage> : null}
-      {failure === null ? null : <ErrorMessage>{t(`console.feedback.failures.${failure}`)}</ErrorMessage>}
-    </Stack>
+    <Sheet place="console" isOpen onClose={onCancel} title={title} footer={footer}>
+      <Stack gap={3}>
+        <Input {...field} label={t('console.feedback.resolution')} autoComplete="off" maxLength={500}
+          error={form.formState.errors.resolution ? t('console.feedback.invalidResolution') : undefined} />
+        {failure === null ? null : <ErrorMessage>{t(`console.feedback.failures.${failure}`)}</ErrorMessage>}
+      </Stack>
+    </Sheet>
   );
 }

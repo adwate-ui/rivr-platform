@@ -1,6 +1,7 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
+import { LIST_MOST } from './limits.ts';
 
 // Kept here, not in queryKeys: this module is its own subpath (@rivr/db/cctv), off the player's first load.
 const keys = {
@@ -47,7 +48,7 @@ export function useCameras(venueId: string) {
     queryKey: keys.cameras(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<Camera[]> => {
-      const { data, error } = await client.rpc('cameras', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('cameras', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         cameraId: row.camera_id, name: row.name, channel: row.channel, tableId: row.table_id, tableName: row.table_name,

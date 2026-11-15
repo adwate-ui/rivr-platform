@@ -10,7 +10,7 @@ export { playerBonus } from './catalogue/en/playerBonus.ts';
 export { push } from './catalogue/en/push.ts';
 export { tv } from './catalogue/en/tv.ts';
 export { registerMessages, t, type Translate } from './translate.ts';
-export { formatChips, formatGameStakes, formatMoney, formatNumber, formatRupeesForFile, formatRupeesForInput, formatStakes } from './format/money.ts';
+export { formatChips, formatGameStakes, formatMoney, formatNumber, formatRupeesForFile, formatRupeesForInput, formatStakeName, formatStakes, type StakeFigures } from './format/money.ts';
 export { formatClock,
   formatCountdown,
   formatHoursMinutes,

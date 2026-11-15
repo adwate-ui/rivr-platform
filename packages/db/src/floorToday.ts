@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 // Tonight's lists move as players ask, sit, wait and leave.
 const LIVE = 15_000;
@@ -19,6 +20,12 @@ export interface TopUpTonight {
   readonly requestedAt: string;
   /** Whole seconds from asking to fulfilled; null until it is. */
   readonly fulfilledSeconds: number | null;
+  /** Who accepted it and the seconds from asking to then; null until someone has (redesign RD-32). */
+  readonly acceptedBy: string | null;
+  readonly acceptedSeconds: number | null;
+  /** Who marked it done and the seconds from accepted to then; null unless it was fulfilled. */
+  readonly doneBy: string | null;
+  readonly doneSeconds: number | null;
 }
 
 const TOP_UP_STATUSES: readonly TopUpStatus[] = ['requested', 'in_progress', 'fulfilled', 'reset', 'left'];
@@ -30,7 +37,7 @@ const topUpStatusOf = (value: string): TopUpStatus => TOP_UP_STATUSES.find((stat
 /** Read every five seconds: the floor has sixty to bring a top-up (decision 0299). */
 const TOP_UPS_LIVE = 5_000;
 
-/** Tonight's top-up requests at the venue, by table, for staff who read members (`top_ups_tonight`). */
+/** Tonight's top-up requests at the venue, by table, for staff who handle them: the floor, and guest relations (`top_ups_tonight`). */
 export function useTopUpsTonight(venueId: string, isEnabled = true) {
   const { client, userId } = useRivrData();
   return useQuery({
@@ -38,11 +45,12 @@ export function useTopUpsTonight(venueId: string, isEnabled = true) {
     enabled: userId !== null && isEnabled,
     refetchInterval: TOP_UPS_LIVE,
     queryFn: async (): Promise<TopUpTonight[]> => {
-      const { data, error } = await client.rpc('top_ups_tonight', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('top_ups_tonight', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         requestId: row.request_id, sessionId: row.session_id, tableName: row.table_name, seat: row.seat, fullName: row.full_name, status: topUpStatusOf(row.status),
         requestedAt: row.requested_at, fulfilledSeconds: row.fulfilled_seconds,
+        acceptedBy: row.accepted_by, acceptedSeconds: row.accepted_seconds, doneBy: row.done_by, doneSeconds: row.done_seconds,
       }));
     },
   });
@@ -66,7 +74,7 @@ export interface TodaysPlayer {
 const statusOf = (value: string): TodayStatus => (value === 'playing' || value === 'waiting' || value === 'in_room' || value === 'never_arrived' ? value : 'left');
 
 /** Each table a player played on, from the database's list; anything else is left out. */
-function tablesOf(tables: unknown): TodaysPlayer['tables'] {
+export function tablesOf(tables: unknown): TodaysPlayer['tables'] {
   if (!Array.isArray(tables)) return [];
   return tables.flatMap((entry: unknown) => {
     const table: unknown = typeof entry === 'object' && entry !== null ? Reflect.get(entry, 'table') : null;
@@ -83,7 +91,7 @@ export function useTodaysPlayers(venueId: string) {
     enabled: userId !== null,
     refetchInterval: LIVE,
     queryFn: async (): Promise<TodaysPlayer[]> => {
-      const { data, error } = await client.rpc('todays_players', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('todays_players', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         memberId: row.member_id, fullName: row.full_name, memberNumber: Number(row.member_number), status: statusOf(row.status),

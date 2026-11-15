@@ -1,8 +1,10 @@
 import { detailedFeedbackSchema, FEEDBACK_TOPICS, type FEEDBACK_RATED, type FeedbackTopic } from '@rivr/contracts/feedback';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useListPage, type ListView } from './lists.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** The visit Home asks the member about (decision 0165): their last, closed in the week and not yet rated. */
 export interface FeedbackVisit {
@@ -115,7 +117,7 @@ export function useFeedbackCounts(venueId: string) {
     enabled: userId !== null,
     refetchInterval: LIST_CHECK,
     queryFn: async (): Promise<FeedbackCounts> => {
-      const { data, error } = await client.rpc('feedback_counts', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('feedback_counts', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data[0] ?? { open: 0, resolved: 0, other: 0 };
     },
@@ -148,7 +150,7 @@ export function useMyFeedbackVisit() {
     queryKey: queryKeys.myFeedbackVisit(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<FeedbackVisit | null> => {
-      const { data, error } = await client.rpc('my_feedback_visit');
+      const { data, error } = await client.rpc('my_feedback_visit').limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       return row ? { visitId: row.visit_id, closedAt: row.closed_at, playedSeconds: row.played_seconds, tableName: row.table_name } : null;
@@ -192,20 +194,18 @@ export interface OpenFeedback extends FeedbackItem {
   readonly waitSeconds: number | null;
 }
 
-/** Every open ticket, oldest first; the list is never cut (F-024). */
-export function useOpenFeedback(venueId: string) {
-  const { client, userId } = useRivrData();
-  return useQuery({
-    queryKey: queryKeys.venueFeedbackOpen(userId ?? 'signed-out', venueId),
-    enabled: userId !== null,
-    refetchInterval: LIST_CHECK,
-    queryFn: async (): Promise<OpenFeedback[]> => {
-      const { data, error } = await client.rpc('open_feedback', { p_venue_id: venueId });
-      if (error) throw error;
-      return data.map((row) => ({
-        ...itemOf({ ...row, is_ticket: true, resolved_at: null, resolved_by: null, resolution: null }), tables: row.tables, waitSeconds: row.wait_seconds,
-      }));
-    },
+/**
+ * One page of the open tickets (redesign RD-30), oldest first unless the view says otherwise, sorted, searched and filtered
+ * on the server (`feedback_open_page`), with how many are open in all.
+ */
+export function useOpenFeedbackPage(venueId: string, view: ListView | null) {
+  const { client } = useRivrData();
+  return useListPage({
+    list: 'feedback_open', venueId, view,
+    read: (asked) => client.rpc('feedback_open_page', { p_venue_id: venueId, p_view: asked }),
+    rowOf: (row): OpenFeedback => ({
+      ...itemOf({ ...row, is_ticket: true, resolved_at: null, resolved_by: null, resolution: null }), tables: row.tables, waitSeconds: row.wait_seconds,
+    }),
   });
 }
 

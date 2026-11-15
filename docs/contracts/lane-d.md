@@ -1,6 +1,6 @@
 # Lane D: growth and content
 
-The renderer templates (TV layouts, social templates, winner and high-hand cards, membership card, receipt, offline pack), the logo animation, the outbox consumers and their dispatcher, WhatsApp templates, one-click publishing to every channel, winner cards with consent, the social inbox, channel analytics, the social wall, review requests, visit feedback, the Meta and Google conversion events, creators and attribution, the promotions engine with its effects (spin wheel included), points earning, the rewards catalogue and the League, the host queue, and the growth funnel. Most of lane D is outbox consumers, testable in isolation; every external call goes through `@rivr/adapters` and never reaches the practice venue (the claim function excludes it).
+The renderer templates (TV layouts, social templates, winner and high-hand cards, membership card, receipt, offline pack), the logo animation, the outbox consumers and their dispatcher, WhatsApp templates, one-click publishing to every channel, winner cards with consent, the social inbox, channel analytics, the social wall, review requests, visit feedback, the Meta and Google conversion events, creators and attribution, the promotions engine with its effects (spin wheel included), the host queue, and the growth funnel. Most of lane D is outbox consumers, testable in isolation; every external call goes through `@rivr/adapters` and never reaches the practice venue (the claim function excludes it).
 
 ## Tables owned
 
@@ -9,8 +9,6 @@ The renderer templates (TV layouts, social templates, winner and high-hand cards
 | `promotion`, `promotion_rule`, `promotion_grant`, `promotion_budget` | Rule builder: triggers, conditions, effects, controls (dates, budgets in rupees and count, per-player limits, stacking, a super admin's approval, decision 0244), grants and spend |
 | `spin_wheel`, `spin` | Prizes and odds from configuration with a budget cap; spins and results (#150, decision 0266): `public.add_spin_prize`, `remove_spin_prize`, `spin_prizes`, `waiting_spins`, `spin_the_wheel`, and the TVs' `tv_spin_wheel` |
 | `reward_item`, `redemption` | Catalogue (tournament seat, F&B upgrade, merchandise, hotel nights) and redemptions |
-| `points_earning` | What each visit earned in points, by table and from rake, as `private.close_visit` credits it (#89, decision 0161) |
-| `league_season`, `league_finish` | Monthly League across cash (hours at the tables, from `points_earning`) and tournament finishes, season championship; standings are computed, not stored (decision 0182) |
 | `creator`, `tracked_link`, `attribution_touch` | Influencer codes and links, first-touch attribution to KYC, first visit and first buy-in |
 | `referral` | Referral codes and the ₹1,000-each-side reward |
 | `social_post`, `social_post_channel` | A post's image and caption, and each channel's state: download-and-post until the channel is connected (#154, decision 0269; `public.publish_social_post`, the `social-media` bucket). `social_channel_account` comes with live publishing (#586) |
@@ -25,33 +23,27 @@ The renderer templates (TV layouts, social templates, winner and high-hand cards
 
 | Function | Used by | What it does |
 |---|---|---|
-| `private.evaluate_promotions(venue, trigger, context)` | A (buy-in), B (hand logged, tournament entry), C (check-in, Academy graduation) | Applies every live promotion whose trigger and conditions match; posts effects (bonus through lane A's `private.credit_bonus`, points, freeroll ticket, cab eligibility, spin); respects budgets and limits |
-| `private.credit_points(venue, member, points, reason, idempotency_key)`, `private.debit_points(...)` | C (Learn, capped daily) | The points ledger; points never convert to cash |
-| `public.redeem_reward(item, points, idempotency_key, nights)` | player app (C screens) | Redemption from the catalogue at the price the member was shown; feature `rewards.catalogue`. A hotel night is priced in whole nights and redeemed from the member's nights (question #486, decision 0246; RVNGT not enough) |
-| `private.award_league_points(tournament, member, place, at)` | B (tournament finish, #149) | A finish's League points, once, from `league.points` (decision 0182) |
-| `public.my_league()` | player app (C screens) | This month's and this season's top ten, and the member's own place; feature `league.standings` |
-| `public.my_rewards()`, `public.my_redemptions()` | player app (Rewards tab, #152) | The member's points and tier; their redemptions with where to collect them, feature `rewards.catalogue` |
-| `public.tv_rewards_ticker()`, `public.tv_league_board()` | TVs (B, #148) | The rewards ticker and the League leaderboard for a TV showing them; first name and initial only (decision 0183) |
+| `private.evaluate_promotions(venue, trigger, context)` | A (buy-in), B (hand logged, tournament entry), C (check-in) | Applies every live promotion whose trigger and conditions match; posts effects (bonus through lane A's `private.credit_bonus`, freeroll ticket, cab eligibility, spin); respects budgets and limits |
 | `public.growth_funnel(venue)` | console (Reports, #166) | Every member of the venue by source (`referral`, `creator` with its code, `link` with its utm_source, or `direct`) and how many finished KYC, came in and bought in; counts only, for `reports.read`, never the practice venue (22023) |
 | `public.give_card_consent(card)`, `public.withdraw_card_consent(card)` | player app | Consent per winner card; withdrawal takes the post down |
-| Views `public_promotion_cards`, `public_league_table`, `public_wall_posts` | web (C), TVs (B) | No personal data beyond first name and initial; never the practice venue |
+| Views `public_promotion_cards`, `public_wall_posts` | web (C), TVs (B) | No personal data beyond first name and initial; never the practice venue |
 | `@rivr/render` templates | B (TVs), C (share and membership cards), A (receipts, statements, offline pack) | Every graphic from `@rivr/ui` |
 
 ## Events
 
-- Emits: `promotion.published`, `promotion.offered` (one per member who opted in to marketing, `promotionOfferedSchema`, decision 0143), `promotion.granted`, `points.earned`, `reward.redeemed`, `post.published`, `lead.created`, `feedback.received`.
-- Consumes (as outbox consumers): `hand.logged`, `high_hand.approved`, `jackpot.paid`, `tournament.finished` (League; winner cards come from a trigger on the outbox, decision 0273); `visit.closed` (feedback survey, review request on the third visit, Meta repeat visit); `member.signed_up`, `kyc.completed`, `academy.booked`, `cage.buy_in`, `tournament.entered` (Meta Conversions API and Google offline conversions, with consent); `waitlist.called` (WhatsApp seat call, `waitlistCalledSchema`: member, table name, seat, hold until); `receipt.ready` (WhatsApp receipt notice, `receiptReadySchema`, from lane A's receipts); templates are `WHATSAPP_TEMPLATES` in `@rivr/adapters/whatsapp` (decision 0043), not a table; `promotion.published` (publishing); `promotion.offered` (WhatsApp marketing to an opted-in member, sent only while the promotion runs); `alert.raised` (alert WhatsApp).
+- Emits: `promotion.published`, `promotion.offered` (one per member who opted in to marketing, `promotionOfferedSchema`, decision 0143), `promotion.granted`, `post.published`, `lead.created`, `feedback.received`.
+- Consumes (as outbox consumers): `hand.logged`, `high_hand.approved`, `jackpot.paid`, `tournament.finished` (winner cards come from a trigger on the outbox, decision 0273); `visit.closed` (feedback survey, review request on the third visit, Meta repeat visit); `member.signed_up`, `kyc.completed`, `cage.buy_in`, `tournament.entered` (Meta Conversions API and Google offline conversions, with consent); `waitlist.called` (WhatsApp seat call, `waitlistCalledSchema`: member, table name, seat, hold until); `receipt.ready` (WhatsApp receipt notice, `receiptReadySchema`, from lane A's receipts); templates are `WHATSAPP_TEMPLATES` in `@rivr/adapters/whatsapp` (decision 0043), not a table; `promotion.published` (publishing); `promotion.offered` (WhatsApp marketing to an opted-in member, sent only while the promotion runs); `alert.raised` (alert WhatsApp).
 
 ## Uses from other lanes
 
 - A: `private.credit_bonus`, rake by member for RIVR Rewards (5% of rake), `private.raise_alert`.
-- B: `private.seated_hours` (points by hours and stake), tournament results.
+- B: `private.seated_hours`, tournament results.
 - C: `private.has_consent`, `private.visits_this_month`, sign-up attribution.
 
 ## Screens
 
-Console: `features/promotions` (builder with When, Who, Reward, Limits, simulation, player-card and TV-slide previews), `features/rewards`, `features/league`, `features/social` (publishing, inbox, wall moderation, analytics), `features/creators`, `features/host-queue`, the growth funnel on Reports (#166), `features/feedback`. Player app: `features/rewards`, `features/promotions`, `features/winner-cards` (inside lane C's tabs). Feature keys: `rewards.catalogue`, `rewards.points_history`, `league.standings`, `promotions.feed`, `push.promotion_published` (shared with C).
+Console: `features/promotions` (builder with When, Who, Reward, Limits, simulation, player-card and TV-slide previews), `features/social` (publishing, inbox, wall moderation, analytics), `features/creators`, `features/host-queue`, the growth funnel on Reports (#166), `features/feedback`. Player app: `features/bonus`, `features/promotions`, `features/winner-cards` (inside lane C's tabs). Feature keys: `promotions.feed`, `push.promotion_published` (shared with C).
 
 ## Settings keys added
 
-`points.per_hour` (by stake), `points.rewards_rake_share`, `league.points`, `review.visit_threshold`, `feedback.ticket_threshold`, `spin.budget`, `whatsapp.sender`.
+`review.visit_threshold`, `feedback.ticket_threshold`, `spin.budget`, `whatsapp.sender`.

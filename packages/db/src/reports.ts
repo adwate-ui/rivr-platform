@@ -3,6 +3,7 @@ import type { Paise } from '@rivr/domain/money';
 import { useQuery } from '@tanstack/react-query';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
+import { LIST_MOST } from './limits.ts';
 
 // Kept here, not in queryKeys: this module is its own subpath (@rivr/db/reports), off the player's first load.
 const keys = {
@@ -121,7 +122,7 @@ export function useRakeTonight(venueId: string) {
     enabled: userId !== null,
     refetchInterval: TONIGHT_REFRESH_MS,
     queryFn: async (): Promise<RakeBreakdown> => {
-      const { data, error } = await client.rpc('rake_tonight', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('rake_tonight', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       const of = (dimension: string) => data.filter((row) => row.dimension === dimension).map(rakeRow);
       return { byTable: of('table'), byDealer: of('dealer'), byVariant: of('variant') };
@@ -136,7 +137,7 @@ export function useMisReport(venueId: string, month: string) {
     queryKey: keys.misReport(userId ?? 'signed-out', venueId, month),
     enabled: userId !== null,
     queryFn: async (): Promise<MisReport> => {
-      const { data, error } = await client.rpc('mis_report_for', { p_venue_id: venueId, p_month: month });
+      const { data, error } = await client.rpc('mis_report_for', { p_venue_id: venueId, p_month: month }).limit(LIST_MOST);
       if (error) throw error;
       const [row] = data;
       if (row === undefined) throw new Error('The MIS came back empty');
@@ -163,7 +164,7 @@ export function useUnclaimedBalances(venueId: string) {
     queryKey: keys.unclaimed(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<UnclaimedBalance[]> => {
-      const { data, error } = await client.rpc('unclaimed_balances', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('unclaimed_balances', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         memberId: row.member_id, memberNumber: row.member_number, fullName: row.full_name,
@@ -194,7 +195,7 @@ export function useGrowthFunnel(venueId: string) {
     queryKey: keys.growthFunnel(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<FunnelRow[]> => {
-      const { data, error } = await client.rpc('growth_funnel', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('growth_funnel', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         sourceKind: SOURCE_KINDS.find((kind) => kind === row.source_kind) ?? 'direct', sourceCode: row.source_code,

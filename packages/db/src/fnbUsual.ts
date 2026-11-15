@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /**
  * "Your usual" on the Order screen (decision 0320): the ids of the two items the member ordered most over 90 days, most
@@ -12,7 +13,7 @@ export function useMyUsualFnbItems() {
     queryKey: queryKeys.myUsualFnbItems(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<string[]> => {
-      const { data, error } = await client.rpc('my_usual_fnb_items');
+      const { data, error } = await client.rpc('my_usual_fnb_items').limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => row.item_id);
     },

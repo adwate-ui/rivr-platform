@@ -2,8 +2,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { noticeFormSchema, type NoticeFormValues } from '@rivr/contracts/notices';
 import { useNoticeActions, useVenueNotices, type NoticeFailure, type VenueNotice } from '@rivr/db/notices';
 import { formatDateTime, formatIsoDay, formatTime, t } from '@rivr/i18n';
-import { Button, ConfirmButton, ErrorMessage, Grid, Heading, Inline, Input, LoadState, NoticeCard, NoticeText, Stack, StatusMessage, Text, TextArea } from '@rivr/ui';
-import { useRef, useState } from 'react';
+import { Button, ConfirmButton, ErrorMessage, Heading, Inline, Input, LoadState, NoticeCard, NoticeText, Sheet, Stack, StatusMessage, Text, TextArea } from '@rivr/ui';
+import { useState } from 'react';
 import { useForm, type FieldError, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
 
@@ -27,22 +27,25 @@ function whenError(error: FieldError | undefined): string | undefined {
   return error.message === 'needs_day' ? t('console.settings.notices.invalidDay') : t('console.settings.notices.invalidTime');
 }
 
-/** The form and what its buttons do: put up, start, leave or save an edit, and end a notice (an edited one leaves the form). */
+/**
+ * The form in the panel at the side (redesign RD-38) and what its buttons do: open it for a new notice or to edit one,
+ * put up or save, leave it, and end a notice from its row.
+ */
 function useNoticeEditor(venueId: string) {
   const { post, update, end } = useNoticeActions(venueId);
   const [resolver] = useState(() => zodResolver(noticeFormSchema));
   const form: NoticeForm = useForm<NoticeFormValues, unknown, z.output<typeof noticeFormSchema>>({ resolver, defaultValues: EMPTY });
   const [editing, setEditing] = useState<Editing>(null);
   const [outcome, setOutcome] = useState<Outcome>(null);
-  // The words' field, shared with the form's own ref, to take the focus as an edit begins or is left.
-  const words = useRef<HTMLTextAreaElement | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const failed = (error: NoticeFailure) => ({ ok: false, text: t(`console.settings.notices.failures.${error}`) });
-  const leave = () => { form.reset(EMPTY); setEditing(null); };
+  const leave = () => { form.reset(EMPTY); setEditing(null); setIsOpen(false); };
+  const open = () => { form.reset(EMPTY); setEditing(null); setOutcome(null); setIsOpen(true); };
   const edit = (notice: VenueNotice) => {
     form.reset(valuesOf(notice));
     setEditing({ noticeId: notice.noticeId, isLive: Date.parse(notice.startsAt) <= new Date().getTime() });
     setOutcome(null);
-    words.current?.focus();
+    setIsOpen(true);
   };
   const save = form.handleSubmit(async ({ body, startsAt, endsAt }) => {
     // A live notice keeps its start; one still to come left blank starts now, as a new one does.
@@ -56,14 +59,11 @@ function useNoticeEditor(venueId: string) {
   const endOne = async (noticeId: string) => {
     const done = await end.mutateAsync(noticeId);
     setOutcome(done.ok ? { ok: true, text: t('console.settings.notices.ended') } : failed(done.error));
-    if (done.ok && editing?.noticeId === noticeId) leave();
   };
-  const cancel = () => { leave(); setOutcome(null); words.current?.focus(); };
+  const cancel = () => { leave(); setOutcome(null); };
   const clearOutcome = () => setOutcome(null);
-  // The words' field with the form's ref and ours as one.
-  const { ref, ...field } = form.register('body', { onChange: clearOutcome });
-  const bodyField = { ...field, ref: (element: HTMLTextAreaElement | null) => { ref(element); words.current = element; } };
-  return { form, bodyField, editing, outcome, edit, save, cancel, endOne, clearOutcome, isSaving: post.isPending || update.isPending, isEnding: end.isPending };
+  const bodyField = form.register('body', { onChange: clearOutcome });
+  return { form, bodyField, editing, outcome, isOpen, open, edit, save, cancel, endOne, clearOutcome, isSaving: post.isPending || update.isPending, isEnding: end.isPending };
 }
 type NoticeEditor = ReturnType<typeof useNoticeEditor>;
 
@@ -126,34 +126,50 @@ function WhenFields({ editor }: { editor: NoticeEditor }) {
   );
 }
 
-/** The form beside its preview: the words, when it shows, and Put up, or Save changes and Cancel while editing. */
-function NoticeFormView({ editor }: { editor: NoticeEditor }) {
+/**
+ * The form in the panel, over its preview: the words, when it shows, and at its foot Cancel and Put up, or Save changes
+ * while editing. What went wrong is said in the panel; what went through is said on the screen, once it has closed.
+ */
+function NoticeSheet({ editor }: { editor: NoticeEditor }) {
   const { form, editing, outcome } = editor;
   const body = form.watch('body');
+  const footer = (
+    <Inline gap={2} justify="end">
+      <Button variant="text" size="compact" onClick={editor.cancel}>{t('common.cancel')}</Button>
+      <Button variant="primary" size="compact" isLoading={editor.isSaving} onClick={() => void editor.save()}>
+        {editing === null ? t('console.settings.notices.post') : t('console.settings.notices.save')}
+      </Button>
+    </Inline>
+  );
   return (
-    <Grid columns={2} gap={6} stackBelow="medium">
-      <Stack gap={3}>
+    <Sheet place="console" isOpen onClose={editor.cancel} footer={footer}
+      title={editing === null ? t('console.settings.notices.newTitle') : t('console.settings.notices.editTitle')}>
+      <Stack gap={4}>
         {/* Counted as the database counts: an emoji is one character. */}
         <TextArea {...editor.bodyField} label={t('console.settings.notices.body')} hint={t('console.settings.notices.bodyHint', { count: [...body].length })} rows={5} />
         <WhenFields editor={editor} />
-        <Inline gap={4}>
-          <Button variant="primary" isLoading={editor.isSaving} onClick={() => void editor.save()}>
-            {editing === null ? t('console.settings.notices.post') : t('console.settings.notices.save')}
-          </Button>
-          {editing === null ? null : <Button variant="text" onClick={editor.cancel}>{t('common.cancel')}</Button>}
-        </Inline>
-        <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
         {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
+        <NoticePreview body={body} />
       </Stack>
-      <NoticePreview body={body} />
-    </Grid>
+    </Sheet>
+  );
+}
+
+/** What the last step did, said on the screen: what went through, and what went wrong ending a notice on its row (the form's own is said in the panel). */
+function SectionOutcome({ editor }: { editor: NoticeEditor }) {
+  const { outcome, isOpen } = editor;
+  return (
+    <>
+      <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
+      {outcome?.ok === false && !isOpen ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
+    </>
   );
 }
 
 /**
  * Notices on members' Tonight (decisions 0298 and 0424): put one up, now or from a start to an end, seen as members will
- * see it while it is typed; edit one up or to come in place; end one. For staff with settings.manage; the database
- * refuses anyone else.
+ * see it while it is typed; edit one up or to come; end one. Putting one up and editing one open the panel at the side
+ * (redesign RD-38). For staff with settings.manage; the database refuses anyone else.
  */
 export function NoticesSection({ venueId }: { venueId: string }) {
   const notices = useVenueNotices(venueId);
@@ -169,7 +185,9 @@ export function NoticesSection({ venueId }: { venueId: string }) {
         <NoticeRow key={notice.noticeId} notice={notice} now={now} isBusy={editor.isEnding} onEdit={() => editor.edit(notice)}
           onEnd={() => void editor.endOne(notice.noticeId)} />
       ))}
-      <NoticeFormView editor={editor} />
+      <Inline><Button variant="primary" onClick={editor.open}>{t('console.settings.notices.newTitle')}</Button></Inline>
+      <SectionOutcome editor={editor} />
+      {editor.isOpen ? <NoticeSheet editor={editor} /> : null}
     </Stack>
   );
 }

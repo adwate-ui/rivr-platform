@@ -2,6 +2,7 @@ import { err, ok, type Result } from '@rivr/contracts/result';
 import { fromPaise, type Paise } from '@rivr/domain/money';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
+import { LIST_MOST } from './limits.ts';
 
 // Kept here, not in queryKeys: this module is its own subpath (@rivr/db/glaza).
 const keys = { statement: (userId: string, venueId: string, month: string) => ['user', userId, 'glaza-statement', venueId, month] as const };
@@ -54,7 +55,7 @@ export function useGlazaStatement(venueId: string, month: string) {
     queryKey: keys.statement(userId ?? 'signed-out', venueId, month),
     enabled: userId !== null,
     queryFn: async (): Promise<GlazaStatement | null> => {
-      const { data, error } = await client.rpc('glaza_statement', { p_venue_id: venueId, p_month: month });
+      const { data, error } = await client.rpc('glaza_statement', { p_venue_id: venueId, p_month: month }).limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       if (row === undefined) return null;

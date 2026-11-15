@@ -30,12 +30,9 @@ function reset() {
   sql(`delete from public.kyc_record where member_id = '${RAGHAV}'`);
 }
 
-/** The console's card for Table 3's list, and Raghav's row on it. */
+/** Raghav's row in the Waitlist's table of places (redesign RD-31), as waitlist.spec.ts's placeRow. */
 function placeRow(host: Page) {
-  const list = host.locator('section').filter({ has: host.getByRole('heading', { level: 2, name: 'Table 3', exact: true }) }).last();
-  // As waitlist.spec.ts's placeRow: the row holding both his ⋯ menu and his tick.
-  return list.locator('div').filter({ has: host.getByRole('button', { name: `More for ${NAME}`, exact: true }) })
-    .filter({ has: host.getByRole('checkbox', { name: `Select ${NAME}` }) }).last();
+  return host.getByRole('table', { name: 'Places' }).getByRole('row').filter({ has: host.getByRole('button', { name: `More for ${NAME}`, exact: true }) });
 }
 
 // The desk's photos take a phone or tablet's back camera: a computer is sent on to one (decision 0573).
@@ -64,6 +61,7 @@ test.describe('Waitlist › At the club', () => {
     const host = await browser.newPage();
     await signInToConsole(host, '9000000158', '/waitlist');
     await host.getByRole('button', { name: `Approve ${NAME}` }).click();
+    await expect(placeRow(host)).toContainText('Table 3');
     await expect(placeRow(host)).toContainText('ID check needed');
     await expect(placeRow(host).getByRole('button', { name: `Seat ${NAME}` })).toHaveCount(0);
 

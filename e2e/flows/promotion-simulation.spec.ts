@@ -62,8 +62,8 @@ test.describe('Promotion simulation', () => {
     const started = Date.now();
     await page.goto(`${appUrl('console')}/promotions?open=new`);
     await page.getByRole('textbox', { name: 'Name members see' }).fill(NAME);
-    await page.getByRole('radiogroup', { name: 'Reward' }).getByRole('radio', { name: 'Hours-played bonus chips' }).click();
-    await page.getByRole('textbox', { name: 'Bonus chips', exact: true }).fill(String(CHIPS));
+    await page.getByRole('radiogroup', { name: 'Reward' }).getByRole('radio', { name: 'Hours played' }).click();
+    await page.getByRole('textbox', { name: 'Amount', exact: true }).fill(String(CHIPS));
     await page.getByRole('textbox', { name: 'After', exact: true }).fill('4');
     await page.getByRole('group', { name: 'Stakes' }).getByRole('button', { name: 'Private Room' }).click();
     const days = page.getByRole('group', { name: 'Days' });
@@ -72,22 +72,24 @@ test.describe('Promotion simulation', () => {
     await days.getByRole('button', { name: 'Sat' }).click();
     await page.getByRole('textbox', { name: 'From' }).fill('14:00');
     await page.getByRole('textbox', { name: 'To', exact: true }).fill('20:00');
-    await expect(page.getByText(/^1,000 bonus chips after 4 hours, for Private Room, Thu 14:00–20:00\. Once per visit per member\./)).toBeVisible();
+    await expect(page.getByText(/^1,000 Bonus after 4 hours, for Private Room, Thu 14:00–20:00\. Once per visit per member\./)).toBeVisible();
 
     // Submitting waits for the simulation.
     const submit = page.getByRole('button', { name: 'Submit for approval' });
     await expect(submit).toBeDisabled();
     await page.getByRole('button', { name: 'Simulate' }).click();
     const figure = (label: string) => page.getByText(label, { exact: true }).locator('xpath=..');
+    // "Bonus" is also the unit beside the amount's field, so that figure is found among the simulation's own.
+    const given = figure('times given').locator('xpath=..').getByText('Bonus', { exact: true }).locator('xpath=..');
     await expect(figure('times given')).toContainText(visits.toLocaleString('en-IN'), { timeout: 10_000 });
-    await expect(figure('bonus chips')).toContainText((visits * CHIPS).toLocaleString('en-IN'));
+    await expect(given).toContainText((visits * CHIPS).toLocaleString('en-IN'));
 
     // A change takes the simulation away; the terms simulated give it back.
-    await page.getByRole('textbox', { name: 'Bonus chips', exact: true }).fill('2000');
+    await page.getByRole('textbox', { name: 'Amount', exact: true }).fill('2000');
     await expect(submit).toBeDisabled();
     await expect(page.getByText('Run it before submitting, so the approver sees what it gives.')).toBeVisible();
-    await page.getByRole('textbox', { name: 'Bonus chips', exact: true }).fill(String(CHIPS));
-    await expect(figure('bonus chips')).toContainText((visits * CHIPS).toLocaleString('en-IN'));
+    await page.getByRole('textbox', { name: 'Amount', exact: true }).fill(String(CHIPS));
+    await expect(given).toContainText((visits * CHIPS).toLocaleString('en-IN'));
     await submit.click();
     await expect(page.getByText(`${NAME} sent for approval`)).toBeVisible({ timeout: 10_000 });
     expect(Date.now() - started).toBeLessThan(10 * 60_000);

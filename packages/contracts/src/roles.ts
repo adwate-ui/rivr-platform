@@ -5,7 +5,7 @@
  * row-level security checks it; a db test keeps the two equal.
  */
 
-export const STAFF_ROLES = ['super_admin', 'admin', 'cashier', 'dealer', 'marketing', 'host', 'owner_view', 'service', 'floor'] as const;
+export const STAFF_ROLES = ['super_admin', 'admin', 'cashier', 'dealer', 'marketing', 'host', 'owner_view', 'service', 'floor', 'guest_relations'] as const;
 
 /** A staff member's permission role. */
 export type StaffRole = (typeof STAFF_ROLES)[number];
@@ -51,6 +51,7 @@ export const PERMISSIONS = [
   'feedback.manage', // the General Manager's feedback tickets (decision 0165)
   'bonus.give', // add bonus chips to a member by hand, never to oneself: super admins, admins and floor managers (the owner, 9 Nov)
   'treasury.manage', // payment accounts, transfers, expense categories and approving expenses (decision 0167)
+  'top_ups.manage', // top-up requests and nothing else: guest relations' whole role (redesign RD-32); admins hold it to give the role
 ] as const;
 
 /** A permission key. */
@@ -65,7 +66,7 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
     'kyc.review', 'kyc.in_person', 'tiers.manage', 'floor.manage', 'waitlist.manage', 'call_time.override', 'cage.second_approve',
     'ledger.read', 'tournaments.manage', 'promotions.manage',
     'host_queue.manage', 'fnb.manage', 'fnb.serve', 'reports.read', 'exports.table', 'sops.manage', 'aml.review', 'feedback.manage',
-    'treasury.manage', 'tables.manage', 'bonus.give',
+    'treasury.manage', 'tables.manage', 'bonus.give', 'top_ups.manage',
   ],
   // Every super admin module but tables setup, the member list, games history, tournaments and bonus (#644); TVs through a
   // permission of their own, as devices.manage reaches the cage's computers and the cameras. Bonus chips by hand came later (the owner, 9 Nov).
@@ -84,6 +85,8 @@ export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>
   owner_view: ['dashboards.read', 'ledger.read', 'audit.read'],
   // Food and drink only: the menu and the orders, with no comp nor Glaza's statement (#640).
   service: ['fnb.serve'],
+  // Top-up requests only (redesign RD-32; the owner, 15 Nov): to accept one, mark it done and read who did and how long each step took.
+  guest_relations: ['top_ups.manage'],
 };
 
 /** Permissions only super_admin may ever hold (features-2026-10-14.md, "Exports"). */

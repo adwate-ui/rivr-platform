@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, screen, userEvent } from 'storybook/test';
 import { ChoiceChips } from '../ChoiceChips/ChoiceChips.tsx';
+import { ConsoleFrameContext } from '../internal/consoleFrame.ts';
+import { CONSOLE_MAIN_TOP } from '../internal/consoleMain.ts';
 import { DataTable, type DataTableColumn } from './DataTable.tsx';
 import { DataTableExportProvider } from './DataTableExport.tsx';
 import { DataTableViewProvider } from './DataTableView.tsx';
@@ -97,8 +99,8 @@ export const MenuWithServerCounts: Story = {
 
 /**
  * The screen's own filter under the search, tier chips the table knows only as `server.scope`: choosing one starts the
- * table again from its first page. Beneath an export provider, as every console table is, yet no Export is drawn: the
- * rows shown are one page of the list.
+ * table again from its first page. Beneath an export provider, as every console table is, with the screen's read of
+ * every row the view leaves (`exportRows`), so the Export is drawn (redesign RD-29).
  */
 function ScopedTable() {
   const tier = 'Black card';
@@ -110,7 +112,7 @@ function ScopedTable() {
     <DataTableExportProvider exporter={async () => true}>
       <DataTable label="Members" columns={COLUMNS} rowKey={(row) => String(row.number)} rows={members(12).map((row) => ({ ...row, tier }))} emptyText="No members yet."
         filter={{ label: 'Name, mobile or member number', text: (row) => row.name }} belowSearch={chips}
-        server={{ total: 312, pageSize: 12, onRequest: () => undefined, scope: `tier: ${tier}` }} />
+        server={{ total: 312, pageSize: 12, onRequest: () => undefined, scope: `tier: ${tier}` }} exportRows={async () => members(12)} />
     </DataTableExportProvider>
   );
 }
@@ -122,3 +124,22 @@ export const ManyPagesOnAPhone: Story = { tags: ['viewport-phone'] };
 
 /** On a tablet held upright (768 px). */
 export const ManyPagesOnAPortraitTablet: Story = { tags: ['viewport-portrait'] };
+
+/**
+ * A page of fifty scrolled in the console's main, with its space above a screen: the header stands against main's top
+ * edge on its own colour, and no row shows over it.
+ */
+export const ScrolledInTheConsole: Story = {
+  render: () => (
+    <ConsoleFrameContext value>
+      <div data-scroller="" className={`h-dvh overflow-y-auto px-8 ${CONSOLE_MAIN_TOP}`}>
+        <ServerTable rows={members(50)} total={4812} />
+      </div>
+    </ConsoleFrameContext>
+  ),
+  play: ({ canvasElement }) => {
+    canvasElement.querySelector('[data-scroller]')?.scrollTo(0, 600);
+  },
+  parameters: { layout: 'fullscreen' },
+  tags: DESK,
+};

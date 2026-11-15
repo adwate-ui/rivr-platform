@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { changeFrom, isTableSpan, roomUse, tableSpanDays, tableUse } from './use.ts';
+import { changeFrom, isTableSpan, roomUse, shareOf, tableSpanDays, tableUse } from './use.ts';
 
 describe('tableUse', () => {
   it('is the seconds played over seats × seconds run, a whole percent rounded down', () => {
@@ -35,6 +35,22 @@ describe('changeFrom', () => {
   it('is nothing with nothing before', () => {
     expect(changeFrom(100, 0)).toBeNull();
     expect(changeFrom(0, 0)).toBeNull();
+  });
+});
+
+describe('shareOf', () => {
+  it('is the part as a whole percent of the whole, rounded', () => {
+    expect(shareOf(11, 78)).toBe(14);
+    expect(shareOf(78, 78)).toBe(100);
+    expect(shareOf(0, 78)).toBe(0);
+    expect(shareOf(1, 3)).toBe(33);
+    expect(shareOf(2, 3)).toBe(67);
+  });
+
+  it('is nothing of no whole, and never below nothing', () => {
+    expect(shareOf(3, 0)).toBeNull();
+    expect(shareOf(0, 0)).toBeNull();
+    expect(shareOf(-2, 10)).toBe(0);
   });
 });
 

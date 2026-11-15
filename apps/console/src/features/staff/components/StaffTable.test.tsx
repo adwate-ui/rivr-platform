@@ -1,7 +1,7 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, type StaffMember } from '@rivr/db';
 import { ToastProvider } from '@rivr/ui';
 import { QueryClient } from '@tanstack/react-query';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { StaffTable, type StaffView } from './StaffTable.tsx';
 
@@ -19,7 +19,7 @@ const STAFF: readonly StaffMember[] = [
 ];
 
 /** The table, with Ravi removed on 5 Nov by Vikram; a change sent to the staff table goes to `changes`. */
-function renderTable(isAdding = false, view: StaffView = 'active', members: readonly StaffMember[] = STAFF) {
+function renderTable(view: StaffView = 'active', members: readonly StaffMember[] = STAFF) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000101', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -39,7 +39,7 @@ function renderTable(isAdding = false, view: StaffView = 'active', members: read
   const tree = (shown: StaffView) => (
     <RivrDataProvider client={client} queryClient={cache}>
       <ToastProvider place="console">
-        <StaffTable venueId="v1" members={members} grantable={['cashier', 'dealer', 'host']} isAdding={isAdding} view={shown} />
+        <StaffTable venueId="v1" members={members} grantable={['cashier', 'dealer', 'host']} view={shown} />
       </ToastProvider>
     </RivrDataProvider>
   );
@@ -54,7 +54,7 @@ const daysAgo = (days: number) => new Date(Date.now() - days * 86_400_000).toISO
 
 describe('who still has access (F-116)', () => {
   it('says when each login last signed in, and that a PIN dealer has none', () => {
-    renderTable(false, 'active', [
+    renderTable('active', [
       person({ staffId: 'a', fullName: 'Asha Rao', lastSignedInAt: '2026-11-01T10:00:00Z' }),
       person({ staffId: 'b', fullName: 'Bela Rao' }),
       // A mobile on file does not make a login: no login is the mark of a dealer on a PIN (decision 0046).
@@ -70,7 +70,7 @@ describe('who still has access (F-116)', () => {
   });
 
   it('narrows to logins not used in 30 days or ever, and leaves a PIN dealer out', () => {
-    renderTable(false, 'active', [
+    renderTable('active', [
       person({ staffId: 'a', fullName: 'Asha Rao', lastSignedInAt: daysAgo(29) }),
       person({ staffId: 'b', fullName: 'Bela Rao', lastSignedInAt: daysAgo(31) }),
       person({ staffId: 'c', fullName: 'Chirag Rao' }),
@@ -86,7 +86,7 @@ describe('who still has access (F-116)', () => {
   });
 
   it('narrows only the staff working: on Removed staff the chip is gone and nobody is hidden by it', async () => {
-    const { showView } = renderTable(false, 'active', [
+    const { showView } = renderTable('active', [
       person({ staffId: 'a', fullName: 'Asha Rao' }),
       person({ staffId: 'b', fullName: 'Bela Rao', isActive: false, lastSignedInAt: daysAgo(1) }),
     ]);
@@ -97,22 +97,22 @@ describe('who still has access (F-116)', () => {
   });
 
   it('filters by the day of the last sign-in (decision 0512)', () => {
-    renderTable(false, 'active', [person({ staffId: 'a', fullName: 'Asha Rao', lastSignedInAt: daysAgo(2) })]);
+    renderTable('active', [person({ staffId: 'a', fullName: 'Asha Rao', lastSignedInAt: daysAgo(2) })]);
     fireEvent.click(screen.getByRole('button', { name: 'Last signed in: sort and filter' }));
     expect(screen.getByRole('radio', { name: 'Last 7 days' })).toBeDefined();
   });
 
   it('warns when more than five are super admins, and not at five', () => {
     const admins = (count: number) => Array.from({ length: count }, (_, at) => person({ staffId: `s${at}`, fullName: `Admin ${at}`, role: 'super_admin' }));
-    renderTable(false, 'active', admins(6));
+    renderTable('active', admins(6));
     expect(screen.getByText('6 people are super admins. Keep it to those who need it.')).toBeDefined();
     cleanup();
-    renderTable(false, 'active', admins(5));
+    renderTable('active', admins(5));
     expect(screen.queryByText(/people are super admins/)).toBeNull();
   });
 
   it('does not count or offer the filter on Removed staff', () => {
-    renderTable(false, 'removed', Array.from({ length: 6 }, (_, at) => person({ staffId: `s${at}`, fullName: `Admin ${at}`, role: 'super_admin', isActive: false })));
+    renderTable('removed', Array.from({ length: 6 }, (_, at) => person({ staffId: `s${at}`, fullName: `Admin ${at}`, role: 'super_admin', isActive: false })));
     expect(screen.queryByText(/people are super admins/)).toBeNull();
     expect(screen.queryByRole('button', { name: /Not signed in/ })).toBeNull();
   });
@@ -128,7 +128,7 @@ describe('StaffTable', () => {
   });
 
   it('lists the removed with when and by whom, and restores one after a second press', async () => {
-    const { changes } = renderTable(false, 'removed');
+    const { changes } = renderTable('removed');
     expect(await screen.findByText(/^5 Nov 2026 · by Vikram Rao$/)).toBeDefined();
     expect(screen.getByRole('button', { name: 'Ravi Dealer' })).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Ayesha Thomas · You' })).toBeNull();
@@ -152,14 +152,6 @@ describe('StaffTable', () => {
     expect(screen.queryByRole('button', { name: 'Ayesha Thomas · You' })).toBeNull();
   });
 
-  it('shows the add form above the table while Add staff has it open', () => {
-    renderTable();
-    expect(screen.queryByRole('textbox', { name: 'Full name' })).toBeNull();
-    cleanup();
-    renderTable(true);
-    expect(screen.getByRole('textbox', { name: 'Full name' })).toBeDefined();
-  });
-
   it('narrows the table by role, each role someone holds a chip with its count, and back with All', () => {
     renderTable();
     const roles = screen.getByRole('radiogroup', { name: 'Staff by role' });
@@ -171,11 +163,14 @@ describe('StaffTable', () => {
     expect(screen.getByRole('button', { name: 'Ayesha Thomas · You' })).toBeDefined();
   });
 
-  it('opens a staff member beside the table, to change them, and closes them', () => {
+  it('opens a staff member in the panel at the side, to change them, and closes it (redesign RD-38)', async () => {
     renderTable();
+    expect(screen.queryByRole('dialog')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Manoj Pillai' }));
-    expect(screen.getByRole('button', { name: 'Change Manoj Pillai' })).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'Close Manoj Pillai' }));
-    expect(screen.queryByRole('button', { name: 'Change Manoj Pillai' })).toBeNull();
+    const panel = within(screen.getByRole('dialog', { name: 'Manoj Pillai' }));
+    expect(panel.getByRole('radiogroup', { name: 'Role for Manoj Pillai' })).toBeDefined();
+    expect(panel.getByRole('switch', { name: 'Active: Manoj Pillai' })).toBeDefined();
+    fireEvent.click(panel.getByRole('button', { name: 'Close' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   });
 });

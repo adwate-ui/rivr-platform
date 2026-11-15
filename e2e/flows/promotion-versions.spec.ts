@@ -61,7 +61,7 @@ test.describe('Promotion versions', () => {
     await signInToConsole(author, '9000000107');
     await author.goto(`${appUrl('console')}/promotions`);
     await author.getByRole('button', { name: 'New promotion' }).click();
-    await author.getByRole('radiogroup', { name: 'Start from' }).getByRole('radio', { name: 'Seat bonus chips' }).click();
+    await author.getByRole('radiogroup', { name: 'Start from' }).getByRole('radio', { name: 'Seat bonus' }).click();
     await author.getByRole('textbox', { name: 'Name members see' }).fill(NAME);
     await author.getByRole('group', { name: 'Stakes' }).getByRole('button', { name: 'Private Room' }).click();
     await author.getByRole('button', { name: 'Every day' }).click();
@@ -74,7 +74,7 @@ test.describe('Promotion versions', () => {
     await author.goto(`${appUrl('console')}/promotions`);
     await author.getByRole('button', { name: `Edit ${NAME}` }).click();
     await expect(author.getByText('Changes make version 2. Version 1 runs until it is approved.')).toBeVisible();
-    await author.getByRole('textbox', { name: 'Bonus chips', exact: true }).fill('500');
+    await author.getByRole('textbox', { name: 'Amount', exact: true }).fill('500');
     await simulateAndSubmit(author);
     await expect(rowOf(author)).toContainText('Live');
     await expect(rowOf(author)).toContainText('New version awaits approval');

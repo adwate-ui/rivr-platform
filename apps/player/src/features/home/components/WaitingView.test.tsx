@@ -12,7 +12,7 @@ afterEach(() => {
 });
 
 const PLACE: WaitlistPlace = {
-  entryId: 'e1', tableTypeId: 'tt1', tableTypeName: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, joinedAt: '2026-11-15T17:14:00Z',
+  entryId: 'e1', tableTypeId: 'tt1', tableTypeName: 'NLH 50/100', game: 'nlh', smallBlind: 5000n, bigBlind: 10000n, straddle: null, joinedAt: '2026-11-15T17:14:00Z',
   place: 1, isRequest: false, callTableName: null, callSeat: null, holdUntil: null, awayUntil: null, tableId: 't1', tableName: 'Table 1',
   calledAt: null, onWayAt: null,
 };

@@ -29,7 +29,7 @@ export const SpaceBetween: Story = { args: { justify: 'between' } };
 export const LongTextWraps: Story = {
   args: {
     wrap: true,
-    children: ['Black card', 'Founders’ Circle', 'Academy graduate', 'Member', 'Private Room regular', 'Tournament winner'].map((tier) => (
+    children: ['Black card', 'Founders’ Circle', 'High roller', 'Member', 'Private Room regular', 'Tournament winner'].map((tier) => (
       <Text key={tier} variant="small">
         {tier}
       </Text>

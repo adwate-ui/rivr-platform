@@ -1,34 +1,24 @@
-import { type FloorTable, type InterestList, useApproveWaitlistRequest, useFloorSeats, useFloorWaitlistActions, type WaitlistBoardEntry, type WaitlistFailure, type WaitlistRequest } from '@rivr/db';
-import { tableWithRoomFor } from '@rivr/domain/tables';
+import { type FloorTable, type InterestList, useApproveWaitlistRequest, useFloorSeats, useFloorWaitlistActions, type WaitlistFailure, type WaitlistRequest } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Box, ErrorMessage, Heading, Inline, JoinRequestRow, Stack, Text, useToast } from '@rivr/ui';
+import { Box, ErrorMessage, Heading, Inline, JoinRequestRow, Text, useToast } from '@rivr/ui';
 import { useState } from 'react';
-import { AddPlaceForm } from './AddPlaceForm.tsx';
 import { ENTRY_FAILURE_COPY } from './failureCopy.ts';
 import { InterestNotice } from './InterestNotice.tsx';
-import { PlaceRow } from './PlaceRow.tsx';
 import { tableMeta } from './placeMeta.ts';
 
 export interface TableWaitlistProps {
   venueId: string;
-  /** The table whose list this is (decision 0467): a place is seated only at it. */
+  /** The table whose list this is (decision 0467). */
   table: FloorTable;
-  /** The venue's tables, to say where else the stake has room (audit F-036). */
-  tables: readonly FloorTable[];
-  entries: readonly WaitlistBoardEntry[];
+  /** How many wait on its list. */
+  waiting: number;
   /** Joins from the app waiting for the floor (#633). */
   requests: readonly WaitlistRequest[];
   /** A closed table's list is its interest in reopening it (#113): with Open table, for staff who open tables. */
   interest: InterestList | undefined;
   canOpen: boolean;
-  now: Date;
-  ticked: ReadonlySet<string>;
-  onToggle: (entryId: string) => void;
-  onSeat: (entry: WaitlistBoardEntry) => void;
   /** A join approved: its seat sheet follows when a seat is free for it (the owner, 8 Nov). */
   onApproved: (entryId: string) => void;
-  /** Opens the check in person for a place whose member's identity check waits for the desk (decision 0503); none for staff who cannot. */
-  onCheckId?: ((entry: WaitlistBoardEntry) => void) | undefined;
 }
 
 /** The table's joins from the app, oldest first (#633): Approve puts the member on the list, Decline takes the request off. */
@@ -66,6 +56,9 @@ function JoinRequests({ venueId, table, requests, onApproved }: {
   );
 }
 
+/** A table with no seat free while members wait on its list (audit F-030). */
+export const isFullWithWaiting = (table: FloorTable, waiting: number) => table.isOpen && table.openSeats === 0 && waiting > 0;
+
 /** A full table's note: when a seat will come, by who is on their way out (audit F-030). */
 function FullNote({ venueId, tableId }: { venueId: string; tableId: string }) {
   const leaving = (useFloorSeats(venueId).data ?? []).filter((seat) => seat.tableId === tableId && seat.leavingAt !== null).map((seat) => seat.fullName);
@@ -77,11 +70,11 @@ function FullNote({ venueId, tableId }: { venueId: string; tableId: string }) {
 }
 
 /**
- * One table's waitlist as a card (console v3): its name, stake and open seats; the joins asking from the app; the places in
- * order, each with its tick, Seat and ⋯ menu; and a field to add a member by mobile or membership number.
+ * What one table has of its own to say over the Waitlist's places, as a card (console v3; redesign RD-31): its name, stake
+ * and open seats; that it is full, and who is on their way out; the joins asking from the app; a closed table's interest,
+ * with Open table. A table with none of these has no card. Its places are rows of the one table below.
  */
-export function TableWaitlist(props: TableWaitlistProps) {
-  const { venueId, table, tables, entries, requests, interest, canOpen, now, ticked, onToggle, onSeat, onApproved, onCheckId } = props;
+export function TableWaitlist({ venueId, table, waiting, requests, interest, canOpen, onApproved }: TableWaitlistProps) {
   return (
     <Box as="section" surface="raised" radius="lg">
       <Box paddingX={4} paddingY={4}>
@@ -90,22 +83,11 @@ export function TableWaitlist(props: TableWaitlistProps) {
           <Text as="span" variant="secondary" tone="muted">{tableMeta(table)}</Text>
         </Inline>
       </Box>
-      {table.isOpen && table.openSeats === 0 && entries.length > 0 ? <FullNote venueId={venueId} tableId={table.id} /> : null}
+      {isFullWithWaiting(table, waiting) ? <FullNote venueId={venueId} tableId={table.id} /> : null}
       <JoinRequests venueId={venueId} table={table} requests={requests} onApproved={onApproved} />
       {interest === undefined ? null : (
         <Box paddingX={4} paddingY={2}><InterestNotice venueId={venueId} interest={interest} table={table} canOpen={canOpen} /></Box>
       )}
-      {entries.length === 0 ? (
-        <Box paddingX={4} paddingY={2}><Text variant="secondary" tone="muted">{t('console.waitlist.empty')}</Text></Box>
-      ) : (
-        <Stack gap={0}>
-          {entries.map((entry) => (
-            <PlaceRow key={entry.entryId} venueId={venueId} entry={entry} table={table} roomAt={tableWithRoomFor(table, tables)} now={now} isTicked={ticked.has(entry.entryId)}
-              onToggle={() => onToggle(entry.entryId)} onSeat={() => onSeat(entry)} onCheckId={onCheckId === undefined ? undefined : () => onCheckId(entry)} />
-          ))}
-        </Stack>
-      )}
-      <Box paddingX={4} paddingY={4}><AddPlaceForm venueId={venueId} table={table} /></Box>
     </Box>
   );
 }

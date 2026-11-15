@@ -30,7 +30,7 @@ export const FEATURES = [
   gateable('sessions.history', 'Session history', 'Past sessions with buy-in, cash-out, net and receipts.', ['player:sessions']),
   gateable('rewards.rakeback', 'Hourly rakeback', 'Bonus each Monday on a member’s share of last week’s rake, at stakes with a rakeback rate.', []),
   gateable('referral.share_cards', 'Referral and share cards', 'Referral code and rendered share cards.', ['player:bonus/referral']),
-  gateable('cab.requests', 'Cab requests', 'Pickup and drop requests when eligible.', ['player:rewards/cab']),
+  gateable('cab.requests', 'Cab requests', 'Pickup and drop requests when eligible.', []),
   gateable('waitlist.join', 'Join waitlist from the app', 'Joining a waitlist before arrival.', ['player:home']),
   gateable('call_time.view', 'Call-time view', 'Time remaining before the member may leave the game.', ['player:home']),
   gateable('table.top_up', 'Top-up requests', 'Asking the floor for more chips from the seat.', ['player:home']),
@@ -52,8 +52,8 @@ export const FEATURES = [
   core('core.notification_settings', 'Notification settings', 'Choosing which notifications to receive.', ['player:profile/notifications']),
   core('core.house_rules', 'House rules', 'The club’s house rules.', ['player:profile/rules', 'web:house-rules']),
   core('core.feedback', 'Feedback', 'Rating a visit, and sending the club a note.', ['player:home', 'player:profile']),
-  core('rewards.bonus', 'Bonus chips', 'The member’s bonus chips and their history, in Bonus.', ['player:bonus']),
-  core('push.bonus', 'Bonus chip notifications', 'Push when bonus chips are added or used.', ['player:profile/notifications']),
+  core('rewards.bonus', 'Bonus', 'The member’s Bonus and its history.', ['player:bonus']),
+  core('push.bonus', 'Bonus notifications', 'Push when Bonus is added or used.', ['player:profile/notifications']),
 ] as const satisfies readonly FeatureDefinition[];
 
 /** A feature key declared in code. */

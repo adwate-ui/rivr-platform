@@ -6,6 +6,7 @@ import { toPaise } from './parse/hands.ts';
 import { toRakeSetting, type RakeSetting } from './parse/rakeSettings.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 export type { RakeSetting };
 
@@ -59,8 +60,8 @@ export function useTableTypeRake(venueId: string) {
     queryFn: async (): Promise<TableTypeRake[]> => {
       const [types, settings] = await Promise.all([
         client.from('table_type').select('id, code, name, small_blind_paise, big_blind_paise').eq('venue_id', venueId)
-          .order('small_blind_paise').order('name'),
-        client.from('setting').select('id, subject, value, effective_from, reason').eq('venue_id', venueId).eq('key', 'rake.config'),
+          .order('small_blind_paise').order('name').limit(LIST_MOST),
+        client.from('setting').select('id, subject, value, effective_from, reason').eq('venue_id', venueId).eq('key', 'rake.config').limit(LIST_MOST),
       ]);
       if (types.error) throw types.error;
       if (settings.error) throw settings.error;

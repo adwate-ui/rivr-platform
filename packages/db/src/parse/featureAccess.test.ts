@@ -29,6 +29,5 @@ describe('toFeatureAccessMap', () => {
     ]);
     expect(access.get('events.book')).toEqual({ state: 'enabled' });
     expect(access.get('cab.requests')).toBe(HIDDEN);
-    expect(access.get('league.standings')).toBeUndefined();
   });
 });

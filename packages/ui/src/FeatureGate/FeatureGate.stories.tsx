@@ -31,5 +31,5 @@ export const Locked: Story = { args: { access: { state: 'locked', tiers: ['Found
 export const Hidden: Story = { args: { access: { state: 'hidden' } } };
 
 export const LongText: Story = {
-  args: { access: { state: 'locked', tiers: ['Academy graduate', 'Founders’ Circle', 'Black card', 'Private Room regulars'] } },
+  args: { access: { state: 'locked', tiers: ['High roller', 'Founders’ Circle', 'Black card', 'Private Room regulars'] } },
 };

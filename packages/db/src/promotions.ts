@@ -2,6 +2,7 @@ import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** A stake the builder's Who section offers: a table type's code and name ("NLH 100/200", "Private Room"). */
 export interface PromotionStake {
@@ -24,7 +25,7 @@ export function usePromotionStakes(venueId: string) {
     enabled: userId !== null,
     queryFn: async (): Promise<PromotionStake[]> => {
       const { data, error } = await client.from('table_type').select('code, name').eq('venue_id', venueId)
-        .order('small_blind_paise').order('name');
+        .order('small_blind_paise').order('name').limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({ code: row.code, name: row.name }));
     },

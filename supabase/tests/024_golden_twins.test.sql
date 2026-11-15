@@ -481,5 +481,16 @@ select results_eq(
      from golden.golden_case where file = 'promotionRewards.json' and operation = 'tally' order by position $$,
   'private.promotion_tally counts every ledger in the golden file');
 
+-- Hours after a reset: private.counted_seconds and @rivr/domain countedSeconds (packages/testing/golden/hours.json).
+select ok((select count(*) > 0 from golden.golden_case where file = 'hours.json'), 'the hours cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'hours.json' and operation <> 'counted' $$,
+  'every operation in hours.json is proved here');
+select results_eq(
+  $$ select description, private.counted_seconds((inputs ->> 'from')::timestamptz, (inputs ->> 'to')::timestamptz, (inputs ->> 'playedSeconds')::bigint,
+                                                  case when inputs ->> 'countedFrom' = 'never' then null else (inputs ->> 'countedFrom')::timestamptz end)
+     from golden.golden_case where file = 'hours.json' order by position $$,
+  $$ select description, (expected ->> 'seconds')::bigint from golden.golden_case where file = 'hours.json' order by position $$,
+  'private.counted_seconds gives every case in the golden file');
+
 select * from finish();
 rollback;

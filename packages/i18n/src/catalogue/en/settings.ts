@@ -154,6 +154,9 @@ export const settings = {
     invalidTime: 'A 24-hour time, as 19:00, with its day. Or clear both.',
     endBeforeStart: 'End after the start.',
     post: 'Put up',
+    /** The button that opens the panel, and the panel's title (redesign RD-38); editing one has its own. */
+    newTitle: 'New notice',
+    editTitle: 'Edit notice',
     /** Editing one in place (decision 0424): Edit on its row, then Save changes or Cancel. */
     edit: 'Edit',
     editName: 'Edit the notice: {body}',

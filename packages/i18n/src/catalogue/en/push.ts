@@ -41,13 +41,13 @@ export const push = {
   },
   /** Bonus chips added (decision 0504): `500 bonus chips · Welcome bonus`. */
   bonusCredited: {
-    title: 'Bonus chips added',
-    body: '{chips} bonus chips · {reason}',
+    title: 'Bonus added',
+    body: '{chips} Bonus · {reason}',
   },
   /** Bonus chips used with the buy-in as the floor seated the member: `1,000 bonus chips with your buy-in at Table 3.` */
   bonusRedeemed: {
-    title: 'Bonus chips used',
-    body: '{chips} bonus chips with your buy-in at {table}.',
+    title: 'Bonus used',
+    body: '{chips} Bonus with your buy-in at {table}.',
   },
   /**
    * The lock-screen live status in the native app (decision 0323), as the prototype's Lock screen states have it: a line

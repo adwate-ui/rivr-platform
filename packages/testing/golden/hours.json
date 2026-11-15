@@ -1,0 +1,66 @@
+{
+  "rule": "hours",
+  "about": "A member's counted hours after a reset (redesign RD-36; the owner, 15 Nov: one member, everywhere). A super admin resets one member's hours; from that moment they count from zero on the TV's hours leaderboard, for a play-time Bonus and in the total on the Members list. Time played before the reset counts for nothing. A stint that began before it and ended after counts for the share of its played time that came after, in proportion to the clock, rounded down to the second: time away is not known by the minute, so each part of the stint bears its share. Moments are ISO times; 'never' is a member whose hours were never reset. Proved against @rivr/domain countedSeconds and private.counted_seconds.",
+  "cases": [
+    {
+      "description": "Never reset: three hours at the table with twenty minutes away count whole, 160 minutes.",
+      "operation": "counted",
+      "inputs": { "from": "2026-11-15T14:00:00Z", "to": "2026-11-15T17:00:00Z", "playedSeconds": "9600", "countedFrom": "never" },
+      "expected": { "seconds": "9600" }
+    },
+    {
+      "description": "Reset before the stint began: it counts whole.",
+      "operation": "counted",
+      "inputs": { "from": "2026-11-15T14:00:00Z", "to": "2026-11-15T17:00:00Z", "playedSeconds": "9600", "countedFrom": "2026-11-15T13:59:59Z" },
+      "expected": { "seconds": "9600" }
+    },
+    {
+      "description": "Reset at the very second the stint began: it counts whole.",
+      "operation": "counted",
+      "inputs": { "from": "2026-11-15T14:00:00Z", "to": "2026-11-15T17:00:00Z", "playedSeconds": "9600", "countedFrom": "2026-11-15T14:00:00Z" },
+      "expected": { "seconds": "9600" }
+    },
+    {
+      "description": "Reset after the stint ended: none of it counts.",
+      "operation": "counted",
+      "inputs": { "from": "2026-11-15T14:00:00Z", "to": "2026-11-15T17:00:00Z", "playedSeconds": "9600", "countedFrom": "2026-11-15T17:00:01Z" },
+      "expected": { "seconds": "0" }
+    },
+    {
+      "description": "Reset at the very second the stint ended: none of it counts.",
+      "operation": "counted",
+      "inputs": { "from": "2026-11-15T14:00:00Z", "to": "2026-11-15T17:00:00Z", "playedSeconds": "9600", "countedFrom": "2026-11-15T17:00:00Z" },
+      "expected": { "seconds": "0" }
+    },
+    {
+      "description": "Reset two hours into a three-hour stint with no time away: the last hour counts.",
+      "operation": "counted",
+      "inputs": { "from": "2026-11-15T14:00:00Z", "to": "2026-11-15T17:00:00Z", "playedSeconds": "10800", "countedFrom": "2026-11-15T16:00:00Z" },
+      "expected": { "seconds": "3600" }
+    },
+    {
+      "description": "Reset two hours into a three-hour stint with twenty minutes away: a third of the 160 minutes played, 53 minutes 20 seconds.",
+      "operation": "counted",
+      "inputs": { "from": "2026-11-15T14:00:00Z", "to": "2026-11-15T17:00:00Z", "playedSeconds": "9600", "countedFrom": "2026-11-15T16:00:00Z" },
+      "expected": { "seconds": "3200" }
+    },
+    {
+      "description": "A share that is no whole second is rounded down: 1,000 seconds of a 3,000-second stint with 2,000 played is 666.67, so 666.",
+      "operation": "counted",
+      "inputs": { "from": "2026-11-15T14:00:00Z", "to": "2026-11-15T14:50:00Z", "playedSeconds": "2000", "countedFrom": "2026-11-15T14:33:20Z" },
+      "expected": { "seconds": "666" }
+    },
+    {
+      "description": "Reset one second before the stint ended: one second of the clock, a share of 0.99 of a second played, counts for nothing.",
+      "operation": "counted",
+      "inputs": { "from": "2026-11-15T14:00:00Z", "to": "2026-11-15T17:00:00Z", "playedSeconds": "10799", "countedFrom": "2026-11-15T16:59:59Z" },
+      "expected": { "seconds": "0" }
+    },
+    {
+      "description": "A stint with nothing played, all of it away, counts for nothing either side of the reset.",
+      "operation": "counted",
+      "inputs": { "from": "2026-11-15T14:00:00Z", "to": "2026-11-15T15:00:00Z", "playedSeconds": "0", "countedFrom": "2026-11-15T14:30:00Z" },
+      "expected": { "seconds": "0" }
+    }
+  ]
+}

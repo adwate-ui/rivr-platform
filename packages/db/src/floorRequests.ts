@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 // Realtime tells the floor at once; this catches what a dropped connection missed.
 const LIVE = 10_000;
@@ -84,7 +85,7 @@ export function useFloorRequests(venueId: string, isEnabled = true) {
     enabled: userId !== null && isEnabled,
     refetchInterval: LIVE,
     queryFn: async (): Promise<FloorRequest[]> => {
-      const { data, error } = await client.rpc('floor_requests', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('floor_requests', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.flatMap(toRequest);
     },
@@ -118,7 +119,7 @@ export function useFloorRequestTargets(venueId: string, isEnabled = true) {
     enabled: userId !== null && isEnabled,
     staleTime: 60_000,
     queryFn: async (): Promise<FloorRequestTargets> => {
-      const { data, error } = await client.rpc('floor_request_targets', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('floor_request_targets', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       return { topUpSeconds: row?.top_up_seconds ?? null, otherSeconds: row?.other_seconds ?? null };

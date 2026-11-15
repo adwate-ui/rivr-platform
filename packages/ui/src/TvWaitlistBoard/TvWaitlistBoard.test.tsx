@@ -35,7 +35,7 @@ describe('TvWaitlistBoard', () => {
   });
 
   it('draws no empty place column, so names sit under their heading (F-139)', () => {
-    const { container } = renderIn(<TvWaitlistBoard title="Rewards" stakes={[{ id: 'a', stake: 'Recently redeemed', detail: 'This week', places: [{ id: '1', place: '', name: 'Neel B.', status: 'Bar upgrade' }] }]} emptyText="Nothing yet." moreText={MORE} />);
+    const { container } = renderIn(<TvWaitlistBoard title="Most hours" stakes={[{ id: 'a', stake: 'This week', detail: 'Since Monday', places: [{ id: '1', place: '', name: 'Neel B.', status: '12 h' }] }]} emptyText="Nothing yet." moreText={MORE} />);
     expect(container.querySelector('li')?.children).toHaveLength(2);
   });
 
@@ -63,7 +63,7 @@ describe('TvWaitlistBoard', () => {
 
   it('says nothing of how many more on a top-N list', () => {
     const places = Array.from({ length: 10 }, (_, index) => ({ id: String(index), place: String(index + 1), name: `Player ${index + 1}` }));
-    renderIn(<TvWaitlistBoard title="RIVR League" stakes={[{ id: 'a', stake: 'This month', detail: 'November 2026', places }]} emptyText="No League points yet." />);
+    renderIn(<TvWaitlistBoard title="Most hours" stakes={[{ id: 'a', stake: 'This month', detail: 'November 2026', places }]} emptyText="No hours played yet." />);
     expect(screen.queryByText(/more$/)).toBeNull();
   });
 

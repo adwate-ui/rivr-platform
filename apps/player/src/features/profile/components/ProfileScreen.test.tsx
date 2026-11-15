@@ -33,7 +33,7 @@ function readAnswer(url: string, kyc: unknown, photoPath: string | null): unknow
 }
 
 /**
- * Meera signed in on +91 90000 00901, opening Profile from Rewards; feedback she sends goes to `sent`. `photoPath` is where
+ * Meera signed in on +91 90000 00901, opening Profile from Bonus; feedback she sends goes to `sent`. `photoPath` is where
  * her own photo is kept (my_photo_path), and `bodiesTo` gives what was sent to an address.
  */
 function renderProfile(kyc: unknown = null, erasure: { asked?: string; fails?: boolean } = {}, photoPath: string | null = null) {
@@ -69,8 +69,8 @@ function renderProfile(kyc: unknown = null, erasure: { asked?: string; fails?: b
   const profile = createRoute({ getParentRoute: () => rootRoute, path: '/profile', component: ProfileScreen });
   const rules = createRoute({ getParentRoute: () => rootRoute, path: '/profile/rules', component: HouseRulesScreen });
   const router = createRouter({
-    routeTree: rootRoute.addChildren([page('/rewards', 'Rewards screen'), rules, profile]),
-    history: createMemoryHistory({ initialEntries: ['/rewards', '/profile'], initialIndex: 1 }),
+    routeTree: rootRoute.addChildren([page('/bonus', 'Bonus screen'), rules, profile]),
+    history: createMemoryHistory({ initialEntries: ['/bonus', '/profile'], initialIndex: 1 }),
   });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
@@ -98,7 +98,7 @@ describe('Profile', () => {
     expect(await screen.findByRole('switch', { name: /Seat calls/ }, LATER)).toBeDefined();
     expect(screen.getByRole('switch', { name: /Call time/ })).toBeDefined();
     // Bonus chips added or used (decision 0504).
-    expect(screen.getByRole('switch', { name: /Bonus chips/ })).toBeDefined();
+    expect(screen.getByRole('switch', { name: /Bonus/ })).toBeDefined();
     expect(screen.queryByText(/limit|take a break|waitlist alerts/i)).toBeNull();
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
   });
@@ -117,7 +117,7 @@ describe('Profile', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Delete my account' }, LATER));
     const sheet = await screen.findByRole('dialog', { name: 'Delete my account' }, LATER);
     expect(within(sheet).getByText(/within 7 days/)).toBeDefined();
-    expect(within(sheet).getByText('Your bonus chips are forfeited.')).toBeDefined();
+    expect(within(sheet).getByText('Your Bonus is forfeited.')).toBeDefined();
     expect(within(sheet).getByText(/Play records the law requires/)).toBeDefined();
     expect(asks()).toBe(0);
     fireEvent.click(within(sheet).getByRole('button', { name: 'Send request' }));

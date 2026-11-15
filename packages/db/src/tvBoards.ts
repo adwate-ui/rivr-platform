@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** A place on the TV's waitlist board (#65): the player as a first name and initial. */
 export interface TvPlace {
@@ -25,8 +26,11 @@ export interface TvTableList {
   readonly name: string;
   /** The stake's name: "NLH 100/200". */
   readonly stake: string;
+  /** The stake's game, as `nlh`, or null where it names none; its figures: the blinds, and the straddle or null with none (issue 990). */
+  readonly game: string | null;
   readonly smallBlind: Paise;
   readonly bigBlind: Paise;
+  readonly straddle: Paise | null;
   readonly isOpen: boolean;
   readonly places: readonly TvPlace[];
 }
@@ -50,6 +54,11 @@ export interface TvCallTimeTable {
   readonly name: string;
   /** The table's game and stake: "NLH 100/200". */
   readonly stake: string;
+  /** The stake's game, as `nlh`, or null where it names none; its figures: the blinds, and the straddle or null with none (issue 990). */
+  readonly game: string | null;
+  readonly smallBlind: Paise;
+  readonly bigBlind: Paise;
+  readonly straddle: Paise | null;
   readonly seated: readonly TvSeated[];
 }
 
@@ -99,13 +108,23 @@ interface BoardRow {
   table_id: string;
   table_name: string;
   table_type_name: string;
+  game: string;
   small_blind_paise: number;
   big_blind_paise: number;
+  straddle_paise: number | null;
   is_open: boolean;
   place: number | null;
   display_name: string | null;
   call_table_name: string | null;
   is_away: boolean | null;
+}
+
+/** A row's stake in figures: its game, its blinds and its straddle, or null with none. */
+function figuresOf(row: { game: string | null; small_blind_paise: number; big_blind_paise: number; straddle_paise: number | null }) {
+  return {
+    game: row.game, smallBlind: toPaise(row.small_blind_paise), bigBlind: toPaise(row.big_blind_paise),
+    straddle: row.straddle_paise === null ? null : toPaise(row.straddle_paise),
+  };
 }
 
 /** The board's rows, a table at a time in the order they come (the floor's), each table's places in order. */
@@ -115,8 +134,7 @@ export function toTvTables(rows: readonly BoardRow[]): TvTableList[] {
     let last = tables.at(-1);
     if (last?.table.tableId !== row.table_id) {
       last = {
-        table: { tableId: row.table_id, name: row.table_name, stake: row.table_type_name, smallBlind: toPaise(row.small_blind_paise),
-          bigBlind: toPaise(row.big_blind_paise), isOpen: row.is_open },
+        table: { tableId: row.table_id, name: row.table_name, stake: row.table_type_name, ...figuresOf(row), isOpen: row.is_open },
         places: [],
       };
       tables.push(last);
@@ -132,6 +150,10 @@ interface CallTimeRow {
   table_id: string;
   table_name: string;
   stake_name: string;
+  game: string;
+  small_blind_paise: number;
+  big_blind_paise: number;
+  straddle_paise: number | null;
   seat: number;
   display_name: string | null;
   call_time_left: number | null;
@@ -145,7 +167,7 @@ export function toTvCallTimeTables(rows: readonly CallTimeRow[]): TvCallTimeTabl
   for (const row of rows) {
     let last = tables.at(-1);
     if (last?.table.tableId !== row.table_id) {
-      last = { table: { tableId: row.table_id, name: row.table_name, stake: row.stake_name }, seated: [] };
+      last = { table: { tableId: row.table_id, name: row.table_name, stake: row.stake_name, ...figuresOf(row) }, seated: [] };
       tables.push(last);
     }
     last.seated.push({
@@ -163,7 +185,7 @@ export function useTvWaitlistBoard() {
     enabled: userId !== null,
     refetchInterval: BOARD_CHECK,
     queryFn: async (): Promise<TvTableList[]> => {
-      const { data, error } = await client.rpc('tv_waitlist_board');
+      const { data, error } = await client.rpc('tv_waitlist_board').limit(LIST_MOST);
       if (error) throw error;
       return toTvTables(data);
     },
@@ -206,7 +228,7 @@ export function useTvLeaderboard() {
     enabled: userId !== null,
     refetchInterval: BOARD_CHECK,
     queryFn: async (): Promise<TvLeaderboardRow[]> => {
-      const { data, error } = await client.rpc('tv_leaderboard');
+      const { data, error } = await client.rpc('tv_leaderboard').limit(LIST_MOST);
       if (error) throw error;
       return toTvLeaderboard(data);
     },
@@ -224,7 +246,7 @@ export function useTvCallTimeBoard() {
     enabled: userId !== null,
     refetchInterval: BOARD_CHECK,
     queryFn: async (): Promise<TvCallTimeTable[]> => {
-      const { data, error } = await client.rpc('tv_call_time_board');
+      const { data, error } = await client.rpc('tv_call_time_board').limit(LIST_MOST);
       if (error) throw error;
       return toTvCallTimeTables(data);
     },

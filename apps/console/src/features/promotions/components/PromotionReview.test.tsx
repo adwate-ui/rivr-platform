@@ -7,7 +7,7 @@ import { NAMES, renderWithApi, resetApi, TUESDAY } from './promotionsTestApi.tsx
 
 afterEach(resetApi);
 
-const SIMULATION = { events: 9, membersQualified: 6, timesGiven: 8, points: 0, chips: 12_000, perks: 0, isBudgetReached: true };
+const SIMULATION = { events: 9, membersQualified: 6, timesGiven: 8, chips: 12_000, perks: 0, isBudgetReached: true };
 
 /** A version as promotion_versions_of gives it: the Tuesday bonus, live, unless changed. */
 function version(more: Partial<PromotionVersionView>): PromotionVersionView {
@@ -49,12 +49,12 @@ describe("the approver's view (console v3)", () => {
     expect(within(screen.getByRole('region', { name: '3 · When' })).getByText('Changed')).toBeDefined();
     expect(within(screen.getByRole('region', { name: '2 · Who qualifies' })).queryByText('Changed')).toBeNull();
     expect(screen.getByText('Version 1 now')).toBeDefined();
-    expect(screen.getByText(/^1,500 bonus chips for the first 5 seated at a table, for all stakes, Tue, Wed, all day\./)).toBeDefined();
-    expect(screen.getByText(/^1,000 bonus chips for the first 5 seated at a table, for all stakes, Tue, all day\./)).toBeDefined();
-    expect(screen.getByRole('textbox', { name: 'Bonus chips' })).toHaveProperty('readOnly', true);
+    expect(screen.getByText(/^1,500 Bonus for the first 5 seated at a table, for all stakes, Tue, Wed, all day\./)).toBeDefined();
+    expect(screen.getByText(/^1,000 Bonus for the first 5 seated at a table, for all stakes, Tue, all day\./)).toBeDefined();
+    expect(screen.getByRole('textbox', { name: 'Amount' })).toHaveProperty('readOnly', true);
     // Read only, each choice shows only what is chosen.
     const kinds = within(screen.getByRole('radiogroup', { name: 'Reward' })).getAllByRole('radio');
-    expect(kinds.map((kind) => [kind.getAttribute('aria-label'), kind.getAttribute('aria-checked')])).toEqual([['Seat bonus chips', 'true']]);
+    expect(kinds.map((kind) => [kind.getAttribute('aria-label'), kind.getAttribute('aria-checked')])).toEqual([['First seat', 'true']]);
     expect(within(screen.getByRole('group', { name: 'Days' })).getAllByRole('button').map((day) => day.textContent)).toEqual(['Tue', 'Wed']);
     expect(screen.queryByRole('button', { name: 'Every day' })).toBeNull();
     expect(screen.getByText('Version 2, submitted by Ishita Bose, Tue 3 Nov, 14:30.')).toBeDefined();

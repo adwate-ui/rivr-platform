@@ -64,7 +64,7 @@ describe('the seat sheet', () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it('shows the member’s bonus chips and redeems whole 50s of them with the seat (decision 0504)', async () => {
+  it('shows the member’s Bonus and redeems whole 50s of them with the seat (decision 0504)', async () => {
     localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
       access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
       user: { id: '00000000-0000-4000-8000-000000000103', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -84,13 +84,13 @@ describe('the seat sheet', () => {
         </ToastProvider>
       </RivrDataProvider>,
     );
-    expect(await screen.findByText('Has 1,500 bonus chips.', {}, { timeout: 5000 })).toBeDefined();
+    expect(await screen.findByText('Has 1,500 Bonus.', {}, { timeout: 5000 })).toBeDefined();
     fireEvent.click(await screen.findByRole('radio', { name: '6' }, { timeout: 5000 }));
-    fireEvent.change(screen.getByLabelText('Bonus chips to redeem'), { target: { value: '1020' } });
+    fireEvent.change(screen.getByLabelText('Bonus to redeem'), { target: { value: '1020' } });
     fireEvent.click(screen.getByRole('button', { name: 'Seat' }));
-    expect(await screen.findByText('Bonus chips go in whole 50s.')).toBeDefined();
+    expect(await screen.findByText('Bonus goes in whole 50s.')).toBeDefined();
     expect(calls).toEqual([]);
-    fireEvent.change(screen.getByLabelText('Bonus chips to redeem'), { target: { value: '1000' } });
+    fireEvent.change(screen.getByLabelText('Bonus to redeem'), { target: { value: '1000' } });
     fireEvent.click(screen.getByRole('button', { name: 'Seat' }));
     await waitFor(() => expect(calls).toEqual([{ p_entry_id: 'e1', p_table_id: 't3', p_seat: 6, p_call_minutes: TABLE.callTimeMinutes, p_bonus_chips: 1000 }]));
   });
@@ -116,10 +116,10 @@ describe('the seat sheet', () => {
         </ToastProvider>
       </RivrDataProvider>,
     );
-    expect(await screen.findByText('Has 1,500 bonus chips. Up to 500 this visit.', {}, { timeout: 5000 })).toBeDefined();
+    expect(await screen.findByText('Has 1,500 Bonus. Up to 500 this visit.', {}, { timeout: 5000 })).toBeDefined();
     fireEvent.click(await screen.findByRole('radio', { name: '6' }, { timeout: 5000 }));
-    fireEvent.change(screen.getByLabelText('Bonus chips to redeem'), { target: { value: '1000' } });
+    fireEvent.change(screen.getByLabelText('Bonus to redeem'), { target: { value: '1000' } });
     fireEvent.click(screen.getByRole('button', { name: 'Seat' }));
-    expect(await screen.findByText('More bonus chips than this visit allows. Not seated.')).toBeDefined();
+    expect(await screen.findByText('More Bonus than this visit allows. Not seated.')).toBeDefined();
   });
 });

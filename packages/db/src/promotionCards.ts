@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** A live promotion's card (#86), as published: its title, what it gives and who and when, and the https address it opens, if any (#776). */
 export interface PromotionCardData {
@@ -36,7 +37,7 @@ export function useMyPromotionCards() {
     enabled: userId !== null,
     refetchInterval: HOME_CHECK,
     queryFn: async (): Promise<PromotionCardData[]> => {
-      const { data, error } = await client.rpc('my_promotion_cards');
+      const { data, error } = await client.rpc('my_promotion_cards').limit(LIST_MOST);
       if (error) throw error;
       return data.map(toPromotionCard);
     },

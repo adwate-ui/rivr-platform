@@ -31,7 +31,7 @@ const TABLES_THAT_CHANGE_ACCESS: ReadonlyArray<readonly [table: string, staleQue
   ['tier_feature', queryKeys.featureAccess],
   ['member_feature_override', queryKeys.featureAccess],
   ['member', queryKeys.featureAccess],
-  // Bonus chips given or used (decision 0504): the member's Rewards, toast and the record's Bonus tab, each under its own row-level security.
+  // Bonus chips given or used (decision 0504): the member's Bonus tab, the toast and the record's Bonus tab, each under its own row-level security.
   ['bonus_grant', queryKeys.bonusAll],
   ['bonus_redemption', queryKeys.bonusAll],
 ];

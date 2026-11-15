@@ -1,0 +1,13 @@
+# 0613 Every list read has a bound, and the Waitlist is one table
+
+Date: 15 Nov 2026. Issue 974 (redesign RD-31; slice 12, "Lists at scale").
+
+- No list read in `@rivr/db` comes without a limit or a page. `packages/db/src/limits.ts` names the bounds: Staff and removed staff 500, Promotions with their versions 200, the menu 500 (the app's and the console's), the joins asking the floor 200, and 1,000 for every other list read, which is what the API gives at once. The player's Sessions already asked for thirty at a time; a member's one open session asks for one row.
+- A bound is a ceiling on what one read can cost, not a page: a list cut at it shows its first rows. None of these lists comes near its bound at this club; one that can is read a page at a time instead (decisions 0611, 0612).
+- The Waitlist is one data table, as the prototype draws it (the owner, 15 Nov): a row a place, with its number on its own table's list, the player, the table with its stake, how long they have waited, what to know, and the row's steps. It is the list `waitlist` of decision 0612 (`waitlist_page`): a page of fifty from the server, searched by name, sorted and filtered there, with each table and its count in the Table column's menu.
+- The rule is unchanged (decision 0467): each table has its own list and its own order. The table opens table by table in each list's order, and a place's number is its place on its own table's list whatever the sort.
+- Every step a place had is on its row: its tick for the bulk bar, Seat or Check ID, Call, and Hold place, Release and Remove in its menu. A question or a refusal opens under the row.
+- Add is one button in the title row, "Add to a list", as the prototype has it. Its panel takes the number and the table; the first table is chosen to start with.
+- What is a table's own and no place's stays a card over the table, only while there is something to say: the joins asking from the app with Approve and Decline, a closed table's interest with Open table, and that a table is full while members wait. The prototype draws no card; these three have no row to sit on.
+- The prototype's Status and Source columns are one Notes column, which says what a place's line said before: ID check needed, called to a seat, the tier that put it ahead, added by the floor, place held, room at another table. Its chips of tables are the Table column's filter.
+- Activity keeps its server pages and has the data table's foot in place of Show earlier: `activity_page` gives a page by its number with how many lines the narrowing leaves, and Export reads every line. `activity_log` gives the same lines as before; both read the view `private.activity_line`, so the lines are written once.

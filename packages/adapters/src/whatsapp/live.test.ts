@@ -51,13 +51,13 @@ describe('WhatsApp Cloud API', () => {
     const { fetch, requests } = fakeFetch(200, accepted);
     const whatsapp = createWhatsAppCloudApi({ phoneNumberId: '1098765', accessToken: 'test-token', fetch });
 
-    await whatsapp.sendTemplate({ category: 'utility', to, template: 'payment_link', params: ['₹2,000', 'RIVR Academy'], urlButton: 'pay/k1' });
+    await whatsapp.sendTemplate({ category: 'utility', to, template: 'payment_link', params: ['₹2,000', 'RIVR Poker Club'], urlButton: 'pay/k1' });
 
     expect(sentBody(requests)).toMatchObject({
       template: {
         name: 'payment_link',
         components: [
-          { type: 'body', parameters: [{ type: 'text', text: '₹2,000' }, { type: 'text', text: 'RIVR Academy' }] },
+          { type: 'body', parameters: [{ type: 'text', text: '₹2,000' }, { type: 'text', text: 'RIVR Poker Club' }] },
           { type: 'button', sub_type: 'url', index: '0', parameters: [{ type: 'text', text: 'pay/k1' }] },
         ],
       },
@@ -71,7 +71,7 @@ describe('WhatsApp Cloud API', () => {
     expect(await whatsapp.sendTemplate({ category: 'utility', to, template: 'promotion', params: ['Buy-in bonus Tuesday'] })).toEqual({
       ok: false, error: { code: 'rejected', reason: 'a marketing template needs the member\'s opt-in' },
     });
-    expect(await whatsapp.sendTemplate({ category: 'utility', to, template: 'payment_link', params: ['₹2,000', 'RIVR Academy'], urlButton: 'pay?x=1' }))
+    expect(await whatsapp.sendTemplate({ category: 'utility', to, template: 'payment_link', params: ['₹2,000', 'RIVR Poker Club'], urlButton: 'pay?x=1' }))
       .toEqual({ ok: false, error: { code: 'rejected', reason: 'the link suffix is not a plain path' } });
     expect(requests).toEqual([]);
   });

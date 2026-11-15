@@ -52,16 +52,15 @@ describe('the console', () => {
     answerStaff([CLUB]);
     renderAt('/');
     expect(await screen.findByRole('link', { name: 'Live floor' })).toBeDefined();
-    for (const hidden of ['Cage', 'Academy payments', 'Academy']) expect(screen.queryByRole('link', { name: hidden })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Cage' })).toBeNull();
     expect(screen.queryByRole('link', { name: 'ID checks' })).toBeNull();
   });
 
-  it('and ID checks for an admin, but no Academy', async () => {
+  it('and ID checks for an admin', async () => {
     signIn();
     answerStaff([{ ...CLUB, full_name: 'Aditya Malhotra', role: 'admin' }]);
     renderAt('/');
     expect(await screen.findByRole('link', { name: 'ID checks' })).toBeDefined();
-    expect(screen.queryByRole('link', { name: 'Academy' })).toBeNull();
   });
 
   // The old addresses of tabs the owner hid (#626): none opens its tab, a super admin's either.
@@ -159,7 +158,7 @@ describe('a screen whose refresh fails', () => {
   it('keeps Check-in, and the number typed in it, when a refresh fails, saying since when', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     signIn();
-    answerOnceThenFail({ '/rpc/door_board': [] });
+    answerOnceThenFail({ '/rpc/door_page': [] });
     renderAt('/door?tab=check-in');
     fireEvent.change(await screen.findByRole('textbox', { name: 'Name, mobile or member number' }), { target: { value: '9876543210' } });
     await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
@@ -177,10 +176,11 @@ describe('a screen whose refresh fails', () => {
       '/rpc/waitlist_board': [],
     });
     renderAt('/waitlist');
-    expect((await screen.findAllByText(/NLH 100\/200/)).length).toBeGreaterThan(0);
+    // The table is one with a list: Add to a list is offered.
+    expect(await screen.findByRole('button', { name: 'Add to a list' })).toBeDefined();
     await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
     expect(await screen.findByText(/^Not updated since /)).toBeDefined();
-    expect(screen.getAllByText(/NLH 100\/200/).length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: 'Add to a list' })).toBeDefined();
     vi.useRealTimers();
   });
 });

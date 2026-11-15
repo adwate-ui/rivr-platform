@@ -25,7 +25,7 @@ export function renderSetup(ui: ReactElement, refusals: Record<string, string> =
   const sent: { rpc: string; body: unknown }[] = [];
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    const rpc = url.split('/rpc/')[1];
+    const rpc = url.split('/rpc/')[1]?.split('?')[0];
     if (rpc === undefined) return Response.json([]);
     sent.push({ rpc, body: init?.body ? JSON.parse(String(init.body)) : undefined });
     const code = refusals[rpc];

@@ -14,7 +14,7 @@ const SIGNED_IN = '00000000-0000-4000-8000-000000000211';
 function renderTonight(replies: Record<string, { status?: number; body: unknown }>) {
   const calls: { rpc: string; body: unknown }[] = [];
   const fetch: typeof globalThis.fetch = async (input, init) => {
-    const rpc = (input instanceof Request ? input.url : String(input)).split('/rpc/')[1] ?? '';
+    const rpc = (input instanceof Request ? input.url : String(input)).split('/rpc/')[1]?.split('?')[0] ?? '';
     calls.push({ rpc, body: init?.body ? JSON.parse(String(init.body)) : undefined });
     const reply = replies[rpc];
     return Response.json(reply?.body ?? [], { status: reply?.status ?? 200 });

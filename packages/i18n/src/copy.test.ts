@@ -40,6 +40,10 @@ describe('copy rules', () => {
     expect(offending.map(([key]) => key)).toEqual([]);
   });
 
+  it('says "Bonus", never "bonus chips" (redesign RD-12)', () => {
+    expect(english.filter(([, text]) => /bonus chips?/i.test(text))).toEqual([]);
+  });
+
   it('has no empty messages', () => {
     expect(english.filter(([, text]) => text.trim() === '').map(([key]) => key)).toEqual([]);
   });

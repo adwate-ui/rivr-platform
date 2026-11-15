@@ -41,5 +41,5 @@ export const Serif: Story = { args: { level: 1, variant: 'serif', children: 'Ses
 
 export const SerifSheet: Story = { args: { level: 2, variant: 'serif', serifSize: 32, children: 'Leave your seat?' } };
 
-/** A section of a player tab, in gold capitals, as Rewards' Your redemptions and RIVR League (F-172). */
+/** A section of a player tab, in gold capitals, as Bonus' History (F-172). */
 export const Eyebrow: Story = { args: { level: 2, variant: 'eyebrow', children: 'Your redemptions' } };

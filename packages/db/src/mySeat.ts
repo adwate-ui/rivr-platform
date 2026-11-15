@@ -2,6 +2,7 @@ import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** A seat's top-up (#634): asked for, then in hand at the floor; null with none asked for. */
 export type TopUp = 'requested' | 'in_progress';
@@ -31,8 +32,11 @@ export interface MySeat {
   readonly callTimeEndsAt: string | null;
   /** The seat's game and stakes: "NLH 50/100". */
   readonly tableTypeName: string;
+  /** The stake's game, as `nlh`, or null where it names none; its figures: the blinds, and the straddle or null with none (issue 990). */
+  readonly game: string | null;
   readonly smallBlind: bigint;
   readonly bigBlind: bigint;
+  readonly straddle: bigint | null;
   /** More call time asked for, waiting on the floor (decision 0320), in minutes; null with none. */
   readonly timeRequestMinutes: number | null;
   /** The lengths of more call time the club offers, in minutes, shortest first (decision 0305). */
@@ -59,7 +63,7 @@ export function useMyNextPlayTimeBonus() {
     enabled: userId !== null,
     refetchInterval: LIVE,
     queryFn: async (): Promise<NextPlayTimeBonus | null> => {
-      const { data, error } = await client.rpc('my_next_play_time_bonus');
+      const { data, error } = await client.rpc('my_next_play_time_bonus').limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       return row === undefined ? null : { chips: Number(row.chips), afterMinutes: row.after_minutes, secondsLeft: Number(row.seconds_left) };
@@ -75,14 +79,15 @@ export function useMySeat() {
     enabled: userId !== null,
     refetchInterval: LIVE,
     queryFn: async (): Promise<MySeat | null> => {
-      const { data, error } = await client.rpc('my_seat');
+      const { data, error } = await client.rpc('my_seat').limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       return row === undefined ? null
         : { tableName: row.table_name, seat: row.seat, isAway: row.is_away, hasCallTime: row.has_call_time, callTimeLeft: row.call_time_left,
             playedSeconds: row.played_seconds, isLeaving: row.is_leaving, topUp: isTopUp(row.top_up) ? row.top_up : null,
             callTimeMinutes: row.call_time_minutes, startedAt: row.started_at, callTimeEndsAt: row.call_time_ends_at,
-            tableTypeName: row.table_type_name, smallBlind: BigInt(row.small_blind_paise), bigBlind: BigInt(row.big_blind_paise),
+            tableTypeName: row.table_type_name, game: row.game, smallBlind: BigInt(row.small_blind_paise), bigBlind: BigInt(row.big_blind_paise),
+            straddle: row.straddle_paise === null ? null : BigInt(row.straddle_paise),
             timeRequestMinutes: row.time_request_minutes, addTimeChoices: row.add_time_choices };
     },
   });

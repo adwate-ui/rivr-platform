@@ -3,8 +3,10 @@ import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toBase64 } from './kyc.ts';
 import { functionErrorCode } from './parse/kycFailure.ts';
+import { useListPage, type ListView } from './lists.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** Why a check was refused: the gate's reasons, or a reviewer's rejection. */
 export type KycRefusal = 'under_18' | 'duplicate_face' | 'duplicate_pan' | 'duplicate_aadhaar' | 'staff_rejected' | 'on_break';
@@ -67,23 +69,22 @@ export function oneOf<Value extends string>(known: readonly Value[], value: stri
   return found;
 }
 
-/** The venue's checks for a KYC reviewer: those waiting for review first, then the stopped and the refused. */
-export function useKycReviewQueue(venueId: string) {
-  const { client, userId } = useRivrData();
-  return useQuery({
-    queryKey: queryKeys.kycReview(userId ?? 'signed-out', venueId),
-    enabled: userId !== null,
-    queryFn: async (): Promise<KycCheck[]> => {
-      const { data, error } = await client.rpc('kyc_review_queue', { p_venue_id: venueId });
-      if (error) throw error;
-      return data.map((row) => ({
+/**
+ * One page of the venue's checks for a KYC reviewer (redesign RD-30): those waiting for review first, then the stopped and
+ * the refused, searched by name and paged on the server (`kyc_review_page`), with how many there are in all.
+ */
+export function useKycReviewPage(venueId: string, view: ListView | null) {
+  const { client } = useRivrData();
+  return useListPage({
+    list: 'kyc_review', venueId, view,
+    read: (asked) => client.rpc('kyc_review_page', { p_venue_id: venueId, p_view: asked }),
+    rowOf: (row): KycCheck => ({
         memberId: row.member_id, fullName: row.full_name, status: oneOf(STATUSES, row.status), method: oneOf(METHODS, row.method),
         waitingBecause: row.waiting_because === null ? null : oneOf(WAIT_REASONS, row.waiting_because),
         dateOfBirth: row.date_of_birth, maskedAadhaar: row.masked_aadhaar, pan: row.pan, address: row.address, photoPath: row.photo_path,
         livenessScore: row.liveness_score, faceMatchScore: row.face_match_score, vendorReference: row.vendor_reference,
         refusal: row.refusal === null ? null : oneOf(REFUSALS, row.refusal), clashesWith: row.clashes_with, updatedAt: row.updated_at,
-      }));
-    },
+    }),
   });
 }
 
@@ -168,7 +169,7 @@ export function useKycDuplicateHolder(memberId: string | null) {
     queryKey: queryKeys.kycDuplicateHolder(userId ?? 'signed-out', memberId ?? ''),
     enabled: userId !== null && memberId !== null,
     queryFn: async (): Promise<KycDuplicateHolder | null> => {
-      const { data, error } = await client.rpc('kyc_duplicate_holder', { p_member_id: memberId ?? '' });
+      const { data, error } = await client.rpc('kyc_duplicate_holder', { p_member_id: memberId ?? '' }).limit(LIST_MOST);
       if (error) throw error;
       const [row] = data;
       return row === undefined ? null : { memberNumber: row.member_number, fullName: row.full_name };
@@ -226,7 +227,7 @@ export function useKycInPersonCandidates(venueId: string, search: string) {
     queryKey: queryKeys.kycInPersonCandidates(userId ?? 'signed-out', venueId, search.trim()),
     enabled: userId !== null && search.trim().length >= 2,
     queryFn: async (): Promise<KycCandidate[]> => {
-      const { data, error } = await client.rpc('kyc_in_person_candidates', { p_venue_id: venueId, p_search: search.trim() });
+      const { data, error } = await client.rpc('kyc_in_person_candidates', { p_venue_id: venueId, p_search: search.trim() }).limit(LIST_MOST);
       if (error) throw error;
       return data.map(candidateOf);
     },
@@ -247,7 +248,7 @@ export function useKycDueTonight(venueId: string) {
     enabled: userId !== null,
     refetchInterval: DUE_TONIGHT_CHECK,
     queryFn: async (): Promise<KycCandidate[]> => {
-      const { data, error } = await client.rpc('kyc_due_tonight', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('kyc_due_tonight', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map(candidateOf);
     },

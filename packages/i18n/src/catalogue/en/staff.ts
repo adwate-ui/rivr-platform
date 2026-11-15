@@ -18,7 +18,6 @@ export const staff = {
   roleFilter: 'Staff by role',
   allRoles: 'All',
   addOpen: 'Add staff',
-  closeFor: 'Close {name}',
   /** The permission roles, as the screen names them. */
   roles: {
     super_admin: 'Super admin',
@@ -30,6 +29,7 @@ export const staff = {
     host: 'Host',
     owner_view: 'Owner, view only',
     service: 'F&B',
+    guest_relations: 'Guest relations',
   },
   /** Under a name: `{jobTitle}`, then the role. */
   line: '{jobTitle} · {role}',
@@ -54,9 +54,6 @@ export const staff = {
   confirmRestore: 'Yes, restore {name}',
   you: 'You',
   /** A row's way into its changes (UI polish audit A-17), and out again. */
-  change: 'Change',
-  changeFor: 'Change {name}',
-  done: 'Done',
   /** Accessible name of the role choice on a staff member's row. */
   roleFor: 'Role for {name}',
   activeFor: 'Active: {name}',

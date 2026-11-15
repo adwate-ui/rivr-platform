@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { bonusChipsToRedeemSchema } from './waitlist.ts';
 
-describe('bonus chips to redeem as the floor seats a member (decision 0504)', () => {
+describe('Bonus to redeem as the floor seats a member (decision 0504)', () => {
   it('reads blank and 0 as none, and whole 50s as so many chips', () => {
     expect(['', '  ', '0', '50', '1000', ' 1500 '].map((typed) => bonusChipsToRedeemSchema.parse(typed))).toEqual([0, 0, 0, 50, 1000, 1500]);
   });

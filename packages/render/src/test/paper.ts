@@ -28,7 +28,7 @@ export const INVOICE = {
     issuedAt: '2026-11-15T13:30:00Z',
     supplier: { legalName: ISSUER.legalName, gstin: ISSUER.gstin, address: ISSUER.address },
     buyer: { name: 'Northern Gaming Private Limited', gstin: '06BBBBB1111B1Z6' },
-    description: 'Poker Academy, beginners course, 22 Nov 2026',
+    description: 'Private table hire, 22 Nov 2026',
     rateBasisPoints: 1800,
     taxablePaise: 169_492n,
     cgstPaise: 15_254n,

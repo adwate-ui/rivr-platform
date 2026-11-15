@@ -12,12 +12,12 @@ describe('PromotionCard', () => {
   });
 
   it('shows only what it is given', () => {
-    renderIn(<PromotionCard title="Double points" />);
-    expect(screen.getByRole('article', { name: 'Double points' })).toHaveTextContent(/^Double points$/);
+    renderIn(<PromotionCard title="Thursday bonus" />);
+    expect(screen.getByRole('article', { name: 'Thursday bonus' })).toHaveTextContent(/^Thursday bonus$/);
   });
 
   it('has no accessibility violations', async () => {
-    const { container } = renderIn(<PromotionCard title="Double points" runs="NLH 100/200 · Thursday, 14:00 to 20:00" />);
+    const { container } = renderIn(<PromotionCard title="Thursday bonus" runs="NLH 100/200 · Thursday, 14:00 to 20:00" />);
     expect(await axeViolations(container)).toEqual([]);
   });
 });

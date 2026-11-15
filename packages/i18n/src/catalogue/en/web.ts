@@ -38,7 +38,7 @@ export const webApp = {
     table: 'Table',
     rakeback: 'Rakeback',
     rakebackRate: '{percent}% of your rake',
-    rakebackPaid: 'Rakeback is paid as bonus chips each Monday.',
+    rakebackPaid: 'Rakeback is paid as Bonus each Monday.',
   },
   /** The cab the club gives (#617), read from the club's rules in force. */
   outstation: {

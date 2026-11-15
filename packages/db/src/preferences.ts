@@ -4,6 +4,7 @@ import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** The games a member can ask waitlist alerts for. */
 export const GAMES = ['nlh', 'plo', 'tournaments'] as const;
@@ -46,7 +47,7 @@ export function usePreferences() {
     queryFn: async (): Promise<Preferences> => {
       const [saved, choices, consent] = await Promise.all([
         client.from('member_preference').select('games, small_blind, big_blind, name_on_tvs').maybeSingle(),
-        client.from('notification_preference').select('push_type, is_on'),
+        client.from('notification_preference').select('push_type, is_on').limit(LIST_MOST),
         // Their own consent only: a login that is also staff can read every member's consent rows.
         client.rpc('has_my_consent', { p_purpose: 'marketing' }),
       ]);
@@ -74,7 +75,7 @@ export function useStakes() {
     queryKey: queryKeys.stakes(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<Stake[]> => {
-      const { data, error } = await client.rpc('my_stakes');
+      const { data, error } = await client.rpc('my_stakes').limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({ smallBlind: BigInt(row.small_blind_paise), bigBlind: BigInt(row.big_blind_paise) }));
     },

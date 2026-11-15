@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 // What the floor reads beside the live lists: games not running (#113).
 
@@ -26,7 +27,7 @@ export function useInterestLists(venueId: string) {
     enabled: userId !== null,
     refetchInterval: INTEREST_CHECK,
     queryFn: async (): Promise<InterestList[]> => {
-      const { data, error } = await client.rpc('interest_lists', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('interest_lists', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({ tableId: row.table_id, waiting: row.waiting, playersToOpen: row.players_to_open, isReady: row.is_ready }));
     },

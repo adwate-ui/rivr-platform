@@ -12,7 +12,7 @@ const STATEMENT: PartnerStatement = {
   month: '2026-11-01',
   heldOn: '2026-11-30',
   basisPoints: 1250,
-  revenue: [{ name: 'Rake', paise: 4_250_000_00n }, { name: 'Academy fees', paise: 36_000_00n }],
+  revenue: [{ name: 'Rake', paise: 4_250_000_00n }, { name: 'Tournament fees', paise: 36_000_00n }],
   expenses: [{ name: 'Bonus issued', paise: 62_500_00n }, { name: 'High hands paid', paise: 18_000_00n }, { name: 'Expense: Staff meals', paise: 9_450_00n }],
   revenuePaise: 4_286_000_00n,
   expensePaise: 89_950_00n,

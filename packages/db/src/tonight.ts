@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** The next published tournament at the member's venue. */
 export interface NextTournament {
@@ -48,7 +49,7 @@ export function useMyTonight() {
     enabled: userId !== null,
     refetchInterval: 60_000,
     queryFn: async (): Promise<MyTonight | null> => {
-      const { data, error } = await client.rpc('my_tonight');
+      const { data, error } = await client.rpc('my_tonight').limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       return row === undefined ? null : toMyTonight(row);

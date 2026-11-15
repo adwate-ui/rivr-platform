@@ -12,7 +12,7 @@ function initialsOf(fullName: string): string {
 }
 
 /** The table's stake for the felt, as the floor writes it: `100/200`. */
-const stakesOf = (seats: readonly TabletSeat[]) => (seats[0] === undefined ? '' : formatStakes(seats[0].smallBlind, seats[0].bigBlind));
+const stakesOf = (seats: readonly TabletSeat[]) => (seats[0] === undefined ? '' : formatStakes(seats[0].smallBlind, seats[0].bigBlind, seats[0].straddle));
 
 /** The seats as the ring draws them: who sits where, and what to watch (F-189). */
 function ringSeats(seats: readonly TabletSeat[]): RingSeat[] {

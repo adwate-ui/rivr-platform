@@ -5,6 +5,6 @@ describe('formatList', () => {
   it('joins tier names with "and"', () => {
     expect(formatList(['Black card'])).toBe('Black card');
     expect(formatList(['Black card', "Founders' Circle"])).toBe("Black card and Founders' Circle");
-    expect(formatList(['Member', 'Academy graduate', 'Black card'])).toBe('Member, Academy graduate and Black card');
+    expect(formatList(['Member', 'High roller', 'Black card'])).toBe('Member, High roller and Black card');
   });
 });

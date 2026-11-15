@@ -16,21 +16,22 @@ function JobTitleForm({ member, isDisabled, onSave }: { member: StaffMember; isD
   });
   const submit = form.handleSubmit(({ jobTitle }) => onSave(jobTitle));
   const jobTitleField = form.register('jobTitle');
+  // The field across the panel, its button under it: side by side they do not fit a panel's width.
   return (
-    <Inline gap={3} align="end">
+    <Stack gap={2}>
       <Input {...jobTitleField} label={t('console.staff.jobTitleFor', { name: member.fullName })} autoComplete="off" disabled={isDisabled}
         error={form.formState.errors.jobTitle ? t('console.staff.invalidJobTitle') : undefined} />
-      <Button variant="subtle" isDisabled={isDisabled} onClick={() => void submit()}>{t('console.staff.saveJobTitle', { name: member.fullName })}</Button>
-    </Inline>
+      <Inline>
+        <Button variant="subtle" size="compact" isDisabled={isDisabled} onClick={() => void submit()}>{t('console.staff.saveJobTitle', { name: member.fullName })}</Button>
+      </Inline>
+    </Stack>
   );
 }
 
-/** Who they are: name (and You on one's own row), job title and role, their number, and whether their login is off. */
+/** Under the panel's title, which names them with their job title and role: their number, and whether their login is off. */
 function StaffIdentity({ member, showsInactive }: { member: StaffMember; showsInactive: boolean }) {
   return (
     <Stack gap={1}>
-      <Text weight="semibold">{member.isMe ? `${member.fullName} · ${t('console.staff.you')}` : member.fullName}</Text>
-      <Text variant="small" tone="muted">{t('console.staff.line', { jobTitle: member.jobTitle, role: roleName(member.role) })}</Text>
       <Text variant="small" tone="muted">{member.phone === null ? t('console.staff.noPhone') : formatMobile(member.phone)}</Text>
       {member.isActive || !showsInactive ? null : <Text variant="small" weight="medium">{t('console.staff.inactive')}</Text>}
     </Stack>
@@ -94,13 +95,12 @@ function RowChanges({ member, grantable, isInReach, canChange, isSaving, onSave 
 }
 
 /**
- * One staff member on one row: name, job title and role, their number, and Change, which opens what the manager may change
- * in place (UI polish audit A-17). A manager changes only someone whose role they could give, and never their own role or
- * whether they're active; their own job title is theirs to change.
+ * One staff member in the panel at the side (redesign RD-38), under its title, which names them with their job title and
+ * role: their number, then what the manager may change (UI polish audit A-17), and their onboarding. A manager changes only someone whose role they could
+ * give, and never their own role or whether they're active; their own job title is theirs to change.
  */
 export function StaffRow({ venueId, member, grantable }: StaffRowProps) {
   const { change } = useStaffActions(venueId);
-  const [isChanging, setIsChanging] = useState(false);
   const [failure, setFailure] = useState<StaffFailure | null>(null);
   const [isTitleSaved, setIsTitleSaved] = useState(false);
   const save = async (update: StaffChange) => {
@@ -109,24 +109,17 @@ export function StaffRow({ venueId, member, grantable }: StaffRowProps) {
     setIsTitleSaved(result.ok && 'jobTitle' in update);
   };
   const { isInReach, canChange, canRetitle } = reachOf(member, grantable, change.isPending);
+  const canOpen = isInReach || member.isMe;
   return (
-    <Stack gap={3}>
-      <Inline justify="between" align="center" gap={4}>
-        {/* Open, the row's switch says whether the login is off. */}
-        <StaffIdentity member={member} showsInactive={!isChanging} />
-        {(isInReach || member.isMe) && !isChanging ? (
-          <Button variant="text" aria-label={t('console.staff.changeFor', { name: member.fullName })} onClick={() => setIsChanging(true)}>
-            {t('console.staff.change')}
-          </Button>
-        ) : null}
-      </Inline>
-      {isChanging ? (
+    <Stack gap={4}>
+      {/* With the changes open, their switch says whether the login is off. */}
+      <StaffIdentity member={member} showsInactive={!canOpen} />
+      {canOpen ? (
         <Stack gap={3}>
           <JobTitleForm member={member} isDisabled={!canRetitle} onSave={(jobTitle) => save({ jobTitle })} />
           <StatusMessage>{isTitleSaved ? t('console.staff.jobTitleSaved') : null}</StatusMessage>
           <RowChanges member={member} grantable={grantable} isInReach={isInReach} canChange={canChange} isSaving={change.isPending} onSave={save} />
           {member.isMe ? <Text variant="small" tone="muted">{t('console.staff.ownRow')}</Text> : null}
-          <Inline><Button variant="text" onClick={() => { setIsChanging(false); setFailure(null); }}>{t('console.staff.done')}</Button></Inline>
         </Stack>
       ) : null}
       {failure === null ? null : <ErrorMessage>{t(STAFF_FAILURE_COPY[failure])}</ErrorMessage>}

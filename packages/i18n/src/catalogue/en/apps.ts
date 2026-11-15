@@ -49,10 +49,10 @@ export const playerApp = {
   /** The toast on any screen when bonus chips are added or used while the app is open (decision 0504). */
   bonus: {
     /** `500 bonus chips added · Welcome bonus`. */
-    credited: '{chips} bonus chips added · {reason}',
+    credited: '{chips} Bonus added · {reason}',
     /** `1,000 bonus chips used for your buy-in at Table 3`. */
-    redeemed: '{chips} bonus chips used for your buy-in at {table}',
-    redeemedNoTable: '{chips} bonus chips used for your buy-in',
+    redeemed: '{chips} Bonus used for your buy-in at {table}',
+    redeemedNoTable: '{chips} Bonus used for your buy-in',
   },
   profile,
   houseRules: playerHouseRules,

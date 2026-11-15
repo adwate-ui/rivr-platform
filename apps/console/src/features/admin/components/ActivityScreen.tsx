@@ -1,6 +1,6 @@
-import { ACTIVITY_KINDS, useActivityLog, useStaffVenue, type ActivityFilters, type ActivityKind, type ActivityLine } from '@rivr/db';
+import { ACTIVITY_KINDS, ACTIVITY_PAGE, useActivityPage, useStaffVenue, type ActivityFilters, type ActivityKind, type ActivityLine } from '@rivr/db';
 import { activityActionWord, activityEntityWord, formatDateTime, formatList, formatNumber, t } from '@rivr/i18n';
-import { Button, ChoiceChips, DataTable, Inline, Input, Screen, Stack, type DataTableColumn } from '@rivr/ui';
+import { ChoiceChips, DataTable, Inline, Input, Screen, Stack, type DataTableColumn } from '@rivr/ui';
 import { useDeferredValue, useState } from 'react';
 
 const ALL = 'all';
@@ -14,7 +14,7 @@ function recordOf(line: ActivityLine): string {
   return line.about === null ? thing : t('console.activity.recordOf', { thing, name: line.about });
 }
 
-/** What was done, and how much for points and bonus chips by hand. */
+/** What was done, and how much for Bonus by hand. */
 function whatOf(line: ActivityLine): string {
   const what = activityActionWord(line.action);
   return line.amount === null ? what : t('console.activity.withAmount', { what, amount: formatNumber(line.amount) });
@@ -25,7 +25,8 @@ function columns(): readonly DataTableColumn<ActivityLine>[] {
   const when = (line: ActivityLine) => formatDateTime(new Date(line.occurredAt));
   const kind = (line: ActivityLine) => t(`console.activity.kinds.${line.kind}`);
   return [
-    { key: 'when', header: t('console.activity.when'), cell: when, exportValue: when, filter: false },
+    // Two shares, so a day and its time stay on one line.
+    { key: 'when', header: t('console.activity.when'), cell: when, exportValue: when, isWide: true, filter: false },
     { key: 'who', header: t('console.activity.who'), cell: whoOf, exportValue: whoOf, filter: false },
     { key: 'kind', header: t('console.activity.kind'), cell: kind, exportValue: kind, filter: false },
     { key: 'what', header: t('console.activity.what'), cell: whatOf, exportValue: whatOf, filter: false },
@@ -34,13 +35,12 @@ function columns(): readonly DataTableColumn<ActivityLine>[] {
   ];
 }
 
-/** The screen's narrowing in words, as an export records it (#102), and that the file is partial while earlier lines are not loaded. */
-function filterWords({ from, to, who, kind }: ActivityFilters, partialOf: number | null): string | undefined {
+/** The screen's narrowing in words, as an export records it (#102). */
+function filterWords({ from, to, who, kind }: ActivityFilters): string | undefined {
   const label = (key: 'from' | 'to' | 'person' | 'kind', value: string) => t('console.exportFilters.choice', { label: t(`console.activity.${key}`), value });
   const words = [
     ...(from === null ? [] : [label('from', from)]), ...(to === null ? [] : [label('to', to)]), ...(who === null ? [] : [label('person', who)]),
     ...(kind === null ? [] : [label('kind', t(`console.activity.kinds.${kind}`))]),
-    ...(partialOf === null ? [] : [t('console.activity.partial', { count: formatNumber(partialOf) })]),
   ];
   return words.length === 0 ? undefined : formatList(words);
 }
@@ -64,24 +64,23 @@ function Filters({ who, onWho, from, onFrom, to, onTo, kind, onKind }: {
   );
 }
 
+/**
+ * The lines the narrowing leaves, a page of fifty from the server with the table's own pages in its foot (redesign RD-31).
+ * The narrowing is the screen's, so a change of it starts again from the first page. Export reads every line it leaves.
+ */
 function Lines({ venueId, filters, exportIn }: { venueId: string; filters: ActivityFilters; exportIn: HTMLElement | null }) {
-  const log = useActivityLog(venueId, filters);
-  const lines = log.data?.pages.flat() ?? [];
-  const exportFilter = filterWords(filters, log.hasNextPage ? lines.length : null);
+  const [page, setPage] = useState(1);
+  const log = useActivityPage(venueId, filters, page);
+  const exportFilter = filterWords(filters);
   const base = {
     label: t('console.activity.title'), columns: columns(), rowKey: (line: ActivityLine) => String(line.id), narrowLayout: 'scroll' as const, exportIn,
     ...(exportFilter === undefined ? {} : { exportFilter }),
+    server: { total: log.data?.total ?? 0, pageSize: ACTIVITY_PAGE, scope: JSON.stringify(filters), onRequest: (request: { page: number }) => setPage(request.page) },
+    exportRows: log.readEvery,
   };
   if (log.isError) return <DataTable {...base} status="error" onRetry={() => void log.refetch()} />;
   if (log.data === undefined) return <DataTable {...base} status="loading" />;
-  return (
-    <Stack gap={4}>
-      <DataTable {...base} rows={lines} emptyText={t('console.activity.empty')} />
-      {log.hasNextPage ? (
-        <Inline><Button variant="subtle" isLoading={log.isFetchingNextPage} onClick={() => void log.fetchNextPage()}>{t('console.activity.showEarlier')}</Button></Inline>
-      ) : null}
-    </Stack>
-  );
+  return <DataTable {...base} rows={log.data.lines} emptyText={t('console.activity.empty')} />;
 }
 
 function Body({ venueId }: { venueId: string }) {
@@ -105,7 +104,7 @@ function Body({ venueId }: { venueId: string }) {
 
 /**
  * Activity (8 Nov audit, F-034), for super admins: the audit log in words, who did what, about whom, why and when, newest first.
- * It narrows on the server by person, kind and club day, and its Export takes the lines shown, saying so when earlier ones are not loaded.
+ * It narrows on the server by person, kind and club day, a page at a time by the table's foot, and its Export takes every line the narrowing leaves.
  */
 export function ActivityScreen() {
   const staff = useStaffVenue();

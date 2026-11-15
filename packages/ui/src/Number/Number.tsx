@@ -2,7 +2,7 @@ import { formatNumber } from '@rivr/i18n';
 import { figureClasses, type FigureSize } from '../internal/tone.ts';
 
 export interface NumberProps {
-  /** A count: points, hands, players, entries. Use Money for amounts. */
+  /** A count: hands, players, entries. Use Money for amounts. */
   value: number | bigint;
   size?: FigureSize;
   tone?: 'default' | 'muted';

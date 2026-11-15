@@ -1,6 +1,7 @@
 import type { MySeat } from '@rivr/db';
 import { formatDuration, t } from '@rivr/i18n';
 import { Box, Heading, Inline, PlayerAvatar, Stack, Text, Wordmark } from '@rivr/ui';
+import { stakeOf } from './waitlistCopy.ts';
 
 /** The left of the header: the wordmark, or seated, where they sit and the game with how long they have played. */
 function HeaderTitle({ seat, now }: { seat: MySeat | null; now: Date }) {
@@ -9,7 +10,7 @@ function HeaderTitle({ seat, now }: { seat: MySeat | null; now: Date }) {
   return (
     <Stack gap={1}>
       <Heading level={2} variant="serif" serifSize={28}>{t('player.live.seated.title', { table: seat.tableName, seat: seat.seat })}</Heading>
-      <Text variant="small" tone="muted">{t('player.live.seated.playing', { game: seat.tableTypeName, time: formatDuration(played) })}</Text>
+      <Text variant="small" tone="muted">{t('player.live.seated.playing', { game: stakeOf(seat), time: formatDuration(played) })}</Text>
     </Stack>
   );
 }

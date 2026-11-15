@@ -4,7 +4,7 @@ import { Box, Button, DetailRow, FeatureGate, Grid, LockedNotice, RoundAction, S
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
 import type { SeatSheet } from './SeatSheets.tsx';
-import { lineOf } from './waitlistCopy.ts';
+import { lineOf, stakeOf } from './waitlistCopy.ts';
 
 /** When the floor approves more call time, a toast says how much was added (the request goes, the minutes grow). */
 function useTimeAdded(seat: MySeat) {
@@ -79,8 +79,8 @@ export function SeatStatus({ seat, places }: { seat: MySeat; places: readonly Wa
       {seat.isLeaving ? <DetailRow size="small" hasDot label={t('player.live.seat.statusLeaving')} valueTone="muted" value={t('player.live.seat.onTheList')} /> : null}
       {places.map((place) => (
         <DetailRow key={place.entryId} size="small" hasDot valueTone="accent" value={lineOf(place)}
-          label={place.tableName === null ? t('player.live.seat.statusWaitlist', { game: place.tableTypeName })
-            : t('player.live.list.eyebrow', { table: place.tableName, game: place.tableTypeName })} />
+          label={place.tableName === null ? t('player.live.seat.statusWaitlist', { game: stakeOf(place) })
+            : t('player.live.list.eyebrow', { table: place.tableName, game: stakeOf(place) })} />
       ))}
     </Box>
   );

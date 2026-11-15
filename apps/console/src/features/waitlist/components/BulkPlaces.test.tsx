@@ -17,7 +17,7 @@ beforeEach(() => {
     user: { id: '00000000-0000-4000-8000-000000000103', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
   }));
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
-    const rpc = String(input instanceof Request ? input.url : input).split('/rpc/')[1];
+    const rpc = String(input instanceof Request ? input.url : input).split('/rpc/')[1]?.split('?')[0];
     if (rpc !== undefined) calls.push({ rpc, body: init?.body ? JSON.parse(String(init.body)) : undefined });
     return Response.json(rpc === undefined ? [] : null);
   });

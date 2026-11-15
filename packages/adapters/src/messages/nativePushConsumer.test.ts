@@ -52,7 +52,7 @@ describe('the native push consumer', () => {
 
   it('asks for a promotion offer by its promotion', async () => {
     const { consumer, promotions } = consumerFor([IPHONE]);
-    await consumer.deliver(delivery('promotion.offered', { member_id: MEMBER, promotion_id: PROMOTION, title: 'Double points', detail: null, runs: null }));
+    await consumer.deliver(delivery('promotion.offered', { member_id: MEMBER, promotion_id: PROMOTION, title: 'Thursday bonus', detail: null, runs: null }));
     expect(promotions).toEqual([PROMOTION]);
   });
 

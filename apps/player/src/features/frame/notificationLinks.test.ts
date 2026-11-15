@@ -26,7 +26,7 @@ describe('onNotificationOpened', () => {
     onNotificationOpened((path) => opened.push(path), plugin);
     await Promise.resolve();
     tap('/bonus');
-    tap('/rewards');
+    tap('/no-such-screen');
     expect(opened).toEqual(['/bonus']);
   });
 

@@ -57,7 +57,7 @@ const consoleFooter = (
 /** The console's sheet at a desk (console v3): a 440 px panel down the right, its title and actions staying. */
 export const Console: Story = {
   tags: ['viewport-console'],
-  args: { place: 'console', title: 'Vidya Chadha', subtitle: 'Table 1, seat 2 · Academy graduate', children: consoleBody, footer: consoleFooter },
+  args: { place: 'console', title: 'Vidya Chadha', subtitle: 'Table 1, seat 2 · High roller', children: consoleBody, footer: consoleFooter },
 };
 
 /** The console's sheet on a phone: from the foot to just under the top. */

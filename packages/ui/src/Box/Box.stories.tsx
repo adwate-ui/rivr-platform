@@ -46,7 +46,7 @@ export const StickyBesideALongerColumn: Story = {
         ))}
       </Stack>
       <Box isSticky surface="raised" hairline="all" radius="lg" padding={4}>
-        <Text>2× points, for all stakes, Fri, Sat 20:00–02:00. Once per visit per member. Starts 6 Nov 2026, no end date.</Text>
+        <Text>500 Bonus, for all stakes, Fri, Sat 20:00–02:00. Once per visit per member. Starts 6 Nov 2026, no end date.</Text>
       </Box>
     </Grid>
   ),

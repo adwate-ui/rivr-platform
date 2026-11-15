@@ -14,11 +14,11 @@ const LATER = { timeout: 5000 };
 
 const SEAT: MySeat = {
   tableName: 'Table 1', seat: 4, isAway: false, hasCallTime: true, callTimeLeft: 9668, playedSeconds: 1140, isLeaving: false, topUp: null,
-  callTimeMinutes: 180, startedAt: '2026-11-15T16:55:30Z', callTimeEndsAt: null, tableTypeName: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n,
+  callTimeMinutes: 180, startedAt: '2026-11-15T16:55:30Z', callTimeEndsAt: null, tableTypeName: 'NLH 50/100', game: 'nlh', smallBlind: 5000n, bigBlind: 10000n, straddle: null,
   timeRequestMinutes: null, addTimeChoices: [30, 60, 120],
 };
 const PLACE: WaitlistPlace = {
-  entryId: 'e1', tableTypeId: 'tt1', tableTypeName: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, joinedAt: '2026-11-15T17:14:00Z',
+  entryId: 'e1', tableTypeId: 'tt1', tableTypeName: 'NLH 50/100', game: 'nlh', smallBlind: 5000n, bigBlind: 10000n, straddle: null, joinedAt: '2026-11-15T17:14:00Z',
   place: 1, isRequest: false, callTableName: 'Table 1', callSeat: 4, holdUntil: '2026-11-15T17:34:00Z', awayUntil: null, tableId: 't1', tableName: 'Table 1',
   calledAt: '2026-11-15T17:14:00Z', onWayAt: null,
 };

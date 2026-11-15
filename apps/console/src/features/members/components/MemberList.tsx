@@ -1,8 +1,11 @@
-import { useMemberAccountStatuses, useMembersOfTier, useVenueTiers, type MemberListRow, type VenueTier } from '@rivr/db';
-import { t, formatNumber } from '@rivr/i18n';
-import { ChoiceChips, DataTable, Text } from '@rivr/ui';
-import type { ReactNode } from 'react';
+import {
+  MEMBERS_PAGE, useEveryMember, useMemberAccountStatuses, useMemberChoices, useMembersPage, useVenueTiers, type MemberListRow, type MembersView, type VenueTier,
+} from '@rivr/db';
+import { t } from '@rivr/i18n';
+import { ChoiceChips, DataTable, type DataTableRequest } from '@rivr/ui';
+import { useState, type ReactNode } from 'react';
 import { useAddressWords } from './addressWords.ts';
+import { filtersInCodes } from './memberChoices.ts';
 import { memberColumns } from './memberColumns.tsx';
 import { memberExportColumns } from './memberExportColumns.ts';
 import type { Tonight } from './tonight.ts';
@@ -22,22 +25,6 @@ interface ListProps {
   readonly isDocked: boolean;
 }
 
-/** Whether four or more digits typed match the mobile: within the full number, or by its last four digits for staff without it. */
-function isPhoneFound(row: MemberListRow, digits: string): boolean {
-  if (digits.length < 4) return false;
-  return row.phone === null ? row.phoneLast4 === digits.slice(-4) : row.phone.includes(digits.slice(-10));
-}
-
-/**
- * Whether the search finds a member: their name as typed, their member number exactly, or four or more digits of their
- * mobile number, as the prototype's "last 4 digits".
- */
-function isFound(row: MemberListRow, query: string): boolean {
-  const typed = query.trim().toLowerCase();
-  if (typed === '') return true;
-  return row.fullName.toLowerCase().includes(typed) || String(row.memberNumber) === typed || isPhoneFound(row, typed.replace(/\D/g, ''));
-}
-
 /** The tier chosen in words, as an export records it with the table's own search and filters (#102); none for every tier. */
 function tierWords(tier: VenueTier | null): string | undefined {
   return tier === null ? undefined : t('console.exportFilters.choice', { label: t('console.members.tier'), value: tier.name });
@@ -48,35 +35,43 @@ function emptyText(tier: VenueTier | null): string {
   return tier === null ? t('console.members.none') : t('console.members.noneInTier', { tier: tier.name });
 }
 
-/** How many the list shows, beside the search, once the rows are in (audit F-095). */
-function memberTotal(rows: readonly MemberListRow[]) {
-  return <Text variant="secondary" tone="muted">{rows.length === 1 ? t('console.members.totalOne') : t('console.members.total', { count: formatNumber(rows.length) })}</Text>;
+/** The view the server is asked for: the table's, its chosen values as the server's codes, and the tier; none until the table hands its own over. */
+function viewOf(request: DataTableRequest | null, tier: VenueTier | null): MembersView | null {
+  return request === null ? null : { ...request, filters: filtersInCodes(request.filters), tierId: tier?.tierId ?? null };
 }
 
 /**
- * Every member, or a tier's, as a table with the search above it and the tiers beside it; or its loading or error state.
- * The search is the table's (owner, 9 Nov): kept in the address, a pill, counted and cleared with its filters.
+ * One page of the members the view leaves, as a table with the search above it and the tiers beside it (redesign RD-29):
+ * the server sorts, searches, filters and pages, and counts what each column's menu offers. The search finds a name by
+ * any part, a member number exactly, or four or more digits of a mobile. Export reads every member the view leaves.
  */
 function Results({ venueId, tonight, onOpen, exportIn, seesPhone, seesIdentity, isDocked, tier, tiers }: ListProps & { tier: VenueTier | null; tiers: ReactNode }) {
-  const listed = useMembersOfTier(venueId, tier?.tierId ?? null);
+  // The table's view as it last handed it over; none until it is first drawn.
+  const [request, setRequest] = useState<DataTableRequest | null>(null);
+  const view = viewOf(request, tier);
+  const listed = useMembersPage(venueId, view);
+  const choices = useMemberChoices(venueId, view).data;
+  const everyMember = useEveryMember(venueId);
   const statuses = useMemberAccountStatuses(venueId).data;
   const chosen = tierWords(tier);
   const base = {
-    label: t('console.members.title'), columns: memberColumns(tonight, { seesPhone, statuses }), rowKey: (row: MemberListRow) => row.memberId, scrollsSideways: isDocked,
-    filter: { label: t('console.members.search'), variant: 'subtle' as const, matches: isFound }, belowSearch: tiers,
+    label: t('console.members.title'), columns: memberColumns(tonight, { seesPhone, statuses, choices }), rowKey: (row: MemberListRow) => row.memberId, scrollsSideways: isDocked,
+    filter: { label: t('console.members.search'), variant: 'subtle' as const, text: (row: MemberListRow) => row.fullName }, belowSearch: tiers,
     ...(chosen === undefined ? {} : { exportFilter: chosen }), exportColumns: memberExportColumns(seesIdentity),
     onRowOpen: (row: MemberListRow) => onOpen(row.memberId), initialSort: { key: 'name', direction: 'ascending' } as const, exportIn,
     // On a phone the table's lines scroll sideways under the names, as in the prototype.
     narrowLayout: 'scroll' as const,
+    server: { total: listed.data?.total ?? 0, pageSize: MEMBERS_PAGE, onRequest: setRequest, scope: tier?.tierId ?? '' },
+    exportRows: async () => (view === null ? [] : everyMember(view)),
   };
   if (listed.isError) return <DataTable {...base} status="error" onRetry={() => void listed.refetch()} />;
   if (listed.data === undefined) return <DataTable {...base} status="loading" />;
-  return <DataTable {...base} rows={listed.data} emptyText={emptyText(tier)} toolbar={memberTotal} />;
+  return <DataTable {...base} rows={listed.data.rows} emptyText={emptyText(tier)} />;
 }
 
 /**
  * Every member of the venue, listed on open (owner, 3 Nov; decision 0483), as console v3 draws it: the search and a tier
- * choice narrow the table of Name, No., Tier, ID check, Hours, City, Joined, Tonight and Visits, with the mobile
+ * choice narrow the table of Name, No., Tier, ID check, Hours, City, Joined, Tonight, Visits and Bonus, with the mobile
  * for super admins (owner, 8 Nov); a click on a row opens the member's record.
  */
 export function MemberList(props: ListProps) {

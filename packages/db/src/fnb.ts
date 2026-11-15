@@ -2,11 +2,14 @@ import { err, FNB_DIETS, ok, type FnbDiet, type FnbItemKind, type FnbLine, type 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { RivrClient } from './client.ts';
 import { itemPhotoUrl } from './itemPhotos.ts';
+import { useListPage, type ScopedView } from './lists.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST, MENU_MOST } from './limits.ts';
 
 export { useCancelMyFnbOrder, type CancelMyOrderFailure } from './fnbCancel.ts';
-export { useSaveFnbMenu, type FnbMenuFailure, type FnbMenuFileItem } from './fnbMenuFile.ts';
+export { useFnbMenuItemActions, useSaveFnbMenu, type FnbMenuFailure, type FnbMenuFileItem } from './fnbMenuFile.ts';
+export { useMemberCancelledKots } from './fnbKots.ts';
 
 /** An item on the table-side menu (#123): Glaza's, no price. */
 export interface FnbMenuItem {
@@ -116,7 +119,7 @@ export function useMyFnbMenu() {
     queryKey: queryKeys.myFnbMenu(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<FnbMenuItem[]> => {
-      const { data, error } = await client.rpc('my_fnb_menu');
+      const { data, error } = await client.rpc('my_fnb_menu').limit(MENU_MOST);
       if (error) throw error;
       return data.map((row) => menuItem(client, row));
     },
@@ -130,7 +133,7 @@ export function useFnbMenu(venueId: string | null) {
     queryKey: queryKeys.fnbMenu(userId ?? 'signed-out', venueId ?? 'no-venue'),
     enabled: userId !== null && venueId !== null,
     queryFn: async (): Promise<FnbMenuItem[]> => {
-      const { data, error } = await client.rpc('fnb_menu', { p_venue_id: venueId ?? '' });
+      const { data, error } = await client.rpc('fnb_menu', { p_venue_id: venueId ?? '' }).limit(MENU_MOST);
       if (error) throw error;
       return data.map((row) => menuItem(client, row));
     },
@@ -169,7 +172,7 @@ export function useMyFnbOrders() {
     enabled: userId !== null,
     refetchInterval: ORDERS_CHECK,
     queryFn: async (): Promise<MyFnbOrder[]> => {
-      const { data, error } = await client.rpc('my_fnb_orders');
+      const { data, error } = await client.rpc('my_fnb_orders').limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         orderId: row.order_id, kotNumber: row.kot_number, lines: linesOf(row.lines), createdAt: row.created_at,
@@ -189,7 +192,7 @@ export function usePlaceFnbOrder() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ lines, requestId }: { lines: readonly FnbLine[]; requestId: string }): Promise<Result<PlacedFnbOrder, FnbFailure>> => {
-      const { data, error } = await client.rpc('place_fnb_order', { p_lines: linesJson(lines), p_idempotency_key: requestId });
+      const { data, error } = await client.rpc('place_fnb_order', { p_lines: linesJson(lines), p_idempotency_key: requestId }).limit(LIST_MOST);
       await queryClient.invalidateQueries({ queryKey: queryKeys.myFnbOrders(userId ?? 'signed-out') });
       return placed(data, error);
     },
@@ -203,34 +206,31 @@ export function useTabletFnbOrder() {
     // Sent whether the browser says it is online or not: offline it fails at once, and never goes later on its own.
     networkMode: 'always',
     mutationFn: async ({ seat, lines, requestId }: { seat: number; lines: readonly FnbLine[]; requestId: string }): Promise<Result<PlacedFnbOrder, FnbFailure>> => {
-      const { data, error } = await client.rpc('tablet_fnb_order', { p_seat: seat, p_lines: linesJson(lines), p_idempotency_key: requestId });
+      const { data, error } = await client.rpc('tablet_fnb_order', { p_seat: seat, p_lines: linesJson(lines), p_idempotency_key: requestId }).limit(LIST_MOST);
       return placed(data, error);
     },
   });
 }
 
 /**
- * The console's F&B (#123), for staff who run it: tonight's orders and the KOTs not yet at the bar, ordering for a seat
- * (paid or comp), marking a KOT given by hand, and the menu's items.
+ * The console's F&B (#123), for staff who run or serve it: one page of a club day's orders (redesign RD-30), sorted, searched
+ * and filtered on the server (`fnb_orders_page`), with how many the view leaves. The view's scope is the screen's choice:
+ * `day` (a club day, tonight without one) and `state` (`open`, the list's opening, `delivered`, `void` or `all`). Asked
+ * again every ten seconds, as the bar works through them.
  */
-export function useFnbOrdersTonight(venueId: string) {
-  const { client, userId } = useRivrData();
-  return useQuery({
-    queryKey: queryKeys.fnbOrdersTonight(userId ?? 'signed-out', venueId),
-    enabled: userId !== null,
-    refetchInterval: ORDERS_CHECK,
-    queryFn: async (): Promise<FnbOrderTonight[]> => {
-      const { data, error } = await client.rpc('fnb_orders_tonight', { p_venue_id: venueId });
-      if (error) throw error;
-      return data.map((row) => ({
+export function useFnbOrdersPage(venueId: string, view: ScopedView | null) {
+  const { client } = useRivrData();
+  return useListPage({
+    list: 'fnb_orders', venueId, view,
+    read: (asked) => client.rpc('fnb_orders_page', { p_venue_id: venueId, p_view: asked }),
+    rowOf: (row): FnbOrderTonight => ({
         orderId: row.order_id, kotNumber: row.kot_number, tableName: row.table_name, seat: row.seat, memberName: row.member_name,
         memberNumber: Number(row.member_number), lines: linesOf(row.lines), isComp: row.is_comp, source: sourceOf(row.source),
         createdAt: row.created_at, kotSentBy: row.kot_sent_by === 'agent' || row.kot_sent_by === 'staff' ? row.kot_sent_by : null,
         isKotPrintFailed: row.kot_print_failed,
         seatState: row.seat_state === 'leaving' || row.seat_state === 'left' ? row.seat_state : 'seated', acceptedAt: row.accepted_at, deliveredAt: row.delivered_at, ageSeconds: row.age_seconds, onWayAt: row.on_way_at,
         cancelledAt: row.cancelled_at, cancelReason: row.cancel_reason,
-      }));
-    },
+    }),
   });
 }
 
@@ -250,7 +250,7 @@ function linesOf(lines: unknown): FnbOrderTonight['lines'] {
 
 /**
  * The console's actions: order for a seat (`comp` only here), once per request id so a retry returns the first order (A3), mark
- * a KOT given to the bar by hand, and keep the menu.
+ * a KOT given to the bar by hand, and add or change an item of the menu (staff who run F&B, redesign RD-33).
  */
 export function useFnbActions(venueId: string) {
   const { client, userId } = useRivrData();
@@ -264,7 +264,7 @@ export function useFnbActions(venueId: string) {
       const { data, error } = await client.rpc('console_fnb_order', {
         p_venue_id: venueId, p_table_id: input.tableId, p_seat: input.seat, p_lines: linesJson(input.lines), p_is_comp: input.isComp,
         p_idempotency_key: input.requestId,
-      });
+      }).limit(LIST_MOST);
       await reload();
       return placed(data, error);
     },
@@ -320,7 +320,7 @@ export function useFnbItems(venueId: string) {
     enabled: userId !== null,
     queryFn: async (): Promise<FnbItem[]> => {
       const { data, error } = await client.from('fnb_item').select('id, name, kind, is_available, position, photo_path, diet, description').eq('venue_id', venueId)
-        .order('position').order('name');
+        .order('position').order('name').limit(MENU_MOST);
       if (error) throw error;
       return data.map((row) => ({
         itemId: row.id, name: row.name, kind: row.kind, isAvailable: row.is_available, position: row.position, photoUrl: itemPhotoUrl(client, row.photo_path),

@@ -28,14 +28,14 @@ function renderPart(canGive: boolean) {
 describe('MemberBonus: Bonus by hand on the record (redesign of 15 Nov)', () => {
   it('offers the form to staff who may add Bonus by hand, above the history', async () => {
     renderPart(true);
-    const add = await screen.findByRole('button', { name: 'Add bonus chips' });
-    const history = screen.getByRole('heading', { name: 'Bonus chips history' });
+    const add = await screen.findByRole('button', { name: 'Add Bonus' });
+    const history = screen.getByRole('heading', { name: 'Bonus history' });
     expect(add.compareDocumentPosition(history) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('shows other staff the balances and the history only', async () => {
     renderPart(false);
-    expect(await screen.findByRole('heading', { name: 'Bonus chips history' })).toBeDefined();
-    expect(screen.queryByRole('button', { name: 'Add bonus chips' })).toBeNull();
+    expect(await screen.findByRole('heading', { name: 'Bonus history' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Add Bonus' })).toBeNull();
   });
 });

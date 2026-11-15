@@ -1,4 +1,5 @@
 import { memberBonus } from './memberBonus.ts';
+import { memberHours } from './memberHours.ts';
 import { memberSignUp } from './memberSignUp.ts';
 
 /** The console's Members screen (#60): find a member, open their record, and change their tier. */
@@ -15,9 +16,6 @@ export const members = {
   allMembers: 'All members',
   /** The search field's label, shown inside it (console v3): a name as typed, a member number, or four or more digits. */
   search: 'Name, mobile or member number',
-  /** Beside the search: how many the list shows. */
-  total: '{count} members',
-  totalOne: '1 member',
   /** `{query}` is what was typed. */
   noMatch: 'No member matches {query}.',
   number: 'No.',
@@ -46,7 +44,7 @@ export const members = {
   grantsTitle: 'Promotions given',
   noGrants: 'None yet.',
   grantLine: '{date} · {promotion}: {given}',
-  grantChips: '{count} bonus chips',
+  grantChips: '{count} Bonus',
   /** The record. `{number}` is the member number. */
   memberNumber: 'No. {number}',
   photoOf: 'KYC photo of {name}',
@@ -69,7 +67,7 @@ export const members = {
   /** The name a member gave at sign-up, under their Aadhaar name (#803): `Known as Ashu`. */
   knownAs: 'Known as {name}',
   /** The record's parts, one shown at a time (C-02); visits takes visitsTitle. `{name}` is the member's. */
-  parts: { label: 'Record of {name}', bonus: 'Bonus chips', signUp: 'Sign-up', membership: 'Tier and break', account: 'Account' },
+  parts: { label: 'Record of {name}', bonus: 'Bonus', signUp: 'Sign-up', membership: 'Tier and break', account: 'Account' },
   /** The record's Sign-up (owner, 8 Nov). */
   signUp: memberSignUp,
   bonus: memberBonus,
@@ -142,6 +140,7 @@ export const members = {
     },
   },
   /** Erasing one member's personal data on request, for super admins (#424, decision 0207). */
+  resetHours: memberHours,
   /** A super admin changes a member's phone number, their login (#502). */
   changePhone: {
     title: 'Phone number',
@@ -181,21 +180,21 @@ export const members = {
       cash: 'a balance to settle',
       chips: 'a visit or a seat still open',
       markers: 'markers not settled',
-      bonus: 'bonus chips owed to the club',
+      bonus: 'Bonus owed to the club',
       waitlist: 'a place on a waitlist',
       tournament: 'a run in a tournament not yet finished',
       requests: 'a request still waiting',
     },
     /** `{bonus}`: bonus chips, `2,000` (#629). */
-    forfeit: 'Forfeited to the club: {bonus} bonus chips.',
-    nothingToForfeit: 'No bonus chips to forfeit.',
+    forfeit: 'Forfeited to the club: {bonus} Bonus.',
+    nothingToForfeit: 'No Bonus to forfeit.',
     blockNote: 'On a break until {date}: their number and ID stay blocked until then.',
     typeName: 'Type the member\'s full name to confirm',
     reason: 'Why the member is erased',
     reasonHint: 'Who asked, and how. No names or numbers.',
     erase: 'Erase personal data',
-    done: 'Erased. Forfeited {bonus} bonus chips; KYC files removed: {files}.',
-    doneFilesLeft: 'Erased. Forfeited {bonus} bonus chips. The KYC files are still to remove.',
+    done: 'Erased. Forfeited {bonus} Bonus; KYC files removed: {files}.',
+    doneFilesLeft: 'Erased. Forfeited {bonus} Bonus. The KYC files are still to remove.',
     filesLeft: 'KYC files still to remove: {count}.',
     removeFiles: 'Remove KYC files',
     filesRemoved: 'KYC files removed: {count}.',

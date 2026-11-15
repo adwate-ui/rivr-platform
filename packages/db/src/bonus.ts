@@ -4,6 +4,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** What a line of bonus history is: chips given, chips used with a buy-in, or chips that ended before bonus stopped expiring. */
 export type BonusLineKind = 'credited' | 'redeemed' | 'expired';
@@ -52,7 +53,7 @@ export function useMyBonus() {
     queryKey: queryKeys.myBonus(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<Paise | null> => {
-      const { data, error } = await client.rpc('my_bonus');
+      const { data, error } = await client.rpc('my_bonus').limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       return row === undefined ? null : toPaise(row.bonus_paise);
@@ -83,7 +84,7 @@ export function useMemberBonus(venueId: string, memberId: string | null) {
     queryKey: queryKeys.memberBonus(userId ?? 'signed-out', venueId, memberId ?? 'none'),
     enabled: userId !== null && memberId !== null,
     queryFn: async (): Promise<Paise | null> => {
-      const { data, error } = await client.rpc('member_bonus', { p_venue_id: venueId, p_member_id: memberId ?? '' });
+      const { data, error } = await client.rpc('member_bonus', { p_venue_id: venueId, p_member_id: memberId ?? '' }).limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       return row === undefined ? null : toPaise(row.bonus_paise);
@@ -101,7 +102,7 @@ export function useMemberBonusVisitLeft(venueId: string, memberId: string | null
     queryKey: queryKeys.memberBonusVisitLeft(userId ?? 'signed-out', venueId, memberId ?? 'none'),
     enabled: userId !== null && memberId !== null,
     queryFn: async (): Promise<Paise | null> => {
-      const { data, error } = await client.rpc('member_bonus_visit_left', { p_venue_id: venueId, p_member_id: memberId ?? '' });
+      const { data, error } = await client.rpc('member_bonus_visit_left', { p_venue_id: venueId, p_member_id: memberId ?? '' }).limit(LIST_MOST);
       if (error) throw error;
       const left = data[0]?.left_paise;
       return left === undefined || left === null ? null : toPaise(left);

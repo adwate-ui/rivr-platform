@@ -1,6 +1,6 @@
 /**
  * Attribution (#10): a new player opens a link to Bonus with a referral and UTM codes, signs in
- * with a code, sees the number they signed in with, gives their name, city, occupation, when they usually play (#631) and
+ * with a code, sees the number they signed in with, gives their name, city (a sector and a comma in it, issue 1006), occupation, when they usually play (#631) and
  * the games they play (#653) in the redesign's pickers (decision 0320), and joins; as their identity check is not done, they see only it (#632); the codes are kept with the sign-up (supabase/tests/014_sign_up proves
  * member.signed_up carries them). Local stack only: it frees its number from the member an earlier run
  * created, and reads the codes, in the local database itself.
@@ -40,7 +40,7 @@ test.describe('Attribution', () => {
     await expect(page.getByRole('heading', { name: 'About you' })).toBeVisible();
     await expect(page.getByText(`Signing up with +91 ${NUMBER.slice(0, 5)} ${NUMBER.slice(5)}`)).toBeVisible();
     await page.getByRole('textbox', { name: 'Full name, as on Aadhaar' }).fill('Tara Joshi');
-    await page.getByRole('textbox', { name: 'City' }).fill('Gurugram');
+    await page.getByRole('textbox', { name: 'City' }).fill('Sector 65, Gurugram');
     await page.getByRole('button', { name: /^Occupation/ }).click();
     await page.getByRole('dialog', { name: 'Occupation' }).getByRole('radio', { name: 'Salaried', exact: true }).click();
     await page.getByRole('button', { name: /^When you usually play/ }).click();
@@ -66,6 +66,6 @@ test.describe('Attribution', () => {
     expect(sql(`select p.city || '|' || p.occupation || '|' || array_to_string(p.play_times, ',') || '|'
                 || array_to_string(array(select g from unnest(p.games_played) g order by g), ',')
                 from public.member_preference p join public.member m on m.id = p.member_id where m.phone = '+91${NUMBER}'`))
-      .toBe('Gurugram|salaried|late_night,weekday_evenings|bomb,plo');
+      .toBe('Sector 65, Gurugram|salaried|late_night,weekday_evenings|bomb,plo');
   });
 });

@@ -24,7 +24,7 @@ const meta = {
       <DocumentTable
         caption="What the invoice is for"
         columns={[{ label: 'Description' }, { label: 'Amount', isAmount: true }]}
-        rows={[['Poker Academy, beginners course, 22 Nov 2026', 169_492n]]}
+        rows={[['Private table hire, 22 Nov 2026', 169_492n]]}
         totals={[
           { label: 'Taxable value', paise: 169_492n },
           { label: 'CGST at 9%', paise: 15_254n },

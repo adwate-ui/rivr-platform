@@ -37,6 +37,8 @@ export interface MySession {
   readonly tableName: string;
   readonly smallBlind: Paise;
   readonly bigBlind: Paise;
+  /** The straddle of the stake a cash session was played at; null with none, and for a tournament. */
+  readonly straddle: Paise | null;
   readonly playedSeconds: number;
   readonly buyIn: Paise;
   readonly bonus: Paise;
@@ -63,6 +65,7 @@ function sessionOf(row: SessionRow): MySession {
         sessionId: row.session_id, visitId: row.visit_id, kind: row.kind === 'tournament' ? 'tournament' : 'cash', place: row.place, entrants: row.entrants,
         openedAt: row.opened_at, closedAt: row.closed_at, tableName: row.table_name,
         smallBlind: toPaise(row.small_blind_paise), bigBlind: toPaise(row.big_blind_paise),
+        straddle: row.straddle_paise === null ? null : toPaise(row.straddle_paise),
         playedSeconds: Number(row.played_seconds), buyIn: toPaise(row.buy_in_paise), bonus: toPaise(row.bonus_paise),
         cashOut: toPaise(row.cash_out_paise), tds: toPaise(row.tds_paise), paid: toPaise(row.paid_paise), net: toPaise(row.net_paise),
         receipt: row.receipt, month: row.month, monthSessions: row.month_sessions, monthPlayedSeconds: Number(row.month_played_seconds),
@@ -95,7 +98,7 @@ export function useMySession(sessionId: string) {
     queryKey: keys.one(userId ?? 'signed-out', sessionId),
     enabled: userId !== null,
     queryFn: async (): Promise<MySession | null> => {
-      const { data, error } = await client.rpc('my_sessions').eq('session_id', sessionId);
+      const { data, error } = await client.rpc('my_sessions').eq('session_id', sessionId).limit(1);
       if (error) throw error;
       const row = data[0];
       return row === undefined ? null : sessionOf(row);

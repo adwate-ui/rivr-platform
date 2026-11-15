@@ -1,6 +1,6 @@
 /**
- * Player settings (#637; decision 0320). Naveen Iyer, this flow's own member, opens Profile: no Learn or Events row and no
- * Academy, as they are off for every tier; House rules shows the club's rules from its website, without the legal standing.
+ * Player settings (#637; decision 0320). Naveen Iyer, this flow's own member, opens Profile: no Events row, as it is off
+ * for every tier; House rules shows the club's rules from its website, without the legal standing.
  * From Send feedback, Naveen sends a quick note about the dealer, then the detailed form: the gameplay, cashier, service and ambience rated,
  * and 9 for how likely they are to recommend the club. Farhan Siddiqui, this flow's own admin, reads both on Feedback
  * with their answers. The forms' rules are proved in supabase/tests/203_feedback_forms.test.sql.
@@ -10,16 +10,15 @@ import { isRemoteTarget } from '../support/apps.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 test.describe('Player settings', () => {
-  test('Profile › House rules, Feedback: no Learn, Events or Academy, and feedback in two forms that the General Manager reads', async ({ browser }) => {
+  test('Profile › House rules, Feedback: no Events, and feedback in two forms that the General Manager reads', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'sends feedback, so the local stack only');
     test.setTimeout(90_000);
     const member = await browser.newPage();
     await signInToPlayer(member, '9000000254', '/profile');
     await expect(member.getByRole('heading', { name: 'Naveen Iyer', level: 1 })).toBeVisible();
     await expect(member.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Profile' })).toHaveAttribute('aria-current', 'page');
-    // Learn and Events are rows under Club only for a tier with them (decision 0322): off for every tier.
-    for (const row of ['Learn', 'Events']) await expect(member.getByRole('button', { name: row, exact: true })).toHaveCount(0);
-    await expect(member.getByRole('heading', { name: 'RIVR Academy' })).toHaveCount(0);
+    // Events is a row under Club only for a tier with it (decision 0322): off for every tier.
+    await expect(member.getByRole('button', { name: 'Events', exact: true })).toHaveCount(0);
 
     // Profile › House rules: the club's rules numbered in gold, from its website; the legal standing stays on its About page.
     await member.getByRole('button', { name: 'House rules' }).click();

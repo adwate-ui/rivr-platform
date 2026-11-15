@@ -86,6 +86,8 @@ export const queryKeys = {
   memberBonusVisitLeft: (userId: string, venueId: string, memberId: string) => ['user', userId, 'bonus', venueId, memberId, 'visit-left'] as const,
   tableMetrics: (userId: string, venueId: string, from: string, to: string) => ['user', userId, 'table-metrics', venueId, from, to] as const,
   tableMetricsTotal: (userId: string, venueId: string, from: string, to: string) => ['user', userId, 'table-metrics-total', venueId, from, to] as const,
+  /** One read of a report over a span (redesign RD-27): `name` is its chart, its figures or its lines. */
+  clubReport: (userId: string, name: string, span: { venueId: string; from: string; to: string }) => ['user', userId, 'club-report', span.venueId, name, span.from, span.to] as const,
   memberSignUp: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-sign-up', venueId, memberId] as const,
   /** The members whose account is not simply active (F-121). */
   memberAccountStatuses: (userId: string, venueId: string) => ['user', userId, 'member-account-statuses', venueId] as const,
@@ -102,6 +104,9 @@ export const queryKeys = {
   fnbItems: (userId: string, venueId: string) => ['user', userId, 'fnb-items', venueId] as const,
   fnbOrdersTonight: (userId: string, venueId: string) => ['user', userId, 'fnb-orders-tonight', venueId] as const,
   topUpsTonight: (userId: string, venueId: string) => ['user', userId, 'top-ups-tonight', venueId] as const,
+  /** A club day's top-up requests, a page at a time (redesign RD-32); every page starts with topUpHistoryAll, which a step taken makes stale. */
+  topUpHistoryAll: (userId: string, venueId: string) => ['user', userId, 'top-up-history', venueId] as const,
+  topUpHistory: (userId: string, venueId: string, day: string, page: number) => ['user', userId, 'top-up-history', venueId, day, page] as const,
   staffQueueCounts: (userId: string, venueId: string) => ['user', userId, 'staff-queue-counts', venueId] as const,
   /** The signed-in staff member's console density at a venue (decision 0475). */
   staffDensity: (userId: string, venueId: string) => ['user', userId, 'staff-density', venueId] as const,
@@ -120,9 +125,11 @@ export const queryKeys = {
   memberSearch: (userId: string, venueId: string, query: string) => ['user', userId, 'member-search', venueId, query] as const,
   /** Every memberSearch key: the prefix an invalidation of them all names. */
   memberSearchAll: (userId: string) => ['user', userId, 'member-search'] as const,
-  membersOfTier: (userId: string, venueId: string, tierId: string) => ['user', userId, 'members-of-tier', venueId, tierId] as const,
-  /** Every membersOfTier key: the prefix an invalidation of them all names. */
-  membersOfTierAll: (userId: string) => ['user', userId, 'members-of-tier'] as const,
+  /** A page of the Members list by its view, and a column menu's counts for it (redesign RD-29). */
+  membersList: (userId: string, venueId: string, view: unknown) => ['user', userId, 'members-list', 'page', venueId, view] as const,
+  memberChoices: (userId: string, venueId: string, view: unknown) => ['user', userId, 'members-list', 'choices', venueId, view] as const,
+  /** Every membersList and memberChoices key: the prefix an invalidation of them all names. */
+  membersListAll: (userId: string) => ['user', userId, 'members-list'] as const,
   memberRecord: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-record', venueId, memberId] as const,
   memberEarlyDepartures: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-early-departures', venueId, memberId] as const,
   venueTiers: (userId: string, venueId: string) => ['user', userId, 'venue-tiers', venueId] as const,

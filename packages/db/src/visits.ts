@@ -1,20 +1,7 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
-
-/** One member on the door's lists (#72): expected (on a waitlist, not yet in the room) or in the room since check-in. */
-export interface DoorMember {
-  readonly memberId: string;
-  readonly fullName: string;
-  readonly memberNumber: number;
-  readonly tierName: string;
-  /** On the club's lowest tier, which the door leaves unsaid. */
-  readonly isBaseTier: boolean;
-  readonly isInRoom: boolean;
-  /** When they checked in, or, while expected, when they first joined a waitlist. */
-  readonly since: string;
-}
 
 /**
  * Why a member was not checked in: not the front desk, no member with that number here, on a break from
@@ -25,27 +12,6 @@ export type CheckInFailure = 'not_allowed' | 'no_member' | 'on_break' | 'stopped
 const FAILURE_BY_CODE: Readonly<Record<string, CheckInFailure>> = {
   '42501': 'not_allowed', RVNOM: 'no_member', RVBRK: 'on_break', RVMBR: 'stopped', RVFRZ: 'paused',
 };
-
-// The door's lists change as members arrive and join from the app.
-const LIVE = 10_000;
-
-/** The venue's expected members and who is in the room, for the front desk (waitlist.manage), earliest first. */
-export function useDoorBoard(venueId: string) {
-  const { client, userId } = useRivrData();
-  return useQuery({
-    queryKey: queryKeys.doorBoard(userId ?? 'signed-out', venueId),
-    enabled: userId !== null,
-    refetchInterval: LIVE,
-    queryFn: async (): Promise<DoorMember[]> => {
-      const { data, error } = await client.rpc('door_board', { p_venue_id: venueId });
-      if (error) throw error;
-      return data.map((row) => ({
-        memberId: row.member_id, fullName: row.full_name, memberNumber: Number(row.member_number), tierName: row.tier_name, isBaseTier: row.is_base_tier,
-        isInRoom: row.is_in_room, since: row.since,
-      }));
-    },
-  });
-}
 
 /**
  * Checks a member in: from the expected list, or by mobile number. Each resolves to the visit's id and reloads the lists.

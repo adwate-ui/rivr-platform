@@ -6,7 +6,7 @@ import { allowedDifference, differenceFromBaseline, pngSize } from './test/png.t
 
 const A4 = tokens.viewport.a4;
 
-/** A corporate Academy booking (#249) at the club, as the database API returns its invoice. */
+/** A corporate booking (#249) at the club, as the database API returns its invoice. */
 const ROW: InvoiceRow = {
   number: 'RIVR/S26/41',
   is_tax_invoice: true,
@@ -16,7 +16,7 @@ const ROW: InvoiceRow = {
   supplier_address: 'Upper floor, Glaza, M3M 65th Avenue, Sector 65, Gurugram 122018',
   buyer_name: 'Northern Gaming Private Limited',
   buyer_gstin: '06BBBBB1111B1Z6',
-  description: 'Poker Academy, beginners course, 22 Nov 2026',
+  description: 'Private table hire, 22 Nov 2026',
   rate_basis_points: 1800,
   taxable_paise: 169_492,
   cgst_paise: 15_254,

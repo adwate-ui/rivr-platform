@@ -4,7 +4,8 @@
  * the 500 bonus chips are his; Bonus shows them. Once the desk has checked him (set here, as kyc.spec.ts proves the
  * desk), the floor (Ishaan Grover, a super admin who signs in to no other flow) seats him at Table 5 redeeming all 500 with
  * his buy-in: no Undo, he is told, his history shows the buy-in and his record's Bonus chips tab who seated him; there
- * Ishaan adds 50 by hand, which Jayesh's history shows with its reason (redesign of 15 Nov). The
+ * Ishaan adds 50 by hand, which Jayesh's history shows with its reason (redesign of 15 Nov), and resets his counted hours
+ * with a reason (redesign RD-36). The
  * switch, the promotion and his check are set up and taken away in the local database, so the local stack only.
  */
 import { execFileSync } from 'node:child_process';
@@ -33,6 +34,7 @@ const chips = (paise: number) => (paise / 100).toLocaleString('en-IN');
  */
 function reset() {
   sql(`delete from public.bonus_redemption where member_id = '${JAYESH}'`);
+  sql(`update public.member set hours_counted_from = null where id = '${JAYESH}' and hours_counted_from is not null`);
   sql(`delete from public.waitlist_entry where member_id = '${JAYESH}'`);
   sql(`delete from public.seat_session where member_id = '${JAYESH}'`);
   sql(`delete from public.promotion_grant where member_id = '${JAYESH}' and source_key = 'signup:${JAYESH}'`);
@@ -60,12 +62,12 @@ function setUp() {
        where v.venue_id = '${CLUB}' and v.status = 'live' and v.reward ->> 'on' = 'signup'`);
 }
 
-test.describe('Bonus chips', () => {
+test.describe('Bonus', () => {
   test.skip(isRemoteTarget(), 'switches the club to checking identity at the desk and puts a promotion live in the local database, so the local stack only');
   test.beforeEach(reset);
   test.afterEach(reset);
 
-  test('the sign-up bonus on reaching Home, in Bonus, redeemed by the floor as he sits down, and Bonus by hand on his record', async ({ browser, page }) => {
+  test('the sign-up bonus on reaching Home, in Bonus, redeemed by the floor as he sits down, and Bonus by hand on his record; Reset hours: his hours start from zero', async ({ browser, page }) => {
     setUp();
     const before = Number(sql(`select private.bonus_in_force('${JAYESH}', now())`));
 
@@ -76,7 +78,7 @@ test.describe('Bonus chips', () => {
     await page.getByRole('button', { name: 'Use photo' }).click();
     await expect(page.getByRole('heading', { name: 'Registered', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'See the tables' }).click();
-    await expect(page.getByText('500 bonus chips added · Welcome bonus')).toBeVisible();
+    await expect(page.getByText('500 Bonus added · Welcome bonus')).toBeVisible();
     expect(Number(sql(`select private.bonus_in_force('${JAYESH}', now())`))).toBe(before + 50_000);
 
     // Bonus: his balance, and the welcome bonus in his history.
@@ -98,28 +100,41 @@ test.describe('Bonus chips', () => {
     await sheet.getByRole('radio', { name: 'Table 5' }).click();
     await sheet.getByRole('textbox', { name: /^(Or a m|M)obile or member number$/ }).fill('9000000412');
     await expect(sheet.getByText('Up to their balance. Taken off when they sit.')).toBeVisible();
-    await sheet.getByRole('textbox', { name: 'Bonus chips to redeem' }).fill('500');
+    await sheet.getByRole('textbox', { name: 'Bonus to redeem' }).fill('500');
     await sheet.getByRole('button', { name: 'Seat', exact: true }).click();
     await expect(floor.getByText(/^9000000412 seated at Table 5, seat \d$/)).toBeVisible();
     await expect(floor.getByRole('button', { name: 'Undo' })).toHaveCount(0);
     expect(Number(sql(`select private.bonus_in_force('${JAYESH}', now())`))).toBe(before);
 
     // He is told, and his history shows the buy-in.
-    await expect(page.getByText('500 bonus chips used for your buy-in at Table 5')).toBeVisible();
+    await expect(page.getByText('500 Bonus used for your buy-in at Table 5')).toBeVisible();
     await expect(page.getByText(/^Buy-in · Table 5 · /).first()).toBeVisible();
 
     // His record's Bonus chips tab, read only, names who seated him.
     await floor.goto(`${appUrl('console')}/members?member=${JAYESH}&part=bonus`);
-    await expect(floor.getByRole('link', { name: 'Bonus chips' })).toHaveAttribute('aria-current', 'page');
+    await expect(floor.getByRole('link', { name: 'Bonus' })).toHaveAttribute('aria-current', 'page');
     await expect(floor.getByText(/Buy-in · Table 5 · seated by Ishaan Grover$/)).toBeVisible();
 
     // Bonus by hand, on the record: 50 with a reason, asked twice; his app shows it.
-    await floor.getByRole('textbox', { name: /^Bonus chips/ }).fill('50');
+    await floor.getByRole('textbox', { name: /^Bonus/ }).fill('50');
     await floor.getByRole('textbox', { name: /^Reason/ }).fill(REASON);
-    await floor.getByRole('button', { name: 'Add bonus chips' }).click();
-    await floor.getByRole('button', { name: 'Yes, add 50 bonus chips' }).click();
-    await expect(floor.getByText('50 bonus chips added.')).toBeVisible();
+    await floor.getByRole('button', { name: 'Add Bonus' }).click();
+    await floor.getByRole('button', { name: 'Yes, add 50 Bonus' }).click();
+    await expect(floor.getByText('50 Bonus added.')).toBeVisible();
     expect(Number(sql(`select private.bonus_in_force('${JAYESH}', now())`))).toBe(before + 5_000);
     await expect(page.getByText(new RegExp(`^${REASON} · `)).first()).toBeVisible({ timeout: 15_000 });
+
+    // Reset hours (redesign RD-36): seated an hour ago here, his hour counts; Ishaan, a super admin, resets his hours from the
+    // record's Visits with a reason, asked twice; they start from zero, and the audit log keeps who, when and why.
+    sql(`update public.seat_session set started_at = now() - interval '61 minutes', seated_here_at = now() - interval '61 minutes' where member_id = '${JAYESH}' and ended_at is null`);
+    const counted = () => Number(sql(`select coalesce((select played_minutes from private.hours_leaderboard('${CLUB}', 'all', 1000, null, now()) where member_id = '${JAYESH}'), 0)`));
+    expect(counted()).toBeGreaterThanOrEqual(60);
+    await floor.getByRole('navigation', { name: /^Record of/ }).getByRole('link', { name: 'Visits' }).click();
+    await floor.getByRole('textbox', { name: 'Why they are reset' }).fill(`${REASON} hours`);
+    await floor.getByRole('button', { name: 'Reset hours' }).click();
+    await floor.getByRole('button', { name: 'Yes, reset the hours of Jayesh Dhillon' }).click();
+    await expect(floor.getByText('Hours reset.')).toBeVisible();
+    expect(counted()).toBe(0);
+    expect(sql(`select reason from public.audit_log where action = 'member.hours_reset' and entity_id = '${JAYESH}' order by id desc limit 1`)).toBe(`${REASON} hours`);
   });
 });

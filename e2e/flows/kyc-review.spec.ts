@@ -66,5 +66,13 @@ test.describe('ID checks', () => {
     await expect(page.getByText('Rejected by a reviewer.')).toBeVisible();
     await expect(page.getByRole('img', { name: 'ID check photo of Naina Kapoor' }).or(page.getByText(/^Photo not loaded/))).toBeVisible();
     expect(sql(`select status || ' ' || refusal from public.kyc_record where member_id = '${NAINA}'`)).toBe('refused staff_rejected');
+
+    // The queue is a page from the server, found by name (redesign RD-30).
+    const find = page.getByRole('searchbox', { name: 'Find by name' });
+    await find.fill('nobody of this name');
+    await expect(page.getByText('No check matches.')).toBeVisible();
+    await find.fill('naina');
+    await expect(page.getByRole('button', { name: /^Naina Kapoor/ })).toBeVisible();
+    await expect(page.getByText('No check matches.')).toHaveCount(0);
   });
 });

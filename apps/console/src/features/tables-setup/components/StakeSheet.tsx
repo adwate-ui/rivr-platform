@@ -1,17 +1,17 @@
 import { useTablesSetupActions, type SetupStake, type StakeOrder } from '@rivr/db';
-import { chipsToPaise, fromPaise, paiseToChips } from '@rivr/domain/money';
-import { isStakeCallTime } from '@rivr/domain/tables';
+import { chipsToPaise, fromPaise, paiseToChips, type Paise } from '@rivr/domain/money';
+import { areBlinds, isStakeCallTime, isStraddle } from '@rivr/domain/tables';
 import { t } from '@rivr/i18n';
 import { ErrorMessage, Grid, Input, Sheet, Stack, Text, UnitInput, useToast } from '@rivr/ui';
 import { useState } from 'react';
 import { SaveFooter } from './SaveFooter.tsx';
 import { useSave } from './useSave.ts';
 
-// A blind in whole 50s, as the table type's check has it.
-const isBlind = (text: string) => /^\d{2,7}$/.test(text) && Number(text) % 50 === 0;
-
 // Blinds are typed as plain figures: 100 for a blind of 100.
 const typedOf = (paise: bigint) => String(paiseToChips(fromPaise(paise)));
+
+// The figure typed, in paise, or null when it is not a plain figure. Whether it may be a blind is @rivr/domain's to say.
+const typedBlind = (text: string): Paise | null => (/^\d{1,9}$/.test(text) ? chipsToPaise(BigInt(text)) : null);
 
 /** The stake as typed: its name, its blinds and any straddle (empty for none), and its call time in minutes. */
 interface StakeDraft {
@@ -31,10 +31,14 @@ function startFrom(stake: SetupStake | null): StakeDraft {
   };
 }
 
-/** A straddle is none, or whole 50s above the big blind (decision 0299). */
-const isStraddle = (draft: StakeDraft) => draft.straddle === '' || (isBlind(draft.straddle) && Number(draft.straddle) > Number(draft.big));
-
-const hasBlinds = (draft: StakeDraft) => isBlind(draft.small) && isBlind(draft.big) && Number(draft.big) > Number(draft.small);
+/** The blinds and any straddle typed, in paise, when they stand together (@rivr/domain areBlinds, isStraddle); else null. */
+function blindsFrom(draft: StakeDraft): Pick<StakeOrder, 'smallBlind' | 'bigBlind' | 'straddle'> | null {
+  const smallBlind = typedBlind(draft.small);
+  const bigBlind = typedBlind(draft.big);
+  const straddle = draft.straddle === '' ? null : typedBlind(draft.straddle);
+  if (smallBlind === null || bigBlind === null || (draft.straddle !== '' && straddle === null)) return null;
+  return areBlinds(smallBlind, bigBlind) && isStraddle(straddle, bigBlind) ? { smallBlind, bigBlind, straddle } : null;
+}
 
 /**
  * The stake as it would be saved, or null while it does not stand: a name, blinds in whole 50s with the big above the
@@ -42,11 +46,9 @@ const hasBlinds = (draft: StakeDraft) => isBlind(draft.small) && isBlind(draft.b
  */
 function orderFrom(draft: StakeDraft, stakeId: string | null, canSetCallTime: boolean): StakeOrder | null {
   const hasCallTime = !canSetCallTime || (draft.callTime !== null && isStakeCallTime(draft.callTime));
-  if (draft.name.trim() === '' || !hasBlinds(draft) || !isStraddle(draft) || !hasCallTime) return null;
-  return {
-    stakeId, name: draft.name, smallBlind: chipsToPaise(BigInt(draft.small)), bigBlind: chipsToPaise(BigInt(draft.big)),
-    straddle: draft.straddle === '' ? null : chipsToPaise(BigInt(draft.straddle)), callTimeMinutes: canSetCallTime ? draft.callTime : null,
-  };
+  const blinds = blindsFrom(draft);
+  if (draft.name.trim() === '' || blinds === null || !hasCallTime) return null;
+  return { stakeId, name: draft.name, ...blinds, callTimeMinutes: canSetCallTime ? draft.callTime : null };
 }
 
 interface StakeFieldsProps {
@@ -62,12 +64,12 @@ function StakeFields({ draft, canSetCallTime, onChange }: StakeFieldsProps) {
       <Input label={t('console.tablesSetup.stakeName')} value={draft.name} maxLength={60} onChange={(event) => onChange({ name: event.target.value })} />
       <Stack gap={2}>
         <Grid columns={2} gap={4}>
-          <Input label={t('console.tablesSetup.smallBlind')} value={draft.small} inputMode="numeric" maxLength={7} onChange={(event) => onChange({ small: event.target.value.trim() })} />
-          <Input label={t('console.tablesSetup.bigBlind')} value={draft.big} inputMode="numeric" maxLength={7} onChange={(event) => onChange({ big: event.target.value.trim() })} />
+          <Input label={t('console.tablesSetup.smallBlind')} value={draft.small} inputMode="numeric" maxLength={9} onChange={(event) => onChange({ small: event.target.value.trim() })} />
+          <Input label={t('console.tablesSetup.bigBlind')} value={draft.big} inputMode="numeric" maxLength={9} onChange={(event) => onChange({ big: event.target.value.trim() })} />
         </Grid>
         <Text variant="small" tone="muted">{t('console.tablesSetup.blindsRule')}</Text>
       </Stack>
-      <Input label={t('console.tablesSetup.straddleOptional')} value={draft.straddle} inputMode="numeric" maxLength={7}
+      <Input label={t('console.tablesSetup.straddleOptional')} value={draft.straddle} inputMode="numeric" maxLength={9}
         onChange={(event) => onChange({ straddle: event.target.value.trim() })} />
       {canSetCallTime
         ? <UnitInput label={t('console.tablesSetup.callTime')} unit="minutes" min={1} max={1440} initialValue={draft.callTime} onChange={(callTime) => onChange({ callTime })} />

@@ -106,7 +106,7 @@ describe('the console frame', () => {
     expect(within(screen.getByRole('navigation', { name: 'Sections' })).getByRole('link', { name: rail, current: 'page' })).toBeDefined();
   });
 
-  // Content holds the website alone since Learn went (15 Nov), so it has no tabs to mark: the old address opens Content.
+  // Content holds the website alone, so it has no tabs to mark: the old address opens Content.
   it('opens /website on Content, for a super admin', async () => {
     signIn();
     answerStaff([{ ...CLUB, full_name: 'Vikram Rao', role: 'super_admin' }]);

@@ -1,14 +1,11 @@
 import { useTablesSetupActions, type SetupStake, type SetupTable, type TableOrder } from '@rivr/db';
 import { chipsToPaise, fromPaise, paiseToChips } from '@rivr/domain/money';
-import { isMinBuyIn, stakeTableRefusal, suggestedMinBuyIn } from '@rivr/domain/tables';
+import { isMinBuyIn, isSeatCount, SEAT_COUNTS, stakeTableRefusal, suggestedMinBuyIn } from '@rivr/domain/tables';
 import { t } from '@rivr/i18n';
 import { ChoiceChips, ErrorMessage, Input, Sheet, Stack, useToast } from '@rivr/ui';
 import { useState } from 'react';
 import { SaveFooter } from './SaveFooter.tsx';
 import { useSave } from './useSave.ts';
-
-// A table seats 2 to 10, as game_table's check has it: the fixed row (owner, 15 Nov).
-const SEATS = ['2', '3', '4', '5', '6', '7', '8', '9', '10'] as const;
 
 // The minimum buy-in is typed in whole rupees.
 const rupeesOf = (paise: bigint) => String(paiseToChips(fromPaise(paise)));
@@ -43,7 +40,8 @@ function minBuyInOf(typed: string): bigint | null {
 function orderFrom(draft: TableDraft, stakes: readonly SetupStake[], table: SetupTable | null): TableOrder | { readonly refusal: string } {
   const stake = stakes.find((one) => one.id === draft.stakeId);
   const minBuyIn = minBuyInOf(draft.minBuyIn);
-  if (draft.name.trim() === '' || stake === undefined || minBuyIn === null) return { refusal: t('console.tablesSetup.tableIncomplete') };
+  const hasAll = draft.name.trim() !== '' && isSeatCount(Number(draft.seats));
+  if (!hasAll || stake === undefined || minBuyIn === null) return { refusal: t('console.tablesSetup.tableIncomplete') };
   const refusal = stake.id === table?.stakeId ? null : stakeTableRefusal(stake.callTimeMinutes);
   if (refusal !== null) return { refusal: t(`console.tablesSetup.failures.${refusal}`) };
   return { tableId: table?.id ?? null, name: draft.name, stakeId: stake.id, seats: Number(draft.seats), minBuyIn };
@@ -68,7 +66,7 @@ interface TableSheetProps {
 }
 
 /**
- * A table made or changed in the panel at the side (redesign RD-17): its name, its seats from the fixed row of 2 to 10,
+ * A table made or changed in the panel at the side (redesign RD-17): its name, its seats from the fixed row of 2 to 10 (@rivr/domain SEAT_COUNTS),
  * its stake, and its own minimum buy-in, filled in at 50 big blinds of the stake chosen (@rivr/domain suggestedMinBuyIn)
  * until the admin types another, always a whole ₹50. A stake with no call time is refused before it is sent. Saved, it
  * says so in a toast and closes; refused, it says why until a field is edited. The caller keys it by each opening.
@@ -96,7 +94,7 @@ export function TableSheet({ venueId, stakes, table, onClose }: TableSheetProps)
       title={table === null ? t('console.tablesSetup.newTable') : t('console.tablesSetup.changeTable', { name: table.name })}>
       <Stack gap={5}>
         <Input label={t('console.tablesSetup.tableName')} value={draft.name} maxLength={40} onChange={(event) => set({ name: event.target.value })} />
-        <ChoiceChips label={t('console.tablesSetup.seats')} mode="one" look="subtle" selected={[draft.seats]} options={SEATS.map((count) => ({ value: count, label: count }))}
+        <ChoiceChips label={t('console.tablesSetup.seats')} mode="one" look="subtle" selected={[draft.seats]} options={SEAT_COUNTS.map((count) => ({ value: String(count), label: String(count) }))}
           onChange={(picked) => set({ seats: picked[0] ?? draft.seats })} />
         <ChoiceChips label={t('console.tablesSetup.stake')} mode="one" look="subtle" selected={draft.stakeId === null ? [] : [draft.stakeId]}
           options={stakes.map((stake) => ({ value: stake.id, label: stake.name }))} onChange={(picked) => chooseStake(picked[0] ?? null)} />

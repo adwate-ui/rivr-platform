@@ -30,7 +30,7 @@ describe('useTableMetrics', () => {
     const { result } = renderHook(() => useTableMetrics(VENUE, '2026-11-01', '2026-11-07'), { wrapper });
     await waitFor(() => expect(result.current.data).toBeDefined());
     expect(result.current.data).toEqual([{ tableId: 't2', tableName: 'Table 2', seats: 9, runSeconds: 14_400, players: 2, peak: 2, playerSeconds: 16_200, previousPlayerSeconds: 7_200 }]);
-    expect(calls).toContainEqual({ url: 'http://127.0.0.1:9/rest/v1/rpc/table_metrics', body: { p_venue_id: VENUE, p_from: '2026-11-01', p_to: '2026-11-07' } });
+    expect(calls).toContainEqual({ url: 'http://127.0.0.1:9/rest/v1/rpc/table_metrics?limit=1000', body: { p_venue_id: VENUE, p_from: '2026-11-01', p_to: '2026-11-07' } });
   });
 
   it('reads the whole room over the span, and nothing as zeros (F-107)', async () => {

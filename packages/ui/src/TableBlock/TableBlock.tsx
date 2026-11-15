@@ -4,7 +4,7 @@ import { Text } from '../Text/Text.tsx';
 export interface TableBlockProps {
   heading?: string | undefined;
   intro?: string | undefined;
-  /** Two to four column names: `Stake`, `Points an hour`. */
+  /** Two to four column names: `Stake`, `Hours`. */
   columns: readonly string[];
   /** Each row as long as the columns, the first cell naming the row. */
   rows: readonly (readonly string[])[];
@@ -13,7 +13,7 @@ export interface TableBlockProps {
 }
 
 /**
- * A website block of a small table of figures (decision 0166), as grandpokerarena.com sets out points by
+ * A website block of a small table of figures (decision 0166), as grandpokerarena.com sets out a figure by
  * stake: a header row, each row's first cell its name, the figures after it, and a note beneath.
  */
 export function TableBlock({ heading, intro, columns, rows, note }: TableBlockProps) {

@@ -55,27 +55,27 @@ describe('the bonus toast (decision 0504)', () => {
   it('tells nothing of a line from before the app opened', async () => {
     const { read } = renderToasts({ lines: [line('g1', 'credited', 50_000, { reason: 'Welcome bonus', at: anHourAgo() })] });
     await read();
-    expect(screen.queryByText(/bonus chips added/)).toBeNull();
+    expect(screen.queryByText(/Bonus added/)).toBeNull();
   });
 
   it('tells a line given since the app opened on its first read: the sign-up bonus, given at the selfie, before Home; once', async () => {
     const { read } = renderToasts({ lines: [line('s1', 'credited', 50_000, { reason: 'Welcome bonus' })] });
     await read();
-    expect(await screen.findByText('500 bonus chips added · Welcome bonus')).toBeDefined();
+    expect(await screen.findByText('500 Bonus added · Welcome bonus')).toBeDefined();
     // A screen outside the frame and back, which mounts it again: told once.
     cleanup();
     const again = renderToasts({ lines: [line('s1', 'credited', 50_000, { reason: 'Welcome bonus' })] });
     await again.read();
-    expect(screen.queryByText('500 bonus chips added · Welcome bonus')).toBeNull();
+    expect(screen.queryByText('500 Bonus added · Welcome bonus')).toBeNull();
   });
 
   it('tells chips added and chips used while the app is open, and nothing for chips that expired', async () => {
     const { landed, read } = renderToasts({ lines: [] });
     await read();
     await landed([line('g2', 'credited', 50_000, { reason: 'Welcome bonus' })]);
-    expect(await screen.findByText('500 bonus chips added · Welcome bonus')).toBeDefined();
+    expect(await screen.findByText('500 Bonus added · Welcome bonus')).toBeDefined();
     await landed([line('r1', 'redeemed', 100_000, { table: 'Table 3' })]);
-    expect(await screen.findByText('1,000 bonus chips used for your buy-in at Table 3')).toBeDefined();
+    expect(await screen.findByText('1,000 Bonus used for your buy-in at Table 3')).toBeDefined();
     await landed([line('x1', 'expired', 20_000, { reason: 'Old bonus' })]);
     expect(screen.queryByText(/Old bonus/)).toBeNull();
   });

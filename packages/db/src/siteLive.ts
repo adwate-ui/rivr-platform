@@ -1,5 +1,6 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
 import type { RivrClient } from './client.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** One game and stake the club runs, for the website's games block: its stakes only, never its seats or waiting (#617). Money in paise. */
 export interface SiteGame {
@@ -55,7 +56,7 @@ export function gamesFrom(rows: readonly TableRow[]): SiteGame[] {
 export async function fetchSiteGames(client: RivrClient): Promise<Result<SiteGame[], 'unavailable'>> {
   const { data, error } = await client.from('public_table_status')
     .select('table_type_code, table_type_name, small_blind_paise, big_blind_paise, buy_in_min_paise, straddle_paise')
-    .order('table_position');
+    .order('table_position').limit(LIST_MOST);
   if (error) return err('unavailable');
   return ok(gamesFrom(data));
 }
@@ -106,7 +107,7 @@ export function rulesFrom(rows: readonly RuleRow[]): SiteRules {
 /** The club's rules the website shows, from the public view (`public_club_rules`). */
 export async function fetchSiteRules(client: RivrClient): Promise<Result<SiteRules, 'unavailable'>> {
   const { data, error } = await client.from('public_club_rules').select('key, subject, subject_name, subject_order, value')
-    .order('subject_order', { nullsFirst: true }).order('subject');
+    .order('subject_order', { nullsFirst: true }).order('subject').limit(LIST_MOST);
   if (error) return err('unavailable');
   return ok(rulesFrom(data));
 }
@@ -114,7 +115,7 @@ export async function fetchSiteRules(client: RivrClient): Promise<Result<SiteRul
 /** The club's coming tournaments from the public view (`public_tournament_calendar`), soonest first. */
 export async function fetchSiteCalendar(client: RivrClient): Promise<Result<SiteTournament[], 'unavailable'>> {
   const { data, error } = await client.from('public_tournament_calendar')
-    .select('name, starts_at, buy_in_paise, guarantee_paise').order('starts_at');
+    .select('name, starts_at, buy_in_paise, guarantee_paise').order('starts_at').limit(LIST_MOST);
   if (error) return err('unavailable');
   return ok(data.flatMap((row) => (row.name && row.starts_at
     ? [{ name: row.name, startsAt: new Date(row.starts_at), buyIn: row.buy_in_paise === null ? null : BigInt(row.buy_in_paise),
@@ -145,7 +146,7 @@ export function questionsFrom(value: unknown): SitePromotion['questions'] {
 
 /** The club's live promotion cards from the public view (`public_promotion_cards`), highest priority first. */
 export async function fetchSitePromotions(client: RivrClient): Promise<Result<SitePromotion[], 'unavailable'>> {
-  const { data, error } = await client.from('public_promotion_cards').select('title, detail, runs, rules, questions, is_welcome');
+  const { data, error } = await client.from('public_promotion_cards').select('title, detail, runs, rules, questions, is_welcome').limit(LIST_MOST);
   if (error) return err('unavailable');
   return ok(data.flatMap((row) => (row.title
     ? [{ title: row.title, detail: row.detail, runs: row.runs, rules: row.rules ?? [], questions: questionsFrom(row.questions), isWelcome: row.is_welcome === true }]

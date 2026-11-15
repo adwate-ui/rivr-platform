@@ -122,13 +122,13 @@ export const liveFloor = {
   tableInUse: 'Move the players and called members first.',
   mustMoveInvalid: 'A must-move table needs an open main table of its game.',
   /** Bonus chips redeemed with the seat (decision 0504), refused: not seated. */
-  bonusShort: 'More bonus chips than the member has. Not seated.',
+  bonusShort: 'More Bonus than the member has. Not seated.',
   /** Past what the visit may redeem (decision 0579): the seat sheet says how much is left. */
-  visitCap: 'More bonus chips than this visit allows. Not seated.',
-  notChips: 'Bonus chips go in whole 50s. Not seated.',
-  ownRecord: 'You cannot use your own bonus chips. Ask another member of staff.',
-  bonusOff: 'Promotions are switched off, so no bonus chips. Not seated.',
-  tooMany: 'Too many bonus chips used this minute. Wait a moment.',
+  visitCap: 'More Bonus than this visit allows. Not seated.',
+  notChips: 'Bonus goes in whole 50s. Not seated.',
+  ownRecord: 'You cannot use your own Bonus. Ask another member of staff.',
+  bonusOff: 'Promotions are switched off, so no Bonus. Not seated.',
+  tooMany: 'Bonus used too often this minute. Wait a moment.',
   /** For staff whose role does not read members (#333): the dealer, marketing, the owner's view. */
   noSeatMap: 'Your role does not see the seat map.',
   /** A table's card and ring for a role without the seat map. */
@@ -156,7 +156,8 @@ export const todaysPlayers = {
   filter: 'Find a player',
   name: 'Player',
   status: 'Status',
-  statuses: { playing: 'Playing', waiting: 'Waiting', in_room: 'In the room', left: 'Left', never_arrived: 'Never arrived' },
+  /** `expected`: on a waitlist and not yet at the door (redesign RD-30). */
+  statuses: { playing: 'Playing', waiting: 'Waiting', in_room: 'In the room', expected: 'Expected', left: 'Left', never_arrived: 'Never arrived' },
   /** When they checked in and out, short as the prototype's headers, so a phone's scrolling line keeps them on one line. */
   checkedIn: 'In',
   checkedOut: 'Out',
@@ -178,6 +179,19 @@ export const topUps = {
   line: '{table}, seat {seat} · {name}',
   askedAt: 'Asked {time}',
   status: { requested: 'Asked', in_progress: 'In progress', fulfilled: 'Fulfilled in {time}', reset: 'Reset', left: 'Left before it was done' },
+  /** Who took each step and how long it took (redesign RD-32): under a request in hand or done. `{time}` is minutes and seconds, `1:20`. */
+  acceptedBy: 'Accepted by {name} in {time}',
+  doneBy: 'Done by {name} in {time}',
+  /** Past requests, a club day at a time. */
+  past: 'By day',
+  /** An empty cell: a step nobody took. */
+  none: '–',
+  day: 'Day',
+  pastLabel: 'Top-ups of the day',
+  nonePast: 'No top-ups that day.',
+  columns: { where: 'Table and seat', member: 'Member', asked: 'Asked', acceptedBy: 'Accepted by', accepted: 'Asked to accepted', doneBy: 'Done by', done: 'Accepted to done', status: 'Status' },
+  where: '{table}, seat {seat}',
+  statusShort: { requested: 'Asked', in_progress: 'In progress', fulfilled: 'Done', reset: 'Reset', left: 'Left before it was done' },
   start: 'Start',
   startName: 'The top-up for {name} is in progress',
   done: 'Done',

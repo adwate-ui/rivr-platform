@@ -50,7 +50,7 @@ function buyIn(n: number, ownChips: number) {
 
 afterEach(cleanup);
 
-const WORDS = { detail: '20% of your buy-in in bonus chips', runs: 'all stakes · Tue, all day' };
+const WORDS = { detail: '20% of your buy-in in Bonus', runs: 'all stakes · Tue, all day' };
 
 describe('promotion version actions', () => {
   it('saves a new draft with its card words and request id, and the next version of a running one by its id', async () => {

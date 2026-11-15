@@ -68,11 +68,11 @@ test.describe('Admin tools', () => {
 
     // A time-based bonus (#646): 1,500 bonus chips after three hours in a visit, built as a version (console v3, decision 0471).
     await page.goto(`${appUrl('console')}/promotions?open=new`);
-    await page.getByRole('radiogroup', { name: 'Reward' }).getByRole('radio', { name: 'Hours-played bonus' }).click();
+    await page.getByRole('radiogroup', { name: 'Reward' }).getByRole('radio', { name: 'Hours played' }).click();
     await page.getByRole('textbox', { name: 'Name members see' }).fill(`Hours bonus ${RUN}`);
-    await page.getByRole('textbox', { name: 'Bonus chips', exact: true }).fill('1500');
+    await page.getByRole('textbox', { name: 'Amount', exact: true }).fill('1500');
     await page.getByRole('textbox', { name: 'After', exact: true }).fill('3');
-    await expect(page.getByText(/^1,500 bonus chips after 3 hours, for all stakes/)).toBeVisible();
+    await expect(page.getByText(/^1,500 Bonus after 3 hours, for all stakes/)).toBeVisible();
     await page.getByRole('button', { name: 'Simulate' }).click();
     await expect(page.getByText('times given', { exact: true })).toBeVisible({ timeout: 10_000 });
     await page.getByRole('button', { name: 'Submit for approval' }).click();

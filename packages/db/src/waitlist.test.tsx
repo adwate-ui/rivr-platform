@@ -77,10 +77,10 @@ describe('Waitlist data', () => {
       ...EMPTY,
       '/rpc/my_waitlist': {
         body: [{
-          entry_id: 'e4', table_type_id: 'hi', table_type_name: 'NLH 100/200', small_blind_paise: 10000, big_blind_paise: 20000,
+          entry_id: 'e4', table_type_id: 'hi', table_type_name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, straddle_paise: 50000,
           joined_at: '2026-10-19T14:00:00+00:00', place: 4, is_request: false, table_id: 't2', table_name: 'Table 2',
         }, {
-          entry_id: 'e5', table_type_id: 'lo', table_type_name: 'NLH 50/100', small_blind_paise: 5000, big_blind_paise: 10000,
+          entry_id: 'e5', table_type_id: 'lo', table_type_name: 'NLH 50/100', game: 'nlh', small_blind_paise: 5000, big_blind_paise: 10000, straddle_paise: null,
           joined_at: '2026-10-19T14:05:00+00:00', place: 0, is_request: true, table_id: 't1', table_name: 'Table 1',
         }],
       },
@@ -92,10 +92,10 @@ describe('Waitlist data', () => {
       },
     });
     await waitFor(() => expect(result.current.places.data).toEqual([{
-      entryId: 'e4', tableTypeId: 'hi', tableTypeName: 'NLH 100/200', smallBlind: 10000n, bigBlind: 20000n,
+      entryId: 'e4', tableTypeId: 'hi', tableTypeName: 'NLH 100/200', game: 'nlh', smallBlind: 10000n, bigBlind: 20000n, straddle: 50000n,
       joinedAt: '2026-10-19T14:00:00+00:00', place: 4, isRequest: false, tableId: 't2', tableName: 'Table 2',
     }, {
-      entryId: 'e5', tableTypeId: 'lo', tableTypeName: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n,
+      entryId: 'e5', tableTypeId: 'lo', tableTypeName: 'NLH 50/100', game: 'nlh', smallBlind: 5000n, bigBlind: 10000n, straddle: null,
       joinedAt: '2026-10-19T14:05:00+00:00', place: null, isRequest: true, tableId: 't1', tableName: 'Table 1',
     }]));
     await waitFor(() => expect(result.current.board.data).toEqual([{

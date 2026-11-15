@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { STAFF_MOST } from './limits.ts';
 
 /** A venue where the signed-in person is active staff, and what their role allows there. */
 export interface StaffVenue {
@@ -32,7 +33,7 @@ export function useStaffVenues() {
         .from('staff')
         .select('id, venue_id, full_name, role, venue (name, is_practice)')
         .eq('user_id', userId ?? '')
-        .eq('is_active', true);
+        .eq('is_active', true).limit(STAFF_MOST);
       if (error) throw error;
       const venues = data.map((row) => ({
         staffId: row.id, venueId: row.venue_id, venueName: row.venue.name, isPractice: row.venue.is_practice,

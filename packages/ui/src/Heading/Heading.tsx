@@ -55,7 +55,7 @@ const VARIANT: Record<HeadingVariant, string> = {
   // A console card's or tile's name (console v3): the console's 15 px body, in semibold.
   card: 'font-text text-15 leading-snug font-semibold',
   serif: 'font-display leading-tight font-regular',
-  // A section of a player tab, as Profile's groups and Rewards' are titled (F-172): the gold eyebrow, a heading to screen readers.
+  // A section of a player tab, as Profile's groups are titled (F-172): the gold eyebrow, a heading to screen readers.
   eyebrow: 'font-text text-12 leading-snug font-medium uppercase tracking-wide',
 };
 

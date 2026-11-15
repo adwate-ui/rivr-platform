@@ -12,7 +12,7 @@ export interface FigureProps {
 
 /**
  * A figure already put in words, set large in tabular digits (decision 0320): the call time's clock, a seat's hold, a place
- * on a waitlist, a points balance. Number, Money and Time format their own; this shows one that is formatted.
+ * on a waitlist, a Bonus balance. Number, Money and Time format their own; this shows one that is formatted.
  */
 export function Figure({ children, size = 'display', tone = 'default', role, 'aria-label': ariaLabel }: FigureProps) {
   return (

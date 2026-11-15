@@ -57,6 +57,8 @@ export const RAIL: readonly RailGroup[] = [
         { id: 'players', label: 'console.rail.items.todaysPlayers', anyOf: ['members.read'] },
       ] },
       { id: 'fnb', label: 'console.rail.items.fnb', href: '/fnb', icon: 'food', anyOf: ['fnb.manage', 'fnb.serve'], counts: ['fnb'], countWords: 'orders', isActionable: true },
+      // Guest relations' one screen (redesign RD-32): top-up requests, tonight's and past days'. Admins, who give the role, have it too.
+      { id: 'topUps', label: 'console.rail.items.topUps', href: '/top-ups', icon: 'requests', anyOf: ['top_ups.manage'], counts: ['topUps'], countWords: 'requests', isActionable: true },
     ],
   },
   {

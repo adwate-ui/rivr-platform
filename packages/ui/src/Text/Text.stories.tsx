@@ -20,7 +20,7 @@ export const Variants: Story = {
       <Text>Body · Your seat is ready. Table 3, seat 6.</Text>
       <Text variant="label">Label · Payout account</Text>
       <Text variant="small">Small · Joined 22:15</Text>
-      <Text variant="caption">Caption · RIVR Academy</Text>
+      <Text variant="caption">Caption · RIVR Poker Club</Text>
       <Text variant="tvLabel">High hand tonight</Text>
     </Stack>
   ),

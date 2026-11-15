@@ -5,7 +5,7 @@ import { WaitlistScreen } from './WaitlistScreen.tsx';
 const staff = vi.hoisted((): { permissions: string[] } => ({ permissions: [] }));
 
 vi.mock('@rivr/db', () => ({ useStaffVenue: () => ({ status: 'ready', venue: { venueId: 'v1', permissions: staff.permissions } }) }));
-vi.mock('./WaitlistLists.tsx', () => ({ WaitlistLists: ({ canCheckId }: { canCheckId: boolean }) => (canCheckId ? 'Check ID offered' : 'No Check ID') }));
+vi.mock('./WaitlistLists.tsx', () => ({ AddToList: () => null, WaitlistLists: ({ canCheckId }: { canCheckId: boolean }) => (canCheckId ? 'Check ID offered' : 'No Check ID') }));
 
 afterEach(cleanup);
 

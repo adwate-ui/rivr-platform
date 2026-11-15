@@ -30,7 +30,7 @@ function TabletList({ venueId }: { venueId: string }) {
   }
   const venueTables = tables.data.filter((table) => table.venueId === venueId);
   return (
-    <Screen level={2} title={title}>
+    <Screen level={2} title={title} actions={<AddTabletForm venueId={venueId} onCode={showCode} />}>
       <Stack gap={8}>
         {tablets.data.length === 0 ? <Text tone="muted">{t('console.tablets.empty')}</Text> : (
           <Stack gap={4} divided>
@@ -40,7 +40,6 @@ function TabletList({ venueId }: { venueId: string }) {
             ))}
           </Stack>
         )}
-        <AddTabletForm venueId={venueId} onCode={showCode} />
       </Stack>
     </Screen>
   );

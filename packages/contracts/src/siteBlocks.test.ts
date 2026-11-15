@@ -26,8 +26,6 @@ describe('the website\'s information blocks (#35)', () => {
   it('reads a links block of named player-app destinations, one to six, never a raw address (#39)', () => {
     const links = (items: unknown[]) => siteBlockSchema.safeParse({ kind: 'links', content: { links: items } }).success;
     expect(links([{ label: 'Join the waitlist', to: 'waitlist' }, { label: 'Join RIVR', to: 'sign-up' }])).toBe(true);
-    // The Academy went on 15 Nov: its destination is no longer one.
-    expect(links([{ label: 'Book RIVR Academy', to: 'academy' }])).toBe(false);
     expect(links([{ label: 'Win big', to: 'https://evil.example/' }])).toBe(false);
     expect(links([])).toBe(false);
     expect(links(Array.from({ length: 7 }, () => ({ label: 'Join RIVR', to: 'sign-up' })))).toBe(false);
@@ -70,7 +68,7 @@ describe('the website’s bands in grandpokerarena.com’s way (decision 0166)',
   it('reads phrases, moments and a table whose rows are as long as its columns', () => {
     expect(parse({ kind: 'marquee', content: { phrases: ['Play', 'Connect'] } })).toBe(true);
     expect(parse({ kind: 'timeline', content: { items: [{ when: '1996', title: 'The predominance test' }] } })).toBe(true);
-    const table = (rows: string[][]) => parse({ kind: 'table', content: { columns: ['Stake', 'Points an hour'], rows } });
+    const table = (rows: string[][]) => parse({ kind: 'table', content: { columns: ['Stake', 'Hours'], rows } });
     expect(table([['NLH 50/100', '5']])).toBe(true);
     expect(table([['NLH 50/100', '5', 'extra']])).toBe(false);
   });

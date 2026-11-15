@@ -23,7 +23,7 @@ describe('describePromotion', () => {
       limits: { perMember: 'none', budgetChips: 50_000 },
     });
     expect(describePromotion(tuesday)).toBe(
-      '20% of your buy-in in bonus chips, up to 2,000 bonus chips, first 5 buy-ins per table, for all stakes, Tue, all day. No limit per member, budget 50,000 chips. '
+      '20% of your buy-in in Bonus, up to 2,000 Bonus, first 5 buy-ins per table, for all stakes, Tue, all day. No limit per member, budget 50,000 Bonus. '
       + 'Starts 17 Nov 2026, no end date.',
     );
   });
@@ -36,7 +36,7 @@ describe('describePromotion', () => {
       limits: { perMember: 'per_visit', maxMembersPerDay: 50, maxGrants: 1_000 },
     });
     expect(describePromotion(weekend, { stakes: { nlh_100_200: 'NLH 100/200' }, tiers: { 'tier-black': 'Black card' } })).toBe(
-      '500 bonus chips for the first 5 seated at a table, for NLH 100/200 · t3 · Black card · new members, first 30 days, Fri, Sat 20:00–02:00. Once per visit per member, first 50 members a day, '
+      '500 Bonus for the first 5 seated at a table, for NLH 100/200 · t3 · Black card · new members, first 30 days, Fri, Sat 20:00–02:00. Once per visit per member, first 50 members a day, '
       + 'at most 1,000 times. Starts 6 Nov 2026, ends 31 Dec 2026.',
     );
   });
@@ -47,30 +47,30 @@ describe('describePromotion', () => {
     expect(limitsLine({ perMember: 'once', timesPerMember: 3 })).toBe('Up to 3 times ever per member');
     expect(limitsLine({ perMember: 'per_visit', timesPerMember: 2 })).toBe('Up to 2 times per visit per member');
     expect(limitsLine({ perMember: 'per_week', timesPerMember: 4, budgetChips: 10_000, maxGrants: 300, budgetPeriod: 'month' }))
-      .toBe('Up to 4 times a week per member, at most 300 times a month, budget 10,000 chips a month');
+      .toBe('Up to 4 times a week per member, at most 300 times a month, budget 10,000 Bonus a month');
   });
 
   it('says each reward plainly', () => {
-    expect(rewardLine({ kind: 'buyin_bonus', mode: 'percent', percent: 10 })).toBe('10% of your buy-in in bonus chips');
-    expect(rewardLine({ kind: 'buyin_bonus', mode: 'fixed', chips: 500 })).toBe('500 bonus chips on a buy-in');
-    expect(rewardLine({ kind: 'buyin_bonus', mode: 'fixed', chips: 500, firstNBuyinsPerTable: 3 })).toBe('500 bonus chips on a buy-in, first 3 buy-ins per table');
-    expect(rewardLine({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 })).toBe('1,000 bonus chips after 4 hours');
-    expect(rewardLine({ kind: 'hours_bonus', chips: 1_00_000, afterMinutes: 60 })).toBe('1,00,000 bonus chips after 1 hour');
+    expect(rewardLine({ kind: 'buyin_bonus', mode: 'percent', percent: 10 })).toBe('10% of your buy-in in Bonus');
+    expect(rewardLine({ kind: 'buyin_bonus', mode: 'fixed', chips: 500 })).toBe('500 Bonus on a buy-in');
+    expect(rewardLine({ kind: 'buyin_bonus', mode: 'fixed', chips: 500, firstNBuyinsPerTable: 3 })).toBe('500 Bonus on a buy-in, first 3 buy-ins per table');
+    expect(rewardLine({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 })).toBe('1,000 Bonus after 4 hours');
+    expect(rewardLine({ kind: 'hours_bonus', chips: 1_00_000, afterMinutes: 60 })).toBe('1,00,000 Bonus after 1 hour');
     // Paid as each step is reached (owner, 8 Nov): set steps, or every so often with or without a cap.
     expect(rewardLine({ kind: 'hours_bonus', mode: 'steps', steps: [{ afterMinutes: 120, chips: 500 }, { afterMinutes: 240, chips: 1_000 }] }))
-      .toBe('500 bonus chips after 2 hours, then 1,000 after 4 hours');
+      .toBe('500 Bonus after 2 hours, then 1,000 after 4 hours');
     expect(rewardLine({ kind: 'hours_bonus', mode: 'every', everyMinutes: 120, chips: 500, timesPerVisit: 3 }))
-      .toBe('500 bonus chips every 2 hours, up to 3 times a visit');
-    expect(rewardLine({ kind: 'hours_bonus', mode: 'every', everyMinutes: 60, chips: 250 })).toBe('250 bonus chips every hour');
+      .toBe('500 Bonus every 2 hours, up to 3 times a visit');
+    expect(rewardLine({ kind: 'hours_bonus', mode: 'every', everyMinutes: 60, chips: 250 })).toBe('250 Bonus every hour');
     expect(rewardLine({ kind: 'hours_bonus', mode: 'every', everyMinutes: 90, chips: 250, timesPerVisit: 1 }))
-      .toBe('250 bonus chips every 1 h 30 min, up to once a visit');
-    expect(rewardLine({ kind: 'bonus_chips', chips: 1_000, on: 'referral' })).toBe('1,000 bonus chips for each referral');
-    expect(rewardLine({ kind: 'bonus_chips', chips: 500, on: 'first_buyin' })).toBe('500 bonus chips on the first buy-in of a visit');
+      .toBe('250 Bonus every 1 h 30 min, up to once a visit');
+    expect(rewardLine({ kind: 'bonus_chips', chips: 1_000, on: 'referral' })).toBe('1,000 Bonus for each referral');
+    expect(rewardLine({ kind: 'bonus_chips', chips: 500, on: 'first_buyin' })).toBe('500 Bonus on the first buy-in of a visit');
     expect(rewardLine({ kind: 'cab_home', fromVisitInMonth: 4 })).toBe('A cab home from visit 4 in a month');
     expect(rewardLine({ kind: 'tournament_entry', tournamentId: 'RIVR Sunday' })).toBe('An entry to RIVR Sunday');
     expect(rewardLine({ kind: 'waitlist_priority' })).toBe('Front of every waitlist');
-    expect(rewardLine({ kind: 'seat_bonus', chips: 1_000 })).toBe('1,000 bonus chips on the first seat of a visit');
-    expect(rewardLine({ kind: 'seat_bonus', chips: 500, firstNSeatsPerTable: 5 })).toBe('500 bonus chips for the first 5 seated at a table');
+    expect(rewardLine({ kind: 'seat_bonus', chips: 1_000 })).toBe('1,000 Bonus on the first seat of a visit');
+    expect(rewardLine({ kind: 'seat_bonus', chips: 500, firstNSeatsPerTable: 5 })).toBe('500 Bonus for the first 5 seated at a table');
   });
 
   it('names a tournament by its name, and a 24-hour opening by its start', () => {
@@ -96,7 +96,7 @@ describe('cardWords', () => {
       schedule: { days: [2], from: '20:00', to: '02:00', startsOn: '2026-11-17', timezone: 'Asia/Kolkata' },
     });
     expect(cardWords(tuesday, { stakes: { nlh_100_200: 'NLH 100/200' } })).toEqual({
-      detail: '20% of your buy-in in bonus chips, up to 2,000 bonus chips', runs: 'NLH 100/200 · Tue 20:00–02:00',
+      detail: '20% of your buy-in in Bonus, up to 2,000 Bonus', runs: 'NLH 100/200 · Tue 20:00–02:00',
     });
     const long = buildPromotionTerms({ eligibility: { stakes: 'all', tiers: Array.from({ length: 30 }, (_, n) => `tier-number-${n}`), audience: 'everyone' } });
     expect(cardWords(long).runs).toHaveLength(120);

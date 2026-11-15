@@ -3,6 +3,7 @@ import { clubDay, dayAfter } from '@rivr/domain/clubDay';
 import { QueryClient } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { useReportPeriod } from './ReportPeriod.tsx';
 import { TablesReport } from './TablesReport.tsx';
 
 afterEach(() => {
@@ -14,6 +15,12 @@ afterEach(() => {
 const TABLE_2 = { table_id: 't2', table_name: 'Table 2', seats: 9, run_seconds: 14_400, players: 2, peak: 2, player_seconds: 16_200, previous_player_seconds: 14_400 };
 const NEW_TABLE = { table_id: 't7', table_name: 'Private Room', seats: 6, run_seconds: 0, players: 0, peak: 0, player_seconds: 0, previous_player_seconds: 0 };
 const ROOM = { seats: 15, run_seconds: 14_400, seat_seconds: 129_600, players: 3, peak: 4, player_seconds: 16_200, previous_player_seconds: 18_000 };
+
+/** Tables under the reports' period control, as the screen sets them. */
+function Report() {
+  const { period, control } = useReportPeriod();
+  return <>{control}<TablesReport venueId="v1" period={period} exportIn={null} /></>;
+}
 
 /** The view, signed in, with table_metrics answering TABLE_2; what each call asked for is kept. */
 function renderReport(tables: readonly object[] = [TABLE_2, NEW_TABLE]) {
@@ -32,7 +39,7 @@ function renderReport(tables: readonly object[] = [TABLE_2, NEW_TABLE]) {
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <TablesReport venueId="v1" exportIn={null} />
+      <Report />
     </RivrDataProvider>,
   );
   return { asked };
@@ -58,6 +65,17 @@ describe('the MIS Tables view (owner, 8 Nov)', () => {
     await waitFor(() => expect(asked).toContainEqual({ p_venue_id: 'v1', p_from: today, p_to: today }));
     fireEvent.click(screen.getByRole('radio', { name: 'Last 90 days' }));
     await waitFor(() => expect(asked).toContainEqual({ p_venue_id: 'v1', p_from: dayAfter(today, -89), p_to: today }));
+  });
+
+  it('shows the room’s four figures over the table, and its chart by the day (redesign RD-27)', async () => {
+    renderReport();
+    await screen.findByRole('table', { name: 'Tables' });
+    const figure = (name: string) => screen.getByText(name, { selector: 'dt' }).nextElementSibling?.textContent;
+    await waitFor(() => expect(figure('Seat use')).toBe('12%'));
+    expect([figure('Most at once'), figure('Player hours'), figure('Players')]).toEqual(['4', '4 h 30 min', '3']);
+    expect(screen.getByRole('figure', { name: 'Seated by day' })).toBeDefined();
+    fireEvent.click(screen.getByRole('radio', { name: 'Tonight' }));
+    expect(await screen.findByRole('figure', { name: 'Seated by hour' })).toBeDefined();
   });
 
   it('says so when the venue has no tables', async () => {

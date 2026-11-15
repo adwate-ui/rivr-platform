@@ -23,12 +23,12 @@ const FEATURES = ['floor.live_view', 'waitlist.join', 'call_time.view', 'table.t
 const PLACE = {
   entry_id: 'e1', table_type_id: 'tt1', table_type_name: 'NLH 50/100', small_blind_paise: 5000, big_blind_paise: 10000, joined_at: '2026-11-15T17:14:00Z',
   place: 1, call_table_name: null, call_seat: null, hold_until: null, away_until: null, is_request: false, table_id: 't1', table_name: 'Table 1',
-  called_at: null, on_way_at: null,
+  called_at: null, on_way_at: null, game: 'nlh', straddle_paise: null,
 };
 const SEAT = {
   table_name: 'Table 1', seat: 4, is_away: false, has_call_time: true, call_time_left: 9668, played_seconds: 1140, is_leaving: false, top_up: null,
   call_time_minutes: 180, started_at: '2026-11-15T16:55:30Z', call_time_ends_at: new Date(NOW + 9668 * 1000).toISOString(),
-  table_type_name: 'NLH 50/100', small_blind_paise: 5000, big_blind_paise: 10000, time_request_minutes: null, add_time_choices: [30, 60, 120],
+  table_type_name: 'NLH 50/100', small_blind_paise: 5000, big_blind_paise: 10000, time_request_minutes: null, add_time_choices: [30, 60, 120], game: 'nlh', straddle_paise: null,
 };
 
 /** The answers the screen's reads get: each table, the member's places and seat as the test says, then the test's own. */

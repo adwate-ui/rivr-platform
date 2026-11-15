@@ -140,3 +140,45 @@ describe('DataTable export, recorded first', () => {
     created.mockRestore();
   });
 });
+
+describe('DataTable export in server mode (redesign RD-29)', () => {
+  const EVERY: readonly Player[] = [...ROWS, { id: 'c4', name: 'Vihaan Kapoor', hours: 9 }];
+
+  /** One page of four members, beneath an exporter, with the screen's read of every row. */
+  function paged(exporter: (request: TableExportRequest) => Promise<boolean>, exportRows: () => Promise<readonly Player[]>) {
+    return renderIn(
+      <DataTableExportProvider exporter={exporter}>
+        <DataTable label="Members" columns={COLUMNS} rowKey={(row) => row.id} rows={ROWS} emptyText="No members yet."
+          server={{ total: 4, pageSize: 3, onRequest: () => undefined }} exportRows={exportRows} />
+      </DataTableExportProvider>,
+    );
+  }
+
+  async function exportCsv() {
+    await userEvent.click(screen.getByRole('button', { name: 'Export Members' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Export CSV' }));
+  }
+
+  it('records how many rows the view leaves, then reads every one and saves them, not the page', async () => {
+    const steps: string[] = [];
+    const created = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:export');
+    const clicked = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    paged(async (request) => { steps.push(`recorded ${String(request.rows)}`); return true; }, async () => { steps.push('read'); return EVERY; });
+    await exportCsv();
+    await vi.waitFor(() => expect(clicked).toHaveBeenCalledOnce());
+    expect(steps).toEqual(['recorded 4', 'read']);
+    const [file] = created.mock.calls[0] ?? [];
+    expect(file instanceof Blob ? await file.text() : '').toContain('Vihaan Kapoor');
+    created.mockRestore();
+    clicked.mockRestore();
+  });
+
+  it('saves nothing, and says so, when the rows cannot be read', async () => {
+    const created = vi.spyOn(URL, 'createObjectURL');
+    paged(async () => true, async () => { throw new Error('offline'); });
+    await exportCsv();
+    expect(await screen.findByText('Export not saved. Try again.')).toBeInTheDocument();
+    expect(created).not.toHaveBeenCalled();
+    created.mockRestore();
+  });
+});

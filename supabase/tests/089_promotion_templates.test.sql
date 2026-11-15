@@ -94,7 +94,7 @@ select lives_ok($$ select public.approve_promotion_version(pg_temp.version_of('r
 reset role;
 select is((select status from public.promotion where id = pg_temp.template('referral')), 'live', 'the referral runs');
 select is((select payload ->> 'detail' from public.outbox_event where idempotency_key = 'promotion.published:' || pg_temp.version_of('referral')),
-  '1,000 bonus chips to each side', 'and promotion.published carries its card');
+  '1,000 Bonus to each side', 'and promotion.published carries its card');
 
 -- Approved, a template runs: ₹1,000 bonus on a referral.
 select is((select count(*)::integer from private.evaluate_promotions('00000000-0000-4000-8000-000000000001', 'referral',

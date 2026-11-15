@@ -18,7 +18,7 @@ type Replies = Record<string, { status?: number; body: unknown }>;
 function fakeClient(replies: Replies) {
   const calls: { rpc: string; body: unknown }[] = [];
   const fetch: typeof globalThis.fetch = async (input, init) => {
-    const rpc = (input instanceof Request ? input.url : String(input)).split('/rpc/')[1] ?? '';
+    const rpc = (input instanceof Request ? input.url : String(input)).split('/rpc/')[1]?.split('?')[0] ?? '';
     calls.push({ rpc, body: init?.body ? JSON.parse(String(init.body)) : undefined });
     const reply = replies[rpc];
     return Response.json(reply?.body ?? [], { status: reply?.status ?? 200 });
@@ -89,7 +89,7 @@ describe('the floor\'s seating', () => {
     expect(calls.find((call) => call.rpc === 'assign_from_waitlist')?.body).toEqual({ p_entry_id: 'e1', p_table_id: 't2', p_seat: 3, p_call_minutes: 180 });
   });
 
-  it('redeems bonus chips with the buy-in as it seats (decision 0504), and sends none for 0', async () => {
+  it('redeems Bonus with the buy-in as it seats (decision 0504), and sends none for 0', async () => {
     const { result, calls } = renderFloor({ seat_member: { body: 's9' }, assign_from_waitlist: { body: null }, floor_seats: { body: [] } });
     await act(async () => {
       await result.current.actions.seat.mutateAsync({ tableId: 't2', seat: 5, who: { memberNumber: 42 }, callMinutes: 240, bonusChips: 1000 });
@@ -101,7 +101,7 @@ describe('the floor\'s seating', () => {
     expect(calls.find((call) => call.rpc === 'assign_from_waitlist')?.body).toEqual({ p_entry_id: 'e1', p_table_id: 't2', p_seat: 3, p_call_minutes: 180 });
   });
 
-  it('names why bonus chips were not redeemed: more than the member has, not 50s, own record, promotions off, too many', async () => {
+  it('names why Bonus were not redeemed: more than the member has, not 50s, own record, promotions off, too many', async () => {
     let outcomes: unknown[] = [];
     for (const code of ['RVBON', 'RVCHP', 'RVOWN', 'RVKIL', 'RVRAT']) {
       const { result } = renderFloor({ seat_member: { status: 400, body: { code, message: 'refused' } } });
