@@ -20,6 +20,7 @@ export interface FloorTable {
   readonly game: 'nlh' | 'plo';
   readonly smallBlind: bigint;
   readonly bigBlind: bigint;
+  /** The table's own minimum buy-in (redesign RD-16), not its stake's. */
   readonly buyIn: bigint;
   /** A compulsory straddle in paise, as in the Private Room; null where there is none. */
   readonly straddle: bigint | null;
@@ -129,9 +130,9 @@ export function useFloorTables() {
     refetchInterval: LIVE,
     queryFn: async (): Promise<FloorTable[]> => {
       const [tables, types, lengths, open] = await Promise.all([
-        client.from('game_table').select('id, venue_id, name, is_open, seats, position, table_type_id, must_move_to_table_id, room')
+        client.from('game_table').select('id, venue_id, name, is_open, seats, position, table_type_id, must_move_to_table_id, room, min_buy_in_paise')
           .eq('active', true).order('position'),
-        client.from('table_type').select('id, name, game, small_blind_paise, big_blind_paise, buy_in_min_paise, straddle_paise'),
+        client.from('table_type').select('id, name, game, small_blind_paise, big_blind_paise, straddle_paise'),
         client.rpc('waitlist_lengths'),
         client.rpc('floor_open_seats'),
       ]);
@@ -148,7 +149,7 @@ export function useFloorTables() {
         return [{
           id: table.id, venueId: table.venue_id, name: table.name, isOpen: table.is_open, seats: table.seats, tableTypeId: type.id, tableTypeName: type.name,
           game: type.game === 'plo' ? 'plo' : 'nlh',
-          smallBlind: BigInt(type.small_blind_paise), bigBlind: BigInt(type.big_blind_paise), buyIn: BigInt(type.buy_in_min_paise),
+          smallBlind: BigInt(type.small_blind_paise), bigBlind: BigInt(type.big_blind_paise), buyIn: BigInt(table.min_buy_in_paise),
           straddle: type.straddle_paise === null ? null : BigInt(type.straddle_paise), waiting: waiting.get(table.id) ?? 0, openSeats: openSeats.get(table.id) ?? null,
           callTimeMinutes: callTime.get(table.id) ?? 0,
           mustMoveToTableId: table.must_move_to_table_id ?? null, room: table.room === 'private' ? 'private' : 'main',

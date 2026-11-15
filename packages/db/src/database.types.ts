@@ -1427,14 +1427,14 @@ isOneToOne: false
                   ]
                 },"game_table": {
                   Row: {
-                    "active": boolean,"created_at": string,"deleted_at": string | null,"id": string,"is_open": boolean,"must_move_to_table_id": string | null,"name": string,"position": number,"room": string,"seats": number,"table_type_id": string,"updated_at": string,"venue_id": string
+                    "active": boolean,"created_at": string,"deleted_at": string | null,"id": string,"is_open": boolean,"min_buy_in_paise": number,"must_move_to_table_id": string | null,"name": string,"position": number,"room": string,"seats": number,"table_type_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "active"?: boolean,"created_at"?: string,"deleted_at"?: string | null,"id"?: string,"is_open"?: boolean,"must_move_to_table_id"?: string | null,"name": string,"position": number,"room"?: string,"seats"?: number,"table_type_id": string,"updated_at"?: string,"venue_id": string
+                    "active"?: boolean,"created_at"?: string,"deleted_at"?: string | null,"id"?: string,"is_open"?: boolean,"min_buy_in_paise": number,"must_move_to_table_id"?: string | null,"name": string,"position": number,"room"?: string,"seats"?: number,"table_type_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "active"?: boolean,"created_at"?: string,"deleted_at"?: string | null,"id"?: string,"is_open"?: boolean,"must_move_to_table_id"?: string | null,"name"?: string,"position"?: number,"room"?: string,"seats"?: number,"table_type_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "active"?: boolean,"created_at"?: string,"deleted_at"?: string | null,"id"?: string,"is_open"?: boolean,"min_buy_in_paise"?: number,"must_move_to_table_id"?: string | null,"name"?: string,"position"?: number,"room"?: string,"seats"?: number,"table_type_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -4741,7 +4741,7 @@ isOneToOne: false
 { Args: { "p_name": string,"p_venue_id": string }; Returns: string
                            },
 "add_game_table":
-{ Args: { "p_name": string,"p_room"?: string,"p_seats": number,"p_table_type_id": string,"p_venue_id": string }; Returns: string
+{ Args: { "p_min_buy_in_paise": number,"p_name": string,"p_room"?: string,"p_seats": number,"p_table_type_id": string,"p_venue_id": string }; Returns: string
                            },
 "add_payment_account":
 { Args: { "p_details": string,"p_kind": string,"p_name": string,"p_venue_id": string }; Returns: string
@@ -4762,7 +4762,7 @@ isOneToOne: false
 { Args: { "p_ack_roles": (Database["public"]['Enums']["staff_role"])[],"p_body": string,"p_effective_on": string,"p_owner": string,"p_title": string,"p_venue_id": string }; Returns: string
                            },
 "add_table_type":
-{ Args: { "p_big_blind_paise": number,"p_name": string,"p_small_blind_paise": number,"p_straddle_paise"?: number,"p_venue_id": string }; Returns: string
+{ Args: { "p_big_blind_paise": number,"p_call_time_minutes"?: number,"p_name": string,"p_small_blind_paise": number,"p_straddle_paise"?: number,"p_venue_id": string }; Returns: string
                            },
 "add_time_choices":
 { Args: { "p_venue_id": string }; Returns: (number)[]
@@ -6161,7 +6161,7 @@ isOneToOne: false
 { Args: { "p_feature_key": string,"p_is_granted": boolean,"p_member_id": string,"p_reason": string,"p_until"?: string,"p_venue_id": string }; Returns: string
                            },
 "set_game_table":
-{ Args: { "p_name": string,"p_seats": number,"p_table_id": string,"p_table_type_id": string }; Returns: undefined
+{ Args: { "p_min_buy_in_paise"?: number,"p_name": string,"p_seats": number,"p_table_id": string,"p_table_type_id": string }; Returns: undefined
                            },
 "set_item_photo":
 { Args: { "p_item_id": string,"p_kind": string,"p_path": string }; Returns: undefined
@@ -6206,7 +6206,7 @@ isOneToOne: false
 { Args: { "p_is_open": boolean,"p_table_id": string }; Returns: undefined
                            },
 "set_table_type":
-{ Args: { "p_big_blind_paise": number,"p_name": string,"p_small_blind_paise": number,"p_straddle_paise"?: number,"p_type_id": string }; Returns: undefined
+{ Args: { "p_big_blind_paise": number,"p_call_time_minutes"?: number,"p_name": string,"p_small_blind_paise": number,"p_straddle_paise"?: number,"p_type_id": string }; Returns: undefined
                            },
 "set_tally_ledger":
 { Args: { "p_account_code": string,"p_tally_ledger": string,"p_venue_id": string }; Returns: undefined
@@ -6293,6 +6293,11 @@ isOneToOne: false
 "staff_removals":
 { Args: { "p_venue_id": string }; Returns: {
               "removed_at": string,"removed_by": string,"staff_id": string
+            }[]
+                           },
+"stake_call_times":
+{ Args: { "p_venue_id": string }; Returns: {
+              "call_time_minutes": number,"table_type_id": string
             }[]
                            },
 "start_device_pairing":

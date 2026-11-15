@@ -6,8 +6,8 @@ export interface SiteGame {
   readonly name: string;
   readonly smallBlind: bigint;
   readonly bigBlind: bigint;
+  /** The least of its tables' own minimum buy-ins (redesign RD-16); there is no maximum. */
   readonly buyInMin: bigint;
-  readonly buyInMax: bigint;
   readonly straddle: bigint | null;
 }
 
@@ -26,25 +26,27 @@ interface TableRow {
   readonly small_blind_paise: number | null;
   readonly big_blind_paise: number | null;
   readonly buy_in_min_paise: number | null;
-  readonly buy_in_max_paise: number | null;
   readonly straddle_paise: number | null;
 }
 
 function gameOf(row: TableRow): SiteGame | null {
-  const { table_type_name: name, small_blind_paise: small, big_blind_paise: big, buy_in_min_paise: min, buy_in_max_paise: max } = row;
-  if (name === null || small === null || big === null || min === null || max === null) return null;
+  const { table_type_name: name, small_blind_paise: small, big_blind_paise: big, buy_in_min_paise: min } = row;
+  if (name === null || small === null || big === null || min === null) return null;
   return {
-    name, smallBlind: BigInt(small), bigBlind: BigInt(big), buyInMin: BigInt(min), buyInMax: BigInt(max),
+    name, smallBlind: BigInt(small), bigBlind: BigInt(big), buyInMin: BigInt(min),
     straddle: row.straddle_paise === null ? null : BigInt(row.straddle_paise),
   };
 }
 
-/** Each game once, in the floor order of its first table. */
+/** Each game once, in the floor order of its first table, with the least of its tables' minimum buy-ins. */
 export function gamesFrom(rows: readonly TableRow[]): SiteGame[] {
   const games = new Map<string, SiteGame>();
   for (const row of rows) {
-    const game = row.table_type_code === null || games.has(row.table_type_code) ? null : gameOf(row);
-    if (row.table_type_code !== null && game !== null) games.set(row.table_type_code, game);
+    const game = row.table_type_code === null ? null : gameOf(row);
+    if (row.table_type_code === null || game === null) continue;
+    const first = games.get(row.table_type_code);
+    if (first === undefined) games.set(row.table_type_code, game);
+    else if (game.buyInMin < first.buyInMin) games.set(row.table_type_code, { ...first, buyInMin: game.buyInMin });
   }
   return [...games.values()];
 }
@@ -52,7 +54,7 @@ export function gamesFrom(rows: readonly TableRow[]): SiteGame[] {
 /** The club's games and stakes from the public view, without how many tables run or wait (#617). */
 export async function fetchSiteGames(client: RivrClient): Promise<Result<SiteGame[], 'unavailable'>> {
   const { data, error } = await client.from('public_table_status')
-    .select('table_type_code, table_type_name, small_blind_paise, big_blind_paise, buy_in_min_paise, buy_in_max_paise, straddle_paise')
+    .select('table_type_code, table_type_name, small_blind_paise, big_blind_paise, buy_in_min_paise, straddle_paise')
     .order('table_position');
   if (error) return err('unavailable');
   return ok(gamesFrom(data));

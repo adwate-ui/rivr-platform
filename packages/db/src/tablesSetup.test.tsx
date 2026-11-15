@@ -41,21 +41,23 @@ describe('tables setup and points by hand', () => {
     const { result } = renderSetup({
       table_type: { body: [{ id: 's1', name: 'NLH 50/100', game: 'nlh', small_blind_paise: 5000, big_blind_paise: 10000, straddle_paise: null },
         { id: 's2', name: '100/200', game: null, small_blind_paise: 10000, big_blind_paise: 20000, straddle_paise: 40000 }] },
-      game_table: { body: [{ id: 't1', name: 'Table 1', table_type_id: 's1', seats: 9, is_open: true, active: true },
-        { id: 't4', name: 'Table 4', table_type_id: 's1', seats: 9, is_open: false, active: false }] },
+      game_table: { body: [{ id: 't1', name: 'Table 1', table_type_id: 's1', seats: 9, is_open: true, active: true, min_buy_in_paise: 500000 },
+        { id: 't4', name: 'Table 4', table_type_id: 's1', seats: 9, is_open: false, active: false, min_buy_in_paise: 735000 }] },
+      // The newer stake has no call time yet, so the database sends 0 for it.
+      stake_call_times: { body: [{ table_type_id: 's1', call_time_minutes: 180 }, { table_type_id: 's2', call_time_minutes: 0 }] },
     });
     await waitFor(() => expect(result.current.setup.data).toEqual({
-      stakes: [{ id: 's1', name: 'NLH 50/100', game: 'nlh', smallBlind: 5000n, bigBlind: 10000n, straddle: null },
-        { id: 's2', name: '100/200', game: null, smallBlind: 10000n, bigBlind: 20000n, straddle: 40000n }],
-      tables: [{ id: 't1', name: 'Table 1', stakeId: 's1', seats: 9, isOpen: true, isActive: true, seated: 0, waiting: 0 },
-        { id: 't4', name: 'Table 4', stakeId: 's1', seats: 9, isOpen: false, isActive: false, seated: 0, waiting: 0 }],
+      stakes: [{ id: 's1', name: 'NLH 50/100', game: 'nlh', smallBlind: 5000n, bigBlind: 10000n, straddle: null, callTimeMinutes: 180 },
+        { id: 's2', name: '100/200', game: null, smallBlind: 10000n, bigBlind: 20000n, straddle: 40000n, callTimeMinutes: 0 }],
+      tables: [{ id: 't1', name: 'Table 1', stakeId: 's1', seats: 9, minBuyIn: 500000n, isOpen: true, isActive: true, seated: 0, waiting: 0 },
+        { id: 't4', name: 'Table 4', stakeId: 's1', seats: 9, minBuyIn: 735000n, isOpen: false, isActive: false, seated: 0, waiting: 0 }],
     }));
   });
 
   it('counts who keeps each table in play: the players seated, and the places waiting on its list or called to it', async () => {
     const { result, calls } = renderSetup({
-      game_table: { body: [{ id: 't1', name: 'Table 1', table_type_id: 's1', seats: 9, is_open: true, active: true },
-        { id: 't2', name: 'Table 2', table_type_id: 's1', seats: 9, is_open: true, active: true }] },
+      game_table: { body: [{ id: 't1', name: 'Table 1', table_type_id: 's1', seats: 9, is_open: true, active: true, min_buy_in_paise: 500000 },
+        { id: 't2', name: 'Table 2', table_type_id: 's1', seats: 9, is_open: true, active: true, min_buy_in_paise: 500000 }] },
       seat_session: { body: [{ table_id: 't1' }, { table_id: 't1' }] },
       waitlist_entry: { body: [{ table_id: 't1', call_table_id: null }, { table_id: 't1', call_table_id: 't2' }, { table_id: 't2', call_table_id: 't2' }] },
     });
@@ -65,29 +67,44 @@ describe('tables setup and points by hand', () => {
     expect(calls.map((call) => call.path)).toEqual(expect.arrayContaining(['seat_session', 'waitlist_entry']));
   });
 
-  it('adds a stake or changes one, and says why a table change was refused', async () => {
+  it('adds a stake or changes one, with its call time, and says why a table change was refused', async () => {
     const { result, calls } = renderSetup({ set_game_table: { status: 400, body: { code: 'RVSTD', message: 'Move the players' } } });
     let added: unknown;
     await act(async () => {
-      added = await result.current.actions.saveStake.mutateAsync({ stakeId: null, name: ' 100/200 ', smallBlind: 10000n, bigBlind: 20000n, straddle: 40000n });
+      added = await result.current.actions.saveStake.mutateAsync({ stakeId: null, name: ' 100/200 ', smallBlind: 10000n, bigBlind: 20000n, straddle: 40000n, callTimeMinutes: 240 });
     });
     expect(added).toEqual({ ok: true, value: null });
     expect(calls.find((call) => call.path === 'add_table_type')?.body).toEqual({
-      p_venue_id: VENUE, p_name: '100/200', p_small_blind_paise: 10000, p_big_blind_paise: 20000, p_straddle_paise: 40000,
+      p_venue_id: VENUE, p_name: '100/200', p_small_blind_paise: 10000, p_big_blind_paise: 20000, p_straddle_paise: 40000, p_call_time_minutes: 240,
     });
     await act(async () => {
-      await result.current.actions.saveStake.mutateAsync({ stakeId: 's1', name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, straddle: null });
+      await result.current.actions.saveStake.mutateAsync({ stakeId: 's1', name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, straddle: null, callTimeMinutes: null });
     });
     expect(calls.find((call) => call.path === 'set_table_type')?.body).toEqual({
+      // No call time sent: the stake keeps its own.
       p_type_id: 's1', p_name: 'NLH 50/100', p_small_blind_paise: 5000, p_big_blind_paise: 10000, p_straddle_paise: 0,
     });
     let refused: unknown;
     await act(async () => {
-      await result.current.actions.saveTable.mutateAsync({ tableId: null, name: 'Table 9', stakeId: 's1', seats: 8 });
-      refused = await result.current.actions.saveTable.mutateAsync({ tableId: 't1', name: 'Table 1', stakeId: 's2', seats: 9 });
+      await result.current.actions.saveTable.mutateAsync({ tableId: null, name: 'Table 9', stakeId: 's1', seats: 8, minBuyIn: 735000n });
+      refused = await result.current.actions.saveTable.mutateAsync({ tableId: 't1', name: 'Table 1', stakeId: 's2', seats: 9, minBuyIn: 1000000n });
     });
-    expect(calls.find((call) => call.path === 'add_game_table')?.body).toEqual({ p_venue_id: VENUE, p_name: 'Table 9', p_table_type_id: 's1', p_seats: 8 });
+    expect(calls.find((call) => call.path === 'add_game_table')?.body).toEqual({
+      p_venue_id: VENUE, p_name: 'Table 9', p_table_type_id: 's1', p_seats: 8, p_min_buy_in_paise: 735000,
+    });
+    expect(calls.find((call) => call.path === 'set_game_table')?.body).toEqual({
+      p_table_id: 't1', p_name: 'Table 1', p_table_type_id: 's2', p_seats: 9, p_min_buy_in_paise: 1000000,
+    });
     expect(refused).toEqual({ ok: false, error: 'players_seated' });
+  });
+
+  it('says a table was given a stake that has no call time yet (redesign RD-16)', async () => {
+    const { result } = renderSetup({ add_game_table: { status: 400, body: { code: 'RVNCT', message: 'Give the stake a call time before a table plays it' } } });
+    let refused: unknown;
+    await act(async () => {
+      refused = await result.current.actions.saveTable.mutateAsync({ tableId: null, name: 'Table 9', stakeId: 's2', seats: 9, minBuyIn: 1000000n });
+    });
+    expect(refused).toEqual({ ok: false, error: 'stake_without_call_time' });
   });
 
   it('deactivates, reactivates and deletes a table, and says why one was refused (decision 0466)', async () => {

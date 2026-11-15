@@ -95,7 +95,7 @@ function StakeForm({ venueId, stake, onSaved, onCancel }: StakeFormProps) {
   const submit = async () => {
     const done = await saveStake.mutateAsync({
       stakeId: isNew ? null : stake.id, name, smallBlind: chipsToPaise(BigInt(blinds.small)), bigBlind: chipsToPaise(BigInt(blinds.big)),
-      straddle: blinds.straddle === '' ? null : chipsToPaise(BigInt(blinds.straddle)),
+      straddle: blinds.straddle === '' ? null : chipsToPaise(BigInt(blinds.straddle)), callTimeMinutes: null,
     });
     if (done.ok) onSaved(t('console.tablesSetup.saved', { name: name.trim() }));
     else setFailure(t(`console.tablesSetup.failures.${done.error}`));

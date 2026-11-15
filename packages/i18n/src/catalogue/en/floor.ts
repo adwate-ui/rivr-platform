@@ -233,6 +233,8 @@ export const tablesSetup = {
     /** Deactivating or deleting a table with players on its waitlist (decision 0466). */
     players_waiting: 'Take the players off this table’s waitlist first.',
     seats_taken: 'More seats are taken. Free them first.',
+    /** A table given a stake that has no call time yet (redesign RD-16). */
+    stake_without_call_time: 'That stake has no call time. Give it one first.',
     not_allowed: 'Only the super admin sets up tables.',
     paused: 'Venue frozen. Try again once it is released.',
     unavailable: 'Not sent. Try again.',

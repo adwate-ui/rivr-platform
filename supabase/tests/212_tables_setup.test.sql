@@ -1,5 +1,5 @@
--- Tables setup (#642): the super admin (tables.manage: 101 Vikram; an admin, 103 Aditya, holds it too) adds a stake with three
--- hours of call time, adds a table of it, closed, last on the floor, and changes its seats and stake. A host (111 Zoya,
+-- Tables setup (#642): the super admin (tables.manage: 101 Vikram; an admin, 103 Aditya, holds it too) adds a stake with the
+-- call time he gives it (redesign RD-16), adds a table of it, closed, last on the floor, and changes its seats and stake. A host (111 Zoya,
 -- floor work only) sets up nothing; another venue's admin nothing here.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -21,7 +21,7 @@ create temp table ids (name text primary key, id uuid);
 grant select, insert on ids to authenticated;
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-insert into ids select 'plo', public.add_table_type('00000000-0000-4000-8000-000000000001', 'PLO 200/400', 20000, 40000);
+insert into ids select 'plo', public.add_table_type('00000000-0000-4000-8000-000000000001', 'PLO 200/400', 20000, 40000, null, 180);
 insert into ids select 'straddle', public.add_table_type('00000000-0000-4000-8000-000000000001', 'Straddle 200/400', 20000, 40000, 80000);
 select throws_ok($$ select public.add_table_type('00000000-0000-4000-8000-000000000001', 'Odd', 12345, 40000) $$, '22023', null,
   'blinds are whole ₹50 chips');
@@ -37,13 +37,13 @@ select results_eq($$ select code, game, small_blind_paise, big_blind_paise, stra
   $$ values ('200_400'::text, null::text, 20000::bigint, 40000::bigint, null::bigint), ('200_400_2'::text, null::text, 20000::bigint, 40000::bigint, 80000::bigint) $$,
   'the super admin adds stakes with no game, coded by their blinds, one with a straddle (decision 0299)');
 select is((private.setting_at('00000000-0000-4000-8000-000000000001', 'call_time.minutes', '200_400', now()) ->> 'minutes')::integer, 180,
-  'with three hours of call time');
+  'with the three hours of call time he gave it');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-insert into ids select 'table', public.add_game_table('00000000-0000-4000-8000-000000000001', 'Table 9', (select id from ids where name = 'plo'), 8);
-select throws_ok($$ select public.add_game_table('00000000-0000-4000-8000-000000000001', 'Table 9', (select id from ids where name = 'plo'), 8) $$,
+insert into ids select 'table', public.add_game_table('00000000-0000-4000-8000-000000000001', 'Table 9', (select id from ids where name = 'plo'), 8, 2000000);
+select throws_ok($$ select public.add_game_table('00000000-0000-4000-8000-000000000001', 'Table 9', (select id from ids where name = 'plo'), 8, 2000000) $$,
   '22023', null, 'a table''s name is its own');
-select throws_ok($$ select public.add_game_table('00000000-0000-4000-8000-000000000001', 'Table 10', (select id from ids where name = 'plo'), 11) $$,
+select throws_ok($$ select public.add_game_table('00000000-0000-4000-8000-000000000001', 'Table 10', (select id from ids where name = 'plo'), 11, 2000000) $$,
   '22023', null, 'and it has 2 to 10 seats');
 reset role;
 select results_eq($$ select name, seats, is_open, position = (select max(position) from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001')
@@ -77,7 +77,7 @@ select throws_ok($$ select public.set_game_table((select id from public.game_tab
 reset role;
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000111');
-select throws_ok($$ select public.add_game_table('00000000-0000-4000-8000-000000000001', 'Table 11', (select id from ids where name = 'plo'), 8) $$,
+select throws_ok($$ select public.add_game_table('00000000-0000-4000-8000-000000000001', 'Table 11', (select id from ids where name = 'plo'), 8, 2000000) $$,
   '42501', null, 'a host adds no table');
 select lives_ok($$ update public.game_table set seats = 4 where id = (select id from ids where name = 'table') $$,
   'and her change by the API reaches no row');
@@ -88,7 +88,7 @@ select throws_ok($$ select public.add_table_type('00000000-0000-4000-8000-000000
   'another venue''s admin adds no stake here');
 reset role;
 
-select is(has_function_privilege('anon', 'public.add_game_table(uuid, text, uuid, integer, text)', 'execute'), false, 'nobody signed out adds a table');
+select is(has_function_privilege('anon', 'public.add_game_table(uuid, text, uuid, integer, bigint, text)', 'execute'), false, 'nobody signed out adds a table');
 
 -- Another club's stake is not this super admin's to change.
 select set_config('request.jwt.claims', '', true);

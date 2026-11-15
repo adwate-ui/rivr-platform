@@ -1,0 +1,20 @@
+{
+  "rule": "table minimum buy-in",
+  "about": "The minimum buy-in belongs to the table (redesign RD-16; owner, 15 Nov). When an admin adds a table, or gives a table another stake, Tables setup suggests 50 big blinds of the stake; the admin may type another amount. A minimum buy-in is above zero, a whole ₹50 as every buy-in on the floor is, and has no maximum, so there is no cap to reach. Blinds are whole 50s, so 50 of them are a whole ₹50 already and nothing is rounded. The database computes nothing here: it stores the amount the admin saves and refuses one that is not a whole ₹50 above zero.",
+  "cases": [
+    { "description": "NLH 100/200: 50 big blinds of ₹200.", "operation": "suggest", "inputs": { "bigBlind": "₹200" }, "expected": { "minBuyIn": "₹10,000" } },
+    { "description": "NLH 50/100: 50 big blinds of ₹100.", "operation": "suggest", "inputs": { "bigBlind": "₹100" }, "expected": { "minBuyIn": "₹5,000" } },
+    { "description": "Blinds of 50/150, a big blind that is not a round hundred: 50 of them are still whole 50s, so nothing is rounded.", "operation": "suggest", "inputs": { "bigBlind": "₹150" }, "expected": { "minBuyIn": "₹7,500" } },
+    { "description": "A straddle does not count: 100/200/500 is suggested from its big blind of ₹200.", "operation": "suggest", "inputs": { "bigBlind": "₹200" }, "expected": { "minBuyIn": "₹10,000" } },
+    { "description": "No cap: a big game of 5,000/10,000.", "operation": "suggest", "inputs": { "bigBlind": "₹10,000" }, "expected": { "minBuyIn": "₹5,00,000" } },
+    { "description": "A big blind of nothing suggests nothing, which no table may then keep.", "operation": "suggest", "inputs": { "bigBlind": "₹0" }, "expected": { "minBuyIn": "₹0" } },
+    { "description": "₹10,000 may be a table's minimum buy-in.", "operation": "allowed", "inputs": { "amount": "₹10,000" }, "expected": { "allowed": "yes" } },
+    { "description": "An amount other than the suggestion may be: ₹7,350 at 100/200.", "operation": "allowed", "inputs": { "amount": "₹7,350" }, "expected": { "allowed": "yes" } },
+    { "description": "No maximum: ₹50,00,000 may be.", "operation": "allowed", "inputs": { "amount": "₹50,00,000" }, "expected": { "allowed": "yes" } },
+    { "description": "The least there can be: one ₹50.", "operation": "allowed", "inputs": { "amount": "₹50" }, "expected": { "allowed": "yes" } },
+    { "description": "₹7,349 is a rupee short of a whole ₹50, so it may not be.", "operation": "allowed", "inputs": { "amount": "₹7,349" }, "expected": { "allowed": "no" } },
+    { "description": "Nor ₹25, half of one.", "operation": "allowed", "inputs": { "amount": "₹25" }, "expected": { "allowed": "no" } },
+    { "description": "Nor an amount with paise, ₹7,350.50.", "operation": "allowed", "inputs": { "amount": "₹7,350.50" }, "expected": { "allowed": "no" } },
+    { "description": "Nothing may not be.", "operation": "allowed", "inputs": { "amount": "₹0" }, "expected": { "allowed": "no" } }
+  ]
+}

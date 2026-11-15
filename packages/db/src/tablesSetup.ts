@@ -17,14 +17,18 @@ export interface SetupStake {
   readonly smallBlind: bigint;
   readonly bigBlind: bigint;
   readonly straddle: bigint | null;
+  /** The call time it has now, in minutes: 0 for a stake with none, which no table may play yet (redesign RD-16). */
+  readonly callTimeMinutes: number;
 }
 
-/** A table (#642): its name, stake and seats, whether it plays now, and whether it is active (decision 0466). */
+/** A table (#642): its name, stake, seats and own minimum buy-in, whether it plays now, and whether it is active (decision 0466). */
 export interface SetupTable {
   readonly id: string;
   readonly name: string;
   readonly stakeId: string;
   readonly seats: number;
+  /** The table's own minimum buy-in in paise (redesign RD-16). */
+  readonly minBuyIn: bigint;
   readonly isOpen: boolean;
   /** False once deactivated: hidden from everything live, kept for history; reactivating brings it back closed. */
   readonly isActive: boolean;
@@ -35,13 +39,15 @@ export interface SetupTable {
 
 /**
  * Why a setup change was refused. `players_seated` and `players_waiting` are @rivr/domain's tableRetireRefusal reasons
- * (decision 0466); a stake change refused for players seated or waiting is `players_seated`.
+ * (decision 0466); a stake change refused for players seated or waiting is `players_seated`. `stake_without_call_time` is
+ * its stakeTableRefusal (redesign RD-16): a table given a stake that has no call time yet.
  */
-export type TablesFailure = 'not_allowed' | 'invalid' | 'players_seated' | 'players_waiting' | 'seats_taken' | 'paused' | 'unavailable';
+export type TablesFailure = 'not_allowed' | 'invalid' | 'players_seated' | 'players_waiting' | 'seats_taken' | 'stake_without_call_time' | 'paused'
+  | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, TablesFailure>> = {
   '42501': 'not_allowed', '22023': 'invalid', '23505': 'invalid', '23514': 'invalid', RVSTD: 'players_seated', RVWTG: 'players_waiting',
-  RVOCC: 'seats_taken', RVFRZ: 'paused',
+  RVOCC: 'seats_taken', RVNCT: 'stake_without_call_time', RVFRZ: 'paused',
 };
 
 /**
@@ -56,23 +62,26 @@ export function useTablesSetup(venueId: string) {
     // Who sits at or waits for a table changes on the floor: setup's refusals follow it within 15 seconds.
     refetchInterval: 15_000,
     queryFn: async (): Promise<{ stakes: SetupStake[]; tables: SetupTable[] }> => {
-      const [types, tables, inPlay] = await Promise.all([
+      const [types, callTimes, tables, inPlay] = await Promise.all([
         client.from('table_type').select('id, name, game, small_blind_paise, big_blind_paise, straddle_paise').eq('venue_id', venueId)
           .order('small_blind_paise').order('name'),
-        client.from('game_table').select('id, name, table_type_id, seats, is_open, active').eq('venue_id', venueId).is('deleted_at', null)
+        client.rpc('stake_call_times', { p_venue_id: venueId }),
+        client.from('game_table').select('id, name, table_type_id, seats, is_open, active, min_buy_in_paise').eq('venue_id', venueId).is('deleted_at', null)
           .order('position'),
         readInPlay(client, venueId),
       ]);
       if (types.error) throw types.error;
+      if (callTimes.error) throw callTimes.error;
       if (tables.error) throw tables.error;
+      const callTime = new Map(callTimes.data.map((row) => [row.table_type_id, row.call_time_minutes]));
       return {
         stakes: types.data.map((row) => ({
           id: row.id, name: row.name, game: gameOf(row.game), smallBlind: BigInt(row.small_blind_paise), bigBlind: BigInt(row.big_blind_paise),
-          straddle: row.straddle_paise === null ? null : BigInt(row.straddle_paise),
+          straddle: row.straddle_paise === null ? null : BigInt(row.straddle_paise), callTimeMinutes: callTime.get(row.id) ?? 0,
         })),
         tables: tables.data.map((row) => ({
-          id: row.id, name: row.name, stakeId: row.table_type_id, seats: row.seats, isOpen: row.is_open, isActive: row.active,
-          seated: countOf(inPlay.seated, row.id), waiting: countOf(inPlay.waiting, row.id),
+          id: row.id, name: row.name, stakeId: row.table_type_id, seats: row.seats, minBuyIn: BigInt(row.min_buy_in_paise), isOpen: row.is_open,
+          isActive: row.active, seated: countOf(inPlay.seated, row.id), waiting: countOf(inPlay.waiting, row.id),
         })),
       };
     },
@@ -99,21 +108,26 @@ async function readInPlay(client: RivrClient, venueId: string): Promise<{ seated
   return { seated: seats.data.map((seat) => seat.table_id), waiting };
 }
 
-/** A stake as the setup screen saves it: a new one has no id; no straddle is null. */
+/**
+ * A stake as the setup screen saves it: a new one has no id; no straddle is null. Its call time in minutes (redesign RD-16):
+ * null leaves a stake its own, and a new stake with none, which no table may play until it has one.
+ */
 export interface StakeOrder {
   readonly stakeId: string | null;
   readonly name: string;
   readonly smallBlind: bigint;
   readonly bigBlind: bigint;
   readonly straddle: bigint | null;
+  readonly callTimeMinutes: number | null;
 }
 
-/** A table as the setup screen saves it: a new one has no id. */
+/** A table as the setup screen saves it: a new one has no id; its own minimum buy-in in paise (redesign RD-16). */
 export interface TableOrder {
   readonly tableId: string | null;
   readonly name: string;
   readonly stakeId: string;
   readonly seats: number;
+  readonly minBuyIn: bigint;
 }
 
 /**
@@ -131,6 +145,7 @@ export function useTablesSetupActions(venueId: string) {
     mutationFn: async (order: StakeOrder) => {
       const blinds = {
         p_name: order.name.trim(), p_small_blind_paise: Number(order.smallBlind), p_big_blind_paise: Number(order.bigBlind),
+        ...(order.callTimeMinutes === null ? {} : { p_call_time_minutes: order.callTimeMinutes }),
       };
       // A new stake with no straddle has none; a changed stake's 0 takes its straddle off (decision 0299).
       const { error } = order.stakeId === null
@@ -141,7 +156,7 @@ export function useTablesSetupActions(venueId: string) {
   });
   const saveTable = useMutation({
     mutationFn: async (order: TableOrder) => {
-      const table = { p_name: order.name.trim(), p_table_type_id: order.stakeId, p_seats: order.seats };
+      const table = { p_name: order.name.trim(), p_table_type_id: order.stakeId, p_seats: order.seats, p_min_buy_in_paise: Number(order.minBuyIn) };
       const { error } = order.tableId === null
         ? await client.rpc('add_game_table', { p_venue_id: venueId, ...table })
         : await client.rpc('set_game_table', { p_table_id: order.tableId, ...table });

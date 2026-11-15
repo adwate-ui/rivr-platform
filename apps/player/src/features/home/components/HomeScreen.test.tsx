@@ -14,10 +14,11 @@ afterEach(() => {
 
 const NOW = Date.parse('2026-11-15T17:14:00Z');
 const TABLES = [
-  { id: 't1', venue_id: 'v1', name: 'Table 1', is_open: true, seats: 9, position: 1, table_type_id: 'tt1', must_move_to_table_id: null, room: 'main' },
-  { id: 't4', venue_id: 'v1', name: 'Table 4', is_open: false, seats: 9, position: 4, table_type_id: 'tt1', must_move_to_table_id: null, room: 'main' },
+  // Its own minimum, ₹7,350: not the ₹5,000 its stake still carries (redesign RD-16).
+  { id: 't1', venue_id: 'v1', name: 'Table 1', is_open: true, seats: 9, position: 1, table_type_id: 'tt1', must_move_to_table_id: null, room: 'main', min_buy_in_paise: 735000 },
+  { id: 't4', venue_id: 'v1', name: 'Table 4', is_open: false, seats: 9, position: 4, table_type_id: 'tt1', must_move_to_table_id: null, room: 'main', min_buy_in_paise: 500000 },
 ];
-const TYPES = [{ id: 'tt1', name: 'NLH 50/100', game: 'nlh', small_blind_paise: 5000, big_blind_paise: 10000, buy_in_min_paise: 500000, straddle_paise: null }];
+const TYPES = [{ id: 'tt1', name: 'NLH 50/100', game: 'nlh', small_blind_paise: 5000, big_blind_paise: 10000, straddle_paise: null, buy_in_min_paise: 500000 }];
 const FEATURES = ['floor.live_view', 'waitlist.join', 'call_time.view', 'table.top_up', 'table.leave', 'fnb.table_side'].map((key) => ({ feature_key: key, state: 'enabled', tiers: null }));
 const PLACE = {
   entry_id: 'e1', table_type_id: 'tt1', table_type_name: 'NLH 50/100', small_blind_paise: 5000, big_blind_paise: 10000, joined_at: '2026-11-15T17:14:00Z',
@@ -76,12 +77,13 @@ describe('Tonight', () => {
     renderTonight();
     const table = await screen.findByRole('button', { name: /Table 1 · NLH 50\/100/ }, LATER);
     // Stakes and buy-in only: players see neither seats nor the wait (owner, 8 Nov).
-    expect(table.textContent).toBe('Table 1 · NLH 50/100Min buy-in ₹5,000');
+    expect(table.textContent).toBe('Table 1 · NLH 50/100Min buy-in ₹7,350');
     for (const closed of ['Table 4 · NLH 50/100', 'Closed', 'Opens later']) expect(screen.getByText(closed)).toBeDefined();
     fireEvent.click(table);
     const sheet = await screen.findByRole('dialog', { name: "No-Limit Hold'em 50/100" });
     expect(sheet.textContent).toContain('Table 1');
-    expect(sheet.textContent).toContain('Min buy-in₹5,000');
+    expect(sheet.textContent).toContain('Min buy-in₹7,350');
+    expect(sheet.textContent).not.toContain('₹5,000');
     expect(sheet.textContent).not.toMatch(/open|[Ww]ait|Full/);
     expect(screen.queryByRole('img', { name: /seats open/ })).toBeNull();
     expect(screen.getByRole('button', { name: 'Request a seat' })).toBeDefined();

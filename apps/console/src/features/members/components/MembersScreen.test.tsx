@@ -31,8 +31,8 @@ const PERK = { ...GRANT, grant_id: 'g2', promotion_name: 'Cab home', points: 0, 
 
 const ANSWERS: Record<string, unknown> = {
   '/rpc/members_of_tier': [SAKSHI, ARJUN], '/rpc/member_record': [RECORD], '/rpc/floor_seats': [SEAT], '/rpc/todays_players': [TODAY],
-  '/rest/v1/game_table': [{ id: 't2', venue_id: 'v1', name: 'Table 2', is_open: true, seats: 9, position: 2, table_type_id: 'tt1', must_move_to_table_id: null, room: 'main' }],
-  '/rest/v1/table_type': [{ id: 'tt1', name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, buy_in_min_paise: 1000000, straddle_paise: null }],
+  '/rest/v1/game_table': [{ id: 't2', venue_id: 'v1', name: 'Table 2', is_open: true, seats: 9, position: 2, table_type_id: 'tt1', must_move_to_table_id: null, room: 'main', min_buy_in_paise: 1000000 }],
+  '/rest/v1/table_type': [{ id: 'tt1', name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, straddle_paise: null }],
   '/rpc/member_promotion_grants': [GRANT, PERK],
   '/rpc/open_host_offers': [{ member_id: 'm1', offer: { kind: 'bonus', amount_paise: 200_000 } }],
   '/rpc/member_account_statuses': [{ member_id: 'm1', status: 'on_break', until: '2026-12-13T12:00:00Z' }],

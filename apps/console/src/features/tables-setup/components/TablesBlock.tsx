@@ -1,4 +1,6 @@
 import { useTablesSetupActions, type SetupStake, type SetupTable } from '@rivr/db';
+import { fromPaise } from '@rivr/domain/money';
+import { suggestedMinBuyIn } from '@rivr/domain/tables';
 import { formatNumber, t } from '@rivr/i18n';
 import { Button, ChoiceChips, DataTable, ErrorMessage, Grid, Heading, Inline, Input, Screen, Stack, StatusMessage, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
@@ -90,7 +92,9 @@ function TableForm({ venueId, stakes, table, onSaved, onCancel }: TableFormProps
   const [seats, setSeats] = useState(start.seats);
   const [failure, setFailure] = useState<string | null>(null);
   const submit = async (chosen: string) => {
-    const done = await saveTable.mutateAsync({ tableId: start.tableId, name, stakeId: chosen, seats: Number(seats) });
+    const bigBlind = stakes.find((stake) => stake.id === chosen)?.bigBlind ?? 0n;
+    const minBuyIn = table !== null && table.stakeId === chosen ? table.minBuyIn : suggestedMinBuyIn(fromPaise(bigBlind));
+    const done = await saveTable.mutateAsync({ tableId: start.tableId, name, stakeId: chosen, seats: Number(seats), minBuyIn });
     if (done.ok) onSaved(t('console.tablesSetup.saved', { name: name.trim() }));
     else setFailure(t(`console.tablesSetup.failures.${done.error}`));
   };

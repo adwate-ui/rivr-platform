@@ -10,9 +10,9 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const STAKES: readonly SetupStake[] = [{ id: 's1', name: 'NLH 100/200', game: null, smallBlind: 10000n, bigBlind: 20000n, straddle: null }];
+const STAKES: readonly SetupStake[] = [{ id: 's1', name: 'NLH 100/200', game: null, smallBlind: 10000n, bigBlind: 20000n, straddle: null, callTimeMinutes: 180 }];
 const table = (id: string, name: string, more: Partial<SetupTable>): SetupTable =>
-  ({ id, name, stakeId: 's1', seats: 9, isOpen: false, isActive: true, seated: 0, waiting: 0, ...more });
+  ({ id, name, stakeId: 's1', seats: 9, minBuyIn: 1000000n, isOpen: false, isActive: true, seated: 0, waiting: 0, ...more });
 const TABLES: readonly SetupTable[] = [
   table('t1', 'Table 1', { isOpen: true, seated: 7 }),
   table('t2', 'Table 2', { waiting: 2 }),

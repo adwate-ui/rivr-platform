@@ -23,10 +23,10 @@ const TONIGHT = [
   { ...ORDER, order_id: 'o5', kot_number: 5, member_name: 'Samar Dua', cancelled_at: '2026-11-15T16:20:00Z', cancel_reason: 'Left the table' },
 ];
 const TABLES = [
-  { id: 't1', venue_id: 'v1', name: 'Table 1', is_open: true, seats: 9, position: 1, table_type_id: 'nlh', must_move_to_table_id: null, room: 'main' },
-  { id: 't2', venue_id: 'v1', name: 'Table 2', is_open: true, seats: 9, position: 2, table_type_id: 'nlh', must_move_to_table_id: null, room: 'main' },
+  { id: 't1', venue_id: 'v1', name: 'Table 1', is_open: true, seats: 9, position: 1, table_type_id: 'nlh', must_move_to_table_id: null, room: 'main', min_buy_in_paise: 1000000 },
+  { id: 't2', venue_id: 'v1', name: 'Table 2', is_open: true, seats: 9, position: 2, table_type_id: 'nlh', must_move_to_table_id: null, room: 'main', min_buy_in_paise: 1000000 },
 ];
-const TYPES = [{ id: 'nlh', name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, buy_in_min_paise: 1000000, straddle_paise: null }];
+const TYPES = [{ id: 'nlh', name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, straddle_paise: null }];
 const SEATED = { session_id: 's1', table_id: 't2', seat: 3, member_id: 'm1', full_name: 'Sakshi Tandon', tier_name: 'Black card', started_at: '2026-11-15T15:00:00Z',
   must_move_order: null, away_since: null, call_time_left: null, leaving_at: null, top_up: null, time_request_id: null, time_request_minutes: null };
 const MENU = [{ item_id: 'chai', name: 'Masala chai', kind: 'soft_drink', photo_path: null }];

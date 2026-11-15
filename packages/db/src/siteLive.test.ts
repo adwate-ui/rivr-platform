@@ -4,16 +4,22 @@ import { gamesFrom, rulesFrom } from './siteLive.ts';
 /** A row of public_table_status for a table of game `code`, with a buy-in of 100 small blinds. */
 const row = (code: string, name: string, small: number) => ({
   table_type_code: code, table_type_name: name, small_blind_paise: small, big_blind_paise: small * 2,
-  buy_in_min_paise: small * 100, buy_in_max_paise: small * 100, straddle_paise: null,
+  buy_in_min_paise: small * 100, straddle_paise: null,
 });
 
 describe('gamesFrom', () => {
   it('lists each game once, in the floor order of its first table, with its stakes only', () => {
     const rows = [row('nlh_50_100', 'NLH 50/100', 5000), row('nlh_100_200', 'NLH 100/200', 10000), row('nlh_100_200', 'NLH 100/200', 10000)];
     expect(gamesFrom(rows)).toEqual([
-      { name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, buyInMax: 500000n, straddle: null },
-      { name: 'NLH 100/200', smallBlind: 10000n, bigBlind: 20000n, buyInMin: 1000000n, buyInMax: 1000000n, straddle: null },
+      { name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, straddle: null },
+      { name: 'NLH 100/200', smallBlind: 10000n, bigBlind: 20000n, buyInMin: 1000000n, straddle: null },
     ]);
+  });
+
+  it('gives a game the least of its tables\' own minimum buy-ins, wherever that table stands on the floor (redesign RD-16)', () => {
+    const table = (buyIn: number) => ({ ...row('nlh_100_200', 'NLH 100/200', 10000), buy_in_min_paise: buyIn });
+    expect(gamesFrom([table(1000000), table(735000), table(2500000)]).map((game) => game.buyInMin)).toEqual([735000n]);
+    expect(gamesFrom([table(735000), table(1000000)]).map((game) => game.buyInMin)).toEqual([735000n]);
   });
 
   it('leaves out a row the view could not fill', () => {
