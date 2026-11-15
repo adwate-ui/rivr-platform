@@ -46,19 +46,6 @@ export {
 export type { KycDocumentKind } from '@rivr/contracts';
 export { useKycDocumentRetake, useMemberKycDocuments, useSendBackKycDocument, type KycDocument, type KycSendBackFailure } from './kycDocuments.ts';
 export {
-  useAcademyActions,
-  useAcademyBatches,
-  useAcademyBookings,
-  useAcademyInvoice,
-  useAcademyPayment,
-  type AcademyBatch,
-  type AcademyBooking,
-  type AcademyBookingStatus,
-  type AcademyFailure,
-  type AcademyInvoice,
-  type AcademyPayment,
-} from './academy.ts';
-export {
   GAMES,
   PUSH_CHOICES,
   usePreferenceActions,

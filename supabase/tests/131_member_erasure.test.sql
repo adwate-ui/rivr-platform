@@ -31,13 +31,13 @@ select set_eq(
   $$ values
      -- Deleted.
      ('feedback'), ('kyc_document'), ('kyc_review'), ('member_feature_override'), ('member_limit'), ('member_preference'), ('membership_card'),
-     ('notification_preference'), ('review_request'), ('sign_up_attribution'), ('cab_request'), ('club_event_booking'), ('learn_attempt'), ('learn_card'), ('learn_lesson'), ('host_queue_item'), ('learn_session'), ('lead'), ('push_subscription'), ('live_status_device'), ('winner_card'), ('tournament_interest'),
+     ('notification_preference'), ('review_request'), ('sign_up_attribution'), ('cab_request'), ('club_event_booking'), ('host_queue_item'), ('lead'), ('push_subscription'), ('live_status_device'), ('winner_card'), ('tournament_interest'),
      -- Changed: consent withdrawn, the KYC record kept with the PAN alone when TDS was taken (else deleted), a payout
      -- account a money record names kept and marked removed (others deleted), bonus grants closed by the forfeit.
      ('consent'), ('kyc_record'), ('payout_account'), ('bonus_grant'),
      -- Kept, naming only the member's id: money, tax, play and safer-gambling records.
      ('member_erasure_request'),
-     ('academy_attendance'), ('academy_booking'), ('bonus_redemption'), ('buy_in_request'), ('cage_transaction'), ('control_state'), ('credit_line'), ('deposit_request'),
+     ('bonus_redemption'), ('buy_in_request'), ('cage_transaction'), ('control_state'), ('credit_line'), ('deposit_request'),
      ('early_departure'), ('fnb_order'), ('invoice'), ('jackpot_event'), ('ledger_account'), ('marker'), ('member_tier_change'),
      ('promotion_grant'), ('referral'), ('sar_entry'), ('seat_session'), ('self_exclusion'), ('tds_withholding'),
      ('top_up_request'), ('call_time_request'), ('promotion_step_skip'),
@@ -85,7 +85,7 @@ values ('00000000-0000-4000-8000-0000000d0797', '00000000-0000-4000-8000-0000000
 insert into public.member_limit (member_id, venue_id, session_reminder_hours)
 values ('00000000-0000-4000-8000-0000000d0797', '00000000-0000-4000-8000-000000000001', 4);
 insert into public.member_feature_override (venue_id, member_id, feature_key, is_granted, reason)
-values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', 'learn.drills', true, 'Asked for it by Tara Mehta');
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', 'sessions.history', true, 'Asked for it by Tara Mehta');
 insert into public.sign_up_attribution (member_id, venue_id, referral_code)
 values ('00000000-0000-4000-8000-0000000d0797', '00000000-0000-4000-8000-000000000001', 'FRIEND10');
 insert into public.membership_card (venue_id, member_id) values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797');

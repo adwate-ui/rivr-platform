@@ -9,7 +9,7 @@ create temporary table seed_person_a (
 ) on commit drop;
 
 insert into seed_person_a (id, phone, full_name) values
-  -- The Tiers flow's own super admin, who takes Learn from the Member tier and gives it back to one member (#32, flow 21).
+  -- The Tiers flow's own super admin, who takes a feature from the Member tier and gives it back to one member (#32, flow 21).
   ('00000000-0000-4000-8000-000000000152', '+919000000152', 'Rohini Das'),
   -- The Settings flow's own admin, super admin and cashier (#33).
   ('00000000-0000-4000-8000-000000000153', '+919000000153', 'Imran Qureshi'),

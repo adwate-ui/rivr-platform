@@ -65,7 +65,7 @@ function fireChange(channel: RealtimeChannel, table: string) {
 }
 
 function Probe() {
-  const learn = useFeature('learn.library');
+  const learn = useFeature('events.book');
   const control = useControlState();
   return (
     <p>
@@ -76,7 +76,7 @@ function Probe() {
 
 function freshDatabase(): FakeDatabase {
   return {
-    featureRows: [{ feature_key: 'learn.library', state: 'locked', tiers: ['Black card'] }],
+    featureRows: [{ feature_key: 'events.book', state: 'locked', tiers: ['Black card'] }],
     controlRows: [],
     rpcCalls: 0,
     featuresFail: false,
@@ -207,7 +207,7 @@ describe('RivrDataProvider, useFeature and useControlState', () => {
     const [channel] = channels;
     if (channel === undefined) throw new Error('The provider opened no Realtime channel');
 
-    database.featureRows = [{ feature_key: 'learn.library', state: 'enabled', tiers: null }];
+    database.featureRows = [{ feature_key: 'events.book', state: 'enabled', tiers: null }];
     fireChange(channel, 'tier_feature');
     expect(await screen.findByText('learn: enabled; frozen: false')).toBeDefined();
 
@@ -231,7 +231,7 @@ describe('RivrDataProvider, useFeature and useControlState', () => {
 });
 
 function StatusProbe() {
-  const learn = useFeatureStatus('learn.library');
+  const learn = useFeatureStatus('events.book');
   if (learn.status === 'error') return <button type="button" onClick={learn.retry}>learn: error</button>;
   return <p>{`learn: ${learn.status === 'ready' ? learn.access.state : learn.status}`}</p>;
 }

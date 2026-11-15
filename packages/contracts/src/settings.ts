@@ -10,7 +10,7 @@ import { socialConnectedChannels } from './channels.ts';
 import { floorRequestTargets, tvLeaderboard } from './floorSettings.ts';
 import { hostLapse } from './hostQueue.ts';
 import {
-  authStoreReviewer, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, cabMinimumVisits, kycAtTheClub, learnDailyPointsCap, learnSessionPoints,   rakebackRate, reviewsGoogleUrl,
+  authStoreReviewer, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, cabMinimumVisits, kycAtTheClub, rakebackRate, reviewsGoogleUrl,
 } from './rewardSettings.ts';
 import type { SettingDefinition } from './settingDefinition.ts';
 
@@ -43,16 +43,6 @@ const kycMinimumAge = {
   description: 'The age a member must have reached to be verified and to play; never below 18 (scope-v1 module 1, "18+ gate").',
   scope: 'venue',
   value: z.strictObject({ years: z.int().min(18).max(25) }),
-} as const satisfies SettingDefinition;
-
-const academyPrice = {
-  key: 'academy.price',
-  description: 'Academy fees in paise: one seat, and per head in a corporate booking (scope-v1 module 15).',
-  scope: 'venue',
-  value: z.strictObject({
-    individual_paise: z.int().min(1).max(10_000_000),
-    corporate_per_head_paise: z.int().min(1).max(10_000_000),
-  }),
 } as const satisfies SettingDefinition;
 
 /** A ₹50 chip, in paise: rake caps, jackpot drops and pots are whole chips (additions, "Chips"). */
@@ -204,13 +194,6 @@ const gstConfig = {
   }),
 } as const satisfies SettingDefinition;
 
-const academyGst = {
-  key: 'academy.gst',
-  description: 'GST on the Academy\'s fees (decision 0114): the rate in basis points (1800 is 18%), taken out of the fee, kept apart from gst.config, the rake\'s, as training may be taxed differently (question 431).',
-  scope: 'venue',
-  value: z.strictObject({ rate_basis_points: z.int().min(0).max(10_000) }),
-} as const satisfies SettingDefinition;
-
 const waitlistInterestToOpen = {
   key: 'waitlist.interest_to_open',
   description: 'Interest lists (decision 0184): how many members waiting for a game with no open table tell the floor to open one; none set never tells.',
@@ -272,9 +255,9 @@ const reportsUnclaimedDays = {
 
 /** Every setting key declared in code. */
 export const SETTINGS = [
-  callTimeMinutes, callTimeAddChoices, floorRequestTargets, tvLeaderboard, defaultTier, kycMinimumAge, kycAtTheClub, authStoreReviewer, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, dealerRotationMinutes, waitlistPriorityWeights, waitlistHoldMinutes,
-  creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst,   cardQrRotationSeconds, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
-  cageCashBuyInLimit, amlStructuring, rakebackRate, reviewsGoogleUrl, cabMinimumVisits, learnSessionPoints, learnDailyPointsCap, hostLapse, socialConnectedChannels, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, ] as const;
+  callTimeMinutes, callTimeAddChoices, floorRequestTargets, tvLeaderboard, defaultTier, kycMinimumAge, kycAtTheClub, authStoreReviewer, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, dealerRotationMinutes, waitlistPriorityWeights, waitlistHoldMinutes,
+  creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, cardQrRotationSeconds, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
+  cageCashBuyInLimit, amlStructuring, rakebackRate, reviewsGoogleUrl, cabMinimumVisits, hostLapse, socialConnectedChannels, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, ] as const;
 
 /** A setting key declared in code. */
 export type SettingKey = (typeof SETTINGS)[number]['key'];

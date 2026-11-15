@@ -62,17 +62,6 @@ jobs:
           playwright: 'true'
       - run: node scripts/verify.mjs code
 
-  # The drill gates, on a runner of their own beside code: after them in one job, code ran into its 15 minutes
-  # (decision 0425).
-  drills:
-    name: drills
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: ./.github/actions/setup
-      - run: node scripts/verify.mjs drills
-
   # pgTAP against the migrations and seed, and the generated database types.
   database:
     name: database
@@ -219,7 +208,7 @@ jobs:
   ci-ok:
     name: ci-ok
     if: always()
-    needs: [plan, code, drills, database, storybook, mutation, mutation-score, e2e, budgets, security]
+    needs: [plan, code, database, storybook, mutation, mutation-score, e2e, budgets, security]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

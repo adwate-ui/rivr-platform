@@ -5,7 +5,7 @@ export const settings = {
   rulesHint: 'A change applies from now or a later day, never backwards.',
   /** The screen's areas (#604): the rules by what they govern, then the venue's own details and chips. */
   areas: {
-    floor: 'Floor', rake: 'Rake and jackpots', cage: 'Cage and credit', members: 'Members and bonus', academy: 'Academy and Learn',
+    floor: 'Floor', rake: 'Rake and jackpots', cage: 'Cage and credit', members: 'Members and bonus',
     tax: 'Tax', compliance: 'Compliance', system: 'System', club: 'Club details', chips: 'Chips', notices: 'Notices',
   },
   backTo: 'Back to {area}',
@@ -126,7 +126,6 @@ export const settings = {
   contactWhatsapp: 'WhatsApp number',
   contactHint: '+91 and ten digits. Empty hides it.',
   sacClubServices: 'SAC code, club services',
-  sacAcademy: 'SAC code, Academy',
   sacHint: 'From the club’s CA: four or six digits. A tax invoice in the series is refused without it.',
   signatoryName: 'Authorised signatory',
   signatoryHint: 'Named, with the designation, at the foot of every tax invoice.',

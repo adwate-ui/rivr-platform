@@ -59,7 +59,6 @@ export const venueConfigSchema = z.strictObject({
   contactWhatsapp: optional(indianMobileSchema),
   // The SAC code of each invoice series, from the CA, and the authorised signatory every tax invoice names (#423).
   sacClubServices: optional(sacSchema),
-  sacAcademy: optional(sacSchema),
   signatoryName: optional(freeText(100)),
   signatoryDesignation: optional(freeText(100)),
 });

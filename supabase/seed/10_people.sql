@@ -204,7 +204,7 @@ from (values
   ('00000000-0000-4000-8000-000000000204'::uuid, 'Member', null, null),
   -- The Profile flow's own member: Auth sends one code a minute to a number, so each flow signs in as its own.
   ('00000000-0000-4000-8000-000000000209'::uuid, 'Member', null, null),
-  -- The Academy booking flow's own member.
+  -- A spare member (the Academy booking flow's, until the Academy went on 15 Nov).
   ('00000000-0000-4000-8000-000000000210'::uuid, 'Member', null, null),
   -- The Waitlist flow's own member, who has finished the identity check (55_waitlist.sql).
   ('00000000-0000-4000-8000-000000000211'::uuid, 'Member', null, null),

@@ -3,7 +3,7 @@ import { liveFeatures } from './FeatureOverrides.tsx';
 
 describe('liveFeatures (audit F-086)', () => {
   it('offers what the club runs and none of what it hid or dropped', () => {
-    const features = [{ key: 'waitlist.join' }, { key: 'balance.deposits' }, { key: 'rewards.rakeback' }, { key: 'social.winner_cards' }, { key: 'academy.booking' }, { key: 'learn.drills' }, { key: 'cab.requests' }, { key: 'sessions.history' }];
+    const features = [{ key: 'waitlist.join' }, { key: 'balance.deposits' }, { key: 'rewards.rakeback' }, { key: 'social.winner_cards' }, { key: 'cab.requests' }, { key: 'sessions.history' }];
     expect(liveFeatures(features).map((feature) => feature.key)).toEqual(['waitlist.join', 'sessions.history']);
   });
 });

@@ -4,9 +4,6 @@
  * feature; the database checks it with `has_feature(member_id, key)` and the apps with
  * `useFeature(key)`. A migration keeps the `feature` table equal to this list (a db test
  * enforces it). Lanes add a key here for every new member-facing feature.
- *
- * Licensed Learn sources add one key each at upload time (`learn.source.<id>`); those
- * live only in the database.
  */
 
 /** One feature in the catalogue. */
@@ -30,16 +27,12 @@ const core = (key: string, name: string, description: string, screens: string[])
 
 /** Every feature key declared in code. */
 export const FEATURES = [
-  gateable('learn.library', 'Learn library', 'The Learn tab and its library of sources.', ['player:learn']),
-  gateable('learn.drills', 'Drills', 'Drill sessions, verdicts and summaries.', ['player:learn/drill']),
-  gateable('learn.review', 'Learn review', 'The review heatmap of past drill answers.', ['player:learn/review']),
-  gateable('learn.academy_lessons', 'Academy lessons', 'RIVR Academy Level 1 to 3 lessons and quizzes.', ['player:learn/academy']),
   gateable('sessions.history', 'Session history', 'Past sessions with buy-in, cash-out, net and receipts.', ['player:sessions']),
   gateable('balance.deposits', 'Deposits', 'UPI deposit details and UTR entry.', ['player:balance/deposit']),
   gateable('rewards.rakeback', 'Hourly rakeback', 'Bonus each Monday on a member’s share of last week’s rake, at stakes with a rakeback rate.', []),
   gateable('referral.share_cards', 'Referral and share cards', 'Referral code and rendered share cards.', ['player:bonus/referral']),
   gateable('cab.requests', 'Cab requests', 'Pickup and drop requests when eligible.', ['player:rewards/cab']),
-  gateable('events.book', 'Events', 'The events calendar: pro nights, corporate tables and Academy batches, booked from the app.', ['player:events']),
+  gateable('events.book', 'Events', 'The events calendar: pro nights and corporate tables, booked from the app.', ['player:events']),
   gateable('social.winner_cards', 'Winner cards', 'Cards celebrating a member’s wins, posted on the club’s social only while they share them.', ['player:profile']),
   gateable('waitlist.join', 'Join waitlist from the app', 'Joining a waitlist before arrival.', ['player:home']),
   gateable('call_time.view', 'Call-time view', 'Time remaining before the member may leave the game.', ['player:home']),
@@ -51,7 +44,6 @@ export const FEATURES = [
   gateable('promotions.feed', 'Promotions feed', 'Promotion cards on Home.', ['player:home']),
   gateable('floor.live_view', 'Live floor view', 'Tables running, open seats and waitlist lengths.', ['player:home']),
   gateable('fnb.table_side', 'Table-side food and drink', 'Ordering food and drink from the table.', ['player:home/fnb']),
-  gateable('academy.booking', 'Academy booking', 'Booking and paying for an Academy batch.', ['player:learn/academy', 'web:academy']),
   gateable('push.seat_ready', 'Seat-ready notifications', 'Push when a seat is ready.', ['player:profile/notifications']),
   gateable('push.call_time_complete', 'Call-time notifications', 'Push when call time is complete.', ['player:profile/notifications']),
   gateable('push.withdrawal_sent', 'Withdrawal notifications', 'Push when a withdrawal is sent.', ['player:profile/notifications']),
@@ -76,20 +68,17 @@ export const FEATURES = [
 export type FeatureKey = (typeof FEATURES)[number]['key'];
 
 /**
- * Gateable features the club does not run (audit F-086): no money on any console (owner, 29 Oct), no Academy (3 Nov), Learn
- * off for members at launch (decision 0284), cab requests off (#709). Staff are not offered them as a member's override.
+ * Gateable features the club does not run (audit F-086): no money on any console (owner, 29 Oct), Events off for
+ * members at launch (decision 0284), cab requests off (#709). Staff are not offered them as a member's override.
  */
 export const HIDDEN_FEATURES: readonly FeatureKey[] = [
-  'academy.booking', 'balance.deposits', 'cab.requests', 'events.book', 'learn.academy_lessons', 'learn.drills', 'learn.library', 'learn.review',
+  'balance.deposits', 'cab.requests', 'events.book',
   'push.withdrawal_sent', 'rewards.rakeback', 'social.winner_cards',
 ];
 
-/** The key of a licensed Learn source, added at upload. */
-export type LearnSourceFeatureKey = `learn.source.${string}`;
-
 /**
  * The player app's tabs a feature gates, for the app's tab bar and the console's preview of a tier (#32):
- * Sessions and Learn follow their feature; Home, Balance and Bonus always show.
+ * Sessions follows its feature; Home, Balance and Bonus always show.
  */
-export const TAB_FEATURES = { sessions: 'sessions.history', learn: 'learn.library' } as const satisfies Readonly<Record<string, FeatureKey>>;
+export const TAB_FEATURES = { sessions: 'sessions.history' } as const satisfies Readonly<Record<string, FeatureKey>>;
 

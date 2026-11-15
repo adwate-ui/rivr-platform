@@ -36,7 +36,7 @@ async function renderBanner(detail: object | null, onAdd = vi.fn()) {
 const DETAIL = {
   venue_id: 'v1', legal_name: 'RIVR Gaming Pvt Ltd', gstin: null, tan: 'DELR12345E', address: 'Gurugram', upi_payee_name: null, upi_vpa: null, bank_name: null,
   bank_account_name: null, bank_account_number: null, bank_ifsc: null, invoice_prefix: 'RIVR', staff_ip_allowlist: [], alert_whatsapp: null, logo_path: null,
-  created_at: '', updated_at: '', sac_club_services: '999692', sac_academy: null, signatory_name: null, signatory_designation: null,
+  created_at: '', updated_at: '', sac_club_services: '999692', signatory_name: null, signatory_designation: null,
 };
 
 describe('The alert number warning (audit F-212)', () => {

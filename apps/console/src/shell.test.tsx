@@ -14,7 +14,7 @@ describe('the console frame', () => {
   // A screen outside the role is refused; one the club switched off says so rather than blaming the role (C-04).
   // Under the screen's own name, not "Console" (#811).
   it.each([
-    ['/purge', 'Purge', 'Not in your role. Ask an admin.'], ['/academy', 'Academy', 'Not used at RIVR.'],
+    ['/purge', 'Purge', 'Not in your role. Ask an admin.'], ['/cage', 'Cage', 'Not used at RIVR.'],
   ])('refuses %s, opened by its address, under its name', async (path, title, text) => {
     signIn();
     answerStaff([CLUB]);
@@ -98,13 +98,21 @@ describe('the console frame', () => {
   it.each([
     ['/tablets', 'Settings', 'Tablets'], ['/tvs', 'Settings', 'TVs'], ['/devices', 'Settings', 'TVs'],
     ['/dealer-pins', 'Staff', 'Dealer PINs'], ['/check-in', 'Door', 'Check-in'], ['/players-today', 'Door', 'Today’s players'],
-    ['/website', 'Content', 'Website'], ['/learn-sources', 'Content', 'Learn content'],
   ])('opens %s on %s, at its tab, %s, for a super admin', async (path, rail, tab) => {
     signIn();
     answerStaff([{ ...CLUB, full_name: 'Vikram Rao', role: 'super_admin' }]);
     renderAt(path);
     expect(await screen.findByRole('link', { name: tab, current: 'page' }, LAZY_SCREEN)).toBeDefined();
     expect(within(screen.getByRole('navigation', { name: 'Sections' })).getByRole('link', { name: rail, current: 'page' })).toBeDefined();
+  });
+
+  // Content holds the website alone since Learn went (15 Nov), so it has no tabs to mark: the old address opens Content.
+  it('opens /website on Content, for a super admin', async () => {
+    signIn();
+    answerStaff([{ ...CLUB, full_name: 'Vikram Rao', role: 'super_admin' }]);
+    renderAt('/website');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Content' }, LAZY_SCREEN)).toBeDefined();
+    expect(within(screen.getByRole('navigation', { name: 'Sections' })).getByRole('link', { name: 'Content', current: 'page' })).toBeDefined();
   });
 
   // Their old tabs gone, these land on the screen that took their place, saying so (#811).

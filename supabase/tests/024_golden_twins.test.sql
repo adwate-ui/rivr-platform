@@ -10,19 +10,6 @@ create function pg_temp.paise(p_amount text) returns bigint language sql immutab
   select (replace(replace(p_amount, '₹', ''), ',', '')::numeric * 100)::bigint;
 $$;
 
--- The Academy fee: private.academy_fee and @rivr/domain academyFee (packages/testing/golden/academy.json).
-select ok((select count(*) > 0 from golden.golden_case where file = 'academy.json'), 'the Academy fee cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'academy.json' and operation <> 'fee' $$,
-  'every operation in academy.json is proved here');
-select results_eq(
-  $$ select description,
-            private.academy_fee(inputs ->> 'kind', (inputs ->> 'seats')::integer,
-                                jsonb_build_object('individual_paise', pg_temp.paise(inputs ->> 'individual'),
-                                                   'corporate_per_head_paise', pg_temp.paise(inputs ->> 'corporatePerHead')))
-     from golden.golden_case where file = 'academy.json' order by position $$,
-  $$ select description, pg_temp.paise(expected ->> 'result') from golden.golden_case where file = 'academy.json' order by position $$,
-  'private.academy_fee gives every Academy fee in the golden file');
-
 -- Waitlist priority: private.priority_weight and @rivr/domain priorityOn (packages/testing/golden/waitlist.json).
 create function pg_temp.blind(p_stake text, p_part integer) returns bigint language sql immutable as $$
   select case when coalesce(p_stake, '') = '' then null else split_part(p_stake, '/', p_part)::bigint * 100 end;
@@ -677,17 +664,6 @@ select results_eq(
      from golden.golden_case where file = 'rakeback.json' and operation = 'rakeback' order by position $$,
   $$ select description, pg_temp.paise(expected ->> 'bonus') from golden.golden_case where file = 'rakeback.json' and operation = 'rakeback' order by position $$,
   'private.rakeback_bonus gives every rakeback in the golden file');
-
--- Learn points: private.learn_points, and @rivr/domain learnPoints (packages/testing/golden/learnPoints.json).
-select ok((select count(*) > 0 from golden.golden_case where file = 'learnPoints.json'), 'the Learn points cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'learnPoints.json' and operation <> 'points' $$,
-  'every operation in learnPoints.json is proved here');
-select results_eq(
-  $$ select description, private.learn_points((inputs ->> 'mastered')::bigint, (inputs ->> 'earnedToday')::bigint, (inputs ->> 'perSession')::bigint,
-                                              (inputs ->> 'perPrinciple')::bigint, (inputs ->> 'dailyCap')::bigint)
-     from golden.golden_case where file = 'learnPoints.json' order by position $$,
-  $$ select description, (expected ->> 'points')::bigint from golden.golden_case where file = 'learnPoints.json' order by position $$,
-  'private.learn_points gives every case in the golden file');
 
 
 -- Promotion schedules (console v3, decision 0472): private.is_in_schedule and private.seconds_in_schedule, and @rivr/domain

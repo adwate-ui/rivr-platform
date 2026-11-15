@@ -48,18 +48,10 @@ export const queryKeys = {
   eodCloses: (userId: string, venueId: string) => ['user', userId, 'eod-closes', venueId] as const,
   /** A venue's shift openings that differed from the last close (#376). */
   shiftOpenings: (userId: string, venueId: string) => ['user', userId, 'shift-openings', venueId] as const,
-  /** Everything Academy for the signed-in member: refreshed together after a booking or a payment. */
-  academy: (userId: string) => ['user', userId, 'academy'] as const,
-  academyBatches: (userId: string) => ['user', userId, 'academy', 'batches'] as const,
-  academyBookings: (userId: string) => ['user', userId, 'academy', 'bookings'] as const,
-  academyPayment: (userId: string, bookingId: string) => ['user', userId, 'academy', 'payment', bookingId] as const,
-  academyInvoice: (userId: string, bookingId: string) => ['user', userId, 'academy', 'invoice', bookingId] as const,
   /** The signed-in member's KYC record. */
   kycRecord: (userId: string) => ['user', userId, 'kyc-record'] as const,
   /** Whether the signed-in member's venue checks identity at the club. */
   kycAtTheClub: (userId: string) => ['user', userId, 'kyc-at-the-club'] as const,
-  /** A venue's Academy batches and bookings, as staff see them. */
-  academyStaff: (userId: string, venueId: string) => ['user', userId, 'academy-staff', venueId] as const,
   /** A venue's identity checks for a KYC reviewer. */
   kycReview: (userId: string, venueId: string) => ['user', userId, 'kyc-review', venueId] as const,
   /** Whether a venue checks identity at the club, as its KYC reviewers see it. */

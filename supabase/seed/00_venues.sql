@@ -19,7 +19,7 @@ update public.venue_config set gstin = '06ABCDE1234F1Z4'
 where venue_id = '00000000-0000-4000-8000-000000000001' and gstin is null;
 -- Made-up SAC codes for each series and an authorised signatory, so the club's tax invoices issue (#423); the
 -- real codes are the CA's, set in venue configuration.
-update public.venue_config set sac_club_services = '999692', sac_academy = '999293', signatory_name = 'Rhea Kapoor', signatory_designation = 'Partner'
+update public.venue_config set sac_club_services = '999692', signatory_name = 'Rhea Kapoor', signatory_designation = 'Partner'
 where venue_id = '00000000-0000-4000-8000-000000000001' and sac_club_services is null;
 -- The club's numbers for calls and WhatsApp, as 20261112130000_club_contact.sql fills them where the club already is (#917).
 update public.venue_config set contact_phone = '+918796580435', contact_whatsapp = '+918796580435'

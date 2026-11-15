@@ -5,7 +5,7 @@ import { axeViolations, renderIn } from '../test/render.tsx';
 import { BottomNav, type BottomNavItem, type PlayerTab } from './BottomNav.tsx';
 
 function tabs(overrides: Partial<Record<PlayerTab, BottomNavItem['access']>> = {}): BottomNavItem[] {
-  return (['home', 'sessions', 'food', 'bonus', 'learn'] as const).map((tab) => ({
+  return (['home', 'sessions', 'food', 'bonus'] as const).map((tab) => ({
     tab,
     href: `/${tab}`,
     access: overrides[tab] ?? { state: 'enabled' },
@@ -18,11 +18,11 @@ describe('BottomNav', () => {
     expect(screen.getByRole('link', { name: 'Bonus' }).getAttribute('aria-current')).toBe('page');
   });
 
-  it('lists the five tabs in order inside a named navigation landmark', () => {
+  it('lists the tabs in order inside a named navigation landmark', () => {
     renderIn(<BottomNav items={tabs()} current="home" />);
     const nav = screen.getByRole('navigation', { name: 'Main' });
     const names = within(nav).getAllByRole('link').map((link) => link.textContent);
-    expect(names).toEqual(['Home', 'Sessions', 'Menu', 'Bonus', 'Learn']);
+    expect(names).toEqual(['Home', 'Sessions', 'Menu', 'Bonus']);
   });
 
   it('marks the current tab as the current page', () => {
@@ -32,19 +32,19 @@ describe('BottomNav', () => {
   });
 
   it('leaves out a hidden tab', () => {
-    renderIn(<BottomNav items={tabs({ learn: { state: 'hidden' } })} />);
-    expect(screen.queryByRole('link', { name: 'Learn' })).not.toBeInTheDocument();
-    expect(screen.getAllByRole('link')).toHaveLength(4);
+    renderIn(<BottomNav items={tabs({ sessions: { state: 'hidden' } })} />);
+    expect(screen.queryByRole('link', { name: 'Sessions' })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('link')).toHaveLength(3);
   });
 
   it('keeps a locked tab and describes which tiers have it', () => {
-    renderIn(<BottomNav items={tabs({ learn: { state: 'locked', tiers: ['Academy graduate', 'Black card'] } })} />);
-    expect(screen.getByRole('link', { name: 'Learn' })).toHaveAccessibleDescription('Academy graduate and Black card only.');
+    renderIn(<BottomNav items={tabs({ sessions: { state: 'locked', tiers: ['Founders’ Circle', 'Black card'] } })} />);
+    expect(screen.getByRole('link', { name: 'Sessions' })).toHaveAccessibleDescription('Founders’ Circle and Black card only.');
   });
 
   it('describes a tab taken from this member alone as not on their account, naming no tier', () => {
-    renderIn(<BottomNav items={tabs({ learn: { state: 'locked', tiers: [] } })} />);
-    expect(screen.getByRole('link', { name: 'Learn' })).toHaveAccessibleDescription('Not on your membership.');
+    renderIn(<BottomNav items={tabs({ sessions: { state: 'locked', tiers: [] } })} />);
+    expect(screen.getByRole('link', { name: 'Sessions' })).toHaveAccessibleDescription('Not on your membership.');
   });
 
   it('hands a plain click to the router instead of reloading the page', async () => {
@@ -65,7 +65,7 @@ describe('BottomNav', () => {
   });
 
   it('has no accessibility violations with a locked tab', async () => {
-    const { container } = renderIn(<BottomNav items={tabs({ learn: { state: 'locked', tiers: ['Black card'] } })} current="home" />);
+    const { container } = renderIn(<BottomNav items={tabs({ sessions: { state: 'locked', tiers: ['Black card'] } })} current="home" />);
     expect(await axeViolations(container)).toEqual([]);
   });
 });

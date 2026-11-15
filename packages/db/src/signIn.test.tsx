@@ -109,10 +109,10 @@ describe('useSignIn', () => {
         // Before linking the database knows no member for this login, so it returns no features.
         '/rest/v1/rpc/my_feature_access': () => ({
           status: 200,
-          body: linked ? [{ feature_key: 'learn.library', state: 'enabled', tiers: null }] : [],
+          body: linked ? [{ feature_key: 'events.book', state: 'enabled', tiers: null }] : [],
         }),
       },
-      () => useFeature('learn.library'),
+      () => useFeature('events.book'),
     );
 
     // Not awaited inside act: the screen re-renders as soon as Auth reports the sign-in, as it does in the app.

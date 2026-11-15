@@ -1,7 +1,7 @@
 import type { IndianMobile, MemberId, Paise, StaffId, TableId, UpiVpa, VenueId } from '@rivr/contracts';
 
 /** A member's tier as seeded; admins can add more. */
-export type Tier = 'member' | 'academy_graduate' | 'founders_circle' | 'black_card';
+export type Tier = 'member' | 'founders_circle' | 'black_card';
 
 /** A cash game's blinds in paise: 100/200 is 10,000/20,000. */
 export interface Stakes {

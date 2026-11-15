@@ -1,4 +1,4 @@
--- Templates for every scheme in the deck (#85). Every venue has them as drafts; six carry the engine's rule (the
+-- Templates for every scheme in the deck (#85). Every venue has them as drafts; three carry the engine's rule (the
 -- four-hour bonus since decision 0164). Since decision 0491 those the typed model can say run in versions, with Founders'
 -- Circle priority and the cab home. The word-only cards are retired
 -- (decision 0498): no venue gets one. 107 Ishita (marketing) submits one and 101, a super admin, approves it (#144); 104 Sana (cashier) may do neither.
@@ -29,27 +29,23 @@ select results_eq(
   $$ select template_key, status, (select count(*)::integer from public.promotion_rule r where r.promotion_id = p.id)
      from public.promotion p where p.venue_id = '00000000-0000-4000-8000-000000000001' and template_key is not null order by template_key $$,
   $$ values ('cab'::text, 'draft'::text, 0), ('founders_priority', 'draft', 0),
-            ('graduate_first_buy_in', 'draft', 1), ('graduate_freeroll', 'draft', 1), ('hours_bonus', 'draft', 1),
+            ('hours_bonus', 'draft', 1),
             ('referral', 'draft', 1), ('tuesday_bonus', 'draft', 1) $$,
-  'the club has every scheme in the deck as a draft; the five the engine runs carry their rule');
+  'the club has every scheme in the deck as a draft; the three the engine runs carry their rule');
 select results_eq(
   $$ select p.template_key, r.trigger, r.conditions - 'tier_ids', r.effect, p.per_player_limit, p.per_player_period
      from public.promotion p join public.promotion_rule r on r.promotion_id = p.id
      where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key is not null order by p.template_key $$,
-  $$ values ('graduate_first_buy_in'::text, 'buy_in'::text, '{}'::jsonb, '{"kind": "bonus", "amount_paise": 100000, "expires_days": 30}'::jsonb, 1, 'promotion'::text),
-            ('graduate_freeroll', 'graduation', '{}', '{"kind": "freeroll_ticket", "tournament": "RIVR Sunday"}', 1, 'promotion'),
-            ('hours_bonus', 'hours_played', '{"min_hours": 4}', '{"kind": "bonus", "amount_paise": 100000, "expires_days": 7}', 1, 'day'),
+  $$ values ('hours_bonus'::text, 'hours_played'::text, '{"min_hours": 4}'::jsonb, '{"kind": "bonus", "amount_paise": 100000, "expires_days": 7}'::jsonb, 1, 'day'::text),
             ('referral', 'referral', '{}', '{"kind": "bonus", "amount_paise": 100000, "expires_days": 30}', null, null),
             ('tuesday_bonus', 'buy_in', '{"days": [2], "first_n": {"count": 5, "per": "table"}}', '{"kind": "bonus", "percent_bps": 2000, "expires_days": 7}', null, null) $$,
-  'graduate first buy-in ₹1,000 once each; the graduate freeroll once (#128); four hours ₹1,000 once a club day; referral ₹1,000; Tuesday 20% among the first five at a table');
+  'four hours ₹1,000 once a club day; referral ₹1,000; Tuesday 20% among the first five at a table');
 select results_eq(
   $$ select p.template_key, v.version, v.status, v.reward, v.limits
      from public.promotion p join public.promotion_version v on v.promotion_id = p.id
      where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key is not null order by p.template_key $$,
   $$ values ('cab'::text, 1, 'draft'::text, '{"kind": "cab_home", "fromVisitInMonth": 4}'::jsonb, '{"perMember": "none"}'::jsonb),
             ('founders_priority', 1, 'draft', '{"kind": "waitlist_priority"}', '{"perMember": "none"}'),
-            ('graduate_first_buy_in', 1, 'draft', '{"kind": "bonus_chips", "chips": 1000, "on": "first_buyin"}', '{"perMember": "once"}'),
-            ('graduate_freeroll', 1, 'draft', '{"kind": "tournament_entry", "tournamentId": "RIVR Sunday"}', '{"perMember": "once"}'),
             ('hours_bonus', 1, 'draft', '{"kind": "hours_bonus", "chips": 1000, "afterMinutes": 240}', '{"perMember": "per_day"}'),
             ('referral', 1, 'draft', '{"kind": "bonus_chips", "chips": 1000, "on": "referral"}', '{"perMember": "none"}'),
             ('tuesday_bonus', 1, 'draft', '{"kind": "buyin_bonus", "mode": "percent", "percent": 20, "firstNBuyinsPerTable": 5}', '{"perMember": "none"}') $$,
@@ -59,27 +55,24 @@ select is((select v.eligibility -> 'tiers' ->> 0 from public.promotion_version v
   'Founders'' Circle priority is for that tier');
 select is((select v.schedule ->> 'days' from public.promotion_version v where v.id = pg_temp.version_of('tuesday_bonus')), '[2]',
   'and the Tuesday bonus runs on Tuesdays');
-select is((select r.conditions -> 'tier_ids' ->> 0 from public.promotion_rule r where r.promotion_id = pg_temp.template('graduate_first_buy_in')),
-  (select id::text from public.tier where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Academy graduate'),
-  'the graduate bonus is for the venue''s Academy graduate tier');
 select is_empty($$ select 1 from public.promotion where template_key in ('high_hands', 'bad_beat', 'rivr_rewards', 'ladies_night', 'league',
                                                                       'sunday_guarantee') $$,
   'no venue has a word-only card (decision 0498)');
 select results_eq(
   $$ select p.venue_id::text, count(distinct p.id)::integer, count(r.id)::integer from public.promotion p left join public.promotion_rule r on r.promotion_id = p.id
      where p.template_key is not null group by p.venue_id order by p.venue_id $$,
-  $$ values ('00000000-0000-4000-8000-000000000001'::text, 7, 5), ('00000000-0000-4000-8000-000000000002', 7, 5) $$,
+  $$ values ('00000000-0000-4000-8000-000000000001'::text, 5, 3), ('00000000-0000-4000-8000-000000000002', 5, 3) $$,
   'the practice venue has the same');
 
 -- Adding them again adds nothing; a new venue gets them.
 select lives_ok($$ select private.add_promotion_templates('00000000-0000-4000-8000-000000000001') $$, 'the templates are added again');
 select is((select count(*)::integer from public.promotion_rule r join public.promotion p on p.id = r.promotion_id
-           where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key is not null), 5, 'and nothing is doubled');
+           where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key is not null), 3, 'and nothing is doubled');
 select private.bootstrap_venue('00000000-0000-4000-8000-0000000000aa', 'RIVR Test', 'test-templates', false, 'RIVR test', 'Test', 'TST');
 select is((select count(*)::integer from public.promotion p join public.promotion_rule r on r.promotion_id = p.id
-           where p.venue_id = '00000000-0000-4000-8000-0000000000aa' and p.template_key is not null), 5,
+           where p.venue_id = '00000000-0000-4000-8000-0000000000aa' and p.template_key is not null), 3,
   'a new venue starts with every template and its rules');
-select is((select count(*)::integer from public.promotion_version v where v.venue_id = '00000000-0000-4000-8000-0000000000aa'), 7,
+select is((select count(*)::integer from public.promotion_version v where v.venue_id = '00000000-0000-4000-8000-0000000000aa'), 5,
   'and their versions');
 
 -- Submitting a template: promotion managers only, from its draft; a super admin approves it, and it is announced.

@@ -1,14 +1,10 @@
 -- Cage follow-ups from the #57 review (#335). 211 Ishaan (identity check finished) sits at Table 3 (buy-in
--- ₹10,000) with ₹2,00,000 of wallet cash; 201 Arjun owes a ₹50,000 marker; 201 Arjun and 202 Kabir book the
--- Academy. 103 Aditya is the floor and Academy staff; 104 Sana a cashier (cage.transact).
+-- ₹10,000) with ₹2,00,000 of wallet cash; 201 Arjun owes a ₹50,000 marker.
+-- 103 Aditya is the floor; 104 Sana a cashier (cage.transact).
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
--- Learn, the Academy and Events are off since #637 (decision 0284): this test of them turns them back on for every tier.
-insert into public.tier_feature (venue_id, tier_id, feature_key, is_enabled, display_mode, effective_from)
-select t.venue_id, t.id, k.key, true, 'locked', now() - interval '1 second'
-from public.tier t cross join (values ('learn.library'), ('academy.booking'), ('events.book')) as k (key);
 
 create function pg_temp.as_person(p_person text) returns void language sql as $$
   select set_config('role', 'authenticated', true),
@@ -66,27 +62,6 @@ insert into ids select 'repaid', r.o_cage_transaction_id from public.repay_marke
   '00000000-0000-4000-8000-000000000201', 1000000, 'cash', null, '00000000-0000-4000-8000-000000335005') r;
 select throws_ok($$ select public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000201', 1000000, 'cash',
   '00000000-0000-4000-8000-000000335005') $$, '22023', null, 'a marker repayment''s request id is no buy-in');
-
--- One bank transfer pays for one thing: a UTR an Academy payment gave buys no chips, and a buy-in's UTR pays
--- for no Academy seat.
-select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-insert into ids select 'batch', public.create_academy_batch('00000000-0000-4000-8000-000000000001', 'Level 1, follow-ups', current_date + 10, current_date + 12, 5);
-select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
-insert into ids select 'arjun', public.book_academy(pg_temp.id('batch'));
-select lives_ok($$ select public.claim_academy_payment(pg_temp.id('arjun'), '323456789012') $$, 'Arjun gives the UTR of his Academy payment');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select throws_ok($$ select public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 1000000, 'upi',
-  gen_random_uuid(), '323456789012') $$, 'RVUTR', null, 'that UTR buys no chips while the cage checks it');
-select lives_ok($$ select public.confirm_academy_payment(pg_temp.id('arjun'), '323456789012') $$, 'the cashier finds it in the bank');
-select throws_ok($$ select public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 1000000, 'upi',
-  gen_random_uuid(), '323456789012') $$, 'RVUTR', null, 'nor once it has paid for his seat');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000202');
-insert into ids select 'kabir', public.book_academy(pg_temp.id('batch'));
-select throws_ok($$ select public.claim_academy_payment(pg_temp.id('kabir'), '223456789012') $$, 'RVUTR', null,
-  'the UTR of Ishaan''s buy-in pays for no Academy seat');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select public.record_academy_payment(pg_temp.id('kabir'), '223456789012') $$, 'RVUTR', null,
-  'nor when Academy staff record it');
 
 -- The cage's wallet, bonus and markers are the ledger's balances, read through its one balance function.
 reset role;

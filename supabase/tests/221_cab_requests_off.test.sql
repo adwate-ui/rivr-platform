@@ -51,9 +51,9 @@ select is(pg_temp.cards_saying('00000000-0000-4000-8000-000000000001', 'members 
 select set_config('request.jwt.claims', '', true);
 select private.bootstrap_venue('00000000-0000-4000-8000-0000000000ac', 'RIVR Cab Off', 'cab-off', false, 'RIVR test', 'Test', 'TCO');
 select results_eq($$ select is_enabled, display_mode from pg_temp.cab_cells('00000000-0000-4000-8000-0000000000ac') $$,
-  $$ values (false, 'hidden'), (false, 'hidden'), (false, 'hidden'), (false, 'hidden') $$, 'a new venue''s tiers start with cab requests off');
+  $$ values (false, 'hidden'), (false, 'hidden'), (false, 'hidden') $$, 'a new venue''s tiers start with cab requests off');
 select is((select count(*)::integer from public.tier_feature f join public.tier t on t.id = f.tier_id
-           where t.venue_id = '00000000-0000-4000-8000-0000000000ac' and f.feature_key = 'fnb.table_side' and f.is_enabled), 4,
+           where t.venue_id = '00000000-0000-4000-8000-0000000000ac' and f.feature_key = 'fnb.table_side' and f.is_enabled), 3,
   'and every other feature on, as before');
 select private.add_website('00000000-0000-4000-8000-0000000000ac');
 select is(pg_temp.cards_saying('00000000-0000-4000-8000-0000000000ac', 'Ask the front desk for a cab home.'), 1,

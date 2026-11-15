@@ -41,6 +41,6 @@ describe('siteBlockSchema', () => {
   });
 
   it('knows where each destination is in the player app', () => {
-    expect(PLAYER_DESTINATIONS).toEqual({ 'sign-up': '/sign-in', academy: '/academy', waitlist: '/' });
+    expect(PLAYER_DESTINATIONS).toEqual({ 'sign-up': '/sign-in', waitlist: '/' });
   });
 });

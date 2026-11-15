@@ -8,10 +8,10 @@ import type { Consumer } from '../outbox/index.ts';
 import type { AdapterFailure } from '../shared/failure.ts';
 
 /** The events that can be a conversion (#161, #162; scope-v1 "Growth", "Events sent"). */
-export const CONVERSION_EVENT_TYPES = ['academy.booked', 'kyc.completed', 'visit.opened', 'cage.buy_in', 'tournament.entered'] as const;
+export const CONVERSION_EVENT_TYPES = ['kyc.completed', 'visit.opened', 'cage.buy_in', 'tournament.entered'] as const;
 
 /** What the club reports. The database says which one an event is, if any (conversion_for). */
-export const CONVERSION_KINDS = ['academy_booking', 'kyc_complete', 'first_visit', 'first_buy_in', 'tournament_entry', 'repeat_visit'] as const;
+export const CONVERSION_KINDS = ['kyc_complete', 'first_visit', 'first_buy_in', 'tournament_entry', 'repeat_visit'] as const;
 export type ConversionKind = (typeof CONVERSION_KINDS)[number];
 
 /** Whose conversion it is and which: each vendor's adapter hashes the identifiers before anything leaves. */
@@ -73,7 +73,6 @@ export function createConversionConsumer({ name, find, report, now = () => new D
 }
 
 const META_EVENT: Readonly<Record<ConversionKind, MetaEventName>> = {
-  academy_booking: 'Schedule',
   kyc_complete: 'CompleteRegistration',
   first_visit: 'FirstVisit',
   first_buy_in: 'FirstBuyIn',
@@ -89,8 +88,16 @@ export function reportToMeta(meta: MetaConversionsAdapter): ReportConversion {
   });
 }
 
-/** Google Ads' conversion action for each kind, as `customers/<id>/conversionActions/<id>`: one for every kind. */
-export const conversionActionsSchema = z.record(z.enum(CONVERSION_KINDS), z.string().regex(/^customers\/\d+\/conversionActions\/\d+$/));
+const KINDS: readonly string[] = CONVERSION_KINDS;
+
+/**
+ * Google Ads' conversion action for each kind, as `customers/<id>/conversionActions/<id>`: one for every kind. A key that
+ * is no kind, such as the Academy booking's in a value saved before 15 Nov, is left out, so that value still reads.
+ */
+export const conversionActionsSchema = z.preprocess(
+  (value) => (typeof value === 'object' && value !== null ? Object.fromEntries(Object.entries(value).filter(([kind]) => KINDS.includes(kind))) : value),
+  z.record(z.enum(CONVERSION_KINDS), z.string().regex(/^customers\/\d+\/conversionActions\/\d+$/)),
+);
 export type ConversionActions = z.infer<typeof conversionActionsSchema>;
 
 /** Reports each conversion to Google Ads, under its kind's conversion action. Members arrive from a store, not a click. */

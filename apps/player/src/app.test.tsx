@@ -169,19 +169,6 @@ describe('the player app', () => {
     expect(screen.queryByRole('link', { name: 'Balance' })).toBeNull();
   });
 
-  it.each(['/academy', '/academy/b1', '/academy/b1/invoice'])('sends the Academy’s old address %s to Learn, as the app takes no payments', async (address) => {
-    signIn();
-    const router = renderAt(address, clientWithKabir());
-    await waitFor(() => expect(router.state.location.pathname).toBe('/learn'));
-  });
-
-  it('shows no Learn screen to someone without access', async () => {
-    signIn();
-    renderAt('/learn');
-    await screen.findByRole('navigation', { name: 'Main' });
-    expect(screen.queryByRole('heading', { name: 'Learn' })).toBeNull();
-  });
-
   it('Errors › Not found: says the page does not exist, with the tabs and the way to Tonight', async () => {
     signIn();
     renderAt('/nowhere', clientWithKabir());

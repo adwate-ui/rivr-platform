@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-/** The events the club adds to the calendar (#143); Academy batches are listed beside them from the Academy. */
+/** The events the club adds to the calendar (#143). */
 export const CLUB_EVENT_KINDS = ['pro_night', 'corporate_table'] as const;
 export type ClubEventKind = (typeof CLUB_EVENT_KINDS)[number];
 

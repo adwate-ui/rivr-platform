@@ -48,7 +48,6 @@ packages/
   i18n/        the message catalogue (English) and formatters for money, time and stakes
   offline/     IndexedDB outbox, ordered replay, idempotency keys
   render/      graphics templates and the render service client
-  drills/      the drill engine ported from poker-settle
   adapters/    one interface per vendor, each with a real implementation and an in-memory fake
   config/      shared ESLint, TypeScript, Tailwind, Vitest, Playwright, Stryker configuration
   testing/     factories, seed data from the design prompt, golden-test helpers

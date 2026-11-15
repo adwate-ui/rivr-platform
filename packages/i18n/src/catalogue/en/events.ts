@@ -1,4 +1,4 @@
-/** The events calendar (#143): pro nights and corporate tables, with the Academy's batches beside them. */
+/** The events calendar (#143): pro nights and corporate tables. */
 export const consoleEvents = {
   title: 'Events',
   notAllowed: 'Events are for staff who run promotions.',

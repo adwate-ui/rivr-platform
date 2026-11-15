@@ -1,7 +1,6 @@
 import { t } from '@rivr/i18n';
 import { Screen } from '@rivr/ui';
 import { createRouter, type ErrorComponentProps, type RouterHistory } from '@tanstack/react-router';
-import { academyPaymentsRoute, academyRoute } from './routes/academy.tsx';
 import { frameRoute } from './routes/frame.tsx';
 import { homeRoute } from './routes/home.tsx';
 import { settingsRoute } from './routes/settings.tsx';
@@ -53,7 +52,6 @@ import { socialRoute } from './routes/social.tsx';
 import { hostQueueRoute } from './routes/host-queue.tsx';
 import { websiteRoute } from './routes/website.tsx';
 import { eventsRoute } from './routes/events.tsx';
-import { learnSourcesRoute } from './routes/learn-sources.tsx';
 import { tournamentsRoute } from './routes/tournaments.tsx';
 import { potDataRoute } from './routes/pot-data.tsx';
 import { dealersRoute } from './routes/dealers.tsx';
@@ -77,7 +75,7 @@ const routeTree = rootRoute.addChildren([
     doorRoute,
     contentRoute,
     requestsRoute,
-    homeRoute, academyRoute, academyPaymentsRoute, kycReviewRoute, waitlistRoute, checkInRoute, cageRoute, tabletsRoute, tvsRoute, computersRoute, camerasRoute, dealerPinsRoute, rakeRoute, jackpotsRoute,
+    homeRoute, kycReviewRoute, waitlistRoute, checkInRoute, cageRoute, tabletsRoute, tvsRoute, computersRoute, camerasRoute, dealerPinsRoute, rakeRoute, jackpotsRoute,
     highHandsRoute, fnbRoute, markersRoute, membersRoute, activityRoute, killSwitchRoute, practiceResetRoute, purgeRoute, exportsRoute, amlRoute, withdrawalsRoute, treasuryRoute, endOfDayRoute, staffRoute, rosterRoute,
     certificationRoute,
     sopsRoute,
@@ -94,7 +92,6 @@ const routeTree = rootRoute.addChildren([
     hostQueueRoute,
     websiteRoute,
     eventsRoute,
-    learnSourcesRoute,
     tournamentsRoute,
     accountsRoute,
     expensesRoute,

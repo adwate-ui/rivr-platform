@@ -14,7 +14,7 @@ select is((select count(*) from more_member where user_id is not null), 80::bigi
 
 select results_eq(
   $$ select t.name, count(*) from more_member m join public.tier t on t.id = m.tier_id group by t.name order by t.name $$,
-  $$ values ('Academy graduate'::text, 12::bigint), ('Black card', 8), ('Founders'' Circle', 10), ('Member', 70) $$,
+  $$ values ('Black card'::text, 8::bigint), ('Founders'' Circle', 10), ('Member', 82) $$,
   'in every tier');
 select is((select count(*) from more_member m join public.tier t on t.id = m.tier_id
            where t.name = 'Black card' and m.qualifying_big_blind is not null), 8::bigint, 'each black card qualifying at a stake');
