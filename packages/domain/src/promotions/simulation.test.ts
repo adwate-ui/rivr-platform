@@ -75,7 +75,7 @@ describe('simulate', () => {
 
   it('counts a perk as a perk, with no chips', () => {
     const visit = toPromotionEvent(buildPromotionEvent({ kind: 'visit', visitInMonth: 4 }, { tableId: null, stake: null }));
-    const result = simulate(buildPromotionTerms({ reward: { kind: 'cab_home', fromVisitInMonth: 4 } }), [{ event: visit, member }]);
+    const result = simulate(buildPromotionTerms({ reward: { kind: 'waitlist_priority' } }), [{ event: visit, member }]);
     expect([result.perks, result.chips]).toEqual([1, 0]);
   });
 });

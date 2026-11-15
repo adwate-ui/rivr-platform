@@ -16,6 +16,20 @@ export const common = {
   /** The heading over notFound. */
   notFoundTitle: 'Page not found',
   notFound: 'This page is not here. Check the address, or go back.',
+  /**
+   * The high hand bonus (redesign RD-22), wherever it is named: the hands a promotion lists, a rank as "Four Jacks" and
+   * "Kings full" say it, a straight flush's high card, a hit named exactly, and the rules. Read through formatHighHand.
+   */
+  highHand: {
+    hands: { royal_flush: 'Royal flush', straight_flush: 'Straight flush', four_of_a_kind: 'Four of a kind', aces_full: 'Aces full', full_house: 'Any full house' },
+    ranks: {
+      ace: 'Aces', king: 'Kings', queen: 'Queens', jack: 'Jacks', ten: 'Tens', nine: 'Nines', eight: 'Eights', seven: 'Sevens', six: 'Sixes', five: 'Fives',
+      four: 'Fours', three: 'Threes', two: 'Twos',
+    },
+    highCards: { king: 'King', queen: 'Queen', jack: 'Jack', ten: 'Ten', nine: 'Nine', eight: 'Eight', seven: 'Seven', six: 'Six', five: 'Five' },
+    hit: { straightFlush: 'Straight flush, {rank} high', fourOfAKind: 'Four {rank}', fullHouse: '{rank} full' },
+    rules: { bothHoleCards: 'Both hole cards must play', shownAtShowdown: 'Shown at showdown', playersDealt: '{count} or more players dealt in' },
+  },
   /** LockedNotice: a feature this member's tier does not have. `{tiers}` is a formatted list. */
   featureLocked: '{tiers} only.',
   /** LockedNotice: a feature taken from this member alone by the club (#353), so no tier is the way in. */

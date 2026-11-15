@@ -26,6 +26,7 @@ Every word a member or staff user reads, and the one formatter for money, number
 | `formatIsoDay(date)`, `istMidnight(day)`, `isLaterIstDay(day)` | `2026-11-15`, the IST calendar day as a date field gives it; `2026-11-15T00:00:00+05:30`, its midnight; whether a day is after today in IST, for a setting from a later day. The console's one way to name today (F1-30). |
 | `formatMonth(month)` | A calendar month from `2026-11` or `2026-11-01`: `November 2026`. |
 | `formatList(items)` | `Black card and Founders' Circle`. |
+| `formatListedHand(hand)`, `formatHandRank(hand, rank)`, `formatHighHand(hand, rank)`, `formatHighHandRules(rules)` | A high hand in words (redesign RD-23): a hand as a promotion lists it, `Four of a kind`; a rank, `Jacks`; a hit named exactly, `Four Jacks`, `Straight flush, Nine high`, `Kings full`, `Royal flush`; and the rules a promotion holds, each a phrase, `4 or more players dealt in`. |
 | `formatMobile(e164)` | `+919876543210` to `+91 98765 43210`. |
 | `en` | The catalogue itself, for code that needs a key's type (`keyof typeof en.ui.consoleRail.items`) or every message (the copy test). Screens use `t`, not this: importing it as a value ships every app's copy. |
 | `Translate` | The type of `t`. |

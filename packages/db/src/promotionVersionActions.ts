@@ -9,17 +9,20 @@ import { queryKeys } from './queryKeys.ts';
 
 /**
  * Why a version call did not go through: not allowed, terms the model refuses, no simulation on these terms, a super
- * admin approving their own, decided already, promotions switched off, the venue paused, no such promotion, no answer.
+ * admin approving their own, decided already, promotions switched off, the venue paused, no such promotion, another high
+ * hand promotion running (redesign RD-22: one a venue), no answer.
  */
 export type PromotionVersionFailure =
   | 'not_allowed' | 'invalid' | 'needs_simulation' | 'own_promotion' | 'already_decided' | 'switched_off' | 'paused' | 'not_found' | 'tiers_fixed'
-  | 'unavailable';
+  | 'another_high_hand' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, PromotionVersionFailure>> = {
   '42501': 'not_allowed', '22023': 'invalid', '23514': 'invalid', '23502': 'invalid', RVVER: 'invalid', RVSIM: 'needs_simulation',
   RVTWO: 'own_promotion', RVDEC: 'already_decided', RVKIL: 'switched_off', RVFRZ: 'paused', P0002: 'not_found',
   // A promotion pays in tiers from its first version or never (decision 0580).
   RVTIR: 'tiers_fixed',
+  // One high hand promotion runs in a venue (redesign RD-22).
+  RVHH1: 'another_high_hand',
 };
 
 /** A draft as the builder saves it: a new promotion's (no id) or the next version of one, with its card's two lines. */

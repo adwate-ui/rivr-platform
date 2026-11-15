@@ -65,6 +65,53 @@ describe('the promotion builder (console v3)', () => {
     expect(screen.getByRole('textbox', { name: 'Bonus chips' })).toHaveProperty('value', '1000');
   });
 
+  it('builds a high hand from its template: hands added and removed, each with its Bonus, and the three rules (redesign RD-23)', async () => {
+    const { bodiesOf } = renderBuilder(NEW);
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Start from' })).getByRole('radio', { name: 'High hand bonus' }));
+    expect(within(screen.getByRole('radiogroup', { name: 'Reward' })).getByRole('radio', { name: 'High hand' }).getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByRole('textbox', { name: 'Royal flush' })).toHaveProperty('value', '25000');
+    expect(screen.getByText(/^Royal flush 25,000, Straight flush 10,000, Four of a kind 5,000 Bonus, paid each time, for all stakes, every day, all day\. No limit per member, budget 2,00,000 chips a month\./)).toBeDefined();
+    // A hand just added has no Bonus yet: nothing is saved, and the list says why.
+    fireEvent.click(within(screen.getByRole('group', { name: 'Add a hand' })).getByRole('button', { name: 'Aces full' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Simulate' }));
+    expect(await screen.findByText('Each hand needs its Bonus, in whole 50s.')).toBeDefined();
+    expect(bodiesOf('save_promotion_draft')).toHaveLength(0);
+    fireEvent.change(screen.getByRole('textbox', { name: 'Aces full' }), { target: { value: '2000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Four of a kind' }));
+    fireEvent.click(screen.getByRole('switch', { name: 'Shown at showdown' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Players dealt in, at least' }), { target: { value: '5' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Simulate' }));
+    await waitFor(() => expect(bodiesOf('save_promotion_draft')).toHaveLength(1));
+    expect(bodiesOf('save_promotion_draft')[0]).toMatchObject({
+      p_draft: {
+        terms: {
+          reward: {
+            kind: 'high_hand', rules: { bothHoleCards: true, shownAtShowdown: false, minPlayersDealt: 5 },
+            hands: [{ hand: 'royal_flush', chips: 25_000 }, { hand: 'straight_flush', chips: 10_000 }, { hand: 'aces_full', chips: 2_000 }],
+          },
+          limits: { perMember: 'none', budgetChips: 200_000, budgetPeriod: 'month' },
+        },
+        detail: 'Up to 25,000 Bonus a hand',
+      },
+    });
+  });
+
+  it('asks a high hand for its budget, and says so when another high hand promotion runs', async () => {
+    renderBuilder(NEW, { ...SAVED_AND_REPLAYED, '/rpc/submit_promotion_version': refused('RVHH1') });
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Start from' })).getByRole('radio', { name: 'High hand bonus' }));
+    // Paid every time, so no limit a member or a day is asked.
+    expect(screen.queryByRole('radiogroup', { name: 'Each member' })).toBeNull();
+    expect(screen.queryByRole('textbox', { name: 'Most members a day' })).toBeNull();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Budget' }), { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Simulate' }));
+    expect(await screen.findByText('A high hand needs a budget, in whole 50s.')).toBeDefined();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Budget' }), { target: { value: '100000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Simulate' }));
+    await waitFor(() => expect(submitButton()).toHaveProperty('disabled', false));
+    fireEvent.click(submitButton());
+    expect(await screen.findByText('Another high hand promotion is running. End it first.')).toBeDefined();
+  });
+
   it('offers no buy-in bonus, cab home or tournament entry: nothing could pay them (audit F-005, F-033)', () => {
     renderBuilder(NEW);
     const rewards = within(screen.getByRole('radiogroup', { name: 'Reward' }));

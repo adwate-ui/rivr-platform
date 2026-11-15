@@ -14,8 +14,8 @@ export function toPromotionEvent(json: PromotionEventJson): PromotionEvent {
   return { ...json, at: new Date(json.at) };
 }
 
-/** A perk the floor fulfils: a cab home, a tournament entry, first call on the waitlist. */
-export type Perk = 'cab_home' | 'tournament_entry' | 'waitlist_priority';
+/** A perk the floor fulfils: first call on the waitlist. A cab home and a tournament entry went on 15 Nov (question 943). */
+export type Perk = 'waitlist_priority';
 
 /** What one promotion gives for one event: bonus chips or a perk, never paise; the other is 0 or null. */
 export interface Grant {
@@ -27,10 +27,10 @@ export const NO_GRANT: Grant = { chips: 0, perk: null };
 
 /**
  * Why a promotion gives nothing for an event: it is for another kind of event, nothing comes to anything, the time
- * played is short of its minutes, the step reached is not one of the play-time bonus's own, the visit is before its
- * number in the month, the seat is not the visit's first, or a high hand is not one it pays (HighHandRefusal).
+ * played is short of its minutes, the step reached is not one of the play-time bonus's own, the seat is not the visit's
+ * first, or a high hand is not one it pays (HighHandRefusal).
  */
-export type GrantRefusal = 'other_event' | 'too_short' | 'not_a_step' | 'not_yet' | 'not_first_seat' | HighHandRefusal;
+export type GrantRefusal = 'other_event' | 'too_short' | 'not_a_step' | 'not_first_seat' | HighHandRefusal;
 
 type EventOf<K extends PromotionEventKind> = Extract<PromotionEvent, { kind: K }>;
 
@@ -82,13 +82,10 @@ function highHandGrant(reward: Reward, event: EventOf<'high_hand'>): Result<Gran
   return payout.ok ? ok(chipsGrant(payout.value.chips)) : payout;
 }
 
-function visitGrant(reward: Reward, event: EventOf<'visit'>): Result<Grant, GrantRefusal> {
+function visitGrant(reward: Reward): Result<Grant, GrantRefusal> {
   switch (reward.kind) {
     case 'bonus_chips':
       return reward.on === 'visit' ? ok(chipsGrant(reward.chips)) : err('other_event');
-    case 'cab_home':
-      return event.visitInMonth >= reward.fromVisitInMonth ? ok({ ...NO_GRANT, perk: 'cab_home' }) : err('not_yet');
-    case 'tournament_entry':
     case 'waitlist_priority':
       return ok({ ...NO_GRANT, perk: reward.kind });
     default:
@@ -99,8 +96,7 @@ function visitGrant(reward: Reward, event: EventOf<'visit'>): Result<Grant, Gran
 /**
  * What a promotion's reward gives for one event (decision 0472), before its limits: chips or a perk, never paise. A
  * seat bonus's chips on a seat; a play-time bonus step's chips as each step is reached (owner, 8 Nov);
- * bonus chips on their event; a cab home from the visit's
- * number in the month; an entry or waitlist priority on a visit. Time played gives nothing itself: a play-time bonus is
+ * bonus chips on their event; waitlist priority on a visit. Time played gives nothing itself: a play-time bonus is
  * weighed as each of its steps is reached. A high hand pays its listed hand's Bonus (highHandPayout). The database's
  * private.promo_grant is proved equal on promotionRewards.json.
  */
@@ -114,7 +110,7 @@ export function computeGrant(promo: { readonly reward: Reward }, event: Promotio
     case 'hours_step':
       return stepGrant(reward, event);
     case 'visit':
-      return visitGrant(reward, event);
+      return visitGrant(reward);
     case 'high_hand':
       return highHandGrant(reward, event);
     default:

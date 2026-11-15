@@ -56,8 +56,6 @@ export const rewardSchema = z.union([
     timesPerVisit: z.int().min(1).max(20).optional(),
   }),
   z.strictObject({ kind: z.literal('bonus_chips'), chips, on: z.enum(BONUS_CHIPS_ON) }),
-  z.strictObject({ kind: z.literal('cab_home'), fromVisitInMonth: z.int().min(1).max(31) }),
-  z.strictObject({ kind: z.literal('tournament_entry'), tournamentId: z.string().trim().min(1).max(80) }),
   z.strictObject({ kind: z.literal('waitlist_priority') }),
   // Paid at once, every time a listed hand is hit and the floor logs it (redesign RD-22).
   z.strictObject({ kind: z.literal('high_hand'), hands: highHands, rules: highHandRules }),

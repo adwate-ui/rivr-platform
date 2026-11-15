@@ -24,6 +24,9 @@ interface PromotionsScreenProps {
   onNavigate: (href: string) => void;
 }
 
+// Log a high hand is the Live floor's (redesign RD-24): the record's button opens it there.
+const LOG_HIGH_HAND = '/?log=high-hand';
+
 function PromotionsBody({ venueId, actor, open, onOpen, tab, onNavigate }: PromotionsScreenProps & { venueId: string; actor: Actor }) {
   const names = useBuilderNames(venueId);
   const title = t('console.promotions.title');
@@ -31,7 +34,11 @@ function PromotionsBody({ venueId, actor, open, onOpen, tab, onNavigate }: Promo
     return names.status === 'error' ? <Screen title={title} status="error" onRetry={names.retry} /> : <Screen title={title} status="loading" loadingLook="rows" />;
   }
   const back = () => onOpen(null);
-  if (open === undefined) return <PromotionList venueId={venueId} names={names.value.names} onOpen={onOpen} tab={tab} onNavigate={onNavigate} />;
+  // Those who add Bonus by hand log a high hand (decision 0621).
+  const logHighHand = actor.permissions.includes('bonus.give') ? () => onNavigate(LOG_HIGH_HAND) : undefined;
+  if (open === undefined) {
+    return <PromotionList venueId={venueId} names={names.value.names} onOpen={onOpen} tab={tab} onNavigate={onNavigate} onLogHighHand={logHighHand} />;
+  }
   if (open === 'new') return <PromotionBuilder venueId={venueId} names={names.value} actor={actor} start={newStart()} onDone={back} />;
   return <PromotionOpen key={open} venueId={venueId} promotionId={open} names={names.value} actor={actor} onDone={back} />;
 }

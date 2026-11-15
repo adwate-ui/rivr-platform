@@ -3160,6 +3160,11 @@ isOneToOne: false
 "hide_my_session":
 { Args: { "p_session_id": string }; Returns: undefined
                            },
+"high_hand_tonight":
+{ Args: { "p_limit"?: number,"p_promotion_id"?: string,"p_venue_id": string }; Returns: {
+              "chips": number,"hand": string,"hit_id": string,"logged_at": string,"logged_by": string,"member_id": string,"member_name": string,"paid_chips": number,"paid_count": number,"rank": string,"seat": number,"table_name": string
+            }[]
+                           },
 "import_glaza_lines":
 { Args: { "p_lines": Json,"p_month": string,"p_venue_id": string }; Returns: string
                            },

@@ -22,8 +22,6 @@ const reward: fc.Arbitrary<Reward> = fc.oneof(
     .map(({ every, amount, times }): Reward => ({ kind: 'hours_bonus', mode: 'every', everyMinutes: every, chips: amount, ...(times === undefined ? {} : { timesPerVisit: times }) })),
   fc.record({ amount: chips, on: fc.constantFrom('visit', 'referral', 'signup' as const) })
     .map(({ amount, on }): Reward => ({ kind: 'bonus_chips', chips: amount, on })),
-  fc.integer({ min: 1, max: 31 }).map((visit): Reward => ({ kind: 'cab_home', fromVisitInMonth: visit })),
-  fc.constant<Reward>({ kind: 'tournament_entry', tournamentId: 'RIVR Sunday' }),
   fc.constant<Reward>({ kind: 'waitlist_priority' }),
   chips.map((amount): Reward => ({
     kind: 'high_hand', hands: [{ hand: 'four_of_a_kind', chips: amount }], rules: { bothHoleCards: true, shownAtShowdown: false, minPlayersDealt: 4 },
@@ -67,7 +65,7 @@ const limits: fc.Arbitrary<Limits> = fc.record({
 }));
 const grant: fc.Arbitrary<Grant> = fc.record({
   chips: fc.nat({ max: 200 }).map((fifties) => fifties * 50),
-  perk: fc.constantFrom(null, 'cab_home' as const, 'waitlist_priority' as const),
+  perk: fc.constantFrom(null, 'waitlist_priority' as const),
 });
 const ledger: fc.Arbitrary<LedgerEntry[]> = fc.array(fc.tuple(grant, fc.constantFrom('m1', 'm2'), fc.constantFrom('2026-11-16', '2026-11-17')).map(
   ([given, memberId, clubDay]) => ({ ...given, memberId, clubDay, periodKey: `day:${clubDay}`, tableId: 't1' }),

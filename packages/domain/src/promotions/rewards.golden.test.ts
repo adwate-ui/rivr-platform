@@ -18,7 +18,7 @@ function field(record: unknown, key: string): unknown {
 
 const numberOf = (value: unknown): number => (typeof value === 'number' ? value : 0);
 const textOrNull = (value: unknown): string | null => (typeof value === 'string' ? value : null);
-const PERKS: readonly Perk[] = ['cab_home', 'tournament_entry', 'waitlist_priority'];
+const PERKS: readonly Perk[] = ['waitlist_priority'];
 const perkOf = (value: unknown): Perk | null => PERKS.find((perk) => perk === value) ?? null;
 
 function grantOf(json: unknown): Grant {
