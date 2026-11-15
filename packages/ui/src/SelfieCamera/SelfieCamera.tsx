@@ -1,14 +1,19 @@
 import { t } from '@rivr/i18n';
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { Button } from '../Button/Button.tsx';
-import { photoOf, Trouble, useCamera } from '../CameraCapture/CameraCapture.tsx';
+import { photoOf, Trouble, useCamera, type CameraTrouble } from '../CameraCapture/CameraCapture.tsx';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage.tsx';
 import { Heading } from '../Heading/Heading.tsx';
 import { usePageTitle } from '../Screen/Screen.tsx';
 import { cx } from '../internal/classes.ts';
 import { useFaceGuidance, type Guidance } from './faceGuidance.ts';
 
+/** What went wrong with the camera, by kind: why it did not start, or `photo`, a photo that could not be made. */
+export type SelfieTrouble = CameraTrouble | 'photo';
+
 export interface SelfieCameraProps {
+  /** Told each time the camera does not start or a photo cannot be made, by kind only, for the app to report. */
+  onTrouble?: ((trouble: SelfieTrouble) => void) | undefined;
   /** The selfie the member kept. */
   onPhoto: (photo: Blob) => void;
   /** While the kept photo is sent: Use photo turns busy and Retake waits. */
@@ -105,18 +110,27 @@ function Review({ photo, isSending, error, onUse, onRetake }: ReviewProps) {
  * The redesign's selfie (decision 0320): the live camera with its oval and guidance, then the photo to use or retake. A
  * blocked or missing camera says what to do, as CameraCapture does, with a QR code to carry on with a phone.
  */
-export function SelfieCamera({ onPhoto, isSending = false, error, onBack, phoneUrl }: SelfieCameraProps) {
+export function SelfieCamera({ onPhoto, isSending = false, error, onBack, phoneUrl, onTrouble }: SelfieCameraProps) {
   // Full screen, with no step around it: it names the page itself (WCAG 2.4.2).
   usePageTitle(t('ui.selfie.title'));
   const [taken, setTaken] = useState<{ photo: Blob; count: number } | null>(null);
   const camera = useCamera('user', taken === null);
   const isTaking = useRef(false);
+  const tell = useRef(onTrouble);
+  useEffect(() => {
+    tell.current = onTrouble;
+  });
+  useEffect(() => {
+    if (camera.trouble) tell.current?.(camera.trouble);
+  }, [camera.trouble]);
   const take = async () => {
     if (isTaking.current || camera.video.current === null) return;
     isTaking.current = true;
     const photo = await photoOf(camera.video.current, true).catch(() => null);
     isTaking.current = false;
     if (photo) setTaken((last) => ({ photo, count: (last?.count ?? 0) + 1 }));
+    // Nothing shows when the photo cannot be made, and the member taps again: the app is told, at least.
+    else tell.current?.('photo');
   };
   if (taken) {
     return <Review key={taken.count} photo={taken.photo} isSending={isSending} error={error} onUse={() => onPhoto(taken.photo)}

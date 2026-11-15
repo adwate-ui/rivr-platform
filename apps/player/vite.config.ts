@@ -37,8 +37,9 @@ const pwa = VitePWA({
   },
   workbox: {
     globPatterns: ['**/*.{js,css,html,woff2}', 'icons/*.png'],
-    // English only (#186): the Devanagari faces the stylesheet still carries are never drawn.
-    globIgnores: ['**/*devanagari*'],
+    // English only (#186): the Devanagari faces the stylesheet still carries are never drawn. Sentry's chunk
+    // (features/error-reporting/sentry.ts) is fetched only by a build that reports errors, so a phone never keeps it unasked.
+    globIgnores: ['**/*devanagari*', '**/sentry-*.js'],
     navigateFallback: '/index.html',
     // Web push (#139): public/push-sw.js shows each notification and opens its page when tapped.
     importScripts: ['push-sw.js'],

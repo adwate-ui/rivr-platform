@@ -1,3 +1,5 @@
+// First: it listens for errors from the moment it loads, so one thrown while the modules below load is kept (decision 0604).
+import { ReportingVenue, reportFailure, startErrorReporting } from './features/error-reporting/index.ts';
 import './messages.ts';
 import '@rivr/ui/styles.css';
 import { createRivrClient, rememberAttribution, RivrDataProvider } from '@rivr/db';
@@ -6,7 +8,10 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { registerSW } from 'virtual:pwa-register';
 import { startInstallWatch, takeUpdateWhenHidden, takeWaitingUpdateAtNewScreens, watchLaunch } from './features/frame/index.ts';
-import { router } from './router.tsx';
+import { routePatternOf, router } from './router.tsx';
+
+// Errors reach Sentry where the build names its address (#928); in any other build nothing is kept, loaded or sent.
+startErrorReporting({ app: 'player', version: import.meta.env.VITE_APP_VERSION, route: () => routePatternOf(router) });
 
 // The codes of the link the app opened with, kept until sign-up (#10).
 rememberAttribution(window.location.search);
@@ -47,7 +52,8 @@ if (!container) throw new Error('index.html has no #root element');
 
 createRoot(container).render(
   <StrictMode>
-    <RivrDataProvider client={client} keepsForOffline>
+    <RivrDataProvider client={client} keepsForOffline onFailure={reportFailure}>
+      <ReportingVenue />
       <RouterProvider router={router} />
     </RivrDataProvider>
   </StrictMode>,

@@ -22,7 +22,7 @@ Secrets live in GitHub environments (Settings â†’ Environments), never at reposi
 | `staging` | `main` only | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_STAGING_REF`, `SUPABASE_STAGING_DB_PASSWORD`, and the staging `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` |
 | `e2e-staging` | `release-*` tags only | `E2E_SIGN_IN_CODE`: the private code staging's test numbers take, so the release's sign-in flow can sign in. Without it that flow fails. |
 | `backup-staging`, `backup-production` | `main` only (the nightly backup, #25) | `BACKUP_DB_URL` (the read-only `rivr_backup` role, never `postgres`), plus `BACKUP_S3_ACCESS_KEY_ID` and `BACKUP_S3_SECRET_ACCESS_KEY` for that target's own bucket. Variables: `BACKUP_S3_ENDPOINT`, `BACKUP_BUCKET` and `BACKUP_AGE_RECIPIENT`. See `docs/runbooks/backups-and-restore.md`. |
-| `production` | `release-*` tags only, after the repository owner approves | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROD_REF`, `SUPABASE_PROD_DB_PASSWORD`, the production `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, and `SENTRY_AUTH_TOKEN` and `SENTRY_DSN` when Sentry is wired in |
+| `production` | `release-*` tags only, after the repository owner approves | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROD_REF`, `SUPABASE_PROD_DB_PASSWORD`, the production `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, and `SENTRY_AUTH_TOKEN` for uploading source maps. Not set yet: the owner said later (15 Nov, decision 0604). Never under a `VITE_` name, which would put it in the built app |
 
 Staging and production use separate Cloudflare accounts, or at least tokens scoped to their own projects, so a preview token can never deploy production.
 
@@ -38,6 +38,7 @@ Variables are plain and visible, so they hold only non-secret values (Settings â
 | `PROD_CASHFREE_ENVIRONMENT` | `sandbox` keeps production on Cashfree's sandbox through releases (decision 0421); unset means `production` |
 | `PROD_TABLET_URL` | the hosted bundle the APK shell loads |
 | `PROD_DISPLAY_URL` | the hosted TV app, so `device-pair` answers TVs asking for a pairing code (#49) |
+| `SENTRY_DSN_PLAYER` | the player app's production build only, as `VITE_SENTRY_DSN` (decision 0604): the Sentry project's address, public in the built app. A variable of the `production` environment, not of the repository, so no staging or pull-request build is ever given it. Not set yet, and no workflow passes it: the owner said later (15 Nov). Until then the player app reports nothing anywhere |
 
 Auth and API on staging and production, in the Supabase dashboard:
 
