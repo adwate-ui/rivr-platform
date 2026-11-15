@@ -1479,14 +1479,14 @@ isOneToOne: false
                   ]
                 },"promotion_bonus_decision": {
                   Row: {
-                    "amount_paise": number,"created_at": string,"decided_by_staff_id": string | null,"decision": string,"grants": number,"id": string,"reason": string | null,"request_id": string,"updated_at": string,"venue_id": string
+                    "amount_paise": number,"created_at": string,"decided_by_staff_id": string | null,"decision": string,"grants": number,"id": string,"left_waiting": number,"reason": string | null,"request_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_paise": number,"created_at"?: string,"decided_by_staff_id"?: string | null,"decision": string,"grants": number,"id"?: string,"reason"?: string | null,"request_id": string,"updated_at"?: string,"venue_id": string
+                    "amount_paise": number,"created_at"?: string,"decided_by_staff_id"?: string | null,"decision": string,"grants": number,"id"?: string,"left_waiting"?: number,"reason"?: string | null,"request_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "amount_paise"?: number,"created_at"?: string,"decided_by_staff_id"?: string | null,"decision"?: string,"grants"?: number,"id"?: string,"reason"?: string | null,"request_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "amount_paise"?: number,"created_at"?: string,"decided_by_staff_id"?: string | null,"decision"?: string,"grants"?: number,"id"?: string,"left_waiting"?: number,"reason"?: string | null,"request_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -2663,7 +2663,7 @@ isOneToOne: false
                            },
 "approve_promotion_bonus":
 { Args: { "p_grant_ids": (string)[],"p_request_id": string,"p_venue_id": string }; Returns: {
-              "amount_paise": number,"decision_id": string,"grants": number
+              "amount_paise": number,"decision_id": string,"grants": number,"left_waiting": number
             }[]
                            },
 "approve_promotion_version":
@@ -3417,7 +3417,7 @@ isOneToOne: false
                            },
 "refuse_promotion_bonus":
 { Args: { "p_grant_ids": (string)[],"p_reason": string,"p_request_id": string,"p_venue_id": string }; Returns: {
-              "amount_paise": number,"decision_id": string,"grants": number
+              "amount_paise": number,"decision_id": string,"grants": number,"left_waiting": number
             }[]
                            },
 "register_tournament_interest":

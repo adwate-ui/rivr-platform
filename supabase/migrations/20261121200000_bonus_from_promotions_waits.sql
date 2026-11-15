@@ -2,7 +2,8 @@
 -- with nothing on the ledger and nothing to the member, until a super admin approves it (posted then, exactly as the grant
 -- posted it, with the push "Bonus added") or refuses it (nothing posted, nothing said). The high hand bonus is paid at once,
 -- the floor's log being its check (the owner's choice); Bonus by hand is no promotion's and is unchanged. A waiting Bonus
--- counts toward its promotion's limits and budget as one given; a refused one counts toward nothing. Decision 0670.
+-- counts toward its promotion's limits and budget as one given; a refused one counts toward nothing, and the member's next
+-- grant in its period takes the slot after it. Decision 0670.
 -- Nothing waits at deploy: every grant made before is given.
 
 -- Who decided which Bonus, once a request: approved, or refused with a reason. The grants it decided point at it.
@@ -14,6 +15,8 @@ create table public.promotion_bonus_decision (
   decision text not null check (decision in ('approved', 'refused')),
   grants integer not null check (grants > 0),
   amount_paise bigint not null check (amount_paise > 0),
+  -- An approval leaves a frozen member's Bonus waiting: how many it left.
+  left_waiting integer not null default 0 check (left_waiting >= 0),
   reason text check (length(btrim(reason)) between 3 and 200),
   decided_by_staff_id uuid,
   created_at timestamptz not null default now(),
@@ -48,19 +51,23 @@ alter table public.promotion_grant
 comment on column public.promotion_grant.status is 'waiting for a super admin (a promotion''s Bonus), given, or refused (decision 0670).';
 comment on column public.promotion_grant.event is 'The event the grant was calculated for, as the engine saw it: its kind, moment, table and step.';
 
--- A refused grant holds no slot of its period: the member's next grant in it may take the slot (decision 0670). It keeps its
--- event's key, so the same event is never weighed again.
-drop index public.promotion_grant_period_key;
-create unique index promotion_grant_period_key on public.promotion_grant (promotion_id, member_id, period_key)
-  where period_key is not null and status <> 'refused';
+-- A refused grant keeps its event's key, so the same event is never weighed again, and its period slot: the engine numbers
+-- the member's next slot after every grant of the period (promotion_tally's periodSlots).
 create index promotion_grant_waiting_idx on public.promotion_grant (venue_id, created_at) where status = 'waiting';
 create index promotion_grant_decision_idx on public.promotion_grant (decision_id, venue_id);
+
+-- Promotion managers read what was given; what waits or was refused, only those who decide it (super admins).
+drop policy "promotion managers see the venue's grants" on public.promotion_grant;
+create policy "promotion managers see the venue's grants" on public.promotion_grant
+  for select to authenticated
+  using (venue_id in (select private.venues_where('promotions.manage'))
+         and (status = 'given' or venue_id in (select private.venues_where('promotions.approve'))));
 
 -- A member's export holds the grants' new columns (decision 0240).
 insert into private.member_export_column (table_name, column_name, kind) values
   ('promotion_grant', 'status', 'owed'), ('promotion_grant', 'event', 'owed'), ('promotion_grant', 'decision_id', 'owed');
 
--- The engine on versions: a promotion's Bonus waits; the high hand's (PR 3's trigger) is paid at once, as are perks.
+-- The engine on versions: a promotion's Bonus waits; the high hand's is paid at once, as are perks.
 CREATE OR REPLACE FUNCTION private.give_promotion_version(p_candidate jsonb)
  RETURNS uuid
  LANGUAGE plpgsql
@@ -130,7 +137,8 @@ begin
 end;
 $function$;
 
--- The limits and the budget count a waiting Bonus as one given, and a refused one as nothing (decision 0670).
+-- The limits and the budget count a waiting Bonus as one given, and a refused one as nothing; a member's period counts
+-- its slots over every grant (decision 0670).
 CREATE OR REPLACE FUNCTION private.promotion_tally(p_promotion_id uuid, p_member_id uuid, p_period_key text, p_table_id uuid, p_day date, p_limits jsonb)
  RETURNS jsonb
  LANGUAGE sql
@@ -138,16 +146,100 @@ CREATE OR REPLACE FUNCTION private.promotion_tally(p_promotion_id uuid, p_member
  SET search_path TO ''
 AS $function$
   select jsonb_build_object(
-    'chipsGiven', coalesce(sum(g.chips) filter (where g.is_counted), 0),
-    'grantsGiven', count(*) filter (where g.is_counted),
-    'membersToday', count(distinct g.member_id) filter (where g.club_day = p_day),
-    'isMemberGrantedToday', coalesce(bool_or(g.member_id = p_member_id and g.club_day = p_day), false),
-    'periodGiven', count(*) filter (where g.member_id = p_member_id
-                                     and (g.period_key = p_period_key or starts_with(g.period_key, p_period_key || '#'))),
-    'grantsAtTableToday', case when p_table_id is not null then count(*) filter (where g.club_day = p_day and g.table_id = p_table_id) end)
+    'chipsGiven', coalesce(sum(g.chips) filter (where g.is_counted and g.is_held), 0),
+    'grantsGiven', count(*) filter (where g.is_counted and g.is_held),
+    'membersToday', count(distinct g.member_id) filter (where g.club_day = p_day and g.is_held),
+    'isMemberGrantedToday', coalesce(bool_or(g.member_id = p_member_id and g.club_day = p_day and g.is_held), false),
+    'periodGiven', count(*) filter (where g.member_id = p_member_id and g.is_held and g.is_in_period),
+    -- Every grant of the member's period, refused ones too: the next takes the slot after them all, so a refusal that is not
+    -- the latest never stands in its way (decision 0670).
+    'periodSlots', count(*) filter (where g.member_id = p_member_id and g.is_in_period),
+    'grantsAtTableToday', case when p_table_id is not null then count(*) filter (where g.club_day = p_day and g.table_id = p_table_id and g.is_held) end)
+  -- A grant held counts toward the limits and the budget: given, or waiting for a super admin; a refused one does not.
   from (select x.*, p_limits ->> 'budgetPeriod' is distinct from 'month'
-                    or date_trunc('month', x.club_day) = date_trunc('month', p_day) as is_counted
-        from public.promotion_grant x where x.promotion_id = p_promotion_id and x.status <> 'refused') g;
+                    or date_trunc('month', x.club_day) = date_trunc('month', p_day) as is_counted,
+               x.status <> 'refused' as is_held,
+               coalesce(x.period_key = p_period_key or starts_with(x.period_key, p_period_key || '#'), false) as is_in_period
+        from public.promotion_grant x where x.promotion_id = p_promotion_id) g;
+$function$;
+
+-- The engine on versions numbers the next slot of a period after every grant in it (decision 0670).
+CREATE OR REPLACE FUNCTION private.evaluate_promotion_versions(p_venue_id uuid, p_trigger text, p_context jsonb)
+ RETURNS SETOF uuid
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  v_kind text := case p_trigger when 'hours_played' then 'time_played' when 'check_in' then 'visit'
+                                when 'referral' then 'referral' when 'signup' then 'signup' when 'hours_step' then 'hours_step' when 'seated' then 'seated' end;
+  v_member_id uuid := (p_context ->> 'member_id')::uuid;
+  v_member jsonb;
+  v_version public.promotion_version;
+  v_event jsonb;
+  v_grant record;
+  v_base text;
+  v_tally jsonb;
+  v_period text;
+  v_candidates jsonb := '[]'::jsonb;
+  v_candidate jsonb;
+  v_id uuid;
+  v_step integer;
+  v_chips bigint;
+begin
+  -- An event is weighed once; a play-time bonus step once for each promotion, so one paying a step never stops another
+  -- with the same step (money audit, 8 Nov).
+  if v_kind is null or (p_trigger <> 'hours_step' and exists (
+       select 1 from public.promotion_grant g where g.venue_id = p_venue_id and g.member_id = v_member_id
+         and g.source_key = p_context ->> 'key' and g.promotion_version_id is not null)) then
+    return;
+  end if;
+  v_member := private.promotion_member_facts(v_member_id);
+  for v_version in
+    select v.* from public.promotion_version v join public.promotion p on p.id = v.promotion_id
+    where v.venue_id = p_venue_id and v.status = 'live' and private.promotion_event_kind(v.reward) = v_kind
+    order by p.created_at, p.id
+    for update of v
+  loop
+    -- A play-time step is paid once a visit by its place, whatever its minutes in the version that paid it.
+    v_step := private.promo_step_key(v_version.reward, (p_context ->> 'step_minutes')::integer);
+    continue when p_trigger = 'hours_step'
+      and private.promo_step_settled(v_version.promotion_id, v_member_id, (p_context ->> 'visit_id')::uuid, v_step);
+    v_event := private.promotion_event(v_kind, v_version, p_context);
+    -- A seat is paid only by terms approved before it was taken: a promotion approved later does not reach back over it.
+    continue when p_trigger = 'seated' and v_version.decided_at > (v_event ->> 'at')::timestamptz;
+    continue when not private.promo_is_eligible(
+      jsonb_build_object('reward', v_version.reward, 'eligibility', v_version.eligibility, 'schedule', v_version.schedule), v_member, v_event);
+    select * into v_grant from private.promo_grant(v_version.reward, v_event);
+    continue when v_grant.o_refusal is not null;
+    -- The member's grants in the period count against up to N times; the next is keyed as theirs in it (decision 0499).
+    -- The event's own moment, so a seat swept after 06:00 counts in the club day it was taken.
+    v_base := private.promo_period_key(v_version.limits, p_context ->> 'key', (v_event ->> 'at')::timestamptz, (v_event ->> 'visitId')::uuid, v_step);
+    v_tally := private.promotion_tally(v_version.promotion_id, v_member_id, v_base, (v_event ->> 'tableId')::uuid, private.club_day_of((v_event ->> 'at')::timestamptz),
+                                       v_version.limits);
+    -- A seat bonus in tiers pays its tier's chips (decision 0580).
+    v_chips := coalesce(private.promo_tier_chips(v_version.reward, (v_tally ->> 'grantsGiven')::integer), v_grant.o_chips);
+    continue when private.promo_check_limits(v_version.reward, v_version.limits, jsonb_build_object('chips', v_chips), v_tally) is not null;
+    -- The slot after every grant of the period, refused ones too: periodGiven, which leaves them out, is the limit (decision 0670).
+    v_period := private.promo_slot_key(v_base, (v_tally ->> 'periodSlots')::integer);
+    -- A step's grant has its visit and place for its source, so the database refuses it a second time in the visit.
+    if p_trigger = 'hours_step' then
+      v_event := v_event || jsonb_build_object('key', 'hours_step:' || (p_context ->> 'visit_id') || ':@' || v_step);
+    end if;
+    v_candidates := v_candidates || jsonb_build_array(jsonb_build_object(
+      'promotion', v_version.promotion_id::text, 'version_id', v_version.id, 'trigger', p_trigger,
+      'chips', v_chips, 'perk', v_grant.o_perk, 'period_key', v_period, 'event', v_event));
+  end loop;
+  for v_candidate in
+    select e.c from jsonb_array_elements(v_candidates) with ordinality as e (c, n)
+    where e.c ->> 'promotion' = any (private.promo_stack(v_candidates)) order by e.n
+  loop
+    v_id := private.give_promotion_version(v_candidate);
+    if v_id is not null then
+      return next v_id;
+    end if;
+  end loop;
+end;
 $function$;
 
 -- The old engine's limits likewise; an event already weighed, refused or not, is not weighed again.
@@ -214,7 +306,7 @@ AS $function$
   limit greatest(least(coalesce(p_limit, 20), 5000), 1);
 $function$;
 
--- The list counts a waiting Bonus as given this week, as its budget used and the limits do; a refused one not.
+-- The list's given this week is what was given; its budget used counts a waiting Bonus, as the limits do.
 CREATE OR REPLACE FUNCTION private.promotions_overview(p_venue_id uuid)
  RETURNS TABLE(promotion_id uuid, template_key text, status text, name text, detail text, runs text, current_version_id uuid, current_status text, open_version_id uuid, open_status text, rejected_reason text, reward jsonb, eligibility jsonb, schedule jsonb, limits jsonb, channels jsonb, given_this_week bigint, is_legacy boolean, created_at timestamp with time zone, ended_at timestamp with time zone, chips_given_this_week bigint, budget_used_chips bigint, is_quiet boolean)
  LANGUAGE sql
@@ -240,13 +332,13 @@ AS $function$
   cross join lateral (
     select count(*) as times, coalesce(sum(g.chips), 0)::bigint as chips
     from public.promotion_grant g
-    where g.promotion_id = p.id and g.status <> 'refused' and g.club_day >= private.club_day_of(now()) - (extract(isodow from private.club_day_of(now()))::integer - 1)
+    where g.promotion_id = p.id and g.status = 'given' and g.club_day >= private.club_day_of(now()) - (extract(isodow from private.club_day_of(now()))::integer - 1)
   ) w
   where p.venue_id = p_venue_id and private.has_permission(p_venue_id, 'promotions.manage')
   order by p.created_at desc, p.id;
 $function$;
 
--- The MIS counts what a promotion gave.
+-- The MIS counts what a promotion gave, a Bonus in the month it was approved.
 CREATE OR REPLACE FUNCTION private.mis_for(p_venue_id uuid, p_month date)
  RETURNS jsonb
  LANGUAGE sql
@@ -270,19 +362,21 @@ AS $function$
   visits as (
     select v.member_id from bounds b join public.visit v on v.venue_id = p_venue_id and v.opened_at >= b.starts and v.opened_at < b.ends
   ),
-  -- Each promotion's grants by club day: this month's, and every one to its end.
+  -- Each promotion's grants given, by club day: this month's, and every one to its end. A Bonus counts on the club day it
+  -- was approved and posted, as the ledger has it (decision 0670); a perk on the day it was given.
   promotions as (
     select p.id, p.name,
-           count(g.id) filter (where g.club_day >= p_month)::integer as grants,
-           coalesce(sum(g.cost_paise) filter (where g.club_day >= p_month), 0)::bigint as cost_paise,
+           count(g.id) filter (where gd.day >= p_month)::integer as grants,
+           coalesce(sum(g.cost_paise) filter (where gd.day >= p_month), 0)::bigint as cost_paise,
            coalesce(sum(g.cost_paise), 0)::bigint as cost_to_date_paise,
            b.cap_paise, b.cap_count
     from public.promotion p
-    join public.promotion_grant g on g.promotion_id = p.id and g.status = 'given' and g.club_day < (p_month + interval '1 month')::date
+    join public.promotion_grant g on g.promotion_id = p.id and g.status = 'given'
+    cross join lateral (select coalesce((select private.club_day_of(bg.created_at) from public.bonus_grant bg where bg.id = g.bonus_grant_id), g.club_day) as day) gd
     left join public.promotion_budget b on b.promotion_id = p.id
-    where p.venue_id = p_venue_id
+    where p.venue_id = p_venue_id and gd.day < (p_month + interval '1 month')::date
     group by p.id, p.name, b.cap_paise, b.cap_count
-    having count(g.id) filter (where g.club_day >= p_month) > 0
+    having count(g.id) filter (where gd.day >= p_month) > 0
   ),
   -- Each visit's club month, up to this month's end, and each member's first.
   member_months as (
@@ -333,6 +427,36 @@ AS $function$
   );
 $function$;
 
+-- Erasure refuses the member's waiting Bonus.
+CREATE OR REPLACE FUNCTION private.anonymise_member(p_member member)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+begin
+  -- A Bonus still waiting for a super admin is refused for the member erased (decision 0670): nothing posted, nothing told.
+  with waiting as (
+    select g.venue_id, g.cost_paise from public.promotion_grant g where g.member_id = p_member.id and g.status = 'waiting'
+  ), decided as (
+    insert into public.promotion_bonus_decision (venue_id, request_id, decision, grants, amount_paise, reason, decided_by_staff_id)
+    select w.venue_id, gen_random_uuid(), 'refused', count(*), sum(w.cost_paise), 'Member erased', private.current_staff_id(w.venue_id)
+    from waiting w group by w.venue_id
+    returning id, venue_id
+  )
+  update public.promotion_grant g set status = 'refused', decision_id = d.id
+  from decided d where g.member_id = p_member.id and g.status = 'waiting' and g.venue_id = d.venue_id;
+  update public.consent c set withdrawn_at = now() where c.member_id = p_member.id and c.withdrawn_at is null;
+  delete from public.kyc_record k where k.member_id = p_member.id;
+  update public.member m
+  set full_name = 'Erased member', known_as = null, phone = null, user_id = null, qualifying_small_blind = null,
+      qualifying_big_blind = null, erased_at = coalesce(m.erased_at, now())
+  where m.id = p_member.id
+    and (m.full_name <> 'Erased member' or m.known_as is not null or m.phone is not null or m.user_id is not null
+         or m.qualifying_small_blind is not null or m.erased_at is null);
+end;
+$function$;
+
 -- The console's queues: Bonus to approve, for super admins.
 CREATE OR REPLACE FUNCTION private.staff_queue_counts(p_venue_id uuid)
  RETURNS TABLE(queue text, waiting integer)
@@ -357,9 +481,6 @@ AS $function$
     -- Waiting for an approver: a marketer who asked sees the list, but only a super admin decides.
     ('promotions', (select count(*) from private.promotions_awaiting_approval(p_venue_id)
                     where private.has_permission(p_venue_id, 'promotions.approve'))),
-    ('tournamentInterest', (select count(*) from private.tournament_interest_list(p_venue_id) i
-                            join public.tournament t on t.id = i.tournament_id
-                            where i.registered_at is null and t.is_published)),
     -- Bonus a promotion calculated, waiting for a super admin, as the queue lists it (decision 0670).
     ('bonusApprovals', (select count(*) from public.promotion_grant g join public.member m on m.id = g.member_id and m.erased_at is null
                         where g.venue_id = p_venue_id and g.status = 'waiting' and private.is_super_admin(p_venue_id)
@@ -381,8 +502,8 @@ AS $function$
     when p_entity = 'control_state' then 'controls'
     when p_action like 'export.%' or p_entity = 'export_archive' then 'exports'
     when p_entity in ('staff', 'staff_credential', 'staff_shift', 'staff_attendance') then 'staff'
-    when p_action in ('bonus.give', 'bonus.approve', 'bonus.refuse') or p_entity in ('bonus_grant', 'bonus_redemption', 'promotion_bonus_decision')
-      then 'bonus_chips'
+    when p_action in ('bonus.give', 'high_hand.pay', 'bonus.approve', 'bonus.refuse')
+         or p_entity in ('bonus_grant', 'bonus_redemption', 'high_hand_hit', 'promotion_bonus_decision') then 'bonus_chips'
     when p_entity in ('member_tier_change', 'tier', 'tier_feature') then 'tiers'
     when p_action like 'member.%' or p_action like 'kyc_image.%'
          or p_entity in ('member', 'member_limit', 'member_feature_override', 'self_exclusion', 'consent', 'sign_up_attribution') then 'members'
@@ -418,9 +539,13 @@ create or replace view private.activity_line with (security_invoker = true) as
             ELSE NULL::text
         END AS reason,
         CASE
-            WHEN (l.action = ANY (ARRAY['bonus.give'::text, 'bonus.approve'::text, 'bonus.refuse'::text])) THEN ((l.after ->> 'chips'::text))::bigint
+            WHEN (l.action = ANY (ARRAY['bonus.give'::text, 'high_hand.pay'::text, 'bonus.approve'::text, 'bonus.refuse'::text])) THEN ((l.after ->> 'chips'::text))::bigint
             ELSE NULL::bigint
-        END AS amount
+        END AS amount,
+        CASE
+            WHEN (l.action = 'high_hand.pay'::text) THEN jsonb_build_object('table', (l.after ->> 'table'::text), 'seat', (l.after -> 'seat'::text), 'hand', (l.after ->> 'hand'::text), 'rank', (l.after -> 'rank'::text))
+            ELSE NULL::jsonb
+        END AS high_hand
    FROM (((((((audit_log l
      LEFT JOIN staff s ON (((s.user_id = l.actor_user_id) AND (s.venue_id = l.venue_id))))
      LEFT JOIN member a ON (((a.user_id = l.actor_user_id) AND (a.venue_id = l.venue_id))))
@@ -614,12 +739,13 @@ as $$ select * from private.bonus_waiting_page(p_venue_id, p_view); $$;
 -- the key promotion:<grant>), so the ledger has the same lines, the push says "Bonus added" and the Bonus's end counts from
 -- now. Refused: nothing is posted and the member is told nothing; the promotion's limits and budget no longer count it.
 -- One Activity line a decision: who, how many and the total, and the reason of a refusal. Chosen and already decided by
--- another: left as decided, and not counted. The same request again is answered with its first try. Refused, saying which:
--- nobody but a super admin (42501); one's own record, by login, phone or name (RVOWN); a frozen venue, promotions switched
--- off or a frozen member (RVFRZ, RVKIL, RVMBR); none, more than 500, no request id, or a refusal without a reason of 3 to
--- 200 characters (22023).
+-- another: left as decided, and not counted. A frozen member's Bonus is left waiting by an approval, and counted as left
+-- (left_waiting); a refusal goes through. The same request again is answered with its first try. Refused, saying which:
+-- nobody but a super admin (42501); one's own record, by login, phone or name (RVOWN); a frozen venue or promotions
+-- switched off (RVFRZ, RVKIL); none, more than 500, no request id, or a refusal without a reason of 3 to 200 characters
+-- (22023).
 create function private.decide_promotion_bonus(p_venue_id uuid, p_grant_ids uuid[], p_decision text, p_reason text, p_request_id uuid)
-returns table (decision_id uuid, grants integer, amount_paise bigint)
+returns table (decision_id uuid, grants integer, amount_paise bigint, left_waiting integer)
 language plpgsql
 security definer
 set search_path = ''
@@ -631,6 +757,7 @@ declare
   v_ids uuid[] := '{}'::uuid[];
   v_members uuid[] := '{}'::uuid[];
   v_total bigint := 0;
+  v_left integer := 0;
   v_bonus uuid;
   v_id uuid;
 begin
@@ -649,7 +776,7 @@ begin
     if v_done.decision <> p_decision then
       raise exception 'That request id was used for another decision' using errcode = '22023';
     end if;
-    return query select v_done.id, v_done.grants, v_done.amount_paise;
+    return query select v_done.id, v_done.grants, v_done.amount_paise, v_done.left_waiting;
     return;
   end if;
   if exists (select 1 from public.promotion_grant g
@@ -669,7 +796,12 @@ begin
     for update of g
   loop
     if p_decision = 'approved' then
-      perform private.assert_writable(p_venue_id, 'promotions', v_grant.member_id);
+      begin
+        perform private.assert_writable(p_venue_id, 'promotions', v_grant.member_id);
+      exception when sqlstate 'RVMBR' then
+        v_left := v_left + 1;
+        continue;
+      end;
       v_bonus := private.credit_bonus(p_venue_id, v_grant.member_id, v_grant.cost_paise, v_grant.name, null, 'promotion:' || v_grant.id);
       update public.promotion_grant set status = 'given', bonus_grant_id = v_bonus, fulfilled_at = now() where id = v_grant.id;
     else
@@ -680,11 +812,11 @@ begin
     v_total := v_total + v_grant.cost_paise;
   end loop;
   if cardinality(v_ids) = 0 then
-    return query select null::uuid, 0, 0::bigint;
+    return query select null::uuid, 0, 0::bigint, v_left;
     return;
   end if;
-  insert into public.promotion_bonus_decision (venue_id, request_id, decision, grants, amount_paise, reason, decided_by_staff_id)
-  values (p_venue_id, p_request_id, p_decision, cardinality(v_ids), v_total, btrim(p_reason), private.current_staff_id(p_venue_id))
+  insert into public.promotion_bonus_decision (venue_id, request_id, decision, grants, amount_paise, reason, decided_by_staff_id, left_waiting)
+  values (p_venue_id, p_request_id, p_decision, cardinality(v_ids), v_total, btrim(p_reason), private.current_staff_id(p_venue_id), v_left)
   returning id into v_id;
   update public.promotion_grant set decision_id = v_id where id = any (v_ids);
   -- Activity names the member when the decision is one member's, and how many otherwise.
@@ -693,18 +825,18 @@ begin
                         jsonb_build_object('grants', cardinality(v_ids), 'chips', v_total / 100, 'amount_paise', v_total)
                         || case when (select count(distinct x) from unnest(v_members) x) = 1 then jsonb_build_object('member_id', v_members[1]) else '{}'::jsonb end,
                         btrim(p_reason));
-  return query select v_id, cardinality(v_ids), v_total;
+  return query select v_id, cardinality(v_ids), v_total, v_left;
 end;
 $$;
 
 create function public.approve_promotion_bonus(p_venue_id uuid, p_grant_ids uuid[], p_request_id uuid)
-returns table (decision_id uuid, grants integer, amount_paise bigint)
+returns table (decision_id uuid, grants integer, amount_paise bigint, left_waiting integer)
 language sql
 set search_path = ''
 as $$ select * from private.decide_promotion_bonus(p_venue_id, p_grant_ids, 'approved', null, p_request_id); $$;
 
 create function public.refuse_promotion_bonus(p_venue_id uuid, p_grant_ids uuid[], p_reason text, p_request_id uuid)
-returns table (decision_id uuid, grants integer, amount_paise bigint)
+returns table (decision_id uuid, grants integer, amount_paise bigint, left_waiting integer)
 language sql
 set search_path = ''
 as $$ select * from private.decide_promotion_bonus(p_venue_id, p_grant_ids, 'refused', p_reason, p_request_id); $$;

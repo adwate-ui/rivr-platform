@@ -135,6 +135,37 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is((select count(*)::integer from public.member_promotion_grants(pg_temp.m('211'), 20)), 1, 'an approved Bonus is on the member''s record');
 select is((select count(*)::integer from public.member_promotion_grants(pg_temp.m('214'), 20)), 0, 'a waiting one is not');
 
+-- Who reads the grants on the table: promotion managers what was given; what waits or was refused, a super admin alone.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
+select is((select count(*)::integer from public.promotion_grant where status <> 'given'), 0, 'marketing reads no grant that waits or was refused');
+select isnt((select count(*)::integer from public.promotion_grant where status = 'given'), 0, 'and what was given');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select is((select count(*)::integer from public.promotion_grant where status <> 'given'), 0, 'nor does an admin');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select isnt((select count(*)::integer from public.promotion_grant where status = 'waiting'), 0, 'a super admin reads those waiting');
+
+-- A frozen member's Bonus is left waiting by "Approve all shown", and the rest approved; a refusal goes through.
+reset role;
+select private.evaluate_promotions('00000000-0000-4000-8000-000000000001', 'check_in', jsonb_build_object('member_id', pg_temp.m('215'), 'key', 'check_in:512-215'));
+insert into public.control_state (venue_id, level, member_id, reason, engaged_by_staff_id)
+select '00000000-0000-4000-8000-000000000001', 'member_freeze', pg_temp.m('214'), 'Dispute', s.id from public.staff s
+where s.user_id = '00000000-0000-4000-8000-000000000101' and s.venue_id = '00000000-0000-4000-8000-000000000001';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select results_eq($$ select grants, amount_paise, left_waiting from public.approve_promotion_bonus('00000000-0000-4000-8000-000000000001',
+                       array[pg_temp.grant_of('214'), pg_temp.grant_of('215')], '00000000-0000-4000-8000-000000512002') $$,
+  $$ values (1, 30000::bigint, 1) $$, 'Ritika''s is approved; Yash, frozen, left waiting and counted');
+reset role;
+select is((select status from public.promotion_grant where id = pg_temp.grant_of('214')), 'waiting', 'his still waits');
+update public.control_state c set released_at = now(), release_reason = 'Settled', released_by_staff_id = c.engaged_by_staff_id
+where c.member_id = pg_temp.m('214') and c.released_at is null;
+
+-- An erased member's waiting Bonus is refused: nothing posted, and it holds nothing of the promotion's limits.
+select private.evaluate_promotions('00000000-0000-4000-8000-000000000001', 'check_in', jsonb_build_object('member_id', pg_temp.m('216'), 'key', 'check_in:512-216'));
+select private.anonymise_member(m) from public.member m where m.id = pg_temp.m('216');
+select results_eq($$ select g.status, d.decision, d.reason, d.amount_paise, g.bonus_grant_id is null from public.promotion_grant g
+                     join public.promotion_bonus_decision d on d.id = g.decision_id where g.id = pg_temp.grant_of('216') $$,
+  $$ values ('refused'::text, 'refused'::text, 'Member erased'::text, 30000::bigint, true) $$, 'erasure refuses the member''s waiting Bonus');
+
 -- A frozen venue decides nothing.
 reset role;
 insert into public.control_state (venue_id, level, reason, engaged_by_staff_id)

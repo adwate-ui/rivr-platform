@@ -70,8 +70,28 @@ select is((private.promotion_tally((select id from ids where name = 'budget'), n
 select is(pg_temp.check_in('214', 'budget-4'), 1, 'so Yash''s next check-in is given the 500 it left');
 select is(pg_temp.check_in('215', 'budget-5'), 0, 'and then the budget is spent again');
 
--- A play-time step refused is settled for the visit: the sweep never gives it again. Budget 511 has ended.
+-- Twice a club day (the money and task reviews of the pull request): two wait, in the day's first and second slots. A
+-- refusal that is not the latest still lets the next check-in that day be given, in the slot after them all; and so does
+-- the latest refused. Refused here as a super admin's refusal leaves a grant. Budget 511 has ended.
 update public.promotion_version set status = 'ended' where promotion_id = (select id from ids where name = 'budget');
+insert into ids select 'twice', pg_temp.live('Twice 511', '{"kind": "bonus_chips", "chips": 100, "on": "visit"}', '{"perMember": "per_day", "timesPerMember": 2}');
+select is(pg_temp.check_in('217', 'twice-a') + pg_temp.check_in('217', 'twice-b'), 2, 'Neel''s first two check-ins are given, both waiting');
+select is(pg_temp.check_in('217', 'twice-c'), 0, 'the third is not: twice a day');
+update public.promotion_grant set status = 'refused' where source_key = 'check_in:twice-a';
+select is(pg_temp.check_in('217', 'twice-d'), 1, 'the first refused, his next check-in is given');
+select results_eq($$ select source_key, status, period_key from public.promotion_grant where promotion_id = (select id from ids where name = 'twice')
+                     and member_id = pg_temp.m('217') order by period_key $$,
+  $$ values ('check_in:twice-a'::text, 'refused'::text, 'day:' || private.club_day_of(now())),
+            ('check_in:twice-b', 'waiting', 'day:' || private.club_day_of(now()) || '#2'),
+            ('check_in:twice-d', 'waiting', 'day:' || private.club_day_of(now()) || '#3') $$,
+  'in the slot after every grant of the day, the refused one too');
+select is(pg_temp.check_in('217', 'twice-e'), 0, 'and then twice a day is reached again');
+select is(pg_temp.check_in('218', 'twice-f') + pg_temp.check_in('218', 'twice-g'), 2, 'Meera''s first two wait');
+update public.promotion_grant set status = 'refused' where source_key = 'check_in:twice-g';
+select is(pg_temp.check_in('218', 'twice-h'), 1, 'the second refused, her next check-in is given');
+update public.promotion_version set status = 'ended' where promotion_id = (select id from ids where name = 'twice');
+
+-- A play-time step refused is settled for the visit: the sweep never gives it again.
 insert into ids select 'hours', pg_temp.live('Hours 511',
   '{"kind": "hours_bonus", "mode": "steps", "steps": [{"afterMinutes": 60, "chips": 500}, {"afterMinutes": 180, "chips": 1000}]}', '{"perMember": "none"}');
 insert into public.visit (id, venue_id, member_id, opened_at) values
