@@ -53,7 +53,8 @@ describe('createAdapters for a real venue', () => {
   it('fails closed for KYC without credentials: identity is never faked', async () => {
     const adapters = createAdapters({ isPracticeVenue: false, live: {} });
 
-    expect(await adapters.kyc.checkLiveness({ selfieUrl: 'x' })).toEqual({ ok: false, error: { code: 'not_configured' } });
+    // Optional on the interface; here it must be there, so the selfie is refused too.
+    expect(await adapters.kyc.checkLiveness?.({ selfieUrl: 'x' })).toEqual({ ok: false, error: { code: 'not_configured' } });
   });
 });
 

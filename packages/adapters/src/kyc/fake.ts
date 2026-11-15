@@ -19,15 +19,15 @@ export interface FakeKycOptions {
   readonly faceMatch?: { readonly isMatch: boolean; readonly score: number };
 }
 
-/** The fake KYC adapter with its call log and failure script. */
-export type FakeKyc = KycAdapter & FakeControls<KycCall, AdapterFailure>;
+/** The fake KYC adapter with its call log and failure script; it checks liveness, as the practice venue always has. */
+export type FakeKyc = Required<KycAdapter> & FakeControls<KycCall, AdapterFailure>;
 
 // A fictional adult. Only the masked Aadhaar exists, as in production.
 const FICTIONAL_RECORD: DigiLockerRecord = {
   name: 'Test Member',
   dateOfBirth: '1990-01-01',
   maskedAadhaar: 'XXXX XXXX 0000',
-  // Like Cashfree's, the fake's DigiLocker gives no Aadhaar reference (decision 0197).
+  // The fake's DigiLocker gives no Aadhaar reference, as Cashfree's gave none (decision 0197).
   aadhaarReference: null,
   pan: panSchema.parse('ABCPE1234F'),
   address: 'Sector 65, Gurugram, Haryana',
@@ -54,7 +54,7 @@ function identityOf(memberId: string): Pick<DigiLockerRecord, 'pan' | 'maskedAad
 function faceChecks(
   recorder: Recorder<KycCall, AdapterFailure>,
   options: FakeKycOptions,
-): Pick<KycAdapter, 'checkLiveness' | 'matchFace'> {
+): Required<Pick<KycAdapter, 'checkLiveness' | 'matchFace'>> {
   return {
     async checkLiveness() {
       const failure = recorder.record({ method: 'checkLiveness' });

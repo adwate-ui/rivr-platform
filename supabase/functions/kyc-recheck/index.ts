@@ -1,19 +1,20 @@
 // Re-checks each KYC check made in person with the vendor, once (#259; decision 0271). pg_cron runs it each minute with the
 // scheduler's secret. It claims the manual checks not yet re-checked and runs each one's PAN, date of birth and the
 // member's registered name through the vendor's PAN check; a difference sends the check back to review, which stops the
-// member's play until a reviewer decides. The practice venue gets the fake; a real venue Cashfree from its four secrets,
-// or nothing until they are set. A vendor that cannot answer leaves the check to be asked again, hourly at most, until it does.
+// member's play until a reviewer decides. The practice venue gets the fake; a real venue Zoop from its three secrets
+// (decision 0671), or nothing until they are set. A vendor that cannot answer leaves the check to be asked again, hourly
+// at most, until it does.
 import { createAdapters, createFakeKyc, panRecheckOutcome, type KycAdapter } from '@rivr/adapters';
 import { panSchema } from '@rivr/contracts';
 import { rpc, serveScheduled } from '../_shared/outbox.ts';
-import { cashfreeKyc } from '../kyc/cashfree.ts';
+import { zoopKyc } from '../kyc/zoop.ts';
 
 interface Claimed {
   readonly memberId: string;
   readonly fullName: string;
   readonly pan: string;
   readonly dateOfBirth: string;
-  /** Anything but a plain false is the practice venue, so a doubtful row never reaches Cashfree. */
+  /** Anything but a plain false is the practice venue, so a doubtful row never reaches Zoop. */
   readonly isPractice: boolean;
 }
 
@@ -36,8 +37,8 @@ async function recheck(live: KycAdapter | undefined, claimed: Claimed): Promise<
 }
 
 async function recheckAll(): Promise<Record<string, number>> {
-  const live = cashfreeKyc();
-  // Without Cashfree's keys only the practice venue's checks are claimed, so a real venue's spend no tries.
+  const live = zoopKyc();
+  // Without Zoop's keys only the practice venue's checks are claimed, so a real venue's spend no tries.
   const rows = await rpc('claim_kyc_rechecks', { p_with_vendor: live !== undefined });
   const outcomes: Record<string, number> = {};
   for (const claimed of (Array.isArray(rows) ? rows : []).map(claimedOf)) {

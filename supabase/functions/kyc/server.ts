@@ -27,14 +27,14 @@ export type KycStep = 'selfie' | 'start' | 'complete' | 'pan';
 // The note waits this long at most: the member's reply goes on without it.
 const NOTE_WAIT_MS = 3000;
 
-/** A refusal's reason as kept: `Cashfree <code>` when its code is plain words and digits, else only that it was refused. */
+/** A refusal's reason as kept: `Zoop <code>` when its code is plain words and digits, else only that it was refused. */
 function reasonOf(failure: AdapterFailure): string {
   if (failure.code !== 'rejected') return failure.code;
-  return /^Cashfree [A-Za-z0-9_ .-]{1,80}$/.test(failure.reason) ? failure.reason : 'rejected';
+  return /^Zoop [A-Za-z0-9_ .-]{1,80}$/.test(failure.reason) ? failure.reason : 'rejected';
 }
 
 /**
- * Keeps why a vendor call failed with the member's check (#704): the step and the failure's code, Cashfree's own for a
+ * Keeps why a vendor call failed with the member's check (#704): the step and the failure's code, Zoop's own for a
  * refusal, never its message. A note that does not go through, or takes too long, never holds up the member's reply.
  */
 export async function noteFailure(memberId: string, step: KycStep, failure: AdapterFailure): Promise<void> {

@@ -1,12 +1,4 @@
-/** A name as compared: one Unicode form, lower case, letters and their marks only, single spaces. */
-function plain(name: string): string {
-  return name
-    .normalize('NFC')
-    .toLowerCase()
-    .replace(/[^\p{L}\p{M}\s]/gu, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
+import { plainName } from './names.ts';
 
 /**
  * The identity two KYC checks of one person share (#474; decision 0197): the document's name in plain letters
@@ -15,7 +7,7 @@ function plain(name: string): string {
  * digits at its end. The database keeps only a keyed hash of it.
  */
 export function kycIdentityKey(documentName: string, dateOfBirth: string, maskedAadhaar: string): string | null {
-  const name = plain(documentName);
+  const name = plainName(documentName);
   const lastFour = /(\d{4})$/.exec(maskedAadhaar.trim())?.[1];
   return name === '' || lastFour === undefined ? null : `${name}|${dateOfBirth}|${lastFour}`;
 }
