@@ -37,7 +37,7 @@ describe('usePreferences', () => {
   it('gives the member their games, stake, notifications turned off, marketing consent and name on the TVs', async () => {
     const { result } = renderPreferences({
       member_preference: { games: ['tournaments', 'nlh'], small_blind: 10000, big_blind: 20000, name_on_tvs: false },
-      notification_preference: [{ push_type: 'push.seat_ready', is_on: false }, { push_type: 'push.withdrawal_sent', is_on: true }],
+      notification_preference: [{ push_type: 'push.seat_ready', is_on: false }, { push_type: 'push.bonus', is_on: true }],
       has_my_consent: true,
     });
 

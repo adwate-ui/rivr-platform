@@ -29,8 +29,6 @@ export const profile = {
   seatCallsHint: 'When your seat is ready',
   callTime: 'Call time',
   callTimeHint: 'When your call time ends',
-  withdrawals: 'Withdrawals',
-  withdrawalsHint: 'When a withdrawal is sent.',
   tournamentStarts: 'Tournaments',
   tournamentStartsHint: 'When a tournament starts, moves or is withdrawn',
   /** Bonus chips added or used (decision 0504). */

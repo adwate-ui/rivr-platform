@@ -43,7 +43,6 @@ export * from './CodeInput/index.ts';
 export * from './TextArea/index.ts';
 export * from './ReasonForm/index.ts';
 export * from './ReferralCard/index.ts';
-export * from './PlaybackLink/index.ts';
 // The console v3 controls.
 export * from './Segmented/index.ts';
 export * from './OverflowMenu/index.ts';
@@ -70,7 +69,6 @@ export * from './DataTable/index.ts';
 // Tier-gated features
 export * from './FeatureGate/index.ts';
 export * from './LockedNotice/index.ts';
-export * from './PromptBar/index.ts';
 export * from './QuantityStepper/index.ts';
 
 // The installed player app: offline, and the offer to install
@@ -83,7 +81,6 @@ export * from './SideNav/index.ts';
 export * from './SplitView/index.ts';
 export * from './Tabs/index.ts';
 export * from './PinPad/index.ts';
-export * from './Keypad/index.ts';
 export * from './PlayerShell/index.ts';
 export * from './ConsoleShell/index.ts';
 export * from './CommandPalette/index.ts';
@@ -97,7 +94,6 @@ export * from './TvWaitlistBoard/index.ts';
 export * from './TvCallTimeBoard/index.ts';
 export * from './TvHoursBoard/index.ts';
 export * from './TvStage/index.ts';
-export * from './TournamentClock/index.ts';
 export * from './TvPromotionSlide/index.ts';
 export * from './TvBoardProgress/index.ts';
 export * from './DisplayPreview/index.ts';
@@ -140,10 +136,8 @@ export * from './Receipt/index.ts';
 export * from './DocumentPage/index.ts';
 export * from './DocumentTable/index.ts';
 export * from './InvoiceDocument/index.ts';
-export * from './PartnerStatementDocument/index.ts';
 export * from './OfflinePackDocument/index.ts';
 export * from './PrintSheet/index.ts';
-export * from './ThermalReceipt/index.ts';
 export * from './WebPreview/index.ts';
 export { useIsWide, type WideFrom } from './useIsWide/index.ts';
 

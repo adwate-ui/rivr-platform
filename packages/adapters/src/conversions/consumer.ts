@@ -8,10 +8,10 @@ import type { Consumer } from '../outbox/index.ts';
 import type { AdapterFailure } from '../shared/failure.ts';
 
 /** The events that can be a conversion (#161, #162; scope-v1 "Growth", "Events sent"). */
-export const CONVERSION_EVENT_TYPES = ['kyc.completed', 'visit.opened', 'cage.buy_in', 'tournament.entered'] as const;
+export const CONVERSION_EVENT_TYPES = ['kyc.completed', 'visit.opened', 'tournament.entered'] as const;
 
 /** What the club reports. The database says which one an event is, if any (conversion_for). */
-export const CONVERSION_KINDS = ['kyc_complete', 'first_visit', 'first_buy_in', 'tournament_entry', 'repeat_visit'] as const;
+export const CONVERSION_KINDS = ['kyc_complete', 'first_visit', 'tournament_entry', 'repeat_visit'] as const;
 export type ConversionKind = (typeof CONVERSION_KINDS)[number];
 
 /** Whose conversion it is and which: each vendor's adapter hashes the identifiers before anything leaves. */
@@ -45,7 +45,7 @@ const FRESH_FOR_MS = 7 * 24 * 60 * 60 * 1000;
  * An ad-conversions outbox consumer (#161, #162): each event the database names a conversion, reported to one vendor.
  * A messaging stop holds it, as it holds members' messages, and a venue freeze finishes its events unsent (A4-11);
  * practice-venue events never reach it. An event older than seven days, or one that is not a conversion (no marketing
- * consent, a later buy-in, a freeze), is finished unsent.
+ * consent, a later visit, a freeze), is finished unsent.
  */
 export function createConversionConsumer({ name, find, report, now = () => new Date() }: {
   name: string;
@@ -75,7 +75,6 @@ export function createConversionConsumer({ name, find, report, now = () => new D
 const META_EVENT: Readonly<Record<ConversionKind, MetaEventName>> = {
   kyc_complete: 'CompleteRegistration',
   first_visit: 'FirstVisit',
-  first_buy_in: 'FirstBuyIn',
   tournament_entry: 'TournamentEntry',
   repeat_visit: 'RepeatVisit',
 };
@@ -92,7 +91,8 @@ const KINDS: readonly string[] = CONVERSION_KINDS;
 
 /**
  * Google Ads' conversion action for each kind, as `customers/<id>/conversionActions/<id>`: one for every kind. A key that
- * is no kind, such as the Academy booking's in a value saved before 15 Nov, is left out, so that value still reads.
+ * is no kind, such as the Academy booking's or the first buy-in's in a value saved before they went, is left out, so that
+ * value still reads.
  */
 export const conversionActionsSchema = z.preprocess(
   (value) => (typeof value === 'object' && value !== null ? Object.fromEntries(Object.entries(value).filter(([kind]) => KINDS.includes(kind))) : value),

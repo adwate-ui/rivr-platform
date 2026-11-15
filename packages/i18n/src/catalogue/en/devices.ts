@@ -51,11 +51,6 @@ export const pairing = {
 export const handEntry = {
   title: 'Hand entry',
   empty: 'Not assigned to a table. Ask a floor manager.',
-  rake: 'Rake',
-  variant: 'Game',
-  holdem: 'Hold\'em',
-  plo: 'PLO',
-  bombPot: 'Bomb pot',
 };
 
 /** The console's Dealer PINs screen (#41): for staff whose role includes everything a dealer does. */
@@ -225,45 +220,3 @@ export const queue = {
   seen: 'Seen by the floor',
 };
 
-/** The console's Computers screen (#384): enrol this computer as the cage or an admin console, and revoke one. */
-export const computers = {
-  title: 'Computers',
-  notAllowed: 'Not in your role. Ask an admin.',
-  thisComputer: 'This computer',
-  enrolledAsCage: 'Enrolled as the cage: {name}.',
-  enrolledAsConsole: 'Enrolled as an admin console: {name}.',
-  /** Never this browser: the cage agent is a service, not a browser (#168). */
-  enrolledAsAgent: 'Enrolled as the cage agent: {name}.',
-  notEnrolled: 'Not enrolled. Enter the code an admin console gave for this computer.',
-  enrolCode: 'Enrolment code',
-  enrol: 'Enrol this computer',
-  wrongCode: 'That code is wrong, used or expired. Add the computer again for a new one.',
-  tooMany: 'Too many wrong codes. Wait ten minutes, then try again.',
-  /** A computer added on Computers whose code has not been entered on it yet. */
-  waiting: 'Waiting for its code',
-  /** After adding a computer: `{code}` is six digits, `{name}` the computer's, `{time}` when it stops working. */
-  code: 'Code {code} for {name}, until {time}. Enter it on that computer, on Computers.',
-  /** Shown while the venue has no cage and admin networks (Settings), so nothing is enforced. */
-  notEnforced: 'Not enforced yet: the club has no cage and admin networks, so the cage and admin screens work from any computer. Add the networks in Settings.',
-  offNetwork: 'This computer is not on the cage and admin networks, so the cage and admin screens refuse it here.',
-  name: 'Computer name',
-  nameHint: 'For example, Cage 1 or Office.',
-  addCage: 'Add as the cage',
-  addConsole: 'Add as an admin console',
-  /** The cage agent (#168, #123): a service on the cage computer that keeps the offline pack and prints KOTs. */
-  addAgent: 'Add the cage agent',
-  agentCode: 'Code {code} for {name}, until {time}. Give it to the cage agent: rivr-agent enrol {code}.',
-  enrolled: 'Cage and admin computers',
-  empty: 'No computers are added.',
-  cage: 'Cage',
-  console: 'Admin console',
-  agent: 'Cage agent',
-  revoke: 'Revoke {name}',
-  revokeReason: 'Why it is revoked',
-  revokeConfirm: 'Revoke',
-  invalidReason: 'Say why, in a few words.',
-  notAllowedAction: 'Not from here. Computers are added at an enrolled admin console, and enrolled on the club\'s networks.',
-  invalid: 'Give the computer a name.',
-  paused: 'Venue frozen. Try again once it is released.',
-  unavailable: 'Not sent. Try again.',
-};

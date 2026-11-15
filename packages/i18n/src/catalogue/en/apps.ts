@@ -7,12 +7,12 @@ import { rail } from './consoleRail.ts';
 import { shell } from './consoleShell.ts';
 import { activity } from './activity.ts';
 import { cameraFailures, cameras } from './cameras.ts';
-import { members, tiers } from './members.ts';
+import { members } from './members.ts';
 import { checkIn } from './checkIn.ts';
 import { liveFloor, timeRequests, todaysPlayers, topUps } from './floor.ts';
 import { tablesSetup } from './tablesSetup.ts';
 import { floor } from './liveFloorV3.ts';
-import { computers, dealerPins, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
+import { dealerPins, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
 import { feedback, playerFeedback } from './feedback.ts';
 import { itemPhoto } from './itemPhoto.ts';
 import { tournaments } from './tournaments.ts';
@@ -76,7 +76,6 @@ export const consoleApp = {
   reports,
   website,
   members,
-  tiers,
   activity,
   cameras,
   cameraFailures,
@@ -91,7 +90,6 @@ export const consoleApp = {
   dealerPins,
   staff,
   tvs,
-  computers,
   rake,
   notStaff,
   feedback,

@@ -1,0 +1,11 @@
+# 0650. What the removals left unused
+
+Issue 1012, after #1011. Each thing the reviews listed was searched for on the joined branch and removed where nothing used it. Decided while doing it:
+
+- **`private.purging()` is kept and now asks the session's role too.** Seventeen functions still ask it (the append-only guards, the settings guards, the waitlist's and promotions' triggers, the referral sweep), and the database's owner still removes a venue's rows by hand with `rivr.purge` set in a session of their own. Removing it meant rewriting all seventeen for no gain. It checked `current_user` only, which is postgres inside every security definer function whoever called it; it now also checks `session_user`, as the ledger's guard does.
+- **The owner dashboard's signal went whole.** The issue names the ledger's trigger. Nothing listens on `owner:<venue>`, and the trigger's function served seven more triggers for the same dashboard, so all eight, the function and the Realtime policy for that topic are dropped.
+- **Reopening a refused duplicate done in person clears `photo_path`**, as reopening a verified one already did. The documents' rows are left as they were: the issue asks for the photo.
+- **The player's offline store moved to `rivr.offline.v2`.** A phone that kept the member's answer before #1011 held no member number, and Profile read "Member number undefined" offline. The store's key already carried a version, so the version is bumped and the older slot is cleared at the next launch, rather than the line guarded against a value its type says is always there.
+- **What the removed screens alone used went with them**: the computers' hooks in `@rivr/db` with the console's Computers files, the payloads of `receipt.ready` and `withdrawal.sent` with their handlers, and their copy.
+- **Kept, with a user:** `Container` (the website shell's story), `computer_kind_for` (`at_right_computer` asks it for every admin permission).
+- **Left for the owner:** the `cashier` role, `cage.transact`, `host_queue.manage`, the feedback form's "The cashier", `killable_feature`'s three values (an enum change), and `.claude/rules/money.md` (project instructions).

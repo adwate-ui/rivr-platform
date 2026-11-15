@@ -36,10 +36,10 @@ async function sendOne(eventType: string, payload: unknown) {
 }
 
 describe('the push consumer', () => {
-  it('is a messaging consumer of seat calls, call time, session reminders, withdrawals, promotion offers, Bonus and notices', () => {
+  it('is a messaging consumer of seat calls, call time, session reminders, promotion offers, Bonus and notices', () => {
     const consumer = createPushConsumer({ push: createFakePush(), ...members([]), now });
     expect([consumer.name, consumer.isMessaging, consumer.eventTypes]).toEqual([
-      'push', true, ['waitlist.called', 'call_time.ending', 'call_time.completed', 'session.reminder', 'withdrawal.sent', 'promotion.offered',
+      'push', true, ['waitlist.called', 'call_time.ending', 'call_time.completed', 'session.reminder', 'promotion.offered',
         'bonus.credited', 'bonus.redeemed', 'member.notice'],
     ]);
   });
@@ -135,10 +135,6 @@ describe('the push consumer', () => {
       outcome: { ok: true, value: null }, asked: [null],
       sent: [{ title: 'Session reminder', body: 'You have been playing for 4 hours.', url: '/', tag: `session-reminder-${SESSION}` }],
     });
-    expect(await sendOne('withdrawal.sent', { member_id: MEMBER, withdrawal_request_id: OTHER, amount_paise: 1000000, utr: null, method: 'upi' })).toEqual({
-      outcome: { ok: true, value: null }, asked: ['push.withdrawal_sent'],
-      sent: [{ title: 'Withdrawal sent', body: '₹10,000 is on its way to you.', url: '/', tag: `withdrawal-${OTHER}` }],
-    });
     const offer = { member_id: MEMBER, promotion_id: OTHER, title: 'Thursday bonus', detail: '500 Bonus after two hours', runs: 'Tonight' };
     expect(await sendOne('promotion.offered', offer)).toEqual({
       outcome: { ok: true, value: null }, asked: [`push.promotion_published for ${OTHER}`],
@@ -156,19 +152,19 @@ describe('the push consumer', () => {
     expect(push.calls).toEqual([]);
   });
 
-  it('finishes unsent a push older than its kind is worth: an hour for call time done, a day for withdrawals', async () => {
+  it('finishes unsent a push older than its kind is worth: an hour for call time done, a day for Bonus', async () => {
     const push = createFakePush();
     const consumer = createPushConsumer({ push, ...members([phone('a')]), now });
     const hoursAgo = (hours: number) => new Date(now().getTime() - hours * 60 * 60 * 1000);
     const done = { member_id: MEMBER, session_id: SESSION, table_id: OTHER, seat: 4 };
-    const withdrawal = { member_id: MEMBER, withdrawal_request_id: OTHER, amount_paise: 1000000, utr: null, method: 'upi' };
+    const credited = { member_id: MEMBER, bonus_grant_id: OTHER, amount_paise: 500000, reason: 'Friday four-hour bonus' };
 
     expect(await consumer.deliver(delivery('call_time.completed', done, hoursAgo(2)))).toEqual({ ok: true, value: null });
-    expect(await consumer.deliver(delivery('withdrawal.sent', withdrawal, hoursAgo(25)))).toEqual({ ok: true, value: null });
+    expect(await consumer.deliver(delivery('bonus.credited', credited, hoursAgo(25)))).toEqual({ ok: true, value: null });
     expect(push.calls).toEqual([]);
     await consumer.deliver(delivery('call_time.completed', done, hoursAgo(0.5)));
-    await consumer.deliver(delivery('withdrawal.sent', withdrawal, hoursAgo(2)));
-    expect(push.calls.map((call) => call.title)).toEqual(['Call time done', 'Withdrawal sent']);
+    await consumer.deliver(delivery('bonus.credited', credited, hoursAgo(2)));
+    expect(push.calls.map((call) => call.title)).toHaveLength(2);
   });
 
   it('forgets a phone whose browser dropped its subscription, and still sends to the others', async () => {
@@ -197,8 +193,8 @@ describe('the push consumer', () => {
     const consumer = createPushConsumer({ push, ...members([phone('a')]), now });
     expect(await consumer.deliver(delivery('call_time.completed', { member_id: MEMBER, session_id: SESSION, table_id: OTHER, seat: 4 })))
       .toEqual({ ok: false, error: { code: 'unavailable' } });
-    expect(await consumer.deliver(delivery('withdrawal.sent', { member_id: MEMBER })))
-      .toEqual({ ok: false, error: { code: 'rejected', reason: 'withdrawal.sent payload is not readable' } });
+    expect(await consumer.deliver(delivery('session.reminder', { member_id: MEMBER })))
+      .toEqual({ ok: false, error: { code: 'rejected', reason: 'session.reminder payload is not readable' } });
     expect(await consumer.deliver(delivery('receipt.ready', {}))).toEqual({ ok: false, error: { code: 'rejected', reason: 'no push for receipt.ready' } });
   });
 });

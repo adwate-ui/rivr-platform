@@ -24,9 +24,7 @@ The packs hold members' names, so the computer's disk must be encrypted with Bit
 1. **Install Node.js 22 LTS** from nodejs.org.
 2. **Copy the agent:** build it on a development machine with `pnpm --filter @rivr/cage-agent build`, then copy `apps/cage-agent/dist/rivr-agent.mjs` to `C:\RIVR\agent\`.
 3. **Install NSSM** (nssm.cc), which runs a program as a Windows service.
-4. **Add the agent on the console.**
-   1. An admin opens Computers, types the name "Cage agent" and presses **Add the cage agent**.
-   2. The console shows a six-digit code, good for ten minutes.
+4. **Add the agent.** The console has no Computers screen since the removals (#1011), so an agent is not added there now. Ask a developer, who adds it with `public.add_computer` (kind `agent`, the name "Cage agent") and gives its six-digit code, good for ten minutes.
 5. **Enrol the agent** in a Command Prompt on the cage computer, replacing `<project>` and `<code>`:
    ```
    set RIVR_FUNCTIONS_URL=https://<project>.supabase.co/functions/v1
@@ -75,11 +73,11 @@ To make tonight's packs again, open Actions, then **offline-pack**, then **Run w
   - Check the night's `offline-pack` run in GitHub Actions.
   - Then check the agent's log. `{"noneYet":true}` means the job has not made one yet. A connection error is tried again within the hour.
   - Last night's pack is still in the folder and can be used.
-- **`not_enrolled` in the log:** the agent was revoked on Computers, or its token file was lost. Add it again (step 4) and enrol it with the new code (step 5).
+- **`not_enrolled` in the log:** the agent was revoked, or its token file was lost. Add it again (step 4) and enrol it with the new code (step 5).
 - **KOTs not printing:**
   - Check the log for `failed`. Then check that the printer is on, has paper, and answers at its address from the cage computer.
   - Meanwhile, read or hand each KOT to the bar from the console's KOTs to print and mark it sent.
-- **Moving to another computer:** revoke the old agent on Computers, then install and enrol it on the new one.
+- **Moving to another computer:** ask a developer to revoke the old agent, then install and enrol it on the new one.
 
 ## Rollback
 
@@ -88,4 +86,4 @@ nssm stop RIVR-Agent
 nssm remove RIVR-Agent confirm
 ```
 
-Then revoke "Cage agent" on Computers, and delete `C:\RIVR\agent`. Without the agent, the console's KOTs to print list carries the bar (#123). A pack can still be downloaded from the bucket by an owner (`offline-packs`, in Supabase Storage).
+Then ask a developer to revoke "Cage agent", and delete `C:\RIVR\agent`. Without the agent, the console's KOTs to print list carries the bar (#123). A pack can still be downloaded from the bucket by an owner (`offline-packs`, in Supabase Storage).

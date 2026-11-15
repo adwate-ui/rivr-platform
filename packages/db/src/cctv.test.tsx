@@ -2,15 +2,14 @@ import { createClient } from '@supabase/supabase-js';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { useCameras, usePlayback, useSaveCamera } from './cctv.ts';
+import { useCameras, useSaveCamera } from './cctv.ts';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { RivrDataProvider, useRivrData } from './provider.tsx';
+import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const ADITYA = '00000000-0000-4000-8000-000000000103';
 const VENUE = '00000000-0000-4000-8000-000000000001';
-const HAND = '00000000-0000-4000-8000-0000000000a1';
 
 type Replies = Readonly<Record<string, { status: number; body: unknown }>>;
 
@@ -66,33 +65,5 @@ describe('useSaveCamera', () => {
       saved = await result.current.mutateAsync({ cameraId: 'c1', name: 'Cage', channel: 'ch-9', tableId: null, isCage: true, isActive: true });
     });
     expect(saved).toEqual({ ok: false, error: 'taken' });
-  });
-});
-
-/** Playback for a row, once the signed-in session is known, as it is long before anyone presses Playback. */
-async function playbackFor(wrapper: (props: { children: ReactNode }) => ReactNode, kind: 'hand') {
-  const hook = renderHook(() => ({ playback: usePlayback(kind, HAND), userId: useRivrData().userId }), { wrapper });
-  await waitFor(() => expect(hook.result.current.userId).toBe(ADITYA));
-  return hook.result;
-}
-
-describe('usePlayback', () => {
-  it('asks for nothing until Playback is pressed, then gives the recorder\'s link', async () => {
-    const { wrapper, requests } = clientFor({ '/functions/v1/cctv-playback': { status: 200, body: { url: 'https://cctv.invalid/p', camera: 'Table 2 overhead' } } });
-    const result = await playbackFor(wrapper, 'hand');
-    expect(result.current.playback.state).toEqual({ status: 'idle' });
-    act(() => result.current.playback.ask());
-    await waitFor(() => expect(result.current.playback.state).toEqual({ status: 'ready', url: 'https://cctv.invalid/p', camera: 'Table 2 overhead' }));
-    expect(requests.at(-1)?.body).toEqual({ kind: 'hand', id: HAND });
-  });
-
-  it('says no camera saw it on a 404, and the link did not come on anything else', async () => {
-    const none = clientFor({ '/functions/v1/cctv-playback': { status: 404, body: { error: 'no_camera' } } });
-    const down = clientFor({ '/functions/v1/cctv-playback': { status: 502, body: { error: 'unavailable' } } });
-    const noCamera = await playbackFor(none.wrapper, 'hand');
-    const unavailable = await playbackFor(down.wrapper, 'hand');
-    act(() => { noCamera.current.playback.ask(); unavailable.current.playback.ask(); });
-    await waitFor(() => expect(noCamera.current.playback.state).toEqual({ status: 'failed', reason: 'no_camera' }));
-    await waitFor(() => expect(unavailable.current.playback.state).toEqual({ status: 'failed', reason: 'unavailable' }));
   });
 });

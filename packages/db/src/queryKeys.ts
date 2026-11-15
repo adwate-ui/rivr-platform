@@ -48,7 +48,6 @@ export const queryKeys = {
   floorTables: (userId: string) => ['user', userId, 'floor-tables'] as const,
   floorTakenSeats: (userId: string) => ['user', userId, 'floor-taken-seats'] as const,
   myUsualFnbItems: (userId: string) => ['user', userId, 'my-usual-fnb-items'] as const,
-  myTonight: (userId: string) => ['user', userId, 'my-tonight'] as const,
   memberErasurePreview: (userId: string, memberId: string) => ['user', userId, 'member-erasure-preview', memberId] as const,
   memberErasureRequests: (userId: string, venueId: string) => ['user', userId, 'member-erasure-requests', venueId] as const,
   myErasureRequest: (userId: string) => ['user', userId, 'my-erasure-request'] as const,
@@ -139,9 +138,6 @@ export const queryKeys = {
   myDevice: (userId: string) => ['user', userId, 'my-device'] as const,
   /** A venue's dealer tablets, for staff who manage devices. */
   dealerTablets: (userId: string, venueId: string) => ['user', userId, 'dealer-tablets', venueId] as const,
-  venueIssuer: (userId: string, venueId: string) => ['user', userId, 'venue-issuer', venueId] as const,
-  computers: (userId: string, venueId: string) => ['user', userId, 'computers', venueId] as const,
-  thisComputer: (userId: string, venueId: string) => ['user', userId, 'this-computer', venueId] as const,
   /** A venue's dealers whose PIN the signed-in manager may set. */
   venueDealers: (userId: string, venueId: string) => ['user', userId, 'venue-dealers', venueId] as const,
   /** A venue's table types with their rake now and the changes to come. */
@@ -154,8 +150,6 @@ export const queryKeys = {
   currentDownAll: (userId: string) => ['user', userId, 'current-down'] as const,
   /** The tablet's table rules now: rake, drop, variations; kept by table. */
   tableRules: (userId: string, tableId: string) => ['user', userId, 'table-rules', tableId] as const,
-  /** The hands of the open down on the tablet, kept by down. */
-  downHands: (userId: string, downId: string) => ['user', userId, 'down-hands', downId] as const,
   /** An unpaired TV's code (#49): signed out, so it belongs to no one. */
   tvCode: () => ['tv-code'] as const,
   /** Whether staff have typed in that code yet. */
@@ -163,8 +157,6 @@ export const queryKeys = {
   /** The signed-in TV's name and mode. */
   myTvScreen: (userId: string) => ['user', userId, 'my-tv-screen'] as const,
   tvReportIn: (userId: string) => ['user', userId, 'tv-report-in'] as const,
-  /** Whether a venue is one the public may see: not the practice venue (#125). */
-  isPublicVenue: (userId: string, venueId: string) => ['user', userId, 'is-public-venue', venueId] as const,
   /** A venue's TVs, for staff who manage devices. */
   venueTvs: (userId: string, venueId: string) => ['user', userId, 'venue-tvs', venueId] as const,
   tvPairingPolicy: (userId: string, venueId: string) => ['user', userId, 'tv-pairing-policy', venueId] as const,

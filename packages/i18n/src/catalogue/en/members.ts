@@ -242,12 +242,3 @@ export const members = {
     unavailable: 'Not sent. Try again.',
   },
 };
-
-/** The console's Tiers screen (#32): the tier x feature matrix, saved from a date, and a preview of the player app as a tier. */
-export const tiers = {
-  on: 'On',
-  withdraw: 'Withdraw',
-  now: 'Now',
-  save: 'Save changes',
-  unavailable: 'Not sent. Try again.',
-};

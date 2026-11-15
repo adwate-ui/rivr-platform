@@ -93,7 +93,7 @@ test.describe.serial('Stays signed in', () => {
 
   test('Stays signed in: opened with no connection, the app shows the seat it kept, and Home again once online', async () => {
     test.setTimeout(90_000);
-    await expect.poll(() => page.evaluate(() => localStorage.getItem('rivr.offline.v1')?.includes('my-seat') ?? false)).toBe(true);
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('rivr.offline.v2')?.includes('my-seat') ?? false)).toBe(true);
     await ageStoredSession(page);
     await page.close();
     await phone.setOffline(true);
