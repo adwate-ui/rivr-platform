@@ -121,19 +121,24 @@ test.describe('F&B', () => {
     await sheet.getByRole('button', { name: 'Cancel' }).click();
 
     await page.getByRole('link', { name: 'Menu', exact: true }).click();
-    // The menu (#799): each item under its kind, by its name alone; and from a CSV, every line shown before it is saved.
+    // The menu (#799): each item under its kind, by its name alone; and from a CSV, in the panel at the side (redesign
+    // RD-38), every line shown before it is saved.
     for (const kind of ['Food', 'Soft drinks', 'Bar']) await expect(page.getByRole('heading', { name: kind, level: 2, exact: true })).toBeVisible();
     await expect(page.getByText('Masala chai · Soft drink')).toHaveCount(0);
-    const picker = page.locator('input[type="file"][accept=".csv,text/csv"]');
+    await page.getByRole('button', { name: 'Menu from a CSV' }).click();
+    const fromCsv = page.getByRole('dialog', { name: 'Menu from a CSV' });
+    const picker = fromCsv.locator('input[type="file"][accept=".csv,text/csv"]');
     const csv = (text: string) => ({ name: 'menu.csv', mimeType: 'text/csv', buffer: Buffer.from(text) });
     await picker.setInputFiles(csv('name,type,price\nFilter coffee,soft drinks,80\nKulfi,dessert,150\n'));
-    await expect(page.getByText('Line 3: use food, soft drinks or bar as the type.')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Save items' })).toHaveCount(0);
+    await expect(fromCsv.getByText('Line 3: use food, soft drinks or bar as the type.')).toBeVisible();
+    await expect(fromCsv.getByRole('button', { name: 'Save items' })).toHaveCount(0);
     await picker.setInputFiles(csv('name,type,price,on offer\nFilter coffee,soft drinks,80,yes\nGin and tonic,bar,450,no\n'));
-    await expect(page.getByText('Filter coffee · Soft drinks · On offer')).toBeVisible();
-    await expect(page.getByText('Gin and tonic · Bar · Off the menu')).toBeVisible();
-    await page.getByRole('button', { name: 'Save items' }).click();
-    await expect(page.getByText('2 items saved to the menu.')).toBeVisible();
+    await expect(fromCsv.getByText('Filter coffee · Soft drinks · On offer')).toBeVisible();
+    await expect(fromCsv.getByText('Gin and tonic · Bar · Off the menu')).toBeVisible();
+    await fromCsv.getByRole('button', { name: 'Save items' }).click();
+    await expect(fromCsv.getByText('2 items saved to the menu.')).toBeVisible();
+    await fromCsv.getByRole('button', { name: 'Close', exact: true }).click();
+    await expect(fromCsv).toHaveCount(0);
     await expect(page.getByText('Gin and tonic', { exact: true })).toBeVisible();
     // Delete, for staff who run F&B (redesign RD-33): asked first, then the item is gone from the menu.
     await page.getByRole('button', { name: 'More for Gin and tonic' }).click();
