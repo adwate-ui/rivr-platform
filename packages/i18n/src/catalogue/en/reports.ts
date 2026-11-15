@@ -24,14 +24,14 @@ export const reports = {
   },
   playersReport: {
     title: 'Players', measure: 'Measure', value: 'Value', share: 'Share', played: 'Members who played', firstVisit: 'First visit', idChecks: 'ID checks done',
-    empty: 'Nobody played in these days.',
+    empty: 'No players.',
   },
   waitlistReport: { title: 'Waitlist', table: 'Table', joined: 'Joined', seated: 'Got a seat', left: 'Left the list', wait: 'Avg wait', longest: 'Longest' },
   fnbReport: {
     title: 'Food and drink', by: 'Orders by', byTable: 'By table', byStaff: 'By staff member', table: 'Table', staff: 'Accepted by', nobody: 'Not accepted',
-    orders: 'Orders', items: 'Items', accept: 'Avg to accept', serve: 'Avg to serve', voided: 'Void', empty: 'No orders in these days.',
+    orders: 'Orders', items: 'Items', accept: 'Avg to accept', serve: 'Avg to serve', voided: 'Void', empty: 'No orders.',
   },
-  bonusReport: { title: 'Bonus', source: 'Given by', byHand: 'By hand', members: 'Members', grants: 'Times', given: 'Bonus given', empty: 'No Bonus given in these days.' },
+  bonusReport: { title: 'Bonus', source: 'Given by', byHand: 'By hand', members: 'Members', grants: 'Times', given: 'Bonus given', empty: 'No Bonus given.' },
   /** The MIS Tables view (owner, 8 Nov), money-free: each table over a span of club days. `{percent}` is a whole number. */
   tables: {
     title: 'Tables',

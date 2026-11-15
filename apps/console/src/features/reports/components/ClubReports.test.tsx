@@ -76,7 +76,7 @@ describe('the reports beside Tables (redesign RD-27)', () => {
     expect(await rowOf(table, 'Members who played')).toContain('78100%');
     expect(await rowOf(table, 'First visit')).toBe('First visit79%');
     // An ID check is no share of the members who played.
-    expect(await rowOf(table, 'ID checks done')).toBe('ID checks done21');
+    expect(await rowOf(table, 'ID checks done')).toBe('ID checks done21–');
     expect([figure('Check-ins'), figure('New members'), figure('Avg session')]).toEqual(['318', '7', '3 h 52 min']);
     expect(within(screen.getByRole('figure', { name: 'Check-ins by day' })).getAllByRole('listitem').map((bar) => bar.textContent)).toEqual(['14 Nov: 14014 Nov', '15 Nov: 17815 Nov']);
     expect(asked).toContainEqual({ rpc: 'players_report', body: { p_venue_id: 'v1', p_from: '2026-11-09', p_to: '2026-11-15' } });

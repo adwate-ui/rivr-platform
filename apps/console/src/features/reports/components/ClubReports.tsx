@@ -46,7 +46,7 @@ export function PlayersReport(props: ReportProps) {
     count('amount', t('console.reports.playersReport.value'), (line) => line.amount),
     {
       key: 'share', header: t('console.reports.playersReport.share'), align: 'end', filter: 'number', sortValue: (line) => share(line) ?? -1, exportValue: (line) => share(line) ?? '',
-      cell: (line) => { const percent = share(line); return percent === null ? '' : t('console.reports.tables.percent', { percent: String(percent) }); },
+      cell: (line) => { const percent = share(line); return percent === null ? t('console.reports.noFigure') : t('console.reports.tables.percent', { percent: String(percent) }); },
     },
   ];
   return (

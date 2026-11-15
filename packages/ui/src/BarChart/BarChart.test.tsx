@@ -29,19 +29,23 @@ describe('BarChart', () => {
     expect(growOf(container)).toEqual([0, 0]);
   });
 
-  it('keeps the words of every few bars over a span of days, and every bar for a screen reader', () => {
+  it('names eleven of many close bars on a line under them, the first to the last, and keeps every bar for a screen reader', () => {
     const days = Array.from({ length: 90 }, (_, day) => ({ label: `Day ${String(day + 1)}`, value: day, valueText: String(day) }));
-    renderIn(<BarChart label="Check-ins by day" bars={days} />);
-    const wordsOf = (label: string) => screen.getByText(label, { selector: '[aria-hidden]' }).className;
-    expect(wordsOf('Day 1')).not.toContain('sr-only');
-    expect(wordsOf('Day 2')).toMatch(/(^| )sr-only/);
-    // Every fourth from 768 px; below it, every sixteenth, six in all.
-    expect(wordsOf('Day 5')).toContain('max-medium:sr-only');
-    expect(wordsOf('Day 17')).not.toContain('sr-only');
-    expect(days.filter((day) => !wordsOf(day.label).includes('sr-only'))).toHaveLength(6);
-    // So close, no bar shows its figure; a screen reader still reads each.
+    const { container } = renderIn(<BarChart label="Check-ins by day" bars={days} />);
+    const scale = [...(container.querySelector('[data-scale]')?.children ?? [])];
+    // Evenly from the first day to the last, so each name stands under its bar; below 768 px, every other one of those.
+    expect(scale.map((name) => name.textContent)).toEqual(['Day 1', 'Day 10', 'Day 19', 'Day 28', 'Day 37', 'Day 46', 'Day 54', 'Day 63', 'Day 72', 'Day 81', 'Day 90']);
+    expect(scale.filter((name) => !name.className.includes('max-medium:sr-only')).map((name) => name.textContent)).toEqual(['Day 1', 'Day 19', 'Day 37', 'Day 54', 'Day 72', 'Day 90']);
+    // So close, no bar shows its figure or its own name; a screen reader still reads each.
     expect(screen.getByText('89', { selector: 'span' })).toHaveClass('sr-only');
     expect(screen.getAllByRole('listitem')).toHaveLength(90);
+    expect(screen.getAllByRole('listitem')[1]?.textContent).toBe('Day 2: 1Day 2');
+  });
+
+  it('gives the hours of a day their own names, and has no line under them', () => {
+    const { container } = renderIn(<BarChart label="Seated by hour" bars={HOURS} />);
+    expect(container.querySelector('[data-scale]')).toBeNull();
+    expect(screen.getByText('21', { selector: '[aria-hidden]' }).className).not.toContain('sr-only');
   });
 
   it('shows its name alone with no bars', () => {

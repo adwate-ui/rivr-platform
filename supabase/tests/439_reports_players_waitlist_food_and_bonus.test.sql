@@ -41,6 +41,14 @@ create temp table seats as
 select pg_temp.sat('00000000-0000-4000-8000-0000000c4392', '00000000-0000-4000-8000-000000000213', 'Table 3', 2, '08:30', '09:30');
 select pg_temp.sat('00000000-0000-4000-8000-0000000c4393', '00000000-0000-4000-8000-000000000211', 'Table 3', 3, '10:00', '11:00');
 
+-- Four more came in for the first time that day and did not sit: they are no first visit among those who played, whose share
+-- would else pass the whole (the money review of the pull request: 6 of 2 read as 300%).
+insert into public.visit (venue_id, member_id, opened_at, closed_at, close_reason)
+select '00000000-0000-4000-8000-000000000001', m.id, pg_temp.at('12:00'), pg_temp.at('12:30'), 'door'
+from (select id from public.member where venue_id = '00000000-0000-4000-8000-000000000001' and erased_at is null
+        and id not in ('00000000-0000-4000-8000-000000000211', '00000000-0000-4000-8000-000000000212', '00000000-0000-4000-8000-000000000213', '00000000-0000-4000-8000-000000000216')
+      order by member_number limit 4) m;
+
 -- The lists.
 insert into public.waitlist_entry (venue_id, member_id, table_type_id, table_id, idempotency_key, joined_at, approved_at, status, seated_at, called_at, hold_until, call_table_id, call_seat, left_at, left_reason)
 select '00000000-0000-4000-8000-000000000001'::uuid, w.member::uuid, t.table_type_id, t.id, ('00000000-0000-4000-8000-00000c43900' || w.n)::uuid, pg_temp.at(w.joined), pg_temp.at(w.joined), w.status,
@@ -83,24 +91,24 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 -- Players.
 select results_eq(
   $$ select figure, amount from public.report_figures('00000000-0000-4000-8000-000000000001', 'players', (select d from day), (select d from day)) order by figure $$,
-  $$ values ('check_ins'::text, 3::bigint), ('new_members', 0), ('played', 2), ('session_seconds', 4800) $$,
-  'players: three check-ins by two members, nobody new that day, a seat session of an hour and twenty minutes on average');
+  $$ values ('check_ins'::text, 7::bigint), ('new_members', 0), ('played', 2), ('session_seconds', 4800) $$,
+  'players: seven check-ins, two members who played, nobody new that day, a seat session of an hour and twenty minutes on average');
 select results_eq(
   $$ select measure, amount from public.players_report('00000000-0000-4000-8000-000000000001', (select d from day), (select d from day)) where measure <> 'tier' order by place $$,
   $$ values ('played'::text, 2::bigint), ('first_visit', 2), ('id_checks', 0) $$,
-  'the members who played, those on a first visit, and no ID check done that day');
+  'the members who played, those of them on a first visit (never more than played), and no ID check done that day');
 select is((select sum(amount)::bigint from public.players_report('00000000-0000-4000-8000-000000000001', (select d from day), (select d from day)) where measure = 'tier'),
           2::bigint, 'and the players by tier add up to them');
 select results_eq(
   $$ select extract(hour from bucket at time zone 'Asia/Kolkata')::integer, amount
      from public.report_chart('00000000-0000-4000-8000-000000000001', 'players', (select d from day), (select d from day)) where amount > 0 order by bucket $$,
-  $$ values (7, 1::bigint), (8, 1), (9, 1) $$, 'check-ins by the hour');
+  $$ values (7, 1::bigint), (8, 1), (9, 1), (12, 4) $$, 'check-ins by the hour');
 select is((select count(*)::integer from public.report_chart('00000000-0000-4000-8000-000000000001', 'players', (select d from day), (select d from day))), 24,
           'one club day is twenty-four bars');
 select results_eq(
   $$ select ((bucket at time zone 'Asia/Kolkata') - interval '6 hours')::date, amount
      from public.report_chart('00000000-0000-4000-8000-000000000001', 'players', (select d from day) - 1, (select d from day) + 1) order by bucket $$,
-  $$ select (select d from day) - 1, 0::bigint union all select (select d from day), 3 union all select (select d from day) + 1, 0 $$,
+  $$ select (select d from day) - 1, 0::bigint union all select (select d from day), 7 union all select (select d from day) + 1, 0 $$,
   'a longer span is a bar a club day');
 
 -- Tables: its chart, the members seated in each hour.

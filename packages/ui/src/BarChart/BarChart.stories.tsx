@@ -27,7 +27,7 @@ export const ClubDay: Story = {
   },
 };
 
-/** Ninety days: every few bars keep their words. */
+/** Ninety days: the bars stand close, and a line under them names every few. */
 export const NinetyDays: Story = {
   args: {
     label: 'Check-ins by day',
@@ -44,3 +44,6 @@ export const LongText: Story = {
 };
 
 export const Empty: Story = { args: { label: 'Orders by hour', bars: SEATED.map((_, index) => ({ label: HOURS[index] ?? '', value: 0, valueText: '0' })) } };
+
+/** One bar: a report of a single hour or day. */
+export const OneBar: Story = { args: { label: 'Bonus given by day', bars: [{ label: '15 Nov', value: 26_500, valueText: '26,500' }] } };

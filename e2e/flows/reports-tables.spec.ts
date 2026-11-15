@@ -47,7 +47,7 @@ test.describe('Reports', () => {
       await expect(page).toHaveURL(/\/reports\?tab=/);
       for (const figure of report.figures) await expect(page.locator('dt').filter({ hasText: new RegExp(`^${figure}$`) })).toBeVisible();
       await expect(page.getByRole('figure', { name: `${report.chart} by day` })).toBeVisible();
-      const lines = page.getByRole('table', { name: report.tab }).or(page.getByText(/^No (orders|Bonus given) in these days\.$/)).first();
+      const lines = page.getByRole('table', { name: report.tab }).or(page.getByText(/^No (orders|Bonus given)\.$/)).first();
       await expect(lines).toBeVisible();
       if (report.row !== null) await expect(page.getByRole('table', { name: report.tab }).getByText(report.row, { exact: true })).toBeVisible();
       await expect(page.getByText(/₹/)).toHaveCount(0);

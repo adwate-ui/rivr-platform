@@ -159,7 +159,8 @@ as $$
   where o.venue_id = p_venue_id and o.club_day between p_from and p_to;
 $$;
 
--- Players: the members who played, the same by tier, those on a first visit, and the ID checks done; `label` is a tier's name.
+-- Players: the members who played, the same by tier, those of them on a first visit, and the ID checks done; `label` is a tier's
+-- name. Every count but the ID checks is of members who played, so each is a share of them and none passes the whole.
 create function private.players_report(p_venue_id uuid, p_from date, p_to date)
 returns table (place integer, measure text, label text, amount bigint)
 language plpgsql
@@ -184,7 +185,8 @@ begin
     group by tr.rank, tr.name
     union all
     select 1000, 'first_visit', null,
-           (select count(*) from (select v.member_id from public.visit v where v.venue_id = p_venue_id group by v.member_id
+           (select count(*) from (select v.member_id from public.visit v
+                                  where v.venue_id = p_venue_id and v.member_id in (select p.member_id from played p) group by v.member_id
                                   having min(v.opened_at) >= (select s.from_at from span s) and min(v.opened_at) < (select s.to_at from span s)) f)
     union all
     select 1001, 'id_checks', null,
