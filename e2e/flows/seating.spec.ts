@@ -1,13 +1,14 @@
 /**
  * Seating (#77; console v3, phase 2). Kiran Bhat, this flow's own floor manager (Auth sends one code a minute to a
- * number), seats Ishaan Verma at Table 5, seat 1 by his mobile number from the seat's own row. She moves him to another
+ * number), seats Ishaan Verma at Table 5, seat 1 from the seat's own row, by the first letters of his name, choosing him from
+ * the members they match (the owner, 15 Nov night). She moves him to another
  * table, the table first and then a seat, and takes the move back with Undo. He leaves before his call time is met: Leave
  * asks one of four reasons (decision 0481), kept on his record, and frees the seat. Empty, Table 5 closes for tonight
  * from its sheet, and Undo opens it again.
  */
 import { expect, test } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
-import { letGoEarly, openPlayer, seatOnFloor, tableTile } from '../support/floor.ts';
+import { letGoEarly, openPlayer, showSeats, tableTile } from '../support/floor.ts';
 import { signInToConsole } from '../support/signIn.ts';
 
 test.describe('Seating', () => {
@@ -15,7 +16,13 @@ test.describe('Seating', () => {
     test.skip(isRemoteTarget(), 'seats a member and closes a table, so the local stack only');
     await signInToConsole(page, '9000000125');
     await expect(page.getByRole('heading', { name: 'Live floor', level: 1 })).toBeVisible();
-    await seatOnFloor(page, { table: 'Table 5', seat: 1, number: '9000000211' });
+    await showSeats(page);
+    await tableTile(page, 'Table 5').getByRole('button', { name: 'Seat 1, Open' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Seat a player' });
+    await sheet.getByRole('textbox', { name: /^(Or a n|N)ame, mobile or member number$/ }).fill('Ishaan V');
+    await sheet.getByRole('radiogroup', { name: 'Members matching' }).getByRole('radio', { name: /^Ishaan Verma · No\. \d+$/ }).click();
+    await sheet.getByRole('button', { name: 'Seat', exact: true }).click();
+    await expect(page.getByText('Ishaan Verma seated at Table 5, seat 1')).toBeVisible();
     await expect(tableTile(page, 'Table 5').getByRole('button', { name: /^Seat 1, Ishaan Verma, / })).toBeVisible();
 
     // Move: the table first, then one of its open seats; Undo moves him back.

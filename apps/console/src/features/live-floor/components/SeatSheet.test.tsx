@@ -32,6 +32,51 @@ async function openForLeela(api: FloorApi = FLOOR) {
   return { ...view, seat };
 }
 
+/** A member the search finds, as member_search gives them. */
+const found = (count: number) => Array.from({ length: count }, (_, index) => ({
+  member_id: `m${String(index + 1)}`, member_number: 1041 + index, full_name: `Arjun Player ${String(index + 1)}`, phone: null, tier_name: 'Member',
+  visits: 0, last_visit_at: null,
+}));
+
+describe('Seat a player suggests members as the floor types (the owner, 15 Nov night)', () => {
+  const typeIn = (seat: HTMLElement, text: string) =>
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Or a name, mobile or member number' }), { target: { value: text } });
+
+  it('lists eight at most of those the bounded search finds, and seats the one chosen with a tap', async () => {
+    const { rpcs, seat } = await openForLeela({ ...FLOOR, replies: { member_search: { status: 200, body: found(10) }, seat_member: { status: 200, body: 's9' } } });
+    typeIn(seat, 'arj');
+    const matches = await within(seat).findByRole('radiogroup', { name: 'Members matching' });
+    expect(within(matches).getAllByRole('radio')).toHaveLength(8);
+    expect(rpcs('member_search').at(-1)).toEqual({ p_venue_id: 'v1', p_query: 'arj' });
+    fireEvent.click(within(matches).getByRole('radio', { name: 'Arjun Player 3 · No. 1043' }));
+    fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
+    await waitFor(() => expect(rpcs('seat_member')).toHaveLength(1));
+    expect(rpcs('seat_member')[0]).toMatchObject({ p_member_number: 1043 });
+    expect(rpcs('assign_from_waitlist')).toEqual([]);
+    expect(await screen.findByText('Arjun Player 3 seated at Table 2, seat 2')).toBeDefined();
+  });
+
+  it('chooses with the keyboard: the arrow keys move along the matches, choosing each', async () => {
+    const { rpcs, seat } = await openForLeela({ ...FLOOR, replies: { member_search: { status: 200, body: found(3) }, seat_member: { status: 200, body: 's9' } } });
+    typeIn(seat, '1042');
+    const matches = await within(seat).findByRole('radiogroup', { name: 'Members matching' });
+    fireEvent.keyDown(within(matches).getByRole('radio', { name: 'Arjun Player 1 · No. 1041' }), { key: 'ArrowRight' });
+    expect(within(matches).getByRole('radio', { name: 'Arjun Player 2 · No. 1042' }).getAttribute('aria-checked')).toBe('true');
+    fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
+    await waitFor(() => expect(rpcs('seat_member')).toHaveLength(1));
+    expect(rpcs('seat_member')[0]).toMatchObject({ p_member_number: 1042 });
+  });
+
+  it('asks for a member to be chosen when part of a name is typed and none is, and seats nobody', async () => {
+    const { rpcs, seat } = await openForLeela({ ...FLOOR, replies: { member_search: { status: 200, body: found(2) } } });
+    typeIn(seat, 'arj');
+    await within(seat).findByRole('radiogroup', { name: 'Members matching' });
+    fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
+    expect(await within(seat).findByText('Choose the member below.')).toBeDefined();
+    expect(rpcs('seat_member')).toEqual([]);
+  });
+});
+
 describe('The seat sheet and a member not checked yet', () => {
   it('sends one seating however often Seat is pressed while it is being answered', async () => {
     const { rpcs, seat } = await openForLeela();
@@ -51,7 +96,7 @@ describe('The seat sheet and a member not checked yet', () => {
 
   it('still seats a number typed in place of that member', async () => {
     const { rpcs, seat } = await openForLeela({ ...UNCHECKED, replies: { seat_member: { status: 200, body: 's9' } } });
-    fireEvent.change(within(seat).getByRole('textbox', { name: 'Or a mobile or member number' }), { target: { value: '42' } });
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Or a name, mobile or member number' }), { target: { value: '42' } });
     expect(within(seat).queryByRole('button', { name: /^Check/ })).toBeNull();
     fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
     await waitFor(() => expect(rpcs('seat_member')).toHaveLength(1));

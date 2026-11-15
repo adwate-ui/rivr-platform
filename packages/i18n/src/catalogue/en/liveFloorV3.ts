@@ -88,9 +88,13 @@ export const floor = {
     nextOn: 'Next on the {table} list',
     waiting: '{name} · {minutes} min',
     nobody: 'Nobody on this list.',
-    number: 'Or a mobile or member number',
+    number: 'Or a name, mobile or member number',
     /** With nobody on the list there is no "or". */
-    numberAlone: 'Mobile or member number',
+    numberAlone: 'Name, mobile or member number',
+    /** The members matching what is typed, eight at most (the owner, 15 Nov night). */
+    matches: 'Members matching',
+    match: '{name} · No. {number}',
+    chooseMatch: 'Choose the member below.',
     tableThenSeat: 'Table, then seat',
     table: 'Table',
     seatNumber: 'Seat',

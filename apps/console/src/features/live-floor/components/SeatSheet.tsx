@@ -1,6 +1,8 @@
 import { bonusChipsToRedeemSchema, seatPlayerSchema } from '@rivr/contracts';
 import { isCallTimeMinutes } from '@rivr/domain/callTime';
-import { openSeatsAt, useWaitlistBoard, type FloorTable, type HeldSeat, type SeatedPlayer, type WaitlistBoardEntry } from '@rivr/db';
+import {
+  openSeatsAt, useMemberSearch, useWaitlistBoard, type FloorTable, type HeldSeat, type MemberRow, type SeatedPlayer, type WaitlistBoardEntry,
+} from '@rivr/db';
 import { useMemberBonus, useMemberBonusVisitLeft } from '@rivr/db/bonus';
 import { formatChips, t, type MessageKey } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Input, Sheet, Stack, Text, UnitInput } from '@rivr/ui';
@@ -32,11 +34,20 @@ function nextOn(board: readonly WaitlistBoardEntry[], tableId: string, pinned: s
     .sort((a, b) => a.place - b.place).filter((entry, index) => index < 4 || entry.entryId === pinned);
 }
 
-/** Who is seated: the number typed, else the name chosen; or why neither will do. */
-function seatingOf(number: string, entry: WaitlistBoardEntry | undefined): Seating | MessageKey {
+/** The members suggested as the floor types: a few at most (the owner, 15 Nov night). */
+const MATCHES_MOST = 8;
+
+/** Who is seated: the member chosen from those matching what is typed, else the number typed, else the name chosen; or why none will do. */
+function seatingOf(number: string, entry: WaitlistBoardEntry | undefined, match: MemberRow | null): Seating | MessageKey {
+  if (match !== null) {
+    const parsed = seatPlayerSchema.safeParse({ number: String(match.memberNumber) });
+    return parsed.success ? { kind: 'number', who: parsed.data.number, typed: match.fullName } : 'console.floor.seat.badNumber';
+  }
   if (number.trim() !== '') {
     const parsed = seatPlayerSchema.safeParse({ number });
-    return parsed.success ? { kind: 'number', who: parsed.data.number, typed: number.trim() } : 'console.floor.seat.badNumber';
+    if (parsed.success) return { kind: 'number', who: parsed.data.number, typed: number.trim() };
+    // A name, or part of one: the member is chosen from those it matches.
+    return /\p{L}/u.test(number) ? 'console.floor.seat.chooseMatch' : 'console.floor.seat.badNumber';
   }
   if (entry === undefined) return 'console.floor.seat.chooseWho';
   // Not checked yet (decision 0503): the database refuses the seat, so the sheet says the desk comes first.
@@ -44,7 +55,7 @@ function seatingOf(number: string, entry: WaitlistBoardEntry | undefined): Seati
   return { kind: 'list', entryId: entry.entryId, memberId: entry.memberId, fullName: entry.fullName };
 }
 
-/** The sheet's choices: the table, its seat, who (a name from the list, or a number typed) and any call time chosen. */
+/** The sheet's choices: the table, its seat, who (a name from the list, or one matching what is typed, or a number) and any call time chosen. */
 function useSeatChoice(start: SeatSheetProps['start']) {
   const [tableId, setTableId] = useState(start.tableId);
   const [seat, setSeat] = useState<number | null>(start.seat);
@@ -52,6 +63,8 @@ function useSeatChoice(start: SeatSheetProps['start']) {
   // is typed instead).
   const [entryId, setEntryId] = useState<string | null | undefined>(start.entryId);
   const [number, setNumber] = useState('');
+  // The member chosen from those matching what is typed; null while none is.
+  const [match, setMatch] = useState<MemberRow | null>(null);
   // A call time the floor typed; undefined takes the stake's own, as the table changes; null is a field left blank or
   // holding a time it refuses.
   const [callMinutes, setCallMinutes] = useState<number | null | undefined>(undefined);
@@ -59,9 +72,20 @@ function useSeatChoice(start: SeatSheetProps['start']) {
   const [bonusChips, setBonusChips] = useState('');
   const [error, setError] = useState<MessageKey | null>(null);
   return {
-    tableId, setTableId, seat, setSeat, entryId, setEntryId, number, setNumber, callMinutes, setCallMinutes, bonusChips, setBonusChips, error, setError,
+    tableId, setTableId, seat, setSeat, entryId, setEntryId, number, setNumber, match, setMatch, callMinutes, setCallMinutes, bonusChips, setBonusChips,
+    error, setError,
   };
 }
+
+/** The members matching what is typed, by name, member number or the mobile's last digits, through the bounded member search. */
+function useMatches(venueId: string, typed: string): readonly MemberRow[] {
+  const found = useMemberSearch(venueId, typed);
+  return typed.trim() === '' ? [] : (found.data ?? []).slice(0, MATCHES_MOST);
+}
+
+/** Whose bonus the sheet shows: the member chosen from the matches while something is typed, else the one chosen from the list. */
+const bonusMemberOf = (isTyped: boolean, match: MemberRow | null, entry: WaitlistBoardEntry | undefined) =>
+  (isTyped ? (match?.memberId ?? null) : (entry?.memberId ?? null));
 
 /** The seat chosen while it is still free, else the table's first free seat; none at a full table. */
 function seatOf(free: readonly number[], chosen: number | null): number | null {
@@ -82,11 +106,12 @@ function useSeatSheet({ venueId, tables, seats, held, start, changes, onClose }:
   const next = nextOn(board, choice.tableId, start.entryId);
   const isTyped = choice.number.trim() !== '';
   const entry = choice.entryId === undefined ? next[0] : next.find((candidate) => candidate.entryId === choice.entryId);
+  const matches = useMatches(venueId, choice.number);
   // Busy from the press until the answer: a second press would ask again (the trial run: seventeen in eight seconds).
   const [isSeating, setSeating] = useState(false);
   const confirm = async () => {
     if (isSeating) return undefined;
-    const who = seatingOf(choice.number, isTyped ? undefined : entry);
+    const who = seatingOf(choice.number, isTyped ? undefined : entry, choice.match);
     if (typeof who === 'string') return choice.setError(who);
     if (table === undefined || seat === null) return choice.setError('console.floor.seat.pickSeat');
     if (!isCallTimeMinutes(callMinutes)) return choice.setError('console.floor.seat.badCallTime');
@@ -101,14 +126,20 @@ function useSeatSheet({ venueId, tables, seats, held, start, changes, onClose }:
     return undefined;
   };
   const open = tables.filter((one) => one.isOpen && openSeatsAt(one, taken).length > 0);
-  return { choice, table, free, seat, next, chosen: isTyped ? undefined : entry, open, confirm, isSeating, callMinutes, tablesOwn };
+  return {
+    choice, table, free, seat, next, chosen: isTyped ? undefined : entry, matches, bonusMemberId: bonusMemberOf(isTyped, choice.match, entry), open, confirm,
+    isSeating, callMinutes, tablesOwn,
+  };
 }
 
 type SeatSheetState = ReturnType<typeof useSeatSheet>;
 
-/** Who: the next names on the table's list, or a mobile or member number typed. */
+/**
+ * Who: the next names on the table's list, or a name, mobile or member number typed, with the members it matches to choose
+ * from by a tap or the arrow keys (the owner, 15 Nov night).
+ */
 function Who({ sheet, now }: { sheet: SeatSheetState; now: Date }) {
-  const { choice, table, next, chosen } = sheet;
+  const { choice, table, next, chosen, matches } = sheet;
   const heading = t('console.floor.seat.nextOn', { table: table?.name ?? '' });
   return (
     <Stack gap={3}>
@@ -116,10 +147,15 @@ function Who({ sheet, now }: { sheet: SeatSheetState; now: Date }) {
       {next.length === 0 ? <Text tone="muted">{t('console.floor.seat.nobody')}</Text> : (
         <ChoiceChips look="subtle" mode="one" label={heading} isLabelVisuallyHidden selected={chosen === undefined ? [] : [chosen.entryId]}
           options={next.map((one) => ({ value: one.entryId, label: t('console.floor.seat.waiting', { name: one.fullName, minutes: Math.floor(waitedSeconds(one.joinedAt, now) / 60) }) }))}
-          onChange={([value]) => { choice.setEntryId(value ?? null); choice.setNumber(''); choice.setError(null); }} />
+          onChange={([value]) => { choice.setEntryId(value ?? null); choice.setNumber(''); choice.setMatch(null); choice.setError(null); }} />
       )}
       <Input label={t(next.length === 0 ? 'console.floor.seat.numberAlone' : 'console.floor.seat.number')} value={choice.number} inputMode="numeric" autoComplete="off"
-        onChange={(event) => { choice.setNumber(event.target.value); choice.setError(null); }} />
+        onChange={(event) => { choice.setNumber(event.target.value); choice.setMatch(null); choice.setError(null); }} />
+      {matches.length === 0 ? null : (
+        <ChoiceChips look="subtle" mode="one" label={t('console.floor.seat.matches')} isLabelVisuallyHidden selected={choice.match === null ? [] : [choice.match.memberId]}
+          options={matches.map((row) => ({ value: row.memberId, label: t('console.floor.seat.match', { name: row.fullName, number: row.memberNumber }) }))}
+          onChange={([value]) => { choice.setMatch(matches.find((row) => row.memberId === value) ?? null); choice.setEntryId(null); choice.setError(null); }} />
+      )}
     </Stack>
   );
 }
@@ -157,14 +193,14 @@ function bonusHint(balance: bigint | null | undefined, left: bigint | null | und
 }
 
 /**
- * Bonus chips the member redeems with their buy-in (decision 0504): their balance once a name from the list is chosen, and
- * what this visit may still redeem (decision 0579); a number typed is checked as they sit.
+ * Bonus chips the member redeems with their buy-in (decision 0504): their balance once a member is chosen, from the list or
+ * from those matching what is typed, and what this visit may still redeem (decision 0579); a number typed is checked as they sit.
  */
 function BonusChips({ sheet, venueId }: { sheet: SeatSheetState; venueId: string }) {
-  const { choice, chosen } = sheet;
-  const balance = useMemberBonus(venueId, chosen?.memberId ?? null).data;
-  const left = useMemberBonusVisitLeft(venueId, chosen?.memberId ?? null).data;
-  const hint = chosen === undefined ? t('console.floor.seat.bonusChipsTyped') : bonusHint(balance, left);
+  const { choice, bonusMemberId } = sheet;
+  const balance = useMemberBonus(venueId, bonusMemberId).data;
+  const left = useMemberBonusVisitLeft(venueId, bonusMemberId).data;
+  const hint = bonusMemberId === null ? t('console.floor.seat.bonusChipsTyped') : bonusHint(balance, left);
   return (
     <Input label={t('console.floor.seat.bonusChips')} hint={hint} value={choice.bonusChips} inputMode="numeric" autoComplete="off"
       onChange={(event) => { choice.setBonusChips(event.target.value); choice.setError(null); }} />
@@ -172,7 +208,7 @@ function BonusChips({ sheet, venueId }: { sheet: SeatSheetState; venueId: string
 }
 
 /**
- * Seat a player (console v3): the next names on the table's own list, or a mobile or member number; then the table and
+ * Seat a player (console v3): the next names on the table's own list, or a member found by name, mobile or member number; then the table and
  * seat; then the call time; then any bonus chips they redeem with their buy-in (decision 0504). Seat seats them at once,
  * with Undo (decision 0480) unless bonus chips were redeemed.
  */
