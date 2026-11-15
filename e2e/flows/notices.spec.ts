@@ -12,6 +12,8 @@ test('Notices: a notice put up in Settings shows on members\' Home, is edited in
   const edited = words.replace('8 pm', '9 pm');
   await signInToConsole(page, '9000000126');
   await openConsole(page, '/settings?tab=notices');
+  // New notice opens the form in the panel at the side (redesign RD-38); put up, it closes.
+  await page.getByRole('button', { name: 'New notice' }).click();
   await page.getByRole('textbox', { name: 'Notice' }).fill(words);
   await page.getByRole('button', { name: 'Put up' }).click();
   await expect(page.getByRole('status').getByText('Notice put up.')).toBeVisible();

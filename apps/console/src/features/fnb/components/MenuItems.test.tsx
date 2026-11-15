@@ -1,6 +1,6 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { ToastProvider } from '@rivr/ui';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MenuItems } from './MenuItems.tsx';
 
@@ -49,11 +49,16 @@ function renderMenu(canManage: boolean, items: readonly object[] = [CHAI]) {
 describe('MenuItems', () => {
   it('adds an item with its veg mark and a line on what it is (F-052)', async () => {
     const saved = renderMenu(true);
-    fireEvent.change(await screen.findByRole('textbox', { name: 'Item' }, { timeout: 5000 }), { target: { value: 'Paneer roll' } });
-    fireEvent.click(screen.getByRole('radio', { name: 'Veg' }));
-    fireEvent.change(screen.getByRole('textbox', { name: 'Description' }), { target: { value: ' With mint chutney ' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Add to the menu' }));
+    // Add to the menu opens the panel at the side (redesign RD-38); saved, it says so and closes.
+    fireEvent.click(await screen.findByRole('button', { name: 'Add to the menu' }, { timeout: 5000 }));
+    const panel = within(screen.getByRole('dialog', { name: 'Add to the menu' }));
+    fireEvent.change(panel.getByRole('textbox', { name: 'Item' }), { target: { value: 'Paneer roll' } });
+    fireEvent.click(panel.getByRole('radio', { name: 'Veg' }));
+    fireEvent.change(panel.getByRole('textbox', { name: 'Description' }), { target: { value: ' With mint chutney ' } });
+    fireEvent.click(panel.getByRole('button', { name: 'Add to the menu' }));
     await waitFor(() => expect(saved).toEqual([expect.objectContaining({ p_name: 'Paneer roll', p_diet: 'veg', p_description: 'With mint chutney' })]));
+    expect(await screen.findByText('Paneer roll added.')).toBeDefined();
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   });
 
   it('shows an item\u2019s mark beside its name', async () => {

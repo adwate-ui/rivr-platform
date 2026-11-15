@@ -23,15 +23,20 @@ test.describe('Staff', () => {
     await openConsole(admin, '/staff');
     await expect(admin.getByRole('heading', { name: 'Staff', level: 1 })).toBeVisible();
     await expect(admin.getByRole('columnheader', { name: /Last signed in/ })).toBeVisible();
-    // The staff are a table (C-03): a name opens the person beside it, and their changes open in place on Change (A-17).
+    // The staff are a table (C-03): a name opens the person in the panel at the side, with what may be changed (redesign RD-38).
     await admin.getByRole('button', { name: 'Ayesha Thomas · You', exact: true }).click();
-    await admin.getByRole('button', { name: 'Change Ayesha Thomas' }).click();
+    const panel = admin.getByRole('dialog');
+    await expect(panel).toHaveAccessibleName('Ayesha Thomas · You');
     await expect(admin.getByRole('switch', { name: 'Active: Ayesha Thomas' })).toBeDisabled();
     // Her own role is a super admin's to give (B3), so it shows no choices; her job title stays hers to change.
     await expect(admin.getByRole('radiogroup', { name: 'Role for Ayesha Thomas' })).toHaveCount(0);
     await expect(admin.getByRole('textbox', { name: 'Job title for Ayesha Thomas' })).toBeEnabled();
+    await panel.getByRole('button', { name: 'Close', exact: true }).click();
+    await expect(panel).toHaveCount(0);
 
+    // Add staff opens its form in the same panel; added, it says so and closes.
     await admin.getByRole('button', { name: 'Add staff', exact: true }).click();
+    await expect(panel).toHaveAccessibleName('New staff member');
     await admin.getByRole('textbox', { name: 'Full name' }).fill(name);
     await admin.getByRole('textbox', { name: 'Job title', exact: true }).fill('Floor supervisor');
     await admin.getByRole('radiogroup', { name: 'Role', exact: true }).getByRole('radio', { name: 'Host' }).click();
@@ -41,9 +46,9 @@ test.describe('Staff', () => {
     await admin.getByRole('textbox', { name: 'Mobile number' }).fill(`98765${run}`);
     await admin.getByRole('button', { name: 'Add staff member' }).click();
     await expect(admin.getByText(`${name} is added.`)).toBeVisible();
+    await expect(panel).toHaveCount(0);
     await admin.getByRole('searchbox', { name: 'Find staff' }).fill(run);
     await admin.getByRole('button', { name, exact: true }).click();
-    await admin.getByRole('button', { name: `Change ${name}` }).click();
     const title = admin.getByRole('textbox', { name: `Job title for ${name}` });
     await expect(title).toHaveValue('Floor supervisor');
     await title.fill('Host');
@@ -57,12 +62,11 @@ test.describe('Staff', () => {
     await admin.getByRole('button', { name: 'Yes, turn it off' }).click();
     await expect(admin.getByText(`Turn off ${name}'s login?`)).toHaveCount(0);
     await admin.reload();
-    // A reload closes the row. Turned off, they are under Removed (owner, 8 Nov); found again, the name, then Change,
-    // open it on what was saved.
+    // A reload closes the panel. Turned off, they are under Removed (owner, 8 Nov); found again, the name opens it on
+    // what was saved.
     await admin.getByRole('link', { name: 'Removed staff' }).click();
     await admin.getByRole('searchbox', { name: 'Find staff' }).fill(run);
     await admin.getByRole('button', { name, exact: true }).click();
-    await admin.getByRole('button', { name: `Change ${name}` }).click();
     await expect(admin.getByRole('textbox', { name: `Job title for ${name}` })).toHaveValue('Host');
     await expect(admin.getByRole('switch', { name: `Active: ${name}` })).toHaveAttribute('aria-checked', 'false');
 

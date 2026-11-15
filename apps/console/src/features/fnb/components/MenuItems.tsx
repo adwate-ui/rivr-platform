@@ -2,7 +2,7 @@ import { FNB_DIETS, FNB_ITEM_KINDS, type FnbDiet, type FnbItemKind } from '@rivr
 import { useItemPhotoUpload, type ItemPhotoFailure } from '@rivr/db';
 import { useFnbActions, useFnbItems, useFnbMenuItemActions, type FnbFailure, type FnbItem, type FnbMenuFailure } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
-import { Button, CameraButton, ChoiceChips, ConfirmQuestion, DietMark, ErrorMessage, Heading, Inline, Input, ItemPhoto, LoadState, OverflowMenu, Stack, Switch, Text, useIsWide, useToast } from '@rivr/ui';
+import { Button, CameraButton, ChoiceChips, ConfirmQuestion, DietMark, ErrorMessage, Heading, Inline, Input, ItemPhoto, LoadState, OverflowMenu, Sheet, Stack, Switch, Text, useIsWide, useToast } from '@rivr/ui';
 import { useState } from 'react';
 
 /** The kinds to choose from, made when the form draws, so t() runs once the app's words are registered (F2-31). */
@@ -11,9 +11,13 @@ const kinds = () => FNB_ITEM_KINDS.map((kind) => ({ value: kind, label: t(`conso
 /** The diets to choose from, or not set, made as the form draws (F2-31). */
 const diets = () => [{ value: 'none' as const, label: t('console.fnb.dietNone') }, ...FNB_DIETS.map((diet) => ({ value: diet, label: t(`console.fnb.diets.${diet}`) }))];
 
-/** Adds an item to the end of the menu: its name and kind, then its veg mark and a line on what it is (F-052). */
-function AddItem({ venueId, next }: { venueId: string; next: number }) {
+/**
+ * A new item for the end of the menu, typed in the panel at the side (redesign RD-38): its name and kind, then its veg mark
+ * and a line on what it is (F-052). Saved, it says so in a toast and closes. The caller keys it by each opening.
+ */
+function AddItemSheet({ venueId, next, onClose }: { venueId: string; next: number; onClose: () => void }) {
   const { saveItem } = useFnbActions(venueId);
+  const toast = useToast();
   const [name, setName] = useState('');
   const [kind, setKind] = useState<FnbItemKind>('food');
   const [diet, setDiet] = useState<FnbDiet | 'none'>('none');
@@ -25,26 +29,39 @@ function AddItem({ venueId, next }: { venueId: string; next: number }) {
     });
     setFailure(saved.ok ? null : saved.error);
     if (!saved.ok) return;
-    setName('');
-    setDescription('');
-    setDiet('none');
+    toast(t('console.fnb.itemAdded', { name: name.trim() }));
+    onClose();
   };
+  const footer = (
+    <Inline gap={2} justify="end">
+      <Button variant="text" size="compact" onClick={onClose}>{t('console.fnb.cancel')}</Button>
+      <Button variant="primary" size="compact" isDisabled={name.trim() === ''} isLoading={saveItem.isPending} onClick={() => void add()}>{t('console.fnb.addItem')}</Button>
+    </Inline>
+  );
   return (
-    <Stack gap={2}>
-      {/* One line, as the console's other add rows (console v3): the field, its kind and Add, level at their foot. */}
-      <Inline gap={3} align="end" wrap>
-        <Input variant="subtle" label={t('console.fnb.itemName')} value={name} maxLength={60} autoComplete="off" onChange={(event) => setName(event.target.value)} />
-        <ChoiceChips label={t('console.fnb.kind')} isLabelVisuallyHidden look="subtle" mode="one" options={kinds()} selected={[kind]}
+    <Sheet place="console" isOpen onClose={onClose} title={t('console.fnb.addItem')} footer={footer}>
+      <Stack gap={5}>
+        <Input label={t('console.fnb.itemName')} value={name} maxLength={60} autoComplete="off" onChange={(event) => setName(event.target.value)} />
+        <ChoiceChips label={t('console.fnb.kind')} look="subtle" mode="one" options={kinds()} selected={[kind]}
           onChange={([picked]) => { const found = FNB_ITEM_KINDS.find((known) => known === picked); if (found) setKind(found); }} />
-        <Button variant="subtle" size="compact" isDisabled={name.trim() === ''} isLoading={saveItem.isPending} onClick={() => void add()}>{t('console.fnb.addItem')}</Button>
-      </Inline>
-      <Inline gap={3} align="end" wrap>
-        <ChoiceChips label={t('console.fnb.diet')} isLabelVisuallyHidden look="subtle" mode="one" options={diets()} selected={[diet]}
+        <ChoiceChips label={t('console.fnb.diet')} look="subtle" mode="one" options={diets()} selected={[diet]}
           onChange={([picked]) => { if (picked !== undefined) setDiet(picked); }} />
-        <Input variant="subtle" label={t('console.fnb.description')} value={description} maxLength={140} autoComplete="off" onChange={(event) => setDescription(event.target.value)} />
-      </Inline>
-      {failure === null ? null : <ErrorMessage>{t('console.fnb.invalidItem')}</ErrorMessage>}
-    </Stack>
+        <Input label={t('console.fnb.description')} value={description} maxLength={140} autoComplete="off" onChange={(event) => setDescription(event.target.value)} />
+        {failure === null ? null : <ErrorMessage>{t('console.fnb.invalidItem')}</ErrorMessage>}
+      </Stack>
+    </Sheet>
+  );
+}
+
+/** Add to the menu, under the list for staff who run F&B: it opens the panel, a fresh one each time. */
+function AddItem({ venueId, next }: { venueId: string; next: number }) {
+  const [opened, setOpened] = useState(0);
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <Inline>
+      <Button variant="subtle" size="compact" onClick={() => { setOpened(opened + 1); setIsOpen(true); }}>{t('console.fnb.addItem')}</Button>
+      {isOpen ? <AddItemSheet key={opened} venueId={venueId} next={next} onClose={() => setIsOpen(false)} /> : null}
+    </Inline>
   );
 }
 
@@ -159,7 +176,7 @@ function ItemSwitches({ venueId, items, canManage }: { venueId: string; items: r
 
 /**
  * Glaza's menu as the tables see it: each item under its kind (#799), on offer or off the menu. With `canManage`
- * (fnb.manage; redesign RD-33) each dish's photo, Delete, and a new item at the end; staff who only serve hide an item and
+ * (fnb.manage; redesign RD-33) each dish's photo, Delete, and Add to the menu, which opens the panel; staff who only serve hide an item and
  * show it again, and see no way to add one. The Menu tab names it, so it has no heading of its own (console v3).
  */
 export function MenuItems({ venueId, canManage }: { venueId: string; canManage: boolean }) {

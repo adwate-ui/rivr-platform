@@ -141,6 +141,7 @@ export const consoleFnb = {
   deleteItemQuestion: 'Delete {name}? Past orders keep it.',
   deleteItemConfirm: 'Yes, delete {name}',
   itemDeleted: '{name} deleted.',
+  itemAdded: '{name} added.',
   menuFailures: { not_allowed: 'Not yours to change.', paused: 'The club is paused. Nothing changes until it reopens.', unavailable: 'Not saved. Try again.' },
   empty,
   invalidItem: 'A name of 1 to 60 characters, a place from 1 to 999.',

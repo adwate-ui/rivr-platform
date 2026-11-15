@@ -41,7 +41,6 @@ function renderRow(member: StaffMember = AYESHA) {
 describe('StaffRow', () => {
   it('asks before a role picked on the row is saved, and saves it on Yes', async () => {
     const sent = renderRow();
-    fireEvent.click(screen.getByRole('button', { name: 'Change Ayesha Thomas' }));
     fireEvent.click(screen.getByRole('radio', { name: 'Host' }));
     expect(screen.getByText("Change Ayesha Thomas's role to Host?")).toBeDefined();
     expect(sent).toEqual([]);
@@ -51,7 +50,6 @@ describe('StaffRow', () => {
 
   it('asks before the login is turned off, and Cancel leaves it on', () => {
     const sent = renderRow();
-    fireEvent.click(screen.getByRole('button', { name: 'Change Ayesha Thomas' }));
     const active = screen.getByRole('switch', { name: 'Active: Ayesha Thomas' });
     fireEvent.click(active);
     expect(screen.getByText("Turn off Ayesha Thomas's login?")).toBeDefined();
@@ -61,19 +59,19 @@ describe('StaffRow', () => {
     expect(sent).toEqual([]);
   });
 
-  it('keeps a person to one row, their role and login opening in place on Change (A-17)', () => {
+  it('shows what the manager may change at once, with no Change or Done of its own: the panel opens and closes it (redesign RD-38)', () => {
     renderRow();
-    expect(screen.queryByRole('radiogroup', { name: 'Role for Ayesha Thomas' })).toBeNull();
-    expect(screen.queryByRole('switch', { name: 'Active: Ayesha Thomas' })).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'Change Ayesha Thomas' }));
     expect(screen.getByRole('radiogroup', { name: 'Role for Ayesha Thomas' })).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
-    expect(screen.queryByRole('radiogroup', { name: 'Role for Ayesha Thomas' })).toBeNull();
+    expect(screen.getByRole('switch', { name: 'Active: Ayesha Thomas' })).toBeDefined();
+    expect(screen.getByRole('textbox', { name: 'Job title for Ayesha Thomas' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Change Ayesha Thomas' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Done' })).toBeNull();
   });
 
-  it('offers no Change on a row out of the manager\'s reach, and says when that login is off (A-17)', () => {
+  it('offers nothing to change on someone out of the manager\'s reach, and says when that login is off (A-17)', () => {
     renderRow({ ...AYESHA, role: 'admin', isActive: false });
-    expect(screen.queryByRole('button', { name: 'Change Ayesha Thomas' })).toBeNull();
+    expect(screen.queryByRole('radiogroup', { name: 'Role for Ayesha Thomas' })).toBeNull();
+    expect(screen.queryByRole('switch', { name: 'Active: Ayesha Thomas' })).toBeNull();
     expect(screen.getByText('Turned off')).toBeDefined();
   });
 });

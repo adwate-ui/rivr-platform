@@ -48,15 +48,23 @@ function renderNotices({ save = { status: 200, body: 'n3' } }: { save?: Reply } 
 }
 
 const words = () => screen.getByRole('textbox', { name: 'Notice' });
+/** New notice, once the list has come, opens the panel at the side (redesign RD-38); its words are then there to type. */
+async function openNew() {
+  fireEvent.click(await screen.findByRole('button', { name: 'New notice' }));
+  expect(screen.getByRole('dialog', { name: 'New notice' })).toBeDefined();
+  return words();
+}
 
 describe('notices on Tonight, in Settings (decision 0424)', () => {
   it('lists each notice as members read it, when one still to come starts, and puts up a new one that shows as live', async () => {
     const { bodyOf } = renderNotices();
     expect(await screen.findByText('We\'re launching soon.')).toBeDefined();
     expect(screen.getByText('Starts 14 Nov 2099, 19:00 · Until ended')).toBeDefined();
-    fireEvent.change(words(), { target: { value: 'Open till 4 tonight.' } });
+    fireEvent.change(await openNew(), { target: { value: 'Open till 4 tonight.' } });
     fireEvent.click(screen.getByRole('button', { name: 'Put up' }));
     expect(await screen.findByText('Notice put up.')).toBeDefined();
+    // Put up, the panel closes.
+    expect(screen.queryByRole('dialog')).toBeNull();
     expect(bodyOf('post_notice')).toEqual({ p_venue_id: VENUE, p_body: 'Open till 4 tonight.' });
     // Up from now, it reads as live, not as still to come, however long the page has been open.
     const row = (await screen.findByText('Open till 4 tonight.')).closest('div')?.parentElement;
@@ -73,6 +81,7 @@ describe('notices on Tonight, in Settings (decision 0424)', () => {
 
   it('shows the notice as members’ Tonight will, its card, line breaks and links, while it is typed', async () => {
     renderNotices();
+    await openNew();
     const preview = (await screen.findByText('On members’ Tonight')).parentElement;
     expect(within(preview ?? document.body).getByText('Your notice shows here.')).toBeDefined();
     fireEvent.change(words(), { target: { value: 'The Private Room opens at 20:00.\nDetails: https://rivrpoker.com/room' } });
@@ -85,13 +94,13 @@ describe('notices on Tonight, in Settings (decision 0424)', () => {
 
   it('counts the characters as the database does, an emoji as one', async () => {
     renderNotices();
-    fireEvent.change(await screen.findByRole('textbox', { name: 'Notice' }), { target: { value: 'Hi 🙂' } });
+    fireEvent.change(await openNew(), { target: { value: 'Hi 🙂' } });
     expect(screen.getByText(/4 of 500 characters\./)).toBeDefined();
   });
 
   it('puts one up for later, from an IST day and time to another', async () => {
     const { bodyOf } = renderNotices();
-    fireEvent.change(await screen.findByRole('textbox', { name: 'Notice' }), { target: { value: 'Quiz night.' } });
+    fireEvent.change(await openNew(), { target: { value: 'Quiz night.' } });
     fireEvent.change(screen.getByLabelText('Starts on'), { target: { value: '2026-11-14' } });
     fireEvent.change(screen.getByRole('textbox', { name: 'Start time' }), { target: { value: '19:00' } });
     fireEvent.change(screen.getByLabelText('Ends on'), { target: { value: '2026-11-15' } });
@@ -106,7 +115,7 @@ describe('notices on Tonight, in Settings (decision 0424)', () => {
   it('says on the field itself what is wrong with a day or a time, before anything is sent', async () => {
     const { calls } = renderNotices();
     const time = (name: string) => screen.getByRole('textbox', { name });
-    fireEvent.change(await screen.findByRole('textbox', { name: 'Notice' }), { target: { value: 'Quiz night.' } });
+    fireEvent.change(await openNew(), { target: { value: 'Quiz night.' } });
     fireEvent.change(screen.getByLabelText('Starts on'), { target: { value: '2026-11-14' } });
     fireEvent.change(time('Start time'), { target: { value: '7pm' } });
     fireEvent.change(screen.getByLabelText('Ends on'), { target: { value: '2026-11-15' } });
@@ -120,11 +129,11 @@ describe('notices on Tonight, in Settings (decision 0424)', () => {
     expect(calls.some((call) => call.url.includes('/rpc/post_notice'))).toBe(false);
   });
 
-  it('edits the live notice in place, its words and its end, its start read only', async () => {
+  it('edits the live notice in the panel, its words and its end, its start read only', async () => {
     const { bodyOf } = renderNotices({ save: { status: 200, body: null } });
     fireEvent.click(await screen.findByRole('button', { name: 'Edit the notice: We\'re launching soon.' }));
+    expect(screen.getByRole('dialog', { name: 'Edit notice' })).toBeDefined();
     expect(words()).toHaveProperty('value', 'We\'re launching soon.');
-    await waitFor(() => expect(document.activeElement).toBe(words()));
     expect(screen.getByLabelText('Starts on')).toHaveProperty('readOnly', true);
     expect(screen.getByText('Live, so its start stays.')).toBeDefined();
     fireEvent.change(words(), { target: { value: 'We open on Sunday 15 November.' } });
@@ -133,7 +142,7 @@ describe('notices on Tonight, in Settings (decision 0424)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
     expect(await screen.findByText('Notice saved.')).toBeDefined();
     expect(bodyOf('update_notice')).toEqual({ p_notice_id: 'n1', p_body: 'We open on Sunday 15 November.', p_ends_at: '2026-11-14T20:30:00.000Z' });
-    expect(screen.getByRole('button', { name: 'Put up' })).toBeDefined();
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 
   it('marks a time not as 19:00 while editing, and saves nothing', async () => {
@@ -171,28 +180,18 @@ describe('notices on Tonight, in Settings (decision 0424)', () => {
     expect(screen.getByRole('button', { name: 'Put up' })).toBeDefined();
   });
 
-  it('clears the form when the notice being edited is ended', async () => {
-    renderNotices();
-    fireEvent.click(await screen.findByRole('button', { name: 'Edit the notice: We\'re launching soon.' }));
-    fireEvent.click(screen.getByRole('button', { name: 'End the notice: We\'re launching soon.' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Yes, end it' }));
-    expect(await screen.findByText('Notice ended.')).toBeDefined();
-    expect(words()).toHaveProperty('value', '');
-    expect(screen.getByRole('button', { name: 'Put up' })).toBeDefined();
-  });
-
-  it('lets an edit be left without saving, the focus back on the words', async () => {
-    renderNotices();
+  it('lets an edit be left without saving: the panel closes, and a new notice starts empty', async () => {
+    const { calls } = renderNotices();
     fireEvent.click(await screen.findByRole('button', { name: 'Edit the notice: We\'re launching soon.' }));
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-    expect(words()).toHaveProperty('value', '');
-    await waitFor(() => expect(document.activeElement).toBe(words()));
-    expect(screen.getByRole('button', { name: 'Put up' })).toBeDefined();
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(calls.some((call) => call.url.includes('/rpc/update_notice'))).toBe(false);
+    expect(await openNew()).toHaveProperty('value', '');
   });
 
   it('says what to do when the notice is refused', async () => {
     renderNotices({ save: { status: 400, body: { code: '22023', message: 'too long' } } });
-    fireEvent.change(await screen.findByRole('textbox', { name: 'Notice' }), { target: { value: 'x'.repeat(501) } });
+    fireEvent.change(await openNew(), { target: { value: 'x'.repeat(501) } });
     fireEvent.click(screen.getByRole('button', { name: 'Put up' }));
     expect(await screen.findByText('Write 1 to 500 characters, any link starting https://, and an end after the start and after now.')).toBeDefined();
   });
