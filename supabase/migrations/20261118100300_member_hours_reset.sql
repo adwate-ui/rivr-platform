@@ -76,6 +76,10 @@ begin
   if v_member.id is null or not coalesce(private.is_super_admin(v_member.venue_id), false) then
     raise exception 'Only a super admin resets a member''s hours' using errcode = '42501';
   end if;
+  -- As a tier change and Bonus by hand: never on the staff member's own record.
+  if private.is_own_cage_record(p_member_id) or coalesce(private.is_own_kyc_check(p_member_id), false) then
+    raise exception 'Staff never reset the hours of their own record' using errcode = 'RVOWN';
+  end if;
   if length(v_reason) not between 3 and 200 then
     raise exception 'A reason of 3 to 200 characters' using errcode = '22023';
   end if;

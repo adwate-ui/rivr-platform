@@ -3,10 +3,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
-/** Why a member's hours were not reset: not a super admin, a reason out of bounds, the venue or the member frozen, or anything else. */
-export type ResetHoursFailure = 'not_allowed' | 'invalid' | 'paused' | 'unavailable';
+/** Why a member's hours were not reset: not a super admin, their own record, a reason out of bounds, the venue or the member frozen, or anything else. */
+export type ResetHoursFailure = 'not_allowed' | 'own_record' | 'invalid' | 'paused' | 'unavailable';
 
-const FAILURE_BY_CODE: Readonly<Record<string, ResetHoursFailure>> = { '42501': 'not_allowed', '22023': 'invalid', RVFRZ: 'paused', RVMBR: 'paused', RVKIL: 'paused' };
+const FAILURE_BY_CODE: Readonly<Record<string, ResetHoursFailure>> = { '42501': 'not_allowed', RVOWN: 'own_record', '22023': 'invalid', RVFRZ: 'paused', RVMBR: 'paused', RVKIL: 'paused' };
 
 /**
  * A super admin resets one member's counted hours, with a reason (redesign RD-36): from then they count from zero on the

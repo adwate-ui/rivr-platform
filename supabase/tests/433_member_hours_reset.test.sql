@@ -53,6 +53,13 @@ select throws_ok($$ select public.reset_member_hours('00000000-0000-4000-8000-00
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select throws_ok($$ select public.reset_member_hours('00000000-0000-4000-8000-000000000211', ' x ') $$, '22023', null, 'a super admin gives a reason');
 select throws_ok($$ select public.reset_member_hours(gen_random_uuid(), 'A new season') $$, '42501', null, 'and resets a member who is there');
+-- Never their own: a super admin who is also a member, by the same mobile number (the security review of the pull request).
+reset role;
+update public.member set phone = (select s.phone from public.staff s where s.user_id = '00000000-0000-4000-8000-000000000101' and s.venue_id = '00000000-0000-4000-8000-000000000001')
+where id = '00000000-0000-4000-8000-000000000213';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select throws_ok($$ select public.reset_member_hours('00000000-0000-4000-8000-000000000213', 'A new season') $$, 'RVOWN', null, 'a super admin never resets the hours of their own record');
+select is((select hours_counted_from from public.member where id = '00000000-0000-4000-8000-000000000213'), null, 'and nothing changed');
 reset role;
 select is((select hours_counted_from from public.member where id = '00000000-0000-4000-8000-000000000211'), null, 'none of those reset anything');
 

@@ -26,8 +26,22 @@ describe('a member’s counted hours after a reset (redesign RD-36)', () => {
     expect(countedSeconds({ from: STINT.from, to: at('2026-11-15T14:50:00Z'), playedSeconds: 2000n }, at('2026-11-15T14:33:20Z'))).toBe(666n);
   });
 
-  it('refuses a stint that ends before it begins', () => {
-    expect(() => countedSeconds({ ...STINT, to: at('2026-11-15T13:00:00Z') }, null)).toThrow(RangeError);
+  it('shares by whole seconds of the clock, each rounded down', () => {
+    // 2.5 s on the clock is 2 whole seconds, and the 1.1 s after the reset is 1 of them: half of what was played.
+    const short = { from: at('2026-11-15T14:00:00.000Z'), to: at('2026-11-15T14:00:02.500Z'), playedSeconds: 2n };
+    expect(countedSeconds(short, at('2026-11-15T14:00:01.400Z'))).toBe(1n);
+  });
+
+  it('settles a reset at a stint’s very start or end without sharing: whole, or nothing', () => {
+    // Under a second on the clock there is no whole second to share by, so only the two ends can answer.
+    const blink = { from: at('2026-11-15T14:00:00.000Z'), to: at('2026-11-15T14:00:00.400Z'), playedSeconds: 3n };
+    expect(countedSeconds(blink, blink.from)).toBe(3n);
+    expect(countedSeconds(blink, blink.to)).toBe(0n);
+  });
+
+  it('refuses a stint that ends before it begins, and takes one that ends as it begins', () => {
+    expect(() => countedSeconds({ ...STINT, to: at('2026-11-15T13:00:00Z') }, null)).toThrow(new RangeError('A stint ends at or after it begins'));
+    expect(countedSeconds({ from: STINT.from, to: STINT.from, playedSeconds: 0n }, null)).toBe(0n);
   });
 
   it('never counts more than was played, nor less than nothing, and less the later the reset', () => {
