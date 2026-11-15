@@ -8,6 +8,7 @@ Read in this order. When two documents disagree, the later one wins.
 4. `features-2026-10-14.md`: roles, tournaments, check-in and check-out, call time, wallet, pot data, website editing, social, kill switch, exports, purge.
 5. `additions-2026-10-14.md`: everything found missing in the 14 Oct audit, and the resolved conflicts. Its "Resolved conflicts" section overrides every earlier document; its "Tier-gated features" section applies to every member-facing feature; its "Design system" section applies to every surface.
 6. `learn/`: the poker-settle drill specification, copied by Lane 0.
+7. `redesign-2026-11-15.md`: the owner's redesign of the player app, the console and the TV: what is removed, the rename to "Bonus", and the slices that rebuild the rest. Its references are in `docs/design/redesign-2026-11-15/`.
 
 ## Out of scope for this build
 
