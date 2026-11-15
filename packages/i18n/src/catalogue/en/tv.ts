@@ -33,14 +33,6 @@ export const tv = {
     /** A member who hid their name on the TVs, by their member number (the owner, 12 Nov). */
     member: 'Member #{number}',
   },
-  /** The High hand bonus board's body (redesign RD-25): the hands, and tonight's payouts. `{hand}` is the hit named exactly. */
-  highHand: {
-    hands: 'Hit one, get paid',
-    paidTonight: 'Paid tonight',
-    noneYet: 'None yet tonight.',
-    /** Under a player's name: `Four Jacks · Table 2 · 02:43`. */
-    payout: '{hand} · {table} · {time}',
-  },
   /** The call-time board (decision 0163), titled Seats opening on the TV (owner, 15 Nov): every seat on call time in one list, soonest first. */
   callTime: {
     title: 'Seats opening',
@@ -56,6 +48,12 @@ export const tv = {
   highHand: {
     title: 'High hand bonus',
     empty: 'No high hand bonus running.',
+    /** The board's body (redesign RD-25): over the hands, over tonight's payouts, and with none paid yet. */
+    hands: 'Hit one, get paid',
+    paidTonight: 'Paid tonight',
+    noneYet: 'None yet tonight.',
+    /** Under a player's name: `Four Jacks · Table 2 · 02:43`. `{hand}` is the hit named exactly. */
+    payout: '{hand} · {table} · {time}',
   },
   /** A promotion slide in the TV's rotation (#64). */
   promotion: {

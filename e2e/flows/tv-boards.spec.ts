@@ -15,13 +15,16 @@
  *   Pooja types the seconds on each board; given the high hand bonus and the promotions to turn to in between, the TV
  *   passes over the high hand bonus, which has nothing to show, shows a promotion slide, then Seats opening again; with
  *   the promotions switched off under Boards shown it stays on Seats opening, and they are switched on again. Nakul is from the
- *   seed's hundred more members, whom no other flow seats; Pooja, an admin, lets him leave early, and he leaves.
+ *   seed's hundred more members, whom no other flow seats; Pooja, an admin, lets him leave early, and he leaves;
+ * - with a high hand running and its board as the TV's own (redesign RD-25), the TV shows the hands with their Bonus and
+ *   the rules, and the four Jacks Pooja logs for Nakul from the Live floor are on it within seconds, through Realtime.
  * Both leave the list and the TV is unpaired at the end.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
 import { letGoEarly, requestsPanel, seatOnFloor, showSeats, tableTile } from '../support/floor.ts';
 import { openConsole } from '../support/console.ts';
+import { endHighHands, liveHighHand, shoot } from '../support/highHand.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 const PLAYER = 'Vihaan Kapoor';
@@ -123,10 +126,39 @@ async function seatNakul(floor: Page) {
   await expect(seated).toBeVisible();
 }
 
+/**
+ * The High hand bonus board as the TV's own (redesign RD-25): with a high hand running it shows the hands with their Bonus
+ * and the rules; the hit Pooja logs for Nakul from the Live floor's strip is on it within seconds, through Realtime.
+ */
+async function highHandOnItsBoard(tv: Page, floor: Page, name: string) {
+  liveHighHand(`High hand bonus ${String(Date.now() % 100_000)}`);
+  await floor.getByRole('radiogroup', { name: `What ${name} shows`, exact: true }).getByRole('radio', { name: 'High hand bonus', exact: true }).click();
+  await expect(tv.getByRole('heading', { level: 1, name: 'High hand bonus' })).toBeVisible({ timeout: 40_000 });
+  const hands = tv.getByRole('region', { name: 'Hit one, get paid' });
+  await expect(hands.getByRole('listitem').filter({ hasText: 'Royal flush' })).toContainText('25,000');
+  await expect(hands.getByText('Both hole cards must play · Shown at showdown · 4 or more players dealt in')).toBeVisible();
+  await floor.getByRole('link', { name: 'Live floor' }).click();
+  await floor.getByRole('region', { name: 'High hand bonus' }).getByRole('button', { name: 'Log a high hand' }).click();
+  const panel = floor.getByRole('dialog', { name: 'Log a high hand' });
+  await panel.getByRole('radio', { name: 'Private Room' }).click();
+  await panel.getByRole('radio', { name: LEAVING }).click();
+  await panel.getByRole('radio', { name: 'Four of a kind · 5,000' }).click();
+  await panel.getByRole('radiogroup', { name: 'Four of' }).getByRole('radio', { name: 'Jacks' }).click();
+  for (const rule of ['Both hole cards played', 'Shown at showdown', '4 or more players dealt in']) await panel.getByRole('switch', { name: rule }).click();
+  await panel.getByRole('button', { name: 'Pay 5,000 Bonus' }).click();
+  const paid = tv.getByRole('region', { name: 'Paid tonight' }).getByRole('listitem').filter({ hasText: 'Nakul D.' });
+  await expect(paid).toContainText(/Four Jacks · Private Room · \d\d:\d\d/, { timeout: 40_000 });
+  await expect(paid).toContainText('5,000');
+  await shoot(tv, 'tv-high-hand-board-on-the-stage-1920');
+  endHighHands();
+}
+
 test.describe('TV boards', () => {
   test('TV boards: the waitlist a list a table, a hidden name as its place, live as the floor adds players, and no rupee', async ({ browser }) => {
     test.skip(isRemoteTarget(), 'makes a device login and changes the waitlist, so the local stack only');
-    test.setTimeout(240_000);
+    test.setTimeout(330_000);
+    // No high hand a cut-off run left running: the rotation below passes over a board with nothing to show.
+    endHighHands();
     const name = `TV ${String(Date.now() % 100_000).padStart(5, '0')}`;
     const member = await browser.newPage();
     await signInToPlayer(member, '9000000216');
@@ -216,6 +248,8 @@ test.describe('TV boards', () => {
     await expect(tv.getByText('Offer', { exact: true })).toHaveCount(0);
     await expect(tv.getByRole('heading', { level: 1, name: 'Seats opening' })).toBeVisible();
     await saveRotation(floor, 'Boards shown', async (panel) => panel.getByRole('switch', { name: 'Promotions' }).click());
+
+    await highHandOnItsBoard(tv, floor, name);
 
     // Pooja, an admin, lets Nakul go before his call time, and he leaves.
     await floor.getByRole('link', { name: 'Live floor' }).click();

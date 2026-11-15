@@ -12,7 +12,7 @@ function nameOf(payout: TvHighHandPayout): string {
 }
 
 /**
- * The High hand bonus board's body from what the TV read (redesign RD-25): each hand with its Bonus, the rules on a line,
+ * The High hand bonus board's body from what the TV read (redesign RD-25), for HighHandMode: each hand with its Bonus, the rules on a line,
  * and tonight's payouts, the newest lit while it is under five minutes old at `now`.
  */
 export function toHighHandBoard(board: TvHighHand, now: Date): TvHighHandBoardProps {
