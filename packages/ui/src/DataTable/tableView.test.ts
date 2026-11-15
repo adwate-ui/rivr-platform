@@ -37,6 +37,13 @@ describe('table views in the address', () => {
     expect(fromWire({ s: '' }, OWN).sort).toBeNull();
   });
 
+  it('keeps a page past the first, and reads any other as the first', () => {
+    expect(toWire({ sort: OWN, query: '', filters: {}, page: 3 }, OWN)).toEqual({ p: 3 });
+    expect(toWire({ sort: OWN, query: '', filters: {}, page: 1 }, OWN)).toBeUndefined();
+    expect(fromWire({ p: 3 }, OWN)).toEqual({ sort: OWN, query: '', filters: {}, page: 3 });
+    for (const wrong of [1, 0, -2, 2.5, '3', null]) expect(fromWire({ p: wrong }, OWN).page).toBeUndefined();
+  });
+
   it('reads a wrong or hostile link as the table as it is, cut to size', () => {
     expect(fromWire('nonsense', OWN)).toEqual({ sort: OWN, query: '', filters: {} });
     const view = fromWire({ q: 'x'.repeat(500), f: { a: ['p', 'someday'], b: ['d', 'yesterday', '2026-11-08'], c: ['c', ...Array.from({ length: 80 }, (_, at) => String(at))], d: 5, e: ['z'] } }, null);

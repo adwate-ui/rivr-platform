@@ -1,22 +1,27 @@
 import type { DataTableSort } from './columns.ts';
 import { DATE_PRESETS, isDay, isOn, NO_FILTERS, type ColumnFilter, type ColumnFilters, type DatePreset } from './filters.ts';
 
-/** What a table shows (owner, 9 Nov: kept in the address): its order, the words searched, and its filters. */
+/**
+ * What a table shows (owner, 9 Nov: kept in the address): its order, the words searched, its filters and, where the
+ * screen pages it (server mode), the page past the first.
+ */
 export interface TableView {
   readonly sort: DataTableSort | null;
   readonly query: string;
   readonly filters: ColumnFilters;
+  readonly page?: number | undefined;
 }
 
 /**
  * A view as the address keeps it, only what differs from the table's own: `s` the order (`visits`, or `-visits`
  * descending; blank, none), `q` the words searched, `f` each filter by column (`['t', words]`, `['c', ...values]`,
- * `['r', from, to]`, `['p', preset]`, `['d', from, to]`).
+ * `['r', from, to]`, `['p', preset]`, `['d', from, to]`), `p` the page past the first.
  */
 export interface ViewWire {
   readonly s?: string;
   readonly q?: string;
   readonly f?: Readonly<Record<string, readonly string[]>>;
+  readonly p?: number;
 }
 
 // A link could carry anything: words are cut at 200 characters, a list at 50 values, filters at 50 columns.
@@ -52,6 +57,7 @@ export function toWire(view: TableView, initialSort: DataTableSort | null): View
     ...(order === sortWire(initialSort) ? {} : { s: order }),
     ...(view.query.trim() === '' ? {} : { q: view.query }),
     ...(on.length === 0 ? {} : { f: Object.fromEntries(on.map(([key, filter]) => [key, filterWire(filter)])) }),
+    ...(view.page === undefined || view.page <= 1 ? {} : { p: view.page }),
   };
   return Object.keys(wire).length === 0 ? undefined : wire;
 }
@@ -97,6 +103,11 @@ function filtersFrom(value: unknown): ColumnFilters {
   return Object.fromEntries(entries);
 }
 
+/** A page past the first, as a whole number; anything else is the first page, which a view leaves out. */
+function pageFrom(value: unknown): { readonly page?: number } {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value > 1 ? { page: value } : {};
+}
+
 /** A view from the address: what it does not say, or says wrongly, is the table's own. */
 export function fromWire(wire: unknown, initialSort: DataTableSort | null): TableView {
   if (typeof wire !== 'object' || wire === null || Array.isArray(wire)) return { sort: initialSort, query: '', filters: NO_FILTERS };
@@ -105,5 +116,6 @@ export function fromWire(wire: unknown, initialSort: DataTableSort | null): Tabl
     sort: sortFrom(Reflect.get(wire, 's'), initialSort),
     query: typeof query === 'string' ? query.slice(0, MOST_CHARS) : '',
     filters: filtersFrom(Reflect.get(wire, 'f')),
+    ...pageFrom(Reflect.get(wire, 'p')),
   };
 }

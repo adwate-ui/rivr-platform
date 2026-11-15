@@ -34,6 +34,18 @@ export interface DataTableColumn<Row> {
   readonly filter?: ColumnFilterKind | false;
   /** What the filter reads: one value, or several (a player at two tables) any of which a choice may hold; without it, the cell's words. */
   readonly filterValue?: (row: Row) => string | readonly string[];
+  /**
+   * A choice filter's values, each with how many rows hold it, as the screen counts them: over every row the other filters
+   * leave, not the rows loaded (redesign correction 4). Left out, counted from the rows; in server mode, which holds one
+   * page of them, there is then nothing to choose.
+   */
+  readonly choices?: readonly ColumnChoice[] | undefined;
+}
+
+/** One value of a choice filter, and how many rows hold it. */
+export interface ColumnChoice {
+  readonly value: string;
+  readonly count: number;
 }
 
 /**

@@ -1,8 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import type { DataTableColumn, DataTableSort } from './columns.ts';
 import { useDayOf, useTableView } from './DataTableView.tsx';
 import { filteredColumns } from './filterKind.ts';
 import { filtersOn, NO_FILTERS, passes, type ColumnFilter, type ColumnFilters, type FilteredColumn } from './filters.ts';
+import { useServerPages, type DataTableServer } from './server.ts';
+import type { TableView } from './tableView.ts';
 
 /**
  * A table's search box: its label, its look (`subtle`, the label inside a filled box, as on Members), and what a row is
@@ -21,6 +23,7 @@ interface TableInput<Row> {
   readonly filter?: DataTableSearch<Row> | undefined;
   readonly status?: 'ready' | 'loading' | 'error' | undefined;
   readonly rows?: readonly Row[] | undefined;
+  readonly server?: DataTableServer | undefined;
 }
 
 // One collator for every comparison: making one per comparison is slow on thousands of rows.
@@ -62,26 +65,47 @@ function shown<Row>(rows: readonly Row[], { columns, on, sort, matches, query, f
   return [...matching].sort((a, b) => sign * compare(value(a), value(b)));
 }
 
-/** The table's view and the rows it shows, and how each part of the view changes. */
+/** How each part of the view changes; any change but the page's starts again from the first page. */
+function changesOf(view: TableView, change: (next: TableView, isTyping?: boolean) => void) {
+  const { sort, query, filters } = view;
+  return {
+    setFilter: (key: string, filter: ColumnFilter | undefined, isTyping = false) => {
+      const rest = Object.fromEntries(Object.entries(filters).filter(([one]) => one !== key));
+      change({ sort, query, filters: filter === undefined ? rest : { ...rest, [key]: filter } }, isTyping);
+    },
+    toggleSort: (key: string) =>
+      change({ query, filters, sort: sort?.key === key && sort.direction === 'ascending' ? { key, direction: 'descending' } : { key, direction: 'ascending' } }),
+    setSort: (next: DataTableSort) => change({ sort: next, query, filters }),
+    setQuery: (next: string) => change({ sort, query: next, filters }, true),
+    clearAll: () => change({ sort, query: '', filters: NO_FILTERS }),
+    setPage: (page: number) => change({ sort, query, filters, page }),
+  };
+}
+
+/**
+ * The table's view and the rows it shows, and how each part of the view changes. In server mode the rows are one page
+ * as the screen gives it, drawn as they are, and the view is handed to the screen.
+ */
 export function useTable<Row>(props: TableInput<Row>) {
   const [view, setView, flush] = useTableView(props.label, props.initialSort ?? null);
   const dayOf = useDayOf();
-  const source = props.status === 'loading' || props.status === 'error' || props.rows === undefined ? NO_ROWS : props.rows;
-  const filtered = useMemo(() => filteredColumns(props.columns, source), [props.columns, source]);
+  const isServer = props.server !== undefined;
+  const isReady = props.status !== 'loading' && props.status !== 'error' && props.rows !== undefined;
+  const source = isReady ? props.rows : NO_ROWS;
+  // The rows a column's kind and a choice's counts are read from: all of them, or in server mode none, as it holds one page.
+  const counted = isServer ? NO_ROWS : source;
+  const filtered = useMemo(() => filteredColumns(props.columns, counted), [props.columns, counted]);
   const on = useMemo(() => filtersOn(filtered, view.filters), [filtered, view.filters]);
   const matches = matcherOf(props.filter);
-  const visible = useMemo(() => shown(source, { columns: props.columns, on, sort: view.sort, matches, query: view.query, filters: view.filters, dayOf }),
-    [source, props.columns, on, view.sort, matches, view.query, view.filters, dayOf]);
-  const setFilter = (key: string, filter: ColumnFilter | undefined, isTyping = false) => {
-    const rest = Object.fromEntries(Object.entries(view.filters).filter(([one]) => one !== key));
-    setView({ ...view, filters: filter === undefined ? rest : { ...rest, [key]: filter } }, isTyping);
-  };
-  const toggleSort = (key: string) =>
-    setView({ ...view, sort: view.sort?.key === key && view.sort.direction === 'ascending' ? { key, direction: 'descending' } : { key, direction: 'ascending' } });
-  return {
-    view, source, filtered, on, visible, setFilter, toggleSort, flush,
-    setSort: (sort: DataTableSort) => setView({ ...view, sort }),
-    setQuery: (query: string) => setView({ ...view, query }, true),
-    clearAll: () => setView({ ...view, query: '', filters: NO_FILTERS }),
-  };
+  const visible = useMemo(() => (isServer ? source : shown(source, { columns: props.columns, on, sort: view.sort, matches, query: view.query, filters: view.filters, dayOf })),
+    [isServer, source, props.columns, on, view.sort, matches, view.query, view.filters, dayOf]);
+  // Words searched in a link to a table without a search box are not applied, so never said nor handed on.
+  const query = props.filter === undefined ? '' : view.query.trim();
+  const typed = useRef(false);
+  const pages = useServerPages({ server: props.server, view, query, on, isReady, typed });
+  const changes = changesOf(view, (next, isTyping = false) => {
+    typed.current = isTyping;
+    setView(next, isTyping);
+  });
+  return { view, source, counted, filtered, on, visible, query, isReady, flush, ...pages, ...changes };
 }

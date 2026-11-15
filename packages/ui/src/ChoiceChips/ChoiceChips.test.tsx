@@ -153,6 +153,11 @@ describe('ChoiceChips', () => {
     expect(screen.getByText('Points earned per hour, multiplied')).toHaveClass('text-content-muted');
   });
 
+  it('groups a count in the thousands, as a list counted on the server has', () => {
+    renderIn(<ChoiceChips label="Status" look="subtle" mode="one" options={[{ value: 'all', label: 'All', count: 4812 }]} selected={['all']} onChange={vi.fn()} />);
+    expect(screen.getByRole('radio', { name: 'All, 4,812' })).toHaveTextContent('All4,812');
+  });
+
   it('shows a chip\'s count after its label and reads it as part of its name', async () => {
     const onChange = vi.fn();
     const statuses = [{ value: 'pending', label: 'Pending', count: 3 }, { value: 'done', label: 'Done', count: 0 }, { value: 'all', label: 'All' }];
