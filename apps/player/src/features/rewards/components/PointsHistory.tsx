@@ -37,7 +37,7 @@ function History() {
       </Box>
       {history.isError ? <LoadState isError onRetry={() => void history.refetch()} /> : null}
       {lines.length < count ? null : (
-        <Button variant="text" onClick={() => setCount(count + PAGE)}>{t('memberRewards.bonus.showEarlier')}</Button>
+        <Button variant="text" onClick={() => setCount(count + PAGE)}>{t('memberRewards.pointsHistory.showEarlier')}</Button>
       )}
     </Stack>
   );

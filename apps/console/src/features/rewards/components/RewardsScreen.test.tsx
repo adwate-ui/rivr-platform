@@ -1,3 +1,4 @@
+import { Text } from '@rivr/ui';
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, StaffVenueProvider } from '@rivr/db';
 import { QueryClient } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
@@ -36,6 +37,9 @@ function renderAs(role: string, Tab: ComponentType) {
 
 const LAZY = { timeout: 5000 };
 
+/** The Points tab as the route mounts it: with a form for Bonus by hand, here a stand-in. */
+const WithBonusForm = () => <RewardsPointsScreen BonusForm={() => <Text>Bonus form</Text>} />;
+
 describe('Rewards', () => {
   it('shows the catalogue', async () => {
     renderAs('floor', RewardsScreen);
@@ -53,19 +57,19 @@ describe('Rewards', () => {
   });
 
   it('keeps points by hand and League points from a file together on their tab', async () => {
-    renderAs('floor', RewardsPointsScreen);
+    renderAs('floor', WithBonusForm);
     expect(await screen.findByRole('heading', { name: 'League points from a CSV' }, LAZY)).toBeDefined();
     expect(screen.getByRole('heading', { name: 'Points and bonus chips by hand' })).toBeDefined();
   });
 
   it('offers bonus chips by hand to a floor manager and an admin, and not to a cashier (the owner, 9 Nov)', async () => {
-    renderAs('floor', RewardsPointsScreen);
+    renderAs('floor', WithBonusForm);
     expect(await screen.findByRole('heading', { name: 'Points and bonus chips by hand' }, LAZY)).toBeDefined();
     cleanup();
-    renderAs('admin', RewardsPointsScreen);
+    renderAs('admin', WithBonusForm);
     expect(await screen.findByRole('heading', { name: 'Points and bonus chips by hand' }, LAZY)).toBeDefined();
     cleanup();
-    renderAs('cashier', RewardsPointsScreen);
+    renderAs('cashier', WithBonusForm);
     await screen.findByRole('heading', { name: 'League points from a CSV' }, LAZY);
     expect(screen.queryByRole('heading', { name: 'Points and bonus chips by hand' })).toBeNull();
   });

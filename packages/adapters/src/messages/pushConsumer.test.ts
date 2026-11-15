@@ -70,15 +70,15 @@ describe('the push consumer', () => {
     expect((await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'reward_cancelled', params: ['a*b'] }))).ok).toBe(true);
   });
 
-  it('tells the member of bonus chips added and used, under the Bonus chips switch, opening Rewards (decision 0504)', async () => {
+  it('tells the member of bonus chips added and used, under the Bonus chips switch, opening Bonus (decision 0504)', async () => {
     expect(await sendOne('bonus.credited', { member_id: MEMBER, bonus_grant_id: OTHER, amount_paise: 50_000, reason: 'Welcome bonus' })).toEqual({
       outcome: { ok: true, value: null }, asked: ['push.bonus'],
-      sent: [{ title: 'Bonus chips added', body: '500 bonus chips · Welcome bonus', url: '/rewards', tag: `bonus-${OTHER}` }],
+      sent: [{ title: 'Bonus chips added', body: '500 bonus chips · Welcome bonus', url: '/bonus', tag: `bonus-${OTHER}` }],
     });
     const redeemed = { member_id: MEMBER, bonus_redemption_id: OTHER, amount_paise: 100_000, table_id: SESSION, table_name: 'Table 3' };
     expect(await sendOne('bonus.redeemed', redeemed)).toEqual({
       outcome: { ok: true, value: null }, asked: ['push.bonus'],
-      sent: [{ title: 'Bonus chips used', body: '1,000 bonus chips with your buy-in at Table 3.', url: '/rewards', tag: `bonus-used-${OTHER}` }],
+      sent: [{ title: 'Bonus chips used', body: '1,000 bonus chips with your buy-in at Table 3.', url: '/bonus', tag: `bonus-used-${OTHER}` }],
     });
     expect((await sendOne('bonus.redeemed', { ...redeemed, amount_paise: 1_000 })).outcome)
       .toEqual({ ok: false, error: { code: 'rejected', reason: 'bonus.redeemed payload is not readable' } });

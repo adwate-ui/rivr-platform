@@ -1,6 +1,6 @@
 /**
  * The player app's Rewards tab (#152; design prompt "Rewards"): points and tier, the catalogue (#145), the
- * member's redemptions and the RIVR League (#147). Registered when the tab first opens, so the app's first
+ * member's redemptions and the RIVR League (#147). Bonus and Refer a friend have a tab of their own (playerBonus). Registered when the tab first opens, so the app's first
  * load carries none of it (#344).
  */
 export const memberRewards = {
@@ -31,7 +31,7 @@ export const memberRewards = {
   leftLine: '{count} left · {detail}',
   redeem: 'Redeem',
   /** The redesign (decision 0320): the balance's word, the next reward, a reward out of reach, and the redeem sheet. */
-  /** The points tile beside bonus chips (owner, 8 Nov): one name, and one line on what they are for. */
+  /** The points tile: one name, and one line on what they are for. */
   pointsLabel: 'Points',
   pointsLine: 'Spend on rewards.',
   next: 'Next: {name}',
@@ -51,22 +51,6 @@ export const memberRewards = {
   /** An unavailable reward's button, named from what it shows first (WCAG 2.5.3): `1,500 to go, RIVR cap`. */
   unavailableName: '{cta}, {name}',
   cancel: 'Cancel',
-  /** Refer a friend (#151): the code is RIVR and the member's number. */
-  referral: {
-    title: 'Refer a friend',
-    how: 'Bonus chips for you both when a friend joins with your code and takes their first seat.',
-    /** The redesign's card (decision 0320): `{chips}` is `1,000`. */
-    offer: '{chips} bonus chips each when a friend joins and takes their first seat.',
-    joined: '{count} joined',
-    copyLink: 'Copy link',
-    shareInvite: 'Share invite',
-    linkCopied: 'Invite link copied',
-    copyFailed: 'Not copied. Use Share invite instead.',
-    /** What Share invite sends with the member's link. */
-    card: {
-      message: 'Join me at RIVR Poker Club.',
-    },
-  },
   failures: {
     not_allowed: 'Rewards are not on your membership.',
     invalid: 'Not sent. Try again.',
@@ -104,29 +88,12 @@ export const memberRewards = {
   pointsHistory: {
     title: 'Points history',
     none: 'Nothing here yet.',
+    showEarlier: 'Show earlier',
     line: '{reason} · {date}',
     locked: 'Locked · {reason} · {date}',
     /** Locked points the club released, the word the member already reads under the tiles. */
     released: 'Released · {reason} · {date}',
     plus: '+{points}',
     minus: '−{points}',
-  },
-  /** The member's bonus chips (decision 0504): they never expire, and are used with a buy-in as the floor seats them. */
-  bonus: {
-    /** The tile beside points (owner, 8 Nov): one name, and one line on what they are for. */
-    label: 'Bonus chips',
-    line: 'Use with your buy-in. Never expire.',
-    /** Over the history the tile opens. */
-    history: 'Bonus chips history',
-    showEarlier: 'Show earlier',
-    noHistory: 'Nothing here yet.',
-    /** A line's label, with its day: `Welcome bonus · 15 Nov`; `Buy-in · Table 3 · 15 Nov`; `Expired · Buy-in bonus Tuesday · 9 Nov`. */
-    credited: '{reason} · {date}',
-    redeemed: 'Buy-in · {table} · {date}',
-    redeemedNoTable: 'Buy-in · {date}',
-    expired: 'Expired · {reason} · {date}',
-    /** A line's chips: `+500`, `−1,000`. */
-    plus: '+{chips}',
-    minus: '−{chips}',
   },
 } as const;

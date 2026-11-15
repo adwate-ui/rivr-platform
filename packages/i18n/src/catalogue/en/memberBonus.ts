@@ -1,6 +1,6 @@
 /**
  * The record's Points and bonus chips (decision 0504; owner, 8 Nov): the two balances apart, each with its own name, line
- * and look, as Rewards shows them to the member; then each bonus line, the newest first; bonus chips are added by hand under Rewards.
+ * and look, as the app shows them to the member; then each bonus line, the newest first; bonus chips are added by hand here, on the record.
  */
 export const memberBonus = {
   pointsLabel: 'Points',
@@ -34,7 +34,6 @@ export const memberBonus = {
     intro: 'Added to the balance at once, with your reason in their history.',
     chips: 'Bonus chips',
     chipsHint: 'Whole fifties, 50 to 1,00,000.',
-    /** Apart from the points' own Reason in the same card. */
     reason: 'Reason for chips',
     reasonHint: 'The member sees it in their history.',
     add: 'Add bonus chips',

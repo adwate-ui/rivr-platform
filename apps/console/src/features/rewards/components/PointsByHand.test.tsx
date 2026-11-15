@@ -1,3 +1,4 @@
+import { Text } from '@rivr/ui';
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -13,9 +14,10 @@ const MIHIR = { member_id: '00000000-0000-4000-8000-000000000213', full_name: 'M
 
 /**
  * Aditya, who gives points, signed in (a super admin when `canGiveBonus`), and a fake API that finds Mihir by his number;
- * the League points and the bonus chips it was asked to give.
+ * the League points it was asked to give. The form for bonus chips is a stand-in: the member record's own is tested there.
  */
 function renderPoints(canGiveBonus = false) {
+  const BonusForm = ({ memberId }: { memberId: string }) => <Text>Bonus form for {memberId}</Text>;
   localStorage.setItem(
     SESSION_STORAGE_KEY,
     JSON.stringify({
@@ -28,10 +30,6 @@ function renderPoints(canGiveBonus = false) {
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
     if (url.includes('/rpc/member_points')) return Response.json([MIHIR]);
-    if (url.includes('/rpc/give_bonus_chips')) {
-      given.push(JSON.parse(String(init?.body)));
-      return Response.json('g1');
-    }
     if (url.includes('/rpc/give_league_points')) {
       given.push(JSON.parse(String(init?.body)));
       return Response.json([{ members: 1, points: 40 }]);
@@ -40,7 +38,7 @@ function renderPoints(canGiveBonus = false) {
   });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}>
-      <PointsByHand venueId="v1" canGiveBonus={canGiveBonus} />
+      <PointsByHand venueId="v1" BonusForm={canGiveBonus ? BonusForm : undefined} />
     </RivrDataProvider>,
   );
   return given;
@@ -60,23 +58,18 @@ describe('PointsByHand', () => {
     expect(screen.getByText('The member sees it in their history.')).toBeDefined();
   });
 
-  it('lets a super admin add bonus chips to the member found, where points are given (the owner, 9 Nov)', async () => {
-    const given = renderPoints(true);
+  it('shows staff who may the form for bonus chips, for the member found (the owner, 9 Nov)', async () => {
+    renderPoints(true);
     expect(screen.getByRole('heading', { name: 'Points and bonus chips by hand' })).toBeDefined();
     await findMihir();
-    fireEvent.change(screen.getByRole('textbox', { name: /^Bonus chips/ }), { target: { value: '500' } });
-    fireEvent.change(screen.getByRole('textbox', { name: /^Reason for chips/ }), { target: { value: 'Birthday at the club' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Add bonus chips' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Yes, add 500 bonus chips' }));
-    expect(await screen.findByText('500 bonus chips added.')).toBeDefined();
-    expect(given).toEqual([{ p_member_id: MIHIR.member_id, p_chips: 500, p_reason: 'Birthday at the club', p_request_id: expect.any(String) }]);
+    expect(screen.getByText(`Bonus form for ${MIHIR.member_id}`)).toBeDefined();
   });
 
   it('gives other staff points only', async () => {
     renderPoints();
     expect(screen.getByRole('heading', { name: 'Points by hand' })).toBeDefined();
     await findMihir();
-    expect(screen.queryByRole('button', { name: 'Add bonus chips' })).toBeNull();
+    expect(screen.queryByText(/^Bonus form for/)).toBeNull();
   });
 
   it('gives League points to the member found, by their member number, and says so (L-01)', async () => {

@@ -40,7 +40,7 @@ describe('the native push consumer', () => {
     const outcome = await consumer.deliver(delivery('bonus.credited', BONUS));
     expect(outcome.ok).toBe(true);
     expect(alerts.alerts.map(({ platform, token }) => [platform, token])).toEqual([['ios', IPHONE.token], ['android', ANDROID.token]]);
-    expect(alerts.alerts[0]).toMatchObject({ id: 'e1', url: '/rewards', tag: `bonus-${BONUS.bonus_grant_id}` });
+    expect(alerts.alerts[0]).toMatchObject({ id: 'e1', url: '/bonus', tag: `bonus-${BONUS.bonus_grant_id}` });
   });
 
   it('sends Call time ending', async () => {

@@ -30,6 +30,8 @@ export interface RecordAccess {
   readonly changePhone: boolean;
   /** A super admin withdraws an early departure recorded by mistake (decision 0500). */
   readonly withdrawDeparture: boolean;
+  /** Super admins, admins and floor managers add Bonus by hand on the record (bonus.give). */
+  readonly giveBonus: boolean;
 }
 
 /** Member number, tier (and a change's last day), KYC and whether they are in the room. */
@@ -73,7 +75,7 @@ function VisitsPart({ venueId, record, can }: PartProps) {
 
 /** One part of the record: visits; bonus chips; sign-up; the tier and a break; or the account's overrides, number and erasure. */
 function PartContent({ part, venueId, record, can }: PartProps & { part: RecordPart }) {
-  if (part === 'bonus') return <MemberBonus venueId={venueId} memberId={record.memberId} />;
+  if (part === 'bonus') return <MemberBonus venueId={venueId} memberId={record.memberId} canGive={can.giveBonus} />;
   if (part === 'signUp') return <MemberSignUp venueId={venueId} memberId={record.memberId} />;
   if (part === 'membership') {
     return (

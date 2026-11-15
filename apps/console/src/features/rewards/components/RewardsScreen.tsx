@@ -3,6 +3,7 @@ import { t } from '@rivr/i18n';
 import { Button, Screen } from '@rivr/ui';
 import { useState } from 'react';
 import { CatalogueTab, type Editing } from './CatalogueTab.tsx';
+import type { BonusForm } from './PointsByHand.tsx';
 import { PointsTab } from './PointsTab.tsx';
 
 /** The catalogue, and the screen's one gold button, kept here because it opens the form the catalogue shows. */
@@ -29,15 +30,16 @@ export function RewardsScreen() {
 
 /**
  * Rewards' Points by hand tab: points by hand, earned or locked, and League points, one member or a CSV (points.give,
- * within the daily limit, #815), and for those with bonus.give bonus chips by hand (the owner, 9 Nov).
+ * within the daily limit, #815), and for those with bonus.give bonus chips by hand (the owner, 9 Nov), with the form the
+ * route hands in.
  */
-export function RewardsPointsScreen() {
+export function RewardsPointsScreen({ BonusForm }: { BonusForm?: BonusForm }) {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   return (
     <Screen title={t('console.rewards.tabs.points')}>
-      <PointsTab venueId={staff.venue.venueId} canGiveBonus={staff.venue.permissions.includes('bonus.give')} />
+      <PointsTab venueId={staff.venue.venueId} BonusForm={staff.venue.permissions.includes('bonus.give') ? BonusForm : undefined} />
     </Screen>
   );
 }

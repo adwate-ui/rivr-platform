@@ -6,7 +6,7 @@ import { Box, Button, FeatureGate, Figure, Grid, Inline, LoadState, Skeleton, St
 
 /** The offer in a line: the bonus each, when the club has set it. */
 function offerOf({ bonus }: MyReferral): string {
-  return bonus === null ? t('memberRewards.referral.how') : t('memberRewards.referral.offer', { chips: formatChips(bonus) });
+  return bonus === null ? t('playerBonus.referral.how') : t('playerBonus.referral.offer', { chips: formatChips(bonus) });
 }
 
 /**
@@ -16,16 +16,16 @@ function offerOf({ bonus }: MyReferral): string {
 function Invite({ link }: { link: string }) {
   const toast = useToast();
   const copy = async () => {
-    await navigator.clipboard.writeText(link).then(() => toast(t('memberRewards.referral.linkCopied')), () => toast(t('memberRewards.referral.copyFailed')));
+    await navigator.clipboard.writeText(link).then(() => toast(t('playerBonus.referral.linkCopied')), () => toast(t('playerBonus.referral.copyFailed')));
   };
   const share = async () => {
     if (typeof navigator.share !== 'function') return copy();
-    await navigator.share({ text: t('memberRewards.referral.card.message'), url: link }).catch(() => undefined);
+    await navigator.share({ text: t('playerBonus.referral.card.message'), url: link }).catch(() => undefined);
   };
   return (
     <Grid columns={2} gap={2}>
-      <Button variant="outline" fullWidth onClick={() => void copy()}>{t('memberRewards.referral.copyLink')}</Button>
-      <Button variant="primary" fullWidth onClick={() => void share()}>{t('memberRewards.referral.shareInvite')}</Button>
+      <Button variant="outline" fullWidth onClick={() => void copy()}>{t('playerBonus.referral.copyLink')}</Button>
+      <Button variant="primary" fullWidth onClick={() => void share()}>{t('playerBonus.referral.shareInvite')}</Button>
     </Grid>
   );
 }
@@ -42,12 +42,12 @@ function Referral() {
   return (
     <Box padding={5} hairline="all" radius="lg">
       <Stack gap={4}>
-        <Text variant="eyebrow" tone="accent">{t('memberRewards.referral.title')}</Text>
+        <Text variant="eyebrow" tone="accent">{t('playerBonus.referral.title')}</Text>
         <Text>{offerOf(referral.data)}</Text>
         <Box surface="raised" paddingX={4} paddingY={3} radius="md">
           <Inline justify="between" align="center">
             <Figure size="stat">{referral.data.code}</Figure>
-            <Text variant="small" tone="muted">{t('memberRewards.referral.joined', { count: referral.data.referred })}</Text>
+            <Text variant="small" tone="muted">{t('playerBonus.referral.joined', { count: referral.data.referred })}</Text>
           </Inline>
         </Box>
         <Invite link={link} />

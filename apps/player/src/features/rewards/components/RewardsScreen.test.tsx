@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { BONUS_LINES, LATER, renderRewards } from './rewardsTestKit.tsx';
+import { LATER, renderRewards } from './rewardsTestKit.tsx';
 
 afterEach(() => {
   cleanup();
@@ -8,28 +8,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('Rewards: points and bonus chips (decision 0504; owner, 8 Nov)', () => {
-  it('shows points and bonus chips side by side, each with what it is for, the history closed until the chips tile opens it', async () => {
-    const { historyAsked } = renderRewards();
-    const chips = await screen.findByRole('button', { name: /Bonus chips/ }, LATER);
-    expect(chips.textContent).toBe('1,250Bonus chipsUse with your buy-in. Never expire.History');
-    expect(screen.getByText('Points')).toBeDefined();
-    expect(screen.getByText('Spend on rewards.')).toBeDefined();
-    expect(chips.getAttribute('aria-expanded')).toBe('false');
-    expect(screen.queryByText('Buy-in · Table 3 · 15 Nov')).toBeNull();
-    expect(historyAsked).toEqual([]);
-    fireEvent.click(chips);
-    expect(chips.getAttribute('aria-expanded')).toBe('true');
-    expect(await screen.findByRole('heading', { name: 'Bonus chips history' }, LATER)).toBeDefined();
-    expect(await screen.findByText('Buy-in · Table 3 · 15 Nov', {}, LATER)).toBeDefined();
-    expect(screen.getByText('−1,000')).toBeDefined();
-    expect(screen.getByText('Welcome bonus · 14 Nov')).toBeDefined();
-    expect(screen.getByText('+1,500')).toBeDefined();
-    expect(historyAsked).toEqual([{ p_limit: 20 }]);
-    expect(screen.queryByRole('button', { name: 'Show earlier' })).toBeNull();
-    expect(screen.queryByText(/₹/)).toBeNull();
-  });
-
+describe('Rewards: points', () => {
   it('opens the points history from its tile, each line signed, closed until the member opens it (F-054)', async () => {
     renderRewards();
     const points = await screen.findByRole('button', { name: /Spend on rewards/ }, LATER);
@@ -43,27 +22,6 @@ describe('Rewards: points and bonus chips (decision 0504; owner, 8 Nov)', () => 
     expect(screen.getByText('Locked · Founders pack · 14 Nov')).toBeDefined();
     expect(screen.getByText('Points for the visit · 13 Nov')).toBeDefined();
     expect(screen.getByText('+250')).toBeDefined();
-  });
-
-  it('offers earlier lines once twenty are shown', async () => {
-    const lines = Array.from({ length: 20 }, (_, index) => ({ ...BONUS_LINES[1], line_id: `g${index}`, at: `2026-10-${String(index + 1).padStart(2, '0')}T18:00:00Z` }));
-    const { historyAsked } = renderRewards(3250, { balance: 3_000_000, lines });
-    fireEvent.click(await screen.findByRole('button', { name: /Bonus chips/ }, LATER));
-    fireEvent.click(await screen.findByRole('button', { name: 'Show earlier' }, LATER));
-    await waitFor(() => expect(historyAsked).toEqual([{ p_limit: 20 }, { p_limit: 40 }]));
-  });
-
-  it('shows no bonus chips as 0, and offers Try again when they cannot be read', async () => {
-    renderRewards(3250, { balance: 0, lines: [] });
-    const chips = await screen.findByRole('button', { name: /Bonus chips/ }, LATER);
-    expect(chips.textContent).toContain('0Bonus chips');
-    fireEvent.click(chips);
-    expect(await screen.findByText('Nothing here yet.', {}, LATER)).toBeDefined();
-    cleanup();
-    renderRewards(3250, { balance: 'down', lines: [] });
-    expect(await screen.findByText('3,250', {}, LATER)).toBeDefined();
-    expect(await screen.findByRole('button', { name: 'Try again' }, LATER)).toBeDefined();
-    expect(screen.queryByRole('button', { name: /Bonus chips/ })).toBeNull();
   });
 });
 
@@ -128,23 +86,23 @@ describe('Rewards', () => {
     const NIGHTS = { items: [SUITE], features: ['rewards.accommodation'] };
 
     it('says how many nights short, and cannot be redeemed', async () => {
-      renderRewards(3250, undefined, NIGHTS);
+      renderRewards(3250, NIGHTS);
       const suite = await screen.findByRole('button', { name: '1 night to go, Partner hotel suite' }, LATER);
       expect(suite.hasAttribute('disabled')).toBe(true);
     });
 
     it('counts part of a night', async () => {
-      renderRewards(3250, undefined, { ...NIGHTS, nights: 250 });
+      renderRewards(3250, { ...NIGHTS, nights: 250 });
       expect(await screen.findByRole('button', { name: '0.75 nights to go, Partner hotel suite' }, LATER)).toBeDefined();
     });
 
     it('can be redeemed with the nights held', async () => {
-      renderRewards(3250, undefined, { ...NIGHTS, nights: 1000 });
+      renderRewards(3250, { ...NIGHTS, nights: 1000 });
       expect((await screen.findByRole('button', { name: 'Redeem Partner hotel suite' }, LATER)).hasAttribute('disabled')).toBe(false);
     });
 
     it('has its filter only for a tier with hotel nights', async () => {
-      renderRewards(3250, undefined, NIGHTS);
+      renderRewards(3250, NIGHTS);
       expect(await screen.findByRole('radio', { name: 'Hotel nights' }, LATER)).toBeDefined();
       cleanup();
       renderRewards();
@@ -157,18 +115,6 @@ describe('Rewards', () => {
     renderRewards();
     expect(await screen.findByText('RIVR cap', {}, LATER)).toBeDefined();
     expect(screen.getByText('Ready to collect')).toBeDefined();
-  });
-
-  it('copies the member’s invite link, with their code, and says so', async () => {
-    const writeText = vi.fn(async () => undefined);
-    vi.stubGlobal('navigator', Object.assign(Object.create(navigator), { clipboard: { writeText } }));
-    renderRewards();
-    expect(await screen.findByText('RIVR4821', {}, LATER)).toBeDefined();
-    expect(screen.getByText('2 joined')).toBeDefined();
-    expect(screen.getByText('1,000 bonus chips each when a friend joins and takes their first seat.')).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'Copy link' }));
-    expect(await screen.findByText('Invite link copied')).toBeDefined();
-    expect(writeText).toHaveBeenCalledWith(expect.stringContaining('RIVR4821'));
   });
 
   it('says Every reward in reach when every reward still to be had is within reach (one with none left is not next)', async () => {
