@@ -463,5 +463,16 @@ select results_eq(
   $$ select description, (expected ->> 'seconds')::bigint from golden.golden_case where file = 'hours.json' order by position $$,
   'private.counted_seconds gives every case in the golden file');
 
+-- The notice that shows on Home and along the foot of the TVs' boards: private.notice_to_show and @rivr/domain
+-- noticeToShow (packages/testing/golden/noticeToShow.json, redesign correction 20).
+select ok((select count(*) > 0 from golden.golden_case where file = 'noticeToShow.json'), 'the notice cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'noticeToShow.json' and operation <> 'show' $$,
+  'every operation in noticeToShow.json is proved here');
+select results_eq(
+  $$ select description, coalesce(private.notice_to_show((inputs ->> 'notices')::jsonb), '')
+     from golden.golden_case where file = 'noticeToShow.json' order by position $$,
+  $$ select description, expected ->> 'id' from golden.golden_case where file = 'noticeToShow.json' order by position $$,
+  'private.notice_to_show shows every notice the golden file says');
+
 select * from finish();
 rollback;

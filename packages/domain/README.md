@@ -93,6 +93,7 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 
 | Export | What it does |
 |---|---|
+| `noticeToShow(notices)` | The one notice that shows where there is room for one, Home's top slot and the foot of the TVs' boards (redesign correction 20): of those in force, the one that started last; of two that started together, the one listed first (the database lists the one made last first). `private.notice_to_show` is its twin, proved on `noticeToShow.json`; `homeTopSlot` and the TV's `tv_notice` both use it. |
 | `homeTopSlot({ seat, isIdCheckDone, notices })`, `HomeSlot`, `LiveNotice`, `SeatStanding` | The one card above the offers on the player's Home (redesign RD-20): nothing while a seat is `called` or `taken`; else `idCheck` while the check is not done; else the notice in force that started last (the first listed of two that started together); else nothing. `notices` are those the server lists as in force. |
 
 ### `@rivr/domain/referral`
