@@ -60,6 +60,10 @@ function useSession(client: RivrClient, keepsForOffline: boolean): Session {
   const [session, setSession] = useState<Session>(() => (keepsForOffline && !navigator.onLine ? storedSession() : LOADING));
   useEffect(() => {
     const signedInAs = (userId: string | null) => setSession({ userId, authStatus: userId === null ? 'signed-out' : 'signed-in' });
+    // Auth failing outright to read the session (its lock, or the phone's storage) answers nothing, and nothing follows
+    // it: go on as the stored session's member, as with no network, or as nobody with none stored, so the app never
+    // loads for ever (redesign RD-34, decision 0641).
+    const asStored = () => signedInAs(storedSession().userId);
     void client.auth.getSession().then(({ data, error }) => {
       // An expired session that cannot be refreshed for want of a network is not a sign-out: stay
       // loading, or for the app that keeps a night go on as the stored session's member (F-053), and
@@ -69,7 +73,7 @@ function useSession(client: RivrClient, keepsForOffline: boolean): Session {
         return;
       }
       signedInAs(data.session?.user.id ?? null);
-    });
+    }, asStored);
     const { data } = client.auth.onAuthStateChange((event, current) => {
       // getSession above reads the stored session; INITIAL_SESSION only repeats it (as null after a failed refresh).
       if (event === 'INITIAL_SESSION') return;
