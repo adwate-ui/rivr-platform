@@ -20,13 +20,14 @@ function links() {
 }
 
 describe('onNotificationOpened', () => {
-  it('opens Rewards from a bonus chips alert', async () => {
+  it('opens Bonus from a bonus alert, and nothing for a path it does not know', async () => {
     const { plugin, tap } = links();
     const opened: string[] = [];
     onNotificationOpened((path) => opened.push(path), plugin);
     await Promise.resolve();
+    tap('/bonus');
     tap('/rewards');
-    expect(opened).toEqual(['/rewards']);
+    expect(opened).toEqual(['/bonus']);
   });
 
   it('listens to nothing in a browser', () => {

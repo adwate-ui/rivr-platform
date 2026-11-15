@@ -1,9 +1,10 @@
 /**
  * Bonus chips (decision 0504): while the club checks identity at the desk and a sign-up promotion of 500 bonus chips is
  * live, Jayesh Dhillon (his own number here: Auth sends one code a minute) is let in by his selfie and, on Home, is told
- * the 500 bonus chips are his; Rewards shows them. Once the desk has checked him (set here, as kyc.spec.ts proves the
+ * the 500 bonus chips are his; Bonus shows them. Once the desk has checked him (set here, as kyc.spec.ts proves the
  * desk), the floor (Ishaan Grover, a super admin who signs in to no other flow) seats him at Table 5 redeeming all 500 with
- * his buy-in: no Undo, he is told, his history shows the buy-in and his record's Bonus chips tab who seated him. The
+ * his buy-in: no Undo, he is told, his history shows the buy-in and his record's Bonus chips tab who seated him; there
+ * Ishaan adds 50 by hand, which Jayesh's history shows with its reason (redesign of 15 Nov). The
  * switch, the promotion and his check are set up and taken away in the local database, so the local stack only.
  */
 import { execFileSync } from 'node:child_process';
@@ -18,6 +19,9 @@ const CLUB = '00000000-0000-4000-8000-000000000001';
 function sql(query: string): string {
   return execFileSync('docker', ['exec', `supabase_db_${worktreeName()}`, 'psql', '-U', 'postgres', '-tAc', query], { encoding: 'utf8' }).trim();
 }
+
+/** The reason Ishaan gives for the Bonus he adds by hand: this run's own, so an earlier run's line never passes for it. */
+const REASON = `Long wait ${Date.now().toString(36).slice(-5)}`;
 
 /** Bonus chips as the app shows them: `1,500`. */
 const chips = (paise: number) => (paise / 100).toLocaleString('en-IN');
@@ -61,7 +65,7 @@ test.describe('Bonus chips', () => {
   test.beforeEach(reset);
   test.afterEach(reset);
 
-  test('the sign-up bonus on reaching Home, in Rewards, and redeemed by the floor as he sits down', async ({ browser, page }) => {
+  test('the sign-up bonus on reaching Home, in Bonus, redeemed by the floor as he sits down, and Bonus by hand on his record', async ({ browser, page }) => {
     setUp();
     const before = Number(sql(`select private.bonus_in_force('${JAYESH}', now())`));
 
@@ -75,11 +79,11 @@ test.describe('Bonus chips', () => {
     await expect(page.getByText('500 bonus chips added · Welcome bonus')).toBeVisible();
     expect(Number(sql(`select private.bonus_in_force('${JAYESH}', now())`))).toBe(before + 50_000);
 
-    // Rewards: the bonus chips tile beside points (owner, 8 Nov), its history closed until he opens it.
-    await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Rewards' }).click();
-    const bonus = page.getByRole('button', { name: /Bonus chips/ });
-    await expect(bonus).toContainText(chips(before + 50_000));
-    await expect(bonus).toHaveAttribute('aria-expanded', 'false');
+    // Bonus: his balance, and the welcome bonus in his history.
+    await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Bonus' }).click();
+    await expect(page.getByRole('heading', { name: 'Bonus', level: 1 })).toBeVisible();
+    await expect(page.getByText(chips(before + 50_000), { exact: true })).toBeVisible();
+    await expect(page.getByText(/^Welcome bonus · /).first()).toBeVisible();
 
     // The desk checks him (kyc.spec.ts walks it); it gives no second sign-up bonus.
     sql(`update public.kyc_record set status = 'verified', method = 'manual', verified_at = now(), date_of_birth = '1990-04-12',
@@ -102,14 +106,20 @@ test.describe('Bonus chips', () => {
 
     // He is told, and his history shows the buy-in.
     await expect(page.getByText('500 bonus chips used for your buy-in at Table 5')).toBeVisible();
-    await bonus.click();
-    await expect(page.getByRole('heading', { name: 'Bonus chips history' })).toBeVisible();
     await expect(page.getByText(/^Buy-in · Table 5 · /).first()).toBeVisible();
-    await expect(page.getByText(/^Welcome bonus · /).first()).toBeVisible();
 
     // His record's Bonus chips tab, read only, names who seated him.
     await floor.goto(`${appUrl('console')}/members?member=${JAYESH}&part=bonus`);
     await expect(floor.getByRole('link', { name: 'Bonus chips' })).toHaveAttribute('aria-current', 'page');
     await expect(floor.getByText(/Buy-in · Table 5 · seated by Ishaan Grover$/)).toBeVisible();
+
+    // Bonus by hand, on the record: 50 with a reason, asked twice; his app shows it.
+    await floor.getByRole('textbox', { name: /^Bonus chips/ }).fill('50');
+    await floor.getByRole('textbox', { name: /^Reason/ }).fill(REASON);
+    await floor.getByRole('button', { name: 'Add bonus chips' }).click();
+    await floor.getByRole('button', { name: 'Yes, add 50 bonus chips' }).click();
+    await expect(floor.getByText('50 bonus chips added.')).toBeVisible();
+    expect(Number(sql(`select private.bonus_in_force('${JAYESH}', now())`))).toBe(before + 5_000);
+    await expect(page.getByText(new RegExp(`^${REASON} · `)).first()).toBeVisible({ timeout: 15_000 });
   });
 });

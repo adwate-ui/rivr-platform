@@ -126,13 +126,13 @@ function promotionOffered(payload: unknown): Built {
   return ok({ memberId, pushType: 'push.promotion_published', promotionId, title, body, url: '/', tag: `promotion-${promotionId}` });
 }
 
-/** Bonus chips added (decision 0504): how many and why, opening Rewards, where the balance is. */
+/** Bonus chips added (decision 0504): how many and why, opening Bonus, where the balance is. */
 function bonusCredited(payload: unknown): Built {
   const credited = bonusCreditedSchema.safeParse(payload);
   if (!credited.success) return unreadable('bonus.credited');
   const { member_id: memberId, bonus_grant_id: grantId, amount_paise: amount, reason } = credited.data;
   const body = t('push.bonusCredited.body', { chips: formatChips(BigInt(amount)), reason });
-  return ok({ memberId, pushType: 'push.bonus', title: t('push.bonusCredited.title'), body, url: '/rewards', tag: `bonus-${grantId}` });
+  return ok({ memberId, pushType: 'push.bonus', title: t('push.bonusCredited.title'), body, url: '/bonus', tag: `bonus-${grantId}` });
 }
 
 /** Bonus chips used with the member's buy-in as they were seated (decision 0504): how many, and at which table. */
@@ -141,7 +141,7 @@ function bonusRedeemed(payload: unknown): Built {
   if (!redeemed.success) return unreadable('bonus.redeemed');
   const { member_id: memberId, bonus_redemption_id: redemptionId, amount_paise: amount, table_name: table } = redeemed.data;
   const body = t('push.bonusRedeemed.body', { chips: formatChips(BigInt(amount)), table });
-  return ok({ memberId, pushType: 'push.bonus', title: t('push.bonusRedeemed.title'), body, url: '/rewards', tag: `bonus-used-${redemptionId}` });
+  return ok({ memberId, pushType: 'push.bonus', title: t('push.bonusRedeemed.title'), body, url: '/bonus', tag: `bonus-used-${redemptionId}` });
 }
 
 const HOUR_MS = 60 * 60 * 1000;

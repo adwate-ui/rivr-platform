@@ -70,6 +70,8 @@ export const ui = {
     /** Food and drink to the seat (#635). */
     food: 'Menu',
     rewards: 'Rewards',
+    /** The member's Bonus, its history and Refer a friend (redesign of 15 Nov). */
+    bonus: 'Bonus',
     learn: 'Learn',
   },
   profile: {

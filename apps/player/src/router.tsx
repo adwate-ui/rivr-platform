@@ -2,6 +2,7 @@ import { t } from '@rivr/i18n';
 import { Screen } from '@rivr/ui';
 import { createRouter, type ErrorComponentProps, type RouterHistory } from '@tanstack/react-router';
 import { balanceRoute, depositRoute, withdrawRoute } from './routes/balance.tsx';
+import { bonusRoute } from './routes/bonus.tsx';
 import { cardRoute } from './routes/card.tsx';
 import { frameRoute } from './routes/frame.tsx';
 import { kycReturnRoute, kycRoute } from './routes/kyc.tsx';
@@ -23,7 +24,7 @@ const routeTree = rootRoute.addChildren([
   signUpRoute,
   kycRoute,
   kycReturnRoute,
-  frameRoute.addChildren([tonightRoute, sessionsRoute, sessionRoute, balanceRoute, withdrawRoute, depositRoute, rewardsRoute, learnRoute, learnBookRoute, academyRoute, academyPaymentRoute, profileRoute, houseRulesRoute, cardRoute, fnbRoute, eventsRoute]),
+  frameRoute.addChildren([tonightRoute, sessionsRoute, sessionRoute, balanceRoute, withdrawRoute, depositRoute, rewardsRoute, bonusRoute, learnRoute, learnBookRoute, academyRoute, academyPaymentRoute, profileRoute, houseRulesRoute, cardRoute, fnbRoute, eventsRoute]),
 ]);
 
 /** A screen that failed to draw: the app's error screen, with Try again, in place of the router's unstyled default. */

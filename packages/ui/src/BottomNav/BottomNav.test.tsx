@@ -13,6 +13,11 @@ function tabs(overrides: Partial<Record<PlayerTab, BottomNavItem['access']>> = {
 }
 
 describe('BottomNav', () => {
+  it('shows Bonus as a tab of its own', () => {
+    renderIn(<BottomNav items={[{ tab: 'bonus', href: '/bonus', access: { state: 'enabled' } }]} current="bonus" />);
+    expect(screen.getByRole('link', { name: 'Bonus' }).getAttribute('aria-current')).toBe('page');
+  });
+
   it('lists the five tabs in order inside a named navigation landmark', () => {
     renderIn(<BottomNav items={tabs()} current="home" />);
     const nav = screen.getByRole('navigation', { name: 'Main' });

@@ -1,16 +1,19 @@
 import { t } from '@rivr/i18n';
 import { useId } from 'react';
 import type { FeatureAccess } from '../FeatureGate/FeatureGate.tsx';
-import { Icon } from '../Icon/Icon.tsx';
+import { Icon, type IconName } from '../Icon/Icon.tsx';
 import { lockedLine } from '../LockedNotice/LockedNotice.tsx';
 import { cx } from '../internal/classes.ts';
 import { routeClick, type Navigate } from '../internal/navigation.ts';
 
 /**
- * The player app's tabs: since the redesign (decision 0320) Tonight, Sessions, Card and Rewards. Profile sits behind the
- * member's initial instead. `food`, `balance` and `learn` remain for the console's preview of a tier's tabs.
+ * The player app's tabs: since the redesign (decision 0320) Tonight, Sessions, Card and Rewards, and Bonus since the
+ * redesign of 15 Nov. Profile sits behind the member's initial instead. `food`, `balance` and `learn` remain for the console's preview of a tier's tabs.
  */
-export type PlayerTab = 'home' | 'sessions' | 'card' | 'food' | 'balance' | 'rewards' | 'learn';
+export type PlayerTab = 'home' | 'sessions' | 'card' | 'food' | 'balance' | 'rewards' | 'bonus' | 'learn';
+
+/** The icon a tab wears: the one of its own name, and for Bonus the chip. */
+const iconOf = (tab: PlayerTab): IconName => (tab === 'bonus' ? 'chip' : tab);
 
 export interface BottomNavItem {
   tab: PlayerTab;
@@ -62,7 +65,7 @@ function TabLink({ item, isCurrent, onNavigate }: TabLinkProps) {
           isCurrent ? 'font-medium text-content' : 'text-content-muted',
         )}
       >
-        <Icon name={item.tab} size="lg" />
+        <Icon name={iconOf(item.tab)} size="lg" />
         <span className="flex items-center gap-1">
           {t(`ui.playerTabs.${item.tab}`)}
           {tiers ? <Icon name="lock" size="sm" /> : null}

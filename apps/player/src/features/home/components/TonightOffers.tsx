@@ -5,7 +5,7 @@ import { OfferCarousel, type Offer } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 
 /**
- * Tonight's offers (brief 3.4 A3): the referral first (it left the tables for here), opening Rewards, then the club's live
+ * Tonight's offers (brief 3.4 A3): the referral first (it left the tables for here), opening Bonus, then the club's live
  * promotions (#86, feature promotions.feed). Nothing while none is known: the tables matter more, and the next read
  * brings them. No table is picked out or featured.
  */
@@ -16,7 +16,7 @@ export function TonightOffers() {
   const bonus = useMyReferral().data?.bonus ?? null;
   const referral: Offer[] = bonus === null ? [] : [{
     id: 'referral', title: t('player.live.referralTitle'), offer: t('player.live.referralOffer', { chips: formatChips(bonus) }),
-    onOpen: () => void navigate({ to: '/rewards' }),
+    onOpen: () => void navigate({ to: '/bonus' }),
   }];
   const live: Offer[] = feed.state === 'enabled'
     ? promotions.map((card) => ({ id: card.id, title: card.title, offer: card.detail ?? card.title, schedule: card.runs ?? undefined, href: card.link ?? undefined }))
