@@ -25,7 +25,7 @@ src/
                       lazyRouteComponent so it stays out of the initial JavaScript (#11). frame.tsx
                       (the tabs) and root.tsx are the only eager routes; sign-in sits outside the frame
   features/<name>/    components/ and hooks/, imported only through index.ts
-    frame/            the toast for Bonus added or used while the app is open, a high hand's by its hand ('High hand: Four Jacks. 5,000 Bonus added.'; Home's offers hold the high hand's card with its hands, `useHighHandOffer` and `highHandOffer` in features/home; redesign RD-25); the app's shell: navigation, not found
+    frame/            the toast for Bonus added or used while the app is open, a high hand's by its hand ('High hand: Four Jacks. 5,000 Bonus added.'; Home's carousel holds the high hand's card with its hands, a kind of `LiveOffer` in features/home; redesign RD-25); the app's shell: navigation, not found
     error-reporting/  Sentry: main.tsx imports it first, so it hears errors from the start (errorReporting.ts); what
                       may be sent (scrub.ts); the SDK, loaded late (sentry.ts); whose venue it is (ReportingVenue)
 ```

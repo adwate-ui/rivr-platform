@@ -1,10 +1,11 @@
-import { useFeature, useMyPromotionCards } from '@rivr/db';
+import { useFeature, useMyHighHand, useMyPromotionCards, type HighHandLive } from '@rivr/db';
 import { useMyReferral } from '@rivr/db/referral';
 import type { Paise } from '@rivr/domain/money';
 import { referralPromise } from '@rivr/domain/referral';
 import { formatChips, t } from '@rivr/i18n';
 import { OfferCarousel, type Offer } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
+import { highHandOffer } from './highHandOffer.ts';
 
 /**
  * A live offer on Home, by its kind. A new kind of card is one more member here, one more line where `useLiveOffers`
@@ -12,21 +13,29 @@ import { useNavigate } from '@tanstack/react-router';
  */
 type LiveOffer =
   | { readonly kind: 'referral'; readonly bonus: Paise }
-  | { readonly kind: 'promotion'; readonly id: string; readonly title: string; readonly detail: string | null; readonly runs: string | null; readonly link: string | null };
+  | { readonly kind: 'promotion'; readonly id: string; readonly title: string; readonly detail: string | null; readonly runs: string | null; readonly link: string | null }
+  | { readonly kind: 'highHand'; readonly live: HighHandLive; readonly link: string | null };
 
 /**
  * Every offer live for the member now: Refer a friend first, only while a referral promotion is live (`referralPromise`
  * in @rivr/domain/referral; it opens Bonus), then the club's live promotions as the server orders them (#86, feature
- * promotions.feed; the promotion behind the referral is not listed again).
+ * promotions.feed; the promotion behind the referral is not listed again). The high hand that runs is among them in its
+ * promotion's place, as its own kind, with its hands (redesign RD-25).
  */
 function useLiveOffers(): LiveOffer[] {
   const feed = useFeature('promotions.feed');
   const promotions = useMyPromotionCards().data ?? [];
+  const highHand = useMyHighHand().data ?? null;
   const referral = useMyReferral().data ?? null;
   const promise = referralPromise(referral?.bonus ?? null);
+  const promotion = (card: (typeof promotions)[number]): LiveOffer => {
+    const link = card.link ?? null;
+    if (highHand !== null && card.id === highHand.promotionId) return { kind: 'highHand', live: highHand, link };
+    return { kind: 'promotion', id: card.id, title: card.title, detail: card.detail, runs: card.runs, link };
+  };
   return [
     ...(referral !== null && promise.kind === 'reward' ? [{ kind: 'referral', bonus: promise.bonus } as const] : []),
-    ...(feed.state === 'enabled' ? promotions.map((card) => ({ kind: 'promotion', id: card.id, title: card.title, detail: card.detail, runs: card.runs, link: card.link ?? null } as const)) : []),
+    ...(feed.state === 'enabled' ? promotions.map(promotion) : []),
   ];
 }
 
@@ -40,6 +49,8 @@ function cardOf(offer: LiveOffer, openBonus: () => void): Offer {
       };
     case 'promotion':
       return { id: offer.id, title: offer.title, offer: offer.detail ?? offer.title, schedule: offer.runs ?? undefined, href: offer.link ?? undefined };
+    case 'highHand':
+      return { ...highHandOffer(offer.live), href: offer.link ?? undefined };
   }
 }
 
