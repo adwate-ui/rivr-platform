@@ -17,7 +17,7 @@ export interface KycDocument {
   readonly path: string;
   readonly takenAt: string;
   readonly takenBy: string;
-  /** Who said the bars hide what they must; null for a PAN, which is kept whole. */
+  /** Who said the bars hide what they must; null for a PAN, which is kept whole, and for an Aadhaar taken with the bars off (decision 0663). */
   readonly coversConfirmedBy: string | null;
   /** While a super admin has sent it back and the desk has not taken it again. */
   readonly retakeAskedAt: string | null;
@@ -72,6 +72,24 @@ export function useSendBackKycDocument(venueId: string, memberId: string) {
 }
 
 /** The desk takes a sent-back photo again (the kyc-in-person Edge Function), which replaces the one on file. */
+/**
+ * Whether the desk puts the bars over the Aadhaar front's first eight digits and QR code, and says it did (`kyc.aadhaar_covers`,
+ * decision 0663), for staff who photograph the documents: true until the answer comes, so the bars never go missing.
+ */
+export function useKycAadhaarCovers(venueId: string): boolean {
+  const { client, userId } = useRivrData();
+  const covers = useQuery({
+    queryKey: queryKeys.kycAadhaarCovers(userId ?? 'signed-out', venueId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<boolean> => {
+      const { data, error } = await client.rpc('kyc_aadhaar_covers', { p_venue_id: venueId });
+      if (error) throw error;
+      return data === true;
+    },
+  });
+  return covers.data ?? true;
+}
+
 export function useKycDocumentRetake(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();

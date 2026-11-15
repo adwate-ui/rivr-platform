@@ -1,6 +1,6 @@
 /**
  * The console's frame around every screen (console v3, phase 1): the header's counts and search, the staff member's menu,
- * the practice venue's stripe, old addresses that moved, and signing out when idle. Read as `console.shell.*`.
+ * the practice venue's stripe, and old addresses that moved. Read as `console.shell.*`.
  */
 export const shell = {
   /** Under the name in the staff member's menu. */
@@ -51,6 +51,4 @@ export const shell = {
     computers: 'Computers are no longer on the console.',
     gamesHistory: 'Games history moved to Reports, Tables.',
   },
-  /** On sign-in after the idle lock signed the staff member out (#811). */
-  signedOutIdle: 'Signed out after ten idle minutes.',
 } as const;

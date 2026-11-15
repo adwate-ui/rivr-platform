@@ -1,4 +1,4 @@
-import { useKycDocumentRetake, type KycCandidate, type KycDocumentKind } from '@rivr/db';
+import { useKycAadhaarCovers, useKycDocumentRetake, type KycCandidate, type KycDocumentKind } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
 import { Button, ErrorMessage, LoadState, Stack, Stepper, Text } from '@rivr/ui';
 import { useState } from 'react';
@@ -29,6 +29,7 @@ interface RetakeFormProps {
  */
 export function RetakeForm({ venueId, member, onDone, onCancel }: RetakeFormProps) {
   const retake = useKycDocumentRetake(venueId);
+  const hasCovers = useKycAadhaarCovers(venueId);
   const [retakes] = useState(() => inStepOrder(member));
   const [saved, setSaved] = useState<readonly KycDocumentKind[]>([]);
   const [taking, setTaking] = useState<KycDocumentKind | null>(retakes[0]?.kind ?? null);
@@ -36,8 +37,8 @@ export function RetakeForm({ venueId, member, onDone, onCancel }: RetakeFormProp
   const owed = retakes.filter(({ kind }) => !saved.includes(kind));
   const save = async (kind: KycDocumentKind, photo: Blob) => {
     setTaking(null);
-    // A kept Aadhaar photo has had its bars confirmed: the camera does not give one up before.
-    const done = await retake.mutateAsync({ memberId: member.memberId, kind, coversConfirmed: kind === 'aadhaar_front', photo });
+    // Under the bars, a kept Aadhaar photo has had them confirmed: the camera does not give one up before.
+    const done = await retake.mutateAsync({ memberId: member.memberId, kind, coversConfirmed: kind === 'aadhaar_front' && hasCovers, photo });
     if (!done.ok) return setProblem(IN_PERSON_FAILURE_COPY[done.error]);
     setProblem(null);
     setSaved([...saved, kind]);
@@ -48,7 +49,7 @@ export function RetakeForm({ venueId, member, onDone, onCancel }: RetakeFormProp
   return (
     <Stack gap={4}>
       {at === undefined ? null : <Stepper look="progress" label={t('console.kycInPerson.title')} steps={stepNames()} current={STEPS.indexOf(at)} />}
-      <RetakeBody member={member} owed={owed} taking={taking} place={saved.length + 1} total={retakes.length} isSaving={retake.isPending} problem={problem}
+      <RetakeBody member={member} owed={owed} taking={taking} place={saved.length + 1} total={retakes.length} isSaving={retake.isPending} problem={problem} hasCovers={hasCovers}
         onTake={setTaking} onPhoto={(kind, photo) => void save(kind, photo)} onCancel={onCancel} />
     </Stack>
   );
@@ -62,18 +63,20 @@ interface RetakeBodyProps {
   total: number;
   isSaving: boolean;
   problem: MessageKey | null;
+  hasCovers: boolean;
   onTake: (kind: KycDocumentKind | null) => void;
   onPhoto: (kind: KycDocumentKind, photo: Blob) => void;
   onCancel: () => void;
 }
 
 /** Under the bar: the camera for the photo being taken; a photo being saved; or what is still owed, each with its reason. */
-function RetakeBody({ member, owed, taking, place, total, isSaving, problem, onTake, onPhoto, onCancel }: RetakeBodyProps) {
+function RetakeBody({ member, owed, taking, place, total, isSaving, problem, hasCovers, onTake, onPhoto, onCancel }: RetakeBodyProps) {
   if (taking !== null) {
     return (
       <Stack gap={3}>
         <StepHeading key={taking} step={taking} />
-        <DeskCamera kind={taking} place={place} total={total} reason={owed.find((one) => one.kind === taking)?.reason} onPhoto={(photo) => onPhoto(taking, photo)} />
+        <DeskCamera kind={taking} place={place} total={total} reason={owed.find((one) => one.kind === taking)?.reason} hasCovers={hasCovers}
+          onPhoto={(photo) => onPhoto(taking, photo)} />
         <Button variant="text" size="compact" onClick={() => onTake(null)}>{t('common.back')}</Button>
       </Stack>
     );

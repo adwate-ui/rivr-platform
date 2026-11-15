@@ -79,7 +79,7 @@ test.describe('Manual KYC', () => {
                 where r.member_id = '${KABIR}'`)).toBe('manual Rhea Kulkarni');
     expect(sql(`select string_agg(d.kind || ' ' || coalesce(s.full_name, 'none'), ', ' order by d.kind) from public.kyc_document d
                 left join public.staff s on s.id = d.covers_confirmed_by_staff_id where d.member_id = '${KABIR}'`))
-      .toBe('aadhaar_front Rhea Kulkarni, pan none');
+      .toBe('aadhaar_front none, pan none');
 
     // A super admin opens the Aadhaar, which is audited, and sends it back in words.
     const context = await browser.newContext({ viewport: VIEWPORT.console });
@@ -87,9 +87,9 @@ test.describe('Manual KYC', () => {
     await signInToConsole(admin, '9000000118', `/members?member=${KABIR}&part=account`);
     await admin.getByRole('button', { name: 'Open the Aadhaar front' }).click();
     await expect(admin.getByRole('img', { name: 'Aadhaar front' })).toBeVisible();
-    await admin.getByRole('textbox', { name: 'Why the Aadhaar front needs taking again' }).fill('Digits showing');
+    await admin.getByRole('textbox', { name: 'Why the Aadhaar front needs taking again' }).fill('Glare on the card');
     await admin.getByRole('button', { name: 'Send back' }).click();
-    await expect(admin.getByText('Sent back: Digits showing. Waiting for the desk.')).toBeVisible();
+    await expect(admin.getByText('Sent back: Glare on the card. Waiting for the desk.')).toBeVisible();
     expect(sql(`select count(*) from public.audit_log where action = 'kyc_image.view'
                 and entity_id = (select path from public.kyc_document where member_id = '${KABIR}' and kind = 'aadhaar_front')`)).toBe('1');
 
@@ -99,10 +99,9 @@ test.describe('Manual KYC', () => {
     await page.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' }).fill('kabir');
     await expect(page.getByText('A photo was sent back. Take it again.')).toBeVisible();
     await page.getByRole('button', { name: 'Check Kabir Sethi' }).click();
-    await expect(page.getByText('Sent back: Digits showing.')).toBeVisible();
+    await expect(page.getByText('Sent back: Glare on the card.')).toBeVisible();
     await expect(page.getByRole('list', { name: 'ID check in person' }).locator('[aria-current="step"]')).toHaveText(/^Aadhaar front/);
     await page.getByRole('button', { name: 'Take photo' }).click();
-    await page.getByRole('switch', { name: /^The bars hide/ }).click();
     await page.getByRole('button', { name: 'Use photo' }).click();
     await expect(page.getByRole('status').getByText('New photo kept for Kabir Sethi.')).toBeVisible();
     expect(sql(`select retake_asked_at is null from public.kyc_document where member_id = '${KABIR}' and kind = 'aadhaar_front'`)).toBe('t');

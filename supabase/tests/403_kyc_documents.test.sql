@@ -1,5 +1,5 @@
 -- PAN and Aadhaar photos at the desk check (the owner, 9 Nov; decision 0573): the check needs both, and the staff member's word
--- that the Aadhaar's bars are in place; only super admins open them, each opening audited; a super admin can send one back, and the
+-- that the Aadhaar's bars are in place while the venue asks for them (kyc.aadhaar_covers, turned on here; off is 502's); only super admins open them, each opening audited; a super admin can send one back, and the
 -- member reappears for the desk for that photo alone; they go with the member on erasure. 108 is a host, 103 an admin, 104 a
 -- cashier, 101 a super admin; 203 is the member.
 begin;
@@ -13,6 +13,10 @@ begin
 end;
 $$;
 grant execute on function pg_temp.as_user(uuid) to authenticated;
+select pg_temp.as_user('00000000-0000-4000-8000-000000000101');
+insert into public.setting (venue_id, key, subject, value, effective_from, reason)
+values ('00000000-0000-4000-8000-000000000001', 'kyc.aadhaar_covers', '', '{"enabled": true}', now() - interval '1 second', 'The bars are asked for');
+reset role;
 create temp table check_paths (face text, pan text, aadhaar text) on commit drop;
 grant select, insert on check_paths to authenticated;
 
@@ -90,11 +94,11 @@ create temp table who as select full_name from public.member where id = '0000000
 grant select on who to authenticated;
 update public.kyc_document set taken_at = now() - interval '3 days' where member_id = '00000000-0000-4000-8000-000000000203';
 select pg_temp.as_user('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select public.ask_kyc_document_retake('00000000-0000-4000-8000-000000000203', 'aadhaar_front', 'Digits showing') $$, '42501', null, 'an admin cannot send one back');
+select throws_ok($$ select public.ask_kyc_document_retake('00000000-0000-4000-8000-000000000203', 'aadhaar_front', 'Glare on the card') $$, '42501', null, 'an admin cannot send one back');
 select pg_temp.as_user('00000000-0000-4000-8000-000000000101');
 select throws_ok($$ select public.ask_kyc_document_retake('00000000-0000-4000-8000-000000000203', 'aadhaar_front', 'x') $$, '22023', null, 'a super admin says why, in more than a letter');
 select throws_ok($$ select public.ask_kyc_document_retake('00000000-0000-4000-8000-000000000203', 'passport', 'Blurred') $$, '22023', null, 'and only for a document on file');
-select lives_ok($$ select public.ask_kyc_document_retake('00000000-0000-4000-8000-000000000203', 'aadhaar_front', 'Digits showing') $$, 'a super admin sends the Aadhaar back');
+select lives_ok($$ select public.ask_kyc_document_retake('00000000-0000-4000-8000-000000000203', 'aadhaar_front', 'Glare on the card') $$, 'a super admin sends the Aadhaar back');
 select throws_ok($$ select public.authorize_kyc_document_retake('00000000-0000-4000-8000-000000000203', 'aadhaar_front') $$, '42501', null, 'and someone else must take it again');
 reset role;
 select cmp_ok((select taken_at from public.kyc_document where member_id = '00000000-0000-4000-8000-000000000203' and kind = 'aadhaar_front'), '<', now() - interval '2 days',
@@ -105,7 +109,7 @@ select pg_temp.as_user('00000000-0000-4000-8000-000000000108');
 select results_eq($$ select retake_kinds from public.kyc_due_tonight('00000000-0000-4000-8000-000000000001') where member_id = '00000000-0000-4000-8000-000000000203' $$,
   $$ values (array['aadhaar_front']::text[]) $$, 'the verified member is due at the desk, for that photo alone');
 select results_eq($$ select retake_reasons from public.kyc_due_tonight('00000000-0000-4000-8000-000000000001') where member_id = '00000000-0000-4000-8000-000000000203' $$,
-  $$ values (array['Digits showing']::text[]) $$, 'and told why it came back');
+  $$ values (array['Glare on the card']::text[]) $$, 'and told why it came back');
 select isnt_empty($$ select 1 from public.kyc_in_person_candidates('00000000-0000-4000-8000-000000000001', (select full_name from who)) where retake_kinds = array['aadhaar_front']::text[] $$,
   'and the desk can find them by search');
 select throws_ok($$ select public.authorize_kyc_document_retake('00000000-0000-4000-8000-000000000203', 'pan') $$, 'RVKYC', null, 'a photo not sent back is not retaken');

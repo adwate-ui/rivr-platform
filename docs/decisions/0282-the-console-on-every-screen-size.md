@@ -10,3 +10,5 @@ Date: 28 Oct 2026. Issues #601 to #607; the owner's answers of 28 Oct: "Everythi
 - **The idle lock is marked on each screen.** It used to follow the Money group. Now each of the same 11 screens carries `locksWhenIdle`, and a test holds the list, so moving a screen between groups cannot change which ones lock.
 - **Go to.** A field at the top of the rail finds a screen by name. Enter opens the first one found; Ctrl+K or / reaches it at a desk.
 - **Checked by** the Console fits flow at three widths, and the shell's stories at phone and desk sizes.
+
+**Superseded by 0660** for the idle lock: `locksWhenIdle` is gone, and no screen signs staff out when idle.

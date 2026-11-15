@@ -39,7 +39,7 @@ export {
   type KycWaitReason,
 } from './kycReview.ts';
 export type { KycDocumentKind } from '@rivr/contracts';
-export { useKycDocumentRetake, useMemberKycDocuments, useSendBackKycDocument, type KycDocument, type KycSendBackFailure } from './kycDocuments.ts';
+export { useKycAadhaarCovers, useKycDocumentRetake, useMemberKycDocuments, useSendBackKycDocument, type KycDocument, type KycSendBackFailure } from './kycDocuments.ts';
 export {
   GAMES,
   PUSH_CHOICES,

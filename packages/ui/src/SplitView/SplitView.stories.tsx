@@ -61,5 +61,23 @@ export const Even: Story = { args: { layout: 'even' } };
 /** The record docked in a 440 px panel at the right, the list taking the rest (console v3: Members). */
 export const Docked: Story = { args: { layout: 'docked' } };
 
+const NAMES = ['Arjun Mehta', 'Kabir Sethi', 'Naina Kapoor', 'Ishaan Verma', 'Meera Iyer', 'Dev Malhotra', 'Tara Menon', 'Ritika Das'];
+
+/**
+ * Docked beside a long list (the owner, 15 Nov night): the record stays in view as the list scrolls, as tall as the screen
+ * at most, and a longer record scrolls on its own.
+ */
+export const DockedBesideALongList: Story = {
+  args: {
+    layout: 'docked',
+    list: <Stack gap={3}>{Array.from({ length: 40 }, (_, index) => <Text key={index} weight="medium">{NAMES[index % NAMES.length]}</Text>)}</Stack>,
+    detail: (
+      <Screen title="Arjun Mehta">
+        <Stack gap={3}>{Array.from({ length: 30 }, (_, index) => <Text key={index} tone="muted">Visit {index + 1} · Table 3 · 2 h 10 min</Text>)}</Stack>
+      </Screen>
+    ),
+  },
+};
+
 /** On a phone, a record shown only because none is chosen yet (the floor's first table) leaves the list in place. */
 export const NotChosenOnAPhone: Story = { args: { isChosen: false }, tags: ['!viewport-console', 'viewport-phone'] };

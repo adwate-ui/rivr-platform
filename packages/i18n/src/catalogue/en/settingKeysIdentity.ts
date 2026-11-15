@@ -16,4 +16,10 @@ export const identitySettingKeys = {
     hints: { enabled: 'On: a selfie in the app lets a new member in, and the desk checks their Aadhaar and PAN on the first visit, before they play. Off: KYC in the app.' },
     fields: { enabled: 'Check KYC at the club' },
   },
+  'kyc.aadhaar_covers': {
+    name: 'Aadhaar bars',
+    help: 'Bars over the Aadhaar number in the photo.',
+    hints: { enabled: 'On: the desk hides the first 8 digits and the QR code under bars. Off: the photo is kept whole, for super admins only.' },
+    fields: { enabled: 'Ask for the bars' },
+  },
 };

@@ -76,7 +76,7 @@ export {
 } from './promotions.ts';
 export {
   alertRaisedSchema, bonusCreditedSchema, bonusRedeemedSchema, callTimeCompletedSchema, callTimeEndingSchema, callTimeUpdatedSchema, linkSuffixSchema,
-  MEMBER_NOTICES, memberNoticeSchema,
+  MEMBER_NOTICES, memberNoticeSchema, memberSignedUpSchema,
   promotionOfferedSchema, reviewRequestedSchema, sessionReminderSchema, waitlistCalledSchema,
   type MemberNotice, type PromotionOffered, type ReviewRequested, type WaitlistCalled,
 } from './messaging.ts';

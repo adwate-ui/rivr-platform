@@ -100,11 +100,6 @@ export function isAllowedAt(permissions: readonly Permission[], pathname: string
   return refusalAt(permissions, pathname, tab) === undefined;
 }
 
-/** True on the screens that lock after ten idle minutes (#384). */
-export function locksWhenIdle(pathname: string): boolean {
-  return entryAt(pathname)?.locksWhenIdle === true;
-}
-
 /** The first screen a staff member's rail shows: where a role without the Live floor lands (#640: Service), and a refusal's way back. */
 export function landingFor(sections: readonly SideNavSection[]): SideNavItem | undefined {
   return sections.flatMap((section) => section.items)[0];

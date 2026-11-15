@@ -1,5 +1,5 @@
-// The WhatsApp outbox consumer (#62, #86): the seat call when a member is called from the waitlist, a published promotion to members who opted in, and
-// the receipt-ready notice, through the Evolution bridge for now (decision 0297). pg_cron runs it every minute (decision 0038);
+// The WhatsApp outbox consumer (#62, #86): the seat call when a member is called from the waitlist, a published promotion to members who opted in,
+// what a member hears of while away (decision 0303) and the welcome once someone signs up (decision 0661), through the Evolution bridge for now (decision 0297). pg_cron runs it every minute (decision 0038);
 // a messaging stop holds every send, and practice-venue events never reach it. The member's number
 // is read from the database at send time, for the event's venue only, and never logged.
 import { createWhatsAppConsumer, type FindErasedPhone, type FindRecipient } from '@rivr/adapters/messages';
@@ -8,10 +8,12 @@ import { z } from 'zod';
 import { rpc, serveConsumer } from '../_shared/outbox.ts';
 import { fenced, liveWhatsApp } from '../_shared/whatsapp.ts';
 
-const recipientRows = z.array(z.object({ phone: z.string(), marketing_opted_in_at: z.string().nullable() }));
+const recipientRows = z.array(z.object({
+  phone: z.string(), marketing_opted_in_at: z.string().nullable(), first_name: z.string().min(1), member_number: z.number().int(),
+}));
 
 /**
- * The member's number and marketing opt-in at the event's venue, through the service role only; for a
+ * The member's number, marketing opt-in, first name and member number at the event's venue, through the service role only; for a
  * promotion offer, only while the promotion still runs and may be offered to them (offer_recipient).
  */
 const findRecipient: FindRecipient = async (venueId, memberId, offeredPromotionId) => {
@@ -21,7 +23,12 @@ const findRecipient: FindRecipient = async (venueId, memberId, offeredPromotionI
   const row = recipientRows.parse(found)[0];
   const phone = indianMobileSchema.safeParse(row?.phone);
   if (!row || !phone.success) return null;
-  return { phone: phone.data, marketingOptedInAt: row.marketing_opted_in_at === null ? null : new Date(row.marketing_opted_in_at) };
+  return {
+    phone: phone.data,
+    marketingOptedInAt: row.marketing_opted_in_at === null ? null : new Date(row.marketing_opted_in_at),
+    firstName: row.first_name,
+    memberNumber: String(row.member_number),
+  };
 };
 
 /** The number kept to say an account is deleted (decision 0574), through the service role only; null once it is forgotten. */

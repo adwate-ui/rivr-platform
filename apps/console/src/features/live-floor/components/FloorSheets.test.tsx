@@ -189,7 +189,7 @@ describe('The seat sheet (console v3)', () => {
     expect(within(seat).getByText('Choose a player or type a number.')).toBeDefined();
     fireEvent.click(within(seat).getByRole('radio', { name: 'Table 2' }));
     expect(within(seat).getByRole('radio', { name: 'Leela Menon · 12 min' }).getAttribute('aria-checked')).toBe('true');
-    fireEvent.change(within(seat).getByRole('textbox', { name: 'Or a mobile or member number' }), { target: { value: '42' } });
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Or a name, mobile or member number' }), { target: { value: '42' } });
     // The call time starts from the stake's own and is typed over (redesign RD-19).
     expect(within(seat).getByRole('textbox', { name: 'Call time' })).toHaveProperty('value', '180');
     expect(within(seat).getByText('0 for no call time.')).toBeDefined();
@@ -216,7 +216,7 @@ describe('The seat sheet (console v3)', () => {
     const { rpcs } = await renderFloor();
     fireEvent.click(within(tile('Table 1 NLH 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
     const seat = await sheet('Seat a player');
-    fireEvent.change(within(seat).getByRole('textbox', { name: 'Mobile or member number' }), { target: { value: '42' } });
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Name, mobile or member number' }), { target: { value: '42' } });
     fireEvent.change(within(seat).getByRole('textbox', { name: 'Call time' }), { target: { value: '' } });
     fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
     expect(await within(seat).findByText('Type the call time in minutes, 0 to 1,440.')).toBeDefined();
@@ -230,7 +230,7 @@ describe('The seat sheet (console v3)', () => {
     const { rpcs } = await renderFloor();
     fireEvent.click(within(tile('Table 1 NLH 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
     const seat = await sheet('Seat a player');
-    fireEvent.change(within(seat).getByRole('textbox', { name: 'Mobile or member number' }), { target: { value: '42' } });
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Name, mobile or member number' }), { target: { value: '42' } });
     fireEvent.change(within(seat).getByRole('textbox', { name: 'Call time' }), { target: { value: '' } });
     fireEvent.click(within(seat).getByRole('radio', { name: 'Table 2' }));
     expect(within(seat).getByRole('textbox', { name: 'Call time' })).toHaveProperty('value', '180');

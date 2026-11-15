@@ -71,7 +71,7 @@ describe('Seat a player › Bonus', () => {
     fireEvent.click(within(tile('Table 1 NLH 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
     const seat = await sheet('Seat a player');
     expect(within(seat).getByText('Up to their balance. Taken off when they sit.')).toBeDefined();
-    fireEvent.change(within(seat).getByRole('textbox', { name: 'Mobile or member number' }), { target: { value: '42' } });
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Name, mobile or member number' }), { target: { value: '42' } });
     fireEvent.change(within(seat).getByRole('textbox', { name: 'Bonus to redeem' }), { target: { value: '5000' } });
     fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
     expect(await screen.findByText('More Bonus than the member has. Not seated.')).toBeDefined();

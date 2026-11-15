@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { kycInPersonSchema } from '@rivr/contracts';
-import { useKycImageUrl, useKycInPerson, type KycCandidate, type KycInPersonOutcome } from '@rivr/db';
+import { useKycAadhaarCovers, useKycImageUrl, useKycInPerson, type KycCandidate, type KycInPersonOutcome } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
 import { Button, ErrorMessage, Inline, Input, KycPhoto, kycPhotoStatus, Stack, Stepper, Switch, Text } from '@rivr/ui';
 import { useRef, useState } from 'react';
@@ -102,13 +102,15 @@ interface PhotoStepProps {
   steps: Steps;
   /** A photo the browser could not read: said under "Photo 1 of 3", beside the camera that takes it again. */
   problem: MessageKey | null;
+  /** The Aadhaar front goes under the bars (decision 0663). */
+  hasCovers: boolean;
 }
 
 /**
  * Steps 2 to 4, one photo each: its camera until the photo is kept, or when it is taken again; once kept, the photo with
  * Next and the way to take it again. A card a super admin sent back says why above its camera.
  */
-function PhotoStep({ kind, member, steps, problem }: PhotoStepProps) {
+function PhotoStep({ kind, member, steps, problem, hasCovers }: PhotoStepProps) {
   const photo = steps.photos[kind];
   const place = PHOTO_KINDS.indexOf(kind) + 1;
   const back = <Button variant="text" size="compact" onClick={steps.back}>{t('common.back')}</Button>;
@@ -118,7 +120,7 @@ function PhotoStep({ kind, member, steps, problem }: PhotoStepProps) {
       <Stack gap={3}>
         <StepHeading step={kind} />
         <DeskCamera key={`${kind}:${String(steps.attempt)}`} kind={kind} place={place} total={PHOTO_KINDS.length} reason={reason}
-          problem={problem === null ? undefined : t(problem)} onPhoto={(taken) => void steps.keep(kind, taken)} />
+          problem={problem === null ? undefined : t(problem)} hasCovers={hasCovers} onPhoto={(taken) => void steps.keep(kind, taken)} />
         {back}
       </Stack>
     );
@@ -193,6 +195,8 @@ interface DetailsOptions {
   photos: Photos;
   onProblem: (problem: MessageKey | null) => void;
   onDecided: (outcome: KycInPersonOutcome) => void;
+  /** The Aadhaar photo was taken under the bars, and the word on them given (decision 0663). */
+  hasCovers: boolean;
 }
 
 /**
@@ -200,7 +204,7 @@ interface DetailsOptions {
  * check is sent once however often Verify is pressed. Editing anything clears what the last try said; what the server
  * refuses is said in one line under the step.
  */
-function useDetails({ venueId, member, photos, onProblem, onDecided }: DetailsOptions) {
+function useDetails({ venueId, member, photos, onProblem, onDecided, hasCovers }: DetailsOptions) {
   const { check } = useKycInPerson(venueId);
   const [consent, setConsent] = useState(false);
   const [isConsentMissing, setConsentMissing] = useState(false);
@@ -212,9 +216,9 @@ function useDetails({ venueId, member, photos, onProblem, onDecided }: DetailsOp
     const { face, pan, aadhaar_front: aadhaar } = photos;
     if (!consent) return undefined;
     if (face === undefined || pan === undefined || aadhaar === undefined) return onProblem('console.kycInPerson.invalid');
-    // A kept Aadhaar photo has had its bars confirmed: the camera does not give one up before.
+    // Under the bars, a kept Aadhaar photo has had them confirmed: the camera does not give one up before.
     const done = await check.mutateAsync({
-      ...details, memberId: member.memberId, consent: true, coversConfirmed: true, photo: face.jpeg, panPhoto: pan.jpeg, aadhaarPhoto: aadhaar.jpeg,
+      ...details, memberId: member.memberId, consent: true, coversConfirmed: hasCovers, photo: face.jpeg, panPhoto: pan.jpeg, aadhaarPhoto: aadhaar.jpeg,
     });
     return done.ok ? onDecided(done.value) : onProblem(IN_PERSON_FAILURE_COPY[done.error]);
   });
@@ -258,13 +262,14 @@ interface InPersonStepsProps {
 export function InPersonSteps({ venueId, member, onDecided, onCancel }: InPersonStepsProps) {
   const [problem, setProblem] = useState<MessageKey | null>(null);
   const steps = useSteps(setProblem);
-  const details = useDetails({ venueId, member, photos: steps.photos, onProblem: setProblem, onDecided });
+  const hasCovers = useKycAadhaarCovers(venueId);
+  const details = useDetails({ venueId, member, photos: steps.photos, onProblem: setProblem, onDecided, hasCovers });
   const { step } = steps;
   return (
     <Stack gap={4}>
       <Stepper look="progress" label={t('console.kycInPerson.title')} steps={stepNames()} current={STEPS.indexOf(step)} />
       {step === 'member' ? <MemberStep member={member} onStart={steps.next} onCancel={onCancel} /> : null}
-      {step === 'face' || step === 'pan' || step === 'aadhaar_front' ? <PhotoStep key={`${step}:${String(steps.isRetaking)}:${String(steps.attempt)}`} kind={step} member={member} steps={steps} problem={problem} /> : null}
+      {step === 'face' || step === 'pan' || step === 'aadhaar_front' ? <PhotoStep key={`${step}:${String(steps.isRetaking)}:${String(steps.attempt)}`} kind={step} member={member} steps={steps} problem={problem} hasCovers={hasCovers} /> : null}
       {step === 'details' ? <DetailsStep member={member} steps={steps} details={details} /> : null}
       {step === 'details' && problem !== null ? <ErrorMessage>{t(problem)}</ErrorMessage> : null}
     </Stack>

@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { chooseNaina, NAINA, renderSection, stubCamera, takeAndUse } from './inPersonTestApi.tsx';
+import { chooseNaina, NAINA, renderSection, renderSectionWithBars, stubCamera, takeAndUse } from './inPersonTestApi.tsx';
 
 beforeEach(stubCamera);
 
@@ -14,7 +14,7 @@ afterEach(() => {
 const retaken = () => Response.json({ status: 'retaken' });
 const sentBack = { ...NAINA, status: 'verified', retake_kinds: ['pan'], retake_reasons: ['Blurred'] };
 // As the database lists two: by the kind's name, the Aadhaar front before the PAN card.
-const bothSentBack = { ...sentBack, retake_kinds: ['aadhaar_front', 'pan'], retake_reasons: ['Digits showing', 'Blurred'] };
+const bothSentBack = { ...sentBack, retake_kinds: ['aadhaar_front', 'pan'], retake_reasons: ['Glare on the card', 'Blurred'] };
 const hasFocus = async (name: string) => waitFor(() => expect(document.activeElement).toBe(screen.getByRole('heading', { name, level: 3 })));
 
 describe('a check where only photos were sent back (decision 0573, redesign RD-21)', () => {
@@ -42,7 +42,18 @@ describe('a check where only photos were sent back (decision 0573, redesign RD-2
     expect(await screen.findByText('Step 4 of 5: Aadhaar front')).toBeDefined();
     await hasFocus('Aadhaar front');
     expect(screen.getByText('Photo 2 of 2')).toBeDefined();
-    expect(screen.getByText('Sent back: Digits showing.')).toBeDefined();
+    expect(screen.getByText('Sent back: Glare on the card.')).toBeDefined();
+    await takeAndUse();
+    expect(await screen.findByText('New photo kept for Naina Kapoor.')).toBeDefined();
+    expect(sent).toEqual([expect.objectContaining({ kind: 'pan', coversConfirmed: false }), expect.objectContaining({ kind: 'aadhaar_front', coversConfirmed: false })]);
+  });
+
+  it('with the venue\'s Aadhaar bars on, puts the Aadhaar taken again under them and sends the word on them (decision 0663)', async () => {
+    const sent = renderSectionWithBars(retaken, bothSentBack);
+    await chooseNaina();
+    expect(await screen.findByText('Step 3 of 5: PAN card')).toBeDefined();
+    await takeAndUse();
+    expect(await screen.findByText('Step 4 of 5: Aadhaar front')).toBeDefined();
     await takeAndUse(true);
     expect(await screen.findByText('New photo kept for Naina Kapoor.')).toBeDefined();
     expect(sent).toEqual([expect.objectContaining({ kind: 'pan', coversConfirmed: false }), expect.objectContaining({ kind: 'aadhaar_front', coversConfirmed: true })]);

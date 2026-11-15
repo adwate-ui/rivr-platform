@@ -22,3 +22,5 @@ A freeze doesn't stop staff changes: a manager may need to turn someone off duri
 Which screen a role may open comes from the rail's own table. The frame refuses a screen whose rail
 entry the role lacks, so a cashier who types an admin screen's address sees a refusal, not the screen.
 The database still refuses every call they couldn't make anyway.
+
+**Superseded by 0660** for the idle lock: no screen signs staff out when idle; a session ends only when someone signs out.
