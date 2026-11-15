@@ -86,6 +86,8 @@ export const queryKeys = {
   memberBonusVisitLeft: (userId: string, venueId: string, memberId: string) => ['user', userId, 'bonus', venueId, memberId, 'visit-left'] as const,
   tableMetrics: (userId: string, venueId: string, from: string, to: string) => ['user', userId, 'table-metrics', venueId, from, to] as const,
   tableMetricsTotal: (userId: string, venueId: string, from: string, to: string) => ['user', userId, 'table-metrics-total', venueId, from, to] as const,
+  /** One read of a report over a span (redesign RD-27): `name` is its chart, its figures or its lines. */
+  clubReport: (userId: string, name: string, span: { venueId: string; from: string; to: string }) => ['user', userId, 'club-report', span.venueId, name, span.from, span.to] as const,
   memberSignUp: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-sign-up', venueId, memberId] as const,
   /** The members whose account is not simply active (F-121). */
   memberAccountStatuses: (userId: string, venueId: string) => ['user', userId, 'member-account-statuses', venueId] as const,

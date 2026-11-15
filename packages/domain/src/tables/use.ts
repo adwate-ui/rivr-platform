@@ -18,6 +18,12 @@ export function changeFrom(current: number, previous: number): number | null {
   return Math.round(((current - previous) * 100) / previous);
 }
 
+/** A part's whole-percent share of a whole, rounded; null with no whole to be a share of (redesign RD-27, the Players report). */
+export function shareOf(part: number, whole: number): number | null {
+  if (whole <= 0) return null;
+  return Math.round((Math.max(0, part) * 100) / whole);
+}
+
 const DAY_MS = 86_400_000;
 const LONGEST_SPAN_DAYS = 92;
 

@@ -199,3 +199,7 @@ export {
   type TournamentInterest, type TournamentInterestFailure, type TournamentListing, type TournamentStanding, type UpcomingTournament,
 } from './tournamentInterest.ts';
 export { useTableMetrics, useTableMetricsTotal, type TableMetrics, type TableMetricsTotal } from './tableMetrics.ts';
+export {
+  useBonusReport, useFnbReport, usePlayersReport, useReportChart, useReportFigures, useWaitlistReport,
+  type BonusLine, type ChartReport, type FigureReport, type FnbLine, type PlayersLine, type ReportBar, type ReportFigure, type ReportSpan, type WaitlistLine,
+} from './clubReports.ts';

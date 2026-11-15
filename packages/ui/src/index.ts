@@ -48,6 +48,7 @@ export * from './PlaybackLink/index.ts';
 export * from './Segmented/index.ts';
 export * from './OverflowMenu/index.ts';
 export * from './BulkBar/index.ts';
+export * from './BarChart/index.ts';
 export * from './DotStatus/index.ts';
 
 // Data

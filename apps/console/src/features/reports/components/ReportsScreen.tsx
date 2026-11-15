@@ -7,12 +7,14 @@ import { MonthlyMis } from './MonthlyMis.tsx';
 import { UnclaimedBalances } from './UnclaimedBalances.tsx';
 import { GrowthFunnel } from './GrowthFunnel.tsx';
 import { RakeTonight } from './RakeTonight.tsx';
+import { BonusReport, FnbReport, PlayersReport, WaitlistReport, type ReportProps } from './ClubReports.tsx';
+import { useReportPeriod } from './ReportPeriod.tsx';
 import { TablesReport } from './TablesReport.tsx';
 
-type ReportTab = 'tables' | 'tonight' | 'mis' | 'unclaimed' | 'growth';
+type ReportTab = 'tables' | 'players' | 'waitlist' | 'fnb' | 'bonus' | 'tonight' | 'mis' | 'unclaimed' | 'growth';
 
-// Only the money-free Tables view shows (owner, 8 Nov; no rupees on the console, 29 Oct); the rest stay hidden.
-const SHOWN: readonly ReportTab[] = ['tables'];
+// The money-free reports show (owner, 8 Nov; no rupees on the console, 29 Oct; redesign RD-27); the money reports stay hidden.
+const SHOWN: readonly ReportTab[] = ['tables', 'players', 'waitlist', 'fnb', 'bonus'];
 
 /** The tab the address opens: a shown one, by the rail or the address; anything else, a hidden money report too, Tables. */
 export function reportTabFor(tab: string | undefined): ReportTab {
@@ -20,8 +22,13 @@ export function reportTabFor(tab: string | undefined): ReportTab {
 }
 
 /** The report a tab shows. */
-function TabContent({ tab, venueId, exportIn }: { tab: ReportTab; venueId: string; exportIn: HTMLElement | null }) {
-  if (tab === 'tables') return <TablesReport venueId={venueId} exportIn={exportIn} />;
+function TabContent({ tab, ...report }: ReportProps & { tab: ReportTab }) {
+  const { venueId } = report;
+  if (tab === 'tables') return <TablesReport {...report} />;
+  if (tab === 'players') return <PlayersReport {...report} />;
+  if (tab === 'waitlist') return <WaitlistReport {...report} />;
+  if (tab === 'fnb') return <FnbReport {...report} />;
+  if (tab === 'bonus') return <BonusReport {...report} />;
   if (tab === 'mis') return <MonthlyMis venueId={venueId} />;
   if (tab === 'unclaimed') return <UnclaimedBalances venueId={venueId} />;
   if (tab === 'growth') return <GrowthFunnel venueId={venueId} />;
@@ -29,7 +36,8 @@ function TabContent({ tab, venueId, exportIn }: { tab: ReportTab; venueId: strin
 }
 
 /**
- * Reports (#99; scope-v1 modules 4 and 16), one at a time by tab (#605). Shown: the money-free Tables view (owner, 8 Nov).
+ * Reports (#99; scope-v1 modules 4 and 16), one at a time by tab (#605). Shown, money-free: Tables (owner, 8 Nov), Players, Waitlist,
+ * Food and drink and Bonus (redesign RD-27), each over the one period chosen above them.
  * Hidden, as their screens are (decision 0284): tonight's rake by table, dealer and game from hand records,
  * the monthly investor MIS, unclaimed balances, the growth funnel (#166) and each channel's followers beside it (#164). For staff who
  * read reports; the practice venue has none.
@@ -40,6 +48,7 @@ export function ReportsScreen() {
   // The report open is in the address (`?tab=mis`), so a refresh, Back or a shared link opens it.
   const { tab } = useSearch({ from: '/frame/reports' });
   const [exportIn, setExportIn] = useState<HTMLElement | null>(null);
+  const { period, control } = useReportPeriod();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   const title = t('console.reports.title');
@@ -49,13 +58,11 @@ export function ReportsScreen() {
   const current = reportTabFor(tab);
   return (
     <Screen title={title} onActionsSlot={setExportIn}>
-      <Stack gap={8}>
-        {/* One report shown has no tab strip of its own. */}
-        {SHOWN.length < 2 ? null : (
-          <Tabs label={t('console.reports.tabsLabel')} current={current} onNavigate={(href) => void navigate({ href })}
-            tabs={SHOWN.map((id) => ({ id, label: t(`console.reports.tabs.${id}`), href: `/reports?tab=${id}` }))} />
-        )}
-        <TabContent tab={current} venueId={venueId} exportIn={exportIn} />
+      <Stack gap={6}>
+        <Tabs label={t('console.reports.tabsLabel')} current={current} onNavigate={(href) => void navigate({ href })}
+          tabs={SHOWN.map((id) => ({ id, label: t(`console.reports.tabs.${id}`), href: `/reports?tab=${id}` }))} />
+        {control}
+        <TabContent tab={current} venueId={venueId} period={period} exportIn={exportIn} />
       </Stack>
     </Screen>
   );

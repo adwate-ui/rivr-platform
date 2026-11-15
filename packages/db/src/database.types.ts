@@ -2838,6 +2838,11 @@ isOneToOne: false
 "begin_sign_up_photo":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
+"bonus_report":
+{ Args: { "p_from": string,"p_to": string,"p_venue_id": string }; Returns: {
+              "given_paise": number,"grants": number,"label": string,"members": number,"source": string
+            }[]
+                           },
 "call_from_waitlist":
 { Args: { "p_entry_id": string,"p_seat": number,"p_table_id": string }; Returns: undefined
                            },
@@ -3074,6 +3079,11 @@ isOneToOne: false
 "fnb_orders_tonight":
 { Args: { "p_venue_id": string }; Returns: {
               "accepted_at": string,"age_seconds": number,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"is_comp": boolean,"kot_number": number,"kot_print_failed": boolean,"kot_sent_at": string,"kot_sent_by": string,"lines": Json,"member_name": string,"member_number": number,"on_way_at": string,"order_id": string,"seat": number,"seat_state": string,"source": string,"table_name": string
+            }[]
+                           },
+"fnb_report":
+{ Args: { "p_from": string,"p_to": string,"p_venue_id": string }; Returns: {
+              "accept_seconds": number,"grouped_by": string,"items": number,"label": string,"orders": number,"serve_seconds": number,"voided": number
             }[]
                            },
 "forget_live_status_device":
@@ -3457,6 +3467,11 @@ isOneToOne: false
               "kot_number": number,"order_id": string
             }[]
                            },
+"players_report":
+{ Args: { "p_from": string,"p_to": string,"p_venue_id": string }; Returns: {
+              "amount": number,"label": string,"measure": string,"place": number
+            }[]
+                           },
 "post_notice":
 { Args: { "p_body": string,"p_ends_at"?: string,"p_starts_at"?: string,"p_venue_id": string }; Returns: string
                            },
@@ -3568,6 +3583,16 @@ isOneToOne: false
                            },
 "reopen_kyc_check":
 { Args: { "p_member_id": string,"p_reason": string }; Returns: undefined
+                           },
+"report_chart":
+{ Args: { "p_from": string,"p_report": string,"p_to": string,"p_venue_id": string }; Returns: {
+              "amount": number,"bucket": string
+            }[]
+                           },
+"report_figures":
+{ Args: { "p_from": string,"p_report": string,"p_to": string,"p_venue_id": string }; Returns: {
+              "amount": number,"figure": string
+            }[]
                            },
 "report_live_status_token":
 { Args: { "p_activity_token": string,"p_device_key": string }; Returns: undefined
@@ -3917,6 +3942,11 @@ isOneToOne: false
 "waitlist_page":
 { Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
               "added_by_floor": boolean,"asked_table_id": string,"away_until": string,"call_seat": number,"call_table_name": string,"entry_id": string,"full_name": string,"hold_until": string,"joined_at": string,"member_id": string,"needs_id_check": boolean,"on_way_at": string,"place": number,"priority_reason": string,"table_type_id": string,"total": number
+            }[]
+                           },
+"waitlist_report":
+{ Args: { "p_from": string,"p_to": string,"p_venue_id": string }; Returns: {
+              "joined": number,"left_list": number,"longest_seconds": number,"seated": number,"table_id": string,"table_name": string,"wait_seconds": number
             }[]
                            },
 "waitlist_requests":

@@ -3,7 +3,35 @@ export const reports = {
   title: 'Reports',
   /** One report at a time (#605). */
   tabsLabel: 'Reports',
-  tabs: { tables: 'Tables', tonight: 'Tonight', mis: 'Monthly MIS', unclaimed: 'Unclaimed balances', growth: 'Growth' },
+  tabs: { tables: 'Tables', players: 'Players', waitlist: 'Waitlist', fnb: 'Food and drink', bonus: 'Bonus', tonight: 'Tonight', mis: 'Monthly MIS', unclaimed: 'Unclaimed balances', growth: 'Growth' },
+  /** A figure that has not come yet. */
+  noFigure: '–',
+  /** A report's chart (redesign RD-27): by the hour of one club day, by the day of a longer span. */
+  chartNames: {
+    tables: { byHour: 'Seated by hour', byDay: 'Seated by day' },
+    players: { byHour: 'Check-ins by hour', byDay: 'Check-ins by day' },
+    waitlist: { byHour: 'Joined a list by hour', byDay: 'Joined a list by day' },
+    fnb: { byHour: 'Orders by hour', byDay: 'Orders by day' },
+    bonus: { byHour: 'Bonus given by hour', byDay: 'Bonus given by day' },
+  },
+  /** The four figures over each report (redesign RD-27). */
+  tiles: {
+    seatUse: 'Seat use', peak: 'Most at once', playerHours: 'Player hours', players: 'Players',
+    checkIns: 'Check-ins', played: 'Members who played', newMembers: 'New members', session: 'Avg session',
+    joined: 'Joined a list', seated: 'Got a seat', wait: 'Avg wait', longest: 'Longest wait',
+    orders: 'Orders', items: 'Items', accept: 'Avg to accept', serve: 'Avg to serve',
+    given: 'Bonus given', byHand: 'By hand', used: 'Bonus used', outstanding: 'Outstanding',
+  },
+  playersReport: {
+    title: 'Players', measure: 'Measure', value: 'Value', share: 'Share', played: 'Members who played', firstVisit: 'First visit', idChecks: 'ID checks done',
+    empty: 'Nobody played in these days.',
+  },
+  waitlistReport: { title: 'Waitlist', table: 'Table', joined: 'Joined', seated: 'Got a seat', left: 'Left the list', wait: 'Avg wait', longest: 'Longest' },
+  fnbReport: {
+    title: 'Food and drink', by: 'Orders by', byTable: 'By table', byStaff: 'By staff member', table: 'Table', staff: 'Accepted by', nobody: 'Not accepted',
+    orders: 'Orders', items: 'Items', accept: 'Avg to accept', serve: 'Avg to serve', voided: 'Void', empty: 'No orders in these days.',
+  },
+  bonusReport: { title: 'Bonus', source: 'Given by', byHand: 'By hand', members: 'Members', grants: 'Times', given: 'Bonus given', empty: 'No Bonus given in these days.' },
   /** The MIS Tables view (owner, 8 Nov), money-free: each table over a span of club days. `{percent}` is a whole number. */
   tables: {
     title: 'Tables',
