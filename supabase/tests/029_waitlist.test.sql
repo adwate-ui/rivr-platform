@@ -52,8 +52,9 @@ select results_eq($$ select table_type_name, small_blind_paise, big_blind_paise,
   'their join is a request: no place until the floor approves it (#633)');
 select results_eq($$ select g.name, l.waiting, l.call_time_minutes from public.waitlist_lengths() l join public.game_table g on g.id = l.table_id
                      order by g.position $$,
-  $$ values ('Table 1'::text, 0, 180), ('Table 2', 3, 180), ('Table 3', 0, 180), ('Table 4', 0, 180), ('Table 5', 0, 180), ('Private Room', 0, 180) $$,
-  'and how many wait on each table''s list, never who, a request not counted, with its stake''s call time');
+  $$ values ('Table 1'::text, null::integer, 180), ('Table 2', null, 180), ('Table 3', null, 180), ('Table 4', null, 180), ('Table 5', null, 180),
+            ('Private Room', null, 180) $$,
+  'and each table''s stake''s call time, with no count of who waits (redesign RD-20; the floor''s count is proved in 206 and 292)');
 select throws_ok($$ select public.join_waitlist_at(pg_temp.table_id('Table 1'), gen_random_uuid()) $$, 'RVONE', null,
   'they wait on one list at a time (#633)');
 select is((select count(*)::integer from public.waitlist_entry), 1, 'a member sees only their own place');

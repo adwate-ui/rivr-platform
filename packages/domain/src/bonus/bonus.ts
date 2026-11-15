@@ -78,6 +78,14 @@ export function bonusEnd(givenAt: Date, days: number, since: Date): Date | null 
 }
 
 /**
+ * How many days Bonus lasts after it is given, for the line under a member's balance (redesign RD-20): the venue's
+ * bonus.expiry_days as it is in force; null is never, which is what 0 days and no setting at all both mean (decision 0579).
+ */
+export function bonusLastsDays(days: number | null): number | null {
+  return days === null || days <= 0 ? null : days;
+}
+
+/**
  * The most bonus a member may redeem in one visit (the owner, 12 Nov; decision 0579): `basisPoints` (5,000 is half) of the
  * bonus they held at the visit's first seat, rounded down to whole ₹50 chips. private.visit_bonus_cap is its twin.
  */

@@ -79,7 +79,7 @@ test.describe('High hand payout', () => {
     await expect(member.getByText('High hand: Straight flush, Nine high. 10,000 Bonus added.')).toBeVisible({ timeout: 20_000 });
     await shoot(member, 'player-home-toast-390');
     expect(await balanceOf(member)).toBe(before + 10_000);
-    const newest = member.getByText(/^High hand: Straight flush, Nine high · \d+ [A-Z][a-z]{2}$/).first();
+    const newest = member.getByText('High hand: Straight flush, Nine high', { exact: true }).first();
     await expect(newest).toBeVisible();
     await expect(newest.locator('..')).toContainText('+10,000');
     await shoot(member, 'player-bonus-history-390');

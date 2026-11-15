@@ -3157,7 +3157,7 @@ isOneToOne: false
                            },
 "my_bonus":
 { Args: Record<PropertyKey, never>; Returns: {
-              "bonus_paise": number
+              "bonus_paise": number,"expiry_days": number
             }[]
                            },
 "my_bonus_history":
@@ -3212,7 +3212,7 @@ isOneToOne: false
                            },
 "my_notices":
 { Args: Record<PropertyKey, never>; Returns: {
-              "body": string,"notice_id": string
+              "body": string,"notice_id": string,"starts_at": string
             }[]
                            },
 "my_photo_path":

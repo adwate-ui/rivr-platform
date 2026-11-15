@@ -87,6 +87,19 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | `bonusExpired(grants, at)` | What expires at a moment: the remainder of each grant whose end has come. The database's `private.bonus_expiring` is proved equal on the same file; `private.expire_bonus` reverses it every hour. |
 | `bonusEnd(givenAt, days, since)` | When a grant ends once a venue sets `bonus.expiry_days` (decision 0579): N days after it was given, or after the switch-on for chips held before; never at 0 days. `private.bonus_end` is its twin on `bonus.json`. |
 | `visitBonusCap(heldAtFirstSeat, basisPoints)`, `visitBonusLeft(cap, redeemed)` | The most bonus one visit redeems under `bonus.visit_cap` (decision 0579): that share of the bonus held at its first seat, rounded down to whole ₹50 chips; and what is left of it. `private.visit_bonus_cap` and `private.visit_bonus_left` are their twins on `bonus.json`. |
+| `bonusLastsDays(days)` | How long Bonus lasts, for the line under a member's balance (redesign RD-20): the days of `bonus.expiry_days` as in force; null, never, for 0 days or none set. |
+
+### `@rivr/domain/notices`
+
+| Export | What it does |
+|---|---|
+| `homeTopSlot({ seat, isIdCheckDone, notices })`, `HomeSlot`, `LiveNotice`, `SeatStanding` | The one card above the offers on the player's Home (redesign RD-20): nothing while a seat is `called` or `taken`; else `idCheck` while the check is not done; else the notice in force that started last (the first listed of two that started together); else nothing. `notices` are those the server lists as in force. |
+
+### `@rivr/domain/referral`
+
+| Export | What it does |
+|---|---|
+| `referralPromise(liveBonus)`, `ReferralPromise` | What Refer a friend may say (redesign RD-20): a `reward` of that Bonus each while a referral promotion is live and gives something, else the `invite` alone, with no word of a reward. `liveBonus` is what `my_referral` reads from the live promotion; null with none live. |
 
 ### `@rivr/domain/fnb`
 

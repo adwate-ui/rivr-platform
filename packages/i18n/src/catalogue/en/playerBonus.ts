@@ -5,28 +5,34 @@ export const playerBonus = {
   title: 'Bonus',
   /** Someone signed in who is not a member. */
   notMember: 'Bonus is for members.',
-  /** The balance's tile: its name, and one line on what it is for. */
+  /**
+   * The balance's tile: its name, and one line on what it is for, which follows the club's "Bonus expires" setting
+   * (redesign RD-20): never, or after the days set.
+   */
   balance: 'Balance',
   line: 'Use with your buy-in. Never expires.',
+  lineExpires: 'Use with your buy-in. Expires after {days} days.',
+  lineExpiresOne: 'Use with your buy-in. Expires after 1 day.',
   history: 'History',
   showEarlier: 'Show earlier',
   noHistory: 'Nothing here yet.',
-  /** A line's label, with its day: `Welcome bonus · 15 Nov`; `Buy-in · Table 3 · 15 Nov`; `Expired · Buy-in bonus Tuesday · 9 Nov`. */
-  credited: '{reason} · {date}',
-  /** A high hand paid (redesign RD-25): `High hand: Straight flush, Nine high · 15 Nov`. */
-  highHand: 'High hand: {hand} · {date}',
-  redeemed: 'Buy-in · {table} · {date}',
-  redeemedNoTable: 'Buy-in · {date}',
-  expired: 'Expired · {reason} · {date}',
+  /**
+   * A line's label, with its day beneath: Bonus given says its reason, `Welcome bonus`; Bonus used `Buy-in · Table 3`;
+   * Bonus that ended `Expired · Buy-in bonus Tuesday`.
+   */
+  redeemed: 'Buy-in · {table}',
+  redeemedNoTable: 'Buy-in',
+  expired: 'Expired · {reason}',
+  /** A high hand paid (redesign RD-25): `High hand: Straight flush, Nine high`. */
+  highHand: 'High hand: {hand}',
   /** A line's Bonus: `+500`, `−1,000`. */
   plus: '+{chips}',
   minus: '−{chips}',
   /** Refer a friend (#151): the code is RIVR and the member's number. */
   referral: {
     title: 'Refer a friend',
-    how: 'Bonus for you both when a friend joins with your code and takes a first seat.',
-    /** `{chips}` is `1,000`. */
-    offer: '{chips} Bonus each when a friend joins and takes a first seat.',
+    /** Only while a referral promotion is live (redesign RD-20); with none, the card says nothing of a reward. `{chips}` is `1,000`. */
+    offer: '{chips} Bonus each. When a friend joins and takes a first seat.',
     joined: '{count} joined',
     copyLink: 'Copy link',
     shareInvite: 'Share invite',

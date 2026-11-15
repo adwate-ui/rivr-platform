@@ -85,7 +85,8 @@ test.describe('Bonus', () => {
     await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Bonus' }).click();
     await expect(page.getByRole('heading', { name: 'Bonus', level: 1 })).toBeVisible();
     await expect(page.getByText(chips(before + 50_000), { exact: true })).toBeVisible();
-    await expect(page.getByText(/^Welcome bonus · /).first()).toBeVisible();
+    // A line of history: what it was, with its day beneath (redesign RD-20).
+    await expect(page.getByText('Welcome bonus', { exact: true }).first()).toBeVisible();
 
     // The desk checks him (kyc.spec.ts walks it); it gives no second sign-up bonus.
     sql(`update public.kyc_record set status = 'verified', method = 'manual', verified_at = now(), date_of_birth = '1990-04-12',
@@ -108,7 +109,7 @@ test.describe('Bonus', () => {
 
     // He is told, and his history shows the buy-in.
     await expect(page.getByText('500 Bonus used for your buy-in at Table 5')).toBeVisible();
-    await expect(page.getByText(/^Buy-in · Table 5 · /).first()).toBeVisible();
+    await expect(page.getByText('Buy-in · Table 5', { exact: true }).first()).toBeVisible();
 
     // His record's Bonus chips tab, read only, names who seated him.
     await floor.goto(`${appUrl('console')}/members?member=${JAYESH}&part=bonus`);
@@ -122,7 +123,7 @@ test.describe('Bonus', () => {
     await floor.getByRole('button', { name: 'Yes, add 50 Bonus' }).click();
     await expect(floor.getByText('50 Bonus added.')).toBeVisible();
     expect(Number(sql(`select private.bonus_in_force('${JAYESH}', now())`))).toBe(before + 5_000);
-    await expect(page.getByText(new RegExp(`^${REASON} · `)).first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(REASON, { exact: true }).first()).toBeVisible({ timeout: 15_000 });
 
     // Reset hours (redesign RD-36): seated an hour ago here, his hour counts; Ishaan, a super admin, resets his hours from the
     // record's Visits with a reason, asked twice; they start from zero, and the audit log keeps who, when and why.

@@ -13,4 +13,15 @@ type Story = StoryObj<typeof meta>;
 
 export const BonusChips: Story = { args: { onOpen: () => undefined, 'aria-expanded': false } };
 
+/** The member's own balance at the top of Bonus (redesign RD-20). */
+export const Hero: Story = {
+  tags: ['viewport-phone'],
+  args: { look: 'hero', icon: undefined, tone: 'default', figure: '14,000', label: 'Balance', line: 'Use with your buy-in. Never expires.' },
+};
+
+export const HeroLongText: Story = {
+  tags: ['viewport-phone'],
+  args: { look: 'hero', icon: undefined, tone: 'default', figure: '1,00,00,000', label: 'Balance', line: 'Use with your buy-in at any table in the club. Expires after 3,650 days.' },
+};
+
 export const LongText: Story = { args: { figure: '12,34,56,789', line: 'Use with your buy-in at any table in the club, on any night. Never expires.' } };

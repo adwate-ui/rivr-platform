@@ -41,16 +41,21 @@ export interface NoticeEdit extends NoticeDraft {
 }
 const toFailure = (error: { code: string }): NoticeFailure => FAILURE_BY_CODE[error.code] ?? 'unavailable';
 
+/** A notice in force as a member reads it: with when it started, by which Home picks the one to show (redesign RD-20). */
+export interface MyNotice extends Notice {
+  readonly startsAt: string;
+}
+
 /** The notices in force at the member's club, newest first. */
 export function useMyNotices() {
   const { client, userId } = useRivrData();
   return useQuery({
     queryKey: keys.mine(userId ?? 'signed-out'),
     enabled: userId !== null,
-    queryFn: async (): Promise<Notice[]> => {
+    queryFn: async (): Promise<MyNotice[]> => {
       const { data, error } = await client.rpc('my_notices').limit(LIST_MOST);
       if (error) throw error;
-      return data.map((row) => ({ noticeId: row.notice_id, body: row.body }));
+      return data.map((row) => ({ noticeId: row.notice_id, body: row.body, startsAt: row.starts_at }));
     },
   });
 }

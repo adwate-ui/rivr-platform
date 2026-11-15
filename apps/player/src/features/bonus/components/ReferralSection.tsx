@@ -1,12 +1,17 @@
 import { attributionSearch } from '@rivr/contracts/attribution';
 import { useFeature } from '@rivr/db';
 import { useMyReferral, type MyReferral } from '@rivr/db/referral';
+import { referralPromise } from '@rivr/domain/referral';
 import { formatChips, t } from '@rivr/i18n';
 import { Box, Button, FeatureGate, Figure, Grid, Inline, LoadState, Skeleton, Stack, Text, useToast } from '@rivr/ui';
 
-/** The offer in a line: the bonus each, when the club has set it. */
-function offerOf({ bonus }: MyReferral): string {
-  return bonus === null ? t('playerBonus.referral.how') : t('playerBonus.referral.offer', { chips: formatChips(bonus) });
+/**
+ * The reward in a line, only while a referral promotion is live (redesign RD-20; `referralPromise` in
+ * @rivr/domain/referral): the Bonus each. With none live the card offers the invite and says nothing of a reward.
+ */
+function Reward({ referral }: { referral: MyReferral }) {
+  const promise = referralPromise(referral.bonus);
+  return promise.kind === 'reward' ? <Text>{t('playerBonus.referral.offer', { chips: formatChips(promise.bonus) })}</Text> : null;
 }
 
 /**
@@ -30,7 +35,7 @@ function Invite({ link }: { link: string }) {
   );
 }
 
-/** The member's card: Refer a friend, the offer, their code large with how many joined, then the two ways to invite. */
+/** The member's card: Refer a friend, the reward while one is promised, their code large with how many joined, then the two ways to invite. */
 function Referral() {
   const referral = useMyReferral();
   // A skeleton while it comes, never the word Loading (brief 2.6); Try again if it cannot.
@@ -43,7 +48,7 @@ function Referral() {
     <Box padding={5} hairline="all" radius="lg">
       <Stack gap={4}>
         <Text variant="eyebrow" tone="accent">{t('playerBonus.referral.title')}</Text>
-        <Text>{offerOf(referral.data)}</Text>
+        <Reward referral={referral.data} />
         <Box surface="raised" paddingX={4} paddingY={3} radius="md">
           <Inline justify="between" align="center">
             <Figure size="stat">{referral.data.code}</Figure>

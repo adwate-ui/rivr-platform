@@ -34,6 +34,16 @@ describe('BalanceTile', () => {
     expect(onOpen).toHaveBeenCalledOnce();
   });
 
+  it('draws the member\'s own balance large: its name above, the figure cream in the display face, no icon and no history (redesign RD-20)', async () => {
+    const { container } = renderIn(<BalanceTile look="hero" figure="14,000" label="Balance" line="Use with your buy-in. Never expires." />);
+    expect(screen.getByText('14,000')).toHaveClass('font-display', 'text-content');
+    const words = [...container.querySelectorAll('span')].map((part) => part.textContent);
+    expect(words).toEqual(['Balance', '14,000', 'Use with your buy-in. Never expires.']);
+    expect(container.querySelector('svg')).toBeNull();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<BalanceTile icon="chip" figure="1,500" label="Bonus" line="Use with your buy-in." tone="money" onOpen={() => undefined} />);
     expect(await axeViolations(container)).toEqual([]);

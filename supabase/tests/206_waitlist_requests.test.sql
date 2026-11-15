@@ -47,7 +47,10 @@ reset role;
 update public.waitlist_entry set joined_at = now() - interval '1 minute' where id = (select id from ids where name = 'ishaan');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 select results_eq($$ select l.waiting, l.call_time_minutes from public.waitlist_lengths() l where l.table_id = pg_temp.table_id('Table 2') $$,
-  $$ values (3, 180) $$, 'Home counts only the three on the table''s list, and says the stake''s three hours of call time');
+  $$ values (null::integer, 180) $$, 'Home says the stake''s three hours of call time, and no count of who waits (redesign RD-20)');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select results_eq($$ select l.waiting, l.call_time_minutes from public.waitlist_lengths() l where l.table_id = pg_temp.table_id('Table 2') $$,
+  $$ values (3, 180) $$, 'the floor''s count is only the three on the table''s list: a request is not counted');
 select is((select l.waiting from public.waitlist_lengths() l where l.table_id = pg_temp.table_id('Table 3')), 0,
   'another table at the stake has a list of its own');
 reset role;

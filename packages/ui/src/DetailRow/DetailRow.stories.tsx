@@ -31,4 +31,16 @@ export const FilledHistoryOnAPhone: Story = {
   ),
 };
 
+/** Bonus history (redesign RD-20): what it was in medium weight with its day beneath; what came in is gold. */
+export const WithDetail: Story = {
+  tags: ['viewport-phone'],
+  render: () => (
+    <>
+      <DetailRow label="High hand: Straight flush, Nine high" detail="15 Nov" value="+10,000" valueTone="accent" />
+      <DetailRow label="Buy-in · Table 3" detail="7 Nov" value="−2,000" valueTone="muted" />
+      <DetailRow label="Promised_by_the_floor_manager_for_the_whole_of_the_long_weekend" detail="1 Nov" value="+12,34,567" valueTone="accent" isLast />
+    </>
+  ),
+};
+
 export const LongText: Story = { args: { label: 'Sunday Main Event seat, collect at the host desk', value: 'Ready to collect', valueTone: 'accent' } };
