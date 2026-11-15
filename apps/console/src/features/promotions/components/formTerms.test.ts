@@ -2,7 +2,6 @@ import type { PromotionTerms } from '@rivr/contracts/promotionModel';
 import { describe, expect, it } from 'vitest';
 import { blankForm, formFromTerms, templateForm, type BuilderForm } from './builderForm.ts';
 import { readForm } from './formTerms.ts';
-import { TUESDAY } from './promotionsTestApi.tsx';
 import { allOrPicked } from './WhoWhenSections.tsx';
 
 const TODAY = '2026-11-10';
@@ -42,17 +41,6 @@ describe('the builder read as terms', () => {
     if (terms === null) return;
     expect(formFromTerms(terms)).toMatchObject({ seatMode: 'tiers', seatTiers: [{ count: '10', chips: '5000' }, { count: '20', chips: '2000' }] });
     expect(readForm(named({ kind: 'seat_bonus', seatMode: 'tiers', seatTiers: [{ count: '0', chips: '75' }] })).errors).toEqual(new Set(['tierList']));
-  });
-
-  it('opens a promotion that paid on a buy-in as the seat bonus it became (owner, 8 Nov)', () => {
-    const opened = (reward: PromotionTerms['reward']) => {
-      const form = formFromTerms({ ...TUESDAY, reward });
-      return [form.kind, form.chips, form.firstN];
-    };
-    expect(opened({ kind: 'buyin_bonus', mode: 'fixed', chips: 500, firstNBuyinsPerTable: 5 })).toEqual(['seat_bonus', '500', '5']);
-    expect(opened({ kind: 'buyin_bonus', mode: 'percent', percent: 20, capChips: 2_000 })).toEqual(['seat_bonus', '2000', '']);
-    expect(opened({ kind: 'buyin_bonus', mode: 'percent', percent: 20 })).toEqual(['seat_bonus', '1000', '']);
-    expect(opened({ kind: 'bonus_chips', chips: 750, on: 'first_buyin' })).toEqual(['seat_bonus', '750', '']);
   });
 
   it('marks each field the terms refuse, and still reads the four parts when only the words are wrong', () => {

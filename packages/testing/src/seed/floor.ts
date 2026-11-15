@@ -32,15 +32,8 @@ export const tournament: SeedTournament = {
   placesPaid: 8,
 };
 
-/** The three live promotions. */
+/** The two live promotions. */
 export const promotions: readonly SeedPromotion[] = [
-  {
-    kind: 'buy_in_bonus',
-    title: 'Buy-in bonus Tuesday',
-    weekday: 'tuesday',
-    bonusBasisPoints: 2_000n, // 20%
-    firstBuyInsPerTable: 5,
-  },
   {
     kind: 'high_hand',
     title: 'High hands',

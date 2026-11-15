@@ -24,6 +24,11 @@ create function pg_temp.referral_bonus(p_member text) returns bigint language sq
   select coalesce(sum(amount_paise), 0)::bigint from public.bonus_grant where member_id = p_member::uuid and reason = 'Referral';
 $$;
 
+-- Another promotion live beside the referral: the four-hour bonus, which the seed leaves a draft.
+update public.promotion_version v set status = 'live' from public.promotion p
+where p.id = v.promotion_id and p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key = 'hours_bonus' and v.version = 1;
+select private.sync_promotion(p.id) from public.promotion p where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key = 'hours_bonus';
+
 select is((select count(*)::integer from public.seat_session where member_id = '00000000-0000-4000-8000-000000000214'), 0,
   'Yash has never sat at a table');
 insert into public.sign_up_attribution (member_id, venue_id, referral_code)

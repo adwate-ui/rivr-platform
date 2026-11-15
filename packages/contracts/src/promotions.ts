@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /** What sets a promotion rule off (scope-v1 module 7): the event a lane passes to `private.evaluate_promotions`. */
 export const PROMOTION_TRIGGERS = [
-  'buy_in', 'hours_played', 'hand_logged', 'tournament_entry', 'referral', 'check_in', 'graduation', 'date_window',
+  'hours_played', 'hand_logged', 'tournament_entry', 'referral', 'check_in', 'graduation', 'date_window',
 ] as const;
 export type PromotionTrigger = (typeof PROMOTION_TRIGGERS)[number];
 
@@ -61,7 +61,7 @@ export type PromotionConditions = z.infer<typeof promotionConditionsSchema>;
 
 /**
  * What a rule gives, as `promotion_rule.effect` holds it. A bonus is a fixed amount or a share of the
- * buy-in in basis points (2000 is 20%) with an optional cap, and ends after some days. The database checks the same shape.
+ * event's amount in basis points (2000 is 20%) with an optional cap, and ends after some days. The database checks the same shape.
  */
 export const promotionEffectSchema = z.union([
   z.strictObject({ kind: z.literal('bonus'), amount_paise: chipPaise, expires_days: expiresDays.optional() }),

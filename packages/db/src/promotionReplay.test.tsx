@@ -11,20 +11,20 @@ import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const SIGNED_IN = '00000000-0000-4000-8000-000000000101';
-// 20% of a Tuesday buy-in up to 2,000, from a later start day than the week replayed.
+// 2,000 Bonus on a Tuesday's first seat, from a later start day than the week replayed.
 const TUESDAY: PromotionTerms = {
-  name: 'Tuesday bonus', reward: { kind: 'buyin_bonus', mode: 'percent', percent: 20, capChips: 2_000 },
+  name: 'Tuesday bonus', reward: { kind: 'seat_bonus', chips: 2_000 },
   eligibility: { stakes: 'all', tiers: 'all', audience: 'everyone' },
   schedule: { days: [2], from: '06:00', to: '06:00', startsOn: '2026-11-17', endsOn: '2026-11-17', timezone: 'Asia/Kolkata' },
   limits: { perMember: 'none' }, channels: { playerApp: true, tv: true, website: false, whatsapp: false }, rulesText: [],
 };
 
-/** Last Tuesday's buy-ins of 10,000 and 5,000 of own chips, as promotion_version_replay gives them. */
+/** Last Tuesday's two first seats, as promotion_version_replay gives them. */
 const REPLAY = {
   from: '2026-10-27T00:30:00+00:00', to: '2026-11-03T00:30:00+00:00',
-  events: [10_000, 5_000].map((ownChips, n) => ({
-    event: { kind: 'buy_in', key: `buy_in:${n}`, at: `2026-10-27T2${n}:00:00+05:30`, memberId: `m${n}`, visitId: `v${n}`, tableId: 't1', stake: 'nlh_50_100',
-      ownChips, isFirstOfVisit: true },
+  events: [0, 1].map((n) => ({
+    event: { kind: 'seated', key: `seated:${n}`, at: `2026-10-27T2${n}:00:00+05:30`, memberId: `m${n}`, visitId: `v${n}`, tableId: 't1', stake: 'nlh_50_100',
+      isFirstOfVisit: true },
     member: { tierId: null, daysSinceJoined: 40, daysSinceLastVisit: 3 },
   })),
 };
@@ -47,7 +47,7 @@ describe("last week replayed for the approver", () => {
   it('weighs the replay afresh, as if the version had run last week', async () => {
     const result = renderReplay({ body: REPLAY });
     await waitFor(() => expect(result.current.data).toBeDefined());
-    expect(result.current.data).toMatchObject({ events: 2, membersQualified: 2, timesGiven: 2, chips: 3_000, from: new Date('2026-10-27T00:30:00Z') });
+    expect(result.current.data).toMatchObject({ events: 2, membersQualified: 2, timesGiven: 2, chips: 4_000, from: new Date('2026-10-27T00:30:00Z') });
   });
 
   it('fails when the database refuses it or its answer cannot be read', async () => {

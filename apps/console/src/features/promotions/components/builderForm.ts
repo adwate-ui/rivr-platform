@@ -1,11 +1,8 @@
 import type { BONUS_CHIPS_ON, Channels, Eligibility, Limits, PromotionTerms, Reward } from '@rivr/contracts/promotionModel';
 import { t } from '@rivr/i18n';
 
-/** What the builder makes: a buy-in bonus never pays now that nothing records a buy-in, so it moved to the seat (owner, 8 Nov). */
-type BuilderReward = Exclude<Reward, { kind: 'buyin_bonus' }>;
-
 /** A reward's kind, as the builder's first section offers them. */
-export type RewardKind = BuilderReward['kind'];
+export type RewardKind = Reward['kind'];
 
 export const REWARD_KINDS: readonly RewardKind[] = [
   // No cab home or tournament entry: both features are off, so a promotion could not give them (audit F-033).
@@ -88,14 +85,6 @@ export function blankForm(today: string): BuilderForm {
 const text = (value: number | undefined) => (value === undefined ? '' : String(value));
 const hoursOf = (minutes: number) => String(minutes / 60);
 
-/** A reward that paid on a buy-in, as the seat bonus it became: its fixed chips, or a percentage's cap, or 1,000. */
-function onTheSeat(reward: Reward): BuilderReward {
-  if (reward.kind === 'bonus_chips' && reward.on === 'first_buyin') return { kind: 'seat_bonus', chips: reward.chips };
-  if (reward.kind !== 'buyin_bonus') return reward;
-  const chips = reward.mode === 'fixed' ? reward.chips : (reward.capChips ?? 1000);
-  return reward.firstNBuyinsPerTable === undefined ? { kind: 'seat_bonus', chips } : { kind: 'seat_bonus', chips, firstNSeatsPerTable: reward.firstNBuyinsPerTable };
-}
-
 /** A play-time bonus's fields: its first step and those after it, or every so often (owner, 8 Nov). */
 function hoursFields(reward: Extract<Reward, { kind: 'hours_bonus' }>): Partial<BuilderForm> {
   if (!('mode' in reward)) return { hoursMode: 'steps', chips: String(reward.chips), afterHours: hoursOf(reward.afterMinutes), moreSteps: [] };
@@ -107,7 +96,7 @@ function hoursFields(reward: Extract<Reward, { kind: 'hours_bonus' }>): Partial<
 }
 
 /** The fields of a reward, each kind its own. */
-function rewardFields(reward: BuilderReward): Partial<BuilderForm> {
+function rewardFields(reward: Reward): Partial<BuilderForm> {
   switch (reward.kind) {
     case 'seat_bonus':
       return 'tiers' in reward
@@ -128,8 +117,7 @@ function rewardFields(reward: BuilderReward): Partial<BuilderForm> {
 
 /** A version's terms as the builder's fields, to change into a draft or to read in the approver's view. */
 export function formFromTerms(terms: PromotionTerms): BuilderForm {
-  const { eligibility, schedule, limits } = terms;
-  const reward = onTheSeat(terms.reward);
+  const { eligibility, schedule, limits, reward } = terms;
   return {
     ...blankForm(schedule.startsOn), ...rewardFields(reward), kind: reward.kind, name: terms.name,
     stakes: eligibility.stakes, tableIds: eligibility.tableIds, tiers: eligibility.tiers, audience: eligibility.audience,

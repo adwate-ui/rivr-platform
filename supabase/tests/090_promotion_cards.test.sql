@@ -135,20 +135,20 @@ reset role;
 insert into public.consent (venue_id, member_id, purpose)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 'marketing');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
-select pg_temp.submit_version('tuesday_bonus');
+select pg_temp.submit_version('hours_bonus');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select pg_temp.approve_version('tuesday_bonus');
+select pg_temp.approve_version('hours_bonus');
 reset role;
-select is(pg_temp.offers((select id from templates where template_key = 'tuesday_bonus')), 'none',
+select is(pg_temp.offers((select id from templates where template_key = 'hours_bonus')), 'none',
   'a member without promotions.feed is not offered it (and Vihaan had his one offer tonight)');
 select is_empty($$ select * from public.offer_recipient('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211',
-  (select id from templates where template_key = 'tuesday_bonus')) $$, 'nor found at send time');
+  (select id from templates where template_key = 'hours_bonus')) $$, 'nor found at send time');
 
 -- Marketing sends switched off: a waiting offer is not sent.
 insert into public.control_state (venue_id, level, feature, reason)
 values ('00000000-0000-4000-8000-000000000001', 'feature_kill', 'marketing_sends', 'Test');
 select is_empty($$ select * from public.offer_recipient('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000212',
-  (select id from templates where template_key = 'tuesday_bonus')) $$, 'with marketing sends switched off, a waiting offer is not sent');
+  (select id from templates where template_key = 'hours_bonus')) $$, 'with marketing sends switched off, a waiting offer is not sent');
 
 -- A frozen venue refuses a promotion put live straight into the table, as approve_promotion does.
 insert into public.control_state (venue_id, level, reason) values ('00000000-0000-4000-8000-000000000001', 'venue_freeze', 'Test');

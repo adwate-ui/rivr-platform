@@ -27,18 +27,14 @@ export const NO_GRANT: Grant = { chips: 0, perk: null };
 /**
  * Why a promotion gives nothing for an event: it is for another kind of event, nothing comes to anything, the time
  * played is short of its minutes, the step reached is not one of the play-time bonus's own, the visit is before its
- * number in the month, or the buy-in or seat is not the visit's first.
+ * number in the month, or the seat is not the visit's first.
  */
-export type GrantRefusal = 'other_event' | 'nothing_earned' | 'too_short' | 'not_a_step' | 'not_yet' | 'not_first_buy_in' | 'not_first_seat';
+export type GrantRefusal = 'other_event' | 'too_short' | 'not_a_step' | 'not_yet' | 'not_first_seat';
 
-type BuyInBonus = Extract<Reward, { kind: 'buyin_bonus' }>;
 type EventOf<K extends PromotionEventKind> = Extract<PromotionEvent, { kind: K }>;
 
-// Bonus chips are given in whole 50s, the smallest chip.
-const CHIP = 50;
-
 const BONUS_CHIPS_EVENT: Readonly<Record<Extract<Reward, { kind: 'bonus_chips' }>['on'], PromotionEventKind>> = {
-  visit: 'visit', first_buyin: 'buy_in', referral: 'referral', signup: 'signup',
+  visit: 'visit', referral: 'referral', signup: 'signup',
 };
 
 /** The kind of event a reward is given for: the engine weighs a version only for its own. */
@@ -46,8 +42,6 @@ export function triggerOf(reward: Reward): PromotionEventKind {
   switch (reward.kind) {
     case 'hours_bonus':
       return 'hours_step';
-    case 'buyin_bonus':
-      return 'buy_in';
     case 'seat_bonus':
       return 'seated';
     case 'bonus_chips':
@@ -57,27 +51,7 @@ export function triggerOf(reward: Reward): PromotionEventKind {
   }
 }
 
-/** Chips of nothing are not a grant. */
-function given(grant: Grant): Result<Grant, GrantRefusal> {
-  return grant.chips > 0 ? ok(grant) : err('nothing_earned');
-}
-
 const chipsGrant = (chips: number): Grant => ({ ...NO_GRANT, chips });
-
-/** A share of the member's own chips rounded down to whole 50s, then held to the cap; or the fixed chips. None on a buy-in paid from bonus. */
-function buyInBonusChips(reward: BuyInBonus, ownChips: number): number {
-  if (ownChips <= 0) return 0;
-  if (reward.mode === 'fixed') return reward.chips;
-  const share = Math.floor((ownChips * reward.percent) / (100 * CHIP)) * CHIP;
-  return reward.capChips === undefined ? share : Math.min(share, reward.capChips);
-}
-
-function buyInGrant(reward: Reward, event: EventOf<'buy_in'>): Result<Grant, GrantRefusal> {
-  if (reward.kind === 'buyin_bonus') return given(chipsGrant(buyInBonusChips(reward, event.ownChips)));
-  if (reward.kind !== 'bonus_chips' || reward.on !== 'first_buyin') return err('other_event');
-  if (!event.isFirstOfVisit) return err('not_first_buy_in');
-  return event.ownChips > 0 ? ok(chipsGrant(reward.chips)) : err('nothing_earned');
-}
 
 /**
  * A seat bonus (owner, 8 Nov): its chips on the first seat of a visit; with first N on any seat, and checkLimits counts them at
@@ -114,8 +88,7 @@ function visitGrant(reward: Reward, event: EventOf<'visit'>): Result<Grant, Gran
 
 /**
  * What a promotion's reward gives for one event (decision 0472), before its limits: chips or a perk, never paise. A
- * buy-in bonus is a percent of the member's own chips, rounded down to whole 50s and held to its cap, or fixed chips,
- * and nothing on a buy-in paid from bonus; a play-time bonus step's chips as each step is reached (owner, 8 Nov);
+ * seat bonus's chips on a seat; a play-time bonus step's chips as each step is reached (owner, 8 Nov);
  * bonus chips on their event; a cab home from the visit's
  * number in the month; an entry or waitlist priority on a visit. Time played gives nothing itself: a play-time bonus is
  * weighed as each of its steps is reached. The database's private.promo_grant is proved equal on promotionRewards.json.
@@ -123,8 +96,6 @@ function visitGrant(reward: Reward, event: EventOf<'visit'>): Result<Grant, Gran
 export function computeGrant(promo: { readonly reward: Reward }, event: PromotionEvent): Result<Grant, GrantRefusal> {
   const { reward } = promo;
   switch (event.kind) {
-    case 'buy_in':
-      return buyInGrant(reward, event);
     case 'seated':
       return seatGrant(reward, event);
     case 'time_played':

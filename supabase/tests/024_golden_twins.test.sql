@@ -462,7 +462,7 @@ begin
   returning id into v_version;
   insert into public.promotion_grant (venue_id, promotion_id, promotion_version_id, member_id, table_id, trigger, effect, cost_paise, chips,
                                       perk, source_key, period_key, club_day)
-  select '00000000-0000-4000-8000-000000000001', v_promotion, v_version, (e ->> 'memberId')::uuid, pg_temp.golden_table(e ->> 'tableId'), 'buy_in', '{}',
+  select '00000000-0000-4000-8000-000000000001', v_promotion, v_version, (e ->> 'memberId')::uuid, pg_temp.golden_table(e ->> 'tableId'), 'seated', '{}',
          (e ->> 'chips')::bigint * 100, (e ->> 'chips')::bigint, e ->> 'perk', 'golden:' || n,
          e ->> 'periodKey', (e ->> 'clubDay')::date
   from jsonb_array_elements((p_inputs ->> 'ledger')::jsonb) with ordinality as l (e, n);

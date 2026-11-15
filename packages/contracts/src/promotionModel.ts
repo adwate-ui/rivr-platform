@@ -23,16 +23,11 @@ const clockTime = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 const id = z.string().min(1).max(64);
 
 /** What bonus chips are given on. */
-export const BONUS_CHIPS_ON = ['visit', 'first_buyin', 'referral', 'signup'] as const;
+export const BONUS_CHIPS_ON = ['visit', 'referral', 'signup'] as const;
 
 export const rewardSchema = z.union([
-  z.strictObject({
-    kind: z.literal('buyin_bonus'), mode: z.literal('percent'), percent: z.int().min(1).max(100), capChips: chips.optional(),
-    firstNBuyinsPerTable: firstN.optional(),
-  }),
-  z.strictObject({ kind: z.literal('buyin_bonus'), mode: z.literal('fixed'), chips, firstNBuyinsPerTable: firstN.optional() }),
   // On the seat (owner, 8 Nov): fixed chips on the first seat of a visit, or on each of the first N seats at a table in a club day.
-  // A buy-in bonus above is kept for what was published; nothing records a buy-in since the Cage was hidden, and the builder offers none.
+  // Nothing is given on a buy-in: none is recorded since the cage went (owner, 15 Nov; question 1009).
   z.strictObject({ kind: z.literal('seat_bonus'), chips, firstNSeatsPerTable: firstN.optional() }),
   // Or in tiers (owner, 12 Nov), on a member's first seat of a visit, once a member: promotionTermsSchema holds it to once.
   z.strictObject({ kind: z.literal('seat_bonus'), tiers: seatTiers }),
@@ -134,7 +129,7 @@ export const PROMOTION_STATUSES = ['draft', 'awaiting_approval', 'scheduled', 'l
 export type PromotionStatus = (typeof PROMOTION_STATUSES)[number];
 
 const eventBase = {
-  // The event, once: 'buy_in:' and the cage transaction, 'seated:' and the seat, 'hours_played:' and the visit, 'hours_step:' the visit and step.
+  // The event, once: 'seated:' and the seat, 'hours_played:' and the visit, 'hours_step:' the visit and step.
   key: z.string().min(1).max(200),
   at: z.iso.datetime({ offset: true }),
   memberId: id,
@@ -144,11 +139,9 @@ const eventBase = {
 };
 
 /**
- * An event a promotion weighs, as the engine and last week's replay give it: a buy-in (the member's own chips, 0 when
- * paid from bonus), time played (the minutes inside the version's schedule at its stakes and tables), a play-time bonus step reached, a visit (its number in the calendar month), a referral or a sign-up.
+ * An event a promotion weighs, as the engine and last week's replay give it: a seat taken, time played (the minutes inside the version's schedule at its stakes and tables), a play-time bonus step reached, a visit (its number in the calendar month), a referral or a sign-up.
  */
 export const promotionEventSchema = z.discriminatedUnion('kind', [
-  z.strictObject({ ...eventBase, kind: z.literal('buy_in'), ownChips: z.int().min(0), isFirstOfVisit: z.boolean() }),
   // A seat past its Undo: whether it is the first of the visit.
   z.strictObject({ ...eventBase, kind: z.literal('seated'), isFirstOfVisit: z.boolean() }),
   z.strictObject({ ...eventBase, kind: z.literal('time_played'), minutes: z.int().min(0) }),

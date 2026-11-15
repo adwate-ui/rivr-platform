@@ -13,10 +13,10 @@ grant execute on function pg_temp.as_person(text) to authenticated;
 create temp table ids (name text primary key, id uuid);
 grant select, insert on ids to authenticated;
 create temp table welcome as select jsonb_build_object(
-  'name', 'Welcome bonus', 'runs', 'Your first visit', 'detail', '₹1,000 bonus on your first buy-in',
+  'name', 'Welcome bonus', 'runs', 'Your first visit', 'detail', '₹1,000 bonus on your first visit',
   'rules', jsonb_build_array('New members only', ' Once a member '),
   'questions', jsonb_build_array(jsonb_build_object('question', 'Do I claim it?', 'answer', 'No: it is added at the cage.')),
-  'rule', jsonb_build_object('trigger', 'buy_in', 'conditions', '{"new_player": true}'::jsonb,
+  'rule', jsonb_build_object('trigger', 'check_in', 'conditions', '{"new_player": true}'::jsonb,
                              'effect', '{"kind": "bonus", "amount_paise": 100000, "expires_days": 30}'::jsonb)) as body;
 grant select on welcome to authenticated;
 

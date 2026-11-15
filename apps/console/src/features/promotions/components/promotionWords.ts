@@ -23,13 +23,6 @@ function hours(minutes: number): string {
   return whole === 0 ? t('console.promotions.words.time.minutes', { minutes: rest }) : t('console.promotions.words.time.hoursMinutes', { hours: whole, minutes: rest });
 }
 
-function buyInText(reward: Extract<Reward, { kind: 'buyin_bonus' }>): string {
-  const firstN = reward.firstNBuyinsPerTable === undefined ? null : t('console.promotions.words.buyIn.firstN', { count: reward.firstNBuyinsPerTable });
-  if (reward.mode === 'fixed') return [t('console.promotions.words.buyIn.fixed', { chips: count(reward.chips) }), firstN].filter(isPart).join(', ');
-  const cap = reward.capChips === undefined ? null : t('console.promotions.words.buyIn.upTo', { chips: count(reward.capChips) });
-  return [t('console.promotions.words.buyIn.percent', { percent: reward.percent }), cap, firstN].filter(isPart).join(', ');
-}
-
 /** A seat bonus in words (owner, 8 Nov): on a visit's first seat, for the first N seated at a table, or in tiers (decision 0580). */
 function seatText(reward: Extract<Reward, { kind: 'seat_bonus' }>): string {
   if ('tiers' in reward) {
@@ -63,8 +56,6 @@ function hoursText(reward: HoursBonus): string {
 
 function rewardText(reward: Reward, names: PromotionNames): string {
   switch (reward.kind) {
-    case 'buyin_bonus':
-      return buyInText(reward);
     case 'seat_bonus':
       return seatText(reward);
     case 'hours_bonus':
@@ -144,7 +135,7 @@ const fit = (text: string, room: number) => (text.length <= room ? text : `${tex
 
 /**
  * A card's two lines, saved with the version for Home, the TVs, the website and WhatsApp: what it gives, and for whom
- * and when. "20% of your buy-in in bonus chips, up to 2,000 bonus chips" and "NLH 100/200 · Tue 20:00–02:00".
+ * and when. "1,000 Bonus for the first 5 seated at a table" and "NLH 100/200 · Tue 20:00–02:00".
  */
 export function cardWords(promo: Terms, names: PromotionNames = {}): { readonly detail: string; readonly runs: string } {
   return {

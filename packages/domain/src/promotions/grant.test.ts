@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { computeGrant, toPromotionEvent, triggerOf, type PromotionEvent } from './grant.ts';
 
 const event = (...args: Parameters<typeof buildPromotionEvent>): PromotionEvent => toPromotionEvent(buildPromotionEvent(...args));
-const buyIn = event({ kind: 'buy_in', ownChips: 10_000, isFirstOfVisit: true });
+const seat = event({ kind: 'seated', isFirstOfVisit: true });
 const played = event({ kind: 'time_played', minutes: 300 });
 // A play-time bonus step: 300 minutes played, the 240-minute step reached.
 const step = (stepMinutes: number, minutes = 300) => event({ kind: 'hours_step', minutes, stepMinutes }, { key: `hours_step:visit-1:${String(stepMinutes)}` });
@@ -13,17 +13,16 @@ const grantOf = (reward: Reward, on: PromotionEvent) => computeGrant({ reward },
 
 describe('toPromotionEvent', () => {
   it('reads the moment as a date and keeps the rest', () => {
-    expect(buyIn.at.toISOString()).toBe('2026-11-17T15:30:00.000Z');
-    expect(buyIn.kind === 'buy_in' && buyIn.ownChips).toBe(10_000);
+    expect(seat.at.toISOString()).toBe('2026-11-17T15:30:00.000Z');
+    expect(seat.kind === 'seated' && seat.isFirstOfVisit).toBe(true);
   });
 });
 
 describe('triggerOf', () => {
-  it('gives play-time bonuses for each step, seat bonuses for a seat, buy-in bonuses for buy-ins and perks for visits', () => {
+  it('gives play-time bonuses for each step, seat bonuses for a seat and perks for visits', () => {
     expect(triggerOf({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 })).toBe('hours_step');
     expect(triggerOf({ kind: 'seat_bonus', chips: 1_000 })).toBe('seated');
     expect(triggerOf({ kind: 'hours_bonus', mode: 'every', everyMinutes: 60, chips: 100 })).toBe('hours_step');
-    expect(triggerOf({ kind: 'buyin_bonus', mode: 'fixed', chips: 500 })).toBe('buy_in');
     expect(triggerOf({ kind: 'cab_home', fromVisitInMonth: 4 })).toBe('visit');
     expect(triggerOf({ kind: 'tournament_entry', tournamentId: 'RIVR Sunday' })).toBe('visit');
     expect(triggerOf({ kind: 'waitlist_priority' })).toBe('visit');
@@ -31,25 +30,21 @@ describe('triggerOf', () => {
 
   it('gives Bonus for the event they are on', () => {
     expect(triggerOf({ kind: 'bonus_chips', chips: 500, on: 'visit' })).toBe('visit');
-    expect(triggerOf({ kind: 'bonus_chips', chips: 500, on: 'first_buyin' })).toBe('buy_in');
     expect(triggerOf({ kind: 'bonus_chips', chips: 500, on: 'referral' })).toBe('referral');
     expect(triggerOf({ kind: 'bonus_chips', chips: 500, on: 'signup' })).toBe('signup');
   });
 });
 
 describe('computeGrant', () => {
-  it('gives nothing on a buy-in for a reward of another event', () => {
-    expect(grantOf({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 }, buyIn)).toEqual({ ok: false, error: 'other_event' });
-    expect(grantOf({ kind: 'bonus_chips', chips: 1_000, on: 'visit' }, buyIn)).toEqual({ ok: false, error: 'other_event' });
+  it('gives a seat bonus on a seat, and nothing on a seat for a reward of another event', () => {
+    expect(grantOf({ kind: 'seat_bonus', chips: 1_000 }, seat)).toEqual({ ok: true, value: { chips: 1_000, perk: null } });
+    expect(grantOf({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 }, seat)).toEqual({ ok: false, error: 'other_event' });
+    expect(grantOf({ kind: 'bonus_chips', chips: 1_000, on: 'visit' }, seat)).toEqual({ ok: false, error: 'other_event' });
   });
 
   it('gives nothing for time played or a visit for a reward of another event', () => {
     expect(grantOf({ kind: 'cab_home', fromVisitInMonth: 1 }, played)).toEqual({ ok: false, error: 'other_event' });
-    expect(grantOf({ kind: 'buyin_bonus', mode: 'fixed', chips: 500 }, visit)).toEqual({ ok: false, error: 'other_event' });
-  });
-
-  it('gives a percent with no cap the whole share', () => {
-    expect(grantOf({ kind: 'buyin_bonus', mode: 'percent', percent: 100 }, buyIn)).toEqual({ ok: true, value: { chips: 10_000, perk: null } });
+    expect(grantOf({ kind: 'seat_bonus', chips: 500 }, visit)).toEqual({ ok: false, error: 'other_event' });
   });
 
   it('gives a cab from its visit on, the visit itself included', () => {
