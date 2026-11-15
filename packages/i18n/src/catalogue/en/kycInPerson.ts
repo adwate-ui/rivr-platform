@@ -30,7 +30,9 @@ export const kycInPerson = {
   start: 'Start the check',
   another: 'Choose another member',
   next: 'Next',
-  retakePhoto: 'Take the photo again',
+  /** Under a photo kept: the one word every camera has for it (`ui.camera.retake`), with what is taken again read out. */
+  retakePhoto: 'Retake',
+  retakePhotoName: 'Take the photo again',
   /** The two cards photographed at the desk (decision 0573). */
   document: { pan: 'PAN card', aadhaar_front: 'Aadhaar front' },
   /** Above the camera. */

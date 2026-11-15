@@ -38,6 +38,8 @@ describe('the check in person as five steps (redesign RD-21)', () => {
     for (const name of ['ID check photo of Naina Kapoor', 'PAN card of Naina Kapoor', 'Aadhaar front of Naina Kapoor']) expect(screen.getByRole('img', { name })).toBeDefined();
     for (const name of ['Take the photo again', 'Take the PAN card again', 'Take the Aadhaar front again', 'Verify Naina Kapoor']) expect(screen.getByRole('button', { name })).toBeDefined();
     expect(screen.getByRole('switch', { name: 'Naina Kapoor agrees to this ID check' })).toBeDefined();
+    // One word on every button that takes a photo again; what is taken again is read out.
+    for (const name of ['Take the photo again', 'Take the PAN card again', 'Take the Aadhaar front again']) expect(screen.getByRole('button', { name }).textContent).toBe('Retake');
   });
 
   it('has no way past any photo step until its photo is kept', async () => {

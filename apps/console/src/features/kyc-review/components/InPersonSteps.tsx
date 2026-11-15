@@ -91,6 +91,11 @@ function MemberStep({ member, onStart, onCancel }: { member: KycCandidate; onSta
   );
 }
 
+/** What a kept photo's Retake is read out as: the photo for the face, a card by its name. */
+const retakeName = (kind: DeskPhotoKind) => (kind === 'face'
+  ? t('console.kycInPerson.retakePhotoName')
+  : t('console.kycInPerson.retakeDocumentName', { document: t(`console.kycInPerson.document.${kind}`) }));
+
 interface PhotoStepProps {
   kind: DeskPhotoKind;
   member: KycCandidate;
@@ -127,7 +132,7 @@ function PhotoStep({ kind, member, steps, problem }: PhotoStepProps) {
       )}
       <Inline gap={3} wrap>
         <Button variant="primary" size="compact" onClick={steps.next}>{t('console.kycInPerson.next')}</Button>
-        <Button variant="subtle" size="compact" onClick={() => steps.go(kind, true)}>{t('console.kycInPerson.retakePhoto')}</Button>
+        <Button variant="subtle" size="compact" aria-label={retakeName(kind)} onClick={() => steps.go(kind, true)}>{t('console.kycInPerson.retakePhoto')}</Button>
         {back}
       </Inline>
     </Stack>
@@ -153,7 +158,7 @@ function DetailsStep({ member, steps, details }: DetailsStepProps) {
     <Stack gap={4}>
       <StepHeading step="details" />
       <FacePhotos member={member} photo={face} />
-      <Button variant="subtle" size="compact" isDisabled={isSaving} onClick={() => steps.go('face', true)}>{t('console.kycInPerson.retakePhoto')}</Button>
+      <Button variant="subtle" size="compact" aria-label={t('console.kycInPerson.retakePhotoName')} isDisabled={isSaving} onClick={() => steps.go('face', true)}>{t('console.kycInPerson.retakePhoto')}</Button>
       <DeskDocument kind="pan" name={member.fullName} photo={pan} reason={reasonFor('pan')} isDisabled={isSaving} onTake={() => steps.go('pan', true)} />
       <DeskDocument kind="aadhaar_front" name={member.fullName} photo={aadhaar} reason={reasonFor('aadhaar_front')} isDisabled={isSaving} onTake={() => steps.go('aadhaar_front', true)} />
       <DetailsFields details={details} name={member.fullName} />
