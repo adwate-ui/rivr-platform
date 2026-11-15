@@ -70,10 +70,10 @@ const REFUSED_BECAUSE: Readonly<Record<string, string>> = {
 };
 const REFUSED_OTHERWISE = 'your details could not be confirmed';
 
-/** A notice's words as its template takes them: a refusal's code in the member's words, a tournament's new start as a day and time. */
+/** A notice's words as its template takes them: a refusal's code in the member's words, a tournament's start as a day and time. */
 function noticeWords(template: string, params: string[]): string[] {
   if (template === 'kyc_refused') return [REFUSED_BECAUSE[params[0] ?? ''] ?? REFUSED_OTHERWISE];
-  if (template === 'tournament_moved') return [params[0] ?? '', formatDayTime(new Date(params[1] ?? ''))];
+  if (template === 'tournament_moved' || template === 'tournament_starts') return [params[0] ?? '', formatDayTime(new Date(params[1] ?? ''))];
   return params;
 }
 

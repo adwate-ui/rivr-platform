@@ -37,6 +37,13 @@ describe('the WhatsApp consumer', () => {
     expect(whatsapp.calls).toEqual(notices.map(({ notice, params }) => ({ category: 'utility', to: phone, template: notice, params })));
   });
 
+  it('sends the club’s notification of a tournament, its start as a day and time in words (redesign RD-26)', async () => {
+    const whatsapp = createFakeWhatsApp();
+    const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, findErasedPhone, now });
+    await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'tournament_starts', params: ['Sunday Cup', '2026-11-22T13:30:00+00:00'] }, now()));
+    expect(whatsapp.calls.map((call) => [call.category, call.template, call.params])).toEqual([['utility', 'tournament_starts', ['Sunday Cup', 'Sun 22 Nov, 19:00']]]);
+  });
+
   it('tells a member a tournament is withdrawn, or has moved, with its new day and time in words (the owner, 9 Nov)', async () => {
     const whatsapp = createFakeWhatsApp();
     const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, findErasedPhone, now });

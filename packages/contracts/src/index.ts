@@ -94,7 +94,7 @@ export {
 export {
   alertRaisedSchema, bonusCreditedSchema, bonusRedeemedSchema, callTimeCompletedSchema, callTimeEndingSchema, callTimeUpdatedSchema, linkSuffixSchema,
   MEMBER_NOTICES, memberNoticeSchema,
-  promotionOfferedSchema, receiptReadySchema, reviewRequestedSchema, sessionReminderSchema, tournamentStartingSchema, waitlistCalledSchema,
+  promotionOfferedSchema, receiptReadySchema, reviewRequestedSchema, sessionReminderSchema, waitlistCalledSchema,
   withdrawalSentSchema, type MemberNotice, type PromotionOffered, type ReceiptReady, type ReviewRequested, type WaitlistCalled,
 } from './messaging.ts';
 export { pushSubscriptionSchema, WEB_PUSH_PUBLIC_KEY, type PushSubscriptionInput } from './push.ts';

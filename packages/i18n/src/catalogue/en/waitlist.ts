@@ -40,16 +40,11 @@ export const tonight = {
   /** Above the tables while the member's identity check is not done (#87). */
   kycIncomplete: 'ID check not finished. Finish it to join a table.',
   finishKyc: 'Finish ID check',
-  offers: { entry: 'Register', re_entry: 'Re-enter', rebuy: 'Rebuy' },
-  /** The club's upcoming tournaments (#636): register interest, pay at the club, and the floor marks you registered. */
-  upcoming: 'Upcoming tournaments',
-  registerInterest: 'Register interest',
-  registerInterestName: 'Register interest in {name}',
-  standing: { none: 'Not registered', interested: 'Interest registered', registered: 'Registered' },
-  payAtTheClub: 'Pay at the club, and the floor registers you.',
+  /** Notify me on an upcoming tournament (#636; redesign RD-26), refused. */
   interestFailures: {
     too_often: 'Too many tries. Try again later.',
-    not_allowed: 'Tournament registration is not open to you.',
+    nobody: 'Not sent. Try again.',
+    not_allowed: 'Not on your membership.',
     invalid: 'That tournament is no longer coming up.',
     paused: 'The club is paused. Try again later.',
     unavailable: 'Not sent. Try again.',

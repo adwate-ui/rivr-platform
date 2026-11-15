@@ -4,11 +4,12 @@ export const playerSessions = {
   /** The list's next page (F3-28). */
   showEarlier: 'Show earlier sessions',
   empty: 'No sessions yet. Each night you play at the club shows here.',
-  /** A tournament in the history, under its name (#549): `Tournament · place 4 of 61 · 6 h`. */
-  sub: '{what} · {hours}',
+  /** A past tournament the member asked to be notified of, under its name, with the entries once the club has typed them (redesign RD-26). */
   tournament: 'Tournament',
-  /** A tournament's Game in its detail, and the first part of its line in the list. */
-  tournamentPlace: 'Tournament · place {place} of {entrants}',
+  tournamentEntries: 'Tournament · {entries} entries',
+  tournamentOneEntry: 'Tournament · 1 entry',
+  /** A tournament's Time in its detail: when it started. */
+  started: 'Started',
   /** A session at several tables, named by the one played longest: `Table 2 and 1 more`. */
   /** A session's detail (#627): when and how long, and the way to hide it from the member's own list. */
   time: 'Time',

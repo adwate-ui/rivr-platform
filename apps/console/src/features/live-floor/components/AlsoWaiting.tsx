@@ -14,7 +14,6 @@ function Lines({ venueId }: { venueId: string }) {
   const counts = useStaffQueueCounts(venueId).data ?? {};
   const navigate = useNavigate();
   const lines: Line[] = [
-    { label: 'console.floor.requests.tournament', count: counts['tournamentInterest'] ?? 0, href: '/tournament-interest' },
     { label: 'console.floor.requests.kyc', count: counts['kycReview'] ?? 0, href: '/kyc-review' },
     { label: 'console.floor.requests.feedback', count: counts['feedback'] ?? 0, href: '/feedback' },
   ];
@@ -35,7 +34,7 @@ function Lines({ venueId }: { venueId: string }) {
 }
 
 /**
- * Under the requests (console v3): what else waits tonight, each line opening its screen: tournament sign-ups, KYC checks
+ * Under the requests (console v3): what else waits tonight, each line opening its screen: KYC checks
  * and feedback tickets, for the staff who handle them. Old addresses redirect to their new tabs.
  */
 export function AlsoWaiting({ venueId }: { venueId: string }) {

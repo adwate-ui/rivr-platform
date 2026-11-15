@@ -19,7 +19,7 @@ import { reportsRoute } from './routes/reports.tsx';
 import { staffRoute } from './routes/staff.tsx';
 import { promotionsRoute } from './routes/promotions.tsx';
 import { feedbackRoute } from './routes/feedback.tsx';
-import { tournamentInterestRoute } from './routes/tournament-interest.tsx';
+import { tournamentInterestRoute, tournamentsRoute } from './routes/tournaments.tsx';
 import { playersTodayRoute } from './routes/players-today.tsx';
 import { topUpsRoute } from './routes/top-ups.tsx';
 import { timeRequestsRoute } from './routes/time-requests.tsx';
@@ -45,6 +45,7 @@ const routeTree = rootRoute.addChildren([
     homeRoute, kycReviewRoute, waitlistRoute, checkInRoute, tabletsRoute, tvsRoute, computersRoute, camerasRoute, dealerPinsRoute,
     fnbRoute, membersRoute, activityRoute, staffRoute,
     feedbackRoute,
+    tournamentsRoute,
     tournamentInterestRoute,
     playersTodayRoute,
     topUpsRoute,

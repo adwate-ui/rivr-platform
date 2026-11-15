@@ -172,9 +172,11 @@ describe('a session', () => {
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Table 3' }));
   });
 
-  it('shows a tournament with its place in the field', async () => {
-    renderAt('/sessions/t1', { sessions: [{ ...SESSION, session_id: 't1', visit_id: 't1', table_name: 'RIVR Sunday', kind: 'tournament', place: 4, entrants: 61 }] });
-    expect(await screen.findByText('Tournament · place 4 of 61', {}, { timeout: 5000 })).toBeDefined();
+  it('shows a past tournament with its entries, when it started, and no time played', async () => {
+    renderAt('/sessions/t1', { sessions: [{ ...SESSION, session_id: 't1', visit_id: 't1', table_name: 'RIVR Sunday', kind: 'tournament', place: null, entrants: 61, played_seconds: 0 }] });
+    expect(await screen.findByText('Tournament · 61 entries', {}, { timeout: 5000 })).toBeDefined();
+    expect(screen.getByText('Started')).toBeDefined();
+    expect(screen.queryByText('Played')).toBeNull();
   });
 
   it('hides it from the member’s own list, says so, and goes back to the list without it', async () => {

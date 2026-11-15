@@ -85,9 +85,6 @@ export const sessionReminderSchema = z.object({ member_id: z.uuid(), session_id:
 /** withdrawal.sent: the cage sent the member's withdrawal. */
 export const withdrawalSentSchema = z.object({ member_id: z.uuid(), withdrawal_request_id: z.uuid(), amount_paise: z.int().min(1) });
 
-/** tournament.starting (#139): the tournament's clock started, told to each member with a place in it. */
-export const tournamentStartingSchema = z.object({ member_id: z.uuid(), tournament_id: z.uuid(), name: z.string().trim().min(1).max(80) });
-
 /** bonus.credited (decision 0504): bonus chips added to the member's balance, with the promotion's name or another reason. */
 export const bonusCreditedSchema = z.object({
   member_id: z.uuid(),
@@ -107,9 +104,10 @@ export const bonusRedeemedSchema = z.object({
 
 /**
  * The notices a member hears of by WhatsApp while away from the app (decision 0303): an identity check verified, waiting for
- * review or refused; a seat on the leaving list released; an account deleted as the member asked.
+ * review or refused; a seat on the leaving list released; an account deleted as the member asked; and, for a member who
+ * asked about a tournament, the club's one notification of it, or that it was withdrawn or moved.
  */
-export const MEMBER_NOTICES = ['kyc_verified', 'kyc_in_review', 'kyc_refused', 'seat_released', 'tournament_withdrawn', 'tournament_moved', 'account_erased'] as const;
+export const MEMBER_NOTICES = ['kyc_verified', 'kyc_in_review', 'kyc_refused', 'seat_released', 'tournament_withdrawn', 'tournament_moved', 'tournament_starts', 'account_erased'] as const;
 
 /**
  * A notice's word: one line of plain text, never a link nor WhatsApp's formatting marks, so nothing typed into the club's
@@ -120,7 +118,7 @@ const noticeWordSchema = z.string().trim().min(1).max(120)
   .refine((word) => !/https?:\/\/|www\./i.test(word));
 export type MemberNotice = (typeof MEMBER_NOTICES)[number];
 
-/** member.notice: the member, the notice and its words, in the template's order: a refusal's code; a reward's name; the table and seat released; a tournament's name and, moved, its new start. */
+/** member.notice: the member, the notice and its words, in the template's order: a refusal's code; a reward's name; the table and seat released; a tournament's name and, moved or notified, its start. */
 export const memberNoticeSchema = z.object({
   member_id: z.uuid(),
   /** A tournament's notice: which, so one change's push replaces only its own. */

@@ -36,7 +36,7 @@ export const rail = {
     topUps: 'Top-ups',
     timeRequests: 'Time requests',
     checkIn: 'Check-in',
-    tournamentInterest: 'Tournament interest',
+    tournaments: 'Tournaments',
     todaysPlayers: 'Today’s players',
     tablesSetup: 'Tables setup',
     members: 'Members',

@@ -26,14 +26,15 @@ export const push = {
     title: 'Withdrawal sent',
     body: '{amount} is on its way to you.',
   },
-  tournamentStarting: {
-    title: '{name} is starting',
-    body: 'The clock has started. Take your seat.',
+  /** A tournament the member asked about: the club's one notification of it (redesign RD-26). `{when}` is `Sun 22 Nov, 19:00`. */
+  tournamentStarts: {
+    title: '{name}',
+    body: 'Starts {when}.',
   },
-  /** A tournament the member asked about or is registered for (the owner, 9 Nov). `{when}` is `Sun 22 Nov, 19:00`. */
+  /** Withdrawn or moved (the owner, 9 Nov). */
   tournamentWithdrawn: {
     title: '{name} will not run',
-    body: 'It is withdrawn. If you have paid for a place, ask at the desk.',
+    body: 'It is withdrawn.',
   },
   tournamentMoved: {
     title: '{name} has moved',

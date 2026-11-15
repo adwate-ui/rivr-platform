@@ -58,7 +58,6 @@ export const floor = {
     notLeaving: 'Not leaving',
     record: 'Record',
     alsoWaiting: 'Also waiting',
-    tournament: 'Tournament interest',
     kyc: 'ID checks',
     feedback: 'Feedback tickets',
   },

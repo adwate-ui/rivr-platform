@@ -7,8 +7,8 @@ select no_plan();
 
 -- A venue the seeded staff do not work at, with a published tournament of its own.
 select private.bootstrap_venue('00000000-0000-4000-8000-0000000000e1', 'Elsewhere', 'elsewhere', false, 'Elsewhere Ltd', 'Somewhere', 'ELS');
-insert into public.tournament (venue_id, name, starts_at, buy_in_paise, is_published)
-values ('00000000-0000-4000-8000-0000000000e1', 'Elsewhere Open', now() + interval '1 day', 100000, true);
+insert into public.tournament (venue_id, name, starts_at, game, is_published)
+values ('00000000-0000-4000-8000-0000000000e1', 'Elsewhere Open', now() + interval '1 day', 'No-limit hold''em', true);
 
 select results_eq(
   $$ select distinct kind from public.site_block order by kind $$,
@@ -57,14 +57,14 @@ reset role;
 -- runs. Dates are set from now, so this holds on any day.
 update public.tournament set starts_at = now() + interval '1 day' where name in ('RIVR Sunday', 'Practice Sit and Go');
 update public.tournament set starts_at = now() - interval '11 hours' where name = 'Weeknight Turbo';
-insert into public.tournament (venue_id, name, starts_at, buy_in_paise, is_published) values
-  ('00000000-0000-4000-8000-000000000001', 'Draft Freeroll', now() + interval '2 days', 100000, false),
-  ('00000000-0000-4000-8000-000000000001', 'Last Week', now() - interval '13 hours', 100000, true);
+insert into public.tournament (venue_id, name, starts_at, game, is_published) values
+  ('00000000-0000-4000-8000-000000000001', 'Draft Freeroll', now() + interval '2 days', 'No-limit hold''em', false),
+  ('00000000-0000-4000-8000-000000000001', 'Last Week', now() - interval '13 hours', 'No-limit hold''em', true);
 set local role anon;
 select results_eq($$ select name, buy_in_paise, guarantee_paise from public.public_tournament_calendar
                      where venue_slug = 'gurugram' order by starts_at $$,
-  $$ values ('Weeknight Turbo'::text, 300000::bigint, null::bigint), ('RIVR Sunday', 1000000, 50000000) $$,
-  'anyone reads the club''s published tournaments, one started within twelve hours too: not older, nor a draft');
+  $$ values ('Weeknight Turbo'::text, null::bigint, null::bigint), ('RIVR Sunday', null, null) $$,
+  'anyone reads the club''s published tournaments, one started within twelve hours too, with no buy-in or guarantee: not older, nor a draft');
 select results_eq($$ select venue_slug, name from public.public_tournament_calendar where venue_slug <> 'gurugram' $$,
   $$ values ('elsewhere'::text, 'Elsewhere Open'::text) $$, 'another real venue''s under its own name, never the practice venue''s');
 select throws_ok($$ select * from public.tournament $$, '42501', null, 'never the schedule itself');
@@ -75,18 +75,18 @@ reset role;
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000201", "role": "authenticated"}';
 select results_eq($$ select name from public.tournament order by name $$,
-  $$ values ('Last Week'::text), ('RIVR Sunday'), ('Weeknight Turbo') $$, 'a member reads their venue''s published tournaments, past ones too');
-select throws_ok($$ insert into public.tournament (venue_id, name, starts_at, buy_in_paise)
-                   values ('00000000-0000-4000-8000-000000000001', 'Mine', now(), 5000) $$, '42501', null, 'and writes none');
+  $$ values ('Diwali Deepstack'::text), ('Last Week'), ('RIVR Sunday'), ('Weeknight Turbo') $$, 'a member reads their venue''s published tournaments, past ones too');
+select throws_ok($$ insert into public.tournament (venue_id, name, starts_at, game)
+                   values ('00000000-0000-4000-8000-000000000001', 'Mine', now(), 'No-limit hold''em') $$, '42501', null, 'and writes none');
 set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-000000000103", "role": "authenticated"}';
 select results_eq($$ select name from public.tournament order by name $$,
-  $$ values ('Draft Freeroll'::text), ('Last Week'), ('Practice Sit and Go'), ('RIVR Sunday'), ('Weeknight Turbo') $$,
+  $$ values ('Diwali Deepstack'::text), ('Draft Freeroll'), ('Last Week'), ('Practice Sit and Go'), ('RIVR Sunday'), ('Weeknight Turbo') $$,
   'staff read every tournament at the venues they work at, drafts too, and none elsewhere');
 select throws_ok($$ update public.tournament set name = 'Changed' $$, '42501', null, 'and change none');
 reset role;
-select throws_ok($$ insert into public.tournament (venue_id, name, starts_at, buy_in_paise)
-                   values ('00000000-0000-4000-8000-000000000001', 'Odd', now(), 1234) $$, '23514', null,
-  'a buy-in is whole chips, multiples of ₹50');
+select throws_ok($$ insert into public.tournament (venue_id, name, starts_at, game)
+                   values ('00000000-0000-4000-8000-000000000001', 'Odd', now(), repeat('x', 41)) $$, '23514', null,
+  'a game is 40 characters at most');
 
 select * from finish();
 rollback;

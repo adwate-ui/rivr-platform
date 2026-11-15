@@ -15,7 +15,7 @@ import { floor } from './liveFloorV3.ts';
 import { computers, dealerPins, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
 import { feedback, playerFeedback } from './feedback.ts';
 import { itemPhoto } from './itemPhoto.ts';
-import { tournamentInterest } from './tournamentInterest.ts';
+import { tournaments } from './tournaments.ts';
 import { playerPromotions } from './playerPromotions.ts';
 import { promotions } from './promotions.ts';
 import { rake } from './rake.ts';
@@ -96,7 +96,7 @@ export const consoleApp = {
   notStaff,
   feedback,
   itemPhoto,
-  tournamentInterest,
+  tournaments,
   promotions,
   /** At the foot of the rail: switches the console to the practice venue, where staff train. */
   practice: 'Practice venue',

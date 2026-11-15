@@ -182,7 +182,6 @@ export const members = {
       markers: 'markers not settled',
       bonus: 'Bonus owed to the club',
       waitlist: 'a place on a waitlist',
-      tournament: 'a run in a tournament not yet finished',
       requests: 'a request still waiting',
     },
     /** `{bonus}`: bonus chips, `2,000` (#629). */

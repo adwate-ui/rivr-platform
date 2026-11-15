@@ -194,8 +194,8 @@ export const queryKeys = {
   /** The paired TV's promotions rotation (#86), and the member's Home cards. */
   tvPromotions: (userId: string) => ['user', userId, 'tv-promotions'] as const,
   myPromotionCards: (userId: string) => ['user', userId, 'my-promotion-cards'] as const,
-  /** The member's venue's upcoming tournaments and their standing on each (#636); and the floor's list of who asked. */
+  /** The member's venue's upcoming tournaments and whether they asked about each (#636); the venue's tournaments as staff see them, and who asked about one. */
   myUpcomingTournaments: (userId: string) => ['user', userId, 'my-upcoming-tournaments'] as const,
-  publishedTournaments: (userId: string, venueId: string) => ['user', userId, 'published-tournaments', venueId] as const,
-  tournamentInterest: (userId: string, venueId: string) => ['user', userId, 'tournament-interest', venueId] as const,
+  venueTournaments: (userId: string, venueId: string) => ['user', userId, 'venue-tournaments', venueId] as const,
+  tournamentInterested: (userId: string, tournamentId: string) => ['user', userId, 'tournament-interested', tournamentId] as const,
 };

@@ -20,13 +20,13 @@ export default {
   testRunner: 'command',
   // Coverage is measured by the normal test run; inside Stryker's sandbox the injected mutant
   // switches lower the line count, so the coverage threshold would fail every run.
-  // Each run's heap is capped at 2 GB: a mutant that loops forever while it adds to a list (tournament/seating.ts's
-  // balancingMoves) then dies as a failed run, killed, instead of growing until the four parallel runs fill a 16 GB
-  // CI runner, which GitHub then shuts down (18 GB measured on seating.ts alone, 2 Nov).
+  // Each run's heap is capped at 2 GB: a mutant that loops forever while it adds to a list (as the tournament module's
+  // balancingMoves did) then dies as a failed run, killed, instead of growing until the four parallel runs fill a 16 GB
+  // CI runner, which GitHub then shuts down (18 GB measured on that file alone, 2 Nov).
   commandRunner: { command: 'NODE_OPTIONS=--max-old-space-size=2048 npx vitest run --bail=1 --reporter=dot --coverage.enabled=false --maxWorkers=1' },
   timeoutMS: 60_000,
   coverageAnalysis: 'off',
-  mutate: ['src/money/**/*.ts', 'src/ledger/**/*.ts', 'src/rake/**/*.ts', 'src/jackpot/**/*.ts', 'src/variance/**/*.ts', 'src/callTime/**/*.ts', 'src/gst/**/*.ts', 'src/bonus/**/*.ts', 'src/hours/**/*.ts', 'src/shares/**/*.ts', 'src/promotions/**/*.ts', 'src/rakeback/**/*.ts', 'src/tournament/**/*.ts', 'src/aml/**/*.ts', 'src/glaza/**/*.ts', '!src/**/*.test.ts', '!src/**/index.ts'],
+  mutate: ['src/money/**/*.ts', 'src/ledger/**/*.ts', 'src/rake/**/*.ts', 'src/jackpot/**/*.ts', 'src/variance/**/*.ts', 'src/callTime/**/*.ts', 'src/gst/**/*.ts', 'src/bonus/**/*.ts', 'src/hours/**/*.ts', 'src/shares/**/*.ts', 'src/promotions/**/*.ts', 'src/rakeback/**/*.ts', 'src/glaza/**/*.ts', '!src/**/*.test.ts', '!src/**/index.ts'],
   thresholds: { high: 95, low: 85, break: 80 },
   reporters: ['clear-text', 'progress', 'html', 'json'],
   htmlReporter: { fileName: 'reports/mutation/index.html' },

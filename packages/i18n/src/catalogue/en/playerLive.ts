@@ -33,6 +33,9 @@ export const playerLive = {
   tournaments: 'Tournaments',
   notifyMe: 'Notify me',
   notifying: 'Notifying you',
+  /** The same pills' full names for a screen reader: `Notify me: RIVR Sunday`. */
+  notifyMeName: 'Notify me: {name}',
+  notifyingName: 'Notifying you: {name}',
   games: { nlh: "No-Limit Hold'em", plo: 'Pot-Limit Omaha' },
   join: {
     minBuyIn: 'Min buy-in',
