@@ -3,7 +3,7 @@ import { useSettingActions, type SettingEntry, type SettingFailure, type Setting
 import { formatDayTime, t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Heading, Inline, Input, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
-import { defaultOf, isSuperAdminOnly, settingFailureText, settingHelp, settingName, valueText } from './settingsCopy.ts';
+import { defaultOf, settingFailureText, valueText } from './settingsCopy.ts';
 import { ValueForm } from './ValueForm.tsx';
 
 type Subject = { readonly subject: string; readonly label: string };
@@ -27,12 +27,10 @@ interface SubjectRulesProps {
   describe: (value: SettingValue) => string;
   /** What shows while nothing is set: the default the club runs on, or that there is none. */
   unsetText: string;
-  /** False for a super admin's setting seen by an admin: the changes to come stay. */
-  canWithdraw: boolean;
 }
 
 /** What the setting is for this subject: in force now, the changes to come (each can be withdrawn), and before. */
-function SubjectRules({ venueId, rules, describe, unsetText, canWithdraw }: SubjectRulesProps) {
+function SubjectRules({ venueId, rules, describe, unsetText }: SubjectRulesProps) {
   const { withdraw } = useSettingActions(venueId);
   const [outcome, setOutcome] = useState<SettingFailure | 'withdrawn' | null>(null);
   const take = async (entry: SettingEntry) => {
@@ -50,7 +48,7 @@ function SubjectRules({ venueId, rules, describe, unsetText, canWithdraw }: Subj
         return (
           <Inline key={entry.settingId} gap={4} wrap>
             <Text>{t('console.settings.fromEntry', { date: from, value: describe(entry.value) })}</Text>
-            {canWithdraw ? <Button variant="text" isLoading={withdraw.isPending} onClick={() => void take(entry)}>{t('console.settings.withdrawFrom', { date: from })}</Button> : null}
+            <Button variant="text" isLoading={withdraw.isPending} onClick={() => void take(entry)}>{t('console.settings.withdrawFrom', { date: from })}</Button>
           </Inline>
         );
       })}
@@ -67,19 +65,6 @@ interface SettingPanelProps {
   venueId: string;
   setting: VenueSetting;
   tiers: readonly Subject[];
-  /** A super admin, who changes the settings only a super admin may. */
-  isSuperAdmin: boolean;
-}
-
-/** The setting's name, what it does, and whether only a super admin changes it. */
-function SettingHeading({ setting }: { setting: VenueSetting }) {
-  return (
-    <Stack gap={2}>
-      <Heading level={2}>{settingName(setting.key)}</Heading>
-      <Text tone="muted">{settingHelp(setting.key, setting.description)}</Text>
-      {isSuperAdminOnly(setting.key) ? <Text variant="small">{t('console.settings.superAdminNote')}</Text> : null}
-    </Stack>
-  );
 }
 
 /** A value as one line, with a tier by its name. */
@@ -92,24 +77,22 @@ export const firstSubject = (setting: VenueSetting) => setting.subjects[0]?.subj
 export const inForceOf = (rules: SettingSubjectRules | undefined) => rules?.inForce?.value ?? null;
 
 /**
- * One setting opened from its area (#604): its name and what it does, then for each subject the value now, the changes
- * to come and before, each with who set it and why, and a new value. A super admin's setting is read-only for others.
+ * One setting's change, in the panel its Change opens (redesign RD-18): for a scoped one, what it applies to first; then
+ * the new value, and the value now, the changes to come and before, each with who set it and why.
  */
-export function SettingPanel({ venueId, setting, tiers, isSuperAdmin }: SettingPanelProps) {
+export function SettingPanel({ venueId, setting, tiers }: SettingPanelProps) {
   const [subject, setSubject] = useState(() => firstSubject(setting));
   const rules = setting.subjects.find((one) => one.subject === subject);
   const describe = describerFor(setting, tiers);
   const fallback = defaultOf(setting.key);
   const unsetText = fallback === undefined ? t('console.settings.notSet') : t('console.settings.byDefault', { value: describe(fallback) });
-  const isLocked = isSuperAdminOnly(setting.key) && !isSuperAdmin;
   // A scoped setting needs its subject first: the database refuses one without.
-  const canChange = !isLocked && (setting.scope === 'venue' || subject !== '');
+  const canChange = setting.scope === 'venue' || subject !== '';
   return (
     <Stack gap={6}>
-      <SettingHeading setting={setting} />
       {setting.scope === 'venue' ? null : <SubjectChoice setting={setting} subject={subject} onChange={setSubject} />}
-      {rules === undefined ? null : <SubjectRules venueId={venueId} rules={rules} describe={describe} unsetText={unsetText} canWithdraw={!isLocked} />}
       {canChange ? <ValueForm key={`${setting.key}:${subject}`} venueId={venueId} setting={setting} subject={subject} inForce={inForceOf(rules)} tiers={tiers} /> : null}
+      {rules === undefined ? null : <SubjectRules venueId={venueId} rules={rules} describe={describe} unsetText={unsetText} />}
     </Stack>
   );
 }

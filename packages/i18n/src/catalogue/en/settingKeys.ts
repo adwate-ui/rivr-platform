@@ -2,7 +2,8 @@ import { floorSettingKeys } from './settingKeysFloor.ts';
 import { identitySettingKeys } from './settingKeysIdentity.ts';
 
 /**
- * Each setting as staff read it on the Settings screen (#604): its name, one line on what it does, each field's label,
+ * Each setting as staff read it on the Settings screen (#604): its name, one line on what it does (eight words or fewer
+ * for a setting the screen groups, redesign RD-18), each field's label,
  * and a choice field's options. Keyed by the setting's key. The console's catalogue test holds it to every key and
  * field the contracts declare, so a new key cannot ship without its words.
  */
@@ -74,7 +75,7 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   },
   'host.lapse': {
     name: 'Lapsed regular',
-    help: 'A regular with this many visits in six months, then none for this many days, goes to the host queue. 3 and 21 unless set.',
+    help: 'When a regular goes to the host queue',
     fields: { visits: 'Visits in six months', days: 'Then away for' },
   },
   'jackpot.drop': {
@@ -99,15 +100,15 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   },
   'bonus.daily_staff_cap': {
     name: 'Daily bonus chips limit', fields: { chips: 'Bonus chips' },
-    help: 'The most bonus chips one staff member adds by hand in a club day. Past it, an addition is refused and you are told. Super admins have no limit, and only they change it. No limit unless set.',
+    help: 'Most one staff member adds in a day',
   },
   'bonus.expiry_days': {
     name: 'Bonus chips expire', fields: { days: 'Days' },
-    help: 'How many days bonus chips last after they are given. Chips already held last that long from when this starts. 0 is never. Only super admins change it. Never unless set.',
+    help: 'Unused Bonus is removed after this long',
   },
   'bonus.visit_cap': {
     name: 'Bonus per visit', fields: { basis_points: 'Share' },
-    help: "The most of their bonus a member can use in one visit: this share of what they held at the visit's first seat, in whole 50s. Only super admins change it. No limit unless set.",
+    help: 'Share of their Bonus used in one visit',
   },
   'rake.config': {
     name: 'Rake',
@@ -123,11 +124,6 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     name: 'Unclaimed balance after',
     help: 'A balance is unclaimed after this long with no money moved and no visit. 365 days unless set.',
     fields: { days: 'Days' },
-  },
-  'reviews.google_url': {
-    name: 'Google review link',
-    help: "The club's Google review link, sent once after a third visit. Not set sends none.",
-    fields: { url: 'Link' },
   },
   'social.connected_channels': {
     name: 'Connected social channels',
@@ -149,7 +145,7 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   },
   'tier.default': {
     name: 'Starting tier',
-    help: 'The tier every new member starts in.',
+    help: 'The tier every new member starts in',
     fields: { tier_id: 'Tier' },
   },
 };

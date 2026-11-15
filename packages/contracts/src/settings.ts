@@ -10,7 +10,7 @@ import { socialConnectedChannels } from './channels.ts';
 import { floorRequestTargets, tvLeaderboard } from './floorSettings.ts';
 import { hostLapse } from './hostQueue.ts';
 import {
-  authStoreReviewer, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, cabMinimumVisits, kycAtTheClub, rakebackRate, reviewsGoogleUrl,
+  authStoreReviewer, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, cabMinimumVisits, kycAtTheClub, rakebackRate,
 } from './rewardSettings.ts';
 import type { SettingDefinition } from './settingDefinition.ts';
 
@@ -257,7 +257,7 @@ const reportsUnclaimedDays = {
 export const SETTINGS = [
   callTimeMinutes, callTimeAddChoices, floorRequestTargets, tvLeaderboard, defaultTier, kycMinimumAge, kycAtTheClub, authStoreReviewer, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, dealerRotationMinutes, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, cardQrRotationSeconds, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
-  cageCashBuyInLimit, amlStructuring, rakebackRate, reviewsGoogleUrl, cabMinimumVisits, hostLapse, socialConnectedChannels, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, ] as const;
+  cageCashBuyInLimit, amlStructuring, rakebackRate, cabMinimumVisits, hostLapse, socialConnectedChannels, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, ] as const;
 
 /** A setting key declared in code. */
 export type SettingKey = (typeof SETTINGS)[number]['key'];

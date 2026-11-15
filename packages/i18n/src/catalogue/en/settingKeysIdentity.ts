@@ -12,7 +12,7 @@ export const identitySettingKeys = {
   },
   'kyc.at_the_club': {
     name: 'Identity (KYC) checked at the club',
-    help: 'On while Cashfree KYC is not live: a new member takes a selfie in the app and is let in, and staff check their Aadhaar and PAN at the desk on their first visit. Play waits for that check. Off, new members do KYC in the app again.',
+    help: 'Staff check Aadhaar and PAN at the desk',
     fields: { enabled: 'Check KYC at the club' },
   },
 };

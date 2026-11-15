@@ -1,21 +1,19 @@
 import { useStaffVenue } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Screen, Stack } from '@rivr/ui';
+import { Screen } from '@rivr/ui';
 import type { ComponentType } from 'react';
 import { NOTICE_AREA, type SettingsArea } from './areas.ts';
 import { ChipsSection } from './ChipsSection.tsx';
 import { NoticesSection } from './NoticesSection.tsx';
-import { RakeSection } from './RakeSection.tsx';
 import { RulesArea } from './RulesArea.tsx';
 import { VenueSection } from './VenueSection.tsx';
 
-/** One area's content: its rules (in the Rake area, each table type's rake first), the club's details, or the chips. */
+/** One area's content: its rules in their groups, the notices, the club's details, or the chips. */
 function AreaContent({ area, venueId, isSuperAdmin }: { area: SettingsArea; venueId: string; isSuperAdmin: boolean }) {
   if (area === 'club') return <VenueSection venueId={venueId} />;
   if (area === 'chips') return <ChipsSection venueId={venueId} />;
   if (area === NOTICE_AREA) return <NoticesSection venueId={venueId} />;
-  const rules = <RulesArea key={area} venueId={venueId} area={area} isSuperAdmin={isSuperAdmin} />;
-  return area === 'rake' ? <Stack gap={10}><RakeSection venueId={venueId} />{rules}</Stack> : rules;
+  return <RulesArea key={area} venueId={venueId} area={area} isSuperAdmin={isSuperAdmin} />;
 }
 
 /** One tab of Settings: an area of rules changed without a release, the notices, or the club's details. */
@@ -41,3 +39,11 @@ export const SETTINGS_PANES: Readonly<Record<string, ComponentType>> = {
   notices: () => <AreaScreen area="notices" />,
   club: () => <AreaScreen area="club" />,
 };
+
+/** The TVs tab's own settings (redesign RD-18), above its screens, for staff who change settings. */
+export function TvRules() {
+  const staff = useStaffVenue();
+  if (staff.status !== 'ready' || !staff.venue.permissions.includes('settings.manage')) return null;
+  const { permissions, venueId } = staff.venue;
+  return <RulesArea venueId={venueId} area="tvs" isSuperAdmin={permissions.includes('venue.configure')} />;
+}
