@@ -3,7 +3,9 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations, renderIn } from '../test/render.tsx';
 import { DataTable, type DataTableColumn, type DataTableRequest, type DataTableServer } from './DataTable.tsx';
+import { DataTableExportProvider } from './DataTableExport.tsx';
 import { DataTableViewProvider, type TableViewStore } from './DataTableView.tsx';
+import { presetDays } from './index.ts';
 import { Pages, pagesShown } from './Pages.tsx';
 import type { ViewWire } from './tableView.ts';
 
@@ -135,6 +137,48 @@ describe('DataTable in server mode (redesign RD-13)', () => {
     expect(screen.queryByRole('columnheader')).toBeNull();
     // Nothing shows of nothing: no count either.
     expect(screen.queryByText('0 of 0')).toBeNull();
+  });
+});
+
+describe('DataTable in server mode, beside the screen\'s own filters and export', () => {
+  /** Members under the screen's tier chips, which the table knows only as `scope`. */
+  function scoped(scope: string, onRequest: DataTableServer['onRequest'], store: TableViewStore) {
+    return (
+      <DataTableViewProvider store={store}>
+        <DataTableExportProvider exporter={async () => true}>
+          <DataTable label="Members" columns={COLUMNS} rowKey={(row) => row.id} rows={PAGE} emptyText="No members yet." initialSort={SORT}
+            server={{ total: 4812, pageSize: 25, onRequest, scope }} />
+        </DataTableExportProvider>
+      </DataTableViewProvider>
+    );
+  }
+
+  it('starts again from the first page, and hands its request over again, when the screen\'s own filters change', async () => {
+    const kept: Record<string, ViewWire | undefined> = { 't.members': { p: 3 } };
+    const store: TableViewStore = { read: (key) => kept[key], write: (key, wire) => { kept[key] = wire; } };
+    const onRequest = vi.fn<DataTableServer['onRequest']>();
+    const { rerender } = renderIn(scoped('tier: all', onRequest, store));
+    // A link's page stands while the screen's filters are as they were.
+    await waitFor(() => expect(onRequest).toHaveBeenLastCalledWith({ ...FIRST, page: 3 }));
+    rerender(scoped('tier: Black card', onRequest, store));
+    await waitFor(() => expect(onRequest).toHaveBeenLastCalledWith(FIRST));
+    await waitFor(() => expect(kept['t.members']).toBeUndefined());
+    expect(onRequest.mock.calls.map(([request]) => request.page)).toEqual([3, 1]);
+    // On the first page already: the request still goes out, as what it asks for has changed.
+    rerender(scoped('tier: Member', onRequest, store));
+    await waitFor(() => expect(onRequest).toHaveBeenCalledTimes(3));
+    expect(onRequest).toHaveBeenLastCalledWith(FIRST);
+  });
+
+  it('offers no Export, as the rows shown are one page of the list', () => {
+    renderIn(scoped('tier: all', vi.fn(), { read: () => undefined, write: () => undefined }));
+    expect(screen.getByRole('table', { name: 'Members' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Export/ })).toBeNull();
+  });
+
+  it('gives a screen a date preset\'s days, so it filters on the server by the same days', () => {
+    expect(presetDays('last7', '2026-11-15')).toEqual({ from: '2026-11-09', to: '2026-11-15' });
+    expect(presetDays('thisMonth', '2026-11-15')).toEqual({ from: '2026-11-01', to: '2026-11-15' });
   });
 });
 

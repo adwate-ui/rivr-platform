@@ -8,6 +8,7 @@ import { Text } from '../Text/Text.tsx';
 import type { DataTableColumn, DataTableExportColumn } from './columns.ts';
 import { ExportBar, useTableExporter } from './DataTableExport.tsx';
 import { filtersInWords, filterWords, type ColumnFilters, type FilteredColumn } from './filters.ts';
+import type { DataTableServer } from './server.ts';
 import type { DataTableSearch } from './useTable.ts';
 
 /** What the bar needs of the table's props. */
@@ -22,6 +23,7 @@ export interface BarProps<Row> {
   readonly exportColumns?: readonly DataTableExportColumn<Row>[] | undefined;
   readonly totalRow?: Row | undefined;
   readonly exportIn?: HTMLElement | null | undefined;
+  readonly server?: DataTableServer | undefined;
 }
 
 /** What the bar holds: the words searched, and the column filters in force. */
@@ -50,11 +52,12 @@ const exportOnly = <Row,>(column: DataTableExportColumn<Row>) => ({ ...column, c
 
 /**
  * The Export control for the rows as shown, beneath a DataTableExportProvider and once there are rows: `here`, at the
- * table's top right, or `elsewhere`, drawn in the element `exportIn` names.
+ * table's top right, or `elsewhere`, drawn in the element `exportIn` names. None in server mode, where the rows shown
+ * are one page of the list: an export of every row is the screen's own.
  */
 function useExportPlaced<Row>(props: BarProps<Row>, visible: readonly Row[], state: BarState<Row>) {
   const exporter = useTableExporter();
-  const menu = exporter === null || visible.length === 0 ? null
+  const menu = exporter === null || visible.length === 0 || props.server !== undefined ? null
     : <ExportBar isInBar={props.exportIn === undefined} exporter={exporter} label={props.label} columns={[...props.columns, ...(props.exportColumns ?? []).map(exportOnly)]} rows={props.totalRow === undefined ? visible : [...visible, props.totalRow]}
         filter={filtersInForce(props, state)} />;
   const target = props.exportIn;

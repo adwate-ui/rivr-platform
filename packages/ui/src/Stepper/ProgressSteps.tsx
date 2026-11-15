@@ -65,7 +65,7 @@ export function ProgressSteps({ steps, current, label }: ProgressStepsProps) {
             <li key={step} aria-current={state === 'current' ? 'step' : undefined} className={cx('flex min-w-0 flex-col', fits && 'gap-2')}>
               <span aria-hidden="true" className={cx('h-1 rounded-full transition-colors', BAR[state])} />
               {/* Kept on one line and measurable, though unseen while only the current step is named. */}
-              <span className={cx('block overflow-hidden whitespace-nowrap font-text text-12', NAME[state], !fits && 'h-px opacity-0')}>
+              <span className={cx('block overflow-hidden whitespace-nowrap font-text text-12', NAME[state], !fits && 'h-1 opacity-0')}>
                 <span data-step-name>{step}</span>
               </span>
               {state === 'next' ? null : <span className="sr-only">{`, ${t(`ui.steps.${state}`)}`}</span>}

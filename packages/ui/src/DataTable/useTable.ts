@@ -102,10 +102,10 @@ export function useTable<Row>(props: TableInput<Row>) {
   // Words searched in a link to a table without a search box are not applied, so never said nor handed on.
   const query = props.filter === undefined ? '' : view.query.trim();
   const typed = useRef(false);
-  const pages = useServerPages({ server: props.server, view, query, on, isReady, typed });
   const changes = changesOf(view, (next, isTyping = false) => {
     typed.current = isTyping;
     setView(next, isTyping);
   });
+  const pages = useServerPages({ server: props.server, view, query, on, isReady, typed, onFirstPage: () => changes.setPage(1) });
   return { view, source, counted, filtered, on, visible, query, isReady, flush, ...pages, ...changes };
 }
