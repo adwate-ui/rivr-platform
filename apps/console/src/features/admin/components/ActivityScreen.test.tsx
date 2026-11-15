@@ -73,6 +73,16 @@ describe('Activity (8 Nov audit, F-034)', () => {
     expect(table.textContent).not.toContain('made');
   });
 
+  it('shows a high hand paid: who logged it, the player, the table, the seat, the hand and its Bonus (redesign RD-24)', async () => {
+    renderScreen('super_admin', () => [line({
+      id: 9, who: 'Farid Khan', action: 'high_hand.pay', entity: 'high_hand_hit', about: 'Devansh Malik', reason: null, amount: 5000,
+      high_hand: { table: 'Table 2', seat: 3, hand: 'four_of_a_kind', rank: 'jack' },
+    })]);
+    const table = await screen.findByRole('table', { name: 'Activity' }, LOADS);
+    const row = (await within(table).findByText('High hand · Devansh Malik', {}, LOADS)).closest('[role="row"]');
+    for (const shown of ['Farid Khan', 'Paid a high hand: 5,000', 'Four Jacks · Table 2, seat 3']) expect(row?.textContent).toContain(shown);
+  });
+
   it('asks the server for the person, kind and days chosen', async () => {
     const { asked } = renderScreen('super_admin', () => [line({})]);
     await screen.findByRole('table', { name: 'Activity' }, LOADS);

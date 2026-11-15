@@ -92,11 +92,9 @@ describe('a high hand on the promotions list (redesign RD-23)', () => {
     const { onOpen } = renderHighHand();
     fireEvent.click((await rowOf()) ?? document.body);
     const record = within(await screen.findByRole('dialog', { name: 'High hand bonus' }));
-    expect(record.getByText('Live · paid each time a listed hand is hit')).toBeDefined();
     fireEvent.click(record.getByRole('radio', { name: 'Hands and rules' }));
-    // A hand of the list it does not pay says so.
-    expect(record.getByText('Aces full').parentElement?.textContent).toContain('Not paid');
-    expect(record.getByText('Straight flush').parentElement?.textContent).toContain('Not paid');
+    // Only the hands it lists: a listed hand always has a Bonus (correction 11).
+    expect(record.queryByText('Aces full')).toBeNull();
     expect(record.getByText('Royal flush').parentElement?.textContent).toContain('25,000');
     expect(record.getByText('Four of a kind').parentElement?.textContent).toContain('5,000');
     expect(record.getByText('Both hole cards must play').parentElement?.textContent).toContain('Yes');

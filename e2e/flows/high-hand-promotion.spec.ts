@@ -39,7 +39,7 @@ async function changeHands(author: Page) {
   await author.getByRole('group', { name: 'Add a hand' }).getByRole('button', { name: 'Any full house' }).click();
   // A hand with no Bonus goes no further.
   await author.getByRole('button', { name: 'Simulate' }).click();
-  await expect(author.getByText('Each hand needs its Bonus, in whole 50s.')).toBeVisible();
+  await expect(author.getByText('Each hand needs its bonus, in whole 50s.')).toBeVisible();
   await author.getByRole('textbox', { name: 'Any full house' }).fill('1000');
   await author.getByRole('button', { name: 'Remove Straight flush' }).click();
   await expect(author.getByRole('textbox', { name: 'Straight flush' })).toHaveCount(0);
@@ -61,8 +61,8 @@ async function readRecord(approver: Page) {
   await shoot(approver, 'console-record-paid-1440');
   await record.getByRole('radio', { name: 'Hands and rules' }).click();
   await expect(record.getByText('Any full house')).toBeVisible();
-  // The straight flush she removed and Aces full, which she never listed.
-  await expect(record.getByText('Not paid')).toHaveCount(2);
+  // Only the hands she listed: the straight flush she removed is gone.
+  await expect(record.getByText('Straight flush')).toHaveCount(0);
   await expect(record.getByText('4 or more')).toBeVisible();
   await shoot(approver, 'console-record-hands-and-rules-1440');
   return record;

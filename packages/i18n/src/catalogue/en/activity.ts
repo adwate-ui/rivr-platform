@@ -19,6 +19,8 @@ export const activity = {
   recordOf: '{thing} · {name}',
   /** Points or bonus chips by hand: `Gave points: 500`, `Gave bonus chips: 1,500`. */
   withAmount: '{what}: {amount}',
+  /** Beside a high hand paid (redesign RD-24): `Four Jacks · Table 2, seat 3`. */
+  highHand: '{hand} · {table}, seat {seat}',
   /** In what an export records, while earlier lines are not loaded. */
   partial: 'Partial: the latest {count} lines only',
   kinds: {
@@ -33,7 +35,8 @@ const ACTION_WORDS: Readonly<Record<string, string>> = {
   'aml.flag': 'Flagged', 'aml.review': 'Reviewed', 'bonus.give': 'Gave bonus chips',
   'points.grant': 'Gave points', 'points.lock': 'Locked points', 'points.unlock': 'Released points',
   'device.enrolled': 'Enrolled', 'device.enrolment_started': 'Started enrolling', 'device.paired': 'Paired', 'device.pairing_started': 'Started pairing',
-  'export.archive_saved': 'Saved an archive', 'export.table': 'Exported', 'export.tally_day': 'Exported', 'export.tds_return': 'Exported',
+  'export.archive_saved': 'Saved an archive',
+  'high_hand.pay': 'Paid a high hand', 'export.table': 'Exported', 'export.tally_day': 'Exported', 'export.tds_return': 'Exported',
   'fnb_order.cancel': 'Cancelled', 'kyc_image.view': 'Viewed', 'member.change_phone': 'Changed the mobile number', 'member.erase': 'Erased',
   'practice.reset': 'Reset the practice venue', 'redemption.cancel': 'Cancelled', 'staff.attendance': 'Marked attendance',
   'venue.logo_uploaded': 'Uploaded the logo', 'venue.purge': 'Purged', 'venue.purge_files': 'Purged the files',
@@ -48,7 +51,7 @@ const ENTITY_WORDS: Readonly<Record<string, string>> = {
   consent: 'Consent', contact: 'Contact', control_state: 'Control', creator: 'Creator', credit_line: 'Credit line', dealer_down: 'Dealer down', deposit_request: 'Deposit request',
   device: 'Device', down_count: 'Down count', drill: 'Drill', early_departure: 'Early departure', early_departure_withdrawal: 'Early departure withdrawn', eod_close: 'End of day',
   expense: 'Expense', expense_category: 'Expense category', export_archive: 'Archive', feedback: 'Feedback', fnb_item: 'Menu item', fnb_order: 'Food and drink order', game_table: 'Table',
-  glaza_import: 'Glaza import', hand: 'Hand', high_hand_claim: 'High hand claim', incident: 'Incident', invoice: 'Invoice', jackpot_event: 'Jackpot', kyc_image: 'ID photo',
+  glaza_import: 'Glaza import', hand: 'Hand', high_hand_claim: 'High hand claim', high_hand_hit: 'High hand', incident: 'Incident', invoice: 'Invoice', jackpot_event: 'Jackpot', kyc_image: 'ID photo',
   league_adjustment: 'League adjustment', league_finish: 'League finish', league_season: 'League season', learn_source: 'Learn source', ledger_account: 'Ledger account',
   ledger_transaction: 'Ledger entry', marker: 'Marker', marker_settlement: 'Marker settled', member: 'Member', member_feature_override: 'Member feature', member_limit: 'Member limit',
   member_tier_change: 'Tier change', notice: 'Notice', payment_account: 'Payment account', points_earning: 'Points earned', promotion: 'Promotion', promotion_budget: 'Promotion budget',

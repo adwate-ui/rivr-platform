@@ -1,4 +1,3 @@
-import { HIGH_HANDS } from '@rivr/contracts/promotionModel';
 import { useHighHandTonight, type HighHandHit, type PromotionOverview } from '@rivr/db';
 import { budgetLeft, type HighHandReward, type Terms } from '@rivr/domain/promotions';
 import { formatHighHand, formatListedHand, formatNumber, t } from '@rivr/i18n';
@@ -79,16 +78,14 @@ interface HandsAndRulesProps {
   onChange: (() => void) | undefined;
 }
 
-/** Hands and rules: each hand of the list with its Bonus, or not paid; then the three rules and where it runs. */
+/** Hands and rules: each listed hand with its Bonus; then the three rules and where it runs. */
 function HandsAndRules({ reward, where, onChange }: HandsAndRulesProps) {
   const yesNo = (isHeld: boolean) => t(isHeld ? 'console.promotions.record.yes' : 'console.promotions.record.no');
-  const notPaid = HIGH_HANDS.filter((hand) => !reward.hands.some((listed) => listed.hand === hand));
   return (
     <Stack gap={4}>
       <Text variant="eyebrow" tone="muted">{t('console.promotions.record.bonusForEachHand')}</Text>
       <Stack gap={0}>
         {reward.hands.map((listed) => <DetailRow key={listed.hand} label={formatListedHand(listed.hand)} value={formatNumber(listed.chips)} />)}
-        {notPaid.map((hand) => <DetailRow key={hand} label={formatListedHand(hand)} labelTone="muted" value={t('console.promotions.record.notPaid')} valueTone="muted" />)}
       </Stack>
       <Text variant="eyebrow" tone="muted">{t('console.promotions.record.rules')}</Text>
       <Grid columns={2} gap={4}>
@@ -141,8 +138,7 @@ export function HighHandRecord({ venueId, promotion, names, steps, onLog, onClos
   const { terms, status } = promotion;
   if (terms === null || terms.reward.kind !== 'high_hand') return null;
   return (
-    <Sheet place="console" isOpen onClose={onClose} title={promotion.name} footer={<RecordActions promotion={promotion} steps={steps} onClose={onClose} />}
-      subtitle={t('console.promotions.record.subtitle', { status: t(`console.promotions.statuses.${status}`) })}>
+    <Sheet place="console" isOpen onClose={onClose} title={promotion.name} footer={<RecordActions promotion={promotion} steps={steps} onClose={onClose} />}>
       <Segmented label={promotion.name} size="small" value={tab} onChange={setTab}
         options={TABS.map((value) => ({ value, label: t(`console.promotions.record.tabs.${value}`) }))} />
       {tab === 'paid'

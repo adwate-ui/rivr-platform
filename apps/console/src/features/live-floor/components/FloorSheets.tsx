@@ -1,7 +1,8 @@
-import { useReadyToSeat, useStaffVenue, type FloorRequest, type SeatAlert, type SeatedPlayer } from '@rivr/db';
+import { useReadyToSeat, useStaffVenue, type FloorRequest, type HighHandLive, type SeatAlert, type SeatedPlayer } from '@rivr/db';
 import { useNavigate } from '@tanstack/react-router';
 import type { Dispatch, SetStateAction } from 'react';
 import type { FloorData } from './useFloorData.ts';
+import { HighHandSheet } from './HighHandSheet.tsx';
 import { LeaveSheet, type Leaver } from './LeaveSheet.tsx';
 import { PlayerSheet } from './PlayerSheet.tsx';
 import type { LeaveRequest } from './requestActions.ts';
@@ -12,12 +13,13 @@ import type { RequestChanges } from './useRequestChanges.ts';
 import type { SeatChanges } from './useSeatChanges.ts';
 import type { TableChanges } from './useTableChanges.ts';
 
-/** The sheet open on the floor: a player's, an open seat's, a table's, or leaving. */
+/** The sheet open on the floor: a player's, an open seat's, a table's, leaving, or logging a high hand. */
 export type FloorSheet =
   | { readonly kind: 'player'; readonly sessionId: string }
   | { readonly kind: 'seat'; readonly tableId: string; readonly seat: number | null; readonly entryId?: string | undefined }
   | { readonly kind: 'table'; readonly tableId: string }
-  | { readonly kind: 'leave'; readonly leaver: Leaver };
+  | { readonly kind: 'leave'; readonly leaver: Leaver }
+  | { readonly kind: 'highHand'; readonly live: HighHandLive };
 
 /** A seated player as one who leaves: their seat, and the call time they still owe. */
 export function leaverOf(player: SeatedPlayer, tableName: string): Leaver {
@@ -117,6 +119,7 @@ export function FloorSheets(props: FloorSheetsProps) {
       <SeatSheet key={`${sheet.tableId}:${String(sheet.seat)}:${sheet.entryId ?? ''}`} venueId={venueId} tables={data.tables} seats={data.seats}
         held={data.held} start={sheet} now={now} changes={changes.seats} onCheckId={canCheckId ? checkId : undefined} onClose={close} />
     );
+    case 'highHand': return <HighHandSheet venueId={venueId} live={sheet.live} tables={data.tables} seats={data.seats} onClose={close} />;
     case 'leave': return <LeaveSheet leaver={sheet.leaver} canLetGo={permissions.includes('call_time.override')} changes={changes.seats} onClose={close} />;
     case 'table': {
       const table = data.tables.find((one) => one.id === sheet.tableId);

@@ -126,12 +126,12 @@ export function useFloorRequestTargets(venueId: string, isEnabled = true) {
   });
 }
 
-/** Every read of the floor a signal makes stale: its seats, holds, tables, requests and lists, and the rail's counts. */
+/** Every read of the floor a signal makes stale: its seats, holds, tables, requests and lists, the rail's counts, and tonight's high hands. */
 export function floorQueryKeys(userId: string, venueId: string) {
   return [
     queryKeys.floorSeats(userId, venueId), queryKeys.heldSeats(userId, venueId), queryKeys.floorTables(userId), queryKeys.floorRequests(userId, venueId),
     queryKeys.waitlistRequests(userId, venueId), queryKeys.waitlistBoard(userId, venueId), queryKeys.leftOwingCallTime(userId, venueId),
-    queryKeys.topUpsTonight(userId, venueId), queryKeys.staffQueueCounts(userId, venueId),
+    queryKeys.topUpsTonight(userId, venueId), queryKeys.staffQueueCounts(userId, venueId), queryKeys.highHandTonights(userId, venueId),
   ];
 }
 

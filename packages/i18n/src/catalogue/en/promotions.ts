@@ -92,7 +92,7 @@ export const promotions = {
       hours_bonus: { label: 'Hours-played bonus chips', description: 'Bonus chips after time at the tables' },
       bonus_chips: { label: 'Bonus chips', description: 'Fixed bonus chips on a visit or referral' },
       waitlist_priority: { label: 'Waitlist priority', description: 'Front of every waitlist' },
-      high_hand: { label: 'High hand', description: 'A Bonus for each listed hand' },
+      high_hand: { label: 'High hand', description: 'A bonus for each listed hand' },
     },
     fields: {
       chips: 'Bonus chips',
@@ -177,7 +177,7 @@ export const promotions = {
       everyHours: 'Half hours, from 0.5 to 12.',
       timesPerVisit: 'A whole number from 1 to 20, or blank for no cap.',
       steps: 'Each step later than the one before, in half hours to 24, with whole 50s of chips.',
-      hands: 'Each hand needs its Bonus, in whole 50s.',
+      hands: 'Each hand needs its bonus, in whole 50s.',
       minPlayers: 'A whole number from 2 to 10.',
       budgetNeeded: 'A high hand needs a budget, in whole 50s.',
       who: 'Pick who qualifies again.',
@@ -246,8 +246,6 @@ export const promotions = {
   },
   /** A high hand promotion's record, beside the list (redesign RD-23). `{hand}` is the hit named exactly. */
   record: {
-    /** Under its name: `{status}` is Live, Paused and so on. */
-    subtitle: '{status} · paid each time a listed hand is hit',
     tabs: { paid: 'Paid tonight', terms: 'Hands and rules' },
     handsTonight: 'Hands paid tonight',
     bonusTonight: 'Bonus paid tonight',
@@ -259,8 +257,6 @@ export const promotions = {
     hit: '{hand} · {table}, seat {seat}',
     paid: '+{chips}',
     bonusForEachHand: 'Bonus for each hand',
-    /** Beside a hand of the list this promotion does not pay. */
-    notPaid: 'Not paid',
     change: 'Change hands and rules',
     rules: 'Rules',
     yes: 'Yes',
