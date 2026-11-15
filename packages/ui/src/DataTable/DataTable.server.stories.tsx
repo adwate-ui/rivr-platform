@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, screen, userEvent } from 'storybook/test';
 import { ChoiceChips } from '../ChoiceChips/ChoiceChips.tsx';
+import { ConsoleFrameContext } from '../internal/consoleFrame.ts';
+import { CONSOLE_MAIN_TOP } from '../internal/consoleMain.ts';
 import { DataTable, type DataTableColumn } from './DataTable.tsx';
 import { DataTableExportProvider } from './DataTableExport.tsx';
 import { DataTableViewProvider } from './DataTableView.tsx';
@@ -122,3 +124,22 @@ export const ManyPagesOnAPhone: Story = { tags: ['viewport-phone'] };
 
 /** On a tablet held upright (768 px). */
 export const ManyPagesOnAPortraitTablet: Story = { tags: ['viewport-portrait'] };
+
+/**
+ * A page of fifty scrolled in the console's main, with its space above a screen: the header stands against main's top
+ * edge on its own colour, and no row shows over it.
+ */
+export const ScrolledInTheConsole: Story = {
+  render: () => (
+    <ConsoleFrameContext value>
+      <div data-scroller="" className={`h-dvh overflow-y-auto px-8 ${CONSOLE_MAIN_TOP}`}>
+        <ServerTable rows={members(50)} total={4812} />
+      </div>
+    </ConsoleFrameContext>
+  ),
+  play: ({ canvasElement }) => {
+    canvasElement.querySelector('[data-scroller]')?.scrollTo(0, 600);
+  },
+  parameters: { layout: 'fullscreen' },
+  tags: DESK,
+};

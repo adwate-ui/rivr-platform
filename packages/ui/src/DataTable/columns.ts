@@ -21,6 +21,12 @@ export interface DataTableColumn<Row> {
   /** Twice a column's share of the width from 768 px, for words that would wrap in one share: a stake's name. */
   readonly isWide?: boolean;
   /**
+   * The column's share of the width from 768 px, where one share (or a wide column's two) does not suit: 0.7 for a number,
+   * 1.3 for a status with its dot. A table with such a share on any column sets every column's width by its share, so a
+   * table of many columns can fit each heading and cell (the UI review of redesign RD-29).
+   */
+  readonly share?: number;
+  /**
    * What an export gives for the column (#102). Without one: the cell's words, a Money cell's rupees, or the
    * sort value. A column with no heading, such as a row's buttons, is left out of exports.
    */

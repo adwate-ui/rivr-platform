@@ -11,3 +11,4 @@ Date: 15 Nov 2026. Issue 972 (redesign RD-29; slice 12, "Lists at scale").
 - The search is the list's own, unchanged: a name by any part, a member number exactly, four or more digits of a mobile (anywhere in it for staff who read mobiles, its last four for everyone else).
 - Indexes: the list by name, number and joining day; trigram indexes (`pg_trgm`) for a name or mobile by any part; a mobile's last four digits.
 - Names now sort as the database collates them, not as the browser did. `members_of_tier` stays in the database, where its tests are the page's reference; the console no longer reads it.
+- Twelve columns at 1440 px cut the headings "ID check" and "Tonight", and two shares for those two cut others. So a data table column may say its own share of the width (`share`); Members and the Door set one on every column, and no heading or cell is cut.

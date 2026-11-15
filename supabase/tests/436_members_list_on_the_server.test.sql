@@ -189,5 +189,15 @@ select is(has_function_privilege('anon', 'public.members_choices(uuid, jsonb)', 
 select is(has_function_privilege('authenticated', 'private.members_list_sql(jsonb, boolean)', 'execute'), false, 'and nobody is handed the statement itself');
 select ok((select count(*) > 100 from public.member), 'the members are all still there');
 
+-- What is typed is read to 200 characters where the statement is built (the security review of the pull request).
+select ok((select position(repeat('x', 200) in o_where) > 0 and position(repeat('x', 201) in o_where) = 0
+           from private.members_list_sql(jsonb_build_object('query', repeat('x', 5000)), false)), 'a search of 5,000 characters is read to its first 200');
+select ok(position(repeat('y', 201) in private.list_filter_sql('m.full_name', jsonb_build_object('kind', 'text', 'typed', repeat('y', 5000)), current_date)) = 0,
+          'and a column''s typed filter');
+select ok(position(repeat('z', 201) in private.list_filter_sql('m.full_name', jsonb_build_object('kind', 'choice', 'chosen', jsonb_build_array(repeat('z', 5000))), current_date)) = 0,
+          'and a value chosen');
+select ok(position(repeat('w', 201) in private.list_where_sql('{"name": "full_name"}'::jsonb, array['full_name'], jsonb_build_object('query', repeat('w', 5000)), null)) = 0,
+          'and the search of every other list');
+
 select * from finish();
 rollback;

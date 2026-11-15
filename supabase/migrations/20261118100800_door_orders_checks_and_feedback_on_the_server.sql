@@ -75,6 +75,7 @@ create index kyc_record_queue_idx on public.kyc_record (venue_id, updated_at) wh
 -- "scope" is the screen's own choice); the columns a view may sort and filter by, each as SQL over those rows; the
 -- columns the search reads; the order with no sort chosen; and the columns whose values are counted for a menu or
 -- chips. Whether the caller may read the list is part of its statement, asked once. No row for any other name.
+-- A column that sorts by other than what it filters by has its order under "<key>:sort": the door's Status sorts by need.
 create function private.list_spec(p_list text, out o_source text, out o_columns jsonb, out o_search text[], out o_order text, out o_choices text[])
 language sql
 immutable
@@ -174,7 +175,8 @@ as $$
      $src$, 'KYC_STATUS', private.members_column_sql('kyc')),
      '{"player": "full_name", "number": "member_number", "tier": "tier_name", "status": "status", "in": "checked_in_at", "out": "checked_out_at",
        "waited": "waiting_seconds / 3600.0", "table": "table_names", "played": "played_seconds / 3600.0", "kyc": "kyc_status",
-       "list": "list", "arrived": "(checked_in_at is not null)"}'::jsonb,
+       "list": "list", "arrived": "(checked_in_at is not null)",
+       "status:sort": "array_position(array[''waiting'', ''expected'', ''playing'', ''in_room'', ''left'', ''never_arrived''], status)"}'::jsonb,
      array['full_name', 'member_number'], 'full_name, member_id', array['status', 'tier', 'kyc', 'list', 'arrived'])
   ) as s(list, source, columns, search, sorted, choices)
   where s.list = p_list;
@@ -190,7 +192,7 @@ set search_path = ''
 as $$
 declare
   v_filters jsonb := case when jsonb_typeof(p_view -> 'filters') = 'object' then p_view -> 'filters' else '{}'::jsonb end;
-  v_query text := btrim(coalesce(p_view ->> 'query', ''));
+  v_query text := left(btrim(coalesce(p_view ->> 'query', '')), 200);
   v_where text := 'true';
   v_key text;
 begin
@@ -228,7 +230,7 @@ begin
   select * into v_spec from private.list_spec(p_list);
   if v_spec.o_source is null then raise exception 'No such list' using errcode = '22023'; end if;
   v_order := case when v_spec.o_columns ? v_sort
-                  then format('(%s) %s nulls last, ', v_spec.o_columns ->> v_sort, case when v_view #>> '{sort,direction}' = 'descending' then 'desc' else 'asc' end)
+                  then format('(%s) %s nulls last, ', coalesce(v_spec.o_columns ->> (v_sort || ':sort'), v_spec.o_columns ->> v_sort), case when v_view #>> '{sort,direction}' = 'descending' then 'desc' else 'asc' end)
                   else '' end || v_spec.o_order;
   execute format(
     'with src as materialized (%1$s), kept as (select * from src where %2$s)

@@ -43,7 +43,8 @@ set search_path = ''
 as $$
 declare
   v_kind text := p_filter ->> 'kind';
-  v_typed text := btrim(coalesce(p_filter ->> 'typed', ''));
+  -- Typed words are read to 200 characters, and no further: nobody searches for more, and the statement stays short.
+  v_typed text := left(btrim(coalesce(p_filter ->> 'typed', '')), 200);
   v_low numeric := private.list_bound(p_filter ->> 'min');
   v_high numeric := private.list_bound(p_filter ->> 'max');
   v_from date;
@@ -53,7 +54,7 @@ begin
     return format('coalesce((%s)::text, '''') ilike %L', p_expr,
                   '%' || replace(replace(replace(v_typed, '\', '\\'), '%', '\%'), '_', '\_') || '%');
   elsif v_kind = 'choice' and jsonb_typeof(p_filter -> 'chosen') = 'array' and jsonb_array_length(p_filter -> 'chosen') > 0 then
-    return format('(%s)::text = any (%L::text[])', p_expr, array(select jsonb_array_elements_text(p_filter -> 'chosen')));
+    return format('(%s)::text = any (%L::text[])', p_expr, array(select left(chosen.value, 200) from jsonb_array_elements_text(p_filter -> 'chosen') as chosen(value) limit 200));
   elsif v_kind = 'range' and (v_low is not null or v_high is not null) then
     return format('(%s) is not null', p_expr)
            || case when v_low is null then '' else format(' and (%s) >= %L::numeric', p_expr, v_low) end
@@ -167,8 +168,8 @@ declare
   v_filters jsonb := case when jsonb_typeof(p_view -> 'filters') = 'object' then p_view -> 'filters' else '{}'::jsonb end;
   v_sort text := coalesce(p_view #>> '{sort,key}', 'name');
   v_way text := case when p_view #>> '{sort,direction}' = 'descending' then 'desc' else 'asc' end;
-  v_query text := btrim(coalesce(p_view ->> 'query', ''));
-  v_digits text := regexp_replace(coalesce(p_view ->> 'query', ''), '[^0-9]', '', 'g');
+  v_query text := left(btrim(coalesce(p_view ->> 'query', '')), 200);
+  v_digits text := regexp_replace(left(coalesce(p_view ->> 'query', ''), 200), '[^0-9]', '', 'g');
   v_found text[];
   v_key text;
   v_expr text;

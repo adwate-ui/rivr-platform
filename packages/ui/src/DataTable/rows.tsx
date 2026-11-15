@@ -32,11 +32,17 @@ export interface Layout {
   readonly ticks: Ticks | null;
   /** Where rows are lines and have ticks: the ticks' column as wide as a tick, then a share per column, two for a wide one. */
   readonly grid: CSSProperties | undefined;
+  /** A column says its own share, so every column's width is set by its share and a wide one spans nothing. */
+  readonly isShared?: boolean;
 }
 
 export function layoutOf<Row>(columns: readonly DataTableColumn<Row>[], narrow: Layout['narrow'], density: Layout['density'], ticks: Ticks | null): Layout {
   const shares = columns.reduce((sum, column) => sum + (column.isWide ? 2 : 1), 0);
   const ticksColumn = ticks === null ? '' : 'auto ';
+  if (narrow !== 'sideways' && columns.some((column) => column.share !== undefined)) {
+    const tracks = columns.map((column) => `minmax(0, ${String(column.share ?? (column.isWide ? 2 : 1))}fr)`).join(' ');
+    return { narrow, density, ticks, isShared: true, grid: { gridTemplateColumns: `${ticksColumn}${tracks}` } };
+  }
   // Sideways, each share is at least a column's width, so the line grows past the page and scrolls rather than squeeze.
   if (narrow === 'sideways') return { narrow, density, ticks, grid: { gridTemplateColumns: `${ticksColumn}repeat(${shares}, minmax(${tokens.size.column}px, 1fr))` } };
   return { narrow, density, ticks, grid: ticks === null ? undefined : { gridTemplateColumns: `${ticksColumn}repeat(${shares}, minmax(0, 1fr))` } };
@@ -142,7 +148,7 @@ function cellClasses<Row>(column: DataTableColumn<Row>, priority: Priority, layo
   // a total row one weight throughout.
   const weight = isTotal ? 'font-semibold' : isTitle && 'font-medium';
   return cx('min-w-0 font-text text-content wrap-anywhere', isTitle ? 'text-15' : 'text-13', weight, isOneLine && 'truncate',
-    look.cell[priority], isTitle && heldTitle(layout), column.isWide && look.span, column.align === 'end' ? look.end : 'text-start');
+    look.cell[priority], isTitle && heldTitle(layout), column.isWide && layout.isShared !== true && look.span, column.align === 'end' ? look.end : 'text-start');
 }
 
 /** The title cell's content: when rows open, the button a keyboard and a screen reader open the row with. */

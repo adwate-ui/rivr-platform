@@ -47,7 +47,7 @@ export function AccountStatusDot({ status, isShort = false }: { status: MemberAc
 function accountColumn(statuses: ReadonlyMap<string, MemberAccountStatus> | undefined, choices: MemberChoices | undefined): DataTableColumn<MemberListRow> {
   const kindOf = (row: MemberListRow) => (statuses === undefined ? t('console.members.notHere') : accountKind(statuses.get(row.memberId)));
   return {
-    key: 'status', header: t('console.members.accountStatus.header'), filter: 'choice', choices: choicesIn('status', choices), filterValue: kindOf, sortValue: kindOf,
+    key: 'status', share: 1, header: t('console.members.accountStatus.header'), filter: 'choice', choices: choicesIn('status', choices), filterValue: kindOf, sortValue: kindOf,
     exportValue: (row) => (statuses === undefined ? '' : accountWords(statuses.get(row.memberId))),
     cell: (row) => (statuses === undefined ? <Text variant="secondary" tone="muted">{t('console.members.notHere')}</Text> : <AccountStatusDot status={statuses.get(row.memberId)} isShort />),
   };
@@ -72,7 +72,7 @@ const KYC_ORDER: readonly MemberKycStatus[] = ['at_desk', 'in_review', 'not_done
  * shares, so a number stays on one line beside the other columns at 1440 px.
  */
 const mobileColumn: DataTableColumn<MemberListRow> = {
-  key: 'mobile', header: t('console.members.mobile'), priority: 'secondary', isWide: true, filter: 'text',
+  key: 'mobile', share: 1.75, header: t('console.members.mobile'), priority: 'secondary', isWide: true, filter: 'text',
   cell: (row) => (row.phone === null ? '' : formatMobile(row.phone)), exportValue: (row) => row.phone ?? '',
 };
 
@@ -80,19 +80,19 @@ const mobileColumn: DataTableColumn<MemberListRow> = {
 function moreColumns(choices: MemberChoices | undefined): readonly DataTableColumn<MemberListRow>[] {
   return [
     {
-      key: 'kyc', header: t('console.members.kyc'), sortValue: (row) => KYC_ORDER.indexOf(row.kycStatus), filter: 'choice', choices: choicesIn('kyc', choices),
+      key: 'kyc', share: 1.3, header: t('console.members.kyc'), sortValue: (row) => KYC_ORDER.indexOf(row.kycStatus), filter: 'choice', choices: choicesIn('kyc', choices),
       filterValue: (row) => t(`console.members.kycStatuses.${row.kycStatus}`),
       cell: (row) => <DotStatus tone={KYC_TONE[row.kycStatus]} label={t(`console.members.kycStatuses.${row.kycStatus}`)} />,
       exportValue: (row) => t(`console.members.kycStatuses.${row.kycStatus}`),
     },
     {
-      key: 'played', header: t('console.members.played'), align: 'end', sortValue: (row) => row.minutesPlayed * 60, exportValue: (row) => row.minutesPlayed,
+      key: 'played', share: 0.95, header: t('console.members.played'), align: 'end', sortValue: (row) => row.minutesPlayed * 60, exportValue: (row) => row.minutesPlayed,
       filter: 'duration',
       cell: (row) => formatDuration(row.minutesPlayed * 60),
     },
-    { key: 'city', header: t('console.members.city'), priority: 'optional', cell: (row) => row.city ?? t('console.members.notHere'), exportValue: (row) => row.city ?? '', sortValue: (row) => row.city ?? '', filter: 'choice', choices: choicesIn('city', choices) },
+    { key: 'city', share: 0.8, header: t('console.members.city'), priority: 'optional', cell: (row) => row.city ?? t('console.members.notHere'), exportValue: (row) => row.city ?? '', sortValue: (row) => row.city ?? '', filter: 'choice', choices: choicesIn('city', choices) },
     {
-      key: 'since', header: t('console.members.memberSince'), priority: 'optional', sortValue: (row) => row.memberSince, filter: 'date',
+      key: 'since', share: 1, header: t('console.members.memberSince'), priority: 'optional', sortValue: (row) => row.memberSince, filter: 'date',
       cell: (row) => formatMonthYear(new Date(row.memberSince)),
     },
   ];
@@ -123,17 +123,17 @@ export function memberColumns(tonight: ReadonlyMap<string, Tonight>, view: Membe
 function coreColumns(tonight: ReadonlyMap<string, Tonight>, choices: MemberChoices | undefined): readonly DataTableColumn<MemberListRow>[] {
   return [
     // Twice a share, so a name stays on one line beside the record (the screenshot index: "Kabir / Sethi").
-    { key: 'name', header: t('console.members.name'), cell: (row) => row.fullName, sortValue: (row) => row.fullName, isWide: true, filter: 'text' },
-    { key: 'number', header: t('console.members.number'), cell: (row) => <Text variant="secondary" tone="muted">{String(row.memberNumber)}</Text>, sortValue: (row) => row.memberNumber, filter: 'number' },
-    { key: 'tier', header: t('console.members.tier'), cell: (row) => row.tierName, sortValue: (row) => row.tierName, filter: false },
+    { key: 'name', share: 2.1, header: t('console.members.name'), cell: (row) => row.fullName, sortValue: (row) => row.fullName, isWide: true, filter: 'text' },
+    { key: 'number', share: 0.7, header: t('console.members.number'), cell: (row) => <Text variant="secondary" tone="muted">{String(row.memberNumber)}</Text>, sortValue: (row) => row.memberNumber, filter: 'number' },
+    { key: 'tier', share: 1.1, header: t('console.members.tier'), cell: (row) => row.tierName, sortValue: (row) => row.tierName, filter: false },
     {
-      key: 'tonight', header: t('console.members.tonight'), cell: (row) => <TonightStatus tonight={tonight.get(row.memberId)} />,
+      key: 'tonight', share: 1.2, header: t('console.members.tonight'), cell: (row) => <TonightStatus tonight={tonight.get(row.memberId)} />,
       sortValue: (row) => tonightOrder(tonight.get(row.memberId)), exportValue: (row) => tonightWords(tonight.get(row.memberId)), filter: 'choice', choices: choicesIn('tonight', choices),
       filterValue: (row) => tonightKind(tonight.get(row.memberId)),
     },
-    { key: 'visits', header: t('console.members.visits'), cell: (row) => formatNumber(row.visits), sortValue: (row) => row.visits, align: 'end', filter: 'number' },
+    { key: 'visits', share: 0.95, header: t('console.members.visits'), cell: (row) => formatNumber(row.visits), sortValue: (row) => row.visits, align: 'end', filter: 'number' },
     {
-      key: 'bonus', header: t('console.members.bonus.column'), cell: (row) => formatChips(row.bonus), sortValue: (row) => Number(formatRupeesForFile(row.bonus)),
+      key: 'bonus', share: 0.95, header: t('console.members.bonus.column'), cell: (row) => formatChips(row.bonus), sortValue: (row) => Number(formatRupeesForFile(row.bonus)),
       exportValue: (row) => Number(formatRupeesForFile(row.bonus)), align: 'end', filter: 'number',
     },
   ];
