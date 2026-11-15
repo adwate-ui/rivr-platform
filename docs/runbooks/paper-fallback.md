@@ -4,8 +4,6 @@ When the system cannot be used, the room runs on paper and the paper goes back i
 
 Print a stack of each form and keep it at the desk, with pens and the contact list (the escalation directory, #53, once it is on the console).
 
-The cage computer keeps tonight's offline pack on its own disk (#168): who to call and the floor as it stood at 17:00. When the system is down, print the newest PDF from `C:\RIVR\agent\offline-pack\`. The cage agent keeps it (docs/runbooks/cage-agent.md).
-
 ## The runbooks
 
 No money goes through RIVR (decision 0284; the cage was removed in #1011), so the room on paper is the floor sheet, the identity sheet and the food order sheet.

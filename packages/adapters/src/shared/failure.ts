@@ -8,6 +8,3 @@ export type AdapterFailure =
   | { readonly code: 'rate_limited' }
   | { readonly code: 'rejected'; readonly reason: string }
   | { readonly code: 'not_configured' };
-
-/** Why a printer did not print: a vendor failure, or paper to change. */
-export type PrinterFailure = AdapterFailure | { readonly code: 'out_of_paper' };

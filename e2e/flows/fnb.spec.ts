@@ -4,12 +4,11 @@
  * orders a masala chai and a beer in the player app, and Pema, dealing Table 3, orders him a lime soda on the tablet:
  * both paid to Glaza. Sameer Rao, the flow's steward in the Service role (#640), sees only food and drink: he accepts the
  * app's order from its lane, sends it on its way and delivers it, and the member follows it on Tonight's order tracker
- * (decision 0320). No cage agent runs, so the bar printer has failed no KOT and no card says the bar did not get one,
- * however long it waits (console v3: the flag is the outbox's, never a clock). From New order she picks Table 3, then seat 1 with Ishan beside it, and comps a club sandwich; the tablet is revoked and
+ * (decision 0320). Nothing prints KOTs since the cage agent was removed (decision 0651), so no card says the bar did not
+ * get one, however long it waits (console v3: the flag is the outbox's, never a clock). From New order she picks Table 3, then seat 1 with Ishan beside it, and comps a club sandwich; the tablet is revoked and
  * he leaves early, so Table 3 is as it was. On the Menu tab, Meera sees each item under its kind, and saves two from a CSV
- * once it shows each line and the one it cannot read (decision 0440). The agent printing KOTs, the flag's every state,
- * alcohol at 21 or over and one order a minute are proved in supabase/tests/171_fnb_orders.test.sql,
- * 310_kot_print_failed.test.sql and apps/cage-agent's tests.
+ * once it shows each line and the one it cannot read (decision 0440). The flag's every state, alcohol at 21 or over and one
+ * order a minute are proved in supabase/tests/171_fnb_orders.test.sql and 310_kot_print_failed.test.sql.
  */
 import { expect, test, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
@@ -80,7 +79,7 @@ test.describe('F&B', () => {
     await tablet.getByRole('button', { name: 'Send to the bar' }).click();
     const fromTablet = await kotIn(tablet, /^Sent to the bar: KOT \d+\.$/);
 
-    // No agent ran, so the bar printer failed nothing: neither KOT is flagged. The flag's states are proved in pgTAP.
+    // Nothing prints KOTs, so the bar printer failed nothing: neither KOT is flagged. The flag's states are proved in pgTAP.
     await page.getByRole('link', { name: 'Food and drink' }).click();
     await expect(page.getByRole('region', { name: 'To accept' })).toBeVisible();
     await expect(page.getByText('1 × Fresh lime soda').first()).toBeVisible();

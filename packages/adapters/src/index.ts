@@ -7,12 +7,11 @@ export {
   type CreateAdaptersOptions,
   type LiveAdapters,
 } from './registry.ts';
-export type { AdapterFailure, PrinterFailure } from './shared/failure.ts';
+export type { AdapterFailure } from './shared/failure.ts';
 export type { FakeControls } from './shared/recorder.ts';
 export * from './cache-purge/index.ts';
 export * from './cctv/index.ts';
 export * from './google-ads/index.ts';
-export * from './kitchen-printer/index.ts';
 export * from './kyc/index.ts';
 export * from './live-status/index.ts';
 export * from './outbox/index.ts';

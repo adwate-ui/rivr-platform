@@ -45,11 +45,12 @@ export interface FnbOrderTonight {
   readonly isComp: boolean;
   readonly source: 'app' | 'tablet' | 'console';
   readonly createdAt: string;
-  /** Null while the bar has not been given the KOT: the agent prints it, or staff hand it over and mark it. */
+  /** Null while the bar has not been given the KOT: staff hand it over and mark it (`agent` on a KOT the cage agent printed before it was removed). */
   readonly kotSentBy: 'agent' | 'staff' | null;
   /**
-   * The bar printer did not get the KOT (console v3): the agent's last attempt failed, or it closed it unprinted. From the
-   * outbox's bar_printer delivery, never a clock; false once the bar has it or the order is void.
+   * The bar printer did not get the KOT (console v3): its last attempt failed, or it closed it unprinted. From the outbox's
+   * bar_printer delivery, never a clock; false once the bar has it or the order is void. Nothing prints KOTs since the cage
+   * agent was removed (decision 0651), so it is true only for a delivery made before.
    */
   readonly isKotPrintFailed: boolean;
   /** Whether the guest it goes to is still in that seat (audit F-085): `leaving` once they have asked to go, `left` once it has ended. */

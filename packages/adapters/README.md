@@ -26,9 +26,8 @@ One interface per vendor, each with an in-memory fake, and the registry that dec
 | `cachePurge` | `@rivr/adapters/cache-purge` | `CachePurgeAdapter` | Cloudflare purge after a website publish |
 | `store` | `@rivr/adapters/store` | `StoreAdapter` | Products of the hosted accessories store |
 | `cctv` | `@rivr/adapters/cctv` | `CctvAdapter` | Playback link for a camera at a moment. `createTemplateCctv({ template })` is the recorder whose playback address takes `{channel}` and `{utc}`, `{ist}` or `{epoch}` (#122, decision 0238); `isRecorderTemplate` checks one |
-| `kitchenPrinter` | `@rivr/adapters/kitchen-printer` | `KitchenPrinterAdapter` | Prints a KOT at the bar. `createEscPosKitchenPrinter({ host, port, connect })`, from `@rivr/adapters/kitchen-printer-escpos`, is a network printer's raw port, and `kotBytes(kot)` the ESC/POS bytes of a KOT (a member's note after every line, as for the whole order), its words from `@rivr/i18n` (#123, decision 0261). That subpath keeps i18n out of the main entry, which Edge Functions import |
 
-Every method returns `Promise<Result<…, AdapterFailure>>` for expected failures: `unavailable` and `rate_limited` (retry later), `rejected` (do not retry), `not_configured`. Printers add `out_of_paper`.
+Every method returns `Promise<Result<…, AdapterFailure>>` for expected failures: `unavailable` and `rate_limited` (retry later), `rejected` (do not retry), `not_configured`.
 
 Every fake records its calls (`fake.calls`) and fails on demand (`fake.failNext({ code: 'unavailable' })`). Some take options or have helpers, such as `createFakeKyc({ faceMatch: { isMatch: false, score: 41 } })` or `smsFake.lastCodeFor(phone)`. Fake links use the `.invalid` domain, which never resolves.
 

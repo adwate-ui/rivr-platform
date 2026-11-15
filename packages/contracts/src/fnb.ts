@@ -36,18 +36,3 @@ export const fnbItemSchema = z.object({
   isAvailable: z.boolean(),
   position: z.int().min(1).max(999),
 });
-
-/**
- * fnb.ordered's payload (#123): the KOT for the bar, naming no member, which the cage agent prints as the outbox
- * consumer bar_printer.
- */
-export const fnbOrderedSchema = z.object({
-  order_id: z.uuid(),
-  kot_number: z.string(),
-  table_name: z.string(),
-  seat: z.int().min(1).max(10),
-  items: z.array(z.object({ name: z.string(), quantity: z.int().min(1), note: z.string().nullable() })).min(1),
-  ordered_at: z.string(),
-  is_comp: z.boolean(),
-});
-export type FnbOrdered = z.infer<typeof fnbOrderedSchema>;
