@@ -1,8 +1,9 @@
 /**
  * Bonus chips (decision 0504): while the club checks identity at the desk and a sign-up promotion of 500 bonus chips is
- * live, Jayesh Dhillon (his own number here: Auth sends one code a minute) is let in by his selfie and, on Home, is told
- * the 500 bonus chips are his; Bonus shows them. Once the desk has checked him (set here, as kyc.spec.ts proves the
- * desk), the floor (Ishaan Grover, a super admin who signs in to no other flow) seats him at Table 5 redeeming all 500 with
+ * live, Jayesh Dhillon (his own number here: Auth sends one code a minute) is let in by his selfie; his sign-up Bonus
+ * waits for a super admin (decision 0670), and once the floor (Ishaan Grover, a super admin who signs in to no other flow)
+ * approves it he is told the 500 bonus chips are his; Bonus shows them. Once the desk has checked him (set here, as
+ * kyc.spec.ts proves the desk), Ishaan seats him at Table 5 redeeming all 500 with
  * his buy-in: no Undo, he is told, his history shows the buy-in and his record's Bonus chips tab who seated him; there
  * Ishaan adds 50 by hand, which Jayesh's history shows with its reason (redesign of 15 Nov), and resets his counted hours
  * with a reason (redesign RD-36). The
@@ -71,13 +72,20 @@ test.describe('Bonus', () => {
     setUp();
     const before = Number(sql(`select private.bonus_in_force('${JAYESH}', now())`));
 
-    // His selfie lets him in (decision 0502); on Home he is told of the sign-up bonus, given as he reached it.
+    // His selfie lets him in (decision 0502); his sign-up bonus waits for a super admin (decision 0670), who approves it,
+    // and on Home he is told of it.
     await signInToPlayer(page, '9000000412', '/kyc');
     await page.getByRole('button', { name: 'Take a selfie' }).click();
     await page.getByRole('button', { name: 'Take photo' }).click();
     await page.getByRole('button', { name: 'Use photo' }).click();
     await expect(page.getByRole('heading', { name: 'Registered', exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'See the tables' }).click();
+    expect(Number(sql(`select private.bonus_in_force('${JAYESH}', now())`))).toBe(before);
+    const floor = await browser.newPage();
+    await signInToConsole(floor, '9000000122', '/promotions?tab=bonus');
+    await floor.getByRole('table', { name: 'Bonus to approve' }).getByRole('row').filter({ hasText: 'Jayesh Dhillon' })
+      .getByRole('button', { name: 'Approve 500 Bonus for Jayesh Dhillon' }).click();
+    await expect(floor.getByText('1 approved · 500 Bonus')).toBeVisible();
     await expect(page.getByText('500 Bonus added · Welcome bonus')).toBeVisible();
     expect(Number(sql(`select private.bonus_in_force('${JAYESH}', now())`))).toBe(before + 50_000);
 
@@ -94,8 +102,7 @@ test.describe('Bonus', () => {
     expect(Number(sql(`select private.bonus_in_force('${JAYESH}', now())`))).toBe(before + 50_000);
 
     // The floor seats him at Table 5 by his number, redeeming the 500 with his buy-in.
-    const floor = await browser.newPage();
-    await signInToConsole(floor, '9000000122');
+    await floor.goto(appUrl('console'));
     await floor.getByRole('button', { name: 'Seat a player' }).click();
     const sheet = floor.getByRole('dialog', { name: 'Seat a player' });
     await sheet.getByRole('radio', { name: 'Table 5' }).click();

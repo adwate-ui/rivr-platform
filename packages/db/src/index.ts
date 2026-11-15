@@ -79,6 +79,7 @@ export {
   isTopUpWaiting, useTodaysPlayers, useTopUpsTonight, type TodayStatus, type TodaysPlayer, type TopUpStatus, type TopUpTonight,
 } from './floorToday.ts';
 export { useStaffQueueCounts } from './staffQueues.ts';
+export { useDecideBonus, useWaitingBonusPage, type BonusChoice, type BonusDecision, type BonusDecisionFailure, type WaitingBonus } from './bonusApprovals.ts';
 export { DENSITIES, useSetStaffDensity, useSetStaffShortcuts, useStaffDensity, useStaffShortcuts, type Density } from './staffPreference.ts';
 export {
   useTablesSetup, useTablesSetupActions, type SetupStake, type SetupTable, type StakeOrder, type TableGame,

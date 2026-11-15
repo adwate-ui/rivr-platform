@@ -1,15 +1,16 @@
 import type { PromotionStatus } from '@rivr/contracts/promotionModel';
-import { isListedIn, usePromotionsOverview, type PromotionOverview, type PromotionsOverview } from '@rivr/db';
+import { isListedIn, usePromotionsOverview, useStaffQueueCounts, type PromotionOverview, type PromotionsOverview } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button, ChoiceChips, DataTable, ErrorMessage, Screen, Stack, Tabs } from '@rivr/ui';
 import { useState } from 'react';
 import { usePauseResume } from '../hooks/usePauseResume.ts';
+import { BonusApprovals } from './BonusApprovals.tsx';
 import { HighHandRecord, hasRecord } from './HighHandRecord.tsx';
 import { canOpen, endedColumns, listColumns } from './listColumns.tsx';
 import type { PromotionNames } from './promotionWords.ts';
 
 type Filter = Exclude<PromotionStatus, 'ended'> | 'all';
-const TABS = ['current', 'ended'] as const;
+const TABS = ['current', 'ended', 'bonus'] as const;
 type View = (typeof TABS)[number];
 
 // The current list's status chips in the prototype's order, each with its count; ended promotions have their own tab.
@@ -29,11 +30,13 @@ interface PromotionListProps {
   names: PromotionNames;
   /** Opens a promotion's builder or approver view by its id, or the builder for a new one. */
   onOpen: (promotionId: string | 'new') => void;
-  /** The tab in the address: Current, or Ended with `?tab=ended` (owner, 8 Nov); and how a tab opens. */
+  /** The tab in the address: Current, Ended with `?tab=ended` (owner, 8 Nov) or To approve with `?tab=bonus`; and how a tab opens. */
   tab: string | undefined;
   onNavigate: (href: string) => void;
   /** Opens the Live floor's Log a high hand; none for staff who may not log one. */
   onLogHighHand?: (() => void) | undefined;
+  /** A super admin's (promotions.approve): the Bonus to approve is theirs (decision 0670). */
+  canApprove: boolean;
 }
 
 /** The status chips over the current promotions: All, then each status, with how many each lists. */
@@ -46,18 +49,31 @@ function StatusChips({ current, filter, onChange }: { current: readonly Promotio
   );
 }
 
-/** Current and ended promotions apart (owner, 8 Nov): the tabs in the address, each with how many it holds. */
-function ViewTabs({ view, counts, onNavigate }: { view: View; counts: Readonly<Record<View, number>>; onNavigate: (href: string) => void }) {
+/**
+ * Current and ended promotions apart (owner, 8 Nov), and for a super admin the Bonus waiting for them (decision 0670): the tabs
+ * in the address, each with how many it holds.
+ */
+function ViewTabs({ view, counts, canApprove, onNavigate }: { view: View; counts: Readonly<Record<View, number>>; canApprove: boolean; onNavigate: (href: string) => void }) {
   return (
     <Tabs label={t('console.promotions.title')} current={view} onNavigate={onNavigate}
-      tabs={TABS.map((id) => ({ id, label: t(`console.promotions.list.tabs.${id}`, { count: String(counts[id]) }),
+      tabs={TABS.filter((id) => canApprove || id !== 'bonus').map((id) => ({ id, label: t(`console.promotions.list.tabs.${id}`, { count: String(counts[id]) }),
         href: id === 'current' ? '/promotions' : `/promotions?tab=${id}` }))} />
   );
 }
 
-/** The tabs, the chips and the table once the list has come. */
-function Listed({ venueId, names, onOpen, tab, onNavigate, onLogHighHand, overview, exportIn }: PromotionListProps & { overview: PromotionsOverview; exportIn: HTMLElement | null }) {
-  const view: View = TABS.find((one) => one === tab) ?? 'current';
+interface PromotionsShownProps extends Pick<PromotionListProps, 'venueId' | 'names' | 'onOpen' | 'onLogHighHand'> {
+  view: Exclude<View, 'bonus'>;
+  overview: PromotionsOverview;
+  current: readonly PromotionOverview[];
+  ended: readonly PromotionOverview[];
+  exportIn: HTMLElement | null;
+}
+
+/**
+ * The current promotions with their status chips, or the ended ones: each with Pause or Resume, Edit or Review, and End; a
+ * high hand's record opens beside the list.
+ */
+function PromotionsShown({ venueId, names, onOpen, onLogHighHand, view, overview, current, ended, exportIn }: PromotionsShownProps) {
   const [filter, setFilter] = useState<Filter>('all');
   // A high hand's record, open beside the list (redesign RD-23), read from the list so a pause or a payout shows in it.
   const [recordId, setRecordId] = useState<string | null>(null);
@@ -68,12 +84,9 @@ function Listed({ venueId, names, onOpen, tab, onNavigate, onLogHighHand, overvi
   };
   const openRow = (promotion: PromotionOverview) => (hasRecord(promotion) ? setRecordId(promotion.id) : open(promotion));
   const steps = { isBusy: toggles.isBusy, pause: toggles.pause, resume: toggles.resume, end: toggles.end, open };
-  const current = overview.promotions.filter((promotion) => promotion.status !== 'ended').sort(byStatus);
-  const ended = overview.promotions.filter((promotion) => promotion.status === 'ended');
   const isEnded = view === 'ended';
   return (
-    <Stack gap={4}>
-      <ViewTabs view={view} counts={{ current: current.length, ended: ended.length }} onNavigate={onNavigate} />
+    <>
       {isEnded ? null : <StatusChips current={current} filter={filter} onChange={setFilter} />}
       {toggles.failure === null ? null : <ErrorMessage>{t(`console.promotions.failures.${toggles.failure}`)}</ErrorMessage>}
       <DataTable exportIn={exportIn} label={t(isEnded ? 'console.promotions.list.endedLabel' : 'console.promotions.list.label')} rowKey={(promotion) => promotion.id} density="comfortable" narrowLayout="scroll"
@@ -84,6 +97,23 @@ function Listed({ venueId, names, onOpen, tab, onNavigate, onLogHighHand, overvi
       {record === undefined ? null : (
         <HighHandRecord venueId={venueId} promotion={record} names={names} steps={steps} onLog={onLogHighHand} onClose={() => setRecordId(null)} />
       )}
+    </>
+  );
+}
+
+/** The tabs, then the promotions or, on a super admin's own tab, the Bonus waiting for approval, once the list has come. */
+function Listed({ venueId, names, onOpen, tab, onNavigate, onLogHighHand, canApprove, overview, exportIn }: PromotionListProps & { overview: PromotionsOverview; exportIn: HTMLElement | null }) {
+  const view: View = TABS.find((one) => one === tab && (canApprove || one !== 'bonus')) ?? 'current';
+  const waiting = useStaffQueueCounts(venueId).data?.['bonusApprovals'] ?? 0;
+  const current = overview.promotions.filter((promotion) => promotion.status !== 'ended').sort(byStatus);
+  const ended = overview.promotions.filter((promotion) => promotion.status === 'ended');
+  return (
+    <Stack gap={4}>
+      <ViewTabs view={view} counts={{ current: current.length, ended: ended.length, bonus: waiting }} canApprove={canApprove} onNavigate={onNavigate} />
+      {view === 'bonus'
+        ? <BonusApprovals venueId={venueId} onNavigate={onNavigate} exportIn={exportIn} />
+        : <PromotionsShown venueId={venueId} names={names} onOpen={onOpen} onLogHighHand={onLogHighHand} view={view} overview={overview}
+            current={current} ended={ended} exportIn={exportIn} />}
     </Stack>
   );
 }
@@ -91,7 +121,8 @@ function Listed({ venueId, names, onOpen, tab, onNavigate, onLogHighHand, overvi
 /**
  * Promotions (console v3, phase 7): current promotions with a chip for each status and its count, then a row each with what
  * it gives, who, when, the grants this club week and its status; Pause or Resume, Edit or Review, and End. Ended ones have
- * their own tab, with the day each ended (owner, 8 Nov). New promotion opens the builder.
+ * their own tab, with the day each ended (owner, 8 Nov); a super admin's has the Bonus to approve (decision 0670). New
+ * promotion opens the builder.
  */
 export function PromotionList(props: PromotionListProps) {
   const overview = usePromotionsOverview(props.venueId);

@@ -71,7 +71,7 @@ export {
   type FeedbackTopic,
 } from './feedback.ts';
 export {
-  PROMOTION_EFFECTS, PROMOTION_HANDS, PROMOTION_TRIGGERS, promotionConditionsSchema, promotionEffectSchema, promotionRefusalSchema, type PromotionConditions,
+  bonusRefusalSchema, PROMOTION_EFFECTS, PROMOTION_HANDS, PROMOTION_TRIGGERS, promotionConditionsSchema, promotionEffectSchema, promotionRefusalSchema, type PromotionConditions,
   type PromotionEffect, type PromotionEffectKind, type PromotionTrigger,
 } from './promotions.ts';
 export {
