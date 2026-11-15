@@ -10,7 +10,7 @@
 delete from public.computer_enrolment e using public.device d where d.id = e.device_id and d.kind = 'agent';
 delete from public.device d
 where d.kind = 'agent' and not exists (select 1 from public.control_state c where c.device_id = d.id);
-update public.device set revoked_at = now() where kind = 'agent' and revoked_at is null;
+update public.device set revoked_at = now(), revoked_reason = 'The cage agent was removed' where kind = 'agent' and revoked_at is null;
 delete from private.device_pairing_miss where client like 'agent:%';
 
 -- Enrolment, and who a token is.
