@@ -74,6 +74,8 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | `tableToSeatAt(tables)`, `TableToSeat` | Where the Live floor's Seat a player seats (decision 0479): the first open table, in floor order, with a free seat and someone on its list; else the first open table with a free seat; else null. The call time its sheet starts with is the stake's own, typed over as the floor likes (redesign RD-19). |
 | `suggestedMinBuyIn(bigBlind)`, `isMinBuyIn(amount)`, `SUGGESTED_MIN_BUY_IN_BIG_BLINDS` | A table's own minimum buy-in (redesign RD-16): Tables setup suggests 50 big blinds of the table's stake, and any whole ₹50 above zero may be saved; no maximum. Golden `tableMinBuyIn.json`; the database stores the amount and checks the same. |
 | `stakeTableRefusal(callTimeMinutes)`, `StakeTableRefusal`, `isStakeCallTime(minutes)` | A stake is given to a table only once it has a call time above zero (`stake_without_call_time`; `private.assert_stake_ready` refuses the same, RVNCT); a stake's call time is whole minutes, 1 to 1,440. |
+| `isBlind(amount)`, `areBlinds(smallBlind, bigBlind)`, `isStraddle(straddle, bigBlind)`, `BLIND_CEILING` | A stake's blinds as Tables setup takes them: each a whole 50 above zero and 1,00,00,000 at most, the big blind above the small, and a straddle, when there is one, a blind above the big blind (decision 0299). `table_type`'s checks, `private.assert_blinds_in_reach` and `private.assert_straddle` refuse the same. |
+| `isSeatCount(seats)`, `SEAT_COUNTS` | A table seats 2 to 10 (owner, 15 Nov), as `game_table` checks; the counts in order, for the form's row. |
 
 ### `@rivr/domain/bonus`
 

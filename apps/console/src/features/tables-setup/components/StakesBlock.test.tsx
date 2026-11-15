@@ -47,6 +47,25 @@ describe('the stakes on Tables setup (redesign RD-17)', () => {
     expect(sent).toEqual([]);
   });
 
+  it('takes a blind up to the database\'s 1,00,00,000 and refuses one above it (@rivr/domain isBlind)', async () => {
+    const sent = renderStakes();
+    fireEvent.click(screen.getByRole('button', { name: 'New stake' }));
+    const panel = screen.getByRole('dialog', { name: 'New stake' });
+    type(panel, 'Stake name', 'Highest');
+    type(panel, 'Small blind', '5000000');
+    type(panel, 'Big blind', '10000050');
+    type(panel, 'Call time', '240');
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
+    expect(await within(panel).findByText('Check the name, blinds, straddle and call time.')).toBeDefined();
+    expect(sent).toEqual([]);
+
+    type(panel, 'Big blind', '10000000');
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(sent).toEqual([{ rpc: 'add_table_type', body: {
+      p_venue_id: 'v1', p_name: 'Highest', p_small_blind_paise: 500000000, p_big_blind_paise: 1000000000, p_call_time_minutes: 240,
+    } }]));
+  });
+
   it('asks for the call time with the stake, refuses a straddle not above the big blind, and saves the whole stake', async () => {
     const sent = renderStakes();
     fireEvent.click(screen.getByRole('button', { name: 'New stake' }));
