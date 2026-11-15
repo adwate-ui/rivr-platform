@@ -81,6 +81,29 @@ describe('the promotion model schemas', () => {
     expect(promotionTermsSchema.safeParse({ ...TERMS, name: 'No' }).success).toBe(false);
   });
 
+  it('takes a high hand bonus with hands from the fixed list, each once with its Bonus, and its three rules (redesign RD-22)', () => {
+    const rules = { bothHoleCards: true, shownAtShowdown: true, minPlayersDealt: 4 };
+    const hands = [{ hand: 'royal_flush', chips: 25_000 }, { hand: 'aces_full', chips: 2_000 }];
+    expect(rewardSchema.safeParse({ kind: 'high_hand', hands, rules }).success).toBe(true);
+    expect(rewardSchema.safeParse({ kind: 'high_hand', hands: [], rules }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'high_hand', hands: [{ hand: 'flush', chips: 500 }], rules }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'high_hand', hands: [{ hand: 'royal_flush' }], rules }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'high_hand', hands: [{ hand: 'royal_flush', chips: 25_020 }], rules }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'high_hand', hands: [...hands, { hand: 'royal_flush', chips: 500 }], rules }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'high_hand', hands, rules: { ...rules, minPlayersDealt: 1 } }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'high_hand', hands, rules: { bothHoleCards: true, shownAtShowdown: true } }).success).toBe(false);
+  });
+
+  it('holds a high hand bonus to its budget alone, which it must have: no limit a member, a day or in grants', () => {
+    const highHand = { ...TERMS, reward: { kind: 'high_hand', hands: [{ hand: 'royal_flush', chips: 25_000 }], rules: { bothHoleCards: true, shownAtShowdown: true, minPlayersDealt: 4 } } };
+    expect(promotionTermsSchema.safeParse({ ...highHand, limits: { perMember: 'none', budgetChips: 200_000, budgetPeriod: 'month' } }).success).toBe(true);
+    expect(promotionTermsSchema.safeParse({ ...highHand, limits: { perMember: 'none', budgetChips: 200_000 } }).success).toBe(true);
+    expect(promotionTermsSchema.safeParse({ ...highHand, limits: { perMember: 'none' } }).success).toBe(false);
+    expect(promotionTermsSchema.safeParse({ ...highHand, limits: { perMember: 'per_day', budgetChips: 200_000 } }).success).toBe(false);
+    expect(promotionTermsSchema.safeParse({ ...highHand, limits: { perMember: 'none', budgetChips: 200_000, maxMembersPerDay: 5 } }).success).toBe(false);
+    expect(promotionTermsSchema.safeParse({ ...highHand, limits: { perMember: 'none', budgetChips: 200_000, maxGrants: 5 } }).success).toBe(false);
+  });
+
   it('takes a plain https link for the card, and nothing that hides its host', () => {
     expect(promotionTermsSchema.safeParse({ ...TERMS, link: 'https://rivr.club/promotions?from=tv' }).success).toBe(true);
     expect(promotionTermsSchema.safeParse({ ...TERMS, link: 'http://rivr.club' }).success).toBe(false);
@@ -95,6 +118,11 @@ describe('the promotion model schemas', () => {
     expect(promotionEventSchema.safeParse({ ...base, kind: 'signup' }).success).toBe(true);
     expect(promotionEventSchema.safeParse({ ...base, kind: 'buy_in', ownChips: 10_000, isFirstOfVisit: true }).success).toBe(false);
     expect(promotionEventSchema.safeParse({ ...base, kind: 'referral', extra: 1 }).success).toBe(false);
+    const confirmed = { bothHoleCards: true, shownAtShowdown: true, playersDealt: true };
+    expect(promotionEventSchema.safeParse({ ...base, kind: 'high_hand', hand: 'four_of_a_kind', rank: 'jack', confirmed }).success).toBe(true);
+    expect(promotionEventSchema.safeParse({ ...base, kind: 'high_hand', hand: 'royal_flush', rank: null, confirmed }).success).toBe(true);
+    expect(promotionEventSchema.safeParse({ ...base, kind: 'high_hand', hand: 'royal_flush', rank: null }).success).toBe(false);
+    expect(promotionEventSchema.safeParse({ ...base, kind: 'high_hand', hand: 'four_of_a_kind', rank: 'joker', confirmed }).success).toBe(false);
     expect(memberFactsSchema.safeParse({ tierId: null, daysSinceJoined: 3, daysSinceLastVisit: null }).success).toBe(true);
   });
 

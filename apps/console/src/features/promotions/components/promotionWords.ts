@@ -1,5 +1,5 @@
 import type { Eligibility, Limits, Reward, Schedule } from '@rivr/contracts/promotionModel';
-import type { Terms } from '@rivr/domain/promotions';
+import { highestHandChips, type Terms } from '@rivr/domain/promotions';
 import { formatNumber as count, t } from '@rivr/i18n';
 
 /** The names to show for stake codes, tier ids, table ids and tournaments; an id with no name shows as it is. */
@@ -66,6 +66,8 @@ function rewardText(reward: Reward, names: PromotionNames): string {
       return t('console.promotions.words.cabHome', { visit: reward.fromVisitInMonth });
     case 'tournament_entry':
       return t('console.promotions.words.tournamentEntry', { name: nameOf(names.tournaments, reward.tournamentId) });
+    case 'high_hand':
+      return t('console.promotions.words.highHand', { chips: count(highestHandChips(reward)) });
     default:
       return t('console.promotions.words.priority');
   }

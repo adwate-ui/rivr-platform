@@ -111,12 +111,19 @@ function counted(limits: Limits, ledger: Ledger, day: string): Ledger {
 }
 
 /**
+ * What is left of a budget once a tally's chips are given, never below nothing; null with no budget. A refusal for the
+ * budget says this (redesign RD-22). private.promo_budget_left is its twin on promotionRewards.json.
+ */
+export function budgetLeft(limits: Pick<Limits, 'budgetChips'>, tally: Pick<GrantTally, 'chipsGiven'>): number | null {
+  return limits.budgetChips === undefined ? null : Math.max(0, limits.budgetChips - tally.chipsGiven);
+}
+
+/**
  * What is left of the promotion's budget in bonus chips on a club day, over all its versions (that day's month for a
  * monthly budget), never below nothing; null with no budget.
  */
 export function remainingBudget(promo: { readonly limits: Limits }, ledger: Ledger, day: string): number | null {
-  const budget = promo.limits.budgetChips;
-  return budget === undefined ? null : Math.max(0, budget - chipsIn(counted(promo.limits, ledger, day)));
+  return budgetLeft(promo.limits, { chipsGiven: chipsIn(counted(promo.limits, ledger, day)) });
 }
 
 /** The tally for one more grant to the event's member, from the promotion's ledger. */

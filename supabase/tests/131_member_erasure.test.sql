@@ -39,7 +39,7 @@ select set_eq(
      ('member_erasure_request'),
      ('bonus_redemption'), ('control_state'),
      ('early_departure'), ('fnb_order'), ('invoice'), ('ledger_account'), ('member_tier_change'),
-     ('promotion_grant'), ('referral'), ('seat_session'), ('self_exclusion'),
+     ('promotion_grant'), ('high_hand_hit'), ('referral'), ('seat_session'), ('self_exclusion'),
      ('top_up_request'), ('call_time_request'), ('promotion_step_skip'),
      ('tournament_entry'), ('tournament_payout'), ('tournament_purchase'), ('tournament_ticket'), ('visit'), ('waitlist_entry') $$,
   'every table naming a member is classified for erasure (a new one is a decision: delete, anonymise or keep)'

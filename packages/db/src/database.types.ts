@@ -839,6 +839,74 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     }
                   ]
+                },"high_hand_hit": {
+                  Row: {
+                    "bonus_grant_id": string,"chips": number,"created_at": string,"hand": string,"id": string,"logged_by_staff_id": string,"member_id": string,"promotion_grant_id": string,"promotion_id": string,"promotion_version_id": string,"rank": string | null,"request_id": string,"seat": number,"session_id": string,"table_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "bonus_grant_id": string,"chips": number,"created_at"?: string,"hand": string,"id"?: string,"logged_by_staff_id": string,"member_id": string,"promotion_grant_id": string,"promotion_id": string,"promotion_version_id": string,"rank"?: string | null,"request_id": string,"seat": number,"session_id": string,"table_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "bonus_grant_id"?: string,"chips"?: number,"created_at"?: string,"hand"?: string,"id"?: string,"logged_by_staff_id"?: string,"member_id"?: string,"promotion_grant_id"?: string,"promotion_id"?: string,"promotion_version_id"?: string,"rank"?: string | null,"request_id"?: string,"seat"?: number,"session_id"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "high_hand_hit_bonus_grant_id_fkey"
+      columns: ["bonus_grant_id"]
+isOneToOne: false
+      referencedRelation: "bonus_grant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "high_hand_hit_logged_by_staff_id_fkey"
+      columns: ["logged_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "high_hand_hit_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "high_hand_hit_promotion_grant_id_fkey"
+      columns: ["promotion_grant_id"]
+isOneToOne: false
+      referencedRelation: "promotion_grant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "high_hand_hit_promotion_id_venue_id_fkey"
+      columns: ["promotion_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "promotion"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "high_hand_hit_promotion_version_id_venue_id_fkey"
+      columns: ["promotion_version_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "promotion_version"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "high_hand_hit_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "seat_session"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "high_hand_hit_table_id_venue_id_fkey"
+      columns: ["table_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "game_table"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "high_hand_hit_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"invoice": {
                   Row: {
                     "buyer_gstin": string | null,"buyer_name": string,"cgst_paise": number,"created_at": string,"description": string,"financial_year": number,"id": string,"igst_paise": number,"is_tax_invoice": boolean,"issued_at": string,"member_id": string | null,"number": string,"place_of_supply": string | null,"rate_basis_points": number,"sac_code": string | null,"sequence": number,"series_id": string,"sgst_paise": number,"signatory_designation": string | null,"signatory_name": string | null,"source": string,"supplier_address": string,"supplier_gstin": string | null,"supplier_legal_name": string,"taxable_paise": number,"total_paise": number,"updated_at": string,"venue_id": string
@@ -3161,6 +3229,9 @@ isOneToOne: false
                            },
 "log_hand":
 { Args: { "p_idempotency_key": string,"p_played_at": string,"p_pot": number,"p_variant": Database["public"]['Enums']["hand_variant"] }; Returns: string
+                           },
+"log_high_hand":
+{ Args: { "p_confirmed": Json,"p_hand": string,"p_member_id": string,"p_rank": string,"p_request_id": string,"p_table_id": string }; Returns: string
                            },
 "mark_kot_sent":
 { Args: { "p_order_id": string }; Returns: undefined

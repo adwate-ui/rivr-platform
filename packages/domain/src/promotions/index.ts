@@ -13,7 +13,10 @@ export {
   computeGrant, NO_GRANT, toPromotionEvent, triggerOf, type Grant, type GrantRefusal, type Perk, type PromotionEvent, type PromotionEventKind,
 } from './grant.ts';
 export {
-  checkLimits, decideGrant, ledgerEntryFor, periodKey, remainingBudget, slotKey, tallyFor, tierChips, type GrantTally, type Ledger, type LedgerEntry, type LimitRefusal,
+  highestHandChips, highHandPayout, ranksOf, type HighHandHit, type HighHandPayout, type HighHandRefusal, type HighHandReward,
+} from './highHand.ts';
+export {
+  budgetLeft, checkLimits, decideGrant, ledgerEntryFor, periodKey, remainingBudget, slotKey, tallyFor, tierChips, type GrantTally, type Ledger, type LedgerEntry, type LimitRefusal,
   type Refusal,
 } from './limits.ts';
 export { hourSteps, stepsReached, type HourStep, type HoursBonus } from './hourSteps.ts';

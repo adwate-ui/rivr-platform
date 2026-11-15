@@ -19,6 +19,8 @@ export const promotionWords = {
   cabHome: 'A cab home from visit {visit} in a month',
   tournamentEntry: 'An entry to {name}',
   priority: 'Front of every waitlist',
+  /** A high hand bonus by the most it pays (redesign correction 30). */
+  highHand: 'Up to {chips} Bonus a hand',
   allStakes: 'all stakes',
   audience: { new_30d: 'new members, first 30 days', lapsed: 'lapsed regulars' },
   days: { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' },

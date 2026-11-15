@@ -25,6 +25,9 @@ const reward: fc.Arbitrary<Reward> = fc.oneof(
   fc.integer({ min: 1, max: 31 }).map((visit): Reward => ({ kind: 'cab_home', fromVisitInMonth: visit })),
   fc.constant<Reward>({ kind: 'tournament_entry', tournamentId: 'RIVR Sunday' }),
   fc.constant<Reward>({ kind: 'waitlist_priority' }),
+  chips.map((amount): Reward => ({
+    kind: 'high_hand', hands: [{ hand: 'four_of_a_kind', chips: amount }], rules: { bothHoleCards: true, shownAtShowdown: false, minPlayersDealt: 4 },
+  })),
 );
 
 // A week of the launch fortnight, by five members at two tables.
@@ -43,6 +46,11 @@ const event: fc.Arbitrary<PromotionEvent> = fc.tuple(place, fc.oneof(
   fc.record({ kind: fc.constant('hours_step' as const), minutes: fc.integer({ min: 0, max: 1_440 }), stepMinutes: minutes }),
   fc.record({ kind: fc.constant('visit' as const), visitInMonth: fc.integer({ min: 1, max: 31 }) }),
   fc.record({ kind: fc.constantFrom('referral' as const, 'signup' as const) }),
+  fc.record({
+    kind: fc.constant('high_hand' as const), hand: fc.constantFrom('four_of_a_kind' as const, 'royal_flush' as const),
+    rank: fc.constantFrom(null, 'ace' as const, 'two' as const),
+    confirmed: fc.record({ bothHoleCards: fc.boolean(), shownAtShowdown: fc.boolean(), playersDealt: fc.boolean() }),
+  }),
 )).map(([where, facts]) => ({ ...where, ...facts }));
 // Up to N times a member only with a period, and a monthly budget only with a budget or most grants (decision 0499).
 const limits: fc.Arbitrary<Limits> = fc.record({

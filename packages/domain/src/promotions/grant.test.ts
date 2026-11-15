@@ -28,6 +28,17 @@ describe('triggerOf', () => {
     expect(triggerOf({ kind: 'waitlist_priority' })).toBe('visit');
   });
 
+  it('gives a high hand bonus for a high hand, and only for one', () => {
+    const highHand: Reward = { kind: 'high_hand', hands: [{ hand: 'royal_flush', chips: 25_000 }], rules: { bothHoleCards: true, shownAtShowdown: true, minPlayersDealt: 4 } };
+    const confirmed = { bothHoleCards: true, shownAtShowdown: true, playersDealt: true };
+    const royal = event({ kind: 'high_hand', hand: 'royal_flush', rank: null, confirmed });
+    expect(triggerOf(highHand)).toBe('high_hand');
+    expect(grantOf(highHand, royal)).toEqual({ ok: true, value: { chips: 25_000, perk: null } });
+    expect(grantOf(highHand, event({ kind: 'high_hand', hand: 'aces_full', rank: null, confirmed }))).toEqual({ ok: false, error: 'hand_not_listed' });
+    expect(grantOf(highHand, seat)).toEqual({ ok: false, error: 'other_event' });
+    expect(grantOf({ kind: 'seat_bonus', chips: 1_000 }, royal)).toEqual({ ok: false, error: 'other_event' });
+  });
+
   it('gives bonus chips for the event they are on', () => {
     expect(triggerOf({ kind: 'bonus_chips', chips: 500, on: 'visit' })).toBe('visit');
     expect(triggerOf({ kind: 'bonus_chips', chips: 500, on: 'referral' })).toBe('referral');
