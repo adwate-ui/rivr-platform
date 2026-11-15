@@ -12,7 +12,7 @@ import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 const SIGNED_IN = '00000000-0000-4000-8000-000000000107';
 const VENUE = '00000000-0000-4000-8000-000000000001';
 const TUESDAY: PromotionTerms = {
-  name: 'Tuesday bonus', reward: { kind: 'buyin_bonus', mode: 'percent', percent: 20, capChips: 2_000 },
+  name: 'Tuesday bonus', reward: { kind: 'seat_bonus', chips: 2_000 },
   eligibility: { stakes: 'all', tiers: 'all', audience: 'everyone' },
   schedule: { days: [2], from: '06:00', to: '06:00', startsOn: '2026-10-01', timezone: 'Asia/Kolkata' }, limits: { perMember: 'per_day' },
   channels: { playerApp: true, tv: true, website: false, whatsapp: false }, rulesText: [],
@@ -39,18 +39,18 @@ function renderActions(replies: Record<string, { status?: number; body: unknown 
 
 const failure = (code: string) => ({ status: 400, body: { code, message: 'refused', details: null, hint: null } });
 
-/** Two of last week's buy-ins on a Tuesday, as promotion_version_replay gives them: 10,000 and 5,000 of own chips. */
-function buyIn(n: number, ownChips: number) {
+/** One of last week's first seats on a Tuesday, as promotion_version_replay gives them. */
+function seat(n: number) {
   return {
-    event: { kind: 'buy_in', key: `buy_in:${n}`, at: `2026-10-27T2${n}:00:00+05:30`, memberId: `m${n}`, visitId: `v${n}`, tableId: 't1', stake: 'nlh_50_100',
-      ownChips, isFirstOfVisit: true },
+    event: { kind: 'seated', key: `seated:${n}`, at: `2026-10-27T2${n}:00:00+05:30`, memberId: `m${n}`, visitId: `v${n}`, tableId: 't1', stake: 'nlh_50_100',
+      isFirstOfVisit: true },
     member: { tierId: null, daysSinceJoined: 40, daysSinceLastVisit: 3 },
   };
 }
 
 afterEach(cleanup);
 
-const WORDS = { detail: '20% of your buy-in in bonus chips', runs: 'all stakes · Tue, all day' };
+const WORDS = { detail: '2,000 bonus chips on the first seat of a visit', runs: 'all stakes · Tue, all day' };
 
 describe('promotion version actions', () => {
   it('saves a new draft with its card words and request id, and the next version of a running one by its id', async () => {
@@ -86,14 +86,14 @@ describe('promotion version actions', () => {
 
   it('simulates a draft on last week with the domain, and stores the result with the terms it ran on', async () => {
     const { result, bodyOf } = renderActions({
-      '/rpc/promotion_version_replay': { body: { from: '2026-10-27T00:30:00+00:00', to: '2026-11-03T00:30:00+00:00', events: [buyIn(1, 10_000), buyIn(2, 5_000)] } },
+      '/rpc/promotion_version_replay': { body: { from: '2026-10-27T00:30:00+00:00', to: '2026-11-03T00:30:00+00:00', events: [seat(1), seat(2)] } },
       '/rpc/record_promotion_simulation': { body: null },
     });
     let run: unknown;
     await act(async () => {
       run = await result.current.simulate.mutateAsync({ versionId: 'v1', terms: TUESDAY });
     });
-    const simulation = { events: 2, membersQualified: 2, timesGiven: 2, chips: 3_000, perks: 0, isBudgetReached: false };
+    const simulation = { events: 2, membersQualified: 2, timesGiven: 2, chips: 4_000, perks: 0, isBudgetReached: false };
     expect(run).toEqual({ ok: true, value: { ...simulation, from: new Date('2026-10-27T00:30:00Z'), to: new Date('2026-11-03T00:30:00Z') } });
     expect(bodyOf('record_promotion_simulation')).toEqual({
       p_version_id: 'v1', p_simulation: simulation,
@@ -103,7 +103,7 @@ describe('promotion version actions', () => {
 
   it('replays last week as if the promotion had run then, though it starts later and ends before', async () => {
     const { result, bodyOf } = renderActions({
-      '/rpc/promotion_version_replay': { body: { from: '2026-10-27T00:30:00+00:00', to: '2026-11-03T00:30:00+00:00', events: [buyIn(1, 10_000)] } },
+      '/rpc/promotion_version_replay': { body: { from: '2026-10-27T00:30:00+00:00', to: '2026-11-03T00:30:00+00:00', events: [seat(1)] } },
       '/rpc/record_promotion_simulation': { body: null },
     });
     const later = { ...TUESDAY, schedule: { ...TUESDAY.schedule, startsOn: '2026-11-17', endsOn: '2026-11-20' } };

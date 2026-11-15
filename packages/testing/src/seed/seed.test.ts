@@ -120,9 +120,8 @@ describe('design prompt seed: the floor tonight', () => {
     expect(tournament.blinds).toEqual({ small: 400, big: 800, ante: 800 });
   });
 
-  it('runs the three live promotions', () => {
+  it('runs the two live promotions', () => {
     expect(seed.promotions).toEqual([
-      { kind: 'buy_in_bonus', title: 'Buy-in bonus Tuesday', weekday: 'tuesday', bonusBasisPoints: 2_000n, firstBuyInsPerTable: 5 },
       {
         kind: 'high_hand',
         title: 'High hands',

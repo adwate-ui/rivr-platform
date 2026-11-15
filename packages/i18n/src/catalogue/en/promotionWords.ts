@@ -1,10 +1,6 @@
 /** A promotion in words, for the builder, the approver, the list and the cards saved with a version (audit F-055). */
 export const promotionWords = {
   time: { hour: '1 hour', hours: '{count} hours', hoursMinutes: '{hours} h {minutes} min', minutes: '{minutes} min' },
-  buyIn: {
-    fixed: '{chips} bonus chips on a buy-in', percent: '{percent}% of your buy-in in bonus chips', upTo: 'up to {chips} bonus chips',
-    firstN: 'first {count} buy-ins per table',
-  },
   seat: {
     /**
      * In tiers (decision 0580): `Bonus chips on a first seat, once a member: first 10 get 5,000, next 20 get 2,000`. Five tiers at
@@ -17,7 +13,7 @@ export const promotionWords = {
     everyHour: '{chips} bonus chips every hour', upToOnce: 'up to once a visit', upToTimes: 'up to {count} times a visit',
   },
   bonusChips: {
-    visit: '{chips} bonus chips on each visit', first_buyin: '{chips} bonus chips on the first buy-in of a visit',
+    visit: '{chips} bonus chips on each visit',
     referral: '{chips} bonus chips for each referral', signup: '{chips} bonus chips on sign-up',
   },
   cabHome: 'A cab home from visit {visit} in a month',

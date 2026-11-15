@@ -123,7 +123,7 @@ export const promotions = {
       timesPerVisit: 'Times a visit',
       noCap: 'No cap',
       givenOn: 'Given on',
-      bonusOn: { visit: 'Each visit', first_buyin: 'First buy-in', referral: 'Referral', signup: 'Sign-up' },
+      bonusOn: { visit: 'Each visit', referral: 'Referral', signup: 'Sign-up' },
       fromVisit: 'From visit',
       fromVisitSuffix: 'in a calendar month',
       tournament: 'Tournament',

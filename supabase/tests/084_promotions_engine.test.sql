@@ -1,7 +1,8 @@
 -- The promotions engine (#83). 103 Aditya (admin) and 107 Ishita (marketing) manage promotions; 104
--- Sana (cashier) and 106 Pema (dealer) do not. Three live promotions answer a buy-in: "New player first
--- buy-in" (₹1,000 to a new player, alone, one grant in all), "Buy-in bonus Tuesday" (20% to the first
--- two at each table, ₹5,000 in all) and "Double points" (500 points, once a club day each). 211
+-- Sana (cashier) and 106 Pema (dealer) do not. Three live promotions answer a hand at a table, the
+-- old engine's trigger that nothing fires now, so only the test's own events are weighed: "New player welcome" (₹1,000
+-- to a new player, alone, one grant in all), "Tuesday bonus" (₹2,000 to the first two at each table, ₹5,000 in all) and
+-- "Welcome back" (a message, once a club day each). A buy-in sets nothing off (question 1009). 211
 -- Ishaan and 212 Vihaan have never visited; 216 Kunal and 217 Neel have three visits behind them.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -29,10 +30,10 @@ create function pg_temp.held(p_code text, p_member uuid) returns bigint language
   select -coalesce(sum(e.amount), 0)::bigint from public.ledger_entry e join public.ledger_account a on a.id = e.account_id
   where a.code = p_code and a.member_id = p_member;
 $$;
--- A buy-in at a table, weighed by the engine: the number of grants given.
-create function pg_temp.buy_in(p_member text, p_table text, p_key text) returns integer language sql as $$
-  select count(*)::integer from private.evaluate_promotions('00000000-0000-4000-8000-000000000001', 'buy_in',
-    jsonb_build_object('member_id', '00000000-0000-4000-8000-000000000' || p_member, 'key', 'buy_in:' || p_key, 'amount_paise', 1000000, 'method', 'wallet',
+-- A hand at a table, weighed by the engine: the number of grants given.
+create function pg_temp.hand(p_member text, p_table text, p_key text) returns integer language sql as $$
+  select count(*)::integer from private.evaluate_promotions('00000000-0000-4000-8000-000000000001', 'hand_logged',
+    jsonb_build_object('member_id', '00000000-0000-4000-8000-000000000' || p_member, 'key', 'hand:' || p_key,
                        'table_id', (select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = p_table)));
 $$;
 -- Any event, weighed by the engine: the number of grants given.
@@ -51,41 +52,41 @@ grant select, insert on ids to authenticated;
 -- manage them; a promotion is submitted and a super admin approves it (146_promotion_approval.test.sql). The test's
 -- three go in as the database's owner, and the tables still refuse a rule the engine cannot run.
 with p as (insert into public.promotion (venue_id, name, status, stacks, priority)
-            values ('00000000-0000-4000-8000-000000000001', 'New player first buy-in', 'live', false, 20) returning id)
+            values ('00000000-0000-4000-8000-000000000001', 'New player welcome', 'live', false, 20) returning id)
 insert into ids select 'new_player', id from p;
 with p as (insert into public.promotion (venue_id, name, status, priority)
-            values ('00000000-0000-4000-8000-000000000001', 'Buy-in bonus Tuesday', 'live', 10) returning id)
+            values ('00000000-0000-4000-8000-000000000001', 'Tuesday bonus', 'live', 10) returning id)
 insert into ids select 'tuesday', id from p;
 with p as (insert into public.promotion (venue_id, name, status, priority, per_player_limit, per_player_period)
             values ('00000000-0000-4000-8000-000000000001', 'Welcome back', 'live', 5, 1, 'day') returning id)
 insert into ids select 'welcome', id from p;
 insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, effect) values
-  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'new_player'), 'buy_in', '{"new_player": true}',
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'new_player'), 'hand_logged', '{"new_player": true}',
    '{"kind": "bonus", "amount_paise": 100000, "expires_days": 30}'),
-  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"first_n": {"count": 2, "per": "table"}}',
-   '{"kind": "bonus", "percent_bps": 2000, "expires_days": 7}'),
-  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'welcome'), 'buy_in', '{}', '{"kind": "message", "text": "Welcome back"}');
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'hand_logged', '{"first_n": {"count": 2, "per": "table"}}',
+   '{"kind": "bonus", "amount_paise": 200000, "expires_days": 7}'),
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'welcome'), 'hand_logged', '{}', '{"kind": "message", "text": "Welcome back"}');
 insert into public.promotion_budget (venue_id, promotion_id, cap_paise, cap_count) values
   ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'new_player'), null, 1),
   ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 500000, null);
 select throws_ok($$ insert into public.promotion_rule (venue_id, promotion_id, trigger, effect) values
-  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in',
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'hand_logged',
    '{"kind": "bonus", "amount_paise": 100000, "percent_bps": 2000, "expires_days": 7}') $$, '23514', null,
   'a bonus is an amount or a share, not both');
 select throws_ok($$ insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, effect) values
-  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"gender": "f"}', '{"kind": "message", "text": "Hello"}') $$,
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'hand_logged', '{"gender": "f"}', '{"kind": "message", "text": "Hello"}') $$,
   '23514', null, 'and a condition is one the engine knows');
 select throws_ok($$ insert into public.promotion_rule (venue_id, promotion_id, trigger, effect) values
   ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'lunch', '{"kind": "message", "text": "Hello"}') $$,
   '23514', null, 'as is a trigger');
 select throws_ok($$ insert into public.promotion_rule (venue_id, promotion_id, trigger, effect) values
-  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"kind": "bonus", "amount_paise": 102000, "expires_days": 7}') $$,
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'hand_logged', '{"kind": "bonus", "amount_paise": 102000, "expires_days": 7}') $$,
   '23514', null, 'a bonus is whole ₹50 chips');
 select throws_ok($$ insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, effect) values
-  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"from": "22:00"}', '{"kind": "message", "text": "Hello"}') $$,
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'hand_logged', '{"from": "22:00"}', '{"kind": "message", "text": "Hello"}') $$,
   '23514', null, 'a window is given whole');
 select throws_ok($$ insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, effect) values
-  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"from": "05:00", "until": "07:00"}', '{"kind": "message", "text": "Hello"}') $$,
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'hand_logged', '{"from": "05:00", "until": "07:00"}', '{"kind": "message", "text": "Hello"}') $$,
   '23514', null, 'and closes before the club''s day turns over at 06:00');
 select lives_ok($$ insert into public.promotion_rule (venue_id, promotion_id, position, trigger, conditions, effect) values
   ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 9, 'check_in', '{"from": "22:00", "until": "04:00"}', '{"kind": "message", "text": "Hello"}') $$,
@@ -98,7 +99,7 @@ select throws_ok($$ insert into public.promotion (venue_id, name, status) values
 select throws_ok($$ update public.promotion set status = 'live' where id = (select id from ids where name = 'welcome') $$, '42501', null,
   'nor changes one');
 select throws_ok($$ insert into public.promotion_rule (venue_id, promotion_id, trigger, effect) values
-  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"kind": "message", "text": "Hello"}') $$,
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'hand_logged', '{"kind": "message", "text": "Hello"}') $$,
   '42501', null, 'nor writes a rule');
 select throws_ok($$ update public.promotion_budget set cap_paise = null $$, '42501', null, 'or a budget');
 select throws_ok($$ delete from public.promotion_rule $$, '42501', null, 'or removes a rule');
@@ -164,23 +165,23 @@ select is(private.promotion_facts('00000000-0000-4000-8000-000000000218', null, 
   'her last began twelve days before');
 
 -- A new player: the new player bonus, alone, though the others apply too.
-select is(pg_temp.buy_in('211', 'Table 3', 'test-1'), 1, 'Ishaan''s buy-in gives one promotion');
-select is(pg_temp.grants('New player first buy-in'), '211', 'the new player bonus, which does not stack');
+select is(pg_temp.hand('211', 'Table 3', 'test-1'), 1, 'Ishaan''s hand gives one promotion');
+select is(pg_temp.grants('New player welcome'), '211', 'the new player bonus, which does not stack');
 select is(pg_temp.held('member.bonus', '00000000-0000-4000-8000-000000000211'), 100000::bigint, 'Ishaan holds ₹1,000 of bonus');
 select results_eq($$ select b.reason, b.expires_at is null, g.fulfilled_at is not null
                      from public.promotion_grant g join public.bonus_grant b on b.id = g.bonus_grant_id
                      where g.member_id = '00000000-0000-4000-8000-000000000211' $$,
-  $$ values ('New player first buy-in'::text, true, true) $$, 'credited at once through the bonus, which never ends (decision 0504)');
-select is(pg_temp.buy_in('211', 'Table 3', 'test-1'), 0, 'a replay of the buy-in gives nothing more');
+  $$ values ('New player welcome'::text, true, true) $$, 'credited at once through the bonus, which never ends (decision 0504)');
+select is(pg_temp.hand('211', 'Table 3', 'test-1'), 0, 'a replay of the hand gives nothing more');
 select is((select count(*)::integer from public.bonus_grant where member_id = '00000000-0000-4000-8000-000000000211'), 1, 'and credits nothing more');
 
 -- Regulars: the Tuesday bonus and the welcome, which stack; the first two at Table 3 only.
-select is(pg_temp.buy_in('216', 'Table 3', 'test-2'), 2, 'Kunal''s buy-in gives two promotions');
-select is(pg_temp.held('member.bonus', '00000000-0000-4000-8000-000000000216'), 200000::bigint, '20% of ₹10,000 is ₹2,000 of bonus');
-select is(pg_temp.buy_in('217', 'Table 3', 'test-3'), 2, 'Neel, the second at Table 3, has both');
-select is(pg_temp.buy_in('212', 'Table 3', 'test-4'), 1, 'Vihaan has only the welcome');
-select is(pg_temp.grants('Buy-in bonus Tuesday'), '216 217', 'the third at the table has no Tuesday bonus');
-select is(pg_temp.grants('New player first buy-in'), '211', 'and a new player no such bonus once its one grant is given');
+select is(pg_temp.hand('216', 'Table 3', 'test-2'), 2, 'Kunal''s hand gives two promotions');
+select is(pg_temp.held('member.bonus', '00000000-0000-4000-8000-000000000216'), 200000::bigint, 'the Tuesday bonus is ₹2,000 of bonus');
+select is(pg_temp.hand('217', 'Table 3', 'test-3'), 2, 'Neel, the second at Table 3, has both');
+select is(pg_temp.hand('212', 'Table 3', 'test-4'), 1, 'Vihaan has only the welcome');
+select is(pg_temp.grants('Tuesday bonus'), '216 217', 'the third at the table has no Tuesday bonus');
+select is(pg_temp.grants('New player welcome'), '211', 'and a new player no such bonus once its one grant is given');
 select results_eq($$ select g.cost_paise, g.fulfilled_at is null from public.promotion_grant g join public.promotion p on p.id = g.promotion_id
                      where p.name = 'Welcome back' and g.member_id = '00000000-0000-4000-8000-000000000212' $$,
   $$ values (0::bigint, true) $$, 'a message costs nothing and credits nothing');
@@ -194,11 +195,11 @@ reset role;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 insert into ids select 'seat 9000000213', public.seat_member((select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 5'), 1, '9000000213');
 reset role;
-select is(pg_temp.buy_in('213', 'Table 5', 'test-5'), 1, 'Mihir, first at Table 5, has the welcome only');
+select is(pg_temp.hand('213', 'Table 5', 'test-5'), 1, 'Mihir, first at Table 5, has the welcome only');
 select is(pg_temp.held('member.bonus', '00000000-0000-4000-8000-000000000213'), 0::bigint, 'never part of a bonus');
 
 -- The per-player limit: the welcome once a club day.
-select is(pg_temp.buy_in('216', 'Table 3', 'test-6'), 0, 'Kunal''s second buy-in gives nothing');
+select is(pg_temp.hand('216', 'Table 3', 'test-6'), 0, 'Kunal''s second hand gives nothing');
 
 -- A date window: everyone in the club is weighed once a club day.
 with p as (insert into public.promotion (venue_id, name, status) values ('00000000-0000-4000-8000-000000000001', 'Hello at ten', 'live') returning id)
@@ -221,16 +222,18 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select is_empty($$ select * from public.promotion_grant $$, 'a cashier sees none');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000216');
 select is_empty($$ select * from public.promotion_grant $$, 'nor does a member');
-select throws_ok($$ select private.evaluate_promotions('00000000-0000-4000-8000-000000000001', 'buy_in',
-  '{"member_id": "00000000-0000-4000-8000-000000000216", "key": "buy_in:mine"}') $$, '42501', null, 'and no app weighs promotions');
+select throws_ok($$ select private.evaluate_promotions('00000000-0000-4000-8000-000000000001', 'hand_logged',
+  '{"member_id": "00000000-0000-4000-8000-000000000216", "key": "hand:mine"}') $$, '42501', null, 'and no app weighs promotions');
 reset role;
 
 -- Refusals: an unknown trigger, no event key, another venue's member.
+select throws_ok($$ select private.evaluate_promotions('00000000-0000-4000-8000-000000000001', 'buy_in',
+  '{"member_id": "00000000-0000-4000-8000-000000000216", "key": "x"}') $$, '22023', null, 'a buy-in is no trigger (question 1009)');
 select throws_ok($$ select private.evaluate_promotions('00000000-0000-4000-8000-000000000001', 'birthday',
   '{"member_id": "00000000-0000-4000-8000-000000000216", "key": "x"}') $$, '22023', null, 'an unknown trigger is refused');
 select throws_ok($$ select private.evaluate_promotions('00000000-0000-4000-8000-000000000001', 'check_in',
   '{"member_id": "00000000-0000-4000-8000-000000000216"}') $$, '22023', null, 'so is an event without its key');
-select throws_ok($$ select private.evaluate_promotions('00000000-0000-4000-8000-000000000001', 'buy_in',
+select throws_ok($$ select private.evaluate_promotions('00000000-0000-4000-8000-000000000001', 'hand_logged',
   '{"member_id": "00000000-0000-4000-8000-000000000216", "key": "x", "amount_paise": 1000000}') $$, '22023', null,
   'and an amount without how it was paid');
 select throws_ok($$ select private.evaluate_promotions('00000000-0000-4000-8000-000000000001', 'check_in',
@@ -254,17 +257,17 @@ select is(pg_temp.weigh('check_in', '217', '{"key": "check_in:test-1"}'), 1, 'Ne
 update public.promotion_grant set club_day = club_day - 1 where promotion_id = (select id from ids where name = 'drink');
 select is(pg_temp.weigh('check_in', '217', '{"key": "check_in:test-2"}'), 0, 'and a later day''s none');
 
--- A share is of the member's own money (question #392).
+-- A share is of the amount an event carries, and of the member's own money (question #392). No event carries one now.
 with p as (insert into public.promotion (venue_id, name, status) values ('00000000-0000-4000-8000-000000000001', 'Ten percent', 'live') returning id)
 insert into ids select 'ten', id from p;
 insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, effect)
-select '00000000-0000-4000-8000-000000000001', (select id from ids where name = 'ten'), 'buy_in', jsonb_build_object('table_ids', jsonb_build_array(g.id)),
+select '00000000-0000-4000-8000-000000000001', (select id from ids where name = 'ten'), 'hand_logged', jsonb_build_object('table_ids', jsonb_build_array(g.id)),
        '{"kind": "bonus", "percent_bps": 1000, "expires_days": 7}'
 from public.game_table g where g.venue_id = '00000000-0000-4000-8000-000000000001' and g.name = 'Table 5';
-select is(pg_temp.weigh('buy_in', '213', jsonb_build_object('key', 'buy_in:test-8', 'amount_paise', 1000000, 'method', 'bonus',
+select is(pg_temp.weigh('hand_logged', '213', jsonb_build_object('key', 'hand:test-8', 'amount_paise', 1000000, 'method', 'bonus',
   'table_id', (select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 5'))), 0,
-  'a buy-in paid from bonus earns no share');
-select is(pg_temp.weigh('buy_in', '213', jsonb_build_object('key', 'buy_in:test-9', 'amount_paise', 1000000, 'method', 'cash',
+  'an amount paid from bonus earns no share');
+select is(pg_temp.weigh('hand_logged', '213', jsonb_build_object('key', 'hand:test-9', 'amount_paise', 1000000, 'method', 'cash',
   'table_id', (select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 5'))), 1,
   'one paid in cash earns 10%');
 select is(pg_temp.held('member.bonus', '00000000-0000-4000-8000-000000000213'), 100000::bigint, 'Mihir holds ₹1,000 of bonus');
@@ -278,7 +281,7 @@ select is(pg_temp.weigh('hours_played', '217', '{"key": "hours:test-3", "hours_p
 
 -- Promotions switched off: nothing is given, and the caller goes on.
 insert into public.control_state (venue_id, level, feature, reason) values ('00000000-0000-4000-8000-000000000001', 'feature_kill', 'promotions', 'Test');
-select is(pg_temp.buy_in('217', 'Table 3', 'test-7'), 0, 'no promotion while promotions are switched off, and no error');
+select is(pg_temp.hand('217', 'Table 3', 'test-7'), 0, 'no promotion while promotions are switched off, and no error');
 select is(pg_temp.weigh('hours_played', '217', '{"key": "hours:test-4", "hours_played": 3}'), 0, 'none at all');
 
 select * from finish();

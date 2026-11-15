@@ -104,13 +104,6 @@ export interface SeedTournament {
 /** A live promotion, by kind. */
 export type SeedPromotion =
   | {
-      readonly kind: 'buy_in_bonus';
-      readonly title: string;
-      readonly weekday: 'tuesday';
-      readonly bonusBasisPoints: bigint;
-      readonly firstBuyInsPerTable: number;
-    }
-  | {
       readonly kind: 'high_hand';
       readonly title: string;
       readonly prizes: { readonly royalFlush: Paise; readonly straightFlush: Paise; readonly fourOfAKind: Paise };

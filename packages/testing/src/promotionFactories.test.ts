@@ -6,7 +6,7 @@ describe('promotion factories', () => {
   it('build terms, a member and events the schemas accept', () => {
     expect(promotionTermsSchema.safeParse(buildPromotionTerms()).success).toBe(true);
     expect(memberFactsSchema.safeParse(buildMemberFacts({ daysSinceLastVisit: null })).success).toBe(true);
-    expect(promotionEventSchema.safeParse(buildPromotionEvent({ kind: 'buy_in', ownChips: 10_000, isFirstOfVisit: true })).success).toBe(true);
+    expect(promotionEventSchema.safeParse(buildPromotionEvent({ kind: 'seated', isFirstOfVisit: true })).success).toBe(true);
     expect(promotionEventSchema.safeParse(buildPromotionEvent({ kind: 'signup' }, { tableId: null, stake: null })).success).toBe(true);
   });
 

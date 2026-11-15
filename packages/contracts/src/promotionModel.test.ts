@@ -21,13 +21,10 @@ describe('the promotion model schemas', () => {
     expect(rewardSchema.safeParse({ kind: 'free_spin', spins: 1, afterMinutes: 240 }).success).toBe(false);
   });
 
-  it('takes a buy-in bonus as a percent with an optional cap, or as fixed chips, in whole 50s', () => {
-    expect(rewardSchema.safeParse({ kind: 'buyin_bonus', mode: 'percent', percent: 20, capChips: 2_000, firstNBuyinsPerTable: 5 }).success).toBe(true);
-    expect(rewardSchema.safeParse({ kind: 'buyin_bonus', mode: 'percent', percent: 20 }).success).toBe(true);
-    expect(rewardSchema.safeParse({ kind: 'buyin_bonus', mode: 'fixed', chips: 500 }).success).toBe(true);
-    expect(rewardSchema.safeParse({ kind: 'buyin_bonus', mode: 'fixed', chips: 520 }).success).toBe(false);
-    expect(rewardSchema.safeParse({ kind: 'buyin_bonus', mode: 'percent', percent: 0 }).success).toBe(false);
-    expect(rewardSchema.safeParse({ kind: 'buyin_bonus', mode: 'fixed', chips: 500, percent: 10 }).success).toBe(false);
+  it('gives nothing on a buy-in, which nothing records (question 1009)', () => {
+    expect(rewardSchema.safeParse({ kind: 'buyin_bonus', mode: 'percent', percent: 20 }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'buyin_bonus', mode: 'fixed', chips: 500 }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'bonus_chips', chips: 1_000, on: 'first_buyin' }).success).toBe(false);
   });
 
   it('takes every other reward with its own fields, and refuses an unknown one', () => {
@@ -91,12 +88,12 @@ describe('the promotion model schemas', () => {
   });
 
   it('reads an event of each kind, and the member it is for', () => {
-    const base = { key: 'buy_in:1', at: '2026-11-17T21:00:00+05:30', memberId: 'm1', visitId: 'v1', tableId: 't1', stake: 'nlh_50_100' };
-    expect(promotionEventSchema.safeParse({ ...base, kind: 'buy_in', ownChips: 10_000, isFirstOfVisit: true }).success).toBe(true);
+    const base = { key: 'seated:1', at: '2026-11-17T21:00:00+05:30', memberId: 'm1', visitId: 'v1', tableId: 't1', stake: 'nlh_50_100' };
+    expect(promotionEventSchema.safeParse({ ...base, kind: 'seated', isFirstOfVisit: true }).success).toBe(true);
     expect(promotionEventSchema.safeParse({ ...base, kind: 'time_played', minutes: 240 }).success).toBe(true);
     expect(promotionEventSchema.safeParse({ ...base, kind: 'visit', visitInMonth: 4 }).success).toBe(true);
     expect(promotionEventSchema.safeParse({ ...base, kind: 'signup' }).success).toBe(true);
-    expect(promotionEventSchema.safeParse({ ...base, kind: 'buy_in', ownChips: -1, isFirstOfVisit: true }).success).toBe(false);
+    expect(promotionEventSchema.safeParse({ ...base, kind: 'buy_in', ownChips: 10_000, isFirstOfVisit: true }).success).toBe(false);
     expect(promotionEventSchema.safeParse({ ...base, kind: 'referral', extra: 1 }).success).toBe(false);
     expect(memberFactsSchema.safeParse({ tierId: null, daysSinceJoined: 3, daysSinceLastVisit: null }).success).toBe(true);
   });
