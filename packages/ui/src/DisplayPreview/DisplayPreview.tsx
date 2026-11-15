@@ -24,8 +24,8 @@ function useBoxScale(): [(node: HTMLDivElement | null) => (() => void) | undefin
 }
 
 /**
- * A TV screen in miniature on the console (#84): the TV's 1920 by 1080 stage, wordmark and all,
- * scaled to the width of its box, so a slide is previewed exactly as the TV will show it.
+ * A TV screen in miniature on the console (#84): the TV's 1920 by 1080 stage, scaled to the width of its
+ * box, so a slide is previewed as the TV will show it, less the clock and the club's notice.
  */
 export function DisplayPreview({ label, children }: DisplayPreviewProps) {
   const [measure, scale] = useBoxScale();

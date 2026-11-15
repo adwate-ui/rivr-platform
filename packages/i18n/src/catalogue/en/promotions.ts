@@ -11,7 +11,7 @@ export const promotions = {
   newPromotion: 'New promotion',
   allPromotions: 'All promotions',
   /** Above the title on the TV slide preview, as the TV says it. */
-  slideLabel: 'Promotion',
+  slideLabel: 'Offer',
   /** A promotion in words, for the builder, the approver, the list and the cards saved with a version (audit F-055). */
   words: promotionWords,
   statuses: { draft: 'Draft', awaiting_approval: 'Awaiting approval', scheduled: 'Scheduled', live: 'Live', paused: 'Paused', ended: 'Ended' },

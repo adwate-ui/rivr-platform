@@ -19,18 +19,16 @@ export const tvPairingSchema = z.discriminatedUnion('tv', [
 export const devicePairRequestSchema = z.union([devicePairSchema, tvPairingSchema]);
 export type DevicePairRequest = z.infer<typeof devicePairRequestSchema>;
 
-/** What a TV shows (additions "TV modes"), as public.tv_mode lists them. */
-export const TV_MODES = ['waitlist', 'call_time', 'promotions', 'leaderboard'] as const;
+/**
+ * What a TV shows (redesign RD-28): the five boards, and nothing else. public.tv_mode still lists the boards that went
+ * (decision 0587); the constraint tv_screen_boards_in_use keeps a TV to these.
+ */
+export const TV_MODES = ['waitlist', 'call_time', 'promotions', 'leaderboard', 'high_hand'] as const;
 export type TvMode = (typeof TV_MODES)[number];
 
 /** The periods the TVs' hours leaderboard counts (decision 0581), in the club's days from 06:00 IST. */
 export const TV_LEADERBOARD_PERIODS = ['tonight', 'week', 'month', 'all'] as const;
 export type TvLeaderboardPeriod = (typeof TV_LEADERBOARD_PERIODS)[number];
-
-/**
- * The modes hidden at the owner's word (29 Oct, #628, decision 0284): no rupee on a TV. The console does not offer
- * them, and a TV still set to one shows the waitlist board.
- */
 
 /** Staff pair a TV on the console: the code it shows, a name, and what it shows. */
 export const tvPairSchema = z.object({

@@ -29,6 +29,8 @@ const GROUP_OF: Readonly<Partial<Record<SettingKey, SettingGroup>>> = {
   'bonus.by_hand_cap': 'bonus',
   'bonus.visit_cap': 'bonus',
   'tier.default': 'membership',
+  'tv.boards': 'rotation',
+  'tv.board_seconds': 'rotation',
   'tv.leaderboard': 'rotation',
 };
 

@@ -29,8 +29,8 @@ export function ModeChips({ label, value, onChange, isDisabled = false }: ModeCh
   );
 }
 
-// The boards a TV can turn to in between its main one (decision 0163): the ones built so far.
-const ROTATING: readonly TvMode[] = ['waitlist', 'call_time', 'promotions', 'leaderboard'];
+// The boards a TV can turn to in between its main one (decision 0163): any of the five (redesign RD-28).
+const ROTATING: readonly TvMode[] = TV_MODES;
 
 interface RotationChipsProps {
   label: string;

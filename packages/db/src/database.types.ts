@@ -3255,7 +3255,7 @@ isOneToOne: false
                            },
 "my_tv_screen":
 { Args: Record<PropertyKey, never>; Returns: {
-              "device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"name": string,"rotation": (Database["public"]['Enums']["tv_mode"])[],"venue_id": string
+              "boards": (Database["public"]['Enums']["tv_mode"])[],"device_id": string,"name": string,"seconds": (number)[],"venue_id": string
             }[]
                            },
 "my_upcoming_tournaments":
@@ -3713,6 +3713,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "display_name": string,"member_number": number,"period": string,"place": number,"played_minutes": number
             }[]
+                           },
+"tv_notice":
+{ Args: Record<PropertyKey, never>; Returns: string
                            },
 "tv_pairing_policy":
 { Args: { "p_venue_id": string }; Returns: {

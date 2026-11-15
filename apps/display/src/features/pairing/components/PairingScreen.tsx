@@ -1,6 +1,6 @@
 import { useTvPairing, type TvPairing } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
-import { Heading, Stack, Text } from '@rivr/ui';
+import { Heading, Stack, Text, TvStage } from '@rivr/ui';
 
 /** The code, large enough to read from across the room, and when it changes; or why there is none yet. */
 function PairingCode({ pairing }: { pairing: TvPairing }) {
@@ -24,9 +24,8 @@ function PairingCode({ pairing }: { pairing: TvPairing }) {
 export function PairingScreen() {
   const pairing = useTvPairing();
   return (
-    <Stack gap={8}>
-      <Heading level={1} variant="tvTitle">{t('display.pairing.title')}</Heading>
+    <TvStage title={t('display.pairing.title')}>
       <PairingCode pairing={pairing} />
-    </Stack>
+    </TvStage>
   );
 }

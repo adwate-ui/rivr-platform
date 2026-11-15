@@ -1,7 +1,7 @@
 import type { TvCallTimeTable } from '@rivr/db';
 import { fromPaise } from '@rivr/domain/money';
 import { describe, expect, it } from 'vitest';
-import { toGroups, toOpenings } from './CallTimeMode.tsx';
+import { toSeats } from './CallTimeMode.tsx';
 
 // 100/200 with no straddle, but the Private Room, which has one of 500.
 const FIGURES = { game: 'nlh', smallBlind: fromPaise(10_000n), bigBlind: fromPaise(20_000n), straddle: null };
@@ -10,7 +10,7 @@ const TABLES: TvCallTimeTable[] = [
   {
     tableId: 't3', name: 'Table 3', stake: 'NLH 100/200', ...FIGURES,
     seated: [
-      { seat: 2, name: 'Vihaan K.', callTimeLeft: 3600, isAway: false, isLeaving: false },
+      { seat: 2, name: 'Vihaan K.', callTimeLeft: 3900, isAway: false, isLeaving: false },
       { seat: 5, name: 'Kabir S.', callTimeLeft: 1500, isAway: false, isLeaving: true },
       { seat: 6, name: 'Rohan B.', callTimeLeft: 0, isAway: false, isLeaving: false },
       { seat: 7, name: null, callTimeLeft: 600, isAway: true, isLeaving: false },
@@ -20,27 +20,26 @@ const TABLES: TvCallTimeTable[] = [
   { tableId: 'pr', name: 'Private Room', stake: 'Private Room', ...FIGURES, straddle: fromPaise(50_000n), seated: [{ seat: 1, name: 'Ishaan V.', callTimeLeft: 7200, isAway: false, isLeaving: false }] },
 ];
 
-describe('the call-time board (decision 0163)', () => {
-  it('opens the leaving players\' seats soonest first, now where no call time is owed', () => {
-    expect(toOpenings(TABLES, 0).map((opening) => [opening.where, opening.name, opening.time, opening.isNow])).toEqual([
-      ['Table 1 · Seat 1', 'Dev M.', 'Now', true],
-      ['Table 3 · Seat 5', 'Kabir S.', 'In 0h 25m', false],
+describe('the call-time board (decision 0163), Seats opening on the TV', () => {
+  it('lists every seat on call time soonest first, in the one form for a length of time, a hidden name as the seat', () => {
+    expect(toSeats(TABLES, 0).map((seat) => [seat.where, seat.name, seat.time])).toEqual([
+      ['Table 1 · seat 1', 'Dev M.', 'Now'],
+      ['Table 3 · seat 7', '', 'Away'],
+      ['Table 3 · seat 5', 'Kabir S.', '25 min'],
+      ['Table 3 · seat 2', 'Vihaan K.', '1 h 5 min'],
+      ['Private Room · seat 1', 'Ishaan V.', '2 h'],
     ]);
   });
 
-  it('counts down from when the board was read', () => {
-    expect(toOpenings(TABLES, 1500).find((opening) => opening.name === 'Kabir S.')).toMatchObject({ time: 'Now', isNow: true });
-    expect(toGroups(TABLES, 60)[0]?.rows.map((row) => row.time)).toEqual(['Away', '0h 59m']);
+  it('leaves out a player whose call time is done and who is not leaving', () => {
+    expect(toSeats(TABLES, 0).some((seat) => seat.name === 'Rohan B.')).toBe(false);
   });
 
-  it('lists each table\'s players still on call time and not leaving, soonest first, a hidden name as the seat', () => {
-    expect(toGroups(TABLES, 0).map((group) => [group.name, group.rows.map((row) => [row.seat, row.name, row.time])])).toEqual([
-      ['Table 3', [['7', '', 'Away'], ['2', 'Vihaan K.', '1h 00m']]],
-      ['Private Room', [['1', 'Ishaan V.', '2h 00m']]],
-    ]);
-  });
-
-  it('names each table’s stake, with the figures once it has a straddle (issue 990)', () => {
-    expect(toGroups(TABLES, 0).map((group) => group.detail)).toEqual(['NLH 100/200', 'Private Room · NLH 100/200/500']);
+  it('counts down from when the board was read, a leaving player\'s seat opening now once their call time is done', () => {
+    const later = toSeats(TABLES, 1500);
+    expect(later.find((seat) => seat.name === 'Kabir S.')?.time).toBe('Now');
+    expect(later.find((seat) => seat.name === 'Vihaan K.')?.time).toBe('40 min');
+    // Away, the clock stands still.
+    expect(later.find((seat) => seat.where === 'Table 3 · seat 7')?.time).toBe('Away');
   });
 });

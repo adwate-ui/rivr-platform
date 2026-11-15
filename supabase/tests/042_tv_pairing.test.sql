@@ -119,8 +119,8 @@ from public.game_table t
 join public.staff s on s.venue_id = t.venue_id and s.user_id = '00000000-0000-4000-8000-000000000106'
 where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.name = 'Table 1';
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e101');
-select results_eq($$ select device_id, name, mode from public.my_tv_screen() $$,
-  $$ select device_id, 'Bar TV'::text, 'waitlist'::public.tv_mode from bar_tv $$, 'the TV knows its name and mode');
+select results_eq($$ select device_id, name, boards from public.my_tv_screen() $$,
+  $$ select device_id, 'Bar TV'::text, array['waitlist']::public.tv_mode[] from bar_tv $$, 'the TV knows its name and board');
 select results_eq($$ select count(*)::int from public.tv_screen $$, $$ values (1) $$, 'and sees only its own screen');
 select is_empty($$ select * from public.dealer_down $$, 'a TV sees none of the venue''s dealer downs, which are for its tablets');
 select throws_ok($$ select public.set_tv_mode((select device_id from bar_tv), 'promotions') $$, '42501', null, 'a TV cannot change its mode');
@@ -138,7 +138,7 @@ select throws_ok($$ select public.set_tv_mode('00000000-0000-4000-8000-00000000d
   'a tablet has no display mode');
 select lives_ok($$ select public.set_tv_mode((select device_id from bar_tv), 'promotions') $$, 'a floor manager puts the promotions on the bar TV');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e101');
-select results_eq($$ select mode from public.my_tv_screen() $$, $$ values ('promotions'::public.tv_mode) $$, 'which the TV reads next');
+select results_eq($$ select boards from public.my_tv_screen() $$, $$ values (array['promotions']::public.tv_mode[]) $$, 'which the TV reads next');
 
 -- The practice venue pairs its own TVs, and a frozen venue pairs none.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');

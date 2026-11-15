@@ -15,6 +15,12 @@ describe('the promotions slides (#86, decision 0163)', () => {
     expect(result.current).toBe(0);
   });
 
+  it('turn at the seconds Settings gives the board', () => {
+    const { result } = renderHook(() => useSlides(3, undefined, 5_000));
+    act(() => { vi.advanceTimersByTime(5_000); });
+    expect(result.current).toBe(1);
+  });
+
   it('in a rotation, show each once, then hand on to the next board', () => {
     const onDone = vi.fn();
     renderHook(() => useSlides(2, onDone));

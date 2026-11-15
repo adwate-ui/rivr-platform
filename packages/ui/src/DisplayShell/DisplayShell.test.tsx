@@ -1,6 +1,7 @@
 import { act, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { axeViolations, renderIn } from '../test/render.tsx';
+import { TvStage } from '../TvStage/TvStage.tsx';
 import { DisplayShell } from './DisplayShell.tsx';
 
 function resizeWindow(width: number, height: number) {
@@ -8,7 +9,7 @@ function resizeWindow(width: number, height: number) {
   window.dispatchEvent(new Event('resize'));
 }
 
-/** The fixed stage that holds the header and the TV mode. */
+/** The fixed stage that holds the TV's board. */
 function stage(): HTMLElement | null {
   return screen.getByRole('main').parentElement;
 }
@@ -16,15 +17,18 @@ function stage(): HTMLElement | null {
 describe('DisplayShell', () => {
   afterEach(() => resizeWindow(1024, 768));
 
-  it('lays the TV mode out on a 1920 by 1080 stage under the wordmark, with the clock opposite', () => {
+  it('lays the board out on a 1920 by 1080 stage, and gives its header the clock and its foot the notice', () => {
     resizeWindow(1920, 1080);
     renderIn(
-      <DisplayShell corner={<p>00:10</p>}>
-        <h1>Bad-beat jackpot</h1>
+      // 00:10 IST.
+      <DisplayShell clockAt={new Date('2026-11-15T18:40:00Z')} notice="Table 4 opens at 9 tonight.">
+        <TvStage title="Waitlist"><p>No one waiting.</p></TvStage>
       </DisplayShell>,
     );
-    expect(screen.getByRole('main')).toHaveTextContent('Bad-beat jackpot');
-    expect(screen.getByRole('banner')).toHaveTextContent('00:10');
+    expect(screen.getByRole('main')).toHaveTextContent('No one waiting.');
+    expect(screen.getByRole('heading', { level: 1, name: 'Waitlist' })).toBeInTheDocument();
+    expect(screen.getByText('00:10')).toBeInTheDocument();
+    expect(screen.getByText('Table 4 opens at 9 tonight.')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'RIVR Poker Club' })).toBeInTheDocument();
     expect(stage()).toHaveStyle({ width: '1920px', height: '1080px', transform: 'scale(1)' });
   });
@@ -43,7 +47,7 @@ describe('DisplayShell', () => {
     resizeWindow(1920, 1080);
     renderIn(
       <DisplayShell>
-        <h1>Tournament clock</h1>
+        <h1>Seats opening</h1>
       </DisplayShell>,
     );
     act(() => resizeWindow(3840, 2160));
@@ -52,8 +56,8 @@ describe('DisplayShell', () => {
 
   it('has no accessibility violations', async () => {
     const { container } = renderIn(
-      <DisplayShell>
-        <h1>High hand</h1>
+      <DisplayShell clockAt={new Date('2026-11-15T18:40:00Z')} notice="Table 4 opens at 9 tonight.">
+        <TvStage title="High hand bonus"><p>No high hand yet tonight.</p></TvStage>
       </DisplayShell>,
     );
     expect(await axeViolations(container)).toEqual([]);

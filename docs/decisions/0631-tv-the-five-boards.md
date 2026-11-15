@@ -1,0 +1,15 @@
+# 0631. TV: the five boards
+
+Redesign RD-28 (#971), corrections 16, 17 and 34, owner 15 Nov; built to renders `tv-boards-01` to `05`. Decided while building:
+
+- **The constraint is the list, not the type.** `public.tv_mode` gains `high_hand` and keeps the labels of the boards that went (decision 0587); `tv_screen_boards_in_use` names the five a TV may hold. A TV set to anything else was moved to the waitlist by the migration.
+- **Settings, TVs, Rotation is the club's rule over every TV**: `tv.boards` switches a board off, `tv.board_seconds` is the seconds each shows (5 to 600; a promotion, each slide). What a TV shows is decided in the database (`private.tv_boards`): its own board, then those it turns to, less any switched off; the waitlist when none is left. A setting's panel now lists the fields a value must hold in the order they were written, so the boards read in board order.
+- **One stage for every board** (`TvStage` in `@rivr/ui`): the wordmark without its strapline, the title beside it, the club's time opposite, and along the foot a gold rule with the club's notice under it. Each board draws it; `DisplayShell` holds the clock and the notice.
+- **The notice is the one Home shows**: the venue's notice in force that started last (correction 20), read by the TV through `tv_notice()` for its own venue only. No notice, no rule and no line. It takes two lines at most. The prototype's standing line when there is none ("Request a seat in the RIVR app or at the desk") is not built.
+- **Waitlist**: a column a table that has a list, four to a row and a second row for more, eight to a page. A column holds six places in one row and two in two, then "+N more". Called and Away stay, under the name. A table with no list is not on the board.
+- **Seats opening** (the TV's title for call time, correction 16) is one list in two columns, soonest first: every seat with call time left, and a leaving player's seat as "Now" once theirs is done. The lists by table and "Opening next" went.
+- **Most hours played shows two lists**: tonight, and the period the club set in `tv.leaderboard`, or this week where it set tonight. Top N and the hours cutoff apply to both.
+- **A name keeps its width** (correction 34): on the lists the place wraps and the time goes under the name before a name is cut; on the waitlist a status sits under the name and a long name steps down a size.
+- **One form for a length of time** (correction 17): `formatDuration`, "25 min", "1 h 5 min". The renders' "1 h 05 min" and "5 h 39 m" are two of the five forms the correction removes.
+- **Sizes are the nearest steps of the type and spacing scales** to the prototype's. The promotion's title stays at 96 px: the prototype's 132 px is not on the scale, which has 96 and 160. The gold name on the renders is the prototype's own signed-in member; a TV has none.
+- **The High hand bonus board is a place held.** `HighHandMode` shows the stage with its title and passes on in a rotation; the board and its read come with issue 968, on `TvStage`.

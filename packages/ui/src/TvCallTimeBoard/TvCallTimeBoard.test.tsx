@@ -1,52 +1,52 @@
-import { screen, within } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { axeViolations, renderIn } from '../test/render.tsx';
-import { TvCallTimeBoard, type TvCallTimeBoardProps } from './TvCallTimeBoard.tsx';
+import { TvCallTimeBoard, type TvCallTimeBoardProps, type TvCallTimeSeat } from './TvCallTimeBoard.tsx';
+
+const seats = (count: number, name = 'Player'): TvCallTimeSeat[] => Array.from({ length: count }, (_, index) => ({
+  id: String(index), where: `Table 3 · seat ${index + 1}`, name: `${name} ${index + 1}`, time: index === 0 ? 'Now' : `${index * 10} min`,
+}));
 
 const PROPS: TvCallTimeBoardProps = {
-  title: 'Call time',
-  openingsTitle: 'Seats opening',
-  noOpeningsText: 'No seats opening yet.',
+  title: 'Seats opening',
   emptyText: 'No one on call time.',
   moreText: (hidden) => `+${hidden} more`,
-  openings: Array.from({ length: 5 }, (_, index) => ({
-    id: String(index), where: `Table 3 · Seat ${index + 1}`, name: `Leaving ${index + 1}`, time: index === 0 ? 'Now' : `In ${index * 10} min`, isNow: index === 0,
-  })),
-  tables: [{
-    id: 't3', name: 'Table 3', detail: 'NLH 100/200',
-    rows: Array.from({ length: 5 }, (_, index) => ({ id: String(index), seat: String(index + 1), name: `Player ${index + 1}`, time: `${index + 1} min` })),
-  }],
+  seats: seats(6),
 };
 
 describe('TvCallTimeBoard', () => {
-  it('shows the seats opening, the first four, and each table\'s players on call time, the first three (D-03)', () => {
+  it('lists the seats in the order given, each with where it is, the player and the time left', () => {
     renderIn(<TvCallTimeBoard {...PROPS} />);
-    expect(screen.getByRole('heading', { level: 1, name: 'Call time' })).toBeInTheDocument();
-    const openings = within(screen.getByRole('region', { name: 'Seats opening' }));
-    expect(openings.getAllByRole('listitem')).toHaveLength(4);
-    expect(openings.getByText('Table 3 · Seat 1')).toBeInTheDocument();
-    expect(openings.getByText('Now')).toBeInTheDocument();
-    expect(openings.queryByText('Leaving 5')).toBeNull();
-    expect(openings.getByText('+1 more')).toBeInTheDocument();
-    const table = within(screen.getByRole('region', { name: 'Table 3' }));
-    expect(table.getByText('NLH 100/200')).toBeInTheDocument();
-    expect(table.getAllByRole('listitem')).toHaveLength(3);
-    expect(table.getByText('3 min')).toBeInTheDocument();
-    expect(table.queryByText('Player 4')).toBeNull();
-    expect(table.getByText('+2 more')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Seats opening' })).toBeInTheDocument();
+    const rows = screen.getAllByRole('listitem');
+    expect(rows.map((row) => row.textContent)).toEqual([
+      'Table 3 · seat 1Player 1Now', 'Table 3 · seat 2Player 210 min', 'Table 3 · seat 3Player 320 min',
+      'Table 3 · seat 4Player 430 min', 'Table 3 · seat 5Player 540 min', 'Table 3 · seat 6Player 650 min',
+    ]);
+    expect(screen.getByText('50 min')).toHaveClass('text-money');
+    expect(screen.queryByText(/more$/)).toBeNull();
   });
 
-  it('shows a page of four tables, and which page', () => {
-    const tables = ['Table 1', 'Table 2', 'Table 3', 'Table 5'].map((name) => ({ id: name, name, detail: 'NLH 100/200', rows: [] }));
-    renderIn(<TvCallTimeBoard {...PROPS} tables={tables} page="Tables 1 to 4 of 5" />);
-    expect(screen.getAllByRole('region')).toHaveLength(5);
-    expect(screen.getByText('Tables 1 to 4 of 5')).toBeInTheDocument();
+  it('shows the fourteen the stage holds, two columns of seven, and how many more', () => {
+    renderIn(<TvCallTimeBoard {...PROPS} seats={seats(17)} />);
+    expect(screen.getAllByRole('listitem')).toHaveLength(14);
+    expect(screen.queryByText('Player 15')).toBeNull();
+    expect(screen.getByText('+3 more')).toBeInTheDocument();
   });
 
-  it('says when nobody is leaving and nobody is on call time', () => {
-    renderIn(<TvCallTimeBoard {...PROPS} openings={[]} tables={[]} />);
-    expect(screen.getByText('No seats opening yet.')).toBeInTheDocument();
+  it('keeps a long name whole, its time under it, and counts those rows taller (correction 34)', () => {
+    renderIn(<TvCallTimeBoard {...PROPS} seats={seats(14, 'Venkataraghavan R.').map((seat) => ({ ...seat, time: '1 h 59 min' }))} />);
+    const name = screen.getByText('Venkataraghavan R. 1');
+    expect(name).toHaveClass('shrink-0', 'max-w-full');
+    expect(name.parentElement).toHaveClass('flex-wrap');
+    expect(screen.getAllByRole('listitem')).toHaveLength(8);
+    expect(screen.getByText('+6 more')).toBeInTheDocument();
+  });
+
+  it('says when nobody is on call time', () => {
+    renderIn(<TvCallTimeBoard {...PROPS} seats={[]} />);
     expect(screen.getByText('No one on call time.')).toBeInTheDocument();
+    expect(screen.queryByRole('list')).toBeNull();
   });
 
   it('has no accessibility violations', async () => {

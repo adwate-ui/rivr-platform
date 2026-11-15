@@ -139,6 +139,7 @@ export {
   useTvPairingPolicy,
   useVenueTvs,
   type MyTvScreen,
+  type TvBoardTurn,
   type TvCode,
   type TvFailure,
   type TvPairing,
@@ -146,7 +147,7 @@ export {
   type VenueTv,
 } from './tvScreens.ts';
 export {
-  useTvCallTimeBoard, useTvLeaderboard, useTvSignals, useTvWaitlistBoard, type TvCallTimeTable, type TvLeaderboardRow, type TvPlace,
+  useTvCallTimeBoard, useTvLeaderboard, useTvNotice, useTvSignals, useTvWaitlistBoard, type TvCallTimeTable, type TvLeaderboardRow, type TvPlace,
   type TvSeated, type TvTableList,
 } from './tvBoards.ts';
 export { fetchClubContact, NO_CLUB_CONTACT, useClubContact, type ClubContact } from './clubContact.ts';

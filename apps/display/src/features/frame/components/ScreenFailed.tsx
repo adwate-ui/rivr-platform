@@ -1,5 +1,5 @@
 import { t } from '@rivr/i18n';
-import { Text } from '@rivr/ui';
+import { Text, TvStage } from '@rivr/ui';
 import type { ErrorComponentProps } from '@tanstack/react-router';
 import { useEffect } from 'react';
 
@@ -15,5 +15,5 @@ export function ScreenFailed({ reset }: ErrorComponentProps) {
     const timer = setInterval(reset, TRY_AGAIN_EVERY_MS);
     return () => clearInterval(timer);
   }, [reset]);
-  return <Text variant="tvBody">{t('display.screen.unavailable')}</Text>;
+  return <TvStage><Text variant="tvBody">{t('display.screen.unavailable')}</Text></TvStage>;
 }
