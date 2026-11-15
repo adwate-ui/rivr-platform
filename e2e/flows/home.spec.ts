@@ -1,6 +1,7 @@
 /**
  * Home, Bonus and Profile after the redesign (RD-20). Vishal Dutta, this flow's own member (Auth sends one code a minute to
- * a number), opens Home with two notices in force and three or more live offers: one card above the offers, the notice
+ * a number), opens Home with two notices in force and four or more live offers, the high hand among them with its hands
+ * (redesign RD-25): one card above the offers, the notice
  * that started last, with nothing to close it; the offers as one carousel that moves on by itself and holds the slide
  * whose dot he taps; table rows with the minimum buy-in and no count of players. While the desk has not checked him the
  * one card is his ID check. Bonus says a reward for a friend only while the referral promotion is live, and its balance's
@@ -13,6 +14,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import { worktreeName } from '@rivr/config/worktree';
 import { isRemoteTarget } from '../support/apps.ts';
 import { seatOnFloor } from '../support/floor.ts';
+import { liveHighHand, shoot } from '../support/highHand.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 const VISHAL = '00000000-0000-4000-8000-000000000440';
@@ -56,12 +58,13 @@ function promotion(name: string, detail: string, runs: string) {
   sql(`select private.sync_promotion(v.promotion_id) from public.promotion_version v where v.venue_id = '${CLUB}' and v.name = '${name}'`);
 }
 
-/** Two notices in force, the later one a minute old, and two more live promotions. */
+/** Two notices in force, the later one a minute old, two more live promotions, and a high hand running. */
 function setUp() {
   sql(`insert into public.notice (venue_id, body, starts_at) values
        ('${CLUB}', '${EARLIER}', now() - interval '2 hours'), ('${CLUB}', '${LATER}', now() - interval '1 minute')`);
   promotion('Home flow four hours', '1,000 Bonus after 4 hours', 'Every day, all tables');
   promotion('Home flow late night', '500 Bonus after midnight', 'Fridays');
+  liveHighHand('Home flow high hand');
 }
 
 /** The carousel's dot that is current: "Offer 2 of 4". */
@@ -127,8 +130,13 @@ test.describe('Home', () => {
     await expect(offers.getByText('1,000 Bonus after 4 hours')).toHaveCount(1);
     await expect(offers.getByText('500 Bonus after midnight')).toHaveCount(1);
     await expect(offers.getByText('Refer a friend')).toHaveCount(1);
+    // The high hand that runs is one card of the carousel, with its hands and their Bonus, in place of its promotion's own.
+    const highHand = slides.filter({ hasText: 'Royal flush 25,000 · Straight flush 10,000 · Four of a kind 5,000' });
+    await expect(highHand).toHaveCount(1);
+    await expect(highHand).toContainText('Home flow high hand');
+    await expect(offers.getByText('Up to 25,000 Bonus a hand')).toHaveCount(0);
     const count = await slides.count();
-    expect(count).toBeGreaterThanOrEqual(3);
+    expect(count).toBeGreaterThanOrEqual(4);
     await expect(dots).toHaveCount(count);
     await expect(currentDot(page)).toHaveCount(1);
     const shownFirst = await currentDot(page).getAttribute('aria-label') ?? '';
@@ -144,6 +152,11 @@ test.describe('Home', () => {
     await page.waitForTimeout(6_500);
     await expect(currentDot(page)).toHaveAccessibleName(held);
     await expect(slides.last()).toBeInViewport();
+    // The high hand's card, held by its dot.
+    const at = await slides.evaluateAll((items) => items.findIndex((item) => item.textContent.includes('Royal flush 25,000')));
+    await offers.getByRole('button', { name: `Offer ${String(at + 1)} of ${String(count)}` }).click();
+    await expect(highHand).toBeInViewport();
+    await shoot(page, 'player-home-carousel-high-hand-card-390');
 
     // A table's row: its stake and its minimum buy-in, and no count of players seated, waiting or seats open.
     const table = page.getByRole('button', { name: /^Table 1 · NLH / });

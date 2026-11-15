@@ -81,7 +81,8 @@ test.describe('High hand payout', () => {
     expect(await balanceOf(member)).toBe(before + 10_000);
     const newest = member.getByText('High hand: Straight flush, Nine high', { exact: true }).first();
     await expect(newest).toBeVisible();
-    await expect(newest.locator('..')).toContainText('+10,000');
+    // Its row: the label with its day beneath, and the Bonus beside them.
+    await expect(member.locator('div').filter({ hasText: /^High hand: Straight flush, Nine high\d+ [A-Z][a-z]{2}\+10,000$/ }).first()).toBeVisible();
     await shoot(member, 'player-bonus-history-390');
 
     // Ended, and her seat with it, so no other flow meets them.
