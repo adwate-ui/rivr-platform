@@ -10,12 +10,11 @@ paths:
 - Integer paise in `bigint`, only through `@rivr/domain/money`. Never floats.
 - Rake: 5% of the pot, capped per table type, rounded down to ₹50. Jackpot drop and pull use the same increment.
 - Double-entry ledger. A balance is a sum of entries. Entries are immutable; corrections are reversing entries. Every money function asserts its entries sum to zero.
-- Idempotency keys on buy-in, cash-out, hand, marker, payout, withdrawal and invoice writes, enforced by a unique constraint.
-- Configuration with `effective_from`: rake, caps, call time, TDS, GST, bonuses, credit limits, priority weights. A transaction uses the rule in force at its timestamp.
+- Idempotency keys on buy-in, cash-out, hand and invoice writes, enforced by a unique constraint.
+- Configuration with `effective_from`: rake, caps, call time, GST, bonuses, priority weights. A transaction uses the rule in force at its timestamp.
 - Venue configuration holds legal entity name, GSTIN, address, UPI payee and VPA, bank details and invoice prefix. Never hard-code them.
 - Store times in UTC; display IST.
 - Second approver above configured limits, enforced in the database.
-- Kill switch: every write function checks `control_state` first and refuses when frozen.
 - When SQL must compute money, write a SQL function and prove it on the same golden file as `@rivr/domain`, in `supabase/tests/024_golden_twins.test.sql` (decision 0037).
 
 ## Tests required for every change here
