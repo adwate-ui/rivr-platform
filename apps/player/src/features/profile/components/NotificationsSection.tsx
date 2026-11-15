@@ -8,7 +8,6 @@ import { PhonePushSwitch } from './PhonePushSwitch.tsx';
 const PUSH_COPY: Readonly<Record<PushChoice, { label: MessageKey; hint: MessageKey }>> = {
   'push.seat_ready': { label: 'player.profile.seatCalls', hint: 'player.profile.seatCallsHint' },
   'push.call_time_complete': { label: 'player.profile.callTime', hint: 'player.profile.callTimeHint' },
-  'push.withdrawal_sent': { label: 'player.profile.withdrawals', hint: 'player.profile.withdrawalsHint' },
   'push.tournament_starting': { label: 'player.profile.tournamentStarts', hint: 'player.profile.tournamentStartsHint' },
   'push.bonus': { label: 'player.profile.bonusChips', hint: 'player.profile.bonusChipsHint' },
 };

@@ -1,8 +1,8 @@
 import {
   bonusCreditedSchema, bonusRedeemedSchema, callTimeCompletedSchema, callTimeEndingSchema, err, memberNoticeSchema, ok, promotionOfferedSchema, sessionReminderSchema,
-  waitlistCalledSchema, withdrawalSentSchema, type Result,
+  waitlistCalledSchema, type Result,
 } from '@rivr/contracts';
-import { formatChips, formatDayTime, formatMoney, formatTime, push as pushCopy, registerMessages, t } from '@rivr/i18n';
+import { formatChips, formatDayTime, formatTime, push as pushCopy, registerMessages, t } from '@rivr/i18n';
 import type { ClaimedDelivery, Consumer } from '../outbox/index.ts';
 import type { PushAdapter, WebPushSubscription } from '../push/types.ts';
 import type { AdapterFailure } from '../shared/failure.ts';
@@ -12,7 +12,7 @@ registerMessages({ push: pushCopy });
 
 /** The events the push consumer sends a notification for (#139, #338). */
 export const PUSH_EVENT_TYPES = [
-  'waitlist.called', 'call_time.ending', 'call_time.completed', 'session.reminder', 'withdrawal.sent', 'promotion.offered',
+  'waitlist.called', 'call_time.ending', 'call_time.completed', 'session.reminder', 'promotion.offered',
   'bonus.credited', 'bonus.redeemed', 'member.notice',
 ] as const;
 
@@ -88,14 +88,6 @@ function sessionReminder(payload: unknown): Built {
   return ok({ memberId, pushType: null, title: t('push.sessionReminder.title'), body, url: '/', tag: `session-reminder-${sessionId}` });
 }
 
-function withdrawalSent(payload: unknown): Built {
-  const sent = withdrawalSentSchema.safeParse(payload);
-  if (!sent.success) return unreadable('withdrawal.sent');
-  const { member_id: memberId, withdrawal_request_id: requestId, amount_paise: amount } = sent.data;
-  const body = t('push.withdrawalSent.body', { amount: formatMoney(BigInt(amount)) });
-  return ok({ memberId, pushType: 'push.withdrawal_sent', title: t('push.withdrawalSent.title'), body, url: '/', tag: `withdrawal-${requestId}` });
-}
-
 /**
  * A tournament the member asked about: the club's one notification of it (redesign RD-26), or that it was withdrawn or moved
  * (the owner, 9 Nov), each under their Tournaments switch. Other notices are WhatsApp's alone.
@@ -155,7 +147,6 @@ const HOUR_MS = 60 * 60 * 1000;
 const USEFUL_FOR_MS: Readonly<Partial<Record<(typeof PUSH_EVENT_TYPES)[number], number>>> = {
   'call_time.completed': HOUR_MS,
   'session.reminder': HOUR_MS,
-  'withdrawal.sent': 24 * HOUR_MS,
   'promotion.offered': 24 * HOUR_MS,
   'bonus.credited': 24 * HOUR_MS,
   'bonus.redeemed': 24 * HOUR_MS,
@@ -173,7 +164,6 @@ const BUILDERS: Readonly<Record<(typeof PUSH_EVENT_TYPES)[number], (payload: unk
   'call_time.ending': callTimeEnding,
   'call_time.completed': callTimeDone,
   'session.reminder': sessionReminder,
-  'withdrawal.sent': withdrawalSent,
   'promotion.offered': promotionOffered,
   'bonus.credited': bonusCredited,
   'bonus.redeemed': bonusRedeemed,

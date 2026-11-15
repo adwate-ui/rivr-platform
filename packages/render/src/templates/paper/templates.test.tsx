@@ -1,24 +1,13 @@
 import { documents, registerMessages } from '@rivr/i18n';
-import { InvoiceDocument, ThermalReceipt } from '@rivr/ui';
+import { InvoiceDocument } from '@rivr/ui';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { CASH_OUT, INVOICE, STATEMENT } from '../../test/paper.ts';
+import { INVOICE, STATEMENT } from '../../test/paper.ts';
 import { StatementDocument } from './StatementDocument.tsx';
 
 registerMessages({ documents });
 
 describe('paper templates', () => {
-  it('dates a receipt in IST and gives its reference', () => {
-    const html = renderToStaticMarkup(<ThermalReceipt {...CASH_OUT} />);
-    expect(html).toContain('13 Feb 2027, 03:40');
-    expect(html).toContain('Receipt RV-0213-0418');
-    expect(html).not.toContain('Practice');
-  });
-
-  it('says a practice receipt is one, so it is never taken for money paid', () => {
-    expect(renderToStaticMarkup(<ThermalReceipt {...CASH_OUT} isPractice />)).toContain('Practice receipt. No money changed hands.');
-  });
-
   it('heads a tax invoice with the supplier from venue configuration, its number and the buyer GSTIN', () => {
     const html = renderToStaticMarkup(<InvoiceDocument {...INVOICE} />);
     expect(html).toContain('Tax invoice');

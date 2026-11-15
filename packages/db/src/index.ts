@@ -122,7 +122,6 @@ export {
   type PairingCode,
 } from './devices.ts';
 export {
-  useIsPublicVenue,
   useMyTvScreen,
   useTvActions,
   useTvPairing,
@@ -160,9 +159,7 @@ export {
 } from './dealerDowns.ts';
 export { useHandQueue, type HandQueueState, type QueuedHand } from './handQueue.ts';
 export {
-  useDownHands,
   useTableRules,
-  type DownHand,
   type HandVariant,
   type TableRules,
 } from './hands.ts';
@@ -185,7 +182,6 @@ export { toSignInFailure, type SignInFailure } from './parse/signInFailure.ts';
 export { queryKeys } from './queryKeys.ts';
 export { HIDDEN, toFeatureAccess, toFeatureAccessMap, type FeatureAccess, type FeatureAccessRow } from './parse/featureAccess.ts';
 export { useWaitlistCallActions } from './waitlistCalls.ts';
-export { useMyTonight, type MyTonight } from './tonight.ts';
 export {
   useSettingActions, useVenueSettings, type SettingChange, type SettingEntry, type SettingFailure, type SettingField, type SettingSubjectRules,
   type SettingValue, type VenueSetting, type VenueSettings,

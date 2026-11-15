@@ -5,22 +5,6 @@ export const ISSUER = {
   gstin: '06AAAAA0000A1Z5',
 };
 
-export const CASH_OUT = {
-  issuer: ISSUER,
-  isPractice: false,
-  title: 'Cash-out',
-  // 03:40 IST on Saturday 13 February 2027.
-  at: '2027-02-12T22:10:00Z',
-  lines: [
-    { label: 'Table', value: 'Table 2, seat 4' },
-    { label: 'Stake', value: '100/200' },
-    { label: 'Buy-in', value: 2_000_000n },
-    { label: 'Cash-out', value: 4_650_000n },
-  ],
-  total: { label: 'Paid to cash', paise: 4_650_000n },
-  reference: 'RV-0213-0418',
-};
-
 export const INVOICE = {
   invoice: {
     number: 'RIVR/S26/41',
@@ -53,25 +37,6 @@ export const STATEMENT = {
   ],
   closingPaise: 57_500_000n,
 };
-
-/** Kabir Malhotra's statement for November 2026: 12.5% of the club's ₹2,800 net result. */
-export const PARTNER_STATEMENT = {
-  statement: {
-    issuer: ISSUER,
-    holder: 'Kabir Malhotra',
-    kind: 'partner',
-    month: '2026-11-01',
-    heldOn: '2026-11-30',
-    basisPoints: 1250,
-    revenue: [{ name: 'Rake', paise: 300_000n }],
-    expenses: [{ name: 'Bonus issued', paise: 20_000n }],
-    revenuePaise: 300_000n,
-    expensePaise: 20_000n,
-    netPaise: 280_000n,
-    sharePaise: 35_000n,
-    isProvisional: false,
-  },
-} as const;
 
 /** A night's offline pack (#167): a table, the waitlist, two balances, two contacts and two SOPs, one long. */
 export const OFFLINE_PACK = {

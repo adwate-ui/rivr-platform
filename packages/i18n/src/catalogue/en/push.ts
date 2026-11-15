@@ -22,10 +22,6 @@ export const push = {
     title: 'Session reminder',
     body: 'You have been playing for {hours} hours.',
   },
-  withdrawalSent: {
-    title: 'Withdrawal sent',
-    body: '{amount} is on its way to you.',
-  },
   /** A tournament the member asked about: the club's one notification of it (redesign RD-26). `{when}` is `Sun 22 Nov, 19:00`. */
   tournamentStarts: {
     title: '{name}',

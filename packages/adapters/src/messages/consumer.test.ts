@@ -19,10 +19,10 @@ function delivery(eventType: string, payload: unknown, occurredAt?: Date): Claim
 }
 
 describe('the WhatsApp consumer', () => {
-  it('is a messaging consumer of the seat call, the receipt notice, promotion offers, review requests and member notices, so a messaging stop holds it', () => {
+  it('is a messaging consumer of the seat call, promotion offers, review requests and member notices, so a messaging stop holds it', () => {
     const consumer = createWhatsAppConsumer({ whatsapp: createFakeWhatsApp(), findRecipient, findErasedPhone, now });
     expect([consumer.name, consumer.isMessaging, consumer.eventTypes])
-      .toEqual(['whatsapp', true, ['waitlist.called', 'receipt.ready', 'promotion.offered', 'review.requested', 'member.notice']]);
+      .toEqual(['whatsapp', true, ['waitlist.called', 'promotion.offered', 'review.requested', 'member.notice']]);
   });
 
   it('tells a member, by a utility message, what happened while they were away from the app (decision 0303)', async () => {
@@ -129,14 +129,6 @@ describe('the WhatsApp consumer', () => {
     expect(whatsapp.calls).toEqual([{ category: 'utility', to: phone, template: 'seat_ready', params: ['Table 3', '9', '00:30'] }]);
   });
 
-  it('sends the receipt notice with the amount, and its link on the button', async () => {
-    const whatsapp = createFakeWhatsApp();
-    const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, findErasedPhone, now });
-
-    await consumer.deliver(delivery('receipt.ready', { member_id: MEMBER, amount_paise: 1000000, link: 'r/ab12' }));
-    expect(whatsapp.calls).toEqual([{ category: 'utility', to: phone, template: 'receipt_ready', params: ['₹10,000'], urlButton: 'r/ab12' }]);
-  });
-
   it('rejects, for good, a payload it cannot read, a member no longer there, or an event it does not send', async () => {
     const whatsapp = createFakeWhatsApp();
     const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, findErasedPhone, now });
@@ -144,9 +136,6 @@ describe('the WhatsApp consumer', () => {
 
     expect(await consumer.deliver(delivery('waitlist.called', { member_id: MEMBER }))).toMatchObject({ ok: false, error: { code: 'rejected' } });
     expect(await consumer.deliver(delivery('waitlist.called', gone))).toMatchObject({ ok: false, error: { code: 'rejected' } });
-    expect(await consumer.deliver(delivery('receipt.ready', { member_id: MEMBER, amount_paise: 100, link: 'https://evil.example' }))).toMatchObject({
-      ok: false, error: { code: 'rejected' },
-    });
     expect(await consumer.deliver(delivery('seat.taken', {}))).toMatchObject({ ok: false, error: { code: 'rejected' } });
     expect(whatsapp.calls).toEqual([]);
   });

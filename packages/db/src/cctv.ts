@@ -5,7 +5,6 @@ import { useRivrData } from './provider.tsx';
 // Kept here, not in queryKeys: this module is its own subpath (@rivr/db/cctv), off the player's first load.
 const keys = {
   cameras: (userId: string, venueId: string) => ['user', userId, 'cameras', venueId] as const,
-  playback: (userId: string, kind: string, id: string) => ['user', userId, 'playback', kind, id] as const,
 };
 
 /** A CCTV camera (#122): its recorder channel, and the table or cage it watches, if any. */
@@ -31,12 +30,6 @@ export interface CameraChange {
 
 /** Why a camera was not saved: `taken` is a name, table or cage that already has an active camera. */
 export type CameraFailure = 'not_allowed' | 'invalid' | 'taken' | 'paused' | 'unavailable';
-
-/** What a playback link is for: a hand. */
-export type CctvKind = 'hand';
-
-/** Why there is no playback link: no camera saw it, or the caller may not see it. */
-export type PlaybackFailure = 'no_camera' | 'not_allowed' | 'unavailable';
 
 const CAMERA_FAILURES: Readonly<Record<string, CameraFailure>> = { '42501': 'not_allowed', '22023': 'invalid', '23505': 'taken', RVFRZ: 'paused' };
 
@@ -70,53 +63,6 @@ export function useSaveCamera(venueId: string) {
       if (error) return err(CAMERA_FAILURES[error.code] ?? 'unavailable');
       await queryClient.invalidateQueries({ queryKey: keys.cameras(userId ?? 'signed-out', venueId) });
       return ok(data);
-    },
-  });
-}
-
-/** The HTTP status an Edge Function answered with, from supabase-js's error; 0 when it did not answer. */
-function statusOf(error: unknown): number {
-  const response: unknown = typeof error === 'object' && error !== null ? Reflect.get(error, 'context') : undefined;
-  return response instanceof Response ? response.status : 0;
-}
-
-/** Where a recording's playback link is, as @rivr/ui's PlaybackLink shows it. */
-export type PlaybackState =
-  | { readonly status: 'idle' }
-  | { readonly status: 'asking' }
-  | { readonly status: 'ready'; readonly url: string; readonly camera: string }
-  | { readonly status: 'failed'; readonly reason: PlaybackFailure };
-
-/**
- * The recorder's playback link for the camera that saw a hand, cage transaction or incident (#122), through the
- * cctv-playback Edge Function: its state, and `ask` to ask for it (a press of Playback). A link is kept while the
- * screen is open; one that did not come is asked again on the next press.
- */
-export function usePlayback(kind: CctvKind, id: string): { state: PlaybackState; ask: () => void } {
-  const link = usePlaybackLink(kind, id);
-  const state: PlaybackState = link.isFetching ? { status: 'asking' }
-    : link.data?.ok ? { status: 'ready', ...link.data.value }
-    : link.data !== undefined ? { status: 'failed', reason: link.data.error }
-    : link.isError ? { status: 'failed', reason: 'unavailable' } : { status: 'idle' };
-  return { state, ask: () => void link.refetch() };
-}
-
-function usePlaybackLink(kind: CctvKind, id: string) {
-  const { client, userId } = useRivrData();
-  return useQuery({
-    queryKey: keys.playback(userId ?? 'signed-out', kind, id),
-    enabled: false,
-    staleTime: Infinity,
-    retry: false,
-    queryFn: async (): Promise<Result<{ url: string; camera: string }, PlaybackFailure>> => {
-      const { data, error } = await client.functions.invoke('cctv-playback', { body: { kind, id } });
-      if (error) {
-        const status = statusOf(error);
-        return err(status === 404 ? 'no_camera' : status === 403 ? 'not_allowed' : 'unavailable');
-      }
-      const url: unknown = typeof data === 'object' && data !== null ? Reflect.get(data, 'url') : undefined;
-      const camera: unknown = typeof data === 'object' && data !== null ? Reflect.get(data, 'camera') : undefined;
-      return typeof url === 'string' && typeof camera === 'string' ? ok({ url, camera }) : err('unavailable');
     },
   });
 }

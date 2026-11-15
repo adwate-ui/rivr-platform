@@ -29,17 +29,8 @@ export const alertRaisedSchema = z.object({
   kind: z.string().regex(/^[a-z_]+(\.[a-z_]+)*$/),
 });
 
-/** receipt.ready: a receipt for an amount is ready at a link (the part after the template's base address). */
-export const receiptReadySchema = z.object({
-  member_id: z.uuid(),
-  amount_paise: z.int().min(1),
-  link: linkSuffixSchema,
-});
-
 /** A waitlist.called payload. */
 export type WaitlistCalled = z.infer<typeof waitlistCalledSchema>;
-/** A receipt.ready payload. */
-export type ReceiptReady = z.infer<typeof receiptReadySchema>;
 
 /** A Google review asked of a member after their third visit (#159): the venue's link, and no reward. */
 export const reviewRequestedSchema = z.object({
@@ -81,9 +72,6 @@ export const callTimeUpdatedSchema = z.object({ member_id: z.uuid(), session_id:
 
 /** session.reminder (#56; decision 0053): the member has been seated as long as their own reminder. */
 export const sessionReminderSchema = z.object({ member_id: z.uuid(), session_id: z.uuid(), hours: z.int().min(1).max(24) });
-
-/** withdrawal.sent: the cage sent the member's withdrawal. */
-export const withdrawalSentSchema = z.object({ member_id: z.uuid(), withdrawal_request_id: z.uuid(), amount_paise: z.int().min(1) });
 
 /** bonus.credited (decision 0504): bonus chips added to the member's balance, with the promotion's name or another reason. */
 export const bonusCreditedSchema = z.object({

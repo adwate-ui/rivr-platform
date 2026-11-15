@@ -1,6 +1,11 @@
 import { dehydrate, hydrate, onlineManager, type DehydratedState, type Query, type QueryClient } from '@tanstack/react-query';
 
-const STORAGE_KEY = 'rivr.offline.v1';
+const STORAGE_KEY = 'rivr.offline.v2';
+/**
+ * The slots of earlier versions. What they hold is never read: v1 kept a member with no member number, from before the
+ * removals (#1011, #1012). Each is cleared from the phone at the next launch.
+ */
+const OLDER_KEYS = ['rivr.offline.v1'];
 /** A club night: what was kept longer ago than this says too little of tonight to show. */
 const KEPT_FOR_MS = 12 * 60 * 60 * 1000;
 /** One write for a burst of answers, as a screen's reads come in together. */
@@ -111,6 +116,7 @@ function read(): Kept | null {
  * afresh and shows nothing old. What cannot be read is forgotten, never thrown while the app starts.
  */
 export function restoreForOffline(queryClient: QueryClient, now = Date.now()): void {
+  forget(OLDER_KEYS);
   if (navigator.onLine) return;
   onlineManager.setOnline(false);
   const kept = read();
@@ -126,8 +132,12 @@ export function restoreForOffline(queryClient: QueryClient, now = Date.now()): v
 
 /** Signed out: nothing of theirs stays on a phone someone else may pick up. */
 export function forgetOffline(): void {
+  forget([STORAGE_KEY, ...OLDER_KEYS]);
+}
+
+function forget(keys: readonly string[]): void {
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    for (const key of keys) localStorage.removeItem(key);
   } catch {
     // Nothing could be kept where storage is refused.
   }

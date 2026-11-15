@@ -126,24 +126,3 @@ export function useVenueLogoUpload(venueId: string) {
     },
   });
 }
-
-/** The club as its printed matter heads it (#69): legal name, address and GSTIN, which every staff member reads. */
-export interface VenueIssuer {
-  readonly legalName: string;
-  readonly address: string;
-  readonly gstin?: string | undefined;
-}
-
-/** The venue's issuer, for printed matter; null when the venue has no configuration. */
-export function useVenueIssuer(venueId: string) {
-  const { client, userId } = useRivrData();
-  return useQuery({
-    queryKey: queryKeys.venueIssuer(userId ?? 'signed-out', venueId),
-    enabled: userId !== null,
-    queryFn: async (): Promise<VenueIssuer | null> => {
-      const { data, error } = await client.from('venue_config').select('legal_name, address, gstin').eq('venue_id', venueId).maybeSingle();
-      if (error) throw error;
-      return data ? { legalName: data.legal_name, address: data.address, gstin: data.gstin ?? undefined } : null;
-    },
-  });
-}
