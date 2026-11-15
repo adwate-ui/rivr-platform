@@ -64,7 +64,7 @@ describe('Stepper, the progress look (redesign RD-15)', () => {
     vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(300);
     renderIn(<Stepper look="progress" steps={FLOW} current={2} label="ID check" />);
     expect(namedAlone('PAN card')).toBeInTheDocument();
-    for (const name of FLOW) expect(screen.getByText(name, { selector: '[data-step-name]' }).parentElement).toHaveClass('opacity-0');
+    for (const name of FLOW) expect(screen.getByText(name, { selector: '[data-step-name]' }).parentElement).toHaveClass('h-1', 'opacity-0');
     expect(screen.getByRole('list', { name: 'ID check' }).style.gridTemplateColumns).toBe('repeat(5, minmax(0, 1fr))');
     expect(items().map((item) => item.textContent)).toEqual(['Member, done', 'Face, done', 'PAN card, current step', 'Aadhaar front', 'Details']);
     expect(screen.getByRole('status')).toHaveTextContent('Step 3 of 5: PAN card');

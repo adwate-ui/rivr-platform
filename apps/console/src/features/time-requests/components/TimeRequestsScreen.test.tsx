@@ -32,10 +32,10 @@ function renderTimeRequests(seats = [seat({ session: 's1', seat: 5, name: 'Kabir
       return Response.json([{ id: 'st1', venue_id: 'v1', full_name: 'Aditya Malhotra', role: 'admin', venue: { name: 'RIVR Gurugram', is_practice: false } }]);
     }
     if (url.includes('/rest/v1/game_table')) {
-      return Response.json([{ id: 't3', venue_id: 'v1', name: 'Table 3', is_open: true, seats: 9, position: 3, table_type_id: 'tt1', must_move_to_table_id: null, room: 'main' }]);
+      return Response.json([{ id: 't3', venue_id: 'v1', name: 'Table 3', is_open: true, seats: 9, position: 3, table_type_id: 'tt1', must_move_to_table_id: null, room: 'main', min_buy_in_paise: 500000 }]);
     }
     if (url.includes('/rest/v1/table_type')) {
-      return Response.json([{ id: 'tt1', name: 'NLH 50/100', game: 'nlh', small_blind_paise: 5000, big_blind_paise: 10000, buy_in_min_paise: 500000, straddle_paise: null }]);
+      return Response.json([{ id: 'tt1', name: 'NLH 50/100', game: 'nlh', small_blind_paise: 5000, big_blind_paise: 10000, straddle_paise: null }]);
     }
     if (url.includes('/rpc/floor_seats')) return Response.json(seats);
     if (url.includes('/rpc/decide_call_time_request')) {

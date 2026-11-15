@@ -15,8 +15,9 @@ cross join (values
 ) as t (code, name, has_variation, small_blind, big_blind, buy_in, straddle)
 on conflict (venue_id, code) do nothing;
 
-insert into public.game_table (venue_id, table_type_id, name, position, is_open, room)
-select tt.venue_id, tt.id, t.name, t.position, t.is_open, t.room
+-- Each table's own minimum buy-in (redesign RD-16) is its stake's figure above.
+insert into public.game_table (venue_id, table_type_id, name, position, is_open, room, min_buy_in_paise)
+select tt.venue_id, tt.id, t.name, t.position, t.is_open, t.room, tt.buy_in_min_paise
 from (values
   ('Table 1', 1, 'nlh_50_100', true, 'main'),
   ('Table 2', 2, 'nlh_100_200', true, 'main'),

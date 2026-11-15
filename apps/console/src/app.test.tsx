@@ -172,8 +172,8 @@ describe('a screen whose refresh fails', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     signIn();
     answerOnceThenFail({
-      '/rest/v1/game_table': [{ id: 't3', venue_id: 'v1', name: 'Table 3', is_open: true, seats: 9, position: 3, table_type_id: 'nl', must_move_to_table_id: null, room: 'main' }],
-      '/rest/v1/table_type': [{ id: 'nl', name: 'NLH 100/200', small_blind_paise: 10000, big_blind_paise: 20000, buy_in_min_paise: 1000000, straddle_paise: null }],
+      '/rest/v1/game_table': [{ id: 't3', venue_id: 'v1', name: 'Table 3', is_open: true, seats: 9, position: 3, table_type_id: 'nl', must_move_to_table_id: null, room: 'main', min_buy_in_paise: 1000000 }],
+      '/rest/v1/table_type': [{ id: 'nl', name: 'NLH 100/200', small_blind_paise: 10000, big_blind_paise: 20000, straddle_paise: null }],
       '/rpc/waitlist_board': [],
     });
     renderAt('/waitlist');

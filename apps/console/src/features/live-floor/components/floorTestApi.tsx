@@ -15,7 +15,7 @@ const minutesAgo = (minutes: number) => new Date(NOW.getTime() - minutes * 60_00
 export function tableRow(id: string, name: string, extra: Partial<{ is_open: boolean; room: string; type: string; must_move_to_table_id: string | null }> = {}) {
   return {
     id, venue_id: 'v1', name, is_open: extra.is_open ?? true, seats: 9, position: Number(id.replace(/\D/g, '')) || 1,
-    table_type_id: extra.type ?? 'tt2', must_move_to_table_id: extra.must_move_to_table_id ?? null, room: extra.room ?? 'main',
+    table_type_id: extra.type ?? 'tt2', must_move_to_table_id: extra.must_move_to_table_id ?? null, room: extra.room ?? 'main', min_buy_in_paise: 1000000,
   };
 }
 
@@ -57,8 +57,8 @@ export interface FloorApi {
 }
 
 const TYPES = [
-  { id: 'tt1', name: 'NLH 50/100', game: 'nlh', small_blind_paise: 5000, big_blind_paise: 10000, buy_in_min_paise: 500000, straddle_paise: null },
-  { id: 'tt2', name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, buy_in_min_paise: 1000000, straddle_paise: null },
+  { id: 'tt1', name: 'NLH 50/100', game: 'nlh', small_blind_paise: 5000, big_blind_paise: 10000, straddle_paise: null },
+  { id: 'tt2', name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, straddle_paise: null },
 ];
 
 /** The floor's reads, by RPC; any other RPC is a change, answered 204. */

@@ -8,8 +8,8 @@ select plan(6);
 select private.bootstrap_venue('00000000-0000-4000-8000-0000000000c1', 'RIVR Second Room', 'second-room', false, 'RIVR test', 'Test', 'TSR');
 insert into public.table_type (venue_id, code, name, small_blind_paise, big_blind_paise, buy_in_min_paise, buy_in_max_paise)
 values ('00000000-0000-4000-8000-0000000000c1', 'nlh_50_100', 'NLH 50/100', 5000, 10000, 500000, 2000000);
-insert into public.game_table (venue_id, table_type_id, name, position)
-select '00000000-0000-4000-8000-0000000000c1', t.id, 'Room Table 1', 1 from public.table_type t where t.venue_id = '00000000-0000-4000-8000-0000000000c1';
+insert into public.game_table (venue_id, table_type_id, name, position, min_buy_in_paise)
+select '00000000-0000-4000-8000-0000000000c1', t.id, 'Room Table 1', 1, t.buy_in_min_paise from public.table_type t where t.venue_id = '00000000-0000-4000-8000-0000000000c1';
 create temporary table club_tables as select count(*)::integer as n from public.public_table_status where venue_slug = 'gurugram';
 select ok((select n from club_tables) > 0, 'the club has tables on the games block to begin with');
 

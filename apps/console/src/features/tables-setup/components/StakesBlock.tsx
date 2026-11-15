@@ -1,135 +1,117 @@
-import { useTablesSetupActions, type SetupStake } from '@rivr/db';
-import { chipsToPaise, fromPaise, paiseToChips } from '@rivr/domain/money';
-import { formatStakes, t } from '@rivr/i18n';
-import { Button, DataTable, ErrorMessage, Grid, Heading, Inline, Input, Screen, Stack, StatusMessage, Text, type DataTableColumn } from '@rivr/ui';
-import { useState } from 'react';
+import { useTablesSetupActions, type SetupStake, type SetupTable } from '@rivr/db';
+import { fromPaise, paiseToChips } from '@rivr/domain/money';
+import { formatDuration, formatNumber, formatStakes, t } from '@rivr/i18n';
+import {
+  Button, ConfirmQuestion, DataTable, ErrorMessage, Inline, OverflowMenu, Screen, Stack, StatusMessage, type DataTableColumn, type OverflowMenuItem,
+} from '@rivr/ui';
+import { useState, type ReactNode } from 'react';
+import { StakeSheet } from './StakeSheet.tsx';
 
-// A blind in whole 50s of chips, as the table type's check has it.
-const isBlind = (text: string) => /^\d{2,7}$/.test(text) && Number(text) % 50 === 0;
-
-// Blinds are typed in chips.
-const chipsOf = (paise: bigint) => String(paiseToChips(fromPaise(paise)));
-
-// The form open: a new stake's, above the list, or a stake's own by its id, under its row.
+// The panel open: a new stake's, or a stake's own by its id.
 const NEW = 'new';
 
-/** The stakes' columns: name, blinds and straddle, then Change, which opens or closes the stake's form. */
-function stakeColumns(open: string | null, onChange: (stake: SetupStake) => void): readonly DataTableColumn<SetupStake>[] {
-  return [
-    { key: 'name', header: t('console.tablesSetup.name'), cell: (stake) => stake.name, sortValue: (stake) => stake.name, priority: 'primary', filter: 'text' },
-    { key: 'blinds', header: t('console.tablesSetup.blinds'), cell: (stake) => formatStakes(stake.smallBlind, stake.bigBlind), sortValue: (stake) => Number(stake.bigBlind), align: 'end' },
-    {
-      key: 'straddle', header: t('console.tablesSetup.straddle'), align: 'end', filter: 'choice',
-      cell: (stake) => (stake.straddle === null ? t('console.tablesSetup.noStraddle') : chipsOf(stake.straddle)),
-    },
-    {
-      key: 'change', header: '', align: 'end',
-      cell: (stake) => (
-        <Button variant="subtle" size="small" aria-label={t('console.tablesSetup.changeStake', { name: stake.name })} aria-expanded={open === stake.id}
-          onClick={() => onChange(stake)}>
-          {t('console.tablesSetup.change')}
-        </Button>
-      ),
-    },
-  ];
+/** What a row's step did, said under the list: done, or why not. */
+interface Outcome {
+  readonly ok: boolean;
+  readonly text: string;
+}
+
+/** A stake as its row shows it: with how many tables play it. */
+type StakeRow = SetupStake & { readonly tables: number };
+
+/** How many tables play a stake: `1 table`, `4 tables`, or a dash for none. */
+function tablesText(count: number): string {
+  if (count === 0) return t('console.tablesSetup.none');
+  return count === 1 ? t('console.tablesSetup.tablesOne') : t('console.tablesSetup.tablesMany', { count: formatNumber(count) });
+}
+
+interface StakeActionsProps {
+  venueId: string;
+  stake: StakeRow;
+  onChange: () => void;
+  onOutcome: (outcome: Outcome) => void;
 }
 
 /**
- * The stakes (console v3): each with Change, which opens its form under its row, and New stake, which opens an empty one
- * above the list. With no stakes yet the new one is open.
+ * A stake's row: Change, which opens it in the panel, and behind its menu Delete, asked first. A stake a table plays is
+ * not deleted: Delete is dimmed and says so; the database refuses again on its own count, a deleted table's history too.
  */
-export function StakesBlock({ venueId, stakes }: { venueId: string; stakes: readonly SetupStake[] }) {
-  const [open, setOpen] = useState<string | null>(stakes.length === 0 ? NEW : null);
-  const [saved, setSaved] = useState<string | null>(null);
-  const [exportIn, setExportIn] = useState<HTMLElement | null>(null);
-  const toggle = (next: string) => { setSaved(null); setOpen(open === next ? null : next); };
-  const form = (stake: SetupStake | null) => (
-    <StakeForm key={stake?.id ?? NEW} venueId={venueId} stake={stake} onCancel={() => setOpen(null)}
-      onSaved={(text) => { setOpen(null); setSaved(text); }} />
-  );
-  return (
-    <Screen level={2} title={t('console.tablesSetup.stakes')} onActionsSlot={setExportIn}
-      actions={<Button variant="subtle" size="compact" aria-expanded={open === NEW} onClick={() => toggle(NEW)}>{t('console.tablesSetup.newStake')}</Button>}>
-      {open === NEW ? form(null) : null}
-      <DataTable exportIn={exportIn} label={t('console.tablesSetup.stakesLabel')} columns={stakeColumns(open, (stake) => toggle(stake.id))} rows={stakes} narrowLayout="scroll" rowKey={(stake) => stake.id}
-        emptyText={t('console.tablesSetup.stakesEmpty')} rowDetail={(stake) => (open === stake.id ? form(stake) : null)} />
-      <StatusMessage>{saved}</StatusMessage>
-    </Screen>
-  );
-}
-
-interface StakeFormProps {
-  venueId: string;
-  stake: SetupStake | null;
-  onSaved: (text: string) => void;
-  onCancel: () => void;
-}
-
-interface Blinds {
-  small: string;
-  big: string;
-  /** Empty for none. */
-  straddle: string;
-}
-
-/** The form's values to start from: the stake's own, or empty for a new one. */
-function startFrom(stake: SetupStake | null): { name: string } & Blinds {
-  if (stake === null) return { name: '', small: '', big: '', straddle: '' };
-  return { name: stake.name, small: chipsOf(stake.smallBlind), big: chipsOf(stake.bigBlind), straddle: stake.straddle === null ? '' : chipsOf(stake.straddle) };
-}
-
-/** A straddle is none, or whole 50s above the big blind (decision 0299). */
-const isStraddle = (blinds: Blinds) => blinds.straddle === '' || (isBlind(blinds.straddle) && Number(blinds.straddle) > Number(blinds.big));
-
-const isStake = (name: string, blinds: Blinds) =>
-  name.trim() !== '' && isBlind(blinds.small) && isBlind(blinds.big) && Number(blinds.big) > Number(blinds.small) && isStraddle(blinds);
-
-/** A stake's name, blinds and any straddle in chips; no game (decision 0299). */
-function StakeForm({ venueId, stake, onSaved, onCancel }: StakeFormProps) {
-  const { saveStake } = useTablesSetupActions(venueId);
-  const [start] = useState(() => startFrom(stake));
-  const [name, setName] = useState(start.name);
-  const [blinds, setBlinds] = useState<Blinds>({ small: start.small, big: start.big, straddle: start.straddle });
-  const [failure, setFailure] = useState<string | null>(null);
-  const isNew = stake === null;
-  const submit = async () => {
-    const done = await saveStake.mutateAsync({
-      stakeId: isNew ? null : stake.id, name, smallBlind: chipsToPaise(BigInt(blinds.small)), bigBlind: chipsToPaise(BigInt(blinds.big)),
-      straddle: blinds.straddle === '' ? null : chipsToPaise(BigInt(blinds.straddle)),
-    });
-    if (done.ok) onSaved(t('console.tablesSetup.saved', { name: name.trim() }));
-    else setFailure(t(`console.tablesSetup.failures.${done.error}`));
+function StakeActions({ venueId, stake, onChange, onOutcome }: StakeActionsProps) {
+  const { removeStake } = useTablesSetupActions(venueId);
+  const [isAsking, setIsAsking] = useState(false);
+  const name = stake.name;
+  const remove = async () => {
+    setIsAsking(false);
+    const done = await removeStake.mutateAsync(stake.id);
+    if (done.ok) return onOutcome({ ok: true, text: t('console.tablesSetup.stakeDeleted', { name }) });
+    // Said under the list, not beside the row: a stake still in use is named.
+    return onOutcome({ ok: false, text: done.error === 'stake_in_use' ? t('console.tablesSetup.stakeInUse', { name }) : t(`console.tablesSetup.failures.${done.error}`) });
   };
+  const isUsed = stake.tables > 0;
+  const items: readonly OverflowMenuItem[] = [{
+    id: 'delete', tone: 'danger', isDisabled: isUsed || removeStake.isPending, onSelect: () => setIsAsking(true),
+    label: isUsed ? t('console.tablesSetup.stepInPlay', { step: t('console.tablesSetup.delete'), why: t('console.tablesSetup.inUse') }) : t('console.tablesSetup.delete'),
+  }];
   return (
-    <Stack gap={4}>
-      <Heading level={3}>{isNew ? t('console.tablesSetup.newStake') : t('console.tablesSetup.changeStake', { name: start.name })}</Heading>
-      <Grid columns={4} gap={4} stackBelow="medium">
-        <Input label={t('console.tablesSetup.stakeName')} value={name} maxLength={60} onChange={(event) => setName(event.target.value)} />
-        <BlindInputs blinds={blinds} onChange={setBlinds} />
-      </Grid>
-      <Text variant="small" tone="muted">{t('console.tablesSetup.blindsHint')}</Text>
-      <Inline gap={3}>
-        <Button variant="subtle" size="compact" isLoading={saveStake.isPending}
-          onClick={() => { if (isStake(name, blinds)) void submit(); else setFailure(t('console.tablesSetup.stakeIncomplete')); }}>
-          {t('console.tablesSetup.saveStake')}
-        </Button>
-        <Button variant="text" size="compact" onClick={onCancel}>{t('common.cancel')}</Button>
+    <Stack gap={2}>
+      <Inline gap={2} justify="end" align="center">
+        <Button variant="subtle" size="small" aria-label={t('console.tablesSetup.changeStake', { name })} onClick={onChange}>{t('console.tablesSetup.change')}</Button>
+        <OverflowMenu label={t('console.tablesSetup.more', { name })} items={items} />
       </Inline>
-      {failure === null ? null : <ErrorMessage>{failure}</ErrorMessage>}
+      {isAsking ? (
+        <ConfirmQuestion question={t('console.tablesSetup.deleteStakeQuestion', { name })} confirm={t('console.tablesSetup.deleteConfirm', { name })}
+          isBusy={removeStake.isPending} onCancel={() => setIsAsking(false)} onConfirm={() => void remove()} />
+      ) : null}
     </Stack>
   );
 }
 
-/** The blinds and any straddle, each a cell of the form's row; their rule is the line under it. */
-function BlindInputs({ blinds, onChange }: { blinds: Blinds; onChange: (blinds: Blinds) => void }) {
+/** The stakes' columns: name, blinds with any straddle, the straddle, call time and tables, then the row's steps. */
+function stakeColumns(actions: (stake: StakeRow) => ReactNode): readonly DataTableColumn<StakeRow>[] {
+  const typed = (paise: bigint) => String(paiseToChips(fromPaise(paise)));
+  return [
+    { key: 'name', header: t('console.tablesSetup.name'), cell: (stake) => stake.name, sortValue: (stake) => stake.name, priority: 'primary', filter: 'text' },
+    // A stake with a straddle is written with it: 100/200/500 (owner, 15 Nov).
+    { key: 'blinds', header: t('console.tablesSetup.blinds'), cell: (stake) => formatStakes(stake.smallBlind, stake.bigBlind, stake.straddle), sortValue: (stake) => Number(stake.bigBlind), align: 'end' },
+    { key: 'straddle', header: t('console.tablesSetup.straddle'), align: 'end', filter: 'choice', cell: (stake) => (stake.straddle === null ? t('console.tablesSetup.none') : typed(stake.straddle)) },
+    {
+      key: 'callTime', header: t('console.tablesSetup.callTime'), align: 'end', sortValue: (stake) => stake.callTimeMinutes,
+      cell: (stake) => (stake.callTimeMinutes > 0 ? formatDuration(stake.callTimeMinutes * 60) : t('console.tablesSetup.none')), filter: false,
+    },
+    { key: 'tables', header: t('console.tablesSetup.tablesColumn'), align: 'end', sortValue: (stake) => stake.tables, cell: (stake) => tablesText(stake.tables), filter: false },
+    { key: 'actions', header: '', align: 'end', isWide: true, cell: actions },
+  ];
+}
+
+interface StakesBlockProps {
+  venueId: string;
+  stakes: readonly SetupStake[];
+  tables: readonly SetupTable[];
+  /** Whether the staff member changes settings, and so sets a stake's call time. */
+  canSetCallTime: boolean;
+}
+
+/**
+ * The stakes (redesign RD-17): each with its blinds, call time and how many tables play it, Change on the row and Delete
+ * behind its menu. New stake and Change open the panel at the side; with no stakes yet the new one is open.
+ */
+export function StakesBlock({ venueId, stakes, tables, canSetCallTime }: StakesBlockProps) {
+  const [open, setOpen] = useState<string | null>(stakes.length === 0 ? NEW : null);
+  const [outcome, setOutcome] = useState<Outcome | null>(null);
+  const [exportIn, setExportIn] = useState<HTMLElement | null>(null);
+  const rows = stakes.map((stake) => ({ ...stake, tables: tables.filter((table) => table.stakeId === stake.id).length }));
+  const show = (next: string) => { setOutcome(null); setOpen(next); };
+  const columns = stakeColumns((stake) => <StakeActions venueId={venueId} stake={stake} onChange={() => show(stake.id)} onOutcome={setOutcome} />);
   return (
-    <>
-      <Input label={t('console.tablesSetup.smallBlind')} value={blinds.small} inputMode="numeric" maxLength={7}
-        onChange={(event) => onChange({ ...blinds, small: event.target.value.trim() })} />
-      <Input label={t('console.tablesSetup.bigBlind')} value={blinds.big} inputMode="numeric" maxLength={7}
-        onChange={(event) => onChange({ ...blinds, big: event.target.value.trim() })} />
-      <Input label={t('console.tablesSetup.straddleOptional')} value={blinds.straddle} inputMode="numeric" maxLength={7}
-        onChange={(event) => onChange({ ...blinds, straddle: event.target.value.trim() })} />
-    </>
+    <Screen level={2} title={t('console.tablesSetup.stakes')} onActionsSlot={setExportIn}
+      actions={<Button variant="subtle" size="compact" onClick={() => show(NEW)}>{t('console.tablesSetup.newStake')}</Button>}>
+      <DataTable exportIn={exportIn} label={t('console.tablesSetup.stakesLabel')} columns={columns} rows={rows} narrowLayout="scroll" rowKey={(stake) => stake.id}
+        emptyText={t('console.tablesSetup.stakesEmpty')} />
+      <StatusMessage>{outcome?.ok === true ? outcome.text : null}</StatusMessage>
+      {outcome?.ok === false ? <ErrorMessage>{outcome.text}</ErrorMessage> : null}
+      {open === null ? null : (
+        <StakeSheet key={open} venueId={venueId} stake={rows.find((stake) => stake.id === open) ?? null} canSetCallTime={canSetCallTime} onClose={() => setOpen(null)} />
+      )}
+    </Screen>
   );
 }

@@ -1,7 +1,6 @@
-import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, type SetupStake, type SetupTable } from '@rivr/db';
-import { QueryClient } from '@tanstack/react-query';
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { renderSetup, rowOf, stake, table } from './setupTestApi.tsx';
 import { TablesBlock } from './TablesBlock.tsx';
 
 afterEach(() => {
@@ -10,66 +9,56 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const STAKES: readonly SetupStake[] = [{ id: 's1', name: 'NLH 100/200', game: null, smallBlind: 10000n, bigBlind: 20000n, straddle: null }];
-const table = (id: string, name: string, more: Partial<SetupTable>): SetupTable =>
-  ({ id, name, stakeId: 's1', seats: 9, isOpen: false, isActive: true, seated: 0, waiting: 0, ...more });
-const TABLES: readonly SetupTable[] = [
+// The third stake has no call time yet, so no table may play it.
+const STAKES = [stake('s1', 'NLH 100/200'), stake('s2', 'NLH 50/100', { smallBlind: 5000n, bigBlind: 10000n }), stake('s3', 'NLH 500/1000', { bigBlind: 100000n, callTimeMinutes: 0 })];
+const TABLES = [
   table('t1', 'Table 1', { isOpen: true, seated: 7 }),
   table('t2', 'Table 2', { waiting: 2 }),
-  table('t3', 'Table 3', {}),
+  // Its own minimum, not the 50 big blinds its stake would suggest.
+  table('t3', 'Table 3', { minBuyIn: 735000n }),
   table('t5', 'Table 5', { isActive: false }),
 ];
 
-/** A super admin on tables setup, and a fake API that keeps every RPC sent and answers `refusals` with their code. */
-function renderTables(refusals: Record<string, string> = {}) {
-  localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
-    access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
-    user: { id: '00000000-0000-4000-8000-000000000101', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
-  }));
-  const sent: { rpc: string; body: unknown }[] = [];
-  vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = String(input instanceof Request ? input.url : input);
-    const rpc = url.split('/rpc/')[1];
-    if (rpc === undefined) return Response.json([]);
-    sent.push({ rpc, body: init?.body ? JSON.parse(String(init.body)) : undefined });
-    const code = refusals[rpc];
-    return code === undefined ? new Response(null, { status: 204 }) : Response.json({ code, message: 'refused' }, { status: 400 });
-  });
-  render(
-    <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
-      queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <TablesBlock venueId="v1" stakes={STAKES} tables={TABLES} />
-    </RivrDataProvider>,
-  );
-  return sent;
-}
+const renderTables = (refusals: Record<string, string> = {}) => renderSetup(<TablesBlock venueId="v1" stakes={STAKES} tables={TABLES} />, refusals);
 
-const rowOf = (name: string) => {
-  const row = screen.getAllByRole('row').find((one) => within(one).queryAllByRole('cell')[0]?.textContent === name);
-  if (row === undefined) throw new Error(`No row for ${name}`);
-  return row;
-};
-
-/** Opens a table's ⋯ and presses one of its steps. */
-const pressStep = (table: string, step: string) => {
-  fireEvent.click(screen.getByRole('button', { name: `More for ${table}` }));
+/** Opens a table's menu and presses one of its steps. */
+const pressStep = (name: string, step: string) => {
+  fireEvent.click(screen.getByRole('button', { name: `More for ${name}` }));
   fireEvent.click(screen.getByRole('menuitem', { name: step }));
 };
+const minBuyIn = (panel: HTMLElement) => within(panel).getByRole('textbox', { name: /Minimum buy-in/ });
 
 describe('tables setup: deactivate, reactivate and delete (decision 0466)', () => {
-  it('says where each table stands: seated at an open one, closed tonight, or inactive and hidden', () => {
+  it('says where each table stands, with its own minimum buy-in', () => {
     renderTables();
     expect(rowOf('Table 1').textContent).toContain('Open · 7 seated');
+    expect(rowOf('Table 1').textContent).toContain('₹10,000');
     expect(rowOf('Table 3').textContent).toContain('Closed tonight');
+    expect(rowOf('Table 3').textContent).toContain('₹7,350');
     expect(rowOf('Table 5').textContent).toContain('Inactive · hidden from the floor');
   });
 
-  it('keeps Change on the row and the steps that retire a table behind its ⋯ (audit F-118)', () => {
+  it('keeps one button, Change, on the row and every other step behind its menu (audit F-118)', () => {
     renderTables();
-    expect(within(rowOf('Table 3')).getByRole('button', { name: 'Change table Table 3' })).toBeDefined();
-    expect(within(rowOf('Table 3')).queryByRole('button', { name: /Deactivate|Delete/ })).toBeNull();
+    expect(within(rowOf('Table 3')).getAllByRole('button').map((button) => button.getAttribute('aria-label'))).toEqual(['Change table Table 3', 'More for Table 3']);
+    fireEvent.click(screen.getByRole('button', { name: 'More for Table 3' }));
+    expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Open', 'Deactivate', 'Delete']);
+    fireEvent.click(screen.getByRole('button', { name: 'More for Table 3' }));
     fireEvent.click(screen.getByRole('button', { name: 'More for Table 5' }));
-    expect(screen.getByRole('menuitem', { name: 'Reactivate' })).toBeDefined();
+    // An inactive table is opened by nobody until it is back.
+    expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Reactivate', 'Delete']);
+  });
+
+  it('opens a closed table and closes an open one from the menu, saying why a table with players stays open', async () => {
+    const sent = renderTables({});
+    pressStep('Table 3', 'Open');
+    await waitFor(() => expect(screen.getByText('Table 3 is open.')).toBeDefined());
+    expect(sent).toEqual([{ rpc: 'set_table_open', body: { p_table_id: 't3', p_is_open: true } }]);
+    cleanup();
+    const refused = renderTables({ set_table_open: 'RVSTD' });
+    pressStep('Table 1', 'Close');
+    await waitFor(() => expect(screen.getByText('Players sit at Table 1. Move them first.')).toBeDefined());
+    expect(refused).toEqual([{ rpc: 'set_table_open', body: { p_table_id: 't1', p_is_open: false } }]);
   });
 
   it('dims Deactivate and Delete on a table in play, saying why, and sends nothing: seated first, then waiting', () => {
@@ -96,29 +85,107 @@ describe('tables setup: deactivate, reactivate and delete (decision 0466)', () =
     expect(sent).toEqual([{ rpc: 'deactivate_game_table', body: { p_table_id: 't3' } }, { rpc: 'reactivate_game_table', body: { p_table_id: 't5' } }]);
   });
 
-  it('deletes only once asked, and says the history stays', async () => {
+  it('deletes only once asked, and says the history stays; or why the database refused on its own count', async () => {
     const sent = renderTables();
     pressStep('Table 3', 'Delete');
     expect(sent).toEqual([]);
     fireEvent.click(screen.getByRole('button', { name: 'Yes, delete Table 3' }));
     await waitFor(() => expect(screen.getByText('Table 3 deleted. Its history stays.')).toBeDefined());
     expect(sent).toEqual([{ rpc: 'delete_game_table', body: { p_table_id: 't3' } }]);
-  });
-
-  it('says why the database refused, on its own count: someone joined the list meanwhile', async () => {
+    cleanup();
     renderTables({ delete_game_table: 'RVWTG' });
     pressStep('Table 3', 'Delete');
     fireEvent.click(screen.getByRole('button', { name: 'Yes, delete Table 3' }));
     await waitFor(() => expect(screen.getByText('Players wait for Table 3. Take them off its list first.')).toBeDefined());
   });
+});
 
-  it('opens a table\'s own form under its row with Change, and a new one above the list', async () => {
-    renderTables();
-    fireEvent.click(screen.getByRole('button', { name: 'Change table Table 3' }));
-    expect(screen.getByRole('heading', { name: 'Change table Table 3' })).toBeDefined();
-    expect(screen.getByDisplayValue('Table 3')).toBeDefined();
+describe('a table made or changed in the panel (redesign RD-17)', () => {
+  it('fills a new table\'s minimum buy-in at 50 big blinds of the stake chosen, until the admin types their own, and saves it', async () => {
+    const sent = renderTables();
+    expect(screen.queryByRole('dialog')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'New table' }));
-    expect(screen.getByRole('heading', { name: 'New table' })).toBeDefined();
-    expect(screen.queryByRole('heading', { name: 'Change table Table 3' })).toBeNull();
+    const panel = screen.getByRole('dialog', { name: 'New table' });
+    expect(within(panel).getByRole('radiogroup', { name: 'Seats' }).textContent).toBe('2345678910');
+    fireEvent.change(within(panel).getByRole('textbox', { name: 'Table name' }), { target: { value: 'Table 6' } });
+    fireEvent.click(within(panel).getByRole('radio', { name: 'NLH 100/200' }));
+    expect(minBuyIn(panel).getAttribute('value')).toBe('10000');
+    fireEvent.click(within(panel).getByRole('radio', { name: 'NLH 50/100' }));
+    expect(minBuyIn(panel).getAttribute('value')).toBe('5000');
+    fireEvent.change(minBuyIn(panel), { target: { value: '7350' } });
+    fireEvent.click(within(panel).getByRole('radio', { name: 'NLH 100/200' }));
+    expect(minBuyIn(panel).getAttribute('value')).toBe('7350');
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(sent).toEqual([{ rpc: 'add_game_table', body: { p_venue_id: 'v1', p_name: 'Table 6', p_table_type_id: 's1', p_seats: 9, p_min_buy_in_paise: 735000 } }]));
+    await waitFor(() => expect(screen.getByText('Table 6 added, closed.')).toBeDefined());
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('opens a table from its Change on its own values, and keeps its own minimum while its stake stays', async () => {
+    const sent = renderTables();
+    fireEvent.click(screen.getByRole('button', { name: 'Change table Table 3' }));
+    const panel = screen.getByRole('dialog', { name: 'Change table Table 3' });
+    expect(within(panel).getByRole('textbox', { name: 'Table name' }).getAttribute('value')).toBe('Table 3');
+    expect(minBuyIn(panel).getAttribute('value')).toBe('7350');
+    // Another stake brings its suggestion; back on its own stake, the table's own figure, not that stake's 50 big blinds.
+    fireEvent.click(within(panel).getByRole('radio', { name: 'NLH 50/100' }));
+    expect(minBuyIn(panel).getAttribute('value')).toBe('5000');
+    fireEvent.click(within(panel).getByRole('radio', { name: 'NLH 100/200' }));
+    expect(minBuyIn(panel).getAttribute('value')).toBe('7350');
+    fireEvent.click(within(panel).getByRole('radio', { name: '6' }));
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(sent).toEqual([{ rpc: 'set_game_table', body: { p_table_id: 't3', p_name: 'Table 3', p_table_type_id: 's1', p_seats: 6, p_min_buy_in_paise: 735000 } }]));
+    await waitFor(() => expect(screen.getByText('Table 3 saved.')).toBeDefined());
+  });
+
+  it('says what is missing, refuses a minimum of nothing or one that is no whole 50, and a stake with no call time, before anything is sent', async () => {
+    const sent = renderTables();
+    fireEvent.click(screen.getByRole('button', { name: 'New table' }));
+    const panel = screen.getByRole('dialog', { name: 'New table' });
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
+    expect(await within(panel).findByText('Check the name, stake and minimum buy-in.')).toBeDefined();
+    fireEvent.change(within(panel).getByRole('textbox', { name: 'Table name' }), { target: { value: 'Table 6' } });
+    // Editing a field takes the refusal away until the next Save.
+    expect(within(panel).queryByText('Check the name, stake and minimum buy-in.')).toBeNull();
+    fireEvent.click(within(panel).getByRole('radio', { name: 'NLH 500/1000' }));
+    expect(minBuyIn(panel).getAttribute('value')).toBe('50000');
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
+    expect(await within(panel).findByText('That stake has no call time. Give it one first.')).toBeDefined();
+    fireEvent.click(within(panel).getByRole('radio', { name: 'NLH 100/200' }));
+    expect(within(panel).getByText('In whole 50s.')).toBeDefined();
+    fireEvent.change(minBuyIn(panel), { target: { value: '7349' } });
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
+    expect(await within(panel).findByText('Check the name, stake and minimum buy-in.')).toBeDefined();
+    fireEvent.change(minBuyIn(panel), { target: { value: '0' } });
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
+    expect(await within(panel).findByText('Check the name, stake and minimum buy-in.')).toBeDefined();
+    expect(sent).toEqual([]);
+  });
+
+  it('closes the panel on Escape with the focus back on the row\'s Change, and sends one request when Save is pressed twice', async () => {
+    const sent = renderTables();
+    const change = screen.getByRole('button', { name: 'Change table Table 3' });
+    change.focus();
+    fireEvent.click(change);
+    fireEvent.keyDown(screen.getByRole('dialog', { name: 'Change table Table 3' }), { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(change));
+    expect(sent).toEqual([]);
+    fireEvent.click(change);
+    const save = within(screen.getByRole('dialog')).getByRole('button', { name: 'Save' });
+    fireEvent.click(save);
+    fireEvent.click(save);
+    await waitFor(() => expect(screen.getByText('Table 3 saved.')).toBeDefined());
+    expect(sent.map((call) => call.rpc)).toEqual(['set_game_table']);
+  });
+
+  it('says why the database refused a table given a stake that lost its call time meanwhile', async () => {
+    renderTables({ add_game_table: 'RVNCT' });
+    fireEvent.click(screen.getByRole('button', { name: 'New table' }));
+    const panel = screen.getByRole('dialog', { name: 'New table' });
+    fireEvent.change(within(panel).getByRole('textbox', { name: 'Table name' }), { target: { value: 'Table 6' } });
+    fireEvent.click(within(panel).getByRole('radio', { name: 'NLH 100/200' }));
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(within(panel).getByText('That stake has no call time. Give it one first.')).toBeDefined());
   });
 });

@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, screen, userEvent } from 'storybook/test';
+import { ChoiceChips } from '../ChoiceChips/ChoiceChips.tsx';
 import { DataTable, type DataTableColumn } from './DataTable.tsx';
+import { DataTableExportProvider } from './DataTableExport.tsx';
 import { DataTableViewProvider } from './DataTableView.tsx';
 import type { ViewWire } from './tableView.ts';
 
@@ -92,6 +94,28 @@ export const MenuWithServerCounts: Story = {
     await expect(screen.getByRole('dialog', { name: 'Tier: sort and filter' })).toBeInTheDocument();
   },
 };
+
+/**
+ * The screen's own filter under the search, tier chips the table knows only as `server.scope`: choosing one starts the
+ * table again from its first page. Beneath an export provider, as every console table is, yet no Export is drawn: the
+ * rows shown are one page of the list.
+ */
+function ScopedTable() {
+  const tier = 'Black card';
+  const chips = (
+    <ChoiceChips label="Tier" isLabelVisuallyHidden mode="one" look="subtle" selected={[tier]} onChange={() => undefined}
+      options={[{ value: 'all', label: 'All', count: 4812 }, { value: 'Black card', label: 'Black card', count: 312 }, { value: 'Member', label: 'Member', count: 4452 }]} />
+  );
+  return (
+    <DataTableExportProvider exporter={async () => true}>
+      <DataTable label="Members" columns={COLUMNS} rowKey={(row) => String(row.number)} rows={members(12).map((row) => ({ ...row, tier }))} emptyText="No members yet."
+        filter={{ label: 'Name, mobile or member number', text: (row) => row.name }} belowSearch={chips}
+        server={{ total: 312, pageSize: 12, onRequest: () => undefined, scope: `tier: ${tier}` }} />
+    </DataTableExportProvider>
+  );
+}
+
+export const ScopedByTheScreen: Story = { render: () => <ScopedTable />, tags: DESK };
 
 /** On a phone each row is a card; the pages keep 44 px targets. */
 export const ManyPagesOnAPhone: Story = { tags: ['viewport-phone'] };

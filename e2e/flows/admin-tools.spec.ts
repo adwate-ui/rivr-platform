@@ -28,32 +28,44 @@ test.describe('Admin tools', () => {
     test.setTimeout(90_000);
     await signInToConsole(page, '9000000114');
     await openConsole(page, '/tables');
+    // A stake, in the panel at the side (redesign RD-17): its blinds, straddle and the call time it is given.
     await page.getByRole('button', { name: 'New stake' }).click();
-    await expect(page.getByRole('heading', { name: 'New stake' })).toBeVisible();
-    await page.getByRole('textbox', { name: 'Stake name' }).fill(`PLO 200/400 ${RUN}`);
-    await page.getByRole('textbox', { name: 'Small blind' }).fill('200');
-    await page.getByRole('textbox', { name: 'Big blind' }).fill('400');
-    await page.getByRole('textbox', { name: 'Straddle' }).fill('800');
-    await page.getByRole('button', { name: 'Save the stake' }).click();
-    await expect(page.getByText(`PLO 200/400 ${RUN} is saved.`)).toBeVisible();
-    await expect(page.getByRole('table', { name: 'The stakes the club runs' }).getByRole('row').filter({ hasText: `PLO 200/400 ${RUN}` })).toContainText('800');
+    const stakePanel = page.getByRole('dialog', { name: 'New stake' });
+    await stakePanel.getByRole('textbox', { name: 'Stake name' }).fill(`PLO 200/400 ${RUN}`);
+    await stakePanel.getByRole('textbox', { name: 'Small blind' }).fill('200');
+    await stakePanel.getByRole('textbox', { name: 'Big blind' }).fill('400');
+    await stakePanel.getByRole('textbox', { name: 'Straddle' }).fill('800');
+    await stakePanel.getByRole('textbox', { name: 'Call time' }).fill('240');
+    await stakePanel.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByText(`PLO 200/400 ${RUN} added.`)).toBeVisible();
+    await expect(stakePanel).toBeHidden();
+    // Written with its straddle, and with its call time.
+    const stake = page.getByRole('table', { name: 'The stakes the club runs' }).getByRole('row').filter({ hasText: `PLO 200/400 ${RUN}` });
+    await expect(stake).toContainText('200/400/800');
+    await expect(stake).toContainText('4 h');
 
+    // A table of it: the minimum buy-in comes filled in at 50 big blinds, ₹20,000, and the admin types their own.
     await page.getByRole('button', { name: 'New table' }).click();
-    await expect(page.getByRole('heading', { name: 'New table' })).toBeVisible();
-    await page.getByRole('textbox', { name: 'Table name' }).fill(`Setup ${RUN}`);
-    await page.getByRole('radiogroup', { name: 'Stake' }).getByRole('radio', { name: `PLO 200/400 ${RUN}` }).click();
-    await page.getByRole('radiogroup', { name: 'Seats' }).getByRole('radio', { name: '8', exact: true }).click();
-    await page.getByRole('button', { name: 'Save the table' }).click();
-    await expect(page.getByText(`Setup ${RUN} is saved.`)).toBeVisible();
+    const tablePanel = page.getByRole('dialog', { name: 'New table' });
+    await tablePanel.getByRole('textbox', { name: 'Table name' }).fill(`Setup ${RUN}`);
+    await tablePanel.getByRole('radiogroup', { name: 'Stake' }).getByRole('radio', { name: `PLO 200/400 ${RUN}` }).click();
+    await expect(tablePanel.getByRole('textbox', { name: 'Minimum buy-in' })).toHaveValue('20000');
+    await tablePanel.getByRole('radiogroup', { name: 'Seats' }).getByRole('radio', { name: '8', exact: true }).click();
+    await tablePanel.getByRole('textbox', { name: 'Minimum buy-in' }).fill('25000');
+    await tablePanel.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByText(`Setup ${RUN} added, closed.`)).toBeVisible();
     const tables = page.getByRole('table', { name: 'The club’s tables, in floor order' });
     await expect(tables.getByRole('row').filter({ hasText: `Setup ${RUN}` })).toContainText('Closed tonight');
+    await expect(tables.getByRole('row').filter({ hasText: `Setup ${RUN}` })).toContainText('₹25,000');
     await tables.getByRole('button', { name: `Change table Setup ${RUN}` }).click();
-    await page.getByRole('radiogroup', { name: 'Seats' }).getByRole('radio', { name: '6', exact: true }).click();
-    await page.getByRole('button', { name: 'Save the table' }).click();
-    await expect(page.getByText(`Setup ${RUN} is saved.`)).toBeVisible();
-    // No game asked, and the straddle kept (decision 0299).
-    expect(sql(`select g.seats || ' ' || coalesce(t.game, 'none') || ' ' || t.big_blind_paise || ' ' || t.straddle_paise
-                from public.game_table g join public.table_type t on t.id = g.table_type_id where g.name = 'Setup ${RUN}'`)).toBe('6 none 40000 80000');
+    const changePanel = page.getByRole('dialog', { name: `Change table Setup ${RUN}` });
+    await changePanel.getByRole('radiogroup', { name: 'Seats' }).getByRole('radio', { name: '6', exact: true }).click();
+    await changePanel.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByText(`Setup ${RUN} saved.`)).toBeVisible();
+    // No game asked, the straddle kept (decision 0299); the table's own minimum and the stake's call time (redesign RD-16).
+    expect(sql(`select g.seats || ' ' || coalesce(t.game, 'none') || ' ' || t.big_blind_paise || ' ' || t.straddle_paise || ' ' || g.min_buy_in_paise || ' ' ||
+                       (select s.value ->> 'minutes' from public.setting s where s.venue_id = t.venue_id and s.key = 'call_time.minutes' and s.subject = t.code)
+                from public.game_table g join public.table_type t on t.id = g.table_type_id where g.name = 'Setup ${RUN}'`)).toBe('6 none 40000 80000 2500000 240');
 
     // A time-based bonus (#646): 1,500 bonus chips after three hours in a visit, built as a version (console v3, decision 0471).
     await page.goto(`${appUrl('console')}/promotions?open=new`);

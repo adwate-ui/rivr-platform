@@ -6,8 +6,8 @@ import { TablesBlock } from './TablesBlock.tsx';
 
 /**
  * Tables setup (#642; owner's feedback doc of 29 Oct, super admin module 1), for tables.manage: the stakes the club runs,
- * each a game and its blinds, and its tables, each with a stake and its seats, deactivated, reactivated or deleted
- * (decision 0466). The floor opens and closes them.
+ * each its blinds and call time, and its tables, each with a stake, its seats and its own minimum buy-in (redesign RD-17),
+ * deactivated, reactivated or deleted (decision 0466). The floor opens and closes them; a table's menu here does too.
  */
 export function TablesSetupScreen() {
   const staff = useStaffVenue();
@@ -16,10 +16,10 @@ export function TablesSetupScreen() {
   if (!staff.venue.permissions.includes('tables.manage')) {
     return <Screen title={t('console.tablesSetup.title')} status="error" errorText={t('console.tablesSetup.notAllowed')} />;
   }
-  return <Setup venueId={staff.venue.venueId} />;
+  return <Setup venueId={staff.venue.venueId} canSetCallTime={staff.venue.permissions.includes('settings.manage')} />;
 }
 
-function Setup({ venueId }: { venueId: string }) {
+function Setup({ venueId, canSetCallTime }: { venueId: string; canSetCallTime: boolean }) {
   const setup = useTablesSetup(venueId);
   const title = t('console.tablesSetup.title');
   if (setup.isPending) return <Screen title={title} status="loading" />;
@@ -27,7 +27,7 @@ function Setup({ venueId }: { venueId: string }) {
   return (
     <Screen title={title}>
       <Stack gap={8}>
-        <StakesBlock venueId={venueId} stakes={setup.data.stakes} />
+        <StakesBlock venueId={venueId} stakes={setup.data.stakes} tables={setup.data.tables} canSetCallTime={canSetCallTime} />
         <TablesBlock venueId={venueId} stakes={setup.data.stakes} tables={setup.data.tables} />
       </Stack>
     </Screen>

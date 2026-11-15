@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, type RefObject } from 'react';
+import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import type { DataTableSort } from './columns.ts';
 import { TYPING_MS } from './DataTableView.tsx';
 import type { ColumnFilters, FilteredColumn } from './filters.ts';
@@ -21,8 +21,17 @@ export interface DataTableServer {
   readonly total: number;
   /** How many rows a page holds. */
   readonly pageSize: number;
-  /** Given the view in force when the table is first drawn and as it changes, words typed once typing pauses: the screen loads that page. */
+  /**
+   * Given the view in force when the table is first drawn and as it changes, words typed once typing pauses: the screen
+   * loads that page. Each call is the whole request, so a screen keys its query on the latest one, and a slow answer to
+   * an earlier request cannot overwrite a newer one.
+   */
   readonly onRequest: (request: DataTableRequest) => void;
+  /**
+   * The screen's own filters, in any words that change when they do, such as Members' tier chips, which the table does
+   * not hold. When it changes the table starts again from the first page and hands its request over again.
+   */
+  readonly scope?: string | undefined;
 }
 
 /** What the hand-over reads of the table. */
@@ -37,6 +46,8 @@ interface ServerInput<Row> {
   readonly isReady: boolean;
   /** Whether the last change here was typed. */
   readonly typed: RefObject<boolean>;
+  /** Takes the page off the view, back to the first. */
+  readonly onFirstPage: () => void;
 }
 
 /** How many pages the total makes: one at least. */
@@ -51,15 +62,32 @@ function filtersInForce<Row>(on: readonly FilteredColumn<Row>[], filters: Column
 }
 
 /**
- * A table's page in server mode, and the hand-over of its view to the screen: when first drawn and at each change, at
- * once, or once typing pauses for words typed. A page past the last (rows gone since, an old link) is the last.
+ * The page the view asks for, or the first once the screen's own filters (`scope`) have changed since the page was
+ * chosen: the page is then taken off the view too.
  */
-export function useServerPages<Row>({ server, view, query, on, isReady, typed }: ServerInput<Row>) {
+function usePageInScope(scope: string | undefined, viewPage: number | undefined, onFirstPage: () => void): number {
+  const [pageScope, setPageScope] = useState(scope);
+  const isStale = scope !== pageScope;
+  useEffect(() => {
+    if (!isStale) return;
+    setPageScope(scope);
+    onFirstPage();
+  }, [isStale, scope, onFirstPage]);
+  return isStale ? 1 : viewPage ?? 1;
+}
+
+/**
+ * A table's page in server mode, and the hand-over of its view to the screen: when first drawn and at each change, at
+ * once, or once typing pauses for words typed, and again when the screen's own filters change. A page past the last
+ * (rows gone since, an old link) is the last.
+ */
+export function useServerPages<Row>({ server, view, query, on, isReady, typed, onFirstPage }: ServerInput<Row>) {
   const pageCount = server === undefined ? 1 : pageCountOf(server);
-  const asked = view.page ?? 1;
+  const asked = usePageInScope(server?.scope, view.page, onFirstPage);
   const page = isReady ? Math.min(asked, pageCount) : asked;
   const request = useMemo((): DataTableRequest => ({ sort: view.sort, query, filters: filtersInForce(on, view.filters), page }), [view.sort, view.filters, query, on, page]);
-  const key = JSON.stringify(request);
+  // The screen's own filters are part of what is asked for, so a change of them hands the request over again.
+  const key = `${server?.scope ?? ''}\n${JSON.stringify(request)}`;
   // The screen's callback and the request as they are now, so a screen drawn again does not put the hand-over off.
   const latest = useRef({ onRequest: server?.onRequest, request });
   useEffect(() => {

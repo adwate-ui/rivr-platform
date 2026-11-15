@@ -9,8 +9,8 @@ export interface GamesBlockGame {
   readonly name: string;
   readonly smallBlind: bigint;
   readonly bigBlind: bigint;
+  /** The least a player buys in for at any of its tables; there is no maximum (redesign RD-16). */
   readonly buyInMin: bigint;
-  readonly buyInMax: bigint;
   /** A compulsory straddle, as in the Private Room; null where there is none. */
   readonly straddle: bigint | null;
 }
@@ -22,13 +22,10 @@ export interface GamesBlockProps {
   reserve?: { readonly label: string; readonly href: string } | undefined;
 }
 
-function buyIn(game: GamesBlockGame): string {
-  if (game.buyInMin === game.buyInMax) return t('ui.web.buyIn', { amount: formatMoney(game.buyInMin) });
-  return t('ui.web.buyInRange', { min: formatMoney(game.buyInMin), max: formatMoney(game.buyInMax) });
-}
+const buyIn = (game: GamesBlockGame): string => t('ui.web.minBuyIn', { amount: formatMoney(game.buyInMin) });
 
 /**
- * A website block of the games and stakes the club runs, a card each: the stakes, the game and the buy-in. It shows the
+ * A website block of the games and stakes the club runs, a card each: the stakes, the game and the minimum buy-in. It shows the
  * stakes only, never how many tables run or wait (#617), and a way to reserve a seat.
  */
 export function GamesBlock({ heading, games, reserve }: GamesBlockProps) {

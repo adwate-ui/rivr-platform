@@ -1,6 +1,6 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { t } from '@rivr/i18n';
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { Icon } from '../Icon/Icon.tsx';
 
 export interface ConsoleSheetProps {
@@ -21,17 +21,24 @@ const CLOSE =
 /**
  * The console's sheet (console v3): from 768 px a panel 440 px wide down the right of the screen; below, a sheet from the
  * foot to just under the top. Its title and its actions stay while its content scrolls between them. Escape, Close and the
- * scrim close it, and focus stays in it until then.
+ * scrim close it, and focus stays in it until then; as it closes, the focus goes back to what had it when it opened, such
+ * as a row's Change.
  */
 export function ConsoleSheet({ isOpen, onClose, title, subtitle, footer, children }: ConsoleSheetProps) {
+  const opener = useRef<Element | null>(null);
   return (
     <Dialog.Root open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <Dialog.Portal>
         <Dialog.Overlay data-scrim="" className="fixed inset-0 z-overlay bg-scrim" />
         <Dialog.Content aria-describedby={undefined} data-sheet="console"
           onOpenAutoFocus={(event) => {
+            opener.current = document.activeElement;
             event.preventDefault();
             if (event.currentTarget instanceof HTMLElement) event.currentTarget.focus();
+          }}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            if (opener.current instanceof HTMLElement && opener.current.isConnected) opener.current.focus();
           }}
           className="fixed inset-x-0 top-16 bottom-0 z-modal flex flex-col rounded-t-lg bg-raised text-content shadow-modal focus:outline-none medium:inset-x-auto medium:inset-y-0 medium:right-0 medium:w-side-panel medium:max-w-full medium:rounded-none">
           <div className="shrink-0 px-6 pt-5 pb-4">

@@ -11,7 +11,7 @@ test.describe('Live floor widget', () => {
     await page.setViewportSize(VIEWPORT.web);
     await page.goto(`${appUrl('web')}/#games`);
     const games = page.locator('#games');
-    await expect(games.getByText(/^Buy-in ₹/).first()).toBeVisible();
+    await expect(games.getByText(/^Min buy-in ₹/).first()).toBeVisible();
     await expect(games.getByText(/running|waiting|open seat/)).toHaveCount(0);
     await expect(games.getByRole('link', { name: 'Request a seat' })).toHaveAttribute('href', /^https:\/\/wa\.me\/\d+\?text=/);
   });

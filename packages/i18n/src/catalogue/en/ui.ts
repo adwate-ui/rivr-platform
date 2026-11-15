@@ -136,7 +136,7 @@ export const ui = {
     },
     /** GamesBlock and CalendarBlock: `{amount}` is formatted money. */
     buyIn: 'Buy-in {amount}',
-    buyInRange: 'Buy-in {min} to {max}',
+    minBuyIn: 'Min buy-in {amount}',
     straddle: '{amount} straddle',
     noGames: 'No games are set up yet.',
     /** CalendarBlock's month (#617): its name for a screen reader, and the weekdays' heads, Monday first. */

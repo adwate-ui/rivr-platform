@@ -10,8 +10,8 @@ $$;
 grant execute on function pg_temp.as_person(uuid) to authenticated;
 
 -- A small open table, its list six members long.
-insert into public.game_table (venue_id, name, is_open, seats, position, table_type_id, room)
-select venue_id, 'Call test', true, 2, 99, table_type_id, room from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 3';
+insert into public.game_table (venue_id, name, is_open, seats, position, table_type_id, room, min_buy_in_paise)
+select venue_id, 'Call test', true, 2, 99, table_type_id, room, min_buy_in_paise from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 3';
 create temp table entries as
   select m.n, (select id from public.game_table where name = 'Call test') as table_id, gen_random_uuid() as id,
          ('00000000-0000-4000-8000-000000000' || m.member)::uuid as member_id

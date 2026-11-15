@@ -85,7 +85,8 @@ export type DataTableProps<Row> = DataTableState<Row> & {
    * Server mode (redesign RD-13), for a list too long to load whole: the screen sorts, searches, filters and pages, and
    * gives one page as `rows` with the `total`. The table hands it the view in force (`onRequest`), draws the rows as
    * given, the pages in its foot, and how many rows show of all. A page of rows cannot tell a column's kind of filter, so
-   * a column says it (`filter`; left out, words to type), and a choice gives its `choices`. An export holds the page shown.
+   * a column says it (`filter`; left out, words to type), and a choice gives its `choices`. There is no Export: the rows
+   * shown are one page.
    */
   server?: DataTableServer;
 };

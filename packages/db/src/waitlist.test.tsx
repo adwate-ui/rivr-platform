@@ -54,12 +54,12 @@ describe('Waitlist data', () => {
       ...EMPTY,
       '/rest/v1/game_table': {
         body: [
-          { id: 't2', venue_id: VENUE, name: 'Table 2', is_open: true, seats: 9, position: 2, table_type_id: 'hi' },
-          { id: 'tx', venue_id: VENUE, name: 'Table 9', is_open: true, seats: 9, position: 9, table_type_id: 'gone' },
+          { id: 't2', venue_id: VENUE, name: 'Table 2', is_open: true, seats: 9, position: 2, table_type_id: 'hi', min_buy_in_paise: 735000 },
+          { id: 'tx', venue_id: VENUE, name: 'Table 9', is_open: true, seats: 9, position: 9, table_type_id: 'gone', min_buy_in_paise: 735000 },
         ],
       },
       '/rest/v1/table_type': {
-        body: [{ id: 'hi', name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, buy_in_min_paise: 1000000, straddle_paise: null }],
+        body: [{ id: 'hi', name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, straddle_paise: null }],
       },
       '/rpc/waitlist_lengths': { body: [{ table_id: 't2', waiting: 3, call_time_minutes: 180 }, { table_id: 't3', waiting: 1, call_time_minutes: 180 }] },
       '/rpc/floor_open_seats': { body: [{ table_id: 't2', open_seats: 4 }] },
@@ -67,7 +67,7 @@ describe('Waitlist data', () => {
     // A table whose game the person cannot read is left out.
     await waitFor(() => expect(result.current.tables.data).toEqual([{
       id: 't2', venueId: VENUE, name: 'Table 2', isOpen: true, seats: 9, tableTypeId: 'hi', tableTypeName: 'NLH 100/200', game: 'nlh',
-      smallBlind: 10000n, bigBlind: 20000n, buyIn: 1000000n, straddle: null, waiting: 3, openSeats: 4, mustMoveToTableId: null, room: 'main',
+      smallBlind: 10000n, bigBlind: 20000n, buyIn: 735000n, straddle: null, waiting: 3, openSeats: 4, mustMoveToTableId: null, room: 'main',
       callTimeMinutes: 180,
     }]));
   });

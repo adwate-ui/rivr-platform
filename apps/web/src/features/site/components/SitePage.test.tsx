@@ -147,11 +147,11 @@ describe('a website page', () => {
     const live = {
       ...PAGE,
       blocks: [{ kind: 'games' as const, content: { heading: 'Games and stakes' } }, { kind: 'calendar' as const, content: {} }],
-      games: [{ name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, buyInMax: 500000n, straddle: null }],
+      games: [{ name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, straddle: null }],
       tournaments: [{ name: 'RIVR Sunday', startsAt: new Date('2026-11-15T10:30:00Z'), buyIn: 1000000n, guarantee: 50000000n }],
     };
     const { container } = render(<SitePage page={live} playerUrl="https://player.invalid/" attribution={null} contact={CONTACT} />);
-    expect(screen.getByText('Buy-in ₹5,000')).toBeDefined();
+    expect(screen.getByText('Min buy-in ₹5,000')).toBeDefined();
     expect(screen.queryByText(/running|waiting/)).toBeNull();
     // The header's Request a seat, the phone menu's, and the games block's.
     expect(screen.getAllByRole('link', { name: 'Request a seat' }).map((reserve) => reserve.getAttribute('href')?.startsWith('https://wa.me/'))).toEqual([true, true, true]);

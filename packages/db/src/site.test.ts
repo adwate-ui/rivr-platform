@@ -72,7 +72,7 @@ describe('fetchSitePage', () => {
   const LIVE_BLOCKS = [{ kind: 'games', content: { heading: 'Games and stakes' } }, { kind: 'calendar', content: {} }];
   const TABLES = [
     { table_type_code: 'nlh_50_100', table_type_name: 'NLH 50/100', is_open: true, small_blind_paise: 5000, big_blind_paise: 10000,
-      buy_in_min_paise: 500000, buy_in_max_paise: 500000, straddle_paise: null, seats: 9, seats_taken: 4 },
+      buy_in_min_paise: 500000, straddle_paise: null, seats: 9, seats_taken: 4 },
   ];
   const CALENDAR = [
     { name: 'RIVR Sunday', starts_at: '2026-11-15T10:30:00+00:00', buy_in_paise: 1000000, guarantee_paise: 50000000 },
@@ -84,7 +84,7 @@ describe('fetchSitePage', () => {
     const { client, urls } = siteClient(PAGES, LIVE_BLOCKS, { public_table_status: { body: TABLES }, public_tournament_calendar: { body: CALENDAR } });
     const page = await fetchSitePage(client, 'home');
     expect(page.ok && page.value?.games).toEqual([
-      { name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, buyInMax: 500000n, straddle: null },
+      { name: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n, buyInMin: 500000n, straddle: null },
     ]);
     expect(urls.some((url) => url.includes('/public_waitlist_length'))).toBe(false);
     expect(page.ok && page.value?.tournaments).toEqual([
