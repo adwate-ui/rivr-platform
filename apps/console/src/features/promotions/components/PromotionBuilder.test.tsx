@@ -74,7 +74,7 @@ describe('the promotion builder (console v3)', () => {
     // A hand just added has no Bonus yet: nothing is saved, and the list says why.
     fireEvent.click(within(screen.getByRole('group', { name: 'Add a hand' })).getByRole('button', { name: 'Aces full' }));
     fireEvent.click(screen.getByRole('button', { name: 'Simulate' }));
-    expect(await screen.findByText('Each hand needs its Bonus, in whole 50s.')).toBeDefined();
+    expect(await screen.findByText('Each hand needs its bonus, in whole 50s.')).toBeDefined();
     expect(bodiesOf('save_promotion_draft')).toHaveLength(0);
     fireEvent.change(screen.getByRole('textbox', { name: 'Aces full' }), { target: { value: '2000' } });
     fireEvent.click(screen.getByRole('button', { name: 'Remove Four of a kind' }));

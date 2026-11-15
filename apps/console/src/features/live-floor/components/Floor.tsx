@@ -8,6 +8,7 @@ import { floorSearchFrom } from './floorSearch.ts';
 import { AlsoWaiting } from './AlsoWaiting.tsx';
 import { FloorSheets, useRequestOpeners, type FloorSheet } from './FloorSheets.tsx';
 import { FloorTiles, type FloorView } from './FloorTiles.tsx';
+import { UnderHighHand, useHighHandFloor } from './HighHandStrip.tsx';
 import { requestActions, type RequestActionsFor } from './requestActions.ts';
 import { RequestList, tableNameOf } from './RequestList.tsx';
 import { useFloorData, useNow, type FloorData } from './useFloorData.ts';
@@ -104,6 +105,7 @@ function FloorReady({ venueId, permissions, data }: FloorProps & { data: FloorDa
   const seatAny = isFloor ? seatAnyOf(data) : null;
   const openers = useRequestOpeners(venueId, data, setSheet);
   const focusTableId = useFloorFocus(data, setSheet);
+  const highHand = useHighHandFloor(venueId, permissions, setSheet);
   const openSeat = seatAny === null ? null : () => setSheet(seatAny);
   const seatKey = useFloorKeys(queue.shown, data.tables, { changes: changes.requests, ...openers }, openSeat);
   const requestsPanel = (
@@ -120,10 +122,12 @@ function FloorReady({ venueId, permissions, data }: FloorProps & { data: FloorDa
         <FloorControls view={view} onView={setView} isNeedsYouOnly={isNeedsYouOnly} onNeedsYou={() => setNeedsYouOnly(!isNeedsYouOnly)}
           onSeat={openSeat} seatKey={seatKey} />
       )}>
-        <FloorTiles tables={data.tables} seats={data.seats} held={data.held} view={view} isNeedsYouOnly={isNeedsYouOnly} focusTableId={focusTableId}
-          canOpenTables={permissions.includes('floor.manage')} onPlayer={(player) => setSheet({ kind: 'player', sessionId: player.sessionId })}
-          onOpenSeat={(table, seat) => { if (isFloor && table.isOpen) setSheet({ kind: 'seat', tableId: table.id, seat }); }}
-          onTable={(table) => setSheet({ kind: 'table', tableId: table.id })} onOpenTable={(table) => void changes.tables.setOpen(table, true)} />
+        <UnderHighHand venueId={venueId} live={highHand.live} onLog={highHand.onLog}>
+          <FloorTiles tables={data.tables} seats={data.seats} held={data.held} view={view} isNeedsYouOnly={isNeedsYouOnly} focusTableId={focusTableId}
+            canOpenTables={permissions.includes('floor.manage')} onPlayer={(player) => setSheet({ kind: 'player', sessionId: player.sessionId })}
+            onOpenSeat={(table, seat) => { if (isFloor && table.isOpen) setSheet({ kind: 'seat', tableId: table.id, seat }); }}
+            onTable={(table) => setSheet({ kind: 'table', tableId: table.id })} onOpenTable={(table) => void changes.tables.setOpen(table, true)} />
+        </UnderHighHand>
       </Screen>
       <FloorSheets venueId={venueId} sheet={sheet} data={data} now={now} permissions={permissions} changes={changes} onSheet={setSheet} />
     </DockedPanel>

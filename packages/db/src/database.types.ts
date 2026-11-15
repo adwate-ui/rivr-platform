@@ -2835,7 +2835,7 @@ isOneToOne: false
                            },
 "activity_log":
 { Args: { "p_before"?: string,"p_before_id"?: number,"p_from"?: string,"p_kind"?: string,"p_limit"?: number,"p_to"?: string,"p_venue_id": string,"p_who"?: string }; Returns: {
-              "about": string,"action": string,"amount": number,"entity": string,"id": number,"is_system": boolean,"kind": string,"occurred_at": string,"reason": string,"who": string
+              "about": string,"action": string,"amount": number,"entity": string,"high_hand": Json,"id": number,"is_system": boolean,"kind": string,"occurred_at": string,"reason": string,"who": string
             }[]
                            },
 "activity_page":
@@ -3197,6 +3197,11 @@ isOneToOne: false
                            },
 "hide_my_session":
 { Args: { "p_session_id": string }; Returns: undefined
+                           },
+"high_hand_live":
+{ Args: { "p_venue_id": string }; Returns: {
+              "name": string,"promotion_id": string,"reward": Json
+            }[]
                            },
 "high_hand_tonight":
 { Args: { "p_limit"?: number,"p_promotion_id"?: string,"p_venue_id": string }; Returns: {
