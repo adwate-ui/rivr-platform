@@ -73,7 +73,7 @@ export interface TodaysPlayer {
 const statusOf = (value: string): TodayStatus => (value === 'playing' || value === 'waiting' || value === 'in_room' || value === 'never_arrived' ? value : 'left');
 
 /** Each table a player played on, from the database's list; anything else is left out. */
-function tablesOf(tables: unknown): TodaysPlayer['tables'] {
+export function tablesOf(tables: unknown): TodaysPlayer['tables'] {
   if (!Array.isArray(tables)) return [];
   return tables.flatMap((entry: unknown) => {
     const table: unknown = typeof entry === 'object' && entry !== null ? Reflect.get(entry, 'table') : null;

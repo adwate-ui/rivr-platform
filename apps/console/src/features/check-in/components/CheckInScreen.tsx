@@ -1,13 +1,15 @@
-import { useDoorBoard, useStaffVenue } from '@rivr/db';
+import { useCheckInActions, useCheckOutActions, useStaffVenue, type CheckInFailure, type CheckOutRefusal, type DoorPlayer } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Grid, Screen, Stack, StaleNotice } from '@rivr/ui';
+import { Button, ErrorMessage, Screen, Stack } from '@rivr/ui';
+import { useState } from 'react';
+import { CHECK_IN_FAILURE_COPY, checkOutRefusalText } from './checkInCopy.ts';
 import { DoorField } from './DoorField.tsx';
-import { DoorList } from './DoorList.tsx';
+import { DoorTable, type DoorChip } from './DoorTable.tsx';
 
 /**
- * Check-in (#72), for the front desk (waitlist.manage), as in the console v3 prototype: one field for
- * a mobile number, a member number or a name; then the members expected (on a waitlist, not yet in the room) with
- * Check in, and who is in the room since when, with Check out (#82).
+ * Check-in (#72), for the front desk (waitlist.manage), as the redesign's prototype has the Door: one field for a mobile
+ * number, a member number or a name; then everyone at the door today as one table from the server (RD-30), by chip those in
+ * the room, with Check out (#82), those expected (on a waitlist, not yet in), with Check in, and those who have left.
  */
 export function CheckInScreen() {
   const staff = useStaffVenue();
@@ -19,31 +21,51 @@ export function CheckInScreen() {
   return <CheckIn venueId={staff.venue.venueId} />;
 }
 
+/** The door's lists as chips: in the room first, as the prototype opens on it. */
+const chips = (): readonly DoorChip[] => [
+  { id: 'in_club', label: t('console.checkIn.inRoom'), list: 'in_club' },
+  { id: 'expected', label: t('console.checkIn.expected'), list: 'expected' },
+  { id: 'left', label: t('console.checkIn.left'), list: 'left' },
+];
+
+/** Checks a member in or out from their row, and why the last one did not go through. */
+function useRowActions(venueId: string) {
+  const { checkIn } = useCheckInActions(venueId);
+  const { checkOut } = useCheckOutActions(venueId);
+  const [failure, setFailure] = useState<{ in: CheckInFailure } | { out: CheckOutRefusal } | null>(null);
+  return {
+    failure: failure === null ? null : 'in' in failure ? t(CHECK_IN_FAILURE_COPY[failure.in]) : checkOutRefusalText(failure.out),
+    isBusy: checkIn.isPending || checkOut.isPending,
+    admit: async (memberId: string) => {
+      const opened = await checkIn.mutateAsync(memberId);
+      setFailure(opened.ok ? null : { in: opened.error });
+    },
+    release: async (memberId: string) => {
+      const closed = await checkOut.mutateAsync(memberId);
+      setFailure(closed.ok ? null : { out: closed.error });
+    },
+  };
+}
+
 function CheckIn({ venueId }: { venueId: string }) {
-  const board = useDoorBoard(venueId);
-  const title = t('console.checkIn.title');
-  // A failed refresh keeps the lists and the door's field, with a notice, rather than swapping them for an error.
-  if (board.data === undefined) {
-    return board.isError
-      ? <Screen title={title} status="error" onRetry={() => void board.refetch()} />
-      : <Screen title={title} status="loading" loadingLook="rows" />;
-  }
+  const actions = useRowActions(venueId);
+  // A row's one button (redesign correction 3): Check out for a member in the room, Check in for one expected; none once they have left.
+  const action = (player: DoorPlayer) => {
+    if (player.list === 'in_club') {
+      return <Button variant="subtle" size="small" isDisabled={actions.isBusy} aria-label={t('console.checkIn.checkOutMember', { name: player.fullName })}
+        onClick={() => void actions.release(player.memberId)}>{t('console.checkIn.checkOut')}</Button>;
+    }
+    if (player.list !== 'expected') return null;
+    return <Button variant="subtle" size="small" isDisabled={actions.isBusy} aria-label={t('console.checkIn.checkInMember', { name: player.fullName })}
+      onClick={() => void actions.admit(player.memberId)}>{t('console.checkIn.checkIn')}</Button>;
+  };
   return (
-    <Screen title={title}>
+    <Screen title={t('console.checkIn.title')}>
       <Stack gap={6}>
-        {board.isError ? <StaleNotice since={new Date(board.dataUpdatedAt)} onRetry={() => void board.refetch()} /> : null}
         <DoorField venueId={venueId} />
-        {/* Each list in a Stack of its own, so a short list keeps its own height beside a long one. */}
-        <Grid columns={2} gap={5} stackBelow="medium">
-          <Stack>
-            <DoorList venueId={venueId} title={t('console.checkIn.expected')} members={board.data.filter((member) => !member.isInRoom)}
-              emptyText={t('console.checkIn.noneExpected')} />
-          </Stack>
-          <Stack>
-            <DoorList venueId={venueId} title={t('console.checkIn.inRoom')} members={board.data.filter((member) => member.isInRoom)}
-              emptyText={t('console.checkIn.noneInRoom')} />
-          </Stack>
-        </Grid>
+        {actions.failure === null ? null : <ErrorMessage>{actions.failure}</ErrorMessage>}
+        <DoorTable venueId={venueId} label={t('console.checkIn.doorLabel')} chipsLabel={t('console.checkIn.lists')} chips={chips()}
+          emptyText={t('console.checkIn.noneOnList')} action={action} />
       </Stack>
     </Screen>
   );

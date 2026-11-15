@@ -35,7 +35,7 @@ function renderAs(role: string, queue: unknown[] = [], checkName?: string) {
       decisions.push(JSON.parse(String(init?.body)));
       return Response.json('verified');
     }
-    return Response.json(url.includes('/rpc/kyc_review_queue') ? queue : []);
+    return Response.json(url.includes('/rpc/kyc_review_page') ? queue : []);
   });
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}

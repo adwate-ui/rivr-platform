@@ -1,6 +1,6 @@
-import { useKycReviewQueue, useStaffVenue, type KycCheck } from '@rivr/db';
+import { LIST_PAGE, useKycReviewPage, useListChoices, useStaffVenue, type KycCheck, type ListView } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { PickList, Screen, SplitView, Stack, StaleNotice } from '@rivr/ui';
+import { Input, Pages, PickList, Screen, SplitView, Stack, StaleNotice } from '@rivr/ui';
 import { useState } from 'react';
 import { checkGroups, queueGroups } from './checkText.ts';
 import { InPersonSection } from './InPersonSection.tsx';
@@ -32,12 +32,29 @@ function openCheck(checks: readonly KycCheck[], chosenId: string | null): KycChe
   return checks.find((check) => check.memberId === chosenId) ?? checkGroups(checks).toReview[0] ?? null;
 }
 
+/** The queue's own view: the name searched and the page, in the queue's order. */
+function useQueueView(): { view: ListView; search: (typed: string) => void; setPage: (page: number) => void } {
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  return {
+    view: { sort: null, query, filters: {}, page },
+    search: (typed) => {
+      setQuery(typed);
+      setPage(1);
+    },
+    setPage,
+  };
+}
+
 /**
  * The queue down the left and the check open on the right, half each (console v3); on a phone the check is a view of its
- * own with the way back. Check in person, the screen's one gold button, opens its sheet.
+ * own with the way back. The queue is a page of fifty from the server (redesign RD-30), found by name, its pages under it.
+ * Check in person, the screen's one gold button, opens its sheet.
  */
 function ReviewQueue({ venueId, canReopen, checkName }: { venueId: string; canReopen: boolean; checkName: string | undefined }) {
-  const queue = useKycReviewQueue(venueId);
+  const { view, search, setPage } = useQueueView();
+  const queue = useKycReviewPage(venueId, view);
+  const counted = useListChoices('kyc_review', venueId, view).data;
   const [chosenId, setChosenId] = useState<string | null>(null);
   const title = t('console.kycReview.title');
   const actions = <InPersonSheet venueId={venueId} initialSearch={checkName} />;
@@ -47,15 +64,24 @@ function ReviewQueue({ venueId, canReopen, checkName }: { venueId: string; canRe
       ? <Screen title={title} actions={actions} status="error" onRetry={() => void queue.refetch()} />
       : <Screen title={title} actions={actions} status="loading" loadingLook="rows" />;
   }
-  const open = openCheck(queue.data, chosenId);
+  const { rows, total } = queue.data;
+  const open = openCheck(rows, chosenId);
+  const countOf = (status: KycCheck['status']) => counted?.['status']?.find((one) => one.value === status)?.count;
+  const pages = Math.ceil(total / LIST_PAGE);
+  const find = <Input type="search" label={t('console.kycReview.queueSearch')} value={view.query} autoComplete="off" onChange={(event) => search(event.target.value)} />;
   return (
     <Screen title={title} actions={actions}>
       <Stack gap={4}>
         {queue.isError ? <StaleNotice since={new Date(queue.dataUpdatedAt)} onRetry={() => void queue.refetch()} /> : null}
         <SplitView layout="even" backLabel={t('console.kycReview.back')} onBack={() => setChosenId(null)}
           isChosen={open !== null && open.memberId === chosenId}
-          list={<PickList label={t('console.kycReview.queue')} groups={queueGroups(queue.data)} current={open?.memberId ?? null}
-            onPick={setChosenId} emptyText={t('console.kycReview.empty')} />}
+          list={(
+            <Stack gap={3}>
+              <PickList label={t('console.kycReview.queue')} groups={queueGroups(rows, countOf)} current={open?.memberId ?? null}
+                onPick={setChosenId} search={find} emptyText={view.query === '' ? t('console.kycReview.empty') : t('console.kycReview.noneFound')} />
+              {pages > 1 ? <Pages label={t('console.kycReview.queue')} page={view.page} count={pages} onPage={setPage} /> : null}
+            </Stack>
+          )}
           detail={open === null ? null : (
             <KycCheckCard key={open.memberId} venueId={venueId} check={open} canReopen={canReopen} onDecided={() => setChosenId(open.memberId)} />
           )} />

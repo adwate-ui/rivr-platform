@@ -1,12 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
-import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
+import { act, cleanup, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
-import { useCheckInActions, useCheckOutActions, useDoorBoard } from './visits.ts';
+import { useCheckInActions, useCheckOutActions } from './visits.ts';
 
 const STAFF = '00000000-0000-4000-8000-000000000124';
 const VENUE = '00000000-0000-4000-8000-000000000001';
@@ -25,26 +25,15 @@ function renderDoor(replies: Record<string, { status?: number; body: unknown }>)
     auth: { storage: sessionStorageFor(STAFF), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
-  const { result } = renderHook(() => ({ board: useDoorBoard(VENUE), actions: useCheckInActions(VENUE), out: useCheckOutActions(VENUE) }), { wrapper });
+  const { result } = renderHook(() => ({ actions: useCheckInActions(VENUE), out: useCheckOutActions(VENUE) }), { wrapper });
   return { result, calls };
 }
 
 afterEach(cleanup);
 
 describe('The door', () => {
-  it('gives who is expected and who is in the room', async () => {
-    const { result } = renderDoor({ door_board: { body: [
-      { member_id: 'm1', full_name: 'Naina Kapoor', member_number: 270, tier_name: 'Member', is_base_tier: true, is_in_room: false, since: '2026-10-19T18:00:00+00:00' },
-      { member_id: 'm2', full_name: 'Kabir Sethi', member_number: 31, tier_name: 'Member', is_base_tier: true, is_in_room: true, since: '2026-10-19T18:10:00+00:00' },
-    ] } });
-    await waitFor(() => expect(result.current.board.data).toEqual([
-      { memberId: 'm1', fullName: 'Naina Kapoor', memberNumber: 270, tierName: 'Member', isBaseTier: true, isInRoom: false, since: '2026-10-19T18:00:00+00:00' },
-      { memberId: 'm2', fullName: 'Kabir Sethi', memberNumber: 31, tierName: 'Member', isBaseTier: true, isInRoom: true, since: '2026-10-19T18:10:00+00:00' },
-    ]));
-  });
-
   it('checks a member in by mobile number, and says why when the member is on a break', async () => {
-    const { result, calls } = renderDoor({ door_board: { body: [] }, check_in_by_phone: { status: 400, body: { code: 'RVBRK', message: 'on a break' } } });
+    const { result, calls } = renderDoor({ check_in_by_phone: { status: 400, body: { code: 'RVBRK', message: 'on a break' } } });
     let outcome: unknown;
     await act(async () => { outcome = await result.current.actions.checkInByPhone.mutateAsync('9000000213'); });
     expect(outcome).toEqual({ ok: false, error: 'on_break' });
@@ -52,7 +41,7 @@ describe('The door', () => {
   });
 
   it('checks a member out by mobile number, resolving to the closed visit', async () => {
-    const { result, calls } = renderDoor({ door_board: { body: [] }, check_out_by_phone: { body: 'v1' } });
+    const { result, calls } = renderDoor({ check_out_by_phone: { body: 'v1' } });
     let outcome: unknown;
     await act(async () => { outcome = await result.current.out.checkOutByPhone.mutateAsync('9000000213'); });
     expect(outcome).toEqual({ ok: true, value: 'v1' });
@@ -60,7 +49,7 @@ describe('The door', () => {
   });
 
   it('says how much call time a member still owes when the door refuses them', async () => {
-    const { result } = renderDoor({ door_board: { body: [] },
+    const { result } = renderDoor({ 
       check_out: { status: 400, body: { code: 'RVCTS', message: 'Call time not complete', details: '3540', hint: null } } });
     let outcome: unknown;
     await act(async () => { outcome = await result.current.out.checkOut.mutateAsync('m1'); });
@@ -68,7 +57,7 @@ describe('The door', () => {
   });
 
   it('says a member still seated is sent to the floor or the cage first', async () => {
-    const { result } = renderDoor({ door_board: { body: [] }, check_out: { status: 400, body: { code: 'RVSTD', message: 'Still seated', details: null } } });
+    const { result } = renderDoor({ check_out: { status: 400, body: { code: 'RVSTD', message: 'Still seated', details: null } } });
     let outcome: unknown;
     await act(async () => { outcome = await result.current.out.checkOut.mutateAsync('m1'); });
     expect(outcome).toEqual({ ok: false, error: { reason: 'seated', owedSeconds: 0 } });

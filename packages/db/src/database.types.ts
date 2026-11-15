@@ -2956,6 +2956,11 @@ isOneToOne: false
               "full_name": string,"is_base_tier": boolean,"is_in_room": boolean,"member_id": string,"member_number": number,"since": string,"tier_name": string
             }[]
                            },
+"door_page":
+{ Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
+              "checked_in_at": string,"checked_out_at": string,"full_name": string,"is_base_tier": boolean,"kyc_status": string,"list": string,"member_id": string,"member_number": number,"played_seconds": number,"since": string,"status": string,"tables": Json,"tier_name": string,"total": number,"waiting_seconds": number
+            }[]
+                           },
 "down_hands":
 { Args: Record<PropertyKey, never>; Returns: {
               "drop_paise": number,"hand_id": string,"is_cap_applied": boolean,"played_at": string,"pot_paise": number,"rake_paise": number,"variant": Database["public"]['Enums']["hand_variant"]
@@ -3000,6 +3005,11 @@ isOneToOne: false
               "open": number,"other": number,"resolved": number
             }[]
                            },
+"feedback_open_page":
+{ Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
+              "created_at": string,"full_name": string,"id": string,"member_id": string,"member_number": number,"note": string,"nps": number,"ratings": Json,"score": number,"tables": string,"topic": string,"total": number,"visit_closed_at": string,"wait_seconds": number
+            }[]
+                           },
 "feedback_page":
 { Args: { "p_before"?: string,"p_before_id"?: string,"p_list": string,"p_venue_id": string }; Returns: {
               "created_at": string,"full_name": string,"id": string,"is_ticket": boolean,"member_id": string,"member_number": number,"note": string,"nps": number,"ratings": Json,"resolution": string,"resolved_at": string,"resolved_by": string,"score": number,"topic": string,"visit_closed_at": string
@@ -3041,9 +3051,19 @@ isOneToOne: false
               "dealer_name": string,"hands": number,"hands_last_hour": number,"rake_basis_points": number,"rake_cap_paise": number,"rake_paise": number,"table_id": string,"venue_rake_paise": number
             }[]
                            },
+"fnb_member_cancelled_kots":
+{ Args: { "p_venue_id": string }; Returns: {
+              "kot_number": number
+            }[]
+                           },
 "fnb_menu":
 { Args: { "p_venue_id": string }; Returns: {
               "description": string,"diet": string,"item_id": string,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"photo_path": string
+            }[]
+                           },
+"fnb_orders_page":
+{ Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
+              "accepted_at": string,"age_seconds": number,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"is_comp": boolean,"kot_number": number,"kot_print_failed": boolean,"kot_sent_at": string,"kot_sent_by": string,"lines": Json,"member_name": string,"member_number": number,"on_way_at": string,"order_id": string,"seat": number,"seat_state": string,"source": string,"state": string,"table_name": string,"total": number
             }[]
                            },
 "fnb_orders_tonight":
@@ -3124,6 +3144,11 @@ isOneToOne: false
               "app_selfie_path": string,"full_name": string,"member_id": string,"phone_last4": string,"retake_kinds": (string)[],"retake_reasons": (string)[],"status": string
             }[]
                            },
+"kyc_review_page":
+{ Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
+              "address": string,"clashes_with": (string)[],"date_of_birth": string,"face_match_score": number,"full_name": string,"liveness_score": number,"masked_aadhaar": string,"member_id": string,"method": string,"pan": string,"photo_path": string,"refusal": string,"status": string,"total": number,"updated_at": string,"vendor_reference": string,"waiting_because": string
+            }[]
+                           },
 "kyc_review_queue":
 { Args: { "p_venue_id": string }; Returns: {
               "address": string,"clashes_with": (string)[],"date_of_birth": string,"face_match_score": number,"full_name": string,"liveness_score": number,"masked_aadhaar": string,"member_id": string,"method": string,"pan": string,"photo_path": string,"refusal": string,"status": string,"updated_at": string,"vendor_reference": string,"waiting_because": string
@@ -3156,6 +3181,11 @@ isOneToOne: false
                            },
 "link_my_login":
 { Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"list_choices":
+{ Args: { "p_list": string,"p_venue_id": string,"p_view"?: Json }; Returns: {
+              "column_key": string,"members": number,"value": string
+            }[]
                            },
 "live_status_targets":
 { Args: { "p_member_id": string,"p_table_type_id"?: string,"p_venue_id": string }; Returns: {

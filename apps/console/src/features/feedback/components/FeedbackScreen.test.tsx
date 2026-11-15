@@ -59,7 +59,7 @@ function renderTab(tab: string | undefined, onNavigate = vi.fn()) {
       if (body.includes('"p_list":"other"')) return Response.json([OTHER]);
       return Response.json(body.includes('p_before') ? [RESOLVED] : resolvedPage);
     }
-    if (url.includes('/rpc/open_feedback')) return Response.json(openRows);
+    if (url.includes('/rpc/feedback_open_page')) return Response.json(openRows);
     if (url.includes('/rpc/resolve_feedback_many')) return resolveResponse(init);
     return Response.json([]);
   });

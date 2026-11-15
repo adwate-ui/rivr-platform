@@ -51,7 +51,7 @@ describe('the Members list on the server (redesign RD-29)', () => {
     const { result } = renderHook(() => useMembersPage(VENUE, VIEW), { wrapper });
     await waitFor(() => expect(result.current.data).toBeDefined());
     expect(calls).toEqual([{ rpc: 'members_page', view: {
-      tier_id: 't2', query: 'sethi', sort: { key: 'played', direction: 'descending' }, page: 3, page_size: 50,
+      tier_id: 't2', query: 'sethi', sort: { key: 'played', direction: 'descending' }, scope: {}, page: 3, page_size: 50,
       filters: { kyc: { kind: 'choice', chosen: ['at_desk'] }, played: { kind: 'range', min: '2', max: '' } },
     } }]);
     expect(result.current.data?.total).toBe(4812);

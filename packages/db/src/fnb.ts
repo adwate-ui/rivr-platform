@@ -2,11 +2,13 @@ import { err, FNB_DIETS, ok, type FnbDiet, type FnbItemKind, type FnbLine, type 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { RivrClient } from './client.ts';
 import { itemPhotoUrl } from './itemPhotos.ts';
+import { useListPage, type ScopedView } from './lists.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
 export { useCancelMyFnbOrder, type CancelMyOrderFailure } from './fnbCancel.ts';
 export { useFnbMenuItemActions, useSaveFnbMenu, type FnbMenuFailure, type FnbMenuFileItem } from './fnbMenuFile.ts';
+export { useMemberCancelledKots } from './fnbKots.ts';
 
 /** An item on the table-side menu (#123): Glaza's, no price. */
 export interface FnbMenuItem {
@@ -210,27 +212,24 @@ export function useTabletFnbOrder() {
 }
 
 /**
- * The console's F&B (#123), for staff who run it: tonight's orders and the KOTs not yet at the bar, ordering for a seat
- * (paid or comp), marking a KOT given by hand, and the menu's items.
+ * The console's F&B (#123), for staff who run or serve it: one page of a club day's orders (redesign RD-30), sorted, searched
+ * and filtered on the server (`fnb_orders_page`), with how many the view leaves. The view's scope is the screen's choice:
+ * `day` (a club day, tonight without one) and `state` (`open`, the list's opening, `delivered`, `void` or `all`). Asked
+ * again every ten seconds, as the bar works through them.
  */
-export function useFnbOrdersTonight(venueId: string) {
-  const { client, userId } = useRivrData();
-  return useQuery({
-    queryKey: queryKeys.fnbOrdersTonight(userId ?? 'signed-out', venueId),
-    enabled: userId !== null,
-    refetchInterval: ORDERS_CHECK,
-    queryFn: async (): Promise<FnbOrderTonight[]> => {
-      const { data, error } = await client.rpc('fnb_orders_tonight', { p_venue_id: venueId });
-      if (error) throw error;
-      return data.map((row) => ({
+export function useFnbOrdersPage(venueId: string, view: ScopedView | null) {
+  const { client } = useRivrData();
+  return useListPage({
+    list: 'fnb_orders', venueId, view, every: ORDERS_CHECK,
+    read: (asked) => client.rpc('fnb_orders_page', { p_venue_id: venueId, p_view: asked }),
+    rowOf: (row): FnbOrderTonight => ({
         orderId: row.order_id, kotNumber: row.kot_number, tableName: row.table_name, seat: row.seat, memberName: row.member_name,
         memberNumber: Number(row.member_number), lines: linesOf(row.lines), isComp: row.is_comp, source: sourceOf(row.source),
         createdAt: row.created_at, kotSentBy: row.kot_sent_by === 'agent' || row.kot_sent_by === 'staff' ? row.kot_sent_by : null,
         isKotPrintFailed: row.kot_print_failed,
         seatState: row.seat_state === 'leaving' || row.seat_state === 'left' ? row.seat_state : 'seated', acceptedAt: row.accepted_at, deliveredAt: row.delivered_at, ageSeconds: row.age_seconds, onWayAt: row.on_way_at,
         cancelledAt: row.cancelled_at, cancelReason: row.cancel_reason,
-      }));
-    },
+    }),
   });
 }
 

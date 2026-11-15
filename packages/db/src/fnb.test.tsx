@@ -5,12 +5,15 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useFnbActions, useFnbItems, useFnbMenu, useFnbOrdersTonight, useMyFnbMenu, usePlaceFnbOrder, useTabletFnbOrder } from './fnb.ts';
+import { useFnbActions, useFnbItems, useFnbMenu, useFnbOrdersPage, useMyFnbMenu, usePlaceFnbOrder, useTabletFnbOrder } from './fnb.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const SIGNED_IN = '00000000-0000-4000-8000-000000000103';
 const VENUE = '00000000-0000-4000-8000-000000000001';
+
+/** The view a table hands over when first drawn: its first page, nothing searched or filtered. */
+const VIEW = { sort: null, query: '', filters: {}, page: 1 };
 const CHAI = '00000000-0000-4000-8000-0000000f1001';
 
 /** A fake API: each path answers with its reply. */
@@ -30,7 +33,7 @@ function renderFnb(replies: Record<string, { status?: number; body: unknown }>) 
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
   const { result } = renderHook(() => ({
     mine: useMyFnbMenu(), menu: useFnbMenu(VENUE), place: usePlaceFnbOrder(), tablet: useTabletFnbOrder(),
-    tonight: useFnbOrdersTonight(VENUE), actions: useFnbActions(VENUE), items: useFnbItems(VENUE),
+    tonight: useFnbOrdersPage(VENUE, { ...VIEW, scope: { state: 'open' } }), actions: useFnbActions(VENUE), items: useFnbItems(VENUE),
   }), { wrapper });
   return { result, calls };
 }
@@ -49,9 +52,9 @@ describe('table-side food and drink', () => {
       '/rpc/my_fnb_menu': { body: MENU },
       '/rpc/fnb_menu': { body: MENU },
       '/rest/v1/fnb_item': { body: [{ id: CHAI, name: 'Masala chai', kind: 'soft_drink', is_available: false, position: 1, photo_path: null, diet: null, description: null }] },
-      '/rpc/fnb_orders_tonight': {
+      '/rpc/fnb_orders_page': {
         body: [{
-          order_id: 'o1', kot_number: 3, table_name: 'Table 3', seat: 5, member_name: 'Yash Gupta', member_number: 1043,
+          total: 7, order_id: 'o1', kot_number: 3, table_name: 'Table 3', seat: 5, member_name: 'Yash Gupta', member_number: 1043,
           lines: [{ item_id: CHAI, name: 'Masala chai', kind: 'soft_drink', quantity: 2, note: null }], is_comp: true, source: 'console',
           created_at: '2026-11-15T16:30:00Z', kot_sent_at: null, kot_sent_by: null, kot_print_failed: true,
         }],
@@ -61,11 +64,13 @@ describe('table-side food and drink', () => {
     await waitFor(() => expect(result.current.mine.data).toEqual([chai]));
     await waitFor(() => expect(result.current.menu.data).toEqual([chai]));
     await waitFor(() => expect(result.current.items.data).toEqual([{ ...chai, isAvailable: false, position: 1 }]));
-    await waitFor(() => expect(result.current.tonight.data).toEqual([{
+    await waitFor(() => expect(result.current.tonight.data?.rows).toEqual([{
       orderId: 'o1', seatState: 'seated', kotNumber: 3, tableName: 'Table 3', seat: 5, memberName: 'Yash Gupta', memberNumber: 1043,
       lines: [{ itemId: CHAI, name: 'Masala chai', quantity: 2, note: null }], isComp: true, source: 'console', createdAt: '2026-11-15T16:30:00Z', kotSentBy: null,
       isKotPrintFailed: true,
     }]));
+    // One page of the day's orders, and how many the view leaves in all (redesign RD-30).
+    expect(result.current.tonight.data?.total).toBe(7);
   });
 
   it('places an order from the app and the tablet with its request id, giving the KOT, and says why not', async () => {
@@ -98,7 +103,7 @@ describe('table-side food and drink', () => {
       '/rpc/mark_kot_sent': { status: 403, body: { code: '42501', message: 'no' } },
       '/rpc/save_fnb_item': { body: CHAI },
       // What each action reloads.
-      '/rpc/fnb_orders_tonight': { body: [] },
+      '/rpc/fnb_orders_page': { body: [] },
       '/rest/v1/fnb_item': { body: [] },
     });
     await act(async () => { await result.current.actions.order.mutateAsync({ tableId: 't3', seat: 5, lines: LINES, isComp: true, requestId: 'r1' }); });

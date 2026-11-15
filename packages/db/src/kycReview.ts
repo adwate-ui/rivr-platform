@@ -3,6 +3,7 @@ import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toBase64 } from './kyc.ts';
 import { functionErrorCode } from './parse/kycFailure.ts';
+import { useListPage, type ListView } from './lists.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
@@ -67,23 +68,22 @@ export function oneOf<Value extends string>(known: readonly Value[], value: stri
   return found;
 }
 
-/** The venue's checks for a KYC reviewer: those waiting for review first, then the stopped and the refused. */
-export function useKycReviewQueue(venueId: string) {
-  const { client, userId } = useRivrData();
-  return useQuery({
-    queryKey: queryKeys.kycReview(userId ?? 'signed-out', venueId),
-    enabled: userId !== null,
-    queryFn: async (): Promise<KycCheck[]> => {
-      const { data, error } = await client.rpc('kyc_review_queue', { p_venue_id: venueId });
-      if (error) throw error;
-      return data.map((row) => ({
+/**
+ * One page of the venue's checks for a KYC reviewer (redesign RD-30): those waiting for review first, then the stopped and
+ * the refused, searched by name and paged on the server (`kyc_review_page`), with how many there are in all.
+ */
+export function useKycReviewPage(venueId: string, view: ListView | null) {
+  const { client } = useRivrData();
+  return useListPage({
+    list: 'kyc_review', venueId, view,
+    read: (asked) => client.rpc('kyc_review_page', { p_venue_id: venueId, p_view: asked }),
+    rowOf: (row): KycCheck => ({
         memberId: row.member_id, fullName: row.full_name, status: oneOf(STATUSES, row.status), method: oneOf(METHODS, row.method),
         waitingBecause: row.waiting_because === null ? null : oneOf(WAIT_REASONS, row.waiting_because),
         dateOfBirth: row.date_of_birth, maskedAadhaar: row.masked_aadhaar, pan: row.pan, address: row.address, photoPath: row.photo_path,
         livenessScore: row.liveness_score, faceMatchScore: row.face_match_score, vendorReference: row.vendor_reference,
         refusal: row.refusal === null ? null : oneOf(REFUSALS, row.refusal), clashesWith: row.clashes_with, updatedAt: row.updated_at,
-      }));
-    },
+    }),
   });
 }
 

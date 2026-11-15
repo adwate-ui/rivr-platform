@@ -3,7 +3,7 @@
  * sets Pema's PIN for the flow's tablet), seats Ishan Mehta, 30 by his KYC, at Table 3, seat 1. From his seat he
  * orders a masala chai and a beer in the player app, and Pema, dealing Table 3, orders him a lime soda on the tablet:
  * both paid to Glaza. Sameer Rao, the flow's steward in the Service role (#640), sees only food and drink: he accepts the
- * app's order from its lane, sends it on its way and delivers it, and the member follows it on Tonight's order tracker
+ * app's order from its row, sends it on its way and delivers it, and the member follows it on Tonight's order tracker
  * (decision 0320). No cage agent runs, so the bar printer has failed no KOT and no card says the bar did not get one,
  * however long it waits (console v3: the flag is the outbox's, never a clock). From New order she picks Table 3, then seat 1 with Ishan beside it, and comps a club sandwich; the tablet is revoked and
  * he leaves early, so Table 3 is as it was. On the Menu tab, Sameer hides an item and shows it again, with no way to add,
@@ -52,12 +52,13 @@ test.describe('F&B', () => {
     // The Service role (#640): the steward lands on food and drink, with nothing else, and serves the order.
     const steward = await browser.newPage();
     await signInToConsole(steward, '9000000790');
-    await expect(steward.getByRole('region', { name: 'To accept' })).toBeVisible();
+    // The day's orders are one table from the server, open ones first (redesign RD-30).
+    const orders = steward.getByRole('table', { name: 'Orders' });
+    await expect(orders).toBeVisible();
     await expect(steward.getByRole('link', { name: 'Live floor' })).toHaveCount(0);
     await expect(steward.getByRole('button', { name: 'New order' })).toHaveCount(0);
-    // His order's card on the To accept lane: its Accept names its KOT.
-    const accept = steward.getByRole('region', { name: 'To accept' }).locator('div').filter({ hasText: 'Table 3, seat 1 · Ishan Mehta' })
-      .filter({ has: steward.getByRole('button', { name: /^Accept KOT \d+$/ }) }).last().getByRole('button', { name: /^Accept KOT \d+$/ });
+    // His order's row: its Accept names its KOT.
+    const accept = orders.getByRole('row').filter({ hasText: 'Table 3, seat 1' }).filter({ hasText: 'Ishan Mehta' }).getByRole('button', { name: /^Accept KOT \d+$/ }).last();
     const fromApp = /(\d+)$/.exec((await accept.getAttribute('aria-label')) ?? '')?.[1] ?? '';
     await steward.getByRole('button', { name: `Accept KOT ${fromApp}` }).click();
     await member.reload();
@@ -66,7 +67,10 @@ test.describe('F&B', () => {
     await member.reload();
     await expect(tracker.locator('[aria-current="step"]')).toHaveText('On its way');
     await steward.getByRole('button', { name: `Mark KOT ${fromApp} delivered` }).click();
-    await expect(steward.getByText(/^Delivered in /).first()).toBeVisible();
+    // Delivered, it leaves the open orders for the Delivered chip.
+    await expect(steward.getByRole('button', { name: `Mark KOT ${fromApp} delivered` })).toHaveCount(0);
+    await steward.getByRole('radiogroup', { name: 'State' }).getByRole('radio', { name: /^Delivered/ }).click();
+    await expect(orders.getByRole('row').filter({ hasText: `KOT ${fromApp}` })).toContainText('Delivered');
     await member.reload();
     await expect(tracker.locator('[aria-current="step"]')).toHaveText('Delivered');
     await expect(member.getByRole('button', { name: 'Order again' })).toBeVisible();
@@ -94,7 +98,7 @@ test.describe('F&B', () => {
 
     // No agent ran, so the bar printer failed nothing: neither KOT is flagged. The flag's states are proved in pgTAP.
     await page.getByRole('link', { name: 'Food and drink' }).click();
-    await expect(page.getByRole('region', { name: 'To accept' })).toBeVisible();
+    await expect(page.getByRole('table', { name: 'Orders' })).toBeVisible();
     await expect(page.getByText('1 × Fresh lime soda').first()).toBeVisible();
     for (const kot of [fromApp, fromTablet]) await expect(page.getByRole('button', { name: `Print KOT ${kot}` })).toHaveCount(0);
 

@@ -13,6 +13,8 @@ export const feedback = {
   more: 'Show more',
   /** The open tickets' table (F-013). */
   openLabel: 'Open tickets',
+  /** The open tickets' search (redesign RD-30). */
+  search: 'Member, note or topic',
   columns: { age: 'Age', rating: 'Rating', member: 'Member', visit: 'Visit', note: 'Note' },
   /** A ticket's rating; a note from the app has none. */
   score: '{score} of 5',

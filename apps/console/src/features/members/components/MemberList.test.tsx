@@ -22,7 +22,7 @@ describe('The Members list (console v3; on the server, redesign RD-29)', () => {
   it('asks the server for the first page by name, and lists it with where each is tonight; a row opens its record', async () => {
     const { onNavigate, asked } = renderAs('super_admin');
     const list = await table();
-    expect(asked[0]).toEqual({ tier_id: '', query: '', sort: { key: 'name', direction: 'ascending' }, filters: {}, page: 1, page_size: 50 });
+    expect(asked[0]).toEqual({ tier_id: '', query: '', sort: { key: 'name', direction: 'ascending' }, filters: {}, scope: {}, page: 1, page_size: 50 });
     expect(await within(list).findByText('Table 2, seat 3')).toBeDefined();
     expect(within(list).getByText('Waiting')).toBeDefined();
     // One count, by the pills, in the table's own words (redesign correction 6).

@@ -1,29 +1,11 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { Json } from './database.types.ts';
+import { listViewJson, type ListView } from './lists.ts';
 import { detailsOf, type MemberPageRow } from './memberDetails.ts';
 import { kycStatusOf, type MemberListRow } from './members.ts';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
-
-/** One column's filter as a data table holds it: words, values chosen, a figure from and to, a preset of days, or days from and to. */
-export type ListFilter =
-  | { readonly kind: 'text'; readonly typed: string }
-  | { readonly kind: 'choice'; readonly chosen: readonly string[] }
-  | { readonly kind: 'range'; readonly min: string; readonly max: string }
-  | { readonly kind: 'date'; readonly preset: string }
-  | { readonly kind: 'dateRange'; readonly from: string; readonly to: string };
-
-/**
- * A list's view as a data table in server mode hands it over (`DataTableRequest` in @rivr/ui): its order, the words
- * searched, each column's filter and the page, from 1. The server sorts, searches, filters and pages by it.
- */
-export interface ListView {
-  readonly sort: { readonly key: string; readonly direction: 'ascending' | 'descending' } | null;
-  readonly query: string;
-  readonly filters: Readonly<Record<string, ListFilter>>;
-  readonly page: number;
-}
 
 /** The Members list's view: the table's, and the tier chosen above it, or null for every tier. */
 export interface MembersView extends ListView {
@@ -44,17 +26,9 @@ export type MemberChoiceColumn = 'status' | 'kyc' | 'city' | 'tonight';
 export const MEMBERS_PAGE = 50;
 const EXPORT_PAGE = 1000;
 
-/** A filter as JSON for the server. */
-function filterJson(filter: ListFilter): Json {
-  return filter.kind === 'choice' ? { kind: 'choice', chosen: [...filter.chosen] } : { ...filter };
-}
-
 /** A view as the server reads it (`members_page`, `members_choices`), at a page and a page's size. */
 function viewJson(view: MembersView, page: number, pageSize: number): Json {
-  return {
-    tier_id: view.tierId ?? '', query: view.query, sort: view.sort === null ? null : { key: view.sort.key, direction: view.sort.direction },
-    filters: Object.fromEntries(Object.entries(view.filters).map(([key, filter]) => [key, filterJson(filter)])), page, page_size: pageSize,
-  };
+  return { ...listViewJson(view, page, pageSize), tier_id: view.tierId ?? '' };
 }
 
 /**

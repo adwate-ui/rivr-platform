@@ -159,7 +159,7 @@ describe('a screen whose refresh fails', () => {
   it('keeps Check-in, and the number typed in it, when a refresh fails, saying since when', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     signIn();
-    answerOnceThenFail({ '/rpc/door_board': [] });
+    answerOnceThenFail({ '/rpc/door_page': [] });
     renderAt('/door?tab=check-in');
     fireEvent.change(await screen.findByRole('textbox', { name: 'Name, mobile or member number' }), { target: { value: '9876543210' } });
     await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });

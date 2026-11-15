@@ -4,12 +4,15 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useFeedbackActions, useMyFeedbackVisit, useOpenFeedback, useResolveFeedback } from './feedback.ts';
+import { useFeedbackActions, useMyFeedbackVisit, useOpenFeedbackPage, useResolveFeedback } from './feedback.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const SIGNED_IN = '00000000-0000-4000-8000-000000000213';
 const VENUE = '00000000-0000-4000-8000-000000000001';
+
+/** The view a table hands over when first drawn: its first page, nothing searched or filtered. */
+const VIEW = { sort: null, query: '', filters: {}, page: 1 };
 
 /** A fake API: each path answers with its reply; every call is kept with what it sent. */
 function renderHooks(replies: Record<string, { status?: number; body: unknown }>) {
@@ -27,7 +30,7 @@ function renderHooks(replies: Record<string, { status?: number; body: unknown }>
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
   const { result } = renderHook(() => ({
-    visit: useMyFeedbackVisit(), actions: useFeedbackActions(), list: useOpenFeedback(VENUE), resolve: useResolveFeedback(VENUE),
+    visit: useMyFeedbackVisit(), actions: useFeedbackActions(), list: useOpenFeedbackPage(VENUE, VIEW), resolve: useResolveFeedback(VENUE),
   }), { wrapper });
   return { result, calls };
 }
@@ -40,7 +43,7 @@ describe('feedback (decision 0165)', () => {
       '/rpc/my_feedback_visit': { body: [{ visit_id: 'v1', closed_at: '2026-10-25T18:00:00Z' }] },
       '/rpc/rate_visit': { body: 'f1' },
       '/rpc/send_feedback': { status: 400, body: { code: 'RVFRZ', message: 'frozen' } },
-      '/rpc/open_feedback': { body: [] },
+      '/rpc/feedback_open_page': { body: [] },
     });
     await waitFor(() => expect(result.current.visit.data).toEqual({ visitId: 'v1', closedAt: '2026-10-25T18:00:00Z' }));
     let outcome: unknown;
@@ -54,7 +57,7 @@ describe('feedback (decision 0165)', () => {
   it('lists the venue\'s feedback for the General Manager and resolves a ticket', async () => {
     const { result } = renderHooks({
       '/rpc/my_feedback_visit': { body: [] },
-      '/rpc/open_feedback': {
+      '/rpc/feedback_open_page': {
         body: [{
           id: 'f1', member_id: 'm1', full_name: 'Mihir Shah', member_number: 1213, visit_closed_at: '2026-10-25T18:00:00Z', score: 2,
           note: 'Slow dealer', is_ticket: true, resolved_at: null, resolved_by: null, resolution: null, created_at: '2026-10-26T04:00:00Z',
@@ -62,7 +65,7 @@ describe('feedback (decision 0165)', () => {
       },
       '/rpc/resolve_feedback_many': { status: 400, body: { code: '22023', message: 'resolved' } },
     });
-    await waitFor(() => expect(result.current.list.data?.[0]).toMatchObject({ fullName: 'Mihir Shah', score: 2, isTicket: true, resolvedAt: null }));
+    await waitFor(() => expect(result.current.list.data?.rows[0]).toMatchObject({ fullName: 'Mihir Shah', score: 2, isTicket: true, resolvedAt: null }));
     expect(result.current.visit.data).toBeNull();
     let outcome: unknown;
     await act(async () => { outcome = await result.current.resolve.mutateAsync({ feedbackIds: ['f1'], resolution: 'Called him' }); });
@@ -72,10 +75,10 @@ describe('feedback (decision 0165)', () => {
   it('says when more tickets were sent at once than the database takes (F-013)', async () => {
     const { result } = renderHooks({
       '/rpc/my_feedback_visit': { body: [] },
-      '/rpc/open_feedback': { body: [] },
+      '/rpc/feedback_open_page': { body: [] },
       '/rpc/resolve_feedback_many': { status: 400, body: { code: 'RVMAX', message: 'too many' } },
     });
-    await waitFor(() => expect(result.current.list.data).toEqual([]));
+    await waitFor(() => expect(result.current.list.data?.rows).toEqual([]));
     let outcome: unknown;
     await act(async () => { outcome = await result.current.resolve.mutateAsync({ feedbackIds: ['f1'], resolution: 'Called him' }); });
     expect(outcome).toEqual({ ok: false, error: 'too_many' });
@@ -86,7 +89,7 @@ describe('feedback (decision 0165)', () => {
       '/rpc/my_feedback_visit': { body: [] },
       '/rpc/send_quick_feedback': { body: 'f2' },
       '/rpc/send_detailed_feedback': { status: 400, body: { code: '22023', message: 'ratings' } },
-      '/rpc/open_feedback': {
+      '/rpc/feedback_open_page': {
         body: [{
           id: 'f3', member_id: 'm1', full_name: 'Mihir Shah', member_number: 1213, visit_closed_at: null, score: null, note: null, is_ticket: true,
           resolved_at: null, resolved_by: null, resolution: null, created_at: '2026-10-29T04:00:00Z', topic: null,
@@ -102,6 +105,6 @@ describe('feedback (decision 0165)', () => {
     await act(async () => { outcome = await result.current.actions.sendDetailed.mutateAsync({ ratings, nps: 9, note: '' }); });
     expect(outcome).toEqual({ ok: false, error: 'invalid' });
     expect(calls.find((call) => call.url.includes('/rpc/send_detailed_feedback'))?.body).toEqual({ p_ratings: ratings, p_nps: 9, p_note: '' });
-    await waitFor(() => expect(result.current.list.data?.[0]).toMatchObject({ topic: null, ratings, nps: 9 }));
+    await waitFor(() => expect(result.current.list.data?.rows[0]).toMatchObject({ topic: null, ratings, nps: 9 }));
   });
 });
