@@ -24,35 +24,4 @@ export const tabletApp = {
     body: 'Opens when the club network is back.',
     retry: 'Retry',
   },
-  /** The door kiosk (decision 0164): a member scans their card to check in and out. `{name}` is their first name. */
-  door: {
-    prompt: 'Hold your RIVR card up to the camera',
-    /** The field a card scanner plugged into the kiosk types into, for a screen reader. */
-    scanner: 'Card scanner',
-    /** Between scans, where the card is: the Card tab of the app (F-145). */
-    help: 'Open RIVR › Card, brightness up. Hold it here.',
-    noCamera: 'Camera unavailable. See the front desk.',
-    retryCamera: 'Retry camera',
-    welcome: 'Welcome, {name}.',
-    welcomeDetail: 'You are checked in. Enjoy the game.',
-    goodbye: 'Goodbye, {name}.',
-    /** `{time}` is 4 h 30 min. */
-    goodbyePlayed: '{time} at the tables tonight. See you soon.',
-    goodbyeDetail: 'Checked out. See you soon.',
-    notYet: 'Not yet.',
-    seated: 'You are still seated. Leave your seat in the app, or ask the floor.',
-    /** `{time}` is 25 min. */
-    callTimeOwed: '{time} of call time left. See the floor.',
-    tryAgain: 'Try again.',
-    cardNotCurrent: 'Code changed. Hold your card up again.',
-    seeFrontDesk: 'See the front desk.',
-    onBreak: 'You are on a break from play.',
-    unavailable: 'Card not read. Hold it up again.',
-    /** The member is frozen, or the venue is (F4-15): the shared line, large then beneath (F-146). */
-    stopped: 'Account paused.',
-    askFrontDesk: 'Ask at the front desk.',
-    paused: 'Check-in is paused.',
-    /** A revoked kiosk: its pairing is gone. */
-    notPaired: 'This kiosk is no longer paired.',
-  },
 } as const;

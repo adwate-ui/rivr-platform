@@ -26,7 +26,6 @@ function renderAs(role: string) {
     if (url.includes('/rest/v1/staff')) {
       return Response.json([{ id: 'st1', venue_id: 'v1', full_name: 'Sunita Pillai', role, venue: { name: 'RIVR Gurugram', is_practice: false } }]);
     }
-    if (url.includes('/rpc/open_host_offers')) return Response.json([{ member_id: 'm1', offer: { kind: 'bonus', amount_paise: 50_000 } }]);
     return Response.json(url.includes('/rpc/door_board') ? BOARD : []);
   });
   render(

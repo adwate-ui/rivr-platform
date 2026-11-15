@@ -70,8 +70,7 @@ function addOnRefusal(rules: EntryRules, level: Level, player: PlayerStanding): 
  * takes nothing more. A re-entry tournament takes a new entry from a busted player, and a rebuy tournament
  * more chips from a player alive or busted, each while registration is open and within the most buys.
  * An add-on, where sold, is one per player still alive, during the last registration level or the break
- * after it. The database's private.tournament_purchase_refusal is proved equal on
- * packages/testing/golden/tournamentEntry.json.
+ * after it.
  */
 export function checkPurchase(purchase: Purchase, rules: EntryRules, level: Level, player: PlayerStanding): Result<Purchase, PurchaseRefusal> {
   const refusal = purchase === 'entry' ? entryRefusal(rules, level, player)

@@ -15,8 +15,7 @@ export interface PrizePool {
 /**
  * The prize pool (#117, #121; decision 0205): what the buys put in for prizes (their prices less the fees
  * and the bounties), or the guarantee when that is more, the club paying the difference as overlay
- * (venue.tournament_overlay). Below nothing is a bug and throws. The database's
- * private.tournament_prize_pool is proved equal on tournamentPayouts.json.
+ * (venue.tournament_overlay). Below nothing is a bug and throws.
  */
 export function prizePool(collected: Paise, guarantee: Paise | null): PrizePool {
   if (collected < 0n || (guarantee !== null && guarantee < 0n)) throw new RangeError('A pool and a guarantee are nothing or more');
@@ -40,8 +39,7 @@ export function areSharesWhole(shares: readonly number[]): boolean {
  * (the order is ours, so a lower place never pays more). With fewer runs than paid
  * places, the places that exist share the pool in the same proportions. Each prize is rounded down to ₹50
  * chips and the chips left over go to first, so the whole pool is always paid. Shares that are not whole,
- * no runs, or a pool not in ₹50 chips are a bug and throw. The database's private.tournament_payout_table
- * is proved equal on tournamentPayouts.json.
+ * no runs, or a pool not in ₹50 chips are a bug and throw.
  */
 export function payoutTable(pool: Paise, shares: readonly number[], runs: number): Paise[] {
   if (!areSharesWhole(shares) || !Number.isInteger(runs) || runs < 1) throw new RangeError('Shares adding up to 100%, and a run');
@@ -67,7 +65,7 @@ export interface BountySplit {
  * A busted player's bounty (#117; decision 0206). A standard bounty pays all of it to the player who
  * knocked them out. A progressive bounty pays half, rounded down to ₹50 chips, and puts the rest on that
  * player's own head, which grows until they bust or win. A bounty below nothing or not in ₹50 chips is a
- * bug and throws. The database's private.tournament_bounty_split is proved equal on tournamentPayouts.json.
+ * bug and throws.
  */
 export function bountyOnBust(bounty: Paise, kind: BountyKind): BountySplit {
   if (bounty < 0n || !isChipMultiple(bounty)) throw new RangeError('A bounty in ₹50 chips');
@@ -87,7 +85,6 @@ export interface SatelliteSeats {
  * buy-in, rounded down, and never more than the runs. Each of that many top finishers wins a ticket worth
  * the buy-in. What is left of the pool is paid in cash to the next finisher, or to the last seat when every
  * run has one. A pool or a buy-in not in ₹50 chips, a buy-in of nothing, or no runs is a bug and throws.
- * The database's private.tournament_satellite_seats is proved equal on tournamentPayouts.json.
  */
 export function satelliteSeats(pool: Paise, targetBuyIn: Paise, runs: number): SatelliteSeats {
   if (pool < 0n || !isChipMultiple(pool) || targetBuyIn <= 0n || !isChipMultiple(targetBuyIn) || !Number.isInteger(runs) || runs < 1) {

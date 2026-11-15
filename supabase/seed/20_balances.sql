@@ -27,7 +27,7 @@ declare
   arjun constant uuid := '00000000-0000-4000-8000-000000000201';
   asha constant uuid := '00000000-0000-4000-8000-000000000301';
 begin
-  -- Arjun Mehta: cash ₹1,85,000, bonus ₹4,000, an open marker of ₹50,000.
+  -- Arjun Mehta: cash ₹1,85,000, bonus ₹4,000.
   perform pg_temp.seed_post(gurugram, 'seed:arjun:cash',
     pg_temp.seed_account(gurugram, 'venue.opening_balance'), pg_temp.seed_account(gurugram, 'member.cash', arjun), 18500000);
   perform pg_temp.seed_post(gurugram, 'seed:arjun:bonus',
@@ -37,8 +37,6 @@ begin
   select gurugram, arjun, 400000, 400000, null, 'Buy-in bonus Tuesday', 'seed:arjun:bonus', t.id
   from public.ledger_transaction t where t.venue_id = gurugram and t.idempotency_key = 'seed:arjun:bonus'
   on conflict (venue_id, idempotency_key) do nothing;
-  perform pg_temp.seed_post(gurugram, 'seed:arjun:marker',
-    pg_temp.seed_account(gurugram, 'member.receivable', arjun), pg_temp.seed_account(gurugram, 'venue.opening_balance'), 5000000);
   -- Bad-beat jackpot ₹3,42,600.
   perform pg_temp.seed_post(gurugram, 'seed:jackpot:main',
     pg_temp.seed_account(gurugram, 'venue.opening_balance'), pg_temp.seed_account(gurugram, 'venue.jackpot.main'), 34260000);

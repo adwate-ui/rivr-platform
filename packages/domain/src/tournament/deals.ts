@@ -79,8 +79,7 @@ function icmEquity(stacks: readonly bigint[], prizes: readonly bigint[]): bigint
  * and what their chips are worth by the Independent Chip Model (Malmuth-Harville) over the rest of each
  * prize, to the nearest paisa and then down to ₹50 chips; the chips left over go to the biggest stack. (That is the model's
  * value over the whole prizes; worked this way, rounding the chances never leaves anyone below the
- * smallest prize.) `stacks` and the result are in the same order; `prizes` are first place first. The
- * database's private.tournament_icm is proved equal on tournamentPayouts.json.
+ * smallest prize.) `stacks` and the result are in the same order; `prizes` are first place first.
  */
 export function icmDeal(stacks: readonly bigint[], prizes: readonly Paise[]): Paise[] {
   checkDeal(stacks, prizes);

@@ -61,8 +61,8 @@ function Refused({ refusal, isHome, landing }: RefusedProps) {
 }
 
 /**
- * The console's frame for signed-in staff: the rail for their role at the venue the console works in, the header, the
- * kill-switch banner, and the export of every table for staff who export them. Nobody signed in goes to sign-in, told why
+ * The console's frame for signed-in staff: the rail for their role at the venue the console works in, the header,
+ * and the export of every table for staff who export them. Nobody signed in goes to sign-in, told why
  * when the idle lock signed them out (#811); someone who is not staff can only sign out. `prompt` is what waits for the
  * staff member, across the top of every screen.
  */
@@ -139,7 +139,7 @@ function useStaffShell(staff: ReadyStaff, onIdle: () => void) {
 }
 
 /**
- * Across the top, above everything: the kill switch's banner, the practice venue's stripe on every screen while the
+ * Across the top, above everything: the practice venue's stripe on every screen while the
  * console works there (F1-07, decision 0477), so nobody takes it for the club, with the way back; for those who can set it, that
  * the club has no alert number; and any prompt.
  */

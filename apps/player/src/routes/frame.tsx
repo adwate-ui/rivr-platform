@@ -2,7 +2,7 @@ import { createRoute, Outlet } from '@tanstack/react-router';
 import { Frame } from '../features/frame/index.ts';
 import { rootRoute } from './root.tsx';
 
-/** Every signed-in screen sits inside the frame: tabs, the member's initial and the kill-switch banner. */
+/** Every signed-in screen sits inside the frame: tabs and the member's initial. */
 export const frameRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'frame',

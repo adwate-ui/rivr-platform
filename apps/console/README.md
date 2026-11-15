@@ -38,6 +38,7 @@ src/
     check-in/         the Door's Check-in tab (/door?tab=check-in): one field for a mobile, a member number or a name; then the members expected and in the room
     todays-players/   the Door's Today's players tab (/door?tab=players): every member at the club today by status, with times, tables and time played (#641)
     members/          every member as a table, found by name, mobile or number, with where each is tonight, their KYC, hours played, city and member-since day, and the mobile for super admins (owner, 8 Nov); the record docked beside the list and in the address (/members?member=…&part=…), with the seat and a link to it on the floor, visits, early departures and promotions given, bonus chips (decision 0504), which super admins, admins and floor managers add by hand there, on the record's own part, with a reason (owner, 9 Nov; redesign of 15 Nov), what they told the club at sign-up and how they came (owner, 8 Nov), a tier change, a break (decision 0053), feature overrides and erasure on request
+    admin/            Activity for super admins (/activity): the audit log in words, who did what, about whom, why and when, newest first, narrowed by person, kind and club day, with its export
     devices/          the devices, Settings' TVs and Tablets tabs (/settings?tab=tvs|tablets, #606): dealer tablets to add, pair, fix to a
                       table and unpair; TVs to pair by their code, change and unpair; cage and admin computers to
                       add, enrol and revoke; CCTV cameras over a table or the cage (#122).

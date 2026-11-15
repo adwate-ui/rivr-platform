@@ -43,7 +43,7 @@ With `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROD_REF` in the environment, run `sc
 
 > RIVR is the app for members of RIVR Poker Club in Gurugram.
 >
-> See the games tonight and join a table's waitlist. Know your place in line from the lock screen, and answer when your seat is ready. Keep track of your call time while you play, and order food and drink to your seat. Show your membership card at the door.
+> See the games tonight and join a table's waitlist. Know your place in line from the lock screen, and answer when your seat is ready. Keep track of your call time while you play, and order food and drink to your seat.
 >
 > For members of the club, aged 18 and over. No money moves in the app, and no game is played in it.
 

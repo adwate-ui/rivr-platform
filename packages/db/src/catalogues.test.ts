@@ -37,25 +37,38 @@ function featuresInMigrations(): Map<string, boolean> {
   return features;
 }
 
-// A role's permissions may be granted over several migrations: each later block adds to the earlier.
-function permissionsInMigrations(): Map<string, string[]> {
-  const granted = new Map<string, string[]>();
-  for (const [, role = '', list = ''] of sql.matchAll(/select '([a-z_]+)', permission\s+from unnest\(array\[([\s\S]*?)\]\)/g)) {
-    granted.set(role, [...(granted.get(role) ?? []), ...[...list.matchAll(/'([a-z_.]+)'/g)].map(([, p]) => p ?? '')].sort());
-  }
-  // A permission a later migration takes back (the owner, 9 Nov: no Reports for investors).
-  for (const [, role = '', permission = ''] of sql.matchAll(/delete from public\.role_permission where role = '([a-z_]+)' and permission = '([a-z_.]+)'/g)) {
-    granted.set(role, (granted.get(role) ?? []).filter((one) => one !== permission));
-  }
-  const gone = permissionsTakenFromEveryRole();
-  for (const [role, held] of granted) granted.set(role, held.filter((one) => !gone.includes(one)));
-  return granted;
+/** The names quoted in a list: `'a.b', 'c.d'`. */
+const quoted = (list: string) => [...list.matchAll(/'([a-z_.]+)'/g)].map(([, name]) => name ?? '');
+
+type Grants = Map<string, string[]>;
+interface PermissionStep { at: number; apply: (granted: Grants) => void }
+
+/** Every statement that gives or takes a permission, in the order the migrations run them. */
+function permissionSteps(): PermissionStep[] {
+  // A role's permissions may be granted over several migrations: each later block adds to the earlier.
+  const gives = [...sql.matchAll(/select '([a-z_]+)', permission\s+from unnest\(array\[([\s\S]*?)\]\)/g)].map((match): PermissionStep => ({
+    at: match.index,
+    apply: (granted) => { granted.set(match[1] ?? '', [...(granted.get(match[1] ?? '') ?? []), ...quoted(match[2] ?? '')]); },
+  }));
+  // A permission a later migration takes back from one role (the owner, 9 Nov: no Reports for investors).
+  const takesFromOne = [...sql.matchAll(/delete from public\.role_permission where role = '([a-z_]+)' and permission = '([a-z_.]+)'/g)].map((match): PermissionStep => ({
+    at: match.index,
+    apply: (granted) => { granted.set(match[1] ?? '', (granted.get(match[1] ?? '') ?? []).filter((one) => one !== match[2])); },
+  }));
+  // Permissions a later migration takes from every role (the redesign of 15 Nov).
+  const takesFromAll = [...sql.matchAll(/delete from public\.role_permission where permission in \(([^)]*)\)/g)].map((match): PermissionStep => ({
+    at: match.index,
+    apply: (granted) => { for (const [role, held] of granted) granted.set(role, held.filter((one) => !quoted(match[1] ?? '').includes(one))); },
+  }));
+  return [...gives, ...takesFromOne, ...takesFromAll].sort((a, b) => a.at - b.at);
 }
 
-/** The permissions a later migration takes from every role (the redesign of 15 Nov: `delete from public.role_permission where permission in (...)`). */
-function permissionsTakenFromEveryRole(): string[] {
-  const lists = [...sql.matchAll(/delete from public\.role_permission where permission in \(([^)]*)\)/g)].map(([, list]) => list ?? '');
-  return lists.flatMap((list) => [...list.matchAll(/'([a-z_.]+)'/g)].map(([, permission]) => permission ?? ''));
+/** Each role's permissions as the migrations leave them: a permission taken and later given again is held. */
+function permissionsInMigrations(): Grants {
+  const granted: Grants = new Map();
+  for (const step of permissionSteps()) step.apply(granted);
+  for (const [role, held] of granted) granted.set(role, held.sort());
+  return granted;
 }
 
 function settingKeysInMigrations(): Map<string, { scope: string; schema: unknown }> {

@@ -51,28 +51,11 @@ export const pairing = {
 export const handEntry = {
   title: 'Hand entry',
   empty: 'Not assigned to a table. Ask a floor manager.',
-  pot: 'Pot',
-  /** The pot keypad's name. */
-  enterPot: 'Enter the pot',
   rake: 'Rake',
-  drop: 'Jackpot drop',
-  pull: 'Pull',
-  /** Under the rake when the cap set it: `{amount}` is the cap. */
-  capped: 'Capped at {amount}',
   variant: 'Game',
   holdem: 'Hold\'em',
   plo: 'PLO',
   bombPot: 'Bomb pot',
-  /** `{amount}` is the pot typed, which is not whole ₹50 chips (or is above ₹1 crore). */
-  notChips: 'A pot is whole ₹50 chips, up to ₹1 crore. {amount} is not.',
-  log: 'Log hand',
-  handsThisDown: 'Hands this down: {count}',
-  lastHands: 'Last hands',
-  noHands: 'No hands yet this down.',
-  /** One of the last hands, beside its pot: `{time}` (IST) and the game. */
-  hand: '{time} · {variant}',
-  /** A hand still on the tablet, waiting to reach the database (#43). */
-  queuedHand: '{time} · {variant} · queued',
 };
 
 /** The console's Dealer PINs screen (#41): for staff whose role includes everything a dealer does. */
@@ -207,7 +190,6 @@ export const seats = {
   ring: 'Seats at {table}',
   title: 'Seat {seat} · {name}',
   open: 'Seat {seat} is open.',
-  pending: 'A buy-in for this seat is already with the cage.',
   away: 'Away',
   /** Under a seat on the ring (F-189): `{minutes}` is the call time left, its last fifteen. */
   leaving: 'Leaving',
@@ -228,7 +210,6 @@ export const queue = {
   /** Offline with no hand held (F-045): before the device is known, at a table, at a door kiosk. */
   offline: 'Offline.',
   offlineTable: 'Offline. Seats update when the network is back.',
-  offlineDoor: 'Check-in is offline. See the front desk.',
   queuedOne: 'Offline. 1 hand queued.',
   queued: 'Offline. {count} hands queued.',
   sendingOne: 'Sending 1 hand.',
@@ -238,8 +219,6 @@ export const queue = {
   sent: '{count} queued hands sent to the floor.',
   refusedOne: '1 hand was refused. Call a floor supervisor.',
   refused: '{count} hands were refused. Call a floor supervisor.',
-  /** A claim the database refused for good, its hand logged: promotions off, a seat the table does not have, or another claim on the hand. */
-  claimRefused: 'The high-hand claim for seat {seat} was refused. Ask the floor.',
   /** Clears the refusals once the floor has dealt with them. */
   seen: 'Seen by the floor',
 };

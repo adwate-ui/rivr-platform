@@ -51,9 +51,9 @@ function Matches({ matches, action, onChoose }: MatchesProps) {
 }
 
 /**
- * The door's one field (console v3): the scanner types a membership card's code into it, or the front desk types a
+ * The door's one field (console v3): the front desk types a
  * mobile number, a member number or a name. Enter or Check in checks in a single match; Check out checks out the same
- * way. The field keeps the focus, so the next scan lands in it.
+ * way. The field keeps the focus for the next member.
  */
 export function DoorField({ venueId }: { venueId: string }) {
   const door = useDoorField(venueId);

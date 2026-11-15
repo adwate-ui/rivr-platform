@@ -6,7 +6,7 @@ import { renderToPdf } from './render.ts';
 export type { OfflinePackRow } from '@rivr/contracts';
 export type { OfflinePack } from '@rivr/ui';
 
-/** A venue's offline pack from its row, each amount the row's paise as a bigint. */
+/** A venue's offline pack from its row. */
 export function offlinePackFromRow(row: OfflinePackRow): OfflinePack {
   return {
     // A venue with no configuration yet is headed by its name alone.
@@ -16,12 +16,6 @@ export function offlinePackFromRow(row: OfflinePackRow): OfflinePack {
     venueName: row.venue_name,
     generatedAt: row.generated_at,
     contacts: row.contacts,
-    balances: row.balances.map((balance) => ({
-      name: balance.name, memberNumber: balance.member_number, walletPaise: BigInt(balance.wallet_paise), markersPaise: BigInt(balance.markers_paise),
-    })),
-    walletsPaise: BigInt(row.wallets_paise),
-    markersPaise: BigInt(row.markers_paise),
-    chipsInPlayPaise: BigInt(row.chips_in_play_paise),
     tables: row.tables.map((table) => ({
       name: table.name, game: table.game, seats: table.seats.map((seat) => ({ seat: seat.seat, name: seat.name, memberNumber: seat.member_number })),
     })),

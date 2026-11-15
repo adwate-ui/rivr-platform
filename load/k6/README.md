@@ -1,13 +1,12 @@
 # Load tests
 
-k6 scripts for the four scenarios in `docs/spec/additions-2026-10-14.md` ("Load test"). Lane 0 wrote them against the function names in `docs/contracts/`; lane B runs them on staging in hardening week (issue B-044), once those functions exist. Never point them at production.
+k6 scripts for the scenarios in `docs/spec/additions-2026-10-14.md` ("Load test"). Lane 0 wrote them against the function names in `docs/contracts/`; lane B runs them on staging in hardening week (issue B-044), once those functions exist. Never point them at production.
 
 | Script | Scenario | Pass when |
 |---|---|---|
 | `waitlist.js` | 60 players join the 100/200 waitlist and watch their position | under 1% errors; join p95 under 800 ms; reads p95 under 500 ms |
 | `tablets.js` | Six tablets each log a hand every 90 seconds for 30 minutes | under 1% errors; log_hand p95 under 800 ms |
 | `home.js` | 200 app users on Home, refreshing every 15 seconds for 10 minutes | under 1% errors; p95 under 500 ms |
-| `registration.js` | 100 tournament registrations within about 10 seconds | under 1% errors; registration p95 under 1.5 s; 99% succeed |
 
 ## Running
 
@@ -20,4 +19,4 @@ docker run --rm -i -v "$PWD/load/k6:/scripts" \
   grafana/k6 run /scripts/waitlist.js
 ```
 
-Each script signs every number in once (`setup()`), as Auth allows 30 sign-ins in five minutes from one address; virtual users share those sessions. `waitlist.js` takes `TABLE_TYPE_ID` and `PLAYERS` (60 by default); `home.js` takes `HOME_MINUTES` (10); `registration.js` takes `TOURNAMENT_ID` and `ENTRIES` (100); `tablets.js` signs in the six tablets' numbers, each fixed to its table.
+Each script signs every number in once (`setup()`), as Auth allows 30 sign-ins in five minutes from one address; virtual users share those sessions. `waitlist.js` takes `TABLE_TYPE_ID` and `PLAYERS` (60 by default); `home.js` takes `HOME_MINUTES` (10); `tablets.js` signs in the six tablets' numbers, each fixed to its table.

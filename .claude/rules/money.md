@@ -21,5 +21,5 @@ paths:
 ## Tests required for every change here
 - Golden fixtures in `packages/testing/golden/`, readable by a non-engineer, covering normal, cap and ₹50-rounding edge cases.
 - Property tests (fast-check) for invariants: entries balance, idempotent replay changes nothing, jackpot pool equals drops less payouts.
-- Mutation score at least 80% (Stryker) on `money`, `rake`, `callTime`, `tds`, `gst`, `markers`, `payouts`.
+- Mutation score at least 80% (Stryker) on `money`, `rake`, `callTime`, `gst`.
 - Ask the `money-auditor` subagent to recompute three cases by hand before opening the PR.

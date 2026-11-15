@@ -44,7 +44,6 @@ const routeTree = rootRoute.addChildren([
     requestsRoute,
     homeRoute, kycReviewRoute, waitlistRoute, checkInRoute, tabletsRoute, tvsRoute, computersRoute, camerasRoute, dealerPinsRoute,
     fnbRoute, membersRoute, activityRoute, staffRoute,
-
     feedbackRoute,
     tournamentInterestRoute,
     playersTodayRoute,
@@ -52,14 +51,8 @@ const routeTree = rootRoute.addChildren([
     timeRequestsRoute,
     tablesRoute,
     gamesHistoryRoute,
-
     websiteRoute,
-
-
-
     reportsRoute,
-
-
     promotionsRoute,
   ]),
 ]);

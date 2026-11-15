@@ -27,7 +27,7 @@ test.describe('Check-in', () => {
     await expect(doorList(page, 'In the room').getByText('Naina Kapoor')).toBeVisible();
     await expect(doorList(page, 'Expected tonight').getByText('Naina Kapoor')).toHaveCount(0);
 
-    // One field for a card, a mobile, a member number or a name (console v3).
+    // One field for a mobile, a member number or a name (console v3).
     const field = page.getByRole('textbox', { name: 'Name, mobile or member number' });
     await field.fill('9000000204');
     await page.getByRole('button', { name: 'Check in', exact: true }).click();

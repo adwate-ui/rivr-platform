@@ -11,7 +11,8 @@
 --   * the tournament tables, for RD-26; what ran the old tournament screens goes, as it sold entries through the cage;
 --   * the enum labels of what went (a TV mode, the door kiosk's device kind): Postgres drops a label only by rebuilding
 --     every column, policy and index that uses the type, so each is left with nothing able to use it;
---   * the storage buckets of winner cards, social media and expense receipts, which no one can read or write now.
+--   * the storage buckets of winner cards, social media and expense receipts: no policy lets anyone read or write them
+--     now, and the one that was public is made private here. Emptying and deleting them is a step of the release.
 
 -- A record of a real payout or tax deduction stops the migration: such a record carries a duty to keep it, and a person
 -- decides what becomes of it. Production and staging have none (read 15 Nov 2026). So does a freeze in force, which
@@ -20,8 +21,18 @@ do $$
 begin
   if exists (select 1 from public.cage_transaction c join public.venue v on v.id = c.venue_id where not v.is_practice)
      or exists (select 1 from public.tds_withholding t join public.venue v on v.id = t.venue_id where not v.is_practice)
-     or exists (select 1 from public.withdrawal_request r join public.venue v on v.id = r.venue_id where not v.is_practice and r.status <> 'waiting') then
-    raise exception 'The club holds a cage transaction, a tax deduction or a withdrawal that was decided: decide what becomes of the record before the cage goes';
+     -- A withdrawal still waiting holds the member's money aside, and nothing could give it back once this has run.
+     or exists (select 1 from public.withdrawal_request r join public.venue v on v.id = r.venue_id where not v.is_practice)
+     or exists (select 1 from public.deposit_request d join public.venue v on v.id = d.venue_id where not v.is_practice)
+     or exists (select 1 from public.expense e join public.venue v on v.id = e.venue_id where not v.is_practice)
+     or exists (select 1 from public.account_transfer a join public.venue v on v.id = a.venue_id where not v.is_practice)
+     or exists (select 1 from public.jackpot_event j join public.venue v on v.id = j.venue_id where not v.is_practice)
+     -- A high hand paid or a marker signed since the club's fresh start of 12 Nov is real; older ones are staging's seed rows.
+     or exists (select 1 from public.high_hand_claim h join public.venue v on v.id = h.venue_id
+                where not v.is_practice and h.created_at >= '2026-11-12 00:00+05:30')
+     or exists (select 1 from public.marker m join public.venue v on v.id = m.venue_id
+                where not v.is_practice and m.created_at >= '2026-11-12 00:00+05:30') then
+    raise exception 'The club holds a record of money paid, owed or asked for (cage, tax, withdrawal, deposit, expense, transfer, jackpot, high hand or marker): decide what becomes of it before the cage goes';
   end if;
   if exists (select 1 from public.control_state c where c.released_at is null) then
     raise exception 'A freeze, a stop or a switched-off feature is in force: release it before the Kill switch goes';
@@ -48,6 +59,8 @@ drop policy "players see their winner cards, and staff who publish marketing" on
 drop policy "staff who publish marketing upload social media" on storage.objects;
 drop policy "the cage and treasury managers read expense receipts" on storage.objects;
 drop policy "the cage and treasury managers upload expense receipts" on storage.objects;
+-- A public bucket serves its files to anyone who has the address, whatever the policies say.
+update storage.buckets set public = false where id = 'social-media';
 
 -- Activity is read by a permission of its own, held by the roles that held the kill switch's; the rows about controls
 -- in the audit log and the outbox are theirs to see as before.
@@ -1427,21 +1440,6 @@ begin
   if v_venue.is_practice then
     raise exception 'The practice venue has no offline pack' using errcode = 'RVPRA';
   end if;
-  with ledger as (
-    select a.code, a.member_id, sum(e.amount)::bigint as paise
-    from public.ledger_account a join public.ledger_entry e on e.account_id = a.id
-    where a.venue_id = p_venue_id and a.unit = 'paise' and a.code in ('member.cash', 'member.receivable', 'venue.chips_outstanding')
-    group by a.code, a.member_id
-  ),
-  -- A wallet is a liability, so it is the negative of its entries; what a member owes on markers is their receivable,
-  -- as the cage, the Treasury and end of day read it.
-  balance as (
-    select m.full_name, m.member_number, coalesce(-w.paise, 0) as wallet, coalesce(o.paise, 0) as markers
-    from public.member m
-    left join ledger w on w.code = 'member.cash' and w.member_id = m.id
-    left join ledger o on o.code = 'member.receivable' and o.member_id = m.id
-    where m.venue_id = p_venue_id and (coalesce(w.paise, 0) <> 0 or coalesce(o.paise, 0) <> 0)
-  )
   select jsonb_build_object(
     'issuer', (select jsonb_build_object('legal_name', c.legal_name, 'address', c.address, 'gstin', c.gstin)
                from public.venue_config c where c.venue_id = p_venue_id),
@@ -1451,12 +1449,6 @@ begin
                                                              'phone', c.phone, 'note', nullif(c.notes, ''))
                                            order by c.kind, c.position, c.name)
                           from public.contact c where c.venue_id = p_venue_id), '[]'::jsonb),
-    'balances', coalesce((select jsonb_agg(jsonb_build_object('name', b.full_name, 'member_number', b.member_number::text,
-                                                             'wallet_paise', b.wallet, 'markers_paise', b.markers) order by b.full_name)
-                          from balance b), '[]'::jsonb),
-    'wallets_paise', (select coalesce(sum(b.wallet), 0)::bigint from balance b),
-    'markers_paise', (select coalesce(sum(b.markers), 0)::bigint from balance b),
-    'chips_in_play_paise', coalesce((select -l.paise from ledger l where l.code = 'venue.chips_outstanding' and l.member_id is null), 0),
     'tables', coalesce((select jsonb_agg(jsonb_build_object(
                           'name', g.name, 'game', tt.name,
                           'seats', coalesce((select jsonb_agg(jsonb_build_object('seat', s.seat, 'name', m.full_name, 'member_number', m.member_number::text)

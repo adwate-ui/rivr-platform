@@ -97,7 +97,6 @@ function PartContent({ part, venueId, record, can }: PartProps & { part: RecordP
   return <VisitsPart venueId={venueId} record={record} can={can} />;
 }
 
-/** What a host promised this member, for the floor to give by hand (F-015); nothing when no offer is open. */
 /** How the account stands when it is not simply active; a dash until that is known, so a failed read never passes as active (F-121). */
 function AccountLine({ venueId, memberId }: { venueId: string; memberId: string }) {
   const statuses = useMemberAccountStatuses(venueId).data;

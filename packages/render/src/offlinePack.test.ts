@@ -17,17 +17,13 @@ function pageSizes(pdf: Buffer): { width: number; height: number }[] {
 // The offline pack (#167). After a deliberate design change,
 // RIVR_UPDATE_BASELINES=1 pnpm --filter @rivr/render test -- offlinePack rewrites its baseline.
 describe('the offline pack', () => {
-  it('reads the database row: amounts in paise as bigints, and a venue not yet configured headed by its name', () => {
+  it('reads the database row, and a venue not yet configured is headed by its name', () => {
     const pack = offlinePackFromRow({
       issuer: null, venue_name: 'RIVR Gurugram', generated_at: '2026-11-15T11:30:00Z', contacts: [],
-      balances: [{ name: 'Mihir Shah', member_number: '1042', wallet_paise: 2_500_000, markers_paise: 0 }],
-      wallets_paise: 2_500_000, markers_paise: 0, chips_in_play_paise: 48_600_000,
       tables: [{ name: 'Table 3', game: 'NLH 100/200', seats: [{ seat: 2, name: 'Mihir Shah', member_number: '1042' }] }],
       waitlist: [{ table: 'Table 3', game: 'NLH 100/200', place: 1, name: 'Ritika Das', member_number: '1051' }],
     });
     expect(pack.issuer).toEqual({ legalName: 'RIVR Gurugram', address: '' });
-    expect(pack.balances).toEqual([{ name: 'Mihir Shah', memberNumber: '1042', walletPaise: 2_500_000n, markersPaise: 0n }]);
-    expect(pack.chipsInPlayPaise).toBe(48_600_000n);
     expect(pack.tables[0]?.seats).toEqual([{ seat: 2, name: 'Mihir Shah', memberNumber: '1042' }]);
     expect(pack.waitlist).toEqual([{ table: 'Table 3', game: 'NLH 100/200', place: 1, name: 'Ritika Das', memberNumber: '1051' }]);
   });
@@ -42,8 +38,8 @@ describe('the offline pack', () => {
     const pdf = await renderToPdf({ ...job, ...A4 });
     expect(pdf.toString('latin1', 0, 5)).toBe('%PDF-');
     const sizes = pageSizes(pdf);
-    // Who to call, balances and the floor.
-    expect(sizes.length).toBeGreaterThanOrEqual(3);
+    // Who to call and the floor.
+    expect(sizes.length).toBeGreaterThanOrEqual(2);
     // A4 at 72 points to the inch: 794 by 1123 CSS pixels.
     for (const size of sizes) {
       expect(Math.abs(size.width - A4.width * 0.75)).toBeLessThanOrEqual(1.5);

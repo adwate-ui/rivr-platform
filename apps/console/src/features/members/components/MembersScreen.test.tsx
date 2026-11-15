@@ -34,7 +34,6 @@ const ANSWERS: Record<string, unknown> = {
   '/rest/v1/game_table': [{ id: 't2', venue_id: 'v1', name: 'Table 2', is_open: true, seats: 9, position: 2, table_type_id: 'tt1', must_move_to_table_id: null, room: 'main', min_buy_in_paise: 1000000 }],
   '/rest/v1/table_type': [{ id: 'tt1', name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, straddle_paise: null }],
   '/rpc/member_promotion_grants': [GRANT, PERK],
-  '/rpc/open_host_offers': [{ member_id: 'm1', offer: { kind: 'bonus', amount_paise: 200_000 } }],
   '/rpc/member_account_statuses': [{ member_id: 'm1', status: 'on_break', until: '2026-12-13T12:00:00Z' }],
   '/rpc/member_visits': [
     { visit_id: 'v1', opened_at: '2026-11-03T14:00:00Z', closed_at: '2026-11-03T20:00:00Z', tables: 'Table 1, Table 3', minutes_played: 300, call_time_met: true, left_early: false },

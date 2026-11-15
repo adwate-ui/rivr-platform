@@ -33,9 +33,6 @@ export const webApp = {
   },
   /** A promotions block while none runs (decision 0166). */
   noPromotions: 'No promotions running.',
-  /** A post on the website's social wall (#157). */
-  wallHandle: '@{handle}',
-  wallOpen: 'See it on Instagram',
   /** The rakeback each table gives (#617), read from the club's rules in force. */
   rewards: {
     table: 'Table',

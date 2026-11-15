@@ -66,7 +66,7 @@ export * from './RequestItem/index.ts';
 export * from './DockedPanel/index.ts';
 export * from './DataTable/index.ts';
 
-// Tier-gated features and the kill switch
+// Tier-gated features
 export * from './FeatureGate/index.ts';
 export * from './LockedNotice/index.ts';
 export * from './PromptBar/index.ts';
@@ -94,8 +94,6 @@ export * from './TabletShell/index.ts';
 export * from './DisplayShell/index.ts';
 export * from './TvWaitlistBoard/index.ts';
 export * from './TvCallTimeBoard/index.ts';
-// The door kiosk's scanner (decision 0164).
-// The final-table stream's overlay for OBS (#125).
 export * from './TournamentClock/index.ts';
 export * from './TvPromotionSlide/index.ts';
 export * from './TvBoardProgress/index.ts';
@@ -130,11 +128,11 @@ export * from './WebFooter/index.ts';
 export * from './CookieBanner/index.ts';
 export * from './BrandIcon/index.ts';
 
-// Social cards and brand art, drawn by @rivr/render
+// Brand art, drawn by @rivr/render
 export * from './BrandArt/index.ts';
 
-// The membership card, receipts and A4 documents, drawn by @rivr/render. QrCode, for the card's door code,
-// is `@rivr/ui/qr-code`, so its encoder loads only with the card and not in the player's first load.
+// Receipts and A4 documents, drawn by @rivr/render. QrCode
+// is `@rivr/ui/qr-code`, so its encoder is not in the player's first load.
 export * from './Receipt/index.ts';
 export * from './DocumentPage/index.ts';
 export * from './DocumentTable/index.ts';

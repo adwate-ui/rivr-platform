@@ -23,14 +23,8 @@ select is((select jsonb_array_length(body -> 'tables') from pack),
 select is((select coalesce(sum(jsonb_array_length(t -> 'seats')), 0)::integer from pack, jsonb_array_elements(body -> 'tables') t),
   (select count(*)::integer from public.seat_session where venue_id = '00000000-0000-4000-8000-000000000001' and ended_at is null),
   'with everyone seated');
-select ok((select bool_and((b ->> 'wallet_paise')::bigint <> 0 or (b ->> 'markers_paise')::bigint <> 0) from pack, jsonb_array_elements(body -> 'balances') b)
-          is not false, 'balances list only members with money held or owed');
-select is((select (body ->> 'wallets_paise')::bigint from pack),
-  (select coalesce(sum((b ->> 'wallet_paise')::bigint), 0)::bigint from pack, jsonb_array_elements(body -> 'balances') b), 'the wallets total their rows');
-select is((select (body ->> 'markers_paise')::bigint from pack),
-  (select coalesce(sum(e.amount), 0)::bigint from public.ledger_account a join public.ledger_entry e on e.account_id = a.id
-   where a.venue_id = '00000000-0000-4000-8000-000000000001' and a.code = 'member.receivable'),
-  'and the markers total the members'' receivable on the ledger');
+select ok(not (select body ?| array['balances', 'wallets_paise', 'markers_paise', 'chips_in_play_paise', 'cage_float_paise', 'sops'] from pack),
+  'and nothing of wallets, markers, chips or SOPs, which went with the cage');
 
 select throws_ok($$ select public.offline_pack('00000000-0000-4000-8000-000000000002') $$, 'RVPRA', null, 'the practice venue has no pack');
 select is((select count(*)::integer from public.offline_pack_venues() where venue_id = '00000000-0000-4000-8000-000000000002'), 0,

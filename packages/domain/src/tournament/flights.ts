@@ -33,8 +33,7 @@ function isBetter(later: FlightRun, earlier: FlightRun): boolean {
  * flight was bagged goes through, and one who went through in two flights keeps the bigger stack (the earlier run
  * on a tie). Every other player is placed below Day 2's field by their best run: the one that outlasted the most
  * players in its flight, then the one in the smaller flight, then the earlier. Runs come in the order they were
- * made. A bag of no chips, a place outside its flight, or a run with no player is a bug and throws. The database's
- * private.tournament_day_two_field is proved equal on tournamentSeating.json.
+ * made. A bag of no chips, a place outside its flight, or a run with no player is a bug and throws.
  */
 export function dayTwoField(runs: readonly FlightRun[]): DayTwoField {
   if (!runs.every(isWhole)) throw new RangeError('Each run a player\'s, bagged with chips above nothing or out in a place of its flight');

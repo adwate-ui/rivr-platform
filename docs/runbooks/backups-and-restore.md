@@ -158,5 +158,4 @@ You need, on the computer you restore from:
 
 - Use point-in-time recovery for a moment in the last 7 days, or the daily backup.
 - In Supabase go to Database → Backups, choose the time or the backup, and restore. The project is unavailable while it restores, and everything after that moment is lost.
-- Engage the kill switch first, so nothing is written in between, and note in the incident log what was lost.
-- Before restoring, list the erasures made after the moment you restore to: `select entity_id from audit_log where action = 'member.erase' and occurred_at >= '<that moment>'`. The restore takes them back. Afterwards, release the kill switch and re-apply them as in step 6 above: a venue freeze refuses an erasure.
+- Before restoring, list the erasures made after the moment you restore to: `select entity_id from audit_log where action = 'member.erase' and occurred_at >= '<that moment>'`. The restore takes them back. Afterwards, re-apply them as in step 6 above.

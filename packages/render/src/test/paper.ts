@@ -83,18 +83,6 @@ export const OFFLINE_PACK = {
     { kind: 'escalation', name: 'Vikram Sethi', role: 'Owner', phone: '+91 98100 00001', note: null },
     { kind: 'glaza', name: 'Glaza front desk', role: null, phone: '+91 124 400 0000', note: 'Ask for the duty manager' },
   ],
-  balances: [
-    { name: 'Mihir Shah', memberNumber: '1042', walletPaise: 2_500_000n, markersPaise: 0n },
-    { name: 'Yash Gupta', memberNumber: '1043', walletPaise: 0n, markersPaise: 5_000_000n },
-  ],
-  walletsPaise: 2_500_000n,
-  markersPaise: 5_000_000n,
-  chipsInPlayPaise: 48_600_000n,
-  cageFloatPaise: 20_000_000n,
   tables: [{ name: 'Table 3', game: 'NLH 100/200', seats: [{ seat: 2, name: 'Mihir Shah', memberNumber: '1042' }] }],
   waitlist: [{ table: 'Table 3', game: 'NLH 100/200', place: 1, name: 'Ritika Das', memberNumber: '1051' }],
-  sops: [
-    { title: 'Cash-out during an outage', version: 2, inForceFrom: '2026-11-01', body: 'Count the chips with the player.\nWrite the amount on the paper slip and have both sign it.' },
-    { title: 'Closing the night on paper', version: 1, inForceFrom: '2026-10-20', body: Array.from({ length: 60 }, (_, step) => `Step ${String(step + 1)}: count, record and sign.`).join('\n') },
-  ],
 } as const;

@@ -5,8 +5,6 @@ export const tonight = {
   /** While a break runs (#56): `{until}` is when it ends, Wed 17 Feb, 00:10. */
   /** `{until}`: 8 Nov 2026, 14:00, with the year, as the floor's break may run for years (A5-14). */
   breakActive: 'On a break until {until}.',
-  /** Seated tonight (#78): the seat card's heading, with the call time left beneath. */
-  seated: '{table}, seat {seat}',
   /** At the seat (decision 0300): since when the member plays, `21:40`, and for how long, `1 h 20 min`. */
   playingSince: 'Playing since {time} · {played}',
   /** The call time the floor gave, the least the member plays before leaving: `3 h`. */
@@ -42,42 +40,7 @@ export const tonight = {
   /** Above the tables while the member's identity check is not done (#87). */
   kycIncomplete: 'ID check not finished. Finish it to join a table.',
   finishKyc: 'Finish ID check',
-  /** The next tournament, then its name and when it starts, IST: `Sun 15 Nov, 16:00`. No buy-in or prize (#627). */
-  nextTournament: 'Next tournament',
-  /** A tournament running at the club (#119), its level and time left ticking: `RIVR Sunday · Level 8`, `11:32`. */
-  liveTournament: 'Tournament',
-  liveLevel: '{name} · Level {level}',
-  liveBreak: '{name} · Break',
-  /** On a break, the level that follows: `Next 500/1,000 ante 1,000`. */
-  liveNext: 'Next {blinds}',
-  livePaused: 'Paused',
-  /** The field (#118): `31 of 58 left`. */
-  liveLeft: '{left} of {entries} left',
-  /** The member's own standing and what they may buy (#118). */
-  seatedAt: 'You are at table {table}, seat {seat}.',
-  alternate: 'Alternate. The floor seats you when one opens.',
-  bustedOut: 'You are out.',
   offers: { entry: 'Register', re_entry: 'Re-enter', rebuy: 'Rebuy' },
-  confirmBuy: 'Pay the buy-in from your balance?',
-  payNow: 'Yes, pay',
-  notNow: 'Not now',
-  /** Why the app did not sell it. */
-  buyFailures: {
-    short: 'Not enough in your balance.',
-    registration_closed: 'Registration has closed.',
-    identity: 'Finish your ID check first.',
-    on_break: 'On a break: no buy-ins until it ends.',
-    switched_off: 'Tournament registration is paused.',
-    room_full: 'Every seat is taken. Ask the floor.',
-    no_ticket: 'That ticket is used already.',
-    other: 'Not sent. Try again or ask the floor.',
-  },
-  /** Satellite tickets the member holds (#519). */
-  tickets: 'Your tournament tickets',
-  ticketLine: '{name} · {when}',
-  enterWithTicket: 'Enter with your ticket',
-  enteredWithTicket: 'You are in {name}.',
-  ticketsFailed: 'Your tickets did not load.',
   /** The club's upcoming tournaments (#636): register interest, pay at the club, and the floor marks you registered. */
   upcoming: 'Upcoming tournaments',
   registerInterest: 'Register interest',
