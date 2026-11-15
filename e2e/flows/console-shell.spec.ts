@@ -15,8 +15,8 @@ const MOVED: readonly (readonly [string, string, string | null, string | null])[
   // Requests is one list, oldest first, with no tabs (decision 0479).
   ['/top-ups', '/?panel=open', null, null],
   ['/time-requests', '/?panel=open', null, null],
-  // The Waitlist's own tabs are the lead's (routes/waitlist.tsx): the address and the rail are this flow's to check.
-  ['/tournament-interest', '/waitlist?tab=interest', 'Waitlist', null],
+  // Tournament interest left the Waitlist for Marketing's Tournaments screen (redesign RD-26).
+  ['/tournament-interest', '/tournaments', 'Tournaments', null],
   ['/website', '/content?tab=website', 'Content', null],
   ['/devices', '/settings?tab=tvs', 'Settings', 'TVs'],
   ['/tvs', '/settings?tab=tvs', 'Settings', 'TVs'],
