@@ -5,7 +5,7 @@ import { queryKeys } from './queryKeys.ts';
 
 const STORED = 'rivr.offline.v1';
 const USER = 'u1';
-const RECORD = { status: 'verified', hasSelfie: true, photoPath: 'v/m/selfie.jpg', dateOfBirth: '1990-01-01', maskedAadhaar: 'XXXX XXXX 1234', pan: 'ABCPM1234F', isAtTheClub: false };
+const RECORD = { status: 'verified', hasSelfie: true, dateOfBirth: '1990-01-01', maskedAadhaar: 'XXXX XXXX 1234', pan: 'ABCPM1234F', isAtTheClub: false };
 
 function setOnline(isOnline: boolean) {
   vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(isOnline);
@@ -94,7 +94,7 @@ describe('the offline cache', () => {
   it('keeps of an identity check what the gate reads, and none of its documents', () => {
     const stored = kept([[queryKeys.kycRecord(USER), RECORD]]);
     expect(stored).toContain('"status":"verified"');
-    for (const document of ['ABCPM1234F', '1990-01-01', 'XXXX XXXX 1234', 'selfie.jpg']) expect(stored).not.toContain(document);
+    for (const document of ['ABCPM1234F', '1990-01-01', 'XXXX XXXX 1234']) expect(stored).not.toContain(document);
   });
 
   it('brings it back when the phone opens offline, money as bigints, and says it is offline at once', () => {

@@ -66,7 +66,7 @@ describe('useKycRecord', () => {
     });
 
     await waitFor(() => expect(result.current.record.data).toEqual({
-      status: 'verified', hasSelfie: true, photoPath: 'v/m/selfie.jpg', dateOfBirth: '1990-01-01', maskedAadhaar: 'XXXX XXXX 0000', pan: 'ABCPE1234F', isAtTheClub: false,
+      status: 'verified', hasSelfie: true, dateOfBirth: '1990-01-01', maskedAadhaar: 'XXXX XXXX 0000', pan: 'ABCPE1234F', isAtTheClub: false,
     }));
   });
 
@@ -88,7 +88,7 @@ describe('useKycRecord', () => {
     expect(none.calls.find((call) => call.url.includes('/rest/v1/kyc_record'))?.url).toContain(`member.user_id=eq.${ASHA}`);
     cleanup();
     const own = renderKyc({ record: { ...other, status: 'started', photo_path: 'v/a/selfie.jpg' }, othersSeenAsStaff: [other] });
-    await waitFor(() => expect(own.result.current.record.data).toMatchObject({ status: 'started', photoPath: 'v/a/selfie.jpg' }));
+    await waitFor(() => expect(own.result.current.record.data).toMatchObject({ status: 'started', hasSelfie: true }));
   });
 });
 
