@@ -21,7 +21,7 @@ export interface RenderRequest<Name extends TemplateName> {
   scale?: number | undefined;
   /**
    * `one`, the default: what is drawn must fit one page of `height`. `all`: it runs onto as many pages of `height` as
-   * it needs, as the offline pack does (#167); a PNG is then its first page.
+   * it needs; a PNG is then its first page.
    */
   pages?: 'one' | 'all' | undefined;
 }

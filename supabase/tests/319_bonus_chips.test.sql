@@ -145,24 +145,6 @@ select is(pg_temp.chips((select id from ids where name = 'wasim')), 0::bigint, '
 
 -- 3. Redeeming while seating -------------------------------------------------------------------------------------------
 
--- A buy-in promotion live, which pays a cash buy-in: a redemption still earns nothing (decision 0472).
-with made as (insert into public.promotion (venue_id, name) values ('00000000-0000-4000-8000-000000000001', 'Buy-in 100') returning id)
-insert into public.promotion_version (venue_id, promotion_id, version, status, name, reward, eligibility, schedule, limits, channels)
-select '00000000-0000-4000-8000-000000000001', made.id, 1, 'live', 'Buy-in 100', '{"kind": "buyin_bonus", "mode": "fixed", "chips": 100}',
-       '{"stakes": "all", "tiers": "all", "audience": "everyone"}',
-       jsonb_build_object('days', '[1, 2, 3, 4, 5, 6, 7]'::jsonb, 'from', '06:00', 'to', '06:00', 'startsOn', (private.club_day_of(now()) - 1)::text,
-                          'timezone', 'Asia/Kolkata'),
-       '{"perMember": "none"}', '{"playerApp": false, "tv": false, "website": false, "whatsapp": false}'
-from made;
-select private.sync_promotion(v.promotion_id) from public.promotion_version v where v.name = 'Buy-in 100';
-select is((select count(*)::integer from private.evaluate_promotions('00000000-0000-4000-8000-000000000001', 'buy_in',
-            jsonb_build_object('member_id', '00000000-0000-4000-8000-000000000213', 'key', 'buy_in:test-319', 'amount_paise', 1000000,
-                               'method', 'cash', 'table_id', pg_temp.table_id('Table 5')))), 1,
-  'a buy-in promotion is live, and pays a cash buy-in');
-
-create temp table opening as
-  select (select count(*) from public.promotion_grant where member_id = '00000000-0000-4000-8000-000000000211') as grants;
-
 -- Not whole 50s, or more than he has: refused, and he is not seated.
 select pg_temp.as_user('00000000-0000-4000-8000-000000000103');
 select throws_ok($$ select public.seat_member(pg_temp.table_id('Table 5'), 2, p_member_number => (select member_number from public.member
@@ -195,8 +177,6 @@ select results_eq($$ select a.code, e.amount from public.bonus_redemption r join
 select results_eq($$ select (payload ->> 'amount_paise')::bigint, payload ->> 'table_name' from public.outbox_event where event_type = 'bonus.redeemed'
                      and payload ->> 'member_id' = '00000000-0000-4000-8000-000000000211' $$,
   $$ values (100000::bigint, 'Table 5'::text) $$, 'he is told: bonus.redeemed, with the table');
-select is((select count(*) from public.promotion_grant where member_id = '00000000-0000-4000-8000-000000000211'), (select grants from opening),
-  'bonus never earns a buy-in promotion');
 select throws_ok($$ select private.undo_seat((select id from public.seat_session where member_id = '00000000-0000-4000-8000-000000000211'
                                               and ended_at is null)) $$, '22023', 'Something was already recorded at that seat',
   'a seat with chips redeemed is not undone: the redemption holds it');

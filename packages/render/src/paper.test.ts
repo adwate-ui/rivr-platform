@@ -1,7 +1,7 @@
 import { tokens } from '@rivr/tokens';
 import { describe, expect, it } from 'vitest';
 import { renderToPdf, renderToPng } from './render.ts';
-import { CASH_OUT, INVOICE, STATEMENT } from './test/paper.ts';
+import { INVOICE, STATEMENT } from './test/paper.ts';
 import { allowedDifference, differenceFromBaseline, pngSize } from './test/png.ts';
 
 const A4 = tokens.viewport.a4;
@@ -19,23 +19,6 @@ function pageSizeInPoints(pdf: Buffer): number[] {
 
 // Each is compared with its baseline; after a deliberate design change,
 // RIVR_UPDATE_BASELINES=1 pnpm --filter @rivr/render test -- paper rewrites them.
-describe('the thermal receipt', () => {
-  it('draws at printer width, one pixel to a dot, as tall as its lines', async () => {
-    const png = await renderToPng({ template: 'receipt.thermal', props: CASH_OUT, width: tokens.size.receipt });
-    const { width, height } = pngSize(png);
-    expect(width).toBe(576);
-    expect(height).toBeGreaterThan(400);
-    expect(height).toBeLessThan(1200);
-    expect(await differenceFromBaseline(png, 'receipt-thermal')).toBeLessThanOrEqual(allowedDifference(width, height));
-  });
-
-  it('grows with its lines', async () => {
-    const short = pngSize(await renderToPng({ template: 'receipt.thermal', props: { ...CASH_OUT, lines: CASH_OUT.lines.slice(0, 1) }, width: 576 }));
-    const long = pngSize(await renderToPng({ template: 'receipt.thermal', props: CASH_OUT, width: 576 }));
-    expect(long.height).toBeGreaterThan(short.height);
-  });
-});
-
 describe.each([
   ['invoice', { template: 'document.invoice', props: INVOICE }],
   ['statement', { template: 'document.statement', props: STATEMENT }],

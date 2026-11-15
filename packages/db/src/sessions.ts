@@ -15,7 +15,7 @@ const keys = {
 
 /**
  * One table the signed-in member sat at in a closed visit (#127; the owner, 9 Nov: each table its own session), or a
- * tournament they played: the hours there, the visit's money on its first table's session, and its club month's totals.
+ * past tournament they asked to be notified of (redesign RD-26), which has no time or money: the hours there, the visit's money on its first table's session, and its club month's totals.
  * Net is what came out less the TDS and what went in; what went in counts chips on credit and not bonus chips, which
  * show apart.
  */
@@ -27,9 +27,9 @@ export interface MySession {
   readonly sessionId: string;
   /** The visit it was part of, or the tournament's id for a tournament. */
   readonly visitId: string;
-  /** A cash-table visit, or a tournament the member played (#549): its name is `tableName`, its stakes nothing. */
+  /** A cash-table visit, or a past tournament the member asked to be notified of: its name is `tableName`, its stakes nothing. */
   readonly kind: 'cash' | 'tournament';
-  /** A tournament's place, when known, and how many played it; null for a cash visit. */
+  /** Always null: no place is recorded. Then how many entered a tournament, once staff typed it; null for a cash visit. */
   readonly place: number | null;
   readonly entrants: number | null;
   readonly openedAt: string;

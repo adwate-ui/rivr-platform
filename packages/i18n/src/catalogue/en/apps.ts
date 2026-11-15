@@ -7,15 +7,15 @@ import { rail } from './consoleRail.ts';
 import { shell } from './consoleShell.ts';
 import { activity } from './activity.ts';
 import { cameraFailures, cameras } from './cameras.ts';
-import { members, tiers } from './members.ts';
+import { members } from './members.ts';
 import { checkIn } from './checkIn.ts';
 import { liveFloor, timeRequests, todaysPlayers, topUps } from './floor.ts';
 import { tablesSetup } from './tablesSetup.ts';
 import { floor } from './liveFloorV3.ts';
-import { computers, dealerPins, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
+import { dealerPins, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
 import { feedback, playerFeedback } from './feedback.ts';
 import { itemPhoto } from './itemPhoto.ts';
-import { tournamentInterest } from './tournamentInterest.ts';
+import { tournaments } from './tournaments.ts';
 import { playerPromotions } from './playerPromotions.ts';
 import { promotions } from './promotions.ts';
 import { rake } from './rake.ts';
@@ -53,6 +53,8 @@ export const playerApp = {
     /** `1,000 bonus chips used for your buy-in at Table 3`. */
     redeemed: '{chips} Bonus used for your buy-in at {table}',
     redeemedNoTable: '{chips} Bonus used for your buy-in',
+    /** A high hand paid (redesign RD-25): `High hand: Straight flush, Nine high. 10,000 Bonus added.` */
+    highHand: 'High hand: {hand}. {chips} Bonus added.',
   },
   profile,
   houseRules: playerHouseRules,
@@ -74,7 +76,6 @@ export const consoleApp = {
   reports,
   website,
   members,
-  tiers,
   activity,
   cameras,
   cameraFailures,
@@ -89,12 +90,11 @@ export const consoleApp = {
   dealerPins,
   staff,
   tvs,
-  computers,
   rake,
   notStaff,
   feedback,
   itemPhoto,
-  tournamentInterest,
+  tournaments,
   promotions,
   /** At the foot of the rail: switches the console to the practice venue, where staff train. */
   practice: 'Practice venue',

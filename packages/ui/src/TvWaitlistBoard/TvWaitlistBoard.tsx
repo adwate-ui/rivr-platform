@@ -1,5 +1,7 @@
-import { Heading } from '../Heading/Heading.tsx';
 import { cx } from '../internal/classes.ts';
+import { TV_BOARD_ROOM } from '../internal/displayStage.tsx';
+import { TV_MORE_HEIGHT, TV_ROW_HEIGHT, TvEmpty, TvMore, tvRowsThatFit } from '../internal/tvList.tsx';
+import { TvStage } from '../TvStage/TvStage.tsx';
 
 /** A place on the board: its number, the player (a first name and initial), and a status if called or away. */
 export interface TvWaitlistPlace {
@@ -9,7 +11,7 @@ export interface TvWaitlistPlace {
   status?: string | undefined;
 }
 
-/** One stake: its name ("₹100/200"), a line beside it ("2 tables open"), and its places in order. */
+/** One column: a table's name ("Table 1"), the line under it in capitals (its game and stake, "NLH 50/100"), and its places in order. */
 export interface TvWaitlistStake {
   id: string;
   stake: string;
@@ -20,116 +22,93 @@ export interface TvWaitlistStake {
 export interface TvWaitlistBoardProps {
   /** The board's title: "Waitlist". */
   title: string;
+  /** The columns, in order: four to a row, and a second row for more than four. */
   stakes: readonly TvWaitlistStake[];
-  /** What a stake nobody waits for says: "No one waiting." */
+  /** What the board says with no columns, and a column nobody waits in: "No one waiting." */
   emptyText: string;
-  /** Under a list cut short: "+3 more". Left out for a top-N list, which has no more to tell of. */
+  /** Under a list cut short: "+3 more". */
   moreText?: ((hidden: number) => string) | undefined;
-  /** The line at the foot: "Page 1 of 2 · Table 4, Table 5: no list". */
+  /** Under the columns when they take turns, a page at a time: "Page 1 of 2". */
   footer?: string | undefined;
 }
 
-// A page of a list an app pages itself (the wheel's prizes): what a column holds at any size.
-export const TV_WAITLIST_PLACES_SHOWN = 5;
+/** The columns the stage holds, two rows of four: more take turns, a page at a time, which the app passes. */
+export const TV_WAITLIST_TABLES_SHOWN = 8;
+const COLUMNS_A_ROW = 4;
 
-// Past these lengths a name and what is beside it will not share a row at 72 px: the name steps down a size, and what is beside
-// it goes under it, rather than be cut (F-138).
-const LONG_NAME = 11;
-const LONG_STATUS = 14;
+// Heights at 1920 by 1080. A column's head: the name's line (49), each line of the stake (32) and the rule under them
+// (14). A row with a status under the name is the status's line (36) taller. Rows of columns stand 48 apart.
+const HEAD = { name: 49, detailLine: 32, rule: 14 } as const;
+const STATUS_HEIGHT = 36;
+const ROW_GAP = 48;
+// The characters of a stake line, in spaced capitals at 24 px, across a column of a quarter of the stage.
+const DETAIL_ON_A_LINE = 20;
+// Past this a name does not fit its column at 48 px: it steps down a size rather than be cut.
+const LONG_NAME = 13;
 
-// The stage's heights as drawn at 1920 by 1080 (F-044): the room for a column's rows, under its head and above the progress bar,
-// a row with what is beside it on its own row or not, and the lines that take room from them.
-const COLUMN = { rows: 671, row: 101, stackedRow: 168, more: 48, footer: 56, detailLine: 54 } as const;
-// The characters of a stake, in capitals at 48 px, on a line of a third or a half of the stage.
-const DETAIL_ON_A_LINE = { narrow: 14, wide: 22 } as const;
-
-function isStacked(place: TvWaitlistPlace, isNarrow: boolean): boolean {
-  return place.status !== undefined && (isNarrow || place.name.length > LONG_NAME || place.status.length > LONG_STATUS);
+/** How many of a column's places fit `room` px under its head, counting a status under a name; the rest go to "+N more". */
+function placesThatFit(stake: TvWaitlistStake, room: number): number {
+  const detailLines = Math.max(1, Math.ceil(stake.detail.length / DETAIL_ON_A_LINE));
+  const head = HEAD.name + detailLines * HEAD.detailLine + HEAD.rule;
+  return tvRowsThatFit(stake.places.map((place) => TV_ROW_HEIGHT + (place.status === undefined ? 0 : STATUS_HEIGHT)), room - head);
 }
 
-/** How many of a column's places the stage holds, counting the rows with a status under the name; the rest go to "+N more". */
-function placesThatFit(stake: TvWaitlistStake, isNarrow: boolean, hasFooter: boolean): number {
-  const detailLines = Math.ceil(stake.detail.length / (isNarrow ? DETAIL_ON_A_LINE.narrow : DETAIL_ON_A_LINE.wide));
-  const room = COLUMN.rows - (hasFooter ? COLUMN.footer : 0) - Math.max(0, detailLines - 1) * COLUMN.detailLine;
-  const heights = stake.places.map((place) => (isStacked(place, isNarrow) ? COLUMN.stackedRow : COLUMN.row));
-  if (heights.reduce((sum, height) => sum + height, 0) <= room) return heights.length;
-  let used = COLUMN.more;
-  let count = 0;
-  for (const height of heights) {
-    used += height;
-    if (used > room) break;
-    count += 1;
-  }
-  return count;
-}
-
-/**
- * How many of a column's places the stage holds with `columns` side by side, any more going to "+N more": for a board that
- * runs one ranked list down its columns, so column one ends where it fills and no place is hidden between them (decision 0581).
- */
-export function tvPlacesThatFit(stake: TvWaitlistStake, columns: number): number {
-  return placesThatFit(stake, columns > 2, false);
-}
-
-/** A place: its number, the name, and what is beside it: under the name where there is no room beside it. */
-function PlaceRow({ place, isNarrow }: { place: TvWaitlistPlace; isNarrow: boolean }) {
-  const status = place.status === undefined ? null : <span className="truncate whitespace-nowrap font-text text-48 text-money">{place.status}</span>;
-  const stacks = isStacked(place, isNarrow);
+/** A place: its number muted, the name large, and its status under the name, so the two never share the column's width. */
+function PlaceRow({ place }: { place: TvWaitlistPlace }) {
   return (
-    <li className="flex items-baseline gap-6 border-b border-hairline py-2">
-      {place.place === '' ? null : <span className="w-20 shrink-0 font-text text-48 tabular-nums text-content">{place.place}</span>}
+    <li className="flex items-baseline gap-6 border-b border-hairline py-4">
+      {place.place === '' ? null : <span className="w-10 shrink-0 font-text text-28 tabular-nums text-content-muted">{place.place}</span>}
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className={cx('truncate font-text font-semibold leading-tight text-content', place.name.length > LONG_NAME ? 'text-56' : 'text-72')}>{place.name}</span>
-        {stacks ? status : null}
+        <span className={cx('truncate font-text font-semibold leading-snug text-content', place.name.length > LONG_NAME ? 'text-36' : 'text-48')}>
+          {place.name === '' ? <>&nbsp;</> : place.name}
+        </span>
+        {place.status === undefined ? null : <span className="font-text text-28 leading-snug text-money">{place.status}</span>}
       </span>
-      {stacks ? null : status}
     </li>
   );
 }
 
-interface StakeColumnProps {
+interface TableColumnProps {
   stake: TvWaitlistStake;
+  room: number;
   emptyText: string;
   moreText: ((hidden: number) => string) | undefined;
-  isNarrow: boolean;
-  hasFooter: boolean;
 }
 
-function StakeColumn({ stake, emptyText, moreText, isNarrow, hasFooter }: StakeColumnProps) {
-  const shown = placesThatFit(stake, isNarrow, hasFooter);
-  const hidden = stake.places.length - shown;
+function TableColumn({ stake, room, emptyText, moreText }: TableColumnProps) {
+  const shown = placesThatFit(stake, room);
   return (
     <section aria-label={stake.stake} className="flex min-w-0 flex-col">
-      <div className="flex flex-col gap-1 border-b border-hairline pb-3">
-        <span className="truncate font-text text-56 font-medium leading-tight text-content">{stake.stake}</span>
-        <span className="font-text text-48 uppercase leading-tight tracking-tv text-content">{stake.detail}</span>
+      <div className="flex flex-col border-b-2 border-hairline pb-3">
+        <h2 className="truncate font-text text-44 font-semibold leading-tight text-content">{stake.stake}</h2>
+        <span className="font-text text-24 uppercase leading-snug tracking-tv text-content-muted">{stake.detail}</span>
       </div>
-      {stake.places.length === 0 ? (
-        <p className="py-6 font-text text-48 text-content">{emptyText}</p>
-      ) : (
-        <ol>{stake.places.slice(0, shown).map((place) => <PlaceRow key={place.id} place={place} isNarrow={isNarrow} />)}</ol>
+      {stake.places.length === 0 ? <div className="py-4"><TvEmpty text={emptyText} /></div> : (
+        <ol>{stake.places.slice(0, shown).map((place) => <PlaceRow key={place.id} place={place} />)}</ol>
       )}
-      {hidden > 0 && moreText !== undefined ? <p className="pt-2 font-text text-36 leading-tight text-content">{moreText(hidden)}</p> : null}
+      <TvMore hidden={stake.places.length - shown} moreText={moreText} />
     </section>
   );
 }
 
 /**
- * The TV's waitlist board (#65): the title in the display face on the wordmark's row, so the room reads the lists (F-138), then
- * the stakes side by side (two, or three when the venue has more, so all fit the stage), each with its places in order, a
- * player as a first name and initial, and as many as the stage holds, with how many more. It holds no state: the TV app passes
- * what to show.
+ * The TV's waitlist board (#65; redesign RD-28): each table somebody waits for is a column, its name, its game and stake
+ * under it in capitals, then its places, the number muted and the player large as a first name and initial. Four columns
+ * to a row, a second row for more; each column holds as many places as its share of the stage, then how many more. It
+ * holds no state: the TV app passes what to show.
  */
 export function TvWaitlistBoard({ title, stakes, emptyText, moreText, footer }: TvWaitlistBoardProps) {
+  const shown = stakes.slice(0, TV_WAITLIST_TABLES_SHOWN);
+  const rows = shown.length > COLUMNS_A_ROW ? 2 : 1;
+  const room = (TV_BOARD_ROOM - (footer === undefined ? 0 : TV_MORE_HEIGHT) - (rows - 1) * ROW_GAP) / rows;
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="absolute inset-x-0 top-16 flex justify-center"><Heading level={1} variant="tvTitle">{title}</Heading></div>
-      {stakes.length === 0 ? <p className="font-text text-48 text-content">{emptyText}</p> : (
-        <div className={cx('grid min-h-0 flex-1 content-start gap-y-12', stakes.length > 2 ? 'grid-cols-3 gap-x-24' : 'grid-cols-2 gap-x-32')}>
-          {stakes.map((stake) => <StakeColumn key={stake.id} stake={stake} emptyText={emptyText} moreText={moreText} isNarrow={stakes.length > 2} hasFooter={footer !== undefined} />)}
+    <TvStage title={title}>
+      {shown.length === 0 ? <TvEmpty text={emptyText} /> : (
+        <div className="grid grid-cols-4 content-start gap-12">
+          {shown.map((stake) => <TableColumn key={stake.id} stake={stake} room={room} emptyText={emptyText} moreText={moreText} />)}
         </div>
       )}
-      {footer === undefined ? null : <p className="pt-4 font-text text-36 uppercase leading-tight tracking-tv text-content">{footer}</p>}
-    </div>
+      {footer === undefined ? null : <p className="mt-auto pt-3 font-text text-28 leading-snug text-content-muted">{footer}</p>}
+    </TvStage>
   );
 }

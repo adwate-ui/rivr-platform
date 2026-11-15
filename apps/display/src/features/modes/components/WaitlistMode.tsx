@@ -1,13 +1,10 @@
 import { useTvWaitlistBoard, type TvPlace, type TvTableList } from '@rivr/db';
-import { formatStakeName, t } from '@rivr/i18n';
-import { TvWaitlistBoard, type TvWaitlistStake } from '@rivr/ui';
-import { usePage } from './usePage.ts';
+import { formatGameStakes, t } from '@rivr/i18n';
+import { TV_WAITLIST_TABLES_SHOWN, TvWaitlistBoard, type TvWaitlistStake } from '@rivr/ui';
 import { BoardStatus } from './BoardStatus.tsx';
+import { usePage } from './usePage.ts';
 
-// Three tables to a screen; more take turns, a page every ten seconds, as the call-time board's do (decision 0467).
-export const WAITLIST_TABLES_SHOWN = 3;
-
-/** What a place says beside the name: the table it is called to, or that the player stepped away. */
+/** What a place says under the name: the table it is called to, or that the player stepped away. */
 function statusText(place: TvPlace): string | undefined {
   if (place.calledTo !== null) return t('tv.waitlist.called', { table: place.calledTo });
   return place.isAway ? t('tv.waitlist.away') : undefined;
@@ -15,8 +12,8 @@ function statusText(place: TvPlace): string | undefined {
 
 /** A table's column: its name, its stake (and that it is closed while it is), and its places in order. */
 export function toBoardColumn(table: TvTableList): TvWaitlistStake {
-  // The stake as its name, with the figures once it has a straddle (issue 990).
-  const stake = formatStakeName(table.stake, table);
+  // The heading names the table, so under it the stake's figures alone, with its straddle where it has one (issue 990).
+  const stake = formatGameStakes(table.game, table.smallBlind, table.bigBlind, table.straddle);
   return {
     id: table.tableId, stake: table.name, detail: table.isOpen ? stake : t('tv.waitlist.closed', { stake }),
     places: table.places.map((place) => ({
@@ -28,34 +25,25 @@ export function toBoardColumn(table: TvTableList): TvWaitlistStake {
   };
 }
 
-/** The tables as the board lays them out (F-140): those with a list as columns, in order, and the open ones with none named on one line. */
-export function arrangeTables(tables: readonly TvTableList[]): { withList: TvTableList[]; noList: string[] } {
-  return { withList: tables.filter((table) => table.places.length > 0), noList: tables.filter((table) => table.places.length === 0).map((table) => table.name) };
-}
-
-/** The line at the board's foot: which page, and the tables with no list, whichever there are. */
-export function footerOf(shown: number, pages: number, noList: readonly string[]): string | undefined {
-  const page = pages < 2 ? undefined : t('tv.waitlist.page', { page: shown + 1, pages });
-  const folded = noList.length === 0 ? undefined : t('tv.waitlist.noList', { tables: noList.join(', ') });
-  return page !== undefined && folded !== undefined ? t('tv.waitlist.footer', { page, folded }) : page ?? folded;
-}
+/** The tables the board gives a column: those somebody waits for, in the floor's order. A table with no list is not on it. */
+export const tablesWithList = (tables: readonly TvTableList[]) => tables.filter((table) => table.places.length > 0);
 
 /**
- * The waitlist board (#65): a list a table (decision 0467), each table somebody waits for, open or closed, live as players join,
- * are called and leave; more tables than fit take turns, and the open tables with no list are named at the foot.
+ * The waitlist board (#65): a list a table (decision 0467), each table somebody waits for, open or closed, live as players
+ * join, are called and leave. More tables than the board holds take turns, a page every ten seconds.
  */
 export function WaitlistMode() {
   const board = useTvWaitlistBoard();
-  const { withList, noList } = arrangeTables(board.data ?? []);
-  const pages = Math.ceil(withList.length / WAITLIST_TABLES_SHOWN);
+  const tables = tablesWithList(board.data ?? []);
+  const pages = Math.ceil(tables.length / TV_WAITLIST_TABLES_SHOWN);
   const shown = usePage(pages);
-  const first = shown * WAITLIST_TABLES_SHOWN;
   if (board.data === undefined) {
     return <BoardStatus isError={board.isError} />;
   }
+  const first = shown * TV_WAITLIST_TABLES_SHOWN;
   return (
     <TvWaitlistBoard title={t('tv.waitlist.title')} emptyText={t('tv.waitlist.empty')} moreText={(count) => t('tv.more', { count })}
-      stakes={withList.slice(first, first + WAITLIST_TABLES_SHOWN).map(toBoardColumn)}
-      footer={withList.length === 0 ? undefined : footerOf(shown, pages, noList)} />
+      stakes={tables.slice(first, first + TV_WAITLIST_TABLES_SHOWN).map(toBoardColumn)}
+      footer={pages < 2 ? undefined : t('tv.waitlist.page', { page: shown + 1, pages })} />
   );
 }

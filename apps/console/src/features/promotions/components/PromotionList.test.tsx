@@ -36,6 +36,84 @@ function renderList(onOpen = vi.fn(), tab?: string, rows: readonly unknown[] = R
   return { ...api, onOpen, onNavigate };
 }
 
+const HIGH_HAND = overviewRow({
+  promotion_id: 'p9', name: 'High hand bonus', detail: 'Up to 25,000 Bonus a hand', given_this_week: 7, chips_given_this_week: 65_000, budget_used_chips: 65_000,
+  reward: {
+    kind: 'high_hand', rules: { bothHoleCards: true, shownAtShowdown: true, minPlayersDealt: 4 },
+    hands: [{ hand: 'royal_flush', chips: 25_000 }, { hand: 'four_of_a_kind', chips: 5_000 }],
+  },
+  limits: { perMember: 'none', budgetChips: 200_000, budgetPeriod: 'month' },
+});
+const hit = (more: Record<string, unknown>) => ({
+  hit_id: 'h1', logged_at: '2026-11-15T19:30:00+00:00', member_id: 'm1', member_name: 'Devansh Malik', table_name: 'Table 2', seat: 3, hand: 'four_of_a_kind',
+  rank: 'jack', chips: 5_000, logged_by: 'Aditya Rao', paid_count: 2, paid_chips: 15_000, ...more,
+});
+const HITS = [hit({}), hit({ hit_id: 'h2', member_name: 'Rhea Sood', seat: 1, hand: 'straight_flush', rank: 'nine', chips: 10_000 })];
+
+describe('a high hand on the promotions list (redesign RD-23)', () => {
+  function renderHighHand(more: Record<string, unknown> = {}) {
+    const onOpen = vi.fn();
+    const onLog = vi.fn();
+    const api = renderWithApi(<PromotionList venueId="v1" names={NAMES.names} onOpen={onOpen} tab={undefined} onNavigate={vi.fn()} onLogHighHand={onLog} />,
+      { '/rpc/promotions_overview': { body: [{ ...HIGH_HAND, ...more }] }, '/rpc/high_hand_tonight': { body: HITS } });
+    return { ...api, onOpen, onLog };
+  }
+  const rowOf = async () => within(await screen.findByRole('table', { name: 'Promotions' })).getAllByRole('row').find((row) => row.textContent?.includes('High hand bonus'));
+
+  it('shows it by the most it pays, and its count as hands paid', async () => {
+    renderHighHand();
+    const row = await rowOf();
+    expect(row?.textContent).toContain('Up to 25,000 Bonus a hand');
+    expect(row?.textContent).toContain('7 hands');
+    expect(row?.textContent).toContain('65,000 of 2,00,000 budget this month');
+  });
+
+  it('opens its record beside the list: paid tonight, this week and the budget left, tonight\'s hits, and Log a high hand', async () => {
+    const { onOpen, onLog } = renderHighHand();
+    fireEvent.click((await rowOf()) ?? document.body);
+    const record = within(await screen.findByRole('dialog', { name: 'High hand bonus' }));
+    expect(await record.findByText('Hands paid tonight')).toBeDefined();
+    expect(record.getByText('Hands paid tonight').parentElement?.textContent).toContain('2');
+    expect(record.getByText('Bonus paid tonight').parentElement?.textContent).toContain('15,000');
+    expect(record.getByText('This week').parentElement?.textContent).toContain('65,000');
+    expect(record.getByText('Budget left this month').parentElement?.textContent).toContain('1,35,000');
+    expect(record.getByText('Four Jacks · Table 2, seat 3')).toBeDefined();
+    expect(record.getByText('Straight flush, Nine high · Table 2, seat 1')).toBeDefined();
+    expect(record.getByText('+10,000')).toBeDefined();
+    fireEvent.click(record.getByRole('button', { name: 'Log a high hand' }));
+    expect(onLog).toHaveBeenCalledOnce();
+    // Its builder is one press further, from the record's own Edit.
+    expect(onOpen).not.toHaveBeenCalled();
+    fireEvent.click(record.getByRole('button', { name: 'Edit' }));
+    expect(onOpen).toHaveBeenCalledWith('p9');
+  });
+
+  it('shows its hands and rules on the record\'s other tab, and opens the builder to change them', async () => {
+    const { onOpen } = renderHighHand();
+    fireEvent.click((await rowOf()) ?? document.body);
+    const record = within(await screen.findByRole('dialog', { name: 'High hand bonus' }));
+    fireEvent.click(record.getByRole('radio', { name: 'Hands and rules' }));
+    // Only the hands it lists: a listed hand always has a Bonus (correction 11).
+    expect(record.queryByText('Aces full')).toBeNull();
+    expect(record.getByText('Royal flush').parentElement?.textContent).toContain('25,000');
+    expect(record.getByText('Four of a kind').parentElement?.textContent).toContain('5,000');
+    expect(record.getByText('Both hole cards must play').parentElement?.textContent).toContain('Yes');
+    expect(record.getByText('Players dealt in').parentElement?.textContent).toContain('4 or more');
+    expect(record.getByText('Where').parentElement?.textContent).toContain('All stakes');
+    fireEvent.click(record.getByRole('button', { name: 'Change hands and rules' }));
+    expect(onOpen).toHaveBeenCalledWith('p9');
+  });
+
+  it('offers no Log a high hand to staff who may not log one', async () => {
+    renderWithApi(<PromotionList venueId="v1" names={NAMES.names} onOpen={vi.fn()} tab={undefined} onNavigate={vi.fn()} />,
+      { '/rpc/promotions_overview': { body: [HIGH_HAND] }, '/rpc/high_hand_tonight': { body: [] } });
+    fireEvent.click((await rowOf()) ?? document.body);
+    const record = within(await screen.findByRole('dialog', { name: 'High hand bonus' }));
+    expect(await record.findByText('No high hand paid tonight.')).toBeDefined();
+    expect(record.queryByRole('button', { name: 'Log a high hand' })).toBeNull();
+  });
+});
+
 describe('the promotions list (console v3)', () => {
   it('shows each promotion with what it gives, who, when, this week and its status, and counts each status', async () => {
     renderList();

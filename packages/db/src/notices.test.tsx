@@ -36,12 +36,13 @@ afterEach(cleanup);
 describe('notices', () => {
   it('reads the member\'s and the venue\'s notices, puts one up and ends one', async () => {
     const { result, calls } = renderHooks({
-      '/rpc/my_notices': { body: [{ notice_id: 'n1', body: 'We\'re launching soon.' }] },
+      '/rpc/my_notices': { body: [{ notice_id: 'n1', body: 'We\'re launching soon.', starts_at: '2026-11-02T10:00:00+00:00' }] },
       '/rpc/venue_notices': { body: [{ notice_id: 'n1', body: 'We\'re launching soon.', starts_at: '2026-11-02T10:00:00+00:00', ends_at: null }] },
       '/rpc/post_notice': { body: 'n2' },
       '/rpc/end_notice': { body: null },
     });
-    await waitFor(() => expect(result.current.mine.data).toEqual([{ noticeId: 'n1', body: 'We\'re launching soon.' }]));
+    // A member's notice comes with when it started: Home shows the one that started last (redesign RD-20).
+    await waitFor(() => expect(result.current.mine.data).toEqual([{ noticeId: 'n1', body: 'We\'re launching soon.', startsAt: '2026-11-02T10:00:00+00:00' }]));
     await waitFor(() => expect(result.current.venue.data?.[0]).toEqual({
       noticeId: 'n1', body: 'We\'re launching soon.', startsAt: '2026-11-02T10:00:00+00:00', endsAt: null,
     }));

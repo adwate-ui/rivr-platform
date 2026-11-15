@@ -4,6 +4,7 @@ import { ChoiceChips, Grid, Segmented, Stack, Text } from '@rivr/ui';
 import type { ReactNode } from 'react';
 import { BuilderCard, FormInput, offered, type SectionProps } from './BuilderCard.tsx';
 import { REWARD_KINDS } from './builderForm.ts';
+import { HighHandFields } from './HighHandFields.tsx';
 import { HoursBonusFields } from './HoursBonusFields.tsx';
 import { SeatBonusFields } from './SeatBonusFields.tsx';
 
@@ -35,7 +36,7 @@ function BonusChipsFields({ section }: { section: SectionProps }) {
       <Fields><ChipsInput section={section} field="chips" label={t('console.promotions.builder.fields.chips')} /></Fields>
       <Labelled label={givenOn}>
         <Segmented label={givenOn} size="small" value={form.bonusOn}
-          options={BONUS_CHIPS_ON.filter((on) => on !== 'first_buyin').map((on) => ({ value: on, label: t(`console.promotions.builder.fields.bonusOn.${on}`) }))}
+          options={BONUS_CHIPS_ON.map((on) => ({ value: on, label: t(`console.promotions.builder.fields.bonusOn.${on}`) }))}
           onChange={(bonusOn) => { if (!isReadOnly) onChange({ ...form, bonusOn }); }} />
       </Labelled>
     </>
@@ -51,21 +52,14 @@ function KindFields({ section }: { section: SectionProps }) {
       return <HoursBonusFields section={section} />;
     case 'bonus_chips':
       return <BonusChipsFields section={section} />;
-    case 'cab_home':
-      return (
-        <Fields>
-          <FormInput section={section} field="fromVisit" label={t('console.promotions.builder.fields.fromVisit')}
-            suffix={t('console.promotions.builder.fields.fromVisitSuffix')} inputMode="numeric" />
-        </Fields>
-      );
-    case 'tournament_entry':
-      return <Fields><FormInput section={section} field="tournament" label={t('console.promotions.builder.fields.tournament')} /></Fields>;
+    case 'high_hand':
+      return <HighHandFields section={section} />;
     default:
       return null;
   }
 }
 
-/** 1 · Reward: a card for each kind, then that kind's own fields (the brief: the buy-in bonus has % or Fixed chips). */
+/** 1 · Reward: a card for each kind, then that kind's own fields. */
 export function RewardSection(section: SectionProps) {
   const { form, onChange } = section;
   const kinds = REWARD_KINDS.map((kind) => ({

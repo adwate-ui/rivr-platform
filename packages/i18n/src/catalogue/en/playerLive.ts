@@ -4,13 +4,15 @@
  */
 export const playerLive = {
   title: 'Home',
-  /** The offers carousel's heading. */
+  /** The offers carousel's name, read out; it has no heading (redesign RD-20). */
   offersTitle: 'Offers',
-  offers: '{count} offers',
-  offersOne: '1 offer',
-  /** The referral offer card (it left Home's tables for the carousel): `{chips}` is the bonus, `1,000`. */
-  referralTitle: 'Referral',
+  /** The referral offer's card, only while a referral promotion is live: `{chips}` is the Bonus, `1,000`. */
+  referralTitle: 'Refer a friend',
   referralOffer: '{chips} Bonus each',
+  referralLine: 'When a friend joins and takes a first seat',
+  /** The high hand's offer card (redesign RD-25): its eyebrow, and a hand with its Bonus, `Royal flush 25,000`. */
+  highHandTitle: 'High hand bonus',
+  highHandEach: '{hand} {chips}',
   /** A club notice's card above the offers (decision 0424): its gold eyebrow. */
   notice: 'From the club',
   allTables: 'All tables',
@@ -30,6 +32,9 @@ export const playerLive = {
   tournaments: 'Tournaments',
   notifyMe: 'Notify me',
   notifying: 'Notifying you',
+  /** The same pills' full names for a screen reader: `Notify me: RIVR Sunday`. */
+  notifyMeName: 'Notify me: {name}',
+  notifyingName: 'Notifying you: {name}',
   games: { nlh: "No-Limit Hold'em", plo: 'Pot-Limit Omaha' },
   join: {
     minBuyIn: 'Min buy-in',

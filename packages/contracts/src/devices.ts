@@ -19,18 +19,16 @@ export const tvPairingSchema = z.discriminatedUnion('tv', [
 export const devicePairRequestSchema = z.union([devicePairSchema, tvPairingSchema]);
 export type DevicePairRequest = z.infer<typeof devicePairRequestSchema>;
 
-/** What a TV shows (additions "TV modes"), as public.tv_mode lists them. */
-export const TV_MODES = ['waitlist', 'call_time', 'promotions', 'leaderboard'] as const;
+/**
+ * What a TV shows (redesign RD-28): the five boards, and nothing else. public.tv_mode still lists the boards that went
+ * (decision 0587); the constraint tv_screen_boards_in_use keeps a TV to these.
+ */
+export const TV_MODES = ['waitlist', 'call_time', 'promotions', 'leaderboard', 'high_hand'] as const;
 export type TvMode = (typeof TV_MODES)[number];
 
 /** The periods the TVs' hours leaderboard counts (decision 0581), in the club's days from 06:00 IST. */
 export const TV_LEADERBOARD_PERIODS = ['tonight', 'week', 'month', 'all'] as const;
 export type TvLeaderboardPeriod = (typeof TV_LEADERBOARD_PERIODS)[number];
-
-/**
- * The modes hidden at the owner's word (29 Oct, #628, decision 0284): no rupee on a TV. The console does not offer
- * them, and a TV still set to one shows the waitlist board.
- */
 
 /** Staff pair a TV on the console: the code it shows, a name, and what it shows. */
 export const tvPairSchema = z.object({
@@ -41,27 +39,6 @@ export const tvPairSchema = z.object({
 
 /** Staff add a dealer tablet by name, on the console. */
 export const dealerTabletAddSchema = z.object({ name: z.string().trim().min(1).max(60) });
-
-/**
- * What the cage agent asks the cage-agent function (#168, #123; decision 0260): to enrol, the six-digit code staff read
- * it and the SHA-256 of the token it keeps, in hex; then, sending the token itself, the newest offline pack, the KOTs to
- * print as the outbox consumer bar_printer, and how each went (`retry_after_seconds` null fails it for good). A finish
- * names the attempt it claimed, so one from a claim that ran out changes nothing (#691); an agent installed before that
- * sends none, and its finish goes through as before.
- */
-export const cageAgentRequestSchema = z.discriminatedUnion('action', [
-  z.object({ action: z.literal('enrol'), code: pairingCodeSchema, token_hash: z.string().regex(/^[0-9a-f]{64}$/) }),
-  z.object({ action: z.literal('pack') }),
-  z.object({ action: z.literal('claim_kots'), limit: z.int().min(1).max(20) }),
-  z.object({
-    action: z.literal('finish_kot'), delivery_id: z.uuid(), delivered: z.boolean(), error: z.string().max(200).nullable(),
-    retry_after_seconds: z.int().min(0).max(21_600).nullable(), attempts: z.int().min(1).optional(),
-  }),
-]);
-export type CageAgentRequest = z.infer<typeof cageAgentRequestSchema>;
-
-/** A cage or admin computer's name as it is enrolled (#384): as a tablet's. */
-export const computerEnrolSchema = dealerTabletAddSchema;
 
 /** Staff revoke a device, and say why. */
 export const deviceRevokeSchema = z.object({ reason: z.string().trim().min(1).max(200) });

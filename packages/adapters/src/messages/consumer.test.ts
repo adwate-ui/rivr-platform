@@ -19,10 +19,10 @@ function delivery(eventType: string, payload: unknown, occurredAt?: Date): Claim
 }
 
 describe('the WhatsApp consumer', () => {
-  it('is a messaging consumer of the seat call, the receipt notice, promotion offers, review requests and member notices, so a messaging stop holds it', () => {
+  it('is a messaging consumer of the seat call, promotion offers, review requests and member notices, so a messaging stop holds it', () => {
     const consumer = createWhatsAppConsumer({ whatsapp: createFakeWhatsApp(), findRecipient, findErasedPhone, now });
     expect([consumer.name, consumer.isMessaging, consumer.eventTypes])
-      .toEqual(['whatsapp', true, ['waitlist.called', 'receipt.ready', 'promotion.offered', 'review.requested', 'member.notice']]);
+      .toEqual(['whatsapp', true, ['waitlist.called', 'promotion.offered', 'review.requested', 'member.notice']]);
   });
 
   it('tells a member, by a utility message, what happened while they were away from the app (decision 0303)', async () => {
@@ -35,6 +35,13 @@ describe('the WhatsApp consumer', () => {
     ];
     for (const notice of notices) expect((await consumer.deliver(delivery('member.notice', { member_id: MEMBER, ...notice }, now()))).ok).toBe(true);
     expect(whatsapp.calls).toEqual(notices.map(({ notice, params }) => ({ category: 'utility', to: phone, template: notice, params })));
+  });
+
+  it('sends the club’s notification of a tournament, its start as a day and time in words (redesign RD-26)', async () => {
+    const whatsapp = createFakeWhatsApp();
+    const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, findErasedPhone, now });
+    await consumer.deliver(delivery('member.notice', { member_id: MEMBER, notice: 'tournament_starts', params: ['Sunday Cup', '2026-11-22T13:30:00+00:00'] }, now()));
+    expect(whatsapp.calls.map((call) => [call.category, call.template, call.params])).toEqual([['utility', 'tournament_starts', ['Sunday Cup', 'Sun 22 Nov, 19:00']]]);
   });
 
   it('tells a member a tournament is withdrawn, or has moved, with its new day and time in words (the owner, 9 Nov)', async () => {
@@ -122,14 +129,6 @@ describe('the WhatsApp consumer', () => {
     expect(whatsapp.calls).toEqual([{ category: 'utility', to: phone, template: 'seat_ready', params: ['Table 3', '9', '00:30'] }]);
   });
 
-  it('sends the receipt notice with the amount, and its link on the button', async () => {
-    const whatsapp = createFakeWhatsApp();
-    const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, findErasedPhone, now });
-
-    await consumer.deliver(delivery('receipt.ready', { member_id: MEMBER, amount_paise: 1000000, link: 'r/ab12' }));
-    expect(whatsapp.calls).toEqual([{ category: 'utility', to: phone, template: 'receipt_ready', params: ['₹10,000'], urlButton: 'r/ab12' }]);
-  });
-
   it('rejects, for good, a payload it cannot read, a member no longer there, or an event it does not send', async () => {
     const whatsapp = createFakeWhatsApp();
     const consumer = createWhatsAppConsumer({ whatsapp, findRecipient, findErasedPhone, now });
@@ -137,9 +136,6 @@ describe('the WhatsApp consumer', () => {
 
     expect(await consumer.deliver(delivery('waitlist.called', { member_id: MEMBER }))).toMatchObject({ ok: false, error: { code: 'rejected' } });
     expect(await consumer.deliver(delivery('waitlist.called', gone))).toMatchObject({ ok: false, error: { code: 'rejected' } });
-    expect(await consumer.deliver(delivery('receipt.ready', { member_id: MEMBER, amount_paise: 100, link: 'https://evil.example' }))).toMatchObject({
-      ok: false, error: { code: 'rejected' },
-    });
     expect(await consumer.deliver(delivery('seat.taken', {}))).toMatchObject({ ok: false, error: { code: 'rejected' } });
     expect(whatsapp.calls).toEqual([]);
   });

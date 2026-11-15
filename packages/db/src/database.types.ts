@@ -65,26 +65,6 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"blind_structure": {
-                  Row: {
-                    "created_at": string,"id": string,"levels": NonNullable<Json>,"name": string,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "created_at"?: string,"id"?: string,"levels": NonNullable<Json>,"name": string,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "created_at"?: string,"id"?: string,"levels"?: NonNullable<Json>,"name"?: string,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "blind_structure_venue_id_fkey"
-      columns: ["venue_id"]
-isOneToOne: false
-      referencedRelation: "venue"
-      referencedColumns: ["id"]
-    }
-                  ]
                 },"bonus_grant": {
                   Row: {
                     "amount_paise": number,"created_at": string,"expired_at": string | null,"expires_at": string | null,"expiry_transaction_id": string | null,"id": string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"reason": string,"remaining_paise": number,"updated_at": string,"venue_id": string
@@ -837,6 +817,74 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "game_table"
       referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"high_hand_hit": {
+                  Row: {
+                    "bonus_grant_id": string,"chips": number,"created_at": string,"hand": string,"id": string,"logged_by_staff_id": string,"member_id": string,"promotion_grant_id": string,"promotion_id": string,"promotion_version_id": string,"rank": string | null,"request_id": string,"seat": number,"session_id": string,"table_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "bonus_grant_id": string,"chips": number,"created_at"?: string,"hand": string,"id"?: string,"logged_by_staff_id": string,"member_id": string,"promotion_grant_id": string,"promotion_id": string,"promotion_version_id": string,"rank"?: string | null,"request_id": string,"seat": number,"session_id": string,"table_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "bonus_grant_id"?: string,"chips"?: number,"created_at"?: string,"hand"?: string,"id"?: string,"logged_by_staff_id"?: string,"member_id"?: string,"promotion_grant_id"?: string,"promotion_id"?: string,"promotion_version_id"?: string,"rank"?: string | null,"request_id"?: string,"seat"?: number,"session_id"?: string,"table_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "high_hand_hit_bonus_grant_id_fkey"
+      columns: ["bonus_grant_id"]
+isOneToOne: false
+      referencedRelation: "bonus_grant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "high_hand_hit_logged_by_staff_id_fkey"
+      columns: ["logged_by_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "high_hand_hit_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "high_hand_hit_promotion_grant_id_fkey"
+      columns: ["promotion_grant_id"]
+isOneToOne: false
+      referencedRelation: "promotion_grant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "high_hand_hit_promotion_id_venue_id_fkey"
+      columns: ["promotion_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "promotion"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "high_hand_hit_promotion_version_id_venue_id_fkey"
+      columns: ["promotion_version_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "promotion_version"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "high_hand_hit_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "seat_session"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "high_hand_hit_table_id_venue_id_fkey"
+      columns: ["table_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "game_table"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "high_hand_hit_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
     }
                   ]
                 },"invoice": {
@@ -2199,33 +2247,21 @@ isOneToOne: false
                   ]
                 },"tournament": {
                   Row: {
-                    "add_on_chips": number | null,"add_on_fee_paise": number | null,"add_on_paise": number | null,"bounty_kind": string | null,"bounty_paise": number | null,"buy_in_paise": number | null,"clock_paused_at": string | null,"clock_shift": string,"clock_started_at": string | null,"created_at": string,"day_two_id": string | null,"deal_method": string | null,"deal_stacks": Json | null,"description": string | null,"fee_paise": number,"finished_at": string | null,"format": string,"game": string | null,"guarantee_paise": number | null,"id": string,"is_published": boolean,"last_registration_level": number,"levels": Json | null,"max_buys": number | null,"name": string,"overlay_paise": number | null,"payout_shares": (number)[] | null,"places_paid": number | null,"satellite_target_id": string | null,"seats_per_table": number,"stake": string | null,"starting_stack": number | null,"starts_at": string,"tables": number,"template_id": string | null,"updated_at": string,"venue_id": string,"withdrawn_at": string | null
+                    "created_at": string,"entries": number | null,"game": string | null,"id": string,"is_published": boolean,"name": string,"notified_at": string | null,"notified_by_staff_id": string | null,"notified_count": number | null,"starts_at": string,"updated_at": string,"venue_id": string,"withdrawn_at": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"bounty_kind"?: string | null,"bounty_paise"?: number | null,"buy_in_paise"?: number | null,"clock_paused_at"?: string | null,"clock_shift"?: string,"clock_started_at"?: string | null,"created_at"?: string,"day_two_id"?: string | null,"deal_method"?: string | null,"deal_stacks"?: Json | null,"description"?: string | null,"fee_paise"?: number,"finished_at"?: string | null,"format"?: string,"game"?: string | null,"guarantee_paise"?: number | null,"id"?: string,"is_published"?: boolean,"last_registration_level"?: number,"levels"?: Json | null,"max_buys"?: number | null,"name": string,"overlay_paise"?: number | null,"payout_shares"?: (number)[] | null,"places_paid"?: number | null,"satellite_target_id"?: string | null,"seats_per_table"?: number,"stake"?: string | null,"starting_stack"?: number | null,"starts_at": string,"tables"?: number,"template_id"?: string | null,"updated_at"?: string,"venue_id": string,"withdrawn_at"?: string | null
+                    "created_at"?: string,"entries"?: number | null,"game"?: string | null,"id"?: string,"is_published"?: boolean,"name": string,"notified_at"?: string | null,"notified_by_staff_id"?: string | null,"notified_count"?: number | null,"starts_at": string,"updated_at"?: string,"venue_id": string,"withdrawn_at"?: string | null
                   }
                   Update: {
-                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"bounty_kind"?: string | null,"bounty_paise"?: number | null,"buy_in_paise"?: number | null,"clock_paused_at"?: string | null,"clock_shift"?: string,"clock_started_at"?: string | null,"created_at"?: string,"day_two_id"?: string | null,"deal_method"?: string | null,"deal_stacks"?: Json | null,"description"?: string | null,"fee_paise"?: number,"finished_at"?: string | null,"format"?: string,"game"?: string | null,"guarantee_paise"?: number | null,"id"?: string,"is_published"?: boolean,"last_registration_level"?: number,"levels"?: Json | null,"max_buys"?: number | null,"name"?: string,"overlay_paise"?: number | null,"payout_shares"?: (number)[] | null,"places_paid"?: number | null,"satellite_target_id"?: string | null,"seats_per_table"?: number,"stake"?: string | null,"starting_stack"?: number | null,"starts_at"?: string,"tables"?: number,"template_id"?: string | null,"updated_at"?: string,"venue_id"?: string,"withdrawn_at"?: string | null
+                    "created_at"?: string,"entries"?: number | null,"game"?: string | null,"id"?: string,"is_published"?: boolean,"name"?: string,"notified_at"?: string | null,"notified_by_staff_id"?: string | null,"notified_count"?: number | null,"starts_at"?: string,"updated_at"?: string,"venue_id"?: string,"withdrawn_at"?: string | null
                   }
                   Relationships: [
                     {
-      foreignKeyName: "tournament_day_two_fkey"
-      columns: ["day_two_id","venue_id"]
+      foreignKeyName: "tournament_notified_by_fkey"
+      columns: ["notified_by_staff_id","venue_id"]
 isOneToOne: false
-      referencedRelation: "tournament"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_satellite_target_fkey"
-      columns: ["satellite_target_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "tournament"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_template_fk"
-      columns: ["template_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "tournament_template"
+      referencedRelation: "staff"
       referencedColumns: ["id","venue_id"]
     },{
       foreignKeyName: "tournament_venue_id_fkey"
@@ -2235,48 +2271,16 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"tournament_entry": {
-                  Row: {
-                    "bagged_chips": number | null,"bust_order": number | null,"busted_at": string | null,"created_at": string,"entry_number": number,"flight_entry_id": string | null,"id": string,"member_id": string,"place": number | null,"seat_number": number | null,"status": string,"table_number": number | null,"tournament_id": string,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "bagged_chips"?: number | null,"bust_order"?: number | null,"busted_at"?: string | null,"created_at"?: string,"entry_number": number,"flight_entry_id"?: string | null,"id"?: string,"member_id": string,"place"?: number | null,"seat_number"?: number | null,"status": string,"table_number"?: number | null,"tournament_id": string,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "bagged_chips"?: number | null,"bust_order"?: number | null,"busted_at"?: string | null,"created_at"?: string,"entry_number"?: number,"flight_entry_id"?: string | null,"id"?: string,"member_id"?: string,"place"?: number | null,"seat_number"?: number | null,"status"?: string,"table_number"?: number | null,"tournament_id"?: string,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "tournament_entry_flight_entry_fkey"
-      columns: ["flight_entry_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "tournament_entry"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_entry_member_id_venue_id_fkey"
-      columns: ["member_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "member"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_entry_tournament_id_venue_id_fkey"
-      columns: ["tournament_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "tournament"
-      referencedColumns: ["id","venue_id"]
-    }
-                  ]
                 },"tournament_interest": {
                   Row: {
-                    "created_at": string,"id": string,"member_id": string,"registered_at": string | null,"registered_by_staff_id": string | null,"tournament_id": string,"updated_at": string,"venue_id": string
+                    "created_at": string,"id": string,"member_id": string,"tournament_id": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"member_id": string,"registered_at"?: string | null,"registered_by_staff_id"?: string | null,"tournament_id": string,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"id"?: string,"member_id": string,"tournament_id": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"member_id"?: string,"registered_at"?: string | null,"registered_by_staff_id"?: string | null,"tournament_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"id"?: string,"member_id"?: string,"tournament_id"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -2284,12 +2288,6 @@ isOneToOne: false
       columns: ["member_id","venue_id"]
 isOneToOne: false
       referencedRelation: "member"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_interest_registered_by_staff_id_venue_id_fkey"
-      columns: ["registered_by_staff_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "staff"
       referencedColumns: ["id","venue_id"]
     },{
       foreignKeyName: "tournament_interest_tournament_id_venue_id_fkey"
@@ -2303,170 +2301,6 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "venue"
       referencedColumns: ["id"]
-    }
-                  ]
-                },"tournament_payout": {
-                  Row: {
-                    "bounty_paise": number,"busted_entry_id": string | null,"created_at": string,"entry_id": string,"head_paise": number,"id": string,"is_tds_shadow": boolean,"kind": string,"ledger_transaction_id": string | null,"member_id": string,"place": number | null,"prize_paise": number,"tds_paise": number,"tournament_id": string,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "bounty_paise": number,"busted_entry_id"?: string | null,"created_at"?: string,"entry_id": string,"head_paise"?: number,"id"?: string,"is_tds_shadow": boolean,"kind": string,"ledger_transaction_id"?: string | null,"member_id": string,"place"?: number | null,"prize_paise": number,"tds_paise": number,"tournament_id": string,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "bounty_paise"?: number,"busted_entry_id"?: string | null,"created_at"?: string,"entry_id"?: string,"head_paise"?: number,"id"?: string,"is_tds_shadow"?: boolean,"kind"?: string,"ledger_transaction_id"?: string | null,"member_id"?: string,"place"?: number | null,"prize_paise"?: number,"tds_paise"?: number,"tournament_id"?: string,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "tournament_payout_busted_entry_id_venue_id_fkey"
-      columns: ["busted_entry_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "tournament_entry"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_payout_entry_id_venue_id_fkey"
-      columns: ["entry_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "tournament_entry"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_payout_ledger_transaction_id_venue_id_fkey"
-      columns: ["ledger_transaction_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "ledger_transaction"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_payout_member_id_venue_id_fkey"
-      columns: ["member_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "member"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_payout_tournament_id_venue_id_fkey"
-      columns: ["tournament_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "tournament"
-      referencedColumns: ["id","venue_id"]
-    }
-                  ]
-                },"tournament_purchase": {
-                  Row: {
-                    "chips": number,"created_at": string,"created_by_user_id": string | null,"entry_id": string,"fee_paise": number,"id": string,"idempotency_key": string,"kind": string,"ledger_transaction_id": string,"member_id": string,"paid_by": string,"price_paise": number,"tournament_id": string,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "chips": number,"created_at"?: string,"created_by_user_id"?: string | null,"entry_id": string,"fee_paise": number,"id"?: string,"idempotency_key": string,"kind": string,"ledger_transaction_id": string,"member_id": string,"paid_by": string,"price_paise": number,"tournament_id": string,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "chips"?: number,"created_at"?: string,"created_by_user_id"?: string | null,"entry_id"?: string,"fee_paise"?: number,"id"?: string,"idempotency_key"?: string,"kind"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"paid_by"?: string,"price_paise"?: number,"tournament_id"?: string,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "tournament_purchase_entry_id_venue_id_fkey"
-      columns: ["entry_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "tournament_entry"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_purchase_ledger_transaction_id_venue_id_fkey"
-      columns: ["ledger_transaction_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "ledger_transaction"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_purchase_member_id_venue_id_fkey"
-      columns: ["member_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "member"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_purchase_tournament_id_venue_id_fkey"
-      columns: ["tournament_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "tournament"
-      referencedColumns: ["id","venue_id"]
-    }
-                  ]
-                },"tournament_template": {
-                  Row: {
-                    "add_on_chips": number | null,"add_on_fee_paise": number | null,"add_on_paise": number | null,"blind_structure_id": string,"bounty_kind": string | null,"bounty_paise": number | null,"buy_in_paise": number,"created_at": string,"fee_paise": number,"format": string,"guarantee_paise": number | null,"id": string,"last_registration_level": number,"max_buys": number | null,"name": string,"places_paid": number,"starting_stack": number,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"blind_structure_id": string,"bounty_kind"?: string | null,"bounty_paise"?: number | null,"buy_in_paise": number,"created_at"?: string,"fee_paise": number,"format": string,"guarantee_paise"?: number | null,"id"?: string,"last_registration_level": number,"max_buys"?: number | null,"name": string,"places_paid": number,"starting_stack": number,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "add_on_chips"?: number | null,"add_on_fee_paise"?: number | null,"add_on_paise"?: number | null,"blind_structure_id"?: string,"bounty_kind"?: string | null,"bounty_paise"?: number | null,"buy_in_paise"?: number,"created_at"?: string,"fee_paise"?: number,"format"?: string,"guarantee_paise"?: number | null,"id"?: string,"last_registration_level"?: number,"max_buys"?: number | null,"name"?: string,"places_paid"?: number,"starting_stack"?: number,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "tournament_template_blind_structure_id_venue_id_fkey"
-      columns: ["blind_structure_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "blind_structure"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_template_venue_id_fkey"
-      columns: ["venue_id"]
-isOneToOne: false
-      referencedRelation: "venue"
-      referencedColumns: ["id"]
-    }
-                  ]
-                },"tournament_ticket": {
-                  Row: {
-                    "created_at": string,"entry_id": string,"id": string,"issue_transaction_id": string,"member_id": string,"refund_transaction_id": string | null,"satellite_id": string,"status": string,"target_id": string,"updated_at": string,"use_transaction_id": string | null,"value_paise": number,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "created_at"?: string,"entry_id": string,"id"?: string,"issue_transaction_id": string,"member_id": string,"refund_transaction_id"?: string | null,"satellite_id": string,"status"?: string,"target_id": string,"updated_at"?: string,"use_transaction_id"?: string | null,"value_paise": number,"venue_id": string
-                  }
-                  Update: {
-                    "created_at"?: string,"entry_id"?: string,"id"?: string,"issue_transaction_id"?: string,"member_id"?: string,"refund_transaction_id"?: string | null,"satellite_id"?: string,"status"?: string,"target_id"?: string,"updated_at"?: string,"use_transaction_id"?: string | null,"value_paise"?: number,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "tournament_ticket_entry_id_venue_id_fkey"
-      columns: ["entry_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "tournament_entry"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_ticket_issue_transaction_id_venue_id_fkey"
-      columns: ["issue_transaction_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "ledger_transaction"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_ticket_member_id_venue_id_fkey"
-      columns: ["member_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "member"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_ticket_refund_transaction_id_venue_id_fkey"
-      columns: ["refund_transaction_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "ledger_transaction"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_ticket_satellite_id_venue_id_fkey"
-      columns: ["satellite_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "tournament"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_ticket_target_id_venue_id_fkey"
-      columns: ["target_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "tournament"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "tournament_ticket_use_transaction_id_venue_id_fkey"
-      columns: ["use_transaction_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "ledger_transaction"
-      referencedColumns: ["id","venue_id"]
     }
                   ]
                 },"tv_heartbeat": {
@@ -2740,14 +2574,6 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
-                },"public_waitlist_length": {
-                  Row: {
-                    "table_type_code": string | null,"venue_slug": string | null,"waiting": number | null
-                  }
-                  ComputedFields: never
-                  Relationships: [
-                    
-                  ]
                 },"venue_config_detail": {
                   Row: {
                     "address": string | null,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"contact_phone": string | null,"contact_whatsapp": string | null,"created_at": string | null,"gstin": string | null,"invoice_prefix": string | null,"legal_name": string | null,"logo_path": string | null,"sac_club_services": string | null,"signatory_designation": string | null,"signatory_name": string | null,"tan": string | null,"tv_pairing_window_at": string | null,"tv_pairing_window_only": boolean | null,"updated_at": string | null,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string | null
@@ -2772,7 +2598,7 @@ isOneToOne: false
                            },
 "activity_page":
 { Args: { "p_from"?: string,"p_kind"?: string,"p_page"?: number,"p_page_size"?: number,"p_to"?: string,"p_venue_id": string,"p_who"?: string }; Returns: {
-              "about": string,"action": string,"amount": number,"entity": string,"id": number,"is_system": boolean,"kind": string,"occurred_at": string,"reason": string,"total": number,"who": string
+              "about": string,"action": string,"amount": number,"entity": string,"high_hand": Json,"id": number,"is_system": boolean,"kind": string,"occurred_at": string,"reason": string,"total": number,"who": string
             }[]
                            },
 "add_computer":
@@ -2794,11 +2620,6 @@ isOneToOne: false
                            },
 "add_to_waitlist":
 { Args: { "p_idempotency_key": string,"p_member_number"?: number,"p_phone": string,"p_table_id": string }; Returns: string
-                           },
-"agent_device":
-{ Args: { "p_token_hash": string }; Returns: {
-              "device_id": string,"venue_id": string
-            }[]
                            },
 "alert_recipient":
 { Args: { "p_alert_id": string,"p_venue_id": string }; Returns: {
@@ -2888,16 +2709,6 @@ isOneToOne: false
               "device_id": string,"previous_user_id": string,"refusal": string
             }[]
                            },
-"claim_agent":
-{ Args: { "p_client": string,"p_code": string,"p_token_hash": string }; Returns: {
-              "device_id": string,"refusal": string,"venue_id": string
-            }[]
-                           },
-"claim_agent_kots":
-{ Args: { "p_device_id": string,"p_limit": number }; Returns: {
-              "attempts": number,"delivery_id": string,"event_id": string,"event_type": string,"payload": Json,"venue_id": string
-            }[]
-                           },
 "claim_computer":
 { Args: { "p_code": string,"p_token_hash": string,"p_venue_id": string }; Returns: string
                            },
@@ -2976,9 +2787,6 @@ isOneToOne: false
               "drop_paise": number,"hand_id": string,"is_cap_applied": boolean,"played_at": string,"pot_paise": number,"rake_paise": number,"variant": Database["public"]['Enums']["hand_variant"]
             }[]
                            },
-"edit_published_tournament":
-{ Args: { "p_description": string,"p_game": string,"p_name": string,"p_stake": string,"p_starts_at": string,"p_tournament_id": string }; Returns: undefined
-                           },
 "end_down":
 { Args: { "p_drop_box_paise": number }; Returns: {
               "logged_paise": number,"variance_paise": number
@@ -3024,9 +2832,6 @@ isOneToOne: false
 { Args: { "p_before"?: string,"p_before_id"?: string,"p_list": string,"p_venue_id": string }; Returns: {
               "created_at": string,"full_name": string,"id": string,"is_ticket": boolean,"member_id": string,"member_number": number,"note": string,"nps": number,"ratings": Json,"resolution": string,"resolved_at": string,"resolved_by": string,"score": number,"topic": string,"visit_closed_at": string
             }[]
-                           },
-"finish_agent_kot":
-{ Args: { "p_attempts"?: number,"p_delivered": boolean,"p_delivery_id": string,"p_device_id": string,"p_error": string,"p_retry_after_seconds": number }; Returns: undefined
                            },
 "finish_outbox_delivery":
 { Args: { "p_attempts"?: number,"p_delivered": boolean,"p_delivery_id": string,"p_error"?: string,"p_no_recipient"?: boolean,"p_retry_after"?: string }; Returns: undefined
@@ -3130,6 +2935,16 @@ isOneToOne: false
 "hide_my_session":
 { Args: { "p_session_id": string }; Returns: undefined
                            },
+"high_hand_live":
+{ Args: { "p_venue_id": string }; Returns: {
+              "name": string,"promotion_id": string,"reward": Json
+            }[]
+                           },
+"high_hand_tonight":
+{ Args: { "p_limit"?: number,"p_promotion_id"?: string,"p_venue_id": string }; Returns: {
+              "chips": number,"hand": string,"hit_id": string,"logged_at": string,"logged_by": string,"member_id": string,"member_name": string,"paid_chips": number,"paid_count": number,"rank": string,"seat": number,"table_name": string
+            }[]
+                           },
 "import_glaza_lines":
 { Args: { "p_lines": Json,"p_month": string,"p_venue_id": string }; Returns: string
                            },
@@ -3210,11 +3025,11 @@ isOneToOne: false
 "log_hand":
 { Args: { "p_idempotency_key": string,"p_played_at": string,"p_pot": number,"p_variant": Database["public"]['Enums']["hand_variant"] }; Returns: string
                            },
+"log_high_hand":
+{ Args: { "p_confirmed": Json,"p_hand": string,"p_member_id": string,"p_rank": string,"p_request_id": string,"p_table_id": string }; Returns: string
+                           },
 "mark_kot_sent":
 { Args: { "p_order_id": string }; Returns: undefined
-                           },
-"mark_tournament_registered":
-{ Args: { "p_interest_id": string }; Returns: undefined
                            },
 "member_account_statuses":
 { Args: { "p_venue_id": string }; Returns: {
@@ -3316,12 +3131,12 @@ isOneToOne: false
                            },
 "my_bonus":
 { Args: Record<PropertyKey, never>; Returns: {
-              "bonus_paise": number
+              "bonus_paise": number,"expiry_days": number
             }[]
                            },
 "my_bonus_history":
 { Args: { "p_limit"?: number }; Returns: {
-              "amount_paise": number,"at": string,"kind": string,"line_id": string,"reason": string,"table_name": string
+              "amount_paise": number,"at": string,"hand": string,"kind": string,"line_id": string,"rank": string,"reason": string,"table_name": string
             }[]
                            },
 "my_cab":
@@ -3359,6 +3174,11 @@ isOneToOne: false
               "accepted_at": string,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"kot_number": number,"lines": Json,"on_way_at": string,"order_id": string
             }[]
                            },
+"my_high_hand":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "name": string,"promotion_id": string,"reward": Json
+            }[]
+                           },
 "my_next_play_time_bonus":
 { Args: Record<PropertyKey, never>; Returns: {
               "after_minutes": number,"chips": number,"seconds_left": number
@@ -3366,7 +3186,7 @@ isOneToOne: false
                            },
 "my_notices":
 { Args: Record<PropertyKey, never>; Returns: {
-              "body": string,"notice_id": string
+              "body": string,"notice_id": string,"starts_at": string
             }[]
                            },
 "my_photo_path":
@@ -3404,12 +3224,12 @@ isOneToOne: false
                            },
 "my_tonight":
 { Args: Record<PropertyKey, never>; Returns: {
-              "is_kyc_complete": boolean,"jackpot_paise": number,"tournament_buy_in_paise": number,"tournament_guarantee_paise": number,"tournament_name": string,"tournament_starts_at": string
+              "is_kyc_complete": boolean,"jackpot_paise": number
             }[]
                            },
 "my_tv_screen":
 { Args: Record<PropertyKey, never>; Returns: {
-              "device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"name": string,"rotation": (Database["public"]['Enums']["tv_mode"])[],"venue_id": string
+              "boards": (Database["public"]['Enums']["tv_mode"])[],"device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"name": string,"rotation": (Database["public"]['Enums']["tv_mode"])[],"seconds": (number)[],"venue_id": string
             }[]
                            },
 "my_upcoming_tournaments":
@@ -3441,17 +3261,12 @@ isOneToOne: false
 "note_sign_in_code_send":
 { Args: { "p_phone": string }; Returns: boolean
                            },
+"notify_tournament":
+{ Args: { "p_tournament_id": string }; Returns: number
+                           },
 "offer_recipient":
 { Args: { "p_member_id": string,"p_promotion_id": string,"p_venue_id": string }; Returns: {
               "marketing_opted_in_at": string,"phone": string
-            }[]
-                           },
-"offline_pack":
-{ Args: { "p_venue_id": string }; Returns: Json
-                           },
-"offline_pack_venues":
-{ Args: Record<PropertyKey, never>; Returns: {
-              "venue_id": string
             }[]
                            },
 "open_feedback":
@@ -3502,15 +3317,7 @@ isOneToOne: false
 { Args: { "p_page_id": string,"p_publish_at"?: string,"p_venue_id": string }; Returns: string
                            },
 "publish_tournament":
-{ Args: { "p_description": string,"p_game": string,"p_name": string,"p_stake": string,"p_starts_at": string,"p_venue_id": string }; Returns: string
-                           },
-"publish_tournament_again":
-{ Args: { "p_tournament_id": string }; Returns: undefined
-                           },
-"published_tournaments":
-{ Args: { "p_venue_id": string }; Returns: {
-              "description": string,"game": string,"has_started": boolean,"interested": number,"is_published": boolean,"name": string,"registered": number,"stake": string,"starts_at": string,"tournament_id": string
-            }[]
+{ Args: { "p_game": string,"p_name": string,"p_starts_at": string,"p_venue_id": string }; Returns: string
                            },
 "push_targets":
 { Args: { "p_member_id": string,"p_promotion_id"?: string,"p_push_type"?: string,"p_venue_id": string }; Returns: {
@@ -3729,6 +3536,9 @@ isOneToOne: false
 "set_top_up":
 { Args: { "p_in_progress": boolean,"p_session_id": string }; Returns: undefined
                            },
+"set_tournament_entries":
+{ Args: { "p_entries": number,"p_tournament_id": string }; Returns: undefined
+                           },
 "set_tv_mode":
 { Args: { "p_device_id": string,"p_mode": Database["public"]['Enums']["tv_mode"] }; Returns: undefined
                            },
@@ -3850,9 +3660,9 @@ isOneToOne: false
               "accepted_by": string,"accepted_seconds": number,"done_by": string,"done_seconds": number,"fulfilled_seconds": number,"full_name": string,"request_id": string,"requested_at": string,"seat": number,"session_id": string,"status": string,"table_name": string
             }[]
                            },
-"tournament_interest_list":
-{ Args: { "p_venue_id": string }; Returns: {
-              "created_at": string,"full_name": string,"interest_id": string,"member_id": string,"member_number": number,"registered_at": string,"starts_at": string,"tournament_id": string,"tournament_name": string
+"tournament_interested":
+{ Args: { "p_tournament_id": string }; Returns: {
+              "asked_at": string,"full_name": string,"member_id": string,"member_number": number
             }[]
                            },
 "tv_call_time_board":
@@ -3860,10 +3670,18 @@ isOneToOne: false
               "big_blind_paise": number,"call_time_left": number,"display_name": string,"game": string,"is_away": boolean,"leaving_at": string,"seat": number,"small_blind_paise": number,"stake_name": string,"straddle_paise": number,"table_id": string,"table_name": string
             }[]
                            },
+"tv_high_hand":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "name": string,"payouts": Json,"promotion_id": string,"reward": Json
+            }[]
+                           },
 "tv_leaderboard":
 { Args: Record<PropertyKey, never>; Returns: {
               "display_name": string,"member_number": number,"period": string,"place": number,"played_minutes": number
             }[]
+                           },
+"tv_notice":
+{ Args: Record<PropertyKey, never>; Returns: string
                            },
 "tv_pairing_policy":
 { Args: { "p_venue_id": string }; Returns: {
@@ -3903,9 +3721,6 @@ isOneToOne: false
 "undo_waitlist_decision":
 { Args: { "p_entry_id": string }; Returns: undefined
                            },
-"unmark_tournament_registered":
-{ Args: { "p_interest_id": string }; Returns: undefined
-                           },
 "update_notice":
 { Args: { "p_body": string,"p_ends_at"?: string,"p_notice_id": string,"p_starts_at"?: string }; Returns: undefined
                            },
@@ -3927,6 +3742,11 @@ isOneToOne: false
 "venue_staff":
 { Args: { "p_venue_id": string }; Returns: {
               "full_name": string,"is_active": boolean,"job_title": string,"last_signed_in_at": string,"phone": string,"role": Database["public"]['Enums']["staff_role"],"staff_id": string,"user_id": string
+            }[]
+                           },
+"venue_tournaments":
+{ Args: { "p_venue_id": string }; Returns: {
+              "entries": number,"game": string,"interested": number,"is_past": boolean,"name": string,"notified": number,"notified_at": string,"starts_at": string,"tournament_id": string
             }[]
                            },
 "waitlist_board":
@@ -3965,7 +3785,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "contact_kind": "escalation"|"vendor"|"glaza"|"police"|"fire"|"electricity","control_level": "venue_freeze"|"feature_kill"|"messaging_stop"|"member_freeze"|"access_revoke","device_kind": "dealer_tablet"|"cage"|"console"|"tv"|"door"|"driver_phone"|"agent","feature_display_mode": "hidden"|"locked","fnb_item_kind": "food"|"soft_drink"|"alcohol","hand_variant": "holdem"|"plo"|"bomb_pot","killable_feature": "withdrawals"|"credit"|"kyc_signup"|"marketing_sends"|"social_publishing"|"promotions"|"tournament_registration"|"redemptions","ledger_account_kind": "asset"|"liability"|"equity"|"revenue"|"expense","ledger_unit": "paise"|"points"|"nights","outbox_status": "pending"|"processing"|"delivered"|"failed"|"no_recipient","setting_scope": "venue"|"table_type"|"stake"|"tier"|"role","staff_role": "super_admin"|"admin"|"cashier"|"dealer"|"marketing"|"host"|"owner_view"|"service"|"floor"|"guest_relations","tv_mode": "waitlist"|"call_time"|"jackpot"|"tournament_clock"|"promotions"|"rewards"|"league"|"social_wall"|"spin_wheel"|"leaderboard"
+            "contact_kind": "escalation"|"vendor"|"glaza"|"police"|"fire"|"electricity","control_level": "venue_freeze"|"feature_kill"|"messaging_stop"|"member_freeze"|"access_revoke","device_kind": "dealer_tablet"|"cage"|"console"|"tv"|"door"|"driver_phone"|"agent","feature_display_mode": "hidden"|"locked","fnb_item_kind": "food"|"soft_drink"|"alcohol","hand_variant": "holdem"|"plo"|"bomb_pot","killable_feature": "withdrawals"|"credit"|"kyc_signup"|"marketing_sends"|"social_publishing"|"promotions"|"tournament_registration"|"redemptions","ledger_account_kind": "asset"|"liability"|"equity"|"revenue"|"expense","ledger_unit": "paise"|"points"|"nights","outbox_status": "pending"|"processing"|"delivered"|"failed"|"no_recipient","setting_scope": "venue"|"table_type"|"stake"|"tier"|"role","staff_role": "super_admin"|"admin"|"cashier"|"dealer"|"marketing"|"host"|"owner_view"|"service"|"floor"|"guest_relations","tv_mode": "waitlist"|"call_time"|"jackpot"|"tournament_clock"|"promotions"|"rewards"|"league"|"social_wall"|"spin_wheel"|"leaderboard"|"high_hand"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -4085,7 +3905,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "contact_kind": ["escalation", "vendor", "glaza", "police", "fire", "electricity"],"control_level": ["venue_freeze", "feature_kill", "messaging_stop", "member_freeze", "access_revoke"],"device_kind": ["dealer_tablet", "cage", "console", "tv", "door", "driver_phone", "agent"],"feature_display_mode": ["hidden", "locked"],"fnb_item_kind": ["food", "soft_drink", "alcohol"],"hand_variant": ["holdem", "plo", "bomb_pot"],"killable_feature": ["withdrawals", "credit", "kyc_signup", "marketing_sends", "social_publishing", "promotions", "tournament_registration", "redemptions"],"ledger_account_kind": ["asset", "liability", "equity", "revenue", "expense"],"ledger_unit": ["paise", "points", "nights"],"outbox_status": ["pending", "processing", "delivered", "failed", "no_recipient"],"setting_scope": ["venue", "table_type", "stake", "tier", "role"],"staff_role": ["super_admin", "admin", "cashier", "dealer", "marketing", "host", "owner_view", "service", "floor", "guest_relations"],"tv_mode": ["waitlist", "call_time", "jackpot", "tournament_clock", "promotions", "rewards", "league", "social_wall", "spin_wheel", "leaderboard"]
+            "contact_kind": ["escalation", "vendor", "glaza", "police", "fire", "electricity"],"control_level": ["venue_freeze", "feature_kill", "messaging_stop", "member_freeze", "access_revoke"],"device_kind": ["dealer_tablet", "cage", "console", "tv", "door", "driver_phone", "agent"],"feature_display_mode": ["hidden", "locked"],"fnb_item_kind": ["food", "soft_drink", "alcohol"],"hand_variant": ["holdem", "plo", "bomb_pot"],"killable_feature": ["withdrawals", "credit", "kyc_signup", "marketing_sends", "social_publishing", "promotions", "tournament_registration", "redemptions"],"ledger_account_kind": ["asset", "liability", "equity", "revenue", "expense"],"ledger_unit": ["paise", "points", "nights"],"outbox_status": ["pending", "processing", "delivered", "failed", "no_recipient"],"setting_scope": ["venue", "table_type", "stake", "tier", "role"],"staff_role": ["super_admin", "admin", "cashier", "dealer", "marketing", "host", "owner_view", "service", "floor", "guest_relations"],"tv_mode": ["waitlist", "call_time", "jackpot", "tournament_clock", "promotions", "rewards", "league", "social_wall", "spin_wheel", "leaderboard", "high_hand"]
           }
         }
 } as const

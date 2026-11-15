@@ -6,7 +6,7 @@ import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider, useAuthStatus } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
-import { useIsPublicVenue, useMyTvScreen, useTvActions, useTvPairing, useVenueTvs } from './tvScreens.ts';
+import { useMyTvScreen, useTvActions, useTvPairing, useVenueTvs } from './tvScreens.ts';
 
 const STAFF = '00000000-0000-4000-8000-000000000103';
 const VENUE = '00000000-0000-4000-8000-000000000001';
@@ -102,20 +102,23 @@ describe('An unpaired TV', () => {
 });
 
 describe('A paired TV', () => {
-  it('reads its name, mode and the boards it turns to in between', async () => {
+  it('reads its name and its boards in order, each with its seconds', async () => {
     const { wrapper } = renderTvs('tv-login', {
-      '/rpc/my_tv_screen': { body: [{ device_id: 'd1', venue_id: VENUE, name: 'Bar TV', mode: 'waitlist', rotation: ['promotions'] }] },
+      '/rpc/my_tv_screen': { body: [{ device_id: 'd1', venue_id: VENUE, name: 'Bar TV', boards: ['waitlist', 'promotions', 'high_hand'], seconds: [30, 12, 45] }] },
     });
     const { result } = renderHook(() => useMyTvScreen(), { wrapper });
-    await waitFor(() => expect(result.current.data).toEqual({ deviceId: 'd1', venueId: VENUE, name: 'Bar TV', mode: 'waitlist', rotation: ['promotions'] }));
+    await waitFor(() => expect(result.current.data).toEqual({
+      deviceId: 'd1', venueId: VENUE, name: 'Bar TV',
+      boards: [{ mode: 'waitlist', seconds: 30 }, { mode: 'promotions', seconds: 12 }, { mode: 'high_hand', seconds: 45 }],
+    }));
   });
 
-  it('shows the waitlist in place of a board the club dropped, and leaves that board out of its turns', async () => {
+  it('leaves out a board that went, and shows the waitlist when none is left', async () => {
     const { wrapper } = renderTvs('tv-login', {
-      '/rpc/my_tv_screen': { body: [{ device_id: 'd1', venue_id: VENUE, name: 'Bar TV', mode: 'spin_wheel', rotation: ['spin_wheel', 'promotions'] }] },
+      '/rpc/my_tv_screen': { body: [{ device_id: 'd1', venue_id: VENUE, name: 'Bar TV', boards: ['spin_wheel'], seconds: [30] }] },
     });
     const { result } = renderHook(() => useMyTvScreen(), { wrapper });
-    await waitFor(() => expect(result.current.data).toEqual({ deviceId: 'd1', venueId: VENUE, name: 'Bar TV', mode: 'waitlist', rotation: ['promotions'] }));
+    await waitFor(() => expect(result.current.data).toEqual({ deviceId: 'd1', venueId: VENUE, name: 'Bar TV', boards: [{ mode: 'waitlist', seconds: 30 }] }));
   });
 
   it('signs itself out once it reads nothing, so it shows a new code', async () => {
@@ -123,18 +126,6 @@ describe('A paired TV', () => {
     const { result } = renderHook(() => ({ screen: useMyTvScreen(), auth: useAuthStatus() }), { wrapper });
     await waitFor(() => expect(result.current.auth).toBe('signed-out'));
     expect(calls.some((call) => call.url.includes('/auth/v1/logout'))).toBe(true);
-  });
-
-  it('knows whether its venue is public, so the stream overlay never shows the practice venue', async () => {
-    const club = renderTvs('tv-login', { '/rest/v1/public_venue': { body: [{ id: VENUE }] } });
-    const atClub = renderHook(() => useIsPublicVenue(VENUE), { wrapper: club.wrapper });
-    expect(atClub.result.current).toBeUndefined();
-    await waitFor(() => expect(atClub.result.current).toBe(true));
-    expect(club.calls.find((call) => call.url.includes('/rest/v1/public_venue'))?.url).toContain(`id=eq.${VENUE}`);
-    cleanup();
-    const practice = renderTvs('tv-login', { '/rest/v1/public_venue': { body: [] } });
-    const atPractice = renderHook(() => useIsPublicVenue(VENUE), { wrapper: practice.wrapper });
-    await waitFor(() => expect(atPractice.result.current).toBe(false));
   });
 });
 
@@ -149,7 +140,8 @@ describe('The console\'s TVs', () => {
     });
     const { result } = renderHook(() => useVenueTvs(VENUE), { wrapper });
     await waitFor(() => expect(result.current.data).toEqual([
-      { deviceId: 'd1', name: 'Bar TV', isPaired: true, mode: 'jackpot', rotation: ['call_time', 'promotions'], lastSeenAt: JUST_NOW, isOnline: true },
+      // A board that went reads as the waitlist: the database holds none now, and the type still names them.
+      { deviceId: 'd1', name: 'Bar TV', isPaired: true, mode: 'waitlist', rotation: ['call_time', 'promotions'], lastSeenAt: JUST_NOW, isOnline: true },
       { deviceId: 'd2', name: 'Door TV', isPaired: false, mode: null, rotation: [], lastSeenAt: null, isOnline: false },
       { deviceId: 'd3', name: 'Old TV', isPaired: true, mode: null, rotation: [], lastSeenAt: LONG_AGO, isOnline: false },
     ]));

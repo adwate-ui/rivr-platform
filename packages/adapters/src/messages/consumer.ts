@@ -1,7 +1,7 @@
 import {
-  err, memberNoticeSchema, ok, promotionOfferedSchema, receiptReadySchema, reviewRequestedSchema, waitlistCalledSchema, type IndianMobile, type Result,
+  err, memberNoticeSchema, ok, promotionOfferedSchema, reviewRequestedSchema, waitlistCalledSchema, type IndianMobile, type Result,
 } from '@rivr/contracts';
-import { formatDayTime, formatMoney, formatTime } from '@rivr/i18n';
+import { formatDayTime, formatTime } from '@rivr/i18n';
 import type { ClaimedDelivery, Consumer } from '../outbox/index.ts';
 import type { AdapterFailure } from '../shared/failure.ts';
 import type { WhatsAppAdapter, WhatsAppMessage } from '../whatsapp/types.ts';
@@ -23,7 +23,7 @@ export type FindRecipient = (venueId: string, memberId: string, offeredPromotion
 export type FindErasedPhone = (venueId: string, memberId: string) => Promise<IndianMobile | null>;
 
 /** The events the WhatsApp consumer sends a message for. */
-export const WHATSAPP_EVENT_TYPES = ['waitlist.called', 'receipt.ready', 'promotion.offered', 'review.requested', 'member.notice'] as const;
+export const WHATSAPP_EVENT_TYPES = ['waitlist.called', 'promotion.offered', 'review.requested', 'member.notice'] as const;
 
 const rejected = (reason: string) => err<AdapterFailure>({ code: 'rejected', reason });
 
@@ -70,10 +70,10 @@ const REFUSED_BECAUSE: Readonly<Record<string, string>> = {
 };
 const REFUSED_OTHERWISE = 'your details could not be confirmed';
 
-/** A notice's words as its template takes them: a refusal's code in the member's words, a tournament's new start as a day and time. */
+/** A notice's words as its template takes them: a refusal's code in the member's words, a tournament's start as a day and time. */
 function noticeWords(template: string, params: string[]): string[] {
   if (template === 'kyc_refused') return [REFUSED_BECAUSE[params[0] ?? ''] ?? REFUSED_OTHERWISE];
-  if (template === 'tournament_moved') return [params[0] ?? '', formatDayTime(new Date(params[1] ?? ''))];
+  if (template === 'tournament_moved' || template === 'tournament_starts') return [params[0] ?? '', formatDayTime(new Date(params[1] ?? ''))];
   return params;
 }
 
@@ -122,14 +122,6 @@ async function messageFor(delivery: ClaimedDelivery, findRecipient: FindRecipien
     const { table_name: table, seat, hold_until: holdUntil } = called.data;
     return { ok: true, value: { category: 'utility', to: recipient.phone, template: 'seat_ready', params: [table, String(seat), formatTime(new Date(holdUntil))] } };
   }
-  if (delivery.eventType === 'receipt.ready') {
-    const receipt = receiptReadySchema.safeParse(delivery.payload);
-    if (!receipt.success) return rejected('receipt.ready payload is not a receipt');
-    const recipient = await findRecipient(delivery.venueId, receipt.data.member_id);
-    if (!recipient) return rejected('the member is no longer there');
-    const amount = formatMoney(BigInt(receipt.data.amount_paise));
-    return { ok: true, value: { category: 'utility', to: recipient.phone, template: 'receipt_ready', params: [amount], urlButton: receipt.data.link } };
-  }
   const build = BUILDERS[delivery.eventType];
   if (build !== undefined) return build(delivery, findRecipient, now, findErasedPhone);
   return rejected(`no WhatsApp message for ${delivery.eventType}`);
@@ -137,7 +129,7 @@ async function messageFor(delivery: ClaimedDelivery, findRecipient: FindRecipien
 
 /**
  * The WhatsApp outbox consumer (#62, #86): the seat call when a member is called from the waitlist,
- * the receipt-ready notice, a published promotion offered to a member who opted in to marketing, and what a member hears of
+ * a published promotion offered to a member who opted in to marketing, and what a member hears of
  * while away from the app (decision 0303). A messaging consumer, so a messaging stop holds every send; practice-venue
  * events never reach it. Utility messages need no opt-in; a marketing message needs the member's
  * opt-in, which the message type itself requires.

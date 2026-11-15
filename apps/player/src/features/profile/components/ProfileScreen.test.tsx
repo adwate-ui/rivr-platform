@@ -97,8 +97,11 @@ describe('Profile', () => {
     expect(screen.getByText('Verified')).toBeDefined();
     expect(await screen.findByRole('switch', { name: /Seat calls/ }, LATER)).toBeDefined();
     expect(screen.getByRole('switch', { name: /Call time/ })).toBeDefined();
-    // Bonus chips added or used (decision 0504).
-    expect(screen.getByRole('switch', { name: /Bonus/ })).toBeDefined();
+    // The line for Bonus is hidden, though her tier has the push (the owner, 15 Nov; redesign RD-20).
+    expect(screen.queryByRole('switch', { name: /Bonus/ })).toBeNull();
+    // Every other row stays: the phone's push, Offers and Name on club TVs among the switches, then Club's three.
+    for (const row of [/Notifications on this phone/, /^Offers/, /Name on club TVs/]) expect(screen.getByRole('switch', { name: row })).toBeDefined();
+    for (const row of ['House rules', 'Send feedback', 'Delete my account']) expect(screen.getByRole('button', { name: row })).toBeDefined();
     expect(screen.queryByText(/limit|take a break|waitlist alerts/i)).toBeNull();
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
   });

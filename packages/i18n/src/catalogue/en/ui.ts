@@ -154,10 +154,6 @@ export const ui = {
     missing: 'No logo yet',
     failed: 'Logo not loaded. Upload it again.',
   },
-  /** The dealer tablet's pot keypad (#42). */
-  keypad: {
-    delete: 'Delete',
-  },
   /** The dealer tablet's PIN pad (#41). */
   pinPad: {
     delete: 'Delete',
@@ -293,6 +289,8 @@ export const ui = {
   },
   /** A balance that opens its history (F-054). */
   balanceTile: { history: 'History' },
+  /** A position dot under Home's offers, read out (redesign RD-20): `Offer 2 of 4`. */
+  offerCarousel: { dot: 'Offer {number} of {count}' },
   /** A menu item's food mark, read out (F-052). */
   dietMark: { veg: 'Vegetarian', egg: 'Contains egg', non_veg: 'Non-vegetarian' },
   /** The offer to add the player app to the home screen, on a member's second visit. */
@@ -302,16 +300,6 @@ export const ui = {
     ios: 'Tap Share, then Add to Home Screen.',
     install: 'Install',
     notNow: 'Not now',
-  },
-  /** A CCTV recording's playback (#122): asked for, then opened in a new tab at the moment. */
-  playback: {
-    label: 'Playback',
-    open: 'Open {camera} at this moment',
-    failures: {
-      no_camera: 'No camera saw this.',
-      not_allowed: 'You cannot see this recording.',
-      unavailable: 'The recording link did not come.',
-    },
   },
   /** Printed matter, receipts and A4 documents: the club's registration beneath its address. */
   paper: { gstin: 'GSTIN {gstin}' },

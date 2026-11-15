@@ -11,8 +11,12 @@ export const BONUS_LINES = [
   { line_id: 'b2', at: '2026-11-15T18:00:00Z', kind: 'redeemed', amount_paise: 100_000, reason: null, table_name: 'Table 3' },
   { line_id: 'b1', at: '2026-11-14T18:00:00Z', kind: 'credited', amount_paise: 150_000, reason: 'Welcome bonus', table_name: null },
 ];
-/** What the API answers: the balance in paise, `down` for a failed read, `none` for someone who is no member; and the lines. */
-interface BonusReplies { balance: number | 'down' | 'none'; lines: readonly unknown[]; isEarlierDown?: boolean }
+/**
+ * What the API answers: the balance in paise, `down` for a failed read, `none` for someone who is no member; the lines;
+ * the days the club's "Bonus expires" setting gives (none set unless given); and the Bonus each a live referral promotion
+ * gives, in paise (1,000 unless given; null with none live).
+ */
+interface BonusReplies { balance: number | 'down' | 'none'; lines: readonly unknown[]; isEarlierDown?: boolean; expiryDays?: number | null; referralBonus?: number | null }
 
 const DOWN = () => Response.json({ code: 'XX000', message: 'down' }, { status: 500 });
 
@@ -24,7 +28,7 @@ function bonusReply(url: string, body: string, bonus: BonusReplies, historyAsked
   }
   if (!url.includes('/rpc/my_bonus')) return undefined;
   if (bonus.balance === 'down') return DOWN();
-  return Response.json(bonus.balance === 'none' ? [] : [{ bonus_paise: bonus.balance }]);
+  return Response.json(bonus.balance === 'none' ? [] : [{ bonus_paise: bonus.balance, expiry_days: bonus.expiryDays ?? null }]);
 }
 
 /** Meera signed in on Bonus, with Refer a friend; `historyAsked` keeps each read of her history. */
@@ -39,7 +43,7 @@ export function renderBonus(bonus: BonusReplies = { balance: 125_000, lines: BON
     const answer = bonusReply(url, String(init?.body ?? '{}'), bonus, historyAsked);
     if (answer !== undefined) return answer;
     if (url.includes('/rpc/my_feature_access')) return Response.json(FEATURES);
-    if (url.includes('/rpc/my_referral')) return Response.json([{ code: 'RIVR4821', referred: 2, bonus_paise: 100000 }]);
+    if (url.includes('/rpc/my_referral')) return Response.json([{ code: 'RIVR4821', referred: 2, bonus_paise: bonus.referralBonus === undefined ? 100000 : bonus.referralBonus }]);
     return Response.json([]);
   });
   render(

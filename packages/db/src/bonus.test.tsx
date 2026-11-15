@@ -44,15 +44,27 @@ describe('Bonus', () => {
   it('reads the member\'s balance and their newest lines, as many as asked for', async () => {
     const { wrapper, calls } = clientFor({
       '/rpc/my_bonus_history': { body: LINES.map(({ staff_name: _, ...line }) => line) },
-      '/rpc/my_bonus': { body: [{ bonus_paise: 50_000 }] },
+      '/rpc/my_bonus': { body: [{ bonus_paise: 50_000, expiry_days: 30 }] },
     });
     const { result } = renderHook(() => ({ bonus: useMyBonus(), history: useMyBonusHistory(20) }), { wrapper });
-    await waitFor(() => expect(result.current.bonus.data).toBe(50_000n));
+    // With the days Bonus lasts at the venue, for the balance's line (redesign RD-20).
+    await waitFor(() => expect(result.current.bonus.data).toEqual({ balance: 50_000n, expiryDays: 30 }));
     await waitFor(() => expect(result.current.history.data).toEqual([
-      { id: 'r1', at: '2026-11-15T18:00:00Z', kind: 'redeemed', amount: 100_000n, reason: null, tableName: 'Table 3' },
-      { id: 'g1', at: '2026-11-14T18:00:00Z', kind: 'credited', amount: 150_000n, reason: 'Welcome', tableName: null },
+      { id: 'r1', at: '2026-11-15T18:00:00Z', kind: 'redeemed', amount: 100_000n, reason: null, tableName: 'Table 3', highHand: null },
+      { id: 'g1', at: '2026-11-14T18:00:00Z', kind: 'credited', amount: 150_000n, reason: 'Welcome', tableName: null, highHand: null },
     ]));
     expect(calls.find((call) => call.url.includes('/rpc/my_bonus_history'))?.body).toEqual({ p_limit: 20 });
+  });
+
+  it('reads the hand of a line a high hand paid (redesign RD-25)', async () => {
+    const paid = { line_id: 'g9', at: '2026-11-15T21:13:00Z', kind: 'credited', amount_paise: 1_000_000, reason: 'High hand bonus', table_name: null };
+    const { wrapper } = clientFor({
+      '/rpc/my_bonus_history': { body: [{ ...paid, hand: 'straight_flush', rank: 'nine' }, { ...paid, line_id: 'g8', hand: 'royal_flush', rank: null }, { ...paid, line_id: 'g7', hand: null, rank: null }] },
+    });
+    const { result } = renderHook(() => useMyBonusHistory(3), { wrapper });
+    await waitFor(() => expect(result.current.data?.map((line) => line.highHand)).toEqual([
+      { hand: 'straight_flush', rank: 'nine' }, { hand: 'royal_flush', rank: null }, null,
+    ]));
   });
 
   it('gives no balance to someone who is no member', async () => {

@@ -16,17 +16,17 @@ const TERMS = {
 } as const;
 
 describe('the promotion model schemas', () => {
-  it('knows no free spin (redesign of 15 Nov)', () => {
+  it('knows no points multiplier, free spin, cab home or tournament entry (redesign of 15 Nov)', () => {
+    expect(rewardSchema.safeParse({ kind: 'points_multiplier', multiplier: 2 }).success).toBe(false);
     expect(rewardSchema.safeParse({ kind: 'free_spin', spins: 1, afterMinutes: 240 }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'cab_home', fromVisitInMonth: 4 }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'tournament_entry', tournamentId: 'RIVR Sunday' }).success).toBe(false);
   });
 
-  it('takes a buy-in bonus as a percent with an optional cap, or as fixed chips, in whole 50s', () => {
-    expect(rewardSchema.safeParse({ kind: 'buyin_bonus', mode: 'percent', percent: 20, capChips: 2_000, firstNBuyinsPerTable: 5 }).success).toBe(true);
-    expect(rewardSchema.safeParse({ kind: 'buyin_bonus', mode: 'percent', percent: 20 }).success).toBe(true);
-    expect(rewardSchema.safeParse({ kind: 'buyin_bonus', mode: 'fixed', chips: 500 }).success).toBe(true);
-    expect(rewardSchema.safeParse({ kind: 'buyin_bonus', mode: 'fixed', chips: 520 }).success).toBe(false);
-    expect(rewardSchema.safeParse({ kind: 'buyin_bonus', mode: 'percent', percent: 0 }).success).toBe(false);
-    expect(rewardSchema.safeParse({ kind: 'buyin_bonus', mode: 'fixed', chips: 500, percent: 10 }).success).toBe(false);
+  it('gives nothing on a buy-in, which nothing records (question 1009)', () => {
+    expect(rewardSchema.safeParse({ kind: 'buyin_bonus', mode: 'percent', percent: 20 }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'buyin_bonus', mode: 'fixed', chips: 500 }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'bonus_chips', chips: 1_000, on: 'first_buyin' }).success).toBe(false);
   });
 
   it('takes every other reward with its own fields, and refuses an unknown one', () => {
@@ -34,8 +34,6 @@ describe('the promotion model schemas', () => {
     expect(rewardSchema.safeParse({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 245 }).success).toBe(false);
     expect(rewardSchema.safeParse({ kind: 'bonus_chips', chips: 1_000, on: 'referral' }).success).toBe(true);
     expect(rewardSchema.safeParse({ kind: 'bonus_chips', chips: 1_000, on: 'birthday' }).success).toBe(false);
-    expect(rewardSchema.safeParse({ kind: 'cab_home', fromVisitInMonth: 4 }).success).toBe(true);
-    expect(rewardSchema.safeParse({ kind: 'tournament_entry', tournamentId: 'RIVR Sunday' }).success).toBe(true);
     expect(rewardSchema.safeParse({ kind: 'waitlist_priority' }).success).toBe(true);
     expect(rewardSchema.safeParse({ kind: 'cash', amount: 100 }).success).toBe(false);
   });
@@ -83,6 +81,29 @@ describe('the promotion model schemas', () => {
     expect(promotionTermsSchema.safeParse({ ...TERMS, name: 'No' }).success).toBe(false);
   });
 
+  it('takes a high hand bonus with hands from the fixed list, each once with its Bonus, and its three rules (redesign RD-22)', () => {
+    const rules = { bothHoleCards: true, shownAtShowdown: true, minPlayersDealt: 4 };
+    const hands = [{ hand: 'royal_flush', chips: 25_000 }, { hand: 'aces_full', chips: 2_000 }];
+    expect(rewardSchema.safeParse({ kind: 'high_hand', hands, rules }).success).toBe(true);
+    expect(rewardSchema.safeParse({ kind: 'high_hand', hands: [], rules }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'high_hand', hands: [{ hand: 'flush', chips: 500 }], rules }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'high_hand', hands: [{ hand: 'royal_flush' }], rules }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'high_hand', hands: [{ hand: 'royal_flush', chips: 25_020 }], rules }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'high_hand', hands: [...hands, { hand: 'royal_flush', chips: 500 }], rules }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'high_hand', hands, rules: { ...rules, minPlayersDealt: 1 } }).success).toBe(false);
+    expect(rewardSchema.safeParse({ kind: 'high_hand', hands, rules: { bothHoleCards: true, shownAtShowdown: true } }).success).toBe(false);
+  });
+
+  it('holds a high hand bonus to its budget alone, which it must have: no limit a member, a day or in grants', () => {
+    const highHand = { ...TERMS, reward: { kind: 'high_hand', hands: [{ hand: 'royal_flush', chips: 25_000 }], rules: { bothHoleCards: true, shownAtShowdown: true, minPlayersDealt: 4 } } };
+    expect(promotionTermsSchema.safeParse({ ...highHand, limits: { perMember: 'none', budgetChips: 200_000, budgetPeriod: 'month' } }).success).toBe(true);
+    expect(promotionTermsSchema.safeParse({ ...highHand, limits: { perMember: 'none', budgetChips: 200_000 } }).success).toBe(true);
+    expect(promotionTermsSchema.safeParse({ ...highHand, limits: { perMember: 'none' } }).success).toBe(false);
+    expect(promotionTermsSchema.safeParse({ ...highHand, limits: { perMember: 'per_day', budgetChips: 200_000 } }).success).toBe(false);
+    expect(promotionTermsSchema.safeParse({ ...highHand, limits: { perMember: 'none', budgetChips: 200_000, maxMembersPerDay: 5 } }).success).toBe(false);
+    expect(promotionTermsSchema.safeParse({ ...highHand, limits: { perMember: 'none', budgetChips: 200_000, maxGrants: 5 } }).success).toBe(false);
+  });
+
   it('takes a plain https link for the card, and nothing that hides its host', () => {
     expect(promotionTermsSchema.safeParse({ ...TERMS, link: 'https://rivr.club/promotions?from=tv' }).success).toBe(true);
     expect(promotionTermsSchema.safeParse({ ...TERMS, link: 'http://rivr.club' }).success).toBe(false);
@@ -90,13 +111,18 @@ describe('the promotion model schemas', () => {
   });
 
   it('reads an event of each kind, and the member it is for', () => {
-    const base = { key: 'buy_in:1', at: '2026-11-17T21:00:00+05:30', memberId: 'm1', visitId: 'v1', tableId: 't1', stake: 'nlh_50_100' };
-    expect(promotionEventSchema.safeParse({ ...base, kind: 'buy_in', ownChips: 10_000, isFirstOfVisit: true }).success).toBe(true);
+    const base = { key: 'seated:1', at: '2026-11-17T21:00:00+05:30', memberId: 'm1', visitId: 'v1', tableId: 't1', stake: 'nlh_50_100' };
+    expect(promotionEventSchema.safeParse({ ...base, kind: 'seated', isFirstOfVisit: true }).success).toBe(true);
     expect(promotionEventSchema.safeParse({ ...base, kind: 'time_played', minutes: 240 }).success).toBe(true);
     expect(promotionEventSchema.safeParse({ ...base, kind: 'visit', visitInMonth: 4 }).success).toBe(true);
     expect(promotionEventSchema.safeParse({ ...base, kind: 'signup' }).success).toBe(true);
-    expect(promotionEventSchema.safeParse({ ...base, kind: 'buy_in', ownChips: -1, isFirstOfVisit: true }).success).toBe(false);
+    expect(promotionEventSchema.safeParse({ ...base, kind: 'buy_in', ownChips: 10_000, isFirstOfVisit: true }).success).toBe(false);
     expect(promotionEventSchema.safeParse({ ...base, kind: 'referral', extra: 1 }).success).toBe(false);
+    const confirmed = { bothHoleCards: true, shownAtShowdown: true, playersDealt: true };
+    expect(promotionEventSchema.safeParse({ ...base, kind: 'high_hand', hand: 'four_of_a_kind', rank: 'jack', confirmed }).success).toBe(true);
+    expect(promotionEventSchema.safeParse({ ...base, kind: 'high_hand', hand: 'royal_flush', rank: null, confirmed }).success).toBe(true);
+    expect(promotionEventSchema.safeParse({ ...base, kind: 'high_hand', hand: 'royal_flush', rank: null }).success).toBe(false);
+    expect(promotionEventSchema.safeParse({ ...base, kind: 'high_hand', hand: 'four_of_a_kind', rank: 'joker', confirmed }).success).toBe(false);
     expect(memberFactsSchema.safeParse({ tierId: null, daysSinceJoined: 3, daysSinceLastVisit: null }).success).toBe(true);
   });
 

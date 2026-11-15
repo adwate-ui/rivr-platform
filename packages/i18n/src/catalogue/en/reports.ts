@@ -138,7 +138,6 @@ export const reports = {
   kycDone: 'ID checked',
   visited: 'Came in',
   stage: '{count} ({percent}%)',
-  channel: 'Channel',
   sources: {
     referral: 'Referral',
     creator: 'Creator {code}',

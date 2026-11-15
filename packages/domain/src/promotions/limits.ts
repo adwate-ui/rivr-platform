@@ -111,12 +111,19 @@ function counted(limits: Limits, ledger: Ledger, day: string): Ledger {
 }
 
 /**
+ * What is left of a budget once a tally's chips are given, never below nothing; null with no budget. A refusal for the
+ * budget says this (redesign RD-22). private.promo_budget_left is its twin on promotionRewards.json.
+ */
+export function budgetLeft(limits: Pick<Limits, 'budgetChips'>, tally: Pick<GrantTally, 'chipsGiven'>): number | null {
+  return limits.budgetChips === undefined ? null : Math.max(0, limits.budgetChips - tally.chipsGiven);
+}
+
+/**
  * What is left of the promotion's budget in bonus chips on a club day, over all its versions (that day's month for a
  * monthly budget), never below nothing; null with no budget.
  */
 export function remainingBudget(promo: { readonly limits: Limits }, ledger: Ledger, day: string): number | null {
-  const budget = promo.limits.budgetChips;
-  return budget === undefined ? null : Math.max(0, budget - chipsIn(counted(promo.limits, ledger, day)));
+  return budgetLeft(promo.limits, { chipsGiven: chipsIn(counted(promo.limits, ledger, day)) });
 }
 
 /** The tally for one more grant to the event's member, from the promotion's ledger. */
@@ -146,8 +153,7 @@ export function ledgerEntryFor(
 type LimitCheck = (promo: { readonly reward: Reward; readonly limits: Limits }, grant: Grant, tally: GrantTally) => boolean;
 
 function firstNOf(reward: Reward): number | undefined {
-  if (reward.kind === 'seat_bonus') return 'tiers' in reward ? undefined : reward.firstNSeatsPerTable;
-  return reward.kind === 'buyin_bonus' ? reward.firstNBuyinsPerTable : undefined;
+  return reward.kind === 'seat_bonus' && !('tiers' in reward) ? reward.firstNSeatsPerTable : undefined;
 }
 
 // In order: the first broken limit is the reason.
@@ -169,7 +175,7 @@ const LIMITS: readonly (readonly [LimitRefusal, LimitCheck])[] = [
 
 /**
  * Whether a promotion's limits let a grant through (decisions 0471 and 0499): the member given it fewer times in the
- * period than it allows (once unless it says up to N), among the first N buy-ins or seats at the table this club day, within the
+ * period than it allows (once unless it says up to N), among the first N seats at the table this club day, within the
  * members a day (a member already given it today is not a new one) and the most grants, and the whole grant within what
  * is left of the budget in bonus chips, never part of it; a monthly budget's tally counts the month alone. The
  * database's private.promo_check_limits is proved equal on promotionRewards.json; its unique period key, numbered for

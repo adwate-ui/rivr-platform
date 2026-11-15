@@ -131,7 +131,6 @@ export {
   type PairingCode,
 } from './devices.ts';
 export {
-  useIsPublicVenue,
   useMyTvScreen,
   useTvActions,
   useTvPairing,
@@ -139,6 +138,7 @@ export {
   useTvPairingPolicy,
   useVenueTvs,
   type MyTvScreen,
+  type TvBoardTurn,
   type TvCode,
   type TvFailure,
   type TvPairing,
@@ -146,7 +146,7 @@ export {
   type VenueTv,
 } from './tvScreens.ts';
 export {
-  useTvCallTimeBoard, useTvLeaderboard, useTvSignals, useTvWaitlistBoard, type TvCallTimeTable, type TvLeaderboardRow, type TvPlace,
+  useTvCallTimeBoard, useTvLeaderboard, useTvNotice, useTvSignals, useTvWaitlistBoard, type TvCallTimeTable, type TvLeaderboardRow, type TvPlace,
   type TvSeated, type TvTableList,
 } from './tvBoards.ts';
 export { fetchClubContact, NO_CLUB_CONTACT, useClubContact, type ClubContact } from './clubContact.ts';
@@ -168,9 +168,7 @@ export {
 } from './dealerDowns.ts';
 export { useHandQueue, type HandQueueState, type QueuedHand } from './handQueue.ts';
 export {
-  useDownHands,
   useTableRules,
-  type DownHand,
   type HandVariant,
   type TableRules,
 } from './hands.ts';
@@ -183,21 +181,25 @@ export {
   usePromotionVersionActions, type DraftToSave, type PromotionVersionFailure, type SavedDraft,
 } from './promotionVersionActions.ts';
 export { useLastWeekReplay, type SimulationRun } from './promotionReplay.ts';
+export {
+  toHighHandTonight, useHighHandLive, useHighHandTonight, useLogHighHand, useMyHighHand, type HighHandHit, type HighHandLive, type HighHandLog,
+  type HighHandTonight, type LogHighHandFailure, type LogHighHandReason,
+} from './highHand.ts';
+export { toTvHighHand, useTvHighHand, type TvHighHand, type TvHighHandPayout } from './tvHighHand.ts';
 export { toKycFailure, type KycFailure } from './parse/kycFailure.ts';
 export { toSignInFailure, type SignInFailure } from './parse/signInFailure.ts';
 export { queryKeys } from './queryKeys.ts';
 export { HIDDEN, toFeatureAccess, toFeatureAccessMap, type FeatureAccess, type FeatureAccessRow } from './parse/featureAccess.ts';
 export { useWaitlistCallActions } from './waitlistCalls.ts';
-export { useMyTonight, type MyTonight, type NextTournament } from './tonight.ts';
 export {
   useSettingActions, useVenueSettings, type SettingChange, type SettingEntry, type SettingFailure, type SettingField, type SettingSubjectRules,
   type SettingValue, type VenueSetting, type VenueSettings,
 } from './settings.ts';
-// Tournaments (#115, #119): the console's at their own files, Home's and the TV's clock in liveTournament.ts.
+// Tournaments, interest only (redesign RD-26): Home's list and Notify me, and the console's screen.
 export {
-  type PublishedTournament, useMarkTournamentRegistered, useMyUpcomingTournaments, usePublishedTournamentActions, usePublishedTournaments, usePublishTournament, useRegisterTournamentInterest, useTournamentInterest, useUnmarkTournamentRegistered,
-  type TournamentInterest, type TournamentInterestFailure, type TournamentListing, type TournamentStanding, type UpcomingTournament,
-} from './tournamentInterest.ts';
+  useMyUpcomingTournaments, useRegisterTournamentInterest, useTournamentActions, useTournamentInterested, useVenueTournaments,
+  type InterestedMember, type NewTournament, type TournamentFailure, type TournamentStanding, type UpcomingTournament, type VenueTournament,
+} from './tournaments.ts';
 export { useTableMetrics, useTableMetricsTotal, type TableMetrics, type TableMetricsTotal } from './tableMetrics.ts';
 export {
   useBonusReport, useFnbReport, usePlayersReport, useReportChart, useReportFigures, useWaitlistReport,

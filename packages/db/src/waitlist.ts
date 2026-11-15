@@ -2,6 +2,7 @@ import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Database } from './database.types.ts';
 import { useListPage, type ScopedView } from './lists.ts';
+import { playedGame } from './parse/game.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 import { LIST_MOST, WAITLIST_REQUESTS_MOST } from './limits.ts';
@@ -27,11 +28,11 @@ export interface FloorTable {
   readonly buyIn: bigint;
   /** A compulsory straddle in paise, as in the Private Room; null where there is none. */
   readonly straddle: bigint | null;
-  /** Members on this table's own list (decision 0467): approved, not still asking (#633). */
+  /** Members on this table's own list (decision 0467): approved, not still asking (#633). The floor's to read: 0 for a member, who is told no count (redesign RD-20). */
   readonly waiting: number;
   /** The stake's call time in minutes (#633); 0 where it has none. */
   readonly callTimeMinutes: number;
-  /** Seats free tonight: not sat in, nor held for a called member (#87); null where the person may not read them. */
+  /** Seats free tonight: not sat in, nor held for a called member (#87). The floor's to read: null for a member, who is told no count (redesign RD-20). */
   readonly openSeats: number | null;
   /** The main table a must-move table feeds (#77); null for a table of its own. */
   readonly mustMoveToTableId: string | null;
@@ -44,8 +45,8 @@ export interface WaitlistPlace {
   readonly entryId: string;
   readonly tableTypeId: string;
   readonly tableTypeName: string;
-  /** The stake's game, as `nlh`, or null where it names none; its figures: the blinds, and the straddle or null with none (issue 990). */
-  readonly game: string | null;
+  /** The stake's game, `nlh` where it names none (`playedGame`); its figures: the blinds, and the straddle or null with none (issue 990). */
+  readonly game: 'nlh' | 'plo';
   readonly smallBlind: bigint;
   readonly bigBlind: bigint;
   readonly straddle: bigint | null;
@@ -154,8 +155,7 @@ export function useFloorTables() {
         if (!type) return [];
         return [{
           id: table.id, venueId: table.venue_id, name: table.name, isOpen: table.is_open, seats: table.seats, tableTypeId: type.id, tableTypeName: type.name,
-          game: type.game === 'plo' ? 'plo' : 'nlh',
-          smallBlind: BigInt(type.small_blind_paise), bigBlind: BigInt(type.big_blind_paise), buyIn: BigInt(table.min_buy_in_paise),
+          game: playedGame(type.game), smallBlind: BigInt(type.small_blind_paise), bigBlind: BigInt(type.big_blind_paise), buyIn: BigInt(table.min_buy_in_paise),
           straddle: type.straddle_paise === null ? null : BigInt(type.straddle_paise), waiting: waiting.get(table.id) ?? 0, openSeats: openSeats.get(table.id) ?? null,
           callTimeMinutes: callTime.get(table.id) ?? 0,
           mustMoveToTableId: table.must_move_to_table_id ?? null, room: table.room === 'private' ? 'private' : 'main',
@@ -176,7 +176,7 @@ export function useMyWaitlist() {
       const { data, error } = await client.rpc('my_waitlist').limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
-        entryId: row.entry_id, tableTypeId: row.table_type_id, tableTypeName: row.table_type_name, game: row.game, smallBlind: BigInt(row.small_blind_paise),
+        entryId: row.entry_id, tableTypeId: row.table_type_id, tableTypeName: row.table_type_name, game: playedGame(row.game), smallBlind: BigInt(row.small_blind_paise),
         bigBlind: BigInt(row.big_blind_paise), straddle: row.straddle_paise === null ? null : BigInt(row.straddle_paise), joinedAt: row.joined_at, place: row.is_request ? null : row.place, isRequest: row.is_request,
         callTableName: row.call_table_name,
         callSeat: row.call_seat, holdUntil: row.hold_until, awayUntil: row.away_until,

@@ -47,7 +47,7 @@ with p as (insert into public.promotion (venue_id, name, status, priority)
            values ('00000000-0000-4000-8000-000000000001', 'Tiny monthly budget', 'live', 5) returning id)
 insert into ids select 'tiny', id from p;
 insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, effect)
-select '00000000-0000-4000-8000-000000000001', id, 'buy_in', '{}', '{"kind": "bonus", "amount_paise": 100000, "expires_days": 30}' from ids;
+select '00000000-0000-4000-8000-000000000001', id, 'check_in', '{}', '{"kind": "bonus", "amount_paise": 100000, "expires_days": 30}' from ids;
 insert into public.promotion_budget (venue_id, promotion_id, cap_paise, period)
 values ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'monthly'), 1000000, 'month'),
        ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tiny'), 4900, 'month');

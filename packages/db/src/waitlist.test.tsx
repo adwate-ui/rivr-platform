@@ -72,6 +72,19 @@ describe('Waitlist data', () => {
     }]));
   });
 
+  it('reads a place whose stake names no game as NLH, as the floor\'s tables do', async () => {
+    const { result } = renderWaitlist({
+      ...EMPTY,
+      '/rpc/my_waitlist': {
+        body: [{
+          entry_id: 'e4', table_type_id: 'hi', table_type_name: '100/200', game: null, small_blind_paise: 10000, big_blind_paise: 20000, straddle_paise: 50000,
+          joined_at: '2026-10-19T14:00:00+00:00', place: 4, is_request: false, table_id: 't2', table_name: 'Table 2',
+        }],
+      },
+    });
+    await waitFor(() => expect(result.current.places.data?.map((place) => place.game)).toEqual(['nlh']));
+  });
+
   it('gives the member\'s places and the floor\'s board in order', async () => {
     const { result } = renderWaitlist({
       ...EMPTY,

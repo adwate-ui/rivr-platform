@@ -48,7 +48,6 @@ export const queryKeys = {
   floorTables: (userId: string) => ['user', userId, 'floor-tables'] as const,
   floorTakenSeats: (userId: string) => ['user', userId, 'floor-taken-seats'] as const,
   myUsualFnbItems: (userId: string) => ['user', userId, 'my-usual-fnb-items'] as const,
-  myTonight: (userId: string) => ['user', userId, 'my-tonight'] as const,
   memberErasurePreview: (userId: string, memberId: string) => ['user', userId, 'member-erasure-preview', memberId] as const,
   memberErasureRequests: (userId: string, venueId: string) => ['user', userId, 'member-erasure-requests', venueId] as const,
   myErasureRequest: (userId: string) => ['user', userId, 'my-erasure-request'] as const,
@@ -139,9 +138,6 @@ export const queryKeys = {
   myDevice: (userId: string) => ['user', userId, 'my-device'] as const,
   /** A venue's dealer tablets, for staff who manage devices. */
   dealerTablets: (userId: string, venueId: string) => ['user', userId, 'dealer-tablets', venueId] as const,
-  venueIssuer: (userId: string, venueId: string) => ['user', userId, 'venue-issuer', venueId] as const,
-  computers: (userId: string, venueId: string) => ['user', userId, 'computers', venueId] as const,
-  thisComputer: (userId: string, venueId: string) => ['user', userId, 'this-computer', venueId] as const,
   /** A venue's dealers whose PIN the signed-in manager may set. */
   venueDealers: (userId: string, venueId: string) => ['user', userId, 'venue-dealers', venueId] as const,
   /** A venue's table types with their rake now and the changes to come. */
@@ -154,8 +150,6 @@ export const queryKeys = {
   currentDownAll: (userId: string) => ['user', userId, 'current-down'] as const,
   /** The tablet's table rules now: rake, drop, variations; kept by table. */
   tableRules: (userId: string, tableId: string) => ['user', userId, 'table-rules', tableId] as const,
-  /** The hands of the open down on the tablet, kept by down. */
-  downHands: (userId: string, downId: string) => ['user', userId, 'down-hands', downId] as const,
   /** An unpaired TV's code (#49): signed out, so it belongs to no one. */
   tvCode: () => ['tv-code'] as const,
   /** Whether staff have typed in that code yet. */
@@ -163,8 +157,6 @@ export const queryKeys = {
   /** The signed-in TV's name and mode. */
   myTvScreen: (userId: string) => ['user', userId, 'my-tv-screen'] as const,
   tvReportIn: (userId: string) => ['user', userId, 'tv-report-in'] as const,
-  /** Whether a venue is one the public may see: not the practice venue (#125). */
-  isPublicVenue: (userId: string, venueId: string) => ['user', userId, 'is-public-venue', venueId] as const,
   /** A venue's TVs, for staff who manage devices. */
   venueTvs: (userId: string, venueId: string) => ['user', userId, 'venue-tvs', venueId] as const,
   tvPairingPolicy: (userId: string, venueId: string) => ['user', userId, 'tv-pairing-policy', venueId] as const,
@@ -173,6 +165,15 @@ export const queryKeys = {
   /** The console's promotions list, a promotion's versions and a member's grants (console v3 phase 7). */
   promotionsOverview: (userId: string, venueId: string) => ['user', userId, 'promotions-overview', venueId] as const,
   promotionVersions: (userId: string, promotionId: string) => ['user', userId, 'promotion-versions', promotionId] as const,
+  /** Tonight's high hands at a venue, or one promotion's of them (redesign RD-23); a payout makes them all stale (`highHandTonights`). */
+  highHandTonights: (userId: string, venueId: string) => ['user', userId, 'high-hand-tonight', venueId] as const,
+  highHandTonight: (userId: string, venueId: string, promotionId: string | null = null) =>
+    ['user', userId, 'high-hand-tonight', venueId, promotionId ?? 'all'] as const,
+  /** The high hand that runs at a venue now, for the Live floor (redesign RD-24). */
+  highHandLive: (userId: string, venueId: string) => ['user', userId, 'high-hand-live', venueId] as const,
+  /** The high hand among the signed-in member's offers, and the signed-in TV's High hand bonus board (redesign RD-25). */
+  myHighHand: (userId: string) => ['user', userId, 'my-high-hand'] as const,
+  tvHighHand: (userId: string) => ['user', userId, 'tv-high-hand'] as const,
   /** Last week replayed afresh on a waiting version, for its approver (decision 0495). */
   promotionReplay: (userId: string, versionId: string) => ['user', userId, 'promotion-replay', versionId] as const,
   memberPromotionGrants: (userId: string, memberId: string, count: number) => ['user', userId, 'member-promotion-grants', memberId, count] as const,
@@ -180,13 +181,15 @@ export const queryKeys = {
   onboardingChecklists: (userId: string, venueId: string) => ['user', userId, 'onboarding-checklists', venueId] as const,
   /** The signed-in TV's waitlist board (#65). */
   tvWaitlistBoard: (userId: string) => ['user', userId, 'tv-waitlist-board'] as const,
+  /** The club's notice along the foot of the signed-in TV's boards (redesign RD-28). */
+  tvNotice: (userId: string) => ['user', userId, 'tv-notice'] as const,
   /** The signed-in TV's call-time board (decision 0163). */
   tvCallTimeBoard: (userId: string) => ['user', userId, 'tv-call-time-board'] as const,
   /** The paired TV's promotions rotation (#86), and the member's Home cards. */
   tvPromotions: (userId: string) => ['user', userId, 'tv-promotions'] as const,
   myPromotionCards: (userId: string) => ['user', userId, 'my-promotion-cards'] as const,
-  /** The member's venue's upcoming tournaments and their standing on each (#636); and the floor's list of who asked. */
+  /** The member's venue's upcoming tournaments and whether they asked about each (#636); the venue's tournaments as staff see them, and who asked about one. */
   myUpcomingTournaments: (userId: string) => ['user', userId, 'my-upcoming-tournaments'] as const,
-  publishedTournaments: (userId: string, venueId: string) => ['user', userId, 'published-tournaments', venueId] as const,
-  tournamentInterest: (userId: string, venueId: string) => ['user', userId, 'tournament-interest', venueId] as const,
+  venueTournaments: (userId: string, venueId: string) => ['user', userId, 'venue-tournaments', venueId] as const,
+  tournamentInterested: (userId: string, tournamentId: string) => ['user', userId, 'tournament-interested', tournamentId] as const,
 };

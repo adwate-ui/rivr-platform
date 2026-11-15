@@ -18,6 +18,7 @@ export { formatClock,
   isoDayOfTyped,
   formatMinutesSeconds, formatDate, formatDateTime, formatMonthYear, formatYear, formatDayMonth, formatDayTime, formatWaitingSince, formatDuration, formatIsoDay, isLaterIstDay, istMidnight, formatMonth, formatQuarter, formatTime, formatWeekday } from './format/time.ts';
 export { formatList } from './format/list.ts';
+export { formatHandRank, formatHighHand, formatHighHandRules, formatListedHand } from './format/highHand.ts';
 export { formatOrdinal } from './format/ordinal.ts';
 export { formatBlinds } from './format/chips.ts';
 export { formatMobile, formatTypedMobile } from './format/phone.ts';

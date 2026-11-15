@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import type { Database } from './database.types.ts';
+import type { Database, Json } from './database.types.ts';
 import { EXPORT_PAGE, readEveryRow } from './lists.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
@@ -16,6 +16,22 @@ export interface ActivityFilters {
   readonly kind: ActivityKind | null;
 }
 
+/** A high hand paid, on its line (redesign RD-24): the table and seat, and the hand as it was paid. */
+export interface ActivityHighHand {
+  readonly table: string;
+  readonly seat: number;
+  readonly hand: string;
+  readonly rank: string | null;
+}
+
+/** The high hand a line carries, read from the log's own JSON; null for any other line. */
+function highHandOf(value: Json | undefined): ActivityHighHand | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
+  const { table, seat, hand, rank } = value;
+  if (typeof table !== 'string' || typeof seat !== 'number' || typeof hand !== 'string') return null;
+  return { table, seat, hand, rank: typeof rank === 'string' ? rank : null };
+}
+
 /** One line of the log: who did what, about whom, why and when. */
 export interface ActivityLine {
   readonly id: number;
@@ -30,8 +46,10 @@ export interface ActivityLine {
   /** The member, staff member or table it was about, when it names one. */
   readonly about: string | null;
   readonly reason: string | null;
-  /** How many bonus chips were given by hand; null for anything else. */
+  /** How much Bonus was added by hand, or paid for a high hand; null for anything else. */
   readonly amount: number | null;
+  /** Where a high hand was paid and which hand; null for anything else. */
+  readonly highHand: ActivityHighHand | null;
 }
 
 /** How many lines a page holds, and how many an export reads at a time. */
@@ -51,6 +69,7 @@ type PageRow = Database['public']['Functions']['activity_page']['Returns'][numbe
 const lineOf = (row: PageRow): ActivityLine => ({
   id: row.id, occurredAt: row.occurred_at, who: row.who, isSystem: row.is_system, action: row.action, entity: row.entity,
   kind: ACTIVITY_KINDS.find((one) => one === row.kind) ?? 'other', about: row.about, reason: row.reason, amount: row.amount,
+  highHand: highHandOf(row.high_hand),
 });
 
 /**

@@ -2,11 +2,11 @@ import type { Reward } from '@rivr/contracts/promotionModel';
 import { buildMemberFacts, buildPromotionEvent, buildPromotionTerms } from '@rivr/testing';
 import { describe, expect, it } from 'vitest';
 import { NO_GRANT, toPromotionEvent } from './grant.ts';
-import { checkLimits, decideGrant, ledgerEntryFor, periodKey, remainingBudget, slotKey, tallyFor, type LedgerEntry } from './limits.ts';
+import { budgetLeft, checkLimits, decideGrant, ledgerEntryFor, periodKey, remainingBudget, slotKey, tallyFor, type LedgerEntry } from './limits.ts';
 
-const BONUS = { kind: 'buyin_bonus', mode: 'percent', percent: 20 } as const;
-const buyIn = (place: Parameters<typeof buildPromotionEvent>[1] = {}) =>
-  toPromotionEvent(buildPromotionEvent({ kind: 'buy_in', ownChips: 10_000, isFirstOfVisit: true }, place));
+const BONUS = { kind: 'bonus_chips', chips: 2_000, on: 'visit' } as const;
+const visit = (place: Parameters<typeof buildPromotionEvent>[1] = {}) =>
+  toPromotionEvent(buildPromotionEvent({ kind: 'visit', visitInMonth: 1 }, place));
 const entry = (more: Partial<LedgerEntry>): LedgerEntry => ({
   ...NO_GRANT, chips: 1_000, memberId: 'member-2', clubDay: '2026-11-17', periodKey: 'event:old', tableId: 'table-1', ...more,
 });
@@ -36,7 +36,7 @@ describe('periodKey for a play-time step (the owner, 9 Nov)', () => {
 });
 
 describe('periodKey', () => {
-  const night = buyIn({ at: '2026-11-18T02:00:00+05:30' });
+  const night = visit({ at: '2026-11-18T02:00:00+05:30' });
 
   it('keys each limit by its period on the club day the event falls in', () => {
     expect(periodKey({ perMember: 'none' }, night)).toBe('event:event-1');
@@ -47,7 +47,7 @@ describe('periodKey', () => {
   });
 
   it('keys a visit limit by the event when there is no visit', () => {
-    expect(periodKey({ perMember: 'per_visit' }, buyIn({ visitId: null, key: 'signup:7' }))).toBe('visit:signup:7');
+    expect(periodKey({ perMember: 'per_visit' }, visit({ visitId: null, key: 'signup:7' }))).toBe('visit:signup:7');
   });
 });
 
@@ -56,6 +56,15 @@ describe('slotKey', () => {
     expect(slotKey('day:2026-11-17', 0)).toBe('day:2026-11-17');
     expect(slotKey('day:2026-11-17', 1)).toBe('day:2026-11-17#2');
     expect(slotKey('once', 19)).toBe('once#20');
+  });
+});
+
+describe('budgetLeft', () => {
+  it('is the budget less what the tally gave, never below nothing, and none with no budget', () => {
+    expect(budgetLeft({ budgetChips: 50_000 }, { chipsGiven: 30_000 })).toBe(20_000);
+    expect(budgetLeft({ budgetChips: 50_000 }, { chipsGiven: 50_000 })).toBe(0);
+    expect(budgetLeft({ budgetChips: 50_000 }, { chipsGiven: 50_050 })).toBe(0);
+    expect(budgetLeft({}, { chipsGiven: 30_000 })).toBeNull();
   });
 });
 
@@ -82,7 +91,7 @@ describe('tallyFor', () => {
       entry({}), entry({ memberId: 'member-1', periodKey: 'day:2026-11-17' }), entry({ clubDay: '2026-11-16', tableId: 'table-1' }),
       entry({ memberId: 'member-3', tableId: 'table-2' }),
     ];
-    const tally = tallyFor({ limits: { perMember: 'per_day' } }, ledger, buyIn());
+    const tally = tallyFor({ limits: { perMember: 'per_day' } }, ledger, visit());
     expect(tally).toEqual({ chipsGiven: 4_000, grantsGiven: 4, membersToday: 3, isMemberGrantedToday: true, periodGiven: 1, grantsAtTableToday: 2 });
   });
 
@@ -92,20 +101,20 @@ describe('tallyFor', () => {
       entry({ memberId: 'member-2', periodKey: 'day:2026-11-17' }), entry({ memberId: 'member-1', periodKey: 'day:2026-11-16' }),
       entry({ memberId: 'member-1', periodKey: 'day:2026-11-170' }),
     ];
-    expect(tallyFor({ limits: { perMember: 'per_day', timesPerMember: 3 } }, ledger, buyIn()).periodGiven).toBe(2);
+    expect(tallyFor({ limits: { perMember: 'per_day', timesPerMember: 3 } }, ledger, visit()).periodGiven).toBe(2);
   });
 
   it('counts a monthly budget\'s grants and chips in the event\'s club month, which turns at 06:00 IST', () => {
     const limits = { perMember: 'none' as const, budgetChips: 10_000, maxGrants: 10, budgetPeriod: 'month' as const };
     const ledger = [entry({ clubDay: '2026-10-31', chips: 3_000 }), entry({ clubDay: '2026-11-01', chips: 500 }), entry({ clubDay: '2026-11-30', chips: 50 })];
-    const lateNovember = tallyFor({ limits }, ledger, buyIn({ at: '2026-12-01T05:59:00+05:30' }));
+    const lateNovember = tallyFor({ limits }, ledger, visit({ at: '2026-12-01T05:59:00+05:30' }));
     expect([lateNovember.chipsGiven, lateNovember.grantsGiven]).toEqual([550, 2]);
-    const december = tallyFor({ limits }, ledger, buyIn({ at: '2026-12-01T06:00:00+05:30' }));
+    const december = tallyFor({ limits }, ledger, visit({ at: '2026-12-01T06:00:00+05:30' }));
     expect([december.chipsGiven, december.grantsGiven]).toEqual([0, 0]);
   });
 
   it('has no table count away from a table, and nothing taken for a new member', () => {
-    const tally = tallyFor({ limits: { perMember: 'once' } }, [entry({ periodKey: 'once' })], buyIn({ tableId: null }));
+    const tally = tallyFor({ limits: { perMember: 'once' } }, [entry({ periodKey: 'once' })], visit({ tableId: null }));
     expect(tally.grantsAtTableToday).toBeNull();
     expect(tally.periodGiven).toBe(0);
     expect(tally.isMemberGrantedToday).toBe(false);
@@ -115,13 +124,13 @@ describe('tallyFor', () => {
 describe('ledgerEntryFor', () => {
   it('records the grant with the member, club day, period key and table', () => {
     const grant = { ...NO_GRANT, chips: 2_000 };
-    expect(ledgerEntryFor({ limits: { perMember: 'per_visit' } }, buyIn(), grant, { periodGiven: 0 })).toEqual({
+    expect(ledgerEntryFor({ limits: { perMember: 'per_visit' } }, visit(), grant, { periodGiven: 0 })).toEqual({
       ...grant, memberId: 'member-1', clubDay: '2026-11-17', periodKey: 'visit:visit-1', tableId: 'table-1',
     });
   });
 
   it('keys a second grant in the period as the member\'s second', () => {
-    expect(ledgerEntryFor({ limits: { perMember: 'per_day', timesPerMember: 2 } }, buyIn(), NO_GRANT, { periodGiven: 1 }).periodKey).toBe('day:2026-11-17#2');
+    expect(ledgerEntryFor({ limits: { perMember: 'per_day', timesPerMember: 2 } }, visit(), NO_GRANT, { periodGiven: 1 }).periodKey).toBe('day:2026-11-17#2');
   });
 });
 
@@ -133,7 +142,7 @@ describe('checkLimits', () => {
   });
 
   it('names the first limit broken', () => {
-    const promo = { reward: { ...BONUS, firstNBuyinsPerTable: 1 }, limits: { perMember: 'once' as const, maxGrants: 1 } };
+    const promo = { reward: { kind: 'seat_bonus' as const, chips: 1_000, firstNSeatsPerTable: 1 }, limits: { perMember: 'once' as const, maxGrants: 1 } };
     expect(checkLimits(promo, NO_GRANT, { ...NOTHING_YET, periodGiven: 1, grantsAtTableToday: 1, grantsGiven: 1 })).toEqual({ ok: false, error: 'already_given' });
     expect(checkLimits(promo, NO_GRANT, { ...NOTHING_YET, grantsAtTableToday: 1, grantsGiven: 1 })).toEqual({ ok: false, error: 'first_n_taken' });
     expect(checkLimits(promo, NO_GRANT, { ...NOTHING_YET, grantsGiven: 1 })).toEqual({ ok: false, error: 'max_grants' });
@@ -150,13 +159,13 @@ describe('decideGrant', () => {
   const tuesday = buildPromotionTerms({ reward: BONUS, schedule: { days: [2], from: '06:00', to: '06:00', startsOn: '2026-11-01', timezone: 'Asia/Kolkata' } });
 
   it('gives what the reward gives when the member qualifies and the limits allow', () => {
-    expect(decideGrant(tuesday, buildMemberFacts(), buyIn(), NOTHING_YET)).toEqual({ ok: true, value: { ...NO_GRANT, chips: 2_000 } });
+    expect(decideGrant(tuesday, buildMemberFacts(), visit(), NOTHING_YET)).toEqual({ ok: true, value: { ...NO_GRANT, chips: 2_000 } });
   });
 
-  it('refuses a member who does not qualify, a reward of nothing and a limit reached', () => {
-    expect(decideGrant(tuesday, buildMemberFacts(), buyIn({ at: '2026-11-18T21:00:00+05:30' }), NOTHING_YET)).toEqual({ ok: false, error: 'not_eligible' });
-    const fromBonus = toPromotionEvent(buildPromotionEvent({ kind: 'buy_in', ownChips: 0, isFirstOfVisit: true }));
-    expect(decideGrant(tuesday, buildMemberFacts(), fromBonus, NOTHING_YET)).toEqual({ ok: false, error: 'nothing_earned' });
-    expect(decideGrant(tuesday, buildMemberFacts(), buyIn(), { ...NOTHING_YET, periodGiven: 1 })).toEqual({ ok: false, error: 'already_given' });
+  it('refuses a member who does not qualify, an event of another kind and a limit reached', () => {
+    expect(decideGrant(tuesday, buildMemberFacts(), visit({ at: '2026-11-18T21:00:00+05:30' }), NOTHING_YET)).toEqual({ ok: false, error: 'not_eligible' });
+    const seat = toPromotionEvent(buildPromotionEvent({ kind: 'seated', isFirstOfVisit: true }));
+    expect(decideGrant(tuesday, buildMemberFacts(), seat, NOTHING_YET)).toEqual({ ok: false, error: 'other_event' });
+    expect(decideGrant(tuesday, buildMemberFacts(), visit(), { ...NOTHING_YET, periodGiven: 1 })).toEqual({ ok: false, error: 'already_given' });
   });
 });

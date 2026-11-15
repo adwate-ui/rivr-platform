@@ -6,7 +6,7 @@
  * migration (rake, caps, TDS, GST, bonuses, credit limits, waitlist priority weights).
  */
 import { z } from 'zod';
-import { floorRequestTargets, tvLeaderboard } from './floorSettings.ts';
+import { floorRequestTargets, tvBoards, tvBoardSeconds, tvLeaderboard } from './floorSettings.ts';
 import {
   authStoreReviewer, bonusByHandCap, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, cabMinimumVisits, kycAtTheClub, rakebackRate,
 } from './rewardSettings.ts';
@@ -217,7 +217,7 @@ const reportsUnclaimedDays = {
 
 /** Every setting key declared in code. */
 export const SETTINGS = [
-  callTimeMinutes, callTimeAddChoices, floorRequestTargets, tvLeaderboard, defaultTier, kycMinimumAge, kycAtTheClub, authStoreReviewer, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
+  callTimeMinutes, callTimeAddChoices, floorRequestTargets, tvBoards, tvBoardSeconds, tvLeaderboard, defaultTier, kycMinimumAge, kycAtTheClub, authStoreReviewer, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, cageSecondApproverThreshold, tdsConfig, gstConfig, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
   cageCashBuyInLimit, rakebackRate, cabMinimumVisits, bonusByHandCap, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, ] as const;
 

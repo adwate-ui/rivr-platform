@@ -1,8 +1,7 @@
 -- Table-side food and drink (#123): Yash (214), seated at Table 3, orders from the app, paid; the dealer's tablet orders
 -- for his seat, paid; an admin at the console comps one. Each is posted to his visit with a KOT numbered for the night,
--- and fnb.ordered carries the KOT, naming no member. The cage agent prints its own venue's KOTs as bar_printer, never
--- one the bar was given by hand or one too old to print. 103 Aditya is an admin (fnb.manage), 104 Sana a cashier, 106
--- Pema a dealer.
+-- and fnb.ordered carries the KOT, naming no member. The bar is given a KOT by hand. 103 Aditya is an admin (fnb.manage),
+-- 104 Sana a cashier, 106 Pema a dealer.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -121,44 +120,9 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000214');
 select is((select count(*)::integer from public.fnb_order), 3, 'Yash sees his own');
 reset role;
 
--- A fourth KOT, from three hours ago (an agent that was off all evening), is too old to print now.
-select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-create temporary table old_order on commit drop as
-select * from public.console_fnb_order('00000000-0000-4000-8000-000000000001',
-  (select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 3'), 5,
-  jsonb_build_array(jsonb_build_object('item_id', pg_temp.item('Mineral water'), 'quantity', 1)), false);
-reset role;
-alter table public.outbox_event disable trigger outbox_event_immutable;
-update public.outbox_event set occurred_at = now() - interval '3 hours'
-where event_type = 'fnb.ordered' and payload ->> 'order_id' = (select order_id::text from old_order);
-alter table public.outbox_event enable trigger outbox_event_immutable;
-
--- The cage agent prints the rest as bar_printer, for its venue only.
-insert into public.device (id, venue_id, kind, name) values
-  ('00000000-0000-4000-8000-00000000a001', '00000000-0000-4000-8000-000000000001', 'agent', 'Cage agent'),
-  ('00000000-0000-4000-8000-00000000a002', '00000000-0000-4000-8000-000000000002', 'agent', 'Practice agent');
-set local role service_role;
-create temporary table claimed on commit drop as select * from public.claim_agent_kots('00000000-0000-4000-8000-00000000a001', 10);
-select results_eq($$ select payload ->> 'kot_number' from claimed order by 1 $$, $$ values ('2'::text), ('3') $$,
-  'the agent claims the KOTs not yet at the bar: not the one given by hand, nor the one three hours old');
-select is_empty($$ select * from public.claim_agent_kots('00000000-0000-4000-8000-00000000a001', 10) $$, 'each once, while it prints');
-select is_empty($$ select * from public.claim_agent_kots('00000000-0000-4000-8000-00000000a002', 10) $$, 'and never for the practice venue');
-select lives_ok($$ select public.finish_agent_kot('00000000-0000-4000-8000-00000000a001', delivery_id, true, null, null) from claimed $$,
-  'the agent prints them');
-select throws_ok($$ select public.finish_agent_kot('00000000-0000-4000-8000-00000000a002', (select delivery_id from claimed limit 1), true, null, null) $$,
-  '42501', null, 'an agent finishes only its own venue''s KOTs');
-reset role;
 select results_eq($$ select kot_number, kot_sent_by from public.fnb_order order by kot_number $$,
-  $$ values (1, 'staff'::text), (2, 'agent'), (3, 'agent'), (4, null) $$,
-  'so each KOT says how the bar got it, and the old one still waits on the console''s list');
-select results_eq(
-  $$ select d.status::text, d.last_error from public.outbox_delivery d join public.outbox_event e on e.id = d.event_id
-     where d.consumer = 'bar_printer' and e.payload ->> 'order_id' = (select order_id::text from old_order) $$,
-  $$ values ('delivered'::text, 'too old to print'::text) $$, 'the old KOT is closed without printing');
-
-select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select * from public.claim_agent_kots('00000000-0000-4000-8000-00000000a001', 10) $$, '42501', null, 'staff signed in cannot claim KOTs');
-reset role;
+  $$ values (1, 'staff'::text), (2, null), (3, null) $$,
+  'the KOT given by hand says so, and the others wait on the console''s list');
 
 -- An order's way to the seat (#635): Yash follows his own orders tonight; staff who run F&B accept one, then deliver it.
 select set_config('request.jwt.claims', '', true);

@@ -87,6 +87,20 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | `bonusExpired(grants, at)` | What expires at a moment: the remainder of each grant whose end has come. The database's `private.bonus_expiring` is proved equal on the same file; `private.expire_bonus` reverses it every hour. |
 | `bonusEnd(givenAt, days, since)` | When a grant ends once a venue sets `bonus.expiry_days` (decision 0579): N days after it was given, or after the switch-on for chips held before; never at 0 days. `private.bonus_end` is its twin on `bonus.json`. |
 | `visitBonusCap(heldAtFirstSeat, basisPoints)`, `visitBonusLeft(cap, redeemed)` | The most bonus one visit redeems under `bonus.visit_cap` (decision 0579): that share of the bonus held at its first seat, rounded down to whole ₹50 chips; and what is left of it. `private.visit_bonus_cap` and `private.visit_bonus_left` are their twins on `bonus.json`. |
+| `bonusLastsDays(days)` | How long Bonus lasts, for the line under a member's balance (redesign RD-20): the days of `bonus.expiry_days` as in force; null, never, for 0 days or none set. |
+
+### `@rivr/domain/notices`
+
+| Export | What it does |
+|---|---|
+| `noticeToShow(notices)` | The one notice that shows where there is room for one, Home's top slot and the foot of the TVs' boards (redesign correction 20): of those in force, the one that started last; of two that started together, the one listed first (the database lists the one made last first). `private.notice_to_show` is its twin, proved on `noticeToShow.json`; `homeTopSlot` and the TV's `tv_notice` both use it. |
+| `homeTopSlot({ seat, isIdCheckDone, notices })`, `HomeSlot`, `LiveNotice`, `SeatStanding` | The one card above the offers on the player's Home (redesign RD-20): nothing while a seat is `called` or `taken`; else `idCheck` while the check is not done; else the notice in force that started last (the first listed of two that started together); else nothing. `notices` are those the server lists as in force. |
+
+### `@rivr/domain/referral`
+
+| Export | What it does |
+|---|---|
+| `referralPromise(liveBonus)`, `ReferralPromise` | What Refer a friend may say (redesign RD-20): a `reward` of that Bonus each while a referral promotion is live and gives something, else the `invite` alone, with no word of a reward. `liveBonus` is what `my_referral` reads from the live promotion; null with none live. |
 
 ### `@rivr/domain/fnb`
 
@@ -149,8 +163,9 @@ The database's `private.promotion_applies`, `private.promotion_reward` and `priv
 |---|---|
 | `isInSchedule(schedule, at)`, `secondsInSchedule(span, schedule)`, `openingMinutes` | When a version runs: on its club days from its start day to its end day, an opening from `from` to the next `to`, across midnight or the 06:00 turnover; the same time at both ends is 24 hours. Time-played rewards count the whole seconds of play inside the openings. Proved on `promotionSchedule.json`. |
 | `isEligible(promo, member, context)`, `MemberFacts` | The member's tier and audience (everyone, new in 30 days or lapsed 30 days; no audience of women, decision 0497), and for an event at a moment its stake, table and moment. |
-| `computeGrant(promo, event)`, `triggerOf(reward)`, `Grant` | What the reward gives for one event, before limits: a seat bonus its fixed chips on a visit's first seat or on the first N at a table (owner, 8 Nov); a buy-in bonus as a percent of own chips in whole 50s held to its cap, or fixed; a play-time bonus step's chips on its own `hours_step` event (decision 0507); bonus chips on their event; a cab, an entry or priority on a visit. `Result` with the reason for nothing. |
+| `computeGrant(promo, event)`, `triggerOf(reward)`, `Grant` | What the reward gives for one event, before limits: a seat bonus its fixed chips on a visit's first seat or on the first N at a table (owner, 8 Nov); a play-time bonus step's chips on its own `hours_step` event (decision 0507); bonus chips on their event; waitlist priority on a visit (a cab home and a tournament entry are no longer rewards, decision 0622). `Result` with the reason for nothing. |
 | `checkLimits(promo, grant, tally)`, `tallyFor`, `periodKey`, `slotKey`, `remainingBudget(promo, ledger, day)`, `decideGrant` | The limits in order: the member's period (up to `timesPerMember` times, each grant keyed as the member's Nth there by `slotKey`; a play-time bonus step's period `@` its place among the promotion's steps, so an edit that moves a step never pays it twice, and with no limit its visit; `periodKey` takes the reward for that, decisions 0507 and 0511), first N per table, members a day, most grants, the budget in chips whole or not at all; counted over all versions, and a monthly budget (`budgetPeriod` `month`) over the event's club month alone (decision 0499). |
+| `highHandPayout(reward, hit)`, `ranksOf(hand)`, `highestHandChips(reward)`, `budgetLeft(limits, tally)` | The high hand bonus (redesign RD-22): a hit pays its listed hand's Bonus, whole, every time; a full house of three aces is Aces full where the promotion lists it and any full house otherwise; a hand not listed, a rank the hand cannot have, or a rule left unconfirmed pays nothing and says which. `ranksOf` gives the ranks a hand is logged with. Its budget alone holds it (`checkLimits`), and `budgetLeft` is what a refusal for the budget says. `private.high_hand_payout` and `private.promo_budget_left` are the twins on `promotionRewards.json`. |
 | `tierChips(tiers, claimed)` | A seat bonus in tiers (decision 0580): the chips of the tier the claims so far fall in, null once every tier is claimed; `checkLimits` gives a tiered grant its tier's chips and refuses it `tiers_used_up` past the last. `private.promo_tier_chips` is its twin on `promotionRewards.json`. |
 | `stackGrants(candidates)` | For one event: chips stack; one perk of each kind. |
 | `hourSteps(reward)`, `stepsReached(reward, minutes)` | A play-time bonus's steps (decision 0507): one after a time, two to six set steps, or every so many minutes up to its times a visit and never past 24 hours; and those reached in the minutes played. |
@@ -176,13 +191,6 @@ A member's counted hours after a super admin resets them (redesign RD-36, decisi
 |---|---|
 | `countedSeconds(stint, countedFrom)`, `PlayedStint` | The seconds of a stint that still count towards a member's hours (the TV's hours leaderboard, a play-time Bonus, the Members list): all of it when the stint began at or after the moment hours count from, none when it ended by then, else the share played after it by the clock, rounded down (`tablePlayedSeconds`). Null counts everything. |
 
-### `@rivr/domain/aml`
-
-AML cash limits (#105, decision 0234; golden `aml.json`; SQL twin `private.cash_limit_hit`).
-
-| Export | What it does |
-|---|---|
-| `cashLimitHit(limits, visitSoFar, daySoFar, amount)`, `CashLimits`, `CashLimitHit` | Which limit a cash buy-in would take the member past, the visit's checked first (`visit`, `day`), or null within both. Reaching a limit exactly is within it; nothing, or null, is no limit. |
 
 ### `@rivr/domain/clubDay`
 
@@ -195,25 +203,6 @@ The club's day runs 06:00 to 06:00 IST, so a night past midnight belongs to the 
 | `clubDaysPeriod(first, last)` | A run of club days as the moments it begins and ends: 06:00 IST on the first to 06:00 IST after the last. |
 | `dayAfter(day, count)`, `weekOf(day)` | The club day `count` days after another (before, when negative), and the Monday of a club day's week. |
 
-### `@rivr/domain/tournament`
-
-Tournaments (#115, #116, #119; decisions 0200 to 0202). `clockAt` is proved equal to its `private.` twin by `packages/testing/golden/tournamentClock.json`; `checkPurchase` by `tournamentEntry.json`, and the calculator by `blindStructure.json`.
-
-| Export | What it does |
-|---|---|
-| `Stage`, `PlayLevel`, `BreakStage`, `structureProblem(stages)`, `structureMinutes`, `levelCount`, `MOST_STAGES` | A blind structure: levels (blinds and ante in chips, minutes) and breaks. What stops the clock running one: none, more than sixty stages, a break first, two breaks together, minutes outside 1 to 120, a small blind above the big. |
-| `clockAt(stages, elapsedSeconds)`, `ClockPosition` | Where the clock stands: the stage, the level (a break counts as the level before it), whether it is a break, the seconds left. Before the start, level 1 in full; past the end, the last stage with none left. |
-| `stageStartSeconds`, `nextLevelAfter`, `levelAtOrAfter` | When a stage starts; the next level after a stage; the level at a stage, or after a break. |
-| `elapsedNow(reading, nowMs)`, `ClockReading` | A device's count down from the server's reading: a running clock runs on from when it was read, a paused one holds. |
-| `planStructure(plan)`, `StructurePlan` | The calculator: levels for a target length, big blinds up the chip ladder to a twentieth of the chips in play, breaks every so many levels, an optional big-blind ante. |
-| `checkPurchase(purchase, rules, level, player)`, `TOURNAMENT_FORMATS`, `EntryRules`, `PlayerStanding`, `Purchase`, `PurchaseRefusal` | Whether a player may enter, re-enter, rebuy or take the add-on at the clock's level: a `Result` with the refusal. |
-| `poolShare(price, fee)` | What one buy puts in the prize pool: its price less the fee, refused unless the fee is nothing or more and below the price (golden `tournamentMoney.json`). |
-| `prizePool(collected, guarantee)`, `payoutTable(pool, shares, runs)`, `areSharesWhole(shares)`, `WHOLE_POOL`, `MOST_PLACES` | The prize pool with the overlay a guarantee needs, and the prizes by the floor's shares in basis points adding up to 100%, rounded down to ₹50 chips, the rest to first (#121, decision 0205, question #470; golden `tournamentPayouts.json`). |
-| `chipChop(stacks, prizes)`, `icmDeal(stacks, prizes)`, `dealAmounts(method, stacks, prizes)`, `DEAL_METHODS`, `MOST_DEAL_PLAYERS` | Deals among two to nine players for the prizes they would play for: each sure of the smallest, the rest by chips or by ICM (Malmuth-Harville), rounded down to ₹50 chips, the rest to the biggest stack (decision 0205). |
-| `bountyOnBust(bounty, kind)`, `BOUNTY_KINDS` | A bust's bounty: all paid (standard), or half paid and half onto the eliminator's head (progressive) (#117, decision 0206). |
-| `dayTwoField(runs)`, `FlightRun`, `DayTwoField` | Day 2 of a multi-flight event: who goes through (the bigger stack if twice) and the players out on Day 1, best first, by players outlasted in their flight, then the smaller flight, then the earlier run (#117, decision 0251; golden `tournamentSeating.json`). |
-| `satelliteSeats(pool, targetBuyIn, runs)`, `SatelliteSeats` | A satellite's seats in its target event: the pool at the target's buy-in, rounded down and never more than the runs, and the cash left over with the place it goes to (#117, decision 0250; golden `tournamentPayouts.json`). |
-| `eligibleSeats(occupied, tables, seatsPerTable)`, `balancingMoves(counts)`, `averageStack(chips, players)`, `TournamentSeat`, `BalancingMove` | Seating and balancing (#120, decision 0204; golden `tournamentSeating.json`): the free seats at the emptiest tables a new player may be given; the moves that bring every table within one player of the others; the chips per player left. |
 
 ### `@rivr/domain/glaza`
 

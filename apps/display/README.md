@@ -1,6 +1,6 @@
 # display
 
-The TV app at 1920 px: waitlist and call-time boards, the promotions rotation and the other TV modes, with no rupee (#628, decision 0284). Each board has a bar along the stage's foot that fills over its half minute. When the TV's reads fail, as in a network drop, the boards keep what they had and a quiet line at the foot says since when (F3-24). A TV pairs with a six-digit code and then shows the mode a manager assigns it.
+The TV app at 1920 px: the five boards (redesign RD-28), the waitlist, call time (titled Seats opening), the promotions, the hours leaderboard and the high hand bonus, with no rupee (#628, decision 0284). Every board stands on one stage: the wordmark, the board's title, the club's time, and along the foot the club's notice while one runs. Each has a bar along the stage's foot that fills over its seconds, which Settings, TVs, Rotation gives it. When the TV's reads fail, as in a network drop, the boards keep what they had and a quiet line at the foot says since when (F3-24). A TV pairs with a six-digit code and then shows the mode a manager assigns it.
 
 ## Run it
 
@@ -21,12 +21,12 @@ src/
   router.tsx          every route, in one list
   routes/             one file per URL; renders a feature's screen and nothing else
   features/<name>/    components/ and hooks/, imported only through index.ts
-    frame/            the app's shell: navigation, not found; the pairing code until the TV is paired
+    frame/            the app's shell: navigation, not found; the pairing code until the TV is paired; the clock and the club's notice for every board
     pairing/          a TV that is not paired shows a six-digit code for the console's TVs screen (#49)
-    modes/            a paired TV shows the mode the console gave it: the waitlist board (#65), the promotions (#86) and the call-time board with the
-                      seats opening (decision 0163),
-                      and the hours leaderboard in the period the club set (decision 0581), live through Realtime; in between, the boards the console
-                      chose for it to turn to, half a minute each, the promotions one after another
+    modes/            the five boards (decision 0631), each a mode on one stage: the waitlist (#65), seats opening (decision 0163), the promotions (#86),
+                      the hours played, tonight's and the period's the club set (decision 0581), and the high hand bonus (`toHighHandBoard`, redesign RD-25),
+                      live through Realtime; a paired TV shows its own board, then those it turns to, less any the club switched off, each for the seconds
+                      Settings, TVs, Rotation gives it (`tv.board_seconds`)
 ```
 
 Everything visible comes from `@rivr/ui`, every word from `@rivr/i18n`, every read through `@rivr/db`. A route imports only features, and a feature never imports another feature; `pnpm lint:deps` fails either (`.claude/rules/apps.md`).
@@ -39,4 +39,4 @@ Lane B owns every mode, built from `@rivr/ui` and lane D's templates.
 
 A TV recovers its mode within 5 seconds of a reload.
 
-In a rotation, a board with nothing to show passes its half minute on; the main board never does, and promotions with none live show for one slide's time (D-03, decision 0293).
+In a rotation, a board with nothing to show passes its turn on; the main board never does, and promotions with none live show for one slide's time (D-03, decision 0293).

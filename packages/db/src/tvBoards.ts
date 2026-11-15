@@ -6,6 +6,7 @@ import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 import { LIST_MOST } from './limits.ts';
+import { playedGame } from './parse/game.ts';
 
 /** A place on the TV's waitlist board (#65): the player as a first name and initial. */
 export interface TvPlace {
@@ -26,8 +27,8 @@ export interface TvTableList {
   readonly name: string;
   /** The stake's name: "NLH 100/200". */
   readonly stake: string;
-  /** The stake's game, as `nlh`, or null where it names none; its figures: the blinds, and the straddle or null with none (issue 990). */
-  readonly game: string | null;
+  /** The stake's game, `nlh` where it names none (`playedGame`); its figures: the blinds, and the straddle or null with none (issue 990). */
+  readonly game: 'nlh' | 'plo';
   readonly smallBlind: Paise;
   readonly bigBlind: Paise;
   readonly straddle: Paise | null;
@@ -54,8 +55,8 @@ export interface TvCallTimeTable {
   readonly name: string;
   /** The table's game and stake: "NLH 100/200". */
   readonly stake: string;
-  /** The stake's game, as `nlh`, or null where it names none; its figures: the blinds, and the straddle or null with none (issue 990). */
-  readonly game: string | null;
+  /** The stake's game, `nlh` where it names none (`playedGame`); its figures: the blinds, and the straddle or null with none (issue 990). */
+  readonly game: 'nlh' | 'plo';
   readonly smallBlind: Paise;
   readonly bigBlind: Paise;
   readonly straddle: Paise | null;
@@ -68,9 +69,10 @@ const BOARD_CHECK = 30_000;
 // However many signals arrive, the board is read again at most once every two seconds.
 const SIGNAL_SETTLE = 2_000;
 
-// The query each board's signal reads again; promotions is the Promotions rotation's (#86). The TV's screen listens (useTvSignals).
+// The query each board's signal reads again; promotions is the Promotions rotation's (#86), high_hand a payout's (redesign
+// RD-25). The TV's screen listens (useTvSignals).
 const BOARD_KEYS = {
-  waitlist: queryKeys.tvWaitlistBoard, call_time: queryKeys.tvCallTimeBoard, promotions: queryKeys.tvPromotions,
+  waitlist: queryKeys.tvWaitlistBoard, call_time: queryKeys.tvCallTimeBoard, promotions: queryKeys.tvPromotions, high_hand: queryKeys.tvHighHand,
 };
 
 /**
@@ -108,7 +110,7 @@ interface BoardRow {
   table_id: string;
   table_name: string;
   table_type_name: string;
-  game: string;
+  game: string | null;
   small_blind_paise: number;
   big_blind_paise: number;
   straddle_paise: number | null;
@@ -119,10 +121,10 @@ interface BoardRow {
   is_away: boolean | null;
 }
 
-/** A row's stake in figures: its game, its blinds and its straddle, or null with none. */
+/** A row's stake in figures: its game (`nlh` where it names none, as the console reads it), its blinds and its straddle, or null with none. */
 function figuresOf(row: { game: string | null; small_blind_paise: number; big_blind_paise: number; straddle_paise: number | null }) {
   return {
-    game: row.game, smallBlind: toPaise(row.small_blind_paise), bigBlind: toPaise(row.big_blind_paise),
+    game: playedGame(row.game), smallBlind: toPaise(row.small_blind_paise), bigBlind: toPaise(row.big_blind_paise),
     straddle: row.straddle_paise === null ? null : toPaise(row.straddle_paise),
   };
 }
@@ -150,7 +152,7 @@ interface CallTimeRow {
   table_id: string;
   table_name: string;
   stake_name: string;
-  game: string;
+  game: string | null;
   small_blind_paise: number;
   big_blind_paise: number;
   straddle_paise: number | null;
@@ -193,7 +195,7 @@ export function useTvWaitlistBoard() {
 }
 
 /**
- * A place on the TVs' hours leaderboard (decision 0581), in the period the club set: a first name and initial, or for a member
+ * A place on one of the TVs' hours leaderboard's lists (decision 0581), tonight's or the period's the club set: a first name and initial, or for a member
  * who hid their name on the TVs their member number, and the whole minutes played.
  */
 export interface TvLeaderboardRow {
@@ -220,7 +222,7 @@ export function toTvLeaderboard(rows: readonly LeaderboardRecord[]): TvLeaderboa
   }));
 }
 
-/** The signed-in TV's hours leaderboard at its venue, in order; read every half minute, as hours grow while members play. */
+/** The signed-in TV's hours leaderboard at its venue: tonight's list, then the period's the club set, each in order; read every half minute, as hours grow while members play. */
 export function useTvLeaderboard() {
   const { client, userId } = useRivrData();
   return useQuery({
@@ -231,6 +233,24 @@ export function useTvLeaderboard() {
       const { data, error } = await client.rpc('tv_leaderboard').limit(LIST_MOST);
       if (error) throw error;
       return toTvLeaderboard(data);
+    },
+  });
+}
+
+/**
+ * The club's notice for the foot of the signed-in TV's boards (redesign RD-28): the text of its venue's notice in force
+ * that started last, or null with none. Read every half minute, so a notice staff put up or end shows without a reload.
+ */
+export function useTvNotice() {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.tvNotice(userId ?? 'signed-out'),
+    enabled: userId !== null,
+    refetchInterval: BOARD_CHECK,
+    queryFn: async (): Promise<string | null> => {
+      const { data, error } = await client.rpc('tv_notice');
+      if (error) throw error;
+      return data;
     },
   });
 }

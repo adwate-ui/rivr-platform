@@ -58,7 +58,6 @@ export const floor = {
     notLeaving: 'Not leaving',
     record: 'Record',
     alsoWaiting: 'Also waiting',
-    tournament: 'Tournament interest',
     kyc: 'ID checks',
     feedback: 'Feedback tickets',
   },
@@ -144,6 +143,44 @@ export const floor = {
     leaveOwing: 'Leave owing',
     pickReason: 'Pick a reason to let them go before call time.',
     cancel: 'Cancel',
+  },
+  /** The high hand strip and Log a high hand (redesign RD-24). `{hand}` is the hit named exactly: Four Jacks. */
+  highHand: {
+    label: 'High hand bonus',
+    none: 'No hands paid tonight',
+    one: '1 hand paid tonight',
+    many: '{count} hands paid tonight',
+    bonus: '{chips} Bonus',
+    last: 'Last: {name}, {hand}, {time}',
+    log: 'Log a high hand',
+    /** The strip could not read whether a high hand runs, or what it paid tonight. */
+    failed: 'High hand bonus not loaded.',
+    table: 'Table',
+    player: 'Player',
+    hand: 'Hand',
+    /** A listed hand with its Bonus: `Four of a kind · 5,000`. */
+    handChoice: '{hand} · {chips}',
+    /** What a hand's rank is asked as. */
+    rank: { straight_flush: 'High card', four_of_a_kind: 'Four of', full_house: 'Three of' },
+    bothHoleCards: 'Both hole cards played',
+    shownAtShowdown: 'Shown at showdown',
+    playersDealt: '{count} or more players dealt in',
+    pays: 'Pays {chips} Bonus to {name} now. {hand}, {table}, seat {seat}.',
+    cancel: 'Cancel',
+    pay: 'Pay',
+    payChips: 'Pay {chips} Bonus',
+    paid: '{chips} Bonus paid to {name} for {hand}',
+    failures: {
+      not_allowed: 'Not in your role. Ask an admin.',
+      own_record: 'Not paid. Someone else logs your own hand.',
+      none_live: 'No high hand promotion is running.',
+      not_seated: 'Not seated at that table now. Log a hit before ending the seat.',
+      not_eligible: 'Not paid. The promotion is not for that table or player now.',
+      rule: 'Not paid. Check the hand and each rule.',
+      over_budget: 'Not paid. The budget has {left} Bonus left.',
+      paused: 'Not paid. The venue is frozen or promotions are off.',
+      unavailable: 'Not paid. Try again.',
+    },
   },
   /** What each change says at the foot of the screen, with Undo for five seconds (decision 0480). */
   toast: {

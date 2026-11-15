@@ -17,6 +17,13 @@ describe('DetailRow', () => {
     expect(screen.getByText('NLH 50/100').parentElement).toHaveClass('border-t', 'border-b');
   });
 
+  it('sets a line under the label, small and muted, with the label in medium weight (redesign RD-20)', () => {
+    renderIn(<DetailRow label="Friday four-hour bonus" detail="7 Nov" value="+1,000" valueTone="accent" />);
+    expect(screen.getByText('Friday four-hour bonus')).toHaveClass('font-medium');
+    expect(screen.getByText('7 Nov')).toHaveClass('text-12', 'text-content-muted');
+    expect(screen.getByText('+1,000')).toHaveClass('text-accent');
+  });
+
   it('is a button with a chevron when it opens something', async () => {
     const onOpen = vi.fn();
     renderIn(<DetailRow label="House rules" onOpen={onOpen} />);

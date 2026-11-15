@@ -22,6 +22,7 @@ insert into public.waitlist_entry (venue_id, member_id, table_type_id, table_id,
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
 select is((select count(*)::integer from public.my_waitlist()), 0, 'last night''s place is not on Arjun''s Home');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 create temp table tonight_wait as select waiting from public.waitlist_lengths() where table_id = (select table_id from game);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000202');
 select results_eq($$ select place is not null from public.my_waitlist() $$, $$ values (true) $$, 'tonight''s place has its number');

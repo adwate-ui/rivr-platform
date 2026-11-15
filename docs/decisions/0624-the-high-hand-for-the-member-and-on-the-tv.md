@@ -1,0 +1,12 @@
+# 0624. The high hand for the member and on the TV
+
+Issue #968 (RD-25). Decided while building:
+
+- **The offer card** is the high hand that runs at the member's club, read by `my_high_hand` exactly where its promotion's card would show (`my_promotion_cards`: the tier has `promotions.feed`, the promotion shows in the app). It stands in for that promotion's own card, so the carousel has one card for it: 'High hand bonus', the promotion's name, and under it each hand with its Bonus.
+- **The payout is a Bonus line like any other**, so the balance changes at once over the member's live channel, as it does for any Bonus. `my_bonus_history` now carries the hand and rank of a line a high hand paid; the toast and the history line say 'High hand: Straight flush, Nine high' from them, in `@rivr/i18n`'s words, in place of the promotion's name. Only the member's own history has the hand; a member's record in the console keeps the promotion's name.
+- **The push is the one every Bonus sends** (`bonus.credited`, where the member allows it): '10,000 Bonus added' with the promotion's name. A second push naming the hand would ring the phone twice for one payout. `high_hand.paid` stays in the outbox for a consumer that wants the hand. No consumer is handed a practice venue's events.
+- **The TV board is a body and a read.** `TvHighHandBoard` in `@rivr/ui` draws the hands with their Bonus and the rules on the left, tonight's payouts on the right, the newest lit for five minutes, for the stage's body of 1760 by 739; it draws no title, clock or notice line, which the stage has. `useTvHighHand` reads `tv_high_hand`; `toHighHandBoard` in the TV app turns the read into the board's words. Listing the board among a TV's modes and in its rotation is issue #971's.
+- **The TV's read is its venue's own**, by the TV that asks (`private.current_tv_venue_id()`), where the promotion shows on the TVs; it becomes `private.tv_showing('high_hand')` once that mode exists. The newest twelve payouts of tonight are read, the newest six shown.
+- **A member who hid their name on the TVs** is 'Member #17', as the hours leaderboard shows them; everyone else a first name and initial. Like the leaderboard, the board leaves out a member since erased or on a break from play.
+- **A hit has a Bonus grant of its own**, held by a unique index, so a history line names one hand.
+- **Real time:** a payout broadcasts `high_hand` on the venue's TV topic, as the other boards' changes do, and the board is read again; it also asks every half minute.

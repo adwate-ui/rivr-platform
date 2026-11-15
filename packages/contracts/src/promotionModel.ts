@@ -22,17 +22,29 @@ const seatTiers = z.array(z.strictObject({ count: z.int().min(1).max(10_000), ch
 const clockTime = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 const id = z.string().min(1).max(64);
 
+/** The hands a high hand promotion can pay (the owner, 15 Nov; question 940): a fixed list, the strongest first. */
+export const HIGH_HANDS = ['royal_flush', 'straight_flush', 'four_of_a_kind', 'aces_full', 'full_house'] as const;
+export type HighHand = (typeof HIGH_HANDS)[number];
+
+/** Card ranks, the highest first: which four of a kind, the three of a full house, a straight flush's high card. */
+export const CARD_RANKS = ['ace', 'king', 'queen', 'jack', 'ten', 'nine', 'eight', 'seven', 'six', 'five', 'four', 'three', 'two'] as const;
+export type CardRank = (typeof CARD_RANKS)[number];
+
+// A high hand promotion's hands (redesign RD-22): each listed once, with its own Bonus.
+const highHands = z.array(z.strictObject({ hand: z.enum(HIGH_HANDS), chips })).min(1).max(HIGH_HANDS.length)
+  .refine((hands) => new Set(hands.map(({ hand }) => hand)).size === hands.length);
+// Its rules: both hole cards must play, the hand is shown at showdown, and at least so many players were dealt in.
+const highHandRules = z.strictObject({ bothHoleCards: z.boolean(), shownAtShowdown: z.boolean(), minPlayersDealt: z.int().min(2).max(10) });
+
+/** Each rule as the floor confirms it when logging a high hand; the players dealt in are always confirmed. */
+export const highHandConfirmedSchema = z.strictObject({ bothHoleCards: z.boolean(), shownAtShowdown: z.boolean(), playersDealt: z.boolean() });
+
 /** What bonus chips are given on. */
-export const BONUS_CHIPS_ON = ['visit', 'first_buyin', 'referral', 'signup'] as const;
+export const BONUS_CHIPS_ON = ['visit', 'referral', 'signup'] as const;
 
 export const rewardSchema = z.union([
-  z.strictObject({
-    kind: z.literal('buyin_bonus'), mode: z.literal('percent'), percent: z.int().min(1).max(100), capChips: chips.optional(),
-    firstNBuyinsPerTable: firstN.optional(),
-  }),
-  z.strictObject({ kind: z.literal('buyin_bonus'), mode: z.literal('fixed'), chips, firstNBuyinsPerTable: firstN.optional() }),
   // On the seat (owner, 8 Nov): fixed chips on the first seat of a visit, or on each of the first N seats at a table in a club day.
-  // A buy-in bonus above is kept for what was published; nothing records a buy-in since the Cage was hidden, and the builder offers none.
+  // Nothing is given on a buy-in: none is recorded since the cage went (owner, 15 Nov; question 1009).
   z.strictObject({ kind: z.literal('seat_bonus'), chips, firstNSeatsPerTable: firstN.optional() }),
   // Or in tiers (owner, 12 Nov), on a member's first seat of a visit, once a member: promotionTermsSchema holds it to once.
   z.strictObject({ kind: z.literal('seat_bonus'), tiers: seatTiers }),
@@ -44,9 +56,9 @@ export const rewardSchema = z.union([
     timesPerVisit: z.int().min(1).max(20).optional(),
   }),
   z.strictObject({ kind: z.literal('bonus_chips'), chips, on: z.enum(BONUS_CHIPS_ON) }),
-  z.strictObject({ kind: z.literal('cab_home'), fromVisitInMonth: z.int().min(1).max(31) }),
-  z.strictObject({ kind: z.literal('tournament_entry'), tournamentId: z.string().trim().min(1).max(80) }),
   z.strictObject({ kind: z.literal('waitlist_priority') }),
+  // Paid at once, every time a listed hand is hit and the floor logs it (redesign RD-22).
+  z.strictObject({ kind: z.literal('high_hand'), hands: highHands, rules: highHandRules }),
 ]);
 export type Reward = z.infer<typeof rewardSchema>;
 
@@ -126,7 +138,13 @@ export const promotionTermsSchema = z.strictObject({
   // A seat bonus in tiers counts its claims over the promotion's life, each member once (decision 0580): no monthly reset.
   .refine(({ reward, limits }) => !('tiers' in reward)
     || (limits.perMember === 'once' && limits.timesPerMember === undefined && limits.budgetPeriod !== 'month'),
-    { path: ['limits', 'perMember'] });
+    { path: ['limits', 'perMember'] })
+  // A high hand is paid every time it is hit (redesign RD-22): no limit a member, a day or in grants. Its budget alone holds
+  // it, so it has one.
+  .refine(({ reward, limits }) => reward.kind !== 'high_hand'
+    || (limits.perMember === 'none' && limits.maxMembersPerDay === undefined && limits.maxGrants === undefined),
+    { path: ['limits', 'perMember'] })
+  .refine(({ reward, limits }) => reward.kind !== 'high_hand' || limits.budgetChips !== undefined, { path: ['limits', 'budgetChips'] });
 export type PromotionTerms = z.infer<typeof promotionTermsSchema>;
 
 /** A version's status: drafted, waiting for a second person, approved for a later day, running, paused or over. */
@@ -134,7 +152,7 @@ export const PROMOTION_STATUSES = ['draft', 'awaiting_approval', 'scheduled', 'l
 export type PromotionStatus = (typeof PROMOTION_STATUSES)[number];
 
 const eventBase = {
-  // The event, once: 'buy_in:' and the cage transaction, 'seated:' and the seat, 'hours_played:' and the visit, 'hours_step:' the visit and step.
+  // The event, once: 'high_hand:' and the request that logged it, 'seated:' and the seat, 'hours_played:' and the visit, 'hours_step:' the visit and step.
   key: z.string().min(1).max(200),
   at: z.iso.datetime({ offset: true }),
   memberId: id,
@@ -144,11 +162,9 @@ const eventBase = {
 };
 
 /**
- * An event a promotion weighs, as the engine and last week's replay give it: a buy-in (the member's own chips, 0 when
- * paid from bonus), time played (the minutes inside the version's schedule at its stakes and tables), a play-time bonus step reached, a visit (its number in the calendar month), a referral or a sign-up.
+ * An event a promotion weighs, as the engine and last week's replay give it: a seat taken, time played (the minutes inside the version's schedule at its stakes and tables), a play-time bonus step reached, a visit (its number in the calendar month), a referral or a sign-up.
  */
 export const promotionEventSchema = z.discriminatedUnion('kind', [
-  z.strictObject({ ...eventBase, kind: z.literal('buy_in'), ownChips: z.int().min(0), isFirstOfVisit: z.boolean() }),
   // A seat past its Undo: whether it is the first of the visit.
   z.strictObject({ ...eventBase, kind: z.literal('seated'), isFirstOfVisit: z.boolean() }),
   z.strictObject({ ...eventBase, kind: z.literal('time_played'), minutes: z.int().min(0) }),
@@ -157,6 +173,8 @@ export const promotionEventSchema = z.discriminatedUnion('kind', [
   z.strictObject({ ...eventBase, kind: z.literal('visit'), visitInMonth: z.int().min(1) }),
   z.strictObject({ ...eventBase, kind: z.literal('referral') }),
   z.strictObject({ ...eventBase, kind: z.literal('signup') }),
+  // A high hand as the floor logs it (redesign RD-22): the hand, its rank where the hand has one, and each rule confirmed.
+  z.strictObject({ ...eventBase, kind: z.literal('high_hand'), hand: z.enum(HIGH_HANDS), rank: z.enum(CARD_RANKS).nullable(), confirmed: highHandConfirmedSchema }),
 ]);
 export type PromotionEventJson = z.infer<typeof promotionEventSchema>;
 

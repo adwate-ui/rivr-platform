@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 import { LIST_MOST } from './limits.ts';
+import { playedGame } from './parse/game.ts';
 
 /** A seat's top-up (#634): asked for, then in hand at the floor; null with none asked for. */
 export type TopUp = 'requested' | 'in_progress';
@@ -32,8 +33,8 @@ export interface MySeat {
   readonly callTimeEndsAt: string | null;
   /** The seat's game and stakes: "NLH 50/100". */
   readonly tableTypeName: string;
-  /** The stake's game, as `nlh`, or null where it names none; its figures: the blinds, and the straddle or null with none (issue 990). */
-  readonly game: string | null;
+  /** The stake's game, `nlh` where it names none (`playedGame`); its figures: the blinds, and the straddle or null with none (issue 990). */
+  readonly game: 'nlh' | 'plo';
   readonly smallBlind: bigint;
   readonly bigBlind: bigint;
   readonly straddle: bigint | null;
@@ -86,7 +87,7 @@ export function useMySeat() {
         : { tableName: row.table_name, seat: row.seat, isAway: row.is_away, hasCallTime: row.has_call_time, callTimeLeft: row.call_time_left,
             playedSeconds: row.played_seconds, isLeaving: row.is_leaving, topUp: isTopUp(row.top_up) ? row.top_up : null,
             callTimeMinutes: row.call_time_minutes, startedAt: row.started_at, callTimeEndsAt: row.call_time_ends_at,
-            tableTypeName: row.table_type_name, game: row.game, smallBlind: BigInt(row.small_blind_paise), bigBlind: BigInt(row.big_blind_paise),
+            tableTypeName: row.table_type_name, game: playedGame(row.game), smallBlind: BigInt(row.small_blind_paise), bigBlind: BigInt(row.big_blind_paise),
             straddle: row.straddle_paise === null ? null : BigInt(row.straddle_paise),
             timeRequestMinutes: row.time_request_minutes, addTimeChoices: row.add_time_choices };
     },

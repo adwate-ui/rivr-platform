@@ -3,7 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { forgetOffline, keepForOffline, restoreForOffline } from './offlineCache.ts';
 import { queryKeys } from './queryKeys.ts';
 
-const STORED = 'rivr.offline.v1';
+const STORED = 'rivr.offline.v2';
+const STORED_BEFORE = 'rivr.offline.v1';
 const USER = 'u1';
 const RECORD = { status: 'verified', hasSelfie: true, dateOfBirth: '1990-01-01', maskedAadhaar: 'XXXX XXXX 1234', pan: 'ABCPM1234F', isAtTheClub: false };
 
@@ -129,6 +130,25 @@ describe('the offline cache', () => {
     restoreForOffline(cache, Date.now() + 12 * 60 * 60 * 1000 + 1);
     expect(cache.getQueryData(queryKeys.member(USER))).toBeUndefined();
     expect(localStorage.getItem(STORED)).toBeNull();
+  });
+
+  it('reads nothing an earlier version kept, whose member had no number, and clears it from the phone', () => {
+    const before = kept([[queryKeys.member(USER), { fullName: 'Kavya Rao' }]]);
+    localStorage.clear();
+    localStorage.setItem(STORED_BEFORE, before);
+    setOnline(false);
+    const cache = new QueryClient();
+    restoreForOffline(cache);
+    expect(cache.getQueryData(queryKeys.member(USER))).toBeUndefined();
+    expect(localStorage.getItem(STORED_BEFORE)).toBeNull();
+    // Online too, and at sign-out: nothing of an earlier version stays on the phone.
+    localStorage.setItem(STORED_BEFORE, before);
+    setOnline(true);
+    restoreForOffline(new QueryClient());
+    expect(localStorage.getItem(STORED_BEFORE)).toBeNull();
+    localStorage.setItem(STORED_BEFORE, before);
+    forgetOffline();
+    expect(localStorage.getItem(STORED_BEFORE)).toBeNull();
   });
 
   it('forgets everything when asked, as at sign-out', () => {

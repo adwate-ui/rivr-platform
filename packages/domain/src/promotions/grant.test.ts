@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { computeGrant, toPromotionEvent, triggerOf, type PromotionEvent } from './grant.ts';
 
 const event = (...args: Parameters<typeof buildPromotionEvent>): PromotionEvent => toPromotionEvent(buildPromotionEvent(...args));
-const buyIn = event({ kind: 'buy_in', ownChips: 10_000, isFirstOfVisit: true });
+const seat = event({ kind: 'seated', isFirstOfVisit: true });
 const played = event({ kind: 'time_played', minutes: 300 });
 // A play-time bonus step: 300 minutes played, the 240-minute step reached.
 const step = (stepMinutes: number, minutes = 300) => event({ kind: 'hours_step', minutes, stepMinutes }, { key: `hours_step:visit-1:${String(stepMinutes)}` });
@@ -13,48 +13,53 @@ const grantOf = (reward: Reward, on: PromotionEvent) => computeGrant({ reward },
 
 describe('toPromotionEvent', () => {
   it('reads the moment as a date and keeps the rest', () => {
-    expect(buyIn.at.toISOString()).toBe('2026-11-17T15:30:00.000Z');
-    expect(buyIn.kind === 'buy_in' && buyIn.ownChips).toBe(10_000);
+    expect(seat.at.toISOString()).toBe('2026-11-17T15:30:00.000Z');
+    expect(seat.kind === 'seated' && seat.isFirstOfVisit).toBe(true);
   });
 });
 
 describe('triggerOf', () => {
-  it('gives play-time bonuses for each step, seat bonuses for a seat, buy-in bonuses for buy-ins and perks for visits', () => {
+  it('gives play-time bonuses for each step, seat bonuses for a seat and perks for visits', () => {
     expect(triggerOf({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 })).toBe('hours_step');
     expect(triggerOf({ kind: 'seat_bonus', chips: 1_000 })).toBe('seated');
     expect(triggerOf({ kind: 'hours_bonus', mode: 'every', everyMinutes: 60, chips: 100 })).toBe('hours_step');
-    expect(triggerOf({ kind: 'buyin_bonus', mode: 'fixed', chips: 500 })).toBe('buy_in');
-    expect(triggerOf({ kind: 'cab_home', fromVisitInMonth: 4 })).toBe('visit');
-    expect(triggerOf({ kind: 'tournament_entry', tournamentId: 'RIVR Sunday' })).toBe('visit');
     expect(triggerOf({ kind: 'waitlist_priority' })).toBe('visit');
+  });
+
+  it('gives a high hand bonus for a high hand, and only for one', () => {
+    const highHand: Reward = { kind: 'high_hand', hands: [{ hand: 'royal_flush', chips: 25_000 }], rules: { bothHoleCards: true, shownAtShowdown: true, minPlayersDealt: 4 } };
+    const confirmed = { bothHoleCards: true, shownAtShowdown: true, playersDealt: true };
+    const royal = event({ kind: 'high_hand', hand: 'royal_flush', rank: null, confirmed });
+    expect(triggerOf(highHand)).toBe('high_hand');
+    expect(grantOf(highHand, royal)).toEqual({ ok: true, value: { chips: 25_000, perk: null } });
+    expect(grantOf(highHand, event({ kind: 'high_hand', hand: 'aces_full', rank: null, confirmed }))).toEqual({ ok: false, error: 'hand_not_listed' });
+    expect(grantOf(highHand, seat)).toEqual({ ok: false, error: 'other_event' });
+    expect(grantOf({ kind: 'seat_bonus', chips: 1_000 }, royal)).toEqual({ ok: false, error: 'other_event' });
   });
 
   it('gives Bonus for the event they are on', () => {
     expect(triggerOf({ kind: 'bonus_chips', chips: 500, on: 'visit' })).toBe('visit');
-    expect(triggerOf({ kind: 'bonus_chips', chips: 500, on: 'first_buyin' })).toBe('buy_in');
     expect(triggerOf({ kind: 'bonus_chips', chips: 500, on: 'referral' })).toBe('referral');
     expect(triggerOf({ kind: 'bonus_chips', chips: 500, on: 'signup' })).toBe('signup');
   });
 });
 
 describe('computeGrant', () => {
-  it('gives nothing on a buy-in for a reward of another event', () => {
-    expect(grantOf({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 }, buyIn)).toEqual({ ok: false, error: 'other_event' });
-    expect(grantOf({ kind: 'bonus_chips', chips: 1_000, on: 'visit' }, buyIn)).toEqual({ ok: false, error: 'other_event' });
+  it('gives a seat bonus on a seat, and nothing on a seat for a reward of another event', () => {
+    expect(grantOf({ kind: 'seat_bonus', chips: 1_000 }, seat)).toEqual({ ok: true, value: { chips: 1_000, perk: null } });
+    expect(grantOf({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 }, seat)).toEqual({ ok: false, error: 'other_event' });
+    expect(grantOf({ kind: 'bonus_chips', chips: 1_000, on: 'visit' }, seat)).toEqual({ ok: false, error: 'other_event' });
   });
 
   it('gives nothing for time played or a visit for a reward of another event', () => {
-    expect(grantOf({ kind: 'cab_home', fromVisitInMonth: 1 }, played)).toEqual({ ok: false, error: 'other_event' });
-    expect(grantOf({ kind: 'buyin_bonus', mode: 'fixed', chips: 500 }, visit)).toEqual({ ok: false, error: 'other_event' });
+    expect(grantOf({ kind: 'waitlist_priority' }, played)).toEqual({ ok: false, error: 'other_event' });
+    expect(grantOf({ kind: 'seat_bonus', chips: 500 }, visit)).toEqual({ ok: false, error: 'other_event' });
   });
 
-  it('gives a percent with no cap the whole share', () => {
-    expect(grantOf({ kind: 'buyin_bonus', mode: 'percent', percent: 100 }, buyIn)).toEqual({ ok: true, value: { chips: 10_000, perk: null } });
-  });
-
-  it('gives a cab from its visit on, the visit itself included', () => {
-    expect(grantOf({ kind: 'cab_home', fromVisitInMonth: 5 }, visit)).toEqual({ ok: true, value: { chips: 0, perk: 'cab_home' } });
-    expect(grantOf({ kind: 'cab_home', fromVisitInMonth: 6 }, visit)).toEqual({ ok: false, error: 'not_yet' });
+  it('gives waitlist priority on a visit, whichever of the month it is', () => {
+    expect(grantOf({ kind: 'waitlist_priority' }, visit)).toEqual({ ok: true, value: { chips: 0, perk: 'waitlist_priority' } });
+    expect(grantOf({ kind: 'bonus_chips', chips: 500, on: 'visit' }, visit)).toEqual({ ok: true, value: { chips: 500, perk: null } });
+    expect(grantOf({ kind: 'bonus_chips', chips: 500, on: 'referral' }, visit)).toEqual({ ok: false, error: 'other_event' });
   });
 
   it('gives a play-time bonus only for its own step, never for time played alone', () => {

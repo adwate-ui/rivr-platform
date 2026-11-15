@@ -182,7 +182,6 @@ export const members = {
       markers: 'markers not settled',
       bonus: 'Bonus owed to the club',
       waitlist: 'a place on a waitlist',
-      tournament: 'a run in a tournament not yet finished',
       requests: 'a request still waiting',
     },
     /** `{bonus}`: bonus chips, `2,000` (#629). */
@@ -242,13 +241,4 @@ export const members = {
     paused: 'Venue frozen. Try again once it is released.',
     unavailable: 'Not sent. Try again.',
   },
-};
-
-/** The console's Tiers screen (#32): the tier x feature matrix, saved from a date, and a preview of the player app as a tier. */
-export const tiers = {
-  on: 'On',
-  withdraw: 'Withdraw',
-  now: 'Now',
-  save: 'Save changes',
-  unavailable: 'Not sent. Try again.',
 };

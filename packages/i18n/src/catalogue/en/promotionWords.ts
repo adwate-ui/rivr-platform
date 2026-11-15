@@ -1,10 +1,6 @@
 /** A promotion in words, for the builder, the approver, the list and the cards saved with a version (audit F-055). */
 export const promotionWords = {
   time: { hour: '1 hour', hours: '{count} hours', hoursMinutes: '{hours} h {minutes} min', minutes: '{minutes} min' },
-  buyIn: {
-    fixed: '{chips} Bonus on a buy-in', percent: '{percent}% of your buy-in in Bonus', upTo: 'up to {chips} Bonus',
-    firstN: 'first {count} buy-ins per table',
-  },
   seat: {
     /**
      * In tiers (decision 0580): `Bonus chips on a first seat, once a member: first 10 get 5,000, next 20 get 2,000`. Five tiers at
@@ -17,12 +13,15 @@ export const promotionWords = {
     everyHour: '{chips} Bonus every hour', upToOnce: 'up to once a visit', upToTimes: 'up to {count} times a visit',
   },
   bonusChips: {
-    visit: '{chips} Bonus on each visit', first_buyin: '{chips} Bonus on the first buy-in of a visit',
+    visit: '{chips} Bonus on each visit',
     referral: '{chips} Bonus for each referral', signup: '{chips} Bonus on sign-up',
   },
-  cabHome: 'A cab home from visit {visit} in a month',
-  tournamentEntry: 'An entry to {name}',
   priority: 'Front of every waitlist',
+  /** A high hand bonus by the most it pays (redesign correction 30). */
+  highHand: 'Up to {chips} Bonus a hand',
+  /** The same promotion in the one-line summary: `Royal flush 25,000, Straight flush 10,000 Bonus, paid each time`. */
+  highHandEach: '{hand} {chips}',
+  highHandLine: '{hands} Bonus, paid each time',
   allStakes: 'all stakes',
   audience: { new_30d: 'new members, first 30 days', lapsed: 'lapsed regulars' },
   days: { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' },

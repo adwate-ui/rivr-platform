@@ -1,13 +1,12 @@
 import type { Eligibility, Limits, Reward, Schedule } from '@rivr/contracts/promotionModel';
-import type { Terms } from '@rivr/domain/promotions';
-import { formatNumber as count, t } from '@rivr/i18n';
+import { highestHandChips, type HighHandReward, type Terms } from '@rivr/domain/promotions';
+import { formatListedHand, formatNumber as count, t } from '@rivr/i18n';
 
-/** The names to show for stake codes, tier ids, table ids and tournaments; an id with no name shows as it is. */
+/** The names to show for stake codes, tier ids and table ids; an id with no name shows as it is. */
 export interface PromotionNames {
   readonly stakes?: Readonly<Record<string, string>>;
   readonly tiers?: Readonly<Record<string, string>>;
   readonly tables?: Readonly<Record<string, string>>;
-  readonly tournaments?: Readonly<Record<string, string>>;
 }
 
 type HoursBonus = Extract<Reward, { kind: 'hours_bonus' }>;
@@ -21,13 +20,6 @@ function hours(minutes: number): string {
   const rest = minutes % 60;
   if (rest === 0) return whole === 1 ? t('console.promotions.words.time.hour') : t('console.promotions.words.time.hours', { count: whole });
   return whole === 0 ? t('console.promotions.words.time.minutes', { minutes: rest }) : t('console.promotions.words.time.hoursMinutes', { hours: whole, minutes: rest });
-}
-
-function buyInText(reward: Extract<Reward, { kind: 'buyin_bonus' }>): string {
-  const firstN = reward.firstNBuyinsPerTable === undefined ? null : t('console.promotions.words.buyIn.firstN', { count: reward.firstNBuyinsPerTable });
-  if (reward.mode === 'fixed') return [t('console.promotions.words.buyIn.fixed', { chips: count(reward.chips) }), firstN].filter(isPart).join(', ');
-  const cap = reward.capChips === undefined ? null : t('console.promotions.words.buyIn.upTo', { chips: count(reward.capChips) });
-  return [t('console.promotions.words.buyIn.percent', { percent: reward.percent }), cap, firstN].filter(isPart).join(', ');
 }
 
 /** A seat bonus in words (owner, 8 Nov): on a visit's first seat, for the first N seated at a table, or in tiers (decision 0580). */
@@ -61,23 +53,25 @@ function hoursText(reward: HoursBonus): string {
   return [every, times === 1 ? t('console.promotions.words.hoursBonus.upToOnce') : t('console.promotions.words.hoursBonus.upToTimes', { count: times })].join(', ');
 }
 
-function rewardText(reward: Reward, names: PromotionNames): string {
+function rewardText(reward: Reward): string {
   switch (reward.kind) {
-    case 'buyin_bonus':
-      return buyInText(reward);
     case 'seat_bonus':
       return seatText(reward);
     case 'hours_bonus':
       return hoursText(reward);
     case 'bonus_chips':
       return t(`console.promotions.words.bonusChips.${reward.on}`, { chips: count(reward.chips) });
-    case 'cab_home':
-      return t('console.promotions.words.cabHome', { visit: reward.fromVisitInMonth });
-    case 'tournament_entry':
-      return t('console.promotions.words.tournamentEntry', { name: nameOf(names.tournaments, reward.tournamentId) });
+    case 'high_hand':
+      return t('console.promotions.words.highHand', { chips: count(highestHandChips(reward)) });
     default:
       return t('console.promotions.words.priority');
   }
+}
+
+/** A high hand in the one-line summary (redesign RD-23): `Royal flush 25,000, Straight flush 10,000 Bonus, paid each time`. */
+function highHandLine(reward: HighHandReward): string {
+  const hands = reward.hands.map((one) => t('console.promotions.words.highHandEach', { hand: formatListedHand(one.hand), chips: count(one.chips) }));
+  return t('console.promotions.words.highHandLine', { hands: hands.join(', ') });
 }
 
 function whoText(eligibility: Eligibility, names: PromotionNames): string {
@@ -131,7 +125,7 @@ const dateText = (day: string) =>
 export function describePromotion(promo: Terms, names: PromotionNames = {}): string {
   const { schedule } = promo;
   return t('console.promotions.words.line', {
-    reward: rewardText(promo.reward, names), who: whoText(promo.eligibility, names), when: whenText(schedule), limits: limitsText(promo.limits),
+    reward: promo.reward.kind === 'high_hand' ? highHandLine(promo.reward) : rewardText(promo.reward), who: whoText(promo.eligibility, names), when: whenText(schedule), limits: limitsText(promo.limits),
     starts: dateText(schedule.startsOn),
     ends: schedule.endsOn === undefined ? t('console.promotions.words.noEnd') : t('console.promotions.words.ends', { date: dateText(schedule.endsOn) }),
   });
@@ -144,11 +138,11 @@ const fit = (text: string, room: number) => (text.length <= room ? text : `${tex
 
 /**
  * A card's two lines, saved with the version for Home, the TVs, the website and WhatsApp: what it gives, and for whom
- * and when. "20% of your buy-in in bonus chips, up to 2,000 bonus chips" and "NLH 100/200 · Tue 20:00–02:00".
+ * and when. "1,000 Bonus for the first 5 seated at a table" and "NLH 100/200 · Tue 20:00–02:00".
  */
 export function cardWords(promo: Terms, names: PromotionNames = {}): { readonly detail: string; readonly runs: string } {
   return {
-    detail: fit(rewardText(promo.reward, names), CARD_DETAIL),
+    detail: fit(rewardText(promo.reward), CARD_DETAIL),
     runs: fit(`${whoText(promo.eligibility, names)} · ${whenText(promo.schedule)}`, CARD_RUNS),
   };
 }

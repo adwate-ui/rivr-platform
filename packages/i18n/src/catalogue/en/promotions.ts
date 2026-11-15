@@ -11,7 +11,7 @@ export const promotions = {
   newPromotion: 'New promotion',
   allPromotions: 'All promotions',
   /** Above the title on the TV slide preview, as the TV says it. */
-  slideLabel: 'Promotion',
+  slideLabel: 'Offer',
   /** A promotion in words, for the builder, the approver, the list and the cards saved with a version (audit F-055). */
   words: promotionWords,
   statuses: { draft: 'Draft', awaiting_approval: 'Awaiting approval', scheduled: 'Scheduled', live: 'Live', paused: 'Paused', ended: 'Ended' },
@@ -36,6 +36,9 @@ export const promotions = {
     givenOnce: 'Once',
     givenTimes: '{count} times',
     givenChips: '{count} Bonus',
+    /** A high hand's count: hands paid (redesign RD-23). */
+    handOnce: '1 hand',
+    handTimes: '{count} hands',
     budgetUsed: '{used} of {budget} budget',
     budgetUsedMonth: '{used} of {budget} budget this month',
     /** A promotion still run by its old rule (decision 0491): its words and Pause only. */
@@ -78,19 +81,18 @@ export const promotions = {
     /** The templates that prefill the builder, and the names they give. */
     templates: {
       blank: 'Blank', seat_bonus: 'Seat bonus', four_hour_bonus: 'Four-hour bonus',
-      founders_priority: 'Founders’ Circle priority',
+      founders_priority: 'Founders’ Circle priority', high_hand: 'High hand bonus',
     },
     templateNames: {
       seat_bonus: 'Tuesday seat bonus', four_hour_bonus: 'Four-hour bonus',
-      founders_priority: 'Founders’ Circle priority',
+      founders_priority: 'Founders’ Circle priority', high_hand: 'High hand bonus',
     },
     rewards: {
       seat_bonus: { label: 'First seat', description: 'Fixed Bonus on a first seat' },
       hours_bonus: { label: 'Hours played', description: 'Bonus after time at the tables' },
       bonus_chips: { label: 'Visit or referral', description: 'Fixed Bonus on a visit or referral' },
-      cab_home: { label: 'Cab home', description: 'A ride home after a set visit count' },
-      tournament_entry: { label: 'Tournament entry', description: 'A seat in a tournament' },
       waitlist_priority: { label: 'Waitlist priority', description: 'Front of every waitlist' },
+      high_hand: { label: 'High hand', description: 'A bonus for each listed hand' },
     },
     fields: {
       chips: 'Amount',
@@ -123,10 +125,18 @@ export const promotions = {
       timesPerVisit: 'Times a visit',
       noCap: 'No cap',
       givenOn: 'Given on',
-      bonusOn: { visit: 'Each visit', first_buyin: 'First buy-in', referral: 'Referral', signup: 'Sign-up' },
-      fromVisit: 'From visit',
-      fromVisitSuffix: 'in a calendar month',
-      tournament: 'Tournament',
+      bonusOn: { visit: 'Each visit', referral: 'Referral', signup: 'Sign-up' },
+      /** A high hand (redesign RD-23): each listed hand's Bonus, the hands still to add, and the three rules. */
+      bonusSuffix: 'Bonus',
+      /** Beside a hand; `removeHand` names it for a screen reader. */
+      remove: 'Remove',
+      removeHand: 'Remove {hand}',
+      addHand: 'Add a hand',
+      bothHoleCards: 'Both hole cards must play',
+      shownAtShowdown: 'Shown at showdown',
+      minPlayers: 'Players dealt in, at least',
+      minPlayersSuffix: 'players',
+      budget: 'Budget',
       stakes: 'Stakes',
       allStakes: 'All stakes',
       tiers: 'Tiers',
@@ -167,8 +177,9 @@ export const promotions = {
       everyHours: 'Half hours, from 0.5 to 12.',
       timesPerVisit: 'A whole number from 1 to 20, or blank for no cap.',
       steps: 'Each step later than the one before, in half hours to 24, with whole 50s.',
-      fromVisit: 'A visit from 1 to 31.',
-      tournament: 'Name the tournament.',
+      hands: 'Each hand needs its bonus, in whole 50s.',
+      minPlayers: 'A whole number from 2 to 10.',
+      budgetNeeded: 'A high hand needs a budget, in whole 50s.',
       who: 'Pick who qualifies again.',
       days: 'Pick at least one day.',
       from: '24-hour time, such as 20:00.',
@@ -233,6 +244,27 @@ export const promotions = {
     notApprover: 'A super admin approves it.',
     unreadable: 'Its terms cannot be read here. Send it back.',
   },
+  /** A high hand promotion's record, beside the list (redesign RD-23). `{hand}` is the hit named exactly. */
+  record: {
+    tabs: { paid: 'Paid tonight', terms: 'Hands and rules' },
+    handsTonight: 'Hands paid tonight',
+    bonusTonight: 'Bonus paid tonight',
+    thisWeek: 'This week',
+    budgetLeft: 'Budget left',
+    budgetLeftMonth: 'Budget left this month',
+    log: 'Log a high hand',
+    none: 'No high hand paid tonight.',
+    hit: '{hand} · {table}, seat {seat}',
+    paid: '+{chips}',
+    bonusForEachHand: 'Bonus for each hand',
+    change: 'Change hands and rules',
+    rules: 'Rules',
+    yes: 'Yes',
+    no: 'No',
+    playersDealt: 'Players dealt in',
+    orMore: '{count} or more',
+    where: 'Where',
+  },
   /** A promotion opened by its address that the builder cannot show. */
   open: {
     legacy: 'This promotion runs by its rule. Pause or resume it from the list.',
@@ -245,6 +277,7 @@ export const promotions = {
     own_promotion: 'Not approved. Another super admin approves your version.',
     already_decided: 'Already decided. Reload the list.',
     tiers_fixed: 'Not saved. To pay in tiers, or to stop paying in tiers, end this promotion and start a new one.',
+    another_high_hand: 'Another high hand promotion is running. End it first.',
     switched_off: 'Promotions are switched off.',
     paused: 'Venue frozen. Try again once it is released.',
     not_found: 'Promotion not found. Reload the list.',

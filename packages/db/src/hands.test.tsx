@@ -4,14 +4,14 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { nextRulesCheck, useDownHands, useTableRules } from './hands.ts';
+import { nextRulesCheck, useTableRules } from './hands.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
 const TABLET = '00000000-0000-4000-8000-00000000e001';
 
-/** A fake API: each path answers with its reply. The tablet is fixed to `ids.table`, during `ids.down`. */
-function renderHands(replies: Record<string, { status?: number; body: unknown }>, ids: { table: string | null; down: string | null } = { table: 'table-3', down: 'down-1' }) {
+/** A fake API: each path answers with its reply. The tablet is fixed to `tableId`. */
+function renderHands(replies: Record<string, { status?: number; body: unknown }>, tableId: string | null = 'table-3') {
   const calls: { url: string; body: unknown }[] = [];
   const fetch: typeof globalThis.fetch = async (input, init) => {
     const url = input instanceof Request ? input.url : String(input);
@@ -25,12 +25,12 @@ function renderHands(replies: Record<string, { status?: number; body: unknown }>
     auth: { storage: sessionStorageFor(TABLET), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
-  const { result } = renderHook(() => ({ rules: useTableRules(ids.table), hands: useDownHands(ids.down) }), { wrapper });
+  const { result } = renderHook(() => ({ rules: useTableRules(tableId) }), { wrapper });
   return { result, calls };
 }
 
 const RULES = { rate_basis_points: 500, cap_paise: 600000, is_jackpot_live: true, drop_paise: 10000, drop_above_paise: 500000, has_variation: true, next_change_at: null };
-const EMPTY = { '/rpc/tablet_rake_rules': { body: [RULES] }, '/rpc/down_hands': { body: [] } };
+const EMPTY = { '/rpc/tablet_rake_rules': { body: [RULES] } };
 
 afterEach(cleanup);
 
@@ -71,22 +71,10 @@ describe('Hand entry data', () => {
     expect(calls.filter((call) => call.url.includes('/rpc/tablet_rake_rules'))).toHaveLength(2);
   });
 
-  it('gives the down\'s hands, latest first as the database orders them', async () => {
-    const { result } = renderHands({
-      ...EMPTY,
-      '/rpc/down_hands': { body: [{ hand_id: 'h1', played_at: '2026-10-19T21:05:00+05:30', variant: 'plo', pot_paise: 14000000,
-        rake_paise: 600000, drop_paise: 10000, is_cap_applied: true }] },
-    });
-    await waitFor(() => expect(result.current.hands.data).toEqual([
-      { handId: 'h1', playedAt: '2026-10-19T21:05:00+05:30', variant: 'plo', pot: 14000000n, rake: 600000n, drop: 10000n, isCapApplied: true },
-    ]));
-  });
-
-  it('asks for nothing until the tablet is fixed to a table and a down is open', async () => {
-    const { result, calls } = renderHands(EMPTY, { table: null, down: null });
+  it('asks for nothing until the tablet is fixed to a table', async () => {
+    const { result, calls } = renderHands(EMPTY, null);
     await waitFor(() => expect(result.current.rules.fetchStatus).toBe('idle'));
     expect(result.current.rules.isPending).toBe(true);
-    expect(result.current.hands.fetchStatus).toBe('idle');
     expect(calls.filter((call) => call.url.includes('/rpc/'))).toEqual([]);
   });
 });

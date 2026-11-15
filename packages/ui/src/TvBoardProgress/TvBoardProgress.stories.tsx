@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { DisplayShell } from '../DisplayShell/DisplayShell.tsx';
-import { Heading } from '../Heading/Heading.tsx';
+import { TvStage } from '../TvStage/TvStage.tsx';
 import { TvBoardProgress } from './TvBoardProgress.tsx';
 
 const meta = {
@@ -8,7 +8,7 @@ const meta = {
   component: TvBoardProgress,
   tags: ['viewport-tv'],
   parameters: { layout: 'fullscreen' },
-  decorators: [(Story) => <DisplayShell><Heading level={1} variant="display">Waitlist</Heading><Story /></DisplayShell>],
+  decorators: [(Story) => <DisplayShell><TvStage title="Waitlist">{null}</TvStage><Story /></DisplayShell>],
   args: { durationMs: 30_000 },
 } satisfies Meta<typeof TvBoardProgress>;
 

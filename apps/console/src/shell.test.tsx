@@ -230,7 +230,7 @@ describe('the console frame', () => {
     signIn();
     answerStaff([{ ...CLUB, full_name: 'Kunal Desai', role: 'super_admin' }]);
     // The last activity on a screen that locks, eleven minutes ago: reopened, it locks at once.
-    localStorage.setItem('rivr-cage-active-at', String(Date.now() - 11 * 60_000));
+    localStorage.setItem('rivr-console-active-at', String(Date.now() - 11 * 60_000));
     renderAt('/members');
     expect(await screen.findByText('Signed out after ten idle minutes.', {}, LAZY_SCREEN)).toBeDefined();
     expect(screen.getByRole('textbox', { name: 'Mobile number' })).toBeDefined();

@@ -8,13 +8,7 @@ function tableLabel(table: FloorTable): string {
   return t('player.live.tableName', { name: table.name, game: `${t(`player.live.gameShort.${table.game}`)} ${stakes}` });
 }
 
-/** The pill's word: Notify me, Notifying you once asked, or Registered once the floor has registered them (#636). */
-function standingLabel(standing: UpcomingTournament['standing']): string {
-  if (standing === 'registered') return t('player.tonight.standing.registered');
-  return t(standing === 'interested' ? 'player.live.notifying' : 'player.live.notifyMe');
-}
-
-/** One upcoming tournament with Notify me, Notifying you once the member has asked, or Registered (#636). */
+/** One upcoming tournament with Notify me, or Notifying you once the member has asked (#636; redesign RD-26). */
 function TournamentRow({ tournament }: { tournament: UpcomingTournament }) {
   const register = useRegisterTournamentInterest();
   const toast = useToast();
@@ -30,9 +24,9 @@ function TournamentRow({ tournament }: { tournament: UpcomingTournament }) {
         <Text variant="small" tone="muted">{formatDayTime(new Date(tournament.startsAt))}</Text>
       </Stack>
       <Button variant="outline" shape="pill" isPressed={isNotifying} isLoading={register.isPending}
-        aria-label={t('player.tonight.registerInterestName', { name: tournament.name })}
+        aria-label={t(isNotifying ? 'player.live.notifyingName' : 'player.live.notifyMeName', { name: tournament.name })}
         onClick={() => { if (!isNotifying) void ask(); }}>
-        {standingLabel(tournament.standing)}
+        {t(isNotifying ? 'player.live.notifying' : 'player.live.notifyMe')}
       </Button>
     </Inline>
   );

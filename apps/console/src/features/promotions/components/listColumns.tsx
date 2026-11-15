@@ -34,7 +34,8 @@ export function canEnd(promotion: PromotionOverview): boolean {
   return !promotion.isLegacy && promotion.currentVersionId !== null && promotion.openVersionId === null && ENDS.includes(promotion.status);
 }
 
-const capitalised = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);
+/** Words that open a cell or a line: their first letter a capital. */
+export const capitalised = (words: string) => words.charAt(0).toUpperCase() + words.slice(1);
 
 /** Who it is for and when it runs, from its terms; a promotion run by its rule says only when, in its own words. */
 function whoWhen(promotion: PromotionOverview, names: PromotionNames): { who: string; when: string } {
@@ -63,10 +64,19 @@ function budgetText(promotion: PromotionOverview): string | null {
   return t(promotion.terms?.limits.budgetPeriod === 'month' ? 'console.promotions.list.budgetUsedMonth' : 'console.promotions.list.budgetUsed', words);
 }
 
+/** How many times it was given this week; a high hand's count is hands paid (redesign RD-23). */
+function timesWords(promotion: PromotionOverview): string {
+  const times = promotion.givenThisWeek;
+  if (promotion.terms?.reward.kind === 'high_hand') {
+    return times === 1 ? t('console.promotions.list.handOnce') : t('console.promotions.list.handTimes', { count: formatNumber(times) });
+  }
+  return times === 1 ? t('console.promotions.list.givenOnce') : t('console.promotions.list.givenTimes', { count: formatNumber(times) });
+}
+
 /** Given this week (audit F-104): the bonus chips, how many times, and the budget used. */
 function GivenCell({ promotion }: { promotion: PromotionOverview }) {
-  const { givenThisWeek: times, chipsGivenThisWeek: chips } = promotion;
-  const timesText = times === 1 ? t('console.promotions.list.givenOnce') : t('console.promotions.list.givenTimes', { count: formatNumber(times) });
+  const chips = promotion.chipsGivenThisWeek;
+  const timesText = timesWords(promotion);
   const amount = chips > 0 ? t('console.promotions.list.givenChips', { count: formatNumber(chips) }) : null;
   const budget = budgetText(promotion);
   return (

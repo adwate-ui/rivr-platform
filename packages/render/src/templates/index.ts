@@ -1,4 +1,4 @@
-import { BrandArt, InvoiceDocument, OfflinePackDocument, PartnerStatementDocument, ThermalReceipt } from '@rivr/ui';
+import { BrandArt, InvoiceDocument } from '@rivr/ui';
 import type { ComponentProps } from 'react';
 import { StatementDocument } from './paper/StatementDocument.tsx';
 import { PromotionSlide } from './tv/PromotionSlide.tsx';
@@ -14,14 +14,9 @@ export const templates = {
   'tv.promotion': PromotionSlide,
   // Icons, splash screens, profile images and covers: the brand kit (src/brandKit.ts).
   'brand.art': BrandArt,
-  // The membership card, the thermal receipt, and A4 invoices and statements.
-  'receipt.thermal': ThermalReceipt,
+  // A4 invoices and statements.
   'document.invoice': InvoiceDocument,
   'document.statement': StatementDocument,
-  // A partner's or investor's monthly statement (#98).
-  'document.partnerStatement': PartnerStatementDocument,
-  // The offline pack for the cage computer (#167), on as many A4 pages as it needs.
-  'document.offlinePack': OfflinePackDocument,
 };
 
 export type TemplateName = keyof typeof templates;

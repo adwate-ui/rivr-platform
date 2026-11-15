@@ -8,7 +8,6 @@ import { PhonePushSwitch } from './PhonePushSwitch.tsx';
 const PUSH_COPY: Readonly<Record<PushChoice, { label: MessageKey; hint: MessageKey }>> = {
   'push.seat_ready': { label: 'player.profile.seatCalls', hint: 'player.profile.seatCallsHint' },
   'push.call_time_complete': { label: 'player.profile.callTime', hint: 'player.profile.callTimeHint' },
-  'push.withdrawal_sent': { label: 'player.profile.withdrawals', hint: 'player.profile.withdrawalsHint' },
   'push.tournament_starting': { label: 'player.profile.tournamentStarts', hint: 'player.profile.tournamentStartsHint' },
   'push.bonus': { label: 'player.profile.bonusChips', hint: 'player.profile.bonusChipsHint' },
 };
@@ -26,9 +25,12 @@ function NotificationSwitch({ type, isOn }: { type: PushChoice; isOn: boolean })
   );
 }
 
+// The line for Bonus is hidden (the owner, 15 Nov; redesign RD-20): the choice is kept and its pushes still go.
+const SHOWN = PUSH_CHOICES.filter((type) => type !== 'push.bonus');
+
 /**
- * Notifications (brief 3.9): push on this phone, then Seat calls, Call time, Tournaments, Bonus chips (each a push this
- * member can turn off), Offers (marketing consent), Name on club TVs and Analytics (the cookie choice), each with its line.
+ * Notifications (brief 3.9): push on this phone, then Seat calls, Call time and Tournaments (each a push this member can
+ * turn off), Offers (marketing consent), Name on club TVs and Analytics (the cookie choice), each with its line.
  */
 export function NotificationsSection({ preferences }: { preferences: Preferences }) {
   const { setMarketing, setNameOnTvs } = usePreferenceActions();
@@ -38,7 +40,7 @@ export function NotificationsSection({ preferences }: { preferences: Preferences
       <PhonePushSwitch phone={phone} />
       {/* The switches below are the member's on any phone, so they stay; they say what they do on this one (F-169). */}
       {phone.state === 'unsupported' || phone.state === 'blocked' ? <Text variant="small" tone="muted">{t('player.profile.pushOffNote')}</Text> : null}
-      {PUSH_CHOICES.map((type) => <NotificationSwitch key={type} type={type} isOn={!preferences.notificationsOff.includes(type)} />)}
+      {SHOWN.map((type) => <NotificationSwitch key={type} type={type} isOn={!preferences.notificationsOff.includes(type)} />)}
       <Switch label={t('player.profile.marketing')} hint={t('player.profile.marketingHint')} isOn={preferences.marketing}
         isDisabled={setMarketing.isPending} onChange={(isOn) => setMarketing.mutate(isOn)} />
       <Switch label={t('player.profile.nameOnTvs')} hint={t('player.profile.nameOnTvsHint')} isOn={preferences.nameOnTvs}

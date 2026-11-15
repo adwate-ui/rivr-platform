@@ -34,7 +34,7 @@ begin
     pg_temp.seed_account(gurugram, 'venue.bonus_expense'), pg_temp.seed_account(gurugram, 'member.bonus', arjun), 400000);
   -- His bonus is one grant, which never ends: bonus chips never expire (decision 0504).
   insert into public.bonus_grant (venue_id, member_id, amount_paise, remaining_paise, expires_at, reason, idempotency_key, ledger_transaction_id)
-  select gurugram, arjun, 400000, 400000, null, 'Buy-in bonus Tuesday', 'seed:arjun:bonus', t.id
+  select gurugram, arjun, 400000, 400000, null, 'Referral', 'seed:arjun:bonus', t.id
   from public.ledger_transaction t where t.venue_id = gurugram and t.idempotency_key = 'seed:arjun:bonus'
   on conflict (venue_id, idempotency_key) do nothing;
   -- Bad-beat jackpot ₹3,42,600.

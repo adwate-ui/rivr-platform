@@ -33,10 +33,24 @@ export const floorSettingKeys = {
     hints: { weight: 'Higher goes first. 0 is none.' },
     fields: { weight: 'Weight', only_at_qualifying_stake: 'Only at their qualifying stake' },
   },
+  'tv.boards': {
+    name: 'Boards shown',
+    help: 'A board switched off shows on no TV',
+    fields: { waitlist: 'Waitlist', call_time: 'Call time', promotions: 'Promotions', leaderboard: 'Hours leaderboard', high_hand: 'High hand bonus' },
+  },
+  'tv.board_seconds': {
+    name: 'Time on each board',
+    help: 'Before the TV moves to the next board',
+    hints: { promotions_seconds: 'Each promotion shows this long.' },
+    fields: {
+      waitlist_seconds: 'Waitlist', call_time_seconds: 'Call time', promotions_seconds: 'Promotions', leaderboard_seconds: 'Hours leaderboard',
+      high_hand_seconds: 'High hand bonus',
+    },
+  },
   'tv.leaderboard': {
     name: 'TV hours leaderboard',
     help: 'Who the hours board shows',
-    hints: { top: "Tonight's top 10 unless set." },
+    hints: { period: 'The list beside Tonight. Set to Tonight, it is This week.', top: 'The top 10 unless set.' },
     fields: { period: 'Period', top: 'Top', min_hours: 'Played at least' },
     options: { tonight: 'Tonight', week: 'This week', month: 'This month', all: 'All time' },
   },

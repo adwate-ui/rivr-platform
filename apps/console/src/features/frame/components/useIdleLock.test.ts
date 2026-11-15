@@ -4,8 +4,8 @@ import { useIdleLock } from './useIdleLock.ts';
 
 const MINUTE = 60_000;
 
-// The cage idle lock, task 384.
-describe('the cage idle lock', () => {
+// The console's idle lock, task 384.
+describe('the console\'s idle lock', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     globalThis.localStorage.clear();
@@ -15,7 +15,7 @@ describe('the cage idle lock', () => {
     vi.useRealTimers();
   });
 
-  it('locks a cage screen after ten idle minutes, and not before', () => {
+  it('locks a screen that locks after ten idle minutes, and not before', () => {
     const onLock = vi.fn();
     renderHook(() => useIdleLock(true, onLock));
     vi.advanceTimersByTime(9 * MINUTE);
@@ -45,7 +45,7 @@ describe('the cage idle lock', () => {
     expect(onLock).toHaveBeenCalledOnce();
   });
 
-  it('holds across a reload: a cage screen opened after ten idle minutes locks at once', () => {
+  it('holds across a reload: a screen that locks, opened after ten idle minutes, locks at once', () => {
     // The page before the reload: a reload runs no clean-up, so it stays mounted here.
     renderHook(() => useIdleLock(true, vi.fn()));
     vi.setSystemTime(Date.now() + 11 * MINUTE);

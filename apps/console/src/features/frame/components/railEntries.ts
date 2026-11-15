@@ -48,9 +48,8 @@ export const RAIL: readonly RailGroup[] = [
   {
     id: 'tonight', label: 'console.rail.groups.tonight', entries: [
       { id: 'liveFloor', label: 'console.rail.items.liveFloor', href: '/', icon: 'floor', anyOf: FLOOR_READERS, counts: ['topUps', 'timeRequests', 'liveFloor', 'seating'], countWords: 'requests', isActionable: true },
-      { id: 'waitlist', label: 'console.rail.items.waitlist', href: '/waitlist', icon: 'waitlist', anyOf: [], counts: ['waitlist', 'tournamentInterest'], isActionable: true, tabs: [
+      { id: 'waitlist', label: 'console.rail.items.waitlist', href: '/waitlist', icon: 'waitlist', anyOf: [], counts: ['waitlist'], isActionable: true, tabs: [
         { id: 'lists', label: 'console.rail.items.lists', anyOf: ['waitlist.manage'] },
-        { id: 'interest', label: 'console.rail.items.tournamentInterest', anyOf: ['tournaments.manage'] },
       ] },
       { id: 'door', label: 'console.rail.items.door', href: '/door', icon: 'door', anyOf: [], tabs: [
         { id: 'check-in', label: 'console.rail.items.checkIn', anyOf: ['waitlist.manage'] },
@@ -71,6 +70,7 @@ export const RAIL: readonly RailGroup[] = [
   {
     id: 'marketing', label: 'console.rail.groups.marketing', entries: [
       { id: 'promotions', label: 'console.rail.items.promotions', href: '/promotions', icon: 'promotions', anyOf: ['promotions.manage'], counts: ['promotions'], countWords: 'approvals' },
+      { id: 'tournaments', label: 'console.rail.items.tournaments', href: '/tournaments', icon: 'trophy', anyOf: ['tournaments.manage'] },
       { id: 'content', label: 'console.rail.items.content', href: '/content', icon: 'content', anyOf: [], tabs: [
         { id: 'website', label: 'console.rail.items.website', anyOf: ['website.edit'] },
       ] },

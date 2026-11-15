@@ -3,7 +3,7 @@ import { clockTimeSchema } from './staff.ts';
 import { istMoment } from './tournaments.ts';
 
 const day = z.union([z.literal(''), z.iso.date()]);
-// Blank, or a time on India's 24-hour clock, as an incident's time is (incidents.ts); spaces alone are blank.
+// Blank, or a time on India's 24-hour clock; spaces alone are blank.
 const time = z.string().trim().pipe(z.union([z.literal(''), clockTimeSchema]));
 
 /**

@@ -29,8 +29,8 @@ export interface DocumentPageProps {
   /** One line at the foot. */
   note?: string | undefined;
   /**
-   * `page`, the default: one A4 page, as an invoice is. `pages`: as many A4 pages as the body needs, as the offline pack
-   * (#167), each page with the cream ground and the margins.
+   * `page`, the default: one A4 page, as an invoice is. `pages`: as many A4 pages as the body needs, each page with the
+   * cream ground and the margins.
    */
   flow?: 'page' | 'pages' | undefined;
 }

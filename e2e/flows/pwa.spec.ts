@@ -71,7 +71,7 @@ test.describe('PWA, a member offline', () => {
       await navigator.serviceWorker.ready;
     });
     // What the app opens with is kept a moment after it is read, and on later launches.
-    const isKept = (name: string) => page.evaluate((key) => localStorage.getItem('rivr.offline.v1')?.includes(key) ?? false, name);
+    const isKept = (name: string) => page.evaluate((key) => localStorage.getItem('rivr.offline.v2')?.includes(key) ?? false, name);
     await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeAttached();
     await expect.poll(() => isKept('floor-tables')).toBe(true);
 

@@ -23,10 +23,10 @@ const find: FindConversion = async (_venueId, eventType) =>
 const ACTIONS = conversionActionsSchema.parse(Object.fromEntries(CONVERSION_KINDS.map((kind, at) => [kind, `customers/1234567890/conversionActions/${at + 1}`])));
 
 describe('the ad conversions consumer', () => {
-  it('takes the four events that can be a conversion, and holds during a messaging stop as a messaging consumer does (A4-11)', () => {
+  it('takes the three events that can be a conversion, and holds during a messaging stop as a messaging consumer does (A4-11)', () => {
     const consumer = createConversionConsumer({ name: 'meta_conversions', find, report: reportToMeta(createFakeMetaConversions()), now });
     expect([consumer.name, consumer.isMessaging, consumer.eventTypes]).toEqual([
-      'meta_conversions', true, ['kyc.completed', 'visit.opened', 'cage.buy_in', 'tournament.entered'],
+      'meta_conversions', true, ['kyc.completed', 'visit.opened', 'tournament.entered'],
     ]);
   });
 
@@ -61,7 +61,7 @@ describe('the ad conversions consumer', () => {
     const meta = createFakeMetaConversions();
     const consumer = createConversionConsumer({ name: 'meta_conversions', find, report: reportToMeta(meta), now });
 
-    expect(await consumer.deliver(delivery('cage.buy_in', hoursAgo(1)))).toEqual({ ok: true, value: null });
+    expect(await consumer.deliver(delivery('kyc.completed', hoursAgo(1)))).toEqual({ ok: true, value: null });
     expect(await consumer.deliver(delivery('visit.opened', hoursAgo(8 * 24)))).toEqual({ ok: true, value: null });
     expect(meta.calls).toEqual([]);
   });

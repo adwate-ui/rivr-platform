@@ -1,4 +1,4 @@
-import type { TvMode } from '@rivr/contracts';
+import { TV_MODES, type TvMode } from '@rivr/contracts';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef } from 'react';
@@ -13,11 +13,26 @@ import { LIST_MOST } from './limits.ts';
 
 export type { TvCode };
 
-// The database's list of boards still names the ones the club dropped (the spin wheel, the rewards ticker, the League), until the TVs' own issue rebuilds the
-// list: a TV still set to one shows the waitlist, and a rotation leaves it out.
+// The database's type still names the boards that went (decision 0587); a constraint keeps every TV to the five (redesign
+// RD-28). Read as the five all the same: anything else would show the waitlist, and a rotation would leave it out.
 type StoredTvMode = Database['public']['Enums']['tv_mode'];
-const isBoard = (mode: StoredTvMode): mode is TvMode => mode !== 'spin_wheel' && mode !== 'rewards' && mode !== 'league';
+const isBoard = (mode: StoredTvMode): mode is TvMode => TV_MODES.some((board) => board === mode);
 const boardOf = (mode: StoredTvMode): TvMode => (isBoard(mode) ? mode : 'waitlist');
+
+/** A board's turn on a TV: which, and the seconds it shows before the next (a promotion, each slide). */
+export interface TvBoardTurn {
+  readonly mode: TvMode;
+  readonly seconds: number;
+}
+
+// A TV always shows something: the waitlist, for half a minute.
+const WAITLIST_TURN: TvBoardTurn = { mode: 'waitlist', seconds: 30 };
+
+/** The boards a TV shows as `my_tv_screen` gives them, each with its seconds, in order. */
+export function toTvBoards(boards: readonly StoredTvMode[], seconds: readonly number[]): TvBoardTurn[] {
+  const turns = boards.flatMap((mode, index) => (isBoard(mode) ? [{ mode, seconds: seconds[index] ?? WAITLIST_TURN.seconds }] : []));
+  return turns.length === 0 ? [WAITLIST_TURN] : turns;
+}
 
 /**
  * What an unpaired TV shows (#49): its code, or why it has none (`too_many` while device-pair refuses for a while,
@@ -28,13 +43,15 @@ export type TvPairing = { status: 'loading' } | { status: 'code'; code: TvCode }
 
 const PAIRING_REFUSALS = ['too_many', 'window_closed'] as const;
 
-/** The signed-in TV: its name on the console, what it shows, and the boards it turns to after that (decision 0163). */
+/**
+ * The signed-in TV: its name on the console, and the boards it shows in order, its own and those it turns to (decision
+ * 0163), less any switched off in Settings, each with its seconds (redesign RD-28). Never none: the waitlist stands in.
+ */
 export interface MyTvScreen {
   readonly deviceId: string;
   readonly venueId: string;
   readonly name: string;
-  readonly mode: TvMode;
-  readonly rotation: readonly TvMode[];
+  readonly boards: readonly TvBoardTurn[];
 }
 
 /** One of a venue's TVs, as staff who manage TVs see it. */
@@ -171,31 +188,11 @@ export function useMyTvScreen() {
         await client.auth.signOut({ scope: 'local' });
         return null;
       }
-      return { deviceId: row.device_id, venueId: row.venue_id, name: row.name, mode: boardOf(row.mode), rotation: row.rotation.filter(isBoard) };
+      return { deviceId: row.device_id, venueId: row.venue_id, name: row.name, boards: toTvBoards(row.boards, row.seconds) };
     },
   });
 }
 
-/**
- * Whether `venueId` is a venue the public may see (`public_venue` leaves out the practice venue, which
- * never reaches anyone outside the club): the stream overlay shows nothing at the practice venue (#125).
- * Undefined until it is read.
- */
-export function useIsPublicVenue(venueId: string | undefined): boolean | undefined {
-  const { client, userId } = useRivrData();
-  const venue = useQuery({
-    queryKey: queryKeys.isPublicVenue(userId ?? 'signed-out', venueId ?? 'none'),
-    enabled: userId !== null && venueId !== undefined,
-    // Asked again as the screen is, so an overlay whose first read failed recovers without a reload.
-    refetchInterval: SCREEN_CHECK,
-    queryFn: async () => {
-      const { data, error } = await client.from('public_venue').select('id').eq('id', venueId ?? '').limit(LIST_MOST);
-      if (error) throw error;
-      return data.length > 0;
-    },
-  });
-  return venue.data;
-}
 
 /** The venue's TVs that are not unpaired, by name, with what each shows. */
 export function useVenueTvs(venueId: string) {

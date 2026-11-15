@@ -1,12 +1,12 @@
 {
   "rule": "promotionRewards",
-  "about": "What a promotion gives (console v3 phase 7; decisions 0470 and 0472), in bonus chips or a perk, never rupees. Days are the club's, 06:00 to 06:00 IST, and its weeks run Monday to Sunday. Eligible: the member's tier and audience must be the promotion's (new members have fewer than 30 whole days since joining; lapsed regulars' last visit before this one was 30 or more whole days before). The time-played reward is the play-time (hours) bonus: for it only the minutes inside the schedule at its stakes and tables count, so the moment and table of the event do not matter. For every other reward the event's stake, table and moment must be the promotion's, so a promotion for some stakes gives nothing for an event away from a table. Grant: a buy-in bonus is a percent of the member's own chips rounded down to whole 50s, then held to its cap, or fixed chips; a buy-in paid from bonus (its own chips are 0) earns nothing from any buy-in reward, a buy-in bonus or bonus chips on the first buy-in; a play-time bonus pays each step as it is reached (owner, 8 Nov): its one step after a time, its set steps (two to six, rising), or one every so many minutes up to its times a visit and never past 24 hours, each step's chips once its minutes are played, nothing for a step it does not have, and nothing for time played at a visit's close; bonus chips come on a visit, the visit's first buy-in, a referral or a sign-up; a cab home from the Nth visit of the calendar month; an entry or waitlist priority on a visit; nothing comes to nothing. Limits, in this order: the member's period already given as often as it allows, once unless it says up to N (2 to 20) times (the same visit, club day, club week, ever, or with no limit the same event, and for a play-time bonus step that period @ the step's place among the promotion's steps, the first 1, so the limit holds for each step and a version that moves a step's minutes never pays it twice (the owner, 9 Nov), and with no limit a step's period is its visit; each grant in a period is keyed as the member's Nth there, the first by the period itself, then #2 and on), the first N buy-ins per table, which counts this promotion's grants at that table this club day, members a day (a member already given it today is not a new one), the most grants, and the budget in bonus chips, whole or not at all; a monthly budget and most grants count the grants of the event's calendar month of club days alone, starting again at 06:00 IST on the first. Stacking for one event: bonus chips from different promotions stack; one perk of each kind, the first given. Inputs are written as the database holds them.",
+  "about": "What a promotion gives (console v3 phase 7; decisions 0470 and 0472), in bonus chips or a perk, never rupees. Days are the club's, 06:00 to 06:00 IST, and its weeks run Monday to Sunday. Eligible: the member's tier and audience must be the promotion's (new members have fewer than 30 whole days since joining; lapsed regulars' last visit before this one was 30 or more whole days before). The time-played reward is the play-time (hours) bonus: for it only the minutes inside the schedule at its stakes and tables count, so the moment and table of the event do not matter. For every other reward the event's stake, table and moment must be the promotion's, so a promotion for some stakes gives nothing for an event away from a table. Grant: a seat bonus is its chips on the first seat of a visit, or on any seat when it is for the first N at a table, and in tiers the first tier's chips until the limits set the tier; a play-time bonus pays each step as it is reached (owner, 8 Nov): its one step after a time, its set steps (two to six, rising), or one every so many minutes up to its times a visit and never past 24 hours, each step's chips once its minutes are played, nothing for a step it does not have, and nothing for time played at a visit's close; bonus chips come on a visit, a referral or a sign-up; waitlist priority on a visit; nothing comes to nothing. Limits, in this order: the member's period already given as often as it allows, once unless it says up to N (2 to 20) times (the same visit, club day, club week, ever, or with no limit the same event, and for a play-time bonus step that period @ the step's place among the promotion's steps, the first 1, so the limit holds for each step and a version that moves a step's minutes never pays it twice (the owner, 9 Nov), and with no limit a step's period is its visit; each grant in a period is keyed as the member's Nth there, the first by the period itself, then #2 and on), the first N seats per table, which counts this promotion's grants at that table this club day, members a day (a member already given it today is not a new one), the most grants, and the budget in bonus chips, whole or not at all; a monthly budget and most grants count the grants of the event's calendar month of club days alone, starting again at 06:00 IST on the first. Stacking for one event: bonus chips from different promotions stack; one waitlist priority, the first given. Inputs are written as the database holds them. A high hand bonus (redesign RD-22) lists hands from a fixed list (royal flush, straight flush, four of a kind, Aces full, any full house), each with its own Bonus, and holds rules: both hole cards must play, shown at showdown, and a least number of players dealt in. The floor logs a hit: a hand, its rank where the hand has one (a straight flush's high card, king to five; which four of a kind; the three of a full house; none for a royal flush or Aces full), and each rule confirmed. A hit pays its listed hand's Bonus, whole, every time: a full house of three aces is Aces full where the promotion lists it and any full house otherwise; a hand not listed, a rank the hand cannot have, or a rule the promotion holds left unconfirmed (the players dealt in always) pays nothing and says which, the first in that order. Its only limit is the promotion's budget, which it must have, whole or not at all; what is left of a budget is the budget less what was paid, never below nothing.",
   "cases": [
     {
-      "description": "Everyone, every stake, Tuesdays: a buy-in at 21:00 on Tuesday qualifies.",
+      "description": "Everyone, every stake, Tuesdays: a seat at 21:00 on Tuesday qualifies.",
       "operation": "eligible",
       "inputs": {
-        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "terms": "{\"reward\": {\"kind\": \"seat_bonus\", \"chips\": 500}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
         "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
@@ -15,10 +15,10 @@
       }
     },
     {
-      "description": "Tuesdays: a buy-in at 21:00 on Wednesday does not.",
+      "description": "Tuesdays: a seat at 21:00 on Wednesday does not.",
       "operation": "eligible",
       "inputs": {
-        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "terms": "{\"reward\": {\"kind\": \"seat_bonus\", \"chips\": 500}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
         "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-18T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
@@ -27,10 +27,10 @@
       }
     },
     {
-      "description": "Only 100/200: a buy-in at 50/100 does not qualify.",
+      "description": "Only 100/200: a seat at 50/100 does not qualify.",
       "operation": "eligible",
       "inputs": {
-        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": [\"nlh_100_200\"], \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "terms": "{\"reward\": {\"kind\": \"seat_bonus\", \"chips\": 500}, \"eligibility\": {\"stakes\": [\"nlh_100_200\"], \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
         "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
@@ -39,10 +39,10 @@
       }
     },
     {
-      "description": "Only 100/200: a buy-in at 100/200 qualifies.",
+      "description": "Only 100/200: a seat at 100/200 qualifies.",
       "operation": "eligible",
       "inputs": {
-        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": [\"nlh_100_200\"], \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "terms": "{\"reward\": {\"kind\": \"seat_bonus\", \"chips\": 500}, \"eligibility\": {\"stakes\": [\"nlh_100_200\"], \"tiers\": \"all\", \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
         "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_100_200\", \"tableId\": \"t1\"}"
       },
@@ -63,10 +63,10 @@
       }
     },
     {
-      "description": "Only Table 1: a buy-in at Table 2 does not qualify.",
+      "description": "Only Table 1: a seat at Table 2 does not qualify.",
       "operation": "eligible",
       "inputs": {
-        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"everyone\", \"tableIds\": [\"t1\"]}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "terms": "{\"reward\": {\"kind\": \"seat_bonus\", \"chips\": 500}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"everyone\", \"tableIds\": [\"t1\"]}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
         "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t2\"}"
       },
@@ -78,7 +78,7 @@
       "description": "Only Founders' Circle: a Founders' Circle member qualifies.",
       "operation": "eligible",
       "inputs": {
-        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": [\"founders\"], \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "terms": "{\"reward\": {\"kind\": \"seat_bonus\", \"chips\": 500}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": [\"founders\"], \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
         "member": "{\"tierId\": \"founders\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
@@ -90,7 +90,7 @@
       "description": "Only Founders' Circle: a member with no tier does not.",
       "operation": "eligible",
       "inputs": {
-        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": [\"founders\"], \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "terms": "{\"reward\": {\"kind\": \"seat_bonus\", \"chips\": 500}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": [\"founders\"], \"audience\": \"everyone\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
         "member": "{\"tierId\": null, \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
@@ -102,7 +102,7 @@
       "description": "New members, first 30 days: 29 whole days since joining qualifies.",
       "operation": "eligible",
       "inputs": {
-        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"new_30d\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "terms": "{\"reward\": {\"kind\": \"seat_bonus\", \"chips\": 500}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"new_30d\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
         "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 29, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
@@ -114,7 +114,7 @@
       "description": "New members, first 30 days: 30 whole days since joining does not.",
       "operation": "eligible",
       "inputs": {
-        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"new_30d\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "terms": "{\"reward\": {\"kind\": \"seat_bonus\", \"chips\": 500}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"new_30d\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
         "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 30, \"daysSinceLastVisit\": 7}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
@@ -126,7 +126,7 @@
       "description": "Lapsed regulars: last here 30 days ago qualifies.",
       "operation": "eligible",
       "inputs": {
-        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"lapsed\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "terms": "{\"reward\": {\"kind\": \"seat_bonus\", \"chips\": 500}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"lapsed\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
         "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 30}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
@@ -138,7 +138,7 @@
       "description": "Lapsed regulars: last here 29 days ago does not.",
       "operation": "eligible",
       "inputs": {
-        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"lapsed\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "terms": "{\"reward\": {\"kind\": \"seat_bonus\", \"chips\": 500}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"lapsed\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
         "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": 29}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
@@ -150,7 +150,7 @@
       "description": "Lapsed regulars: a member who never came before is not a lapsed regular.",
       "operation": "eligible",
       "inputs": {
-        "terms": "{\"reward\": {\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"lapsed\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
+        "terms": "{\"reward\": {\"kind\": \"seat_bonus\", \"chips\": 500}, \"eligibility\": {\"stakes\": \"all\", \"tiers\": \"all\", \"audience\": \"lapsed\"}, \"schedule\": {\"days\": [2], \"from\": \"06:00\", \"to\": \"06:00\", \"startsOn\": \"2026-11-01\", \"timezone\": \"Asia/Kolkata\"}}",
         "member": "{\"tierId\": \"member\", \"daysSinceJoined\": 200, \"daysSinceLastVisit\": null}",
         "context": "{\"at\": \"2026-11-17T21:00:00+05:30\", \"stake\": \"nlh_50_100\", \"tableId\": \"t1\"}"
       },
@@ -180,111 +180,6 @@
       },
       "expected": {
         "eligible": "no"
-      }
-    },
-    {
-      "description": "20% of a 10,000 buy-in: 2,000 bonus chips.",
-      "operation": "grant",
-      "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
-        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 10000, \"isFirstOfVisit\": true}"
-      },
-      "expected": {
-        "chips": "2000",
-        "perk": ""
-      }
-    },
-    {
-      "description": "20% up to 1,000, on a 10,000 buy-in: the cap is smaller than 20%, so 1,000.",
-      "operation": "grant",
-      "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20, \"capChips\": 1000}",
-        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 10000, \"isFirstOfVisit\": true}"
-      },
-      "expected": {
-        "chips": "1000",
-        "perk": ""
-      }
-    },
-    {
-      "description": "20% up to 2,000, on a 10,000 buy-in: exactly at the cap, 2,000.",
-      "operation": "grant",
-      "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20, \"capChips\": 2000}",
-        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 10000, \"isFirstOfVisit\": true}"
-      },
-      "expected": {
-        "chips": "2000",
-        "perk": ""
-      }
-    },
-    {
-      "description": "20% up to 2,000, on a 5,000 buy-in: under the cap, 1,000.",
-      "operation": "grant",
-      "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20, \"capChips\": 2000}",
-        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 5000, \"isFirstOfVisit\": true}"
-      },
-      "expected": {
-        "chips": "1000",
-        "perk": ""
-      }
-    },
-    {
-      "description": "10% of 2,499 is 249.9: rounded down to whole 50s, 200.",
-      "operation": "grant",
-      "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 10}",
-        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 2499, \"isFirstOfVisit\": true}"
-      },
-      "expected": {
-        "chips": "200",
-        "perk": ""
-      }
-    },
-    {
-      "description": "10% of 499 is 49.9: under one 50 chip, so nothing is given.",
-      "operation": "grant",
-      "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 10}",
-        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 499, \"isFirstOfVisit\": true}"
-      },
-      "expected": {
-        "refusal": "nothing_earned"
-      }
-    },
-    {
-      "description": "A buy-in paid from bonus chips earns no bonus.",
-      "operation": "grant",
-      "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
-        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 0, \"isFirstOfVisit\": true}"
-      },
-      "expected": {
-        "refusal": "nothing_earned"
-      }
-    },
-    {
-      "description": "Fixed 500 bonus chips on a buy-in: 500.",
-      "operation": "grant",
-      "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"fixed\", \"chips\": 500, \"firstNBuyinsPerTable\": 5}",
-        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 2000, \"isFirstOfVisit\": true}"
-      },
-      "expected": {
-        "chips": "500",
-        "perk": ""
-      }
-    },
-    {
-      "description": "Fixed 500 bonus chips on a buy-in paid from bonus: nothing.",
-      "operation": "grant",
-      "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"fixed\", \"chips\": 500}",
-        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 0, \"isFirstOfVisit\": true}"
-      },
-      "expected": {
-        "refusal": "nothing_earned"
       }
     },
     {
@@ -439,40 +334,6 @@
       }
     },
     {
-      "description": "1,000 bonus chips on the first buy-in: the visit's first buy-in gives 1,000.",
-      "operation": "grant",
-      "inputs": {
-        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"first_buyin\"}",
-        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 5000, \"isFirstOfVisit\": true}"
-      },
-      "expected": {
-        "chips": "1000",
-        "perk": ""
-      }
-    },
-    {
-      "description": "1,000 bonus chips on the first buy-in: a second buy-in gives nothing.",
-      "operation": "grant",
-      "inputs": {
-        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"first_buyin\"}",
-        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 5000, \"isFirstOfVisit\": false}"
-      },
-      "expected": {
-        "refusal": "not_first_buy_in"
-      }
-    },
-    {
-      "description": "1,000 bonus chips on the first buy-in: a first buy-in paid from bonus gives nothing.",
-      "operation": "grant",
-      "inputs": {
-        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"first_buyin\"}",
-        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"buy_in\", \"ownChips\": 0, \"isFirstOfVisit\": true}"
-      },
-      "expected": {
-        "refusal": "nothing_earned"
-      }
-    },
-    {
       "description": "Bonus chips on a referral are not given for a visit.",
       "operation": "grant",
       "inputs": {
@@ -495,41 +356,6 @@
       }
     },
     {
-      "description": "A cab home from the fourth visit in a month: the third visit is not yet.",
-      "operation": "grant",
-      "inputs": {
-        "reward": "{\"kind\": \"cab_home\", \"fromVisitInMonth\": 4}",
-        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": null, \"stake\": null, \"kind\": \"visit\", \"visitInMonth\": 3}"
-      },
-      "expected": {
-        "refusal": "not_yet"
-      }
-    },
-    {
-      "description": "A cab home from the fourth visit in a month: the fourth visit gives it.",
-      "operation": "grant",
-      "inputs": {
-        "reward": "{\"kind\": \"cab_home\", \"fromVisitInMonth\": 4}",
-        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": null, \"stake\": null, \"kind\": \"visit\", \"visitInMonth\": 4}"
-      },
-      "expected": {
-        "chips": "0",
-        "perk": "cab_home"
-      }
-    },
-    {
-      "description": "A tournament entry is given on a visit.",
-      "operation": "grant",
-      "inputs": {
-        "reward": "{\"kind\": \"tournament_entry\", \"tournamentId\": \"RIVR Sunday\"}",
-        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": null, \"stake\": null, \"kind\": \"visit\", \"visitInMonth\": 1}"
-      },
-      "expected": {
-        "chips": "0",
-        "perk": "tournament_entry"
-      }
-    },
-    {
       "description": "Waitlist priority is given on a visit.",
       "operation": "grant",
       "inputs": {
@@ -542,10 +368,10 @@
       }
     },
     {
-      "description": "A buy-in bonus is not given for time played.",
+      "description": "A seat bonus is not given for time played.",
       "operation": "grant",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "reward": "{\"kind\": \"seat_bonus\", \"chips\": 1000}",
         "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"time_played\", \"minutes\": 240}"
       },
       "expected": {
@@ -556,7 +382,7 @@
       "description": "No limits and nothing given yet: given.",
       "operation": "limits",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
         "limits": "{\"perMember\": \"none\"}",
         "grant": "{\"chips\": 2000, \"perk\": null}",
         "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
@@ -570,7 +396,7 @@
       "description": "A budget of 5,000 with 4,000 given: a grant of 1,000 uses the last of it.",
       "operation": "limits",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
         "limits": "{\"perMember\": \"none\", \"budgetChips\": 5000}",
         "grant": "{\"chips\": 1000, \"perk\": null}",
         "tally": "{\"chipsGiven\": 4000, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
@@ -584,7 +410,7 @@
       "description": "Budget exhausted mid-grant: 5,000 with 4,500 given cannot give 1,000, and never gives part of it.",
       "operation": "limits",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
         "limits": "{\"perMember\": \"none\", \"budgetChips\": 5000}",
         "grant": "{\"chips\": 1000, \"perk\": null}",
         "tally": "{\"chipsGiven\": 4500, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
@@ -598,7 +424,7 @@
       "description": "Once per member: a member who has had it does not have it again.",
       "operation": "limits",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
         "limits": "{\"perMember\": \"once\"}",
         "grant": "{\"chips\": 1000, \"perk\": null}",
         "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 1, \"grantsAtTableToday\": 0}"
@@ -609,38 +435,10 @@
       }
     },
     {
-      "description": "First 5 buy-ins per table: the fifth is given when four have been.",
+      "description": "First 5 seats at a table: a seat away from a table cannot count among them.",
       "operation": "limits",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20, \"firstNBuyinsPerTable\": 5}",
-        "limits": "{\"perMember\": \"none\"}",
-        "grant": "{\"chips\": 1000, \"perk\": null}",
-        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 4}"
-      },
-      "expected": {
-        "given": "yes",
-        "refusal": ""
-      }
-    },
-    {
-      "description": "First 5 buy-ins per table: the sixth is not.",
-      "operation": "limits",
-      "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20, \"firstNBuyinsPerTable\": 5}",
-        "limits": "{\"perMember\": \"none\"}",
-        "grant": "{\"chips\": 1000, \"perk\": null}",
-        "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 5}"
-      },
-      "expected": {
-        "given": "no",
-        "refusal": "first_n_taken"
-      }
-    },
-    {
-      "description": "First 5 buy-ins per table: a buy-in away from a table cannot count among them.",
-      "operation": "limits",
-      "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20, \"firstNBuyinsPerTable\": 5}",
+        "reward": "{\"kind\": \"seat_bonus\", \"chips\": 1000, \"firstNSeatsPerTable\": 5}",
         "limits": "{\"perMember\": \"none\"}",
         "grant": "{\"chips\": 1000, \"perk\": null}",
         "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": null}"
@@ -654,7 +452,7 @@
       "description": "50 members a day: a 51st member is not given it.",
       "operation": "limits",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
         "limits": "{\"perMember\": \"none\", \"maxMembersPerDay\": 50}",
         "grant": "{\"chips\": 1000, \"perk\": null}",
         "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 50, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
@@ -668,7 +466,7 @@
       "description": "50 members a day: one of the 50 already given it today may have it again, as the per-member limit allows.",
       "operation": "limits",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
         "limits": "{\"perMember\": \"none\", \"maxMembersPerDay\": 50}",
         "grant": "{\"chips\": 1000, \"perk\": null}",
         "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 50, \"isMemberGrantedToday\": true, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
@@ -682,7 +480,7 @@
       "description": "50 members a day: the 50th member is given it.",
       "operation": "limits",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
         "limits": "{\"perMember\": \"none\", \"maxMembersPerDay\": 50}",
         "grant": "{\"chips\": 1000, \"perk\": null}",
         "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 49, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
@@ -696,7 +494,7 @@
       "description": "At most 100 grants: the 100th is given.",
       "operation": "limits",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
         "limits": "{\"perMember\": \"none\", \"maxGrants\": 100}",
         "grant": "{\"chips\": 1000, \"perk\": null}",
         "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 99, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
@@ -710,7 +508,7 @@
       "description": "At most 100 grants: the 101st is not given.",
       "operation": "limits",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
         "limits": "{\"perMember\": \"none\", \"maxGrants\": 100}",
         "grant": "{\"chips\": 1000, \"perk\": null}",
         "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 100, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
@@ -724,7 +522,7 @@
       "description": "Up to twice a day: a member given it once today has it again.",
       "operation": "limits",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
         "limits": "{\"perMember\": \"per_day\", \"timesPerMember\": 2}",
         "grant": "{\"chips\": 1000, \"perk\": null}",
         "tally": "{\"chipsGiven\": 1000, \"grantsGiven\": 1, \"membersToday\": 1, \"isMemberGrantedToday\": true, \"periodGiven\": 1, \"grantsAtTableToday\": 0}"
@@ -738,7 +536,7 @@
       "description": "Up to twice a day: a member given it twice today has it no more.",
       "operation": "limits",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
         "limits": "{\"perMember\": \"per_day\", \"timesPerMember\": 2}",
         "grant": "{\"chips\": 1000, \"perk\": null}",
         "tally": "{\"chipsGiven\": 2000, \"grantsGiven\": 2, \"membersToday\": 1, \"isMemberGrantedToday\": true, \"periodGiven\": 2, \"grantsAtTableToday\": 0}"
@@ -752,7 +550,7 @@
       "description": "Up to three times ever: the third is let through.",
       "operation": "limits",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
         "limits": "{\"perMember\": \"once\", \"timesPerMember\": 3}",
         "grant": "{\"chips\": 500, \"perk\": null}",
         "tally": "{\"chipsGiven\": 1000, \"grantsGiven\": 2, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 2, \"grantsAtTableToday\": 0}"
@@ -766,7 +564,7 @@
       "description": "A monthly budget of 10,000 chips with 9,000 given this month: 1,000 more is let through, at the cap.",
       "operation": "limits",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
         "limits": "{\"perMember\": \"none\", \"budgetChips\": 10000, \"budgetPeriod\": \"month\"}",
         "grant": "{\"chips\": 1000, \"perk\": null}",
         "tally": "{\"chipsGiven\": 9000, \"grantsGiven\": 9, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
@@ -780,7 +578,7 @@
       "description": "A monthly budget of 10,000 chips with 9,000 given this month: 1,050 more is not, never part of it.",
       "operation": "limits",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
         "limits": "{\"perMember\": \"none\", \"budgetChips\": 10000, \"budgetPeriod\": \"month\"}",
         "grant": "{\"chips\": 1050, \"perk\": null}",
         "tally": "{\"chipsGiven\": 9000, \"grantsGiven\": 9, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
@@ -794,7 +592,7 @@
       "description": "At most 10 grants a month, 10 given this month: no more this month.",
       "operation": "limits",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
         "limits": "{\"perMember\": \"none\", \"maxGrants\": 10, \"budgetPeriod\": \"month\"}",
         "grant": "{\"chips\": 0, \"perk\": null}",
         "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 10, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
@@ -808,7 +606,7 @@
       "description": "A monthly budget with nothing given this month: a zero-chip grant is let through.",
       "operation": "limits",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"percent\", \"percent\": 20}",
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
         "limits": "{\"perMember\": \"none\", \"budgetChips\": 50, \"budgetPeriod\": \"month\"}",
         "grant": "{\"chips\": 0, \"perk\": null}",
         "tally": "{\"chipsGiven\": 0, \"grantsGiven\": 0, \"membersToday\": 0, \"isMemberGrantedToday\": false, \"periodGiven\": 0, \"grantsAtTableToday\": 0}"
@@ -829,13 +627,13 @@
       }
     },
     {
-      "description": "Two cabs home for one visit: one cab.",
+      "description": "Two waitlist priorities for one visit: one, the first.",
       "operation": "stack",
       "inputs": {
-        "candidates": "[{\"promotion\": \"cab-a\", \"chips\": 0, \"perk\": \"cab_home\"}, {\"promotion\": \"cab-b\", \"chips\": 0, \"perk\": \"cab_home\"}, {\"promotion\": \"priority\", \"chips\": 0, \"perk\": \"waitlist_priority\"}]"
+        "candidates": "[{\"promotion\": \"priority-a\", \"chips\": 0, \"perk\": \"waitlist_priority\"}, {\"promotion\": \"priority-b\", \"chips\": 0, \"perk\": \"waitlist_priority\"}, {\"promotion\": \"chips\", \"chips\": 500, \"perk\": null}]"
       },
       "expected": {
-        "given": "cab-a | priority"
+        "given": "priority-a | chips"
       }
     },
     {
@@ -854,7 +652,7 @@
       "inputs": {
         "limits": "{\"perMember\": \"none\", \"budgetChips\": 10000}",
         "ledger": "[{\"memberId\": \"00000000-0000-4000-8000-000000000202\", \"clubDay\": \"2026-10-31\", \"periodKey\": \"event:a\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\", \"chips\": 3000, \"perk\": null}, {\"memberId\": \"00000000-0000-4000-8000-000000000202\", \"clubDay\": \"2026-11-01\", \"periodKey\": \"event:b\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\", \"chips\": 500, \"perk\": null}, {\"memberId\": \"00000000-0000-4000-8000-000000000203\", \"clubDay\": \"2026-11-30\", \"periodKey\": \"event:c\", \"tableId\": \"00000000-0000-4000-8000-0000000071a2\", \"chips\": 50, \"perk\": null}]",
-        "event": "{\"memberId\": \"00000000-0000-4000-8000-000000000201\", \"at\": \"2026-11-30T21:00:00+05:30\", \"key\": \"buy_in:x1\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\", \"tableId\": \"00000000-0000-4000-8000-0000000071a2\"}"
+        "event": "{\"memberId\": \"00000000-0000-4000-8000-000000000201\", \"at\": \"2026-11-30T21:00:00+05:30\", \"key\": \"seated:x1\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\", \"tableId\": \"00000000-0000-4000-8000-0000000071a2\"}"
       },
       "expected": {
         "chipsGiven": "3550",
@@ -871,7 +669,7 @@
       "inputs": {
         "limits": "{\"perMember\": \"none\", \"budgetChips\": 10000, \"budgetPeriod\": \"month\"}",
         "ledger": "[{\"memberId\": \"00000000-0000-4000-8000-000000000202\", \"clubDay\": \"2026-10-31\", \"periodKey\": \"event:a\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\", \"chips\": 3000, \"perk\": null}, {\"memberId\": \"00000000-0000-4000-8000-000000000202\", \"clubDay\": \"2026-11-01\", \"periodKey\": \"event:b\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\", \"chips\": 500, \"perk\": null}, {\"memberId\": \"00000000-0000-4000-8000-000000000203\", \"clubDay\": \"2026-11-30\", \"periodKey\": \"event:c\", \"tableId\": \"00000000-0000-4000-8000-0000000071a2\", \"chips\": 50, \"perk\": null}]",
-        "event": "{\"memberId\": \"00000000-0000-4000-8000-000000000201\", \"at\": \"2026-12-01T05:59:00+05:30\", \"key\": \"buy_in:x2\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\", \"tableId\": \"00000000-0000-4000-8000-0000000071a2\"}"
+        "event": "{\"memberId\": \"00000000-0000-4000-8000-000000000201\", \"at\": \"2026-12-01T05:59:00+05:30\", \"key\": \"seated:x2\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\", \"tableId\": \"00000000-0000-4000-8000-0000000071a2\"}"
       },
       "expected": {
         "chipsGiven": "550",
@@ -888,7 +686,7 @@
       "inputs": {
         "limits": "{\"perMember\": \"none\", \"maxGrants\": 10, \"budgetPeriod\": \"month\"}",
         "ledger": "[{\"memberId\": \"00000000-0000-4000-8000-000000000202\", \"clubDay\": \"2026-10-31\", \"periodKey\": \"event:a\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\", \"chips\": 3000, \"perk\": null}, {\"memberId\": \"00000000-0000-4000-8000-000000000202\", \"clubDay\": \"2026-11-01\", \"periodKey\": \"event:b\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\", \"chips\": 500, \"perk\": null}, {\"memberId\": \"00000000-0000-4000-8000-000000000203\", \"clubDay\": \"2026-11-30\", \"periodKey\": \"event:c\", \"tableId\": \"00000000-0000-4000-8000-0000000071a2\", \"chips\": 50, \"perk\": null}]",
-        "event": "{\"memberId\": \"00000000-0000-4000-8000-000000000201\", \"at\": \"2026-12-01T06:00:00+05:30\", \"key\": \"buy_in:x3\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\", \"tableId\": null}"
+        "event": "{\"memberId\": \"00000000-0000-4000-8000-000000000201\", \"at\": \"2026-12-01T06:00:00+05:30\", \"key\": \"seated:x3\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\", \"tableId\": null}"
       },
       "expected": {
         "chipsGiven": "0",
@@ -905,7 +703,7 @@
       "inputs": {
         "limits": "{\"perMember\": \"per_day\", \"timesPerMember\": 3}",
         "ledger": "[{\"memberId\": \"00000000-0000-4000-8000-000000000201\", \"clubDay\": \"2026-11-17\", \"periodKey\": \"day:2026-11-17\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\", \"chips\": 1000, \"perk\": null}, {\"memberId\": \"00000000-0000-4000-8000-000000000201\", \"clubDay\": \"2026-11-17\", \"periodKey\": \"day:2026-11-17#2\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\", \"chips\": 1000, \"perk\": null}, {\"memberId\": \"00000000-0000-4000-8000-000000000202\", \"clubDay\": \"2026-11-17\", \"periodKey\": \"day:2026-11-17\", \"tableId\": \"00000000-0000-4000-8000-0000000071a2\", \"chips\": 1000, \"perk\": null}, {\"memberId\": \"00000000-0000-4000-8000-000000000201\", \"clubDay\": \"2026-11-16\", \"periodKey\": \"day:2026-11-16\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\", \"chips\": 1000, \"perk\": null}]",
-        "event": "{\"memberId\": \"00000000-0000-4000-8000-000000000201\", \"at\": \"2026-11-17T23:00:00+05:30\", \"key\": \"buy_in:x4\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\"}"
+        "event": "{\"memberId\": \"00000000-0000-4000-8000-000000000201\", \"at\": \"2026-11-17T23:00:00+05:30\", \"key\": \"seated:x4\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\", \"tableId\": \"00000000-0000-4000-8000-0000000071a1\"}"
       },
       "expected": {
         "chipsGiven": "4000",
@@ -921,7 +719,7 @@
       "operation": "periodKey",
       "inputs": {
         "limits": "{\"perMember\": \"per_day\"}",
-        "event": "{\"key\": \"buy_in:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
+        "event": "{\"key\": \"seated:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
         "given": "0"
       },
       "expected": {
@@ -933,7 +731,7 @@
       "operation": "periodKey",
       "inputs": {
         "limits": "{\"perMember\": \"per_week\"}",
-        "event": "{\"key\": \"buy_in:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
+        "event": "{\"key\": \"seated:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
         "given": "0"
       },
       "expected": {
@@ -945,7 +743,7 @@
       "operation": "periodKey",
       "inputs": {
         "limits": "{\"perMember\": \"per_visit\"}",
-        "event": "{\"key\": \"buy_in:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
+        "event": "{\"key\": \"seated:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
         "given": "0"
       },
       "expected": {
@@ -957,11 +755,11 @@
       "operation": "periodKey",
       "inputs": {
         "limits": "{\"perMember\": \"per_visit\"}",
-        "event": "{\"key\": \"buy_in:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": null}",
+        "event": "{\"key\": \"seated:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": null}",
         "given": "0"
       },
       "expected": {
-        "key": "visit:buy_in:k1"
+        "key": "visit:seated:k1"
       }
     },
     {
@@ -969,7 +767,7 @@
       "operation": "periodKey",
       "inputs": {
         "limits": "{\"perMember\": \"once\"}",
-        "event": "{\"key\": \"buy_in:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
+        "event": "{\"key\": \"seated:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
         "given": "0"
       },
       "expected": {
@@ -981,11 +779,11 @@
       "operation": "periodKey",
       "inputs": {
         "limits": "{\"perMember\": \"none\"}",
-        "event": "{\"key\": \"buy_in:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
+        "event": "{\"key\": \"seated:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
         "given": "0"
       },
       "expected": {
-        "key": "event:buy_in:k1"
+        "key": "event:seated:k1"
       }
     },
     {
@@ -993,7 +791,7 @@
       "operation": "periodKey",
       "inputs": {
         "limits": "{\"perMember\": \"per_day\", \"timesPerMember\": 2}",
-        "event": "{\"key\": \"buy_in:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
+        "event": "{\"key\": \"seated:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
         "given": "1"
       },
       "expected": {
@@ -1005,7 +803,7 @@
       "operation": "periodKey",
       "inputs": {
         "limits": "{\"perMember\": \"once\", \"timesPerMember\": 20}",
-        "event": "{\"key\": \"buy_in:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
+        "event": "{\"key\": \"seated:k1\", \"at\": \"2026-11-18T02:00:00+05:30\", \"visitId\": \"00000000-0000-4000-8000-0000000072a1\"}",
         "given": "19"
       },
       "expected": {
@@ -1215,10 +1013,10 @@
       }
     },
     {
-      "description": "A buy-in bonus is not paid for a seat.",
+      "description": "Bonus chips on a visit are not paid for a seat.",
       "operation": "grant",
       "inputs": {
-        "reward": "{\"kind\": \"buyin_bonus\", \"mode\": \"fixed\", \"chips\": 1000}",
+        "reward": "{\"kind\": \"bonus_chips\", \"chips\": 1000, \"on\": \"visit\"}",
         "event": "{\"key\": \"seated:s1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"seated\", \"isFirstOfVisit\": true}"
       },
       "expected": {
@@ -1427,6 +1225,496 @@
       "expected": {
         "given": "no",
         "refusal": "budget_exhausted"
+      }
+    },
+    {
+      "description": "High hand: a royal flush listed at 25,000 pays 25,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"royal_flush\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "25000",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: a straight flush, nine high, pays its 10,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"straight_flush\", \"rank\": \"nine\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "10000",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: four jacks pay the four of a kind, 5,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"four_of_a_kind\", \"rank\": \"jack\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "5000",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: Aces full pays its own 2,000, not any full house's 1,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"aces_full\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "2000",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: a full house logged with three aces is Aces full where the promotion lists it: 2,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"full_house\", \"rank\": \"ace\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "2000",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: kings full pays any full house, 1,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"full_house\", \"rank\": \"king\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "1000",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: Aces full where only any full house is listed is a full house: 500.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"full_house\", \"chips\": 500}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"aces_full\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "500",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: the smallest Bonus, 50, is paid whole.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"four_of_a_kind\", \"chips\": 50}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"four_of_a_kind\", \"rank\": \"two\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "50",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: kings full where only Aces full is listed is not a listed hand.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"aces_full\", \"chips\": 2000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"full_house\", \"rank\": \"king\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "hand_not_listed"
+      }
+    },
+    {
+      "description": "High hand: four of a kind where the promotion lists none is not a listed hand.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"aces_full\", \"chips\": 2000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"four_of_a_kind\", \"rank\": \"ace\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "hand_not_listed"
+      }
+    },
+    {
+      "description": "High hand: four of a kind with no rank named is refused for its rank.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"four_of_a_kind\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "wrong_rank"
+      }
+    },
+    {
+      "description": "High hand: a straight flush cannot be ace high, which is a royal flush.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"straight_flush\", \"rank\": \"ace\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "wrong_rank"
+      }
+    },
+    {
+      "description": "High hand: a straight flush cannot be four high.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"straight_flush\", \"rank\": \"four\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "wrong_rank"
+      }
+    },
+    {
+      "description": "High hand: a straight flush, five high, the lowest there is, pays.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"straight_flush\", \"rank\": \"five\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "10000",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: a royal flush has no rank to name.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"royal_flush\", \"rank\": \"ace\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "wrong_rank"
+      }
+    },
+    {
+      "description": "High hand: both hole cards not confirmed is refused, and says so.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"royal_flush\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": false, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "both_hole_cards_not_confirmed"
+      }
+    },
+    {
+      "description": "High hand: not confirmed as shown at showdown is refused, and says so.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"royal_flush\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": false, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "showdown_not_confirmed"
+      }
+    },
+    {
+      "description": "High hand: the players dealt in not confirmed is refused, and says so.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"royal_flush\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": false}}"
+      },
+      "expected": {
+        "refusal": "players_not_confirmed"
+      }
+    },
+    {
+      "description": "High hand: with two rules unconfirmed, the first is the one named.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"royal_flush\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": false, \"shownAtShowdown\": true, \"playersDealt\": false}}"
+      },
+      "expected": {
+        "refusal": "both_hole_cards_not_confirmed"
+      }
+    },
+    {
+      "description": "High hand: a promotion that does not hold the hole cards or showdown rules pays without them confirmed.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": false, \"shownAtShowdown\": false, \"minPlayersDealt\": 2}, \"hands\": [{\"hand\": \"four_of_a_kind\", \"chips\": 5000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"four_of_a_kind\", \"rank\": \"nine\", \"confirmed\": {\"bothHoleCards\": false, \"shownAtShowdown\": false, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "5000",
+        "perk": ""
+      }
+    },
+    {
+      "description": "High hand: but the players dealt in are always confirmed.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": false, \"shownAtShowdown\": false, \"minPlayersDealt\": 2}, \"hands\": [{\"hand\": \"four_of_a_kind\", \"chips\": 5000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"four_of_a_kind\", \"rank\": \"nine\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": false}}"
+      },
+      "expected": {
+        "refusal": "players_not_confirmed"
+      }
+    },
+    {
+      "description": "A high hand bonus is not paid for a seat.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"seated:s1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"seated\", \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "refusal": "other_event"
+      }
+    },
+    {
+      "description": "A seat bonus is not paid for a high hand.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"seat_bonus\", \"chips\": 1000}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"royal_flush\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "other_event"
+      }
+    },
+    {
+      "description": "High hand order: a hand not listed, with no rank and a rule unconfirmed, is refused as not listed.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"four_of_a_kind\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": false}}"
+      },
+      "expected": {
+        "refusal": "hand_not_listed"
+      }
+    },
+    {
+      "description": "High hand order: a listed hand with no rank and a rule unconfirmed is refused for its rank.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"four_of_a_kind\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": false}}"
+      },
+      "expected": {
+        "refusal": "wrong_rank"
+      }
+    },
+    {
+      "description": "High hand order: showdown and the players dealt in both unconfirmed: showdown is named.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"royal_flush\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": false, \"playersDealt\": false}}"
+      },
+      "expected": {
+        "refusal": "showdown_not_confirmed"
+      }
+    },
+    {
+      "description": "High hand order: a full house of three aces where only Aces full is listed pays Aces full, 2,000.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"aces_full\", \"chips\": 2000}]}",
+        "event": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"full_house\", \"rank\": \"ace\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "chips": "2000",
+        "perk": ""
+      }
+    },
+    {
+      "description": "Paid as: four jacks are a four of a kind, jacks.",
+      "operation": "paid",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "hit": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"four_of_a_kind\", \"rank\": \"jack\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "hand": "four_of_a_kind",
+        "rank": "jack"
+      }
+    },
+    {
+      "description": "Paid as: a royal flush, with no rank.",
+      "operation": "paid",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "hit": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"royal_flush\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "hand": "royal_flush",
+        "rank": ""
+      }
+    },
+    {
+      "description": "Paid as: a full house with three aces is Aces full where it is listed, and Aces full has no rank.",
+      "operation": "paid",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "hit": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"full_house\", \"rank\": \"ace\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "hand": "aces_full",
+        "rank": ""
+      }
+    },
+    {
+      "description": "Paid as: Aces full where only any full house is listed is a full house, aces.",
+      "operation": "paid",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"full_house\", \"chips\": 500}]}",
+        "hit": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"aces_full\", \"rank\": null, \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "hand": "full_house",
+        "rank": "ace"
+      }
+    },
+    {
+      "description": "Paid as: kings full is a full house, kings.",
+      "operation": "paid",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "hit": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"full_house\", \"rank\": \"king\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "hand": "full_house",
+        "rank": "king"
+      }
+    },
+    {
+      "description": "Paid as: nothing where the hand is not listed.",
+      "operation": "paid",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"aces_full\", \"chips\": 2000}]}",
+        "hit": "{\"key\": \"high_hand:h1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_100_200\", \"kind\": \"high_hand\", \"hand\": \"straight_flush\", \"rank\": \"nine\", \"confirmed\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"playersDealt\": true}}"
+      },
+      "expected": {
+        "refusal": "hand_not_listed"
+      }
+    },
+    {
+      "description": "High hand budget: 10,00,000 with 5,00,000 paid: a royal flush's 25,000 is paid.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 1000000}",
+        "grant": "{\"chips\": 25000, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 500000, \"grantsGiven\": 3, \"membersToday\": 2, \"isMemberGrantedToday\": true, \"periodGiven\": 0, \"grantsAtTableToday\": 1}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
+      }
+    },
+    {
+      "description": "High hand budget: 50,000 with 25,000 paid: a royal flush's 25,000 uses the last of it.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 50000}",
+        "grant": "{\"chips\": 25000, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 25000, \"grantsGiven\": 3, \"membersToday\": 2, \"isMemberGrantedToday\": true, \"periodGiven\": 0, \"grantsAtTableToday\": 1}"
+      },
+      "expected": {
+        "given": "yes",
+        "refusal": ""
+      }
+    },
+    {
+      "description": "High hand budget: 50,000 with 30,000 paid: 25,000 more is not paid, nor part of it.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 50000}",
+        "grant": "{\"chips\": 25000, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 30000, \"grantsGiven\": 3, \"membersToday\": 2, \"isMemberGrantedToday\": true, \"periodGiven\": 0, \"grantsAtTableToday\": 1}"
+      },
+      "expected": {
+        "given": "no",
+        "refusal": "budget_exhausted"
+      }
+    },
+    {
+      "description": "High hand budget: the smallest hit, 50, past a spent budget is not paid.",
+      "operation": "limits",
+      "inputs": {
+        "reward": "{\"kind\": \"high_hand\", \"rules\": {\"bothHoleCards\": true, \"shownAtShowdown\": true, \"minPlayersDealt\": 4}, \"hands\": [{\"hand\": \"royal_flush\", \"chips\": 25000}, {\"hand\": \"straight_flush\", \"chips\": 10000}, {\"hand\": \"four_of_a_kind\", \"chips\": 5000}, {\"hand\": \"aces_full\", \"chips\": 2000}, {\"hand\": \"full_house\", \"chips\": 1000}]}",
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 50000}",
+        "grant": "{\"chips\": 50, \"perk\": null}",
+        "tally": "{\"chipsGiven\": 50000, \"grantsGiven\": 3, \"membersToday\": 2, \"isMemberGrantedToday\": true, \"periodGiven\": 0, \"grantsAtTableToday\": 1}"
+      },
+      "expected": {
+        "given": "no",
+        "refusal": "budget_exhausted"
+      }
+    },
+    {
+      "description": "Budget left: 50,000 with 30,000 paid leaves 20,000.",
+      "operation": "left",
+      "inputs": {
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 50000}",
+        "tally": "{\"chipsGiven\": 30000}"
+      },
+      "expected": {
+        "left": "20000"
+      }
+    },
+    {
+      "description": "Budget left: 50,000 with nothing paid leaves it all.",
+      "operation": "left",
+      "inputs": {
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 50000}",
+        "tally": "{\"chipsGiven\": 0}"
+      },
+      "expected": {
+        "left": "50000"
+      }
+    },
+    {
+      "description": "Budget left: a budget all paid leaves nothing.",
+      "operation": "left",
+      "inputs": {
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 50000}",
+        "tally": "{\"chipsGiven\": 50000}"
+      },
+      "expected": {
+        "left": "0"
+      }
+    },
+    {
+      "description": "Budget left: more paid than a budget since made smaller still leaves nothing, never less.",
+      "operation": "left",
+      "inputs": {
+        "limits": "{\"perMember\": \"none\", \"budgetChips\": 50000}",
+        "tally": "{\"chipsGiven\": 60000}"
+      },
+      "expected": {
+        "left": "0"
+      }
+    },
+    {
+      "description": "Budget left: no budget has nothing to say.",
+      "operation": "left",
+      "inputs": {
+        "limits": "{\"perMember\": \"none\"}",
+        "tally": "{\"chipsGiven\": 30000}"
+      },
+      "expected": {
+        "left": "none"
       }
     }
   ]

@@ -1,5 +1,5 @@
 import { ACTIVITY_KINDS, ACTIVITY_PAGE, useActivityPage, useStaffVenue, type ActivityFilters, type ActivityKind, type ActivityLine } from '@rivr/db';
-import { activityActionWord, activityEntityWord, formatDateTime, formatList, formatNumber, t } from '@rivr/i18n';
+import { activityActionWord, activityEntityWord, formatDateTime, formatHighHand, formatList, formatNumber, t } from '@rivr/i18n';
 import { ChoiceChips, DataTable, Inline, Input, Screen, Stack, type DataTableColumn } from '@rivr/ui';
 import { useDeferredValue, useState } from 'react';
 
@@ -20,6 +20,13 @@ function whatOf(line: ActivityLine): string {
   return line.amount === null ? what : t('console.activity.withAmount', { what, amount: formatNumber(line.amount) });
 }
 
+/** Why, as it was given; for a high hand paid, the hand and where (redesign RD-24). */
+function whyOf(line: ActivityLine): string {
+  const hit = line.highHand;
+  if (hit === null) return line.reason ?? '';
+  return t('console.activity.highHand', { hand: formatHighHand(hit.hand, hit.rank), table: hit.table, seat: hit.seat });
+}
+
 /** The columns: the narrowing is the screen's, on the whole log, so the table's own filters, which see one page, are off. */
 function columns(): readonly DataTableColumn<ActivityLine>[] {
   const when = (line: ActivityLine) => formatDateTime(new Date(line.occurredAt));
@@ -31,7 +38,7 @@ function columns(): readonly DataTableColumn<ActivityLine>[] {
     { key: 'kind', header: t('console.activity.kind'), cell: kind, exportValue: kind, filter: false },
     { key: 'what', header: t('console.activity.what'), cell: whatOf, exportValue: whatOf, filter: false },
     { key: 'record', header: t('console.activity.record'), cell: recordOf, exportValue: recordOf, isWide: true, filter: false },
-    { key: 'why', header: t('console.activity.why'), cell: (line) => line.reason ?? '', exportValue: (line) => line.reason ?? '', isWide: true, filter: false },
+    { key: 'why', header: t('console.activity.why'), cell: whyOf, exportValue: whyOf, isWide: true, filter: false },
   ];
 }
 

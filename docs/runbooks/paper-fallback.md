@@ -1,22 +1,19 @@
 # Running the room on paper
 
-When the system cannot be used, the room runs on paper and the paper goes back into the system afterwards, with nothing lost. There are five runbooks. This page has their steps, the paper forms to print, and the drill.
+When the system cannot be used, the room runs on paper and the paper goes back into the system afterwards, with nothing lost. There are four runbooks. This page has their steps, the paper forms to print, and the drill.
 
-Print a stack of each form and keep it at the cage, with pens and the contact list (the escalation directory, #53, once it is on the console).
-
-The cage computer keeps tonight's offline pack on its own disk (#168): who to call and the floor as it stood at 17:00. When the system is down, print the newest PDF from `C:\RIVR\agent\offline-pack\`. The cage agent keeps it (docs/runbooks/cage-agent.md).
+Print a stack of each form and keep it at the desk, with pens and the contact list (the escalation directory, #53, once it is on the console).
 
 ## The runbooks
 
-**While money is off the system** (since 29 Oct, decision 0284), the console has no cage and no buy-in, cash-out or UPI payment goes through RIVR. Then the room on paper is the floor sheet, the identity sheet and the food order sheet; skip the cage paper log, the UPI sheet and every cage step below, and run the drill as "The drill while money is off the system" says. The cage steps stay for when the club brings money back.
+No money goes through RIVR (decision 0284; the cage was removed in #1011), so the room on paper is the floor sheet, the identity sheet and the food order sheet.
 
 | Runbook | When | Paper | Back in the system |
 |---|---|---|---|
-| **App down** | The console cannot be reached | Cage paper log (buy-ins only; no cash-outs on paper), floor sheet | The floor seats each player from the floor sheet. Then the cage enters every slip in number order and ticks it. The duty manager checks nothing is lost. |
+| **App down** | The console cannot be reached | Floor sheet, food order sheet | The floor seats each player from the floor sheet, then enters each food order for its seat. The duty manager checks nothing is lost. |
 | **Wi-Fi down** | The tablets lose the network | Hand sheet, only for a tablet that has died. The others keep logging, and hands wait on them, through a restart too | The waiting hands send by themselves; check each tablet shows none waiting. A hand sheet's pots are set against the drop-box variance. |
-| **Power cut** | The lights go | Outage sheet, then as for app down if the cage computer goes off | As for app down. Count the cage and the chip trays before play restarts. |
-| **UPI down** | UPI payments fail | UPI sheet. Cash only; give no chips for a UPI payment yet | The member records the deposit in the app with its UTR, and the cage confirms it against the bank by amount and UTR. A line not yet in the app stays unticked. |
-| **KYC vendor down** | Identity checks cannot finish online | Identity sheet, if the console is down too. No chips without a complete check | Finish each check in person on the console, and tick it. |
+| **Power cut** | The lights go | Outage sheet, then as for app down if the console's computer goes off | As for app down. Count the chip trays before play restarts. |
+| **KYC vendor down** | Identity checks cannot finish online | Identity sheet, if the console is down too. No seat without a complete check | Finish each check in person on the console, and tick it. |
 
 The hand sheet is only for a tablet that has died: the dealer writes each pot on it. When that down ends, its pots are set against the drop-box variance.
 
@@ -26,15 +23,9 @@ In every runbook the duty manager calls the fallback, writes the start and end o
 
 **Outage sheet.** One per outage.
 
-| Started | Runbook | Called by | Ended | Slips used (first to last) | Chips in play before and after | Checked by |
-|---|---|---|---|---|---|---|
-| | | | | | | |
-
-**Cage paper log.** Buy-ins only, one numbered slip per line. Use the numbers in order; never skip or reuse one. Cash only. No cash-outs on paper: a player's chips stay with them until the system is back.
-
-| Slip | Time | Member | Mobile number | Table and seat | Amount | Cashier | Entered ✓ |
-|---|---|---|---|---|---|---|---|
-| | | | | | | | |
+| Started | Runbook | Called by | Ended | Chips in play before and after | Checked by |
+|---|---|---|---|---|---|
+| | | | | | |
 
 **Floor sheet.**
 
@@ -47,12 +38,6 @@ In every runbook the duty manager calls the fallback, writes the start and end o
 | Time | Pot | Game | Dealer |
 |---|---|---|---|
 | | | | |
-
-**UPI sheet.**
-
-| Time | Member | Mobile number | Amount | UTR | Cashier | Confirmed ✓ |
-|---|---|---|---|---|---|---|
-| | | | | | | |
 
 **Identity sheet.**
 
@@ -68,32 +53,18 @@ In every runbook the duty manager calls the fallback, writes the start and end o
 
 ## Bringing the paper back, and checking nothing is lost
 
-1. **The floor first.** Seat each player on the floor sheet (Live floor, a table, a seat, the mobile number). A player who has left since is seated too, so their slips can go in. The system stamps the time each is entered; the sheet keeps the time it happened.
-2. **Then the cage.** Enter every slip in number order: find the member, then the amount and Cash. Tick the slip as the console confirms it ("₹5,000 of chips issued.").
-3. **Then the check.** The duty manager confirms three things:
-   - every slip is ticked;
-   - the slip numbers run from the first to the last without a gap;
-   - the slips add up to the cash taken on paper.
-
-   A slip that will not go in, say because the member is frozen, stays unticked. It is settled before anyone signs, so it is not lost. A slip left out by mistake shows at the end of day as cash over.
-4. **Call time.** A player seated on paper has their call time counted from when they are entered. Their call time from the floor sheet's time may already be done. An admin then lets them leave early, with the reason "Paper fallback, seated at" and that time (question #402 asks for a better way).
+1. **The floor first.** Seat each player on the floor sheet (Live floor, a table, a seat, the mobile number), each line in time order. A player who has left since is seated, then let go. The system stamps the time each is entered; the sheet keeps the time it happened.
+2. **Call time.** A player seated on paper has their call time counted from when they are entered. Their call time from the floor sheet's time may already be done. An admin then lets them leave early, with the reason "Paper fallback, seated at" and that time (question #402 asks for a better way).
+3. **Then the orders and the checks.** Enter each food order for its seat, then finish each identity check in person on the console (hosts and floor may approve it).
+4. **Then the check.** The duty manager confirms every line on every sheet is ticked, the live floor matches the floor sheet's last state, and nothing went in twice. A line that will not go in, say because the member is frozen, stays unticked and is settled before anyone signs.
 
 ## The drill: 30 minutes on paper
 
 Run it in the practice venue during a mock session, so nothing touches the club's records. In the console, turn on Practice venue at the foot of the rail.
 
-1. For 30 minutes the room runs on paper as in **App down**: the floor sheet and the cage paper log, while the tablets keep logging hands.
-2. Bring the paper back and check it, as above.
-
-The drill passes when every slip is ticked, without a gap, and the slips add up to the cash.
-
-## The drill while money is off the system
-
-The same 30 minutes, in the practice venue, with the floor sheet, the identity sheet and the food order sheet.
-
 1. The duty manager writes the start on the outage sheet.
 2. For 30 minutes the host writes arrivals and identity checks on the identity sheet, the floor writes every seat, move and departure on the floor sheet with its time, and service writes orders on the food order sheet. Include a table change, a player leaving and an arrival whose check isn't done.
 3. Write the end on the outage sheet.
-4. Bring it back: the floor first (Live floor, each line in time order; a player who has left is seated, then let go), then call time ("Paper fallback, seated at" and the time, as above), then each food order for its seat, then each identity check in person on the console (hosts and floor may approve it). Tick every line as it goes in.
+4. Bring it back and check it, as above. Tick every line as it goes in.
 
 The drill passes when every line on every sheet is ticked, the live floor matches the floor sheet's last state, and nothing went in twice. The duty manager signs the outage sheet.

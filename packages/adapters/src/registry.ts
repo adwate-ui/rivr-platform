@@ -1,7 +1,6 @@
 import { createFakeCachePurge, type CachePurgeAdapter } from './cache-purge/index.ts';
 import { createFakeCctv, type CctvAdapter } from './cctv/index.ts';
 import { createFakeGoogleAds, type GoogleAdsConversionsAdapter } from './google-ads/index.ts';
-import { createFakeKitchenPrinter, type KitchenPrinterAdapter } from './kitchen-printer/index.ts';
 import { createFakeKyc, createUnconfiguredKyc, type KycAdapter } from './kyc/index.ts';
 import { createFakeLiveStatus, type LiveStatusAdapter } from './live-status/index.ts';
 import { createFakeMetaConversions, type MetaConversionsAdapter } from './meta-conversions/index.ts';
@@ -22,7 +21,6 @@ export interface Adapters {
   readonly cachePurge: CachePurgeAdapter;
   readonly store: StoreAdapter;
   readonly cctv: CctvAdapter;
-  readonly kitchenPrinter: KitchenPrinterAdapter;
 }
 
 /** The live implementations whose credentials have arrived; leave the rest out. */
@@ -47,7 +45,6 @@ export function createFakeAdapters() {
     cachePurge: createFakeCachePurge(),
     store: createFakeStore(),
     cctv: createFakeCctv(),
-    kitchenPrinter: createFakeKitchenPrinter(),
   } satisfies Adapters;
 }
 
@@ -74,6 +71,5 @@ export function createAdapters({ isPracticeVenue, live }: CreateAdaptersOptions)
     cachePurge: liveOr(live.cachePurge, () => fakes.cachePurge),
     store: liveOr(live.store, () => fakes.store),
     cctv: liveOr(live.cctv, () => fakes.cctv),
-    kitchenPrinter: liveOr(live.kitchenPrinter, () => fakes.kitchenPrinter),
   };
 }

@@ -1,5 +1,6 @@
 import type { PromotionEventJson, Reward } from '@rivr/contracts/promotionModel';
 import { err, ok, type Result } from '@rivr/contracts/result';
+import { highHandPayout, type HighHandRefusal } from './highHand.ts';
 import { hourSteps } from './hourSteps.ts';
 
 type WithMoment<E> = E extends unknown ? Omit<E, 'at'> & { readonly at: Date } : never;
@@ -13,8 +14,8 @@ export function toPromotionEvent(json: PromotionEventJson): PromotionEvent {
   return { ...json, at: new Date(json.at) };
 }
 
-/** A perk the floor fulfils: a cab home, a tournament entry, first call on the waitlist. */
-export type Perk = 'cab_home' | 'tournament_entry' | 'waitlist_priority';
+/** A perk the floor fulfils: first call on the waitlist. A cab home and a tournament entry went on 15 Nov (question 943). */
+export type Perk = 'waitlist_priority';
 
 /** What one promotion gives for one event: bonus chips or a perk, never paise; the other is 0 or null. */
 export interface Grant {
@@ -26,19 +27,15 @@ export const NO_GRANT: Grant = { chips: 0, perk: null };
 
 /**
  * Why a promotion gives nothing for an event: it is for another kind of event, nothing comes to anything, the time
- * played is short of its minutes, the step reached is not one of the play-time bonus's own, the visit is before its
- * number in the month, or the buy-in or seat is not the visit's first.
+ * played is short of its minutes, the step reached is not one of the play-time bonus's own, the seat is not the visit's
+ * first, or a high hand is not one it pays (HighHandRefusal).
  */
-export type GrantRefusal = 'other_event' | 'nothing_earned' | 'too_short' | 'not_a_step' | 'not_yet' | 'not_first_buy_in' | 'not_first_seat';
+export type GrantRefusal = 'other_event' | 'too_short' | 'not_a_step' | 'not_first_seat' | HighHandRefusal;
 
-type BuyInBonus = Extract<Reward, { kind: 'buyin_bonus' }>;
 type EventOf<K extends PromotionEventKind> = Extract<PromotionEvent, { kind: K }>;
 
-// Bonus chips are given in whole 50s, the smallest chip.
-const CHIP = 50;
-
 const BONUS_CHIPS_EVENT: Readonly<Record<Extract<Reward, { kind: 'bonus_chips' }>['on'], PromotionEventKind>> = {
-  visit: 'visit', first_buyin: 'buy_in', referral: 'referral', signup: 'signup',
+  visit: 'visit', referral: 'referral', signup: 'signup',
 };
 
 /** The kind of event a reward is given for: the engine weighs a version only for its own. */
@@ -46,38 +43,18 @@ export function triggerOf(reward: Reward): PromotionEventKind {
   switch (reward.kind) {
     case 'hours_bonus':
       return 'hours_step';
-    case 'buyin_bonus':
-      return 'buy_in';
     case 'seat_bonus':
       return 'seated';
     case 'bonus_chips':
       return BONUS_CHIPS_EVENT[reward.on];
+    case 'high_hand':
+      return 'high_hand';
     default:
       return 'visit';
   }
 }
 
-/** Chips of nothing are not a grant. */
-function given(grant: Grant): Result<Grant, GrantRefusal> {
-  return grant.chips > 0 ? ok(grant) : err('nothing_earned');
-}
-
 const chipsGrant = (chips: number): Grant => ({ ...NO_GRANT, chips });
-
-/** A share of the member's own chips rounded down to whole 50s, then held to the cap; or the fixed chips. None on a buy-in paid from bonus. */
-function buyInBonusChips(reward: BuyInBonus, ownChips: number): number {
-  if (ownChips <= 0) return 0;
-  if (reward.mode === 'fixed') return reward.chips;
-  const share = Math.floor((ownChips * reward.percent) / (100 * CHIP)) * CHIP;
-  return reward.capChips === undefined ? share : Math.min(share, reward.capChips);
-}
-
-function buyInGrant(reward: Reward, event: EventOf<'buy_in'>): Result<Grant, GrantRefusal> {
-  if (reward.kind === 'buyin_bonus') return given(chipsGrant(buyInBonusChips(reward, event.ownChips)));
-  if (reward.kind !== 'bonus_chips' || reward.on !== 'first_buyin') return err('other_event');
-  if (!event.isFirstOfVisit) return err('not_first_buy_in');
-  return event.ownChips > 0 ? ok(chipsGrant(reward.chips)) : err('nothing_earned');
-}
 
 /**
  * A seat bonus (owner, 8 Nov): its chips on the first seat of a visit; with first N on any seat, and checkLimits counts them at
@@ -98,13 +75,17 @@ function stepGrant(reward: Reward, event: EventOf<'hours_step'>): Result<Grant, 
   return event.minutes >= step.afterMinutes ? ok(chipsGrant(step.chips)) : err('too_short');
 }
 
-function visitGrant(reward: Reward, event: EventOf<'visit'>): Result<Grant, GrantRefusal> {
+/** A high hand hit (redesign RD-22): its listed hand's Bonus, whole, every time. */
+function highHandGrant(reward: Reward, event: EventOf<'high_hand'>): Result<Grant, GrantRefusal> {
+  if (reward.kind !== 'high_hand') return err('other_event');
+  const payout = highHandPayout(reward, event);
+  return payout.ok ? ok(chipsGrant(payout.value.chips)) : payout;
+}
+
+function visitGrant(reward: Reward): Result<Grant, GrantRefusal> {
   switch (reward.kind) {
     case 'bonus_chips':
       return reward.on === 'visit' ? ok(chipsGrant(reward.chips)) : err('other_event');
-    case 'cab_home':
-      return event.visitInMonth >= reward.fromVisitInMonth ? ok({ ...NO_GRANT, perk: 'cab_home' }) : err('not_yet');
-    case 'tournament_entry':
     case 'waitlist_priority':
       return ok({ ...NO_GRANT, perk: reward.kind });
     default:
@@ -114,17 +95,14 @@ function visitGrant(reward: Reward, event: EventOf<'visit'>): Result<Grant, Gran
 
 /**
  * What a promotion's reward gives for one event (decision 0472), before its limits: chips or a perk, never paise. A
- * buy-in bonus is a percent of the member's own chips, rounded down to whole 50s and held to its cap, or fixed chips,
- * and nothing on a buy-in paid from bonus; a play-time bonus step's chips as each step is reached (owner, 8 Nov);
- * bonus chips on their event; a cab home from the visit's
- * number in the month; an entry or waitlist priority on a visit. Time played gives nothing itself: a play-time bonus is
- * weighed as each of its steps is reached. The database's private.promo_grant is proved equal on promotionRewards.json.
+ * seat bonus's chips on a seat; a play-time bonus step's chips as each step is reached (owner, 8 Nov);
+ * bonus chips on their event; waitlist priority on a visit. Time played gives nothing itself: a play-time bonus is
+ * weighed as each of its steps is reached. A high hand pays its listed hand's Bonus (highHandPayout). The database's
+ * private.promo_grant is proved equal on promotionRewards.json.
  */
 export function computeGrant(promo: { readonly reward: Reward }, event: PromotionEvent): Result<Grant, GrantRefusal> {
   const { reward } = promo;
   switch (event.kind) {
-    case 'buy_in':
-      return buyInGrant(reward, event);
     case 'seated':
       return seatGrant(reward, event);
     case 'time_played':
@@ -132,7 +110,9 @@ export function computeGrant(promo: { readonly reward: Reward }, event: Promotio
     case 'hours_step':
       return stepGrant(reward, event);
     case 'visit':
-      return visitGrant(reward, event);
+      return visitGrant(reward);
+    case 'high_hand':
+      return highHandGrant(reward, event);
     default:
       return reward.kind === 'bonus_chips' && reward.on === event.kind ? ok(chipsGrant(reward.chips)) : err('other_event');
   }

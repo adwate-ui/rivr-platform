@@ -20,28 +20,20 @@ Import from `@rivr/contracts`, or one module at a time (`@rivr/contracts/ids`).
 | `kycReviewSchema` | A KYC reviewer's decision from the console: a reason of 3 to 500 characters with no document numbers, and a date of birth and PAN only where the check kept none. |
 | `gstinSchema`, `Gstin` | GSTIN in capitals, check character verified. |
 | `upiVpaSchema`, `UpiVpa` | `arjun.mehta@hdfcbank`, lower-cased. |
-| `utrSchema`, `Utr` | Twelve-digit bank reference, `412908771204`. |
 | `ifscSchema`, `Ifsc`, `bankAccountNumberSchema` | An IFSC in capitals, `HDFC0001234`; a bank account number of 9 to 18 digits. |
-| `payoutAccountSchema`, `PayoutAccountInput`, `PAYOUT_KINDS` | A payout account as the member adds it on Balance (#19): the bank's name, and a UPI address or a bank account number, IFSC and holder's name; only the chosen kind's fields are checked, and they come out written as banks write them. |
-| `reasonForMemberSchema` | Why the cage turns something down, a payout account (#19) or a withdrawal (#21): 3 to 200 characters, shown to the member. |
 | `CLUB_CONTACT` (`@rivr/contracts/club`) | How the club is reached online: Instagram, YouTube and email, on the website's contacts. Its numbers for calls and WhatsApp are a setting (Settings, Club details; `useClubContact` in `@rivr/db`, decision 0582). A subpath with no Zod, for the player's first load. |
 | `venueConfigSchema` (`@rivr/contracts/venueConfig`) | The venue configuration as a super admin types it on Settings (#33): optional fields empty for nothing, the GSTIN, UPI address, IFSC, alert number and the club's numbers (`indianPhoneSchema`: a mobile or landline, with or without +91 or a trunk 0; decision 0582) in their own schemas, the invoice prefix in six characters, each invoice series' SAC code in four or six digits (`sacSchema`) and the authorised signatory (#423). |
-| `withdrawalSchema`, `depositSchema`, `utrEntrySchema` | A withdrawal as the member asks for it (whole rupees, to a verified payout account, #21); a UPI deposit as the member enters it (whole rupees, its UTR and the verified UPI account it came from, #29); a UTR as staff type it, sending a withdrawal; and `bankAmountSchema`, the amount a bank statement shows for a deposit. |
 | `pairingCodeSchema`, `devicePairSchema`, `dealerTabletAddSchema`, `deviceRevokeSchema` | A dealer tablet's six-digit pairing code, as the tablet sends it to device-pair; a tablet's name and a revocation's reason from the console (#41). |
 | `cameraSchema` | A CCTV camera as staff add it: a name and the recorder's channel for its feed, letters, digits and `. _ : -`, never dots alone (#122, decision 0238). |
 | `dealerPinSchema`, `dealerPinEntrySchema` | A dealer's PIN as the console sets it (four digits, not one digit four times) and as a dealer enters it on the tablet (four digits; the database checks it) (#41). |
 | `rakeChangeSchema` | A rake change as the console schedules it (#37): table type, rate in percent (at most 10%, two decimals), cap in whole rupees (whole ₹50 chips), IST date and 24-hour time, and a reason; out come the rate in basis points, the cap still in rupees (the console makes it paise with `fromRupees`) and the time with `+05:30`. |
 | `PROMOTION_TRIGGERS`, `PROMOTION_EFFECTS`, `PROMOTION_HANDS`, `promotionConditionsSchema`, `promotionEffectSchema` and their types | A promotion rule as `promotion_rule` holds it (#83): the eight triggers and the six effects; conditions (tier and table ids, table type codes, ISO days, an IST window given whole that opens before it closes within the club's day, first N per table or day, new, lapsed days, visits this month, call time completed, hours played, high hands or a bad beat), all optional; an effect by kind (a bonus as an amount or a share with an optional cap, in whole ₹50 chips, ending in 1 to 90 days; a ticket, cab, prize, jackpot payout or message). The database checks the same shapes. |
-| `TOURNAMENT_FORMATS`, `TournamentFormat`, `stageFormSchema`, `blindStructureSchema`, `structurePlanSchema`, `tournamentTemplateSchema`, `newTournamentSchema`, `publishTournamentSchema`, `istMoment(day, time)`, `istParts(moment)` | At `@rivr/contracts/tournaments` (#115, #116): the formats; the console's structure editor, calculator, template and new-tournament forms, figures as typed; a tournament published without money, with no field for one (#800); an IST day and time as a moment, and a moment back as the day and time to fill a form with. |
-| `BOUNTY_KINDS`, `DEAL_METHODS`, `sharePercentSchema`, `payoutSharesSchema`, `dealSchema` | At `@rivr/contracts/tournaments` (#117, #121): how bounties are paid; the deal methods; each paid place's share as typed, read as basis points, the shares above nothing, none above the place before's, adding up to 100% (question #470); a deal's method and each player's chips. The template form also takes a bounty and its kind. |
-| `blindLevelsSchema` | At `@rivr/contracts/blindLevels`, apart so Home and the TV carry only it: a structure's levels as the database keeps them, read into `@rivr/domain/tournament`'s stages. |
+| `newTournamentSchema`, `istMoment(day, time)`, `istParts(moment)` | At `@rivr/contracts/tournaments` (redesign RD-26): a new tournament as the console's panel takes it, its name, IST day and 24-hour time, and game, strict so no money is ever sent; an IST day and time as the moment it is, and a moment as its IST day and time. |
 | `promotionRefusalSchema` | The reason a super admin sends a waiting promotion's version back to draft, 3 to 300 characters, which its author reads (#144, decisions 0244 and 0471). |
 | `handEntrySchema`, `HAND_VARIANTS` | A hand as the dealer enters it on the tablet (#42): the pot in whole rupees as the keypad types it (whole ₹50 chips, up to ₹1 crore) and the game (`holdem`, `plo`, `bomb_pot`); `log_hand` checks both again. |
-| `waitlistCalledSchema`, `receiptReadySchema` | The payloads of `waitlist.called` (member, table, seat, hold expiry) and `receipt.ready` (member, amount in paise, the link's suffix) that the WhatsApp consumer sends for (#62). They name the member, never a number. |
+| `waitlistCalledSchema` | The payload of `waitlist.called` (member, table, seat, hold expiry) that the WhatsApp consumer sends for (#62). It names the member, never a number. |
 | `reviewRequestedSchema` | The payload of `review.requested` (#159: the request, the member and the venue's review link). Nothing emits it since the review link was removed (redesign RD-18); it goes with #954. |
-| `cageAgentRequestSchema`, `CageAgentRequest` | What the cage agent asks the `cage-agent` function (#168, decision 0260): to enrol, the six-digit code and the SHA-256 of its token; then the newest offline pack; and the KOTs waiting, 1 to 20 at a time, and how each one went (#123). |
-| `FNB_ITEM_KINDS`, `fnbLineSchema`, `fnbOrderSchema`, `fnbItemSchema`, `fnbOrderedSchema` and their types | Table-side food and drink (#123, decision 0261): an item's kind (food, soft drink, alcohol); an order's line (an item and 1 to 9 of it) and an order (1 to 20 lines); a menu item as staff save it (a name of 1 to 60 characters, a place from 1 to 999); and `fnb.ordered`, the KOT the bar printer prints. |
-| `offlinePackRowSchema`, `OfflinePackRow`, `offlinePackVenuesSchema`, `storedPacksSchema` | The offline pack as `public.offline_pack(venue)` returns it, the venues the nightly job packs (never the practice venue), and what Storage lists of a venue's packs (#168). |
+| `FNB_ITEM_KINDS`, `fnbLineSchema`, `fnbOrderSchema`, `fnbItemSchema` and their types | Table-side food and drink (#123, decision 0261): an item's kind (food, soft drink, alcohol); an order's line (an item and 1 to 9 of it), an order (1 to 20 lines) and a menu item as staff save it (a name of 1 to 60 characters, a place from 1 to 999). |
 | `signInCodeSchema` | A one-time sign-in code: six digits. The sign-in form and the hook payload both use it. |
 | `sendSmsHookSchema`, `SignInCodeToSend` | Supabase Auth's Send SMS hook payload, parsed to the number being checked (`sms.phone`, E.164), and the six-digit code. |
 | `ATTRIBUTION_PARAMS`, `attributionFrom`, `attributionSearch`, `Attribution`, `AttributionField` | The referral, creator and UTM codes a link carries (`ref`, `creator`, `utm_*`): read from a query string, malformed ones dropped, and written back. `@rivr/contracts/attribution` holds no Zod. |
@@ -53,12 +45,12 @@ Feature keys, roles and settings schemas live here too, each documented in its o
 ## Usage
 
 ```ts
-import { err, ok, paiseSchema, utrSchema, type Paise, type Result, type Utr } from '@rivr/contracts';
+import { err, ok, paiseSchema, upiVpaSchema, type Paise, type Result, type UpiVpa } from '@rivr/contracts';
 
-function readWithdrawal(row: { amount: string; utr: string }): Result<{ amount: Paise; utr: Utr }, 'bad_row'> {
+function readPayee(row: { amount: string; vpa: string }): Result<{ amount: Paise; vpa: UpiVpa }, 'bad_row'> {
   const amount = paiseSchema.safeParse(row.amount);
-  const utr = utrSchema.safeParse(row.utr);
-  return amount.success && utr.success ? ok({ amount: amount.data, utr: utr.data }) : err('bad_row');
+  const vpa = upiVpaSchema.safeParse(row.vpa);
+  return amount.success && vpa.success ? ok({ amount: amount.data, vpa: vpa.data }) : err('bad_row');
 }
 ```
 
@@ -71,6 +63,6 @@ function readWithdrawal(row: { amount: string; utr: string }): Result<{ amount: 
 ## Push
 
 - `WEB_PUSH_PUBLIC_KEY`: the club's VAPID public key, public by design (decision 0272). `PUSH_SERVICE_ADDRESS` and `pushSubscriptionSchema`: a browser's push subscription, only at the browsers' own push services.
-- `callTimeCompletedSchema`, `sessionReminderSchema`, `withdrawalSentSchema`, `tournamentStartingSchema`: the payloads the push consumer reads, beside `waitlistCalledSchema` and `promotionOfferedSchema`.
+- `callTimeCompletedSchema`, `sessionReminderSchema`: the payloads the push consumer reads, beside `waitlistCalledSchema` and `promotionOfferedSchema`.
 - The lock-screen live status (decisions 0323, 0360, 0361): `LIVE_STATUS_PLATFORMS` (`ios`, `android`); `liveStatusDeviceSchema`, a phone as the native app saves it (an iPhone's push-to-start token in hex and its APNs device token for alerts, an Android phone's Firebase token); `liveStatusTokenReportSchema`, an iPhone's Live Activity token reported with its own key to `live-status-token`; `waitlistMovedSchema`, the payload of `waitlist.moved`, emitted whenever a place on a list joins, is approved, is called or uncalled, sits or leaves.
 - `callTimeEndingSchema` (15 minutes or less to run, with the table, seat and `ends_at`) and `callTimeUpdatedSchema` (the floor added time): the call time's events (decision 0320). With `waitlistCalledSchema` (now with its `entry_id`) and `seat.taken`, the events phase 2's lock-screen status runs on (decision 0323).

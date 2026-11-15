@@ -265,50 +265,6 @@ select results_eq(
   $$ select description, (expected ->> 'seconds')::bigint from golden.golden_case where file = 'promotionWindow.json' and operation = 'played' order by position $$,
   'a table''s time inside the window bears its share of the time away, as in the golden file');
 
--- A golden blind structure, 'small/big ante A for M; break M', as the levels a tournament keeps.
-create function pg_temp.stages(p_notation text) returns jsonb language sql immutable as $$
-  select jsonb_agg(case when x.pause is not null then jsonb_build_object('kind', 'break', 'minutes', x.pause[1]::integer)
-                        else jsonb_build_object('kind', 'level', 'small_blind', x.play[1]::integer, 'big_blind', x.play[2]::integer,
-                                                'ante', coalesce(x.play[3], '0')::integer, 'minutes', x.play[4]::integer) end order by p.n)
-  from regexp_split_to_table(p_notation, ';') with ordinality as p (part, n)
-  cross join lateral (select regexp_match(btrim(p.part), '^break (\d+)$') as pause,
-                             regexp_match(btrim(p.part), '^(\d+)/(\d+)(?: ante (\d+))? for (\d+)$') as play) x;
-$$;
--- A golden '138:20' as seconds, and seconds back as minutes:seconds.
-create function pg_temp.seconds(p_text text) returns integer language sql immutable as $$
-  select split_part(p_text, ':', 1)::integer * 60 + split_part(p_text, ':', 2)::integer;
-$$;
-create function pg_temp.minutes_seconds(p_seconds integer) returns text language sql immutable as $$
-  select (p_seconds / 60)::text || ':' || lpad((p_seconds % 60)::text, 2, '0');
-$$;
-
--- The tournament clock: private.tournament_clock_at and @rivr/domain clockAt (packages/testing/golden/tournamentClock.json).
-select ok((select count(*) > 0 from golden.golden_case where file = 'tournamentClock.json'), 'the tournament clock cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'tournamentClock.json' and operation <> 'position' $$,
-  'every operation in tournamentClock.json is proved here');
-select results_eq(
-  $$ select description, c.stage::text, c.level::text, case when c.is_break then 'yes' else 'no' end, pg_temp.minutes_seconds(c.seconds_left)
-     from golden.golden_case
-     cross join lateral private.tournament_clock_at(pg_temp.stages(inputs ->> 'levels'), pg_temp.seconds(inputs ->> 'elapsed')) c
-     where file = 'tournamentClock.json' order by position $$,
-  $$ select description, expected ->> 'stage', expected ->> 'level', expected ->> 'break', expected ->> 'left'
-     from golden.golden_case where file = 'tournamentClock.json' order by position $$,
-  'private.tournament_clock_at puts the clock where the golden file does');
-select is_empty($$ select description from golden.golden_case where file = 'tournamentClock.json'
-                   and private.blind_levels_problem(pg_temp.stages(inputs ->> 'levels')) is not null $$,
-  'and every golden structure is one the clock can run');
-
--- AML cash limits: private.cash_limit_hit and @rivr/domain cashLimitHit (packages/testing/golden/aml.json).
-select ok((select count(*) > 0 from golden.golden_case where file = 'aml.json'), 'the AML cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'aml.json' and operation <> 'cash_limit' $$,
-  'every operation in aml.json is proved here');
-select results_eq(
-  $$ select description, coalesce(private.cash_limit_hit(pg_temp.paise(inputs ->> 'perVisit'), pg_temp.paise(inputs ->> 'perDay'),
-                                                        pg_temp.paise(inputs ->> 'visitSoFar'), pg_temp.paise(inputs ->> 'daySoFar'),
-                                                        pg_temp.paise(inputs ->> 'amount')), 'none')
-     from golden.golden_case where file = 'aml.json' and operation = 'cash_limit' order by position $$,
-  $$ select description, expected ->> 'hit' from golden.golden_case where file = 'aml.json' and operation = 'cash_limit' order by position $$,
-  'private.cash_limit_hit gives every limit in the golden file');
 
 -- The Glaza statement: private.glaza_payable and @rivr/domain glazaPayable (packages/testing/golden/glaza.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'glaza.json'), 'the Glaza statement cases are loaded');
@@ -380,11 +336,26 @@ select results_eq(
 
 -- Promotion rewards (console v3, decisions 0470 and 0472): private.promo_is_eligible, private.promo_grant,
 -- private.promo_check_limits and private.promo_stack, and @rivr/domain isEligible, computeGrant, checkLimits and stackGrants
--- (packages/testing/golden/promotionRewards.json).
+-- (packages/testing/golden/promotionRewards.json). The high hand bonus's cases (redesign RD-22) are grants and limits like
+-- any other, with the hand a hit is paid as and what is left of a budget.
 select ok((select count(*) > 0 from golden.golden_case where file = 'promotionRewards.json'), 'the promotion reward cases are loaded');
 select is_empty($$ select operation from golden.golden_case where file = 'promotionRewards.json'
-                   and operation not in ('eligible', 'grant', 'limits', 'stack', 'tally', 'periodKey', 'steps', 'tier') $$,
+                   and operation not in ('eligible', 'grant', 'limits', 'stack', 'tally', 'periodKey', 'steps', 'tier', 'paid', 'left') $$,
   'every operation in promotionRewards.json is proved here');
+-- Redesign RD-22: the listed hand a high hand hit is paid as, with its rank (@rivr/domain highHandPayout).
+select results_eq(
+  $$ select description, coalesce(h.o_refusal, h.o_hand || ' ' || coalesce(h.o_rank, ''))
+     from golden.golden_case cross join lateral private.high_hand_payout((inputs ->> 'reward')::jsonb, (inputs ->> 'hit')::jsonb) h
+     where file = 'promotionRewards.json' and operation = 'paid' order by position $$,
+  $$ select description, coalesce(expected ->> 'refusal', (expected ->> 'hand') || ' ' || (expected ->> 'rank'))
+     from golden.golden_case where file = 'promotionRewards.json' and operation = 'paid' order by position $$,
+  'private.high_hand_payout pays every hit in the golden file as its listed hand');
+-- And what is left of a budget, which a refusal for the budget says (@rivr/domain budgetLeft).
+select results_eq(
+  $$ select description, coalesce(private.promo_budget_left((inputs ->> 'limits')::jsonb, (inputs ->> 'tally')::jsonb)::text, 'none')
+     from golden.golden_case where file = 'promotionRewards.json' and operation = 'left' order by position $$,
+  $$ select description, expected ->> 'left' from golden.golden_case where file = 'promotionRewards.json' and operation = 'left' order by position $$,
+  'private.promo_budget_left leaves every budget in the golden file what it should');
 -- Decision 0580: a seat bonus's tier for the next claim (@rivr/domain tierChips).
 select results_eq(
   $$ select description, coalesce(private.promo_tier_chips(jsonb_build_object('kind', 'seat_bonus', 'tiers', (inputs ->> 'tiers')::jsonb),
@@ -462,7 +433,7 @@ begin
   returning id into v_version;
   insert into public.promotion_grant (venue_id, promotion_id, promotion_version_id, member_id, table_id, trigger, effect, cost_paise, chips,
                                       perk, source_key, period_key, club_day)
-  select '00000000-0000-4000-8000-000000000001', v_promotion, v_version, (e ->> 'memberId')::uuid, pg_temp.golden_table(e ->> 'tableId'), 'buy_in', '{}',
+  select '00000000-0000-4000-8000-000000000001', v_promotion, v_version, (e ->> 'memberId')::uuid, pg_temp.golden_table(e ->> 'tableId'), 'seated', '{}',
          (e ->> 'chips')::bigint * 100, (e ->> 'chips')::bigint, e ->> 'perk', 'golden:' || n,
          e ->> 'periodKey', (e ->> 'clubDay')::date
   from jsonb_array_elements((p_inputs ->> 'ledger')::jsonb) with ordinality as l (e, n);
@@ -491,6 +462,17 @@ select results_eq(
      from golden.golden_case where file = 'hours.json' order by position $$,
   $$ select description, (expected ->> 'seconds')::bigint from golden.golden_case where file = 'hours.json' order by position $$,
   'private.counted_seconds gives every case in the golden file');
+
+-- The notice that shows on Home and along the foot of the TVs' boards: private.notice_to_show and @rivr/domain
+-- noticeToShow (packages/testing/golden/noticeToShow.json, redesign correction 20).
+select ok((select count(*) > 0 from golden.golden_case where file = 'noticeToShow.json'), 'the notice cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'noticeToShow.json' and operation <> 'show' $$,
+  'every operation in noticeToShow.json is proved here');
+select results_eq(
+  $$ select description, coalesce(private.notice_to_show((inputs ->> 'notices')::jsonb), '')
+     from golden.golden_case where file = 'noticeToShow.json' order by position $$,
+  $$ select description, expected ->> 'id' from golden.golden_case where file = 'noticeToShow.json' order by position $$,
+  'private.notice_to_show shows every notice the golden file says');
 
 select * from finish();
 rollback;

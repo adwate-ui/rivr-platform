@@ -5,7 +5,7 @@ import type { BuilderForm } from './builderForm.ts';
 /** A field the builder marks when the terms cannot take what it holds. */
 export type FormField =
   | 'name' | 'firstN' | 'chips' | 'afterHours' | 'everyHours' | 'timesPerVisit' | 'steps' | 'tierList'
-  | 'fromVisit' | 'tournament'
+  | 'hands' | 'minPlayers'
   | 'who' | 'days' | 'from' | 'to' | 'startsOn' | 'endsOn' | 'timesPerMember' | 'maxMembersPerDay' | 'budgetChips' | 'rulesText' | 'link';
 
 /**
@@ -54,10 +54,11 @@ function rewardOf(form: BuilderForm): Record<string, unknown> {
       return hoursOf(form);
     case 'bonus_chips':
       return defined({ kind: form.kind, chips: numberOf(form.chips), on: form.bonusOn });
-    case 'cab_home':
-      return defined({ kind: form.kind, fromVisitInMonth: numberOf(form.fromVisit) });
-    case 'tournament_entry':
-      return { kind: form.kind, tournamentId: form.tournament.trim() };
+    case 'high_hand':
+      return {
+        kind: form.kind, hands: form.hands.map((one) => defined({ hand: one.hand, chips: numberOf(one.chips) })),
+        rules: defined({ bothHoleCards: form.bothHoleCards, shownAtShowdown: form.shownAtShowdown, minPlayersDealt: numberOf(form.minPlayers) }),
+      };
     default:
       return { kind: form.kind };
   }
@@ -66,7 +67,7 @@ function rewardOf(form: BuilderForm): Record<string, unknown> {
 // The reward's own keys and the field each is typed in.
 const REWARD_FIELDS: Readonly<Record<string, FormField>> = {
   firstNSeatsPerTable: 'firstN', afterMinutes: 'afterHours',
-  fromVisitInMonth: 'fromVisit', tournamentId: 'tournament', everyMinutes: 'everyHours', timesPerVisit: 'timesPerVisit', steps: 'steps', tiers: 'tierList',
+  hands: 'hands', rules: 'minPlayers', everyMinutes: 'everyHours', timesPerVisit: 'timesPerVisit', steps: 'steps', tiers: 'tierList',
 };
 
 /** The mode of the shape the fields make: a play-time bonus's set steps or every so often; none for the rest. */
@@ -122,6 +123,10 @@ function limitsOf(form: BuilderForm) {
   if (form.kind === 'seat_bonus' && form.seatMode === 'tiers') {
     return defined({ perMember: 'once' as const, maxMembersPerDay: numberOf(form.maxMembersPerDay), budgetChips, maxGrants: form.maxGrants });
   }
+  // A high hand is paid every time, held by its budget alone (redesign RD-22).
+  if (form.kind === 'high_hand') {
+    return defined({ perMember: 'none' as const, budgetChips, budgetPeriod: form.budgetPeriod === 'month' && budgetChips !== undefined ? 'month' as const : undefined });
+  }
   return defined({
     perMember: form.perMember, timesPerMember: form.perMember === 'none' ? undefined : numberOf(form.timesPerMember),
     maxMembersPerDay: numberOf(form.maxMembersPerDay), budgetChips, maxGrants: form.maxGrants,
@@ -146,6 +151,15 @@ const SCHEDULE_FIELDS: Readonly<Record<string, FormField>> = { days: 'days', fro
 const LIMIT_FIELDS: Readonly<Record<string, FormField>> = {
   timesPerMember: 'timesPerMember', maxMembersPerDay: 'maxMembersPerDay', budgetChips: 'budgetChips',
 };
+/** The limits the terms refuse only once whole: a high hand with no budget marks the budget (redesign RD-23). */
+function wholeLimitErrors(result: PartResult): FormField[] {
+  if (result.success) return [];
+  return result.error.issues.flatMap(({ path }) => {
+    const field = path[0] === 'limits' ? LIMIT_FIELDS[String(path[1])] : undefined;
+    return field === undefined ? [] : [field];
+  });
+}
+
 // The words around the terms, checked with the whole version.
 const WORD_FIELDS: Readonly<Record<string, FormField>> = { name: 'name', rulesText: 'rulesText', link: 'link' };
 
@@ -171,6 +185,6 @@ export function readForm(form: BuilderForm): FormReading {
     ...partErrors(scheduleSchema.safeParse(parts.schedule), SCHEDULE_FIELDS, 'startsOn'),
     ...partErrors(limitsSchema.safeParse(parts.limits), LIMIT_FIELDS, 'budgetChips'),
   ];
-  const errors = new Set([...coreErrors, ...partErrors(whole, WORD_FIELDS, null)]);
+  const errors = new Set([...coreErrors, ...partErrors(whole, WORD_FIELDS, null), ...wholeLimitErrors(whole)]);
   return { terms: null, core: coreErrors.length === 0 ? coreOf(parts) : null, errors };
 }

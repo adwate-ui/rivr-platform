@@ -1,13 +1,5 @@
 /** Copy on the receipts, invoices and statements @rivr/render draws (#67). Amounts and names come with the document. */
 export const documents = {
-  /** When something happened, in IST: `13 Feb 2027, 03:40`. */
-  at: '{date}, {time}',
-  receipt: {
-    /** At the foot of a receipt: `{number}` is its reference, as in `Receipt RV-0213-0418`. */
-    reference: 'Receipt {number}',
-    /** Beneath when, on every receipt the practice venue prints. */
-    practice: 'Practice receipt. No money changed hands.',
-  },
   invoice: {
     taxInvoice: 'Tax invoice',
     /** The practice venue's invoices are never tax invoices (decision 0071). */
@@ -50,71 +42,6 @@ export const documents = {
     balance: 'Balance',
     opening: 'Opening balance',
     closing: 'Closing balance',
-  },
-  /** A partner's or investor's monthly statement (#98): the club's result for the month and their share. */
-  partnerStatement: {
-    title: { partner: 'Partner statement', investor: 'Investor statement' },
-    holder: 'Holder',
-    month: 'Month',
-    holding: 'Holding',
-    /** `{share}` as `12.5%`, `{day}` the month's last day. */
-    holdingOn: '{share} on {day}',
-    status: 'Status',
-    provisional: 'Provisional: the month’s figures are final once stored on the 1st.',
-    caption: 'The club’s result for the month',
-    item: 'Revenue and expenses',
-    amount: 'Amount',
-    /** An expense line: `Less: Bonus issued`. */
-    less: 'Less: {name}',
-    revenue: 'Revenue',
-    expenses: 'Expenses',
-    net: 'Net result',
-    /** `{share}` as `12.5%`. */
-    share: 'Share at {share}',
-  },
-  /** A kitchen order ticket (#123), printed at Glaza's bar by the cage agent. Plain ASCII: the bar printer's own font. */
-  kot: {
-    title: 'KOT {number}',
-    seat: '{table}, seat {seat}',
-    paid: 'PAID BY THE MEMBER',
-    comp: 'COMP - RIVR',
-    line: '{quantity} x {name}',
-    wholeOrder: 'Whole order: {note}',
-  },
-  /** The offline pack (#167), printed at the cage when the system is down. */
-  offlinePack: {
-    title: 'Offline pack',
-    venue: 'Venue',
-    made: 'Made',
-    intro: 'Use this pack while the system is down. Work from the paper forms, and enter everything once the system is back.',
-    note: 'Made automatically each night. Shred the previous night’s copy.',
-    contacts: 'Who to call',
-    noContacts: 'No contacts are set.',
-    who: 'Who',
-    kind: 'For',
-    phone: 'Phone',
-    contactKind: {
-      escalation: 'Escalation',
-      vendor: 'Vendor',
-      glaza: 'Glaza',
-      police: 'Police',
-      fire: 'Fire',
-      electricity: 'Electricity',
-    },
-    member: 'Member',
-    floor: 'The floor',
-    /** `{game}` as `NLH 100/200`. */
-    table: '{table} · {game}',
-    seatsAt: 'Who sits at {table}',
-    nobodySeated: 'Nobody seated.',
-    noTables: 'No table was open.',
-    seat: 'Seat',
-    waitlist: 'Waitlist',
-    nobodyWaiting: 'Nobody waiting.',
-    /** The waitlist's first column: the table whose list the place is on (decision 0467). */
-    waitingAt: 'Table',
-    game: 'Game',
-    place: 'Place',
   },
   /** At the foot of every A4 document. */
   computerGenerated: 'Computer-generated.',

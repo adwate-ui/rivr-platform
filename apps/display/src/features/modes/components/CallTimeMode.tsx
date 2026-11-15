@@ -1,10 +1,8 @@
 import { useTvCallTimeBoard, type TvCallTimeTable, type TvSeated } from '@rivr/db';
-import { formatHoursMinutes, formatStakeName, t } from '@rivr/i18n';
-import { CALL_TIME_TABLES_SHOWN, TvCallTimeBoard, type TvCallTimeGroup, type TvCallTimeOpening } from '@rivr/ui';
+import { formatDuration, t } from '@rivr/i18n';
+import { TvCallTimeBoard, type TvCallTimeSeat } from '@rivr/ui';
 import { useEffect, useState } from 'react';
-import { usePage } from './usePage.ts';
 import { BoardStatus } from './BoardStatus.tsx';
-
 
 /** The time now, a second at a time: the board counts down between reads. */
 function useNow(): number {
@@ -22,58 +20,41 @@ function leftNow(player: TvSeated, elapsed: number): number {
   return player.isAway ? left : Math.max(0, left - elapsed);
 }
 
-function nameOf(player: TvSeated): string {
-  // A member who hid their name on the TVs is their seat, the name left blank (#326, F-137).
-  return player.name ?? '';
-}
-
-/** The players the floor marked leaving, soonest seat first: their seat opens once their call time is done. */
-export function toOpenings(tables: readonly TvCallTimeTable[], elapsed: number): TvCallTimeOpening[] {
-  return tables
-    .flatMap((table) => table.seated.filter((player) => player.isLeaving).map((player) => ({ table, player, left: leftNow(player, elapsed) })))
-    .sort((a, b) => a.left - b.left)
-    .map(({ table, player, left }) => ({
-      id: `${table.tableId}-${player.seat}`, where: t('tv.callTime.where', { table: table.name, seat: player.seat }), name: nameOf(player),
-      time: left === 0 ? t('tv.callTime.opensNow') : t('tv.callTime.opensIn', { time: formatHoursMinutes(left) }), isNow: left === 0,
-    }));
-}
-
-/** Every table with players still on call time and not leaving, each with the time left, soonest first. */
-export function toGroups(tables: readonly TvCallTimeTable[], elapsed: number): TvCallTimeGroup[] {
-  return tables
-    .map((table) => ({
-      id: table.tableId, name: table.name, detail: formatStakeName(table.stake, table),
-      rows: table.seated
-        .filter((player) => !player.isLeaving && player.callTimeLeft !== null && leftNow(player, elapsed) > 0)
-        .map((player) => ({ player, left: leftNow(player, elapsed) }))
-        .sort((a, b) => a.left - b.left)
-        .map(({ player, left }) => ({
-          id: String(player.seat), seat: String(player.seat), name: nameOf(player),
-          time: player.isAway ? t('tv.callTime.away') : formatHoursMinutes(left),
-        })),
-    }))
-    .filter((group) => group.rows.length > 0);
+/** What a seat says at the right: "Now" once a leaving player's call time is done, "Away" while the clock stands still, or the time left. */
+function timeText(player: TvSeated, left: number): string {
+  if (left === 0) return t('tv.callTime.opensNow');
+  return player.isAway ? t('tv.callTime.away') : formatDuration(left);
 }
 
 /**
- * The call-time board (decision 0163): the seats about to open, and every table's players on call time,
- * counting down; more tables than fit take turns, a page every ten seconds.
+ * Every seat on call time as one list, soonest first: each player with call time left, and each the floor marked leaving
+ * whose call time is done, whose seat opens now. A member who hid their name on the TVs is their seat, the name left
+ * blank (#326, F-137).
+ */
+export function toSeats(tables: readonly TvCallTimeTable[], elapsed: number): TvCallTimeSeat[] {
+  return tables
+    .flatMap((table) => table.seated.map((player) => ({ table, player, left: leftNow(player, elapsed) })))
+    .filter(({ player, left }) => left > 0 || player.isLeaving)
+    .sort((a, b) => a.left - b.left)
+    .map(({ table, player, left }) => ({
+      id: `${table.tableId}-${String(player.seat)}`, where: t('tv.callTime.where', { table: table.name, seat: player.seat }),
+      name: player.name ?? '', time: timeText(player, left),
+    }));
+}
+
+/**
+ * The call-time board (decision 0163), titled Seats opening on the TV: every seat on call time in one list, soonest
+ * first, counting down between reads.
  */
 export function CallTimeMode() {
   const board = useTvCallTimeBoard();
   const now = useNow();
-  const elapsed = Math.max(0, Math.floor((now - board.dataUpdatedAt) / 1_000));
-  const groups = board.data === undefined ? [] : toGroups(board.data, elapsed);
-  const pages = Math.ceil(groups.length / CALL_TIME_TABLES_SHOWN);
-  const first = usePage(pages) * CALL_TIME_TABLES_SHOWN;
   if (board.data === undefined) {
     return <BoardStatus isError={board.isError} />;
   }
-  const shown = groups.slice(first, first + CALL_TIME_TABLES_SHOWN);
-  const page = pages < 2 ? undefined : t('tv.callTime.page', { from: first + 1, to: first + shown.length, count: groups.length });
+  const elapsed = Math.max(0, Math.floor((now - board.dataUpdatedAt) / 1_000));
   return (
-    <TvCallTimeBoard title={t('tv.callTime.title')} openingsTitle={t('tv.callTime.openingsTitle')} noOpeningsText={t('tv.callTime.noOpenings')}
-      emptyText={t('tv.callTime.empty')} moreText={(count) => t('tv.more', { count })} page={page}
-      openings={toOpenings(board.data, elapsed)} tables={shown} />
+    <TvCallTimeBoard title={t('tv.callTime.title')} emptyText={t('tv.callTime.empty')} moreText={(count) => t('tv.more', { count })}
+      seats={toSeats(board.data, elapsed)} />
   );
 }

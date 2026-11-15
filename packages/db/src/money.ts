@@ -15,7 +15,6 @@ export {
   useFeatureOverrideActions, useGateableFeatures, useMemberFeatureOverrides, type FeatureOverride, type GateableFeature, type OverrideFailure,
   type OverrideOrder,
 } from './featureOverrides.ts';
-export { useComputerActions, useComputers, useThisComputer, type Computer, type ComputerCode, type ComputerFailure, type ComputerKind, type ThisComputer } from './computers.ts';
 export {
   useRakeChangeActions,
   useTableTypeRake,
@@ -27,6 +26,4 @@ export {
 export {
   useVenueConfig, useVenueConfigActions, useVenueLogoUpload, type VenueConfig, type VenueConfigFailure,
   type VenueLogoFailure,
-  useVenueIssuer,
-  type VenueIssuer,
 } from './venueConfig.ts';

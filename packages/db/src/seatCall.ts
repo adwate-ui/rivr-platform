@@ -9,8 +9,9 @@ import { LIST_MOST } from './limits.ts';
 const LIVE = 10_000;
 
 /**
- * The seat numbers taken at each table of the member's venue (`floor_taken_seats`, with the live floor): a player in the
- * seat or a seat held for a called member. Numbers only: the join sheet's seat map (decision 0320).
+ * The seat numbers taken at each table of the member's venue (`floor_taken_seats`), for the join sheet's seat map
+ * (decision 0320). No screen draws that map since 8 Nov, and since redesign RD-20 the database answers a member with no
+ * seats: players are told no count of who is seated.
  */
 export function useFloorTakenSeats() {
   const { client, userId } = useRivrData();

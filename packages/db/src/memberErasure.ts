@@ -8,10 +8,10 @@ import { queryKeys } from './queryKeys.ts';
 import { LIST_MOST } from './limits.ts';
 
 /** What must be settled before a member is erased (#424, decision 0207), in the order the database lists it. */
-export type ErasureBlocker = 'frozen' | 'cash' | 'chips' | 'markers' | 'bonus' | 'waitlist' | 'tournament' | 'requests';
+export type ErasureBlocker = 'frozen' | 'cash' | 'chips' | 'markers' | 'bonus' | 'waitlist' | 'requests';
 
 const BLOCKERS: readonly ErasureBlocker[] = [
-  'frozen', 'cash', 'chips', 'markers', 'bonus', 'waitlist', 'tournament', 'requests',
+  'frozen', 'cash', 'chips', 'markers', 'bonus', 'waitlist', 'requests',
 ];
 
 /** What the erase section shows a super admin first. */

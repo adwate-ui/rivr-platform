@@ -14,22 +14,18 @@ const seatBonus = fc.record({ amount: chips, firstN: fc.option(fc.integer({ min:
   firstN === undefined ? { kind: 'seat_bonus', chips: amount } : { kind: 'seat_bonus', chips: amount, firstNSeatsPerTable: firstN }));
 const reward: fc.Arbitrary<Reward> = fc.oneof(
   seatBonus,
-  fc.record({ percent: fc.integer({ min: 1, max: 100 }), cap: fc.option(chips, { nil: undefined }), firstN: fc.option(fc.integer({ min: 1, max: 5 }), { nil: undefined }) })
-    .map(({ percent, cap, firstN }): Reward => ({
-      kind: 'buyin_bonus', mode: 'percent', percent, ...(cap === undefined ? {} : { capChips: cap }), ...(firstN === undefined ? {} : { firstNBuyinsPerTable: firstN }),
-    })),
-  chips.map((amount): Reward => ({ kind: 'buyin_bonus', mode: 'fixed', chips: amount })),
   fc.record({ amount: chips, after: minutes }).map(({ amount, after }): Reward => ({ kind: 'hours_bonus', chips: amount, afterMinutes: after })),
   // Play time paid as each step is reached (owner, 8 Nov): set steps, rising, or every so often.
   fc.uniqueArray(fc.tuple(minutes, chips), { minLength: 2, maxLength: 6, selector: ([after]) => after })
     .map((steps): Reward => ({ kind: 'hours_bonus', mode: 'steps', steps: steps.sort(([one], [other]) => one - other).map(([afterMinutes, amount]) => ({ afterMinutes, chips: amount })) })),
   fc.record({ every: minutes.filter((after) => after <= 720), amount: chips, times: fc.option(fc.integer({ min: 1, max: 20 }), { nil: undefined }) })
     .map(({ every, amount, times }): Reward => ({ kind: 'hours_bonus', mode: 'every', everyMinutes: every, chips: amount, ...(times === undefined ? {} : { timesPerVisit: times }) })),
-  fc.record({ amount: chips, on: fc.constantFrom('visit', 'first_buyin', 'referral', 'signup' as const) })
+  fc.record({ amount: chips, on: fc.constantFrom('visit', 'referral', 'signup' as const) })
     .map(({ amount, on }): Reward => ({ kind: 'bonus_chips', chips: amount, on })),
-  fc.integer({ min: 1, max: 31 }).map((visit): Reward => ({ kind: 'cab_home', fromVisitInMonth: visit })),
-  fc.constant<Reward>({ kind: 'tournament_entry', tournamentId: 'RIVR Sunday' }),
   fc.constant<Reward>({ kind: 'waitlist_priority' }),
+  chips.map((amount): Reward => ({
+    kind: 'high_hand', hands: [{ hand: 'four_of_a_kind', chips: amount }], rules: { bothHoleCards: true, shownAtShowdown: false, minPlayersDealt: 4 },
+  })),
 );
 
 // A week of the launch fortnight, by five members at two tables.
@@ -43,12 +39,16 @@ const place = fc.record({
   stake: fc.constant('nlh_50_100'),
 });
 const event: fc.Arbitrary<PromotionEvent> = fc.tuple(place, fc.oneof(
-  fc.record({ kind: fc.constant('buy_in' as const), ownChips: fc.integer({ min: 0, max: 100_000 }), isFirstOfVisit: fc.boolean() }),
   fc.record({ kind: fc.constant('seated' as const), isFirstOfVisit: fc.boolean() }),
   fc.record({ kind: fc.constant('time_played' as const), minutes: fc.integer({ min: 0, max: 900 }) }),
   fc.record({ kind: fc.constant('hours_step' as const), minutes: fc.integer({ min: 0, max: 1_440 }), stepMinutes: minutes }),
   fc.record({ kind: fc.constant('visit' as const), visitInMonth: fc.integer({ min: 1, max: 31 }) }),
   fc.record({ kind: fc.constantFrom('referral' as const, 'signup' as const) }),
+  fc.record({
+    kind: fc.constant('high_hand' as const), hand: fc.constantFrom('four_of_a_kind' as const, 'royal_flush' as const),
+    rank: fc.constantFrom(null, 'ace' as const, 'two' as const),
+    confirmed: fc.record({ bothHoleCards: fc.boolean(), shownAtShowdown: fc.boolean(), playersDealt: fc.boolean() }),
+  }),
 )).map(([where, facts]) => ({ ...where, ...facts }));
 // Up to N times a member only with a period, and a monthly budget only with a budget or most grants (decision 0499).
 const limits: fc.Arbitrary<Limits> = fc.record({
@@ -65,7 +65,7 @@ const limits: fc.Arbitrary<Limits> = fc.record({
 }));
 const grant: fc.Arbitrary<Grant> = fc.record({
   chips: fc.nat({ max: 200 }).map((fifties) => fifties * 50),
-  perk: fc.constantFrom(null, 'cab_home' as const, 'waitlist_priority' as const),
+  perk: fc.constantFrom(null, 'waitlist_priority' as const),
 });
 const ledger: fc.Arbitrary<LedgerEntry[]> = fc.array(fc.tuple(grant, fc.constantFrom('m1', 'm2'), fc.constantFrom('2026-11-16', '2026-11-17')).map(
   ([given, memberId, clubDay]) => ({ ...given, memberId, clubDay, periodKey: `day:${clubDay}`, tableId: 't1' }),

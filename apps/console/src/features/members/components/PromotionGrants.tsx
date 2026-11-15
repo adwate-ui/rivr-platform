@@ -8,8 +8,6 @@ const PAGE = 20;
 
 // A perk is a code in the database (promotion_grant.perk); it reads as the promotion builder names the reward.
 const PERKS = {
-  cab_home: 'console.promotions.builder.rewards.cab_home.label',
-  tournament_entry: 'console.promotions.builder.rewards.tournament_entry.label',
   waitlist_priority: 'console.promotions.builder.rewards.waitlist_priority.label',
 } as const;
 

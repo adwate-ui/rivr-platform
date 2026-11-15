@@ -1,0 +1,106 @@
+{
+  "rule": "notice to show",
+  "about": "Which club notice shows where there is room for one: the one card above the offers on a member's Home and the line along the foot of the TVs' boards (redesign of 15 Nov 2026, correction 20). Of the notices in force, the one that started last shows. Of two that started at the same moment, the one listed first shows; the database lists the one made last first, so that is the newer. With none in force, none shows. The notices are written as a JSON list in the order they are listed, each with its id and when it started.",
+  "cases": [
+    {
+      "description": "One notice in force shows.",
+      "operation": "show",
+      "inputs": {
+        "notices": "[{\"id\":\"kitchen\",\"startsAt\":\"2026-11-15T12:00:00Z\"}]"
+      },
+      "expected": {
+        "id": "kitchen"
+      }
+    },
+    {
+      "description": "Of three, the one that started last shows, listed newest first.",
+      "operation": "show",
+      "inputs": {
+        "notices": "[{\"id\":\"valet\",\"startsAt\":\"2026-11-15T14:30:00Z\"},{\"id\":\"table4\",\"startsAt\":\"2026-11-15T13:00:00Z\"},{\"id\":\"kitchen\",\"startsAt\":\"2026-11-15T12:00:00Z\"}]"
+      },
+      "expected": {
+        "id": "valet"
+      }
+    },
+    {
+      "description": "The order they are listed in does not matter: listed oldest first, the one that started last still shows.",
+      "operation": "show",
+      "inputs": {
+        "notices": "[{\"id\":\"kitchen\",\"startsAt\":\"2026-11-15T12:00:00Z\"},{\"id\":\"table4\",\"startsAt\":\"2026-11-15T13:00:00Z\"},{\"id\":\"valet\",\"startsAt\":\"2026-11-15T14:30:00Z\"}]"
+      },
+      "expected": {
+        "id": "valet"
+      }
+    },
+    {
+      "description": "Listed in no order at all, the same.",
+      "operation": "show",
+      "inputs": {
+        "notices": "[{\"id\":\"table4\",\"startsAt\":\"2026-11-15T13:00:00Z\"},{\"id\":\"valet\",\"startsAt\":\"2026-11-15T14:30:00Z\"},{\"id\":\"kitchen\",\"startsAt\":\"2026-11-15T12:00:00Z\"}]"
+      },
+      "expected": {
+        "id": "valet"
+      }
+    },
+    {
+      "description": "Of two that started together, the one listed first shows.",
+      "operation": "show",
+      "inputs": {
+        "notices": "[{\"id\":\"twin\",\"startsAt\":\"2026-11-15T14:30:00Z\"},{\"id\":\"valet\",\"startsAt\":\"2026-11-15T14:30:00Z\"}]"
+      },
+      "expected": {
+        "id": "twin"
+      }
+    },
+    {
+      "description": "The same two listed the other way round: again the one listed first.",
+      "operation": "show",
+      "inputs": {
+        "notices": "[{\"id\":\"valet\",\"startsAt\":\"2026-11-15T14:30:00Z\"},{\"id\":\"twin\",\"startsAt\":\"2026-11-15T14:30:00Z\"}]"
+      },
+      "expected": {
+        "id": "valet"
+      }
+    },
+    {
+      "description": "Two that started together lose to one that started a second later.",
+      "operation": "show",
+      "inputs": {
+        "notices": "[{\"id\":\"twin\",\"startsAt\":\"2026-11-15T14:30:00Z\"},{\"id\":\"valet\",\"startsAt\":\"2026-11-15T14:30:00Z\"},{\"id\":\"late\",\"startsAt\":\"2026-11-15T14:30:01Z\"}]"
+      },
+      "expected": {
+        "id": "late"
+      }
+    },
+    {
+      "description": "The same moment written in another time zone is the same moment: the one listed first shows.",
+      "operation": "show",
+      "inputs": {
+        "notices": "[{\"id\":\"ist\",\"startsAt\":\"2026-11-15T20:00:00+05:30\"},{\"id\":\"valet\",\"startsAt\":\"2026-11-15T14:30:00Z\"}]"
+      },
+      "expected": {
+        "id": "ist"
+      }
+    },
+    {
+      "description": "A notice that started a year ago shows while it is the only one.",
+      "operation": "show",
+      "inputs": {
+        "notices": "[{\"id\":\"standing\",\"startsAt\":\"2025-11-15T00:00:00Z\"}]"
+      },
+      "expected": {
+        "id": "standing"
+      }
+    },
+    {
+      "description": "With none in force, none shows.",
+      "operation": "show",
+      "inputs": {
+        "notices": "[]"
+      },
+      "expected": {
+        "id": ""
+      }
+    }
+  ]
+}

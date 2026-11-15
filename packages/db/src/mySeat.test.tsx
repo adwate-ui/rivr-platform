@@ -47,6 +47,11 @@ describe('the member at the table', () => {
     }));
   });
 
+  it('reads a stake that names no game as NLH, as the console does', async () => {
+    const { result } = renderSeat({ my_seat: { body: [{ ...SEAT, table_type_name: '100/200', game: null }] } });
+    await waitFor(() => expect(result.current.seat.data?.game).toBe('nlh'));
+  });
+
   it('reads an unknown top-up as none', async () => {
     const { result } = renderSeat({ my_seat: { body: [{ ...SEAT, top_up: null }] } });
     await waitFor(() => expect(result.current.seat.data?.topUp).toBeNull());
