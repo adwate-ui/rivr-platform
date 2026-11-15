@@ -34,7 +34,7 @@ test.describe('Reports', () => {
     await openConsole(page, '/reports');
     const tabs = page.getByRole('navigation', { name: 'Reports' });
     // Tables has its figures and chart too.
-    await expect(page.getByText('Seat use', { exact: true })).toBeVisible();
+    await expect(page.locator('dt').filter({ hasText: /^Seat use$/ })).toBeVisible();
     await expect(page.getByRole('figure', { name: 'Seated by day' })).toBeVisible();
     const reports = [
       { tab: 'Players', figures: ['Check-ins', 'New members', 'Avg session'], chart: 'Check-ins', row: 'Members who played' },
