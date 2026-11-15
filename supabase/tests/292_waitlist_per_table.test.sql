@@ -66,10 +66,6 @@ select results_eq($$ select table_name, place from private.live_status_of('00000
 select is((select waiting from public.public_waitlist_length l join public.venue v on v.slug = l.venue_slug
            where l.table_type_code = 'nlh_100_200' and v.id = '00000000-0000-4000-8000-000000000001'), 5,
   'the website still counts the stake''s five, never a table''s');
-select results_eq($$ select x ->> 'table', (x ->> 'place')::integer, x ->> 'name'
-                     from jsonb_array_elements(private.offline_pack('00000000-0000-4000-8000-000000000001') -> 'waitlist') x $$,
-  $$ values ('Table 2'::text, 1, 'Kabir Sethi'::text), ('Table 2', 2, 'Naina Kapoor'), ('Table 2', 3, 'Rohan Bhatia'),
-            ('Table 3', 1, 'Ishaan Verma'), ('Table 3', 2, 'Mihir Shah') $$, 'the offline pack names each place''s table');
 
 -- One list at a time; the floor switches a member by removing and adding.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');

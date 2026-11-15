@@ -136,7 +136,6 @@ export * from './Receipt/index.ts';
 export * from './DocumentPage/index.ts';
 export * from './DocumentTable/index.ts';
 export * from './InvoiceDocument/index.ts';
-export * from './OfflinePackDocument/index.ts';
 export * from './PrintSheet/index.ts';
 export * from './WebPreview/index.ts';
 export { useIsWide, type WideFrom } from './useIsWide/index.ts';

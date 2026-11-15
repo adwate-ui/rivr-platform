@@ -61,7 +61,7 @@ describe('createFakeAdapters', () => {
   it('gives every adapter a fake with its call log', () => {
     const fakes = createFakeAdapters();
 
-    expect(Object.keys(fakes)).toHaveLength(11);
-    expect(fakes.kitchenPrinter.calls).toEqual([]);
+    expect(Object.keys(fakes)).toHaveLength(10);
+    expect(fakes.cctv.calls).toEqual([]);
   });
 });

@@ -36,7 +36,6 @@ export { bonusChipsToRedeemSchema, doorCheckInSchema, floorWaitlistAddSchema, se
 export {
   dealerPinEntrySchema,
   dealerPinSchema,
-  cageAgentRequestSchema,
   cameraSchema,
   computerEnrolSchema,
   dealerTabletAddSchema,
@@ -48,18 +47,11 @@ export {
   TV_MODES,
   tvPairingSchema,
   tvPairSchema,
-  type CageAgentRequest,
   type DevicePairRequest,
   type TvLeaderboardPeriod,
   type TvMode,
 } from './devices.ts';
 export { dropBoxCountSchema, HAND_VARIANTS, handEntrySchema } from './hands.ts';
-export {
-  CONTACT_KINDS,
-  contactSchema,
-  drillScheduleSchema,
-  type ContactKind,
-} from './incidents.ts';
 export { rakeChangeSchema } from './rake.ts';
 export {
   FNB_BAR_NOTES,
@@ -69,15 +61,12 @@ export {
   cancelFnbOrderSchema,
   fnbItemSchema,
   fnbLineSchema,
-  fnbOrderedSchema,
   fnbOrderSchema,
   type FnbItemKind,
   type FnbBarNote,
   type FnbDiet,
   type FnbLine,
-  type FnbOrdered,
 } from './fnb.ts';
-export { offlinePackRowSchema, offlinePackVenuesSchema, storedPacksSchema, type OfflinePackRow } from './offlinePack.ts';
 export {
   detailedFeedbackSchema, FEEDBACK_RATED, FEEDBACK_TOPICS, feedbackNoteSchema, feedbackResolveSchema, quickFeedbackSchema, visitRatingSchema,
   type FeedbackTopic,

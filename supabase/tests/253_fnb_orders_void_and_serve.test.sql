@@ -71,12 +71,7 @@ select results_eq($$ select cancel_reason from public.my_fnb_orders() where orde
 reset role;
 select ok(exists (select 1 from public.audit_log where action = 'fnb_order.cancel' and reason = 'Out of milk'), 'the void is audited with its reason');
 
--- The bar's agent prints the fries' KOT but finishes the void chai's unprinted.
-insert into public.device (id, venue_id, kind, name) values ('00000000-0000-4000-8000-0000000000a9', '00000000-0000-4000-8000-000000000001', 'agent', 'Bar agent');
-create temp table claimed as select * from private.claim_agent_kots('00000000-0000-4000-8000-0000000000a9', 20);
-select ok(not exists (select 1 from claimed where payload ->> 'order_id' = (select id::text from ids where name = 'chai')), 'the void chai is not printed');
-select is((select d.last_error from public.outbox_delivery d join public.outbox_event e on e.id = d.event_id
-           where e.payload ->> 'order_id' = (select id::text from ids where name = 'chai')), 'void', 'its KOT is finished as void');
+-- The void chai goes to no bar.
 select pg_temp.as_person('00000000-0000-4000-8000-0000000d0790');
 select throws_ok($$ select public.mark_kot_sent((select id from ids where name = 'chai')) $$, '22023', null, 'nor is it marked sent by hand');
 reset role;

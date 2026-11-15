@@ -37,17 +37,3 @@ export const STATEMENT = {
   ],
   closingPaise: 57_500_000n,
 };
-
-/** A night's offline pack (#167): a table, the waitlist, two balances, two contacts and two SOPs, one long. */
-export const OFFLINE_PACK = {
-  issuer: ISSUER,
-  venueName: 'RIVR Gurugram',
-  // 17:00 IST on Sunday 15 November 2026.
-  generatedAt: '2026-11-15T11:30:00Z',
-  contacts: [
-    { kind: 'escalation', name: 'Vikram Sethi', role: 'Owner', phone: '+91 98100 00001', note: null },
-    { kind: 'glaza', name: 'Glaza front desk', role: null, phone: '+91 124 400 0000', note: 'Ask for the duty manager' },
-  ],
-  tables: [{ name: 'Table 3', game: 'NLH 100/200', seats: [{ seat: 2, name: 'Mihir Shah', memberNumber: '1042' }] }],
-  waitlist: [{ table: 'Table 3', game: 'NLH 100/200', place: 1, name: 'Ritika Das', memberNumber: '1051' }],
-} as const;
