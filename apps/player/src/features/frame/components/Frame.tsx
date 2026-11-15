@@ -1,6 +1,6 @@
 import { TAB_FEATURES } from '@rivr/contracts/features';
 import { returnSearchFrom, type ReturnSearch } from '@rivr/contracts/returnPath';
-import { useAuthStatus, useFeature, useKycImageUrl, useKycRecord, useMember, type AuthStatus, type KycRecord } from '@rivr/db';
+import { useAuthStatus, useFeature, useKycImageUrl, useKycRecord, useMember, useMyPhotoPath, type AuthStatus, type KycRecord } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { InstallOffer, PlayerShell, Screen, Stack, useIsOnline, type BottomNavItem, type FeatureAccess, type PlayerTab } from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
@@ -61,12 +61,11 @@ function KycGate({ isMember, children }: { isMember: boolean; children: ReactNod
 }
 
 /**
- * The member's selfie in the header's circle, as on Profile; their initial until it comes (the owner, 9 Nov). A member is
- * given their own selfie once verified (decision 0300), so none is asked for before.
+ * The member's own photo in the header's circle, as on Profile; their initial until it comes (the owner, 9 Nov). It is
+ * theirs before the desk has checked them too (decision 0588); with no photo kept, none is asked for.
  */
 function useHeaderPhoto(): string | undefined {
-  const kyc = useKycRecord().data;
-  return useKycImageUrl(kyc?.status === 'verified' ? kyc.photoPath : null).data ?? undefined;
+  return useKycImageUrl(useMyPhotoPath().data ?? null).data ?? undefined;
 }
 
 /** The circle top right, which opens Profile: on every tab's screen but Profile itself. */

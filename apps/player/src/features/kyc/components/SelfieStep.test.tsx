@@ -1,5 +1,5 @@
 import { createRivrClient, RivrDataProvider } from '@rivr/db';
-import { cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SelfieStep } from './SelfieStep.tsx';
 
@@ -15,6 +15,10 @@ describe('Identity › Selfie', () => {
       </RivrDataProvider>,
     );
     expect(await screen.findByRole('alert')).toBeDefined();
-    expect(onFailure.mock.calls).toEqual([['camera:none']]);
+    // The report is made in an effect, which can run a moment after the alert is drawn.
+    await waitFor(() => expect(onFailure.mock.calls).toEqual([['camera:none']]));
+    // Once, and not again once everything has settled.
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); });
+    expect(onFailure.mock.calls).toHaveLength(1);
   });
 });

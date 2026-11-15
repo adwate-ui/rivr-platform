@@ -43,7 +43,7 @@ function openHome(kept: readonly (readonly [string, unknown])[], keepsForOffline
 
 const LATER = { timeout: 5000 };
 
-const VERIFIED = { status: 'verified', hasSelfie: true, photoPath: null, dateOfBirth: null, maskedAadhaar: null, pan: null, isAtTheClub: false };
+const VERIFIED = { status: 'verified', hasSelfie: true, dateOfBirth: null, maskedAadhaar: null, pan: null, isAtTheClub: false };
 
 describe('the player app opened with no connection (F-053)', () => {
   it('lets a member through more than an hour after they last used it, by the phone\u2019s stored session', async () => {
@@ -61,7 +61,7 @@ describe('the player app opened with no connection (F-053)', () => {
   });
 
   it('lets a kept check through to Home, which says so when it has no tables to show', async () => {
-    openHome([['kyc-record', { status: 'verified', hasSelfie: true, photoPath: null, dateOfBirth: null, maskedAadhaar: null, pan: null, isAtTheClub: false }]]);
+    openHome([['kyc-record', { status: 'verified', hasSelfie: true, dateOfBirth: null, maskedAadhaar: null, pan: null, isAtTheClub: false }]]);
     expect(await screen.findByText('No connection. What you see may be out of date.', {}, LATER)).toBeDefined();
     expect(screen.queryByRole('heading', { name: 'No connection' })).toBeNull();
   });

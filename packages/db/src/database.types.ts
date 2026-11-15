@@ -3311,6 +3311,9 @@ isOneToOne: false
               "body": string,"notice_id": string
             }[]
                            },
+"my_photo_path":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
 "my_promotion_cards":
 { Args: Record<PropertyKey, never>; Returns: {
               "detail": string,"link": string,"promotion_id": string,"runs": string,"title": string

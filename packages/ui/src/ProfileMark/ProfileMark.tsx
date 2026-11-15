@@ -4,7 +4,7 @@ import { useState } from 'react';
 export interface ProfileMarkProps {
   /** The member's initial, shown until there is a photo. */
   initial: string;
-  /** The address of the member's verified selfie (decision 0300), filling the circle; the initial while it loads or if it cannot. */
+  /** The address of the member's own photo (decision 0588), filling the circle; the initial while it loads or if it cannot. */
   photo?: string | undefined;
 }
 

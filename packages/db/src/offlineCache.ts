@@ -24,9 +24,9 @@ const isKept = (query: Query, userId: string) => query.state.status === 'success
 /** Each answer's own age, as one saved again keeps the time it was read. */
 const isRecent = (query: KeptQuery, now: number) => now - query.state.dataUpdatedAt <= KEPT_FOR_MS;
 
-/** What may not lie on a phone, by the query it is in: the identity check's documents and the path to the selfie. */
+/** What may not lie on a phone, by the query it is in: the identity check's documents. */
 const BLANKED: Readonly<Partial<Record<string, Readonly<Record<string, null>>>>> = {
-  'kyc-record': { photoPath: null, dateOfBirth: null, maskedAadhaar: null, pan: null },
+  'kyc-record': { dateOfBirth: null, maskedAadhaar: null, pan: null },
 };
 
 /** The answers as they may lie on a phone: what the app reads, and none of the documents behind it. */

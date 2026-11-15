@@ -15,21 +15,28 @@ afterEach(() => {
 
 const FEATURES = ['push.seat_ready', 'push.call_time_complete', 'push.bonus', 'account.delete'].map((feature_key) => ({ feature_key, state: 'enabled', tiers: null }));
 
+/** The address a request goes to. */
+const urlOf = (input: RequestInfo | URL) => String(input instanceof Request ? input.url : input);
+
 /** What each read Profile makes is answered with, by a part of its address; undefined for any other. */
-function readAnswer(url: string, kyc: unknown): unknown {
+function readAnswer(url: string, kyc: unknown, photoPath: string | null): unknown {
   const reads: readonly (readonly [string, unknown])[] = [
     ['/rpc/my_feature_access', FEATURES],
     ['/rest/v1/member?', { id: 'm1', full_name: 'Meera Iyer', member_number: 1024, tier: { name: 'Founders’ Circle' } }],
     ['/rest/v1/kyc_record', kyc],
     ['/rest/v1/member_preference', { games: [], small_blind: null, big_blind: null, name_on_tvs: true }],
     ['/rpc/has_my_consent', false],
-    ['/functions/v1/kyc-image-url', { signedPath: '/object/sign/kyc/v/m/selfie.jpg?token=one-minute' }],
+    ['/rpc/my_photo_path', photoPath],
+    ['/functions/v1/kyc-image-url', { signedPath: `/object/sign/kyc/${photoPath ?? ''}?token=one-minute` }],
   ];
   return reads.find(([part]) => url.includes(part))?.[1];
 }
 
-/** Meera signed in on +91 90000 00901, opening Profile from Rewards; feedback she sends goes to `sent`. */
-function renderProfile(kyc: unknown = null, erasure: { asked?: string; fails?: boolean } = {}) {
+/**
+ * Meera signed in on +91 90000 00901, opening Profile from Rewards; feedback she sends goes to `sent`. `photoPath` is where
+ * her own photo is kept (my_photo_path), and `bodiesTo` gives what was sent to an address.
+ */
+function renderProfile(kyc: unknown = null, erasure: { asked?: string; fails?: boolean } = {}, photoPath: string | null = null) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000241', aud: 'authenticated', phone: '919000000901', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -37,9 +44,9 @@ function renderProfile(kyc: unknown = null, erasure: { asked?: string; fails?: b
   const sent: unknown[] = [];
   let asked = erasure.asked ?? null;
   let asks = 0;
-  vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = String(input instanceof Request ? input.url : input);
-    const answer = readAnswer(url, kyc);
+  const answerTo = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = urlOf(input);
+    const answer = readAnswer(url, kyc, photoPath);
     if (answer !== undefined) return Response.json(answer);
     if (url.includes('/rpc/send_quick_feedback') || url.includes('/rpc/send_detailed_feedback')) {
       sent.push(JSON.parse(String(init?.body)));
@@ -54,6 +61,8 @@ function renderProfile(kyc: unknown = null, erasure: { asked?: string; fails?: b
     }
     return Response.json([]);
   });
+  vi.stubGlobal('fetch', answerTo);
+  const bodiesTo = (part: string) => answerTo.mock.calls.filter(([input]) => urlOf(input).includes(part)).map(([, init]) => String(init?.body));
   // As AppRoot gives every screen: the toasts and the club's number for the front desk.
   const rootRoute = createRootRoute({ component: () => <DeskHelpProvider contact={{ phone: '+918796580435', whatsapp: '+918796580435' }}><ToastProvider><Outlet /></ToastProvider></DeskHelpProvider> });
   const page = (path: string, name: string) => createRoute({ getParentRoute: () => rootRoute, path, component: () => <Text>{name}</Text> });
@@ -69,7 +78,7 @@ function renderProfile(kyc: unknown = null, erasure: { asked?: string; fails?: b
       <RouterProvider router={router} />
     </RivrDataProvider>,
   );
-  return { router, sent, asks: () => asks };
+  return { router, sent, bodiesTo, asks: () => asks };
 }
 
 const LATER = { timeout: 5000 };
@@ -140,15 +149,22 @@ describe('Profile', () => {
     expect(screen.getByRole('button', { name: 'Sign out' }).compareDocumentPosition(help)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
-  it('shows her verified selfie filling the mark, and her initial without one', async () => {
-    renderProfile({ status: 'verified', photo_path: 'v/m/selfie.jpg', date_of_birth: null, masked_aadhaar: null, pan: null, at_club_from: null });
+  it('shows her own photo filling the mark before the desk has checked her, and her initial without one', async () => {
+    // Waiting for the desk (decision 0502): her check points to no photo, and her sign-up selfie is hers to see (decision 0588).
+    const waiting = { status: 'started', photo_path: null, date_of_birth: null, masked_aadhaar: null, pan: null, at_club_from: '2026-11-15T09:00:00Z' };
+    const withPhoto = renderProfile(waiting, {}, 'v/m/photo.jpg');
     const photo = await screen.findByRole('img', { name: 'Your photo' }, LATER);
-    expect(photo.getAttribute('src')).toContain('/object/sign/kyc/v/m/selfie.jpg');
+    expect(photo.getAttribute('src')).toContain('/object/sign/kyc/v/m/photo.jpg');
+    expect(withPhoto.bodiesTo('/functions/v1/kyc-image-url')).toEqual([JSON.stringify({ path: 'v/m/photo.jpg' })]);
     cleanup();
-    renderProfile();
+    const without = renderProfile(waiting);
     expect(await screen.findByRole('heading', { level: 1, name: 'Meera Iyer' }, LATER)).toBeDefined();
     expect(await screen.findByText('M', {}, LATER)).toBeDefined();
+    expect(await screen.findByText('At the desk, first visit', {}, LATER)).toBeDefined();
     expect(screen.queryByRole('img', { name: 'Your photo' })).toBeNull();
+    // No photo kept: once that is known no image is asked for, so nothing is refused.
+    await waitFor(() => expect(without.bodiesTo('/rpc/my_photo_path')).toHaveLength(1));
+    expect(without.bodiesTo('/functions/v1/kyc-image-url')).toEqual([]);
   });
 
   it('shows no Events row for a tier without it', async () => {

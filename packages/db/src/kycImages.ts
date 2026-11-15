@@ -15,7 +15,7 @@ function storageApiUrl(client: RivrClient): string {
 /**
  * A signed URL for one KYC image (`<venue_id>/<member_id>/<file>` in the private `kyc` bucket),
  * valid for a minute. The kyc-image-url Edge Function signs it for active staff with KYC review
- * or the cage at that venue, and for a member their own verified selfie (decision 0300), and audits the view;
+ * or the cage at that venue, and for a member their own face photo (decisions 0300 and 0588), and audits the view;
  * anyone else gets an error.
  */
 export async function signedKycImageUrl(client: RivrClient, path: string): Promise<string> {
@@ -24,6 +24,24 @@ export async function signedKycImageUrl(client: RivrClient, path: string): Promi
   const signedPath: unknown = typeof data === 'object' && data !== null ? Reflect.get(data, 'signedPath') : undefined;
   if (typeof signedPath !== 'string') throw new Error('kyc-image-url answered without a signed path');
   return `${storageApiUrl(client)}${signedPath}`;
+}
+
+/**
+ * Where the signed-in member's own face photo is kept, for `useKycImageUrl` (decision 0588): the selfie their identity
+ * check points to, whatever its state, or the photo the desk took once it is verified, or else the selfie they took at
+ * sign-up; null with none, and for staff.
+ */
+export function useMyPhotoPath() {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.myPhotoPath(userId ?? 'signed-out'),
+    enabled: userId !== null,
+    queryFn: async (): Promise<string | null> => {
+      const { data, error } = await client.rpc('my_photo_path');
+      if (error) throw error;
+      return data;
+    },
+  });
 }
 
 /** One KYC image's signed URL, kept fresh: the one way any app shows a KYC image. */

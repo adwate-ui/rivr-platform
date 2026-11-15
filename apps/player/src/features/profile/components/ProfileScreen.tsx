@@ -1,4 +1,4 @@
-import { useFeature, useKycImageUrl, useKycRecord, useMember, usePreferences, useSignedInPhone } from '@rivr/db';
+import { useFeature, useKycImageUrl, useKycRecord, useMember, useMyPhotoPath, usePreferences, useSignedInPhone } from '@rivr/db';
 import { formatMobile, t } from '@rivr/i18n';
 import { Box, DeskHelp, DetailRow, FeatureGate, Heading, Inline, ProfileMark, Screen, Stack, Text, useHeadingFocus, usePageTitle } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
@@ -37,12 +37,11 @@ function TierPhone({ tier }: { tier: string }) {
   return phone === null ? null : <Text variant="small" tone="muted">{t('player.profile.tierPhone', { tier, phone: formatMobile(phone) })}</Text>;
 }
 
-/** The member at the top, from their own record: their verified selfie or initial, their name, their tier with their phone, and their member number. */
+/** The member at the top, from their own record: their own photo or initial, their name, their tier with their phone, and their member number. */
 function ProfileHead({ headingId }: { headingId: string }) {
   const member = useMember().data;
-  const kyc = useKycRecord().data;
-  // The verified selfie (decision 0300), filling the mark; the initial until it comes.
-  const photo = useKycImageUrl(kyc?.status === 'verified' ? kyc.photoPath : null).data ?? undefined;
+  // Their own photo, before the desk has checked them too (decision 0588), filling the mark; the initial until it comes.
+  const photo = useKycImageUrl(useMyPhotoPath().data ?? null).data ?? undefined;
   return (
     <Inline gap={4} align="center">
       <ProfileMark initial={member?.initial ?? ''} photo={photo} />

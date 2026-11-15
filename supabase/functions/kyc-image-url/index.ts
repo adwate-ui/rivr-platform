@@ -1,5 +1,5 @@
 // A one-minute signed URL for one KYC image (#3). Staff call it with their own session, and a member for
-// their own verified selfie on their card (decision 0300). The
+// own selfie, verified or not, and the desk's photo of them once verified (decisions 0300 and 0588). The
 // database decides whether they may see the image and audits the view (public.authorize_kyc_image);
 // then this signs with the service role, so the URL's lifetime is fixed here: no client can ask
 // Storage for a longer one, because no client may read the kyc bucket at all.
