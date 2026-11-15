@@ -376,6 +376,12 @@
   mask-image: linear-gradient(to bottom, var(--rivr-color-green) calc(100% - var(--rivr-space-8)), transparent);
 }
 
+/* A record held in view beside a long list in the console (the owner, 15 Nov night): as tall as the console's scrolling area
+   shows under its top space, less the room at its foot, so it stays whole on screen; a longer one scrolls on its own. */
+@utility max-h-console-view {
+  max-height: calc(100dvh - var(--rivr-size-console-header) - var(--rivr-space-7) - var(--rivr-space-10));
+}
+
 /* A table's held header takes the fill of the panel it sits on (audit F-066). */
 [data-surface='raised'] {
   --rivr-table-header: var(--rivr-color-raised);
