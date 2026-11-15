@@ -1,9 +1,5 @@
 /** Copy on the TV screens and the slides @rivr/render draws for them. */
 export const tv = {
-  badBeatJackpot: {
-    /** Letter-spaced label above the jackpot figure. */
-    title: 'Bad-beat jackpot',
-  },
   /** The display modes (additions "TV modes"), as the console offers them and a TV names its own (#49). */
   modes: {
     waitlist: 'Waitlist board',
@@ -33,14 +29,6 @@ export const tv = {
     called: 'Called to {table}',
     away: 'Away',
   },
-  /** The social wall (#158, decision 0267): the club's approved Instagram posts, one after another. */
-  socialWall: {
-    label: 'On Instagram',
-    handle: '@{handle}',
-    none: 'No posts on the wall yet.',
-    /** `Post 2 of 6`. */
-    pager: 'Post {current} of {count}',
-  },
   /** The hours leaderboard (decision 0581): members by the hours they played in the period the club set. */
   leaderboard: {
     title: 'Most hours played',
@@ -69,35 +57,6 @@ export const tv = {
     /** More tables than fit take turns: `Tables 1 to 4 of 6`. */
     page: 'Tables {from} to {to} of {count}',
   },
-  /** The jackpot with tonight's high hand (#65). */
-  jackpot: {
-    highHandTonight: 'High hand tonight',
-    noHighHand: 'No high hand yet tonight.',
-    /** A four of a kind with its rank: "Four of a kind, Queens". */
-    handWithRank: '{hand}, {rank}',
-    /** Under the hand: the table, when (IST) and what it paid. */
-    highHandLine: '{table} · {time} · {amount}',
-  },
-  /** The tournament clock (#64). Blinds, antes and stacks are chips, written with formatNumber. */
-  tournamentClock: {
-    level: 'Level {level}',
-    ante: 'Ante {ante}',
-    next: 'Next {blinds}',
-    nextWithAnte: 'Next {blinds} ante {ante}',
-    paused: 'Paused',
-    players: 'Players',
-    entries: 'Entries',
-    average: 'Average',
-    /** On @rivr/render's slide only: the TV shows no prize pool (#628). */
-    pool: 'Pool',
-    payouts: 'Payouts',
-    noPayouts: 'Payouts are set when registration closes.',
-    /** On a break the clock shows this in place of the blinds (#119). */
-    break: 'Break',
-    breakLevel: 'Break after level {level}',
-    /** With no tournament running at the venue. */
-    none: 'No tournament is running.',
-  },
   /** A promotion slide in the TV's rotation (#64). */
   promotion: {
     label: 'Promotion',
@@ -105,16 +64,5 @@ export const tv = {
     pager: 'Promotion {current} of {count}',
     /** The Promotions mode with nothing live. */
     none: 'No promotions running.',
-  },
-  /** The high hands the club pays (#47), on the TV, the tablet and the console. */
-  highHand: {
-    four_of_a_kind: 'Four of a kind',
-    straight_flush: 'Straight flush',
-    royal_flush: 'Royal flush',
-  },
-  /** The rank of a four of a kind, as the tablet keeps it. */
-  ranks: {
-    A: 'Aces', K: 'Kings', Q: 'Queens', J: 'Jacks', T: 'Tens', '9': 'Nines', '8': 'Eights',
-    '7': 'Sevens', '6': 'Sixes', '5': 'Fives', '4': 'Fours', '3': 'Threes', '2': 'Twos',
   },
 } as const;

@@ -23,4 +23,3 @@ apps/<app>/src/
 - Every string comes from `@rivr/i18n`.
 - Budgets checked in CI: player initial JavaScript under 200 KB gzipped; tablet tap-to-confirm under 100 ms; console tables virtualised past 200 rows; TV modes recover within 5 seconds of a reload.
 - Every member-facing entry point is wrapped in `FeatureGate` with its feature key, and the key is declared in `packages/contracts/features.ts`. Navigation reads the same keys.
-- Respect the kill switch: read `useControlState()` and render `KillSwitchBanner`; never hide it.

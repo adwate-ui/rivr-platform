@@ -9,18 +9,15 @@ function countText(count: number, one: Parameters<typeof t>[0], many: Parameters
 /**
  * The tablet's queue of hands (#43), as the prototype has it: offline, a slim banner with how many
  * hands it holds ("Offline. 3 hands queued."), or with none `offlineLine`, never a count of nothing (F-045); back online, that it is sending them, then that they
- * reached the floor ("3 queued hands sent to the floor."), until the next hand is logged. Hands and
- * high-hand claims the database refused for good are listed for the floor, who clears them once seen.
+ * reached the floor ("3 queued hands sent to the floor."), until the next hand is logged. Hands the
+ * database refused for good are counted for the floor, who clears them once seen.
  */
 export function HandQueueBanner({ offlineLine }: { offlineLine: string }) {
-  const { queued, refusedHands, refusedClaims, held: heldOffline, sent, clearRefused } = useHandQueue();
+  const { queued, refusedHands, held: heldOffline, sent, clearRefused } = useHandQueue();
   const sending = heldOffline > 0 && queued.length > 0 ? countText(queued.length, 'tablet.queue.sendingOne', 'tablet.queue.sending') : undefined;
   const landed = sent === null ? undefined : countText(sent, 'tablet.queue.sentOne', 'tablet.queue.sent');
   const held = queued.length === 0 ? offlineLine : countText(queued.length, 'tablet.queue.queuedOne', 'tablet.queue.queued');
-  const refusals = [
-    ...(refusedHands === 0 ? [] : [countText(refusedHands, 'tablet.queue.refusedOne', 'tablet.queue.refused')]),
-    ...refusedClaims.map((claim) => t('tablet.queue.claimRefused', { seat: claim.seat })),
-  ];
+  const refusals = refusedHands === 0 ? [] : [countText(refusedHands, 'tablet.queue.refusedOne', 'tablet.queue.refused')];
   const seen = t('tablet.queue.seen');
   return (
     <>

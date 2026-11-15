@@ -6,9 +6,7 @@
  * migration (rake, caps, TDS, GST, bonuses, credit limits, waitlist priority weights).
  */
 import { z } from 'zod';
-import { socialConnectedChannels } from './channels.ts';
 import { floorRequestTargets, tvLeaderboard } from './floorSettings.ts';
-import { hostLapse } from './hostQueue.ts';
 import {
   authStoreReviewer, bonusByHandCap, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, cabMinimumVisits, kycAtTheClub, rakebackRate,
 } from './rewardSettings.ts';
@@ -99,29 +97,11 @@ const jackpotPayout = {
     .refine((rule) => rule.loser_basis_points + rule.winner_basis_points + rule.table_basis_points === 10_000),
 } as const satisfies SettingDefinition;
 
-const highHandPayouts = {
-  key: 'high_hand.payouts',
-  description: 'What each high hand pays, in paise, in whole ₹50 chips: royal flush, straight flush and four of a kind; 0 pays nothing (scope-v1 module 8). Only a super admin changes it, with a reason.',
-  scope: 'venue', superAdminOnly: true,
-  value: z.strictObject({
-    royal_flush: z.int().min(0).max(10_000_000).multipleOf(CHIP_PAISE),
-    straight_flush: z.int().min(0).max(10_000_000).multipleOf(CHIP_PAISE),
-    four_of_a_kind: z.int().min(0).max(10_000_000).multipleOf(CHIP_PAISE),
-  }),
-} as const satisfies SettingDefinition;
-
 const dealerVarianceThreshold = {
   key: 'dealer.variance_threshold',
   description: 'How far a down\'s drop-box count may differ from the rake and jackpot drops logged in its hands, either way, before an alert is raised: paise, in whole ₹50 chips (scope-v1 module 4).',
   scope: 'venue',
   value: z.strictObject({ threshold_paise: z.int().min(0).max(10_000_000).multipleOf(CHIP_PAISE) }),
-} as const satisfies SettingDefinition;
-
-const dealerRotationMinutes = {
-  key: 'dealer.rotation_minutes', defaultValue: { minutes: 30 },
-  description: 'How long a dealer deals at one table before the floor rotates them, in minutes (scope-v1 module 10). 30 when not set.',
-  scope: 'venue',
-  value: z.strictObject({ minutes: z.int().min(10).max(120) }),
 } as const satisfies SettingDefinition;
 
 const waitlistPriorityWeights = {
@@ -150,13 +130,6 @@ const creditConfig = {
     minimum_visits: z.int().min(0).max(100),
     exposure_cap_paise: z.int().min(0).max(1_000_000_000).multipleOf(CHIP_PAISE),
   }),
-} as const satisfies SettingDefinition;
-
-const markersDueDays = {
-  key: 'markers.due_days',
-  description: 'How many days after it is issued a marker falls due; a member with a marker past due gets no new credit (scope-v1 module 5).',
-  scope: 'venue',
-  value: z.strictObject({ days: z.int().min(1).max(90) }),
 } as const satisfies SettingDefinition;
 
 const cageSecondApproverThreshold = {
@@ -204,13 +177,6 @@ const waitlistInterestToOpen = {
   value: z.strictObject({ players: z.int().min(2).max(10) }),
 } as const satisfies SettingDefinition;
 
-const cardQrRotationSeconds = {
-  key: 'card.qr_rotation_seconds', defaultValue: { seconds: 30 },
-  description: 'How often the membership card\'s QR changes, in seconds; a code from before a change no longer checks in (#71). 30 unless set.',
-  scope: 'venue',
-  value: z.strictObject({ seconds: z.int().min(10).max(300) }),
-} as const satisfies SettingDefinition;
-
 const alertThresholds = {
   key: 'alert.thresholds',
   description: 'Alerting (decision 0191): this many outbox deliveries failing for good within the window alerts the owner. 5 within 60 minutes unless set.',
@@ -242,13 +208,6 @@ const cageCashBuyInLimit = {
   }),
 } as const satisfies SettingDefinition;
 
-const amlStructuring = {
-  key: 'aml.structuring',
-  description: 'AML (decision 0234): structuring is this many visits, or club days, within this many days whose cash buy-ins ended within this margin under the limit (1,000 basis points is 10%). 3 in 7 days within 10% unless set.',
-  scope: 'venue', superAdminOnly: true,
-  value: z.strictObject({ count: z.int().min(2).max(20), window_days: z.int().min(1).max(90), margin_basis_points: z.int().min(1).max(5000) }),
-} as const satisfies SettingDefinition;
-
 const reportsUnclaimedDays = {
   key: 'reports.unclaimed_days',
   description: 'Unclaimed balances (decision 0230): a balance is unclaimed after this many days with no money moved and no visit. 365 unless set.',
@@ -258,9 +217,9 @@ const reportsUnclaimedDays = {
 
 /** Every setting key declared in code. */
 export const SETTINGS = [
-  callTimeMinutes, callTimeAddChoices, floorRequestTargets, tvLeaderboard, defaultTier, kycMinimumAge, kycAtTheClub, authStoreReviewer, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, dealerRotationMinutes, waitlistPriorityWeights, waitlistHoldMinutes,
-  creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, cardQrRotationSeconds, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
-  cageCashBuyInLimit, amlStructuring, rakebackRate, cabMinimumVisits, hostLapse, socialConnectedChannels, bonusByHandCap, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, ] as const;
+  callTimeMinutes, callTimeAddChoices, floorRequestTargets, tvLeaderboard, defaultTier, kycMinimumAge, kycAtTheClub, authStoreReviewer, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
+  creditConfig, cageSecondApproverThreshold, tdsConfig, gstConfig, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
+  cageCashBuyInLimit, rakebackRate, cabMinimumVisits, bonusByHandCap, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, ] as const;
 
 /** A setting key declared in code. */
 export type SettingKey = (typeof SETTINGS)[number]['key'];

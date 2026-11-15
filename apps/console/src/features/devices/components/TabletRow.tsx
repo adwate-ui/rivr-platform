@@ -26,7 +26,7 @@ function RevokeForm({ venueId, tablet, onDone }: { venueId: string; tablet: Deal
   );
 }
 
-/** The table a dealer tablet is fixed to; a door kiosk has none. */
+/** The table a dealer tablet is fixed to. */
 function TableChoice({ venueId, tablet, tables, onResult }: { venueId: string; tablet: DealerTablet; tables: readonly FloorTable[]; onResult: (outcome: Outcome) => void }) {
   const { assign } = useDeviceActions(venueId);
   const fixTo = async (tableId: string | undefined) => {
@@ -43,7 +43,6 @@ function TabletSummary({ tablet, shownCode }: { tablet: DealerTablet; shownCode:
   return (
     <Stack gap={1}>
       <Text weight="semibold">{tablet.name}</Text>
-      {tablet.isDoor ? <Text variant="small">{t('console.tablets.doorKiosk')}</Text> : null}
       <Text variant="small" tone="muted">{t(tablet.isPaired ? 'console.tablets.paired' : 'console.tablets.notPaired')}</Text>
       {shownCode === null ? null : <Text>{t('console.tablets.code', { code: shownCode.code, time: formatTime(new Date(shownCode.expiresAt)) })}</Text>}
     </Stack>
@@ -60,7 +59,7 @@ interface TabletRowProps {
   onCode: (code: PairingCode) => void;
 }
 
-/** One dealer tablet or door kiosk: paired or not, its code while pairing, a tablet's table, a new code and Revoke. */
+/** One dealer tablet: paired or not, its code while pairing, its table, a new code and Revoke. */
 export function TabletRow({ venueId, tablet, tables, code, onCode }: TabletRowProps) {
   const { pair } = useDeviceActions(venueId);
   const [isRevoking, setIsRevoking] = useState(false);
@@ -87,7 +86,7 @@ export function TabletRow({ venueId, tablet, tables, code, onCode }: TabletRowPr
             items={[{ id: 'revoke', label: t('console.tablets.revoke'), tone: 'danger', onSelect: () => setIsRevoking(true) }]} />
         </Inline>
       </Inline>
-      {tablet.isDoor ? null : <TableChoice venueId={venueId} tablet={tablet} tables={tables} onResult={settle} />}
+      <TableChoice venueId={venueId} tablet={tablet} tables={tables} onResult={settle} />
       {isRevoking ? (
         <RevokeForm venueId={venueId} tablet={tablet} onDone={(outcome) => {
           setIsRevoking(false);

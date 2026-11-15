@@ -11,9 +11,9 @@ describe('t', () => {
     expect(t('player.tonight.title')).toBe('player.tonight.title');
     registerMessages({ player: playerApp });
     expect(t('player.tonight.title')).toBe(playerApp.tonight.title);
-    expect(t('console.cage.title')).toBe('console.cage.title');
+    expect(t('console.title')).toBe('console.title');
     registerMessages({ console: consoleApp });
-    expect(t('console.cage.title')).toBe(consoleApp.cage.title);
+    expect(t('console.title')).toBe(consoleApp.title);
   });
 
   it('fills placeholders from params', () => {

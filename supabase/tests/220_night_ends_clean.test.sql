@@ -98,19 +98,12 @@ reset role;
 select ok(exists (select 1 from public.promotion_grant g where g.promotion_id = '00000000-0000-4000-8000-0000000c2203'
                   and g.member_id = '00000000-0000-4000-8000-000000000213'), 'and he gets the check-in welcome, as a check-in would');
 
--- Kavya never left by the door last night: tonight's scan checks her in, not out.
-insert into auth.users (id, instance_id, aud, role, phone) values
-  ('00000000-0000-4000-8000-00000000e221', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', '999000000002211');
-insert into public.device (id, venue_id, kind, name, auth_user_id) values
-  ('00000000-0000-4000-8000-00000000d221', '00000000-0000-4000-8000-000000000001', 'door', 'Front door', '00000000-0000-4000-8000-00000000e221');
+-- Kavya never left by the door last night: tonight's check-in opens a new visit, not last night's.
 insert into public.visit (id, venue_id, member_id, opened_at)
 select '00000000-0000-4000-8000-0000000d2203', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000290', began - interval '6 hours' from night;
-create temp table card (code text);
-grant select, insert on card to authenticated;
-select pg_temp.as_person('00000000-0000-4000-8000-000000000290');
-insert into card select c.code from public.my_membership_card() c;
-select pg_temp.as_person('00000000-0000-4000-8000-00000000e221');
-select results_eq($$ select action from public.door_scan((select code from card)) $$, $$ values ('in'::text) $$, 'tonight''s scan checks Kavya in');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select isnt(public.check_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000290'), '00000000-0000-4000-8000-0000000d2203'::uuid,
+  'tonight''s check-in opens Kavya a new visit');
 reset role;
 select is((select close_reason from public.visit where id = '00000000-0000-4000-8000-0000000d2203'), 'end_of_day', 'and last night''s visit closed at the end of day');
 

@@ -3,15 +3,13 @@ import { t } from '@rivr/i18n';
 import { Screen } from '@rivr/ui';
 import type { ComponentType } from 'react';
 import { NOTICE_AREA, type SettingsArea } from './areas.ts';
-import { ChipsSection } from './ChipsSection.tsx';
 import { NoticesSection } from './NoticesSection.tsx';
 import { RulesArea } from './RulesArea.tsx';
 import { VenueSection } from './VenueSection.tsx';
 
-/** One area's content: its rules in their groups, the notices, the club's details, or the chips. */
+/** One area's content: its rules in their groups, the notices, or the club's details. */
 function AreaContent({ area, venueId, isSuperAdmin }: { area: SettingsArea; venueId: string; isSuperAdmin: boolean }) {
   if (area === 'club') return <VenueSection venueId={venueId} />;
-  if (area === 'chips') return <ChipsSection venueId={venueId} />;
   if (area === NOTICE_AREA) return <NoticesSection venueId={venueId} />;
   return <RulesArea key={area} venueId={venueId} area={area} isSuperAdmin={isSuperAdmin} />;
 }

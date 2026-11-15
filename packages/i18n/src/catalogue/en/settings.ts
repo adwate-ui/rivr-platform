@@ -1,11 +1,11 @@
-/** The console's Settings screen (#33): effective-dated settings, the venue configuration and the chips. */
+/** The console's Settings screen (#33): effective-dated settings and the venue configuration. */
 export const settings = {
   title: 'Settings',
   loadFailed: 'Settings could not be loaded.',
-  /** The screen's areas (#604): the rules by what they govern, then the venue's own details and chips. */
+  /** The screen's areas (#604): the rules by what they govern, then the venue's own details. */
   areas: {
     floor: 'Floor', rake: 'Rake and jackpots', cage: 'Cage and credit', members: 'Members and bonus',
-    tax: 'Tax', compliance: 'Compliance', system: 'System', club: 'Club details', chips: 'Chips', notices: 'Notices',
+    tax: 'Tax', compliance: 'Compliance', system: 'System', club: 'Club details', notices: 'Notices',
   },
   /** The groups each tab's rules sit in (redesign RD-18). */
   groups: { seating: 'Seating', time: 'Time at the table', identity: 'Identity', bonus: 'Bonus', membership: 'Membership', rotation: 'Rotation' },
@@ -119,8 +119,6 @@ export const settings = {
   bankIfsc: 'IFSC',
   invoicePrefix: 'Invoice prefix',
   invoicePrefixHint: 'Up to six capital letters, digits or hyphens, as RIVR in RIVR/S26/41.',
-  staffIpAllowlist: 'Cage and admin networks',
-  staffIpAllowlistHint: 'Addresses or ranges such as 203.0.113.0/24, separated by commas. Once set, the cage and admin screens work only from enrolled computers on these networks. Empty allows any computer.',
   alertWhatsapp: 'Alert WhatsApp number',
   contactPhone: 'Call number',
   contactWhatsapp: 'WhatsApp number',
@@ -134,22 +132,10 @@ export const settings = {
   saveVenue: 'Save configuration',
   venueSaved: 'Configuration saved.',
   venueFailures: {
-    not_allowed: 'Only a super admin changes the venue configuration or the chips, and once the club has cage and admin networks, only from an enrolled admin console on them.',
-    /** RVNET (#384): networks that would leave this admin console outside them. */
-    off_networks: 'Save the cage and admin networks from an enrolled admin console on one of them, so no one is shut out.',
+    not_allowed: 'Only a super admin changes the venue configuration.',
     invalid: 'Value refused. Check each field.',
-    taken: 'There is already a chip of that value. Turn it back on instead.',
     unavailable: 'Not sent. Try again.',
   },
-  chips: 'Chips',
-  chipsHint: 'Every chip is a multiple of ₹50. A chip taken out of use is no longer counted at the cage.',
-  chipValue: 'Value in rupees',
-  chipName: 'Name',
-  invalidChip: 'Give a value that is a multiple of ₹50, up to ₹10,00,000, and a name.',
-  addChip: 'Add chip',
-  chipAdded: 'Chip added.',
-  chipInUse: 'In use: {name}',
-  /** Notices on members' Tonight (decisions 0298 and 0424), such as when the club opens. */
   notices: {
     title: 'Notices on Tonight',
     body: 'Notice',

@@ -1,10 +1,10 @@
 import { AuthRetryableFetchError, createClient, type RealtimeChannel } from '@supabase/supabase-js';
 import { QueryClient } from '@tanstack/react-query';
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SESSION_STORAGE_KEY, type RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useControlState, useFeature, useFeatureStatus } from './hooks.ts';
+import { useFeature, useFeatureStatus } from './hooks.ts';
 import { RivrDataProvider, useAuthStatus, useRivrData } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 
@@ -13,7 +13,6 @@ const ARJUN = '00000000-0000-4000-8000-000000000201';
 /** What the fake API answers, changed by a test to stand in for a change in the database. */
 interface FakeDatabase {
   featureRows: { feature_key: string; state: string; tiers: string[] | null }[];
-  controlRows: { venue_id: string; level: string; feature: string | null; member_id: string | null; released_at: null }[];
   rpcCalls: number;
   /** True while my_feature_access cannot be read. */
   featuresFail: boolean;
@@ -32,7 +31,6 @@ function fakeFetch(database: FakeDatabase): typeof fetch {
       if (database.featuresFail) return new Response(JSON.stringify({ message: 'unavailable' }), { status: 503 });
       return json(database.featureRows);
     }
-    if (url.includes('/rest/v1/control_state')) return json(database.controlRows);
     return new Response('not found', { status: 404 });
   };
 }
@@ -66,10 +64,9 @@ function fireChange(channel: RealtimeChannel, table: string) {
 
 function Probe() {
   const learn = useFeature('events.book');
-  const control = useControlState();
   return (
     <p>
-      {`learn: ${learn.state}; frozen: ${String(control.isVenueFrozen)}`}
+      {`learn: ${learn.state}`}
     </p>
   );
 }
@@ -77,7 +74,6 @@ function Probe() {
 function freshDatabase(): FakeDatabase {
   return {
     featureRows: [{ feature_key: 'events.book', state: 'locked', tiers: ['Black card'] }],
-    controlRows: [],
     rpcCalls: 0,
     featuresFail: false,
   };
@@ -149,23 +145,7 @@ describe('useAuthStatus', () => {
   });
 });
 
-describe('RivrDataProvider, useFeature and useControlState', () => {
-  it('asks for the engaged controls again every 30 seconds, so a freeze a dropped socket missed still shows', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-    const database = freshDatabase();
-    const { client } = testClient(database, ARJUN);
-    render(
-      <RivrDataProvider client={client}>
-        <Probe />
-      </RivrDataProvider>,
-    );
-    expect(await screen.findByText('learn: locked; frozen: false')).toBeDefined();
-    database.controlRows = [{ venue_id: 'gurugram', level: 'venue_freeze', feature: null, member_id: null, released_at: null }];
-    await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
-    expect(await screen.findByText('learn: locked; frozen: true')).toBeDefined();
-    vi.useRealTimers();
-  });
-
+describe('RivrDataProvider and useFeature', () => {
   it('shows nothing and asks for nothing while signed out', async () => {
     const database = freshDatabase();
     const { client, channels } = testClient(database, null);
@@ -176,14 +156,13 @@ describe('RivrDataProvider, useFeature and useControlState', () => {
       </RivrDataProvider>,
     );
 
-    expect(await screen.findByText('learn: hidden; frozen: false')).toBeDefined();
+    expect(await screen.findByText('learn: hidden')).toBeDefined();
     expect(database.rpcCalls).toBe(0);
     expect(channels).toEqual([]);
   });
 
-  it('reads the signed-in member’s access and the engaged controls', async () => {
+  it('reads the signed-in member’s access', async () => {
     const database = freshDatabase();
-    database.controlRows = [{ venue_id: 'gurugram', level: 'venue_freeze', feature: null, member_id: null, released_at: null }];
     const { client } = testClient(database, ARJUN);
 
     render(
@@ -192,10 +171,10 @@ describe('RivrDataProvider, useFeature and useControlState', () => {
       </RivrDataProvider>,
     );
 
-    expect(await screen.findByText('learn: locked; frozen: true')).toBeDefined();
+    expect(await screen.findByText('learn: locked')).toBeDefined();
   });
 
-  it('refreshes open screens when the tier matrix or the kill switch changes', async () => {
+  it('refreshes open screens when the tier matrix changes', async () => {
     const database = freshDatabase();
     const { client, channels } = testClient(database, ARJUN);
     render(
@@ -203,20 +182,16 @@ describe('RivrDataProvider, useFeature and useControlState', () => {
         <Probe />
       </RivrDataProvider>,
     );
-    await screen.findByText('learn: locked; frozen: false');
+    await screen.findByText('learn: locked');
     const [channel] = channels;
     if (channel === undefined) throw new Error('The provider opened no Realtime channel');
 
     database.featureRows = [{ feature_key: 'events.book', state: 'enabled', tiers: null }];
     fireChange(channel, 'tier_feature');
-    expect(await screen.findByText('learn: enabled; frozen: false')).toBeDefined();
-
-    database.controlRows = [{ venue_id: 'gurugram', level: 'venue_freeze', feature: null, member_id: null, released_at: null }];
-    fireChange(channel, 'control_state');
-    expect(await screen.findByText('learn: enabled; frozen: true')).toBeDefined();
+    expect(await screen.findByText('learn: enabled')).toBeDefined();
   });
 
-  it('listens to every table that changes what a person may do or holds: access, the kill switch and bonus chips', async () => {
+  it('listens to every table that changes what a person may do or holds: access and bonus chips', async () => {
     const { client, channels } = testClient(freshDatabase(), ARJUN);
     render(
       <RivrDataProvider client={client}>
@@ -226,7 +201,7 @@ describe('RivrDataProvider, useFeature and useControlState', () => {
     await waitFor(() => expect(channels).toHaveLength(1));
     const tables = vi.mocked(channels[0]?.on)?.mock.calls.map(([, filter]) => ('table' in filter ? filter.table : undefined));
 
-    expect(tables).toEqual(['tier_feature', 'member_feature_override', 'member', 'control_state', 'bonus_grant', 'bonus_redemption']);
+    expect(tables).toEqual(['tier_feature', 'member_feature_override', 'member', 'bonus_grant', 'bonus_redemption']);
   });
 });
 

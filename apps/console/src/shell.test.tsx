@@ -11,10 +11,10 @@ afterEach(() => {
 // The console v3 frame (phase 1): the rail for each role, refusals under the screen's name, old addresses that moved, the
 // staff member's menu and the practice venue, and signing out when idle.
 describe('the console frame', () => {
-  // A screen outside the role is refused; one the club switched off says so rather than blaming the role (C-04).
+  // A screen outside the role is refused.
   // Under the screen's own name, not "Console" (#811).
   it.each([
-    ['/purge', 'Purge', 'Not in your role. Ask an admin.'], ['/cage', 'Cage', 'Not used at RIVR.'],
+    ['/activity', 'Activity', 'Not in your role. Ask an admin.'],
   ])('refuses %s, opened by its address, under its name', async (path, title, text) => {
     signIn();
     answerStaff([CLUB]);
@@ -75,7 +75,7 @@ describe('the console frame', () => {
     renderAt('/settings');
     expect(await screen.findByText('Not in your role. Ask an admin.')).toBeDefined();
     const rail = screen.getByRole('navigation', { name: 'Sections' });
-    expect(within(rail).getByRole('link', { name: 'Host queue' })).toBeDefined();
+    expect(within(rail).getByRole('link', { name: 'Members' })).toBeDefined();
     for (const gone of ['Promotions', 'Rewards', 'Social', 'Content', 'Staff', 'Tables', 'Settings']) {
       expect(within(rail).queryByRole('link', { name: gone })).toBeNull();
     }
@@ -83,15 +83,15 @@ describe('the console frame', () => {
     expect(within(rail).queryByText('Admin')).toBeNull();
   });
 
-  it('gives an admin Admin with no danger screens, and refuses the purge by its address', async () => {
+  it('gives an admin Admin without Activity, and refuses it by its address', async () => {
     signIn();
     answerStaff([{ ...CLUB, full_name: 'Aditya Malhotra', role: 'admin' }]);
-    renderAt('/purge');
+    renderAt('/activity');
     expect(await screen.findByText('Not in your role. Ask an admin.')).toBeDefined();
     const rail = screen.getByRole('navigation', { name: 'Sections' });
     fireEvent.click(within(rail).getByRole('button', { name: 'Admin' }));
     expect(within(rail).getByRole('link', { name: 'Settings' })).toBeDefined();
-    for (const gone of ['Kill switch', 'Practice reset', 'Purge']) expect(within(rail).queryByRole('link', { name: gone })).toBeNull();
+    expect(within(rail).queryByRole('link', { name: 'Activity' })).toBeNull();
   });
 
   // Screens merged into others (#606, console v3): each old address opens its screen on the rail, and its tab.
@@ -117,7 +117,7 @@ describe('the console frame', () => {
 
   // Their old tabs gone, these land on the screen that took their place, saying so (#811).
   it.each([
-    ['/rake', 'Not used at RIVR.'], ['/cameras', 'Cameras are no longer on the console.'],
+    ['/cameras', 'Cameras are no longer on the console.'],
     ['/computers', 'Computers are no longer on the console.'], ['/games-history', 'Games history moved to Reports, Tables.'],
   ])('opens %s on Settings, saying %s', async (path, notice) => {
     signIn();

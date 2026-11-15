@@ -1,16 +1,15 @@
 -- TV boards (#65): a paired TV reads its own venue's waitlist board while it shows it (players as
--- first name and initial, in the floor's order, a list per open table, decision 0467) and its jackpot with tonight's high
--- hand; nobody else reads them; the database broadcasts on the venue's private topic when what a
--- board shows changes, and only the venue's TVs may hear it. The seed has Kabir Sethi, Naina Kapoor
--- and Rohan Bhatia waiting on Table 2's list (100/200), nobody at Table 1 (50/100), and a main pool of ₹3,42,600, in
--- both venues, and tonight's high hand (56_floor.sql).
+-- first name and initial, in the floor's order, a list per open table, decision 0467); nobody else reads it; the
+-- database broadcasts on the venue's private topic when what a board shows changes, and only the venue's TVs may
+-- hear it. The seed has Kabir Sethi, Naina Kapoor and Rohan Bhatia waiting on Table 2's list (100/200) and nobody at
+-- Table 1 (50/100), in both venues.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
 -- This test's club night began twelve hours before it (#716). The night turns at 06:00 IST (private.tonight_began), so a
--- run just after 06:00 would put the joins and visits made minutes earlier on last night's side; the turn itself is 043's
--- and 220's to test. Here tonight_began keeps its rule, with the turn moved to twelve hours ago, until the test rolls back.
+-- run just after 06:00 would put the joins and visits made minutes earlier on last night's side; the turn itself is
+-- 220's to test. Here tonight_began keeps its rule, with the turn moved to twelve hours ago, until the test rolls back.
 create temp table night_shift on commit drop as select now() - private.tonight_began(now()) - interval '12 hours' as shift;
 grant select on night_shift to authenticated, anon, service_role;
 create or replace function private.tonight_began(p_at timestamptz) returns timestamptz language sql stable set search_path = '' as $$
@@ -29,13 +28,10 @@ create function pg_temp.signals(p_topic text, p_event text) returns integer lang
 $$;
 grant execute on function pg_temp.as_person(text) to authenticated, anon;
 
--- The seed's high hand (56_floor.sql), where it was played after 06:00 IST today, and the practice venue's stakes.
-create temp table seed_high_hand on commit drop as
-select h.venue_id, c.category from public.high_hand_claim c join public.hand h on h.id = c.hand_id
-where h.idempotency_key = 'seed:high-hand' and h.played_at >= private.tonight_began(now());
+-- The practice venue's tables.
 create temp table practice_tables on commit drop as
 select id from public.game_table where venue_id = '00000000-0000-4000-8000-000000000002';
-grant select on seed_high_hand, practice_tables to authenticated;
+grant select on practice_tables to authenticated;
 
 -- A paired TV at the club and one at the practice venue, both on the waitlist board, and a tablet.
 insert into auth.users (id, instance_id, aud, role, phone) values
@@ -73,41 +69,22 @@ select ok(not exists (select 1 from public.tv_waitlist_board() b where b.display
   'and no full name reaches the TV');
 select results_eq($$ select distinct table_id from public.tv_waitlist_board() order by table_id $$,
   $$ select id from open_tables order by id $$, 'every open table at the venue, and only that venue''s');
-select results_eq($$ select main_paise, high_hand_category from public.tv_jackpot() $$,
-  $$ select 34260000::bigint, (select category from seed_high_hand where venue_id = '00000000-0000-4000-8000-000000000001') $$,
-  'the jackpot is ₹3,42,600, with the seed''s high hand when it was played tonight');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e202');
 select results_eq($$ select display_name from public.tv_waitlist_board() where place is not null order by place $$,
   $$ values ('Kabir S.'::text), ('Naina K.'), ('Rohan B.') $$, 'the practice TV shows the practice venue''s own list');
 select is_empty($$ select * from public.tv_waitlist_board() where table_id not in (select id from practice_tables) $$, 'and none of the club''s');
-select results_eq($$ select main_paise from public.tv_jackpot() $$, $$ values (34260000::bigint) $$, 'and the practice venue''s own jackpot');
 reset role;
-update public.tv_screen set mode = 'jackpot' where device_id = '00000000-0000-4000-8000-00000000d201';
+update public.tv_screen set mode = 'promotions' where device_id = '00000000-0000-4000-8000-00000000d201';
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e201');
-select is_empty($$ select * from public.tv_waitlist_board() $$, 'a TV showing the jackpot reads no names');
-select results_eq($$ select main_paise from public.tv_jackpot() $$, $$ values (34260000::bigint) $$, 'only its jackpot');
+select is_empty($$ select * from public.tv_waitlist_board() $$, 'a TV showing another board reads no names');
 reset role;
 update public.tv_screen set mode = 'waitlist' where device_id = '00000000-0000-4000-8000-00000000d201';
-
--- A venue with nothing on its floor yet: an empty jackpot and no high hand tonight. Operations create venues signed out.
-select set_config('request.jwt.claims', '', true);
-select private.bootstrap_venue('00000000-0000-4000-8000-0000000000f4', 'New room', 'new-room', false, 'New room', 'Elsewhere', 'NEW');
-insert into auth.users (id, instance_id, aud, role, phone) values
-  ('00000000-0000-4000-8000-00000000e204', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', '999000000000204');
-insert into public.device (id, venue_id, kind, name, auth_user_id) values
-  ('00000000-0000-4000-8000-00000000d204', '00000000-0000-4000-8000-0000000000f4', 'tv', 'New TV', '00000000-0000-4000-8000-00000000e204');
-insert into public.tv_screen (device_id, venue_id, mode) values ('00000000-0000-4000-8000-00000000d204', '00000000-0000-4000-8000-0000000000f4', 'jackpot');
-select pg_temp.as_person('00000000-0000-4000-8000-00000000e204');
-select results_eq($$ select main_paise, high_hand_category from public.tv_jackpot() $$, $$ values (0::bigint, null::public.high_hand_category) $$,
-  'a new venue''s TV shows an empty jackpot, with no high hand yet tonight');
-reset role;
 
 -- Nobody else reads the boards.
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e203');
 select is_empty($$ select * from public.tv_waitlist_board() $$, 'a dealer tablet reads no TV board');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is_empty($$ select * from public.tv_waitlist_board() $$, 'nor does staff, who use the console''s board');
-select is_empty($$ select * from public.tv_jackpot() $$, 'nor the TV jackpot');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000202');
 select is_empty($$ select * from public.tv_waitlist_board() $$, 'nor a member waiting on it');
 reset role;
@@ -124,19 +101,6 @@ update public.waitlist_entry set updated_at = now() where member_id = '00000000-
 select is(pg_temp.signals('tv:00000000-0000-4000-8000-000000000001', 'waitlist'), 1, 'a change the board does not show tells them nothing');
 update public.game_table set is_open = not is_open where venue_id = '00000000-0000-4000-8000-000000000001' and name = 'Table 1';
 select is(pg_temp.signals('tv:00000000-0000-4000-8000-000000000001', 'waitlist'), 2, 'a table opening or closing does, for the count of tables open');
-select set_config('request.jwt.claims', '', true);
-select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'test', 'tv-signal-rake',
-  jsonb_build_array(
-    jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'venue.chips_outstanding'), 'amount', '5000'),
-    jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'venue.rake'), 'amount', '-5000')),
-  'promotions', 'Test');
-select is(pg_temp.signals('tv:00000000-0000-4000-8000-000000000001', 'jackpot'), 0, 'rake alone does not touch the jackpot');
-select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'test', 'tv-signal-drop',
-  jsonb_build_array(
-    jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'venue.chips_outstanding'), 'amount', '5000'),
-    jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'venue.jackpot.main'), 'amount', '-5000')),
-  'promotions', 'Test');
-select is(pg_temp.signals('tv:00000000-0000-4000-8000-000000000001', 'jackpot'), 1, 'a drop into the main pool tells the TVs');
 select is((select count(*)::int from realtime.messages where topic like 'tv:00000000-0000-4000-8000-000000000002' and inserted_at >= now()), 0,
   'and nothing reaches the practice venue''s topic');
 select ok((select bool_and(payload - 'event' - 'id' - 'type' = jsonb_build_object('board', event)) from realtime.messages

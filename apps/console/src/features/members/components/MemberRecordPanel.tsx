@@ -1,6 +1,5 @@
 import { useKycImageUrl, useMemberAccountStatuses, useMemberRecord, type MemberRecord } from '@rivr/db';
-import { useOpenHostOffers } from '@rivr/db/hostQueue';
-import { formatDate, formatHostOffer, formatNumber, formatStakes, t } from '@rivr/i18n';
+import { formatDate, formatNumber, formatStakes, t } from '@rivr/i18n';
 import { Box, DetailRow, ErrorMessage, Heading, Inline, KycPhoto, kycPhotoStatus, LoadState, Stack, Tabs, Text } from '@rivr/ui';
 import { ChangePhone } from './ChangePhone.tsx';
 import { EarlyDepartures } from './EarlyDepartures.tsx';
@@ -98,12 +97,6 @@ function PartContent({ part, venueId, record, can }: PartProps & { part: RecordP
   return <VisitsPart venueId={venueId} record={record} can={can} />;
 }
 
-/** What a host promised this member, for the floor to give by hand (F-015); nothing when no offer is open. */
-function OfferLine({ venueId, memberId }: { venueId: string; memberId: string }) {
-  const offer = useOpenHostOffers(venueId).data?.find((one) => one.memberId === memberId)?.offer;
-  return offer === undefined ? null : <Text variant="small" tone="accent">{t('console.hostQueue.offered', { offer: formatHostOffer(offer) })}</Text>;
-}
-
 /** How the account stands when it is not simply active; a dash until that is known, so a failed read never passes as active (F-121). */
 function AccountLine({ venueId, memberId }: { venueId: string; memberId: string }) {
   const statuses = useMemberAccountStatuses(venueId).data;
@@ -119,7 +112,7 @@ function RecordHeader({ venueId, record, can }: { venueId: string; record: Membe
   return (
     <Inline gap={4} align="center">
       {can.seePhoto ? (
-        <KycPhoto alt={t('console.cage.photoOf', { name: record.fullName })} src={photo.data ?? null} status={kycPhotoStatus(record.photoPath, photo)} />
+        <KycPhoto alt={t('console.members.photoOf', { name: record.fullName })} src={photo.data ?? null} status={kycPhotoStatus(record.photoPath, photo)} />
       ) : null}
       <Stack gap={1}>
         <Heading level={2}>{record.fullName}</Heading>
@@ -129,7 +122,6 @@ function RecordHeader({ venueId, record, can }: { venueId: string; record: Membe
         {record.qualifying === null ? null : (
           <Text variant="small" tone="muted">{t('console.members.qualifying', { stakes: formatStakes(record.qualifying.smallBlind, record.qualifying.bigBlind) })}</Text>
         )}
-        <OfferLine venueId={venueId} memberId={record.memberId} />
       </Stack>
     </Inline>
   );

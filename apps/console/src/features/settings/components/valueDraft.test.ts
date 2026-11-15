@@ -89,7 +89,6 @@ describe('a setting value as the Settings screen types it', () => {
   it('says a value in words, and a field\'s limits in its unit', () => {
     expect(valueText('waitlist.hold_minutes', HOLD, { minutes: 30 }, tierName)).toBe('30 minutes');
     expect(valueText('rake.config', RAKE, { rate_basis_points: 500, cap_paise: 300_000 }, tierName)).toBe('Rate: 5% · Cap: ₹3,000');
-    expect(valueText('social.connected_channels', CHANNELS, { channels: ['instagram', 'telegram'] }, tierName)).toBe('Instagram and Telegram');
     expect(limitsText(MINUTES)).toBe('Between 1 and 120 minutes.');
     expect(limitsText(CAP)).toBe('Between ₹0 and ₹1,00,000. In whole ₹50 chips.');
     expect(limitsText(RATE)).toBe('Between 0% and 10%. Up to two decimals.');

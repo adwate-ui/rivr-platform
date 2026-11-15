@@ -1,5 +1,5 @@
 -- The website's words in grandpokerarena.com's way (#619). The club has its new pages, with the legal article a draft.
--- Membership reads the rules in force in place of the example rates; Promotions shows the jackpot; the front page
+-- Membership reads the rules in force in place of the example rates; the front page
 -- carries the room's hours and amenities and more questions; every ruling links to its judgment. It only adds:
 -- running it again changes nothing, and words the club changed stay as they are. The practice venue gets none of it,
 -- and a club made from now on gets all of it.
@@ -23,7 +23,6 @@ select is(pg_temp.page_kinds((select venue_id from club), 'membership'),
   'Membership reads the rules in force in place of the example rates, the cab after them, and the welcome offer after the steps to join');
 select is((select b.content ->> 'only' from public.site_block b join public.site_page p on p.id = b.page_id
            where p.venue_id = (select venue_id from club) and p.slug = 'membership' and b.kind = 'promotions'), 'welcome', 'which shows the welcome offer alone');
-select is(pg_temp.page_kinds((select venue_id from club), 'promotions'), array['hero', 'jackpot', 'promotions', 'cards'], 'Promotions shows the jackpot after its hero');
 
 select ok((select b.content -> 'questions' @> '[{"question": "Is poker a game of skill?"}]'
            from public.site_block b join public.site_page p on p.id = b.page_id where p.venue_id = (select venue_id from club) and p.slug = 'home' and b.kind = 'faq'),

@@ -12,15 +12,12 @@ The pack sits in `C:\RIVR\agent\offline-pack\`, one PDF a night named by its dat
 
 The pack has:
 - who to call;
-- every member with money held or owed;
-- the cage's float and chips in play;
 - each open table with who sits where;
-- the waitlist;
-- every SOP in force.
+- the waitlist.
 
 The pack is made each evening at 17:00 IST, so it shows the club as it stood then.
 
-The packs hold members' names and balances, so the computer's disk must be encrypted with BitLocker (owner, 27 Oct). Packs older than seven nights are removed. A member's erasure doesn't reach a pack already made; it ages out within a week.
+The packs hold members' names, so the computer's disk must be encrypted with BitLocker (owner, 27 Oct). Packs older than seven nights are removed. A member's erasure doesn't reach a pack already made; it ages out within a week.
 
 ## Installing it (once, on the cage computer)
 
@@ -70,7 +67,7 @@ With `RIVR_BAR_PRINTER` set, the agent checks for new KOTs every five seconds an
 
 GitHub Actions runs `offline-pack` at 17:00 IST, for staging and production. It uses each environment's existing Supabase settings: the access token, the project's ref and its URL. It reads the service-role key from Supabase at run time and never stores it. A target whose settings are missing is skipped with a notice.
 
-To make tonight's packs again, for example after an SOP changes, open Actions, then **offline-pack**, then **Run workflow**.
+To make tonight's packs again, open Actions, then **offline-pack**, then **Run workflow**.
 
 ## When something is wrong
 

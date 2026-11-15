@@ -4,7 +4,6 @@ import { Button } from '../Button/Button.tsx';
 import { SearchTrigger } from '../CommandPalette/SearchTrigger.tsx';
 import { Grid } from '../Grid/Grid.tsx';
 import { HeaderPulse } from '../HeaderPulse/HeaderPulse.tsx';
-import { KillSwitchBanner as Banner } from '../KillSwitchBanner/KillSwitchBanner.tsx';
 import { Screen } from '../Screen/Screen.tsx';
 import { consoleSections, consoleTabs } from '../storybook/fixtures.ts';
 import { TableTile, type TileSeat } from '../TableTile/TableTile.tsx';
@@ -76,11 +75,6 @@ export const Empty: Story = {
 };
 
 export const WithError: Story = { args: { currentItem: 'members', children: <Screen title="Members" status="error" onRetry={() => undefined} /> } };
-
-/** The kill switch's banner across the top, above everything; an Admin screen open, its group with it. */
-export const KillSwitchBanner: Story = {
-  args: { banner: <Banner audience="staff" />, currentItem: 'kill', children: <Screen title="Kill switch" status="empty" emptyText="The venue is frozen." /> },
-};
 
 export const OnAPhoneLongTitle: Story = {
   tags: ['!viewport-console', 'viewport-phone'],

@@ -73,7 +73,6 @@ declare
   v_pema uuid := (select s.id from public.staff s where s.venue_id = p_venue_id and s.user_id = '00000000-0000-4000-8000-000000000106');
   v_table2_login uuid := (select d.auth_user_id from public.device d where d.id = p_table2_tablet);
   v_hand uuid;
-  v_claim uuid;
   v_down uuid;
 begin
   if not pg_temp.floor_is_fresh(p_venue_id, array[p_table2_tablet, p_table3_tablet]) then
@@ -87,10 +86,6 @@ begin
     returning id into v_down;
     perform pg_temp.seed_as(v_table2_login);
     v_hand := public.log_hand(480000, 'holdem', now() - interval '112 minutes', 'seed:high-hand');
-    v_claim := public.claim_high_hand(v_hand, 5, 'four_of_a_kind', 'Q');
-    perform pg_temp.seed_as('00000000-0000-4000-8000-000000000103');
-    perform public.approve_high_hand(v_claim, 200000);
-    perform pg_temp.seed_as(v_table2_login);
     perform public.end_down((select h.rake_paise + h.drop_paise from public.hand h where h.id = v_hand));
     update public.dealer_down set ended_at = now() - interval '50 minutes' where id = v_down;
     insert into public.dealer_down (venue_id, table_id, staff_id, device_id, started_at)

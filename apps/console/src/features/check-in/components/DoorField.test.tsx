@@ -10,7 +10,6 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const CARD = 'RIVR-58-1730612400-a3f9c2d1e4b5f6a7b8c9d0e1';
 
 /** A member as the search finds them. */
 const member = (id: string, name: string, number: number) => ({
@@ -41,7 +40,7 @@ function renderDoor(found: unknown[] = []) {
   return sent;
 }
 
-const field = () => screen.getByRole<HTMLInputElement>('textbox', { name: 'Card, name, mobile or member number' });
+const field = () => screen.getByRole<HTMLInputElement>('textbox', { name: 'Name, mobile or member number' });
 const type = (value: string) => fireEvent.change(field(), { target: { value } });
 
 describe('the door field', () => {
@@ -71,16 +70,8 @@ describe('the door field', () => {
     expect(await screen.findByText('Checked in.')).toBeDefined();
     type('k');
     fireEvent.keyDown(field(), { key: 'Enter' });
-    expect(await screen.findByText('Scan the card, or type a name, mobile or member number.')).toBeDefined();
+    expect(await screen.findByText('Type a name, mobile or member number.')).toBeDefined();
     expect(screen.queryByText('Checked in.')).toBeNull();
-  });
-
-  it('checks a member in by the card the scanner reads, on Enter', async () => {
-    const sent = renderDoor();
-    type(CARD);
-    fireEvent.keyDown(field(), { key: 'Enter' });
-    expect(await screen.findByText('Checked in.')).toBeDefined();
-    expect(sent.find((call) => call.rpc === 'check_in_by_card')?.body).toEqual({ p_venue_id: 'v1', p_code: CARD });
   });
 
   it('checks in the one member a name finds, on Enter', async () => {

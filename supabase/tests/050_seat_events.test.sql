@@ -1,5 +1,5 @@
 -- Seat events from the dealer tablet (#59). Tablet A is fixed to Table 3, where the floor (103) seats
--- Ishaan (211) at seat 9; Vihaan (212) sits at Table 1. 104 is a cashier; 106 Pema a dealer (staff).
+-- Ishaan (211) at seat 9; Vihaan (212) sits at Table 1. 106 Pema is a dealer (staff).
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -30,21 +30,11 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 insert into ids select 'ishaan', public.seat_member(pg_temp.t('Table 3'), 9, '9000000211');
 insert into ids select 'vihaan', public.seat_member(pg_temp.t('Table 1'), 2, '9000000212');
 
--- The tablet's seats, and a buy-in request for seat 9 (flow 3).
+-- The tablet's seats.
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
 select is((select count(*)::integer from public.tablet_seats()), 9, 'the tablet sees every seat at its table');
-select results_eq($$ select seat, full_name, away_since is null, minimum_paise, pending_buy_in_paise from public.tablet_seats() where session_id is not null $$,
-  $$ values (9, 'Ishaan Verma'::text, true, 1000000::bigint, null::bigint) $$, 'who sits there, and the table''s minimum');
-insert into ids select 'request', public.request_buy_in((select id from ids where name = 'ishaan'), 1000000, '00000000-0000-4000-8000-0000000c5901');
-select isnt((select id from ids where name = 'request'), null, 'the tablet asks the cage for ₹10,000 for seat 9');
-select is((select pending_buy_in_paise from public.tablet_seats() where seat = 9), 1000000::bigint, 'and sees it waiting there');
-select throws_ok($$ select public.request_buy_in((select id from ids where name = 'ishaan'), 2000000, '00000000-0000-4000-8000-0000000c5902') $$,
-  'RVPND', null, 'a second request for the seat waits until the cage has decided the first');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select results_eq($$ select full_name, table_name, seat, amount_paise, photo_path from public.cage_queue('00000000-0000-4000-8000-000000000001') $$,
-  $$ values ('Ishaan Verma'::text, 'Table 3'::text, 9, 1000000::bigint,
-             '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000211/selfie.jpg'::text) $$,
-  'and the request waits at the cage, with his KYC photo');
+select results_eq($$ select seat, full_name, away_since is null, minimum_paise from public.tablet_seats() where session_id is not null $$,
+  $$ values (9, 'Ishaan Verma'::text, true, 1000000::bigint) $$, 'who sits there, and the table''s minimum');
 
 -- Away, back, and left.
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
@@ -60,8 +50,6 @@ select is((select away_since from public.tablet_seats() where seat = 9), null, '
 select throws_ok($$ select public.set_seat_away((select id from ids where name = 'vihaan'), true) $$, '42501', null,
   'the tablet marks no one away at another table');
 select throws_ok($$ select public.end_seat((select id from ids where name = 'vihaan'), 'left') $$, '42501', null, 'nor lets them leave');
-select throws_ok($$ select public.request_buy_in((select id from ids where name = 'vihaan'), 500000, gen_random_uuid()) $$, '42501', null,
-  'nor asks the cage for their chips');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select throws_ok($$ select public.set_seat_away((select id from ids where name = 'ishaan'), true) $$, '42501', null,
   'a dealer without the tablet marks no one away');
@@ -70,11 +58,6 @@ select throws_ok($$ select * from public.tablet_seats() $$, '42501', null, 'nor 
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
 select lives_ok($$ select public.end_seat((select id from ids where name = 'ishaan'), 'left') $$, 'Player left');
 select is_empty($$ select * from public.tablet_seats() where session_id is not null $$, 'and seat 9 is open');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select is_empty($$ select * from public.cage_queue('00000000-0000-4000-8000-000000000001') $$, 'his request leaves the cage''s queue');
-reset role;
-select is((select status from public.buy_in_request where id = (select id from ids where name = 'request')), 'withdrawn',
-  'withdrawn, so it cannot be paid once he has gone');
 select pg_temp.as_person('00000000-0000-4000-8000-00000000e001');
 select throws_ok($$ select public.set_seat_away((select id from ids where name = 'ishaan'), true) $$, '22023', null,
   'a player who left is not away');

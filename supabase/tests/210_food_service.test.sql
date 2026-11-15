@@ -28,7 +28,7 @@ insert into public.staff (venue_id, user_id, full_name, job_title, role)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000000f1', 'Sameer Rao', 'Steward', 'service');
 
 select set_eq($$ select permission from public.role_permission where role = 'service' $$,
-  $$ values ('fnb.serve'), ('sops.acknowledge'), ('incidents.log') $$, 'Service serves food and drink, and nothing else');
+  $$ values ('fnb.serve') $$, 'Service serves food and drink, and nothing else');
 
 -- Yash orders a masala chai at Table 1.
 insert into ids select 'chai', i.id from public.fnb_item i where i.venue_id = '00000000-0000-4000-8000-000000000001' and i.name = 'Masala chai';

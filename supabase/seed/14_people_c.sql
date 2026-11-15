@@ -174,11 +174,3 @@ insert into public.visit (venue_id, member_id, opened_at, closed_at, close_reaso
 select '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000296', now() - d.ago, now() - d.ago + interval '5 hours', 'door'
 from (values (interval '3 days'), (interval '10 days'), (interval '17 days')) as d (ago)
 where not exists (select 1 from public.visit v where v.member_id = '00000000-0000-4000-8000-000000000296');
-
--- The Social wall flow's posts waiting for moderation, as Instagram's pull would record them (#157).
-insert into public.wall_post (venue_id, source_id, handle, caption, media_url, media_kind, permalink, posted_at) values
-  ('00000000-0000-4000-8000-000000000001', 'seed-wall-1', 'zoya.plays', 'Final table at RIVR tonight', 'https://cdn.example/seed-wall-1.jpg', 'image',
-   'https://www.instagram.com/p/seedwall1/', now() - interval '2 hours'),
-  ('00000000-0000-4000-8000-000000000001', 'seed-wall-2', 'kabir.s', 'Sunday at the club', 'https://cdn.example/seed-wall-2.jpg', 'image',
-   'https://www.instagram.com/p/seedwall2/', now() - interval '1 hour')
-on conflict do nothing;

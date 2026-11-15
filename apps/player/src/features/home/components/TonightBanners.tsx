@@ -1,4 +1,4 @@
-import { useControlState, useRestrictions } from '@rivr/db';
+import { useRestrictions } from '@rivr/db';
 import { formatDateTime, formatTime, t } from '@rivr/i18n';
 import { Banner, Stack, useIsOnline } from '@rivr/ui';
 
@@ -19,17 +19,15 @@ function BreakBanner() {
 }
 
 /**
- * The banners at the top of Tonight (decision 0320), the only alerts inside the app: the club paused in red, a break, a refresh
+ * The banners at the top of Tonight (decision 0320), the only alerts inside the app: a break, a refresh
  * that failed with Retry, the call time ending with Add time, and offline. Stacked 8 px apart; nothing when there are none.
  * The club's notices are cards under them, not banners (TonightNotices, decision 0424).
  */
 export function TonightBanners({ shownAt, hasRefreshFailed, onRetry, callEnding }: TonightBannersProps) {
-  const { isVenueFrozen } = useControlState();
   const isOnline = useIsOnline();
   const time = formatTime(new Date(shownAt));
   return (
     <Stack gap={2}>
-      {isVenueFrozen ? <Banner tone="alert">{t('player.alerts.paused')}</Banner> : null}
       <BreakBanner />
       {hasRefreshFailed && isOnline ? (
         <Banner action={{ label: t('player.alerts.retry'), onPress: onRetry }}>{t('player.alerts.failed', { time })}</Banner>

@@ -1,8 +1,7 @@
 -- The jackpot's pools (#48): with the venue's shares at 20% season and 10% freeroll from an hour
 -- ago, a ₹48,000 hand's ₹100 drop lands ₹70, ₹20 and ₹10 in the pools in one balanced transaction;
--- a hand played before the shares took effect sends its drop to the main pool; public_jackpot gives
--- the club's pools as the ledger holds them (seed and drops, less payouts), to anyone, and never the
--- practice venue's.
+-- a hand played before the shares took effect sends its drop to the main pool. Nothing pays the pools out or
+-- shows them since the jackpot's payouts and board went (15 Nov); a logged hand still drops into them.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -64,22 +63,6 @@ select results_eq(
   $$ values (2) $$,
   'a hand played before the shares took effect drops into the main pool alone');
 
--- What the TVs and the player app read.
-create temporary table ledger_pools on commit drop as
-select (select slug from public.venue where id = '00000000-0000-4000-8000-000000000001') as venue_slug,
-       pg_temp.natural('venue.jackpot.main') as main, pg_temp.natural('venue.jackpot.season') as season,
-       pg_temp.natural('venue.jackpot.freeroll') as freeroll;
-grant select on ledger_pools to anon;
-set local role anon;
-select results_eq(
-  $$ select j.main_paise, j.season_paise, j.freeroll_paise from public.public_jackpot j join ledger_pools l using (venue_slug) $$,
-  $$ select main, season, freeroll from ledger_pools $$,
-  'a visitor reads the club''s pools as the ledger holds them');
-select is((select main_paise from public.public_jackpot), 34277000::bigint,
-  'the main pool: the seed''s ₹3,42,600, plus the drops'' ₹170, less no payouts');
-select is((select count(*)::integer from public.public_jackpot), 1, 'and only the club''s, never the practice venue''s');
-reset role;
-
 -- Whole numbers written with a decimal point pass a setting's schema and must not stop hands: from
 -- ten minutes ago the shares are 50% and 50% (the main pool takes nothing) and the rake as 500.0.
 -- Written as a migration writes them, with nobody signed in.
@@ -103,25 +86,20 @@ select results_eq(
   $$ values ('venue.chips_outstanding', 10000::bigint), ('venue.jackpot.freeroll', -5000::bigint), ('venue.jackpot.season', -5000::bigint) $$,
   'at 50% and 50% the drop posts three legs: the main pool''s nought is left out');
 
--- Who may call what, and what the view shows.
+-- Who may call what.
 select ok(not has_function_privilege('authenticated', 'private.post_hand(uuid, uuid, bigint, bigint)', 'execute')
           and not has_function_privilege('service_role', 'private.post_hand(uuid, uuid, bigint, bigint)', 'execute')
           and not has_function_privilege('anon', 'private.post_hand(uuid, uuid, bigint, bigint)', 'execute'),
   'no client posts a hand''s money itself');
 select ok(not has_function_privilege('authenticated', 'private.split_drop(bigint, integer, integer)', 'execute')
-          and not has_function_privilege('authenticated', 'private.bad_beat_payout(bigint, integer, integer, integer, integer, integer)', 'execute')
           and not has_function_privilege('authenticated', 'private.rake_rules_at(uuid, timestamptz)', 'execute'),
   'nor calls the rules underneath');
-select columns_are('public', 'public_jackpot', array['venue_slug', 'main_paise', 'season_paise', 'freeroll_paise'],
-  'public_jackpot shows the venue and its three pools, nothing more');
 
 -- A drop split's shares are 0% to 100% together, and each of the setting's at most 50%.
 select throws_ok($$ select * from private.split_drop(10000, 6000, 5000) $$, '22023', null, 'shares above 100% together are refused');
 select throws_ok($$ insert into public.setting (venue_id, key, subject, value, effective_from) values ('00000000-0000-4000-8000-000000000001',
   'jackpot.shares', '', '{"season_basis_points": 6000, "freeroll_basis_points": 0}', now() + interval '1 day') $$, '23514', null,
   'a pool''s share of the drop is at most 50%');
-select throws_ok($$ select * from private.bad_beat_payout(100000, 10000, 5000, 2500, 2499, 3) $$, '22023', null,
-  'a payout split that is not 100% is refused');
 select throws_ok($$ select private.post_hand('00000000-0000-4000-8000-000000000002', (select hand_id from decimal_hand), 0, 10000) $$,
   '22023', null, 'a hand is posted only at its own venue');
 

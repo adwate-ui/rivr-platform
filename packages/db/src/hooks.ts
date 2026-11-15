@@ -1,6 +1,5 @@
 import type { FeatureKey } from '@rivr/contracts';
 import { useQuery } from '@tanstack/react-query';
-import { NOTHING_ENGAGED, toControlState, type ControlState } from './parse/controlState.ts';
 import { HIDDEN, toFeatureAccessMap, type FeatureAccess } from './parse/featureAccess.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
@@ -48,25 +47,3 @@ export function useFeatureStatus(key: FeatureKey): FeatureStatus {
   return query.isError ? { status: 'error', retry: () => void query.refetch() } : { status: 'loading' };
 }
 
-/**
- * The kill-switch state for the banner and for disabling write controls. The database refuses
- * frozen writes whatever this returns; this only keeps the screen honest.
- */
-export function useControlState(venueId?: string): ControlState {
-  const { client, userId } = useRivrData();
-  const { data } = useQuery({
-    queryKey: queryKeys.controlState(userId ?? 'signed-out'),
-    enabled: userId !== null,
-    // Realtime refreshes it at once; this catches a freeze or release a dropped socket missed (a kiosk never refocuses).
-    refetchInterval: 30_000,
-    queryFn: async () => {
-      const { data: rows, error } = await client
-        .from('control_state')
-        .select('venue_id, level, feature, member_id, released_at')
-        .is('released_at', null);
-      if (error) throw error;
-      return rows;
-    },
-  });
-  return data ? toControlState(data, venueId) : NOTHING_ENGAGED;
-}

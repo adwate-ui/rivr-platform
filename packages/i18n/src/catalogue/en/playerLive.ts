@@ -36,7 +36,6 @@ export const playerLive = {
     /** The join's one button: a request the floor approves onto the table's list; players see no wait (owner, 8 Nov). */
     request: 'Request a seat',
     callTime: 'Call time',
-    paused: 'The club is paused',
   },
   list: {
     /** Above the place: `Waitlist · Table 1 · NLH 50/100`. */

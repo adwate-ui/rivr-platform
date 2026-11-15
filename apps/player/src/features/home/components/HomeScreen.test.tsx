@@ -264,14 +264,6 @@ describe('Tonight', () => {
     expect(screen.getByRole('button', { name: 'Register interest in Ladies Night' }).textContent).toBe('Registered');
   });
 
-  it('Errors › Club paused: a red banner on Tonight, and a table offers no join', async () => {
-    renderTonight([], [], { '/rest/v1/control_state': [{ venue_id: 'v1', level: 'venue_freeze', feature: null, member_id: null, released_at: null }] });
-    expect(await screen.findByText('The club is paused. Ask a member of staff.', {}, LATER)).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: /^Table 1 · / }));
-    const paused = await screen.findByRole('button', { name: 'The club is paused' });
-    expect(paused.hasAttribute('disabled')).toBe(true);
-  });
-
   it('Browsing: Notify me says why it did not go through', async () => {
     renderTonight([], [], {
       '/rpc/my_feature_access': [...FEATURES, { feature_key: 'tournaments.register', state: 'enabled', tiers: null }],

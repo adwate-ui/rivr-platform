@@ -24,7 +24,6 @@ const FIELDS: readonly { readonly name: keyof VenueConfigInput; readonly label: 
   { name: 'bankAccountNumber', label: 'console.settings.bankAccountNumber' },
   { name: 'bankIfsc', label: 'console.settings.bankIfsc' },
   { name: 'invoicePrefix', label: 'console.settings.invoicePrefix', hint: 'console.settings.invoicePrefixHint' },
-  { name: 'staffIpAllowlist', label: 'console.settings.staffIpAllowlist', hint: 'console.settings.staffIpAllowlistHint' },
   { name: 'alertWhatsapp', label: 'console.settings.alertWhatsapp' },
   { name: 'sacClubServices', label: 'console.settings.sacClubServices', hint: 'console.settings.sacHint' },
   { name: 'signatoryName', label: 'console.settings.signatoryName', hint: 'console.settings.signatoryHint' },
@@ -40,12 +39,12 @@ const invoiceInput = (config: VenueConfig) => ({
 /** The club's numbers for calls and WhatsApp (decision 0582), as the form types them: empty for none. */
 const contactInput = (config: VenueConfig) => ({ contactPhone: config.contactPhone ?? '', contactWhatsapp: config.contactWhatsapp ?? '' });
 
-/** The configuration as the form types it: empty for nothing, the networks separated by commas. */
+/** The configuration as the form types it: empty for nothing. */
 const toInput = (config: VenueConfig): VenueConfigInput => ({
   legalName: config.legalName, gstin: config.gstin ?? '', tan: config.tan ?? '', address: config.address, upiPayeeName: config.upiPayeeName ?? '',
   upiVpa: config.upiVpa ?? '', bankName: config.bankName ?? '', bankAccountName: config.bankAccountName ?? '',
   bankAccountNumber: config.bankAccountNumber ?? '', bankIfsc: config.bankIfsc ?? '', invoicePrefix: config.invoicePrefix,
-  staffIpAllowlist: config.staffIpAllowlist.join(', '), alertWhatsapp: config.alertWhatsapp ?? '', ...contactInput(config), ...invoiceInput(config),
+  alertWhatsapp: config.alertWhatsapp ?? '', ...contactInput(config), ...invoiceInput(config),
 });
 
 function VenueForm({ venueId, config }: { venueId: string; config: VenueConfig }) {
@@ -75,7 +74,7 @@ function VenueForm({ venueId, config }: { venueId: string; config: VenueConfig }
   );
 }
 
-/** The venue configuration, for super admins (venue.configure): legal and payment details, networks, alerts. */
+/** The venue configuration, for super admins (venue.configure): legal and payment details, alerts. */
 export function VenueSection({ venueId }: { venueId: string }) {
   const config = useVenueConfig(venueId);
   const notSuperAdmin = venueFailureText('not_allowed');

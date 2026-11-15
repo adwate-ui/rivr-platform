@@ -20,7 +20,7 @@ export const devicePairRequestSchema = z.union([devicePairSchema, tvPairingSchem
 export type DevicePairRequest = z.infer<typeof devicePairRequestSchema>;
 
 /** What a TV shows (additions "TV modes"), as public.tv_mode lists them. */
-export const TV_MODES = ['waitlist', 'call_time', 'jackpot', 'tournament_clock', 'promotions', 'social_wall', 'leaderboard'] as const;
+export const TV_MODES = ['waitlist', 'call_time', 'promotions', 'leaderboard'] as const;
 export type TvMode = (typeof TV_MODES)[number];
 
 /** The periods the TVs' hours leaderboard counts (decision 0581), in the club's days from 06:00 IST. */
@@ -31,8 +31,6 @@ export type TvLeaderboardPeriod = (typeof TV_LEADERBOARD_PERIODS)[number];
  * The modes hidden at the owner's word (29 Oct, #628, decision 0284): no rupee on a TV. The console does not offer
  * them, and a TV still set to one shows the waitlist board.
  */
-// The tournament clock too, while tournaments are hidden (owner, 29 Oct; D-03).
-export const HIDDEN_TV_MODES: readonly TvMode[] = ['jackpot', 'tournament_clock'];
 
 /** Staff pair a TV on the console: the code it shows, a name, and what it shows. */
 export const tvPairSchema = z.object({

@@ -35,15 +35,15 @@ afterEach(() => {
 
 describe('the offline cache', () => {
   it('keeps what an installed app opens with, and nothing else', () => {
-    const stored = kept([[queryKeys.membershipCard(USER), { memberNumber: '14' }], [queryKeys.member(USER), { fullName: 'Kavya Rao' }], [['user', USER, 'my-sessions'], ['secret session']]]);
+    const stored = kept([[queryKeys.member(USER), { fullName: 'Kavya Rao', memberNumber: '14' }], [['user', USER, 'my-sessions'], ['secret session']]]);
     expect(stored).toContain('Kavya Rao');
     expect(stored).toContain('"memberNumber":"14"');
     expect(stored).not.toContain('secret session');
   });
 
   it('keeps what an earlier launch read and this one did not, for a club night', () => {
-    kept([[queryKeys.membershipCard(USER), { memberNumber: '14' }]]);
-    // A later launch that reads Home and never opens Card.
+    kept([[queryKeys.member(USER), { memberNumber: '14' }]]);
+    // A later launch that reads Home and nothing of the member.
     vi.advanceTimersByTime(11 * 60 * 60 * 1000);
     expect(kept([[queryKeys.floorTables(USER), []]])).toContain('"memberNumber":"14"');
     vi.advanceTimersByTime(2 * 60 * 60 * 1000);
@@ -71,7 +71,7 @@ describe('the offline cache', () => {
   });
 
   it('restores each answer by its own age, whenever the last save was', () => {
-    kept([[queryKeys.membershipCard(USER), { memberNumber: '14' }]]);
+    kept([[queryKeys.member(USER), { memberNumber: '14' }]]);
     vi.advanceTimersByTime(11 * 60 * 60 * 1000);
     kept([[queryKeys.floorTables(USER), [{ bigBlind: 20000n }]]]);
     vi.advanceTimersByTime(2 * 60 * 60 * 1000);
@@ -79,22 +79,16 @@ describe('the offline cache', () => {
     const cache = new QueryClient();
     restoreForOffline(cache);
     expect(cache.getQueryData(queryKeys.floorTables(USER))).toEqual([{ bigBlind: 20000n }]);
-    expect(cache.getQueryData(queryKeys.membershipCard(USER))).toBeUndefined();
+    expect(cache.getQueryData(queryKeys.member(USER))).toBeUndefined();
   });
 
   it('keeps what it restored through a long night with nothing reading it', () => {
-    kept([[queryKeys.membershipCard(USER), { memberNumber: '14' }]]);
+    kept([[queryKeys.member(USER), { memberNumber: '14' }]]);
     setOnline(false);
     const cache = new QueryClient();
     restoreForOffline(cache);
     vi.advanceTimersByTime(6 * 60 * 1000);
-    expect(cache.getQueryData(queryKeys.membershipCard(USER))).toEqual({ memberNumber: '14', photoPath: null });
-  });
-
-  it('keeps of the card what the door needs, and not the path to the selfie', () => {
-    const stored = kept([[queryKeys.membershipCard(USER), { memberNumber: '14', photoPath: 'v/m/selfie.jpg' }]]);
-    expect(stored).toContain('"memberNumber":"14"');
-    expect(stored).not.toContain('selfie.jpg');
+    expect(cache.getQueryData(queryKeys.member(USER))).toEqual({ memberNumber: '14' });
   });
 
   it('keeps of an identity check what the gate reads, and none of its documents', () => {

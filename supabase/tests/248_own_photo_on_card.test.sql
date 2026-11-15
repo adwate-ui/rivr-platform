@@ -1,6 +1,6 @@
--- The member's own KYC selfie on their card (decision 0300). Arjun (201) is verified, his selfie kept; Kabir (202)
+-- The member's own KYC selfie (decision 0300). Arjun (201) is verified, his selfie kept; Kabir (202)
 -- has a selfie waiting for review. A member sees their own verified selfie and nothing else in the bucket, and
--- every view is audited.
+-- every view is audited. The membership card that showed it went on 15 Nov.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -19,18 +19,12 @@ insert into storage.objects (bucket_id, name) values
   ('kyc', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000211/selfie.jpg'),
   ('kyc', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/aadhaar.jpg');
 
--- Before his selfie is kept, Arjun's card has no photo: it never shows one it cannot load.
-select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
-select is((select photo_path from public.my_membership_card()), null, 'a verified member whose selfie is not kept has no photo on the card');
-reset role;
 insert into storage.objects (bucket_id, name) values
   ('kyc', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/selfie.jpg');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
-select is((select photo_path from public.my_membership_card()),
-  '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/selfie.jpg', 'Arjun''s card carries his verified selfie');
 select lives_ok($$ select public.authorize_kyc_image('00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/selfie.jpg') $$,
-  'and he may see it');
+  'Arjun may see his verified selfie');
 select throws_ok($$ select public.authorize_kyc_image('00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000201/aadhaar.jpg') $$,
   '42501', null, 'not his own document image');
 select throws_ok($$ select public.authorize_kyc_image('00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000202/selfie.jpg') $$,
@@ -42,9 +36,8 @@ select is((select count(*)::int from public.audit_log where action = 'kyc_image.
   'his view is audited with his name');
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000202');
-select is((select photo_path from public.my_membership_card()), null, 'a selfie still under review is not on the card');
 select throws_ok($$ select public.authorize_kyc_image('00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000202/selfie.jpg') $$,
-  '42501', null, 'nor may its member see it until it is verified');
+  '42501', null, 'a selfie still under review is not its member''s to see until it is verified');
 reset role;
 
 -- Staff are unchanged: a KYC reviewer sees both, a host neither.

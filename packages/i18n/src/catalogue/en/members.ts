@@ -49,6 +49,7 @@ export const members = {
   grantChips: '{count} bonus chips',
   /** The record. `{number}` is the member number. */
   memberNumber: 'No. {number}',
+  photoOf: 'KYC photo of {name}',
   /** The record's status line (F-039): `No. 427 · Member tier · ID checked`. */
   tierLine: '{tier} tier',
   /** `{date}`: 30 Nov 2026, the tier change's last day. */
@@ -246,43 +247,9 @@ export const members = {
 
 /** The console's Tiers screen (#32): the tier x feature matrix, saved from a date, and a preview of the player app as a tier. */
 export const tiers = {
-  title: 'Tiers',
-  notAllowed: 'Your role does not manage tiers. Ask an admin if you need it.',
-  /** The tiers, by rank, above the matrix. */
-  tierList: 'Tiers, lowest first: {tiers}',
-  matrix: 'Features by tier',
-  empty: 'No features to gate.',
-  feature: 'Feature',
-  /** A cell's group name for screen readers: `{feature}` for `{tier}`. */
-  cellFor: '{feature} for {tier}',
   on: 'On',
-  locked: 'Locked',
-  hidden: 'Hidden',
-  /** A change already saved for later, under a cell: `{date}` is when, `{state}` what. */
-  scheduled: 'From {date}: {state}',
   withdraw: 'Withdraw',
-  withdrawFor: 'Withdraw the change to {feature} for {tier}',
-  /** The bar that saves the cells changed on screen. */
-  unsaved: '{count} unsaved changes',
-  unsavedOne: '1 unsaved change',
-  when: 'When the change takes effect',
   now: 'Now',
-  fromDate: 'From a date',
-  date: 'Date (from midnight IST)',
   save: 'Save changes',
-  discard: 'Discard',
-  saved: 'Saved. Members\' apps change within seconds.',
-  savedLater: 'Saved for {date}.',
-  invalidDate: 'Choose a date after today, or Now.',
-  notAllowedAction: 'Your role cannot change tiers. Ask an admin.',
-  inPast: 'That date has passed, or the change is already in force. Choose another date.',
-  changed: 'The tiers changed meanwhile. Check the matrix and save again.',
   unavailable: 'Not sent. Try again.',
-  /** The preview of the player app as a member of one tier, with no override. */
-  preview: 'Preview as a tier',
-  previewTier: 'Tier to preview',
-  previewOn: 'On: {features}',
-  previewLocked: 'Locked: {features}',
-  previewHidden: 'Hidden: {features}',
-  previewNone: 'none',
 };

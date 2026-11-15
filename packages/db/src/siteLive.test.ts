@@ -29,7 +29,7 @@ describe('gamesFrom', () => {
 
 describe('rulesFrom', () => {
   it('has no rule set when there are no rows', () => {
-    expect(rulesFrom([])).toEqual({ rakebackBasisPoints: [], cabVisits: null, badBeat: null, highHands: null });
+    expect(rulesFrom([])).toEqual({ rakebackBasisPoints: [], cabVisits: null });
   });
 
   it('reads each table type’s rule by its name, and leaves out one it cannot read, one for no table and a rate of nothing', () => {
@@ -40,14 +40,5 @@ describe('rulesFrom', () => {
       { key: 'rakeback.rate', subject_name: 'NLH 100/200', value: { basis_points: 0 } },
     ]);
     expect(rules.rakebackBasisPoints).toEqual([{ table: 'Private Room', value: 500 }]);
-  });
-
-  it('reads how a bad beat pays and what each rare hand pays, or none when a field is missing', () => {
-    const rules = rulesFrom([
-      { key: 'jackpot.payout', subject_name: null, value: { pool_basis_points: 10000, loser_basis_points: 5000, winner_basis_points: 2500, table_basis_points: 2500 } },
-      { key: 'high_hand.payouts', subject_name: null, value: { royal_flush: 2500000, straight_flush: 1000000 } },
-    ]);
-    expect(rules.badBeat).toEqual({ poolBasisPoints: 10000, loserBasisPoints: 5000, winnerBasisPoints: 2500, tableBasisPoints: 2500 });
-    expect(rules.highHands).toBeNull();
   });
 });

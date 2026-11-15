@@ -5,14 +5,13 @@ import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
-/** Who sits in a seat: their session, name, whether away, and the buy-in already with the cage for them, if any. */
+/** Who sits in a seat: their session, name and whether away. */
 export interface TabletPlayer {
   readonly sessionId: string;
   readonly fullName: string;
   readonly isAway: boolean;
   /** They have said they are leaving, or the floor has (F-189). */
   readonly isLeaving: boolean;
-  readonly pendingBuyIn: Paise | null;
   /** Whole seconds of call time left (#78); null where the table's type has none. */
   readonly callTimeLeft: number | null;
 }
@@ -26,11 +25,11 @@ export interface TabletSeat {
   readonly bigBlind: Paise;
 }
 
-/** Why a seat event did not go through: not this tablet's table, the player gone, a buy-in already with the cage, the venue frozen, or anything else. */
-export type SeatEventFailure = 'not_allowed' | 'invalid' | 'pending' | 'paused' | 'unavailable';
+/** Why a seat event did not go through: not this tablet's table, the player gone, the venue frozen, or anything else. */
+export type SeatEventFailure = 'not_allowed' | 'invalid' | 'paused' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, SeatEventFailure>> = {
-  '42501': 'not_allowed', '22023': 'invalid', RVCHP: 'invalid', RVPND: 'pending', RVFRZ: 'paused',
+  '42501': 'not_allowed', '22023': 'invalid', RVCHP: 'invalid', RVFRZ: 'paused',
 };
 
 // A player seated by the floor appears on the tablet within seconds.
@@ -50,7 +49,7 @@ export function useTabletSeats() {
         seat: row.seat, minimum: toPaise(row.minimum_paise), smallBlind: toPaise(row.small_blind_paise), bigBlind: toPaise(row.big_blind_paise),
         player: row.session_id === null || row.full_name === null ? null : {
           sessionId: row.session_id, fullName: row.full_name, isAway: row.away_since !== null, isLeaving: row.leaving_at !== null,
-          pendingBuyIn: row.pending_buy_in_paise === null ? null : toPaise(row.pending_buy_in_paise), callTimeLeft: row.call_time_left,
+          callTimeLeft: row.call_time_left,
         },
       }));
     },
@@ -58,8 +57,7 @@ export function useTabletSeats() {
 }
 
 /**
- * The dealer's seat events (#59): `requestBuyIn` asks the cage for chips for a player (once per
- * request id), `setAway` marks them away or back, `leave` records that they left. Each is a Result, sent whether the
+ * The dealer's seat events (#59): `setAway` marks a player away or back, `leave` records that they left. Each is a Result, sent whether the
  * browser says it is online or not: offline it fails at once, and never goes later, when the player may be back or gone.
  */
 export function useSeatEvents() {
@@ -69,11 +67,6 @@ export function useSeatEvents() {
     await queryClient.invalidateQueries({ queryKey: queryKeys.tabletSeats(userId ?? 'signed-out') });
     return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
   };
-  const requestBuyIn = useMutation({
-    networkMode: 'always',
-    mutationFn: async ({ sessionId, amount, requestId }: { sessionId: string; amount: Paise; requestId: string }) =>
-      settle((await client.rpc('request_buy_in', { p_session_id: sessionId, p_amount_paise: Number(amount), p_idempotency_key: requestId })).error),
-  });
   const setAway = useMutation({
     networkMode: 'always',
     mutationFn: async ({ sessionId, isAway }: { sessionId: string; isAway: boolean }) =>
@@ -83,5 +76,5 @@ export function useSeatEvents() {
     networkMode: 'always',
     mutationFn: async (sessionId: string) => settle((await client.rpc('end_seat', { p_session_id: sessionId, p_reason: 'left' })).error),
   });
-  return { requestBuyIn, setAway, leave };
+  return { setAway, leave };
 }

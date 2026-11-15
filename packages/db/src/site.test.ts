@@ -26,20 +26,6 @@ const PAGES = [
 ];
 
 describe('fetchSitePage', () => {
-  it('pauses the page during a venue freeze', async () => {
-    const { client } = siteClient(PAGES, [], { public_venue_status: { body: [{ venue_slug: 'rivr-gurugram', is_frozen: true }] } });
-    const page = await fetchSitePage(client, 'home');
-    expect(page.ok && page.value?.isPaused).toBe(true);
-  });
-
-  it('stays open while another live venue is frozen, such as one being purged', async () => {
-    const { client } = siteClient(PAGES, [], {
-      public_venue_status: { body: [{ venue_slug: 'rivr-gurugram', is_frozen: false }, { venue_slug: 'e2e-purge-room', is_frozen: true }] },
-    });
-    const page = await fetchSitePage(client, 'home');
-    expect(page.ok && page.value?.isPaused).toBe(false);
-  });
-
   it('gives a page\'s blocks in order and the website\'s navigation, leaving out a block it cannot read', async () => {
     const { client, urls } = siteClient(PAGES, [
       { kind: 'hero', content: { heading: 'RIVR Poker Club', action: { label: 'Join RIVR', to: 'sign-up' } } },
@@ -56,10 +42,7 @@ describe('fetchSitePage', () => {
       games: [],
       tournaments: [],
       promotions: [],
-      wallPosts: [],
-      rules: { rakebackBasisPoints: [], cabVisits: null, badBeat: null, highHands: null },
-      jackpotPool: null,
-      isPaused: false,
+      rules: { rakebackBasisPoints: [], cabVisits: null },
     }));
     expect(urls.find((url) => url.includes('/public_site_block'))).toContain('page_slug=eq.home');
     // A page without live blocks reads no live view.
@@ -125,8 +108,6 @@ describe('fetchSitePage', () => {
       // A rakeback of 0 gives none, so it is not shown.
       rakebackBasisPoints: [{ table: 'NLH 50/100', value: 1000 }],
       cabVisits: 4,
-      badBeat: null,
-      highHands: null,
     });
   });
 

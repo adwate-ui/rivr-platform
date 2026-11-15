@@ -33,9 +33,6 @@ export const webApp = {
   },
   /** A promotions block while none runs (decision 0166). */
   noPromotions: 'No promotions running.',
-  /** A post on the website's social wall (#157). */
-  wallHandle: '@{handle}',
-  wallOpen: 'See it on Instagram',
   /** The rakeback each table gives (#617), read from the club's rules in force. */
   rewards: {
     table: 'Table',
@@ -47,21 +44,6 @@ export const webApp = {
   outstation: {
     cab: 'Pick-up and drop',
     cabText: 'A cab to the club and home again, once you have played {visits} times this month.',
-  },
-  /** The Bad Beat Jackpot and rare-hand bonuses (#618), read from the live pool and the club's rules in force. */
-  jackpot: {
-    badBeat: 'Bad Beat Jackpot',
-    pool: '{amount} in the pool',
-    share: 'A bad beat pays {percent}% of the pool, shared at the table:',
-    loser: 'The player whose hand loses: {percent}%',
-    winner: 'The player who wins the hand: {percent}%',
-    table: 'Everyone else dealt in: {percent}%',
-    rareHands: 'Rare hand bonuses',
-    /** `{chips}`: a count of bonus chips, as the promotions say them (W-08). */
-    pays: '{hand}: {chips} bonus chips',
-    royalFlush: 'Royal flush',
-    straightFlush: 'Straight flush',
-    fourOfAKind: 'Four of a kind',
   },
   /** The footer on every page (#441): where the club is, its columns of links (#616), its 18+ line and copyright. */
   footer: {

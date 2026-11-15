@@ -4,7 +4,6 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
-import { toDoorScan, useDoorScan } from './door.ts';
 import { useFeedbackActions, useMyFeedbackVisit, useOpenFeedback, useResolveFeedback } from './feedback.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
@@ -28,7 +27,7 @@ function renderHooks(replies: Record<string, { status?: number; body: unknown }>
   });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client}>{children}</RivrDataProvider>;
   const { result } = renderHook(() => ({
-    visit: useMyFeedbackVisit(), actions: useFeedbackActions(), list: useOpenFeedback(VENUE), resolve: useResolveFeedback(VENUE), scan: useDoorScan(),
+    visit: useMyFeedbackVisit(), actions: useFeedbackActions(), list: useOpenFeedback(VENUE), resolve: useResolveFeedback(VENUE),
   }), { wrapper });
   return { result, calls };
 }
@@ -104,26 +103,5 @@ describe('feedback (decision 0165)', () => {
     expect(outcome).toEqual({ ok: false, error: 'invalid' });
     expect(calls.find((call) => call.url.includes('/rpc/send_detailed_feedback'))?.body).toEqual({ p_ratings: ratings, p_nps: 9, p_note: '' });
     await waitFor(() => expect(result.current.list.data?.[0]).toMatchObject({ topic: null, ratings, nps: 9 }));
-  });
-});
-
-describe('the door kiosk (decision 0164)', () => {
-  it('reads what a scan did', () => {
-    expect(toDoorScan({ action: 'in', first_name: 'Kavya', played_seconds: 0 })).toEqual({ action: 'in', firstName: 'Kavya' });
-    expect(toDoorScan({ action: 'out', first_name: 'Mihir', played_seconds: 16200 })).toEqual({ action: 'out', firstName: 'Mihir', playedSeconds: 16200 });
-    expect(toDoorScan({ action: 'what', first_name: 'Mihir', played_seconds: 0 })).toBeNull();
-    expect(toDoorScan(undefined)).toBeNull();
-  });
-
-  it('scans a card, and says why a scan did nothing, with the call time owed', async () => {
-    const { result, calls } = renderHooks({
-      '/rpc/my_feedback_visit': { body: [] },
-      '/rpc/open_feedback': { body: [] },
-      '/rpc/door_scan': { status: 400, body: { code: 'RVCTS', message: 'owed', details: '1500' } },
-    });
-    let outcome: unknown;
-    await act(async () => { outcome = await result.current.scan.mutateAsync(' code '); });
-    expect(outcome).toEqual({ ok: false, error: { reason: 'call_time_owed', owedSeconds: 1500 } });
-    expect(calls.find((call) => call.url.includes('/rpc/door_scan'))?.body).toEqual({ p_code: 'code' });
   });
 });

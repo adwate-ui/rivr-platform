@@ -7,11 +7,9 @@ export { alerts } from './catalogue/en/alerts.ts';
 export { settingCopy, settingKeys, type SettingCopy } from './catalogue/en/settingKeys.ts';
 export { documents } from './catalogue/en/documents.ts';
 export { playerBonus } from './catalogue/en/playerBonus.ts';
-export { social } from './catalogue/en/social.ts';
 export { push } from './catalogue/en/push.ts';
 export { tv } from './catalogue/en/tv.ts';
 export { registerMessages, t, type Translate } from './translate.ts';
-export { formatHostOffer, type HostOfferWords } from './format/hostOffer.ts';
 export { formatChips, formatGameStakes, formatMoney, formatNumber, formatRupeesForFile, formatRupeesForInput, formatStakes } from './format/money.ts';
 export { formatClock,
   formatCountdown,

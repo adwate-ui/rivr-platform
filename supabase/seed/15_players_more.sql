@@ -201,26 +201,3 @@ from seed_more_player p
 join public.ledger_transaction t on t.venue_id = '00000000-0000-4000-8000-000000000001' and t.idempotency_key = 'seed:more:' || right(p.id::text, 3) || ':bonus'
 where p.bonus_paise > 0
 on conflict (venue_id, idempotency_key) do nothing;
-
--- Withdrawal accounts the cashier Sana Qureshi has verified, and two she refused.
-insert into public.payout_account (venue_id, member_id, kind, bank_name, vpa, account_number, ifsc, holder_name, status, decided_at,
-                                   decided_by_staff_id, reject_reason)
-select s.venue_id, a.member_id_text::uuid, a.kind, a.bank_name, a.vpa, a.account_number, a.ifsc, a.holder_name, a.status,
-       now() - make_interval(days => a.days_ago), s.id, a.reject_reason
-from (values
-  ('00000000-0000-4000-8000-000000000476', 'upi', 'HDFC Bank', 'ajay.tiwari@okhdfcbank', null, null, null, 'verified', null, 17),
-  ('00000000-0000-4000-8000-000000000490', 'upi', 'Axis Bank', 'ananya.wadhwa@okaxis', null, null, null, 'verified', null, 11),
-  ('00000000-0000-4000-8000-000000000470', 'upi', 'State Bank of India', 'dhruv.talwar@oksbi', null, null, null, 'verified', null, 11),
-  ('00000000-0000-4000-8000-000000000498', 'upi', 'ICICI Bank', 'garima.kakkar@okicici', null, null, null, 'verified', null, 19),
-  ('00000000-0000-4000-8000-000000000455', 'upi', 'Kotak Mahindra Bank', 'sonal.kohli@kotak', null, null, null, 'verified', null, 16),
-  ('00000000-0000-4000-8000-000000000445', 'upi', 'HDFC Bank', 'payal.agarwal@okhdfcbank', null, null, null, 'verified', null, 6),
-  ('00000000-0000-4000-8000-000000000482', 'upi', 'Axis Bank', 'bhumi.rastogi@okaxis', null, null, null, 'verified', null, 3),
-  ('00000000-0000-4000-8000-000000000400', 'upi', 'State Bank of India', 'nakul.dhillon@oksbi', null, null, null, 'verified', null, 1),
-  ('00000000-0000-4000-8000-000000000471', 'bank', 'ICICI Bank', null, '50100562249', 'ICIC0022882', 'Hitesh Talwar', 'verified', null, 12),
-  ('00000000-0000-4000-8000-000000000411', 'bank', 'Kotak Mahindra Bank', null, '50100087109', 'KKBK0074106', 'Jahnavi Mittal', 'verified', null, 12),
-  ('00000000-0000-4000-8000-000000000426', 'bank', 'HDFC Bank', null, '50100205894', 'HDFC0077627', 'Bhuvan Walia', 'verified', null, 7),
-  ('00000000-0000-4000-8000-000000000446', 'upi', 'Axis Bank', 'lalit46@okaxis', null, null, null, 'rejected', 'The name on the UPI address is not the member''s.', 7),
-  ('00000000-0000-4000-8000-000000000437', 'upi', 'State Bank of India', 'eshan37@oksbi', null, null, null, 'rejected', 'The name on the UPI address is not the member''s.', 18)
-) as a (member_id_text, kind, bank_name, vpa, account_number, ifsc, holder_name, status, reject_reason, days_ago)
-join public.staff s on s.user_id = '00000000-0000-4000-8000-000000000104' and s.venue_id = '00000000-0000-4000-8000-000000000001'
-on conflict do nothing;

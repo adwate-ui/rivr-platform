@@ -15,8 +15,9 @@ grant select on club to anon;
 insert into public.setting (venue_id, key, subject, value, effective_from)
 select venue_id, 'rakeback.rate', code, '{"basis_points": 1000, "cap_paise": 500000, "expires_days": 7}'::jsonb, now() - interval '1 second' from club
 union all select venue_id, 'rakeback.rate', code, '{"basis_points": 2500, "cap_paise": 500000, "expires_days": 7}'::jsonb, now() + interval '1 day' from club
-union all select '00000000-0000-4000-8000-000000000002', 'jackpot.payout', '',
-  '{"pool_basis_points": 10000, "loser_basis_points": 5000, "winner_basis_points": 2500, "table_basis_points": 2500}'::jsonb, now() - interval '1 second';
+union all select '00000000-0000-4000-8000-000000000002', 'rakeback.rate',
+  (select code from public.table_type where venue_id = '00000000-0000-4000-8000-000000000002' order by big_blind_paise limit 1),
+  '{"basis_points": 1000, "cap_paise": 500000, "expires_days": 7}'::jsonb, now() - interval '1 second';
 
 select columns_are('public', 'public_club_rules', array['venue_slug', 'key', 'subject', 'subject_name', 'subject_order', 'value'],
   'public_club_rules shows the venue, the rule, what it applies to and its value, nothing more');
@@ -26,8 +27,8 @@ select is((select value from public.public_club_rules r, club c where r.key = 'r
   'a rule shows as in force now, not as it will be tomorrow; rakeback its rate alone, not its cap or how long its bonus lasts');
 select is((select subject_name from public.public_club_rules r, club c where r.key = 'rakeback.rate' and r.subject = c.code),
   (select name from club), 'a table type''s rule carries the table type''s name');
-select is((select count(*) from public.public_club_rules where key not in ('rakeback.rate', 'jackpot.payout', 'high_hand.payouts', 'cab.minimum_visits')), 0::bigint,
-  'no other rule shows, such as the rake or the cage''s limits');
+select is((select count(*) from public.public_club_rules where key not in ('rakeback.rate', 'cab.minimum_visits')), 0::bigint,
+  'no other rule shows, such as the rake, the jackpot''s payout or the cash limits');
 select is((select count(*) from public.public_club_rules where venue_slug = (select practice_slug from club)), 0::bigint,
   'the practice venue''s rules never show');
 reset role;

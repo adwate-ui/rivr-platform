@@ -1,4 +1,3 @@
-import { fromPaise } from '@rivr/domain/money';
 import { createClient } from '@supabase/supabase-js';
 import { onlineManager } from '@tanstack/react-query';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
@@ -38,22 +37,14 @@ afterEach(() => {
 describe('The tablet\'s seats', () => {
   it('gives every seat: an open one, and a player away with a buy-in waiting at the cage', async () => {
     const { result } = renderTablet({ tablet_seats: { body: [
-      { seat: 1, session_id: null, member_id: null, full_name: null, away_since: null, minimum_paise: 1000000, pending_buy_in_paise: null, leaving_at: null, small_blind_paise: 10000, big_blind_paise: 20000 },
+      { seat: 1, session_id: null, member_id: null, full_name: null, away_since: null, minimum_paise: 1000000, leaving_at: null, small_blind_paise: 10000, big_blind_paise: 20000 },
       { seat: 9, session_id: 's9', member_id: 'm9', full_name: 'Yash Gupta', away_since: '2026-10-19T18:00:00+00:00', minimum_paise: 1000000,
-        pending_buy_in_paise: 2000000, leaving_at: '2026-10-19T18:05:00+00:00', small_blind_paise: 10000, big_blind_paise: 20000 },
+        leaving_at: '2026-10-19T18:05:00+00:00', small_blind_paise: 10000, big_blind_paise: 20000 },
     ] } });
     await waitFor(() => expect(result.current.seats.data).toEqual([
       { seat: 1, minimum: 1_000_000n, smallBlind: 10_000n, bigBlind: 20_000n, player: null },
-      { seat: 9, minimum: 1_000_000n, smallBlind: 10_000n, bigBlind: 20_000n, player: { sessionId: 's9', fullName: 'Yash Gupta', isAway: true, isLeaving: true, pendingBuyIn: 2_000_000n } },
+      { seat: 9, minimum: 1_000_000n, smallBlind: 10_000n, bigBlind: 20_000n, player: { sessionId: 's9', fullName: 'Yash Gupta', isAway: true, isLeaving: true } },
     ]));
-  });
-
-  it('asks the cage for a buy-in once per request id, and says when one is already waiting', async () => {
-    const { result, calls } = renderTablet({ tablet_seats: { body: [] }, request_buy_in: { status: 400, body: { code: 'RVPND', message: 'waiting' } } });
-    let outcome: unknown;
-    await act(async () => { outcome = await result.current.events.requestBuyIn.mutateAsync({ sessionId: 's9', amount: fromPaise(1_000_000n), requestId: 'r1' }); });
-    expect(outcome).toEqual({ ok: false, error: 'pending' });
-    expect(calls.find((call) => call.rpc === 'request_buy_in')?.body).toEqual({ p_session_id: 's9', p_amount_paise: 1000000, p_idempotency_key: 'r1' });
   });
 
   it('marks a player away and lets one leave; a frozen venue is paused', async () => {
@@ -67,9 +58,9 @@ describe('The tablet\'s seats', () => {
     expect(calls.find((call) => call.rpc === 'end_seat')?.body).toEqual({ p_session_id: 's9', p_reason: 'left' });
   });
 
-  it('sends away, leaving and a buy-in even while the tablet thinks it is offline, so none waits to go later', async () => {
+  it('sends away and leaving even while the tablet thinks it is offline, so neither waits to go later', async () => {
     const unreachable = { status: 503, body: { message: 'unreachable' } };
-    const { result, calls } = renderTablet({ tablet_seats: { body: [] }, set_seat_away: unreachable, end_seat: unreachable, request_buy_in: unreachable });
+    const { result, calls } = renderTablet({ tablet_seats: { body: [] }, set_seat_away: unreachable, end_seat: unreachable });
     // As on the tablet: the seats have loaded before the connection drops.
     await waitFor(() => expect(result.current.seats.data).toEqual([]));
     onlineManager.setOnline(false);
@@ -77,10 +68,7 @@ describe('The tablet\'s seats', () => {
     const outcomes: unknown[] = [];
     await act(async () => { outcomes.push(await result.current.events.setAway.mutateAsync({ sessionId: 's9', isAway: true })); });
     await act(async () => { outcomes.push(await result.current.events.leave.mutateAsync('s9')); });
-    await act(async () => {
-      outcomes.push(await result.current.events.requestBuyIn.mutateAsync({ sessionId: 's9', amount: fromPaise(1_000_000n), requestId: 'r2' }));
-    });
-    expect(outcomes).toEqual([1, 2, 3].map(() => ({ ok: false, error: 'unavailable' })));
-    expect(calls.slice(before).map((call) => call.rpc)).toEqual(['set_seat_away', 'end_seat', 'request_buy_in']);
+    expect(outcomes).toEqual([1, 2].map(() => ({ ok: false, error: 'unavailable' })));
+    expect(calls.slice(before).map((call) => call.rpc)).toEqual(['set_seat_away', 'end_seat']);
   });
 });

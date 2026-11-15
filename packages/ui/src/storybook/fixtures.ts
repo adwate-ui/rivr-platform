@@ -45,10 +45,10 @@ export function consoleTabs(): SideNavItem[] {
 
 const ENABLED = { state: 'enabled' } as const;
 
-/** The five player tabs, every one enabled. */
+/** The four player tabs, every one enabled. */
 export const PLAYER_TABS: BottomNavItem[] = [
   { tab: 'home', href: '#home', access: ENABLED },
   { tab: 'sessions', href: '#sessions', access: ENABLED },
-  { tab: 'card', href: '#card', access: ENABLED },
   { tab: 'bonus', href: '#bonus', access: ENABLED },
+  { tab: 'profile', href: '#profile', access: ENABLED },
 ];

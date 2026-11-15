@@ -56,7 +56,7 @@ function clientWithKabir(kyc: unknown = VERIFIED) {
     const url = String(input instanceof Request ? input.url : input);
     if (url.includes('/rpc/my_feature_access')) return Response.json(KABIRS_FEATURES);
     if (url.includes('/rest/v1/kyc_record')) return Response.json(kyc);
-    return Response.json(url.includes('/rest/v1/member') ? { id: 'm1', full_name: 'Kabir Sethi' } : []);
+    return Response.json(url.includes('/rest/v1/member') ? { id: 'm1', full_name: 'Kabir Sethi', member_number: 41, tier: { name: 'Member' } } : []);
   });
   return createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
 }
@@ -160,14 +160,6 @@ describe('the player app', () => {
       expect(screen.queryByRole('heading', { name: 'Bonus' })).toBeNull();
     },
   );
-
-  it('has no Balance tab, and its old addresses open Tonight', async () => {
-    signIn();
-    const router = renderAt('/balance/deposit', clientWithKabir());
-    expect(await screen.findByRole('heading', { name: 'Home' })).toBeDefined();
-    expect(router.state.location.pathname).toBe('/');
-    expect(screen.queryByRole('link', { name: 'Balance' })).toBeNull();
-  });
 
   it('Errors › Not found: says the page does not exist, with the tabs and the way to Tonight', async () => {
     signIn();

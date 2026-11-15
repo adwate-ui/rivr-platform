@@ -9,18 +9,18 @@ import { useInstallOffer } from '../install.ts';
 import { BonusToasts } from './BonusToasts.tsx';
 import { FrameBanners } from './FrameBanners.tsx';
 
-// Tonight, Card and Bonus always show as tabs; the features inside them are gated one by one (decision 0320).
+// Home, Bonus and Profile always show as tabs; the features inside them are gated one by one (decision 0320).
 const ALWAYS: FeatureAccess = { state: 'enabled' };
 
 const TAB_FOR_PATH: Readonly<Record<string, PlayerTab>> = {
   '/': 'home',
   '/sessions': 'sessions',
-  '/card': 'card',
   '/bonus': 'bonus',
+  '/profile': 'profile',
 };
 
-// Pushed screens with their own way back hide the tabs (decision 0320): Order, Profile and House rules.
-const PUSHED = ['/fnb', '/profile', '/profile/rules'];
+// Pushed screens with their own way back hide the tabs (decision 0320): Order and House rules.
+const PUSHED = ['/fnb', '/profile/rules'];
 
 /** The tab a path sits under: a session's detail is under Sessions. */
 function tabOf(pathname: string): PlayerTab | undefined {
@@ -69,10 +69,13 @@ function useHeaderPhoto(): string | undefined {
   return useKycImageUrl(kyc?.status === 'verified' ? kyc.photoPath : null).data ?? undefined;
 }
 
+/** The circle top right, which opens Profile: on every tab's screen but Profile itself. */
+const hasAvatar = (pathname: string) => tabOf(pathname) !== undefined && pathname !== '/profile';
+
 /**
- * The player app's frame for a signed-in member (decision 0320): Tonight, Sessions, Card and Bonus as tabs, gated by
- * tier; the member's photo or initial top right on a tab screen, which opens Profile; pushed screens (Order, Profile, House rules)
- * without the tabs; and on Tonight the offer to install the app (#16). The club's state (paused, offline) is a banner at
+ * The player app's frame for a signed-in member (decision 0320): Home, Sessions, Bonus and Profile as tabs, gated by
+ * tier; the member's photo or initial top right on the other tab screens, which opens Profile too; pushed screens (Order, House rules)
+ * without the tabs; and on Home the offer to install the app (#16). The phone offline is a banner at
  * the top: Tonight's own, or the frame's on every other screen. Nobody signed in goes to sign-in, and back to this screen once signed in. Until their identity check is
  * verified, a member sees only its steps (#632).
  */
@@ -91,13 +94,13 @@ export function Frame({ children }: { children: ReactNode }) {
   const tabs: BottomNavItem[] = [
     { tab: 'home', href: '/', access: ALWAYS },
     { tab: 'sessions', href: '/sessions', access: sessions },
-    { tab: 'card', href: '/card', access: ALWAYS },
     { tab: 'bonus', href: '/bonus', access: ALWAYS },
+    { tab: 'profile', href: '/profile', access: ALWAYS },
   ];
   const currentTab = tabOf(pathname);
   return (
     <PlayerShell tabs={tabs} currentTab={currentTab} onNavigate={(href) => void navigate({ href })}
-      avatar={TAB_FOR_PATH[pathname] === undefined ? undefined : { initial: member.data?.initial, photo, href: '/profile' }}
+      avatar={hasAvatar(pathname) ? { initial: member.data?.initial, photo, href: '/profile' } : undefined}
       isTabBarHidden={PUSHED.includes(pathname)} isFullBleed={pathname === '/'}>
       {pathname === '/' && offer.kind ? <InstallOffer kind={offer.kind} onInstall={offer.install} onDismiss={offer.dismiss} /> : null}
       {member.data ? <BonusToasts /> : null}

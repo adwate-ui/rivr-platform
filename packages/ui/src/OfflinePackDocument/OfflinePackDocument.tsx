@@ -39,26 +39,9 @@ export interface OfflinePackWaiting {
   readonly memberNumber: string;
 }
 
-/** A member with money held or owed: what their wallet holds and what their markers owe, in paise. */
-export interface OfflinePackBalance {
-  readonly name: string;
-  readonly memberNumber: string;
-  readonly walletPaise: bigint;
-  readonly markersPaise: bigint;
-}
-
-/** An SOP in force: its title, version, the day it took effect (`2026-11-01`) and its text. */
-export interface OfflinePackSop {
-  readonly title: string;
-  readonly version: number;
-  readonly inForceFrom: string;
-  readonly body: string;
-}
-
 /**
  * Everything the floor and the cage need on paper when the system is down (#167; scope-v1 module 11), as the nightly
- * job gathers it from `private.offline_pack`: who to call, who holds money and owes it, the floor as it stood, and
- * every SOP in force. Amounts come worked out; nothing is worked out again here.
+ * job gathers it from `private.offline_pack`: who to call, and the floor as it stood.
  */
 export interface OfflinePack {
   readonly issuer: Issuer;
@@ -66,15 +49,8 @@ export interface OfflinePack {
   /** When the pack was made, as an ISO time. */
   readonly generatedAt: string;
   readonly contacts: readonly OfflinePackContact[];
-  readonly balances: readonly OfflinePackBalance[];
-  readonly walletsPaise: bigint;
-  readonly markersPaise: bigint;
-  readonly chipsInPlayPaise: bigint;
-  /** Null when no cage shift was open as the pack was made. */
-  readonly cageFloatPaise: bigint | null;
   readonly tables: readonly OfflinePackTable[];
   readonly waitlist: readonly OfflinePackWaiting[];
-  readonly sops: readonly OfflinePackSop[];
 }
 
 /** One part of the pack; all but the first start a new page. */
@@ -104,27 +80,6 @@ function Contacts({ contacts }: { contacts: readonly OfflinePackContact[] }) {
   );
 }
 
-/** Each member's wallet and markers, with their totals, then the cage's float and the chips in play on their own. */
-function Balances({ pack }: { pack: OfflinePack }) {
-  return (
-    <div className="space-y-8">
-      {pack.balances.length === 0 ? <NoneLine text={t('documents.offlinePack.noBalances')} /> : (
-        <DocumentTable caption={t('documents.offlinePack.balances')}
-          columns={[{ label: t('documents.offlinePack.member') }, { label: t('documents.offlinePack.wallet'), isAmount: true },
-            { label: t('documents.offlinePack.markers'), isAmount: true }]}
-          rows={pack.balances.map((balance) => [`${balance.name} (${balance.memberNumber})`, balance.walletPaise, balance.markersPaise])}
-          totals={[
-            { label: t('documents.offlinePack.walletsTotal'), paise: pack.walletsPaise },
-            { label: t('documents.offlinePack.markersTotal'), paise: pack.markersPaise },
-          ]} />
-      )}
-      <DocumentTable caption={t('documents.offlinePack.cage')}
-        columns={[{ label: t('documents.offlinePack.cage') }, { label: t('documents.offlinePack.amount'), isAmount: true }]}
-        rows={[[t('documents.offlinePack.cageFloat'), pack.cageFloatPaise ?? t('documents.offlinePack.noShift')], [t('documents.offlinePack.chipsInPlay'), pack.chipsInPlayPaise]]} />
-    </div>
-  );
-}
-
 function Floor({ pack }: { pack: OfflinePack }) {
   return (
     <div className="space-y-6">
@@ -149,25 +104,9 @@ function Floor({ pack }: { pack: OfflinePack }) {
   );
 }
 
-function Sops({ sops }: { sops: readonly OfflinePackSop[] }) {
-  if (sops.length === 0) return <NoneLine text={t('documents.offlinePack.noSops')} />;
-  return (
-    <div className="space-y-8">
-      {sops.map((sop) => (
-        <article key={sop.title} className="space-y-2">
-          <h3 className="text-16 font-semibold">{sop.title}</h3>
-          <p className="text-12">{t('documents.offlinePack.sopVersion', { version: sop.version, day: formatDate(new Date(`${sop.inForceFrom}T12:00:00+05:30`)) })}</p>
-          <p className="whitespace-pre-line text-14">{sop.body}</p>
-        </article>
-      ))}
-    </div>
-  );
-}
-
 /**
  * The offline pack on A4 pages (#167; scope-v1 module 11), for the cage computer to print when the system is down:
- * the points of contact, open balances, the floor as it stood when the pack was made, and every SOP in force, each
- * from the top of a page. @rivr/render draws it to a PDF of as many pages as it needs. Its copy is the `documents`
+ * the points of contact and the floor as it stood when the pack was made, each from the top of a page. @rivr/render draws it to a PDF of as many pages as it needs. Its copy is the `documents`
  * namespace, which the caller registers.
  */
 export function OfflinePackDocument({ pack }: { pack: OfflinePack }) {
@@ -182,9 +121,7 @@ export function OfflinePackDocument({ pack }: { pack: OfflinePack }) {
       <div className="space-y-10">
         <p className="text-16">{t('documents.offlinePack.intro')}</p>
         <Section title={t('documents.offlinePack.contacts')} isNewPage={false}><Contacts contacts={pack.contacts} /></Section>
-        <Section title={t('documents.offlinePack.balances')}><Balances pack={pack} /></Section>
         <Section title={t('documents.offlinePack.floor')}><Floor pack={pack} /></Section>
-        <Section title={t('documents.offlinePack.sops')}><Sops sops={pack.sops} /></Section>
       </div>
     </DocumentPage>
   );

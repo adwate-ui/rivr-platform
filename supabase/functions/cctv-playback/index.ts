@@ -20,7 +20,7 @@ function reply(body: object, status: number): Response {
   return Response.json(body, { status, headers: CORS });
 }
 
-const KINDS = new Set(['hand', 'cage_transaction', 'incident']);
+const KINDS = new Set(['hand']);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** What the link is for, from the request body, or null unless it is one of the three kinds and an id. */
@@ -42,7 +42,7 @@ Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
   if (request.method !== 'POST') return reply({ error: 'POST only' }, 405);
   const asked = await askedFor(request);
-  if (asked === null) return reply({ error: 'kind must be hand, cage_transaction or incident, and id a uuid' }, 400);
+  if (asked === null) return reply({ error: 'kind must be hand, and id a uuid' }, 400);
 
   // Asked as the caller, so the database answers only for a row they may read.
   const found = await fetch(`${supabaseUrl}/rest/v1/rpc/cctv_reference`, {

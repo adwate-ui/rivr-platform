@@ -16,11 +16,8 @@ const PAGE = {
   ],
   navigation: [{ slug: 'academy', title: 'RIVR Academy' }],
   games: [],
-  tournaments: [], promotions: [], wallPosts: [], isPaused: false,
-  league: { month: null, season: null },
-  rules: { pointsPerHour: [], rakebackBasisPoints: [], hotelNightHours: [], rewardsRakeShareBasisPoints: null, cabVisits: null, leaguePrizes: { month: null, season: null },
-    badBeat: null, highHands: null },
-  jackpotPool: null,
+  tournaments: [], promotions: [],
+  rules: { rakebackBasisPoints: [], cabVisits: null },
 };
 
 describe('a website page', () => {
@@ -181,17 +178,5 @@ describe('a website page', () => {
     expect(screen.getByRole('heading', { level: 3, name: 'Referral' })).toBeDefined();
     expect(screen.getByRole('contentinfo').querySelector('a[href="/house-rules?ref=FRIEND1"]')?.textContent).toBe('House rules');
     expect(screen.getByRole('contentinfo').querySelector('a[href="/delete-account?ref=FRIEND1"]')?.textContent).toBe('Delete your account');
-  });
-
-  it('shows the social wall’s approved posts with their links, and no block while there are none', () => {
-    const wall = { kind: 'social_wall' as const, content: { heading: 'On Instagram' } };
-    const posts = [{ handle: 'zoya.plays', caption: 'Final table at RIVR', permalink: 'https://www.instagram.com/p/1/' }];
-    render(<SitePage page={{ ...PAGE, blocks: [wall], wallPosts: posts }} playerUrl="https://player.invalid" attribution={null} contact={CONTACT} />);
-    expect(screen.getByRole('heading', { name: 'On Instagram' })).toBeDefined();
-    expect(screen.getByText('@zoya.plays')).toBeDefined();
-    expect(screen.getByRole('link', { name: /See it on Instagram/ }).getAttribute('href')).toBe('https://www.instagram.com/p/1/');
-    cleanup();
-    render(<SitePage page={{ ...PAGE, blocks: [wall] }} playerUrl="https://player.invalid" attribution={null} contact={CONTACT} />);
-    expect(screen.queryByRole('heading', { name: 'On Instagram' })).toBeNull();
   });
 });

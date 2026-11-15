@@ -22,8 +22,7 @@ function countsByTable(occupied: readonly TournamentSeat[], tables: number): num
 /**
  * The seats a new player may be given (#120, decision 0204): every free seat at the tables with the fewest
  * players, in table then seat order. Seating picks one of them at random, so the field spreads evenly
- * and nobody chooses their table. None when every seat is taken: the player is an alternate. The
- * database's private.tournament_eligible_seats is proved equal on packages/testing/golden/tournamentSeating.json.
+ * and nobody chooses their table. None when every seat is taken: the player is an alternate.
  */
 export function eligibleSeats(occupied: readonly TournamentSeat[], tables: number, seatsPerTable: number): TournamentSeat[] {
   const counts = countsByTable(occupied, tables);
@@ -37,8 +36,7 @@ export function eligibleSeats(occupied: readonly TournamentSeat[], tables: numbe
 /**
  * The moves that balance the tables (#120, decision 0204): while the fullest table has two or more
  * players than the emptiest, one player moves from the fullest to the emptiest (the lowest-numbered of
- * each on a tie). None when every table is within one of the others. The database's
- * private.tournament_balancing_moves is proved equal on the same golden file.
+ * each on a tie). None when every table is within one of the others.
  */
 export function balancingMoves(counts: readonly number[]): BalancingMove[] {
   const seated = [...counts];
@@ -64,7 +62,7 @@ export function averageStack(chipsInPlay: number, playersLeft: number): number {
  * The place a run finished in (#120, decision 0204): of `runs` runs (entries and re-entries not refunded),
  * the bust ranked `bustRank` among the busts (the first 1) finishes `runs - bustRank + 1`, so the first out
  * of 58 is 58th and a later entry in late registration never shares a place. A rank outside the runs is a
- * bug and throws. The database's private.tournament_finish_place is proved equal on tournamentSeating.json.
+ * bug and throws.
  */
 export function finishPlace(runs: number, bustRank: number): number {
   if (bustRank < 1 || bustRank > runs) throw new RangeError('A bust is one of the runs');

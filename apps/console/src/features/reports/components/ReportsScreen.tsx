@@ -5,7 +5,6 @@ import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useState } from 'react';
 import { MonthlyMis } from './MonthlyMis.tsx';
 import { UnclaimedBalances } from './UnclaimedBalances.tsx';
-import { ChannelFunnel } from './ChannelFunnel.tsx';
 import { GrowthFunnel } from './GrowthFunnel.tsx';
 import { RakeTonight } from './RakeTonight.tsx';
 import { TablesReport } from './TablesReport.tsx';
@@ -25,7 +24,7 @@ function TabContent({ tab, venueId, exportIn }: { tab: ReportTab; venueId: strin
   if (tab === 'tables') return <TablesReport venueId={venueId} exportIn={exportIn} />;
   if (tab === 'mis') return <MonthlyMis venueId={venueId} />;
   if (tab === 'unclaimed') return <UnclaimedBalances venueId={venueId} />;
-  if (tab === 'growth') return <Stack gap={8}><GrowthFunnel venueId={venueId} /><ChannelFunnel venueId={venueId} /></Stack>;
+  if (tab === 'growth') return <GrowthFunnel venueId={venueId} />;
   return <RakeTonight venueId={venueId} />;
 }
 

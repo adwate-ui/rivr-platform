@@ -63,14 +63,11 @@ export const ui = {
     label: 'Main',
     /** The member's own night (decision 0320): the first tab. */
     home: 'Home',
-    /** The membership card, a tab since the redesign. */
-    card: 'Card',
     sessions: 'Sessions',
-    balance: 'Balance',
-    /** Food and drink to the seat (#635). */
-    food: 'Menu',
     /** The member's Bonus, its history and Refer a friend (redesign of 15 Nov). */
     bonus: 'Bonus',
+    /** The member, their notifications and the club's rules: a tab since the redesign of 15 Nov. */
+    profile: 'Profile',
   },
   profile: {
     /** The member's photo or initial, top right, opens Profile. */
@@ -230,10 +227,6 @@ export const ui = {
   killSwitch: {
     /** Shown to members on every screen while the venue is frozen. */
     member: 'The club is paused. Ask a member of staff.',
-    /** At the top of every website page while the venue is frozen (#278). */
-    visitor: 'The club is paused. Check back soon.',
-    /** Shown to staff on every screen while the venue is frozen. */
-    staff: 'Venue frozen. Changes are refused until it is released.',
   },
   /** The player app with no connection: it opens from its cached shell. */
   offlineBanner: 'No connection. What you see may be out of date.',
@@ -241,8 +234,6 @@ export const ui = {
   staleNotice: 'Not updated since {time}. Check the connection.',
   /** A table's seats on the dealer tablet (#59): each a button, read out with who sits there. */
   seatRing: { seat: 'Seat {number}', open: 'Seat {number}, open', taken: 'Seat {number}, {name}', withStatus: '{seat}, {status}' },
-  /** The pad a member signs on at the cage (#74). */
-  signaturePad: { clear: 'Clear' },
   /** A seated player's call time (#78): `{time}` is what is left, as in "1 h 12 min". */
   /** WaitTimer (decision 0299): past its target, `{time}` is the clock, 01:35. */
   waitTimer: { late: 'Late {time}' },
@@ -312,8 +303,6 @@ export const ui = {
     install: 'Install',
     notNow: 'Not now',
   },
-  /** The digital membership card (#67): `{number}` is the membership number. */
-  membershipCard: { label: 'Membership card', number: 'No. {number}' },
   /** A CCTV recording's playback (#122): asked for, then opened in a new tab at the moment. */
   playback: {
     label: 'Playback',

@@ -8,23 +8,20 @@ export const checkIn = {
   checkIn: 'Check in',
   /** Check in's name for a screen reader, beside one expected member. */
   checkInMember: 'Check in {name}',
-  /** The door's one field (console v3): the scanner types a membership card's code into it (#71), or staff type. */
-  field: 'Card, name, mobile or member number',
-  unusable: 'Scan the card, or type a name, mobile or member number.',
+  /** The door's one field (console v3). */
+  field: 'Name, mobile or member number',
+  unusable: 'Type a name, mobile or member number.',
   noMatch: 'No member matches. Check the spelling or the number.',
   /** A name or number that finds several members: they are listed under the field. */
   several: 'More than one match. Pick one below.',
   /** `{number}` is the member number. */
   memberMeta: 'No. {number} · {tier}',
   memberNumber: 'No. {number}',
-  /** Check out pressed on a scanned card: the door checks out by number or from the list. */
-  cardCheckOut: 'Check them out from In the room.',
   noneExpected: 'No one expected.',
   noneInRoom: 'No one in the room yet.',
   notAllowed: 'Not in your role. Ask an admin.',
   noMember: 'No member has that number. Sign them up first.',
-  cardNotCurrent: 'Code changed. Ask them to show the card again.',
-  /** After a check-in by card or number: the field is empty again, so this says it went through. */
+  /** After a check-in by number: the field is empty again, so this says it went through. */
   checkedIn: 'Checked in.',
   /** Check-out at the door (#82): the visit closes, with its hours. */
   checkOut: 'Check out',

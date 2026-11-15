@@ -89,7 +89,7 @@ test.describe('TV boards', () => {
     const name = `TV ${String(Date.now() % 100_000).padStart(5, '0')}`;
     const member = await browser.newPage();
     await signInToPlayer(member, '9000000216');
-    await member.getByRole('link', { name: 'Profile' }).click();
+    await member.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Profile' }).click();
     await nameOnTvs(member, false);
 
     const floor = await browser.newPage();

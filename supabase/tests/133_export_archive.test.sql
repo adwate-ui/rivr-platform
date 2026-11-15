@@ -99,18 +99,14 @@ select throws_ok($$ select public.export_archive_rows((select id from archive), 
 -- One member, for an access request: Arjun's rows only.
 create temp table arjun as select public.start_export_archive('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000201') as p;
 create temp table arjun_archive as select (p ->> 'archive_id')::uuid as id from arjun;
-select ok((select p -> 'tables' @> '[{"name": "ledger_entry"}, {"name": "jackpot_event"}, {"name": "kyc_record"}, {"name": "seat_move"}]' from arjun),
-  'his archive holds his ledger, his jackpots, his KYC and his seat moves');
+select ok((select p -> 'tables' @> '[{"name": "ledger_entry"}, {"name": "kyc_record"}, {"name": "seat_move"}]' from arjun),
+  'his archive holds his ledger, his KYC and his seat moves');
 select ok((select not p -> 'tables' @> '[{"name": "staff"}]' and not p -> 'tables' @> '[{"name": "venue"}]' from arjun),
   'and no table that is not about him');
 select results_eq($$ select total from pg_temp.read_all((select id from arjun_archive), 'member', 10) $$, $$ values (1) $$, 'his member row alone');
 select results_eq($$ select total from pg_temp.read_all((select id from arjun_archive), 'ledger_entry', 10) $$,
   $$ select count(*)::integer from public.ledger_entry e join public.ledger_account a on a.id = e.account_id
      where a.member_id = '00000000-0000-4000-8000-000000000201' $$, 'every entry on his accounts');
-select results_eq($$ select total from pg_temp.read_all((select id from arjun_archive), 'jackpot_event', 10) $$,
-  $$ select count(*)::integer from public.jackpot_event j where j.venue_id = '00000000-0000-4000-8000-000000000001'
-     and ('00000000-0000-4000-8000-000000000201' in (j.winner_member_id, j.loser_member_id) or '00000000-0000-4000-8000-000000000201' = any(j.table_member_ids)) $$,
-  'every jackpot he won, lost or sat at');
 select throws_ok($$ select public.export_archive_rows((select id from arjun_archive), 'staff', null, 10) $$,
   '22023', null, 'a table not about him reads nothing');
 reset role;
@@ -148,6 +144,40 @@ select throws_ok($$ insert into public.setting (venue_id, key, subject, value, e
   null, null, 'the key is an age public key');
 
 -- No key, no archive: the practice venue's is taken away.
+-- Saving an archive, which the Purge's own file tested until the Purge went (15 Nov). One of Vikram's (101), with the
+-- files the server listed for it; Leela (154) is another super admin at the club.
+reset role;
+insert into private.export_archive (id, venue_id, started_by, counts, kyc_reason, files_listed)
+values ('00000000-0000-4000-8000-0000000000f5', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000101',
+        '{"member": 1}'::jsonb, 'The only copy',
+        array['kyc/00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000211/gone.jpg',
+              'kyc/00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000211/photo.jpg',
+              'kyc/00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000211/selfie.jpg']);
+select pg_temp.as_person('00000000-0000-4000-8000-000000000154');
+select throws_ok($$ select public.complete_export_archive('00000000-0000-4000-8000-0000000000f5', 'abababababababababababababababababababababababababababababababab', 1024) $$, '22023', null, 'only its maker marks an archive saved');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select throws_ok($$ select public.complete_export_archive('00000000-0000-4000-8000-0000000000f5', 'abababababababababababababababababababababababababababababababab', 1024) $$, '22023', null, 'and only once every table is read to its end');
+reset role;
+update private.export_archive set tables_read = array(select jsonb_object_keys(counts)) where id = '00000000-0000-4000-8000-0000000000f5';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select throws_ok($$ select public.complete_export_archive('00000000-0000-4000-8000-0000000000f5', 'not a hash', 1024) $$, '22023', null, 'with the file''s SHA-256 and size');
+select throws_ok($$ select public.complete_export_archive('00000000-0000-4000-8000-0000000000f5', 'abababababababababababababababababababababababababababababababab', 1024,
+  array['kyc/00000000-0000-4000-8000-000000000002/00000000-0000-4000-8000-000000000301/selfie.jpg']) $$, '22023', null,
+  'the files it could not read are ones it listed');
+select lives_ok($$ select public.complete_export_archive('00000000-0000-4000-8000-0000000000f5', 'abababababababababababababababababababababababababababababababab', 1024,
+  array['kyc/00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000211/gone.jpg']) $$, 'its maker marks it saved, with the one it could not read');
+reset role;
+select is((select cardinality(files_held) from private.export_archive where id = '00000000-0000-4000-8000-0000000000f5'), 2, 'it holds the other two files');
+-- Its answer lost, the console records it again (F1-27): the same file is recorded already; another file is not this one.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select lives_ok($$ select public.complete_export_archive('00000000-0000-4000-8000-0000000000f5', 'abababababababababababababababababababababababababababababababab', 1024,
+  array['kyc/00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000211/gone.jpg']) $$, 'recording the same file again finds it recorded');
+select throws_ok($$ select public.complete_export_archive('00000000-0000-4000-8000-0000000000f5', 'cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd', 1024, '{}') $$,
+  '22023', null, 'but another file is refused');
+reset role;
+select is((select count(*)::int from public.audit_log where action = 'export.archive_saved' and entity_id = '00000000-0000-4000-8000-0000000000f5'), 1,
+  'and the audit log holds one line for the save');
+
 delete from public.setting where venue_id = '00000000-0000-4000-8000-000000000002' and key = 'exports.archive_recipient';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select throws_ok($$ select public.start_export_archive('00000000-0000-4000-8000-000000000002') $$, 'RVKEY', null,

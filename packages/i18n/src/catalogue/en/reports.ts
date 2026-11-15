@@ -3,7 +3,7 @@ export const reports = {
   title: 'Reports',
   /** One report at a time (#605). */
   tabsLabel: 'Reports',
-  tabs: { tables: 'Tables', tonight: 'Tonight', mis: 'Monthly MIS', unclaimed: 'Unclaimed balances', growth: 'Growth and channels' },
+  tabs: { tables: 'Tables', tonight: 'Tonight', mis: 'Monthly MIS', unclaimed: 'Unclaimed balances', growth: 'Growth' },
   /** The MIS Tables view (owner, 8 Nov), money-free: each table over a span of club days. `{percent}` is a whole number. */
   tables: {
     title: 'Tables',
@@ -102,24 +102,15 @@ export const reports = {
   noCohorts: 'No first visits in these six months.',
   /** The growth funnel (#166). */
   funnel: 'Growth funnel',
-  funnelHint: 'Every member by where they came from, and how many have finished their ID check, come in and bought in. From our own records.',
+  funnelHint: 'Every member by where they came from, and how many have finished their ID check and come in. From our own records.',
   funnelTable: 'Growth funnel',
   noFunnel: 'No members yet.',
   source: 'Source',
   signedUp: 'Signed up',
   kycDone: 'ID checked',
   visited: 'Came in',
-  boughtIn: 'Bought in',
   stage: '{count} ({percent}%)',
-  /** Channel analytics (#164). */
-  channels: 'Channels',
-  channelsHint: "Each channel's followers, counted every night once the club connects it, and the members who signed up from its links, with how many finished KYC and bought in.",
-  channelsTable: 'Channels',
   channel: 'Channel',
-  followers: 'Followers',
-  followersChange: 'In 30 days',
-  signedUpFromLinks: 'Signed up from its links',
-  notCounted: 'Not counted',
   sources: {
     referral: 'Referral',
     creator: 'Creator {code}',

@@ -1,4 +1,4 @@
-import { HIDDEN_TV_MODES, type TvMode } from '@rivr/contracts';
+import type { TvMode } from '@rivr/contracts';
 import { useMyTvScreen, useTvSignals } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Heading, StaleNotice, Stack, Text, TvBoardProgress } from '@rivr/ui';
@@ -6,8 +6,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CallTimeMode } from './CallTimeMode.tsx';
 import { LeaderboardMode } from './LeaderboardMode.tsx';
 import { PromotionsMode, SLIDE_MS } from './PromotionsMode.tsx';
-import { SocialWallMode } from './SocialWallMode.tsx';
-import { TournamentClockMode } from './TournamentClockMode.tsx';
 import { WaitlistMode } from './WaitlistMode.tsx';
 import { BoardStatus } from './BoardStatus.tsx';
 
@@ -17,13 +15,9 @@ const BOARD_MS = 30_000;
 // The promotions turn every 12 seconds, so there the bar fills over each slide.
 const progressFor = (mode: TvMode) => (mode === 'promotions' ? SLIDE_MS : BOARD_MS);
 
-/**
- * The boards a TV shows: its main one, then those it turns to (decision 0163). A main mode the club hid (#628: the
- * jackpot, as the TV shows no rupee) shows as the waitlist board, and a hidden one in the rotation is passed over.
- */
+/** The boards a TV shows: its main one, then those it turns to (decision 0163). */
 export function boardsFor(mode: TvMode, rotation: readonly TvMode[]): TvMode[] {
-  const shown = (board: TvMode) => !HIDDEN_TV_MODES.includes(board);
-  return [shown(mode) ? mode : 'waitlist', ...rotation.filter(shown)];
+  return [mode, ...rotation];
 }
 
 interface BoardProps {
@@ -35,14 +29,12 @@ interface BoardProps {
   onEmpty?: (() => void) | undefined;
 }
 
-/** One board. The waitlist board is built (#65, the jackpot hidden by #628), the promotions (#86), the call-time board (decision 0163), the hours leaderboard (decision 0581), the tournament clock (#119) and the social wall (#158); the other modes show their name under the TV's until they are. */
+/** One board: the waitlist (#65), the promotions (#86), the call-time board (decision 0163) and the hours leaderboard (decision 0581). */
 function Board({ mode, name, onDone, onEmpty }: BoardProps) {
   if (mode === 'waitlist') return <WaitlistMode />;
   if (mode === 'call_time') return <CallTimeMode />;
   if (mode === 'promotions') return <PromotionsMode onDone={onDone} />;
   if (mode === 'leaderboard') return <LeaderboardMode onEmpty={onEmpty} />;
-  if (mode === 'tournament_clock') return <TournamentClockMode name={name} />;
-  if (mode === 'social_wall') return <SocialWallMode onEmpty={onEmpty} />;
   return (
     <Stack gap={4}>
       <Heading level={1} variant="display">{t(`tv.modes.${mode}`)}</Heading>

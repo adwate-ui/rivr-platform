@@ -420,19 +420,6 @@ verify_jwt = false
 [functions.alert-whatsapp]
 verify_jwt = false
 
-[functions.social-wall]
-verify_jwt = false
-
-[functions.social-inbox]
-verify_jwt = false
-
-[functions.withdrawal-payout]
-verify_jwt = false
-
-# The bank's name for each new UPI payout address (#503); pg_cron calls it with the scheduler's secret.
-[functions.payout-name-check]
-verify_jwt = false
-
 # The push consumer, run by the scheduler with its secret (#139).
 [functions.push]
 verify_jwt = false
@@ -452,12 +439,6 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.google-ads]
-verify_jwt = false
-
-[functions.channel-analytics]
-verify_jwt = false
-
-[functions.social-publish]
 verify_jwt = false
 
 # Re-checks each KYC check made in person with the vendor, run by the scheduler with its secret (#259).

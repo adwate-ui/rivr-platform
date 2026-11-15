@@ -70,7 +70,7 @@ describe('useSaveCamera', () => {
 });
 
 /** Playback for a row, once the signed-in session is known, as it is long before anyone presses Playback. */
-async function playbackFor(wrapper: (props: { children: ReactNode }) => ReactNode, kind: 'hand' | 'incident') {
+async function playbackFor(wrapper: (props: { children: ReactNode }) => ReactNode, kind: 'hand') {
   const hook = renderHook(() => ({ playback: usePlayback(kind, HAND), userId: useRivrData().userId }), { wrapper });
   await waitFor(() => expect(hook.result.current.userId).toBe(ADITYA));
   return hook.result;
@@ -89,8 +89,8 @@ describe('usePlayback', () => {
   it('says no camera saw it on a 404, and the link did not come on anything else', async () => {
     const none = clientFor({ '/functions/v1/cctv-playback': { status: 404, body: { error: 'no_camera' } } });
     const down = clientFor({ '/functions/v1/cctv-playback': { status: 502, body: { error: 'unavailable' } } });
-    const noCamera = await playbackFor(none.wrapper, 'incident');
-    const unavailable = await playbackFor(down.wrapper, 'incident');
+    const noCamera = await playbackFor(none.wrapper, 'hand');
+    const unavailable = await playbackFor(down.wrapper, 'hand');
     act(() => { noCamera.current.playback.ask(); unavailable.current.playback.ask(); });
     await waitFor(() => expect(noCamera.current.playback.state).toEqual({ status: 'failed', reason: 'no_camera' }));
     await waitFor(() => expect(unavailable.current.playback.state).toEqual({ status: 'failed', reason: 'unavailable' }));

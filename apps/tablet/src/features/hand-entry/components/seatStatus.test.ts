@@ -2,7 +2,7 @@ import type { TabletPlayer } from '@rivr/db';
 import { describe, expect, it } from 'vitest';
 import { ringStatus } from './seatStatus.ts';
 
-const PLAYER: TabletPlayer = { sessionId: 's1', fullName: 'Rahul Verma', isAway: false, isLeaving: false, pendingBuyIn: null, callTimeLeft: null };
+const PLAYER: TabletPlayer = { sessionId: 's1', fullName: 'Rahul Verma', isAway: false, isLeaving: false, callTimeLeft: null };
 
 describe('what the ring says of a seat (F-189)', () => {
   it('says nothing of a player with nothing to watch', () => {

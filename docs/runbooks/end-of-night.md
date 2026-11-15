@@ -16,7 +16,7 @@ close the night themselves, so the numbers each player and table show are right.
   hours after 06:00 is stamped at 06:00. It earns no hours past its night. A player who stayed just past 06:00 is
   stamped when they actually leave.
 - **A visit nobody checked out.** A visit from an earlier night with nobody seated, and nothing after 06:00, is closed as
-  end of day at its last seat's end. This happens when the member checks in, is seated or scans at the door, before
+  end of day at its last seat's end. This happens when the member checks in or is seated, before
   tonight's visit opens. A member who played on past 06:00 keeps their visit until they leave. A seat still open keeps
   the visit open until the floor ends it.
 - **Waiting places.** A waiting place from an earlier night is on no list, so nobody at home is called. It is cleared

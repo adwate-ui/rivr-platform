@@ -1,10 +1,13 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { PlayerShell } from '../PlayerShell/PlayerShell.tsx';
 import { PLAYER_TABS } from '../storybook/fixtures.ts';
 import { axeViolations, renderIn } from '../test/render.tsx';
 import { PlayerAvatar } from './PlayerAvatar.tsx';
+
+// The member's initial sits in the screen; the tab bar under it has a Profile tab of its own.
+const inScreen = () => within(screen.getByRole('main'));
 
 describe('PlayerAvatar', () => {
   it('is the shell’s initial where the screen puts it, and opens Profile', async () => {
@@ -14,7 +17,7 @@ describe('PlayerAvatar', () => {
         <p><span>RIVR</span><PlayerAvatar /></p>
       </PlayerShell>,
     );
-    const link = screen.getByRole('link', { name: 'Profile' });
+    const link = inScreen().getByRole('link', { name: 'Profile' });
     expect(screen.getByText('RIVR').parentElement).toContainElement(link);
     await userEvent.click(link);
     expect(onNavigate).toHaveBeenCalledWith('/profile');
@@ -25,6 +28,6 @@ describe('PlayerAvatar', () => {
     renderIn(<PlayerAvatar />);
     expect(screen.queryByRole('link', { name: 'Profile' })).toBeNull();
     renderIn(<PlayerShell tabs={PLAYER_TABS} isTabBarHidden><PlayerAvatar /></PlayerShell>);
-    expect(screen.queryByRole('link', { name: 'Profile' })).toBeNull();
+    expect(inScreen().queryByRole('link', { name: 'Profile' })).toBeNull();
   });
 });

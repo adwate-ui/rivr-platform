@@ -2,11 +2,11 @@ import { err, ok, type Result } from '@rivr/contracts/result';
 import { siteBlockSchema, type SiteBlock } from '@rivr/contracts/site';
 import type { RivrClient } from './client.ts';
 import {
-  fetchSiteCalendar, fetchSiteGames, fetchSiteJackpot, fetchSitePromotions, fetchSiteRules, fetchSiteWall, rulesFrom, type SiteGame,
-  type SitePromotion, type SiteRules, type SiteTournament, type SiteWallPost,
+  fetchSiteCalendar, fetchSiteGames, fetchSitePromotions, fetchSiteRules, rulesFrom, type SiteGame,
+  type SitePromotion, type SiteRules, type SiteTournament,
 } from './siteLive.ts';
 
-export type { SiteGame, SitePromotion, SiteRules, SiteTableRule, SiteTournament, SiteWallPost } from './siteLive.ts';
+export type { SiteGame, SitePromotion, SiteRules, SiteTableRule, SiteTournament } from './siteLive.ts';
 
 /** A page in the website's navigation. */
 export interface SiteLink {
@@ -27,14 +27,8 @@ export interface SitePage {
   readonly tournaments: readonly SiteTournament[];
   /** The live promotions, when the page has a promotions block; otherwise empty (decision 0166). */
   readonly promotions: readonly SitePromotion[];
-  /** The approved Instagram posts, when the page has a social wall block; otherwise empty (#157). */
-  readonly wallPosts: readonly SiteWallPost[];
   /** The club's rules in force, when the page has a block that shows them; otherwise none set (#617). */
   readonly rules: SiteRules;
-  /** The Bad Beat Jackpot's main pool in paise, when the page has a jackpot block; otherwise null (#618). */
-  readonly jackpotPool: bigint | null;
-  /** The club is paused by a venue freeze (#278): the page says so first. */
-  readonly isPaused: boolean;
 }
 
 /** The live rows a page's blocks show, read only when one of its blocks needs them. */
@@ -42,18 +36,15 @@ async function fetchLive(client: RivrClient, blocks: readonly SiteBlock[]) {
   const needs = (...kinds: SiteBlock['kind'][]) => blocks.some((block) => kinds.includes(block.kind));
   // Read only when needed; otherwise what the page shows without them.
   const readIf = <T,>(isNeeded: boolean, read: () => Promise<Result<T, 'unavailable'>>, none: T) => (isNeeded ? read() : Promise.resolve(ok(none)));
-  const [games, tournaments, promotions, wallPosts, rules, jackpotPool] = await Promise.all([
+  const [games, tournaments, promotions, rules] = await Promise.all([
     readIf(needs('games'), () => fetchSiteGames(client), []),
     readIf(needs('calendar'), () => fetchSiteCalendar(client), []),
     readIf(needs('promotions'), () => fetchSitePromotions(client), []),
-    readIf(needs('social_wall'), () => fetchSiteWall(client), []),
-    readIf(needs('rewards', 'outstation', 'jackpot'), () => fetchSiteRules(client), rulesFrom([])),
-    readIf<bigint | null>(needs('jackpot'), () => fetchSiteJackpot(client), null),
+    readIf(needs('rewards', 'outstation'), () => fetchSiteRules(client), rulesFrom([])),
   ]);
-  if (!games.ok || !tournaments.ok || !promotions.ok || !wallPosts.ok || !rules.ok || !jackpotPool.ok) return err('unavailable' as const);
+  if (!games.ok || !tournaments.ok || !promotions.ok || !rules.ok) return err('unavailable' as const);
   return ok({
-    games: games.value, tournaments: tournaments.value, promotions: promotions.value, wallPosts: wallPosts.value, rules: rules.value,
-    jackpotPool: jackpotPool.value,
+    games: games.value, tournaments: tournaments.value, promotions: promotions.value, rules: rules.value,
   });
 }
 
@@ -91,16 +82,11 @@ export async function fetchSitePreview(client: RivrClient): Promise<Result<SiteP
   return pageWith(client, frame.value, { slug: first.page_slug, title: first.title, description: first.description }, draft.data);
 }
 
-/** The website around a page: its pages, for the navigation, and whether a freeze on the site's own venue pauses it. */
+/** The website around a page: its pages, for the navigation. */
 async function fetchFrame(client: RivrClient) {
-  const [pages, status] = await Promise.all([
-    client.from('public_site_page').select('venue_slug, slug, title, description, nav_position'),
-    client.from('public_venue_status').select('venue_slug, is_frozen'),
-  ]);
-  if (pages.error || status.error) return err('unavailable' as const);
-  // Another live venue's freeze, such as one being purged, is not the club's (#609).
-  const own = new Set(pages.data.map((page) => page.venue_slug));
-  return ok({ pages: pages.data, isPaused: status.data.some((row) => row.is_frozen === true && own.has(row.venue_slug)) });
+  const pages = await client.from('public_site_page').select('slug, title, description, nav_position');
+  if (pages.error) return err('unavailable' as const);
+  return ok({ pages: pages.data });
 }
 
 type Frame = Extract<Awaited<ReturnType<typeof fetchFrame>>, { ok: true }>['value'];
@@ -118,5 +104,5 @@ async function pageWith(client: RivrClient, frame: Frame, page: { slug: string; 
   });
   const live = await fetchLive(client, readable);
   if (!live.ok) return live;
-  return ok({ ...page, blocks: readable, navigation, ...live.value, isPaused: frame.isPaused });
+  return ok({ ...page, blocks: readable, navigation, ...live.value });
 }

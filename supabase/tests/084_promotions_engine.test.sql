@@ -7,6 +7,12 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
+-- Kunal's and Neel's three visits this month. The seed gave them with its credit lines, which went with the cage.
+insert into public.visit (venue_id, member_id, opened_at, closed_at, close_reason)
+select '00000000-0000-4000-8000-000000000001', p.member_id, now() - d.ago, now() - d.ago + interval '5 hours', 'door'
+from (values ('00000000-0000-4000-8000-000000000216'::uuid), ('00000000-0000-4000-8000-000000000217'::uuid)) as p (member_id)
+cross join (values (interval '3 days'), (interval '10 days'), (interval '17 days')) as d (ago);
+
 -- The seed's live promotions (57_promotions.sql) back to drafts: only the test's own are weighed.
 -- A promotion run in versions goes back to draft through its version (decision 0491).
 update public.promotion_version set status = 'draft' where status = 'live';

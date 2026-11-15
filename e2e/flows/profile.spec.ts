@@ -1,5 +1,5 @@
 /**
- * Profile (#7; decision 0320): behind the member's initial, with Back to the tab it came from; the member, Account,
+ * Profile (#7; decision 0320; a tab since the redesign, RD-05): the member, Account,
  * Notifications and Club, and sign out (#207). Choices survive a reload. Games for waitlist alerts, limits and Take a break
  * left the app (decision 0322; the server keeps them). Each run flips a choice and checks it held, so runs after the first
  * still prove something. Mrinal Thakur, whose identity check is done, is this flow's own member: Auth sends one code a
@@ -20,8 +20,8 @@ async function flip(control: Locator): Promise<string> {
 test.describe('Profile', () => {
   test('Profile › Profile: a member keeps their notifications and offers choice, finds no limits, and signs out', async ({ page }) => {
     await signInToPlayer(page, '9000000402');
-    await page.getByRole('link', { name: 'Profile' }).click();
-    await expect(page.getByRole('button', { name: 'Back', exact: true })).toBeVisible();
+    await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Profile' }).click();
+    await expect(page.getByRole('button', { name: 'Back', exact: true })).toHaveCount(0);
     await expect(page.getByRole('heading', { name: 'Mrinal Thakur', level: 1 })).toBeVisible();
     await expect(page.getByText('Verified', { exact: true })).toBeVisible();
 

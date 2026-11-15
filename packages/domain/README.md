@@ -1,6 +1,6 @@
 # @rivr/domain
 
-Every business rule, as pure TypeScript over `@rivr/contracts`. Lane 0 ships money and the ledger; lanes add rake, caps, call time, TDS, GST, markers, payouts and priority as folders beside them.
+Every business rule, as pure TypeScript over `@rivr/contracts`. Lane 0 ships money and the ledger; lanes add rake, caps, call time, GST, payouts and priority as folders beside them.
 
 ## Public API
 
@@ -33,7 +33,6 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | Export | What it does |
 |---|---|
 | `grantableRoles(permissions)` | The roles a staff member may give (#28, decision 0073), as `private.can_grant_role` decides: every role for a super admin (`venue.configure`), otherwise only roles whose every permission they hold. An admin gives admin or host. |
-| `hourShares(seconds)`, `WHOLE_TIP_POOL` | Each dealer's share of the tip pool by time dealt, in basis points adding up to 10,000, the points left after rounding down to the largest remainders, the earlier dealer first on a tie (#124, decision 0252; tips belong to dealers). |
 
 ### `@rivr/domain/identity`
 
@@ -51,8 +50,7 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 
 | Export | What it does |
 |---|---|
-| `splitDrop(drop, shares)`, `DropShares`, `PoolSplit` | A jackpot drop split between the pools (#48): season and freeroll take their shares (basis points) rounded down to the paisa, the main pool the rest, so the parts add up to the drop. ₹100 at 20% and 10% gives ₹70, ₹20, ₹10. |
-| `badBeatPayout(pool, rule, others)`, `PayoutRule`, `BadBeatPayout` | What a bad beat pays in chips: the rule's share of the main pool, split between loser, winner and the `others` dealt in; each part rounded down to ₹50, the table's part shared equally; what rounds away stays in the pool (decision 0048, question #300). Golden cases for both in `packages/testing/golden/jackpot.json`, which `private.split_drop` and `private.bad_beat_payout` are proved on too. |
+| `splitDrop(drop, shares)`, `DropShares`, `PoolSplit` | A jackpot drop split between the pools (#48): season and freeroll take their shares (basis points) rounded down to the paisa, the main pool the rest, so the parts add up to the drop. ₹100 at 20% and 10% gives ₹70, ₹20, ₹10. Golden cases in `packages/testing/golden/jackpot.json`, which `private.split_drop` is proved on too. |
 
 ### `@rivr/domain/settings`
 
@@ -77,28 +75,6 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | `suggestedMinBuyIn(bigBlind)`, `isMinBuyIn(amount)`, `SUGGESTED_MIN_BUY_IN_BIG_BLINDS` | A table's own minimum buy-in (redesign RD-16): Tables setup suggests 50 big blinds of the table's stake, and any whole ₹50 above zero may be saved; no maximum. Golden `tableMinBuyIn.json`; the database stores the amount and checks the same. |
 | `stakeTableRefusal(callTimeMinutes)`, `StakeTableRefusal`, `isStakeCallTime(minutes)` | A stake is given to a table only once it has a call time above zero (`stake_without_call_time`; `private.assert_stake_ready` refuses the same, RVNCT); a stake's call time is whole minutes, 1 to 1,440. |
 
-### `@rivr/domain/credit`
-
-| Export | What it does |
-|---|---|
-| `creditLimit(limit, threshold, bySuperAdmin)`, `CreditLimitState` | A credit limit as the floor sets it (#73): whole ₹50 chips (`not_chips` otherwise), 0 closing the line; in force at once up to the venue's approval threshold, or when a super admin sets it, otherwise waiting for one. The database's `private.credit_limit_check` is proved equal by `packages/testing/golden/credit.json`. |
-
-### `@rivr/domain/markers`
-
-| Export | What it does |
-|---|---|
-| `markerCheck(amount, terms)`, `MarkerTerms`, `MarkerRefusal` | A marker at the cage (#74, additions flow 19): whole ₹50 chips above nothing, refused while a marker of the member's is past due, above their credit limit, or above the room's exposure cap (exactly at either is allowed). The database's `private.marker_check` is proved equal by `packages/testing/golden/markers.json`. |
-| `creditAvailable(limit, outstanding)` | What is left of a member's credit limit (#18, Balance: "Limit ₹2,00,000 · available ₹1,50,000"): the limit less what their open markers still owe, never below nothing. A marker of exactly that passes `markerCheck`'s limit (property-tested). |
-| `isPastDue(dueAt, at)` | Whether an open marker's due time has gone by at a moment (#55): exactly at it is not yet past due, as `private.has_past_due_marker` has it. While one is, Balance says no new credit is given and Withdraw is blocked. |
-
-### `@rivr/domain/cage`
-
-| Export | What it does |
-|---|---|
-| `buyIn(method, amount, minimum, { wallet, bonus })`, `BuyInBalances`, `BuyInMethod`, `BuyInSource`, `BuyInRefusal` | A buy-in at the cage (#57, design prompt flow 3): whole ₹50 chips above nothing, at least the table's minimum, and from the wallet no more than its cash, from bonus no more than the bonus in force (#17). Gives the account the chips are paid from (cash drawer, bank, wallet or bonus). The database's `private.buy_in_check` is proved equal by `packages/testing/golden/cage.json`. |
-| `walletAfter(method, amount, walletCash)` | The wallet cash a wallet buy-in leaves, for the cage's preview; null when it is not from the wallet or the wallet cannot cover it. |
-| `cashOut(chips, outstanding)`, `CashOutSplit` | A cash-out (#75, design prompt flow 8): whole ₹50 chips handed back first settle the member's open markers, oldest first, each as far as the chips go; the rest goes to the member. ₹1,20,000 with a ₹50,000 marker settles it and leaves ₹70,000. The database's `private.cash_out_split` is proved equal by `packages/testing/golden/cashOut.json`. |
-
 ### `@rivr/domain/bonus`
 
 | Export | What it does |
@@ -108,12 +84,6 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | `bonusExpired(grants, at)` | What expires at a moment: the remainder of each grant whose end has come. The database's `private.bonus_expiring` is proved equal on the same file; `private.expire_bonus` reverses it every hour. |
 | `bonusEnd(givenAt, days, since)` | When a grant ends once a venue sets `bonus.expiry_days` (decision 0579): N days after it was given, or after the switch-on for chips held before; never at 0 days. `private.bonus_end` is its twin on `bonus.json`. |
 | `visitBonusCap(heldAtFirstSeat, basisPoints)`, `visitBonusLeft(cap, redeemed)` | The most bonus one visit redeems under `bonus.visit_cap` (decision 0579): that share of the bonus held at its first seat, rounded down to whole ₹50 chips; and what is left of it. `private.visit_bonus_cap` and `private.visit_bonus_left` are their twins on `bonus.json`. |
-
-### `@rivr/domain/wallet`
-
-| Export | What it does |
-|---|---|
-| `withdrawalCheck(amount, walletCash)`, `WithdrawalRefusal` | A withdrawal from the member's wallet (#21; design prompt flow 9): whole rupees above nothing (`not_rupees`), no more than the wallet's cash (`wallet_short`); bonus is never withdrawn. The database's `private.withdrawal_check` is proved equal by `packages/testing/golden/wallet.json`. |
 
 ### `@rivr/domain/fnb`
 
@@ -142,12 +112,6 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 |---|---|
 | `isPlaceLate(seconds)`, `isTicketLate(seconds)`, `WAITLIST_TARGET_SECONDS`, `FNB_TARGET_SECONDS` | When a place on a list (45 min) or a ticket at the bar (15 min) shows late (audit F-075, decision 0564). |
 | `requestTargets(set)`, `DEFAULT_REQUEST_TARGETS`, `REQUEST_TARGET_SECONDS`, `isRequestLate(kind, seconds, targets)`, `FloorRequestKind`, `RequestTargets` | How long a request may wait on the Live floor's panel before its age shows late (decision 0479): the club's setting `floor.request_targets` where set, each side on its own; else a top-up's `TOP_UP_TARGET_SECONDS` and five minutes for a join, more time, a player leaving, one who left owing call time, An approved player to seat (`seat`, `seat_check`, `seat_wait`) is never late: their wait counts from their approval or call, and their alert, its count and chime tell the floor. Late is strictly past the target. |
-
-### `@rivr/domain/tds`
-
-| Export | What it does |
-|---|---|
-| `tdsOnCashOut(cashOut, rule)`, `TdsCashOut`, `TdsRule`, `Tds` | TDS on a cash-out (#22, decision 0068): nothing until the period's net winnings exceed the threshold, then the rate (the no-PAN rate for a member without a PAN where one is required) on all of them, rounded down to the rupee; the cash-out bears that less what the period already recorded, never below nothing and never more than it pays after markers. The database's `private.tds_amount` is proved equal by `packages/testing/golden/tds.json`. |
 
 ### `@rivr/domain/gst`
 
@@ -192,19 +156,6 @@ The database's `private.promotion_applies`, `private.promotion_reward` and `priv
 
 `private.promo_is_eligible`, `private.promo_grant`, `private.promo_check_limits`, `private.promo_stack` and `private.seconds_in_schedule` are proved equal on `promotionRewards.json` and `promotionSchedule.json` in `supabase/tests/024_golden_twins.test.sql`.
 
-### `@rivr/domain/tally`
-
-| Export | What it does |
-|---|---|
-| `tallyVouchers(day, postings)`, `TallyPosting`, `TallyVoucher`, `TallyUnmapped` | A club day's journal vouchers for Tally (#96, decision 0187): one per transaction kind, its postings summed by Tally ledger, ledgers that net to nothing left out, numbered `RIVR-<day>-<n>`; refused, naming the codes, while a code posted that day has no Tally ledger. Proved on `packages/testing/golden/tally.json`. |
-| `tallyImportXml(day, vouchers)` | The vouchers as a file Tally imports (Import Data, Vouchers): journals dated the club day, debits deemed positive with negative amounts, names escaped. |
-
-### `@rivr/domain/shareholding`
-
-| Export | What it does |
-|---|---|
-| `holderShare(net, basisPoints)` | A partner's or investor's share of a club month's net result (#98, decision 0189): the net times their holding in basis points on the month's last day, rounded towards nothing to the paisa, so a loss is shared as a profit is. Proved on `packages/testing/golden/holderShare.json`. |
-
 ### `@rivr/domain/shares`
 
 A session's time shared among its tables and a hand's rake among its seats, which rakeback reads (decision 0585). Each is proved equal to its `private.` twin by `packages/testing/golden/shares.json`.
@@ -216,12 +167,11 @@ A session's time shared among its tables and a hand's rake among its seats, whic
 
 ### `@rivr/domain/aml`
 
-AML cash limits and structuring (#105, decision 0234; golden `aml.json`; SQL twins `private.cash_limit_hit` and `private.is_near_limit`).
+AML cash limits (#105, decision 0234; golden `aml.json`; SQL twin `private.cash_limit_hit`).
 
 | Export | What it does |
 |---|---|
 | `cashLimitHit(limits, visitSoFar, daySoFar, amount)`, `CashLimits`, `CashLimitHit` | Which limit a cash buy-in would take the member past, the visit's checked first (`visit`, `day`), or null within both. Reaching a limit exactly is within it; nothing, or null, is no limit. |
-| `isNearLimit(total, limit, marginBasisPoints)` | Whether a total ended just under a limit: within the margin of it (1,000 is 10%), the limit itself included, the margin rounded down to the paisa. ₹36,000 is near ₹40,000 at 10%; ₹35,950 is not. |
 
 ### `@rivr/domain/clubDay`
 
@@ -230,13 +180,13 @@ The club's day runs 06:00 to 06:00 IST, so a night past midnight belongs to the 
 | Export | What it does |
 |---|---|
 | `clubDay(at)` | The club's day a moment falls in, as `2026-11-15`: 02:00 IST on the 16th is still the 15th. |
-| `recentClubMonths(at, count)`, `lastDayOfMonth(first)` | The first days of the last club months, the one a moment falls in first, and a month's last day: Reports and the partner statements choose months by them (#99, #98). |
-| `clubDaysPeriod(first, last)` | A run of club days as the moments it begins and ends: 06:00 IST on the first to 06:00 IST after the last. Pot data reads hands by it (#114). |
-| `dayAfter(day, count)`, `weekOf(day)` | The club day `count` days after another (before, when negative), and the Monday of a club day's week: the roster shows a week by them (#106). |
+| `recentClubMonths(at, count)`, `lastDayOfMonth(first)` | The first days of the last club months, the one a moment falls in first, and a month's last day: Reports choose months by them (#99). |
+| `clubDaysPeriod(first, last)` | A run of club days as the moments it begins and ends: 06:00 IST on the first to 06:00 IST after the last. |
+| `dayAfter(day, count)`, `weekOf(day)` | The club day `count` days after another (before, when negative), and the Monday of a club day's week. |
 
 ### `@rivr/domain/tournament`
 
-Tournaments (#115, #116, #119; decisions 0200 to 0202). `clockAt` and `checkPurchase` are proved equal to their `private.` twins by `packages/testing/golden/tournamentClock.json` and `tournamentEntry.json`; the calculator by `blindStructure.json`.
+Tournaments (#115, #116, #119; decisions 0200 to 0202). `clockAt` is proved equal to its `private.` twin by `packages/testing/golden/tournamentClock.json`; `checkPurchase` by `tournamentEntry.json`, and the calculator by `blindStructure.json`.
 
 | Export | What it does |
 |---|---|

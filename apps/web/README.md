@@ -40,8 +40,7 @@ The frame is grandpokerarena.com's (#616, decision 0283):
 
 Some blocks are read from the club's rules in force rather than written into a page (#617, #618, decision 0283). Each kind's band is left out when it has nothing to show (`ClubBlocks.tsx`):
 - `rewards`: rakeback by table;
-- `outstation`: the cab;
-- `jackpot`: the bad beat's pool and split, and the rare-hand payouts.
+- `outstation`: the cab.
 
 A `promotions` block shows each live promotion's rules and questions. With `only: 'welcome'` it shows just the welcome offer: the promotions for new players.
 

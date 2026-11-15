@@ -1,30 +1,20 @@
 import { z } from 'zod';
 import { CONTACT_KINDS } from './incidents.ts';
 
-// Bigint paise arrive from the database API as JSON numbers, well inside what a number holds exactly.
-const paise = z.number().int();
-
 /**
  * A venue's offline pack as `public.offline_pack(venue)` returns it (#168; decision 0260), which the nightly job reads
- * as the service role and @rivr/render draws: who to call, money held and owed, the cage, the floor and the SOPs.
+ * as the service role and @rivr/render draws: who to call, and the floor.
  */
 export const offlinePackRowSchema = z.object({
   issuer: z.object({ legal_name: z.string(), address: z.string(), gstin: z.string().nullable() }).nullable(),
   venue_name: z.string(),
   generated_at: z.string(),
   contacts: z.array(z.object({ kind: z.enum(CONTACT_KINDS), name: z.string(), role: z.string().nullable(), phone: z.string(), note: z.string().nullable() })),
-  balances: z.array(z.object({ name: z.string(), member_number: z.string(), wallet_paise: paise, markers_paise: paise })),
-  wallets_paise: paise,
-  markers_paise: paise,
-  chips_in_play_paise: paise,
-  /** Null when no cage shift was open as the pack was made. */
-  cage_float_paise: paise.nullable(),
   tables: z.array(z.object({
     name: z.string(), game: z.string(), seats: z.array(z.object({ seat: z.number().int(), name: z.string(), member_number: z.string() })),
   })),
   /** Each place with the table whose list it is on (decision 0467), a table's list in its order. */
   waitlist: z.array(z.object({ table: z.string(), game: z.string(), place: z.number().int(), name: z.string(), member_number: z.string() })),
-  sops: z.array(z.object({ title: z.string(), version: z.number().int(), in_force_from: z.string(), body: z.string() })),
 });
 export type OfflinePackRow = z.infer<typeof offlinePackRowSchema>;
 

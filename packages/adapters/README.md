@@ -7,7 +7,7 @@ One interface per vendor, each with an in-memory fake, and the registry that dec
 `createAdapters({ isPracticeVenue, live })` returns every adapter for one venue (`docs/decisions/0014`):
 
 - **Practice venue:** fakes, always, whatever `live` holds. Nothing from it reaches a vendor.
-- **Real venue:** the live adapter where credentials exist. Without them, `upiPayouts` and `kyc` fail closed with `not_configured` (the cage pays by hand and enters the UTR; staff review KYC by hand), each social channel falls back to download-and-post, and every other adapter falls back to its fake.
+- **Real venue:** the live adapter where credentials exist. Without them, `kyc` fails closed with `not_configured` (staff review KYC by hand), and every other adapter falls back to its fake.
 
 `createFakeAdapters()` gives a fake for every adapter, for tests and Storybook.
 
@@ -20,18 +20,12 @@ One interface per vendor, each with an in-memory fake, and the registry that dec
 | `kyc` | `@rivr/adapters/kyc` | `KycAdapter` | DigiLocker pull (masked Aadhaar, PAN, an Aadhaar reference when the vendor has one), PAN verification fallback, selfie liveness and face match; live on Cashfree Secure ID (`createCashfreeKyc`, signed through `shared/cashfree.ts`, decision 0197), which has no face search; `panRecheckOutcome` reads a PAN answer for re-checking a check made in person (#259) |
 | `smsOtp` | `@rivr/adapters/sms-otp` | `SmsOtpAdapter` | Sign-in codes by SMS; live: `createMsg91SmsOtp({ authKey, templateId })` on a DLT template, the key as a header, a refusal inside HTTP 200 read from `type` |
 | `whatsapp` | `@rivr/adapters/whatsapp` | `WhatsAppAdapter` | Utility, authentication and marketing templates; marketing needs `optedInAt`; `urlButton` for a template whose button opens a link (a payment link, a receipt). `WHATSAPP_TEMPLATES` lists every template as submitted to Meta (decision 0043) |
-| `upiPayouts` | `@rivr/adapters/upi-payouts` | `UpiPayoutAdapter` | Withdrawals; one payout per idempotency key. Live on Cashfree Payouts (`createCashfreePayouts`, decision 0198), which looks a transfer up before sending it; not wired to a flow yet |
 | `push` | `@rivr/adapters/push` | `PushAdapter` | Web push; `subscription_gone` means delete the subscription |
-| `socialPublishing` | `@rivr/adapters/social-publishing` | `SocialPublishing` | One `SocialPublishingTarget` per channel; `published` or `download_and_post` |
-| `socialInbox` | `@rivr/adapters/social-inbox` | `SocialInboxAdapter` | Instagram, Facebook and WhatsApp messages and replies. Meta's webhook: `isMetaSignature(body, header, appSecret)` and `inboxMessagesFrom(payload)` (#156) |
-| `instagramGraph` | `@rivr/adapters/instagram-graph` | `InstagramGraphAdapter` | Posts tagging RIVR, for the social wall: live `createInstagramGraph({ instagramUserId, accessToken })`, and one pull, `pullWallPosts({ instagram, since, record })` (#157) |
-| `channelAnalytics` | `@rivr/adapters/channel-analytics` | `ChannelAnalyticsAdapter` | Follower count per channel |
 | `metaConversions` | `@rivr/adapters/meta-conversions` | `MetaConversionsAdapter` | `action_source: physical_store`, identifiers SHA-256 hashed by `toMetaServerEvent` |
 | `googleAds` | `@rivr/adapters/google-ads` | `GoogleAdsConversionsAdapter` | Offline conversion import, phone hashed by `toClickConversion`; enabled |
 | `cachePurge` | `@rivr/adapters/cache-purge` | `CachePurgeAdapter` | Cloudflare purge after a website publish |
 | `store` | `@rivr/adapters/store` | `StoreAdapter` | Products of the hosted accessories store |
 | `cctv` | `@rivr/adapters/cctv` | `CctvAdapter` | Playback link for a camera at a moment. `createTemplateCctv({ template })` is the recorder whose playback address takes `{channel}` and `{utc}`, `{ist}` or `{epoch}` (#122, decision 0238); `isRecorderTemplate` checks one |
-| `receiptPrinter` | `@rivr/adapters/receipt-printer` | `ReceiptPrinterAdapter` | Prints a rendered receipt image at exactly `widthPx` |
 | `kitchenPrinter` | `@rivr/adapters/kitchen-printer` | `KitchenPrinterAdapter` | Prints a KOT at the bar. `createEscPosKitchenPrinter({ host, port, connect })`, from `@rivr/adapters/kitchen-printer-escpos`, is a network printer's raw port, and `kotBytes(kot)` the ESC/POS bytes of a KOT (a member's note after every line, as for the whole order), its words from `@rivr/i18n` (#123, decision 0261). That subpath keeps i18n out of the main entry, which Edge Functions import |
 
 Every method returns `Promise<Result<…, AdapterFailure>>` for expected failures: `unavailable` and `rate_limited` (retry later), `rejected` (do not retry), `not_configured`. Printers add `out_of_paper`.
@@ -51,8 +45,8 @@ if (!sent.ok && sent.error.code !== 'rejected') return retryLater();
 In a test:
 
 ```ts
-const payouts = createFakeUpiPayouts();
-payouts.failNext({ code: 'unavailable' });
+const kyc = createFakeKyc();
+kyc.failNext({ code: 'unavailable' });
 ```
 
 ## Sign-in codes

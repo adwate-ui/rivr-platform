@@ -20,9 +20,6 @@ export const tablets = {
   newCode: 'New pairing code for {name}',
   table: 'Table for {name}',
   /** A door kiosk (decision 0164): a tablet at the door that scans members' cards in and out. */
-  isDoor: 'Door kiosk',
-  isDoorHint: 'Scans members in and out at the door.',
-  doorKiosk: 'Door kiosk',
   /** Unpaired, as a TV is (D-05): the word for ending a pairing. */
   more: 'More for {name}',
   revoke: 'Unpair',
@@ -54,28 +51,11 @@ export const pairing = {
 export const handEntry = {
   title: 'Hand entry',
   empty: 'Not assigned to a table. Ask a floor manager.',
-  pot: 'Pot',
-  /** The pot keypad's name. */
-  enterPot: 'Enter the pot',
   rake: 'Rake',
-  drop: 'Jackpot drop',
-  pull: 'Pull',
-  /** Under the rake when the cap set it: `{amount}` is the cap. */
-  capped: 'Capped at {amount}',
   variant: 'Game',
   holdem: 'Hold\'em',
   plo: 'PLO',
   bombPot: 'Bomb pot',
-  /** `{amount}` is the pot typed, which is not whole ₹50 chips (or is above ₹1 crore). */
-  notChips: 'A pot is whole ₹50 chips, up to ₹1 crore. {amount} is not.',
-  log: 'Log hand',
-  handsThisDown: 'Hands this down: {count}',
-  lastHands: 'Last hands',
-  noHands: 'No hands yet this down.',
-  /** One of the last hands, beside its pot: `{time}` (IST) and the game. */
-  hand: '{time} · {variant}',
-  /** A hand still on the tablet, waiting to reach the database (#43). */
-  queuedHand: '{time} · {variant} · queued',
 };
 
 /** The console's Dealer PINs screen (#41): for staff whose role includes everything a dealer does. */
@@ -192,19 +172,6 @@ export const tvScreen = {
   unavailable: 'No connection. Retrying shortly.',
 };
 
-/** The final-table stream's overlay for OBS (#125, decision 0256). */
-export const streamOverlay = {
-  title: 'Stream overlay',
-  /** The overlay's address has no hole-card delay, or one it does not take. */
-  noDelay: 'This address has no hole-card delay. Add it in seconds, up to 3,600: /overlay?delay=900 holds the clock 15 minutes behind the table, and /overlay?delay=0 shows it live when OBS delays the whole stream.',
-  /** The overlay was paired at the practice venue, which never reaches anyone outside the club. */
-  practice: 'This overlay is paired at the practice venue, which never reaches a stream. Unpair it on the console, reload it in OBS, and pair it at the club.',
-  /** Paired, but given another mode than the tournament clock (#559): said at once, not after the delay. */
-  notClock: 'This overlay shows the tournament clock, which is off while tournaments are hidden.',
-  /** For a screen reader only, until the delay has passed since the overlay opened. `{seconds}` is the delay. */
-  waiting: 'The clock shows {seconds} seconds behind the table. It starts once that delay has passed.',
-};
-
 /** End of down on the tablet (#44): the table handed over, with no drop-box count (#630). */
 export const endOfDown = {
   title: 'End of down',
@@ -223,7 +190,6 @@ export const seats = {
   ring: 'Seats at {table}',
   title: 'Seat {seat} · {name}',
   open: 'Seat {seat} is open.',
-  pending: 'A buy-in for this seat is already with the cage.',
   away: 'Away',
   /** Under a seat on the ring (F-189): `{minutes}` is the call time left, its last fifteen. */
   leaving: 'Leaving',
@@ -244,7 +210,6 @@ export const queue = {
   /** Offline with no hand held (F-045): before the device is known, at a table, at a door kiosk. */
   offline: 'Offline.',
   offlineTable: 'Offline. Seats update when the network is back.',
-  offlineDoor: 'Check-in is offline. See the front desk.',
   queuedOne: 'Offline. 1 hand queued.',
   queued: 'Offline. {count} hands queued.',
   sendingOne: 'Sending 1 hand.',
@@ -254,8 +219,6 @@ export const queue = {
   sent: '{count} queued hands sent to the floor.',
   refusedOne: '1 hand was refused. Call a floor supervisor.',
   refused: '{count} hands were refused. Call a floor supervisor.',
-  /** A claim the database refused for good, its hand logged: promotions off, a seat the table does not have, or another claim on the hand. */
-  claimRefused: 'The high-hand claim for seat {seat} was refused. Ask the floor.',
   /** Clears the refusals once the floor has dealt with them. */
   seen: 'Seen by the floor',
 };

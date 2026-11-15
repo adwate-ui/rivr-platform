@@ -1,8 +1,7 @@
 -- CCTV references (#122; tech plan item 17; decision 0238). Aditya (103, an admin who manages devices) puts a camera
--- over Table 2 and one on the cage. A hand at Table 2 then carries Table 2's camera and its moment; a cash buy-in at
--- the cage the cage's; an incident the camera its logger chose. The reference answers only for a row the caller may
--- read. Pema (106, a dealer) keeps no cameras; Leela (154, a super admin at the club only) sees none of the practice
--- venue's.
+-- over Table 2 and one on the cage. A hand at Table 2 then carries Table 2's camera and its moment. The reference
+-- answers only for a row the caller may read. Pema (106, a dealer) keeps no cameras; Leela (154, a super admin at
+-- the club only) sees none of the practice venue's.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -64,48 +63,19 @@ insert into ids select 'hand', id from public.hand where idempotency_key = 'cctv
 select is((select camera_id from public.hand where id = (select id from ids where name = 'hand')), (select id from ids where name = 'table2'),
   'a hand carries its table''s camera');
 
--- A cash buy-in at the cage carries the cage's camera.
-select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'deposit', 'cctv-deposit',
-  jsonb_build_array(jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001'
-                                                      and code = 'venue.bank' and member_id is null), 'amount', '2000000'),
-                    jsonb_build_object('account_id', (select id from public.ledger_account where member_id = '00000000-0000-4000-8000-000000000211'
-                                                      and code = 'member.cash'), 'amount', '-2000000')), null);
-select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select public.seat_member((select id from tables where name = 'Table 3'), 1, '9000000211');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-insert into ids select 'buy_in', public.cage_buy_in('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 1000000, 'cash',
-  '00000000-0000-4000-8000-0000000c0140');
-select is((select camera_id from public.cage_transaction where id = (select id from ids where name = 'buy_in')), (select id from ids where name = 'cage'),
-  'a cage transaction carries the cage''s camera');
-
--- An incident carries the camera its logger chose, of this venue only.
-select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
-insert into public.incident (venue_id, occurred_at, severity, summary, camera_id)
-values ('00000000-0000-4000-8000-000000000001', '2026-01-04T21:30:15+05:30', 'low', 'Spilled drink at Table 2', (select id from ids where name = 'table2'));
-reset role;
-insert into ids select 'incident', id from public.incident where summary = 'Spilled drink at Table 2';
+-- A camera at the practice venue.
 insert into public.camera (id, venue_id, name, channel) values ('00000000-0000-4000-8000-0000000ca140', '00000000-0000-4000-8000-000000000002', 'Practice cage', 'p-1');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
-select throws_ok($$ insert into public.incident (venue_id, occurred_at, severity, summary, camera_id)
-                    values ('00000000-0000-4000-8000-000000000001', now(), 'low', 'Another venue''s camera', '00000000-0000-4000-8000-0000000ca140') $$,
-  '23503', null, 'an incident takes only this venue''s cameras');
+
 
 -- The reference: the channel and the moment, for a row the caller may read.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select results_eq($$ select channel, camera_name, at, is_practice from public.cctv_reference('hand', (select id from ids where name = 'hand')) $$,
   $$ values ('ch-2'::text, 'Table 2 overhead'::text, '2026-01-04T21:00:07+05:30'::timestamptz, false) $$, 'a hand''s reference: Table 2 at 21:00:07');
-select results_eq($$ select channel from public.cctv_reference('cage_transaction', (select id from ids where name = 'buy_in')) $$,
-  $$ values ('ch-9'::text) $$, 'a buy-in''s: the cage');
-select results_eq($$ select channel, at from public.cctv_reference('incident', (select id from ids where name = 'incident')) $$,
-  $$ values ('ch-2'::text, '2026-01-04T21:30:15+05:30'::timestamptz) $$, 'an incident''s: the camera chosen, at the moment it happened');
 select is_empty($$ select * from public.cctv_reference('hand', gen_random_uuid()) $$, 'nothing for no such row');
 select is_empty($$ select * from public.cctv_reference('table', (select id from ids where name = 'hand')) $$, 'nor for another kind');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000190');
 select is_empty($$ select * from public.cctv_reference('hand', (select id from ids where name = 'hand')) $$,
   'the front desk, who cannot read the hand, gets no reference to it');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select is_empty($$ select * from public.cctv_reference('cage_transaction', (select id from ids where name = 'buy_in')) $$,
-  'a member gets no reference to their own buy-in');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000154');
 select is_empty($$ select * from public.camera where venue_id = '00000000-0000-4000-8000-000000000002' $$,
   'staff of one venue see none of another''s cameras');

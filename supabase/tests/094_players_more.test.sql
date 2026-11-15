@@ -1,6 +1,6 @@
 -- The hundred more members of the seed (15_players_more.sql): their spread of logins, tiers, identity
--- checks and balances, and nothing of theirs that the flows count (visits, lists, breaks, credit, consent,
--- attribution, withdrawal accounts waiting for the cage).
+-- checks and balances, and nothing of theirs that the flows count (visits, lists, breaks, consent,
+-- attribution).
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -40,11 +40,6 @@ select results_eq(
   $$ values ('member.bonus'::text, -1400000::bigint), ('member.cash', -124500000) $$,
   'credited to the members: ₹14,000 of bonus and ₹12,45,000 of cash');
 
-select results_eq(
-  $$ select a.kind, a.status, count(*) from public.payout_account a join more_member m on m.id = a.member_id group by 1, 2 order by 1, 2 $$,
-  $$ values ('bank'::text, 'verified'::text, 3::bigint), ('upi', 'rejected', 2), ('upi', 'verified', 8) $$,
-  'withdrawal accounts verified and refused, none waiting for the cage');
-
 select is((select count(distinct full_name) from more_member), 100::bigint, 'every name its own');
 select is((select count(*) from public.member m join more_member n on n.full_name = m.full_name and n.id <> m.id), 0::bigint,
   'and no name shared with another member');
@@ -52,10 +47,9 @@ select is((select count(*) from public.member m join more_member n on n.full_nam
 select is((select count(*) from public.visit v join more_member m on m.id = v.member_id)
         + (select count(*) from public.waitlist_entry w join more_member m on m.id = w.member_id)
         + (select count(*) from public.self_exclusion x join more_member m on m.id = x.member_id)
-        + (select count(*) from public.credit_line c join more_member m on m.id = c.member_id)
         + (select count(*) from public.consent c join more_member m on m.id = c.member_id)
         + (select count(*) from public.sign_up_attribution s join more_member m on m.id = s.member_id), 0::bigint,
-  'no visit, list entry, break, credit line, consent or attribution of theirs');
+  'no visit, list entry, break, consent or attribution of theirs');
 
 select * from finish();
 rollback;

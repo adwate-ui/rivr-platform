@@ -65,7 +65,7 @@ describe('Dealer tablets', () => {
       },
     });
     await waitFor(() => expect(paired.result.current.mine.data).toEqual({
-      deviceId: 'd1', venueId: VENUE, name: 'Tablet A', isDoor: false, tableId: 't3', tableName: 'Table 3', isPractice: false,
+      deviceId: 'd1', venueId: VENUE, name: 'Tablet A', tableId: 't3', tableName: 'Table 3', isPractice: false,
     }));
     cleanup();
     const staff = renderDevices(EMPTY);
@@ -81,8 +81,8 @@ describe('Dealer tablets', () => {
       '/rest/v1/tablet_assignment': { body: [{ device_id: 'd1', table_id: 't3' }] },
     });
     await waitFor(() => expect(result.current.tablets.data).toEqual([
-      { deviceId: 'd1', name: 'Tablet A', isDoor: false, isPaired: true, tableId: 't3' },
-      { deviceId: 'd2', name: 'Front door', isDoor: true, isPaired: false, tableId: null },
+      { deviceId: 'd1', name: 'Tablet A', isPaired: true, tableId: 't3' },
+      { deviceId: 'd2', name: 'Front door', isPaired: false, tableId: null },
     ]));
   });
 

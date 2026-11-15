@@ -32,16 +32,10 @@ export const PERMISSIONS = [
   'hands.log',
   'cage.transact', // buy-ins and cash-outs
   'cage.second_approve', // second approver above the configured limit
-  'markers.issue',
-  'markers.manage_limits',
-  'withdrawals.approve',
   'ledger.read',
-  'eod.review', // give the reason for an end-of-day variance (#45), never on a shift one opened or closed
   'tournaments.manage',
   'promotions.manage',
   'promotions.approve', // approve or refuse a submitted promotion, super_admin only (decision 0244)
-  'jackpots.approve', // high hands and jackpot payouts
-  'marketing.publish',
   'website.edit',
   'host_queue.manage',
   'fnb.manage',
@@ -51,56 +45,50 @@ export const PERMISSIONS = [
   'exports.table', // export a filtered console table
   'exports.full', // the full encrypted archive
   'audit.read',
-  'control.engage', // the kill switch
-  'purge.run', // super_admin only, never grantable to another role
+  'activity.read', // the Activity screen: what staff did and when, super_admin only as before the kill switch went (#951)
   'sops.manage',
-  'sops.acknowledge',
-  'incidents.log',
   'aml.review',
   'feedback.manage', // the General Manager's feedback tickets (decision 0165)
   'bonus.give', // add bonus chips to a member by hand, never to oneself: super admins, admins and floor managers (the owner, 9 Nov)
   'treasury.manage', // payment accounts, transfers, expense categories and approving expenses (decision 0167)
-  'shareholding.manage', // the shareholding register, super_admin only (decision 0170)
-  'pot_data.read', // every hand by table, dealer, variant and period (decision 0185)
 ] as const;
 
 /** A permission key. */
 export type Permission = (typeof PERMISSIONS)[number];
 
-const EVERY_STAFF_MEMBER: readonly Permission[] = ['sops.acknowledge', 'incidents.log'];
 
 /** Which permissions each role holds. super_admin holds every permission. */
 export const ROLE_PERMISSIONS: Readonly<Record<StaffRole, readonly Permission[]>> = {
   super_admin: PERMISSIONS,
   admin: [
-    ...EVERY_STAFF_MEMBER, 'settings.manage', 'staff.manage', 'devices.manage', 'tvs.manage', 'members.read', 'members.manage',
+    'settings.manage', 'staff.manage', 'devices.manage', 'tvs.manage', 'members.read', 'members.manage',
     'kyc.review', 'kyc.in_person', 'tiers.manage', 'floor.manage', 'waitlist.manage', 'call_time.override', 'cage.second_approve',
-    'markers.manage_limits', 'ledger.read', 'eod.review', 'tournaments.manage', 'promotions.manage', 'jackpots.approve',
+    'ledger.read', 'tournaments.manage', 'promotions.manage',
     'host_queue.manage', 'fnb.manage', 'fnb.serve', 'reports.read', 'exports.table', 'sops.manage', 'aml.review', 'feedback.manage',
     'treasury.manage', 'tables.manage', 'bonus.give',
   ],
   // Every super admin module but tables setup, the member list, games history, tournaments and bonus (#644); TVs through a
   // permission of their own, as devices.manage reaches the cage's computers and the cameras. Bonus chips by hand came later (the owner, 9 Nov).
   floor: [
-    ...EVERY_STAFF_MEMBER, 'members.read', 'waitlist.manage', 'floor.manage', 'call_time.override', 'fnb.serve', 'bonus.give', 'kyc.in_person', 'tvs.manage',
+    'members.read', 'waitlist.manage', 'floor.manage', 'call_time.override', 'fnb.serve', 'bonus.give', 'kyc.in_person', 'tvs.manage',
   ],
   // The floor's modules less the food and drink orders (#644), beside the cage's (hidden, decision 0284).
   cashier: [
-    ...EVERY_STAFF_MEMBER, 'members.read', 'cage.transact', 'cage.second_approve', 'markers.issue',
-    'withdrawals.approve', 'ledger.read', 'waitlist.manage', 'floor.manage', 'call_time.override', 'tvs.manage',
+    'members.read', 'cage.transact', 'cage.second_approve',
+    'ledger.read', 'waitlist.manage', 'floor.manage', 'call_time.override', 'tvs.manage',
   ],
-  dealer: [...EVERY_STAFF_MEMBER, 'hands.log'],
-  marketing: [...EVERY_STAFF_MEMBER, 'promotions.manage', 'marketing.publish', 'website.edit'],
-  host: [...EVERY_STAFF_MEMBER, 'members.read', 'waitlist.manage', 'host_queue.manage', 'kyc.in_person'],
+  dealer: ['hands.log'],
+  marketing: ['promotions.manage', 'website.edit'],
+  host: ['members.read', 'waitlist.manage', 'host_queue.manage', 'kyc.in_person'],
   // No Reports for investors (the owner, 9 Nov).
-  owner_view: [...EVERY_STAFF_MEMBER, 'dashboards.read', 'ledger.read', 'audit.read'],
+  owner_view: ['dashboards.read', 'ledger.read', 'audit.read'],
   // Food and drink only: the menu and the orders, with no comp nor Glaza's statement (#640).
-  service: [...EVERY_STAFF_MEMBER, 'fnb.serve'],
+  service: ['fnb.serve'],
 };
 
-/** Permissions only super_admin may ever hold (features-2026-10-14.md, "Purge" and "Exports"). */
+/** Permissions only super_admin may ever hold (features-2026-10-14.md, "Exports"). */
 export const SUPER_ADMIN_ONLY: readonly Permission[] = [
-  'purge.run', 'exports.full', 'control.engage', 'members.override_features', 'venue.configure', 'shareholding.manage',
-  'members.erase', 'promotions.approve', 'members.change_phone', 'pot_data.read',
+  'exports.full', 'activity.read', 'members.override_features', 'venue.configure',
+  'members.erase', 'promotions.approve', 'members.change_phone',
 ];
 

@@ -73,20 +73,6 @@ select throws_ok($$ select public.set_feature_override('00000000-0000-4000-8000-
   'RVOWN', null, 'a super admin overrides no feature on their own record');
 reset role;
 
--- A revoked staff member's own shifts.
-insert into public.staff_shift (venue_id, staff_id, club_day, starts_at, ends_at, job_title)
-select s.venue_id, s.id, current_date, now(), now() + interval '8 hours', 'Dealer' from public.staff s
-where s.user_id = '00000000-0000-4000-8000-000000000106' and s.venue_id = '00000000-0000-4000-8000-000000000001';
-select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
-select is((select count(*)::integer from public.staff_shift), 1, 'a dealer reads her own shift');
-reset role;
-insert into public.control_state (venue_id, level, staff_id, reason)
-select s.venue_id, 'access_revoke', s.id, 'A lost phone' from public.staff s
-where s.user_id = '00000000-0000-4000-8000-000000000106' and s.venue_id = '00000000-0000-4000-8000-000000000001';
-select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
-select is((select count(*)::integer from public.staff_shift), 0, 'and none once her access is revoked');
-reset role;
-
 select alike(pg_get_functiondef('private.staff_guard()'::regprocedure), '%''control:''%',
   'turning a super admin off waits on the kill switch''s lock, so the two cannot race past the floor of two');
 

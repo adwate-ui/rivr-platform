@@ -1,18 +1,18 @@
 # Running the room on paper
 
-When the system cannot be used, the room runs on paper and the paper goes back into the system afterwards, with nothing lost. There are five runbooks. Staff read and acknowledge them on the console, under SOPs, as "Fallback: app down" and the rest (#52). This page has the same steps, the paper forms to print, and the drill.
+When the system cannot be used, the room runs on paper and the paper goes back into the system afterwards, with nothing lost. There are five runbooks. This page has their steps, the paper forms to print, and the drill.
 
-Print a stack of each form and keep it at the cage, with pens and the contact list (the escalation directory, #53, once it is on the console). A venue freeze (the kill switch) is run the same way: while the venue is frozen, the room is on paper.
+Print a stack of each form and keep it at the cage, with pens and the contact list (the escalation directory, #53, once it is on the console).
 
-The cage computer keeps tonight's offline pack on its own disk (#168): who to call, every member with money held or owed, the cage, the floor as it stood at 17:00 and every SOP in force. When the system is down, print the newest PDF from `C:\RIVR\agent\offline-pack\`. The cage agent keeps it (docs/runbooks/cage-agent.md).
+The cage computer keeps tonight's offline pack on its own disk (#168): who to call and the floor as it stood at 17:00. When the system is down, print the newest PDF from `C:\RIVR\agent\offline-pack\`. The cage agent keeps it (docs/runbooks/cage-agent.md).
 
 ## The runbooks
 
-**While money is off the system** (since 29 Oct, decision 0284), the cage is hidden and no buy-in, cash-out or UPI payment goes through RIVR. Then the room on paper is the floor sheet, the identity sheet and the food order sheet; skip the cage paper log, the UPI sheet and every cage step below, and run the drill as "The drill while money is off the system" says. The cage steps stay for when the club brings money back.
+**While money is off the system** (since 29 Oct, decision 0284), the console has no cage and no buy-in, cash-out or UPI payment goes through RIVR. Then the room on paper is the floor sheet, the identity sheet and the food order sheet; skip the cage paper log, the UPI sheet and every cage step below, and run the drill as "The drill while money is off the system" says. The cage steps stay for when the club brings money back.
 
 | Runbook | When | Paper | Back in the system |
 |---|---|---|---|
-| **App down** | The console cannot be reached, or the venue is frozen | Cage paper log (buy-ins only; no cash-outs on paper), floor sheet | The floor seats each player from the floor sheet. Then the cage enters every slip in number order and ticks it. The duty manager checks nothing is lost. |
+| **App down** | The console cannot be reached | Cage paper log (buy-ins only; no cash-outs on paper), floor sheet | The floor seats each player from the floor sheet. Then the cage enters every slip in number order and ticks it. The duty manager checks nothing is lost. |
 | **Wi-Fi down** | The tablets lose the network | Hand sheet, only for a tablet that has died. The others keep logging, and hands wait on them, through a restart too | The waiting hands send by themselves; check each tablet shows none waiting. A hand sheet's pots are set against the drop-box variance. |
 | **Power cut** | The lights go | Outage sheet, then as for app down if the cage computer goes off | As for app down. Count the cage and the chip trays before play restarts. |
 | **UPI down** | UPI payments fail | UPI sheet. Cash only; give no chips for a UPI payment yet | The member records the deposit in the app with its UTR, and the cage confirms it against the bank by amount and UTR. A line not yet in the app stays unticked. |
@@ -82,20 +82,18 @@ In every runbook the duty manager calls the fallback, writes the start and end o
 
 Run it in the practice venue during a mock session, so nothing touches the club's records. In the console, turn on Practice venue at the foot of the rail.
 
-1. A super admin freezes the practice venue with the kill switch (reason: "Paper fallback drill"). The console and the tablets show the freeze.
-2. For 30 minutes the room runs on paper as in **App down**: the floor sheet and the cage paper log, while the tablets keep logging hands.
-3. A super admin asks to release the freeze, and a second releases it.
-4. Bring the paper back and check it, as above.
+1. For 30 minutes the room runs on paper as in **App down**: the floor sheet and the cage paper log, while the tablets keep logging hands.
+2. Bring the paper back and check it, as above.
 
-The drill passes when every slip is ticked, without a gap, and the slips add up to the cash. With no hands logged while the slips go in, Treasury's "Chips in play" also rises by exactly the log's total. Write it on the outage sheet before and after. The end-to-end flow "Paper fallback" plays a short version of this drill on every change (`e2e/flows/paper-fallback.spec.ts`).
+The drill passes when every slip is ticked, without a gap, and the slips add up to the cash.
 
 ## The drill while money is off the system
 
 The same 30 minutes, in the practice venue, with the floor sheet, the identity sheet and the food order sheet.
 
-1. A super admin freezes the practice venue with the kill switch (reason: "Paper fallback drill"), and writes the start on the outage sheet.
+1. The duty manager writes the start on the outage sheet.
 2. For 30 minutes the host writes arrivals and identity checks on the identity sheet, the floor writes every seat, move and departure on the floor sheet with its time, and service writes orders on the food order sheet. Include a table change, a player leaving and an arrival whose check isn't done.
-3. A super admin asks to release the freeze, and a second releases it. Write the end on the outage sheet.
+3. Write the end on the outage sheet.
 4. Bring it back: the floor first (Live floor, each line in time order; a player who has left is seated, then let go), then call time ("Paper fallback, seated at" and the time, as above), then each food order for its seat, then each identity check in person on the console (hosts and floor may approve it). Tick every line as it goes in.
 
 The drill passes when every line on every sheet is ticked, the live floor matches the floor sheet's last state, and nothing went in twice. The duty manager signs the outage sheet.

@@ -11,7 +11,9 @@ create function pg_temp.as_user(p_user uuid) returns void language sql as $$
 $$;
 grant execute on function pg_temp.as_user(uuid) to authenticated;
 
--- Tournaments to choose from: the next published one wins, never an unpublished or a past one.
+-- Tournaments to choose from: the next published one wins, never an unpublished or a past one. The seed's own are set
+-- aside: one of them started at 16:00 IST on 15 Nov, twenty minutes ahead of 'Test next' for that long.
+update public.tournament set is_published = false;
 insert into public.tournament (venue_id, name, starts_at, buy_in_paise, guarantee_paise, is_published) values
   ('00000000-0000-4000-8000-000000000001', 'Test unpublished', now() + interval '10 minutes', 100000, null, false),
   ('00000000-0000-4000-8000-000000000001', 'Test past', now() - interval '1 hour', 100000, null, true),

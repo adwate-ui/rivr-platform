@@ -28,8 +28,7 @@ test('Push: Profile › Profile: a member turns notifications on for her phone a
     });
   });
   await signInToPlayer(page, '9000000638');
-  await page.getByRole('link', { name: 'Profile' }).click();
-  await expect(page.getByRole('button', { name: 'Back', exact: true })).toBeVisible();
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Profile' }).click();
   // The switch waits for the service worker, which a first visit installs.
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;

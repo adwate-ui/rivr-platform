@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { renderToPng } from './render.ts';
 import type { TemplateName, TemplateProps } from './templates/index.ts';
 import { allowedDifference, differenceFromBaseline, pngSize } from './test/png.ts';
-import { CLOCK } from './test/tv.ts';
 
 const { width, height } = tokens.viewport.tv;
 
@@ -29,15 +28,6 @@ describe('TV slides', () => {
       },
     ];
     await expectDrawn('tv.waitlist', { stakes }, 'waitlist');
-  });
-
-  it('draws the jackpot with tonight\'s high hand', async () => {
-    const highHand = { title: 'Four of a kind, Queens', line: 'Table 2 · 22:18 · ₹2,000' };
-    await expectDrawn('tv.badBeatJackpot', { amountPaise: 34_260_000n, highHand }, 'jackpot-high-hand');
-  });
-
-  it('draws the tournament clock: level, time left, blinds, the field and the payouts', async () => {
-    await expectDrawn('tv.tournamentClock', CLOCK, 'tournament-clock');
   });
 
   it('draws a promotion slide with its place in the rotation', async () => {

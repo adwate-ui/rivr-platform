@@ -65,29 +65,20 @@ test.describe('PWA', { tag: '@staging' }, () => {
 
 // Signs in, so not on staging's @staging run. Tara (seeded verified) signs in in no other flow, as Auth sends one code a minute.
 test.describe('PWA, a member offline', () => {
-  test('a member who has used the app opens Home and the card with no connection, and never an endless Identity', async ({ page, context }) => {
+  test('a member who has used the app opens Home with no connection, and never an endless Identity', async ({ page, context }) => {
     await signInToPlayer(page, '9000000621');
     await page.evaluate(async () => {
       await navigator.serviceWorker.ready;
     });
-    // What the app opens with is kept a moment after it is read: the card too, once it has been seen, and on later launches.
+    // What the app opens with is kept a moment after it is read, and on later launches.
     const isKept = (name: string) => page.evaluate((key) => localStorage.getItem('rivr.offline.v1')?.includes(key) ?? false, name);
-    await page.goto(`${appUrl('player')}/card`);
-    await expect(page.getByRole('img', { name: 'Your door code' })).toBeVisible();
-    await expect.poll(() => isKept('membership-card')).toBe(true);
-    await page.goto(appUrl('player'));
     await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeAttached();
     await expect.poll(() => isKept('floor-tables')).toBe(true);
-    expect(await isKept('membership-card')).toBe(true);
 
     await context.setOffline(true);
     await page.reload();
     await expect(page.getByText(/^No connection\. Showing tables as of \d\d:\d\d\.$/)).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole('heading', { name: 'ID check' })).toHaveCount(0);
-    await page.goto(`${appUrl('player')}/card`);
-    await expect(page.getByRole('heading', { name: 'No connection' })).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText('Your number', { exact: true })).toBeVisible();
-    await expect(page.getByText('Give your number at the door.')).toBeVisible();
     await context.setOffline(false);
   });
 });

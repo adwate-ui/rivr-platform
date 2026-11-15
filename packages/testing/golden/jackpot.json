@@ -1,6 +1,6 @@
 {
   "rule": "jackpot",
-  "about": "The bad-beat jackpot's pools (scope-v1 module 8; additions, \"Jackpot sub-pools\"). A drop splits between the main, season and freeroll pools: the season and freeroll pools take their shares of the drop rounded down to the paisa, and the main pool takes the rest, so the parts always add up to the drop. With no shares set, the whole drop goes to the main pool. A bad beat pays the rule's share of the main pool, split between the loser, the winner and the other players dealt in: the loser's and winner's parts are rounded down to whole ₹50 chips, the table's part is shared equally among the other players and each share rounded down to ₹50. Payouts are chips at the table. What rounds away, and the table's part when nobody else was dealt in, stays in the pool. Nothing ever rounds up.",
+  "about": "The bad-beat jackpot's pools (scope-v1 module 8; additions, \"Jackpot sub-pools\"). A drop splits between the main, season and freeroll pools: the season and freeroll pools take their shares of the drop rounded down to the paisa, and the main pool takes the rest, so the parts always add up to the drop. With no shares set, the whole drop goes to the main pool. Nothing ever rounds up.",
   "cases": [
     {
       "description": "No shares set: the whole ₹100 drop goes to the main pool.",
@@ -31,36 +31,6 @@
       "operation": "split",
       "inputs": { "drop": "₹0", "seasonShare": "20%", "freerollShare": "10%" },
       "expected": { "main": "₹0", "season": "₹0", "freeroll": "₹0" }
-    },
-    {
-      "description": "The design prompt's ₹3,42,700 pool paid in full, 50% loser, 25% winner, 25% to seven others: ₹1,71,350, ₹85,650 and ₹12,200 each; ₹300 stays.",
-      "operation": "payout",
-      "inputs": { "pool": "₹3,42,700", "poolShare": "100%", "loserShare": "50%", "winnerShare": "25%", "tableShare": "25%", "others": "7" },
-      "expected": { "loser": "₹1,71,350", "winner": "₹85,650", "eachAtTable": "₹12,200", "total": "₹3,42,400" }
-    },
-    {
-      "description": "Nobody else dealt in: the table's part stays in the pool.",
-      "operation": "payout",
-      "inputs": { "pool": "₹3,42,700", "poolShare": "100%", "loserShare": "50%", "winnerShare": "25%", "tableShare": "25%", "others": "0" },
-      "expected": { "loser": "₹1,71,350", "winner": "₹85,650", "eachAtTable": "₹0", "total": "₹2,57,000" }
-    },
-    {
-      "description": "Half the pool paid, six others: ₹85,650, ₹42,800 and ₹7,100 each.",
-      "operation": "payout",
-      "inputs": { "pool": "₹3,42,700", "poolShare": "50%", "loserShare": "50%", "winnerShare": "25%", "tableShare": "25%", "others": "6" },
-      "expected": { "loser": "₹85,650", "winner": "₹42,800", "eachAtTable": "₹7,100", "total": "₹1,71,050" }
-    },
-    {
-      "description": "A ₹50 rounding boundary: a ₹1,000 pool, 50% loser, 30% winner, 20% to three others: ₹500, ₹300 and ₹50 each (₹66.66 rounds down).",
-      "operation": "payout",
-      "inputs": { "pool": "₹1,000", "poolShare": "100%", "loserShare": "50%", "winnerShare": "30%", "tableShare": "20%", "others": "3" },
-      "expected": { "loser": "₹500", "winner": "₹300", "eachAtTable": "₹50", "total": "₹950" }
-    },
-    {
-      "description": "An empty pool pays nothing.",
-      "operation": "payout",
-      "inputs": { "pool": "₹0", "poolShare": "100%", "loserShare": "50%", "winnerShare": "25%", "tableShare": "25%", "others": "7" },
-      "expected": { "loser": "₹0", "winner": "₹0", "eachAtTable": "₹0", "total": "₹0" }
     }
   ]
 }

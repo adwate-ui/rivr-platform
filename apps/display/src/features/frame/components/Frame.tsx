@@ -1,5 +1,5 @@
-import { useAuthStatus, useControlState } from '@rivr/db';
-import { DisplayShell, KillSwitchBanner, Stack } from '@rivr/ui';
+import { useAuthStatus } from '@rivr/db';
+import { DisplayShell, Stack } from '@rivr/ui';
 import type { ReactNode } from 'react';
 
 interface FrameProps {
@@ -13,12 +13,10 @@ interface FrameProps {
  * paired TV it shows its mode, and otherwise `unpaired`. Lane B adds the clock in the corner.
  */
 export function Frame({ children, unpaired }: FrameProps) {
-  const { isVenueFrozen } = useControlState();
   const authStatus = useAuthStatus();
   return (
     <DisplayShell>
       <Stack gap={8}>
-        {isVenueFrozen ? <KillSwitchBanner audience="member" /> : null}
         {authStatus === 'signed-out' ? unpaired : null}
         {authStatus === 'signed-in' ? children : null}
       </Stack>
