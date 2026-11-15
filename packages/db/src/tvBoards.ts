@@ -26,8 +26,8 @@ export interface TvTableList {
   readonly name: string;
   /** The stake's name: "NLH 100/200". */
   readonly stake: string;
-  /** The stake's game, as `nlh`, and its figures: the blinds, and the straddle or null with none (issue 990). */
-  readonly game: string;
+  /** The stake's game, as `nlh`, or null where it names none; its figures: the blinds, and the straddle or null with none (issue 990). */
+  readonly game: string | null;
   readonly smallBlind: Paise;
   readonly bigBlind: Paise;
   readonly straddle: Paise | null;
@@ -54,8 +54,8 @@ export interface TvCallTimeTable {
   readonly name: string;
   /** The table's game and stake: "NLH 100/200". */
   readonly stake: string;
-  /** The stake's game, as `nlh`, and its figures: the blinds, and the straddle or null with none (issue 990). */
-  readonly game: string;
+  /** The stake's game, as `nlh`, or null where it names none; its figures: the blinds, and the straddle or null with none (issue 990). */
+  readonly game: string | null;
   readonly smallBlind: Paise;
   readonly bigBlind: Paise;
   readonly straddle: Paise | null;
@@ -120,7 +120,7 @@ interface BoardRow {
 }
 
 /** A row's stake in figures: its game, its blinds and its straddle, or null with none. */
-function figuresOf(row: { game: string; small_blind_paise: number; big_blind_paise: number; straddle_paise: number | null }) {
+function figuresOf(row: { game: string | null; small_blind_paise: number; big_blind_paise: number; straddle_paise: number | null }) {
   return {
     game: row.game, smallBlind: toPaise(row.small_blind_paise), bigBlind: toPaise(row.big_blind_paise),
     straddle: row.straddle_paise === null ? null : toPaise(row.straddle_paise),

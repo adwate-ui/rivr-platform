@@ -44,8 +44,8 @@ export interface WaitlistPlace {
   readonly entryId: string;
   readonly tableTypeId: string;
   readonly tableTypeName: string;
-  /** The stake's game, as `nlh`, and its figures: the blinds, and the straddle or null with none (issue 990). */
-  readonly game: string;
+  /** The stake's game, as `nlh`, or null where it names none; its figures: the blinds, and the straddle or null with none (issue 990). */
+  readonly game: string | null;
   readonly smallBlind: bigint;
   readonly bigBlind: bigint;
   readonly straddle: bigint | null;

@@ -43,16 +43,24 @@ export function formatStakes(smallBlind: bigint, bigBlind: bigint, straddle: big
   return straddle === null ? blinds : `${blinds}/${formatChips(straddle)}`;
 }
 
-/** A game's stakes, as everyone reads them: `NLH 100/200`, `NLH 100/200/500` with a straddle (audit F-122). */
-export function formatGameStakes(game: string, smallBlind: bigint, bigBlind: bigint, straddle: bigint | null = null): string {
-  return `${game.toUpperCase()} ${formatStakes(smallBlind, bigBlind, straddle)}`;
+/**
+ * A game's stakes, as everyone reads them: `NLH 100/200`, `NLH 100/200/500` with a straddle (audit F-122). A stake that
+ * names no game is its figures alone: `100/200/500`.
+ */
+export function formatGameStakes(game: string | null, smallBlind: bigint, bigBlind: bigint, straddle: bigint | null = null): string {
+  const stakes = formatStakes(smallBlind, bigBlind, straddle);
+  return game === null ? stakes : `${game.toUpperCase()} ${stakes}`;
 }
 
-const sameWords = (one: string, other: string) => one.replace(/\s+/g, ' ').trim().toLowerCase() === other.replace(/\s+/g, ' ').trim().toLowerCase();
+/** A stake's words as they are compared: case, commas and spaces aside, so `nlh 1000 / 2000` is `NLH 1,000/2,000`. */
+const plain = (words: string) => words.toLowerCase().replace(/[\s,]/g, '');
 
-/** A stake in figures: its game, as `nlh`, its blinds, and its straddle or null with none. */
+// The game a typed name writes before its figures, as `NLH 100/200`: read only for a stake that names no game of its own.
+const NAMED_GAME = /^(nlh|plo)(?=[\d.])/;
+
+/** A stake in figures: its game, as `nlh`, or null where the stake names none; its blinds; and its straddle or null with none. */
 export interface StakeFigures {
-  readonly game: string;
+  readonly game: string | null;
   readonly smallBlind: bigint;
   readonly bigBlind: bigint;
   readonly straddle: bigint | null;
@@ -60,14 +68,17 @@ export interface StakeFigures {
 
 /**
  * A stake where a screen shows the name the admin typed (issue 990). With no straddle it is the name alone, as before.
- * With a straddle the figures are written with it, `NLH 100/200/500`: in place of a name that is only the stake's
- * figures (`NLH 100/200`), and after any other name (`Private Room · NLH 100/200/500`).
+ * With a straddle the figures are written with it, `NLH 100/200/500`: once, in place of a name that is only the stake's
+ * figures, with or without the straddle and the game (`100/200`, `NLH 100/200/500`, `nlh 1000/2000`); and after any
+ * other name (`Private Room · NLH 100/200/500`). A stake that names no game takes the one its name writes, if any.
  */
-export function formatStakeName(name: string, { game, smallBlind, bigBlind, straddle }: StakeFigures): string {
+export function formatStakeName(name: string, stake: StakeFigures): string {
+  const { smallBlind, bigBlind, straddle } = stake;
   if (straddle === null) return name;
+  const game = stake.game ?? NAMED_GAME.exec(plain(name))?.[1] ?? null;
   const figures = formatGameStakes(game, smallBlind, bigBlind, straddle);
-  const isFigures = sameWords(name, formatGameStakes(game, smallBlind, bigBlind)) || sameWords(name, formatStakes(smallBlind, bigBlind));
-  return isFigures ? figures : `${name} · ${figures}`;
+  const own = [figures, formatGameStakes(game, smallBlind, bigBlind), formatStakes(smallBlind, bigBlind, straddle), formatStakes(smallBlind, bigBlind)];
+  return own.some((form) => plain(form) === plain(name)) ? figures : `${name} · ${figures}`;
 }
 
 /**
