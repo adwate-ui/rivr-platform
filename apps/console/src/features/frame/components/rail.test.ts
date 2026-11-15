@@ -1,6 +1,6 @@
 import { ROLE_PERMISSIONS, type StaffRole } from '@rivr/contracts';
 import { describe, expect, it } from 'vitest';
-import { isAllowedAt, landingFor, locksWhenIdle, phoneTabsFor, railFor, railItemAt, refusalAt, tabsFor, URGENT_QUEUES } from './rail.ts';
+import { isAllowedAt, landingFor, phoneTabsFor, railFor, railItemAt, refusalAt, tabsFor, URGENT_QUEUES } from './rail.ts';
 import { RAIL, REQUESTS } from './railEntries.ts';
 
 const items = (role: StaffRole) => railFor(ROLE_PERMISSIONS[role]).flatMap((section) => section.items.map((item) => item.href));
@@ -142,9 +142,5 @@ describe('the console rail (console v3)', () => {
 
   it('chimes for an order its member cancelled, as the bar may hold its KOT (F-048)', () => {
     expect(URGENT_QUEUES).toContain('fnbCancelled');
-  });
-
-  it("locks the rail's screens with members' records and documents, and Activity after ten idle minutes, and no other", () => {
-    expect(items('super_admin').filter((href) => locksWhenIdle(href)).sort()).toEqual(['/activity', '/kyc-review', '/members']);
   });
 });

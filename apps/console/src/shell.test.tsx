@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { SESSION_STORAGE_KEY } from '@rivr/db';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { answerStaff, CLUB, LAZY_SCREEN, PRACTICE, renderAt, signIn } from './consoleTestApp.tsx';
 
@@ -9,7 +10,7 @@ afterEach(() => {
 });
 
 // The console v3 frame (phase 1): the rail for each role, refusals under the screen's name, old addresses that moved, the
-// staff member's menu and the practice venue, and signing out when idle.
+// staff member's menu and the practice venue, and a session that never ends by itself.
 describe('the console frame', () => {
   // A screen outside the role is refused.
   // Under the screen's own name, not "Console" (#811).
@@ -226,13 +227,21 @@ describe('the console frame', () => {
     expect(await screen.findByRole('dialog', { name: 'Search' })).toBeDefined();
   });
 
-  it('says on sign-in that the idle lock signed the staff member out', async () => {
-    signIn();
-    answerStaff([{ ...CLUB, full_name: 'Kunal Desai', role: 'super_admin' }]);
-    // The last activity on a screen that locks, eleven minutes ago: reopened, it locks at once.
-    localStorage.setItem('rivr-console-active-at', String(Date.now() - 11 * 60_000));
-    renderAt('/members');
-    expect(await screen.findByText('Signed out after ten idle minutes.', {}, LAZY_SCREEN)).toBeDefined();
-    expect(screen.getByRole('textbox', { name: 'Mobile number' })).toBeDefined();
+  it('keeps a console left idle for 30 minutes signed in, on the screen it was left at (decision 0660)', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      signIn();
+      answerStaff([{ ...CLUB, full_name: 'Kunal Desai', role: 'super_admin' }]);
+      // An old console's last activity, from before the idle lock went: it no longer counts for anything.
+      localStorage.setItem('rivr-console-active-at', String(Date.now() - 31 * 60_000));
+      renderAt('/members');
+      expect(await screen.findByRole('heading', { level: 1, name: 'Members' }, LAZY_SCREEN)).toBeDefined();
+      await vi.advanceTimersByTimeAsync(30 * 60_000);
+      expect(screen.getByRole('heading', { level: 1, name: 'Members' })).toBeDefined();
+      expect(screen.queryByRole('textbox', { name: 'Mobile number' })).toBeNull();
+      expect(localStorage.getItem(SESSION_STORAGE_KEY)).not.toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
