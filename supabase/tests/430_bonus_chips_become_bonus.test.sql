@@ -46,5 +46,19 @@ select is(pg_temp.saying('00000000-0000-4000-8000-0000000004a0', '1,000 Bonus fo
 -- Only the system runs it.
 select is(has_function_privilege('authenticated', 'private.website_says_bonus(uuid)', 'execute'), false, 'a signed-in person cannot run the change');
 
+-- A block typed in another case takes the word too (the money review of the pull request): the club's two lines, put back
+-- as "Bonus Chips" and "BONUS CHIPS ARE FORFEITED", read as they did.
+update public.site_block b
+set content = replace(replace(b.content::text, '1,000 Bonus for each side of a referral', '1,000 Bonus Chips for each side of a referral'),
+                      'Your Bonus is forfeited.', 'Your BONUS CHIPS ARE FORFEITED.')::jsonb
+from public.site_page p
+where p.id = b.page_id and p.venue_id = '00000000-0000-4000-8000-000000000001' and b.content::text ~ '1,000 Bonus for each side|Your Bonus is forfeited';
+select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'Bonus Chips') + pg_temp.saying('00000000-0000-4000-8000-000000000001', 'BONUS CHIPS'), 2,
+  'two blocks say it in another case');
+select private.website_says_bonus('00000000-0000-4000-8000-000000000001');
+select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', '1,000 Bonus for each side of a referral'), 1, 'whatever the case, "bonus chips" reads Bonus');
+select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'Your Bonus is forfeited.'), 1, 'and "are forfeited" reads "is forfeited"');
+select is_empty($$ select b.id from public.site_block b where b.content::text ilike '%bonus chip%' $$, 'and no block says bonus chips in any case');
+
 select * from finish();
 rollback;

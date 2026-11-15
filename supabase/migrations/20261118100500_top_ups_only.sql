@@ -23,7 +23,7 @@ as $$
 $$;
 revoke execute on function private.may_handle_top_ups(uuid) from public, anon, authenticated;
 
--- Tonight's requests, as 20261103210000_time_requests.sql left them, for whoever handles top-ups, and with who accepted
+-- Tonight's requests, as 20261102100200_top_ups_page.sql left them, for whoever handles top-ups, and with who accepted
 -- each and who marked it done, and the seconds each step took: asked to accepted, accepted to done. What a function
 -- returns cannot be changed in place, so it is dropped and made again, with its grants.
 drop function public.top_ups_tonight(uuid);
@@ -109,7 +109,7 @@ as $$ select * from private.top_up_history(p_venue_id, p_day, p_page, p_page_siz
 revoke execute on function private.top_up_history(uuid, date, integer, integer), public.top_up_history(uuid, date, integer, integer) from public, anon;
 grant execute on function private.top_up_history(uuid, date, integer, integer), public.top_up_history(uuid, date, integer, integer) to authenticated;
 
--- Taking a top-up in hand, finishing or resetting it, as 20261103210000_time_requests.sql left it, for whoever handles top-ups.
+-- Taking a top-up in hand, finishing or resetting it, as 20261101090300_top_up_requests.sql left it, for whoever handles top-ups.
 create or replace function private.set_top_up(p_session_id uuid, p_in_progress boolean)
 returns void
 language plpgsql
@@ -144,7 +144,7 @@ begin
 end;
 $$;
 
--- Undoing a top-up's last step, as before, for whoever handles top-ups.
+-- Undoing a top-up's last step, as 20261107320000_floor_undo.sql left it, for whoever handles top-ups.
 create or replace function private.undo_top_up(p_request_id uuid)
 returns void
 language plpgsql

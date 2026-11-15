@@ -16,15 +16,15 @@ update public.setting_key
 set description = 'How many days Bonus lasts after it is given; Bonus held when it is switched on lasts that long from then. 0 is never. None set is never.'
 where key = 'bonus.expiry_days';
 
--- Promotions as they are listed and shown to members: the template's name, and the line of words under any name. A
--- name an admin typed is theirs and stays.
+-- Promotions as they are listed and shown to members: the template's name, and the line of words under any name, in
+-- whatever case it was typed ("Bonus Chips"). A name an admin typed is theirs and stays.
 update public.promotion
 set name = replace(name, 'Four-hour bonus chips', 'Four-hour bonus'),
-    detail = replace(replace(detail, 'Bonus chips', 'Bonus'), 'bonus chips', 'Bonus')
+    detail = regexp_replace(detail, 'bonus chips', 'Bonus', 'gi')
 where name = 'Four-hour bonus chips' or detail ilike '%bonus chips%';
 update public.promotion_version
 set name = replace(name, 'Four-hour bonus chips', 'Four-hour bonus'),
-    detail = replace(replace(detail, 'Bonus chips', 'Bonus'), 'bonus chips', 'Bonus')
+    detail = regexp_replace(detail, 'bonus chips', 'Bonus', 'gi')
 where name = 'Four-hour bonus chips' or detail ilike '%bonus chips%';
 
 -- As 20261116210000_academy_and_learn_removed.sql left it, with the two lines' words.
@@ -66,8 +66,7 @@ security definer
 set search_path = ''
 as $$
   update public.site_block b
-  set content = replace(replace(replace(b.content::text,
-                  'bonus chips are forfeited', 'Bonus is forfeited'), 'Bonus chips', 'Bonus'), 'bonus chips', 'Bonus')::jsonb
+  set content = regexp_replace(regexp_replace(b.content::text, 'bonus chips are forfeited', 'Bonus is forfeited', 'gi'), 'bonus chips', 'Bonus', 'gi')::jsonb
   from public.site_page p
   where p.id = b.page_id and p.venue_id = p_venue_id and b.content::text ilike '%bonus chips%';
 $$;
