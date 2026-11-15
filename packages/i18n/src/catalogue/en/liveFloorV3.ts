@@ -153,6 +153,8 @@ export const floor = {
     bonus: '{chips} Bonus',
     last: 'Last: {name}, {hand}, {time}',
     log: 'Log a high hand',
+    /** The strip could not read whether a high hand runs, or what it paid tonight. */
+    failed: 'High hand bonus not loaded.',
     table: 'Table',
     player: 'Player',
     hand: 'Hand',

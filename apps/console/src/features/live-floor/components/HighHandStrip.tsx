@@ -1,6 +1,6 @@
 import { useHighHandLive, useHighHandTonight, type HighHandLive } from '@rivr/db';
 import { formatHighHand, formatNumber, formatTime, t } from '@rivr/i18n';
-import { Stack, SummaryStrip } from '@rivr/ui';
+import { LoadState, Stack, SummaryStrip } from '@rivr/ui';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useCallback, useEffect, useRef, type ReactNode } from 'react';
 import type { FloorSheet } from './FloorSheets.tsx';
@@ -29,7 +29,8 @@ export function useHighHandFloor(venueId: string, permissions: readonly string[]
     if (canLog) open();
     void navigate({ to: '/', search: ({ log: _asked, ...rest }) => rest, replace: true });
   }, [isAsked, isRead, canLog, open, navigate]);
-  return { live, onLog: canLog ? open : undefined };
+  // A read that failed before it ever answered: the strip says so, with Retry, rather than leave the floor without a word.
+  return { live, onLog: canLog ? open : undefined, isFailed: read.isError && read.data === undefined, onRetry: () => void read.refetch() };
 }
 
 function paidWords(hands: number): string {
@@ -43,15 +44,27 @@ interface HighHandStripProps {
   live: HighHandLive | null;
   /** Opens the logging panel; none for staff who read the strip and may not log a hit. */
   onLog: (() => void) | undefined;
+  /** Whether a high hand runs could not be read; `onRetry` asks again. */
+  isFailed: boolean;
+  onRetry: () => void;
 }
 
 /**
  * The strip: the hands the running high hand paid tonight, their Bonus, the last hit, and Log a high hand, on one line at
- * every width. Its own hits, as its record counts them: one that ended earlier tonight is not added in.
+ * every width. Its own hits, as its record counts them: one that ended earlier tonight is not added in. While they load
+ * it keeps its place and Log a high hand; a read that failed says so, with Retry, as the record panel does.
  */
-function HighHandStrip({ venueId, live, onLog }: HighHandStripProps) {
-  const tonight = useHighHandTonight(venueId, live?.promotionId ?? null, live !== null).data;
-  if (live === null || tonight === undefined) return null;
+function HighHandStrip({ venueId, live, onLog, isFailed, onRetry }: HighHandStripProps) {
+  const read = useHighHandTonight(venueId, live?.promotionId ?? null, live !== null);
+  const failed = t('console.floor.highHand.failed');
+  if (isFailed) return <LoadState isError errorText={failed} onRetry={onRetry} />;
+  if (live === null) return null;
+  const action = onLog === undefined ? undefined : { label: t('console.floor.highHand.log'), onPress: onLog };
+  const tonight = read.data;
+  if (tonight === undefined) {
+    if (read.isError) return <LoadState isError errorText={failed} onRetry={() => void read.refetch()} />;
+    return <SummaryStrip label={t('console.floor.highHand.label')} lead={t('common.loading')} facts={[]} action={action} />;
+  }
   const last = tonight.hits[0];
   return (
     <SummaryStrip label={t('console.floor.highHand.label')} lead={paidWords(tonight.handsPaid)}
@@ -59,7 +72,7 @@ function HighHandStrip({ venueId, live, onLog }: HighHandStripProps) {
       detail={last === undefined ? undefined : t('console.floor.highHand.last', {
         name: last.memberName, hand: formatHighHand(last.hand, last.rank), time: formatTime(new Date(last.at)),
       })}
-      action={onLog === undefined ? undefined : { label: t('console.floor.highHand.log'), onPress: onLog }} />
+      action={action} />
   );
 }
 

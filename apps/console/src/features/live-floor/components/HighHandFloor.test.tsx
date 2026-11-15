@@ -83,6 +83,19 @@ describe('the high hand on the Live floor (redesign RD-24)', () => {
     expect(within(await strip()).queryByText(/Bonus$/)).toBeNull();
   });
 
+  it('says when the high hand could not be read, with Try again that asks again, so Log a high hand is never just missing', async () => {
+    const down = { status: 503, body: { code: 'XX000', message: 'down', details: null, hint: null } };
+    for (const read of ['high_hand_live', 'high_hand_tonight']) {
+      const { rpcs } = await renderFloor(floorWith({}, { [read]: down }));
+      const failed = (await screen.findByText('High hand bonus not loaded.')).closest('[role="alert"]');
+      if (!(failed instanceof HTMLElement)) throw new Error('no alert');
+      const asked = rpcs(read).length;
+      fireEvent.click(within(failed).getByRole('button', { name: 'Try again' }));
+      await waitFor(() => expect(rpcs(read).length).toBeGreaterThan(asked));
+      cleanup();
+    }
+  });
+
   it('logs a hit: the table, a player seated at it, the hand, its rank and each rule, then the line and Pay', async () => {
     const { rpcs } = await renderFloor(floorWith());
     const panel = await openPanel();

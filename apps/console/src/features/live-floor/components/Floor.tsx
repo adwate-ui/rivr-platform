@@ -122,7 +122,7 @@ function FloorReady({ venueId, permissions, data }: FloorProps & { data: FloorDa
         <FloorControls view={view} onView={setView} isNeedsYouOnly={isNeedsYouOnly} onNeedsYou={() => setNeedsYouOnly(!isNeedsYouOnly)}
           onSeat={openSeat} seatKey={seatKey} />
       )}>
-        <UnderHighHand venueId={venueId} live={highHand.live} onLog={highHand.onLog}>
+        <UnderHighHand venueId={venueId} {...highHand}>
           <FloorTiles tables={data.tables} seats={data.seats} held={data.held} view={view} isNeedsYouOnly={isNeedsYouOnly} focusTableId={focusTableId}
             canOpenTables={permissions.includes('floor.manage')} onPlayer={(player) => setSheet({ kind: 'player', sessionId: player.sessionId })}
             onOpenSeat={(table, seat) => { if (isFloor && table.isOpen) setSheet({ kind: 'seat', tableId: table.id, seat }); }}
