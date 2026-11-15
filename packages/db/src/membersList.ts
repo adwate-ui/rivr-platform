@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { Json } from './database.types.ts';
-import { listViewJson, type ListView } from './lists.ts';
+import { EXPORT_PAGE, listViewJson, readEveryRow, type ListView } from './lists.ts';
 import { detailsOf, type MemberPageRow } from './memberDetails.ts';
 import { kycStatusOf, type MemberListRow } from './members.ts';
 import { toPaise } from './parse/hands.ts';
@@ -24,7 +24,6 @@ export type MemberChoiceColumn = 'status' | 'kyc' | 'city' | 'tonight';
 
 /** How many members a page of the list holds, and how many an export reads at a time (the API's most). */
 export const MEMBERS_PAGE = 50;
-const EXPORT_PAGE = 1000;
 
 /** A view as the server reads it (`members_page`, `members_choices`), at a page and a page's size. */
 function viewJson(view: MembersView, page: number, pageSize: number): Json {
@@ -88,13 +87,6 @@ export function useMemberChoices(venueId: string, view: MembersView | null) {
  */
 export function useEveryMember(venueId: string) {
   const { client } = useRivrData();
-  return async (view: MembersView): Promise<MemberListRow[]> => {
-    const rows: MemberListRow[] = [];
-    for (let page = 1; ; page += 1) {
-      const { data, error } = await client.rpc('members_page', { p_venue_id: venueId, p_view: viewJson(view, page, EXPORT_PAGE) });
-      if (error) throw error;
-      rows.push(...data.map(rowOf));
-      if (data.length < EXPORT_PAGE || rows.length >= Number(data[0]?.total ?? 0)) return rows;
-    }
-  };
+  return (view: MembersView): Promise<MemberListRow[]> =>
+    readEveryRow((page) => client.rpc('members_page', { p_venue_id: venueId, p_view: viewJson(view, page, EXPORT_PAGE) }), rowOf);
 }

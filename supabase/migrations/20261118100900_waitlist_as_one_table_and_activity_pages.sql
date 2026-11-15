@@ -108,7 +108,8 @@ as $$
      $src$, 'KYC_STATUS', private.members_column_sql('kyc')),
      '{"player": "full_name", "number": "member_number", "tier": "tier_name", "status": "status", "in": "checked_in_at", "out": "checked_out_at",
        "waited": "waiting_seconds / 3600.0", "table": "table_names", "played": "played_seconds / 3600.0", "kyc": "kyc_status",
-       "list": "list", "arrived": "(checked_in_at is not null)"}'::jsonb,
+       "list": "list", "arrived": "(checked_in_at is not null)",
+       "status:sort": "array_position(array[''waiting'', ''expected'', ''playing'', ''in_room'', ''left'', ''never_arrived''], status)"}'::jsonb,
      array['full_name', 'member_number'], 'full_name, member_id', array['status', 'tier', 'kyc', 'list', 'arrived']),
     -- The Waitlist as one list (redesign RD-31; the owner, 15 Nov): every place on every table's list, as
     -- private.waitlist_board gives them, each with its table. Each table keeps its own list and its own order: the

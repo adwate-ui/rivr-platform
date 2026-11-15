@@ -201,7 +201,7 @@ export interface OpenFeedback extends FeedbackItem {
 export function useOpenFeedbackPage(venueId: string, view: ListView | null) {
   const { client } = useRivrData();
   return useListPage({
-    list: 'feedback_open', venueId, view, every: LIST_CHECK,
+    list: 'feedback_open', venueId, view,
     read: (asked) => client.rpc('feedback_open_page', { p_venue_id: venueId, p_view: asked }),
     rowOf: (row): OpenFeedback => ({
       ...itemOf({ ...row, is_ticket: true, resolved_at: null, resolved_by: null, resolution: null }), tables: row.tables, waitSeconds: row.wait_seconds,

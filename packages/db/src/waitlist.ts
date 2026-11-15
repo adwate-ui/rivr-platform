@@ -238,7 +238,7 @@ export function boardEntryOf(row: BoardRow): WaitlistBoardEntry {
 export function useWaitlistPage(venueId: string, view: ScopedView | null) {
   const { client } = useRivrData();
   return useListPage({
-    list: 'waitlist', venueId, view, every: LIVE,
+    list: 'waitlist', venueId, view,
     read: (asked) => client.rpc('waitlist_page', { p_venue_id: venueId, p_view: asked }), rowOf: (row) => boardEntryOf(row),
   });
 }

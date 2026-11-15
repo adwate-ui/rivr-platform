@@ -70,7 +70,7 @@ describe('the Waitlist as one table from the server (redesign RD-31)', () => {
   it('asks the server for a page of the places on every list, and shows each with its number, table, wait and what to know', async () => {
     renderTable();
     const row = await rowFor('Ishaan Verma');
-    for (const shown of ['1', 'Table 1 · NLH 50/100', '5 min', 'added by the floor']) expect(row.textContent).toContain(shown);
+    for (const shown of ['1', 'Table 1 · NLH 50/100', '5 min', 'By the floor']) expect(row.textContent).toContain(shown);
     expect(sent('waitlist_page')[0]).toMatchObject({ p_venue_id: 'v1', p_view: { page: 1, page_size: 50, query: '' } });
     // How many show of all, and the Table column's menu with the server's counts.
     expect(screen.getByText('2 of 120')).toBeDefined();
@@ -115,7 +115,7 @@ describe('the Waitlist as one table from the server (redesign RD-31)', () => {
     places = [place(1, 'Uday Thakur', { needsIdCheck: true, ...CALLED }), place(2, 'Mihir Shah', CALLED), place(3, 'Naina Kapoor', { awayUntil: '2026-11-15T15:52:00Z' })];
     const { onSeat, onCheckId } = renderTable();
     const uday = await rowFor('Uday Thakur');
-    expect(uday.textContent).toMatch(/ID check needed · .*seat 4.* · added by the floor/);
+    expect(uday.textContent).toMatch(/ID check needed · .*seat 4.* · by the floor/);
     for (const name of ['Uday Thakur', 'Mihir Shah', 'Naina Kapoor']) expect(screen.queryByRole('button', { name: `Call ${name}` })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Seat Uday Thakur' })).toBeNull();
     fireEvent.click(within(uday).getByRole('button', { name: 'Check Uday Thakur’s ID' }));

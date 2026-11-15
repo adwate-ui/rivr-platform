@@ -16,6 +16,8 @@ const KYC_TONE: Readonly<Record<MemberKycStatus, DotStatusTone>> = {
 
 const NONE = () => t('console.todaysPlayers.none');
 const at = (iso: string | null) => (iso === null ? NONE() : formatTime(new Date(iso)));
+// The tier only above the base one: at the door a number tells members apart, and a tier is worth saying when it is one (audit F-020).
+const tierOf = (player: DoorPlayer) => (player.isBaseTier ? NONE() : player.tierName);
 const tablesOf = (player: DoorPlayer) => (player.tables.length === 0 ? NONE() : player.tables.map((entry) => entry.table).join(', '));
 const statusWords = (status: DoorStatus) => t(`console.todaysPlayers.statuses.${status}`);
 const kycWords = (status: MemberKycStatus) => t(`console.members.kycStatuses.${status}`);
@@ -47,33 +49,34 @@ export function doorFiltersInCodes(filters: Readonly<Record<string, ListFilter>>
 /**
  * The door's columns (redesign RD-30, as its prototype has them): the player, their number and tier, where they stand,
  * when they came in and went out, how long they waited, their tables, the time played and their ID check; then, where
- * the screen acts on a row, its button. The server sorts and filters, so each column says its kind of filter and the
+ * the screen acts on a row, its button. Each column says its share of the width, so every heading fits beside its menu at
+ * 1440 px (the UI review of the pull request). The server sorts and filters, so each column says its kind of filter and the
  * menus hold the server's counts.
  */
 export function doorColumns(counted: ListChoices | undefined, action?: (player: DoorPlayer) => ReactNode): readonly DataTableColumn<DoorPlayer>[] {
   const columns: DataTableColumn<DoorPlayer>[] = [
-    { key: 'player', header: t('console.todaysPlayers.name'), cell: (player) => player.fullName, sortValue: (player) => player.fullName, priority: 'primary', isWide: true, filter: 'text' },
-    { key: 'number', header: t('console.members.number'), cell: (player) => <Text variant="secondary" tone="muted">{String(player.memberNumber)}</Text>, sortValue: (player) => player.memberNumber, exportValue: (player) => player.memberNumber, filter: 'number' },
-    { key: 'tier', header: t('console.members.tier'), cell: (player) => player.tierName, sortValue: (player) => player.tierName, filter: 'choice', choices: choicesIn('tier', counted) },
+    { key: 'player', share: 2, header: t('console.todaysPlayers.name'), cell: (player) => player.fullName, sortValue: (player) => player.fullName, priority: 'primary', isWide: true, filter: 'text' },
+    { key: 'number', share: 0.65, header: t('console.members.number'), cell: (player) => <Text variant="secondary" tone="muted">{String(player.memberNumber)}</Text>, sortValue: (player) => player.memberNumber, exportValue: (player) => player.memberNumber, filter: 'number' },
+    { key: 'tier', share: 1.05, header: t('console.members.tier'), cell: tierOf, exportValue: (player) => player.tierName, sortValue: (player) => player.tierName, filter: 'choice', choices: choicesIn('tier', counted), filterValue: (player) => player.tierName },
     {
-      key: 'status', header: t('console.todaysPlayers.status'), sortValue: (player) => RANK[player.status], isWide: true, filter: 'choice', choices: choicesIn('status', counted),
+      key: 'status', share: 1.55, header: t('console.todaysPlayers.status'), sortValue: (player) => RANK[player.status], isWide: true, filter: 'choice', choices: choicesIn('status', counted),
       filterValue: (player) => statusWords(player.status),
       cell: (player) => <DotStatus tone={TONE[player.status]} label={statusWords(player.status)} />, exportValue: (player) => statusWords(player.status),
     },
-    { key: 'in', header: t('console.todaysPlayers.checkedIn'), cell: (player) => at(player.checkedInAt), sortValue: (player) => player.checkedInAt ?? '', filter: false },
-    { key: 'out', header: t('console.todaysPlayers.checkedOut'), cell: (player) => at(player.checkedOutAt), sortValue: (player) => player.checkedOutAt ?? '', filter: false },
-    { key: 'waited', filter: 'duration', header: t('console.todaysPlayers.waited'), cell: (player) => formatDuration(player.waitingSeconds), sortValue: (player) => player.waitingSeconds, align: 'end' },
-    { key: 'table', header: t('console.todaysPlayers.table'), cell: tablesOf, sortValue: tablesOf, filter: 'text' },
+    { key: 'in', share: 0.65, header: t('console.todaysPlayers.checkedIn'), cell: (player) => at(player.checkedInAt), sortValue: (player) => player.checkedInAt ?? '', filter: false },
+    { key: 'out', share: 0.65, header: t('console.todaysPlayers.checkedOut'), cell: (player) => at(player.checkedOutAt), sortValue: (player) => player.checkedOutAt ?? '', filter: false },
+    { key: 'waited', share: 1, filter: 'duration', header: t('console.todaysPlayers.waited'), cell: (player) => formatDuration(player.waitingSeconds), sortValue: (player) => player.waitingSeconds, align: 'end' },
+    { key: 'table', share: 0.95, header: t('console.todaysPlayers.table'), cell: tablesOf, sortValue: tablesOf, filter: 'text' },
     {
-      key: 'played', filter: 'duration', header: t('console.todaysPlayers.played'), sortValue: (player) => player.playedSeconds, align: 'end',
+      key: 'played', share: 1.5, filter: 'duration', header: t('console.todaysPlayers.played'), sortValue: (player) => player.playedSeconds, align: 'end',
       cell: (player) => (player.tables.length === 0 ? NONE() : formatDuration(player.playedSeconds)),
     },
     {
-      key: 'kyc', header: t('console.members.kyc'), sortValue: (player) => KYC.indexOf(player.kycStatus), isWide: true, filter: 'choice', choices: choicesIn('kyc', counted),
+      key: 'kyc', share: 1.3, header: t('console.members.kyc'), sortValue: (player) => KYC.indexOf(player.kycStatus), isWide: true, filter: 'choice', choices: choicesIn('kyc', counted),
       filterValue: (player) => kycWords(player.kycStatus),
       cell: (player) => <DotStatus tone={KYC_TONE[player.kycStatus]} label={kycWords(player.kycStatus)} />, exportValue: (player) => kycWords(player.kycStatus),
     },
   ];
   // A column with no heading holds the row's button, and is left out of exports; two shares, so the button stays on one line.
-  return action === undefined ? columns : [...columns, { key: 'action', header: '', cell: action, align: 'end', isWide: true, filter: false }];
+  return action === undefined ? columns : [...columns, { key: 'action', share: 1.45, header: '', cell: action, align: 'end', isWide: true, filter: false }];
 }

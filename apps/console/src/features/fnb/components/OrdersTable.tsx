@@ -3,12 +3,22 @@ import { useFnbOrdersPage, useMemberCancelledKots, useServeFnbOrder, type FnbFai
 import { clubDay } from '@rivr/domain/clubDay';
 import { isTicketLate } from '@rivr/domain/floorRequests';
 import { formatDuration, t } from '@rivr/i18n';
-import { ChoiceChips, DataTable, ErrorMessage, Inline, Input, Stack, Text, type DataTableColumn, type DataTableRequest } from '@rivr/ui';
-import { useState, type ReactNode } from 'react';
+import { ChoiceChips, DataTable, ErrorMessage, Inline, Input, Stack, Text, useIsWide, type DataTableColumn, type DataTableRequest } from '@rivr/ui';
+import { useEffect, useState, type ReactNode } from 'react';
 import { KotNotAtBar } from './KotNotAtBar.tsx';
 import { OrderSteps, type Act } from './OrderSteps.tsx';
 import { laneOf, orderLines, orderNotes, type OrderLane } from './orderLanes.ts';
 import { VoidForm } from './VoidOrder.tsx';
+
+/** Today's club day, looked at again each minute: it turns at 06:00 while the screen is open. */
+function useClubDay(): string {
+  const [day, setDay] = useState(() => clubDay(new Date()));
+  useEffect(() => {
+    const timer = globalThis.setInterval(() => setDay(clubDay(new Date())), 60_000);
+    return () => globalThis.clearInterval(timer);
+  }, []);
+  return day;
+}
 
 /** Which orders of the day show: those still open, which the list opens on; delivered; void; or all of them. */
 const STATES = ['open', 'delivered', 'void', 'all'] as const;
@@ -68,38 +78,56 @@ function columnsFor(venueId: string, counted: ListChoices | undefined, steps: (o
   ];
 }
 
+/** The day and state chosen, the table's view of them, its page, and the counts for the menus and the chips. */
+function useOrders(venueId: string) {
+  // No day chosen is today's club day as it is now, so a console left open past 06:00 shows the new day's orders.
+  const [chosenDay, setDay] = useState<string | null>(null);
+  const today = useClubDay();
+  const day = chosenDay ?? today;
+  const [state, setState] = useState<OrderState>('open');
+  const [request, setRequest] = useState<DataTableRequest | null>(null);
+  const view: ScopedView | null = request === null ? null : { ...request, scope: { day, state } };
+  const page = useFnbOrdersPage(venueId, view);
+  // A column's menu counts the orders of the state chosen; the chips count every state of the day.
+  const counted = useListChoices('fnb_orders', venueId, view).data;
+  const states = useListChoices('fnb_orders', venueId, request === null ? null : { ...request, filters: {}, scope: { day, state: 'all' } }).data;
+  const chooseDay = (typed: string) => setDay(typed === '' || typed === today ? null : typed);
+  return { day, state, setState, setRequest, page, counted, states, chooseDay };
+}
+
+/** The table's rows, or that they are loading or did not load. */
+function rowsOf(page: ReturnType<typeof useFnbOrdersPage>) {
+  if (page.data !== undefined) return { rows: page.data.rows, emptyText: t('console.fnb.orders.none') };
+  return page.isError ? { status: 'error' as const, onRetry: () => void page.refetch() } : { status: 'loading' as const };
+}
+
 /**
  * A club day's orders as one table, a page at a time from the server (redesign RD-30; the owner, 15 Nov: several hundred
  * orders a day over many days). It opens on today's open orders, oldest first; delivered, void and older orders are
  * behind the chips and the day. Service, the floor and the managers accept, send and deliver from the row (#640,
- * decision 0302), and void with a reason under it.
+ * decision 0302), and void with a reason typed in the panel at the side (redesign RD-38).
  */
 export function OrdersTable({ venueId }: { venueId: string }) {
-  const [day, setDay] = useState(() => clubDay(new Date()));
-  const [state, setState] = useState<OrderState>('open');
-  const [request, setRequest] = useState<DataTableRequest | null>(null);
+  const { day, state, setState, setRequest, page, counted, states, chooseDay } = useOrders(venueId);
   const [voiding, setVoiding] = useState<string | null>(null);
   const [failure, setFailure] = useState<FnbFailure | null>(null);
-  const view: ScopedView | null = request === null ? null : { ...request, scope: { day, state } };
-  const page = useFnbOrdersPage(venueId, view);
-  const counted = useListChoices('fnb_orders', venueId, request === null ? null : { ...request, scope: { day, state: 'all' } }).data;
   const cancelled = useMemberCancelledKots(venueId).data ?? [];
   const serve = useServeFnbOrder(venueId);
+  // On a phone the orders come first: a runner works today's, and another day is chosen from a tablet up.
+  const isAtADesk = useIsWide('medium');
   const act: Act = async (done) => {
     const outcome = await done;
     setFailure(outcome.ok ? null : outcome.error);
   };
+  const voided = page.data?.rows.find((order) => order.orderId === voiding);
   const steps = (order: FnbOrderTonight) => <OrderSteps order={order} serve={serve} act={act} onVoid={() => setVoiding(order.orderId)} />;
-  const rows = page.data === undefined
-    ? (page.isError ? { status: 'error' as const, onRetry: () => void page.refetch() } : { status: 'loading' as const })
-    : { rows: page.data.rows, emptyText: t('console.fnb.orders.none') };
   const search = { label: t('console.fnb.orders.search'), variant: 'subtle' as const, text: (order: FnbOrderTonight) => order.memberName };
   const chips = (
     <Inline gap={4} align="end" wrap>
       <ChoiceChips look="subtle" mode="one" isOneRow isLabelVisuallyHidden label={t('console.fnb.orders.columns.state')} selected={[state]}
-        options={STATES.map((id) => ({ value: id, label: t(`console.fnb.orders.states.${id}`), count: countOf(id, counted) }))}
+        options={STATES.map((id) => ({ value: id, label: t(`console.fnb.orders.states.${id}`), count: countOf(id, states) }))}
         onChange={([picked]) => setState(STATES.find((id) => id === picked) ?? 'open')} />
-      <Input type="date" label={t('console.fnb.orders.day')} value={day} onChange={(event) => { if (event.target.value !== '') setDay(event.target.value); }} />
+      {isAtADesk ? <Input type="date" label={t('console.fnb.orders.day')} value={day} onChange={(event) => chooseDay(event.target.value)} /> : null}
     </Inline>
   );
   return (
@@ -108,9 +136,9 @@ export function OrdersTable({ venueId }: { venueId: string }) {
         <Text variant="small" tone="muted">{t('console.fnb.memberCancelled', { kots: cancelled.map((kot) => t('console.fnb.kot', { kot })).join(', ') })}</Text>
       )}
       {failure === null ? null : <ErrorMessage>{t(`console.fnb.failures.${failure}`)}</ErrorMessage>}
-      <DataTable {...rows} label={t('console.fnb.orders.label')} columns={columnsFor(venueId, counted, steps)} rowKey={(order) => order.orderId} filter={search} belowSearch={chips}
-        rowDetail={(order) => (order.orderId === voiding ? <VoidForm venueId={venueId} order={order} onClose={() => setVoiding(null)} /> : null)}
+      <DataTable {...rowsOf(page)} label={t('console.fnb.orders.label')} columns={columnsFor(venueId, counted, steps)} rowKey={(order) => order.orderId} filter={search} belowSearch={chips}
         server={{ total: page.data?.total ?? 0, pageSize: LIST_PAGE, onRequest: setRequest, scope: `${day} ${state}` }} exportRows={page.readEvery} />
+      {voided === undefined ? null : <VoidForm venueId={venueId} order={voided} onClose={() => setVoiding(null)} />}
     </Stack>
   );
 }

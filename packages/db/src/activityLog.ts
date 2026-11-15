@@ -1,5 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { Database } from './database.types.ts';
+import { EXPORT_PAGE, readEveryRow } from './lists.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
@@ -35,7 +36,6 @@ export interface ActivityLine {
 
 /** How many lines a page holds, and how many an export reads at a time. */
 export const ACTIVITY_PAGE = 50;
-const EXPORT_PAGE = 1000;
 
 /** What `activity_page` is asked: the venue, what narrows the log, and a page by its number. */
 function askOf(venueId: string, filters: ActivityFilters, page: number, pageSize: number) {
@@ -71,14 +71,6 @@ export function useActivityPage(venueId: string, filters: ActivityFilters, page:
       return { total: Number(data[0]?.total ?? 0), lines: data.map(lineOf) };
     },
   });
-  const readEvery = async (): Promise<ActivityLine[]> => {
-    const lines: ActivityLine[] = [];
-    for (let at = 1; ; at += 1) {
-      const { data, error } = await client.rpc('activity_page', askOf(venueId, filters, at, EXPORT_PAGE));
-      if (error) throw error;
-      lines.push(...data.map(lineOf));
-      if (data.length < EXPORT_PAGE || lines.length >= Number(data[0]?.total ?? 0)) return lines;
-    }
-  };
+  const readEvery = (): Promise<ActivityLine[]> => readEveryRow((at) => client.rpc('activity_page', askOf(venueId, filters, at, EXPORT_PAGE)), lineOf);
   return { ...log, readEvery };
 }

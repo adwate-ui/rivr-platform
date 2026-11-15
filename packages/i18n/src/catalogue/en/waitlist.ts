@@ -104,7 +104,7 @@ export const waitlist = {
   openPaused: 'Venue frozen. Try again once it is released.',
   requestsFailed: 'Requests not loaded. Reload the page.',
   /** Every place as one table (redesign RD-31): its name, search and columns, and the dash in a column with nothing to say. */
-  table: { label: 'Places', search: 'Find a player', place: 'No.', player: 'Player', table: 'Table', waited: 'Waited', notes: 'Notes', none: '–', tableLine: '{table} · {stake}' },
+  table: { label: 'Places', search: 'Find a player', place: 'No.', player: 'Player', table: 'Table', waited: 'Waited', notes: 'Notes', none: '–', tableLine: '{table} · {stake}', byFloor: 'by the floor' },
   approve: 'Approve {name}',
   approveShort: 'Approve',
   confirmRemove: 'Yes, remove {name}',

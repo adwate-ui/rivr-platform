@@ -13,10 +13,13 @@ const chips = (): readonly DoorChip[] => [
   { id: 'never_arrived', label: t('console.todaysPlayers.statuses.never_arrived'), statuses: ['never_arrived'] },
 ];
 
+// Who needs the floor first: waiting, then playing, in the room, left and never arrived. The server sorts Status by that need.
+const BY_NEED = { key: 'status', direction: 'ascending' } as const;
+
 /**
  * Today's players (#641), for staff who read members: everyone at the club this club day, a page at a time from the server
  * (redesign RD-30), by status with a count on each (console v3), with their number, tier and ID check, when they checked
- * in and out, how long they waited, their tables and the time played.
+ * in and out, how long they waited, their tables and the time played. It opens sorted by need, those waiting first.
  */
 export function TodaysPlayersScreen() {
   const staff = useStaffVenue();
@@ -27,7 +30,7 @@ export function TodaysPlayersScreen() {
   return (
     <Screen title={title}>
       <DoorTable venueId={staff.venue.venueId} label={t('console.todaysPlayers.label')} chipsLabel={t('console.todaysPlayers.status')} chips={chips()}
-        emptyText={t('console.todaysPlayers.noneOfStatus')} />
+        emptyText={t('console.todaysPlayers.noneOfStatus')} nobodyText={t('console.todaysPlayers.empty')} initialSort={BY_NEED} />
     </Screen>
   );
 }

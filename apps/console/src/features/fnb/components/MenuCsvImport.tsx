@@ -1,6 +1,6 @@
 import { useSaveFnbMenu, type FnbMenuFailure, type FnbMenuFileItem } from '@rivr/db/fnb';
 import { formatNumber, t } from '@rivr/i18n';
-import { Button, CameraButton, DietMark, ErrorMessage, Heading, Inline, Stack, StatusMessage, Text } from '@rivr/ui';
+import { Button, CameraButton, DietMark, ErrorMessage, Inline, Sheet, Stack, StatusMessage, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { menuItemsToSave, readMenuCsv, type MenuCsv, type MenuCsvLine } from './menuCsv.ts';
 
@@ -62,7 +62,7 @@ const savedText = (count: number) =>
 /**
  * The menu from a CSV (#799): a file of names, types and whether each is on offer, read on the screen and shown line by
  * line with what is wrong, then saved in one go, all or none. A name the menu has is changed; a new one is added. On offer
- * left blank leaves an item as it is.
+ * left blank leaves an item as it is. The body of the panel `MenuCsvPanel` opens.
  */
 export function MenuCsvImport({ venueId }: { venueId: string }) {
   const [csv, setCsv] = useState<MenuCsv | null>(null);
@@ -80,7 +80,6 @@ export function MenuCsvImport({ venueId }: { venueId: string }) {
   const items = csv === null ? null : menuItemsToSave(csv);
   return (
     <Stack gap={4}>
-      <Heading level={2}>{t('console.fnb.menuCsv.heading')}</Heading>
       <Text variant="small" tone="muted">{t('console.fnb.menuCsv.format')}</Text>
       <Inline>
         <CameraButton variant="subtle" camera="none" accept=".csv,text/csv" onPhoto={(file) => void choose(file)}>
@@ -92,5 +91,22 @@ export function MenuCsvImport({ venueId }: { venueId: string }) {
       {items === null ? null : <SaveFile key={chosen} venueId={venueId} items={items} onSaved={(count) => { setSaved(savedText(count)); setCsv(null); }} />}
       <StatusMessage>{saved}</StatusMessage>
     </Stack>
+  );
+}
+
+/** Menu from a CSV, under the menu: it opens the file's form in the panel at the side (redesign RD-38), a fresh one each time. */
+export function MenuCsvPanel({ venueId }: { venueId: string }) {
+  const [opened, setOpened] = useState(0);
+  const [isOpen, setIsOpen] = useState(false);
+  const title = t('console.fnb.menuCsv.heading');
+  return (
+    <Inline>
+      <Button variant="subtle" size="compact" onClick={() => { setOpened(opened + 1); setIsOpen(true); }}>{title}</Button>
+      {isOpen ? (
+        <Sheet place="console" isOpen onClose={() => setIsOpen(false)} title={title}>
+          <MenuCsvImport key={opened} venueId={venueId} />
+        </Sheet>
+      ) : null}
+    </Inline>
   );
 }

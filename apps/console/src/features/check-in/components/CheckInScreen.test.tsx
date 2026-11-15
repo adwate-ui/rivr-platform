@@ -9,6 +9,8 @@ afterEach(() => {
   cleanup();
   localStorage.clear();
   vi.unstubAllGlobals();
+  rows = null;
+  counts = COUNTS;
 });
 
 const KABIR = {
@@ -23,19 +25,24 @@ const NAKUL = {
 const COUNTS = [
   { column_key: 'list', value: 'in_club', members: 36 }, { column_key: 'list', value: 'expected', members: 3 }, { column_key: 'list', value: 'left', members: 279 },
   { column_key: 'status', value: 'playing', members: 30 }, { column_key: 'status', value: 'waiting', members: 6 }, { column_key: 'status', value: 'expected', members: 3 },
-  { column_key: 'status', value: 'left', members: 279 }, { column_key: 'tier', value: 'Member', members: 290 },
+  { column_key: 'status', value: 'left', members: 270 }, { column_key: 'status', value: 'in_room', members: 5 }, { column_key: 'status', value: 'never_arrived', members: 4 },
+  { column_key: 'tier', value: 'Member', members: 290 },
 ];
+// What the next test's server answers, when a test sets them: the page's rows and the counts.
+let rows: readonly (typeof KABIR)[] | null = null;
+let counts: readonly object[] = COUNTS;
 
 interface Asked {
   readonly scope: { readonly list?: string };
   readonly filters: Readonly<Record<string, { readonly chosen?: readonly string[] }>>;
   readonly query: string;
+  readonly sort: { readonly key: string; readonly direction: string } | null;
 }
 
 /** The page the server would give of the two players: by the door's list asked for, else by the statuses chosen. */
 function pageOf(view: Asked): readonly object[] {
   const statuses = view.filters['status']?.chosen;
-  return [KABIR, NAKUL].filter((row) => (view.scope.list === undefined || row.list === view.scope.list) && (statuses === undefined || statuses.includes(row.status)));
+  return (rows ?? [KABIR, NAKUL]).filter((row) => (view.scope.list === undefined || row.list === view.scope.list) && (statuses === undefined || statuses.includes(row.status)));
 }
 
 /** A staff member in `role` at the door, on Check-in or Today's players; gives every view asked of the server and every call that changes something. */
@@ -56,7 +63,7 @@ function renderAs(role: string, pane: 'check-in' | 'players' = 'check-in') {
       asked.push(view);
       return Response.json(pageOf(view));
     }
-    if (url.includes('/rpc/list_choices')) return Response.json(COUNTS);
+    if (url.includes('/rpc/list_choices')) return Response.json(counts);
     if (url.includes('/rpc/check_')) calls.push(url.split('/rpc/')[1]?.split('?')[0] ?? '');
     return Response.json(url.includes('/rpc/check_') ? 'v1' : []);
   });
@@ -86,10 +93,16 @@ describe('Check-in (the door as one table from the server, redesign RD-30)', () 
     expect(within(chips).getByRole('radio', { name: 'Left, 279' })).toBeDefined();
   });
 
-  it('tells members apart by number and tier, with where each stands, the time played and the ID check', async () => {
+  it('tells members apart by number, with the tier only above the base one (audit F-020), where each stands, the time played and the ID check', async () => {
     renderAs('host');
     const row = (await within(await door()).findByText('Nakul Dhillon')).closest('[role="row"]');
-    for (const shown of ['270', 'Member', 'Playing', 'Table 1', '1 h 30 min', 'Checked']) expect(row?.textContent).toContain(shown);
+    for (const shown of ['270', 'Playing', 'Table 1', '1 h 30 min', 'Checked']) expect(row?.textContent).toContain(shown);
+    // Nakul is of the base tier: his row names none. Kabir's names his.
+    expect(row?.textContent).not.toContain('Member');
+    fireEvent.click(screen.getByRole('radio', { name: /^Expected tonight/ }));
+    const kabir = (await within(await door()).findByText('Kabir Sethi')).closest('[role="row"]');
+    expect(kabir?.textContent).toContain('31');
+    expect(kabir?.textContent).toContain('Black card');
   });
 
   it('asks the server for the members expected, and checks one in from their row', async () => {
@@ -119,11 +132,31 @@ describe('Today\'s players (issue 641; on the server, redesign RD-30)', () => {
     expect(within(table).queryByRole('button', { name: /^Check (in|out) / })).toBeNull();
     const chips = screen.getByRole('radiogroup', { name: 'Status' });
     expect(await within(chips).findByRole('radio', { name: 'All, 318' })).toBeDefined();
+    for (const name of ['Playing, 30', 'Waiting, 9']) expect(within(chips).getByRole('radio', { name })).toBeDefined();
     // A player waiting counts whether in the room or expected at the door.
     fireEvent.click(within(chips).getByRole('radio', { name: 'Waiting, 9' }));
     await waitFor(() => expect(asked.at(-1)?.filters['status']?.chosen).toEqual(['waiting', 'expected']));
     await waitFor(() => expect(within(table).queryByText('Nakul Dhillon')).toBeNull());
     expect(within(table).getByText('Expected')).toBeDefined();
+  });
+
+  it('opens sorted by need, those waiting first, which the server orders (the task review)', async () => {
+    const { asked } = renderAs('host', 'players');
+    await screen.findByRole('table', { name: 'Players today' }, { timeout: 5000 });
+    expect(asked[0]?.sort).toEqual({ key: 'status', direction: 'ascending' });
+  });
+
+  it('tells who is in the room and who never arrived from who left (audit F-097)', async () => {
+    renderAs('host', 'players');
+    const chips = await screen.findByRole('radiogroup', { name: 'Status' }, { timeout: 5000 });
+    for (const name of ['In the room, 5', 'Left, 270', 'Never arrived, 4']) expect(await within(chips).findByRole('radio', { name })).toBeDefined();
+  });
+
+  it('says so when nobody has come in today', async () => {
+    rows = [];
+    counts = [];
+    renderAs('host', 'players');
+    expect(await screen.findByText('Nobody has come in today yet.', {}, { timeout: 5000 })).toBeDefined();
   });
 
   it('refuses staff who read no members', async () => {

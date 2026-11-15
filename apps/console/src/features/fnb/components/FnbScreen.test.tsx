@@ -114,13 +114,15 @@ describe('Food and drink (console v3)', () => {
     expect(within(table).queryByRole('button', { name: /KOT 5/ })).toBeNull();
   });
 
-  it('voids an order from its row, with a reason typed under it', async () => {
+  it('voids an order from its row, with a reason typed in the panel at the side (redesign RD-38)', async () => {
     const { calls } = renderAs('service');
     fireEvent.click(await within(await orders()).findByRole('button', { name: 'Void KOT 4' }));
-    fireEvent.change(await screen.findByRole('textbox', { name: 'Why void KOT 4' }), { target: { value: 'Ordered twice' } });
+    const panel = within(await screen.findByRole('dialog', { name: 'Void KOT 4' }));
+    expect(panel.getByText('The member sees this.')).toBeDefined();
+    fireEvent.change(panel.getByRole('textbox', { name: 'Why void KOT 4' }), { target: { value: 'Ordered twice' } });
     fireEvent.click(screen.getByRole('button', { name: 'Void the order' }));
     await waitFor(() => expect(calls.find((call) => call.url.includes('/rpc/cancel_fnb_order'))?.body).toMatchObject({ p_order_id: 'o4', p_reason: 'Ordered twice' }));
-    await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Why void KOT 4' })).toBeNull());
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   });
 
   it('says the bar printer did not get a KOT only when the outbox says so, and lets a manager mark that the bar has it', async () => {
@@ -181,9 +183,12 @@ describe('Food and drink (console v3)', () => {
 
   it('keeps the menu on its own tab', async () => {
     renderAs('admin', 'menu', { ...READS, '/rest/v1/fnb_item': [{ id: 'chai', name: 'Masala chai', kind: 'soft_drink', is_available: true, position: 1, photo_path: null }] });
-    expect(await screen.findByRole('heading', { name: 'Menu from a CSV' }, WAIT)).toBeDefined();
-    expect(screen.queryByRole('region', { name: 'To accept' })).toBeNull();
+    const csv = await screen.findByRole('button', { name: 'Menu from a CSV' }, WAIT);
+    expect(screen.queryByRole('table', { name: 'Orders' })).toBeNull();
     expect(screen.getByRole('link', { name: 'Menu' }).getAttribute('aria-current')).toBe('page');
+    // The menu from a CSV opens in the panel at the side (redesign RD-38).
+    fireEvent.click(csv);
+    expect(within(screen.getByRole('dialog', { name: 'Menu from a CSV' })).getByText(/^Columns: name, type/)).toBeDefined();
   });
 
   it('opens the orders for a tab it does not know', async () => {

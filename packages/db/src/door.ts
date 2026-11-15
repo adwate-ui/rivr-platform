@@ -29,9 +29,6 @@ export interface DoorPlayer extends Omit<TodaysPlayer, 'status'> {
 const STATUSES: readonly DoorStatus[] = ['playing', 'waiting', 'in_room', 'expected', 'left', 'never_arrived'];
 const LISTS: readonly DoorListName[] = ['in_club', 'expected', 'left', 'not_arrived'];
 
-// The door's list changes as members arrive and join from the app.
-const LIVE = 10_000;
-
 /**
  * One page of the door's list for staff who read members, sorted, searched and filtered on the server (`door_page`),
  * with how many the view leaves. The view's scope is the screen's choice of list: `in_club`, `expected`, `left`, or
@@ -40,7 +37,7 @@ const LIVE = 10_000;
 export function useDoorPage(venueId: string, view: ScopedView | null) {
   const { client } = useRivrData();
   return useListPage({
-    list: 'door', venueId, view, every: LIVE,
+    list: 'door', venueId, view,
     read: (asked) => client.rpc('door_page', { p_venue_id: venueId, p_view: asked }),
     rowOf: (row): DoorPlayer => ({
       memberId: row.member_id, fullName: row.full_name, memberNumber: Number(row.member_number), tierName: row.tier_name, isBaseTier: row.is_base_tier,

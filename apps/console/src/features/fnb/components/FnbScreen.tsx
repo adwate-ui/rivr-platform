@@ -2,7 +2,7 @@ import { useStaffVenue } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button, Inline, Screen, Stack, StatusMessage, Tabs } from '@rivr/ui';
 import { useState } from 'react';
-import { MenuCsvImport } from './MenuCsvImport.tsx';
+import { MenuCsvPanel } from './MenuCsvImport.tsx';
 import { MenuItems } from './MenuItems.tsx';
 import { NewOrderSheet } from './NewOrderSheet.tsx';
 import { OrdersTable } from './OrdersTable.tsx';
@@ -80,12 +80,12 @@ function Fnb({ access, tab, onNavigate }: { access: FnbAccess; tab: FnbTab; onNa
   );
 }
 
-/** The menu by kind (#823); for staff who run F&B (redesign RD-33), a dish's photo (AS-11) and the menu from a CSV (#799). */
+/** The menu by kind (#823); for staff who run F&B (redesign RD-33), a dish's photo (AS-11) and the menu from a CSV (#799), which opens in the panel. */
 function MenuTab({ access }: { access: FnbAccess }) {
   return (
     <Stack gap={10}>
       <MenuItems venueId={access.venueId} canManage={access.canManage} />
-      {access.canManage ? <MenuCsvImport venueId={access.venueId} /> : null}
+      {access.canManage ? <MenuCsvPanel venueId={access.venueId} /> : null}
     </Stack>
   );
 }

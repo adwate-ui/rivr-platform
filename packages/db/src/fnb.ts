@@ -221,7 +221,7 @@ export function useTabletFnbOrder() {
 export function useFnbOrdersPage(venueId: string, view: ScopedView | null) {
   const { client } = useRivrData();
   return useListPage({
-    list: 'fnb_orders', venueId, view, every: ORDERS_CHECK,
+    list: 'fnb_orders', venueId, view,
     read: (asked) => client.rpc('fnb_orders_page', { p_venue_id: venueId, p_view: asked }),
     rowOf: (row): FnbOrderTonight => ({
         orderId: row.order_id, kotNumber: row.kot_number, tableName: row.table_name, seat: row.seat, memberName: row.member_name,

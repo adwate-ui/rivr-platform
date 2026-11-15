@@ -44,7 +44,28 @@ export type ListChoices = Readonly<Record<string, readonly { readonly value: str
 
 /** How many rows a page holds, and how many an export reads at a time (the API's most). */
 export const LIST_PAGE = 50;
-const EXPORT_PAGE = 1000;
+export const EXPORT_PAGE = 1000;
+
+/** How often a live list asks again, in milliseconds: its pages and its counts together, so a chip's count is the table's. */
+const LIST_EVERY: Readonly<Partial<Record<ListName, number>>> = { feedback_open: 60_000, fnb_orders: 10_000, door: 10_000, waitlist: 10_000 };
+
+/** A page of rows as the server gives it, each row with the count of all. */
+type PageAnswer<Raw> = PromiseLike<{ data: Raw[] | null; error: Error | null }>;
+
+/**
+ * Every row a view leaves, for an export: a page of a thousand at a time, by its number from 1, until a short page or the
+ * server's count is reached. The one loop every export reads by.
+ */
+export async function readEveryRow<Raw extends { total: number }, Row>(read: (page: number) => PageAnswer<Raw>, rowOf: (row: Raw) => Row): Promise<Row[]> {
+  const rows: Row[] = [];
+  for (let at = 1; ; at += 1) {
+    const { data, error } = await read(at);
+    if (error) throw error;
+    const found = data ?? [];
+    rows.push(...found.map(rowOf));
+    if (found.length < EXPORT_PAGE || rows.length >= Number(found[0]?.total ?? 0)) return rows;
+  }
+}
 
 /** Each list's own query key, which its pages' and counts' keys start with: whatever makes the list stale makes them stale. */
 const LIST_KEY: Readonly<Record<ListName, (userId: string, venueId: string) => readonly unknown[]>> = {
@@ -75,6 +96,7 @@ export function choicesByColumn(rows: readonly { column_key: string; value: stri
 /**
  * What a list's column menus and chips offer (redesign correction 4), counted on the server over every row the search and
  * the other columns' filters leave (`list_choices`), whatever the page and order. Nothing is asked while `view` is null.
+ * A live list's counts ask again as often as its pages do.
  */
 export function useListChoices(list: ListName, venueId: string, view: ScopedView | null) {
   const { client, userId } = useRivrData();
@@ -83,6 +105,7 @@ export function useListChoices(list: ListName, venueId: string, view: ScopedView
     queryKey: [...LIST_KEY[list](userId ?? 'signed-out', venueId), 'choices', asked],
     enabled: userId !== null && asked !== null,
     placeholderData: keepPreviousData,
+    ...(LIST_EVERY[list] === undefined ? {} : { refetchInterval: LIST_EVERY[list] }),
     queryFn: async (): Promise<ListChoices> => {
       if (asked === null) return {};
       const { data, error } = await client.rpc('list_choices', { p_list: list, p_venue_id: venueId, p_view: asked });
@@ -92,29 +115,28 @@ export function useListChoices(list: ListName, venueId: string, view: ScopedView
   });
 }
 
-/** How a list's page is read: the list, the venue, the view, the call, and each row as the screen reads it; `every` asks again on a timer. */
+/** How a list's page is read: the list, the venue, the view, the call, and each row as the screen reads it. */
 interface PageRead<Raw, Row> {
   readonly list: ListName;
   readonly venueId: string;
   readonly view: ScopedView | null;
-  readonly read: (asked: { [key: string]: Json }) => PromiseLike<{ data: Raw[] | null; error: Error | null }>;
+  readonly read: (asked: { [key: string]: Json }) => PageAnswer<Raw>;
   readonly rowOf: (row: Raw) => Row;
-  readonly every?: number | undefined;
 }
 
 /**
  * One page of a list, sorted, searched and filtered on the server, with how many rows the view leaves; nothing is asked
  * while `view` is null, before the table has handed its view over. The page before stays on screen while the next loads.
- * `readEvery` reads every row the view leaves, a thousand at a time, for an export.
+ * A live list asks again on its timer. `readEvery` reads every row the view leaves, for an export (`readEveryRow`).
  */
-export function useListPage<Raw extends { total: number }, Row>({ list, venueId, view, read, rowOf, every }: PageRead<Raw, Row>) {
+export function useListPage<Raw extends { total: number }, Row>({ list, venueId, view, read, rowOf }: PageRead<Raw, Row>) {
   const { userId } = useRivrData();
   const asked = view === null ? null : listViewJson(view);
   const page = useQuery({
     queryKey: [...LIST_KEY[list](userId ?? 'signed-out', venueId), 'page', asked],
     enabled: userId !== null && asked !== null,
     placeholderData: keepPreviousData,
-    ...(every === undefined ? {} : { refetchInterval: every }),
+    ...(LIST_EVERY[list] === undefined ? {} : { refetchInterval: LIST_EVERY[list] }),
     queryFn: async (): Promise<ListPage<Row>> => {
       if (asked === null) return { rows: [], total: 0 };
       const { data, error } = await read(asked);
@@ -123,15 +145,6 @@ export function useListPage<Raw extends { total: number }, Row>({ list, venueId,
       return { total: Number(rows[0]?.total ?? 0), rows: rows.map(rowOf) };
     },
   });
-  const readEvery = async (): Promise<Row[]> => {
-    const rows: Row[] = [];
-    for (let at = 1; view !== null; at += 1) {
-      const { data, error } = await read(listViewJson(view, at, EXPORT_PAGE));
-      if (error) throw error;
-      rows.push(...(data ?? []).map(rowOf));
-      if ((data ?? []).length < EXPORT_PAGE || rows.length >= Number(data?.[0]?.total ?? 0)) break;
-    }
-    return rows;
-  };
+  const readEvery = async (): Promise<Row[]> => (view === null ? [] : readEveryRow((at) => read(listViewJson(view, at, EXPORT_PAGE)), rowOf));
   return { ...page, readEvery };
 }

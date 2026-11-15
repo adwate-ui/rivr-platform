@@ -44,7 +44,7 @@ function PreparingSteps({ order, serve, act }: StepProps) {
 }
 
 /**
- * A standing order's actions on its row: its next step, then Void, which opens its reason under the row (decision 0302).
+ * A standing order's actions on its row: its next step, then Void, which opens its reason in the panel (decision 0302).
  * A delivered or void order has none.
  */
 export function OrderSteps({ onVoid, ...step }: StepProps & { onVoid: () => void }) {

@@ -164,7 +164,7 @@ test.describe('Waitlist', () => {
 
     await addByNumber(host, 'Table 1', '9000000211');
     await expect(placeRow(host, MEMBER)).toHaveText(new RegExp(`^1${MEMBER}Table 1 · NLH 50/100`));
-    await expect(placeRow(host, MEMBER)).toContainText('added by the floor');
+    await expect(placeRow(host, MEMBER)).toContainText('By the floor');
     // Added by the floor, the place names the table whose list it is on.
     await player.reload();
     await expect(player.getByText('Next in line')).toBeVisible();

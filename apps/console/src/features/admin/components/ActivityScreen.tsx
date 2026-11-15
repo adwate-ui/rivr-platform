@@ -25,7 +25,8 @@ function columns(): readonly DataTableColumn<ActivityLine>[] {
   const when = (line: ActivityLine) => formatDateTime(new Date(line.occurredAt));
   const kind = (line: ActivityLine) => t(`console.activity.kinds.${line.kind}`);
   return [
-    { key: 'when', header: t('console.activity.when'), cell: when, exportValue: when, filter: false },
+    // Two shares, so a day and its time stay on one line.
+    { key: 'when', header: t('console.activity.when'), cell: when, exportValue: when, isWide: true, filter: false },
     { key: 'who', header: t('console.activity.who'), cell: whoOf, exportValue: whoOf, filter: false },
     { key: 'kind', header: t('console.activity.kind'), cell: kind, exportValue: kind, filter: false },
     { key: 'what', header: t('console.activity.what'), cell: whatOf, exportValue: whatOf, filter: false },

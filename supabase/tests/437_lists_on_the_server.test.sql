@@ -133,6 +133,20 @@ select results_eq($$ select member_id, status, list from public.door_page('00000
 select is((select member_id from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1, "sort": {"key": "played", "direction": "descending"}}')),
   (select p.member_id from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}') p order by p.played_seconds desc, p.full_name limit 1),
   'by time played, most first');
+-- Status sorts by need, as the door reads it, not by its code's letters: waiting, expected, playing, in the room, left, never arrived.
+select cmp_ok((select count(distinct status) from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}')), '>', 1::bigint,
+  'the door holds players of more than one status');
+select is_empty($$ select 1 from (
+    select array_position(array['waiting', 'expected', 'playing', 'in_room', 'left', 'never_arrived'], p.status) as need,
+           lag(array_position(array['waiting', 'expected', 'playing', 'in_room', 'left', 'never_arrived'], p.status)) over (order by p.at) as need_before
+    from (select d.status, row_number() over () as at
+          from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000, "sort": {"key": "status", "direction": "ascending"}}') d) p) o
+  where o.need < o.need_before $$, 'sorted by status, those who need the floor come first');
+select is((select status from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1, "sort": {"key": "status", "direction": "descending"}}')),
+  (select p.status from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}') p
+   order by array_position(array['waiting', 'expected', 'playing', 'in_room', 'left', 'never_arrived'], p.status) desc limit 1), 'and last, the other way');
+select is((select count(*) from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000, "filters": {"status": {"kind": "choice", "chosen": ["playing"]}}}')),
+  (select count(*) from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}') p where p.status = 'playing'), 'while its filter still reads the status itself');
 select is((select sum(members) from public.list_choices('door', '00000000-0000-4000-8000-000000000001') where column_key = 'list'),
   (select count(*) from public.todays_players('00000000-0000-4000-8000-000000000001'))::numeric, 'the door''s lists count every player once');
 select results_eq($$ select value, members from public.list_choices('door', '00000000-0000-4000-8000-000000000001', jsonb_build_object('query', (select full_name from seated))) where column_key = 'list' $$,

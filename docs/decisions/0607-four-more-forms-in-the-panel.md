@@ -13,3 +13,4 @@ Date: 15 Nov 2026. Issue 982 (redesign RD-38; correction 1 of `docs/spec/redesig
   - the website's editor: the editor is the page, not a form inside a list;
   - Club details and the other Settings tabs: edited in place, as RD-18 settled;
   - a KYC decision and the forms docked in the member record: the record is itself the right-hand panel, and a panel does not open a panel.
+- **Two the review found** (the fix pass of the pull request): an order's void reason, which opened under its row, and the menu from a CSV, which sat under the menu, open in the panel too.
