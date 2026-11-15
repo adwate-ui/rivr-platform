@@ -17,7 +17,7 @@ export interface DigiLockerRecord {
   /**
    * The vendor's stable reference for the Aadhaar number (a token or hash, never the number): the
    * same on every pull for the same Aadhaar, so a second account with it is a duplicate. Null when the
-   * vendor gives none, as Cashfree does: the database then matches name, date of birth and the last four
+   * vendor gives none, as Cashfree did: the database then matches name, date of birth and the last four
    * digits instead (decision 0197).
    */
   readonly aadhaarReference: string | null;
@@ -53,8 +53,8 @@ export interface FaceMatch {
 }
 
 /**
- * KYC: DigiLocker pull of masked Aadhaar and PAN, PAN verification fallback, selfie liveness and face
- * match. No face search: Cashfree has none (decision 0197).
+ * KYC: DigiLocker pull of masked Aadhaar and PAN, PAN verification fallback, selfie liveness where the vendor checks it,
+ * and face match. No face search (decision 0197).
  */
 export interface KycAdapter {
   /** Starts a DigiLocker consent hand-off for a member. */
@@ -70,8 +70,11 @@ export interface KycAdapter {
     readonly name: string;
     readonly dateOfBirth: string;
   }): Promise<Result<PanVerification, AdapterFailure>>;
-  /** Checks that a selfie is of a live person. */
-  checkLiveness(input: { readonly selfieUrl: string }): Promise<Result<LivenessCheck, AdapterFailure>>;
+  /**
+   * Checks that a selfie is of a live person, where the vendor does. Zoop does not (the owner, 15 Nov 2026: the selfie
+   * stays in the app, with no vendor page), so its selfie is kept with no liveness score (decision 0671).
+   */
+  checkLiveness?(input: { readonly selfieUrl: string }): Promise<Result<LivenessCheck, AdapterFailure>>;
   /** Compares the selfie with the DigiLocker photo. */
   matchFace(input: { readonly selfieUrl: string; readonly referenceUrl: string }): Promise<Result<FaceMatch, AdapterFailure>>;
 }

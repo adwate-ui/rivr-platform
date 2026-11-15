@@ -23,7 +23,7 @@ function isAppOrigin(url: URL): boolean {
 /**
  * Where DigiLocker sends the member back: /kyc/return on the player app's own address, fixed here and never taken from the
  * request, so the hand-off cannot be pointed at someone else's page. The address is the app's https origin alone (http
- * only on this machine), as Cashfree refuses any other return (K-08: staging's was not, and every start failed); one that
+ * only on this machine), as Cashfree refused any other return (K-08: staging's was not, and every start failed); one that
  * is not is no return address at all.
  */
 function returnUrlOf(appUrl: string): string | null {

@@ -2,7 +2,7 @@
  * KYC (#4, #5): a member takes a selfie with the live camera, checks their identity with DigiLocker and is welcomed by
  * their first name (decision 0320). The practice venue uses the fake vendor, which consents at once and
  * sends the member straight back; a real venue without vendor keys fails closed (decision 0014). Staging has
- * Cashfree's sandbox keys (#474, decision 0197), so there the real venue's check goes to Cashfree instead.
+ * Zoop's test keys (decision 0671), so there the real venue's selfie is taken; its DigiLocker stays closed until built.
  */
 import { execFileSync } from 'node:child_process';
 import { expect, test, type Page } from '@playwright/test';
@@ -58,7 +58,7 @@ test.describe('KYC', () => {
     await page.goto(appUrl('player'));
     await expect(page).toHaveURL(/\/kyc$/);
     await expect(page.getByRole('navigation', { name: 'Main' })).toHaveCount(0);
-    // Staging's real venue has Cashfree's sandbox keys, so its KYC is open, not closed: it is proved locally.
+    // Staging's real venue has Zoop's test keys, so its selfie is taken, not refused: closed is proved locally.
     if (isRemoteTarget()) return;
     await takeSelfie(page);
     await expect(page.getByRole('alert').getByText('ID checks are not open yet.')).toBeVisible();
