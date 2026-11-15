@@ -42,7 +42,7 @@ export function ScreenTabs({ screen, panes }: ScreenTabsProps) {
   return <Screen title={t(entry.label)} tabs={tabBar}>{line}{pane}</Screen>;
 }
 
-/** A tab's own screen; one loaded when first opened, such as Learn content, shows its screen loading meanwhile. */
+/** A tab's own screen; one loaded when first opened shows its screen loading meanwhile. */
 function TabPane({ tab, Pane }: { tab: ScreenTab; Pane: ComponentType | undefined }) {
   if (Pane === undefined) return null;
   return <Suspense fallback={<Screen title={t(tab.label)} status="loading" />}><Pane /></Suspense>;

@@ -23,10 +23,10 @@ const find: FindConversion = async (_venueId, eventType) =>
 const ACTIONS = conversionActionsSchema.parse(Object.fromEntries(CONVERSION_KINDS.map((kind, at) => [kind, `customers/1234567890/conversionActions/${at + 1}`])));
 
 describe('the ad conversions consumer', () => {
-  it('takes the five events that can be a conversion, and holds during a messaging stop as a messaging consumer does (A4-11)', () => {
+  it('takes the four events that can be a conversion, and holds during a messaging stop as a messaging consumer does (A4-11)', () => {
     const consumer = createConversionConsumer({ name: 'meta_conversions', find, report: reportToMeta(createFakeMetaConversions()), now });
     expect([consumer.name, consumer.isMessaging, consumer.eventTypes]).toEqual([
-      'meta_conversions', true, ['academy.booked', 'kyc.completed', 'visit.opened', 'cage.buy_in', 'tournament.entered'],
+      'meta_conversions', true, ['kyc.completed', 'visit.opened', 'cage.buy_in', 'tournament.entered'],
     ]);
   });
 
@@ -47,8 +47,14 @@ describe('the ad conversions consumer', () => {
 
     await consumer.deliver(delivery('visit.opened', hoursAgo(1)));
     expect(google.calls.map((call) => [call.orderId, call.conversionAction, call.conversionDateTime])).toEqual([
-      [EVENT, 'customers/1234567890/conversionActions/3', '2026-11-16 17:40:00+00:00'],
+      [EVENT, 'customers/1234567890/conversionActions/2', '2026-11-16 17:40:00+00:00'],
     ]);
+  });
+
+  it('reads the actions saved while the Academy booking was a kind, less that key', () => {
+    const saved = { ...ACTIONS, academy_booking: 'customers/1234567890/conversionActions/9' };
+    expect(conversionActionsSchema.parse(saved)).toEqual(ACTIONS);
+    expect(conversionActionsSchema.safeParse({ ...ACTIONS, first_visit: 'nowhere' }).success).toBe(false);
   });
 
   it('finishes unsent an event that is not a conversion, or is older than seven days', async () => {

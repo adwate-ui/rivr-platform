@@ -43,16 +43,15 @@ insert into seed_person_c (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000613', '+919000000613', 'Sahil Arora'),
   -- The Tournament events flow's own floor manager, who makes satellites and flights (#519, #524).
   ('00000000-0000-4000-8000-000000000623', '+919000000623', 'Neel Desai'),
-  -- The Graduation flow's own super admin, who marks a student present and graduates her (#128).
+  -- A spare super admin and cashier (the Graduation flow's, until the Academy went on 15 Nov).
   ('00000000-0000-4000-8000-000000000624', '+919000000624', 'Anika Rao'),
-  -- And its own cashier, who confirms the student's UTR in the bank.
   ('00000000-0000-4000-8000-000000000625', '+919000000625', 'Omar Siddiqui'),
   -- The Events flow's own marketing manager, who adds a pro night, and member, who books it (#143); the Creators flow's
   -- own marketing manager, who adds a creator (#163).
   ('00000000-0000-4000-8000-000000000626', '+919000000626', 'Leela Nair'),
   ('00000000-0000-4000-8000-000000000627', '+919000000627', 'Aman Bedi'),
   ('00000000-0000-4000-8000-000000000628', '+919000000628', 'Rohan Das'),
-  -- The Learn flow's own member, who drills a licensed title, and super admin, who uploads it (#133, #136).
+  -- A spare member and super admin (the Learn flow's, until Learn went on 15 Nov).
   ('00000000-0000-4000-8000-000000000630', '+919000000630', 'Mira Shah'),
   ('00000000-0000-4000-8000-000000000631', '+919000000631', 'Dev Malhotra'),
   -- The Glaza flow's own finance manager, who imports Glaza's CSV (#109).
@@ -71,7 +70,7 @@ insert into seed_person_c (id, phone, full_name) values
   -- The Winner card flow's own member, whose card the seed draws, and marketing manager, who downloads it (#155).
   ('00000000-0000-4000-8000-000000000639', '+919000000639', 'Kavya Rao'),
   ('00000000-0000-4000-8000-000000000640', '+919000000640', 'Nikhil Batra'),
-  -- The Academy lessons flow's own member, who takes a lesson and its quiz (#134).
+  -- A spare member (the Academy lessons flow's, until 15 Nov).
   ('00000000-0000-4000-8000-000000000641', '+919000000641', 'Vivaan Rao'),
   -- The Host queue flow's own lapsed regular, and host, who calls her (#165).
   ('00000000-0000-4000-8000-000000000642', '+919000000642', 'Ritika Bhalla'),
@@ -82,7 +81,7 @@ insert into seed_person_c (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000645', '+919000000645', 'Arnav Sood'),
   ('00000000-0000-4000-8000-000000000646', '+919000000646', 'Tara Menezes'),
   ('00000000-0000-4000-8000-000000000647', '+919000000647', 'Kunal Bajaj'),
-  -- The Learn sources flow's own super admin, who uploads a licensed encoding (#131).
+  -- A spare super admin (the Learn sources flow's, until 15 Nov).
   ('00000000-0000-4000-8000-000000000629', '+919000000629', 'Isha Kapoor'),
   ('00000000-0000-4000-8000-000000000297', '+919000000297', 'Rhea Kaul'),
   -- The Share card flow's own member, who shares her referral card (#153).
@@ -142,7 +141,7 @@ join (values ('00000000-0000-4000-8000-000000000192'::uuid, 'Duty manager', 'sup
              ('00000000-0000-4000-8000-000000000647'::uuid, 'Owner', 'owner_view'),
              ('00000000-0000-4000-8000-000000000613'::uuid, 'Duty manager', 'super_admin'),
              ('00000000-0000-4000-8000-000000000623'::uuid, 'Floor manager', 'admin'),
-             ('00000000-0000-4000-8000-000000000624'::uuid, 'Academy manager', 'super_admin'),
+             ('00000000-0000-4000-8000-000000000624'::uuid, 'Operations manager', 'super_admin'),
              ('00000000-0000-4000-8000-000000000625'::uuid, 'Cashier', 'cashier'),
              ('00000000-0000-4000-8000-000000000626'::uuid, 'Marketing manager', 'marketing'),
              ('00000000-0000-4000-8000-000000000628'::uuid, 'Marketing manager', 'marketing'),
@@ -150,8 +149,8 @@ join (values ('00000000-0000-4000-8000-000000000192'::uuid, 'Duty manager', 'sup
              ('00000000-0000-4000-8000-000000000636'::uuid, 'Marketing manager', 'marketing'),
              ('00000000-0000-4000-8000-000000000637'::uuid, 'Marketing manager', 'marketing'),
              ('00000000-0000-4000-8000-000000000640'::uuid, 'Marketing manager', 'marketing'),
-             ('00000000-0000-4000-8000-000000000629'::uuid, 'Learning lead', 'super_admin'),
-             ('00000000-0000-4000-8000-000000000631'::uuid, 'Learning lead', 'super_admin'),
+             ('00000000-0000-4000-8000-000000000629'::uuid, 'Operations lead', 'super_admin'),
+             ('00000000-0000-4000-8000-000000000631'::uuid, 'Operations lead', 'super_admin'),
              ('00000000-0000-4000-8000-000000000632'::uuid, 'Finance manager', 'super_admin'),
              ('00000000-0000-4000-8000-000000000633'::uuid, 'Duty manager', 'super_admin')) as j (id, job_title, role) on j.id = p.id
 on conflict (venue_id, user_id) do nothing;

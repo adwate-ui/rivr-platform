@@ -8,7 +8,6 @@ export const profile = {
   verified: 'Verified',
   /** A member let in by their selfie, whose identity is checked at the club (decision 0502). */
   atTheDesk: 'At the desk, first visit',
-  learn: 'Learn',
   events: 'Events',
   sendFeedback: 'Send feedback',
   feedbackSent: 'Feedback sent',
@@ -75,8 +74,6 @@ export const profile = {
   deleteSend: 'Send request',
   deleteSent: 'Request sent.',
   deleteNotSent: 'Not sent. Try again.',
-  /** Shown only to a member with an Academy seat, under the heading RIVR Academy. */
-  academyBookings: 'Your Academy bookings',
   /** The way to the membership card (#71). */
   card: 'Membership card',
 };

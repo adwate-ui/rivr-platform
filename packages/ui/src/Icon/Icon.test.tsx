@@ -26,7 +26,7 @@ describe('Icon', () => {
 
   it('has the icons the tab bar, rail and states need', () => {
     expect(ICON_NAMES).toEqual(
-      expect.arrayContaining(['home', 'sessions', 'balance', 'learn', 'profile', 'close', 'lock', 'alert', 'offline']),
+      expect.arrayContaining(['home', 'sessions', 'balance', 'profile', 'close', 'lock', 'alert', 'offline']),
     );
   });
 

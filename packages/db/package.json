@@ -23,8 +23,6 @@
     "./creators": "./src/creators.ts",
     "./clubEvents": "./src/clubEvents.ts",
     "./notices": "./src/notices.ts",
-    "./learnSources": "./src/learnSources.ts",
-    "./learn": "./src/learn.ts",
     "./exports": "./src/exports.ts",
     "./roster": "./src/roster.ts",
     "./cctv": "./src/cctv.ts",

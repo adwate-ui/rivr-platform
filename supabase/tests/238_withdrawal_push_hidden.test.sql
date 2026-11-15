@@ -27,9 +27,9 @@ select is((select count(*)::integer from public.member_feature_override where fe
 select set_config('request.jwt.claims', '', true);
 select private.bootstrap_venue('00000000-0000-4000-8000-0000000000ad', 'RIVR Push Off', 'push-off', false, 'RIVR test', 'Test', 'TPO');
 select results_eq($$ select is_enabled, display_mode from pg_temp.push_cells('00000000-0000-4000-8000-0000000000ad') $$,
-  $$ values (false, 'hidden'), (false, 'hidden'), (false, 'hidden'), (false, 'hidden') $$, 'a new venue''s tiers start with it off and hidden');
+  $$ values (false, 'hidden'), (false, 'hidden'), (false, 'hidden') $$, 'a new venue''s tiers start with it off and hidden');
 select is((select count(*)::integer from public.tier_feature f join public.tier t on t.id = f.tier_id
-           where t.venue_id = '00000000-0000-4000-8000-0000000000ad' and f.feature_key = 'push.seat_ready' and f.is_enabled), 4,
+           where t.venue_id = '00000000-0000-4000-8000-0000000000ad' and f.feature_key = 'push.seat_ready' and f.is_enabled), 3,
   'and the other pushes on, as before');
 
 select * from finish();

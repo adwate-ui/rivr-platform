@@ -37,16 +37,16 @@ describe('Feature overrides', () => {
   it('gives a member\'s overrides and the gateable features', async () => {
     const { result } = renderOverrides({
       member_feature_overrides: { body: [{
-        override_id: 'o1', feature_key: 'learn.library', feature_name: 'Learn library', is_granted: false, reason: 'Sharing drills', until: '2026-11-22',
+        override_id: 'o1', feature_key: 'events.book', feature_name: 'Events', is_granted: false, reason: 'Reselling seats', until: '2026-11-22',
         standing: 'lifted', created_at: '2026-11-15T10:00:00Z', staff_name: 'Devika Sharma', lifted_by: 'Lakshmi Iyer', lift_reason: 'Settled',
       }] },
-      '': { body: [{ key: 'learn.library', name: 'Learn library' }] },
+      '': { body: [{ key: 'events.book', name: 'Events' }] },
     });
     await waitFor(() => expect(result.current.overrides.data).toEqual([{
-      overrideId: 'o1', featureKey: 'learn.library', featureName: 'Learn library', isGranted: false, reason: 'Sharing drills', until: '2026-11-22',
+      overrideId: 'o1', featureKey: 'events.book', featureName: 'Events', isGranted: false, reason: 'Reselling seats', until: '2026-11-22',
       standing: 'lifted', staffName: 'Devika Sharma', lift: { by: 'Lakshmi Iyer', reason: 'Settled' },
     }]));
-    await waitFor(() => expect(result.current.features.data).toEqual([{ key: 'learn.library', name: 'Learn library' }]));
+    await waitFor(() => expect(result.current.features.data).toEqual([{ key: 'events.book', name: 'Events' }]));
   });
 
   it('sets an override with its last day, lifts one, and says why one is refused', async () => {
@@ -54,13 +54,13 @@ describe('Feature overrides', () => {
     let set: unknown;
     let lifted: unknown;
     await act(async () => {
-      set = await result.current.actions.set.mutateAsync({ memberId: 'm1', featureKey: 'learn.library', isGranted: false, reason: 'Sharing drills', until: '2026-11-22' });
+      set = await result.current.actions.set.mutateAsync({ memberId: 'm1', featureKey: 'events.book', isGranted: false, reason: 'Reselling seats', until: '2026-11-22' });
       lifted = await result.current.actions.lift.mutateAsync({ overrideId: 'o1', reason: 'Settled' });
     });
     expect(set).toEqual({ ok: true, value: null });
     expect(lifted).toEqual({ ok: false, error: 'not_in_force' });
     expect(calls.find((call) => call.rpc === 'set_feature_override')?.body).toEqual({
-      p_venue_id: VENUE, p_member_id: 'm1', p_feature_key: 'learn.library', p_is_granted: false, p_reason: 'Sharing drills', p_until: '2026-11-22',
+      p_venue_id: VENUE, p_member_id: 'm1', p_feature_key: 'events.book', p_is_granted: false, p_reason: 'Reselling seats', p_until: '2026-11-22',
     });
   });
 });

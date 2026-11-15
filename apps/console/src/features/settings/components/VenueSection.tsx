@@ -27,14 +27,13 @@ const FIELDS: readonly { readonly name: keyof VenueConfigInput; readonly label: 
   { name: 'staffIpAllowlist', label: 'console.settings.staffIpAllowlist', hint: 'console.settings.staffIpAllowlistHint' },
   { name: 'alertWhatsapp', label: 'console.settings.alertWhatsapp' },
   { name: 'sacClubServices', label: 'console.settings.sacClubServices', hint: 'console.settings.sacHint' },
-  { name: 'sacAcademy', label: 'console.settings.sacAcademy', hint: 'console.settings.sacHint' },
   { name: 'signatoryName', label: 'console.settings.signatoryName', hint: 'console.settings.signatoryHint' },
   { name: 'signatoryDesignation', label: 'console.settings.signatoryDesignation' },
 ];
 
 /** What every tax invoice carries (#423), as the form types it: empty for nothing. */
 const invoiceInput = (config: VenueConfig) => ({
-  sacClubServices: config.sacClubServices ?? '', sacAcademy: config.sacAcademy ?? '', signatoryName: config.signatoryName ?? '',
+  sacClubServices: config.sacClubServices ?? '', signatoryName: config.signatoryName ?? '',
   signatoryDesignation: config.signatoryDesignation ?? '',
 });
 

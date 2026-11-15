@@ -1,7 +1,7 @@
 import { SETTINGS, type SettingKey } from '@rivr/contracts/settings';
 
 /** The rules' areas on the Settings screen (#604), in order; then the venue's own details and chips, for super admins. */
-export const RULE_AREAS = ['floor', 'rake', 'cage', 'members', 'academy', 'tax', 'compliance', 'system'] as const;
+export const RULE_AREAS = ['floor', 'rake', 'cage', 'members', 'tax', 'compliance', 'system'] as const;
 export type RuleArea = (typeof RULE_AREAS)[number];
 export const VENUE_AREAS = ['club', 'chips'] as const;
 /** Notices on members' Home (decision 0298), with the rules for staff with settings.manage. */
@@ -13,7 +13,7 @@ export type SettingsArea = RuleArea | (typeof VENUE_AREAS)[number] | typeof NOTI
  * The areas and rules hidden at the owner's word (29 Oct, #626, decision 0284): no rupee, rake or reporting on any
  * console. A rule set before stays in force; it is only not shown.
  */
-export const HIDDEN_AREAS: readonly SettingsArea[] = ['rake', 'cage', 'tax', 'compliance', 'academy', 'system', 'chips'];
+export const HIDDEN_AREAS: readonly SettingsArea[] = ['rake', 'cage', 'tax', 'compliance', 'system', 'chips'];
 const HIDDEN_KEYS: readonly string[] = ['rakeback.rate', 'cab.minimum_visits'];
 
 /** Whether the Settings screen shows a rule. */
@@ -52,10 +52,6 @@ const AREA_OF: Readonly<Record<SettingKey, RuleArea>> = {
   'rakeback.rate': 'members',
   'reviews.google_url': 'members',
   'tier.default': 'members',
-  'academy.price': 'academy',
-  'learn.daily_points_cap': 'academy',
-  'learn.session_points': 'academy',
-  'academy.gst': 'tax',
   'gst.config': 'tax',
   'tds.config': 'tax',
   'aml.structuring': 'compliance',

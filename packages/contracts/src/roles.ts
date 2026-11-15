@@ -57,7 +57,6 @@ export const PERMISSIONS = [
   'sops.acknowledge',
   'incidents.log',
   'aml.review',
-  'learn.manage_sources', // upload licensed Learn encodings
   'feedback.manage', // the General Manager's feedback tickets (decision 0165)
   'bonus.give', // add bonus chips to a member by hand, never to oneself: super admins, admins and floor managers (the owner, 9 Nov)
   'treasury.manage', // payment accounts, transfers, expense categories and approving expenses (decision 0167)

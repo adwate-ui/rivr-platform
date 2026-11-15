@@ -6,14 +6,6 @@ export {
   useControlActions, useEngagedControls, usePastControls, type PastControl, type ControlFailure, type ControlLevel, type EngageOrder, type EngagedControl,
 } from './killSwitch.ts';
 export {
-  useStaffAcademyActions,
-  useStaffAcademyBatches,
-  useStaffAcademyBookings,
-  type AcademyStaffFailure,
-  type StaffAcademyBatch,
-  type StaffAcademyBooking,
-} from './academyStaff.ts';
-export {
   BREAK_DAYS,
   SESSION_REMINDERS,
   useRestrictionActions,

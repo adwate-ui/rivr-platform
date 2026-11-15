@@ -25,147 +25,7 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "academy_attendance": {
-                  Row: {
-                    "booking_id": string,"class_on": string,"created_at": string,"id": string,"marked_by_staff_id": string | null,"member_id": string,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "booking_id": string,"class_on": string,"created_at"?: string,"id"?: string,"marked_by_staff_id"?: string | null,"member_id": string,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "booking_id"?: string,"class_on"?: string,"created_at"?: string,"id"?: string,"marked_by_staff_id"?: string | null,"member_id"?: string,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "academy_attendance_booking_id_fkey"
-      columns: ["booking_id"]
-isOneToOne: false
-      referencedRelation: "academy_booking"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "academy_attendance_marked_by_staff_id_fkey"
-      columns: ["marked_by_staff_id"]
-isOneToOne: false
-      referencedRelation: "staff"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "academy_attendance_member_id_venue_id_fkey"
-      columns: ["member_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "member"
-      referencedColumns: ["id","venue_id"]
-    }
-                  ]
-                },"academy_batch": {
-                  Row: {
-                    "created_at": string,"ends_on": string,"id": string,"is_open": boolean,"name": string,"seats": number,"starts_on": string,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "created_at"?: string,"ends_on": string,"id"?: string,"is_open"?: boolean,"name": string,"seats": number,"starts_on": string,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "created_at"?: string,"ends_on"?: string,"id"?: string,"is_open"?: boolean,"name"?: string,"seats"?: number,"starts_on"?: string,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "academy_batch_venue_id_fkey"
-      columns: ["venue_id"]
-isOneToOne: false
-      referencedRelation: "venue"
-      referencedColumns: ["id"]
-    }
-                  ]
-                },"academy_booking": {
-                  Row: {
-                    "amount": number,"batch_id": string,"claimed_at": string | null,"company_gstin": string | null,"company_name": string | null,"confirmed_by_staff_id": string | null,"created_at": string,"graduated_at": string | null,"id": string,"invoice_id": string | null,"is_practice": boolean,"kind": string,"ledger_transaction_id": string | null,"member_id": string,"paid_at": string | null,"recorded_by_staff_id": string | null,"request_id": string | null,"seats": number,"status": string,"turned_down_utr": string | null,"updated_at": string,"utr": string | null,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "amount": number,"batch_id": string,"claimed_at"?: string | null,"company_gstin"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"graduated_at"?: string | null,"id"?: string,"invoice_id"?: string | null,"is_practice": boolean,"kind": string,"ledger_transaction_id"?: string | null,"member_id": string,"paid_at"?: string | null,"recorded_by_staff_id"?: string | null,"request_id"?: string | null,"seats": number,"status"?: string,"turned_down_utr"?: string | null,"updated_at"?: string,"utr"?: string | null,"venue_id": string
-                  }
-                  Update: {
-                    "amount"?: number,"batch_id"?: string,"claimed_at"?: string | null,"company_gstin"?: string | null,"company_name"?: string | null,"confirmed_by_staff_id"?: string | null,"created_at"?: string,"graduated_at"?: string | null,"id"?: string,"invoice_id"?: string | null,"is_practice"?: boolean,"kind"?: string,"ledger_transaction_id"?: string | null,"member_id"?: string,"paid_at"?: string | null,"recorded_by_staff_id"?: string | null,"request_id"?: string | null,"seats"?: number,"status"?: string,"turned_down_utr"?: string | null,"updated_at"?: string,"utr"?: string | null,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "academy_booking_batch_id_venue_id_fkey"
-      columns: ["batch_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "academy_batch"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "academy_booking_confirmed_by_staff_id_fkey"
-      columns: ["confirmed_by_staff_id"]
-isOneToOne: false
-      referencedRelation: "staff"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "academy_booking_invoice_id_fkey"
-      columns: ["invoice_id"]
-isOneToOne: false
-      referencedRelation: "invoice"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "academy_booking_ledger_transaction_id_venue_id_fkey"
-      columns: ["ledger_transaction_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "ledger_transaction"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "academy_booking_member_id_venue_id_fkey"
-      columns: ["member_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "member"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "academy_booking_recorded_by_staff_id_fkey"
-      columns: ["recorded_by_staff_id"]
-isOneToOne: false
-      referencedRelation: "staff"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "academy_booking_venue_id_is_practice_fkey"
-      columns: ["venue_id","is_practice"]
-isOneToOne: false
-      referencedRelation: "venue"
-      referencedColumns: ["id","is_practice"]
-    }
-                  ]
-                },"academy_utr_rejection": {
-                  Row: {
-                    "booking_id": string,"created_at": string,"id": string,"rejected_by_staff_id": string,"updated_at": string,"utr": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "booking_id": string,"created_at"?: string,"id"?: string,"rejected_by_staff_id": string,"updated_at"?: string,"utr": string,"venue_id": string
-                  }
-                  Update: {
-                    "booking_id"?: string,"created_at"?: string,"id"?: string,"rejected_by_staff_id"?: string,"updated_at"?: string,"utr"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "academy_utr_rejection_booking_id_fkey"
-      columns: ["booking_id"]
-isOneToOne: false
-      referencedRelation: "academy_booking"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "academy_utr_rejection_rejected_by_staff_id_fkey"
-      columns: ["rejected_by_staff_id"]
-isOneToOne: false
-      referencedRelation: "staff"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "academy_utr_rejection_venue_id_fkey"
-      columns: ["venue_id"]
-isOneToOne: false
-      referencedRelation: "venue"
-      referencedColumns: ["id"]
-    }
-                  ]
-                },"account_transfer": {
+            "account_transfer": {
                   Row: {
                     "amount_paise": number,"created_at": string,"from_account_id": string,"id": string,"idempotency_key": string,"ledger_transaction_id": string,"note": string | null,"staff_id": string,"to_account_id": string,"updated_at": string,"venue_id": string
                   }
@@ -1925,106 +1785,6 @@ isOneToOne: false
       referencedColumns: ["id","venue_id"]
     },{
       foreignKeyName: "lead_venue_id_fkey"
-      columns: ["venue_id"]
-isOneToOne: false
-      referencedRelation: "venue"
-      referencedColumns: ["id"]
-    }
-                  ]
-                },"learn_attempt": {
-                  Row: {
-                    "answered_at": string,"attempt": NonNullable<Json>,"created_at": string,"id": string,"member_id": string,"principle_id": string,"session_id": string,"source_key": string,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "answered_at": string,"attempt": NonNullable<Json>,"created_at"?: string,"id": string,"member_id": string,"principle_id": string,"session_id": string,"source_key": string,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "answered_at"?: string,"attempt"?: NonNullable<Json>,"created_at"?: string,"id"?: string,"member_id"?: string,"principle_id"?: string,"session_id"?: string,"source_key"?: string,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "learn_attempt_member_id_venue_id_fkey"
-      columns: ["member_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "member"
-      referencedColumns: ["id","venue_id"]
-    }
-                  ]
-                },"learn_card": {
-                  Row: {
-                    "card_key": string,"created_at": string,"due_at": string,"id": string,"member_id": string,"source_key": string,"state": NonNullable<Json>,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "card_key": string,"created_at"?: string,"due_at": string,"id"?: string,"member_id": string,"source_key": string,"state": NonNullable<Json>,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "card_key"?: string,"created_at"?: string,"due_at"?: string,"id"?: string,"member_id"?: string,"source_key"?: string,"state"?: NonNullable<Json>,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "learn_card_member_id_venue_id_fkey"
-      columns: ["member_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "member"
-      referencedColumns: ["id","venue_id"]
-    }
-                  ]
-                },"learn_lesson": {
-                  Row: {
-                    "asked": number,"completed_at": string,"correct": number,"created_at": string,"id": string,"member_id": string,"source_key": string,"unit_id": string,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "asked": number,"completed_at"?: string,"correct": number,"created_at"?: string,"id"?: string,"member_id": string,"source_key": string,"unit_id": string,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "asked"?: number,"completed_at"?: string,"correct"?: number,"created_at"?: string,"id"?: string,"member_id"?: string,"source_key"?: string,"unit_id"?: string,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "learn_lesson_member_id_venue_id_fkey"
-      columns: ["member_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "member"
-      referencedColumns: ["id","venue_id"]
-    }
-                  ]
-                },"learn_session": {
-                  Row: {
-                    "completed_at": string,"created_at": string,"id": string,"member_id": string,"points": number,"principles": (string)[],"source_key": string,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "completed_at"?: string,"created_at"?: string,"id": string,"member_id": string,"points": number,"principles"?: (string)[],"source_key": string,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "completed_at"?: string,"created_at"?: string,"id"?: string,"member_id"?: string,"points"?: number,"principles"?: (string)[],"source_key"?: string,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "learn_session_member_id_venue_id_fkey"
-      columns: ["member_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "member"
-      referencedColumns: ["id","venue_id"]
-    }
-                  ]
-                },"learn_source": {
-                  Row: {
-                    "author": string | null,"created_at": string,"id": string,"licence_ends_on": string,"licence_terms": string,"source_hash": string,"source_key": string,"title": string,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "author"?: string | null,"created_at"?: string,"id"?: string,"licence_ends_on": string,"licence_terms": string,"source_hash": string,"source_key": string,"title": string,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "author"?: string | null,"created_at"?: string,"id"?: string,"licence_ends_on"?: string,"licence_terms"?: string,"source_hash"?: string,"source_key"?: string,"title"?: string,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "learn_source_venue_id_fkey"
       columns: ["venue_id"]
 isOneToOne: false
       referencedRelation: "venue"
@@ -4163,14 +3923,14 @@ isOneToOne: false
                   ]
                 },"venue_config": {
                   Row: {
-                    "address": string,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"contact_phone": string | null,"contact_whatsapp": string | null,"created_at": string,"gstin": string | null,"invoice_prefix": string,"legal_name": string,"logo_path": string | null,"sac_academy": string | null,"sac_club_services": string | null,"signatory_designation": string | null,"signatory_name": string | null,"staff_ip_allowlist": (unknown)[],"tan": string | null,"tv_pairing_window_at": string | null,"tv_pairing_window_only": boolean,"updated_at": string,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string
+                    "address": string,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"contact_phone": string | null,"contact_whatsapp": string | null,"created_at": string,"gstin": string | null,"invoice_prefix": string,"legal_name": string,"logo_path": string | null,"sac_club_services": string | null,"signatory_designation": string | null,"signatory_name": string | null,"staff_ip_allowlist": (unknown)[],"tan": string | null,"tv_pairing_window_at": string | null,"tv_pairing_window_only": boolean,"updated_at": string,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address": string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"contact_phone"?: string | null,"contact_whatsapp"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix": string,"legal_name": string,"logo_path"?: string | null,"sac_academy"?: string | null,"sac_club_services"?: string | null,"signatory_designation"?: string | null,"signatory_name"?: string | null,"staff_ip_allowlist"?: (unknown)[],"tan"?: string | null,"tv_pairing_window_at"?: string | null,"tv_pairing_window_only"?: boolean,"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id": string
+                    "address": string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"contact_phone"?: string | null,"contact_whatsapp"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix": string,"legal_name": string,"logo_path"?: string | null,"sac_club_services"?: string | null,"signatory_designation"?: string | null,"signatory_name"?: string | null,"staff_ip_allowlist"?: (unknown)[],"tan"?: string | null,"tv_pairing_window_at"?: string | null,"tv_pairing_window_only"?: boolean,"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "address"?: string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"contact_phone"?: string | null,"contact_whatsapp"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix"?: string,"legal_name"?: string,"logo_path"?: string | null,"sac_academy"?: string | null,"sac_club_services"?: string | null,"signatory_designation"?: string | null,"signatory_name"?: string | null,"staff_ip_allowlist"?: (unknown)[],"tan"?: string | null,"tv_pairing_window_at"?: string | null,"tv_pairing_window_only"?: boolean,"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id"?: string
+                    "address"?: string,"alert_whatsapp"?: string | null,"bank_account_name"?: string | null,"bank_account_number"?: string | null,"bank_ifsc"?: string | null,"bank_name"?: string | null,"contact_phone"?: string | null,"contact_whatsapp"?: string | null,"created_at"?: string,"gstin"?: string | null,"invoice_prefix"?: string,"legal_name"?: string,"logo_path"?: string | null,"sac_club_services"?: string | null,"signatory_designation"?: string | null,"signatory_name"?: string | null,"staff_ip_allowlist"?: (unknown)[],"tan"?: string | null,"tv_pairing_window_at"?: string | null,"tv_pairing_window_only"?: boolean,"updated_at"?: string,"upi_payee_name"?: string | null,"upi_vpa"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -4512,7 +4272,7 @@ isOneToOne: false
                   ]
                 },"venue_config_detail": {
                   Row: {
-                    "address": string | null,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"contact_phone": string | null,"contact_whatsapp": string | null,"created_at": string | null,"gstin": string | null,"invoice_prefix": string | null,"legal_name": string | null,"logo_path": string | null,"sac_academy": string | null,"sac_club_services": string | null,"signatory_designation": string | null,"signatory_name": string | null,"staff_ip_allowlist": (unknown)[] | null,"tan": string | null,"tv_pairing_window_at": string | null,"tv_pairing_window_only": boolean | null,"updated_at": string | null,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string | null
+                    "address": string | null,"alert_whatsapp": string | null,"bank_account_name": string | null,"bank_account_number": string | null,"bank_ifsc": string | null,"bank_name": string | null,"contact_phone": string | null,"contact_whatsapp": string | null,"created_at": string | null,"gstin": string | null,"invoice_prefix": string | null,"legal_name": string | null,"logo_path": string | null,"sac_club_services": string | null,"signatory_designation": string | null,"signatory_name": string | null,"staff_ip_allowlist": (unknown)[] | null,"tan": string | null,"tv_pairing_window_at": string | null,"tv_pairing_window_only": boolean | null,"updated_at": string | null,"upi_payee_name": string | null,"upi_vpa": string | null,"venue_id": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -4521,17 +4281,7 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "academy_open_batches":
-{ Args: Record<PropertyKey, never>; Returns: {
-              "ends_on": string,"fee": number,"id": string,"name": string,"seats_left": number,"starts_on": string
-            }[]
-                           },
-"academy_payment_details":
-{ Args: { "p_booking_id": string }; Returns: {
-              "amount": number,"upi_payee_name": string,"upi_vpa": string
-            }[]
-                           },
-"accept_fnb_order":
+            "accept_fnb_order":
 { Args: { "p_order_id": string }; Returns: undefined
                            },
 "accept_seat_call":
@@ -4648,12 +4398,6 @@ isOneToOne: false
 "begin_withdrawal_payout":
 { Args: { "p_payout_key": string,"p_request_id": string }; Returns: boolean
                            },
-"book_academy":
-{ Args: { "p_batch_id": string }; Returns: string
-                           },
-"book_academy_corporate":
-{ Args: { "p_batch_id": string,"p_company_gstin"?: string,"p_company_name": string,"p_member_id": string,"p_request_id": string,"p_seats": number }; Returns: string
-                           },
 "book_club_event":
 { Args: { "p_event_id": string,"p_is_booking": boolean }; Returns: undefined
                            },
@@ -4691,9 +4435,6 @@ isOneToOne: false
 { Args: { "p_venue_id": string }; Returns: {
               "camera_id": string,"channel": string,"is_active": boolean,"is_cage": boolean,"name": string,"table_id": string,"table_name": string
             }[]
-                           },
-"cancel_academy_booking":
-{ Args: { "p_booking_id": string }; Returns: undefined
                            },
 "cancel_fnb_order":
 { Args: { "p_order_id": string,"p_reason": string }; Returns: undefined
@@ -4741,9 +4482,6 @@ isOneToOne: false
 { Args: { "p_venue_id": string }; Returns: {
               "counted_at": string,"counted_by": string,"in_cage_paise": number,"line_paise": number,"name": string,"quantity": number,"value_paise": number
             }[]
-                           },
-"claim_academy_payment":
-{ Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
                            },
 "claim_agent":
 { Args: { "p_client": string,"p_code": string,"p_token_hash": string }; Returns: {
@@ -4796,15 +4534,6 @@ isOneToOne: false
 "complete_export_archive":
 { Args: { "p_archive_id": string,"p_bytes": number,"p_sha256": string,"p_unread"?: (string)[] }; Returns: undefined
                            },
-"complete_learn_lesson":
-{ Args: { "p_asked": number,"p_correct": number,"p_source_key": string,"p_unit_id": string }; Returns: undefined
-                           },
-"complete_learn_session":
-{ Args: { "p_principles": (string)[],"p_session_id": string }; Returns: number
-                           },
-"confirm_academy_payment":
-{ Args: { "p_booking_id": string,"p_utr": string }; Returns: string
-                           },
 "confirm_deposit":
 { Args: { "p_bank_amount_paise": number,"p_request_id": string }; Returns: undefined
                            },
@@ -4826,9 +4555,6 @@ isOneToOne: false
                            },
 "count_chips":
 { Args: { "p_counts": Json,"p_idempotency_key": string,"p_venue_id": string }; Returns: string
-                           },
-"create_academy_batch":
-{ Args: { "p_ends_on": string,"p_name": string,"p_seats": number,"p_starts_on": string,"p_venue_id": string }; Returns: string
                            },
 "create_club_event":
 { Args: { "p_details": string,"p_kind": string,"p_seats": number,"p_starts_at": string,"p_title": string,"p_venue_id": string }; Returns: string
@@ -5063,9 +4789,6 @@ isOneToOne: false
               "alcohol_comps_paise": number,"alcohol_cost_paise": number,"alcohol_margin_paise": number,"alcohol_sales_paise": number,"comps_paise": number,"food_comps_paise": number,"import_id": string,"imported_at": string,"lines": number,"matched": number,"payable_paise": number,"rivr_share_paise": number,"soft_drink_comps_paise": number
             }[]
                            },
-"graduate_academy_member":
-{ Args: { "p_booking_id": string }; Returns: undefined
-                           },
 "growth_funnel":
 { Args: { "p_venue_id": string }; Returns: {
               "bought_in": number,"kyc_done": number,"signed_up": number,"source_code": string,"source_kind": string,"visited": number
@@ -5183,9 +4906,6 @@ isOneToOne: false
 "log_hand":
 { Args: { "p_idempotency_key": string,"p_played_at": string,"p_pot": number,"p_variant": Database["public"]['Enums']["hand_variant"] }; Returns: string
                            },
-"mark_academy_attendance":
-{ Args: { "p_booking_id": string }; Returns: undefined
-                           },
 "mark_kot_sent":
 { Args: { "p_order_id": string }; Returns: undefined
                            },
@@ -5291,16 +5011,6 @@ isOneToOne: false
                            },
 "move_tournament_level":
 { Args: { "p_step": number,"p_tournament_id": string }; Returns: undefined
-                           },
-"my_academy_bookings":
-{ Args: Record<PropertyKey, never>; Returns: {
-              "amount": number,"batch_id": string,"batch_name": string,"ends_on": string,"hold_until": string,"id": string,"starts_on": string,"status": string,"turned_down_utr": string,"utr": string
-            }[]
-                           },
-"my_academy_invoice":
-{ Args: { "p_booking_id": string }; Returns: {
-              "buyer_gstin": string,"buyer_name": string,"cgst_paise": number,"description": string,"igst_paise": number,"is_tax_invoice": boolean,"issued_at": string,"number": string,"place_of_supply": string,"rate_basis_points": number,"sac_code": string,"sgst_paise": number,"signatory_designation": string,"signatory_name": string,"supplier_address": string,"supplier_gstin": string,"supplier_legal_name": string,"taxable_paise": number,"total_paise": number
-            }[]
                            },
 "my_bonus":
 { Args: Record<PropertyKey, never>; Returns: {
@@ -5650,9 +5360,6 @@ isOneToOne: false
 "reactivate_game_table":
 { Args: { "p_table_id": string }; Returns: undefined
                            },
-"record_academy_payment":
-{ Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
-                           },
 "record_attendance":
 { Args: { "p_note"?: string,"p_shift_id": string,"p_status": string }; Returns: undefined
                            },
@@ -5721,17 +5428,11 @@ isOneToOne: false
 "refuse_promotion":
 { Args: { "p_promotion_id": string,"p_reason": string }; Returns: undefined
                            },
-"register_learn_source":
-{ Args: { "p_author": string,"p_licence_ends_on": string,"p_licence_terms": string,"p_source_hash": string,"p_source_key": string,"p_title": string,"p_venue_id": string }; Returns: string
-                           },
 "register_tournament_entry":
 { Args: { "p_idempotency_key": string,"p_purchase": string,"p_tournament_id": string }; Returns: string
                            },
 "register_tournament_interest":
 { Args: { "p_tournament_id": string }; Returns: undefined
-                           },
-"reject_academy_payment":
-{ Args: { "p_booking_id": string,"p_utr": string }; Returns: undefined
                            },
 "reject_deposit":
 { Args: { "p_request_id": string }; Returns: undefined
@@ -6032,11 +5733,6 @@ isOneToOne: false
               "ack_roles": (Database["public"]['Enums']["staff_role"])[],"acknowledged_at": string,"acknowledged_count": number,"body": string,"effective_on": string,"must_acknowledge": boolean,"owner": string,"required_count": number,"sop_id": string,"title": string,"version": number,"version_id": string,"waiting": Json
             }[]
                            },
-"staff_academy_batches":
-{ Args: { "p_venue_id": string }; Returns: {
-              "ends_on": string,"id": string,"is_open": boolean,"name": string,"seats": number,"seats_taken": number,"starts_on": string
-            }[]
-                           },
 "staff_id_for_phone":
 { Args: { "p_phone": string,"p_venue_id": string }; Returns: string
                            },
@@ -6087,9 +5783,6 @@ isOneToOne: false
 { Args: { "p_answers": (number)[],"p_quiz_id": string }; Returns: {
               "correct_count": number,"is_passed": boolean,"question_count": number
             }[]
-                           },
-"sync_learn_progress":
-{ Args: { "p_attempts": Json,"p_cards": Json }; Returns: number
                            },
 "table_hands":
 { Args: { "p_limit": number,"p_table_id": string }; Returns: {

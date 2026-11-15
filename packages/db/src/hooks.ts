@@ -1,4 +1,4 @@
-import type { FeatureKey, LearnSourceFeatureKey } from '@rivr/contracts';
+import type { FeatureKey } from '@rivr/contracts';
 import { useQuery } from '@tanstack/react-query';
 import { NOTHING_ENGAGED, toControlState, type ControlState } from './parse/controlState.ts';
 import { HIDDEN, toFeatureAccessMap, type FeatureAccess } from './parse/featureAccess.ts';
@@ -25,7 +25,7 @@ function useFeatureAccessMap() {
  * How a member-facing feature shows for the signed-in member: pass it to FeatureGate.
  * Hidden until known, so a locked entry point never flashes open.
  */
-export function useFeature(key: FeatureKey | LearnSourceFeatureKey): FeatureAccess {
+export function useFeature(key: FeatureKey): FeatureAccess {
   return useFeatureAccessMap().data?.get(key) ?? HIDDEN;
 }
 
@@ -36,11 +36,10 @@ export type FeatureStatus =
   | { readonly status: 'ready'; readonly access: FeatureAccess };
 
 /**
- * useFeature for a screen that shows something either way, such as the Academy, which shows a member
- * their own seats without the feature (decision 0033): it waits until access is known, rather than
+ * useFeature for a screen that shows something either way: it waits until access is known, rather than
  * showing the screen for no access and then switching.
  */
-export function useFeatureStatus(key: FeatureKey | LearnSourceFeatureKey): FeatureStatus {
+export function useFeatureStatus(key: FeatureKey): FeatureStatus {
   const { authStatus } = useRivrData();
   const query = useFeatureAccessMap();
   // A failed refresh keeps what was known.

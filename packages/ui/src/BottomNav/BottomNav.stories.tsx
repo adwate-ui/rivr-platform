@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { PLAYER_TABS as items } from '../storybook/fixtures.ts';
 import { BottomNav, type BottomNavItem } from './BottomNav.tsx';
 
-const withLearn = (access: BottomNavItem['access']) => items.map((item) => (item.tab === 'learn' ? { ...item, access } : item));
+const withSessions = (access: BottomNavItem['access']) => items.map((item) => (item.tab === 'sessions' ? { ...item, access } : item));
 
 const meta = {
   title: 'Navigation/BottomNav',
@@ -16,9 +16,9 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
 
-export const LockedTab: Story = { args: { items: withLearn({ state: 'locked', tiers: ['Academy graduate', 'Black card'] }) } };
+export const LockedTab: Story = { args: { items: withSessions({ state: 'locked', tiers: ["Founders' Circle", 'Black card'] }) } };
 
-export const HiddenTab: Story = { args: { items: withLearn({ state: 'hidden' }), current: 'food' } };
+export const HiddenTab: Story = { args: { items: withSessions({ state: 'hidden' }), current: 'home' } };
 
 /** Every tab at a narrow phone's width, one locked with the tiers that have it (F5-19). */
-export const LongText: Story = { args: { items: withLearn({ state: 'locked', tiers: ['Academy graduate', 'Black card', "Founders' Circle"] }) }, tags: ['viewport-phone'] };
+export const LongText: Story = { args: { items: withSessions({ state: 'locked', tiers: ['Member', 'Black card', "Founders' Circle"] }) }, tags: ['viewport-phone'] };

@@ -30,7 +30,6 @@ export function TierPreview({ matrix }: { matrix: TierMatrix }) {
     { tab: 'sessions', href: '/sessions', access: access(TAB_FEATURES.sessions) },
     { tab: 'balance', href: '/balance', access: ENABLED },
     { tab: 'bonus', href: '/bonus', access: ENABLED },
-    { tab: 'learn', href: '/learn', access: access(TAB_FEATURES.learn) },
   ];
   const namesShowing = (showsAs: ShowsAs) =>
     matrix.features.filter((feature) => (matrix.cells.get(cellKey(chosen, feature.key))?.showsAs ?? 'hidden') === showsAs).map((feature) => feature.name);

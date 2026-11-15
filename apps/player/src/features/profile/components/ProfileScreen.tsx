@@ -54,17 +54,15 @@ function ProfileHead({ headingId }: { headingId: string }) {
   );
 }
 
-/** Club: House rules, Learn and Events where the member has them, Send feedback, and Delete my account. */
+/** Club: House rules, Events where the member has them, Send feedback, and Delete my account. */
 function ClubGroup({ onFeedback }: { onFeedback: () => void }) {
   const navigate = useNavigate();
-  const learn = useFeature('learn.library');
   const events = useFeature('events.book');
   const deleteAccount = useFeature('account.delete');
   return (
     <Group title={t('player.profile.club')}>
       <DetailRow label={t('player.houseRules.title')} onOpen={() => void navigate({ to: '/profile/rules' })} />
-      {/* Learn and Events lost their tabs in the redesign; the owner decides where they live (decision 0322). */}
-      <FeatureGate access={learn}><DetailRow label={t('player.profile.learn')} onOpen={() => void navigate({ to: '/learn' })} /></FeatureGate>
+      {/* Events lost its tab in the redesign; the owner decides where it lives (decision 0322). */}
       <FeatureGate access={events}><DetailRow label={t('player.profile.events')} onOpen={() => void navigate({ to: '/events' })} /></FeatureGate>
       <DetailRow label={t('player.profile.sendFeedback')} onOpen={onFeedback} />
       <FeatureGate access={deleteAccount}><DeleteAccountRow /></FeatureGate>

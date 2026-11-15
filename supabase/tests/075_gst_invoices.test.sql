@@ -86,16 +86,17 @@ select throws_ok($$ insert into public.invoice (venue_id, series_id, financial_y
                     from public.invoice where source = 'booking:4' $$,
   '23514', 'new row for relation "invoice" violates check constraint "invoice_one_kind_of_gst"',
   'an invoice is never charged IGST as well as CGST and SGST');
-insert into public.invoice_series (venue_id, code, name) values ('00000000-0000-4000-8000-000000000001', 'A', 'Academy');
-select is((private.issue_invoice('00000000-0000-4000-8000-000000000001', 'A', 'booking:5', 200000, 1800, 'Academy seat',
-                                 '00000000-0000-4000-8000-000000000201')).number,
-  'RIVR/A' || pg_temp.yy() || '/1', 'another series counts on its own from 1');
+-- A second series, at the practice venue: at the club only club services has a SAC code since the Academy went (15 Nov).
+insert into public.invoice_series (venue_id, code, name) values ('00000000-0000-4000-8000-000000000002', 'A', 'Another series');
+select is((private.issue_invoice('00000000-0000-4000-8000-000000000002', 'A', 'booking:5', 200000, 1800, 'A seat',
+                                 null, 'Someone')).number,
+  'PRAC/A' || pg_temp.yy() || '/1', 'another series counts on its own from 1');
 insert into public.invoice_counter (series_id, venue_id, financial_year, last_number)
 select s.id, s.venue_id, private.financial_year(s.venue_id, now()) - 1, 41 from public.invoice_series s
 where s.venue_id = '00000000-0000-4000-8000-000000000001' and s.code = 'S';
 select is((pg_temp.issue('booking:6', 5000)).number, 'RIVR/S' || pg_temp.yy() || '/5', 'and each financial year on its own');
 select is((select count(*)::integer from public.outbox_event e join public.invoice i on e.payload ->> 'invoice_id' = i.id::text
-           where e.event_type = 'invoice.issued' and i.venue_id = '00000000-0000-4000-8000-000000000001'), 6,
+           where e.event_type = 'invoice.issued' and i.venue_id = '00000000-0000-4000-8000-000000000001'), 5,
   'each invoice is announced once');
 
 update public.venue_config set legal_name = 'RIVR Gaming Pvt Ltd' where venue_id = '00000000-0000-4000-8000-000000000001';
@@ -133,12 +134,12 @@ select is(private.financial_year('00000000-0000-4000-8000-000000000001', '2027-0
 -- Who sees invoices.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
 select results_eq($$ select source from public.invoice order by source $$,
-  $$ values ('booking:1'::text), ('booking:3'), ('booking:5'), ('booking:6') $$, 'Arjun sees his own invoices only');
+  $$ values ('booking:1'::text), ('booking:3'), ('booking:6') $$, 'Arjun sees his own invoices only');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select is((select count(*)::integer from public.invoice where venue_id = '00000000-0000-4000-8000-000000000001'), 6,
+select is((select count(*)::integer from public.invoice where venue_id = '00000000-0000-4000-8000-000000000001'), 5,
   'a cashier sees the club''s invoices');
 select is_empty($$ select * from public.invoice where venue_id = '00000000-0000-4000-8000-0000000007a1' $$, 'not another venue''s');
-select is((select count(*)::integer from public.invoice_series where venue_id = '00000000-0000-4000-8000-000000000001'), 2, 'and the club''s series');
+select is((select count(*)::integer from public.invoice_series where venue_id = '00000000-0000-4000-8000-000000000001'), 1, 'and the club''s series');
 select is_empty($$ select * from public.invoice_series where venue_id = '00000000-0000-4000-8000-0000000007a1' $$, 'not another venue''s');
 select throws_ok($$ select * from public.invoice_counter $$, '42501', null, 'nobody reads the counters');
 select throws_ok($$ select private.issue_invoice('00000000-0000-4000-8000-000000000001', 'S', 'booking:10', 100, 1800, 'No',

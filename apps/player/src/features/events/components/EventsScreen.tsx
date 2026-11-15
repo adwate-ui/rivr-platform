@@ -6,7 +6,7 @@ import { Navigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { EventCard } from './EventCard.tsx';
 
-/** The club's events still to come, each bookable. The Academy's batches are hidden (#627). */
+/** The club's events still to come, each bookable. */
 function EventList() {
   const events = useMyClubEvents();
   const [bookedTitle, setBookedTitle] = useState<string | null>(null);

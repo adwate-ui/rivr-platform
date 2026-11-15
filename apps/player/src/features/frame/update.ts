@@ -3,7 +3,7 @@
  * DigiLocker or pay in a UPI app: a reload there would lose what they typed (F3-16).
  */
 function isMidStep(path: string): boolean {
-  return path === '/sign-in' || path === '/balance/deposit' || path === '/kyc' || path.startsWith('/kyc/') || path.startsWith('/academy/');
+  return path === '/sign-in' || path === '/balance/deposit' || path === '/kyc' || path.startsWith('/kyc/');
 }
 
 // A phone that last opened the app days ago starts on the copy it kept, and went through sign-in and the identity check

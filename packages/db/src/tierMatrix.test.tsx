@@ -30,7 +30,7 @@ function renderTiers(rows: unknown[], write: { status?: number; body: unknown } 
 }
 
 const ROW = {
-  tier_id: 'member', tier_name: 'Member', feature_key: 'learn.library', feature_name: 'Learn library', feature_description: 'The Learn tab.',
+  tier_id: 'member', tier_name: 'Member', feature_key: 'events.book', feature_name: 'Events', feature_description: 'The events calendar.',
   is_enabled: false, display_mode: 'locked', shows_as: 'locked', tiers_with_it: ['Black card'],
   next_cell_id: 'n1', next_from: '2026-10-21T00:00:00+05:30', next_is_enabled: true, next_display_mode: 'locked',
 } as const;
@@ -42,12 +42,12 @@ describe('the tier matrix', () => {
   it('reads tiers by rank, the features, and each cell with the change scheduled for it', () => {
     const matrix = toTierMatrix([ROW, BLACK]);
     expect(matrix.tiers).toEqual([{ tierId: 'member', name: 'Member' }, { tierId: 'black', name: 'Black card' }]);
-    expect(matrix.features).toEqual([{ key: 'learn.library', name: 'Learn library', description: 'The Learn tab.' }]);
-    expect(matrix.cells.get(cellKey('member', 'learn.library'))).toEqual({
+    expect(matrix.features).toEqual([{ key: 'events.book', name: 'Events', description: 'The events calendar.' }]);
+    expect(matrix.cells.get(cellKey('member', 'events.book'))).toEqual({
       isEnabled: false, displayMode: 'locked', showsAs: 'locked', tiersWithIt: ['Black card'],
       next: { cellId: 'n1', from: '2026-10-21T00:00:00+05:30', isEnabled: true, displayMode: 'locked' },
     });
-    expect(matrix.cells.get(cellKey('black', 'learn.library'))?.next).toBeNull();
+    expect(matrix.cells.get(cellKey('black', 'events.book'))?.next).toBeNull();
   });
 
   it('asks tier_matrix for the venue', async () => {
@@ -58,12 +58,12 @@ describe('the tier matrix', () => {
 
   it('saves a batch now, or from a date, and says when a date has gone', async () => {
     const { result, calls } = renderTiers([]);
-    const cell = { tierId: 'member', featureKey: 'learn.library', isEnabled: false, displayMode: 'hidden' } as const;
+    const cell = { tierId: 'member', featureKey: 'events.book', isEnabled: false, displayMode: 'hidden' } as const;
     expect(await act(() => result.current.actions.schedule.mutateAsync({ cells: [cell], from: null }))).toEqual({ ok: true, value: 1 });
     await act(() => result.current.actions.schedule.mutateAsync({ cells: [cell], from: '2026-10-25T00:00:00+05:30' }));
     expect(calls.filter((call) => call.url.includes('/rpc/schedule_tier_cells')).map((call) => call.body)).toEqual([
-      { p_venue_id: VENUE, p_cells: [{ tier_id: 'member', feature_key: 'learn.library', is_enabled: false, display_mode: 'hidden' }] },
-      { p_venue_id: VENUE, p_cells: [{ tier_id: 'member', feature_key: 'learn.library', is_enabled: false, display_mode: 'hidden' }], p_effective_from: '2026-10-25T00:00:00+05:30' },
+      { p_venue_id: VENUE, p_cells: [{ tier_id: 'member', feature_key: 'events.book', is_enabled: false, display_mode: 'hidden' }] },
+      { p_venue_id: VENUE, p_cells: [{ tier_id: 'member', feature_key: 'events.book', is_enabled: false, display_mode: 'hidden' }], p_effective_from: '2026-10-25T00:00:00+05:30' },
     ]);
     cleanup();
     const late = renderTiers([], { status: 400, body: { code: 'RVPST', message: 'past' } });

@@ -13,7 +13,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const FEATURES = ['push.seat_ready', 'push.call_time_complete', 'push.bonus', 'learn.library', 'account.delete'].map((feature_key) => ({ feature_key, state: 'enabled', tiers: null }));
+const FEATURES = ['push.seat_ready', 'push.call_time_complete', 'push.bonus', 'account.delete'].map((feature_key) => ({ feature_key, state: 'enabled', tiers: null }));
 const CARD = { member_number: 901, full_name: 'Meera Iyer', tier_name: 'Founders’ Circle', code: 'c0de', ms_left: 30000, photo_path: null };
 
 /** What each read Profile makes is answered with, by a part of its address; undefined for any other. */
@@ -150,9 +150,10 @@ describe('Profile', () => {
     expect(screen.queryByRole('img', { name: 'Your photo' })).toBeNull();
   });
 
-  it('shows Learn for a tier with it, and no Events for one without', async () => {
+  it('shows no Events row for a tier without it', async () => {
     renderProfile();
-    expect(await screen.findByRole('button', { name: /Learn/ }, LATER)).toBeDefined();
+    // Delete my account is a gated row the fixture gives, so once it shows, access has loaded.
+    expect(await screen.findByRole('button', { name: 'Delete my account' }, LATER)).toBeDefined();
     expect(screen.queryByRole('button', { name: /Events/ })).toBeNull();
   });
 

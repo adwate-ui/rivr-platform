@@ -33,7 +33,7 @@ insert into public.consent (venue_id, member_id, purpose)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 'marketing'), ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000641', 'marketing');
 select results_eq($$ select conversion, phone from public.conversion_for('00000000-0000-4000-8000-000000000001', 'kyc.completed', '{"member_id": "00000000-0000-4000-8000-000000000211"}') $$,
   $$ values ('kyc_complete'::text, '+919000000211'::text) $$, 'once they consent, KYC complete, with the phone each vendor hashes');
-select is(pg_temp.conversion('academy.booked', '{"member_id": "00000000-0000-4000-8000-000000000211"}'), 'academy_booking', 'an Academy booking');
+select is(pg_temp.conversion('academy.booked', '{"member_id": "00000000-0000-4000-8000-000000000211"}'), null, 'an Academy booking is no conversion now: the Academy went on 15 Nov');
 select is(pg_temp.conversion('tournament.entered', '{"member_id": "00000000-0000-4000-8000-000000000211"}'), 'tournament_entry', 'a tournament entry');
 select results_eq($$ select pg_temp.conversion('cage.buy_in', jsonb_build_object('member_id', '00000000-0000-4000-8000-000000000211', 'cage_transaction_id', id))
                     from ids where name in ('first', 'second') order by 1 nulls last $$,

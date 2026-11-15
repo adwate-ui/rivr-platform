@@ -79,8 +79,8 @@ describe('describePromotion', () => {
       schedule: { days: [1, 2, 3, 4, 5, 6, 7], from: '14:00', to: '14:00', startsOn: '2026-11-01', timezone: 'Asia/Kolkata' },
       limits: { perMember: 'once' },
     });
-    expect(describePromotion(entry, { tournaments: { 'tour-1': 'Graduate freeroll' } })).toBe(
-      'An entry to Graduate freeroll, for all stakes, every day, 24 hours from 14:00. Once ever per member. Starts 1 Nov 2026, no end date.',
+    expect(describePromotion(entry, { tournaments: { 'tour-1': 'Sunday freeroll' } })).toBe(
+      'An entry to Sunday freeroll, for all stakes, every day, 24 hours from 14:00. Once ever per member. Starts 1 Nov 2026, no end date.',
     );
     const weekly = buildPromotionTerms({ limits: { perMember: 'per_week' } });
     expect(describePromotion(weekly)).toContain('every day, all day. Once a week per member.');

@@ -12,7 +12,7 @@ export interface BuilderNames {
 
 export type BuilderNamesState = { readonly status: 'ready'; readonly value: BuilderNames } | { readonly status: 'loading' | 'error'; readonly retry: () => void };
 
-// The tiers the Founders' Circle priority and Graduate freeroll templates are for, as the venue's seed names them.
+// The tier the Founders' Circle priority template is for, as the venue's seed names it.
 const FOUNDERS = "Founders' Circle";
 
 /** The stakes and tiers of the venue, read once for the list, the builder and the approver. */

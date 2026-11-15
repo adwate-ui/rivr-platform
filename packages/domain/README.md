@@ -41,12 +41,6 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 |---|---|
 | `kycIdentityKey(documentName, dateOfBirth, maskedAadhaar)` | The identity two KYC checks of one person share: the document's name in plain letters (case, spacing and punctuation ignored; Devanagari vowel signs count), the date of birth and the last four Aadhaar digits. Null without a name in letters or four digits. A DigiLocker name need not be the registered name (decision 0400). |
 
-### `@rivr/domain/academy`
-
-| Export | What it does |
-|---|---|
-| `academyFee(kind, seats, prices)`, `AcademyPrices` | What an Academy booking costs: one seat at the individual fee, or each head at the corporate fee. No rounding. The database's `private.academy_fee` is proved equal by `packages/testing/golden/academy.json`. |
-
 ### `@rivr/domain/rake`
 
 | Export | What it does |
@@ -161,12 +155,6 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 |---|---|
 | `gstIncluded(inclusive, rate)`, `GstSplit` | GST taken out of an amount that includes it (#23, decision 0071): equal CGST and SGST halves, each rounded to the nearest paisa (a half up), and the taxable value as what is left, so the three add up to the amount. Throws on a negative amount or a rate outside 0 to 10,000 basis points (bugs). The database's `private.gst_included` is proved equal by `packages/testing/golden/gst.json`. |
 | `igstIncluded(inclusive, rate)`, `IgstSplit` | IGST taken out of an amount that includes it, for a buyer registered in another state (#380, decision 0102): the whole tax at the full rate, rounded once to the nearest paisa (a half up), and the taxable value as the rest. Same refusals as `gstIncluded`. The database's `private.igst_included` is proved equal on the same golden file. |
-
-### `@rivr/domain/learnPoints`
-
-| Export | What it does |
-|---|---|
-| `learnPoints(mastered, earnedToday, rates)`, `LearnPointRates` | Learn points (#135, `@rivr/domain/learnPoints`): a completed session's `perSession`, and `perPrinciple` for each principle first mastered in it, but no more than `dailyCap` less what Learn gave that IST day, never below nothing. The database's `private.learn_points` is proved equal on `golden/learnPoints.json`. |
 
 ### `@rivr/domain/rakeback`
 

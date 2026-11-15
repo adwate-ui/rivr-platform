@@ -3,10 +3,9 @@
  * pnpm verify | verify:quick | verify:all, and CI's parallel parts (decision 0243)
  *   quick      typecheck, lint (ESLint, dependency rules, stylesheets), unit and property tests
  *   changed    quick, plus: mutation tests on the changed money modules, pgTAP when supabase/ or a golden
- *              file changed, the generated-tokens check, the drill gates, Storybook build and visual tests
+ *              file changed, the generated-tokens check, Storybook build and visual tests
  *   all        every step for every package
  *   code       CI: quick and the generated-tokens check, for every package
- *   drills     CI: the drill gates, beside code so neither nears its time limit (decision 0425)
  *   database   CI: pgTAP and the generated types
  *   storybook  CI: Storybook build and visual tests
  *   mutation <n>/<count>   CI: the n-th of `count` shares of the money modules' files to mutate. With
@@ -244,7 +243,6 @@ function pgtapStep() {
 }
 
 const tokensStep = () => step('generated tokens are current', 'pnpm', ['--filter', '@rivr/tokens', 'check:generated']);
-const drillsStep = () => step('drill gates', 'pnpm', ['--filter', '@rivr/drills', 'gates']);
 const storybookStep = () =>
   step('Storybook build and visual tests', 'node', ['scripts/turbo.mjs', 'run', 'build-storybook', 'visual', '--filter', 'ui']);
 
@@ -270,7 +268,6 @@ function stepsFor(mode, scope) {
   // A golden file is proved in SQL too (decision 0037).
   if (['supabase/', 'packages/testing/golden/'].some(touched)) steps.push(pgtapStep());
   if (touched('packages/tokens/')) steps.push(tokensStep());
-  if (touched('packages/drills/')) steps.push(drillsStep());
   if (touched('packages/ui/') || touched('packages/tokens/')) steps.push(storybookStep());
   return steps;
 }
@@ -278,7 +275,6 @@ function stepsFor(mode, scope) {
 /** CI's parallel parts, one job each (decision 0243). */
 const CI_PARTS = {
   code: (scope) => [...quickSteps(scope), tokensStep()],
-  drills: () => [drillsStep()],
   database: () => [pgtapStep()],
   storybook: () => [storybookStep()],
   mutation: (scope) => {

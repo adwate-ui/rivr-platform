@@ -114,9 +114,9 @@ select is((private.issue_invoice('00000000-0000-4000-8000-000000000001', 'S', 's
                                  'Club services: a private event', null, 'Southern Cards Private Limited', '29CCCCC2222C1Z7')).place_of_supply,
   'Karnataka', 'even when its IGST comes to nothing');
 insert into public.invoice_series (venue_id, code, name) values ('00000000-0000-4000-8000-000000000001', 'A', 'Academy') on conflict do nothing;
-select is((private.issue_invoice('00000000-0000-4000-8000-000000000001', 'A', 'sac-test:academy', 200000, 1800,
-                                 'Poker Academy, Level 1', null, 'A student')).sac_code,
-  '999293', 'an Academy invoice carries the Academy''s SAC code, not the club services''');
+select throws_ok($$ select private.issue_invoice('00000000-0000-4000-8000-000000000001', 'A', 'sac-test:academy', 200000, 1800,
+                                                 'Poker Academy, Level 1', null, 'A student') $$,
+  'RVGST', null, 'a series with no SAC code of its own issues no tax invoice: the Academy''s went with the Academy (15 Nov)');
 select throws_ok($$ select private.issue_invoice('00000000-0000-4000-8000-000000000001', 'S', 'sac-test:nowhere', 118000, 1800,
                                                  'Club services', null, 'Nowhere Private Limited', '99CCCCC2222C1Z7') $$,
   'RVGST', 'A tax invoice needs a place of supply: no state has the GSTIN state code 99', 'a buyer''s state code no state has is refused');

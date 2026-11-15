@@ -1,5 +1,5 @@
 -- The promotions engine (#83). 103 Aditya (admin) and 107 Ishita (marketing) manage promotions; 104
--- Sana (cashier) and 106 Pema (dealer) do not. Three live promotions answer a buy-in: "Graduate first
+-- Sana (cashier) and 106 Pema (dealer) do not. Three live promotions answer a buy-in: "New player first
 -- buy-in" (₹1,000 to a new player, alone, one grant in all), "Buy-in bonus Tuesday" (20% to the first
 -- two at each table, ₹5,000 in all) and "Double points" (500 points, once a club day each). 211
 -- Ishaan and 212 Vihaan have never visited; 216 Kunal and 217 Neel have three visits behind them.
@@ -45,8 +45,8 @@ grant select, insert on ids to authenticated;
 -- manage them; a promotion is submitted and a super admin approves it (146_promotion_approval.test.sql). The test's
 -- three go in as the database's owner, and the tables still refuse a rule the engine cannot run.
 with p as (insert into public.promotion (venue_id, name, status, stacks, priority)
-            values ('00000000-0000-4000-8000-000000000001', 'Graduate first buy-in', 'live', false, 20) returning id)
-insert into ids select 'graduate', id from p;
+            values ('00000000-0000-4000-8000-000000000001', 'New player first buy-in', 'live', false, 20) returning id)
+insert into ids select 'new_player', id from p;
 with p as (insert into public.promotion (venue_id, name, status, priority)
             values ('00000000-0000-4000-8000-000000000001', 'Buy-in bonus Tuesday', 'live', 10) returning id)
 insert into ids select 'tuesday', id from p;
@@ -54,13 +54,13 @@ with p as (insert into public.promotion (venue_id, name, status, priority, per_p
             values ('00000000-0000-4000-8000-000000000001', 'Welcome back', 'live', 5, 1, 'day') returning id)
 insert into ids select 'welcome', id from p;
 insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, effect) values
-  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'graduate'), 'buy_in', '{"new_player": true}',
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'new_player'), 'buy_in', '{"new_player": true}',
    '{"kind": "bonus", "amount_paise": 100000, "expires_days": 30}'),
   ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"first_n": {"count": 2, "per": "table"}}',
    '{"kind": "bonus", "percent_bps": 2000, "expires_days": 7}'),
   ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'welcome'), 'buy_in', '{}', '{"kind": "message", "text": "Welcome back"}');
 insert into public.promotion_budget (venue_id, promotion_id, cap_paise, cap_count) values
-  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'graduate'), null, 1),
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'new_player'), null, 1),
   ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 500000, null);
 select throws_ok($$ insert into public.promotion_rule (venue_id, promotion_id, trigger, effect) values
   ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in',
@@ -157,14 +157,14 @@ select is(private.promotion_facts('00000000-0000-4000-8000-000000000218', null, 
 select is(private.promotion_facts('00000000-0000-4000-8000-000000000218', null, '2026-11-15T21:00:00+05:30') -> 'days_since_last_visit', '12'::jsonb,
   'her last began twelve days before');
 
--- A new player: the graduate bonus, alone, though the others apply too.
+-- A new player: the new player bonus, alone, though the others apply too.
 select is(pg_temp.buy_in('211', 'Table 3', 'test-1'), 1, 'Ishaan''s buy-in gives one promotion');
-select is(pg_temp.grants('Graduate first buy-in'), '211', 'the graduate bonus, which does not stack');
+select is(pg_temp.grants('New player first buy-in'), '211', 'the new player bonus, which does not stack');
 select is(pg_temp.held('member.bonus', '00000000-0000-4000-8000-000000000211'), 100000::bigint, 'Ishaan holds ₹1,000 of bonus');
 select results_eq($$ select b.reason, b.expires_at is null, g.fulfilled_at is not null
                      from public.promotion_grant g join public.bonus_grant b on b.id = g.bonus_grant_id
                      where g.member_id = '00000000-0000-4000-8000-000000000211' $$,
-  $$ values ('Graduate first buy-in'::text, true, true) $$, 'credited at once through the bonus, which never ends (decision 0504)');
+  $$ values ('New player first buy-in'::text, true, true) $$, 'credited at once through the bonus, which never ends (decision 0504)');
 select is(pg_temp.buy_in('211', 'Table 3', 'test-1'), 0, 'a replay of the buy-in gives nothing more');
 select is((select count(*)::integer from public.bonus_grant where member_id = '00000000-0000-4000-8000-000000000211'), 1, 'and credits nothing more');
 
@@ -174,7 +174,7 @@ select is(pg_temp.held('member.bonus', '00000000-0000-4000-8000-000000000216'), 
 select is(pg_temp.buy_in('217', 'Table 3', 'test-3'), 2, 'Neel, the second at Table 3, has both');
 select is(pg_temp.buy_in('212', 'Table 3', 'test-4'), 1, 'Vihaan has only the welcome');
 select is(pg_temp.grants('Buy-in bonus Tuesday'), '216 217', 'the third at the table has no Tuesday bonus');
-select is(pg_temp.grants('Graduate first buy-in'), '211', 'and a new player no graduate bonus once its one grant is given');
+select is(pg_temp.grants('New player first buy-in'), '211', 'and a new player no such bonus once its one grant is given');
 select results_eq($$ select g.cost_paise, g.fulfilled_at is null from public.promotion_grant g join public.promotion p on p.id = g.promotion_id
                      where p.name = 'Welcome back' and g.member_id = '00000000-0000-4000-8000-000000000212' $$,
   $$ values (0::bigint, true) $$, 'a message costs nothing and credits nothing');

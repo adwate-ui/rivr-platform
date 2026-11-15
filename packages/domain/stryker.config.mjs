@@ -26,7 +26,7 @@ export default {
   commandRunner: { command: 'NODE_OPTIONS=--max-old-space-size=2048 npx vitest run --bail=1 --reporter=dot --coverage.enabled=false --maxWorkers=1' },
   timeoutMS: 60_000,
   coverageAnalysis: 'off',
-  mutate: ['src/money/**/*.ts', 'src/ledger/**/*.ts', 'src/rake/**/*.ts', 'src/jackpot/**/*.ts', 'src/variance/**/*.ts', 'src/eod/**/*.ts', 'src/cage/**/*.ts', 'src/callTime/**/*.ts', 'src/tds/**/*.ts', 'src/gst/**/*.ts','src/credit/**/*.ts', 'src/markers/**/*.ts', 'src/bonus/**/*.ts', 'src/wallet/**/*.ts', 'src/shares/**/*.ts', 'src/promotions/**/*.ts', 'src/rakeback/**/*.ts', 'src/learnPoints/**/*.ts', 'src/shareholding/**/*.ts', 'src/academy/**/*.ts', 'src/tally/**/*.ts', 'src/tournament/**/*.ts', 'src/aml/**/*.ts', 'src/glaza/**/*.ts', '!src/**/*.test.ts', '!src/**/index.ts'],
+  mutate: ['src/money/**/*.ts', 'src/ledger/**/*.ts', 'src/rake/**/*.ts', 'src/jackpot/**/*.ts', 'src/variance/**/*.ts', 'src/eod/**/*.ts', 'src/cage/**/*.ts', 'src/callTime/**/*.ts', 'src/tds/**/*.ts', 'src/gst/**/*.ts','src/credit/**/*.ts', 'src/markers/**/*.ts', 'src/bonus/**/*.ts', 'src/wallet/**/*.ts', 'src/shares/**/*.ts', 'src/promotions/**/*.ts', 'src/rakeback/**/*.ts', 'src/shareholding/**/*.ts', 'src/tally/**/*.ts', 'src/tournament/**/*.ts', 'src/aml/**/*.ts', 'src/glaza/**/*.ts', '!src/**/*.test.ts', '!src/**/index.ts'],
   thresholds: { high: 95, low: 85, break: 80 },
   reporters: ['clear-text', 'progress', 'html', 'json'],
   htmlReporter: { fileName: 'reports/mutation/index.html' },

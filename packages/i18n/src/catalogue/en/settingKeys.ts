@@ -16,16 +16,6 @@ export interface SettingCopy {
 export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   ...identitySettingKeys,
   ...floorSettingKeys,
-  'academy.gst': {
-    name: 'GST on Academy fees',
-    help: 'The GST taken out of each Academy fee. It is kept apart from GST on club services, as training may be taxed differently.',
-    fields: { rate_basis_points: 'Rate' },
-  },
-  'academy.price': {
-    name: 'Academy fees',
-    help: 'What an Academy seat costs: for one person, and for each person on a corporate booking.',
-    fields: { individual_paise: 'One person', corporate_per_head_paise: 'Each person, corporate' },
-  },
   'alert.thresholds': {
     name: 'Delivery failure alert',
     help: 'The owner is alerted when this many messages fail for good within this many minutes. 5 within 60 minutes unless set.',
@@ -101,16 +91,6 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
     name: 'Jackpot pool shares',
     help: 'The parts of every jackpot drop kept for the season and freeroll pools, up to 50% each. The main pool takes the rest.',
     fields: { season_basis_points: 'Season pool', freeroll_basis_points: 'Freeroll pool' },
-  },
-  'learn.daily_points_cap': {
-    name: 'Learn points, daily cap',
-    help: 'The most Learn points a member earns in a day, so drilling again cannot farm them. 100 unless set.',
-    fields: { points: 'Points' },
-  },
-  'learn.session_points': {
-    name: 'Learn points',
-    help: 'Learn points for a finished drill session, and for each principle mastered the first time. 10 and 25 unless set.',
-    fields: { per_session: 'Per session', per_principle: 'Per principle mastered' },
   },
   'markers.due_days': {
     name: 'Marker due after',

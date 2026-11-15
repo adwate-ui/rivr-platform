@@ -36,7 +36,7 @@ Four lanes: A money, B floor, C member and web, D growth and content. Their task
 | Ledger | `ledger_account`, `ledger_transaction`, `ledger_entry`, `chip_denomination` | `private.post_ledger_transaction(venue, kind, key, lines, feature, memo?, reverses?)`, `private.reverse_ledger_transaction(transaction, key, reason)`, view `ledger_balance` (full balances of the accounts the caller may see) |
 | Public surfaces | views `public_venue`, `public_venue_status`, `public_club_contact` (decision 0582) | |
 
-Packages: `@rivr/contracts`, `@rivr/domain` (money, ledger), `@rivr/db` (`useFeature`, `useControlState`, the client and provider), `@rivr/ui`, `@rivr/i18n`, `@rivr/adapters`, `@rivr/offline`, `@rivr/render`, `@rivr/testing`, `@rivr/drills`.
+Packages: `@rivr/contracts`, `@rivr/domain` (money, ledger), `@rivr/db` (`useFeature`, `useControlState`, the client and provider), `@rivr/ui`, `@rivr/i18n`, `@rivr/adapters`, `@rivr/offline`, `@rivr/render`, `@rivr/testing`.
 
 ## Chart of accounts
 

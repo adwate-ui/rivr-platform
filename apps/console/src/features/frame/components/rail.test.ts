@@ -41,7 +41,7 @@ describe('the console rail (console v3)', () => {
     expect(groups('admin')).toEqual(['Tonight', 'Players', 'Marketing', 'Admin']);
     expect(railFor(ROLE_PERMISSIONS.admin).find((section) => section.label === 'Admin')?.items.map((item) => item.href)).toEqual(['/staff', '/tables', '/reports', '/settings']);
     for (const path of ['/kill-switch', '/practice-reset', '/purge']) expect(isAllowedAt(ROLE_PERMISSIONS.admin, path)).toBe(false);
-    // Content is the website and Learn content: neither is an admin's.
+    // Content is the website, which is not an admin's.
     expect(items('admin')).not.toContain('/content');
   });
 
@@ -72,7 +72,7 @@ describe('the console rail (console v3)', () => {
 
   it('keeps a cashier out of admin screens but TVs, whether from the rail or by address, whatever the case', () => {
     expect(items('cashier')).not.toContain('/staff');
-    for (const admin of ['/staff', '/kill-switch', '/tables', '/academy', '/STAFF', '/Kill-Switch']) {
+    for (const admin of ['/staff', '/kill-switch', '/tables', '/STAFF', '/Kill-Switch']) {
       expect(isAllowedAt(ROLE_PERMISSIONS.cashier, admin)).toBe(false);
     }
     expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/settings', 'members')).toBe(false);
@@ -98,15 +98,14 @@ describe('the console rail (console v3)', () => {
 
   it('hides what the owner hid on 29 Oct from everyone, by the rail and by address, naming the screen it refuses', () => {
     const everyone = ROLE_PERMISSIONS.super_admin;
-    const hidden = ['/owner', '/tournaments', '/dealers', '/jackpots', '/cage', '/withdrawals', '/academy/payments', '/shift', '/tiers',
-      '/events', '/creators', '/academy', '/accounts', '/expenses', '/markers', '/tds', '/tally', '/shareholders', '/aml', '/pot-data',
+    const hidden = ['/owner', '/tournaments', '/dealers', '/jackpots', '/cage', '/withdrawals', '/shift', '/tiers',
+      '/events', '/creators', '/accounts', '/expenses', '/markers', '/tds', '/tally', '/shareholders', '/aml', '/pot-data',
       '/roster', '/certification', '/sops', '/incidents', '/exports'];
     for (const screen of hidden) {
       expect(refusalAt(everyone, screen)?.isOff).toBe(true);
       expect(items('super_admin')).not.toContain(screen);
     }
     expect(refusalAt(everyone, '/cage/receipt')).toEqual({ title: 'Cage', isOff: true });
-    expect(refusalAt(everyone, '/academy')).toEqual({ title: 'Academy', isOff: true });
     expect(refusalAt(ROLE_PERMISSIONS.cashier, '/purge')).toEqual({ title: 'Purge', isOff: false });
   });
 
@@ -147,7 +146,7 @@ describe('the console rail (console v3)', () => {
   });
 
   it('keeps the cage and money screens locking after ten idle minutes, and none of them on the rail', () => {
-    const money = ['/cage', '/markers', '/shift', '/accounts', '/expenses', '/tds', '/tally', '/withdrawals', '/academy/payments'];
+    const money = ['/cage', '/markers', '/shift', '/accounts', '/expenses', '/tds', '/tally', '/withdrawals'];
     for (const screen of money) expect(locksWhenIdle(screen)).toBe(true);
     expect(locksWhenIdle('/Markers')).toBe(true);
     expect(items('super_admin').filter((href) => money.includes(href))).toEqual([]);

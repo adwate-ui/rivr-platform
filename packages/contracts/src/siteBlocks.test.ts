@@ -25,7 +25,9 @@ describe('the website\'s information blocks (#35)', () => {
 
   it('reads a links block of named player-app destinations, one to six, never a raw address (#39)', () => {
     const links = (items: unknown[]) => siteBlockSchema.safeParse({ kind: 'links', content: { links: items } }).success;
-    expect(links([{ label: 'Join the waitlist', to: 'waitlist' }, { label: 'Book RIVR Academy', to: 'academy' }])).toBe(true);
+    expect(links([{ label: 'Join the waitlist', to: 'waitlist' }, { label: 'Join RIVR', to: 'sign-up' }])).toBe(true);
+    // The Academy went on 15 Nov: its destination is no longer one.
+    expect(links([{ label: 'Book RIVR Academy', to: 'academy' }])).toBe(false);
     expect(links([{ label: 'Win big', to: 'https://evil.example/' }])).toBe(false);
     expect(links([])).toBe(false);
     expect(links(Array.from({ length: 7 }, () => ({ label: 'Join RIVR', to: 'sign-up' })))).toBe(false);

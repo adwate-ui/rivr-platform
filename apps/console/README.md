@@ -30,8 +30,6 @@ src/
                       screen's own links keep (`useNavigateKeepingViews`; decision 0512)
     sign-in/          mobile number and code, as in the player app (decision 0032)
     kyc-review/       identity checks waiting for a KYC reviewer: the queue beside the check open, decided with a reason in words, and Check in person in a sheet, beside the member's app selfie when they registered to be checked at the club (decision 0502); for the floor and hosts, who is due tonight under the search, a check held for its PAN among them (audit F-010, F-091) (/kyc-review)
-    academy/          Academy batches, company bookings, recording a UTR and cancelling (Academy staff,
-                      /academy); the payments the cage checks against the bank (/academy/payments)
     live-floor/       the room plan and each table's seats (/): seat (redeeming bonus chips with the buy-in, decision 0504, up to what the visit has left, decision 0579), move, away, leaving, top-ups and a player's call time (#638), and Bonus by hand in a seated player's sheet for staff who hold `bonus.give` (decision 0585);
                       joins waiting for approval, and tonight's top-ups by table with the time each took (#639)
     waitlist/         the Waitlist's Lists tab (/waitlist?tab=lists; decisions 0467, 0469): a card for each open table's own list, and a closed one while someone waits on it, with Open table once enough wait; joins from the app to approve or decline (#633); each place's Seat (the seat sheet at its table, with the member's bonus chips to redeem and what the visit has left, decisions 0504 and 0579), or Check ID for a member whose ID the desk must check first (the check in person, /kyc-review?check=<name>, decision 0503), Hold place or Release and Remove; the bulk bar; add by mobile or member number
@@ -73,7 +71,6 @@ src/
     host-queue/       lapsed regulars to call, longest gone first, beside the call open: why they stopped coming (needed to save it), the offer and a note; or off the queue (/host-queue)
     social/           by tab (/social?tab=wall|publish|leads): the social wall's tagged posts to approve or reject, publishing with the posts made, and the inbox's leads
     website/          Content's Website tab (/content?tab=website): the pages found by name in Club, Guides and Legal, beside the open page's draft, preview, publishing and history (#129); a page's sections added, moved, deleted or changed in kind from each one's menu, and list items added and removed (#906)
-    learn-sources/    Content's Learn content tab (/content?tab=learn), loaded when first opened as it carries the drill engine: licensed encodings and adding one that passes its checks (#131)
     tournament-interest/ a new tournament published without money: name, start, game and stake as text, description (#800);
                       who registered interest in each from the app, marked registered once paid (#636; the Waitlist's Tournament interest tab, /waitlist?tab=interest)
     tournaments/      the tournament clock and its controls, the field and the floor (players, bust-outs with
@@ -93,7 +90,7 @@ A decision given with a reason, such as revoking a tablet or rejecting a claim, 
 
 ## Who builds what
 
-Every lane adds console features: lane A the cage, markers, treasury, end of day, withdrawals, expenses, reports, owner dashboard, admin and settings (every effective-dated setting, built from each key's schema, and the venue configuration and chips, #33); lane B the live floor, waitlist, dealer tablets and their PINs, tables, tournaments, jackpots, high hands, TV screens, dealers, SOPs, incidents, F&B and pot data; lane C KYC review, members, Academy, website, Learn sources and cab; lane D promotions, social, creators, host queue, growth funnel and feedback (`docs/contracts/`).
+Every lane adds console features: lane A the cage, markers, treasury, end of day, withdrawals, expenses, reports, owner dashboard, admin and settings (every effective-dated setting, built from each key's schema, and the venue configuration and chips, #33); lane B the live floor, waitlist, dealer tablets and their PINs, tables, tournaments, jackpots, high hands, TV screens, dealers, SOPs, incidents, F&B and pot data; lane C KYC review, members, website and cab; lane D promotions, social, creators, host queue, growth funnel and feedback (`docs/contracts/`).
 
 ## Budgets
 

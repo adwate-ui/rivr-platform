@@ -28,14 +28,6 @@ export const reviewsGoogleUrl = {
   }),
 } as const satisfies SettingDefinition;
 
-/** Learn points (#135): a completed session's, and each principle mastered for the first time; none set is 10 and 25. */
-export const learnSessionPoints = {
-  key: 'learn.session_points',
-  description: 'Learn points for a completed drill session and for each principle mastered for the first time; none set is 10 and 25.',
-  scope: 'venue',
-  value: z.strictObject({ per_session: z.int().min(0).max(1000), per_principle: z.int().min(0).max(1000) }),
-} as const satisfies SettingDefinition;
-
 /** Identity checked at the club (decision 0502): while Cashfree is not live, a selfie lets a new member in and staff check them at the desk. */
 export const kycAtTheClub = {
   key: 'kyc.at_the_club', defaultValue: { enabled: false },
@@ -88,14 +80,6 @@ export const bonusVisitCap = {
   scope: 'venue',
   superAdminOnly: true,
   value: z.strictObject({ basis_points: z.int().min(100).max(10000) }),
-} as const satisfies SettingDefinition;
-
-/** The most Learn points a member earns in an IST day (#135), so re-drilling cannot farm them; none set is 100. */
-export const learnDailyPointsCap = {
-  key: 'learn.daily_points_cap',
-  description: 'The most Learn points a member earns in an IST day, so re-drilling cannot farm them; none set is 100.',
-  scope: 'venue',
-  value: z.strictObject({ points: z.int().min(0).max(10000) }),
 } as const satisfies SettingDefinition;
 
 /** The visits a member needs this month before the app offers them a cab (#140); none set is four. */

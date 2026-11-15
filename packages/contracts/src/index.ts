@@ -34,7 +34,6 @@ export {
   bankAmountSchema, depositSchema, withdrawalSchema, type Ifsc, type PayoutAccountInput, type PayoutKind,
   type UpiVpa, type Utr,
 } from './payments.ts';
-export { academyBatchSchema, companyBookingSchema } from './academy.ts';
 export { bonusChipsToRedeemSchema, doorCardSchema, doorCheckInSchema, floorWaitlistAddSchema, seatPlayerSchema, type SeatWho } from './waitlist.ts';
 export {
   dealerPinEntrySchema,
@@ -142,7 +141,6 @@ export {
   TAB_FEATURES,
   type FeatureDefinition,
   type FeatureKey,
-  type LearnSourceFeatureKey,
 } from './features.ts';
 export {
   PERMISSIONS,

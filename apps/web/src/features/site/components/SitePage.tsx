@@ -177,7 +177,7 @@ interface SiteLink {
 }
 
 // The header's menu in grandpokerarena.com's order (#616, decision 0283): pages, and the front page's bands by their
-// anchors. RIVR Academy stays out of it until the Academy is ready.
+// anchors.
 const MENU: readonly SiteLink[] = [
   { label: 'web.menu.club', page: 'about' }, { label: 'web.menu.room', page: 'home', anchor: 'the-room' },
   { label: 'web.menu.games', page: 'home', anchor: 'games' }, { label: 'web.menu.membership', page: 'membership' },

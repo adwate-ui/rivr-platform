@@ -23,7 +23,7 @@ select results_eq($$ select distinct is_enabled, display_mode from pg_temp.cells
 select set_config('request.jwt.claims', '', true);
 select private.bootstrap_venue('00000000-0000-4000-8000-0000000000ae', 'RIVR Money Off', 'money-off', false, 'RIVR test', 'Test', 'TMO');
 select results_eq($$ select is_enabled, display_mode from pg_temp.cells('00000000-0000-4000-8000-0000000000ae', 'rewards.rakeback') $$,
-  $$ values (false, 'hidden'), (false, 'hidden'), (false, 'hidden'), (false, 'hidden') $$, 'a new venue''s tiers start with hourly rakeback off and hidden');
+  $$ values (false, 'hidden'), (false, 'hidden'), (false, 'hidden') $$, 'a new venue''s tiers start with hourly rakeback off and hidden');
 select results_eq($$ select distinct is_enabled from pg_temp.cells('00000000-0000-4000-8000-0000000000ae', 'fnb.table_side') $$,
   $$ values (true) $$, 'while the rest are on, as before');
 
