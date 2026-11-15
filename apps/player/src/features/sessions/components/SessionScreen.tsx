@@ -1,18 +1,28 @@
 import { useFeatureStatus } from '@rivr/db';
 import { useHideMySession, useMySession, type MySession } from '@rivr/db/sessions';
-import { formatDuration, formatNumber, formatTime, t } from '@rivr/i18n';
+import { formatDuration, formatTime, t } from '@rivr/i18n';
 import { BackButton, Box, Button, DetailRow, ErrorMessage, FeatureGate, Heading, Screen, Stack, Text, useHeadingFocus, usePageTitle, useToast } from '@rivr/ui';
 import { useCanGoBack, useNavigate, useParams, useRouter } from '@tanstack/react-router';
 import { useId, useState } from 'react';
-import { sessionDay, sessionStakes, sessionTitle } from './naming.ts';
+import { sessionDay, sessionStakes, sessionTitle, tournamentLine } from './naming.ts';
 
-/** The game a session was: a cash table's stakes, or the tournament with the member's place in its field (#549). */
+/** The game a session was: a cash table's stakes, or that it was a tournament, with its entries once typed. */
 function gameOf(session: MySession): string {
-  const stakes = sessionStakes(session);
-  if (stakes !== undefined) return stakes;
-  return session.place === null || session.entrants === null
-    ? t('player.sessions.tournament')
-    : t('player.sessions.tournamentPlace', { place: formatNumber(session.place), entrants: formatNumber(session.entrants) });
+  return sessionStakes(session) ?? tournamentLine(session);
+}
+
+/** A cash session's Time and Played; a tournament, which has no time played, only when it started. */
+function TimeRows({ session }: { session: MySession }) {
+  if (session.kind === 'tournament') {
+    return <DetailRow label={t('player.sessions.started')} labelTone="muted" value={formatTime(new Date(session.openedAt))} isLast />;
+  }
+  const time = t('player.sessions.timeRange', { from: formatTime(new Date(session.openedAt)), to: formatTime(new Date(session.closedAt)) });
+  return (
+    <>
+      <DetailRow label={t('player.sessions.time')} labelTone="muted" value={time} />
+      <DetailRow label={t('player.sessions.played')} labelTone="muted" value={formatDuration(session.playedSeconds)} isLast />
+    </>
+  );
 }
 
 /** The day, the table large, Game, Time and Played, then Hide from my list, which says so with a toast (brief 3.6). */
@@ -27,7 +37,6 @@ function Detail({ session, onHidden, headingId }: { session: MySession; onHidden
     toast(t('player.sessions.hiddenToast'));
     onHidden();
   };
-  const time = t('player.sessions.timeRange', { from: formatTime(new Date(session.openedAt)), to: formatTime(new Date(session.closedAt)) });
   return (
     <Stack gap={6}>
       <Stack gap={1}>
@@ -36,8 +45,7 @@ function Detail({ session, onHidden, headingId }: { session: MySession; onHidden
       </Stack>
       <Box>
         <DetailRow label={t('player.sessions.game')} labelTone="muted" value={gameOf(session)} />
-        <DetailRow label={t('player.sessions.time')} labelTone="muted" value={time} />
-        <DetailRow label={t('player.sessions.played')} labelTone="muted" value={formatDuration(session.playedSeconds)} isLast />
+        <TimeRows session={session} />
       </Box>
       <Button variant="outline" size="large" fullWidth onClick={() => void onHide()} isLoading={hide.isPending}>{t('player.sessions.hide')}</Button>
       {failed ? <ErrorMessage look="dot">{t('player.sessions.hideFailed')}</ErrorMessage> : null}

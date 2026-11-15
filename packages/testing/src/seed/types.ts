@@ -83,24 +83,6 @@ export interface SeedHighHand {
   readonly prize: Paise;
 }
 
-/** A running tournament. Blinds and antes are tournament chips, not money. */
-export interface SeedTournament {
-  readonly name: string;
-  readonly buyIn: Paise;
-  readonly toPool: Paise;
-  readonly fee: Paise;
-  readonly reEntryUntilLevel: number;
-  readonly levelMinutes: number;
-  readonly level: number;
-  readonly blinds: { readonly small: number; readonly big: number; readonly ante: number };
-  readonly secondsLeftInLevel: number;
-  readonly entries: number;
-  readonly playersLeft: number;
-  readonly pool: Paise;
-  readonly guarantee: Paise;
-  readonly placesPaid: number;
-}
-
 /** A live promotion, by kind. */
 export type SeedPromotion =
   | {

@@ -73,19 +73,6 @@ select is((select count(*)::integer from public.push_subscription where member_i
 select is((select count(*)::integer from public.push_targets('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', null)), 5,
   'and a push goes to those five');
 
--- Tournament starting: each member with a place, once, when the clock starts; not again on a pause.
-insert into public.tournament_entry (venue_id, tournament_id, member_id, entry_number, status, bust_order, busted_at, table_number, seat_number) values
-  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000007a1', '00000000-0000-4000-8000-000000000202', 1, 'busted', 1, now(), null, null),
-  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000007a1', '00000000-0000-4000-8000-000000000202', 2, 'seated', null, null, 1, 1),
-  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000007a1', '00000000-0000-4000-8000-000000000203', 1, 'alternate', null, null, null, null),
-  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000007a1', '00000000-0000-4000-8000-000000000204', 1, 'refunded', null, null, null, null);
-update public.tournament set clock_started_at = now() where id = '00000000-0000-4000-8000-0000000007a1';
-update public.tournament set clock_paused_at = now() where id = '00000000-0000-4000-8000-0000000007a1';
-select results_eq(
-  $$ select payload ->> 'member_id', payload ->> 'name' from public.outbox_event
-     where event_type = 'tournament.starting' and payload ->> 'tournament_id' = '00000000-0000-4000-8000-0000000007a1' order by 1 $$,
-  $$ values ('00000000-0000-4000-8000-000000000202'::text, 'RIVR Sunday'::text), ('00000000-0000-4000-8000-000000000203', 'RIVR Sunday') $$,
-  'the seated and the alternate are told the tournament is starting, once each; a refunded entry is not');
 
 select * from finish();
 rollback;

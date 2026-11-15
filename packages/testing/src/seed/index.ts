@@ -1,4 +1,4 @@
-import { badBeatJackpot, highHand, promotions, tournament } from './floor.ts';
+import { badBeatJackpot, highHand, promotions } from './floor.ts';
 import { arjun, dealer, dealerDown, members, waitlist } from './people.ts';
 import { practiceVenue, tables, venue } from './tables.ts';
 import { ist } from './time.ts';
@@ -20,7 +20,6 @@ export const designPromptSeed = {
   dealerDown,
   badBeatJackpot,
   highHand,
-  tournament,
   promotions,
 };
 

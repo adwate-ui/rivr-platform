@@ -63,15 +63,21 @@ export const WHATSAPP_TEMPLATES = {
     body: 'RIVR: you are free to go from {{1}}, seat {{2}}. Thank you for playing.',
     urlButton: false,
   },
-  // A tournament the member asked about or is registered for (the owner, 9 Nov): {{2}} is its new day and time.
+  // A tournament the member asked about (the owner, 9 Nov; redesign RD-26): {{2}} is its day and time.
   tournament_withdrawn: {
     category: 'utility',
-    body: 'RIVR: {{1}} will not run. If you have paid for a place, ask at the desk.',
+    body: 'RIVR: {{1}} will not run.',
     urlButton: false,
   },
   tournament_moved: {
     category: 'utility',
     body: 'RIVR: {{1}} has moved. It now starts {{2}}.',
+    urlButton: false,
+  },
+  // The club's one notification of a tournament, to the members who asked.
+  tournament_starts: {
+    category: 'utility',
+    body: 'RIVR: {{1}} starts {{2}}.',
     urlButton: false,
   },
   // A member's own request to delete their account, once a super admin has completed it (decision 0574).

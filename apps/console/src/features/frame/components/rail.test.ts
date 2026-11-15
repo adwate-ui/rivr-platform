@@ -20,7 +20,7 @@ describe('the console rail (console v3)', () => {
     expect(rail.map((section) => section.items.map((item) => item.label))).toEqual([
       ['Live floor', 'Waitlist', 'Door', 'Food and drink'],
       ['Members', 'ID checks', 'Feedback'],
-      ['Promotions', 'Content'],
+      ['Promotions', 'Tournaments', 'Content'],
       ['Tables', 'Staff', 'Reports', 'Settings', 'Activity'],
     ]);
     expect(rail.map((section) => section.isCollapsible === true)).toEqual([false, false, false, true]);
@@ -84,18 +84,18 @@ describe('the console rail (console v3)', () => {
     expect(tabsFor(settings, ROLE_PERMISSIONS.floor).map((tab) => tab.id)).toEqual(['tvs']);
     expect(tabsFor(settings, ROLE_PERMISSIONS.cashier).map((tab) => tab.id)).toEqual(['tvs']);
     expect(tabsFor(settings, ROLE_PERMISSIONS.host)).toEqual([]);
-    expect(isAllowedAt(ROLE_PERMISSIONS.floor, '/waitlist', 'interest')).toBe(false);
+    expect(isAllowedAt(ROLE_PERMISSIONS.floor, '/tournaments')).toBe(false);
     const door = entry('door');
     if (door === undefined) throw new Error('no Door entry');
     expect(tabsFor(door, ROLE_PERMISSIONS.host).map((tab) => tab.id)).toEqual(['check-in', 'players']);
     expect(tabsFor(door, ROLE_PERMISSIONS.service).map((tab) => tab.id)).toEqual([]);
-    expect(isAllowedAt(ROLE_PERMISSIONS.admin, '/waitlist', 'interest')).toBe(true);
+    expect(isAllowedAt(ROLE_PERMISSIONS.admin, '/tournaments')).toBe(true);
     // A tab the screen does not have is the screen's first: the role's, not a refusal.
     expect(isAllowedAt(ROLE_PERMISSIONS.cashier, '/settings', 'nowhere')).toBe(true);
   });
 
   it('keeps no entry for a screen the redesign removed: its address is the not-found screen for everyone, and nothing on the rail', () => {
-    for (const screen of ['/cage', '/tournaments', '/kill-switch', '/purge', '/social', '/host-queue', '/practice-reset']) {
+    for (const screen of ['/cage', '/kill-switch', '/purge', '/social', '/host-queue', '/practice-reset']) {
       expect(refusalAt(ROLE_PERMISSIONS.dealer, screen)).toBeUndefined();
       expect(items('super_admin')).not.toContain(screen);
     }

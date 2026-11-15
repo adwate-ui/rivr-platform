@@ -7,19 +7,20 @@ export function sessionTitle(session: MySession): string {
   return session.tableName;
 }
 
-/** A cash session's stakes, `100/200`, under its table in the list (F-211); a tournament's place is in its line already. */
+/** A cash session's stakes, `100/200`, under its table in the list (F-211); a tournament has none. */
 export function sessionStakes(session: MySession): string | undefined {
   return session.kind === 'cash' ? formatStakes(session.smallBlind, session.bigBlind) : undefined;
 }
 
-/** A session's line under its name: how long, `6 h 30 min`, and for a tournament (#549) its place in the field first. */
+/** A tournament's line: `Tournament`, with how many entered once the club has typed it, `Tournament · 58 entries` (redesign RD-26). */
+export function tournamentLine(session: MySession): string {
+  if (session.entrants === null) return t('player.sessions.tournament');
+  return session.entrants === 1 ? t('player.sessions.tournamentOneEntry') : t('player.sessions.tournamentEntries', { entries: formatNumber(session.entrants) });
+}
+
+/** A session's line under its name: how long, `6 h 30 min`; a tournament, which has no time played, says what it is. */
 export function sessionLine(session: MySession): string {
-  const hours = formatDuration(session.playedSeconds);
-  if (session.kind === 'cash') return hours;
-  const what = session.place === null || session.entrants === null
-    ? t('player.sessions.tournament')
-    : t('player.sessions.tournamentPlace', { place: formatNumber(session.place), entrants: formatNumber(session.entrants) });
-  return t('player.sessions.sub', { what, hours });
+  return session.kind === 'cash' ? formatDuration(session.playedSeconds) : tournamentLine(session);
 }
 
 /** The club day a session began, as its month counts it: a night past midnight is the day before's, `13 Feb 2026`. */

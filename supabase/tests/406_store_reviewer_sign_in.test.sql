@@ -1,5 +1,5 @@
 -- The app stores' reviewers sign in with one number and a fixed code (decision 0575), which must never open a real account.
--- Asha (0821) is a new member on the reviewer's number. Seeded members with a visit, a tournament entry or a ledger entry, and
+-- Asha (0821) is a new member on the reviewer's number. Seeded members with a visit or a ledger entry, and
 -- Vikram (101) who is staff, stand in as someone real.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -74,13 +74,6 @@ select is(private.require_code_sign_in(pg_temp.event('00000000-0000-4000-8000-00
 -- It is refused once it is someone real.
 select isnt(pg_temp.phone_with('select x.member_id from public.visit x'), null, 'the seed has a member with a visit');
 select is(pg_temp.answer_for(pg_temp.phone_with('select x.member_id from public.visit x')), '403', 'a member with a visit is refused');
-insert into public.member (id, venue_id, full_name, phone)
-values ('00000000-0000-4000-8000-0000000d0823', '00000000-0000-4000-8000-000000000001', 'Priya Nair', '+919000000823');
-insert into public.tournament (id, venue_id, name, starts_at, buy_in_paise)
-values ('00000000-0000-4000-8000-0000000c0823', '00000000-0000-4000-8000-000000000001', 'Test Cup', now() + interval '1 day', 100000);
-insert into public.tournament_entry (venue_id, tournament_id, member_id, entry_number, status)
-values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000c0823', '00000000-0000-4000-8000-0000000d0823', 1, 'alternate');
-select is(pg_temp.answer_for('+919000000823'), '403', 'a member with a tournament entry is refused');
 select isnt(pg_temp.phone_with('select a.member_id from public.ledger_entry e join public.ledger_account a on a.id = e.account_id'), null, 'the seed has a member with a ledger entry');
 select is(pg_temp.answer_for(pg_temp.phone_with('select a.member_id from public.ledger_entry e join public.ledger_account a on a.id = e.account_id')), '403',
           'a member with a ledger entry is refused');

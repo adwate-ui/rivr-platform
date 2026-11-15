@@ -1,6 +1,6 @@
 -- A member's own session history (#127). Ishaan (211) checks in, sits at Table 3 for three hours and leaves by the
 -- door: his session has its table and its time, and no money, since the cage that recorded buy-ins and cash-outs went
--- on 15 Nov. Kunal (216) plays two hours and hides his session. Mihir (213) plays a tournament.
+-- on 15 Nov. Kunal (216) plays two hours and hides his session. Mihir (213) asked to be told of a tournament.
 -- 103 Aditya is the floor manager; 201 Arjun another member.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -84,43 +84,27 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
 select is((select count(*)::integer from public.my_sessions() where visit_id in (select id from ishaan_visits)), 0, 'Arjun does not see Ishaan''s');
 reset role;
 
--- A tournament is a session of its own (#549): Mihir plays a knockout, places first of one and wins ₹3,000; once it
--- finishes, his history has it with what he paid in and won. Its rows are written here as the database itself: the
--- screens that sold entries and paid prizes went with the cage.
-create function pg_temp.named(p_name text) returns uuid language sql security definer as $$ select id from public.tournament where name = p_name; $$;
-grant execute on function pg_temp.named(text) to authenticated;
-select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'deposit', 'test-fund:sessions', jsonb_build_array(
-  jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.venue_id = '00000000-0000-4000-8000-000000000001'
-                                    and a.code = 'venue.bank' and a.member_id is null), 'amount', '5000000'),
-  jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.member_id = '00000000-0000-4000-8000-000000000213'
-                                    and a.code = 'member.cash'), 'amount', '-5000000')), null, 'Test deposit') is not null as funded;
-insert into public.tournament (venue_id, name, starts_at, buy_in_paise, is_published)
-values ('00000000-0000-4000-8000-000000000001', 'Sessions Knockout', now(), 500000, true);
-insert into public.tournament_entry (id, venue_id, tournament_id, member_id, entry_number, status, table_number, seat_number)
-values ('00000000-0000-4000-8000-00000000f157', '00000000-0000-4000-8000-000000000001', pg_temp.named('Sessions Knockout'),
-        '00000000-0000-4000-8000-000000000213', 1, 'seated', 1, 1);
-insert into public.tournament_purchase (venue_id, tournament_id, entry_id, member_id, kind, paid_by, price_paise, fee_paise, chips,
-                                        ledger_transaction_id, idempotency_key)
-values ('00000000-0000-4000-8000-000000000001', pg_temp.named('Sessions Knockout'), '00000000-0000-4000-8000-00000000f157',
-        '00000000-0000-4000-8000-000000000213', 'entry', 'wallet', 500000, 0, 10000,
-        (select id from public.ledger_transaction where idempotency_key = 'test-fund:sessions'), 'sessions-knockout-entry');
+-- A past tournament the member asked to be told of is in their history (redesign of 15 Nov 2026, issue 969; decision 0630):
+-- Mihir asks about Sessions Knockout. Once it has started it is there on its day, with the entries staff typed and no
+-- place, time or money, and the month's sessions still count cash sessions alone. Arjun, who did not ask, has none.
+insert into public.tournament (id, venue_id, name, starts_at, game, is_published)
+values ('00000000-0000-4000-8000-00000000f157', '00000000-0000-4000-8000-000000000001', 'Sessions Knockout', now() + interval '1 hour',
+        'No-limit hold''em', true);
+insert into public.tournament_interest (venue_id, tournament_id, member_id)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-00000000f157', '00000000-0000-4000-8000-000000000213');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
-select is((select count(*)::integer from public.my_sessions() where kind = 'tournament'), 0, 'a tournament not yet finished is not a session');
+select is((select count(*)::integer from public.my_sessions() where kind = 'tournament'), 0, 'a tournament still to come is not in his sessions');
 reset role;
-insert into public.tournament_payout (venue_id, tournament_id, entry_id, member_id, kind, place, prize_paise, bounty_paise, tds_paise, is_tds_shadow,
-                                      ledger_transaction_id)
-values ('00000000-0000-4000-8000-000000000001', pg_temp.named('Sessions Knockout'), '00000000-0000-4000-8000-00000000f157',
-        '00000000-0000-4000-8000-000000000213', 'prize', 1, 300000, 0, 0, false,
-        (select id from public.ledger_transaction where idempotency_key = 'test-fund:sessions'));
-update public.tournament set finished_at = now(), overlay_paise = 0 where id = pg_temp.named('Sessions Knockout');
+update public.tournament set starts_at = now() - interval '1 hour', entries = 58 where id = '00000000-0000-4000-8000-00000000f157';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000213');
 select results_eq(
-  $$ select table_name, kind, place, entrants, buy_in_paise, cash_out_paise, tds_paise, paid_paise, net_paise
-     from public.my_sessions() where kind = 'tournament' $$,
-  $$ select 'Sessions Knockout'::text, 'tournament'::text, 1, 1, sum(p.price_paise)::bigint, 300000::bigint, 0::bigint, 300000::bigint,
-            (300000 - sum(p.price_paise))::bigint
-     from public.tournament_purchase p where p.tournament_id = pg_temp.named('Sessions Knockout') $$,
-  'his tournament: first of one, what he paid in, ₹3,000 won and paid');
+  $$ select table_name, kind, place, entrants, played_seconds, buy_in_paise, net_paise from public.my_sessions() where kind = 'tournament' $$,
+  $$ values ('Sessions Knockout'::text, 'tournament'::text, null::integer, 58, 0::bigint, 0::bigint, 0::bigint) $$,
+  'once it has started it is in his sessions, with its entries and no place, time or money');
+select ok((select bool_and(s.month_sessions = (select count(*) from public.my_sessions() c where c.kind = 'cash' and c.month = s.month))
+           from public.my_sessions() s), 'and a month''s sessions count cash sessions alone');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000201');
+select is((select count(*)::integer from public.my_sessions() where kind = 'tournament'), 0, 'a member who did not ask has no tournament in theirs');
 reset role;
 
 -- A member hides a session from their own list (#627): Kunal hides his, and the club still has the visit. Arjun hiding

@@ -184,14 +184,14 @@ export { toSignInFailure, type SignInFailure } from './parse/signInFailure.ts';
 export { queryKeys } from './queryKeys.ts';
 export { HIDDEN, toFeatureAccess, toFeatureAccessMap, type FeatureAccess, type FeatureAccessRow } from './parse/featureAccess.ts';
 export { useWaitlistCallActions } from './waitlistCalls.ts';
-export { useMyTonight, type MyTonight, type NextTournament } from './tonight.ts';
+export { useMyTonight, type MyTonight } from './tonight.ts';
 export {
   useSettingActions, useVenueSettings, type SettingChange, type SettingEntry, type SettingFailure, type SettingField, type SettingSubjectRules,
   type SettingValue, type VenueSetting, type VenueSettings,
 } from './settings.ts';
-// Tournaments (#115, #119): the console's at their own files, Home's and the TV's clock in liveTournament.ts.
+// Tournaments, interest only (redesign RD-26): Home's list and Notify me, and the console's screen.
 export {
-  type PublishedTournament, useMarkTournamentRegistered, useMyUpcomingTournaments, usePublishedTournamentActions, usePublishedTournaments, usePublishTournament, useRegisterTournamentInterest, useTournamentInterest, useUnmarkTournamentRegistered,
-  type TournamentInterest, type TournamentInterestFailure, type TournamentListing, type TournamentStanding, type UpcomingTournament,
-} from './tournamentInterest.ts';
+  useMyUpcomingTournaments, useRegisterTournamentInterest, useTournamentActions, useTournamentInterested, useVenueTournaments,
+  type InterestedMember, type NewTournament, type TournamentFailure, type TournamentStanding, type UpcomingTournament, type VenueTournament,
+} from './tournaments.ts';
 export { useTableMetrics, useTableMetricsTotal, type TableMetrics, type TableMetricsTotal } from './tableMetrics.ts';

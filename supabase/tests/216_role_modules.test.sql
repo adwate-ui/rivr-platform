@@ -22,18 +22,21 @@ select results_eq($$ select permission from public.role_permission where role = 
   $$ values ('call_time.override'::text), ('floor.manage'), ('waitlist.manage') $$,
   'the cashier sees the same, less the food and drink orders');
 
--- Interest in a tournament (the seed's next one), which the cashier now sees the waitlist beside, is for tournaments.manage.
+-- Who asked about a tournament (the seed's next one) is for tournaments.manage: the cashier, who has the waitlist, reads none of it.
 insert into public.tournament_interest (venue_id, tournament_id, member_id)
 select '00000000-0000-4000-8000-000000000001', t.id, '00000000-0000-4000-8000-000000000213'
 from public.tournament t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.starts_at > now() order by t.starts_at limit 1;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select is((select count(*)::integer from public.tournament_interest_list('00000000-0000-4000-8000-000000000001')), 0, 'the cashier reads no interest list');
-select is((select count(*)::integer from public.tournament_interest), 0, 'nor the rows');
-select throws_ok($$ select public.mark_tournament_registered((select i.id from public.tournament_interest i limit 1)) $$, '42501', null,
-  'and marks nobody registered');
+select is((select count(*)::integer from public.venue_tournaments('00000000-0000-4000-8000-000000000001')), 0, 'the cashier reads no tournaments list');
+select is((select count(*)::integer from public.tournament_interest), 0, 'nor who asked');
+select throws_ok($$ select public.notify_tournament((select t.id from public.tournament t where t.venue_id = '00000000-0000-4000-8000-000000000001'
+                                                     and t.starts_at > now() order by t.starts_at limit 1)) $$, '42501', null,
+  'and notifies nobody');
 reset role;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select ok((select count(*)::integer from public.tournament_interest_list('00000000-0000-4000-8000-000000000001')) >= 1, 'an admin reads it');
+select ok((select count(*)::integer from public.tournament_interested((select i.tournament_id from public.tournament_interest i
+                                                                        where i.member_id = '00000000-0000-4000-8000-000000000213' limit 1))) >= 1,
+  'an admin reads who asked');
 reset role;
 
 select * from finish();

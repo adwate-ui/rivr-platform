@@ -111,15 +111,6 @@ describe('design prompt seed: the floor tonight', () => {
     });
   });
 
-  it('runs RIVR Sunday with 58 entries building a ₹5,22,000 pool against a ₹5,00,000 guarantee', () => {
-    const { tournament } = seed;
-    expect(tournament.toPool + tournament.fee).toBe(tournament.buyIn);
-    expect(tournament.pool).toBe(tournament.toPool * BigInt(tournament.entries));
-    expect(tournament).toMatchObject({ pool: 52_200_000n, guarantee: 50_000_000n, playersLeft: 31, placesPaid: 8 });
-    expect(tournament).toMatchObject({ level: 7, levelMinutes: 20, reEntryUntilLevel: 9, secondsLeftInLevel: 700 });
-    expect(tournament.blinds).toEqual({ small: 400, big: 800, ante: 800 });
-  });
-
   it('runs the two live promotions', () => {
     expect(seed.promotions).toEqual([
       {

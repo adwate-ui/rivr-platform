@@ -1,6 +1,6 @@
 import {
   bonusCreditedSchema, bonusRedeemedSchema, callTimeCompletedSchema, callTimeEndingSchema, err, memberNoticeSchema, ok, promotionOfferedSchema, sessionReminderSchema,
-  tournamentStartingSchema, waitlistCalledSchema, withdrawalSentSchema, type Result,
+  waitlistCalledSchema, withdrawalSentSchema, type Result,
 } from '@rivr/contracts';
 import { formatChips, formatDayTime, formatMoney, formatTime, push as pushCopy, registerMessages, t } from '@rivr/i18n';
 import type { ClaimedDelivery, Consumer } from '../outbox/index.ts';
@@ -12,7 +12,7 @@ registerMessages({ push: pushCopy });
 
 /** The events the push consumer sends a notification for (#139, #338). */
 export const PUSH_EVENT_TYPES = [
-  'waitlist.called', 'call_time.ending', 'call_time.completed', 'session.reminder', 'withdrawal.sent', 'tournament.starting', 'promotion.offered',
+  'waitlist.called', 'call_time.ending', 'call_time.completed', 'session.reminder', 'withdrawal.sent', 'promotion.offered',
   'bonus.credited', 'bonus.redeemed', 'member.notice',
 ] as const;
 
@@ -96,25 +96,27 @@ function withdrawalSent(payload: unknown): Built {
   return ok({ memberId, pushType: 'push.withdrawal_sent', title: t('push.withdrawalSent.title'), body, url: '/', tag: `withdrawal-${requestId}` });
 }
 
-function tournamentStarting(payload: unknown): Built {
-  const starting = tournamentStartingSchema.safeParse(payload);
-  if (!starting.success) return unreadable('tournament.starting');
-  const { member_id: memberId, tournament_id: tournamentId, name } = starting.data;
-  const title = t('push.tournamentStarting.title', { name });
-  return ok({ memberId, pushType: 'push.tournament_starting', title, body: t('push.tournamentStarting.body'), url: '/', tag: `tournament-${tournamentId}` });
-}
-
-/** A tournament the member asked about or is registered for, withdrawn or moved (the owner, 9 Nov). Other notices are WhatsApp's alone. */
+/**
+ * A tournament the member asked about: the club's one notification of it (redesign RD-26), or that it was withdrawn or moved
+ * (the owner, 9 Nov), each under their Tournaments switch. Other notices are WhatsApp's alone.
+ */
 function tournamentNotice(payload: unknown): Built {
-  // WhatsApp's consumer reports a notice it cannot read; push sends only these two.
+  // WhatsApp's consumer reports a notice it cannot read; push sends only a tournament's.
   const notice = memberNoticeSchema.safeParse(payload);
   if (!notice.success) return ok(null);
   const { member_id: memberId, tournament_id: tournamentId, notice: kind, params: [name = '', startsAt = ''] } = notice.data;
-  if (kind !== 'tournament_withdrawn' && kind !== 'tournament_moved') return ok(null);
-  const words = kind === 'tournament_moved'
-    ? { title: t('push.tournamentMoved.title', { name }), body: t('push.tournamentMoved.body', { when: formatDayTime(new Date(startsAt)) }) }
-    : { title: t('push.tournamentWithdrawn.title', { name }), body: t('push.tournamentWithdrawn.body') };
+  const words = tournamentWords(kind, name, startsAt);
+  if (words === null) return ok(null);
   return ok({ memberId, pushType: 'push.tournament_starting', ...words, url: '/', tag: `tournament-notice-${tournamentId ?? name}` });
+}
+
+/** A tournament notice's title and body; null for a notice that is not a tournament's. */
+function tournamentWords(kind: string, name: string, startsAt: string): { title: string; body: string } | null {
+  const when = () => formatDayTime(new Date(startsAt));
+  if (kind === 'tournament_starts') return { title: t('push.tournamentStarts.title', { name }), body: t('push.tournamentStarts.body', { when: when() }) };
+  if (kind === 'tournament_moved') return { title: t('push.tournamentMoved.title', { name }), body: t('push.tournamentMoved.body', { when: when() }) };
+  if (kind === 'tournament_withdrawn') return { title: t('push.tournamentWithdrawn.title', { name }), body: t('push.tournamentWithdrawn.body') };
+  return null;
 }
 
 /** A published promotion offered to one member (#86): its title, and what it gives and when it runs. */
@@ -153,7 +155,6 @@ const HOUR_MS = 60 * 60 * 1000;
 const USEFUL_FOR_MS: Readonly<Partial<Record<(typeof PUSH_EVENT_TYPES)[number], number>>> = {
   'call_time.completed': HOUR_MS,
   'session.reminder': HOUR_MS,
-  'tournament.starting': HOUR_MS,
   'withdrawal.sent': 24 * HOUR_MS,
   'promotion.offered': 24 * HOUR_MS,
   'bonus.credited': 24 * HOUR_MS,
@@ -173,7 +174,6 @@ const BUILDERS: Readonly<Record<(typeof PUSH_EVENT_TYPES)[number], (payload: unk
   'call_time.completed': callTimeDone,
   'session.reminder': sessionReminder,
   'withdrawal.sent': withdrawalSent,
-  'tournament.starting': tournamentStarting,
   'promotion.offered': promotionOffered,
   'bonus.credited': bonusCredited,
   'bonus.redeemed': bonusRedeemed,

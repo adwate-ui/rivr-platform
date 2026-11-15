@@ -32,7 +32,7 @@ describe('Icon', () => {
 
   it('has an icon for each console screen, for the rail folded to icons and the tab bar (console v3)', () => {
     expect(ICON_NAMES).toEqual(expect.arrayContaining([
-      'floor', 'waitlist', 'door', 'food', 'profile', 'kyc', 'phone', 'feedback', 'promotions', 'social', 'content',
+      'floor', 'waitlist', 'door', 'food', 'profile', 'kyc', 'phone', 'feedback', 'promotions', 'trophy', 'social', 'content',
       'staff', 'tables', 'settings', 'alert', 'reset', 'purge', 'requests', 'overflow', 'chevronLeft', 'chevronRight', 'search',
     ]));
   });

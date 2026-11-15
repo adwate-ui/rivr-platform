@@ -1,5 +1,5 @@
 -- Erasing one member's personal data on request (#424; decision 0207). Tara (0797) signs in, has a KYC check
--- with TDS taken on a tournament prize, bonus, feedback
+-- bonus, feedback
 -- and preferences; she is erased by Vikram (101), a super admin. Dev (0798) is on a break for a month: he is
 -- erased too, and a block stands on his number and identity until the break ends. Uma (0799) is a practice
 -- venue member. Aditya (103) is an admin, who erases no one.
@@ -32,8 +32,7 @@ select set_eq(
      -- Deleted.
      ('feedback'), ('kyc_document'), ('kyc_review'), ('member_feature_override'), ('member_limit'), ('member_preference'),
      ('notification_preference'), ('review_request'), ('sign_up_attribution'), ('cab_request'), ('push_subscription'), ('live_status_device'), ('tournament_interest'),
-     -- Changed: consent withdrawn, the KYC record kept with the PAN alone when TDS was taken (else deleted),
-     -- bonus grants closed by the forfeit.
+     -- Changed: consent withdrawn, the KYC record deleted, bonus grants closed by the forfeit.
      ('consent'), ('kyc_record'), ('bonus_grant'),
      -- Kept, naming only the member's id: money, tax, play and safer-gambling records.
      ('member_erasure_request'),
@@ -41,7 +40,7 @@ select set_eq(
      ('early_departure'), ('fnb_order'), ('invoice'), ('ledger_account'), ('member_tier_change'),
      ('promotion_grant'), ('high_hand_hit'), ('referral'), ('seat_session'), ('self_exclusion'),
      ('top_up_request'), ('call_time_request'), ('promotion_step_skip'),
-     ('tournament_entry'), ('tournament_payout'), ('tournament_purchase'), ('tournament_ticket'), ('visit'), ('waitlist_entry') $$,
+     ('visit'), ('waitlist_entry') $$,
   'every table naming a member is classified for erasure (a new one is a decision: delete, anonymise or keep)'
 );
 
@@ -94,19 +93,6 @@ insert into storage.objects (bucket_id, name)
 values ('kyc', '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000d0797/selfie.jpg');
 insert into public.outbox_event (venue_id, event_type, payload)
 values ('00000000-0000-4000-8000-000000000001', 'kyc.completed', jsonb_build_object('member_id', '00000000-0000-4000-8000-0000000d0797'));
--- A tournament prize with TDS taken, in a run since refunded so that nothing of hers is open (its ledger side is not
--- this test's; the transaction is the one Isha's prize below names too).
-select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'erasure_test', 'erasure-test:cash-out', jsonb_build_array(
-  jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'venue.cash_drawer'), 'amount', '-1000000'),
-  jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'venue.chips_outstanding'), 'amount', '1000000')), null);
-insert into public.tournament_entry (id, venue_id, tournament_id, member_id, entry_number, status)
-values ('00000000-0000-4000-8000-0000000c0797', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000007a2',
-        '00000000-0000-4000-8000-0000000d0797', 9797, 'refunded');
-insert into public.tournament_payout (venue_id, tournament_id, entry_id, member_id, kind, place, prize_paise, bounty_paise, tds_paise, is_tds_shadow,
-                                      ledger_transaction_id)
-values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000007a2', '00000000-0000-4000-8000-0000000c0797',
-        '00000000-0000-4000-8000-0000000d0797', 'prize', 8, 1000000, 0, 300000, false,
-        (select id from public.ledger_transaction where idempotency_key = 'erasure-test:cash-out'));
 select isnt(private.credit_bonus('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0797', 50000, 'Welcome bonus',
   now() + interval '30 days', 'erasure-test:bonus'), null, 'and ₹500 of bonus');
 -- A break Tara took last month, over; and Dev's, a month from now.
@@ -186,12 +172,7 @@ select is((select count(*)::int from public.member_preference where member_id = 
           + (select count(*)::int from public.feedback where member_id = '00000000-0000-4000-8000-0000000d0797')
           + (select count(*)::int from public.kyc_review where member_id = '00000000-0000-4000-8000-0000000d0797'), 0,
   'her preferences, limits, overrides, attribution, feedback and KYC reviews are deleted');
-select results_eq($$ select status, pan, date_of_birth, address, masked_aadhaar, photo_path, identity_key, verified_at, vendor_failure, vendor_failed_at
-                     from public.kyc_record where member_id = '00000000-0000-4000-8000-0000000d0797' $$,
-  $$ values ('erased'::text, 'ABCPM7971K'::text, null::date, null::text, null::text, null::text, null::text, null::timestamptz, null::text,
-             null::timestamptz) $$,
-  'her KYC record keeps the PAN alone, for the TDS taken from her');
-select is((select count(*)::int from public.tournament_payout where member_id = '00000000-0000-4000-8000-0000000d0797' and tds_paise > 0), 1, 'which is kept');
+select is_empty($$ select 1 from public.kyc_record where member_id = '00000000-0000-4000-8000-0000000d0797' $$, 'her KYC record is deleted');
 insert into public.member (id, venue_id, full_name, phone)
 values ('00000000-0000-4000-8000-0000000d0795', '00000000-0000-4000-8000-000000000001', 'Tara M', '+919000000795');
 insert into public.kyc_record (venue_id, member_id, status, method, pan)
@@ -365,21 +346,12 @@ select is((select count(*)::int from public.ledger_transaction where kind = 'mem
   'and forfeits nothing again: still one');
 
 -- ---------------------------------------------------------------------------------------------------
--- Isha (0793) busted from the Weeknight Turbo (not finished) with TDS on a prize, and
--- played ₹300 of a ₹500 grant; a ₹400 grant of hers expired on its own.
+-- Isha (0793) played ₹300 of a ₹500 grant; a ₹400 grant of hers expired on its own.
 insert into public.member (id, venue_id, full_name, phone)
 values ('00000000-0000-4000-8000-0000000d0793', '00000000-0000-4000-8000-000000000001', 'Isha Rao', '+919000000793');
 insert into public.kyc_record (venue_id, member_id, status, method, pan, date_of_birth, photo_path, verified_at)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0793', 'verified', 'pan', 'ABCPR7931M', '1990-01-01',
         '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000d0793/selfie.jpg', now());
-insert into public.tournament_entry (id, venue_id, tournament_id, member_id, entry_number, status, busted_at, bust_order)
-values ('00000000-0000-4000-8000-0000000c0793', '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000007a2',
-        '00000000-0000-4000-8000-0000000d0793', 9793, 'busted', now(), 9793);
-insert into public.tournament_payout (venue_id, tournament_id, entry_id, member_id, kind, place, prize_paise, bounty_paise, tds_paise, is_tds_shadow,
-                                      ledger_transaction_id)
-values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000007a2', '00000000-0000-4000-8000-0000000c0793',
-        '00000000-0000-4000-8000-0000000d0793', 'prize', 9, 100000, 0, 30000, false,
-        (select id from public.ledger_transaction where idempotency_key = 'erasure-test:cash-out'));
 create temp table isha_grants as select
   private.credit_bonus('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000d0793', 50000, 'Welcome bonus',
     now() + interval '30 days', 'erasure-test:isha-bonus') as played,
@@ -395,20 +367,19 @@ update public.bonus_grant set expires_at = now() - interval '1 second' where id 
 select private.expire_bonus();
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select results_eq($$ select blockers, bonus_paise from public.member_erasure_preview('00000000-0000-4000-8000-0000000d0793') $$,
-  $$ values (array['tournament'], 20000::bigint) $$, 'her run in a tournament not finished must be settled first');
+  $$ values (array[]::text[], 20000::bigint) $$, 'nothing of hers is open, and ₹200 of bonus is left');
 select pg_temp.as_owner();
 -- Bonus she owes the club, were ₹500 more played than she held, blocks too, until it is set right.
 select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'erasure_test', 'erasure-test:isha-owes', jsonb_build_array(
   jsonb_build_object('account_id', (select id from public.ledger_account where member_id = '00000000-0000-4000-8000-0000000d0793' and code = 'member.bonus'), 'amount', '50000'),
   jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'venue.chips_outstanding'), 'amount', '-50000')), null);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select is((select blockers from public.member_erasure_preview('00000000-0000-4000-8000-0000000d0793')), array['bonus', 'tournament'],
+select is((select blockers from public.member_erasure_preview('00000000-0000-4000-8000-0000000d0793')), array['bonus'],
   'bonus she owes must be settled first');
 select pg_temp.as_owner();
 select private.post_ledger_transaction('00000000-0000-4000-8000-000000000001', 'erasure_test', 'erasure-test:isha-repays', jsonb_build_array(
   jsonb_build_object('account_id', (select id from public.ledger_account where member_id = '00000000-0000-4000-8000-0000000d0793' and code = 'member.bonus'), 'amount', '-50000'),
   jsonb_build_object('account_id', (select id from public.ledger_account where venue_id = '00000000-0000-4000-8000-000000000001' and code = 'venue.chips_outstanding'), 'amount', '50000')), null);
-update public.tournament_entry set status = 'refunded', busted_at = null, bust_order = null where id = '00000000-0000-4000-8000-0000000c0793';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select results_eq($$ select forfeited_bonus_paise from public.erase_member('00000000-0000-4000-8000-0000000d0793', 'Isha Rao', 'Asked by email') $$,
   $$ values (20000::bigint) $$, 'Vikram erases her: the ₹200 left is forfeited, no more');
@@ -421,8 +392,7 @@ select results_eq($$ select g.id = (select played from isha_grants),
   'the grant she played closes on the forfeit; the one that expired keeps its expiry');
 select is((select private.account_balance(id) from public.ledger_account where member_id = '00000000-0000-4000-8000-0000000d0793' and code = 'member.bonus'),
   0::bigint, 'her bonus ends at zero');
-select results_eq($$ select status, pan from public.kyc_record where member_id = '00000000-0000-4000-8000-0000000d0793' $$,
-  $$ values ('erased'::text, 'ABCPR7931M'::text) $$, 'TDS on a tournament prize keeps her PAN too');
+select is_empty($$ select 1 from public.kyc_record where member_id = '00000000-0000-4000-8000-0000000d0793' $$, 'her KYC record is deleted too');
 
 -- At most ten erasures a venue in an hour.
 select private.audit('00000000-0000-4000-8000-000000000001', 'member.erase', 'member', gen_random_uuid()::text, null, null, 'Rate test')

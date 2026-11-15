@@ -12,7 +12,6 @@ const BLOCKER_COPY: Readonly<Record<ErasureBlocker, MessageKey>> = {
   markers: 'console.members.erase.blockers.markers',
   bonus: 'console.members.erase.blockers.bonus',
   waitlist: 'console.members.erase.blockers.waitlist',
-  tournament: 'console.members.erase.blockers.tournament',
   requests: 'console.members.erase.blockers.requests',
 };
 

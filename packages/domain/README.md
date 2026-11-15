@@ -166,13 +166,6 @@ A session's time shared among its tables and a hand's rake among its seats, whic
 | `tablePlayedSeconds(table, session, played)` | A session that moved tables shares its time played (seating to leaving, less away) among them in proportion to the time at each, rounded down to the second. |
 | `rakeShare(rake, seated)` | A hand's rake split equally among the members seated at its table, rounded down to the paisa. |
 
-### `@rivr/domain/aml`
-
-AML cash limits (#105, decision 0234; golden `aml.json`; SQL twin `private.cash_limit_hit`).
-
-| Export | What it does |
-|---|---|
-| `cashLimitHit(limits, visitSoFar, daySoFar, amount)`, `CashLimits`, `CashLimitHit` | Which limit a cash buy-in would take the member past, the visit's checked first (`visit`, `day`), or null within both. Reaching a limit exactly is within it; nothing, or null, is no limit. |
 
 ### `@rivr/domain/clubDay`
 
@@ -185,25 +178,6 @@ The club's day runs 06:00 to 06:00 IST, so a night past midnight belongs to the 
 | `clubDaysPeriod(first, last)` | A run of club days as the moments it begins and ends: 06:00 IST on the first to 06:00 IST after the last. |
 | `dayAfter(day, count)`, `weekOf(day)` | The club day `count` days after another (before, when negative), and the Monday of a club day's week. |
 
-### `@rivr/domain/tournament`
-
-Tournaments (#115, #116, #119; decisions 0200 to 0202). `clockAt` is proved equal to its `private.` twin by `packages/testing/golden/tournamentClock.json`; `checkPurchase` by `tournamentEntry.json`, and the calculator by `blindStructure.json`.
-
-| Export | What it does |
-|---|---|
-| `Stage`, `PlayLevel`, `BreakStage`, `structureProblem(stages)`, `structureMinutes`, `levelCount`, `MOST_STAGES` | A blind structure: levels (blinds and ante in chips, minutes) and breaks. What stops the clock running one: none, more than sixty stages, a break first, two breaks together, minutes outside 1 to 120, a small blind above the big. |
-| `clockAt(stages, elapsedSeconds)`, `ClockPosition` | Where the clock stands: the stage, the level (a break counts as the level before it), whether it is a break, the seconds left. Before the start, level 1 in full; past the end, the last stage with none left. |
-| `stageStartSeconds`, `nextLevelAfter`, `levelAtOrAfter` | When a stage starts; the next level after a stage; the level at a stage, or after a break. |
-| `elapsedNow(reading, nowMs)`, `ClockReading` | A device's count down from the server's reading: a running clock runs on from when it was read, a paused one holds. |
-| `planStructure(plan)`, `StructurePlan` | The calculator: levels for a target length, big blinds up the chip ladder to a twentieth of the chips in play, breaks every so many levels, an optional big-blind ante. |
-| `checkPurchase(purchase, rules, level, player)`, `TOURNAMENT_FORMATS`, `EntryRules`, `PlayerStanding`, `Purchase`, `PurchaseRefusal` | Whether a player may enter, re-enter, rebuy or take the add-on at the clock's level: a `Result` with the refusal. |
-| `poolShare(price, fee)` | What one buy puts in the prize pool: its price less the fee, refused unless the fee is nothing or more and below the price (golden `tournamentMoney.json`). |
-| `prizePool(collected, guarantee)`, `payoutTable(pool, shares, runs)`, `areSharesWhole(shares)`, `WHOLE_POOL`, `MOST_PLACES` | The prize pool with the overlay a guarantee needs, and the prizes by the floor's shares in basis points adding up to 100%, rounded down to ₹50 chips, the rest to first (#121, decision 0205, question #470; golden `tournamentPayouts.json`). |
-| `chipChop(stacks, prizes)`, `icmDeal(stacks, prizes)`, `dealAmounts(method, stacks, prizes)`, `DEAL_METHODS`, `MOST_DEAL_PLAYERS` | Deals among two to nine players for the prizes they would play for: each sure of the smallest, the rest by chips or by ICM (Malmuth-Harville), rounded down to ₹50 chips, the rest to the biggest stack (decision 0205). |
-| `bountyOnBust(bounty, kind)`, `BOUNTY_KINDS` | A bust's bounty: all paid (standard), or half paid and half onto the eliminator's head (progressive) (#117, decision 0206). |
-| `dayTwoField(runs)`, `FlightRun`, `DayTwoField` | Day 2 of a multi-flight event: who goes through (the bigger stack if twice) and the players out on Day 1, best first, by players outlasted in their flight, then the smaller flight, then the earlier run (#117, decision 0251; golden `tournamentSeating.json`). |
-| `satelliteSeats(pool, targetBuyIn, runs)`, `SatelliteSeats` | A satellite's seats in its target event: the pool at the target's buy-in, rounded down and never more than the runs, and the cash left over with the place it goes to (#117, decision 0250; golden `tournamentPayouts.json`). |
-| `eligibleSeats(occupied, tables, seatsPerTable)`, `balancingMoves(counts)`, `averageStack(chips, players)`, `TournamentSeat`, `BalancingMove` | Seating and balancing (#120, decision 0204; golden `tournamentSeating.json`): the free seats at the emptiest tables a new player may be given; the moves that bring every table within one player of the others; the chips per player left. |
 
 ### `@rivr/domain/glaza`
 

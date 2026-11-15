@@ -250,18 +250,16 @@ describe('Tonight', () => {
     expect(screen.queryByRole('button', { name: /^Request a seat$/ })).toBeNull();
   });
 
-  it('Browsing: the tournaments under the tables say Notify me, Notifying you, or Registered once the floor has', async () => {
+  it('Browsing: the tournaments under the tables say Notify me, or Notifying you once asked', async () => {
     renderTonight([], [], {
       '/rpc/my_feature_access': [...FEATURES, { feature_key: 'tournaments.register', state: 'enabled', tiers: null }],
       '/rpc/my_upcoming_tournaments': [
         { tournament_id: 't1', name: 'Weeknight Turbo', starts_at: '2026-11-17T14:30:00Z', standing: 'none' },
         { tournament_id: 't2', name: 'Sunday Main Event', starts_at: '2026-11-22T08:30:00Z', standing: 'interested' },
-        { tournament_id: 't3', name: 'Ladies Night', starts_at: '2026-11-19T14:30:00Z', standing: 'registered' },
       ],
     });
-    expect((await screen.findByRole('button', { name: 'Register interest in Weeknight Turbo' }, LATER)).textContent).toBe('Notify me');
-    expect(screen.getByRole('button', { name: 'Register interest in Sunday Main Event' }).textContent).toBe('Notifying you');
-    expect(screen.getByRole('button', { name: 'Register interest in Ladies Night' }).textContent).toBe('Registered');
+    expect((await screen.findByRole('button', { name: 'Notify me: Weeknight Turbo' }, LATER)).textContent).toBe('Notify me');
+    expect(screen.getByRole('button', { name: 'Notifying you: Sunday Main Event' }).textContent).toBe('Notifying you');
   });
 
   it('Browsing: Notify me says why it did not go through', async () => {
@@ -270,7 +268,7 @@ describe('Tonight', () => {
       '/rpc/my_upcoming_tournaments': [{ tournament_id: 't1', name: 'Weeknight Turbo', starts_at: '2026-11-17T14:30:00Z', standing: 'none' }],
       '/rpc/register_tournament_interest': Response.json({ code: 'RVFRZ', message: 'paused' }, { status: 400 }),
     });
-    fireEvent.click(await screen.findByRole('button', { name: 'Register interest in Weeknight Turbo' }, LATER));
+    fireEvent.click(await screen.findByRole('button', { name: 'Notify me: Weeknight Turbo' }, LATER));
     expect(await screen.findByText('The club is paused. Try again later.')).toBeDefined();
   });
 });
