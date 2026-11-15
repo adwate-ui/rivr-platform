@@ -11,6 +11,6 @@ paths:
 - Every policy and write function behind a member-facing feature calls `has_feature(member_id, key)`. Core features listed in the additions are never gated.
 - Public surfaces read only `public_*` views that contain no personal data.
 - Business events write one `outbox_event` row in the same transaction.
-- Masked Aadhaar only. KYC images in a private bucket with short-lived signed URLs.
+- Masked Aadhaar numbers only. Aadhaar photos carry the desk's bars while `kyc.aadhaar_covers` is on; while it is off (owner, 15 Nov, for now) they are kept as taken, readable by super admins only (decision 0663). KYC images in a private bucket with short-lived signed URLs.
 - After a migration: `pnpm db:reset && pnpm db:types && pnpm test --filter db`.
 - `packages/db` exposes typed query functions and query keys per feature; nothing else imports the Supabase client.
