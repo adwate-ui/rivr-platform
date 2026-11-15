@@ -90,6 +90,7 @@ export {
 } from './members.ts';
 export type { MemberExportDetails } from './memberDetails.ts';
 export { useMemberSignUp, type MemberSignUp, type SignUpCampaign } from './memberSignUp.ts';
+export { useResetMemberHours, type ResetHoursFailure } from './memberHours.ts';
 export { useChangeMemberPhone, type PhoneChangeFailure } from './memberPhone.ts';
 export {
   useEraseMember, useMemberErasurePreview, useMemberErasureRequests, useMyErasureRequest, useRemoveErasedKycFiles, useRequestMyErasure, type Erasure,

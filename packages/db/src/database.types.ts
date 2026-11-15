@@ -1113,14 +1113,14 @@ isOneToOne: false
                   ]
                 },"member": {
                   Row: {
-                    "created_at": string,"erased_at": string | null,"full_name": string,"id": string,"known_as": string | null,"member_number": number,"phone": string | null,"qualifying_big_blind": number | null,"qualifying_small_blind": number | null,"referral_code": string,"tier_id": string,"updated_at": string,"user_id": string | null,"venue_id": string
+                    "created_at": string,"erased_at": string | null,"full_name": string,"hours_counted_from": string | null,"id": string,"known_as": string | null,"member_number": number,"phone": string | null,"qualifying_big_blind": number | null,"qualifying_small_blind": number | null,"referral_code": string,"tier_id": string,"updated_at": string,"user_id": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"erased_at"?: string | null,"full_name": string,"id"?: string,"known_as"?: string | null,"member_number"?: never,"phone"?: string | null,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"referral_code"?: string,"tier_id": string,"updated_at"?: string,"user_id"?: string | null,"venue_id": string
+                    "created_at"?: string,"erased_at"?: string | null,"full_name": string,"hours_counted_from"?: string | null,"id"?: string,"known_as"?: string | null,"member_number"?: never,"phone"?: string | null,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"referral_code"?: string,"tier_id": string,"updated_at"?: string,"user_id"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"erased_at"?: string | null,"full_name"?: string,"id"?: string,"known_as"?: string | null,"member_number"?: never,"phone"?: string | null,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"referral_code"?: string,"tier_id"?: string,"updated_at"?: string,"user_id"?: string | null,"venue_id"?: string
+                    "created_at"?: string,"erased_at"?: string | null,"full_name"?: string,"hours_counted_from"?: string | null,"id"?: string,"known_as"?: string | null,"member_number"?: never,"phone"?: string | null,"qualifying_big_blind"?: number | null,"qualifying_small_blind"?: number | null,"referral_code"?: string,"tier_id"?: string,"updated_at"?: string,"user_id"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {

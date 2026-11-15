@@ -167,6 +167,14 @@ A session's time shared among its tables and a hand's rake among its seats, whic
 | `tablePlayedSeconds(table, session, played)` | A session that moved tables shares its time played (seating to leaving, less away) among them in proportion to the time at each, rounded down to the second. |
 | `rakeShare(rake, seated)` | A hand's rake split equally among the members seated at its table, rounded down to the paisa. |
 
+### `@rivr/domain/hours`
+
+A member's counted hours after a super admin resets them (redesign RD-36, decision 0609). Proved equal to `private.counted_seconds` by `packages/testing/golden/hours.json`.
+
+| Export | What it does |
+|---|---|
+| `countedSeconds(stint, countedFrom)`, `PlayedStint` | The seconds of a stint that still count towards a member's hours (the TV's hours leaderboard, a play-time Bonus, the Members list): all of it when the stint began at or after the moment hours count from, none when it ended by then, else the share played after it by the clock, rounded down (`tablePlayedSeconds`). Null counts everything. |
+
 ### `@rivr/domain/aml`
 
 AML cash limits (#105, decision 0234; golden `aml.json`; SQL twin `private.cash_limit_hit`).

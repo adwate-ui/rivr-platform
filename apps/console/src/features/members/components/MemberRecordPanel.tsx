@@ -13,6 +13,7 @@ import { MemberSignUp } from './MemberSignUp.tsx';
 import { MemberVisits } from './MemberVisits.tsx';
 import { PromotionGrants } from './PromotionGrants.tsx';
 import { partsFor, recordHref, type RecordPart } from './recordParts.ts';
+import { ResetHours } from './ResetHours.tsx';
 import { SeatLine } from './SeatLine.tsx';
 import { TierForm } from './TierForm.tsx';
 import type { Tonight } from './tonight.ts';
@@ -29,6 +30,8 @@ export interface RecordAccess {
   readonly changePhone: boolean;
   /** A super admin withdraws an early departure recorded by mistake (decision 0500). */
   readonly withdrawDeparture: boolean;
+  /** Resets the member's counted hours: super admins (redesign RD-36). */
+  readonly resetHours: boolean;
   /** Super admins, admins and floor managers add Bonus by hand on the record (bonus.give). */
   readonly giveBonus: boolean;
 }
@@ -56,7 +59,7 @@ interface PartProps {
   can: RecordAccess;
 }
 
-/** Visits (console v3): how many and the last, each visit (F-017), early departures, and what promotions gave the member. */
+/** Visits (console v3): how many and the last, each visit (F-017), for a super admin the reset of their hours, early departures, and what promotions gave the member. */
 function VisitsPart({ venueId, record, can }: PartProps) {
   const last = record.lastVisitAt === null ? t('console.members.never') : formatDate(new Date(record.lastVisitAt));
   return (
@@ -66,6 +69,7 @@ function VisitsPart({ venueId, record, can }: PartProps) {
         <DetailRow label={t('console.members.lastVisit')} value={last} labelTone="muted" size="small" isLast />
       </Stack>
       <MemberVisits venueId={venueId} memberId={record.memberId} />
+      {can.resetHours ? <ResetHours venueId={venueId} memberId={record.memberId} name={record.fullName} /> : null}
       <EarlyDepartures venueId={venueId} memberId={record.memberId} canWithdraw={can.withdrawDeparture} />
       <PromotionGrants memberId={record.memberId} />
     </Stack>

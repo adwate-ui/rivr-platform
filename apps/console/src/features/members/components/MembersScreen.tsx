@@ -38,6 +38,7 @@ export function MembersScreen(props: MembersScreenProps) {
     erase: permissions.includes('members.erase'),
     changePhone: permissions.includes('members.change_phone'),
     withdrawDeparture: staff.venue.role === 'super_admin',
+    resetHours: staff.venue.role === 'super_admin',
     giveBonus: permissions.includes('bonus.give'),
   };
   return <Members title={title} venueId={venueId} can={can} {...props} />;

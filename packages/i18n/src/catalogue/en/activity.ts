@@ -34,7 +34,7 @@ const ACTION_WORDS: Readonly<Record<string, string>> = {
   'points.grant': 'Gave points', 'points.lock': 'Locked points', 'points.unlock': 'Released points',
   'device.enrolled': 'Enrolled', 'device.enrolment_started': 'Started enrolling', 'device.paired': 'Paired', 'device.pairing_started': 'Started pairing',
   'export.archive_saved': 'Saved an archive', 'export.table': 'Exported', 'export.tally_day': 'Exported', 'export.tds_return': 'Exported',
-  'fnb_order.cancel': 'Cancelled', 'kyc_image.view': 'Viewed', 'member.change_phone': 'Changed the mobile number', 'member.erase': 'Erased',
+  'fnb_order.cancel': 'Cancelled', 'kyc_image.view': 'Viewed', 'member.change_phone': 'Changed the mobile number', 'member.erase': 'Erased', 'member.hours_reset': 'Reset hours',
   'practice.reset': 'Reset the practice venue', 'redemption.cancel': 'Cancelled', 'staff.attendance': 'Marked attendance',
   'venue.logo_uploaded': 'Uploaded the logo', 'venue.purge': 'Purged', 'venue.purge_files': 'Purged the files',
 };

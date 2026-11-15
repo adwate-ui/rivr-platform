@@ -1,4 +1,5 @@
 import { memberBonus } from './memberBonus.ts';
+import { memberHours } from './memberHours.ts';
 import { memberSignUp } from './memberSignUp.ts';
 
 /** The console's Members screen (#60): find a member, open their record, and change their tier. */
@@ -142,6 +143,7 @@ export const members = {
     },
   },
   /** Erasing one member's personal data on request, for super admins (#424, decision 0207). */
+  resetHours: memberHours,
   /** A super admin changes a member's phone number, their login (#502). */
   changePhone: {
     title: 'Phone number',
