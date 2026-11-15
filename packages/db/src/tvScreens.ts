@@ -9,6 +9,7 @@ import { functionErrorCode } from './parse/kycFailure.ts';
 import { toTvCode, type TvCode } from './parse/tvCode.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 export type { TvCode };
 
@@ -163,7 +164,7 @@ export function useMyTvScreen() {
     // rather than pausing in silence.
     networkMode: 'always',
     queryFn: async (): Promise<MyTvScreen | null> => {
-      const { data, error } = await client.rpc('my_tv_screen');
+      const { data, error } = await client.rpc('my_tv_screen').limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       if (row === undefined) {
@@ -188,7 +189,7 @@ export function useIsPublicVenue(venueId: string | undefined): boolean | undefin
     // Asked again as the screen is, so an overlay whose first read failed recovers without a reload.
     refetchInterval: SCREEN_CHECK,
     queryFn: async () => {
-      const { data, error } = await client.from('public_venue').select('id').eq('id', venueId ?? '');
+      const { data, error } = await client.from('public_venue').select('id').eq('id', venueId ?? '').limit(LIST_MOST);
       if (error) throw error;
       return data.length > 0;
     },
@@ -205,9 +206,9 @@ export function useVenueTvs(venueId: string) {
     refetchInterval: SCREEN_CHECK,
     queryFn: async (): Promise<VenueTv[]> => {
       const [devices, screens, heartbeats] = await Promise.all([
-        client.from('device').select('id, name, auth_user_id').eq('venue_id', venueId).eq('kind', 'tv').is('revoked_at', null).order('name'),
-        client.from('tv_screen').select('device_id, mode, rotation').eq('venue_id', venueId),
-        client.from('tv_heartbeat').select('device_id, last_seen_at').eq('venue_id', venueId),
+        client.from('device').select('id, name, auth_user_id').eq('venue_id', venueId).eq('kind', 'tv').is('revoked_at', null).order('name').limit(LIST_MOST),
+        client.from('tv_screen').select('device_id, mode, rotation').eq('venue_id', venueId).limit(LIST_MOST),
+        client.from('tv_heartbeat').select('device_id, last_seen_at').eq('venue_id', venueId).limit(LIST_MOST),
       ]);
       if (devices.error) throw devices.error;
       if (screens.error) throw screens.error;
@@ -275,7 +276,7 @@ export function useTvPairingPolicy(venueId: string) {
     queryKey: queryKeys.tvPairingPolicy(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<TvPairingPolicy | null> => {
-      const { data, error } = await client.rpc('tv_pairing_policy', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('tv_pairing_policy', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       return row ? { isWindowOnly: row.is_window_only, openUntil: row.open_until } : null;

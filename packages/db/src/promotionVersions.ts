@@ -7,6 +7,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { Json } from './database.types.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST, PROMOTIONS_MOST } from './limits.ts';
 
 /** A promotion on the console's list (console v3 phase 7): its current or open version's words and terms, and this week's grants. */
 export interface PromotionOverview {
@@ -95,7 +96,7 @@ export function usePromotionsOverview(venueId: string) {
     queryKey: queryKeys.promotionsOverview(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<PromotionsOverview> => {
-      const { data, error } = await client.rpc('promotions_overview', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('promotions_overview', { p_venue_id: venueId }).limit(PROMOTIONS_MOST);
       if (error) throw error;
       const promotions = data.map(toPromotionOverview);
       return { promotions, counts: countByStatus(promotions) };
@@ -149,7 +150,7 @@ export function usePromotionVersions(promotionId: string) {
     queryKey: queryKeys.promotionVersions(userId ?? 'signed-out', promotionId),
     enabled: userId !== null,
     queryFn: async (): Promise<PromotionVersionView[]> => {
-      const { data, error } = await client.rpc('promotion_versions_of', { p_promotion_id: promotionId });
+      const { data, error } = await client.rpc('promotion_versions_of', { p_promotion_id: promotionId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map(toPromotionVersion);
     },

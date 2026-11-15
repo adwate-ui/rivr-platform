@@ -103,6 +103,8 @@ export const waitlist = {
   openNotAllowed: 'Not in your role. Ask an admin.',
   openPaused: 'Venue frozen. Try again once it is released.',
   requestsFailed: 'Requests not loaded. Reload the page.',
+  /** Every place as one table (redesign RD-31): its name, search and columns, and the dash in a column with nothing to say. */
+  table: { label: 'Places', search: 'Find a player', place: 'No.', player: 'Player', table: 'Table', waited: 'Waited', notes: 'Notes', none: '–', tableLine: '{table} · {stake}' },
   approve: 'Approve {name}',
   approveShort: 'Approve',
   confirmRemove: 'Yes, remove {name}',
@@ -168,8 +170,8 @@ export const waitlist = {
     declineShort: 'Decline',
     add: 'Add: mobile or member number',
     addShort: 'Add',
-    /** The Add button read out, and the title of the panel it opens (redesign RD-38). */
-    addTo: 'Add to {table}',
+    /** Add in the Waitlist's title row, and the title of the panel it opens (redesign RD-31, RD-38). */
+    addToList: 'Add to a list',
     addInvalid: 'Enter a mobile or member number.',
     select: 'Select {name}',
     more: 'More for {name}',

@@ -2,6 +2,7 @@ import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Json } from './database.types.ts';
 import { useRivrData } from './provider.tsx';
+import { LIST_MOST } from './limits.ts';
 
 // Kept here, not in queryKeys: this module is its own subpath (@rivr/db/siteEditor).
 const keys = {
@@ -72,7 +73,7 @@ export function useSitePages(venueId: string) {
     enabled: userId !== null,
     queryFn: async (): Promise<EditorPage[]> => {
       const { data, error } = await client.from('site_page').select('id, slug, title, site_revision(status)').eq('venue_id', venueId)
-        .in('site_revision.status', ['draft', 'scheduled']).order('slug');
+        .in('site_revision.status', ['draft', 'scheduled']).order('slug').limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({ pageId: row.id, slug: row.slug, title: row.title, pending: pendingOf(row.site_revision.map((revision) => revision.status)) }));
     },
@@ -87,7 +88,7 @@ export function useEditorPage(pageId: string) {
     enabled: userId !== null,
     queryFn: async (): Promise<EditorPageState> => {
       const [blocks, revisions] = await Promise.all([
-        client.from('site_block').select('kind, content').eq('page_id', pageId).order('position'),
+        client.from('site_block').select('kind, content').eq('page_id', pageId).order('position').limit(LIST_MOST),
         client.from('site_revision').select('id, status, blocks, publish_at, published_at, created_at, preview_token, updated_at').eq('page_id', pageId)
           .order('created_at', { ascending: false }).limit(30),
       ]);

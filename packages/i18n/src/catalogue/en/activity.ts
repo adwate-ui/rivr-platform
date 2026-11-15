@@ -15,12 +15,10 @@ export const activity = {
   allKinds: 'All',
   system: 'System',
   unknown: 'No longer on record',
-  showEarlier: 'Show earlier',
   recordOf: '{thing} · {name}',
   /** Points or bonus chips by hand: `Gave points: 500`, `Gave bonus chips: 1,500`. */
   withAmount: '{what}: {amount}',
   /** In what an export records, while earlier lines are not loaded. */
-  partial: 'Partial: the latest {count} lines only',
   kinds: {
     controls: 'Controls', exports: 'Exports', staff: 'Staff', bonus_chips: 'Bonus', tiers: 'Tiers', members: 'Members',
     settings: 'Settings', floor: 'Floor', other: 'Other',

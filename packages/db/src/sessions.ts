@@ -98,7 +98,7 @@ export function useMySession(sessionId: string) {
     queryKey: keys.one(userId ?? 'signed-out', sessionId),
     enabled: userId !== null,
     queryFn: async (): Promise<MySession | null> => {
-      const { data, error } = await client.rpc('my_sessions').eq('session_id', sessionId);
+      const { data, error } = await client.rpc('my_sessions').eq('session_id', sessionId).limit(1);
       if (error) throw error;
       const row = data[0];
       return row === undefined ? null : sessionOf(row);

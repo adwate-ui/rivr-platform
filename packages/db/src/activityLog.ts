@@ -1,4 +1,5 @@
-import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import type { Database } from './database.types.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
@@ -32,37 +33,52 @@ export interface ActivityLine {
   readonly amount: number | null;
 }
 
-const PAGE_SIZE = 50;
+/** How many lines a page holds, and how many an export reads at a time. */
+export const ACTIVITY_PAGE = 50;
+const EXPORT_PAGE = 1000;
 
-/** Where the next page starts: after this line. Null for the first. */
-type ActivityCursor = { readonly at: string; readonly id: number } | null;
-const FIRST_PAGE: ActivityCursor = null;
+/** What `activity_page` is asked: the venue, what narrows the log, and a page by its number. */
+function askOf(venueId: string, filters: ActivityFilters, page: number, pageSize: number) {
+  return {
+    p_venue_id: venueId, p_page: page, p_page_size: pageSize,
+    ...(filters.from === null ? {} : { p_from: filters.from }), ...(filters.to === null ? {} : { p_to: filters.to }),
+    ...(filters.who === null ? {} : { p_who: filters.who }), ...(filters.kind === null ? {} : { p_kind: filters.kind }),
+  };
+}
 
-/** The venue's activity log for super admins, newest first, a page at a time (8 Nov audit, F-034). Empty for anyone else. */
-export function useActivityLog(venueId: string, filters: ActivityFilters) {
+type PageRow = Database['public']['Functions']['activity_page']['Returns'][number];
+
+const lineOf = (row: PageRow): ActivityLine => ({
+  id: row.id, occurredAt: row.occurred_at, who: row.who, isSystem: row.is_system, action: row.action, entity: row.entity,
+  kind: ACTIVITY_KINDS.find((one) => one === row.kind) ?? 'other', about: row.about, reason: row.reason, amount: row.amount,
+});
+
+/**
+ * One page of the venue's activity log for super admins, newest first, by its number (8 Nov audit, F-034; redesign RD-31:
+ * the data table's foot pages it), with how many lines the narrowing leaves. Empty for anyone else. The page before
+ * stays on screen while the next is read. `readEvery` reads every line the narrowing leaves, a thousand at a time, for
+ * an export.
+ */
+export function useActivityPage(venueId: string, filters: ActivityFilters, page: number) {
   const { client, userId } = useRivrData();
-  return useInfiniteQuery({
-    queryKey: queryKeys.activityLog(userId ?? 'signed-out', venueId, filters),
+  const log = useQuery({
+    queryKey: [...queryKeys.activityLog(userId ?? 'signed-out', venueId, filters), page],
     enabled: userId !== null,
-    initialPageParam: FIRST_PAGE,
-    // The list stays while a typed name or a new date is read.
     placeholderData: keepPreviousData,
-    queryFn: async ({ pageParam }): Promise<ActivityLine[]> => {
-      const { data, error } = await client.rpc('activity_log', {
-        p_venue_id: venueId, p_limit: PAGE_SIZE,
-        ...(filters.from === null ? {} : { p_from: filters.from }), ...(filters.to === null ? {} : { p_to: filters.to }),
-        ...(filters.who === null ? {} : { p_who: filters.who }), ...(filters.kind === null ? {} : { p_kind: filters.kind }),
-        ...(pageParam === null ? {} : { p_before: pageParam.at, p_before_id: pageParam.id }),
-      });
+    queryFn: async (): Promise<{ lines: ActivityLine[]; total: number }> => {
+      const { data, error } = await client.rpc('activity_page', askOf(venueId, filters, page, ACTIVITY_PAGE));
       if (error) throw error;
-      return data.map((row) => ({
-        id: row.id, occurredAt: row.occurred_at, who: row.who, isSystem: row.is_system, action: row.action, entity: row.entity,
-        kind: ACTIVITY_KINDS.find((one) => one === row.kind) ?? 'other', about: row.about, reason: row.reason, amount: row.amount,
-      }));
-    },
-    getNextPageParam: (last): ActivityCursor | undefined => {
-      const end = last.at(-1);
-      return end === undefined || last.length < PAGE_SIZE ? undefined : { at: end.occurredAt, id: end.id };
+      return { total: Number(data[0]?.total ?? 0), lines: data.map(lineOf) };
     },
   });
+  const readEvery = async (): Promise<ActivityLine[]> => {
+    const lines: ActivityLine[] = [];
+    for (let at = 1; ; at += 1) {
+      const { data, error } = await client.rpc('activity_page', askOf(venueId, filters, at, EXPORT_PAGE));
+      if (error) throw error;
+      lines.push(...data.map(lineOf));
+      if (data.length < EXPORT_PAGE || lines.length >= Number(data[0]?.total ?? 0)) return lines;
+    }
+  };
+  return { ...log, readEvery };
 }

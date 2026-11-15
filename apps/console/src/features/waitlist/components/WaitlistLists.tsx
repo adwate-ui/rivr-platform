@@ -5,35 +5,14 @@ import {
 import { t } from '@rivr/i18n';
 import { ErrorMessage, Grid, LoadState, Skeleton, StaleNotice, Stack, Text } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
-import { BulkPlaces } from './BulkPlaces.tsx';
+import { useState } from 'react';
+import { AddPlaceForm } from './AddPlaceForm.tsx';
 import { SeatSheet, type SeatSheetPlace } from './SeatSheet.tsx';
-import { TableWaitlist } from './TableWaitlist.tsx';
-
-/** The time the wait times count to, moved on each half minute. */
-function useNow(): Date {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const timer = globalThis.setInterval(() => setNow(new Date()), 30_000);
-    return () => globalThis.clearInterval(timer);
-  }, []);
-  return now;
-}
-
-/** The ticked places, by entry: ticked and unticked one at a time, cleared all at once. */
-function useTicks() {
-  const [ticked, setTicked] = useState<ReadonlySet<string>>(new Set());
-  const toggle = (entryId: string) => setTicked((before) => {
-    const after = new Set(before);
-    if (after.has(entryId)) after.delete(entryId);
-    else after.add(entryId);
-    return after;
-  });
-  return { ticked, toggle, clear: () => setTicked(new Set()) };
-}
+import { isFullWithWaiting, TableWaitlist } from './TableWaitlist.tsx';
+import { WaitlistTable } from './WaitlistTable.tsx';
 
 /**
- * The tables with a card (decision 0467): every open one, and a closed one only while someone waits on it or asks to,
+ * The tables with a list (decision 0467): every open one, and a closed one only while someone waits on it or asks to,
  * as its interest in reopening (#113). Inactive tables never come (decision 0466).
  */
 function tablesShown(tables: readonly FloorTable[], venueId: string, board: readonly WaitlistBoardEntry[], askedAt: ReadonlySet<string>) {
@@ -51,10 +30,17 @@ interface CardsProps {
   interest: readonly InterestList[];
 }
 
-/** The cards once the tables and lists have come, the bulk bar over the places ticked, and the seat sheet. */
+/** What one table has of its own to say: its joins asking, a closed table's interest, or that it is full while members wait. Null with none. */
+function cardOf(table: FloorTable, { entries, requests, interest }: Pick<CardsProps, 'entries' | 'requests' | 'interest'>) {
+  const waiting = entries.filter((entry) => entry.tableId === table.id).length;
+  const asking = requests.filter((request) => request.tableId === table.id);
+  const interested = table.isOpen ? undefined : interest.find((list) => list.tableId === table.id);
+  const hasOwn = asking.length > 0 || interested !== undefined || isFullWithWaiting(table, waiting);
+  return hasOwn ? { table, waiting, asking, interested } : null;
+}
+
+/** Once the tables and lists have come: a card for each table with something of its own to say, every place as one table, and the seat sheet. */
 function Cards({ venueId, canOpen, canCheckId, tables, entries, requests, interest }: CardsProps) {
-  const now = useNow();
-  const ticks = useTicks();
   const navigate = useNavigate();
   const [seating, setSeating] = useState<{ table: FloorTable; place: SeatSheetPlace } | null>(null);
   const readyToSeat = useReadyToSeat(venueId);
@@ -68,28 +54,35 @@ function Cards({ venueId, canOpen, canCheckId, tables, entries, requests, intere
   const checkId = (entry: WaitlistBoardEntry) => void navigate({ to: '/kyc-review', search: { check: entry.fullName } });
   const shown = tablesShown(tables, venueId, entries, new Set(requests.map((request) => request.tableId)));
   if (shown.length === 0) return <Text tone="muted">{t('console.waitlist.noGames')}</Text>;
+  const cards = shown.flatMap((table) => cardOf(table, { entries, requests, interest }) ?? []);
   return (
     <>
-      <BulkPlaces venueId={venueId} entries={entries.filter((entry) => ticks.ticked.has(entry.entryId))} onClear={ticks.clear} />
-      <Grid columns="cards" gap={4}>
-        {shown.map((table) => (
-          <TableWaitlist key={table.id} venueId={venueId} table={table} tables={tables} now={now} canOpen={canOpen}
-            entries={entries.filter((entry) => entry.tableId === table.id)}
-            requests={requests.filter((request) => request.tableId === table.id)}
-            interest={table.isOpen ? undefined : interest.find((list) => list.tableId === table.id)}
-            ticked={ticks.ticked} onToggle={ticks.toggle}
-            onSeat={(entry) => setSeating({ table, place: { entryId: entry.entryId, memberId: entry.memberId, name: entry.fullName } })}
-            onApproved={onApproved} onCheckId={canCheckId ? checkId : undefined} />
-        ))}
-      </Grid>
+      {cards.length === 0 ? null : (
+        <Grid columns="cards" gap={4}>
+          {cards.map(({ table, waiting, asking, interested }) => (
+            <TableWaitlist key={table.id} venueId={venueId} table={table} canOpen={canOpen} waiting={waiting} requests={asking} interest={interested} onApproved={onApproved} />
+          ))}
+        </Grid>
+      )}
+      <WaitlistTable venueId={venueId} tables={tables} onCheckId={canCheckId ? checkId : undefined}
+        onSeat={(entry, table) => setSeating({ table, place: { entryId: entry.entryId, memberId: entry.memberId, name: entry.fullName } })} />
       {seating === null ? null : <SeatSheet venueId={venueId} table={seating.table} place={seating.place} onClose={() => setSeating(null)} />}
     </>
   );
 }
 
+/** Add to a list, for the Waitlist's title row: the tables with a list are its choices. */
+export function AddToList({ venueId }: { venueId: string }) {
+  const tables = useFloorTables().data ?? [];
+  const board = useWaitlistBoard(venueId).data ?? [];
+  const asked = useWaitlistRequests(venueId).data ?? [];
+  return <AddPlaceForm venueId={venueId} tables={tablesShown(tables, venueId, board, new Set(asked.map((request) => request.tableId)))} />;
+}
+
 /**
- * Lists, the Waitlist screen's first tab (console v3): a card for each table's own list (decision 0467), the bulk bar over
- * the places ticked, and the sheet that seats a place at its table. Open all night: a list that stops refreshing stays on
+ * Lists, the Waitlist screen's first tab (console v3; redesign RD-31): every place as one table from the server with the
+ * table as a column (each table keeps its own list and order, decision 0467), the bulk bar over the places ticked, and the
+ * sheet that seats a place at its table; over it, a card for each table with something of its own to say. Open all night: a list that stops refreshing stays on
  * screen, saying since when.
  */
 export function WaitlistLists({ venueId, canOpen, canCheckId }: { venueId: string; canOpen: boolean; canCheckId: boolean }) {

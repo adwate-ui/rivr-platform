@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { toPromotionCard, type PromotionCardData } from './promotionCards.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 // The TV reads its cards again every half minute, and at once when one is published or paused.
 const TV_CHECK = 30_000;
@@ -14,7 +15,7 @@ export function useTvPromotions() {
     enabled: userId !== null,
     refetchInterval: TV_CHECK,
     queryFn: async (): Promise<PromotionCardData[]> => {
-      const { data, error } = await client.rpc('tv_promotions');
+      const { data, error } = await client.rpc('tv_promotions').limit(LIST_MOST);
       if (error) throw error;
       return data.map(toPromotionCard);
     },

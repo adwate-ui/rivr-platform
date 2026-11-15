@@ -101,7 +101,7 @@ export function renderFloorScreen(Screen: ComponentType, api: FloorApi = {}, add
   const sent: { rpc: string; body: unknown }[] = [];
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (init?.method === 'POST' && url.includes('/rpc/')) sent.push({ rpc: url.split('/rpc/')[1] ?? '', body: JSON.parse(String(init.body ?? '{}')) });
+    if (init?.method === 'POST' && url.includes('/rpc/')) sent.push({ rpc: url.split('/rpc/')[1]?.split('?')[0] ?? '', body: JSON.parse(String(init.body ?? '{}')) });
     return answer(url, api);
   });
   const rootRoute = createRootRoute();

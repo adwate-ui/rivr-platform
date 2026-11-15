@@ -1,7 +1,10 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { Database } from './database.types.ts';
+import { useListPage, type ScopedView } from './lists.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST, WAITLIST_REQUESTS_MOST } from './limits.ts';
 
 // A waitlist place moves as others join and leave: positions refresh every ten seconds.
 const LIVE = 10_000;
@@ -134,10 +137,10 @@ export function useFloorTables() {
     queryFn: async (): Promise<FloorTable[]> => {
       const [tables, types, lengths, open] = await Promise.all([
         client.from('game_table').select('id, venue_id, name, is_open, seats, position, table_type_id, must_move_to_table_id, room, min_buy_in_paise')
-          .eq('active', true).order('position'),
-        client.from('table_type').select('id, name, game, small_blind_paise, big_blind_paise, straddle_paise'),
-        client.rpc('waitlist_lengths'),
-        client.rpc('floor_open_seats'),
+          .eq('active', true).order('position').limit(LIST_MOST),
+        client.from('table_type').select('id, name, game, small_blind_paise, big_blind_paise, straddle_paise').limit(LIST_MOST),
+        client.rpc('waitlist_lengths').limit(LIST_MOST),
+        client.rpc('floor_open_seats').limit(LIST_MOST),
       ]);
       if (tables.error) throw tables.error;
       if (types.error) throw types.error;
@@ -170,7 +173,7 @@ export function useMyWaitlist() {
     enabled: userId !== null,
     refetchInterval: LIVE,
     queryFn: async (): Promise<WaitlistPlace[]> => {
-      const { data, error } = await client.rpc('my_waitlist');
+      const { data, error } = await client.rpc('my_waitlist').limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         entryId: row.entry_id, tableTypeId: row.table_type_id, tableTypeName: row.table_type_name, game: row.game, smallBlind: BigInt(row.small_blind_paise),
@@ -216,6 +219,30 @@ export function useWaitlistActions() {
   return { joinAt, leave, stepAway };
 }
 
+type BoardRow = Database['public']['Functions']['waitlist_board']['Returns'][number];
+
+/** A place on the board as the screens read it. */
+export function boardEntryOf(row: BoardRow): WaitlistBoardEntry {
+  return {
+    entryId: row.entry_id, tableTypeId: row.table_type_id, memberId: row.member_id, fullName: row.full_name, joinedAt: row.joined_at,
+    place: row.place, addedByFloor: row.added_by_floor, priorityReason: row.priority_reason, callTableName: row.call_table_name,
+    callSeat: row.call_seat, holdUntil: row.hold_until, awayUntil: row.away_until, tableId: row.asked_table_id, onWayAt: row.on_way_at, needsIdCheck: row.needs_id_check,
+  };
+}
+
+/**
+ * One page of the venue's lists for the floor (redesign RD-31; `waitlist_page`, waitlist.manage): every table's places as
+ * one list, table by table in place order unless the view says otherwise, sorted, searched and filtered on the server,
+ * with how many places the view leaves. The view's `scope.table` is one table's list alone. Asked again every ten seconds.
+ */
+export function useWaitlistPage(venueId: string, view: ScopedView | null) {
+  const { client } = useRivrData();
+  return useListPage({
+    list: 'waitlist', venueId, view, every: LIVE,
+    read: (asked) => client.rpc('waitlist_page', { p_venue_id: venueId, p_view: asked }), rowOf: (row) => boardEntryOf(row),
+  });
+}
+
 /** The venue's lists for the floor (`waitlist_board`, waitlist.manage): each place in order, with names; not asked while `isEnabled` is false. */
 export function useWaitlistBoard(venueId: string, isEnabled = true) {
   const { client, userId } = useRivrData();
@@ -224,14 +251,9 @@ export function useWaitlistBoard(venueId: string, isEnabled = true) {
     enabled: userId !== null && isEnabled,
     refetchInterval: LIVE,
     queryFn: async (): Promise<WaitlistBoardEntry[]> => {
-      const { data, error } = await client.rpc('waitlist_board', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('waitlist_board', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
-      return data.map((row) => ({
-        entryId: row.entry_id, tableTypeId: row.table_type_id, memberId: row.member_id, fullName: row.full_name, joinedAt: row.joined_at,
-        place: row.place, addedByFloor: row.added_by_floor, priorityReason: row.priority_reason, callTableName: row.call_table_name,
-        callSeat: row.call_seat, holdUntil: row.hold_until, awayUntil: row.away_until, tableId: row.asked_table_id, onWayAt: row.on_way_at,
-        needsIdCheck: row.needs_id_check,
-      }));
+      return data.map(boardEntryOf);
     },
   });
 }
@@ -290,7 +312,7 @@ export function useWaitlistRequests(venueId: string) {
     enabled: userId !== null,
     refetchInterval: LIVE,
     queryFn: async (): Promise<WaitlistRequest[]> => {
-      const { data, error } = await client.rpc('waitlist_requests', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('waitlist_requests', { p_venue_id: venueId }).limit(WAITLIST_REQUESTS_MOST);
       if (error) throw error;
       return data.map((row) => ({
         entryId: row.entry_id, tableTypeId: row.table_type_id, tableId: row.table_id, memberId: row.member_id, fullName: row.full_name, joinedAt: row.joined_at,

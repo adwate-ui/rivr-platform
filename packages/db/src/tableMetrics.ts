@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** One table over a span of club days (the owner, 8 Nov), money-free: how long it ran and how it was played. */
 export interface TableMetrics {
@@ -39,7 +40,7 @@ export function useTableMetrics(venueId: string, from: string, to: string) {
     queryKey: queryKeys.tableMetrics(userId ?? 'signed-out', venueId, from, to),
     enabled: userId !== null,
     queryFn: async (): Promise<TableMetrics[]> => {
-      const { data, error } = await client.rpc('table_metrics', { p_venue_id: venueId, p_from: from, p_to: to });
+      const { data, error } = await client.rpc('table_metrics', { p_venue_id: venueId, p_from: from, p_to: to }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         tableId: row.table_id, tableName: row.table_name, seats: row.seats, runSeconds: Number(row.run_seconds), players: row.players,
@@ -58,7 +59,7 @@ export function useTableMetricsTotal(venueId: string, from: string, to: string) 
     queryKey: queryKeys.tableMetricsTotal(userId ?? 'signed-out', venueId, from, to),
     enabled: userId !== null,
     queryFn: async (): Promise<TableMetricsTotal> => {
-      const { data, error } = await client.rpc('table_metrics_total', { p_venue_id: venueId, p_from: from, p_to: to });
+      const { data, error } = await client.rpc('table_metrics_total', { p_venue_id: venueId, p_from: from, p_to: to }).limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       if (row === undefined) return NO_TOTAL;

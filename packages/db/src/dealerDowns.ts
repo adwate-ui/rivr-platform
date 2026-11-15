@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** A dealer whose PIN the signed-in manager may set (#41): whether they have one, and until when it is locked. */
 export interface VenueDealer {
@@ -65,7 +66,7 @@ export function useVenueDealers(venueId: string) {
     queryKey: queryKeys.venueDealers(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<VenueDealer[]> => {
-      const { data, error } = await client.rpc('venue_dealers', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('venue_dealers', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({ staffId: row.staff_id, fullName: row.full_name, role: row.role, hasPin: row.has_pin, lockedUntil: row.locked_until }));
     },
@@ -93,7 +94,7 @@ export function useTabletDealers() {
     enabled: userId !== null,
     refetchInterval: DEALERS_CHECK,
     queryFn: async (): Promise<TabletDealer[]> => {
-      const { data, error } = await client.rpc('tablet_dealers');
+      const { data, error } = await client.rpc('tablet_dealers').limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({ staffId: row.staff_id, fullName: row.full_name }));
     },
@@ -111,7 +112,7 @@ export function useCurrentDown(tableId: string | null) {
     enabled: userId !== null && tableId !== null,
     refetchInterval: DOWN_CHECK,
     queryFn: async (): Promise<CurrentDown | null> => {
-      const { data, error } = await client.rpc('current_down');
+      const { data, error } = await client.rpc('current_down').limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       return row ? { downId: row.down_id, staffId: row.staff_id, fullName: row.full_name, startedAt: row.started_at } : null;
@@ -133,7 +134,7 @@ export function useDownActions() {
   const signIn = useMutation({
     networkMode: 'always',
     mutationFn: async ({ staffId, pin }: { staffId: string; pin: string }): Promise<Result<null, DealerSignInFailure>> => {
-      const { data, error } = await client.rpc('dealer_sign_in', { p_staff_id: staffId, p_pin: pin });
+      const { data, error } = await client.rpc('dealer_sign_in', { p_staff_id: staffId, p_pin: pin }).limit(LIST_MOST);
       await reload();
       if (error) return err({ reason: error.code === 'RVFRZ' ? 'paused' : 'unavailable' });
       const row = data[0];
@@ -145,7 +146,7 @@ export function useDownActions() {
   const end = useMutation({
     networkMode: 'always',
     mutationFn: async (dropBox: Paise): Promise<Result<DownCount, EndDownFailure>> => {
-      const { data, error } = await client.rpc('end_down', { p_drop_box_paise: Number(dropBox) });
+      const { data, error } = await client.rpc('end_down', { p_drop_box_paise: Number(dropBox) }).limit(LIST_MOST);
       await reload();
       if (error?.code === 'RVDWN') return err('ended');
       const row = data?.[0];

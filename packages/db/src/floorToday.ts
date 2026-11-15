@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 // Tonight's lists move as players ask, sit, wait and leave.
 const LIVE = 15_000;
@@ -44,7 +45,7 @@ export function useTopUpsTonight(venueId: string, isEnabled = true) {
     enabled: userId !== null && isEnabled,
     refetchInterval: TOP_UPS_LIVE,
     queryFn: async (): Promise<TopUpTonight[]> => {
-      const { data, error } = await client.rpc('top_ups_tonight', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('top_ups_tonight', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         requestId: row.request_id, sessionId: row.session_id, tableName: row.table_name, seat: row.seat, fullName: row.full_name, status: topUpStatusOf(row.status),
@@ -90,7 +91,7 @@ export function useTodaysPlayers(venueId: string) {
     enabled: userId !== null,
     refetchInterval: LIVE,
     queryFn: async (): Promise<TodaysPlayer[]> => {
-      const { data, error } = await client.rpc('todays_players', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('todays_players', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         memberId: row.member_id, fullName: row.full_name, memberNumber: Number(row.member_number), status: statusOf(row.status),

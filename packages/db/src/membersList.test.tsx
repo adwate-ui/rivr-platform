@@ -30,7 +30,7 @@ const VIEW: MembersView = {
 function fakeApi(pages: (page: number) => readonly object[], choices: readonly object[] = []) {
   const calls: { rpc: string; view: Record<string, unknown> }[] = [];
   const fetch: typeof globalThis.fetch = async (input, init) => {
-    const rpc = (input instanceof Request ? input.url : String(input)).split('/rpc/')[1] ?? '';
+    const rpc = (input instanceof Request ? input.url : String(input)).split('/rpc/')[1]?.split('?')[0] ?? '';
     const view: Record<string, unknown> = init?.body ? JSON.parse(String(init.body)).p_view : {};
     calls.push({ rpc, view });
     return Response.json(rpc === 'members_choices' ? choices : pages(Number(view['page'])));

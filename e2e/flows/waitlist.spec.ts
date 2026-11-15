@@ -5,7 +5,8 @@
  * it (#633), removes them and adds them, one list at a time; a black card the floor adds (Vihaan Kapoor, seeded with a
  * finished check; never signs in) goes first only at its qualifying stake; and the floor assigns the member a seat at the
  * list's table, which they see on Tonight. Titles follow the prototype's panel (decision 0320). The console's Waitlist is
- * the redesign's (console v3): a card for each table's list, a ⋯ menu on each place, the bulk bar over the places ticked.
+ * the redesign's (console v3; redesign RD-31): every place as a row of one table with its table as a column, a ⋯ menu on
+ * each place, the bulk bar over the places ticked, Add to a list in the title row, and a card for a table whose joins ask.
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { appUrl } from '../support/apps.ts';
@@ -47,16 +48,23 @@ async function leaveEveryList(page: Page) {
 
 const IN_LINE = /^(Next|\d+(st|nd|rd|th)) in line$/;
 
-/** The console's card for one table's list (decision 0467), found by its heading. */
+/** The console's card for one table while joins ask at it (decision 0467), found by its heading. */
 function gameList(page: Page, name: string): Locator {
   // The innermost: the table's own card, not the screens around it (a tab's screen is a section inside its screen's).
   return page.locator('section').filter({ has: page.getByRole('heading', { level: 2, name, exact: true }) }).last();
 }
 
-/** A place's row on a card: its number, the name, how long and what to know, then Seat and its ⋯ menu. */
-function placeRow(list: Locator, name: string): Locator {
-  return list.locator('div').filter({ has: list.page().getByRole('button', { name: `More for ${name}`, exact: true }) })
-    .filter({ has: list.page().getByRole('checkbox', { name: `Select ${name}` }) }).last();
+/** Every place on every list, as one table under the cards (redesign RD-31). */
+const places = (page: Page): Locator => page.getByRole('table', { name: 'Places' });
+
+/** A place's row: its number, the name, its table, how long and what to know, then Seat and its ⋯ menu. */
+function placeRow(page: Page, name: string): Locator {
+  return places(page).getByRole('row').filter({ has: page.getByRole('button', { name: `More for ${name}`, exact: true }) });
+}
+
+/** Waits for the places to have come: their table, or that nobody waits. */
+async function untilPlacesShow(page: Page) {
+  await expect(places(page).or(page.getByText('No one is waiting.')).first()).toBeVisible();
 }
 
 /** Takes every place of `name` off the lists, from each place's ⋯ menu, asked first. */
@@ -71,11 +79,12 @@ async function removeEvery(page: Page, name: string) {
   }
 }
 
-/** Adds a member to a list by their mobile number or membership number, in the panel its Add opens (redesign RD-38). */
-async function addByNumber(list: Locator, number: string) {
-  await list.getByRole('button', { name: /^Add to / }).click();
-  const panel = list.page().getByRole('dialog');
+/** Adds a member to a table's list by their mobile number or membership number, in the panel Add to a list opens (redesign RD-31, RD-38). */
+async function addByNumber(page: Page, table: string, number: string) {
+  await page.getByRole('button', { name: 'Add to a list' }).click();
+  const panel = page.getByRole('dialog', { name: 'Add to a list' });
   await panel.getByRole('textbox', { name: 'Add: mobile or member number' }).fill(number);
+  await panel.getByRole('radiogroup', { name: 'Table' }).getByRole('radio', { name: table, exact: true }).click();
   await panel.getByRole('button', { name: 'Add', exact: true }).click();
   await expect(panel).toHaveCount(0);
 }
@@ -86,7 +95,8 @@ test.beforeAll(async ({ browser }) => {
   host = await browser.newPage();
   await signInToConsole(host, '9000000111');
   await host.goto(`${appUrl('console')}/waitlist`);
-  await expect(host.getByRole('heading', { name: 'Table 2', exact: true })).toBeVisible();
+  await expect(host.getByRole('button', { name: 'Add to a list' })).toBeVisible();
+  await untilPlacesShow(host);
   // A run stopped early may have left places behind.
   await leaveEveryList(player);
   await removeEvery(host, BLACK_CARD);
@@ -144,18 +154,17 @@ test.describe('Waitlist', () => {
     await expect(player.getByText(IN_LINE)).toBeVisible();
     await expect(player.getByText('Waitlist · Table 2 · NLH 100/200')).toBeVisible();
 
-    await expect(placeRow(higher, MEMBER)).toBeVisible();
+    await expect(placeRow(host, MEMBER)).toContainText('Table 2');
     await removeEvery(host, MEMBER);
-    await expect(higher.getByText(MEMBER, { exact: false })).toHaveCount(0);
+    await expect(places(host).getByText(MEMBER, { exact: false })).toHaveCount(0);
 
     await player.reload();
     await expect(tableRow(player, 'Table 2')).toBeVisible();
     await expect(player.getByRole('button', { name: 'Leave waitlist' })).toHaveCount(0);
 
-    const lower = gameList(host, 'Table 1');
-    await addByNumber(lower, '9000000211');
-    await expect(placeRow(lower, MEMBER)).toHaveText(new RegExp(`^1${MEMBER}`));
-    await expect(placeRow(lower, MEMBER)).toContainText('added by the floor');
+    await addByNumber(host, 'Table 1', '9000000211');
+    await expect(placeRow(host, MEMBER)).toHaveText(new RegExp(`^1${MEMBER}Table 1 · NLH 50/100`));
+    await expect(placeRow(host, MEMBER)).toContainText('added by the floor');
     // Added by the floor, the place names the table whose list it is on.
     await player.reload();
     await expect(player.getByText('Next in line')).toBeVisible();
@@ -164,21 +173,21 @@ test.describe('Waitlist', () => {
 
   test('Black card at another stake queues by join time, and goes first at its own', async () => {
     // The member is first on Table 1's list (50/100) from the step before.
-    const higher = gameList(host, 'Table 2');
-    const lower = gameList(host, 'Table 1');
-    await addByNumber(higher, '9000000212');
-    await expect(placeRow(higher, BLACK_CARD)).toHaveText(new RegExp(`^1${BLACK_CARD}.*Black card`));
+    await addByNumber(host, 'Table 2', '9000000212');
+    await expect(placeRow(host, BLACK_CARD)).toHaveText(new RegExp(`^1${BLACK_CARD}Table 2.*Black card`));
     // One list at a time (#633): off Table 2's before Table 1's.
     await removeEvery(host, BLACK_CARD);
-    await expect(higher.getByText(BLACK_CARD, { exact: false })).toHaveCount(0);
-    await addByNumber(lower, '9000000212');
-    await expect(placeRow(lower, BLACK_CARD)).toHaveText(new RegExp(`^2${BLACK_CARD}`));
-    await expect(placeRow(lower, BLACK_CARD)).not.toContainText('Black card');
+    await expect(places(host).getByText(BLACK_CARD, { exact: false })).toHaveCount(0);
+    await addByNumber(host, 'Table 1', '9000000212');
+    await expect(placeRow(host, BLACK_CARD)).toHaveText(new RegExp(`^2${BLACK_CARD}Table 1`));
+    await expect(placeRow(host, BLACK_CARD)).not.toContainText('Black card');
     await removeEvery(host, BLACK_CARD);
 
     await leaveEveryList(player);
     await host.reload();
-    await expect(gameList(host, 'Table 1').getByText('No one is waiting.')).toBeVisible();
+    await untilPlacesShow(host);
+    // Nobody is left on Table 1's list.
+    await expect(places(host).getByText(/^Table 1 · /)).toHaveCount(0);
   });
 
   test('Tonight › Browsing, Seated: the floor assigns the member a seat at the list\u2019s table and a call time, and they see it on Tonight (decision 0299)', async () => {
@@ -196,8 +205,7 @@ test.describe('Waitlist', () => {
     await joinAndApprove(player, host);
 
     await host.reload();
-    const higher = gameList(host, 'Table 2');
-    await higher.getByRole('button', { name: `Seat ${MEMBER}` }).click();
+    await host.getByRole('button', { name: `Seat ${MEMBER}` }).click();
     // A place is seated only at its list's table (decision 0467): the sheet names Table 2.
     const sheet = host.getByRole('dialog', { name: `Seat ${MEMBER}` });
     await expect(sheet.getByText(/^Table 2 · /)).toBeVisible();
@@ -206,7 +214,7 @@ test.describe('Waitlist', () => {
     await sheet.getByRole('button', { name: 'Seat', exact: true }).click();
     await expect(host.getByText(`${MEMBER} seated at Table 2, seat 9`)).toBeVisible();
     // Assigned is seated: off the list at once, with no hold to wait out.
-    await expect(higher.getByText(MEMBER, { exact: false })).toHaveCount(0);
+    await expect(places(host).getByText(MEMBER, { exact: false })).toHaveCount(0);
     await player.reload();
     await expect(player.getByRole('button', { name: 'Leave waitlist' })).toHaveCount(0);
     // Seated, he joins no other game from the app (#633): the tables only show.
@@ -217,16 +225,16 @@ test.describe('Waitlist', () => {
   test('Hold place and Release: the floor holds a member\u2019s place and brings it back; the member has no Step away', async () => {
     // Seated from the step before, the member is on a list only as the floor adds him, to change tables (#633): Table 3's.
     await host.reload();
-    await addByNumber(gameList(host, 'Table 3'), '9000000211');
+    await addByNumber(host, 'Table 3', '9000000211');
 
     await host.reload();
-    const higher = gameList(host, 'Table 3');
-    await higher.getByRole('button', { name: `More for ${MEMBER}` }).click();
+    await expect(placeRow(host, MEMBER)).toContainText('Table 3');
+    await host.getByRole('button', { name: `More for ${MEMBER}` }).click();
     await host.getByRole('menuitem', { name: 'Hold place' }).click();
-    await expect(placeRow(higher, MEMBER)).toContainText('place held');
-    await higher.getByRole('button', { name: `More for ${MEMBER}` }).click();
+    await expect(placeRow(host, MEMBER)).toContainText('place held');
+    await host.getByRole('button', { name: `More for ${MEMBER}` }).click();
     await host.getByRole('menuitem', { name: 'Release' }).click();
-    await expect(placeRow(higher, MEMBER)).not.toContainText('place held');
+    await expect(placeRow(host, MEMBER)).not.toContainText('place held');
 
     // Only the floor holds a place now (decision 0300): the member's Tonight offers no Step away.
     await player.reload();
@@ -238,24 +246,23 @@ test.describe('Waitlist', () => {
 
   test('Bulk bar: the floor ticks two places on a list and holds both, then removes both after a question', async () => {
     await host.reload();
-    const list = gameList(host, 'Table 3');
-    await addByNumber(list, '9000000211');
-    await expect(placeRow(list, MEMBER)).toBeVisible();
-    await addByNumber(list, '9000000212');
-    await expect(placeRow(list, BLACK_CARD)).toBeVisible();
-    await list.getByRole('checkbox', { name: `Select ${MEMBER}` }).check();
-    await list.getByRole('checkbox', { name: `Select ${BLACK_CARD}` }).check();
+    await addByNumber(host, 'Table 3', '9000000211');
+    await expect(placeRow(host, MEMBER)).toBeVisible();
+    await addByNumber(host, 'Table 3', '9000000212');
+    await expect(placeRow(host, BLACK_CARD)).toBeVisible();
+    await host.getByRole('checkbox', { name: `Select ${MEMBER}` }).check();
+    await host.getByRole('checkbox', { name: `Select ${BLACK_CARD}` }).check();
     await host.getByRole('button', { name: 'Hold', exact: true }).click();
     await expect(host.getByText('Places held: 2')).toBeVisible();
-    await expect(placeRow(list, MEMBER)).toContainText('place held');
-    await expect(placeRow(list, BLACK_CARD)).toContainText('place held');
+    await expect(placeRow(host, MEMBER)).toContainText('place held');
+    await expect(placeRow(host, BLACK_CARD)).toContainText('place held');
 
-    await list.getByRole('checkbox', { name: `Select ${MEMBER}` }).check();
-    await list.getByRole('checkbox', { name: `Select ${BLACK_CARD}` }).check();
+    await host.getByRole('checkbox', { name: `Select ${MEMBER}` }).check();
+    await host.getByRole('checkbox', { name: `Select ${BLACK_CARD}` }).check();
     await host.getByRole('button', { name: 'Remove', exact: true }).click();
     await host.getByRole('button', { name: 'Yes, remove them' }).click();
     await expect(host.getByText('Removed from the lists: 2')).toBeVisible();
-    await expect(list.getByText(MEMBER, { exact: false })).toHaveCount(0);
-    await expect(list.getByText(BLACK_CARD, { exact: false })).toHaveCount(0);
+    await expect(placeRow(host, MEMBER)).toHaveCount(0);
+    await expect(placeRow(host, BLACK_CARD)).toHaveCount(0);
   });
 });

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** Read every ten seconds on every console screen, so staff learn of new work without opening its screen (decision 0301). */
 const QUEUES_LIVE = 10_000;
@@ -20,7 +21,7 @@ export function useStaffQueueCounts(venueId: string) {
     // Also while the console sits in a background tab: that is when the tab's count and the chime matter.
     refetchIntervalInBackground: true,
     queryFn: async (): Promise<Readonly<Record<string, number>>> => {
-      const { data, error } = await client.rpc('staff_queue_counts', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('staff_queue_counts', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return Object.fromEntries(data.map((row) => [row.queue, row.waiting]));
     },

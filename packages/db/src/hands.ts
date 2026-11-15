@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { toPaise, toRakeRules } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** A hand's variant: Hold'em, PLO or a bomb pot. */
 export type HandVariant = 'holdem' | 'plo' | 'bomb_pot';
@@ -54,7 +55,7 @@ export function useTableRules(tableId: string | null) {
     enabled: userId !== null && tableId !== null,
     refetchInterval: (query) => nextRulesCheck(query.state.data?.nextChangeAt ?? null, Date.now()),
     queryFn: async (): Promise<TableRules | null> => {
-      const { data, error } = await client.rpc('tablet_rake_rules');
+      const { data, error } = await client.rpc('tablet_rake_rules').limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       return row ? { rake: toRakeRules(row), hasVariation: row.has_variation, nextChangeAt: row.next_change_at } : null;
@@ -72,7 +73,7 @@ export function useDownHands(downId: string | null) {
     queryKey: queryKeys.downHands(userId ?? 'signed-out', downId ?? 'no-down'),
     enabled: userId !== null && downId !== null,
     queryFn: async (): Promise<DownHand[]> => {
-      const { data, error } = await client.rpc('down_hands');
+      const { data, error } = await client.rpc('down_hands').limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         handId: row.hand_id, playedAt: row.played_at, variant: row.variant, pot: toPaise(row.pot_paise),

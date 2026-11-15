@@ -4,6 +4,7 @@ import { COMPUTER_TOKEN_KEY } from './client.ts';
 import { toThisComputer } from './parse/thisComputer.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** What a computer is enrolled as (#384): the cage, or an admin console. */
 /** A cage computer, an admin console, or the cage agent (#168): a service on the cage computer, never a browser. */
@@ -55,7 +56,7 @@ export function useComputers(venueId: string) {
     enabled: userId !== null,
     queryFn: async (): Promise<Computer[]> => {
       const { data, error } = await client.from('device').select('id, kind, name, token_hash')
-        .eq('venue_id', venueId).in('kind', ['cage', 'console', 'agent']).is('revoked_at', null).order('name');
+        .eq('venue_id', venueId).in('kind', ['cage', 'console', 'agent']).is('revoked_at', null).order('name').limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({ deviceId: row.id, kind: computerKindOf(row.kind), name: row.name, isEnrolled: row.token_hash !== null }));
     },
@@ -74,7 +75,7 @@ export function useThisComputer(venueId: string) {
     queryKey: queryKeys.thisComputer(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<ThisComputer> => {
-      const { data, error } = await client.rpc('this_computer', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('this_computer', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return toThisComputer(data[0]);
     },
@@ -95,7 +96,7 @@ export function useComputerActions(venueId: string) {
   };
   const add = useMutation({
     mutationFn: async ({ kind, name }: { kind: ComputerKind; name: string }): Promise<Result<ComputerCode, ComputerFailure>> => {
-      const { data, error } = await client.rpc('add_computer', { p_venue_id: venueId, p_kind: kind, p_name: name.trim() });
+      const { data, error } = await client.rpc('add_computer', { p_venue_id: venueId, p_kind: kind, p_name: name.trim() }).limit(LIST_MOST);
       await reload();
       const row = data?.[0];
       if (error || !row) return err(FAILURE_BY_CODE[error?.code ?? ''] ?? 'unavailable');

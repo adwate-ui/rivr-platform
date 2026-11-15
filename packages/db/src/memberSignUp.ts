@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 import { GAMES_PLAYED, OCCUPATIONS, PLAY_TIMES, type GamePlayed, type Occupation, type PlayTime } from './signUp.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** The link a member arrived by, as its campaign codes named it; each null when the link had none. */
 export interface SignUpCampaign {
@@ -42,7 +43,7 @@ export function useMemberSignUp(venueId: string, memberId: string) {
     queryKey: queryKeys.memberSignUp(userId ?? 'signed-out', venueId, memberId),
     enabled: userId !== null,
     queryFn: async (): Promise<MemberSignUp | null> => {
-      const { data, error } = await client.rpc('member_sign_up', { p_venue_id: venueId, p_member_id: memberId });
+      const { data, error } = await client.rpc('member_sign_up', { p_venue_id: venueId, p_member_id: memberId }).limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       if (row === undefined) return null;

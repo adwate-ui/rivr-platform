@@ -86,7 +86,7 @@ describe('usePreferenceActions', () => {
     // The reads Profile asks for alongside (consent, stakes) are not changes.
     const reads = ['/rpc/has_my_consent', '/rpc/my_stakes'];
     const rpcs = calls.filter((call) => call.url.includes('/rpc/') && !reads.some((read) => call.url.includes(read)))
-      .map((call) => [call.url.split('/rpc/')[1], call.body]);
+      .map((call) => [call.url.split('/rpc/')[1]?.split('?')[0], call.body]);
     expect(rpcs).toEqual([
       ['set_my_notification', { p_push_type: 'push.seat_ready', p_is_on: false }],
       ['give_consent', { p_purpose: 'marketing' }],

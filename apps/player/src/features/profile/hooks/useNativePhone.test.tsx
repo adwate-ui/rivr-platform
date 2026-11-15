@@ -41,7 +41,7 @@ function phone({ kept = { token: null, deviceKey: null }, permission = 'prompt',
 function database() {
   const rpcs: { name: string; body: unknown }[] = [];
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
-    const name = String(input).split('/rpc/')[1] ?? '';
+    const name = String(input).split('/rpc/')[1]?.split('?')[0] ?? '';
     rpcs.push({ name, body: init?.body ? JSON.parse(String(init.body)) : null });
     return name === 'save_live_status_device' ? Response.json(NEW_KEY) : new Response(null, { status: 204 });
   });

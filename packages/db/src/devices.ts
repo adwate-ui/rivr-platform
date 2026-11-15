@@ -4,6 +4,7 @@ import { toDeviceSession } from './parse/deviceSession.ts';
 import { functionErrorCode } from './parse/kycFailure.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** The signed-in tablet (#41): its name, and the table it is fixed to, if any. */
 export interface MyDevice {
@@ -57,7 +58,7 @@ export function useMyDevice() {
     enabled: userId !== null,
     refetchInterval: TABLE_CHECK,
     queryFn: async (): Promise<MyDevice | null> => {
-      const { data, error } = await client.rpc('my_device');
+      const { data, error } = await client.rpc('my_device').limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       return row
@@ -105,8 +106,8 @@ export function useDealerTablets(venueId: string) {
     queryFn: async (): Promise<DealerTablet[]> => {
       const [devices, assignments] = await Promise.all([
         client.from('device').select('id, name, kind, auth_user_id').eq('venue_id', venueId).eq('kind', 'dealer_tablet').is('revoked_at', null)
-          .order('name'),
-        client.from('tablet_assignment').select('device_id, table_id').eq('venue_id', venueId),
+          .order('name').limit(LIST_MOST),
+        client.from('tablet_assignment').select('device_id, table_id').eq('venue_id', venueId).limit(LIST_MOST),
       ]);
       if (devices.error) throw devices.error;
       if (assignments.error) throw assignments.error;
@@ -135,7 +136,7 @@ export function useDeviceActions(venueId: string) {
     return error ? err(DEVICE_FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(value);
   };
   const startPairing = async (deviceId: string) => {
-    const { data, error } = await client.rpc('start_device_pairing', { p_device_id: deviceId });
+    const { data, error } = await client.rpc('start_device_pairing', { p_device_id: deviceId }).limit(LIST_MOST);
     const row = data?.[0];
     return settle<PairingCode | null>(row ? { deviceId, code: row.code, expiresAt: row.expires_at } : null, error);
   };

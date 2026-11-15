@@ -57,7 +57,7 @@ function renderAs(role: string, pane: 'check-in' | 'players' = 'check-in') {
       return Response.json(pageOf(view));
     }
     if (url.includes('/rpc/list_choices')) return Response.json(COUNTS);
-    if (url.includes('/rpc/check_')) calls.push(url.split('/rpc/')[1] ?? '');
+    if (url.includes('/rpc/check_')) calls.push(url.split('/rpc/')[1]?.split('?')[0] ?? '');
     return Response.json(url.includes('/rpc/check_') ? 'v1' : []);
   });
   render(

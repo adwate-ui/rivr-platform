@@ -6,6 +6,7 @@ import { inPersonFailureOf, oneOf, type KycInPersonFailure } from './kycReview.t
 import { functionErrorCode } from './parse/kycFailure.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /**
  * A photo of a member's PAN or Aadhaar front on file, as a super admin sees it (decision 0573). `path` opens with
@@ -45,7 +46,7 @@ export function useMemberKycDocuments(venueId: string, memberId: string) {
     queryKey: queryKeys.memberKycDocuments(userId ?? 'signed-out', venueId, memberId),
     enabled: userId !== null,
     queryFn: async (): Promise<KycDocument[]> => {
-      const { data, error } = await client.rpc('member_kyc_documents', { p_venue_id: venueId, p_member_id: memberId });
+      const { data, error } = await client.rpc('member_kyc_documents', { p_venue_id: venueId, p_member_id: memberId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map(documentOf);
     },

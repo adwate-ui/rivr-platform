@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 // The bar works through orders by the ten seconds, so what it is told is asked again as often.
 const ORDERS_CHECK = 10_000;
@@ -13,7 +14,7 @@ export function useMemberCancelledKots(venueId: string) {
     enabled: userId !== null,
     refetchInterval: ORDERS_CHECK,
     queryFn: async (): Promise<number[]> => {
-      const { data, error } = await client.rpc('fnb_member_cancelled_kots', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('fnb_member_cancelled_kots', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => row.kot_number);
     },

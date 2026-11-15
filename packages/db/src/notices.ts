@@ -1,6 +1,7 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
+import { LIST_MOST } from './limits.ts';
 
 // Kept here, not in queryKeys: this module is its own subpath (@rivr/db/notices).
 const keys = {
@@ -47,7 +48,7 @@ export function useMyNotices() {
     queryKey: keys.mine(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<Notice[]> => {
-      const { data, error } = await client.rpc('my_notices');
+      const { data, error } = await client.rpc('my_notices').limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({ noticeId: row.notice_id, body: row.body }));
     },
@@ -61,7 +62,7 @@ export function useVenueNotices(venueId: string) {
     queryKey: keys.venue(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<VenueNotice[]> => {
-      const { data, error } = await client.rpc('venue_notices', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('venue_notices', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({ noticeId: row.notice_id, body: row.body, startsAt: row.starts_at, endsAt: row.ends_at }));
     },

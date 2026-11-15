@@ -1,6 +1,7 @@
 import { siteBlockSchema, type SiteBlock } from '@rivr/contracts/site';
 import { useQuery } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
+import { LIST_MOST } from './limits.ts';
 
 // Kept here, not in queryKeys: this module is its own subpath (@rivr/db/houseRules), off the player's first load.
 const keys = {
@@ -41,7 +42,7 @@ export function useHouseRules() {
     queryKey: keys.houseRules(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<HouseRules> => {
-      const { data, error } = await client.from('public_site_block').select('kind, content').eq('page_slug', 'house-rules').order('position');
+      const { data, error } = await client.from('public_site_block').select('kind, content').eq('page_slug', 'house-rules').order('position').limit(LIST_MOST);
       if (error) throw error;
       const page = blocksOf(data);
       return { intro: page.find(isHero)?.content.text ?? null, rules: page.find(isRules)?.content.rules ?? [] };

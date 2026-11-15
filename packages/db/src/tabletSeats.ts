@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** Who sits in a seat: their session, name and whether away. */
 export interface TabletPlayer {
@@ -45,7 +46,7 @@ export function useTabletSeats() {
     enabled: userId !== null,
     refetchInterval: LIVE,
     queryFn: async (): Promise<TabletSeat[]> => {
-      const { data, error } = await client.rpc('tablet_seats');
+      const { data, error } = await client.rpc('tablet_seats').limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         seat: row.seat, minimum: toPaise(row.minimum_paise), smallBlind: toPaise(row.small_blind_paise), bigBlind: toPaise(row.big_blind_paise),

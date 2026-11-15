@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { RivrClient } from './client.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** The game a stake made before 2 Nov plays, as table_type.game has it; a stake made since has none (decision 0299). */
 export type TableGame = 'nlh' | 'plo';
@@ -65,10 +66,10 @@ export function useTablesSetup(venueId: string) {
     queryFn: async (): Promise<{ stakes: SetupStake[]; tables: SetupTable[] }> => {
       const [types, callTimes, tables, inPlay] = await Promise.all([
         client.from('table_type').select('id, name, game, small_blind_paise, big_blind_paise, straddle_paise').eq('venue_id', venueId)
-          .order('small_blind_paise').order('name'),
-        client.rpc('stake_call_times', { p_venue_id: venueId }),
+          .order('small_blind_paise').order('name').limit(LIST_MOST),
+        client.rpc('stake_call_times', { p_venue_id: venueId }).limit(LIST_MOST),
         client.from('game_table').select('id, name, table_type_id, seats, is_open, active, min_buy_in_paise').eq('venue_id', venueId).is('deleted_at', null)
-          .order('position'),
+          .order('position').limit(LIST_MOST),
         readInPlay(client, venueId),
       ]);
       if (types.error) throw types.error;
@@ -98,8 +99,8 @@ const countOf = (tableIds: readonly (string | null)[], tableId: string) => table
  */
 async function readInPlay(client: RivrClient, venueId: string): Promise<{ seated: (string | null)[]; waiting: (string | null)[] }> {
   const [seats, places] = await Promise.all([
-    client.from('seat_session').select('table_id').eq('venue_id', venueId).is('ended_at', null),
-    client.from('waitlist_entry').select('table_id, call_table_id').eq('venue_id', venueId).eq('status', 'waiting'),
+    client.from('seat_session').select('table_id').eq('venue_id', venueId).is('ended_at', null).limit(LIST_MOST),
+    client.from('waitlist_entry').select('table_id, call_table_id').eq('venue_id', venueId).eq('status', 'waiting').limit(LIST_MOST),
   ]);
   if (seats.error) throw seats.error;
   if (places.error) throw places.error;

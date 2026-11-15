@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { RivrClient } from './client.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /**
  * The club's numbers for calls and WhatsApp, as set under Settings, Club (decision 0582): `+918796580435`, or null for one
@@ -27,7 +28,7 @@ function contactFrom(rows: readonly { phone: string | null; whatsapp: string | n
 
 /** The club's numbers, as anyone may read them, for the website's server, once per request. `unavailable` when they cannot be read. */
 export async function fetchClubContact(client: RivrClient): Promise<Result<ClubContact, 'unavailable'>> {
-  const { data, error } = await client.from('public_club_contact').select('phone, whatsapp');
+  const { data, error } = await client.from('public_club_contact').select('phone, whatsapp').limit(LIST_MOST);
   return error ? err('unavailable') : ok(contactFrom(data));
 }
 
@@ -41,7 +42,7 @@ export function useClubContact() {
     queryKey: queryKeys.clubContact(userId ?? 'signed-out'),
     staleTime: CONTACT_STALE_MS,
     queryFn: async (): Promise<ClubContact> => {
-      const { data, error } = await client.from('public_club_contact').select('phone, whatsapp');
+      const { data, error } = await client.from('public_club_contact').select('phone, whatsapp').limit(LIST_MOST);
       if (error) throw error;
       return contactFrom(data);
     },

@@ -82,7 +82,7 @@ describe('marking a member registered, and Undo', () => {
     let undone: unknown;
     await act(async () => { undone = await result.current.unmark.mutateAsync('i1'); });
     expect(undone).toEqual({ ok: true, value: null });
-    expect(calls.map((call) => [call.url.split('/rpc/')[1], call.body])).toEqual([
+    expect(calls.map((call) => [call.url.split('/rpc/')[1]?.split('?')[0], call.body])).toEqual([
       ['mark_tournament_registered', { p_interest_id: 'i1' }],
       ['unmark_tournament_registered', { p_interest_id: 'i1' }],
     ]);

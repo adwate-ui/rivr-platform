@@ -27,7 +27,7 @@ const NAINA = {
 function fakeApi(replies: Record<string, readonly object[]>) {
   const calls: { rpc: string; body: Record<string, unknown> }[] = [];
   const fetch: typeof globalThis.fetch = async (input, init) => {
-    const rpc = (input instanceof Request ? input.url : String(input)).split('/rpc/')[1] ?? '';
+    const rpc = (input instanceof Request ? input.url : String(input)).split('/rpc/')[1]?.split('?')[0] ?? '';
     const body: Record<string, unknown> = init?.body ? JSON.parse(String(init.body)) : {};
     calls.push({ rpc, body });
     return Response.json(replies[rpc] ?? []);

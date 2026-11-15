@@ -30,16 +30,16 @@ function renderForm(answer: () => Promise<Response> | Response) {
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <ToastProvider place="console"><AddPlaceForm venueId="v1" table={{ id: 't1', name: 'Table 1' }} /></ToastProvider>
+      <ToastProvider place="console"><AddPlaceForm venueId="v1" tables={[{ id: 't1', name: 'Table 1' }, { id: 't2', name: 'Table 2' }]} /></ToastProvider>
     </RivrDataProvider>,
   );
-  // Add on the table's list opens the panel at the side (redesign RD-38), where the number is typed.
-  fireEvent.click(screen.getByRole('button', { name: 'Add to Table 1' }));
-  const panel = within(screen.getByRole('dialog', { name: 'Add to Table 1' }));
+  // Add to a list opens the panel at the side (redesign RD-38), where the number is typed and the table chosen (redesign RD-31).
+  fireEvent.click(screen.getByRole('button', { name: 'Add to a list' }));
+  const panel = within(screen.getByRole('dialog', { name: 'Add to a list' }));
   return { sent, field: panel.getByRole('textbox', { name: 'Add: mobile or member number' }), add: panel.getByRole('button', { name: 'Add' }) };
 }
 
-describe('adding a member to a table’s list (console v3)', () => {
+describe('adding a member to a table’s list (console v3; redesign RD-31)', () => {
   it('stops an empty number at the field, before any call', async () => {
     const { sent, add } = renderForm(() => Response.json('e1'));
     fireEvent.click(add);
@@ -55,6 +55,15 @@ describe('adding a member to a table’s list (console v3)', () => {
     // Added, the panel closes.
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(sent).toEqual([{ p_table_id: 't1', p_phone: '', p_member_number: 63, p_idempotency_key: expect.any(String) }]);
+  });
+
+  it('adds to the table chosen in the panel', async () => {
+    const { sent, field, add } = renderForm(() => Response.json('e1'));
+    fireEvent.change(field, { target: { value: '63' } });
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Table' })).getByRole('radio', { name: 'Table 2' }));
+    fireEvent.click(add);
+    expect(await screen.findByText('Added to Table 2')).toBeDefined();
+    expect(sent).toEqual([{ p_table_id: 't2', p_phone: '', p_member_number: 63, p_idempotency_key: expect.any(String) }]);
   });
 
   it('adds by mobile number when Enter is pressed in the field', async () => {

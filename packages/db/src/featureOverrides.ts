@@ -2,6 +2,7 @@ import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** How an override stands: in force, lifted early by a super admin, replaced by a newer one, or ended on its last day. */
 export type OverrideStanding = 'in_force' | 'lifted' | 'replaced' | 'ended';
@@ -54,7 +55,7 @@ export function useMemberFeatureOverrides(venueId: string, memberId: string) {
     queryKey: queryKeys.memberFeatureOverrides(userId ?? 'signed-out', venueId, memberId),
     enabled: userId !== null,
     queryFn: async (): Promise<FeatureOverride[]> => {
-      const { data, error } = await client.rpc('member_feature_overrides', { p_venue_id: venueId, p_member_id: memberId });
+      const { data, error } = await client.rpc('member_feature_overrides', { p_venue_id: venueId, p_member_id: memberId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         overrideId: row.override_id, featureKey: row.feature_key, featureName: row.feature_name, isGranted: row.is_granted, reason: row.reason,
@@ -72,7 +73,7 @@ export function useGateableFeatures() {
     queryKey: queryKeys.gateableFeatures(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<GateableFeature[]> => {
-      const { data, error } = await client.from('feature').select('key, name').eq('is_gateable', true).order('name');
+      const { data, error } = await client.from('feature').select('key, name').eq('is_gateable', true).order('name').limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({ key: row.key, name: row.name }));
     },

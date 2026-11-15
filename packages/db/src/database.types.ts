@@ -2770,6 +2770,11 @@ isOneToOne: false
               "about": string,"action": string,"amount": number,"entity": string,"id": number,"is_system": boolean,"kind": string,"occurred_at": string,"reason": string,"who": string
             }[]
                            },
+"activity_page":
+{ Args: { "p_from"?: string,"p_kind"?: string,"p_page"?: number,"p_page_size"?: number,"p_to"?: string,"p_venue_id": string,"p_who"?: string }; Returns: {
+              "about": string,"action": string,"amount": number,"entity": string,"id": number,"is_system": boolean,"kind": string,"occurred_at": string,"reason": string,"total": number,"who": string
+            }[]
+                           },
 "add_computer":
 { Args: { "p_kind": Database["public"]['Enums']["device_kind"],"p_name": string,"p_venue_id": string }; Returns: {
               "code": string,"device_id": string,"expires_at": string
@@ -3907,6 +3912,11 @@ isOneToOne: false
 "waitlist_lengths":
 { Args: Record<PropertyKey, never>; Returns: {
               "call_time_minutes": number,"table_id": string,"waiting": number
+            }[]
+                           },
+"waitlist_page":
+{ Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
+              "added_by_floor": boolean,"asked_table_id": string,"away_until": string,"call_seat": number,"call_table_name": string,"entry_id": string,"full_name": string,"hold_until": string,"joined_at": string,"member_id": string,"needs_id_check": boolean,"on_way_at": string,"place": number,"priority_reason": string,"table_type_id": string,"total": number
             }[]
                            },
 "waitlist_requests":

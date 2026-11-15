@@ -4,6 +4,7 @@ import type { StaffAdd } from '@rivr/contracts/staff';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { STAFF_MOST } from './limits.ts';
 
 /** One of a venue's staff, as the Staff screen lists them (#28). */
 export interface StaffMember {
@@ -63,7 +64,7 @@ export function useStaffRemovals(venueId: string) {
     queryKey: [...queryKeys.venueStaff(userId ?? 'signed-out', venueId), 'removals'],
     enabled: userId !== null,
     queryFn: async (): Promise<ReadonlyMap<string, StaffRemoval>> => {
-      const { data, error } = await client.rpc('staff_removals', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('staff_removals', { p_venue_id: venueId }).limit(STAFF_MOST);
       if (error) throw error;
       return new Map(data.map((row) => [row.staff_id, { removedAt: row.removed_at, removedBy: row.removed_by }]));
     },
@@ -77,7 +78,7 @@ export function useVenueStaff(venueId: string) {
     queryKey: queryKeys.venueStaff(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<StaffMember[]> => {
-      const { data, error } = await client.rpc('venue_staff', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('venue_staff', { p_venue_id: venueId }).limit(STAFF_MOST);
       if (error) throw error;
       return data.map((row) => ({
         staffId: row.staff_id, fullName: row.full_name, jobTitle: row.job_title, role: row.role, phone: row.phone,

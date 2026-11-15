@@ -177,10 +177,11 @@ describe('a screen whose refresh fails', () => {
       '/rpc/waitlist_board': [],
     });
     renderAt('/waitlist');
-    expect((await screen.findAllByText(/NLH 100\/200/)).length).toBeGreaterThan(0);
+    // The table is one with a list: Add to a list is offered.
+    expect(await screen.findByRole('button', { name: 'Add to a list' })).toBeDefined();
     await act(async () => { await vi.advanceTimersByTimeAsync(15_000); });
     expect(await screen.findByText(/^Not updated since /)).toBeDefined();
-    expect(screen.getAllByText(/NLH 100\/200/).length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: 'Add to a list' })).toBeDefined();
     vi.useRealTimers();
   });
 });

@@ -4,6 +4,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import { useListPage, type ListView } from './lists.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** The visit Home asks the member about (decision 0165): their last, closed in the week and not yet rated. */
 export interface FeedbackVisit {
@@ -116,7 +117,7 @@ export function useFeedbackCounts(venueId: string) {
     enabled: userId !== null,
     refetchInterval: LIST_CHECK,
     queryFn: async (): Promise<FeedbackCounts> => {
-      const { data, error } = await client.rpc('feedback_counts', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('feedback_counts', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data[0] ?? { open: 0, resolved: 0, other: 0 };
     },
@@ -149,7 +150,7 @@ export function useMyFeedbackVisit() {
     queryKey: queryKeys.myFeedbackVisit(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<FeedbackVisit | null> => {
-      const { data, error } = await client.rpc('my_feedback_visit');
+      const { data, error } = await client.rpc('my_feedback_visit').limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       return row ? { visitId: row.visit_id, closedAt: row.closed_at, playedSeconds: row.played_seconds, tableName: row.table_name } : null;

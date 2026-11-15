@@ -63,7 +63,7 @@ export {
   type FeedbackListName, type FeedbackRatings, type OpenFeedback, type ResolveFeedbackFailure,
   type FeedbackVisit,
 } from './feedback.ts';
-export { ACTIVITY_KINDS, useActivityLog, type ActivityFilters, type ActivityKind, type ActivityLine } from './activityLog.ts';
+export { ACTIVITY_KINDS, ACTIVITY_PAGE, useActivityPage, type ActivityFilters, type ActivityKind, type ActivityLine } from './activityLog.ts';
 export * from './floorReports.ts';
 export {
   openSeatsAt, useFloorSeats, useHeldSeats, useLeftOwingCallTime, useSeatActions, useSetSeatCallTime, useDecideCallTime, useAddCallTime, useAddTimeChoices,
@@ -111,7 +111,7 @@ export {
   type FloorWaitlistWho,
   useMyWaitlist,
   useWaitlistActions,
-  useWaitlistBoard,
+  useWaitlistBoard, useWaitlistPage,
   useWaitlistRequests,
   type FloorTable,
   type WaitlistBoardEntry,

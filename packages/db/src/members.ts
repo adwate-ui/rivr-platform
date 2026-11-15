@@ -5,6 +5,7 @@ import type { MemberExportDetails } from './memberDetails.ts';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** A member found on the Members screen (#60): number, name, mobile, tier and visits. */
 export interface MemberRow {
@@ -112,7 +113,7 @@ export function useMemberSearch(venueId: string, query: string) {
     queryKey: queryKeys.memberSearch(userId ?? 'signed-out', venueId, query.trim()),
     enabled: userId !== null && isMemberQuery(query),
     queryFn: async (): Promise<MemberRow[]> => {
-      const { data, error } = await client.rpc('member_search', { p_venue_id: venueId, p_query: query.trim() });
+      const { data, error } = await client.rpc('member_search', { p_venue_id: venueId, p_query: query.trim() }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         memberId: row.member_id, memberNumber: row.member_number, fullName: row.full_name, phone: row.phone, tierName: row.tier_name,
@@ -129,7 +130,7 @@ export function useMemberRecord(venueId: string, memberId: string) {
     queryKey: queryKeys.memberRecord(userId ?? 'signed-out', venueId, memberId),
     enabled: userId !== null,
     queryFn: async (): Promise<MemberRecord | null> => {
-      const { data, error } = await client.rpc('member_record', { p_venue_id: venueId, p_member_id: memberId });
+      const { data, error } = await client.rpc('member_record', { p_venue_id: venueId, p_member_id: memberId }).limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       if (row === undefined) return null;
@@ -163,7 +164,7 @@ export function useMemberAccountStatuses(venueId: string) {
     queryKey: queryKeys.memberAccountStatuses(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<ReadonlyMap<string, MemberAccountStatus>> => {
-      const { data, error } = await client.rpc('member_account_statuses', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('member_account_statuses', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return new Map(data.flatMap((row) => {
         const state = ACCOUNT_STATES.find((known) => known === row.status);
@@ -210,7 +211,7 @@ export function useMemberEarlyDepartures(venueId: string, memberId: string) {
     queryKey: queryKeys.memberEarlyDepartures(userId ?? 'signed-out', venueId, memberId),
     enabled: userId !== null,
     queryFn: async (): Promise<EarlyDeparture[]> => {
-      const { data, error } = await client.rpc('member_early_departures', { p_venue_id: venueId, p_member_id: memberId });
+      const { data, error } = await client.rpc('member_early_departures', { p_venue_id: venueId, p_member_id: memberId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         earlyDepartureId: row.early_departure_id, at: row.created_at, shortfallSeconds: row.shortfall_seconds, reason: row.reason, staffName: row.staff_name,
@@ -228,7 +229,7 @@ export function useVenueTiers(venueId: string) {
     queryKey: queryKeys.venueTiers(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
     queryFn: async (): Promise<VenueTier[]> => {
-      const { data, error } = await client.from('tier').select('id, name').eq('venue_id', venueId).eq('is_retired', false).order('rank', { ascending: false });
+      const { data, error } = await client.from('tier').select('id, name').eq('venue_id', venueId).eq('is_retired', false).order('rank', { ascending: false }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({ tierId: row.id, name: row.name }));
     },

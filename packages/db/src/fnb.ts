@@ -5,6 +5,7 @@ import { itemPhotoUrl } from './itemPhotos.ts';
 import { useListPage, type ScopedView } from './lists.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST, MENU_MOST } from './limits.ts';
 
 export { useCancelMyFnbOrder, type CancelMyOrderFailure } from './fnbCancel.ts';
 export { useFnbMenuItemActions, useSaveFnbMenu, type FnbMenuFailure, type FnbMenuFileItem } from './fnbMenuFile.ts';
@@ -118,7 +119,7 @@ export function useMyFnbMenu() {
     queryKey: queryKeys.myFnbMenu(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<FnbMenuItem[]> => {
-      const { data, error } = await client.rpc('my_fnb_menu');
+      const { data, error } = await client.rpc('my_fnb_menu').limit(MENU_MOST);
       if (error) throw error;
       return data.map((row) => menuItem(client, row));
     },
@@ -132,7 +133,7 @@ export function useFnbMenu(venueId: string | null) {
     queryKey: queryKeys.fnbMenu(userId ?? 'signed-out', venueId ?? 'no-venue'),
     enabled: userId !== null && venueId !== null,
     queryFn: async (): Promise<FnbMenuItem[]> => {
-      const { data, error } = await client.rpc('fnb_menu', { p_venue_id: venueId ?? '' });
+      const { data, error } = await client.rpc('fnb_menu', { p_venue_id: venueId ?? '' }).limit(MENU_MOST);
       if (error) throw error;
       return data.map((row) => menuItem(client, row));
     },
@@ -171,7 +172,7 @@ export function useMyFnbOrders() {
     enabled: userId !== null,
     refetchInterval: ORDERS_CHECK,
     queryFn: async (): Promise<MyFnbOrder[]> => {
-      const { data, error } = await client.rpc('my_fnb_orders');
+      const { data, error } = await client.rpc('my_fnb_orders').limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
         orderId: row.order_id, kotNumber: row.kot_number, lines: linesOf(row.lines), createdAt: row.created_at,
@@ -191,7 +192,7 @@ export function usePlaceFnbOrder() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ lines, requestId }: { lines: readonly FnbLine[]; requestId: string }): Promise<Result<PlacedFnbOrder, FnbFailure>> => {
-      const { data, error } = await client.rpc('place_fnb_order', { p_lines: linesJson(lines), p_idempotency_key: requestId });
+      const { data, error } = await client.rpc('place_fnb_order', { p_lines: linesJson(lines), p_idempotency_key: requestId }).limit(LIST_MOST);
       await queryClient.invalidateQueries({ queryKey: queryKeys.myFnbOrders(userId ?? 'signed-out') });
       return placed(data, error);
     },
@@ -205,7 +206,7 @@ export function useTabletFnbOrder() {
     // Sent whether the browser says it is online or not: offline it fails at once, and never goes later on its own.
     networkMode: 'always',
     mutationFn: async ({ seat, lines, requestId }: { seat: number; lines: readonly FnbLine[]; requestId: string }): Promise<Result<PlacedFnbOrder, FnbFailure>> => {
-      const { data, error } = await client.rpc('tablet_fnb_order', { p_seat: seat, p_lines: linesJson(lines), p_idempotency_key: requestId });
+      const { data, error } = await client.rpc('tablet_fnb_order', { p_seat: seat, p_lines: linesJson(lines), p_idempotency_key: requestId }).limit(LIST_MOST);
       return placed(data, error);
     },
   });
@@ -263,7 +264,7 @@ export function useFnbActions(venueId: string) {
       const { data, error } = await client.rpc('console_fnb_order', {
         p_venue_id: venueId, p_table_id: input.tableId, p_seat: input.seat, p_lines: linesJson(input.lines), p_is_comp: input.isComp,
         p_idempotency_key: input.requestId,
-      });
+      }).limit(LIST_MOST);
       await reload();
       return placed(data, error);
     },
@@ -319,7 +320,7 @@ export function useFnbItems(venueId: string) {
     enabled: userId !== null,
     queryFn: async (): Promise<FnbItem[]> => {
       const { data, error } = await client.from('fnb_item').select('id, name, kind, is_available, position, photo_path, diet, description').eq('venue_id', venueId)
-        .order('position').order('name');
+        .order('position').order('name').limit(MENU_MOST);
       if (error) throw error;
       return data.map((row) => ({
         itemId: row.id, name: row.name, kind: row.kind, isAvailable: row.is_available, position: row.position, photoUrl: itemPhotoUrl(client, row.photo_path),

@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** A place on the TV's waitlist board (#65): the player as a first name and initial. */
 export interface TvPlace {
@@ -184,7 +185,7 @@ export function useTvWaitlistBoard() {
     enabled: userId !== null,
     refetchInterval: BOARD_CHECK,
     queryFn: async (): Promise<TvTableList[]> => {
-      const { data, error } = await client.rpc('tv_waitlist_board');
+      const { data, error } = await client.rpc('tv_waitlist_board').limit(LIST_MOST);
       if (error) throw error;
       return toTvTables(data);
     },
@@ -227,7 +228,7 @@ export function useTvLeaderboard() {
     enabled: userId !== null,
     refetchInterval: BOARD_CHECK,
     queryFn: async (): Promise<TvLeaderboardRow[]> => {
-      const { data, error } = await client.rpc('tv_leaderboard');
+      const { data, error } = await client.rpc('tv_leaderboard').limit(LIST_MOST);
       if (error) throw error;
       return toTvLeaderboard(data);
     },
@@ -245,7 +246,7 @@ export function useTvCallTimeBoard() {
     enabled: userId !== null,
     refetchInterval: BOARD_CHECK,
     queryFn: async (): Promise<TvCallTimeTable[]> => {
-      const { data, error } = await client.rpc('tv_call_time_board');
+      const { data, error } = await client.rpc('tv_call_time_board').limit(LIST_MOST);
       if (error) throw error;
       return toTvCallTimeTables(data);
     },

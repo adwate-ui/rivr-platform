@@ -12,11 +12,11 @@ afterEach(() => {
 });
 
 const line = (over: object) => ({
-  id: 1, occurred_at: '2026-11-03T08:30:00Z', who: 'Vikram Rao', is_system: false, action: 'bonus.give', entity: 'member', kind: 'bonus_chips', about: 'Mihir Shah', reason: 'Welcome back', amount: 1500, ...over,
+  total: 1, id: 1, occurred_at: '2026-11-03T08:30:00Z', who: 'Vikram Rao', is_system: false, action: 'bonus.give', entity: 'member', kind: 'bonus_chips', about: 'Mihir Shah', reason: 'Welcome back', amount: 1500, ...over,
 });
 const LOADS = { timeout: 5000 };
 
-/** Signed in as `role`, with activity_log answering `answer`; what each read asked for is kept, and each export's words. */
+/** Signed in as `role`, with activity_page answering `answer`; what each read asked for is kept, and each export's words. */
 function renderScreen(role: 'super_admin' | 'owner_view', answer: (body: Record<string, unknown>) => object[]) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
@@ -29,7 +29,7 @@ function renderScreen(role: 'super_admin' | 'owner_view', answer: (body: Record<
     if (url.includes('/rest/v1/staff')) {
       return Response.json([{ id: 'st1', venue_id: 'v1', full_name: 'Vikram Rao', role, venue: { name: 'RIVR Gurugram', is_practice: false } }]);
     }
-    if (!url.includes('/rpc/activity_log')) return Response.json([]);
+    if (!url.includes('/rpc/activity_page')) return Response.json([]);
     const body: unknown = JSON.parse(String(init?.body));
     const sent = typeof body === 'object' && body !== null ? Object.fromEntries(Object.entries(body)) : {};
     asked.push(sent);
@@ -76,37 +76,45 @@ describe('Activity (8 Nov audit, F-034)', () => {
   it('asks the server for the person, kind and days chosen', async () => {
     const { asked } = renderScreen('super_admin', () => [line({})]);
     await screen.findByRole('table', { name: 'Activity' }, LOADS);
-    await waitFor(() => expect(asked[0]).toEqual({ p_venue_id: 'v1', p_limit: 50 }));
+    await waitFor(() => expect(asked[0]).toEqual({ p_venue_id: 'v1', p_page: 1, p_page_size: 50 }));
     fireEvent.click(screen.getByRole('radio', { name: 'Exports' }));
-    await waitFor(() => expect(asked.at(-1)).toEqual({ p_venue_id: 'v1', p_limit: 50, p_kind: 'exports' }));
+    await waitFor(() => expect(asked.at(-1)).toEqual({ p_venue_id: 'v1', p_page: 1, p_page_size: 50, p_kind: 'exports' }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Person' }), { target: { value: ' Vikram ' } });
-    await waitFor(() => expect(asked.at(-1)).toEqual({ p_venue_id: 'v1', p_limit: 50, p_kind: 'exports', p_who: 'Vikram' }));
+    await waitFor(() => expect(asked.at(-1)).toEqual({ p_venue_id: 'v1', p_page: 1, p_page_size: 50, p_kind: 'exports', p_who: 'Vikram' }));
     fireEvent.change(screen.getByLabelText('From'), { target: { value: '2026-11-01' } });
     fireEvent.change(screen.getByLabelText('To'), { target: { value: '2026-11-03' } });
-    await waitFor(() => expect(asked.at(-1)).toEqual({ p_venue_id: 'v1', p_limit: 50, p_kind: 'exports', p_who: 'Vikram', p_from: '2026-11-01', p_to: '2026-11-03' }));
+    await waitFor(() => expect(asked.at(-1)).toEqual({ p_venue_id: 'v1', p_page: 1, p_page_size: 50, p_kind: 'exports', p_who: 'Vikram', p_from: '2026-11-01', p_to: '2026-11-03' }));
   });
 
-  const full = Array.from({ length: 50 }, (_, index) => line({ id: 100 - index, occurred_at: '2026-11-03T08:30:00Z' }));
+  // 120 lines in all: three pages of fifty, the last short.
+  const pageOf = (body: Record<string, unknown>) => {
+    const size = Number(body['p_page_size']);
+    const from = (Number(body['p_page']) - 1) * size;
+    return Array.from({ length: Math.max(0, Math.min(size, 120 - from)) }, (_, index) => line({ total: 120, id: 120 - from - index, about: `Member ${String(from + index + 1)}` }));
+  };
 
-  it('reads the next page from after the last line, while there is one', async () => {
-    const { asked } = renderScreen('super_admin', (body) => (body['p_before_id'] === undefined ? full : [line({ id: 7, about: 'Kunal Mehra' })]));
-    fireEvent.click(await screen.findByRole('button', { name: 'Show earlier' }, LOADS));
-    await screen.findByText('Member · Kunal Mehra', {}, LOADS);
-    expect(asked.at(-1)).toEqual({ p_venue_id: 'v1', p_limit: 50, p_before: '2026-11-03T08:30:00Z', p_before_id: 51 });
+  it('pages by the table\'s foot: the page asked for by its number, with how many lines show of all (redesign RD-31)', async () => {
+    const { asked } = renderScreen('super_admin', pageOf);
+    const table = await screen.findByRole('table', { name: 'Activity' }, LOADS);
+    expect(await screen.findByText('50 of 120', {}, LOADS)).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Show earlier' })).toBeNull();
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Activity: pages' })).getByRole('button', { name: 'Page 3' }));
+    await within(table).findByText('Member · Member 101', {}, LOADS);
+    expect(asked.at(-1)).toEqual({ p_venue_id: 'v1', p_page: 3, p_page_size: 50 });
+    expect(await screen.findByText('20 of 120')).toBeDefined();
+    // Narrowing it starts again from the first page.
+    fireEvent.click(screen.getByRole('radio', { name: 'Staff' }));
+    await waitFor(() => expect(asked.at(-1)).toEqual({ p_venue_id: 'v1', p_page: 1, p_page_size: 50, p_kind: 'staff' }));
   });
 
-  it('records an export as partial while earlier lines are not loaded, and as whole once they are', async () => {
-    const { exported } = renderScreen('super_admin', (body) => (body['p_before_id'] === undefined ? full : [line({ id: 7, about: 'Kunal Mehra' })]));
-    await screen.findByRole('button', { name: 'Show earlier' }, LOADS);
+  it('records an export of every line the narrowing leaves, not the page', async () => {
+    const { asked, exported } = renderScreen('super_admin', pageOf);
+    await screen.findByText('50 of 120', {}, LOADS);
     await exportCsv();
     await waitFor(() => expect(exported).toHaveLength(1));
-    expect(exported[0]?.filter).toContain('Partial: the latest 50 lines only');
-    fireEvent.click(screen.getByRole('button', { name: 'Show earlier' }));
-    await screen.findByText('Member · Kunal Mehra', {}, LOADS);
-    await exportCsv();
-    await waitFor(() => expect(exported).toHaveLength(2));
-    expect(exported[1]?.filter).not.toContain('Partial');
+    expect(exported[0]).toMatchObject({ what: 'Activity', rows: 120 });
+    // The test's exporter records nothing, so no line is read for a file that is not saved.
+    expect(asked.some((body) => body['p_page_size'] === 1000)).toBe(false);
   });
 
   it('says so when nothing matches', async () => {

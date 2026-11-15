@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { HIDDEN, toFeatureAccessMap, type FeatureAccess } from './parse/featureAccess.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** The signed-in member's access to every feature, by key. */
 function useFeatureAccessMap() {
@@ -13,7 +14,7 @@ function useFeatureAccessMap() {
     enabled: userId !== null,
     staleTime: 60_000,
     queryFn: async () => {
-      const { data: rows, error } = await client.rpc('my_feature_access');
+      const { data: rows, error } = await client.rpc('my_feature_access').limit(LIST_MOST);
       if (error) throw error;
       return toFeatureAccessMap(rows);
     },

@@ -2,6 +2,7 @@ import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** A seat's top-up (#634): asked for, then in hand at the floor; null with none asked for. */
 export type TopUp = 'requested' | 'in_progress';
@@ -62,7 +63,7 @@ export function useMyNextPlayTimeBonus() {
     enabled: userId !== null,
     refetchInterval: LIVE,
     queryFn: async (): Promise<NextPlayTimeBonus | null> => {
-      const { data, error } = await client.rpc('my_next_play_time_bonus');
+      const { data, error } = await client.rpc('my_next_play_time_bonus').limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       return row === undefined ? null : { chips: Number(row.chips), afterMinutes: row.after_minutes, secondsLeft: Number(row.seconds_left) };
@@ -78,7 +79,7 @@ export function useMySeat() {
     enabled: userId !== null,
     refetchInterval: LIVE,
     queryFn: async (): Promise<MySeat | null> => {
-      const { data, error } = await client.rpc('my_seat');
+      const { data, error } = await client.rpc('my_seat').limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
       return row === undefined ? null

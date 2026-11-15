@@ -4,6 +4,7 @@ import type { HandVariant } from './hands.ts';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /** A table's night so far (#81): hands since 06:00 IST, hands in the last hour, the dealer now, and its rake. */
 export interface TableNight {
@@ -47,7 +48,7 @@ export function useFloorNight(venueId: string) {
     enabled: userId !== null,
     refetchInterval: LIVE,
     queryFn: async (): Promise<FloorNight> => {
-      const { data, error } = await client.rpc('floor_tonight', { p_venue_id: venueId });
+      const { data, error } = await client.rpc('floor_tonight', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       const venueRake = data[0]?.venue_rake_paise ?? null;
       return {

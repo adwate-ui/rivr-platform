@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
+import { LIST_MOST } from './limits.ts';
 
 /**
  * The signed-in member's referral code, RIVR and their number, how many they have referred, and the bonus each side
@@ -24,7 +25,7 @@ export function useMyReferral() {
     queryKey: queryKeys.myReferral(userId ?? 'signed-out'),
     enabled: userId !== null,
     queryFn: async (): Promise<MyReferral | null> => {
-      const { data, error } = await client.rpc('my_referral');
+      const { data, error } = await client.rpc('my_referral').limit(LIST_MOST);
       if (error) throw error;
       const [row] = data;
       if (row === undefined) return null;

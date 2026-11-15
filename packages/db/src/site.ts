@@ -5,6 +5,7 @@ import {
   fetchSiteCalendar, fetchSiteGames, fetchSitePromotions, fetchSiteRules, rulesFrom, type SiteGame,
   type SitePromotion, type SiteRules, type SiteTournament,
 } from './siteLive.ts';
+import { LIST_MOST } from './limits.ts';
 
 export type { SiteGame, SitePromotion, SiteRules, SiteTableRule, SiteTournament } from './siteLive.ts';
 
@@ -58,7 +59,7 @@ async function fetchLive(client: RivrClient, blocks: readonly SiteBlock[]) {
 export async function fetchSitePage(client: RivrClient, slug: string): Promise<Result<SitePage | null, 'unavailable'>> {
   const [frame, blocks] = await Promise.all([
     fetchFrame(client),
-    client.from('public_site_block').select('kind, content').eq('page_slug', slug).order('position'),
+    client.from('public_site_block').select('kind, content').eq('page_slug', slug).order('position').limit(LIST_MOST),
   ]);
   if (!frame.ok || blocks.error) return err('unavailable');
   const page = frame.value.pages.find((row) => row.slug === slug);
@@ -74,7 +75,7 @@ export async function fetchSitePage(client: RivrClient, slug: string): Promise<R
 export async function fetchSitePreview(client: RivrClient): Promise<Result<SitePage | null, 'unavailable'>> {
   const [frame, draft] = await Promise.all([
     fetchFrame(client),
-    client.from('public_site_preview').select('page_slug, title, description, kind, content').order('position'),
+    client.from('public_site_preview').select('page_slug, title, description, kind, content').order('position').limit(LIST_MOST),
   ]);
   if (!frame.ok || draft.error) return err('unavailable');
   const first = draft.data[0];
@@ -84,7 +85,7 @@ export async function fetchSitePreview(client: RivrClient): Promise<Result<SiteP
 
 /** The website around a page: its pages, for the navigation. */
 async function fetchFrame(client: RivrClient) {
-  const pages = await client.from('public_site_page').select('slug, title, description, nav_position');
+  const pages = await client.from('public_site_page').select('slug, title, description, nav_position').limit(LIST_MOST);
   if (pages.error) return err('unavailable' as const);
   return ok({ pages: pages.data });
 }

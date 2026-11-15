@@ -37,7 +37,7 @@ export interface ListPage<Row> {
 }
 
 /** The lists the server names (`private.list_spec`). */
-export type ListName = 'feedback_open' | 'kyc_review' | 'fnb_orders' | 'door';
+export type ListName = 'feedback_open' | 'kyc_review' | 'fnb_orders' | 'door' | 'waitlist';
 
 /** What a list's column menus and chips offer: each counted column's values with how many rows hold each; the values are the server's codes. */
 export type ListChoices = Readonly<Record<string, readonly { readonly value: string; readonly count: number }[]>>;
@@ -48,7 +48,7 @@ const EXPORT_PAGE = 1000;
 
 /** Each list's own query key, which its pages' and counts' keys start with: whatever makes the list stale makes them stale. */
 const LIST_KEY: Readonly<Record<ListName, (userId: string, venueId: string) => readonly unknown[]>> = {
-  feedback_open: queryKeys.venueFeedbackOpen, kyc_review: queryKeys.kycReview, fnb_orders: queryKeys.fnbOrdersTonight, door: queryKeys.doorBoard,
+  feedback_open: queryKeys.venueFeedbackOpen, kyc_review: queryKeys.kycReview, fnb_orders: queryKeys.fnbOrdersTonight, door: queryKeys.doorBoard, waitlist: queryKeys.waitlistBoard,
 };
 
 /** A filter as JSON for the server. */

@@ -95,7 +95,7 @@ describe('Dealer PINs and downs', () => {
     await act(async () => { ended = await result.current.actions.end.mutateAsync(ZERO); });
     expect(signedIn).toEqual({ ok: false, error: { reason: 'unavailable' } });
     expect(ended).toEqual({ ok: false, error: 'unavailable' });
-    expect(calls.slice(before).map((call) => call.url.split('/rpc/')[1])).toEqual(['dealer_sign_in', 'end_down']);
+    expect(calls.slice(before).map((call) => call.url.split('/rpc/')[1]?.split('?')[0])).toEqual(['dealer_sign_in', 'end_down']);
   });
 
   it('says when a down had ended already, apart from no answer (F4-15)', async () => {
