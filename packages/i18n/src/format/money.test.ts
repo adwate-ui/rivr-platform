@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatChips, formatMoney, formatNumber, formatRupeesForFile, formatRupeesForInput, formatStakes } from './money.ts';
+import { formatChips, formatMoney, formatNumber, formatRupeesForFile, formatRupeesForInput, formatStakeName, formatStakes } from './money.ts';
 
 describe('formatMoney', () => {
   it.each([
@@ -55,6 +55,26 @@ describe('formatStakes', () => {
   it('adds a straddle after the blinds when there is one (owner, 8 Nov)', () => {
     expect(formatStakes(10_000n, 20_000n, 40_000n)).toBe('100/200/400');
     expect(formatStakes(10_000n, 20_000n, null)).toBe('100/200');
+  });
+});
+
+describe('formatStakeName (issue 990)', () => {
+  const STAKE = { game: 'nlh', smallBlind: 10_000n, bigBlind: 20_000n };
+
+  it('is the name as typed while the stake has no straddle', () => {
+    expect(formatStakeName('Private Room', { ...STAKE, straddle: null })).toBe('Private Room');
+    expect(formatStakeName('NLH 100/200', { ...STAKE, straddle: null })).toBe('NLH 100/200');
+  });
+
+  it('writes the figures with the straddle in place of a name that is only the figures', () => {
+    expect(formatStakeName('NLH 100/200', { ...STAKE, straddle: 50_000n })).toBe('NLH 100/200/500');
+    expect(formatStakeName(' nlh  100/200 ', { ...STAKE, straddle: 50_000n })).toBe('NLH 100/200/500');
+    expect(formatStakeName('100/200', { ...STAKE, straddle: 50_000n })).toBe('NLH 100/200/500');
+  });
+
+  it('writes them after any other name', () => {
+    expect(formatStakeName('Private Room', { ...STAKE, straddle: 50_000n })).toBe('Private Room · NLH 100/200/500');
+    expect(formatStakeName('PLO 100/200', { ...STAKE, straddle: 50_000n })).toBe('PLO 100/200 · NLH 100/200/500');
   });
 });
 

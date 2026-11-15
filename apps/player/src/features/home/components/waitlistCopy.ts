@@ -1,5 +1,10 @@
-import type { WaitlistFailure, WaitlistPlace } from '@rivr/db';
-import { formatOrdinal, t, type MessageKey } from '@rivr/i18n';
+import type { MySeat, WaitlistFailure, WaitlistPlace } from '@rivr/db';
+import { formatOrdinal, formatStakeName, t, type MessageKey } from '@rivr/i18n';
+
+/** The stake of a place or a seat as the member reads it: its name, with the figures once it has a straddle (issue 990). */
+export function stakeOf(at: Pick<WaitlistPlace | MySeat, 'tableTypeName' | 'game' | 'smallBlind' | 'bigBlind' | 'straddle'>): string {
+  return formatStakeName(at.tableTypeName, at);
+}
 
 /** "Next in line", "2nd in line", a join the floor has not approved yet, or a seat held for the member now they are called. */
 export function lineOf(place: WaitlistPlace): string {

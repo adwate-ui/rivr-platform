@@ -23,6 +23,8 @@ export interface TabletSeat {
   readonly minimum: Paise;
   readonly smallBlind: Paise;
   readonly bigBlind: Paise;
+  /** The stake's straddle; null with none. */
+  readonly straddle: Paise | null;
 }
 
 /** Why a seat event did not go through: not this tablet's table, the player gone, the venue frozen, or anything else. */
@@ -47,6 +49,7 @@ export function useTabletSeats() {
       if (error) throw error;
       return data.map((row) => ({
         seat: row.seat, minimum: toPaise(row.minimum_paise), smallBlind: toPaise(row.small_blind_paise), bigBlind: toPaise(row.big_blind_paise),
+        straddle: row.straddle_paise === null ? null : toPaise(row.straddle_paise),
         player: row.session_id === null || row.full_name === null ? null : {
           sessionId: row.session_id, fullName: row.full_name, isAway: row.away_since !== null, isLeaving: row.leaving_at !== null,
           callTimeLeft: row.call_time_left,

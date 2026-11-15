@@ -14,6 +14,7 @@ Every word a member or staff user reads, and the one formatter for money, number
 | `formatChips(paise)` | `5,000`: chips, such as bonus chips, as a count with no rupee symbol, for the screens that show no rupee (#627). Otherwise as `formatMoney`. |
 | `formatNumber(n)` | A count: `18,420`, `−5` with the minus sign money uses; −0 is `0` (F5-12). |
 | `formatGameStakes(game, small, big, straddle?)` | A game's stakes as everyone writes them: `NLH 100/200/500`. |
+| `formatStakeName(name, { game, smallBlind, bigBlind, straddle })`, `StakeFigures` | A stake where a screen shows the name the admin typed (issue 990): the name alone with no straddle; with one, the figures in place of a name that is only the figures (`NLH 100/200/500`), and after any other (`Private Room · NLH 100/200/500`). |
 | `formatWaitingSince(at, now?)` | When something has waited since, with the year when it is not this one and its age from a day on: `Sun 15 Nov, 11:00 · 90 days`. |
 | `formatStakes(small, big, straddle?)` | Blinds in paise to `100/200`, and a straddle after them, `100/200/400`; a blind with paise keeps them, `0.50/1`. |
 | `formatTime(date)` | 24-hour IST clock, `02:40`. |

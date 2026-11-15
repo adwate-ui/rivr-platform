@@ -17,7 +17,7 @@ afterEach(() => {
 /** Ishaan's session at Table 3, begun at 02:00 IST on the 14th, so the night of 13 Feb, for six hours. */
 const SESSION = {
   session_id: 'v1', visit_id: 'v1', opened_at: '2026-02-13T20:30:00+00:00', closed_at: '2026-02-14T02:30:00+00:00', table_name: 'Table 3',
-  small_blind_paise: 10000, big_blind_paise: 20000, played_seconds: 21600, buy_in_paise: 1000000, bonus_paise: 0,
+  small_blind_paise: 10000, big_blind_paise: 20000, straddle_paise: null, played_seconds: 21600, buy_in_paise: 1000000, bonus_paise: 0,
   cash_out_paise: 5000000, tds_paise: 1200000, paid_paise: 3800000, net_paise: 2800000, receipt: 'A1B2C3D4', month: '2026-02-01',
   month_sessions: 1, month_played_seconds: 21600, month_net_paise: 2800000, tds_basis: 'session',
   kind: 'cash', place: null, entrants: null,

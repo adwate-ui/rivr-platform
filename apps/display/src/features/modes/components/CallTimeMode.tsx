@@ -1,5 +1,5 @@
 import { useTvCallTimeBoard, type TvCallTimeTable, type TvSeated } from '@rivr/db';
-import { formatHoursMinutes, t } from '@rivr/i18n';
+import { formatHoursMinutes, formatStakeName, t } from '@rivr/i18n';
 import { CALL_TIME_TABLES_SHOWN, TvCallTimeBoard, type TvCallTimeGroup, type TvCallTimeOpening } from '@rivr/ui';
 import { useEffect, useState } from 'react';
 import { usePage } from './usePage.ts';
@@ -42,7 +42,7 @@ export function toOpenings(tables: readonly TvCallTimeTable[], elapsed: number):
 export function toGroups(tables: readonly TvCallTimeTable[], elapsed: number): TvCallTimeGroup[] {
   return tables
     .map((table) => ({
-      id: table.tableId, name: table.name, detail: table.stake,
+      id: table.tableId, name: table.name, detail: formatStakeName(table.stake, table),
       rows: table.seated
         .filter((player) => !player.isLeaving && player.callTimeLeft !== null && leftNow(player, elapsed) > 0)
         .map((player) => ({ player, left: leftNow(player, elapsed) }))

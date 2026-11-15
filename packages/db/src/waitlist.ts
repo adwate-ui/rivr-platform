@@ -41,8 +41,11 @@ export interface WaitlistPlace {
   readonly entryId: string;
   readonly tableTypeId: string;
   readonly tableTypeName: string;
+  /** The stake's game, as `nlh`, and its figures: the blinds, and the straddle or null with none (issue 990). */
+  readonly game: string;
   readonly smallBlind: bigint;
   readonly bigBlind: bigint;
+  readonly straddle: bigint | null;
   readonly joinedAt: string;
   /** 1 is next; null while the join is a request the floor has not approved (#633). */
   readonly place: number | null;
@@ -170,8 +173,8 @@ export function useMyWaitlist() {
       const { data, error } = await client.rpc('my_waitlist');
       if (error) throw error;
       return data.map((row) => ({
-        entryId: row.entry_id, tableTypeId: row.table_type_id, tableTypeName: row.table_type_name, smallBlind: BigInt(row.small_blind_paise),
-        bigBlind: BigInt(row.big_blind_paise), joinedAt: row.joined_at, place: row.is_request ? null : row.place, isRequest: row.is_request,
+        entryId: row.entry_id, tableTypeId: row.table_type_id, tableTypeName: row.table_type_name, game: row.game, smallBlind: BigInt(row.small_blind_paise),
+        bigBlind: BigInt(row.big_blind_paise), straddle: row.straddle_paise === null ? null : BigInt(row.straddle_paise), joinedAt: row.joined_at, place: row.is_request ? null : row.place, isRequest: row.is_request,
         callTableName: row.call_table_name,
         callSeat: row.call_seat, holdUntil: row.hold_until, awayUntil: row.away_until,
         tableId: row.table_id, tableName: row.table_name, calledAt: row.called_at, onWayAt: row.on_way_at,

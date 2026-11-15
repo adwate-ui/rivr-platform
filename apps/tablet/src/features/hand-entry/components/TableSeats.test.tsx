@@ -10,7 +10,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const OPEN = { seat: 1, session_id: null, member_id: null, full_name: null, away_since: null, minimum_paise: 1000000, call_time_left: null, leaving_at: null, small_blind_paise: 10000, big_blind_paise: 20000 };
+const OPEN = { seat: 1, session_id: null, member_id: null, full_name: null, away_since: null, minimum_paise: 1000000, call_time_left: null, leaving_at: null, small_blind_paise: 10000, big_blind_paise: 20000, straddle_paise: null };
 const LEAVING = { ...OPEN, seat: 9, session_id: 's9', member_id: 'm9', full_name: 'Yash Gupta', leaving_at: '2026-11-15T18:05:00+00:00' };
 
 /** Tablet A at Private Room, whose table type's name is not its stake. */

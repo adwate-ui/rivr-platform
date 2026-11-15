@@ -1,10 +1,14 @@
 import type { TvCallTimeTable } from '@rivr/db';
+import { fromPaise } from '@rivr/domain/money';
 import { describe, expect, it } from 'vitest';
 import { toGroups, toOpenings } from './CallTimeMode.tsx';
 
+// 100/200 with no straddle, but the Private Room, which has one of 500.
+const FIGURES = { game: 'nlh', smallBlind: fromPaise(10_000n), bigBlind: fromPaise(20_000n), straddle: null };
+
 const TABLES: TvCallTimeTable[] = [
   {
-    tableId: 't3', name: 'Table 3', stake: 'NLH 100/200',
+    tableId: 't3', name: 'Table 3', stake: 'NLH 100/200', ...FIGURES,
     seated: [
       { seat: 2, name: 'Vihaan K.', callTimeLeft: 3600, isAway: false, isLeaving: false },
       { seat: 5, name: 'Kabir S.', callTimeLeft: 1500, isAway: false, isLeaving: true },
@@ -12,8 +16,8 @@ const TABLES: TvCallTimeTable[] = [
       { seat: 7, name: null, callTimeLeft: 600, isAway: true, isLeaving: false },
     ],
   },
-  { tableId: 't1', name: 'Table 1', stake: 'NLH 50/100', seated: [{ seat: 1, name: 'Dev M.', callTimeLeft: null, isAway: false, isLeaving: true }] },
-  { tableId: 'pr', name: 'Private Room', stake: 'Private Room', seated: [{ seat: 1, name: 'Ishaan V.', callTimeLeft: 7200, isAway: false, isLeaving: false }] },
+  { tableId: 't1', name: 'Table 1', stake: 'NLH 50/100', ...FIGURES, seated: [{ seat: 1, name: 'Dev M.', callTimeLeft: null, isAway: false, isLeaving: true }] },
+  { tableId: 'pr', name: 'Private Room', stake: 'Private Room', ...FIGURES, straddle: fromPaise(50_000n), seated: [{ seat: 1, name: 'Ishaan V.', callTimeLeft: 7200, isAway: false, isLeaving: false }] },
 ];
 
 describe('the call-time board (decision 0163)', () => {
@@ -34,5 +38,9 @@ describe('the call-time board (decision 0163)', () => {
       ['Table 3', [['7', '', 'Away'], ['2', 'Vihaan K.', '1h 00m']]],
       ['Private Room', [['1', 'Ishaan V.', '2h 00m']]],
     ]);
+  });
+
+  it('names each table’s stake, with the figures once it has a straddle (issue 990)', () => {
+    expect(toGroups(TABLES, 0).map((group) => group.detail)).toEqual(['NLH 100/200', 'Private Room · NLH 100/200/500']);
   });
 });

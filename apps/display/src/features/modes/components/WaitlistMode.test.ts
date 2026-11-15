@@ -3,7 +3,7 @@ import { fromPaise } from '@rivr/domain/money';
 import { describe, expect, it } from 'vitest';
 import { arrangeTables, footerOf, toBoardColumn } from './WaitlistMode.tsx';
 
-const STAKE = { stake: 'NLH 100/200', smallBlind: fromPaise(10_000n), bigBlind: fromPaise(20_000n) };
+const STAKE = { stake: 'NLH 100/200', game: 'nlh', smallBlind: fromPaise(10_000n), bigBlind: fromPaise(20_000n), straddle: null };
 
 describe('the waitlist board, a list a table (decision 0467)', () => {
   it('heads each column with the table, its stake under it, and its places in order', () => {
@@ -18,6 +18,13 @@ describe('the waitlist board, a list a table (decision 0467)', () => {
         { id: 't2-2', place: '2', name: '', status: 'Away' },
       ],
     });
+  });
+
+  it('writes a stake with its straddle, after a name that is its own (issue 990)', () => {
+    const straddle = fromPaise(50_000n);
+    expect(toBoardColumn({ tableId: 't4', name: 'Table 4', ...STAKE, straddle, isOpen: true, places: [] }).detail).toBe('NLH 100/200/500');
+    expect(toBoardColumn({ tableId: 'pr', name: 'Private Room', ...STAKE, stake: 'Private Room', straddle, isOpen: false, places: [] }).detail)
+      .toBe('Private Room · NLH 100/200/500 · Closed');
   });
 
   it('says a closed table somebody waits for is closed', () => {

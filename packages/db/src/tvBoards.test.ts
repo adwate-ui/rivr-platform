@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { toPaise } from './parse/hands.ts';
 import { toTvCallTimeTables, toTvLeaderboard, toTvTables } from './tvBoards.ts';
 
-const STAKE = { table_type_name: 'NLH 100/200', small_blind_paise: 10000, big_blind_paise: 20000 };
+const STAKE = { table_type_name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, straddle_paise: null };
 
 describe('the TV boards (#65)', () => {
   it('groups the waitlist a table at a time (decision 0467), keeping an empty table and each place in order', () => {
@@ -18,27 +18,33 @@ describe('the TV boards (#65)', () => {
       { place: 2, name: 'Naina K.', calledTo: null, isAway: true },
     ]);
     expect(tables[1]?.bigBlind).toBe(toPaise(20000));
+    expect(tables[1]?.straddle).toBeNull();
   });
 
   // A member may hide their name on the TVs (task 326).
   it('keeps the place of a member who hid their name, with no name', () => {
     const tables = toTvTables([
-      { table_id: 't2', table_name: 'Table 2', ...STAKE, is_open: true, place: 1, display_name: null, call_table_name: null, is_away: false },
+      { table_id: 't2', table_name: 'Table 2', ...STAKE, straddle_paise: 50000, is_open: true, place: 1, display_name: null, call_table_name: null, is_away: false },
     ]);
     expect(tables[0]?.places).toEqual([{ place: 1, name: null, calledTo: null, isAway: false }]);
+    // The stake's game and straddle come with it (issue 990).
+    expect([tables[0]?.game, tables[0]?.straddle]).toEqual(['nlh', toPaise(50000)]);
   });
 
   it('groups the call-time board a table at a time, each player by seat, leaving when the floor marked it (decision 0163)', () => {
-    const table3 = { table_id: 't3', table_name: 'Table 3', stake_name: 'NLH 100/200' };
+    const table3 = { table_id: 't3', table_name: 'Table 3', stake_name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, straddle_paise: null };
     const tables = toTvCallTimeTables([
       { ...table3, seat: 2, display_name: 'Vihaan K.', call_time_left: 3600, is_away: false, leaving_at: null },
       { ...table3, seat: 5, display_name: null, call_time_left: 0, is_away: true, leaving_at: null },
-      { table_id: 'pr', table_name: 'Private Room', stake_name: 'NLH 200/400', seat: 1, display_name: 'Ishaan V.', call_time_left: 7200, is_away: false,
+      { table_id: 'pr', table_name: 'Private Room', stake_name: 'NLH 200/400', game: 'nlh', small_blind_paise: 20000, big_blind_paise: 40000, straddle_paise: 80000, seat: 1, display_name: 'Ishaan V.', call_time_left: 7200, is_away: false,
         leaving_at: '2026-10-26T21:00:00+05:30' },
     ]);
     expect(tables.map((table) => [table.name, table.stake, table.seated.length])).toEqual([['Table 3', 'NLH 100/200', 2], ['Private Room', 'NLH 200/400', 1]]);
     expect(tables[0]?.seated[1]).toEqual({ seat: 5, name: null, callTimeLeft: 0, isAway: true, isLeaving: false });
     expect(tables[1]?.seated[0]).toEqual({ seat: 1, name: 'Ishaan V.', callTimeLeft: 7200, isAway: false, isLeaving: true });
+    // Each table's stake in figures, with its straddle or none (issue 990).
+    expect(tables.map((table) => [table.game, table.smallBlind, table.bigBlind, table.straddle]))
+      .toEqual([['nlh', toPaise(10000), toPaise(20000), null], ['nlh', toPaise(20000), toPaise(40000), toPaise(80000)]]);
   });
 
   // Decision 0581: a hidden name comes as the member number alone.

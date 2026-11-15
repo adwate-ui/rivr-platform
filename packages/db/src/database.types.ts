@@ -3331,12 +3331,12 @@ isOneToOne: false
                            },
 "my_seat":
 { Args: Record<PropertyKey, never>; Returns: {
-              "add_time_choices": (number)[],"big_blind_paise": number,"call_time_ends_at": string,"call_time_left": number,"call_time_minutes": number,"has_call_time": boolean,"is_away": boolean,"is_leaving": boolean,"played_seconds": number,"seat": number,"small_blind_paise": number,"started_at": string,"table_name": string,"table_type_name": string,"time_request_minutes": number,"top_up": string
+              "add_time_choices": (number)[],"big_blind_paise": number,"call_time_ends_at": string,"call_time_left": number,"call_time_minutes": number,"game": string,"has_call_time": boolean,"is_away": boolean,"is_leaving": boolean,"played_seconds": number,"seat": number,"small_blind_paise": number,"started_at": string,"straddle_paise": number,"table_name": string,"table_type_name": string,"time_request_minutes": number,"top_up": string
             }[]
                            },
 "my_sessions":
 { Args: Record<PropertyKey, never>; Returns: {
-              "big_blind_paise": number,"bonus_paise": number,"buy_in_paise": number,"cash_out_paise": number,"closed_at": string,"entrants": number,"kind": string,"month": string,"month_net_paise": number,"month_played_seconds": number,"month_sessions": number,"net_paise": number,"opened_at": string,"paid_paise": number,"place": number,"played_seconds": number,"receipt": string,"session_id": string,"small_blind_paise": number,"table_name": string,"tds_basis": string,"tds_paise": number,"visit_id": string
+              "big_blind_paise": number,"bonus_paise": number,"buy_in_paise": number,"cash_out_paise": number,"closed_at": string,"entrants": number,"kind": string,"month": string,"month_net_paise": number,"month_played_seconds": number,"month_sessions": number,"net_paise": number,"opened_at": string,"paid_paise": number,"place": number,"played_seconds": number,"receipt": string,"session_id": string,"small_blind_paise": number,"straddle_paise": number,"table_name": string,"tds_basis": string,"tds_paise": number,"visit_id": string
             }[]
                            },
 "my_stakes":
@@ -3366,7 +3366,7 @@ isOneToOne: false
                            },
 "my_waitlist":
 { Args: Record<PropertyKey, never>; Returns: {
-              "away_until": string,"big_blind_paise": number,"call_seat": number,"call_table_name": string,"called_at": string,"entry_id": string,"hold_until": string,"is_request": boolean,"joined_at": string,"on_way_at": string,"place": number,"small_blind_paise": number,"table_id": string,"table_name": string,"table_type_id": string,"table_type_name": string
+              "away_until": string,"big_blind_paise": number,"call_seat": number,"call_table_name": string,"called_at": string,"entry_id": string,"game": string,"hold_until": string,"is_request": boolean,"joined_at": string,"on_way_at": string,"place": number,"small_blind_paise": number,"straddle_paise": number,"table_id": string,"table_name": string,"table_type_id": string,"table_type_name": string
             }[]
                            },
 "native_push_targets":
@@ -3773,7 +3773,7 @@ isOneToOne: false
                            },
 "tv_call_time_board":
 { Args: Record<PropertyKey, never>; Returns: {
-              "call_time_left": number,"display_name": string,"is_away": boolean,"leaving_at": string,"seat": number,"stake_name": string,"table_id": string,"table_name": string
+              "big_blind_paise": number,"call_time_left": number,"display_name": string,"game": string,"is_away": boolean,"leaving_at": string,"seat": number,"small_blind_paise": number,"stake_name": string,"straddle_paise": number,"table_id": string,"table_name": string
             }[]
                            },
 "tv_leaderboard":
@@ -3796,7 +3796,7 @@ isOneToOne: false
                            },
 "tv_waitlist_board":
 { Args: Record<PropertyKey, never>; Returns: {
-              "big_blind_paise": number,"call_table_name": string,"display_name": string,"is_away": boolean,"is_open": boolean,"place": number,"small_blind_paise": number,"table_id": string,"table_name": string,"table_type_name": string
+              "big_blind_paise": number,"call_table_name": string,"display_name": string,"game": string,"is_away": boolean,"is_open": boolean,"place": number,"small_blind_paise": number,"straddle_paise": number,"table_id": string,"table_name": string,"table_type_name": string
             }[]
                            },
 "unclaimed_balances":

@@ -13,7 +13,7 @@ afterEach(() => {
 
 const SEAT: MySeat = {
   tableName: 'Table 1', seat: 4, isAway: false, hasCallTime: true, callTimeLeft: 9668, playedSeconds: 1140, isLeaving: false, topUp: null,
-  callTimeMinutes: 180, startedAt: '2026-11-15T16:55:30Z', callTimeEndsAt: null, tableTypeName: 'NLH 50/100', smallBlind: 5000n, bigBlind: 10000n,
+  callTimeMinutes: 180, startedAt: '2026-11-15T16:55:30Z', callTimeEndsAt: null, tableTypeName: 'NLH 50/100', game: 'nlh', smallBlind: 5000n, bigBlind: 10000n, straddle: null,
   timeRequestMinutes: 60, addTimeChoices: [30, 60, 120],
 };
 

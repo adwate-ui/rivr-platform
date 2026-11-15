@@ -48,6 +48,28 @@ export function formatGameStakes(game: string, smallBlind: bigint, bigBlind: big
   return `${game.toUpperCase()} ${formatStakes(smallBlind, bigBlind, straddle)}`;
 }
 
+const sameWords = (one: string, other: string) => one.replace(/\s+/g, ' ').trim().toLowerCase() === other.replace(/\s+/g, ' ').trim().toLowerCase();
+
+/** A stake in figures: its game, as `nlh`, its blinds, and its straddle or null with none. */
+export interface StakeFigures {
+  readonly game: string;
+  readonly smallBlind: bigint;
+  readonly bigBlind: bigint;
+  readonly straddle: bigint | null;
+}
+
+/**
+ * A stake where a screen shows the name the admin typed (issue 990). With no straddle it is the name alone, as before.
+ * With a straddle the figures are written with it, `NLH 100/200/500`: in place of a name that is only the stake's
+ * figures (`NLH 100/200`), and after any other name (`Private Room · NLH 100/200/500`).
+ */
+export function formatStakeName(name: string, { game, smallBlind, bigBlind, straddle }: StakeFigures): string {
+  if (straddle === null) return name;
+  const figures = formatGameStakes(game, smallBlind, bigBlind, straddle);
+  const isFigures = sameWords(name, formatGameStakes(game, smallBlind, bigBlind)) || sameWords(name, formatStakes(smallBlind, bigBlind));
+  return isFigures ? figures : `${name} · ${figures}`;
+}
+
 /**
  * Formats integer paise as a plain rupee figure for a file another program reads, such as a return
  * extract: `20000.00`, no symbol or grouping, always two decimals, `-1000.50` below nothing. Never rounds.
