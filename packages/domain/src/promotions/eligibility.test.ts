@@ -9,7 +9,6 @@ describe('isTimeBased', () => {
   it('is true for the rewards measured in time played, and only those', () => {
     expect(isTimeBased({ kind: 'points_multiplier', multiplier: 2 })).toBe(true);
     expect(isTimeBased({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 })).toBe(true);
-    expect(isTimeBased({ kind: 'free_spin', spins: 1, afterMinutes: 240 })).toBe(true);
     expect(isTimeBased(BUY_IN_BONUS)).toBe(false);
     expect(isTimeBased({ kind: 'cab_home', fromVisitInMonth: 4 })).toBe(false);
   });

@@ -66,7 +66,7 @@ function readsOf(api: FloorApi): Record<string, unknown> {
   return {
     floor_seats: api.seats ?? [], floor_requests: api.requests ?? [], waitlist_board: api.board ?? [], staff_queue_counts: api.queues ?? [],
     waitlist_lengths: api.lengths ?? [], floor_request_targets: [{ top_up_seconds: null, other_seconds: null }], add_time_choices: [30, 60, 120],
-    held_seats: [], floor_open_seats: [], floor_tonight: [], waiting_spins: [],
+    held_seats: [], floor_open_seats: [], floor_tonight: [],
   };
 }
 

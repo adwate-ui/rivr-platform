@@ -2733,14 +2733,14 @@ isOneToOne: false
                   ]
                 },"promotion_grant": {
                   Row: {
-                    "bonus_grant_id": string | null,"chips": number,"club_day": string,"cost_paise": number,"created_at": string,"effect": NonNullable<Json>,"fulfilled_at": string | null,"id": string,"member_id": string,"period_key": string | null,"perk": string | null,"points": number,"promotion_id": string,"promotion_rule_id": string | null,"promotion_version_id": string | null,"source_key": string,"spins": number,"spins_used": number,"table_id": string | null,"trigger": string,"updated_at": string,"venue_id": string
+                    "bonus_grant_id": string | null,"chips": number,"club_day": string,"cost_paise": number,"created_at": string,"effect": NonNullable<Json>,"fulfilled_at": string | null,"id": string,"member_id": string,"period_key": string | null,"perk": string | null,"points": number,"promotion_id": string,"promotion_rule_id": string | null,"promotion_version_id": string | null,"source_key": string,"table_id": string | null,"trigger": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "bonus_grant_id"?: string | null,"chips"?: number,"club_day": string,"cost_paise": number,"created_at"?: string,"effect": NonNullable<Json>,"fulfilled_at"?: string | null,"id"?: string,"member_id": string,"period_key"?: string | null,"perk"?: string | null,"points": number,"promotion_id": string,"promotion_rule_id"?: string | null,"promotion_version_id"?: string | null,"source_key": string,"spins"?: number,"spins_used"?: number,"table_id"?: string | null,"trigger": string,"updated_at"?: string,"venue_id": string
+                    "bonus_grant_id"?: string | null,"chips"?: number,"club_day": string,"cost_paise": number,"created_at"?: string,"effect": NonNullable<Json>,"fulfilled_at"?: string | null,"id"?: string,"member_id": string,"period_key"?: string | null,"perk"?: string | null,"points": number,"promotion_id": string,"promotion_rule_id"?: string | null,"promotion_version_id"?: string | null,"source_key": string,"table_id"?: string | null,"trigger": string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "bonus_grant_id"?: string | null,"chips"?: number,"club_day"?: string,"cost_paise"?: number,"created_at"?: string,"effect"?: NonNullable<Json>,"fulfilled_at"?: string | null,"id"?: string,"member_id"?: string,"period_key"?: string | null,"perk"?: string | null,"points"?: number,"promotion_id"?: string,"promotion_rule_id"?: string | null,"promotion_version_id"?: string | null,"source_key"?: string,"spins"?: number,"spins_used"?: number,"table_id"?: string | null,"trigger"?: string,"updated_at"?: string,"venue_id"?: string
+                    "bonus_grant_id"?: string | null,"chips"?: number,"club_day"?: string,"cost_paise"?: number,"created_at"?: string,"effect"?: NonNullable<Json>,"fulfilled_at"?: string | null,"id"?: string,"member_id"?: string,"period_key"?: string | null,"perk"?: string | null,"points"?: number,"promotion_id"?: string,"promotion_rule_id"?: string | null,"promotion_version_id"?: string | null,"source_key"?: string,"table_id"?: string | null,"trigger"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -3621,70 +3621,6 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "sop"
       referencedColumns: ["id","venue_id"]
-    }
-                  ]
-                },"spin": {
-                  Row: {
-                    "amount": number,"bonus_grant_id": string | null,"created_at": string,"grant_id": string,"id": string,"kind": string,"member_id": string,"odds": number,"prize_id": string,"roll": number,"spun_by_staff_id": string,"updated_at": string,"venue_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "amount": number,"bonus_grant_id"?: string | null,"created_at"?: string,"grant_id": string,"id"?: string,"kind": string,"member_id": string,"odds": number,"prize_id": string,"roll": number,"spun_by_staff_id": string,"updated_at"?: string,"venue_id": string
-                  }
-                  Update: {
-                    "amount"?: number,"bonus_grant_id"?: string | null,"created_at"?: string,"grant_id"?: string,"id"?: string,"kind"?: string,"member_id"?: string,"odds"?: number,"prize_id"?: string,"roll"?: number,"spun_by_staff_id"?: string,"updated_at"?: string,"venue_id"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "spin_bonus_grant_id_fkey"
-      columns: ["bonus_grant_id"]
-isOneToOne: false
-      referencedRelation: "bonus_grant"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "spin_grant_id_fkey"
-      columns: ["grant_id"]
-isOneToOne: true
-      referencedRelation: "promotion_grant"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "spin_member_id_venue_id_fkey"
-      columns: ["member_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "member"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "spin_prize_id_venue_id_fkey"
-      columns: ["prize_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "spin_wheel"
-      referencedColumns: ["id","venue_id"]
-    },{
-      foreignKeyName: "spin_spun_by_staff_id_venue_id_fkey"
-      columns: ["spun_by_staff_id","venue_id"]
-isOneToOne: false
-      referencedRelation: "staff"
-      referencedColumns: ["id","venue_id"]
-    }
-                  ]
-                },"spin_wheel": {
-                  Row: {
-                    "amount": number,"created_at": string,"id": string,"kind": string,"removed_at": string | null,"updated_at": string,"venue_id": string,"weight": number
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "amount": number,"created_at"?: string,"id"?: string,"kind": string,"removed_at"?: string | null,"updated_at"?: string,"venue_id": string,"weight": number
-                  }
-                  Update: {
-                    "amount"?: number,"created_at"?: string,"id"?: string,"kind"?: string,"removed_at"?: string | null,"updated_at"?: string,"venue_id"?: string,"weight"?: number
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "spin_wheel_venue_id_fkey"
-      columns: ["venue_id"]
-isOneToOne: false
-      referencedRelation: "venue"
-      referencedColumns: ["id"]
     }
                   ]
                 },"staff": {
@@ -4825,9 +4761,6 @@ isOneToOne: false
 "add_sop":
 { Args: { "p_ack_roles": (Database["public"]['Enums']["staff_role"])[],"p_body": string,"p_effective_on": string,"p_owner": string,"p_title": string,"p_venue_id": string }; Returns: string
                            },
-"add_spin_prize":
-{ Args: { "p_amount": number,"p_kind": string,"p_venue_id": string,"p_weight": number }; Returns: string
-                           },
 "add_table_type":
 { Args: { "p_big_blind_paise": number,"p_name": string,"p_small_blind_paise": number,"p_straddle_paise"?: number,"p_venue_id": string }; Returns: string
                            },
@@ -5517,7 +5450,7 @@ isOneToOne: false
                            },
 "member_promotion_grants":
 { Args: { "p_limit"?: number,"p_member_id": string }; Returns: {
-              "chips": number,"club_day": string,"grant_id": string,"granted_at": string,"perk": string,"points": number,"promotion_name": string,"spins": number,"version": number
+              "chips": number,"club_day": string,"grant_id": string,"granted_at": string,"perk": string,"points": number,"promotion_name": string,"version": number
             }[]
                            },
 "member_record":
@@ -6061,9 +5994,6 @@ isOneToOne: false
 "remove_shift":
 { Args: { "p_shift_id": string }; Returns: undefined
                            },
-"remove_spin_prize":
-{ Args: { "p_prize_id": string,"p_venue_id": string }; Returns: undefined
-                           },
 "remove_tournament":
 { Args: { "p_tournament_id": string }; Returns: undefined
                            },
@@ -6347,16 +6277,6 @@ isOneToOne: false
               "ack_roles": (Database["public"]['Enums']["staff_role"])[],"acknowledged_at": string,"acknowledged_count": number,"body": string,"effective_on": string,"must_acknowledge": boolean,"owner": string,"required_count": number,"sop_id": string,"title": string,"version": number,"version_id": string,"waiting": Json
             }[]
                            },
-"spin_prizes":
-{ Args: { "p_venue_id": string }; Returns: {
-              "amount": number,"is_drawable": boolean,"kind": string,"prize_id": string,"weight": number
-            }[]
-                           },
-"spin_the_wheel":
-{ Args: { "p_grant_id": string,"p_venue_id": string }; Returns: {
-              "amount": number,"kind": string,"spin_id": string
-            }[]
-                           },
 "staff_academy_batches":
 { Args: { "p_venue_id": string }; Returns: {
               "ends_on": string,"id": string,"is_open": boolean,"name": string,"seats": number,"seats_taken": number,"starts_on": string
@@ -6563,11 +6483,6 @@ isOneToOne: false
               "caption": string,"handle": string,"posted_at": string
             }[]
                            },
-"tv_spin_wheel":
-{ Args: Record<PropertyKey, never>; Returns: {
-              "amount": number,"at": string,"display_name": string,"place": number,"prize_kind": string,"row_kind": string,"weight": number
-            }[]
-                           },
 "tv_tournament_clock":
 { Args: Record<PropertyKey, never>; Returns: {
               "chips_in_play": number,"elapsed_seconds": number,"entries": number,"is_paused": boolean,"levels": Json,"name": string,"players_left": number,"pool_paise": number
@@ -6663,11 +6578,6 @@ isOneToOne: false
 "waiting_deposits":
 { Args: { "p_venue_id": string }; Returns: {
               "approved_by": (string)[],"from_bank": string,"from_vpa": string,"full_name": string,"member_id": string,"needs_second": boolean,"photo_path": string,"request_id": string,"requested_at": string,"utr": string
-            }[]
-                           },
-"waiting_spins":
-{ Args: { "p_venue_id": string }; Returns: {
-              "grant_id": string,"granted_at": string,"member_id": string,"member_name": string,"promotion_name": string
             }[]
                            },
 "waiting_withdrawals":

@@ -12,8 +12,7 @@ export type SettingsArea = RuleArea | (typeof VENUE_AREAS)[number] | typeof NOTI
 /**
  * The areas and rules hidden at the owner's word (29 Oct, #626, decision 0284): no rupee, rake or reporting on any
  * console. A rule set before stays in force; it is only not shown. Points are given by hand now (#629), so the
- * hourly rate is hidden with the rules that turn rake or money into points and bonus. The spin wheel's budget shows, in
- * bonus chips and never in rupees (owner, 3 Nov), so the Spin wheel's link to it lands on it.
+ * hourly rate is hidden with the rules that turn rake or money into points and bonus.
  */
 export const HIDDEN_AREAS: readonly SettingsArea[] = ['rake', 'cage', 'tax', 'compliance', 'academy', 'system', 'chips'];
 const HIDDEN_KEYS: readonly string[] = ['points.per_hour', 'points.rewards_rake_share', 'rakeback.rate', 'cab.minimum_visits'];
@@ -60,7 +59,6 @@ const AREA_OF: Readonly<Record<SettingKey, RuleArea>> = {
   'points.rewards_rake_share': 'members',
   'rakeback.rate': 'members',
   'reviews.google_url': 'members',
-  'spin.budget': 'members',
   'tier.default': 'members',
   'academy.price': 'academy',
   'learn.daily_points_cap': 'academy',

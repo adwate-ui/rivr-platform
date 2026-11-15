@@ -2,12 +2,11 @@ import { fromPaise, paiseToChips, parseRupees } from '@rivr/domain/money';
 import { promotionEffectSchema, type PromotionEffect } from '@rivr/contracts';
 
 /** The offers a host makes from the queue, each a promotion effect. */
-export const OFFER_KINDS = ['none', 'points', 'bonus', 'spin', 'message'] as const;
+export const OFFER_KINDS = ['none', 'points', 'bonus', 'message'] as const;
 export type OfferKind = (typeof OFFER_KINDS)[number];
 
 /** What the host typed, before it is checked as a promotion effect. */
 function draftOf(kind: Exclude<OfferKind, 'none'>, typed: string): unknown {
-  if (kind === 'spin') return { kind: 'spin' };
   if (kind === 'message') return { kind: 'message', text: typed };
   if (kind === 'points') return { kind: 'points', points: /^\d{1,7}$/.test(typed) ? Number(typed) : -1 };
   // The effect holds paise as a jsonb number, at most ₹1 crore (`promotionEffectSchema`), which a number carries exactly; past that it is refused.
@@ -43,7 +42,6 @@ function amountDraft(offer: PromotionEffect): OfferDraft {
 /** The offer already made, as the form shows it again, so saving the call keeps it: its kind and amount or words. */
 export function offerDraft(offer: PromotionEffect | null): OfferDraft {
   if (offer === null) return NO_OFFER;
-  if (offer.kind === 'spin') return { kind: 'spin', value: '' };
   if (offer.kind === 'message') return { kind: 'message', value: offer.text };
   return amountDraft(offer);
 }

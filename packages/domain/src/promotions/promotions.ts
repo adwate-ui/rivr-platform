@@ -107,7 +107,7 @@ function extraPoints(effect: PointsEffect, earned: bigint): bigint {
 
 /**
  * What a rule's effect gives for an event with this amount (a buy-in) and these points earned, or
- * null when a bonus or points come to nothing. A cab, a spin, a ticket or a message costs ₹0; a
+ * null when a bonus or points come to nothing. A cab, a ticket or a message costs ₹0; a
  * prize its value; a jackpot payout its amount. The database's private.promotion_reward is proved
  * equal by packages/testing/golden/promotions.json.
  */

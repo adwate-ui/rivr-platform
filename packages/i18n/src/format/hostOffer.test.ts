@@ -9,7 +9,6 @@ describe('a host\u2019s offer in words', () => {
   it('names what was offered, a bonus as chips, never rupees', () => {
     expect(formatHostOffer({ kind: 'points', points: 500 })).toBe('500 points');
     expect(formatHostOffer({ kind: 'bonus', amount_paise: 200000 })).toBe('2,000 bonus chips');
-    expect(formatHostOffer({ kind: 'spin' })).toBe('a free spin');
     expect(formatHostOffer({ kind: 'message' })).toBe('a message');
   });
 

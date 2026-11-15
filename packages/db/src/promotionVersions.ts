@@ -183,7 +183,6 @@ export interface MemberPromotionGrant {
   readonly version: number | null;
   readonly points: number;
   readonly chips: number;
-  readonly spins: number;
   readonly perk: string | null;
 }
 
@@ -199,7 +198,7 @@ export function useMemberPromotionGrants(memberId: string, count: number) {
       if (error) throw error;
       return data.map((row) => ({
         id: row.grant_id, grantedAt: row.granted_at, clubDay: row.club_day, promotion: row.promotion_name, version: row.version,
-        points: Number(row.points), chips: Number(row.chips), spins: row.spins, perk: row.perk,
+        points: Number(row.points), chips: Number(row.chips), perk: row.perk,
       }));
     },
   });

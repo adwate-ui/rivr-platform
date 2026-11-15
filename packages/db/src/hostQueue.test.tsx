@@ -44,11 +44,11 @@ describe('the host queue', () => {
 
   it('records a call and closes an item', async () => {
     const { result, calls } = renderQueue();
-    const contact = { reason: 'busy' as const, offer: { kind: 'spin' as const }, note: null };
+    const contact = { reason: 'busy' as const, offer: { kind: 'message' as const, text: 'Come back' }, note: null };
     expect(await act(() => result.current.actions.record.mutateAsync({ itemId: 'h1', contact }))).toEqual({ ok: true, value: null });
     expect(await act(() => result.current.actions.close.mutateAsync('h1'))).toEqual({ ok: true, value: null });
     expect(calls.find((call) => call.url.includes('/rpc/record_host_contact'))?.body)
-      .toEqual({ p_item_id: 'h1', p_churn_reason: 'busy', p_offer: { kind: 'spin' } });
+      .toEqual({ p_item_id: 'h1', p_churn_reason: 'busy', p_offer: { kind: 'message', text: 'Come back' } });
   });
 
   it('says why a call was not kept', async () => {

@@ -30,8 +30,8 @@ select results_eq(
      from public.promotion p where p.venue_id = '00000000-0000-4000-8000-000000000001' and template_key is not null order by template_key $$,
   $$ values ('cab'::text, 'draft'::text, 0), ('double_points', 'draft', 0), ('founders_priority', 'draft', 0),
             ('graduate_first_buy_in', 'draft', 1), ('graduate_freeroll', 'draft', 1), ('hours_bonus', 'draft', 1),
-            ('referral', 'draft', 1), ('spin_wheel', 'draft', 1), ('triple_points', 'draft', 0), ('tuesday_bonus', 'draft', 1) $$,
-  'the club has every scheme in the deck as a draft; the six the engine runs carry their rule');
+            ('referral', 'draft', 1), ('triple_points', 'draft', 0), ('tuesday_bonus', 'draft', 1) $$,
+  'the club has every scheme in the deck as a draft; the five the engine runs carry their rule');
 select results_eq(
   $$ select p.template_key, r.trigger, r.conditions - 'tier_ids', r.effect, p.per_player_limit, p.per_player_period
      from public.promotion p join public.promotion_rule r on r.promotion_id = p.id
@@ -40,9 +40,8 @@ select results_eq(
             ('graduate_freeroll', 'graduation', '{}', '{"kind": "freeroll_ticket", "tournament": "RIVR Sunday"}', 1, 'promotion'),
             ('hours_bonus', 'hours_played', '{"min_hours": 4}', '{"kind": "bonus", "amount_paise": 100000, "expires_days": 7}', 1, 'day'),
             ('referral', 'referral', '{}', '{"kind": "bonus", "amount_paise": 100000, "expires_days": 30}', null, null),
-            ('spin_wheel', 'hours_played', '{"min_hours": 4}', '{"kind": "spin"}', 1, 'day'),
             ('tuesday_bonus', 'buy_in', '{"days": [2], "first_n": {"count": 5, "per": "table"}}', '{"kind": "bonus", "percent_bps": 2000, "expires_days": 7}', null, null) $$,
-  'graduate first buy-in ₹1,000 once each; the graduate freeroll once (#128); four hours ₹1,000 once a club day; referral ₹1,000; a spin after four hours once a club day (#150); Tuesday 20% among the first five at a table');
+  'graduate first buy-in ₹1,000 once each; the graduate freeroll once (#128); four hours ₹1,000 once a club day; referral ₹1,000; Tuesday 20% among the first five at a table');
 select results_eq(
   $$ select p.template_key, v.version, v.status, v.reward, v.limits
      from public.promotion p join public.promotion_version v on v.promotion_id = p.id
@@ -54,7 +53,6 @@ select results_eq(
             ('graduate_freeroll', 1, 'draft', '{"kind": "tournament_entry", "tournamentId": "RIVR Sunday"}', '{"perMember": "once"}'),
             ('hours_bonus', 1, 'draft', '{"kind": "hours_bonus", "chips": 1000, "afterMinutes": 240}', '{"perMember": "per_day"}'),
             ('referral', 1, 'draft', '{"kind": "bonus_chips", "chips": 1000, "on": "referral"}', '{"perMember": "none"}'),
-            ('spin_wheel', 1, 'draft', '{"kind": "free_spin", "spins": 1, "afterMinutes": 240}', '{"perMember": "per_day"}'),
             ('triple_points', 1, 'draft', '{"kind": "points_multiplier", "multiplier": 3}', '{"perMember": "per_visit"}'),
             ('tuesday_bonus', 1, 'draft', '{"kind": "buyin_bonus", "mode": "percent", "percent": 20, "firstNBuyinsPerTable": 5}', '{"perMember": "none"}') $$,
   'the templates the typed model can say are versions: double and triple points as multipliers (decision 0491)');
@@ -72,18 +70,18 @@ select is_empty($$ select 1 from public.promotion where template_key in ('high_h
 select results_eq(
   $$ select p.venue_id::text, count(distinct p.id)::integer, count(r.id)::integer from public.promotion p left join public.promotion_rule r on r.promotion_id = p.id
      where p.template_key is not null group by p.venue_id order by p.venue_id $$,
-  $$ values ('00000000-0000-4000-8000-000000000001'::text, 10, 6), ('00000000-0000-4000-8000-000000000002', 10, 6) $$,
+  $$ values ('00000000-0000-4000-8000-000000000001'::text, 9, 5), ('00000000-0000-4000-8000-000000000002', 9, 5) $$,
   'the practice venue has the same');
 
 -- Adding them again adds nothing; a new venue gets them.
 select lives_ok($$ select private.add_promotion_templates('00000000-0000-4000-8000-000000000001') $$, 'the templates are added again');
 select is((select count(*)::integer from public.promotion_rule r join public.promotion p on p.id = r.promotion_id
-           where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key is not null), 6, 'and nothing is doubled');
+           where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key is not null), 5, 'and nothing is doubled');
 select private.bootstrap_venue('00000000-0000-4000-8000-0000000000aa', 'RIVR Test', 'test-templates', false, 'RIVR test', 'Test', 'TST');
 select is((select count(*)::integer from public.promotion p join public.promotion_rule r on r.promotion_id = p.id
-           where p.venue_id = '00000000-0000-4000-8000-0000000000aa' and p.template_key is not null), 6,
+           where p.venue_id = '00000000-0000-4000-8000-0000000000aa' and p.template_key is not null), 5,
   'a new venue starts with every template and its rules');
-select is((select count(*)::integer from public.promotion_version v where v.venue_id = '00000000-0000-4000-8000-0000000000aa'), 10,
+select is((select count(*)::integer from public.promotion_version v where v.venue_id = '00000000-0000-4000-8000-0000000000aa'), 9,
   'and their versions');
 
 -- Submitting a template: promotion managers only, from its draft; a super admin approves it, and it is announced.
@@ -93,7 +91,7 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select throws_ok($$ select public.submit_promotion_template(pg_temp.template('referral')) $$, 'RVVER', null,
   'the referral runs in versions, so the old way is refused');
 select lives_ok($$ select public.record_promotion_simulation(pg_temp.version_of('referral'),
-  '{"events": 0, "membersQualified": 0, "timesGiven": 0, "points": 0, "chips": 0, "spins": 0, "perks": 0, "isBudgetReached": false}',
+  '{"events": 0, "membersQualified": 0, "timesGiven": 0, "points": 0, "chips": 0, "perks": 0, "isBudgetReached": false}',
   (select jsonb_build_object('reward', v.reward, 'eligibility', v.eligibility, 'schedule', v.schedule, 'limits', v.limits)
    from public.promotion_version v where v.id = pg_temp.version_of('referral'))) $$, 'marketing simulates the referral template');
 select lives_ok($$ select public.submit_promotion_version(pg_temp.version_of('referral')) $$, 'and submits it');

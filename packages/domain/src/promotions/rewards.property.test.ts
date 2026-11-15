@@ -28,7 +28,6 @@ const reward: fc.Arbitrary<Reward> = fc.oneof(
     .map(({ every, amount, times }): Reward => ({ kind: 'hours_bonus', mode: 'every', everyMinutes: every, chips: amount, ...(times === undefined ? {} : { timesPerVisit: times }) })),
   fc.record({ amount: chips, on: fc.constantFrom('visit', 'first_buyin', 'referral', 'signup' as const) })
     .map(({ amount, on }): Reward => ({ kind: 'bonus_chips', chips: amount, on })),
-  fc.record({ spins: fc.integer({ min: 1, max: 10 }), after: minutes }).map(({ spins, after }): Reward => ({ kind: 'free_spin', spins, afterMinutes: after })),
   fc.integer({ min: 1, max: 31 }).map((visit): Reward => ({ kind: 'cab_home', fromVisitInMonth: visit })),
   fc.constant<Reward>({ kind: 'tournament_entry', tournamentId: 'RIVR Sunday' }),
   fc.constant<Reward>({ kind: 'waitlist_priority' }),
@@ -66,7 +65,7 @@ const limits: fc.Arbitrary<Limits> = fc.record({
   ...(budgetPeriod === undefined || (rest.budgetChips === undefined && rest.maxGrants === undefined) ? {} : { budgetPeriod }),
 }));
 const grant: fc.Arbitrary<Grant> = fc.record({
-  points: fc.nat({ max: 1_000 }), chips: fc.nat({ max: 200 }).map((fifties) => fifties * 50), spins: fc.nat({ max: 3 }),
+  points: fc.nat({ max: 1_000 }), chips: fc.nat({ max: 200 }).map((fifties) => fifties * 50),
   perk: fc.constantFrom(null, 'cab_home' as const, 'waitlist_priority' as const),
 });
 const ledger: fc.Arbitrary<LedgerEntry[]> = fc.array(fc.tuple(grant, fc.constantFrom('m1', 'm2'), fc.constantFrom('2026-11-16', '2026-11-17')).map(
@@ -79,7 +78,7 @@ describe('promotion reward properties', () => {
       if (given.kind !== 'seat_bonus' || 'tiers' in given) return;
       const result = computeGrant({ reward: given }, { ...where, kind: 'seated', isFirstOfVisit });
       expect(result.ok).toBe(isFirstOfVisit || given.firstNSeatsPerTable !== undefined);
-      if (result.ok) expect(result.value).toEqual({ points: 0, chips: given.chips, spins: 0, perk: null });
+      if (result.ok) expect(result.value).toEqual({ points: 0, chips: given.chips, perk: null });
     }));
   });
 
@@ -97,7 +96,7 @@ describe('promotion reward properties', () => {
   it('never gives a negative grant, and gives only for its own kind of event', () => {
     fc.assert(fc.property(reward, event, (given, on) => {
       const result = computeGrant({ reward: given }, on);
-      if (result.ok) expect(Math.min(result.value.points, result.value.chips, result.value.spins)).toBeGreaterThanOrEqual(0);
+      if (result.ok) expect(Math.min(result.value.points, result.value.chips)).toBeGreaterThanOrEqual(0);
       expect(!result.ok && result.error === 'other_event').toBe(triggerOf(given) !== on.kind);
     }));
   });
@@ -126,7 +125,7 @@ describe('promotion reward properties', () => {
       const terms = buildPromotionTerms({ reward: given, limits: limit });
       const result = simulate(terms, week.map((on) => ({ event: on, member: buildMemberFacts() })));
       const sum = (pick: (entry: LedgerEntry) => number) => result.grants.reduce((total, entry) => total + pick(entry), 0);
-      expect([result.points, result.chips, result.spins, result.timesGiven]).toEqual([sum((e) => e.points), sum((e) => e.chips), sum((e) => e.spins), result.grants.length]);
+      expect([result.points, result.chips, result.timesGiven]).toEqual([sum((e) => e.points), sum((e) => e.chips), result.grants.length]);
       expect(result.chips).toBeLessThanOrEqual(limit.budgetChips ?? Number.MAX_SAFE_INTEGER);
       expect(result.timesGiven).toBeLessThanOrEqual(limit.maxGrants ?? Number.MAX_SAFE_INTEGER);
       expect(result.membersQualified).toBeLessThanOrEqual(new Set(week.map((on) => on.memberId)).size);

@@ -9,7 +9,7 @@ export type RewardKind = BuilderReward['kind'];
 
 export const REWARD_KINDS: readonly RewardKind[] = [
   // No cab home or tournament entry: both features are off, so a promotion could not give them (audit F-033).
-  'points_multiplier', 'seat_bonus', 'hours_bonus', 'bonus_chips', 'free_spin', 'waitlist_priority',
+  'points_multiplier', 'seat_bonus', 'hours_bonus', 'bonus_chips', 'waitlist_priority',
 ];
 
 /** A play-time bonus step after the first, as typed: its hours played and its bonus chips. */
@@ -36,7 +36,7 @@ export interface BuilderForm {
   readonly seatTiers: readonly SeatTierFields[];
   /** An hours bonus's chips, or bonus chips on an event. */
   readonly chips: string;
-  /** Hours played before an hours bonus or a free spin; a play-time bonus's first step. */
+  /** Hours played before an hours bonus; a play-time bonus's first step. */
   readonly afterHours: string;
   /** A play-time bonus pays at set times (its first step above, then `moreSteps`) or every so often (owner, 8 Nov). */
   readonly hoursMode: 'steps' | 'every';
@@ -45,7 +45,6 @@ export interface BuilderForm {
   /** Up to how many times a visit every so often pays; blank is no cap. */
   readonly timesPerVisit: string;
   readonly bonusOn: (typeof BONUS_CHIPS_ON)[number];
-  readonly spins: string;
   readonly fromVisit: string;
   readonly tournament: string;
   readonly stakes: 'all' | readonly string[];
@@ -81,7 +80,7 @@ const ALL_DAY = { days: EVERY_DAY, from: '06:00', to: '06:00' } as const;
 export function blankForm(today: string): BuilderForm {
   return {
     name: '', kind: 'points_multiplier', multiplier: '2', firstN: '', seatMode: 'fixed', seatTiers: [{ count: '10', chips: '1000' }],
-    chips: '1000', afterHours: '4', hoursMode: 'steps', moreSteps: [], everyHours: '2', timesPerVisit: '', bonusOn: 'visit', spins: '1', fromVisit: '4', tournament: '', stakes: 'all', tableIds: undefined, tiers: 'all',
+    chips: '1000', afterHours: '4', hoursMode: 'steps', moreSteps: [], everyHours: '2', timesPerVisit: '', bonusOn: 'visit', fromVisit: '4', tournament: '', stakes: 'all', tableIds: undefined, tiers: 'all',
     audience: 'everyone', days: [5, 6], from: '20:00', to: '02:00', startsOn: today, endsOn: '', perMember: 'per_visit', timesPerMember: '',
     maxMembersPerDay: '', budgetChips: '', budgetPeriod: 'whole', maxGrants: undefined, channels: { playerApp: true, tv: true, website: false, whatsapp: false }, rulesText: '', link: '',
   };
@@ -121,8 +120,6 @@ function rewardFields(reward: BuilderReward): Partial<BuilderForm> {
       return hoursFields(reward);
     case 'bonus_chips':
       return { chips: String(reward.chips), bonusOn: reward.on };
-    case 'free_spin':
-      return { spins: String(reward.spins), afterHours: hoursOf(reward.afterMinutes) };
     case 'cab_home':
       return { fromVisit: String(reward.fromVisitInMonth) };
     case 'tournament_entry':
@@ -147,7 +144,7 @@ export function formFromTerms(terms: PromotionTerms): BuilderForm {
 }
 
 /** The "Start from" templates (console v3 brief): Blank, then the club's own, none for a feature that is off (audit F-033). */
-export const TEMPLATES = ['blank', 'double_points', 'seat_bonus', 'four_hour_bonus', 'spin_the_wheel', 'founders_priority'] as const;
+export const TEMPLATES = ['blank', 'double_points', 'seat_bonus', 'four_hour_bonus', 'founders_priority'] as const;
 export type TemplateKey = (typeof TEMPLATES)[number];
 
 /** The tier a template is for, found among the venue's by name; null where the venue has none of that name. */
@@ -162,7 +159,6 @@ const TEMPLATE_FIELDS: Readonly<Record<Exclude<TemplateKey, 'blank'>, (tiers: Te
   double_points: () => ({ kind: 'points_multiplier', multiplier: '2' }),
   seat_bonus: () => ({ kind: 'seat_bonus', chips: '1000', firstN: '5', ...ALL_DAY, days: [2], perMember: 'per_day' }),
   four_hour_bonus: () => ({ kind: 'hours_bonus', chips: '1000', afterHours: '4', ...ALL_DAY, perMember: 'per_day' }),
-  spin_the_wheel: () => ({ kind: 'free_spin', spins: '1', afterHours: '4', ...ALL_DAY, perMember: 'per_day' }),
   founders_priority: (tiers) => ({ kind: 'waitlist_priority', tiers: tierOnly(tiers.founders), ...ALL_DAY }),
 };
 

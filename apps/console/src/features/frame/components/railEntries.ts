@@ -86,7 +86,6 @@ export const RAIL: readonly RailGroup[] = [
       { id: 'rewards', label: 'console.rail.items.rewards', href: '/rewards', icon: 'rewards', anyOf: [], tabs: [
         { id: 'rewards', label: 'console.rewards.tabs.catalogue', anyOf: ['rewards.manage', 'points.give'] },
         { id: 'points', label: 'console.rewards.tabs.points', anyOf: ['points.give'] },
-        { id: 'spin-wheel', label: 'console.rail.items.spinWheel', anyOf: ['promotions.manage'] },
       ] },
       { id: 'social', label: 'console.rail.items.social', href: '/social', icon: 'social', anyOf: ['marketing.publish'], counts: ['wallPosts'], countWords: 'posts' },
       { id: 'content', label: 'console.rail.items.content', href: '/content', icon: 'content', anyOf: [], tabs: [

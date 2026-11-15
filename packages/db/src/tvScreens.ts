@@ -3,6 +3,7 @@ import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef } from 'react';
 import type { RivrClient } from './client.ts';
+import type { Database } from './database.types.ts';
 import { toDeviceSession, type DeviceSession } from './parse/deviceSession.ts';
 import { functionErrorCode } from './parse/kycFailure.ts';
 import { toTvCode, type TvCode } from './parse/tvCode.ts';
@@ -10,6 +11,12 @@ import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
 export type { TvCode };
+
+// The database's list of boards still names one the club dropped, the spin wheel, until the TVs' own issue rebuilds the
+// list: a TV still set to it shows the waitlist, and a rotation leaves it out.
+type StoredTvMode = Database['public']['Enums']['tv_mode'];
+const isBoard = (mode: StoredTvMode): mode is TvMode => mode !== 'spin_wheel';
+const boardOf = (mode: StoredTvMode): TvMode => (isBoard(mode) ? mode : 'waitlist');
 
 /**
  * What an unpaired TV shows (#49): its code, or why it has none (`too_many` while device-pair refuses for a while,
@@ -163,7 +170,7 @@ export function useMyTvScreen() {
         await client.auth.signOut({ scope: 'local' });
         return null;
       }
-      return { deviceId: row.device_id, venueId: row.venue_id, name: row.name, mode: row.mode, rotation: row.rotation };
+      return { deviceId: row.device_id, venueId: row.venue_id, name: row.name, mode: boardOf(row.mode), rotation: row.rotation.filter(isBoard) };
     },
   });
 }
@@ -209,9 +216,10 @@ export function useVenueTvs(venueId: string) {
       const lastSeenOf = new Map(heartbeats.data.map((row) => [row.device_id, row.last_seen_at]));
       return devices.data.map((device) => {
         const lastSeenAt = lastSeenOf.get(device.id) ?? null;
+        const screen = screenOf.get(device.id);
         return {
-          deviceId: device.id, name: device.name, isPaired: device.auth_user_id !== null, mode: screenOf.get(device.id)?.mode ?? null,
-          rotation: screenOf.get(device.id)?.rotation ?? [], lastSeenAt,
+          deviceId: device.id, name: device.name, isPaired: device.auth_user_id !== null, mode: screen === undefined ? null : boardOf(screen.mode),
+          rotation: screen?.rotation.filter(isBoard) ?? [], lastSeenAt,
           isOnline: lastSeenAt !== null && Date.now() - Date.parse(lastSeenAt) < ONLINE_WITHIN,
         };
       });

@@ -24,7 +24,6 @@ describe('triggerOf', () => {
     expect(triggerOf({ kind: 'hours_bonus', chips: 1_000, afterMinutes: 240 })).toBe('hours_step');
     expect(triggerOf({ kind: 'seat_bonus', chips: 1_000 })).toBe('seated');
     expect(triggerOf({ kind: 'hours_bonus', mode: 'every', everyMinutes: 60, chips: 100 })).toBe('hours_step');
-    expect(triggerOf({ kind: 'free_spin', spins: 1, afterMinutes: 240 })).toBe('time_played');
     expect(triggerOf({ kind: 'buyin_bonus', mode: 'fixed', chips: 500 })).toBe('buy_in');
     expect(triggerOf({ kind: 'cab_home', fromVisitInMonth: 4 })).toBe('visit');
     expect(triggerOf({ kind: 'tournament_entry', tournamentId: 'RIVR Sunday' })).toBe('visit');
@@ -47,27 +46,25 @@ describe('computeGrant', () => {
 
   it('gives nothing for time played or a visit for a reward of another event', () => {
     expect(grantOf({ kind: 'cab_home', fromVisitInMonth: 1 }, played)).toEqual({ ok: false, error: 'other_event' });
-    expect(grantOf({ kind: 'free_spin', spins: 1, afterMinutes: 30 }, visit)).toEqual({ ok: false, error: 'other_event' });
     expect(grantOf({ kind: 'buyin_bonus', mode: 'fixed', chips: 500 }, visit)).toEqual({ ok: false, error: 'other_event' });
   });
 
   it('gives a points multiplier only as points, and a cap only to a percent', () => {
-    expect(grantOf({ kind: 'points_multiplier', multiplier: 1.75 }, played)).toEqual({ ok: true, value: { points: 150, chips: 0, spins: 0, perk: null } });
-    expect(grantOf({ kind: 'buyin_bonus', mode: 'percent', percent: 100 }, buyIn)).toEqual({ ok: true, value: { points: 0, chips: 10_000, spins: 0, perk: null } });
+    expect(grantOf({ kind: 'points_multiplier', multiplier: 1.75 }, played)).toEqual({ ok: true, value: { points: 150, chips: 0, perk: null } });
+    expect(grantOf({ kind: 'buyin_bonus', mode: 'percent', percent: 100 }, buyIn)).toEqual({ ok: true, value: { points: 0, chips: 10_000, perk: null } });
   });
 
   it('gives a cab from its visit on, the visit itself included', () => {
-    expect(grantOf({ kind: 'cab_home', fromVisitInMonth: 5 }, visit)).toEqual({ ok: true, value: { points: 0, chips: 0, spins: 0, perk: 'cab_home' } });
+    expect(grantOf({ kind: 'cab_home', fromVisitInMonth: 5 }, visit)).toEqual({ ok: true, value: { points: 0, chips: 0, perk: 'cab_home' } });
     expect(grantOf({ kind: 'cab_home', fromVisitInMonth: 6 }, visit)).toEqual({ ok: false, error: 'not_yet' });
   });
 
-  it('gives spins once the minutes are played, the minute itself included', () => {
-    expect(grantOf({ kind: 'free_spin', spins: 3, afterMinutes: 300 }, played)).toEqual({ ok: true, value: { points: 0, chips: 0, spins: 3, perk: null } });
+  it('gives a play-time bonus only for its own step, never for time played alone', () => {
     expect(grantOf({ kind: 'hours_bonus', chips: 500, afterMinutes: 240 }, played)).toEqual({ ok: false, error: 'other_event' });
   });
 
   it('gives a play-time bonus step its own chips once its minutes are played, and nothing for a step it does not have (owner, 8 Nov)', () => {
-    const chipsOf = (chips: number) => ({ ok: true, value: { points: 0, chips, spins: 0, perk: null } });
+    const chipsOf = (chips: number) => ({ ok: true, value: { points: 0, chips, perk: null } });
     expect(grantOf({ kind: 'hours_bonus', chips: 500, afterMinutes: 240 }, step(240))).toEqual(chipsOf(500));
     expect(grantOf({ kind: 'hours_bonus', chips: 500, afterMinutes: 330 }, step(330))).toEqual({ ok: false, error: 'too_short' });
     expect(grantOf({ kind: 'hours_bonus', chips: 500, afterMinutes: 240 }, step(120))).toEqual({ ok: false, error: 'not_a_step' });
@@ -78,7 +75,6 @@ describe('computeGrant', () => {
     const every: Reward = { kind: 'hours_bonus', mode: 'every', everyMinutes: 90, chips: 250, timesPerVisit: 2 };
     expect(grantOf(every, step(180))).toEqual(chipsOf(250));
     expect(grantOf(every, step(270))).toEqual({ ok: false, error: 'not_a_step' });
-    expect(grantOf({ kind: 'free_spin', spins: 1, afterMinutes: 240 }, step(240))).toEqual({ ok: false, error: 'other_event' });
   });
 
   it('gives bonus chips for a referral only on a referral', () => {

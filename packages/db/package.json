@@ -15,7 +15,6 @@
     "./houseRules": "./src/houseRules.ts",
     "./fnb": "./src/fnb.ts",
     "./glaza": "./src/glaza.ts",
-    "./spin": "./src/spin.ts",
     "./social": "./src/social.ts",
     "./hostQueue": "./src/hostQueue.ts",
     "./winnerCards": "./src/winnerCards.ts",

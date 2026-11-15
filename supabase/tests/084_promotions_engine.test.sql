@@ -67,22 +67,22 @@ select throws_ok($$ insert into public.promotion_rule (venue_id, promotion_id, t
    '{"kind": "bonus", "amount_paise": 100000, "percent_bps": 2000, "expires_days": 7}') $$, '23514', null,
   'a bonus is an amount or a share, not both');
 select throws_ok($$ insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, effect) values
-  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"gender": "f"}', '{"kind": "spin"}') $$,
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"gender": "f"}', '{"kind": "message", "text": "Hello"}') $$,
   '23514', null, 'and a condition is one the engine knows');
 select throws_ok($$ insert into public.promotion_rule (venue_id, promotion_id, trigger, effect) values
-  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'lunch', '{"kind": "spin"}') $$,
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'lunch', '{"kind": "message", "text": "Hello"}') $$,
   '23514', null, 'as is a trigger');
 select throws_ok($$ insert into public.promotion_rule (venue_id, promotion_id, trigger, effect) values
   ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"kind": "bonus", "amount_paise": 102000, "expires_days": 7}') $$,
   '23514', null, 'a bonus is whole ₹50 chips');
 select throws_ok($$ insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, effect) values
-  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"from": "22:00"}', '{"kind": "spin"}') $$,
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"from": "22:00"}', '{"kind": "message", "text": "Hello"}') $$,
   '23514', null, 'a window is given whole');
 select throws_ok($$ insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, effect) values
-  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"from": "05:00", "until": "07:00"}', '{"kind": "spin"}') $$,
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 'buy_in', '{"from": "05:00", "until": "07:00"}', '{"kind": "message", "text": "Hello"}') $$,
   '23514', null, 'and closes before the club''s day turns over at 06:00');
 select lives_ok($$ insert into public.promotion_rule (venue_id, promotion_id, position, trigger, conditions, effect) values
-  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 9, 'check_in', '{"from": "22:00", "until": "04:00"}', '{"kind": "spin"}') $$,
+  ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'tuesday'), 9, 'check_in', '{"from": "22:00", "until": "04:00"}', '{"kind": "message", "text": "Hello"}') $$,
   'a late window is one window');
 delete from public.promotion_rule where position = 9;
 
@@ -195,15 +195,15 @@ select is(pg_temp.held('member.bonus', '00000000-0000-4000-8000-000000000213'), 
 select is(pg_temp.buy_in('216', 'Table 3', 'test-6'), 0, 'Kunal''s second buy-in gives nothing');
 
 -- A date window: everyone in the club is weighed once a club day.
-with p as (insert into public.promotion (venue_id, name, status) values ('00000000-0000-4000-8000-000000000001', 'Spin at ten', 'live') returning id)
-insert into ids select 'spin', id from p;
+with p as (insert into public.promotion (venue_id, name, status) values ('00000000-0000-4000-8000-000000000001', 'Hello at ten', 'live') returning id)
+insert into ids select 'hello', id from p;
 insert into public.promotion_rule (venue_id, promotion_id, trigger, effect)
-values ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'spin'), 'date_window', '{"kind": "spin"}');
+values ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'hello'), 'date_window', '{"kind": "message", "text": "Hello"}');
 select isnt_empty($$ select 1 from cron.job where jobname = 'promotion-windows' and schedule = '* * * * *' $$, 'the window runs every minute');
 select lives_ok($$ select private.open_promotion_windows() $$, 'the window opens');
-select is(pg_temp.grants('Spin at ten'), '211 212 213 216 217', 'everyone in the club has a spin');
+select is(pg_temp.grants('Hello at ten'), '211 212 213 216 217', 'everyone in the club has the message');
 select lives_ok($$ select private.open_promotion_windows() $$, 'the next minute');
-select is((select count(*)::integer from public.promotion_grant where promotion_id = (select id from ids where name = 'spin')), 5, 'gives none twice');
+select is((select count(*)::integer from public.promotion_grant where promotion_id = (select id from ids where name = 'hello')), 5, 'gives none twice');
 
 -- Who sees grants: promotion managers, every one, the seed's included.
 create temporary table all_grants on commit drop as select count(*)::integer as grants from public.promotion_grant;
@@ -234,7 +234,7 @@ select throws_ok($$ select private.evaluate_promotions('00000000-0000-4000-8000-
 with p as (insert into public.promotion (venue_id, name, status) values ('00000000-0000-4000-8000-000000000001', 'Two hours in', 'live') returning id)
 insert into ids select 'hours', id from p;
 insert into public.promotion_rule (venue_id, promotion_id, trigger, conditions, effect)
-values ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'hours'), 'hours_played', '{"min_hours": 2}', '{"kind": "spin"}');
+values ('00000000-0000-4000-8000-000000000001', (select id from ids where name = 'hours'), 'hours_played', '{"min_hours": 2}', '{"kind": "message", "text": "Hello"}');
 select is(pg_temp.weigh('hours_played', '216', '{"key": "hours:test-1", "hours_played": 1.5}'), 0, 'an hour and a half is not two hours in');
 select is(pg_temp.weigh('hours_played', '216', '{"key": "hours:test-2", "hours_played": 2}'), 1, 'two hours is');
 

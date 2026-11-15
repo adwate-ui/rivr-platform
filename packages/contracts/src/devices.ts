@@ -20,7 +20,7 @@ export const devicePairRequestSchema = z.union([devicePairSchema, tvPairingSchem
 export type DevicePairRequest = z.infer<typeof devicePairRequestSchema>;
 
 /** What a TV shows (additions "TV modes"), as public.tv_mode lists them. */
-export const TV_MODES = ['waitlist', 'call_time', 'jackpot', 'tournament_clock', 'promotions', 'rewards', 'league', 'social_wall', 'spin_wheel', 'leaderboard'] as const;
+export const TV_MODES = ['waitlist', 'call_time', 'jackpot', 'tournament_clock', 'promotions', 'rewards', 'league', 'social_wall', 'leaderboard'] as const;
 export type TvMode = (typeof TV_MODES)[number];
 
 /** The periods the TVs' hours leaderboard counts (decision 0581), in the club's days from 06:00 IST. */

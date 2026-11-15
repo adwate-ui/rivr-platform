@@ -1,7 +1,6 @@
 import type { SettingField } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { ChoiceChips, ErrorMessage, Input, Stack, Switch } from '@rivr/ui';
-import { isBonusChips } from './bonusChips.ts';
 import { fieldLabel, limitsText, optionLabel, unitOf } from './settingsCopy.ts';
 import type { FieldDraft } from './valueDraft.ts';
 
@@ -31,9 +30,8 @@ function ChoiceField({ settingKey, field, draft, isInvalid, tiers, onChange }: F
   );
 }
 
-/** The words after a number: "bonus chips", a percent or a time; none for money, which has the ₹ before it, or a count. */
+/** The words after a number: a percent or a time; none for money, which has the ₹ before it, or a count. */
 function suffixOf(field: Extract<SettingField, { kind: 'integer' }>): string | undefined {
-  if (isBonusChips(field)) return t('console.settings.suffixes.bonusChips');
   const unit = unitOf(field);
   return unit === null ? undefined : t(`console.settings.suffixes.${unit}`);
 }

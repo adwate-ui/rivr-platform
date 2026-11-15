@@ -73,10 +73,6 @@ function rewardText(reward: Reward, names: PromotionNames): string {
       return hoursText(reward);
     case 'bonus_chips':
       return t(`console.promotions.words.bonusChips.${reward.on}`, { chips: count(reward.chips) });
-    case 'free_spin':
-      return reward.spins === 1
-        ? t('console.promotions.words.freeSpin', { time: hours(reward.afterMinutes) })
-        : t('console.promotions.words.freeSpins', { count: reward.spins, time: hours(reward.afterMinutes) });
     case 'cab_home':
       return t('console.promotions.words.cabHome', { visit: reward.fromVisitInMonth });
     case 'tournament_entry':

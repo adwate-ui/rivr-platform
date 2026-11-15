@@ -48,8 +48,6 @@ export const members = {
   grantLine: '{date} · {promotion}: {given}',
   grantPoints: '{count} points',
   grantChips: '{count} bonus chips',
-  grantSpins: '{count} spins',
-  grantSpin: '1 spin',
   /** The record. `{number}` is the member number. */
   memberNumber: 'No. {number}',
   /** The record's status line (F-039): `No. 427 · Member tier · ID checked`. */

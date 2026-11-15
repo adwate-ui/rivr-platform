@@ -7,7 +7,7 @@ import { NAMES, refused, renderWithApi, resetApi, TUESDAY, type Reply } from './
 afterEach(resetApi);
 
 const NEW: BuilderStart = { promotionId: null, draft: null, form: blankForm('2026-11-10'), title: 'New promotion', notice: null };
-const SIMULATION = { events: 4, membersQualified: 3, timesGiven: 3, points: 0, chips: 4_500, spins: 0, perks: 0, isBudgetReached: false };
+const SIMULATION = { events: 4, membersQualified: 3, timesGiven: 3, points: 0, chips: 4_500, perks: 0, isBudgetReached: false };
 
 // The calls a new draft's Save and Simulate make, answered: its version and promotion, and last week with no events.
 const SAVED_AND_REPLAYED: Readonly<Record<string, Reply>> = {

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 // More than fit take turns, a page every ten seconds.
 const PAGE_MS = 10_000;
 
-/** Which page shows: the next every ten seconds, round them all (the call-time board's tables, the spin wheel's prizes). */
+/** Which page shows: the next every ten seconds, round them all (the call-time board's tables). */
 export function usePage(pages: number): number {
   const [turn, setTurn] = useState(0);
   useEffect(() => {

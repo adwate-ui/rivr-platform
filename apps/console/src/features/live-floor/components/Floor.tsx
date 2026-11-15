@@ -110,7 +110,7 @@ function FloorReady({ venueId, permissions, data }: FloorProps & { data: FloorDa
     <>
       <RequestList requests={queue.shown} tables={data.tables} targets={data.targets} now={now} fresh={queue.fresh} changes={changes.requests}
         {...openers} />
-      <AlsoWaiting venueId={venueId} permissions={permissions} />
+      <AlsoWaiting venueId={venueId} />
     </>
   );
   return (

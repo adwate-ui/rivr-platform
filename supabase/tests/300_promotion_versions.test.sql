@@ -30,7 +30,7 @@ $$;
 -- The simulation the browser stores, on the version's own terms.
 create function pg_temp.simulate(p_version uuid) returns void language sql as $$
   select public.record_promotion_simulation(v.id,
-    '{"events": 3, "membersQualified": 2, "timesGiven": 2, "points": 0, "chips": 2000, "spins": 0, "perks": 0, "isBudgetReached": false}',
+    '{"events": 3, "membersQualified": 2, "timesGiven": 2, "points": 0, "chips": 2000, "perks": 0, "isBudgetReached": false}',
     jsonb_build_object('reward', v.reward, 'eligibility', v.eligibility, 'schedule', v.schedule, 'limits', v.limits))
   from public.promotion_version v where v.id = p_version;
 $$;
@@ -56,6 +56,9 @@ select throws_ok($$ select public.save_promotion_draft('00000000-0000-4000-8000-
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select throws_ok($$ select public.save_promotion_draft('00000000-0000-4000-8000-000000000001', pg_temp.draft('Ten percent', 0, (select day from today))) $$,
   '23514', null, 'terms the model does not hold are refused');
+select throws_ok($$ select public.save_promotion_draft('00000000-0000-4000-8000-000000000001',
+  jsonb_set(pg_temp.draft('A free spin', 10, (select day from today)), '{terms,reward}', '{"kind": "free_spin", "spins": 1, "afterMinutes": 240}')) $$,
+  '23514', null, 'a free spin, which the club dropped with its wheel, is refused');
 insert into ids select 'v1', public.save_promotion_draft('00000000-0000-4000-8000-000000000001', pg_temp.draft('Ten percent', 10, (select day from today)) || '{"request_id": "00000000-0000-4000-8000-00000000f300"}');
 select is(public.save_promotion_draft('00000000-0000-4000-8000-000000000001', pg_temp.draft('Ten percent', 10, (select day from today)) || '{"request_id": "00000000-0000-4000-8000-00000000f300"}'), pg_temp.id('v1'),
   'a retry with the request id returns the same draft');

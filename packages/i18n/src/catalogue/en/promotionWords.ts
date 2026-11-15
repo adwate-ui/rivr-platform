@@ -21,8 +21,6 @@ export const promotionWords = {
     referral: '{chips} bonus chips for each referral', signup: '{chips} bonus chips on sign-up',
   },
   pointsMultiplier: '{multiplier}× points',
-  freeSpin: '1 free spin after {time}',
-  freeSpins: '{count} free spins after {time}',
   cabHome: 'A cab home from visit {visit} in a month',
   tournamentEntry: 'An entry to {name}',
   priority: 'Front of every waitlist',

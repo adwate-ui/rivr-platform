@@ -193,18 +193,18 @@ Hourly rakeback (#108, decision 0245), in paise. `packages/testing/golden/rakeba
 
 The database's `private.promotion_applies`, `private.promotion_reward` and `private.promotions_to_give` are proved equal on `packages/testing/golden/promotions.json`, and `private.seconds_in_window` on `promotionWindow.json`; `private.evaluate_promotions` puts them together.
 
-**The typed model (console v3; decisions 0470 to 0472).** A promotion's version holds a Reward, Eligibility, Schedule, Limits and Channels (`@rivr/contracts/promotionModel`), in points, bonus chips, spins and perks, never paise. The console builds versions only (decision 0491); the rules above stay for the promotions that still run by a rule, which the engine weighs before the versions.
+**The typed model (console v3; decisions 0470 to 0472).** A promotion's version holds a Reward, Eligibility, Schedule, Limits and Channels (`@rivr/contracts/promotionModel`), in points, bonus chips and perks, never paise. The console builds versions only (decision 0491); the rules above stay for the promotions that still run by a rule, which the engine weighs before the versions.
 
 | Export | What it does |
 |---|---|
 | `isInSchedule(schedule, at)`, `secondsInSchedule(span, schedule)`, `openingMinutes` | When a version runs: on its club days from its start day to its end day, an opening from `from` to the next `to`, across midnight or the 06:00 turnover; the same time at both ends is 24 hours. Time-played rewards count the whole seconds of play inside the openings. Proved on `promotionSchedule.json`. |
 | `isEligible(promo, member, context)`, `MemberFacts` | The member's tier and audience (everyone, new in 30 days or lapsed 30 days; no audience of women, decision 0497), and for an event at a moment its stake, table and moment. |
-| `computeGrant(promo, event)`, `triggerOf(reward)`, `Grant` | What the reward gives for one event, before limits: a seat bonus its fixed chips on a visit's first seat or on the first N at a table (owner, 8 Nov); a buy-in bonus as a percent of own chips in whole 50s held to its cap, or fixed; a multiplier's extra points; spins after their minutes; a play-time bonus step's chips on its own `hours_step` event (decision 0507); bonus chips on their event; a cab, an entry or priority on a visit. `Result` with the reason for nothing. |
+| `computeGrant(promo, event)`, `triggerOf(reward)`, `Grant` | What the reward gives for one event, before limits: a seat bonus its fixed chips on a visit's first seat or on the first N at a table (owner, 8 Nov); a buy-in bonus as a percent of own chips in whole 50s held to its cap, or fixed; a multiplier's extra points; a play-time bonus step's chips on its own `hours_step` event (decision 0507); bonus chips on their event; a cab, an entry or priority on a visit. `Result` with the reason for nothing. |
 | `checkLimits(promo, grant, tally)`, `tallyFor`, `periodKey`, `slotKey`, `remainingBudget(promo, ledger, day)`, `decideGrant` | The limits in order: the member's period (up to `timesPerMember` times, each grant keyed as the member's Nth there by `slotKey`; a play-time bonus step's period `@` its place among the promotion's steps, so an edit that moves a step never pays it twice, and with no limit its visit; `periodKey` takes the reward for that, decisions 0507 and 0511), first N per table, members a day, most grants, the budget in chips whole or not at all; counted over all versions, and a monthly budget (`budgetPeriod` `month`) over the event's club month alone (decision 0499). |
 | `tierChips(tiers, claimed)` | A seat bonus in tiers (decision 0580): the chips of the tier the claims so far fall in, null once every tier is claimed; `checkLimits` gives a tiered grant its tier's chips and refuses it `tiers_used_up` past the last. `private.promo_tier_chips` is its twin on `promotionRewards.json`. |
-| `stackGrants(candidates)` | For one event: one multiplier, the one giving the most points; chips and spins stack; one perk of each kind. |
+| `stackGrants(candidates)` | For one event: one multiplier, the one giving the most points; chips stack; one perk of each kind. |
 | `hourSteps(reward)`, `stepsReached(reward, minutes)` | A play-time bonus's steps (decision 0507): one after a time, two to six set steps, or every so many minutes up to its times a visit and never past 24 hours; and those reached in the minutes played. |
-| `simulate(promo, events)` | Last week replayed (a play-time bonus a step for each its visits reached): members qualified, times given, points, chips, spins, perks, whether the budget stopped a grant, and every grant. |
+| `simulate(promo, events)` | Last week replayed (a play-time bonus a step for each its visits reached): members qualified, times given, points, chips, perks, whether the budget stopped a grant, and every grant. |
 | `transition(state, action, actor)`, `sameTerms` | The status machine: submit needs a simulation on these terms, approval `promotions.approve` and someone other than the author, an edit of a running version opens the next draft. |
 
 `private.promo_is_eligible`, `private.promo_grant`, `private.promo_check_limits`, `private.promo_stack` and `private.seconds_in_schedule` are proved equal on `promotionRewards.json` and `promotionSchedule.json` in `supabase/tests/024_golden_twins.test.sql`.
@@ -290,16 +290,6 @@ Glaza's monthly statement (#109, decision 0265, question #580), in paise. `packa
 |---|---|
 | `glazaStatement(lines)`, `GlazaStatementLine`, `GlazaStatement`, `GlazaKind` | A month of Glaza's lines as its statement: comped lines owed at cost by kind, alcohol sold with its cost and margin; food and soft drinks sold are Glaza's alone. |
 | `glazaPayable(comps, alcoholMargin)`, `GlazaPayable` | RIVR's half of the alcohol margin, rounded toward nothing to the paisa (Glaza keeps an odd paisa), and NewCo's payable: the comps less that half, below nothing when Glaza owes RIVR. |
-
-### `@rivr/domain/spin`
-
-The spin wheel (#150, decision 0266). `packages/testing/golden/spin.json` proves `spinPrize` against `private.spin_prize`.
-
-| Export | What it does |
-|---|---|
-| `spinPrize(prizes, budgetLeft, roll)`, `SpinPrize` | The prize a roll lands on (from 0), among those that can be drawn in the wheel's order, each taking as many rolls as its weight; null when none can be drawn. |
-| `reducedOdds(weight, total)` | A prize's odds in lowest terms for the TV: 20 in 70 is 2 in 7 (F-139). |
-| `isDrawable(prize, budgetLeft)`, `spinOdds(prizes, budgetLeft)` | A bonus can be drawn only while the budget left covers it: the smaller of what is left of the month's `spin.budget` and of the spin's promotion's own budget (A2-03); the odds are the weights of the prizes that can be drawn. |
 
 ## Usage
 

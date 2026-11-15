@@ -53,7 +53,7 @@ function versionRow(more: Record<string, unknown>) {
     id: 'v1', version: 1, status: 'live', name: TERMS.name, reward: TERMS.reward, eligibility: TERMS.eligibility, schedule: TERMS.schedule,
     limits: TERMS.limits, channels: TERMS.channels, rules_text: [], link: null, detail: '2× points', runs: 'Every day', author: 'Ishita Bose',
     is_mine: false, submitted_at: '2026-11-02T10:00:00+00:00', decided_by: 'Vikram Rao', decided_at: '2026-11-02T11:00:00+00:00', rejected_reason: null,
-    simulation: { events: 3, membersQualified: 2, timesGiven: 2, points: 240, chips: 0, spins: 0, perks: 0, isBudgetReached: false }, simulated_terms: null,
+    simulation: { events: 3, membersQualified: 2, timesGiven: 2, points: 240, chips: 0, perks: 0, isBudgetReached: false }, simulated_terms: null,
     ...more,
   };
 }
@@ -122,10 +122,10 @@ describe('promotions in versions: versions and the approver', () => {
   it('reads what promotions gave a member, for the Visits tab', async () => {
     const { result } = renderVersions({
       '/rpc/member_promotion_grants': [{ grant_id: 'g1', granted_at: '2026-11-03T15:30:00+00:00', club_day: '2026-11-03', promotion_name: 'Tuesday bonus',
-        version: 2, points: 0, chips: 1000, spins: 0, perk: null }],
+        version: 2, points: 0, chips: 1000, perk: null }],
     });
     await waitFor(() => expect(result.current.grants.data).toEqual([
-      { id: 'g1', grantedAt: '2026-11-03T15:30:00+00:00', clubDay: '2026-11-03', promotion: 'Tuesday bonus', version: 2, points: 0, chips: 1000, spins: 0, perk: null },
+      { id: 'g1', grantedAt: '2026-11-03T15:30:00+00:00', clubDay: '2026-11-03', promotion: 'Tuesday bonus', version: 2, points: 0, chips: 1000, perk: null },
     ]));
   });
 });
