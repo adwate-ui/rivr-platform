@@ -32,7 +32,7 @@ export function HostQueue({ venueId }: { venueId: string }) {
       ? <Screen title={title} status="error" onRetry={() => void queue.refetch()} />
       : <Screen title={title} status="loading" loadingLook="rows" />;
   }
-  // A queue with nothing in it is one line on a raised panel, as on KYC review, Hand over and Spins waiting (audit F-206).
+  // A queue with nothing in it is one line on a raised panel, as on KYC review and Hand over (audit F-206).
   if (queue.data.length === 0) return <Screen title={title}><Box surface="raised" radius="md" padding={4}><Text variant="small" tone="muted">{t('console.hostQueue.none')}</Text></Box></Screen>;
   return (
     <Screen title={title}>

@@ -6,9 +6,9 @@ export const PROMOTION_TRIGGERS = [
 ] as const;
 export type PromotionTrigger = (typeof PROMOTION_TRIGGERS)[number];
 
-/** What a promotion rule gives (scope-v1 module 7, additions "Spin wheel"). */
+/** What a promotion rule gives (scope-v1 module 7). */
 export const PROMOTION_EFFECTS = [
-  'bonus', 'points', 'freeroll_ticket', 'cab_eligibility', 'physical_prize', 'jackpot_payout', 'message', 'spin',
+  'bonus', 'points', 'freeroll_ticket', 'cab_eligibility', 'physical_prize', 'jackpot_payout', 'message',
 ] as const;
 export type PromotionEffectKind = (typeof PROMOTION_EFFECTS)[number];
 
@@ -74,7 +74,6 @@ export const promotionEffectSchema = z.union([
   z.strictObject({ kind: z.literal('physical_prize'), prize: z.string().trim().min(1).max(80), value_paise: z.int().min(0).max(1_000_000_000).optional() }),
   z.strictObject({ kind: z.literal('jackpot_payout'), pool: z.enum(['main', 'season', 'freeroll']), amount_paise: chipPaise }),
   z.strictObject({ kind: z.literal('message'), text: z.string().trim().min(1).max(500) }),
-  z.strictObject({ kind: z.literal('spin') }),
 ]);
 export type PromotionEffect = z.infer<typeof promotionEffectSchema>;
 

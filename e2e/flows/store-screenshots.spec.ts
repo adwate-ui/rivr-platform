@@ -2,7 +2,7 @@
  * The app stores' screenshots (decision 0577), from seed data: a 6.9-inch iPhone for Apple and a 1080 by 1920 phone for Google.
  * Run only by hand, with the local stack, and commit what it writes:
  *   STORE_SCREENSHOTS=1 pnpm e2e --grep "Store screenshots"
- * No screen here shows bonus chips, spins or rupees.
+ * No screen here shows bonus chips or rupees.
  */
 import { expect, test, type Browser } from '@playwright/test';
 import { signInToPlayer } from '../support/signIn.ts';

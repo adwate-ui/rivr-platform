@@ -74,8 +74,7 @@ src/
     social/           by tab (/social?tab=wall|publish|leads): the social wall's tagged posts to approve or reject, publishing with the posts made, and the inbox's leads
     website/          Content's Website tab (/content?tab=website): the pages found by name in Club, Guides and Legal, beside the open page's draft, preview, publishing and history (#129); a page's sections added, moved, deleted or changed in kind from each one's menu, and list items added and removed (#906)
     learn-sources/    Content's Learn content tab (/content?tab=learn), loaded when first opened as it carries the drill engine: licensed encodings and adding one that passes its checks (#131)
-    rewards/          the tabs of /rewards (?tab=rewards|points; the spin wheel is the third), and the Door's Hand over: the catalogue, its form opened by New reward or a reward's Edit; members' redemptions to hand over, at the Door alone; points by hand, earned or locked, and released (#645), and League points from a CSV
-    spin-wheel/       the Spin wheel tab of /rewards (?tab=spin-wheel): the spins waiting, and the wheel's prizes with their odds as bars, a bonus the month's spin budget cannot pay saying it is off the wheel, with a link to the budget
+    rewards/          the tabs of /rewards (?tab=rewards|points), and the Door's Hand over: the catalogue, its form opened by New reward or a reward's Edit; members' redemptions to hand over, at the Door alone; points by hand, earned or locked, and released (#645), and League points from a CSV
     league/           the RIVR League's standings by month or season, and its seasons (/league)
     tournament-interest/ a new tournament published without money: name, start, game and stake as text, description (#800);
                       who registered interest in each from the app, marked registered once paid (#636; the Waitlist's Tournament interest tab, /waitlist?tab=interest)

@@ -9,7 +9,6 @@ import { LeagueMode } from './LeagueMode.tsx';
 import { PromotionsMode, SLIDE_MS } from './PromotionsMode.tsx';
 import { RewardsMode } from './RewardsMode.tsx';
 import { SocialWallMode } from './SocialWallMode.tsx';
-import { SpinMode } from './SpinMode.tsx';
 import { TournamentClockMode } from './TournamentClockMode.tsx';
 import { WaitlistMode } from './WaitlistMode.tsx';
 import { BoardStatus } from './BoardStatus.tsx';
@@ -38,7 +37,7 @@ interface BoardProps {
   onEmpty?: (() => void) | undefined;
 }
 
-/** One board. The waitlist board is built (#65, the jackpot hidden by #628), the promotions (#86), the call-time board (decision 0163), the rewards ticker and League leaderboard (#148), the hours leaderboard (decision 0581), the tournament clock (#119), the spin wheel (#150) and the social wall (#158); the other modes show their name under the TV's until they are. */
+/** One board. The waitlist board is built (#65, the jackpot hidden by #628), the promotions (#86), the call-time board (decision 0163), the rewards ticker and League leaderboard (#148), the hours leaderboard (decision 0581), the tournament clock (#119) and the social wall (#158); the other modes show their name under the TV's until they are. */
 function Board({ mode, name, onDone, onEmpty }: BoardProps) {
   if (mode === 'waitlist') return <WaitlistMode />;
   if (mode === 'call_time') return <CallTimeMode />;
@@ -47,7 +46,6 @@ function Board({ mode, name, onDone, onEmpty }: BoardProps) {
   if (mode === 'league') return <LeagueMode onEmpty={onEmpty} />;
   if (mode === 'leaderboard') return <LeaderboardMode onEmpty={onEmpty} />;
   if (mode === 'tournament_clock') return <TournamentClockMode name={name} />;
-  if (mode === 'spin_wheel') return <SpinMode onEmpty={onEmpty} />;
   if (mode === 'social_wall') return <SocialWallMode onEmpty={onEmpty} />;
   return (
     <Stack gap={4}>

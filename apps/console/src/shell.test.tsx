@@ -15,7 +15,6 @@ describe('the console frame', () => {
   // Under the screen's own name, not "Console" (#811).
   it.each([
     ['/purge', 'Purge', 'Not in your role. Ask an admin.'], ['/academy', 'Academy', 'Not used at RIVR.'],
-    ['/rewards?tab=spin-wheel', 'Spin wheel', 'Not in your role. Ask an admin.'],
   ])('refuses %s, opened by its address, under its name', async (path, title, text) => {
     signIn();
     answerStaff([CLUB]);
@@ -99,7 +98,7 @@ describe('the console frame', () => {
   it.each([
     ['/tablets', 'Settings', 'Tablets'], ['/tvs', 'Settings', 'TVs'], ['/devices', 'Settings', 'TVs'],
     ['/dealer-pins', 'Staff', 'Dealer PINs'], ['/check-in', 'Door', 'Check-in'], ['/players-today', 'Door', 'Today’s players'],
-    ['/spin-wheel', 'Rewards', 'Spin wheel'], ['/website', 'Content', 'Website'], ['/learn-sources', 'Content', 'Learn content'],
+    ['/website', 'Content', 'Website'], ['/learn-sources', 'Content', 'Learn content'],
   ])('opens %s on %s, at its tab, %s, for a super admin', async (path, rail, tab) => {
     signIn();
     answerStaff([{ ...CLUB, full_name: 'Vikram Rao', role: 'super_admin' }]);

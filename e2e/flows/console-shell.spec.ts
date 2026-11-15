@@ -15,7 +15,6 @@ const MOVED: readonly (readonly [string, string, string | null, string | null])[
   // Requests is one list, oldest first, with no tabs (decision 0479).
   ['/top-ups', '/?panel=open', null, null],
   ['/time-requests', '/?panel=open', null, null],
-  ['/spin-wheel', '/rewards?tab=spin-wheel', 'Rewards', 'Spin wheel'],
   // The Waitlist's own tabs are the lead's (routes/waitlist.tsx): the address and the rail are this flow's to check.
   ['/tournament-interest', '/waitlist?tab=interest', 'Waitlist', null],
   ['/website', '/content?tab=website', 'Content', 'Website'],

@@ -35,11 +35,10 @@ function eventsFor(promo: Terms, replayed: ReplayedEvent): readonly ReplayedEven
 const byTime = (one: ReplayedEvent, other: ReplayedEvent) =>
   one.event.at.getTime() - other.event.at.getTime() || (one.event.key < other.event.key ? -1 : Number(one.event.key > other.event.key));
 
-function totalsOf(grants: readonly LedgerEntry[]): Pick<Simulation, 'points' | 'chips' | 'spins' | 'perks'> {
+function totalsOf(grants: readonly LedgerEntry[]): Pick<Simulation, 'points' | 'chips' | 'perks'> {
   return {
     points: grants.reduce((total, grant) => total + grant.points, 0),
     chips: grants.reduce((total, grant) => total + grant.chips, 0),
-    spins: grants.reduce((total, grant) => total + grant.spins, 0),
     perks: grants.filter((grant) => grant.perk !== null).length,
   };
 }

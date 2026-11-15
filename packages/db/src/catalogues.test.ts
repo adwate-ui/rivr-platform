@@ -47,7 +47,12 @@ function permissionsInMigrations(): Map<string, string[]> {
 
 function settingKeysInMigrations(): Map<string, { scope: string; schema: unknown }> {
   const rows = [...sql.matchAll(/\('([a-z_]+\.[a-z_]+)',\s*'(?:[^']|'')*',\s*'([a-z_]+)',\s*'(\{[\s\S]*?\})'\)/g)];
-  return new Map(rows.map(([, key, scope, schema]) => [key ?? '', { scope: scope ?? '', schema: JSON.parse(schema ?? 'null') }]));
+  const keys = new Map(rows.map(([, key, scope, schema]) => [key ?? '', { scope: scope ?? '', schema: JSON.parse(schema ?? 'null') }]));
+  // A key a later migration removes (the redesign of 15 Nov: `delete from public.setting_key where key in (...)`) is no longer the database's.
+  for (const [, removed = ''] of sql.matchAll(/delete from public\.setting_key where key in \(([^)]*)\)/g)) {
+    for (const [, key = ''] of removed.matchAll(/'([a-z_.]+)'/g)) keys.delete(key);
+  }
+  return keys;
 }
 
 describe('the feature catalogue', () => {

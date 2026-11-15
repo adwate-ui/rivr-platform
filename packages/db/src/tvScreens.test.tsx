@@ -110,6 +110,14 @@ describe('A paired TV', () => {
     await waitFor(() => expect(result.current.data).toEqual({ deviceId: 'd1', venueId: VENUE, name: 'Bar TV', mode: 'waitlist', rotation: ['promotions'] }));
   });
 
+  it('shows the waitlist in place of a board the club dropped, and leaves that board out of its turns', async () => {
+    const { wrapper } = renderTvs('tv-login', {
+      '/rpc/my_tv_screen': { body: [{ device_id: 'd1', venue_id: VENUE, name: 'Bar TV', mode: 'spin_wheel', rotation: ['spin_wheel', 'promotions'] }] },
+    });
+    const { result } = renderHook(() => useMyTvScreen(), { wrapper });
+    await waitFor(() => expect(result.current.data).toEqual({ deviceId: 'd1', venueId: VENUE, name: 'Bar TV', mode: 'waitlist', rotation: ['promotions'] }));
+  });
+
   it('signs itself out once it reads nothing, so it shows a new code', async () => {
     const { calls, wrapper } = renderTvs('tv-login', { '/rpc/my_tv_screen': { body: [] } });
     const { result } = renderHook(() => ({ screen: useMyTvScreen(), auth: useAuthStatus() }), { wrapper });

@@ -189,8 +189,6 @@ export const queryKeys = {
   tvLeagueBoard: (userId: string) => ['user', userId, 'tv-league-board'] as const,
   /** The TV's hours leaderboard (decision 0581). */
   tvLeaderboard: (userId: string) => ['user', userId, 'tv-leaderboard'] as const,
-  /** The TV's spin wheel (#150). */
-  tvSpinWheel: (userId: string) => ['user', userId, 'tv-spin-wheel'] as const,
   /** The TV's social wall (#158). */
   tvSocialWall: (userId: string) => ['user', userId, 'tv-social-wall'] as const,
   /** A venue's games not running and their interest (#113), and its hands over a period (#114). */

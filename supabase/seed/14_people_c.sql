@@ -57,7 +57,7 @@ insert into seed_person_c (id, phone, full_name) values
   ('00000000-0000-4000-8000-000000000631', '+919000000631', 'Dev Malhotra'),
   -- The Glaza flow's own finance manager, who imports Glaza's CSV (#109).
   ('00000000-0000-4000-8000-000000000632', '+919000000632', 'Neha Gill'),
-  -- The Spin wheel flow's own duty manager, who spins the wheel, and member, whose spin the seed gives (#150).
+  -- Once the Spin wheel flow's own duty manager and member (#150); the wheel is gone, and other tests count the people.
   ('00000000-0000-4000-8000-000000000633', '+919000000633', 'Kunal Sethi'),
   ('00000000-0000-4000-8000-000000000634', '+919000000634', 'Tara Bose'),
   -- The Social wall flow's own marketing manager, who approves a tagged post (#157).
@@ -175,13 +175,6 @@ insert into public.visit (venue_id, member_id, opened_at, closed_at, close_reaso
 select '00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000296', now() - d.ago, now() - d.ago + interval '5 hours', 'door'
 from (values (interval '3 days'), (interval '10 days'), (interval '17 days')) as d (ago)
 where not exists (select 1 from public.visit v where v.member_id = '00000000-0000-4000-8000-000000000296');
-
--- The Spin wheel flow's member has a spin waiting, from Spin the wheel (#150).
-insert into public.promotion_grant (venue_id, promotion_id, promotion_rule_id, member_id, trigger, effect, cost_paise, points, source_key, club_day)
-select p.venue_id, p.id, r.id, '00000000-0000-4000-8000-000000000634', r.trigger, r.effect, 0, 0, 'seed:spin-wheel-flow', (now() at time zone 'Asia/Kolkata')::date
-from public.promotion p join public.promotion_rule r on r.promotion_id = p.id
-where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key = 'spin_wheel'
-on conflict do nothing;
 
 -- The Social wall flow's posts waiting for moderation, as Instagram's pull would record them (#157).
 insert into public.wall_post (venue_id, source_id, handle, caption, media_url, media_kind, permalink, posted_at) values

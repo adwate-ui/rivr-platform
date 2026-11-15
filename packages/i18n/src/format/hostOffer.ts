@@ -12,7 +12,6 @@ export interface HostOfferWords {
 export function formatHostOffer(offer: HostOfferWords): string {
   if (offer.kind === 'points' && offer.points !== undefined) return t('console.hostQueue.offer.points', { points: formatNumber(offer.points) });
   if (offer.kind === 'bonus' && offer.amount_paise !== undefined) return t('console.hostQueue.offer.bonus', { chips: formatChips(BigInt(offer.amount_paise)) });
-  if (offer.kind === 'spin') return t('console.hostQueue.offer.spin');
   if (offer.kind === 'message') return t('console.hostQueue.offer.message');
   return t('console.hostQueue.offer.other');
 }

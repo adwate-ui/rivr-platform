@@ -81,21 +81,21 @@ create function pg_temp.as_person(p_person text) returns void language sql as $$
 $$;
 grant execute on function pg_temp.as_person(text) to authenticated;
 grant select on ids to authenticated;
-with p as (insert into public.promotion (venue_id, name) values ('00000000-0000-4000-8000-000000000001', 'Spin month') returning id)
-insert into ids select 'spin', id from p;
+with p as (insert into public.promotion (venue_id, name) values ('00000000-0000-4000-8000-000000000001', 'Monthly budget') returning id)
+insert into ids select 'monthly_budget', id from p;
 insert into public.promotion_version (venue_id, promotion_id, version, status, name, reward, eligibility, schedule, limits, channels, author_staff_id, submitted_at)
-select '00000000-0000-4000-8000-000000000001', (select id from ids where name = 'spin'), 1, 'awaiting_approval', 'Spin month',
-       '{"kind": "free_spin", "spins": 1, "afterMinutes": 240}', '{"stakes": "all", "tiers": "all", "audience": "everyone"}',
+select '00000000-0000-4000-8000-000000000001', (select id from ids where name = 'monthly_budget'), 1, 'awaiting_approval', 'Monthly budget',
+       '{"kind": "hours_bonus", "chips": 500, "afterMinutes": 240}', '{"stakes": "all", "tiers": "all", "audience": "everyone"}',
        jsonb_build_object('days', '[1, 2, 3, 4, 5, 6, 7]'::jsonb, 'from', '06:00', 'to', '06:00', 'startsOn', private.club_day_of(now())::text, 'timezone', 'Asia/Kolkata'),
        '{"perMember": "per_day", "budgetChips": 20000, "maxGrants": 300, "budgetPeriod": "month"}', '{"playerApp": true, "tv": false, "website": false, "whatsapp": false}',
        s.id, now()
 from public.staff s where s.venue_id = '00000000-0000-4000-8000-000000000001' and s.user_id = '00000000-0000-4000-8000-000000000107';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select lives_ok($$ select public.approve_promotion_version((select v.id from public.promotion_version v where v.promotion_id = (select id from ids where name = 'spin'))) $$,
+select lives_ok($$ select public.approve_promotion_version((select v.id from public.promotion_version v where v.promotion_id = (select id from ids where name = 'monthly_budget'))) $$,
   'a super admin approves a monthly budget');
 reset role;
-select results_eq($$ select cap_paise, cap_count, period from public.promotion_budget where promotion_id = (select id from ids where name = 'spin') $$,
-  $$ values (2000000::bigint, 300, 'month'::text) $$, 'and the budget the wheel reads is monthly too');
+select results_eq($$ select cap_paise, cap_count, period from public.promotion_budget where promotion_id = (select id from ids where name = 'monthly_budget') $$,
+  $$ values (2000000::bigint, 300, 'month'::text) $$, 'and its budget is monthly too');
 
 -- An old rule with up to two a day and a monthly budget becomes a version, its grants numbered in their days.
 select set_config('request.jwt.claims', '', true);

@@ -66,8 +66,6 @@ describe('describePromotion', () => {
       .toBe('250 bonus chips every 1 h 30 min, up to once a visit');
     expect(rewardLine({ kind: 'bonus_chips', chips: 1_000, on: 'referral' })).toBe('1,000 bonus chips for each referral');
     expect(rewardLine({ kind: 'bonus_chips', chips: 500, on: 'first_buyin' })).toBe('500 bonus chips on the first buy-in of a visit');
-    expect(rewardLine({ kind: 'free_spin', spins: 1, afterMinutes: 90 })).toBe('1 free spin after 1 h 30 min');
-    expect(rewardLine({ kind: 'free_spin', spins: 2, afterMinutes: 240 })).toBe('2 free spins after 4 hours');
     expect(rewardLine({ kind: 'cab_home', fromVisitInMonth: 4 })).toBe('A cab home from visit 4 in a month');
     expect(rewardLine({ kind: 'tournament_entry', tournamentId: 'RIVR Sunday' })).toBe('An entry to RIVR Sunday');
     expect(rewardLine({ kind: 'waitlist_priority' })).toBe('Front of every waitlist');

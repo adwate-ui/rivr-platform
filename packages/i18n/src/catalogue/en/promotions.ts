@@ -2,7 +2,7 @@ import { promotionWords } from './promotionWords.ts';
 
 /**
  * The console's Promotions (console v3, phase 7; decisions 0471 and 0491 to 0496): the list by status, the builder in
- * five sections with its summary column, and the approver's view of a waiting version. Points, bonus chips, spins and
+ * five sections with its summary column, and the approver's view of a waiting version. Points, bonus chips and
  * perks, never rupees (decision 0284).
  */
 export const promotions = {
@@ -79,18 +79,17 @@ export const promotions = {
     /** The templates that prefill the builder, and the names they give. */
     templates: {
       blank: 'Blank', double_points: 'Points multiplier', seat_bonus: 'Seat bonus chips', four_hour_bonus: 'Four-hour bonus chips',
-      spin_the_wheel: 'Spin the wheel', founders_priority: 'Founders’ Circle priority',
+      founders_priority: 'Founders’ Circle priority',
     },
     templateNames: {
       double_points: 'Double points', seat_bonus: 'Tuesday seat bonus chips', four_hour_bonus: 'Four-hour bonus chips',
-      spin_the_wheel: 'Spin the wheel', founders_priority: 'Founders’ Circle priority',
+      founders_priority: 'Founders’ Circle priority',
     },
     rewards: {
       points_multiplier: { label: 'Points multiplier', description: 'Points earned per hour, multiplied' },
       seat_bonus: { label: 'Seat bonus chips', description: 'Fixed bonus chips on a first seat' },
       hours_bonus: { label: 'Hours-played bonus chips', description: 'Bonus chips after time at the tables' },
       bonus_chips: { label: 'Bonus chips', description: 'Fixed bonus chips on a visit or referral' },
-      free_spin: { label: 'Free spin', description: 'Spins of the RIVR wheel' },
       cab_home: { label: 'Cab home', description: 'A ride home after a set visit count' },
       tournament_entry: { label: 'Tournament entry', description: 'A seat in a tournament' },
       waitlist_priority: { label: 'Waitlist priority', description: 'Front of every waitlist' },
@@ -129,8 +128,6 @@ export const promotions = {
       noCap: 'No cap',
       givenOn: 'Given on',
       bonusOn: { visit: 'Each visit', first_buyin: 'First buy-in', referral: 'Referral', signup: 'Sign-up' },
-      spins: 'Spins',
-      spinsSuffix: 'spins',
       fromVisit: 'From visit',
       fromVisitSuffix: 'in a calendar month',
       tournament: 'Tournament',
@@ -175,7 +172,6 @@ export const promotions = {
       everyHours: 'Half hours, from 0.5 to 12.',
       timesPerVisit: 'A whole number from 1 to 20, or blank for no cap.',
       steps: 'Each step later than the one before, in half hours to 24, with whole 50s of chips.',
-      spins: '1 to 10 spins.',
       fromVisit: 'A visit from 1 to 31.',
       tournament: 'Name the tournament.',
       who: 'Pick who qualifies again.',
@@ -207,7 +203,7 @@ export const promotions = {
     period: '{from} to {to}',
     membersQualified: 'members qualified',
     timesGiven: 'times given',
-    measures: { points: 'extra points', chips: 'bonus chips', spins: 'spins', perks: 'perks' },
+    measures: { points: 'extra points', chips: 'bonus chips', perks: 'perks' },
     budgetReached: 'The budget would have run out.',
     /** The approver's view replays last week afresh (decision 0495). */
     replaying: 'Replaying last week.',

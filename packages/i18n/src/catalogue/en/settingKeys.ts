@@ -193,11 +193,6 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
       google_business_profile: 'Google Business Profile', whatsapp: 'WhatsApp',
     },
   },
-  'spin.budget': {
-    name: 'Spin wheel budget',
-    help: 'The most bonus chips the wheel gives in a club month. Not set gives none.',
-    fields: { monthly_paise: 'Each month' },
-  },
   'tds.config': {
     name: 'TDS on winnings',
     help: 'Whether TDS is taken from winnings (while off, every cash-out still records it), under which section, at what rate, above what net winnings and over what period, and the rate for a member with no PAN.',

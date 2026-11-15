@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 /**
  * The typed promotion model (console v3, phase 7; decision 0472): what a promotion's version gives (Reward), to whom
- * (Eligibility), when (Schedule), how often (Limits) and where it shows (Channels). Rewards are points, bonus chips,
- * spins and perks, never rupees or paise (decision 0284). `promotion_version` holds each part as jsonb, and the database
+ * (Eligibility), when (Schedule), how often (Limits) and where it shows (Channels). Rewards are points, bonus chips
+ * and perks, never rupees or paise (decision 0284). `promotion_version` holds each part as jsonb, and the database
  * checks the same shapes.
  */
 
@@ -48,7 +48,6 @@ export const rewardSchema = z.union([
     timesPerVisit: z.int().min(1).max(20).optional(),
   }),
   z.strictObject({ kind: z.literal('bonus_chips'), chips, on: z.enum(BONUS_CHIPS_ON) }),
-  z.strictObject({ kind: z.literal('free_spin'), spins: z.int().min(1).max(10), afterMinutes: minutesPlayed }),
   z.strictObject({ kind: z.literal('cab_home'), fromVisitInMonth: z.int().min(1).max(31) }),
   z.strictObject({ kind: z.literal('tournament_entry'), tournamentId: z.string().trim().min(1).max(80) }),
   z.strictObject({ kind: z.literal('waitlist_priority') }),
@@ -181,7 +180,6 @@ export const promotionSimulationSchema = z.strictObject({
   timesGiven: z.int().min(0),
   points: z.int().min(0),
   chips: z.int().min(0),
-  spins: z.int().min(0),
   perks: z.int().min(0),
   isBudgetReached: z.boolean(),
 });

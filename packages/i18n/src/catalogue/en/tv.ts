@@ -14,12 +14,11 @@ export const tv = {
     rewards: 'Rewards ticker',
     league: 'League leaderboard',
     social_wall: 'Social wall',
-    spin_wheel: 'Spin wheel',
     leaderboard: 'Hours leaderboard',
   },
   /** Under a list on a board cut short (F-044). */
   more: '+{count} more',
-  /** A member who hid their name on the TVs (#326), on a row with no seat or place to go by: a redemption, a spin. Beside a number, the name is left blank (F-137). */
+  /** A member who hid their name on the TVs (#326), on a row with no seat or place to go by: a redemption. Beside a number, the name is left blank (F-137). */
   hiddenName: 'A member',
   /** The waitlist board (#65), a list a table (decision 0467). */
   waitlist: {
@@ -45,23 +44,6 @@ export const tv = {
     redeemedDetail: 'This week',
     empty: 'Nothing yet.',
     points: '{points} points',
-  },
-  /** The spin wheel (#150, decision 0266): the prizes and their odds, and tonight's spins as they happen. */
-  spin: {
-    title: 'Spin wheel',
-    wheel: 'On the wheel',
-    wheelDetail: 'Odds',
-    spins: 'Tonight’s spins',
-    spinsDetail: 'Newest first',
-    empty: 'Nothing yet.',
-    /** `3 in 10`. */
-    odds: '{weight} in {odds}',
-    /** A wheel of more prizes than fit, a page at a time: `Prizes 7 to 9 of 9`. */
-    page: 'Prizes {from} to {to} of {count}',
-    points: '{points} points',
-    /** `{chips}`: a count of bonus chips, `500` (#628). */
-    bonus: '{chips} bonus chips',
-    nothing: 'Nothing',
   },
   /** The social wall (#158, decision 0267): the club's approved Instagram posts, one after another. */
   socialWall: {

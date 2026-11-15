@@ -21,7 +21,7 @@ grant execute on function pg_temp.as_person(text) to authenticated;
 -- then approved by a super admin.
 create function pg_temp.submit_version(p_key text) returns void language sql as $$
   select public.record_promotion_simulation(v.id,
-    '{"events": 0, "membersQualified": 0, "timesGiven": 0, "points": 0, "chips": 0, "spins": 0, "perks": 0, "isBudgetReached": false}',
+    '{"events": 0, "membersQualified": 0, "timesGiven": 0, "points": 0, "chips": 0, "perks": 0, "isBudgetReached": false}',
     jsonb_build_object('reward', v.reward, 'eligibility', v.eligibility, 'schedule', v.schedule, 'limits', v.limits))
   from public.promotion_version v join public.promotion p on p.id = v.promotion_id
   where p.venue_id = '00000000-0000-4000-8000-000000000001' and p.template_key = p_key and v.version = 1;

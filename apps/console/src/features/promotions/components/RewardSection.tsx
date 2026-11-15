@@ -42,14 +42,6 @@ function BonusChipsFields({ section }: { section: SectionProps }) {
   );
 }
 
-/** Hours played before an hours bonus or a free spin, in half hours. */
-function AfterInput({ section }: { section: SectionProps }) {
-  return (
-    <FormInput section={section} field="afterHours" label={t('console.promotions.builder.fields.afterHours')}
-      suffix={t('console.promotions.builder.fields.afterSuffix')} inputMode="decimal" />
-  );
-}
-
 /** The fields of the kind chosen; waitlist priority has none. */
 function KindFields({ section }: { section: SectionProps }) {
   switch (section.form.kind) {
@@ -66,14 +58,6 @@ function KindFields({ section }: { section: SectionProps }) {
       return <HoursBonusFields section={section} />;
     case 'bonus_chips':
       return <BonusChipsFields section={section} />;
-    case 'free_spin':
-      return (
-        <Fields>
-          <FormInput section={section} field="spins" label={t('console.promotions.builder.fields.spins')}
-            suffix={t('console.promotions.builder.fields.spinsSuffix')} inputMode="numeric" />
-          <AfterInput section={section} />
-        </Fields>
-      );
     case 'cab_home':
       return (
         <Fields>

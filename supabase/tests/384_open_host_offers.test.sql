@@ -26,10 +26,10 @@ select '00000000-0000-4000-8000-000000000001', m.id, 'marketing' from public.mem
 where m.id::text like '00000000-0000-4000-8000-000000000b8_' and m.id <> '00000000-0000-4000-8000-000000000b85';
 insert into public.host_queue_item (venue_id, member_id, last_visit_at, visits, status, offer, won_back_at) values
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000b81', now() - interval '40 days', 4, 'offered', '{"kind": "points", "points": 500}', null),
-  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000b82', now() - interval '40 days', 4, 'won_back', '{"kind": "spin"}', now()),
-  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000b83', now() - interval '40 days', 4, 'won_back', '{"kind": "spin"}', now() - interval '7 days'),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000b82', now() - interval '40 days', 4, 'won_back', '{"kind": "message", "text": "Come back"}', now()),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000b83', now() - interval '40 days', 4, 'won_back', '{"kind": "message", "text": "Come back"}', now() - interval '7 days'),
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000b84', now() - interval '40 days', 4, 'open', null, null),
-  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000b85', now() - interval '40 days', 4, 'offered', '{"kind": "spin"}', null);
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000b85', now() - interval '40 days', 4, 'offered', '{"kind": "message", "text": "Come back"}', null);
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select results_eq($$ select * from pg_temp.offers() $$,

@@ -133,7 +133,6 @@ describe('Requests on a phone (console v3)', () => {
     expect(screen.getByText('Late · 7 min').className).toContain('text-danger');
     expect(await screen.findByText('Also waiting')).toBeDefined();
     expect(screen.getByRole('button', { name: /ID checks/ })).toBeDefined();
-    expect(screen.queryByText('Spins to do')).toBeNull();
   });
 
   it('approves more time with Undo, which calls the database\'s undo', async () => {

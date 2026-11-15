@@ -11,7 +11,7 @@ import { floorRequestTargets, tvLeaderboard } from './floorSettings.ts';
 import { hostLapse } from './hostQueue.ts';
 import {
   accommodationHoursPerNight, authStoreReviewer, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, cabMinimumVisits, kycAtTheClub, leaguePrizes, learnDailyPointsCap, learnSessionPoints, pointsDailyStaffCap, pointsPerHour, pointsRewardsRakeShare,
-  pointsVerifiedBonus, rakebackRate, reviewsGoogleUrl, spinBudget,
+  pointsVerifiedBonus, rakebackRate, reviewsGoogleUrl,
 } from './rewardSettings.ts';
 import type { SettingDefinition } from './settingDefinition.ts';
 
@@ -289,7 +289,7 @@ export const SETTINGS = [
   callTimeMinutes, callTimeAddChoices, floorRequestTargets, tvLeaderboard, defaultTier, kycMinimumAge, kycAtTheClub, authStoreReviewer, academyPrice, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, highHandPayouts, dealerVarianceThreshold, dealerRotationMinutes, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, markersDueDays, cageSecondApproverThreshold, tdsConfig, gstConfig, academyGst, pointsPerHour, pointsRewardsRakeShare,
   cardQrRotationSeconds, leaguePoints, leaguePrizes, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
-  cageCashBuyInLimit, amlStructuring, rakebackRate, accommodationHoursPerNight, reviewsGoogleUrl, cabMinimumVisits, learnSessionPoints, learnDailyPointsCap, spinBudget, hostLapse, socialConnectedChannels, pointsDailyStaffCap, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, pointsVerifiedBonus,
+  cageCashBuyInLimit, amlStructuring, rakebackRate, accommodationHoursPerNight, reviewsGoogleUrl, cabMinimumVisits, learnSessionPoints, learnDailyPointsCap, hostLapse, socialConnectedChannels, pointsDailyStaffCap, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, pointsVerifiedBonus,
 ] as const;
 
 /** A setting key declared in code. */

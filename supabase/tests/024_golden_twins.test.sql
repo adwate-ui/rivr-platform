@@ -650,26 +650,6 @@ select results_eq(
   $$ select description, expected ->> 'near' from golden.golden_case where file = 'aml.json' and operation = 'near_limit' order by position $$,
   'private.is_near_limit gives every total in the golden file');
 
--- The spin wheel: private.spin_prize and @rivr/domain spinPrize (packages/testing/golden/spin.json). A wheel such as
--- "100 points ×3; ₹500 bonus ×1; nothing ×1" as private.spin_prize takes it.
-create function pg_temp.wheel(p_text text) returns jsonb language sql immutable as $$
-  select coalesce(jsonb_agg(case
-      when split_part(w.prize, ' ×', 1) = 'nothing' then jsonb_build_object('kind', 'nothing', 'amount', 0)
-      when split_part(w.prize, ' ×', 1) like '% points' then jsonb_build_object('kind', 'points', 'amount', split_part(w.prize, ' ', 1)::bigint)
-      else jsonb_build_object('kind', 'bonus', 'amount', pg_temp.paise(split_part(w.prize, ' ', 1))) end
-      || jsonb_build_object('weight', split_part(w.prize, ' ×', 2)::bigint) order by w.n), '[]'::jsonb)
-  from unnest(string_to_array(p_text, ';')) with ordinality as u (raw, n) cross join lateral (select btrim(u.raw) as prize, u.n) w
-  where w.prize <> '';
-$$;
-select ok((select count(*) > 0 from golden.golden_case where file = 'spin.json'), 'the spin wheel cases are loaded');
-select is_empty($$ select operation from golden.golden_case where file = 'spin.json' and operation <> 'draw' $$,
-  'every operation in spin.json is proved here');
-select results_eq(
-  $$ select description, coalesce(private.spin_prize(pg_temp.wheel(inputs ->> 'prizes'), pg_temp.paise(inputs ->> 'budgetLeft'), (inputs ->> 'roll')::bigint)::text, 'none')
-     from golden.golden_case where file = 'spin.json' order by position $$,
-  $$ select description, expected ->> 'prize' from golden.golden_case where file = 'spin.json' order by position $$,
-  'private.spin_prize lands every roll in the golden file on its prize');
-
 -- The Glaza statement: private.glaza_payable and @rivr/domain glazaPayable (packages/testing/golden/glaza.json).
 select ok((select count(*) > 0 from golden.golden_case where file = 'glaza.json'), 'the Glaza statement cases are loaded');
 select is_empty($$ select operation from golden.golden_case where file = 'glaza.json' and operation not in ('payable', 'statement') $$,
@@ -779,11 +759,11 @@ select results_eq(
   $$ select description, expected ->> 'eligible' from golden.golden_case where file = 'promotionRewards.json' and operation = 'eligible' order by position $$,
   'private.promo_is_eligible decides every member in the golden file');
 select results_eq(
-  $$ select description, coalesce(g.o_refusal, g.o_points || ' | ' || g.o_chips || ' | ' || g.o_spins || ' | ' || coalesce(g.o_perk, ''))
+  $$ select description, coalesce(g.o_refusal, g.o_points || ' | ' || g.o_chips || ' | ' || coalesce(g.o_perk, ''))
      from golden.golden_case cross join lateral private.promo_grant((inputs ->> 'reward')::jsonb, (inputs ->> 'event')::jsonb) g
      where file = 'promotionRewards.json' and operation = 'grant' order by position $$,
   $$ select description, coalesce(expected ->> 'refusal',
-                                   (expected ->> 'points') || ' | ' || (expected ->> 'chips') || ' | ' || (expected ->> 'spins') || ' | ' || (expected ->> 'perk'))
+                                   (expected ->> 'points') || ' | ' || (expected ->> 'chips') || ' | ' || (expected ->> 'perk'))
      from golden.golden_case where file = 'promotionRewards.json' and operation = 'grant' order by position $$,
   'private.promo_grant gives every grant in the golden file');
 select results_eq(
@@ -840,10 +820,10 @@ begin
           '{"days": [1, 2, 3, 4, 5, 6, 7], "from": "06:00", "to": "06:00", "startsOn": "2026-10-01", "timezone": "Asia/Kolkata"}', v_limits,
           '{"playerApp": false, "tv": false, "website": false, "whatsapp": false}')
   returning id into v_version;
-  insert into public.promotion_grant (venue_id, promotion_id, promotion_version_id, member_id, table_id, trigger, effect, cost_paise, points, chips, spins,
+  insert into public.promotion_grant (venue_id, promotion_id, promotion_version_id, member_id, table_id, trigger, effect, cost_paise, points, chips,
                                       perk, source_key, period_key, club_day)
   select '00000000-0000-4000-8000-000000000001', v_promotion, v_version, (e ->> 'memberId')::uuid, pg_temp.golden_table(e ->> 'tableId'), 'buy_in', '{}',
-         (e ->> 'chips')::bigint * 100, (e ->> 'points')::bigint, (e ->> 'chips')::bigint, (e ->> 'spins')::integer, e ->> 'perk', 'golden:' || n,
+         (e ->> 'chips')::bigint * 100, (e ->> 'points')::bigint, (e ->> 'chips')::bigint, e ->> 'perk', 'golden:' || n,
          e ->> 'periodKey', (e ->> 'clubDay')::date
   from jsonb_array_elements((p_inputs ->> 'ledger')::jsonb) with ordinality as l (e, n);
   v_tally := private.promotion_tally(v_promotion, (v_event ->> 'memberId')::uuid,

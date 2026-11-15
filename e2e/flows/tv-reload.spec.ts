@@ -24,7 +24,6 @@ const MODES: readonly { chip: string; rendered: (tv: Page) => Locator }[] = [
   { chip: 'Hours leaderboard', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Most hours played' }) },
   // An approved post's slide, or that none is on the wall yet (#158).
   { chip: 'Social wall', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Social wall' }).or(tv.getByText('On Instagram', { exact: true })) },
-  { chip: 'Spin wheel', rendered: (tv) => tv.getByRole('heading', { level: 1, name: 'Spin wheel' }) },
 ];
 
 test.describe('TV reload', () => {

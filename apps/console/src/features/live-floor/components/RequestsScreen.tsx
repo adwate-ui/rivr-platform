@@ -31,7 +31,7 @@ function RequestsReady({ venueId, permissions, data }: RequestsProps & { data: F
     <Stack gap={6}>
       <RequestList requests={queue.shown} tables={data.tables} targets={data.targets} now={now} fresh={queue.fresh} changes={changes.requests}
         {...openers} />
-      <AlsoWaiting venueId={venueId} permissions={permissions} />
+      <AlsoWaiting venueId={venueId} />
       <FloorSheets venueId={venueId} sheet={sheet} data={data} now={now} permissions={permissions} changes={changes} onSheet={setSheet} />
     </Stack>
   );

@@ -18,7 +18,7 @@ function buyIn(at: string, memberId: string, more: Partial<{ key: string; tableI
 describe('simulate', () => {
   it('replays nothing when there were no events', () => {
     expect(simulate(buildPromotionTerms(), [])).toEqual({
-      events: 0, membersQualified: 0, timesGiven: 0, points: 0, chips: 0, spins: 0, perks: 0, isBudgetReached: false, grants: [],
+      events: 0, membersQualified: 0, timesGiven: 0, points: 0, chips: 0, perks: 0, isBudgetReached: false, grants: [],
     });
   });
 
@@ -26,7 +26,7 @@ describe('simulate', () => {
     const terms = buildPromotionTerms({ reward: BONUS });
     const result = simulate(terms, [buyIn('2026-11-17T21:00:00+05:30', 'arjun'), buyIn('2026-11-17T22:00:00+05:30', 'kabir'),
       buyIn('2026-11-17T23:00:00+05:30', 'arjun')]);
-    expect([result.events, result.membersQualified, result.timesGiven, result.chips, result.points, result.spins, result.perks]).toEqual([3, 2, 3, 6_000, 0, 0, 0]);
+    expect([result.events, result.membersQualified, result.timesGiven, result.chips, result.points, result.perks]).toEqual([3, 2, 3, 6_000, 0, 0]);
   });
 
   it('gives in time order, then in the order of the keys, however the events came', () => {
@@ -73,11 +73,10 @@ describe('simulate', () => {
     expect([result.events, result.membersQualified, result.timesGiven]).toEqual([2, 1, 1]);
   });
 
-  it('counts points, spins and perks apart', () => {
+  it('counts points and perks apart', () => {
     const played = toPromotionEvent(buildPromotionEvent({ kind: 'time_played', minutes: 300, points: 90 }));
     const visit = toPromotionEvent(buildPromotionEvent({ kind: 'visit', visitInMonth: 4 }, { tableId: null, stake: null }));
     expect(simulate(buildPromotionTerms({ reward: { kind: 'points_multiplier', multiplier: 3 } }), [{ event: played, member }]).points).toBe(180);
-    expect(simulate(buildPromotionTerms({ reward: { kind: 'free_spin', spins: 2, afterMinutes: 240 } }), [{ event: played, member }]).spins).toBe(2);
     expect(simulate(buildPromotionTerms({ reward: { kind: 'cab_home', fromVisitInMonth: 4 } }), [{ event: visit, member }]).perks).toBe(1);
   });
 });

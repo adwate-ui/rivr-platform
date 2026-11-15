@@ -1,8 +1,7 @@
 import { SETTINGS } from '@rivr/contracts/settings';
 import type { SettingField, SettingValue } from '@rivr/db';
-import { chipsToPaise, fromPaise, paiseToChips, parseRupees } from '@rivr/domain/money';
+import { parseRupees } from '@rivr/domain/money';
 import { formatRupeesForInput } from '@rivr/i18n';
-import { isBonusChips } from './bonusChips.ts';
 import { isMoney, unitOf } from './settingsCopy.ts';
 
 /** What a field holds while it is typed: text for numbers, words and tiers; a switch's state; a list's choices. */
@@ -15,7 +14,6 @@ function draftOf(field: SettingField, current: FieldValue | undefined): FieldDra
   if (field.kind === 'boolean') return current === true;
   if (field.kind === 'choices') return typeof current === 'object' ? current : [];
   if (typeof current !== 'number') return typeof current === 'string' ? current : '';
-  if (isBonusChips(field)) return String(paiseToChips(fromPaise(BigInt(current))));
   if (isMoney(field)) return formatRupeesForInput(BigInt(current));
   // 525 basis points is typed as 5.25.
   return unitOf(field) === 'percent' ? String(current / 100) : String(current);
@@ -35,7 +33,6 @@ function typedNumber(field: Extract<SettingField, { kind: 'integer' }>, text: st
   }
   // Digits may be grouped, as the limits show them: 10,00,000.
   const digits = typed.replaceAll(',', '');
-  if (isBonusChips(field)) return /^\d+$/.test(digits) ? Number(chipsToPaise(BigInt(digits))) : null;
   if (unitOf(field) === 'percent') return /^\d+(\.\d{1,2})?$/.test(digits) ? Math.round(Number(digits) * 100) : null;
   return /^-?\d+$/.test(digits) ? Number(digits) : null;
 }
