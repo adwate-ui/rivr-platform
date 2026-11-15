@@ -27,6 +27,15 @@ export const kycAtTheClub = {
   value: z.strictObject({ enabled: z.boolean() }),
 } as const satisfies SettingDefinition;
 
+/** The Aadhaar bars at the desk (decision 0663): off, the Aadhaar front is photographed whole, for super admins alone. */
+export const kycAadhaarCovers = {
+  key: 'kyc.aadhaar_covers', defaultValue: { enabled: false },
+  description: 'Aadhaar bars at the desk: staff photograph the Aadhaar front under bars that hide its first eight digits and QR code, and say they do. Off, the photo is kept unmasked, for super admins alone. None set is off. Only a super admin changes it, with a reason.',
+  scope: 'venue',
+  superAdminOnly: true,
+  value: z.strictObject({ enabled: z.boolean() }),
+} as const satisfies SettingDefinition;
+
 /** The one number the app stores' reviewers sign in with (decision 0575). Set on the day the store apps go in for review; none set is none. */
 export const authStoreReviewer = {
   key: 'auth.store_reviewer',

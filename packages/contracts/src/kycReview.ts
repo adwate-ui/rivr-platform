@@ -44,8 +44,11 @@ export const kycInPersonSchema = z.object({
   aadhaarLast4: z.string().trim().regex(/^[0-9]{4}$/),
   pan: z.string().trim().toUpperCase().regex(PAN),
   consent: z.literal(true),
-  /** The staff member's word that the bars on the Aadhaar photo hide its first eight digits and QR code (decision 0573). */
-  coversConfirmed: z.literal(true),
+  /**
+   * The staff member's word that the bars on the Aadhaar photo hide its first eight digits and QR code (decision 0573), asked
+   * for only while the venue's kyc.aadhaar_covers is on (decision 0663); the database decides.
+   */
+  coversConfirmed: z.boolean(),
 });
 
 export type KycInPerson = z.output<typeof kycInPersonSchema>;
@@ -55,11 +58,11 @@ export const KYC_DOCUMENT_KINDS = ['pan', 'aadhaar_front'] as const;
 
 export type KycDocumentKind = (typeof KYC_DOCUMENT_KINDS)[number];
 
-/** A photo a super admin sent back, taken again at the desk. A new Aadhaar photo needs the word on its bars, as the first did. */
+/** A photo a super admin sent back, taken again at the desk. A new Aadhaar photo needs the word on its bars while the venue asks for them. */
 export const kycDocumentRetakeSchema = z.object({
   memberId: z.uuid(),
   kind: z.enum(KYC_DOCUMENT_KINDS),
   coversConfirmed: z.boolean(),
-}).refine(({ kind, coversConfirmed }) => kind === 'pan' || coversConfirmed, { message: 'bars not confirmed' });
+});
 
 export type KycDocumentRetake = z.output<typeof kycDocumentRetakeSchema>;

@@ -26,7 +26,7 @@ export const NAINA = { member_id: '00000000-0000-4000-8000-000000000203', full_n
 type Reply = () => Response | Promise<Response>;
 
 /** Vikram, a KYC reviewer, signed in, over a fake API; gives what was sent to the check. */
-function renderOver(ui: ReactElement, reply: Reply, lists: { found: unknown; due: unknown[]; holder: unknown[] }) {
+function renderOver(ui: ReactElement, reply: Reply, lists: { found: unknown; due: unknown[]; holder: unknown[]; covers?: boolean }) {
   localStorage.setItem(
     SESSION_STORAGE_KEY,
     JSON.stringify({
@@ -41,6 +41,8 @@ function renderOver(ui: ReactElement, reply: Reply, lists: { found: unknown; due
     if (url.includes('/rpc/kyc_in_person_candidates')) return Response.json([lists.found]);
     if (url.includes('/rpc/kyc_due_tonight')) return Response.json(lists.due);
     if (url.includes('/rpc/kyc_duplicate_holder')) return Response.json(lists.holder);
+    // The Aadhaar bars: off unless a test turns them on (decision 0663).
+    if (url.includes('/rpc/kyc_aadhaar_covers')) return Response.json(lists.covers ?? false);
     if (url.includes('/functions/v1/kyc-image-url')) return Response.json({ signedPath: '/object/sign/kyc/selfie.jpg?token=t' });
     if (url.includes('/functions/v1/kyc-in-person')) {
       sent.push(JSON.parse(String(init?.body)));
@@ -56,6 +58,11 @@ function renderOver(ui: ReactElement, reply: Reply, lists: { found: unknown; due
 /** The check on its screen: the API finds `found` (Naina), lists `due` as due tonight and answers her check with `reply`. */
 export function renderSection(reply: Reply, found: unknown = NAINA, due: unknown[] = [], holder: unknown[] = []) {
   return renderOver(<InPersonSection venueId="v1" />, reply, { found, due, holder });
+}
+
+/** The same for Naina, with the venue's Aadhaar bars on (decision 0663). */
+export function renderSectionWithBars(reply: Reply) {
+  return renderOver(<InPersonSection venueId="v1" />, reply, { found: NAINA, due: [], holder: [], covers: true });
 }
 
 /** The check behind its button, in the console's sheet. */
@@ -86,7 +93,7 @@ export async function takeThreePhotos() {
   await screen.findByText('Photo 2 of 3');
   await takeAndUse();
   await screen.findByText('Photo 3 of 3');
-  await takeAndUse(true);
+  await takeAndUse();
   await screen.findByRole('button', { name: 'Verify Naina Kapoor' });
 }
 

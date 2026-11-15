@@ -19,6 +19,8 @@ interface DeskCameraProps {
   reason?: string | undefined;
   /** What went wrong with the photo just taken, said under "Photo 1 of 3", beside the camera that takes it again. */
   problem?: string | undefined;
+  /** The Aadhaar front goes under the bars, with the word that they hide what they must (`kyc.aadhaar_covers`, decision 0663). */
+  hasCovers: boolean;
   /** The photo, once "Use photo" keeps it. */
   onPhoto: (photo: Blob) => void;
 }
@@ -27,8 +29,9 @@ interface DeskCameraProps {
  * The camera for one photo, on its step until the photo is kept; the step gives the way back. Never a file: the card is in
  * the hand of the person taking it.
  */
-export function DeskCamera({ kind, place, total, reason, problem, onPhoto }: DeskCameraProps) {
+export function DeskCamera({ kind, place, total, reason, problem, hasCovers, onPhoto }: DeskCameraProps) {
   const phoneUrl = window.location.href;
+  const isCovered = kind === 'aadhaar_front' && hasCovers;
   return (
     <Stack gap={3}>
       <Text variant="secondary" tone="muted">{t('console.kycInPerson.photoStep', { place, total })}</Text>
@@ -38,8 +41,8 @@ export function DeskCamera({ kind, place, total, reason, problem, onPhoto }: Des
         <DocumentCamera
           key={kind}
           label={t(`console.kycInPerson.document.${kind}`)}
-          covers={kind === 'aadhaar_front' ? AADHAAR_FRONT_COVERS : undefined}
-          coverConfirm={kind === 'aadhaar_front' ? t('console.kycInPerson.coverConfirm') : undefined}
+          covers={isCovered ? AADHAAR_FRONT_COVERS : undefined}
+          coverConfirm={isCovered ? t('console.kycInPerson.coverConfirm') : undefined}
           phoneUrl={phoneUrl}
           onPhoto={onPhoto}
         />
