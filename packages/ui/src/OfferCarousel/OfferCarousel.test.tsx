@@ -72,6 +72,17 @@ describe('OfferCarousel', () => {
     expect(currentDot()).toBe('Offer 2 of 3');
   });
 
+  it('holds for a slow drag too: the finger rests, then drags', () => {
+    vi.useFakeTimers();
+    renderIn(<OfferCarousel title="Offers" offers={THREE} />);
+    fireEvent.pointerDown(screen.getByRole('list'));
+    act(() => { vi.advanceTimersByTime(3000); });
+    fireEvent.touchMove(screen.getByRole('list'));
+    scrollRowTo(2);
+    act(() => { vi.advanceTimersByTime(OFFER_SLIDE_MS * 2); });
+    expect(currentDot()).toBe('Offer 3 of 3');
+  });
+
   it('follows its card and keeps moving when an offer coming in before it moves the row, which is no swipe', () => {
     vi.useFakeTimers();
     const { rerender } = renderIn(<OfferCarousel title="Offers" offers={[HAPPY, HIGH_HAND]} />);

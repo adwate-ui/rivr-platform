@@ -27,7 +27,8 @@ export interface OfferCarouselProps {
 /** How long a slide shows before the next, in milliseconds. */
 export const OFFER_SLIDE_MS = 5000;
 
-// How long after a finger or the wheel on the row its scroll is still the person's swipe, in milliseconds.
+// How long after a finger (as it lands, and while it drags) or the wheel on the row its scroll is still the person's swipe,
+// in milliseconds.
 const SWIPE_MS = 1500;
 
 const CARD = 'flex min-h-offer-height w-full flex-col justify-between gap-4 rounded-card border border-gold bg-raised p-5 text-start text-content focus-visible:outline focus-visible:outline-focus';
@@ -147,7 +148,7 @@ export function OfferCarousel({ title, offers }: OfferCarouselProps) {
   return (
     <section aria-label={title} className="flex flex-col gap-1 px-5">
       <ul ref={row} data-offer-row className="flex snap-x snap-mandatory gap-3 overflow-x-auto"
-        onScroll={onScroll} onPointerDown={onTouch} onWheel={onTouch} onFocus={() => setHeld(true)}>
+        onScroll={onScroll} onPointerDown={onTouch} onTouchMove={onTouch} onWheel={onTouch} onFocus={() => setHeld(true)}>
         {offers.map((offer) => <li key={offer.id} className="flex w-full shrink-0 snap-start"><OfferCard offer={offer} /></li>)}
       </ul>
       {count < 2 ? null : <Dots ids={offers.map((offer) => offer.id)} index={index} onPick={(next) => { setHeld(true); show(next); }} />}
