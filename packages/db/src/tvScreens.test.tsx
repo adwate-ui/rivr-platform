@@ -102,14 +102,14 @@ describe('An unpaired TV', () => {
 });
 
 describe('A paired TV', () => {
-  it('reads its name and its boards in order, each with its seconds', async () => {
+  it('reads its name, its boards in order, each with its seconds, and that its venue is not the practice one', async () => {
     const { wrapper } = renderTvs('tv-login', {
-      '/rpc/my_tv_screen': { body: [{ device_id: 'd1', venue_id: VENUE, name: 'Bar TV', boards: ['waitlist', 'promotions', 'high_hand'], seconds: [30, 12, 45] }] },
+      '/rpc/my_tv_screen': { body: [{ device_id: 'd1', venue_id: VENUE, name: 'Bar TV', boards: ['waitlist', 'promotions', 'high_hand'], seconds: [30, 12, 45], is_practice: false }] },
     });
     const { result } = renderHook(() => useMyTvScreen(), { wrapper });
     await waitFor(() => expect(result.current.data).toEqual({
       deviceId: 'd1', venueId: VENUE, name: 'Bar TV',
-      boards: [{ mode: 'waitlist', seconds: 30 }, { mode: 'promotions', seconds: 12 }, { mode: 'high_hand', seconds: 45 }],
+      boards: [{ mode: 'waitlist', seconds: 30 }, { mode: 'promotions', seconds: 12 }, { mode: 'high_hand', seconds: 45 }], isPractice: false,
     }));
   });
 
@@ -118,7 +118,8 @@ describe('A paired TV', () => {
       '/rpc/my_tv_screen': { body: [{ device_id: 'd1', venue_id: VENUE, name: 'Bar TV', boards: ['spin_wheel'], seconds: [30] }] },
     });
     const { result } = renderHook(() => useMyTvScreen(), { wrapper });
-    await waitFor(() => expect(result.current.data).toEqual({ deviceId: 'd1', venueId: VENUE, name: 'Bar TV', boards: [{ mode: 'waitlist', seconds: 30 }] }));
+    // A reply with no word on the venue (as from a database before decision 0673) reads as the practice one: it reports nothing.
+    await waitFor(() => expect(result.current.data).toEqual({ deviceId: 'd1', venueId: VENUE, name: 'Bar TV', boards: [{ mode: 'waitlist', seconds: 30 }], isPractice: true }));
   });
 
   it('signs itself out once it reads nothing, so it shows a new code', async () => {

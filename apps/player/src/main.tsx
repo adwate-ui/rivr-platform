@@ -8,15 +8,11 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { registerSW } from 'virtual:pwa-register';
 import { startInstallWatch, takeUpdateWhenHidden, takeWaitingUpdateAtNewScreens, watchLaunch } from './features/frame/index.ts';
-import { routePatternOf, router } from './router.tsx';
+import { routePatternOf } from '@rivr/error-reporting';
+import { router } from './router.tsx';
 
 // Errors reach Sentry where the build names its address (#928); in any other build nothing is kept, loaded or sent.
-startErrorReporting({
-  app: 'player',
-  version: import.meta.env.VITE_APP_VERSION,
-  environment: import.meta.env.VITE_SENTRY_ENVIRONMENT,
-  route: () => routePatternOf(router),
-});
+startErrorReporting(() => routePatternOf(router));
 
 // The codes of the link the app opened with, kept until sign-up (#10).
 rememberAttribution(window.location.search);

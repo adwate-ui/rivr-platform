@@ -11,6 +11,8 @@ pnpm dev --filter tablet
 
 The dev server listens on this worktree's port block (`tablet` is port `<block>42`, so `54340`-style on the root checkout; see `docs/decisions/0003`). `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` default to the local stack; CI and deploys set them.
 
+Errors reach Sentry where the build names `VITE_SENTRY_DSN_TABLET` (decision 0673): errors nothing caught, screens that failed to draw, reads that fail and changes refused, scrubbed by `@rivr/error-reporting`. A tablet paired to the practice venue reports nothing. A build without it, every local build and test, sends nothing.
+
 The tablet signs in as itself, never as a person (#41, decision 0045). To pair it locally, sign in to the console as a floor manager (`9000000103`, code `123456`), open Tablets, add one and type its six-digit code on the tablet. Fix it to a table on the same screen. A revoked tablet asks to be paired again.
 
 `pnpm test --filter tablet` runs the app's tests; `pnpm e2e --grep "<flow>"` runs a flow across apps.
@@ -39,6 +41,8 @@ src/
   router.tsx          every route, in one list
   routes/             one file per URL; renders a feature's screen and nothing else
   features/<name>/    components/ and hooks/, imported only through index.ts
+    error-reporting/  Sentry: main.tsx imports it first (errorReporting.ts makes the tablet's from @rivr/error-reporting);
+                      whose venue it is, by the device (ReportingVenue)
     frame/            the app's shell: the table it is fixed to (and the practice venue, for a training tablet), not found
     pairing/          the pairing code, until the tablet is signed in as itself
     dealer-sign-in/   between downs: the dealer's name and PIN, which starts their down

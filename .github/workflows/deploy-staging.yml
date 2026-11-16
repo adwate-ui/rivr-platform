@@ -90,10 +90,17 @@ jobs:
       PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.STAGING_SUPABASE_PUBLISHABLE_KEY }}
       PUBLIC_PLAYER_URL: ${{ vars.STAGING_PLAYER_URL }}
       PUBLIC_GTM_ID: ${{ vars.GTM_ID }}
-      # Error reporting (decision 0672): the staging key of the player's Sentry project, a variable of the staging environment.
+      # Error reporting (decisions 0672, 0673): each app's staging key of its own Sentry project, variables of the staging
+      # environment; the website takes Astro's PUBLIC_ names.
       VITE_SENTRY_DSN_PLAYER: ${{ vars.SENTRY_DSN_PLAYER }}
+      VITE_SENTRY_DSN_CONSOLE: ${{ vars.SENTRY_DSN_CONSOLE }}
+      VITE_SENTRY_DSN_TABLET: ${{ vars.SENTRY_DSN_TABLET }}
+      VITE_SENTRY_DSN_DISPLAY: ${{ vars.SENTRY_DSN_DISPLAY }}
       VITE_SENTRY_ENVIRONMENT: staging
       VITE_APP_VERSION: ${{ github.sha }}
+      PUBLIC_SENTRY_DSN_WEB: ${{ vars.SENTRY_DSN_WEB }}
+      PUBLIC_SENTRY_ENVIRONMENT: staging
+      PUBLIC_APP_VERSION: ${{ github.sha }}
     steps:
       - if: env.HAS_CLOUDFLARE != 'true'
         run: echo "::notice::CLOUDFLARE_API_TOKEN is not set; skipping the Pages deploy."

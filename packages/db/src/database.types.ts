@@ -3274,7 +3274,7 @@ isOneToOne: false
                            },
 "my_tv_screen":
 { Args: Record<PropertyKey, never>; Returns: {
-              "boards": (Database["public"]['Enums']["tv_mode"])[],"device_id": string,"mode": Database["public"]['Enums']["tv_mode"],"name": string,"rotation": (Database["public"]['Enums']["tv_mode"])[],"seconds": (number)[],"venue_id": string
+              "boards": (Database["public"]['Enums']["tv_mode"])[],"device_id": string,"is_practice": boolean,"mode": Database["public"]['Enums']["tv_mode"],"name": string,"rotation": (Database["public"]['Enums']["tv_mode"])[],"seconds": (number)[],"venue_id": string
             }[]
                            },
 "my_upcoming_tournaments":

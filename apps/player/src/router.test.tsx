@@ -1,7 +1,8 @@
 import { createMemoryHistory } from '@tanstack/react-router';
 import { describe, expect, it } from 'vitest';
 import { reportError } from './features/error-reporting/index.ts';
-import { createAppRouter, routePatternOf } from './router.tsx';
+import { routePatternOf } from '@rivr/error-reporting';
+import { createAppRouter } from './router.tsx';
 
 describe('the player app router', () => {
   it('names the open route by its pattern, never by the address, which holds an id', async () => {

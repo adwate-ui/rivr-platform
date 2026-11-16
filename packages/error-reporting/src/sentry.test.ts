@@ -6,9 +6,9 @@ import { startSentry } from './sentry.ts';
 // The real SDK, with one change: what it would post to Sentry is kept here instead, to be read as it would leave the phone.
 const posted = vi.hoisted(() => new Array<unknown>());
 // For a value that is no error the SDK gives its own place in the code as where it was thrown: in the app that is one of
-// its scripts under /assets/, in a test this folder. The tests of such values allow it; the others leave this empty.
+// its scripts under /assets/, in a test this package's folder. The tests of such values allow it; the others leave this empty.
 const alsoAllowed = vi.hoisted(() => new Array<string>());
-const THIS_FOLDER = '/error-reporting/';
+const THIS_FOLDER = '/error-reporting/src/';
 
 vi.mock('@sentry/react', async (importOriginal) => {
   const sdk = await importOriginal<typeof import('@sentry/react')>();
@@ -24,7 +24,7 @@ vi.mock('@sentry/react', async (importOriginal) => {
 });
 
 const DSN = 'https://public@sentry.invalid/1';
-const options = { dsn: DSN, app: 'player', version: 'release-test', environment: 'staging' };
+const options = { dsn: DSN, app: 'player', version: 'release-test', environment: 'staging', scriptsAt: '/assets/' };
 
 /** An error thrown from one of the app's own scripts, or from `file`. */
 function errorFrom(message: string, file = `${window.location.origin}/assets/index-a1b2.js`): Error {
@@ -111,6 +111,22 @@ describe('startSentry', () => {
     expect(posted).toHaveLength(1);
   });
 
+  it('keeps no breadcrumb from the practice venue, or from before the venue is known', async () => {
+    const venue: { isPractice: boolean | null } = { isPractice: true };
+    const waiting: Kept[] = [];
+    const send = started(waiting, venue);
+    addBreadcrumb({ category: 'fetch', data: { method: 'POST', url: '/rest/v1/rpc/in_practice', status_code: 400 } });
+    venue.isPractice = null;
+    addBreadcrumb({ category: 'fetch', data: { method: 'GET', url: '/rest/v1/rpc/while_unknown', status_code: 200 } });
+    venue.isPractice = false;
+    addBreadcrumb({ category: 'fetch', data: { method: 'GET', url: '/rest/v1/rpc/at_the_club', status_code: 200 } });
+    waiting.push({ error: errorFrom('after switching back to the club'), isCaught: false, route: '/' });
+    send();
+    const sent = await wire();
+    expect(sent).toContain('at_the_club');
+    expect(sent).not.toMatch(/in_practice|while_unknown/);
+  });
+
   it('posts only errors thrown from the app\'s own scripts, not a browser extension\'s or an in-app browser\'s', async () => {
     const send = started([
       { error: errorFrom('thrown by an extension', 'chrome-extension://abcdefghijklmnop/content.js'), isCaught: false, route: '/' },
@@ -135,12 +151,11 @@ describe('startSentry', () => {
 describe('error reporting, from the page to the post', () => {
   it('posts none of the words of a string thrown after Sentry has loaded, or reported before it had', async () => {
     alsoAllowed.push(THIS_FOLDER);
-    vi.stubEnv('VITE_SENTRY_DSN_PLAYER', DSN);
-    vi.resetModules();
-    const { reportError, setPracticeVenue, startErrorReporting } = await import('./errorReporting.ts');
+    const { createErrorReporting } = await import('./errorReporting.ts');
+    const { reportError, setPracticeVenue, start } = createErrorReporting({ ...options, environment: undefined });
     reportError('Asha Verma reported before Sentry loaded');
     window.dispatchEvent(new ErrorEvent('error', { error: 'Asha Verma thrown before Sentry loaded' }));
-    startErrorReporting({ app: 'player', version: 'release-test', environment: undefined, route: () => '/sign-up' });
+    start(() => '/sign-up');
     setPracticeVenue(false);
     await vi.waitFor(() => expect(posted).toHaveLength(2), { timeout: 3000 });
     window.dispatchEvent(new ErrorEvent('error', { error: 'Asha Verma thrown after Sentry loaded' }));

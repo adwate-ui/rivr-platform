@@ -11,6 +11,8 @@ pnpm dev --filter console
 
 The dev server listens on this worktree's port block (`console` is port `<block>41`, so `54340`-style on the root checkout; see `docs/decisions/0003`). `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` default to the local stack; CI and deploys set them. `VITE_WEB_URL`, the website's address for the website editor's preview (#129), defaults to this worktree's website; a deploy that does not set it shows no preview (the owner kept CI as it is, #591). Sign in with a seed phone number and code `123456` (`supabase/seed/10_people.sql`).
 
+Errors reach Sentry where the build names `VITE_SENTRY_DSN_CONSOLE` (decision 0673): errors nothing caught, screens that failed to draw, reads that fail and changes refused, and the desk camera's troubles, each by a short code, scrubbed by `@rivr/error-reporting`. Staff working in the practice venue report nothing. A build without it, every local build and test, sends nothing.
+
 `pnpm test --filter console` runs the app's tests; `pnpm e2e --grep "<flow>"` runs a flow across apps.
 
 ## Structure
@@ -21,6 +23,8 @@ src/
   router.tsx          every route, in one list
   routes/             one file per URL; renders a feature's screen and nothing else
   features/<name>/    components/ and hooks/, imported only through index.ts
+    error-reporting/  Sentry: main.tsx imports it first (errorReporting.ts makes the console's from @rivr/error-reporting);
+                      whose venue it is, the club or the practice venue staff switched to (ReportingVenue)
     frame/            the app's shell (console v3, decision 0476): staff only; the rail for the role (Tonight, Players,
                       Marketing, Admin folded), the phone's tab bar; the header's search, counts, clock and the staff
                       member's menu (density, practice venue, shortcuts, sign out); the practice venue's stripe;

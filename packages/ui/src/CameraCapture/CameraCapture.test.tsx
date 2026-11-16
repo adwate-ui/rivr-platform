@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderIn } from '../test/render.tsx';
@@ -125,6 +125,37 @@ describe('CameraCapture', () => {
     await userEvent.click(take);
     expect(await screen.findByRole('alert')).toHaveTextContent('Photo unclear. Retake it in good light.');
     expect(screen.getByRole('button', { name: 'Use photo' })).toBeInTheDocument();
+  });
+
+  it('says when a photo could not be made, until the next try, and tells the app', async () => {
+    getUserMedia.mockResolvedValue(stream);
+    // The first photo is not made, as on a phone short of memory; the next is still being made.
+    let tries = 0;
+    Object.defineProperty(HTMLCanvasElement.prototype, 'toBlob', {
+      value: (done: (blob: Blob | null) => void) => (tries++ === 0 ? done(null) : undefined),
+      configurable: true,
+    });
+    const onTrouble = vi.fn();
+    renderIn(<CameraCapture onPhoto={vi.fn()} onTrouble={onTrouble} />);
+    const take = screen.getByRole('button', { name: 'Take photo' });
+    await waitFor(() => expect(take).toBeEnabled());
+    await userEvent.click(take);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Photo not taken. Try again.');
+    expect(onTrouble.mock.calls).toEqual([['photo']]);
+    await userEvent.click(take);
+    await waitFor(() => expect(screen.queryByRole('alert')).toBeNull());
+    expect(onTrouble.mock.calls).toEqual([['photo']]);
+  });
+
+  it('tells the app once why the camera did not start, by its kind', async () => {
+    getUserMedia.mockRejectedValue(new DOMException('Denied', 'NotAllowedError'));
+    const onTrouble = vi.fn();
+    renderIn(<CameraCapture onPhoto={vi.fn()} onTrouble={onTrouble} />);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Camera blocked.');
+    // Told in an effect, a moment after the words are drawn; once, and not again once everything has settled.
+    await waitFor(() => expect(onTrouble.mock.calls).toEqual([['blocked']]));
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); });
+    expect(onTrouble.mock.calls).toHaveLength(1);
   });
 
   it('opens the back camera for a photo taken at the desk', async () => {

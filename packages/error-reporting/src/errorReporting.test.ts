@@ -19,7 +19,8 @@ vi.mock('./sentry.ts', () => ({
 }));
 
 const DSN = 'https://public@sentry.invalid/1';
-const options = { app: 'player', version: 'release-test', environment: 'staging', route: () => '/sign-up' };
+const options = { app: 'player', version: 'release-test', environment: 'staging', scriptsAt: '/assets/' };
+const signUp = () => '/sign-up';
 
 /** The first paint, and Sentry's code arriving after it. */
 async function paint() {
@@ -27,11 +28,11 @@ async function paint() {
   await vi.dynamicImportSettled();
 }
 
-/** The module as an app that has just started has it, in a build that names Sentry's address or one that does not. */
-async function freshModule(dsn = DSN) {
-  vi.stubEnv('VITE_SENTRY_DSN_PLAYER', dsn);
+/** An app's reporting as it is made when the app starts, in a build that names Sentry's address or one that does not. */
+async function made({ dsn }: { readonly dsn: string | undefined } = { dsn: DSN }) {
   vi.resetModules();
-  return import('./errorReporting.ts');
+  const { createErrorReporting } = await import('./errorReporting.ts');
+  return createErrorReporting({ ...options, dsn });
 }
 
 /** An error nothing caught, as the browser tells the page of it. */
@@ -44,7 +45,6 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers();
-  vi.unstubAllEnvs();
   vi.restoreAllMocks();
   vi.clearAllMocks();
 });
@@ -52,44 +52,46 @@ afterEach(() => {
 describe('error reporting', () => {
   it('listens for nothing, keeps nothing and loads nothing in a build that names no Sentry address', async () => {
     const listened = vi.spyOn(window, 'addEventListener');
-    // As a build has it when the variable is not set: empty.
-    const { reportError, reportFailure, setPracticeVenue, startErrorReporting } = await freshModule('');
-    startErrorReporting(options);
-    reportError(new Error('a screen failed'));
-    reportFailure('refused:not_live');
-    setPracticeVenue(null);
+    // As a build has it when the variable is not set: empty, or not there at all.
+    for (const dsn of ['', undefined]) {
+      const reporting = await made({ dsn });
+      reporting.start(signUp);
+      reporting.reportError(new Error('a screen failed'));
+      reporting.reportFailure('refused:not_live');
+      reporting.setPracticeVenue(null);
+    }
     await paint();
     expect(listened.mock.calls.map(([type]) => type)).not.toContain('error');
     expect(sentry.started).not.toHaveBeenCalled();
     expect(sentry.send).not.toHaveBeenCalled();
   });
 
-  it('keeps an error thrown before the app has started, as the module listens from the moment it loads', async () => {
-    const { startErrorReporting } = await freshModule();
+  it('keeps an error thrown before the app has started, as it listens from the moment it is made', async () => {
+    const reporting = await made();
     const early = new Error('thrown while the app loaded');
     thrown(early);
-    startErrorReporting(options);
+    reporting.start(signUp);
     await paint();
     expect(sentry.waiting).toEqual([{ error: early, isCaught: false, route: '' }]);
   });
 
-  it('loads Sentry only after the first paint, and once', async () => {
-    const { startErrorReporting } = await freshModule();
-    startErrorReporting(options);
-    startErrorReporting(options);
+  it('loads Sentry only after the first paint, and once, with the app\'s options', async () => {
+    const reporting = await made();
+    reporting.start(signUp);
+    reporting.start(signUp);
     await vi.dynamicImportSettled();
     expect(sentry.started).not.toHaveBeenCalled();
     await paint();
-    expect(sentry.started.mock.calls).toEqual([[{ app: 'player', version: 'release-test', environment: 'staging', dsn: DSN }]]);
+    expect(sentry.started.mock.calls).toEqual([[{ ...options, dsn: DSN }]]);
     expect(sentry.send).toHaveBeenCalledTimes(1);
   });
 
   it('keeps each error with the route it happened on, and whether the app caught it or nothing did', async () => {
-    const { reportError, startErrorReporting } = await freshModule();
+    const reporting = await made();
     let route = '/sign-up';
-    startErrorReporting({ ...options, route: () => route });
+    reporting.start(() => route);
     const drawing = new Error('a screen failed');
-    reportError(drawing);
+    reporting.reportError(drawing);
     route = '/kyc';
     const loose = new Error('thrown in a handler');
     thrown(loose);
@@ -105,20 +107,20 @@ describe('error reporting', () => {
   });
 
   it('keeps ten errors at most while they wait', async () => {
-    const { reportError, startErrorReporting } = await freshModule();
-    startErrorReporting(options);
-    for (let count = 1; count <= 12; count += 1) reportError(new Error(`failed ${String(count)}`));
+    const reporting = await made();
+    reporting.start(signUp);
+    for (let count = 1; count <= 12; count += 1) reporting.reportError(new Error(`failed ${String(count)}`));
     await paint();
     expect(sentry.waiting).toHaveLength(10);
   });
 
   it('asks Sentry to send as each error comes, once it has loaded', async () => {
-    const { reportError, startErrorReporting } = await freshModule();
-    startErrorReporting(options);
+    const reporting = await made();
+    reporting.start(signUp);
     await paint();
     sentry.send.mockClear();
     const later = new Error('a screen failed later');
-    reportError(later);
+    reporting.reportError(later);
     expect(sentry.send).toHaveBeenCalledTimes(1);
     // Sentry has no listener of its own: an error nothing caught still comes through here.
     const loose = new Error('thrown later');
@@ -127,8 +129,8 @@ describe('error reporting', () => {
   });
 
   it('reports a failure a screen handled by its code, once a visit for each code', async () => {
-    const { reportFailure, startErrorReporting } = await freshModule();
-    startErrorReporting(options);
+    const { reportFailure, start } = await made();
+    start(signUp);
     reportFailure('refused:not_live');
     reportFailure('refused:not_live');
     reportFailure('camera:blocked');
@@ -139,8 +141,8 @@ describe('error reporting', () => {
   });
 
   it('tells Sentry whose venue it is as that becomes known, and asks it to send again', async () => {
-    const { setPracticeVenue, startErrorReporting } = await freshModule();
-    startErrorReporting(options);
+    const { setPracticeVenue, start } = await made();
+    start(signUp);
     setPracticeVenue(null);
     await paint();
     expect(sentry.isPractice()).toBeNull();
@@ -152,17 +154,43 @@ describe('error reporting', () => {
     expect(sentry.send).toHaveBeenCalledTimes(2);
   });
 
+  it('keeps each app\'s reporting apart: two made from one import share nothing', async () => {
+    const { createErrorReporting } = await import('./errorReporting.ts');
+    const player = createErrorReporting({ ...options, dsn: DSN });
+    const staff = createErrorReporting({ ...options, app: 'console', dsn: DSN });
+    player.reportFailure('refused:not_live');
+    staff.reportFailure('refused:not_live');
+    staff.setPracticeVenue(true);
+    player.start(signUp);
+    await paint();
+    expect(sentry.waiting).toHaveLength(1);
+    expect(sentry.isPractice()).toBe(false);
+    staff.start(() => '/members');
+    await paint();
+    expect(sentry.started.mock.calls.map(([started]) => Reflect.get(Object(started), 'app'))).toEqual(['player', 'console']);
+    expect(sentry.waiting).toHaveLength(1);
+    expect(sentry.isPractice()).toBe(true);
+  });
+
   // Last: from here on this file's Sentry is one that fails to arrive.
   it('keeps nothing more when Sentry cannot be fetched', async () => {
     vi.doMock('./sentry.ts', () => {
       throw new Error('no connection');
     });
-    const { reportError, startErrorReporting } = await freshModule();
-    startErrorReporting(options);
-    reportError(new Error('a screen failed'));
+    const reporting = await made();
+    reporting.start(signUp);
+    reporting.reportError(new Error('a screen failed'));
     await paint();
-    reportError(new Error('a screen failed again'));
+    reporting.reportError(new Error('a screen failed again'));
     expect(sentry.started).not.toHaveBeenCalled();
     expect(sentry.send).not.toHaveBeenCalled();
+  });
+});
+
+describe('routePatternOf', () => {
+  it('names the open route by its pattern, never by the address, which holds an id', async () => {
+    const { routePatternOf } = await import('./errorReporting.ts');
+    expect(routePatternOf({ state: { matches: [{ fullPath: '/' }, { fullPath: '/sessions/$sessionId' }] } })).toBe('/sessions/$sessionId');
+    expect(routePatternOf({ state: { matches: [] } })).toBe('');
   });
 });

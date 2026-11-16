@@ -1,19 +1,16 @@
 import { t } from '@rivr/i18n';
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { Button } from '../Button/Button.tsx';
-import { photoOf, Trouble, useCamera, type CameraTrouble } from '../CameraCapture/CameraCapture.tsx';
+import { photoOf, Trouble, useCamera, type CameraCaptureTrouble } from '../CameraCapture/CameraCapture.tsx';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage.tsx';
 import { Heading } from '../Heading/Heading.tsx';
 import { usePageTitle } from '../Screen/Screen.tsx';
 import { cx } from '../internal/classes.ts';
 import { useFaceGuidance, type Guidance } from './faceGuidance.ts';
 
-/** What went wrong with the camera, by kind: why it did not start, or `photo`, a photo that could not be made. */
-export type SelfieTrouble = CameraTrouble | 'photo';
-
 export interface SelfieCameraProps {
   /** Told each time the camera does not start or a photo cannot be made, by kind only, for the app to report. */
-  onTrouble?: ((trouble: SelfieTrouble) => void) | undefined;
+  onTrouble?: ((trouble: CameraCaptureTrouble) => void) | undefined;
   /** The selfie the member kept. */
   onPhoto: (photo: Blob) => void;
   /** While the kept photo is sent: Use photo turns busy and Retake waits. */
@@ -31,7 +28,7 @@ const TIPS = ['tipLight', 'tipCap', 'tipAlone'] as const;
 /** The live line under the oval, read out politely as it changes; none where the browser cannot see a face. */
 function GuidanceLine({ guidance }: { guidance: Guidance | null }) {
   return (
-    <span aria-live="polite" className="mt-6 min-h-6 font-text text-18 font-medium text-content">
+    <span aria-live="polite" className="relative mt-6 min-h-6 font-text text-18 font-medium text-content">
       {guidance === null ? '' : t(`ui.selfie.${guidance}`)}
     </span>
   );
@@ -40,6 +37,8 @@ function GuidanceLine({ guidance }: { guidance: Guidance | null }) {
 interface LiveProps {
   video: RefObject<HTMLVideoElement | null>;
   isLive: boolean;
+  /** The last photo could not be made: said under the live line until the next try. */
+  hasFailed: boolean;
   onTake: () => void;
   onBack: () => void;
 }
@@ -49,7 +48,7 @@ interface LiveProps {
  * turns gold once a face fills it; the live line, three tips and the 76 px shutter. The photo takes itself once one face has
  * held still in the oval for a second, where the browser can see faces.
  */
-function Live({ video, isLive, onTake, onBack }: LiveProps) {
+function Live({ video, isLive, hasFailed, onTake, onBack }: LiveProps) {
   const guidance = useFaceGuidance(video, isLive, onTake);
   const isGood = guidance === 'steady' || guidance === 'capturing';
   return (
@@ -64,6 +63,8 @@ function Live({ video, isLive, onTake, onBack }: LiveProps) {
       <div aria-hidden="true" data-oval={isGood ? 'good' : 'far'}
         className={cx('relative mt-16 h-oval-height w-oval-width rounded-full border-3 outline-999 outline-scrim transition-colors', isGood ? 'border-gold' : 'border-muted')} />
       <GuidanceLine guidance={guidance} />
+      {/* Positioned, as every part over the picture is: the video, positioned itself, would cover it otherwise. */}
+      {hasFailed ? <div className="relative mt-3 px-6"><ErrorMessage look="dot">{t('ui.camera.photoFailed')}</ErrorMessage></div> : null}
       <ul className="relative mt-3 flex flex-wrap justify-center gap-2 px-6">
         {TIPS.map((tip) => (
           <li key={tip} className="rounded-full border border-cream-faint px-3 py-1 font-text text-13 text-content">{t(`ui.selfie.${tip}`)}</li>
@@ -116,6 +117,7 @@ export function SelfieCamera({ onPhoto, isSending = false, error, onBack, phoneU
   const [taken, setTaken] = useState<{ photo: Blob; count: number } | null>(null);
   const camera = useCamera('user', taken === null);
   const isTaking = useRef(false);
+  const [hasFailed, setHasFailed] = useState(false);
   const tell = useRef(onTrouble);
   useEffect(() => {
     tell.current = onTrouble;
@@ -126,10 +128,11 @@ export function SelfieCamera({ onPhoto, isSending = false, error, onBack, phoneU
   const take = async () => {
     if (isTaking.current || camera.video.current === null) return;
     isTaking.current = true;
+    setHasFailed(false);
     const photo = await photoOf(camera.video.current, true).catch(() => null);
     isTaking.current = false;
+    setHasFailed(photo === null);
     if (photo) setTaken((last) => ({ photo, count: (last?.count ?? 0) + 1 }));
-    // Nothing shows when the photo cannot be made, and the member taps again: the app is told, at least.
     else tell.current?.('photo');
   };
   if (taken) {
@@ -139,6 +142,6 @@ export function SelfieCamera({ onPhoto, isSending = false, error, onBack, phoneU
   if (camera.trouble) {
     return <div className="mx-auto w-full max-w-phone px-5 pt-16"><Trouble trouble={camera.trouble} phoneUrl={phoneUrl} onRetry={camera.retry} /></div>;
   }
-  return <Live video={camera.video} isLive={camera.isLive} onTake={() => void take()} onBack={onBack} />;
+  return <Live video={camera.video} isLive={camera.isLive} hasFailed={hasFailed} onTake={() => void take()} onBack={onBack} />;
 }
 

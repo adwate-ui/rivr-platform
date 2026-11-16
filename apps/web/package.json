@@ -16,6 +16,7 @@
     "@astrojs/react": "^7.1.0",
     "@rivr/contracts": "workspace:*",
     "@rivr/db": "workspace:*",
+    "@rivr/error-reporting": "workspace:*",
     "@rivr/i18n": "workspace:*",
     "@rivr/ui": "workspace:*",
     "astro": "^7.4.0",

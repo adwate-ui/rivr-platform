@@ -1,3 +1,4 @@
+import { sentrySourceMaps, uploadsSourceMaps } from '@rivr/config/sentry';
 import { appPort, defaultToLocalSupabase } from '@rivr/config/worktree';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
@@ -9,7 +10,9 @@ defaultToLocalSupabase('VITE_');
 if (isLocal) process.env.VITE_WEB_URL ||= `http://127.0.0.1:${String(appPort('web'))}`;
 
 export default defineConfig({
-  plugins: [react()],
+  // Hidden source maps for Sentry, only in a build that uploads them (decision 0673); @rivr/config/sentry has the rest.
+  plugins: [react(), sentrySourceMaps('rivr-console')],
+  build: { sourcemap: uploadsSourceMaps ? 'hidden' : false },
   server: { host: '127.0.0.1', port: appPort('console'), strictPort: true },
   preview: { host: '127.0.0.1', port: appPort('console'), strictPort: true },
 });

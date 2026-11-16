@@ -11,6 +11,8 @@ pnpm dev --filter display
 
 The dev server listens on this worktree's port block (`display` is port `<block>43`, so `54340`-style on the root checkout; see `docs/decisions/0003`). `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` default to the local stack; CI and deploys set them. Sign in with a seed phone number and code `123456` (`supabase/seed/10_people.sql`).
 
+Errors reach Sentry where the build names `VITE_SENTRY_DSN_DISPLAY` (decision 0673): errors nothing caught, screens that failed to draw and reads that fail, scrubbed by `@rivr/error-reporting`. A TV paired to the practice venue (`my_tv_screen`'s `is_practice`) reports nothing. A build without it, every local build and test, sends nothing.
+
 `pnpm test --filter display` runs the app's tests; `pnpm e2e --grep "<flow>"` runs a flow across apps.
 
 ## Structure
@@ -21,6 +23,8 @@ src/
   router.tsx          every route, in one list
   routes/             one file per URL; renders a feature's screen and nothing else
   features/<name>/    components/ and hooks/, imported only through index.ts
+    error-reporting/  Sentry: main.tsx imports it first (errorReporting.ts makes the TV's from @rivr/error-reporting);
+                      whose venue it is, by the TV's screen (ReportingVenue)
     frame/            the app's shell: navigation, not found; the pairing code until the TV is paired; the clock and the club's notice for every board
     pairing/          a TV that is not paired shows a six-digit code for the console's TVs screen (#49)
     modes/            the five boards (decision 0631), each a mode on one stage: the waitlist (#65), seats opening (decision 0163), the promotions (#86),

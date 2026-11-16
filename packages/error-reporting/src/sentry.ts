@@ -7,8 +7,10 @@ import { scrubBreadcrumb, scrubEvent, type EventKind } from './scrub.ts';
 
 /** What Sentry is started with (decision 0604). */
 export interface SentryOptions {
-  /** The Sentry project's address, from the build (`VITE_SENTRY_DSN_PLAYER`). */
+  /** The app's Sentry address, from its build (`VITE_SENTRY_DSN_PLAYER` and so on). */
   readonly dsn: string;
+  /** Where the app's own scripts are served, such as `/assets/` (a Vite app) or `/_astro/` (the website): only their errors are sent. */
+  readonly scriptsAt: string;
   /** The app the error is from, sent as a tag. */
   readonly app: string;
   /** The build's version (`VITE_APP_VERSION`), sent as the release; none in a build that does not name it. */
@@ -52,7 +54,7 @@ function routeOf(hint: EventHint): string {
  * and no listener of its own: every error comes through `waiting`, so each is held while the venue is not known, dropped
  * in the practice venue, and goes through ./scrub.ts before it leaves.
  */
-export function startSentry({ dsn, app, version, environment }: SentryOptions, waiting: Kept[], isPractice: () => boolean | null): () => void {
+export function startSentry({ dsn, app, version, environment, scriptsAt }: SentryOptions, waiting: Kept[], isPractice: () => boolean | null): () => void {
   const scrubbed = <Sent extends SentryEvent>(event: Sent, hint: EventHint): Sent => scrubEvent(event, { app, route: routeOf(hint) }, kindOf(hint.originalException));
   init({
     dsn,
@@ -70,13 +72,15 @@ export function startSentry({ dsn, app, version, environment }: SentryOptions, w
     ],
     dataCollection: COLLECT_NOTHING,
     // Only errors thrown from the app's own scripts: not a browser extension's, nor a script an in-app browser adds.
-    allowUrls: [`${window.location.origin}/assets/`],
+    allowUrls: [`${window.location.origin}${scriptsAt}`],
     maxValueLength: 1000,
     // A failed request's host is added to the copy of the error that is sent, never to the app's own.
     enhanceFetchErrorMessages: 'report-only',
     sendClientReports: false,
     maxBreadcrumbs: 30,
-    beforeBreadcrumb: scrubBreadcrumb,
+    // A breadcrumb is kept only while the venue is known not to be the practice one, so a staff member who switches from it
+    // to the club carries none of it into the club's first report.
+    beforeBreadcrumb: (breadcrumb) => (isPractice() === false ? scrubBreadcrumb(breadcrumb) : null),
     // The practice venue never reaches a vendor: a second lock behind the one below.
     beforeSend: (event, hint) => (isPractice() === false ? scrubbed(event, hint) : null),
   });
