@@ -10,8 +10,13 @@ interface ImportMetaEnv {
   readonly VITE_WEB_URL?: string;
   /** Cloudflare Turnstile's site key, where sign-in asks for a CAPTCHA (#182). */
   readonly VITE_TURNSTILE_SITE_KEY?: string;
-  /** The Sentry project's address, where errors are reported (#928, decision 0604); a build that does not name it loads and sends nothing. */
-  readonly VITE_SENTRY_DSN?: string;
+  /**
+   * The player's Sentry address, where errors are reported (#928, decisions 0604 and 0672); a build that does not name it
+   * loads and sends nothing. Named for the app, as one build command builds every app with one set of variables.
+   */
+  readonly VITE_SENTRY_DSN_PLAYER?: string;
+  /** Which deploy the report is from, `staging` or `production`; Sentry's default (`production`) when not named. */
+  readonly VITE_SENTRY_ENVIRONMENT?: string;
   /** The build's version, such as the release tag, sent with each error; none in a build that does not name it. */
   readonly VITE_APP_VERSION?: string;
 }

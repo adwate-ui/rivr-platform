@@ -24,7 +24,7 @@ vi.mock('@sentry/react', async (importOriginal) => {
 });
 
 const DSN = 'https://public@sentry.invalid/1';
-const options = { dsn: DSN, app: 'player', version: 'release-test' };
+const options = { dsn: DSN, app: 'player', version: 'release-test', environment: 'staging' };
 
 /** An error thrown from one of the app's own scripts, or from `file`. */
 function errorFrom(message: string, file = `${window.location.origin}/assets/index-a1b2.js`): Error {
@@ -64,6 +64,7 @@ describe('startSentry', () => {
     expect(sent).toContain('"url":"https://club.example/rest/v1/member"');
     expect(sent).toContain('"tags":{"app":"player","route":"/sessions/$sessionId","kind":"error"}');
     expect(sent).toContain('"release":"release-test"');
+    expect(sent).toContain('"environment":"staging"');
     expect(sent).toContain('"infer_ip":"never"');
     expect(sent).toContain('"handled":false');
     expect(sent).not.toMatch(/98765|ABCDE1234F|phone=eq|ui\.input|"user"|ip_address|"extra"|"contexts"/);
@@ -134,12 +135,12 @@ describe('startSentry', () => {
 describe('error reporting, from the page to the post', () => {
   it('posts none of the words of a string thrown after Sentry has loaded, or reported before it had', async () => {
     alsoAllowed.push(THIS_FOLDER);
-    vi.stubEnv('VITE_SENTRY_DSN', DSN);
+    vi.stubEnv('VITE_SENTRY_DSN_PLAYER', DSN);
     vi.resetModules();
     const { reportError, setPracticeVenue, startErrorReporting } = await import('./errorReporting.ts');
     reportError('Asha Verma reported before Sentry loaded');
     window.dispatchEvent(new ErrorEvent('error', { error: 'Asha Verma thrown before Sentry loaded' }));
-    startErrorReporting({ app: 'player', version: 'release-test', route: () => '/sign-up' });
+    startErrorReporting({ app: 'player', version: 'release-test', environment: undefined, route: () => '/sign-up' });
     setPracticeVenue(false);
     await vi.waitFor(() => expect(posted).toHaveLength(2), { timeout: 3000 });
     window.dispatchEvent(new ErrorEvent('error', { error: 'Asha Verma thrown after Sentry loaded' }));

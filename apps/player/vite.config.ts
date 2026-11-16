@@ -1,5 +1,6 @@
 import { appPort, defaultToLocalSupabase } from '@rivr/config/worktree';
 import manifestColors from '@rivr/tokens/manifest-colors.json' with { type: 'json' };
+import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -48,6 +49,8 @@ const pwa = VitePWA({
     // the member next leaving it. The first version serves the page that installed it at once.
     skipWaiting: false,
     clientsClaim: true,
+    // The service worker is Workbox's code, not the app's: no map, even in a build that makes the app's (decision 0672).
+    sourcemap: false,
   },
 });
 
@@ -57,8 +60,35 @@ const themeColor: Plugin = {
   transformIndexHtml: () => [{ tag: 'meta', attrs: { name: 'theme-color', content: manifestColors.theme_color }, injectTo: 'head' }],
 };
 
+/**
+ * Source maps for Sentry (decision 0672), only in a build that can upload them: CI's staging and production builds, which
+ * have `SENTRY_AUTH_TOKEN`. Their maps are hidden (no script names its map); the plugin marks each script with the id its
+ * map is uploaded under, uploads the maps and deletes them from dist/, so none is deployed (and the workflows delete any
+ * left). Any other build makes no map at all. A failed upload is a warning: a release still ships, its stacks unreadable.
+ */
+const uploadsSourceMaps = Boolean(process.env.SENTRY_AUTH_TOKEN);
+// The Sentry CLI inside the plugin sends nothing of its own and looks for no update. Set here, not in the workflows:
+// Turborepo hands a build only the variables turbo.json names.
+process.env.SENTRY_CLI_NO_TELEMETRY ??= '1';
+process.env.SENTRY_CLI_NO_UPDATE_CHECK ??= '1';
+const sourceMaps = sentryVitePlugin({
+  disable: !uploadsSourceMaps,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  org: 'rivr-poker',
+  project: 'rivr-player',
+  telemetry: false,
+  // Seen 16 Nov: with maps turned on here, the plugin's own clean-up left them in dist/, so they are named.
+  sourcemaps: { filesToDeleteAfterUpload: ['./dist/**/*.map'] },
+  // The app names its release itself (VITE_APP_VERSION); a map is found by its id, so no release is made or touched.
+  release: { inject: false, create: false, finalize: false },
+  errorHandler: (error) => {
+    process.stderr.write(`Sentry: a source-map step failed, so this build's stacks may stay minified (${error.message})\n`);
+  },
+});
+
 export default defineConfig({
-  plugins: [react(), pwa, themeColor],
+  plugins: [react(), pwa, themeColor, sourceMaps],
+  build: { sourcemap: uploadsSourceMaps ? 'hidden' : false },
   server: { host: '127.0.0.1', port: appPort('player'), strictPort: true },
   preview: { host: '127.0.0.1', port: appPort('player'), strictPort: true },
 });

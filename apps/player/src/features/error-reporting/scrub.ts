@@ -117,6 +117,23 @@ function scrubRequest(request: Request = {}): Request {
   return { url: scrubUrl(request.url ?? ''), ...(userAgent ? { headers: { 'User-Agent': userAgent } } : {}) };
 }
 
+type DebugMeta = NonNullable<SentryEvent['debug_meta']>;
+
+// The id a script's source map was uploaded under (decision 0672): a UUID, with or without its dashes.
+const DEBUG_ID = /^[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$/i;
+
+/**
+ * Which source map reads each script in the stack: the script's address, scrubbed as a frame's is, and its map's id.
+ * Nothing else an image may carry is sent; none when no script has a map, as in a build that uploaded none.
+ */
+function scrubDebugMeta(debugMeta: DebugMeta | undefined): DebugMeta | undefined {
+  const images = (debugMeta?.images ?? []).flatMap((image) => {
+    if (image.type !== 'sourcemap' || !DEBUG_ID.test(image.debug_id)) return [];
+    return [{ type: 'sourcemap' as const, code_file: scrubFile(image.code_file), debug_id: image.debug_id }];
+  });
+  return images.length > 0 ? { images } : undefined;
+}
+
 // The only parts of an event sent as the SDK made them. Any other part, and any a later SDK adds, is dropped or rebuilt below.
 const KEPT_AS_MADE = new Set(['type', 'event_id', 'timestamp', 'level', 'platform', 'release', 'environment', 'sdk', 'sdkProcessingMetadata']);
 
@@ -135,6 +152,8 @@ export function scrubEvent<Sent extends SentryEvent>(event: Sent, tags: Readonly
   scrubbed.exception = { values };
   scrubbed.breadcrumbs = scrubBreadcrumbs(event);
   scrubbed.request = scrubRequest(event.request);
+  const debugMeta = scrubDebugMeta(event.debug_meta);
+  if (debugMeta) scrubbed.debug_meta = debugMeta;
   // Each handled failure is an issue of its own by its code: they are all reported from one place in the code.
   if (kind === 'handled') scrubbed.fingerprint = ['handled', values[0]?.value ?? ''];
   return scrubbed;

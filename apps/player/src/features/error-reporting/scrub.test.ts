@@ -183,6 +183,24 @@ describe('scrubEvent', () => {
     ]);
   });
 
+  it('sends which source map reads each script, its address scrubbed, and nothing else of the image', () => {
+    const debugId = '9b4c2f1e-8d7a-4e3b-a6c5-1f0e9d8c7b6a';
+    const script = { type: 'sourcemap' as const, code_file: 'https://app.example/assets/index-B1234x.js?v=3', debug_id: debugId };
+    const withMore = { ...script, extra: 'Asha Verma' };
+    const images = [
+      withMore,
+      { type: 'sourcemap' as const, code_file: `https://app.example/sessions/${ROW_ID}`, debug_id: debugId },
+      { type: 'sourcemap' as const, code_file: 'https://app.example/assets/a.js', debug_id: 'Asha Verma' },
+      { type: 'macho' as const, code_file: '/Users/asha/app', debug_id: debugId, image_addr: '0x0' },
+    ];
+    const sent = scrubEvent({ type: undefined, debug_meta: { images } }, {});
+    expect(sent.debug_meta).toEqual({ images: [
+      { type: 'sourcemap', code_file: 'https://app.example/assets/index-B1234x.js', debug_id: debugId },
+      { type: 'sourcemap', code_file: 'https://app.example/sessions/[id]', debug_id: debugId },
+    ] });
+    expect(scrubEvent({ type: undefined, debug_meta: { images: [] } }, {})).not.toHaveProperty('debug_meta');
+  });
+
   it('scrubs an error\'s kind and the names of the functions it passed through', () => {
     const values = [{ type: 'Asha Verma', value: 'x', stacktrace: { frames: [{ function: 'send_9876543210' }] } }, { type: 'TypeError', value: 'y' }];
     const sent = scrubEvent({ type: undefined, exception: { values } }, {});

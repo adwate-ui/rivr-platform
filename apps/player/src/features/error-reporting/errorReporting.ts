@@ -7,9 +7,9 @@ export type ErrorReportingOptions = Omit<SentryOptions, 'dsn'> & {
   readonly route: () => string;
 };
 
-// The Sentry project's address, from the build (#928, decision 0604). A build that names none keeps nothing, loads
-// nothing and sends nothing.
-let dsn = import.meta.env.VITE_SENTRY_DSN;
+// The Sentry project's address, from the build (#928, decisions 0604 and 0672). A build that names none keeps nothing,
+// loads nothing and sends nothing.
+let dsn = import.meta.env.VITE_SENTRY_DSN_PLAYER;
 // Errors wait here until Sentry has loaded and the venue is known. A few are enough to find a fault; a loop of them is not kept.
 const LIMIT = 10;
 const waiting: Kept[] = [];
