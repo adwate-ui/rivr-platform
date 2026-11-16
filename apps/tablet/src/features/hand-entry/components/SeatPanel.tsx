@@ -1,4 +1,4 @@
-import { useSeatEvents, type SeatEventFailure, type TabletPlayer, type TabletSeat } from '@rivr/db';
+import { useFnbOff, useMyDevice, useSeatEvents, type SeatEventFailure, type TabletPlayer, type TabletSeat } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
 import { Button, CallTimeTimer, ConfirmButton, ErrorMessage, Heading, Inline, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
@@ -15,6 +15,13 @@ interface SeatPanelProps {
   seat: TabletSeat;
   player: TabletPlayer;
   onLeft: () => void;
+}
+
+/** Food and drink for the seat, or, while a super admin has it off (decision 0681), that it is off. */
+function FnbForSeat({ onOpen }: { onOpen: () => void }) {
+  const isFnbOff = useFnbOff(useMyDevice().data?.venueId ?? null);
+  if (isFnbOff) return <Text tone="muted">{t('tablet.fnb.off')}</Text>;
+  return <Button variant="text" onClick={onOpen}>{t('tablet.fnb.open')}</Button>;
 }
 
 /**
@@ -36,7 +43,7 @@ export function SeatPanel({ seat, player, onLeft }: SeatPanelProps) {
         <Button variant="text" isDisabled={setAway.isPending} onClick={() => void setAway.mutateAsync({ sessionId: player.sessionId, isAway: !player.isAway }).then(report)}>{awayLabel}</Button>
         <ConfirmButton label={t('tablet.seats.left')} confirm={t('tablet.seats.confirmLeft', { name: player.fullName })} isDisabled={leave.isPending}
           onConfirm={() => void leave.mutateAsync(player.sessionId).then((done) => { report(done); if (done.ok) onLeft(); })} />
-        <Button variant="text" onClick={() => setIsOrdering(true)}>{t('tablet.fnb.open')}</Button>
+        <FnbForSeat onOpen={() => setIsOrdering(true)} />
       </Inline>
       {isOrdering ? <SeatFnbOrder seat={seat.seat} onClose={() => setIsOrdering(false)} /> : null}
       {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}

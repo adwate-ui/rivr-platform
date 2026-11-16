@@ -164,6 +164,13 @@ describe('Food and drink (console v3)', () => {
     expect(document.querySelector('[data-print-sheet]')?.textContent).toContain('Whole order: No onion');
   });
 
+  it('takes no new order while a super admin has food and drink off, and still serves the orders open (decision 0681)', async () => {
+    renderAs('floor', undefined, { ...READS, '/rpc/fnb_on': false });
+    expect(await screen.findByRole('button', { name: 'Print KOT 4' }, WAIT)).toBeDefined();
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'New order' })).toBeNull());
+    expect(screen.getByText('Food and drink is off. Open orders are still served.')).toBeDefined();
+  });
+
   it('orders for a seat: the table first, then the seat with who sits there, then the items (F&B order, table then seat)', async () => {
     const { calls } = renderAs('floor');
     fireEvent.click(await screen.findByRole('button', { name: 'New order' }, WAIT));

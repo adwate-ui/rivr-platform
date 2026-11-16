@@ -142,6 +142,16 @@ describe('Tonight', () => {
     expect(screen.queryByRole('button', { name: 'Order again' })).toBeNull();
   });
 
+  it('Food and drink off (decision 0681): no Order to my seat and no Order again, but the order placed still shows', async () => {
+    renderTonight([], [SEAT], { '/rpc/fnb_on': false, '/rpc/my_fnb_orders': [{
+      order_id: 'o1', kot_number: 7, created_at: '2026-11-15T17:00:00Z', accepted_at: '2026-11-15T17:02:00Z', on_way_at: null, delivered_at: null,
+      cancelled_at: '2026-11-15T17:05:00Z', cancel_reason: 'Out of milk', lines: [{ item_id: 'i1', name: 'Masala chai', kind: 'soft_drink', quantity: 1, note: null }],
+    }] });
+    expect(await screen.findByText('Cancelled: Out of milk', {}, LATER)).toBeDefined();
+    await vi.waitFor(() => expect(screen.queryByRole('button', { name: 'Order to my seat' })).toBeNull());
+    expect(screen.queryByRole('button', { name: 'Order again' })).toBeNull();
+  });
+
   it('Call time ending push: Add time opens its sheet, and the address is cleaned', async () => {
     const { router } = renderTonight([], [SEAT], {}, '/?sheet=add-time');
     expect(await screen.findByRole('dialog', { name: 'Add time' }, LATER)).toBeDefined();

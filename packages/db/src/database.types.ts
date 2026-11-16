@@ -2918,6 +2918,9 @@ isOneToOne: false
               "description": string,"diet": string,"item_id": string,"kind": Database["public"]['Enums']["fnb_item_kind"],"name": string,"photo_path": string
             }[]
                            },
+"fnb_on":
+{ Args: { "p_venue_id"?: string }; Returns: boolean
+                           },
 "fnb_orders_page":
 { Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
               "accepted_at": string,"age_seconds": number,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"is_comp": boolean,"kot_number": number,"kot_print_failed": boolean,"kot_sent_at": string,"kot_sent_by": string,"lines": Json,"member_name": string,"member_number": number,"on_way_at": string,"order_id": string,"seat": number,"seat_state": string,"source": string,"state": string,"table_name": string,"total": number
@@ -3343,6 +3346,11 @@ isOneToOne: false
 "place_fnb_order":
 { Args: { "p_idempotency_key"?: string,"p_lines": Json }; Returns: {
               "kot_number": number,"order_id": string
+            }[]
+                           },
+"player_visits_page":
+{ Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
+              "checked_in_at": string,"checked_out_at": string,"club_day": string,"full_name": string,"is_base_tier": boolean,"kyc_status": string,"member_id": string,"member_number": number,"played_seconds": number,"tables": Json,"tier_name": string,"total": number,"waiting_seconds": number
             }[]
                            },
 "players_report":

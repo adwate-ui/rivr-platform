@@ -1,6 +1,7 @@
 import { err, FNB_DIETS, ok, type FnbDiet, type FnbItemKind, type FnbLine, type Result } from '@rivr/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { RivrClient } from './client.ts';
+import { seenOff } from './fnbOn.ts';
 import { itemPhotoUrl } from './itemPhotos.ts';
 import { useListPage, type ScopedView } from './lists.ts';
 import { useRivrData } from './provider.tsx';
@@ -77,12 +78,12 @@ export interface FnbOrderTonight {
  */
 export type FnbFailure =
   | 'not_allowed' | 'not_seated' | 'not_on_menu' | 'too_soon' | 'too_young' | 'no_dealer' | 'account_paused' | 'paused' | 'invalid' | 'unavailable'
-  // Serving (#640): someone else accepted or delivered the order first.
-  | 'taken';
+  // Serving (#640): someone else accepted or delivered the order first; and a super admin has food and drink off (decision 0681).
+  | 'taken' | 'fnb_off';
 
 const FAILURE_BY_CODE: Readonly<Record<string, FnbFailure>> = {
   '42501': 'not_allowed', '22023': 'invalid', RVFNS: 'not_seated', RVFNI: 'not_on_menu', RVFST: 'too_soon', RVAGE: 'too_young',
-  RVDWN: 'no_dealer', RVFRZ: 'paused', RVMBR: 'account_paused',
+  RVDWN: 'no_dealer', RVFRZ: 'paused', RVMBR: 'account_paused', RVFNB: 'fnb_off',
 };
 
 /** A request id already used for another order is no fault in the order's quantities, so it says Not sent (F-152). */
@@ -195,20 +196,21 @@ export function usePlaceFnbOrder() {
     mutationFn: async ({ lines, requestId }: { lines: readonly FnbLine[]; requestId: string }): Promise<Result<PlacedFnbOrder, FnbFailure>> => {
       const { data, error } = await client.rpc('place_fnb_order', { p_lines: linesJson(lines), p_idempotency_key: requestId }).limit(LIST_MOST);
       await queryClient.invalidateQueries({ queryKey: queryKeys.myFnbOrders(userId ?? 'signed-out') });
-      return placed(data, error);
+      return seenOff(queryClient, userId, placed(data, error));
     },
   });
 }
 
 /** The dealer orders for a seat at the tablet's table: paid, a Result with the KOT; the request id as the app's (F4-10). */
 export function useTabletFnbOrder() {
-  const { client } = useRivrData();
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
   return useMutation({
     // Sent whether the browser says it is online or not: offline it fails at once, and never goes later on its own.
     networkMode: 'always',
     mutationFn: async ({ seat, lines, requestId }: { seat: number; lines: readonly FnbLine[]; requestId: string }): Promise<Result<PlacedFnbOrder, FnbFailure>> => {
       const { data, error } = await client.rpc('tablet_fnb_order', { p_seat: seat, p_lines: linesJson(lines), p_idempotency_key: requestId }).limit(LIST_MOST);
-      return placed(data, error);
+      return seenOff(queryClient, userId, placed(data, error));
     },
   });
 }
@@ -267,7 +269,7 @@ export function useFnbActions(venueId: string) {
         p_idempotency_key: input.requestId,
       }).limit(LIST_MOST);
       await reload();
-      return placed(data, error);
+      return seenOff(queryClient, userId, placed(data, error));
     },
   });
   const markSent = useMutation({

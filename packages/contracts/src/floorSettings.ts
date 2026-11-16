@@ -15,6 +15,15 @@ export const floorRequestTargets = {
   value: z.strictObject({ top_up_seconds: z.int().min(30).max(1800), other_seconds: z.int().min(60).max(3600) }),
 } as const satisfies SettingDefinition;
 
+/** Food and drink on or off (decision 0681): off, no new order is taken anywhere; orders placed are still served. None set is on. */
+export const fnbEnabled = {
+  key: 'fnb.enabled', defaultValue: { enabled: true },
+  description: 'Food and drink: members, dealers and staff place orders. Off, no new order is taken anywhere, and orders already placed are still served. None set is on. Only a super admin changes it, with a reason.',
+  scope: 'venue',
+  superAdminOnly: true,
+  value: z.strictObject({ enabled: z.boolean() }),
+} as const satisfies SettingDefinition;
+
 /** Which boards the TVs show (redesign RD-28): one switched off is left out on every TV. None set is every board. */
 export const tvBoards = {
   key: 'tv.boards',

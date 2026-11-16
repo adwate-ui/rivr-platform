@@ -24,7 +24,9 @@ const MENU = [
 ];
 
 /** Signed in with table-side food, seated or not, a menu, a usual, and orders whose first reply is lost. */
-function renderOrder(seat: 'seated' | 'not seated', usual: unknown[] = [], at = '/fnb', myOrders: unknown[] = []) {
+/** The order page for a member `seat`ed or not, with their usual items, at an address; `more` gives their orders tonight, or F&B off. */
+function renderOrder(seat: 'seated' | 'not seated', usual: unknown[] = [], at = '/fnb', more: { myOrders?: unknown[]; isFnbOff?: boolean } = {}) {
+  const { myOrders = [], isFnbOff = false } = more;
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000211', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -33,6 +35,7 @@ function renderOrder(seat: 'seated' | 'not seated', usual: unknown[] = [], at = 
   const reads: Record<string, unknown> = {
     '/rpc/my_feature_access': [{ feature_key: 'fnb.table_side', state: 'enabled', tiers: null }], '/rpc/my_seat': seat === 'seated' ? [SEAT] : [],
     '/rpc/my_fnb_menu': MENU, '/rpc/my_usual_fnb_items': usual, '/rpc/my_fnb_orders': myOrders,
+    ...(isFnbOff ? { '/rpc/fnb_on': false } : {}),
   };
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input instanceof Request ? input.url : input);
@@ -61,6 +64,12 @@ function renderOrder(seat: 'seated' | 'not seated', usual: unknown[] = [], at = 
 const LATER = { timeout: 5000 };
 
 describe('Tonight › Order', () => {
+  it('says food and drink is not being served, with no menu, while a super admin has it off (decision 0681)', async () => {
+    renderOrder('seated', [], '/fnb', { isFnbOff: true });
+    expect(await screen.findByText('Food and drink is not being served.', {}, LATER)).toBeDefined();
+    expect(screen.queryByRole('button', { name: /^Add / })).toBeNull();
+  });
+
   it('sends a member who is not seated back to Tonight', async () => {
     const { router } = renderOrder('not seated');
     expect(await screen.findByText('Tonight screen', {}, LATER)).toBeDefined();
@@ -126,7 +135,7 @@ describe('Tonight › Order', () => {
       delivered_at: '2026-11-15T16:20:00Z', cancelled_at: null, cancel_reason: null,
       lines: [{ item_id: 'chai', name: 'Masala chai', kind: 'soft_drink', quantity: 2, note: null }, { item_id: 'gone', name: 'Cold coffee', kind: 'soft_drink', quantity: 1, note: null }],
     };
-    renderOrder('seated', [], '/fnb?again=o1', [order]);
+    renderOrder('seated', [], '/fnb?again=o1', { myOrders: [order] });
     expect((await screen.findByRole('button', { name: /Send to the bar/ }, LATER)).textContent).toContain('2 items');
   });
 });

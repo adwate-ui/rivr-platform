@@ -10,6 +10,12 @@ export const floorSettingKeys = {
     help: 'Lengths a seated member can ask for',
     fields: { minutes: 'Lengths offered' },
   },
+  'fnb.enabled': {
+    name: 'Orders',
+    help: 'Members and staff can place orders',
+    hints: { enabled: 'Off stops new orders. Open orders are still served.' },
+    fields: { enabled: 'Take orders' },
+  },
   'floor.request_targets': {
     name: 'Request targets',
     help: 'When a waiting request shows late',

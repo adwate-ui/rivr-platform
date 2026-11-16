@@ -1,6 +1,9 @@
 import type { Paise } from '@rivr/domain/money';
 import { useQuery } from '@tanstack/react-query';
+import { tablesOf, type TodaysPlayer } from './floorToday.ts';
 import { LIST_MOST } from './limits.ts';
+import { useListPage, type ScopedView } from './lists.ts';
+import { kycStatusOf, type MemberKycStatus } from './members.ts';
 import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
@@ -91,6 +94,41 @@ export function usePlayersReport(span: ReportSpan) {
     read: () => client.rpc('players_report', { p_venue_id: span.venueId, p_from: span.from, p_to: span.to }).limit(LIST_MOST),
     lineOf: (row): PlayersLine => ({ place: row.place, measure: oneOf(PLAYER_MEASURES, row.measure, 'played'), label: row.label, amount: Number(row.amount) }),
   });
+}
+
+/** One visit in a report's span (decision 0682): a member on a club day, as the door's Today's players gives that day. */
+export interface PlayerVisit extends Omit<TodaysPlayer, 'status'> {
+  /** The club day, YYYY-MM-DD. */
+  readonly clubDay: string;
+  readonly tierName: string;
+  /** On the club's lowest tier, which the door leaves unsaid. */
+  readonly isBaseTier: boolean;
+  /** Every table's time that day, in seconds. */
+  readonly playedSeconds: number;
+  /** Their identity check as it stands now. */
+  readonly kycStatus: MemberKycStatus;
+}
+
+/**
+ * One page of the visits in a report's span (`player_visits_page`), sorted, searched and filtered on the server like the
+ * door's, with how many the view leaves; the span is the view's scope. Newest day first unless the view says otherwise.
+ */
+export function usePlayerVisitsPage(span: ReportSpan, view: ScopedView | null) {
+  const { client } = useRivrData();
+  return useListPage({
+    list: 'player_visits', venueId: span.venueId, view: scopedTo(span, view),
+    read: (asked) => client.rpc('player_visits_page', { p_venue_id: span.venueId, p_view: asked }),
+    rowOf: (row): PlayerVisit => ({
+      clubDay: row.club_day, memberId: row.member_id, fullName: row.full_name, memberNumber: Number(row.member_number), tierName: row.tier_name,
+      isBaseTier: row.is_base_tier, checkedInAt: row.checked_in_at, checkedOutAt: row.checked_out_at, waitingSeconds: row.waiting_seconds, tables: tablesOf(row.tables),
+      playedSeconds: Number(row.played_seconds), kycStatus: kycStatusOf(row.kyc_status),
+    }),
+  });
+}
+
+/** A visits view with the report's span as its scope, for its page and its column menus alike. */
+export function scopedTo(span: ReportSpan, view: ScopedView | null): ScopedView | null {
+  return view === null ? null : { ...view, scope: { from: span.from, to: span.to } };
 }
 
 /** One table's list over the span: who joined, who got a seat, who left the list, and the average and longest wait to a seat. */

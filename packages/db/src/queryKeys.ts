@@ -69,6 +69,8 @@ export const queryKeys = {
   myNextPlayTimeBonus: (userId: string) => ['user', userId, 'my-next-play-time-bonus'] as const,
   signedInPhone: (userId: string) => ['user', userId, 'signed-in-phone'] as const,
   doorBoard: (userId: string, venueId: string) => ['user', userId, 'door-board', venueId] as const,
+  /** Reports › Players' visits over a span (decision 0682). */
+  playerVisits: (userId: string, venueId: string) => ['user', userId, 'player-visits', venueId] as const,
   /** Bonus a promotion calculated, waiting for a super admin (decision 0670). */
   bonusWaiting: (userId: string, venueId: string) => ['user', userId, 'bonus-waiting', venueId] as const,
   /** The member's visit to rate on Home, and the General Manager's list of feedback (decision 0165). */
@@ -103,6 +105,9 @@ export const queryKeys = {
   /** The signed-in member's orders tonight, and where each is (#635). */
   myFnbOrders: (userId: string) => ['user', userId, 'my-fnb-orders'] as const,
   fnbMenu: (userId: string, venueId: string) => ['user', userId, 'fnb-menu', venueId] as const,
+  /** Whether a venue takes food and drink orders now (decision 0681); 'mine' for the member's own venue. */
+  fnbOn: (userId: string, venueId: string) => ['user', userId, 'fnb-on', venueId] as const,
+  fnbOnAll: (userId: string) => ['user', userId, 'fnb-on'] as const,
   fnbItems: (userId: string, venueId: string) => ['user', userId, 'fnb-items', venueId] as const,
   fnbOrdersTonight: (userId: string, venueId: string) => ['user', userId, 'fnb-orders-tonight', venueId] as const,
   topUpsTonight: (userId: string, venueId: string) => ['user', userId, 'top-ups-tonight', venueId] as const,

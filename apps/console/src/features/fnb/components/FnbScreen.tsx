@@ -1,6 +1,6 @@
-import { useStaffVenue } from '@rivr/db';
+import { useFnbOff, useStaffVenue } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, Inline, Screen, Stack, StatusMessage, Tabs } from '@rivr/ui';
+import { Button, Inline, Screen, Stack, StatusMessage, Tabs, Text } from '@rivr/ui';
 import { useState } from 'react';
 import { MenuCsvPanel } from './MenuCsvImport.tsx';
 import { MenuItems } from './MenuItems.tsx';
@@ -58,8 +58,11 @@ function useNewOrder() {
 
 function Fnb({ access, tab, onNavigate }: { access: FnbAccess; tab: FnbTab; onNavigate: (href: string) => void }) {
   const newOrder = useNewOrder();
+  // While a super admin has food and drink off, no new order; those still open are served here (decision 0681).
+  const isFnbOff = useFnbOff(access.venueId);
+  const canOrder = access.canOrder && !isFnbOff;
   const title = t('console.fnb.title');
-  const action = access.canOrder ? <Button variant="primary" size="compact" onClick={newOrder.open}>{t('console.fnb.newOrder')}</Button> : undefined;
+  const action = canOrder ? <Button variant="primary" size="compact" onClick={newOrder.open}>{t('console.fnb.newOrder')}</Button> : undefined;
   const tabs = (
     <Tabs label={title} current={tab} onNavigate={onNavigate}
       tabs={TABS.map((id) => ({ id, label: t(`console.fnb.tabs.${id}`), href: `/fnb?tab=${id}` }))} />
@@ -69,10 +72,11 @@ function Fnb({ access, tab, onNavigate }: { access: FnbAccess; tab: FnbTab; onNa
   return (
     <Screen title={title} actions={action === undefined ? undefined : <Inline gap={4} align="center" wrap>{sent}{action}</Inline>}>
       <Stack gap={6}>
+        {isFnbOff ? <Text tone="muted">{t('console.fnb.off')}</Text> : null}
         {tabs}
         {tab === 'menu' ? <MenuTab access={access} /> : <OrdersTable venueId={access.venueId} />}
       </Stack>
-      {access.canOrder ? (
+      {canOrder ? (
         <NewOrderSheet key={newOrder.opened} venueId={access.venueId} isOpen={newOrder.isOpen} canComp={access.canManage}
           onClose={newOrder.close} onSent={newOrder.sent} />
       ) : null}

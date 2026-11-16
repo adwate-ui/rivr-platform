@@ -8,7 +8,9 @@ export const settings = {
     tax: 'Tax', compliance: 'Compliance', system: 'System', club: 'Club details', notices: 'Notices',
   },
   /** The groups each tab's rules sit in (redesign RD-18). */
-  groups: { seating: 'Seating', time: 'Time at the table', identity: 'Identity', bonus: 'Bonus', membership: 'Membership', rotation: 'Rotation' },
+  groups: {
+    seating: 'Seating', time: 'Time at the table', identity: 'Identity', fnb: 'Food and drink', bonus: 'Bonus', membership: 'Membership', rotation: 'Rotation',
+  },
   superAdminOnly: 'Super admin',
   managers: 'Admins',
   /** A scoped setting's state in the list: "4 of 5 table types set". */
