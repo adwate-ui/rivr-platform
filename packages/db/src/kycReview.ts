@@ -44,9 +44,7 @@ export interface KycCheck {
 export type KycWaitReason =
   | 'pan_alone' | 'nothing_kept' | 'no_date_of_birth' | 'clash'
   // A check made in person that the vendor's re-check did not match (#259).
-  | 'recheck_pan_invalid' | 'recheck_name_differs' | 'recheck_date_of_birth_differs'
-  // A DigiLocker match whose selfie no vendor checked for liveness (decision 0675).
-  | 'no_liveness';
+  | 'recheck_pan_invalid' | 'recheck_name_differs' | 'recheck_date_of_birth_differs';
 
 /** Why a review did not go through, as the console tells it. */
 export type KycReviewFailure =
@@ -61,7 +59,6 @@ const STATUSES = ['needs_review', 'needs_pan', 'refused'] as const;
 const METHODS = ['digilocker', 'pan', 'manual'] as const;
 const WAIT_REASONS = [
   'pan_alone', 'nothing_kept', 'no_date_of_birth', 'clash', 'recheck_pan_invalid', 'recheck_name_differs', 'recheck_date_of_birth_differs',
-  'no_liveness',
 ] as const;
 const REFUSALS = ['under_18', 'duplicate_face', 'duplicate_pan', 'duplicate_aadhaar', 'staff_rejected', 'on_break'] as const;
 
