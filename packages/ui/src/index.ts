@@ -179,4 +179,5 @@ export * from './EditableList/index.ts';
 export * from './StakeValues/index.ts';
 export * from './SummaryStrip/index.ts';
 export * from './TvHighHandBoard/index.ts';
+export * from './OpenInBrowser/index.ts';
 export { haptic } from './haptic/index.ts';

@@ -10,24 +10,50 @@ export interface HookReply {
 }
 
 /**
- * A refusal Auth passes on to the app. Auth reads an error only from an HTTP 200 reply; for any
- * other status it drops the body and answers the app with a bare 500, so the app could not tell
- * "wait a minute" from "cannot send". `httpCode` and `message` are what the app receives.
+ * A refusal Auth passes on to the app. The reply itself is always HTTP 200: Auth reads an error only
+ * from a 200, and for any other status it drops the body and answers the app with a bare 500, so the
+ * app could not tell "wait a minute" from "cannot send". `httpCode` and `message` are what the app
+ * receives, and the message is also what Auth's log keeps: the only record of why a code was not sent.
  */
 export function hookError(httpCode: number, message: string): HookReply {
   return { status: 200, body: { error: { http_code: httpCode, message } } };
 }
 
-function replyTo(failure: AdapterFailure): HookReply {
+/**
+ * The `http_code` for a code that was not sent: never a 5xx (decision 0683). Supabase's gateway sends a
+ * request again when Auth answers it with a 5xx, and the second try carries the CAPTCHA token the first
+ * one spent, so Auth then refuses it as `captcha_failed` and the app says the security check failed.
+ * The app reads 424 as sign-in being down.
+ */
+export const CODE_NOT_SENT = 424;
+
+/** Which step failed, for Auth's log: the vendor's send, or keeping Auth's code with VerifyNow's check. */
+type Step = 'send' | 'keep';
+
+/**
+ * The refusal for a failure at `step`. A code not sent says which step and why, such as
+ * "The code could not be sent. Try again. (send: VerifyNow did not answer)".
+ */
+function replyTo(failure: AdapterFailure, step: Step): HookReply {
   switch (failure.code) {
     case 'not_configured':
-      return hookError(503, 'Sign-in codes cannot be sent yet.');
+      return hookError(CODE_NOT_SENT, `Sign-in codes cannot be sent yet. (${step}: not configured)`);
     case 'rate_limited':
       return hookError(429, 'Too many codes were sent. Wait a minute and try again.');
-    default:
-      return hookError(502, 'The code could not be sent. Try again.');
+    default: {
+      // A reason never holds the number or the code (AdapterFailure). The message reaches the caller as well as Auth's
+      // log, so a long run of digits is masked all the same.
+      const why = (failure.reason ?? failure.code).replace(/\d{7,}/g, '[digits]');
+      return hookError(CODE_NOT_SENT, `The code could not be sent. Try again. (${step}: ${why})`);
+    }
   }
 }
+
+/**
+ * Auth's code length is wrong for the way codes are sent (runbook step 7a): WhatsApp and SMS send Auth's
+ * own six digits, while with VerifyNow Auth's code is ten digits and VerifyNow texts six of its own.
+ */
+const WRONG_CODE_LENGTH = hookError(CODE_NOT_SENT, 'Sign-in codes cannot be sent yet. (Auth code length)');
 
 /**
  * Notes that a code is going to `to`, and says whether one already went there in the last ten
@@ -63,10 +89,10 @@ export async function handleSendSmsHook(
   const hook = parseHook(payload);
   if ('status' in hook) return hook;
   // A member types six digits. A longer code means Auth's length was left at VerifyNow's ten (runbook step 7a).
-  if (hook.code.length !== 6) return hookError(503, 'Sign-in codes cannot be sent yet.');
+  if (hook.code.length !== 6) return WRONG_CODE_LENGTH;
   const preferSms = noteSend ? await noteSend(hook.to) : false;
   const sent = await sendSignInCode(channels, { ...hook, preferSms, deadline, keepAlive });
-  return sent.ok ? { status: 200, body: {} } : replyTo(sent.error);
+  return sent.ok ? { status: 200, body: {} } : replyTo(sent.error, 'send');
 }
 
 /**
@@ -91,12 +117,12 @@ export async function relaySmsHook(payload: unknown, verifyNow: VerifyNowAdapter
   if ('status' in hook) return hook;
   // Auth's code must be ten digits while it waits ten minutes unseen (runbook step 7a): a shorter one
   // could be guessed at Auth's verify endpoint. A setting missed shows as sign-in down, not a hole.
-  if (hook.code.length < AUTH_CODE_LENGTH) return hookError(503, 'Sign-in codes cannot be sent yet.');
+  if (hook.code.length < AUTH_CODE_LENGTH) return WRONG_CODE_LENGTH;
   const sent = await verifyNow.send({ to: hook.to });
-  if (!sent.ok) return replyTo(sent.error);
+  if (!sent.ok) return replyTo(sent.error, 'send');
   const isKept = await keep(hook.to, hook.code, sent.value.verificationId, deadline);
   if (isKept) return { status: 200, body: {} };
   // VerifyNow will not text the number again yet, and its last code can no longer be used (accepted,
   // out of tries, or never kept): the member waits for VerifyNow's minute to pass.
-  return replyTo({ code: sent.value.verificationId === null ? 'rate_limited' : 'unavailable' });
+  return replyTo({ code: sent.value.verificationId === null ? 'rate_limited' : 'unavailable' }, 'keep');
 }

@@ -303,6 +303,16 @@ export const ui = {
     install: 'Install',
     notNow: 'Not now',
   },
+  /** Inside Instagram's or Facebook's own browser (the owner, 15 Nov): the way to Safari or Chrome. Why comes from the app. */
+  openInBrowser: {
+    title: { iphone: 'Open RIVR in Safari', android: 'Open RIVR in Chrome', other: 'Open RIVR in your browser' },
+    how: 'Tap ••• at the top, then Open in browser.',
+    openChrome: 'Open in Chrome',
+    copyLink: 'Copy link',
+    copied: 'Link copied.',
+    copyFailed: 'Not copied. Use the ••• menu.',
+    continueHere: 'Continue here',
+  },
   /** Printed matter, receipts and A4 documents: the club's registration beneath its address. */
   paper: { gstin: 'GSTIN {gstin}' },
 } as const;

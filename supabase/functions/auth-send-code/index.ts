@@ -4,7 +4,7 @@
 // SMS (docs/decisions/0025), or SMS first for a second code to a number within ten minutes (#181). The one
 // place outside an outbox consumer that calls an adapter, because Auth waits for the code to go out. The
 // code and the phone are never logged.
-import { handleSendSmsHook, hookError, relaySmsHook, type HookReply, type KeepSignInCode, type NoteSignInCodeSend } from '@rivr/adapters/sign-in-code';
+import { CODE_NOT_SENT, handleSendSmsHook, hookError, relaySmsHook, type HookReply, type KeepSignInCode, type NoteSignInCodeSend } from '@rivr/adapters/sign-in-code';
 import { createMsg91SmsOtp } from '@rivr/adapters/sms-otp';
 import { Webhook } from 'standardwebhooks';
 import { liveVerifyNow, signInCodeRpc } from '../_shared/signInCodes.ts';
@@ -70,7 +70,7 @@ Deno.serve(async (request) => {
   // A caller that is not Auth gets a plain HTTP refusal and nothing else.
   if (request.method !== 'POST') return new Response(null, { status: 405 });
   // Auth is calling but the function cannot check it: refuse in a way the app can show.
-  if (secret === '') return reply(hookError(500, 'Sign-in codes cannot be sent yet.'));
+  if (secret === '') return reply(hookError(CODE_NOT_SENT, 'Sign-in codes cannot be sent yet. (no hook secret)'));
   let payload: unknown;
   try {
     // verify() reads the webhook-id, webhook-timestamp and webhook-signature headers, rejects a

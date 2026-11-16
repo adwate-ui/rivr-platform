@@ -1,10 +1,11 @@
 import type { IndianMobile } from '@rivr/contracts';
 import { useAuthStatus, useMember } from '@rivr/db';
+import { t } from '@rivr/i18n';
+import { inAppBrowserOf, OpenInBrowser } from '@rivr/ui';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useState } from 'react';
-import { continueHere, hasContinuedHere, inAppBrowserOf } from '../inAppBrowser.ts';
+import { continueHere, hasContinuedHere } from '../inAppBrowser.ts';
 import { CodeStep } from './CodeStep.tsx';
-import { OpenInBrowser } from './OpenInBrowser.tsx';
 import { PhoneStep } from './PhoneStep.tsx';
 import { SignedInStep } from './SignedInStep.tsx';
 
@@ -35,7 +36,7 @@ export function SignInScreen() {
       continueHere();
       setInAppBrowser(null);
     };
-    return <OpenInBrowser browser={inAppBrowser} url={globalThis.location.href} onContinue={stay} />;
+    return <OpenInBrowser browser={inAppBrowser} url={globalThis.location.href} why={t('player.signIn.inAppBrowser.why')} onContinue={stay} />;
   }
   if (phone === null) return <PhoneStep onCodeSent={setPhone} />;
   return <CodeStep phone={phone} onBack={() => setPhone(null)} onSignedIn={goOn} />;
