@@ -12,6 +12,14 @@ const THREE = [HOURS, HAPPY, HIGH_HAND];
 /** The dot that is current: "Offer 2 of 3". */
 const currentDot = () => screen.getAllByRole('button', { name: /^Offer \d of \d$/ }).find((dot) => dot.getAttribute('aria-current') === 'true')?.getAttribute('aria-label');
 
+/** Lays the slides out 300 px apart, as a browser would (jsdom lays nothing out), and scrolls the row to `slide`. */
+function scrollRowTo(slide: number) {
+  const row = screen.getByRole('list');
+  [...row.children].forEach((item, at) => Object.defineProperty(item, 'offsetLeft', { configurable: true, value: at * 300 }));
+  Object.defineProperty(row, 'scrollLeft', { configurable: true, writable: true, value: slide * 300 });
+  fireEvent.scroll(row);
+}
+
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
@@ -51,6 +59,38 @@ describe('OfferCarousel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Offer 3 of 3' }));
     expect(currentDot()).toBe('Offer 3 of 3');
     act(() => { vi.advanceTimersByTime(OFFER_SLIDE_MS * 4); });
+    expect(currentDot()).toBe('Offer 3 of 3');
+  });
+
+  it('holds the slide a swipe lands on', () => {
+    vi.useFakeTimers();
+    renderIn(<OfferCarousel title="Offers" offers={THREE} />);
+    fireEvent.pointerDown(screen.getByRole('list'));
+    scrollRowTo(1);
+    expect(currentDot()).toBe('Offer 2 of 3');
+    act(() => { vi.advanceTimersByTime(OFFER_SLIDE_MS * 3); });
+    expect(currentDot()).toBe('Offer 2 of 3');
+  });
+
+  it('holds for a slow drag too: the finger rests, then drags', () => {
+    vi.useFakeTimers();
+    renderIn(<OfferCarousel title="Offers" offers={THREE} />);
+    fireEvent.pointerDown(screen.getByRole('list'));
+    act(() => { vi.advanceTimersByTime(3000); });
+    fireEvent.touchMove(screen.getByRole('list'));
+    scrollRowTo(2);
+    act(() => { vi.advanceTimersByTime(OFFER_SLIDE_MS * 2); });
+    expect(currentDot()).toBe('Offer 3 of 3');
+  });
+
+  it('follows its card and keeps moving when an offer coming in before it moves the row, which is no swipe', () => {
+    vi.useFakeTimers();
+    const { rerender } = renderIn(<OfferCarousel title="Offers" offers={[HAPPY, HIGH_HAND]} />);
+    // An offer read later comes in first (Home's Refer a friend): the browser keeps Happy hour in view, now the second slide.
+    rerender(<OfferCarousel title="Offers" offers={[HOURS, HAPPY, HIGH_HAND]} />);
+    scrollRowTo(1);
+    expect(currentDot()).toBe('Offer 2 of 3');
+    act(() => { vi.advanceTimersByTime(OFFER_SLIDE_MS); });
     expect(currentDot()).toBe('Offer 3 of 3');
   });
 

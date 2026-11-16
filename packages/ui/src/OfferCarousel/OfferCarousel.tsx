@@ -27,6 +27,10 @@ export interface OfferCarouselProps {
 /** How long a slide shows before the next, in milliseconds. */
 export const OFFER_SLIDE_MS = 5000;
 
+// How long after a finger (as it lands, and while it drags) or the wheel on the row its scroll is still the person's swipe,
+// in milliseconds.
+const SWIPE_MS = 1500;
+
 const CARD = 'flex min-h-offer-height w-full flex-col justify-between gap-4 rounded-card border border-gold bg-raised p-5 text-start text-content focus-visible:outline focus-visible:outline-focus';
 
 /** What a card says; the same whether it is a link, a button or neither, with an arrow when it opens something. */
@@ -110,6 +114,8 @@ export function OfferCarousel({ title, offers }: OfferCarouselProps) {
   const row = useRef<HTMLUListElement>(null);
   // The slide the row is scrolling to by itself, so that scroll is not read as a swipe.
   const moving = useRef<number | null>(null);
+  // When a finger or the wheel last took the row: only a scroll soon after is a swipe.
+  const touchedAt = useRef(Number.NEGATIVE_INFINITY);
   const [shown, setShown] = useState(0);
   const [isHeld, setHeld] = useState(false);
   const count = offers.length;
@@ -127,17 +133,22 @@ export function OfferCarousel({ title, offers }: OfferCarouselProps) {
   const onScroll = () => {
     const nearest = row.current === null ? index : nearestSlide(row.current);
     if (moving.current === null && nearest !== index) {
-      setHeld(true);
+      // A swipe holds the slide it lands on. Any other scroll is the row's own, such as the browser keeping the card in view
+      // when an offer read later comes in before it: the dot follows the card, and the carousel moves on.
+      if (Date.now() - touchedAt.current < SWIPE_MS) setHeld(true);
       setShown(nearest);
     }
     if (nearest === moving.current) moving.current = null;
   };
   // A finger or the wheel takes the row over from a move of its own.
-  const onTouch = () => { moving.current = null; };
+  const onTouch = () => {
+    moving.current = null;
+    touchedAt.current = Date.now();
+  };
   return (
     <section aria-label={title} className="flex flex-col gap-1 px-5">
       <ul ref={row} data-offer-row className="flex snap-x snap-mandatory gap-3 overflow-x-auto"
-        onScroll={onScroll} onPointerDown={onTouch} onWheel={onTouch} onFocus={() => setHeld(true)}>
+        onScroll={onScroll} onPointerDown={onTouch} onTouchMove={onTouch} onWheel={onTouch} onFocus={() => setHeld(true)}>
         {offers.map((offer) => <li key={offer.id} className="flex w-full shrink-0 snap-start"><OfferCard offer={offer} /></li>)}
       </ul>
       {count < 2 ? null : <Dots ids={offers.map((offer) => offer.id)} index={index} onPick={(next) => { setHeld(true); show(next); }} />}
