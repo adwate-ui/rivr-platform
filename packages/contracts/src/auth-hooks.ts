@@ -31,9 +31,15 @@ function isPhoneChange(user: { phone?: string | undefined } | undefined, to: str
   return own === '' || digitsOf(own) !== digitsOf(to);
 }
 
+/**
+ * The code Auth generates: six digits, or up to ten while VerifyNow texts codes of its own and Auth's
+ * is only relayed, never typed (`sms_otp_length`, decision 0679), so it is far harder to guess.
+ */
+const authCodeSchema = z.string().regex(/^\d{6,10}$/);
+
 export const sendSmsHookSchema = z
   .object({
-    sms: z.object({ otp: signInCodeSchema, phone: z.string() }),
+    sms: z.object({ otp: authCodeSchema, phone: z.string() }),
     user: z
       .object({
         phone: z.string().optional(),
@@ -61,3 +67,6 @@ export const sendSmsHookSchema = z
 
 /** The sign-in code to send, parsed from the Send SMS hook's payload. */
 export type SignInCodeToSend = z.infer<typeof sendSmsHookSchema>;
+
+/** What an app sends sign-in-verify (decision 0679): the number signing in and the code typed. */
+export const signInCheckSchema = z.object({ phone: indianMobileSchema, code: signInCodeSchema });

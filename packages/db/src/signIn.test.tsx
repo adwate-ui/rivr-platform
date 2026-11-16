@@ -63,6 +63,9 @@ function signInWith(replies: Record<string, Reply | (() => Reply)>, useAlsoOnScr
 
 afterEach(cleanup);
 
+/** sign-in-verify's answer when VerifyNow sent the number no code: check the typed code with Auth. */
+const CHECK_WITH_AUTH = { '/functions/v1/sign-in-verify': { status: 200, body: { token: null } } };
+
 describe('useSignIn', () => {
   it('asks Auth for a code for the number', async () => {
     const { result, calls } = signInWith({ '/auth/v1/otp': { status: 200, body: {} } });
@@ -80,27 +83,56 @@ describe('useSignIn', () => {
   });
 
   it('rejects a wrong or expired code and links nothing', async () => {
-    const { result, calls } = signInWith({ '/auth/v1/verify': { status: 403, body: { code: 403, error_code: 'otp_expired', msg: 'Token has expired or is invalid' } } });
+    const { result, calls } = signInWith({
+      ...CHECK_WITH_AUTH,
+      '/auth/v1/verify': { status: 403, body: { code: 403, error_code: 'otp_expired', msg: 'Token has expired or is invalid' } },
+    });
 
     expect(await act(() => result.current.verifyCode.mutateAsync({ phone, code: '000000' }))).toEqual({ ok: false, error: 'code_rejected' });
     expect(calls.map((call) => call.path)).not.toContain('/rest/v1/rpc/link_my_login');
   });
 
-  it('signs in with the right SMS code, then links the records registered under the number', async () => {
+  it('signs in with the right code, checked first by sign-in-verify, then links the records registered under the number', async () => {
     const { result, calls } = signInWith({
+      ...CHECK_WITH_AUTH,
       '/auth/v1/verify': { status: 200, body: session },
       '/rest/v1/rpc/link_my_login': { status: 204, body: null },
     });
 
     expect(await act(() => result.current.verifyCode.mutateAsync({ phone, code: '123456' }))).toEqual({ ok: true, value: null });
-    expect(calls[0]).toMatchObject({ path: '/auth/v1/verify', body: { phone, token: '123456', type: 'sms' } });
-    expect(calls[1]?.path).toBe('/rest/v1/rpc/link_my_login');
+    expect(calls[0]).toMatchObject({ path: '/functions/v1/sign-in-verify', body: { phone, code: '123456' } });
+    expect(calls[1]).toMatchObject({ path: '/auth/v1/verify', body: { phone, token: '123456', type: 'sms' } });
+    expect(calls[2]?.path).toBe('/rest/v1/rpc/link_my_login');
+  });
+
+  it('signs in with Auth\'s own code once VerifyNow accepts the code typed (decision 0679)', async () => {
+    const { result, calls } = signInWith({
+      '/functions/v1/sign-in-verify': { status: 200, body: { token: '135790' } },
+      '/auth/v1/verify': { status: 200, body: session },
+      '/rest/v1/rpc/link_my_login': { status: 204, body: null },
+    });
+
+    expect(await act(() => result.current.verifyCode.mutateAsync({ phone, code: '482913' }))).toEqual({ ok: true, value: null });
+    expect(calls[1]).toMatchObject({ path: '/auth/v1/verify', body: { phone, token: '135790', type: 'sms' } });
+  });
+
+  it('refuses a code VerifyNow refuses, or too many tries, and asks Auth nothing', async () => {
+    const refusing = (status: number, error: string) => signInWith({ '/functions/v1/sign-in-verify': { status, body: { error } } });
+    const wrong = refusing(400, 'code_rejected');
+    const tooMany = refusing(429, 'too_many_requests');
+    const down = refusing(502, 'unavailable');
+
+    expect(await act(() => wrong.result.current.verifyCode.mutateAsync({ phone, code: '000000' }))).toEqual({ ok: false, error: 'code_rejected' });
+    expect(await act(() => tooMany.result.current.verifyCode.mutateAsync({ phone, code: '000000' }))).toEqual({ ok: false, error: 'too_many_requests' });
+    expect(await act(() => down.result.current.verifyCode.mutateAsync({ phone, code: '000000' }))).toEqual({ ok: false, error: 'unavailable' });
+    expect([...wrong.calls, ...tooMany.calls, ...down.calls].map((call) => call.path)).not.toContain('/auth/v1/verify');
   });
 
   it('asks again what the person may see once the records are linked', async () => {
     let linked = false;
     const { result, calls } = signInWith(
       {
+        ...CHECK_WITH_AUTH,
         '/auth/v1/verify': { status: 200, body: session },
         '/rest/v1/rpc/link_my_login': () => {
           setTimeout(() => (linked = true), 90); // linked just before the slow answer arrives
@@ -129,6 +161,7 @@ describe('useSignIn', () => {
 
   it('signs out again on this device only if the records cannot be linked, so nobody is left signed in as no one', async () => {
     const { result, calls } = signInWith({
+      ...CHECK_WITH_AUTH,
       '/auth/v1/verify': { status: 200, body: session },
       '/rest/v1/rpc/link_my_login': { status: 500, body: { message: 'down' } },
       '/auth/v1/logout': { status: 204, body: null },

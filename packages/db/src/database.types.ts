@@ -3001,6 +3001,9 @@ isOneToOne: false
 "keep_kyc_digilocker_delivery":
 { Args: { "p_address": string,"p_date_of_birth": string,"p_key": string,"p_masked_aadhaar": string,"p_name": string,"p_outcome": string,"p_pan": string,"p_photo": string,"p_refusal": string,"p_session_id": string,"p_vendor_reference": string }; Returns: string
                            },
+"keep_sign_in_code":
+{ Args: { "p_code": string,"p_phone": string,"p_verification_id": string }; Returns: boolean
+                           },
 "kyc_aadhaar_covers":
 { Args: { "p_venue_id": string }; Returns: boolean
                            },
@@ -3619,6 +3622,11 @@ isOneToOne: false
 "set_venue_logo":
 { Args: { "p_path": string,"p_venue_id": string }; Returns: undefined
                            },
+"sign_in_code_attempt":
+{ Args: { "p_client": string,"p_code": string,"p_phone": string }; Returns: {
+              "auth_code": string,"refusal": string,"verification_id": string
+            }[]
+                           },
 "sign_up":
 { Args: { "p_attribution"?: Json,"p_full_name": string }; Returns: string
                            },
@@ -3702,6 +3710,9 @@ isOneToOne: false
                            },
 "take_kyc_at_the_club":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"take_sign_in_code":
+{ Args: { "p_code": string,"p_phone": string,"p_verification_id": string }; Returns: string
                            },
 "this_computer":
 { Args: { "p_venue_id": string }; Returns: {

@@ -19,4 +19,5 @@ export * from './meta-conversions/index.ts';
 export * from './push/index.ts';
 export * from './sms-otp/index.ts';
 export * from './store/index.ts';
+export * from './verify-now/index.ts';
 export * from './whatsapp/index.ts';

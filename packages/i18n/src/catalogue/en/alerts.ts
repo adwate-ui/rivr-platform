@@ -5,6 +5,7 @@
 export const alerts = {
   kinds: {
     'auth.sms_rate_limit': 'sign-in codes are being refused because the hourly limit is used up',
+    'auth.sign_in_guessed': 'someone kept trying sign-in codes from one address',
     'cage.rate_limit': 'a cashier, or the venue, reached the limit of cage money calls in a minute',
     'aml.settings_changed': 'a super admin changed the AML settings',
     'aml.structuring': 'a member\'s cash buy-ins ended just under the limit several times: the AML register has an entry to review',

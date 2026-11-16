@@ -79,6 +79,16 @@ Auth and API on staging and production, in the Supabase dashboard:
      - Set a low-balance alert and a daily credit cap in MSG91: each code to a number that asks again costs a message.
      - Set `MSG91_AUTH_KEY` and `MSG91_TEMPLATE_ID` as function secrets. To rotate the key, create the new one, set it as the secret, then delete the old one in MSG91.
      - Check it: on staging, request a code for a number not on WhatsApp, then tap "Send by SMS"; the SMS arrives.
+  7a. SMS through Message Central's VerifyNow (decision 0679), which replaces steps 6 to 7 while it is set. In this order:
+     - Give the Message Central account a password used nowhere else and turn on two-factor sign-in to its dashboard: the API takes that password. Set a low-balance alert there.
+     - Set Authentication → SMS OTP expiry to 600 seconds (`sms_otp_exp`): Auth's code waits while VerifyNow's SMS arrives and the member types it, and 60 seconds is too short.
+     - Set `MESSAGECENTRAL_CUSTOMER_ID` (`C-…`) and `MESSAGECENTRAL_PASSWORD` (the password itself, not base64) as function secrets, with `--env-file`.
+     - Set Authentication → SMS OTP length to 10 (`sms_otp_length`). Auth's code is only relayed now, never typed, and ten digits put it beyond guessing at Auth's verify endpoint within the 600 seconds. Members still type VerifyNow's six.
+     - Check the keys without sending an SMS: `GET https://cpaas.messagecentral.com/auth/v1/authentication/token?customerId=…&key=<base64 password>&scope=NEW&country=91`, from a script that reads both from files, answers `{"status":200,"token":…}`.
+     - Check it: sign in on the player app with a real number; the SMS arrives and its code signs in. Sign in with a test number too: it keeps its fixed code. Between the secrets and the length, sign-in is down ("Sign-in codes cannot be sent yet"), so set both at a quiet time.
+     - Check the address limit counts members apart: sign in from two networks (a phone on mobile data, a laptop on Wi-Fi), then `select client, count(*) from private.sign_in_check group by 1` shows two rows. One row means every member shares one limit: unset the secrets until it is fixed.
+     - To rotate the password: change it in Message Central, then set `MESSAGECENTRAL_PASSWORD` again at once; sign-ins fail in between.
+     - To go back to WhatsApp and MSG91: set the OTP length to 6 first (a member types the code they receive, six digits), then unset both secrets, then set the expiry to 60.
   8. KYC on Zoop.one (decision 0671):
      - In Zoop's dashboard (dashboard.zoop.one), Products: subscribe to Pan Lite, Pan Demographic and Face Match, and ask Zoop to add DigiLocker (it is not self-serve). Manage Apps: add them to the Test App (staging) or the production app (rivr-prod), then generate the app's API key; it is shown once. Leave the IP whitelist off: Edge Functions have no fixed address.
      - Set three function secrets: `ZOOP_APP_ID`, `ZOOP_API_KEY` and `ZOOP_ENVIRONMENT` (`test` on staging with the Test App's key, `live` on rivr-prod with the production app's). Every release sets `ZOOP_ENVIRONMENT=live` on rivr-prod itself (#1022); set the other two by hand. Until all three are set, a real venue's KYC stays closed.

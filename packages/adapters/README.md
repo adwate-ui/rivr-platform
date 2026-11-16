@@ -50,7 +50,7 @@ kyc.failNext({ code: 'unavailable' });
 
 ## Sign-in codes
 
-The one exception to "outbox consumers only": Auth waits for the code to go out, and the outbox would store the code in a table (decision 0025). A code travels like this:
+The exception to "outbox consumers only": Auth waits for the code to go out, and the outbox would store the code in a table (decision 0025); with VerifyNow, the app waits on `sign-in-verify` as well. A code travels like this:
 
 1. The app asks Auth for a code (`signInWithOtp`). Auth generates it.
 2. Auth posts it to the Send SMS hook set in `supabase/config.template.toml` (`[auth.hook.send_sms]`), signed with the hook secret.
@@ -59,6 +59,11 @@ The one exception to "outbox consumers only": Auth waits for the code to go out,
 5. `sendSignInCode({ whatsapp, smsOtp }, { to, code, preferSms })` tries the WhatsApp authentication template (`sign_in_code`) first, then SMS; for a second code within ten minutes (`preferSms`), SMS first, since Meta accepts a code for a number not on WhatsApp and fails it only later (#181). A channel left out is skipped; with neither it fails closed (`not_configured`), and Auth refuses the sign-in. The last channel, if it is still sending at the deadline, counts as sent, and `keepAlive` (`EdgeRuntime.waitUntil`) lets its request finish after the reply: the Evolution bridge takes 4 s and more, and delivers anyway (decision 0304).
 
 SMS goes through MSG91 once `MSG91_AUTH_KEY` and `MSG91_TEMPLATE_ID` are set as function secrets (runbook `ci-and-release.md`); until then codes go by WhatsApp alone.
+
+While `MESSAGECENTRAL_CUSTOMER_ID` and `MESSAGECENTRAL_PASSWORD` are set, Message Central's VerifyNow sends the codes instead (decision 0679), and steps 3 to 5 become:
+
+1. `auth-send-code` calls `relaySmsHook(payload, verifyNow, keep)`. VerifyNow (`@rivr/adapters/verify-now`, `createVerifyNow({ customerId, password })`) texts the number a six-digit code of its own and returns its `verificationId`, or null while its last code to the number still stands (reply 506). `keep` stores Auth's code, encrypted, with that check (`keep_sign_in_code`). Auth's code is sent nowhere.
+2. The app sends the typed code to `supabase/functions/sign-in-verify` (the apps' origins only, JSON only), which calls `checkSignInCode(input, verifyNow, store)`. It counts the try (`sign_in_code_attempt`: five per code within ten minutes, 30 per caller address in five minutes, then 429 and an owner alert) and asks VerifyNow. A code VerifyNow accepts gets back Auth's code (`take_sign_in_code`, for that check only), and the app gives it to Auth (`verifyOtp`); the same code gets it again for two minutes, should that sign-in fail. With no VerifyNow check waiting (VerifyNow off, or a test number, which Auth answers without the hook) it answers `token: null`, and the app gives Auth the typed code. Auth's own code is ten digits meanwhile (runbook step 7a).
 
 The hook secret, `SEND_SMS_HOOK_SECRET`, is made per checkout in the gitignored `supabase/.hook-secret` (`scripts/lib/supabase-config.mjs`). On staging and production it is generated in the Supabase dashboard and set as a function secret (`docs/runbooks/ci-and-release.md`).
 

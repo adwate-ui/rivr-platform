@@ -1,8 +1,8 @@
 import type { IndianMobile } from '@rivr/contracts';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { SESSION_STORAGE_KEY } from './client.ts';
-import { toSignInFailure, type SignInFailure } from './parse/signInFailure.ts';
+import { SESSION_STORAGE_KEY, type RivrClient } from './client.ts';
+import { toSignInCheckFailure, toSignInFailure, type SignInFailure } from './parse/signInFailure.ts';
 import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 
@@ -10,10 +10,22 @@ import { queryKeys } from './queryKeys.ts';
 export type SignInResult = Result<null, SignInFailure>;
 
 /**
+ * The code to give Auth for the one typed (decision 0679). While VerifyNow sends the codes,
+ * sign-in-verify checks the typed code with VerifyNow and gives back Auth's own; otherwise (VerifyNow
+ * off, or a test number) it says to give Auth the typed code.
+ */
+async function codeForAuth(client: RivrClient, phone: IndianMobile, code: string): Promise<Result<string, SignInFailure>> {
+  const { data, error } = await client.functions.invoke('sign-in-verify', { body: { phone, code } });
+  if (error) return err(await toSignInCheckFailure(error));
+  const token: unknown = typeof data === 'object' && data !== null ? Reflect.get(data, 'token') : null;
+  return ok(typeof token === 'string' ? token : code);
+}
+
+/**
  * Sign-in by mobile number and one-time code, for every app. `requestCode` asks Auth to send a
- * code (Auth's Send SMS hook delivers it, decision 0025); `verifyCode` checks it, then links the
- * staff and member records registered under the number (`link_my_login`). Both resolve to a
- * Result; their `isPending` drives the screen's loading state.
+ * code (Auth's Send SMS hook delivers it: by VerifyNow, decision 0679, else WhatsApp, decision 0025);
+ * `verifyCode` checks it, then links the staff and member records registered under the number
+ * (`link_my_login`). Both resolve to a Result; their `isPending` drives the screen's loading state.
  */
 export function useSignIn() {
   const { client } = useRivrData();
@@ -35,7 +47,9 @@ export function useSignIn() {
 
   const verifyCode = useMutation({
     mutationFn: async ({ phone, code }: { phone: IndianMobile; code: string }): Promise<SignInResult> => {
-      const { error } = await client.auth.verifyOtp({ phone, token: code, type: 'sms' });
+      const token = await codeForAuth(client, phone, code);
+      if (!token.ok) return token;
+      const { error } = await client.auth.verifyOtp({ phone, token: token.value, type: 'sms' });
       if (error) return err(toSignInFailure(error));
       const linked = await client.rpc('link_my_login');
       if (linked.error) {

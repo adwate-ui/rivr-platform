@@ -1,3 +1,5 @@
+import { functionErrorCode } from './kycFailure.ts';
+
 /**
  * Why a sign-in step failed, in the four ways the screen explains. Supabase Auth answers a
  * wrong code and an expired code alike (`otp_expired`), so the screen cannot tell them apart.
@@ -17,4 +19,13 @@ export function toSignInFailure({ status, code }: AuthErrorLike): SignInFailure 
   if (code === 'captcha_failed') return 'not_checked';
   if (status === 429) return 'too_many_requests';
   return 'unavailable';
+}
+
+/**
+ * Reads sign-in-verify's refusal (decision 0679): a wrong or expired VerifyNow code, or too many
+ * tries. Anything else, a network failure included, is `unavailable`.
+ */
+export async function toSignInCheckFailure(error: unknown): Promise<SignInFailure> {
+  const code = await functionErrorCode(error);
+  return code === 'code_rejected' || code === 'too_many_requests' ? code : 'unavailable';
 }

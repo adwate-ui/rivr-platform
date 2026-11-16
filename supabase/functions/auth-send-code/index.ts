@@ -1,10 +1,13 @@
-// Supabase Auth's Send SMS hook: Auth generates a sign-in code and posts it here; this sends it by
-// WhatsApp (the Evolution bridge for now, decision 0297), then SMS (docs/decisions/0025), or SMS first for a second
-// code to a number within ten minutes (#181). The one place outside an outbox consumer that calls an
-// adapter, because Auth waits for the code to go out. The code and the phone are never logged.
-import { handleSendSmsHook, hookError, type HookReply, type NoteSignInCodeSend } from '@rivr/adapters/sign-in-code';
+// Supabase Auth's Send SMS hook: Auth generates a sign-in code and posts it here. While VerifyNow's
+// secrets are set (decision 0679), VerifyNow texts the member a code of its own and Auth's is kept for
+// sign-in-verify. Otherwise this sends Auth's code by WhatsApp (the Evolution bridge, decision 0297), then
+// SMS (docs/decisions/0025), or SMS first for a second code to a number within ten minutes (#181). The one
+// place outside an outbox consumer that calls an adapter, because Auth waits for the code to go out. The
+// code and the phone are never logged.
+import { handleSendSmsHook, hookError, relaySmsHook, type HookReply, type KeepSignInCode, type NoteSignInCodeSend } from '@rivr/adapters/sign-in-code';
 import { createMsg91SmsOtp } from '@rivr/adapters/sms-otp';
 import { Webhook } from 'standardwebhooks';
+import { liveVerifyNow, signInCodeRpc } from '../_shared/signInCodes.ts';
 import { liveWhatsApp } from '../_shared/whatsapp.ts';
 
 // Auth signs each call (Standard Webhooks) with this secret, set on both sides. Auth stores it as
@@ -49,6 +52,16 @@ const noteSend: NoteSignInCodeSend = async (to) => {
   }
 };
 
+/** Keeps Auth's code with VerifyNow's check, in what is left of Auth's 5 seconds (never under a third of a second). */
+const keep: KeepSignInCode = async (to, code, verificationId, deadline) => {
+  try {
+    const args = { p_phone: to, p_code: code, p_verification_id: verificationId };
+    return (await signInCodeRpc('keep_sign_in_code', args, Math.max(deadline - Date.now(), 300))) === true;
+  } catch {
+    return false;
+  }
+};
+
 function reply({ status, body }: HookReply): Response {
   return Response.json(body, { status });
 }
@@ -66,5 +79,7 @@ Deno.serve(async (request) => {
   } catch {
     return new Response(null, { status: 401 });
   }
+  const verifyNow = liveVerifyNow();
+  if (verifyNow !== null) return reply(await relaySmsHook(payload, verifyNow, keep));
   return reply(await handleSendSmsHook(payload, liveChannels(), noteSend, (send) => EdgeRuntime.waitUntil(send)));
 });

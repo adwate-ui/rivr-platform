@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createFakeSmsOtp } from '../sms-otp/index.ts';
+import { createFakeVerifyNow } from '../verify-now/index.ts';
 import { createFakeWhatsApp } from '../whatsapp/index.ts';
-import { handleSendSmsHook } from './index.ts';
+import { handleSendSmsHook, relaySmsHook } from './index.ts';
 
 const payload = { user: { id: 'u1', phone: '919000000201' }, sms: { otp: '482913', phone: '919000000201' } };
 
@@ -74,6 +75,14 @@ describe('handleSendSmsHook', () => {
     );
   });
 
+  it('sends no ten-digit code by WhatsApp or SMS: Auth\'s length was left at VerifyNow\'s (decision 0679)', async () => {
+    const whatsapp = createFakeWhatsApp();
+    const tenDigits = { ...payload, sms: { ...payload.sms, otp: '1357924680' } };
+
+    expect(await handleSendSmsHook(tenDigits, { whatsapp })).toEqual(refusal(503, 'Sign-in codes cannot be sent yet.'));
+    expect(whatsapp.calls).toEqual([]);
+  });
+
   it('tells the app codes cannot be sent when no channel is configured', async () => {
     expect(await handleSendSmsHook(payload, {})).toEqual(refusal(503, 'Sign-in codes cannot be sent yet.'));
   });
@@ -105,5 +114,79 @@ describe('handleSendSmsHook', () => {
     whatsapp.failNext({ code: 'rejected', reason: 'WhatsApp error 132001' });
 
     expect(await handleSendSmsHook(payload, { whatsapp })).toEqual(refusal(502, 'The code could not be sent. Try again.'));
+  });
+});
+
+describe('relaySmsHook, while VerifyNow sends the codes', () => {
+  /** Auth's code while VerifyNow sends the codes: ten digits (`sms_otp_length`, decision 0679). */
+  const relayed = { ...payload, sms: { ...payload.sms, otp: '1357924680' } };
+
+  /** Records what the hook keeps; `isKept` is what the database answers. */
+  function keeper(isKept = true) {
+    const kept: { to: string; code: string; verificationId: string | null }[] = [];
+    const keep = async (to: string, code: string, verificationId: string | null) => {
+      kept.push({ to, code, verificationId });
+      return isKept;
+    };
+    return { keep, kept };
+  }
+
+  it('has VerifyNow text the number its own code, and keeps Auth\'s with VerifyNow\'s check', async () => {
+    const verifyNow = createFakeVerifyNow();
+    const { keep, kept } = keeper();
+
+    expect(await relaySmsHook(relayed, verifyNow, keep)).toEqual({ status: 200, body: {} });
+    expect(verifyNow.calls).toEqual([{ to: '+919000000201' }]);
+    expect(kept).toEqual([{ to: '+919000000201', code: '1357924680', verificationId: 'fake-1' }]);
+  });
+
+  it('keeps Auth\'s new code with VerifyNow\'s last check when VerifyNow will not text the number again yet', async () => {
+    const stillStands = { send: async () => ({ ok: true as const, value: { verificationId: null } }), check: createFakeVerifyNow().check };
+    const { keep, kept } = keeper();
+
+    expect(await relaySmsHook(relayed, stillStands, keep)).toEqual({ status: 200, body: {} });
+    expect(kept[0]?.verificationId).toBeNull();
+    // That check accepted, spent or never kept: nothing can be sent until VerifyNow's minute passes.
+    expect(await relaySmsHook(relayed, stillStands, keeper(false).keep))
+      .toEqual(refusal(429, 'Too many codes were sent. Wait a minute and try again.'));
+  });
+
+  it('gives keeping the code what is left of Auth\'s time once VerifyNow has sent', async () => {
+    const deadlines: number[] = [];
+    const before = Date.now();
+    await relaySmsHook(relayed, createFakeVerifyNow(), async (_to, _code, _id, deadline) => deadlines.push(deadline) > 0);
+
+    expect(deadlines[0]).toBeGreaterThanOrEqual(before + 4_500);
+    expect(deadlines[0]).toBeLessThanOrEqual(Date.now() + 4_500);
+  });
+
+  it('relays only a ten-digit Auth code: a shorter one means sign-in is down until Auth\'s length is set (decision 0679)', async () => {
+    const verifyNow = createFakeVerifyNow();
+    const { keep, kept } = keeper();
+
+    expect(await relaySmsHook(payload, verifyNow, keep)).toEqual(refusal(503, 'Sign-in codes cannot be sent yet.'));
+    expect([verifyNow.calls.length, kept.length]).toEqual([0, 0]);
+  });
+
+  it('tells the app the code was not sent when VerifyNow fails or the code cannot be kept, and to wait at VerifyNow\'s limit', async () => {
+    const verifyNow = createFakeVerifyNow();
+    verifyNow.failNext({ code: 'unavailable' });
+    verifyNow.failNext({ code: 'rate_limited' });
+    const { keep, kept } = keeper();
+
+    expect(await relaySmsHook(relayed, verifyNow, keep)).toEqual(refusal(502, 'The code could not be sent. Try again.'));
+    expect(await relaySmsHook(relayed, verifyNow, keep)).toEqual(refusal(429, 'Too many codes were sent. Wait a minute and try again.'));
+    expect(kept).toEqual([]);
+    expect(await relaySmsHook(relayed, verifyNow, keeper(false).keep)).toEqual(refusal(502, 'The code could not be sent. Try again.'));
+  });
+
+  it('sends nothing for a phone change or a number that is not an Indian mobile', async () => {
+    const verifyNow = createFakeVerifyNow();
+    const toAnother = { user: { id: 'u1', phone: '919000000201' }, sms: { otp: '482913', phone: '919800000999' } };
+    const notIndian = { user: { id: 'u1', phone: '14155550100' }, sms: { otp: '482913', phone: '14155550100' } };
+
+    expect((await relaySmsHook(toAnother, verifyNow, keeper().keep)).body).toMatchObject({ error: { http_code: 403 } });
+    expect((await relaySmsHook(notIndian, verifyNow, keeper().keep)).body).toMatchObject({ error: { http_code: 400 } });
+    expect(verifyNow.calls).toEqual([]);
   });
 });
