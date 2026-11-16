@@ -42,13 +42,24 @@ const returnUrl = returnUrlOf(Deno.env.get('PLAYER_APP_URL') ?? '');
 // Where a vendor that delivers DigiLocker's documents sends them (Zoop, decision 0676): kyc-digilocker, on this project.
 const deliveryUrl = `${Deno.env.get('SUPABASE_URL') ?? ''}/functions/v1/kyc-digilocker`;
 
+/** Why a check waits for the desk, as kyc_record keeps it for the desk to see (decision 0678). */
+type DeskReason = 'face_unconfirmed' | 'no_date_of_birth' | 'digilocker_failed' | 'not_started';
+
+/** Zoop did not verify the member: what the desk is told, the failure noted with the check, and Zoop's face score if any. */
+interface Unverified {
+  readonly deskReason: DeskReason;
+  readonly failure: AdapterFailure;
+  readonly faceMatchScore?: number;
+}
+
 /**
- * Zoop did not verify the member (the owner, 16 Nov 2026; decision 0678): why is kept, and the check waits for the desk, as
- * while the venue checks identity at the club. `at_club`, or null when the check was not one in progress (it had moved on).
+ * Zoop did not verify the member (the owner, 16 Nov 2026; decision 0678): the check waits for the desk, as while the venue
+ * checks identity at the club, with why kept for the desk. `at_club`, or null when the check was not one in progress.
  */
-async function toTheDesk(memberId: string, step: KycStep, failure: AdapterFailure): Promise<Response | null> {
+async function toTheDesk(memberId: string, step: KycStep, { deskReason, failure, faceMatchScore }: Unverified): Promise<Response | null> {
   await noteFailure(memberId, step, failure);
-  const isAtTheDesk = (await rpc('record_kyc_digilocker_failed', { p_member_id: memberId }, null)) === true;
+  const args = { p_member_id: memberId, p_reason: deskReason, p_face_match_score: faceMatchScore ?? null };
+  const isAtTheDesk = (await rpc('record_kyc_digilocker_failed', args, null)) === true;
   return isAtTheDesk ? reply({ status: 'at_club' }) : null;
 }
 
@@ -65,7 +76,8 @@ async function start({ memberId, kyc }: Subject): Promise<Response> {
   const started = await kyc.startDigiLocker({ memberId, returnUrl, deliveryUrl });
   if (!started.ok) {
     await giveBackCall(memberId, started.error);
-    return (await toTheDesk(memberId, 'start', started.error)) ?? (await failureReply(memberId, 'start', started.error));
+    const atTheDesk = await toTheDesk(memberId, 'start', { deskReason: 'not_started', failure: started.error });
+    return atTheDesk ?? (await failureReply(memberId, 'start', started.error));
   }
   const { sessionId, deliveryKey } = started.value;
   await rpc('record_kyc_started', { p_member_id: memberId, p_session_id: sessionId, p_delivery_key: deliveryKey }, null);
@@ -80,13 +92,18 @@ async function start({ memberId, kyc }: Subject): Promise<Response> {
 async function notCompleted(memberId: string, failure: AdapterFailure): Promise<Response> {
   const isPassing = failure.code === 'unavailable' || failure.code === 'rate_limited' || (failure.code === 'rejected' && failure.cause !== undefined);
   if (isPassing) return await failureReply(memberId, 'complete', failure);
-  return (await toTheDesk(memberId, 'complete', failure)) ?? reply({ status: 'started' });
+  return (await toTheDesk(memberId, 'complete', { deskReason: 'digilocker_failed', failure })) ?? reply({ status: 'started' });
 }
 
-/** Why Zoop's answer does not verify the member, or null when it does: a face that is not the selfie's, or no date of birth. */
-function whyUnverified(face: FaceMatch, record: DigiLockerRecord): AdapterFailure | null {
-  if (!face.isMatch) return { code: 'rejected', reason: 'Zoop face not matched' };
-  return record.dateOfBirth === null ? { code: 'rejected', reason: 'Zoop no date of birth' } : null;
+/**
+ * Why Zoop's answer does not verify the member, or null when it does: a face that is not the selfie's (the desk is warned,
+ * with Zoop's score), or an Aadhaar with no full date of birth.
+ */
+function whyUnverified(face: FaceMatch, record: DigiLockerRecord): Unverified | null {
+  if (!face.isMatch) {
+    return { deskReason: 'face_unconfirmed', failure: { code: 'rejected', reason: 'Zoop face not matched' }, faceMatchScore: Math.round(face.score) };
+  }
+  return record.dateOfBirth === null ? { deskReason: 'no_date_of_birth', failure: { code: 'rejected', reason: 'Zoop no date of birth' } } : null;
 }
 
 /** DigiLocker's record kept with the face match's verdict; the status the check is left at. */
@@ -127,8 +144,12 @@ async function complete({ memberId, kyc }: Subject): Promise<Response> {
 async function matchAndRecord(memberId: string, selfiePath: string, kyc: KycAdapter, delivered: DigiLockerRecord): Promise<Response> {
   await rpc('begin_kyc_vendor_call', { p_member_id: memberId, p_is_paid: true }, null);
   const face = await kyc.matchFace({ selfieUrl: await photoUrl(selfiePath), referenceUrl: delivered.photoUrl });
-  // The record stays delivered, so asking again matches the faces again without a new DigiLocker.
-  if (!face.ok) return await failed(memberId, 'complete', face.error);
+  if (!face.ok) {
+    // Zoop refusing the match outright (it could not read it, or a code of its own) leaves the face unconfirmed: the desk
+    // checks it, warned. An outage is asked again, the record still delivered.
+    if (face.error.code !== 'rejected' || face.error.cause !== undefined) return await failed(memberId, 'complete', face.error);
+    return (await toTheDesk(memberId, 'complete', { deskReason: 'face_unconfirmed', failure: face.error })) ?? reply({ status: 'started' });
+  }
   const unverified = whyUnverified(face.value, delivered);
   if (unverified !== null) return (await toTheDesk(memberId, 'complete', unverified)) ?? reply({ status: 'started' });
   // Recorded, the check leaves its session, and what was delivered for it goes (decision 0676).

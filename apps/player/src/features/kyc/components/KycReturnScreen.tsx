@@ -29,6 +29,8 @@ function stillToComplete(answer: KycStatus | 'waiting' | 'at_club', hasWaitedToo
  */
 function isForTheDesk(completed: Completion, record: KycRecord | null | undefined, isAtTheClub: boolean): boolean {
   if (completed.ok && completed.value === 'at_club') return true;
+  // A member already at the desk who checks in the app instead waits for the delivery like anyone.
+  if (completed.ok && completed.value === 'waiting') return false;
   if (record?.status === 'started' && record.isAtTheClub) return true;
   return record?.status === 'needs_pan' && isAtTheClub;
 }

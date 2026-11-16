@@ -50,11 +50,15 @@ describe('createAdapters for a real venue', () => {
     expect(await adapters.cachePurge.purgeUrls({ urls: ['https://rivr.test/'] })).toMatchObject({ ok: true });
   });
 
-  it('fails closed for KYC without credentials: identity is never faked', async () => {
+  it('verifies no one through a vendor without credentials: identity is never faked, and the desk checks in person', async () => {
     const adapters = createAdapters({ isPracticeVenue: false, live: {} });
+    const notConfigured = { ok: false, error: { code: 'not_configured' } };
 
-    // Optional on the interface; here it must be there, so the selfie is refused too.
-    expect(await adapters.kyc.checkLiveness?.({ selfieUrl: 'x' })).toEqual({ ok: false, error: { code: 'not_configured' } });
+    // No liveness, so the selfie is kept; no vendor check goes through, so the check waits for the desk (decision 0678).
+    expect(adapters.kyc.checkLiveness).toBeUndefined();
+    expect(await adapters.kyc.startDigiLocker({ memberId, returnUrl: 'https://app.rivr.test/kyc', deliveryUrl: 'https://db.rivr.test/functions/v1/kyc-digilocker' }))
+      .toEqual(notConfigured);
+    expect(await adapters.kyc.matchFace({ selfieUrl: 'x', referenceUrl: 'y' })).toEqual(notConfigured);
   });
 });
 

@@ -52,19 +52,44 @@ test.describe('KYC', () => {
     await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible();
   });
 
-  test('a real venue without a KYC vendor fails closed', async ({ page }) => {
+  test('a real venue without a KYC vendor keeps the selfie and sends the check to the desk (decision 0678)', async ({ page }) => {
+    // From no check at all, so a run again starts where the first did.
+    if (!isRemoteTarget()) sql(`delete from public.kyc_record k using public.member m where m.id = k.member_id and m.phone = '+919000000218'`);
     await signInToPlayer(page, '9000000218', '/kyc');
     // Until the check is done the member sees only its steps (#632): Home sends them back to it.
     await page.goto(appUrl('player'));
     await expect(page).toHaveURL(/\/kyc$/);
     await expect(page.getByRole('navigation', { name: 'Main' })).toHaveCount(0);
-    // Staging's real venue has Zoop's test keys, so its selfie is taken, not refused: closed is proved locally.
+    // Staging's real venue has Zoop's test keys: a venue with none is proved locally.
     if (isRemoteTarget()) return;
+    // No vendor checks the selfie's liveness, so it is kept; DigiLocker cannot start, and the desk checks them, as at the club.
     await takeSelfie(page);
-    await expect(page.getByRole('alert').getByText('ID checks are not open yet.')).toBeVisible();
+    await page.getByRole('button', { name: 'Continue to DigiLocker' }).click();
+    await expect(page.getByRole('heading', { name: 'Registered', level: 1 })).toBeVisible();
+    expect(sql(`select k.status || ' ' || (k.at_club_from is not null)::text || ' ' || coalesce(k.desk_reason, '-')
+                from public.kyc_record k join public.member m on m.id = k.member_id where m.phone = '+919000000218'`)).toBe('started true not_started');
     // A call that never reached a vendor is given back: it uses up none of the member's five a day (the owner, 9 Nov).
     expect(sql(`select coalesce((select k.vendor_calls from public.kyc_record k join public.member m on m.id = k.member_id
                  where m.phone = '+919000000218'), 0)`)).toBe('0');
+    // Let in, as a member registered at the club is.
+    await page.getByRole('button', { name: 'See the tables' }).click();
+    await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
+  });
+
+  test('a member whose DigiLocker the vendor refuses is sent to the desk by the kyc function (decision 0678)', async ({ page }) => {
+    test.skip(isRemoteTarget(), 'sets a hand-off with the database, so the local stack only');
+    // Naina Kapoor, at the practice venue, takes her selfie; her hand-off is then one the fake vendor never started, so its
+    // pull refuses it, as Zoop refuses a session that failed.
+    sql(`delete from public.kyc_record k using public.member m where m.id = k.member_id and m.phone = '+919000000271'`);
+    await signInToPlayer(page, '9000000271', '/kyc');
+    await takeSelfie(page);
+    await expect(page.getByRole('button', { name: 'Continue to DigiLocker' })).toBeVisible();
+    sql(`update public.kyc_record k set digilocker_session_id = 'not-the-fake-session' from public.member m
+         where m.id = k.member_id and m.phone = '+919000000271'`);
+    await page.goto(`${appUrl('player')}/kyc/return`);
+    await expect(page.getByRole('heading', { name: 'Registered', level: 1 })).toBeVisible();
+    expect(sql(`select k.status || ' ' || (k.at_club_from is not null)::text || ' ' || coalesce(k.desk_reason, '-')
+                from public.kyc_record k join public.member m on m.id = k.member_id where m.phone = '+919000000271'`)).toBe('started true digilocker_failed');
   });
 
   test('a member DigiLocker failed for waits for the desk, as at the club; one held for a PAN before keeps that step', async ({ browser, page, request }) => {

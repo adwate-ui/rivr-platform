@@ -25,8 +25,10 @@ export function DigilockerStep({ isResume }: { isResume: boolean }) {
     setFailure(null);
     const started = await start.mutateAsync();
     if (!started.ok) setFailure(started.error);
-    // Zoop could not start it: the check waits for the desk (decision 0678), and /kyc, reading it again, says so.
     else if (started.value !== 'at_club') window.location.assign(started.value.redirectUrl);
+    // Zoop could not start it: the check waits for the desk (decision 0678). A new one shows Registered once /kyc reads it
+    // again; one already at the desk, trying the app instead, is told the app's check is down.
+    else setFailure('unavailable');
   };
   return (
     <KycIntro at="digilocker" isResume={isResume}

@@ -74,6 +74,11 @@ function FacePhotos({ member, photo }: { member: KycCandidate; photo: DeskPhoto 
 }
 
 /** Step 1: who is being checked, their name and number beside their app selfie if they took one; Start, or another member. */
+/** The app's face check did not match the member to their Aadhaar photo (decision 0678): the desk is warned, start and end. */
+function FaceUnconfirmed({ member }: { member: KycCandidate }) {
+  return member.deskReason === 'face_unconfirmed' ? <ErrorMessage>{t('console.kycInPerson.faceUnconfirmed')}</ErrorMessage> : null;
+}
+
 function MemberStep({ member, onStart, onCancel }: { member: KycCandidate; onStart: () => void; onCancel: () => void }) {
   return (
     <Stack gap={4}>
@@ -85,6 +90,7 @@ function MemberStep({ member, onStart, onCancel }: { member: KycCandidate; onSta
           <Text variant="secondary" tone="muted">{t('console.kycInPerson.phoneEnding', { digits: member.phoneLast4 })}</Text>
         </Stack>
       </Inline>
+      <FaceUnconfirmed member={member} />
       <Button variant="primary" fullWidth onClick={onStart}>{t('console.kycInPerson.start')}</Button>
       <Button variant="text" fullWidth onClick={onCancel}>{t('console.kycInPerson.another')}</Button>
     </Stack>
@@ -164,6 +170,7 @@ function DetailsStep({ member, steps, details }: DetailsStepProps) {
       <DeskDocument kind="pan" name={member.fullName} photo={pan} reason={reasonFor('pan')} isDisabled={isSaving} onTake={() => steps.go('pan', true)} />
       <DeskDocument kind="aadhaar_front" name={member.fullName} photo={aadhaar} reason={reasonFor('aadhaar_front')} isDisabled={isSaving} onTake={() => steps.go('aadhaar_front', true)} />
       <DetailsFields details={details} name={member.fullName} />
+      <FaceUnconfirmed member={member} />
       <Inline gap={3} wrap>
         <Button variant="primary" size="compact" isLoading={isSaving} onClick={() => void details.verify()}>{t('console.kycInPerson.verifyName', { name: member.fullName })}</Button>
         <Button variant="text" size="compact" isDisabled={isSaving} onClick={steps.back}>{t('common.back')}</Button>

@@ -11,6 +11,8 @@ export const kycInPerson = {
   startedOnApp: 'Started on the app, not finished.',
   /** A member let in by their selfie, to be checked at the club (decision 0502). */
   atTheClub: 'Selfie taken in the app. Check their originals.',
+  /** The app's face check did not match the member to their Aadhaar photo (decision 0678): someone else's card is possible. */
+  faceUnconfirmed: "The app's face check did not match this member to their Aadhaar photo. Compare the face with the original card before you verify.",
   /** A check that waited for a PAN check Cashfree no longer runs: the desk completes it (audit F-010). */
   heldForPan: 'Waiting for a PAN. Check their originals.',
   /** A verified member, due at the desk only for a photo a super admin sent back (decision 0573). */
