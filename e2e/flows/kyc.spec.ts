@@ -78,18 +78,18 @@ test.describe('KYC', () => {
 
   test('a member whose DigiLocker the vendor refuses is sent to the desk by the kyc function (decision 0678)', async ({ page }) => {
     test.skip(isRemoteTarget(), 'sets a hand-off with the database, so the local stack only');
-    // Naina Kapoor, at the practice venue, takes her selfie; her hand-off is then one the fake vendor never started, so its
+    // Rajat Singh, at the practice venue, takes his selfie; his hand-off is then one the fake vendor never started, so its
     // pull refuses it, as Zoop refuses a session that failed.
-    sql(`delete from public.kyc_record k using public.member m where m.id = k.member_id and m.phone = '+919000000271'`);
-    await signInToPlayer(page, '9000000271', '/kyc');
+    sql(`delete from public.kyc_record k using public.member m where m.id = k.member_id and m.phone = '+919000000302'`);
+    await signInToPlayer(page, '9000000302', '/kyc');
     await takeSelfie(page);
     await expect(page.getByRole('button', { name: 'Continue to DigiLocker' })).toBeVisible();
     sql(`update public.kyc_record k set digilocker_session_id = 'not-the-fake-session' from public.member m
-         where m.id = k.member_id and m.phone = '+919000000271'`);
+         where m.id = k.member_id and m.phone = '+919000000302'`);
     await page.goto(`${appUrl('player')}/kyc/return`);
     await expect(page.getByRole('heading', { name: 'Registered', level: 1 })).toBeVisible();
     expect(sql(`select k.status || ' ' || (k.at_club_from is not null)::text || ' ' || coalesce(k.desk_reason, '-')
-                from public.kyc_record k join public.member m on m.id = k.member_id where m.phone = '+919000000271'`)).toBe('started true digilocker_failed');
+                from public.kyc_record k join public.member m on m.id = k.member_id where m.phone = '+919000000302'`)).toBe('started true digilocker_failed');
   });
 
   test('a member DigiLocker failed for waits for the desk, as at the club; one held for a PAN before keeps that step', async ({ browser, page, request }) => {
