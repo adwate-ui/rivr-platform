@@ -1,6 +1,6 @@
 import { shrinkPhoto, useKycActions, useReportFailure, type KycFailure } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { inAppBrowserOf, OpenInBrowser, SelfieCamera } from '@rivr/ui';
+import { inAppBrowserOf, OpenInBrowser, SelfieCamera, type CameraCaptureTrouble } from '@rivr/ui';
 import { useState } from 'react';
 import { FAILURE_COPY } from './failureCopy.ts';
 
@@ -24,8 +24,9 @@ export function SelfieStep({ onBack, onSent, isForTheClub = false }: SelfieStepP
   const { sendSelfie, sendClubSelfie } = useKycActions();
   const reportFailure = useReportFailure();
   const [failure, setFailure] = useState<KycFailure | null>(null);
+  // Read once: the browser does not change while the step is open.
   const [inAppBrowser] = useState(() => inAppBrowserOf(navigator.userAgent));
-  const [isRefusedHere, setRefusedHere] = useState(false);
+  const [isRefusedHere, setIsRefusedHere] = useState(false);
   const stepUrl = `${window.location.origin}/kyc`;
   // Busy from the tap, while the photo is made small, not only once it is sent: a second tap would send it twice.
   const [isSending, setIsSending] = useState(false);
@@ -49,11 +50,12 @@ export function SelfieStep({ onBack, onSent, isForTheClub = false }: SelfieStepP
     }
   };
   if (isRefusedHere && inAppBrowser) {
-    return <OpenInBrowser browser={inAppBrowser} url={stepUrl} why={t(`player.kyc.cameraInAppBrowser.${inAppBrowser.app}`)} onContinue={() => setRefusedHere(false)} />;
+    // Leaving this screen mounts SelfieCamera afresh, which asks for the camera again.
+    return <OpenInBrowser browser={inAppBrowser} url={stepUrl} why={t(`player.kyc.cameraInAppBrowser.${inAppBrowser.app}`)} onContinue={() => setIsRefusedHere(false)} />;
   }
-  const onTrouble = (trouble: string) => {
+  const onTrouble = (trouble: CameraCaptureTrouble) => {
     reportFailure(`camera:${trouble}`);
-    if (trouble === 'blocked' && inAppBrowser) setRefusedHere(true);
+    if (trouble === 'blocked' && inAppBrowser) setIsRefusedHere(true);
   };
   return (
     <SelfieCamera isSending={isSending} phoneUrl={stepUrl} onBack={onBack} onPhoto={(photo) => void send(photo)}

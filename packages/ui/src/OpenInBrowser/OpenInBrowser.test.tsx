@@ -1,6 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { axeViolations, renderIn } from '../test/render.tsx';
 import { ToastProvider } from '../Toast/Toast.tsx';
 import { OpenInBrowser } from './OpenInBrowser.tsx';
 
@@ -12,11 +13,16 @@ const URL_HERE = 'https://app.rivr.test/sign-in';
 const WHY = 'Sign in there, so you stay signed in.';
 
 function renderOpen(platform: 'iphone' | 'android', onContinue = vi.fn()) {
-  render(<ToastProvider place="player"><OpenInBrowser browser={{ app: 'instagram', platform }} url={URL_HERE} why={WHY} onContinue={onContinue} /></ToastProvider>);
+  renderIn(<ToastProvider place="player"><OpenInBrowser browser={{ app: 'instagram', platform }} url={URL_HERE} why={WHY} onContinue={onContinue} /></ToastProvider>);
   return onContinue;
 }
 
 describe('OpenInBrowser', () => {
+  it.each(['iphone', 'android'] as const)('has no accessibility violations on %s', async (platform) => {
+    renderOpen(platform);
+    expect(await axeViolations(document.body)).toEqual([]);
+  });
+
   it('sends an iPhone to Safari: why in the app\'s words, how, and the link to copy', async () => {
     const writeText = vi.fn(async () => undefined);
     vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } });

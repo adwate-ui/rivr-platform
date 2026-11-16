@@ -46,14 +46,19 @@ describe('VerifyNow sending a code', () => {
     expect(await verifyNow(fakeFetch(refused(400, 506)).fetch).send({ to })).toEqual({ ok: true, value: { verificationId: null } });
   });
 
-  it('says rate-limited at VerifyNow\'s limit, refused for another refusal, and unavailable with no reply or no token', async () => {
+  it('says rate-limited at VerifyNow\'s limit, refused for another refusal, and unavailable with no reply, no token or a server error, saying which', async () => {
     expect(await verifyNow(fakeFetch(refused(400, 800)).fetch).send({ to })).toEqual({ ok: false, error: { code: 'rate_limited' } });
     expect(await verifyNow(fakeFetch(refused(400, 511)).fetch).send({ to }))
       .toEqual({ ok: false, error: { code: 'rejected', reason: 'VerifyNow refused (511)' } });
     expect(await verifyNow(fakeFetch(sent(undefined)).fetch).send({ to }))
       .toEqual({ ok: false, error: { code: 'rejected', reason: 'VerifyNow refused (200)' } });
-    expect(await verifyNow(fakeFetch('no reply').fetch).send({ to })).toEqual({ ok: false, error: { code: 'unavailable' } });
-    expect(await verifyNow(fakeFetch(sent('1'), { status: 401 }).fetch).send({ to })).toEqual({ ok: false, error: { code: 'unavailable' } });
+    // Which of the three goes in Auth's log when a code is not sent (decision 0683).
+    expect(await verifyNow(fakeFetch('no reply').fetch).send({ to }))
+      .toEqual({ ok: false, error: { code: 'unavailable', reason: 'VerifyNow did not answer' } });
+    expect(await verifyNow(fakeFetch(sent('1'), { status: 401 }).fetch).send({ to }))
+      .toEqual({ ok: false, error: { code: 'unavailable', reason: 'Message Central gave no token' } });
+    expect(await verifyNow(fakeFetch({ status: 503, body: {} }).fetch).send({ to }))
+      .toEqual({ ok: false, error: { code: 'unavailable', reason: 'VerifyNow HTTP 503' } });
   });
 });
 

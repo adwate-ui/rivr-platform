@@ -19,6 +19,8 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+// No loading, empty or error story: the screen has none of those states, and the app is English only.
+
 /** Sign-in inside Instagram's browser on an iPhone. */
 export const Default: Story = {};
 

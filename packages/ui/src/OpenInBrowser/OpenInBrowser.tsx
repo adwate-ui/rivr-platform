@@ -13,7 +13,7 @@ export interface OpenInBrowserProps {
   url: string;
   /** Why to go, in the app's words: to stay signed in, or a camera this browser refuses. */
   why: string;
-  /** Continue here, for a wrong guess. */
+  /** Continue here: the person stays in this browser, as when the guess was wrong or they want to try anyway. */
   onContinue: () => void;
 }
 

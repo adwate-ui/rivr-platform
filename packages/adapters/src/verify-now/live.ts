@@ -62,9 +62,11 @@ function keyOf(password: string): string {
   return btoa(String.fromCharCode(...new TextEncoder().encode(password)));
 }
 
-/** A refusal of a send, without the number in the reason. */
-function sendFailure(reply: Reply | null): AdapterFailure {
-  if (reply === null || reply.status >= 500) return { code: 'unavailable' };
+/** A refusal of a send, without the number in the reason. Unavailable says why, for Auth's log (decision 0683). */
+function sendFailure(reply: Reply | null, hasToken: boolean): AdapterFailure {
+  if (!hasToken) return { code: 'unavailable', reason: 'Message Central gave no token' };
+  if (reply === null) return { code: 'unavailable', reason: 'VerifyNow did not answer' };
+  if (reply.status >= 500) return { code: 'unavailable', reason: `VerifyNow HTTP ${String(reply.status)}` };
   if (reply.responseCode === LIMIT_REACHED || reply.status === 429) return { code: 'rate_limited' };
   return { code: 'rejected', reason: `VerifyNow refused (${String(reply.responseCode ?? reply.status)})` };
 }
@@ -126,7 +128,9 @@ export function createVerifyNow({ customerId, password, fetch = globalThis.fetch
       if (reply?.responseCode === SUCCESS && (typeof verificationId === 'string' || typeof verificationId === 'number')) {
         return ok({ verificationId: String(verificationId) });
       }
-      return reply?.responseCode === ALREADY_SENT ? ok({ verificationId: null }) : err(sendFailure(reply));
+      if (reply?.responseCode === ALREADY_SENT) return ok({ verificationId: null });
+      // A token Message Central refused to give leaves none kept.
+      return err(sendFailure(reply, kept !== null));
     },
 
     async check({ verificationId, code }): Promise<Result<null, VerifyNowRefusal>> {

@@ -116,6 +116,13 @@ describe('handleSendSmsHook', () => {
 
     expect(await handleSendSmsHook(payload, { whatsapp })).toEqual(refusal(424, 'The code could not be sent. Try again. (send: WhatsApp error 132001)'));
   });
+
+  it('masks any long run of digits in the reason: the message reaches the caller as well as Auth\'s log', async () => {
+    const whatsapp = createFakeWhatsApp();
+    whatsapp.failNext({ code: 'rejected', reason: 'bridge busy for 919000000201' });
+
+    expect(await handleSendSmsHook(payload, { whatsapp })).toEqual(refusal(424, 'The code could not be sent. Try again. (send: bridge busy for [digits])'));
+  });
 });
 
 describe('relaySmsHook, while VerifyNow sends the codes', () => {
@@ -171,11 +178,11 @@ describe('relaySmsHook, while VerifyNow sends the codes', () => {
 
   it('tells the app the code was not sent when VerifyNow fails or the code cannot be kept, and to wait at VerifyNow\'s limit', async () => {
     const verifyNow = createFakeVerifyNow();
-    verifyNow.failNext({ code: 'unavailable' });
+    verifyNow.failNext({ code: 'unavailable', reason: 'VerifyNow did not answer' });
     verifyNow.failNext({ code: 'rate_limited' });
     const { keep, kept } = keeper();
 
-    expect(await relaySmsHook(relayed, verifyNow, keep)).toEqual(refusal(424, 'The code could not be sent. Try again. (send: unavailable)'));
+    expect(await relaySmsHook(relayed, verifyNow, keep)).toEqual(refusal(424, 'The code could not be sent. Try again. (send: VerifyNow did not answer)'));
     expect(await relaySmsHook(relayed, verifyNow, keep)).toEqual(refusal(429, 'Too many codes were sent. Wait a minute and try again.'));
     expect(kept).toEqual([]);
     // VerifyNow has texted the member, but the code they type cannot be checked: Auth's log tells the two apart.
