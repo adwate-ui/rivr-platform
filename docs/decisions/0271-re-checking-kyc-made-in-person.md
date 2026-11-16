@@ -8,3 +8,5 @@ Date: 28 Oct 2026. Issue #259; follows #246 and the owner's answer to #237. Cash
 - **Paused at a frozen venue, or with KYC switched off (`kyc_signup`).** A real venue's checks are claimed only once Cashfree's keys are set. The practice venue's go to the fake and reach nothing outside.
 - **No face search.** Cashfree has none (decision 0197), so the in-person photo is not searched for a duplicate face. Question #255's reading stands.
 - **No paid-call budget.** Each check is asked once, plus retries on trouble only. `begin_kyc_vendor_call`'s per-member daily cap is for members starting checks themselves.
+
+**Amended by 0674** (#1026, 16 Nov): with Zoop, "trouble asks again" holds for outages only. Zoop refusing RIVR's account pauses every re-check for six hours and alerts the owner; Zoop turning down one check's request three times ends that re-check as `not_checked`, the check standing, and alerts the owner.

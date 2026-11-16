@@ -3322,6 +3322,9 @@ isOneToOne: false
 "open_tv_pairing_window":
 { Args: { "p_venue_id": string }; Returns: string
                            },
+"pause_kyc_rechecks":
+{ Args: { "p_member_id": string,"p_reason": string }; Returns: undefined
+                           },
 "place_fnb_order":
 { Args: { "p_idempotency_key"?: string,"p_lines": Json }; Returns: {
               "kot_number": number,"order_id": string
@@ -3397,6 +3400,9 @@ isOneToOne: false
                            },
 "record_kyc_recheck":
 { Args: { "p_member_id": string,"p_outcome": string }; Returns: undefined
+                           },
+"record_kyc_recheck_refused":
+{ Args: { "p_member_id": string,"p_reason": string }; Returns: string
                            },
 "record_kyc_selfie":
 { Args: { "p_liveness_score": number,"p_member_id": string,"p_same_face_as": string }; Returns: string
