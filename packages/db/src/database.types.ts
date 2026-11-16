@@ -3721,6 +3721,9 @@ isOneToOne: false
               "asked_at": string,"full_name": string,"member_id": string,"member_number": number
             }[]
                            },
+"trip_kyc_recheck_breaker":
+{ Args: { "p_member_id": string,"p_reason": string }; Returns: boolean
+                           },
 "tv_call_time_board":
 { Args: Record<PropertyKey, never>; Returns: {
               "big_blind_paise": number,"call_time_left": number,"display_name": string,"game": string,"is_away": boolean,"leaving_at": string,"seat": number,"small_blind_paise": number,"stake_name": string,"straddle_paise": number,"table_id": string,"table_name": string
