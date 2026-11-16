@@ -15,6 +15,8 @@ describe('toSignInFailure', () => {
   });
 
   it('reads anything else, such as no channel to send by, as unavailable', () => {
+    // The send hook's answer for a code it could not send, as Auth passes it on (decision 0683).
+    expect(toSignInFailure({ status: 424, code: 'unknown' })).toBe('unavailable');
     expect(toSignInFailure({ status: 503, code: 'unknown' })).toBe('unavailable');
     expect(toSignInFailure({ status: 500, code: 'unexpected_failure' })).toBe('unavailable');
     expect(toSignInFailure({})).toBe('unavailable');

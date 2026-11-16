@@ -6,7 +6,8 @@ import { handleSendSmsHook, relaySmsHook } from './index.ts';
 
 const payload = { user: { id: 'u1', phone: '919000000201' }, sms: { otp: '482913', phone: '919000000201' } };
 
-// Auth reads an error only from an HTTP 200 reply, and passes its http_code and message to the app.
+// Auth reads an error only from an HTTP 200 reply, and passes its http_code and message to the app. A code not sent is
+// 424, never a 5xx: Supabase's gateway repeats a request Auth answers with a 5xx, CAPTCHA token and all (decision 0683).
 function refusal(httpCode: number, message: string) {
   return { status: 200, body: { error: { http_code: httpCode, message } } };
 }
@@ -79,12 +80,12 @@ describe('handleSendSmsHook', () => {
     const whatsapp = createFakeWhatsApp();
     const tenDigits = { ...payload, sms: { ...payload.sms, otp: '1357924680' } };
 
-    expect(await handleSendSmsHook(tenDigits, { whatsapp })).toEqual(refusal(503, 'Sign-in codes cannot be sent yet.'));
+    expect(await handleSendSmsHook(tenDigits, { whatsapp })).toEqual(refusal(424, 'Sign-in codes cannot be sent yet. (Auth code length)'));
     expect(whatsapp.calls).toEqual([]);
   });
 
   it('tells the app codes cannot be sent when no channel is configured', async () => {
-    expect(await handleSendSmsHook(payload, {})).toEqual(refusal(503, 'Sign-in codes cannot be sent yet.'));
+    expect(await handleSendSmsHook(payload, {})).toEqual(refusal(424, 'Sign-in codes cannot be sent yet. (send: not configured)'));
   });
 
   it('tells the app to wait when the channels are rate-limited', async () => {
@@ -109,11 +110,11 @@ describe('handleSendSmsHook', () => {
     }
   });
 
-  it('tells the app the code was not sent when every channel failed', async () => {
+  it('tells the app the code was not sent when every channel failed, and Auth\'s log which step and why', async () => {
     const whatsapp = createFakeWhatsApp();
     whatsapp.failNext({ code: 'rejected', reason: 'WhatsApp error 132001' });
 
-    expect(await handleSendSmsHook(payload, { whatsapp })).toEqual(refusal(502, 'The code could not be sent. Try again.'));
+    expect(await handleSendSmsHook(payload, { whatsapp })).toEqual(refusal(424, 'The code could not be sent. Try again. (send: WhatsApp error 132001)'));
   });
 });
 
@@ -164,7 +165,7 @@ describe('relaySmsHook, while VerifyNow sends the codes', () => {
     const verifyNow = createFakeVerifyNow();
     const { keep, kept } = keeper();
 
-    expect(await relaySmsHook(payload, verifyNow, keep)).toEqual(refusal(503, 'Sign-in codes cannot be sent yet.'));
+    expect(await relaySmsHook(payload, verifyNow, keep)).toEqual(refusal(424, 'Sign-in codes cannot be sent yet. (Auth code length)'));
     expect([verifyNow.calls.length, kept.length]).toEqual([0, 0]);
   });
 
@@ -174,10 +175,11 @@ describe('relaySmsHook, while VerifyNow sends the codes', () => {
     verifyNow.failNext({ code: 'rate_limited' });
     const { keep, kept } = keeper();
 
-    expect(await relaySmsHook(relayed, verifyNow, keep)).toEqual(refusal(502, 'The code could not be sent. Try again.'));
+    expect(await relaySmsHook(relayed, verifyNow, keep)).toEqual(refusal(424, 'The code could not be sent. Try again. (send: unavailable)'));
     expect(await relaySmsHook(relayed, verifyNow, keep)).toEqual(refusal(429, 'Too many codes were sent. Wait a minute and try again.'));
     expect(kept).toEqual([]);
-    expect(await relaySmsHook(relayed, verifyNow, keeper(false).keep)).toEqual(refusal(502, 'The code could not be sent. Try again.'));
+    // VerifyNow has texted the member, but the code they type cannot be checked: Auth's log tells the two apart.
+    expect(await relaySmsHook(relayed, verifyNow, keeper(false).keep)).toEqual(refusal(424, 'The code could not be sent. Try again. (keep: unavailable)'));
   });
 
   it('sends nothing for a phone change or a number that is not an Indian mobile', async () => {
