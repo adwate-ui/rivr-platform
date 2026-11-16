@@ -2,9 +2,10 @@
 // scheduler's secret. It claims the manual checks not yet re-checked and runs each one's PAN, date of birth and the
 // member's registered name through the vendor's PAN check; a difference sends the check back to review, which stops the
 // member's play until a reviewer decides. The practice venue gets the fake; a real venue Zoop from its three secrets
-// (decision 0671), or nothing until they are set. A vendor that cannot answer leaves the check to be asked again, hourly
-// at most, until it does.
-import { createAdapters, createFakeKyc, panRecheckOutcome, type KycAdapter } from '@rivr/adapters';
+// (decision 0671), or nothing until they are set. When the call fails (decision 0674): an outage leaves the check to be
+// asked again, hourly at most; Zoop refusing RIVR's account pauses every re-check for six hours, and the owner hears of
+// it; Zoop turning down this check's request three times ends its re-check, the check standing.
+import { createAdapters, createFakeKyc, panRecheckFailure, panRecheckOutcome, type AdapterFailure, type KycAdapter } from '@rivr/adapters';
 import { panSchema } from '@rivr/contracts';
 import { rpc, serveScheduled } from '../_shared/outbox.ts';
 import { zoopKyc } from '../kyc/zoop.ts';
@@ -26,10 +27,25 @@ function claimedOf(row: unknown): Claimed {
   };
 }
 
-/** Asks the vendor about one check and records its answer, or leaves the check for the next run. */
+/** Why Zoop refused, as the check keeps it: its code only, as the kyc function keeps it (kyc/server.ts). */
+function reasonOf(failure: AdapterFailure): string {
+  return failure.code === 'rejected' && /^Zoop [A-Za-z0-9_ .-]{1,80}$/.test(failure.reason) ? failure.reason : 'Zoop refusal';
+}
+
+/** Asks the vendor about one check and records its answer, or what to do without one. */
 async function recheck(live: KycAdapter | undefined, claimed: Claimed): Promise<string> {
   const kyc = claimed.isPractice ? createFakeKyc() : createAdapters({ isPracticeVenue: false, live: { kyc: live } }).kyc;
   const answer = await kyc.verifyPan({ pan: panSchema.parse(claimed.pan), name: claimed.fullName, dateOfBirth: claimed.dateOfBirth });
+  if (!answer.ok) {
+    const next = panRecheckFailure(answer.error);
+    if (next === 'later') return 'later';
+    const args = { p_member_id: claimed.memberId, p_reason: reasonOf(answer.error) };
+    if (next === 'pause') {
+      await rpc('pause_kyc_rechecks', args);
+      return 'paused';
+    }
+    return String(await rpc('record_kyc_recheck_refused', args));
+  }
   const outcome = panRecheckOutcome(answer);
   if (outcome === null) return 'later';
   await rpc('record_kyc_recheck', { p_member_id: claimed.memberId, p_outcome: outcome });
@@ -45,6 +61,8 @@ async function recheckAll(): Promise<Record<string, number>> {
     // One check's trouble never stops the others; it is asked again on a later run.
     const outcome = await recheck(live, claimed).catch(() => 'trouble');
     outcomes[outcome] = (outcomes[outcome] ?? 0) + 1;
+    // Zoop refused RIVR's account: every other check would get the same, so none is asked until the pause ends.
+    if (outcome === 'paused') break;
   }
   return outcomes;
 }

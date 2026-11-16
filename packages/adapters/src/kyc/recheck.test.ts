@@ -1,6 +1,6 @@
 import { ok, panSchema } from '@rivr/contracts';
 import { describe, expect, it } from 'vitest';
-import { createFakeKyc, panRecheckOutcome } from './index.ts';
+import { createFakeKyc, panRecheckFailure, panRecheckOutcome } from './index.ts';
 
 const check = { pan: panSchema.parse('ABCPG3001G'), name: 'Anaya Gill', dateOfBirth: '1990-04-04' };
 const answer = { isValid: true, nameMatches: true, dateOfBirthMatches: true, vendorReference: 'fake-pan' };
@@ -23,5 +23,25 @@ describe('re-checking a KYC check made in person', () => {
     const kyc = createFakeKyc();
     kyc.failNext({ code: 'unavailable' });
     expect(panRecheckOutcome(await kyc.verifyPan(check))).toBeNull();
+  });
+});
+
+describe('a re-check whose PAN call failed (decision 0674)', () => {
+  it.each([
+    ['the vendor is down', { code: 'unavailable' }],
+    ['too many requests', { code: 'rate_limited' }],
+    ['no keys', { code: 'not_configured' }],
+    ['an outage after a paid call, kept a refusal so the call is not given back', { code: 'rejected', reason: 'Zoop date of birth unavailable', cause: 'unavailable' }],
+    ['too many requests after a paid call', { code: 'rejected', reason: 'Zoop date of birth rate_limited', cause: 'rate_limited' }],
+  ] as const)('asks again later, uncounted, when %s', (_, failure) => {
+    expect(panRecheckFailure(failure)).toBe('later');
+  });
+
+  it('pauses every re-check when the vendor refuses RIVR\'s account, not this request', () => {
+    expect(panRecheckFailure({ code: 'rejected', reason: 'Zoop 403', cause: 'account' })).toBe('pause');
+  });
+
+  it('counts a refusal of this check\'s request', () => {
+    expect(panRecheckFailure({ code: 'rejected', reason: 'Zoop 106' })).toBe('refused');
   });
 });

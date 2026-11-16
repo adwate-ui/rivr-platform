@@ -34,6 +34,10 @@ const CONSENT_TEXT = 'The member consented to this identity check.';
 // documentation lists them: worth asking again.
 const RETRY_LATER = new Set(['99', '108', '109', '110', '111']);
 
+// Zoop's answers about RIVR's account, not a request: a key it does not take (401), a product not on the app or a key
+// for the other host (403), a wallet running low (402, its 112). Every request would get the same.
+const ACCOUNT_CODES = new Set(['401', '402', '403', '112']);
+
 // An image to send: 5 MB at most (a selfie is 2 MB), fetched within 15 seconds, never through a redirect.
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
@@ -50,11 +54,17 @@ interface ZoopAnswer {
 
 type ZoopCall = (path: string, data: Readonly<Record<string, string>>) => Promise<Result<ZoopAnswer, AdapterFailure>>;
 
-/** A refusal as a failure. The reason names Zoop's code only: its messages can repeat what was sent. */
+/**
+ * A refusal as a failure. The reason names Zoop's code only: its messages can repeat what was sent. A refusal of the
+ * account is marked so (decision 0674), as is a reply that is not Zoop's at all (a path it does not have, a firewall's
+ * page): that is the set-up's trouble, not the request's.
+ */
 function zoopFailure(status: number, code: string | undefined): AdapterFailure {
   if (status === 429) return { code: 'rate_limited' };
   if (status >= 500 || (code !== undefined && RETRY_LATER.has(code))) return UNAVAILABLE;
-  return { code: 'rejected', reason: `Zoop ${code !== undefined && /^\d{1,4}$/.test(code) ? code : `HTTP ${status}`}` };
+  const reason = `Zoop ${code !== undefined && /^\d{1,4}$/.test(code) ? code : `HTTP ${status}`}`;
+  const isAccount = code === undefined || ACCOUNT_CODES.has(code) || ACCOUNT_CODES.has(String(status));
+  return isAccount ? { code: 'rejected', reason, cause: 'account' } : { code: 'rejected', reason };
 }
 
 /** Zoop's reply as an answer, or why it is none: any code but 100 and 101 is a failure. */
@@ -136,10 +146,13 @@ async function panDateOfBirthMatches(call: ZoopCall, pan: Pan, dateOfBirth: stri
 
 /**
  * The date of birth's failure, once Pan Lite has answered and been paid for: never given back as the vendor's trouble
- * (#791), or each try would pay for Pan Lite again with none of the member's five a day spent.
+ * (#791), or each try would pay for Pan Lite again with none of the member's five a day spent. An outage keeps its cause,
+ * so a PAN re-check asks again instead of counting a refusal (decision 0674).
  */
 function afterPanLite(failure: AdapterFailure): AdapterFailure {
-  return failure.code === 'rejected' ? failure : { code: 'rejected', reason: `Zoop date of birth ${failure.code}` };
+  if (failure.code === 'rejected') return failure;
+  const cause = failure.code === 'rate_limited' ? 'rate_limited' : 'unavailable';
+  return { code: 'rejected', reason: `Zoop date of birth ${failure.code}`, cause };
 }
 
 /**

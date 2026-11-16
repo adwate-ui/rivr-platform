@@ -101,10 +101,20 @@ describe('Zoop KYC: the PAN check', () => {
     expect(checked).toMatchObject({ ok: true, value: { isValid: true, nameMatches: true, dateOfBirthMatches: false } });
   });
 
-  it('does not give back a try whose date of birth failed after Pan Lite was paid for', async () => {
-    const { kyc } = zoop({ [LITE]: [{ body: VALID_PAN }], [DEMOGRAPHIC]: [{ status: 503, body: zoopReply('110', null) }] });
+  it.each([
+    ['Zoop is down', { status: 503, body: zoopReply('110', null) }, 'unavailable'],
+    ['too many requests', { status: 429, body: '' }, 'rate_limited'],
+  ] as const)('does not give back a try whose date of birth failed after Pan Lite was paid for, as %s, which stays its cause', async (_, reply, cause) => {
+    const { kyc } = zoop({ [LITE]: [{ body: VALID_PAN }], [DEMOGRAPHIC]: [reply] });
     expect(await kyc.verifyPan({ pan, name: 'Rahul Gupta', dateOfBirth: '1995-02-08' })).toEqual({
-      ok: false, error: { code: 'rejected', reason: 'Zoop date of birth unavailable' },
+      ok: false, error: { code: 'rejected', reason: `Zoop date of birth ${cause}`, cause },
+    });
+  });
+
+  it('passes on a date of birth refused for the account, as Pan Demographic not on the app', async () => {
+    const { kyc } = zoop({ [LITE]: [{ body: VALID_PAN }], [DEMOGRAPHIC]: [{ status: 403, body: { response_code: 403, response_message: 'product not subscribed by app' } }] });
+    expect(await kyc.verifyPan({ pan, name: 'Rahul Gupta', dateOfBirth: '1995-02-08' })).toEqual({
+      ok: false, error: { code: 'rejected', reason: 'Zoop 403', cause: 'account' },
     });
   });
 
@@ -155,9 +165,11 @@ describe('Zoop KYC: what fails, and how', () => {
   const memberId = memberIdSchema.parse('3f2b8c4e-9d1a-4b6f-8e2c-7a5d9f0b1c3e');
 
   it.each([
-    ['a refused key', { status: 401, body: { response_code: 401, response_message: 'api key is invalid or disabled' } }, { code: 'rejected', reason: 'Zoop 401' }],
-    ['a product not on the account', { status: 403, body: { response_code: 403, response_message: 'product not subscribed by app' } }, { code: 'rejected', reason: 'Zoop 403' }],
-    ['a wallet running low', { status: 402, body: zoopReply('112', null) }, { code: 'rejected', reason: 'Zoop 112' }],
+    ['a refused key', { status: 401, body: { response_code: 401, response_message: 'api key is invalid or disabled' } }, { code: 'rejected', reason: 'Zoop 401', cause: 'account' }],
+    ['a product not on the account', { status: 403, body: { response_code: 403, response_message: 'product not subscribed by app' } }, { code: 'rejected', reason: 'Zoop 403', cause: 'account' }],
+    ['the Test App\'s key on the live host', { status: 403, body: { response_code: 403, response_message: 'action disallowed for the product' } }, { code: 'rejected', reason: 'Zoop 403', cause: 'account' }],
+    ['a wallet running low', { status: 402, body: zoopReply('112', null) }, { code: 'rejected', reason: 'Zoop 112', cause: 'account' }],
+    ['a path Zoop does not have, as a page that is not its reply', { status: 404, body: '<html>not found</html>' }, { code: 'rejected', reason: 'Zoop HTTP 404', cause: 'account' }],
     ['an input Zoop refuses', { status: 400, body: zoopReply('106', null) }, { code: 'rejected', reason: 'Zoop 106' }],
     ['more than one record', { body: zoopReply('102', null) }, { code: 'rejected', reason: 'Zoop 102' }],
     ['a code that is not a number', { status: 400, body: zoopReply('<b>bad</b>', null) }, { code: 'rejected', reason: 'Zoop HTTP 400' }],
