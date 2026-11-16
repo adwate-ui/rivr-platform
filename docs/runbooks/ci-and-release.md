@@ -19,10 +19,10 @@ Secrets live in GitHub environments (Settings → Environments), never at reposi
 | Environment | Who can use it | Secrets |
 |---|---|---|
 | `preview` | pull requests from this repository | `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` for the **staging** Cloudflare account. Never the production token: any branch can run this job. |
-| `staging` | `main` only | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_STAGING_REF`, `SUPABASE_STAGING_DB_PASSWORD`, and the staging `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` |
+| `staging` | `main` only | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_STAGING_REF`, `SUPABASE_STAGING_DB_PASSWORD`, the staging `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, and `SENTRY_AUTH_TOKEN` for uploading source maps (decision 0672) |
 | `e2e-staging` | `release-*` tags only | `E2E_SIGN_IN_CODE`: the private code staging's test numbers take, so the release's sign-in flow can sign in. Without it that flow fails. |
 | `backup-staging`, `backup-production` | `main` only (the nightly backup, #25) | `BACKUP_DB_URL` (the read-only `rivr_backup` role, never `postgres`), plus `BACKUP_S3_ACCESS_KEY_ID` and `BACKUP_S3_SECRET_ACCESS_KEY` for that target's own bucket. Variables: `BACKUP_S3_ENDPOINT`, `BACKUP_BUCKET` and `BACKUP_AGE_RECIPIENT`. See `docs/runbooks/backups-and-restore.md`. |
-| `production` | `release-*` tags only, after the repository owner approves | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROD_REF`, `SUPABASE_PROD_DB_PASSWORD`, the production `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, and `SENTRY_AUTH_TOKEN` for uploading source maps. Not set yet: the owner said later (15 Nov, decision 0604). Never under a `VITE_` name, which would put it in the built app |
+| `production` | `release-*` tags only, after the repository owner approves | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROD_REF`, `SUPABASE_PROD_DB_PASSWORD`, the production `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, and `SENTRY_AUTH_TOKEN` for uploading source maps (decision 0672). Never under a `VITE_` name, which would put it in the built app |
 
 Staging and production use separate Cloudflare accounts, or at least tokens scoped to their own projects, so a preview token can never deploy production.
 
@@ -38,7 +38,7 @@ Variables are plain and visible, so they hold only non-secret values (Settings �
 | `PROD_CASHFREE_ENVIRONMENT` | `sandbox` keeps production on Cashfree's sandbox through releases (decision 0421); unset means `production` |
 | `PROD_TABLET_URL` | the hosted bundle the APK shell loads |
 | `PROD_DISPLAY_URL` | the hosted TV app, so `device-pair` answers TVs asking for a pairing code (#49) |
-| `SENTRY_DSN_PLAYER` | the player app's production build only, as `VITE_SENTRY_DSN` (decision 0604): the Sentry project's address, public in the built app. A variable of the `production` environment, not of the repository, so no staging or pull-request build is ever given it. Not set yet, and no workflow passes it: the owner said later (15 Nov). Until then the player app reports nothing anywhere |
+| `SENTRY_DSN_PLAYER` | the player app's staging and production builds, as `VITE_SENTRY_DSN_PLAYER` (decisions 0604, 0672): the address of the player's Sentry key for that environment, public in the built app. A variable of each of the `staging` and `production` environments, each its own key, not of the repository, so no preview or pull-request build is given one. Unset: that environment's player reports nothing |
 
 Auth and API on staging and production, in the Supabase dashboard:
 
@@ -98,6 +98,11 @@ Auth and API on staging and production, in the Supabase dashboard:
      - iOS (needs an Apple Developer account and a Mac, `apps/player/README.md`): register the App ID `club.rivr.player` with Push Notifications, and create an APNs key (Keys → +, Apple Push Notifications service). Set `APNS_TEAM_ID`, `APNS_KEY_ID` and `APNS_PRIVATE_KEY` (the `.p8` file's whole text) as function secrets, and `APNS_ENVIRONMENT=production` only for TestFlight and App Store builds (a development build uses Apple's sandbox).
      - Then schedule the two jobs, which are off until the keys are set: `select private.schedule_outbox_consumer('live-status');` and `select private.schedule_outbox_consumer('native-push');` in the SQL editor. With only one key set, the other kind of phone is skipped.
      - Check it: turn Notifications on this phone on in the native app's Profile, join a list from the console, and the phone shows Waiting; call the seat, and it shows the hold counting down.
+  12. Error reports in Sentry (decisions 0604, 0672), organisation `rivr-poker`, project `rivr-player`:
+     - Client Keys: one key per environment, `production` and `staging`, each with a rate limit (100 and 30 an hour). Each key's DSN is the variable `SENTRY_DSN_PLAYER` of its GitHub environment (`gh variable set SENTRY_DSN_PLAYER --env staging`, reading the value from standard input).
+     - Allowed Domains: `https://app.rivrpoker.com` and `https://rivr-player-staging.pages.dev`, the two deploys with a key. A report from anywhere else is dropped.
+     - Source maps: one organisation token with the `org:ci` scope per environment (Settings → Organization Tokens), each set as the secret `SENTRY_AUTH_TOKEN` of its environment, so either can be revoked alone. Without it a deploy still reports, its stacks minified.
+     - Check it: after a deploy, Sentry → Issues filtered to the environment shows each new report; its stack names files under `src/`, not `assets/index-*.js`. After the release that carries decision 0672, the website's privacy page names Sentry. To stop reports at once, disable the key; nothing needs deploying.
   - To rotate the hook secret: add the new secret in the hook settings (Auth accepts several, separated by `|`), set `SEND_SMS_HOOK_SECRET` to the new one, then remove the old one from the hook.
   - CAPTCHA on code requests (#182). Without it, anyone can use up the project-wide hourly code limit with requests to random numbers, which locks every member out of sign-in. In this order, staging first:
     1. In Cloudflare, add a Turnstile widget (Managed mode) with the exact hostnames: the production player and console Pages projects (`rivr-player.pages.dev`, `rivr-console.pages.dev`) and the production domains (`app.rivrpoker.com`, `console.rivrpoker.com`). Staging uses Cloudflare's test keys instead (step 2). Never a bare `pages.dev`, which would let every Pages site use the key. Note the site key and secret.

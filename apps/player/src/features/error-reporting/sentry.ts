@@ -7,12 +7,14 @@ import { scrubBreadcrumb, scrubEvent, type EventKind } from './scrub.ts';
 
 /** What Sentry is started with (decision 0604). */
 export interface SentryOptions {
-  /** The Sentry project's address, from the build (`VITE_SENTRY_DSN`). */
+  /** The Sentry project's address, from the build (`VITE_SENTRY_DSN_PLAYER`). */
   readonly dsn: string;
   /** The app the error is from, sent as a tag. */
   readonly app: string;
   /** The build's version (`VITE_APP_VERSION`), sent as the release; none in a build that does not name it. */
   readonly version: string | undefined;
+  /** The deploy, `staging` or `production` (`VITE_SENTRY_ENVIRONMENT`); Sentry's default in a build that does not name it. */
+  readonly environment: string | undefined;
 }
 
 // Every kind of data the SDK would collect by itself, off: no user or IP address, no cookies, no request or response
@@ -50,11 +52,12 @@ function routeOf(hint: EventHint): string {
  * and no listener of its own: every error comes through `waiting`, so each is held while the venue is not known, dropped
  * in the practice venue, and goes through ./scrub.ts before it leaves.
  */
-export function startSentry({ dsn, app, version }: SentryOptions, waiting: Kept[], isPractice: () => boolean | null): () => void {
+export function startSentry({ dsn, app, version, environment }: SentryOptions, waiting: Kept[], isPractice: () => boolean | null): () => void {
   const scrubbed = <Sent extends SentryEvent>(event: Sent, hint: EventHint): Sent => scrubEvent(event, { app, route: routeOf(hint) }, kindOf(hint.originalException));
   init({
     dsn,
     ...(version ? { release: version } : {}),
+    ...(environment ? { environment } : {}),
     // Each integration is named, so one a later SDK turns on by default (console lines, sessions, clicks) collects nothing here.
     defaultIntegrations: false,
     integrations: [

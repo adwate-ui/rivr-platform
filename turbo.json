@@ -15,6 +15,9 @@
         "VITE_*",
         "PUBLIC_*"
       ],
+      "passThroughEnv": [
+        "SENTRY_AUTH_TOKEN"
+      ],
       "outputs": [
         "dist/**"
       ]

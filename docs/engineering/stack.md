@@ -29,7 +29,7 @@ Read by Lane 0 when setting up the repository, and by anyone changing tooling.
 - **Testing:** Vitest, fast-check, Stryker, Testing Library, Playwright, pgTAP.
 - **Component workshop:** Storybook for `@rivr/ui`.
 - **Hosting:** Cloudflare Pages for `player`, `console`, `display` and the `tablet` bundle; the `web` site on a Cloudflare Worker (`docs/decisions/0021-website-on-a-cloudflare-worker.md`). A preview deployment per PR.
-- **Monitoring:** Sentry in every app and Edge Function, with personal data scrubbed. No product analytics; the growth funnel is built in lane D from our own data.
+- **Monitoring:** Sentry in the player app, with personal data scrubbed (decisions 0604, 0672), and in the other web apps next (#1004); Edge Functions report through Supabase's own logs (the owner, 16 Nov). No product analytics; the growth funnel is built in lane D from our own data.
 - **CI:** GitHub Actions on GitHub-hosted `ubuntu-latest` runners (the repository is public; see `docs/decisions/0001-hosted-ci-runners.md`).
 
 Add a dependency only with a line in the PR saying why the platform and the existing dependencies do not cover it.

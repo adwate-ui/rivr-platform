@@ -90,6 +90,10 @@ jobs:
       PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.STAGING_SUPABASE_PUBLISHABLE_KEY }}
       PUBLIC_PLAYER_URL: ${{ vars.STAGING_PLAYER_URL }}
       PUBLIC_GTM_ID: ${{ vars.GTM_ID }}
+      # Error reporting (decision 0672): the staging key of the player's Sentry project, a variable of the staging environment.
+      VITE_SENTRY_DSN_PLAYER: ${{ vars.SENTRY_DSN_PLAYER }}
+      VITE_SENTRY_ENVIRONMENT: staging
+      VITE_APP_VERSION: ${{ github.sha }}
     steps:
       - if: env.HAS_CLOUDFLARE != 'true'
         run: echo "::notice::CLOUDFLARE_API_TOKEN is not set; skipping the Pages deploy."
@@ -97,9 +101,17 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - if: env.HAS_CLOUDFLARE == 'true'
         uses: ./.github/actions/setup
+      # The Sentry token, which uploads the source maps, reaches this step alone (decision 0672).
       - if: env.HAS_CLOUDFLARE == 'true'
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: pnpm build --filter player --filter console --filter display --filter tablet --filter web
       - if: env.HAS_CLOUDFLARE == 'true'
         run: pnpm --filter @rivr/ui build-storybook
+      # A source map is never deployed (decision 0672): the Sentry plugin deletes the ones it uploads; this deletes any left,
+      # Storybook's included.
+      - if: env.HAS_CLOUDFLARE == 'true'
+        name: No source map is deployed
+        run: find apps/*/dist packages/ui/storybook-static -name '*.map' -print -delete
       - if: env.HAS_CLOUDFLARE == 'true'
         run: node scripts/ci/cloudflare-deploy.mjs staging main player console display tablet web storybook

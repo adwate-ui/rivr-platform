@@ -19,7 +19,7 @@ vi.mock('./sentry.ts', () => ({
 }));
 
 const DSN = 'https://public@sentry.invalid/1';
-const options = { app: 'player', version: 'release-test', route: () => '/sign-up' };
+const options = { app: 'player', version: 'release-test', environment: 'staging', route: () => '/sign-up' };
 
 /** The first paint, and Sentry's code arriving after it. */
 async function paint() {
@@ -29,7 +29,7 @@ async function paint() {
 
 /** The module as an app that has just started has it, in a build that names Sentry's address or one that does not. */
 async function freshModule(dsn = DSN) {
-  vi.stubEnv('VITE_SENTRY_DSN', dsn);
+  vi.stubEnv('VITE_SENTRY_DSN_PLAYER', dsn);
   vi.resetModules();
   return import('./errorReporting.ts');
 }
@@ -80,7 +80,7 @@ describe('error reporting', () => {
     await vi.dynamicImportSettled();
     expect(sentry.started).not.toHaveBeenCalled();
     await paint();
-    expect(sentry.started.mock.calls).toEqual([[{ app: 'player', version: 'release-test', dsn: DSN }]]);
+    expect(sentry.started.mock.calls).toEqual([[{ app: 'player', version: 'release-test', environment: 'staging', dsn: DSN }]]);
     expect(sentry.send).toHaveBeenCalledTimes(1);
   });
 
