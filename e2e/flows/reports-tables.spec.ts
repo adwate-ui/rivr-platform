@@ -58,6 +58,8 @@ test.describe('Reports', () => {
     await tabs.getByRole('link', { name: 'Players', exact: true }).click();
     await expect(page.getByRole('figure', { name: 'Check-ins by hour' })).toBeVisible();
     await expect(page.getByRole('radio', { name: 'Tonight' })).toBeChecked();
-    await page.getByRole('button', { name: 'Export' }).click();
+    // Players lists every visit too, as the door lists the day, with an Export of its own (decision 0682).
+    await expect(page.getByRole('table', { name: 'Visits' })).toBeVisible();
+    await page.getByRole('button', { name: 'Export Players', exact: true }).click();
   });
 });

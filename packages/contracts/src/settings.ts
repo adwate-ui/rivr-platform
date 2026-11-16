@@ -6,7 +6,7 @@
  * migration (rake, caps, TDS, GST, bonuses, credit limits, waitlist priority weights).
  */
 import { z } from 'zod';
-import { floorRequestTargets, tvBoards, tvBoardSeconds, tvLeaderboard } from './floorSettings.ts';
+import { floorRequestTargets, fnbEnabled, tvBoards, tvBoardSeconds, tvLeaderboard } from './floorSettings.ts';
 import {
   authStoreReviewer, bonusByHandCap, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, cabMinimumVisits, kycAadhaarCovers, kycAtTheClub, rakebackRate,
 } from './rewardSettings.ts';
@@ -219,7 +219,7 @@ const reportsUnclaimedDays = {
 export const SETTINGS = [
   callTimeMinutes, callTimeAddChoices, floorRequestTargets, tvBoards, tvBoardSeconds, tvLeaderboard, defaultTier, kycMinimumAge, kycAtTheClub, kycAadhaarCovers, authStoreReviewer, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, cageSecondApproverThreshold, tdsConfig, gstConfig, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
-  cageCashBuyInLimit, rakebackRate, cabMinimumVisits, bonusByHandCap, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, ] as const;
+  cageCashBuyInLimit, rakebackRate, cabMinimumVisits, bonusByHandCap, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, fnbEnabled, ] as const;
 
 /** A setting key declared in code. */
 export type SettingKey = (typeof SETTINGS)[number]['key'];

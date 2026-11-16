@@ -1,4 +1,4 @@
-import { useFeature, type MySeat, type WaitlistPlace } from '@rivr/db';
+import { useFeature, useFnbOff, type MySeat, type WaitlistPlace } from '@rivr/db';
 import { formatDuration, t } from '@rivr/i18n';
 import { Box, Button, DetailRow, FeatureGate, Grid, LockedNotice, RoundAction, Stack, useToast } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
@@ -48,10 +48,12 @@ export function SeatActions({ seat, onOpen }: { seat: MySeat; onOpen: (sheet: Se
   );
 }
 
-/** Food and drink to the seat (#123, feature fnb.table_side): the Order screen. */
+/** Food and drink to the seat (#123, feature fnb.table_side): the Order screen; none while F&B is off (decision 0681). */
 export function OrderToSeat() {
   const fnb = useFeature('fnb.table_side');
+  const isFnbOff = useFnbOff();
   const navigate = useNavigate();
+  if (isFnbOff) return null;
   return (
     <FeatureGate access={fnb}>
       <Box paddingX={5}>

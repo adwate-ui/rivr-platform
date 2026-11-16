@@ -141,6 +141,8 @@ export const playerLive = {
 export const playerOrder = {
   back: 'Home',
   title: 'Order',
+  /** A super admin switched food and drink off (decision 0681): an order already placed is still served. */
+  off: 'Food and drink is not being served.',
   /** `Table 1, seat 4 · Pay on delivery`. */
   seat: '{table}, seat {seat} · Pay on delivery',
   categories: 'Menu',

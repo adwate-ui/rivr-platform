@@ -55,6 +55,7 @@ export { usePushSubscriptionActions } from './push.ts';
 export { useLiveStatusDeviceActions, type LiveStatusDeviceToSave } from './liveStatus.ts';
 export { useCheckInActions, useCheckOutActions, type CheckInFailure, type CheckOutFailure, type CheckOutRefusal } from './visits.ts';
 export { useDoorPage, type DoorListName, type DoorPlayer, type DoorStatus } from './door.ts';
+export { useFnbOff } from './fnbOn.ts';
 export {
   LIST_PAGE, useListChoices, useListPage, type ListChoices, type ListFilter, type ListName, type ListPage, type ListView, type ScopedView,
 } from './lists.ts';
@@ -203,6 +204,6 @@ export {
 } from './tournaments.ts';
 export { useTableMetrics, useTableMetricsTotal, type TableMetrics, type TableMetricsTotal } from './tableMetrics.ts';
 export {
-  useBonusReport, useFnbReport, usePlayersReport, useReportChart, useReportFigures, useWaitlistReport,
+  useBonusReport, useFnbReport, usePlayersReport, usePlayerVisitsPage, scopedTo, type PlayerVisit, useReportChart, useReportFigures, useWaitlistReport,
   type BonusLine, type ChartReport, type FigureReport, type FnbLine, type PlayersLine, type ReportBar, type ReportFigure, type ReportSpan, type WaitlistLine,
 } from './clubReports.ts';

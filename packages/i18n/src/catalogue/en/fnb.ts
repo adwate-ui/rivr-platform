@@ -12,6 +12,8 @@ const failures = {
   unavailable: 'Not sent. Try again.',
   /** Serving (#640): another steward got there first. */
   taken: 'Taken by someone else.',
+  /** A super admin has food and drink off (decision 0681). */
+  fnb_off: 'Food and drink is not being served.',
 } as const;
 
 /** A venue's menu with nothing on offer, on every screen that shows it. */
@@ -52,6 +54,8 @@ export const playerFnb = {
 /** Ordering for a seat on the dealer tablet (#123): paid by the player. */
 export const tabletFnb = {
   open: 'Food and drink',
+  /** In place of Food and drink while a super admin has it off (decision 0681). */
+  off: 'Food and drink is off.',
   title: 'Food and drink for seat {seat}',
   paid: 'Paid by the player to Glaza.',
   send: 'Send to the bar',
@@ -63,6 +67,8 @@ export const tabletFnb = {
 
 /** The console's F&B screen (#123), for staff who run it. */
 export const consoleFnb = {
+  /** Over the orders while a super admin has food and drink off (decision 0681): no New order, open orders served. */
+  off: 'Food and drink is off. Open orders are still served.',
   title: 'Food and drink',
   notAllowed: 'Not in your role. Ask an admin.',
   /** The screen's two parts (console v3): tonight's orders, and the menu. */

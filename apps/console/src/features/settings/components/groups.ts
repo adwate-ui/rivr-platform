@@ -2,7 +2,7 @@ import type { SettingKey } from '@rivr/contracts/settings';
 
 /** The tabs of Settings that hold rules, each with its groups in order (redesign RD-18). */
 export const AREA_GROUPS = {
-  floor: ['seating', 'time', 'identity'],
+  floor: ['seating', 'time', 'identity', 'fnb'],
   members: ['bonus', 'membership'],
   tvs: ['rotation'],
 } as const;
@@ -25,6 +25,8 @@ const GROUP_OF: Readonly<Partial<Record<SettingKey, SettingGroup>>> = {
   // The floor runs the desk's check (the owner, 5 Nov; decision 0502).
   'kyc.at_the_club': 'identity',
   'kyc.aadhaar_covers': 'identity',
+  // A super admin switches food and drink off for the venue (the owner, 16 Nov; decision 0681).
+  'fnb.enabled': 'fnb',
   'bonus.expiry_days': 'bonus',
   'bonus.daily_staff_cap': 'bonus',
   'bonus.by_hand_cap': 'bonus',

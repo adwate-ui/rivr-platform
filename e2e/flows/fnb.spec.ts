@@ -61,9 +61,12 @@ test.describe('F&B', () => {
     const accept = orders.getByRole('row').filter({ hasText: 'Table 3, seat 1' }).filter({ hasText: 'Ishan Mehta' }).getByRole('button', { name: /^Accept KOT \d+$/ }).last();
     const fromApp = /(\d+)$/.exec((await accept.getAttribute('aria-label')) ?? '')?.[1] ?? '';
     await steward.getByRole('button', { name: `Accept KOT ${fromApp}` }).click();
+    // Taken once its Accept is gone from the row: a reload before then can still read it as sent.
+    await expect(steward.getByRole('button', { name: `Accept KOT ${fromApp}` })).toHaveCount(0);
     await member.reload();
     await expect(tracker.locator('[aria-current="step"]')).toHaveText('Preparing');
     await steward.getByRole('button', { name: `KOT ${fromApp} on its way` }).click();
+    await expect(steward.getByRole('button', { name: `KOT ${fromApp} on its way` })).toHaveCount(0);
     await member.reload();
     await expect(tracker.locator('[aria-current="step"]')).toHaveText('On its way');
     await steward.getByRole('button', { name: `Mark KOT ${fromApp} delivered` }).click();

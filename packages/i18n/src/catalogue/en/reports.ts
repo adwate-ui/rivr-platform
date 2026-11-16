@@ -25,6 +25,8 @@ export const reports = {
   playersReport: {
     title: 'Players', measure: 'Measure', value: 'Value', share: 'Share', played: 'Members who played', firstVisit: 'First visit', idChecks: 'ID checks done',
     empty: 'No players.',
+    /** Every visit in the span, as the door lists the day's players (decision 0682): a member on a club day. */
+    visits: 'Visits', date: 'Date', search: 'Find a player', noVisits: 'No visits.',
   },
   waitlistReport: { title: 'Waitlist', table: 'Table', joined: 'Joined', seated: 'Got a seat', left: 'Left the list', wait: 'Avg wait', longest: 'Longest' },
   fnbReport: {

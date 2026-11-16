@@ -5,6 +5,7 @@ import { shareOf } from '@rivr/domain/tables';
 import { formatChips, formatDuration, formatNumber, formatRupeesForFile, t } from '@rivr/i18n';
 import { ChoiceChips, Stack, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
+import { PlayerVisits } from './PlayerVisits.tsx';
 import { ReportChart, ReportFigures, ReportTable } from './ReportParts.tsx';
 import type { ReportPeriod } from './ReportPeriod.tsx';
 
@@ -55,6 +56,8 @@ export function PlayersReport(props: ReportProps) {
       <ReportChart {...props} report="players" />
       <ReportTable {...props} label={t('console.reports.playersReport.title')} lines={lines} columns={columns} rowKey={(line) => `${line.measure}:${line.label ?? ''}`}
         emptyText={t('console.reports.playersReport.empty')} />
+      {/* Every visit in the span, as the door lists the day's players (decision 0682). */}
+      <PlayerVisits span={spanOf(props)} periodWords={props.period.words} />
     </Stack>
   );
 }

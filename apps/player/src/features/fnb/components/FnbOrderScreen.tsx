@@ -1,5 +1,5 @@
 import { FNB_BAR_NOTES, FNB_ITEM_KINDS, type FnbBarNote, type FnbItemKind } from '@rivr/contracts';
-import { useFeatureStatus, useMySeat, useMyUsualFnbItems, type MySeat } from '@rivr/db';
+import { useFeatureStatus, useFnbOff, useMySeat, useMyUsualFnbItems, type MySeat } from '@rivr/db';
 import { useMyFnbMenu, useMyFnbOrders, type FnbMenuItem } from '@rivr/db/fnb';
 import { t } from '@rivr/i18n';
 import { BackButton, Button, ChoiceChips, DietMark, FeatureGate, Heading, Inline, ItemPhoto, LoadState, QuantityStepper, Screen, Skeleton, Stack, SuggestionCard, Text, useHeadingFocus, usePageTitle } from '@rivr/ui';
@@ -108,6 +108,7 @@ function OrderBody() {
  */
 export function FnbOrderScreen() {
   const feature = useFeatureStatus('fnb.table_side');
+  const isFnbOff = useFnbOff();
   const router = useRouter();
   const canGoBack = useCanGoBack();
   const navigate = useNavigate();
@@ -124,7 +125,7 @@ export function FnbOrderScreen() {
     <Stack gap={2}>
       <BackButton label={t('player.order.back')} onBack={toHome} />
       <Heading level={1} variant="serif" id={headingId} isFocusTarget>{title}</Heading>
-      <FeatureGate access={feature.access}><OrderBody /></FeatureGate>
+      {isFnbOff ? <Text tone="muted">{t('player.order.off')}</Text> : <FeatureGate access={feature.access}><OrderBody /></FeatureGate>}
     </Stack>
   );
 }

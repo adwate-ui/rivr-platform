@@ -1,5 +1,5 @@
 import { FNB_MEMBER_CANCEL_REASON } from '@rivr/contracts';
-import { useFeature } from '@rivr/db';
+import { useFeature, useFnbOff } from '@rivr/db';
 import { useCancelMyFnbOrder, useMyFnbOrders, type MyFnbOrder } from '@rivr/db/fnb';
 import { ORDER_STAGES, orderStage } from '@rivr/domain/fnb';
 import { t } from '@rivr/i18n';
@@ -12,9 +12,11 @@ function itemsOf(order: MyFnbOrder): string {
     .join(t('player.fnb.itemsSeparator'));
 }
 
-/** Order again: the Order screen with this order's lines in. */
+/** Order again: the Order screen with this order's lines in; none while F&B is off (decision 0681). */
 function OrderAgain({ orderId }: { orderId: string }) {
   const navigate = useNavigate();
+  const isFnbOff = useFnbOff();
+  if (isFnbOff) return null;
   return <Button variant="outline" fullWidth onClick={() => void navigate({ href: `/fnb?again=${orderId}` })}>{t('player.live.seat.orderAgain')}</Button>;
 }
 
