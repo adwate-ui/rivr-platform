@@ -203,7 +203,8 @@ jobs:
         run: pnpm build --filter player --filter console --filter display --filter tablet --filter web
       # A source map is never deployed (decision 0672): the Sentry plugin deletes the ones it uploads; this deletes any left.
       - name: No source map is deployed
-        run: find apps/*/dist -name '*.map' -print -delete
+        # What browsers are served, only: the website's Worker (dist/server) keeps its own, which Wrangler reads and never serves.
+        run: find apps/{player,console,display,tablet}/dist apps/web/dist/client -name '*.map' -print -delete
       - run: node scripts/ci/cloudflare-deploy.mjs production main player console display tablet web
 
   # Whether each store build's keys are set (decision 0577). None set is a notice and a skip; some of them is a failure naming the rest.

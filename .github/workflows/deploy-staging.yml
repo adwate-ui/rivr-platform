@@ -112,6 +112,7 @@ jobs:
       # Storybook's included.
       - if: env.HAS_CLOUDFLARE == 'true'
         name: No source map is deployed
-        run: find apps/*/dist packages/ui/storybook-static -name '*.map' -print -delete
+        # What browsers are served, only: the website's Worker (dist/server) keeps its own, which Wrangler reads and never serves.
+        run: find apps/{player,console,display,tablet}/dist apps/web/dist/client packages/ui/storybook-static -name '*.map' -print -delete
       - if: env.HAS_CLOUDFLARE == 'true'
         run: node scripts/ci/cloudflare-deploy.mjs staging main player console display tablet web storybook
