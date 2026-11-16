@@ -120,7 +120,10 @@ export function FloorSheets(props: FloorSheetsProps) {
         held={data.held} start={sheet} now={now} changes={changes.seats} onCheckId={canCheckId ? checkId : undefined} onClose={close} />
     );
     case 'highHand': return <HighHandSheet venueId={venueId} live={sheet.live} tables={data.tables} seats={data.seats} onClose={close} />;
-    case 'leave': return <LeaveSheet leaver={sheet.leaver} canLetGo={permissions.includes('call_time.override')} changes={changes.seats} onClose={close} />;
+    case 'leave': return (
+      <LeaveSheet leaver={sheet.leaver} canLetGo={permissions.includes('call_time.override')} canCheckOut={permissions.includes('waitlist.manage')}
+        changes={changes.seats} onClose={close} />
+    );
     case 'table': {
       const table = data.tables.find((one) => one.id === sheet.tableId);
       return table === undefined ? null : (

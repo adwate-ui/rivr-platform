@@ -82,7 +82,7 @@ test.describe('Call time', () => {
     await (await ritikasRequest(floor, /^Leaving/)).getByRole('button', { name: 'Leave', exact: true }).click();
     const leave = floor.getByRole('dialog', { name: 'Let go before call time' });
     await leave.getByRole('radio', { name: 'Emergency' }).click();
-    await leave.getByRole('button', { name: 'Let go early' }).click();
+    await leave.getByRole('button', { name: 'Let go early', exact: true }).click();
     await expect(floor.getByText('Ritika Das let go early')).toBeVisible();
     await expect(floor.getByRole('button', { name: /^Seat 1, Ritika Das,/ })).toHaveCount(0, { timeout: 15_000 });
   });

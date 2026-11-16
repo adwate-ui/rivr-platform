@@ -65,6 +65,25 @@ export const ConsoleOnAPhone: Story = { tags: ['viewport-phone'], args: { ...Con
 
 export const ConsoleLoading: Story = { tags: ['viewport-console'], args: { ...Console.args, children: <Skeleton look="rows" rows={4} />, footer: undefined } };
 
+/**
+ * Three actions to choose from (the Live floor's Leave, owner 16 Nov): each keeps its words on one line, and the one that
+ * does not fit goes on a line of its own, still to the right.
+ */
+export const ConsoleChoices: Story = {
+  tags: ['viewport-console'],
+  args: {
+    ...Console.args,
+    title: 'Let go before call time',
+    footer: (
+      <>
+        <Button variant="text">Cancel</Button>
+        <Button variant="outline">Let go early and check out</Button>
+        <Button variant="danger">Let go early</Button>
+      </>
+    ),
+  },
+};
+
 export const ConsoleLongText: Story = {
   tags: ['viewport-console'],
   args: { ...Console.args, title: 'Venkataraghavan Subramaniam-Krishnamurthy', subtitle: 'Private Room upstairs by the bar, seat 9 · Founders’ Circle' },

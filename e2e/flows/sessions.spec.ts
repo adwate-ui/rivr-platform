@@ -1,7 +1,7 @@
 /**
  * Sessions (#127, #627; design prompt, "Sessions"). Sahil Arora, this flow's own duty manager (Auth sends one code a
- * minute to a number), seats Rhea Kaul at Table 2, seat 4, lets her go before her call time and checks her out at the
- * door, which closes her visit. On her phone (decision 0320), Sessions counts this month and its hours, then the session:
+ * minute to a number), seats Rhea Kaul at Table 2, seat 4, lets her go before her call time and checks her out of the
+ * club in the same step (decision 0680), which closes her visit. On her phone (decision 0320), Sessions counts this month and its hours, then the session:
  * when, the table and how long, with no money. She hides it from her list, and it is gone from it; the club keeps the visit. The month's
  * totals, the tier gate and that hiding is hers alone are proved in supabase/tests/157_my_sessions.test.sql.
  */
@@ -18,13 +18,9 @@ test.describe('Sessions', () => {
     await signInToConsole(sahil, '9000000613');
     await seatOnFloor(sahil, { table: 'Table 2', seat: 4, number: '9000000297' });
 
-    // She owes call time, so she is let go early with a reason (decision 0481), and the seat is freed.
-    await letGoEarly(sahil, 'Rhea Kaul', 'Floor decision');
+    // She owes call time, so she is let go early with a reason (decision 0481) and checked out with it (decision 0680).
+    await letGoEarly(sahil, 'Rhea Kaul', 'Floor decision', true);
     await expect(sahil.getByRole('button', { name: /^Seat \d+, Rhea Kaul,/ })).toHaveCount(0);
-    await sahil.getByRole('link', { name: 'Door', exact: true }).click();
-    await sahil.getByRole('textbox', { name: 'Name, mobile or member number' }).fill('9000000297');
-    await sahil.getByRole('button', { name: 'Check out', exact: true }).click();
-    await expect(sahil.getByText('Checked out.')).toBeVisible();
 
     const rhea = await browser.newPage();
     await signInToPlayer(rhea, '9000000297', '/sessions');

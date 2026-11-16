@@ -90,7 +90,7 @@ export { useMyUsualFnbItems } from './fnbUsual.ts';
 export { useMyNextPlayTimeBonus, useMySeat, useMySeatActions, type Leaving, type NextPlayTimeBonus, type MySeat, type MySeatFailure, type TopUp } from './mySeat.ts';
 export { useFloorNight, useTableHands, type FloorNight, type TableHand, type TableNight } from './floorNight.ts';
 export {
-  isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberAccountStatuses, type MemberAccountState, type MemberAccountStatus, useMemberVisits, type MemberVisit, useMemberRecord, useMemberSearch, useVenueTiers, useWithdrawEarlyDeparture, type EarlyDeparture, type EarlyDepartureFailure, type MemberFailure, type MemberTierFailure, type MemberKycStatus, type MemberListRow,
+  isMemberQuery, MATCHES_MOST, topMatches, useMemberActions, useMemberEarlyDepartures, useMemberAccountStatuses, type MemberAccountState, type MemberAccountStatus, useMemberVisits, type MemberVisit, useMemberRecord, useMemberSearch, useVenueTiers, useWithdrawEarlyDeparture, type EarlyDeparture, type EarlyDepartureFailure, type MemberFailure, type MemberTierFailure, type MemberKycStatus, type MemberListRow,
   type MemberRecord, type MemberRow, type TierChange, type VenueTier,
 } from './members.ts';
 export type { MemberExportDetails } from './memberDetails.ts';

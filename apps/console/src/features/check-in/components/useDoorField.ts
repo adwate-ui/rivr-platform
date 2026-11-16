@@ -1,5 +1,5 @@
 import type { Result } from '@rivr/contracts/result';
-import { useCheckInActions, useCheckOutActions, useMemberSearch, type CheckInFailure, type CheckOutRefusal, type MemberRow } from '@rivr/db';
+import { topMatches, useCheckInActions, useCheckOutActions, useMemberSearch, type CheckInFailure, type CheckOutRefusal } from '@rivr/db';
 import { useState } from 'react';
 import { doorQuery, type DoorQuery } from './doorQuery.ts';
 
@@ -11,7 +11,8 @@ export type DoorOutcome =
   | { readonly kind: 'checked_in' | 'checked_out' | 'unusable' | 'no_match' }
   | { readonly kind: 'in_failed'; readonly failure: CheckInFailure }
   | { readonly kind: 'out_failed'; readonly refusal: CheckOutRefusal }
-  | { readonly kind: 'several'; readonly action: DoorAction; readonly matches: readonly MemberRow[] };
+  /** Several members match: they are listed as typed, each with its own action. */
+  | { readonly kind: 'several' };
 
 const isDone = (outcome: DoorOutcome | null) => outcome?.kind === 'checked_in' || outcome?.kind === 'checked_out';
 
@@ -49,7 +50,7 @@ export function useDoorField(venueId: string) {
     const rows = (await found.refetch()).data ?? [];
     const [only] = rows;
     if (rows.length === 1 && only !== undefined) return calls.member(only.memberId, action);
-    return rows.length === 0 ? { kind: 'no_match' } : { kind: 'several', action, matches: rows };
+    return rows.length === 0 ? { kind: 'no_match' } : { kind: 'several' };
   };
   const settle = (next: DoorOutcome) => {
     setOutcome(next);
@@ -62,6 +63,8 @@ export function useDoorField(venueId: string) {
   };
   return {
     text, outcome, isBusy: calls.isBusy, press,
+    /** The members matching what is typed, as it is typed, as Seat a player lists them (owner, 16 Nov); none for a mobile number. */
+    matches: typed.kind === 'search' ? topMatches(found.data ?? [], typed.query) : [],
     type: (next: string) => {
       setText(next);
       setOutcome(null);

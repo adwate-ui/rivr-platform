@@ -5,7 +5,8 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import {
-  isMemberQuery, useMemberActions, useMemberEarlyDepartures, useMemberRecord, useMemberSearch, useVenueTiers, useWithdrawEarlyDeparture,
+  isMemberQuery, MATCHES_MOST, topMatches, useMemberActions, useMemberEarlyDepartures, useMemberRecord, useMemberSearch, useVenueTiers, useWithdrawEarlyDeparture,
+  type MemberRow,
 } from './members.ts';
 import { RivrDataProvider } from './provider.tsx';
 import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
@@ -114,5 +115,19 @@ describe('Members', () => {
     });
     expect(outcome).toEqual({ ok: true, value: '2026-12-01T18:30:00+00:00' });
     expect(calls.find((call) => call.rpc === 'set_member_break')?.body).toEqual({ p_member_id: 'm1', p_days: 30, p_reason: 'Asked at the desk' });
+  });
+});
+
+describe('topMatches', () => {
+  const row = (fullName: string, memberNumber: number, phone: string | null = null): MemberRow =>
+    ({ memberId: `m${String(memberNumber)}`, memberNumber, fullName, phone, tierName: 'Black', visits: 0, lastVisitAt: null });
+
+  it('puts the members whose name, number or mobile starts with what was typed first, a few at most', () => {
+    const found = [row('Girish Rao', 12), row('Ishaan Mehta', 7), row('Kabir Ishwar', 31, '+919812345678')];
+
+    expect(topMatches(found, 'ish').map((one) => one.fullName)).toEqual(['Ishaan Mehta', 'Girish Rao', 'Kabir Ishwar']);
+    expect(topMatches(found, '9812').map((one) => one.fullName)[0]).toBe('Kabir Ishwar');
+    expect(topMatches(Array.from({ length: 12 }, (_, index) => row(`Member ${String(index)}`, index)), 'mem')).toHaveLength(MATCHES_MOST);
+    expect(topMatches(found, '  ')).toEqual([]);
   });
 });

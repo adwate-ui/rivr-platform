@@ -112,6 +112,13 @@ describe('Sheet', () => {
       await waitFor(() => expect(screen.getByRole('button', { name: 'Change' })).toHaveFocus());
     });
 
+    it('keeps each action\'s words on one line, and puts one that does not fit on a line of its own', () => {
+      renderConsole();
+      // Kept whole rather than squeezed: the actions wrap, never their words (the Live floor's Leave, owner 16 Nov).
+      const foot = screen.getByRole('button', { name: 'Add 1 h' }).parentElement;
+      expect(foot).toHaveClass('flex-wrap', 'justify-end');
+    });
+
     it('scrolls its content between a title and actions that stay', () => {
       renderConsole();
       const content = screen.getByRole('button', { name: '30 min' }).parentElement;
