@@ -38,6 +38,11 @@ test.describe('Check-in', () => {
     await expect((await doorList(page, 'In the room')).getByText('Rohan Bhatia')).toBeVisible();
     await expect((await doorList(page, 'Expected tonight')).getByText('Rohan Bhatia')).toHaveCount(0);
 
+    // As a name is typed, the members it matches show, each with the action that fits (decision 0680): Rohan is in the club.
+    await field.fill('Rohan Bh');
+    await page.getByRole('button', { name: 'Check out Rohan Bhatia' }).click();
+    await expect(page.getByText('Checked out.')).toBeVisible();
+
     await field.fill('9000000999');
     await field.press('Enter');
     await expect(page.getByText('No member has that number. Sign them up first.')).toBeVisible();

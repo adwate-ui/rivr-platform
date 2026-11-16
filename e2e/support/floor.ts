@@ -29,12 +29,15 @@ export async function openPlayer(page: Page, name: string) {
   return page.getByRole('dialog', { name });
 }
 
-/** Lets a seated player owing call time go early from their sheet's Leave, with one of the four reasons (decision 0481). */
-export async function letGoEarly(page: Page, name: string, reason = 'Emergency') {
+/**
+ * Lets a seated player owing call time go early from their sheet's Leave, with a reason (decisions 0481, 0680); with
+ * `isCheckingOut`, the same and checked out of the club.
+ */
+export async function letGoEarly(page: Page, name: string, reason = 'Emergency', isCheckingOut = false) {
   const sheet = await openPlayer(page, name);
   await sheet.getByRole('button', { name: 'Leave', exact: true }).last().click();
   const leave = page.getByRole('dialog', { name: 'Let go before call time' });
   await leave.getByRole('radio', { name: reason }).click();
-  await leave.getByRole('button', { name: 'Let go early' }).click();
-  await expect(page.getByText(`${name} let go early`)).toBeVisible();
+  await leave.getByRole('button', { name: isCheckingOut ? 'Let go early and check out' : 'Let go early', exact: true }).click();
+  await expect(page.getByText(isCheckingOut ? `${name} let go early and checked out` : `${name} let go early`, { exact: true })).toBeVisible();
 }

@@ -9,7 +9,10 @@ export interface ConsoleSheetProps {
   title: string;
   /** A muted line under the title: "Table 2, seat 5 · Black card". */
   subtitle?: string | undefined;
-  /** The actions along the foot, which stay in view: Cancel, then the one action. */
+  /**
+   * The actions along the foot, which stay in view: Cancel, then the action, or the actions to choose from. Each keeps its
+   * words on one line; those that do not fit beside the rest go on a line of their own, still to the right.
+   */
   footer?: ReactNode;
   children: ReactNode;
 }
@@ -50,7 +53,9 @@ export function ConsoleSheet({ isOpen, onClose, title, subtitle, footer, childre
             {subtitle ? <p className="mt-1 font-text text-13 leading-snug text-content-muted">{subtitle}</p> : null}
           </div>
           <div className="flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto px-6 pt-2 pb-6">{children}</div>
-          {footer ? <div className="flex shrink-0 items-center justify-end gap-2 border-t border-subtle px-6 py-3">{footer}</div> : null}
+          {footer ? (
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-subtle px-6 py-3">{footer}</div>
+          ) : null}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

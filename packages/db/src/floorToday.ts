@@ -83,12 +83,12 @@ export function tablesOf(tables: unknown): TodaysPlayer['tables'] {
   });
 }
 
-/** Every member at the club this club day, for staff who read members (`todays_players`). */
-export function useTodaysPlayers(venueId: string) {
+/** Every member at the club this club day, for staff who read members (`todays_players`); not read while `isEnabled` is false. */
+export function useTodaysPlayers(venueId: string, isEnabled = true) {
   const { client, userId } = useRivrData();
   return useQuery({
     queryKey: queryKeys.todaysPlayers(userId ?? 'signed-out', venueId),
-    enabled: userId !== null,
+    enabled: userId !== null && isEnabled,
     refetchInterval: LIVE,
     queryFn: async (): Promise<TodaysPlayer[]> => {
       const { data, error } = await client.rpc('todays_players', { p_venue_id: venueId }).limit(LIST_MOST);

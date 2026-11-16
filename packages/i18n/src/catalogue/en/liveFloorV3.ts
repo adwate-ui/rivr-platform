@@ -145,8 +145,12 @@ export const floor = {
     unwell: 'Unwell',
     tableBroke: 'Table broke',
     floorDecision: 'Floor decision',
+    busted: 'Busted',
     confirmOwes: 'Let go early',
     confirm: 'Yes, they leave',
+    /** The same, then checks the player out of the club, as the door would; staff choose either (owner, 16 Nov). */
+    confirmOwesOut: 'Let go early and check out',
+    confirmOut: 'Leave and check out',
     leaveOwing: 'Leave owing',
     pickReason: 'Pick a reason to let them go before call time.',
     cancel: 'Cancel',
@@ -195,6 +199,10 @@ export const floor = {
     moved: '{name} moved to {table}, seat {seat}',
     left: '{name} left {table}',
     letGo: '{name} let go early',
+    letGoOut: '{name} let go early and checked out',
+    leftOut: '{name} left {table} and checked out',
+    /** The seat change went through; the check-out was refused (the venue frozen, say). */
+    notCheckedOut: '{name} not checked out. Check them out at the door.',
     timeAdded: '{name}: call time +{time}',
     timeApproved: '{name}: +{time} approved',
     timeDeclined: '{name}: time request declined',

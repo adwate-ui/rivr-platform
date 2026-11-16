@@ -106,6 +106,23 @@ export function isMemberQuery(query: string): boolean {
   return typed.length >= 2 || /^\d+$/.test(typed);
 }
 
+/** The members suggested as staff type, on the floor and at the door: a few at most (the owner, 15 Nov night). */
+export const MATCHES_MOST = 8;
+
+/** Whether a member's name, member number or mobile starts with what was typed, so they come first ("Ish": Ishaan before Girish). */
+function isStartedBy(row: MemberRow, typed: string): boolean {
+  const text = typed.trim().toLowerCase();
+  const digits = text.replace(/\D/g, '');
+  if (row.fullName.toLowerCase().startsWith(text)) return true;
+  return digits !== '' && (String(row.memberNumber).startsWith(digits) || (row.phone ?? '').replace(/\D/g, '').slice(-10).startsWith(digits));
+}
+
+/** The members a search found for what was typed, those it starts first, `MATCHES_MOST` at most; none while nothing is typed. */
+export function topMatches(rows: readonly MemberRow[], typed: string): MemberRow[] {
+  if (typed.trim() === '') return [];
+  return [...rows].sort((a, b) => Number(isStartedBy(b, typed)) - Number(isStartedBy(a, typed))).slice(0, MATCHES_MOST);
+}
+
 /** Members by name, mobile number or member number, for staff who read members. */
 export function useMemberSearch(venueId: string, query: string) {
   const { client, userId } = useRivrData();

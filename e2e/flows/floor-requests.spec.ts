@@ -76,7 +76,7 @@ test.describe('Floor requests', () => {
     await (await requestOf(page, 'Devansh Malik', /^Leaving/)).getByRole('button', { name: 'Leave', exact: true }).click();
     const leave = page.getByRole('dialog', { name: 'Let go before call time' });
     await leave.getByRole('radio', { name: 'Table broke' }).click();
-    await leave.getByRole('button', { name: 'Let go early' }).click();
+    await leave.getByRole('button', { name: 'Let go early', exact: true }).click();
     await expect(page.getByText('Devansh Malik let go early')).toBeVisible();
 
     // A host seats Neel (which takes him off the list) and frees his seat owing; the floor records why he was let go.
@@ -90,7 +90,7 @@ test.describe('Floor requests', () => {
     await (await requestOf(page, 'Neel Bose', /Left before call time/)).getByRole('button', { name: 'Record' }).click();
     const record = page.getByRole('dialog', { name: 'Let go before call time' });
     await record.getByRole('radio', { name: 'Unwell' }).click();
-    await record.getByRole('button', { name: 'Let go early' }).click();
+    await record.getByRole('button', { name: 'Let go early', exact: true }).click();
     await expect(page.getByText('Neel Bose let go early')).toBeVisible();
     await expect(requestsPanel(page).getByRole('button', { name: 'Neel Bose', exact: true })).toHaveCount(0, { timeout: 15_000 });
   });

@@ -1,5 +1,5 @@
 import type { SeatWho } from '@rivr/contracts';
-import { useAddCallTime, useFloorActions, useFloorUndo, useSeatActions, type FloorTable, type SeatedPlayer } from '@rivr/db';
+import { useAddCallTime, useCheckOutActions, useFloorActions, useFloorUndo, useSeatActions, type FloorTable, type SeatedPlayer } from '@rivr/db';
 import { formatDuration, t } from '@rivr/i18n';
 import { useRef } from 'react';
 import { useChangeToast } from './useChangeToast.ts';
@@ -58,15 +58,30 @@ function useAddTime(venueId: string) {
   };
 }
 
+/** Who leaves and is checked out of the club too. */
+interface CheckingOut {
+  readonly memberId: string;
+  readonly fullName: string;
+}
+
 /**
  * The floor's changes to who sits where: seat, move (undone by moving back), leave (undone by taking the seat again), add
- * time; and let go early with a reason, kept on the member's record and not undone (decision 0481).
+ * time; and let go early with a reason, kept on the member's record and not undone (decision 0481). Leave and let go early
+ * can also check the player out of the club (owner, 16 Nov): no Undo then, and a check-out refused leaves the seat change
+ * standing and says to check them out at the door.
  */
 export function useSeatChanges(venueId: string) {
   const say = useChangeToast();
   const undo = useFloorUndo(venueId);
   const { move } = useFloorActions(venueId);
   const { leave, letLeaveEarly } = useSeatActions(venueId);
+  const { checkOut } = useCheckOutActions(venueId);
+  /** Checks the member out once their seat is done: true when they are out, one already out of the club included. */
+  const isCheckedOut = async (member: CheckingOut) => {
+    const out = await checkOut.mutateAsync(member.memberId);
+    return out.ok || out.error.reason === 'not_in_room';
+  };
+  const notOut = (member: CheckingOut) => t('console.floor.toast.notCheckedOut', { name: member.fullName });
   return {
     seat: useSeating(venueId),
     addTime: useAddTime(venueId),
@@ -78,11 +93,19 @@ export function useSeatChanges(venueId: string) {
     leave: async (player: { sessionId: string; fullName: string }, tableName: string) =>
       say(await leave.mutateAsync(player.sessionId), t('console.floor.toast.left', { name: player.fullName, table: tableName }),
         () => undo.mutateAsync({ kind: 'leave', sessionId: player.sessionId })),
-    letGo: async (member: { memberId: string; fullName: string; sessionId?: string | undefined }, reason: string) => {
+    leaveAndCheckOut: async (player: CheckingOut & { sessionId: string }, tableName: string) => {
+      const left = await leave.mutateAsync(player.sessionId);
+      const done = t('console.floor.toast.leftOut', { name: player.fullName, table: tableName });
+      if (!left.ok || await isCheckedOut(player)) return say(left, done);
+      // Out of the seat but still in the club: the leave alone went through, and Undo takes the seat back as it would.
+      return say(left, notOut(player), () => undo.mutateAsync({ kind: 'leave', sessionId: player.sessionId }));
+    },
+    letGo: async (member: CheckingOut & { sessionId?: string | undefined }, reason: string, isCheckingOut = false) => {
       const freesSeat = member.sessionId !== undefined;
       const letGo = await letLeaveEarly.mutateAsync({ memberId: member.memberId, reason, isSeatFreedNext: freesSeat });
       const outcome = letGo.ok && member.sessionId !== undefined ? await leave.mutateAsync(member.sessionId) : letGo;
-      say(outcome, t('console.floor.toast.letGo', { name: member.fullName }));
+      if (!isCheckingOut || !outcome.ok) return say(outcome, t('console.floor.toast.letGo', { name: member.fullName }));
+      return say(outcome, await isCheckedOut(member) ? t('console.floor.toast.letGoOut', { name: member.fullName }) : notOut(member));
     },
   };
 }

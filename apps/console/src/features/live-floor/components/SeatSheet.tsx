@@ -1,7 +1,7 @@
 import { bonusChipsToRedeemSchema, seatPlayerSchema } from '@rivr/contracts';
 import { isCallTimeMinutes } from '@rivr/domain/callTime';
 import {
-  openSeatsAt, useMemberSearch, useWaitlistBoard, type FloorTable, type HeldSeat, type MemberRow, type SeatedPlayer, type WaitlistBoardEntry,
+  openSeatsAt, topMatches, useMemberSearch, useWaitlistBoard, type FloorTable, type HeldSeat, type MemberRow, type SeatedPlayer, type WaitlistBoardEntry,
 } from '@rivr/db';
 import { useMemberBonus, useMemberBonusVisitLeft } from '@rivr/db/bonus';
 import { formatChips, t, type MessageKey } from '@rivr/i18n';
@@ -33,9 +33,6 @@ function nextOn(board: readonly WaitlistBoardEntry[], tableId: string, pinned: s
   return board.filter((entry) => entry.tableId === tableId && (entry.entryId === pinned || (entry.callTableName === null && entry.awayUntil === null)))
     .sort((a, b) => a.place - b.place).filter((entry, index) => index < 4 || entry.entryId === pinned);
 }
-
-/** The members suggested as the floor types: a few at most (the owner, 15 Nov night). */
-const MATCHES_MOST = 8;
 
 /** Whether typed text names someone, not a number alone. */
 const hasLetters = (text: string) => /\p{L}/u.test(text);
@@ -83,14 +80,6 @@ function useSeatChoice(start: SeatSheetProps['start']) {
   };
 }
 
-/** Whether a member's name, member number or mobile starts with what was typed, so they come first ("Ish": Ishaan before Girish). */
-function isStartedBy(row: MemberRow, typed: string): boolean {
-  const text = typed.trim().toLowerCase();
-  const digits = text.replace(/\D/g, '');
-  if (row.fullName.toLowerCase().startsWith(text)) return true;
-  return digits !== '' && (String(row.memberNumber).startsWith(digits) || (row.phone ?? '').replace(/\D/g, '').slice(-10).startsWith(digits));
-}
-
 /**
  * The members matching what is typed, by name, member number or the mobile's last digits, through the bounded member search:
  * those it starts first, eight at most; whether a name found no one; and whether the search failed, with a way to ask again.
@@ -98,7 +87,7 @@ function isStartedBy(row: MemberRow, typed: string): boolean {
 function useMatches(venueId: string, typed: string) {
   const found = useMemberSearch(venueId, typed);
   const isTyped = typed.trim() !== '';
-  const rows = isTyped ? [...(found.data ?? [])].sort((a, b) => Number(isStartedBy(b, typed)) - Number(isStartedBy(a, typed))).slice(0, MATCHES_MOST) : [];
+  const rows = topMatches(found.data ?? [], typed);
   return {
     rows,
     isNoOne: hasLetters(typed) && found.isSuccess && rows.length === 0,

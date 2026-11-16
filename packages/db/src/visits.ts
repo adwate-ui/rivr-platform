@@ -21,6 +21,7 @@ export function useCheckInActions(venueId: string) {
   const queryClient = useQueryClient();
   const settle = async ({ data, error }: { data: string | null; error: { code: string } | null }): Promise<Result<string, CheckInFailure>> => {
     await queryClient.invalidateQueries({ queryKey: queryKeys.doorBoard(userId ?? 'signed-out', venueId) });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.todaysPlayers(userId ?? 'signed-out', venueId) });
     return error || data === null ? err(FAILURE_BY_CODE[error?.code ?? ''] ?? 'unavailable') : ok(data);
   };
   const checkIn = useMutation({
@@ -64,6 +65,7 @@ export function useCheckOutActions(venueId: string) {
   const queryClient = useQueryClient();
   const settle = async ({ data, error }: { data: string | null; error: { code: string; details: string } | null }): Promise<Result<string, CheckOutRefusal>> => {
     await queryClient.invalidateQueries({ queryKey: queryKeys.doorBoard(userId ?? 'signed-out', venueId) });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.todaysPlayers(userId ?? 'signed-out', venueId) });
     return error || data === null ? err(refusal(error)) : ok(data);
   };
   const checkOut = useMutation({

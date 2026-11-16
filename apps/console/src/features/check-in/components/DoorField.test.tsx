@@ -16,8 +16,17 @@ const member = (id: string, name: string, number: number) => ({
   member_id: id, member_number: number, full_name: name, phone: '+919000000200', tier_name: 'Black card', visits: 3, last_visit_at: null,
 });
 
-/** The front desk signed in; a fake API whose search finds `found` and whose check-ins and check-outs open and close a visit. */
-function renderDoor(found: unknown[] = []) {
+/** A member at the club today, as today's players reads them: in at two, and out at `out` if given. */
+const today = (id: string, status: string, times: { in?: string | null; out?: string | null } = {}) => ({
+  member_id: id, full_name: 'Kabir Sethi', member_number: 41, status, checked_in_at: times.in === undefined ? '2026-11-16T14:00:00Z' : times.in,
+  checked_out_at: times.out ?? null, waiting_seconds: 0, tables: [],
+});
+
+/**
+ * The front desk signed in; a fake API whose search finds `found`, whose players today are `todays`, and whose check-ins and
+ * check-outs open and close a visit.
+ */
+function renderDoor(found: unknown[] = [], todays: unknown[] = []) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000104', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -29,6 +38,7 @@ function renderDoor(found: unknown[] = []) {
     if (rpc === undefined) return Response.json([]);
     sent.push({ rpc, body: JSON.parse(String(init?.body ?? '{}')) });
     if (rpc === 'member_search') return Response.json(found);
+    if (rpc === 'todays_players') return Response.json(todays);
     return Response.json('visit-1');
   });
   render(
@@ -41,6 +51,15 @@ function renderDoor(found: unknown[] = []) {
 }
 
 const field = () => screen.getByRole<HTMLInputElement>('textbox', { name: 'Name, mobile or member number' });
+
+/** A match's button once it may be pressed: held until who is in the club is known. */
+async function pressable(name: string) {
+  return waitFor(() => {
+    const button = screen.getByRole('button', { name });
+    expect(button).toHaveProperty('disabled', false);
+    return button;
+  });
+}
 const type = (value: string) => fireEvent.change(field(), { target: { value } });
 
 describe('the door field', () => {
@@ -87,9 +106,32 @@ describe('the door field', () => {
     type('Kabir');
     fireEvent.keyDown(field(), { key: 'Enter' });
     expect(await screen.findByText('More than one match. Pick one below.')).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'Check in Kabir Anand' }));
+    fireEvent.click(await pressable('Check in Kabir Anand'));
     expect(await screen.findByText('Checked in.')).toBeDefined();
     expect(sent.find((call) => call.rpc === 'check_in')?.body).toEqual({ p_venue_id: 'v1', p_member_id: 'm2' });
+  });
+
+  it('lists the members a name matches as it is typed, each with the action that fits them (owner, 16 Nov)', async () => {
+    const sent = renderDoor([member('m1', 'Kabir Sethi', 41), member('m2', 'Kabir Anand', 77)], [today('m1', 'playing')]);
+    type('Kab');
+    // Kabir Sethi is in the club: Check out. Kabir Anand is not: Check in. Nothing pressed yet.
+    fireEvent.click(await pressable('Check out Kabir Sethi'));
+    expect(await screen.findByText('Checked out.')).toBeDefined();
+    expect(sent.find((call) => call.rpc === 'check_out')?.body).toEqual({ p_venue_id: 'v1', p_member_id: 'm1' });
+    expect(sent.some((call) => call.rpc === 'check_in')).toBe(false);
+  });
+
+  it('offers Check in to a member who already left the club today', async () => {
+    renderDoor([member('m1', 'Kabir Sethi', 41)], [today('m1', 'left', { out: '2026-11-16T18:00:00Z' })]);
+    type('Kabir');
+    expect(await screen.findByRole('button', { name: 'Check in Kabir Sethi' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Check out Kabir Sethi' })).toBeNull();
+  });
+
+  it('offers Check in to one who joined a list from the app but is not in yet', async () => {
+    renderDoor([member('m1', 'Kabir Sethi', 41)], [today('m1', 'waiting', { in: null })]);
+    type('Kabir');
+    expect(await screen.findByRole('button', { name: 'Check in Kabir Sethi' })).toBeDefined();
   });
 
   it('says so when no member matches', async () => {
