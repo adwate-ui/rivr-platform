@@ -110,7 +110,9 @@ select throws_ok(
 -- A clash with a check that is not verified refuses no one: the first to arrive may be the impostor.
 select pg_temp.selfie('00000000-0000-4000-8000-000000000207');
 select public.record_kyc_started('00000000-0000-4000-8000-000000000207', 'session');
-select public.record_kyc_digilocker_failed('00000000-0000-4000-8000-000000000207');
+-- Held for a PAN, as a DigiLocker failure left a check before decision 0678 (it now goes to the desk).
+update public.kyc_record set status = 'needs_pan', method = 'pan', digilocker_session_id = null
+where member_id = '00000000-0000-4000-8000-000000000207';
 select is(public.record_kyc_pan('00000000-0000-4000-8000-000000000207', 'JKLPB7890M', '1985-05-05', 'vendor-pan'), 'needs_review',
   'a PAN alone waits for staff');
 select pg_temp.selfie('00000000-0000-4000-8000-000000000208');

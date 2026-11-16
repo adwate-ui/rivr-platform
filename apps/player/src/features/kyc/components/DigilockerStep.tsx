@@ -24,8 +24,9 @@ export function DigilockerStep({ isResume }: { isResume: boolean }) {
   const begin = async () => {
     setFailure(null);
     const started = await start.mutateAsync();
-    if (started.ok) window.location.assign(started.value);
-    else setFailure(started.error);
+    if (!started.ok) setFailure(started.error);
+    // Zoop could not start it: the check waits for the desk (decision 0678), and /kyc, reading it again, says so.
+    else if (started.value !== 'at_club') window.location.assign(started.value.redirectUrl);
   };
   return (
     <KycIntro at="digilocker" isResume={isResume}

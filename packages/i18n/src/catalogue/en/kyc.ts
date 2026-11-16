@@ -28,6 +28,8 @@ export const playerKyc = {
   registeredTitle: 'Registered',
   /** On the registered screen, and on Tonight's card until the desk has checked them. */
   atTheDesk: 'Bring your Aadhaar and PAN on your first visit. The desk checks them before you play.',
+  /** On the registered screen while the venue checks in the app (decision 0678): DigiLocker instead of the desk. */
+  checkInApp: 'Verify in the app instead',
   /** The eyebrow of Tonight's card. */
   deskCheck: 'ID check',
   takeSelfie: 'Take a selfie',

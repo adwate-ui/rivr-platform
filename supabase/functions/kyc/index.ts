@@ -3,13 +3,13 @@
 // vendor keys fails closed (docs/decisions/0014). This function writes the member's kyc_record with
 // the service role; members can only read it, so nobody verifies themselves. Every vendor call first
 // passes begin_kyc_vendor_call: the kyc_signup kill switch, the member's consent, five paid calls a day.
-import type { AdapterFailure, DigiLockerRecord, FaceMatch } from '@rivr/adapters';
+import type { AdapterFailure, DigiLockerRecord, FaceMatch, KycAdapter } from '@rivr/adapters';
 import { panSchema } from '@rivr/contracts';
 import { kycIdentityKey } from '@rivr/domain/identity';
 import { digiLockerRecord } from './digilocker.ts';
 import { takeSignUpPhoto } from './photo.ts';
 import { takeSelfie } from './selfie.ts';
-import { CORS, currentRecord, failed, failureReply, field, noteFailure, photoUrl, refusal, reply, rpc } from './server.ts';
+import { CORS, currentRecord, failed, failureReply, field, giveBackCall, noteFailure, photoUrl, refusal, reply, rpc, type KycStep } from './server.ts';
 import { subjectFor, type Subject } from './subject.ts';
 
 // A selfie of at most 2 MB, in base64, and the rest of the body.
@@ -42,7 +42,20 @@ const returnUrl = returnUrlOf(Deno.env.get('PLAYER_APP_URL') ?? '');
 // Where a vendor that delivers DigiLocker's documents sends them (Zoop, decision 0676): kyc-digilocker, on this project.
 const deliveryUrl = `${Deno.env.get('SUPABASE_URL') ?? ''}/functions/v1/kyc-digilocker`;
 
-/** The DigiLocker hand-off, once the selfie is in: the gate passes, then the vendor is called. */
+/**
+ * Zoop did not verify the member (the owner, 16 Nov 2026; decision 0678): why is kept, and the check waits for the desk, as
+ * while the venue checks identity at the club. `at_club`, or null when the check was not one in progress (it had moved on).
+ */
+async function toTheDesk(memberId: string, step: KycStep, failure: AdapterFailure): Promise<Response | null> {
+  await noteFailure(memberId, step, failure);
+  const isAtTheDesk = (await rpc('record_kyc_digilocker_failed', { p_member_id: memberId }, null)) === true;
+  return isAtTheDesk ? reply({ status: 'at_club' }) : null;
+}
+
+/**
+ * The DigiLocker hand-off, once the selfie is in: the gate passes, then the vendor is called. When Zoop cannot start it (down,
+ * no keys, refusing), the paid call is given back where it was the vendor's, and the check goes to the desk.
+ */
 async function start({ memberId, kyc }: Subject): Promise<Response> {
   if (returnUrl === null) return reply({ error: 'not_configured' }, 503);
   const record = await currentRecord(memberId);
@@ -50,7 +63,10 @@ async function start({ memberId, kyc }: Subject): Promise<Response> {
   if (!canStart || typeof record?.photo_path !== 'string') return reply({ error: 'The selfie comes first' }, 409);
   await rpc('begin_kyc_vendor_call', { p_member_id: memberId, p_is_paid: true }, null);
   const started = await kyc.startDigiLocker({ memberId, returnUrl, deliveryUrl });
-  if (!started.ok) return await failed(memberId, 'start', started.error);
+  if (!started.ok) {
+    await giveBackCall(memberId, started.error);
+    return (await toTheDesk(memberId, 'start', started.error)) ?? (await failureReply(memberId, 'start', started.error));
+  }
   const { sessionId, deliveryKey } = started.value;
   await rpc('record_kyc_started', { p_member_id: memberId, p_session_id: sessionId, p_delivery_key: deliveryKey }, null);
   return reply({ redirectUrl: started.value.redirectUrl });
@@ -58,14 +74,19 @@ async function start({ memberId, kyc }: Subject): Promise<Response> {
 
 /**
  * No record from DigiLocker. An outage, or Zoop refusing RIVR's account rather than this session (decision 0674), is the
- * app's to ask again: the delivery may still come. A refusal of the session, or nothing coming, keeps why, and the member
- * goes on to a PAN check; the check leaving its session forgets what was delivered for it.
+ * app's to ask again: the delivery may still come. A refusal of the session, nothing coming, or no keys: the check goes to
+ * the desk, and leaving its session forgets what was delivered for it.
  */
 async function notCompleted(memberId: string, failure: AdapterFailure): Promise<Response> {
-  if (failure.code !== 'rejected' || failure.cause !== undefined) return await failureReply(memberId, 'complete', failure);
-  await noteFailure(memberId, 'complete', failure);
-  await rpc('record_kyc_digilocker_failed', { p_member_id: memberId }, null);
-  return reply({ status: 'needs_pan' });
+  const isPassing = failure.code === 'unavailable' || failure.code === 'rate_limited' || (failure.code === 'rejected' && failure.cause !== undefined);
+  if (isPassing) return await failureReply(memberId, 'complete', failure);
+  return (await toTheDesk(memberId, 'complete', failure)) ?? reply({ status: 'started' });
+}
+
+/** Why Zoop's answer does not verify the member, or null when it does: a face that is not the selfie's, or no date of birth. */
+function whyUnverified(face: FaceMatch, record: DigiLockerRecord): AdapterFailure | null {
+  if (!face.isMatch) return { code: 'rejected', reason: 'Zoop face not matched' };
+  return record.dateOfBirth === null ? { code: 'rejected', reason: 'Zoop no date of birth' } : null;
 }
 
 /** DigiLocker's record kept with the face match's verdict; the status the check is left at. */
@@ -84,10 +105,10 @@ async function recordDigiLocker(memberId: string, record: DigiLockerRecord, face
 }
 
 /**
- * The member is back from DigiLocker: take the record and match its photo against the selfie, or move them to a PAN
- * check. Until Zoop's delivery comes the app is told to wait, and asks again. The member's face verifies them at once,
- * whatever name they registered (decision 0400); a face that is not theirs means someone else's Aadhaar: the check waits
- * for staff.
+ * The member is back from DigiLocker: take the record and match its photo against the selfie. Until Zoop's delivery comes
+ * the app is told to wait, and asks again. The member's face verifies them at once, whatever name they registered
+ * (decision 0400). A face that is not theirs, an Aadhaar with no full date of birth, or no record at all: Zoop did not
+ * verify them, and the desk does, in person (decision 0678).
  */
 async function complete({ memberId, kyc }: Subject): Promise<Response> {
   const record = await currentRecord(memberId);
@@ -99,12 +120,19 @@ async function complete({ memberId, kyc }: Subject): Promise<Response> {
   const pulled = await digiLockerRecord(memberId, session, kyc);
   if (!pulled.ok) return await notCompleted(memberId, pulled.error);
   if (pulled.value === 'waiting') return reply({ status: 'waiting' });
+  return await matchAndRecord(memberId, record.photo_path, kyc, pulled.value);
+}
+
+/** DigiLocker's record against the selfie, a paid call: kept when Zoop verifies the member, else the desk checks them. */
+async function matchAndRecord(memberId: string, selfiePath: string, kyc: KycAdapter, delivered: DigiLockerRecord): Promise<Response> {
   await rpc('begin_kyc_vendor_call', { p_member_id: memberId, p_is_paid: true }, null);
-  const face = await kyc.matchFace({ selfieUrl: await photoUrl(record.photo_path), referenceUrl: pulled.value.photoUrl });
+  const face = await kyc.matchFace({ selfieUrl: await photoUrl(selfiePath), referenceUrl: delivered.photoUrl });
   // The record stays delivered, so asking again matches the faces again without a new DigiLocker.
   if (!face.ok) return await failed(memberId, 'complete', face.error);
-  // Recorded either way, the check leaves its session, and what was delivered for it goes (decision 0676).
-  return reply({ status: await recordDigiLocker(memberId, pulled.value, face.value) });
+  const unverified = whyUnverified(face.value, delivered);
+  if (unverified !== null) return (await toTheDesk(memberId, 'complete', unverified)) ?? reply({ status: 'started' });
+  // Recorded, the check leaves its session, and what was delivered for it goes (decision 0676).
+  return reply({ status: await recordDigiLocker(memberId, delivered, face.value) });
 }
 
 /**

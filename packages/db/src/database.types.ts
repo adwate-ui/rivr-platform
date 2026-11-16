@@ -3402,7 +3402,7 @@ isOneToOne: false
 { Args: { "p_aadhaar_reference": string,"p_address": string,"p_date_of_birth": string,"p_face_match_score": number,"p_face_matches": boolean,"p_identity_key"?: string,"p_masked_aadhaar": string,"p_member_id": string,"p_name"?: string,"p_pan": string,"p_vendor_reference": string }; Returns: string
                            },
 "record_kyc_digilocker_failed":
-{ Args: { "p_member_id": string }; Returns: undefined
+{ Args: { "p_member_id": string }; Returns: boolean
                            },
 "record_kyc_document_retake":
 { Args: { "p_covers_confirmed": boolean,"p_kind": string,"p_member_id": string,"p_path": string }; Returns: undefined

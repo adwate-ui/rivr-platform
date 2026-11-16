@@ -51,10 +51,18 @@ function CheckAt({ record, isAtTheClub, onChecked }: { record: KycRecord | null;
   // While the desk checks identity, a check waiting for its PAN goes to the desk too: Cashfree's PAN check is gone (owner,
   // 5 Nov), and the selfie starts the check again (audit F-010).
   const isHeldForPan = record?.status === 'needs_pan' && isAtTheClub;
+  const hasSelfie = record?.hasSelfie === true;
   if (record && record.status !== 'started' && !isHeldForPan) return <KycOutcome record={record} onChecked={onChecked} />;
-  if (isAtTheClub) return isRegistered(record) ? <KycRegistered /> : <ClubCheck />;
-  // Once the switch is off, a member let in by their selfie may also check in the app.
-  return <AppCheck hasSelfie={record?.hasSelfie === true} />;
+  // Waiting for the desk, whether the club checks identity there or Zoop did not verify them (decision 0678).
+  if (isRegistered(record)) return <ForTheDesk hasSelfie={hasSelfie} isAtTheClub={isAtTheClub} />;
+  return isAtTheClub ? <ClubCheck /> : <AppCheck hasSelfie={hasSelfie} />;
+}
+
+/** Waiting for the desk: Registered. While the venue checks in the app, the desk is the default and the app's check is offered too. */
+function ForTheDesk({ hasSelfie, isAtTheClub }: { hasSelfie: boolean; isAtTheClub: boolean }) {
+  const [isCheckingInApp, setCheckingInApp] = useState(false);
+  if (isAtTheClub) return <KycRegistered />;
+  return isCheckingInApp ? <AppCheck hasSelfie={hasSelfie} /> : <KycRegistered onCheckInApp={() => setCheckingInApp(true)} />;
 }
 
 /** In the app (decision 0320): the selfie, then DigiLocker; a member with the selfie in picks up at DigiLocker. */

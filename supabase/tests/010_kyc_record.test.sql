@@ -85,6 +85,8 @@ select public.claim_kyc_selfie('00000000-0000-4000-8000-000000000203');
 select public.record_kyc_selfie('00000000-0000-4000-8000-000000000203', 95, null);
 select public.record_kyc_started('00000000-0000-4000-8000-000000000203', 'session-4');
 select lives_ok($$ select public.record_kyc_digilocker_failed('00000000-0000-4000-8000-000000000203') $$, 'a DigiLocker failure is recorded');
+-- A check held for a PAN, as a DigiLocker failure left one before decision 0678 (it now goes to the desk).
+update public.kyc_record set status = 'needs_pan', method = 'pan' where member_id = '00000000-0000-4000-8000-000000000203';
 select is(public.record_kyc_pan('00000000-0000-4000-8000-000000000203', 'CDEPK3456H', '1995-05-05', 'vendor-pan'),
   'needs_review', 'a PAN alone, with no DigiLocker photo, waits for staff review');
 

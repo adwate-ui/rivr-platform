@@ -1,0 +1,9 @@
+# 0678 When Zoop does not verify a member, the desk does
+
+Date: 16 Nov 2026. The owner: when Zoop is unsuccessful, the check "should default to the floor path, like the switch" (`kyc.at_the_club`, decision 0502). Replaces the PAN step after a failed DigiLocker (decision 0320's fallback), whose PAN alone always waited for a KYC reviewer with the member kept out of the app.
+
+- **What sends a check to the desk.** DigiLocker refused, abandoned, unreadable or with no Aadhaar; nothing delivered 35 minutes after the start (decision 0676); a face that is not the selfie's; an Aadhaar with no full date of birth; and Zoop unable to start the hand-off at all (down, refusing, or no keys at the venue). A Zoop outage while the member waits for the delivery is still asked again: the delivery may come.
+- **What it means.** `record_kyc_digilocker_failed` keeps the check `started` and marks it for the desk (`at_club_from`), ending the DigiLocker session and anything delivered for it. As with the switch on, the member sees "Registered" and what to bring, is let into the app, may join a waitlist (decision 0503), and the floor sees "ID check needed" and checks them in person (photos of the PAN and Aadhaar, details typed by staff). The `kyc` function answers `at_club`.
+- **The app's own check stays offered.** With the switch off, the Registered screen also offers "Verify in the app instead" (DigiLocker again), as a member let in at the club could already check in the app once the switch went off. The desk is the default.
+- **What does not change.** A duplicate identity or under 18 is refused, and a clash waits for a reviewer: those are RIVR's rules, not Zoop failing.
+- **Checks held for a PAN.** The migration moves every `needs_pan` check to the desk, keeping nothing from the attempt (none on production on 16 Nov; staging's are test members). The PAN step remains only for such checks made before it; removing it is a follow-up.

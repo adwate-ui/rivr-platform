@@ -15,23 +15,31 @@ const WAIT_AT_MOST_MS = 120_000;
 
 type ReturnView = { kind: 'checking' } | { kind: 'failed'; message: string } | { kind: 'outcome'; record: KycRecord } | { kind: 'to-the-desk' };
 
+type Completion = Result<KycStatus | 'waiting' | 'at_club', KycFailure>;
+
 /** A check still to complete that the kyc function answered: checking while its documents are on their way. */
-function stillToComplete(answer: KycStatus | 'waiting', hasWaitedTooLong: boolean): ReturnView {
+function stillToComplete(answer: KycStatus | 'waiting' | 'at_club', hasWaitedTooLong: boolean): ReturnView {
   if (answer !== 'waiting') return { kind: 'failed', message: t(FAILURE_COPY.unavailable) };
   return hasWaitedTooLong ? { kind: 'failed', message: t('player.kyc.notArrived') } : { kind: 'checking' };
+}
+
+/**
+ * Whether the check now waits for the desk, which /kyc says: Zoop did not verify the member (decision 0678), or a check
+ * held for a PAN check that no longer runs while the desk checks identity (audit F-010).
+ */
+function isForTheDesk(completed: Completion, record: KycRecord | null | undefined, isAtTheClub: boolean): boolean {
+  if (completed.ok && completed.value === 'at_club') return true;
+  if (record?.status === 'started' && record.isAtTheClub) return true;
+  return record?.status === 'needs_pan' && isAtTheClub;
 }
 
 /**
  * What the return screen shows: checking until the record and its documents are in, then the outcome.
  * A record that could not be read, or says nothing new (another tab moved it), offers a retry.
  */
-function viewOf(
-  completed: Result<KycStatus | 'waiting', KycFailure> | undefined, record: ReturnType<typeof useKycRecord>, isAtTheClub: boolean | undefined,
-  hasWaitedTooLong: boolean,
-): ReturnView {
+function viewOf(completed: Completion | undefined, record: ReturnType<typeof useKycRecord>, isAtTheClub: boolean | undefined, hasWaitedTooLong: boolean): ReturnView {
   if (completed === undefined || record.isPending || isAtTheClub === undefined) return { kind: 'checking' };
-  // Held for a PAN check that no longer runs, while the desk checks identity: /kyc offers the selfie (audit F-010).
-  if (record.data?.status === 'needs_pan' && isAtTheClub) return { kind: 'to-the-desk' };
+  if (isForTheDesk(completed, record.data, isAtTheClub)) return { kind: 'to-the-desk' };
   // The record first: a check that has already moved on shows where it stands, whatever the pull said. A return with
   // nothing to complete (the back button, a restored tab) is answered 409, which is no outage.
   if (record.data && record.data.status !== 'started') return { kind: 'outcome', record: record.data };

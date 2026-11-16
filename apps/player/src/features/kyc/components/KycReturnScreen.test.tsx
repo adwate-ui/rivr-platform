@@ -83,6 +83,12 @@ describe('Identity › Back from DigiLocker', () => {
     expect(screen.getByRole('button', { name: 'Try again' })).toBeDefined();
   });
 
+  it('sends a member Zoop did not verify to the desk, as /kyc then says (decision 0678)', async () => {
+    const recordAfter = (asked: number) => ({ ...RECORD, status: 'started', at_club_from: asked >= 1 ? '2026-11-16T12:00:00Z' : null });
+    renderReturn(recordAfter, { status: 200, body: { status: 'at_club' } });
+    expect(await screen.findByText('Identity start')).toBeDefined();
+  });
+
   it('asks again while DigiLocker\'s documents are on their way, then shows where the check stands', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const recordAfter = (asked: number) => ({ ...RECORD, status: asked >= 2 ? 'verified' : 'started' });

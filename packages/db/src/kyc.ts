@@ -28,10 +28,20 @@ function toStatus(value: unknown): KycStatus | null {
   return STATUSES.find((status) => status === value) ?? null;
 }
 
-/** The complete step's answer: where the check stands, or `waiting` while DigiLocker's documents are on their way (decision 0676). */
-function completionOf(sent: Result<Record<string, unknown>, KycFailure>): Result<KycStatus | 'waiting', KycFailure> {
+/**
+ * The complete step's answer: where the check stands, `waiting` while DigiLocker's documents are on their way (decision
+ * 0676), or `at_club` when Zoop did not verify the member and the desk will, on the first visit (decision 0678).
+ */
+function completionOf(sent: Result<Record<string, unknown>, KycFailure>): Result<KycStatus | 'waiting' | 'at_club', KycFailure> {
   if (!sent.ok) return sent;
-  return ok(sent.value.status === 'waiting' ? 'waiting' : toStatus(sent.value.status) ?? 'started');
+  const { status } = sent.value;
+  return ok(status === 'waiting' || status === 'at_club' ? status : toStatus(status) ?? 'started');
+}
+
+/** The start's answer: DigiLocker's address to send the member to, or `at_club` when Zoop could not start it (decision 0678). */
+function startOf(sent: Result<Record<string, unknown>, KycFailure>): Result<{ readonly redirectUrl: string } | 'at_club', KycFailure> {
+  if (!sent.ok) return sent;
+  return ok(sent.value.status === 'at_club' ? 'at_club' : { redirectUrl: String(sent.value.redirectUrl) });
 }
 
 /** A photo as base64, for a KYC function's JSON body (kyc, kyc-in-person). */
@@ -114,12 +124,7 @@ export function useKycActions() {
       return ok(isAtTheClub);
     },
   });
-  const start = useMutation({
-    mutationFn: async (): Promise<Result<string, KycFailure>> => {
-      const started = await invoke({ action: 'start' });
-      return started.ok ? ok(String(started.value.redirectUrl)) : started;
-    },
-  });
+  const start = useMutation({ mutationFn: async () => startOf(await invoke({ action: 'start' })) });
   const complete = useMutation({ mutationFn: async () => completionOf(await invoke({ action: 'complete' })) });
   const verifyPan = useMutation({
     mutationFn: async (input: { pan: string; dateOfBirth?: string }) => statusOf('needs_pan')(await invoke({ action: 'pan', ...input })),

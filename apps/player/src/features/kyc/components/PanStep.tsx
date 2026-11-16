@@ -30,8 +30,9 @@ function DigilockerAgain() {
   const [failure, setFailure] = useState<KycFailure | null>(null);
   const begin = async () => {
     const started = await start.mutateAsync();
-    if (started.ok) window.location.assign(started.value);
-    else setFailure(started.error);
+    if (!started.ok) setFailure(started.error);
+    // Zoop could not start it: the check waits for the desk (decision 0678), and /kyc, reading it again, says so.
+    else if (started.value !== 'at_club') window.location.assign(started.value.redirectUrl);
   };
   return (
     <Stack gap={2}>
