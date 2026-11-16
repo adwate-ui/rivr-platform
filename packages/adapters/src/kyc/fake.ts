@@ -19,8 +19,11 @@ export interface FakeKycOptions {
   readonly faceMatch?: { readonly isMatch: boolean; readonly score: number };
 }
 
-/** The fake KYC adapter with its call log and failure script; it checks liveness, as the practice venue always has. */
-export type FakeKyc = Required<KycAdapter> & FakeControls<KycCall, AdapterFailure>;
+/**
+ * The fake KYC adapter with its call log and failure script; it checks liveness, as the practice venue always has. Its
+ * DigiLocker hands the record over when asked, so no webhook delivers to it.
+ */
+export type FakeKyc = Required<Omit<KycAdapter, 'readDigiLockerDelivery'>> & FakeControls<KycCall, AdapterFailure>;
 
 // A fictional adult. Only the masked Aadhaar exists, as in production.
 const FICTIONAL_RECORD: DigiLockerRecord = {
@@ -79,7 +82,7 @@ export function createFakeKyc(options: FakeKycOptions = {}): FakeKyc {
       const failure = recorder.record({ method: 'startDigiLocker', memberId });
       if (failure) return err(failure);
       // The fake consents at once: the member goes straight back to the app, never to a pretend DigiLocker page.
-      return ok({ sessionId: `${FAKE_SESSION}${memberId}`, redirectUrl: returnUrl });
+      return ok({ sessionId: `${FAKE_SESSION}${memberId}`, redirectUrl: returnUrl, deliveryKey: null });
     },
     async pullDigiLocker({ sessionId }) {
       const failure = recorder.record({ method: 'pullDigiLocker', sessionId });

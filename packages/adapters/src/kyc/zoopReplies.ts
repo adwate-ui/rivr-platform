@@ -25,6 +25,34 @@ export const panDemographicSchema = z.object({
   is_dob_match: z.boolean(),
 });
 
+// A DigiLocker session's id, as Zoop gives it (24 hex digits on 16 Nov 2026); it goes into a path, so nothing else is taken.
+export const sessionIdSchema = z.string().regex(/^[A-Za-z0-9_-]{8,64}$/);
+
+/** `POST /identity/digilocker/v1/init` (decision 0676): the session, the key its webhook carries, and the gateway. */
+export const digiLockerInitSchema = z.object({
+  request_id: sessionIdSchema,
+  webhook_security_key: z.string().min(16).max(200),
+  // The member is sent here: Zoop's own gateway only (gateway.zoop.plus on 16 Nov 2026).
+  sdk_url: z.url({ protocol: /^https$/, hostname: /(^|\.)zoop\.(plus|one)$/ }),
+});
+
+/** `GET /identity/digilocker/v1/fetch/<id>`: INITIATED, then SUCCESS once the member has submitted. No documents. */
+export const digiLockerFetchSchema = z.object({
+  transaction_status: z.string(),
+});
+
+/**
+ * The webhook Zoop sends to `response_url` once the member submits, as Zoop's DigiLocker documentation and a test-host run
+ * (16 Nov 2026) have it: each document asked for, FETCHED with its XML or SKIPPED when DigiLocker held none.
+ */
+export const digiLockerDeliverySchema = z.object({
+  request_id: sessionIdSchema,
+  success: z.boolean(),
+  response_code: z.union([z.string(), z.number()]).transform(String),
+  metadata: z.object({ reason_code: z.string().nullish() }).nullish(),
+  result: z.array(z.object({ doctype: z.string(), status: z.string(), data_xml: z.string().nullish() })).nullish(),
+});
+
 /** `POST /api/v1/in/ml/face/match`, when the faces are the same person: `face_match_score` runs 0 to 100, as a string. */
 export const faceMatchSchema = z.object({
   face_match_score: z.union([z.string().regex(/^\d{1,3}(\.\d+)?$/), z.number()]).transform(Number).pipe(z.number().min(0).max(100)),

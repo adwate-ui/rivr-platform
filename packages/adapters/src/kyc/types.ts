@@ -1,17 +1,22 @@
 import type { MemberId, Pan, Result } from '@rivr/contracts';
 import type { AdapterFailure } from '../shared/failure.ts';
 
-/** A DigiLocker consent hand-off: send the member to `redirectUrl`; they come back to the return URL. */
+/**
+ * A DigiLocker consent hand-off: send the member to `redirectUrl`; they come back to the return URL. `deliveryKey` is the
+ * key a vendor that sends the documents to RIVR's webhook (Zoop, decision 0676) puts on that delivery; null for a vendor
+ * that hands them over when asked.
+ */
 export interface DigiLockerSession {
   readonly sessionId: string;
   readonly redirectUrl: string;
+  readonly deliveryKey: string | null;
 }
 
 /** What DigiLocker returns once the member consents. Only the masked Aadhaar ever leaves the vendor. */
 export interface DigiLockerRecord {
   readonly name: string;
-  /** ISO date, `1990-01-01`. */
-  readonly dateOfBirth: string;
+  /** ISO date, `1990-01-01`; null when the Aadhaar holds the year of birth alone, which leaves the check for staff. */
+  readonly dateOfBirth: string | null;
   /** `XXXX XXXX 1234`. */
   readonly maskedAadhaar: string;
   /**
@@ -24,9 +29,15 @@ export interface DigiLockerRecord {
   /** Null when DigiLocker holds no PAN; verify one with `verifyPan` instead. */
   readonly pan: Pan | null;
   readonly address: string;
-  /** A short-lived link to the Aadhaar photo, the reference for face match. */
+  /** The Aadhaar photo, the reference for face match: a short-lived link, or a `data:` URL when the vendor sent the photo. */
   readonly photoUrl: string;
   readonly vendorReference: string;
+}
+
+/** A webhook's delivery of a DigiLocker session: the record, or why there is none (the member refused, or shared no Aadhaar). */
+export interface DigiLockerDelivery {
+  readonly sessionId: string;
+  readonly outcome: Result<DigiLockerRecord, AdapterFailure>;
 }
 
 /** Whether a PAN exists and matches the name given. */
@@ -57,13 +68,19 @@ export interface FaceMatch {
  * and face match. No face search (decision 0197).
  */
 export interface KycAdapter {
-  /** Starts a DigiLocker consent hand-off for a member. */
+  /** Starts a DigiLocker consent hand-off for a member; a vendor that delivers the documents sends them to `deliveryUrl`. */
   startDigiLocker(input: {
     readonly memberId: MemberId;
     readonly returnUrl: string;
+    readonly deliveryUrl: string;
   }): Promise<Result<DigiLockerSession, AdapterFailure>>;
-  /** Pulls the consented record once the member is back. */
-  pullDigiLocker(input: { readonly sessionId: string }): Promise<Result<DigiLockerRecord, AdapterFailure>>;
+  /**
+   * Once the member is back: the consented record, or `waiting` while a vendor that delivers it to the webhook has not yet
+   * (the record then comes through `readDigiLockerDelivery`); a refusal when the session failed.
+   */
+  pullDigiLocker(input: { readonly sessionId: string }): Promise<Result<DigiLockerRecord | 'waiting', AdapterFailure>>;
+  /** Reads the vendor's webhook delivery of a session, where the vendor delivers; it calls nothing. */
+  readDigiLockerDelivery?(body: unknown): Result<DigiLockerDelivery, AdapterFailure>;
   /** Checks a PAN when DigiLocker has none. */
   verifyPan(input: {
     readonly pan: Pan;

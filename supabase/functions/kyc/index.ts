@@ -3,11 +3,13 @@
 // vendor keys fails closed (docs/decisions/0014). This function writes the member's kyc_record with
 // the service role; members can only read it, so nobody verifies themselves. Every vendor call first
 // passes begin_kyc_vendor_call: the kyc_signup kill switch, the member's consent, five paid calls a day.
+import type { AdapterFailure, DigiLockerRecord, FaceMatch } from '@rivr/adapters';
 import { panSchema } from '@rivr/contracts';
 import { kycIdentityKey } from '@rivr/domain/identity';
+import { digiLockerRecord } from './digilocker.ts';
 import { takeSignUpPhoto } from './photo.ts';
 import { takeSelfie } from './selfie.ts';
-import { CORS, currentRecord, failed, failureReply, field, giveBackCall, noteFailure, photoUrl, refusal, reply, rpc } from './server.ts';
+import { CORS, currentRecord, failed, failureReply, field, noteFailure, photoUrl, refusal, reply, rpc } from './server.ts';
 import { subjectFor, type Subject } from './subject.ts';
 
 // A selfie of at most 2 MB, in base64, and the rest of the body.
@@ -37,6 +39,9 @@ function returnUrlOf(appUrl: string): string | null {
 
 const returnUrl = returnUrlOf(Deno.env.get('PLAYER_APP_URL') ?? '');
 
+// Where a vendor that delivers DigiLocker's documents sends them (Zoop, decision 0676): kyc-digilocker, on this project.
+const deliveryUrl = `${Deno.env.get('SUPABASE_URL') ?? ''}/functions/v1/kyc-digilocker`;
+
 /** The DigiLocker hand-off, once the selfie is in: the gate passes, then the vendor is called. */
 async function start({ memberId, kyc }: Subject): Promise<Response> {
   if (returnUrl === null) return reply({ error: 'not_configured' }, 503);
@@ -44,47 +49,62 @@ async function start({ memberId, kyc }: Subject): Promise<Response> {
   const canStart = record?.status === 'started' || record?.status === 'needs_pan';
   if (!canStart || typeof record?.photo_path !== 'string') return reply({ error: 'The selfie comes first' }, 409);
   await rpc('begin_kyc_vendor_call', { p_member_id: memberId, p_is_paid: true }, null);
-  const started = await kyc.startDigiLocker({ memberId, returnUrl });
+  const started = await kyc.startDigiLocker({ memberId, returnUrl, deliveryUrl });
   if (!started.ok) return await failed(memberId, 'start', started.error);
-  await rpc('record_kyc_started', { p_member_id: memberId, p_session_id: started.value.sessionId }, null);
+  const { sessionId, deliveryKey } = started.value;
+  await rpc('record_kyc_started', { p_member_id: memberId, p_session_id: sessionId, p_delivery_key: deliveryKey }, null);
   return reply({ redirectUrl: started.value.redirectUrl });
 }
 
 /**
- * The member is back from DigiLocker: pull the record and match its photo against the selfie, or
- * move them to a PAN check. The member's face verifies them at once, whatever name they registered
- * (decision 0400); a face that is not theirs means someone else's Aadhaar: the check waits for staff.
+ * No record from DigiLocker. An outage, or Zoop refusing RIVR's account rather than this session (decision 0674), is the
+ * app's to ask again: the delivery may still come. A refusal of the session, or nothing coming, keeps why, and the member
+ * goes on to a PAN check; the check leaving its session forgets what was delivered for it.
+ */
+async function notCompleted(memberId: string, failure: AdapterFailure): Promise<Response> {
+  if (failure.code !== 'rejected' || failure.cause !== undefined) return await failureReply(memberId, 'complete', failure);
+  await noteFailure(memberId, 'complete', failure);
+  await rpc('record_kyc_digilocker_failed', { p_member_id: memberId }, null);
+  return reply({ status: 'needs_pan' });
+}
+
+/** DigiLocker's record kept with the face match's verdict; the status the check is left at. */
+async function recordDigiLocker(memberId: string, record: DigiLockerRecord, face: FaceMatch): Promise<unknown> {
+  const { name, dateOfBirth, maskedAadhaar, aadhaarReference, pan, address, vendorReference } = record;
+  return await rpc('record_kyc_digilocker', {
+    p_member_id: memberId, p_date_of_birth: dateOfBirth, p_masked_aadhaar: maskedAadhaar, p_aadhaar_reference: aadhaarReference,
+    p_pan: pan, p_address: address, p_vendor_reference: vendorReference,
+    p_face_matches: face.isMatch, p_face_match_score: Math.round(face.score),
+    // Duplicates by the document's name, date of birth and last four digits (decision 0197); with no date of birth, none,
+    // and the check waits for staff.
+    p_identity_key: dateOfBirth === null ? null : kycIdentityKey(name, dateOfBirth, maskedAadhaar),
+    // The Aadhaar's name becomes the member's once verified; the one they gave stays as what they are known as (#803).
+    p_name: name,
+  }, null);
+}
+
+/**
+ * The member is back from DigiLocker: take the record and match its photo against the selfie, or move them to a PAN
+ * check. Until Zoop's delivery comes the app is told to wait, and asks again. The member's face verifies them at once,
+ * whatever name they registered (decision 0400); a face that is not theirs means someone else's Aadhaar: the check waits
+ * for staff.
  */
 async function complete({ memberId, kyc }: Subject): Promise<Response> {
   const record = await currentRecord(memberId);
   const session = record?.digilocker_session_id;
   if (typeof session !== 'string' || typeof record?.photo_path !== 'string') return reply({ error: 'No DigiLocker hand-off to complete' }, 409);
   if (record.status !== 'started') return reply({ status: record.status });
-  // The pull and the face match are paid: they count against the five a day.
+  // Asking whether the record is in costs nothing; the face match is paid, and counts against the five a day.
+  await rpc('begin_kyc_vendor_call', { p_member_id: memberId, p_is_paid: false }, null);
+  const pulled = await digiLockerRecord(memberId, session, kyc);
+  if (!pulled.ok) return await notCompleted(memberId, pulled.error);
+  if (pulled.value === 'waiting') return reply({ status: 'waiting' });
   await rpc('begin_kyc_vendor_call', { p_member_id: memberId, p_is_paid: true }, null);
-  const pulled = await kyc.pullDigiLocker({ sessionId: session });
-  if (!pulled.ok && pulled.error.code === 'not_configured') return await failed(memberId, 'complete', pulled.error);
-  if (!pulled.ok) {
-    // DigiLocker not finished, or refused: why is kept, and the member goes on to a PAN check.
-    await noteFailure(memberId, 'complete', pulled.error);
-    await giveBackCall(memberId, pulled.error);
-    await rpc('record_kyc_digilocker_failed', { p_member_id: memberId }, null);
-    return reply({ status: 'needs_pan' });
-  }
   const face = await kyc.matchFace({ selfieUrl: await photoUrl(record.photo_path), referenceUrl: pulled.value.photoUrl });
-  // The pull before it went through and was paid for, so this request's call stands: else a resent request pulls for ever.
-  if (!face.ok) return await failureReply(memberId, 'complete', face.error);
-  const { name, dateOfBirth, maskedAadhaar, aadhaarReference, pan, address, vendorReference } = pulled.value;
-  const status = await rpc('record_kyc_digilocker', {
-    p_member_id: memberId, p_date_of_birth: dateOfBirth, p_masked_aadhaar: maskedAadhaar, p_aadhaar_reference: aadhaarReference,
-    p_pan: pan, p_address: address, p_vendor_reference: vendorReference,
-    p_face_matches: face.value.isMatch, p_face_match_score: Math.round(face.value.score),
-    // Duplicates by the document's name, date of birth and last four digits (decision 0197).
-    p_identity_key: kycIdentityKey(name, dateOfBirth, maskedAadhaar),
-    // The Aadhaar's name becomes the member's once verified; the one they gave stays as what they are known as (#803).
-    p_name: name,
-  }, null);
-  return reply({ status });
+  // The record stays delivered, so asking again matches the faces again without a new DigiLocker.
+  if (!face.ok) return await failed(memberId, 'complete', face.error);
+  // Recorded either way, the check leaves its session, and what was delivered for it goes (decision 0676).
+  return reply({ status: await recordDigiLocker(memberId, pulled.value, face.value) });
 }
 
 /**

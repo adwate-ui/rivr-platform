@@ -15,7 +15,7 @@ describe('createAdapters for the practice venue', () => {
     await adapters.smsOtp.sendOtp({ to: phone, code: '482913' });
 
     expect(liveSms.calls).toEqual([]);
-    expect((await adapters.kyc.startDigiLocker({ memberId, returnUrl: 'https://app.rivr.test/kyc' })).ok).toBe(true);
+    expect((await adapters.kyc.startDigiLocker({ memberId, returnUrl: 'https://app.rivr.test/kyc', deliveryUrl: 'https://db.rivr.test/functions/v1/kyc-digilocker' })).ok).toBe(true);
   });
 });
 

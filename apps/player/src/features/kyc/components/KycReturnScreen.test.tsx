@@ -9,19 +9,35 @@ afterEach(() => {
   cleanup();
   localStorage.clear();
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
-/** Back from DigiLocker, signed in, against an API whose check reads `record`, whose kyc function answers `pull`, and whose switch is `atTheClub`. */
-function renderReturn(record: unknown, pull: { status: number; body: unknown }, atTheClub = false) {
+interface Reply {
+  readonly status: number;
+  readonly body: unknown;
+}
+
+/**
+ * Back from DigiLocker, signed in, against an API whose check reads `record` (or what `record` gives once the kyc function
+ * has been asked so many times), whose kyc function answers `pull` (or each reply in turn, the last again), and whose
+ * switch is `atTheClub`.
+ */
+function renderReturn(record: unknown, pull: Reply | readonly Reply[], atTheClub = false) {
+  const replies: readonly Reply[] = 'status' in pull ? [pull] : pull;
+  let asked = 0;
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000800', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-11-03T00:00:00Z' },
   }));
   vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
     const url = String(input instanceof Request ? input.url : input);
-    if (url.includes('/functions/v1/kyc')) return Response.json(pull.body, { status: pull.status });
+    if (url.includes('/functions/v1/kyc')) {
+      const reply = replies[Math.min(asked, replies.length - 1)];
+      asked += 1;
+      return Response.json(reply?.body, { status: reply?.status ?? 500 });
+    }
     if (url.includes('/rpc/kyc_at_the_club')) return Response.json(atTheClub);
-    if (url.includes('/rest/v1/kyc_record')) return Response.json(record);
+    if (url.includes('/rest/v1/kyc_record')) return Response.json(typeof record === 'function' ? Reflect.apply(record, undefined, [asked]) : record);
     if (url.includes('/rest/v1/member')) return Response.json({ id: 'm1', full_name: 'Kabir Sethi', member_number: 41, tier: { name: 'Member' } });
     return Response.json([]);
   });
@@ -64,6 +80,24 @@ describe('Identity › Back from DigiLocker', () => {
   it('says checks are down, with Try again, when the pull fails on a check still to complete', async () => {
     renderReturn({ ...RECORD, status: 'started' }, { status: 503, body: { error: 'unavailable' } });
     expect(await screen.findByText('ID checks are down. Try again shortly.')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeDefined();
+  });
+
+  it('asks again while DigiLocker\'s documents are on their way, then shows where the check stands', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const recordAfter = (asked: number) => ({ ...RECORD, status: asked >= 2 ? 'verified' : 'started' });
+    renderReturn(recordAfter, [{ status: 200, body: { status: 'waiting' } }, { status: 200, body: { status: 'verified' } }]);
+    expect(await screen.findByText('Checking your documents')).toBeDefined();
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(await screen.findByRole('heading', { name: 'Verified' })).toBeDefined();
+  });
+
+  it('says the documents have not come, with Try again, after two minutes of asking', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderReturn({ ...RECORD, status: 'started' }, { status: 200, body: { status: 'waiting' } });
+    expect(await screen.findByText('Checking your documents')).toBeDefined();
+    for (let tick = 0; tick < 45; tick += 1) await vi.advanceTimersByTimeAsync(3000);
+    expect(await screen.findByText("DigiLocker hasn't sent your documents yet. Try again in a minute.")).toBeDefined();
     expect(screen.getByRole('button', { name: 'Try again' })).toBeDefined();
   });
 });

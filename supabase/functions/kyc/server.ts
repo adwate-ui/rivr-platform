@@ -28,7 +28,7 @@ export type KycStep = 'selfie' | 'start' | 'complete' | 'pan';
 const NOTE_WAIT_MS = 3000;
 
 /** A refusal's reason as kept: `Zoop <code>` when its code is plain words and digits, else only that it was refused. */
-function reasonOf(failure: AdapterFailure): string {
+export function reasonOf(failure: AdapterFailure): string {
   if (failure.code !== 'rejected') return failure.code;
   return /^Zoop [A-Za-z0-9_ .-]{1,80}$/.test(failure.reason) ? failure.reason : 'rejected';
 }

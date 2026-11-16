@@ -454,6 +454,10 @@ verify_jwt = false
 [functions.kyc-recheck]
 verify_jwt = false
 
+# Zoop delivers a member's DigiLocker documents here (#1023); the key Zoop gave for that session is the guard.
+[functions.kyc-digilocker]
+verify_jwt = false
+
 # A dealer tablet or TV pairs itself signed out, with the code staff read out (#41); the code is the guard.
 [functions.device-pair]
 verify_jwt = false

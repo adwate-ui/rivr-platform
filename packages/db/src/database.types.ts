@@ -2998,11 +2998,20 @@ isOneToOne: false
 "join_waitlist_at":
 { Args: { "p_idempotency_key": string,"p_table_id": string }; Returns: string
                            },
+"keep_kyc_digilocker_delivery":
+{ Args: { "p_address": string,"p_date_of_birth": string,"p_key": string,"p_masked_aadhaar": string,"p_name": string,"p_outcome": string,"p_pan": string,"p_photo": string,"p_refusal": string,"p_session_id": string,"p_vendor_reference": string }; Returns: string
+                           },
 "kyc_aadhaar_covers":
 { Args: { "p_venue_id": string }; Returns: boolean
                            },
 "kyc_at_the_club":
 { Args: { "p_venue_id"?: string }; Returns: boolean
+                           },
+"kyc_digilocker_delivery":
+{ Args: { "p_member_id": string }; Returns: Json
+                           },
+"kyc_digilocker_session":
+{ Args: { "p_key": string }; Returns: string
                            },
 "kyc_due_tonight":
 { Args: { "p_venue_id": string }; Returns: {
@@ -3075,6 +3084,9 @@ isOneToOne: false
                            },
 "mark_kot_sent":
 { Args: { "p_order_id": string }; Returns: undefined
+                           },
+"may_ask_kyc_digilocker_status":
+{ Args: { "p_member_id": string }; Returns: boolean
                            },
 "member_account_statuses":
 { Args: { "p_venue_id": string }; Returns: {
@@ -3408,7 +3420,7 @@ isOneToOne: false
 { Args: { "p_liveness_score": number,"p_member_id": string,"p_same_face_as": string }; Returns: string
                            },
 "record_kyc_started":
-{ Args: { "p_member_id": string,"p_session_id": string }; Returns: undefined
+{ Args: { "p_delivery_key"?: string,"p_member_id": string,"p_session_id": string }; Returns: undefined
                            },
 "record_promotion_simulation":
 { Args: { "p_simulation": Json,"p_terms": Json,"p_version_id": string }; Returns: undefined

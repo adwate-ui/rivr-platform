@@ -28,6 +28,12 @@ function toStatus(value: unknown): KycStatus | null {
   return STATUSES.find((status) => status === value) ?? null;
 }
 
+/** The complete step's answer: where the check stands, or `waiting` while DigiLocker's documents are on their way (decision 0676). */
+function completionOf(sent: Result<Record<string, unknown>, KycFailure>): Result<KycStatus | 'waiting', KycFailure> {
+  if (!sent.ok) return sent;
+  return ok(sent.value.status === 'waiting' ? 'waiting' : toStatus(sent.value.status) ?? 'started');
+}
+
 /** A photo as base64, for a KYC function's JSON body (kyc, kyc-in-person). */
 export async function toBase64(photo: Blob): Promise<string> {
   const bytes = new Uint8Array(await photo.arrayBuffer());
@@ -77,7 +83,7 @@ export function useKycAtTheClub() {
 /**
  * The member's identity check, through the kyc Edge Function: `sendSelfie` sends the selfie (a JPEG),
  * `start` gives the DigiLocker URL to send them to (the function fixes where DigiLocker sends them
- * back), `complete` pulls the record once they are back, `verifyPan` checks a PAN when DigiLocker
+ * back), `complete` takes the record once they are back (or says to wait for it), `verifyPan` checks a PAN when DigiLocker
  * failed or held none. Each resolves to a Result; a real venue without vendor keys gets `not_configured`.
  */
 export function useKycActions() {
@@ -114,7 +120,7 @@ export function useKycActions() {
       return started.ok ? ok(String(started.value.redirectUrl)) : started;
     },
   });
-  const complete = useMutation({ mutationFn: async () => statusOf('started')(await invoke({ action: 'complete' })) });
+  const complete = useMutation({ mutationFn: async () => completionOf(await invoke({ action: 'complete' })) });
   const verifyPan = useMutation({
     mutationFn: async (input: { pan: string; dateOfBirth?: string }) => statusOf('needs_pan')(await invoke({ action: 'pan', ...input })),
   });
