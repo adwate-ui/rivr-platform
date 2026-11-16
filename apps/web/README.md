@@ -11,6 +11,8 @@ pnpm dev --filter web
 
 It listens on this worktree's port `<block>45`. `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_PUBLISHABLE_KEY` default to the local stack.
 
+Errors in the pages' scripts (under `/_astro/`) reach Sentry where the build names `PUBLIC_SENTRY_DSN_WEB` (decision 0673), from `Document.astro`, scrubbed by `@rivr/error-reporting`; the server rendering reports nothing, and a preview of an unpublished page reports nothing. A build without it, every local build and test, sends nothing.
+
 Before the dev server and the build, `packages/ui/scripts/media.mjs` makes each still in `public/media` at the widths the blocks offer, as AVIF and WebP in `public/media/w/` (git ignores it).
 
 `pnpm --filter web capture:app` retakes `public/media/app-home.webp`, the app's picture on the front page: today's Home as a seeded member sees it, on a 390 by 844 phone at three times. Run it against the freshly seeded local stack with the player app served (`pnpm --filter player preview`).

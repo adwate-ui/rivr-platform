@@ -13,6 +13,10 @@
     "./worktree": {
       "types": "./worktree/index.d.ts",
       "default": "./worktree/index.js"
+    },
+    "./sentry": {
+      "types": "./sentry/index.d.ts",
+      "default": "./sentry/index.js"
     }
   },
   "scripts": {
@@ -21,6 +25,7 @@
   },
   "dependencies": {
     "@eslint/js": "^9.39.0",
+    "@sentry/vite-plugin": "11.11.0",
     "@testing-library/dom": "^10.4.2",
     "eslint-plugin-i18next": "^6.1.5",
     "eslint-plugin-react": "^7.37.5",

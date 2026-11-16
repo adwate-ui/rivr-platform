@@ -25,10 +25,15 @@ export interface CameraCaptureProps {
   phoneUrl?: string | undefined;
   /** Why the photo was refused, under it, between the picture and its buttons, so a phone shows it in view. */
   error?: string | undefined;
+  /** Told each time the camera does not start or a photo cannot be made, by kind only, for the app to report. */
+  onTrouble?: ((trouble: CameraCaptureTrouble) => void) | undefined;
 }
 
 /** Why the camera did not start: blocked by the person or the browser, no camera at all, only a computer's own where a back one is needed, or anything else. */
 export type CameraTrouble = 'blocked' | 'none' | 'noBack' | 'failed';
+
+/** What went wrong with the camera, by kind: why it did not start, or `photo`, a photo that could not be made. */
+export type CameraCaptureTrouble = CameraTrouble | 'photo';
 
 const NO_BACK_CAMERA = 'NoBackCameraError';
 
@@ -244,11 +249,13 @@ interface LiveProps {
   isLive: boolean;
   isMirrored: boolean;
   hasFaceGuide: boolean;
+  /** The last photo could not be made: said under the picture until the next try. */
+  hasFailed: boolean;
   onTake: () => void;
 }
 
 /** The live picture in its frame, the oval over it for a face, and Take photo once the picture is there. */
-function Live({ video, isLive, isMirrored, hasFaceGuide, onTake }: LiveProps) {
+function Live({ video, isLive, isMirrored, hasFaceGuide, hasFailed, onTake }: LiveProps) {
   return (
     <Stack gap={4}>
       <Frame>
@@ -260,6 +267,7 @@ function Live({ video, isLive, isMirrored, hasFaceGuide, onTake }: LiveProps) {
           </div>
         )}
       </Frame>
+      {hasFailed ? <ErrorMessage>{t('ui.camera.photoFailed')}</ErrorMessage> : null}
       <Stack gap={3}>
         {hasFaceGuide ? <Text tone="muted" align="center">{t('ui.camera.faceGuide')}</Text> : null}
         <Button variant="primary" fullWidth isDisabled={!isLive} onClick={onTake}>{t('ui.camera.take')}</Button>
@@ -268,30 +276,45 @@ function Live({ video, isLive, isMirrored, hasFaceGuide, onTake }: LiveProps) {
   );
 }
 
-/** The photo taken, with a count of photos so each gets its own review; one photo is made at a time, however fast the taps. */
-function usePhoto(isMirrored: boolean) {
+/**
+ * The photo taken, with a count of photos so each gets its own review; one photo is made at a time, however fast the taps.
+ * Whether the last one could not be made, until the next try, and `onFailed` each time one cannot.
+ */
+function usePhoto(isMirrored: boolean, onFailed: () => void) {
   const [taken, setTaken] = useState<{ photo: Blob; count: number } | null>(null);
+  const [hasFailed, setHasFailed] = useState(false);
   const isTaking = useRef(false);
   const take = async (video: HTMLVideoElement | null) => {
     if (isTaking.current || video === null) return;
     isTaking.current = true;
+    setHasFailed(false);
     const photo = await photoOf(video, isMirrored).catch(() => null);
     isTaking.current = false;
+    setHasFailed(photo === null);
     if (photo) setTaken((last) => ({ photo, count: (last?.count ?? 0) + 1 }));
+    else onFailed();
   };
-  return { taken, take, clear: () => setTaken(null) };
+  return { taken, hasFailed, take, clear: () => setTaken(null) };
 }
 
 /**
  * A photo taken there and then with the device's camera, on a phone or a computer (K-07): the live picture in a 3:4
  * frame, with an oval for a face; Take photo; then the photo to keep or retake. Never a file from the device: a KYC photo
  * is of the person in front of the camera. When the camera is blocked or missing it says what to do, and with no camera
- * offers a QR code to carry on with a phone.
+ * offers a QR code to carry on with a phone. A photo that cannot be made says so; `onTrouble` tells the app of it, and of a
+ * camera that did not start.
  */
-export function CameraCapture({ facing = 'user', hasFaceGuide = false, onPhoto, isSending = false, phoneUrl, error }: CameraCaptureProps) {
+export function CameraCapture({ facing = 'user', hasFaceGuide = false, onPhoto, isSending = false, phoneUrl, error, onTrouble }: CameraCaptureProps) {
   const isMirrored = facing === 'user';
-  const shot = usePhoto(isMirrored);
+  const tell = useRef(onTrouble);
+  useEffect(() => {
+    tell.current = onTrouble;
+  });
+  const shot = usePhoto(isMirrored, () => tell.current?.('photo'));
   const camera = useCamera(facing, shot.taken === null);
+  useEffect(() => {
+    if (camera.trouble) tell.current?.(camera.trouble);
+  }, [camera.trouble]);
   const retake = () => {
     shot.clear();
     camera.retry();
@@ -299,7 +322,8 @@ export function CameraCapture({ facing = 'user', hasFaceGuide = false, onPhoto, 
   const { taken } = shot;
   const view = taken ? <Review key={taken.count} photo={taken.photo} isSending={isSending} error={error} onUse={() => onPhoto(taken.photo)} onRetake={retake} />
     : camera.trouble ? <Trouble trouble={camera.trouble} phoneUrl={phoneUrl} onRetry={camera.retry} />
-    : <Live video={camera.video} isLive={camera.isLive} isMirrored={isMirrored} hasFaceGuide={hasFaceGuide} onTake={() => void shot.take(camera.video.current)} />;
+    : <Live video={camera.video} isLive={camera.isLive} isMirrored={isMirrored} hasFaceGuide={hasFaceGuide} hasFailed={shot.hasFailed}
+      onTake={() => void shot.take(camera.video.current)} />;
   // A phone's width at most, so a photo on the console is not a picture the height of the screen.
   return <div className="mx-auto w-full max-w-phone">{view}</div>;
 }

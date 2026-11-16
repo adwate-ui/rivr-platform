@@ -31,14 +31,6 @@ export function createAppRouter(history?: RouterHistory) {
   return createRouter({ routeTree, defaultErrorComponent: ScreenFailed, defaultOnCatch: reportError, ...(history ? { history } : {}) });
 }
 
-/**
- * The pattern of the route a router shows, such as `/sessions/$sessionId`: never the address, which holds ids. Error
- * reports are labelled with it as it is, unscrubbed, so it must stay a pattern.
- */
-export function routePatternOf(shown: ReturnType<typeof createAppRouter>): string {
-  return shown.state.matches.at(-1)?.fullPath ?? '';
-}
-
 export const router = createAppRouter();
 
 declare module '@tanstack/react-router' {

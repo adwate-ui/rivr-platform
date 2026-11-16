@@ -179,6 +179,8 @@ export const ui = {
     none: 'No camera here. Carry on with a phone.',
     noBack: 'This device has no back camera. Carry on with a phone.',
     failed: 'Camera did not start. Try again.',
+    /** The camera's picture could not be made into a photo, as on a phone short of memory; gone at the next try. */
+    photoFailed: 'Photo not taken. Try again.',
     tryAgain: 'Try again',
     /** Beside a QR code that opens the same step on a phone. */
     onPhone: 'Scan with your phone to carry on there.',

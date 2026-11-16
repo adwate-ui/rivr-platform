@@ -32,6 +32,7 @@ import { devicesRoute } from './routes/devices.tsx';
 import { doorRoute } from './routes/door.tsx';
 import { contentRoute } from './routes/content.tsx';
 import { requestsRoute } from './routes/requests.tsx';
+import { reportError } from './features/error-reporting/index.ts';
 
 const routeTree = rootRoute.addChildren([
   signInRoute,
@@ -63,9 +64,9 @@ export function ScreenFailed({ reset }: ErrorComponentProps) {
   return <Screen title={t('common.screenFailed')} status="error" onRetry={reset} />;
 }
 
-/** The console app's router; tests pass a memory history. */
+/** The console app's router; tests pass a memory history. A screen that fails to draw is reported (#1004) as well as shown. */
 export function createAppRouter(history?: RouterHistory) {
-  return createRouter({ routeTree, defaultErrorComponent: ScreenFailed, ...(history ? { history } : {}) });
+  return createRouter({ routeTree, defaultErrorComponent: ScreenFailed, defaultOnCatch: reportError, ...(history ? { history } : {}) });
 }
 
 export const router = createAppRouter();

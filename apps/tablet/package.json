@@ -17,6 +17,7 @@
     "@rivr/contracts": "workspace:*",
     "@rivr/db": "workspace:*",
     "@rivr/domain": "workspace:*",
+    "@rivr/error-reporting": "workspace:*",
     "@rivr/i18n": "workspace:*",
     "@rivr/offline": "workspace:*",
     "@rivr/tokens": "workspace:*",

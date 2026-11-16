@@ -52,6 +52,8 @@ export interface MyTvScreen {
   readonly venueId: string;
   readonly name: string;
   readonly boards: readonly TvBoardTurn[];
+  /** Whether the TV is in the practice venue, which reports no error (decision 0673); anything but a plain no reads as yes. */
+  readonly isPractice: boolean;
 }
 
 /** One of a venue's TVs, as staff who manage TVs see it. */
@@ -188,7 +190,10 @@ export function useMyTvScreen() {
         await client.auth.signOut({ scope: 'local' });
         return null;
       }
-      return { deviceId: row.device_id, venueId: row.venue_id, name: row.name, boards: toTvBoards(row.boards, row.seconds) };
+      return {
+        deviceId: row.device_id, venueId: row.venue_id, name: row.name, boards: toTvBoards(row.boards, row.seconds),
+        isPractice: row.is_practice !== false,
+      };
     },
   });
 }

@@ -13,7 +13,8 @@ interface Props {
 const { title, description, structuredData } = Astro.props;
 // The page's own address without the visitor's codes, for search engines and link previews (F3-30); a draft's preview
 // page has none, as it is not the page.
-const isPreview = Astro.url.pathname.startsWith('/preview/');
+// By the route Astro matched, which it reads from the decoded path, so no spelling of the address dodges it.
+const isPreview = Astro.routePattern === '/preview/[token]';
 const canonical = new URL(Astro.url.pathname, Astro.url.origin).href;
 const previewImage = new URL('/og-image.png', Astro.url.origin).href;
 ---
@@ -37,8 +38,27 @@ const previewImage = new URL('/og-image.png', Astro.url.origin).href;
     <meta name="twitter:card" content="summary_large_image" />
     {structuredData ? <script type="application/ld+json" set:html={structuredData} /> : null}
   </head>
-  <body>
+  <body data-route={Astro.routePattern} data-reports={isPreview ? 'no' : 'yes'}>
     <slot />
+    <script>
+      // Error reporting (#1004, decision 0673), first so it listens before the script below runs. A build that names no
+      // address keeps nothing, loads nothing and sends nothing. The public pages are a club's alone; a preview of a page
+      // not yet published may be the practice venue's, which never reaches a vendor, so the server marks it to report
+      // nothing. Each report is labelled with the page's route pattern (`/[slug]`), never its address, which a mistyped
+      // link can fill with anything.
+      import { createErrorReporting } from '@rivr/error-reporting';
+
+      const reporting = createErrorReporting({
+        dsn: import.meta.env.PUBLIC_SENTRY_DSN_WEB,
+        app: 'web',
+        version: import.meta.env.PUBLIC_APP_VERSION,
+        environment: import.meta.env.PUBLIC_SENTRY_ENVIRONMENT,
+        scriptsAt: '/_astro/',
+      });
+      reporting.setPracticeVenue(document.body.dataset.reports === 'yes' ? false : null);
+      const route = document.body.dataset.route ?? '';
+      reporting.start(() => route);
+    </script>
     <script>
       // The cookie banner (#616): open while this browser holds no choice. A choice is kept here, never sent anywhere,
       // and loads what it allows: the embedded map only once maps are allowed, and Google Tag Manager, with Google

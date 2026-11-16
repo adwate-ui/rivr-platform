@@ -1,1 +1,1 @@
-export { CameraCapture, type CameraCaptureProps, type CameraFacing } from './CameraCapture.tsx';
+export { CameraCapture, type CameraCaptureProps, type CameraCaptureTrouble, type CameraFacing } from './CameraCapture.tsx';

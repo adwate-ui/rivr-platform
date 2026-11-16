@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ScreenFailed } from './router.tsx';
+import { reportError } from './features/error-reporting/index.ts';
+import { createAppRouter, ScreenFailed } from './router.tsx';
 
 afterEach(cleanup);
 
@@ -11,5 +12,9 @@ describe('the router', () => {
     expect(screen.getByRole('heading', { name: 'Screen unavailable' })).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
     expect(reset).toHaveBeenCalledOnce();
+  });
+
+  it('reports a screen that failed to draw, as well as showing it', () => {
+    expect(createAppRouter().options.defaultOnCatch).toBe(reportError);
   });
 });

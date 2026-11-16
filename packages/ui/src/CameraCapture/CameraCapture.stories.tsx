@@ -78,6 +78,27 @@ async function takePhoto({ canvasElement }: { canvasElement: HTMLElement }) {
 /** The photo just taken, to keep or retake. */
 export const Review: Story = { decorators: [camera('still')], play: takePhoto };
 
+/** A photo the browser could not make, as on a phone short of memory: the canvas gives no JPEG. Put back after the story. */
+function photoNotMade() {
+  const { toBlob } = HTMLCanvasElement.prototype;
+  HTMLCanvasElement.prototype.toBlob = (done) => done(null);
+  return () => {
+    HTMLCanvasElement.prototype.toBlob = toBlob;
+  };
+}
+
+/** The photo could not be made: said under the picture, the camera still live to try again. */
+export const PhotoFailed: Story = {
+  decorators: [camera('still')],
+  beforeEach: photoNotMade,
+  play: async ({ canvasElement }) => {
+    const take = await within(canvasElement).findByRole('button', { name: 'Take photo' });
+    await waitFor(() => expect(take).toBeEnabled());
+    await userEvent.click(take);
+    await expect(await within(canvasElement).findByRole('alert')).toHaveTextContent('Photo not taken. Try again.');
+  },
+};
+
 /** Refused, under the photo, with a long reason. */
 export const LongText: Story = {
   args: { error: 'Photo unclear. Retake it in good light, facing the camera at eye level, without a cap or dark glasses.' },

@@ -10,6 +10,7 @@ Shared tooling configuration: the ESLint rules every file is checked against, th
 | `@rivr/config/tsconfig/base.json` | TypeScript settings for non-React packages: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`. |
 | `@rivr/config/tsconfig/react.json` | The base plus DOM types and JSX. |
 | `@rivr/config/vitest` | `vitestConfig({ environment })`, the Vitest defaults. |
+| `@rivr/config/sentry` | `sentrySourceMaps(project, { mapsIn })` and `uploadsSourceMaps`: an app's hidden source maps uploaded to its Sentry project and deleted from the folder browsers are served, only in a build with `SENTRY_AUTH_TOKEN` (decisions 0672, 0673). It also turns off the Sentry CLI's telemetry, which Turborepo would not pass through from a workflow. |
 
 The ESLint rules, all errors (from `docs/engineering/stack.md`):
 

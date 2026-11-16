@@ -1,4 +1,4 @@
-import type { KycDocumentKind } from '@rivr/db';
+import { useReportFailure, type KycDocumentKind } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { AADHAAR_FRONT_COVERS, Button, CameraCapture, DocumentCamera, ErrorMessage, Heading, Inline, KycPhoto, Stack, Text } from '@rivr/ui';
 import type { DeskPhoto, DeskPhotoKind, Step } from './deskSteps.ts';
@@ -27,9 +27,10 @@ interface DeskCameraProps {
 
 /**
  * The camera for one photo, on its step until the photo is kept; the step gives the way back. Never a file: the card is in
- * the hand of the person taking it.
+ * the hand of the person taking it. What goes wrong with the member's camera or photo is reported by its kind (#1004).
  */
 export function DeskCamera({ kind, place, total, reason, problem, hasCovers, onPhoto }: DeskCameraProps) {
+  const reportFailure = useReportFailure();
   const phoneUrl = window.location.href;
   const isCovered = kind === 'aadhaar_front' && hasCovers;
   return (
@@ -37,7 +38,9 @@ export function DeskCamera({ kind, place, total, reason, problem, hasCovers, onP
       <Text variant="secondary" tone="muted">{t('console.kycInPerson.photoStep', { place, total })}</Text>
       {problem === undefined ? null : <ErrorMessage>{problem}</ErrorMessage>}
       {reason === undefined ? null : <Text variant="secondary" tone="muted">{t('console.kycInPerson.sentBackReason', { reason })}</Text>}
-      {kind === 'face' ? <CameraCapture facing="environment" phoneUrl={phoneUrl} onPhoto={onPhoto} /> : (
+      {kind === 'face' ? (
+        <CameraCapture facing="environment" phoneUrl={phoneUrl} onPhoto={onPhoto} onTrouble={(trouble) => reportFailure(`camera:${trouble}`)} />
+      ) : (
         <DocumentCamera
           key={kind}
           label={t(`console.kycInPerson.document.${kind}`)}

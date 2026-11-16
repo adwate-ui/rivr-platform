@@ -16,6 +16,19 @@ function cameraThatStarts() {
   vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
 }
 
+/**
+ * jsdom has no canvas to draw on: a stand-in that gives none the first time, as a phone short of memory, and then one whose
+ * photo is still being made.
+ */
+function photoFailsOnce() {
+  let tries = 0;
+  Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+    configurable: true,
+    value: () => (tries++ === 0 ? null : { translate: vi.fn(), scale: vi.fn(), drawImage: vi.fn() }),
+  });
+  Object.defineProperty(HTMLCanvasElement.prototype, 'toBlob', { configurable: true, value: () => undefined });
+}
+
 describe('Identity › Camera', () => {
   it('on an iPhone whose browser blocked the camera, says where to allow it', async () => {
     vi.stubGlobal('isSecureContext', true);
@@ -57,14 +70,18 @@ describe('Identity › Camera', () => {
     await waitFor(() => expect(onTrouble.mock.calls).toEqual([['none']]));
   });
 
-  it('tells the app when a photo could not be made, as the screen itself shows nothing then', async () => {
+  it('says when a photo could not be made, until the next try, and tells the app', async () => {
     cameraThatStarts();
-    // jsdom has no canvas to draw on, as a phone short of memory has none.
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+    photoFailsOnce();
     const onTrouble = vi.fn();
     renderIn(<SelfieCamera onPhoto={() => undefined} onBack={() => undefined} onTrouble={onTrouble} />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Take photo' }));
-    await waitFor(() => expect(onTrouble.mock.calls).toEqual([['photo']]));
-    expect(screen.getByRole('button', { name: 'Take photo' })).toBeDefined();
+    const take = await screen.findByRole('button', { name: 'Take photo' });
+    await waitFor(() => expect(take).toBeEnabled());
+    fireEvent.click(take);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Photo not taken. Try again.');
+    expect(onTrouble.mock.calls).toEqual([['photo']]);
+    fireEvent.click(take);
+    await waitFor(() => expect(screen.queryByRole('alert')).toBeNull());
+    expect(onTrouble.mock.calls).toEqual([['photo']]);
   });
 });

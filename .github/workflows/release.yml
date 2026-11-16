@@ -189,11 +189,17 @@ jobs:
       PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.PROD_SUPABASE_PUBLISHABLE_KEY }}
       PUBLIC_PLAYER_URL: ${{ vars.PROD_PLAYER_URL }}
       PUBLIC_GTM_ID: ${{ vars.GTM_ID }}
-      # Error reporting (decision 0672): the production key of the player's Sentry project, a variable of the production
-      # environment; the release tag is the version.
+      # Error reporting (decisions 0672, 0673): each app's production key of its own Sentry project, variables of the
+      # production environment; the release tag is the version; the website takes Astro's PUBLIC_ names.
       VITE_SENTRY_DSN_PLAYER: ${{ vars.SENTRY_DSN_PLAYER }}
+      VITE_SENTRY_DSN_CONSOLE: ${{ vars.SENTRY_DSN_CONSOLE }}
+      VITE_SENTRY_DSN_TABLET: ${{ vars.SENTRY_DSN_TABLET }}
+      VITE_SENTRY_DSN_DISPLAY: ${{ vars.SENTRY_DSN_DISPLAY }}
       VITE_SENTRY_ENVIRONMENT: production
       VITE_APP_VERSION: ${{ github.ref_name }}
+      PUBLIC_SENTRY_DSN_WEB: ${{ vars.SENTRY_DSN_WEB }}
+      PUBLIC_SENTRY_ENVIRONMENT: production
+      PUBLIC_APP_VERSION: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: ./.github/actions/setup
