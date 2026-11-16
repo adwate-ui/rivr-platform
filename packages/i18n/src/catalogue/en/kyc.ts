@@ -17,7 +17,8 @@ export const playerKyc = {
   selfieStep: 'Selfie',
   selfieStepDetail: 'A photo of your face',
   digilockerStep: 'DigiLocker',
-  digilockerStepDetail: 'Aadhaar and OTP',
+  /** DigiLocker's own consent page leaves both documents unticked (16 Nov 2026). */
+  digilockerStepDetail: 'Aadhaar and OTP, then tick Aadhaar and PAN',
   verifiedStep: 'Verified',
   kept: 'Kept: your photo, date of birth, address, PAN and the last 4 digits of your Aadhaar.',
   /** Identity checked at the club (decision 0502): the selfie in the app, the documents at the desk. */
@@ -33,6 +34,8 @@ export const playerKyc = {
   notLive: 'Photo unclear. Retake it in good light.',
   start: 'Continue to DigiLocker',
   checking: 'Checking your documents',
+  /** Back from DigiLocker, and two minutes on its documents have still not reached RIVR (decision 0676). */
+  notArrived: "DigiLocker hasn't sent your documents yet. Try again in a minute.",
   verifiedTitle: 'Verified',
   /** `{name}` is the member's first name. */
   welcome: 'Welcome to RIVR, {name}.',

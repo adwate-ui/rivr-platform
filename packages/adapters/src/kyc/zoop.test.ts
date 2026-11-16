@@ -1,4 +1,4 @@
-import { memberIdSchema, panSchema } from '@rivr/contracts';
+import { panSchema } from '@rivr/contracts';
 import { describe, expect, it } from 'vitest';
 import { createZoopKyc } from './zoop.ts';
 
@@ -162,7 +162,6 @@ describe('Zoop KYC: the face match', () => {
 });
 
 describe('Zoop KYC: what fails, and how', () => {
-  const memberId = memberIdSchema.parse('3f2b8c4e-9d1a-4b6f-8e2c-7a5d9f0b1c3e');
 
   it.each([
     ['a refused key', { status: 401, body: { response_code: 401, response_message: 'api key is invalid or disabled' } }, { code: 'rejected', reason: 'Zoop 401', cause: 'account' }],
@@ -188,12 +187,5 @@ describe('Zoop KYC: what fails, and how', () => {
       fetch: async () => { throw new TypeError('network down'); },
     });
     expect(await kyc.verifyPan({ pan, name: 'Rahul Gupta', dateOfBirth: '1995-02-08' })).toEqual({ ok: false, error: { code: 'unavailable' } });
-  });
-
-  it('keeps DigiLocker closed, asking Zoop nothing, until Zoop adds it to the account', async () => {
-    const { kyc, sent } = zoop({});
-    expect(await kyc.startDigiLocker({ memberId, returnUrl: 'https://app.rivr.test/kyc/return' })).toEqual({ ok: false, error: { code: 'not_configured' } });
-    expect(await kyc.pullDigiLocker({ sessionId: 'any' })).toEqual({ ok: false, error: { code: 'not_configured' } });
-    expect(sent).toHaveLength(0);
   });
 });

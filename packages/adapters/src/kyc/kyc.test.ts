@@ -4,18 +4,24 @@ import { createFakeKyc, createUnconfiguredKyc } from './index.ts';
 
 const memberId = memberIdSchema.parse('3f2b8c4e-9d1a-4b6f-8e2c-7a5d9f0b1c3e');
 const returnUrl = 'https://app.rivr.test/kyc/return';
+const deliveryUrl = 'https://db.rivr.test/functions/v1/kyc-digilocker';
+
+/** A pull's record; the fake never waits. */
+const recordOf = (pulled: Awaited<ReturnType<ReturnType<typeof createFakeKyc>['pullDigiLocker']>>) =>
+  (pulled.ok && pulled.value !== 'waiting' ? pulled.value : null);
 
 describe('fake KYC', () => {
   it('runs the DigiLocker hand-off, straight back to the app, and returns only a masked Aadhaar', async () => {
     const kyc = createFakeKyc();
-    const session = await kyc.startDigiLocker({ memberId, returnUrl });
+    const session = await kyc.startDigiLocker({ memberId, returnUrl, deliveryUrl });
     if (!session.ok) throw new Error('expected a session');
 
     // A new fake, as a later Edge Function invocation would have, still knows the session.
     const pulled = await createFakeKyc().pullDigiLocker({ sessionId: session.value.sessionId });
 
     expect(session.value.redirectUrl).toBe(returnUrl);
-    expect(pulled.ok && pulled.value.maskedAadhaar).toMatch(/^XXXX XXXX \d{4}$/);
+    expect(session.value.deliveryKey).toBeNull();
+    expect(recordOf(pulled)?.maskedAadhaar).toMatch(/^XXXX XXXX \d{4}$/);
     expect(kyc.calls.map((call) => call.method)).toEqual(['startDigiLocker']);
   });
 
@@ -24,11 +30,11 @@ describe('fake KYC', () => {
     const pulled = await Promise.all(
       [memberId, other].map(async (id) => {
         const kyc = createFakeKyc();
-        const session = await kyc.startDigiLocker({ memberId: id, returnUrl });
-        return session.ok ? kyc.pullDigiLocker({ sessionId: session.value.sessionId }) : session;
+        const session = await kyc.startDigiLocker({ memberId: id, returnUrl, deliveryUrl });
+        return session.ok ? kyc.pullDigiLocker({ sessionId: session.value.sessionId }) : null;
       }),
     );
-    const [first, second] = pulled.map((result) => (result.ok ? result.value : null));
+    const [first, second] = pulled.map((result) => (result === null ? null : recordOf(result)));
 
     expect(first?.pan).toMatch(/^ABCP[A-Z][0-9]{4}[A-Z]$/);
     expect(first?.pan).not.toBe(second?.pan);
@@ -69,8 +75,8 @@ describe('fake KYC', () => {
     const kyc = createFakeKyc();
     kyc.failNext({ code: 'unavailable' });
 
-    expect(await kyc.startDigiLocker({ memberId, returnUrl })).toEqual({ ok: false, error: { code: 'unavailable' } });
-    expect((await kyc.startDigiLocker({ memberId, returnUrl })).ok).toBe(true);
+    expect(await kyc.startDigiLocker({ memberId, returnUrl, deliveryUrl })).toEqual({ ok: false, error: { code: 'unavailable' } });
+    expect((await kyc.startDigiLocker({ memberId, returnUrl, deliveryUrl })).ok).toBe(true);
   });
 });
 
@@ -79,8 +85,9 @@ describe('unconfigured KYC', () => {
     const kyc = createUnconfiguredKyc();
     const notConfigured = { ok: false, error: { code: 'not_configured' } };
 
-    expect(await kyc.startDigiLocker({ memberId, returnUrl })).toEqual(notConfigured);
+    expect(await kyc.startDigiLocker({ memberId, returnUrl, deliveryUrl })).toEqual(notConfigured);
     expect(await kyc.pullDigiLocker({ sessionId: 'any' })).toEqual(notConfigured);
+    expect(kyc.readDigiLockerDelivery({})).toEqual(notConfigured);
     expect(await kyc.verifyPan({ pan: panSchema.parse('ABCPE1234F'), name: 'A', dateOfBirth: '1990-01-01' })).toEqual(
       notConfigured,
     );

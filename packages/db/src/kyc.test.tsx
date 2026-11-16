@@ -145,6 +145,12 @@ describe('useKycActions', () => {
     expect(await act(() => result.current.actions.complete.mutateAsync())).toEqual({ ok: true, value: 'needs_pan' });
   });
 
+  it('says to wait while DigiLocker\'s documents are on their way', async () => {
+    const { result } = renderKyc({ kyc: { status: 200, body: { status: 'waiting' } } });
+
+    expect(await act(() => result.current.actions.complete.mutateAsync())).toEqual({ ok: true, value: 'waiting' });
+  });
+
   it('says not_configured when a real venue has no KYC vendor yet', async () => {
     const { result } = renderKyc({ kyc: { status: 503, body: { error: 'not_configured' } } });
 

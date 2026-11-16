@@ -12,6 +12,7 @@ export function createUnconfiguredKyc(): Required<KycAdapter> {
   return {
     startDigiLocker: async () => NOT_CONFIGURED,
     pullDigiLocker: async () => NOT_CONFIGURED,
+    readDigiLockerDelivery: () => NOT_CONFIGURED,
     verifyPan: async () => NOT_CONFIGURED,
     checkLiveness: async () => NOT_CONFIGURED,
     matchFace: async () => NOT_CONFIGURED,
