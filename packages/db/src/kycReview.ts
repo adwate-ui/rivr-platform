@@ -195,7 +195,17 @@ export interface KycCandidate {
   readonly clubSelfiePath: string | null;
   /** The document photos a super admin sent back, to be taken again (decision 0573). */
   readonly retakes: readonly KycRetake[];
+  /**
+   * Why the check waits for the desk when the app's check (Zoop) did not verify the member (decision 0678); null for a check
+   * the club meant for the desk. `face_unconfirmed`: the face was not matched to the Aadhaar photo, and the desk is warned.
+   */
+  readonly deskReason: KycDeskReason | null;
 }
+
+const DESK_REASONS = ['face_unconfirmed', 'no_date_of_birth', 'digilocker_failed', 'not_started'] as const;
+
+/** Why a check the app did not verify waits for the desk. */
+export type KycDeskReason = (typeof DESK_REASONS)[number];
 
 /** A document photo a super admin sent back, and why, in their words. */
 export interface KycRetake {
@@ -211,6 +221,7 @@ interface CandidateRow {
   app_selfie_path: string | null;
   retake_kinds: string[];
   retake_reasons: string[];
+  desk_reason: string | null;
 }
 
 const candidateOf = (row: CandidateRow): KycCandidate => ({
@@ -218,6 +229,7 @@ const candidateOf = (row: CandidateRow): KycCandidate => ({
   status: row.status === null ? null : oneOf(CANDIDATE_STATUSES, row.status),
   clubSelfiePath: row.app_selfie_path,
   retakes: row.retake_kinds.map((kind, at) => ({ kind: oneOf(KYC_DOCUMENT_KINDS, kind), reason: row.retake_reasons[at] ?? '' })),
+  deskReason: typeof row.desk_reason === 'string' ? oneOf(DESK_REASONS, row.desk_reason) : null,
 });
 
 /** The members found by name, or by the last digits of their number, for a check in person (two characters at least). */

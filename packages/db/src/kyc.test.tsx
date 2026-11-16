@@ -135,7 +135,7 @@ describe('useKycActions', () => {
 
     const started = await act(() => result.current.actions.start.mutateAsync());
 
-    expect(started).toEqual({ ok: true, value: 'https://digilocker.example/consent' });
+    expect(started).toEqual({ ok: true, value: { redirectUrl: 'https://digilocker.example/consent' } });
     expect(calls.find((call) => call.url.includes('/functions/v1/kyc'))?.body).toEqual({ action: 'start' });
   });
 
@@ -143,6 +143,13 @@ describe('useKycActions', () => {
     const { result } = renderKyc({ kyc: { status: 200, body: { status: 'needs_pan' } } });
 
     expect(await act(() => result.current.actions.complete.mutateAsync())).toEqual({ ok: true, value: 'needs_pan' });
+  });
+
+  it('says the check went to the desk when Zoop could not start DigiLocker, or did not verify the member', async () => {
+    const { result } = renderKyc({ kyc: { status: 200, body: { status: 'at_club' } } });
+
+    expect(await act(() => result.current.actions.start.mutateAsync())).toEqual({ ok: true, value: 'at_club' });
+    expect(await act(() => result.current.actions.complete.mutateAsync())).toEqual({ ok: true, value: 'at_club' });
   });
 
   it('says to wait while DigiLocker\'s documents are on their way', async () => {

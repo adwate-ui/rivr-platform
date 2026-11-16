@@ -1,7 +1,7 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
 import { Text } from '@rivr/ui';
 import { createMemoryHistory, createRootRoute, createRoute, createRouter, RouterProvider } from '@tanstack/react-router';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { KycStartScreen } from './KycStartScreen.tsx';
 
@@ -91,9 +91,18 @@ describe('Identity › At the club (decision 0502)', () => {
     expect(screen.queryByRole('heading', { name: 'Registered' })).toBeNull();
   });
 
-  it('offers the app\'s own check again once the switch is off, even to a member let in by their selfie', async () => {
+  it('tells a member waiting for the desk with the switch off they are registered, and offers the app\'s check too', async () => {
+    // Zoop did not verify them (decision 0678), or an earlier spell at the club let them in.
     renderIdentity(KABIR, { record: { ...STARTED, at_club_from: '2026-11-05T09:00:00Z' } });
+    expect(await screen.findByRole('heading', { name: 'Registered' })).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Verify in the app instead' }));
     expect(await screen.findByRole('button', { name: 'Take a selfie' })).toBeDefined();
     expect(screen.getByText('DigiLocker')).toBeDefined();
+  });
+
+  it('offers no other check than the desk while the club checks identity there', async () => {
+    renderIdentity(KABIR, { atTheClub: true, record: { ...STARTED, at_club_from: '2026-11-05T09:00:00Z' } });
+    expect(await screen.findByRole('heading', { name: 'Registered' })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Verify in the app instead' })).toBeNull();
   });
 });

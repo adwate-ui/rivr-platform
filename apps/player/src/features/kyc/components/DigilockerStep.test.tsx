@@ -68,6 +68,12 @@ describe('Identity › Resume', () => {
     await vi.waitFor(() => expect(button.getAttribute('aria-busy')).toBeNull());
   });
 
+  it('says the app\'s check is down when Zoop cannot start it for a member already waiting for the desk', async () => {
+    renderStep({ status: 200, body: { status: 'at_club' } });
+    fireEvent.click(await continueButton());
+    expect((await screen.findByRole('alert')).textContent).toMatch(/Try again shortly\.$/);
+  });
+
   it('says why DigiLocker did not open, as an error with what to do', async () => {
     renderStep({ status: 502, body: { error: 'unavailable' } });
     fireEvent.click(await continueButton());

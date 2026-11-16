@@ -52,25 +52,51 @@ test.describe('KYC', () => {
     await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible();
   });
 
-  test('a real venue without a KYC vendor fails closed', async ({ page }) => {
+  test('a real venue without a KYC vendor keeps the selfie and sends the check to the desk (decision 0678)', async ({ page }) => {
+    // From no check at all, so a run again starts where the first did.
+    if (!isRemoteTarget()) sql(`delete from public.kyc_record k using public.member m where m.id = k.member_id and m.phone = '+919000000218'`);
     await signInToPlayer(page, '9000000218', '/kyc');
     // Until the check is done the member sees only its steps (#632): Home sends them back to it.
     await page.goto(appUrl('player'));
     await expect(page).toHaveURL(/\/kyc$/);
     await expect(page.getByRole('navigation', { name: 'Main' })).toHaveCount(0);
-    // Staging's real venue has Zoop's test keys, so its selfie is taken, not refused: closed is proved locally.
+    // Staging's real venue has Zoop's test keys: a venue with none is proved locally.
     if (isRemoteTarget()) return;
+    // No vendor checks the selfie's liveness, so it is kept; DigiLocker cannot start, and the desk checks them, as at the club.
     await takeSelfie(page);
-    await expect(page.getByRole('alert').getByText('ID checks are not open yet.')).toBeVisible();
+    await page.getByRole('button', { name: 'Continue to DigiLocker' }).click();
+    await expect(page.getByRole('heading', { name: 'Registered', level: 1 })).toBeVisible();
+    expect(sql(`select k.status || ' ' || (k.at_club_from is not null)::text || ' ' || coalesce(k.desk_reason, '-')
+                from public.kyc_record k join public.member m on m.id = k.member_id where m.phone = '+919000000218'`)).toBe('started true not_started');
     // A call that never reached a vendor is given back: it uses up none of the member's five a day (the owner, 9 Nov).
     expect(sql(`select coalesce((select k.vendor_calls from public.kyc_record k join public.member m on m.id = k.member_id
                  where m.phone = '+919000000218'), 0)`)).toBe('0');
+    // Let in, as a member registered at the club is.
+    await page.getByRole('button', { name: 'See the tables' }).click();
+    await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
   });
 
-  test('a member DigiLocker failed for can try it again from the PAN step; one it matched without a PAN is not offered it', async ({ browser, page, request }) => {
+  test('a member whose DigiLocker the vendor refuses is sent to the desk by the kyc function (decision 0678)', async ({ page }) => {
+    test.skip(isRemoteTarget(), 'sets a hand-off with the database, so the local stack only');
+    // Rajat Singh, at the practice venue, takes his selfie; his hand-off is then one the fake vendor never started, so its
+    // pull refuses it, as Zoop refuses a session that failed.
+    sql(`delete from public.kyc_record k using public.member m where m.id = k.member_id and m.phone = '+919000000302'`);
+    await signInToPlayer(page, '9000000302', '/kyc');
+    await takeSelfie(page);
+    await expect(page.getByRole('button', { name: 'Continue to DigiLocker' })).toBeVisible();
+    sql(`update public.kyc_record k set digilocker_session_id = 'not-the-fake-session' from public.member m
+         where m.id = k.member_id and m.phone = '+919000000302'`);
+    await page.goto(`${appUrl('player')}/kyc/return`);
+    await expect(page.getByRole('heading', { name: 'Registered', level: 1 })).toBeVisible();
+    expect(sql(`select k.status || ' ' || (k.at_club_from is not null)::text || ' ' || coalesce(k.desk_reason, '-')
+                from public.kyc_record k join public.member m on m.id = k.member_id where m.phone = '+919000000302'`)).toBe('started true digilocker_failed');
+  });
+
+  test('a member DigiLocker failed for waits for the desk, as at the club; one held for a PAN before keeps that step', async ({ browser, page, request }) => {
     test.skip(isRemoteTarget(), 'fails a member\'s DigiLocker with the service role, so the local stack only');
     // Shreya Mittal set off for DigiLocker (seed: started) and it failed, as the kyc function records it with the service
-    // role: a PAN check with no date of birth. Once failed, failing again changes nothing.
+    // role: her check waits for the desk (decision 0678), and the app may still offer its own check. Failing again changes
+    // nothing.
     const { url } = localSupabaseEnv();
     const service = serviceRoleKey();
     const failed = await request.post(`${url}/rest/v1/rpc/record_kyc_digilocker_failed`, {
@@ -79,14 +105,14 @@ test.describe('KYC', () => {
     });
     expect(failed.ok(), await failed.text()).toBe(true);
     await signInToPlayer(page, '9000000403', '/kyc');
-    await expect(page.getByRole('heading', { name: 'PAN', level: 1 })).toBeVisible();
-    await page.getByRole('button', { name: 'Try DigiLocker again' }).click();
-    // The seed keeps no selfie for her, so the kyc function refuses the start and the step says so. A member who reached
-    // the PAN step in the app took the selfie first.
-    await expect(page.getByText('ID checks are down. Try again shortly.')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'PAN', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Registered', level: 1 })).toBeVisible();
+    await expect(page.getByText('Bring your Aadhaar and PAN on your first visit. The desk checks them before you play.')).toBeVisible();
+    await page.getByRole('button', { name: 'Verify in the app instead' }).click();
+    // The seed keeps no selfie for her, so the app's own check starts at the selfie.
+    await expect(page.getByRole('button', { name: 'Take a selfie' })).toBeVisible();
 
-    // Shivam Kalra's DigiLocker matched but held no PAN (seed: needs_pan with his date of birth): the PAN alone verifies him.
+    // Shivam Kalra's DigiLocker matched but held no PAN (seed: needs_pan with his date of birth), from before decision 0678:
+    // the PAN alone verifies him.
     const matched = await browser.newPage();
     await signInToPlayer(matched, '9000000442', '/kyc');
     await expect(matched.getByRole('heading', { name: 'PAN', level: 1 })).toBeVisible();

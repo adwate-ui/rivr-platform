@@ -84,7 +84,7 @@ select is(pg_temp.held('00000000-0000-4000-8000-0000000005f1'), 0, 'a recorded c
 select pg_temp.selfie_in('00000000-0000-4000-8000-0000000005f2');
 select public.record_kyc_started('00000000-0000-4000-8000-0000000005f2', 'zoop-session-k', 'key-for-session-k-0000');
 select public.record_kyc_digilocker_failed('00000000-0000-4000-8000-0000000005f2');
-select is(pg_temp.held('00000000-0000-4000-8000-0000000005f2'), 0, 'so does one sent to its PAN step');
+select is(pg_temp.held('00000000-0000-4000-8000-0000000005f2'), 0, 'so does one sent to the desk (decision 0678)');
 select is(public.keep_kyc_digilocker_delivery('zoop-session-k', 'key-for-session-k-0000', 'refused', null, null, null, null, null, null,
             null, 'Zoop CSD'), 'unknown', 'and a delivery after it is not kept');
 update public.kyc_record set status = 'started' where member_id = '00000000-0000-4000-8000-0000000005f2';

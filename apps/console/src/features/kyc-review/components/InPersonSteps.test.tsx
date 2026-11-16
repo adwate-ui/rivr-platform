@@ -20,6 +20,22 @@ const expectOpen = async (position: string, name: string) => {
 };
 const isOff = (name: string) => screen.getByRole('button', { name }).hasAttribute('disabled');
 
+describe('a check the app could not verify (decision 0678)', () => {
+  it('warns the desk, from the first step, when the app\'s face check did not match the member to their Aadhaar photo', async () => {
+    renderSection(verified, { ...NAINA, status: 'started', desk_reason: 'face_unconfirmed' });
+    await chooseNaina();
+    await expectOpen('Step 1 of 5: Member', 'Member');
+    expect(screen.getByRole('alert').textContent).toMatch(/did not match this member to their Aadhaar photo/);
+  });
+
+  it('says nothing more when only DigiLocker failed', async () => {
+    renderSection(verified, { ...NAINA, status: 'started', desk_reason: 'digilocker_failed' });
+    await chooseNaina();
+    await expectOpen('Step 1 of 5: Member', 'Member');
+    expect(screen.queryByText(/did not match this member/)).toBeNull();
+  });
+});
+
 describe('the check in person as five steps (redesign RD-21)', () => {
   it('goes Member, Face, PAN card, Aadhaar front, Details under the progress bar, "Use photo" moving on, each step taking the focus', async () => {
     renderSection(verified);

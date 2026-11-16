@@ -81,8 +81,9 @@ describe('fake KYC', () => {
 });
 
 describe('unconfigured KYC', () => {
-  it('fails closed on every check, so staff verify by hand', async () => {
+  it('passes no vendor check, so the desk checks in person; it checks no liveness, so the selfie is kept', async () => {
     const kyc = createUnconfiguredKyc();
+    expect('checkLiveness' in kyc).toBe(false);
     const notConfigured = { ok: false, error: { code: 'not_configured' } };
 
     expect(await kyc.startDigiLocker({ memberId, returnUrl, deliveryUrl })).toEqual(notConfigured);
@@ -91,7 +92,6 @@ describe('unconfigured KYC', () => {
     expect(await kyc.verifyPan({ pan: panSchema.parse('ABCPE1234F'), name: 'A', dateOfBirth: '1990-01-01' })).toEqual(
       notConfigured,
     );
-    expect(await kyc.checkLiveness({ selfieUrl: 'x' })).toEqual(notConfigured);
     expect(await kyc.matchFace({ selfieUrl: 'x', referenceUrl: 'y' })).toEqual(notConfigured);
   });
 });
