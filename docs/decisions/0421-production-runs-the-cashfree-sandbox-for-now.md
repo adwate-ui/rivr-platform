@@ -7,3 +7,5 @@ Date: 3 Nov 2026. The owner, on go-live day, with Cashfree's live account still 
 - **Accepted by the owner,** told the above before choosing. Each release prints a warning while the variable is set.
 - **Switching to live.** Set the live `CASHFREE_CLIENT_ID`, `CASHFREE_CLIENT_SECRET` and `CASHFREE_PUBLIC_KEY` on rivr-prod, set `CASHFREE_ENVIRONMENT=production` (or delete the variable and release), then delete the variable. Members verified on the sandbox keep their status; whether to recheck them is the owner's call.
 - **The security review's check 4** (`docs/security/2026-10-review.md`) expects the digest of `production`; it reads `sandbox` until the switch.
+
+**Superseded by 0671** (#1022, 16 Nov): Cashfree is gone, and every release sets `ZOOP_ENVIRONMENT=live` on production instead; the variable `PROD_CASHFREE_ENVIRONMENT` is deleted.
