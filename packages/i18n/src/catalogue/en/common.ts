@@ -46,8 +46,8 @@ export const common = {
     phoneLabel: 'Mobile number',
     countryCode: '+91',
     sendCode: 'Send code',
-    /** Under Send code: where to look (decision 0025, WhatsApp first). */
-    channels: 'Code by WhatsApp or SMS.',
+    /** Under Send code: where to look (VerifyNow, decision 0679). */
+    channels: 'Code by SMS.',
     codeTitle: 'Sign-in code',
     codeLabel: 'Code sent to {phone}',
     /** After Send by SMS (#181). */
@@ -55,7 +55,7 @@ export const common = {
     submit: 'Verify',
     changeNumber: 'Change number',
     /**
-     * A second code goes by SMS: the first may not have reached WhatsApp (#181). Worded as the player app's (owner, 15 Nov).
+     * A new code, by SMS like the first (decision 0679). Worded as the player app's (owner, 15 Nov).
      * `{time}` counts down, 0:24.
      */
     resend: 'Resend code',

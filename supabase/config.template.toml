@@ -421,6 +421,11 @@ verify_jwt = false
 [functions.sign-in-alert]
 verify_jwt = false
 
+# Checks a typed sign-in code, signed out, while VerifyNow sends the codes (decision 0679). Five
+# tries per code sent, 30 checks in five minutes per address, and only the apps' own origins.
+[functions.sign-in-verify]
+verify_jwt = false
+
 # The WhatsApp outbox consumer: pg_cron calls it with the scheduler's secret, not a person's token (#62).
 [functions.whatsapp]
 verify_jwt = false

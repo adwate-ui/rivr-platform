@@ -13,8 +13,10 @@ afterEach(() => {
 const PHONE = indianMobileSchema.parse('9000000901');
 
 function renderCode() {
-  // Auth refuses every code as expired or wrong.
-  vi.stubGlobal('fetch', async () => Response.json({ code: 403, error_code: 'otp_expired', msg: 'Token has expired or is invalid' }, { status: 403 }));
+  // sign-in-verify finds no VerifyNow code sent (decision 0679), and Auth refuses every code as expired or wrong.
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL) => (String(input).includes('/functions/v1/sign-in-verify')
+    ? Response.json({ token: null })
+    : Response.json({ code: 403, error_code: 'otp_expired', msg: 'Token has expired or is invalid' }, { status: 403 })));
   const onBack = vi.fn();
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
@@ -37,10 +39,10 @@ describe('Sign in › Code', () => {
     }
   });
 
-  it('says the code went by WhatsApp to the number, with six cells and the resend counting down', () => {
+  it('says the code went by SMS to the number, with six cells and the resend counting down', () => {
     renderCode();
     expect(screen.getByRole('heading', { name: 'Enter the code' })).toBeDefined();
-    expect(screen.getByText('Sent on WhatsApp to +91 90000 00901')).toBeDefined();
+    expect(screen.getByText('Sent by SMS to +91 90000 00901')).toBeDefined();
     const field = screen.getByRole('textbox', { name: '6-digit code' });
     expect(field.getAttribute('autocomplete')).toBe('one-time-code');
     expect(field.getAttribute('inputmode')).toBe('numeric');

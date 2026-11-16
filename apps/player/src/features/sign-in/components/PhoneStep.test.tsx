@@ -19,10 +19,10 @@ function renderPhone() {
 }
 
 describe('Sign in › Phone', () => {
-  it('says the code comes on WhatsApp, under the number', () => {
+  it('says the code comes by SMS, under the number', () => {
     renderPhone();
     expect(screen.getByRole('textbox', { name: 'Mobile number' }).getAttribute('aria-describedby')).toBeTruthy();
-    expect(screen.getByText('Code comes on WhatsApp.')).toBeDefined();
+    expect(screen.getByText('Code comes by SMS.')).toBeDefined();
   });
 
   it('says so when the phone has no connection, and holds Send code back (F-175)', () => {

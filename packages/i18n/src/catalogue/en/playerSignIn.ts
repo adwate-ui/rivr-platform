@@ -4,8 +4,8 @@ export const playerSignIn = {
   phoneLabel: 'Mobile number',
   phonePlaceholder: '98765 43210',
   phoneInvalid: 'Enter a 10-digit mobile number.',
-  /** Under the number, before Send code: where the code goes (decision 0297). */
-  phoneHint: 'Code comes on WhatsApp.',
+  /** Under the number, before Send code: where the code goes (VerifyNow, decision 0679). */
+  phoneHint: 'Code comes by SMS.',
   sendCode: 'Send code',
   /** Opened with no connection (F-175): over the step, with Send code held back. */
   offline: 'No connection. Send the code once you are back online.',
@@ -17,8 +17,8 @@ export const playerSignIn = {
   privacy: 'Privacy notice',
   back: 'Back',
   codeTitle: 'Enter the code',
-  /** Codes go by WhatsApp through the Evolution bridge (decision 0297), so the line says so, not SMS. */
-  codeSent: 'Sent on WhatsApp to {phone}',
+  /** Codes go by SMS through Message Central's VerifyNow (decision 0679), so the line says so. */
+  codeSent: 'Sent by SMS to {phone}',
   codeLabel: '6-digit code',
   /** Auth gives no count of tries left, so the prototype's "2 tries left." is not said. */
   codeRejected: 'Wrong or expired code. Check it, or resend.',

@@ -45,11 +45,11 @@ test.describe('Sign in', { tag: '@staging' }, () => {
     await expect(page.getByRole('heading', { name: 'Enter the code' })).toHaveCount(0);
   });
 
-  test('Sign in › Code (auto-fill): the code sent by WhatsApp goes on by itself and lands on Tonight', async ({ page }) => {
+  test('Sign in › Code (auto-fill): the code sent goes on by itself and lands on Tonight', async ({ page }) => {
     test.skip(isRemoteTarget(), 'signs in with a number staging does not list as a test number, so the local stack only');
     await requestCode(page, '90000 00281');
     await expect(page.getByRole('heading', { name: 'Enter the code' })).toBeVisible();
-    await expect(page.getByText('Sent on WhatsApp to +91 90000 00281')).toBeVisible();
+    await expect(page.getByText('Sent by SMS to +91 90000 00281')).toBeVisible();
     // Six digits in, the code goes on by itself (S-01).
     await page.getByRole('textbox', { name: '6-digit code' }).fill(CODE);
     await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible();

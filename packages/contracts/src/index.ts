@@ -89,7 +89,7 @@ export {
   isReasonInWords, KYC_DOCUMENT_KINDS, kycDocumentRetakeSchema, kycInPersonSchema, kycReviewSchema, type KycDocumentKind, type KycDocumentRetake, type KycInPerson,
 } from './kycReview.ts';
 export { erasedKycFilesSchema, type ErasedKycFilesRequest } from './memberErasure.ts';
-export { PHONE_CHANGE, sendSmsHookSchema, signInCodeSchema, type SignInCodeToSend } from './auth-hooks.ts';
+export { PHONE_CHANGE, sendSmsHookSchema, signInCheckSchema, signInCodeSchema, type SignInCodeToSend } from './auth-hooks.ts';
 export {
   FEATURES,
   HIDDEN_FEATURES,

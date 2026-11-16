@@ -21,7 +21,7 @@ function CodeField({ control, error, onComplete }: { control: Control<z.input<ty
 }
 
 /**
- * The second step (decision 0320): Back, "Enter the code", where it went (by WhatsApp, decision 0297), six cells that go on
+ * The second step (decision 0320): Back, "Enter the code", where it went (by SMS, decision 0679), six cells that go on
  * by themselves once full, Verify, and a new code once the minute is up. The phone's offer to fill the code from a message
  * still works (`autocomplete="one-time-code"`); WebOTP is not used, as it reads only SMS. With no connection it says so
  * and holds the code and a new one back (F-175).
