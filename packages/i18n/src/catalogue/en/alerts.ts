@@ -19,7 +19,7 @@ export const alerts = {
     'bonus.daily_cap': 'a staff member tried to add Bonus past their daily limit',
     'kyc.recheck_failed': 'a member\'s in-person check failed its PAN recheck',
     'kyc.recheck_not_checked': 'a member\'s in-person check could not be rechecked: Zoop refused it three times',
-    'kyc.recheck_paused': 'PAN rechecks are paused for six hours: Zoop refused the account (keys, a product or the wallet)',
+    'kyc.recheck_paused': 'PAN rechecks are paused for six hours: Zoop refused the account (keys, a product or the wallet), or refused several checks alike',
     'floor.seats_left_open': 'seats were still open after the night ended: end them on the floor',
     'eod.opening_variance': 'a cage shift opened with a variance',
     'eod.variance': 'a cage shift closed with a variance',

@@ -28,3 +28,48 @@ export function panRecheckFailure(failure: AdapterFailure): PanRecheckFailure {
   if (failure.cause === 'account') return 'pause';
   return failure.cause === undefined ? 'refused' : 'later';
 }
+
+/** One check's refusal, held until a run ends. */
+export interface HeldRefusal {
+  readonly reason: string;
+  readonly memberId: string;
+}
+
+/**
+ * A run's refusals, held until it ends (#1033): one reason that turns down three different checks is the vendor's own
+ * trouble (a reply RIVR cannot read, a code new to it) more than theirs, so the run pauses every re-check instead and none
+ * of that reason's refusals is counted. A reason released after it tripped (it paused the re-checks last time) has the
+ * checks that tripped it counted, as their own, so those behind them are asked; it stays armed, and three more turned down
+ * alike in the run trip it again, which then pauses outright. The rest are counted when the run ends (decision 0674).
+ */
+export function createRefusalBreaker(limit = 3) {
+  const held = new Map<string, string[]>();
+  const released = new Set<string>();
+  const counted: HeldRefusal[] = [];
+  return {
+    /** Holds one check's refusal; true once its reason has turned down `limit` different checks since it was last released. */
+    hold(reason: string, memberId: string): boolean {
+      const checks = held.get(reason) ?? [];
+      if (!checks.includes(memberId)) checks.push(memberId);
+      held.set(reason, checks);
+      return checks.length >= limit;
+    },
+    /** Counts the checks that tripped a reason, which did not pause the re-checks, and re-arms it for the run. */
+    release(reason: string): void {
+      counted.push(...(held.get(reason) ?? []).map((memberId) => ({ reason, memberId })));
+      held.set(reason, []);
+      released.add(reason);
+    },
+    /** Whether a reason tripped and was released earlier in the run: tripping again, it pauses outright. */
+    isReleased(reason: string): boolean {
+      return released.has(reason);
+    },
+    /** The refusals to count: those released, and those whose reason turned down fewer than `limit` checks. */
+    toCount(): readonly HeldRefusal[] {
+      const stillHeld = [...held]
+        .filter(([, checks]) => checks.length < limit)
+        .flatMap(([reason, checks]) => checks.map((memberId) => ({ reason, memberId })));
+      return [...counted, ...stillHeld];
+    },
+  };
+}

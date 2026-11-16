@@ -78,7 +78,8 @@ test.describe('High hand payout', () => {
     // Her app is open on Home: it says so at once.
     await expect(member.getByText('High hand: Straight flush, Nine high. 10,000 Bonus added.')).toBeVisible({ timeout: 20_000 });
     await shoot(member, 'player-home-toast-390');
-    expect(await balanceOf(member)).toBe(before + 10_000);
+    // The grant made her Bonus stale, but the tab shows the figure it read before until its fresh read lands: read until then.
+    await expect.poll(() => balanceOf(member), { timeout: 10_000 }).toBe(before + 10_000);
     const newest = member.getByText('High hand: Straight flush, Nine high', { exact: true }).first();
     await expect(newest).toBeVisible();
     // Its row: the label with its day beneath, and the Bonus beside them.

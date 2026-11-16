@@ -23,11 +23,11 @@ insert into public.member (id, venue_id, full_name, phone) values
   ('00000000-0000-4000-8000-0000000004da', '00000000-0000-4000-8000-000000000001', 'Uma Iyer', '+919000098810');
 
 
--- A check whose selfie is in and whose DigiLocker hand-off has begun.
+-- A check whose selfie is in, checked for liveness by the vendor (decision 0675), and whose DigiLocker hand-off has begun.
 create function pg_temp.started(p_member uuid) returns void language sql as $$
-  insert into public.kyc_record (venue_id, member_id, status, method, digilocker_session_id, photo_path)
+  insert into public.kyc_record (venue_id, member_id, status, method, digilocker_session_id, photo_path, liveness_score)
   values ('00000000-0000-4000-8000-000000000001', p_member, 'started', 'digilocker', 'session-' || p_member,
-          '00000000-0000-4000-8000-000000000001/' || p_member || '/selfie.jpg');
+          '00000000-0000-4000-8000-000000000001/' || p_member || '/selfie.jpg', 95);
 $$;
 
 -- The owner's case: DigiLocker's Aadhaar in a name not spelled as Asha registered it, no PAN, the face matched (75).
