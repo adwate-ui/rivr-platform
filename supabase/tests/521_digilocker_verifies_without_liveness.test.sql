@@ -16,7 +16,8 @@ insert into public.member (id, venue_id, full_name, phone) values
   ('00000000-0000-4000-8000-0000000005e1', '00000000-0000-4000-8000-000000000001', 'Neha Joshi', '+919000051801'),
   ('00000000-0000-4000-8000-0000000005e2', '00000000-0000-4000-8000-000000000001', 'Arjun Bhat', '+919000051802'),
   ('00000000-0000-4000-8000-0000000005e3', '00000000-0000-4000-8000-000000000001', 'Leela Das', '+919000051803'),
-  ('00000000-0000-4000-8000-0000000005e4', '00000000-0000-4000-8000-000000000001', 'Kavya Iyer', '+919000051804');
+  ('00000000-0000-4000-8000-0000000005e4', '00000000-0000-4000-8000-000000000001', 'Kavya Iyer', '+919000051804'),
+  ('00000000-0000-4000-8000-0000000005e5', '00000000-0000-4000-8000-000000000001', 'Rohan Mehta', '+919000051805');
 
 -- A check whose selfie is in, with the liveness score its vendor gave (none from Zoop), and its hand-off begun.
 create function pg_temp.started(p_member uuid, p_liveness smallint) returns void language sql as $$
@@ -52,7 +53,19 @@ select is(public.record_kyc_digilocker('00000000-0000-4000-8000-0000000005e4', n
             'Gurugram', 'zoop-dl-4', true, 100, null, 'Kavya Iyer'), 'needs_review',
   'a match with no date of birth still waits');
 
+-- Rohan's DigiLocker check waits with all it needs and no liveness score: held while decision 0675 stood, or for a clash
+-- since gone. Nothing names liveness as its reason, on the queue or on the console's page of it.
+insert into public.kyc_record (venue_id, member_id, status, method, digilocker_session_id, photo_path, liveness_score,
+                               date_of_birth, masked_aadhaar, pan, face_match_score)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000005e5', 'needs_review', 'digilocker', 'session-5e5',
+        '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000005e5/selfie.jpg', null, '1992-05-05', 'XXXX XXXX 5185',
+        'ROHPM5185M', 100);
+
 select pg_temp.as_user('00000000-0000-4000-8000-000000000103');
+select is((select waiting_because from public.kyc_review_queue('00000000-0000-4000-8000-000000000001')
+           where member_id = '00000000-0000-4000-8000-0000000005e5'), null, 'a DigiLocker check waiting with no liveness score is not said to wait for it');
+select is((select waiting_because from public.kyc_review_page('00000000-0000-4000-8000-000000000001')
+           where member_id = '00000000-0000-4000-8000-0000000005e5'), null, 'nor on the console''s page, which would not know the reason');
 select is((select waiting_because from public.kyc_review_queue('00000000-0000-4000-8000-000000000001')
            where member_id = '00000000-0000-4000-8000-0000000005e3'), 'nothing_kept', 'the reviewer is told the face is not the selfie''s');
 select is((select waiting_because from public.kyc_review_queue('00000000-0000-4000-8000-000000000001')
