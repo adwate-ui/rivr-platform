@@ -18,6 +18,7 @@ const WAIT_COPY: Readonly<Record<KycWaitReason, MessageKey>> = {
   recheck_pan_invalid: 'console.kycReview.waitRecheckPanInvalid',
   recheck_name_differs: 'console.kycReview.waitRecheckNameDiffers',
   recheck_date_of_birth_differs: 'console.kycReview.waitRecheckDateOfBirthDiffers',
+  no_liveness: 'console.kycReview.waitNoLiveness',
 };
 
 const METHOD_COPY: Readonly<Record<KycCheck['method'], MessageKey>> = {

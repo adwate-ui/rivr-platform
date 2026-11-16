@@ -16,9 +16,10 @@ insert into public.kyc_record (venue_id, member_id, status, method, date_of_birt
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000004c1', 'verified', 'digilocker', '1995-02-02',
         'XXXX XXXX 5647', private.kyc_reference('rahul sharma|1995-02-02|5647'),
         '00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-0000000004c1/selfie.jpg', now());
--- Two new checks, selfies taken: the same person registered as `Rahul Sharma.`, and Rahul Verma.
-insert into public.kyc_record (venue_id, member_id, status, method, photo_path)
-select '00000000-0000-4000-8000-000000000001', m, 'started', 'digilocker', '00000000-0000-4000-8000-000000000001/' || m || '/selfie.jpg'
+-- Two new checks, selfies taken and checked for liveness by the vendor (decision 0675): the same person registered as
+-- `Rahul Sharma.`, and Rahul Verma.
+insert into public.kyc_record (venue_id, member_id, status, method, photo_path, liveness_score)
+select '00000000-0000-4000-8000-000000000001', m, 'started', 'digilocker', '00000000-0000-4000-8000-000000000001/' || m || '/selfie.jpg', 95
 from unnest(array['00000000-0000-4000-8000-0000000004c2', '00000000-0000-4000-8000-0000000004c3']::uuid[]) m;
 
 select is(public.record_kyc_digilocker('00000000-0000-4000-8000-0000000004c2', '1995-02-02', 'XXXX XXXX 5647', null, 'ABCPV1234D',

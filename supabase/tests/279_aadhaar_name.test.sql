@@ -11,10 +11,11 @@ insert into public.member (id, venue_id, full_name, phone) values
   ('00000000-0000-4000-8000-0000000005a3', '00000000-0000-4000-8000-000000000001', 'Ira', '+919000097703'),
   ('00000000-0000-4000-8000-0000000005a4', '00000000-0000-4000-8000-000000000001', 'Kunal Rao', '+919000097704');
 
+-- A check whose selfie the vendor checked for liveness (decision 0675), with its DigiLocker hand-off begun.
 create function pg_temp.started(p_member uuid) returns void language sql as $$
-  insert into public.kyc_record (venue_id, member_id, status, method, digilocker_session_id, photo_path)
+  insert into public.kyc_record (venue_id, member_id, status, method, digilocker_session_id, photo_path, liveness_score)
   values ('00000000-0000-4000-8000-000000000001', p_member, 'started', 'digilocker', 'session-' || p_member,
-          '00000000-0000-4000-8000-000000000001/' || p_member || '/selfie.jpg');
+          '00000000-0000-4000-8000-000000000001/' || p_member || '/selfie.jpg', 95);
 $$;
 create function pg_temp.names(p_member uuid) returns text language sql as $$
   select row(full_name, known_as)::text from public.member where id = p_member;
