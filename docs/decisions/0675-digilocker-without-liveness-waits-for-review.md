@@ -1,5 +1,7 @@
 # 0675 A DigiLocker match with no liveness check waits for a reviewer
 
+**Superseded by decision 0677 (16 Nov 2026):** the owner had ruled there is no liveness check; a DigiLocker match verifies at once.
+
 Date: 16 Nov 2026. Question #1024, unanswered: this is its safest reading (CLAUDE.md: identity, safest reading, continue). Amends decision 0400 ("verified at once") for selfies no vendor checked for liveness. Decision 0671 is why there is none: Zoop has no liveness RIVR uses (the owner, 15 Nov: keep the in-app selfie, no Zoop page).
 
 - **The gap.** Without liveness, someone who can open another person's DigiLocker can take the "selfie" of that person's photo, and the face match passes. Nothing else stops it.

@@ -31,7 +31,6 @@ export const kycReview = {
   waitRecheckPanInvalid: 'The vendor does not know this PAN. Check the card again.',
   waitRecheckNameDiffers: 'The vendor has this PAN in another name. Check the card again.',
   waitRecheckDateOfBirthDiffers: 'The vendor has another date of birth for this PAN. Check the originals.',
-  waitNoLiveness: 'No liveness check on the selfie. Approve only after seeing the member in person.',
   /** `{date}` and `{time}` are when the check began to wait. */
   since: 'In the queue since {date}, {time}',
   vendorReference: 'Vendor reference',
