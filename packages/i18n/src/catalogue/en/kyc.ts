@@ -33,6 +33,11 @@ export const playerKyc = {
   /** The eyebrow of Tonight's card. */
   deskCheck: 'ID check',
   takeSelfie: 'Take a selfie',
+  /** The camera refused inside Instagram's or Facebook's own browser (#1050), under "Open RIVR in Safari". */
+  cameraInAppBrowser: {
+    instagram: "Instagram's browser can't use your camera. Take your selfie there.",
+    facebook: "Facebook's browser can't use your camera. Take your selfie there.",
+  },
   notLive: 'Photo unclear. Retake it in good light.',
   start: 'Continue to DigiLocker',
   checking: 'Checking your documents',
