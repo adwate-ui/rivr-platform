@@ -21,7 +21,8 @@ describe('Members (console v3)', () => {
     expect(await screen.findByText('3 Nov 2026 · Table 1, Table 3', undefined, { timeout: 5000 })).toBeDefined();
     expect(screen.getByText('5 h')).toBeDefined();
     expect(screen.getByText('Call time met')).toBeDefined();
-    expect(screen.getByText('Call time not met · Left early')).toBeDefined();
+    // Why they last left a table (#1060).
+    expect(screen.getByText('Call time not met · Left early · Left: Busted, Call time met')).toBeDefined();
   });
 
   it('writes the record\u2019s status on one line, without saying Member twice (F-039)', async () => {

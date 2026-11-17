@@ -9,9 +9,9 @@ export const playerAlerts = {
   offlineTitle: 'No connection',
   offlineGate: 'Open RIVR again once you are online.',
   retry: 'Try again',
-  /** Seated, in the call time's last 15 minutes. */
+  /** Seated, in the call time's last 15 minutes, with Set call time (#1059). */
   callEnding: 'Call time ends in {minutes} min',
-  addTime: 'Add time',
+  setCallTime: 'Set call time',
   /** A new version of the app is waiting (#1053); Refresh takes it. */
   newVersion: 'A new version of RIVR is ready.',
   refresh: 'Refresh',

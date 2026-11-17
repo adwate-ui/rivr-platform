@@ -6,10 +6,12 @@ import { useState } from 'react';
 /** Lines shown at first, and how many more each Show earlier adds. */
 const PAGE = 20;
 
-/** Whether the call time owed was met, and whether they left early, in words; empty when neither applies. */
+/** Whether the call time owed was met, whether they left early, and why they left each table (#1060), in words; empty when none applies. */
 function flagsOf(visit: MemberVisit): string {
   const callTime = visit.callTimeMet === null ? [] : [t(visit.callTimeMet ? 'console.members.visitHistory.callTimeMet' : 'console.members.visitHistory.callTimeOwed')];
-  return [...callTime, ...(visit.leftEarly ? [t('console.members.visitHistory.leftEarly')] : [])].join(' · ');
+  const reasons = visit.leaveReasons.map((reason) => t(`common.leaveReasons.${reason}`)).join(', ');
+  const why = reasons === '' ? [] : [t('console.members.visitHistory.leftBecause', { reasons })];
+  return [...callTime, ...(visit.leftEarly ? [t('console.members.visitHistory.leftEarly')] : []), ...why].join(' · ');
 }
 
 function VisitLine({ visit, isLast }: { visit: MemberVisit; isLast: boolean }) {
@@ -23,7 +25,7 @@ function VisitLine({ visit, isLast }: { visit: MemberVisit; isLast: boolean }) {
   );
 }
 
-/** Each visit on the record (F-017), newest first: its day, tables, time played, the call time owed and whether they left early. */
+/** Each visit on the record (F-017), newest first: its day, tables, time played, the call time owed, whether they left early, and why they left. */
 export function MemberVisits({ venueId, memberId }: { venueId: string; memberId: string }) {
   const [count, setCount] = useState(PAGE);
   const visits = useMemberVisits(venueId, memberId, count);

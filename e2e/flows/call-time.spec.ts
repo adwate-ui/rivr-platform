@@ -1,9 +1,10 @@
 /**
  * Call time (#78, #79; features "Call time"; additions flow 13; console v3, phase 2). Harish Kumar, this flow's own
- * floor manager (Auth sends one code a minute to a number), seats Ritika Das in the Private Room, where call time is three
- * hours (#634): her seat's row shows it, and Ritika's Tonight says where she sits, the game and how long she has played,
- * round the call-time ring (decision 0320). From her seat she asks for an hour more, which Harish approves in the
- * requests beside the floor, and for a top-up, which he starts and marks done there (decision 0479). He finds her playing on
+ * floor manager (Auth sends one code a minute to a number), seats Ritika Das in the Private Room with an hour and a half
+ * of call time: her seat's row shows it, and Ritika's Tonight says where she sits, the game, how long she has played and
+ * when she sat down, with no countdown (the owner, 17 Nov). From her seat she sets her call time (#1059): lengths that
+ * would end before the hour and a half are greyed, and two hours from now are owed at once, on her screen and the floor's
+ * row. She asks for a top-up, which he starts and marks done in the requests beside the floor (decision 0479). He finds her playing on
  * Today's players (#641); she leaves her seat and, with call time owed, is a Leaving request. Then flow 13: she leaves
  * before her call time, so Harish, an admin, lets her go early with a reason, which frees the seat for the next run. The
  * clock across moves, away time, the completed event and the shortfall are proved in supabase/tests/051_call_time.test.sql,
@@ -11,7 +12,7 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
-import { requestsPanel, seatOnFloor, showSeats } from '../support/floor.ts';
+import { requestsPanel, showSeats, tableTile } from '../support/floor.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 /** Ritika's request in the floor's panel that says `kind`: its own entry, once it has arrived. */
@@ -23,32 +24,40 @@ async function ritikasRequest(floor: Page, kind: RegExp) {
 }
 
 test.describe('Call time', () => {
-  test('Tonight › Seated, Add time, Top-up requested, Leaving list: three hours, an hour more the floor approves, a top-up; leaving before it needs an admin', async ({ browser }) => {
+  test('Tonight › Seated, Set call time, Top-up requested, Leaving list: an hour and a half, two hours she sets, a top-up; leaving before it needs an admin', async ({ browser }) => {
     test.setTimeout(90_000);
     test.skip(isRemoteTarget(), 'seats a member and lets her go early, so the local stack only');
     const floor = await browser.newPage();
     await signInToConsole(floor, '9000000128');
-    await seatOnFloor(floor, { table: 'Private Room', seat: 1, number: '9000000215' });
-    await expect(floor.getByRole('button', { name: /^Seat 1, Ritika Das, (3 h|2 h 59 min)$/ })).toBeVisible();
+    // Seated with an hour and a half typed over the Private Room's own, so the club's lengths fall either side of it.
+    await showSeats(floor);
+    await tableTile(floor, 'Private Room').getByRole('button', { name: 'Seat 1, Open' }).click();
+    const seating = floor.getByRole('dialog', { name: 'Seat a player' });
+    await seating.getByRole('textbox', { name: /^(Or a n|N)ame, mobile or member number$/ }).fill('9000000215');
+    await seating.getByLabel('Call time', { exact: true }).fill('90');
+    await seating.getByRole('button', { name: 'Seat', exact: true }).click();
+    await expect(floor.getByRole('button', { name: /^Seat 1, Ritika Das, (1 h 30 min|1 h 29 min)$/ })).toBeVisible();
 
     const player = await browser.newPage();
     await signInToPlayer(player, '9000000215');
-    // Seated (decision 0320): where, the game and how long she has played, and the ring counting down to the server's end.
+    // Seated (the owner, 17 Nov): where, the game and how long she has played, and when she sat down, with no countdown.
     await expect(player.getByRole('heading', { name: 'Private Room, seat 1' })).toBeVisible();
     await expect(player.getByText(/ · playing /)).toBeVisible();
-    await expect(player.getByRole('timer', { name: /^Call time left (3 h|2 h 5\d min)$/ })).toBeVisible();
+    await expect(player.getByText('Playing since')).toBeVisible();
+    await expect(player.getByRole('timer')).toHaveCount(0);
 
-    // Add time is a request the floor approves (owner, 3 Nov): an hour, shown waiting, then approved in the requests.
-    await player.getByRole('button', { name: 'Add time' }).click();
-    await player.getByRole('dialog', { name: 'Add time' }).getByRole('button', { name: 'Request 1 h' }).click();
-    await expect(player.getByText('+1 h')).toBeVisible();
-    await expect(player.getByRole('button', { name: 'Add time' })).toHaveAttribute('aria-disabled', 'true');
-    await (await ritikasRequest(floor, /Wants \+1 h/)).getByRole('button', { name: 'Approve' }).click();
-    await expect(floor.getByText('Ritika Das: +1 h approved')).toBeVisible();
+    // Set call time (#1059): 30 minutes and an hour would end before the hour and a half she owes; two hours from now are
+    // owed at once, with no request to the floor, and her seat's row says so.
+    await player.getByRole('button', { name: 'Set call time' }).click();
+    const setting = player.getByRole('dialog', { name: 'Set call time' });
+    await expect(setting.getByRole('radio', { name: '30 min' })).toBeDisabled();
+    await expect(setting.getByRole('radio', { name: '1 h' })).toBeDisabled();
+    await expect(setting.getByRole('radio', { name: '2 h' })).toHaveAttribute('aria-checked', 'true');
+    await expect(setting.getByText(/^Can't end before \d\d:\d\d\.$/)).toBeVisible();
+    await setting.getByRole('button', { name: 'Set call time' }).click();
+    await expect(player.getByText(/^Call time until \d\d:\d\d$/).first()).toBeVisible();
     await showSeats(floor);
-    await expect(floor.getByRole('button', { name: /^Seat 1, Ritika Das, (4 h|3 h 59 min)$/ })).toBeVisible();
-    await player.reload();
-    await expect(player.getByRole('timer', { name: /^Call time left (4 h|3 h 5\d min)$/ })).toBeVisible();
+    await expect(floor.getByRole('button', { name: /^Seat 1, Ritika Das, (2 h|1 h 59 min)$/ })).toBeVisible();
 
     // A top-up the floor starts, then marks done (#634, decision 0299).
     await player.getByRole('button', { name: 'Top up' }).click();

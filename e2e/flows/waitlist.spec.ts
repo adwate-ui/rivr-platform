@@ -37,12 +37,12 @@ async function joinAt(page: Page, name: string) {
 async function leaveEveryList(page: Page) {
   await page.reload();
   const leave = page.getByRole('button', { name: 'Leave waitlist' });
-  await expect(page.getByRole('region', { name: 'All tables' }).or(leave).or(page.getByRole('timer')).first()).toBeVisible();
+  await expect(page.getByRole('region', { name: 'All tables' }).or(leave).or(page.getByText('Playing since')).first()).toBeVisible();
   while (await leave.count() > 0) {
     await leave.click();
     await expect(leave).toHaveCount(0);
     await page.reload();
-    await expect(page.getByRole('region', { name: 'All tables' }).or(leave).or(page.getByRole('timer')).first()).toBeVisible();
+    await expect(page.getByRole('region', { name: 'All tables' }).or(leave).or(page.getByText('Playing since')).first()).toBeVisible();
   }
 }
 

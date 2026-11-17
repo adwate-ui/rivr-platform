@@ -11,7 +11,8 @@ export const push = {
   callTimeEnding: {
     title: 'Call time ends in {minutes} min',
     body: '{table}, seat {seat}. Ends at {time}.',
-    action: 'Add time',
+    /** Opens Set call time on Home (#1059). */
+    action: 'Set call time',
   },
   /** The member's call time has run: they may go (8 Nov audit, F-181). */
   callTimeDone: {

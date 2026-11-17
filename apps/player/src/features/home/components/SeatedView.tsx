@@ -1,7 +1,7 @@
 import { useFeature, type MySeat, type WaitlistPlace } from '@rivr/db';
-import { callTimeFraction, isCallTimeEnding, secondsUntil } from '@rivr/domain/callTime';
-import { formatClock, formatDuration, formatTime, t } from '@rivr/i18n';
-import { FeatureGate, Figure, Inline, ProgressRing, Text } from '@rivr/ui';
+import { secondsUntil } from '@rivr/domain/callTime';
+import { formatTime, t } from '@rivr/i18n';
+import { Figure, Stack, Text } from '@rivr/ui';
 import { NextBonusChips } from './NextBonusChips.tsx';
 import { OrderTracker } from './OrderTracker.tsx';
 import { OrderToSeat, SeatActions, SeatStatus } from './SeatActions.tsx';
@@ -14,17 +14,18 @@ export function callSecondsLeft(seat: MySeat, now: Date): number {
 }
 
 /**
- * The call-time ring (brief 3.4 E): gold for what is left on its faint track, moving on each second, red in the last 15
- * minutes; in the middle the time left as h:mm:ss and when it ends. It stands still while the member is away.
+ * Where the call-time ring was (the owner, 17 Nov): when the member sat down, with no countdown; and once they have set
+ * their call time themselves (#1059), when it ends, while they are at the table (it stands still while they are away).
  */
-function CallTimeRing({ seat, now }: { seat: MySeat; now: Date }) {
-  const left = callSecondsLeft(seat, now);
-  const endsAt = new Date(now.getTime() + left * 1000);
+function PlayingSince({ seat }: { seat: MySeat }) {
+  const callTime = useFeature('call_time.view');
+  const until = callTime.state === 'enabled' && seat.callTimeSetAt !== null ? seat.callTimeEndsAt : null;
   return (
-    <ProgressRing fraction={callTimeFraction(left, seat.callTimeMinutes ?? 0)} tone={isCallTimeEnding(left) ? 'alert' : 'gold'}>
-      <Figure size="timer" role="timer" aria-label={t('player.live.seated.timer', { time: formatDuration(left) })}>{formatClock(left)}</Figure>
-      <Text variant="small" tone="muted">{t('player.live.seated.left', { time: formatTime(endsAt) })}</Text>
-    </ProgressRing>
+    <Stack gap={1} align="center">
+      <Text variant="small" tone="muted">{t('player.live.seated.playingSince')}</Text>
+      <Figure size="timer">{formatTime(new Date(seat.startedAt))}</Figure>
+      {until === null ? null : <Text variant="small" tone="muted">{t('player.live.seated.callTimeUntil', { time: formatTime(new Date(until)) })}</Text>}
+    </Stack>
   );
 }
 
@@ -39,24 +40,20 @@ interface SeatedViewProps {
 }
 
 /**
- * Seated (brief 3.4 E): the call-time ring with call_time.view, where the seat has call time; the three round actions and
- * their sheets; the next play-time bonus; Order to my seat; tonight's order on its way; and the seat's open requests, any place on a list among them.
+ * Seated (brief 3.4 E): when the member sat down, and the call time they set; the three round actions and their sheets;
+ * the next play-time bonus; Order to my seat; tonight's order on its way; and the seat's open requests, any place on a
+ * list among them.
  */
 export function SeatedView({ seat, places, now, sheet, onSheet }: SeatedViewProps) {
-  const callTime = useFeature('call_time.view');
   return (
     <>
-      {seat.hasCallTime ? (
-        <Inline justify="center">
-          <FeatureGate access={callTime}><CallTimeRing seat={seat} now={now} /></FeatureGate>
-        </Inline>
-      ) : null}
+      <PlayingSince seat={seat} />
       <SeatActions seat={seat} onOpen={onSheet} />
       <NextBonusChips />
       <OrderToSeat />
       <OrderTracker />
       <SeatStatus seat={seat} places={places} />
-      <SeatSheets open={sheet} seat={seat} secondsLeft={callSecondsLeft(seat, now)} onClose={() => onSheet(null)} />
+      <SeatSheets open={sheet} seat={seat} secondsLeft={callSecondsLeft(seat, now)} now={now} onClose={() => onSheet(null)} />
     </>
   );
 }

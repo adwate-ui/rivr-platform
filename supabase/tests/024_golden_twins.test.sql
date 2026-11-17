@@ -151,6 +151,17 @@ select results_eq(
   $$ select description, nullif(expected ->> 'minutes', '')::integer from golden.golden_case where file = 'callTimeExtension.json' order by position $$,
   'private.extended_call_time gives every call time in the golden file, and refuses every refusal');
 
+-- A call time the member sets: private.set_call_time and @rivr/domain setCallTime
+-- (packages/testing/golden/callTimeSet.json, #1059). The SQL refuses with null, whatever the reason.
+select ok((select count(*) > 0 from golden.golden_case where file = 'callTimeSet.json'), 'the call time set cases are loaded');
+select is_empty($$ select operation from golden.golden_case where file = 'callTimeSet.json' and operation <> 'set' $$,
+  'every operation in callTimeSet.json is proved here');
+select results_eq(
+  $$ select description, private.set_call_time((inputs ->> 'current')::integer, (inputs ->> 'played')::integer, (inputs ->> 'length')::integer)
+     from golden.golden_case where file = 'callTimeSet.json' order by position $$,
+  $$ select description, nullif(expected ->> 'minutes', '')::integer from golden.golden_case where file = 'callTimeSet.json' order by position $$,
+  'private.set_call_time gives every call time in the golden file, and refuses every refusal');
+
 -- A bonus: private.bonus_draws and private.bonus_expiring, and @rivr/domain bonusSpend and bonusExpired
 -- (packages/testing/golden/bonus.json). Grants are written "amount @ end | ...", the end "never" for one with none.
 -- A golden list of amounts, '₹500 | ₹1,000', in paise.

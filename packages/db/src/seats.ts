@@ -1,5 +1,5 @@
 import { err, ok, type Result } from '@rivr/contracts/result';
-import type { SeatWho } from '@rivr/contracts';
+import type { LeaveReason, SeatWho } from '@rivr/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRivrData } from './provider.tsx';
 import type { TopUp } from './mySeat.ts';
@@ -165,8 +165,10 @@ export function useSeatActions(venueId: string) {
       return settle((await client.rpc('seat_member', { p_table_id: tableId, p_seat: number, ...found, p_call_minutes: callMinutes })).error);
     },
   });
+  // Every leave says why (#1060).
   const leave = useMutation({
-    mutationFn: async (sessionId: string) => settle((await client.rpc('end_seat', { p_session_id: sessionId, p_reason: 'left' })).error),
+    mutationFn: async ({ sessionId, reason }: { sessionId: string; reason: LeaveReason }) =>
+      settle((await client.rpc('end_seat', { p_session_id: sessionId, p_reason: 'left', p_leave_reason: reason })).error),
   });
   const setOpen = useMutation({
     mutationFn: async ({ tableId, isOpen }: { tableId: string; isOpen: boolean }) =>

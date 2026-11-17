@@ -15,7 +15,7 @@ const LATER = { timeout: 5000 };
 const SEAT: MySeat = {
   tableName: 'Table 1', seat: 4, isAway: false, hasCallTime: true, callTimeLeft: 9668, playedSeconds: 1140, isLeaving: false, topUp: null,
   callTimeMinutes: 180, startedAt: '2026-11-15T16:55:30Z', callTimeEndsAt: null, tableTypeName: 'NLH 50/100', game: 'nlh', smallBlind: 5000n, bigBlind: 10000n, straddle: null,
-  timeRequestMinutes: null, addTimeChoices: [30, 60, 120],
+  timeRequestMinutes: null, addTimeChoices: [30, 60, 120], callTimeSetAt: null,
 };
 const PLACE: WaitlistPlace = {
   entryId: 'e1', tableTypeId: 'tt1', tableTypeName: 'NLH 50/100', game: 'nlh', smallBlind: 5000n, bigBlind: 10000n, straddle: null, joinedAt: '2026-11-15T17:14:00Z',
@@ -65,9 +65,9 @@ describe('with no connection, nothing acts on a seat or a place (F-053)', () => 
     await expectDisabled('Request top-up');
   });
 
-  it('holds back more time', async () => {
+  it('holds back setting the call time', async () => {
     renderOffline(<SeatSheets open="addTime" seat={SEAT} secondsLeft={600} onClose={() => undefined} />);
-    await expectDisabled('Request 1 h');
+    await expectDisabled('Set call time');
   });
 
   it('holds back leaving the seat', async () => {

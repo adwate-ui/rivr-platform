@@ -66,13 +66,13 @@ describe('Leaving (console v3)', () => {
     const leave = await leaveOwing();
     expect(within(leave).getByText('Rohan Bhatia: 30 min call time owed.')).toBeDefined();
     fireEvent.click(within(leave).getByRole('button', { name: 'Let go early' }));
-    expect(within(leave).getByText('Pick a reason to let them go before call time.')).toBeDefined();
+    expect(within(leave).getByText('Pick why they leave.')).toBeDefined();
     expect(rpcs('let_leave_early')).toEqual([]);
     fireEvent.click(within(leave).getByRole('radio', { name: 'Table broke' }));
     fireEvent.click(within(leave).getByRole('button', { name: 'Let go early' }));
     await screen.findByText('Rohan Bhatia let go early');
     expect(rpcs('let_leave_early')).toEqual([{ p_venue_id: 'v1', p_member_id: 'm-s4', p_reason: 'Table broke' }]);
-    expect(rpcs('end_seat')).toEqual([{ p_session_id: 's4', p_reason: 'left' }]);
+    expect(rpcs('end_seat')).toEqual([{ p_session_id: 's4', p_reason: 'left', p_leave_reason: 'table_broke' }]);
     expect(rpcs('check_out')).toEqual([]);
     expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
   });
@@ -88,25 +88,32 @@ describe('Leaving (console v3)', () => {
     expect(rpcs('end_seat')).toEqual([]);
   });
 
-  it('lets a player whose call time is met leave, with Undo', async () => {
+  it('lets a player whose call time is met leave, Call time met picked already as why, with Undo', async () => {
     const { rpcs } = await renderFloor();
-    fireEvent.click(within(await leaveMet()).getByRole('button', { name: 'Yes, they leave' }));
+    const leave = await leaveMet();
+    expect(within(leave).getByRole('radio', { name: 'Call time met' }).getAttribute('aria-checked')).toBe('true');
+    fireEvent.click(within(leave).getByRole('button', { name: 'Yes, they leave' }));
     await screen.findByText('Naina Kapoor left Table 2');
+    expect(rpcs('end_seat')).toEqual([{ p_session_id: 's3', p_reason: 'left', p_leave_reason: 'call_time_met' }]);
     fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
     await waitFor(() => expect(rpcs('undo_leave')).toEqual([{ p_session_id: 's3' }]));
   });
 
-  it('frees the seat owing for floor staff without the override, with Undo, and offers no check-out', async () => {
+  it('frees the seat owing for floor staff without the override, asking why, with Undo, and offers no check-out', async () => {
     const { rpcs } = await renderFloor({ ...FLOOR, role: 'host' });
     fireEvent.click(screen.getByRole('button', { name: 'Seat 3, Rohan Bhatia, Leaving' }));
     fireEvent.click(first(within(await sheet('Rohan Bhatia')).getAllByRole('button', { name: 'Leave' })));
     const leave = await sheet('Let go before call time');
-    expect(within(leave).queryByRole('radio', { name: 'Emergency' })).toBeNull();
     // Freeing a seat owing keeps the member in the club: the check-out would be refused, so it is not offered.
     expect(within(leave).queryByRole('button', { name: /check out/ })).toBeNull();
+    // Every leave says why (#1060): owing, none is picked for them.
+    fireEvent.click(within(leave).getByRole('button', { name: 'Leave owing' }));
+    expect(within(leave).getByText('Pick why they leave.')).toBeDefined();
+    fireEvent.click(within(leave).getByRole('radio', { name: 'Emergency' }));
     fireEvent.click(within(leave).getByRole('button', { name: 'Leave owing' }));
     await screen.findByText('Rohan Bhatia left Table 2');
     expect(rpcs('let_leave_early')).toEqual([]);
+    expect(rpcs('end_seat')).toEqual([{ p_session_id: 's4', p_reason: 'left', p_leave_reason: 'emergency' }]);
   });
 
   it('lets a player go early as busted and checks them out of the club in the same step (owner, 16 Nov)', async () => {
@@ -116,7 +123,7 @@ describe('Leaving (console v3)', () => {
     fireEvent.click(within(leave).getByRole('button', { name: 'Let go early and check out' }));
     await screen.findByText('Rohan Bhatia let go early and checked out');
     expect(rpcs('let_leave_early')).toEqual([{ p_venue_id: 'v1', p_member_id: 'm-s4', p_reason: 'Busted' }]);
-    expect(rpcs('end_seat')).toEqual([{ p_session_id: 's4', p_reason: 'left' }]);
+    expect(rpcs('end_seat')).toEqual([{ p_session_id: 's4', p_reason: 'left', p_leave_reason: 'busted' }]);
     expect(rpcs('check_out')).toEqual([{ p_venue_id: 'v1', p_member_id: 'm-s4' }]);
     expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
   });
@@ -128,7 +135,7 @@ describe('Leaving (console v3)', () => {
     expect(within(leave).getByRole('button', { name: 'Yes, they leave' })).toBeDefined();
     fireEvent.click(within(leave).getByRole('button', { name: 'Leave and check out' }));
     await screen.findByText('Naina Kapoor left Table 2 and checked out');
-    expect(rpcs('end_seat')).toEqual([{ p_session_id: 's3', p_reason: 'left' }]);
+    expect(rpcs('end_seat')).toEqual([{ p_session_id: 's3', p_reason: 'left', p_leave_reason: 'call_time_met' }]);
     expect(rpcs('check_out')).toEqual([{ p_venue_id: 'v1', p_member_id: 'm-s3' }]);
     expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
   });

@@ -1,4 +1,4 @@
-import type { SeatWho } from '@rivr/contracts';
+import type { LeaveReason, SeatWho } from '@rivr/contracts';
 import { useAddCallTime, useCheckOutActions, useFloorActions, useFloorUndo, useSeatActions, type FloorTable, type SeatedPlayer } from '@rivr/db';
 import { formatDuration, t } from '@rivr/i18n';
 import { useRef } from 'react';
@@ -90,20 +90,21 @@ export function useSeatChanges(venueId: string) {
       say(await move.mutateAsync({ sessionId: player.sessionId, tableId: table.id, seat }),
         t('console.floor.toast.moved', { name: player.fullName, table: table.name, seat }), () => move.mutateAsync(back));
     },
-    leave: async (player: { sessionId: string; fullName: string }, tableName: string) =>
-      say(await leave.mutateAsync(player.sessionId), t('console.floor.toast.left', { name: player.fullName, table: tableName }),
+    leave: async (player: { sessionId: string; fullName: string }, tableName: string, reason: LeaveReason) =>
+      say(await leave.mutateAsync({ sessionId: player.sessionId, reason }), t('console.floor.toast.left', { name: player.fullName, table: tableName }),
         () => undo.mutateAsync({ kind: 'leave', sessionId: player.sessionId })),
-    leaveAndCheckOut: async (player: CheckingOut & { sessionId: string }, tableName: string) => {
-      const left = await leave.mutateAsync(player.sessionId);
+    leaveAndCheckOut: async (player: CheckingOut & { sessionId: string }, tableName: string, reason: LeaveReason) => {
+      const left = await leave.mutateAsync({ sessionId: player.sessionId, reason });
       const done = t('console.floor.toast.leftOut', { name: player.fullName, table: tableName });
       if (!left.ok || await isCheckedOut(player)) return say(left, done);
       // Out of the seat but still in the club: the leave alone went through, and Undo takes the seat back as it would.
       return say(left, notOut(player), () => undo.mutateAsync({ kind: 'leave', sessionId: player.sessionId }));
     },
-    letGo: async (member: CheckingOut & { sessionId?: string | undefined }, reason: string, isCheckingOut = false) => {
+    letGo: async (member: CheckingOut & { sessionId?: string | undefined }, reason: LeaveReason, isCheckingOut = false) => {
       const freesSeat = member.sessionId !== undefined;
-      const letGo = await letLeaveEarly.mutateAsync({ memberId: member.memberId, reason, isSeatFreedNext: freesSeat });
-      const outcome = letGo.ok && member.sessionId !== undefined ? await leave.mutateAsync(member.sessionId) : letGo;
+      // The early departure keeps the reason in words, as the member's record shows it.
+      const letGo = await letLeaveEarly.mutateAsync({ memberId: member.memberId, reason: t(`common.leaveReasons.${reason}`), isSeatFreedNext: freesSeat });
+      const outcome = letGo.ok && member.sessionId !== undefined ? await leave.mutateAsync({ sessionId: member.sessionId, reason }) : letGo;
       if (!isCheckingOut || !outcome.ok) return say(outcome, t('console.floor.toast.letGo', { name: member.fullName }));
       return say(outcome, await isCheckedOut(member) ? t('console.floor.toast.letGoOut', { name: member.fullName }) : notOut(member));
     },

@@ -1,9 +1,10 @@
 import { useMySeatActions, type MySeat, type MySeatFailure } from '@rivr/db';
-import { formatDuration, t } from '@rivr/i18n';
-import { Button, ChoiceChips, ErrorMessage, Sheet, Stack, Text, useIsOnline } from '@rivr/ui';
-import { useState } from 'react';
+import { canSetCallTime } from '@rivr/domain/callTime';
+import { formatDuration, formatTime, t } from '@rivr/i18n';
+import { Button, ChoiceChips, ErrorMessage, Sheet, Stack, Text, useIsOnline, useToast } from '@rivr/ui';
+import { useId, useState } from 'react';
 
-/** The sheet open from the seat: a top-up, more time, or leaving. */
+/** The sheet open from the seat: a top-up, setting the call time (`addTime`, as a push's link names it), or leaving. */
 export type SeatSheet = 'topUp' | 'addTime' | 'leave';
 
 interface SheetProps {
@@ -41,26 +42,48 @@ function TopUpSheet({ onClose }: SheetProps) {
   );
 }
 
-/**
- * "Add time": every length the club offers, however many (decision 0305, redesign RD-19; an hour first if offered), then
- * Request it of the floor (decision 0320), met or not.
- */
-function AddTimeSheet({ seat, onClose }: SheetProps & { seat: MySeat }) {
-  const { requestTime } = useMySeatActions();
-  const send = useSend(onClose);
-  const choices = seat.addTimeChoices;
-  const [choice, setChoice] = useState(choices.find((minutes) => minutes === 60) ?? choices[0] ?? 60);
-  const [requestId] = useState(() => crypto.randomUUID());
-  const label = (minutes: number) => formatDuration(minutes * 60);
+/** The line under the lengths: when the chosen one ends, and, with any greyed out, the time none may end before (`id`, which the lengths name as their description). */
+function CallTimeLine({ id, choice, secondsLeft, hasGreyed, now }: { id: string; choice: number | null; secondsLeft: number; hasGreyed: boolean; now: Date }) {
+  const at = (seconds: number) => formatTime(new Date(now.getTime() + seconds * 1000));
   return (
-    <Sheet isOpen onClose={onClose} title={t('player.live.seat.addTime')}>
+    <Stack gap={1}>
+      {choice === null ? null : <Text tone="muted">{t('player.live.seat.callTimeEnds', { time: at(choice * 60) })}</Text>}
+      {hasGreyed ? <Text id={id} tone="muted">{t('player.live.seat.callTimeNotBefore', { time: at(secondsLeft) })}</Text> : null}
+    </Stack>
+  );
+}
+
+/**
+ * "Set call time" (the owner, 17 Nov; #1059): every length the club offers (call_time.add_choices), counted from now; a
+ * length that would end before the call time owed is greyed out, and the line under them, which they name as their
+ * description, says why. Set, it is owed at once, with no floor approval; the seat then says until when. An hour is chosen
+ * first where it is open. The times move with the clock (`now`) while the sheet is open.
+ */
+function SetCallTimeSheet({ seat, secondsLeft, now, onClose }: SheetProps & { seat: MySeat; secondsLeft: number; now: Date }) {
+  const { setCallTime } = useMySeatActions();
+  const toast = useToast();
+  const send = useSend(onClose);
+  const whyId = useId();
+  const isOpen = (minutes: number) => canSetCallTime(minutes, secondsLeft);
+  const choices = seat.addTimeChoices;
+  const [choice, setChoice] = useState(choices.find((minutes) => minutes === 60 && isOpen(minutes)) ?? choices.find(isOpen) ?? null);
+  const [requestId] = useState(() => crypto.randomUUID());
+  const set = async (minutes: number) => {
+    const outcome = await setCallTime.mutateAsync({ minutes, requestId });
+    if (outcome.ok) toast(t('player.live.seat.callTimeSet'));
+    send.settle(outcome);
+  };
+  return (
+    <Sheet isOpen onClose={onClose} title={t('player.live.seat.setCallTime')}>
       <Stack gap={4}>
-        <ChoiceChips label={t('player.live.seat.addTime')} isLabelVisuallyHidden look="tile" mode="one" selected={[String(choice)]}
-          options={choices.map((minutes) => ({ value: String(minutes), label: label(minutes) }))}
+        <ChoiceChips label={t('player.live.seat.setCallTime')} isLabelVisuallyHidden look="tile" mode="one" selected={choice === null ? [] : [String(choice)]}
+          describedBy={choices.every(isOpen) ? undefined : whyId}
+          options={choices.map((minutes) => ({ value: String(minutes), label: formatDuration(minutes * 60), isDisabled: !isOpen(minutes) }))}
           onChange={([value]) => setChoice(choices.find((minutes) => String(minutes) === value) ?? choice)} />
-        <Button variant="primary" size="tall" fullWidth isDisabled={send.isOffline} isLoading={requestTime.isPending}
-          onClick={() => void requestTime.mutateAsync({ minutes: choice, requestId }).then(send.settle)}>
-          {t('player.live.seat.requestTime', { choice: label(choice) })}
+        <CallTimeLine id={whyId} choice={choice} secondsLeft={secondsLeft} hasGreyed={!choices.every(isOpen)} now={now} />
+        <Button variant="primary" size="tall" fullWidth isDisabled={send.isOffline || choice === null} isLoading={setCallTime.isPending}
+          onClick={() => { if (choice !== null) void set(choice); }}>
+          {t('player.live.seat.setCallTime')}
         </Button>
         {send.notice}
         <Button variant="text" fullWidth onClick={onClose}>{t('player.live.seat.cancel')}</Button>
@@ -88,9 +111,11 @@ function LeaveSheet({ seat, secondsLeft, onClose }: SheetProps & { seat: MySeat;
 }
 
 /** The seat's sheet that is open, if one is. */
-export function SeatSheets({ open, seat, secondsLeft, onClose }: { open: SeatSheet | null; seat: MySeat; secondsLeft: number; onClose: () => void }) {
+export function SeatSheets({ open, seat, secondsLeft, now = new Date(), onClose }: {
+  open: SeatSheet | null; seat: MySeat; secondsLeft: number; now?: Date; onClose: () => void;
+}) {
   if (open === 'topUp') return <TopUpSheet onClose={onClose} />;
-  if (open === 'addTime') return <AddTimeSheet seat={seat} onClose={onClose} />;
+  if (open === 'addTime') return <SetCallTimeSheet seat={seat} secondsLeft={secondsLeft} now={now} onClose={onClose} />;
   if (open === 'leave') return <LeaveSheet seat={seat} secondsLeft={secondsLeft} onClose={onClose} />;
   return null;
 }

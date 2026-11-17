@@ -50,10 +50,10 @@ async function openApp(context: BrowserContext) {
   return { page, shown, renewals };
 }
 
-/** Her seat and her call time counting down. */
+/** Her seat, and when she sat down there (the owner, 17 Nov: no countdown). */
 async function expectCallTime(page: Page) {
   await expect(page.getByRole('heading', { name: 'Table 2, seat 6' })).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByRole('timer', { name: /^Call time left / })).toBeVisible();
+  await expect(page.getByText('Playing since')).toBeVisible();
 }
 
 test.describe.serial('Stays signed in', () => {

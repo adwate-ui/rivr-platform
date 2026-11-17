@@ -22,6 +22,12 @@ export const tonight = {
   seatFailures: {
     not_seated: 'You are not seated any more.',
     not_allowed: 'Not open to you. Ask at the front desk.',
+    /** A call time that would end before the one owed (#1059): the app greys those out, so this is a race. */
+    too_early: 'Choose a length that ends after your call time.',
+    /** One that would run past a day in all, after a very long night. */
+    too_long: 'Call time cannot run past a day.',
+    /** A length the club stopped offering while the sheet was open. */
+    not_offered: 'That length is no longer offered. Choose another.',
     stopped: 'Account paused. Ask at the front desk.',
     paused: 'The club is paused. Try again later.',
     unavailable: 'Not sent. Try again.',

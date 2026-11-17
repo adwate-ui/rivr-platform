@@ -63,6 +63,8 @@ export const members = {
   visitHistory: {
     title: 'Visit history', none: 'No visits yet.', line: '{date} · {tables}', noTable: 'No table',
     callTimeMet: 'Call time met', callTimeOwed: 'Call time not met', leftEarly: 'Left early',
+    /** Why they left each table of the visit (#1060): `Left: Busted, Call time met`. */
+    leftBecause: 'Left: {reasons}',
   },
   /** The name a member gave at sign-up, under their Aadhaar name (#803): `Known as Ashu`. */
   knownAs: 'Known as {name}',

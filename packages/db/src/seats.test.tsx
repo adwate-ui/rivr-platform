@@ -80,7 +80,7 @@ describe('Leaving before call time', () => {
     });
     expect(reads()).toBe(before);
     await act(async () => {
-      await result.current.leave.mutateAsync('s1');
+      await result.current.leave.mutateAsync({ sessionId: 's1', reason: 'busted' });
     });
     expect(reads()).toBe(before + 1);
   });

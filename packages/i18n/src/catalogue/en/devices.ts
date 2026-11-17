@@ -194,8 +194,13 @@ export const seats = {
   back: 'Back',
   isAway: 'Away from the table. The seat is kept.',
   left: 'Player left',
-  /** The second press of Player left (B7): `{name}` is the player. */
+  /** Asked once Player left is pressed (#1060): one of common.leaveReasons. */
+  why: 'Why they leave',
+  /** Then the leave itself (B7): `{name}` is the player. */
   confirmLeft: 'Yes, {name} left',
+  /** Yes pressed with no reason picked (#1060), as the console's leave sheet says it. */
+  pickWhy: 'Pick why they leave.',
+  cancel: 'Cancel',
   notAllowed: 'This tablet changes only its own table.',
   invalid: 'That player is no longer at the table.',
   paused: 'Venue frozen. Try again once it is released.',

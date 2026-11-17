@@ -57,7 +57,7 @@ function seatReady(payload: unknown, now: Date): Built {
   return ok({ memberId, pushType: 'push.seat_ready', title: t('push.seatReady.title'), body, url: '/', tag: 'seat-ready', ...action });
 }
 
-/** Fifteen minutes or less to run, under the member's Call time switch, with Add time; nothing once it has run out. */
+/** Fifteen minutes or less to run, under the member's Call time switch, with Set call time; nothing once it has run out. */
 function callTimeEnding(payload: unknown, now: Date): Built {
   const ending = callTimeEndingSchema.safeParse(payload);
   if (!ending.success) return unreadable('call_time.ending');

@@ -76,9 +76,10 @@ export const playerLive = {
     title: '{table}, seat {seat}',
     /** Under the seat: `NLH 50/100 · playing 19 min`. */
     playing: '{game} · playing {time}',
-    left: 'call time left · ends {time}',
-    /** The ring's clock, read out: `Call time left 2h 41m`. */
-    timer: 'Call time left {time}',
+    /** Where the call-time ring was (the owner, 17 Nov): `Playing since` over `21:40`. */
+    playingSince: 'Playing since',
+    /** Under it, once the member has set their call time (#1059): `Call time until 00:10`. */
+    callTimeUntil: 'Call time until {time}',
     /** The next play-time bonus on this seat (audit F-173). */
     nextBonus: 'Next: {chips} Bonus',
     nextBonusIn: 'in {time}',
@@ -87,14 +88,18 @@ export const playerLive = {
   /** What the member does from the seat (brief 3.4 E): three round actions, each a sheet, then food and drink. */
   seat: {
     topUp: 'Top up',
-    addTime: 'Add time',
+    /** The member sets their call time from now, a length the club offers, with no floor approval (#1059). */
+    setCallTime: 'Set call time',
     leave: 'Leave seat',
     requestTopUp: 'Request top-up',
     cancel: 'Cancel',
-    /** `{choice}` is `1 hour`. */
-    requestTime: 'Request {choice}',
-    /** Every length the club may offer (decision 0305); the club's setting picks which show. */
-    /** Once the floor approves: `1 hour added`. */
+    /** Under the lengths: when the one chosen ends, `Until 00:10`. */
+    callTimeEnds: 'Until {time}',
+    /** Under lengths greyed out because they end before the call time owed: `Can't end before 23:40.` */
+    callTimeNotBefore: "Can't end before {time}.",
+    /** Set: the seat then says until when. */
+    callTimeSet: 'Call time set',
+    /** Once the floor approves a request an older app sent: `1 hour added`. */
     timeAdded: '{choice} added',
     leaveTitle: 'Leave your seat?',
     /** `{time}` is `2h 41m`. */

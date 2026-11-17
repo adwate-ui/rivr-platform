@@ -14,7 +14,7 @@ afterEach(() => {
 const SEAT: MySeat = {
   tableName: 'Table 1', seat: 4, isAway: false, hasCallTime: true, callTimeLeft: 9668, playedSeconds: 1140, isLeaving: false, topUp: null,
   callTimeMinutes: 180, startedAt: '2026-11-15T16:55:30Z', callTimeEndsAt: null, tableTypeName: 'NLH 50/100', game: 'nlh', smallBlind: 5000n, bigBlind: 10000n, straddle: null,
-  timeRequestMinutes: 60, addTimeChoices: [30, 60, 120],
+  timeRequestMinutes: 60, addTimeChoices: [30, 60, 120], callTimeSetAt: null,
 };
 
 function Seat({ seat }: { seat: MySeat }) {
@@ -43,10 +43,17 @@ describe('Tonight › Seat actions', () => {
     expect(gridOf(await screen.findByRole('button', { name: 'Leave seat' }, { timeout: 5000 }))).toContain('grid-cols-3');
   });
 
-  it('gives each action shown a column: two without call time, so neither leaves a third empty (F-203)', async () => {
+  it('gives each action shown a column: two without call time, which sets none, so neither leaves a third empty (F-203)', async () => {
     withEveryAction();
     render(<Seat seat={{ ...SEAT, hasCallTime: false }} />);
     expect(gridOf(await screen.findByRole('button', { name: 'Leave seat' }, { timeout: 5000 }))).toContain('grid-cols-2');
+    expect(screen.queryByRole('button', { name: 'Set call time' })).toBeNull();
+  });
+
+  it('never dims Leave seat, even on the leaving list (the owner: no leave option is greyed out)', async () => {
+    withEveryAction();
+    render(<Seat seat={{ ...SEAT, isLeaving: true }} />);
+    expect((await screen.findByRole('button', { name: 'Leave seat' }, { timeout: 5000 })).getAttribute('aria-disabled')).not.toBe('true');
   });
 });
 

@@ -31,11 +31,11 @@ describe('Tonight › banners', () => {
     expect(onRetry).toHaveBeenCalledOnce();
   });
 
-  it('says the call time ends soon, with Add time', () => {
+  it('says the call time ends soon, with Set call time', () => {
     const onAddTime = vi.fn();
     renderBanners({ callEnding: { minutes: 14, onAddTime } });
     expect(screen.getByText('Call time ends in 14 min')).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'Add time' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Set call time' }));
     expect(onAddTime).toHaveBeenCalledOnce();
   });
 

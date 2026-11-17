@@ -14,6 +14,11 @@ export interface ChoiceChip<Value extends string> {
   readonly count?: number | undefined;
   /** A line under the label in the `card` look, read as the choice's description: "Bonus chips on a buy-in, % or fixed". */
   readonly description?: string | undefined;
+  /**
+   * Dims this choice alone and passes it by, as a length of call time that would end too early (#1059); the screen says
+   * why beside the chips.
+   */
+  readonly isDisabled?: boolean | undefined;
 }
 
 export interface ChoiceChipsProps<Value extends string> {
@@ -47,6 +52,8 @@ export interface ChoiceChipsProps<Value extends string> {
    * 768 px, the chosen one gold-edged and tinted. `chip` elsewhere.
    */
   look?: 'chip' | 'pill' | 'tile' | 'tabs' | 'subtle' | 'card';
+  /** The id of a line that says something of the choices, such as why some are dimmed (#1059): read with the group. */
+  describedBy?: string | undefined;
 }
 
 type ChipLook = NonNullable<ChoiceChipsProps<string>['look']>;
@@ -145,32 +152,44 @@ interface RowProps<Value extends string> extends ChoiceChipsProps<Value> {
 const chipClasses = (look: ChipLook, isOn: boolean, optionCount: number, isOneRow: boolean) =>
   cx(choiceClasses(look, isOn, optionCount), isOneRow && 'shrink-0 whitespace-nowrap');
 
+/** Where an arrow key lands among the choices open to it, passing dimmed ones by; null for any other key, or none open. */
+function nextOpenIndex(key: string, index: number, options: readonly ChoiceChip<string>[]): number | null {
+  const step = key === 'Home' ? 'ArrowRight' : key === 'End' ? 'ArrowLeft' : key;
+  let next = nextRadioIndex(key, index, options.length);
+  for (let tries = 0; next !== null && options[next]?.isDisabled === true && tries < options.length; tries += 1) {
+    next = nextRadioIndex(step, next, options.length);
+  }
+  return next !== null && options[next]?.isDisabled !== true ? next : null;
+}
+
 /**
- * One choice of a few, as a radio group (#699): only the chosen chip (or the first) is in the Tab order, the arrow keys
- * move to the next and choose it, and pressing the chosen one keeps it.
+ * One choice of a few, as a radio group (#699): only the chosen chip (or the first open one) is in the Tab order, the
+ * arrow keys move to the next open one and choose it, and pressing the chosen one keeps it.
  */
-function RadioChips<Value extends string>({ labelId, options, selected, onChange, isDisabled, isOneRow = false, look = 'chip' }: RowProps<Value>) {
+function RadioChips<Value extends string>({ labelId, options, selected, onChange, isDisabled, isOneRow = false, look = 'chip', describedBy }: RowProps<Value>) {
   const chips = useRef<(HTMLButtonElement | null)[]>([]);
   const chosenAt = options.findIndex((option) => selected.includes(option.value));
+  // The chosen chip, unless it is dimmed: then the first open one, so the group is always reached by Tab.
+  const tabAt = chosenAt >= 0 && options[chosenAt]?.isDisabled !== true ? chosenAt : Math.max(0, options.findIndex((option) => option.isDisabled !== true));
   const choose = (index: number) => {
     const option = options[index];
-    if (option !== undefined && !selected.includes(option.value)) onChange([option.value]);
+    if (option !== undefined && option.isDisabled !== true && !selected.includes(option.value)) onChange([option.value]);
   };
   // A press focuses its chip by itself; an arrow key moves the focus along with the choice.
   const move = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
-    const next = nextRadioIndex(event.key, index, options.length);
+    const next = nextOpenIndex(event.key, index, options);
     if (next === null) return;
     event.preventDefault();
     choose(next);
     chips.current[next]?.focus();
   };
   return (
-    <div role="radiogroup" aria-labelledby={labelId} data-chip-row={isOneRow ? '' : undefined} className={rowClasses(look, options.length, isOneRow)}>
+    <div role="radiogroup" aria-labelledby={labelId} aria-describedby={describedBy} data-chip-row={isOneRow ? '' : undefined} className={rowClasses(look, options.length, isOneRow)}>
       {options.map((option, index) => {
         const isOn = selected.includes(option.value);
         return (
           <button key={option.value} ref={(node) => { chips.current[index] = node; }} type="button" role="radio" aria-checked={isOn}
-            {...namingOf(option, `${labelId}-${String(index)}`)} tabIndex={index === Math.max(chosenAt, 0) ? 0 : -1} disabled={isDisabled}
+            {...namingOf(option, `${labelId}-${String(index)}`)} tabIndex={index === tabAt ? 0 : -1} disabled={isDisabled === true || option.isDisabled === true}
             onClick={() => choose(index)} onKeyDown={(event) => move(event, index)} className={chipClasses(look, isOn, options.length, isOneRow)}>
             <Words chip={option} look={look} isOn={isOn} descriptionId={`${labelId}-${String(index)}`} />
           </button>
@@ -181,14 +200,15 @@ function RadioChips<Value extends string>({ labelId, options, selected, onChange
 }
 
 /** Any number of choices, as a group of toggle buttons: pressing one adds it or takes it away. */
-function ToggleChips<Value extends string>({ labelId, options, selected, onChange, isDisabled, isOneRow = false, look = 'chip' }: RowProps<Value>) {
+function ToggleChips<Value extends string>({ labelId, options, selected, onChange, isDisabled, isOneRow = false, look = 'chip', describedBy }: RowProps<Value>) {
   const press = (value: Value) => onChange(selected.includes(value) ? selected.filter((chosen) => chosen !== value) : [...selected, value]);
   return (
-    <div role="group" aria-labelledby={labelId} data-chip-row={isOneRow ? '' : undefined} className={rowClasses(look, options.length, isOneRow)}>
+    <div role="group" aria-labelledby={labelId} aria-describedby={describedBy} data-chip-row={isOneRow ? '' : undefined} className={rowClasses(look, options.length, isOneRow)}>
       {options.map((option, index) => {
         const isOn = selected.includes(option.value);
         return (
-          <button key={option.value} type="button" aria-pressed={isOn} {...namingOf(option, `${labelId}-${String(index)}`)} disabled={isDisabled}
+          <button key={option.value} type="button" aria-pressed={isOn} {...namingOf(option, `${labelId}-${String(index)}`)}
+            disabled={isDisabled === true || option.isDisabled === true}
             onClick={() => press(option.value)} className={chipClasses(look, isOn, options.length, isOneRow)}>
             <Words chip={option} look={look} isOn={isOn} descriptionId={`${labelId}-${String(index)}`} />
           </button>

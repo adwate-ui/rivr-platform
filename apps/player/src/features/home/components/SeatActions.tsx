@@ -19,8 +19,9 @@ function useTimeAdded(seat: MySeat) {
 }
 
 /**
- * The seat's three round actions (brief 3.4 E): Top up (table.top_up), Add time (with call time, call_time.view) and Leave
- * seat (table.leave), each dimmed while its request waits on the floor; a tier's locked top-up says which tiers have it.
+ * The seat's three round actions (brief 3.4 E): Top up (table.top_up), dimmed while it waits on the floor; Set call time
+ * (with call time, call_time.view, #1059); and Leave seat (table.leave), never dimmed (the owner, 17 Nov: no leave option
+ * is greyed out). A tier's locked top-up says which tiers have it.
  */
 export function SeatActions({ seat, onOpen }: { seat: MySeat; onOpen: (sheet: SeatSheet) => void }) {
   const topUp = useFeature('table.top_up');
@@ -34,12 +35,12 @@ export function SeatActions({ seat, onOpen }: { seat: MySeat; onOpen: (sheet: Se
       <Stack gap={3}>
         <Grid columns={shown === 1 ? 1 : shown === 2 ? 2 : 3} gap={2}>
           {topUp.state === 'enabled' ? <RoundAction icon="topUp" label={t('player.live.seat.topUp')} isPending={seat.topUp !== null} onPress={() => onOpen('topUp')} /> : null}
-          {/* Met or not, more call time may be asked for (decision 0305). */}
+          {/* Met or not, the member sets one from now (#1059); a seat with no call time sets none. */}
           {seat.hasCallTime && callTime.state === 'enabled' ? (
-            <RoundAction icon="addTime" label={t('player.live.seat.addTime')} isPending={seat.timeRequestMinutes !== null} onPress={() => onOpen('addTime')} />
+            <RoundAction icon="addTime" label={t('player.live.seat.setCallTime')} onPress={() => onOpen('addTime')} />
           ) : null}
           <FeatureGate access={leaving}>
-            <RoundAction icon="leave" label={t('player.live.seat.leave')} isPending={seat.isLeaving} onPress={() => onOpen('leave')} />
+            <RoundAction icon="leave" label={t('player.live.seat.leave')} onPress={() => onOpen('leave')} />
           </FeatureGate>
         </Grid>
         {topUp.state === 'locked' ? <LockedNotice tiers={topUp.tiers} /> : null}
