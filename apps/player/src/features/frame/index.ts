@@ -2,7 +2,7 @@ export { AppRoot } from './components/AppRoot.tsx';
 export { Frame } from './components/Frame.tsx';
 export { NotFound } from './components/NotFound.tsx';
 export { NotificationLinks } from './components/NotificationLinks.tsx';
-export { startInstallWatch } from './install.ts';
+export { startInstallWatch, useInstallOffer } from './install.ts';
 export { NewVersionBanner } from './components/NewVersionBanner.tsx';
 export {
   answerNewWorkers, checkForNewVersion, takeUpdateWhenHidden, takeWaitingUpdateAtNewScreens, watchForNewVersion, watchLaunch, watchSignInTyping,

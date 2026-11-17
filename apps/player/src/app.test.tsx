@@ -93,33 +93,39 @@ async function memberOpens(path: string, visit: number) {
   await screen.findByRole('navigation', { name: 'Main' }, { timeout: 5000 });
 }
 
-describe('the install offer', () => {
+describe('the install offer (the owner, 17 Nov)', () => {
   const offer = () => screen.queryByRole('region', { name: 'RIVR on your home screen' });
+  const findOffer = () => screen.findByRole('region', { name: 'RIVR on your home screen' });
+  const snooze = (): unknown => JSON.parse(localStorage.getItem('rivr-install-snoozed') ?? 'null');
 
-  it('is never made on a member\'s first visit, nor on any screen but Tonight', async () => {
+  it('is made on Tonight from a member\'s first visit, and on no other screen', async () => {
     await memberOpens('/', 1);
     browserOffersInstall();
-    expect(offer()).toBeNull();
+    expect(await findOffer()).toBeDefined();
     cleanup();
-    await memberOpens('/bonus', 2);
+    await memberOpens('/bonus', 1);
     expect(offer()).toBeNull();
   });
 
-  it('is made on Tonight from the second visit, and Not now puts it away for good', async () => {
-    await memberOpens('/', 2);
+  it('is put away by Not now for the rest of the visit, and is back on the next', async () => {
+    await memberOpens('/', 1);
     browserOffersInstall();
     fireEvent.click(await screen.findByRole('button', { name: 'Not now' }));
     expect(offer()).toBeNull();
-    expect(localStorage.getItem('rivr-install-dismissed')).toBe('1');
+    expect(snooze()).toMatchObject({ times: 1, visit: 1 });
+    cleanup();
+    await memberOpens('/', 2);
+    browserOffersInstall();
+    expect(await findOffer()).toBeDefined();
   });
 
-  it('asks the browser to install, and is not made again whatever the answer', async () => {
-    await memberOpens('/', 2);
+  it('asks the browser to install, and counts its answer as Not now until the browser says it is installed', async () => {
+    await memberOpens('/', 1);
     const prompt = browserOffersInstall();
     fireEvent.click(await screen.findByRole('button', { name: 'Install' }));
     expect(prompt).toHaveBeenCalledTimes(1);
     expect(offer()).toBeNull();
-    expect(localStorage.getItem('rivr-install-dismissed')).toBe('1');
+    expect(snooze()).toMatchObject({ times: 1, visit: 1 });
   });
 });
 

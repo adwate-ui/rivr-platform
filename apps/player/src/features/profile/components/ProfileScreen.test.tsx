@@ -5,7 +5,7 @@ import { createMemoryHistory, createRootRoute, createRoute, createRouter, Outlet
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { HouseRulesScreen } from './HouseRulesScreen.tsx';
-import { ProfileScreen } from './ProfileScreen.tsx';
+import { ProfileScreen, type ProfileInstall } from './ProfileScreen.tsx';
 
 afterEach(() => {
   cleanup();
@@ -36,7 +36,7 @@ function readAnswer(url: string, kyc: unknown, photoPath: string | null): unknow
  * Meera signed in on +91 90000 00901, opening Profile from Bonus; feedback she sends goes to `sent`. `photoPath` is where
  * her own photo is kept (my_photo_path), and `bodiesTo` gives what was sent to an address.
  */
-function renderProfile(kyc: unknown = null, erasure: { asked?: string; fails?: boolean } = {}, photoPath: string | null = null) {
+function renderProfile(kyc: unknown = null, erasure: { asked?: string; fails?: boolean } = {}, photoPath: string | null = null, install: ProfileInstall | null = null) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-000000000241', aud: 'authenticated', phone: '919000000901', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -66,7 +66,7 @@ function renderProfile(kyc: unknown = null, erasure: { asked?: string; fails?: b
   // As AppRoot gives every screen: the toasts and the club's number for the front desk.
   const rootRoute = createRootRoute({ component: () => <DeskHelpProvider contact={{ phone: '+918796580435', whatsapp: '+918796580435' }}><ToastProvider><Outlet /></ToastProvider></DeskHelpProvider> });
   const page = (path: string, name: string) => createRoute({ getParentRoute: () => rootRoute, path, component: () => <Text>{name}</Text> });
-  const profile = createRoute({ getParentRoute: () => rootRoute, path: '/profile', component: ProfileScreen });
+  const profile = createRoute({ getParentRoute: () => rootRoute, path: '/profile', component: () => <ProfileScreen install={install} /> });
   const rules = createRoute({ getParentRoute: () => rootRoute, path: '/profile/rules', component: HouseRulesScreen });
   const router = createRouter({
     routeTree: rootRoute.addChildren([page('/bonus', 'Bonus screen'), rules, profile]),
@@ -104,6 +104,26 @@ describe('Profile', () => {
     for (const row of ['House rules', 'Send feedback', 'Delete my account']) expect(screen.getByRole('button', { name: row })).toBeDefined();
     expect(screen.queryByText(/limit|take a break|waitlist alerts/i)).toBeNull();
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeDefined();
+  });
+
+  it('offers an iPhone not yet installed the steps to add the app to its home screen, under Account (the owner, 17 Nov)', async () => {
+    renderProfile(null, {}, null, { way: 'ios', onInstall: vi.fn() });
+    fireEvent.click(await screen.findByRole('button', { name: 'Add to home screen' }, LATER));
+    const sheet = await screen.findByRole('dialog', { name: 'Add to home screen' }, LATER);
+    expect(within(sheet).getByText('Tap Share, then Add to Home Screen.')).toBeDefined();
+  });
+
+  it('asks the browser itself where it gives a prompt', async () => {
+    const onInstall = vi.fn();
+    renderProfile(null, {}, null, { way: 'prompt', onInstall });
+    fireEvent.click(await screen.findByRole('button', { name: 'Add to home screen' }, LATER));
+    expect(onInstall).toHaveBeenCalledTimes(1);
+  });
+
+  it('has no way to install once the app is installed, or on a phone it knows no way for', async () => {
+    renderProfile();
+    expect(await screen.findByText('Verified', {}, LATER)).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Add to home screen' })).toBeNull();
   });
 
   it('shows a phone that cannot take notifications as a switch off, saying what the kinds below still do (F-169)', async () => {

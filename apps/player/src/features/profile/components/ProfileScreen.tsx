@@ -1,6 +1,6 @@
 import { useFeature, useKycImageUrl, useKycRecord, useMember, useMyPhotoPath, usePreferences, useSignedInPhone } from '@rivr/db';
 import { formatMobile, t } from '@rivr/i18n';
-import { Box, DeskHelp, DetailRow, FeatureGate, ProfileCard, Screen, Stack, Text, useHeadingFocus, usePageTitle } from '@rivr/ui';
+import { Box, DeskHelp, DetailRow, FeatureGate, ProfileCard, Screen, Sheet, Stack, Text, useHeadingFocus, usePageTitle } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 import { useId, useState, type ReactNode } from 'react';
 import { DeleteAccountRow } from './DeleteAccount.tsx';
@@ -22,13 +22,39 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
  * The identity check: verified, or, for a member let in by their selfie (decision 0502), at the desk on the first visit,
  * which opens what to bring.
  */
-function IdentityRow() {
+function IdentityRow({ isLast }: { isLast: boolean }) {
   const navigate = useNavigate();
   const kyc = useKycRecord();
   if (kyc.data?.status === 'started' && kyc.data.isAtTheClub) {
-    return <DetailRow label={t('player.profile.identity')} value={t('player.profile.atTheDesk')} onOpen={() => void navigate({ to: '/kyc' })} isLast />;
+    return <DetailRow label={t('player.profile.identity')} value={t('player.profile.atTheDesk')} onOpen={() => void navigate({ to: '/kyc' })} isLast={isLast} />;
   }
-  return <DetailRow label={t('player.profile.identity')} value={t('player.profile.verified')} valueTone="accent" isLast />;
+  return <DetailRow label={t('player.profile.identity')} value={t('player.profile.verified')} valueTone="accent" isLast={isLast} />;
+}
+
+/** How this phone puts the app on its home screen, from the frame through the route (#1054); null once it is there. */
+export interface ProfileInstall {
+  way: 'prompt' | 'ios' | 'android';
+  onInstall: () => void;
+}
+
+/**
+ * Account: the identity check, then, while the app is not on the home screen, the way to put it there whatever Not now
+ * said on Home (#1054): the browser's own prompt where it gives one, else the steps for this phone in a sheet.
+ */
+function AccountGroup({ install }: { install: ProfileInstall | null }) {
+  const [isStepsOpen, setStepsOpen] = useState(false);
+  const way = install?.way ?? null;
+  return (
+    <Group title={t('player.profile.account')}>
+      <IdentityRow isLast={install === null} />
+      {install === null ? null : (
+        <DetailRow label={t('player.profile.addToHomeScreen')} onOpen={install.way === 'prompt' ? install.onInstall : () => setStepsOpen(true)} isLast />
+      )}
+      <Sheet isOpen={isStepsOpen} onClose={() => setStepsOpen(false)} title={t('player.profile.addToHomeScreen')}>
+        <Text>{t(way === 'ios' ? 'ui.installOffer.ios' : 'ui.installOffer.android')}</Text>
+      </Sheet>
+    </Group>
+  );
 }
 
 /**
@@ -63,7 +89,7 @@ function ClubGroup({ onFeedback }: { onFeedback: () => void }) {
  * Profile, the fourth tab (redesign, 15 Nov): the member; Account (the identity check); Notifications; Club; Sign out.
  * The games, limits and break sections are gone from the app (decision 0322); their data and the server's enforcement stay.
  */
-export function ProfileScreen() {
+export function ProfileScreen({ install = null }: { install?: ProfileInstall | null }) {
   const preferences = usePreferences();
   const [isFeedbackOpen, setFeedbackOpen] = useState(false);
   const headingId = useId();
@@ -83,9 +109,7 @@ export function ProfileScreen() {
   return (
     <Stack gap={6}>
       <ProfileHead headingId={headingId} />
-      <Group title={t('player.profile.account')}>
-        <IdentityRow />
-      </Group>
+      <AccountGroup install={install} />
       <Group title={t('player.profile.notifications')}><NotificationsSection preferences={preferences.data} /></Group>
       <ClubGroup onFeedback={() => setFeedbackOpen(true)} />
       <SignOutSection />

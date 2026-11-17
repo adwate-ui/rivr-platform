@@ -305,6 +305,8 @@ export const ui = {
     title: 'RIVR on your home screen',
     prompt: 'Open RIVR in one tap, full screen, like any app.',
     ios: 'Tap Share, then Add to Home Screen.',
+    /** Profile's steps on an Android browser that gave no install prompt (#1054): its own menu has the item. */
+    android: 'In your browser’s menu, tap Install app or Add to home screen.',
     install: 'Install',
     notNow: 'Not now',
   },
