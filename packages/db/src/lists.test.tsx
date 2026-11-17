@@ -20,7 +20,7 @@ const VIEW: ScopedView = {
 const NAINA = {
   total: 318, member_id: 'm1', full_name: 'Naina Kapoor', member_number: 270, tier_name: 'Black card', is_base_tier: false, status: 'playing', list: 'in_club',
   checked_in_at: '2026-11-15T15:34:00Z', checked_out_at: null, waiting_seconds: 300, tables: [{ table: 'Table 1', seconds: 5400 }, { nonsense: true }],
-  played_seconds: 5400, kyc_status: 'verified', since: '2026-11-15T15:34:00Z',
+  played_seconds: 5400, kyc_status: 'verified', since: '2026-11-15T15:34:00Z', bonus_paise: 50_000,
 };
 
 /** A fake API that answers each RPC by name and keeps what it was sent. */
@@ -61,7 +61,7 @@ describe('lists read a page at a time from the server (redesign RD-30)', () => {
     expect(result.current.data?.rows[0]).toEqual({
       memberId: 'm1', fullName: 'Naina Kapoor', memberNumber: 270, tierName: 'Black card', isBaseTier: false, status: 'playing', list: 'in_club',
       checkedInAt: '2026-11-15T15:34:00Z', checkedOutAt: null, waitingSeconds: 300, tables: [{ table: 'Table 1', seconds: 5400 }], playedSeconds: 5400,
-      kycStatus: 'verified', since: '2026-11-15T15:34:00Z',
+      kycStatus: 'verified', since: '2026-11-15T15:34:00Z', bonus: 50_000n,
     });
     // Words this console does not know never read as in the club, nor as checked.
     expect(result.current.data?.rows[1]).toMatchObject({ status: 'left', list: 'not_arrived', kycStatus: 'not_done', since: null });

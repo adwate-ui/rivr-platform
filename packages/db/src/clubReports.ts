@@ -107,6 +107,8 @@ export interface PlayerVisit extends Omit<TodaysPlayer, 'status'> {
   readonly playedSeconds: number;
   /** Their identity check as it stands now. */
   readonly kycStatus: MemberKycStatus;
+  /** The Bonus given to them that club day, by hand or by promotions once approved (#1062). */
+  readonly bonus: Paise;
 }
 
 /**
@@ -121,7 +123,7 @@ export function usePlayerVisitsPage(span: ReportSpan, view: ScopedView | null) {
     rowOf: (row): PlayerVisit => ({
       clubDay: row.club_day, memberId: row.member_id, fullName: row.full_name, memberNumber: Number(row.member_number), tierName: row.tier_name,
       isBaseTier: row.is_base_tier, checkedInAt: row.checked_in_at, checkedOutAt: row.checked_out_at, waitingSeconds: row.waiting_seconds, tables: tablesOf(row.tables),
-      playedSeconds: Number(row.played_seconds), kycStatus: kycStatusOf(row.kyc_status),
+      playedSeconds: Number(row.played_seconds), kycStatus: kycStatusOf(row.kyc_status), bonus: toPaise(row.bonus_paise),
     }),
   });
 }

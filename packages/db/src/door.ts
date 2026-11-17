@@ -1,6 +1,8 @@
+import type { Paise } from '@rivr/domain/money';
 import { tablesOf, type TodaysPlayer } from './floorToday.ts';
 import { useListPage, type ScopedView } from './lists.ts';
 import { kycStatusOf, type MemberKycStatus } from './members.ts';
+import { toPaise } from './parse/hands.ts';
 import { useRivrData } from './provider.tsx';
 
 /** Where a player stands at the door today: as today's players have it (#641), and `expected` while on a waitlist and not yet in. */
@@ -24,6 +26,8 @@ export interface DoorPlayer extends Omit<TodaysPlayer, 'status'> {
   readonly kycStatus: MemberKycStatus;
   /** When their open visit began, or, while expected, when they first joined a waitlist; null once they have left. */
   readonly since: string | null;
+  /** The Bonus given to them today, by hand or by promotions once approved (#1062). */
+  readonly bonus: Paise;
 }
 
 const STATUSES: readonly DoorStatus[] = ['playing', 'waiting', 'in_room', 'expected', 'left', 'never_arrived'];
@@ -43,7 +47,7 @@ export function useDoorPage(venueId: string, view: ScopedView | null) {
       memberId: row.member_id, fullName: row.full_name, memberNumber: Number(row.member_number), tierName: row.tier_name, isBaseTier: row.is_base_tier,
       status: STATUSES.find((status) => status === row.status) ?? 'left', list: LISTS.find((list) => list === row.list) ?? 'not_arrived',
       checkedInAt: row.checked_in_at, checkedOutAt: row.checked_out_at, waitingSeconds: row.waiting_seconds, tables: tablesOf(row.tables),
-      playedSeconds: Number(row.played_seconds), kycStatus: kycStatusOf(row.kyc_status), since: row.since,
+      playedSeconds: Number(row.played_seconds), kycStatus: kycStatusOf(row.kyc_status), since: row.since, bonus: toPaise(row.bonus_paise),
     }),
   });
 }

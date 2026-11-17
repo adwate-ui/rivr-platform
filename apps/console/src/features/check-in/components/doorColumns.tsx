@@ -1,5 +1,5 @@
 import type { DoorPlayer, DoorStatus, ListChoices, ListFilter, MemberKycStatus } from '@rivr/db';
-import { formatDuration, formatTime, t } from '@rivr/i18n';
+import { formatChips, formatDuration, formatRupeesForFile, formatTime, t } from '@rivr/i18n';
 import { DotStatus, Text, type ColumnChoice, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
 import type { ReactNode } from 'react';
 
@@ -70,6 +70,12 @@ export function doorColumns(counted: ListChoices | undefined, action?: (player: 
     {
       key: 'played', share: 1.5, filter: 'duration', header: t('console.todaysPlayers.played'), sortValue: (player) => player.playedSeconds, align: 'end',
       cell: (player) => (player.tables.length === 0 ? NONE() : formatDuration(player.playedSeconds)),
+    },
+    // The Bonus given to them today (#1062).
+    {
+      key: 'bonus', share: 1, header: t('console.todaysPlayers.bonus'), align: 'end', filter: false,
+      sortValue: (player) => Number(formatRupeesForFile(player.bonus)), exportValue: (player) => Number(formatRupeesForFile(player.bonus)),
+      cell: (player) => formatChips(player.bonus),
     },
     {
       key: 'kyc', share: 1.3, header: t('console.members.kyc'), sortValue: (player) => KYC.indexOf(player.kycStatus), isWide: true, filter: 'choice', choices: choicesIn('kyc', counted),
