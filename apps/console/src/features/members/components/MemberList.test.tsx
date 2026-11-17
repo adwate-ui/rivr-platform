@@ -39,7 +39,7 @@ describe('The Members list (console v3; on the server, redesign RD-29)', () => {
       expect(within(list).getByRole('columnheader', { name: new RegExp(header) })).toBeDefined();
     }
     const sakshi = within(list).getAllByRole('row').find((row) => row.textContent?.includes('Sakshi Tandon')) ?? list;
-    for (const shown of ['+91 90000 00266', 'Checked', '2 h 15 min', 'Gurugram', 'Oct 2026', '1,500']) expect(sakshi.textContent).toContain(shown);
+    for (const shown of ['+91 90000 00266', 'Checked', '2 h 15 min', 'Gurugram', '20 Oct 2026', '1,500']) expect(sakshi.textContent).toContain(shown);
     const arjun = within(list).getAllByRole('row').find((row) => row.textContent?.includes('Arjun Mehta')) ?? list;
     expect(arjun.textContent).toContain('Due');
   });
