@@ -38,6 +38,17 @@ const ANSWERS: Record<string, unknown[]> = {
     { source: 'hand', label: null, members: 2, grants: 3, given_paise: 300_000 },
     { source: 'other', label: 'Welcome back', members: 1, grants: 1, given_paise: 100_000 },
   ],
+  // Each Bonus given (#1063): by hand, a promotion once approved, a high hand, and one with only its reason.
+  bonus_given_page: [
+    { total: 4, grant_id: 'g1', given_at: '2026-11-15T16:00:00Z', member_id: 'm1', full_name: 'Ritika Das', member_number: 215, amount_paise: 50_000,
+      reason: 'Good game tonight', source: 'by_hand', promotion_name: null, staff_name: 'Aditya Malhotra' },
+    { total: 4, grant_id: 'g2', given_at: '2026-11-15T15:00:00Z', member_id: 'm2', full_name: 'Yash Gupta', member_number: 214, amount_paise: 100_000,
+      reason: 'Play-time bonus', source: 'promotion', promotion_name: 'Friday four-hour bonus', staff_name: 'Kavya Menon' },
+    { total: 4, grant_id: 'g3', given_at: '2026-11-15T14:00:00Z', member_id: 'm2', full_name: 'Yash Gupta', member_number: 214, amount_paise: 1_000_000,
+      reason: 'High hand: Four Jacks', source: 'high_hand', promotion_name: 'High hands', staff_name: 'Aditya Malhotra' },
+    { total: 4, grant_id: 'g4', given_at: '2026-11-15T13:00:00Z', member_id: 'm1', full_name: 'Ritika Das', member_number: 215, amount_paise: 20_000,
+      reason: 'Welcome back', source: 'other', promotion_name: null, staff_name: null },
+  ],
 };
 
 let asked: { rpc: string; body: Record<string, unknown> }[] = [];
@@ -129,6 +140,16 @@ describe('the reports beside Tables (redesign RD-27)', () => {
     expect([figure('Bonus given'), figure('By hand'), figure('Bonus used'), figure('Outstanding')]).toEqual(['64,000', '3,000', '38,500', '4,12,500']);
     expect(within(screen.getByRole('figure', { name: 'Bonus given by hour' })).getAllByRole('listitem').map((bar) => bar.textContent)).toEqual(['21:00: 2,50021:00', '22:00: 022:00']);
     expect(document.body.textContent).not.toContain('₹');
+  });
+
+  it('Bonus: each Bonus given, with who gave it and why (the owner, 17 Nov)', async () => {
+    renderReport(<BonusReport venueId="v1" period={TONIGHT} exportIn={null} />);
+    const list = await screen.findByRole('table', { name: 'Each Bonus given' }, { timeout: 5000 });
+    const row = async (name: string) => (await within(list).findAllByRole('row')).find((one) => one.textContent?.includes(name))?.textContent ?? '';
+    expect(await row('Good game tonight')).toContain('Aditya Malhotra');
+    expect(await row('Play-time bonus')).toContain('Friday four-hour bonus · approved by Kavya Menon');
+    expect(await row('Four Jacks')).toContain('High hand · logged by Aditya Malhotra');
+    expect(await row('Welcome back')).toContain('Other');
   });
 
   it('says a report did not load, and asks again', async () => {

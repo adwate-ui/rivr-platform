@@ -205,3 +205,45 @@ export function useBonusReport(span: ReportSpan) {
     }),
   });
 }
+
+/** Where a Bonus came from (#1063): by hand, a promotion once approved, a high hand, or anything else (rakeback, a referral). */
+export type BonusSource = 'by_hand' | 'promotion' | 'high_hand' | 'other';
+
+const GIVEN_SOURCES: readonly BonusSource[] = ['by_hand', 'promotion', 'high_hand', 'other'];
+
+/** Where a Bonus came from, as the list or its filter names it; any other word reads as other. */
+export const bonusSourceOf = (value: string): BonusSource => GIVEN_SOURCES.find((source) => source === value) ?? 'other';
+
+/**
+ * A Bonus given in a report's span (#1063): when, to whom, how much and why; where it came from, the promotion's name for
+ * one, and who gave it: the staff member by hand, the super admin who approved a promotion's, or who logged a high hand.
+ */
+export interface BonusGiven {
+  readonly grantId: string;
+  readonly givenAt: string;
+  readonly memberId: string;
+  readonly fullName: string;
+  readonly memberNumber: number;
+  readonly amount: Paise;
+  readonly reason: string;
+  readonly source: BonusSource;
+  readonly promotionName: string | null;
+  readonly staffName: string | null;
+}
+
+/**
+ * One page of the Bonus given in a report's span (`bonus_given_page`), newest first unless the view says otherwise, sorted,
+ * searched and filtered on the server like the report's other lists; the span is the view's scope.
+ */
+export function useBonusGivenPage(span: ReportSpan, view: ScopedView | null) {
+  const { client } = useRivrData();
+  return useListPage({
+    list: 'bonus_given', venueId: span.venueId, view: scopedTo(span, view),
+    read: (asked) => client.rpc('bonus_given_page', { p_venue_id: span.venueId, p_view: asked }),
+    rowOf: (row): BonusGiven => ({
+      grantId: row.grant_id, givenAt: row.given_at, memberId: row.member_id, fullName: row.full_name, memberNumber: Number(row.member_number),
+      amount: toPaise(row.amount_paise), reason: row.reason, source: bonusSourceOf(row.source),
+      promotionName: row.promotion_name, staffName: row.staff_name,
+    }),
+  });
+}

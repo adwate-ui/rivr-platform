@@ -5,6 +5,7 @@ import { shareOf } from '@rivr/domain/tables';
 import { formatChips, formatDuration, formatNumber, formatRupeesForFile, t } from '@rivr/i18n';
 import { ChoiceChips, Stack, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
+import { BonusGivenList } from './BonusGivenList.tsx';
 import { PlayerVisits } from './PlayerVisits.tsx';
 import { ReportChart, ReportFigures, ReportTable } from './ReportParts.tsx';
 import type { ReportPeriod } from './ReportPeriod.tsx';
@@ -129,6 +130,7 @@ export function BonusReport(props: ReportProps) {
       <ReportChart {...props} report="bonus" />
       <ReportTable {...props} label={t('console.reports.bonusReport.title')} lines={lines} columns={columns} rowKey={(line) => `${line.source}:${line.label ?? ''}`}
         emptyText={t('console.reports.bonusReport.empty')} />
+      <BonusGivenList span={spanOf(props)} periodWords={props.period.words} />
     </Stack>
   );
 }
