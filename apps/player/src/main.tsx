@@ -7,7 +7,9 @@ import { RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { registerSW } from 'virtual:pwa-register';
-import { startInstallWatch, takeUpdateWhenHidden, takeWaitingUpdateAtNewScreens, watchLaunch } from './features/frame/index.ts';
+import {
+  answerNewWorkers, startInstallWatch, takeUpdateWhenHidden, takeWaitingUpdateAtNewScreens, watchForNewVersion, watchLaunch, watchSignInTyping,
+} from './features/frame/index.ts';
 import { routePatternOf } from '@rivr/error-reporting';
 import { router } from './router.tsx';
 
@@ -19,14 +21,16 @@ rememberAttribution(window.location.search);
 
 // The installed app (#16): this visit counted for the install offer, its prompt kept when it comes,
 // and the service worker that keeps the shell for opening offline. An app left open seldom loads a
-// page, so it asks for a new version every hour. One that arrives waits until the page is out of
-// sight, then takes over and reloads it (#252); a closed app opens on it anyway. A phone that opens
-// the app after days starts on the copy it kept: the new one is taken as the app starts, before
-// the first touch or key, or at the next screen (the trial run, 13 Nov).
-const HOUR = 60 * 60 * 1000;
+// page, so it asks for a new version every 10 minutes and whenever the member comes back to it. One that
+// arrives waits until the page is out of sight, then takes over and reloads it (#252); a closed app opens
+// on it anyway. Meanwhile a banner offers Refresh (#1053). A phone that opens the app after days starts on
+// the copy it kept: the new one is taken as the app starts, before the first touch or key, or at the next
+// screen (the trial run, 13 Nov). A new service worker asks whether this version takes new versions itself.
 startInstallWatch();
 watchLaunch();
+watchSignInTyping();
 takeWaitingUpdateAtNewScreens(router);
+answerNewWorkers();
 // Reloaded here, not by the plugin: it reloads only a page a worker already served when it loaded,
 // and a first visit (an iPhone Home Screen app's first launch) would keep the old code.
 const reloadOnNewWorker = () => {
@@ -39,7 +43,7 @@ const updateSW = registerSW({
   // Another window took the new version: this one waits too, until it is out of sight.
   onNeedReload: () => takeUpdateWhenHidden(() => window.location.reload()),
   onRegisteredSW: (_url, registration) => {
-    if (registration) setInterval(() => void registration.update(), HOUR);
+    if (registration) watchForNewVersion(registration);
   },
 });
 

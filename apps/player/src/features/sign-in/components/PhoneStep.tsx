@@ -3,6 +3,7 @@ import { indianMobileSchema, type IndianMobile } from '@rivr/contracts';
 import { useReportFailure, useSignIn } from '@rivr/db';
 import { formatTypedMobile, t } from '@rivr/i18n';
 import { Banner, Button, Captcha, Heading, Inline, Input, StepScreen, Text, useCaptcha, useIsOnline, Wordmark } from '@rivr/ui';
+import type { ReactNode } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { CAPTCHA_SITE_KEY } from '../captcha.ts';
@@ -29,8 +30,9 @@ function LegalLine() {
 /**
  * The first step (decision 0320): the lockup, the motto, then at the foot "Sign in or join", the number after +91, spaced
  * as it is typed, Send code and the legal line. A number the club does not know goes on to join once its code is in.
+ * `banner` is the frame's new-version banner, through the route (#1053).
  */
-export function PhoneStep({ onCodeSent }: { onCodeSent: (phone: IndianMobile) => void }) {
+export function PhoneStep({ onCodeSent, banner }: { onCodeSent: (phone: IndianMobile) => void; banner?: ReactNode }) {
   const { requestCode } = useSignIn();
   const captcha = useCaptcha(CAPTCHA_SITE_KEY);
   const reportFailure = useReportFailure();
@@ -68,6 +70,7 @@ export function PhoneStep({ onCodeSent }: { onCodeSent: (phone: IndianMobile) =>
         </>
       }
     >
+      {banner}
       {isOnline ? null : <Banner>{t('player.signIn.offline')}</Banner>}
       <Wordmark size="lg" withTagline withMotto align="center" />
     </StepScreen>

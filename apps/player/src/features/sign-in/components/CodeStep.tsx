@@ -3,6 +3,7 @@ import { signInCodeSchema, type IndianMobile } from '@rivr/contracts';
 import { useSignIn, type SignInFailure } from '@rivr/db';
 import { formatMobile, t } from '@rivr/i18n';
 import { Banner, Button, CodeInput, Stack, StepScreen, useIsOnline } from '@rivr/ui';
+import type { ReactNode } from 'react';
 import { Controller, useForm, useWatch, type Control } from 'react-hook-form';
 import { z } from 'zod';
 import { FAILURE_COPY } from './failureCopy.ts';
@@ -24,16 +25,26 @@ function CodeField({ control, error, onComplete }: { control: Control<z.input<ty
  * The second step (decision 0320): Back, "Enter the code", where it went (by SMS, decision 0679), six cells that go on
  * by themselves once full, Verify, and a new code once the minute is up. The phone's offer to fill the code from a message
  * still works (`autocomplete="one-time-code"`); WebOTP is not used, as it reads only SMS. With no connection it says so
- * and holds the code and a new one back (F-175).
+ * and holds the code and a new one back (F-175). `banner` is the frame's new-version banner and `onRefused` its check for
+ * one, through the route (#1053).
  */
-export function CodeStep({ phone, onBack, onSignedIn }: { phone: IndianMobile; onBack: () => void; onSignedIn: () => void }) {
+interface CodeStepProps {
+  phone: IndianMobile;
+  onBack: () => void;
+  onSignedIn: () => void;
+  banner?: ReactNode;
+  onRefused?: (() => void) | undefined;
+}
+
+export function CodeStep({ phone, onBack, onSignedIn, banner, onRefused }: CodeStepProps) {
   const { verifyCode } = useSignIn();
   const isOnline = useIsOnline();
   const form = useForm<z.input<typeof codeForm>>({ resolver: zodResolver(codeForm), defaultValues: { code: '' } });
-  // A code refused leaves the cells empty for the next, its reason kept beneath them.
+  // A code refused leaves the cells empty, its reason beneath them, and asks for a new version (`onRefused`, #1053).
   const fail = (failure: SignInFailure) => {
     form.setError('code', { type: 'server', message: t(FAILURE_COPY[failure]) });
     form.resetField('code', { keepError: true });
+    onRefused?.();
   };
 
   const verify = form.handleSubmit(async ({ code }) => {
@@ -60,6 +71,7 @@ export function CodeStep({ phone, onBack, onSignedIn }: { phone: IndianMobile; o
       footer={null}
     >
       <Stack gap={6}>
+        {banner}
         {isOnline ? null : <Banner>{t('player.signIn.offlineCode')}</Banner>}
         <CodeField control={form.control} error={error} onComplete={check} />
         <Button variant="primary" size="tall" type="submit" fullWidth isDisabled={!hasSixDigits || !isOnline} isLoading={verifyCode.isPending}>
