@@ -58,11 +58,17 @@ const to = (status: PromotionStatus, more: Partial<Transition> = {}): Transition
   status, opensDraft: false, endsPrevious: false, rejectedReason: null, ...more,
 });
 
+/** A version is submitted once simulated on its very terms (decision 0471); a text promotion gives nothing to simulate (#1064). */
+function submitRefusal(state: VersionState): TransitionError | null {
+  if (state.terms.reward.kind === 'text') return null;
+  return state.simulatedTerms !== null && sameTerms(state.simulatedTerms, state.terms) ? null : 'needs_simulation';
+}
+
 /** What one action asks beyond its status and permission. */
 function actionRefusal(state: VersionState, action: PromotionAction, actor: Actor): TransitionError | null {
   switch (action.kind) {
     case 'submit':
-      return state.simulatedTerms !== null && sameTerms(state.simulatedTerms, state.terms) ? null : 'needs_simulation';
+      return submitRefusal(state);
     case 'approve':
       return state.authorId === actor.staffId ? 'own_promotion' : null;
     case 'reject':

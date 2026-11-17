@@ -20,6 +20,11 @@ describe('transition', () => {
     expect(take({ terms: edited }, { kind: 'submit' }, MANAGER)).toEqual({ ok: false, error: 'needs_simulation' });
   });
 
+  it('submits a text promotion with no simulation, as it gives nothing', () => {
+    const text = buildPromotionTerms({ reward: { kind: 'text', words: 'Free mocktails at every table' }, limits: { perMember: 'none' } });
+    expect(take({ terms: text, simulatedTerms: null }, { kind: 'submit' }, MANAGER).ok).toBe(true);
+  });
+
   it('approves with promotions.approve, never by its author', () => {
     const waiting = { status: 'awaiting_approval' as const, authorId: 'meera' };
     expect(take(waiting, { kind: 'approve', today: '2026-11-20' }, MANAGER)).toEqual({ ok: false, error: 'needs_permission' });

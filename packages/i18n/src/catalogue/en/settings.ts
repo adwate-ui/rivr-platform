@@ -122,6 +122,9 @@ export const settings = {
   invoicePrefix: 'Invoice prefix',
   invoicePrefixHint: 'Up to six capital letters, digits or hyphens, as RIVR in RIVR/S26/41.',
   alertWhatsapp: 'Alert WhatsApp number',
+  /** Every alert by email too (#1066). */
+  alertEmail: { on: 'Also send alerts by email', onHint: 'Sent to these addresses as well as the alert number.', addresses: 'Alert email addresses',
+    addressesHint: 'Up to five, one a line.', invalid: 'Up to five addresses, one a line. At least one while email alerts are on.' },
   contactPhone: 'Call number',
   contactWhatsapp: 'WhatsApp number',
   contactHint: '+91 and ten digits. Empty hides it.',

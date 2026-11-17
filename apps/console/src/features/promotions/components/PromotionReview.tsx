@@ -95,7 +95,7 @@ export function PromotionReview({ venueId, names, actor, view, onDone }: Promoti
           <Stack gap={4}>
             <SummaryCards title={name} core={waiting.terms} names={names.names}
               before={live?.terms ? { label: t('console.promotions.review.runningNow', { version: live.version }), core: live.terms } : undefined} />
-            <FreshSimulation waiting={waiting} />
+            {waiting.terms?.reward.kind === 'text' ? <Text tone="muted">{t('console.promotions.builder.textKind.simulation')}</Text> : <FreshSimulation waiting={waiting} />}
             <DecisionPanel venueId={venueId} waiting={waiting} actor={actor} onDone={onDone} />
           </Stack>
         </Box>

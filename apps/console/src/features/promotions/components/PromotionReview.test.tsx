@@ -60,6 +60,13 @@ describe("the approver's view (console v3)", () => {
     expect(screen.getByText('Version 2, submitted by Ishita Bose, Tue 3 Nov, 14:30.')).toBeDefined();
   });
 
+  it('replays nothing for a text promotion, which gives nothing', () => {
+    const text = { ...TUESDAY, reward: { kind: 'text' as const, words: 'Free mocktails at every table' }, limits: { perMember: 'none' as const } };
+    const { bodiesOf } = renderReview([version({ id: 'v3', version: 1, status: 'awaiting_approval', terms: text })]);
+    expect(screen.getByText('Nothing to simulate: a text promotion gives nothing.')).toBeDefined();
+    expect(bodiesOf('promotion_version_replay')).toEqual([]);
+  });
+
   it('replays last week afresh for the approver, never showing the figures stored with the version', async () => {
     const { bodiesOf } = renderReview([WAITING, version({})]);
     // Two seats at 1,500: 3,000 bonus chips; the stored 12,000 is the author's browser's.

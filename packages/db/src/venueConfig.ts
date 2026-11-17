@@ -29,6 +29,9 @@ export interface VenueConfig {
   readonly signatoryDesignation: string | null;
   /** The venue's logo in the public brand bucket (#397), or null until one is uploaded. */
   readonly logoUrl: string | null;
+  /** Every alert by email too, to these addresses (#1066). */
+  readonly alertEmailOn: boolean;
+  readonly alertEmails: readonly string[];
 }
 
 /** Why a logo did not go through: not a PNG, over 1 MB, the role does not configure the venue, or anything else. */
@@ -70,6 +73,7 @@ export function useVenueConfig(venueId: string) {
         contactPhone: data.contact_phone, contactWhatsapp: data.contact_whatsapp,
         sacClubServices: data.sac_club_services, signatoryName: data.signatory_name, signatoryDesignation: data.signatory_designation,
         logoUrl: data.logo_path === null ? null : client.storage.from(BRAND_BUCKET).getPublicUrl(data.logo_path).data.publicUrl,
+        alertEmailOn: data.alert_email_on ?? false, alertEmails: data.alert_emails ?? [],
       };
     },
   });
@@ -96,6 +100,7 @@ export function useVenueConfigActions(venueId: string) {
         contact_phone: change.contactPhone, contact_whatsapp: change.contactWhatsapp,
         sac_club_services: change.sacClubServices, signatory_name: change.signatoryName,
         signatory_designation: change.signatoryDesignation,
+        alert_email_on: change.alertEmailOn, alert_emails: change.alertEmails,
       }).eq('venue_id', venueId).select('venue_id');
       await reload(queryKeys.venueConfig(userId ?? 'signed-out', venueId));
       return outcome(error, data);

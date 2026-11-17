@@ -26,6 +26,8 @@ const reward: fc.Arbitrary<Reward> = fc.oneof(
   chips.map((amount): Reward => ({
     kind: 'high_hand', hands: [{ hand: 'four_of_a_kind', chips: amount }], rules: { bothHoleCards: true, shownAtShowdown: false, minPlayersDealt: 4 },
   })),
+  // Words on a card (#1064): weighed for no event, so every event is another's.
+  fc.constant<Reward>({ kind: 'text', words: 'Free mocktails at every table' }),
 );
 
 // A week of the launch fortnight, by five members at two tables.

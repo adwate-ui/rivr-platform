@@ -15,6 +15,15 @@ const buildPromotionTerms = (overrides: Partial<PromotionTerms>): PromotionTerms
 
 const rewardLine = (reward: Reward) => describePromotion(buildPromotionTerms({ reward })).split(', for ')[0];
 
+describe('a text promotion', () => {
+  it('says its words on the card and in the summary, and that it gives nothing', () => {
+    const text = buildPromotionTerms({ reward: { kind: 'text', words: 'Free mocktails at every table' } });
+    expect(cardWords(text).detail).toBe('Free mocktails at every table');
+    expect(describePromotion(text)).toContain('Free mocktails at every table, for ');
+    expect(describePromotion(text)).toContain('. Gives nothing. Starts ');
+  });
+});
+
 describe('describePromotion', () => {
   it('says the whole promotion in one line, in chips', () => {
     const tuesday = buildPromotionTerms({

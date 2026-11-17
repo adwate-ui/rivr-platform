@@ -4,7 +4,7 @@ import { t } from '@rivr/i18n';
 /** A reward's kind, as the builder's first section offers them. */
 export type RewardKind = Reward['kind'];
 
-export const REWARD_KINDS: readonly RewardKind[] = ['seat_bonus', 'hours_bonus', 'bonus_chips', 'waitlist_priority', 'high_hand'];
+export const REWARD_KINDS: readonly RewardKind[] = ['seat_bonus', 'hours_bonus', 'bonus_chips', 'waitlist_priority', 'high_hand', 'text'];
 
 /** A high hand's listed hand, as typed: the hand and its Bonus. */
 export interface HandFields {
@@ -71,6 +71,8 @@ export interface BuilderForm {
   readonly channels: Channels;
   readonly rulesText: string;
   readonly link: string;
+  /** A text promotion's card words (#1064): all it says, as it gives nothing. */
+  readonly words: string;
 }
 
 export const EVERY_DAY: readonly number[] = [1, 2, 3, 4, 5, 6, 7];
@@ -89,7 +91,7 @@ export function blankForm(today: string): BuilderForm {
     name: '', kind: 'seat_bonus', firstN: '', seatMode: 'fixed', seatTiers: [{ count: '10', chips: '1000' }],
     chips: '1000', afterHours: '4', hoursMode: 'steps', moreSteps: [], everyHours: '2', timesPerVisit: '', bonusOn: 'visit', hands: FIRST_HANDS, bothHoleCards: true, shownAtShowdown: true, minPlayers: '4', stakes: 'all', tableIds: undefined, tiers: 'all',
     audience: 'everyone', days: [5, 6], from: '20:00', to: '02:00', startsOn: today, endsOn: '', perMember: 'per_visit', timesPerMember: '',
-    maxMembersPerDay: '', budgetChips: '', budgetPeriod: 'whole', maxGrants: undefined, channels: { playerApp: true, tv: true, website: false, whatsapp: false }, rulesText: '', link: '',
+    maxMembersPerDay: '', budgetChips: '', budgetPeriod: 'whole', maxGrants: undefined, channels: { playerApp: true, tv: true, website: false, whatsapp: false }, rulesText: '', link: '', words: '',
   };
 }
 
@@ -122,6 +124,8 @@ function rewardFields(reward: Reward): Partial<BuilderForm> {
         hands: reward.hands.map((one) => ({ hand: one.hand, chips: String(one.chips) })), bothHoleCards: reward.rules.bothHoleCards,
         shownAtShowdown: reward.rules.shownAtShowdown, minPlayers: String(reward.rules.minPlayersDealt),
       };
+    case 'text':
+      return { words: reward.words };
     default:
       return {};
   }

@@ -96,9 +96,12 @@ export const promotions = {
       bonus_chips: { label: 'Visit or referral', description: 'Fixed Bonus on a visit or referral' },
       waitlist_priority: { label: 'Waitlist priority', description: 'Front of every waitlist' },
       high_hand: { label: 'High hand', description: 'A bonus for each listed hand' },
+      text: { label: 'Text', description: 'Words on a card, no Bonus' },
     },
+    /** A text promotion (#1064): its Limits, and in place of the simulation. */
+    textKind: { limits: 'No limits: it gives nothing.', simulation: 'Nothing to simulate: a text promotion gives nothing.' },
     fields: {
-      chips: 'Amount',
+      chips: 'Amount', words: 'Card words',
       chipsSuffix: 'Bonus',
       firstN: 'On the first',
       firstNSuffix: 'seats at each table',
@@ -172,7 +175,7 @@ export const promotions = {
     },
     /** Under a field the terms cannot take, after Save draft, Simulate or Submit. */
     errors: {
-      name: 'Name it in 3 to 80 characters.',
+      name: 'Name it in 3 to 80 characters.', words: 'Write the card in 1 to 200 characters.',
       chips: 'Whole 50s, from 50.',
       tierList: 'Each tier: 1 to 10,000 members and whole 50s. 1 to 5 tiers.',
       firstN: '1 to 100, or blank for a visit’s first seat.',

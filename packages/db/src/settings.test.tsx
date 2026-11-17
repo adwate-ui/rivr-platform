@@ -151,12 +151,14 @@ describe('venue configuration (#33)', () => {
     bank_account_name: null, bank_account_number: null, bank_ifsc: null, invoice_prefix: 'RIVR',
     alert_whatsapp: '+919876543210', logo_path: null, created_at: '', updated_at: '',
     sac_club_services: '999692', signatory_name: 'Rhea Kapoor', signatory_designation: 'Partner',
+    alert_email_on: true, alert_emails: ['owner@rivr.in'],
   };
 
   it('reads the configuration for a super admin, and nothing for anyone else', async () => {
     const { result } = renderSettings({ 'GET /venue_config_detail': { body: DETAIL } });
     await waitFor(() => expect(result.current.config.data).toMatchObject({
       legalName: 'RIVR Gaming Pvt Ltd', tan: 'DELR12345E', sacClubServices: '999692', signatoryName: 'Rhea Kapoor',
+      alertEmailOn: true, alertEmails: ['owner@rivr.in'],
     }));
     expect(result.current.config.data?.logoUrl).toBeNull();
     cleanup();
@@ -183,11 +185,12 @@ describe('venue configuration (#33)', () => {
       legalName: 'RIVR', gstin: null, tan: null, address: 'Gurugram', upiPayeeName: null, upiVpa: null, bankName: null, bankAccountName: null,
       bankAccountNumber: null, bankIfsc: null, invoicePrefix: 'RIVR', alertWhatsapp: null,
       contactPhone: '+911244000000', contactWhatsapp: null, sacClubServices: '999692', signatoryName: null, signatoryDesignation: null,
+      alertEmailOn: true, alertEmails: ['owner@rivr.in', 'gm@rivr.in'],
     };
     const saved = renderSettings({ 'PATCH /venue_config': { body: [{ venue_id: VENUE }] } });
     expect(await outcomeOf(() => saved.result.current.configActions.save.mutateAsync(change))).toEqual({ ok: true, value: null });
     expect(saved.calls.find((call) => call.method === 'PATCH')?.body).toMatchObject({ legal_name: 'RIVR', tan: null, sac_club_services: '999692',
-      contact_phone: '+911244000000', contact_whatsapp: null });
+      contact_phone: '+911244000000', contact_whatsapp: null, alert_email_on: true, alert_emails: ['owner@rivr.in', 'gm@rivr.in'] });
     cleanup();
     const hidden = renderSettings({ 'PATCH /venue_config': { body: [] } });
     expect(await outcomeOf(() => hidden.result.current.configActions.save.mutateAsync(change))).toEqual({ ok: false, error: 'not_allowed' });

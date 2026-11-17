@@ -59,6 +59,8 @@ export const rewardSchema = z.union([
   z.strictObject({ kind: z.literal('waitlist_priority') }),
   // Paid at once, every time a listed hand is hit and the floor logs it (redesign RD-22).
   z.strictObject({ kind: z.literal('high_hand'), hands: highHands, rules: highHandRules }),
+  // Words on a card alone (#1064, the owner, 17 Nov): never a grant, so nothing to simulate and nothing to approve as Bonus.
+  z.strictObject({ kind: z.literal('text'), words: z.string().trim().min(1).max(200) }),
 ]);
 export type Reward = z.infer<typeof rewardSchema>;
 
@@ -144,7 +146,10 @@ export const promotionTermsSchema = z.strictObject({
   .refine(({ reward, limits }) => reward.kind !== 'high_hand'
     || (limits.perMember === 'none' && limits.maxMembersPerDay === undefined && limits.maxGrants === undefined),
     { path: ['limits', 'perMember'] })
-  .refine(({ reward, limits }) => reward.kind !== 'high_hand' || limits.budgetChips !== undefined, { path: ['limits', 'budgetChips'] });
+  .refine(({ reward, limits }) => reward.kind !== 'high_hand' || limits.budgetChips !== undefined, { path: ['limits', 'budgetChips'] })
+  // A text promotion gives nothing (#1064), so it has no limits.
+  .refine(({ reward, limits }) => reward.kind !== 'text' || (limits.perMember === 'none' && Object.keys(limits).length === 1),
+    { path: ['limits', 'perMember'] });
 export type PromotionTerms = z.infer<typeof promotionTermsSchema>;
 
 /** A version's status: drafted, waiting for a second person, approved for a later day, running, paused or over. */

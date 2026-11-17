@@ -44,6 +44,24 @@ describe('the promotion builder (console v3)', () => {
     expect(submitButton()).toHaveProperty('disabled', true);
   });
 
+  it('builds a text promotion: its card words and no limits, submitted with no simulation', async () => {
+    const { bodiesOf } = renderBuilder(NEW);
+    fireEvent.change(screen.getByRole('textbox', { name: 'Name members see' }), { target: { value: 'Mocktail night' } });
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Reward' })).getByRole('radio', { name: 'Text' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Card words' }), { target: { value: 'Free mocktails at every table' } });
+    expect(screen.getByText('No limits: it gives nothing.')).toBeDefined();
+    expect(screen.getByText('Nothing to simulate: a text promotion gives nothing.')).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Simulate' })).toBeNull();
+    expect(submitButton()).toHaveProperty('disabled', false);
+    fireEvent.click(submitButton());
+    expect(await screen.findByText('Mocktail night sent for approval')).toBeDefined();
+    expect(bodiesOf('save_promotion_draft')[0]).toMatchObject({
+      p_draft: { terms: { reward: { kind: 'text', words: 'Free mocktails at every table' }, limits: { perMember: 'none' } }, detail: 'Free mocktails at every table' },
+    });
+    expect(bodiesOf('record_promotion_simulation')).toEqual([]);
+    expect(bodiesOf('submit_promotion_version')).toEqual([{ p_version_id: 'v1' }]);
+  });
+
   it('submits the simulated draft for approval, says so and goes back to the list', async () => {
     const { bodiesOf, onDone } = renderBuilder(NEW);
     fireEvent.change(screen.getByRole('textbox', { name: 'Name members see' }), { target: { value: 'Weekend seat bonus' } });

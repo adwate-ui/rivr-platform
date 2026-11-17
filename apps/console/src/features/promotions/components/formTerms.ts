@@ -6,7 +6,7 @@ import type { BuilderForm } from './builderForm.ts';
 export type FormField =
   | 'name' | 'firstN' | 'chips' | 'afterHours' | 'everyHours' | 'timesPerVisit' | 'steps' | 'tierList'
   | 'hands' | 'minPlayers'
-  | 'who' | 'days' | 'from' | 'to' | 'startsOn' | 'endsOn' | 'timesPerMember' | 'maxMembersPerDay' | 'budgetChips' | 'rulesText' | 'link';
+  | 'who' | 'days' | 'from' | 'to' | 'startsOn' | 'endsOn' | 'timesPerMember' | 'maxMembersPerDay' | 'budgetChips' | 'rulesText' | 'link' | 'words';
 
 /**
  * The builder read as terms: the whole version's when every field holds (`terms`), the four parts a summary and a
@@ -59,6 +59,8 @@ function rewardOf(form: BuilderForm): Record<string, unknown> {
         kind: form.kind, hands: form.hands.map((one) => defined({ hand: one.hand, chips: numberOf(one.chips) })),
         rules: defined({ bothHoleCards: form.bothHoleCards, shownAtShowdown: form.shownAtShowdown, minPlayersDealt: numberOf(form.minPlayers) }),
       };
+    case 'text':
+      return { kind: form.kind, words: form.words.trim() };
     default:
       return { kind: form.kind };
   }
@@ -67,7 +69,7 @@ function rewardOf(form: BuilderForm): Record<string, unknown> {
 // The reward's own keys and the field each is typed in.
 const REWARD_FIELDS: Readonly<Record<string, FormField>> = {
   firstNSeatsPerTable: 'firstN', afterMinutes: 'afterHours',
-  hands: 'hands', rules: 'minPlayers', everyMinutes: 'everyHours', timesPerVisit: 'timesPerVisit', steps: 'steps', tiers: 'tierList',
+  hands: 'hands', rules: 'minPlayers', everyMinutes: 'everyHours', timesPerVisit: 'timesPerVisit', steps: 'steps', tiers: 'tierList', words: 'words',
 };
 
 /** The mode of the shape the fields make: a play-time bonus's set steps or every so often; none for the rest. */
@@ -112,13 +114,10 @@ function scheduleOf(form: BuilderForm): Record<string, unknown> {
   });
 }
 
-/**
- * The limits as typed (decision 0499): up to N times only with a period, and a month only with a budget or most grants
- * to count in it, so a choice the other fields make meaningless is left out rather than refused.
- */
-function limitsOf(form: BuilderForm) {
-  const budgetChips = numberOf(form.budgetChips);
-  const hasBudget = budgetChips !== undefined || form.maxGrants !== undefined;
+/** The limits a kind sets itself, or null for the rest, whose limits are typed. */
+function fixedLimitsOf(form: BuilderForm, budgetChips: number | undefined) {
+  // A text promotion gives nothing (#1064), so it has no limits.
+  if (form.kind === 'text') return { perMember: 'none' as const };
   // A seat bonus in tiers is once a member, its claims counted over the promotion's life (decision 0580).
   if (form.kind === 'seat_bonus' && form.seatMode === 'tiers') {
     return defined({ perMember: 'once' as const, maxMembersPerDay: numberOf(form.maxMembersPerDay), budgetChips, maxGrants: form.maxGrants });
@@ -127,6 +126,18 @@ function limitsOf(form: BuilderForm) {
   if (form.kind === 'high_hand') {
     return defined({ perMember: 'none' as const, budgetChips, budgetPeriod: form.budgetPeriod === 'month' && budgetChips !== undefined ? 'month' as const : undefined });
   }
+  return null;
+}
+
+/**
+ * The limits as typed (decision 0499): up to N times only with a period, and a month only with a budget or most grants
+ * to count in it, so a choice the other fields make meaningless is left out rather than refused.
+ */
+function limitsOf(form: BuilderForm) {
+  const budgetChips = numberOf(form.budgetChips);
+  const fixed = fixedLimitsOf(form, budgetChips);
+  if (fixed !== null) return fixed;
+  const hasBudget = budgetChips !== undefined || form.maxGrants !== undefined;
   return defined({
     perMember: form.perMember, timesPerMember: form.perMember === 'none' ? undefined : numberOf(form.timesPerMember),
     maxMembersPerDay: numberOf(form.maxMembersPerDay), budgetChips, maxGrants: form.maxGrants,

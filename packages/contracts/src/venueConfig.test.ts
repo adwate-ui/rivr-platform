@@ -7,6 +7,7 @@ const TYPED = {
   alertWhatsapp: '98765 43210',
   contactPhone: '0124 400 0000', contactWhatsapp: '',
   sacClubServices: ' 999692 ', signatoryName: ' Rhea Kapoor ', signatoryDesignation: 'Partner',
+  alertEmailOn: false, alertEmails: '',
 };
 
 describe('the venue configuration form (#33)', () => {
@@ -25,6 +26,14 @@ describe('the venue configuration form (#33)', () => {
       { gstin: '06ABCDE1234F1Z' }, { invoicePrefix: 'RIVRGGN' },
       { legalName: ' ' }, { alertWhatsapp: '12345' }, { contactWhatsapp: '1244000000' }, { contactPhone: '87965' }, { sacClubServices: '99969' }, { sacClubServices: 'SAC999' },
     ]) {
+      expect(venueConfigSchema.safeParse({ ...TYPED, ...wrong }).success).toBe(false);
+    }
+  });
+
+  it('takes up to five alert email addresses, one a line or by commas, each once, and one at least while email alerts are on', () => {
+    expect(venueConfigSchema.parse({ ...TYPED, alertEmailOn: true, alertEmails: ' Owner@Rivr.in \n\ngm@rivr.in, owner@rivr.in ' }))
+      .toMatchObject({ alertEmailOn: true, alertEmails: ['owner@rivr.in', 'gm@rivr.in'] });
+    for (const wrong of [{ alertEmailOn: true, alertEmails: ' ' }, { alertEmails: 'not an address' }, { alertEmails: 'a@x.in,b@x.in,c@x.in,d@x.in,e@x.in,f@x.in' }]) {
       expect(venueConfigSchema.safeParse({ ...TYPED, ...wrong }).success).toBe(false);
     }
   });

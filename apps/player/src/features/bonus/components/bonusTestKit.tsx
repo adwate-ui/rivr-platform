@@ -13,10 +13,14 @@ export const BONUS_LINES = [
 ];
 /**
  * What the API answers: the balance in paise, `down` for a failed read, `none` for someone who is no member; the lines;
- * the days the club's "Bonus expires" setting gives (none set unless given); and the Bonus each a live referral promotion
- * gives, in paise (1,000 unless given; null with none live).
+ * the days the club's "Bonus expires" setting gives (none set unless given); the Bonus each a live referral promotion
+ * gives, in paise (1,000 unless given; null with none live); and the card's line.
  */
-interface BonusReplies { balance: number | 'down' | 'none'; lines: readonly unknown[]; isEarlierDown?: boolean; expiryDays?: number | null; referralBonus?: number | null }
+interface BonusReplies {
+  balance: number | 'down' | 'none'; lines: readonly unknown[]; isEarlierDown?: boolean; expiryDays?: number | null; referralBonus?: number | null;
+  /** The card's line as Content sets it (#1065); none set unless given. */
+  line?: string | null;
+}
 
 const DOWN = () => Response.json({ code: 'XX000', message: 'down' }, { status: 500 });
 
@@ -28,7 +32,7 @@ function bonusReply(url: string, body: string, bonus: BonusReplies, historyAsked
   }
   if (!url.includes('/rpc/my_bonus')) return undefined;
   if (bonus.balance === 'down') return DOWN();
-  return Response.json(bonus.balance === 'none' ? [] : [{ bonus_paise: bonus.balance, expiry_days: bonus.expiryDays ?? null }]);
+  return Response.json(bonus.balance === 'none' ? [] : [{ bonus_paise: bonus.balance, expiry_days: bonus.expiryDays ?? null, bonus_line: bonus.line ?? null }]);
 }
 
 /** Meera signed in on Bonus, with Refer a friend; `historyAsked` keeps each read of her history. */

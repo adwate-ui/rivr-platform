@@ -9,15 +9,19 @@ import { ReferralSection } from './ReferralSection.tsx';
 // The tab's copy loads with the tab, so the app's first load carries none of it (#344).
 registerMessages({ playerBonus });
 
-/**
- * The line under the balance, which follows the club's "Bonus expires" setting (redesign RD-20; `bonusLastsDays` in
- * @rivr/domain/bonus reads it): it never expires, or expires after the days set.
- */
-function balanceLine(expiryDays: number | null): string {
+/** Whether Bonus expires, as the club's "Bonus expires" setting says (redesign RD-20; `bonusLastsDays` in @rivr/domain/bonus). */
+function expirySentence(expiryDays: number | null): string {
   const days = bonusLastsDays(expiryDays);
-  if (days === null) return t('playerBonus.line');
-  return days === 1 ? t('playerBonus.lineExpiresOne') : t('playerBonus.lineExpires', { days: formatNumber(days) });
+  if (days === null) return t('playerBonus.neverExpires');
+  return days === 1 ? t('playerBonus.expiresOne') : t('playerBonus.expires', { days: formatNumber(days) });
 }
+
+/** The club's line as a sentence, so the expiry sentence after it starts afresh: `Use it tonight` is `Use it tonight.`. */
+const asSentence = (line: string) => (/[.!?…]$/.test(line) ? line : `${line}.`);
+
+/** The line under the balance: what Bonus is for, as Content sets it or the app's own (#1065), then whether it expires. */
+const balanceLine = (expiryDays: number | null, line: string | null) =>
+  t('playerBonus.lineWith', { line: asSentence(line ?? t('common.bonusLineDefault')), expiry: expirySentence(expiryDays) });
 
 /**
  * Bonus (redesign of 15 Nov 2026): the member's balance and what it is for, its history, the newest first, behind
@@ -36,7 +40,7 @@ export function BonusScreen() {
       <Stack gap={8}>
         <FeatureGate access={bonus}>
           <Stack gap={6}>
-            <BalanceTile look="hero" figure={formatChips(mine.data.balance)} label={t('playerBonus.balance')} line={balanceLine(mine.data.expiryDays)} />
+            <BalanceTile look="hero" figure={formatChips(mine.data.balance)} label={t('playerBonus.balance')} line={balanceLine(mine.data.expiryDays, mine.data.line)} />
             <BonusHistory />
           </Stack>
         </FeatureGate>

@@ -14,7 +14,7 @@ export type FindAlertNumber = (venueId: string, alertId: string) => Promise<Indi
 export const ALERT_EVENT_TYPES = ['alert.raised'] as const;
 
 /** An alert's kind in words, as the owner's message says it: never its details. */
-function kindInWords(kind: string): string {
+export function kindInWords(kind: string): string {
   const words = Object.entries(alerts.kinds).find(([known]) => known === kind)?.[1];
   return words ?? alerts.other;
 }

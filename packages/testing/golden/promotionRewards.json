@@ -368,6 +368,28 @@
       }
     },
     {
+      "description": "A text promotion gives nothing on a visit.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"text\", \"words\": \"Ladies' night: free mocktails\"}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": null, \"stake\": null, \"kind\": \"visit\", \"visitInMonth\": 1}"
+      },
+      "expected": {
+        "refusal": "other_event"
+      }
+    },
+    {
+      "description": "A text promotion gives nothing on a seat.",
+      "operation": "grant",
+      "inputs": {
+        "reward": "{\"kind\": \"text\", \"words\": \"Ladies' night: free mocktails\"}",
+        "event": "{\"key\": \"e1\", \"at\": \"2026-11-17T21:00:00+05:30\", \"memberId\": \"m1\", \"visitId\": \"v1\", \"tableId\": \"t1\", \"stake\": \"nlh_50_100\", \"kind\": \"seated\", \"isFirstOfVisit\": true}"
+      },
+      "expected": {
+        "refusal": "other_event"
+      }
+    },
+    {
       "description": "A seat bonus is not given for time played.",
       "operation": "grant",
       "inputs": {

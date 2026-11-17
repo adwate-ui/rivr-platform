@@ -68,6 +68,11 @@ describe('Bonus (redesign of 15 Nov)', () => {
     expect(await screen.findByText(line, {}, LATER)).toBeDefined();
   });
 
+  it('says the club\'s own line from Content before whether Bonus expires, as a sentence of its own', async () => {
+    renderBonus({ balance: 125_000, lines: [], expiryDays: 30, line: 'Play it on any table tonight' });
+    expect(await screen.findByText('Play it on any table tonight. Expires after 30 days.', {}, LATER)).toBeDefined();
+  });
+
   it('shows the balance large in cream, under its name, with no icon', async () => {
     renderBonus({ balance: 1_400_000, lines: [] });
     const figure = await screen.findByText('14,000', {}, LATER);

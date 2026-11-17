@@ -80,7 +80,8 @@ export function useBuilderFlow(venueId: string, start: FlowStart, names: Promoti
   const submit = async (terms: PromotionTerms): Promise<Outcome> => {
     const draft = await save(terms);
     if (!draft.ok) return draft;
-    const ready = draft.value.hasSimulation ? ok(draft.value.versionId) : await simulate(terms);
+    // A text promotion gives nothing to simulate (#1064).
+    const ready = draft.value.hasSimulation || terms.reward.kind === 'text' ? ok(draft.value.versionId) : await simulate(terms);
     if (!ready.ok) return ready;
     const sent = await actions.submit.mutateAsync(ready.value);
     return sent.ok ? ok(ready.value) : sent;

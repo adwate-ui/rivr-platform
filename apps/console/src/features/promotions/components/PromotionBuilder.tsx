@@ -45,10 +45,13 @@ function shownOf(simulation: SimulationOnTerms | null, core: Terms | null): Simu
   return { kind: simulation.terms.reward.kind, result: simulation.result, period };
 }
 
-/** Whether Submit for approval may be pressed: the status machine's own rule, a simulation on these very terms (decision 0471). */
+/**
+ * Whether Submit for approval may be pressed: the status machine's own rule, a simulation on these very terms (decision
+ * 0471), or none for a text promotion, which gives nothing (#1064).
+ */
 function maySubmit(simulation: SimulationOnTerms | null, core: Terms | null, actor: Actor): boolean {
-  if (simulation === null || core === null) return false;
-  return transition({ status: 'draft', authorId: null, terms: core, simulatedTerms: simulation.terms }, { kind: 'submit' }, actor).ok;
+  if (core === null) return false;
+  return transition({ status: 'draft', authorId: null, terms: core, simulatedTerms: simulation?.terms ?? null }, { kind: 'submit' }, actor).ok;
 }
 
 type Step = (terms: PromotionTerms) => Promise<Result<string, PromotionVersionFailure>>;
@@ -105,8 +108,10 @@ export function PromotionBuilder({ venueId, names, actor, start, onDone }: Promo
         <Box isSticky>
           <Stack gap={4}>
             <SummaryCards title={title} core={reading.core} names={names.names} />
-            <SimulationCard shown={shownOf(flow.simulation, reading.core)} isPending={flow.isSimulating}
-              onSimulate={() => void builder.run(flow.simulate)} emptyText={t('console.promotions.simulation.hint')} />
+            {form.kind === 'text' ? <Text tone="muted">{t('console.promotions.builder.textKind.simulation')}</Text> : (
+              <SimulationCard shown={shownOf(flow.simulation, reading.core)} isPending={flow.isSimulating}
+                onSimulate={() => void builder.run(flow.simulate)} emptyText={t('console.promotions.simulation.hint')} />
+            )}
             <Grid columns={2} gap={2}>
               <Button variant="subtle" size="compact" fullWidth isDisabled={flow.isBusy} onClick={() => void builder.run(flow.saveDraft, 'saved')}>
                 {t('console.promotions.builder.saveDraft')}

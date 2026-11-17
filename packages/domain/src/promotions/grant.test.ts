@@ -24,6 +24,7 @@ describe('triggerOf', () => {
     expect(triggerOf({ kind: 'seat_bonus', chips: 1_000 })).toBe('seated');
     expect(triggerOf({ kind: 'hours_bonus', mode: 'every', everyMinutes: 60, chips: 100 })).toBe('hours_step');
     expect(triggerOf({ kind: 'waitlist_priority' })).toBe('visit');
+    expect(triggerOf({ kind: 'text', words: 'Free mocktails at every table' })).toBeNull();
   });
 
   it('gives a high hand bonus for a high hand, and only for one', () => {
