@@ -109,15 +109,15 @@ function TablesPeek({ tables }: { tables: readonly FloorTable[] }) {
 }
 
 /** The header and the banners under it, at the top of every standing. */
-function TonightTop({ seat, now, shownAt, hasRefreshFailed, onRetry, onAddTime }: {
-  seat: MySeat | null; now: Date; shownAt: number; hasRefreshFailed: boolean; onRetry: () => void; onAddTime: () => void;
+function TonightTop({ seat, now, shownAt, hasRefreshFailed, onRetry, onAddTime, banner }: {
+  seat: MySeat | null; now: Date; shownAt: number; hasRefreshFailed: boolean; onRetry: () => void; onAddTime: () => void; banner: ReactNode;
 }) {
   const left = seat === null || !seat.hasCallTime ? 0 : callSecondsLeft(seat, now);
   return (
     <Stack gap={2}>
       <TonightHeader seat={seat} now={now} />
       <Box paddingX={5}>
-        <TonightBanners shownAt={shownAt} hasRefreshFailed={hasRefreshFailed} onRetry={onRetry}
+        <TonightBanners shownAt={shownAt} hasRefreshFailed={hasRefreshFailed} onRetry={onRetry} newVersion={banner}
           callEnding={isCallTimeEnding(left) ? { minutes: minutesLeftToSay(left), onAddTime } : undefined} />
       </Box>
     </Stack>
@@ -156,9 +156,10 @@ function HomeNotReady({ isPending, onRetry }: { isPending: boolean; onRetry: () 
  * the top slot's one card, the offers and the tables, a table opening its join sheet; on a list, their place; called, the
  * seat held for them; seated, the call-time ring and what they do from the seat, then the offers (redesign RD-20).
  * Banners under the header. A first load is a skeleton; a refresh that
- * fails keeps what was shown, under a banner. `offer` is Profile's offer of seat-ready push, through the route.
+ * fails keeps what was shown, under a banner. `offer` is Profile's offer of seat-ready push and `banner` the frame's
+ * new-version banner (#1053), both through the route.
  */
-export function HomeScreen({ offer }: { offer: ReactNode }) {
+export function HomeScreen({ offer, banner }: { offer: ReactNode; banner?: ReactNode }) {
   const tonight = useTonight();
   const [joining, setJoining] = useState<FloorTable | null>(null);
   const [seatSheet, setSeatSheet] = useState<SeatSheet | null>(null);
@@ -174,7 +175,7 @@ export function HomeScreen({ offer }: { offer: ReactNode }) {
   return (
     <Screen title={title} isTitleHidden>
       <TonightTop seat={seat} now={now} shownAt={tonight.tables.dataUpdatedAt}
-        hasRefreshFailed={tonight.hasFailed} onRetry={tonight.retry} onAddTime={openAddTime} />
+        hasRefreshFailed={tonight.hasFailed} onRetry={tonight.retry} onAddTime={openAddTime} banner={banner} />
       <StandingView standing={standing} now={now} offer={offer} onJoin={setJoining} tables={tables} notices={tonight.notices.data ?? []}
         sheet={{ open: seatSheet, set: setSeatSheet }} />
       {standing.kind === 'browsing' ? null : <TablesPeek tables={tables} />}

@@ -36,6 +36,8 @@ export function ConfirmQuestion({ question, confirm, isBusy = false, onConfirm, 
   useEffect(() => {
     const buttons = answers.current;
     const escape = (event: KeyboardEvent) => {
+      // Escape is the question's own: nothing around it, such as a record that closes on Escape, takes it too.
+      if (event.key === 'Escape') event.preventDefault();
       if (event.key === 'Escape' && !isBusy) onCancel();
     };
     buttons?.addEventListener('keydown', escape);

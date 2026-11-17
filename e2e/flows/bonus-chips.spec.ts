@@ -90,7 +90,7 @@ test.describe('Bonus', () => {
     expect(Number(sql(`select private.bonus_in_force('${JAYESH}', now())`))).toBe(before + 50_000);
 
     // Bonus: his balance, and the welcome bonus in his history.
-    await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Bonus' }).click();
+    await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Rewards' }).click();
     await expect(page.getByRole('heading', { name: 'Bonus', level: 1 })).toBeVisible();
     await expect(page.getByText(chips(before + 50_000), { exact: true })).toBeVisible();
     // A line of history: what it was, with its day beneath (redesign RD-20).

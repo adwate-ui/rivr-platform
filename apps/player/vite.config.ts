@@ -42,8 +42,9 @@ const pwa = VitePWA({
     // (@rivr/error-reporting's sentry.ts) is fetched only by a build that reports errors, so a phone never keeps it unasked.
     globIgnores: ['**/*devanagari*', '**/sentry-*.js'],
     navigateFallback: '/index.html',
-    // Web push (#139): public/push-sw.js shows each notification and opens its page when tapped.
-    importScripts: ['push-sw.js'],
+    // Web push (#139): public/push-sw.js shows each notification and opens its page when tapped. public/update-sw.js
+    // reloads a sign-in screen of an app too old to take a new version there itself (#1053).
+    importScripts: ['push-sw.js', 'update-sw.js'],
     // A new version waits until the app takes it, once out of sight, rather than for every window to
     // close: a fix, a security fix above all, reaches an app left open for days within an hour of
     // the member next leaving it. The first version serves the page that installed it at once.

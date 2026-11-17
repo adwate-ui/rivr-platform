@@ -12,6 +12,9 @@ export const playerAlerts = {
   /** Seated, in the call time's last 15 minutes. */
   callEnding: 'Call time ends in {minutes} min',
   addTime: 'Add time',
+  /** A new version of the app is waiting (#1053); Refresh takes it. */
+  newVersion: 'A new version of RIVR is ready.',
+  refresh: 'Refresh',
 } as const;
 
 /** The screen for an address the app does not have. */

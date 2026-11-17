@@ -3,6 +3,8 @@ export const profile = {
   title: 'Profile',
   /** Profile's three groups and their rows (decision 0320). */
   account: 'Account',
+  /** Account's way to put the app on the home screen while it is not there (#1054): the browser's prompt, or the steps. */
+  addToHomeScreen: 'Add to home screen',
   club: 'Club',
   verified: 'Verified',
   /** A member let in by their selfie, whose identity is checked at the club (decision 0502). */

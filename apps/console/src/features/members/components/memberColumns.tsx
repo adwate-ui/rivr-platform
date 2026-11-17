@@ -1,5 +1,5 @@
 import type { MemberAccountStatus, MemberChoices, MemberKycStatus, MemberListRow } from '@rivr/db';
-import { formatChips, formatDate, formatDuration, formatMobile, formatMonthYear, formatNumber, formatRupeesForFile, t } from '@rivr/i18n';
+import { formatChips, formatDate, formatDuration, formatMobile, formatNumber, formatRupeesForFile, t } from '@rivr/i18n';
 import { DotStatus, Text, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
 import { choicesIn } from './memberChoices.ts';
 import type { Tonight } from './tonight.ts';
@@ -93,7 +93,8 @@ function moreColumns(choices: MemberChoices | undefined): readonly DataTableColu
     { key: 'city', share: 0.8, header: t('console.members.city'), priority: 'optional', cell: (row) => row.city ?? t('console.members.notHere'), exportValue: (row) => row.city ?? '', sortValue: (row) => row.city ?? '', filter: 'choice', choices: choicesIn('city', choices) },
     {
       key: 'since', share: 1, header: t('console.members.memberSince'), priority: 'optional', sortValue: (row) => row.memberSince, filter: 'date',
-      cell: (row) => formatMonthYear(new Date(row.memberSince)),
+      // The full date, in the list and its export: `12 Nov 2026` (the owner, 17 Nov; it was the month and year).
+      cell: (row) => formatDate(new Date(row.memberSince)),
     },
   ];
 }

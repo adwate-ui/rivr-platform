@@ -84,7 +84,7 @@ async function topOf(part: Locator): Promise<number> {
  * is live; with it paused, the invite stays and no word of a reward.
  */
 async function bonusFollowsTheClub(page: Page) {
-  await openTab(page, 'Bonus');
+  await openTab(page, 'Rewards');
   await expect(page.getByText('Use with your buy-in. Never expires.')).toBeVisible();
   await expect(page.getByText('1,000 Bonus each. When a friend joins and takes a first seat.')).toBeVisible();
   sql(`insert into public.setting (venue_id, key, subject, value, effective_from, reason)

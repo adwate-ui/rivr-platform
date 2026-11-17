@@ -169,6 +169,7 @@ export * from './SuggestionCard/index.ts';
 export * from './NoticeText/index.ts';
 export * from './NoticeCard/index.ts';
 export * from './ProfileMark/index.ts';
+export * from './ProfileCard/index.ts';
 export * from './BackButton/index.ts';
 export * from './DeskHelp/index.ts';
 export * from './ResendButton/index.ts';

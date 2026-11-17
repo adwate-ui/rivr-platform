@@ -22,7 +22,7 @@ test.describe('Player shell', () => {
 
     await expect(page.getByRole('heading', { name: 'Home', level: 1 })).toBeVisible();
     const tabs = page.getByRole('navigation', { name: 'Main' });
-    for (const tab of ['Home', 'Sessions', 'Bonus', 'Profile']) await expect(tabs.getByRole('link', { name: tab })).toBeVisible();
+    for (const tab of ['Home', 'Sessions', 'Rewards', 'Profile']) await expect(tabs.getByRole('link', { name: tab })).toBeVisible();
     // Balance is hidden (#627): the app shows no rupee. The card left with the redesign.
     for (const gone of ['Balance', 'Card']) await expect(tabs.getByRole('link', { name: gone })).toHaveCount(0);
     const initial = page.getByRole('main').getByRole('link', { name: 'Profile' });

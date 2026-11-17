@@ -1,6 +1,8 @@
+import { t } from '@rivr/i18n';
 import { tokens } from '@rivr/tokens';
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, type FocusEvent, type ReactNode } from 'react';
 import { Button } from '../Button/Button.tsx';
+import { Icon } from '../Icon/Icon.tsx';
 import { cx } from '../internal/classes.ts';
 
 export interface SplitViewProps {
@@ -23,6 +25,12 @@ export interface SplitViewProps {
    * record stays in view as the list scrolls, and one taller than the screen scrolls on its own (the owner, 15 Nov night).
    */
   layout?: 'record' | 'even' | 'docked';
+  /**
+   * From 1180 px, Close above a chosen record, and Escape at any width, give the list its width back (the owner, 17 Nov:
+   * Members). Only where a screen gives it: elsewhere clearing the record would put another in its place, as KYC review
+   * does, or lose an edit, as Content would.
+   */
+  onClose?: (() => void) | undefined;
 }
 
 /** Each layout's classes from 1180 px: the frame's, the list's alone and beside a record, and the record's. */
@@ -35,23 +43,85 @@ const LAYOUTS = {
   },
 } as const;
 
+const CLOSE =
+  'flex size-touch shrink-0 items-center justify-center rounded-md text-content transition-colors hover:bg-subtle ' +
+  'focus-visible:outline focus-visible:outline-focus tablet:size-control';
+
+// Where Escape belongs to something else: a field being typed in, or an open menu, list or dialog.
+const OWNS_ESCAPE = 'input, textarea, select, [contenteditable="true"], [role="menu"], [role="listbox"], [role="dialog"], [role="alertdialog"]';
+
+/** Escape closes the chosen record where the screen gives `onClose` (the owner, 17 Nov), unless a field, a menu or a dialog has it first. */
+function useEscapeCloses(isOpen: boolean, onClose: (() => void) | undefined) {
+  useEffect(() => {
+    if (!isOpen || onClose === undefined) return undefined;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      if (event.target instanceof Element && event.target.closest(OWNS_ESCAPE)) return;
+      if (document.querySelector('[role="dialog"], [role="alertdialog"]')) return;
+      onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
+}
+
+const isWide = () => typeof window.matchMedia === 'function' && window.matchMedia(`(min-width: ${tokens.breakpoint.tablet}px)`).matches;
+
+/** Close above a chosen record, from 1180 px, where the list stays beside it (the owner, 17 Nov); none without `onClose`. */
+function CloseRecord({ onClose }: { onClose: (() => void) | undefined }) {
+  if (onClose === undefined) return null;
+  return (
+    <div className="hidden w-full justify-end tablet:flex">
+      <button type="button" aria-label={t('ui.splitView.close')} onClick={onClose} className={CLOSE}><Icon name="close" /></button>
+    </div>
+  );
+}
+
 /**
  * A list and the record opened from it (#603). From 1180 px they sit side by side, the record taking three parts in
- * five, half, or a docked panel (`layout`); with no record open the list takes the full width (C-03). Below, one shows
- * at a time: the record replaces the list, with a way back to it.
+ * five, half, or a docked panel (`layout`), with Close where the screen gives `onClose`; with no record open the list
+ * takes the full width (C-03). Below, one shows at a time: the record replaces the list, with a way back to it.
  */
-export function SplitView({ list, detail, backLabel, onBack, isChosen = true, layout = 'record' }: SplitViewProps) {
+export function SplitView({ list, detail, backLabel, onBack, isChosen = true, layout = 'record', onClose }: SplitViewProps) {
+  const isOpen = detail !== null && isChosen;
+  const { record, onListFocus } = useRecordFocus(isOpen);
+  useEscapeCloses(isOpen, onClose);
+  const look = LAYOUTS[layout];
+  return (
+    <div className={look.frame}>
+      <div className={cx('min-w-0', detail === null ? look.alone : look.beside, isOpen ? 'hidden tablet:block' : '')}
+        onFocus={onListFocus}>{list}</div>
+      {detail === null ? null : (
+        <div className={cx('min-w-0 flex-col items-start gap-4 tablet:flex', look.record, isOpen ? 'flex' : 'hidden')}>
+          <div className="tablet:hidden">
+            <Button variant="text" onClick={onBack}>{backLabel}</Button>
+          </div>
+          <CloseRecord onClose={isChosen ? onClose : undefined} />
+          <div ref={record} tabIndex={-1} className="w-full min-w-0 focus-visible:outline focus-visible:outline-focus">{detail}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Where focus goes as a record opens and closes. Below 1180 px the record replaces the list, so focus goes to the record
+ * as it opens and back to what opened it as it closes: a keyboard or a screen reader is never left on a hidden list. From
+ * 1180 px the list stays beside the record, so focus stays where it is as one opens, and goes back to the last thing used
+ * in the list, such as the row that opened it, as it closes. A record open from the start keeps the page's focus.
+ */
+function useRecordFocus(isOpen: boolean) {
   const record = useRef<HTMLDivElement>(null);
   const openedFrom = useRef<HTMLElement | null>(null);
-  const isOpen = detail !== null && isChosen;
+  const lastInList = useRef<HTMLElement | null>(null);
   const wasOpen = useRef(isOpen);
-  // Below 1180 px the record replaces the list, so focus goes to the record as it opens and back to what opened it as
-  // it closes: a keyboard or a screen reader is never left on a hidden list. A record open from the start keeps the page's focus.
   useEffect(() => {
     if (isOpen === wasOpen.current) return;
     wasOpen.current = isOpen;
-    // From 1180 px the list stays beside the record, so focus stays where it is.
-    if (typeof window.matchMedia === 'function' && window.matchMedia(`(min-width: ${tokens.breakpoint.tablet}px)`).matches) return;
+    if (isWide()) {
+      if (!isOpen && lastInList.current?.isConnected === true) lastInList.current.focus();
+      return;
+    }
     if (isOpen) {
       openedFrom.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       record.current?.focus();
@@ -60,18 +130,9 @@ export function SplitView({ list, detail, backLabel, onBack, isChosen = true, la
       openedFrom.current = null;
     }
   }, [isOpen]);
-  const look = LAYOUTS[layout];
-  return (
-    <div className={look.frame}>
-      <div className={cx('min-w-0', detail === null ? look.alone : look.beside, isOpen ? 'hidden tablet:block' : '')}>{list}</div>
-      {detail === null ? null : (
-        <div className={cx('min-w-0 flex-col items-start gap-4 tablet:flex', look.record, isOpen ? 'flex' : 'hidden')}>
-          <div className="tablet:hidden">
-            <Button variant="text" onClick={onBack}>{backLabel}</Button>
-          </div>
-          <div ref={record} tabIndex={-1} className="w-full min-w-0 focus-visible:outline focus-visible:outline-focus">{detail}</div>
-        </div>
-      )}
-    </div>
-  );
+  // Kept as the list is used, without drawing again.
+  const onListFocus = (event: FocusEvent<HTMLDivElement>) => {
+    if (event.target instanceof HTMLElement) lastInList.current = event.target;
+  };
+  return { record, onListFocus };
 }

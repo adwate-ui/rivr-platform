@@ -10,7 +10,7 @@ function Members() {
   const [isOpen, setOpen] = useState(false);
   return (
     <SplitView list={<button type="button" onClick={() => setOpen(true)}>Arjun Mehta</button>}
-      detail={isOpen ? <p>Arjun Mehta, Black card</p> : null} backLabel="Back to Members" onBack={() => setOpen(false)} />
+      detail={isOpen ? <p>Arjun Mehta, Black card</p> : null} backLabel="Back to Members" onBack={() => setOpen(false)} onClose={() => setOpen(false)} />
   );
 }
 
@@ -55,6 +55,46 @@ describe('SplitView', () => {
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+
+  it('closes a chosen record with Close or Escape from 1180 px, giving the list its width and the row its focus back (the owner, 17 Nov)', async () => {
+    vi.stubGlobal('matchMedia', (media: string) => ({ matches: true, media, addEventListener: () => undefined, removeEventListener: () => undefined }));
+    try {
+      renderIn(<Members />);
+      const row = screen.getByRole('button', { name: 'Arjun Mehta' });
+      await userEvent.click(row);
+      await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+      expect(screen.queryByText('Arjun Mehta, Black card')).not.toBeInTheDocument();
+      expect(row.parentElement).toHaveClass('tablet:col-span-5');
+      expect(row).toHaveFocus();
+
+      await userEvent.click(row);
+      await userEvent.keyboard('{Escape}');
+      expect(screen.queryByText('Arjun Mehta, Black card')).not.toBeInTheDocument();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('leaves Escape to a field being typed in or an open dialog, and offers no Close on a record shown but not chosen', async () => {
+    const onBack = vi.fn();
+    const { rerender } = renderIn(<SplitView list={<p>Members</p>} detail={<input aria-label="Note" />} backLabel="Back" onBack={onBack} onClose={onBack} />);
+    await userEvent.type(screen.getByRole('textbox', { name: 'Note' }), '{Escape}');
+    rerender(<SplitView list={<p>Members</p>} detail={<div role="dialog" aria-label="Give Bonus">Give Bonus</div>} backLabel="Back" onBack={onBack} onClose={onBack} />);
+    await userEvent.keyboard('{Escape}');
+    expect(onBack).not.toHaveBeenCalled();
+    rerender(<SplitView list={<p>Tables</p>} detail={<p>Table 1</p>} isChosen={false} backLabel="Back" onBack={onBack} onClose={onBack} />);
+    expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+    expect(onBack).not.toHaveBeenCalled();
+  });
+
+  it('offers neither Close nor Escape where the screen gives no onClose, as KYC review and Content', async () => {
+    const onBack = vi.fn();
+    renderIn(<SplitView layout="even" list={<p>Checks</p>} detail={<p>Rohan</p>} backLabel="Back" onBack={onBack} />);
+    expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+    expect(onBack).not.toHaveBeenCalled();
   });
 
   it('splits the width evenly with layout even, and docks the record in a side panel with layout docked', () => {
