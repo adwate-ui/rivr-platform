@@ -1,6 +1,6 @@
 import { useFeature, useKycImageUrl, useKycRecord, useMember, useMyPhotoPath, usePreferences, useSignedInPhone } from '@rivr/db';
 import { formatMobile, t } from '@rivr/i18n';
-import { Box, DeskHelp, DetailRow, FeatureGate, Heading, Inline, ProfileMark, Screen, Stack, Text, useHeadingFocus, usePageTitle } from '@rivr/ui';
+import { Box, DeskHelp, DetailRow, FeatureGate, ProfileCard, Screen, Stack, Text, useHeadingFocus, usePageTitle } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 import { useId, useState, type ReactNode } from 'react';
 import { DeleteAccountRow } from './DeleteAccount.tsx';
@@ -31,27 +31,19 @@ function IdentityRow() {
   return <DetailRow label={t('player.profile.identity')} value={t('player.profile.verified')} valueTone="accent" isLast />;
 }
 
-/** "Founders' Circle · +91 90000 00901", once both are known. */
-function TierPhone({ tier }: { tier: string }) {
-  const phone = useSignedInPhone().data ?? null;
-  return phone === null ? null : <Text variant="small" tone="muted">{t('player.profile.tierPhone', { tier, phone: formatMobile(phone) })}</Text>;
-}
-
-/** The member at the top, from their own record: their own photo or initial, their name, their tier with their phone, and their member number. */
+/**
+ * The member at the top, from their own record, as one card (the owner, 17 Nov): their own photo or initial, their name,
+ * their tier with their phone ("Founders' Circle · +91 90000 00901", once both are known), and their member number.
+ */
 function ProfileHead({ headingId }: { headingId: string }) {
   const member = useMember().data;
+  const phone = useSignedInPhone().data ?? null;
   // Their own photo, before the desk has checked them too (decision 0588), filling the mark; the initial until it comes.
   const photo = useKycImageUrl(useMyPhotoPath().data ?? null).data ?? undefined;
-  return (
-    <Inline gap={4} align="center">
-      <ProfileMark initial={member?.initial ?? ''} photo={photo} />
-      <Stack gap={1}>
-        <Heading level={1} variant="serif" serifSize={28} id={headingId} isFocusTarget>{member?.fullName ?? ''}</Heading>
-        {member ? <TierPhone tier={member.tierName} /> : null}
-        {member ? <Text variant="small" tone="muted">{t('player.profile.memberNumber', { number: member.memberNumber })}</Text> : null}
-      </Stack>
-    </Inline>
-  );
+  if (!member) return <ProfileCard initial="" photo={photo} name="" headingId={headingId} details={[]} />;
+  const tierPhone = phone === null ? [] : [t('player.profile.tierPhone', { tier: member.tierName, phone: formatMobile(phone) })];
+  const details = [...tierPhone, t('player.profile.memberNumber', { number: member.memberNumber })];
+  return <ProfileCard initial={member.initial} photo={photo} name={member.fullName} headingId={headingId} details={details} />;
 }
 
 /** Club: House rules, Send feedback, and Delete my account. */
