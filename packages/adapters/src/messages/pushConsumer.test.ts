@@ -111,7 +111,7 @@ describe('the push consumer', () => {
     expect(push.calls.map(({ tag, action }) => ({ tag, action }))).toEqual([{ tag: 'seat-ready', action: { title: "I'm on my way", url: `/?accept=${OTHER}` } }]);
   });
 
-  it('warns of the call time\u2019s end under the Call time switch, with Add time, and sends nothing once it has run out', async () => {
+  it('warns of the call time\u2019s end under the Call time switch, with Set call time, and sends nothing once it has run out', async () => {
     const ending = { member_id: MEMBER, session_id: SESSION, table_name: 'Table 1', seat: 4, ends_at: '2026-11-15T19:05:00.123456+00:00' };
     const { outcome, asked } = await sendOne('call_time.ending', ending);
     expect([outcome, asked]).toEqual([{ ok: true, value: null }, ['push.call_time_complete']]);
@@ -119,7 +119,7 @@ describe('the push consumer', () => {
     await createPushConsumer({ push, ...members([phone('a')]), now }).deliver(delivery('call_time.ending', ending));
     expect(push.calls.map(({ title, body, url, tag, action }) => ({ title, body, url, tag, action }))).toEqual([{
       title: 'Call time ends in 16 min', body: 'Table 1, seat 4. Ends at 00:35.', url: '/', tag: `call-time-${SESSION}`,
-      action: { title: 'Add time', url: '/?sheet=add-time' },
+      action: { title: 'Set call time', url: '/?sheet=add-time' },
     }]);
     const late = createFakePush();
     await createPushConsumer({ push: late, ...members([phone('a')]), now: () => new Date('2026-11-15T19:06:00Z') }).deliver(delivery('call_time.ending', ending));

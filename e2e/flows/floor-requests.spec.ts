@@ -2,9 +2,9 @@
  * The floor's requests (console v3, phase 2; decisions 0479 to 0481). Devika Rana, this flow's own floor manager (Auth
  * sends one code a minute to a number), works the requests docked beside the Live floor, oldest first. Neel Bose and
  * Devansh Malik ask to join Table 1 from the app: A approves the oldest, which opens the seat sheet with Neel chosen (it
- * waits, and his alert to seat stays), D declines the next, which Undo brings back, and Decline declines it again. Seated, Devansh asks for an hour, which she declines, and says he is leaving: Not leaving,
+ * waits, and his alert to seat stays), D declines the next, which Undo brings back, and Decline declines it again. Seated, Devansh says he is leaving: Not leaving,
  * undone, then Leave with a reason. Karan Gill, a host, frees Neel's seat owing call time, and she records why he was let
- * go. Approving more time and a top-up are in the Call time flow.
+ * go. A top-up is in the Call time flow; the member now sets their own call time there (#1059).
  */
 import { expect, test, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
@@ -57,13 +57,8 @@ test.describe('Floor requests', () => {
     await (await requestOf(page, 'Devansh Malik', /Join request/)).getByRole('button', { name: 'Decline' }).click();
     await expect(page.getByText('Devansh Malik: join declined')).toBeVisible();
 
-    // Seated, Devansh asks for an hour: declined.
+    // Seated. A member sets their own call time now, with no request (#1059), so the floor sees none for time.
     await seatOnFloor(page, { table: 'Table 1', seat: 9, number: '9000000296' });
-    await devansh.reload();
-    await devansh.getByRole('button', { name: 'Add time' }).click();
-    await devansh.getByRole('dialog', { name: 'Add time' }).getByRole('button', { name: 'Request 1 h' }).click();
-    await (await requestOf(page, 'Devansh Malik', /Wants \+1 h/)).getByRole('button', { name: 'Decline' }).click();
-    await expect(page.getByText('Devansh Malik: time request declined')).toBeVisible();
 
     // He says he is leaving: Not leaving, undone; then Leave, owing, with a reason kept on his record.
     await devansh.reload();

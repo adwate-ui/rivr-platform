@@ -1813,14 +1813,14 @@ isOneToOne: false
                   ]
                 },"seat_session": {
                   Row: {
-                    "away_seconds": number,"away_since": string | null,"call_time_completed_at": string | null,"call_time_first_met_at": string | null,"call_time_minutes": number,"created_at": string,"end_reason": string | null,"ended_at": string | null,"ending_warned_at": string | null,"id": string,"leaving_at": string | null,"leaving_by_staff_id": string | null,"member_id": string,"reminded_at": string | null,"seat": number,"seated_by_staff_id": string | null,"seated_here_at": string,"started_at": string,"table_id": string,"top_up_requested_at": string | null,"top_up_started_at": string | null,"updated_at": string,"venue_id": string,"visit_id": string
+                    "away_seconds": number,"away_since": string | null,"call_time_completed_at": string | null,"call_time_first_met_at": string | null,"call_time_minutes": number,"call_time_set_at": string | null,"created_at": string,"end_reason": string | null,"ended_at": string | null,"ending_warned_at": string | null,"id": string,"leaving_at": string | null,"leaving_by_staff_id": string | null,"member_id": string,"reminded_at": string | null,"seat": number,"seated_by_staff_id": string | null,"seated_here_at": string,"started_at": string,"table_id": string,"top_up_requested_at": string | null,"top_up_started_at": string | null,"updated_at": string,"venue_id": string,"visit_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_first_met_at"?: string | null,"call_time_minutes"?: number,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"ending_warned_at"?: string | null,"id"?: string,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id": string,"reminded_at"?: string | null,"seat": number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id": string,"top_up_requested_at"?: string | null,"top_up_started_at"?: string | null,"updated_at"?: string,"venue_id": string,"visit_id": string
+                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_first_met_at"?: string | null,"call_time_minutes"?: number,"call_time_set_at"?: string | null,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"ending_warned_at"?: string | null,"id"?: string,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id": string,"reminded_at"?: string | null,"seat": number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id": string,"top_up_requested_at"?: string | null,"top_up_started_at"?: string | null,"updated_at"?: string,"venue_id": string,"visit_id": string
                   }
                   Update: {
-                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_first_met_at"?: string | null,"call_time_minutes"?: number,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"ending_warned_at"?: string | null,"id"?: string,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id"?: string,"reminded_at"?: string | null,"seat"?: number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id"?: string,"top_up_requested_at"?: string | null,"top_up_started_at"?: string | null,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
+                    "away_seconds"?: number,"away_since"?: string | null,"call_time_completed_at"?: string | null,"call_time_first_met_at"?: string | null,"call_time_minutes"?: number,"call_time_set_at"?: string | null,"created_at"?: string,"end_reason"?: string | null,"ended_at"?: string | null,"ending_warned_at"?: string | null,"id"?: string,"leaving_at"?: string | null,"leaving_by_staff_id"?: string | null,"member_id"?: string,"reminded_at"?: string | null,"seat"?: number,"seated_by_staff_id"?: string | null,"seated_here_at"?: string,"started_at"?: string,"table_id"?: string,"top_up_requested_at"?: string | null,"top_up_started_at"?: string | null,"updated_at"?: string,"venue_id"?: string,"visit_id"?: string
                   }
                   Relationships: [
                     {
@@ -3272,7 +3272,7 @@ isOneToOne: false
                            },
 "my_seat":
 { Args: Record<PropertyKey, never>; Returns: {
-              "add_time_choices": (number)[],"big_blind_paise": number,"call_time_ends_at": string,"call_time_left": number,"call_time_minutes": number,"game": string,"has_call_time": boolean,"is_away": boolean,"is_leaving": boolean,"played_seconds": number,"seat": number,"small_blind_paise": number,"started_at": string,"straddle_paise": number,"table_name": string,"table_type_name": string,"time_request_minutes": number,"top_up": string
+              "add_time_choices": (number)[],"big_blind_paise": number,"call_time_ends_at": string,"call_time_left": number,"call_time_minutes": number,"call_time_set_at": string,"game": string,"has_call_time": boolean,"is_away": boolean,"is_leaving": boolean,"played_seconds": number,"seat": number,"small_blind_paise": number,"started_at": string,"straddle_paise": number,"table_name": string,"table_type_name": string,"time_request_minutes": number,"top_up": string
             }[]
                            },
 "my_sessions":
@@ -3581,6 +3581,9 @@ isOneToOne: false
                            },
 "set_must_move":
 { Args: { "p_main_table_id"?: string,"p_table_id": string }; Returns: undefined
+                           },
+"set_my_call_time":
+{ Args: { "p_idempotency_key": string,"p_minutes": number }; Returns: number
                            },
 "set_my_name_on_tvs":
 { Args: { "p_is_on": boolean }; Returns: undefined

@@ -57,6 +57,29 @@ describe('ChoiceChips', () => {
     expect(onChange.mock.calls).toEqual([[['tournaments']], [['nlh']], [['tournaments']], [['tournaments']], [['nlh']]]);
   });
 
+  it('dims a choice not open, passing it by with the arrow keys and never choosing it', async () => {
+    const onChange = vi.fn();
+    const lengths = [{ value: '30', label: '30 min', isDisabled: true }, { value: '60', label: '1 hour' }, { value: '120', label: '2 hours' }];
+    renderIn(<ChoiceChips label="Set call time" mode="one" look="tile" options={lengths} selected={[]} onChange={onChange} />);
+    const short = screen.getByRole('radio', { name: '30 min' });
+    expect(short).toBeDisabled();
+    expect(screen.getAllByRole('radio').map((chip) => chip.tabIndex)).toEqual([-1, 0, -1]);
+    await userEvent.tab();
+    await userEvent.keyboard('{ArrowRight}{ArrowRight}{Home}');
+    await userEvent.click(short);
+    expect(onChange.mock.calls).toEqual([[['120']], [['60']], [['60']]]);
+  });
+
+  it('reaches the group by Tab when the chosen choice is dimmed, reads the group with its description, and dims a toggle too', () => {
+    const lengths = [{ value: '30', label: '30 min', isDisabled: true }, { value: '60', label: '1 hour' }];
+    const { rerender } = renderIn(<><p id="why">Can't end before 01:25.</p>
+      <ChoiceChips label="Set call time" mode="one" options={lengths} selected={['30']} onChange={() => undefined} describedBy="why" /></>);
+    expect(screen.getAllByRole('radio').map((chip) => chip.tabIndex)).toEqual([-1, 0]);
+    expect(screen.getByRole('radiogroup', { name: 'Set call time' })).toHaveAccessibleDescription("Can't end before 01:25.");
+    rerender(<ChoiceChips label="Games" options={[{ value: 'nlh', label: 'NLH', isDisabled: true }]} selected={[]} onChange={() => undefined} />);
+    expect(screen.getByRole('button', { name: 'NLH' })).toBeDisabled();
+  });
+
   it('puts only the chosen chip in the Tab order, or the first when none is chosen', () => {
     const { rerender } = renderIn(<ChoiceChips label="Stake" mode="one" options={GAMES} selected={['plo']} onChange={() => undefined} />);
     expect(screen.getAllByRole('radio').map((chip) => chip.tabIndex)).toEqual([-1, 0, -1]);

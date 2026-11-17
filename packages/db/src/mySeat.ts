@@ -40,8 +40,10 @@ export interface MySeat {
   readonly straddle: bigint | null;
   /** More call time asked for, waiting on the floor (decision 0320), in minutes; null with none. */
   readonly timeRequestMinutes: number | null;
-  /** The lengths of more call time the club offers, in minutes, shortest first (decision 0305). */
+  /** The lengths of call time the club offers, in minutes, shortest first (decision 0305): the member sets one (#1059). */
   readonly addTimeChoices: readonly number[];
+  /** When the member last set their call time from the seat (#1059), so the app shows "Call time until"; null if never. */
+  readonly callTimeSetAt: string | null;
 }
 
 // The time left is read again each half minute; Home shows it to the minute.
@@ -89,7 +91,7 @@ export function useMySeat() {
             callTimeMinutes: row.call_time_minutes, startedAt: row.started_at, callTimeEndsAt: row.call_time_ends_at,
             tableTypeName: row.table_type_name, game: playedGame(row.game), smallBlind: BigInt(row.small_blind_paise), bigBlind: BigInt(row.big_blind_paise),
             straddle: row.straddle_paise === null ? null : BigInt(row.straddle_paise),
-            timeRequestMinutes: row.time_request_minutes, addTimeChoices: row.add_time_choices };
+            timeRequestMinutes: row.time_request_minutes, addTimeChoices: row.add_time_choices, callTimeSetAt: row.call_time_set_at };
     },
   });
 }
@@ -97,17 +99,22 @@ export function useMySeat() {
 /** How leaving went: the seat open now (`left`), or the member on the floor's Leaving list until their call time is done (`leaving`). */
 export type Leaving = 'left' | 'leaving';
 
-/** Why a seat action did not go through: not seated any more, the feature not open to them, the account or venue frozen, or anything else. */
-export type MySeatFailure = 'not_seated' | 'not_allowed' | 'stopped' | 'paused' | 'unavailable';
+/**
+ * Why a seat action did not go through: not seated any more, the feature not open to them (a seat with no call time sets
+ * none), a call time that would end before the one they owe, run past a day, or a length the club no longer offers
+ * (#1059), the account or venue frozen, or anything else.
+ */
+export type MySeatFailure = 'not_seated' | 'not_allowed' | 'too_early' | 'too_long' | 'not_offered' | 'stopped' | 'paused' | 'unavailable';
 
 const FAILURE_BY_CODE: Readonly<Record<string, MySeatFailure>> = {
-  '22023': 'not_seated', '42501': 'not_allowed', RVMBR: 'stopped', RVFRZ: 'paused',
+  '22023': 'not_seated', '42501': 'not_allowed', RVCTN: 'not_allowed', RVCTE: 'too_early', RVCTX: 'too_long', RVCTC: 'not_offered',
+  RVMBR: 'stopped', RVFRZ: 'paused',
 };
 
 /**
- * The member's own seat actions (#634): ask the floor for more call time (`requestTime`, 30, 60 or 120 minutes, decision
- * 0320; the tap's request id asks once), leave the seat (`leave`), and ask for a top-up (`requestTopUp`). Each is a Result
- * and reads the seat again.
+ * The member's own seat actions (#634): set their call time (`setCallTime`, a length the club offers from now, owed as
+ * well as the call time they had, #1059; the tap's request id sets it once), leave the seat (`leave`), and ask for a
+ * top-up (`requestTopUp`). Each is a Result and reads the seat again.
  */
 export function useMySeatActions() {
   const { client, userId } = useRivrData();
@@ -116,9 +123,9 @@ export function useMySeatActions() {
     await queryClient.invalidateQueries({ queryKey: queryKeys.mySeat(userId ?? 'signed-out') });
     return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(value);
   };
-  const requestTime = useMutation({
+  const setCallTime = useMutation({
     mutationFn: async ({ minutes, requestId }: { minutes: number; requestId: string }) =>
-      settle((await client.rpc('request_call_time', { p_minutes: minutes, p_idempotency_key: requestId })).error, null),
+      settle((await client.rpc('set_my_call_time', { p_minutes: minutes, p_idempotency_key: requestId })).error, null),
   });
   const leave = useMutation({
     mutationFn: async () => {
@@ -127,5 +134,5 @@ export function useMySeatActions() {
     },
   });
   const requestTopUp = useMutation({ mutationFn: async () => settle((await client.rpc('request_top_up')).error, null) });
-  return { requestTime, leave, requestTopUp };
+  return { setCallTime, leave, requestTopUp };
 }

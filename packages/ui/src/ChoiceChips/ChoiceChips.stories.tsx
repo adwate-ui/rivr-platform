@@ -88,6 +88,12 @@ export const Tiles: Story = {
     options: [{ value: '30', label: '30 min' }, { value: '60', label: '1 hour' }, { value: '120', label: '2 hours' }] },
 };
 
+/** Set call time's lengths with one that would end too early, dimmed and passed by (#1059). */
+export const TilesWithOneNotOpen: Story = {
+  args: { look: 'tile', mode: 'one', label: 'Set call time', selected: ['60'],
+    options: [{ value: '30', label: '30 min', isDisabled: true }, { value: '60', label: '1 hour' }, { value: '120', label: '2 hours' }] },
+};
+
 /** The Order screen's categories, underlined in gold (decision 0320). */
 export const Tabs: Story = {
   args: { look: 'tabs', mode: 'one', label: 'Menu', isLabelVisuallyHidden: true, selected: ['food'],

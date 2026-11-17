@@ -78,11 +78,20 @@ describe('Tonight', () => {
     expect(screen.getByRole('button', { name: 'Decline seat' })).toBeDefined();
   });
 
-  it('Seated: the seat in the header and the call time counting down to its end', async () => {
+  it('Seated: the seat in the header, and when they sat down where the countdown was (the owner, 17 Nov)', async () => {
     renderTonight([], [SEAT]);
     expect(await screen.findByRole('heading', { name: 'Table 1, seat 4' }, LATER)).toBeDefined();
     expect(screen.getByText('NLH 50/100 · playing 19 min')).toBeDefined();
-    expect(screen.getByRole('timer', { name: 'Call time left 2 h 42 min' }).textContent).toBe('2:41:08');
+    expect(screen.getByText('Playing since')).toBeDefined();
+    expect(screen.getByText('22:25')).toBeDefined();
+    expect(screen.queryByRole('timer')).toBeNull();
+    // Not until the member sets one themselves.
+    expect(screen.queryByText(/^Call time until/)).toBeNull();
+  });
+
+  it('Seated with a call time they set: when it ends, under when they sat down', async () => {
+    renderTonight([], [{ ...SEAT, call_time_set_at: '2026-11-15T17:10:00Z' }]);
+    expect(await screen.findByText('Call time until 01:25', {}, LATER)).toBeDefined();
   });
 
   // Issue 781: the floor can add a seated member to another list to change tables (#633).
@@ -101,11 +110,11 @@ describe('Tonight', () => {
     expect(screen.queryByRole('button', { name: 'Leave waitlist' })).toBeNull();
   });
 
-  it('Add time: asks the floor for 30 min, 1 h or 2 h, and shows the request waiting', async () => {
+  it('A request an older app sent shows waiting, beside a top-up asked for; Set call time stays open', async () => {
     renderTonight([], [{ ...SEAT, top_up: 'requested', time_request_minutes: 60 }]);
     expect(await screen.findByText('+1 h', {}, LATER)).toBeDefined();
     expect(screen.getByText('Top-up')).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Add time' }).getAttribute('aria-disabled')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Set call time' }).getAttribute('aria-disabled')).not.toBe('true');
     expect(screen.getByRole('button', { name: 'Top up' }).getAttribute('aria-disabled')).toBe('true');
     fireEvent.click(screen.getByRole('button', { name: 'Leave seat' }));
     expect(await screen.findByRole('dialog', { name: 'Leave your seat?' })).toBeDefined();
@@ -113,22 +122,30 @@ describe('Tonight', () => {
     expect(screen.getByRole('button', { name: 'Join leaving list' })).toBeDefined();
   });
 
-  it('Add time sheet: an hour unless changed, then Request it', async () => {
-    renderTonight([], [SEAT]);
-    fireEvent.click(await screen.findByRole('button', { name: 'Add time' }, LATER));
-    expect(await screen.findByRole('dialog', { name: 'Add time' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Request 1 h' })).toBeDefined();
-    fireEvent.click(screen.getByRole('radio', { name: '2 h' }));
-    expect(screen.getByRole('button', { name: 'Request 2 h' })).toBeDefined();
+  it('Set call time: lengths that would end before the call time owed are greyed, with why, and the first open one is set', async () => {
+    // 2 h 41 min 8 s owed: an hour and two hours end before it; three and four hours are open.
+    const { asked } = renderTonight([], [{ ...SEAT, add_time_choices: [60, 120, 180, 240] }]);
+    fireEvent.click(await screen.findByRole('button', { name: 'Set call time' }, LATER));
+    const sheet = await screen.findByRole('dialog', { name: 'Set call time' });
+    expect(within(sheet).getByRole('radio', { name: '1 h' })).toHaveProperty('disabled', true);
+    expect(within(sheet).getByRole('radio', { name: '2 h' })).toHaveProperty('disabled', true);
+    expect(within(sheet).getByRole('radio', { name: '3 h' }).getAttribute('aria-checked')).toBe('true');
+    expect(within(sheet).getByText('Until 01:44')).toBeDefined();
+    expect(within(sheet).getByText("Can't end before 01:25.")).toBeDefined();
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Set call time' }));
+    await vi.waitFor(() => expect(asked.filter((call) => call.startsWith('set_my_call_time')).map((call) => call.includes('"p_minutes":180'))).toEqual([true]));
   });
 
-  it('Add time once the call time is met: every length the club types, however many, and the one chosen is asked for (decision 0305, redesign RD-19)', async () => {
+  it('Set call time once the call time is met: every length the club types is open, and the one chosen is set (decision 0305)', async () => {
     const { asked } = renderTonight([], [{ ...SEAT, call_time_left: 0, call_time_ends_at: null, add_time_choices: [20, 45, 50, 75, 90, 200, 300] }]);
-    fireEvent.click(await screen.findByRole('button', { name: 'Add time' }, LATER));
-    expect((await screen.findAllByRole('radio')).map((choice) => choice.textContent)).toEqual(['20 min', '45 min', '50 min', '1 h 15 min', '1 h 30 min', '3 h 20 min', '5 h']);
+    fireEvent.click(await screen.findByRole('button', { name: 'Set call time' }, LATER));
+    const radios = await screen.findAllByRole('radio');
+    expect(radios.map((choice) => choice.textContent)).toEqual(['20 min', '45 min', '50 min', '1 h 15 min', '1 h 30 min', '3 h 20 min', '5 h']);
+    expect(radios.some((choice) => choice.hasAttribute('disabled'))).toBe(false);
+    expect(screen.queryByText(/^Can't end before/)).toBeNull();
     fireEvent.click(screen.getByRole('radio', { name: '3 h 20 min' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Request 3 h 20 min' }));
-    await vi.waitFor(() => expect(asked.filter((call) => call.startsWith('request_call_time')).map((call) => call.includes('"p_minutes":200'))).toEqual([true]));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Set call time' })).getByRole('button', { name: 'Set call time' }));
+    await vi.waitFor(() => expect(asked.filter((call) => call.startsWith('set_my_call_time')).map((call) => call.includes('"p_minutes":200'))).toEqual([true]));
   });
 
   it('Order on its way: the tracker reads where the order is, from the bar\'s steps', async () => {
@@ -152,9 +169,9 @@ describe('Tonight', () => {
     expect(screen.queryByRole('button', { name: 'Order again' })).toBeNull();
   });
 
-  it('Call time ending push: Add time opens its sheet, and the address is cleaned', async () => {
+  it('Call time ending push: its button opens Set call time, and the address is cleaned', async () => {
     const { router } = renderTonight([], [SEAT], {}, '/?sheet=add-time');
-    expect(await screen.findByRole('dialog', { name: 'Add time' }, LATER)).toBeDefined();
+    expect(await screen.findByRole('dialog', { name: 'Set call time' }, LATER)).toBeDefined();
     expect(router.state.location.search).toEqual({});
   });
 
