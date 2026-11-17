@@ -25,6 +25,8 @@ auditConfig:
   ignoreGhsas:
     # braces <=3.0.3, via stylelint and @tailwindcss/cli (docs/decisions/0023, issue #175).
     - GHSA-vfj7-8cjw-p6xm
+    # picomatch <=4.0.7, via astro's unstorage and @tailwindcss/cli; our own patterns only (docs/decisions/0686, issue #1069).
+    - GHSA-fc5q-39xc-vjpf
 
 # Dependencies pinned past a security advisory until their parents take the fix themselves.
 overrides:
