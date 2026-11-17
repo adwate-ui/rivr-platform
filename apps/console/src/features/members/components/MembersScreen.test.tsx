@@ -103,4 +103,14 @@ describe('Members (console v3)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Back to Members' }));
     expect(onNavigate).toHaveBeenCalledWith('/members');
   });
+
+  it('closes the record with Close, or Escape, back to the whole list (the owner, 17 Nov)', async () => {
+    const { onNavigate } = renderAs('super_admin', 'm1');
+    expect(await screen.findByRole('heading', { name: 'Sakshi Tandon', level: 2 }, { timeout: 5000 })).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(onNavigate).toHaveBeenLastCalledWith('/members');
+    onNavigate.mockClear();
+    fireEvent.keyDown(document.body, { key: 'Escape' });
+    expect(onNavigate).toHaveBeenCalledWith('/members');
+  });
 });

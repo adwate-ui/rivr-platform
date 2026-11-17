@@ -37,7 +37,12 @@ function turnBack(wrap: HTMLSpanElement | null, setAsking: (isAsking: boolean) =
 function useAskingTime(isAsking: boolean, isHeld: boolean, wrap: RefObject<HTMLSpanElement | null>, setAsking: (isAsking: boolean) => void) {
   useEffect(() => {
     if (!isAsking) return undefined;
-    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') turnBack(wrap.current, setAsking); };
+    // Escape is the confirmation's own: nothing around it, such as a record that closes on Escape, takes it too.
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      turnBack(wrap.current, setAsking);
+    };
     document.addEventListener('keydown', onKey);
     const timer = isHeld ? undefined : setTimeout(() => turnBack(wrap.current, setAsking), ASK_FOR_MS);
     return () => { clearTimeout(timer); document.removeEventListener('keydown', onKey); };

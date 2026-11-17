@@ -47,6 +47,10 @@ export const ui = {
   sheet: {
     close: 'Close',
   },
+  /** A record open beside its list on the console, such as a member's: its Close from 1180 px (the owner, 17 Nov). */
+  splitView: {
+    close: 'Close',
+  },
   /** The player app's way to reach the front desk, at the foot of a step and of Profile (WCAG 3.2.6). */
   deskHelp: {
     label: 'Front desk',
