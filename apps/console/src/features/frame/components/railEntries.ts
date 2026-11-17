@@ -71,6 +71,7 @@ export const RAIL: readonly RailGroup[] = [
       { id: 'tournaments', label: 'console.rail.items.tournaments', href: '/tournaments', icon: 'trophy', anyOf: ['tournaments.manage'] },
       { id: 'content', label: 'console.rail.items.content', href: '/content', icon: 'content', anyOf: [], tabs: [
         { id: 'website', label: 'console.rail.items.website', anyOf: ['website.edit'] },
+        { id: 'app', label: 'console.rail.items.app', anyOf: ['website.edit'] },
       ] },
     ],
   },

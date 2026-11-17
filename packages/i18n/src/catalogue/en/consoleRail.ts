@@ -44,6 +44,7 @@ export const rail = {
     promotions: 'Promotions',
     fnb: 'Food and drink',
     website: 'Website',
+    app: 'App',
     staff: 'Staff',
     feedback: 'Feedback',
     reports: 'Reports',

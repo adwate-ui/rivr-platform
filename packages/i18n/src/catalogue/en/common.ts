@@ -1,5 +1,7 @@
 /** Copy shared by every surface: states every screen has. */
 export const common = {
+  /** The Bonus card's line until Content sets the club's own (#1065): the player's card, and Content's hint. */
+  bonusLineDefault: 'Use with your buy-in.',
   /** Why a player left the table (#1060): the floor's leave sheet, the dealer tablet and the member's record. */
   leaveReasons: {
     call_time_met: 'Call time met',

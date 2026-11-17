@@ -53,12 +53,14 @@ function lineOf(row: LineRow): BonusLine {
 }
 
 /**
- * A member's own Bonus: what is in force, and the days Bonus lasts at their venue as "Bonus expires" is set
- * (bonus.expiry_days; null with none set, and 0 is never: `bonusLastsDays` in @rivr/domain/bonus reads it).
+ * A member's own Bonus: what is in force, the days Bonus lasts at their venue as "Bonus expires" is set
+ * (bonus.expiry_days; null with none set, and 0 is never: `bonusLastsDays` in @rivr/domain/bonus reads it), and the
+ * card's line as Content sets it (#1065; null keeps the app's own).
  */
 export interface MyBonus {
   readonly balance: Paise;
   readonly expiryDays: number | null;
+  readonly line: string | null;
 }
 
 /** The signed-in member's Bonus in force, with how long Bonus lasts; null for someone who is no member. */
@@ -71,7 +73,7 @@ export function useMyBonus() {
       const { data, error } = await client.rpc('my_bonus').limit(LIST_MOST);
       if (error) throw error;
       const row = data[0];
-      return row === undefined ? null : { balance: toPaise(row.bonus_paise), expiryDays: row.expiry_days };
+      return row === undefined ? null : { balance: toPaise(row.bonus_paise), expiryDays: row.expiry_days, line: row.bonus_line };
     },
   });
 }

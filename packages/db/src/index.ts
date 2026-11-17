@@ -211,3 +211,4 @@ export {
   useBonusReport, useFnbReport, usePlayersReport, usePlayerVisitsPage, scopedTo, type PlayerVisit, useBonusGivenPage, type BonusGiven, type BonusSource, bonusSourceOf, useReportChart, useReportFigures, useWaitlistReport,
   type BonusLine, type ChartReport, type FigureReport, type FnbLine, type PlayersLine, type ReportBar, type ReportFigure, type ReportSpan, type WaitlistLine,
 } from './clubReports.ts';
+export { useContentBonusLine, useSaveContentBonusLine, type BonusLineFailure } from './bonusLine.ts';

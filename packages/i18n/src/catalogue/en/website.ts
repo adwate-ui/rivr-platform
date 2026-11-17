@@ -1,5 +1,18 @@
 /** The console's website editor (#129; decision 0270). */
 export const website = {
+  /** Content's App tab (#1065): the words the player app shows that the club writes. */
+  app: {
+    title: 'App',
+    bonusLine: 'Bonus card line',
+    bonusLineHint: 'Up to 120 characters. Left blank, the card says "{line}"',
+    save: 'Save',
+    saved: 'Saved',
+    failures: {
+      not_allowed: 'Not in your role. Ask an admin.',
+      paused: 'Frozen. Try again once it is released.',
+      unavailable: 'Not saved. Try again.',
+    },
+  },
   title: 'Website',
   notAllowed: 'Not in your role. Ask an admin.',
   /** The pages beside the editor (console v3): found by name or address, in three groups. */

@@ -6,13 +6,14 @@ export const playerBonus = {
   /** Someone signed in who is not a member. */
   notMember: 'Bonus is for members.',
   /**
-   * The balance's tile: its name, and one line on what it is for, which follows the club's "Bonus expires" setting
-   * (redesign RD-20): never, or after the days set.
+   * The balance's tile: its name, and one line: what it is for, as Content sets it or `common.bonusLineDefault` (#1065),
+   * then whether it expires, which follows the club's "Bonus expires" setting (redesign RD-20): never, or after the days set.
    */
   balance: 'Balance',
-  line: 'Use with your buy-in. Never expires.',
-  lineExpires: 'Use with your buy-in. Expires after {days} days.',
-  lineExpiresOne: 'Use with your buy-in. Expires after 1 day.',
+  lineWith: '{line} {expiry}',
+  neverExpires: 'Never expires.',
+  expires: 'Expires after {days} days.',
+  expiresOne: 'Expires after 1 day.',
   history: 'History',
   showEarlier: 'Show earlier',
   noHistory: 'Nothing here yet.',

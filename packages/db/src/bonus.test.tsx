@@ -44,11 +44,11 @@ describe('Bonus', () => {
   it('reads the member\'s balance and their newest lines, as many as asked for', async () => {
     const { wrapper, calls } = clientFor({
       '/rpc/my_bonus_history': { body: LINES.map(({ staff_name: _, ...line }) => line) },
-      '/rpc/my_bonus': { body: [{ bonus_paise: 50_000, expiry_days: 30 }] },
+      '/rpc/my_bonus': { body: [{ bonus_paise: 50_000, expiry_days: 30, bonus_line: 'Play it on any table tonight.' }] },
     });
     const { result } = renderHook(() => ({ bonus: useMyBonus(), history: useMyBonusHistory(20) }), { wrapper });
     // With the days Bonus lasts at the venue, for the balance's line (redesign RD-20).
-    await waitFor(() => expect(result.current.bonus.data).toEqual({ balance: 50_000n, expiryDays: 30 }));
+    await waitFor(() => expect(result.current.bonus.data).toEqual({ balance: 50_000n, expiryDays: 30, line: 'Play it on any table tonight.' }));
     await waitFor(() => expect(result.current.history.data).toEqual([
       { id: 'r1', at: '2026-11-15T18:00:00Z', kind: 'redeemed', amount: 100_000n, reason: null, tableName: 'Table 3', highHand: null },
       { id: 'g1', at: '2026-11-14T18:00:00Z', kind: 'credited', amount: 150_000n, reason: 'Welcome', tableName: null, highHand: null },
