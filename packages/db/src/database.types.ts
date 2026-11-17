@@ -2708,7 +2708,7 @@ isOneToOne: false
                            },
 "bonus_waiting_page":
 { Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
-              "amount_paise": number,"club_day": string,"event_at": string,"full_name": string,"grant_id": string,"member_id": string,"member_number": number,"promotion_id": string,"promotion_name": string,"step_minutes": number,"table_name": string,"total": number,"trigger": string
+              "amount_paise": number,"away_seconds": number,"club_day": string,"event_at": string,"full_name": string,"grant_id": string,"left_at": string,"member_id": string,"member_number": number,"played_seconds": number,"promotion_id": string,"promotion_name": string,"seated_at": string,"sessions": Json,"step_minutes": number,"table_name": string,"total": number,"trigger": string,"visit_id": string
             }[]
                            },
 "call_from_waitlist":
@@ -2786,6 +2786,11 @@ isOneToOne: false
 "conversion_for":
 { Args: { "p_event_type": string,"p_payload": Json,"p_venue_id": string }; Returns: {
               "conversion": string,"member_id": string,"phone": string
+            }[]
+                           },
+"correct_seat_sessions":
+{ Args: { "p_reason": string,"p_seats": Json }; Returns: {
+              "given_above": number,"refused": number
             }[]
                            },
 "current_down":

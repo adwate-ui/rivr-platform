@@ -1,8 +1,9 @@
 import { LIST_PAGE, useDecideBonus, useListChoices, useWaitingBonusPage, type BonusDecision, type BonusDecisionFailure, type ListChoices, type WaitingBonus } from '@rivr/db';
 import { sum } from '@rivr/domain/money';
-import { formatChips, formatDayTime, formatDuration, t } from '@rivr/i18n';
+import { formatChips, formatDayTime, formatDuration, formatTime, t } from '@rivr/i18n';
 import { BulkBar, Button, ConfirmQuestion, DataTable, ErrorMessage, Inline, Stack, useToast, type DataTableColumn, type DataTableRequest } from '@rivr/ui';
 import { useState } from 'react';
+import { CorrectSession } from './CorrectSession.tsx';
 import { RefuseBonus } from './RefuseBonus.tsx';
 
 const WHY_WORDS = ['signup', 'referral', 'check_in', 'hours_played'] as const;
@@ -22,11 +23,22 @@ function whyOf(bonus: WaitingBonus): string {
 const memberOf = (bonus: WaitingBonus) => t('console.promotions.approvals.member', { name: bonus.fullName, number: bonus.memberNumber });
 const amountOf = (bonus: WaitingBonus) => formatChips(bonus.amount);
 
-/** One Bonus's own buttons: Approve it, or Refuse it in the panel. */
+/** A play-time row's visit (#1061): when they sat and left, time away (any still running) and time played net of it; a dash on any other row. */
+const NONE = () => t('console.todaysPlayers.none');
+const seatedOf = ({ visit }: WaitingBonus) => (visit === null ? NONE() : formatTime(new Date(visit.seatedAt)));
+function leftOf({ visit }: WaitingBonus): string {
+  if (visit === null) return NONE();
+  return visit.leftAt === null ? t('console.promotions.approvals.stillSeated') : formatTime(new Date(visit.leftAt));
+}
+const awayOf = ({ visit }: WaitingBonus) => (visit === null ? NONE() : formatDuration(visit.awaySeconds));
+const playedOf = ({ visit }: WaitingBonus) => (visit === null ? NONE() : formatDuration(visit.playedSeconds));
+
+/** One Bonus's own buttons: Approve it, Refuse it in the panel, or correct a play-time Bonus's session there (#1061). */
 interface RowSteps {
   readonly isBusy: boolean;
   readonly approve: (ids: readonly string[]) => void;
   readonly refuse: (ids: readonly string[]) => void;
+  readonly correct: (bonus: WaitingBonus) => void;
 }
 
 function Decide({ bonus, steps }: { bonus: WaitingBonus; steps: RowSteps }) {
@@ -37,22 +49,33 @@ function Decide({ bonus, steps }: { bonus: WaitingBonus; steps: RowSteps }) {
         onClick={() => steps.approve([bonus.grantId])}>{t('console.promotions.approvals.approve')}</Button>
       <Button variant="text" size="compact" isDisabled={steps.isBusy} aria-label={t('console.promotions.approvals.refuseNamed', named)}
         onClick={() => steps.refuse([bonus.grantId])}>{t('console.promotions.approvals.refuse')}</Button>
+      {bonus.visit === null ? null : (
+        <Button variant="text" size="compact" isDisabled={steps.isBusy} aria-label={t('console.promotions.approvals.correctNamed', named)}
+          onClick={() => steps.correct(bonus)}>{t('console.promotions.approvals.correct')}</Button>
+      )}
     </Inline>
   );
 }
 
-/** The table's columns: Promotion's menu holds the server's counts, and When filters by the club day. */
+/**
+ * The table's columns: Promotion's menu holds the server's counts, and When filters by the club day. Each has its share of
+ * the width, so a row's three buttons fit beside the play-time columns.
+ */
 function columnsOf(counted: ListChoices | undefined, steps: RowSteps): readonly DataTableColumn<WaitingBonus>[] {
   return [
-    { key: 'member', header: t('console.promotions.approvals.columns.member'), priority: 'primary', sortValue: (bonus) => bonus.fullName, cell: memberOf, filter: 'text' },
+    { key: 'member', share: 1.3, header: t('console.promotions.approvals.columns.member'), priority: 'primary', sortValue: (bonus) => bonus.fullName, cell: memberOf, filter: 'text' },
     {
-      key: 'promotion', header: t('console.promotions.approvals.columns.promotion'), filter: 'choice', choices: counted?.['promotion'] ?? [],
+      key: 'promotion', share: 1.1, header: t('console.promotions.approvals.columns.promotion'), filter: 'choice', choices: counted?.['promotion'] ?? [],
       filterValue: (bonus) => bonus.promotionName, sortValue: (bonus) => bonus.promotionName, cell: (bonus) => bonus.promotionName,
     },
-    { key: 'amount', header: t('console.promotions.approvals.columns.amount'), align: 'end', filter: false, sortValue: (bonus) => bonus.amount, cell: amountOf },
-    { key: 'why', header: t('console.promotions.approvals.columns.why'), filter: false, cell: whyOf },
-    { key: 'when', header: t('console.promotions.approvals.columns.when'), filter: 'date', sortValue: (bonus) => bonus.eventAt, cell: (bonus) => formatDayTime(new Date(bonus.eventAt)) },
-    { key: 'decide', header: t('console.promotions.approvals.columns.decide'), align: 'end', filter: false, cell: (bonus) => <Decide bonus={bonus} steps={steps} /> },
+    { key: 'amount', share: 0.7, header: t('console.promotions.approvals.columns.amount'), align: 'end', filter: false, sortValue: (bonus) => bonus.amount, cell: amountOf },
+    { key: 'why', share: 1, header: t('console.promotions.approvals.columns.why'), filter: false, cell: whyOf },
+    { key: 'seated', share: 0.7, header: t('console.promotions.approvals.columns.seated'), filter: false, cell: seatedOf },
+    { key: 'left', share: 0.8, header: t('console.promotions.approvals.columns.left'), filter: false, cell: leftOf },
+    { key: 'away', share: 0.7, header: t('console.promotions.approvals.columns.away'), align: 'end', filter: false, cell: awayOf },
+    { key: 'played', share: 0.7, header: t('console.promotions.approvals.columns.played'), align: 'end', filter: false, cell: playedOf },
+    { key: 'when', share: 1, header: t('console.promotions.approvals.columns.when'), filter: 'date', sortValue: (bonus) => bonus.eventAt, cell: (bonus) => formatDayTime(new Date(bonus.eventAt)) },
+    { key: 'decide', share: 2.2, header: t('console.promotions.approvals.columns.decide'), align: 'end', filter: false, cell: (bonus) => <Decide bonus={bonus} steps={steps} /> },
   ];
 }
 
@@ -151,19 +174,24 @@ export function BonusApprovals({ venueId, onNavigate, exportIn }: { venueId: str
   const counted = useListChoices('bonus_waiting', venueId, request).data;
   const [selected, setSelected] = useState<string[]>([]);
   const [refusing, setRefusing] = useState<readonly string[] | null>(null);
+  const [correcting, setCorrecting] = useState<WaitingBonus | null>(null);
   const clear = () => {
     setSelected([]);
     setRefusing(null);
+    setCorrecting(null);
   };
   const decision = useApprove(venueId, clear);
   const shown = list.data?.rows ?? [];
   // A Bonus another super admin has decided since is no longer sent.
   const ticked = selected.filter((id) => shown.some((bonus) => bonus.grantId === id));
-  const steps: RowSteps = { isBusy: decision.isBusy, approve: (ids) => void decision.approve(ids), refuse: setRefusing };
+  const steps: RowSteps = { isBusy: decision.isBusy, approve: (ids) => void decision.approve(ids), refuse: setRefusing, correct: setCorrecting };
   const search = { label: t('console.promotions.approvals.search'), variant: 'subtle' as const, text: (bonus: WaitingBonus) => `${bonus.fullName} ${bonus.promotionName}` };
   return (
     <Stack gap={3}>
       <QueueActions venueId={venueId} shown={shown} ticked={ticked} decision={decision} refusing={refusing} setRefusing={setRefusing} onDone={clear} />
+      {correcting?.visit == null ? null : (
+        <CorrectSession venueId={venueId} bonus={correcting} visit={correcting.visit} onDone={clear} onCancel={() => setCorrecting(null)} />
+      )}
       <DataTable {...stateOf(list)} label={t('console.promotions.approvals.label')} columns={columnsOf(counted, steps)} rowKey={(bonus) => bonus.grantId}
         filter={search} exportIn={exportIn}
         server={{ total: list.data?.total ?? 0, pageSize: LIST_PAGE, onRequest: setRequest }} exportRows={list.readEvery}

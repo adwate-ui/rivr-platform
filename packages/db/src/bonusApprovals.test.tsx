@@ -3,7 +3,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { useDecideBonus, useWaitingBonusPage } from './bonusApprovals.ts';
+import { useCorrectSession, useDecideBonus, useWaitingBonusPage } from './bonusApprovals.ts';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
@@ -37,6 +37,8 @@ const VIEW = { sort: null, query: '', filters: {}, page: 1 } as const;
 const ROW = {
   total: 3, grant_id: 'g1', member_id: 'm1', full_name: 'Ishaan Verma', member_number: 7, promotion_id: 'p1', promotion_name: 'Four-hour bonus',
   amount_paise: 100_000, trigger: 'hours_step', event_at: '2026-11-15T18:00:00Z', step_minutes: 240, table_name: null, club_day: '2026-11-15',
+  visit_id: 'vis1', seated_at: '2026-11-15T14:00:00Z', left_at: null, away_seconds: 600, played_seconds: 14_400,
+  sessions: [{ id: 's1', table: 'Table 3', startedAt: '2026-11-15T14:00:00Z', endedAt: null, awaySeconds: 600 }, { nonsense: true }],
 };
 
 afterEach(cleanup);
@@ -49,6 +51,11 @@ describe('Bonus to approve (decision 0670)', () => {
     expect(result.current.data?.rows).toEqual([{
       grantId: 'g1', memberId: 'm1', fullName: 'Ishaan Verma', memberNumber: 7, promotionName: 'Four-hour bonus', amount: 100_000n,
       trigger: 'hours_step', eventAt: '2026-11-15T18:00:00Z', stepMinutes: 240, tableName: null,
+      // A seat the console cannot read is left out.
+      visit: {
+        visitId: 'vis1', seatedAt: '2026-11-15T14:00:00Z', leftAt: null, awaySeconds: 600, playedSeconds: 14_400,
+        sessions: [{ sessionId: 's1', tableName: 'Table 3', startedAt: '2026-11-15T14:00:00Z', endedAt: null, awaySeconds: 600 }],
+      },
     }]);
     expect(calls[0]?.body).toMatchObject({ p_venue_id: VENUE, p_view: { page: 1, page_size: 50 } });
   });
@@ -77,5 +84,23 @@ describe('Bonus to approve (decision 0670)', () => {
     let outcome: Awaited<ReturnType<typeof result.current.mutateAsync>> | undefined;
     await act(async () => { outcome = await result.current.mutateAsync({ grantIds: ['g1'], requestId: REQUEST, refusal: null }); });
     expect(outcome).toEqual({ ok: false, error: 'own_record' });
+  });
+
+  it('corrects a visit\'s seats in one call with the reason trimmed, and reads what was refused and what given stays', async () => {
+    const { wrapper, calls } = clientFor({ '/rpc/correct_seat_sessions': { body: [{ refused: 2, given_above: 1 }] } });
+    const { result } = renderHook(() => useCorrectSession(VENUE), { wrapper });
+    let outcome: Awaited<ReturnType<typeof result.current.mutateAsync>> | undefined;
+    const seats = [{ sessionId: 's1', endedAt: null, awaySeconds: 4200 }, { sessionId: 's2', endedAt: '2026-11-15T17:00:00Z', awaySeconds: 0 }];
+    await act(async () => { outcome = await result.current.mutateAsync({ seats, reason: ' Away 70 minutes ' }); });
+    expect(outcome).toEqual({ ok: true, value: { refused: 2, givenAbove: 1 } });
+    expect(calls.find((call) => call.url.includes('correct_seat_sessions'))?.body).toEqual({ p_seats: seats, p_reason: 'Away 70 minutes' });
+  });
+
+  it('names why a correction was refused', async () => {
+    const { wrapper } = clientFor({ '/rpc/correct_seat_sessions': { status: 400, body: { code: '22023', message: 'The end falls after they sat' } } });
+    const { result } = renderHook(() => useCorrectSession(VENUE), { wrapper });
+    let outcome: Awaited<ReturnType<typeof result.current.mutateAsync>> | undefined;
+    await act(async () => { outcome = await result.current.mutateAsync({ seats: [{ sessionId: 's1', endedAt: '2026-11-15T17:00:00Z', awaySeconds: 0 }], reason: 'Left early' }); });
+    expect(outcome).toEqual({ ok: false, error: 'invalid' });
   });
 });

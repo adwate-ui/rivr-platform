@@ -5,20 +5,25 @@ import { refused, renderWithApi, resetApi, type Reply } from './promotionsTestAp
 
 afterEach(resetApi);
 
+// Ishaan sat at Table 3 from 18:00 to 22:30 IST, 10 minutes away: 4 h 20 min played.
+const SEAT = { id: 's1', table: 'Table 3', startedAt: '2026-11-15T12:30:00Z', endedAt: '2026-11-15T17:00:00Z', awaySeconds: 600 };
+const VISIT = { visit_id: 'vis1', sessions: [SEAT], seated_at: SEAT.startedAt, left_at: SEAT.endedAt, away_seconds: 600, played_seconds: 15_600 };
+const NO_VISIT = { visit_id: null, sessions: null, seated_at: null, left_at: null, away_seconds: null, played_seconds: null };
+
 /** A page row of bonus_waiting_page: Ishaan's play-time Bonus, unless changed. */
 function waitingRow(more: Record<string, unknown>) {
   return {
     total: 3, grant_id: 'g1', member_id: 'm1', full_name: 'Ishaan Verma', member_number: 7, promotion_id: 'p1', promotion_name: 'Four-hour bonus',
-    amount_paise: 100_000, trigger: 'hours_step', event_at: '2026-11-15T16:30:00Z', step_minutes: 240, table_name: null, club_day: '2026-11-15', ...more,
+    amount_paise: 100_000, trigger: 'hours_step', event_at: '2026-11-15T16:30:00Z', step_minutes: 240, table_name: null, club_day: '2026-11-15', ...VISIT, ...more,
   };
 }
 
 const ROWS = [
   waitingRow({}),
   waitingRow({ grant_id: 'g2', member_id: 'm2', full_name: 'Vihaan Kapoor', member_number: 8, promotion_name: 'Seat bonus', amount_paise: 50_000,
-    trigger: 'seated', step_minutes: null, table_name: 'Table 3' }),
+    trigger: 'seated', step_minutes: null, table_name: 'Table 3', ...NO_VISIT }),
   waitingRow({ grant_id: 'g3', member_id: 'm3', full_name: 'Mihir Shah', member_number: 9, promotion_name: 'Welcome', amount_paise: 50_000,
-    trigger: 'signup', step_minutes: null }),
+    trigger: 'signup', step_minutes: null, ...NO_VISIT }),
 ];
 
 function renderQueue(replies: Readonly<Record<string, Reply>> = {}) {
@@ -112,6 +117,45 @@ describe('Bonus to approve (decision 0670)', () => {
     renderQueue({ '/rpc/approve_promotion_bonus': { body: [{ decision_id: null, grants: 0, amount_paise: 0 }] } });
     fireEvent.click(within(await rowOf('Ishaan Verma')).getByRole('button', { name: 'Approve 1,000 Bonus for Ishaan Verma' }));
     expect(await screen.findByText('Already decided by another super admin.')).toBeDefined();
+  });
+
+  it('shows a play-time Bonus\'s seat, time away and time played; only it can be corrected', async () => {
+    renderQueue();
+    const ishaan = await rowOf('Ishaan Verma');
+    expect(ishaan.textContent).toContain('18:00');
+    expect(ishaan.textContent).toContain('22:30');
+    expect(ishaan.textContent).toContain('10 min');
+    expect(ishaan.textContent).toContain('4 h 20 min');
+    expect(within(ishaan).getByRole('button', { name: 'Correct the session of Ishaan Verma' })).toBeDefined();
+    expect(within(await rowOf('Vihaan Kapoor')).queryByRole('button', { name: /^Correct/ })).toBeNull();
+  });
+
+  it('corrects when they left with a reason, in one call, and says what was refused and what given stays', async () => {
+    const { bodiesOf } = renderQueue({ '/rpc/correct_seat_sessions': { body: [{ refused: 1, given_above: 1 }] } });
+    fireEvent.click(within(await rowOf('Ishaan Verma')).getByRole('button', { name: 'Correct the session of Ishaan Verma' }));
+    const panel = await screen.findByRole('dialog', { name: 'Correct session' });
+    expect(within(panel).getByText('Table 3 · from 18:00')).toBeDefined();
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save correction' }));
+    expect(await within(panel).findByText('Change a time first.')).toBeDefined();
+    fireEvent.change(within(panel).getByRole('textbox', { name: /^Left at/ }), { target: { value: '21:40' } });
+    fireEvent.change(within(panel).getByRole('textbox', { name: /^Why it is corrected/ }), { target: { value: 'Left early, not checked out' } });
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save correction' }));
+    expect(await screen.findByText('Session corrected · 1 waiting refused · 1 already given stays')).toBeDefined();
+    // Time away left as it was keeps its seconds.
+    expect(bodiesOf('correct_seat_sessions')).toEqual([
+      { p_seats: [{ sessionId: 's1', endedAt: '2026-11-15T16:10:00.000Z', awaySeconds: 600 }], p_reason: 'Left early, not checked out' },
+    ]);
+  });
+
+  it('corrects time away alone, keeping when they left, and says when it is their own record', async () => {
+    const { bodiesOf } = renderQueue({ '/rpc/correct_seat_sessions': refused('RVOWN') });
+    fireEvent.click(within(await rowOf('Ishaan Verma')).getByRole('button', { name: 'Correct the session of Ishaan Verma' }));
+    const panel = await screen.findByRole('dialog', { name: 'Correct session' });
+    fireEvent.change(within(panel).getByRole('textbox', { name: /^Away/ }), { target: { value: '70' } });
+    fireEvent.change(within(panel).getByRole('textbox', { name: /^Why it is corrected/ }), { target: { value: 'Away 70 minutes, not marked' } });
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save correction' }));
+    expect(await within(panel).findByText('Not your own record. Ask another super admin.')).toBeDefined();
+    expect(bodiesOf('correct_seat_sessions')).toEqual([{ p_seats: [{ sessionId: 's1', endedAt: null, awaySeconds: 4200 }], p_reason: 'Away 70 minutes, not marked' }]);
   });
 
   it('says when nothing waits, and opens a member\'s record from a row', async () => {
