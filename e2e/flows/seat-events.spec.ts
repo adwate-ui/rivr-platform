@@ -34,7 +34,9 @@ test.describe('Seat events', () => {
     await expect(tablet.getByText(/^Call time paused, /)).toBeVisible();
     await tablet.getByRole('button', { name: 'Back', exact: true }).click();
     await expect(tablet.getByText('Away from the table. The seat is kept.')).toHaveCount(0);
+    // Every leave says why (#1060).
     await tablet.getByRole('button', { name: 'Player left' }).click();
+    await tablet.getByRole('radio', { name: 'Busted' }).click();
     await tablet.getByRole('button', { name: 'Yes, Yash Gupta left' }).click();
     await expect(tablet.getByRole('button', { name: 'Seat 9, open' })).toBeVisible();
     await revoke(floor, name);

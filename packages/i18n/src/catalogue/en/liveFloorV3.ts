@@ -140,19 +140,15 @@ export const floor = {
     subtitle: '{name} · {where}',
     owes: '{name}: {time} call time owed.',
     free: 'No call time owed.',
-    reason: 'Reason for letting them go early',
-    emergency: 'Emergency',
-    unwell: 'Unwell',
-    tableBroke: 'Table broke',
-    floorDecision: 'Floor decision',
-    busted: 'Busted',
+    /** Asked on every leave (#1060): one of common.leaveReasons. */
+    reason: 'Why they leave',
     confirmOwes: 'Let go early',
     confirm: 'Yes, they leave',
     /** The same, then checks the player out of the club, as the door would; staff choose either (owner, 16 Nov). */
     confirmOwesOut: 'Let go early and check out',
     confirmOut: 'Leave and check out',
     leaveOwing: 'Leave owing',
-    pickReason: 'Pick a reason to let them go before call time.',
+    pickReason: 'Pick why they leave.',
     cancel: 'Cancel',
   },
   /** The high hand strip and Log a high hand (redesign RD-24). `{hand}` is the hit named exactly: Four Jacks. */

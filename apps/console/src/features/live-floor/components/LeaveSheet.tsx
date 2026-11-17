@@ -1,3 +1,4 @@
+import { LEAVE_REASONS, type LeaveReason } from '@rivr/contracts';
 import { formatDuration, t, type MessageKey } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Sheet, Stack, Text } from '@rivr/ui';
 import { useState } from 'react';
@@ -13,12 +14,6 @@ export interface Leaver {
   /** Whole seconds of call time still owed; 0 when met or none given. */
   readonly owedSeconds: number;
 }
-
-/** The reasons to let a player go before their call time (console v3), in the words kept on their member record. */
-const REASONS: readonly MessageKey[] = [
-  'console.floor.leave.emergency', 'console.floor.leave.unwell', 'console.floor.leave.tableBroke', 'console.floor.leave.floorDecision',
-  'console.floor.leave.busted',
-];
 
 export interface LeaveSheetProps {
   leaver: Leaver;
@@ -46,27 +41,30 @@ function checkOutOf(owes: boolean, { leaver, canLetGo, canCheckOut }: LeaveSheet
   return leaver.seat === null ? null : 'console.floor.leave.confirmOut';
 }
 
-/** Lets the player go early with the reason, or leave from their seat; and checks them out of the club with it if asked. */
-async function leaveAs(props: LeaveSheetProps, reason: MessageKey | null, isCheckingOut: boolean): Promise<void> {
+/** Lets the player go early with the reason, or leave from their seat with it; and checks them out of the club with it if asked. */
+async function leaveAs(props: LeaveSheetProps, reason: LeaveReason, isCheckingOut: boolean): Promise<void> {
   const { leaver, canLetGo, changes } = props;
-  if (leaver.owedSeconds > 0 && canLetGo && reason !== null) {
-    return changes.letGo({ memberId: leaver.memberId, fullName: leaver.fullName, sessionId: leaver.seat?.sessionId }, t(reason), isCheckingOut);
+  if (leaver.owedSeconds > 0 && canLetGo) {
+    return changes.letGo({ memberId: leaver.memberId, fullName: leaver.fullName, sessionId: leaver.seat?.sessionId }, reason, isCheckingOut);
   }
   if (leaver.seat === null) return undefined;
   const player = { sessionId: leaver.seat.sessionId, memberId: leaver.memberId, fullName: leaver.fullName };
-  return isCheckingOut ? changes.leaveAndCheckOut(player, leaver.tableName) : changes.leave(player, leaver.tableName);
+  return isCheckingOut ? changes.leaveAndCheckOut(player, leaver.tableName, reason) : changes.leave(player, leaver.tableName, reason);
 }
 
 /**
- * Leave (console v3). With the call time met, or none: Yes, they leave, with Undo. Owing, staff with the override pick
- * one of Emergency, Unwell, Table broke, Floor decision or Busted, which is written to the member's record with their name,
- * and let the player go early (not undone, decision 0481); other floor staff free the seat owing, with Undo (decision 0306).
- * Beside Let go early and Yes, they leave, staff with the door's permission choose the same and check out of the club too
- * (owner, 16 Nov).
+ * Leave (console v3). Every leave says why (#1060, the owner, 17 Nov): Call time met, picked already when no call time is
+ * owed, Busted, Emergency, Unwell, Table broke or Floor decision, kept on the seat and shown on the member's record. With
+ * nothing owed: Yes, they leave, with Undo. Owing, staff with the override let the player go early, the reason written to
+ * the member's record with their name (not undone, decision 0481); other floor staff free the seat owing, with Undo
+ * (decision 0306). Beside Let go early and Yes, they leave, staff with the door's permission choose the same and check out
+ * of the club too (owner, 16 Nov).
  */
 export function LeaveSheet(props: LeaveSheetProps) {
   const { leaver, canLetGo, onClose } = props;
-  const [reason, setReason] = useState<MessageKey | null>(null);
+  // Call time met is picked until staff pick another, while nothing is owed; owing, none is.
+  const [picked, setPicked] = useState<LeaveReason | null>(null);
+  const reason = picked ?? (leaver.owedSeconds > 0 ? null : 'call_time_met');
   const [isMissing, setMissing] = useState(false);
   // A press under way: a second would end the seat again, or check out twice.
   const [isBusy, setBusy] = useState(false);
@@ -75,7 +73,7 @@ export function LeaveSheet(props: LeaveSheetProps) {
   const checkOut = checkOutOf(owes, props);
   const go = async (isCheckingOut: boolean) => {
     if (isBusy) return;
-    if (owes && canLetGo && reason === null) return setMissing(true);
+    if (reason === null) return setMissing(true);
     setBusy(true);
     await leaveAs(props, reason, isCheckingOut);
     onClose();
@@ -90,14 +88,12 @@ export function LeaveSheet(props: LeaveSheetProps) {
         <Button variant={confirm.variant} isLoading={isBusy} onClick={() => void go(false)}>{t(confirm.label)}</Button>
       </>}>
       <Text>{owes ? t('console.floor.leave.owes', { name: leaver.fullName, time: formatDuration(leaver.owedSeconds) }) : t('console.floor.leave.free')}</Text>
-      {owes && canLetGo ? (
-        <Stack gap={3}>
-          <Text variant="caption" tone="muted">{t('console.floor.leave.reason')}</Text>
-          <ChoiceChips look="subtle" mode="one" label={t('console.floor.leave.reason')} isLabelVisuallyHidden selected={reason === null ? [] : [reason]}
-            options={REASONS.map((key) => ({ value: key, label: t(key) }))}
-            onChange={([value]) => { setReason(REASONS.find((key) => key === value) ?? null); setMissing(false); }} />
-        </Stack>
-      ) : null}
+      <Stack gap={3}>
+        <Text variant="caption" tone="muted">{t('console.floor.leave.reason')}</Text>
+        <ChoiceChips look="subtle" mode="one" label={t('console.floor.leave.reason')} isLabelVisuallyHidden selected={reason === null ? [] : [reason]}
+          options={LEAVE_REASONS.map((code) => ({ value: code, label: t(`common.leaveReasons.${code}`) }))}
+          onChange={([value]) => { setPicked(LEAVE_REASONS.find((code) => code === value) ?? null); setMissing(false); }} />
+      </Stack>
       {isMissing ? <ErrorMessage>{t('console.floor.leave.pickReason')}</ErrorMessage> : null}
     </Sheet>
   );

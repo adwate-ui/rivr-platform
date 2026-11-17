@@ -38,7 +38,8 @@ const ANSWERS: Record<string, unknown> = {
   ],
   '/rpc/member_visits': [
     { visit_id: 'v1', opened_at: '2026-11-03T14:00:00Z', closed_at: '2026-11-03T20:00:00Z', tables: 'Table 1, Table 3', minutes_played: 300, call_time_met: true, left_early: false },
-    { visit_id: 'v2', opened_at: '2026-11-02T14:00:00Z', closed_at: '2026-11-02T16:00:00Z', tables: 'Table 1', minutes_played: 60, call_time_met: false, left_early: true },
+    { visit_id: 'v2', opened_at: '2026-11-02T14:00:00Z', closed_at: '2026-11-02T16:00:00Z', tables: 'Table 1', minutes_played: 60, call_time_met: false, left_early: true,
+      leave_reasons: ['busted', 'call_time_met'] },
   ],
   // Bonus chips (decision 0504): the history before the balance, whose path it starts with.
   '/rpc/member_bonus_history': [

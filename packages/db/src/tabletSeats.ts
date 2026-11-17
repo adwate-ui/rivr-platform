@@ -1,3 +1,4 @@
+import type { LeaveReason } from '@rivr/contracts';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import type { Paise } from '@rivr/domain/money';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -76,9 +77,11 @@ export function useSeatEvents() {
     mutationFn: async ({ sessionId, isAway }: { sessionId: string; isAway: boolean }) =>
       settle((await client.rpc('set_seat_away', { p_session_id: sessionId, p_is_away: isAway })).error),
   });
+  // Every leave says why (#1060).
   const leave = useMutation({
     networkMode: 'always',
-    mutationFn: async (sessionId: string) => settle((await client.rpc('end_seat', { p_session_id: sessionId, p_reason: 'left' })).error),
+    mutationFn: async ({ sessionId, reason }: { sessionId: string; reason: LeaveReason }) =>
+      settle((await client.rpc('end_seat', { p_session_id: sessionId, p_reason: 'left', p_leave_reason: reason })).error),
   });
   return { setAway, leave };
 }

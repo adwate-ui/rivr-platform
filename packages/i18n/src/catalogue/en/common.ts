@@ -1,5 +1,14 @@
 /** Copy shared by every surface: states every screen has. */
 export const common = {
+  /** Why a player left the table (#1060): the floor's leave sheet, the dealer tablet and the member's record. */
+  leaveReasons: {
+    call_time_met: 'Call time met',
+    busted: 'Busted',
+    emergency: 'Emergency',
+    unwell: 'Unwell',
+    table_broke: 'Table broke',
+    floor_decision: 'Floor decision',
+  },
   loading: 'Loading',
   retry: 'Try again',
   loadFailed: 'Not loaded. Try again.',

@@ -80,7 +80,10 @@ test.describe('Floor requests', () => {
     await seatOnFloor(host, { table: 'Table 1', seat: 8, number: '9000000217' });
     const sheet = await openPlayer(host, 'Neel Bose');
     await sheet.getByRole('button', { name: 'Leave', exact: true }).last().click();
-    await host.getByRole('dialog', { name: 'Let go before call time' }).getByRole('button', { name: 'Leave owing' }).click();
+    // Every leave says why (#1060).
+    const owing = host.getByRole('dialog', { name: 'Let go before call time' });
+    await owing.getByRole('radio', { name: 'Floor decision' }).click();
+    await owing.getByRole('button', { name: 'Leave owing' }).click();
     await expect(host.getByText('Neel Bose left Table 1')).toBeVisible();
     await (await requestOf(page, 'Neel Bose', /Left before call time/)).getByRole('button', { name: 'Record' }).click();
     const record = page.getByRole('dialog', { name: 'Let go before call time' });

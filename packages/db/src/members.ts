@@ -1,3 +1,4 @@
+import { isLeaveReason, type LeaveReason } from '@rivr/contracts';
 import { err, ok, type Result } from '@rivr/contracts/result';
 import type { Paise } from '@rivr/domain/money';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -201,6 +202,8 @@ export interface MemberVisit {
   /** Whether the call time owed was met; null when no seat owed any. */
   readonly callTimeMet: boolean | null;
   readonly leftEarly: boolean;
+  /** Why they left each table of the visit, in order (#1060); empty when none was said, or the seat is still open. */
+  readonly leaveReasons: readonly LeaveReason[];
 }
 
 /** A member's newest `count` visits, newest first (members.read). */
@@ -216,6 +219,7 @@ export function useMemberVisits(venueId: string, memberId: string, count: number
       if (error) throw error;
       return data.map((row) => ({
         visitId: row.visit_id, openedAt: row.opened_at, tables: row.tables, minutesPlayed: row.minutes_played, callTimeMet: row.call_time_met, leftEarly: row.left_early,
+        leaveReasons: (row.leave_reasons ?? []).filter(isLeaveReason),
       }));
     },
   });

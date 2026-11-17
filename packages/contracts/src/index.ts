@@ -32,7 +32,9 @@ export {
 export {
   bankAccountNumberSchema, ifscSchema, upiVpaSchema, type Ifsc, type UpiVpa,
 } from './payments.ts';
-export { bonusChipsToRedeemSchema, doorCheckInSchema, floorWaitlistAddSchema, seatPlayerSchema, type SeatWho } from './waitlist.ts';
+export {
+  bonusChipsToRedeemSchema, doorCheckInSchema, floorWaitlistAddSchema, isLeaveReason, LEAVE_REASONS, seatPlayerSchema, type LeaveReason, type SeatWho,
+} from './waitlist.ts';
 export {
   dealerPinEntrySchema,
   dealerPinSchema,

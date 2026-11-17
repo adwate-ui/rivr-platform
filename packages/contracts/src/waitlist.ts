@@ -26,3 +26,15 @@ export const bonusChipsToRedeemSchema = z.string().trim().regex(/^\d{0,8}$/)
 
 /** The floor adds a member to a table's waitlist the same way, by mobile number or membership number (#38; console v3). */
 export const floorWaitlistAddSchema = z.object({ number: mobileOrMemberNumberSchema });
+
+/**
+ * Why a player left the table (#1060, the owner, 17 Nov), asked on every leave from the floor and the dealer tablet,
+ * "Call time met" first; the database keeps the same list (seat_session.leave_reason).
+ */
+export const LEAVE_REASONS = ['call_time_met', 'busted', 'emergency', 'unwell', 'table_broke', 'floor_decision'] as const;
+export type LeaveReason = (typeof LEAVE_REASONS)[number];
+
+/** Whether a value read back is one of the reasons. */
+export function isLeaveReason(value: unknown): value is LeaveReason {
+  return LEAVE_REASONS.some((reason) => reason === value);
+}

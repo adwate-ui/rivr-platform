@@ -52,10 +52,11 @@ describe('The tablet\'s seats', () => {
     let away: unknown;
     let left: unknown;
     await act(async () => { away = await result.current.events.setAway.mutateAsync({ sessionId: 's9', isAway: true }); });
-    await act(async () => { left = await result.current.events.leave.mutateAsync('s9'); });
+    await act(async () => { left = await result.current.events.leave.mutateAsync({ sessionId: 's9', reason: 'call_time_met' }); });
     expect(away).toEqual({ ok: true, value: null });
     expect(left).toEqual({ ok: false, error: 'paused' });
-    expect(calls.find((call) => call.rpc === 'end_seat')?.body).toEqual({ p_session_id: 's9', p_reason: 'left' });
+    // Every leave says why (#1060).
+    expect(calls.find((call) => call.rpc === 'end_seat')?.body).toEqual({ p_session_id: 's9', p_reason: 'left', p_leave_reason: 'call_time_met' });
   });
 
   it('sends away and leaving even while the tablet thinks it is offline, so neither waits to go later', async () => {
@@ -67,7 +68,7 @@ describe('The tablet\'s seats', () => {
     const before = calls.length;
     const outcomes: unknown[] = [];
     await act(async () => { outcomes.push(await result.current.events.setAway.mutateAsync({ sessionId: 's9', isAway: true })); });
-    await act(async () => { outcomes.push(await result.current.events.leave.mutateAsync('s9')); });
+    await act(async () => { outcomes.push(await result.current.events.leave.mutateAsync({ sessionId: 's9', reason: 'busted' })); });
     expect(outcomes).toEqual([1, 2].map(() => ({ ok: false, error: 'unavailable' })));
     expect(calls.slice(before).map((call) => call.rpc)).toEqual(['set_seat_away', 'end_seat']);
   });
