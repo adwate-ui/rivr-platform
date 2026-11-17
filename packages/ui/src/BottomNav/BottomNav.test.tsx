@@ -13,16 +13,16 @@ function tabs(overrides: Partial<Record<PlayerTab, BottomNavItem['access']>> = {
 }
 
 describe('BottomNav', () => {
-  it('shows Bonus as a tab of its own', () => {
+  it('shows the Bonus screen as a tab of its own, named Rewards (the owner, 17 Nov)', () => {
     renderIn(<BottomNav items={[{ tab: 'bonus', href: '/bonus', access: { state: 'enabled' } }]} current="bonus" />);
-    expect(screen.getByRole('link', { name: 'Bonus' }).getAttribute('aria-current')).toBe('page');
+    expect(screen.getByRole('link', { name: 'Rewards' }).getAttribute('aria-current')).toBe('page');
   });
 
   it('lists the tabs in order inside a named navigation landmark', () => {
     renderIn(<BottomNav items={tabs()} current="home" />);
     const nav = screen.getByRole('navigation', { name: 'Main' });
     const names = within(nav).getAllByRole('link').map((link) => link.textContent);
-    expect(names).toEqual(['Home', 'Sessions', 'Bonus', 'Profile']);
+    expect(names).toEqual(['Home', 'Sessions', 'Rewards', 'Profile']);
   });
 
   it('marks the current tab as the current page', () => {
@@ -50,7 +50,7 @@ describe('BottomNav', () => {
   it('hands a plain click to the router instead of reloading the page', async () => {
     const onNavigate = vi.fn();
     renderIn(<BottomNav items={tabs()} onNavigate={onNavigate} />);
-    await userEvent.click(screen.getByRole('link', { name: 'Bonus' }));
+    await userEvent.click(screen.getByRole('link', { name: 'Rewards' }));
     expect(onNavigate).toHaveBeenCalledWith('/bonus');
   });
 

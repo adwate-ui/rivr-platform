@@ -64,8 +64,9 @@ export const ui = {
     /** The member's own night (decision 0320): the first tab. */
     home: 'Home',
     sessions: 'Sessions',
-    /** The member's Bonus, its history and Refer a friend (redesign of 15 Nov). */
-    bonus: 'Bonus',
+    /** The member's Bonus, its history and Refer a friend (redesign of 15 Nov). Named Rewards on the tab only; the screen
+     * stays Bonus (the owner, 17 Nov). */
+    bonus: 'Rewards',
     /** The member, their notifications and the club's rules: a tab since the redesign of 15 Nov. */
     profile: 'Profile',
   },

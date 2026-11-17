@@ -31,7 +31,7 @@ function hearsChanges(member: Page): Promise<void> {
 
 /** Her Bonus as its tile says it, in whole Bonus. */
 async function balanceOf(member: Page): Promise<number> {
-  await tab(member, 'Bonus').click();
+  await tab(member, 'Rewards').click();
   const tile = member.getByText('Balance', { exact: true }).locator('..');
   await expect(tile).toContainText(/\d/);
   const figure = /[\d,]+/.exec((await tile.innerText()).replace('Balance', ''));

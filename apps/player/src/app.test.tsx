@@ -146,7 +146,7 @@ describe('the player app', () => {
     signIn();
     renderAt('/');
     await screen.findByRole('navigation', { name: 'Main' });
-    expect(screen.getByRole('link', { name: 'Bonus' })).toBeDefined();
+    expect(screen.getByRole('link', { name: 'Rewards' })).toBeDefined();
     expect(screen.queryByRole('link', { name: 'Sessions' })).toBeNull();
   });
 
