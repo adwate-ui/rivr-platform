@@ -165,6 +165,8 @@ export const todaysPlayers = {
   /** The tables a player played on today, and the time played across them, in columns of their own (console v3). */
   table: 'Table',
   played: 'Time played',
+  /** The Bonus given to the member that club day (#1062). */
+  bonus: 'Bonus',
   none: '–',
 } as const;
 

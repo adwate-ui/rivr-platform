@@ -71,6 +71,8 @@ export const queryKeys = {
   doorBoard: (userId: string, venueId: string) => ['user', userId, 'door-board', venueId] as const,
   /** Reports › Players' visits over a span (decision 0682). */
   playerVisits: (userId: string, venueId: string) => ['user', userId, 'player-visits', venueId] as const,
+  /** Each Bonus given in a report's span (#1063). */
+  bonusGiven: (userId: string, venueId: string) => ['user', userId, 'bonus-given', venueId] as const,
   /** Bonus a promotion calculated, waiting for a super admin (decision 0670). */
   bonusWaiting: (userId: string, venueId: string) => ['user', userId, 'bonus-waiting', venueId] as const,
   /** The member's visit to rate on Home, and the General Manager's list of feedback (decision 0165). */

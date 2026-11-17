@@ -1,5 +1,5 @@
 import { LIST_PAGE, scopedTo, useListChoices, usePlayerVisitsPage, type ListChoices, type MemberKycStatus, type PlayerVisit, type ReportSpan } from '@rivr/db';
-import { formatDate, formatDuration, formatTime, t } from '@rivr/i18n';
+import { formatChips, formatDate, formatDuration, formatRupeesForFile, formatTime, t } from '@rivr/i18n';
 import { DataTable, DotStatus, Text, type ColumnChoice, type DataTableColumn, type DataTableRequest, type DotStatusTone } from '@rivr/ui';
 import { useState } from 'react';
 
@@ -38,6 +38,12 @@ function visitColumns(counted: ListChoices | undefined): readonly DataTableColum
     {
       key: 'played', share: 1.5, filter: 'duration', header: t('console.todaysPlayers.played'), sortValue: (visit) => visit.playedSeconds, align: 'end',
       cell: (visit) => (visit.tables.length === 0 ? NONE() : formatDuration(visit.playedSeconds)),
+    },
+    // The Bonus given to them that club day (#1062).
+    {
+      key: 'bonus', share: 1, header: t('console.todaysPlayers.bonus'), align: 'end', filter: false,
+      sortValue: (visit) => Number(formatRupeesForFile(visit.bonus)), exportValue: (visit) => Number(formatRupeesForFile(visit.bonus)),
+      cell: (visit) => formatChips(visit.bonus),
     },
     {
       key: 'kyc', share: 1.3, header: t('console.members.kyc'), sortValue: (visit) => KYC.indexOf(visit.kycStatus), isWide: true, filter: false,

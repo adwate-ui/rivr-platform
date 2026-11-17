@@ -16,10 +16,12 @@ afterEach(() => {
 const KABIR = {
   total: 1, member_id: 'm1', full_name: 'Kabir Sethi', member_number: 31, tier_name: 'Black card', is_base_tier: false, status: 'expected', list: 'expected',
   checked_in_at: null, checked_out_at: null, waiting_seconds: 240, tables: [], played_seconds: 0, kyc_status: 'at_desk', since: '2026-11-03T14:00:00Z',
+  bonus_paise: 0,
 };
 const NAKUL = {
   ...KABIR, member_id: 'm2', full_name: 'Nakul Dhillon', member_number: 270, tier_name: 'Member', is_base_tier: true, status: 'playing', list: 'in_club',
   checked_in_at: '2026-11-03T14:05:00Z', waiting_seconds: 0, tables: [{ table: 'Table 1', seconds: 5400 }], played_seconds: 5400, kyc_status: 'verified',
+  bonus_paise: 150_000,
 };
 // As the server counts them over everyone at the door today: far more than the page shown.
 const COUNTS = [
@@ -96,7 +98,8 @@ describe('Check-in (the door as one table from the server, redesign RD-30)', () 
   it('tells members apart by number, with the tier only above the base one (audit F-020), where each stands, the time played and the ID check', async () => {
     renderAs('host');
     const row = (await within(await door()).findByText('Nakul Dhillon')).closest('[role="row"]');
-    for (const shown of ['270', 'Playing', 'Table 1', '1 h 30 min', 'Checked']) expect(row?.textContent).toContain(shown);
+    // With the Bonus given to him today (#1062).
+    for (const shown of ['270', 'Playing', 'Table 1', '1 h 30 min', '1,500', 'Checked']) expect(row?.textContent).toContain(shown);
     // Nakul is of the base tier: his row names none. Kabir's names his.
     expect(row?.textContent).not.toContain('Member');
     fireEvent.click(screen.getByRole('radio', { name: /^Expected tonight/ }));

@@ -23,6 +23,42 @@ export interface WaitingBonus {
   /** For play time, the step's minutes: 240 for the Bonus after four hours. */
   readonly stepMinutes: number | null;
   readonly tableName: string | null;
+  /** For play time (#1061): the visit's seats, when they sat and left (null while one is taken), time away and time played. */
+  readonly visit: WaitingVisit | null;
+}
+
+/** One seat of a play-time Bonus's visit, as the correction shows it (#1061). */
+export interface WaitingSession {
+  readonly sessionId: string;
+  readonly tableName: string;
+  readonly startedAt: string;
+  readonly endedAt: string | null;
+  readonly awaySeconds: number;
+}
+
+/** A play-time Bonus's visit (#1061): its seats, when they sat and left, and time away and played, net of time away. */
+export interface WaitingVisit {
+  readonly visitId: string;
+  readonly sessions: readonly WaitingSession[];
+  readonly seatedAt: string;
+  readonly leftAt: string | null;
+  readonly awaySeconds: number;
+  readonly playedSeconds: number;
+}
+
+/** The visit's seats as the database lists them, each read field by field; none that cannot be read. */
+function sessionsOf(value: unknown): WaitingSession[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item: unknown): WaitingSession[] => {
+    if (typeof item !== 'object' || item === null) return [];
+    const id: unknown = Reflect.get(item, 'id');
+    const table: unknown = Reflect.get(item, 'table');
+    const startedAt: unknown = Reflect.get(item, 'startedAt');
+    const endedAt: unknown = Reflect.get(item, 'endedAt');
+    const away: unknown = Reflect.get(item, 'awaySeconds');
+    if (typeof id !== 'string' || typeof table !== 'string' || typeof startedAt !== 'string') return [];
+    return [{ sessionId: id, tableName: table, startedAt, endedAt: typeof endedAt === 'string' ? endedAt : null, awaySeconds: Number(away ?? 0) }];
+  });
 }
 
 /** A page row as the database gives it. */
@@ -38,12 +74,22 @@ interface WaitingRow {
   readonly event_at: string;
   readonly step_minutes: number | null;
   readonly table_name: string | null;
+  readonly visit_id: string | null;
+  readonly sessions: unknown;
+  readonly seated_at: string | null;
+  readonly left_at: string | null;
+  readonly away_seconds: number | null;
+  readonly played_seconds: number | null;
 }
 
 function waitingOf(row: WaitingRow): WaitingBonus {
   return {
     grantId: row.grant_id, memberId: row.member_id, fullName: row.full_name, memberNumber: row.member_number, promotionName: row.promotion_name,
     amount: toPaise(row.amount_paise), trigger: row.trigger, eventAt: row.event_at, stepMinutes: row.step_minutes, tableName: row.table_name,
+    visit: row.visit_id === null || row.seated_at === null ? null : {
+      visitId: row.visit_id, sessions: sessionsOf(row.sessions), seatedAt: row.seated_at, leftAt: row.left_at,
+      awaySeconds: Number(row.away_seconds ?? 0), playedSeconds: Number(row.played_seconds ?? 0),
+    },
   };
 }
 
@@ -111,6 +157,58 @@ export function useDecideBonus(venueId: string) {
       ]);
       if (error) return err(DECISION_FAILURE_BY_CODE[error.code] ?? 'unavailable');
       return ok(decisionOf(data[0]));
+    },
+  });
+}
+
+/** Why a correction was refused: not a super admin, one's own record, times that do not fit, frozen, promotions off, or anything else. */
+export type SessionCorrectionFailure = 'not_allowed' | 'own_record' | 'invalid' | 'paused' | 'switched_off' | 'unavailable';
+
+const CORRECTION_FAILURE_BY_CODE: Readonly<Record<string, SessionCorrectionFailure>> = {
+  '42501': 'not_allowed', RVOWN: 'own_record', '22023': 'invalid', RVFRZ: 'paused', RVMBR: 'paused', RVKIL: 'switched_off',
+};
+
+/** One seat's corrected end (null to keep it, or for a seat still taken) and its whole time away, any still running included. */
+export interface SeatCorrection {
+  readonly sessionId: string;
+  readonly endedAt: string | null;
+  readonly awaySeconds: number;
+}
+
+/** A visit's seats, corrected together, with one reason kept in Activity. */
+export interface SessionCorrection {
+  readonly seats: readonly SeatCorrection[];
+  readonly reason: string;
+}
+
+/** What a correction did: waiting steps the corrected time no longer reaches, refused; and steps already given above it, which stay. */
+export interface CorrectionDone {
+  readonly refused: number;
+  readonly givenAbove: number;
+}
+
+/**
+ * A super admin corrects a play-time Bonus's visit from Bonus approvals (#1061): when the player left each seat and their
+ * time away, in one call, so its Bonus is weighed once on the corrected time. The queue, the rail's count and the door read
+ * again.
+ */
+export function useCorrectSession(venueId: string) {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ seats, reason }: SessionCorrection): Promise<Result<CorrectionDone, SessionCorrectionFailure>> => {
+      const { data, error } = await client.rpc('correct_seat_sessions', {
+        p_seats: seats.map(({ sessionId, endedAt, awaySeconds }) => ({ sessionId, endedAt, awaySeconds })), p_reason: reason.trim(),
+      });
+      const user = userId ?? 'signed-out';
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.bonusWaiting(user, venueId) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.staffQueueCounts(user, venueId) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.doorBoard(user, venueId) }),
+      ]);
+      if (error) return err(CORRECTION_FAILURE_BY_CODE[error.code] ?? 'unavailable');
+      const [done] = data ?? [];
+      return ok({ refused: Number(done?.refused ?? 0), givenAbove: Number(done?.given_above ?? 0) });
     },
   });
 }

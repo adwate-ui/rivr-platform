@@ -107,6 +107,8 @@ export interface PlayerVisit extends Omit<TodaysPlayer, 'status'> {
   readonly playedSeconds: number;
   /** Their identity check as it stands now. */
   readonly kycStatus: MemberKycStatus;
+  /** The Bonus given to them that club day, by hand or by promotions once approved (#1062). */
+  readonly bonus: Paise;
 }
 
 /**
@@ -121,7 +123,7 @@ export function usePlayerVisitsPage(span: ReportSpan, view: ScopedView | null) {
     rowOf: (row): PlayerVisit => ({
       clubDay: row.club_day, memberId: row.member_id, fullName: row.full_name, memberNumber: Number(row.member_number), tierName: row.tier_name,
       isBaseTier: row.is_base_tier, checkedInAt: row.checked_in_at, checkedOutAt: row.checked_out_at, waitingSeconds: row.waiting_seconds, tables: tablesOf(row.tables),
-      playedSeconds: Number(row.played_seconds), kycStatus: kycStatusOf(row.kyc_status),
+      playedSeconds: Number(row.played_seconds), kycStatus: kycStatusOf(row.kyc_status), bonus: toPaise(row.bonus_paise),
     }),
   });
 }
@@ -200,6 +202,48 @@ export function useBonusReport(span: ReportSpan) {
     read: () => client.rpc('bonus_report', { p_venue_id: span.venueId, p_from: span.from, p_to: span.to }).limit(LIST_MOST),
     lineOf: (row): BonusLine => ({
       source: oneOf(BONUS_SOURCES, row.source, 'other'), label: row.label, members: Number(row.members), grants: Number(row.grants), given: toPaise(row.given_paise),
+    }),
+  });
+}
+
+/** Where a Bonus came from (#1063): by hand, a promotion once approved, a high hand, or anything else (rakeback, a referral). */
+export type BonusSource = 'by_hand' | 'promotion' | 'high_hand' | 'other';
+
+const GIVEN_SOURCES: readonly BonusSource[] = ['by_hand', 'promotion', 'high_hand', 'other'];
+
+/** Where a Bonus came from, as the list or its filter names it; any other word reads as other. */
+export const bonusSourceOf = (value: string): BonusSource => GIVEN_SOURCES.find((source) => source === value) ?? 'other';
+
+/**
+ * A Bonus given in a report's span (#1063): when, to whom, how much and why; where it came from, the promotion's name for
+ * one, and who gave it: the staff member by hand, the super admin who approved a promotion's, or who logged a high hand.
+ */
+export interface BonusGiven {
+  readonly grantId: string;
+  readonly givenAt: string;
+  readonly memberId: string;
+  readonly fullName: string;
+  readonly memberNumber: number;
+  readonly amount: Paise;
+  readonly reason: string;
+  readonly source: BonusSource;
+  readonly promotionName: string | null;
+  readonly staffName: string | null;
+}
+
+/**
+ * One page of the Bonus given in a report's span (`bonus_given_page`), newest first unless the view says otherwise, sorted,
+ * searched and filtered on the server like the report's other lists; the span is the view's scope.
+ */
+export function useBonusGivenPage(span: ReportSpan, view: ScopedView | null) {
+  const { client } = useRivrData();
+  return useListPage({
+    list: 'bonus_given', venueId: span.venueId, view: scopedTo(span, view),
+    read: (asked) => client.rpc('bonus_given_page', { p_venue_id: span.venueId, p_view: asked }),
+    rowOf: (row): BonusGiven => ({
+      grantId: row.grant_id, givenAt: row.given_at, memberId: row.member_id, fullName: row.full_name, memberNumber: Number(row.member_number),
+      amount: toPaise(row.amount_paise), reason: row.reason, source: bonusSourceOf(row.source),
+      promotionName: row.promotion_name, staffName: row.staff_name,
     }),
   });
 }

@@ -34,6 +34,16 @@ export const reports = {
     orders: 'Orders', items: 'Items', accept: 'Avg to accept', serve: 'Avg to serve', voided: 'Void', empty: 'No orders.',
   },
   bonusReport: { title: 'Bonus', source: 'Given by', byHand: 'By hand', members: 'Members', grants: 'Times', given: 'Bonus given', empty: 'No Bonus given.' },
+  /** Each Bonus given in the span (#1063): who gave it and why. */
+  bonusGiven: {
+    label: 'Each Bonus given', search: 'Find a member, staff member or reason', empty: 'No Bonus given.',
+    when: 'When', member: 'Member', number: 'No.', amount: 'Bonus', by: 'Given by', from: 'From', reason: 'Reason',
+    sources: { by_hand: 'By hand', promotion: 'Promotion', high_hand: 'High hand', other: 'Other' },
+    /** A promotion's, once a super admin approved it: `Tuesday bonus · approved by Kavya Menon`. */
+    approvedBy: '{promotion} · approved by {name}',
+    /** A high hand's: `High hand · logged by Aditya Malhotra`. */
+    loggedBy: 'High hand · logged by {name}',
+  },
   /** The MIS Tables view (owner, 8 Nov), money-free: each table over a span of club days. `{percent}` is a whole number. */
   tables: {
     title: 'Tables',
