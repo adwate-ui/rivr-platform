@@ -63,6 +63,8 @@ function rewardText(reward: Reward): string {
       return t(`console.promotions.words.bonusChips.${reward.on}`, { chips: count(reward.chips) });
     case 'high_hand':
       return t('console.promotions.words.highHand', { chips: count(highestHandChips(reward)) });
+    case 'text':
+      return reward.words;
     default:
       return t('console.promotions.words.priority');
   }
@@ -125,7 +127,8 @@ const dateText = (day: string) =>
 export function describePromotion(promo: Terms, names: PromotionNames = {}): string {
   const { schedule } = promo;
   return t('console.promotions.words.line', {
-    reward: promo.reward.kind === 'high_hand' ? highHandLine(promo.reward) : rewardText(promo.reward), who: whoText(promo.eligibility, names), when: whenText(schedule), limits: limitsText(promo.limits),
+    reward: promo.reward.kind === 'high_hand' ? highHandLine(promo.reward) : rewardText(promo.reward), who: whoText(promo.eligibility, names), when: whenText(schedule),
+    limits: promo.reward.kind === 'text' ? t('console.promotions.words.givesNothing') : limitsText(promo.limits),
     starts: dateText(schedule.startsOn),
     ends: schedule.endsOn === undefined ? t('console.promotions.words.noEnd') : t('console.promotions.words.ends', { date: dateText(schedule.endsOn) }),
   });

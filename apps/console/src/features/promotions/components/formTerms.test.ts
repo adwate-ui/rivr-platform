@@ -19,6 +19,15 @@ describe('the builder read as terms', () => {
     });
   });
 
+  it('reads a text promotion as its card words and no limits, and reads it back', () => {
+    const read = readForm(named({ kind: 'text', words: '  Free mocktails at every table ', perMember: 'per_visit', budgetChips: '5000' }));
+    expect(read.errors.size).toBe(0);
+    expect(read.terms?.reward).toEqual({ kind: 'text', words: 'Free mocktails at every table' });
+    expect(read.terms?.limits).toEqual({ perMember: 'none' });
+    expect(read.terms === null ? null : formFromTerms(read.terms).words).toBe('Free mocktails at every table');
+    expect([...readForm(named({ kind: 'text', words: ' ' })).errors]).toEqual(['words']);
+  });
+
   it('reads a seat bonus, on a visit\'s first seat or the first at each table, and every blank as no limit', () => {
     const firstSeat = readForm(named({ kind: 'seat_bonus', chips: '1,000', firstN: '', maxMembersPerDay: '50', budgetChips: '50,000', rulesText: ' Members only \n\n', link: ' ' }));
     expect(firstSeat.terms?.reward).toEqual({ kind: 'seat_bonus', chips: 1_000 });

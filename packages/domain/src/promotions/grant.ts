@@ -38,8 +38,11 @@ const BONUS_CHIPS_EVENT: Readonly<Record<Extract<Reward, { kind: 'bonus_chips' }
   visit: 'visit', referral: 'referral', signup: 'signup',
 };
 
-/** The kind of event a reward is given for: the engine weighs a version only for its own. */
-export function triggerOf(reward: Reward): PromotionEventKind {
+/**
+ * The kind of event a reward is given for: the engine weighs a version only for its own. None for a text promotion (#1064),
+ * which gives nothing, as private.promotion_event_kind's 'none'.
+ */
+export function triggerOf(reward: Reward): PromotionEventKind | null {
   switch (reward.kind) {
     case 'hours_bonus':
       return 'hours_step';
@@ -49,6 +52,8 @@ export function triggerOf(reward: Reward): PromotionEventKind {
       return BONUS_CHIPS_EVENT[reward.on];
     case 'high_hand':
       return 'high_hand';
+    case 'text':
+      return null;
     default:
       return 'visit';
   }

@@ -1,6 +1,6 @@
 import { PER_MEMBER, type Channels } from '@rivr/contracts/promotionModel';
 import { t } from '@rivr/i18n';
-import { ChoiceChips, Grid, TextArea } from '@rivr/ui';
+import { ChoiceChips, Grid, Text, TextArea } from '@rivr/ui';
 import { BuilderCard, FormInput, offered, type SectionProps } from './BuilderCard.tsx';
 import { HighHandLimits } from './HighHandFields.tsx';
 
@@ -12,7 +12,17 @@ const BUDGET_PERIODS = ['whole', 'month'] as const;
  */
 export function LimitsSection({ section }: { section: SectionProps }) {
   if (section.form.kind === 'high_hand') return <HighHandLimits section={section} />;
+  if (section.form.kind === 'text') return <TextLimits section={section} />;
   return <OtherLimits section={section} />;
+}
+
+/** A text promotion gives nothing (#1064), so it has no limits to set. */
+function TextLimits({ section }: { section: SectionProps }) {
+  return (
+    <BuilderCard label={t('console.promotions.builder.sections.limits')} isChanged={section.isChanged}>
+      <Text tone="muted">{t('console.promotions.builder.textKind.limits')}</Text>
+    </BuilderCard>
+  );
 }
 
 function OtherLimits({ section }: { section: SectionProps }) {

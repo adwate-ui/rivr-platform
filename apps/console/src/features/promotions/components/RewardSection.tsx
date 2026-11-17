@@ -43,6 +43,11 @@ function BonusChipsFields({ section }: { section: SectionProps }) {
   );
 }
 
+/** A text promotion's card words (#1064): all it says, as it gives nothing. */
+function TextFields({ section }: { section: SectionProps }) {
+  return <FormInput section={section} field="words" label={t('console.promotions.builder.fields.words')} />;
+}
+
 /** The fields of the kind chosen; waitlist priority has none. */
 function KindFields({ section }: { section: SectionProps }) {
   switch (section.form.kind) {
@@ -54,6 +59,8 @@ function KindFields({ section }: { section: SectionProps }) {
       return <BonusChipsFields section={section} />;
     case 'high_hand':
       return <HighHandFields section={section} />;
+    case 'text':
+      return <TextFields section={section} />;
     default:
       return null;
   }

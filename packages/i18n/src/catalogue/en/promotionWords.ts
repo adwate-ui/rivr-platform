@@ -17,6 +17,8 @@ export const promotionWords = {
     referral: '{chips} Bonus for each referral', signup: '{chips} Bonus on sign-up',
   },
   priority: 'Front of every waitlist',
+  /** A text promotion's limits in the one-line summary (#1064). */
+  givesNothing: 'Gives nothing',
   /** A high hand bonus by the most it pays (redesign correction 30). */
   highHand: 'Up to {chips} Bonus a hand',
   /** The same promotion in the one-line summary: `Royal flush 25,000, Straight flush 10,000 Bonus, paid each time`. */
