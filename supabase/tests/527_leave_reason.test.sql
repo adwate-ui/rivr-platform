@@ -30,6 +30,9 @@ select throws_ok($$ select public.end_seat((select id from sess where n = 1), 'l
 select lives_ok($$ select public.end_seat((select id from sess where n = 1), 'left', 'busted') $$, 'he leaves, busted');
 reset role;
 select is((select leave_reason from public.seat_session where id = (select id from sess where n = 1)), 'busted', 'the seat keeps why he left');
+-- His first seat ran from 90 to 50 minutes ago: within this test's one transaction both leaves would share a moment.
+update public.seat_session set started_at = now() - interval '90 minutes', seated_here_at = now() - interval '90 minutes', ended_at = now() - interval '50 minutes'
+where id = (select id from sess where n = 1);
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select is((select leave_reasons from public.member_visits('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 1)),
