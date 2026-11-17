@@ -434,6 +434,10 @@ verify_jwt = false
 [functions.alert-whatsapp]
 verify_jwt = false
 
+# The same alerts by email (#1066), once its secrets are set and it is scheduled; pg_cron calls it with the scheduler's secret.
+[functions.alert-email]
+verify_jwt = false
+
 # The push consumer, run by the scheduler with its secret (#139).
 [functions.push]
 verify_jwt = false

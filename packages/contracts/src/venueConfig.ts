@@ -26,6 +26,14 @@ const optional = <Schema extends z.ZodType<unknown, string>>(schema: Schema) =>
 
 const freeText = (max: number) => z.string().trim().min(1).max(max);
 
+/**
+ * The addresses alerts also go to by email (#1066), as typed: one a line or separated by commas, blank lines left out,
+ * each once, up to five.
+ */
+export const alertEmailsSchema = z.string()
+  .transform((text) => [...new Set(text.split(/[\n,]/).map((one) => one.trim().toLowerCase()).filter((one) => one !== ''))])
+  .pipe(z.array(z.email().max(254)).max(5));
+
 /** The venue configuration form. */
 export const venueConfigSchema = z.strictObject({
   legalName: freeText(200),
@@ -49,7 +57,10 @@ export const venueConfigSchema = z.strictObject({
   sacClubServices: optional(sacSchema),
   signatoryName: optional(freeText(100)),
   signatoryDesignation: optional(freeText(100)),
-});
+  // Every alert by email too, to up to five addresses (#1066): on only with one at least, as the database holds it.
+  alertEmailOn: z.boolean(),
+  alertEmails: alertEmailsSchema,
+}).refine(({ alertEmailOn, alertEmails }) => !alertEmailOn || alertEmails.length > 0, { path: ['alertEmails'] });
 
 /** The form as typed. */
 export type VenueConfigInput = z.input<typeof venueConfigSchema>;

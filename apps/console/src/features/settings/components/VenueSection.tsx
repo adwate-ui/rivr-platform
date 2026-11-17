@@ -2,9 +2,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { venueConfigSchema, type VenueConfigChange, type VenueConfigInput } from '@rivr/contracts/venueConfig';
 import { useVenueConfig, useVenueConfigActions, type VenueConfig, type VenueConfigFailure } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Grid, Heading, Inline, Input, Stack, Text, LoadState, StatusMessage } from '@rivr/ui';
+import { Button, ErrorMessage, Grid, Heading, Inline, Input, Stack, Switch, Text, TextArea, LoadState, StatusMessage } from '@rivr/ui';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type UseFormReturn } from 'react-hook-form';
 import { LogoField } from './LogoField.tsx';
 import { venueFailureText } from './settingsCopy.ts';
 
@@ -39,13 +39,34 @@ const invoiceInput = (config: VenueConfig) => ({
 /** The club's numbers for calls and WhatsApp (decision 0582), as the form types them: empty for none. */
 const contactInput = (config: VenueConfig) => ({ contactPhone: config.contactPhone ?? '', contactWhatsapp: config.contactWhatsapp ?? '' });
 
+/** Alerts by email too (#1066), as the form types them: on or off, and the addresses one a line. */
+const alertEmailInput = (config: VenueConfig) => ({ alertEmailOn: config.alertEmailOn, alertEmails: config.alertEmails.join('\n') });
+
 /** The configuration as the form types it: empty for nothing. */
 const toInput = (config: VenueConfig): VenueConfigInput => ({
   legalName: config.legalName, gstin: config.gstin ?? '', tan: config.tan ?? '', address: config.address, upiPayeeName: config.upiPayeeName ?? '',
   upiVpa: config.upiVpa ?? '', bankName: config.bankName ?? '', bankAccountName: config.bankAccountName ?? '',
   bankAccountNumber: config.bankAccountNumber ?? '', bankIfsc: config.bankIfsc ?? '', invoicePrefix: config.invoicePrefix,
-  alertWhatsapp: config.alertWhatsapp ?? '', ...contactInput(config), ...invoiceInput(config),
+  alertWhatsapp: config.alertWhatsapp ?? '', ...contactInput(config), ...invoiceInput(config), ...alertEmailInput(config),
 });
+
+type VenueFormApi = UseFormReturn<VenueConfigInput, unknown, VenueConfigChange>;
+
+/** Every alert by email too (#1066): on or off, and up to five addresses, one a line. */
+function AlertEmailFields({ form, onChange }: { form: VenueFormApi; onChange: () => void }) {
+  const isOn = form.watch('alertEmailOn');
+  const error = form.formState.errors.alertEmails ? t('console.settings.alertEmail.invalid') : undefined;
+  const addresses = form.register('alertEmails', { onChange });
+  return (
+    <Stack gap={3}>
+      <Switch label={t('console.settings.alertEmail.on')} hint={t('console.settings.alertEmail.onHint')} isOn={isOn} onChange={(next) => {
+        form.setValue('alertEmailOn', next, { shouldDirty: true });
+        onChange();
+      }} />
+      <TextArea {...addresses} label={t('console.settings.alertEmail.addresses')} hint={t('console.settings.alertEmail.addressesHint')} rows={3} error={error} />
+    </Stack>
+  );
+}
 
 function VenueForm({ venueId, config }: { venueId: string; config: VenueConfig }) {
   const { save } = useVenueConfigActions(venueId);
@@ -65,6 +86,7 @@ function VenueForm({ venueId, config }: { venueId: string; config: VenueConfig }
             hint={field.hint === undefined ? undefined : t(field.hint)} error={errors[field.name] ? t('console.settings.invalidVenueField') : undefined} />
         ))}
       </Grid>
+      <AlertEmailFields form={form} onChange={() => setOutcome(null)} />
       <Inline gap={4}>
         <Button variant="subtle" isLoading={save.isPending} onClick={() => void submit()}>{t('console.settings.saveVenue')}</Button>
         <StatusMessage>{outcome === 'saved' ? t('console.settings.venueSaved') : null}</StatusMessage>

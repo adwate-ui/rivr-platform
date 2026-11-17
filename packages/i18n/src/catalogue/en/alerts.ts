@@ -48,4 +48,6 @@ export const alerts = {
   },
   /** For a kind not listed here. */
   other: 'something needs your attention',
+  /** The same alert by email too (#1066): its kind in words, and nothing more. */
+  email: { subject: 'RIVR alert: {kind}', body: '{kind}.\n\nThe details are in the console.' },
 } as const;
