@@ -84,7 +84,7 @@ describe('DataTable export, recorded first', () => {
     clicked.mockRestore();
   });
 
-  it('exports a Money cell as rupees, a number as a number, a Text cell\'s words, and a column\'s own value', async () => {
+  it('exports a Money cell as rupees, a number as a number, a Text cell\'s words and a column\'s own value, never a column kept from files', async () => {
     interface Owed { readonly id: string; readonly name: string; readonly paise: bigint; readonly visits: number }
     const owedColumns: readonly DataTableColumn<Owed>[] = [
       { key: 'name', header: 'Member', cell: (row) => <Text tone="muted">{row.name}</Text> },
@@ -92,6 +92,7 @@ describe('DataTable export, recorded first', () => {
       { key: 'visits', header: 'Visits', cell: (row) => `${row.visits} visits`, sortValue: (row) => row.visits },
       { key: 'card', header: 'Card', cell: (row) => <Text>{row.id}</Text>, exportValue: (row) => `RV-${row.id}` },
       { key: 'open', header: '', cell: () => <Button>Open</Button> },
+      { key: 'mobile', header: 'Mobile', cell: () => '+91 98765 43210', isExported: false },
     ];
     let saved: Blob | undefined;
     const created = vi.spyOn(URL, 'createObjectURL').mockImplementation((file) => {

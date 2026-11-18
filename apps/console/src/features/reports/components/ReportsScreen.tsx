@@ -8,6 +8,7 @@ import { UnclaimedBalances } from './UnclaimedBalances.tsx';
 import { GrowthFunnel } from './GrowthFunnel.tsx';
 import { RakeTonight } from './RakeTonight.tsx';
 import { BonusReport, FnbReport, PlayersReport, WaitlistReport, type ReportProps } from './ClubReports.tsx';
+import type { CorrectVisitPanel } from './PlayerVisits.tsx';
 import { useReportPeriod } from './ReportPeriod.tsx';
 import { TablesReport } from './TablesReport.tsx';
 
@@ -42,7 +43,7 @@ function TabContent({ tab, ...report }: ReportProps & { tab: ReportTab }) {
  * the monthly investor MIS, unclaimed balances, the growth funnel (#166) and each channel's followers beside it (#164). For staff who
  * read reports; the practice venue has none.
  */
-export function ReportsScreen() {
+export function ReportsScreen({ correct }: { correct?: CorrectVisitPanel | undefined }) {
   const staff = useStaffVenue();
   const navigate = useNavigate();
   // The report open is in the address (`?tab=mis`), so a refresh, Back or a shared link opens it.
@@ -52,7 +53,7 @@ export function ReportsScreen() {
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   const title = t('console.reports.title');
-  const { permissions, venueId, isPractice } = staff.venue;
+  const { permissions, venueId, isPractice, role } = staff.venue;
   if (!permissions.includes('reports.read')) return <Screen title={title} status="error" errorText={t('console.reports.notAllowed')} />;
   if (isPractice) return <Screen title={title} status="error" errorText={t('console.reports.practice')} />;
   const current = reportTabFor(tab);
@@ -62,7 +63,7 @@ export function ReportsScreen() {
         <Tabs label={t('console.reports.tabsLabel')} current={current} onNavigate={(href) => void navigate({ href })}
           tabs={SHOWN.map((id) => ({ id, label: t(`console.reports.tabs.${id}`), href: `/reports?tab=${id}` }))} />
         {control}
-        <TabContent tab={current} venueId={venueId} period={period} exportIn={exportIn} />
+        <TabContent tab={current} venueId={venueId} period={period} exportIn={exportIn} correct={role === 'super_admin' ? correct : undefined} />
       </Stack>
     </Screen>
   );

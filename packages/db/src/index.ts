@@ -81,9 +81,8 @@ export {
 } from './floorToday.ts';
 export { useStaffQueueCounts } from './staffQueues.ts';
 export {
-  useCorrectSession, useDecideBonus, useWaitingBonusPage, type BonusChoice, type BonusDecision, type BonusDecisionFailure, type CorrectionDone, type SeatCorrection,
-  type SessionCorrection,
-  type SessionCorrectionFailure, type WaitingBonus, type WaitingSession, type WaitingVisit,
+  useCorrectVisit, useDecideBonus, useWaitingBonusPage, type BonusChoice, type BonusDecision, type BonusDecisionFailure, type CorrectionDone, type SeatCorrection,
+  type SessionCorrectionFailure, type VisitCorrection, type VisitTimes, type WaitingBonus, type WaitingSession, type WaitingVisit,
 } from './bonusApprovals.ts';
 export { DENSITIES, useSetStaffDensity, useSetStaffShortcuts, useStaffDensity, useStaffShortcuts, type Density } from './staffPreference.ts';
 export {
@@ -95,7 +94,7 @@ export { useMyUsualFnbItems } from './fnbUsual.ts';
 export { useMyNextPlayTimeBonus, useMySeat, useMySeatActions, type Leaving, type NextPlayTimeBonus, type MySeat, type MySeatFailure, type TopUp } from './mySeat.ts';
 export { useFloorNight, useTableHands, type FloorNight, type TableHand, type TableNight } from './floorNight.ts';
 export {
-  isMemberQuery, MATCHES_MOST, topMatches, useMemberActions, useMemberEarlyDepartures, useMemberAccountStatuses, type MemberAccountState, type MemberAccountStatus, useMemberVisits, type MemberVisit, useMemberRecord, useMemberSearch, useVenueTiers, useWithdrawEarlyDeparture, type EarlyDeparture, type EarlyDepartureFailure, type MemberFailure, type MemberTierFailure, type MemberKycStatus, type MemberListRow,
+  isMemberQuery, MATCHES_MOST, topMatches, useMemberActions, useMemberEarlyDepartures, useMemberAccountStatuses, type MemberAccountState, type MemberAccountStatus, useMemberVisits, type MemberVisit, useMemberHoursPlayed, useMemberRecord, useMemberSearch, useVenueTiers, useWithdrawEarlyDeparture, type EarlyDeparture, type EarlyDepartureFailure, type MemberFailure, type MemberTierFailure, type MemberKycStatus, type MemberListRow,
   type MemberRecord, type MemberRow, type TierChange, type VenueTier,
 } from './members.ts';
 export type { MemberExportDetails } from './memberDetails.ts';

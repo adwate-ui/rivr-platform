@@ -167,6 +167,9 @@ export const todaysPlayers = {
   played: 'Time played',
   /** The Bonus given to the member that club day (#1062). */
   bonus: 'Bonus',
+  /** Floor and up (#1073): the member's History in a panel at the side, beside their mobile (console.members.mobile). */
+  history: 'History',
+  historyOf: 'History of {name}',
   none: '–',
 } as const;
 

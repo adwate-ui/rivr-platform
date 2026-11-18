@@ -34,6 +34,7 @@ interface ExportColumn<Row> {
   readonly cell: (row: Row) => ReactNode;
   readonly sortValue?: (row: Row) => string | number | bigint;
   readonly exportValue?: (row: Row) => ExportCell;
+  readonly isExported?: boolean;
 }
 
 /** The words a cell shows: its text, or the text inside the elements it draws (a Text, a Button's label). */
@@ -95,7 +96,7 @@ export function ExportBar<Row>({ isInBar, exporter, label, columns, rows, filter
     if (!isRecorded) return setState('failed');
     const all = every === undefined ? rows : await every.rows().catch(() => null);
     if (all === null) return setState('failed');
-    const named = columns.filter((column) => column.header !== '');
+    const named = columns.filter((column) => column.header !== '' && column.isExported !== false);
     const headers = named.map((column) => column.header);
     const cells = all.map((row) => named.map((column) => exportCell(column, row)));
     save(format === 'csv' ? csvFile(headers, cells) : xlsxFile(label, headers, cells), label, format);

@@ -27,6 +27,8 @@ export const reports = {
     empty: 'No players.',
     /** Every visit in the span, as the door lists the day's players (decision 0682): a member on a club day. */
     visits: 'Visits', date: 'Date', search: 'Find a player', noVisits: 'No visits.',
+    /** A super admin corrects a visit's times from its row (#1075), in the panel Bonus approvals uses. */
+    correct: 'Correct', correctNamed: 'Correct the visit of {name} on {day}', correction: '{name} · {day}',
   },
   waitlistReport: { title: 'Waitlist', table: 'Table', joined: 'Joined', seated: 'Got a seat', left: 'Left the list', wait: 'Avg wait', longest: 'Longest' },
   fnbReport: {

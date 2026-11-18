@@ -8,15 +8,24 @@ export const promotionApprovals = {
   stillSeated: 'Still seated',
   /** Corrects a play-time row's session (#1061), in the panel at the side. */
   correct: 'Correct',
-  correctNamed: 'Correct the session of {name}',
+  correctNamed: 'Correct the visit of {name}',
   correction: {
-    title: 'Correct session',
+    title: 'Correct visit',
     subtitle: '{name} · {promotion}',
     /** One seat of the visit: `Table 3 · from 21:40`; one still taken ends at the table, so only its time away is corrected. */
     seat: '{table} · from {from}',
     seatOpen: '{table} · from {from} · still seated',
     leftAt: 'Left at',
     leftAtHint: '24-hour, IST: 23:40',
+    /** The visit's own times (#1075): check-out only once it is over. */
+    checkedIn: 'Checked in',
+    checkedOut: 'Checked out',
+    /** A day's visits to choose from, by their times. */
+    visits: 'Visit',
+    visit: '{from} to {to}',
+    visitOpen: 'From {from}',
+    /** Save sends one visit, so another is chosen once nothing is left unsaved. */
+    saveFirst: 'Save or cancel to choose another visit.',
     away: 'Away',
     awayHint: 'Taken off the time played.',
     reason: 'Why it is corrected',
@@ -26,14 +35,14 @@ export const promotionApprovals = {
     unchanged: 'Change a time first.',
     save: 'Save correction',
     /** Saved: how many waiting steps the corrected time no longer reaches, refused, and how many given above it, which stay. */
-    saved: 'Session corrected',
-    savedRefused: 'Session corrected · {count} waiting refused',
-    savedGivenAbove: 'Session corrected · {count} already given stays',
-    savedBoth: 'Session corrected · {refused} waiting refused · {given} already given stays',
+    saved: 'Visit corrected',
+    savedRefused: 'Visit corrected · {count} waiting refused',
+    savedGivenAbove: 'Visit corrected · {count} already given stays',
+    savedBoth: 'Visit corrected · {refused} waiting refused · {given} already given stays',
     failures: {
-      not_allowed: 'Only a super admin corrects a session.',
+      not_allowed: 'Only a super admin corrects a visit.',
       own_record: 'Not your own record. Ask another super admin.',
-      invalid: 'Those times do not fit the seat.',
+      invalid: 'Those times do not fit the visit.',
       paused: 'Frozen. Try again once it is released.',
       switched_off: 'Promotions are switched off.',
       unavailable: 'Not saved. Try again.',

@@ -6,7 +6,7 @@ import { formatChips, formatDuration, formatNumber, formatRupeesForFile, t } fro
 import { ChoiceChips, Stack, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 import { BonusGivenList } from './BonusGivenList.tsx';
-import { PlayerVisits } from './PlayerVisits.tsx';
+import { PlayerVisits, type CorrectVisitPanel } from './PlayerVisits.tsx';
 import { ReportChart, ReportFigures, ReportTable } from './ReportParts.tsx';
 import type { ReportPeriod } from './ReportPeriod.tsx';
 
@@ -16,6 +16,8 @@ export interface ReportProps {
   venueId: string;
   period: ReportPeriod;
   exportIn: HTMLElement | null;
+  /** For a super admin, the panel that corrects a visit from the Players report (#1075). */
+  correct?: CorrectVisitPanel | undefined;
 }
 
 const spanOf = ({ venueId, period }: ReportProps) => ({ venueId, from: period.from, to: period.to });
@@ -58,7 +60,7 @@ export function PlayersReport(props: ReportProps) {
       <ReportTable {...props} label={t('console.reports.playersReport.title')} lines={lines} columns={columns} rowKey={(line) => `${line.measure}:${line.label ?? ''}`}
         emptyText={t('console.reports.playersReport.empty')} />
       {/* Every visit in the span, as the door lists the day's players (decision 0682). */}
-      <PlayerVisits span={spanOf(props)} periodWords={props.period.words} />
+      <PlayerVisits span={spanOf(props)} periodWords={props.period.words} correct={props.correct} />
     </Stack>
   );
 }

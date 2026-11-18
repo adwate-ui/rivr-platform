@@ -26,8 +26,8 @@ function VisitLine({ visit, isLast }: { visit: MemberVisit; isLast: boolean }) {
 }
 
 /** Each visit on the record (F-017), newest first: its day, tables, time played, the call time owed, whether they left early, and why they left. */
-export function MemberVisits({ venueId, memberId }: { venueId: string; memberId: string }) {
-  const [count, setCount] = useState(PAGE);
+export function MemberVisits({ venueId, memberId, pageSize = PAGE }: { venueId: string; memberId: string; pageSize?: number }) {
+  const [count, setCount] = useState(pageSize);
   const visits = useMemberVisits(venueId, memberId, count);
   const title = <Heading level={3}>{t('console.members.visitHistory.title')}</Heading>;
   if (visits.isError) return <Stack gap={2}>{title}<LoadState isError onRetry={() => void visits.refetch()} /></Stack>;
@@ -38,7 +38,7 @@ export function MemberVisits({ venueId, memberId }: { venueId: string; memberId:
       {title}
       {lines.length === 0 ? <Text tone="muted">{t('console.members.visitHistory.none')}</Text> : null}
       <Stack gap={1}>{lines.map((visit, index) => <VisitLine key={visit.visitId} visit={visit} isLast={index === lines.length - 1} />)}</Stack>
-      {lines.length < count ? null : <Button variant="text" size="small" onClick={() => setCount(count + PAGE)}>{t('console.members.bonus.showEarlier')}</Button>}
+      {lines.length < count ? null : <Button variant="text" size="small" onClick={() => setCount(count + pageSize)}>{t('console.members.bonus.showEarlier')}</Button>}
     </Stack>
   );
 }

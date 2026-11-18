@@ -1,5 +1,6 @@
 import type { Paise } from '@rivr/domain/money';
 import { useQuery } from '@tanstack/react-query';
+import { visitsOf, type VisitTimes } from './bonusApprovals.ts';
 import { tablesOf, type TodaysPlayer } from './floorToday.ts';
 import { LIST_MOST } from './limits.ts';
 import { useListPage, type ScopedView } from './lists.ts';
@@ -109,6 +110,8 @@ export interface PlayerVisit extends Omit<TodaysPlayer, 'status'> {
   readonly kycStatus: MemberKycStatus;
   /** The Bonus given to them that club day, by hand or by promotions once approved (#1062). */
   readonly bonus: Paise;
+  /** For a super admin, the day's visits with their seats, to correct (#1075); none for anyone else. */
+  readonly visits: readonly VisitTimes[];
 }
 
 /**
@@ -123,7 +126,7 @@ export function usePlayerVisitsPage(span: ReportSpan, view: ScopedView | null) {
     rowOf: (row): PlayerVisit => ({
       clubDay: row.club_day, memberId: row.member_id, fullName: row.full_name, memberNumber: Number(row.member_number), tierName: row.tier_name,
       isBaseTier: row.is_base_tier, checkedInAt: row.checked_in_at, checkedOutAt: row.checked_out_at, waitingSeconds: row.waiting_seconds, tables: tablesOf(row.tables),
-      playedSeconds: Number(row.played_seconds), kycStatus: kycStatusOf(row.kyc_status), bonus: toPaise(row.bonus_paise),
+      playedSeconds: Number(row.played_seconds), kycStatus: kycStatusOf(row.kyc_status), bonus: toPaise(row.bonus_paise), visits: visitsOf(row.visits),
     }),
   });
 }

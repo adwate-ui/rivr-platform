@@ -7,8 +7,14 @@ afterEach(resetApi);
 
 // Ishaan sat at Table 3 from 18:00 to 22:30 IST, 10 minutes away: 4 h 20 min played.
 const SEAT = { id: 's1', table: 'Table 3', startedAt: '2026-11-15T12:30:00Z', endedAt: '2026-11-15T17:00:00Z', awaySeconds: 600 };
-const VISIT = { visit_id: 'vis1', sessions: [SEAT], seated_at: SEAT.startedAt, left_at: SEAT.endedAt, away_seconds: 600, played_seconds: 15_600 };
-const NO_VISIT = { visit_id: null, sessions: null, seated_at: null, left_at: null, away_seconds: null, played_seconds: null };
+// Checked in at 17:50 and out at 22:40.
+const VISIT = {
+  visit_id: 'vis1', sessions: [SEAT], seated_at: SEAT.startedAt, left_at: SEAT.endedAt, away_seconds: 600, played_seconds: 15_600,
+  visit_opened_at: '2026-11-15T12:20:00Z', visit_closed_at: '2026-11-15T17:10:00Z',
+};
+const NO_VISIT = {
+  visit_id: null, sessions: null, seated_at: null, left_at: null, away_seconds: null, played_seconds: null, visit_opened_at: null, visit_closed_at: null,
+};
 
 /** A page row of bonus_waiting_page: Ishaan's play-time Bonus, unless changed. */
 function waitingRow(more: Record<string, unknown>) {
@@ -126,36 +132,51 @@ describe('Bonus to approve (decision 0670)', () => {
     expect(ishaan.textContent).toContain('22:30');
     expect(ishaan.textContent).toContain('10 min');
     expect(ishaan.textContent).toContain('4 h 20 min');
-    expect(within(ishaan).getByRole('button', { name: 'Correct the session of Ishaan Verma' })).toBeDefined();
+    expect(within(ishaan).getByRole('button', { name: 'Correct the visit of Ishaan Verma' })).toBeDefined();
     expect(within(await rowOf('Vihaan Kapoor')).queryByRole('button', { name: /^Correct/ })).toBeNull();
   });
 
   it('corrects when they left with a reason, in one call, and says what was refused and what given stays', async () => {
-    const { bodiesOf } = renderQueue({ '/rpc/correct_seat_sessions': { body: [{ refused: 1, given_above: 1 }] } });
-    fireEvent.click(within(await rowOf('Ishaan Verma')).getByRole('button', { name: 'Correct the session of Ishaan Verma' }));
-    const panel = await screen.findByRole('dialog', { name: 'Correct session' });
+    const { bodiesOf } = renderQueue({ '/rpc/correct_visit': { body: [{ refused: 1, given_above: 1 }] } });
+    fireEvent.click(within(await rowOf('Ishaan Verma')).getByRole('button', { name: 'Correct the visit of Ishaan Verma' }));
+    const panel = await screen.findByRole('dialog', { name: 'Correct visit' });
     expect(within(panel).getByText('Table 3 · from 18:00')).toBeDefined();
     fireEvent.click(within(panel).getByRole('button', { name: 'Save correction' }));
     expect(await within(panel).findByText('Change a time first.')).toBeDefined();
     fireEvent.change(within(panel).getByRole('textbox', { name: /^Left at/ }), { target: { value: '21:40' } });
     fireEvent.change(within(panel).getByRole('textbox', { name: /^Why it is corrected/ }), { target: { value: 'Left early, not checked out' } });
     fireEvent.click(within(panel).getByRole('button', { name: 'Save correction' }));
-    expect(await screen.findByText('Session corrected · 1 waiting refused · 1 already given stays')).toBeDefined();
+    expect(await screen.findByText('Visit corrected · 1 waiting refused · 1 already given stays')).toBeDefined();
     // Time away left as it was keeps its seconds.
-    expect(bodiesOf('correct_seat_sessions')).toEqual([
-      { p_seats: [{ sessionId: 's1', endedAt: '2026-11-15T16:10:00.000Z', awaySeconds: 600 }], p_reason: 'Left early, not checked out' },
+    expect(bodiesOf('correct_visit')).toEqual([
+      { p_visit_id: 'vis1', p_seats: [{ sessionId: 's1', endedAt: '2026-11-15T16:10:00.000Z', awaySeconds: 600 }], p_reason: 'Left early, not checked out' },
     ]);
   });
 
   it('corrects time away alone, keeping when they left, and says when it is their own record', async () => {
-    const { bodiesOf } = renderQueue({ '/rpc/correct_seat_sessions': refused('RVOWN') });
-    fireEvent.click(within(await rowOf('Ishaan Verma')).getByRole('button', { name: 'Correct the session of Ishaan Verma' }));
-    const panel = await screen.findByRole('dialog', { name: 'Correct session' });
+    const { bodiesOf } = renderQueue({ '/rpc/correct_visit': refused('RVOWN') });
+    fireEvent.click(within(await rowOf('Ishaan Verma')).getByRole('button', { name: 'Correct the visit of Ishaan Verma' }));
+    const panel = await screen.findByRole('dialog', { name: 'Correct visit' });
     fireEvent.change(within(panel).getByRole('textbox', { name: /^Away/ }), { target: { value: '70' } });
     fireEvent.change(within(panel).getByRole('textbox', { name: /^Why it is corrected/ }), { target: { value: 'Away 70 minutes, not marked' } });
     fireEvent.click(within(panel).getByRole('button', { name: 'Save correction' }));
     expect(await within(panel).findByText('Not your own record. Ask another super admin.')).toBeDefined();
-    expect(bodiesOf('correct_seat_sessions')).toEqual([{ p_seats: [{ sessionId: 's1', endedAt: null, awaySeconds: 4200 }], p_reason: 'Away 70 minutes, not marked' }]);
+    expect(bodiesOf('correct_visit')).toEqual([{ p_visit_id: 'vis1', p_seats: [{ sessionId: 's1', endedAt: null, awaySeconds: 4200 }], p_reason: 'Away 70 minutes, not marked' }]);
+  });
+
+  it('corrects the visit\'s check-out with its seat, in the same call (the owner, 18 Nov)', async () => {
+    const { bodiesOf } = renderQueue({ '/rpc/correct_visit': { body: [{ refused: 0, given_above: 0 }] } });
+    fireEvent.click(within(await rowOf('Ishaan Verma')).getByRole('button', { name: 'Correct the visit of Ishaan Verma' }));
+    const panel = await screen.findByRole('dialog', { name: 'Correct visit' });
+    expect(within(panel).getByRole('textbox', { name: /^Checked in/ })).toHaveProperty('value', '17:50');
+    fireEvent.change(within(panel).getByRole('textbox', { name: /^Checked out/ }), { target: { value: '22:10' } });
+    fireEvent.change(within(panel).getByRole('textbox', { name: /^Left at/ }), { target: { value: '22:00' } });
+    fireEvent.change(within(panel).getByRole('textbox', { name: /^Why it is corrected/ }), { target: { value: 'Card times' } });
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save correction' }));
+    expect(await screen.findByText('Visit corrected')).toBeDefined();
+    expect(bodiesOf('correct_visit')).toEqual([{
+      p_visit_id: 'vis1', p_seats: [{ sessionId: 's1', endedAt: '2026-11-15T16:30:00.000Z', awaySeconds: 600 }], p_reason: 'Card times', p_closed_at: '2026-11-15T16:40:00.000Z',
+    }]);
   });
 
   it('says when nothing waits, and opens a member\'s record from a row', async () => {

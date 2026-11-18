@@ -31,6 +31,8 @@ export interface DataTableColumn<Row> {
    * sort value. A column with no heading, such as a row's buttons, is left out of exports.
    */
   readonly exportValue?: (row: Row) => string | number;
+  /** False leaves the column out of the table's Export though it shows in the table: a member's mobile on the Door. */
+  readonly isExported?: boolean;
   /**
    * The column's filter, opened from its header (owner, 9 Nov: every column filtered by its type): `text`, words it
    * contains; `choice`, any of the values its rows hold; `number`, a figure from and to; `duration`, hours from and to, of

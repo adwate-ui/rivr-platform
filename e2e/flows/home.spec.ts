@@ -80,21 +80,21 @@ async function topOf(part: Locator): Promise<number> {
 }
 
 /**
- * Bonus: the balance's line follows "Bonus expires", and a friend's reward is promised only while the referral promotion
- * is live; with it paused, the invite stays and no word of a reward.
+ * Bonus: the balance's line is Content's alone, whatever "Bonus expires" says (#1074), and a friend's reward is promised
+ * only while the referral promotion is live; with it paused, the invite stays and no word of a reward.
  */
 async function bonusFollowsTheClub(page: Page) {
   await openTab(page, 'Rewards');
-  await expect(page.getByText('Use with your buy-in. Never expires.')).toBeVisible();
+  await expect(page.getByText('Use with your buy-in.', { exact: true })).toBeVisible();
   await expect(page.getByText('1,000 Bonus each. When a friend joins and takes a first seat.')).toBeVisible();
   sql(`insert into public.setting (venue_id, key, subject, value, effective_from, reason)
        values ('${CLUB}', 'bonus.expiry_days', '', '{"days": 30}', now() - interval '1 minute', 'Home flow')`);
   referral('paused');
   await page.reload();
-  await expect(page.getByText('Use with your buy-in. Expires after 30 days.')).toBeVisible();
+  await expect(page.getByText('Use with your buy-in.', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Share invite' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Copy link' })).toBeVisible();
-  expect(await page.locator('body').innerText()).not.toMatch(/Bonus each|first seat|for you both/i);
+  expect(await page.locator('body').innerText()).not.toMatch(/Bonus each|first seat|for you both|expires/i);
 }
 
 /** Profile: every row but a line for Bonus notifications. */
