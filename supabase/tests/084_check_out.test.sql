@@ -54,8 +54,9 @@ select results_eq($$ select v.closed_at is null, s.ended_at is null from public.
                      where v.id = '00000000-0000-4000-8000-0000000a8401' $$,
   $$ values (true, true) $$, 'his visit and his seat stay open');
 
--- The floor ends his seat; the door then lets him go.
-update public.seat_session set ended_at = now(), end_reason = 'left' where id = '00000000-0000-4000-8000-0000000b8401';
+-- The floor ends his seat; the door then lets him go. He set his call time, which has run out: nothing is owed (#1076).
+update public.seat_session set ended_at = now(), end_reason = 'left', call_time_set_at = now() - interval '1 hour'
+where id = '00000000-0000-4000-8000-0000000b8401';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
 select is(public.check_out_by_phone('00000000-0000-4000-8000-000000000001', '90000 00213'), '00000000-0000-4000-8000-0000000a8401'::uuid,
   'the front desk checks Mihir out by the number on his card');

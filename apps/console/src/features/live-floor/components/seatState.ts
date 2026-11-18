@@ -1,10 +1,10 @@
 import type { FloorTable, HeldSeat, SeatedPlayer } from '@rivr/db';
-import { formatDuration, formatGameStakes, t } from '@rivr/i18n';
+import { formatDuration, formatGameStakes, formatTime, t } from '@rivr/i18n';
 import type { TileSeat } from '@rivr/ui';
 
-/** A seated player who needs the floor: a top-up asked for or in hand, more time asked for, or leaving. */
+/** A seated player who needs the floor: a top-up asked for or in hand, or leaving. */
 export function needsFloor(player: SeatedPlayer): boolean {
-  return player.topUp !== null || player.timeRequest !== null || player.leavingAt !== null;
+  return player.topUp !== null || player.leavingAt !== null;
 }
 
 /** Each seat of a table in order: the player there, or none for an open seat (a held seat counts as taken). */
@@ -20,17 +20,21 @@ export function tileSeats(table: FloorTable, seats: readonly SeatedPlayer[], hel
   });
 }
 
-/** What a player asks for, in gold on their row: a top-up, more time, or leaving; none otherwise. */
+/** What a player asks for, in gold on their row: a top-up, or leaving; none otherwise. */
 export function requestFlag(player: SeatedPlayer): string | undefined {
   if (player.topUp !== null) return t(player.topUp === 'requested' ? 'console.floor.flagTopUp' : 'console.floor.flagToppingUp');
-  if (player.timeRequest !== null) return t('console.floor.flagTime', { time: formatDuration(player.timeRequest.minutes * 60) });
   return player.leavingAt === null ? undefined : t('console.floor.flagLeaving');
 }
 
-/** A player's call time on their row: what is left, Call time done once met, or none given. */
+/**
+ * A player's call time on their row (#1076): when they leave once a call time is set, what is left until then, Not set
+ * once the countdown is done with none set (still owed), Call time done once met, or none given.
+ */
 export function callTimeMeta(player: SeatedPlayer): string {
   if (player.callTimeLeft === null) return t('console.floor.noCallTime');
-  return player.callTimeLeft > 0 ? formatDuration(player.callTimeLeft) : t('console.floor.met');
+  if (!player.owesCallTime) return t('console.floor.met');
+  if (player.callTimeEndsAt !== null) return t('console.floor.leaves', { time: formatTime(new Date(player.callTimeEndsAt)) });
+  return player.callTimeLeft > 0 ? formatDuration(player.callTimeLeft) : t('console.floor.notSet');
 }
 
 /** A table's stake as everyone writes it: `NLH 50/100`, `NLH 100/200/500` with a straddle. */

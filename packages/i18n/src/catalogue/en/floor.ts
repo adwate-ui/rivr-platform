@@ -89,12 +89,6 @@ export const liveFloor = {
   /** A seated player's top-up (#634): asked for from the app, then in hand; handled on Top-ups (decision 0299). No amount. */
   topUpRequested: 'Top-up requested',
   topUpInProgress: 'Top-up in progress',
-  /** More call time a member asked for from the app (decision 0320): `+1 h asked`. Minutes only. */
-  timeAsked: '+{time} asked',
-  approveTime: 'Approve',
-  approveTimeName: 'Approve more call time for {name}',
-  declineTime: 'Decline',
-  declineTimeName: 'Decline more call time for {name}',
   /** The floor's managers add a length the club offers themselves (decision 0305): `Add time` `+1 h` `+2 h`. */
   addTime: 'Add time',
   addTimeChoice: '+{time}',
@@ -211,19 +205,3 @@ export const topUps = {
   },
 } as const;
 
-/** Time requests (decision 0305): more call time members asked for, each with Approve and Decline. Minutes only. */
-export const timeRequests = {
-  title: 'Time requests',
-  noneWaiting: 'No time requests waiting.',
-  /** `{table}, seat {seat} · {name}`: Table 3, seat 5 · Kabir Sethi. */
-  line: '{table}, seat {seat} · {name}',
-  /** `{time}`: 1h 20m. */
-  left: '{time} call time left',
-  met: 'Call time done',
-  notAllowed: 'Not in your role. Ask an admin.',
-  failures: {
-    paused: 'Venue frozen. Try again once it is released.',
-    not_allowed: 'Not in your role. Ask an admin.',
-    changed: 'This request changed. Check the list and try again.',
-  },
-} as const;

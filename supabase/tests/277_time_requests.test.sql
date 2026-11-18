@@ -1,6 +1,7 @@
--- More call time as the owner set it on 3 Nov (decision 0305): the lengths offered are a setting, the floor's managers
--- add them without a request, met or not, and time requests are a queue of their own. Ishaan (211) sits at Table 5 with
--- three hours; 103 is a floor manager (admin), 108 a host, 106 a dealer.
+-- More call time as the owner set it on 3 Nov (decision 0305) and 18 Nov (#1076): the lengths offered are a setting, and
+-- the floor's managers add them by the member's own rule: until a call time is set, a length counts from now and must end
+-- after the call time the seat started with, and adding one counts as setting it; once set, a length extends it. Ishaan
+-- (211) sits at Table 5 with three hours; 103 is a floor manager (admin), 108 a host, 106 a dealer.
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -47,19 +48,14 @@ values ('00000000-0000-4000-8000-000000000001', 'call_time.add_choices', '', '{"
 alter table public.setting enable trigger setting_check;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select is((select add_time_choices from public.my_seat()), array[45, 90], 'the seat offers 45 minutes and 1 hour 30');
-select throws_ok($$ select public.request_call_time(60, gen_random_uuid()) $$, '22023', null, 'an hour is not offered now');
-create temp table asked on commit drop as select public.request_call_time(45, gen_random_uuid()) as id;
-grant select on asked to authenticated;
 reset role;
 
--- The request is the Time requests queue's, red on the rail; the live floor no longer counts it.
+-- Seated just now, no length offered ends after the three hours: the floor's Add call time waits as the member's Set does.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select is(pg_temp.waiting('timeRequests'), 1, 'one time request waits');
-select is(pg_temp.waiting('liveFloor'), 0, 'the live floor does not count it');
-select lives_ok($$ select public.decide_call_time_request((select id from asked), true) $$, 'the floor approves 45 minutes');
-select is(pg_temp.waiting('timeRequests'), 0, 'approved, none waits');
+select throws_ok($$ select public.add_seat_call_time((select id from sess), 90, gen_random_uuid()) $$, '22023', null,
+  'an hour and a half from now would end before the three hours, and is refused');
 reset role;
-select is((pg_temp.session()).call_time_minutes, 225, 'three hours and 45 minutes');
+update public.seat_session set started_at = now() - interval '150 minutes', seated_here_at = now() - interval '150 minutes' where id = (select id from sess);
 
 -- The floor's managers add a length offered themselves; a host does not, and nothing but a length offered is added.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
@@ -67,21 +63,23 @@ select throws_ok($$ select public.add_seat_call_time((select id from sess), 90, 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select throws_ok($$ select public.add_seat_call_time((select id from sess), 60, gen_random_uuid()) $$, '22023', null, 'an hour is not offered');
 select throws_ok($$ select public.add_seat_call_time((select id from sess), 90, null) $$, '22023', null, 'nor anything without a request id');
-select lives_ok($$ select public.add_seat_call_time((select id from sess), 90, '277a0000-0000-4000-8000-000000000001') $$, 'a floor manager adds 1 hour 30');
+select lives_ok($$ select public.add_seat_call_time((select id from sess), 90, '277a0000-0000-4000-8000-000000000001') $$,
+  'two and a half hours in, a floor manager adds 1 hour 30');
 -- The same request again (a retry after a lost answer) adds nothing more; the same id for another length is refused.
 select lives_ok($$ select public.add_seat_call_time((select id from sess), 90, '277a0000-0000-4000-8000-000000000001') $$, 'the same request again');
 select throws_ok($$ select public.add_seat_call_time((select id from sess), 45, '277a0000-0000-4000-8000-000000000001') $$, '22023', null,
   'that request id was for another addition');
 reset role;
-select is((pg_temp.session()).call_time_minutes, 315, '5 hours 15, added once');
+select is((pg_temp.session()).call_time_minutes, 240, 'four hours: two and a half played and 1 hour 30 from now, added once');
+select ok((pg_temp.session()).call_time_set_at is not null, 'the floor''s Add call time counts as setting it');
 select is((select row(status, minutes, decided_by_staff_id is not null)::text from public.call_time_request
            where idempotency_key = '277a0000-0000-4000-8000-000000000001'), '(approved,90,t)', 'kept as approved, with who added it');
-select is((select count(*)::integer from public.outbox_event where event_type = 'call_time.updated' and payload ->> 'minutes' = '315'),
+select is((select count(*)::integer from public.outbox_event where event_type = 'call_time.updated' and payload ->> 'minutes' = '240'),
   1, 'the member''s devices are told, once');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select lives_ok($$ select public.add_seat_call_time((select id from sess), 45, gen_random_uuid()) $$, 'a cashier, with the floor''s permissions, adds too');
 reset role;
-select is((pg_temp.session()).call_time_minutes, 360, 'six hours');
+select is((pg_temp.session()).call_time_minutes, 285, 'once set, 45 minutes extend it to four hours 45');
 
 -- Met: time added runs from the minutes played, the seat owes it again, and the sweep completes it again once played. The
 -- first completion still counts for promotions.

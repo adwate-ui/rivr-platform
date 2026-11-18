@@ -23,7 +23,7 @@ export const PLACE = {
 export const SEAT = {
   table_name: 'Table 1', seat: 4, is_away: false, has_call_time: true, call_time_left: 9668, played_seconds: 1140, is_leaving: false, top_up: null,
   call_time_minutes: 180, started_at: '2026-11-15T16:55:30Z', call_time_ends_at: new Date(NOW + 9668 * 1000).toISOString(),
-  table_type_name: 'NLH 50/100', small_blind_paise: 5000, big_blind_paise: 10000, time_request_minutes: null, add_time_choices: [30, 60, 120], game: 'nlh', straddle_paise: null,
+  table_type_name: 'NLH 50/100', small_blind_paise: 5000, big_blind_paise: 10000, add_time_choices: [30, 60, 120], call_time_choices_open: [60, 120], game: 'nlh', straddle_paise: null,
   call_time_set_at: null,
 };
 

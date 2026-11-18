@@ -9,7 +9,7 @@ import { activity } from './activity.ts';
 import { cameraFailures, cameras } from './cameras.ts';
 import { members } from './members.ts';
 import { checkIn } from './checkIn.ts';
-import { liveFloor, timeRequests, todaysPlayers, topUps } from './floor.ts';
+import { liveFloor, todaysPlayers, topUps } from './floor.ts';
 import { tablesSetup } from './tablesSetup.ts';
 import { floor } from './liveFloorV3.ts';
 import { dealerPins, tablets, tvPairing, tvs, tvScreen } from './devices.ts';
@@ -68,7 +68,6 @@ export const consoleApp = {
   todaysPlayers,
   tablesSetup,
   topUps,
-  timeRequests,
   fnb: consoleFnb,
   settings,
   checkIn,

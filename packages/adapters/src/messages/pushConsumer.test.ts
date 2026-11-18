@@ -142,6 +142,12 @@ describe('the push consumer', () => {
     });
   });
 
+  it('tells nothing of a call time run out with none set, as it is still owed', async () => {
+    const done = { member_id: MEMBER, session_id: SESSION, table_id: OTHER, seat: 4 };
+    expect(await sendOne('call_time.completed', { ...done, is_set: false })).toEqual({ outcome: { ok: true, value: null }, asked: [], sent: [] });
+    expect((await sendOne('call_time.completed', { ...done, is_set: true })).sent.map((push) => push.title)).toEqual(['Call time done']);
+  });
+
   it('sends nothing to a member who does not want the kind, nor a seat call whose hold has run out', async () => {
     const push = createFakePush();
     const consumer = createPushConsumer({ push, ...members([phone('a')], ['push.seat_ready']), now });

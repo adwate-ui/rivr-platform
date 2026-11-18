@@ -11,7 +11,9 @@ export interface Leaver {
   readonly tableName: string;
   /** The seat they sit in; none for one who already left it. */
   readonly seat: { readonly sessionId: string; readonly number: number } | null;
-  /** Whole seconds of call time still owed; 0 when met or none given. */
+  /** Whether call time is owed (#1076): one is, until a call time is set and has run out. */
+  readonly owes: boolean;
+  /** Whole seconds of call time left; 0 when met, none given, or a call time never set. */
   readonly owedSeconds: number;
 }
 
@@ -41,10 +43,18 @@ function checkOutOf(owes: boolean, { leaver, canLetGo, canCheckOut }: LeaveSheet
   return leaver.seat === null ? null : 'console.floor.leave.confirmOut';
 }
 
+/** What is owed, in words: the time left, that no call time was set (#1076), or nothing. */
+function owedWords(leaver: Leaver): string {
+  if (!leaver.owes) return t('console.floor.leave.free');
+  return leaver.owedSeconds > 0
+    ? t('console.floor.leave.owes', { name: leaver.fullName, time: formatDuration(leaver.owedSeconds) })
+    : t('console.floor.leave.notSet', { name: leaver.fullName });
+}
+
 /** Lets the player go early with the reason, or leave from their seat with it; and checks them out of the club with it if asked. */
 async function leaveAs(props: LeaveSheetProps, reason: LeaveReason, isCheckingOut: boolean): Promise<void> {
   const { leaver, canLetGo, changes } = props;
-  if (leaver.owedSeconds > 0 && canLetGo) {
+  if (leaver.owes && canLetGo) {
     return changes.letGo({ memberId: leaver.memberId, fullName: leaver.fullName, sessionId: leaver.seat?.sessionId }, reason, isCheckingOut);
   }
   if (leaver.seat === null) return undefined;
@@ -64,11 +74,11 @@ export function LeaveSheet(props: LeaveSheetProps) {
   const { leaver, canLetGo, onClose } = props;
   // Call time met is picked until staff pick another, while nothing is owed; owing, none is.
   const [picked, setPicked] = useState<LeaveReason | null>(null);
-  const reason = picked ?? (leaver.owedSeconds > 0 ? null : 'call_time_met');
+  const reason = picked ?? (leaver.owes ? null : 'call_time_met');
   const [isMissing, setMissing] = useState(false);
   // A press under way: a second would end the seat again, or check out twice.
   const [isBusy, setBusy] = useState(false);
-  const owes = leaver.owedSeconds > 0;
+  const owes = leaver.owes;
   const confirm = confirmOf(owes, canLetGo);
   const checkOut = checkOutOf(owes, props);
   const go = async (isCheckingOut: boolean) => {
@@ -87,7 +97,7 @@ export function LeaveSheet(props: LeaveSheetProps) {
         {checkOut === null ? null : <Button variant="outline" isDisabled={isBusy} onClick={() => void go(true)}>{t(checkOut)}</Button>}
         <Button variant={confirm.variant} isLoading={isBusy} onClick={() => void go(false)}>{t(confirm.label)}</Button>
       </>}>
-      <Text>{owes ? t('console.floor.leave.owes', { name: leaver.fullName, time: formatDuration(leaver.owedSeconds) }) : t('console.floor.leave.free')}</Text>
+      <Text>{owedWords(leaver)}</Text>
       <Stack gap={3}>
         <Text variant="caption" tone="muted">{t('console.floor.leave.reason')}</Text>
         <ChoiceChips look="subtle" mode="one" label={t('console.floor.leave.reason')} isLabelVisuallyHidden selected={reason === null ? [] : [reason]}

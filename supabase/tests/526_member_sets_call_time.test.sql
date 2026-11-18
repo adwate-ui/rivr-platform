@@ -37,6 +37,9 @@ grant select on sess to authenticated;
 
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select is((select call_time_set_at from public.my_seat()), null, 'his seat says he has set no call time yet');
+-- Set call time opens once a length would end after the three hours (#1076): an hour would not, two hours would.
+select ok((select not (60 = any (call_time_choices_open)) and 120 = any (call_time_choices_open) from public.my_seat()),
+  'the lengths open to him end after the three hours he started with');
 select throws_ok($$ select public.set_my_call_time(45, gen_random_uuid()) $$, 'RVCTC', null, '45 minutes is not a length the club offers');
 select throws_ok($$ select public.set_my_call_time(60, gen_random_uuid()) $$, 'RVCTE', null,
   'an hour from now would end before the three hours he owes, and is refused');
@@ -46,21 +49,22 @@ select throws_ok($$ select public.set_my_call_time(60, '00000000-0000-4000-8000-
   'a request id is for one call time');
 select ok((select call_time_set_at is not null from public.my_seat()), 'his seat now says he set it');
 select is((select call_time_minutes from public.my_seat()), 220, 'and shows three hours forty');
-select throws_ok($$ select public.set_my_call_time(30, gen_random_uuid()) $$, 'RVCTE', null, 'he cannot move it earlier again');
--- Two hours again within the same minute changes nothing: no row, nothing sent (security review).
-select is(public.set_my_call_time(120, gen_random_uuid()), 220, 'the same call time again changes nothing');
+-- Once set, a length extends it (#1076): thirty minutes on three hours forty make four hours ten.
+select ok((select 30 = any (call_time_choices_open) from public.my_seat()), 'once set, every length is open, to extend it');
+select is(public.set_my_call_time(30, gen_random_uuid()), 250, 'thirty minutes extend it to four hours ten');
 reset role;
-select is((select count(*)::integer from public.call_time_request where session_id = (select id from sess)), 1,
-  'and keeps no second row');
+select is((select count(*)::integer from public.call_time_request where session_id = (select id from sess)), 2,
+  'each set and extension is a row of the seat''s history');
 
-select is((pg_temp.session()).call_time_minutes, 220, 'the seat owes three hours forty');
+select is((pg_temp.session()).call_time_minutes, 250, 'the seat owes four hours ten');
 select ok((pg_temp.session()).ending_warned_at is null, 'its 15-minute warning is owed again');
 select results_eq(
-  $$ select minutes, status, minutes_before, decided_by_staff_id is null from public.call_time_request where session_id = (select id from sess) $$,
-  $$ values (120, 'approved', 180, true) $$,
-  'the seat''s history keeps it as two hours set by the member, from three hours, with no staff member');
+  $$ select minutes, status, minutes_before, decided_by_staff_id is null from public.call_time_request where session_id = (select id from sess)
+    order by decided_at, minutes desc $$,
+  $$ values (120, 'approved', 180, true), (30, 'approved', 220, true) $$,
+  'the seat''s history keeps two hours set by the member from three hours, then thirty minutes from three hours forty, with no staff member');
 select is((select count(*)::integer from public.outbox_event where event_type = 'call_time.updated' and payload ->> 'session_id' = (select id from sess)::text),
-  1, 'call_time.updated goes out once');
+  2, 'call_time.updated goes out once for each');
 
 -- A request the floor decides is not a member's set: its id is not taken as a repeat.
 insert into public.call_time_request (venue_id, member_id, session_id, minutes, idempotency_key)
@@ -72,11 +76,11 @@ select throws_ok($$ select public.set_my_call_time(60, '00000000-0000-4000-8000-
 reset role;
 delete from public.call_time_request where idempotency_key = '00000000-0000-4000-8000-00000000d526';
 
--- Once the call time is met, a length runs from the minutes played.
-update public.seat_session set started_at = now() - interval '230 minutes', seated_here_at = now() - interval '230 minutes'
+-- Once the call time set has run out, a length runs from the minutes played.
+update public.seat_session set started_at = now() - interval '260 minutes', seated_here_at = now() - interval '260 minutes'
 where id = (select id from sess);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select is(public.set_my_call_time(30, gen_random_uuid()), 260, 'thirty minutes after it is met make four hours twenty');
+select is(public.set_my_call_time(30, gen_random_uuid()), 290, 'thirty minutes after it ran out make four hours fifty');
 reset role;
 
 -- Past a day has its own refusal, so the app says which (money review).
@@ -92,10 +96,12 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select throws_ok($$ select public.set_my_call_time(30, gen_random_uuid()) $$, 'RVCTN', null, 'a seat with no call time sets none');
 reset role;
 
--- The SQL rule refuses what the app greys out.
-select is(private.set_call_time(180, 100, 60), null, 'ending before the call time owed is refused');
-select is(private.set_call_time(180, 1400, 60), null, 'past a day is refused');
-select is(private.set_call_time(0, 10, 30), null, 'no call time to set from is refused');
+-- The SQL rule refuses what the app greys out (its golden cases are in 024).
+select is(private.call_time_choice_end(180, 100, 180, false, 60), null, 'ending before the call time owed is refused');
+select is(private.call_time_choice_end(180, 120, 180, false, 60), null, 'ending just as the call time started with is refused');
+select is(private.call_time_choice_end(180, 121, 180, false, 60), 181, 'ending a minute after it is open');
+select is(private.call_time_choice_end(180, 1400, 180, false, 60), null, 'past a day is refused');
+select is(private.call_time_choice_end(0, 10, 0, false, 30), null, 'no call time to set from is refused');
 
 select * from finish();
 rollback;

@@ -29,14 +29,15 @@ type Report = (done: { ok: true } | { ok: false; error: SeatEventFailure }) => v
 
 /**
  * Why the player left (#1060, the owner, 17 Nov), on its own row under the seat's buttons: Call time met, picked already
- * when none is left, or Busted, Emergency, Unwell, Table broke or Floor decision; then Yes, they left, or Cancel. With none
+ * when nothing is owed, or Busted, Emergency, Unwell, Table broke or Floor decision; then Yes, they left, or Cancel. With none
  * picked, Yes says to pick one, as the console's leave sheet does.
  */
 function LeaveReasons({ player, report, onLeft, onCancel }: { player: TabletPlayer; report: Report; onLeft: () => void; onCancel: () => void }) {
   const { leave } = useSeatEvents();
   const [picked, setPicked] = useState<LeaveReason | null>(null);
   const [isMissing, setMissing] = useState(false);
-  const reason = picked ?? (player.callTimeLeft === null || player.callTimeLeft === 0 ? 'call_time_met' : null);
+  // Call time met only when nothing is owed (#1076): one never set is owed even at nought.
+  const reason = picked ?? (player.owesCallTime ? null : 'call_time_met');
   const confirm = () => {
     if (reason === null) return setMissing(true);
     return void leave.mutateAsync({ sessionId: player.sessionId, reason }).then((done) => { report(done); if (done.ok) onLeft(); });

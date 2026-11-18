@@ -55,8 +55,12 @@ export const promotionOfferedSchema = z.object({
 /** A promotion.offered payload. */
 export type PromotionOffered = z.infer<typeof promotionOfferedSchema>;
 
-/** call_time.completed (#56): the member's call time at their seat is complete. */
-export const callTimeCompletedSchema = z.object({ member_id: z.uuid(), session_id: z.uuid() });
+/**
+ * call_time.completed (#56): the member's call time at their seat is complete. `is_set` false (#1076): the countdown ran
+ * out with no call time set, so it is still owed and the member is told nothing (the lock screen still stops counting);
+ * absent on events from before it.
+ */
+export const callTimeCompletedSchema = z.object({ member_id: z.uuid(), session_id: z.uuid(), is_set: z.boolean().optional() });
 
 /**
  * call_time.ending (decision 0320): the member's call time has 15 minutes or less to run (@rivr/domain

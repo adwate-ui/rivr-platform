@@ -72,7 +72,9 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select is(public.leave_my_seat(), 'leaving', 'Ishaan leaves with call time owed');
 select results_eq($$ select is_leaving from public.my_seat() $$, $$ values (true) $$, 'so he is still seated, on the Leaving list');
 reset role;
-update public.seat_session set started_at = started_at - interval '5 hours', away_since = now() - interval '10 minutes'
+-- Five hours on, the call time he set has run out (#1076: one never set is owed even then).
+update public.seat_session set started_at = started_at - interval '5 hours', away_since = now() - interval '10 minutes',
+       call_time_set_at = now() - interval '4 hours'
 where id = (select id from ids where name = 'ishaan');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select throws_ok($$ select public.extend_my_call_time() $$, '42501', null, 'with his call time done he adds none');

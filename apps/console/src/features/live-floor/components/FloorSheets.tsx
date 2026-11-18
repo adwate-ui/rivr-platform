@@ -21,11 +21,11 @@ export type FloorSheet =
   | { readonly kind: 'leave'; readonly leaver: Leaver }
   | { readonly kind: 'highHand'; readonly live: HighHandLive };
 
-/** A seated player as one who leaves: their seat, and the call time they still owe. */
+/** A seated player as one who leaves: their seat, and whether they owe call time (#1076: until one is set and run out). */
 export function leaverOf(player: SeatedPlayer, tableName: string): Leaver {
   return {
     memberId: player.memberId, fullName: player.fullName, tableName, seat: { sessionId: player.sessionId, number: player.seat },
-    owedSeconds: Math.max(0, player.callTimeLeft ?? 0),
+    owes: player.owesCallTime, owedSeconds: Math.max(0, player.callTimeLeft ?? 0),
   };
 }
 
@@ -33,7 +33,7 @@ export function leaverOf(player: SeatedPlayer, tableName: string): Leaver {
 export function leaverOfRequest(request: LeaveRequest, data: FloorData): Leaver | null {
   const tableName = tableNameOf(data.tables, request.tableId);
   if (request.kind === 'left_owing') {
-    return { memberId: request.memberId, fullName: request.fullName, tableName, seat: null, owedSeconds: request.owedSeconds };
+    return { memberId: request.memberId, fullName: request.fullName, tableName, seat: null, owes: true, owedSeconds: request.owedSeconds };
   }
   const player = data.seats.find((seat) => seat.sessionId === request.sessionId);
   return player === undefined ? null : leaverOf(player, tableName);

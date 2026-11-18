@@ -54,7 +54,7 @@ select ok((select (payload ->> 'ends_at')::timestamptz between now() + interval 
   'and when the call time ends');
 select ok((pg_temp.session_of('00000000-0000-4000-8000-000000000211')).ending_warned_at is not null, 'the session keeps that it was warned');
 
--- Time added (the floor's approval clears the warning, 272): an hour more runs past the warning; near its new end, a second.
+-- Time added clears the warning: an hour more runs past the warning; near its new end, a second.
 update public.seat_session set call_time_minutes = 120, ending_warned_at = null where member_id = '00000000-0000-4000-8000-000000000211' and ended_at is null;
 select private.sweep_seated_time();
 select is(pg_temp.warnings('00000000-0000-4000-8000-000000000211'), 1, 'an hour added: no warning while it has an hour to run');
@@ -68,8 +68,10 @@ update public.seat_session set away_since = now() where member_id = '00000000-00
 select private.sweep_seated_time();
 select is(pg_temp.warnings('00000000-0000-4000-8000-000000000212'), 0, 'away: no warning');
 
--- Run out between sweeps: call_time.completed says so, and no warning comes after it.
-update public.seat_session set away_since = null where member_id = '00000000-0000-4000-8000-000000000212' and ended_at is null;
+-- Run out between sweeps, with a call time he set (#1076: one never set is still owed): call_time.completed says so,
+-- and no warning comes after it.
+update public.seat_session set away_since = null, call_time_set_at = now() - interval '30 minutes'
+where member_id = '00000000-0000-4000-8000-000000000212' and ended_at is null;
 select pg_temp.played('00000000-0000-4000-8000-000000000212', 61);
 select private.sweep_seated_time();
 select is(pg_temp.warnings('00000000-0000-4000-8000-000000000212'), 0, 'run out: no warning');

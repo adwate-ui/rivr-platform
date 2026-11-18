@@ -83,7 +83,9 @@ select is_empty($$ select * from public.my_seat() $$, 'staff have no seat of the
 select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
 select lives_ok($$ select public.set_session_reminder(4) $$, 'Vihaan sets a reminder after 4 hours, as an old app could');
 reset role;
-update public.seat_session set started_at = started_at - interval '4 hours', seated_here_at = seated_here_at - interval '4 hours'
+-- He set his call time, which has run out: he is told it is done (#1076: one never set is not, as it is still owed).
+update public.seat_session set started_at = started_at - interval '4 hours', seated_here_at = seated_here_at - interval '4 hours',
+       call_time_set_at = now() - interval '3 hours'
 where id = (select id from ids where name = 'vihaan');
 select lives_ok($$ select private.sweep_seated_time() $$, 'the minute''s sweep');
 select lives_ok($$ select private.sweep_seated_time() $$, 'and the next');
@@ -96,7 +98,8 @@ select results_eq($$ select event_type, (payload ->> 'member_id')::uuid from pub
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 insert into ids select 'mihir', public.seat_member(pg_temp.t('Table 3'), 5, '9000000213');
 reset role;
-update public.seat_session set started_at = started_at - interval '61 minutes', seated_here_at = seated_here_at - interval '61 minutes'
+update public.seat_session set started_at = started_at - interval '61 minutes', seated_here_at = seated_here_at - interval '61 minutes',
+       call_time_set_at = now() - interval '30 minutes'
 where id = (select id from ids where name = 'mihir');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select lives_ok($$ select public.end_seat((select id from ids where name = 'mihir'), 'left') $$, 'Mihir leaves after 61 minutes, before any sweep');

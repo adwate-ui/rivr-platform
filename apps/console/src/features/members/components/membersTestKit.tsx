@@ -20,7 +20,8 @@ const RECORD = {
   last_visit_at: '2026-11-03T12:00:00Z', is_in_room: true, early_departures: 0,
 };
 const SEAT = { session_id: 's1', table_id: 't2', seat: 3, member_id: 'm1', full_name: 'Sakshi Tandon', tier_name: 'Black card', started_at: '2026-11-03T12:00:00Z',
-  must_move_order: null, away_since: null, call_time_left: null, leaving_at: null, top_up: null, time_request_id: null, time_request_minutes: null };
+  must_move_order: null, away_since: null, call_time_left: null, leaving_at: null, top_up: null,
+  call_time_set_at: null, call_time_ends_at: null, owes_call_time: false, call_time_choices_open: [], call_time_set_by_member: null, call_time_change_id: null };
 const TODAY = { member_id: 'm2', full_name: 'Arjun Mehta', member_number: 63, status: 'waiting', checked_in_at: null, checked_out_at: null, waiting_seconds: 540, tables: [] };
 export const GRANT = { grant_id: 'g1', granted_at: '2026-11-03T13:00:00Z', club_day: '2026-11-03', promotion_name: 'Tuesday bonus', version: 2, chips: 1_000, perk: null };
 const PERK = { ...GRANT, grant_id: 'g2', promotion_name: 'Founders priority', chips: 0, perk: 'waitlist_priority' };

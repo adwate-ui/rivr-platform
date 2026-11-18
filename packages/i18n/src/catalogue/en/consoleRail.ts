@@ -34,7 +34,6 @@ export const rail = {
     settings: 'Settings',
     waitlist: 'Waitlist',
     topUps: 'Top-ups',
-    timeRequests: 'Time requests',
     checkIn: 'Check-in',
     tournaments: 'Tournaments',
     todaysPlayers: 'Today’s players',

@@ -13,7 +13,7 @@ import { ConsoleSearch } from './ConsoleSearch.tsx';
 import { FrameClock, FramePulse, runsTheFloor } from './FrameHeader.tsx';
 import { NotStaff } from './NotStaff.tsx';
 import { useAddressTableViews } from './tableViews.ts';
-import { landingFor, phoneTabsFor, railFor, railItemAt, refusalAt, URGENT_QUEUES, type Refusal } from './rail.ts';
+import { CHIME_ONLY_QUEUES, landingFor, phoneTabsFor, railFor, railItemAt, refusalAt, titleCountOf, URGENT_QUEUES, type Refusal } from './rail.ts';
 import { SignOutButton } from './SignOutButton.tsx';
 import { StaffAccount } from './StaffAccount.tsx';
 import { NoAlertNumberBanner } from './NoAlertNumberBanner.tsx';
@@ -106,8 +106,6 @@ function useRailCounts(venueId: string) {
   return { counts: { ...data }, urgent };
 }
 
-const totalOf = (counts: Readonly<Record<string, number>> | null) => Object.values(counts ?? {}).reduce((sum, count) => sum + count, 0);
-
 /** The screen open now: its address, the tab named in it, and the whole search for a prompt. */
 function useLocation() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
@@ -170,8 +168,8 @@ function FrameBody({ staff, urgent, refusal, isHome, landing, children }: FrameB
       <DataTableExportProvider exporter={permissions.includes('exports.table') ? recordExport : null}>
         {/* New urgent work chimes and is told to a screen reader, and the tab says how much waits (decision 0301); a venue
             switch starts the chime over, so the other venue's counts sound nothing. */}
-        <UrgentChime key={venueId} counts={urgent} />
-        <TitleCount count={totalOf(urgent)}>
+        <UrgentChime key={venueId} counts={urgent} chimeOnly={CHIME_ONLY_QUEUES} />
+        <TitleCount count={titleCountOf(urgent)}>
           {/* A screen opened by address that the role doesn't include is refused here, before it loads anything. */}
           {refusal === undefined ? children : <Refused refusal={refusal} isHome={isHome} landing={landing} />}
         </TitleCount>

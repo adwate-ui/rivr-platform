@@ -32,6 +32,8 @@ export const checkIn = {
   checkedOut: 'Checked out.',
   notInRoom: 'Not checked in.',
   callTimeOwed: '{time} call time owed. An admin can release them on the Live floor.',
+  /** Owed with no call time set (#1076): the countdown is done, but none was set. */
+  callTimeNotSet: 'Call time not set. An admin can release them on the Live floor.',
   stillSeated: 'Still seated. The floor ends the seat first.',
   checkOutPaused: 'Venue frozen. Try again once it is released.',
   onBreak: 'This member is on a break from play. Not checked in.',

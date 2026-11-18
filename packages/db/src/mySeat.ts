@@ -38,11 +38,14 @@ export interface MySeat {
   readonly smallBlind: bigint;
   readonly bigBlind: bigint;
   readonly straddle: bigint | null;
-  /** More call time asked for, waiting on the floor (decision 0320), in minutes; null with none. */
-  readonly timeRequestMinutes: number | null;
   /** The lengths of call time the club offers, in minutes, shortest first (decision 0305): the member sets one (#1059). */
   readonly addTimeChoices: readonly number[];
-  /** When the member last set their call time from the seat (#1059), so the app shows "Call time until"; null if never. */
+  /**
+   * Those open now by the one rule (#1076): until a call time is set, the lengths ending after the call time the seat
+   * started with; once set, every length, to extend it. None while the member cannot see call time.
+   */
+  readonly callTimeChoicesOpen: readonly number[];
+  /** When a call time was first set, by the member or the floor's Add call time (#1059, #1076); null if never. */
   readonly callTimeSetAt: string | null;
 }
 
@@ -91,7 +94,7 @@ export function useMySeat() {
             callTimeMinutes: row.call_time_minutes, startedAt: row.started_at, callTimeEndsAt: row.call_time_ends_at,
             tableTypeName: row.table_type_name, game: playedGame(row.game), smallBlind: BigInt(row.small_blind_paise), bigBlind: BigInt(row.big_blind_paise),
             straddle: row.straddle_paise === null ? null : BigInt(row.straddle_paise),
-            timeRequestMinutes: row.time_request_minutes, addTimeChoices: row.add_time_choices, callTimeSetAt: row.call_time_set_at };
+            addTimeChoices: row.add_time_choices, callTimeChoicesOpen: row.call_time_choices_open, callTimeSetAt: row.call_time_set_at };
     },
   });
 }

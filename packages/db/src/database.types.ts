@@ -2819,9 +2819,6 @@ isOneToOne: false
               "down_id": string,"refusal": string,"tries_left": number
             }[]
                            },
-"decide_call_time_request":
-{ Args: { "p_is_approved": boolean,"p_request_id": string }; Returns: undefined
-                           },
 "decline_waitlist_request":
 { Args: { "p_entry_id": string }; Returns: undefined
                            },
@@ -2918,7 +2915,7 @@ isOneToOne: false
                            },
 "floor_seats":
 { Args: { "p_venue_id": string }; Returns: {
-              "away_since": string,"call_time_left": number,"full_name": string,"leaving_at": string,"member_id": string,"must_move_order": number,"seat": number,"session_id": string,"started_at": string,"table_id": string,"tier_name": string,"time_request_id": string,"time_request_minutes": number,"top_up": string
+              "away_since": string,"call_time_change_id": string,"call_time_choices_open": (number)[],"call_time_ends_at": string,"call_time_left": number,"call_time_set_at": string,"call_time_set_by_member": boolean,"full_name": string,"leaving_at": string,"member_id": string,"must_move_order": number,"owes_call_time": boolean,"seat": number,"session_id": string,"started_at": string,"table_id": string,"tier_name": string,"top_up": string
             }[]
                            },
 "floor_taken_seats":
@@ -3298,7 +3295,7 @@ isOneToOne: false
                            },
 "my_seat":
 { Args: Record<PropertyKey, never>; Returns: {
-              "add_time_choices": (number)[],"big_blind_paise": number,"call_time_ends_at": string,"call_time_left": number,"call_time_minutes": number,"call_time_set_at": string,"game": string,"has_call_time": boolean,"is_away": boolean,"is_leaving": boolean,"played_seconds": number,"seat": number,"small_blind_paise": number,"started_at": string,"straddle_paise": number,"table_name": string,"table_type_name": string,"time_request_minutes": number,"top_up": string
+              "add_time_choices": (number)[],"big_blind_paise": number,"call_time_choices_open": (number)[],"call_time_ends_at": string,"call_time_left": number,"call_time_minutes": number,"call_time_set_at": string,"game": string,"has_call_time": boolean,"is_away": boolean,"is_leaving": boolean,"played_seconds": number,"seat": number,"small_blind_paise": number,"started_at": string,"straddle_paise": number,"table_name": string,"table_type_name": string,"top_up": string
             }[]
                            },
 "my_sessions":
@@ -3511,9 +3508,6 @@ isOneToOne: false
                            },
 "request_cab":
 { Args: { "p_address": string,"p_kind": string,"p_time": string }; Returns: string
-                           },
-"request_call_time":
-{ Args: { "p_idempotency_key": string,"p_minutes": number }; Returns: string
                            },
 "request_my_erasure":
 { Args: Record<PropertyKey, never>; Returns: string
@@ -3742,7 +3736,7 @@ isOneToOne: false
                            },
 "tablet_seats":
 { Args: Record<PropertyKey, never>; Returns: {
-              "away_since": string,"big_blind_paise": number,"call_time_left": number,"full_name": string,"leaving_at": string,"member_id": string,"minimum_paise": number,"seat": number,"session_id": string,"small_blind_paise": number,"straddle_paise": number
+              "away_since": string,"big_blind_paise": number,"call_time_left": number,"full_name": string,"leaving_at": string,"member_id": string,"minimum_paise": number,"owes_call_time": boolean,"seat": number,"session_id": string,"small_blind_paise": number,"straddle_paise": number
             }[]
                            },
 "take_break":
