@@ -1,6 +1,6 @@
 import { LIST_PAGE, useDoorPage, useListChoices, type DoorPlayer, type ListChoices, type ListFilter, type ScopedView } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { ChoiceChips, DataTable, Stack, StaleNotice, type DataTableRequest, type DataTableSort } from '@rivr/ui';
+import { ChoiceChips, DataTable, Sheet, Stack, StaleNotice, type DataTableRequest, type DataTableSort } from '@rivr/ui';
 import { useState, type ReactNode } from 'react';
 import { doorColumns, doorFiltersInCodes } from './doorColumns.tsx';
 
@@ -27,6 +27,8 @@ interface DoorTableProps {
   readonly initialSort?: DataTableSort | undefined;
   /** The row's button, where the screen acts on a player: Check in, Check out. */
   readonly action?: ((player: DoorPlayer) => ReactNode) | undefined;
+  /** For floor and up (#1073): the member's History, drawn in the panel at the side; with it, the Phone and History columns show. */
+  readonly history?: ((player: DoorPlayer) => ReactNode) | undefined;
 }
 
 /** How many players a chip holds, from the server's counts of the door's lists and statuses over everyone the search leaves. */
@@ -71,13 +73,20 @@ function useDoor(venueId: string, chips: readonly DoorChip[]) {
   return { chipId, chip, choose: (picked: string | undefined) => setChipId(picked ?? chips[0]?.id ?? ''), setRequest, page, counted, everyone };
 }
 
+/** A member's History in the panel at the side (#1073), while one is open. */
+function HistoryPanel({ opened, history, onClose }: { opened: DoorPlayer | null; history: ((player: DoorPlayer) => ReactNode) | undefined; onClose: () => void }) {
+  if (opened === null || history === undefined) return null;
+  return <Sheet place="console" isOpen onClose={onClose} title={opened.fullName}>{history(opened)}</Sheet>;
+}
+
 /**
  * Everyone at the door today as one table, a page at a time from the server (redesign RD-30): chips choose which of them
  * show, each with its count; the search finds a name or a member number; each column sorts and filters there. Export
  * sends every player the view leaves.
  */
-export function DoorTable({ venueId, label, chipsLabel, chips, emptyText, nobodyText, initialSort, action }: DoorTableProps) {
+export function DoorTable({ venueId, label, chipsLabel, chips, emptyText, nobodyText, initialSort, action, history }: DoorTableProps) {
   const { chipId, chip, choose, setRequest, page, counted, everyone } = useDoor(venueId, chips);
+  const [opened, setOpened] = useState<DoorPlayer | null>(null);
   // Nobody at the door at all is said in its own words.
   const state = stateOf(page, isNobody(everyone) ? nobodyText ?? emptyText : emptyText);
   const search = { label: t('console.todaysPlayers.filter'), variant: 'subtle' as const, text: (player: DoorPlayer) => player.fullName };
@@ -86,7 +95,7 @@ export function DoorTable({ venueId, label, chipsLabel, chips, emptyText, nobody
     <Stack gap={4}>
       {/* A failed refresh keeps the players shown, with a notice, rather than swapping them for an error. */}
       {page.isError && page.data !== undefined ? <StaleNotice since={new Date(page.dataUpdatedAt)} onRetry={() => void page.refetch()} /> : null}
-      <DataTable {...state} {...look} label={label} columns={doorColumns(counted, action)} rowKey={(player) => player.memberId} narrowLayout="scroll"
+      <DataTable {...state} {...look} label={label} columns={doorColumns(counted, action, history && setOpened)} rowKey={(player) => player.memberId} narrowLayout="scroll"
         filter={search}
         belowSearch={(
           <ChoiceChips look="subtle" mode="one" isOneRow isLabelVisuallyHidden label={chipsLabel} selected={[chipId]}
@@ -94,6 +103,7 @@ export function DoorTable({ venueId, label, chipsLabel, chips, emptyText, nobody
             onChange={([picked]) => choose(picked)} />
         )}
         server={{ total: page.data?.total ?? 0, pageSize: LIST_PAGE, onRequest: setRequest, scope: chipId }} exportRows={page.readEvery} />
+      <HistoryPanel opened={opened} history={history} onClose={() => setOpened(null)} />
     </Stack>
   );
 }

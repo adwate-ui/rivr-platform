@@ -28,6 +28,8 @@ export interface DoorPlayer extends Omit<TodaysPlayer, 'status'> {
   readonly since: string | null;
   /** The Bonus given to them today, by hand or by promotions once approved (#1062). */
   readonly bonus: Paise;
+  /** Their mobile, `+919876543210`, for floor and up (members.phone, #1073); null for anyone else. */
+  readonly phone: string | null;
 }
 
 const STATUSES: readonly DoorStatus[] = ['playing', 'waiting', 'in_room', 'expected', 'left', 'never_arrived'];
@@ -48,6 +50,7 @@ export function useDoorPage(venueId: string, view: ScopedView | null) {
       status: STATUSES.find((status) => status === row.status) ?? 'left', list: LISTS.find((list) => list === row.list) ?? 'not_arrived',
       checkedInAt: row.checked_in_at, checkedOutAt: row.checked_out_at, waitingSeconds: row.waiting_seconds, tables: tablesOf(row.tables),
       playedSeconds: Number(row.played_seconds), kycStatus: kycStatusOf(row.kyc_status), since: row.since, bonus: toPaise(row.bonus_paise),
+      phone: row.phone,
     }),
   });
 }

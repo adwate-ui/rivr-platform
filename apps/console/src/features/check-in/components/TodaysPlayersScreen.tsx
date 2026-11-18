@@ -1,6 +1,7 @@
-import { useStaffVenue } from '@rivr/db';
+import { useStaffVenue, type DoorPlayer } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Screen } from '@rivr/ui';
+import type { ComponentType } from 'react';
 import { DoorTable, type DoorChip } from './DoorTable.tsx';
 
 /** The status chips (console v3), each with its count from the server: a player waiting counts whether in the room or expected at the door. */
@@ -21,16 +22,20 @@ const BY_NEED = { key: 'status', direction: 'ascending' } as const;
  * (redesign RD-30), by status with a count on each (console v3), with their number, tier and ID check, when they checked
  * in and out, how long they waited, their tables and the time played. It opens sorted by need, those waiting first.
  */
-export function TodaysPlayersScreen() {
+export function TodaysPlayersScreen({ history: History }: { history?: ComponentType<{ venueId: string; memberId: string }> }) {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   const title = t('console.todaysPlayers.title');
   if (!staff.venue.permissions.includes('members.read')) return <Screen title={title} status="error" errorText={t('console.todaysPlayers.notAllowed')} />;
+  const { venueId } = staff.venue;
+  // Floor and up see members' numbers and History (#1073).
+  const history = History === undefined || !staff.venue.permissions.includes('members.phone') ? undefined
+    : (player: DoorPlayer) => <History venueId={venueId} memberId={player.memberId} />;
   return (
     <Screen title={title}>
-      <DoorTable venueId={staff.venue.venueId} label={t('console.todaysPlayers.label')} chipsLabel={t('console.todaysPlayers.status')} chips={chips()}
-        emptyText={t('console.todaysPlayers.noneOfStatus')} nobodyText={t('console.todaysPlayers.empty')} initialSort={BY_NEED} />
+      <DoorTable venueId={venueId} label={t('console.todaysPlayers.label')} chipsLabel={t('console.todaysPlayers.status')} chips={chips()}
+        emptyText={t('console.todaysPlayers.noneOfStatus')} nobodyText={t('console.todaysPlayers.empty')} initialSort={BY_NEED} history={history} />
     </Screen>
   );
 }

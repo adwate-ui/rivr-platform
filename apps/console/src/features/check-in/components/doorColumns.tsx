@@ -1,6 +1,6 @@
 import type { DoorPlayer, DoorStatus, ListChoices, ListFilter, MemberKycStatus } from '@rivr/db';
-import { formatChips, formatDuration, formatRupeesForFile, formatTime, t } from '@rivr/i18n';
-import { DotStatus, Text, type ColumnChoice, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
+import { formatChips, formatDuration, formatMobile, formatRupeesForFile, formatTime, t } from '@rivr/i18n';
+import { Button, DotStatus, Inline, Text, type ColumnChoice, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
 import type { ReactNode } from 'react';
 
 // Who needs the door first: those waiting for a seat and those expected, then those playing, then those gone.
@@ -46,6 +46,45 @@ export function doorFiltersInCodes(filters: Readonly<Record<string, ListFilter>>
   }));
 }
 
+// Floor and up see the mobile and History too (#1073): these columns give up a little width, so each mobile, heading and
+// button stays on one line at 1440 px (the UI review of the pull request).
+const WITH_CONTACT: Partial<Record<string, number>> = { player: 1.6, tier: 0.9, bonus: 0.8 };
+
+const sharesWithContact = (columns: readonly DataTableColumn<DoorPlayer>[], kept: string) => columns.map((column) => {
+  const share = column.key === kept ? undefined : WITH_CONTACT[column.key];
+  return share === undefined ? column : { ...column, share };
+});
+
+/**
+ * The member's mobile and History (#1073), for floor and up: the server gives the number only to them, History opens in
+ * the panel at the side, and the mobile is never in an export (decision 0690). On Today's players each has a column: the
+ * mobile after the number, History at the end. On Check-in the row's button leaves no room for two more columns at
+ * 1440 px, so the mobile goes under the name and History beside the button.
+ */
+function withContact(
+  columns: readonly DataTableColumn<DoorPlayer>[], onHistory: (player: DoorPlayer) => void, action: ((player: DoorPlayer) => ReactNode) | undefined,
+): DataTableColumn<DoorPlayer>[] {
+  const history = (player: DoorPlayer) => (
+    <Button variant="text" size="small" aria-label={t('console.todaysPlayers.historyOf', { name: player.fullName })} onClick={() => onHistory(player)}>
+      {t('console.todaysPlayers.history')}
+    </Button>
+  );
+  if (action === undefined) {
+    const mobile: DataTableColumn<DoorPlayer> = {
+      key: 'phone', share: 1.8, header: t('console.members.mobile'), filter: false, isExported: false,
+      cell: (player) => (player.phone === null ? NONE() : <Text variant="secondary" tone="muted">{formatMobile(player.phone)}</Text>),
+    };
+    const shown = sharesWithContact(columns, '');
+    return [...shown.slice(0, 2), mobile, ...shown.slice(2), { key: 'history', share: 1.1, header: '', align: 'end', filter: false, cell: history }];
+  }
+  // The name, over its mobile, gives up a little more, so History and Check out stay on one line with room to spare.
+  const named = sharesWithContact(columns, 'player').map((column) => (column.key !== 'player' ? column : {
+    ...column, share: 1.75, exportValue: (player: DoorPlayer) => player.fullName,
+    cell: (player: DoorPlayer) => <>{player.fullName}{player.phone === null ? null : <Text variant="secondary" tone="muted">{formatMobile(player.phone)}</Text>}</>,
+  }));
+  return [...named, { key: 'action', share: 2.7, header: '', align: 'end', isWide: true, filter: false, cell: (player) => <Inline gap={2} justify="end">{history(player)}{action(player)}</Inline> }];
+}
+
 /**
  * The door's columns (redesign RD-30, as its prototype has them): the player, their number and tier, where they stand,
  * when they came in and went out, how long they waited, their tables, the time played and their ID check; then, where
@@ -53,7 +92,9 @@ export function doorFiltersInCodes(filters: Readonly<Record<string, ListFilter>>
  * 1440 px (the UI review of the pull request). The server sorts and filters, so each column says its kind of filter and the
  * menus hold the server's counts.
  */
-export function doorColumns(counted: ListChoices | undefined, action?: (player: DoorPlayer) => ReactNode): readonly DataTableColumn<DoorPlayer>[] {
+export function doorColumns(
+  counted: ListChoices | undefined, action?: (player: DoorPlayer) => ReactNode, onHistory?: (player: DoorPlayer) => void,
+): readonly DataTableColumn<DoorPlayer>[] {
   const columns: DataTableColumn<DoorPlayer>[] = [
     { key: 'player', share: 2, header: t('console.todaysPlayers.name'), cell: (player) => player.fullName, sortValue: (player) => player.fullName, priority: 'primary', isWide: true, filter: 'text' },
     { key: 'number', share: 0.65, header: t('console.members.number'), cell: (player) => <Text variant="secondary" tone="muted">{String(player.memberNumber)}</Text>, sortValue: (player) => player.memberNumber, exportValue: (player) => player.memberNumber, filter: 'number' },
@@ -83,6 +124,7 @@ export function doorColumns(counted: ListChoices | undefined, action?: (player: 
       cell: (player) => <DotStatus tone={KYC_TONE[player.kycStatus]} label={kycWords(player.kycStatus)} />, exportValue: (player) => kycWords(player.kycStatus),
     },
   ];
+  if (onHistory !== undefined) return withContact(columns, onHistory, action);
   // A column with no heading holds the row's button, and is left out of exports; two shares, so the button stays on one line.
   return action === undefined ? columns : [...columns, { key: 'action', share: 1.45, header: '', cell: action, align: 'end', isWide: true, filter: false }];
 }

@@ -2839,7 +2839,7 @@ isOneToOne: false
                            },
 "door_page":
 { Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
-              "bonus_paise": number,"checked_in_at": string,"checked_out_at": string,"full_name": string,"is_base_tier": boolean,"kyc_status": string,"list": string,"member_id": string,"member_number": number,"played_seconds": number,"since": string,"status": string,"tables": Json,"tier_name": string,"total": number,"waiting_seconds": number
+              "bonus_paise": number,"checked_in_at": string,"checked_out_at": string,"full_name": string,"is_base_tier": boolean,"kyc_status": string,"list": string,"member_id": string,"member_number": number,"phone": string,"played_seconds": number,"since": string,"status": string,"tables": Json,"tier_name": string,"total": number,"waiting_seconds": number
             }[]
                            },
 "down_hands":
@@ -3151,6 +3151,9 @@ isOneToOne: false
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: {
               "created_at": string,"feature_key": string,"feature_name": string,"is_granted": boolean,"lift_reason": string,"lifted_by": string,"override_id": string,"reason": string,"staff_name": string,"standing": string,"until": string
             }[]
+                           },
+"member_hours_played":
+{ Args: { "p_member_id": string,"p_venue_id": string }; Returns: number
                            },
 "member_kyc_documents":
 { Args: { "p_member_id": string,"p_venue_id": string }; Returns: {

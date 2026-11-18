@@ -1,7 +1,7 @@
 import { useCheckInActions, useCheckOutActions, useStaffVenue, type CheckInFailure, type CheckOutRefusal, type DoorPlayer } from '@rivr/db';
 import { t } from '@rivr/i18n';
 import { Button, ErrorMessage, Screen, Stack } from '@rivr/ui';
-import { useState } from 'react';
+import { useState, type ComponentType } from 'react';
 import { CHECK_IN_FAILURE_COPY, checkOutRefusalText } from './checkInCopy.ts';
 import { DoorField } from './DoorField.tsx';
 import { DoorTable, type DoorChip } from './DoorTable.tsx';
@@ -11,14 +11,15 @@ import { DoorTable, type DoorChip } from './DoorTable.tsx';
  * number, a member number or a name; then everyone at the door today as one table from the server (RD-30), by chip those in
  * the room, with Check out (#82), those expected (on a waitlist, not yet in), with Check in, and those who have left.
  */
-export function CheckInScreen() {
+export function CheckInScreen({ history }: { history?: ComponentType<{ venueId: string; memberId: string }> }) {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   if (!staff.venue.permissions.includes('waitlist.manage')) {
     return <Screen title={t('console.checkIn.title')} status="error" errorText={t('console.checkIn.notAllowed')} />;
   }
-  return <CheckIn venueId={staff.venue.venueId} />;
+  // Floor and up see members' numbers and History (#1073).
+  return <CheckIn venueId={staff.venue.venueId} history={staff.venue.permissions.includes('members.phone') ? history : undefined} />;
 }
 
 /** The door's lists as chips: in the room first, as the prototype opens on it. */
@@ -47,7 +48,7 @@ function useRowActions(venueId: string) {
   };
 }
 
-function CheckIn({ venueId }: { venueId: string }) {
+function CheckIn({ venueId, history: History }: { venueId: string; history?: ComponentType<{ venueId: string; memberId: string }> | undefined }) {
   const actions = useRowActions(venueId);
   // A row's one button (redesign correction 3): Check out for a member in the room, Check in for one expected; none once they have left.
   const action = (player: DoorPlayer) => {
@@ -65,7 +66,8 @@ function CheckIn({ venueId }: { venueId: string }) {
         <DoorField venueId={venueId} />
         {actions.failure === null ? null : <ErrorMessage>{actions.failure}</ErrorMessage>}
         <DoorTable venueId={venueId} label={t('console.checkIn.doorLabel')} chipsLabel={t('console.checkIn.lists')} chips={chips()}
-          emptyText={t('console.checkIn.noneOnList')} action={action} />
+          emptyText={t('console.checkIn.noneOnList')} action={action}
+          history={History === undefined ? undefined : (player) => <History venueId={venueId} memberId={player.memberId} />} />
       </Stack>
     </Screen>
   );

@@ -225,6 +225,23 @@ export function useMemberVisits(venueId: string, memberId: string, count: number
   });
 }
 
+/**
+ * A member's hours played since their hours were last reset (decision 0609), in whole minutes, as the Members list's Played
+ * counts them (#1073, the Door's History; members.read); null for a member of another venue.
+ */
+export function useMemberHoursPlayed(venueId: string, memberId: string) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.memberHoursPlayed(userId ?? 'signed-out', venueId, memberId),
+    enabled: userId !== null,
+    queryFn: async (): Promise<number | null> => {
+      const { data, error } = await client.rpc('member_hours_played', { p_venue_id: venueId, p_member_id: memberId });
+      if (error) throw error;
+      return typeof data === 'number' ? data : null;
+    },
+  });
+}
+
 /** A member's early departures, newest first. */
 export function useMemberEarlyDepartures(venueId: string, memberId: string) {
   const { client, userId } = useRivrData();

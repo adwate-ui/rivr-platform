@@ -62,6 +62,8 @@ export const members = {
   /** Each visit on the record (F-017). */
   visitHistory: {
     title: 'Visit history', none: 'No visits yet.', line: '{date} · {tables}', noTable: 'No table',
+    /** The Door's History (#1073): hours played since the member's hours were last reset. */
+    hoursPlayed: 'Hours played',
     callTimeMet: 'Call time met', callTimeOwed: 'Call time not met', leftEarly: 'Left early',
     /** Why they left each table of the visit (#1060): `Left: Busted, Call time met`. */
     leftBecause: 'Left: {reasons}',

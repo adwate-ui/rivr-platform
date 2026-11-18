@@ -100,6 +100,7 @@ export const queryKeys = {
   memberAccountStatuses: (userId: string, venueId: string) => ['user', userId, 'member-account-statuses', venueId] as const,
   /** A member's visits on their record (F-017). */
   memberVisits: (userId: string, venueId: string, memberId: string, count: number) => ['user', userId, 'member-visits', venueId, memberId, count] as const,
+  memberHoursPlayed: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-hours', venueId, memberId] as const,
   memberVisitsAll: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-visits', venueId, memberId] as const,
   memberBonusHistory: (userId: string, venueId: string, memberId: string, count: number) =>
     ['user', userId, 'bonus', venueId, memberId, 'history', count] as const,
