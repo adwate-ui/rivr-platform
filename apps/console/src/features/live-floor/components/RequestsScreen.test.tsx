@@ -17,8 +17,9 @@ afterEach(() => {
 
 const API = {
   tables: [tableRow('t1', 'Table 1')],
-  seats: [seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', time: { id: 'r1', minutes: 60 } })],
-  requests: [requestRow({ kind: 'time', id: 'r1', name: 'Kabir Sethi', minutes: 7, session_id: 's2', table_id: 't1', seat: 5, asked: 60, call_time_left: 600 })],
+  // Kabir is leaving with his countdown done and no call time set: he still owes it (#1076).
+  seats: [seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', leaving: true, left: 0, owes: true })],
+  requests: [requestRow({ kind: 'leaving', id: 's2', name: 'Kabir Sethi', minutes: 7, session_id: 's2', table_id: 't1', seat: 5, call_time_left: 0, owed_seconds: 0 })],
   queues: [{ queue: 'kycReview', waiting: 2 }, { queue: 'feedback', waiting: 4 }],
 };
 
@@ -128,20 +129,18 @@ describe('Requests on a phone (console v3)', () => {
   it('lists the floor\'s requests as a screen, late in danger, with what else waits below', async () => {
     renderFloorScreen(RequestsScreen, API);
     expect(await screen.findByRole('heading', { name: 'Requests' }, { timeout: 5000 })).toBeDefined();
-    expect(await screen.findByText('Wants +1 h')).toBeDefined();
-    expect(screen.getByText('Table 1, seat 5 · 10 min left')).toBeDefined();
+    expect(await screen.findByText('Leaving')).toBeDefined();
+    expect(screen.getByText('Table 1, seat 5 · call time not set')).toBeDefined();
     expect(screen.getByText('Late · 7 min').className).toContain('text-danger');
     expect(await screen.findByText('Also waiting')).toBeDefined();
     expect(screen.getByRole('button', { name: /ID checks/ })).toBeDefined();
   });
 
-  it('approves more time with Undo, which calls the database\'s undo', async () => {
-    const { rpcs } = renderFloorScreen(RequestsScreen, API);
-    fireEvent.click(await screen.findByRole('button', { name: 'Approve' }, { timeout: 5000 }));
-    await screen.findByText('Kabir Sethi: +1 h approved');
-    expect(rpcs('decide_call_time_request')).toEqual([{ p_request_id: 'r1', p_is_approved: true }]);
-    fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
-    await waitFor(() => expect(rpcs('undo_call_time')).toEqual([{ p_request_id: 'r1' }]));
+  it('lets a player leaving with no call time set go only before call time (the owner, 18 Nov)', async () => {
+    renderFloorScreen(RequestsScreen, API);
+    fireEvent.click(await screen.findByRole('button', { name: 'Leave' }, { timeout: 5000 }));
+    const sheet = await screen.findByRole('dialog', { name: 'Let go before call time' });
+    expect(within(sheet).getByText('Kabir Sethi has not set a call time.')).toBeDefined();
   });
 
   it('opens the player\'s sheet from their name', async () => {

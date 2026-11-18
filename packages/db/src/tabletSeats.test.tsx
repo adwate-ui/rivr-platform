@@ -43,7 +43,7 @@ describe('The tablet\'s seats', () => {
     ] } });
     await waitFor(() => expect(result.current.seats.data).toEqual([
       { seat: 1, minimum: 1_000_000n, smallBlind: 10_000n, bigBlind: 20_000n, straddle: 50_000n, player: null },
-      { seat: 9, minimum: 1_000_000n, smallBlind: 10_000n, bigBlind: 20_000n, straddle: 50_000n, player: { sessionId: 's9', fullName: 'Yash Gupta', isAway: true, isLeaving: true } },
+      { seat: 9, minimum: 1_000_000n, smallBlind: 10_000n, bigBlind: 20_000n, straddle: 50_000n, player: { sessionId: 's9', fullName: 'Yash Gupta', isAway: true, isLeaving: true, owesCallTime: false } },
     ]));
   });
 

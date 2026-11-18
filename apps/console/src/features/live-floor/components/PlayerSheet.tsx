@@ -3,7 +3,7 @@ import { openSeatsAt, useAddTimeChoices, type FloorRequest, type FloorTable, typ
 import { formatDuration, formatTime, t } from '@rivr/i18n';
 import { Button, ChoiceChips, Figure, Grid, Inline, ProgressBar, RequestItem, Sheet, Stack, Text } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useBonusByHand } from './bonusByHand.ts';
 import { requestActions, type LeaveRequest } from './requestActions.ts';
 import { wordsOf, waitedSeconds } from './requestView.ts';
@@ -27,17 +27,21 @@ export interface PlayerSheetProps {
   onClose: () => void;
 }
 
-/** The call time in words: what is left, met, or none given. */
-function callTimeWords(left: number | null): string {
+/** The call time in words (#1076): what is left, not set once the countdown is done with none set, met, or none given. */
+function callTimeWords(player: SeatedPlayer): string {
+  const left = player.callTimeLeft;
   if (left === null) return t('console.floor.player.none');
-  return left > 0 ? t('console.floor.player.left', { time: formatDuration(left) }) : t('console.floor.player.met');
+  if (!player.owesCallTime) return t('console.floor.player.met');
+  return left > 0 ? t('console.floor.player.left', { time: formatDuration(left) }) : t('console.floor.player.notSet');
 }
 
 /** The call time left, large, over a bar of the call time played; met or none said in words. */
 function CallTime({ player, now }: { player: SeatedPlayer; now: Date }) {
   const played = waitedSeconds(player.startedAt, now);
   const left = player.callTimeLeft;
-  const figure = callTimeWords(left);
+  const figure = callTimeWords(player);
+  // When they leave, while the call time set is still owed; once it has run out, it is just done.
+  const leaves = player.callTimeEndsAt === null || !player.owesCallTime ? null : t('console.floor.player.leaves', { time: formatTime(new Date(player.callTimeEndsAt)) });
   return (
     <Stack gap={3}>
       <Inline justify="between" align="baseline">
@@ -47,31 +51,41 @@ function CallTime({ player, now }: { player: SeatedPlayer; now: Date }) {
       {/* Nothing to count down: said at body size, not as the sheet's largest words (audit F-131). */}
       {left === null ? <Text tone="muted">{figure}</Text> : <Figure size="title">{figure}</Figure>}
       {left === null ? null : <ProgressBar tone="muted" fraction={played / Math.max(1, played + left)} />}
+      {leaves === null ? null : <Text variant="caption" tone="muted">{leaves}</Text>}
     </Stack>
   );
 }
 
 /** What this player asks, in their own words, each with its actions, as the requests panel has them. */
 function askTitle(request: FloorRequest): string {
-  if (request.kind === 'time') return t('console.floor.player.asksTime', { time: formatDuration(request.minutes * 60) });
   if (request.kind === 'top_up') return t(request.isStarted ? 'console.floor.player.toppingUp' : 'console.floor.player.asksTopUp');
   return t('console.floor.player.asksLeaving');
 }
 
-/** Add time (decision 0305): the lengths the club offers, for the floor's managers. */
-function AddTime({ venueId, player, changes }: { venueId: string; player: SeatedPlayer; changes: SeatChanges }) {
+/**
+ * Add call time (decision 0305; #1076): the lengths the club offers, for the floor's managers, by the member's own rule:
+ * until a call time is set, a length ending no later than the call time the seat started with is greyed; it counts as
+ * setting it, and once set, a length extends it.
+ */
+function AddTime({ venueId, player, now, changes }: { venueId: string; player: SeatedPlayer; now: Date; changes: SeatChanges }) {
   const choices = useAddTimeChoices(venueId).data ?? [];
+  const whyId = useId();
   if (choices.length === 0) return null;
+  const isOpen = (minutes: number) => player.callTimeChoicesOpen.includes(minutes);
+  // A length closed until a call time is set ends no later than the one owed now, as the member's own sheet says.
+  const notBefore = choices.every(isOpen) ? null : formatTime(new Date(now.getTime() + Math.max(0, player.callTimeLeft ?? 0) * 1000));
   return (
     <Stack gap={3}>
       <Text variant="caption" tone="muted">{t('console.floor.player.addTime')}</Text>
       <Grid columns={3} gap={2}>
         {choices.map((minutes) => (
-          <Button key={minutes} variant="subtle" fullWidth onClick={() => void changes.addTime(player, minutes)}>
+          <Button key={minutes} variant="subtle" fullWidth isDisabled={!isOpen(minutes)} {...(isOpen(minutes) || notBefore === null ? {} : { 'aria-describedby': whyId })}
+            onClick={() => void changes.addTime(player, minutes)}>
             {t('console.floor.player.addTimeChoice', { time: formatDuration(minutes * 60) })}
           </Button>
         ))}
       </Grid>
+      {notBefore === null ? null : <Text id={whyId} variant="caption" tone="muted">{t('console.floor.player.addTimeNotBefore', { time: notBefore })}</Text>}
     </Stack>
   );
 }
@@ -126,7 +140,7 @@ export function PlayerSheet(props: PlayerSheetProps) {
             secondary={actions.secondary && { label: actions.secondary.label, onClick: () => void actions.secondary?.run() }} />
         );
       })}
-      {permissions.includes('call_time.override') && player.callTimeLeft !== null ? <AddTime venueId={venueId} player={player} changes={changes.seats} /> : null}
+      {permissions.includes('call_time.override') && player.callTimeLeft !== null ? <AddTime venueId={venueId} player={player} now={now} changes={changes.seats} /> : null}
       <Move {...props} changes={changes.seats} />
       {drawBonusByHand !== null && permissions.includes('bonus.give') ? drawBonusByHand({ venueId, memberId: player.memberId }) : null}
       <MemberRecordLink memberId={player.memberId} permissions={permissions} />

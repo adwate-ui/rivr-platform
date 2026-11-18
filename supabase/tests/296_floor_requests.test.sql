@@ -1,6 +1,7 @@
 -- The Live floor's requests (decision 0479): everything that waits on the floor in one read, oldest first, and the club's
--- targets for how long each may wait. At Table 5: Ishaan (211) asks for a top-up, Vihaan (212) for an hour more, Mihir
--- (213) is leaving, Yash (214) left owing call time, and Ritika (215) asks to join the list. 103 is a floor manager (admin),
+-- targets for how long each may wait. At Table 5: Ishaan (211) asks for a top-up, Vihaan (212) sits (members no longer
+-- ask the floor for more time, #1076), Mihir (213) is leaving, Yash (214) left owing call time, and Ritika (215) asks to
+-- join the list. 103 is a floor manager (admin),
 -- 108 a host, 106 a dealer.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -42,20 +43,16 @@ update public.seat_session set ended_at = now() - interval '1 minute' where id =
 update public.seat_session set top_up_requested_at = now() - interval '4 minutes' where id = (select topping from sess);
 insert into public.top_up_request (venue_id, member_id, session_id, table_id, seat, requested_at)
 select venue_id, member_id, id, table_id, seat, now() - interval '4 minutes' from public.seat_session where id = (select topping from sess);
-insert into public.call_time_request (venue_id, member_id, session_id, minutes, idempotency_key, requested_at)
-select venue_id, member_id, id, 60, gen_random_uuid(), now() - interval '3 minutes' from public.seat_session where id = (select asking from sess);
 update public.seat_session set leaving_at = now() - interval '2 minutes' where id = (select leaving from sess);
 insert into public.waitlist_entry (venue_id, member_id, table_type_id, table_id, idempotency_key, joined_at, approved_at)
 select g.venue_id, '00000000-0000-4000-8000-000000000215', g.table_type_id, g.id, gen_random_uuid(), now() - interval '5 minutes', null
 from public.game_table g where g.name = 'Table 5' and g.venue_id = '00000000-0000-4000-8000-000000000001';
 
--- The floor manager reads all five, oldest first.
+-- The floor manager reads all four, oldest first.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select is(pg_temp.kinds('00000000-0000-4000-8000-000000000001'), 'join,top_up,time,leaving,left_owing', 'every request, oldest first');
+select is(pg_temp.kinds('00000000-0000-4000-8000-000000000001'), 'join,top_up,leaving,left_owing', 'every request, oldest first');
 select is((select row(full_name, seat, top_up, call_time_left > 0)::text from public.floor_requests('00000000-0000-4000-8000-000000000001') where kind = 'top_up'),
   '("Ishaan Verma",2,requested,t)', 'a top-up: who, where, asked for, and the call time left');
-select is((select row(full_name, minutes)::text from public.floor_requests('00000000-0000-4000-8000-000000000001') where kind = 'time'),
-  '("Vihaan Kapoor",60)', 'a time request: the length asked');
 select ok((select owed_seconds > 0 and request_id = '00000000-0000-4000-8000-000000000214' from public.floor_requests('00000000-0000-4000-8000-000000000001')
            where kind = 'left_owing'), 'left before call time: the member, and what is owed');
 select is((select table_id from public.floor_requests('00000000-0000-4000-8000-000000000001') where kind = 'join'),
@@ -63,7 +60,7 @@ select is((select table_id from public.floor_requests('00000000-0000-4000-8000-0
 
 -- A host reads them but the left-owing, which only staff who let players go early see; a dealer and anon read nothing.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
-select is(pg_temp.kinds('00000000-0000-4000-8000-000000000001'), 'join,top_up,time,leaving', 'a host: no left-owing');
+select is(pg_temp.kinds('00000000-0000-4000-8000-000000000001'), 'join,top_up,leaving', 'a host: no left-owing');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select throws_ok($$ select * from public.floor_requests('00000000-0000-4000-8000-000000000001') $$, '42501', null, 'a dealer reads no requests');
 select throws_ok($$ select * from public.floor_request_targets('00000000-0000-4000-8000-000000000001') $$, '42501', null, 'nor the targets');

@@ -5,6 +5,7 @@ import { HeaderPulse, Time } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { requestsWaiting, type QueueCounts } from './rail.ts';
+import { useCallTimeNews } from './useCallTimeNews.ts';
 
 interface FramePulseProps {
   venueId: string;
@@ -17,13 +18,15 @@ export const runsTheFloor = (permissions: readonly Permission[]) => permissions.
 
 /**
  * The night at a glance in the header (console v3): how many are seated, waiting on a list and asking the floor for
- * something, each a link to its screen, for staff who run the floor. Requests carry the gold dot while any wait.
+ * something, each a link to its screen, for staff who run the floor. Requests carry the gold dot while any wait. The floor
+ * is told here, on any screen, when a member sets or extends their call time (#1076).
  */
 export function FramePulse({ venueId, permissions, counts }: FramePulseProps) {
   const navigate = useNavigate();
   const isFloor = runsTheFloor(permissions);
   const seated = useFloorSeats(venueId, isFloor);
   const waiting = useWaitlistBoard(venueId, isFloor);
+  useCallTimeNews(isFloor ? seated.data : undefined);
   if (!isFloor) return null;
   const items = [
     { id: 'seated', count: seated.data?.length ?? 0, label: t('console.shell.pulse.seated'), href: '/' },

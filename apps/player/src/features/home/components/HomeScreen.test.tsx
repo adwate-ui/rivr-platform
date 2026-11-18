@@ -94,6 +94,13 @@ describe('Tonight', () => {
     expect(await screen.findByText('Call time until 01:25', {}, LATER)).toBeDefined();
   });
 
+  it('Seated with a call time they set that has run out: it is done, so no "until"', async () => {
+    renderTonight([], [{ ...SEAT, call_time_set_at: '2026-11-15T14:00:00Z', call_time_left: 0, call_time_ends_at: new Date(NOW).toISOString() }]);
+    expect(await screen.findByRole('heading', { name: 'Table 1, seat 4' }, LATER)).toBeDefined();
+    expect(screen.getByText('Playing since')).toBeDefined();
+    expect(screen.queryByText(/^Call time until/)).toBeNull();
+  });
+
   // Issue 781: the floor can add a seated member to another list to change tables (#633).
   it('Seated: a place on a list to change tables shows under the seat, with where they stand', async () => {
     renderTonight([{ ...PLACE, place: 2, table_id: null, table_name: null }, { ...PLACE, entry_id: 'e2', place: null, is_request: true },
@@ -110,10 +117,9 @@ describe('Tonight', () => {
     expect(screen.queryByRole('button', { name: 'Leave waitlist' })).toBeNull();
   });
 
-  it('A request an older app sent shows waiting, beside a top-up asked for; Set call time stays open', async () => {
-    renderTonight([], [{ ...SEAT, top_up: 'requested', time_request_minutes: 60 }]);
-    expect(await screen.findByText('+1 h', {}, LATER)).toBeDefined();
-    expect(screen.getByText('Top-up')).toBeDefined();
+  it('A top-up asked for shows waiting and dims Top up; Set call time stays open', async () => {
+    renderTonight([], [{ ...SEAT, top_up: 'requested' }]);
+    expect(await screen.findByText('Top-up', {}, LATER)).toBeDefined();
     expect(screen.getByRole('button', { name: 'Set call time' }).getAttribute('aria-disabled')).not.toBe('true');
     expect(screen.getByRole('button', { name: 'Top up' }).getAttribute('aria-disabled')).toBe('true');
     fireEvent.click(screen.getByRole('button', { name: 'Leave seat' }));
@@ -122,9 +128,24 @@ describe('Tonight', () => {
     expect(screen.getByRole('button', { name: 'Join leaving list' })).toBeDefined();
   });
 
+  it('Leave with no call time set once the countdown is done says none was set', async () => {
+    renderTonight([], [{ ...SEAT, call_time_left: 0, call_time_ends_at: null }]);
+    fireEvent.click(await screen.findByRole('button', { name: 'Leave seat' }, LATER));
+    const sheet = await screen.findByRole('dialog', { name: 'Leave your seat?' });
+    expect(within(sheet).getByText('Call time not set.')).toBeDefined();
+  });
+
+  it('Leave says nothing of call time to a member who may not see it', async () => {
+    renderTonight([], [{ ...SEAT, call_time_left: null, call_time_minutes: null, call_time_ends_at: null, call_time_choices_open: [] }]);
+    fireEvent.click(await screen.findByRole('button', { name: 'Leave seat' }, LATER));
+    const sheet = await screen.findByRole('dialog', { name: 'Leave your seat?' });
+    expect(within(sheet).queryByText(/call time/i)).toBeNull();
+    expect(within(sheet).getByRole('button', { name: 'Join leaving list' })).toBeDefined();
+  });
+
   it('Set call time: lengths that would end before the call time owed are greyed, with why, and the first open one is set', async () => {
-    // 2 h 41 min 8 s owed: an hour and two hours end before it; three and four hours are open.
-    const { asked } = renderTonight([], [{ ...SEAT, add_time_choices: [60, 120, 180, 240] }]);
+    // 2 h 41 min 8 s owed: an hour and two hours end before it, so the server opens three and four hours alone (#1076).
+    const { asked } = renderTonight([], [{ ...SEAT, add_time_choices: [60, 120, 180, 240], call_time_choices_open: [180, 240] }]);
     fireEvent.click(await screen.findByRole('button', { name: 'Set call time' }, LATER));
     const sheet = await screen.findByRole('dialog', { name: 'Set call time' });
     expect(within(sheet).getByRole('radio', { name: '1 h' })).toHaveProperty('disabled', true);
@@ -137,7 +158,8 @@ describe('Tonight', () => {
   });
 
   it('Set call time once the call time is met: every length the club types is open, and the one chosen is set (decision 0305)', async () => {
-    const { asked } = renderTonight([], [{ ...SEAT, call_time_left: 0, call_time_ends_at: null, add_time_choices: [20, 45, 50, 75, 90, 200, 300] }]);
+    const choices = [20, 45, 50, 75, 90, 200, 300];
+    const { asked } = renderTonight([], [{ ...SEAT, call_time_left: 0, call_time_ends_at: null, add_time_choices: choices, call_time_choices_open: choices }]);
     fireEvent.click(await screen.findByRole('button', { name: 'Set call time' }, LATER));
     const radios = await screen.findAllByRole('radio');
     expect(radios.map((choice) => choice.textContent)).toEqual(['20 min', '45 min', '50 min', '1 h 15 min', '1 h 30 min', '3 h 20 min', '5 h']);
@@ -146,6 +168,17 @@ describe('Tonight', () => {
     fireEvent.click(screen.getByRole('radio', { name: '3 h 20 min' }));
     fireEvent.click(within(screen.getByRole('dialog', { name: 'Set call time' })).getByRole('button', { name: 'Set call time' }));
     await vi.waitFor(() => expect(asked.filter((call) => call.startsWith('set_my_call_time')).map((call) => call.includes('"p_minutes":200'))).toEqual([true]));
+  });
+
+  it('Extend call time once set: a length is added to when it ends, and sent as the member\'s own (the owner, 18 Nov)', async () => {
+    // Set, and ending at 01:25 IST: an hour more ends at 02:25.
+    const { asked } = renderTonight([], [{ ...SEAT, call_time_set_at: '2026-11-15T17:00:00Z', call_time_choices_open: [30, 60, 120] }]);
+    fireEvent.click(await screen.findByRole('button', { name: 'Extend call time' }, LATER));
+    const sheet = await screen.findByRole('dialog', { name: 'Extend call time' });
+    expect(within(sheet).getByRole('radio', { name: '1 h' }).getAttribute('aria-checked')).toBe('true');
+    expect(within(sheet).getByText('Until 02:25')).toBeDefined();
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Extend call time' }));
+    await vi.waitFor(() => expect(asked.filter((call) => call.startsWith('set_my_call_time')).map((call) => call.includes('"p_minutes":60'))).toEqual([true]));
   });
 
   it('Order on its way: the tracker reads where the order is, from the bar\'s steps', async () => {

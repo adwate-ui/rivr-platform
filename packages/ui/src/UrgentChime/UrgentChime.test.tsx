@@ -44,6 +44,18 @@ describe('UrgentChime', () => {
     expect(played.count).toBe(1);
   });
 
+  it('chimes for a chime-only queue, and leaves it out of what a screen reader is told', () => {
+    const played = stubAudio();
+    const chimeOnly = ['callTimeSet'];
+    const { rerender } = renderIn(<UrgentChime counts={{ topUps: 0, callTimeSet: 0 }} chimeOnly={chimeOnly} />);
+    rerender(<UrgentChime counts={{ topUps: 0, callTimeSet: 1 }} chimeOnly={chimeOnly} />);
+    expect(played.count).toBe(1);
+    expect(screen.getByRole('status').textContent).toBe('');
+    rerender(<UrgentChime counts={{ topUps: 1, callTimeSet: 1 }} chimeOnly={chimeOnly} />);
+    expect(played.count).toBe(2);
+    expect(screen.getByRole('status').textContent).toBe('1 urgent waiting');
+  });
+
   it('stays silent in a browser without Web Audio, and still tells a screen reader', () => {
     vi.stubGlobal('AudioContext', undefined);
     const { rerender } = renderIn(<UrgentChime counts={{ fnb: 0 }} />);

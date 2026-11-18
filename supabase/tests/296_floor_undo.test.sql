@@ -77,13 +77,11 @@ select public.end_seat((select ishaan from sess), 'left');
 select throws_ok($$ select public.undo_leave((select ishaan from sess)) $$, '22023', null, 'a player let go early is not seated again');
 reset role;
 
--- Vihaan (in seat 7) asked for a top-up and an hour; he leaves, and the leave is undone: both wait again, and his lock
--- screen hears him seated. Left again, that leave is told too.
+-- Vihaan (in seat 7) asked for a top-up; he leaves, and the leave is undone: it waits again, and his lock screen hears
+-- him seated. Left again, that leave is told too.
 update public.seat_session set top_up_requested_at = pg_temp.ago(1) where id = (select vihaan from sess);
 insert into public.top_up_request (venue_id, member_id, session_id, table_id, seat, requested_at)
 select venue_id, member_id, id, table_id, seat, pg_temp.ago(1) from public.seat_session where id = (select vihaan from sess);
-insert into public.call_time_request (venue_id, member_id, session_id, minutes, idempotency_key, requested_at)
-select venue_id, member_id, id, 60, gen_random_uuid(), pg_temp.ago(1) from public.seat_session where id = (select vihaan from sess);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select public.end_seat((select vihaan from sess), 'left');
 reset role;
@@ -92,7 +90,6 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select lives_ok($$ select public.undo_leave((select vihaan from sess)) $$, 'the floor undoes Vihaan leaving');
 reset role;
 select is((select count(*)::integer from public.top_up_request where session_id = (select vihaan from sess) and closed_at is null), 1, 'his top-up waits again');
-select is((select status from public.call_time_request where session_id = (select vihaan from sess)), 'requested', 'and his hour');
 select ok(exists (select 1 from public.outbox_event where event_type = 'seat.taken' and idempotency_key like 'seat.taken:' || (select vihaan from sess) || ':%'),
   'his lock screen hears him seated again');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
@@ -124,35 +121,17 @@ select public.set_table_open((select id from public.game_table where name = 'Tab
 select throws_ok($$ select public.undo_leave((select id from arjun)) $$, '22023', null, 'a table closed since: not undone');
 reset role;
 
--- undo_call_time: Yash (214, in Mihir's seat) asks for an hour, approved and taken back: the request waits again and the
--- call time is 180.
+-- undo_call_time: the floor's Add call time to Yash (214, in Mihir's seat), two hours fifty in, taken back. Members no
+-- longer ask (#1076): every change is an addition, or the member's own set, which the floor does not undo.
 create temp table yash on commit drop as select (pg_temp.seated('00000000-0000-4000-8000-000000000214')).id as id;
 grant select on yash to authenticated;
-insert into public.call_time_request (venue_id, member_id, session_id, minutes, idempotency_key, requested_at)
-select venue_id, member_id, id, 60, '29600000-0000-4000-8000-000000000002', pg_temp.ago(1) from public.seat_session where id = (select id from yash);
-create temp table asked on commit drop as select id from public.call_time_request where idempotency_key = '29600000-0000-4000-8000-000000000002';
-grant select on asked to authenticated;
-select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
-select public.decide_call_time_request((select id from asked), true);
-reset role;
-select is((select call_time_minutes from public.seat_session where id = (select id from yash)), 240, 'an hour approved: four hours');
-select is((select minutes_before from public.call_time_request where id = (select id from asked)), 180, 'the call time before is kept');
-select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
-select lives_ok($$ select public.undo_call_time((select id from asked)) $$, 'the host undoes the approval');
-reset role;
-select is((select call_time_minutes from public.seat_session where id = (select id from yash)), 180, 'three hours again');
-select is((select row(status, decided_at, minutes_before)::text from public.call_time_request where id = (select id from asked)), '(requested,,)',
-  'the request waits again');
--- Declined and taken back: it waits again too.
-select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select public.decide_call_time_request((select id from asked), false);
-select lives_ok($$ select public.undo_call_time((select id from asked)) $$, 'a decline undone');
-reset role;
-select is((select status from public.call_time_request where id = (select id from asked)), 'requested', 'it waits again');
--- An addition by the floor: a host may not undo it; the manager's undo marks it undone, never asked for.
+update public.seat_session set started_at = pg_temp.ago(170), seated_here_at = pg_temp.ago(170) where id = (select id from yash);
+-- A host may not undo an addition; the manager's undo marks it undone, never asked for.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select public.add_seat_call_time((select id from yash), 30, '29600000-0000-4000-8000-000000000003');
 reset role;
+select is((select row(call_time_minutes, call_time_set_at is not null)::text from public.seat_session where id = (select id from yash)), '(200,t)',
+  'thirty minutes added two hours fifty in: three hours twenty, and set');
 create temp table added on commit drop as select id from public.call_time_request where idempotency_key = '29600000-0000-4000-8000-000000000003';
 grant select on added to authenticated;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000108');
@@ -160,19 +139,22 @@ select throws_ok($$ select public.undo_call_time((select id from added)) $$, '42
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select lives_ok($$ select public.undo_call_time('29600000-0000-4000-8000-000000000003') $$, 'the manager undoes the addition by its request id');
 reset role;
-select is((select row(status, call_time_minutes)::text from public.call_time_request r join public.seat_session s on s.id = r.session_id
-           where r.id = (select id from added)), '(undone,180)', 'undone, and three hours again');
+select is((select row(status, call_time_minutes, call_time_set_at is null)::text from public.call_time_request r join public.seat_session s on s.id = r.session_id
+           where r.id = (select id from added)), '(undone,180,t)', 'undone: three hours again, and no call time set');
 -- Not the latest decision of the seat, or of three minutes ago: stays.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select public.decide_call_time_request((select id from asked), true);
+select public.add_seat_call_time((select id from yash), 30, '29600000-0000-4000-8000-000000000004');
 reset role;
+create temp table asked on commit drop as select id from public.call_time_request where idempotency_key = '29600000-0000-4000-8000-000000000004';
+grant select on asked to authenticated;
 -- A second earlier, as it would be: in this test everything happens at the same moment.
-update public.call_time_request set decided_at = decided_at - interval '1 second' where id = (select id from asked);
+update public.call_time_request set decided_at = decided_at - interval '1 second', requested_at = requested_at - interval '1 second'
+where id = (select id from asked);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select public.add_seat_call_time((select id from yash), 30, gen_random_uuid());
-select throws_ok($$ select public.undo_call_time((select id from asked)) $$, '22023', null, 'a later addition: the approval stays');
+select throws_ok($$ select public.undo_call_time((select id from asked)) $$, '22023', null, 'a later addition: the first stays');
 reset role;
-update public.call_time_request set requested_at = pg_temp.ago(4), decided_at = pg_temp.ago(3) where id = (select id from asked);
+update public.call_time_request set requested_at = pg_temp.ago(3), decided_at = pg_temp.ago(3) where id = (select id from asked);
 delete from public.call_time_request where session_id = (select id from yash) and id <> (select id from asked);
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select throws_ok($$ select public.undo_call_time((select id from asked)) $$, '22023', null, 'three minutes ago: stays');
@@ -238,18 +220,19 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select throws_ok($$ select public.undo_top_up((select id from topup)) $$, 'RVFRZ', null, 'a frozen venue undoes nothing');
 reset role;
 
--- The practice venue: an approval undone there tells the member's devices, and no consumer ever takes it.
+-- The practice venue: an addition undone there tells the member's devices, and no consumer ever takes it.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 create temp table practice on commit drop as select pg_temp.seat(20, 2, '00000000-0000-4000-8000-000000000002') as id;
 reset role;
 grant select on practice to authenticated;
-insert into public.call_time_request (venue_id, member_id, session_id, minutes, idempotency_key, requested_at)
-select venue_id, member_id, id, 60, '29600000-0000-4000-8000-000000000004', pg_temp.ago(1) from public.seat_session where id = (select id from practice);
-create temp table practice_ask on commit drop as select id from public.call_time_request where idempotency_key = '29600000-0000-4000-8000-000000000004';
+update public.seat_session set started_at = pg_temp.ago(170), seated_here_at = pg_temp.ago(170) where id = (select id from practice);
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select public.add_seat_call_time((select id from practice), 30, '29600000-0000-4000-8000-000000000006');
+reset role;
+create temp table practice_ask on commit drop as select id from public.call_time_request where idempotency_key = '29600000-0000-4000-8000-000000000006';
 grant select on practice_ask to authenticated;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select public.decide_call_time_request((select id from practice_ask), true);
-select lives_ok($$ select public.undo_call_time((select id from practice_ask)) $$, 'the practice floor undoes an approval');
+select lives_ok($$ select public.undo_call_time((select id from practice_ask)) $$, 'the practice floor undoes an addition');
 reset role;
 select is((select call_time_minutes from public.seat_session where id = (select id from practice)), 180, 'its call time is back');
 select is_empty($$ select * from public.claim_outbox_deliveries('push', array['call_time.updated'], false, 500)

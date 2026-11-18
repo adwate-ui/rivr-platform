@@ -14,12 +14,16 @@ export const floor = {
     decline: 'Decline the request in focus, or the oldest',
   },
   noneNeedsYou: 'No table needs you.',
-  /** A seat's row: its call time left, met, or none; or what its player asks for, in gold. */
+  /**
+   * A seat's row: its call time left, when they leave once set (#1076), Not set once the countdown is done with none set
+   * (still owed), met, or none; or what its player asks for, in gold.
+   */
   met: 'Call time done',
   noCallTime: 'No call time',
+  leaves: 'Leaves {time}',
+  notSet: 'Call time not set',
   flagTopUp: 'Top-up',
   flagToppingUp: 'Topping up',
-  flagTime: '+{time}?',
   flagLeaving: 'Leaving',
   requests: {
     title: 'Requests',
@@ -29,15 +33,16 @@ export const floor = {
     join: 'Join request',
     topUp: 'Top-up',
     topUpStarted: 'Top-up in progress',
-    time: 'Wants +{time}',
     leaving: 'Leaving',
     leftOwing: 'Left before call time',
     joinDetail: '{table} waitlist',
     seatDetail: '{table}, seat {seat}',
-    timeDetail: '{table}, seat {seat} · {time} left',
     leavingDetail: '{table}, seat {seat} · {time} call time left',
     leavingMet: '{table}, seat {seat} · call time done',
+    /** Owed with no call time set (#1076): the countdown is done, but none was set. */
+    leavingNotSet: '{table}, seat {seat} · call time not set',
     owedDetail: '{table} · {time} call time owed',
+    owedNotSet: '{table} · call time not set',
     /** An approved player not yet seated (the owner, 8 Nov): ready, their identity check first, or their table full. */
     toSeat: 'To seat',
     checkFirst: 'ID check, then seat',
@@ -68,12 +73,17 @@ export const floor = {
     left: '{time} left',
     met: 'Call time done',
     none: 'No call time',
-    asksTime: 'Wants +{time}',
+    /** Owed with no call time set (#1076); once set, when they leave. */
+    notSet: 'Call time not set',
+    leaves: 'Set · leaves {time}',
     asksTopUp: 'Asked for a top-up',
     toppingUp: 'Top-up in progress',
     asksLeaving: 'Said they are leaving',
-    addTime: 'Add time',
+    /** Add call time (#1076): sets the call time by the member's own rule, or extends it once set. */
+    addTime: 'Add call time',
     addTimeChoice: '+{time}',
+    /** Under lengths closed until a call time is set, as the member's own sheet says: `Can't end before 23:40.` */
+    addTimeNotBefore: "Can't end before {time}.",
     move: 'Move to another seat',
     moveTable: 'Table',
     moveSeat: 'Seat',
@@ -139,6 +149,8 @@ export const floor = {
     title: '{name} leaves',
     subtitle: '{name} · {where}',
     owes: '{name}: {time} call time owed.',
+    /** Owed with no call time set (#1076). */
+    notSet: '{name} has not set a call time.',
     free: 'No call time owed.',
     /** Asked on every leave (#1060): one of common.leaveReasons. */
     reason: 'Why they leave',
@@ -200,8 +212,13 @@ export const floor = {
     /** The seat change went through; the check-out was refused (the venue frozen, say). */
     notCheckedOut: '{name} not checked out. Check them out at the door.',
     timeAdded: '{name}: call time +{time}',
-    timeApproved: '{name}: +{time} approved',
-    timeDeclined: '{name}: time request declined',
+    /** A member set or extended their call time from the app (#1076): the floor is told, with when they leave. */
+    callTimeSet: '{name} set call time · leaves {time}',
+    callTimeSetAway: '{name} set call time',
+    callTimeExtended: '{name} extended call time · leaves {time}',
+    callTimeExtendedAway: '{name} extended call time',
+    /** More than one member in the same read: `Kabir Sethi, Naina Kapoor set or extended call time`. */
+    callTimeMany: '{names} set or extended call time',
     topUpStarted: 'Top-up started for {name}',
     topUpDone: 'Top-up done for {name}',
     staying: '{name} is staying',

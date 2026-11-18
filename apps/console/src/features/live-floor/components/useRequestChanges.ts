@@ -1,13 +1,12 @@
 import {
-  useApproveWaitlistRequest, useDecideCallTime, useFloorActions, useFloorUndo, useSeatActions, useSetTopUp,
+  useApproveWaitlistRequest, useFloorActions, useFloorUndo, useSeatActions, useSetTopUp,
   type FloorRequest,
 } from '@rivr/db';
-import { formatDuration, t } from '@rivr/i18n';
+import { t } from '@rivr/i18n';
 import { useChangeToast } from './useChangeToast.ts';
 
 type Join = Extract<FloorRequest, { kind: 'join' }>;
 type TopUp = Extract<FloorRequest, { kind: 'top_up' }>;
-type Time = Extract<FloorRequest, { kind: 'time' }>;
 
 /**
  * A join approved (true when it went through) or declined (#633), each undone by the database's own undo (decision 0480);
@@ -29,24 +28,16 @@ function useJoinChanges(venueId: string) {
   };
 }
 
-/** A top-up started or done (decision 0299), more time approved or declined (decision 0305), each with its undo. */
+/** A top-up started or done (decision 0299), with its undo. */
 function useSeatRequestChanges(venueId: string) {
   const say = useChangeToast();
   const undo = useFloorUndo(venueId);
   const setTopUp = useSetTopUp(venueId);
-  const decide = useDecideCallTime(venueId);
   return {
     stepTopUp: async (topUp: TopUp) => {
       const outcome = await setTopUp.mutateAsync({ sessionId: topUp.sessionId, inProgress: !topUp.isStarted });
       const text = t(topUp.isStarted ? 'console.floor.toast.topUpDone' : 'console.floor.toast.topUpStarted', { name: topUp.fullName });
       say(outcome, text, () => undo.mutateAsync({ kind: 'topUp', requestId: topUp.id }));
-    },
-    decideTime: async (time: Time, isApproved: boolean) => {
-      const outcome = await decide.mutateAsync({ requestId: time.id, isApproved });
-      const text = isApproved
-        ? t('console.floor.toast.timeApproved', { name: time.fullName, time: formatDuration(time.minutes * 60) })
-        : t('console.floor.toast.timeDeclined', { name: time.fullName });
-      say(outcome, text, () => undo.mutateAsync({ kind: 'callTime', requestId: time.id }));
     },
   };
 }

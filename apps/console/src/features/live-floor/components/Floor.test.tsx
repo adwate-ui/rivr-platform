@@ -19,13 +19,15 @@ const TABLES = [
   tableRow('t1', 'Table 1', { type: 'tt1' }), tableRow('t2', 'Table 2'), tableRow('t4', 'Table 4', { is_open: false }), tableRow('t6', 'Private Room', { room: 'private' }),
 ];
 const SEATS = [
-  seatRow({ session: 's1', table: 't1', seat: 2, name: 'Vidya Chadha', top_up: 'requested' }), seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', time: { id: 'r1', minutes: 60 } }),
+  seatRow({ session: 's1', table: 't1', seat: 2, name: 'Vidya Chadha', top_up: 'requested' }),
+  // Kabir set his call time, which ends at 23:40 IST (#1076); Tara's countdown is done with none set, so she still owes it.
+  seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', set_at: '2026-11-15T15:00:00Z', ends_at: '2026-11-15T18:10:00Z', left: 6000 }),
+  seatRow({ session: 's5', table: 't1', seat: 7, name: 'Tara Menon', left: 0, owes: true }),
   seatRow({ session: 's3', table: 't2', seat: 1, name: 'Naina Kapoor', left: 0 }), seatRow({ session: 's4', table: 't2', seat: 3, name: 'Rohan Bhatia', leaving: true, left: 1800 }),
 ];
 const REQUESTS = [
   requestRow({ kind: 'join', id: 'e1', name: 'Ritika Bhalla', minutes: 6, table_id: 't2' }),
   requestRow({ kind: 'top_up', id: 'u1', name: 'Vidya Chadha', minutes: 4, session_id: 's1', table_id: 't1', seat: 2, call_time_left: 7200 }),
-  requestRow({ kind: 'time', id: 'r1', name: 'Kabir Sethi', minutes: 3, session_id: 's2', table_id: 't1', seat: 5, asked: 60, call_time_left: 7200 }),
   requestRow({ kind: 'leaving', id: 's4', name: 'Rohan Bhatia', minutes: 2, session_id: 's4', table_id: 't2', seat: 3, call_time_left: 1800 }),
 ];
 const FLOOR: FloorApi = { tables: TABLES, seats: SEATS, requests: REQUESTS, lengths: [{ table_id: 't2', waiting: 2, call_time_minutes: 180 }] };
@@ -67,7 +69,8 @@ describe('Live floor tiles (console v3)', () => {
     expect(screen.queryByRole('button', { name: 'Seat 2, Vidya Chadha, Top-up' })).toBeNull();
     fireEvent.click(screen.getByRole('radio', { name: 'Seats' }));
     expect(screen.getByRole('button', { name: 'Seat 2, Vidya Chadha, Top-up' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Seat 5, Kabir Sethi, +1 h?' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Seat 5, Kabir Sethi, Leaves 23:40' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Seat 7, Tara Menon, Call time not set' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Seat 1, Naina Kapoor, Call time done' })).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Needs you' }));
     expect(screen.queryByRole('group', { name: 'Private Room NLH 100/200' })).toBeNull();
@@ -95,20 +98,16 @@ describe('The requests panel (console v3)', () => {
     expect(await screen.findByRole('button', { name: 'Collapse' })).toBeDefined();
   });
 
-  it('lists requests by when each is due, the oldest among equals, each late past its target in words as well as colour (audit F-108)', async () => {
+  it('lists requests oldest first, each late past its target in words as well as colour (audit F-108)', async () => {
     await renderFloor();
     const panel = requests();
     const names = within(panel).getAllByRole('button').map((button) => button.textContent);
-    // Kabir's ask for more time is not due for two hours, so those who need the floor now come first.
-    expect(names.filter((name) => ['Ritika Bhalla', 'Vidya Chadha', 'Kabir Sethi', 'Rohan Bhatia'].includes(name ?? ''))).toEqual(
-      ['Ritika Bhalla', 'Vidya Chadha', 'Rohan Bhatia', 'Kabir Sethi']);
+    expect(names.filter((name) => ['Ritika Bhalla', 'Vidya Chadha', 'Rohan Bhatia'].includes(name ?? ''))).toEqual(['Ritika Bhalla', 'Vidya Chadha', 'Rohan Bhatia']);
     expect(within(panel).getByText('Join request')).toBeDefined();
     expect(within(panel).getByText('Table 2 waitlist')).toBeDefined();
-    expect(within(panel).getByText('Wants +1 h')).toBeDefined();
-    // A join six minutes old and a top-up four minutes old are past their targets; more time three minutes old is not.
+    // A join six minutes old and a top-up four minutes old are past their targets.
     expect(within(panel).getByText('Late · 6 min').className).toContain('text-danger');
     expect(within(panel).getByText('Late · 4 min').className).toContain('text-danger');
-    expect(within(panel).getByText('3 min').className).not.toContain('text-danger');
   });
 
   it('approves a join with a toast whose Undo calls the database\'s undo', async () => {
@@ -121,16 +120,13 @@ describe('The requests panel (console v3)', () => {
     expect(rpcs('undo_waitlist_decision')).toEqual([{ p_entry_id: 'e1' }]);
   });
 
-  it('starts a top-up and declines more time, each undone by its own compensating call', async () => {
+  it('starts a top-up, undone by its own compensating call', async () => {
     const { rpcs } = await renderFloor();
     fireEvent.click(within(requests()).getByRole('button', { name: 'Start' }));
     await screen.findByText('Top-up started for Vidya Chadha');
     expect(rpcs('set_top_up')).toEqual([{ p_session_id: 's1', p_in_progress: true }]);
     fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
     await waitFor(() => expect(rpcs('undo_top_up')).toEqual([{ p_request_id: 'u1' }]));
-    fireEvent.click(first(within(requests()).getAllByRole('button', { name: 'Decline' }).slice(1)));
-    await screen.findByText('Kabir Sethi: time request declined');
-    expect(rpcs('decide_call_time_request')).toEqual([{ p_request_id: 'r1', p_is_approved: false }]);
   });
 
   it('says when Undo comes too late', async () => {
@@ -142,15 +138,6 @@ describe('The requests panel (console v3)', () => {
     expect(await screen.findByText('Not undone. It changed since.')).toBeDefined();
   });
 
-  it('puts the ask for more time that runs out first ahead of the one that runs out later, however old (audit F-108)', async () => {
-    await renderFloor({ ...FLOOR, requests: [
-      requestRow({ kind: 'time', id: 'r2', name: 'Asked first', minutes: 20, session_id: 's2', table_id: 't1', seat: 5, asked: 60, call_time_left: 7200 }),
-      requestRow({ kind: 'time', id: 'r3', name: 'Runs out soon', minutes: 1, session_id: 's1', table_id: 't1', seat: 2, asked: 60, call_time_left: 300 }),
-    ] });
-    const names = within(requests()).getAllByRole('button').map((button) => button.textContent);
-    expect(names.filter((name) => name === 'Asked first' || name === 'Runs out soon')).toEqual(['Runs out soon', 'Asked first']);
-  });
-
   it('folds to a strip with its count, and opens again', async () => {
     // A wait for a seat folds into one line and is not counted; an ID check is a row the floor can act on, and is.
     const quiet = [
@@ -159,7 +146,7 @@ describe('The requests panel (console v3)', () => {
     ];
     await renderFloor({ ...FLOOR, requests: [...quiet, ...REQUESTS] });
     fireEvent.click(within(requests()).getByRole('button', { name: 'Collapse' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'Open, 5 waiting' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Open, 4 waiting' }));
     expect(within(requests()).getByText('Ritika Bhalla')).toBeDefined();
   });
 });

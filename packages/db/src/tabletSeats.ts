@@ -16,6 +16,8 @@ export interface TabletPlayer {
   readonly isLeaving: boolean;
   /** Whole seconds of call time left (#78); null where the table's type has none. */
   readonly callTimeLeft: number | null;
+  /** Whether they owe their call time (#1076): until a call time is set and has run out, even at nought. */
+  readonly owesCallTime: boolean;
 }
 
 /** A seat at the tablet's table (#59): who sits there (null when open), and the table's minimum buy-in and blinds. */
@@ -54,7 +56,7 @@ export function useTabletSeats() {
         straddle: row.straddle_paise === null ? null : toPaise(row.straddle_paise),
         player: row.session_id === null || row.full_name === null ? null : {
           sessionId: row.session_id, fullName: row.full_name, isAway: row.away_since !== null, isLeaving: row.leaving_at !== null,
-          callTimeLeft: row.call_time_left,
+          callTimeLeft: row.call_time_left, owesCallTime: row.owes_call_time === true,
         },
       }));
     },

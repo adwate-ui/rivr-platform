@@ -38,7 +38,7 @@ function seatAlertActions(alert: SeatAlert, { onSeatAlert, canCheckId = true }: 
 }
 
 /**
- * A request's one filled action and the one in words (console v3): Approve and Decline a join or more time, Start or Done
+ * A request's one filled action and the one in words (console v3): Approve and Decline a join, Start or Done
  * a top-up, Leave or Not leaving, Record one who left owing, Seat an approved player. The panel's buttons and the keys `A`
  * and `D` both use these.
  */
@@ -53,10 +53,6 @@ export function requestActions(request: FloorRequest, actionsFor: RequestActions
       secondary: { label: t('console.floor.requests.decline'), run: () => changes.declineJoin(request) },
     };
     case 'top_up': return { primary: { label: t(request.isStarted ? 'console.floor.requests.done' : 'console.floor.requests.start'), run: () => changes.stepTopUp(request) } };
-    case 'time': return {
-      primary: { label: t('console.floor.requests.approve'), run: () => changes.decideTime(request, true) },
-      secondary: { label: t('console.floor.requests.decline'), run: () => changes.decideTime(request, false) },
-    };
     case 'leaving': return {
       primary: { label: t('console.floor.requests.leave'), run: () => onLeave(request) },
       secondary: { label: t('console.floor.requests.notLeaving'), run: () => changes.notLeaving(request) },

@@ -14,7 +14,7 @@ afterEach(() => {
 const SEAT: MySeat = {
   tableName: 'Table 1', seat: 4, isAway: false, hasCallTime: true, callTimeLeft: 9668, playedSeconds: 1140, isLeaving: false, topUp: null,
   callTimeMinutes: 180, startedAt: '2026-11-15T16:55:30Z', callTimeEndsAt: null, tableTypeName: 'NLH 50/100', game: 'nlh', smallBlind: 5000n, bigBlind: 10000n, straddle: null,
-  timeRequestMinutes: 60, addTimeChoices: [30, 60, 120], callTimeSetAt: null,
+  addTimeChoices: [30, 60, 120], callTimeChoicesOpen: [120], callTimeSetAt: null,
 };
 
 function Seat({ seat }: { seat: MySeat }) {
@@ -57,17 +57,28 @@ describe('Tonight › Seat actions', () => {
   });
 });
 
-describe('Tonight › Time requested', () => {
-  it('says how much the floor added once it approves: the request goes and the call time grows', () => {
-    const { rerender } = render(<Seat seat={SEAT} />);
-    expect(screen.queryByText('1 h added')).toBeNull();
-    rerender(<Seat seat={{ ...SEAT, timeRequestMinutes: null, callTimeMinutes: 240, callTimeLeft: 13268 }} />);
-    expect(screen.getByText('1 h added')).toBeDefined();
+describe('Tonight › Set or Extend call time (the owner, 18 Nov)', () => {
+  /** A signed-in member whose tier has every seat action. */
+  function withEveryAction() {
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
+      access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
+      user: { id: '00000000-0000-4000-8000-000000000231', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
+    }));
+    const features = ['table.top_up', 'call_time.view', 'table.leave'].map((feature_key) => ({ feature_key, state: 'enabled', tiers: null }));
+    vi.stubGlobal('fetch', async () => Response.json(features));
+  }
+
+  it('offers Set call time only once a length would end after the call time the seat started with', async () => {
+    withEveryAction();
+    render(<Seat seat={{ ...SEAT, callTimeChoicesOpen: [] }} />);
+    await screen.findByRole('button', { name: 'Leave seat' }, { timeout: 5000 });
+    expect(screen.queryByRole('button', { name: 'Set call time' })).toBeNull();
   });
 
-  it('says nothing when the floor declines: the request goes and the call time stays', () => {
-    const { rerender } = render(<Seat seat={SEAT} />);
-    rerender(<Seat seat={{ ...SEAT, timeRequestMinutes: null }} />);
-    expect(screen.queryByText(/added$/)).toBeNull();
+  it('offers Extend call time once one is set', async () => {
+    withEveryAction();
+    render(<Seat seat={{ ...SEAT, callTimeSetAt: '2026-11-15T17:00:00Z', callTimeChoicesOpen: [30, 60, 120] }} />);
+    expect(await screen.findByRole('button', { name: 'Extend call time' }, { timeout: 5000 })).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Set call time' })).toBeNull();
   });
 });

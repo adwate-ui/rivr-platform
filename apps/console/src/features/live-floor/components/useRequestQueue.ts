@@ -14,12 +14,9 @@ export const actionable = (requests: readonly FloorRequest[]) => requests.filter
 /** The rows the panel lists, those waiting for a seat being folded into one line: what its count counts (audit F-032). */
 export const listedRows = (requests: readonly FloorRequest[]) => requests.filter((request) => request.kind !== 'seat_wait');
 
-/** When a request is due, in seconds from now (audit F-108): an ask for more time when the call time runs out, the rest now. */
-const dueIn = (request: FloorRequest) => (request.kind === 'time' && request.callTimeLeft !== null ? Math.max(0, request.callTimeLeft) : 0);
-
-/** The soonest due first, the oldest among equals, and those with nothing to do yet last. */
+/** The oldest first, and those with nothing to do yet last. */
 function byDue(requests: readonly FloorRequest[]): FloorRequest[] {
-  return [...requests].sort((a, b) => Number(isQuiet(requestKey(a))) - Number(isQuiet(requestKey(b))) || dueIn(a) - dueIn(b) || a.since.localeCompare(b.since));
+  return [...requests].sort((a, b) => Number(isQuiet(requestKey(a))) - Number(isQuiet(requestKey(b))) || a.since.localeCompare(b.since));
 }
 
 /**

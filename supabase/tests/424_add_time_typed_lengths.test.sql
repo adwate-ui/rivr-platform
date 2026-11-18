@@ -1,5 +1,5 @@
 -- More call time in lengths the club types (redesign RD-19): the setting takes whole minutes from 1 to 1,440, up to twelve;
--- a member asks for any length offered and the floor adds one, however odd. Ishaan (211) sits at Table 5 with three hours;
+-- a member sets any length offered and the floor adds one, however odd, by the one rule (#1076). Ishaan (211) sits at Table 5 with three hours;
 -- 103 is a floor manager (admin). The rule itself is proved on the golden file (024); the choices from before, kept as text,
 -- in 277.
 begin;
@@ -49,20 +49,19 @@ select is(public.add_time_choices('00000000-0000-4000-8000-000000000001'), array
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select is((select add_time_choices from public.my_seat()), array[50, 200], 'and so is the seat');
 
--- A member asks for a length offered, which was no preset; one not offered is refused as before.
-select throws_ok($$ select public.request_call_time(60, gen_random_uuid()) $$, '22023', null, 'an hour is not offered');
-create temp table asked on commit drop as select public.request_call_time(50, gen_random_uuid()) as id;
-grant select on asked to authenticated;
-select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select lives_ok($$ select public.decide_call_time_request((select id from asked), true) $$, 'the floor approves 50 minutes');
+-- The member sets a length offered, which was no preset; one not offered is refused as before, and one ending before the
+-- three hours too.
+select throws_ok($$ select public.set_my_call_time(60, gen_random_uuid()) $$, 'RVCTC', null, 'an hour is not offered');
+select throws_ok($$ select public.set_my_call_time(50, gen_random_uuid()) $$, 'RVCTE', null, '50 minutes from now end before the three hours');
+select is(public.set_my_call_time(200, gen_random_uuid()), 200, 'he sets 3 hours 20 from now');
 reset role;
-select is((pg_temp.session()).call_time_minutes, 230, 'three hours and 50 minutes');
+select is((pg_temp.session()).call_time_minutes, 200, 'three hours and 20 minutes');
 
--- The floor adds the other length itself.
+-- The floor adds the other length itself, extending it.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select lives_ok($$ select public.add_seat_call_time((select id from sess), 200, gen_random_uuid()) $$, 'a floor manager adds 3 hours 20');
+select lives_ok($$ select public.add_seat_call_time((select id from sess), 50, gen_random_uuid()) $$, 'a floor manager adds 50 minutes');
 reset role;
-select is((pg_temp.session()).call_time_minutes, 430, '7 hours 10 in all');
+select is((pg_temp.session()).call_time_minutes, 250, '4 hours 10 in all');
 select is((select array_agg(minutes order by minutes) from public.call_time_request where session_id = (select id from sess)), array[50, 200], 'each request keeps its length');
 
 -- A request holds a length, never nought or more than a day.

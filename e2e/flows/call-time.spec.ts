@@ -2,9 +2,9 @@
  * Call time (#78, #79; features "Call time"; additions flow 13; console v3, phase 2). Harish Kumar, this flow's own
  * floor manager (Auth sends one code a minute to a number), seats Ritika Das in the Private Room with an hour and a half
  * of call time: her seat's row shows it, and Ritika's Tonight says where she sits, the game, how long she has played and
- * when she sat down, with no countdown (the owner, 17 Nov). From her seat she sets her call time (#1059): lengths that
- * would end before the hour and a half are greyed, and two hours from now are owed at once, on her screen and the floor's
- * row. She asks for a top-up, which he starts and marks done in the requests beside the floor (decision 0479). He finds her playing on
+ * when she sat down, with no countdown (the owner, 17 Nov). From her seat she sets her call time (#1059, #1076): lengths
+ * that would end before the hour and a half are greyed, and two hours from now are owed at once, on her screen and the
+ * floor's row, which says when she leaves; the floor is told, and her button now extends it. She asks for a top-up, which he starts and marks done in the requests beside the floor (decision 0479). He finds her playing on
  * Today's players (#641); she leaves her seat and, with call time owed, is a Leaving request. Then flow 13: she leaves
  * before her call time, so Harish, an admin, lets her go early with a reason, which frees the seat for the next run. The
  * clock across moves, away time, the completed event and the shortfall are proved in supabase/tests/051_call_time.test.sql,
@@ -56,8 +56,11 @@ test.describe('Call time', () => {
     await expect(setting.getByText(/^Can't end before \d\d:\d\d\.$/)).toBeVisible();
     await setting.getByRole('button', { name: 'Set call time' }).click();
     await expect(player.getByText(/^Call time until \d\d:\d\d$/).first()).toBeVisible();
+    await expect(player.getByRole('button', { name: 'Extend call time' })).toBeVisible();
+    // The floor is told on whatever screen it is (#1076), and her row says when she leaves.
+    await expect(floor.getByText(/^Ritika Das set call time · leaves \d\d:\d\d$/)).toBeVisible({ timeout: 20_000 });
     await showSeats(floor);
-    await expect(floor.getByRole('button', { name: /^Seat 1, Ritika Das, (2 h|1 h 59 min)$/ })).toBeVisible();
+    await expect(floor.getByRole('button', { name: /^Seat 1, Ritika Das, Leaves \d\d:\d\d$/ })).toBeVisible();
 
     // A top-up the floor starts, then marks done (#634, decision 0299).
     await player.getByRole('button', { name: 'Top up' }).click();

@@ -1,44 +1,39 @@
 import { useFeature, useFnbOff, type MySeat, type WaitlistPlace } from '@rivr/db';
-import { formatDuration, t } from '@rivr/i18n';
-import { Box, Button, DetailRow, FeatureGate, Grid, LockedNotice, RoundAction, Stack, useToast } from '@rivr/ui';
+import { t } from '@rivr/i18n';
+import { Box, Button, DetailRow, FeatureGate, Grid, LockedNotice, RoundAction, Stack } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
-import { useEffect, useRef } from 'react';
 import type { SeatSheet } from './SeatSheets.tsx';
 import { lineOf, stakeOf } from './waitlistCopy.ts';
 
-/** When the floor approves more call time, a toast says how much was added (the request goes, the minutes grow). */
-function useTimeAdded(seat: MySeat) {
-  const toast = useToast();
-  const last = useRef({ asked: seat.timeRequestMinutes, minutes: seat.callTimeMinutes });
-  useEffect(() => {
-    const { asked, minutes } = last.current;
-    last.current = { asked: seat.timeRequestMinutes, minutes: seat.callTimeMinutes };
-    const isAdded = asked !== null && seat.timeRequestMinutes === null && (seat.callTimeMinutes ?? 0) > (minutes ?? 0);
-    if (isAdded) toast(t('player.live.seat.timeAdded', { choice: formatDuration(asked * 60) }));
-  }, [seat.timeRequestMinutes, seat.callTimeMinutes, toast]);
-}
+/**
+ * Whether the seat offers its call time action (#1076, the owner, 18 Nov): Set call time once a length the club offers would
+ * end after the call time the seat started with; Extend call time once one is set. A seat with no call time has neither.
+ */
+const callTimeAction = (seat: MySeat): 'set' | 'extend' | null => {
+  if (!seat.hasCallTime || seat.callTimeChoicesOpen.length === 0) return null;
+  return seat.callTimeSetAt === null ? 'set' : 'extend';
+};
 
 /**
- * The seat's three round actions (brief 3.4 E): Top up (table.top_up), dimmed while it waits on the floor; Set call time
- * (with call time, call_time.view, #1059); and Leave seat (table.leave), never dimmed (the owner, 17 Nov: no leave option
- * is greyed out). A tier's locked top-up says which tiers have it.
+ * The seat's three round actions (brief 3.4 E): Top up (table.top_up), dimmed while it waits on the floor; Set call time,
+ * then Extend call time (call_time.view, #1059, #1076); and Leave seat (table.leave), never dimmed (the owner, 17 Nov: no
+ * leave option is greyed out). A tier's locked top-up says which tiers have it.
  */
 export function SeatActions({ seat, onOpen }: { seat: MySeat; onOpen: (sheet: SeatSheet) => void }) {
   const topUp = useFeature('table.top_up');
   const callTime = useFeature('call_time.view');
   const leaving = useFeature('table.leave');
-  useTimeAdded(seat);
+  const action = callTime.state === 'enabled' ? callTimeAction(seat) : null;
   // A column for each action shown, so two sit evenly rather than in the left two thirds (F-203).
-  const shown = [topUp.state === 'enabled', seat.hasCallTime && callTime.state === 'enabled', leaving.state !== 'hidden'].filter(Boolean).length;
+  const shown = [topUp.state === 'enabled', action !== null, leaving.state !== 'hidden'].filter(Boolean).length;
   return (
     <Box paddingX={5} paddingY={5}>
       <Stack gap={3}>
         <Grid columns={shown === 1 ? 1 : shown === 2 ? 2 : 3} gap={2}>
           {topUp.state === 'enabled' ? <RoundAction icon="topUp" label={t('player.live.seat.topUp')} isPending={seat.topUp !== null} onPress={() => onOpen('topUp')} /> : null}
-          {/* Met or not, the member sets one from now (#1059); a seat with no call time sets none. */}
-          {seat.hasCallTime && callTime.state === 'enabled' ? (
-            <RoundAction icon="addTime" label={t('player.live.seat.setCallTime')} onPress={() => onOpen('addTime')} />
-          ) : null}
+          {action === null ? null : (
+            <RoundAction icon="addTime" label={t(action === 'set' ? 'player.live.seat.setCallTime' : 'player.live.seat.extendCallTime')} onPress={() => onOpen('addTime')} />
+          )}
           <FeatureGate access={leaving}>
             <RoundAction icon="leave" label={t('player.live.seat.leave')} onPress={() => onOpen('leave')} />
           </FeatureGate>
@@ -65,20 +60,16 @@ export function OrderToSeat() {
 }
 
 /**
- * The seat's open requests, hairline-ruled: the top-up, more time asked for, the Leaving list, and a place on another list
- * to change tables, with where the member stands on it (#781).
+ * The seat's open requests, hairline-ruled: the top-up, the Leaving list, and a place on another list to change tables,
+ * with where the member stands on it (#781).
  */
 export function SeatStatus({ seat, places }: { seat: MySeat; places: readonly WaitlistPlace[] }) {
-  const asked = seat.timeRequestMinutes;
   return (
     <Box paddingX={5} paddingY={4}>
       {seat.topUp === null ? null : (
         <DetailRow size="small" hasDot label={t('player.live.seat.statusTopUp')} valueTone="accent"
           value={t(seat.topUp === 'requested' ? 'player.live.seat.requested' : 'player.live.seat.inProgress')} />
       )}
-      {asked !== null ? (
-        <DetailRow size="small" hasDot label={t('player.live.seat.statusTime', { time: formatDuration(asked * 60) })} valueTone="accent" value={t('player.live.seat.requested')} />
-      ) : null}
       {seat.isLeaving ? <DetailRow size="small" hasDot label={t('player.live.seat.statusLeaving')} valueTone="muted" value={t('player.live.seat.onTheList')} /> : null}
       {places.map((place) => (
         <DetailRow key={place.entryId} size="small" hasDot valueTone="accent" value={lineOf(place)}

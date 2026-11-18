@@ -90,6 +90,8 @@ export const playerLive = {
     topUp: 'Top up',
     /** The member sets their call time from now, a length the club offers, with no floor approval (#1059). */
     setCallTime: 'Set call time',
+    /** Once set, a length extends it (#1076). */
+    extendCallTime: 'Extend call time',
     leave: 'Leave seat',
     requestTopUp: 'Request top-up',
     cancel: 'Cancel',
@@ -97,13 +99,14 @@ export const playerLive = {
     callTimeEnds: 'Until {time}',
     /** Under lengths greyed out because they end before the call time owed: `Can't end before 23:40.` */
     callTimeNotBefore: "Can't end before {time}.",
-    /** Set: the seat then says until when. */
+    /** Set or extended: the seat then says until when. */
     callTimeSet: 'Call time set',
-    /** Once the floor approves a request an older app sent: `1 hour added`. */
-    timeAdded: '{choice} added',
+    callTimeExtended: 'Call time extended',
     leaveTitle: 'Leave your seat?',
     /** `{time}` is `2h 41m`. */
     leaveLeft: '{time} call time left.',
+    /** Owed with no call time set, once the countdown is done (#1076). */
+    leaveNotSet: 'Call time not set.',
     joinLeaving: 'Join leaving list',
     stay: 'Stay seated',
     order: 'Order to my seat',
@@ -121,8 +124,6 @@ export const playerLive = {
     statusTopUp: 'Top-up',
     requested: 'Requested',
     inProgress: 'In progress',
-    /** A request for more call time waiting on the floor: `+1 h`, `+50 min`. */
-    statusTime: '+{time}',
     statusLeaving: 'Leaving list',
     onTheList: 'On the list',
     /** A seated member's place on another list to change tables (#781), with no table asked for: `Waitlist · NLH 100/200`. */

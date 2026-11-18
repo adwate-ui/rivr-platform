@@ -22,15 +22,22 @@ export function tableRow(id: string, name: string, extra: Partial<{ is_open: boo
   };
 }
 
-/** A seated player: their session, table and seat, name, call time left in seconds, and what they ask for. */
+/**
+ * A seated player: their session, table and seat, name, call time left in seconds, what they ask for, and their call time
+ * as #1076 has it: owed while any is left unless said otherwise, set and ending when given, the lengths Add call time may
+ * give (all of 30 min, 1 and 2 hours unless said), and the latest change, by the member or not.
+ */
 export function seatRow({ session, table, seat, name, ...extra }: {
-  session: string; table: string; seat: number; name: string; left?: number | null; top_up?: string | null;
-  time?: { id: string; minutes: number } | null; leaving?: boolean;
+  session: string; table: string; seat: number; name: string; left?: number | null; top_up?: string | null; leaving?: boolean;
+  owes?: boolean; set_at?: string | null; ends_at?: string | null; open?: number[]; change?: string | null; by_member?: boolean | null;
 }) {
+  const left = extra.left === undefined ? 7200 : extra.left;
+  const call = { set_at: null, ends_at: null, owes: left !== null && left > 0, open: [30, 60, 120], by_member: null, change: null, ...extra };
   return {
     session_id: session, table_id: table, seat, member_id: `m-${session}`, full_name: name, tier_name: 'Black card', started_at: minutesAgo(60),
-    must_move_order: null, away_since: null, call_time_left: extra.left === undefined ? 7200 : extra.left, leaving_at: extra.leaving === true ? minutesAgo(2) : null,
-    top_up: extra.top_up ?? null, time_request_id: extra.time?.id ?? null, time_request_minutes: extra.time?.minutes ?? null,
+    must_move_order: null, away_since: null, call_time_left: left, leaving_at: extra.leaving === true ? minutesAgo(2) : null,
+    top_up: extra.top_up ?? null, call_time_set_at: call.set_at, call_time_ends_at: call.ends_at, owes_call_time: call.owes,
+    call_time_choices_open: call.open, call_time_set_by_member: call.by_member, call_time_change_id: call.change,
   };
 }
 

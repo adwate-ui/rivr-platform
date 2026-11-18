@@ -23,7 +23,8 @@ export const CHECK_OUT_FAILURE_COPY: Readonly<Record<CheckOutFailure, MessageKey
   unavailable: 'console.checkIn.unavailable',
 };
 
-/** A refused check-out in words, with the call time still owed. */
+/** A refused check-out in words, with the call time still owed, or that none was set (#1076). */
 export function checkOutRefusalText(refusal: CheckOutRefusal): string {
+  if (refusal.reason === 'call_time_owed' && refusal.owedSeconds === 0) return t('console.checkIn.callTimeNotSet');
   return t(CHECK_OUT_FAILURE_COPY[refusal.reason], { time: formatDuration(refusal.owedSeconds) });
 }

@@ -19,7 +19,6 @@ function kindOf(request: FloorRequest): string {
   switch (request.kind) {
     case 'join': return t('console.floor.requests.join');
     case 'top_up': return t(request.isStarted ? 'console.floor.requests.topUpStarted' : 'console.floor.requests.topUp');
-    case 'time': return t('console.floor.requests.time', { time: formatDuration(request.minutes * 60) });
     case 'leaving': return t('console.floor.requests.leaving');
     case 'left_owing': return t('console.floor.requests.leftOwing');
     default: return t(ALERT_KIND[request.kind]);
@@ -33,11 +32,12 @@ function seatAlertDetail(alert: SeatAlert, table: string, isTableOpen: boolean):
   return t(isTableOpen ? 'console.floor.requests.fullDetail' : 'console.floor.requests.closedDetail', { table });
 }
 
-/** A player leaving: their seat, and the call time they still owe or that it is met. */
-function leavingDetail(seat: number, left: number, table: string): string {
-  return left > 0
-    ? t('console.floor.requests.leavingDetail', { table, seat, time: formatDuration(left) })
-    : t('console.floor.requests.leavingMet', { table, seat });
+/** A player leaving: their seat, and the call time they still owe, none set (#1076), or that it is met. */
+function leavingDetail(seat: number, owed: number | null, table: string): string {
+  if (owed === null) return t('console.floor.requests.leavingMet', { table, seat });
+  return owed > 0
+    ? t('console.floor.requests.leavingDetail', { table, seat, time: formatDuration(owed) })
+    : t('console.floor.requests.leavingNotSet', { table, seat });
 }
 
 /** Where: the list asked for, the seat, and the call time that matters to the ask. */
@@ -45,9 +45,10 @@ function detailOf(request: FloorRequest, table: string, isTableOpen: boolean): s
   switch (request.kind) {
     case 'join': return t('console.floor.requests.joinDetail', { table });
     case 'top_up': return t('console.floor.requests.seatDetail', { table, seat: request.seat });
-    case 'time': return t('console.floor.requests.timeDetail', { table, seat: request.seat, time: formatDuration(request.callTimeLeft ?? 0) });
-    case 'leaving': return leavingDetail(request.seat, request.callTimeLeft ?? 0, table);
-    case 'left_owing': return t('console.floor.requests.owedDetail', { table, time: formatDuration(request.owedSeconds) });
+    case 'leaving': return leavingDetail(request.seat, request.owedSeconds, table);
+    case 'left_owing': return request.owedSeconds > 0
+      ? t('console.floor.requests.owedDetail', { table, time: formatDuration(request.owedSeconds) })
+      : t('console.floor.requests.owedNotSet', { table });
     default: return seatAlertDetail(request, table, isTableOpen);
   }
 }

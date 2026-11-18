@@ -26,8 +26,18 @@ export interface SeatedPlayer {
   readonly leavingAt: string | null;
   /** Their top-up (#634): asked for, or in hand; null with none asked for. */
   readonly topUp: TopUp | null;
-  /** More call time they asked for, waiting on the floor (decision 0320): the request and its minutes; null with none. */
-  readonly timeRequest: { readonly id: string; readonly minutes: number } | null;
+  /** When a call time was first set, by the member or the floor's Add call time (#1076); null if never. */
+  readonly callTimeSetAt: string | null;
+  /** When they leave, once a call time is set: from the server, null while away (the clock stands still) or never set. */
+  readonly callTimeEndsAt: string | null;
+  /** Whether they owe their call time: one is due until a call time has been set and has run out (#1076). */
+  readonly owesCallTime: boolean;
+  /** The lengths Add call time may give now, by the member's own rule (#1076). */
+  readonly callTimeChoicesOpen: readonly number[];
+  /** Whether the member set or extended it last (the floor is told), not the floor's Add call time. */
+  readonly isCallTimeSetByMember: boolean;
+  /** The seat's latest call time change, so the floor is told of each once; null with none. */
+  readonly callTimeChangeId: string | null;
 }
 
 /** A seat held for a member called from the waitlist (#63): nobody else is seated there. */
@@ -90,7 +100,9 @@ export function useFloorSeats(venueId: string, isEnabled = true) {
         tierName: row.tier_name, startedAt: row.started_at, mustMoveOrder: row.must_move_order, isAway: row.away_since !== null,
         callTimeLeft: row.call_time_left, leavingAt: row.leaving_at,
         topUp: row.top_up === 'requested' || row.top_up === 'in_progress' ? row.top_up : null,
-        timeRequest: row.time_request_id === null ? null : { id: row.time_request_id, minutes: row.time_request_minutes },
+        callTimeSetAt: row.call_time_set_at, callTimeEndsAt: row.call_time_ends_at, owesCallTime: row.owes_call_time,
+        callTimeChoicesOpen: row.call_time_choices_open, isCallTimeSetByMember: row.call_time_set_by_member === true,
+        callTimeChangeId: row.call_time_change_id,
       }));
     },
   });
@@ -203,19 +215,10 @@ export function useSetSeatCallTime(venueId: string) {
   });
 }
 
-/** The floor approves or declines a seat's request for more call time (decision 0320); approved, the call time grows. */
-export function useDecideCallTime(venueId: string) {
-  const { client } = useRivrData();
-  const settle = useSeatSettle(venueId);
-  return useMutation({
-    mutationFn: async ({ requestId, isApproved }: { requestId: string; isApproved: boolean }) =>
-      settle((await client.rpc('decide_call_time_request', { p_request_id: requestId, p_is_approved: isApproved })).error),
-  });
-}
-
 /**
- * The floor's managers (call_time.override) add a length offered to a seated player's call time, met or not (decision 0305).
- * The same `requestId` again adds nothing more, so a retry after a lost answer is safe.
+ * The floor's managers (call_time.override) add a length offered to a seated player's call time (decision 0305), by the
+ * member's own rule (#1076): until set, it counts from now and ends after the call time the seat started with, and counts
+ * as setting it; once set, it extends it. The same `requestId` again adds nothing more, so a retry after a lost answer is safe.
  */
 export function useAddCallTime(venueId: string) {
   const { client } = useRivrData();

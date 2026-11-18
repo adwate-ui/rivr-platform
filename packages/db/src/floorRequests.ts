@@ -39,16 +39,15 @@ export const isSeatAlert = (request: FloorRequest): request is SeatAlert =>
 
 /**
  * What waits on the Live floor (decision 0479), each with what the floor acts on: a join (`id` the waitlist place), a
- * top-up (`id` its request; started or not), more time (`id` its request, the length asked), a player leaving (`id` the
- * seat session), one who left owing call time (`id` the member), and an approved player to seat. A seated one has its
- * call time left, null for none.
+ * top-up (`id` its request; started or not), a player leaving (`id` the seat session; what they owe, null when nothing,
+ * nought for a call time never set, #1076), one who left owing call time (`id` the member), and an approved player to
+ * seat. A seated one has its call time left, null for none.
  */
 export type FloorRequest =
   | SeatAlert
   | { readonly kind: 'join'; readonly id: string; readonly memberId: string; readonly fullName: string; readonly tableId: string; readonly since: string }
   | (Seated & { readonly kind: 'top_up'; readonly id: string; readonly sessionId: string; readonly isStarted: boolean; readonly callTimeLeft: number | null })
-  | (Seated & { readonly kind: 'time'; readonly id: string; readonly sessionId: string; readonly minutes: number; readonly callTimeLeft: number | null })
-  | (Seated & { readonly kind: 'leaving'; readonly id: string; readonly sessionId: string; readonly callTimeLeft: number | null })
+  | (Seated & { readonly kind: 'leaving'; readonly id: string; readonly sessionId: string; readonly callTimeLeft: number | null; readonly owedSeconds: number | null })
   | (Seated & { readonly kind: 'left_owing'; readonly id: string; readonly sessionId: string; readonly owedSeconds: number });
 
 interface RequestRow {
@@ -62,8 +61,7 @@ type SeatedWho = Seated & { readonly id: string; readonly sessionId: string };
 function toSeatedRequest(row: RequestRow, seated: SeatedWho): FloorRequest[] {
   switch (row.kind) {
     case 'top_up': return [{ kind: 'top_up', ...seated, isStarted: row.top_up === 'in_progress', callTimeLeft: row.call_time_left }];
-    case 'time': return [{ kind: 'time', ...seated, minutes: row.minutes ?? 0, callTimeLeft: row.call_time_left }];
-    case 'leaving': return [{ kind: 'leaving', ...seated, callTimeLeft: row.call_time_left }];
+    case 'leaving': return [{ kind: 'leaving', ...seated, callTimeLeft: row.call_time_left, owedSeconds: row.owed_seconds }];
     case 'left_owing': return [{ kind: 'left_owing', ...seated, owedSeconds: row.owed_seconds ?? 0 }];
     default: return [];
   }

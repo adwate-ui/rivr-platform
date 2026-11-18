@@ -51,15 +51,17 @@ describe('the floor\'s requests', () => {
     const { result } = renderFloor({
       floor_requests: { body: [
         row('join', { session_id: null, seat: null, call_time_left: null }), row('top_up', { top_up: 'in_progress' }), row('time', { minutes: 60 }),
-        row('leaving'), row('left_owing', { call_time_left: null, owed_seconds: 1800 }), row('cab'),
+        row('leaving', { call_time_left: 0, owed_seconds: 0 }), row('left_owing', { call_time_left: null, owed_seconds: 1800 }), row('cab'),
       ] },
     });
-    await waitFor(() => expect(result.current.requests.data).toHaveLength(5));
-    expect(result.current.requests.data?.map((request) => request.kind)).toEqual(['join', 'top_up', 'time', 'leaving', 'left_owing']);
+    // A time ask from before #1076 is a kind no longer read, as an unknown one.
+    await waitFor(() => expect(result.current.requests.data).toHaveLength(4));
+    expect(result.current.requests.data?.map((request) => request.kind)).toEqual(['join', 'top_up', 'leaving', 'left_owing']);
     expect(result.current.requests.data?.[0]).toEqual({ kind: 'join', id: 'join-1', memberId: 'm1', fullName: 'Vidya Chadha', tableId: 't2', since: '2026-11-15T16:00:00Z' });
     expect(result.current.requests.data?.[1]).toMatchObject({ kind: 'top_up', id: 'top_up-1', sessionId: 's1', seat: 5, isStarted: true, callTimeLeft: 3600 });
-    expect(result.current.requests.data?.[2]).toMatchObject({ kind: 'time', minutes: 60 });
-    expect(result.current.requests.data?.[4]).toMatchObject({ kind: 'left_owing', owedSeconds: 1800 });
+    // Leaving with the countdown done and no call time set: owed, nought seconds by the clock.
+    expect(result.current.requests.data?.[2]).toMatchObject({ kind: 'leaving', owedSeconds: 0 });
+    expect(result.current.requests.data?.[3]).toMatchObject({ kind: 'left_owing', owedSeconds: 1800 });
   });
 
   it('gives the club\'s targets, null where it set none', async () => {

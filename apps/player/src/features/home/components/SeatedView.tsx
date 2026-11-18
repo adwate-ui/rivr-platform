@@ -15,11 +15,13 @@ export function callSecondsLeft(seat: MySeat, now: Date): number {
 
 /**
  * Where the call-time ring was (the owner, 17 Nov): when the member sat down, with no countdown; and once they have set
- * their call time themselves (#1059), when it ends, while they are at the table (it stands still while they are away).
+ * their call time themselves (#1059), when it ends, while they are at the table (it stands still while they are away) and
+ * until it has run out: then it is done (#1076), as the floor's sheet says.
  */
-function PlayingSince({ seat }: { seat: MySeat }) {
+function PlayingSince({ seat, now }: { seat: MySeat; now: Date }) {
   const callTime = useFeature('call_time.view');
-  const until = callTime.state === 'enabled' && seat.callTimeSetAt !== null ? seat.callTimeEndsAt : null;
+  const isRunning = seat.callTimeSetAt !== null && callSecondsLeft(seat, now) > 0;
+  const until = callTime.state === 'enabled' && isRunning ? seat.callTimeEndsAt : null;
   return (
     <Stack gap={1} align="center">
       <Text variant="small" tone="muted">{t('player.live.seated.playingSince')}</Text>
@@ -47,7 +49,7 @@ interface SeatedViewProps {
 export function SeatedView({ seat, places, now, sheet, onSheet }: SeatedViewProps) {
   return (
     <>
-      <PlayingSince seat={seat} />
+      <PlayingSince seat={seat} now={now} />
       <SeatActions seat={seat} onOpen={onSheet} />
       <NextBonusChips />
       <OrderToSeat />

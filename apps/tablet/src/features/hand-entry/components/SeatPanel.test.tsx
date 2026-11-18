@@ -14,7 +14,7 @@ afterEach(() => {
 const SEAT: TabletSeat = { seat: 9, smallBlind: fromPaise(10_000n), bigBlind: fromPaise(20_000n), straddle: null, minimum: fromPaise(1_000_000n), player: null };
 
 /** Yash at seat 9, with `callTimeLeft` seconds of call time owed; what the tablet sends to end_seat goes to `sent`. */
-function renderPanel(callTimeLeft: number | null) {
+function renderPanel(callTimeLeft: number | null, owesCallTime = callTimeLeft !== null && callTimeLeft > 0) {
   localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
     access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
     user: { id: '00000000-0000-4000-8000-00000000e001', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
@@ -26,7 +26,7 @@ function renderPanel(callTimeLeft: number | null) {
     if (url.includes('/rpc/fnb_on')) return Response.json(true);
     return Response.json(url.includes('/rpc/end_seat') ? null : []);
   });
-  const player: TabletPlayer = { sessionId: 's9', fullName: 'Yash Gupta', isAway: false, callTimeLeft, isLeaving: false };
+  const player: TabletPlayer = { sessionId: 's9', fullName: 'Yash Gupta', isAway: false, callTimeLeft, owesCallTime, isLeaving: false };
   const onLeft = vi.fn();
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
@@ -45,6 +45,12 @@ describe('Player left on the tablet asks why', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Yes, Yash Gupta left' }));
     await waitFor(() => expect(onLeft).toHaveBeenCalledOnce());
     expect(sent).toEqual([{ p_session_id: 's9', p_reason: 'left', p_leave_reason: 'call_time_met' }]);
+  });
+
+  it('picks none for one who never set a call time, owed though the countdown is done (the owner, 18 Nov)', () => {
+    renderPanel(0, true);
+    fireEvent.click(screen.getByRole('button', { name: 'Player left' }));
+    expect(screen.getAllByRole('radio').some((chip) => chip.getAttribute('aria-checked') === 'true')).toBe(false);
   });
 
   it('picks none while call time is owed, and says to pick one', async () => {

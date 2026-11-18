@@ -20,11 +20,10 @@ afterEach(() => {
 const FLOOR: FloorApi = {
   tables: [tableRow('t1', 'Table 1', { type: 'tt1' }), tableRow('t2', 'Table 2'), tableRow('t3', 'Table 3'), tableRow('t4', 'Table 4', { is_open: false })],
   seats: [
-    seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', time: { id: 'r1', minutes: 60 } }), seatRow({ session: 's3', table: 't2', seat: 1, name: 'Naina Kapoor', left: 0 }),
+    seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi' }), seatRow({ session: 's3', table: 't2', seat: 1, name: 'Naina Kapoor', left: 0 }),
     seatRow({ session: 's4', table: 't2', seat: 3, name: 'Rohan Bhatia', leaving: true, left: 1800 }),
   ],
   requests: [
-    requestRow({ kind: 'time', id: 'r1', name: 'Kabir Sethi', minutes: 3, session_id: 's2', table_id: 't1', seat: 5, asked: 60, call_time_left: 7200 }),
     requestRow({ kind: 'leaving', id: 's4', name: 'Rohan Bhatia', minutes: 2, session_id: 's4', table_id: 't2', seat: 3, call_time_left: 1800 }),
     requestRow({ kind: 'left_owing', id: 'm9', name: 'Yash Gupta', minutes: 1, session_id: 's9', table_id: 't3', seat: 4, owed_seconds: 2700 }),
   ],
@@ -58,30 +57,30 @@ describe('The player sheet (console v3)', () => {
     renderFloorScreen(FloorWithBonus, { ...FLOOR, role: 'floor' });
     await screen.findByRole('group', { name: 'Table 1 NLH 50/100' }, { timeout: 5000 });
     fireEvent.click(screen.getByRole('radio', { name: 'Seats' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Seat 5, Kabir Sethi, +1 h?' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
     expect(within(await sheet('Kabir Sethi')).getByText('Bonus by hand for m-s2')).toBeDefined();
     cleanup();
     renderFloorScreen(FloorWithBonus, { ...FLOOR, role: 'cashier' });
     await screen.findByRole('group', { name: 'Table 1 NLH 50/100' }, { timeout: 5000 });
     fireEvent.click(screen.getByRole('radio', { name: 'Seats' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Seat 5, Kabir Sethi, +1 h?' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
     expect(within(await sheet('Kabir Sethi')).queryByText(/^Bonus by hand for /)).toBeNull();
   });
 
   it('offers the member record only to staff who may open Members, so a cashier is not sent to a refusal (audit F-025)', async () => {
     await renderFloor({ ...FLOOR, role: 'cashier' });
-    fireEvent.click(screen.getByRole('button', { name: 'Seat 5, Kabir Sethi, +1 h?' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
     const player = await sheet('Kabir Sethi');
     expect(within(player).queryByRole('button', { name: 'Open member record' })).toBeNull();
   });
 
-  it('shows the call time left with its bar, the ask with its actions, Add time, Move and the member record', async () => {
+  it('shows the call time left with its bar, Add call time, Move and the member record', async () => {
     const { rpcs } = await renderFloor();
-    fireEvent.click(screen.getByRole('button', { name: 'Seat 5, Kabir Sethi, +1 h?' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
     const player = await sheet('Kabir Sethi');
     expect(within(player).getByText('Table 1, seat 5 · Black card')).toBeDefined();
     expect(within(player).getByText('2 h left')).toBeDefined();
-    expect(within(player).getByText('Wants +1 h')).toBeDefined();
+    expect(await within(player).findByText('Add call time')).toBeDefined();
     expect(within(player).getByRole('button', { name: 'Open member record' })).toBeDefined();
     fireEvent.click(await within(player).findByRole('button', { name: '+30 min' }));
     await screen.findByText('Kabir Sethi: call time +30 min');
@@ -90,6 +89,30 @@ describe('The player sheet (console v3)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
     // Undo finds the addition by the request id it was made with (decision 0480).
     await waitFor(() => expect(rpcs('undo_call_time')).toEqual([{ p_request_id: Reflect.get(Object(added), 'p_idempotency_key') }]));
+  });
+
+  it('greys the lengths Add call time may not give yet, by the member\'s own rule; set, the sheet says when they leave (the owner, 18 Nov)', async () => {
+    const kabir = seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', open: [120] });
+    await renderFloor({ ...FLOOR, seats: [kabir, ...(FLOOR.seats ?? []).slice(1)] });
+    fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
+    const player = await sheet('Kabir Sethi');
+    expect(await within(player).findByRole('button', { name: '+30 min' })).toHaveProperty('disabled', true);
+    expect(within(player).getByRole('button', { name: '+2 h' })).toHaveProperty('disabled', false);
+    // Why, tied to the lengths it closes alone.
+    const why = within(player).getByText(/^Can't end before \d\d:\d\d\.$/);
+    expect(within(player).getByRole('button', { name: '+30 min' }).getAttribute('aria-describedby')).toBe(why.id);
+    expect(within(player).getByRole('button', { name: '+2 h' }).hasAttribute('aria-describedby')).toBe(false);
+    cleanup();
+    const set = seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', set_at: '2026-11-15T15:00:00Z', ends_at: '2026-11-15T18:10:00Z', left: 6000 });
+    await renderFloor({ ...FLOOR, seats: [set, ...(FLOOR.seats ?? []).slice(1)] });
+    fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
+    expect(within(await sheet('Kabir Sethi')).getByText('Set · leaves 23:40')).toBeDefined();
+    // Run out, it is just done: no "leaves".
+    cleanup();
+    const done = seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', set_at: '2026-11-15T15:00:00Z', ends_at: '2026-11-15T16:10:00Z', left: 0, owes: false });
+    await renderFloor({ ...FLOOR, seats: [done, ...(FLOOR.seats ?? []).slice(1)] });
+    fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
+    expect(within(await sheet('Kabir Sethi')).queryByText(/^Set · leaves/)).toBeNull();
   });
 
   it('offers one Leave: the card\'s once the player has asked to go (audit F-131)', async () => {
@@ -102,7 +125,7 @@ describe('The player sheet (console v3)', () => {
 
   it('moves a player to a table chosen first, then a seat, and Undo moves them back', async () => {
     const { rpcs } = await renderFloor();
-    fireEvent.click(screen.getByRole('button', { name: 'Seat 5, Kabir Sethi, +1 h?' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
     const player = await sheet('Kabir Sethi');
     // Closed tables are offered no seat.
     expect(within(player).queryByRole('radio', { name: /^Table 4/ })).toBeNull();
@@ -115,11 +138,11 @@ describe('The player sheet (console v3)', () => {
     ]));
   });
 
-  it('gives a host no Add time, and no Open or Close on a table', async () => {
+  it('gives a host no Add call time, and no Open or Close on a table', async () => {
     await renderFloor({ ...FLOOR, role: 'host' });
-    fireEvent.click(screen.getByRole('button', { name: 'Seat 5, Kabir Sethi, +1 h?' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
     const player = await sheet('Kabir Sethi');
-    expect(within(player).queryByText('Add time')).toBeNull();
+    expect(within(player).queryByText('Add call time')).toBeNull();
     expect(within(player).getByText('Move to another seat')).toBeDefined();
     fireEvent.click(first(within(player).getAllByRole('button', { name: 'Close' })));
     fireEvent.click(screen.getByRole('button', { name: 'Settings for Table 2' }));

@@ -10,7 +10,14 @@ export type QueueCounts = Readonly<Record<string, number>>;
 
 /** The queues where minutes matter: they chime, and the tab's title counts them (decision 0301). */
 // Bonus to approve too (decision 0670): a member waits for it at the tables, so a super admin hears of it.
-export const URGENT_QUEUES: readonly string[] = ['topUps', 'timeRequests', 'waitlist', 'fnb', 'fnbCancelled', 'liveFloor', 'seating', 'bonusApprovals'];
+export const URGENT_QUEUES: readonly string[] = ['topUps', 'callTimeSet', 'waitlist', 'fnb', 'fnbCancelled', 'liveFloor', 'seating', 'bonusApprovals'];
+
+/** Urgent queues that only chime: a member's call time set (#1076) asks nothing, so the tab's count leaves it out. */
+export const CHIME_ONLY_QUEUES: readonly string[] = ['callTimeSet'];
+
+/** The count in the tab's title: what waits on someone in the urgent queues, the chime-only ones left out. */
+export const titleCountOf = (counts: QueueCounts | null) =>
+  Object.entries(counts ?? {}).reduce((sum, [queue, count]) => (CHIME_ONLY_QUEUES.includes(queue) ? sum : sum + count), 0);
 
 const ENTRIES: readonly RailEntry[] = [...RAIL.flatMap((group) => group.entries), REQUESTS];
 

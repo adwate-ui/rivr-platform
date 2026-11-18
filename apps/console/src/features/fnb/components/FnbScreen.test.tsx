@@ -28,7 +28,8 @@ const TABLES = [
 ];
 const TYPES = [{ id: 'nlh', name: 'NLH 100/200', game: 'nlh', small_blind_paise: 10000, big_blind_paise: 20000, straddle_paise: null }];
 const SEATED = { session_id: 's1', table_id: 't2', seat: 3, member_id: 'm1', full_name: 'Sakshi Tandon', tier_name: 'Black card', started_at: '2026-11-15T15:00:00Z',
-  must_move_order: null, away_since: null, call_time_left: null, leaving_at: null, top_up: null, time_request_id: null, time_request_minutes: null };
+  must_move_order: null, away_since: null, call_time_left: null, leaving_at: null, top_up: null,
+  call_time_set_at: null, call_time_ends_at: null, owes_call_time: false, call_time_choices_open: [], call_time_set_by_member: null, call_time_change_id: null };
 const MENU = [{ item_id: 'chai', name: 'Masala chai', kind: 'soft_drink', photo_path: null }];
 
 /** Where an order of the fixture stands, as the server says it. */

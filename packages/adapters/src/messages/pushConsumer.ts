@@ -76,7 +76,9 @@ function callTimeEnding(payload: unknown, now: Date): Built {
 function callTimeDone(payload: unknown): Built {
   const done = callTimeCompletedSchema.safeParse(payload);
   if (!done.success) return unreadable('call_time.completed');
-  const { member_id: memberId, session_id: sessionId } = done.data;
+  const { member_id: memberId, session_id: sessionId, is_set: isSet } = done.data;
+  // Run out with none set (#1076): still owed, so nothing to tell.
+  if (isSet === false) return ok(null);
   return ok({ memberId, pushType: 'push.call_time_complete', title: t('push.callTimeDone.title'), body: t('push.callTimeDone.body'), url: '/', tag: `call-time-${sessionId}` });
 }
 
