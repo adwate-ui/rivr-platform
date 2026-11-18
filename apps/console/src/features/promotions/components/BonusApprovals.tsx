@@ -190,7 +190,8 @@ export function BonusApprovals({ venueId, onNavigate, exportIn }: { venueId: str
     <Stack gap={3}>
       <QueueActions venueId={venueId} shown={shown} ticked={ticked} decision={decision} refusing={refusing} setRefusing={setRefusing} onDone={clear} />
       {correcting?.visit == null ? null : (
-        <CorrectSession venueId={venueId} bonus={correcting} visit={correcting.visit} onDone={clear} onCancel={() => setCorrecting(null)} />
+        <CorrectSession venueId={venueId} memberId={correcting.memberId} visits={[correcting.visit]} onDone={clear} onCancel={() => setCorrecting(null)}
+          subtitle={t('console.promotions.approvals.correction.subtitle', { name: correcting.fullName, promotion: correcting.promotionName })} />
       )}
       <DataTable {...stateOf(list)} label={t('console.promotions.approvals.label')} columns={columnsOf(counted, steps)} rowKey={(bonus) => bonus.grantId}
         filter={search} exportIn={exportIn}

@@ -27,7 +27,7 @@ export interface WaitingBonus {
   readonly visit: WaitingVisit | null;
 }
 
-/** One seat of a play-time Bonus's visit, as the correction shows it (#1061). */
+/** One seat of a visit, as the correction shows it (#1061; from the Players report too, #1075). */
 export interface WaitingSession {
   readonly sessionId: string;
   readonly tableName: string;
@@ -36,10 +36,16 @@ export interface WaitingSession {
   readonly awaySeconds: number;
 }
 
-/** A play-time Bonus's visit (#1061): its seats, when they sat and left, and time away and played, net of time away. */
-export interface WaitingVisit {
+/** A visit as the correction shows it (#1075): check-in, check-out (null while they are in) and its seats. */
+export interface VisitTimes {
   readonly visitId: string;
+  readonly openedAt: string;
+  readonly closedAt: string | null;
   readonly sessions: readonly WaitingSession[];
+}
+
+/** A play-time Bonus's visit (#1061): its times and seats, when they sat and left, and time away and played, net of time away. */
+export interface WaitingVisit extends VisitTimes {
   readonly seatedAt: string;
   readonly leftAt: string | null;
   readonly awaySeconds: number;
@@ -58,6 +64,19 @@ function sessionsOf(value: unknown): WaitingSession[] {
     const away: unknown = Reflect.get(item, 'awaySeconds');
     if (typeof id !== 'string' || typeof table !== 'string' || typeof startedAt !== 'string') return [];
     return [{ sessionId: id, tableName: table, startedAt, endedAt: typeof endedAt === 'string' ? endedAt : null, awaySeconds: Number(away ?? 0) }];
+  });
+}
+
+/** A Players report row's visits as the database lists them (#1075), each read field by field; none that cannot be read. */
+export function visitsOf(value: unknown): VisitTimes[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item: unknown): VisitTimes[] => {
+    if (typeof item !== 'object' || item === null) return [];
+    const visitId: unknown = Reflect.get(item, 'visitId');
+    const openedAt: unknown = Reflect.get(item, 'openedAt');
+    const closedAt: unknown = Reflect.get(item, 'closedAt');
+    if (typeof visitId !== 'string' || typeof openedAt !== 'string') return [];
+    return [{ visitId, openedAt, closedAt: typeof closedAt === 'string' ? closedAt : null, sessions: sessionsOf(Reflect.get(item, 'sessions')) }];
   });
 }
 
@@ -80,14 +99,16 @@ interface WaitingRow {
   readonly left_at: string | null;
   readonly away_seconds: number | null;
   readonly played_seconds: number | null;
+  readonly visit_opened_at: string | null;
+  readonly visit_closed_at: string | null;
 }
 
 function waitingOf(row: WaitingRow): WaitingBonus {
   return {
     grantId: row.grant_id, memberId: row.member_id, fullName: row.full_name, memberNumber: row.member_number, promotionName: row.promotion_name,
     amount: toPaise(row.amount_paise), trigger: row.trigger, eventAt: row.event_at, stepMinutes: row.step_minutes, tableName: row.table_name,
-    visit: row.visit_id === null || row.seated_at === null ? null : {
-      visitId: row.visit_id, sessions: sessionsOf(row.sessions), seatedAt: row.seated_at, leftAt: row.left_at,
+    visit: row.visit_id === null || row.seated_at === null || row.visit_opened_at === null ? null : {
+      visitId: row.visit_id, openedAt: row.visit_opened_at, closedAt: row.visit_closed_at, sessions: sessionsOf(row.sessions), seatedAt: row.seated_at, leftAt: row.left_at,
       awaySeconds: Number(row.away_seconds ?? 0), playedSeconds: Number(row.played_seconds ?? 0),
     },
   };
@@ -175,8 +196,15 @@ export interface SeatCorrection {
   readonly awaySeconds: number;
 }
 
-/** A visit's seats, corrected together, with one reason kept in Activity. */
-export interface SessionCorrection {
+/**
+ * A visit corrected together (#1075): its check-in and check-out (null keeps either) and its seats, with one reason kept in
+ * Activity. The member, so their History reads again.
+ */
+export interface VisitCorrection {
+  readonly visitId: string;
+  readonly memberId: string;
+  readonly openedAt: string | null;
+  readonly closedAt: string | null;
   readonly seats: readonly SeatCorrection[];
   readonly reason: string;
 }
@@ -187,25 +215,32 @@ export interface CorrectionDone {
   readonly givenAbove: number;
 }
 
+/** The call's arguments: check-in and check-out only when they change, so the database keeps them otherwise. */
+const correctionArgs = ({ visitId, openedAt, closedAt, seats, reason }: VisitCorrection) => ({
+  p_visit_id: visitId, p_seats: seats.map(({ sessionId, endedAt, awaySeconds }) => ({ sessionId, endedAt, awaySeconds })), p_reason: reason.trim(),
+  ...(openedAt === null ? {} : { p_opened_at: openedAt }), ...(closedAt === null ? {} : { p_closed_at: closedAt }),
+});
+
 /**
- * A super admin corrects a play-time Bonus's visit from Bonus approvals (#1061): when the player left each seat and their
- * time away, in one call, so its Bonus is weighed once on the corrected time. The queue, the rail's count and the door read
- * again.
+ * A super admin corrects a visit, from Bonus approvals (#1061) or the Players report (#1075): its check-in and check-out,
+ * when the player left each seat and their time away, in one call (`correct_visit`), so its play-time Bonus is weighed once
+ * on the corrected time. Every screen showing the visit reads again: the queue and the rail's count, the door, the reports,
+ * the Members list and the member's History.
  */
-export function useCorrectSession(venueId: string) {
+export function useCorrectVisit(venueId: string) {
   const { client, userId } = useRivrData();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ seats, reason }: SessionCorrection): Promise<Result<CorrectionDone, SessionCorrectionFailure>> => {
-      const { data, error } = await client.rpc('correct_seat_sessions', {
-        p_seats: seats.map(({ sessionId, endedAt, awaySeconds }) => ({ sessionId, endedAt, awaySeconds })), p_reason: reason.trim(),
-      });
+    mutationFn: async (correction: VisitCorrection): Promise<Result<CorrectionDone, SessionCorrectionFailure>> => {
+      const { data, error } = await client.rpc('correct_visit', correctionArgs(correction));
+      const { memberId } = correction;
       const user = userId ?? 'signed-out';
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.bonusWaiting(user, venueId) }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.staffQueueCounts(user, venueId) }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.doorBoard(user, venueId) }),
-      ]);
+      const readAgain = [
+        queryKeys.bonusWaiting(user, venueId), queryKeys.staffQueueCounts(user, venueId), queryKeys.doorBoard(user, venueId), queryKeys.playerVisits(user, venueId),
+        queryKeys.memberVisitsAll(user, venueId, memberId), queryKeys.memberHoursPlayed(user, venueId, memberId), queryKeys.clubReportsAt(user, venueId),
+        queryKeys.membersListAll(user),
+      ];
+      await Promise.all(readAgain.map((queryKey) => queryClient.invalidateQueries({ queryKey })));
       if (error) return err(CORRECTION_FAILURE_BY_CODE[error.code] ?? 'unavailable');
       const [done] = data ?? [];
       return ok({ refused: Number(done?.refused ?? 0), givenAbove: Number(done?.given_above ?? 0) });

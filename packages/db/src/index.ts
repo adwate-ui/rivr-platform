@@ -81,9 +81,8 @@ export {
 } from './floorToday.ts';
 export { useStaffQueueCounts } from './staffQueues.ts';
 export {
-  useCorrectSession, useDecideBonus, useWaitingBonusPage, type BonusChoice, type BonusDecision, type BonusDecisionFailure, type CorrectionDone, type SeatCorrection,
-  type SessionCorrection,
-  type SessionCorrectionFailure, type WaitingBonus, type WaitingSession, type WaitingVisit,
+  useCorrectVisit, useDecideBonus, useWaitingBonusPage, type BonusChoice, type BonusDecision, type BonusDecisionFailure, type CorrectionDone, type SeatCorrection,
+  type SessionCorrectionFailure, type VisitCorrection, type VisitTimes, type WaitingBonus, type WaitingSession, type WaitingVisit,
 } from './bonusApprovals.ts';
 export { DENSITIES, useSetStaffDensity, useSetStaffShortcuts, useStaffDensity, useStaffShortcuts, type Density } from './staffPreference.ts';
 export {

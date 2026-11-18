@@ -1,7 +1,14 @@
-import { LIST_PAGE, scopedTo, useListChoices, usePlayerVisitsPage, type ListChoices, type MemberKycStatus, type PlayerVisit, type ReportSpan } from '@rivr/db';
+import {
+  LIST_PAGE, scopedTo, useListChoices, usePlayerVisitsPage, type ListChoices, type MemberKycStatus, type PlayerVisit, type ReportSpan, type VisitTimes,
+} from '@rivr/db';
 import { formatChips, formatDate, formatDuration, formatRupeesForFile, formatTime, t } from '@rivr/i18n';
-import { DataTable, DotStatus, Text, type ColumnChoice, type DataTableColumn, type DataTableRequest, type DotStatusTone } from '@rivr/ui';
-import { useState } from 'react';
+import { Button, DataTable, DotStatus, Text, type ColumnChoice, type DataTableColumn, type DataTableRequest, type DotStatusTone } from '@rivr/ui';
+import { useState, type ComponentType } from 'react';
+
+/** The panel that corrects a visit (#1075): Bonus approvals' own, which the route hands in. */
+export type CorrectVisitPanel = ComponentType<{
+  venueId: string; memberId: string; subtitle: string; visits: readonly VisitTimes[]; onDone: () => void; onCancel: () => void;
+}>;
 
 // As the door shows an identity check: cream once verified, gold while the club has something to do, red refused.
 const KYC_TONE: Readonly<Record<MemberKycStatus, DotStatusTone>> = {
@@ -25,7 +32,7 @@ const tierChoices = (counted: ListChoices | undefined): readonly ColumnChoice[] 
 function visitColumns(counted: ListChoices | undefined): readonly DataTableColumn<PlayerVisit>[] {
   return [
     {
-      key: 'date', share: 1, header: t('console.reports.playersReport.date'), cell: (visit) => <Text variant="secondary" tone="muted">{dayOf(visit)}</Text>,
+      key: 'date', share: 1.2, header: t('console.reports.playersReport.date'), cell: (visit) => <Text variant="secondary" tone="muted">{dayOf(visit)}</Text>,
       sortValue: (visit) => visit.clubDay, exportValue: dayOf, filter: false,
     },
     { key: 'player', share: 2, header: t('console.todaysPlayers.name'), cell: (visit) => visit.fullName, sortValue: (visit) => visit.fullName, priority: 'primary', isWide: true, filter: 'text' },
@@ -52,6 +59,17 @@ function visitColumns(counted: ListChoices | undefined): readonly DataTableColum
   ];
 }
 
+/** A super admin's Correct, at the end of each row with a visit to correct (#1075); its column is left out of exports. */
+const correctColumn = (onCorrect: (visit: PlayerVisit) => void): DataTableColumn<PlayerVisit> => ({
+  key: 'correct', share: 1.1, header: '', align: 'end', filter: false,
+  cell: (visit) => (visit.visits.length === 0 ? null : (
+    <Button variant="text" size="small" aria-label={t('console.reports.playersReport.correctNamed', { name: visit.fullName, day: dayOf(visit) })}
+      onClick={() => onCorrect(visit)}>
+      {t('console.reports.playersReport.correct')}
+    </Button>
+  )),
+});
+
 function stateOf(page: ReturnType<typeof usePlayerVisitsPage>) {
   if (page.data !== undefined) return { rows: page.data.rows, emptyText: t('console.reports.playersReport.noVisits') };
   return page.isError ? { status: 'error' as const, onRetry: () => void page.refetch() } : { status: 'loading' as const };
@@ -60,17 +78,27 @@ function stateOf(page: ReturnType<typeof usePlayerVisitsPage>) {
 /**
  * Every visit in the report's span (the owner, 16 Nov; decision 0682), as the door lists the day's players, with the day
  * first: a page at a time from the server, each column sorted and filtered there, and its own Export of every visit the
- * view leaves.
+ * view leaves. A super admin corrects a visit's times from its row (#1075, the owner, 18 Nov), in the panel Bonus approvals
+ * uses (`correct`, only for them).
  */
-export function PlayerVisits({ span, periodWords }: { span: ReportSpan; periodWords: string }) {
+export function PlayerVisits({ span, periodWords, correct: Correct }: { span: ReportSpan; periodWords: string; correct?: CorrectVisitPanel | undefined }) {
   // The table's view as it last handed it over; none until it is first drawn.
   const [request, setRequest] = useState<DataTableRequest | null>(null);
+  const [correcting, setCorrecting] = useState<PlayerVisit | null>(null);
   const page = usePlayerVisitsPage(span, request);
   const counted = useListChoices('player_visits', span.venueId, scopedTo(span, request)).data;
+  const columns = Correct === undefined ? visitColumns(counted) : [...visitColumns(counted), correctColumn(setCorrecting)];
   return (
-    <DataTable {...stateOf(page)} label={t('console.reports.playersReport.visits')} columns={visitColumns(counted)} narrowLayout="scroll"
-      rowKey={(visit) => `${visit.clubDay}:${visit.memberId}`} exportFilter={periodWords}
-      filter={{ label: t('console.reports.playersReport.search'), variant: 'subtle', text: (visit) => visit.fullName }}
-      server={{ total: page.data?.total ?? 0, pageSize: LIST_PAGE, onRequest: setRequest, scope: `${span.from}:${span.to}` }} exportRows={page.readEvery} />
+    <>
+      <DataTable {...stateOf(page)} label={t('console.reports.playersReport.visits')} columns={columns} narrowLayout="scroll"
+        rowKey={(visit) => `${visit.clubDay}:${visit.memberId}`} exportFilter={periodWords}
+        filter={{ label: t('console.reports.playersReport.search'), variant: 'subtle', text: (visit) => visit.fullName }}
+        server={{ total: page.data?.total ?? 0, pageSize: LIST_PAGE, onRequest: setRequest, scope: `${span.from}:${span.to}` }} exportRows={page.readEvery} />
+      {Correct === undefined || correcting === null ? null : (
+        <Correct venueId={span.venueId} memberId={correcting.memberId} visits={correcting.visits}
+          subtitle={t('console.reports.playersReport.correction', { name: correcting.fullName, day: dayOf(correcting) })}
+          onDone={() => setCorrecting(null)} onCancel={() => setCorrecting(null)} />
+      )}
+    </>
   );
 }

@@ -3,7 +3,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { useCorrectSession, useDecideBonus, useWaitingBonusPage } from './bonusApprovals.ts';
+import { useCorrectVisit, useDecideBonus, useWaitingBonusPage } from './bonusApprovals.ts';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
@@ -12,6 +12,8 @@ import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
 const SIGNED_IN = '00000000-0000-4000-8000-000000000101';
 const VENUE = '00000000-0000-4000-8000-000000000001';
 const REQUEST = '00000000-0000-4000-8000-000000510001';
+// A visit whose check-in and check-out stay as they are.
+const VISIT_KEPT = { visitId: 'vis1', memberId: 'm1', openedAt: null, closedAt: null };
 
 /** A fake API: each path answers with its reply; every call is kept with what it sent. */
 function clientFor(replies: Record<string, { status?: number; body: unknown }>) {
@@ -38,6 +40,7 @@ const ROW = {
   total: 3, grant_id: 'g1', member_id: 'm1', full_name: 'Ishaan Verma', member_number: 7, promotion_id: 'p1', promotion_name: 'Four-hour bonus',
   amount_paise: 100_000, trigger: 'hours_step', event_at: '2026-11-15T18:00:00Z', step_minutes: 240, table_name: null, club_day: '2026-11-15',
   visit_id: 'vis1', seated_at: '2026-11-15T14:00:00Z', left_at: null, away_seconds: 600, played_seconds: 14_400,
+  visit_opened_at: '2026-11-15T13:50:00Z', visit_closed_at: null,
   sessions: [{ id: 's1', table: 'Table 3', startedAt: '2026-11-15T14:00:00Z', endedAt: null, awaySeconds: 600 }, { nonsense: true }],
 };
 
@@ -53,7 +56,7 @@ describe('Bonus to approve (decision 0670)', () => {
       trigger: 'hours_step', eventAt: '2026-11-15T18:00:00Z', stepMinutes: 240, tableName: null,
       // A seat the console cannot read is left out.
       visit: {
-        visitId: 'vis1', seatedAt: '2026-11-15T14:00:00Z', leftAt: null, awaySeconds: 600, playedSeconds: 14_400,
+        visitId: 'vis1', openedAt: '2026-11-15T13:50:00Z', closedAt: null, seatedAt: '2026-11-15T14:00:00Z', leftAt: null, awaySeconds: 600, playedSeconds: 14_400,
         sessions: [{ sessionId: 's1', tableName: 'Table 3', startedAt: '2026-11-15T14:00:00Z', endedAt: null, awaySeconds: 600 }],
       },
     }]);
@@ -87,20 +90,30 @@ describe('Bonus to approve (decision 0670)', () => {
   });
 
   it('corrects a visit\'s seats in one call with the reason trimmed, and reads what was refused and what given stays', async () => {
-    const { wrapper, calls } = clientFor({ '/rpc/correct_seat_sessions': { body: [{ refused: 2, given_above: 1 }] } });
-    const { result } = renderHook(() => useCorrectSession(VENUE), { wrapper });
+    const { wrapper, calls } = clientFor({ '/rpc/correct_visit': { body: [{ refused: 2, given_above: 1 }] } });
+    const { result } = renderHook(() => useCorrectVisit(VENUE), { wrapper });
     let outcome: Awaited<ReturnType<typeof result.current.mutateAsync>> | undefined;
     const seats = [{ sessionId: 's1', endedAt: null, awaySeconds: 4200 }, { sessionId: 's2', endedAt: '2026-11-15T17:00:00Z', awaySeconds: 0 }];
-    await act(async () => { outcome = await result.current.mutateAsync({ seats, reason: ' Away 70 minutes ' }); });
+    await act(async () => { outcome = await result.current.mutateAsync({ ...VISIT_KEPT, seats, reason: ' Away 70 minutes ' }); });
     expect(outcome).toEqual({ ok: true, value: { refused: 2, givenAbove: 1 } });
-    expect(calls.find((call) => call.url.includes('correct_seat_sessions'))?.body).toEqual({ p_seats: seats, p_reason: 'Away 70 minutes' });
+    expect(calls.find((call) => call.url.includes('correct_visit'))?.body).toEqual({ p_visit_id: 'vis1', p_seats: seats, p_reason: 'Away 70 minutes' });
+  });
+
+  it('sends a visit\'s corrected check-in and check-out with its seats (the owner, 18 Nov)', async () => {
+    const { wrapper, calls } = clientFor({ '/rpc/correct_visit': { body: [{ refused: 0, given_above: 0 }] } });
+    const { result } = renderHook(() => useCorrectVisit(VENUE), { wrapper });
+    const times = { openedAt: '2026-11-15T13:30:00Z', closedAt: '2026-11-15T18:00:00Z' };
+    await act(async () => { await result.current.mutateAsync({ ...VISIT_KEPT, ...times, seats: [], reason: 'Card times' }); });
+    expect(calls.find((call) => call.url.includes('correct_visit'))?.body).toEqual({
+      p_visit_id: 'vis1', p_seats: [], p_reason: 'Card times', p_opened_at: times.openedAt, p_closed_at: times.closedAt,
+    });
   });
 
   it('names why a correction was refused', async () => {
-    const { wrapper } = clientFor({ '/rpc/correct_seat_sessions': { status: 400, body: { code: '22023', message: 'The end falls after they sat' } } });
-    const { result } = renderHook(() => useCorrectSession(VENUE), { wrapper });
+    const { wrapper } = clientFor({ '/rpc/correct_visit': { status: 400, body: { code: '22023', message: 'The end falls after they sat' } } });
+    const { result } = renderHook(() => useCorrectVisit(VENUE), { wrapper });
     let outcome: Awaited<ReturnType<typeof result.current.mutateAsync>> | undefined;
-    await act(async () => { outcome = await result.current.mutateAsync({ seats: [{ sessionId: 's1', endedAt: '2026-11-15T17:00:00Z', awaySeconds: 0 }], reason: 'Left early' }); });
+    await act(async () => { outcome = await result.current.mutateAsync({ ...VISIT_KEPT, seats: [{ sessionId: 's1', endedAt: '2026-11-15T17:00:00Z', awaySeconds: 0 }], reason: 'Left early' }); });
     expect(outcome).toEqual({ ok: false, error: 'invalid' });
   });
 });

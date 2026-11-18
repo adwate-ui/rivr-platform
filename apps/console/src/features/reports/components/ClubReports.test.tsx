@@ -1,4 +1,5 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
+import { Text } from '@rivr/ui';
 import { QueryClient } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import type { ReactElement } from 'react';
@@ -29,7 +30,8 @@ const ANSWERS: Record<string, unknown[]> = {
   // Yash on two club days; the second without a check-out yet.
   player_visits_page: [
     { total: 2, club_day: '2026-11-15', member_id: 'm214', full_name: 'Yash Gupta', member_number: 41, tier_name: 'Black card', is_base_tier: false, checked_in_at: '2026-11-15T14:30:00Z',
-      checked_out_at: null, waiting_seconds: 600, tables: [{ table: 'Table 2', seconds: 7200 }], played_seconds: 7200, kyc_status: 'verified', bonus_paise: 50_000 },
+      checked_out_at: null, waiting_seconds: 600, tables: [{ table: 'Table 2', seconds: 7200 }], played_seconds: 7200, kyc_status: 'verified', bonus_paise: 50_000,
+      visits: [{ visitId: 'vis9', openedAt: '2026-11-15T14:30:00Z', closedAt: null, sessions: [] }] },
     { total: 2, club_day: '2026-11-14', member_id: 'm214', full_name: 'Yash Gupta', member_number: 41, tier_name: 'Member', is_base_tier: true, checked_in_at: '2026-11-14T14:00:00Z',
       checked_out_at: '2026-11-14T18:00:00Z', waiting_seconds: 0, tables: [{ table: 'Table 1', seconds: 10_800 }], played_seconds: 10_800, kyc_status: 'verified', bonus_paise: 0 },
   ],
@@ -110,6 +112,16 @@ describe('the reports beside Tables (redesign RD-27)', () => {
     const read = asked.find((call) => call.rpc === 'player_visits_page');
     expect(read?.body['p_venue_id']).toBe('v1');
     expect(read?.body['p_view']).toMatchObject({ scope: { from: '2026-11-09', to: '2026-11-15' } });
+  });
+
+  it('Players: a super admin corrects a visit from its row, in the panel the route hands in (the owner, 18 Nov)', async () => {
+    const Panel = ({ subtitle, visits }: { subtitle: string; visits: readonly { visitId: string }[] }) => <Text>{`${subtitle}: ${visits.map((one) => one.visitId).join()}`}</Text>;
+    renderReport(<PlayersReport venueId="v1" period={PERIOD} exportIn={null} correct={Panel} />);
+    const table = await screen.findByRole('table', { name: 'Visits' });
+    fireEvent.click(await within(table).findByRole('button', { name: 'Correct the visit of Yash Gupta on 15 Nov 2026' }));
+    expect(await screen.findByText('Yash Gupta · 15 Nov 2026: vis9')).toBeDefined();
+    // A row with no visit to correct has no Correct.
+    expect(within(table).getAllByRole('button', { name: /^Correct the visit/ })).toHaveLength(1);
   });
 
   it('Waitlist: who joined, who got a seat and the waits, then each table’s list', async () => {

@@ -2713,7 +2713,7 @@ isOneToOne: false
                            },
 "bonus_waiting_page":
 { Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
-              "amount_paise": number,"away_seconds": number,"club_day": string,"event_at": string,"full_name": string,"grant_id": string,"left_at": string,"member_id": string,"member_number": number,"played_seconds": number,"promotion_id": string,"promotion_name": string,"seated_at": string,"sessions": Json,"step_minutes": number,"table_name": string,"total": number,"trigger": string,"visit_id": string
+              "amount_paise": number,"away_seconds": number,"club_day": string,"event_at": string,"full_name": string,"grant_id": string,"left_at": string,"member_id": string,"member_number": number,"played_seconds": number,"promotion_id": string,"promotion_name": string,"seated_at": string,"sessions": Json,"step_minutes": number,"table_name": string,"total": number,"trigger": string,"visit_closed_at": string,"visit_id": string,"visit_opened_at": string
             }[]
                            },
 "call_from_waitlist":
@@ -2798,6 +2798,11 @@ isOneToOne: false
                            },
 "correct_seat_sessions":
 { Args: { "p_reason": string,"p_seats": Json }; Returns: {
+              "given_above": number,"refused": number
+            }[]
+                           },
+"correct_visit":
+{ Args: { "p_closed_at"?: string,"p_opened_at"?: string,"p_reason": string,"p_seats": Json,"p_visit_id": string }; Returns: {
               "given_above": number,"refused": number
             }[]
                            },
@@ -3371,7 +3376,7 @@ isOneToOne: false
                            },
 "player_visits_page":
 { Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
-              "bonus_paise": number,"checked_in_at": string,"checked_out_at": string,"club_day": string,"full_name": string,"is_base_tier": boolean,"kyc_status": string,"member_id": string,"member_number": number,"played_seconds": number,"tables": Json,"tier_name": string,"total": number,"waiting_seconds": number
+              "bonus_paise": number,"checked_in_at": string,"checked_out_at": string,"club_day": string,"full_name": string,"is_base_tier": boolean,"kyc_status": string,"member_id": string,"member_number": number,"played_seconds": number,"tables": Json,"tier_name": string,"total": number,"visits": Json,"waiting_seconds": number
             }[]
                            },
 "players_report":
