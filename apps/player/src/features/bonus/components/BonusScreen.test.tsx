@@ -16,7 +16,7 @@ describe('Bonus (redesign of 15 Nov)', () => {
     const { historyAsked } = renderBonus();
     expect(await screen.findByText('1,250', {}, LATER)).toBeDefined();
     expect(screen.getByText('Balance')).toBeDefined();
-    expect(screen.getByText('Use with your buy-in. Never expires.')).toBeDefined();
+    expect(screen.getByText('Use with your buy-in.')).toBeDefined();
     expect(screen.getByRole('heading', { name: 'History' })).toBeDefined();
     // Each line: what it was, its day beneath, and its Bonus (redesign RD-20).
     const used = (await screen.findByText('Buy-in · Table 3', {}, LATER)).closest('div');
@@ -58,19 +58,16 @@ describe('Bonus (redesign of 15 Nov)', () => {
     expect((await screen.findByText('−1,000', {}, LATER)).className).toContain('text-content-muted');
   });
 
-  it.each([
-    [null, 'Use with your buy-in. Never expires.'],
-    [0, 'Use with your buy-in. Never expires.'],
-    [1, 'Use with your buy-in. Expires after 1 day.'],
-    [30, 'Use with your buy-in. Expires after 30 days.'],
-  ])('says under the balance what the club\'s "Bonus expires" setting says: %s days', async (expiryDays, line) => {
-    renderBonus({ balance: 125_000, lines: [], expiryDays });
-    expect(await screen.findByText(line, {}, LATER)).toBeDefined();
+  it('says under the balance only what Content says, never whether Bonus expires (the owner, 18 Nov)', async () => {
+    renderBonus({ balance: 125_000, lines: [], expiryDays: 30, line: 'Play it on any table tonight' });
+    expect(await screen.findByText('Play it on any table tonight', {}, LATER)).toBeDefined();
+    expect(screen.queryByText(/expires/i)).toBeNull();
   });
 
-  it('says the club\'s own line from Content before whether Bonus expires, as a sentence of its own', async () => {
-    renderBonus({ balance: 125_000, lines: [], expiryDays: 30, line: 'Play it on any table tonight' });
-    expect(await screen.findByText('Play it on any table tonight. Expires after 30 days.', {}, LATER)).toBeDefined();
+  it('says the app\'s own line while Content sets none, whatever the expiry setting', async () => {
+    renderBonus({ balance: 125_000, lines: [], expiryDays: 1 });
+    expect(await screen.findByText('Use with your buy-in.', {}, LATER)).toBeDefined();
+    expect(screen.queryByText(/expires/i)).toBeNull();
   });
 
   it('shows the balance large in cream, under its name, with no icon', async () => {

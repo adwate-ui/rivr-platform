@@ -39,7 +39,7 @@ export function AppContent({ venueId }: { venueId: string }) {
 
 /**
  * Content's App tab (#1065, the owner, 17 Nov), for those who edit Content (website.edit): the words the player app shows
- * that the club writes, today the Bonus card's line. The expiry sentence after it stays automatic from Settings.
+ * that the club writes, today the Bonus card's line, which the card shows alone (#1074).
  */
 export function AppContentScreen() {
   const staff = useStaffVenue();
