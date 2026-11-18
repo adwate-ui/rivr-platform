@@ -179,7 +179,7 @@ create function pg_temp.grant_ends(p_text text) returns timestamptz[] language s
 $$;
 select ok((select count(*) > 0 from golden.golden_case where file = 'bonus.json'), 'the bonus cases are loaded');
 select is_empty($$ select operation from golden.golden_case where file = 'bonus.json'
-                   and operation not in ('spend', 'expire', 'end', 'visitCap', 'visitLeft') $$,
+                   and operation not in ('spend', 'expire', 'end', 'visitCap', 'visitLeft', 'take', 'payOff') $$,
   'every operation in bonus.json is proved here');
 -- Decision 0579: when a grant ends, and a visit's cap and what is left of it (bonusEnd, visitBonusCap, visitBonusLeft).
 select results_eq(
@@ -217,6 +217,24 @@ select results_eq(
   $$ select description, pg_temp.paise_list(expected ->> 'expired')
      from golden.golden_case where file = 'bonus.json' and operation = 'expire' order by position $$,
   'private.bonus_expiring gives every expiry in the golden file');
+-- The owner, 18 Nov (#1077): Bonus taken back (a reversal, or a use added after the fact) and Bonus given while some is owed.
+select results_eq(
+  $$ select description, d.taken::text || ' owed ' || d.owed
+     from golden.golden_case
+     cross join lateral private.bonus_takes(pg_temp.paise(inputs ->> 'amount'), pg_temp.grant_amounts(inputs ->> 'grants'),
+                                            pg_temp.grant_ends(inputs ->> 'grants'), (inputs ->> 'at')::timestamptz,
+                                            nullif(inputs ->> 'first', 'none')::integer) d
+     where file = 'bonus.json' and operation = 'take' order by position $$,
+  $$ select description, pg_temp.paise_list(expected ->> 'taken')::text || ' owed ' || pg_temp.paise(expected ->> 'owed')
+     from golden.golden_case where file = 'bonus.json' and operation = 'take' order by position $$,
+  'private.bonus_takes gives every Bonus taken back in the golden file');
+select results_eq(
+  $$ select description, p.paid, p.kept
+     from golden.golden_case cross join lateral private.bonus_pay_off(pg_temp.paise(inputs ->> 'given'), pg_temp.paise(inputs ->> 'owed')) p
+     where file = 'bonus.json' and operation = 'payOff' order by position $$,
+  $$ select description, pg_temp.paise(expected ->> 'paid'), pg_temp.paise(expected ->> 'kept')
+     from golden.golden_case where file = 'bonus.json' and operation = 'payOff' order by position $$,
+  'private.bonus_pay_off gives every pay-off in the golden file');
 
 -- Promotions: private.promotion_applies, private.promotion_reward and private.promotions_to_give, and
 -- @rivr/domain promotionApplies, promotionReward and promotionsToGive (packages/testing/golden/promotions.json).

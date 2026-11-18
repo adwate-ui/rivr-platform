@@ -102,3 +102,48 @@ export function visitBonusLeft(cap: Paise, redeemed: Paise): Paise {
 export function bonusExpired(grants: readonly BonusGrant[], at: Date): Paise[] {
   return grants.map((grant) => (hasEnded(grant, at) && isPositive(grant.remaining) ? grant.remaining : ZERO));
 }
+
+/** Bonus taken back: what each grant gives, in the order given, and what they could not give, which is owed. */
+export interface BonusTaken {
+  readonly taken: Paise[];
+  readonly owed: Paise;
+}
+
+/**
+ * Bonus taken back after the fact (the owner, 18 Nov; #1077): a reversal's whole amount, or a use added for a seat that
+ * missed it. Drawn first from the grant `first` (the one reversed; null for a use) as far as it goes, whether or not it has
+ * ended, as its remainder goes back now and never again at expiry; then from the other grants in force in bonusSpend's
+ * order, each as far as it goes. What they cannot give is owed: the balance is below nothing until new Bonus pays it
+ * (bonusPayOff). Never refused, in any whole paise. Throws on an amount below nothing or a `first` not in the list, which
+ * is a bug in the caller. The database's private.bonus_takes is proved equal by packages/testing/golden/bonus.json.
+ */
+export function bonusTake(amount: Paise, grants: readonly BonusGrant[], at: Date, first: number | null): BonusTaken {
+  if (compare(amount, ZERO) < 0) throw new RangeError('Bonus taken back is never below nothing');
+  if (first !== null && (first < 0 || first >= grants.length)) throw new RangeError(`No grant ${String(first)} to take back from`);
+  const order = grants.map((grant, index) => ({ grant, index, isFirst: index === first }))
+    .filter(({ grant, isFirst }) => isFirst || inForce(grant, at))
+    .sort((a, b) => Number(b.isFirst) - Number(a.isFirst) || compareEnds(a.grant, b.grant) || a.index - b.index);
+  const taken: Paise[] = grants.map(() => ZERO);
+  let left = amount;
+  for (const { grant, index } of order) {
+    const take = min(left, grant.remaining);
+    taken[index] = take;
+    left = subtract(left, take);
+  }
+  return { taken, owed: left };
+}
+
+/** Bonus given while some is owed: what pays what is owed, and what the member keeps as Bonus. */
+export interface BonusPaidOff {
+  readonly paid: Paise;
+  readonly kept: Paise;
+}
+
+/**
+ * Bonus given while some is owed (the owner, 18 Nov; #1077): it pays what is owed first, as far as it goes, and the member
+ * keeps the rest. Nothing owed, or nothing given, pays nothing. private.bonus_pay_off is its twin.
+ */
+export function bonusPayOff(given: Paise, owed: Paise): BonusPaidOff {
+  const paid = max(ZERO, min(given, owed));
+  return { paid, kept: subtract(given, paid) };
+}

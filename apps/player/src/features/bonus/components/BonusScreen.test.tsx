@@ -28,6 +28,19 @@ describe('Bonus (redesign of 15 Nov)', () => {
     expect(screen.queryByText(/chips/i)).toBeNull();
   });
 
+  it('shows a Bonus the club reversed as its own line, and a balance below zero as owed (the owner, 18 Nov)', async () => {
+    renderBonus({ balance: -50_000, lines: [
+      { line_id: 'b1', at: '2026-11-16T18:00:00Z', kind: 'reversed', amount_paise: 150_000, reason: null, table_name: null },
+      ...BONUS_LINES,
+    ] });
+    // The hero keeps the minus in the text face, beside the digits: one figure, −500.
+    expect((await screen.findByText('500', {}, LATER)).parentElement?.textContent).toBe('−500');
+    expect(screen.getByText('Owed. New Bonus pays it first.')).toBeDefined();
+    // No reason the club gave (the owner, 19 Nov).
+    expect((await screen.findByText('Reversed', {}, LATER)).closest('div')?.textContent).toBe('Reversed16 Nov−1,500');
+    expect(screen.getByText('Welcome bonus').closest('div')?.textContent).toBe('Welcome bonus14 Nov+1,500');
+  });
+
   it('names the hand on a line a high hand paid (redesign RD-25)', async () => {
     renderBonus({ balance: 1_400_000, lines: [
       { line_id: 'h1', at: '2026-11-15T21:13:00Z', kind: 'credited', amount_paise: 1_000_000, reason: 'High hand bonus', table_name: null, hand: 'straight_flush', rank: 'nine' },

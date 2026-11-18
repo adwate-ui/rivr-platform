@@ -55,8 +55,9 @@ export function GiveBonusChips({ venueId, memberId }: { venueId: string; memberI
     if (done.ok || done.error !== 'unavailable') setRequestId(crypto.randomUUID());
     if (done.ok) { setTyped(''); setReason(''); }
   };
+  // A region of its own: a super admin's record has a second Bonus form, with its own Reason (#1077).
   return (
-    <Stack gap={3}>
+    <Stack as="section" aria-label={t('console.members.bonus.give.title')} gap={3}>
       <Heading level={3}>{t('console.members.bonus.give.title')}</Heading>
       <Text tone="muted">{t('console.members.bonus.give.intro')}</Text>
       <Input label={t('console.members.bonus.give.chips')} hint={t('console.members.bonus.give.chipsHint', { most: formatNumber(most) })} value={typed} inputMode="numeric"

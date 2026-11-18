@@ -15,7 +15,14 @@ export const memberBonus = {
   credited: '{date} · {reason}',
   redeemed: '{date} · Buy-in · {table}',
   redeemedBy: '{date} · Buy-in · {table} · seated by {name}',
+  /** A use added after the fact (#1077), with its reason and the super admin who added it. */
+  redeemedAdded: '{date} · Buy-in · {table} · {reason} · added by {name}',
   expired: '{date} · Expired · {reason}',
+  /** A Bonus a super admin reversed (#1077): `19 Nov 2026 · Reversed · Wrong member · by Vikram Rao` `−2,000`. */
+  reversed: '{date} · Reversed · {reason}',
+  reversedBy: '{date} · Reversed · {reason} · by {name}',
+  /** The tile's line while Bonus is owed (#1077): the balance is below zero until new Bonus pays it. */
+  owedLine: 'Owed. New Bonus pays it first.',
   plus: '+{chips}',
   minus: '−{chips}',
   /**
@@ -43,6 +50,64 @@ export const memberBonus = {
       daily_limit: 'Past your daily limit for adding Bonus. A super admin can add more.',
       /** Above the most an admin or a floor manager adds by hand at once (bonus.by_hand_cap). */
       over_cap: 'More than staff add at once. Type less, or ask a super admin.',
+      unavailable: 'Not added. Try again.',
+    },
+  },
+  /**
+   * A super admin reverses a Bonus given from its row (#1077, the owner, 18 Nov): all of it comes back, even if used, less
+   * what expired. `{chips}` is `2,000`; `what` reads `2,000 given 18 Nov 2026 · Welcome bonus`.
+   */
+  reverse: {
+    title: 'Reverse Bonus',
+    what: '{chips} given {date} · {reason}',
+    /** Part of it expired, which went back then. */
+    expired: '{chips} of it expired.',
+    reason: 'Reason',
+    /** The member sees no reason for a reversal (the owner, 19 Nov). */
+    reasonHint: 'Kept on the record and in Activity.',
+    action: 'Reverse',
+    cancel: 'Cancel',
+    /** `{chips}` is what came back. */
+    done: '{chips} Bonus reversed.',
+    already: 'Already reversed.',
+    /** What a screen reader hears after a Bonus given that opens this. */
+    openHint: 'Reverse',
+    failures: {
+      not_allowed: 'Not in your role. Ask an admin.',
+      own_record: 'Not on your own record. Ask another super admin.',
+      invalid_chips: 'Give whole fifties from 50 to 1,00,000.',
+      invalid: 'Give a reason of 3 to 200 characters.',
+      nothing_left: 'Nothing left to take back. It expired.',
+      paused: 'Frozen, or promotions stopped. Try once released.',
+      busy: 'Too many at once. Try again shortly.',
+      unavailable: 'Not reversed. Try again.',
+    },
+  },
+  /**
+   * A super admin adds a Bonus use a seat missed (#1077): any seat of the member's, whole fifties and a reason. It
+   * counts on that seat's day, with no visit limit. `seatLine` reads `Table 5 · seat 7 · 18 Nov 2026, 22:10`.
+   */
+  missedUse: {
+    title: 'Missed Bonus use',
+    seat: 'Seat',
+    seatLine: '{table} · seat {seat} · {when}',
+    noSeats: 'No seats to add a use to.',
+    chips: 'Bonus used',
+    chipsHint: 'Whole fifties. No visit limit.',
+    reason: 'Reason',
+    /** The member sees no reason for a use added (the owner, 19 Nov). */
+    reasonHint: 'Kept on the record and in Activity.',
+    add: 'Add use',
+    confirm: 'Yes, take {chips} Bonus',
+    added: '{chips} Bonus use added.',
+    failures: {
+      not_allowed: 'Not in your role. Ask an admin.',
+      own_record: 'Not on your own record. Ask another super admin.',
+      invalid_chips: 'Give whole fifties from 50 to 1,00,000.',
+      invalid: 'Pick a seat and give a reason.',
+      nothing_left: 'Nothing left to take back. It expired.',
+      paused: 'Frozen, or promotions stopped. Try once released.',
+      busy: 'Too many at once. Try again shortly.',
       unavailable: 'Not added. Try again.',
     },
   },

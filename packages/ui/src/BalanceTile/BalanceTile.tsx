@@ -26,12 +26,26 @@ export interface BalanceTileProps {
   'aria-expanded'?: boolean;
 }
 
+/**
+ * The hero's figure in the display face; one below zero keeps its sign in the text face (#1077), as the display face's minus
+ * reads as a rule. Read as one figure: `−500`.
+ */
+function HeroFigure({ figure, tone }: { figure: string; tone: 'default' | 'money' }) {
+  if (!figure.startsWith('−')) return <Figure size="display" tone={tone}>{figure}</Figure>;
+  return (
+    <span className="inline-flex items-baseline">
+      <span className={cx('font-text text-56 leading-tight', tone === 'money' ? 'text-money' : 'text-content')}>−</span>
+      <Figure size="display" tone={tone}>{figure.slice(1)}</Figure>
+    </span>
+  );
+}
+
 /** The member's own balance, large: the name, the figure, the line. */
 function Hero({ figure, label, line, tone }: Pick<BalanceTileProps, 'figure' | 'label' | 'line'> & { tone: 'default' | 'money' }) {
   return (
     <div className="flex min-w-0 flex-col items-start gap-2 rounded-card border border-gold-edge bg-raised p-5 text-start">
       <span className="font-text text-14 text-content-muted">{label}</span>
-      <Figure size="display" tone={tone}>{figure}</Figure>
+      <HeroFigure figure={figure} tone={tone} />
       <span className="font-text text-14 text-content-muted">{line}</span>
     </div>
   );

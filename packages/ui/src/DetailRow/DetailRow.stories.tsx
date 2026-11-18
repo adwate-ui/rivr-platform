@@ -19,6 +19,12 @@ export const Opens: Story = { args: { label: 'House rules', value: undefined, la
 
 export const Last: Story = { args: { label: 'Played', value: '4h 05m', isLast: true } };
 
+/** A row that opens with a value and a long label: the value and the chevron end the row together. */
+export const OpensWithValue: Story = {
+  args: { label: 'Promised_by_the_floor_manager_for_the_whole_of_the_long_weekend · 15 Nov', value: '+12,34,567', labelTone: 'default', valueTone: 'accent',
+    onOpen: () => undefined, openHint: 'Reverse' },
+};
+
 /** A filled history at a phone's width: a reason with no spaces to break at, a large figure, and Bonus taken away. */
 export const FilledHistoryOnAPhone: Story = {
   tags: ['viewport-phone'],

@@ -186,9 +186,12 @@ export function useFnbReport(span: ReportSpan) {
   });
 }
 
-const BONUS_SOURCES = ['promotion', 'hand', 'other'] as const;
+const BONUS_SOURCES = ['promotion', 'hand', 'other', 'reversed'] as const;
 
-/** Bonus given from one place: a promotion (`label`, its name), by hand, or anything else by its reason; to how many members, in how many grants. */
+/**
+ * Bonus given from one place: a promotion (`label`, its name), by hand, or anything else by its reason; to how many members,
+ * in how many grants. `reversed` is what reversals took back in the span, below zero, on its own line (#1077).
+ */
 export interface BonusLine {
   readonly source: (typeof BONUS_SOURCES)[number];
   readonly label: string | null;
@@ -210,9 +213,9 @@ export function useBonusReport(span: ReportSpan) {
 }
 
 /** Where a Bonus came from (#1063): by hand, a promotion once approved, a high hand, or anything else (rakeback, a referral). */
-export type BonusSource = 'by_hand' | 'promotion' | 'high_hand' | 'other';
+export type BonusSource = 'by_hand' | 'promotion' | 'high_hand' | 'other' | 'reversed';
 
-const GIVEN_SOURCES: readonly BonusSource[] = ['by_hand', 'promotion', 'high_hand', 'other'];
+const GIVEN_SOURCES: readonly BonusSource[] = ['by_hand', 'promotion', 'high_hand', 'other', 'reversed'];
 
 /** Where a Bonus came from, as the list or its filter names it; any other word reads as other. */
 export const bonusSourceOf = (value: string): BonusSource => GIVEN_SOURCES.find((source) => source === value) ?? 'other';

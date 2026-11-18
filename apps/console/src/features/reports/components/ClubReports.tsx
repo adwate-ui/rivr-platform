@@ -118,7 +118,11 @@ export function FnbReport(props: ReportProps) {
 /** Bonus: what was given, how much of it by hand, what was used and what members hold; then what was given by promotion, by hand and by any other reason. */
 export function BonusReport(props: ReportProps) {
   const lines = useBonusReport(spanOf(props));
-  const source = (line: BonusLine) => (line.source === 'hand' ? t('console.reports.bonusReport.byHand') : line.label ?? '');
+  const source = (line: BonusLine) => {
+    if (line.source === 'hand') return t('console.reports.bonusReport.byHand');
+    if (line.source === 'reversed') return t('console.reports.bonusReport.reversed');
+    return line.label ?? '';
+  };
   const given = (line: BonusLine) => Number(formatRupeesForFile(line.given));
   const columns: readonly DataTableColumn<BonusLine>[] = [
     { key: 'source', header: t('console.reports.bonusReport.source'), isWide: true, filter: 'text', sortValue: source, cell: source },

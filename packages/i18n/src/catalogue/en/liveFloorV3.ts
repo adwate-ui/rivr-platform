@@ -124,6 +124,8 @@ export const floor = {
     /** With a cap on what one visit redeems (decision 0579). */
     bonusChipsLeft: 'Has {chips} Bonus. Up to {left} this visit.',
     bonusChipsNone: 'No Bonus.',
+    /** Bonus owed (#1077): none is redeemed until new Bonus pays it. */
+    bonusChipsOwed: 'Owes {chips} Bonus. None to redeem.',
     bonusChipsTyped: 'Up to their balance. Taken off when they sit.',
     badCallTime: 'Type the call time in minutes, 0 to 1,440.',
     badBonusChips: 'Bonus goes in whole 50s.',

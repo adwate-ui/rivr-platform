@@ -36,7 +36,7 @@ select set_eq(
      ('consent'), ('kyc_record'), ('bonus_grant'),
      -- Kept, naming only the member's id: money, tax, play and safer-gambling records.
      ('member_erasure_request'),
-     ('bonus_redemption'), ('control_state'),
+     ('bonus_redemption'), ('bonus_owed'), ('control_state'),
      ('early_departure'), ('fnb_order'), ('invoice'), ('ledger_account'), ('member_tier_change'),
      ('promotion_grant'), ('high_hand_hit'), ('referral'), ('seat_session'), ('self_exclusion'),
      ('top_up_request'), ('call_time_request'), ('promotion_step_skip'),

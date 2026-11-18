@@ -33,6 +33,20 @@ describe('DetailRow', () => {
     expect(screen.getByRole('button', { name: 'House rules' }).querySelector('svg')?.parentElement).toHaveClass('-mr-1');
   });
 
+  it('keeps a value beside the chevron of a row that opens, at the row\'s end', () => {
+    renderIn(<DetailRow label="Welcome bonus" value="+2,000" onOpen={vi.fn()} />);
+    const row = screen.getByRole('button', { name: /Welcome bonus/ });
+    const end = screen.getByText('+2,000').parentElement;
+    expect(end?.parentElement).toBe(row);
+    expect(end?.querySelector('svg')).not.toBeNull();
+  });
+
+  it('names what a row that opens does, after what it shows, for a screen reader', () => {
+    renderIn(<DetailRow label="Welcome bonus" value="+2,000" onOpen={vi.fn()} openHint="Reverse" />);
+    expect(screen.getByRole('button', { name: /^Welcome bonus.*Reverse$/ })).toBeDefined();
+    expect(screen.getByText('Reverse')).toHaveClass('sr-only');
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<DetailRow label="Top-up" value="Requested" valueTone="accent" hasDot size="small" />);
     expect(await axeViolations(container)).toEqual([]);

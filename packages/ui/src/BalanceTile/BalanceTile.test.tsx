@@ -4,6 +4,15 @@ import { describe, expect, it, vi } from 'vitest';
 import { axeViolations, renderIn } from '../test/render.tsx';
 import { BalanceTile } from './BalanceTile.tsx';
 
+describe('BalanceTile below zero (the owner, 18 Nov)', () => {
+  it('keeps the hero\'s minus in the text face, read with the digits as one figure', () => {
+    const { container } = renderIn(<BalanceTile look="hero" figure="−500" label="Balance" line="Owed. New Bonus pays it first." />);
+    expect(screen.getByText('−')).toHaveClass('font-text');
+    expect(screen.getByText('500')).toHaveClass('font-display');
+    expect(container.textContent).toContain('−500');
+  });
+});
+
 describe('BalanceTile', () => {
   it('shows the figure, what it is and what it is for', () => {
     renderIn(<BalanceTile icon="chip" figure="1,500" label="Bonus" line="Use with your buy-in." />);

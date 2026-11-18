@@ -6,8 +6,11 @@ import { useRivrData } from './provider.tsx';
 import { queryKeys } from './queryKeys.ts';
 import { LIST_MOST } from './limits.ts';
 
-/** What a line of bonus history is: chips given, chips used with a buy-in, or chips that ended before bonus stopped expiring. */
-export type BonusLineKind = 'credited' | 'redeemed' | 'expired';
+/**
+ * What a line of bonus history is: chips given, chips used with a buy-in, chips that ended before bonus stopped expiring, or
+ * Bonus a super admin reversed (#1077; its id is the grant's, as an expiry's is).
+ */
+export type BonusLineKind = 'credited' | 'redeemed' | 'expired' | 'reversed';
 
 /**
  * One line of a member's bonus chips (decision 0504): when, what, how many (in paise: 1 chip is ₹1, as formatChips shows
@@ -29,7 +32,7 @@ export interface MemberBonusLine extends BonusLine {
   readonly staffName: string | null;
 }
 
-const KINDS: readonly BonusLineKind[] = ['credited', 'redeemed', 'expired'];
+const KINDS: readonly BonusLineKind[] = ['credited', 'redeemed', 'expired', 'reversed'];
 
 function kindOf(text: string): BonusLineKind {
   return KINDS.find((kind) => kind === text) ?? 'credited';
@@ -197,6 +200,88 @@ export function useGiveBonusChips(venueId: string, memberId: string) {
       if (error) return err(GIVE_FAILURE_BY_CODE[error.code] ?? 'unavailable');
       // Past the staff member's daily limit nothing is added and no grant comes back; the owner is alerted.
       return data === null ? err('daily_limit') : ok(null);
+    },
+  });
+}
+
+/**
+ * Why a reversal or a missed use did not go: not a super admin, their own record, not whole fifties, the reason or seat,
+ * nothing of the grant left (it expired), frozen, too many at once, or the line.
+ */
+export type CorrectBonusFailure = 'not_allowed' | 'own_record' | 'invalid_chips' | 'invalid' | 'nothing_left' | 'paused' | 'busy' | 'unavailable';
+
+const CORRECT_FAILURE_BY_CODE: Readonly<Record<string, CorrectBonusFailure>> = {
+  '42501': 'not_allowed', RVOWN: 'own_record', RVCHP: 'invalid_chips', '22023': 'invalid', RVNIL: 'nothing_left', RVFRZ: 'paused', RVKIL: 'paused',
+  RVMBR: 'paused', RVRAT: 'busy',
+};
+
+/**
+ * A super admin reverses a Bonus given (#1077, the owner, 18 Nov): the whole of it comes back, even if part was used, less
+ * what expired, so the balance may go below zero. Resolves to what came back; null when it was reversed already.
+ */
+export function useReverseBonus(venueId: string, memberId: string) {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (reversal: { readonly grantId: string; readonly reason: string }): Promise<Result<Paise | null, CorrectBonusFailure>> => {
+      const { data, error } = await client.rpc('reverse_bonus', { p_grant_id: reversal.grantId, p_reason: reversal.reason });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.memberBonus(userId ?? 'signed-out', venueId, memberId) });
+      if (error) return err(CORRECT_FAILURE_BY_CODE[error.code] ?? 'unavailable');
+      return ok(data === null ? null : toPaise(data));
+    },
+  });
+}
+
+/** A seat a missed Bonus use may be added to: its table and seat, and when it started and ended (null while taken). */
+export interface BonusUseSeat {
+  readonly sessionId: string;
+  readonly tableName: string;
+  readonly seat: number;
+  readonly startedAt: string;
+  readonly endedAt: string | null;
+}
+
+/**
+ * The member's newest `count` seats past their Undo, from any visit, for a super admin to add a missed Bonus use to; none
+ * for anyone else. More as Show earlier asks, as the Bonus history reads.
+ */
+export function useBonusUseSeats(venueId: string, memberId: string, count: number) {
+  const { client, userId } = useRivrData();
+  return useQuery({
+    queryKey: queryKeys.bonusUseSeats(userId ?? 'signed-out', venueId, memberId, count),
+    enabled: userId !== null,
+    // Asking for more keeps the seats on screen until they come.
+    placeholderData: keepPreviousData,
+    queryFn: async (): Promise<BonusUseSeat[]> => {
+      const { data, error } = await client.rpc('bonus_use_seats', { p_venue_id: venueId, p_member_id: memberId, p_limit: count });
+      if (error) throw error;
+      return data.map((row) => ({ sessionId: row.session_id, tableName: row.table_name, seat: row.seat, startedAt: row.started_at, endedAt: row.ended_at }));
+    },
+  });
+}
+
+/** A missed Bonus use: the seat, how many in whole fifties, why, and one request id until it goes through. */
+export interface MissedBonusUse {
+  readonly sessionId: string;
+  readonly chips: number;
+  readonly reason: string;
+  readonly requestId: string;
+}
+
+/**
+ * A super admin adds a Bonus use a seat missed (#1077): it counts on the seat's own day, with no visit cap, and may take the
+ * balance below zero. The same request id again is the same use.
+ */
+export function useAddBonusUse(venueId: string, memberId: string) {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (use: MissedBonusUse): Promise<Result<null, CorrectBonusFailure>> => {
+      const { error } = await client.rpc('add_bonus_use', {
+        p_session_id: use.sessionId, p_chips: use.chips, p_reason: use.reason, p_request_id: use.requestId,
+      });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.memberBonus(userId ?? 'signed-out', venueId, memberId) });
+      return error ? err(CORRECT_FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },
   });
 }

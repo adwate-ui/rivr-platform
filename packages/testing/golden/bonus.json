@@ -211,6 +211,126 @@
       "operation": "visitLeft",
       "inputs": { "cap": "₹0", "redeemed": "₹0" },
       "expected": { "left": "₹0" }
+    },
+    {
+      "description": "Arjun's ₹4,000 Bonus reversed with ₹2,500 of it left and ₹1,000 of another: ₹2,500 from it, ₹1,000 from the other, ₹500 owed.",
+      "operation": "take",
+      "inputs": { "amount": "₹4,000", "grants": "₹2,500 @ never | ₹1,000 @ never", "first": "1", "at": "2026-11-19T20:00:00+05:30" },
+      "expected": { "taken": "₹2,500 | ₹1,000", "owed": "₹500" }
+    },
+    {
+      "description": "A ₹3,000 Bonus reversed unspent: all of it from itself, nothing from the other, nothing owed.",
+      "operation": "take",
+      "inputs": { "amount": "₹3,000", "grants": "₹1,000 @ never | ₹3,000 @ never", "first": "2", "at": "2026-11-19T20:00:00+05:30" },
+      "expected": { "taken": "₹0 | ₹3,000", "owed": "₹0" }
+    },
+    {
+      "description": "A ₹2,000 Bonus reversed once all spent, with no other Bonus: ₹2,000 owed.",
+      "operation": "take",
+      "inputs": { "amount": "₹2,000", "grants": "₹0 @ never", "first": "1", "at": "2026-11-19T20:00:00+05:30" },
+      "expected": { "taken": "₹0", "owed": "₹2,000" }
+    },
+    {
+      "description": "After the grant reversed, the others soonest to end first: ₹500 from it, ₹1,000 ending the 25th, ₹500 of the one ending the 30th.",
+      "operation": "take",
+      "inputs": { "amount": "₹2,000", "grants": "₹500 @ never | ₹1,000 @ 2026-11-30T06:00:00+05:30 | ₹1,000 @ 2026-11-25T06:00:00+05:30", "first": "1", "at": "2026-11-19T20:00:00+05:30" },
+      "expected": { "taken": "₹500 | ₹500 | ₹1,000", "owed": "₹0" }
+    },
+    {
+      "description": "The grant reversed gives what is left of it though it has ended: that goes back now, not again at expiry.",
+      "operation": "take",
+      "inputs": { "amount": "₹1,000", "grants": "₹1,000 @ 2026-11-10T06:00:00+05:30 | ₹2,000 @ never", "first": "1", "at": "2026-11-19T20:00:00+05:30" },
+      "expected": { "taken": "₹1,000 | ₹0", "owed": "₹0" }
+    },
+    {
+      "description": "A ₹25,000 reversal with ₹20,000 of it left and nothing else: ₹5,000 owed.",
+      "operation": "take",
+      "inputs": { "amount": "₹25,000", "grants": "₹20,000 @ never", "first": "1", "at": "2026-11-19T20:00:00+05:30" },
+      "expected": { "taken": "₹20,000", "owed": "₹5,000" }
+    },
+    {
+      "description": "A use added after the fact within the balance: ₹1,500 of ₹3,000.",
+      "operation": "take",
+      "inputs": { "amount": "₹1,500", "grants": "₹3,000 @ never", "first": "none", "at": "2026-11-19T20:00:00+05:30" },
+      "expected": { "taken": "₹1,500", "owed": "₹0" }
+    },
+    {
+      "description": "A use added beyond the balance: all ₹1,000 of it, and ₹500 owed.",
+      "operation": "take",
+      "inputs": { "amount": "₹1,500", "grants": "₹1,000 @ never", "first": "none", "at": "2026-11-19T20:00:00+05:30" },
+      "expected": { "taken": "₹1,000", "owed": "₹500" }
+    },
+    {
+      "description": "An ended grant gives nothing to a use added: ₹500 from the one in force, ₹500 owed.",
+      "operation": "take",
+      "inputs": { "amount": "₹1,000", "grants": "₹1,000 @ 2026-11-10T06:00:00+05:30 | ₹500 @ never", "first": "none", "at": "2026-11-19T20:00:00+05:30" },
+      "expected": { "taken": "₹0 | ₹500", "owed": "₹500" }
+    },
+    {
+      "description": "Exactly the balance: every grant to nothing, nothing owed.",
+      "operation": "take",
+      "inputs": { "amount": "₹1,500", "grants": "₹1,000 @ never | ₹500 @ never", "first": "none", "at": "2026-11-19T20:00:00+05:30" },
+      "expected": { "taken": "₹1,000 | ₹500", "owed": "₹0" }
+    },
+    {
+      "description": "A ₹1,550 use with ₹1,234.56 held: all of it, ₹315.44 owed.",
+      "operation": "take",
+      "inputs": { "amount": "₹1,550", "grants": "₹1,234.56 @ never", "first": "none", "at": "2026-11-19T20:00:00+05:30" },
+      "expected": { "taken": "₹1,234.56", "owed": "₹315.44" }
+    },
+    {
+      "description": "One ₹50 chip with no Bonus at all: ₹50 owed.",
+      "operation": "take",
+      "inputs": { "amount": "₹50", "grants": "", "first": "none", "at": "2026-11-19T20:00:00+05:30" },
+      "expected": { "taken": "", "owed": "₹50" }
+    },
+    {
+      "description": "Nothing taken back: nothing from any grant, nothing owed.",
+      "operation": "take",
+      "inputs": { "amount": "₹0", "grants": "₹1,000 @ never", "first": "none", "at": "2026-11-19T20:00:00+05:30" },
+      "expected": { "taken": "₹0", "owed": "₹0" }
+    },
+    {
+      "description": "₹1,000 given with ₹500 owed: ₹500 pays it, ₹500 kept.",
+      "operation": "payOff",
+      "inputs": { "given": "₹1,000", "owed": "₹500" },
+      "expected": { "paid": "₹500", "kept": "₹500" }
+    },
+    {
+      "description": "₹500 given with ₹500 owed: all of it pays it, nothing kept.",
+      "operation": "payOff",
+      "inputs": { "given": "₹500", "owed": "₹500" },
+      "expected": { "paid": "₹500", "kept": "₹0" }
+    },
+    {
+      "description": "₹500 given with ₹2,000 owed: all of it pays, ₹1,500 still owed.",
+      "operation": "payOff",
+      "inputs": { "given": "₹500", "owed": "₹2,000" },
+      "expected": { "paid": "₹500", "kept": "₹0" }
+    },
+    {
+      "description": "Nothing owed: all ₹1,000 kept.",
+      "operation": "payOff",
+      "inputs": { "given": "₹1,000", "owed": "₹0" },
+      "expected": { "paid": "₹0", "kept": "₹1,000" }
+    },
+    {
+      "description": "₹50 given with ₹15.44 owed: ₹15.44 pays it, ₹34.56 kept.",
+      "operation": "payOff",
+      "inputs": { "given": "₹50", "owed": "₹15.44" },
+      "expected": { "paid": "₹15.44", "kept": "₹34.56" }
+    },
+    {
+      "description": "One ₹50 chip given with ₹50 owed: paid, nothing kept.",
+      "operation": "payOff",
+      "inputs": { "given": "₹50", "owed": "₹50" },
+      "expected": { "paid": "₹50", "kept": "₹0" }
+    },
+    {
+      "description": "Nothing given: nothing paid, nothing kept.",
+      "operation": "payOff",
+      "inputs": { "given": "₹0", "owed": "₹500" },
+      "expected": { "paid": "₹0", "kept": "₹0" }
     }
   ]
 }

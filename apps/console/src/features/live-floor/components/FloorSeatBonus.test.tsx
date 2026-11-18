@@ -50,6 +50,14 @@ describe('Seat a player › Bonus', () => {
     expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
   });
 
+  it('says a member who owes Bonus has none to redeem (the owner, 18 Nov)', async () => {
+    await renderFloor({ ...FLOOR, replies: { member_bonus: { status: 200, body: [{ bonus_paise: -50_000 }] } } });
+    fireEvent.click(within(tile('Table 2 NLH 100/200')).getByRole('button', { name: 'Seat 2, Open' }));
+    const seat = await sheet('Seat a player');
+    await within(seat).findByRole('radio', { name: 'Leela Menon · 12 min' });
+    expect(await within(seat).findByText('Owes 500 Bonus. None to redeem.')).toBeDefined();
+  });
+
   // Decision 0579: the club caps what one visit redeems.
   it('shows what this visit may still redeem, and says when a seat asks for more', async () => {
     await renderFloor({ ...FLOOR, replies: {
