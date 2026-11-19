@@ -16,14 +16,6 @@ export {
   type OverrideOrder,
 } from './featureOverrides.ts';
 export {
-  useRakeChangeActions,
-  useTableTypeRake,
-  type RakeChange,
-  type RakeChangeFailure,
-  type RakeSetting,
-  type TableTypeRake,
-} from './rakeSettings.ts';
-export {
   useVenueConfig, useVenueConfigActions, useVenueLogoUpload, type VenueConfig, type VenueConfigFailure,
   type VenueLogoFailure,
 } from './venueConfig.ts';

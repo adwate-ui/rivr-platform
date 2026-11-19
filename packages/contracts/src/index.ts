@@ -53,7 +53,6 @@ export {
   type TvMode,
 } from './devices.ts';
 export { dropBoxCountSchema, HAND_VARIANTS, handEntrySchema } from './hands.ts';
-export { rakeChangeSchema } from './rake.ts';
 export {
   FNB_BAR_NOTES,
   FNB_DIETS,
