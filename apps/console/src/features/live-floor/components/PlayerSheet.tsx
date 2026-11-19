@@ -73,23 +73,28 @@ function CallTimeChoices({ player, now, changes }: { player: SeatedPlayer; now: 
   const choices = player.addTimeChoices;
   const isSet = player.callTimeSetAt !== null;
   const whyId = useId();
+  const noteId = useId();
   if (choices.length === 0) return null;
   const isOpen = (minutes: number) => player.callTimeChoicesOpen.includes(minutes);
-  // A length closed until a call time is set ends no later than the one owed now, as the member's own sheet says.
-  const notBefore = isSet || choices.every(isOpen) ? null : formatTime(new Date(now.getTime() + Math.max(0, player.callTimeLeft ?? 0) * 1000));
+  // Why a length is closed: until a call time is set, it would end no later than the one owed now, as the member's own sheet
+  // says; once set, it would take the call time past its 24 hours (#1099).
+  const why = choices.every(isOpen) ? null : isSet ? t('console.floor.player.extendPastMost')
+    : t('console.floor.player.addTimeNotBefore', { time: formatTime(new Date(now.getTime() + Math.max(0, player.callTimeLeft ?? 0) * 1000)) });
+  // Each length names the Extend note, and a closed one the reason, as its description (#1099).
+  const describedBy = (minutes: number) => [isSet ? noteId : '', isOpen(minutes) || why === null ? '' : whyId].filter((id) => id !== '').join(' ');
   return (
     <Stack gap={3}>
       <Text variant="caption" tone="muted">{t(isSet ? 'console.floor.player.extendCallTime' : 'console.floor.player.setCallTime')}</Text>
       <Grid columns={3} gap={2}>
         {choices.map((minutes) => (
-          <Button key={minutes} variant="subtle" fullWidth isDisabled={!isOpen(minutes)} {...(isOpen(minutes) || notBefore === null ? {} : { 'aria-describedby': whyId })}
+          <Button key={minutes} variant="subtle" fullWidth isDisabled={!isOpen(minutes)} {...(describedBy(minutes) === '' ? {} : { 'aria-describedby': describedBy(minutes) })}
             onClick={() => void changes.addTime(player, minutes)}>
             {isSet ? t('console.floor.player.addTimeChoice', { time: formatDuration(minutes * 60) }) : formatDuration(minutes * 60)}
           </Button>
         ))}
       </Grid>
-      {notBefore === null ? null : <Text id={whyId} variant="caption" tone="muted">{t('console.floor.player.addTimeNotBefore', { time: notBefore })}</Text>}
-      {isSet ? <Text variant="caption" tone="muted">{t('console.floor.player.extendNote')}</Text> : null}
+      {why === null ? null : <Text id={whyId} variant="caption" tone="muted">{why}</Text>}
+      {isSet ? <Text id={noteId} variant="caption" tone="muted">{t('console.floor.player.extendNote')}</Text> : null}
     </Stack>
   );
 }

@@ -25,6 +25,8 @@ export interface EditableListProps {
   initialValues: readonly number[];
   /** Every entry in order; null while any entry is blank, repeated or outside the range, so the screen saves nothing. */
   onChange: (values: readonly number[] | null) => void;
+  /** Words about the list as a whole, under it and read as its description: "Extend adds time beyond the current end." */
+  hint?: string | undefined;
 }
 
 /** One entry as typed; its id keeps its field as others are removed. */
@@ -92,7 +94,8 @@ function EntryRow({ name, unit, entry, error, isNew, onTyped, onRemove }: EntryR
  * focus stays on the list. With `maxEntries`, Add is off once the list is full, and a line says how many it holds. It keeps
  * what is typed, so the screen mounts it anew (a `key`) to start from other values.
  */
-export function EditableList({ label, entryLabel, addLabel, unit, min, max, maxEntries, initialValues, onChange }: EditableListProps) {
+export function EditableList({ label, entryLabel, addLabel, unit, min, max, maxEntries, initialValues, onChange, hint }: EditableListProps) {
+  const hintId = useId();
   const rule = { unit, range: { min, max } };
   const [entries, setEntries] = useState<readonly Entry[]>(() => initialValues.map((value, id) => ({ id, typed: String(value) })));
   const [firstNewId] = useState(initialValues.length);
@@ -112,7 +115,8 @@ export function EditableList({ label, entryLabel, addLabel, unit, min, max, maxE
     list.current?.focus();
   };
   return (
-    <div ref={list} role="group" aria-label={label} tabIndex={-1} className="flex flex-col gap-4 focus:outline-none">
+    <div ref={list} role="group" aria-label={label} aria-describedby={hint === undefined ? undefined : hintId} tabIndex={-1}
+      className="flex flex-col gap-4 focus:outline-none">
       {entries.length === 0 ? <Text tone="muted">{t('ui.console.editableList.none')}</Text> : null}
       {entries.map((entry, at) => (
         <EntryRow key={entry.id} name={t('ui.console.editableList.entry', { label: entryLabel, number: formatNumber(at + 1) })} unit={unit} entry={entry}
@@ -123,6 +127,7 @@ export function EditableList({ label, entryLabel, addLabel, unit, min, max, maxE
         <Button variant="subtle" size="compact" isDisabled={isFull} onClick={add}>{addLabel}</Button>
         {isFull ? <Text variant="small" tone="muted">{t('ui.console.editableList.full', { count: formatNumber(entries.length) })}</Text> : null}
       </div>
+      {hint === undefined ? null : <Text id={hintId} variant="caption" tone="muted">{hint}</Text>}
     </div>
   );
 }

@@ -101,6 +101,8 @@ export const playerLive = {
     callTimeEnds: 'Until {time}',
     /** Under lengths greyed out because they end before the call time owed: `Can't end before 23:40.` */
     callTimeNotBefore: "Can't end before {time}.",
+    /** Under Extend's lengths closed because they would take the call time past its most (1,440 minutes, #1099). */
+    extendPastMost: "Call time can't pass 24 hours.",
     /** Set or extended: the seat then says until when. */
     callTimeSet: 'Call time set',
     callTimeExtended: 'Call time extended',

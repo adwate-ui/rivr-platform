@@ -31,7 +31,8 @@ export function FramePulse({ venueId, permissions, counts }: FramePulseProps) {
   const items = [
     { id: 'seated', count: seated.data?.length ?? 0, label: t('console.shell.pulse.seated'), href: '/' },
     { id: 'waiting', count: waiting.data?.length ?? 0, label: t('console.shell.pulse.waiting'), href: '/waitlist' },
-    { id: 'requests', count: requestsWaiting(counts), label: t('console.shell.pulse.requests'), href: '/?panel=open', needsYou: true },
+    { id: 'requests', count: requestsWaiting(counts), label: t(requestsWaiting(counts) === 1 ? 'console.shell.pulse.request' : 'console.shell.pulse.requests'),
+      href: '/?panel=open', needsYou: true },
   ];
   return <HeaderPulse label={t('console.shell.pulse.label')} items={items} onNavigate={(href) => void navigate({ href })} />;
 }

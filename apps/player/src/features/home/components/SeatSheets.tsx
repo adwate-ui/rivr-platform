@@ -43,16 +43,27 @@ function TopUpSheet({ onClose }: SheetProps) {
 
 /**
  * The line under the lengths: when the chosen one ends (from now until set, from the call time's end once set, #1076), and,
- * with any greyed out, the time none may end before (`id`, which the lengths name as their description).
+ * with any greyed out, why (`id`, which the lengths name as their description).
  */
-function CallTimeLine({ id, choice, from, secondsLeft, hasGreyed, now }: { id: string; choice: number | null; from: Date | null; secondsLeft: number; hasGreyed: boolean; now: Date }) {
-  const at = (seconds: number) => formatTime(new Date(now.getTime() + seconds * 1000));
+function CallTimeLine({ id, choice, from, why }: { id: string; choice: number | null; from: Date | null; why: string | null }) {
   return (
     <Stack gap={1}>
       {choice === null || from === null ? null : <Text tone="muted">{t('player.live.seat.callTimeEnds', { time: formatTime(new Date(from.getTime() + choice * 60_000)) })}</Text>}
-      {hasGreyed ? <Text id={id} tone="muted">{t('player.live.seat.callTimeNotBefore', { time: at(secondsLeft) })}</Text> : null}
+      {why === null ? null : <Text id={id} tone="muted">{why}</Text>}
     </Stack>
   );
+}
+
+/**
+ * Why any length is greyed, and what the lengths name as their description (#1099): until set, a length would end before
+ * the call time owed now; once set, it would take the call time past its 24 hours, and Extend's note describes them too.
+ */
+function callTimeHelp(seat: MySeat, secondsLeft: number, now: Date, ids: { why: string; note: string }) {
+  const isSet = seat.callTimeSetAt !== null;
+  const why = seat.addTimeChoices.every((minutes) => seat.callTimeChoicesOpen.includes(minutes)) ? null
+    : isSet ? t('player.live.seat.extendPastMost') : t('player.live.seat.callTimeNotBefore', { time: formatTime(new Date(now.getTime() + secondsLeft * 1000)) });
+  const describedBy = [why === null ? '' : ids.why, isSet ? ids.note : ''].filter((id) => id !== '').join(' ');
+  return { why, describedBy: describedBy === '' ? undefined : describedBy };
 }
 
 /** Where a length counts from (#1076): now until a call time is set; once set, the end of it while it runs, else now. */
@@ -75,12 +86,13 @@ function SetCallTimeSheet({ seat, secondsLeft, now, onClose }: SheetProps & { se
   const toast = useToast();
   const send = useSend(onClose);
   const whyId = useId();
+  const noteId = useId();
   const isSet = seat.callTimeSetAt !== null;
   const isOpen = (minutes: number) => seat.callTimeChoicesOpen.includes(minutes);
   const choices = seat.addTimeChoices;
-  // Set or Extend in words; lengths greyed only while setting (once set, Extend adds beyond the end, #1089).
+  // Set or Extend in words, and why any length is greyed (#1099).
   const action = t(isSet ? 'player.live.seat.extendCallTime' : 'player.live.seat.setCallTime');
-  const hasGreyed = !isSet && !choices.every(isOpen);
+  const { why, describedBy } = callTimeHelp(seat, secondsLeft, now, { why: whyId, note: noteId });
   const [choice, setChoice] = useState(choices.find((minutes) => minutes === 60 && isOpen(minutes)) ?? choices.find(isOpen) ?? null);
   const [requestId] = useState(() => crypto.randomUUID());
   const set = async (minutes: number) => {
@@ -92,11 +104,11 @@ function SetCallTimeSheet({ seat, secondsLeft, now, onClose }: SheetProps & { se
     <Sheet isOpen onClose={onClose} title={action}>
       <Stack gap={4}>
         <ChoiceChips label={action} isLabelVisuallyHidden look="tile" mode="one" selected={choice === null ? [] : [String(choice)]}
-          describedBy={hasGreyed ? whyId : undefined}
+          describedBy={describedBy}
           options={choices.map((minutes) => ({ value: String(minutes), label: formatDuration(minutes * 60), isDisabled: !isOpen(minutes) }))}
           onChange={([value]) => setChoice(choices.find((minutes) => String(minutes) === value) ?? choice)} />
-        <CallTimeLine id={whyId} choice={choice} from={choiceFrom(seat, now)} secondsLeft={secondsLeft} hasGreyed={hasGreyed} now={now} />
-        {isSet ? <Text variant="caption" tone="muted">{t('player.live.seat.extendNote')}</Text> : null}
+        <CallTimeLine id={whyId} choice={choice} from={choiceFrom(seat, now)} why={why} />
+        {isSet ? <Text id={noteId} variant="caption" tone="muted">{t('player.live.seat.extendNote')}</Text> : null}
         <Button variant="primary" size="tall" fullWidth isDisabled={send.isOffline || choice === null} isLoading={setCallTime.isPending}
           onClick={() => { if (choice !== null) void set(choice); }}>
           {action}

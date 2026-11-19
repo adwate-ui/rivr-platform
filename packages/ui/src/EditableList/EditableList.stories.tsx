@@ -37,5 +37,8 @@ export const AtADesk: Story = { tags: ['viewport-console'] };
 /** Full: with a most of three, Add is off and the list says so. */
 export const Full: Story = { args: { maxEntries: 3 } };
 
+/** Its own words under it, read as the list's description (#1099). */
+export const WithHint: Story = { args: { hint: 'Extend adds time beyond the current end.' } };
+
 /** On a phone the panel is the screen's width. */
 export const OnAPhone: Story = { tags: ['viewport-phone'] };

@@ -17,6 +17,13 @@ const field = (number: number) => screen.getByRole('textbox', { name: `Choice ${
 const values = () => screen.getAllByRole('textbox').map((one) => one.getAttribute('value'));
 
 describe('EditableList', () => {
+  it('reads its own words under it as the list\u2019s description', () => {
+    renderIn(<EditableList label="Extend call time choices" entryLabel="Choice" addLabel="Add a choice" unit="minutes" min={5} max={480}
+      initialValues={[30]} onChange={vi.fn()} hint="Extend adds time beyond the current end." />);
+    const hint = screen.getByText('Extend adds time beyond the current end.');
+    expect(screen.getByRole('group', { name: 'Extend call time choices' }).getAttribute('aria-describedby')).toBe(hint.id);
+  });
+
   it('holds no more than its most: Add is off once full, the list says so, and Add is back once an entry is removed', async () => {
     renderIn(<EditableList label="Add time choices" entryLabel="Choice" addLabel="Add a choice" unit="minutes" min={5} max={480} maxEntries={3} initialValues={[30, 60]} onChange={vi.fn()} />);
     const add = screen.getByRole('button', { name: 'Add a choice' });

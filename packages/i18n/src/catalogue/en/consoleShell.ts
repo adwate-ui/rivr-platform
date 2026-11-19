@@ -21,6 +21,8 @@ export const shell = {
     seated: 'seated',
     waiting: 'waiting',
     requests: 'requests',
+    /** One request (#1099): "1 request", not "1 requests". */
+    request: 'request',
   },
   /** The keys that work, in the staff member's menu and in buttons' tooltips. */
   keys: {
