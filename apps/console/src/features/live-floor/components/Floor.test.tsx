@@ -170,7 +170,8 @@ describe('The floor for a cashier', () => {
     const panel = within(requests());
     const list = await panel.findByRole('button', { name: /View list/ });
     expect(panel.getByText('Dev Khanna')).toBeDefined();
-    expect(panel.queryByRole('button', { name: 'Dev Khanna' })).toBeNull();
+    // No button names him at all: the card's own button is named with its kind and detail around the name.
+    expect(panel.queryByRole('button', { name: /Dev Khanna/ })).toBeNull();
     expect(panel.queryByRole('button', { name: /Check ID/ })).toBeNull();
     fireEvent.click(list);
     await waitFor(() => expect(router.state.location.pathname).toBe('/waitlist'));

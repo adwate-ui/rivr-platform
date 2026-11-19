@@ -59,7 +59,8 @@ function Item({ item, isCurrent, onPick }: { item: PickListItem; isCurrent: bool
  */
 function MemberItem({ item, memberId, isCurrent, onPick }: { item: PickListItem; memberId: string; isCurrent: boolean; onPick: (id: string) => void }) {
   return (
-    <li className="relative isolate">
+    // Clipped, so a short item's name link keeps its 44 px press inside the item and never over the next one's.
+    <li className="relative isolate overflow-clip">
       <button type="button" aria-current={isCurrent ? 'true' : undefined} onClick={() => onPick(item.id)}
         aria-label={[item.title, item.detail].filter(Boolean).join(' ')}
         className={cx('absolute inset-0 border-l-2 transition-colors', ITEM_FOCUS, fillOf(isCurrent))} />

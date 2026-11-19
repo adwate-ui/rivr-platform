@@ -73,7 +73,7 @@ describe('RequestItem', () => {
     expect(container.querySelector('[data-fresh]')).not.toBeNull();
     rerender(<RequestItem kind="Top-up" title="Vidya Chadha" primary={{ label: 'Start', onClick: vi.fn() }} />);
     expect(container.querySelector('[data-fresh]')).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Vidya Chadha' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Vidya Chadha/ })).toBeNull();
   });
 
   it('has no accessibility violations', async () => {
