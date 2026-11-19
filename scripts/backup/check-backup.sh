@@ -8,6 +8,8 @@
 # - the dump's three files are there, and cron.sql schedules every cron job;
 # - the manifest lists every public table with the row count the database has;
 # - a file put in a Storage bucket is in the archive at its path, byte for byte, and in storage.csv (#386).
+# pg_cron's jobs are held for the check (#986): one that writes between the backup and the count, as the daily MIS job at
+# 01:30 UTC did, would make the manifest differ from the database. Those it holds run again on exit.
 # The restore itself is the drill's (#26). Needs the AWS CLI, as GitHub's runners have.
 set -euo pipefail
 
@@ -23,6 +25,7 @@ admin_url="$(setting DB_URL)"
 export STORAGE_S3_ENDPOINT="$(setting STORAGE_S3_URL)" STORAGE_S3_ACCESS_KEY_ID="$(setting S3_PROTOCOL_ACCESS_KEY_ID)"
 export STORAGE_S3_SECRET_ACCESS_KEY="$(setting S3_PROTOCOL_ACCESS_KEY_SECRET)" STORAGE_S3_REGION="$(setting S3_PROTOCOL_REGION)"
 work="$(mktemp -d)"
+held=""
 password="$(openssl rand -hex 16)"
 probe="backup-check/$(openssl rand -hex 8).jpg"
 storage() {
@@ -30,7 +33,15 @@ storage() {
     aws "$@" --endpoint-url "$STORAGE_S3_ENDPOINT"
 }
 trap 'psql "$admin_url" -q -c "alter role rivr_backup with nologin password null" >/dev/null 2>&1 || true
+      [[ -z "$held" ]] || psql "$admin_url" -q -c "select cron.alter_job(j, active := true) from unnest(string_to_array('"'"'$held'"'"', '"'"','"'"')::bigint[]) j" >/dev/null 2>&1 || true
       storage s3 rm "s3://kyc/$probe" >/dev/null 2>&1 || true; rm -rf "$work"' EXIT
+# One statement holds the active jobs and names them, so none switched on in between is held and never freed.
+held="$(psql "$admin_url" -At -v ON_ERROR_STOP=1 -c "select coalesce(string_agg(j.jobid::text, ','), '') from (select jobid, cron.alter_job(jobid, active := false) from cron.job where active) j")"
+# A job already running when held finishes before anything is counted.
+for _ in $(seq 1 60); do
+  [[ "$(psql "$admin_url" -At -c "select count(*) from cron.job_run_details where status not in ('succeeded', 'failed')")" == 0 ]] && break
+  sleep 1
+done
 psql "$admin_url" -q -v ON_ERROR_STOP=1 -c "alter role rivr_backup with login password '$password'"
 backup_url="$(sed -E "s#//[^@]*@#//rivr_backup:${password}@#" <<<"$admin_url")"
 
