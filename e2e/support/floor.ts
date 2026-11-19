@@ -22,12 +22,22 @@ export async function seatOnFloor(page: Page, { table, seat, number }: { table: 
   await expect(page.getByText(`${number} seated at ${table}, seat ${String(seat)}`)).toBeVisible();
 }
 
-/** Opens a seated player's sheet from their row. */
+/**
+ * Opens a seated player's sheet from their row's own button, by Enter: the name in the row is a link to their account on
+ * Members (the owner, 19 Nov), so a press on the name opens Members, not the seat; the key needs no row geometry.
+ */
 export async function openPlayer(page: Page, name: string) {
   await showSeats(page);
-  await page.getByRole('button', { name: new RegExp(`^Seat \\d+, ${name},`) }).click();
+  await page.getByRole('button', { name: new RegExp(`^Seat \\d+, ${name},`) }).press('Enter');
   return page.getByRole('dialog', { name });
 }
+
+/**
+ * A member's request in the floor's panel: the card whose own button names them, "Join request, Neel Bose, Table 1 waitlist"
+ * (UI review of the batch PR). The button covers the card, so the card is the box that holds it, actions and all.
+ */
+export const requestNamed = (page: Page, name: string) =>
+  requestsPanel(page).locator('div').filter({ has: page.getByRole('button', { name: new RegExp(`(^|, )${name}(,|$)`) }) });
 
 /**
  * Lets a seated player owing call time go early from their sheet's Leave, with a reason (decisions 0481, 0680); with

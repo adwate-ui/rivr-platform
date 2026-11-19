@@ -8,12 +8,12 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
-import { openPlayer, requestsPanel, seatOnFloor } from '../support/floor.ts';
+import { openPlayer, requestNamed, seatOnFloor } from '../support/floor.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 /** A member's request in the panel that says `kind`: its own entry, once it has arrived. */
 async function requestOf(floor: Page, name: string, kind: RegExp) {
-  const entry = requestsPanel(floor).locator('div').filter({ has: floor.getByRole('button', { name, exact: true }) }).filter({ hasText: kind }).last();
+  const entry = requestNamed(floor, name).filter({ hasText: kind }).last();
   await expect(entry).toBeVisible({ timeout: 20_000 });
   return entry;
 }
@@ -90,6 +90,6 @@ test.describe('Floor requests', () => {
     await record.getByRole('radio', { name: 'Unwell' }).click();
     await record.getByRole('button', { name: 'Let go early', exact: true }).click();
     await expect(page.getByText('Neel Bose let go early')).toBeVisible();
-    await expect(requestsPanel(page).getByRole('button', { name: 'Neel Bose', exact: true })).toHaveCount(0, { timeout: 15_000 });
+    await expect(requestNamed(page, 'Neel Bose')).toHaveCount(0, { timeout: 15_000 });
   });
 });
