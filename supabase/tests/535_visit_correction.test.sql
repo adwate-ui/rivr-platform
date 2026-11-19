@@ -63,8 +63,11 @@ select throws_ok($$ select * from pg_temp.fix('a2', pg_temp.at('20:15'), null, '
   'check-in falls no later than the first seat');
 select throws_ok($$ select * from pg_temp.fix('a2', pg_temp.at('05:59') - interval '1 day', null, '[]', 'The day before') $$, '22023', null,
   'and stays on its club day');
-select throws_ok($$ select * from pg_temp.fix('a2', pg_temp.at('18:30'), null, '[]', 'Came in earlier') $$, '22023', null,
-  'and runs into none of the member''s other visits');
+-- A clash with the member's other visit is its own refusal (#1078), so the panel says which rule refused it.
+select throws_ok($$ select * from pg_temp.fix('a2', pg_temp.at('18:30'), null, '[]', 'Came in earlier') $$, 'RVVCL',
+  'The visit runs into the member''s other visit', 'and runs into none of the member''s other visits, refused as a clash');
+select throws_ok($$ select * from pg_temp.fix('a1', null, pg_temp.at('20:30'), '[]', 'Left later') $$, 'RVVCL', null,
+  'a check-out moved into the next visit is a clash too');
 select throws_ok($$ select * from pg_temp.fix('a2', null, pg_temp.at('22:30'), '[]', 'Left earlier') $$, '22023', null,
   'check-out falls no earlier than the last seat ends');
 select throws_ok($$ select * from pg_temp.fix('a2', null, now() + interval '5 minutes', '[]', 'Left later') $$, '22023', null, 'nor ahead of now');

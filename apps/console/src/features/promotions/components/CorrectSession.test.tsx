@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CorrectSession } from './CorrectSession.tsx';
-import { renderWithApi, resetApi } from './promotionsTestApi.tsx';
+import { refused, renderWithApi, resetApi } from './promotionsTestApi.tsx';
 
 afterEach(resetApi);
 
@@ -37,5 +37,52 @@ describe('Edit visit, on a club day of two visits (the owner, 18 Nov; Edit, 19 N
     fireEvent.click(within(panel).getByRole('button', { name: 'Save changes' }));
     await waitFor(() => expect(onDone).toHaveBeenCalled());
     expect(bodiesOf('correct_visit')).toEqual([{ p_visit_id: 'v2', p_seats: [], p_reason: 'Left from the table', p_closed_at: '2026-11-15T17:10:30.123456+00:00' }]);
+  });
+
+  it('reads the line under the visits with the dimmed chips while there are changes not saved', async () => {
+    renderWithApi(<CorrectSession venueId="v1" memberId="m1" subtitle="Ishaan Verma · 15 Nov 2026" visits={[FIRST, SECOND]} onDone={() => undefined} onCancel={() => undefined} />, {});
+    const panel = await screen.findByRole('dialog', { name: 'Edit visit' });
+    const chips = within(panel).getByRole('radiogroup', { name: 'Visit' });
+    expect(chips.getAttribute('aria-describedby')).toBeNull();
+    typeIn(panel, /^Checked in/, '17:45');
+    const line = document.getElementById(chips.getAttribute('aria-describedby') ?? '');
+    expect(line?.textContent).toBe('Save or cancel to choose another visit.');
+  });
+});
+
+describe('Edit visit says which rule refused a correction (the review of the pull request for Edit visit)', () => {
+  // The second visit alone: in at 20:00, at Table 3 from 20:10 to 22:40:30, out at 23:00.
+  const open = async (replies: Parameters<typeof renderWithApi>[1]) => {
+    const { bodiesOf } = renderWithApi(<CorrectSession venueId="v1" memberId="m1" subtitle="Ishaan Verma · 15 Nov 2026" visits={[SECOND]} onDone={() => undefined} onCancel={() => undefined} />, replies);
+    return { bodiesOf, panel: await screen.findByRole('dialog', { name: 'Edit visit' }) };
+  };
+
+  it('says under each field which rule its time breaks, and sends nothing', async () => {
+    const { bodiesOf, panel } = await open({});
+    typeIn(panel, /^Checked in/, '20:15');
+    typeIn(panel, /^Checked out/, '22:30');
+    typeIn(panel, /^Why it changes/, 'Card times');
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save changes' }));
+    expect(await within(panel).findByText('The first seat started at 20:10. Check in by then.')).toBeDefined();
+    expect(within(panel).getByText('The last seat ended at 22:40. Check out then or later.')).toBeDefined();
+    expect(bodiesOf('correct_visit')).toEqual([]);
+  });
+
+  it('counts a seat end typed in the panel, and holds check-out to the club day', async () => {
+    const { panel } = await open({});
+    typeIn(panel, /^Left at/, '23:10');
+    typeIn(panel, /^Checked out/, '06:30');
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save changes' }));
+    expect(await within(panel).findByText('The club day ends at 06:00.')).toBeDefined();
+    typeIn(panel, /^Checked out/, '23:05');
+    expect(within(panel).getByText('The last seat ended at 23:10. Check out then or later.')).toBeDefined();
+  });
+
+  it('names a clash with the member\'s other visit as its own refusal', async () => {
+    const { panel } = await open({ '/rpc/correct_visit': refused('RVVCL') });
+    typeIn(panel, /^Checked in/, '19:00');
+    typeIn(panel, /^Why it changes/, 'Came in earlier');
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save changes' }));
+    expect(await within(panel).findByText('Those times run into their other visit.')).toBeDefined();
   });
 });

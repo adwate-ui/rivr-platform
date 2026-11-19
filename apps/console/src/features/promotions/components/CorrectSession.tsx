@@ -2,8 +2,10 @@ import { bonusRefusalSchema } from '@rivr/contracts';
 import { useCorrectVisit, type CorrectionDone, type SessionCorrectionFailure, type VisitTimes, type WaitingSession } from '@rivr/db';
 import { formatTime, t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Inline, Input, Sheet, Stack, Text, UnitInput, useToast } from '@rivr/ui';
-import { useState } from 'react';
-import { checkedInOf, checkedOutOf, draftOf, endOf, visitCorrectionOf, visitDraftOf, type SeatDraft, type VisitDraft } from './sessionCorrection.ts';
+import { useId, useState } from 'react';
+import {
+  checkedInOf, checkedOutOf, draftOf, endOf, visitCorrectionOf, visitDraftOf, visitProblemsOf, type SeatDraft, type TimeProblem, type VisitDraft, type VisitProblems,
+} from './sessionCorrection.ts';
 
 // A reason as a refusal takes it, 3 to 200 characters: the database asks the same of a correction.
 const isReason = (reason: string) => bonusRefusalSchema.safeParse({ reason }).success;
@@ -28,18 +30,29 @@ function SeatFields({ session, draft, isChecked, onChange }: { session: WaitingS
   );
 }
 
-/** The visit's check-in, and its check-out once it is over (#1075). */
-function VisitFields({ visit, draft, isChecked, onChange }: { visit: VisitTimes; draft: VisitDraft; isChecked: boolean; onChange: (draft: VisitDraft) => void }) {
-  const badTime = t('console.promotions.approvals.correction.badTime');
+/** Which rule refuses a time (#1078): ahead of now, after the first seat, before the last, or past the club day's end. */
+const problemWords = ({ rule, at: when }: TimeProblem) => t(`console.promotions.approvals.correction.${rule}`, { time: when === null ? '' : at(when) });
+
+/** A time's line under its field, once Save is pressed: one that cannot be read, else the rule it breaks. */
+function timeError(isChecked: boolean, isUnread: boolean, problem: TimeProblem | null): string | undefined {
+  if (!isChecked) return undefined;
+  if (isUnread) return t('console.promotions.approvals.correction.badTime');
+  return problem === null ? undefined : problemWords(problem);
+}
+
+/** The visit's check-in, and its check-out once it is over (#1075), each with what refuses it (#1078). */
+function VisitFields({ visit, draft, problems, isChecked, onChange }: {
+  visit: VisitTimes; draft: VisitDraft; problems: VisitProblems; isChecked: boolean; onChange: (draft: VisitDraft) => void;
+}) {
   return (
     <Inline gap={3} align="start">
       <Input label={t('console.promotions.approvals.correction.checkedIn')} hint={t('console.promotions.approvals.correction.leftAtHint')} value={draft.checkedIn}
         maxLength={5} autoComplete="off" onChange={(event) => onChange({ ...draft, checkedIn: event.target.value })}
-        error={isChecked && checkedInOf(visit, draft.checkedIn) === undefined ? badTime : undefined} />
+        error={timeError(isChecked, checkedInOf(visit, draft.checkedIn) === undefined, problems.checkedIn)} />
       {visit.closedAt === null ? null : (
         <Input label={t('console.promotions.approvals.correction.checkedOut')} value={draft.checkedOut} maxLength={5} autoComplete="off"
           onChange={(event) => onChange({ ...draft, checkedOut: event.target.value })}
-          error={isChecked && checkedOutOf(visit, draft) === undefined ? badTime : undefined} />
+          error={timeError(isChecked, checkedOutOf(visit, draft) === undefined, problems.checkedOut)} />
       )}
     </Inline>
   );
@@ -78,13 +91,16 @@ function useDrafts(visits: readonly VisitTimes[]) {
 
 /** A choice among the day's visits; another waits while the chosen one has changes not saved, as Save sends one visit. */
 function VisitChoice({ visits, visit, isEdited, onChoose }: { visits: readonly VisitTimes[]; visit: VisitTimes; isEdited: boolean; onChoose: (visitId: string) => void }) {
+  // The line says why the other chips are dimmed, read with them (#1078), as the floor's call-time chips do.
+  const saveFirstId = useId();
   if (visits.length < 2) return null;
   return (
     <Stack gap={2}>
       <ChoiceChips label={t('console.promotions.approvals.correction.visits')} mode="one" look="subtle" selected={[visit.visitId]}
         options={visits.map((one) => ({ value: one.visitId, label: visitWords(one), isDisabled: isEdited && one.visitId !== visit.visitId }))}
+        describedBy={isEdited ? saveFirstId : undefined}
         onChange={([picked]) => { if (picked !== undefined && picked !== visit.visitId) onChoose(picked); }} />
-      {isEdited ? <Text variant="small" tone="muted">{t('console.promotions.approvals.correction.saveFirst')}</Text> : null}
+      {isEdited ? <Text id={saveFirstId} variant="small" tone="muted">{t('console.promotions.approvals.correction.saveFirst')}</Text> : null}
     </Stack>
   );
 }
@@ -97,7 +113,8 @@ function VisitBody({ visits, visit, drafts, isChecked, onChoose }: {
   return (
     <>
       <VisitChoice visits={visits} visit={visit} isEdited={isEdited} onChoose={onChoose} />
-      <VisitFields visit={visit} draft={drafts.timesOf(visit)} isChecked={isChecked} onChange={(draft) => drafts.setTimes(visit, draft)} />
+      <VisitFields visit={visit} draft={drafts.timesOf(visit)} problems={visitProblemsOf(visit, drafts.timesOf(visit), drafts.seats)} isChecked={isChecked}
+        onChange={(draft) => drafts.setTimes(visit, draft)} />
       {visit.sessions.map((session) => (
         <SeatFields key={session.sessionId} session={session} draft={drafts.seatOf(session)} isChecked={isChecked}
           onChange={(draft) => drafts.setSeat(session, draft)} />
@@ -147,8 +164,9 @@ export function CorrectSession({ venueId, memberId, subtitle, visits, onDone, on
   const submit = async () => {
     setChecked(true);
     const sending = visitCorrectionOf(visit, drafts.timesOf(visit), drafts.seats);
+    const problems = visitProblemsOf(visit, drafts.timesOf(visit), drafts.seats);
     setFailure(sending === 'unchanged' ? sending : null);
-    if (typeof sending === 'string' || !isReason(reason)) return;
+    if (typeof sending === 'string' || !isReason(reason) || problems.checkedIn !== null || problems.checkedOut !== null) return;
     const outcome = await correct.mutateAsync({ visitId: visit.visitId, memberId, ...sending, reason });
     if (!outcome.ok) return setFailure(outcome.error);
     toast(saidOf(outcome.value));

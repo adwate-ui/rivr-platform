@@ -32,6 +32,11 @@ export const promotionApprovals = {
     reasonHint: 'Kept in Activity.',
     badTime: 'Type a time as 23:40.',
     badAway: 'Type whole minutes, 0 or more.',
+    /** What the console already knows refuses a visit's time (#1078), said under the field. */
+    aheadOfNow: 'That time has not come yet.',
+    afterFirstSeat: 'The first seat started at {time}. Check in by then.',
+    beforeLastSeat: 'The last seat ended at {time}. Check out then or later.',
+    pastDayEnd: 'The club day ends at 06:00.',
     unchanged: 'Change a time first.',
     save: 'Save changes',
     /** Saved: how many waiting steps the corrected time no longer reaches, refused, and how many given above it, which stay. */
@@ -43,6 +48,7 @@ export const promotionApprovals = {
       not_allowed: 'Only a super admin edits a visit.',
       own_record: 'Not your own record. Ask another super admin.',
       invalid: 'Those times do not fit the visit.',
+      clash: 'Those times run into their other visit.',
       paused: 'Frozen. Try again once it is released.',
       switched_off: 'Promotions are switched off.',
       unavailable: 'Not saved. Try again.',
