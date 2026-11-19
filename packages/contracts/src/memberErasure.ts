@@ -11,3 +11,8 @@ export const erasedKycFilesSchema = z.object({
 
 /** A request to remove an erased member's KYC files. */
 export type ErasedKycFilesRequest = z.output<typeof erasedKycFilesSchema>;
+
+/** Removing a reopened desk check's files (#931), as the console asks the kyc-reopened-files Edge Function: the member. */
+export const reopenedKycFilesSchema = z.object({
+  memberId: z.uuid(),
+});

@@ -139,6 +139,9 @@ export function useKycReviewActions(venueId: string) {
   const reopen = useMutation({
     mutationFn: async ({ memberId, reason }: { memberId: string; reason: string }): Promise<Result<'reopened', KycReviewFailure>> => {
       const { error } = await client.rpc('reopen_kyc_check', { p_member_id: memberId, p_reason: reason });
+      // A verified desk check's three files go from Storage at once (#931). One that cannot be removed now stays listed, until a
+      // super admin's next ask or the member's next desk check.
+      if (!error) await client.functions.invoke('kyc-reopened-files', { body: { memberId } }).catch(() => undefined);
       const user = userId ?? 'signed-out';
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.kycReview(user, venueId) }),
