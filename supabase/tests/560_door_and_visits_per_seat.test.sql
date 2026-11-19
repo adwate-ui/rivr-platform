@@ -89,7 +89,8 @@ select * from public.player_visits_page('00000000-0000-4000-8000-000000000001',
 select is((select count(*)::int from visits where member_id = '00000000-0000-4000-8000-000000000215'), 2, 'Players visits has her two seats');
 select ok((select bool_and(played_seconds + away_seconds = floor(extract(epoch from coalesce(left_at, now()) - seated_at)))
            from visits where member_id = '00000000-0000-4000-8000-000000000215'), 'each seat''s time is its time played and its time away');
-select ok((select sum(visits.away_seconds) between s.away_seconds - 1 and s.away_seconds
+-- Each seat's time played rounds down, so their time away may come to a second a seat more than the session's.
+select ok((select sum(visits.away_seconds) between s.away_seconds and s.away_seconds + count(*) - 1
            from visits, public.seat_session s
            where visits.member_id = '00000000-0000-4000-8000-000000000215' and s.member_id = visits.member_id and s.ended_at is null
            group by s.away_seconds), 'the seats'' time away is the session''s, shared out');
