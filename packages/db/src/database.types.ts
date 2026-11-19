@@ -3627,6 +3627,9 @@ isOneToOne: false
 "schedule_tier_cells":
 { Args: { "p_cells": Json,"p_effective_from"?: string,"p_venue_id": string }; Returns: number
                            },
+"seat_call_in_force":
+{ Args: { "p_called_at": string,"p_entry_id": string,"p_venue_id": string }; Returns: boolean
+                           },
 "seat_from_waitlist":
 { Args: { "p_entry_id": string }; Returns: undefined
                            },

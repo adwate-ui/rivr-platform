@@ -6,7 +6,7 @@ import { createAlertConsumer, type FindAlertNumber } from '@rivr/adapters/messag
 import { indianMobileSchema } from '@rivr/contracts';
 import { z } from 'zod';
 import { rpc, serveConsumer } from '../_shared/outbox.ts';
-import { fenced, liveWhatsApp } from '../_shared/whatsapp.ts';
+import { fenced, isWhatsAppOff, liveWhatsApp, whatsAppOff } from '../_shared/whatsapp.ts';
 
 const numberRows = z.array(z.object({ alert_whatsapp: z.string().nullable() }));
 
@@ -18,10 +18,11 @@ const findAlertNumber: FindAlertNumber = async (venueId, alertId) => {
   return phone.success ? phone.data : 'no_number';
 };
 
-// Until WhatsApp is approved and its credentials set, nothing is claimed: alerts wait on the dashboard.
+// Switched off (WHATSAPP_OFF=true), as on production, each alert is taken and none is sent by WhatsApp: alerts stay on the
+// dashboard and go by email (alert-email). With no secrets and not switched off, nothing is claimed and alerts wait.
 const whatsapp = liveWhatsApp(10_000);
 Deno.serve(
-  whatsapp
-    ? serveConsumer(createAlertConsumer({ whatsapp: fenced(whatsapp), findAlertNumber }))
+  whatsapp || isWhatsAppOff()
+    ? serveConsumer(createAlertConsumer({ whatsapp: whatsapp ? fenced(whatsapp) : whatsAppOff, findAlertNumber }))
     : () => Response.json({ error: 'WhatsApp is not configured' }, { status: 503 }),
 );

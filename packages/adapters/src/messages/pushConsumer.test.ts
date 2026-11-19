@@ -25,7 +25,7 @@ function members(phones: readonly WebPushSubscription[], off: readonly (string |
     asked.push(promotionId === undefined ? pushType : `${String(pushType)} for ${promotionId}`);
     return venueId === VENUE && memberId === MEMBER && !off.includes(pushType) ? phones : [];
   };
-  return { asked, forgotten, findTargets, forget: async (endpoint: string) => { forgotten.push(endpoint); } };
+  return { asked, forgotten, findTargets, forget: async (endpoint: string) => { forgotten.push(endpoint); }, isCallInForce: async () => true };
 }
 
 async function sendOne(eventType: string, payload: unknown) {
@@ -156,6 +156,19 @@ describe('the push consumer', () => {
     const late = createPushConsumer({ push, ...members([phone('a')]), now: () => new Date('2026-11-15T19:00:00Z') });
     expect((await late.deliver(delivery('waitlist.called', called))).ok).toBe(true);
     expect(push.calls).toEqual([]);
+  });
+
+  it('asks whether the call still stands, and sends nothing for one skipped or seated since', async () => {
+    const push = createFakePush();
+    const asked: string[] = [];
+    const called = { entry_id: OTHER, member_id: MEMBER, table_name: 'Table 3', seat: 9, hold_until: '2026-11-15T19:00:00+00:00',
+      called_at: '2026-11-15T18:49:30.123456+00:00' };
+    const consumer = createPushConsumer({ push, ...members([phone('a')]), now, isCallInForce: async (venueId, entryId, calledAt) => {
+      asked.push(`${venueId} ${entryId} ${calledAt}`);
+      return false;
+    } });
+    expect(await consumer.deliver(delivery('waitlist.called', called))).toEqual({ ok: true, value: null });
+    expect([asked, push.calls]).toEqual([[`${VENUE} ${OTHER} 2026-11-15T18:49:30.123456+00:00`], []]);
   });
 
   it('finishes unsent a push older than its kind is worth: an hour for call time done, a day for Bonus', async () => {

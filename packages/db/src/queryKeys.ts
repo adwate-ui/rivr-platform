@@ -18,6 +18,8 @@ export const queryKeys = {
   clubContact: (userId: string) => ['user', userId, 'club-contact'] as const,
   /** Every feature's state for the signed-in member. */
   featureAccess: (userId: string) => ['user', userId, 'feature-access'] as const,
+  /** The signed-in person's member rows, which the member app's live updates hear (#903). */
+  myMemberIds: (userId: string) => ['user', userId, 'member-ids'] as const,
   /** The signed-in member's games, stake, notification choices and marketing consent. */
   preferences: (userId: string) => ['user', userId, 'preferences'] as const,
   /** The stakes the club runs, for Profile's waitlist alerts (#206). */

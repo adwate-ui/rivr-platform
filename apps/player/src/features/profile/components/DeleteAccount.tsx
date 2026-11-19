@@ -21,7 +21,6 @@ function DeleteSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void
         <Text>{t('player.profile.deleteWhen')}</Text>
         <Text>{t('player.profile.deleteForfeit')}</Text>
         <Text>{t('player.profile.deleteKept')}</Text>
-        <Text>{t('player.profile.deleteConfirmed')}</Text>
         <Button variant="danger" size="tall" fullWidth isLoading={request.isPending} onClick={() => void send()}>{t('player.profile.deleteSend')}</Button>
         {hasFailed ? <ErrorMessage look="dot">{t('player.profile.deleteNotSent')}</ErrorMessage> : null}
       </Stack>

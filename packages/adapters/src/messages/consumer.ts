@@ -26,6 +26,12 @@ export type FindRecipient = (venueId: string, memberId: string, offeredPromotion
 /** The number kept to say an account is deleted, for that message alone (decision 0574); null once it is forgotten, or for a practice member. */
 export type FindErasedPhone = (venueId: string, memberId: string) => Promise<IndianMobile | null>;
 
+/**
+ * Whether a seat call still stands (#864): the place still waiting, called at that moment, its hold not run out. Asked at send
+ * time, so a call skipped or seated in the minute before the outbox claims it sends nothing.
+ */
+export type IsCallInForce = (venueId: string, entryId: string, calledAt: string) => Promise<boolean>;
+
 /** The events the WhatsApp consumer sends a message for. */
 export const WHATSAPP_EVENT_TYPES = ['waitlist.called', 'promotion.offered', 'review.requested', 'member.notice', 'member.signed_up'] as const;
 
@@ -131,12 +137,18 @@ const BUILDERS: Readonly<Record<string, MessageBuilder>> = {
  * The template message for a delivery, null when it needs none, or why it cannot be sent. Neither the
  * number nor the payload is ever logged.
  */
-async function messageFor(delivery: ClaimedDelivery, findRecipient: FindRecipient, now: Date, findErasedPhone: FindErasedPhone): Promise<Result<WhatsAppMessage | null, AdapterFailure>> {
+async function messageFor(
+  delivery: ClaimedDelivery, now: Date,
+  { findRecipient, findErasedPhone, isCallInForce }: { findRecipient: FindRecipient; findErasedPhone: FindErasedPhone; isCallInForce: IsCallInForce },
+): Promise<Result<WhatsAppMessage | null, AdapterFailure>> {
   if (delivery.eventType === 'waitlist.called') {
     const called = waitlistCalledSchema.safeParse(delivery.payload);
     if (!called.success) return rejected('waitlist.called payload is not a seat call');
     // A call claimed after its hold ran out would send the member to a seat that is gone: handled, unsent.
     if (new Date(called.data.hold_until) <= now) return ok(HANDLED);
+    // Nor one skipped or seated since: handled, unsent (#864).
+    const { entry_id: entryId, called_at: calledAt } = called.data;
+    if (entryId !== undefined && calledAt !== undefined && !(await isCallInForce(delivery.venueId, entryId, calledAt))) return ok(HANDLED);
     const recipient = await findRecipient(delivery.venueId, called.data.member_id);
     if (!recipient) return rejected('the member is no longer there');
     const { table_name: table, seat, hold_until: holdUntil } = called.data;
@@ -154,10 +166,11 @@ async function messageFor(delivery: ClaimedDelivery, findRecipient: FindRecipien
  * events never reach it. Utility messages need no opt-in; a marketing message needs the member's
  * opt-in, which the message type itself requires.
  */
-export function createWhatsAppConsumer({ whatsapp, findRecipient, findErasedPhone, now = () => new Date() }: {
+export function createWhatsAppConsumer({ whatsapp, findRecipient, findErasedPhone, isCallInForce, now = () => new Date() }: {
   whatsapp: WhatsAppAdapter;
   findRecipient: FindRecipient;
   findErasedPhone: FindErasedPhone;
+  isCallInForce: IsCallInForce;
   /** For tests; the clock by default. */
   now?: () => Date;
 }): Consumer {
@@ -166,7 +179,7 @@ export function createWhatsAppConsumer({ whatsapp, findRecipient, findErasedPhon
     eventTypes: WHATSAPP_EVENT_TYPES,
     isMessaging: true,
     async deliver(delivery) {
-      const message = await messageFor(delivery, findRecipient, now(), findErasedPhone);
+      const message = await messageFor(delivery, now(), { findRecipient, findErasedPhone, isCallInForce });
       if (!message.ok) return message;
       return message.value === HANDLED ? ok(HANDLED) : whatsapp.sendTemplate(message.value);
     },

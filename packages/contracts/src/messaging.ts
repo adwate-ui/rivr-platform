@@ -15,6 +15,8 @@ export const waitlistCalledSchema = z.object({
   table_name: z.string().trim().min(1).max(40),
   seat: z.int().min(1).max(10),
   hold_until: z.iso.datetime({ offset: true }),
+  /** When the call was made (#864): the senders ask whether this call still stands. Absent on calls made before it. */
+  called_at: z.iso.datetime({ offset: true }).optional(),
 });
 
 /**

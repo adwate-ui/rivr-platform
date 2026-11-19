@@ -21,6 +21,11 @@ export async function rpc(name: string, args: object): Promise<unknown> {
   return answer.status === 204 ? null : await answer.json();
 }
 
+/** Whether a seat call still stands (#864), for the senders that tell of it: through the service role only. */
+export async function isCallInForce(venueId: string, entryId: string, calledAt: string): Promise<boolean> {
+  return (await rpc('seat_call_in_force', { p_venue_id: venueId, p_entry_id: entryId, p_called_at: calledAt })) === true;
+}
+
 function toDelivery(row: unknown): ClaimedDelivery {
   const field = (name: string): unknown => (typeof row === 'object' && row !== null ? Reflect.get(row, name) : undefined);
   return {

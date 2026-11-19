@@ -7,7 +7,7 @@ import { createPushConsumer, type FindPushTargets } from '@rivr/adapters/message
 import { createWebPush } from '@rivr/adapters/web-push';
 import { WEB_PUSH_PUBLIC_KEY } from '@rivr/contracts';
 import { z } from 'zod';
-import { rpc, serveConsumer } from '../_shared/outbox.ts';
+import { isCallInForce, rpc, serveConsumer } from '../_shared/outbox.ts';
 
 const privateKey = Deno.env.get('VAPID_PRIVATE_KEY') ?? '';
 // Where push services contact the sender: the player app's address (https on staging and production).
@@ -27,6 +27,6 @@ async function forget(endpoint: string): Promise<void> {
 
 Deno.serve(
   privateKey && subject.startsWith('https://')
-    ? serveConsumer(createPushConsumer({ push: createWebPush({ publicKey: WEB_PUSH_PUBLIC_KEY, privateKey, subject }), findTargets, forget }))
+    ? serveConsumer(createPushConsumer({ push: createWebPush({ publicKey: WEB_PUSH_PUBLIC_KEY, privateKey, subject }), findTargets, forget, isCallInForce }))
     : () => Response.json({ error: 'Web push is not configured' }, { status: 503 }),
 );

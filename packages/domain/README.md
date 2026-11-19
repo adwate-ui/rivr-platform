@@ -39,7 +39,7 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | Export | What it does |
 |---|---|
 | `kycIdentityKey(documentName, dateOfBirth, maskedAadhaar)` | The identity two KYC checks of one person share: the document's name in plain letters (case, spacing and punctuation ignored; Devanagari vowel signs count), the date of birth and the last four Aadhaar digits. Null without a name in letters or four digits. A DigiLocker name need not be the registered name (decision 0400). |
-| `namesMatch(documentName, givenName)` | Whether a document's name is the name a member gave: the same words in any order, case, spacing and punctuation ignored (`SHARMA RAHUL` is `Rahul Sharma`). A missing or extra word, such as a middle name, is no match. Zoop's PAN check uses it (decision 0671). |
+| `namesMatch(documentName, givenName)` | Whether a document's name is the name a member gave: the same words in any order, case, spacing and punctuation ignored (`SHARMA RAHUL` is `Rahul Sharma`). A middle name on one only still matches (`RAHUL KUMAR SHARMA` is `Rahul Sharma`, #1021, decision 0698); an initial, or a first or last name on one only, does not. Zoop's PAN check uses it (decision 0671). |
 
 ### `@rivr/domain/rake`
 

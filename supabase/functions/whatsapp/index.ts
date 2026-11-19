@@ -5,8 +5,8 @@
 import { createWhatsAppConsumer, type FindErasedPhone, type FindRecipient } from '@rivr/adapters/messages';
 import { indianMobileSchema } from '@rivr/contracts';
 import { z } from 'zod';
-import { rpc, serveConsumer } from '../_shared/outbox.ts';
-import { fenced, liveWhatsApp } from '../_shared/whatsapp.ts';
+import { isCallInForce, rpc, serveConsumer } from '../_shared/outbox.ts';
+import { fenced, isWhatsAppOff, liveWhatsApp, whatsAppOff } from '../_shared/whatsapp.ts';
 
 const recipientRows = z.array(z.object({
   phone: z.string(), marketing_opted_in_at: z.string().nullable(), first_name: z.string().min(1), member_number: z.number().int(),
@@ -37,12 +37,12 @@ const findErasedPhone: FindErasedPhone = async (venueId, memberId) => {
   return phone.success ? phone.data : null;
 };
 
-// Until WhatsApp is approved and its credentials set, nothing is claimed: deliveries wait, and a seat
-// call whose hold has run out by then is handled unsent when it is claimed. WhatsApp gets 10 seconds, not
-// the sign-in hook's 4, so a slow acceptance is not sent twice.
+// Switched off (WHATSAPP_OFF=true), as on production, each message is taken and none is sent, so none waits in the outbox.
+// With no secrets and not switched off, nothing is claimed: deliveries wait, and the 503 shows the fault. WhatsApp gets 10
+// seconds, not the sign-in hook's 4, so a slow acceptance is not sent twice.
 const whatsapp = liveWhatsApp(10_000);
 Deno.serve(
-  whatsapp
-    ? serveConsumer(createWhatsAppConsumer({ whatsapp: fenced(whatsapp), findRecipient, findErasedPhone }))
+  whatsapp || isWhatsAppOff()
+    ? serveConsumer(createWhatsAppConsumer({ whatsapp: whatsapp ? fenced(whatsapp) : whatsAppOff, findRecipient, findErasedPhone, isCallInForce }))
     : () => Response.json({ error: 'WhatsApp is not configured' }, { status: 503 }),
 );
