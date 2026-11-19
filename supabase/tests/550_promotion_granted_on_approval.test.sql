@@ -83,5 +83,18 @@ select is((select count(*)::integer from public.audit_log l
              and l.entity_id in (select g.decision_id::text from public.promotion_grant g join ids on ids.id = g.id)), 2,
   'and each decision its one Activity line');
 
+-- The member's record shows a Bonus that waited as given when approved, not when calculated (#1019). Chandra is 213.
+select private.evaluate_promotions('00000000-0000-4000-8000-000000000001', 'signup',
+  jsonb_build_object('member_id', '00000000-0000-4000-8000-000000000213', 'key', 'test-550-chandra'));
+insert into ids select 'chandra', g.id from public.promotion_grant g join public.promotion p on p.id = g.promotion_id
+where p.name = 'Welcome 550' and g.member_id = '00000000-0000-4000-8000-000000000213';
+update public.promotion_grant set created_at = now() - interval '2 days' where id = (select id from ids where name = 'chandra');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select lives_ok($$ select public.approve_promotion_bonus('00000000-0000-4000-8000-000000000001',
+                    array[(select id from ids where name = 'chandra')], gen_random_uuid()) $$, 'Chandra''s, calculated two days ago, is approved now');
+select results_eq($$ select granted_at from public.member_promotion_grants('00000000-0000-4000-8000-000000000213', 20) $$,
+  $$ values (now()) $$, 'her record shows it given when approved, not when calculated');
+reset role;
+
 select * from finish();
 rollback;
