@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { BulkBar } from './BulkBar.tsx';
+import { Stack } from '../Stack/Stack.tsx';
+import { Text } from '../Text/Text.tsx';
+import { BulkBar, type BulkBarProps } from './BulkBar.tsx';
 
 const HOLD = { id: 'hold', label: 'Hold', onClick: () => undefined };
 const REMOVE = { id: 'remove', label: 'Remove', onClick: () => undefined, isMain: true };
@@ -47,6 +49,22 @@ export const LongText: Story = {
     ],
   },
 };
+
+/** The bar over a list, as on Bonus to approve: the rows sit at the same height whether or not any is ticked. */
+function OverAList(args: BulkBarProps) {
+  return (
+    <Stack gap={3}>
+      <BulkBar {...args} />
+      {['Ishaan V.', 'Rhea S.', 'Kavya R.'].map((name) => <Text key={name}>{name}</Text>)}
+    </Stack>
+  );
+}
+
+/** None ticked over a list: the bar's place is kept empty. */
+export const OverAListNoneChosen: Story = { args: { count: 0 }, render: OverAList };
+
+/** Two ticked over the same list: the bar fills its place, and the rows have not moved. */
+export const OverAListTwoChosen: Story = { args: { count: 2 }, render: OverAList };
 
 /** Below 1180 px each action is a 44 px touch target, and the bar wraps on a phone. */
 export const OnAPhone: Story = { tags: ['!viewport-console', 'viewport-phone'] };
