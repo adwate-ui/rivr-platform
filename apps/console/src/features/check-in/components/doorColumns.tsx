@@ -62,9 +62,9 @@ export function doorFiltersInCodes(filters: Readonly<Record<string, ListFilter>>
   }));
 }
 
-// Floor and up see the mobile and History too (#1073): the name gives up width, so each mobile, heading and button stays on
-// one line at 1440 px (the UI review of the pull request; measured again with a row a seat, the owner, 19 Nov).
-const WITH_CONTACT: Partial<Record<string, number>> = { player: 1.1 };
+// Floor and up see the mobile and History too (#1073). Measured at 1440 px (the UI review, 19 Nov): a name of normal
+// length stays on one line and the mobile gives way, onto two lines; every heading and button fits.
+const WITH_CONTACT: Partial<Record<string, number>> = { player: 1.62 };
 
 const sharesWithContact = (columns: readonly DataTableColumn<DoorPlayer>[], kept: string) => columns.map((column) => {
   const share = column.key === kept ? undefined : WITH_CONTACT[column.key];
@@ -87,16 +87,17 @@ function withContact(
   );
   if (action === undefined) {
     const mobile: DataTableColumn<DoorPlayer> = {
-      key: 'phone', share: 1.84, header: t('console.members.mobile'), filter: false, isExported: false,
+      key: 'phone', share: 1.41, header: t('console.members.mobile'), filter: false, isExported: false,
       cell: (player) => (player.phone === null ? NONE() : <Text variant="secondary" tone="muted">{formatMobile(player.phone)}</Text>),
     };
     const shown = sharesWithContact(columns, '');
-    return [...shown.slice(0, 2), mobile, ...shown.slice(2), { key: 'history', share: 1.13, header: '', align: 'end', filter: false, cell: history }];
+    return [...shown.slice(0, 2), mobile, ...shown.slice(2), { key: 'history', share: 1.17, header: '', align: 'end', filter: false, cell: history }];
   }
-  // The name, over its mobile, gives up a little more, so History and Check out stay on one line. Status has no sort arrow
-  // here, as Today's players opens sorted by it, so it gives up the arrow's room.
+  // The name, over its mobile, gives up a little more, so History and Check out stay on one line. Status needs less here:
+  // its longest is In the room (Never arrived is not on Check-in's lists) and it has no sort arrow (Today's players opens
+  // sorted by it).
   const named = sharesWithContact(columns, 'player').map((column) => {
-    if (column.key === 'status') return { ...column, share: 1.1 };
+    if (column.key === 'status') return { ...column, share: 1.45 };
     return column.key !== 'player' ? column : {
       ...column, share: 1.83, exportValue: (player: DoorPlayer) => player.fullName,
       cell: (player: DoorPlayer) => <>{nameOf(player)}{player.phone === null ? null : <Text variant="secondary" tone="muted">{formatMobile(player.phone)}</Text>}</>,
@@ -119,10 +120,10 @@ export function doorColumns(
 ): readonly DataTableColumn<DoorPlayer>[] {
   const columns: DataTableColumn<DoorPlayer>[] = [
     { key: 'player', share: 2, header: t('console.todaysPlayers.name'), cell: nameOf, sortValue: (player) => player.fullName, priority: 'primary', isWide: true, filter: 'text' },
-    { key: 'number', share: 0.58, header: t('console.members.number'), cell: (player) => <Text variant="secondary" tone="muted">{String(player.memberNumber)}</Text>, sortValue: (player) => player.memberNumber, exportValue: (player) => player.memberNumber, filter: 'number' },
+    { key: 'number', share: 0.65, header: t('console.members.number'), cell: (player) => <Text variant="secondary" tone="muted">{String(player.memberNumber)}</Text>, sortValue: (player) => player.memberNumber, exportValue: (player) => player.memberNumber, filter: 'number' },
     { key: 'tier', share: 0.78, header: t('console.members.tier'), cell: tierOf, exportValue: (player) => player.tierName, sortValue: (player) => player.tierName, filter: 'choice', choices: choicesIn('tier', counted), filterValue: (player) => player.tierName },
     {
-      key: 'status', share: 1.42, header: t('console.todaysPlayers.status'), sortValue: (player) => RANK[player.status], isWide: true, filter: 'choice', choices: choicesIn('status', counted),
+      key: 'status', share: 1.62, header: t('console.todaysPlayers.status'), sortValue: (player) => RANK[player.status], isWide: true, filter: 'choice', choices: choicesIn('status', counted),
       filterValue: (player) => statusWords(player.status),
       cell: (player) => <DotStatus tone={TONE[player.status]} label={statusWords(player.status)} />, exportValue: (player) => statusWords(player.status),
     },
@@ -131,19 +132,19 @@ export function doorColumns(
     { key: 'waited', share: 0.86, filter: 'duration', header: t('console.todaysPlayers.waited'), cell: (player) => waited(player.waitingSeconds), sortValue: (player) => player.waitingSeconds ?? -1, align: 'end' },
     { key: 'table', share: 0.98, header: t('console.todaysPlayers.table'), cell: tablesOf, sortValue: tablesOf, filter: 'text' },
     // A row is a seat (the owner, 19 Nov): its time at the table, sorted by when they sat; exported as its words, since an
-    // export has one value a column.
-    { key: 'seated', share: 1.31, header: t('console.todaysPlayers.atTable'), cell: atTable, sortValue: (player) => player.seatedAt ?? '', exportValue: atTable, filter: false },
+    // export has one value a column. Narrow enough that a seat left wraps after its dash, as its row is two lines anyway.
+    { key: 'seated', share: 1.05, header: t('console.todaysPlayers.atTable'), cell: atTable, sortValue: (player) => player.seatedAt ?? '', exportValue: atTable, filter: false },
     {
       key: 'played', share: 1.03, filter: 'duration', header: t('console.todaysPlayers.played'), sortValue: (player) => player.playedSeconds, align: 'end',
       cell: (player) => (player.tables.length === 0 ? NONE() : formatDuration(player.playedSeconds)),
     },
     // The Bonus given to them today (#1062), on their first row alone, and the Bonus used at each seat (the owner, 19 Nov).
     {
-      key: 'bonus', share: 0.8, header: t('console.todaysPlayers.bonus'), align: 'end', filter: false,
+      key: 'bonus', share: 0.77, header: t('console.todaysPlayers.bonus'), align: 'end', filter: false,
       sortValue: (player) => rupees(player.bonus), exportValue: (player) => rupeesInFile(player.bonus), cell: (player) => chips(player.bonus),
     },
     {
-      key: 'bonus_used', share: 0.72, header: t('console.todaysPlayers.bonusUsed'), align: 'end', filter: false,
+      key: 'bonus_used', share: 0.63, header: t('console.todaysPlayers.bonusUsed'), align: 'end', filter: false,
       sortValue: (player) => rupees(player.bonusUsed), exportValue: (player) => rupeesInFile(player.bonusUsed), cell: (player) => chips(player.bonusUsed),
     },
     {
