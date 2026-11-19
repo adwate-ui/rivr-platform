@@ -38,8 +38,12 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 create temporary table draft on commit drop as
 select public.save_site_draft('00000000-0000-4000-8000-000000000001', (select page_id from rules), pg_temp.headed('Rules of the house')) as token;
 grant select on draft to anon;
-select results_eq($$ select status from public.site_revision where page_id = (select page_id from rules) order by created_at $$,
+-- Both versions are made in this test's one transaction, so they share a created_at: which is first is named by status (#888).
+select set_eq($$ select status from public.site_revision where page_id = (select page_id from rules) $$,
   $$ values ('published'::text), ('draft') $$, 'the first edit keeps what the page showed, then the draft');
+create temporary table first_version on commit drop as
+select id from public.site_revision where page_id = (select page_id from rules) and status = 'published';
+grant select on first_version to authenticated;
 select is(pg_temp.live_heading(), (select heading from original), 'a draft is not on the website');
 
 select set_config('role', 'anon', true), set_config('request.jwt.claims', '', true);
@@ -83,7 +87,7 @@ select is(pg_temp.live_heading(), 'Tonight''s rules', 'and the website shows it'
 -- One click puts the first version back.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000107');
 select lives_ok($$ select public.rollback_site_page('00000000-0000-4000-8000-000000000001', (select page_id from rules),
-                     (select id from public.site_revision where page_id = (select page_id from rules) order by created_at limit 1)) $$,
+                     (select id from first_version)) $$,
   'marketing publishes the first version again');
 select is(pg_temp.live_heading(), (select heading from original), 'and the website shows the page as it was');
 select is((select count(*)::integer from public.site_revision where page_id = (select page_id from rules) and status = 'published'), 1,
