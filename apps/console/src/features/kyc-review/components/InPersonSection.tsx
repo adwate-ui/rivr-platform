@@ -1,6 +1,6 @@
 import { useKycDueTonight, useKycDuplicateHolder, useKycInPersonCandidates, type KycCandidate, type KycInPersonOutcome } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, Heading, Inline, Input, Stack, StatusMessage, Text, LoadState } from '@rivr/ui';
+import { Button, Heading, Inline, Input, MemberLink, Stack, StatusMessage, Text, LoadState } from '@rivr/ui';
 import { useState } from 'react';
 import { InPersonSteps } from './InPersonSteps.tsx';
 import { owesPhotosOnly, RetakeForm } from './RetakeForm.tsx';
@@ -115,7 +115,7 @@ function CandidateRows({ members, onChoose }: { members: readonly KycCandidate[]
       {members.map((member) => (
         <Inline key={member.memberId} gap={4} align="center" justify="between">
           <Stack gap={1}>
-            <Text variant="row" weight="medium">{member.fullName}</Text>
+            <Text variant="row" weight="medium"><MemberLink memberId={member.memberId}>{member.fullName}</MemberLink></Text>
             <Text variant="secondary" tone="muted">{t('console.kycInPerson.phoneEnding', { digits: member.phoneLast4 })}</Text>
             {member.status === null ? null : (
               <Text variant="secondary" tone="muted">{t(candidateLine(member))}</Text>

@@ -34,21 +34,23 @@ export interface Layout {
   readonly grid: CSSProperties | undefined;
   /** A column says its own share, so every column's width is set by its share and a wide one spans nothing. */
   readonly isShared?: boolean;
-  /** Below 768 px in the sideways layout: the held title takes one track, wide or not, so the line beside it has room (#1097). */
-  readonly holdsTitleNarrow?: boolean;
+  /**
+   * Below 768 px in the sideways layout: every column takes one track, wide or not, so beside the held title there is room for
+   * the whole of any other column; a wide one at two tracks would end under the held title, its heading hidden (#1097).
+   */
+  readonly isOneTrackEach?: boolean;
 }
 
-/** Whether a column spans two tracks: a wide one, unless it is the title held narrow. */
-const spansTwo = <Row,>(column: DataTableColumn<Row>, at: number, holdsTitleNarrow: boolean) =>
-  column.isWide === true && !(holdsTitleNarrow && priorityOf(column, at) === 'primary');
+/** Whether a column spans two tracks: a wide one, unless every column takes one. */
+const spansTwo = <Row,>(column: DataTableColumn<Row>, isOneTrackEach: boolean) => column.isWide === true && !isOneTrackEach;
 
-/** Whether a cell spans its column's two tracks: a wide column's, where shares do not set the widths and it is not the title held narrow. */
-export const spansCell = <Row,>(column: DataTableColumn<Row>, isTitle: boolean, layout: Layout) =>
-  column.isWide === true && layout.isShared !== true && !(isTitle && layout.holdsTitleNarrow === true);
+/** Whether a cell spans its column's two tracks: a wide column's, where shares do not set the widths and not every column takes one. */
+export const spansCell = <Row,>(column: DataTableColumn<Row>, layout: Layout) =>
+  column.isWide === true && layout.isShared !== true && layout.isOneTrackEach !== true;
 
 export function layoutOf<Row>(columns: readonly DataTableColumn<Row>[], narrow: Layout['narrow'], density: Layout['density'],
-  { ticks, holdsTitleNarrow = false }: { readonly ticks: Ticks | null; readonly holdsTitleNarrow?: boolean }): Layout {
-  const shares = columns.reduce((sum, column, at) => sum + (spansTwo(column, at, holdsTitleNarrow) ? 2 : 1), 0);
+  { ticks, isOneTrackEach = false }: { readonly ticks: Ticks | null; readonly isOneTrackEach?: boolean }): Layout {
+  const shares = columns.reduce((sum, column) => sum + (spansTwo(column, isOneTrackEach) ? 2 : 1), 0);
   const ticksColumn = ticks === null ? '' : 'auto ';
   if (narrow !== 'sideways' && columns.some((column) => column.share !== undefined)) {
     const tracks = columns.map((column) => `minmax(0, ${String(column.share ?? (column.isWide ? 2 : 1))}fr)`).join(' ');
@@ -56,7 +58,7 @@ export function layoutOf<Row>(columns: readonly DataTableColumn<Row>[], narrow: 
   }
   // Sideways, each share is at least a column's width, so the line grows past the page and scrolls rather than squeeze.
   if (narrow === 'sideways') {
-    return { narrow, density, ticks, holdsTitleNarrow, grid: { gridTemplateColumns: `${ticksColumn}repeat(${shares}, minmax(${tokens.size.column}px, 1fr))` } };
+    return { narrow, density, ticks, isOneTrackEach, grid: { gridTemplateColumns: `${ticksColumn}repeat(${shares}, minmax(${tokens.size.column}px, 1fr))` } };
   }
   return { narrow, density, ticks, grid: ticks === null ? undefined : { gridTemplateColumns: `${ticksColumn}repeat(${shares}, minmax(0, 1fr))` } };
 }
@@ -161,7 +163,7 @@ function cellClasses<Row>(column: DataTableColumn<Row>, priority: Priority, layo
   // a total row one weight throughout.
   const weight = isTotal ? 'font-semibold' : isTitle && 'font-medium';
   return cx('min-w-0 font-text text-content wrap-anywhere', isTitle ? 'text-15' : 'text-13', weight, isOneLine && 'truncate',
-    look.cell[priority], isTitle && heldTitle(layout), spansCell(column, isTitle, layout) && look.span, column.align === 'end' ? look.end : 'text-start');
+    look.cell[priority], isTitle && heldTitle(layout), spansCell(column, layout) && look.span, column.align === 'end' ? look.end : 'text-start');
 }
 
 /** The title cell's content: when rows open, the button a keyboard and a screen reader open the row with. */
@@ -198,7 +200,7 @@ function BodyCell<Row>({ row, column, priority, layout, isOneLine, isTotal, onRo
     // spaces (a key, a link) breaks rather than spill, and data-label names the column before the value.
     <div role="cell" data-label={layout.narrow === 'cards' && priority === 'secondary' ? column.header : undefined}
       title={titleOf(content, isOneLine)} className={cellClasses(column, priority, layout, { isOneLine, isTotal })}>
-      {priority === 'primary' ? <Title content={content} onOpen={onRowOpen && (() => onRowOpen(row))} isOneLine={isOneLine} /> : content}
+      {priority === 'primary' ? <Title content={content} onOpen={onRowOpen && column.isLink !== true ? () => onRowOpen(row) : undefined} isOneLine={isOneLine} /> : content}
     </div>
   );
 }

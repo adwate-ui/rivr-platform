@@ -32,6 +32,9 @@ export const promotionApprovals = {
     reasonHint: 'Kept in Activity.',
     badTime: 'Type a time as 23:40.',
     badAway: 'Type whole minutes, 0 or more.',
+    /** Time away longer than the seat itself (the owner, 19 Nov): the seat's span, or since it began while still seated. */
+    awayLonger: 'Away can\'t be longer than this seat: {from}–{to}, {minutes} min.',
+    awayLongerOpen: 'Away can\'t be longer than this seat: since {from}, {minutes} min so far.',
     /** What the console already knows refuses a visit's time (#1078), said under the field. */
     aheadOfNow: 'That time has not come yet.',
     afterFirstSeat: 'The first seat started at {time}. Check in by then.',
@@ -49,6 +52,7 @@ export const promotionApprovals = {
       own_record: 'Not your own record. Ask another super admin.',
       invalid: 'Those times do not fit the visit.',
       clash: 'Those times run into their other visit.',
+      away_too_long: 'Away can\'t be longer than its seat.',
       paused: 'Frozen. Try again once it is released.',
       switched_off: 'Promotions are switched off.',
       unavailable: 'Not saved. Try again.',
@@ -56,6 +60,8 @@ export const promotionApprovals = {
   },
   /** The member, as the queue names them: `Ishaan Verma · No. 7`. */
   member: '{name} · No. {number}',
+  /** member after the name, which comes first as its link. */
+  memberNumber: ' · No. {number}',
   /** What set the Bonus off. A seat names its table; play time, the step reached: `4 h played`. */
   why: {
     signup: 'Sign-up', referral: 'Referral', check_in: 'Visit', seated: 'Seat', seatedAt: 'Seat at {table}', hours_step: 'Play time',

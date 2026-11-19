@@ -376,10 +376,17 @@
   mask-image: linear-gradient(to bottom, var(--rivr-color-green) calc(100% - var(--rivr-space-8)), transparent);
 }
 
+/* The console's scrolling area (ConsoleShell's main) measures its own height for what is held in view inside it, so that
+   sizes itself to the space actually left under the header and any banner above it (a practice stripe, a prompt). */
+@utility console-view {
+  container-type: size;
+}
+
 /* A record held in view beside a long list in the console (the owner, 15 Nov night): as tall as the console's scrolling area
-   shows under its top space, less the room at its foot, so it stays whole on screen; a longer one scrolls on its own. */
+   inside its top space and the room at its foot (its padding), banners left out, so it stays whole on screen; a longer one
+   scrolls on its own. Outside the console's scrolling area, as tall as the window. */
 @utility max-h-console-view {
-  max-height: calc(100dvh - var(--rivr-size-console-header) - var(--rivr-space-7) - var(--rivr-space-10));
+  max-height: 100cqb;
 }
 
 /* A table's held header takes the fill of the panel it sits on (audit F-066). */

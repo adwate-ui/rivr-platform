@@ -22,7 +22,10 @@ export type ButtonSize = 'regular' | 'large' | 'tall' | 'compact' | 'small';
 export type ButtonShape = 'rounded' | 'pill';
 
 interface ButtonLookProps {
-  /** The label: a verb, sentence case. */
+  /**
+   * The label: a verb, sentence case. Null only with an `icon` and an `aria-label`, for a button that is its icon alone,
+   * such as a row's History on the Members table.
+   */
   children: ReactNode;
   variant?: ButtonVariant;
   /** A leading icon, only where it carries meaning a word cannot. */

@@ -160,14 +160,14 @@ describe('DataTable export in server mode (redesign RD-29)', () => {
     await userEvent.click(screen.getByRole('menuitem', { name: 'Export CSV' }));
   }
 
-  it('records how many rows the view leaves, then reads every one and saves them, not the page', async () => {
+  it('reads every row the view leaves, records how many it read, then saves them, not the page', async () => {
     const steps: string[] = [];
     const created = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:export');
     const clicked = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
     paged(async (request) => { steps.push(`recorded ${String(request.rows)}`); return true; }, async () => { steps.push('read'); return EVERY; });
     await exportCsv();
     await vi.waitFor(() => expect(clicked).toHaveBeenCalledOnce());
-    expect(steps).toEqual(['recorded 4', 'read']);
+    expect(steps).toEqual(['read', 'recorded 4']);
     const [file] = created.mock.calls[0] ?? [];
     expect(file instanceof Blob ? await file.text() : '').toContain('Vihaan Kapoor');
     created.mockRestore();

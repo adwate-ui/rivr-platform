@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { PracticeBanner } from '../PracticeBanner/PracticeBanner.tsx';
 import { Screen } from '../Screen/Screen.tsx';
 import { Stack } from '../Stack/Stack.tsx';
 import { Text } from '../Text/Text.tsx';
@@ -64,10 +65,18 @@ export const Docked: Story = { args: { layout: 'docked' } };
 const NAMES = ['Arjun Mehta', 'Kabir Sethi', 'Naina Kapoor', 'Ishaan Verma', 'Meera Iyer', 'Dev Malhotra', 'Tara Menon', 'Ritika Das'];
 
 /**
- * Docked beside a long list (the owner, 15 Nov night): the record stays in view as the list scrolls, as tall as the screen
- * at most, and a longer record scrolls on its own.
+ * Docked beside a long list (the owner, 15 Nov night): the record stays in view as the list scrolls, as tall as the console's
+ * scrolling area at most, and a longer record scrolls on its own. Here under the practice venue's stripe, as the console
+ * draws it: the record's foot still shows, clear of the area's foot.
  */
 export const DockedBesideALongList: Story = {
+  parameters: { layout: 'fullscreen' },
+  decorators: [(Story) => (
+    <div className="flex h-dvh flex-col">
+      <PracticeBanner message="Practice venue: nothing here reaches the club or its members." action={{ label: 'Back to the club', onPress: () => undefined }} />
+      <div data-scroller="" className="console-view min-h-0 flex-1 overflow-y-auto px-4 pt-7 pb-10"><Story /></div>
+    </div>
+  )],
   args: {
     layout: 'docked',
     list: <Stack gap={3}>{Array.from({ length: 40 }, (_, index) => <Text key={index} weight="medium">{NAMES[index % NAMES.length]}</Text>)}</Stack>,

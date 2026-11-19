@@ -24,7 +24,10 @@ export interface BulkBarProps {
   onClear: () => void;
 }
 
-const BAR = 'sticky top-0 z-nav flex flex-wrap items-center gap-2 rounded-lg bg-cream px-4 py-2 text-on-cream';
+// The bar's place, kept while none is ticked as an empty band of its height, so ticking the first row or clearing the last
+// moves nothing under it (the list's rows would otherwise shift under the pointer). Only the shown bar stays at the top.
+const PLACE = 'flex flex-wrap items-center gap-2 px-4 py-2';
+const BAR = 'sticky top-0 z-nav rounded-lg bg-cream text-on-cream';
 
 // The ring is ink, as the focus colour is cream; set off from the ink-filled action so the two never merge.
 const ACTION =
@@ -52,13 +55,13 @@ function BarAction({ action }: { action: BulkBarAction }) {
 /**
  * The bar over a list while rows are ticked (console v3): a cream bar that stays at the top as the list scrolls, with how
  * many are chosen, said politely as it changes, the actions on them, and Clear. Render it always, with `count` 0 when
- * none is ticked.
+ * none is ticked: its place is kept empty then, so the list under it does not move as rows are ticked.
  */
 export function BulkBar({ count, actions, onClear }: BulkBarProps) {
   const isShown = count > 0;
   return (
-    <div role={isShown ? 'region' : undefined} aria-label={isShown ? t('ui.console.bulkBar.label') : undefined} className={isShown ? BAR : 'sr-only'}>
-      <span aria-live="polite" className="min-w-0 flex-1 font-text text-14 leading-control font-semibold">
+    <div role={isShown ? 'region' : undefined} aria-label={isShown ? t('ui.console.bulkBar.label') : undefined} className={cx(PLACE, isShown && BAR)}>
+      <span aria-live="polite" className="flex min-h-touch min-w-0 flex-1 items-center font-text text-14 leading-control font-semibold tablet:min-h-8">
         {isShown ? t('ui.console.bulkBar.selected', { count }) : null}
       </span>
       {isShown ? (

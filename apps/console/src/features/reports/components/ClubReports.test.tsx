@@ -31,9 +31,12 @@ const ANSWERS: Record<string, unknown[]> = {
   player_visits_page: [
     { total: 2, club_day: '2026-11-15', member_id: 'm214', full_name: 'Yash Gupta', member_number: 41, tier_name: 'Black card', is_base_tier: false, checked_in_at: '2026-11-15T14:30:00Z',
       checked_out_at: null, waiting_seconds: 600, tables: [{ table: 'Table 2', seconds: 7200 }], played_seconds: 7200, kyc_status: 'verified', bonus_paise: 50_000,
-      visits: [{ visitId: 'vis9', openedAt: '2026-11-15T14:30:00Z', closedAt: null, sessions: [] }] },
+      visits: [{ visitId: 'vis9', openedAt: '2026-11-15T14:30:00Z', closedAt: null, sessions: [] }], seated_at: '2026-11-15T14:40:00Z', left_at: null, away_seconds: 0, bonus_used_paise: 20_000,
+      session_id: 's9', visit_id: 'vis9', linked_member_id: 'm214' },
     { total: 2, club_day: '2026-11-14', member_id: 'm214', full_name: 'Yash Gupta', member_number: 41, tier_name: 'Member', is_base_tier: true, checked_in_at: '2026-11-14T14:00:00Z',
-      checked_out_at: '2026-11-14T18:00:00Z', waiting_seconds: 0, tables: [{ table: 'Table 1', seconds: 10_800 }], played_seconds: 10_800, kyc_status: 'verified', bonus_paise: 0 },
+      checked_out_at: '2026-11-14T18:00:00Z', waiting_seconds: 0, tables: [{ table: 'Table 1', seconds: 10_800 }], played_seconds: 10_800, kyc_status: 'verified', bonus_paise: 0,
+      seated_at: '2026-11-14T14:10:00Z', left_at: '2026-11-14T17:10:00Z', away_seconds: 0, bonus_used_paise: 0,
+      session_id: 's8', visit_id: 'vis8', linked_member_id: 'm214' },
   ],
   bonus_report: [
     { source: 'promotion', label: 'Friday four-hour bonus', members: 31, grants: 31, given_paise: 3_100_000 },
@@ -107,12 +110,12 @@ describe('the reports beside Tables (redesign RD-27)', () => {
     expect(asked).toContainEqual({ rpc: 'report_chart', body: { p_venue_id: 'v1', p_report: 'players', p_from: '2026-11-09', p_to: '2026-11-15' } });
   });
 
-  it('Players: every visit in the span as the door lists the day, with the day first, from the server (decision 0682)', async () => {
+  it('Players: every visit in the span a row per seat, with its time at the table, away and Bonus used, from the server (decision 0682)', async () => {
     renderReport(<PlayersReport venueId="v1" period={PERIOD} exportIn={null} />);
     const table = await screen.findByRole('table', { name: 'Visits' });
-    expect(await rowOf(table, '15 Nov 2026')).toBe('15 Nov 2026Yash Gupta41Black card20:00–10 minTable 22 h500Checked');
+    expect(await rowOf(table, '15 Nov 2026')).toBe('15 Nov 2026Yash Gupta41Black card20:00–10 minTable 220:10–0 min2 h500200Checked');
     // The base tier is left unsaid, as at the door.
-    expect(await rowOf(table, '14 Nov 2026')).toBe('14 Nov 2026Yash Gupta41–19:3023:300 minTable 13 h0Checked');
+    expect(await rowOf(table, '14 Nov 2026')).toBe('14 Nov 2026Yash Gupta41–19:3023:300 minTable 119:40–22:400 min3 h00Checked');
     const read = asked.find((call) => call.rpc === 'player_visits_page');
     expect(read?.body['p_venue_id']).toBe('v1');
     expect(read?.body['p_view']).toMatchObject({ scope: { from: '2026-11-09', to: '2026-11-15' } });

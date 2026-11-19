@@ -72,9 +72,17 @@ export function fireChange(channel: RealtimeChannel, table: string) {
   handler({ schema: 'public', table, commit_timestamp: '2026-10-18T00:00:00Z', eventType: 'UPDATE', new: {}, old: {}, errors: [] });
 }
 
-/** What a channel listens to: each table, and its filter or every row. */
+/** Tells the channel what Realtime does once it hears the database (#1085), or, with `status`, that it could not. */
+export function fireHearing(channel: RealtimeChannel, status = 'ok') {
+  const handler = vi.mocked(channel.on).mock.calls.find(([type]) => type === 'system')?.[2];
+  if (handler === undefined) throw new Error('No handler for Realtime’s system messages');
+  handler({ message: 'Subscribed to PostgreSQL', status, extension: 'postgres_changes', channel: 'rivr-live' });
+}
+
+/** What a channel listens to in the database: each table, and its filter or every row. */
 export const heardOn = (channel: RealtimeChannel | undefined) =>
-  vi.mocked(channel?.on)?.mock.calls.map(([, filter]) => ['table' in filter ? filter.table : '', 'filter' in filter ? filter.filter : 'every row']);
+  vi.mocked(channel?.on)?.mock.calls.filter(([, filter]) => 'table' in filter)
+    .map(([, filter]) => ['table' in filter ? filter.table : '', 'filter' in filter ? filter.filter : 'every row']);
 
 export function Probe() {
   const events = useFeature('events.book');

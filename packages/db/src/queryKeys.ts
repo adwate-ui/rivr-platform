@@ -107,6 +107,8 @@ export const queryKeys = {
   /** A member's visits on their record (F-017). */
   memberVisits: (userId: string, venueId: string, memberId: string, count: number) => ['user', userId, 'member-visits', venueId, memberId, count] as const,
   memberHoursPlayed: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-hours', venueId, memberId] as const,
+  /** A member's changes by staff, their History from the Members table (the owner, 19 Nov). */
+  memberStaffHistory: (userId: string, venueId: string, memberId: string, count: number) => ['user', userId, 'member-staff-history', venueId, memberId, count] as const,
   memberVisitsAll: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-visits', venueId, memberId] as const,
   memberBonusHistory: (userId: string, venueId: string, memberId: string, count: number) =>
     ['user', userId, 'bonus', venueId, memberId, 'history', count] as const,

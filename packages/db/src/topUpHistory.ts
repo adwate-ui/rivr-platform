@@ -9,6 +9,8 @@ export interface PastTopUp {
   readonly tableName: string;
   readonly seat: number;
   readonly fullName: string;
+  /** Who asked (owner, 19 Nov: the name opens their account); null for an erased member. */
+  readonly memberId: string | null;
   readonly status: TopUpStatus;
   readonly requestedAt: string;
   readonly acceptedBy: string | null;
@@ -47,7 +49,7 @@ export function useTopUpHistory(venueId: string, day: string, page: number) {
       return {
         total: Number(data[0]?.total ?? 0),
         rows: data.map((row) => ({
-          requestId: row.request_id, tableName: row.table_name, seat: row.seat, fullName: row.full_name, status: statusOf(row.status), requestedAt: row.requested_at,
+          requestId: row.request_id, tableName: row.table_name, seat: row.seat, fullName: row.full_name, memberId: row.member_id, status: statusOf(row.status), requestedAt: row.requested_at,
           acceptedBy: row.accepted_by, acceptedSeconds: row.accepted_seconds, doneBy: row.done_by, doneSeconds: row.done_seconds,
         })),
       };

@@ -63,6 +63,8 @@ const ICONS = {
   settings: ['M9 12A3 3 0 1 0 15 12A3 3 0 1 0 9 12Z', 'M12 2.25V5.25', 'M12 18.75V21.75', 'M2.25 12H5.25', 'M18.75 12H21.75', 'M5.1 5.1L7.2 7.2',
     'M16.8 16.8L18.9 18.9', 'M5.1 18.9L7.2 16.8', 'M16.8 7.2L18.9 5.1'],
   reset: ['M4.5 12A7.5 7.5 0 1 0 18 7.5', 'M18 3V7.5H13.5'],
+  // Reset's arrow turned back, round a clock's hands: a member's History of changes by staff (the owner, 19 Nov).
+  history: ['M19.5 12A7.5 7.5 0 1 1 6 7.5', 'M6 3V7.5H10.5', 'M12 8.25V12L14.75 13.75'],
   purge: ['M4.5 6H19.5', 'M9 6V3.75H15V6', 'M6.75 6L7.8 20.25H16.2L17.25 6'],
   requests: ['M4.5 4.5H19.5V19.5H4.5Z', 'M9 10.5H15', 'M9 15H12'],
   // The owner's redrawn search (9 Nov): a smaller lens, its handle from the rim.

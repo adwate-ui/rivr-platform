@@ -157,12 +157,25 @@ export const todaysPlayers = {
   /** When they checked in and out, short as the prototype's headers, so a phone's scrolling line keeps them on one line. */
   checkedIn: 'In',
   checkedOut: 'Out',
-  waited: 'Waited',
+  /** Short, so every heading fits at 1440 px (the owner, 19 Nov). */
+  waited: 'Wait',
   /** The tables a player played on today, and the time played across them, in columns of their own (console v3). */
   table: 'Table',
-  played: 'Time played',
-  /** The Bonus given to the member that club day (#1062). */
+  played: 'Played',
+  /**
+   * A row is a seat (the owner, 19 Nov): its time at the table, from when they sat to when they left, open while they are
+   * there; and its time away (Players visits). `{from}`, `{to}`: 17:53, 18:43.
+   */
+  atTable: 'At table',
+  atTableSpan: '{from}–{to}',
+  atTableOpen: '{from}–',
+  away: 'Away',
+  /**
+   * Bonus a row a seat (the owner, 19 Nov): what the member was given that club day (#1062), by hand or by promotions, on
+   * the first row of their latest visit alone; and beside it what they used of their Bonus at each seat, on its row. Short, to fit at 1440 px.
+   */
   bonus: 'Bonus',
+  bonusUsed: 'Used',
   /** Floor and up (#1073): the member's History in a panel at the side, beside their mobile (console.members.mobile). */
   history: 'History',
   historyOf: 'History of {name}',
@@ -178,6 +191,8 @@ export const topUps = {
   noneEarlier: 'None yet tonight.',
   /** `{table}, seat {seat} · {name}`: Table 3, seat 5 · Kabir Sethi. `{time}`: 21:40. */
   line: '{table}, seat {seat} · {name}',
+  /** line before the member's name, which follows as its link. */
+  lineWhere: '{table}, seat {seat} · ',
   askedAt: 'Asked {time}',
   status: { requested: 'Asked', in_progress: 'In progress', fulfilled: 'Fulfilled in {time}', reset: 'Reset', left: 'Left before it was done' },
   /** Who took each step and how long it took (redesign RD-32): under a request in hand or done. `{time}` is minutes and seconds, `1:20`. */

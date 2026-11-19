@@ -3,9 +3,8 @@ import { useFnbOrdersPage, useMemberCancelledKots, useServeFnbOrder, type FnbFai
 import { clubDay } from '@rivr/domain/clubDay';
 import { isTicketLate } from '@rivr/domain/floorRequests';
 import { formatDuration, t } from '@rivr/i18n';
-import { ChoiceChips, DataTable, ErrorMessage, Inline, Input, Stack, Text, useIsWide, type DataTableColumn, type DataTableRequest } from '@rivr/ui';
+import { ChoiceChips, DataTable, ErrorMessage, Inline, Input, MemberLink, Stack, Text, useIsWide, type DataTableColumn, type DataTableRequest } from '@rivr/ui';
 import { useEffect, useState, type ReactNode } from 'react';
-import { KotNotAtBar } from './KotNotAtBar.tsx';
 import { OrderSteps, type Act } from './OrderSteps.tsx';
 import { laneOf, orderLines, orderNotes, type OrderLane } from './orderLanes.ts';
 import { VoidForm } from './VoidOrder.tsx';
@@ -45,8 +44,8 @@ function Age({ order }: { order: FnbOrderTonight }) {
     : <Text as="span" variant="row" tone="muted">{age}</Text>;
 }
 
-/** What was ordered and what the bar should know with it: the member's note, a guest going or gone (audit F-085), a comp, a KOT the bar printer missed. */
-function Ordered({ venueId, order }: { venueId: string; order: FnbOrderTonight }) {
+/** What was ordered and what the bar should know with it: the member's note, a guest going or gone (audit F-085), a comp. */
+function Ordered({ order }: { order: FnbOrderTonight }) {
   const note = orderNotes(order);
   const isStanding = laneOf(order) === 'toAccept' || laneOf(order) === 'preparing';
   return (
@@ -56,13 +55,12 @@ function Ordered({ venueId, order }: { venueId: string; order: FnbOrderTonight }
       {isStanding && order.seatState !== 'seated' ? <Text variant="small" weight="semibold">{t(order.seatState === 'left' ? 'console.fnb.seatLeft' : 'console.fnb.seatLeaving')}</Text> : null}
       {order.isComp ? <Text variant="caption" weight="semibold">{t('console.fnb.comp')}</Text> : null}
       {order.cancelReason === null ? null : <Text variant="small" tone="muted">{order.cancelReason}</Text>}
-      {order.isKotPrintFailed ? <KotNotAtBar venueId={venueId} order={order} /> : null}
     </Stack>
   );
 }
 
 /** The table's columns: the KOT, its age, where it goes, what was ordered, where it stands, and the row's next step. */
-function columnsFor(venueId: string, counted: ListChoices | undefined, steps: (order: FnbOrderTonight) => ReactNode): readonly DataTableColumn<FnbOrderTonight>[] {
+function columnsFor(counted: ListChoices | undefined, steps: (order: FnbOrderTonight) => ReactNode): readonly DataTableColumn<FnbOrderTonight>[] {
   return [
     { key: 'kot', header: t('console.fnb.orders.columns.kot'), priority: 'primary', sortValue: (order) => order.kotNumber, filter: 'number',
       cell: (order) => t('console.fnb.kot', { kot: order.kotNumber }), exportValue: (order) => order.kotNumber },
@@ -70,8 +68,9 @@ function columnsFor(venueId: string, counted: ListChoices | undefined, steps: (o
       exportValue: (order) => formatDuration(order.ageSeconds) },
     { key: 'table', header: t('console.fnb.orders.columns.table'), sortValue: (order) => order.tableName, filter: 'choice', choices: counted?.['table'] ?? [],
       filterValue: (order) => order.tableName, cell: (order) => t('console.fnb.orders.seat', { table: order.tableName, seat: order.seat }) },
-    { key: 'member', header: t('console.fnb.orders.columns.member'), sortValue: (order) => order.memberName, filter: 'text', cell: (order) => order.memberName },
-    { key: 'order', header: t('console.fnb.orders.columns.order'), isWide: true, filter: false, cell: (order) => <Ordered venueId={venueId} order={order} />, exportValue: orderLines },
+    { key: 'member', header: t('console.fnb.orders.columns.member'), sortValue: (order) => order.memberName, filter: 'text',
+      cell: (order) => (order.memberId === null ? order.memberName : <MemberLink memberId={order.memberId}>{order.memberName}</MemberLink>) },
+    { key: 'order', header: t('console.fnb.orders.columns.order'), isWide: true, filter: false, cell: (order) => <Ordered order={order} />, exportValue: orderLines },
     { key: 'state', header: t('console.fnb.orders.columns.state'), filter: false, cell: (order) => stateWords(laneOf(order)) },
     // Two shares, so an order being prepared keeps its three buttons on one line.
     { key: 'steps', header: '', align: 'end', isWide: true, filter: false, cell: steps },
@@ -136,7 +135,7 @@ export function OrdersTable({ venueId }: { venueId: string }) {
         <Text variant="small" tone="muted">{t('console.fnb.memberCancelled', { kots: cancelled.map((kot) => t('console.fnb.kot', { kot })).join(', ') })}</Text>
       )}
       {failure === null ? null : <ErrorMessage>{t(`console.fnb.failures.${failure}`)}</ErrorMessage>}
-      <DataTable {...rowsOf(page)} label={t('console.fnb.orders.label')} columns={columnsFor(venueId, counted, steps)} rowKey={(order) => order.orderId} filter={search} belowSearch={chips}
+      <DataTable {...rowsOf(page)} label={t('console.fnb.orders.label')} columns={columnsFor(counted, steps)} rowKey={(order) => order.orderId} filter={search} belowSearch={chips}
         server={{ total: page.data?.total ?? 0, pageSize: LIST_PAGE, onRequest: setRequest, scope: `${day} ${state}` }} exportRows={page.readEvery} />
       {voided === undefined ? null : <VoidForm venueId={venueId} order={voided} onClose={() => setVoiding(null)} />}
     </Stack>

@@ -8,6 +8,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { loadGoldenCases } from './lib/golden-cases.mjs';
+import { hasNoMigrations, withJobsHeld } from './lib/jobs-held.mjs';
 import { writeSupabaseConfig } from './lib/supabase-config.mjs';
 import { localBinary, worktreeName, worktreeRoot } from '@rivr/config/worktree';
 
@@ -52,7 +53,17 @@ if (remote) {
   mkdirSync(join(cwd, 'supabase'));
   writeFileSync(join(cwd, 'supabase/config.toml'), 'project_id = "secrets"\n');
 }
-const result = spawnSync(localBinary('supabase', root), args, { stdio: 'inherit', cwd });
+// A local start or reset makes the database with migrations and seed off, and they are applied after it with pg_cron's
+// jobs held (#1071). A reset to a version, of another database or with other seed files is left to the CLI.
+const resetsLocally = args[0] === 'db' && args[1] === 'reset' && !args.some((arg) => /^--(linked|db-url|project-ref|version|last|sql-paths)/.test(arg));
+const makesDatabase = args[0] === 'start' || resetsLocally;
+const off = { SUPABASE_DB_MIGRATIONS_ENABLED: 'false', SUPABASE_DB_SEED_ENABLED: 'false' };
+const result = spawnSync(localBinary('supabase', root), args, { stdio: 'inherit', cwd, env: makesDatabase ? { ...process.env, ...off } : process.env });
 if (remote) rmSync(cwd, { recursive: true, force: true });
 if (result.error) process.stderr.write(`supabase did not start: ${result.error.message}\n`);
-process.exit(result.status ?? 1);
+let status = result.status ?? 1;
+if (status === 0 && makesDatabase && (resetsLocally || hasNoMigrations())) {
+  const push = ['db', 'push', '--local', '--include-all', ...(args.includes('--no-seed') ? [] : ['--include-seed']), '--yes'];
+  status = withJobsHeld(() => spawnSync(localBinary('supabase', root), push, { stdio: 'inherit', cwd }).status ?? 1);
+}
+process.exit(status);

@@ -181,12 +181,12 @@ describe('DataTable on the console', () => {
     expect(screen.queryByRole('group', { name: 'Sort and filter Members' })).toBeNull();
   });
 
-  it('on a phone, the sideways layout holds a wide title at one track, so the line beside it has room', () => {
+  it('on a phone, the sideways layout gives every column one track, wide or not, so none ends under the held title', () => {
     onAPhone();
-    const wide = COLUMNS.map((column, at) => (at === 0 ? { ...column, isWide: true } : column));
+    const wide = COLUMNS.map((column, at) => (at === 1 ? column : { ...column, isWide: true }));
     renderIn(<DataTable label="Members" columns={wide} rowKey={(row) => row.id} rows={ROWS} emptyText="None." narrowLayout="sideways" />);
     expect(screen.getAllByRole('rowgroup')[0]?.firstElementChild?.getAttribute('style')).toContain(`repeat(${String(wide.length)}, minmax(`);
-    expect(screen.getAllByRole('cell')[0]).not.toHaveClass('col-span-2');
+    for (const cell of [...screen.getAllByRole('columnheader'), ...screen.getAllByRole('cell')]) expect(cell).not.toHaveClass('col-span-2');
   });
 
   it('from 768 px, the sideways layout draws the table\u2019s lines, as the scroll layout does', () => {

@@ -15,7 +15,7 @@ afterEach(() => {
 const CHAI = {
   total: 1, state: 'to_accept', order_id: 'o12', kot_number: 12, table_name: 'Table 3', seat: 5, member_name: 'Yash Gupta', member_number: 1043,
   lines: [{ item_id: 'chai', name: 'Masala chai', quantity: 1, note: null }], is_comp: false, source: 'app', created_at: '2026-11-15T16:10:00Z',
-  kot_sent_at: null, kot_sent_by: 'agent', kot_print_failed: false, seat_state: 'seated', accepted_at: null, delivered_at: null, age_seconds: 240,
+  kot_sent_at: null, kot_sent_by: 'agent', seat_state: 'seated', accepted_at: null, delivered_at: null, age_seconds: 240,
   cancelled_at: null, cancel_reason: null, on_way_at: null,
 };
 const ACCEPTED = { ...CHAI, state: 'preparing', accepted_at: '2026-11-15T16:12:00Z' };

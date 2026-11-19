@@ -12,12 +12,20 @@ const THREE = [HOURS, HAPPY, HIGH_HAND];
 /** The dot that is current: "Offer 2 of 3". */
 const currentDot = () => screen.getAllByRole('button', { name: /^Offer \d of \d$/ }).find((dot) => dot.getAttribute('aria-current') === 'true')?.getAttribute('aria-label');
 
-/** Lays the slides out 300 px apart, as a browser would (jsdom lays nothing out), and scrolls the row to `slide`. */
+/** Lays the slides out 300 px apart, as a browser would (jsdom lays nothing out), and scrolls the row to `slide` (a fraction is part way). */
 function scrollRowTo(slide: number) {
   const row = screen.getByRole('list');
   [...row.children].forEach((item, at) => Object.defineProperty(item, 'offsetLeft', { configurable: true, value: at * 300 }));
   Object.defineProperty(row, 'scrollLeft', { configurable: true, writable: true, value: slide * 300 });
   fireEvent.scroll(row);
+}
+
+/** Lets the carousel start moves of its own, as a browser's row can (jsdom's has no `scrollTo`); the row moves only by `scrollRowTo`. */
+function letRowMoveItself(): HTMLElement {
+  const row = screen.getByRole('list');
+  Object.defineProperty(row, 'scrollTo', { configurable: true, value: () => undefined });
+  scrollRowTo(0);
+  return row;
 }
 
 afterEach(() => {
@@ -72,14 +80,44 @@ describe('OfferCarousel', () => {
     expect(currentDot()).toBe('Offer 2 of 3');
   });
 
-  it('holds for a slow drag too: the finger rests, then drags', () => {
+  it('holds for a slow drag too: the finger rests, then drags along the row', () => {
     vi.useFakeTimers();
     renderIn(<OfferCarousel title="Offers" offers={THREE} />);
-    fireEvent.pointerDown(screen.getByRole('list'));
+    fireEvent.touchStart(screen.getByRole('list'), { touches: [{ clientX: 300, clientY: 400 }] });
     act(() => { vi.advanceTimersByTime(3000); });
-    fireEvent.touchMove(screen.getByRole('list'));
+    fireEvent.touchMove(screen.getByRole('list'), { touches: [{ clientX: 120, clientY: 410 }] });
     scrollRowTo(2);
     act(() => { vi.advanceTimersByTime(OFFER_SLIDE_MS * 2); });
+    expect(currentDot()).toBe('Offer 3 of 3');
+  });
+
+  it('keeps moving when the wheel scrolls the page up or down over a move of its own, and holds for a sideways wheel', () => {
+    vi.useFakeTimers();
+    renderIn(<OfferCarousel title="Offers" offers={THREE} />);
+    const row = letRowMoveItself();
+    act(() => { vi.advanceTimersByTime(OFFER_SLIDE_MS); });
+    fireEvent.wheel(row, { deltaY: 120 });
+    scrollRowTo(0.4);
+    scrollRowTo(1);
+    act(() => { vi.advanceTimersByTime(OFFER_SLIDE_MS); });
+    expect(currentDot()).toBe('Offer 3 of 3');
+    fireEvent.wheel(row, { deltaX: 80, deltaY: 4 });
+    scrollRowTo(1);
+    act(() => { vi.advanceTimersByTime(OFFER_SLIDE_MS * 2); });
+    expect(currentDot()).toBe('Offer 2 of 3');
+  });
+
+  it('keeps moving when a finger on it scrolls the page up or down over a move of its own', () => {
+    vi.useFakeTimers();
+    renderIn(<OfferCarousel title="Offers" offers={THREE} />);
+    const row = letRowMoveItself();
+    act(() => { vi.advanceTimersByTime(OFFER_SLIDE_MS); });
+    fireEvent.pointerDown(row, { pointerType: 'touch' });
+    fireEvent.touchStart(row, { touches: [{ clientX: 200, clientY: 400 }] });
+    fireEvent.touchMove(row, { touches: [{ clientX: 196, clientY: 300 }] });
+    scrollRowTo(0.4);
+    scrollRowTo(1);
+    act(() => { vi.advanceTimersByTime(OFFER_SLIDE_MS); });
     expect(currentDot()).toBe('Offer 3 of 3');
   });
 

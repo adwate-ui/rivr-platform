@@ -111,6 +111,20 @@ describe('SplitView', () => {
     expect(screen.getByText('Sakshi').parentElement?.parentElement).toHaveClass('tablet:sticky', 'tablet:top-0', 'tablet:max-h-console-view', 'tablet:overflow-y-auto');
   });
 
+  it('starts a different record at its top, not where the last one was scrolled to, and keeps the place of the same one', () => {
+    const docked = (recordKey: string, name: string) => (
+      <SplitView layout="docked" recordKey={recordKey} list={<p>Members</p>} detail={<p>{name}</p>} backLabel="Back" onBack={vi.fn()} />
+    );
+    const { rerender } = renderIn(docked('m1', 'Sakshi'));
+    const panel = screen.getByText('Sakshi').parentElement?.parentElement;
+    if (!panel) throw new Error('no record panel');
+    Object.defineProperty(panel, 'scrollTop', { configurable: true, writable: true, value: 640 });
+    rerender(docked('m1', 'Sakshi, edited'));
+    expect(panel.scrollTop).toBe(640);
+    rerender(docked('m2', 'Rohan'));
+    expect(panel.scrollTop).toBe(0);
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<SplitView list={<p>List</p>} detail={<p>Record</p>} backLabel="Back" onBack={vi.fn()} />);
     expect(await axeViolations(container)).toEqual([]);

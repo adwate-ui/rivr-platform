@@ -1,7 +1,7 @@
 import { TOP_UP_HISTORY_PAGE, useTopUpHistory, type PastTopUp } from '@rivr/db';
 import { clubDay } from '@rivr/domain/clubDay';
 import { formatMinutesSeconds, formatTime, t } from '@rivr/i18n';
-import { DataTable, Heading, Inline, Input, Stack, type DataTableColumn } from '@rivr/ui';
+import { DataTable, Heading, Inline, Input, MemberLink, Stack, type DataTableColumn } from '@rivr/ui';
 import { useState } from 'react';
 
 /** A step's length in minutes and seconds, as the wait beside a request counts (`1:15`), or a dash where the step was never taken. */
@@ -14,7 +14,8 @@ const nameOf = (name: string | null) => name ?? t('console.topUps.none');
  */
 const columns = (): readonly DataTableColumn<PastTopUp>[] => [
   { filter: false, key: 'where', header: t('console.topUps.columns.where'), priority: 'primary', cell: (row) => t('console.topUps.where', { table: row.tableName, seat: row.seat }) },
-  { filter: false, key: 'member', header: t('console.topUps.columns.member'), cell: (row) => row.fullName },
+  { filter: false, key: 'member', header: t('console.topUps.columns.member'),
+    cell: (row) => (row.memberId === null ? row.fullName : <MemberLink memberId={row.memberId}>{row.fullName}</MemberLink>) },
   { filter: false, key: 'asked', header: t('console.topUps.columns.asked'), cell: (row) => formatTime(new Date(row.requestedAt)) },
   { filter: false, key: 'acceptedBy', header: t('console.topUps.columns.acceptedBy'), cell: (row) => nameOf(row.acceptedBy) },
   { filter: false, key: 'accepted', header: t('console.topUps.columns.accepted'), align: 'end', cell: (row) => lengthOf(row.acceptedSeconds) },

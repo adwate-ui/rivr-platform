@@ -1,6 +1,7 @@
+import type { Paise } from '@rivr/domain/money';
 import type { DoorPlayer, DoorStatus, ListChoices, ListFilter, MemberKycStatus } from '@rivr/db';
 import { formatChips, formatDuration, formatMobile, formatRupeesForFile, formatTime, t } from '@rivr/i18n';
-import { Button, DotStatus, Inline, Text, type ColumnChoice, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
+import { Button, DotStatus, Inline, MemberLink, Text, type ColumnChoice, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
 import type { ReactNode } from 'react';
 
 // Who needs the door first: those waiting for a seat and those expected, then those playing, then those gone.
@@ -16,7 +17,22 @@ const KYC_TONE: Readonly<Record<MemberKycStatus, DotStatusTone>> = {
 
 const NONE = () => t('console.todaysPlayers.none');
 const at = (iso: string | null) => (iso === null ? NONE() : formatTime(new Date(iso)));
+// A wait counts only after check-in (the owner, 19 Nov): one never checked in has none, which is no 0 min.
+const waited = (seconds: number | null) => (seconds === null ? NONE() : formatDuration(seconds));
+
+/** A seat's time at its table: 17:53–18:43, or 17:53– while they are there; none with no seat (the owner, 19 Nov). */
+function atTable({ seatedAt, leftAt }: { readonly seatedAt: string | null; readonly leftAt: string | null }): string {
+  if (seatedAt === null) return NONE();
+  const from = formatTime(new Date(seatedAt));
+  return leftAt === null ? t('console.todaysPlayers.atTableOpen', { from }) : t('console.todaysPlayers.atTableSpan', { from, to: formatTime(new Date(leftAt)) });
+}
 // The tier only above the base one: at the door a number tells members apart, and a tier is worth saying when it is one (audit F-020).
+/** Bonus in rupees for sorting and exports; none is left blank in a file and sorts below nothing. */
+const rupees = (paise: Paise | null) => (paise === null ? -1 : Number(formatRupeesForFile(paise)));
+const rupeesInFile = (paise: Paise | null) => (paise === null ? '' : Number(formatRupeesForFile(paise)));
+const chips = (paise: Paise | null) => (paise === null ? NONE() : formatChips(paise));
+// An erased member's name links nowhere (linkedMemberId is null), as on Activity, orders and top-ups.
+const nameOf = (player: DoorPlayer) => (player.linkedMemberId === null ? player.fullName : <MemberLink memberId={player.linkedMemberId}>{player.fullName}</MemberLink>);
 const tierOf = (player: DoorPlayer) => (player.isBaseTier ? NONE() : player.tierName);
 const tablesOf = (player: DoorPlayer) => (player.tables.length === 0 ? NONE() : player.tables.map((entry) => entry.table).join(', '));
 const statusWords = (status: DoorStatus) => t(`console.todaysPlayers.statuses.${status}`);
@@ -46,9 +62,9 @@ export function doorFiltersInCodes(filters: Readonly<Record<string, ListFilter>>
   }));
 }
 
-// Floor and up see the mobile and History too (#1073): these columns give up a little width, so each mobile, heading and
-// button stays on one line at 1440 px (the UI review of the pull request).
-const WITH_CONTACT: Partial<Record<string, number>> = { player: 1.6, tier: 0.9, bonus: 0.8 };
+// Floor and up see the mobile and History too (#1073). Measured at 1440 px (the UI review, 19 Nov): a name of normal
+// length stays on one line and the mobile gives way, onto two lines; every heading and button fits.
+const WITH_CONTACT: Partial<Record<string, number>> = { player: 1.62 };
 
 const sharesWithContact = (columns: readonly DataTableColumn<DoorPlayer>[], kept: string) => columns.map((column) => {
   const share = column.key === kept ? undefined : WITH_CONTACT[column.key];
@@ -71,18 +87,25 @@ function withContact(
   );
   if (action === undefined) {
     const mobile: DataTableColumn<DoorPlayer> = {
-      key: 'phone', share: 1.8, header: t('console.members.mobile'), filter: false, isExported: false,
+      key: 'phone', share: 1.41, header: t('console.members.mobile'), filter: false, isExported: false,
       cell: (player) => (player.phone === null ? NONE() : <Text variant="secondary" tone="muted">{formatMobile(player.phone)}</Text>),
     };
     const shown = sharesWithContact(columns, '');
-    return [...shown.slice(0, 2), mobile, ...shown.slice(2), { key: 'history', share: 1.1, header: '', align: 'end', filter: false, cell: history }];
+    return [...shown.slice(0, 2), mobile, ...shown.slice(2), { key: 'history', share: 1.17, header: '', align: 'end', filter: false, cell: history }];
   }
-  // The name, over its mobile, gives up a little more, so History and Check out stay on one line with room to spare.
-  const named = sharesWithContact(columns, 'player').map((column) => (column.key !== 'player' ? column : {
-    ...column, share: 1.75, exportValue: (player: DoorPlayer) => player.fullName,
-    cell: (player: DoorPlayer) => <>{player.fullName}{player.phone === null ? null : <Text variant="secondary" tone="muted">{formatMobile(player.phone)}</Text>}</>,
-  }));
-  return [...named, { key: 'action', share: 2.7, header: '', align: 'end', isWide: true, filter: false, cell: (player) => <Inline gap={2} justify="end">{history(player)}{action(player)}</Inline> }];
+  // The name, over its mobile, gives up a little more, so History and Check out stay on one line. Status needs less here:
+  // its longest is In the room (Never arrived is not on Check-in's lists) and it has no sort arrow (Today's players opens
+  // sorted by it).
+  const named = sharesWithContact(columns, 'player').map((column) => {
+    if (column.key === 'status') return { ...column, share: 1.45 };
+    return column.key !== 'player' ? column : {
+      ...column, share: 1.83, exportValue: (player: DoorPlayer) => player.fullName,
+      cell: (player: DoorPlayer) => <>{nameOf(player)}{player.phone === null ? null : <Text variant="secondary" tone="muted">{formatMobile(player.phone)}</Text>}</>,
+    };
+  });
+  // Below 768 px the column is one 128 px track (DataTable's sideways layout), too narrow for both on one line: Check out
+  // wraps under History rather than squeeze its words onto two lines.
+  return [...named, { key: 'action', share: 2.72, header: '', align: 'end', isWide: true, filter: false, cell: (player) => <Inline gap={2} justify="end" wrap>{history(player)}{action(player)}</Inline> }];
 }
 
 /**
@@ -96,30 +119,36 @@ export function doorColumns(
   counted: ListChoices | undefined, action?: (player: DoorPlayer) => ReactNode, onHistory?: (player: DoorPlayer) => void,
 ): readonly DataTableColumn<DoorPlayer>[] {
   const columns: DataTableColumn<DoorPlayer>[] = [
-    { key: 'player', share: 2, header: t('console.todaysPlayers.name'), cell: (player) => player.fullName, sortValue: (player) => player.fullName, priority: 'primary', isWide: true, filter: 'text' },
+    { key: 'player', share: 2, header: t('console.todaysPlayers.name'), cell: nameOf, sortValue: (player) => player.fullName, priority: 'primary', isWide: true, filter: 'text' },
     { key: 'number', share: 0.65, header: t('console.members.number'), cell: (player) => <Text variant="secondary" tone="muted">{String(player.memberNumber)}</Text>, sortValue: (player) => player.memberNumber, exportValue: (player) => player.memberNumber, filter: 'number' },
-    { key: 'tier', share: 1.05, header: t('console.members.tier'), cell: tierOf, exportValue: (player) => player.tierName, sortValue: (player) => player.tierName, filter: 'choice', choices: choicesIn('tier', counted), filterValue: (player) => player.tierName },
+    { key: 'tier', share: 0.78, header: t('console.members.tier'), cell: tierOf, exportValue: (player) => player.tierName, sortValue: (player) => player.tierName, filter: 'choice', choices: choicesIn('tier', counted), filterValue: (player) => player.tierName },
     {
-      key: 'status', share: 1.55, header: t('console.todaysPlayers.status'), sortValue: (player) => RANK[player.status], isWide: true, filter: 'choice', choices: choicesIn('status', counted),
+      key: 'status', share: 1.62, header: t('console.todaysPlayers.status'), sortValue: (player) => RANK[player.status], isWide: true, filter: 'choice', choices: choicesIn('status', counted),
       filterValue: (player) => statusWords(player.status),
       cell: (player) => <DotStatus tone={TONE[player.status]} label={statusWords(player.status)} />, exportValue: (player) => statusWords(player.status),
     },
-    { key: 'in', share: 0.65, header: t('console.todaysPlayers.checkedIn'), cell: (player) => at(player.checkedInAt), sortValue: (player) => player.checkedInAt ?? '', filter: false },
-    { key: 'out', share: 0.65, header: t('console.todaysPlayers.checkedOut'), cell: (player) => at(player.checkedOutAt), sortValue: (player) => player.checkedOutAt ?? '', filter: false },
-    { key: 'waited', share: 1, filter: 'duration', header: t('console.todaysPlayers.waited'), cell: (player) => formatDuration(player.waitingSeconds), sortValue: (player) => player.waitingSeconds, align: 'end' },
-    { key: 'table', share: 0.95, header: t('console.todaysPlayers.table'), cell: tablesOf, sortValue: tablesOf, filter: 'text' },
+    { key: 'in', share: 0.6, header: t('console.todaysPlayers.checkedIn'), cell: (player) => at(player.checkedInAt), sortValue: (player) => player.checkedInAt ?? '', filter: false },
+    { key: 'out', share: 0.6, header: t('console.todaysPlayers.checkedOut'), cell: (player) => at(player.checkedOutAt), sortValue: (player) => player.checkedOutAt ?? '', filter: false },
+    { key: 'waited', share: 0.86, filter: 'duration', header: t('console.todaysPlayers.waited'), cell: (player) => waited(player.waitingSeconds), sortValue: (player) => player.waitingSeconds ?? -1, align: 'end' },
+    { key: 'table', share: 0.98, header: t('console.todaysPlayers.table'), cell: tablesOf, sortValue: tablesOf, filter: 'text' },
+    // A row is a seat (the owner, 19 Nov): its time at the table, sorted by when they sat; exported as its words, since an
+    // export has one value a column. Narrow enough that a seat left wraps after its dash, as its row is two lines anyway.
+    { key: 'seated', share: 1.05, header: t('console.todaysPlayers.atTable'), cell: atTable, sortValue: (player) => player.seatedAt ?? '', exportValue: atTable, filter: false },
     {
-      key: 'played', share: 1.5, filter: 'duration', header: t('console.todaysPlayers.played'), sortValue: (player) => player.playedSeconds, align: 'end',
+      key: 'played', share: 1.03, filter: 'duration', header: t('console.todaysPlayers.played'), sortValue: (player) => player.playedSeconds, align: 'end',
       cell: (player) => (player.tables.length === 0 ? NONE() : formatDuration(player.playedSeconds)),
     },
-    // The Bonus given to them today (#1062).
+    // The Bonus given to them today (#1062), on the first row of their latest visit alone, and the Bonus used at each seat (the owner, 19 Nov).
     {
-      key: 'bonus', share: 1, header: t('console.todaysPlayers.bonus'), align: 'end', filter: false,
-      sortValue: (player) => Number(formatRupeesForFile(player.bonus)), exportValue: (player) => Number(formatRupeesForFile(player.bonus)),
-      cell: (player) => formatChips(player.bonus),
+      key: 'bonus', share: 0.77, header: t('console.todaysPlayers.bonus'), align: 'end', filter: false,
+      sortValue: (player) => rupees(player.bonus), exportValue: (player) => rupeesInFile(player.bonus), cell: (player) => chips(player.bonus),
     },
     {
-      key: 'kyc', share: 1.3, header: t('console.members.kyc'), sortValue: (player) => KYC.indexOf(player.kycStatus), isWide: true, filter: 'choice', choices: choicesIn('kyc', counted),
+      key: 'bonus_used', share: 0.63, header: t('console.todaysPlayers.bonusUsed'), align: 'end', filter: false,
+      sortValue: (player) => rupees(player.bonusUsed), exportValue: (player) => rupeesInFile(player.bonusUsed), cell: (player) => chips(player.bonusUsed),
+    },
+    {
+      key: 'kyc', share: 1.26, header: t('console.members.kyc'), sortValue: (player) => KYC.indexOf(player.kycStatus), isWide: true, filter: 'choice', choices: choicesIn('kyc', counted),
       filterValue: (player) => kycWords(player.kycStatus),
       cell: (player) => <DotStatus tone={KYC_TONE[player.kycStatus]} label={kycWords(player.kycStatus)} />, exportValue: (player) => kycWords(player.kycStatus),
     },

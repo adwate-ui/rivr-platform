@@ -1,6 +1,6 @@
 import { bonusSourceOf, LIST_PAGE, scopedTo, useBonusGivenPage, useListChoices, type BonusGiven, type BonusSource, type ListChoices, type ReportSpan } from '@rivr/db';
 import { formatChips, formatDateTime, formatRupeesForFile, t } from '@rivr/i18n';
-import { DataTable, Text, type ColumnChoice, type DataTableColumn, type DataTableRequest } from '@rivr/ui';
+import { DataTable, MemberLink, Text, type ColumnChoice, type DataTableColumn, type DataTableRequest } from '@rivr/ui';
 import { useState } from 'react';
 
 const NONE = () => t('console.todaysPlayers.none');
@@ -31,7 +31,7 @@ function givenColumns(counted: ListChoices | undefined): readonly DataTableColum
   return [
     { key: 'when', share: 1.2, header: t('console.reports.bonusGiven.when'), sortValue: (bonus) => bonus.givenAt, exportValue: when, filter: false,
       cell: (bonus) => <Text variant="secondary" tone="muted">{when(bonus)}</Text> },
-    { key: 'member', share: 1.4, priority: 'primary', header: t('console.reports.bonusGiven.member'), sortValue: (bonus) => bonus.fullName, filter: false, cell: (bonus) => bonus.fullName },
+    { key: 'member', share: 1.4, priority: 'primary', header: t('console.reports.bonusGiven.member'), sortValue: (bonus) => bonus.fullName, filter: false, cell: (bonus) => <MemberLink memberId={bonus.memberId}>{bonus.fullName}</MemberLink> },
     { key: 'number', share: 0.6, header: t('console.reports.bonusGiven.number'), sortValue: (bonus) => bonus.memberNumber, filter: false, cell: (bonus) => String(bonus.memberNumber) },
     { key: 'amount', share: 0.8, header: t('console.reports.bonusGiven.amount'), align: 'end', sortValue: amount, exportValue: amount, filter: false, cell: (bonus) => formatChips(bonus.amount) },
     { key: 'source', share: 0.9, header: t('console.reports.bonusGiven.from'), filter: 'choice', choices: sourceChoices(counted),

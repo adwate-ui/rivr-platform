@@ -6,7 +6,7 @@ import {
 import { useMemberBonus, useMemberBonusVisitLeft } from '@rivr/db/bonus';
 import { formatChips, t, type MessageKey } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Input, LoadState, Sheet, Stack, Text, UnitInput } from '@rivr/ui';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { waitedSeconds } from './requestView.ts';
 import { stakeOf } from './seatState.ts';
 import type { SeatChanges, Seating } from './useSeatChanges.ts';
@@ -80,18 +80,34 @@ function useSeatChoice(start: SeatSheetProps['start']) {
   };
 }
 
+/** How long typing pauses before the search is asked: once a pause, not once a key. */
+const SEARCH_PAUSE_MS = 250;
+
+/** What was typed, once typing has paused. */
+function useTypingPaused(typed: string): string {
+  const [paused, setPaused] = useState(typed);
+  useEffect(() => {
+    const timer = setTimeout(() => setPaused(typed), SEARCH_PAUSE_MS);
+    return () => clearTimeout(timer);
+  }, [typed]);
+  return paused;
+}
+
 /**
  * The members matching what is typed, by name, member number or the mobile's last digits, through the bounded member search:
  * those it starts first, eight at most; whether a name found no one; and whether the search failed, with a way to ask again.
  */
 function useMatches(venueId: string, typed: string) {
-  const found = useMemberSearch(venueId, typed);
+  const paused = useTypingPaused(typed);
+  const found = useMemberSearch(venueId, paused);
   const isTyped = typed.trim() !== '';
-  const rows = topMatches(found.data ?? [], typed);
+  // Until typing pauses the last search's members are not offered: they match words no longer typed (UI review of #1104).
+  const isCurrent = paused.trim() === typed.trim();
+  const rows = isCurrent ? topMatches(found.data ?? [], typed) : [];
   return {
     rows,
-    isNoOne: hasLetters(typed) && found.isSuccess && rows.length === 0,
-    hasFailed: isTyped && found.isError,
+    isNoOne: isCurrent && hasLetters(typed) && found.isSuccess && rows.length === 0,
+    hasFailed: isTyped && isCurrent && found.isError,
     retry: () => void found.refetch(),
   };
 }

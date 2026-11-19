@@ -10,7 +10,6 @@ const rows = (count: number): TvHoursRow[] => Array.from({ length: count }, (_, 
 const PROPS: TvHoursBoardProps = {
   title: 'Most hours played',
   emptyText: 'No hours played yet.',
-  moreText: (hidden) => `+${hidden} more`,
   lists: [{ id: 'tonight', caption: 'Tonight', rows: rows(3) }, { id: 'week', caption: 'This week', rows: rows(7) }],
 };
 
@@ -26,10 +25,12 @@ describe('TvHoursBoard', () => {
     expect(screen.queryByText(/more$/)).toBeNull();
   });
 
-  it('shows the six places the stage holds of a longer list, and how many more', () => {
-    renderIn(<TvHoursBoard {...PROPS} lists={[{ id: 'tonight', caption: 'Tonight', rows: rows(10) }]} />);
-    expect(screen.getAllByRole('listitem')).toHaveLength(6);
-    expect(screen.getByText('+4 more')).toBeInTheDocument();
+  it('shows the top seven places the stage holds of a longer list, and nothing of the rest, as the prototype', () => {
+    renderIn(<TvHoursBoard {...PROPS} lists={[{ id: 'tonight', caption: 'Tonight', rows: rows(10) }, { id: 'week', caption: 'This week', rows: rows(10) }]} />);
+    const week = within(screen.getByRole('region', { name: 'This week' }));
+    expect(week.getAllByRole('listitem').map((row) => row.firstChild?.textContent)).toEqual(['1', '2', '3', '4', '5', '6', '7']);
+    expect(within(screen.getByRole('region', { name: 'Tonight' })).getAllByRole('listitem')).toHaveLength(7);
+    expect(screen.queryByText(/more$/)).toBeNull();
   });
 
   it('says so under a period nobody has played in, and with no lists at all', () => {

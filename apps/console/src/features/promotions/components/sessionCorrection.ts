@@ -46,6 +46,25 @@ export function correctionOf(session: WaitingSession, draft: SeatDraft): SeatCor
   return { sessionId: session.sessionId, endedAt, awaySeconds };
 }
 
+/** A seat's own span, from when they sat to its end, or to now while they are still seated (`to` null), in whole minutes. */
+export interface SeatSpan {
+  readonly from: string;
+  readonly to: string | null;
+  readonly minutes: number;
+}
+
+/**
+ * The seat's span when the time away it would send is longer than the seat itself, which `correct_one_seat` refuses (the
+ * owner, 19 Nov): its end as sent, or to now while still seated. Null when it fits, the seat sends nothing, or it cannot be read.
+ */
+export function awayProblemOf(session: WaitingSession, draft: SeatDraft, now = new Date()): SeatSpan | null {
+  const sending = correctionOf(session, draft);
+  if (sending === null || sending === 'invalid') return null;
+  const to = sending.endedAt ?? session.endedAt;
+  const seconds = Math.floor(((to === null ? now.getTime() : Date.parse(to)) - Date.parse(session.startedAt)) / 1000);
+  return sending.awaySeconds > seconds ? { from: session.startedAt, to, minutes: Math.floor(seconds / 60) } : null;
+}
+
 /** A visit's check-in and check-out as the panel types them (#1075): check-out blank while they are still in. */
 export interface VisitDraft {
   readonly checkedIn: string;

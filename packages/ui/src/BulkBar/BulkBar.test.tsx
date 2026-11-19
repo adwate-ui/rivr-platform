@@ -68,6 +68,19 @@ describe('BulkBar', () => {
     expect(live).toHaveTextContent('1 selected');
   });
 
+  it('keeps its place while none is chosen, an empty band of its height, so ticking a row moves nothing under it', () => {
+    const { rerender } = renderIn(<BulkBar count={0} actions={actionsWith()} onClear={() => undefined} />);
+    const live = document.querySelector('[aria-live="polite"]');
+    const place = live?.parentElement;
+    expect(place).not.toHaveClass('sr-only');
+    expect(place).not.toHaveClass('sticky');
+    expect(place).toHaveClass('flex', 'px-4', 'py-2');
+    expect(live).toHaveClass('min-h-touch', 'tablet:min-h-8');
+    rerender(<BulkBar count={1} actions={actionsWith()} onClear={() => undefined} />);
+    expect(bar()).toBe(place);
+    expect(bar()).toHaveClass('flex', 'px-4', 'py-2', 'sticky');
+  });
+
   it('has no accessibility violations', async () => {
     const { container } = renderIn(<BulkBar count={4} actions={actionsWith()} onClear={() => undefined} />);
     expect(await axeViolations(container)).toEqual([]);

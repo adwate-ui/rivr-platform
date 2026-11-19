@@ -46,12 +46,17 @@ grant select on asked to authenticated;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select is((select jsonb_path_query_array(visits, '$[*].visitId') || jsonb_path_query_array(visits, '$[1].sessions[*].id')
            from public.player_visits_page('00000000-0000-4000-8000-000000000001', (select view from asked))
-           where member_id = '00000000-0000-4000-8000-000000000211'),
+           where member_id = '00000000-0000-4000-8000-000000000211' and seated_at is not null),
   '["00000000-0000-4000-8000-0000000535a1", "00000000-0000-4000-8000-0000000535a2", "00000000-0000-4000-8000-0000000535b1"]'::jsonb,
   'a super admin''s Visits row holds the day''s two visits, the second with its seat');
+select is((select visits from public.player_visits_page('00000000-0000-4000-8000-000000000001', (select view from asked))
+           where member_id = '00000000-0000-4000-8000-000000000211' and seated_at is null),
+  (select visits from public.player_visits_page('00000000-0000-4000-8000-000000000001', (select view from asked))
+   where member_id = '00000000-0000-4000-8000-000000000211' and seated_at is not null),
+  'and so does the row of his first visit, which had no seat');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select is((select visits is null from public.player_visits_page('00000000-0000-4000-8000-000000000001', (select view from asked))
-           where member_id = '00000000-0000-4000-8000-000000000211'), true, 'an admin''s row holds none');
+select is((select bool_and(visits is null) from public.player_visits_page('00000000-0000-4000-8000-000000000001', (select view from asked))
+           where member_id = '00000000-0000-4000-8000-000000000211'), true, 'an admin''s rows hold none');
 
 -- Who may correct, and what does not fit.
 select throws_ok($$ select * from pg_temp.fix('a2', pg_temp.at('19:30'), null, '[]', 'Came in earlier') $$, '42501', null, 'an admin may not correct a visit');
@@ -97,8 +102,11 @@ select is((select count(*)::integer from public.audit_log where action = 'seat.s
 -- Every screen reads the corrected rows: the Players report's In and Out.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select is((select array[checked_in_at, checked_out_at] from public.player_visits_page('00000000-0000-4000-8000-000000000001', (select view from asked))
-           where member_id = '00000000-0000-4000-8000-000000000211'), array[pg_temp.at('18:00'), pg_temp.at('22:15')],
-  'the Players report reads the day''s first check-in and its corrected last check-out');
+           where member_id = '00000000-0000-4000-8000-000000000211' and seated_at is not null), array[pg_temp.at('19:30'), pg_temp.at('22:15')],
+  'the Players report''s seat row reads its visit''s corrected check-in and check-out');
+select is((select array[checked_in_at, checked_out_at] from public.player_visits_page('00000000-0000-4000-8000-000000000001', (select view from asked))
+           where member_id = '00000000-0000-4000-8000-000000000211' and seated_at is null), array[pg_temp.at('18:00'), pg_temp.at('19:00')],
+  'and his first visit, with no seat, is a row of its own with its times');
 
 -- Last, as neither can be undone here: a frozen member's visit, and a super admin of another venue alone.
 reset role;

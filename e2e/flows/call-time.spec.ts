@@ -12,13 +12,12 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
-import { requestsPanel, showSeats, tableTile } from '../support/floor.ts';
+import { requestNamed, showSeats, tableTile } from '../support/floor.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
 
 /** Ritika's request in the floor's panel that says `kind`: its own entry, once it has arrived. */
 async function ritikasRequest(floor: Page, kind: RegExp) {
-  const entry = requestsPanel(floor).locator('div').filter({ has: floor.getByRole('button', { name: 'Ritika Das', exact: true }) })
-    .filter({ hasText: kind }).last();
+  const entry = requestNamed(floor, 'Ritika Das').filter({ hasText: kind }).last();
   await expect(entry).toBeVisible({ timeout: 20_000 });
   return entry;
 }

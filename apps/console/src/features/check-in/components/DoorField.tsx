@@ -1,6 +1,6 @@
 import { useTodaysPlayers, type MemberRow, type TodaysPlayer } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, Stack, StatusMessage, Text, useIsWide } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, Input, MemberLink, Stack, StatusMessage, Text, useIsWide } from '@rivr/ui';
 import { useRef } from 'react';
 import { CHECK_IN_FAILURE_COPY, checkOutRefusalText } from './checkInCopy.ts';
 import { useDoorField, type DoorAction, type DoorOutcome } from './useDoorField.ts';
@@ -64,7 +64,7 @@ function Matches({ matches, inClub, isHeld, onChoose }: MatchesProps) {
         return (
           <Inline key={row.memberId} gap={4} justify="between">
             <Stack gap={1}>
-              <Text variant="row" weight="medium">{row.fullName}</Text>
+              <Text variant="row" weight="medium"><MemberLink memberId={row.memberId}>{row.fullName}</MemberLink></Text>
               <Text variant="secondary" tone="muted">{t('console.checkIn.memberMeta', { number: row.memberNumber, tier: row.tierName })}</Text>
             </Stack>
             <Button variant="subtle" size="small" aria-label={t(words.named, { name: row.fullName })} isDisabled={isHeld}

@@ -16,6 +16,11 @@ export const activity = {
   system: 'System',
   unknown: 'No longer on record',
   recordOf: '{thing} · {name}',
+  /** recordOf before a member's name, which follows as its link. */
+  recordThing: '{thing} · ',
+  /** In place of the member, for a Bonus decision on several members' at once. */
+  decidedApproved: '{count} approved at once',
+  decidedRefused: '{count} refused at once',
   /** Points or bonus chips by hand: `Gave points: 500`, `Gave bonus chips: 1,500`. */
   withAmount: '{what}: {amount}',
   /** Beside a high hand paid (redesign RD-24): `Four Jacks · Table 2, seat 3`. */
@@ -51,6 +56,7 @@ const ENTITY_WORDS: Readonly<Record<string, string>> = {
   device: 'Device', down_count: 'Down count', drill: 'Drill', early_departure: 'Early departure', early_departure_withdrawal: 'Early departure withdrawn', eod_close: 'End of day',
   expense: 'Expense', expense_category: 'Expense category', export_archive: 'Archive', feedback: 'Feedback', fnb_item: 'Menu item', fnb_order: 'Food and drink order', game_table: 'Table',
   glaza_import: 'Glaza import', hand: 'Hand', high_hand_claim: 'High hand claim', high_hand_hit: 'High hand', incident: 'Incident', invoice: 'Invoice', jackpot_event: 'Jackpot', kyc_image: 'ID photo',
+  kyc_document: 'ID photo taken', kyc_record: 'ID check', kyc_review: 'ID check review',
   league_adjustment: 'League adjustment', league_finish: 'League finish', league_season: 'League season', learn_source: 'Learn source', ledger_account: 'Ledger account',
   ledger_transaction: 'Ledger entry', marker: 'Marker', marker_settlement: 'Marker settled', member: 'Member', member_feature_override: 'Member feature', member_limit: 'Member limit',
   member_tier_change: 'Tier change', notice: 'Notice', payment_account: 'Payment account', points_earning: 'Points earned', promotion: 'Promotion', promotion_budget: 'Promotion budget',

@@ -37,8 +37,17 @@ function countOf(chip: DoorChip, counted: ListChoices | undefined): number | und
   const sum = (column: string, values: readonly string[] | undefined) =>
     (counted[column] ?? []).filter((one) => values === undefined || values.includes(one.value)).reduce((total, one) => total + one.count, 0);
   if (chip.statuses !== undefined) return sum('status', chip.statuses);
-  return sum('list', chip.list === undefined ? undefined : [chip.list]);
+  // Everyone once: a member back in has rows of two statuses and on two lists, a visit over (Left) and one open.
+  return chip.list === undefined ? sum('everyone', undefined) : sum('list', [chip.list]);
 }
+
+/**
+ * A row's key: its seat, by its session, when they sat and the table, since a move keeps the session; a row without a seat
+ * by its visit, or by the member when they never came in.
+ */
+const keyOf = (player: DoorPlayer) => (player.sessionId === null
+  ? `${player.memberId}:${player.visitId ?? 'none'}`
+  : `${player.sessionId}:${player.seatedAt ?? ''}:${player.tables[0]?.table ?? ''}`);
 
 /** Whether nobody is at the door at all, by the chips' own count. */
 const isNobody = (everyone: ListChoices | undefined) => everyone !== undefined && (everyone['list'] ?? []).every((one) => one.count === 0);
@@ -95,7 +104,7 @@ export function DoorTable({ venueId, label, chipsLabel, chips, emptyText, nobody
     <Stack gap={4}>
       {/* A failed refresh keeps the players shown, with a notice, rather than swapping them for an error. */}
       {page.isError && page.data !== undefined ? <StaleNotice since={new Date(page.dataUpdatedAt)} onRetry={() => void page.refetch()} /> : null}
-      <DataTable {...state} {...look} label={label} columns={doorColumns(counted, action, history && setOpened)} rowKey={(player) => player.memberId} narrowLayout="sideways"
+      <DataTable {...state} {...look} label={label} columns={doorColumns(counted, action, history && setOpened)} rowKey={keyOf} narrowLayout="sideways"
         filter={search}
         belowSearch={(
           <ChoiceChips look="subtle" mode="one" isOneRow isLabelVisuallyHidden label={chipsLabel} selected={[chipId]}

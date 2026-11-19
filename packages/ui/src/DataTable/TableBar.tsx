@@ -53,12 +53,12 @@ const exportOnly = <Row,>(column: DataTableExportColumn<Row>) => ({ ...column, c
 
 /**
  * How many rows an export would hold: the rows shown, or in server mode every row the view leaves, where the screen
- * reads them (`every`: how many, and the read); none where it does not.
+ * reads them (`every`, the read); none where it does not.
  */
 function exportedRows<Row>(props: BarProps<Row>, visible: readonly Row[]) {
   if (props.server === undefined) return { count: visible.length, every: undefined };
   if (props.exportRows === undefined) return { count: 0, every: undefined };
-  return { count: props.server.total, every: { count: props.server.total, rows: props.exportRows } };
+  return { count: props.server.total, every: { rows: props.exportRows } };
 }
 
 /**
@@ -120,6 +120,8 @@ export interface PillsProps<Row> {
   readonly isSearched: boolean;
   readonly shown: number;
   readonly total: number;
+  /** The total is a floor ("of 5,050+"): the server stopped counting short of the end. */
+  readonly isTotalAtLeast?: boolean;
   /** How many show of all is said though nothing narrows the rows: a table in server mode, which shows a page of them. */
   readonly isCountAlways?: boolean;
   readonly onRemove: (key: string) => void;
@@ -131,7 +133,7 @@ export interface PillsProps<Row> {
  * while a filter or the search is on; and how many rows show of all, said politely as it changes. Nothing while nothing
  * narrows the rows, unless the count is always said.
  */
-export function FilterPills<Row>({ on, filters, isSearched, shown, total, isCountAlways = false, onRemove, onClearAll }: PillsProps<Row>) {
+export function FilterPills<Row>({ on, filters, isSearched, shown, total, isTotalAtLeast = false, isCountAlways = false, onRemove, onClearAll }: PillsProps<Row>) {
   const isNarrowed = on.length > 0 || isSearched;
   if (!isNarrowed && !isCountAlways) return null;
   return (
@@ -149,7 +151,7 @@ export function FilterPills<Row>({ on, filters, isSearched, shown, total, isCoun
       })}
       {isNarrowed ? <Button variant="text" size="small" onClick={onClearAll}>{t('ui.dataTable.clearAll')}</Button> : null}
       <span role="status" className="ms-auto">
-        <Text variant="small" tone="muted">{t('ui.dataTable.shownOf', { shown: formatNumber(shown), total: formatNumber(total) })}</Text>
+        <Text variant="small" tone="muted">{t(isTotalAtLeast ? 'ui.dataTable.shownOfAtLeast' : 'ui.dataTable.shownOf', { shown: formatNumber(shown), total: formatNumber(total) })}</Text>
       </span>
     </div>
   );

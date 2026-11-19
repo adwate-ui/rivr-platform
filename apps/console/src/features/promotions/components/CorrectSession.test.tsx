@@ -1,3 +1,4 @@
+import { formatTime } from '@rivr/i18n';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CorrectSession } from './CorrectSession.tsx';
@@ -84,5 +85,37 @@ describe('Edit visit says which rule refused a correction (the review of the pul
     typeIn(panel, /^Why it changes/, 'Came in earlier');
     fireEvent.click(within(panel).getByRole('button', { name: 'Save changes' }));
     expect(await within(panel).findByText('Those times run into their other visit.')).toBeDefined();
+  });
+
+  // The owner, 19 Nov: correct_one_seat refuses time away longer than the seat, and the console says so first.
+  it('says under Away how long the seat lasted when time away is longer, and sends nothing', async () => {
+    const { bodiesOf, panel } = await open({});
+    fireEvent.change(within(panel).getByRole('textbox', { name: /^Away/ }), { target: { value: '151' } });
+    typeIn(panel, /^Why it changes/, 'Card times');
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save changes' }));
+    expect(await within(panel).findByText('Away can\'t be longer than this seat: 20:10–22:40, 150 min.')).toBeDefined();
+    expect(bodiesOf('correct_visit')).toEqual([]);
+    typeIn(panel, /^Left at/, '23:00');
+    expect(within(panel).queryByText(/^Away can't be longer/)).toBeNull();
+  });
+
+  it('counts a seat still taken to now', async () => {
+    const sat = new Date(Date.now() - 30 * 60_000 - 10_000).toISOString();
+    const inNow = { visitId: 'v3', openedAt: sat, closedAt: null, sessions: [{ sessionId: 's3', tableName: 'Table 2', startedAt: sat, endedAt: null, awaySeconds: 0 }] };
+    const { bodiesOf } = renderWithApi(<CorrectSession venueId="v1" memberId="m1" subtitle="Ishaan Verma · today" visits={[inNow]} onDone={() => undefined} onCancel={() => undefined} />, {});
+    const panel = await screen.findByRole('dialog', { name: 'Edit visit' });
+    fireEvent.change(within(panel).getByRole('textbox', { name: /^Away/ }), { target: { value: '45' } });
+    typeIn(panel, /^Why it changes/, 'Card times');
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save changes' }));
+    expect(await within(panel).findByText(`Away can't be longer than this seat: since ${formatTime(new Date(sat))}, 30 min so far.`)).toBeDefined();
+    expect(bodiesOf('correct_visit')).toEqual([]);
+  });
+
+  it('names the server\'s refusal of time away longer than its seat', async () => {
+    const { panel } = await open({ '/rpc/correct_visit': refused('RVAWL') });
+    fireEvent.change(within(panel).getByRole('textbox', { name: /^Away/ }), { target: { value: '10' } });
+    typeIn(panel, /^Why it changes/, 'Card times');
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save changes' }));
+    expect(await within(panel).findByText('Away can\'t be longer than its seat.')).toBeDefined();
   });
 });

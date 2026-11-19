@@ -1,7 +1,7 @@
 import { LIST_PAGE, useListChoices, useOpenFeedbackPage, type ListChoices, type ListFilter, type ListView, type OpenFeedback } from '@rivr/db';
 import { isFeedbackOverdue } from '@rivr/domain/feedback';
 import { formatDuration, t } from '@rivr/i18n';
-import { BulkBar, DataTable, Stack, Text, type DataTableColumn, type DataTableRequest } from '@rivr/ui';
+import { BulkBar, DataTable, MemberLink, Stack, Text, type DataTableColumn, type DataTableRequest } from '@rivr/ui';
 import { useState } from 'react';
 import { kindLine, ratingsLine, whoLine } from './feedbackLines.ts';
 import { ResolveTickets } from './ResolveTickets.tsx';
@@ -48,7 +48,11 @@ function visitOf(item: OpenFeedback): string {
 function columnsAt(now: number, counted: ListChoices | undefined): readonly DataTableColumn<OpenFeedback>[] {
   const ageOf = (item: OpenFeedback) => Math.floor((now - new Date(item.createdAt).getTime()) / 1000);
   return [
-    { key: 'member', header: t('console.feedback.columns.member'), priority: 'primary', sortValue: (item) => item.fullName, cell: whoLine, filter: 'text' },
+    // The name is the link to the member's account, where the row opens too (owner, 19 Nov); then their number.
+    {
+      key: 'member', header: t('console.feedback.columns.member'), priority: 'primary', isLink: true, sortValue: (item) => item.fullName, filter: 'text', exportValue: whoLine,
+      cell: (item) => <><MemberLink memberId={item.memberId}>{item.fullName}</MemberLink>{t('console.feedback.whoNumber', { number: item.memberNumber })}</>,
+    },
     {
       key: 'age', header: t('console.feedback.columns.age'), filter: 'duration', sortValue: ageOf,
       cell: (item) => {

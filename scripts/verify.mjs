@@ -18,11 +18,14 @@
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { isDeepStrictEqual } from 'node:util';
 import strykerConfig from '../packages/domain/stryker.config.mjs';
 
 const MODE = process.argv[2] ?? 'changed';
+/** The folders under src/ that a Stryker mutate list names (`src/rake/**\/*.ts`, `src/referral/promise.ts`). */
+const modulesIn = (mutate) => mutate.filter((glob) => !glob.startsWith('!')).map((glob) => glob.split('/')[1]);
 // The money modules are the folders Stryker mutates (packages/domain/stryker.config.mjs): one list for both.
-const MONEY_MODULES = strykerConfig.mutate.filter((glob) => !glob.startsWith('!')).map((glob) => glob.split('/')[1]);
+const MONEY_MODULES = modulesIn(strykerConfig.mutate);
 // Shared tooling can break any package, so a change to it verifies everything.
 const TOOLING = /^(\.node-version|package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|turbo\.json|eslint\.config\.js|tsconfig\.json|\.dependency-cruiser\.cjs|stylelint\.config\.mjs|packages\/config\/|scripts\/)/;
 // Tooling that can move any money module's mutation score.
@@ -131,17 +134,30 @@ function moneyModulesToMutate(scope) {
 }
 
 /**
- * What a change to Stryker's config means for a pull request: the modules it adds to the mutate list are mutated as
- * changed ones; any other change (a threshold, the runner) moves every score. Adding a module mutated every module,
- * about 25 minutes, before (#515).
+ * Stryker's config as `base` had it, as data: a child Node evaluates that version of the module, so its comments and
+ * layout drop out. Null when it cannot (a config that imports another file), which counts as a change.
+ */
+function strykerConfigAt(base) {
+  const source = `data:text/javascript,${encodeURIComponent(git('show', `${base}:${STRYKER_CONFIG}`))}`;
+  const print = `const { default: config } = await import(${JSON.stringify(source)}); process.stdout.write(JSON.stringify(config));`;
+  try {
+    return JSON.parse(execFileSync(process.execPath, ['--input-type=module', '--eval', print], { encoding: 'utf8' }));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * What a change to Stryker's config means for a pull request, the two versions compared as data: the modules it adds to
+ * the mutate list are mutated as changed ones; any other setting changed (a threshold, the runner) moves every score;
+ * a comment or the layout moves none. Adding a module once mutated every module, about 25 minutes (#515), and so did a
+ * comment while the versions were compared as text (#1019).
  */
 function strykerConfigChange(base) {
-  const mutateList = (text) => text.match(/mutate: \[([^\]]*)\]/)?.[1] ?? '';
-  const modulesIn = (text) => [...mutateList(text).matchAll(/'src\/([^/']+)\/\*\*\/\*\.ts'/g)].map((match) => match[1]);
-  const before = git('show', `${base}:${STRYKER_CONFIG}`);
-  const after = readFileSync(STRYKER_CONFIG, 'utf8').trim(); // as git() trims the text before
-  if (before.replace(mutateList(before), '') !== after.replace(mutateList(after), '')) return { everything: true, added: [] };
-  return { everything: false, added: modulesIn(after).filter((module) => !modulesIn(before).includes(module)) };
+  const { mutate: mutateBefore, ...before } = strykerConfigAt(base) ?? {};
+  const { mutate: mutateAfter, ...after } = JSON.parse(JSON.stringify(strykerConfig));
+  if (!mutateBefore || !isDeepStrictEqual(before, after)) return { everything: true, added: [] };
+  return { everything: false, added: modulesIn(mutateAfter).filter((module) => !modulesIn(mutateBefore).includes(module)) };
 }
 
 /** A money module's files Stryker mutates (as `module/file.ts`): not its tests or its index. */

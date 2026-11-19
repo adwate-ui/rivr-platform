@@ -22,7 +22,7 @@
  */
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { appUrl, isRemoteTarget, VIEWPORT } from '../support/apps.ts';
-import { letGoEarly, requestsPanel, seatOnFloor, showSeats, tableTile } from '../support/floor.ts';
+import { letGoEarly, requestNamed, seatOnFloor, showSeats, tableTile } from '../support/floor.ts';
 import { openConsole } from '../support/console.ts';
 import { endHighHands, liveHighHand, shoot } from '../support/highHand.ts';
 import { signInToConsole, signInToPlayer } from '../support/signIn.ts';
@@ -217,8 +217,7 @@ test.describe('TV boards', () => {
     await nakul.getByRole('button', { name: 'Leave seat' }).click();
     await nakul.getByRole('dialog', { name: 'Leave your seat?' }).getByRole('button', { name: 'Join leaving list' }).click();
     // Leaving is one of the requests docked beside the Live floor (console v3, decision 0479).
-    const leaving = requestsPanel(floor).locator('div').filter({ has: floor.getByRole('button', { name: LEAVING, exact: true }) })
-      .filter({ hasText: /^Leaving/ }).last();
+    const leaving = requestNamed(floor, LEAVING).filter({ hasText: /^Leaving/ }).last();
     await expect(leaving).toBeVisible({ timeout: 20_000 });
     await expect(leaving).toContainText('Private Room, seat 8');
     // Leaving or not, his seat is on the board's one list, with the call time he still owes.

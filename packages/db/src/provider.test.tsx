@@ -7,7 +7,7 @@ import type { Database } from './database.types.ts';
 import { useFeatureStatus } from './hooks.ts';
 import { RivrDataProvider, useAuthStatus, useRivrData } from './provider.tsx';
 import { sessionStorageFor } from './test/session.ts';
-import { ARJUN, fireChange, freshDatabase, heardOn, Probe, testClient } from './test/liveProvider.tsx';
+import { ARJUN, fireChange, fireHearing, freshDatabase, heardOn, Probe, testClient } from './test/liveProvider.tsx';
 
 afterEach(() => {
   cleanup();
@@ -157,10 +157,27 @@ describe('RivrDataProvider and useFeature', () => {
       </RivrDataProvider>,
     );
     await waitFor(() => expect(channels).toHaveLength(1));
-    const tables = vi.mocked(channels[0]?.on)?.mock.calls.map(([, filter]) => ('table' in filter ? filter.table : undefined));
+    const tables = heardOn(channels[0])?.map(([table]) => table);
 
     expect(tables).toEqual(['tier_feature', 'member_feature_override', 'member', 'bonus_grant', 'bonus_redemption']);
     expect(heardOn(channels[0])?.map(([, filter]) => filter)).toEqual(Array(5).fill('every row'));
+  });
+
+  // #1085: Realtime hears the database a moment to seconds after the channel joins, and a change made before then is never told.
+  it('reads open screens again once Realtime hears the database, so a change made while it joined still shows', async () => {
+    const database = freshDatabase();
+    const { client, channels } = testClient(database, ARJUN);
+    render(<RivrDataProvider client={client}><Probe /></RivrDataProvider>);
+    await screen.findByText('events: locked');
+    const [channel] = channels;
+    if (channel === undefined) throw new Error('The provider opened no Realtime channel');
+
+    database.featureRows = [{ feature_key: 'events.book', state: 'enabled', tiers: null }];
+    fireHearing(channel, 'error');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(screen.getByText('events: locked')).toBeDefined();
+    fireHearing(channel);
+    expect(await screen.findByText('events: enabled')).toBeDefined();
   });
 });
 

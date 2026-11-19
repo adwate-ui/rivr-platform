@@ -96,10 +96,10 @@ select set_eq($$ select order_id from public.fnb_orders_page('00000000-0000-4000
 select is_empty($$ select 1 from public.fnb_orders_page('00000000-0000-4000-8000-000000000001', '{"scope": {"state": "all"}}') p
                    join public.fnb_orders_tonight('00000000-0000-4000-8000-000000000001') o on o.order_id = p.order_id
                    where (p.kot_number, p.table_name, p.seat, p.member_name, p.member_number, p.lines, p.is_comp, p.source, p.created_at, p.kot_sent_at, p.kot_sent_by,
-                          p.accepted_at, p.delivered_at, p.cancelled_at, p.cancel_reason, p.on_way_at, p.kot_print_failed, p.seat_state)
+                          p.accepted_at, p.delivered_at, p.cancelled_at, p.cancel_reason, p.on_way_at, p.seat_state)
                          is distinct from
                          (o.kot_number, o.table_name, o.seat, o.member_name, o.member_number, o.lines, o.is_comp, o.source, o.created_at, o.kot_sent_at, o.kot_sent_by,
-                          o.accepted_at, o.delivered_at, o.cancelled_at, o.cancel_reason, o.on_way_at, o.kot_print_failed, o.seat_state) $$, 'each order as it was');
+                          o.accepted_at, o.delivered_at, o.cancelled_at, o.cancel_reason, o.on_way_at, o.seat_state) $$, 'each order as it was');
 select results_eq($$ select order_id, state from public.fnb_orders_page('00000000-0000-4000-8000-000000000001', '{"scope": {"state": "void"}, "query": "chai"}') $$,
   $$ select id, 'void'::text from orders where at = 1 $$, 'the void order is behind its state, and found by what was ordered');
 select ok((select bool_or(order_id = (select id from orders where at = 3)) and not bool_or(order_id in (select id from orders where at < 3))
@@ -121,10 +121,10 @@ select set_eq($$ select member_id from public.door_page('00000000-0000-4000-8000
   $$ select member_id from public.door_board('00000000-0000-4000-8000-000000000001') where not is_in_room $$, 'expected: on a waitlist and not yet in');
 select is_empty($$ select 1 from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}') p
                    join public.todays_players('00000000-0000-4000-8000-000000000001') t on t.member_id = p.member_id
-                   where (p.full_name, p.member_number, p.checked_in_at, p.checked_out_at, p.waiting_seconds, p.tables)
-                         is distinct from (t.full_name, t.member_number, t.checked_in_at, t.checked_out_at, t.waiting_seconds, t.tables)
-                      or p.status is distinct from case when t.status = 'waiting' and p.list = 'expected' then 'expected' else t.status end $$,
-  'each player as today''s players gave them; one waiting outside is expected');
+                   where (p.full_name, p.member_number) is distinct from (t.full_name, t.member_number)
+                      or p.status is distinct from case when p.checked_out_at is not null then 'left'
+                                                        when t.status = 'waiting' and p.list = 'expected' then 'expected' else t.status end $$,
+  'each player as today''s players gave them, a row a seat (560 checks the seats); a visit that is over left, as 563; one waiting outside is expected');
 select is_empty($$ select 1 from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}') p
                    join public.members_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}') m on m.member_id = p.member_id
                    where p.kyc_status is distinct from m.kyc_status or p.tier_name is distinct from m.tier_name $$, 'with the tier and ID check the Members list gives');

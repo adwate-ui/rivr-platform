@@ -27,12 +27,13 @@ major_version = 17
 enabled = false
 port = {{BLOCK}}29
 
+# Neither section sets `enabled` (both default to on): for a local start or reset, scripts/supabase.mjs turns them off
+# with SUPABASE_DB_MIGRATIONS_ENABLED and SUPABASE_DB_SEED_ENABLED, which a set key would override, and applies both
+# itself with pg_cron's jobs held (#1071).
 [db.migrations]
-enabled = true
 
 [db.seed]
 # Local and staging only. Production is never seeded.
-enabled = true
 sql_paths = ["./seed/*.sql"]
 
 [realtime]
@@ -406,6 +407,9 @@ deno_version = 2
 
 [edge_runtime.secrets]
 SEND_SMS_HOOK_SECRET = "{{SEND_SMS_HOOK_SECRET}}"
+# The scheduler's secret, made once per checkout, so a local flow can run a scheduled function as pg_cron would. Vault
+# holds no project address locally, so pg_cron itself calls nothing here (decision 0038).
+OUTBOX_SCHEDULER_SECRET = "{{OUTBOX_SCHEDULER_SECRET}}"
 # The player app the kyc function sends DigiLocker back to (#4). Staging and production set it as a
 # function secret: https://rivr-player-staging.pages.dev and the production player domain.
 PLAYER_APP_URL = "http://127.0.0.1:{{BLOCK}}40"
@@ -461,6 +465,10 @@ verify_jwt = false
 
 # Re-checks each KYC check made in person with the vendor, run by the scheduler with its secret (#259).
 [functions.kyc-recheck]
+verify_jwt = false
+
+# Removes a reopened desk check's files Storage kept, run by the scheduler with its secret (#931).
+[functions.kyc-reopened-sweep]
 verify_jwt = false
 
 # Zoop delivers a member's DigiLocker documents here (#1023); the key Zoop gave for that session is the guard.

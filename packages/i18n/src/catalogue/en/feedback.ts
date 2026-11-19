@@ -30,6 +30,8 @@ export const feedback = {
   resolvedCount: '{count} resolved',
   /** A card's member: `Mihir Shah · No. 1213`. */
   who: '{name} · No. {number}',
+  /** who after the member's name, which comes first as its link. */
+  whoNumber: ' · No. {number}',
   /** A rating: `{score}` of 5, and the day of the visit (IST): `2 of 5 · visit 25 Oct`. */
   ratingLine: '{score} of 5 · visit {date}',
   /** A note sent from Profile, on the day it came. */

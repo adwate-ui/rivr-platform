@@ -112,15 +112,6 @@ export const consoleFnb = {
   /** Over the lanes, the last three KOTs members cancelled tonight (F-048): `Cancelled by the member: KOT 12, KOT 15`. */
   memberCancelled: 'Cancelled by the member: {kots}',
   memberSeesReason: 'The member sees this.',
-  /** The bar printer's delivery of the KOT failed or closed unprinted (console v3): never said from a clock. */
-  notAtBar: 'The bar printer did not get this KOT. Print it or read it to the bar.',
-  printKot: 'Print KOT',
-  printKotName: 'Print KOT {kot}',
-  barHasIt: 'Bar has it',
-  barHasItName: 'KOT {kot}: bar has it',
-  /** The KOT as the console prints it for the bar, naming no member: `Table 2, seat 9`, and when it was ordered, `21:40`. */
-  kotWhere: '{table}, seat {seat}',
-  orderedAt: 'Ordered {time}',
   /** Ordering for a seat (console v3): the table first, then the seat and who sits there, then the items. */
   newOrder: 'New order',
   table: 'Table',

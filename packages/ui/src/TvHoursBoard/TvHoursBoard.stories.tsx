@@ -22,7 +22,6 @@ const meta = {
   args: {
     title: 'Most hours played',
     emptyText: 'No hours played yet.',
-    moreText: (hidden: number) => `+${hidden} more`,
     lists: [{ id: 'tonight', caption: 'Tonight', rows: TONIGHT }, { id: 'week', caption: 'This week', rows: WEEK }],
   },
 } satisfies Meta<typeof TvHoursBoard>;
@@ -35,7 +34,7 @@ export const Default: Story = {};
 /** Nobody has played tonight yet: its list says so, beside the week's. */
 export const Empty: Story = { args: { lists: [{ id: 'tonight', caption: 'Tonight', rows: [] }, { id: 'week', caption: 'This week', rows: WEEK }] } };
 
-/** The club's top twelve: each list shows the six the stage holds, and how many more. */
+/** The club's top twelve: each list shows the top seven the stage holds, and nothing of the rest. */
 export const Full: Story = {
   args: {
     lists: [

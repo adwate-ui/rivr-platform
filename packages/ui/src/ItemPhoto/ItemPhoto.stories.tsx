@@ -26,8 +26,8 @@ export const Sizes: Story = {
     <Inline gap={4} align="center">
       <ItemPhoto src="/media/chips.webp" name="Tournament seat" size="sm" />
       <ItemPhoto src="/media/chips.webp" name="Tournament seat" />
-      <ItemPhoto src={null} name="Hotel night" size="sm" />
-      <ItemPhoto src={null} name="Hotel night" />
+      <ItemPhoto src={null} name="Club sandwich" size="sm" />
+      <ItemPhoto src={null} name="Club sandwich" />
     </Inline>
   ),
 };

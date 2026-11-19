@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import { MemberLinksProvider } from '../MemberLink/MemberLink.tsx';
 import { axeViolations, renderIn } from '../test/render.tsx';
 import { PickList } from './PickList.tsx';
 
@@ -47,6 +48,28 @@ describe('PickList', () => {
       search={<label>Find a page<input /></label>} />);
     expect(screen.getByRole('textbox', { name: 'Find a page' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Pages' })).toBeInTheDocument();
+  });
+
+  it('names a member with their link above the item button, which still opens the item', async () => {
+    const onPick = vi.fn();
+    const onNavigate = vi.fn();
+    const groups = [{ items: [{ id: 'm1', title: 'Rohan Bhatia', detail: 'PAN alone · 11:42', memberId: 'm1' }] }];
+    const { container } = renderIn(
+      <MemberLinksProvider links={{ hrefOf: (id) => `/members?member=${id}`, onNavigate }}>
+        <PickList label="Checks" groups={groups} current="m1" onPick={onPick} emptyText="None." />
+      </MemberLinksProvider>,
+    );
+    const item = screen.getByRole('button', { name: 'Rohan Bhatia PAN alone · 11:42' });
+    expect(item).toHaveAttribute('aria-current', 'true');
+    expect(item).toHaveClass('bg-selected', 'border-content');
+    const link = screen.getByRole('link', { name: 'Rohan Bhatia' });
+    expect(item.contains(link)).toBe(false);
+    await userEvent.click(link);
+    expect(onNavigate).toHaveBeenCalledWith('/members?member=m1');
+    expect(onPick).not.toHaveBeenCalled();
+    await userEvent.click(item);
+    expect(onPick).toHaveBeenCalledWith('m1');
+    expect(await axeViolations(container)).toEqual([]);
   });
 
   it('has no accessibility violations', async () => {

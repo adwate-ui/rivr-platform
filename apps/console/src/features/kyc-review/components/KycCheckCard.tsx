@@ -1,6 +1,6 @@
 import { useKycImageUrl, useVenueKycAtTheClub, type KycCheck } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Box, Heading, Inline, KycPhoto, Stack, Text } from '@rivr/ui';
+import { Box, Heading, Inline, KycPhoto, MemberLink, Stack, Text } from '@rivr/ui';
 import { checkDetails, checkSince, checkStatus, mayReopen } from './checkText.ts';
 import { ReopenForm } from './ReopenForm.tsx';
 import { ReviewForm } from './ReviewForm.tsx';
@@ -45,7 +45,7 @@ export function KycCheckCard({ venueId, check, canReopen, onDecided }: KycCheckC
           <KycPhoto alt={t('console.kycReview.photoOf', { name: check.fullName })} src={photo.data ?? null} status={photoStatus} />
           <Stack gap={3} grow>
             <Stack gap={1}>
-              <Heading level={2}>{check.fullName}</Heading>
+              <Heading level={2}><MemberLink memberId={check.memberId}>{check.fullName}</MemberLink></Heading>
               <Text variant="secondary" tone="muted">{checkSince(check)}</Text>
             </Stack>
             {status === null ? null : <Text weight="medium">{status}</Text>}

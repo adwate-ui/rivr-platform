@@ -1,7 +1,7 @@
 import { LIST_PAGE, useDecideBonus, useListChoices, useWaitingBonusPage, type BonusDecision, type BonusDecisionFailure, type ListChoices, type WaitingBonus } from '@rivr/db';
 import { sum } from '@rivr/domain/money';
 import { formatChips, formatDayTime, formatDuration, formatTime, t } from '@rivr/i18n';
-import { BulkBar, Button, ConfirmQuestion, DataTable, ErrorMessage, Inline, Stack, useToast, type DataTableColumn, type DataTableRequest } from '@rivr/ui';
+import { BulkBar, Button, ConfirmQuestion, DataTable, ErrorMessage, Inline, MemberLink, Stack, useToast, type DataTableColumn, type DataTableRequest } from '@rivr/ui';
 import { useState } from 'react';
 import { CorrectSession } from './CorrectSession.tsx';
 import { RefuseBonus } from './RefuseBonus.tsx';
@@ -21,6 +21,10 @@ function whyOf(bonus: WaitingBonus): string {
 }
 
 const memberOf = (bonus: WaitingBonus) => t('console.promotions.approvals.member', { name: bonus.fullName, number: bonus.memberNumber });
+/** The member: their name the link to their account, where the row opens too (owner, 19 Nov), then their number. */
+const memberCell = (bonus: WaitingBonus) => (
+  <><MemberLink memberId={bonus.memberId}>{bonus.fullName}</MemberLink>{t('console.promotions.approvals.memberNumber', { number: bonus.memberNumber })}</>
+);
 const amountOf = (bonus: WaitingBonus) => formatChips(bonus.amount);
 
 /** A play-time row's visit (#1061): when they sat and left, time away (any still running) and time played net of it; a dash on any other row. */
@@ -63,7 +67,7 @@ function Decide({ bonus, steps }: { bonus: WaitingBonus; steps: RowSteps }) {
  */
 function columnsOf(counted: ListChoices | undefined, steps: RowSteps): readonly DataTableColumn<WaitingBonus>[] {
   return [
-    { key: 'member', share: 1.3, header: t('console.promotions.approvals.columns.member'), priority: 'primary', sortValue: (bonus) => bonus.fullName, cell: memberOf, filter: 'text' },
+    { key: 'member', share: 1.3, header: t('console.promotions.approvals.columns.member'), priority: 'primary', isLink: true, sortValue: (bonus) => bonus.fullName, cell: memberCell, exportValue: memberOf, filter: 'text' },
     {
       key: 'promotion', share: 1.1, header: t('console.promotions.approvals.columns.promotion'), filter: 'choice', choices: counted?.['promotion'] ?? [],
       filterValue: (bonus) => bonus.promotionName, sortValue: (bonus) => bonus.promotionName, cell: (bonus) => bonus.promotionName,

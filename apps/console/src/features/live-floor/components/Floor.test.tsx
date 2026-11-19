@@ -101,8 +101,10 @@ describe('The requests panel (console v3)', () => {
   it('lists requests oldest first, each late past its target in words as well as colour (audit F-108)', async () => {
     await renderFloor();
     const panel = requests();
-    const names = within(panel).getAllByRole('button').map((button) => button.textContent);
-    expect(names.filter((name) => ['Ritika Bhalla', 'Vidya Chadha', 'Rohan Bhatia'].includes(name ?? ''))).toEqual(['Ritika Bhalla', 'Vidya Chadha', 'Rohan Bhatia']);
+    // Who asks, request by request, in the order the panel lists them.
+    const order = ['Ritika Bhalla', 'Vidya Chadha', 'Rohan Bhatia'];
+    const asking = [...panel.querySelectorAll('[data-request]')].map((item) => order.find((name) => item.textContent?.includes(name)));
+    expect(asking.filter((name) => name !== undefined)).toEqual(order);
     expect(within(panel).getByText('Join request')).toBeDefined();
     expect(within(panel).getByText('Table 2 waitlist')).toBeDefined();
     // A join six minutes old and a top-up four minutes old are past their targets.
@@ -168,7 +170,8 @@ describe('The floor for a cashier', () => {
     const panel = within(requests());
     const list = await panel.findByRole('button', { name: /View list/ });
     expect(panel.getByText('Dev Khanna')).toBeDefined();
-    expect(panel.queryByRole('button', { name: 'Dev Khanna' })).toBeNull();
+    // No button names him at all: the card's own button is named with its kind and detail around the name.
+    expect(panel.queryByRole('button', { name: /Dev Khanna/ })).toBeNull();
     expect(panel.queryByRole('button', { name: /Check ID/ })).toBeNull();
     fireEvent.click(list);
     await waitFor(() => expect(router.state.location.pathname).toBe('/waitlist'));

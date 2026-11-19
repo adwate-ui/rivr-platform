@@ -42,10 +42,11 @@ export function MembersScreen(props: MembersScreenProps) {
     giveBonus: permissions.includes('bonus.give'),
     correctBonus: staff.venue.role === 'super_admin',
   };
-  return <Members title={title} venueId={venueId} can={can} {...props} />;
+  // Floor and up open a member's History of changes by staff, as the Door's History (#1073).
+  return <Members title={title} venueId={venueId} can={can} seesHistory={permissions.includes('members.phone')} {...props} />;
 }
 
-function Members({ title, venueId, can, memberId, part, onNavigate }: MembersScreenProps & { title: string; venueId: string; can: RecordAccess }) {
+function Members({ title, venueId, can, seesHistory, memberId, part, onNavigate }: MembersScreenProps & { title: string; venueId: string; can: RecordAccess; seesHistory: boolean }) {
   const tonight = useTonight(venueId);
   // The table's Export sits beside the title, as the prototype has it.
   const [exportIn, setExportIn] = useState<HTMLElement | null>(null);
@@ -53,9 +54,9 @@ function Members({ title, venueId, can, memberId, part, onNavigate }: MembersScr
     <Screen title={title} onActionsSlot={setExportIn}>
       {can.erase ? <ErasureRequests venueId={venueId} onOpen={(id) => onNavigate(recordHref(id))} /> : null}
       {/* The list stays in place as a record opens, so the search typed stays (C-02). */}
-      <SplitView layout="docked" backLabel={t('console.members.back')} onBack={() => onNavigate('/members')} onClose={() => onNavigate('/members')}
+      <SplitView layout="docked" recordKey={memberId} backLabel={t('console.members.back')} onBack={() => onNavigate('/members')} onClose={() => onNavigate('/members')}
         list={<MemberList venueId={venueId} tonight={tonight} onOpen={(id) => onNavigate(recordHref(id))} exportIn={exportIn} seesPhone={can.changePhone}
-          seesIdentity={can.seesIdentity} isDocked={memberId !== undefined} />}
+          seesIdentity={can.seesIdentity} isDocked={memberId !== undefined} seesHistory={seesHistory} />}
         detail={memberId === undefined ? null : (
           <MemberRecordPanel key={memberId} venueId={venueId} memberId={memberId} can={can} part={part}
             tonight={tonight.get(memberId)} onNavigate={onNavigate} />

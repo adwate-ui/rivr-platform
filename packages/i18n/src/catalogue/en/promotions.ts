@@ -24,7 +24,7 @@ export const promotions = {
     all: 'All',
     empty: 'No promotions with this status.',
     /** Current promotions and ended ones, apart under two tabs (owner, 8 Nov), each with how many. */
-    tabs: { current: 'Current {count}', ended: 'Ended {count}', bonus: 'To approve {count}' },
+    tabs: { current: 'Current {count}', ended: 'Ended {count}', bonus: 'To approve {count}', bonusUncounted: 'To approve' },
     noneEnded: 'No promotion has ended.',
     columns: { promotion: 'Promotion', who: 'Who', when: 'When', given: 'Given this week', status: 'Status', ended: 'Ended' },
     /** Under a running promotion's status: its next version, beside it. */

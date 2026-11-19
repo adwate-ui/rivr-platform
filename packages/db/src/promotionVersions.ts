@@ -177,6 +177,7 @@ export function approverViewOf(versions: readonly PromotionVersionView[]): Appro
 /** What a promotion gave a member, for the member's record (Visits). */
 export interface MemberPromotionGrant {
   readonly id: string;
+  /** When it was given: for a Bonus that waited, when a super admin approved it (#1019), not when it was calculated. */
   readonly grantedAt: string;
   readonly clubDay: string;
   readonly promotion: string;

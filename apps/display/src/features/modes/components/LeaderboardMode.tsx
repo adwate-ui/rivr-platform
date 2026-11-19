@@ -35,7 +35,6 @@ export function LeaderboardMode({ onEmpty }: { onEmpty?: (() => void) | undefine
     return <BoardStatus isError={board.isError} />;
   }
   return (
-    <TvHoursBoard title={t('tv.leaderboard.title')} emptyText={t('tv.leaderboard.empty')} moreText={(count) => t('tv.more', { count })}
-      lists={toLeaderboardLists(board.data)} />
+    <TvHoursBoard title={t('tv.leaderboard.title')} emptyText={t('tv.leaderboard.empty')} lists={toLeaderboardLists(board.data)} />
   );
 }

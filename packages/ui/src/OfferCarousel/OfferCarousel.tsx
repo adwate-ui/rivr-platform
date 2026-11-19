@@ -1,5 +1,5 @@
 import { t } from '@rivr/i18n';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type PointerEvent, type TouchEvent, type WheelEvent } from 'react';
 import { Icon } from '../Icon/Icon.tsx';
 import { cx } from '../internal/classes.ts';
 
@@ -58,6 +58,11 @@ function OfferCard({ offer }: { offer: Offer }) {
   return <div className={CARD}><OfferBody offer={offer} opens={false} /></div>;
 }
 
+/** Whether a finger or the wheel went more along the row than up or down: a swipe, not the page scrolled past the row. */
+function isAlongRow(across: number, down: number): boolean {
+  return Math.abs(across) > Math.abs(down);
+}
+
 /** Whether the person has asked their device for less motion: the slides then change only when they say. */
 function wantsLessMotion(): boolean {
   return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -105,6 +110,37 @@ function Dots({ ids, index, onPick }: { ids: readonly string[]; index: number; o
 }
 
 /**
+ * The row's handlers that tell a person's swipe from the page scrolled past the row. A finger or the wheel going along the
+ * row, or a mouse on it (its scroll bar), takes the row over from a move of its own; one going up or down only scrolls the
+ * page, so the row's own move goes on and its scroll is not a swipe. `onTake` ends the move of its own; `isSwiping` says
+ * whether a scroll now is the person's.
+ */
+function useSwipe(onTake: () => void) {
+  // When a finger or the wheel last took the row: only a scroll soon after is a swipe.
+  const touchedAt = useRef(Number.NEGATIVE_INFINITY);
+  // Where a finger landed on the row, to tell a swipe along it from the page scrolled past it.
+  const fingerFrom = useRef<{ x: number; y: number } | null>(null);
+  const takeRow = () => {
+    onTake();
+    touchedAt.current = Date.now();
+  };
+  const handlers = {
+    onPointerDown: (event: PointerEvent) => { if (event.pointerType !== 'touch') takeRow(); },
+    onTouchStart: (event: TouchEvent) => {
+      const finger = event.touches[0];
+      fingerFrom.current = finger ? { x: finger.clientX, y: finger.clientY } : null;
+    },
+    onTouchMove: (event: TouchEvent) => {
+      const finger = event.touches[0];
+      const from = fingerFrom.current;
+      if (finger && from && isAlongRow(finger.clientX - from.x, finger.clientY - from.y)) takeRow();
+    },
+    onWheel: (event: WheelEvent) => { if (isAlongRow(event.deltaX, event.deltaY)) takeRow(); },
+  };
+  return { handlers, isSwiping: () => Date.now() - touchedAt.current < SWIPE_MS };
+}
+
+/**
  * Home's offers (redesign of 15 Nov 2026, RD-20): one card at a time, the full width, moving on every five seconds
  * through every offer, with a dot for each under it. Tapping a dot shows that offer and holds it; so does a swipe, or the
  * focus moving into a card. With less motion asked for, it moves only when told. A card with an address is a link, one that
@@ -114,8 +150,7 @@ export function OfferCarousel({ title, offers }: OfferCarouselProps) {
   const row = useRef<HTMLUListElement>(null);
   // The slide the row is scrolling to by itself, so that scroll is not read as a swipe.
   const moving = useRef<number | null>(null);
-  // When a finger or the wheel last took the row: only a scroll soon after is a swipe.
-  const touchedAt = useRef(Number.NEGATIVE_INFINITY);
+  const swipe = useSwipe(() => { moving.current = null; });
   const [shown, setShown] = useState(0);
   const [isHeld, setHeld] = useState(false);
   const count = offers.length;
@@ -135,20 +170,15 @@ export function OfferCarousel({ title, offers }: OfferCarouselProps) {
     if (moving.current === null && nearest !== index) {
       // A swipe holds the slide it lands on. Any other scroll is the row's own, such as the browser keeping the card in view
       // when an offer read later comes in before it: the dot follows the card, and the carousel moves on.
-      if (Date.now() - touchedAt.current < SWIPE_MS) setHeld(true);
+      if (swipe.isSwiping()) setHeld(true);
       setShown(nearest);
     }
     if (nearest === moving.current) moving.current = null;
   };
-  // A finger or the wheel takes the row over from a move of its own.
-  const onTouch = () => {
-    moving.current = null;
-    touchedAt.current = Date.now();
-  };
   return (
     <section aria-label={title} className="flex flex-col gap-1 px-5">
       <ul ref={row} data-offer-row className="flex snap-x snap-mandatory gap-3 overflow-x-auto"
-        onScroll={onScroll} onPointerDown={onTouch} onTouchMove={onTouch} onWheel={onTouch} onFocus={() => setHeld(true)}>
+        onScroll={onScroll} {...swipe.handlers} onFocus={() => setHeld(true)}>
         {offers.map((offer) => <li key={offer.id} className="flex w-full shrink-0 snap-start"><OfferCard offer={offer} /></li>)}
       </ul>
       {count < 2 ? null : <Dots ids={offers.map((offer) => offer.id)} index={index} onPick={(next) => { setHeld(true); show(next); }} />}

@@ -1,7 +1,7 @@
 import { LIST_PAGE, useListChoices, useWaitlistPage, type FloorTable, type WaitlistBoardEntry } from '@rivr/db';
 import { tableWithRoomFor } from '@rivr/domain/tables';
 import { formatDuration, t, type MessageKey } from '@rivr/i18n';
-import { Box, DataTable, ErrorMessage, StaleNotice, Stack, Text, type DataTableColumn, type DataTableRequest } from '@rivr/ui';
+import { Box, DataTable, ErrorMessage, MemberLink, StaleNotice, Stack, Text, type DataTableColumn, type DataTableRequest } from '@rivr/ui';
 import { useEffect, useState, type ReactNode } from 'react';
 import { BulkPlaces } from './BulkPlaces.tsx';
 import { PlaceActions, PlaceQuestion, type Asking } from './PlaceActions.tsx';
@@ -54,7 +54,7 @@ const tableLine = (table: FloorTable | undefined) => (table === undefined ? '' :
 function columnsFor({ now, tableOf, notesOf, steps, tableChoices }: RowContext): readonly DataTableColumn<WaitlistBoardEntry>[] {
   return [
     { key: 'place', header: t('console.waitlist.table.place'), priority: 'secondary', sortValue: (entry) => entry.place, filter: false, cell: (entry) => <Text as="span" variant="row" tone="muted">{String(entry.place)}</Text> },
-    { key: 'player', header: t('console.waitlist.table.player'), priority: 'primary', isWide: true, sortValue: (entry) => entry.fullName, filter: 'text', cell: (entry) => entry.fullName },
+    { key: 'player', header: t('console.waitlist.table.player'), priority: 'primary', isWide: true, sortValue: (entry) => entry.fullName, filter: 'text', cell: (entry) => <MemberLink memberId={entry.memberId}>{entry.fullName}</MemberLink> },
     { key: 'table', header: t('console.waitlist.table.table'), sortValue: (entry) => tableOf(entry)?.name ?? '', filter: 'choice', choices: tableChoices,
       filterValue: (entry) => tableOf(entry)?.name ?? '', cell: (entry) => tableLine(tableOf(entry)), isWide: true },
     { key: 'waited', header: t('console.waitlist.table.waited'), sortValue: (entry) => waitedSeconds(entry, now), filter: 'duration',

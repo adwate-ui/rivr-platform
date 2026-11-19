@@ -53,10 +53,16 @@ function StatusChips({ current, filter, onChange }: { current: readonly Promotio
  * Current and ended promotions apart (owner, 8 Nov), and for a super admin the Bonus waiting for them (decision 0670): the tabs
  * in the address, each with how many it holds.
  */
-function ViewTabs({ view, counts, canApprove, onNavigate }: { view: View; counts: Readonly<Record<View, number>>; canApprove: boolean; onNavigate: (href: string) => void }) {
+function ViewTabs({ view, counts, canApprove, onNavigate }: {
+  view: View; counts: { current: number; ended: number; bonus: number | undefined }; canApprove: boolean; onNavigate: (href: string) => void;
+}) {
+  // The Bonus to approve before its count is read shows no number, never a 0 that may not be so.
+  const labelOf = (id: View) => (id === 'bonus' && counts.bonus === undefined
+    ? t('console.promotions.list.tabs.bonusUncounted')
+    : t(`console.promotions.list.tabs.${id}`, { count: String(counts[id]) }));
   return (
     <Tabs label={t('console.promotions.title')} current={view} onNavigate={onNavigate}
-      tabs={TABS.filter((id) => canApprove || id !== 'bonus').map((id) => ({ id, label: t(`console.promotions.list.tabs.${id}`, { count: String(counts[id]) }),
+      tabs={TABS.filter((id) => canApprove || id !== 'bonus').map((id) => ({ id, label: labelOf(id),
         href: id === 'current' ? '/promotions' : `/promotions?tab=${id}` }))} />
   );
 }
@@ -104,7 +110,8 @@ function PromotionsShown({ venueId, names, onOpen, onLogHighHand, view, overview
 /** The tabs, then the promotions or, on a super admin's own tab, the Bonus waiting for approval, once the list has come. */
 function Listed({ venueId, names, onOpen, tab, onNavigate, onLogHighHand, canApprove, overview, exportIn }: PromotionListProps & { overview: PromotionsOverview; exportIn: HTMLElement | null }) {
   const view: View = TABS.find((one) => one === tab && (canApprove || one !== 'bonus')) ?? 'current';
-  const waiting = useStaffQueueCounts(venueId).data?.['bonusApprovals'] ?? 0;
+  const queues = useStaffQueueCounts(venueId).data;
+  const waiting = queues === undefined ? undefined : (queues['bonusApprovals'] ?? 0);
   const current = overview.promotions.filter((promotion) => promotion.status !== 'ended').sort(byStatus);
   const ended = overview.promotions.filter((promotion) => promotion.status === 'ended');
   return (

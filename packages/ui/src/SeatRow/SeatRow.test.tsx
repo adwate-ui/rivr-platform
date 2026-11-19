@@ -5,7 +5,7 @@ import { axeViolations, renderIn } from '../test/render.tsx';
 import { SeatRow } from './SeatRow.tsx';
 
 describe('SeatRow', () => {
-  it('is one button for the whole row, read as the seat, who sits there and their call time', async () => {
+  it('has one button covering the row, read as the seat, who sits there and their call time', async () => {
     const onSelect = vi.fn();
     renderIn(<SeatRow number={1} name="Nakul Dhillon" meta="2 h 56 min" onSelect={onSelect} />);
     const row = screen.getByRole('button', { name: 'Seat 1, Nakul Dhillon, 2 h 56 min' });
@@ -26,10 +26,12 @@ describe('SeatRow', () => {
   });
 
   it('is 44 px below 1180 px and 42 or 34 px at a desk, by density', () => {
+    // The row sets the height; its button covers the whole of it.
     const { rerender } = renderIn(<SeatRow number={1} name="Nakul Dhillon" onSelect={vi.fn()} />);
-    expect(screen.getByRole('button')).toHaveClass('min-h-touch', 'tablet:min-h-row');
+    expect(screen.getByRole('button')).toHaveClass('absolute', 'inset-0');
+    expect(screen.getByRole('button').parentElement).toHaveClass('min-h-touch', 'tablet:min-h-row');
     rerender(<SeatRow number={1} name="Nakul Dhillon" density="compact" onSelect={vi.fn()} />);
-    expect(screen.getByRole('button')).toHaveClass('min-h-touch', 'tablet:min-h-row-compact');
+    expect(screen.getByRole('button').parentElement).toHaveClass('min-h-touch', 'tablet:min-h-row-compact');
   });
 
   it('is reached with Tab and pressed with Enter', async () => {

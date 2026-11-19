@@ -33,7 +33,8 @@ describe('RequestItem', () => {
   it('says what is asked, how long ago, who asks and where', () => {
     renderItem();
     for (const text of ['Join request', '4 min', 'Table 1 waitlist']) expect(screen.getByText(text)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Ritika Bhalla' })).toBeInTheDocument();
+    // Its own button is named with what, who and where, as a seat row's is; the name alone is the link's.
+    expect(screen.getByRole('button', { name: 'Join request, Ritika Bhalla, Table 1 waitlist' })).toBeInTheDocument();
   });
 
   it('fills its one primary action in cream, never gold, and sets the other in words (decision 0463)', () => {
@@ -72,7 +73,7 @@ describe('RequestItem', () => {
     expect(container.querySelector('[data-fresh]')).not.toBeNull();
     rerender(<RequestItem kind="Top-up" title="Vidya Chadha" primary={{ label: 'Start', onClick: vi.fn() }} />);
     expect(container.querySelector('[data-fresh]')).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Vidya Chadha' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Vidya Chadha/ })).toBeNull();
   });
 
   it('has no accessibility violations', async () => {

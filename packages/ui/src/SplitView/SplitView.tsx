@@ -31,6 +31,11 @@ export interface SplitViewProps {
    * does, or lose an edit, as Content would.
    */
   onClose?: (() => void) | undefined;
+  /**
+   * Which record is open, such as the member's id. When it changes, the record starts at its top rather than where the last
+   * one was scrolled to, as the docked panel scrolls on its own; the same record keeps its place as it draws again.
+   */
+  recordKey?: string | undefined;
 }
 
 /** Each layout's classes from 1180 px: the frame's, the list's alone and beside a record, and the record's. */
@@ -82,17 +87,21 @@ function CloseRecord({ onClose }: { onClose: (() => void) | undefined }) {
  * five, half, or a docked panel (`layout`), with Close where the screen gives `onClose`; with no record open the list
  * takes the full width (C-03). Below, one shows at a time: the record replaces the list, with a way back to it.
  */
-export function SplitView({ list, detail, backLabel, onBack, isChosen = true, layout = 'record', onClose }: SplitViewProps) {
+export function SplitView({ list, detail, backLabel, onBack, isChosen = true, layout = 'record', onClose, recordKey }: SplitViewProps) {
   const isOpen = detail !== null && isChosen;
   const { record, onListFocus } = useRecordFocus(isOpen);
   useEscapeCloses(isOpen, onClose);
+  const panel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (panel.current !== null) panel.current.scrollTop = 0;
+  }, [recordKey]);
   const look = LAYOUTS[layout];
   return (
     <div className={look.frame}>
       <div className={cx('min-w-0', detail === null ? look.alone : look.beside, isOpen ? 'hidden tablet:block' : '')}
         onFocus={onListFocus}>{list}</div>
       {detail === null ? null : (
-        <div className={cx('min-w-0 flex-col items-start gap-4 tablet:flex', look.record, isOpen ? 'flex' : 'hidden')}>
+        <div ref={panel} className={cx('min-w-0 flex-col items-start gap-4 tablet:flex', look.record, isOpen ? 'flex' : 'hidden')}>
           <div className="tablet:hidden">
             <Button variant="text" onClick={onBack}>{backLabel}</Button>
           </div>
