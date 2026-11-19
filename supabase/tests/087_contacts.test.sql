@@ -1,4 +1,5 @@
--- Contacts (decision 0113): staff read the club's contacts and SOP managers keep them. The incident log and the
+-- Contacts (decision 0113): staff read the club's contacts and SOP managers keep them; the escalation matrix, the
+-- managers' own numbers, only SOP managers read (#1015). The incident log and the
 -- drills this file also covered went on 15 Nov. 103 Aditya is an admin (SOP manager), 106 Pema a dealer, 154 Leela
 -- a super admin at the club only. Contacts from seed 44_contacts.sql.
 begin;
@@ -16,10 +17,11 @@ select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
 select results_eq($$ select kind::text, name, phone from public.contact where kind in ('police', 'fire', 'electricity') order by kind $$,
   $$ values ('electricity'::text, 'DHBVN'::text, '1912'::text), ('fire', 'Fire service', '101'), ('police', 'Police', '112') $$,
   'every staff member reads the police, fire and DHBVN numbers');
-select ok((select count(*) from public.contact where kind = 'escalation') >= 2, 'and the escalation matrix');
+select is((select count(*)::integer from public.contact where kind = 'escalation'), 0, 'but not the escalation matrix');
 select throws_ok($$ insert into public.contact (venue_id, kind, name, phone) values ('00000000-0000-4000-8000-000000000001', 'vendor', 'Shuffler', '+91 98765 43210') $$,
   '42501', null, 'a dealer keeps no contacts');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select ok((select count(*) from public.contact where kind = 'escalation') >= 2, 'an SOP manager reads the escalation matrix');
 select lives_ok($$ insert into public.contact (venue_id, kind, position, name, role, phone) values
                    ('00000000-0000-4000-8000-000000000001', 'vendor', 3, 'Shuffler service', 'Card shufflers', '+91 98765 43210') $$,
   'an SOP manager adds a vendor');

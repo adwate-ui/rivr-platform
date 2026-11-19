@@ -56,6 +56,10 @@ describe('a setting value as the Settings screen types it', () => {
     expect(valueFrom(RAKE, { rate_basis_points: '5.255', cap_paise: '6000' })).toEqual({ invalid: ['rate_basis_points'] });
   });
 
+  it('takes a point with nothing after it, as the field does while typing', () => {
+    expect(valueFrom(RAKE, { rate_basis_points: '5.', cap_paise: '6,000.' })).toEqual({ value: { rate_basis_points: 500, cap_paise: 600_000 } });
+  });
+
   it('names every field that is missing, not a number, or past its limits', () => {
     expect(valueFrom(RAKE, { rate_basis_points: '20', cap_paise: 'lots' })).toEqual({ invalid: ['rate_basis_points', 'cap_paise'] });
     expect(valueFrom(HOLD, { minutes: '500' })).toEqual({ invalid: ['minutes'] });

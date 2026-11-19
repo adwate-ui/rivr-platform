@@ -122,6 +122,8 @@ export const waitlist = {
   bonusShort: 'More Bonus than the member has. Not seated.',
   /** Past what the visit may redeem (decision 0579): the seat sheet says how much is left. */
   visitCap: 'More Bonus than this visit allows. Not seated.',
+  /** This seating's Bonus was already redeemed with another amount (#1101). */
+  bonusRedeemed: 'Bonus was already redeemed for this seat. Not seated.',
   notChips: 'Bonus goes in whole 50s. Not seated.',
   ownRecord: 'You cannot use your own Bonus. Ask another member of staff.',
   bonusOff: 'Promotions are switched off, so no Bonus. Not seated.',

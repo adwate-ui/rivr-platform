@@ -101,7 +101,7 @@ function SubtleInput({ id, label, hint, error, type, native }: InsetInputProps &
       <Label htmlFor={id}>{label}</Label>
       <input id={id} type={type}
         className={cx('min-h-touch w-full min-w-0 rounded-md bg-subtle px-3 font-text text-16 text-content tablet:min-h-control tablet:text-13',
-          'focus-visible:outline focus-visible:outline-focus', error ? 'outline-1 outline-alert' : undefined, SUBTLE_STATE, DIMMED)}
+          'focus-visible:outline', error ? 'outline-1 outline-alert focus-visible:outline-alert' : 'focus-visible:outline-focus', SUBTLE_STATE, DIMMED)}
         aria-invalid={error ? true : undefined} aria-describedby={describedBy} {...native} />
       {hint ? <Text variant="small" tone="muted" id={`${id}-hint`}>{hint}</Text> : null}
       {error ? <ErrorMessage id={`${id}-error`}>{error}</ErrorMessage> : null}

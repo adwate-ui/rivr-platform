@@ -31,7 +31,7 @@ function renderReset(reply: { status?: number; body: unknown }) {
 async function reset(result: ReturnType<typeof renderReset>['result'], reason: string): Promise<unknown> {
   let outcome: unknown;
   await act(async () => {
-    outcome = await result.current.mutateAsync(reason);
+    outcome = await result.current.mutateAsync({ reason, requestId: 'r1' });
   });
   return outcome;
 }
@@ -39,10 +39,10 @@ async function reset(result: ReturnType<typeof renderReset>['result'], reason: s
 afterEach(cleanup);
 
 describe('resetting one member’s counted hours (redesign RD-36)', () => {
-  it('sends the member and the reason, trimmed', async () => {
+  it('sends the member, the reason trimmed and the request id', async () => {
     const { result, calls } = renderReset({ body: '2026-11-15T18:00:00+00:00' });
     expect(await reset(result, '  A new season  ')).toEqual({ ok: true, value: null });
-    expect(calls.filter((call) => call.rpc === 'reset_member_hours')).toEqual([{ rpc: 'reset_member_hours', body: { p_member_id: 'm1', p_reason: 'A new season' } }]);
+    expect(calls.filter((call) => call.rpc === 'reset_member_hours')).toEqual([{ rpc: 'reset_member_hours', body: { p_member_id: 'm1', p_reason: 'A new season', p_request_id: 'r1' } }]);
   });
 
   it.each([

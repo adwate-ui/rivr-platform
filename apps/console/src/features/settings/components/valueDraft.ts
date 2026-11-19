@@ -33,12 +33,13 @@ export function draftsFrom(fields: readonly SettingField[], value: SettingValue 
 function typedNumber(field: Extract<SettingField, { kind: 'integer' }>, text: string): number | null {
   const typed = text.trim();
   if (field.isMoney) {
-    const paise = parseRupees(typed);
+    // A point with nothing after it, as the field takes it while typing (5.), is the whole amount.
+    const paise = parseRupees(typed.replace(/\.$/, ''));
     return paise.ok ? Number(paise.value) : null;
   }
   // Digits may be grouped, as the limits show them: 10,00,000.
   const digits = typed.replaceAll(',', '');
-  if (unitOf(field) === 'percent') return /^\d+(\.\d{1,2})?$/.test(digits) ? Math.round(Number(digits) * 100) : null;
+  if (unitOf(field) === 'percent') return /^\d+(\.\d{0,2})?$/.test(digits) ? Math.round(Number(digits) * 100) : null;
   return /^-?\d+$/.test(digits) ? Number(digits) : null;
 }
 

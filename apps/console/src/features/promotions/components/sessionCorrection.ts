@@ -1,7 +1,7 @@
 import { clockTimeSchema } from '@rivr/contracts/staff';
 import { istMoment, istParts } from '@rivr/contracts/tournaments';
 import type { SeatCorrection, VisitCorrection, VisitTimes, WaitingSession } from '@rivr/db';
-import { clubDay, clubDayMoment } from '@rivr/domain/clubDay';
+import { clubDay, clubDayMoment, clubDaysPeriod } from '@rivr/domain/clubDay';
 import { formatTime } from '@rivr/i18n';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -79,15 +79,19 @@ export function checkedOutOf(visit: VisitTimes, draft: VisitDraft): string | nul
  * A check-out typed as the minute the last seat ended sends that seat's own end, as the server gave it, so it is not
  * refused as before it: a seat's end carries seconds and microseconds, a typed time neither (the review of the pull request).
  */
-function closedAtFor(closedAt: string | null, visit: VisitTimes, seats: readonly SeatCorrection[]): string | null {
+function closedAtFor(closedAt: string | null, last: string | null): string | null {
   if (closedAt === null) return null;
+  const gap = last === null ? -1 : Date.parse(last) - Date.parse(closedAt);
+  return last !== null && gap >= 0 && gap < 60_000 ? last : closedAt;
+}
+
+/** When the visit's last seat ends, with any end typed in the panel: null while none has ended. */
+function lastEndOf(visit: VisitTimes, seats: readonly SeatCorrection[]): string | null {
   const ends = visit.sessions.flatMap((session) => {
     const end = seats.find((one) => one.sessionId === session.sessionId)?.endedAt ?? session.endedAt;
     return end === null ? [] : [end];
   });
-  const last = ends.reduce<string | null>((latest, end) => (latest === null || Date.parse(end) > Date.parse(latest) ? end : latest), null);
-  const gap = last === null ? -1 : Date.parse(last) - Date.parse(closedAt);
-  return last !== null && gap >= 0 && gap < 60_000 ? last : closedAt;
+  return ends.reduce<string | null>((latest, end) => (latest === null || Date.parse(end) > Date.parse(latest) ? end : latest), null);
 }
 
 /** What one visit sends, all in one call: its times and changed seats, or what stops it: a time that cannot be read, or nothing changed. */
@@ -98,5 +102,56 @@ export function visitCorrectionOf(visit: VisitTimes, draft: VisitDraft, seats: R
   const each = visit.sessions.map((session) => correctionOf(session, seats[session.sessionId] ?? draftOf(session)));
   if (openedAt === undefined || closedAt === undefined || each.includes('invalid')) return 'invalid';
   const changed = each.flatMap((one) => (one === null || one === 'invalid' ? [] : [one]));
-  return openedAt === null && closedAt === null && changed.length === 0 ? 'unchanged' : { openedAt, closedAt: closedAtFor(closedAt, visit, changed), seats: changed };
+  return openedAt === null && closedAt === null && changed.length === 0 ? 'unchanged' : { openedAt, closedAt: closedAtFor(closedAt, lastEndOf(visit, changed)), seats: changed };
+}
+
+/**
+ * A rule `correct_visit` holds a visit's times to, which the console can check before sending (#1078): a time ahead of now,
+ * check-in after the first seat started, check-out before the last seat ended, or past the club day's end. `at` is the
+ * seat's start or end the rule names.
+ */
+export interface TimeProblem {
+  readonly rule: 'aheadOfNow' | 'afterFirstSeat' | 'beforeLastSeat' | 'pastDayEnd';
+  readonly at: string | null;
+}
+
+/** What refuses each of the visit's times, said under its field: null for a time that fits, or one that cannot be read. */
+export interface VisitProblems {
+  readonly checkedIn: TimeProblem | null;
+  readonly checkedOut: TimeProblem | null;
+}
+
+function checkInProblem(visit: VisitTimes, openedAt: string, nowMs: number): TimeProblem | null {
+  if (Date.parse(openedAt) > nowMs) return { rule: 'aheadOfNow', at: null };
+  const first = visit.sessions.reduce<string | null>((earliest, { startedAt }) => (earliest === null || Date.parse(startedAt) < Date.parse(earliest) ? startedAt : earliest), null);
+  return first !== null && Date.parse(openedAt) > Date.parse(first) ? { rule: 'afterFirstSeat', at: first } : null;
+}
+
+/** Check-out holds to now, to the club day's end (06:00 IST the next morning) unless the visit already ran past it, and to the last seat's end. */
+function checkOutProblem(visit: VisitTimes, closedAt: string, last: string | null, nowMs: number): TimeProblem | null {
+  const day = clubDay(new Date(visit.openedAt));
+  const latest = Math.max(clubDaysPeriod(day, day).end.getTime(), Date.parse(visit.closedAt ?? visit.openedAt));
+  if (Date.parse(closedAt) > nowMs) return { rule: 'aheadOfNow', at: null };
+  if (Date.parse(closedAt) > latest) return { rule: 'pastDayEnd', at: null };
+  return last !== null && Date.parse(last) > Date.parse(closedAt) ? { rule: 'beforeLastSeat', at: last } : null;
+}
+
+/**
+ * What the console already knows refuses the visit's times as typed (#1078), each under its own field: the times as they
+ * would be sent, a check-out typed as the last seat's minute taken as that seat's end, and every seat's end as typed.
+ */
+export function visitProblemsOf(visit: VisitTimes, draft: VisitDraft, seats: Readonly<Record<string, SeatDraft>>, now = new Date()): VisitProblems {
+  const openedAt = checkedInOf(visit, draft.checkedIn);
+  const closedAt = checkedOutOf(visit, draft);
+  const changed = visit.sessions.flatMap((session) => {
+    const one = correctionOf(session, seats[session.sessionId] ?? draftOf(session));
+    return one === null || one === 'invalid' ? [] : [one];
+  });
+  const last = lastEndOf(visit, changed);
+  // The check-out as it would stand: kept, or as sent (a typed one that cannot be read has none).
+  const closing = closedAt === null ? visit.closedAt : closedAtFor(closedAt ?? null, last);
+  return {
+    checkedIn: openedAt === undefined ? null : checkInProblem(visit, openedAt ?? visit.openedAt, now.getTime()),
+    checkedOut: closedAt === undefined || closing === null ? null : checkOutProblem(visit, closing, last, now.getTime()),
+  };
 }

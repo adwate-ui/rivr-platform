@@ -15,7 +15,7 @@ const ENDINGS: readonly Exclude<Unit, 'percent'>[] = ['minutes', 'days', 'second
 
 /**
  * A number's unit, from its name: a rate in %, `window_minutes` in minutes; none for money (₹) or counts. A new unit
- * needs its ending here and its words in console.settings.units and console.settings.suffixes.
+ * needs its ending here, its words in console.settings.units, and its word after a typed number in @rivr/ui's Unit.
  */
 export function unitOf(field: SettingField): Unit | null {
   if ((field.kind !== 'integer' && field.kind !== 'numbers') || (field.kind === 'integer' && field.isMoney)) return null;

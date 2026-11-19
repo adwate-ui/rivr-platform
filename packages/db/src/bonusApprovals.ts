@@ -182,11 +182,14 @@ export function useDecideBonus(venueId: string) {
   });
 }
 
-/** Why a correction was refused: not a super admin, one's own record, times that do not fit, frozen, promotions off, or anything else. */
-export type SessionCorrectionFailure = 'not_allowed' | 'own_record' | 'invalid' | 'paused' | 'switched_off' | 'unavailable';
+/**
+ * Why a correction was refused: not a super admin, one's own record, times that do not fit, times that run into the member's
+ * other visit (#1078), frozen, promotions off, or anything else.
+ */
+export type SessionCorrectionFailure = 'not_allowed' | 'own_record' | 'invalid' | 'clash' | 'paused' | 'switched_off' | 'unavailable';
 
 const CORRECTION_FAILURE_BY_CODE: Readonly<Record<string, SessionCorrectionFailure>> = {
-  '42501': 'not_allowed', RVOWN: 'own_record', '22023': 'invalid', RVFRZ: 'paused', RVMBR: 'paused', RVKIL: 'switched_off',
+  '42501': 'not_allowed', RVOWN: 'own_record', '22023': 'invalid', RVVCL: 'clash', RVFRZ: 'paused', RVMBR: 'paused', RVKIL: 'switched_off',
 };
 
 /** One seat's corrected end (null to keep it, or for a seat still taken) and its whole time away, any still running included. */

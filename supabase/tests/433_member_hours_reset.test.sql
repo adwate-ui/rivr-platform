@@ -49,18 +49,19 @@ select is(pg_temp.board_minutes('00000000-0000-4000-8000-000000000212'), 120, 'a
 
 -- Who may reset, and with what.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
-select throws_ok($$ select public.reset_member_hours('00000000-0000-4000-8000-000000000211', 'A new season') $$, '42501', null, 'an admin does not reset hours');
+select throws_ok($$ select public.reset_member_hours('00000000-0000-4000-8000-000000000211', 'A new season', gen_random_uuid()) $$, '42501', null, 'an admin does not reset hours');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
-select throws_ok($$ select public.reset_member_hours('00000000-0000-4000-8000-000000000211', 'A new season') $$, '42501', null, 'nor a member their own');
+select throws_ok($$ select public.reset_member_hours('00000000-0000-4000-8000-000000000211', 'A new season', gen_random_uuid()) $$, '42501', null, 'nor a member their own');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select throws_ok($$ select public.reset_member_hours('00000000-0000-4000-8000-000000000211', ' x ') $$, '22023', null, 'a super admin gives a reason');
-select throws_ok($$ select public.reset_member_hours(gen_random_uuid(), 'A new season') $$, '42501', null, 'and resets a member who is there');
+select throws_ok($$ select public.reset_member_hours('00000000-0000-4000-8000-000000000211', ' x ', gen_random_uuid()) $$, '22023', null, 'a super admin gives a reason');
+select throws_ok($$ select public.reset_member_hours('00000000-0000-4000-8000-000000000211', 'A new season', null) $$, '22023', null, 'and a request id');
+select throws_ok($$ select public.reset_member_hours(gen_random_uuid(), 'A new season', gen_random_uuid()) $$, '42501', null, 'and resets a member who is there');
 -- Never their own: a super admin who is also a member, by the same mobile number (the security review of the pull request).
 reset role;
 update public.member set phone = (select s.phone from public.staff s where s.user_id = '00000000-0000-4000-8000-000000000101' and s.venue_id = '00000000-0000-4000-8000-000000000001')
 where id = '00000000-0000-4000-8000-000000000213';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select throws_ok($$ select public.reset_member_hours('00000000-0000-4000-8000-000000000213', 'A new season') $$, 'RVOWN', null, 'a super admin never resets the hours of their own record');
+select throws_ok($$ select public.reset_member_hours('00000000-0000-4000-8000-000000000213', 'A new season', gen_random_uuid()) $$, 'RVOWN', null, 'a super admin never resets the hours of their own record');
 select is((select hours_counted_from from public.member where id = '00000000-0000-4000-8000-000000000213'), null, 'and nothing changed');
 reset role;
 select is((select hours_counted_from from public.member where id = '00000000-0000-4000-8000-000000000211'), null, 'none of those reset anything');
@@ -78,7 +79,7 @@ select private.sync_promotion(v.promotion_id) from public.promotion_version v wh
 
 -- The reset, by a super admin: the step reached is paid first, then the count starts again.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select isnt(public.reset_member_hours('00000000-0000-4000-8000-000000000211', '  A new season  '), null, 'a super admin resets Ishaan''s hours');
+select isnt(public.reset_member_hours('00000000-0000-4000-8000-000000000211', '  A new season  ', '00000000-0000-4000-8000-0000000433c1'), null, 'a super admin resets Ishaan''s hours');
 reset role;
 select is(pg_temp.bonus('00000000-0000-4000-8000-000000000211'), 50000::bigint, 'the step he had reached, 500 after an hour, is paid as the hours are reset');
 select is(pg_temp.board_minutes('00000000-0000-4000-8000-000000000211'), 0, 'his hours on the leaderboard start from zero');
@@ -86,6 +87,12 @@ select is(pg_temp.board_minutes('00000000-0000-4000-8000-000000000212'), 120, 't
 select results_eq($$ select action, reason, (select s.full_name from public.staff s where s.user_id = a.actor_user_id and s.venue_id = a.venue_id)
                      from public.audit_log a where a.action = 'member.hours_reset' and a.entity_id = '00000000-0000-4000-8000-000000000211' $$,
   $$ values ('member.hours_reset'::text, 'A new season'::text, 'Vikram Rao'::text) $$, 'the audit log says who reset them and why');
+-- The same request again, as a double submit or a retry after a lost reply sends it: answered, and nothing written twice.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
+select isnt(public.reset_member_hours('00000000-0000-4000-8000-000000000211', '  A new season  ', '00000000-0000-4000-8000-0000000433c1'), null, 'the same request again is answered');
+reset role;
+select is((select count(*)::integer from public.audit_log a where a.action = 'member.hours_reset' and a.entity_id = '00000000-0000-4000-8000-000000000211'), 1,
+  'and writes no second line to the Activity');
 
 -- Past visits stay on the record, by date, with their time.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
@@ -115,7 +122,7 @@ select is(pg_temp.bonus('00000000-0000-4000-8000-000000000211'), 150000::bigint,
 
 -- A second reset moves the moment; the Bonus paid stays paid.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
-select isnt(public.reset_member_hours('00000000-0000-4000-8000-000000000211', 'Reset by mistake, again'), null, 'hours can be reset again');
+select isnt(public.reset_member_hours('00000000-0000-4000-8000-000000000211', 'Reset by mistake, again', gen_random_uuid()), null, 'hours can be reset again');
 reset role;
 select is(pg_temp.board_minutes('00000000-0000-4000-8000-000000000211'), 0, 'and start from zero again');
 select is(pg_temp.bonus('00000000-0000-4000-8000-000000000211'), 150000::bigint, 'a play-time Bonus already paid is not taken back');
@@ -125,7 +132,7 @@ select is((select count(*)::integer from public.audit_log a where a.action = 'me
 -- The member's own export has the moment; no one signed out resets anything.
 select ok(exists (select 1 from private.member_export_columns() c where c.table_name = 'member' and c.column_name = 'hours_counted_from'),
   'the moment is part of the member''s own data');
-select is(has_function_privilege('anon', 'public.reset_member_hours(uuid, text)', 'execute'), false, 'no one signed out resets hours');
+select is(has_function_privilege('anon', 'public.reset_member_hours(uuid, text, uuid)', 'execute'), false, 'no one signed out resets hours');
 select is(has_function_privilege('authenticated', 'private.hours_counted_from(uuid)', 'execute'), false, 'and the moment is read through the rules, not on its own');
 
 select * from finish();

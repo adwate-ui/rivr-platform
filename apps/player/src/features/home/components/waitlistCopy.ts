@@ -35,6 +35,7 @@ export const WAITLIST_FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>
   own_record: 'player.tonight.unavailable',
   // More than the visit may redeem (decision 0579): the floor's refusal too.
   visit_cap: 'player.tonight.unavailable',
+  bonus_redeemed: 'player.tonight.unavailable',
   bonus_off: 'player.tonight.unavailable',
   too_many: 'player.tonight.unavailable',
 };

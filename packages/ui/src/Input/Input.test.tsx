@@ -48,6 +48,12 @@ describe('Input', () => {
     expect(field).toHaveClass('border-alert');
   });
 
+  it('keeps its red edge while it has focus and is wrong, as the console draws it', () => {
+    renderIn(<Input label="Seats" variant="subtle" error="Whole numbers only." />);
+    expect(screen.getByRole('textbox', { name: 'Seats' })).toHaveClass('outline-alert', 'focus-visible:outline-alert');
+    expect(screen.getByRole('textbox', { name: 'Seats' })).not.toHaveClass('focus-visible:outline-focus');
+  });
+
   it('has no accessibility violations with a hint and an error', async () => {
     const { container } = renderIn(<Input label="UTR" hint="12 digits." error="UTR not found." />);
     expect(await axeViolations(container)).toEqual([]);

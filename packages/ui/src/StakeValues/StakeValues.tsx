@@ -1,7 +1,7 @@
 import { t } from '@rivr/i18n';
 import { useState } from 'react';
 import { Text } from '../Text/Text.tsx';
-import { rangeText, readUnit, type Unit, type UnitRange } from '../UnitInput/unit.ts';
+import { readUnit, unitRefusal, type Unit, type UnitRange } from '../UnitInput/unit.ts';
 import { UnitField } from '../UnitInput/UnitField.tsx';
 
 /** A stake and the value it has now. */
@@ -42,8 +42,8 @@ function valuesOf(stakes: readonly StakeValue[], typed: Typed, range: UnitRange)
 
 /**
  * One value for each stake (redesign RD-14), such as its call time: a field per stake under the stake's name, in one
- * unit. A stake that has no value keeps its field, with "Not set" under it, so every stake is in the list; a value outside
- * `min` to `max` is refused, with the range under it. It keeps what is typed, so the screen mounts it anew (a `key`) to
+ * unit. A stake that has no value keeps its field, with "Not set" under it, so every stake is in the list; a value not a
+ * whole number, or outside `min` to `max`, is refused, with why under it. It keeps what is typed, so the screen mounts it anew (a `key`) to
  * start from other values.
  */
 export function StakeValues({ label, stakes, unit, min, max, onChange }: StakeValuesProps) {
@@ -56,7 +56,7 @@ export function StakeValues({ label, stakes, unit, min, max, onChange }: StakeVa
         const own = typed[stake.id] ?? '';
         return (
           <UnitField key={stake.id} label={stake.name} unit={unit} typed={own} hint={own === '' ? t('ui.console.stakeValues.none') : undefined}
-            error={readUnit(own, range).isRefused ? rangeText(unit, range) : undefined}
+            error={unitRefusal(own, unit, range)}
             onTyped={(next) => {
               const all = { ...typed, [stake.id]: next };
               setTyped(all);

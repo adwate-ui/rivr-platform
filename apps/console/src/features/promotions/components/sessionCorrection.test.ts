@@ -1,6 +1,6 @@
 import type { VisitTimes, WaitingSession } from '@rivr/db';
 import { describe, expect, it } from 'vitest';
-import { checkedInOf, checkedOutOf, correctionOf, draftOf, leftAtFrom, visitCorrectionOf, visitDraftOf } from './sessionCorrection.ts';
+import { checkedInOf, checkedOutOf, correctionOf, draftOf, leftAtFrom, visitCorrectionOf, visitDraftOf, visitProblemsOf } from './sessionCorrection.ts';
 
 // Sat at 21:40 IST on 15 Nov 2026, left at 23:40 after 5 minutes 30 seconds away.
 const SAT = new Date('2026-11-15T16:10:00Z');
@@ -76,5 +76,36 @@ describe('a visit\'s check-in and check-out (the owner, 18 Nov)', () => {
     const visit = { ...VISIT, sessions: [late] };
     expect(visitCorrectionOf(visit, { checkedIn: '19:05', checkedOut: '23:10' }, { s1: draftOf(late) })).toMatchObject({ closedAt: '2026-11-15T17:40:30.123456+00:00' });
     expect(visitCorrectionOf(visit, { checkedIn: '19:05', checkedOut: '23:20' }, { s1: draftOf(late) })).toMatchObject({ closedAt: '2026-11-15T17:50:00.000Z' });
+  });
+});
+
+describe('what refuses a visit\'s times, said under the field (the review of the pull request for Edit visit)', () => {
+  const seats = { s1: draftOf(seat) };
+  const LATER = new Date('2026-11-19T12:00:00Z');
+  const problems = (checkedIn: string, checkedOut: string, typed = seats, now = LATER) => visitProblemsOf(VISIT, { checkedIn, checkedOut }, typed, now);
+
+  it('finds nothing in the visit as it was, nor in a time that cannot be read', () => {
+    expect(problems('19:05', '23:40')).toEqual({ checkedIn: null, checkedOut: null });
+    expect(problems('soon', 'late')).toEqual({ checkedIn: null, checkedOut: null });
+  });
+
+  it('holds check-in to the first seat\'s start and check-out to the last seat\'s end, as typed in the panel', () => {
+    expect(problems('21:45', '23:40').checkedIn).toEqual({ rule: 'afterFirstSeat', at: seat.startedAt });
+    expect(problems('19:05', '23:30').checkedOut).toEqual({ rule: 'beforeLastSeat', at: seat.endedAt });
+    expect(problems('19:05', '23:30', { s1: { leftAt: '23:20', awayMinutes: 6 } }).checkedOut).toBeNull();
+    expect(problems('19:05', '23:40', { s1: { leftAt: '23:50', awayMinutes: 6 } }).checkedOut).toEqual({ rule: 'beforeLastSeat', at: '2026-11-15T18:20:00.000Z' });
+  });
+
+  it('holds both to now', () => {
+    const now = new Date('2026-11-15T18:00:00Z');
+    expect(problems('23:45', '23:40', seats, now).checkedIn).toEqual({ rule: 'aheadOfNow', at: null });
+    expect(problems('19:05', '23:50', seats, now).checkedOut).toEqual({ rule: 'aheadOfNow', at: null });
+  });
+
+  it('holds check-out to 06:00 the next morning, unless the visit already ran past it', () => {
+    expect(problems('19:05', '06:30').checkedOut).toEqual({ rule: 'pastDayEnd', at: null });
+    const night = { ...VISIT, closedAt: '2026-11-16T01:30:00Z' };
+    expect(visitProblemsOf(night, { checkedIn: '19:05', checkedOut: '06:30' }, seats, LATER).checkedOut).toBeNull();
+    expect(visitProblemsOf(night, { checkedIn: '19:05', checkedOut: '07:30' }, seats, LATER).checkedOut).toEqual({ rule: 'pastDayEnd', at: null });
   });
 });
