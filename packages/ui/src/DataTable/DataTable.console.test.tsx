@@ -172,6 +172,28 @@ describe('DataTable on the console', () => {
     expect(screen.getByRole('columnheader', { name: 'Member' })).toHaveClass('max-medium:sticky', 'max-medium:left-touch');
   });
 
+  it('on a phone, the sideways layout gives every column at least a column\u2019s width, so a wide table scrolls, never squeezes', () => {
+    onAPhone();
+    renderIn(<Ticked narrowLayout="sideways" />);
+    const header = screen.getAllByRole('rowgroup')[0]?.firstElementChild;
+    expect(header).toHaveClass('min-w-min');
+    expect(header?.getAttribute('style')).toContain(`minmax(${String(tokens.size.column)}px, 1fr)`);
+    expect(screen.queryByRole('group', { name: 'Sort and filter Members' })).toBeNull();
+  });
+
+  it('on a phone, the sideways layout holds a wide title at one track, so the line beside it has room', () => {
+    onAPhone();
+    const wide = COLUMNS.map((column, at) => (at === 0 ? { ...column, isWide: true } : column));
+    renderIn(<DataTable label="Members" columns={wide} rowKey={(row) => row.id} rows={ROWS} emptyText="None." narrowLayout="sideways" />);
+    expect(screen.getAllByRole('rowgroup')[0]?.firstElementChild?.getAttribute('style')).toContain(`repeat(${String(wide.length)}, minmax(`);
+    expect(screen.getAllByRole('cell')[0]).not.toHaveClass('col-span-2');
+  });
+
+  it('from 768 px, the sideways layout draws the table\u2019s lines, as the scroll layout does', () => {
+    renderIn(<Ticked narrowLayout="sideways" />);
+    expect(screen.getAllByRole('rowgroup')[0]?.firstElementChild).toHaveClass('max-medium:min-w-text');
+  });
+
   it('holds the title alone in the scroll layout without ticks, and keeps cards by default', () => {
     onAPhone();
     const { unmount } = renderIn(<DataTable label="Members" columns={COLUMNS} rowKey={(row) => row.id} rows={ROWS} emptyText="None." narrowLayout="scroll" />);

@@ -5,7 +5,7 @@ import { useIsInConsole } from '../internal/consoleFrame.ts';
 import { STICKY_BAR_TOP } from '../internal/consoleMain.ts';
 import { Text } from '../Text/Text.tsx';
 import type { DataTableColumn, DataTableSort } from './columns.ts';
-import { GUTTER, headerRowClasses, heldTitle, LOOK, priorityOf, tickPlace, type Layout } from './rows.tsx';
+import { GUTTER, headerRowClasses, heldTitle, LOOK, priorityOf, tickPlace, type Layout, spansCell } from './rows.tsx';
 import { TickHeader } from './Selection.tsx';
 
 // The table's header row, apart from rows.tsx: each column's name, which sorts it, and its menu (owner, 9 Nov).
@@ -66,7 +66,8 @@ export function HeaderRow<Row>({ columns, sort, onSort, layout, isVirtual, ref, 
         {layout.ticks === null ? null : <TickHeader ticks={layout.ticks} place={tickPlace(layout, true)} />}
         {columns.map((column, at) => (
           <HeaderCell key={column.key} column={column} sort={sort} onSort={onSort} menu={menuFor(column)}
-            place={cx(look.headerCell, column.isWide && layout.isShared !== true && look.span, priorityOf(column, at) === 'primary' && heldTitle(layout))} />
+            place={cx(look.headerCell, spansCell(column, priorityOf(column, at) === 'primary', layout) && look.span,
+              priorityOf(column, at) === 'primary' && heldTitle(layout))} />
         ))}
       </div>
     </div>

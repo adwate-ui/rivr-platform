@@ -33,7 +33,7 @@ function visitColumns(counted: ListChoices | undefined): readonly DataTableColum
   return [
     {
       key: 'date', share: 1.2, header: t('console.reports.playersReport.date'), cell: (visit) => <Text variant="secondary" tone="muted">{dayOf(visit)}</Text>,
-      sortValue: (visit) => visit.clubDay, exportValue: dayOf, filter: false,
+      sortValue: (visit) => visit.clubDay, exportValue: dayOf, filter: false, priority: 'secondary',
     },
     { key: 'player', share: 2, header: t('console.todaysPlayers.name'), cell: (visit) => visit.fullName, sortValue: (visit) => visit.fullName, priority: 'primary', isWide: true, filter: 'text' },
     { key: 'number', share: 0.65, header: t('console.members.number'), cell: (visit) => <Text variant="secondary" tone="muted">{String(visit.memberNumber)}</Text>, sortValue: (visit) => visit.memberNumber, exportValue: (visit) => visit.memberNumber, filter: 'number' },
@@ -90,7 +90,7 @@ export function PlayerVisits({ span, periodWords, correct: Correct }: { span: Re
   const columns = Correct === undefined ? visitColumns(counted) : [...visitColumns(counted), correctColumn(setCorrecting)];
   return (
     <>
-      <DataTable {...stateOf(page)} label={t('console.reports.playersReport.visits')} columns={columns} narrowLayout="scroll"
+      <DataTable {...stateOf(page)} label={t('console.reports.playersReport.visits')} columns={columns} narrowLayout="sideways"
         rowKey={(visit) => `${visit.clubDay}:${visit.memberId}`} exportFilter={periodWords}
         filter={{ label: t('console.reports.playersReport.search'), variant: 'subtle', text: (visit) => visit.fullName }}
         server={{ total: page.data?.total ?? 0, pageSize: LIST_PAGE, onRequest: setRequest, scope: `${span.from}:${span.to}` }} exportRows={page.readEvery} />
