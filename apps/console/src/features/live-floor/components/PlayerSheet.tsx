@@ -59,6 +59,7 @@ function CallTime({ player, now }: { player: SeatedPlayer; now: Date }) {
 /** What this player asks, in their own words, each with its actions, as the requests panel has them. */
 function askTitle(request: FloorRequest): string {
   if (request.kind === 'top_up') return t(request.isStarted ? 'console.floor.player.toppingUp' : 'console.floor.player.asksTopUp');
+  if (request.kind === 'call_time_set') return t('console.floor.requests.callTimeSet');
   return t('console.floor.player.asksLeaving');
 }
 

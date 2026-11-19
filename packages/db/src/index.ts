@@ -68,7 +68,7 @@ export { ACTIVITY_KINDS, ACTIVITY_PAGE, useActivityPage, type ActivityFilters, t
 export * from './floorReports.ts';
 export {
   openSeatsAt, useFloorSeats, useHeldSeats, useLeftOwingCallTime, useSeatActions, useSetSeatCallTime, useAddCallTime,
-  useSetTopUp, type HeldSeat, type LeftOwing, type SeatedPlayer, type SeatFailure,
+  useSetTopUp, useMarkCallTimeSeen, type HeldSeat, type LeftOwing, type SeatedPlayer, type SeatFailure,
 } from './seats.ts';
 export {
   isSeatAlert, useFloorRequests, useFloorRequestTargets, useFloorSignals, useReadyToSeat, type FloorRequest, type FloorRequestTargets,

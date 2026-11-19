@@ -40,15 +40,17 @@ export const isSeatAlert = (request: FloorRequest): request is SeatAlert =>
 /**
  * What waits on the Live floor (decision 0479), each with what the floor acts on: a join (`id` the waitlist place), a
  * top-up (`id` its request; started or not), a player leaving (`id` the seat session; what they owe, null when nothing,
- * nought for a call time never set, #1076), one who left owing call time (`id` the member), and an approved player to
- * seat. A seated one has its call time left, null for none.
+ * nought for a call time never set, #1076), one who left owing call time (`id` the member), a member's own Set or Extend
+ * call time the floor has not marked seen (`id` the change, #1090: `minutes` set or added, `endsAt` when they leave, read
+ * now; null while away), and an approved player to seat. A seated one has its call time left, null for none.
  */
 export type FloorRequest =
   | SeatAlert
   | { readonly kind: 'join'; readonly id: string; readonly memberId: string; readonly fullName: string; readonly tableId: string; readonly since: string }
   | (Seated & { readonly kind: 'top_up'; readonly id: string; readonly sessionId: string; readonly isStarted: boolean; readonly callTimeLeft: number | null })
   | (Seated & { readonly kind: 'leaving'; readonly id: string; readonly sessionId: string; readonly callTimeLeft: number | null; readonly owedSeconds: number | null })
-  | (Seated & { readonly kind: 'left_owing'; readonly id: string; readonly sessionId: string; readonly owedSeconds: number });
+  | (Seated & { readonly kind: 'left_owing'; readonly id: string; readonly sessionId: string; readonly owedSeconds: number })
+  | (Seated & { readonly kind: 'call_time_set'; readonly id: string; readonly sessionId: string; readonly minutes: number; readonly endsAt: string | null });
 
 interface RequestRow {
   kind: string; request_id: string; session_id: string | null; member_id: string; full_name: string; table_id: string | null; seat: number | null;
@@ -63,6 +65,10 @@ function toSeatedRequest(row: RequestRow, seated: SeatedWho): FloorRequest[] {
     case 'top_up': return [{ kind: 'top_up', ...seated, isStarted: row.top_up === 'in_progress', callTimeLeft: row.call_time_left }];
     case 'leaving': return [{ kind: 'leaving', ...seated, callTimeLeft: row.call_time_left, owedSeconds: row.owed_seconds }];
     case 'left_owing': return [{ kind: 'left_owing', ...seated, owedSeconds: row.owed_seconds ?? 0 }];
+    case 'call_time_set': return [{
+      kind: 'call_time_set', ...seated, minutes: row.minutes ?? 0,
+      endsAt: row.call_time_left === null ? null : new Date(Date.now() + row.call_time_left * 1000).toISOString(),
+    }];
     default: return [];
   }
 }

@@ -120,6 +120,16 @@ describe('The requests panel (console v3)', () => {
     expect(rpcs('undo_waitlist_decision')).toEqual([{ p_entry_id: 'e1' }]);
   });
 
+  it('shows a member\'s own Set call time in Requests until the floor marks it seen (the owner, 19 Nov)', async () => {
+    const set = requestRow({ kind: 'call_time_set', id: 'c1', name: 'Kabir Sethi', minutes: 1, session_id: 's2', table_id: 't1', seat: 5, asked: 60, call_time_left: 3600 });
+    const { rpcs } = await renderFloor({ ...FLOOR, requests: [...REQUESTS, set] });
+    expect(within(requests()).getByText('Call time set')).toBeDefined();
+    expect(within(requests()).getByText(/^Table 1, seat 5 · leaves \d\d:\d\d$/)).toBeDefined();
+    fireEvent.click(within(requests()).getByRole('button', { name: 'Seen' }));
+    await screen.findByText('Kabir Sethi: call time seen');
+    expect(rpcs('mark_call_time_seen')).toEqual([{ p_request_id: 'c1' }]);
+  });
+
   it('starts a top-up, undone by its own compensating call', async () => {
     const { rpcs } = await renderFloor();
     fireEvent.click(within(requests()).getByRole('button', { name: 'Start' }));

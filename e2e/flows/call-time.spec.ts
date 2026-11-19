@@ -61,6 +61,9 @@ test.describe('Call time', () => {
     await expect(floor.getByText(/^Ritika Das set call time · leaves \d\d:\d\d$/)).toBeVisible({ timeout: 20_000 });
     await showSeats(floor);
     await expect(floor.getByRole('button', { name: /^Seat 1, Ritika Das, Leaves \d\d:\d\d$/ })).toBeVisible();
+    // And it waits in Requests until the floor marks it seen (#1090, the owner, 19 Nov).
+    await (await ritikasRequest(floor, /^Call time set/)).getByRole('button', { name: 'Seen' }).click();
+    await expect(floor.getByText('Ritika Das: call time seen')).toBeVisible();
 
     // A top-up the floor starts, then marks done (#634, decision 0299).
     await player.getByRole('button', { name: 'Top up' }).click();

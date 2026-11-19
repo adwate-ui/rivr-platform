@@ -1,6 +1,6 @@
 import { isRequestLate, type RequestTargets } from '@rivr/domain/floorRequests';
 import type { FloorRequest, SeatAlert } from '@rivr/db';
-import { formatDuration, t } from '@rivr/i18n';
+import { formatDuration, formatTime, t } from '@rivr/i18n';
 
 /** A request as the panel words it: what is asked, where, and how long it has waited, late past its target. */
 export interface RequestWords {
@@ -21,6 +21,7 @@ function kindOf(request: FloorRequest): string {
     case 'top_up': return t(request.isStarted ? 'console.floor.requests.topUpStarted' : 'console.floor.requests.topUp');
     case 'leaving': return t('console.floor.requests.leaving');
     case 'left_owing': return t('console.floor.requests.leftOwing');
+    case 'call_time_set': return t('console.floor.requests.callTimeSet');
     default: return t(ALERT_KIND[request.kind]);
   }
 }
@@ -49,6 +50,9 @@ function detailOf(request: FloorRequest, table: string, isTableOpen: boolean): s
     case 'left_owing': return request.owedSeconds > 0
       ? t('console.floor.requests.owedDetail', { table, time: formatDuration(request.owedSeconds) })
       : t('console.floor.requests.owedNotSet', { table });
+    case 'call_time_set': return request.endsAt === null
+      ? t('console.floor.requests.seatDetail', { table, seat: request.seat })
+      : t('console.floor.requests.callTimeDetail', { table, seat: request.seat, time: formatTime(new Date(request.endsAt)) });
     default: return seatAlertDetail(request, table, isTableOpen);
   }
 }

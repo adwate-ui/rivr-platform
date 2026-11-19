@@ -231,6 +231,15 @@ export function useAddCallTime(venueId: string) {
   });
 }
 
+/** The floor marks a member's own Set or Extend call time seen (#1090): it leaves Requests. A Result, and the floor is read again. */
+export function useMarkCallTimeSeen(venueId: string) {
+  const { client } = useRivrData();
+  const settle = useSeatSettle(venueId);
+  return useMutation({
+    mutationFn: async (requestId: string) => settle((await client.rpc('mark_call_time_seen', { p_request_id: requestId })).error),
+  });
+}
+
 /** The floor takes a seat's top-up in hand (`inProgress`), or resets it once done (#634). A Result, and the floor is read again. */
 export function useSetTopUp(venueId: string) {
   const { client } = useRivrData();

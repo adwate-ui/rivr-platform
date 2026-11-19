@@ -219,14 +219,14 @@ isOneToOne: false
                   ]
                 },"call_time_request": {
                   Row: {
-                    "created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"id": string,"idempotency_key": string,"member_id": string,"minutes": number,"minutes_before": number | null,"requested_at": string,"session_id": string,"status": string,"updated_at": string,"venue_id": string
+                    "created_at": string,"decided_at": string | null,"decided_by_staff_id": string | null,"id": string,"idempotency_key": string,"member_id": string,"minutes": number,"minutes_before": number | null,"requested_at": string,"seen_at": string | null,"seen_by_staff_id": string | null,"session_id": string,"status": string,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"id"?: string,"idempotency_key": string,"member_id": string,"minutes": number,"minutes_before"?: number | null,"requested_at"?: string,"session_id": string,"status"?: string,"updated_at"?: string,"venue_id": string
+                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"id"?: string,"idempotency_key": string,"member_id": string,"minutes": number,"minutes_before"?: number | null,"requested_at"?: string,"seen_at"?: string | null,"seen_by_staff_id"?: string | null,"session_id": string,"status"?: string,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string,"member_id"?: string,"minutes"?: number,"minutes_before"?: number | null,"requested_at"?: string,"session_id"?: string,"status"?: string,"updated_at"?: string,"venue_id"?: string
+                    "created_at"?: string,"decided_at"?: string | null,"decided_by_staff_id"?: string | null,"id"?: string,"idempotency_key"?: string,"member_id"?: string,"minutes"?: number,"minutes_before"?: number | null,"requested_at"?: string,"seen_at"?: string | null,"seen_by_staff_id"?: string | null,"session_id"?: string,"status"?: string,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -240,6 +240,12 @@ isOneToOne: false
       columns: ["member_id","venue_id"]
 isOneToOne: false
       referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "call_time_request_seen_by_staff_id_venue_id_fkey"
+      columns: ["seen_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
       referencedColumns: ["id","venue_id"]
     },{
       foreignKeyName: "call_time_request_session_id_fkey"
@@ -3165,6 +3171,9 @@ isOneToOne: false
                            },
 "log_high_hand":
 { Args: { "p_confirmed": Json,"p_hand": string,"p_member_id": string,"p_rank": string,"p_request_id": string,"p_table_id": string }; Returns: string
+                           },
+"mark_call_time_seen":
+{ Args: { "p_request_id": string }; Returns: undefined
                            },
 "mark_kot_sent":
 { Args: { "p_order_id": string }; Returns: undefined
