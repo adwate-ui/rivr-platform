@@ -37,5 +37,8 @@ from public.site_page p where p.id = b.page_id and p.venue_id = '00000000-0000-4
 select private.website_calls_in_the_app('00000000-0000-4000-8000-0000000000c6');
 select is(pg_temp.saying('00000000-0000-4000-8000-0000000000c6', 'our host says hello'), 1, 'a club''s own words stay');
 
+select ok(not has_function_privilege('service_role', 'private.website_calls_in_the_app(uuid)', 'execute')
+          and not has_function_privilege('authenticated', 'private.website_calls_in_the_app(uuid)', 'execute'), 'only migrations and the system rewrite the website');
+
 select * from finish();
 rollback;
