@@ -84,4 +84,15 @@ describe('Seat a player › Bonus', () => {
     fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
     expect(await screen.findByText('More Bonus than the member has. Not seated.')).toBeDefined();
   });
+
+  // A seating whose Bonus was already redeemed with another amount is refused, not skipped.
+  it('says when this seat already redeemed Bonus, and seats nobody', async () => {
+    await renderFloor({ ...FLOOR, replies: { seat_member: { status: 400, body: { code: 'RVBRD', message: 'redeemed' } } } });
+    fireEvent.click(within(tile('Table 1 NLH 50/100')).getByRole('button', { name: 'Seat 4, Open' }));
+    const seat = await sheet('Seat a player');
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Name, mobile or member number' }), { target: { value: '42' } });
+    fireEvent.change(within(seat).getByRole('textbox', { name: 'Bonus to redeem' }), { target: { value: '500' } });
+    fireEvent.click(within(seat).getByRole('button', { name: 'Seat' }));
+    expect(await screen.findByText('Bonus was already redeemed for this seat. Not seated.')).toBeDefined();
+  });
 });

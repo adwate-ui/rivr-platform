@@ -18,6 +18,7 @@ export const FAILURE_COPY: Readonly<Record<WaitlistFailure, MessageKey>> = {
   one_at_a_time: 'console.waitlist.oneAtATime',
   bonus_short: 'console.waitlist.bonusShort',
   visit_cap: 'console.waitlist.visitCap',
+  bonus_redeemed: 'console.waitlist.bonusRedeemed',
   not_chips: 'console.waitlist.notChips',
   own_record: 'console.waitlist.ownRecord',
   bonus_off: 'console.waitlist.bonusOff',
