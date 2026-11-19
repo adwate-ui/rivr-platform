@@ -17,8 +17,12 @@ $$;
 create function pg_temp.seated(p_member text) returns public.seat_session language sql as $$
   select * from public.seat_session where member_id = ('00000000-0000-4000-8000-000000000' || p_member)::uuid and ended_at is null;
 $$;
+-- Played p_minutes: the seat started then, and took this table no earlier than tonight's 06:00. A seat taken before 06:00
+-- and let go after 08:00 counts as forgotten overnight and ends at 06:00 (private.seat_end_stamp), which a run between 08:00
+-- and 09:20 IST would otherwise meet (#1086).
 create function pg_temp.played(p_member text, p_minutes integer) returns void language sql as $$
-  update public.seat_session set started_at = now() - make_interval(mins => p_minutes), seated_here_at = now() - make_interval(mins => p_minutes)
+  update public.seat_session set started_at = now() - make_interval(mins => p_minutes),
+                                 seated_here_at = greatest(now() - make_interval(mins => p_minutes), private.tonight_began(now()))
   where id = (pg_temp.seated(p_member)).id;
 $$;
 create function pg_temp.floor_seat(p_member text) returns table (owes boolean, set_at timestamptz, ends_at timestamptz, open integer[], by_member boolean)

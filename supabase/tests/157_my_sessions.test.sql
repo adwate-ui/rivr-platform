@@ -19,9 +19,11 @@ select isnt(public.seat_member((select id from public.game_table where venue_id 
 select isnt(public.let_leave_early('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 'Sessions test'), null,
   'he may leave before his call time');
 reset role;
--- Three hours ago, since everything in one transaction happens at one moment.
+-- Three hours ago, since everything in one transaction happens at one moment. At the table no earlier than tonight's 06:00:
+-- a seat taken before 06:00 and let go after 08:00 counts as forgotten overnight and ends at 06:00 (private.seat_end_stamp),
+-- which a run between 08:00 and 09:00 IST would otherwise meet (#1086).
 update public.visit set opened_at = now() - interval '3 hours' where member_id = '00000000-0000-4000-8000-000000000211' and closed_at is null;
-update public.seat_session set started_at = now() - interval '3 hours', seated_here_at = now() - interval '3 hours'
+update public.seat_session set started_at = now() - interval '3 hours', seated_here_at = greatest(now() - interval '3 hours', private.tonight_began(now()))
 where member_id = '00000000-0000-4000-8000-000000000211' and ended_at is null;
 
 -- He leaves: the floor ends his seat and the door closes his visit.
