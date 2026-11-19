@@ -1,83 +1,13 @@
-import { AuthRetryableFetchError, createClient, type RealtimeChannel } from '@supabase/supabase-js';
+import { AuthRetryableFetchError, createClient } from '@supabase/supabase-js';
 import { QueryClient } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { SESSION_STORAGE_KEY, type RivrClient } from './client.ts';
+import { SESSION_STORAGE_KEY } from './client.ts';
 import type { Database } from './database.types.ts';
-import { useFeature, useFeatureStatus } from './hooks.ts';
+import { useFeatureStatus } from './hooks.ts';
 import { RivrDataProvider, useAuthStatus, useRivrData } from './provider.tsx';
-import { sessionStorageFor, TEST_SESSION_KEY } from './test/session.ts';
-
-const ARJUN = '00000000-0000-4000-8000-000000000201';
-
-/** What the fake API answers, changed by a test to stand in for a change in the database. */
-interface FakeDatabase {
-  featureRows: { feature_key: string; state: string; tiers: string[] | null }[];
-  rpcCalls: number;
-  /** True while my_feature_access cannot be read. */
-  featuresFail: boolean;
-}
-
-function json(body: unknown): Response {
-  return new Response(JSON.stringify(body), { status: 200, headers: { 'content-type': 'application/json' } });
-}
-
-/** Answers the two requests the hooks make, as PostgREST would. */
-function fakeFetch(database: FakeDatabase): typeof fetch {
-  return async (input) => {
-    const url = input instanceof Request ? input.url : String(input);
-    if (url.includes('/rest/v1/rpc/my_feature_access')) {
-      database.rpcCalls += 1;
-      if (database.featuresFail) return new Response(JSON.stringify({ message: 'unavailable' }), { status: 503 });
-      return json(database.featureRows);
-    }
-    return new Response('not found', { status: 404 });
-  };
-}
-
-/** A real client whose network is the fake database, with Realtime held so tests fire changes. */
-function testClient(database: FakeDatabase, userId: string | null) {
-  const client: RivrClient = createClient<Database>('http://127.0.0.1:9', 'test-publishable-key', {
-    global: { fetch: fakeFetch(database) },
-    auth: { storage: sessionStorageFor(userId), storageKey: TEST_SESSION_KEY, autoRefreshToken: false, detectSessionInUrl: false },
-  });
-  const channels: RealtimeChannel[] = [];
-  const openChannel = client.channel.bind(client);
-  vi.spyOn(client, 'channel').mockImplementation((name, options) => {
-    const channel = openChannel(name, options);
-    vi.spyOn(channel, 'on');
-    // No socket in tests: subscribing does nothing, and the test fires changes itself.
-    vi.spyOn(channel, 'subscribe').mockReturnValue(channel);
-    channels.push(channel);
-    return channel;
-  });
-  return { client, channels };
-}
-
-/** Fires the handler the provider registered for changes to `table`, as Realtime would. */
-function fireChange(channel: RealtimeChannel, table: string) {
-  const registration = vi.mocked(channel.on).mock.calls.find(([, filter]) => 'table' in filter && filter.table === table);
-  const handler = registration?.[2];
-  if (handler === undefined) throw new Error(`No handler for ${table}`);
-  handler({ schema: 'public', table, commit_timestamp: '2026-10-18T00:00:00Z', eventType: 'UPDATE', new: {}, old: {}, errors: [] });
-}
-
-function Probe() {
-  const events = useFeature('events.book');
-  return (
-    <p>
-      {`events: ${events.state}`}
-    </p>
-  );
-}
-
-function freshDatabase(): FakeDatabase {
-  return {
-    featureRows: [{ feature_key: 'events.book', state: 'locked', tiers: ['Black card'] }],
-    rpcCalls: 0,
-    featuresFail: false,
-  };
-}
+import { sessionStorageFor } from './test/session.ts';
+import { ARJUN, fireChange, freshDatabase, heardOn, Probe, testClient } from './test/liveProvider.tsx';
 
 afterEach(() => {
   cleanup();
@@ -230,6 +160,7 @@ describe('RivrDataProvider and useFeature', () => {
     const tables = vi.mocked(channels[0]?.on)?.mock.calls.map(([, filter]) => ('table' in filter ? filter.table : undefined));
 
     expect(tables).toEqual(['tier_feature', 'member_feature_override', 'member', 'bonus_grant', 'bonus_redemption']);
+    expect(heardOn(channels[0])?.map(([, filter]) => filter)).toEqual(Array(5).fill('every row'));
   });
 });
 
