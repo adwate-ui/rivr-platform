@@ -51,6 +51,16 @@ describe('EditableList', () => {
     expect(onChange).toHaveBeenLastCalledWith([30, 90, 120]);
   });
 
+  it('keeps "1.5" in an entry and refuses it, saying whole numbers only under it, and gives nothing', async () => {
+    const { onChange } = choices();
+    await userEvent.clear(field(2));
+    await userEvent.type(field(2), '1.5');
+    expect(field(2)).toHaveValue('1.5');
+    expect(field(2)).toBeInvalid();
+    expect(field(2)).toHaveAccessibleDescription('Whole numbers only.');
+    expect(onChange).toHaveBeenLastCalledWith(null);
+  });
+
   it('adds an entry, focused and blank, which is refused until it is typed', async () => {
     const { onChange, container } = choices();
     await userEvent.click(screen.getByRole('button', { name: 'Add a choice' }));

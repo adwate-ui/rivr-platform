@@ -22,7 +22,6 @@ export const settings = {
   units: {
     percent: '{value}%', minutes: '{value} minutes', days: '{value} days', seconds: '{value} seconds', hours: '{value} hours', years: '{value} years', players: '{value} players waiting',
   },
-  suffixes: { percent: '%', minutes: 'minutes', days: 'days', seconds: 'seconds', hours: 'hours', years: 'years', players: 'players waiting' },
   /** A field's limits, as its hint and as its error. */
   between: 'Between {min} and {max}.',
   atLeast: '{min} or more.',
@@ -40,8 +39,6 @@ export const settings = {
   unchanged: 'Nothing changed.',
   notTogether: 'These values do not fit together.',
   noneChosen: 'None',
-  /** Before a money field's value. */
-  rupee: '₹',
   filter: 'Find a setting',
   /** A row with no change to come. */
   none: '–',

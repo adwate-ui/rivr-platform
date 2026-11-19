@@ -3,7 +3,7 @@ import { useId, useRef, useState } from 'react';
 import { Button } from '../Button/Button.tsx';
 import { ErrorMessage } from '../ErrorMessage/ErrorMessage.tsx';
 import { Text } from '../Text/Text.tsx';
-import { rangeText, readUnit, type Unit, type UnitRange } from '../UnitInput/unit.ts';
+import { readUnit, unitRefusal, type Unit, type UnitRange } from '../UnitInput/unit.ts';
 import { UnitField } from '../UnitInput/UnitField.tsx';
 
 export interface EditableListProps {
@@ -41,12 +41,13 @@ interface Rule {
   readonly range: UnitRange;
 }
 
-/** Why the entry at `at` is refused: blank, outside the range, or a value an earlier entry holds; nothing when it stands. */
+/** Why the entry at `at` is refused: blank, not a whole number, outside the range, or a value an earlier entry holds; nothing when it stands. */
 function refusalOf(entries: readonly Entry[], at: number, { unit, range }: Rule): string | undefined {
   const typed = entries[at]?.typed ?? '';
   if (typed === '') return t('ui.console.editableList.empty');
-  const { value, isRefused } = readUnit(typed, range);
-  if (isRefused) return rangeText(unit, range);
+  const refusal = unitRefusal(typed, unit, range);
+  if (refusal !== undefined) return refusal;
+  const { value } = readUnit(typed, range);
   const isRepeated = entries.slice(0, at).some((earlier) => readUnit(earlier.typed, range).value === value);
   return isRepeated ? t('ui.console.editableList.repeated') : undefined;
 }

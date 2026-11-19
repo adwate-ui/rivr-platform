@@ -40,19 +40,21 @@ describe('UnitInput', () => {
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
-  it('takes digits only, and a blank field is no value and no error', async () => {
+  it('refuses a character other than a digit, saying whole numbers only, and a blank field is no value and no error', async () => {
     const { onChange, field } = seatHold(null);
     expect(field).toHaveValue('');
-    await userEvent.type(field, '1a.5-');
-    expect(field).toHaveValue('15');
-    expect(onChange).toHaveBeenLastCalledWith(15);
+    await userEvent.type(field, '1.5');
+    expect(field).toHaveValue('1.5');
+    expect(onChange).toHaveBeenLastCalledWith(null);
+    expect(field).toBeInvalid();
+    expect(screen.getByRole('alert')).toHaveTextContent('Whole numbers only.');
     await userEvent.clear(field);
     expect(onChange).toHaveBeenLastCalledWith(null);
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
   it.each<[Unit, string, string]>([
-    ['minutes', 'minute', 'minutes'], ['hours', 'hour', 'hours'], ['days', 'day', 'days'], ['players', 'player', 'players'], ['seconds', 'second', 'seconds'], ['bonus', 'Bonus', 'Bonus'],
+    ['minutes', 'minute', 'minutes'], ['hours', 'hour', 'hours'], ['days', 'day', 'days'], ['years', 'year', 'years'], ['players', 'player', 'players'], ['playersWaiting', 'player waiting', 'players waiting'], ['seconds', 'second', 'seconds'], ['bonus', 'Bonus', 'Bonus'],
   ])('writes %s after the number: one %s, many %s', async (unit, one, many) => {
     renderIn(<UnitInput label="Value" unit={unit} min={1} max={5000} initialValue={1} onChange={vi.fn()} />);
     const field = screen.getByRole('textbox', { name: 'Value' });
@@ -68,5 +70,6 @@ describe('UnitInput', () => {
     expect(readUnit('11', { min: 1, max: 10 })).toEqual({ value: null, isRefused: true });
     expect(readUnit('0', { min: 1, max: 10 })).toEqual({ value: null, isRefused: true });
     expect(readUnit('2.5', { min: 1, max: 10 })).toEqual({ value: null, isRefused: true });
+    expect(readUnit('1,440', { min: 1, max: 1440 })).toEqual({ value: 1440, isRefused: false });
   });
 });

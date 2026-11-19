@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { rangeText, readUnit, type Unit } from './unit.ts';
+import { readUnit, unitRefusal, type Unit } from './unit.ts';
 import { UnitField } from './UnitField.tsx';
 
 export interface UnitInputProps {
@@ -20,16 +20,15 @@ export interface UnitInputProps {
 }
 
 /**
- * A whole number typed in its unit (redesign RD-14): minutes, hours, days, players, seconds or Bonus. Only digits are
- * taken; a number outside `min` to `max` is refused, with the range said under the field. It keeps what is typed, so the
- * screen mounts it anew (a `key`) to start from another value.
+ * A whole number typed in its unit (redesign RD-14): minutes, hours, days, years, players, seconds or Bonus. A character
+ * other than a digit is refused, "Whole numbers only.", and a number outside `min` to `max`, with the range said under the
+ * field. It keeps what is typed, so the screen mounts it anew (a `key`) to start from another value.
  */
 export function UnitInput({ label, unit, min, max, initialValue = null, hint, onChange }: UnitInputProps) {
   const [typed, setTyped] = useState(initialValue === null ? '' : String(initialValue));
   const range = { min, max };
-  const { isRefused } = readUnit(typed, range);
   return (
-    <UnitField label={label} unit={unit} typed={typed} hint={isRefused ? undefined : hint} error={isRefused ? rangeText(unit, range) : undefined}
+    <UnitField label={label} unit={unit} typed={typed} hint={hint} error={unitRefusal(typed, unit, range)}
       onTyped={(next) => {
         setTyped(next);
         onChange(readUnit(next, range).value);

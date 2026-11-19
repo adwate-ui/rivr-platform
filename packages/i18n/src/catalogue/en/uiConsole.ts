@@ -67,9 +67,17 @@ export const consoleUi = {
   },
   /** A number typed in its unit (UnitInput): the unit after it, `1 minute` or `20 minutes`, and what a refused number is told. */
   unitInput: {
-    one: { minutes: 'minute', hours: 'hour', days: 'day', players: 'player', seconds: 'second', bonus: 'Bonus' },
-    many: { minutes: 'minutes', hours: 'hours', days: 'days', players: 'players', seconds: 'seconds', bonus: 'Bonus' },
+    one: { minutes: 'minute', hours: 'hour', days: 'day', years: 'year', players: 'player', playersWaiting: 'player waiting', seconds: 'second', bonus: 'Bonus' },
+    many: {
+      minutes: 'minutes', hours: 'hours', days: 'days', years: 'years', players: 'players', playersWaiting: 'players waiting', seconds: 'seconds', bonus: 'Bonus',
+    },
     between: 'Between {min} and {max} {unit}.',
+    /** A character the field does not take, said under it (#1001): "1.5" in a whole-number field; a third decimal in a percentage or rupees. */
+    wholeOnly: 'Whole numbers only.',
+    twoDecimals: 'Numbers only, up to two decimals.',
+    /** After a percentage, and before rupees. */
+    percent: '%',
+    rupee: '₹',
   },
   /** A list an admin adds to, edits and removes from (EditableList): an entry's name, `Choice 2`, its Remove, and why one is refused. */
   editableList: {

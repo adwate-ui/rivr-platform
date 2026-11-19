@@ -1,6 +1,6 @@
 import type { SettingField } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { ChoiceChips, EditableList, ErrorMessage, Input, Stack, Switch } from '@rivr/ui';
+import { ChoiceChips, EditableList, ErrorMessage, Input, Stack, Switch, UnitField, type NumberForm, type Unit, type UnitFieldProps } from '@rivr/ui';
 import { fieldHint, fieldLabel, limitsText, optionLabel, unitOf } from './settingsCopy.ts';
 import type { FieldDraft } from './valueDraft.ts';
 
@@ -52,22 +52,25 @@ function ListField({ settingKey, field, draft, isInvalid, onChange }: FieldInput
   );
 }
 
-/** The words after a number: a percent or a time; none for money, which has the ₹ before it, or a count. */
-function suffixOf(field: Extract<SettingField, { kind: 'integer' }>): string | undefined {
+type NumberSetting = Extract<SettingField, { kind: 'integer' }>;
+
+/** The word after a typed number, by the setting's unit: a setting's players are players waiting. A percent takes its % from its form, money its ₹. */
+const WORD_UNITS: Readonly<Record<string, Unit>> = { minutes: 'minutes', hours: 'hours', days: 'days', years: 'years', seconds: 'seconds', players: 'playersWaiting' };
+
+/** How a number is typed, in @rivr/ui's UnitField (#1001): rupees, a percentage of up to two decimals, or a whole number in its unit. */
+function numberLook(field: NumberSetting): { form: NumberForm; unit: Unit | undefined } {
+  if (field.isMoney) return { form: 'rupees', unit: undefined };
   const unit = unitOf(field);
-  return unit === null ? undefined : t(`console.settings.suffixes.${unit}`);
+  return { form: unit === 'percent' ? 'percent' : 'whole', unit: WORD_UNITS[unit ?? ''] };
 }
 
-/** A number in its unit: ₹ before money, % or a time after the value, its limits as the hint and, when wrong, the error. */
-function NumberField({ settingKey, field, draft, isInvalid, onChange }: FieldInputProps & { field: Extract<SettingField, { kind: 'integer' }> }) {
+/** A setting's number as UnitField draws it: in its form and unit, its limits as the hint and, when wrong, the error. */
+function numberProps({ settingKey, draft, isInvalid }: FieldInputProps, field: NumberSetting): Omit<UnitFieldProps, 'onTyped'> {
   const limits = limitsText(field);
   // The limits, then what a value means where they do not say, then whether it may be left empty.
-  const hint = [limits, fieldHint(settingKey, field.name), field.isRequired ? undefined : t('console.settings.optional')].filter((part) => part !== undefined && part !== '').join(' ');
-  return (
-    <Input label={fieldLabel(settingKey, field.name)} hint={isInvalid ? undefined : hint} error={isInvalid ? limits : undefined}
-      value={typeof draft === 'string' ? draft : ''} inputMode="decimal" prefix={field.isMoney ? t('console.settings.rupee') : undefined}
-      suffix={suffixOf(field)} onChange={(event) => onChange(event.target.value)} />
-  );
+  const hint = [limits, fieldHint(settingKey, field.name), field.isRequired ? undefined : t('console.settings.optional')]
+    .filter((part) => part !== undefined && part !== '').join(' ');
+  return { label: fieldLabel(settingKey, field.name), ...numberLook(field), typed: typeof draft === 'string' ? draft : '', hint, error: isInvalid ? limits : undefined };
 }
 
 /** Why text was refused: nothing given, or not in the form its setting takes (a section, a review link). */
@@ -87,7 +90,7 @@ export function FieldInput(props: FieldInputProps) {
   const { settingKey, field, draft, isInvalid, onChange } = props;
   if (field.kind === 'boolean') return <SwitchField {...props} />;
   if (field.kind === 'choice' || field.kind === 'tier' || field.kind === 'choices') return <ChoiceField {...props} field={field} />;
-  if (field.kind === 'integer') return <NumberField {...props} field={field} />;
+  if (field.kind === 'integer') return <UnitField {...numberProps(props, field)} onTyped={onChange} />;
   if (field.kind === 'numbers') return <ListField {...props} field={field} />;
   return (
     <Input label={fieldLabel(settingKey, field.name)} hint={field.isRequired ? undefined : t('console.settings.optional')}

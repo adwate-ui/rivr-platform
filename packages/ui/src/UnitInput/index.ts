@@ -1,2 +1,3 @@
 export { UnitInput, type UnitInputProps } from './UnitInput.tsx';
-export type { Unit } from './unit.ts';
+export { UnitField, type UnitFieldProps } from './UnitField.tsx';
+export type { NumberForm, Unit } from './unit.ts';
