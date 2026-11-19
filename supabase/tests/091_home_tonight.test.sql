@@ -1,6 +1,5 @@
--- Home's tonight (#87, decision 0116): each table's open seats, and the member's own identity check,
--- and jackpot, at their own venue only, the jackpot behind its feature. 211 Ishaan (club member,
--- check finished), 218 (club member, no check yet), 301 Asha (practice venue), 104 Sana (staff at both).
+-- Home's tonight (#87, decision 0116): each table's open seats, and the member's own identity check (no jackpot since
+-- #1019). 211 Ishaan (club member, check finished), 218 (club member, no check yet), 104 Sana (staff at both).
 begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
@@ -13,7 +12,6 @@ grant execute on function pg_temp.as_user(uuid) to authenticated;
 
 
 -- What each venue holds, read as the database's owner.
-create temporary table jackpots as select v.id as venue_id, private.main_pool(v.id) as jackpot from public.venue v;
 create temporary table seats as
 select t.id as table_id, t.venue_id,
        greatest(t.seats - (select count(*)::integer from (
@@ -23,21 +21,15 @@ select t.id as table_id, t.venue_id,
        ) taken), 0) as open_seats
 from public.game_table t;
 create temporary table held (entry_id uuid, member_id uuid, table_id uuid, seat integer);
-grant select on jackpots, seats, held to authenticated;
+grant select on seats, held to authenticated;
 
 select pg_temp.as_user('00000000-0000-4000-8000-000000000211');
-select results_eq($$ select is_kyc_complete, jackpot_paise from public.my_tonight() $$,
-  $$ select true, jackpot from jackpots where venue_id = '00000000-0000-4000-8000-000000000001' $$,
-  'a member with a finished check reads the club''s jackpot');
+select results_eq($$ select * from public.my_tonight() $$, $$ values (true) $$,
+  'a member with a finished check is told so, and tonight holds nothing else: no jackpot');
 select is_empty($$ select * from public.floor_open_seats() $$, 'and no count of open seats: players never see one (redesign RD-20)');
 
 select pg_temp.as_user('00000000-0000-4000-8000-000000000218');
 select is((select is_kyc_complete from public.my_tonight()), false, 'a member without a finished check is told Join needs one');
-
-select pg_temp.as_user('00000000-0000-4000-8000-000000000301');
-select results_eq($$ select jackpot_paise from public.my_tonight() $$,
-  $$ select jackpot from jackpots where venue_id = '00000000-0000-4000-8000-000000000002' $$,
-  'a practice member reads the practice venue''s, never the club''s');
 
 select pg_temp.as_user('00000000-0000-4000-8000-000000000104');
 select set_eq($$ select table_id, open_seats from public.floor_open_seats() $$,
@@ -85,14 +77,12 @@ select pg_temp.as_user('00000000-0000-4000-8000-000000000104');
 select is((select o.open_seats from public.floor_open_seats() o join held h on h.table_id = o.table_id),
   (select s.open_seats - 1 from seats s join held h on h.table_id = s.table_id), 'a held seat the member sits in counts once');
 
--- Without the live floor, no jackpot and no open seats.
+-- Without the live floor, no open seats.
 reset role;
 insert into public.member_feature_override (venue_id, member_id, feature_key, is_granted, reason) values
   ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 'floor.live_view', false, 'pgTAP: live floor off');
 select pg_temp.as_user('00000000-0000-4000-8000-000000000211');
-select results_eq($$ select is_kyc_complete, jackpot_paise from public.my_tonight() $$,
-  $$ values (true, null::bigint) $$, 'without the feature, the member reads no jackpot');
-select is_empty($$ select * from public.floor_open_seats() $$, 'and no open seats');
+select is_empty($$ select * from public.floor_open_seats() $$, 'without the feature, the member reads no open seats');
 
 reset role;
 select ok(not has_function_privilege('anon', 'public.my_tonight()', 'execute')

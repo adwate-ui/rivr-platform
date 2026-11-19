@@ -3380,7 +3380,7 @@ isOneToOne: false
                            },
 "my_tonight":
 { Args: Record<PropertyKey, never>; Returns: {
-              "is_kyc_complete": boolean,"jackpot_paise": number
+              "is_kyc_complete": boolean
             }[]
                            },
 "my_tv_screen":
