@@ -55,13 +55,14 @@ function Title({ title, memberId }: Pick<RequestItemProps, 'title' | 'memberId'>
 }
 
 /**
- * With `onTitle`, the item's own button under it all, named as who asks: a click anywhere but the name and the actions,
- * which sit above it, opens them (owner, 19 Nov: the name is the link, the rest does what it did).
+ * With `onTitle`, the item's own button under it all: a click anywhere but the name and the actions, which sit above it,
+ * opens who asks (owner, 19 Nov: the name is the link, the rest does what it did). Named as SeatRow names its button, with
+ * what is asked, who and where ("ID check, then seat, Naina Kapoor, Table 2 waitlist"), never the name alone the link has.
  */
-function OpenButton({ title, onTitle }: Pick<RequestItemProps, 'title' | 'onTitle'>) {
+function OpenButton({ kind, title, detail, onTitle }: Pick<RequestItemProps, 'kind' | 'title' | 'detail' | 'onTitle'>) {
   if (onTitle === undefined) return null;
   return (
-    <button type="button" onClick={onTitle} aria-label={title}
+    <button type="button" onClick={onTitle} aria-label={[kind, title, detail].filter(Boolean).join(', ')}
       className="absolute inset-0 rounded-md transition-colors hover:bg-subtle focus-visible:outline focus-visible:outline-focus" />
   );
 }
@@ -113,7 +114,7 @@ export function RequestItem(props: RequestItemProps) {
   // Above the item's own button, its words let a click through to it; only the name and the actions take their own.
   return (
     <div data-fresh={isNew ? '' : undefined} data-request={requestKey} className="relative isolate -mx-3 flex flex-col gap-1 rounded-md px-3 py-3">
-      <OpenButton title={title} onTitle={onTitle} />
+      <OpenButton kind={kind} title={title} detail={detail} onTitle={onTitle} />
       <div className={cx('relative flex flex-col gap-1', onTitle !== undefined && 'pointer-events-none')}>
         <div className="flex items-center justify-between gap-2 font-text text-12 leading-snug">
           <span className="text-content-muted">{kind}</span>

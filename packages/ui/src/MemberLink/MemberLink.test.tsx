@@ -61,7 +61,7 @@ describe('MemberLink', () => {
     await userEvent.click(screen.getByRole('link', { name: 'Ritika Bhalla' }));
     expect(onNavigate).toHaveBeenCalledWith('/members?member=m-3');
     expect(onTitle).not.toHaveBeenCalled();
-    await userEvent.click(screen.getByRole('button', { name: 'Ritika Bhalla' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Top-up, Ritika Bhalla' }));
     expect(onTitle).toHaveBeenCalledOnce();
   });
 

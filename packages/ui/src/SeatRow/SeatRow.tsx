@@ -23,7 +23,12 @@ export interface SeatRowProps {
 function Who({ name, memberId }: Pick<SeatRowProps, 'name' | 'memberId'>) {
   if (name === undefined) return <span aria-hidden="true" className="relative min-w-0 flex-1 truncate text-14 text-content-muted pointer-events-none">{t('ui.console.seatRow.open')}</span>;
   if (memberId === undefined) return <span aria-hidden="true" className="relative min-w-0 flex-1 truncate text-14 text-content pointer-events-none">{name}</span>;
-  return <span className="relative min-w-0 flex-1 truncate text-14 text-content pointer-events-none"><MemberLink memberId={memberId}>{name}</MemberLink></span>;
+  // Cut short across, never down, so the link's 44 px press below 1180 px is not cut to the line.
+  return (
+    <span className="relative min-w-0 flex-1 overflow-x-clip text-ellipsis whitespace-nowrap text-14 text-content pointer-events-none">
+      <MemberLink memberId={memberId}>{name}</MemberLink>
+    </span>
+  );
 }
 
 /**

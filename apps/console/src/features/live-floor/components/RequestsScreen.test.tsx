@@ -145,7 +145,8 @@ describe('Requests on a phone (console v3)', () => {
 
   it('opens the player\'s sheet from their name', async () => {
     renderFloorScreen(RequestsScreen, API);
-    fireEvent.click(await screen.findByRole('button', { name: 'Kabir Sethi' }, { timeout: 5000 }));
+    // The request's own button, named with what is asked, who and where; the name alone is the link to their account.
+    fireEvent.click(await screen.findByRole('button', { name: /, Kabir Sethi(,|$)/ }, { timeout: 5000 }));
     expect(await screen.findByRole('dialog', { name: 'Kabir Sethi' })).toBeDefined();
   });
 

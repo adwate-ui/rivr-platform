@@ -101,9 +101,10 @@ describe('The requests panel (console v3)', () => {
   it('lists requests oldest first, each late past its target in words as well as colour (audit F-108)', async () => {
     await renderFloor();
     const panel = requests();
-    // Each request's own button is named as who asks; it covers the item, under the name's link.
-    const names = within(panel).getAllByRole('button').map((button) => button.getAttribute('aria-label') ?? button.textContent);
-    expect(names.filter((name) => ['Ritika Bhalla', 'Vidya Chadha', 'Rohan Bhatia'].includes(name ?? ''))).toEqual(['Ritika Bhalla', 'Vidya Chadha', 'Rohan Bhatia']);
+    // Who asks, request by request, in the order the panel lists them.
+    const order = ['Ritika Bhalla', 'Vidya Chadha', 'Rohan Bhatia'];
+    const asking = [...panel.querySelectorAll('[data-request]')].map((item) => order.find((name) => item.textContent?.includes(name)));
+    expect(asking.filter((name) => name !== undefined)).toEqual(order);
     expect(within(panel).getByText('Join request')).toBeDefined();
     expect(within(panel).getByText('Table 2 waitlist')).toBeDefined();
     // A join six minutes old and a top-up four minutes old are past their targets.
