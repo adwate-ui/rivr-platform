@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { kycInPersonSchema } from '@rivr/contracts';
 import { useKycAadhaarCovers, useKycImageUrl, useKycInPerson, type KycCandidate, type KycInPersonOutcome } from '@rivr/db';
 import { t, type MessageKey } from '@rivr/i18n';
-import { Button, ErrorMessage, Inline, Input, KycPhoto, kycPhotoStatus, Stack, Stepper, Switch, Text } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, Input, KycPhoto, kycPhotoStatus, MemberLink, Stack, Stepper, Switch, Text } from '@rivr/ui';
 import { useRef, useState } from 'react';
 import { useForm, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
@@ -86,7 +86,7 @@ function MemberStep({ member, onStart, onCancel }: { member: KycCandidate; onSta
       <Inline gap={3} align="start">
         <FacePhotos member={member} photo={undefined} />
         <Stack gap={1}>
-          <Text variant="row" weight="medium">{member.fullName}</Text>
+          <Text variant="row" weight="medium"><MemberLink memberId={member.memberId}>{member.fullName}</MemberLink></Text>
           <Text variant="secondary" tone="muted">{t('console.kycInPerson.phoneEnding', { digits: member.phoneLast4 })}</Text>
         </Stack>
       </Inline>

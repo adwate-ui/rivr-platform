@@ -5,11 +5,12 @@ import {
 import { useRecordTableExport } from '@rivr/db/exports';
 import { t } from '@rivr/i18n';
 import {
-  ConsoleShell, DataTableDensityProvider, DataTableExportProvider, DataTableViewProvider, PracticeBanner, Screen, ShortcutProvider, TitleCount, ToastProvider, UrgentChime,
+  ConsoleShell, DataTableDensityProvider, DataTableExportProvider, DataTableViewProvider, MemberLinksProvider, PracticeBanner, Screen, ShortcutProvider, TitleCount, ToastProvider, UrgentChime,
 } from '@rivr/ui';
 import { Navigate, useNavigate, useRouterState } from '@tanstack/react-router';
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 import { ConsoleSearch } from './ConsoleSearch.tsx';
+import { memberLinksFor } from './memberLinks.ts';
 import { FrameClock, FramePulse, runsTheFloor } from './FrameHeader.tsx';
 import { NotStaff } from './NotStaff.tsx';
 import { useAddressTableViews } from './tableViews.ts';
@@ -162,7 +163,11 @@ function FrameBody({ staff, urgent, refusal, isHome, landing, children }: FrameB
   const recordExport = useRecordTableExport(venueId);
   // Every table keeps its order, search and filters in the address (owner, 9 Nov).
   const views = useAddressTableViews();
+  // Every member's name opens their account on Members, for staff who open it (owner, 19 Nov).
+  const navigate = useNavigate();
+  const memberLinks = useMemo(() => memberLinksFor(permissions, (href) => void navigate({ href })), [permissions, navigate]);
   return (
+    <MemberLinksProvider links={memberLinks}>
     <DataTableDensityProvider density={density.data ?? 'comfortable'}>
       <DataTableViewProvider store={views}>
       <DataTableExportProvider exporter={permissions.includes('exports.table') ? recordExport : null}>
@@ -176,6 +181,7 @@ function FrameBody({ staff, urgent, refusal, isHome, landing, children }: FrameB
       </DataTableExportProvider>
       </DataTableViewProvider>
     </DataTableDensityProvider>
+    </MemberLinksProvider>
   );
 }
 

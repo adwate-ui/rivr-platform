@@ -61,7 +61,7 @@ export function RequestList({ requests, tables, targets, now, fresh, changes, on
         const actions = requestActions(request, { changes, tableName, onLeave, onSeatAlert, onApproved, canCheckId });
         // Marked with its key, so A and D act on the request whose button holds the focus (useFloorKeys).
         return (
-          <RequestItem key={key} requestKey={key} kind={words.kind} age={words.age} isLate={words.isLate} title={request.fullName}
+          <RequestItem key={key} requestKey={key} kind={words.kind} age={words.age} isLate={words.isLate} title={request.fullName} memberId={request.memberId}
             onTitle={canOpen(request) ? () => onOpen(request) : undefined} detail={words.detail} isNew={fresh.has(key)} primary={button(`${key}:primary`, actions.primary)}
             secondary={actions.secondary === undefined ? undefined : button(`${key}:secondary`, actions.secondary)} />
         );

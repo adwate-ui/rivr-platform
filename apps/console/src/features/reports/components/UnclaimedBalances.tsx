@@ -1,10 +1,10 @@
 import { useUnclaimedBalances, type UnclaimedBalance } from '@rivr/db/reports';
 import { formatDate, formatNumber, t } from '@rivr/i18n';
-import { DataTable, Heading, Money, Stack, Text, type DataTableColumn } from '@rivr/ui';
+import { DataTable, Heading, MemberLink, Money, Stack, Text, type DataTableColumn } from '@rivr/ui';
 
 const COLUMNS: readonly DataTableColumn<UnclaimedBalance>[] = [
   { key: 'number', header: t('console.reports.memberNumber'), align: 'end', sortValue: (row) => row.memberNumber, cell: (row) => formatNumber(row.memberNumber) },
-  { key: 'member', header: t('console.reports.member'), sortValue: (row) => row.fullName, cell: (row) => row.fullName },
+  { key: 'member', header: t('console.reports.member'), sortValue: (row) => row.fullName, cell: (row) => <MemberLink memberId={row.memberId}>{row.fullName}</MemberLink> },
   { key: 'cash', header: t('console.reports.cash'), align: 'end', sortValue: (row) => row.cash, cell: (row) => <Money paise={row.cash} /> },
   { key: 'bonus', header: t('console.reports.bonus'), align: 'end', sortValue: (row) => row.bonus, cell: (row) => <Money paise={row.bonus} /> },
   { key: 'lastSeen', header: t('console.reports.lastSeen'), sortValue: (row) => row.lastSeenAt, cell: (row) => formatDate(new Date(row.lastSeenAt)) },

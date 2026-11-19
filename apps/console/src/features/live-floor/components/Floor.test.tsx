@@ -101,7 +101,8 @@ describe('The requests panel (console v3)', () => {
   it('lists requests oldest first, each late past its target in words as well as colour (audit F-108)', async () => {
     await renderFloor();
     const panel = requests();
-    const names = within(panel).getAllByRole('button').map((button) => button.textContent);
+    // Each request's own button is named as who asks; it covers the item, under the name's link.
+    const names = within(panel).getAllByRole('button').map((button) => button.getAttribute('aria-label') ?? button.textContent);
     expect(names.filter((name) => ['Ritika Bhalla', 'Vidya Chadha', 'Rohan Bhatia'].includes(name ?? ''))).toEqual(['Ritika Bhalla', 'Vidya Chadha', 'Rohan Bhatia']);
     expect(within(panel).getByText('Join request')).toBeDefined();
     expect(within(panel).getByText('Table 2 waitlist')).toBeDefined();

@@ -42,7 +42,7 @@ function Tile({ table, seats, held, canOpenTables, isExpanded, isScrolledTo, onT
       {seatsAt(table, seats).map((player, index) => (player === undefined ? (
         <SeatRow key={index} number={index + 1} onSelect={() => onOpenSeat(table, index + 1)} />
       ) : (
-        <SeatRow key={index} number={index + 1} name={player.fullName} meta={callTimeMeta(player)} request={requestFlag(player)}
+        <SeatRow key={index} number={index + 1} name={player.fullName} memberId={player.memberId} meta={callTimeMeta(player)} request={requestFlag(player)}
           onSelect={() => onPlayer(player)} />
       )))}
     </TableTile>

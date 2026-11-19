@@ -1,7 +1,7 @@
 import { useHighHandTonight, type HighHandHit, type PromotionOverview } from '@rivr/db';
 import { budgetLeft, type HighHandReward, type Terms } from '@rivr/domain/promotions';
 import { formatHighHand, formatListedHand, formatNumber, t } from '@rivr/i18n';
-import { Button, ConfirmButton, DetailRow, Grid, Inline, LoadState, Number as Count, Segmented, Sheet, Stack, Text } from '@rivr/ui';
+import { Button, ConfirmButton, DetailRow, Grid, Inline, LoadState, MemberLink, Number as Count, Segmented, Sheet, Stack, Text } from '@rivr/ui';
 import { useState, type ReactNode } from 'react';
 import { canEnd, capitalised, type RowSteps } from './listColumns.tsx';
 import { whoAndWhen, type PromotionNames } from './promotionWords.ts';
@@ -32,7 +32,7 @@ function HitRow({ hit }: { hit: HighHandHit }) {
   const where = t('console.promotions.record.hit', { hand: formatHighHand(hit.hand, hit.rank), table: hit.tableName, seat: hit.seat });
   return (
     <Inline gap={3} justify="between" align="center">
-      <Text as="span" variant="row" weight="medium">{hit.memberName}</Text>
+      <Text as="span" variant="row" weight="medium"><MemberLink memberId={hit.memberId}>{hit.memberName}</MemberLink></Text>
       <Inline gap={3} grow justify="end">
         <Text as="span" variant="secondary" tone="muted" truncate>{where}</Text>
         <Text as="span" variant="row" isTabular>{t('console.promotions.record.paid', { chips: formatNumber(hit.chips) })}</Text>

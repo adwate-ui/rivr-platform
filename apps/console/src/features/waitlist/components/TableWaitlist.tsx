@@ -44,7 +44,7 @@ function JoinRequests({ venueId, table, requests, onApproved }: {
       {requests.map((request) => {
         const name = request.fullName;
         return (
-          <JoinRequestRow key={request.entryId} name={name} note={t('console.waitlist.card.asksToJoin')}
+          <JoinRequestRow key={request.entryId} name={name} memberId={request.memberId} note={t('console.waitlist.card.asksToJoin')}
             approve={{ label: t('console.waitlist.approveShort'), name: t('console.waitlist.approve', { name }), isLoading: approve.isPending,
               onClick: () => void approveOne(request) }}
             decline={{ label: t('console.waitlist.card.declineShort'), name: t('console.waitlist.card.decline', { name }), isLoading: remove.isPending,

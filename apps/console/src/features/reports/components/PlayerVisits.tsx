@@ -3,7 +3,7 @@ import {
 } from '@rivr/db';
 import type { Paise } from '@rivr/domain/money';
 import { formatChips, formatDate, formatDuration, formatRupeesForFile, formatTime, t } from '@rivr/i18n';
-import { Button, DataTable, DotStatus, Text, type ColumnChoice, type DataTableColumn, type DataTableRequest, type DotStatusTone } from '@rivr/ui';
+import { Button, DataTable, DotStatus, MemberLink, Text, type ColumnChoice, type DataTableColumn, type DataTableRequest, type DotStatusTone } from '@rivr/ui';
 import { useState, type ComponentType } from 'react';
 
 /** The panel that corrects a visit (#1075): Bonus approvals' own, which the route hands in. */
@@ -52,7 +52,7 @@ function visitColumns(counted: ListChoices | undefined): readonly DataTableColum
       key: 'date', share: 1.32, header: t('console.reports.playersReport.date'), cell: (visit) => <Text variant="secondary" tone="muted">{dayOf(visit)}</Text>,
       sortValue: (visit) => visit.clubDay, exportValue: dayOf, filter: false, priority: 'secondary',
     },
-    { key: 'player', share: 1.55, header: t('console.todaysPlayers.name'), cell: (visit) => visit.fullName, sortValue: (visit) => visit.fullName, priority: 'primary', isWide: true, filter: 'text' },
+    { key: 'player', share: 1.55, header: t('console.todaysPlayers.name'), cell: (visit) => <MemberLink memberId={visit.memberId}>{visit.fullName}</MemberLink>, sortValue: (visit) => visit.fullName, priority: 'primary', isWide: true, filter: 'text' },
     { key: 'number', share: 0.58, header: t('console.members.number'), cell: (visit) => <Text variant="secondary" tone="muted">{String(visit.memberNumber)}</Text>, sortValue: (visit) => visit.memberNumber, exportValue: (visit) => visit.memberNumber, filter: 'number' },
     { key: 'tier', share: 0.78, header: t('console.members.tier'), cell: tierOf, exportValue: (visit) => visit.tierName, sortValue: (visit) => visit.tierName, filter: 'choice', choices: tierChoices(counted), filterValue: (visit) => visit.tierName },
     { key: 'in', share: 0.58, header: t('console.todaysPlayers.checkedIn'), cell: (visit) => at(visit.checkedInAt), sortValue: (visit) => visit.checkedInAt ?? '', filter: false },
