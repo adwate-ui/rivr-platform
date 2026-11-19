@@ -36,4 +36,8 @@ describe('Icon', () => {
       'staff', 'tables', 'settings', 'alert', 'reset', 'purge', 'requests', 'overflow', 'chevronLeft', 'chevronRight', 'search',
     ]));
   });
+
+  it("has a History icon for a member's changes by staff", () => {
+    expect(ICON_NAMES).toContain('history');
+  });
 });
