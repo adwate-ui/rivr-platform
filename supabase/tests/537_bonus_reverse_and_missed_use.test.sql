@@ -32,9 +32,9 @@ select jsonb_build_object('scope', jsonb_build_object('from', d, 'to', d), 'page
 from (select (private.tonight_began(now()) at time zone 'Asia/Kolkata')::date as d) t;
 -- The Door's and the Players report's Bonus for Ishaan tonight, and the Bonus given list's rows: his, of tonight.
 create function pg_temp.lists() returns table (door bigint, visits bigint, listed bigint) language sql as $$
-  -- A row a seat, each with the day's Bonus: distinct, so rows that differ still fail.
-  select (select distinct bonus_paise from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}') where member_id = '00000000-0000-4000-8000-000000000211'),
-         (select distinct bonus_paise from public.player_visits_page('00000000-0000-4000-8000-000000000001', (select v from today_view)) where member_id = '00000000-0000-4000-8000-000000000211'),
+  -- A row a seat, the day's Bonus given on the first alone: the rows add up to it.
+  select (select sum(bonus_paise)::bigint from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}') where member_id = '00000000-0000-4000-8000-000000000211'),
+         (select sum(bonus_paise)::bigint from public.player_visits_page('00000000-0000-4000-8000-000000000001', (select v from today_view)) where member_id = '00000000-0000-4000-8000-000000000211'),
          (select coalesce(sum(amount_paise), 0)::bigint from public.bonus_given_page('00000000-0000-4000-8000-000000000001', (select v from today_view))
           where member_id = '00000000-0000-4000-8000-000000000211');
 $$;

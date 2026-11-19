@@ -32,11 +32,16 @@ export interface DoorPlayer extends Omit<TodaysPlayer, 'status' | 'waitingSecond
   readonly kycStatus: MemberKycStatus;
   /** When their open visit began, or, while expected, when they first joined a waitlist; null once they have left. */
   readonly since: string | null;
-  /** The Bonus given to them today, by hand or by promotions once approved (#1062). */
-  readonly bonus: Paise;
+  /** The Bonus given to them today, by hand or by promotions once approved (#1062), on their first row alone; null on the rest. */
+  readonly bonus: Paise | null;
+  /** The Bonus used at the row's seat (the owner, 19 Nov); null with no seat. */
+  readonly bonusUsed: Paise | null;
   /** Their mobile, `+919876543210`, for floor and up (members.phone, #1073); null for anyone else. */
   readonly phone: string | null;
 }
+
+/** A figure in paise the server may leave out: Bonus on a member's later rows, or used with no seat. */
+export const paiseOrNone = (value: number | null): Paise | null => (value === null ? null : toPaise(value));
 
 const STATUSES: readonly DoorStatus[] = ['playing', 'waiting', 'in_room', 'expected', 'left', 'never_arrived'];
 const LISTS: readonly DoorListName[] = ['in_club', 'expected', 'left', 'not_arrived'];
@@ -55,8 +60,8 @@ export function useDoorPage(venueId: string, view: ScopedView | null) {
       memberId: row.member_id, fullName: row.full_name, memberNumber: Number(row.member_number), tierName: row.tier_name, isBaseTier: row.is_base_tier,
       status: STATUSES.find((status) => status === row.status) ?? 'left', list: LISTS.find((list) => list === row.list) ?? 'not_arrived',
       checkedInAt: row.checked_in_at, checkedOutAt: row.checked_out_at, waitingSeconds: row.waiting_seconds, tables: tablesOf(row.tables),
-      playedSeconds: Number(row.played_seconds), kycStatus: kycStatusOf(row.kyc_status), since: row.since, bonus: toPaise(row.bonus_paise),
-      phone: row.phone, seatedAt: row.seated_at, leftAt: row.left_at,
+      playedSeconds: Number(row.played_seconds), kycStatus: kycStatusOf(row.kyc_status), since: row.since, bonus: paiseOrNone(row.bonus_paise),
+      phone: row.phone, seatedAt: row.seated_at, leftAt: row.left_at, bonusUsed: paiseOrNone(row.bonus_used_paise),
     }),
   });
 }

@@ -170,8 +170,12 @@ export const todaysPlayers = {
   atTableSpan: '{from}–{to}',
   atTableOpen: '{from}–',
   away: 'Away',
-  /** The Bonus given to the member that club day (#1062). */
+  /**
+   * Bonus a row a seat (the owner, 19 Nov): what the member was given that club day (#1062), by hand or by promotions, on
+   * their first row alone; and beside it what they used of their Bonus at each seat, on its row. Short, to fit at 1440 px.
+   */
   bonus: 'Bonus',
+  bonusUsed: 'Used',
   /** Floor and up (#1073): the member's History in a panel at the side, beside their mobile (console.members.mobile). */
   history: 'History',
   historyOf: 'History of {name}',

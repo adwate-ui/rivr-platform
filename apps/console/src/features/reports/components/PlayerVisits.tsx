@@ -1,6 +1,7 @@
 import {
   LIST_PAGE, scopedTo, useListChoices, usePlayerVisitsPage, type ListChoices, type MemberKycStatus, type PlayerVisit, type ReportSpan, type VisitTimes,
 } from '@rivr/db';
+import type { Paise } from '@rivr/domain/money';
 import { formatChips, formatDate, formatDuration, formatRupeesForFile, formatTime, t } from '@rivr/i18n';
 import { Button, DataTable, DotStatus, Text, type ColumnChoice, type DataTableColumn, type DataTableRequest, type DotStatusTone } from '@rivr/ui';
 import { useState, type ComponentType } from 'react';
@@ -32,6 +33,10 @@ const kycWords = (status: MemberKycStatus) => t(`console.members.kycStatuses.${s
 // A club day as a date: noon IST that day, so the date is the day's whatever the browser's zone.
 const dayOf = (visit: PlayerVisit) => formatDate(new Date(`${visit.clubDay}T12:00:00+05:30`));
 // The tier only above the base one, as at the door (audit F-020).
+/** Bonus in rupees for sorting and exports; none is left blank in a file and sorts below nothing. */
+const rupees = (paise: Paise | null) => (paise === null ? -1 : Number(formatRupeesForFile(paise)));
+const rupeesInFile = (paise: Paise | null) => (paise === null ? '' : Number(formatRupeesForFile(paise)));
+const chips = (paise: Paise | null) => (paise === null ? NONE() : formatChips(paise));
 const tierOf = (visit: PlayerVisit) => (visit.isBaseTier ? NONE() : visit.tierName);
 
 /** The tiers the column's menu offers, each with the server's count over the visits the other filters leave. */
@@ -61,11 +66,14 @@ function visitColumns(counted: ListChoices | undefined): readonly DataTableColum
       key: 'played', share: 1.02, filter: 'duration', header: t('console.todaysPlayers.played'), sortValue: (visit) => visit.playedSeconds, align: 'end',
       cell: (visit) => (visit.tables.length === 0 ? NONE() : formatDuration(visit.playedSeconds)),
     },
-    // The Bonus given to them that club day (#1062).
+    // The Bonus given to them that club day (#1062), on the visit's first row alone, and the Bonus used at each seat (the owner, 19 Nov).
     {
       key: 'bonus', share: 0.78, header: t('console.todaysPlayers.bonus'), align: 'end', filter: false,
-      sortValue: (visit) => Number(formatRupeesForFile(visit.bonus)), exportValue: (visit) => Number(formatRupeesForFile(visit.bonus)),
-      cell: (visit) => formatChips(visit.bonus),
+      sortValue: (visit) => rupees(visit.bonus), exportValue: (visit) => rupeesInFile(visit.bonus), cell: (visit) => chips(visit.bonus),
+    },
+    {
+      key: 'bonus_used', share: 0.7, header: t('console.todaysPlayers.bonusUsed'), align: 'end', filter: false,
+      sortValue: (visit) => rupees(visit.bonusUsed), exportValue: (visit) => rupeesInFile(visit.bonusUsed), cell: (visit) => chips(visit.bonusUsed),
     },
     {
       key: 'kyc', share: 1.13, header: t('console.members.kyc'), sortValue: (visit) => KYC.indexOf(visit.kycStatus), isWide: true, filter: false,

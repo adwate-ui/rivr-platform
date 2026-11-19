@@ -1,3 +1,4 @@
+import type { Paise } from '@rivr/domain/money';
 import type { DoorPlayer, DoorStatus, ListChoices, ListFilter, MemberKycStatus } from '@rivr/db';
 import { formatChips, formatDuration, formatMobile, formatRupeesForFile, formatTime, t } from '@rivr/i18n';
 import { Button, DotStatus, Inline, Text, type ColumnChoice, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
@@ -26,6 +27,10 @@ function atTable({ seatedAt, leftAt }: { readonly seatedAt: string | null; reado
   return leftAt === null ? t('console.todaysPlayers.atTableOpen', { from }) : t('console.todaysPlayers.atTableSpan', { from, to: formatTime(new Date(leftAt)) });
 }
 // The tier only above the base one: at the door a number tells members apart, and a tier is worth saying when it is one (audit F-020).
+/** Bonus in rupees for sorting and exports; none is left blank in a file and sorts below nothing. */
+const rupees = (paise: Paise | null) => (paise === null ? -1 : Number(formatRupeesForFile(paise)));
+const rupeesInFile = (paise: Paise | null) => (paise === null ? '' : Number(formatRupeesForFile(paise)));
+const chips = (paise: Paise | null) => (paise === null ? NONE() : formatChips(paise));
 const tierOf = (player: DoorPlayer) => (player.isBaseTier ? NONE() : player.tierName);
 const tablesOf = (player: DoorPlayer) => (player.tables.length === 0 ? NONE() : player.tables.map((entry) => entry.table).join(', '));
 const statusWords = (status: DoorStatus) => t(`console.todaysPlayers.statuses.${status}`);
@@ -130,11 +135,14 @@ export function doorColumns(
       key: 'played', share: 1.03, filter: 'duration', header: t('console.todaysPlayers.played'), sortValue: (player) => player.playedSeconds, align: 'end',
       cell: (player) => (player.tables.length === 0 ? NONE() : formatDuration(player.playedSeconds)),
     },
-    // The Bonus given to them today (#1062).
+    // The Bonus given to them today (#1062), on their first row alone, and the Bonus used at each seat (the owner, 19 Nov).
     {
       key: 'bonus', share: 0.8, header: t('console.todaysPlayers.bonus'), align: 'end', filter: false,
-      sortValue: (player) => Number(formatRupeesForFile(player.bonus)), exportValue: (player) => Number(formatRupeesForFile(player.bonus)),
-      cell: (player) => formatChips(player.bonus),
+      sortValue: (player) => rupees(player.bonus), exportValue: (player) => rupeesInFile(player.bonus), cell: (player) => chips(player.bonus),
+    },
+    {
+      key: 'bonus_used', share: 0.72, header: t('console.todaysPlayers.bonusUsed'), align: 'end', filter: false,
+      sortValue: (player) => rupees(player.bonusUsed), exportValue: (player) => rupeesInFile(player.bonusUsed), cell: (player) => chips(player.bonusUsed),
     },
     {
       key: 'kyc', share: 1.26, header: t('console.members.kyc'), sortValue: (player) => KYC.indexOf(player.kycStatus), isWide: true, filter: 'choice', choices: choicesIn('kyc', counted),
