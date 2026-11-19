@@ -6,6 +6,7 @@ import { formatChips, formatDayTime, formatTime, push as pushCopy, registerMessa
 import type { ClaimedDelivery, Consumer } from '../outbox/index.ts';
 import type { PushAdapter, WebPushSubscription } from '../push/types.ts';
 import type { AdapterFailure } from '../shared/failure.ts';
+import type { IsCallInForce } from './consumer.ts';
 
 // The push copy, as each app registers its own at start.
 registerMessages({ push: pushCopy });
@@ -38,6 +39,8 @@ interface MemberPush {
   readonly url: string;
   readonly tag: string;
   readonly action?: { readonly title: string; readonly url: string };
+  /** For a seat call that names its place and moment: asked once more before it is sent (#864). */
+  readonly call?: { readonly entryId: string; readonly calledAt: string };
 }
 
 /** The notification, null when there is nothing to send, or why the event cannot be read. */
@@ -50,11 +53,12 @@ function seatReady(payload: unknown, now: Date): Built {
   if (!called.success) return unreadable('waitlist.called');
   // A call claimed after its hold ran out would send the member to a seat that is gone: nothing to send.
   if (new Date(called.data.hold_until) <= now) return ok(null);
-  const { entry_id: entryId, member_id: memberId, table_name: table, seat, hold_until: holdUntil } = called.data;
+  const { entry_id: entryId, member_id: memberId, table_name: table, seat, hold_until: holdUntil, called_at: calledAt } = called.data;
   const body = t('push.seatReady.body', { table, seat: String(seat), time: formatTime(new Date(holdUntil)) });
   // "I'm on my way" opens Tonight, which accepts the call at once (decision 0321): a notification cannot sign the member in.
   const action = entryId === undefined ? {} : { action: { title: t('push.seatReady.action'), url: `/?accept=${entryId}` } };
-  return ok({ memberId, pushType: 'push.seat_ready', title: t('push.seatReady.title'), body, url: '/', tag: 'seat-ready', ...action });
+  const call = entryId === undefined || calledAt === undefined ? {} : { call: { entryId, calledAt } };
+  return ok({ memberId, pushType: 'push.seat_ready', title: t('push.seatReady.title'), body, url: '/', tag: 'seat-ready', ...action, ...call });
 }
 
 /** Fifteen minutes or less to run, under the member's Call time switch, with Set call time; nothing once it has run out. */
@@ -186,10 +190,11 @@ export function pushFor(delivery: ClaimedDelivery, now: Date): Built {
  * it. Each phone is sent to at once. A phone whose browser dropped its subscription is forgotten and the others still get
  * theirs; any other failure tries the delivery again, and a phone that already had it shows it once, as its tag replaces it.
  */
-export function createPushConsumer({ push, findTargets, forget, now = () => new Date() }: {
+export function createPushConsumer({ push, findTargets, forget, isCallInForce, now = () => new Date() }: {
   push: PushAdapter;
   findTargets: FindPushTargets;
   forget: ForgetPushTarget;
+  isCallInForce: IsCallInForce;
   /** For tests; the clock by default. */
   now?: () => Date;
 }): Consumer {
@@ -200,7 +205,9 @@ export function createPushConsumer({ push, findTargets, forget, now = () => new 
     async deliver(delivery) {
       const built = pushFor(delivery, now());
       if (!built.ok || built.value === null) return built;
-      const { memberId, pushType, promotionId, ...notification } = built.value;
+      const { memberId, pushType, promotionId, call, ...notification } = built.value;
+      // A seat call skipped or seated since it was made sends nothing (#864).
+      if (call !== undefined && !(await isCallInForce(delivery.venueId, call.entryId, call.calledAt))) return ok(null);
       const phones = await findTargets(delivery.venueId, memberId, pushType, promotionId);
       // Each of the member's phones at once, so a slow push service holds up only its own.
       const sends = await Promise.all(phones.map(async (subscription) => ({ subscription, sent: await push.send({ subscription, ...notification }) })));

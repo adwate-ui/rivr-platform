@@ -5,7 +5,7 @@
 import { createWhatsAppConsumer, type FindErasedPhone, type FindRecipient } from '@rivr/adapters/messages';
 import { indianMobileSchema } from '@rivr/contracts';
 import { z } from 'zod';
-import { rpc, serveConsumer } from '../_shared/outbox.ts';
+import { isCallInForce, rpc, serveConsumer } from '../_shared/outbox.ts';
 import { fenced, liveWhatsApp } from '../_shared/whatsapp.ts';
 
 const recipientRows = z.array(z.object({
@@ -43,6 +43,6 @@ const findErasedPhone: FindErasedPhone = async (venueId, memberId) => {
 const whatsapp = liveWhatsApp(10_000);
 Deno.serve(
   whatsapp
-    ? serveConsumer(createWhatsAppConsumer({ whatsapp: fenced(whatsapp), findRecipient, findErasedPhone }))
+    ? serveConsumer(createWhatsAppConsumer({ whatsapp: fenced(whatsapp), findRecipient, findErasedPhone, isCallInForce }))
     : () => Response.json({ error: 'WhatsApp is not configured' }, { status: 503 }),
 );
