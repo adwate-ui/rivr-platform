@@ -52,7 +52,8 @@ function visitColumns(counted: ListChoices | undefined): readonly DataTableColum
       key: 'date', share: 1.32, header: t('console.reports.playersReport.date'), cell: (visit) => <Text variant="secondary" tone="muted">{dayOf(visit)}</Text>,
       sortValue: (visit) => visit.clubDay, exportValue: dayOf, filter: false, priority: 'secondary',
     },
-    { key: 'player', share: 1.55, header: t('console.todaysPlayers.name'), cell: (visit) => <MemberLink memberId={visit.memberId}>{visit.fullName}</MemberLink>, sortValue: (visit) => visit.fullName, priority: 'primary', isWide: true, filter: 'text' },
+    { key: 'player', share: 1.55, header: t('console.todaysPlayers.name'), cell: (visit) => (visit.linkedMemberId === null ? visit.fullName : <MemberLink memberId={visit.linkedMemberId}>{visit.fullName}</MemberLink>),
+      sortValue: (visit) => visit.fullName, priority: 'primary', isWide: true, filter: 'text' },
     { key: 'number', share: 0.58, header: t('console.members.number'), cell: (visit) => <Text variant="secondary" tone="muted">{String(visit.memberNumber)}</Text>, sortValue: (visit) => visit.memberNumber, exportValue: (visit) => visit.memberNumber, filter: 'number' },
     { key: 'tier', share: 0.78, header: t('console.members.tier'), cell: tierOf, exportValue: (visit) => visit.tierName, sortValue: (visit) => visit.tierName, filter: 'choice', choices: tierChoices(counted), filterValue: (visit) => visit.tierName },
     { key: 'in', share: 0.58, header: t('console.todaysPlayers.checkedIn'), cell: (visit) => at(visit.checkedInAt), sortValue: (visit) => visit.checkedInAt ?? '', filter: false },
@@ -93,6 +94,14 @@ const correctColumn = (onCorrect: (visit: PlayerVisit) => void): DataTableColumn
   )),
 });
 
+/**
+ * A row's key: its seat, by its session, when they sat and the table, since a move keeps the session; a row without a seat
+ * by its visit, or by the member and day when they never came in.
+ */
+const keyOf = (visit: PlayerVisit) => (visit.sessionId === null
+  ? `${visit.clubDay}:${visit.memberId}:${visit.visitId ?? 'none'}`
+  : `${visit.sessionId}:${visit.seatedAt ?? ''}:${visit.tables[0]?.table ?? ''}`);
+
 function stateOf(page: ReturnType<typeof usePlayerVisitsPage>) {
   if (page.data !== undefined) return { rows: page.data.rows, emptyText: t('console.reports.playersReport.noVisits') };
   return page.isError ? { status: 'error' as const, onRetry: () => void page.refetch() } : { status: 'loading' as const };
@@ -114,7 +123,7 @@ export function PlayerVisits({ span, periodWords, correct: Correct }: { span: Re
   return (
     <>
       <DataTable {...stateOf(page)} label={t('console.reports.playersReport.visits')} columns={columns} narrowLayout="sideways"
-        rowKey={(visit) => `${visit.clubDay}:${visit.memberId}:${visit.seatedAt ?? ''}`} exportFilter={periodWords}
+        rowKey={keyOf} exportFilter={periodWords}
         filter={{ label: t('console.reports.playersReport.search'), variant: 'subtle', text: (visit) => visit.fullName }}
         server={{ total: page.data?.total ?? 0, pageSize: LIST_PAGE, onRequest: setRequest, scope: `${span.from}:${span.to}` }} exportRows={page.readEvery} />
       {Correct === undefined || correcting === null ? null : (

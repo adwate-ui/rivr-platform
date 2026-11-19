@@ -31,6 +31,8 @@ function atTable({ seatedAt, leftAt }: { readonly seatedAt: string | null; reado
 const rupees = (paise: Paise | null) => (paise === null ? -1 : Number(formatRupeesForFile(paise)));
 const rupeesInFile = (paise: Paise | null) => (paise === null ? '' : Number(formatRupeesForFile(paise)));
 const chips = (paise: Paise | null) => (paise === null ? NONE() : formatChips(paise));
+// An erased member's name links nowhere (linkedMemberId is null), as on Activity, orders and top-ups.
+const nameOf = (player: DoorPlayer) => (player.linkedMemberId === null ? player.fullName : <MemberLink memberId={player.linkedMemberId}>{player.fullName}</MemberLink>);
 const tierOf = (player: DoorPlayer) => (player.isBaseTier ? NONE() : player.tierName);
 const tablesOf = (player: DoorPlayer) => (player.tables.length === 0 ? NONE() : player.tables.map((entry) => entry.table).join(', '));
 const statusWords = (status: DoorStatus) => t(`console.todaysPlayers.statuses.${status}`);
@@ -97,7 +99,7 @@ function withContact(
     if (column.key === 'status') return { ...column, share: 1.1 };
     return column.key !== 'player' ? column : {
       ...column, share: 1.83, exportValue: (player: DoorPlayer) => player.fullName,
-      cell: (player: DoorPlayer) => <><MemberLink memberId={player.memberId}>{player.fullName}</MemberLink>{player.phone === null ? null : <Text variant="secondary" tone="muted">{formatMobile(player.phone)}</Text>}</>,
+      cell: (player: DoorPlayer) => <>{nameOf(player)}{player.phone === null ? null : <Text variant="secondary" tone="muted">{formatMobile(player.phone)}</Text>}</>,
     };
   });
   // Below 768 px the column is one 128 px track (DataTable's sideways layout), too narrow for both on one line: Check out
@@ -116,7 +118,7 @@ export function doorColumns(
   counted: ListChoices | undefined, action?: (player: DoorPlayer) => ReactNode, onHistory?: (player: DoorPlayer) => void,
 ): readonly DataTableColumn<DoorPlayer>[] {
   const columns: DataTableColumn<DoorPlayer>[] = [
-    { key: 'player', share: 2, header: t('console.todaysPlayers.name'), cell: (player) => <MemberLink memberId={player.memberId}>{player.fullName}</MemberLink>, sortValue: (player) => player.fullName, priority: 'primary', isWide: true, filter: 'text' },
+    { key: 'player', share: 2, header: t('console.todaysPlayers.name'), cell: nameOf, sortValue: (player) => player.fullName, priority: 'primary', isWide: true, filter: 'text' },
     { key: 'number', share: 0.58, header: t('console.members.number'), cell: (player) => <Text variant="secondary" tone="muted">{String(player.memberNumber)}</Text>, sortValue: (player) => player.memberNumber, exportValue: (player) => player.memberNumber, filter: 'number' },
     { key: 'tier', share: 0.78, header: t('console.members.tier'), cell: tierOf, exportValue: (player) => player.tierName, sortValue: (player) => player.tierName, filter: 'choice', choices: choicesIn('tier', counted), filterValue: (player) => player.tierName },
     {

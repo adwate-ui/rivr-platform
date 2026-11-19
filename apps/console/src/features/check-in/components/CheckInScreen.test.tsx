@@ -18,11 +18,13 @@ const KABIR = {
   total: 1, member_id: 'm1', full_name: 'Kabir Sethi', member_number: 31, tier_name: 'Black card', is_base_tier: false, status: 'expected', list: 'expected',
   checked_in_at: null, checked_out_at: null, waiting_seconds: 240, tables: [], played_seconds: 0, kyc_status: 'at_desk', since: '2026-11-03T14:00:00Z',
   bonus_paise: 0, phone: '+919812345678', seated_at: null, left_at: null, bonus_used_paise: null,
+  session_id: null, visit_id: null, linked_member_id: 'm1',
 };
 const NAKUL = {
   ...KABIR, member_id: 'm2', full_name: 'Nakul Dhillon', member_number: 270, tier_name: 'Member', is_base_tier: true, status: 'playing', list: 'in_club',
   checked_in_at: '2026-11-03T14:05:00Z', waiting_seconds: 0, tables: [{ table: 'Table 1', seconds: 5400 }], played_seconds: 5400, kyc_status: 'verified',
   bonus_paise: 150_000, phone: '+919876543210', seated_at: '2026-11-03T14:10:00Z', left_at: null, bonus_used_paise: 50_000,
+  session_id: 's2', visit_id: 'v2', linked_member_id: 'm2',
 };
 
 /** The History panel's body, as the route hands it in (#1073). */

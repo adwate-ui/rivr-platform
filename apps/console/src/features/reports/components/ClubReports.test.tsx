@@ -31,10 +31,12 @@ const ANSWERS: Record<string, unknown[]> = {
   player_visits_page: [
     { total: 2, club_day: '2026-11-15', member_id: 'm214', full_name: 'Yash Gupta', member_number: 41, tier_name: 'Black card', is_base_tier: false, checked_in_at: '2026-11-15T14:30:00Z',
       checked_out_at: null, waiting_seconds: 600, tables: [{ table: 'Table 2', seconds: 7200 }], played_seconds: 7200, kyc_status: 'verified', bonus_paise: 50_000,
-      visits: [{ visitId: 'vis9', openedAt: '2026-11-15T14:30:00Z', closedAt: null, sessions: [] }], seated_at: '2026-11-15T14:40:00Z', left_at: null, away_seconds: 0, bonus_used_paise: 20_000 },
+      visits: [{ visitId: 'vis9', openedAt: '2026-11-15T14:30:00Z', closedAt: null, sessions: [] }], seated_at: '2026-11-15T14:40:00Z', left_at: null, away_seconds: 0, bonus_used_paise: 20_000,
+      session_id: 's9', visit_id: 'vis9', linked_member_id: 'm214' },
     { total: 2, club_day: '2026-11-14', member_id: 'm214', full_name: 'Yash Gupta', member_number: 41, tier_name: 'Member', is_base_tier: true, checked_in_at: '2026-11-14T14:00:00Z',
       checked_out_at: '2026-11-14T18:00:00Z', waiting_seconds: 0, tables: [{ table: 'Table 1', seconds: 10_800 }], played_seconds: 10_800, kyc_status: 'verified', bonus_paise: 0,
-      seated_at: '2026-11-14T14:10:00Z', left_at: '2026-11-14T17:10:00Z', away_seconds: 0, bonus_used_paise: 0 },
+      seated_at: '2026-11-14T14:10:00Z', left_at: '2026-11-14T17:10:00Z', away_seconds: 0, bonus_used_paise: 0,
+      session_id: 's8', visit_id: 'vis8', linked_member_id: 'm214' },
   ],
   bonus_report: [
     { source: 'promotion', label: 'Friday four-hour bonus', members: 31, grants: 31, given_paise: 3_100_000 },
