@@ -9,16 +9,25 @@ describe('namesMatch', () => {
     ['extra spaces and punctuation', '  Rahul   D\'Souza. ', 'rahul dsouza'],
     ['Devanagari, its vowel signs kept', 'राहुल शर्मा', 'शर्मा राहुल'],
     ['an accent written as a separate mark', `JOSE${String.fromCodePoint(0x301)} PINTO`, `Jos${String.fromCodePoint(0xe9)} Pinto`],
+    ['a middle name on the document only', 'RAHUL KUMAR SHARMA', 'Rahul Sharma'],
+    ['a middle name given only', 'RAHUL SHARMA', 'Rahul Kumar Sharma'],
+    ['a middle name on a document with the surname first', 'SHARMA RAHUL KUMAR', 'Rahul Sharma'],
+    ['a middle name given, the document with the surname first', 'SHARMA RAHUL', 'Rahul Kumar Sharma'],
   ])('matches %s', (_, document, given) => {
     expect(namesMatch(document, given)).toBe(true);
   });
 
   it.each([
     ['a different surname', 'RAHUL VERMA', 'Rahul Sharma'],
-    ['a middle name on the document only', 'RAHUL KUMAR SHARMA', 'Rahul Sharma'],
-    ['a middle name given only', 'RAHUL SHARMA', 'Rahul Kumar Sharma'],
     ['a last word given only', 'RAHUL SHARMA', 'Rahul Sharma Zutshi'],
+    ['a first word on the document only', 'MOHD RAHUL SHARMA', 'Rahul Sharma'],
     ['an initial for a name', 'R SHARMA', 'Rahul Sharma'],
+    ['an initial for the first name, with a middle name', 'R KUMAR SHARMA', 'Rahul Sharma'],
+    ['a middle name standing for a different first name', 'RAHUL KUMAR VERMA', 'Rahul Sharma'],
+    ['one word, the surname, against the whole name', 'SHARMA', 'Rahul Sharma'],
+    ['a word given twice against it once with a middle name', 'RAHUL KUMAR SHARMA', 'Rahul Rahul Sharma'],
+    ['a middle name given as the first, the surname first on the document', 'SHARMA RAHUL KUMAR', 'Kumar Sharma'],
+    ['the first and last names swapped, with a middle name', 'SHARMA KUMAR RAHUL', 'Rahul Sharma'],
     ['a word given twice', 'RAHUL RAHUL', 'Rahul Sharma'],
     ['a document name with no letters', '1234', '1234'],
     ['an empty name', '', ''],
