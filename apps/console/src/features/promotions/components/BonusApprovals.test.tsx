@@ -132,21 +132,21 @@ describe('Bonus to approve (decision 0670)', () => {
     expect(ishaan.textContent).toContain('22:30');
     expect(ishaan.textContent).toContain('10 min');
     expect(ishaan.textContent).toContain('4 h 20 min');
-    expect(within(ishaan).getByRole('button', { name: 'Correct the visit of Ishaan Verma' })).toBeDefined();
-    expect(within(await rowOf('Vihaan Kapoor')).queryByRole('button', { name: /^Correct/ })).toBeNull();
+    expect(within(ishaan).getByRole('button', { name: 'Edit the visit of Ishaan Verma' })).toBeDefined();
+    expect(within(await rowOf('Vihaan Kapoor')).queryByRole('button', { name: /^Edit/ })).toBeNull();
   });
 
   it('corrects when they left with a reason, in one call, and says what was refused and what given stays', async () => {
     const { bodiesOf } = renderQueue({ '/rpc/correct_visit': { body: [{ refused: 1, given_above: 1 }] } });
-    fireEvent.click(within(await rowOf('Ishaan Verma')).getByRole('button', { name: 'Correct the visit of Ishaan Verma' }));
-    const panel = await screen.findByRole('dialog', { name: 'Correct visit' });
+    fireEvent.click(within(await rowOf('Ishaan Verma')).getByRole('button', { name: 'Edit the visit of Ishaan Verma' }));
+    const panel = await screen.findByRole('dialog', { name: 'Edit visit' });
     expect(within(panel).getByText('Table 3 · from 18:00')).toBeDefined();
-    fireEvent.click(within(panel).getByRole('button', { name: 'Save correction' }));
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save changes' }));
     expect(await within(panel).findByText('Change a time first.')).toBeDefined();
     fireEvent.change(within(panel).getByRole('textbox', { name: /^Left at/ }), { target: { value: '21:40' } });
-    fireEvent.change(within(panel).getByRole('textbox', { name: /^Why it is corrected/ }), { target: { value: 'Left early, not checked out' } });
-    fireEvent.click(within(panel).getByRole('button', { name: 'Save correction' }));
-    expect(await screen.findByText('Visit corrected · 1 waiting refused · 1 already given stays')).toBeDefined();
+    fireEvent.change(within(panel).getByRole('textbox', { name: /^Why it changes/ }), { target: { value: 'Left early, not checked out' } });
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save changes' }));
+    expect(await screen.findByText('Visit edited · 1 waiting refused · 1 already given stays')).toBeDefined();
     // Time away left as it was keeps its seconds.
     expect(bodiesOf('correct_visit')).toEqual([
       { p_visit_id: 'vis1', p_seats: [{ sessionId: 's1', endedAt: '2026-11-15T16:10:00.000Z', awaySeconds: 600 }], p_reason: 'Left early, not checked out' },
@@ -155,25 +155,25 @@ describe('Bonus to approve (decision 0670)', () => {
 
   it('corrects time away alone, keeping when they left, and says when it is their own record', async () => {
     const { bodiesOf } = renderQueue({ '/rpc/correct_visit': refused('RVOWN') });
-    fireEvent.click(within(await rowOf('Ishaan Verma')).getByRole('button', { name: 'Correct the visit of Ishaan Verma' }));
-    const panel = await screen.findByRole('dialog', { name: 'Correct visit' });
+    fireEvent.click(within(await rowOf('Ishaan Verma')).getByRole('button', { name: 'Edit the visit of Ishaan Verma' }));
+    const panel = await screen.findByRole('dialog', { name: 'Edit visit' });
     fireEvent.change(within(panel).getByRole('textbox', { name: /^Away/ }), { target: { value: '70' } });
-    fireEvent.change(within(panel).getByRole('textbox', { name: /^Why it is corrected/ }), { target: { value: 'Away 70 minutes, not marked' } });
-    fireEvent.click(within(panel).getByRole('button', { name: 'Save correction' }));
+    fireEvent.change(within(panel).getByRole('textbox', { name: /^Why it changes/ }), { target: { value: 'Away 70 minutes, not marked' } });
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save changes' }));
     expect(await within(panel).findByText('Not your own record. Ask another super admin.')).toBeDefined();
     expect(bodiesOf('correct_visit')).toEqual([{ p_visit_id: 'vis1', p_seats: [{ sessionId: 's1', endedAt: null, awaySeconds: 4200 }], p_reason: 'Away 70 minutes, not marked' }]);
   });
 
   it('corrects the visit\'s check-out with its seat, in the same call (the owner, 18 Nov)', async () => {
     const { bodiesOf } = renderQueue({ '/rpc/correct_visit': { body: [{ refused: 0, given_above: 0 }] } });
-    fireEvent.click(within(await rowOf('Ishaan Verma')).getByRole('button', { name: 'Correct the visit of Ishaan Verma' }));
-    const panel = await screen.findByRole('dialog', { name: 'Correct visit' });
+    fireEvent.click(within(await rowOf('Ishaan Verma')).getByRole('button', { name: 'Edit the visit of Ishaan Verma' }));
+    const panel = await screen.findByRole('dialog', { name: 'Edit visit' });
     expect(within(panel).getByRole('textbox', { name: /^Checked in/ })).toHaveProperty('value', '17:50');
     fireEvent.change(within(panel).getByRole('textbox', { name: /^Checked out/ }), { target: { value: '22:10' } });
     fireEvent.change(within(panel).getByRole('textbox', { name: /^Left at/ }), { target: { value: '22:00' } });
-    fireEvent.change(within(panel).getByRole('textbox', { name: /^Why it is corrected/ }), { target: { value: 'Card times' } });
-    fireEvent.click(within(panel).getByRole('button', { name: 'Save correction' }));
-    expect(await screen.findByText('Visit corrected')).toBeDefined();
+    fireEvent.change(within(panel).getByRole('textbox', { name: /^Why it changes/ }), { target: { value: 'Card times' } });
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save changes' }));
+    expect(await screen.findByText('Visit edited')).toBeDefined();
     expect(bodiesOf('correct_visit')).toEqual([{
       p_visit_id: 'vis1', p_seats: [{ sessionId: 's1', endedAt: '2026-11-15T16:30:00.000Z', awaySeconds: 600 }], p_reason: 'Card times', p_closed_at: '2026-11-15T16:40:00.000Z',
     }]);

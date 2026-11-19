@@ -15,14 +15,14 @@ const SECOND = {
 
 const typeIn = (panel: HTMLElement, name: RegExp, value: string) => fireEvent.change(within(panel).getByRole('textbox', { name }), { target: { value } });
 
-describe('Correct visit, on a club day of two visits (the owner, 18 Nov)', () => {
+describe('Edit visit, on a club day of two visits (the owner, 18 Nov; Edit, 19 Nov)', () => {
   it('corrects the visit chosen alone, and lets another be chosen only once nothing is left unsaved', async () => {
     const onDone = vi.fn();
     const { bodiesOf } = renderWithApi(
       <CorrectSession venueId="v1" memberId="m1" subtitle="Ishaan Verma · 15 Nov 2026" visits={[FIRST, SECOND]} onDone={onDone} onCancel={() => undefined} />,
       { '/rpc/correct_visit': { body: [{ refused: 0, given_above: 0 }] } },
     );
-    const panel = await screen.findByRole('dialog', { name: 'Correct visit' });
+    const panel = await screen.findByRole('dialog', { name: 'Edit visit' });
     typeIn(panel, /^Checked in/, '17:45');
     expect(within(panel).getByText('Save or cancel to choose another visit.')).toBeDefined();
     fireEvent.click(within(panel).getByRole('radio', { name: '20:00 to 23:00' }));
@@ -33,8 +33,8 @@ describe('Correct visit, on a club day of two visits (the owner, 18 Nov)', () =>
     expect(within(panel).getByRole('textbox', { name: /^Left at/ })).toHaveProperty('value', '22:40');
     // Out at the minute the seat ended: the seat's own end, to the second.
     typeIn(panel, /^Checked out/, '22:40');
-    typeIn(panel, /^Why it is corrected/, 'Left from the table');
-    fireEvent.click(within(panel).getByRole('button', { name: 'Save correction' }));
+    typeIn(panel, /^Why it changes/, 'Left from the table');
+    fireEvent.click(within(panel).getByRole('button', { name: 'Save changes' }));
     await waitFor(() => expect(onDone).toHaveBeenCalled());
     expect(bodiesOf('correct_visit')).toEqual([{ p_visit_id: 'v2', p_seats: [], p_reason: 'Left from the table', p_closed_at: '2026-11-15T17:10:30.123456+00:00' }]);
   });

@@ -122,10 +122,10 @@ describe('the reports beside Tables (redesign RD-27)', () => {
     const Panel = ({ subtitle, visits }: { subtitle: string; visits: readonly { visitId: string }[] }) => <Text>{`${subtitle}: ${visits.map((one) => one.visitId).join()}`}</Text>;
     renderReport(<PlayersReport venueId="v1" period={PERIOD} exportIn={null} correct={Panel} />);
     const table = await screen.findByRole('table', { name: 'Visits' });
-    fireEvent.click(await within(table).findByRole('button', { name: 'Correct the visit of Yash Gupta on 15 Nov 2026' }));
+    fireEvent.click(await within(table).findByRole('button', { name: 'Edit the visit of Yash Gupta on 15 Nov 2026' }));
     expect(await screen.findByText('Yash Gupta · 15 Nov 2026: vis9')).toBeDefined();
-    // A row with no visit to correct has no Correct.
-    expect(within(table).getAllByRole('button', { name: /^Correct the visit/ })).toHaveLength(1);
+    // A row with no visit to edit has no Edit.
+    expect(within(table).getAllByRole('button', { name: /^Edit the visit/ })).toHaveLength(1);
   });
 
   it('Waitlist: who joined, who got a seat and the waits, then each table’s list', async () => {

@@ -27,10 +27,26 @@ select p.id, '00000000-0000-4000-8000-000000000001', p.id, p.full_name, p.phone,
 from seed_person_cab p
 on conflict (id) do nothing;
 
--- Visits this month: two hours each, a day apart, ending today in IST at the latest.
-insert into public.visit (venue_id, member_id, opened_at, closed_at, close_reason)
-select '00000000-0000-4000-8000-000000000001', p.id, closed - interval '2 hours', closed, 'door'
-from seed_person_cab p
-cross join lateral generate_series(1, p.visits) n
-cross join lateral (select greatest(date_trunc('month', now() at time zone 'Asia/Kolkata') at time zone 'Asia/Kolkata' + interval '3 hours',
-                                    now() - (n || ' hours')::interval) as closed) c;
+-- Visits this month, made once: staging's deploy runs every seed file on every merge, so a member who already has a visit
+-- this month gets none (#1091). All within the month, none overlapping another and on nights before tonight's: three hours
+-- apart and two long, ending before tonight's 06:00, or closer and shorter early in a month: on its first day, after
+-- 06:00, an hour or more each; before then, ending before now. An hour or more counts toward the month
+-- (private.visits_this_month); one shorter gets a seat at Table 1 so it counts too, and only then, since a seat is what a
+-- seat bonus's first claimants count.
+with made as (
+  insert into public.visit (venue_id, member_id, opened_at, closed_at, close_reason)
+  select '00000000-0000-4000-8000-000000000001', p.id,
+         c.closed - least(interval '2 hours', greatest(g.gap * 2 / 3, g.gap - interval '10 minutes')), c.closed, 'door'
+  from seed_person_cab p
+  cross join lateral (select date_trunc('month', now() at time zone 'Asia/Kolkata') at time zone 'Asia/Kolkata' as month_start) m
+  cross join lateral (select case when private.tonight_began(now()) > m.month_start then private.tonight_began(now()) else now() end as until) u
+  cross join lateral (select least(interval '3 hours', (u.until - m.month_start) / (p.visits + 1)) as gap) g
+  cross join lateral generate_series(1, p.visits) n
+  cross join lateral (select u.until - n * g.gap as closed) c
+  where not exists (select 1 from public.visit v where v.member_id = p.id and v.opened_at >= m.month_start)
+  returning id, member_id, opened_at, closed_at)
+insert into public.seat_session (venue_id, member_id, visit_id, table_id, seat, started_at, seated_here_at, away_seconds, ended_at, end_reason)
+select '00000000-0000-4000-8000-000000000001', made.member_id, made.id, (select t.id from public.game_table t where t.venue_id = '00000000-0000-4000-8000-000000000001' and t.name = 'Table 1'), 1,
+       made.opened_at, made.opened_at, 0, made.closed_at, 'left'
+from made
+where made.closed_at - made.opened_at < interval '1 hour';
