@@ -60,6 +60,8 @@ export const promotionApprovals = {
   },
   /** The member, as the queue names them: `Ishaan Verma · No. 7`. */
   member: '{name} · No. {number}',
+  /** member after the name, which comes first as its link. */
+  memberNumber: ' · No. {number}',
   /** What set the Bonus off. A seat names its table; play time, the step reached: `4 h played`. */
   why: {
     signup: 'Sign-up', referral: 'Referral', check_in: 'Visit', seated: 'Seat', seatedAt: 'Seat at {table}', hours_step: 'Play time',

@@ -191,6 +191,8 @@ export const topUps = {
   noneEarlier: 'None yet tonight.',
   /** `{table}, seat {seat} · {name}`: Table 3, seat 5 · Kabir Sethi. `{time}`: 21:40. */
   line: '{table}, seat {seat} · {name}',
+  /** line before the member's name, which follows as its link. */
+  lineWhere: '{table}, seat {seat} · ',
   askedAt: 'Asked {time}',
   status: { requested: 'Asked', in_progress: 'In progress', fulfilled: 'Fulfilled in {time}', reset: 'Reset', left: 'Left before it was done' },
   /** Who took each step and how long it took (redesign RD-32): under a request in hand or done. `{time}` is minutes and seconds, `1:20`. */

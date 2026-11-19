@@ -1,6 +1,7 @@
 import { ACTIVITY_KINDS, ACTIVITY_PAGE, useActivityPage, useStaffVenue, type ActivityFilters, type ActivityKind, type ActivityLine } from '@rivr/db';
 import { activityActionWord, activityEntityWord, formatDateTime, formatHighHand, formatList, formatNumber, t } from '@rivr/i18n';
-import { ChoiceChips, DataTable, Inline, Input, Screen, Stack, type DataTableColumn } from '@rivr/ui';
+import { ChoiceChips, DataTable, Inline, Input, MemberLink, Screen, Stack, type DataTableColumn } from '@rivr/ui';
+import type { ReactNode } from 'react';
 import { useDeferredValue, useState } from 'react';
 
 const ALL = 'all';
@@ -14,6 +15,17 @@ function recordOf(line: ActivityLine): string {
   const decided = line.action === 'bonus.refuse' ? 'console.activity.decidedRefused' : 'console.activity.decidedApproved';
   const name = line.decided === null ? line.about : t(decided, { count: formatNumber(line.decided) });
   return name === null ? thing : t('console.activity.recordOf', { thing, name });
+}
+
+/** Who did it: a member's name opens their account (owner, 19 Nov). */
+function whoCell(line: ActivityLine): ReactNode {
+  return line.whoMemberId === null ? whoOf(line) : <MemberLink memberId={line.whoMemberId}>{whoOf(line)}</MemberLink>;
+}
+
+/** What it was about: a member's name, after the kind of record, opens their account (owner, 19 Nov). */
+function recordCell(line: ActivityLine): ReactNode {
+  if (line.aboutMemberId === null || line.about === null) return recordOf(line);
+  return <>{t('console.activity.recordThing', { thing: activityEntityWord(line.entity) })}<MemberLink memberId={line.aboutMemberId}>{line.about}</MemberLink></>;
 }
 
 /** What was done, and how much for Bonus by hand. */
@@ -36,10 +48,10 @@ function columns(): readonly DataTableColumn<ActivityLine>[] {
   return [
     // Two shares, so a day and its time stay on one line.
     { key: 'when', header: t('console.activity.when'), cell: when, exportValue: when, isWide: true, filter: false },
-    { key: 'who', header: t('console.activity.who'), cell: whoOf, exportValue: whoOf, filter: false },
+    { key: 'who', header: t('console.activity.who'), cell: whoCell, exportValue: whoOf, filter: false },
     { key: 'kind', header: t('console.activity.kind'), cell: kind, exportValue: kind, filter: false },
     { key: 'what', header: t('console.activity.what'), cell: whatOf, exportValue: whatOf, filter: false },
-    { key: 'record', header: t('console.activity.record'), cell: recordOf, exportValue: recordOf, isWide: true, filter: false },
+    { key: 'record', header: t('console.activity.record'), cell: recordCell, exportValue: recordOf, isWide: true, filter: false },
     { key: 'why', header: t('console.activity.why'), cell: whyOf, exportValue: whyOf, isWide: true, filter: false },
   ];
 }

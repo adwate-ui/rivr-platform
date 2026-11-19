@@ -16,6 +16,8 @@ export const activity = {
   system: 'System',
   unknown: 'No longer on record',
   recordOf: '{thing} · {name}',
+  /** recordOf before a member's name, which follows as its link. */
+  recordThing: '{thing} · ',
   /** In place of the member, for a Bonus decision on several members' at once. */
   decidedApproved: '{count} approved at once',
   decidedRefused: '{count} refused at once',

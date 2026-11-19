@@ -106,8 +106,10 @@ describe('Feedback', () => {
 
   it('opens a ticket\u2019s member from its row (F-013)', async () => {
     const onNavigate = renderTab(undefined);
-    fireEvent.click(await screen.findByRole('button', { name: 'Rhea Kaul \u00b7 No. 42' }, { timeout: 5000 }));
+    // The name is the member's own link (owner, 19 Nov), never inside a button; a click anywhere on the row opens them too.
+    fireEvent.click(await screen.findByText('Rhea Kaul \u00b7 No. 42', undefined, { timeout: 5000 }));
     expect(onNavigate).toHaveBeenCalledWith('/members?member=m1');
+    expect(screen.queryByRole('button', { name: /^Rhea Kaul/ })).toBeNull();
   });
 
   it('resolves those ticked with one line of what was done (F-013)', async () => {

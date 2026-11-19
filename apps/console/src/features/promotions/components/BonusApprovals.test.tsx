@@ -181,7 +181,10 @@ describe('Bonus to approve (decision 0670)', () => {
 
   it('says when nothing waits, and opens a member\'s record from a row', async () => {
     const { onNavigate } = renderQueue();
-    fireEvent.click(within(await rowOf('Ishaan Verma')).getByRole('button', { name: /^Ishaan Verma/ }));
+    // The name is the member's own link (owner, 19 Nov), never inside a button; a click anywhere on the row opens them too.
+    const row = await rowOf('Ishaan Verma');
+    expect(within(row).queryByRole('button', { name: /^Ishaan Verma/ })).toBeNull();
+    fireEvent.click(within(row).getByText(/^Ishaan Verma/));
     await waitFor(() => expect(onNavigate).toHaveBeenCalledWith('/members?member=m1'));
     resetApi();
     renderQueue({ '/rpc/bonus_waiting_page': { body: [] } });

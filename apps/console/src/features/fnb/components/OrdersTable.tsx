@@ -3,7 +3,7 @@ import { useFnbOrdersPage, useMemberCancelledKots, useServeFnbOrder, type FnbFai
 import { clubDay } from '@rivr/domain/clubDay';
 import { isTicketLate } from '@rivr/domain/floorRequests';
 import { formatDuration, t } from '@rivr/i18n';
-import { ChoiceChips, DataTable, ErrorMessage, Inline, Input, Stack, Text, useIsWide, type DataTableColumn, type DataTableRequest } from '@rivr/ui';
+import { ChoiceChips, DataTable, ErrorMessage, Inline, Input, MemberLink, Stack, Text, useIsWide, type DataTableColumn, type DataTableRequest } from '@rivr/ui';
 import { useEffect, useState, type ReactNode } from 'react';
 import { OrderSteps, type Act } from './OrderSteps.tsx';
 import { laneOf, orderLines, orderNotes, type OrderLane } from './orderLanes.ts';
@@ -68,7 +68,8 @@ function columnsFor(counted: ListChoices | undefined, steps: (order: FnbOrderTon
       exportValue: (order) => formatDuration(order.ageSeconds) },
     { key: 'table', header: t('console.fnb.orders.columns.table'), sortValue: (order) => order.tableName, filter: 'choice', choices: counted?.['table'] ?? [],
       filterValue: (order) => order.tableName, cell: (order) => t('console.fnb.orders.seat', { table: order.tableName, seat: order.seat }) },
-    { key: 'member', header: t('console.fnb.orders.columns.member'), sortValue: (order) => order.memberName, filter: 'text', cell: (order) => order.memberName },
+    { key: 'member', header: t('console.fnb.orders.columns.member'), sortValue: (order) => order.memberName, filter: 'text',
+      cell: (order) => (order.memberId === null ? order.memberName : <MemberLink memberId={order.memberId}>{order.memberName}</MemberLink>) },
     { key: 'order', header: t('console.fnb.orders.columns.order'), isWide: true, filter: false, cell: (order) => <Ordered order={order} />, exportValue: orderLines },
     { key: 'state', header: t('console.fnb.orders.columns.state'), filter: false, cell: (order) => stateWords(laneOf(order)) },
     // Two shares, so an order being prepared keeps its three buttons on one line.

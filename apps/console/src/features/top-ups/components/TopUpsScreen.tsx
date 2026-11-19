@@ -2,7 +2,7 @@ import type { Permission } from '@rivr/contracts';
 import { isTopUpLate, secondsWaiting } from '@rivr/domain/topUps';
 import { isTopUpWaiting, useSetTopUp, useStaffVenue, useTopUpsTonight, type SeatFailure, type TopUpTonight } from '@rivr/db';
 import { formatDuration, formatMinutesSeconds, formatTime, t } from '@rivr/i18n';
-import { Button, ErrorMessage, Heading, Inline, Screen, Stack, Text, WaitTimer } from '@rivr/ui';
+import { Button, ErrorMessage, Heading, Inline, MemberLink, Screen, Stack, Text, WaitTimer } from '@rivr/ui';
 import { useEffect, useState } from 'react';
 import { PastTopUps } from './PastTopUps.tsx';
 
@@ -36,7 +36,12 @@ function Who({ request, now }: { request: TopUpTonight; now: Date | null }) {
   return (
     <Stack gap={1}>
       <Inline gap={3} align="center" wrap>
-        <Text>{t('console.topUps.line', { table: request.tableName, seat: request.seat, name: request.fullName })}</Text>
+        {/* Where, then who: the name opens their account (owner, 19 Nov). */}
+        <Text>
+          {request.memberId === null ? t('console.topUps.line', { table: request.tableName, seat: request.seat, name: request.fullName }) : (
+            <>{t('console.topUps.lineWhere', { table: request.tableName, seat: request.seat })}<MemberLink memberId={request.memberId}>{request.fullName}</MemberLink></>
+          )}
+        </Text>
         <Text variant="small" tone="muted">{t('console.topUps.askedAt', { time: formatTime(new Date(request.requestedAt)) })}</Text>
         {now === null ? null : <WaitTimer seconds={secondsWaiting(new Date(request.requestedAt), now)} isLate={isTopUpLate(secondsWaiting(new Date(request.requestedAt), now))} />}
       </Inline>

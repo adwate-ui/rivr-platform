@@ -131,7 +131,7 @@ export function queueGroups(checks: readonly KycCheck[], countOf: (status: KycCh
   const groups = checkGroups(checks);
   // The count is the server's over the whole queue, where it is known: the checks here are one page of it (redesign RD-30).
   const group = (label: string, list: readonly KycCheck[], status: KycCheck['status']) => ({
-    label, count: countOf(status) ?? list.length, items: list.map((check) => ({ id: check.memberId, title: check.fullName, detail: queueLine(check) })),
+    label, count: countOf(status) ?? list.length, items: list.map((check) => ({ id: check.memberId, title: check.fullName, detail: queueLine(check), memberId: check.memberId })),
   });
   return [
     group(t('console.kycReview.waiting'), groups.toReview, 'needs_review'),

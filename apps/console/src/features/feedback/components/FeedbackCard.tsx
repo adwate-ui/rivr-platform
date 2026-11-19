@@ -1,7 +1,7 @@
 import type { FeedbackItem } from '@rivr/db';
 import { formatDayMonth, t } from '@rivr/i18n';
-import { Box, Inline, Stack, Text } from '@rivr/ui';
-import { kindLine, ratingsLine, whoLine } from './feedbackLines.ts';
+import { Box, Inline, MemberLink, Stack, Text } from '@rivr/ui';
+import { kindLine, ratingsLine } from './feedbackLines.ts';
 
 /** What was done, by whom and when, once a ticket is resolved; null before. */
 function resolvedLine(item: FeedbackItem): string | null {
@@ -19,7 +19,10 @@ export function FeedbackCard({ item }: { item: FeedbackItem }) {
     <Box as="article" surface="raised" radius="md" padding={4}>
       <Stack gap={2}>
         <Inline gap={3} justify="between" align="center" wrap>
-          <Text variant="secondary" weight="medium">{whoLine(item)}</Text>
+          {/* Who sent it: their name opens their account (owner, 19 Nov), then their number. */}
+          <Text variant="secondary" weight="medium">
+            <MemberLink memberId={item.memberId}>{item.fullName}</MemberLink>{t('console.feedback.whoNumber', { number: item.memberNumber })}
+          </Text>
           <Text variant="caption" tone="muted">{kindLine(item)}</Text>
         </Inline>
         {item.ratings === null ? null : <Text variant="caption" tone="muted">{ratingsLine(item.ratings)}</Text>}
