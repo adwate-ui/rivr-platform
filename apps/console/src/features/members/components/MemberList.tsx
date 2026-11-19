@@ -76,7 +76,8 @@ function Results({ venueId, tonight, onOpen, exportIn, seesPhone, seesIdentity, 
     ...(chosen === undefined ? {} : { exportFilter: chosen }), exportColumns: memberExportColumns(seesIdentity),
     onRowOpen: (row: MemberListRow) => onOpen(row.memberId), initialSort: { key: 'name', direction: 'ascending' } as const, exportIn,
     // On a phone the table's lines scroll sideways under the names, as in the prototype.
-    narrowLayout: 'scroll' as const,
+    // Below 768 px the lines scroll sideways, a column's width each, the name held; never squeezed (the owner, 19 Nov).
+    narrowLayout: 'sideways' as const,
     server: { total: listed.data?.total ?? 0, pageSize: MEMBERS_PAGE, onRequest: setRequest, scope: tier?.tierId ?? '' },
     exportRows: async () => (view === null ? [] : everyMember(view)),
   };
