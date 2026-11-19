@@ -56,7 +56,7 @@ describe('table-side food and drink', () => {
         body: [{
           total: 7, order_id: 'o1', kot_number: 3, table_name: 'Table 3', seat: 5, member_name: 'Yash Gupta', member_number: 1043,
           lines: [{ item_id: CHAI, name: 'Masala chai', kind: 'soft_drink', quantity: 2, note: null }], is_comp: true, source: 'console',
-          created_at: '2026-11-15T16:30:00Z', kot_sent_at: null, kot_sent_by: null, kot_print_failed: true,
+          created_at: '2026-11-15T16:30:00Z', kot_sent_at: null, kot_sent_by: null,
         }],
       },
     });
@@ -67,7 +67,6 @@ describe('table-side food and drink', () => {
     await waitFor(() => expect(result.current.tonight.data?.rows).toEqual([{
       orderId: 'o1', seatState: 'seated', kotNumber: 3, tableName: 'Table 3', seat: 5, memberName: 'Yash Gupta', memberNumber: 1043,
       lines: [{ itemId: CHAI, name: 'Masala chai', quantity: 2, note: null }], isComp: true, source: 'console', createdAt: '2026-11-15T16:30:00Z', kotSentBy: null,
-      isKotPrintFailed: true,
     }]));
     // One page of the day's orders, and how many the view leaves in all (redesign RD-30).
     expect(result.current.tonight.data?.total).toBe(7);
@@ -97,10 +96,9 @@ describe('table-side food and drink', () => {
     expect(calls.filter((call) => call.url.includes('/rpc/tablet_fnb_order'))).toHaveLength(1);
   });
 
-  it('orders a comp from the console, marks a KOT given by hand, and keeps the menu', async () => {
+  it('orders a comp from the console and keeps the menu', async () => {
     const { result, calls } = renderFnb({
       '/rpc/console_fnb_order': { body: [{ order_id: 'o2', kot_number: 8 }] },
-      '/rpc/mark_kot_sent': { status: 403, body: { code: '42501', message: 'no' } },
       '/rpc/save_fnb_item': { body: CHAI },
       // What each action reloads.
       '/rpc/fnb_orders_page': { body: [] },
@@ -110,9 +108,6 @@ describe('table-side food and drink', () => {
     expect(calls.find((call) => call.url.includes('/rpc/console_fnb_order'))?.body).toEqual({
       p_venue_id: VENUE, p_table_id: 't3', p_seat: 5, p_lines: LINES, p_is_comp: true, p_idempotency_key: 'r1',
     });
-    let marked: unknown;
-    await act(async () => { marked = await result.current.actions.markSent.mutateAsync('o1'); });
-    expect(marked).toEqual({ ok: false, error: 'not_allowed' });
     await act(async () => {
       await result.current.actions.saveItem.mutateAsync({ itemId: null, name: ' Cold coffee ', kind: 'soft_drink', isAvailable: true, position: 4, diet: null, description: null });
       await result.current.actions.saveItem.mutateAsync({ itemId: CHAI, name: 'Masala chai', kind: 'soft_drink', isAvailable: false, position: 1, diet: 'veg', description: 'With cardamom' });

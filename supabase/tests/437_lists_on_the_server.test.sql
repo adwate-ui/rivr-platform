@@ -96,10 +96,10 @@ select set_eq($$ select order_id from public.fnb_orders_page('00000000-0000-4000
 select is_empty($$ select 1 from public.fnb_orders_page('00000000-0000-4000-8000-000000000001', '{"scope": {"state": "all"}}') p
                    join public.fnb_orders_tonight('00000000-0000-4000-8000-000000000001') o on o.order_id = p.order_id
                    where (p.kot_number, p.table_name, p.seat, p.member_name, p.member_number, p.lines, p.is_comp, p.source, p.created_at, p.kot_sent_at, p.kot_sent_by,
-                          p.accepted_at, p.delivered_at, p.cancelled_at, p.cancel_reason, p.on_way_at, p.kot_print_failed, p.seat_state)
+                          p.accepted_at, p.delivered_at, p.cancelled_at, p.cancel_reason, p.on_way_at, p.seat_state)
                          is distinct from
                          (o.kot_number, o.table_name, o.seat, o.member_name, o.member_number, o.lines, o.is_comp, o.source, o.created_at, o.kot_sent_at, o.kot_sent_by,
-                          o.accepted_at, o.delivered_at, o.cancelled_at, o.cancel_reason, o.on_way_at, o.kot_print_failed, o.seat_state) $$, 'each order as it was');
+                          o.accepted_at, o.delivered_at, o.cancelled_at, o.cancel_reason, o.on_way_at, o.seat_state) $$, 'each order as it was');
 select results_eq($$ select order_id, state from public.fnb_orders_page('00000000-0000-4000-8000-000000000001', '{"scope": {"state": "void"}, "query": "chai"}') $$,
   $$ select id, 'void'::text from orders where at = 1 $$, 'the void order is behind its state, and found by what was ordered');
 select ok((select bool_or(order_id = (select id from orders where at = 3)) and not bool_or(order_id in (select id from orders where at < 3))

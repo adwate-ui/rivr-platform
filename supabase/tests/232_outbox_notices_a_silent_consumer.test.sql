@@ -20,9 +20,9 @@ insert into public.outbox_event (venue_id, event_type, idempotency_key, occurred
   ('00000000-0000-4000-8000-000000000002', 'test.elsewhere', 'elsewhere-claimed', now() - interval '2 days');
 insert into public.outbox_delivery (venue_id, event_id, consumer, status, attempts, delivered_at)
 select venue_id, id, 'feedback', 'delivered', 1, now() - interval '2 days' from public.outbox_event where idempotency_key = 'silent-claimed';
--- bar_printer has claimed test.elsewhere at the other venue only, as a consumer that works for one venue does.
+-- push has claimed test.elsewhere at the other venue only, as a consumer that works for one venue does.
 insert into public.outbox_delivery (venue_id, event_id, consumer, status, attempts, delivered_at)
-select venue_id, id, 'bar_printer', 'delivered', 1, now() - interval '2 days' from public.outbox_event where idempotency_key = 'elsewhere-claimed';
+select venue_id, id, 'push', 'delivered', 1, now() - interval '2 days' from public.outbox_event where idempotency_key = 'elsewhere-claimed';
 -- The alert consumer's own events are left out.
 insert into public.outbox_delivery (venue_id, event_id, consumer, status, attempts, delivered_at)
 select '00000000-0000-4000-8000-000000000001', private.emit('00000000-0000-4000-8000-000000000001', 'alert.raised', '{}', 'silent-alert-claimed'),

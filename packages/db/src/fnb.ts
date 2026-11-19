@@ -51,12 +51,6 @@ export interface FnbOrderTonight {
   readonly createdAt: string;
   /** Null while the bar has not been given the KOT: staff hand it over and mark it (`agent` on a KOT the cage agent printed before it was removed). */
   readonly kotSentBy: 'agent' | 'staff' | null;
-  /**
-   * The bar printer did not get the KOT (console v3): its last attempt failed, or it closed it unprinted. From the outbox's
-   * bar_printer delivery, never a clock; false once the bar has it or the order is void. Nothing prints KOTs since the cage
-   * agent was removed (decision 0651), so it is true only for a delivery made before.
-   */
-  readonly isKotPrintFailed: boolean;
   /** Whether the guest it goes to is still in that seat (audit F-085): `leaving` once they have asked to go, `left` once it has ended. */
   readonly seatState: 'seated' | 'leaving' | 'left';
   /** When service accepted it and delivered it (#640); null until then. */
@@ -230,7 +224,6 @@ export function useFnbOrdersPage(venueId: string, view: ScopedView | null) {
         orderId: row.order_id, kotNumber: row.kot_number, tableName: row.table_name, seat: row.seat, memberName: row.member_name,
         memberNumber: Number(row.member_number), lines: linesOf(row.lines), isComp: row.is_comp, source: sourceOf(row.source),
         createdAt: row.created_at, kotSentBy: row.kot_sent_by === 'agent' || row.kot_sent_by === 'staff' ? row.kot_sent_by : null,
-        isKotPrintFailed: row.kot_print_failed,
         seatState: row.seat_state === 'leaving' || row.seat_state === 'left' ? row.seat_state : 'seated', acceptedAt: row.accepted_at, deliveredAt: row.delivered_at, ageSeconds: row.age_seconds, onWayAt: row.on_way_at,
         cancelledAt: row.cancelled_at, cancelReason: row.cancel_reason,
     }),
@@ -252,8 +245,8 @@ function linesOf(lines: unknown): FnbOrderTonight['lines'] {
 }
 
 /**
- * The console's actions: order for a seat (`comp` only here), once per request id so a retry returns the first order (A3), mark
- * a KOT given to the bar by hand, and add or change an item of the menu (staff who run F&B, redesign RD-33).
+ * The console's actions: order for a seat (`comp` only here), once per request id so a retry returns the first order (A3), and
+ * add or change an item of the menu (staff who run F&B, redesign RD-33).
  */
 export function useFnbActions(venueId: string) {
   const { client, userId } = useRivrData();
@@ -272,13 +265,6 @@ export function useFnbActions(venueId: string) {
       return seenOff(queryClient, userId, placed(data, error));
     },
   });
-  const markSent = useMutation({
-    mutationFn: async (orderId: string): Promise<Result<null, FnbFailure>> => {
-      const { error } = await client.rpc('mark_kot_sent', { p_order_id: orderId });
-      await reload();
-      return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
-    },
-  });
   const saveItem = useMutation({
     mutationFn: async (item: { itemId: string | null; name: string; kind: FnbItemKind; isAvailable: boolean; position: number; diet: FnbDiet | null; description: string | null }): Promise<Result<null, FnbFailure>> => {
       const { error } = await client.rpc('save_fnb_item', {
@@ -291,7 +277,7 @@ export function useFnbActions(venueId: string) {
       return error ? err(FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },
   });
-  return { order, markSent, saveItem };
+  return { order, saveItem };
 }
 
 /**

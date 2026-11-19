@@ -14,10 +14,10 @@ const ORDER = {
   order_id: 'o4', kot_number: 4, table_name: 'Private Room', seat: 4, member_name: 'Lalit Goel', member_number: 92,
   lines: [{ item_id: 'beer', name: 'Beer', quantity: 2, note: null }], is_comp: false, source: 'app', created_at: '2026-11-15T16:10:00Z',
   kot_sent_at: null, kot_sent_by: null, accepted_at: null, delivered_at: null, age_seconds: 300, cancelled_at: null, cancel_reason: null,
-  on_way_at: null, kot_print_failed: false,
+  on_way_at: null,
 };
 const TONIGHT = [
-  { ...ORDER, kot_print_failed: true },
+  ORDER,
   { ...ORDER, order_id: 'o2', kot_number: 2, member_name: 'Payal Agarwal', accepted_at: '2026-11-15T16:12:00Z', kot_sent_by: 'agent' },
   { ...ORDER, order_id: 'o3', kot_number: 3, member_name: 'Nakul Dhillon', accepted_at: '2026-11-15T16:12:00Z', delivered_at: '2026-11-15T16:13:00Z', age_seconds: 60 },
   { ...ORDER, order_id: 'o5', kot_number: 5, member_name: 'Samar Dua', cancelled_at: '2026-11-15T16:20:00Z', cancel_reason: 'Left the table' },
@@ -126,48 +126,15 @@ describe('Food and drink (console v3)', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   });
 
-  it('says the bar printer did not get a KOT only when the outbox says so, and lets a manager mark that the bar has it', async () => {
-    const { calls } = renderAs('admin');
-    expect(await screen.findByText('The bar printer did not get this KOT. Print it or read it to the bar.', {}, WAIT)).toBeDefined();
-    expect(screen.getAllByText(/^The bar printer did not get/)).toHaveLength(1);
-    expect(screen.getByRole('button', { name: 'Print KOT 4' })).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'KOT 4: bar has it' }));
-    await waitFor(() => expect(calls.find((call) => call.url.includes('/rpc/mark_kot_sent'))?.body).toEqual({ p_order_id: 'o4' }));
-  });
-
-  it('gives Service, who read no members, serving alone: no new order, but a KOT the bar printer missed to print and mark handed over', async () => {
-    const { calls } = renderAs('service');
+  it('gives Service, who read no members, serving alone: no new order', async () => {
+    renderAs('service');
     await orders();
     expect(screen.queryByRole('button', { name: 'New order' })).toBeNull();
-    expect(await screen.findByRole('button', { name: 'Print KOT 4' })).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'KOT 4: bar has it' }));
-    await waitFor(() => expect(calls.find((call) => call.url.includes('/rpc/mark_kot_sent'))?.body).toEqual({ p_order_id: 'o4' }));
-  });
-
-  it('prints a KOT the bar printer missed with its table and seat, naming no member, as the bar printer does', async () => {
-    const print = vi.fn();
-    vi.stubGlobal('print', print);
-    renderAs('service');
-    fireEvent.click(await screen.findByRole('button', { name: 'Print KOT 4' }, WAIT));
-    expect(print).toHaveBeenCalledOnce();
-    const paper = document.querySelector('[data-print-sheet]');
-    expect(paper?.textContent).toContain('KOT 4');
-    expect(paper?.textContent).toContain('Private Room, seat 4');
-    expect(paper?.textContent).toContain('2 × Beer');
-    expect(paper?.textContent).not.toContain('Lalit Goel');
-  });
-
-  it('prints what the member asked of the bar on a KOT printed by hand, for the whole order (F-052)', async () => {
-    vi.stubGlobal('print', vi.fn());
-    const lines = [{ item_id: 'fries', name: 'French fries', quantity: 1, note: 'No onion' }, { item_id: 'beer', name: 'Beer', quantity: 2, note: null }];
-    renderAs('service', undefined, { ...READS, '/rpc/fnb_orders_page': [{ ...ORDER, total: 1, lines, kot_print_failed: true }] });
-    fireEvent.click(await screen.findByRole('button', { name: 'Print KOT 4' }, WAIT));
-    expect(document.querySelector('[data-print-sheet]')?.textContent).toContain('Whole order: No onion');
   });
 
   it('takes no new order while a super admin has food and drink off, and still serves the orders open (decision 0681)', async () => {
     renderAs('floor', undefined, { ...READS, '/rpc/fnb_on': false });
-    expect(await screen.findByRole('button', { name: 'Print KOT 4' }, WAIT)).toBeDefined();
+    await orders();
     await waitFor(() => expect(screen.queryByRole('button', { name: 'New order' })).toBeNull());
     expect(screen.getByText('Food and drink is off. Open orders are still served.')).toBeDefined();
   });

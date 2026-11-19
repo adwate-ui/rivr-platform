@@ -4,13 +4,11 @@
  * orders a masala chai and a beer in the player app, and Pema, dealing Table 3, orders him a lime soda on the tablet:
  * both paid to Glaza. Sameer Rao, the flow's steward in the Service role (#640), sees only food and drink: he accepts the
  * app's order from its row, sends it on its way and delivers it, and the member follows it on Tonight's order tracker
- * (decision 0320). Nothing prints KOTs since the cage agent was removed (decision 0651), so no card says the bar did not
- * get one, however long it waits (console v3: the flag is the outbox's, never a clock). From New order she picks Table 3, then seat 1 with Ishan beside it, and comps a club sandwich; the tablet is revoked and
+ * (decision 0320). From New order she picks Table 3, then seat 1 with Ishan beside it, and comps a club sandwich; the tablet is revoked and
  * he leaves early, so Table 3 is as it was. On the Menu tab, Sameer hides an item and shows it again, with no way to add,
  * upload or delete one (redesign RD-33); Meera sees each item under its kind, saves two from a CSV once it shows each line
- * and the one it cannot read (decision 0440), and deletes one. The flag's every state,
- * alcohol at 21 or over and one order a minute are proved in supabase/tests/171_fnb_orders.test.sql and
- * 310_kot_print_failed.test.sql.
+ * and the one it cannot read (decision 0440), and deletes one. Alcohol at 21 or over
+ * and one order a minute are proved in supabase/tests/171_fnb_orders.test.sql.
  */
 import { expect, test, type Page } from '@playwright/test';
 import { isRemoteTarget } from '../support/apps.ts';
@@ -26,7 +24,7 @@ async function kotIn(page: Page, sent: RegExp) {
 }
 
 test.describe('F&B', () => {
-  test('F&B order (table then seat): a seated member and the dealer order to his seat, no KOT is flagged while the bar printer has failed none, and the floor comps an order; Menu: Service hides an item, staff who run F&B save items from a CSV and delete one', async ({ page, browser }) => {
+  test('F&B order (table then seat): a seated member and the dealer order to his seat, and the floor comps an order; Menu: Service hides an item, staff who run F&B save items from a CSV and delete one', async ({ page, browser }) => {
     test.skip(isRemoteTarget(), 'seats a seeded member, pairs a tablet and places orders, so the local stack only');
     test.setTimeout(120_000);
     await signInToConsole(page, '9000000615');
@@ -97,13 +95,11 @@ test.describe('F&B', () => {
     await expect(tablet.getByRole('heading', { name: 'Food and drink for seat 1' })).toBeVisible();
     await tablet.getByRole('button', { name: 'One more Fresh lime soda' }).click();
     await tablet.getByRole('button', { name: 'Send to the bar' }).click();
-    const fromTablet = await kotIn(tablet, /^Sent to the bar: KOT \d+\.$/);
+    await kotIn(tablet, /^Sent to the bar: KOT \d+\.$/);
 
-    // Nothing prints KOTs, so the bar printer failed nothing: neither KOT is flagged. The flag's states are proved in pgTAP.
     await page.getByRole('link', { name: 'Food and drink' }).click();
     await expect(page.getByRole('table', { name: 'Orders' })).toBeVisible();
     await expect(page.getByText('1 × Fresh lime soda').first()).toBeVisible();
-    for (const kot of [fromApp, fromTablet]) await expect(page.getByRole('button', { name: `Print KOT ${kot}` })).toHaveCount(0);
 
     // New order: the table first, then the seat with who sits there, then the items; a comp, for staff who run F&B.
     await page.getByRole('button', { name: 'New order' }).click();

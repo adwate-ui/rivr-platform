@@ -27,7 +27,7 @@ interface FnbScreenProps {
 
 /**
  * Food and drink (#123; console v3), for staff who run it (fnb.manage) or serve it (fnb.serve, Service's whole role, #640):
- * the day's orders as a table from the server (redesign RD-30), each KOT the bar printer missed flagged from the outbox, New order for a seat, and the
+ * the day's orders as a table from the server (redesign RD-30), New order for a seat, and the
  * menu on its own tab, also from a CSV (#799). Glaza's monthly statement (#109) is hidden: no console shows money (#626).
  */
 export function FnbScreen({ tab, onNavigate }: FnbScreenProps) {

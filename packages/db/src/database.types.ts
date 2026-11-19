@@ -3007,12 +3007,12 @@ isOneToOne: false
                            },
 "fnb_orders_page":
 { Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
-              "accepted_at": string,"age_seconds": number,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"is_comp": boolean,"kot_number": number,"kot_print_failed": boolean,"kot_sent_at": string,"kot_sent_by": string,"lines": Json,"member_name": string,"member_number": number,"on_way_at": string,"order_id": string,"seat": number,"seat_state": string,"source": string,"state": string,"table_name": string,"total": number
+              "accepted_at": string,"age_seconds": number,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"is_comp": boolean,"kot_number": number,"kot_sent_at": string,"kot_sent_by": string,"lines": Json,"member_name": string,"member_number": number,"on_way_at": string,"order_id": string,"seat": number,"seat_state": string,"source": string,"state": string,"table_name": string,"total": number
             }[]
                            },
 "fnb_orders_tonight":
 { Args: { "p_venue_id": string }; Returns: {
-              "accepted_at": string,"age_seconds": number,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"is_comp": boolean,"kot_number": number,"kot_print_failed": boolean,"kot_sent_at": string,"kot_sent_by": string,"lines": Json,"member_name": string,"member_number": number,"on_way_at": string,"order_id": string,"seat": number,"seat_state": string,"source": string,"table_name": string
+              "accepted_at": string,"age_seconds": number,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"is_comp": boolean,"kot_number": number,"kot_sent_at": string,"kot_sent_by": string,"lines": Json,"member_name": string,"member_number": number,"on_way_at": string,"order_id": string,"seat": number,"seat_state": string,"source": string,"table_name": string
             }[]
                            },
 "fnb_report":
