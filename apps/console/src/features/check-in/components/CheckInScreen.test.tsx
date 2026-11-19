@@ -1,5 +1,5 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY, StaffVenueProvider } from '@rivr/db';
-import { Text } from '@rivr/ui';
+import { MemberLinksProvider, Text } from '@rivr/ui';
 import { QueryClient } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -27,6 +27,9 @@ const NAKUL = {
   session_id: 's2', visit_id: 'v2', linked_member_id: 'm2',
 };
 
+/** Members' addresses, as the console's frame gives them, so a name the server links is a link. */
+const LINKS = { hrefOf: (memberId: string) => `/members?member=${memberId}` };
+
 /** The History panel's body, as the route hands it in (#1073). */
 const History = ({ memberId }: { venueId: string; memberId: string }) => <Text>{`Visits of ${memberId}`}</Text>;
 // As the server counts them over everyone at the door today: far more than the page shown.
@@ -37,7 +40,7 @@ const COUNTS = [
   { column_key: 'tier', value: 'Member', members: 290 },
 ];
 // What the next test's server answers, when a test sets them: the page's rows and the counts.
-let rows: readonly (typeof KABIR)[] | null = null;
+let rows: readonly (Readonly<Record<string, unknown>> & { readonly list: string; readonly status: string })[] | null = null;
 let counts: readonly object[] = COUNTS;
 
 interface Asked {
@@ -78,7 +81,9 @@ function renderAs(role: string, pane: 'check-in' | 'players' = 'check-in') {
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <StaffVenueProvider>{pane === 'check-in' ? <CheckInScreen history={History} /> : <TodaysPlayersScreen history={History} />}</StaffVenueProvider>
+      <MemberLinksProvider links={LINKS}>
+        <StaffVenueProvider>{pane === 'check-in' ? <CheckInScreen history={History} /> : <TodaysPlayersScreen history={History} />}</StaffVenueProvider>
+      </MemberLinksProvider>
     </RivrDataProvider>,
   );
   return { asked, calls };
@@ -190,6 +195,14 @@ describe('Today\'s players (issue 641; on the server, redesign RD-30)', () => {
     counts = [];
     renderAs('host', 'players');
     expect(await screen.findByText('Nobody has come in today yet.', {}, { timeout: 5000 })).toBeDefined();
+  });
+
+  it('links a member\'s name to their account on Members, and an erased member\'s name to nothing', async () => {
+    rows = [NAKUL, { ...NAKUL, member_id: 'm3', full_name: 'Erased member', member_number: 12, linked_member_id: null, session_id: 's3', visit_id: 'v3' }];
+    renderAs('floor', 'players');
+    const table = await screen.findByRole('table', { name: 'Players today' }, { timeout: 5000 });
+    expect((await within(table).findByRole('link', { name: 'Nakul Dhillon' })).getAttribute('href')).toBe('/members?member=m2');
+    expect(within(table).getByText('Erased member').closest('a')).toBeNull();
   });
 
   it('refuses staff who read no members', async () => {
