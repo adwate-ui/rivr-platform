@@ -113,7 +113,7 @@ export interface MemberColumnsFor {
 /** History at the row's end (the owner, 19 Nov): its icon alone, named for the member, opening their changes by staff at the side. */
 function historyColumn(onHistory: (row: MemberListRow) => void): DataTableColumn<MemberListRow> {
   return {
-    key: 'history', share: 0.6, header: '', align: 'end', filter: false, isExported: false,
+    key: 'history', share: 0.45, header: '', align: 'end', filter: false, isExported: false,
     cell: (row) => (
       <Button variant="text" size="small" icon="history" aria-label={t('console.members.staffHistory.historyOf', { name: row.fullName })} onClick={() => onHistory(row)}>
         {null}
