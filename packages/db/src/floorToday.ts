@@ -16,6 +16,8 @@ export interface TopUpTonight {
   readonly tableName: string;
   readonly seat: number;
   readonly fullName: string;
+  /** Who asked (owner, 19 Nov: the name opens their account); null for an erased member. */
+  readonly memberId: string | null;
   readonly status: TopUpStatus;
   readonly requestedAt: string;
   /** Whole seconds from asking to fulfilled; null until it is. */
@@ -48,7 +50,7 @@ export function useTopUpsTonight(venueId: string, isEnabled = true) {
       const { data, error } = await client.rpc('top_ups_tonight', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
       return data.map((row) => ({
-        requestId: row.request_id, sessionId: row.session_id, tableName: row.table_name, seat: row.seat, fullName: row.full_name, status: topUpStatusOf(row.status),
+        requestId: row.request_id, sessionId: row.session_id, tableName: row.table_name, seat: row.seat, fullName: row.full_name, memberId: row.member_id, status: topUpStatusOf(row.status),
         requestedAt: row.requested_at, fulfilledSeconds: row.fulfilled_seconds,
         acceptedBy: row.accepted_by, acceptedSeconds: row.accepted_seconds, doneBy: row.done_by, doneSeconds: row.done_seconds,
       }));

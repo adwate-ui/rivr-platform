@@ -45,6 +45,8 @@ export interface FnbOrderTonight {
   readonly seat: number;
   readonly memberName: string;
   readonly memberNumber: number;
+  /** Whose order it is (owner, 19 Nov: the name opens their account); null for an erased member. */
+  readonly memberId: string | null;
   readonly lines: readonly { itemId: string; name: string; quantity: number; note: string | null }[];
   readonly isComp: boolean;
   readonly source: 'app' | 'tablet' | 'console';
@@ -222,7 +224,7 @@ export function useFnbOrdersPage(venueId: string, view: ScopedView | null) {
     read: (asked) => client.rpc('fnb_orders_page', { p_venue_id: venueId, p_view: asked }),
     rowOf: (row): FnbOrderTonight => ({
         orderId: row.order_id, kotNumber: row.kot_number, tableName: row.table_name, seat: row.seat, memberName: row.member_name,
-        memberNumber: Number(row.member_number), lines: linesOf(row.lines), isComp: row.is_comp, source: sourceOf(row.source),
+        memberNumber: Number(row.member_number), memberId: row.member_id, lines: linesOf(row.lines), isComp: row.is_comp, source: sourceOf(row.source),
         createdAt: row.created_at, kotSentBy: row.kot_sent_by === 'agent' || row.kot_sent_by === 'staff' ? row.kot_sent_by : null,
         seatState: row.seat_state === 'leaving' || row.seat_state === 'left' ? row.seat_state : 'seated', acceptedAt: row.accepted_at, deliveredAt: row.delivered_at, ageSeconds: row.age_seconds, onWayAt: row.on_way_at,
         cancelledAt: row.cancelled_at, cancelReason: row.cancel_reason,

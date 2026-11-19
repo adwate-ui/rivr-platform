@@ -52,6 +52,10 @@ export interface ActivityLine {
   readonly amount: number | null;
   /** Where a high hand was paid and which hand; null for anything else. */
   readonly highHand: ActivityHighHand | null;
+  /** The member `who` names, when the one who acted is a member (owner, 19 Nov: the name opens their account); else null. */
+  readonly whoMemberId: string | null;
+  /** The member `about` names, when it is about a member; else null. */
+  readonly aboutMemberId: string | null;
 }
 
 /** How many lines a page holds, and how many an export reads at a time. */
@@ -78,7 +82,7 @@ const lineOf = (row: PageRow): ActivityLine => {
   return {
     id: row.id, occurredAt: row.occurred_at, who: row.who, isSystem: row.is_system, action: row.action, entity: row.entity,
     kind: ACTIVITY_KINDS.find((one) => one === row.kind) ?? 'other', about: decided === null ? row.about : null, decided, reason: row.reason,
-    amount: row.amount, highHand: highHandOf(row.high_hand),
+    amount: row.amount, highHand: highHandOf(row.high_hand), whoMemberId: row.who_member_id, aboutMemberId: decided === null ? row.about_member_id : null,
   };
 };
 

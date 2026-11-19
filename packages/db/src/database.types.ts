@@ -2686,7 +2686,7 @@ isOneToOne: false
                            },
 "activity_page":
 { Args: { "p_from"?: string,"p_kind"?: string,"p_page"?: number,"p_page_size"?: number,"p_to"?: string,"p_venue_id": string,"p_who"?: string }; Returns: {
-              "about": string,"action": string,"amount": number,"entity": string,"high_hand": Json,"id": number,"is_system": boolean,"is_total_at_least": boolean,"kind": string,"occurred_at": string,"reason": string,"total": number,"who": string
+              "about": string,"about_member_id": string,"action": string,"amount": number,"entity": string,"high_hand": Json,"id": number,"is_system": boolean,"is_total_at_least": boolean,"kind": string,"occurred_at": string,"reason": string,"total": number,"who": string,"who_member_id": string
             }[]
                            },
 "add_bonus_use":
@@ -3007,7 +3007,7 @@ isOneToOne: false
                            },
 "fnb_orders_page":
 { Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
-              "accepted_at": string,"age_seconds": number,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"is_comp": boolean,"kot_number": number,"kot_sent_at": string,"kot_sent_by": string,"lines": Json,"member_name": string,"member_number": number,"on_way_at": string,"order_id": string,"seat": number,"seat_state": string,"source": string,"state": string,"table_name": string,"total": number
+              "accepted_at": string,"age_seconds": number,"cancel_reason": string,"cancelled_at": string,"created_at": string,"delivered_at": string,"is_comp": boolean,"kot_number": number,"kot_sent_at": string,"kot_sent_by": string,"lines": Json,"member_id": string,"member_name": string,"member_number": number,"on_way_at": string,"order_id": string,"seat": number,"seat_state": string,"source": string,"state": string,"table_name": string,"total": number
             }[]
                            },
 "fnb_orders_tonight":
@@ -3855,12 +3855,12 @@ isOneToOne: false
                            },
 "top_up_history":
 { Args: { "p_day": string,"p_page"?: number,"p_page_size"?: number,"p_venue_id": string }; Returns: {
-              "accepted_by": string,"accepted_seconds": number,"done_by": string,"done_seconds": number,"full_name": string,"request_id": string,"requested_at": string,"seat": number,"status": string,"table_name": string,"total": number
+              "accepted_by": string,"accepted_seconds": number,"done_by": string,"done_seconds": number,"full_name": string,"member_id": string,"request_id": string,"requested_at": string,"seat": number,"status": string,"table_name": string,"total": number
             }[]
                            },
 "top_ups_tonight":
 { Args: { "p_venue_id": string }; Returns: {
-              "accepted_by": string,"accepted_seconds": number,"done_by": string,"done_seconds": number,"fulfilled_seconds": number,"full_name": string,"request_id": string,"requested_at": string,"seat": number,"session_id": string,"status": string,"table_name": string
+              "accepted_by": string,"accepted_seconds": number,"done_by": string,"done_seconds": number,"fulfilled_seconds": number,"full_name": string,"member_id": string,"request_id": string,"requested_at": string,"seat": number,"session_id": string,"status": string,"table_name": string
             }[]
                            },
 "tournament_interested":
