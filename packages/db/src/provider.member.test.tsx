@@ -1,7 +1,7 @@
 import { cleanup, render, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RivrDataProvider } from './provider.tsx';
-import { ARJUN, fireChange, freshDatabase, heardOn, Probe, testClient } from './test/liveProvider.tsx';
+import { ARJUN, fireChange, fireHearing, freshDatabase, heardOn, Probe, testClient } from './test/liveProvider.tsx';
 
 afterEach(() => {
   cleanup();
@@ -39,5 +39,19 @@ describe('RivrDataProvider with ownRowsOnly', () => {
     fireChange(first, 'member');
     await waitFor(() => expect(channels).toHaveLength(2));
     expect(heardOn(channels[1])?.map(([table]) => table)).toEqual(['tier_feature', 'member_feature_override', 'member', 'bonus_grant', 'bonus_redemption']);
+  });
+
+  // #1085: a member row made before Realtime heard the database was never told; the rows are read again once it does.
+  it('reads its own rows again once Realtime hears the database, then hears its Bonus too', async () => {
+    const database = freshDatabase();
+    const { client, channels } = testClient(database, ARJUN);
+    render(<RivrDataProvider client={client} ownRowsOnly><Probe /></RivrDataProvider>);
+    await waitFor(() => expect(channels).toHaveLength(1));
+    database.memberIds = ['m1'];
+    const [first] = channels;
+    if (first === undefined) throw new Error('The provider opened no Realtime channel');
+    fireHearing(first);
+    await waitFor(() => expect(channels).toHaveLength(2));
+    expect(heardOn(channels[1])?.map(([, filter]) => filter)).toContain('member_id=in.(m1)');
   });
 });

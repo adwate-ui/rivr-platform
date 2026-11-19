@@ -47,6 +47,15 @@ function ownRows(heard: Heard, userId: string, memberIds: readonly string[]): st
   return memberIds.length === 0 ? null : `member_id=in.(${memberIds.join(',')})`;
 }
 
+/**
+ * Realtime's word that a channel now hears the database: "Subscribed to PostgreSQL", a moment to seconds after the channel
+ * joins and again after every rejoin. A change made before it is never told (#1085).
+ */
+function isHearingTheDatabase(message: unknown): boolean {
+  return typeof message === 'object' && message !== null && 'extension' in message && message.extension === 'postgres_changes'
+    && 'status' in message && message.status === 'ok';
+}
+
 /** The person's member rows, one for each venue they joined: what the member app's filters hear. A failed read throws, to be tried again. */
 async function readMemberIds(client: RivrClient, userId: string): Promise<readonly string[]> {
   const { data, error } = await client.from('member').select('id').eq('user_id', userId).order('id').limit(LIST_MOST);
@@ -112,14 +121,23 @@ function useLiveUpdates(client: RivrClient, userId: string | null, memberIds?: r
   useEffect(() => {
     if (userId === null) return undefined;
     const channel = client.channel(`rivr-live-${userId}`);
+    // Every query a change the channel hears makes stale.
+    const heardQueries = new Set<(userId: string) => readonly string[]>();
     for (const [table, staleQuery, heard] of TABLES_THAT_CHANGE_ACCESS) {
       const filter = memberIds === undefined ? undefined : ownRows(heard, userId, memberIds);
       if (filter === null) continue;
+      heardQueries.add(staleQuery);
+      if (memberIds !== undefined && heard === 'user') heardQueries.add(queryKeys.myMemberIds);
       channel.on('postgres_changes', { event: '*', schema: 'public', table, ...(filter === undefined ? {} : { filter }) }, () => {
         void queryClient.invalidateQueries({ queryKey: staleQuery(userId) });
         if (memberIds !== undefined && heard === 'user') void queryClient.invalidateQueries({ queryKey: queryKeys.myMemberIds(userId) });
       });
     }
+    // The screens read before the channel heard the database: what changed meanwhile was never told, so they read again.
+    channel.on('system', {}, (message: unknown) => {
+      if (!isHearingTheDatabase(message)) return;
+      for (const staleQuery of heardQueries) void queryClient.invalidateQueries({ queryKey: staleQuery(userId) });
+    });
     channel.subscribe();
     return () => {
       void client.removeChannel(channel);
