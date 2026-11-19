@@ -95,7 +95,7 @@ select throws_ok($$ select * from pg_temp.fix(jsonb_build_array(pg_temp.seat('b1
 select throws_ok($$ select * from pg_temp.fix(jsonb_build_array(pg_temp.seat('b1', 0, now() - interval '300 minutes')), 'Left early') $$,
   '22023', null, 'nor one before he sat');
 select throws_ok($$ select * from pg_temp.fix(jsonb_build_array(pg_temp.seat('b1', 200 * 60)), 'Away a lot') $$,
-  '22023', null, 'nor more time away than the session');
+  'RVAWL', null, 'nor more time away than the session, a refusal of its own');
 select throws_ok($$ select * from pg_temp.fix(jsonb_build_array(pg_temp.seat('b4', 1800, now() - interval '10 minutes')), 'Left early') $$,
   '22023', null, 'nor an end for a seat still taken');
 select throws_ok($$ select * from pg_temp.fix(jsonb_build_array(pg_temp.seat('b2', 0, now() - interval '100 minutes')), 'Left later') $$,

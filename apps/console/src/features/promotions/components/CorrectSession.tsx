@@ -4,17 +4,29 @@ import { formatTime, t } from '@rivr/i18n';
 import { Button, ChoiceChips, ErrorMessage, Inline, Input, Sheet, Stack, Text, UnitInput, useToast } from '@rivr/ui';
 import { useId, useState } from 'react';
 import {
-  checkedInOf, checkedOutOf, draftOf, endOf, visitCorrectionOf, visitDraftOf, visitProblemsOf, type SeatDraft, type TimeProblem, type VisitDraft, type VisitProblems,
+  awayProblemOf, checkedInOf, checkedOutOf, draftOf, endOf, visitCorrectionOf, visitDraftOf, visitProblemsOf, type SeatDraft, type TimeProblem, type VisitDraft,
+  type VisitProblems,
 } from './sessionCorrection.ts';
 
 // A reason as a refusal takes it, 3 to 200 characters: the database asks the same of a correction.
 const isReason = (reason: string) => bonusRefusalSchema.safeParse({ reason }).success;
 const at = (iso: string) => formatTime(new Date(iso));
 
+/** A seat's line under Away, once Save is pressed: minutes that cannot be read, or more than the seat lasts (the owner, 19 Nov). */
+function awayError(session: WaitingSession, draft: SeatDraft): string | null {
+  if (draft.awayMinutes === null) return t('console.promotions.approvals.correction.badAway');
+  const span = awayProblemOf(session, draft);
+  if (span === null) return null;
+  return span.to === null
+    ? t('console.promotions.approvals.correction.awayLongerOpen', { from: at(span.from), minutes: span.minutes })
+    : t('console.promotions.approvals.correction.awayLonger', { from: at(span.from), to: at(span.to), minutes: span.minutes });
+}
+
 /** One seat's fields: when they left, for a seat that is over, and their minutes away. */
 function SeatFields({ session, draft, isChecked, onChange }: { session: WaitingSession; draft: SeatDraft; isChecked: boolean; onChange: (draft: SeatDraft) => void }) {
   const named = { table: session.tableName, from: at(session.startedAt) };
   const isOver = session.endedAt !== null;
+  const awayLine = isChecked ? awayError(session, draft) : null;
   return (
     <Stack gap={2}>
       <Text weight="medium">{isOver ? t('console.promotions.approvals.correction.seat', named) : t('console.promotions.approvals.correction.seatOpen', named)}</Text>
@@ -25,7 +37,7 @@ function SeatFields({ session, draft, isChecked, onChange }: { session: WaitingS
       ) : null}
       <UnitInput label={t('console.promotions.approvals.correction.away')} unit="minutes" min={0} max={1440} initialValue={draft.awayMinutes}
         hint={t('console.promotions.approvals.correction.awayHint')} onChange={(awayMinutes) => onChange({ ...draft, awayMinutes })} />
-      {isChecked && draft.awayMinutes === null ? <ErrorMessage>{t('console.promotions.approvals.correction.badAway')}</ErrorMessage> : null}
+      {awayLine === null ? null : <ErrorMessage>{awayLine}</ErrorMessage>}
     </Stack>
   );
 }
@@ -165,8 +177,9 @@ export function CorrectSession({ venueId, memberId, subtitle, visits, onDone, on
     setChecked(true);
     const sending = visitCorrectionOf(visit, drafts.timesOf(visit), drafts.seats);
     const problems = visitProblemsOf(visit, drafts.timesOf(visit), drafts.seats);
+    const isAwayTooLong = visit.sessions.some((session) => awayProblemOf(session, drafts.seatOf(session)) !== null);
     setFailure(sending === 'unchanged' ? sending : null);
-    if (typeof sending === 'string' || !isReason(reason) || problems.checkedIn !== null || problems.checkedOut !== null) return;
+    if (typeof sending === 'string' || !isReason(reason) || problems.checkedIn !== null || problems.checkedOut !== null || isAwayTooLong) return;
     const outcome = await correct.mutateAsync({ visitId: visit.visitId, memberId, ...sending, reason });
     if (!outcome.ok) return setFailure(outcome.error);
     toast(saidOf(outcome.value));

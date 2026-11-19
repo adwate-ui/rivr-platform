@@ -1,6 +1,6 @@
 import type { VisitTimes, WaitingSession } from '@rivr/db';
 import { describe, expect, it } from 'vitest';
-import { checkedInOf, checkedOutOf, correctionOf, draftOf, leftAtFrom, visitCorrectionOf, visitDraftOf, visitProblemsOf } from './sessionCorrection.ts';
+import { awayProblemOf, checkedInOf, checkedOutOf, correctionOf, draftOf, leftAtFrom, visitCorrectionOf, visitDraftOf, visitProblemsOf } from './sessionCorrection.ts';
 
 // Sat at 21:40 IST on 15 Nov 2026, left at 23:40 after 5 minutes 30 seconds away.
 const SAT = new Date('2026-11-15T16:10:00Z');
@@ -17,6 +17,25 @@ describe('leftAtFrom', () => {
 
   it('is null for anything that is not a 24-hour clock time', () => {
     for (const typed of ['', '24:00', '9:30', '23:60', 'noon']) expect(leftAtFrom(SAT, typed)).toBeNull();
+  });
+});
+
+describe('awayProblemOf', () => {
+  it('finds nothing in a seat as it was, nor in time away as long as the seat', () => {
+    expect(awayProblemOf(seat, draftOf(seat))).toBeNull();
+    expect(awayProblemOf(seat, { leftAt: '23:40', awayMinutes: 120 })).toBeNull();
+  });
+
+  it('gives the seat\'s span when time away is longer, held to the end typed with it', () => {
+    expect(awayProblemOf(seat, { leftAt: '23:40', awayMinutes: 121 })).toEqual({ from: seat.startedAt, to: '2026-11-15T18:10:00Z', minutes: 120 });
+    expect(awayProblemOf(seat, { leftAt: '22:40', awayMinutes: 61 })).toEqual({ from: seat.startedAt, to: '2026-11-15T17:10:00.000Z', minutes: 60 });
+  });
+
+  it('runs a seat still taken to now, in whole minutes', () => {
+    // 75 minutes 30 seconds after he sat.
+    const now = new Date('2026-11-15T17:25:30Z');
+    expect(awayProblemOf(open, { leftAt: '', awayMinutes: 75 }, now)).toBeNull();
+    expect(awayProblemOf(open, { leftAt: '', awayMinutes: 76 }, now)).toEqual({ from: open.startedAt, to: null, minutes: 75 });
   });
 });
 
