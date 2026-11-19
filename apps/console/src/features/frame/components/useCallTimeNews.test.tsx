@@ -10,7 +10,7 @@ afterEach(cleanup);
 const kabir = (change: Partial<SeatedPlayer> = {}): SeatedPlayer => ({
   sessionId: 's1', tableId: 't1', seat: 5, memberId: 'm1', fullName: 'Kabir Sethi', tierName: 'Black card', startedAt: '2026-11-15T15:00:00Z',
   mustMoveOrder: null, isAway: false, callTimeLeft: 600, leavingAt: null, topUp: null, callTimeSetAt: null, callTimeEndsAt: null, owesCallTime: true,
-  callTimeChoicesOpen: [30, 60, 120], isCallTimeSetByMember: false, callTimeChangeId: null, ...change,
+  addTimeChoices: [30, 60, 120], callTimeChoicesOpen: [30, 60, 120], isCallTimeSetByMember: false, callTimeChangeId: null, ...change,
 });
 
 function News({ seats }: { seats: readonly SeatedPlayer[] }) {

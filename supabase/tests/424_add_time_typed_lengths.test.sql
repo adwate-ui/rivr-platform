@@ -34,7 +34,9 @@ select throws_ok($$ select pg_temp.set_lengths('["50"]', 3) $$, null, null, 'nor
 -- The club types 50 minutes and 3 hours 20: the seat offers them, shortest first. A length written with a point (50.0) is a
 -- whole number to the schema, and one typed twice is offered once.
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
-values ('00000000-0000-4000-8000-000000000001', 'call_time.add_choices', '', '{"minutes": [200, 50.0, 200]}', '-infinity', 'test 424');
+values ('00000000-0000-4000-8000-000000000001', 'call_time.add_choices', '', '{"minutes": [200, 50.0, 200]}', '-infinity', 'test 424'),
+-- The same lengths to extend by (#1089: Extend has a list of its own, copied from Set's as the lists were split).
+       ('00000000-0000-4000-8000-000000000001', 'call_time.extend_choices', '', '{"minutes": [200, 50]}', '-infinity', 'test 424');
 insert into public.member_feature_override (venue_id, member_id, feature_key, is_granted, reason)
 values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000211', 'call_time.view', true, 'test 424');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');

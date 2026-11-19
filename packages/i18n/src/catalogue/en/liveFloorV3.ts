@@ -79,8 +79,11 @@ export const floor = {
     asksTopUp: 'Asked for a top-up',
     toppingUp: 'Top-up in progress',
     asksLeaving: 'Said they are leaving',
-    /** Add call time (#1076): sets the call time by the member's own rule, or extends it once set. */
-    addTime: 'Add call time',
+    /** Set call time until one is set, then Extend call time, as the member app (#1076, #1089). */
+    setCallTime: 'Set call time',
+    extendCallTime: 'Extend call time',
+    /** Under Extend's lengths (the owner, 19 Nov). */
+    extendNote: 'Extend adds time beyond the current end.',
     addTimeChoice: '+{time}',
     /** Under lengths closed until a call time is set, as the member's own sheet says: `Can't end before 23:40.` */
     addTimeNotBefore: "Can't end before {time}.",
@@ -213,6 +216,8 @@ export const floor = {
     leftOut: '{name} left {table} and checked out',
     /** The seat change went through; the check-out was refused (the venue frozen, say). */
     notCheckedOut: '{name} not checked out. Check them out at the door.',
+    /** The floor set a call time (#1089): from now. */
+    timeSet: '{name}: call time set, {time} from now',
     timeAdded: '{name}: call time +{time}',
     /** A member set or extended their call time from the app (#1076): the floor is told, with when they leave. */
     callTimeSet: '{name} set call time · leaves {time}',

@@ -74,16 +74,17 @@ describe('The player sheet (console v3)', () => {
     expect(within(player).queryByRole('button', { name: 'Open member record' })).toBeNull();
   });
 
-  it('shows the call time left with its bar, Add call time, Move and the member record', async () => {
+  it('shows the call time left with its bar, Set call time, Move and the member record', async () => {
     const { rpcs } = await renderFloor();
     fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
     const player = await sheet('Kabir Sethi');
     expect(within(player).getByText('Table 1, seat 5 · Black card')).toBeDefined();
     expect(within(player).getByText('2 h left')).toBeDefined();
-    expect(await within(player).findByText('Add call time')).toBeDefined();
+    expect(await within(player).findByText('Set call time')).toBeDefined();
     expect(within(player).getByRole('button', { name: 'Open member record' })).toBeDefined();
-    fireEvent.click(await within(player).findByRole('button', { name: '+30 min' }));
-    await screen.findByText('Kabir Sethi: call time +30 min');
+    // None set yet: lengths from now, not added (the owner, 19 Nov).
+    fireEvent.click(await within(player).findByRole('button', { name: '30 min' }));
+    await screen.findByText('Kabir Sethi: call time set, 30 min from now');
     const [added] = rpcs('add_seat_call_time');
     expect(added).toMatchObject({ p_session_id: 's2', p_minutes: 30 });
     fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
@@ -91,22 +92,28 @@ describe('The player sheet (console v3)', () => {
     await waitFor(() => expect(rpcs('undo_call_time')).toEqual([{ p_request_id: Reflect.get(Object(added), 'p_idempotency_key') }]));
   });
 
-  it('greys the lengths Add call time may not give yet, by the member\'s own rule; set, the sheet says when they leave (the owner, 18 Nov)', async () => {
+  it('greys the lengths Set call time may not give yet, by the member\'s own rule; set, Extend and when they leave (the owner, 18 and 19 Nov)', async () => {
     const kabir = seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', open: [120] });
     await renderFloor({ ...FLOOR, seats: [kabir, ...(FLOOR.seats ?? []).slice(1)] });
     fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
     const player = await sheet('Kabir Sethi');
-    expect(await within(player).findByRole('button', { name: '+30 min' })).toHaveProperty('disabled', true);
-    expect(within(player).getByRole('button', { name: '+2 h' })).toHaveProperty('disabled', false);
+    expect(await within(player).findByRole('button', { name: '30 min' })).toHaveProperty('disabled', true);
+    expect(within(player).getByRole('button', { name: '2 h' })).toHaveProperty('disabled', false);
     // Why, tied to the lengths it closes alone.
     const why = within(player).getByText(/^Can't end before \d\d:\d\d\.$/);
-    expect(within(player).getByRole('button', { name: '+30 min' }).getAttribute('aria-describedby')).toBe(why.id);
-    expect(within(player).getByRole('button', { name: '+2 h' }).hasAttribute('aria-describedby')).toBe(false);
+    expect(within(player).getByRole('button', { name: '30 min' }).getAttribute('aria-describedby')).toBe(why.id);
+    expect(within(player).getByRole('button', { name: '2 h' }).hasAttribute('aria-describedby')).toBe(false);
     cleanup();
     const set = seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', set_at: '2026-11-15T15:00:00Z', ends_at: '2026-11-15T18:10:00Z', left: 6000 });
     await renderFloor({ ...FLOOR, seats: [set, ...(FLOOR.seats ?? []).slice(1)] });
     fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
-    expect(within(await sheet('Kabir Sethi')).getByText('Set · leaves 23:40')).toBeDefined();
+    const setSheet = await sheet('Kabir Sethi');
+    expect(within(setSheet).getByText('Set · leaves 23:40')).toBeDefined();
+    // Set, the seat offers Extend's lengths, added beyond the end, and says so; no 'can't end before'.
+    expect(within(setSheet).getByText('Extend call time')).toBeDefined();
+    expect(within(setSheet).getByRole('button', { name: '+30 min' })).toHaveProperty('disabled', false);
+    expect(within(setSheet).getByText('Extend adds time beyond the current end.')).toBeDefined();
+    expect(within(setSheet).queryByText(/^Can't end before/)).toBeNull();
     // Run out, it is just done: no "leaves".
     cleanup();
     const done = seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', set_at: '2026-11-15T15:00:00Z', ends_at: '2026-11-15T16:10:00Z', left: 0, owes: false });
@@ -138,11 +145,11 @@ describe('The player sheet (console v3)', () => {
     ]));
   });
 
-  it('gives a host no Add call time, and no Open or Close on a table', async () => {
+  it('gives a host no Set or Extend call time, and no Open or Close on a table', async () => {
     await renderFloor({ ...FLOOR, role: 'host' });
     fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
     const player = await sheet('Kabir Sethi');
-    expect(within(player).queryByText('Add call time')).toBeNull();
+    expect(within(player).queryByText('Set call time')).toBeNull();
     expect(within(player).getByText('Move to another seat')).toBeDefined();
     fireEvent.click(first(within(player).getAllByRole('button', { name: 'Close' })));
     fireEvent.click(screen.getByRole('button', { name: 'Settings for Table 2' }));

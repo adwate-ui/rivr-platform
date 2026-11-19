@@ -92,6 +92,8 @@ export const playerLive = {
     setCallTime: 'Set call time',
     /** Once set, a length extends it (#1076). */
     extendCallTime: 'Extend call time',
+    /** Under Extend's lengths (#1089, the owner, 19 Nov). */
+    extendNote: 'Extend adds time beyond the current end.',
     leave: 'Leave seat',
     requestTopUp: 'Request top-up',
     cancel: 'Cancel',

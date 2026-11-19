@@ -65,7 +65,7 @@ function choiceFrom(seat: MySeat, now: Date): Date | null {
 
 /**
  * "Set call time" (the owner, 17 Nov; #1059), then "Extend call time" (18 Nov; #1076): every length the club offers
- * (call_time.add_choices). Until set, a length counts from now, and one ending no later than the call time the seat
+ * (call_time.add_choices to set; call_time.extend_choices to extend, beyond the current end, #1089). Until set, a length counts from now, and one ending no later than the call time the seat
  * started with is greyed out, the line under them (which they name as their description) saying why; once set, a length
  * extends it. Owed at once, with no floor approval; the seat then says until when, and the floor is told. An hour is
  * chosen first where it is open. The times move with the clock (`now`) while the sheet is open.
@@ -78,6 +78,9 @@ function SetCallTimeSheet({ seat, secondsLeft, now, onClose }: SheetProps & { se
   const isSet = seat.callTimeSetAt !== null;
   const isOpen = (minutes: number) => seat.callTimeChoicesOpen.includes(minutes);
   const choices = seat.addTimeChoices;
+  // Set or Extend in words; lengths greyed only while setting (once set, Extend adds beyond the end, #1089).
+  const action = t(isSet ? 'player.live.seat.extendCallTime' : 'player.live.seat.setCallTime');
+  const hasGreyed = !isSet && !choices.every(isOpen);
   const [choice, setChoice] = useState(choices.find((minutes) => minutes === 60 && isOpen(minutes)) ?? choices.find(isOpen) ?? null);
   const [requestId] = useState(() => crypto.randomUUID());
   const set = async (minutes: number) => {
@@ -86,16 +89,17 @@ function SetCallTimeSheet({ seat, secondsLeft, now, onClose }: SheetProps & { se
     send.settle(outcome);
   };
   return (
-    <Sheet isOpen onClose={onClose} title={t(isSet ? 'player.live.seat.extendCallTime' : 'player.live.seat.setCallTime')}>
+    <Sheet isOpen onClose={onClose} title={action}>
       <Stack gap={4}>
-        <ChoiceChips label={t(isSet ? 'player.live.seat.extendCallTime' : 'player.live.seat.setCallTime')} isLabelVisuallyHidden look="tile" mode="one" selected={choice === null ? [] : [String(choice)]}
-          describedBy={choices.every(isOpen) ? undefined : whyId}
+        <ChoiceChips label={action} isLabelVisuallyHidden look="tile" mode="one" selected={choice === null ? [] : [String(choice)]}
+          describedBy={hasGreyed ? whyId : undefined}
           options={choices.map((minutes) => ({ value: String(minutes), label: formatDuration(minutes * 60), isDisabled: !isOpen(minutes) }))}
           onChange={([value]) => setChoice(choices.find((minutes) => String(minutes) === value) ?? choice)} />
-        <CallTimeLine id={whyId} choice={choice} from={choiceFrom(seat, now)} secondsLeft={secondsLeft} hasGreyed={!choices.every(isOpen)} now={now} />
+        <CallTimeLine id={whyId} choice={choice} from={choiceFrom(seat, now)} secondsLeft={secondsLeft} hasGreyed={hasGreyed} now={now} />
+        {isSet ? <Text variant="caption" tone="muted">{t('player.live.seat.extendNote')}</Text> : null}
         <Button variant="primary" size="tall" fullWidth isDisabled={send.isOffline || choice === null} isLoading={setCallTime.isPending}
           onClick={() => { if (choice !== null) void set(choice); }}>
-          {t(isSet ? 'player.live.seat.extendCallTime' : 'player.live.seat.setCallTime')}
+          {action}
         </Button>
         {send.notice}
         <Button variant="text" fullWidth onClick={onClose}>{t('player.live.seat.cancel')}</Button>

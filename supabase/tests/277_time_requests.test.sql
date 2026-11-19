@@ -44,7 +44,9 @@ reset role;
 select set_config('request.jwt.claims', '', true);
 alter table public.setting disable trigger setting_check;
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
-values ('00000000-0000-4000-8000-000000000001', 'call_time.add_choices', '', '{"minutes": ["90", "45"]}', '-infinity', 'test 277');
+values ('00000000-0000-4000-8000-000000000001', 'call_time.add_choices', '', '{"minutes": ["90", "45"]}', '-infinity', 'test 277'),
+-- The same lengths to extend by (#1089: Extend has a list of its own, copied from Set's as the lists were split).
+       ('00000000-0000-4000-8000-000000000001', 'call_time.extend_choices', '', '{"minutes": [90, 45]}', '-infinity', 'test 277');
 alter table public.setting enable trigger setting_check;
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select is((select add_time_choices from public.my_seat()), array[45, 90], 'the seat offers 45 minutes and 1 hour 30');
