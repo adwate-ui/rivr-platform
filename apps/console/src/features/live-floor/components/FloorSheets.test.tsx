@@ -104,7 +104,8 @@ describe('The player sheet (console v3)', () => {
     expect(within(player).getByRole('button', { name: '30 min' }).getAttribute('aria-describedby')).toBe(why.id);
     expect(within(player).getByRole('button', { name: '2 h' }).hasAttribute('aria-describedby')).toBe(false);
     cleanup();
-    const set = seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', set_at: '2026-11-15T15:00:00Z', ends_at: '2026-11-15T18:10:00Z', left: 6000 });
+    const set = seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', set_at: '2026-11-15T15:00:00Z', ends_at: '2026-11-15T18:10:00Z', left: 6000,
+      open: [30, 60] });
     await renderFloor({ ...FLOOR, seats: [set, ...(FLOOR.seats ?? []).slice(1)] });
     fireEvent.click(screen.getByRole('button', { name: /^Seat 5, Kabir Sethi/ }));
     const setSheet = await sheet('Kabir Sethi');
@@ -114,6 +115,12 @@ describe('The player sheet (console v3)', () => {
     expect(within(setSheet).getByRole('button', { name: '+30 min' })).toHaveProperty('disabled', false);
     expect(within(setSheet).getByText('Extend adds time beyond the current end.')).toBeDefined();
     expect(within(setSheet).queryByText(/^Can't end before/)).toBeNull();
+    // Two hours would take it past 24 hours: greyed, the sheet says why, and each length names the note (#1099).
+    const pastMost = within(setSheet).getByText("Call time can't pass 24 hours.");
+    const note = within(setSheet).getByText('Extend adds time beyond the current end.');
+    expect(within(setSheet).getByRole('button', { name: '+2 h' })).toHaveProperty('disabled', true);
+    expect(within(setSheet).getByRole('button', { name: '+2 h' }).getAttribute('aria-describedby')).toBe(`${note.id} ${pastMost.id}`);
+    expect(within(setSheet).getByRole('button', { name: '+30 min' }).getAttribute('aria-describedby')).toBe(note.id);
     // Run out, it is just done: no "leaves".
     cleanup();
     const done = seatRow({ session: 's2', table: 't1', seat: 5, name: 'Kabir Sethi', set_at: '2026-11-15T15:00:00Z', ends_at: '2026-11-15T16:10:00Z', left: 0, owes: false });

@@ -126,6 +126,15 @@ describe('the push consumer', () => {
     expect(late.calls).toEqual([]);
   });
 
+  it('asks a member who never set a call time to set it, with no time to leave by', async () => {
+    const ending = { member_id: MEMBER, session_id: SESSION, table_name: 'Table 1', seat: 4, ends_at: '2026-11-15T19:05:00.123456+00:00', is_set: false };
+    const push = createFakePush();
+    await createPushConsumer({ push, ...members([phone('a')]), now }).deliver(delivery('call_time.ending', ending));
+    expect(push.calls.map(({ title, body, action }) => ({ title, body, action }))).toEqual([{
+      title: 'Set your call time', body: 'Table 1, seat 4.', action: { title: 'Set call time', url: '/?sheet=add-time' },
+    }]);
+  });
+
   it('words each kind, asking for the member\u2019s phones that want it', async () => {
     expect(await sendOne('call_time.completed', { member_id: MEMBER, session_id: SESSION, table_id: OTHER, seat: 4 })).toEqual({
       outcome: { ok: true, value: null }, asked: ['push.call_time_complete'],

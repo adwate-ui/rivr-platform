@@ -3029,6 +3029,9 @@ isOneToOne: false
 "forget_push_subscription":
 { Args: { "p_endpoint": string }; Returns: undefined
                            },
+"forget_reopened_kyc_files":
+{ Args: { "p_member_id": string,"p_paths": (string)[] }; Returns: number
+                           },
 "games_history":
 { Args: { "p_from": string,"p_to": string,"p_venue_id": string }; Returns: {
               "big_blind_paise": number,"club_day": string,"game": string,"runs": number,"seconds": number,"small_blind_paise": number,"table_id": string,"table_name": string
@@ -3559,6 +3562,9 @@ isOneToOne: false
                            },
 "reopen_kyc_check":
 { Args: { "p_member_id": string,"p_reason": string }; Returns: undefined
+                           },
+"reopened_kyc_files":
+{ Args: { "p_member_id": string }; Returns: (string)[]
                            },
 "report_chart":
 { Args: { "p_from": string,"p_report": string,"p_to": string,"p_venue_id": string }; Returns: {

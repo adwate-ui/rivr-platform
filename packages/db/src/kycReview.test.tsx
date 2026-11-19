@@ -70,15 +70,18 @@ describe('KYC review', () => {
   });
 
   it('reopens a check with the reason, and says why one was not reopened', async () => {
-    const reopened = renderReview({ '/rpc/kyc_review_page': { body: [] }, '/rpc/reopen_kyc_check': { body: null } });
+    const reopened = renderReview({ '/rpc/kyc_review_page': { body: [] }, '/rpc/reopen_kyc_check': { body: null }, '/functions/v1/kyc-reopened-files': { body: { filesRemoved: 3 } } });
     expect(await act(() => reopened.result.current.actions.reopen.mutateAsync({ memberId: 'm203', reason: 'Saved on the wrong member' })))
       .toEqual({ ok: true, value: 'reopened' });
     expect(reopened.calls.find((call) => call.url.includes('/rpc/reopen_kyc_check'))?.body).toEqual({ p_member_id: 'm203', p_reason: 'Saved on the wrong member' });
+    // Its files go from Storage at once (#931).
+    expect(reopened.calls.find((call) => call.url.includes('/functions/v1/kyc-reopened-files'))?.body).toEqual({ memberId: 'm203' });
     cleanup();
 
     const refused = renderReview({ '/rpc/kyc_review_page': { body: [] }, '/rpc/reopen_kyc_check': { status: 400, body: { code: 'RVKYC', message: 'no' } } });
     expect(await act(() => refused.result.current.actions.reopen.mutateAsync({ memberId: 'm203', reason: 'Saved on the wrong member' })))
       .toEqual({ ok: false, error: 'decided' });
+    expect(refused.calls.some((call) => call.url.includes('/functions/v1/kyc-reopened-files'))).toBe(false);
   });
 
   it('says who holds the documents a duplicate clashed with, and asks nothing without a member', async () => {

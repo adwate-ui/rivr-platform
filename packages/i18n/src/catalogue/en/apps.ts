@@ -18,7 +18,6 @@ import { itemPhoto } from './itemPhoto.ts';
 import { tournaments } from './tournaments.ts';
 import { playerPromotions } from './playerPromotions.ts';
 import { promotions } from './promotions.ts';
-import { rake } from './rake.ts';
 import { playerHouseRules, profile } from './profile.ts';
 import { playerSignUp } from './signUp.ts';
 import { notStaff, staff } from './staff.ts';
@@ -89,7 +88,6 @@ export const consoleApp = {
   dealerPins,
   staff,
   tvs,
-  rake,
   notStaff,
   feedback,
   itemPhoto,

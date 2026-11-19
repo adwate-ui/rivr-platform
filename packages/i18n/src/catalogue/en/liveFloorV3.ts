@@ -91,6 +91,8 @@ export const floor = {
     addTimeChoice: '+{time}',
     /** Under lengths closed until a call time is set, as the member's own sheet says: `Can't end before 23:40.` */
     addTimeNotBefore: "Can't end before {time}.",
+    /** Under Extend's lengths closed because they would take the call time past its most (1,440 minutes, #1099). */
+    extendPastMost: "Call time can't pass 24 hours.",
     move: 'Move to another seat',
     moveTable: 'Table',
     moveSeat: 'Seat',

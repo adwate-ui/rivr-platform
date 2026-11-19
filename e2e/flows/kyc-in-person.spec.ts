@@ -3,8 +3,8 @@
  * club, in five steps under a progress bar (redesign RD-21). Rhea (membership manager) finds Kabir by name, starts the
  * check, takes his face, PAN card and Aadhaar front, each "Use photo" moving on, goes back a step and forward again, enters
  * the date of birth, the last four Aadhaar digits and the PAN from the originals with Kabir's consent, and Kabir is verified. His
- * check is taken away before and after, so the local stack only (the photo stays in storage, and the
- * next run's photo replaces it). Rhea is this flow's own reviewer: Auth sends one code a minute.
+ * check is taken away before and after, so the local stack only; reopening his check at the end removes its photos from
+ * storage (#931). Rhea is this flow's own reviewer: Auth sends one code a minute.
  * Then the same documents are entered for Naina, as if Kabir's check had been saved on the wrong member
  * (decision 0583): the desk is told who holds them, and a super admin reopens Kabir's check.
  */
@@ -125,6 +125,9 @@ test.describe('Manual KYC', () => {
     await expect(admin.getByText('No ID photos on file.')).toBeVisible();
     expect(sql(`select k.status || ' ' || (k.pan is null) || ' ' || (select count(*) from public.kyc_document d where d.member_id = k.member_id)
                 from public.kyc_record k where k.member_id = '${KABIR}'`)).toBe('started true 0');
+    // Its face photo and two document photos left Storage with the reopening, and none is left listed to go (#931).
+    expect(sql(`select count(*) from storage.objects o where o.bucket_id = 'kyc' and o.name ~ '^[^/]+/${KABIR}/(in-person|doc-)'`)).toBe('0');
+    expect(sql(`select count(*) from private.kyc_reopened_file where member_id = '${KABIR}'`)).toBe('0');
     await context.close();
   });
 });

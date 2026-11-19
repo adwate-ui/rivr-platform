@@ -169,7 +169,7 @@ export const promotions = {
       budgetPeriods: { whole: 'For the whole promotion', month: 'Each month' },
       noLimit: 'No limit',
       channels: 'Shows on',
-      channelNames: { playerApp: 'Player app', tv: 'TVs', website: 'Website', whatsapp: 'WhatsApp message' },
+      channelNames: { playerApp: 'Player app', tv: 'TVs', website: 'Website' },
       rulesText: 'Rules on the website, one a line',
       link: 'Card link (optional)',
     },

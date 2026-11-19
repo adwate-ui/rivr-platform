@@ -152,7 +152,8 @@ function partsOf(form: BuilderForm) {
     eligibility: defined({ stakes: form.stakes, tableIds: form.tableIds, tiers: form.tiers, audience: form.audience }),
     schedule: scheduleOf(form),
     limits: limitsOf(form),
-    channels: form.channels,
+    // Never WhatsApp, which production has none of (decision 0697): off on every save, even for a promotion that had it.
+    channels: { ...form.channels, whatsapp: false },
     rulesText: form.rulesText.split('\n').map((line) => line.trim()).filter((line) => line !== ''),
     ...(form.link.trim() === '' ? {} : { link: form.link.trim() }),
   };

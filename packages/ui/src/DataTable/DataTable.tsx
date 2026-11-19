@@ -61,10 +61,12 @@ export type DataTableProps<Row> = DataTableState<Row> & {
    */
   density?: 'comfortable' | 'compact';
   /**
-   * Below 768 px: `cards`, a card per row, sorted from a bar above them; or `scroll`, the table's lines under its header,
-   * scrolling sideways with the first column held.
+   * Below 768 px: `cards`, a card per row, sorted from a bar above them; `scroll`, the table's lines under its header,
+   * scrolling sideways with the first column held; or `sideways`, lines as wide as their columns need, each at least
+   * `size.column`, so a wide table's numbers and times scroll rather than squeeze and break (#1097). From 768 px, `scroll`
+   * and `sideways` are both the table's lines.
    */
-  narrowLayout?: 'cards' | 'scroll';
+  narrowLayout?: 'cards' | 'scroll' | 'sideways';
   /**
    * The table's lines scroll sideways at every width, each column at least `size.column` wide, rather than squeeze: a
    * table beside a docked record, which keeps every column (owner, 9 Nov).
@@ -114,8 +116,14 @@ interface TableProps<Row> {
   readonly menuFor: (column: DataTableColumn<Row>) => ReactNode;
 }
 
-/** How the rows are laid out: sideways at every width, or below 768 px as cards or lines that scroll. */
-const narrowOf = <Row,>(props: DataTableProps<Row>) => (props.scrollsSideways === true ? 'sideways' : props.narrowLayout ?? 'cards');
+/** On a phone the sideways layout holds its title at one track, so the rest of the line has room (#1097). */
+const holdsTitleNarrowOf = <Row,>(props: DataTableProps<Row>, isWide: boolean) => props.narrowLayout === 'sideways' && !isWide;
+
+/** How the rows are laid out: sideways at every width, or below 768 px (`isWide` false) as cards, lines that scroll, or sideways. */
+function narrowOf<Row>(props: DataTableProps<Row>, isWide: boolean) {
+  if (props.scrollsSideways === true || (props.narrowLayout === 'sideways' && !isWide)) return 'sideways';
+  return props.narrowLayout === 'sideways' ? 'scroll' : props.narrowLayout ?? 'cards';
+}
 
 /** A total row is no row to tick, so where rows can be ticked it is left out. */
 function withoutTotalAmongTicks<Row>(props: DataTableProps<Row>): DataTableProps<Row> {
@@ -131,7 +139,8 @@ function Table<Row>({ props, visible, sort, resetKey, onSort, menuFor }: TablePr
   const density = useTableDensity();
   const isVirtual = visible.length > VIRTUAL_FROM && props.totalRow === undefined;
   const ticks = props.selection === undefined ? null : ticksFor(props.selection, visible.map(props.rowKey));
-  const layout = layoutOf(props.columns, narrowOf(props), props.density ?? density, ticks);
+  const isWide = useIsWide('medium');
+  const layout = layoutOf(props.columns, narrowOf(props, isWide), props.density ?? density, { ticks, holdsTitleNarrow: holdsTitleNarrowOf(props, isWide) });
   // Where the body scrolls sideways, the header, which has no scrollbar, follows it.
   const onScrollX = (event: UIEvent<HTMLElement>) => {
     if (header.current !== null) header.current.scrollLeft = event.currentTarget.scrollLeft;
@@ -236,7 +245,7 @@ export function DataTable<Row>(given: DataTableProps<Row>) {
   const table = useTable(props);
   const { root, refocus } = useRefocus();
   const menu = useColumnMenus(table);
-  const isCards = !isWide && props.narrowLayout !== 'scroll' && props.scrollsSideways !== true;
+  const isCards = !isWide && (props.narrowLayout ?? 'cards') === 'cards' && props.scrollsSideways !== true;
   // Rows the search or filters leave none of: the header stays, with each column's menu, and why there are none under it.
   const isEmptied = isNarrowedAway(table, props.server !== undefined);
   const instead = <Instead props={props} query={table.query} isFiltered={table.on.length > 0} isNarrowedAway={isEmptied} isUnderHeader={isEmptied && !isCards} />;

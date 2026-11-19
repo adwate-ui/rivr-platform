@@ -53,7 +53,6 @@ export {
   type TvMode,
 } from './devices.ts';
 export { dropBoxCountSchema, HAND_VARIANTS, handEntrySchema } from './hands.ts';
-export { rakeChangeSchema } from './rake.ts';
 export {
   FNB_BAR_NOTES,
   FNB_DIETS,
@@ -90,7 +89,7 @@ export {
 export {
   isReasonInWords, KYC_DOCUMENT_KINDS, kycDocumentRetakeSchema, kycInPersonSchema, kycReviewSchema, type KycDocumentKind, type KycDocumentRetake, type KycInPerson,
 } from './kycReview.ts';
-export { erasedKycFilesSchema, type ErasedKycFilesRequest } from './memberErasure.ts';
+export { erasedKycFilesSchema, reopenedKycFilesSchema, type ErasedKycFilesRequest } from './memberErasure.ts';
 export { PHONE_CHANGE, sendSmsHookSchema, signInCheckSchema, signInCodeSchema, type SignInCodeToSend } from './auth-hooks.ts';
 export {
   FEATURES,

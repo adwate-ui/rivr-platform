@@ -61,15 +61,19 @@ function seatReady(payload: unknown, now: Date): Built {
   return ok({ memberId, pushType: 'push.seat_ready', title: t('push.seatReady.title'), body, url: '/', tag: 'seat-ready', ...action, ...call });
 }
 
-/** Fifteen minutes or less to run, under the member's Call time switch, with Set call time; nothing once it has run out. */
+/**
+ * Fifteen minutes or less to run, under the member's Call time switch, with Set call time; nothing once it has run out. A
+ * member who never set one is asked to set it (#1081): their call time is owed until set, so "Ends at" would mislead.
+ */
 function callTimeEnding(payload: unknown, now: Date): Built {
   const ending = callTimeEndingSchema.safeParse(payload);
   if (!ending.success) return unreadable('call_time.ending');
-  const { member_id: memberId, session_id: sessionId, table_name: table, seat, ends_at: endsAt } = ending.data;
+  const { member_id: memberId, session_id: sessionId, table_name: table, seat, ends_at: endsAt, is_set: isSet } = ending.data;
   const left = new Date(endsAt).getTime() - now.getTime();
   if (left <= 0) return ok(null);
-  const title = t('push.callTimeEnding.title', { minutes: String(Math.ceil(left / 60_000)) });
-  const body = t('push.callTimeEnding.body', { table, seat: String(seat), time: formatTime(new Date(endsAt)) });
+  const title = isSet === false ? t('push.callTimeEnding.setTitle') : t('push.callTimeEnding.title', { minutes: String(Math.ceil(left / 60_000)) });
+  const body = isSet === false ? t('push.callTimeEnding.setBody', { table, seat: String(seat) })
+    : t('push.callTimeEnding.body', { table, seat: String(seat), time: formatTime(new Date(endsAt)) });
   // Its tag is the completion's, so "Call time done" takes its place.
   return ok({
     memberId, pushType: 'push.call_time_complete', title, body, url: '/', tag: `call-time-${sessionId}`,

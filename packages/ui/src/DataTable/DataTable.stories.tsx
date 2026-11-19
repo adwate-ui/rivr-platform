@@ -87,7 +87,7 @@ const TICKED_COLUMNS: readonly DataTableColumn<Marker>[] = [
 ];
 
 /** Markers a screen acts on several at a time: two ticked, rows that open on a click. */
-function TickedMarkers({ narrowLayout = 'cards' }: { narrowLayout?: 'cards' | 'scroll' }) {
+function TickedMarkers({ narrowLayout = 'cards' }: { narrowLayout?: 'cards' | 'scroll' | 'sideways' }) {
   const [selected, setSelected] = useState<readonly string[]>(['MK-00002', 'MK-00005']);
   return (
     <DataTable label="Open markers" columns={TICKED_COLUMNS} rowKey={(row) => row.id} rows={markers(8)} emptyText="No markers outstanding."
@@ -208,6 +208,18 @@ export const TickedOnAPhone: Story = { render: () => <TickedMarkers />, tags: ['
 
 /** The scroll layout on a phone: the lines under their header scroll sideways, the ticks and the member held. */
 export const ScrollOnAPhone: Story = { render: () => <TickedMarkers narrowLayout="scroll" />, tags: ['viewport-phone'] };
+
+/** The sideways layout on a phone (#1097): each column at least a column's width, so the lines scroll and nothing squeezes. */
+export const SidewaysOnAPhone: Story = { render: () => <TickedMarkers narrowLayout="sideways" />, tags: ['viewport-phone'] };
+
+/** The sideways layout on a phone with a wide title and no ticks, as Activity, the Door and Players visits: the title held at one track. */
+export const SidewaysTitledOnAPhone: Story = {
+  render: () => (
+    <DataTable label="Open markers" columns={TICKED_COLUMNS.map((column, at) => (at === 0 ? { ...column, isWide: true } : column))} rowKey={(row) => row.id}
+      rows={markers(8)} emptyText="No markers outstanding." narrowLayout="sideways" />
+  ),
+  tags: ['viewport-phone'],
+};
 
 /** A row opened in place (console v3): its form under it across the table, such as a dealer's new PIN. */
 export const RowOpenInPlace: Story = {

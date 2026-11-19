@@ -50,8 +50,8 @@ describe('Bonus', () => {
       '/rpc/my_bonus': { body: [{ bonus_paise: 50_000, expiry_days: 30, bonus_line: 'Play it on any table tonight.' }] },
     });
     const { result } = renderHook(() => ({ bonus: useMyBonus(), history: useMyBonusHistory(20) }), { wrapper });
-    // With the days Bonus lasts at the venue, for the balance's line (redesign RD-20).
-    await waitFor(() => expect(result.current.bonus.data).toEqual({ balance: 50_000n, expiryDays: 30, line: 'Play it on any table tonight.' }));
+    // The balance and the card's line; never when Bonus expires (#1079).
+    await waitFor(() => expect(result.current.bonus.data).toEqual({ balance: 50_000n, line: 'Play it on any table tonight.' }));
     await waitFor(() => expect(result.current.history.data).toEqual([
       { id: 'r1', at: '2026-11-15T18:00:00Z', kind: 'redeemed', amount: 100_000n, reason: null, tableName: 'Table 3', highHand: null },
       { id: 'g1', at: '2026-11-14T18:00:00Z', kind: 'credited', amount: 150_000n, reason: 'Welcome', tableName: null, highHand: null },

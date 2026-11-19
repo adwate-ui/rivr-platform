@@ -13,14 +13,18 @@ export const shell = {
   /** The practice venue's stripe across the top, and its way out. */
   backToClub: 'Back to the club',
   /** Across the top for those who can set it (audit F-212). */
-  noAlertNumber: 'No alert number is set, so alerts reach no one.',
-  addAlertNumber: 'Add the number',
+  /** Production has no WhatsApp (decision 0697): only alert emails reach anyone. */
+  noAlertNumber: 'Alerts reach no one until alert emails are set up.',
+  addAlertNumber: 'Set up',
+  addAlertNumberName: 'Set up alert emails',
   /** The header's counts, each a link: "23 seated · 9 waiting · 6 requests". */
   pulse: {
     label: 'Tonight',
     seated: 'seated',
     waiting: 'waiting',
     requests: 'requests',
+    /** One request (#1099): "1 request", not "1 requests". */
+    request: 'request',
   },
   /** The keys that work, in the staff member's menu and in buttons' tooltips. */
   keys: {
