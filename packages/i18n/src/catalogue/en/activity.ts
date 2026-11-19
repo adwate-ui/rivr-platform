@@ -37,7 +37,7 @@ const ACTION_WORDS: Readonly<Record<string, string>> = {
   'export.archive_saved': 'Saved an archive',
   'high_hand.pay': 'Paid a high hand', 'export.table': 'Exported', 'export.tally_day': 'Exported', 'export.tds_return': 'Exported',
   'fnb_order.cancel': 'Cancelled', 'kyc_image.view': 'Viewed', 'member.change_phone': 'Changed the mobile number', 'member.erase': 'Erased', 'member.hours_reset': 'Reset hours',
-  'practice.reset': 'Reset the practice venue', 'redemption.cancel': 'Cancelled', 'seat.session_corrected': 'Corrected a session', 'visit.times_corrected': 'Corrected a visit', 'staff.attendance': 'Marked attendance',
+  'practice.reset': 'Reset the practice venue', 'redemption.cancel': 'Cancelled', 'seat.session_corrected': 'Edited a session', 'visit.times_corrected': 'Edited a visit', 'staff.attendance': 'Marked attendance',
   'venue.logo_uploaded': 'Uploaded the logo', 'venue.purge': 'Purged', 'venue.purge_files': 'Purged the files',
 };
 

@@ -7,10 +7,10 @@ export const promotionApprovals = {
   /** A play-time row's Left while the player still sits (#1061). */
   stillSeated: 'Still seated',
   /** Corrects a play-time row's session (#1061), in the panel at the side. */
-  correct: 'Correct',
-  correctNamed: 'Correct the visit of {name}',
+  correct: 'Edit',
+  correctNamed: 'Edit the visit of {name}',
   correction: {
-    title: 'Correct visit',
+    title: 'Edit visit',
     subtitle: '{name} · {promotion}',
     /** One seat of the visit: `Table 3 · from 21:40`; one still taken ends at the table, so only its time away is corrected. */
     seat: '{table} · from {from}',
@@ -28,19 +28,19 @@ export const promotionApprovals = {
     saveFirst: 'Save or cancel to choose another visit.',
     away: 'Away',
     awayHint: 'Taken off the time played.',
-    reason: 'Why it is corrected',
+    reason: 'Why it changes',
     reasonHint: 'Kept in Activity.',
     badTime: 'Type a time as 23:40.',
     badAway: 'Type whole minutes, 0 or more.',
     unchanged: 'Change a time first.',
-    save: 'Save correction',
+    save: 'Save changes',
     /** Saved: how many waiting steps the corrected time no longer reaches, refused, and how many given above it, which stay. */
-    saved: 'Visit corrected',
-    savedRefused: 'Visit corrected · {count} waiting refused',
-    savedGivenAbove: 'Visit corrected · {count} already given stays',
-    savedBoth: 'Visit corrected · {refused} waiting refused · {given} already given stays',
+    saved: 'Visit edited',
+    savedRefused: 'Visit edited · {count} waiting refused',
+    savedGivenAbove: 'Visit edited · {count} already given stays',
+    savedBoth: 'Visit edited · {refused} waiting refused · {given} already given stays',
     failures: {
-      not_allowed: 'Only a super admin corrects a visit.',
+      not_allowed: 'Only a super admin edits a visit.',
       own_record: 'Not your own record. Ask another super admin.',
       invalid: 'Those times do not fit the visit.',
       paused: 'Frozen. Try again once it is released.',
