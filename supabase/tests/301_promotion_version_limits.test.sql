@@ -56,6 +56,15 @@ insert into ids select 'budget', pg_temp.live('Budget', '{"kind": "bonus_chips",
 select is(pg_temp.check_in('211', 'b-1'), 1, 'a budget of 3,000: the first 2,000 is given');
 select is(pg_temp.check_in('212', 'b-2'), 0, 'budget exhausted mid-grant: 2,000 more is not given, nor part of it');
 select is(pg_temp.chips((select id from ids where name = 'budget')), 2000::bigint, 'the 2,000 given, and never part of the 1,000 left');
+-- A smaller grant still fits what is left: version 2 gives 1,000, which the 1,000 left holds; then nothing is left.
+update public.promotion_version set status = 'ended' where promotion_id = (select id from ids where name = 'budget');
+insert into public.promotion_version (venue_id, promotion_id, version, status, name, reward, eligibility, schedule, limits, channels)
+select venue_id, promotion_id, 2, 'live', 'Budget, smaller', '{"kind": "bonus_chips", "chips": 1000, "on": "visit"}', eligibility, schedule, limits, channels
+from public.promotion_version where promotion_id = (select id from ids where name = 'budget') and version = 1;
+select private.sync_promotion((select id from ids where name = 'budget'));
+select is(pg_temp.check_in('213', 'b-3'), 1, 'a smaller grant, 1,000, still fits the 1,000 left');
+select is(pg_temp.chips((select id from ids where name = 'budget')), 3000::bigint, 'the whole budget, and never more');
+select is(pg_temp.check_in('214', 'b-4'), 0, 'with nothing left, nothing more is given');
 update public.promotion_version set status = 'ended' where promotion_id = (select id from ids where name = 'budget');
 
 -- Members a day, and the most grants.
