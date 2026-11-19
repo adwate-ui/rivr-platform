@@ -22,7 +22,7 @@ describe('A change by staff in words', () => {
       { entity: 'seat_session', field: 'ended_at', before: null, after: '2026-11-19T16:10:00Z', isHidden: false },
       { entity: 'bonus_grant', field: 'amount_paise', before: null, after: 50000, isHidden: false },
     ]));
-    expect(lines[0]).toBe('Status: Needs review → Verified');
+    expect(lines[0]).toBe('Status: In review → Checked');
     expect(lines[1]).toMatch(/^Left: None → 19 Nov 2026, 21:40$/);
     expect(lines[2]).toMatch(/^Amount: None → .*500/);
   });

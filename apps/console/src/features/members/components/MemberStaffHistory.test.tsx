@@ -25,7 +25,7 @@ describe('History of changes by staff, from the Members table (the owner, 19 Nov
     fireEvent.click(await within(list).findByRole('button', { name: 'History of Arjun Mehta' }));
     expect(await screen.findByText('Changed · ID check')).toBeDefined();
     expect(screen.getByText(/^Aditya Malhotra · 19 Nov 2026, 21:40$/)).toBeDefined();
-    expect(screen.getByText('Status: Needs review → Verified')).toBeDefined();
+    expect(screen.getByText('Status: In review → Checked')).toBeDefined();
     expect(screen.getByText('PAN changed')).toBeDefined();
     expect(screen.getByText('Reason: Checked at the desk')).toBeDefined();
   });
