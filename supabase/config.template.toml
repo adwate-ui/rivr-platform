@@ -27,12 +27,13 @@ major_version = 17
 enabled = false
 port = {{BLOCK}}29
 
+# Neither section sets `enabled` (both default to on): for a local start or reset, scripts/supabase.mjs turns them off
+# with SUPABASE_DB_MIGRATIONS_ENABLED and SUPABASE_DB_SEED_ENABLED, which a set key would override, and applies both
+# itself with pg_cron's jobs held (#1071).
 [db.migrations]
-enabled = true
 
 [db.seed]
 # Local and staging only. Production is never seeded.
-enabled = true
 sql_paths = ["./seed/*.sql"]
 
 [realtime]
