@@ -3,6 +3,7 @@ import { MutationCache, QueryCache, QueryClient, QueryClientProvider, useQuery, 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { SESSION_STORAGE_KEY, type RivrClient } from './client.ts';
 import { readFailureCode, refusalCodeOf } from './failureCode.ts';
+import { LIST_MOST } from './limits.ts';
 import { forgetOffline, keepForOffline, restoreForOffline } from './offlineCache.ts';
 import { queryKeys } from './queryKeys.ts';
 
@@ -48,7 +49,7 @@ function ownRows(heard: Heard, userId: string, memberIds: readonly string[]): st
 
 /** The person's member rows, one for each venue they joined: what the member app's filters hear. A failed read throws, to be tried again. */
 async function readMemberIds(client: RivrClient, userId: string): Promise<readonly string[]> {
-  const { data, error } = await client.from('member').select('id').eq('user_id', userId).order('id');
+  const { data, error } = await client.from('member').select('id').eq('user_id', userId).order('id').limit(LIST_MOST);
   if (error) throw error;
   return data.map((row) => row.id);
 }
