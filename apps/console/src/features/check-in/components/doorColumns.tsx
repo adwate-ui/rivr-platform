@@ -16,6 +16,8 @@ const KYC_TONE: Readonly<Record<MemberKycStatus, DotStatusTone>> = {
 
 const NONE = () => t('console.todaysPlayers.none');
 const at = (iso: string | null) => (iso === null ? NONE() : formatTime(new Date(iso)));
+// A wait counts only after check-in (the owner, 19 Nov): one never checked in has none, which is no 0 min.
+const waited = (seconds: number | null) => (seconds === null ? NONE() : formatDuration(seconds));
 // The tier only above the base one: at the door a number tells members apart, and a tier is worth saying when it is one (audit F-020).
 const tierOf = (player: DoorPlayer) => (player.isBaseTier ? NONE() : player.tierName);
 const tablesOf = (player: DoorPlayer) => (player.tables.length === 0 ? NONE() : player.tables.map((entry) => entry.table).join(', '));
@@ -106,8 +108,11 @@ export function doorColumns(
     },
     { key: 'in', share: 0.65, header: t('console.todaysPlayers.checkedIn'), cell: (player) => at(player.checkedInAt), sortValue: (player) => player.checkedInAt ?? '', filter: false },
     { key: 'out', share: 0.65, header: t('console.todaysPlayers.checkedOut'), cell: (player) => at(player.checkedOutAt), sortValue: (player) => player.checkedOutAt ?? '', filter: false },
-    { key: 'waited', share: 1, filter: 'duration', header: t('console.todaysPlayers.waited'), cell: (player) => formatDuration(player.waitingSeconds), sortValue: (player) => player.waitingSeconds, align: 'end' },
+    { key: 'waited', share: 1, filter: 'duration', header: t('console.todaysPlayers.waited'), cell: (player) => waited(player.waitingSeconds), sortValue: (player) => player.waitingSeconds ?? -1, align: 'end' },
     { key: 'table', share: 0.95, header: t('console.todaysPlayers.table'), cell: tablesOf, sortValue: tablesOf, filter: 'text' },
+    // A row is a seat (the owner, 19 Nov): when they sat at its table, and when they left it, none while there.
+    { key: 'seated', share: 0.65, header: t('console.todaysPlayers.seated'), cell: (player) => at(player.seatedAt), sortValue: (player) => player.seatedAt ?? '', filter: false },
+    { key: 'left', share: 0.65, header: t('console.todaysPlayers.left'), cell: (player) => at(player.leftAt), sortValue: (player) => player.leftAt ?? '', filter: false },
     {
       key: 'played', share: 1.5, filter: 'duration', header: t('console.todaysPlayers.played'), sortValue: (player) => player.playedSeconds, align: 'end',
       cell: (player) => (player.tables.length === 0 ? NONE() : formatDuration(player.playedSeconds)),

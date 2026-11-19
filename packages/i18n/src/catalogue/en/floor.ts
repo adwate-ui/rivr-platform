@@ -161,6 +161,10 @@ export const todaysPlayers = {
   /** The tables a player played on today, and the time played across them, in columns of their own (console v3). */
   table: 'Table',
   played: 'Time played',
+  /** A row is a seat (the owner, 19 Nov): when they sat at its table and left it, and its time away (Players visits). */
+  seated: 'Seated',
+  left: 'Left',
+  away: 'Away',
   /** The Bonus given to the member that club day (#1062). */
   bonus: 'Bonus',
   /** Floor and up (#1073): the member's History in a panel at the side, beside their mobile (console.members.mobile). */

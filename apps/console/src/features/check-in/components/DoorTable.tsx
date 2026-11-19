@@ -95,7 +95,7 @@ export function DoorTable({ venueId, label, chipsLabel, chips, emptyText, nobody
     <Stack gap={4}>
       {/* A failed refresh keeps the players shown, with a notice, rather than swapping them for an error. */}
       {page.isError && page.data !== undefined ? <StaleNotice since={new Date(page.dataUpdatedAt)} onRetry={() => void page.refetch()} /> : null}
-      <DataTable {...state} {...look} label={label} columns={doorColumns(counted, action, history && setOpened)} rowKey={(player) => player.memberId} narrowLayout="sideways"
+      <DataTable {...state} {...look} label={label} columns={doorColumns(counted, action, history && setOpened)} rowKey={(player) => `${player.memberId}:${player.seatedAt ?? ''}`} narrowLayout="sideways"
         filter={search}
         belowSearch={(
           <ChoiceChips look="subtle" mode="one" isOneRow isLabelVisuallyHidden label={chipsLabel} selected={[chipId]}

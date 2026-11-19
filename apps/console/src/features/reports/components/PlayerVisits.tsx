@@ -18,6 +18,8 @@ const KYC: readonly MemberKycStatus[] = ['verified', 'in_review', 'at_desk', 're
 
 const NONE = () => t('console.todaysPlayers.none');
 const at = (iso: string | null) => (iso === null ? NONE() : formatTime(new Date(iso)));
+// A wait counts only after check-in, and a row with no seat has no time away (the owner, 19 Nov): none, which is no 0 min.
+const duration = (seconds: number | null) => (seconds === null ? NONE() : formatDuration(seconds));
 const tablesOf = (visit: PlayerVisit) => (visit.tables.length === 0 ? NONE() : visit.tables.map((entry) => entry.table).join(', '));
 const kycWords = (status: MemberKycStatus) => t(`console.members.kycStatuses.${status}`);
 // A club day as a date: noon IST that day, so the date is the day's whatever the browser's zone.
@@ -40,8 +42,12 @@ function visitColumns(counted: ListChoices | undefined): readonly DataTableColum
     { key: 'tier', share: 1.05, header: t('console.members.tier'), cell: tierOf, exportValue: (visit) => visit.tierName, sortValue: (visit) => visit.tierName, filter: 'choice', choices: tierChoices(counted), filterValue: (visit) => visit.tierName },
     { key: 'in', share: 0.65, header: t('console.todaysPlayers.checkedIn'), cell: (visit) => at(visit.checkedInAt), sortValue: (visit) => visit.checkedInAt ?? '', filter: false },
     { key: 'out', share: 0.65, header: t('console.todaysPlayers.checkedOut'), cell: (visit) => at(visit.checkedOutAt), sortValue: (visit) => visit.checkedOutAt ?? '', filter: false },
-    { key: 'waited', share: 1, filter: 'duration', header: t('console.todaysPlayers.waited'), cell: (visit) => formatDuration(visit.waitingSeconds), sortValue: (visit) => visit.waitingSeconds, align: 'end' },
+    { key: 'waited', share: 1, filter: 'duration', header: t('console.todaysPlayers.waited'), cell: (visit) => duration(visit.waitingSeconds), sortValue: (visit) => visit.waitingSeconds ?? -1, align: 'end' },
     { key: 'table', share: 0.95, header: t('console.todaysPlayers.table'), cell: tablesOf, sortValue: tablesOf, filter: 'text' },
+    // A row is a seat (the owner, 19 Nov): when they sat at its table and left it, and its time away.
+    { key: 'seated', share: 0.65, header: t('console.todaysPlayers.seated'), cell: (visit) => at(visit.seatedAt), sortValue: (visit) => visit.seatedAt ?? '', filter: false },
+    { key: 'left', share: 0.65, header: t('console.todaysPlayers.left'), cell: (visit) => at(visit.leftAt), sortValue: (visit) => visit.leftAt ?? '', filter: false },
+    { key: 'away', share: 0.8, filter: 'duration', header: t('console.todaysPlayers.away'), cell: (visit) => duration(visit.awaySeconds), sortValue: (visit) => visit.awaySeconds ?? -1, align: 'end' },
     {
       key: 'played', share: 1.5, filter: 'duration', header: t('console.todaysPlayers.played'), sortValue: (visit) => visit.playedSeconds, align: 'end',
       cell: (visit) => (visit.tables.length === 0 ? NONE() : formatDuration(visit.playedSeconds)),
@@ -91,7 +97,7 @@ export function PlayerVisits({ span, periodWords, correct: Correct }: { span: Re
   return (
     <>
       <DataTable {...stateOf(page)} label={t('console.reports.playersReport.visits')} columns={columns} narrowLayout="sideways"
-        rowKey={(visit) => `${visit.clubDay}:${visit.memberId}`} exportFilter={periodWords}
+        rowKey={(visit) => `${visit.clubDay}:${visit.memberId}:${visit.seatedAt ?? ''}`} exportFilter={periodWords}
         filter={{ label: t('console.reports.playersReport.search'), variant: 'subtle', text: (visit) => visit.fullName }}
         server={{ total: page.data?.total ?? 0, pageSize: LIST_PAGE, onRequest: setRequest, scope: `${span.from}:${span.to}` }} exportRows={page.readEvery} />
       {Correct === undefined || correcting === null ? null : (
