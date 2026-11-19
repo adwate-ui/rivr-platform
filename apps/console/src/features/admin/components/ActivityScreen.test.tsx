@@ -83,6 +83,17 @@ describe('Activity (8 Nov audit, F-034)', () => {
     for (const shown of ['Farid Khan', 'Paid a high hand: 5,000', 'Four Jacks · Table 2, seat 3']) expect(row?.textContent).toContain(shown);
   });
 
+  it('says how many a Bonus decision on several members took at once, never a bare number (decision 0670)', async () => {
+    renderScreen('super_admin', () => [
+      line({ id: 7, action: 'bonus.approve', entity: 'promotion_bonus_decision', about: '2', reason: null, amount: 700 }),
+      line({ id: 8, action: 'bonus.approve', entity: 'promotion_bonus_decision', about: 'Mihir Shah', reason: null, amount: 300 }),
+    ]);
+    const table = await screen.findByRole('table', { name: 'Activity' }, LOADS);
+    expect(await within(table).findByText('Bonus from promotions · 2 at once', {}, LOADS)).toBeDefined();
+    expect(within(table).getByText('Bonus from promotions · Mihir Shah')).toBeDefined();
+    expect(within(table).queryByText('Bonus from promotions · 2')).toBeNull();
+  });
+
   it('asks the server for the person, kind and days chosen', async () => {
     const { asked } = renderScreen('super_admin', () => [line({})]);
     await screen.findByRole('table', { name: 'Activity' }, LOADS);

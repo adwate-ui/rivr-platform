@@ -45,6 +45,8 @@ export interface ActivityLine {
   readonly kind: ActivityKind;
   /** The member, staff member or table it was about, when it names one. */
   readonly about: string | null;
+  /** How many Bonus one decision on several members' approved or refused, which it names in place of a member; else null. */
+  readonly decided: number | null;
   readonly reason: string | null;
   /** How much Bonus was added by hand, or paid for a high hand; null for anything else. */
   readonly amount: number | null;
@@ -66,11 +68,19 @@ function askOf(venueId: string, filters: ActivityFilters, page: number, pageSize
 
 type PageRow = Database['public']['Functions']['activity_page']['Returns'][number];
 
-const lineOf = (row: PageRow): ActivityLine => ({
-  id: row.id, occurredAt: row.occurred_at, who: row.who, isSystem: row.is_system, action: row.action, entity: row.entity,
-  kind: ACTIVITY_KINDS.find((one) => one === row.kind) ?? 'other', about: row.about, reason: row.reason, amount: row.amount,
-  highHand: highHandOf(row.high_hand),
-});
+/** A Bonus decision that is not one member's: the log gives how many it decided where it would name the member (decision 0670). */
+function decidedOf(row: PageRow): number | null {
+  return row.entity === 'promotion_bonus_decision' && row.about !== null && /^\d+$/.test(row.about) ? Number(row.about) : null;
+}
+
+const lineOf = (row: PageRow): ActivityLine => {
+  const decided = decidedOf(row);
+  return {
+    id: row.id, occurredAt: row.occurred_at, who: row.who, isSystem: row.is_system, action: row.action, entity: row.entity,
+    kind: ACTIVITY_KINDS.find((one) => one === row.kind) ?? 'other', about: decided === null ? row.about : null, decided, reason: row.reason,
+    amount: row.amount, highHand: highHandOf(row.high_hand),
+  };
+};
 
 /**
  * One page of the venue's activity log for super admins, newest first, by its number (8 Nov audit, F-034; redesign RD-31:

@@ -56,6 +56,13 @@ describe('Seat a player suggests members as the floor types (the owner, 15 Nov n
     expect(await screen.findByText('Arjun Player 3 seated at Table 2, seat 2')).toBeDefined();
   });
 
+  it('asks the search once typing pauses, not once a key', async () => {
+    const { rpcs, seat } = await openForLeela({ ...FLOOR, replies: { member_search: { status: 200, body: found(3) } } });
+    for (const typed of ['ar', 'arj', 'arju']) typeIn(seat, typed);
+    await within(seat).findByRole('radiogroup', { name: 'Members matching' });
+    expect(rpcs('member_search')).toEqual([{ p_venue_id: 'v1', p_query: 'arju' }]);
+  });
+
   it('chooses with the keyboard: the arrow keys move along the matches, choosing each', async () => {
     const { rpcs, seat } = await openForLeela({ ...FLOOR, replies: { member_search: { status: 200, body: found(3) }, seat_member: { status: 200, body: 's9' } } });
     typeIn(seat, 'arj');

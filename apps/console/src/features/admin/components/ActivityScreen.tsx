@@ -11,7 +11,8 @@ function whoOf(line: ActivityLine): string {
 
 function recordOf(line: ActivityLine): string {
   const thing = activityEntityWord(line.entity);
-  return line.about === null ? thing : t('console.activity.recordOf', { thing, name: line.about });
+  const name = line.decided === null ? line.about : t('console.activity.decided', { count: formatNumber(line.decided) });
+  return name === null ? thing : t('console.activity.recordOf', { thing, name });
 }
 
 /** What was done, and how much for Bonus by hand. */
