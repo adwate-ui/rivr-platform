@@ -63,7 +63,10 @@ Auth and API on staging and production, in the Supabase dashboard:
      - On staging, once, end the sessions that were not started by a code, in the SQL editor: `delete from auth.sessions s where not exists (select 1 from auth.mfa_amr_claims c where c.session_id = s.id and c.authentication_method = 'otp');`
      - The deploy checks it from then on (`scripts/ci/check-auth-config.mjs`): while phone sign-in is on, a gap is a warning on staging and fails a production release.
   5. Under Authentication → Sign In / Providers → Phone, turn phone sign-in on. It needs both hooks in place. On production, not before the CAPTCHA (#182) is live: without it, about 30 requests an hour to random numbers use up the project's code limit and lock every member out.
-  6. WhatsApp through the Evolution bridge, for now (decision 0297):
+  6. WhatsApp through the Evolution bridge, for now (decision 0297). **Staging only: production has no WhatsApp** (the owner,
+     19 Nov 2026, decision 0697). On production set the function secret `WHATSAPP_OFF=true` and leave every other WhatsApp
+     secret unset; there the two WhatsApp consumers take each message and send none, sign-in codes go by SMS (step 7a) and
+     alerts by email (step 13). Without `WHATSAPP_OFF`, missing secrets are a fault: the consumers answer 503 and deliveries wait.
      - On the bridge, create an instance for RIVR's own number and link it by scanning its QR code with that phone.
      - Set `EVOLUTION_API_URL` (https, no trailing slash), `EVOLUTION_API_KEY` and `EVOLUTION_INSTANCE_NAME` as function secrets, with `pnpm supabase secrets set --env-file <file> --project-ref <ref>` so no value is typed on a command line.
      - Staging sets no `WHATSAPP_ALLOWLIST`, so it messages every number, test members included (decision 0461). Setting one (`+91…`, comma-separated) limits members' messages and alerts to those numbers; sign-in codes always go to whoever asks.

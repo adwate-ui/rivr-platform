@@ -1,5 +1,5 @@
--- The website without what the club no longer does (8 Nov audit, I-10): no open seats, a seat requested and called on
--- WhatsApp, no hand logging, no Academy; the 20-minute hold of house rule 5 stays; a club's own words stay; running it
+-- The website without what the club no longer does (8 Nov audit, I-10): no open seats, a seat requested and called (in the
+-- app since decision 0697, 545), no hand logging, no Academy; the 20-minute hold of house rule 5 stays; a club's own words stay; running it
 -- again changes nothing; and a new club's website comes that way.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -17,14 +17,14 @@ create function pg_temp.tiers(p_venue_id uuid, p_slug text) returns text[] langu
   where p.venue_id = p_venue_id and p.slug = p_slug and b.content ->> 'heading' in ('Earned at the table. Not bought.', 'Earned at the table.');
 $$;
 
-select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'home', 'Request a seat before you leave home. When one opens, the floor calls you on WhatsApp.'), 1,
-  'the front page''s app band says a seat is requested and called on WhatsApp');
+select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'home', 'Request a seat before you leave home. When one opens, the floor calls you in the app.'), 1,
+  'the front page''s app band says a seat is requested and called');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', null, 'open seats, join'), 0, 'and promises no open seats');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', null, '"label": "Join the waitlist"'), 0, 'no link says Join the waitlist');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', null, '{"to": "waitlist", "label": "Open the app"}'), 2, 'the band''s and the links page''s say Open the app');
-select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'membership', 'Request a seat from the app. The floor calls you on WhatsApp when one opens.'), 1,
+select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'membership', 'Request a seat from the app. The floor calls you there when one opens.'), 1,
   'Membership says the same');
-select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'questions', 'the floor calls you on WhatsApp when a seat opens'), 1, 'as Questions does');
+select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'questions', 'the floor calls you there when a seat opens'), 1, 'as Questions does');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', null, 'log every hand'), 0, 'no dealer logs every hand');
 select is(pg_temp.saying('00000000-0000-4000-8000-000000000001', 'about', 'Trained dealers at every table, a cage'), 1, 'the About story keeps its dealers');
 select is(pg_temp.tiers('00000000-0000-4000-8000-000000000001', 'home'), array['Member', 'Founders'' Circle', 'Black card'], 'the front page''s tiers have no Academy graduate');
@@ -48,7 +48,7 @@ select set_eq($$ select b.id, b.content from public.site_block b join public.sit
 select set_config('request.jwt.claims', '', true);
 select private.bootstrap_venue('00000000-0000-4000-8000-0000000000c2', 'RIVR Call', 'seat-call', false, 'RIVR test', 'Test', 'TSC');
 select private.add_website('00000000-0000-4000-8000-0000000000c2');
-select is(pg_temp.saying('00000000-0000-4000-8000-0000000000c2', 'home', 'the floor calls you on WhatsApp'), 1, 'a new club''s app band says the call');
+select is(pg_temp.saying('00000000-0000-4000-8000-0000000000c2', 'home', 'the floor calls you in the app'), 1, 'a new club''s app band says the call');
 select is(pg_temp.tiers('00000000-0000-4000-8000-0000000000c2', 'membership'), array['Member', 'Founders'' Circle', 'Black card'],
   'and its tiers have no Academy graduate');
 select is(pg_temp.saying('00000000-0000-4000-8000-0000000000c2', null, 'DigiLocker'), 0, 'with the desk''s identity check before it');

@@ -37,7 +37,7 @@ export const profile = {
   bonusChips: 'Bonus',
   bonusChipsHint: 'When Bonus is added or used',
   marketing: 'Offers',
-  marketingHint: 'By WhatsApp and app. Stop any time.',
+  marketingHint: 'In the app. Stop any time.',
   /** The cookie banner's analytics choice, changed later (decision 0298). */
   analytics: 'Analytics',
   analyticsHint: 'Google Analytics and Meta pixel on this phone',
@@ -60,7 +60,6 @@ export const profile = {
   deleteWhen: 'RIVR erases your account and its data within 7 days, once nothing is open at the club.',
   deleteForfeit: 'Your Bonus is forfeited.',
   deleteKept: 'Play records the law requires are kept, without your name or number.',
-  deleteConfirmed: 'A WhatsApp message confirms it when done.',
   deleteSend: 'Send request',
   deleteSent: 'Request sent.',
   deleteNotSent: 'Not sent. Try again.',
