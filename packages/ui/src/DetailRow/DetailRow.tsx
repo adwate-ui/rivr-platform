@@ -19,23 +19,26 @@ export interface DetailRowProps {
   isLast?: boolean;
   /** Makes the row a button with a chevron, such as Membership card or House rules. */
   onOpen?: (() => void) | undefined;
+  /** On a row that opens something, words a screen reader hears after what it shows: `Reverse`, for an action and not a place. */
+  openHint?: string | undefined;
 }
 
 /**
  * One line of a ruled list (decision 0320): a label and its value, under a gold hairline. The seat's status lines, a
  * session's Game and Time, a redemption's Cost; with `onOpen`, a row that opens something, with its chevron.
  */
-export function DetailRow({ size = 'body', isLast = false, onOpen, ...look }: DetailRowProps) {
+export function DetailRow({ size = 'body', isLast = false, onOpen, openHint, ...look }: DetailRowProps) {
   const row = cx('flex min-h-touch w-full items-center justify-between gap-3 border-t border-hairline py-3 text-start font-text',
     size === 'small' ? 'text-14' : 'text-16', isLast && 'border-b');
-  if (onOpen) return <button type="button" className={cx(row, 'text-content')} onClick={onOpen}><RowBody {...look} hasChevron /></button>;
+  if (onOpen) return <button type="button" className={cx(row, 'text-content')} onClick={onOpen}><RowBody {...look} hasChevron openHint={openHint} /></button>;
   return <div className={row}><RowBody {...look} hasChevron={false} /></div>;
 }
 
-type RowBodyProps = Pick<DetailRowProps, 'label' | 'detail' | 'value' | 'labelTone' | 'valueTone' | 'hasDot'> & { hasChevron: boolean };
+type RowBodyProps = Pick<DetailRowProps, 'label' | 'detail' | 'value' | 'labelTone' | 'valueTone' | 'hasDot' | 'openHint'> & { hasChevron: boolean };
 
 /** The label (with its dot, and any line under it), the value and, on a row that opens something, the chevron. */
-function RowBody({ label, detail, value, labelTone = 'default', valueTone = 'default', hasDot = false, hasChevron }: RowBodyProps) {
+function RowBody({ label, detail, value, labelTone = 'default', valueTone = 'default', hasDot = false, hasChevron, openHint }: RowBodyProps) {
+  const shown = value === undefined ? null : <span className={cx('shrink-0 text-end', TONE[valueTone])}>{value}</span>;
   return (
     <>
       <span className={cx('flex min-w-0 items-center gap-2 wrap-anywhere', TONE[labelTone])}>
@@ -47,9 +50,15 @@ function RowBody({ label, detail, value, labelTone = 'default', valueTone = 'def
           </span>
         )}
       </span>
-      {value === undefined ? null : <span className={cx('shrink-0 text-end', TONE[valueTone])}>{value}</span>}
-      {/* The chevron's ink ends on the row's edge with the values and switches beside it, past its side bearing (F-157). */}
-      {hasChevron ? <span className="-mr-1 text-content-muted"><Icon name="chevronRight" size="sm" /></span> : null}
+      {/* On a row that opens, the value and the chevron end it together: three apart, the value would float mid-row (#1077). */}
+      {hasChevron ? (
+        <span className="flex shrink-0 items-center gap-3">
+          {shown}
+          {/* The chevron's ink ends on the row's edge with the values and switches beside it, past its side bearing (F-157). */}
+          <span className="-mr-1 text-content-muted"><Icon name="chevronRight" size="sm" /></span>
+          {openHint === undefined ? null : <span className="sr-only">{openHint}</span>}
+        </span>
+      ) : shown}
     </>
   );
 }

@@ -34,6 +34,9 @@ const chips = (paise: number) => (paise / 100).toLocaleString('en-IN');
  * every grant and redemption.
  */
 function reset() {
+  // Bonus he owes after a reversal (#1077) can never be deleted: Bonus given sets it right, as the club would.
+  sql(`select private.credit_bonus('${CLUB}', '${JAYESH}', x.owed, 'Set right after the flow', null, 'e2e-settle:' || gen_random_uuid())
+       from (select private.bonus_owed_by('${JAYESH}') as owed) x where x.owed > 0`);
   sql(`delete from public.bonus_redemption where member_id = '${JAYESH}'`);
   sql(`update public.member set hours_counted_from = null where id = '${JAYESH}' and hours_counted_from is not null`);
   sql(`delete from public.waitlist_entry where member_id = '${JAYESH}'`);
@@ -124,8 +127,10 @@ test.describe('Bonus', () => {
     await expect(floor.getByText(/Buy-in · Table 5 · seated by Ishaan Grover$/)).toBeVisible();
 
     // Bonus by hand, on the record: 50 with a reason, asked twice; his app shows it.
-    await floor.getByRole('textbox', { name: /^Bonus/ }).fill('50');
-    await floor.getByRole('textbox', { name: /^Reason/ }).fill(REASON);
+    // A super admin's record has a missed-use form too: the Add Bonus region holds this one's fields.
+    const byHand = floor.getByRole('region', { name: 'Add Bonus' });
+    await byHand.getByRole('textbox', { name: /^Bonus/ }).fill('50');
+    await byHand.getByRole('textbox', { name: /^Reason/ }).fill(REASON);
     await floor.getByRole('button', { name: 'Add Bonus' }).click();
     await floor.getByRole('button', { name: 'Yes, add 50 Bonus' }).click();
     await expect(floor.getByText('50 Bonus added.')).toBeVisible();
@@ -144,5 +149,26 @@ test.describe('Bonus', () => {
     await expect(floor.getByText('Hours reset.')).toBeVisible();
     expect(counted()).toBe(0);
     expect(sql(`select reason from public.audit_log where action = 'member.hours_reset' and entity_id = '${JAYESH}' order by id desc limit 1`)).toBe(`${REASON} hours`);
+
+    // The owner, 18 Nov: a super admin adds a use his seat missed (past its Undo now), then reverses the 50 added by hand,
+    // which that use spent: he owes 50, and his app shows both, with no reason (the owner, 19 Nov). The use stays within his
+    // balance, so nothing owed names it and reset() can delete it; the 50 owed after the reversal reset() sets right.
+    await floor.getByRole('navigation', { name: /^Record of/ }).getByRole('link', { name: 'Bonus' }).click();
+    const missed = floor.getByRole('region', { name: 'Missed Bonus use' });
+    await missed.getByRole('radio', { name: /^Table 5 · seat \d+ · / }).click();
+    await missed.getByRole('textbox', { name: /^Bonus used/ }).fill('50');
+    await missed.getByRole('textbox', { name: /^Reason/ }).fill(`${REASON} missed`);
+    await missed.getByRole('button', { name: 'Add use' }).click();
+    await missed.getByRole('button', { name: 'Yes, take 50 Bonus' }).click();
+    await expect(floor.getByText('50 Bonus use added.')).toBeVisible();
+    await expect(page.getByText('Buy-in · Table 5', { exact: true })).toHaveCount(2, { timeout: 15_000 });
+    await floor.getByRole('button', { name: new RegExp(`${REASON}.*Reverse$`) }).click();
+    const reversing = floor.getByRole('dialog', { name: 'Reverse Bonus' });
+    await reversing.getByRole('textbox', { name: /^Reason/ }).fill(`${REASON} back`);
+    await reversing.getByRole('button', { name: 'Reverse' }).click();
+    await expect(floor.getByText('50 Bonus reversed.')).toBeVisible();
+    expect(Number(sql(`select private.bonus_balance('${JAYESH}', now())`))).toBe(-5_000);
+    await expect(page.getByText('Reversed', { exact: true }).first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(`${REASON} back`)).toHaveCount(0);
   });
 });

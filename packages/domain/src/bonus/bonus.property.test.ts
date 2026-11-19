@@ -1,7 +1,7 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { fromPaise, isChipMultiple } from '../money/index.ts';
-import { bonusAvailable, bonusEnd, bonusExpired, bonusSpend, visitBonusCap, visitBonusLeft, type BonusGrant } from './bonus.ts';
+import { bonusAvailable, bonusEnd, bonusExpired, bonusPayOff, bonusSpend, bonusTake, visitBonusCap, visitBonusLeft, type BonusGrant } from './bonus.ts';
 
 const AT = new Date('2026-11-15T20:00:00+05:30');
 const chips = fc.bigInt({ min: 1n, max: 40_000n }).map((count) => fromPaise(count * 5_000n));
@@ -102,6 +102,52 @@ describe('bonus properties', () => {
       expect(cap <= balance && isChipMultiple(cap) && visitBonusCap(balance, low) <= cap).toBe(true);
       const left = visitBonusLeft(cap, redeemed);
       expect(left >= 0n && left <= cap && (redeemed <= cap ? left === cap - redeemed : left === 0n)).toBe(true);
+    }));
+  });
+
+  it('takes back exactly the amount, between the grants and what is owed, never more than a grant has left', () => {
+    const paise = fc.bigInt({ min: 0n, max: 5_000_000n }).map(fromPaise);
+    fc.assert(fc.property(paise, grants, fc.nat(), fc.boolean(), (amount, held, pick, isReversal) => {
+      const first = isReversal && held.length > 0 ? pick % held.length : null;
+      const { taken, owed } = bonusTake(amount, held, AT, first);
+      expect(taken.reduce((sum, part) => sum + part, 0n) + owed).toBe(amount);
+      expect(owed >= 0n).toBe(true);
+      taken.forEach((part, index) => {
+        const from: BonusGrant | undefined = held[index];
+        expect(part >= 0n && part <= (from?.remaining ?? 0n)).toBe(true);
+        // Of the ended grants, only the one reversed gives.
+        if (from !== undefined && index !== first && hasEnded(from)) expect(part).toBe(0n);
+      });
+    }));
+  });
+
+  it('owes only once every grant it may draw on is used up, the one reversed first of all', () => {
+    const paise = fc.bigInt({ min: 0n, max: 5_000_000n }).map(fromPaise);
+    fc.assert(fc.property(paise, grants, fc.nat(), (amount, held, pick) => {
+      const first = held.length > 0 ? pick % held.length : null;
+      const { taken, owed } = bonusTake(amount, held, AT, first);
+      const drawable = held.map((from, index) => index === first || !hasEnded(from));
+      if (owed > 0n) held.forEach((from, index) => { if (drawable[index] === true) expect(taken[index]).toBe(from.remaining); });
+      const othersGave = taken.some((part, index) => index !== first && part > 0n);
+      if (first !== null && othersGave) expect(taken[first]).toBe(held[first]?.remaining);
+    }));
+  });
+
+  it('throws on Bonus taken back below nothing, or from a grant not in the list: a bug in the caller', () => {
+    const held: BonusGrant[] = [{ remaining: fromPaise(1_000n), expiresAt: null }];
+    expect(() => bonusTake(fromPaise(-1n), held, AT, null)).toThrow(RangeError);
+    expect(() => bonusTake(fromPaise(0n), held, AT, 1)).toThrow(RangeError);
+    expect(() => bonusTake(fromPaise(0n), held, AT, -1)).toThrow(RangeError);
+    expect(bonusTake(fromPaise(0n), held, AT, 0)).toEqual({ taken: [0n], owed: 0n });
+  });
+
+  it('pays what is owed first and keeps the rest, never below nothing', () => {
+    const paise = fc.bigInt({ min: 0n, max: 10_000_000n }).map(fromPaise);
+    fc.assert(fc.property(paise, paise, (given, owed) => {
+      const { paid, kept } = bonusPayOff(given, owed);
+      expect(paid + kept).toBe(given);
+      expect(paid >= 0n && kept >= 0n && paid <= owed).toBe(true);
+      expect(kept === 0n || paid === owed).toBe(true);
     }));
   });
 

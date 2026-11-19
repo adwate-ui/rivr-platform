@@ -95,6 +95,26 @@ describe('the seat sheet', () => {
     await waitFor(() => expect(calls).toEqual([{ p_entry_id: 'e1', p_table_id: 't3', p_seat: 6, p_call_minutes: TABLE.callTimeMinutes, p_bonus_chips: 1000 }]));
   });
 
+  it('says a member who owes Bonus has none to redeem (the owner, 18 Nov)', async () => {
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
+      access_token: 'test', refresh_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
+      user: { id: '00000000-0000-4000-8000-000000000103', aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-10-18T00:00:00Z' },
+    }));
+    vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+      const url = String(input instanceof Request ? input.url : input);
+      return Response.json(url.includes('/rpc/member_bonus') ? [{ bonus_paise: -50_000 }] : []);
+    });
+    render(
+      <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
+        queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <ToastProvider place="console">
+          <SeatSheet venueId="v1" table={TABLE} place={{ entryId: 'e1', memberId: 'm9', name: 'Naina Kapoor' }} onClose={vi.fn()} />
+        </ToastProvider>
+      </RivrDataProvider>,
+    );
+    expect(await screen.findByText('Owes 500 Bonus. None to redeem.', {}, { timeout: 5000 })).toBeDefined();
+  });
+
   // Decision 0579: the club caps what one visit redeems.
   it('shows what this visit may still redeem, and says when a seat asks for more', async () => {
     localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({

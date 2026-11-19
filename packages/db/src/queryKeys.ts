@@ -91,6 +91,8 @@ export const queryKeys = {
   bonusByHandCap: (userId: string, venueId: string) => ['user', userId, 'bonus-by-hand-cap', venueId] as const,
   /** What a member's visit may still redeem under bonus.visit_cap (decision 0579), under memberBonus so a seating refreshes both. */
   memberBonusVisitLeft: (userId: string, venueId: string, memberId: string) => ['user', userId, 'bonus', venueId, memberId, 'visit-left'] as const,
+  /** The seats a super admin may add a missed Bonus use to (#1077), under memberBonus so a change refreshes them too. */
+  bonusUseSeats: (userId: string, venueId: string, memberId: string, count: number) => ['user', userId, 'bonus', venueId, memberId, 'use-seats', count] as const,
   tableMetrics: (userId: string, venueId: string, from: string, to: string) => ['user', userId, 'table-metrics', venueId, from, to] as const,
   tableMetricsTotal: (userId: string, venueId: string, from: string, to: string) => ['user', userId, 'table-metrics-total', venueId, from, to] as const,
   /** One read of a report over a span (redesign RD-27): `name` is its chart, its figures or its lines. */

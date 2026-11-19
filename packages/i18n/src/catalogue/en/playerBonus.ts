@@ -17,6 +17,10 @@ export const playerBonus = {
   redeemed: 'Buy-in · {table}',
   redeemedNoTable: 'Buy-in',
   expired: 'Expired · {reason}',
+  /** Bonus the club reversed (#1077); with no reason (the owner, 19 Nov). */
+  reversed: 'Reversed',
+  /** Under the balance while Bonus is owed (#1077): below zero until new Bonus pays it. */
+  owedLine: 'Owed. New Bonus pays it first.',
   /** A high hand paid (redesign RD-25): `High hand: Straight flush, Nine high`. */
   highHand: 'High hand: {hand}',
   /** A line's Bonus: `+500`, `−1,000`. */

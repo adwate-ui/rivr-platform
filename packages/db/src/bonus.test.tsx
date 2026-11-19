@@ -3,7 +3,10 @@ import { QueryClient } from '@tanstack/react-query';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { useGiveBonusChips, useMemberBonus, useMemberBonusHistory, useMemberBonusVisitLeft, useMyBonus, useMyBonusHistory } from './bonus.ts';
+import {
+  useAddBonusUse, useBonusUseSeats, useGiveBonusChips, useMemberBonus, useMemberBonusHistory, useMemberBonusVisitLeft, useMyBonus, useMyBonusHistory,
+  useReverseBonus,
+} from './bonus.ts';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
 import { RivrDataProvider } from './provider.tsx';
@@ -129,5 +132,47 @@ describe('Bonus', () => {
       await act(async () => { outcome = await hook.result.current.mutateAsync({ chips: 75, reason: 'Birthday', requestId: 'r-2' }); });
       expect(outcome).toEqual({ ok: false, error: failure });
     }
+  });
+
+  it('reverses a Bonus given, reads the seats a missed use may go to, and adds one (the owner, 18 Nov)', async () => {
+    const done = clientFor({
+      '/rpc/reverse_bonus': { body: 200_000 },
+      '/rpc/bonus_use_seats': { body: [{ session_id: 's7', table_name: 'Table 5', seat: 7, started_at: '2026-11-18T16:40:00Z', ended_at: null }] },
+      '/rpc/add_bonus_use': { body: 'u1' },
+    });
+    const hooks = renderHook(() => ({ reverse: useReverseBonus(VENUE, MEMBER), seats: useBonusUseSeats(VENUE, MEMBER, 10), add: useAddBonusUse(VENUE, MEMBER) }),
+      { wrapper: done.wrapper });
+    let outcome: unknown;
+    await act(async () => { outcome = await hooks.result.current.reverse.mutateAsync({ grantId: 'g1', reason: 'Wrong member' }); });
+    expect(outcome).toEqual({ ok: true, value: 200_000n });
+    expect(done.calls.find((call) => call.url.includes('/rpc/reverse_bonus'))?.body).toEqual({ p_grant_id: 'g1', p_reason: 'Wrong member' });
+    await waitFor(() => expect(hooks.result.current.seats.data).toEqual([{ sessionId: 's7', tableName: 'Table 5', seat: 7, startedAt: '2026-11-18T16:40:00Z', endedAt: null }]));
+    expect(done.calls.find((call) => call.url.includes('/rpc/bonus_use_seats'))?.body).toEqual({ p_venue_id: VENUE, p_member_id: MEMBER, p_limit: 10 });
+    await act(async () => { outcome = await hooks.result.current.add.mutateAsync({ sessionId: 's7', chips: 1500, reason: 'Missed at the seat', requestId: 'u1' }); });
+    expect(outcome).toEqual({ ok: true, value: null });
+    expect(done.calls.find((call) => call.url.includes('/rpc/add_bonus_use'))?.body)
+      .toEqual({ p_session_id: 's7', p_chips: 1500, p_reason: 'Missed at the seat', p_request_id: 'u1' });
+  });
+
+  it('says why a reversal or a missed use is refused', async () => {
+    let outcome: unknown;
+    const refusals = [['RVOWN', 'own_record'], ['42501', 'not_allowed'], ['22023', 'invalid'], ['RVCHP', 'invalid_chips'], ['RVNIL', 'nothing_left'],
+      ['RVKIL', 'paused'], ['RVRAT', 'busy'], ['XX000', 'unavailable']] as const;
+    for (const [code, failure] of refusals) {
+      const refusal = { status: 400, body: { code, message: 'no' } };
+      const refused = clientFor({ '/rpc/reverse_bonus': refusal, '/rpc/add_bonus_use': refusal });
+      const hooks = renderHook(() => ({ reverse: useReverseBonus(VENUE, MEMBER), add: useAddBonusUse(VENUE, MEMBER) }), { wrapper: refused.wrapper });
+      await act(async () => { outcome = await hooks.result.current.reverse.mutateAsync({ grantId: 'g1', reason: 'Wrong member' }); });
+      expect(outcome).toEqual({ ok: false, error: failure });
+      await act(async () => { outcome = await hooks.result.current.add.mutateAsync({ sessionId: 's7', chips: 75, reason: 'Missed', requestId: 'u2' }); });
+      expect(outcome).toEqual({ ok: false, error: failure });
+    }
+  });
+
+  it('reads a reversal as a line of its own kind', async () => {
+    const reversed = { line_id: 'g1', at: '2026-11-18T18:00:00Z', kind: 'reversed', amount_paise: 150_000, reason: 'Wrong member', table_name: null, staff_name: 'Vikram Rao' };
+    const { wrapper } = clientFor({ '/rpc/member_bonus_history': { body: [reversed] } });
+    const history = renderHook(() => useMemberBonusHistory(VENUE, MEMBER, 20), { wrapper });
+    await waitFor(() => expect(history.result.current.data?.map((line) => [line.kind, line.reason, line.staffName])).toEqual([['reversed', 'Wrong member', 'Vikram Rao']]));
   });
 });

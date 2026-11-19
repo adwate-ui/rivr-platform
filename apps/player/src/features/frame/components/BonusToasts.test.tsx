@@ -80,6 +80,16 @@ describe('the bonus toast (decision 0504)', () => {
     expect(screen.queryByText(/Old bonus/)).toBeNull();
   });
 
+  it('tells nothing of Bonus the club reversed', async () => {
+    const { landed, read } = renderToasts({ lines: [] });
+    await read();
+    await landed([line('g2', 'reversed', 50_000)]);
+    await landed([line('g3', 'credited', 20_000, { reason: 'Played two hours' })]);
+    expect(await screen.findByText('200 Bonus added · Played two hours')).toBeDefined();
+    // Nothing of the reversal, in any words: a fall through to the buy-in's toast would name its 500.
+    expect(screen.queryByText(/500 Bonus/)).toBeNull();
+  });
+
   it('names the hand and the Bonus when a high hand is paid (redesign RD-25)', async () => {
     const { landed, read } = renderToasts({ lines: [] });
     await read();

@@ -132,6 +132,8 @@ export const waitlist = {
   /** With a cap on what one visit redeems (decision 0579). */
   bonusChipsLeft: 'Has {chips} Bonus. Up to {left} this visit.',
   bonusChipsNone: 'No Bonus.',
+  /** Bonus owed (#1077): none is redeemed until new Bonus pays it. */
+  bonusChipsOwed: 'Owes {chips} Bonus. None to redeem.',
   badBonusChips: 'Bonus goes in whole 50s.',
   /** Back refused: the member was away past their time, so the place has gone (#287). */
   awayTooLong: 'Away too long. Add them again if they are here.',

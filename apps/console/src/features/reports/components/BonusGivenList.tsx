@@ -6,8 +6,12 @@ import { useState } from 'react';
 const NONE = () => t('console.todaysPlayers.none');
 const sourceWords = (source: BonusSource) => t(`console.reports.bonusGiven.sources.${source}`);
 
-/** Who gave it: the staff member by hand; a promotion and the super admin who approved it; who logged a high hand. */
+/**
+ * Who gave it: the staff member by hand; a promotion and the super admin who approved it; who logged a high hand. A
+ * reversal (#1077), below nothing on its own day: who reversed it.
+ */
 function givenBy(bonus: BonusGiven): string {
+  if (bonus.source === 'reversed') return bonus.staffName === null ? sourceWords('reversed') : t('console.reports.bonusGiven.reversedBy', { name: bonus.staffName });
   if (bonus.source === 'by_hand') return bonus.staffName ?? sourceWords('by_hand');
   if (bonus.source === 'high_hand') return bonus.staffName === null ? sourceWords('high_hand') : t('console.reports.bonusGiven.loggedBy', { name: bonus.staffName });
   if (bonus.source === 'promotion') {

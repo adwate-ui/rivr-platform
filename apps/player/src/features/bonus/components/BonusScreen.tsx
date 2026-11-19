@@ -28,7 +28,8 @@ export function BonusScreen() {
       <Stack gap={8}>
         <FeatureGate access={bonus}>
           <Stack gap={6}>
-            <BalanceTile look="hero" figure={formatChips(mine.data.balance)} label={t('playerBonus.balance')} line={balanceLine(mine.data.line)} />
+            <BalanceTile look="hero" figure={formatChips(mine.data.balance)} label={t('playerBonus.balance')}
+              line={mine.data.balance < 0n ? t('playerBonus.owedLine') : balanceLine(mine.data.line)} />
             <BonusHistory />
           </Stack>
         </FeatureGate>

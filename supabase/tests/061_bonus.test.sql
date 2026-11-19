@@ -69,13 +69,14 @@ select is_empty($$ select t.kind from public.ledger_entry e join public.ledger_a
                    where a.code = 'member.bonus' and e.amount > 0 and t.kind not in ('bonus_buy_in', 'bonus_expiry') $$,
   'no bonus leaves a member but as chips or at its end');
 
--- Who sees grants: the member his own, the cage and ledger staff the venue's, nobody else.
+-- Who sees grants: the member his own, the cage and ledger staff the venue's, nobody else. (Rows, by id: a reversal's
+-- reason is a column no one signed in selects, #1077.)
 select pg_temp.as_person('00000000-0000-4000-8000-000000000211');
 select is((select count(*)::integer from public.bonus_grant), 2, 'Ishaan sees his two grants');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000212');
-select is_empty($$ select * from public.bonus_grant $$, 'another member sees none');
+select is_empty($$ select id from public.bonus_grant $$, 'another member sees none');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000106');
-select is_empty($$ select * from public.bonus_grant $$, 'nor does a dealer');
+select is_empty($$ select id from public.bonus_grant $$, 'nor does a dealer');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
 select is((select count(*)::integer from public.bonus_grant where member_id = '00000000-0000-4000-8000-000000000211'), 2, 'a cashier sees them');
 select throws_ok($$ update public.bonus_grant set remaining_paise = amount_paise $$, '42501', null, 'and changes none');
@@ -84,7 +85,7 @@ select is((select count(*)::integer from public.bonus_grant where member_id = '0
 reset role;
 update public.staff set is_active = false where user_id = '00000000-0000-4000-8000-000000000104' and venue_id = '00000000-0000-4000-8000-000000000001';
 select pg_temp.as_person('00000000-0000-4000-8000-000000000104');
-select is_empty($$ select * from public.bonus_grant $$, 'the practice venue''s cashier sees no club bonus');
+select is_empty($$ select id from public.bonus_grant $$, 'the practice venue''s cashier sees no club bonus');
 reset role;
 update public.staff set is_active = true where user_id = '00000000-0000-4000-8000-000000000104' and venue_id = '00000000-0000-4000-8000-000000000001';
 

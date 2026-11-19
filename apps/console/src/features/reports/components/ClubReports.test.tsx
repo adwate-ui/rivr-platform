@@ -39,16 +39,20 @@ const ANSWERS: Record<string, unknown[]> = {
     { source: 'promotion', label: 'Friday four-hour bonus', members: 31, grants: 31, given_paise: 3_100_000 },
     { source: 'hand', label: null, members: 2, grants: 3, given_paise: 300_000 },
     { source: 'other', label: 'Welcome back', members: 1, grants: 1, given_paise: 100_000 },
+    { source: 'reversed', label: null, members: 1, grants: 1, given_paise: -50_000 },
   ],
-  // Each Bonus given (#1063): by hand, a promotion once approved, a high hand, and one with only its reason.
+  // Each Bonus given (#1063): by hand, a promotion once approved, a high hand, one with only its reason, and a reversal on
+  // its own day, below zero (the owner, 19 Nov).
   bonus_given_page: [
-    { total: 4, grant_id: 'g1', given_at: '2026-11-15T16:00:00Z', member_id: 'm1', full_name: 'Ritika Das', member_number: 215, amount_paise: 50_000,
+    { total: 5, grant_id: 't5', given_at: '2026-11-15T17:00:00Z', member_id: 'm1', full_name: 'Ritika Das', member_number: 215, amount_paise: -50_000,
+      reason: 'Given to the wrong member', source: 'reversed', promotion_name: null, staff_name: 'Vikram Rao' },
+    { total: 5, grant_id: 'g1', given_at: '2026-11-15T16:00:00Z', member_id: 'm1', full_name: 'Ritika Das', member_number: 215, amount_paise: 50_000,
       reason: 'Good game tonight', source: 'by_hand', promotion_name: null, staff_name: 'Aditya Malhotra' },
-    { total: 4, grant_id: 'g2', given_at: '2026-11-15T15:00:00Z', member_id: 'm2', full_name: 'Yash Gupta', member_number: 214, amount_paise: 100_000,
+    { total: 5, grant_id: 'g2', given_at: '2026-11-15T15:00:00Z', member_id: 'm2', full_name: 'Yash Gupta', member_number: 214, amount_paise: 100_000,
       reason: 'Play-time bonus', source: 'promotion', promotion_name: 'Friday four-hour bonus', staff_name: 'Kavya Menon' },
-    { total: 4, grant_id: 'g3', given_at: '2026-11-15T14:00:00Z', member_id: 'm2', full_name: 'Yash Gupta', member_number: 214, amount_paise: 1_000_000,
+    { total: 5, grant_id: 'g3', given_at: '2026-11-15T14:00:00Z', member_id: 'm2', full_name: 'Yash Gupta', member_number: 214, amount_paise: 1_000_000,
       reason: 'High hand: Four Jacks', source: 'high_hand', promotion_name: 'High hands', staff_name: 'Aditya Malhotra' },
-    { total: 4, grant_id: 'g4', given_at: '2026-11-15T13:00:00Z', member_id: 'm1', full_name: 'Ritika Das', member_number: 215, amount_paise: 20_000,
+    { total: 5, grant_id: 'g4', given_at: '2026-11-15T13:00:00Z', member_id: 'm1', full_name: 'Ritika Das', member_number: 215, amount_paise: 20_000,
       reason: 'Welcome back', source: 'other', promotion_name: null, staff_name: null },
   ],
 };
@@ -149,6 +153,7 @@ describe('the reports beside Tables (redesign RD-27)', () => {
     expect(await rowOf(table, 'Friday four-hour bonus')).toBe('Friday four-hour bonus313131,000');
     expect(await rowOf(table, 'By hand')).toBe('By hand233,000');
     expect(await rowOf(table, 'Welcome back')).toBe('Welcome back111,000');
+    expect(await rowOf(table, 'Reversed')).toBe('Reversed11−500');
     expect([figure('Bonus given'), figure('By hand'), figure('Bonus used'), figure('Outstanding')]).toEqual(['64,000', '3,000', '38,500', '4,12,500']);
     expect(within(screen.getByRole('figure', { name: 'Bonus given by hour' })).getAllByRole('listitem').map((bar) => bar.textContent)).toEqual(['21:00: 2,50021:00', '22:00: 022:00']);
     expect(document.body.textContent).not.toContain('₹');
@@ -162,6 +167,8 @@ describe('the reports beside Tables (redesign RD-27)', () => {
     expect(await row('Play-time bonus')).toContain('Friday four-hour bonus · approved by Kavya Menon');
     expect(await row('Four Jacks')).toContain('High hand · logged by Aditya Malhotra');
     expect(await row('Welcome back')).toContain('Other');
+    expect(await row('Given to the wrong member')).toContain('Reversed by Vikram Rao');
+    expect(await row('Given to the wrong member')).toContain('−500');
   });
 
   it('says a report did not load, and asks again', async () => {

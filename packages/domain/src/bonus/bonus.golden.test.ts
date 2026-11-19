@@ -3,7 +3,7 @@ import bonusJson from '@rivr/testing/golden/bonus.json';
 import { describe, expect, it } from 'vitest';
 import { fromPaise, type Paise } from '../money/index.ts';
 import { parseRupees } from '../money/parse-rupees.ts';
-import { bonusEnd, bonusExpired, bonusSpend, visitBonusCap, visitBonusLeft, type BonusGrant } from './bonus.ts';
+import { bonusEnd, bonusExpired, bonusPayOff, bonusSpend, bonusTake, visitBonusCap, visitBonusLeft, type BonusGrant } from './bonus.ts';
 
 const golden = readGolden(bonusJson);
 
@@ -30,7 +30,7 @@ function grants(text: string): BonusGrant[] {
 
 describe('Bonus golden fixtures (packages/testing/golden/bonus.json)', () => {
   it('tests every operation in the file', () => {
-    expect(() => assertOperations(golden, ['spend', 'expire', 'end', 'visitCap', 'visitLeft'])).not.toThrow();
+    expect(() => assertOperations(golden, ['spend', 'expire', 'end', 'visitCap', 'visitLeft', 'take', 'payOff'])).not.toThrow();
   });
 
   it.each(casesFor(golden, 'end'))('%s', (_description, goldenCase) => {
@@ -58,5 +58,18 @@ describe('Bonus golden fixtures (packages/testing/golden/bonus.json)', () => {
   it.each(casesFor(golden, 'expire'))('%s', (_description, goldenCase) => {
     expect(bonusExpired(grants(goldenInput(goldenCase, 'grants')), new Date(goldenInput(goldenCase, 'at'))))
       .toEqual(amounts(goldenExpected(goldenCase, 'expired')));
+  });
+
+  // The owner, 18 Nov: Bonus reversed or a use added after the fact, and Bonus given while some is owed.
+  it.each(casesFor(golden, 'take'))('%s', (_description, goldenCase) => {
+    const first = goldenInput(goldenCase, 'first');
+    const taken = bonusTake(amount(goldenInput(goldenCase, 'amount')), grants(goldenInput(goldenCase, 'grants')), new Date(goldenInput(goldenCase, 'at')),
+      first === 'none' ? null : Number(first) - 1);
+    expect(taken).toEqual({ taken: amounts(goldenExpected(goldenCase, 'taken')), owed: amount(goldenExpected(goldenCase, 'owed')) });
+  });
+
+  it.each(casesFor(golden, 'payOff'))('%s', (_description, goldenCase) => {
+    expect(bonusPayOff(amount(goldenInput(goldenCase, 'given')), amount(goldenInput(goldenCase, 'owed'))))
+      .toEqual({ paid: amount(goldenExpected(goldenCase, 'paid')), kept: amount(goldenExpected(goldenCase, 'kept')) });
   });
 });

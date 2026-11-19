@@ -225,6 +225,7 @@ function CallTime({ sheet }: { sheet: SeatSheetState }) {
 /** The member's bonus chips under the field: their balance, and what this visit may still redeem where the club caps it (decision 0579). */
 function bonusHint(balance: bigint | null | undefined, left: bigint | null | undefined): string | undefined {
   if (balance === undefined || balance === null) return undefined;
+  if (balance < 0n) return t('console.floor.seat.bonusChipsOwed', { chips: formatChips(-balance) });
   if (balance === 0n) return t('console.floor.seat.bonusChipsNone');
   if (left === undefined || left === null) return t('console.floor.seat.bonusChipsHas', { chips: formatChips(balance) });
   return t('console.floor.seat.bonusChipsLeft', { chips: formatChips(balance), left: formatChips(left) });

@@ -34,6 +34,8 @@ export interface RecordAccess {
   readonly resetHours: boolean;
   /** Super admins, admins and floor managers add Bonus by hand on the record (bonus.give). */
   readonly giveBonus: boolean;
+  /** A super admin reverses a Bonus given and adds a use a seat missed (#1077). */
+  readonly correctBonus: boolean;
 }
 
 /** Member number, tier (and a change's last day), KYC and whether they are in the room. */
@@ -78,7 +80,7 @@ function VisitsPart({ venueId, record, can }: PartProps) {
 
 /** One part of the record: visits; bonus chips; sign-up; the tier and a break; or the account's overrides, number and erasure. */
 function PartContent({ part, venueId, record, can }: PartProps & { part: RecordPart }) {
-  if (part === 'bonus') return <MemberBonus venueId={venueId} memberId={record.memberId} canGive={can.giveBonus} />;
+  if (part === 'bonus') return <MemberBonus venueId={venueId} memberId={record.memberId} canGive={can.giveBonus} canCorrect={can.correctBonus} />;
   if (part === 'signUp') return <MemberSignUp venueId={venueId} memberId={record.memberId} />;
   if (part === 'membership') {
     return (

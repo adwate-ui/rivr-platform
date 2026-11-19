@@ -21,6 +21,7 @@ export interface SeatSheetPlace {
  */
 function bonusHint(balance: bigint | null | undefined, left: bigint | null | undefined): string | undefined {
   if (balance === undefined || balance === null) return undefined;
+  if (balance < 0n) return t('console.waitlist.bonusChipsOwed', { chips: formatChips(-balance) });
   if (balance === 0n) return t('console.waitlist.bonusChipsNone');
   if (left === undefined || left === null) return t('console.waitlist.bonusChipsHas', { chips: formatChips(balance) });
   return t('console.waitlist.bonusChipsLeft', { chips: formatChips(balance), left: formatChips(left) });

@@ -35,12 +35,18 @@ export const reports = {
     title: 'Food and drink', by: 'Orders by', byTable: 'By table', byStaff: 'By staff member', table: 'Table', staff: 'Accepted by', nobody: 'Not accepted',
     orders: 'Orders', items: 'Items', accept: 'Avg to accept', serve: 'Avg to serve', voided: 'Void', empty: 'No orders.',
   },
-  bonusReport: { title: 'Bonus', source: 'Given by', byHand: 'By hand', members: 'Members', grants: 'Times', given: 'Bonus given', empty: 'No Bonus given.' },
+  bonusReport: {
+    title: 'Bonus', source: 'Given by', byHand: 'By hand', members: 'Members', grants: 'Times', given: 'Bonus given', empty: 'No Bonus given.',
+    /** What reversals took back in the span, below zero (#1077). */
+    reversed: 'Reversed',
+  },
   /** Each Bonus given in the span (#1063): who gave it and why. */
   bonusGiven: {
     label: 'Each Bonus given', search: 'Find a member, staff member or reason', empty: 'No Bonus given.',
     when: 'When', member: 'Member', number: 'No.', amount: 'Bonus', by: 'Given by', from: 'From', reason: 'Reason',
-    sources: { by_hand: 'By hand', promotion: 'Promotion', high_hand: 'High hand', other: 'Other' },
+    sources: { by_hand: 'By hand', promotion: 'Promotion', high_hand: 'High hand', other: 'Other', reversed: 'Reversed' },
+    /** A reversal on its own day, below nothing (#1077, the owner, 19 Nov): `Reversed by Vikram Rao`. */
+    reversedBy: 'Reversed by {name}',
     /** A promotion's, once a super admin approved it: `Tuesday bonus · approved by Kavya Menon`. */
     approvedBy: '{promotion} · approved by {name}',
     /** A high hand's: `High hand · logged by Aditya Malhotra`. */

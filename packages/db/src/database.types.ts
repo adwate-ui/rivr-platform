@@ -67,14 +67,14 @@ isOneToOne: false
                   ]
                 },"bonus_grant": {
                   Row: {
-                    "amount_paise": number,"created_at": string,"expired_at": string | null,"expires_at": string | null,"expiry_transaction_id": string | null,"id": string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"reason": string,"remaining_paise": number,"updated_at": string,"venue_id": string
+                    "amount_paise": number,"created_at": string,"expired_at": string | null,"expires_at": string | null,"expiry_transaction_id": string | null,"id": string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"reason": string,"remaining_paise": number,"reversal_paise": number | null,"reversal_reason": string | null,"reversal_transaction_id": string | null,"reversed_at": string | null,"reversed_by_staff_id": string | null,"updated_at": string,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_paise": number,"created_at"?: string,"expired_at"?: string | null,"expires_at"?: string | null,"expiry_transaction_id"?: string | null,"id"?: string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"reason": string,"remaining_paise": number,"updated_at"?: string,"venue_id": string
+                    "amount_paise": number,"created_at"?: string,"expired_at"?: string | null,"expires_at"?: string | null,"expiry_transaction_id"?: string | null,"id"?: string,"idempotency_key": string,"ledger_transaction_id": string,"member_id": string,"reason": string,"remaining_paise": number,"reversal_paise"?: number | null,"reversal_reason"?: string | null,"reversal_transaction_id"?: string | null,"reversed_at"?: string | null,"reversed_by_staff_id"?: string | null,"updated_at"?: string,"venue_id": string
                   }
                   Update: {
-                    "amount_paise"?: number,"created_at"?: string,"expired_at"?: string | null,"expires_at"?: string | null,"expiry_transaction_id"?: string | null,"id"?: string,"idempotency_key"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"reason"?: string,"remaining_paise"?: number,"updated_at"?: string,"venue_id"?: string
+                    "amount_paise"?: number,"created_at"?: string,"expired_at"?: string | null,"expires_at"?: string | null,"expiry_transaction_id"?: string | null,"id"?: string,"idempotency_key"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"reason"?: string,"remaining_paise"?: number,"reversal_paise"?: number | null,"reversal_reason"?: string | null,"reversal_transaction_id"?: string | null,"reversed_at"?: string | null,"reversed_by_staff_id"?: string | null,"updated_at"?: string,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -95,18 +95,68 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "member"
       referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "bonus_grant_reversal_transaction_id_venue_id_fkey"
+      columns: ["reversal_transaction_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "ledger_transaction"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "bonus_grant_reversed_by_staff_id_venue_id_fkey"
+      columns: ["reversed_by_staff_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id","venue_id"]
+    }
+                  ]
+                },"bonus_owed": {
+                  Row: {
+                    "amount_paise": number,"bonus_grant_id": string | null,"bonus_redemption_id": string | null,"created_at": string,"id": string,"kind": string,"member_id": string,"updated_at": string,"venue_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_paise": number,"bonus_grant_id"?: string | null,"bonus_redemption_id"?: string | null,"created_at"?: string,"id"?: string,"kind": string,"member_id": string,"updated_at"?: string,"venue_id": string
+                  }
+                  Update: {
+                    "amount_paise"?: number,"bonus_grant_id"?: string | null,"bonus_redemption_id"?: string | null,"created_at"?: string,"id"?: string,"kind"?: string,"member_id"?: string,"updated_at"?: string,"venue_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "bonus_owed_bonus_grant_id_fkey"
+      columns: ["bonus_grant_id"]
+isOneToOne: false
+      referencedRelation: "bonus_grant"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "bonus_owed_bonus_redemption_id_fkey"
+      columns: ["bonus_redemption_id"]
+isOneToOne: false
+      referencedRelation: "bonus_redemption"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "bonus_owed_member_id_venue_id_fkey"
+      columns: ["member_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "member"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "bonus_owed_venue_id_fkey"
+      columns: ["venue_id"]
+isOneToOne: false
+      referencedRelation: "venue"
+      referencedColumns: ["id"]
     }
                   ]
                 },"bonus_redemption": {
                   Row: {
-                    "amount_paise": number,"created_at": string,"id": string,"ledger_transaction_id": string,"member_id": string,"session_id": string,"staff_id": string | null,"table_id": string,"updated_at": string,"venue_id": string
+                    "amount_paise": number,"created_at": string,"id": string,"ledger_transaction_id": string,"member_id": string,"reason": string | null,"session_id": string,"staff_id": string | null,"table_id": string,"updated_at": string,"used_at": string | null,"venue_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_paise": number,"created_at"?: string,"id"?: string,"ledger_transaction_id": string,"member_id": string,"session_id": string,"staff_id"?: string | null,"table_id": string,"updated_at"?: string,"venue_id": string
+                    "amount_paise": number,"created_at"?: string,"id"?: string,"ledger_transaction_id": string,"member_id": string,"reason"?: string | null,"session_id": string,"staff_id"?: string | null,"table_id": string,"updated_at"?: string,"used_at"?: string | null,"venue_id": string
                   }
                   Update: {
-                    "amount_paise"?: number,"created_at"?: string,"id"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"session_id"?: string,"staff_id"?: string | null,"table_id"?: string,"updated_at"?: string,"venue_id"?: string
+                    "amount_paise"?: number,"created_at"?: string,"id"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"reason"?: string | null,"session_id"?: string,"staff_id"?: string | null,"table_id"?: string,"updated_at"?: string,"used_at"?: string | null,"venue_id"?: string
                   }
                   Relationships: [
                     {
@@ -2633,6 +2683,9 @@ isOneToOne: false
               "about": string,"action": string,"amount": number,"entity": string,"high_hand": Json,"id": number,"is_system": boolean,"kind": string,"occurred_at": string,"reason": string,"total": number,"who": string
             }[]
                            },
+"add_bonus_use":
+{ Args: { "p_chips": number,"p_reason": string,"p_request_id": string,"p_session_id": string }; Returns: string
+                           },
 "add_computer":
 { Args: { "p_kind": Database["public"]['Enums']["device_kind"],"p_name": string,"p_venue_id": string }; Returns: {
               "code": string,"device_id": string,"expires_at": string
@@ -2709,6 +2762,11 @@ isOneToOne: false
 "bonus_report":
 { Args: { "p_from": string,"p_to": string,"p_venue_id": string }; Returns: {
               "given_paise": number,"grants": number,"label": string,"members": number,"source": string
+            }[]
+                           },
+"bonus_use_seats":
+{ Args: { "p_limit"?: number,"p_member_id": string,"p_venue_id": string }; Returns: {
+              "ended_at": string,"seat": number,"session_id": string,"started_at": string,"table_name": string
             }[]
                            },
 "bonus_waiting_page":
@@ -3523,6 +3581,9 @@ isOneToOne: false
                            },
 "resolve_feedback_many":
 { Args: { "p_feedback_ids": (string)[],"p_resolution": string }; Returns: undefined
+                           },
+"reverse_bonus":
+{ Args: { "p_grant_id": string,"p_reason": string }; Returns: number
                            },
 "review_kyc":
 { Args: { "p_approve": boolean,"p_date_of_birth"?: string,"p_member_id": string,"p_pan"?: string,"p_reason": string }; Returns: string

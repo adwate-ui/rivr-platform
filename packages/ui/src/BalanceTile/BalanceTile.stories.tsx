@@ -24,4 +24,12 @@ export const HeroLongText: Story = {
   args: { look: 'hero', icon: undefined, tone: 'default', figure: '1,00,00,000', label: 'Balance', line: 'Use with your buy-in at any table in the club. Expires after 3,650 days.' },
 };
 
+/** Below zero (#1077): Bonus owed, in cream; the hero keeps the minus in the text face. */
+export const BelowZero: Story = { args: { figure: '−500', tone: 'default', line: 'Owed. New Bonus pays it first.' } };
+
+export const HeroBelowZero: Story = {
+  tags: ['viewport-phone'],
+  args: { look: 'hero', icon: undefined, tone: 'default', figure: '−500', label: 'Balance', line: 'Owed. New Bonus pays it first.' },
+};
+
 export const LongText: Story = { args: { figure: '12,34,56,789', line: 'Use with your buy-in at any table in the club, on any night. Never expires.' } };
