@@ -7,7 +7,7 @@ Read by Lane 0 when setting up the repository, and by anyone changing tooling.
 | Date | Gate |
 |---|---|
 | Fri 16 Oct | Lane 0 done: schema, lane contracts and task queues frozen |
-| Fri 30 Oct | Release A: registration, KYC, Academy booking, website, link-in-bio, brand kit, social templates |
+| Fri 30 Oct | Release A: registration, KYC, website, link-in-bio, brand kit, social templates |
 | Sun 1 Nov | Floor stack live in the practice venue for staff training |
 | Tue 10 Nov | Feature freeze |
 | Wed 11 to Sat 14 Nov | Hardening only: load, outage and restore drills, fixes |

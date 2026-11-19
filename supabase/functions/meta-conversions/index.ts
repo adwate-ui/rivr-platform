@@ -1,5 +1,5 @@
-// The Meta Conversions API consumer (#161; decision 0279): each event the database names a conversion (an Academy
-// booking, KYC complete, a first visit, a first buy-in, a tournament entry, a repeat visit) goes to the club's dataset
+// The Meta Conversions API consumer (#161; decision 0279): each event the database names a conversion (KYC complete, a
+// first visit, a repeat visit, a tournament entry; private.conversion_for) goes to the club's dataset
 // from a physical store, with hashed identifiers, for members who consented to marketing, within seven days. pg_cron runs
 // it every minute (decision 0038); practice-venue events never reach it. Until META_PIXEL_ID and META_CAPI_ACCESS_TOKEN
 // are set nothing is claimed, and conversions wait.
