@@ -97,8 +97,8 @@ select is((select count(*)::integer from public.audit_log where action = 'seat.s
 -- Every screen reads the corrected rows: the Players report's In and Out.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000101');
 select is((select array[checked_in_at, checked_out_at] from public.player_visits_page('00000000-0000-4000-8000-000000000001', (select view from asked))
-           where member_id = '00000000-0000-4000-8000-000000000211'), array[pg_temp.at('18:00'), pg_temp.at('22:15')],
-  'the Players report reads the day''s first check-in and its corrected last check-out');
+           where member_id = '00000000-0000-4000-8000-000000000211'), array[pg_temp.at('19:30'), pg_temp.at('22:15')],
+  'the Players report''s seat row reads its visit''s corrected check-in and check-out');
 
 -- Last, as neither can be undone here: a frozen member's visit, and a super admin of another venue alone.
 reset role;

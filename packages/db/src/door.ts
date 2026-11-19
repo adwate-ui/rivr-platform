@@ -12,17 +12,23 @@ export type DoorStatus = 'playing' | 'waiting' | 'in_room' | 'expected' | 'left'
 export type DoorListName = 'in_club' | 'expected' | 'left' | 'not_arrived';
 
 /**
- * A member at the door today (redesign RD-30): today's player (#641) with what the front desk's lists gave (#72), their
- * number, tier and ID check, and which of the door's lists they are on.
+ * A member at the door today (redesign RD-30), a row per seat (the owner, 19 Nov): today's player (#641) with what the
+ * front desk's lists gave (#72), their number, tier and ID check, and which of the door's lists they are on. `tables` holds
+ * the seat's table alone; one with no seat yet has a row without one.
  */
-export interface DoorPlayer extends Omit<TodaysPlayer, 'status'> {
+export interface DoorPlayer extends Omit<TodaysPlayer, 'status' | 'waitingSeconds'> {
   readonly tierName: string;
   /** On the club's lowest tier, which the door leaves unsaid. */
   readonly isBaseTier: boolean;
   readonly status: DoorStatus;
   readonly list: DoorListName;
-  /** Every table's time today, in seconds. */
+  /** The seat's time at its table less its time away, in seconds; 0 with no seat. */
   readonly playedSeconds: number;
+  /** The row's visit's check-in and check-out are `checkedInAt` and `checkedOutAt`; when they sat at the seat's table and left it (null while there). */
+  readonly seatedAt: string | null;
+  readonly leftAt: string | null;
+  /** The wait that ended in the seat, or the current or last one, from the later of check-in and joining the list; null with no check-in. */
+  readonly waitingSeconds: number | null;
   readonly kycStatus: MemberKycStatus;
   /** When their open visit began, or, while expected, when they first joined a waitlist; null once they have left. */
   readonly since: string | null;
@@ -50,7 +56,7 @@ export function useDoorPage(venueId: string, view: ScopedView | null) {
       status: STATUSES.find((status) => status === row.status) ?? 'left', list: LISTS.find((list) => list === row.list) ?? 'not_arrived',
       checkedInAt: row.checked_in_at, checkedOutAt: row.checked_out_at, waitingSeconds: row.waiting_seconds, tables: tablesOf(row.tables),
       playedSeconds: Number(row.played_seconds), kycStatus: kycStatusOf(row.kyc_status), since: row.since, bonus: toPaise(row.bonus_paise),
-      phone: row.phone,
+      phone: row.phone, seatedAt: row.seated_at, leftAt: row.left_at,
     }),
   });
 }

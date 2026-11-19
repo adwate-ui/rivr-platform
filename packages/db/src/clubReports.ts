@@ -97,15 +97,24 @@ export function usePlayersReport(span: ReportSpan) {
   });
 }
 
-/** One visit in a report's span (decision 0682): a member on a club day, as the door's Today's players gives that day. */
-export interface PlayerVisit extends Omit<TodaysPlayer, 'status'> {
+/**
+ * One visit in a report's span (decision 0682), a row per seat (the owner, 19 Nov): a member on a club day, as the door's
+ * Today's players gives that day. `tables` holds the seat's table alone.
+ */
+export interface PlayerVisit extends Omit<TodaysPlayer, 'status' | 'waitingSeconds'> {
   /** The club day, YYYY-MM-DD. */
   readonly clubDay: string;
   readonly tierName: string;
   /** On the club's lowest tier, which the door leaves unsaid. */
   readonly isBaseTier: boolean;
-  /** Every table's time that day, in seconds. */
+  /** The seat's time at its table less its time away, in seconds; 0 with no seat. */
   readonly playedSeconds: number;
+  /** When they sat at the seat's table and left it (null while there), and the seat's time away in seconds (null with no seat). */
+  readonly seatedAt: string | null;
+  readonly leftAt: string | null;
+  readonly awaySeconds: number | null;
+  /** The wait that ended in the seat, or the last one, from the later of check-in and joining the list; null with no check-in. */
+  readonly waitingSeconds: number | null;
   /** Their identity check as it stands now. */
   readonly kycStatus: MemberKycStatus;
   /** The Bonus given to them that club day, by hand or by promotions once approved (#1062). */
@@ -127,6 +136,7 @@ export function usePlayerVisitsPage(span: ReportSpan, view: ScopedView | null) {
       clubDay: row.club_day, memberId: row.member_id, fullName: row.full_name, memberNumber: Number(row.member_number), tierName: row.tier_name,
       isBaseTier: row.is_base_tier, checkedInAt: row.checked_in_at, checkedOutAt: row.checked_out_at, waitingSeconds: row.waiting_seconds, tables: tablesOf(row.tables),
       playedSeconds: Number(row.played_seconds), kycStatus: kycStatusOf(row.kyc_status), bonus: toPaise(row.bonus_paise), visits: visitsOf(row.visits),
+      seatedAt: row.seated_at, leftAt: row.left_at, awaySeconds: row.away_seconds,
     }),
   });
 }

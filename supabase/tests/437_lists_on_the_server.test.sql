@@ -121,10 +121,9 @@ select set_eq($$ select member_id from public.door_page('00000000-0000-4000-8000
   $$ select member_id from public.door_board('00000000-0000-4000-8000-000000000001') where not is_in_room $$, 'expected: on a waitlist and not yet in');
 select is_empty($$ select 1 from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}') p
                    join public.todays_players('00000000-0000-4000-8000-000000000001') t on t.member_id = p.member_id
-                   where (p.full_name, p.member_number, p.checked_in_at, p.checked_out_at, p.waiting_seconds, p.tables)
-                         is distinct from (t.full_name, t.member_number, t.checked_in_at, t.checked_out_at, t.waiting_seconds, t.tables)
+                   where (p.full_name, p.member_number) is distinct from (t.full_name, t.member_number)
                       or p.status is distinct from case when t.status = 'waiting' and p.list = 'expected' then 'expected' else t.status end $$,
-  'each player as today''s players gave them; one waiting outside is expected');
+  'each player as today''s players gave them, a row a seat (560 checks the seats); one waiting outside is expected');
 select is_empty($$ select 1 from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}') p
                    join public.members_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}') m on m.member_id = p.member_id
                    where p.kyc_status is distinct from m.kyc_status or p.tier_name is distinct from m.tier_name $$, 'with the tier and ID check the Members list gives');
