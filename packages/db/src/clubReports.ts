@@ -122,6 +122,11 @@ export interface PlayerVisit extends Omit<TodaysPlayer, 'status' | 'waitingSecon
   readonly bonus: Paise | null;
   /** The Bonus used at the row's seat (the owner, 19 Nov); null with no seat. */
   readonly bonusUsed: Paise | null;
+  /** The row's seat session and its visit, which tell the rows apart; a row without a seat has no session, nor a visit if never in. */
+  readonly sessionId: string | null;
+  readonly visitId: string | null;
+  /** Their id for a link to their account; null once they are erased, whose name links nowhere. */
+  readonly linkedMemberId: string | null;
   /** For a super admin, the day's visits with their seats, to correct (#1075); none for anyone else. */
   readonly visits: readonly VisitTimes[];
 }
@@ -140,6 +145,7 @@ export function usePlayerVisitsPage(span: ReportSpan, view: ScopedView | null) {
       isBaseTier: row.is_base_tier, checkedInAt: row.checked_in_at, checkedOutAt: row.checked_out_at, waitingSeconds: row.waiting_seconds, tables: tablesOf(row.tables),
       playedSeconds: Number(row.played_seconds), kycStatus: kycStatusOf(row.kyc_status), bonus: paiseOrNone(row.bonus_paise), visits: visitsOf(row.visits),
       seatedAt: row.seated_at, leftAt: row.left_at, awaySeconds: row.away_seconds, bonusUsed: paiseOrNone(row.bonus_used_paise),
+      sessionId: row.session_id, visitId: row.visit_id, linkedMemberId: row.linked_member_id,
     }),
   });
 }

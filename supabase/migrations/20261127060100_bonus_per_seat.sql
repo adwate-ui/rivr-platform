@@ -2,8 +2,11 @@
 -- seat (bonus_redemption: the buy-in redeemed as they sat, private.redeem_bonus_at_seat, or a use added later), and the
 -- day's Bonus given (by hand, promotions, less reversals), which no seat holds, sits on the member's first row of the day
 -- alone, so a moved member's rows add up to the day's figures and an export never counts either twice. Rows now come in
--- the order sat, a row without a seat last. private.players_by_seat gives each row's Bonus used and whether it is the
--- first; the two list sources and their pages carry them. Otherwise each is as the database had it.
+-- the order sat, rows without a seat last. A seat's wait is the list's entry that ended in it, seated from the waitlist
+-- or left as seated (private.seat_member); a visit of the day with no seat has a row of its own, so a member back the same
+-- night shows that visit. private.players_by_seat gives each row's Bonus used, whether it is the first, its seat session
+-- and visit (the rows' keys), and the member's id for a link to their account, none once erased; the two list sources
+-- and their pages carry them. Otherwise each is as the database had it.
 drop function public.door_page(uuid, jsonb);
 drop function private.door_page(uuid, jsonb);
 drop function public.player_visits_page(uuid, jsonb);
@@ -11,7 +14,7 @@ drop function private.player_visits_page(uuid, jsonb);
 drop function private.players_by_seat(uuid, date);
 
 CREATE FUNCTION private.players_by_seat(p_venue_id uuid, p_day date DEFAULT NULL::date)
- RETURNS TABLE(member_id uuid, full_name text, member_number bigint, status text, session_id uuid, table_name text, tables jsonb, seated_at timestamp with time zone, left_at timestamp with time zone, checked_in_at timestamp with time zone, checked_out_at timestamp with time zone, waiting_seconds integer, played_seconds bigint, away_seconds bigint, is_first_row boolean, bonus_used_paise bigint)
+ RETURNS TABLE(member_id uuid, full_name text, member_number bigint, status text, session_id uuid, table_name text, tables jsonb, seated_at timestamp with time zone, left_at timestamp with time zone, checked_in_at timestamp with time zone, checked_out_at timestamp with time zone, waiting_seconds integer, played_seconds bigint, away_seconds bigint, is_first_row boolean, bonus_used_paise bigint, visit_id uuid, linked_member_id uuid)
  LANGUAGE sql
  STABLE SECURITY DEFINER
  SET search_path TO ''
@@ -21,6 +24,13 @@ AS $function$
     from (select coalesce((p_day + time '06:00') at time zone 'Asia/Kolkata', private.tonight_began(now())) as starts_at) s
   ),
   players as (select * from private.todays_players(p_venue_id, p_day)),
+  -- The day's visits: opened that club day, or still open today.
+  visits as (
+    select v.id, v.member_id, v.opened_at, v.closed_at
+    from public.visit v cross join day
+    where v.venue_id = p_venue_id
+      and ((v.opened_at >= day.starts_at and v.opened_at < day.ends_at) or (day.is_today and v.closed_at is null))
+  ),
   seats as (
     select s.member_id, s.id as session_id, s.visit_id, t.o_table_id as table_id, t.o_from as seated_at, nullif(t.o_to, 'infinity') as left_at,
            least(floor(greatest(0, extract(epoch from least(t.o_to, now()) - t.o_from)))::bigint, w.wall) as seconds, w.wall, w.away
@@ -50,43 +60,53 @@ AS $function$
   select p.member_id, p.full_name, p.member_number, p.status, st.session_id, g.name as table_name,
          jsonb_build_array(jsonb_build_object('table', g.name, 'seconds', played.seconds)) as tables,
          st.seated_at, st.left_at, v.opened_at as checked_in_at, v.closed_at as checked_out_at,
-         -- The wait that ended in this seat: the list's entry seated as the seat began.
-         (select private.wait_after_check_in(p_venue_id, e.member_id, e.joined_at, e.seated_at)
+         -- The wait that ended in this seat: the list's entry seated as the seat began, from the waitlist, or ended as seated
+         -- when the floor seated the member by name or number (private.seat_member), in the same moment.
+         (select private.wait_after_check_in(p_venue_id, e.member_id, e.joined_at, coalesce(e.seated_at, e.left_at))
           from public.waitlist_entry e
-          where e.venue_id = p_venue_id and e.member_id = st.member_id and e.seated_at = st.seated_at
+          where e.venue_id = p_venue_id and e.member_id = st.member_id
+            and (e.seated_at = st.seated_at or (e.left_reason = 'seated' and e.left_at = st.seated_at))
           order by e.joined_at limit 1) as waiting_seconds,
          played.seconds as played_seconds, st.seconds - played.seconds as away_seconds,
          (select coalesce(sum(u.amount_paise), 0) from uses u
-          where u.session_id = st.session_id and u.table_id = st.table_id and u.seated_at = st.seated_at)::bigint as bonus_used_paise
+          where u.session_id = st.session_id and u.table_id = st.table_id and u.seated_at = st.seated_at)::bigint as bonus_used_paise,
+         st.visit_id
   from players p
   join seats st on st.member_id = p.member_id
   join public.game_table g on g.id = st.table_id
   join public.visit v on v.id = st.visit_id
   cross join lateral (select private.table_played_seconds(st.seconds, st.wall, least(st.wall, greatest(0, st.wall - st.away))) as seconds) played
   union all
-  select p.member_id, p.full_name, p.member_number, p.status, null, null, '[]'::jsonb, null, null, last_visit.opened_at, last_visit.closed_at,
-         last_wait.seconds, 0, null, null
+  -- A row without a seat: each visit of the day with none, the open one too while the member waits again for a seat, and
+  -- one for a member with no visit that day (on a list from the app, never in).
+  select p.member_id, p.full_name, p.member_number, p.status, null, null, '[]'::jsonb, null, null, sv.opened_at, sv.closed_at,
+         last_wait.seconds, 0, null, null, sv.id
   from players p
   cross join day
-  left join lateral (
-    select v.opened_at, v.closed_at from public.visit v
-    where v.venue_id = p_venue_id and v.member_id = p.member_id
-      and ((v.opened_at >= day.starts_at and v.opened_at < day.ends_at) or (day.is_today and v.closed_at is null))
-    order by v.opened_at desc limit 1) last_visit on true
-  -- The current wait, else the last: one still running first, then the one that ended latest.
+  left join visits sv on sv.member_id = p.member_id
+  -- The visit's current wait, else its last: one still running first, then the one that ended latest; one that ended in a
+  -- seat only when there is no other.
   left join lateral (
     select private.wait_after_check_in(p_venue_id, e.member_id, e.joined_at, coalesce(e.left_at, e.seated_at, now())) as seconds
     from public.waitlist_entry e
     where e.venue_id = p_venue_id and e.member_id = p.member_id
       and ((e.joined_at >= day.starts_at and e.joined_at < day.ends_at) or (day.is_today and e.status = 'waiting'))
-    order by e.seated_at is null desc, coalesce(e.left_at, e.seated_at, 'infinity') desc, e.joined_at limit 1) last_wait on true
-  where not exists (select 1 from seats st where st.member_id = p.member_id) or (day.is_today and p.status = 'waiting')
+      and (sv.id is null or (coalesce(e.left_at, e.seated_at, now()) >= sv.opened_at and e.joined_at <= coalesce(sv.closed_at, now())))
+    order by (e.seated_at is null and e.left_reason is distinct from 'seated') desc, coalesce(e.left_at, e.seated_at, 'infinity') desc,
+             e.joined_at
+    limit 1) last_wait on true
+  where (sv.id is null and not exists (select 1 from seats st where st.member_id = p.member_id))
+     or (sv.id is not null and not exists (select 1 from seats st where st.visit_id = sv.id))
+     or (day.is_today and p.status = 'waiting' and sv.closed_at is null and sv.id is not null)
   )
-  -- The member's first row that day, by when they sat, a row without a seat last: it carries what is not a seat's own.
+  -- The member's first row that day, by when they sat, rows without a seat last by check-in: it carries what is not a
+  -- seat's own. An erased member's name links nowhere.
   select r.member_id, r.full_name, r.member_number, r.status, r.session_id, r.table_name, r.tables, r.seated_at, r.left_at,
          r.checked_in_at, r.checked_out_at, r.waiting_seconds, r.played_seconds, r.away_seconds,
-         row_number() over (partition by r.member_id order by r.seated_at nulls last, r.table_name) = 1, r.bonus_used_paise
-  from seat_rows r;
+         row_number() over (partition by r.member_id order by r.seated_at nulls last, r.checked_in_at nulls last, r.table_name) = 1,
+         r.bonus_used_paise, r.visit_id, case when m.erased_at is null then r.member_id end
+  from seat_rows r
+  join public.member m on m.id = r.member_id;
 $function$;
 
 CREATE OR REPLACE FUNCTION private.list_spec(p_list text, OUT o_source text, OUT o_columns jsonb, OUT o_search text[], OUT o_order text, OUT o_choices text[])
@@ -172,7 +192,7 @@ AS $function$
                 case when ov.id is not null or tp.status = 'playing' then 'in_club' when tp.status = 'waiting' then 'expected'
                      when tp.status = 'left' then 'left' else 'not_arrived' end as list,
                 tp.checked_in_at, tp.checked_out_at, tp.waiting_seconds, tp.tables, tp.played_seconds, tp.table_name as table_names,
-                tp.seated_at, tp.left_at,
+                tp.seated_at, tp.left_at, tp.session_id, tp.visit_id, tp.linked_member_id,
                 KYC_STATUS as kyc_status,
                 coalesce(ov.opened_at, (select min(e.joined_at) from public.waitlist_entry e where e.member_id = tp.member_id and e.status = 'waiting')) as since,
                 -- The day's Bonus given, by hand or by promotions, on the member's first row alone, so no export counts it twice;
@@ -197,7 +217,7 @@ AS $function$
        "seated": "seated_at", "left": "left_at", "bonus_used": "bonus_used_paise / 100", "choices:count": "member_id",
        "list": "list", "arrived": "(checked_in_at is not null)", "bonus": "bonus_paise / 100",
        "status:sort": "array_position(array[''waiting'', ''expected'', ''playing'', ''in_room'', ''left'', ''never_arrived''], status)"}'::jsonb,
-     array['full_name', 'member_number'], 'full_name, member_id, seated_at nulls last, table_names', array['status', 'tier', 'kyc', 'list', 'arrived']),
+     array['full_name', 'member_number'], 'full_name, member_id, seated_at nulls last, checked_in_at nulls last, table_names', array['status', 'tier', 'kyc', 'list', 'arrived']),
     -- The Waitlist as one list (redesign RD-31; the owner, 15 Nov): every place on every table's list, as
     -- private.waitlist_board gives them, each with its table. Each table keeps its own list and its own order: the
     -- places come table by table, in place order. The screen may ask for one table's list alone.
@@ -303,7 +323,7 @@ AS $function$
        select tp_day.club_day, tp.member_id, tp.full_name, tp.member_number, t.name as tier_name,
               t.rank = (select min(x.rank) from public.tier x where x.venue_id = t.venue_id and not x.is_retired) as is_base_tier,
               tp.checked_in_at, tp.checked_out_at, tp.waiting_seconds, tp.tables, tp.played_seconds, tp.table_name as table_names,
-              tp.seated_at, tp.left_at, tp.away_seconds,
+              tp.seated_at, tp.left_at, tp.away_seconds, tp.session_id, tp.visit_id, tp.linked_member_id,
               KYC_STATUS as kyc_status,
               -- As the door: the day's Bonus given on the visit's first row alone, each seat's Bonus used on its own.
               case when tp.is_first_row then
@@ -330,13 +350,13 @@ AS $function$
        "waited": "waiting_seconds / 3600.0", "table": "table_names", "played": "played_seconds / 3600.0", "kyc": "kyc_status",
        "bonus": "bonus_paise / 100", "seated": "seated_at", "left": "left_at", "away": "away_seconds / 3600.0", "bonus_used": "bonus_used_paise / 100",
        "choices:count": "(club_day, member_id)"}'::jsonb,
-     array['full_name', 'member_number'], 'club_day desc, full_name, member_id, seated_at nulls last, table_names', array['tier'])
+     array['full_name', 'member_number'], 'club_day desc, full_name, member_id, seated_at nulls last, checked_in_at nulls last, table_names', array['tier'])
   ) as s(list, source, columns, search, sorted, choices)
   where s.list = p_list;
 $function$;
 
 CREATE OR REPLACE FUNCTION private.door_page(p_venue_id uuid, p_view jsonb)
- RETURNS TABLE(total bigint, member_id uuid, full_name text, member_number bigint, tier_name text, is_base_tier boolean, status text, list text, checked_in_at timestamp with time zone, checked_out_at timestamp with time zone, waiting_seconds integer, tables jsonb, played_seconds bigint, kyc_status text, since timestamp with time zone, bonus_paise bigint, phone text, seated_at timestamp with time zone, left_at timestamp with time zone, bonus_used_paise bigint)
+ RETURNS TABLE(total bigint, member_id uuid, full_name text, member_number bigint, tier_name text, is_base_tier boolean, status text, list text, checked_in_at timestamp with time zone, checked_out_at timestamp with time zone, waiting_seconds integer, tables jsonb, played_seconds bigint, kyc_status text, since timestamp with time zone, bonus_paise bigint, phone text, seated_at timestamp with time zone, left_at timestamp with time zone, bonus_used_paise bigint, session_id uuid, visit_id uuid, linked_member_id uuid)
  LANGUAGE sql
  STABLE SECURITY DEFINER
  SET search_path TO ''
@@ -344,24 +364,24 @@ AS $function$
   with page as materialized (select private.list_json('door', p_venue_id, p_view) as found)
   select (page.found ->> 'total')::bigint, r.member_id, r.full_name, r.member_number, r.tier_name, r.is_base_tier, r.status, r.list, r.checked_in_at,
          r.checked_out_at, r.waiting_seconds, r.tables, r.played_seconds, r.kyc_status, r.since, r.bonus_paise, r.phone,
-         r.seated_at, r.left_at, r.bonus_used_paise
+         r.seated_at, r.left_at, r.bonus_used_paise, r.session_id, r.visit_id, r.linked_member_id
   from page
   cross join lateral jsonb_to_recordset(page.found -> 'rows') as r(
     list_place bigint, member_id uuid, full_name text, member_number bigint, tier_name text, is_base_tier boolean, status text, list text,
     checked_in_at timestamptz, checked_out_at timestamptz, waiting_seconds integer, tables jsonb, played_seconds bigint,
-    kyc_status text, since timestamptz, bonus_paise bigint, phone text, seated_at timestamptz, left_at timestamptz, bonus_used_paise bigint)
+    kyc_status text, since timestamptz, bonus_paise bigint, phone text, seated_at timestamptz, left_at timestamptz, bonus_used_paise bigint, session_id uuid, visit_id uuid, linked_member_id uuid)
   order by r.list_place;
 $function$;
 
 CREATE OR REPLACE FUNCTION public.door_page(p_venue_id uuid, p_view jsonb DEFAULT '{}'::jsonb)
- RETURNS TABLE(total bigint, member_id uuid, full_name text, member_number bigint, tier_name text, is_base_tier boolean, status text, list text, checked_in_at timestamp with time zone, checked_out_at timestamp with time zone, waiting_seconds integer, tables jsonb, played_seconds bigint, kyc_status text, since timestamp with time zone, bonus_paise bigint, phone text, seated_at timestamp with time zone, left_at timestamp with time zone, bonus_used_paise bigint)
+ RETURNS TABLE(total bigint, member_id uuid, full_name text, member_number bigint, tier_name text, is_base_tier boolean, status text, list text, checked_in_at timestamp with time zone, checked_out_at timestamp with time zone, waiting_seconds integer, tables jsonb, played_seconds bigint, kyc_status text, since timestamp with time zone, bonus_paise bigint, phone text, seated_at timestamp with time zone, left_at timestamp with time zone, bonus_used_paise bigint, session_id uuid, visit_id uuid, linked_member_id uuid)
  LANGUAGE sql
  STABLE
  SET search_path TO ''
 AS $function$ select * from private.door_page(p_venue_id, p_view); $function$;
 
 CREATE OR REPLACE FUNCTION private.player_visits_page(p_venue_id uuid, p_view jsonb)
- RETURNS TABLE(total bigint, club_day date, member_id uuid, full_name text, member_number bigint, tier_name text, is_base_tier boolean, checked_in_at timestamp with time zone, checked_out_at timestamp with time zone, waiting_seconds integer, tables jsonb, played_seconds bigint, kyc_status text, bonus_paise bigint, visits jsonb, seated_at timestamp with time zone, left_at timestamp with time zone, away_seconds bigint, bonus_used_paise bigint)
+ RETURNS TABLE(total bigint, club_day date, member_id uuid, full_name text, member_number bigint, tier_name text, is_base_tier boolean, checked_in_at timestamp with time zone, checked_out_at timestamp with time zone, waiting_seconds integer, tables jsonb, played_seconds bigint, kyc_status text, bonus_paise bigint, visits jsonb, seated_at timestamp with time zone, left_at timestamp with time zone, away_seconds bigint, bonus_used_paise bigint, session_id uuid, visit_id uuid, linked_member_id uuid)
  LANGUAGE sql
  STABLE SECURITY DEFINER
  SET search_path TO ''
@@ -380,17 +400,17 @@ AS $function$
            where vi.venue_id = p_venue_id and vi.member_id = r.member_id
              and vi.opened_at >= (r.club_day + time '06:00') at time zone 'Asia/Kolkata'
              and vi.opened_at < (r.club_day + 1 + time '06:00') at time zone 'Asia/Kolkata') end,
-         r.seated_at, r.left_at, r.away_seconds, r.bonus_used_paise
+         r.seated_at, r.left_at, r.away_seconds, r.bonus_used_paise, r.session_id, r.visit_id, r.linked_member_id
   from page
   cross join lateral jsonb_to_recordset(page.found -> 'rows') as r(
     list_place bigint, club_day date, member_id uuid, full_name text, member_number bigint, tier_name text, is_base_tier boolean,
     checked_in_at timestamptz, checked_out_at timestamptz, waiting_seconds integer, tables jsonb, played_seconds bigint, kyc_status text, bonus_paise bigint,
-    seated_at timestamptz, left_at timestamptz, away_seconds bigint, bonus_used_paise bigint)
+    seated_at timestamptz, left_at timestamptz, away_seconds bigint, bonus_used_paise bigint, session_id uuid, visit_id uuid, linked_member_id uuid)
   order by r.list_place;
 $function$;
 
 CREATE OR REPLACE FUNCTION public.player_visits_page(p_venue_id uuid, p_view jsonb DEFAULT '{}'::jsonb)
- RETURNS TABLE(total bigint, club_day date, member_id uuid, full_name text, member_number bigint, tier_name text, is_base_tier boolean, checked_in_at timestamp with time zone, checked_out_at timestamp with time zone, waiting_seconds integer, tables jsonb, played_seconds bigint, kyc_status text, bonus_paise bigint, visits jsonb, seated_at timestamp with time zone, left_at timestamp with time zone, away_seconds bigint, bonus_used_paise bigint)
+ RETURNS TABLE(total bigint, club_day date, member_id uuid, full_name text, member_number bigint, tier_name text, is_base_tier boolean, checked_in_at timestamp with time zone, checked_out_at timestamp with time zone, waiting_seconds integer, tables jsonb, played_seconds bigint, kyc_status text, bonus_paise bigint, visits jsonb, seated_at timestamp with time zone, left_at timestamp with time zone, away_seconds bigint, bonus_used_paise bigint, session_id uuid, visit_id uuid, linked_member_id uuid)
  LANGUAGE sql
  STABLE
  SET search_path TO ''

@@ -36,6 +36,11 @@ export interface DoorPlayer extends Omit<TodaysPlayer, 'status' | 'waitingSecond
   readonly bonus: Paise | null;
   /** The Bonus used at the row's seat (the owner, 19 Nov); null with no seat. */
   readonly bonusUsed: Paise | null;
+  /** The row's seat session and its visit, which tell the rows apart; a row without a seat has no session, nor a visit if never in. */
+  readonly sessionId: string | null;
+  readonly visitId: string | null;
+  /** Their id for a link to their account; null once they are erased, whose name links nowhere. */
+  readonly linkedMemberId: string | null;
   /** Their mobile, `+919876543210`, for floor and up (members.phone, #1073); null for anyone else. */
   readonly phone: string | null;
 }
@@ -62,6 +67,7 @@ export function useDoorPage(venueId: string, view: ScopedView | null) {
       checkedInAt: row.checked_in_at, checkedOutAt: row.checked_out_at, waitingSeconds: row.waiting_seconds, tables: tablesOf(row.tables),
       playedSeconds: Number(row.played_seconds), kycStatus: kycStatusOf(row.kyc_status), since: row.since, bonus: paiseOrNone(row.bonus_paise),
       phone: row.phone, seatedAt: row.seated_at, leftAt: row.left_at, bonusUsed: paiseOrNone(row.bonus_used_paise),
+      sessionId: row.session_id, visitId: row.visit_id, linkedMemberId: row.linked_member_id,
     }),
   });
 }

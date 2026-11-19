@@ -21,7 +21,7 @@ const NAINA = {
   total: 318, member_id: 'm1', full_name: 'Naina Kapoor', member_number: 270, tier_name: 'Black card', is_base_tier: false, status: 'playing', list: 'in_club',
   checked_in_at: '2026-11-15T15:34:00Z', checked_out_at: null, waiting_seconds: 300, tables: [{ table: 'Table 1', seconds: 5400 }, { nonsense: true }],
   played_seconds: 5400, kyc_status: 'verified', since: '2026-11-15T15:34:00Z', bonus_paise: 50_000,
-  seated_at: '2026-11-15T15:40:00Z', left_at: null, bonus_used_paise: 20_000,
+  seated_at: '2026-11-15T15:40:00Z', left_at: null, bonus_used_paise: 20_000, session_id: 's1', visit_id: 'v1', linked_member_id: 'm1',
 };
 
 /** A fake API that answers each RPC by name and keeps what it was sent. */
@@ -54,7 +54,7 @@ describe('lists read a page at a time from the server (redesign RD-30)', () => {
   });
 
   it('asks for one page of the door\'s list and reads each player and how many the view leaves', async () => {
-    const { calls, wrapper } = fakeApi({ door_page: [NAINA, { ...NAINA, member_id: 'm2', status: 'a word of another day', list: 'elsewhere', kyc_status: 'pending', since: null, bonus_paise: null }] });
+    const { calls, wrapper } = fakeApi({ door_page: [NAINA, { ...NAINA, member_id: 'm2', status: 'a word of another day', list: 'elsewhere', kyc_status: 'pending', since: null, bonus_paise: null, linked_member_id: null }] });
     const { result } = renderHook(() => useDoorPage(VENUE, VIEW), { wrapper });
     await waitFor(() => expect(result.current.data).toBeDefined());
     expect(calls).toEqual([{ rpc: 'door_page', body: { p_venue_id: VENUE, p_view: listViewJson(VIEW) } }]);
@@ -63,11 +63,14 @@ describe('lists read a page at a time from the server (redesign RD-30)', () => {
       memberId: 'm1', fullName: 'Naina Kapoor', memberNumber: 270, tierName: 'Black card', isBaseTier: false, status: 'playing', list: 'in_club',
       checkedInAt: '2026-11-15T15:34:00Z', checkedOutAt: null, waitingSeconds: 300, tables: [{ table: 'Table 1', seconds: 5400 }], playedSeconds: 5400,
       kycStatus: 'verified', since: '2026-11-15T15:34:00Z', bonus: 50_000n, seatedAt: '2026-11-15T15:40:00Z', leftAt: null, bonusUsed: 20_000n,
+      sessionId: 's1', visitId: 'v1', linkedMemberId: 'm1',
     });
     // Words this console does not know never read as in the club, nor as checked.
     expect(result.current.data?.rows[1]).toMatchObject({ status: 'left', list: 'not_arrived', kycStatus: 'not_done', since: null });
     // A member's later rows carry no Bonus given: it is on their first row alone.
     expect(result.current.data?.rows[1]?.bonus).toBeNull();
+    // An erased member's row names no account to link to.
+    expect(result.current.data?.rows[1]?.linkedMemberId).toBeNull();
   });
 
   it('asks nothing until the table has handed its view over, and reads a view that leaves nobody as none', async () => {
