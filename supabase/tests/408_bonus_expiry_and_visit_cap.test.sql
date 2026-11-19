@@ -126,6 +126,8 @@ select is((select v.bonus_at_first_seat_paise from public.visit v where v.member
 
 select set_config('request.jwt.claims', jsonb_build_object('sub', '00000000-0000-4000-8000-000000000103', 'role', 'authenticated',
   'amr', jsonb_build_array(jsonb_build_object('method', 'otp', 'timestamp', floor(extract(epoch from now()))::bigint)))::text, true);
+-- A seating redeems once (#914): 50 more comes with a seating of its own, as a table change in the same seat makes.
+update public.seat_session set seated_here_at = clock_timestamp() where member_id = '00000000-0000-4000-8000-000000000211' and ended_at is null;
 select throws_ok($$ select private.redeem_bonus_at_seat((select id from public.seat_session where member_id = '00000000-0000-4000-8000-000000000211'
                      and ended_at is null), 50) $$, 'RVVCP', null, 'not 50 more in the same visit');
 select set_config('request.jwt.claims', '', true);
