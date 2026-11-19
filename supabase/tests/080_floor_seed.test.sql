@@ -19,15 +19,22 @@ select results_eq(
   $$ values ('gurugram', 'Pema Lepcha', 'Table 3'), ('practice', 'Pema Lepcha', 'Table 3') $$,
   'Pema Lepcha deals Table 3 in both venues, on its tablet');
 
+-- A seed run in the 19 minutes after 06:00 IST shrinks the waits to fit the night so far (55_waitlist.sql): each wait is
+-- its design length times the share of those 19 minutes gone when the seed ran (its created_at), while Pema's down still
+-- began 30 minutes before. So read each join against the down as the seed placed it, to the half minute (#1028).
 select results_eq(
-  $$ select t3.slug, m.full_name, (extract(epoch from e.joined_at - t3.started_at) / 60)::integer
+  $$ select t3.slug, m.full_name, coalesce(abs(extract(epoch from e.joined_at - t3.started_at)
+              - extract(epoch from interval '30 minutes' - w.wait * least(1, extract(epoch from e.created_at - private.tonight_began(e.created_at))
+                                                                          / extract(epoch from interval '19 minutes')))) < 30, false)
      from public.waitlist_entry e join public.table_type tt on tt.id = e.table_type_id and tt.code = 'nlh_100_200'
      join public.member m on m.id = e.member_id join t3 on t3.venue_id = e.venue_id
+     left join (values ('Kabir Sethi', interval '18 minutes'), ('Naina Kapoor', interval '12 minutes'), ('Rohan Bhatia', interval '3 minutes'))
+       as w (name, wait) on w.name = m.full_name
      where e.joined_at <= t3.started_at + interval '30 minutes'
      order by t3.slug, e.joined_at $$,
-  $$ values ('gurugram', 'Kabir Sethi', 12), ('gurugram', 'Naina Kapoor', 18), ('gurugram', 'Rohan Bhatia', 27),
-            ('practice', 'Kabir Sethi', 12), ('practice', 'Naina Kapoor', 18), ('practice', 'Rohan Bhatia', 27) $$,
-  '100/200: Kabir at 23:52, Naina at 23:58, Rohan at 00:07, in both venues');
+  $$ values ('gurugram', 'Kabir Sethi', true), ('gurugram', 'Naina Kapoor', true), ('gurugram', 'Rohan Bhatia', true),
+            ('practice', 'Kabir Sethi', true), ('practice', 'Naina Kapoor', true), ('practice', 'Rohan Bhatia', true) $$,
+  '100/200: Kabir at 23:52, Naina at 23:58, Rohan at 00:07 (12, 18 and 27 minutes into Pema''s down), in both venues');
 select is_empty(
   $$ select 1 from public.waitlist_entry e join public.table_type tt on tt.id = e.table_type_id and tt.code = 'nlh_50_100'
      join t3 on t3.venue_id = e.venue_id where e.joined_at <= t3.started_at + interval '30 minutes' $$,
