@@ -134,10 +134,15 @@ describe('useSignIn', () => {
       {
         ...CHECK_WITH_AUTH,
         '/auth/v1/verify': { status: 200, body: session },
-        '/rest/v1/rpc/link_my_login': () => {
-          setTimeout(() => (linked = true), 90); // linked just before the slow answer arrives
-          return { status: 204, body: null, delayMs: 100 };
-        },
+        // Linked as the slow answer is made, after its 100 ms (#880: a timer racing the delay could fire after it under load).
+        '/rest/v1/rpc/link_my_login': () => ({
+          status: 200,
+          delayMs: 100,
+          get body() {
+            linked = true;
+            return null;
+          },
+        }),
         // Before linking the database knows no member for this login, so it returns no features.
         '/rest/v1/rpc/my_feature_access': () => ({
           status: 200,
