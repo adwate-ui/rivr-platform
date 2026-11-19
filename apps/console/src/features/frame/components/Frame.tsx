@@ -16,7 +16,7 @@ import { useAddressTableViews } from './tableViews.ts';
 import { CHIME_ONLY_QUEUES, landingFor, phoneTabsFor, railFor, railItemAt, refusalAt, titleCountOf, URGENT_QUEUES, type Refusal } from './rail.ts';
 import { SignOutButton } from './SignOutButton.tsx';
 import { StaffAccount } from './StaffAccount.tsx';
-import { NoAlertNumberBanner } from './NoAlertNumberBanner.tsx';
+import { NoAlertEmailBanner } from './NoAlertEmailBanner.tsx';
 
 /** Who is at the console and where, for a prompt the route puts across the top of every screen (#317). */
 export interface FrameStaff {
@@ -138,7 +138,7 @@ function FrameBanner({ staff, prompt, location }: { staff: ReadyStaff; prompt: S
         <PracticeBanner message={t('console.practiceBanner')} action={{ label: t('console.shell.backToClub'), onPress: () => staff.setPractice(false) }} />
       ) : null}
       {!isPractice && permissions.includes('venue.configure')
-        ? <NoAlertNumberBanner venueId={venueId} onAdd={() => void navigate({ href: '/settings?tab=club' })} /> : null}
+        ? <NoAlertEmailBanner venueId={venueId} onAdd={() => void navigate({ href: '/settings?tab=club' })} /> : null}
       {prompt?.({ venueId, permissions, ...location })}
     </>
   );

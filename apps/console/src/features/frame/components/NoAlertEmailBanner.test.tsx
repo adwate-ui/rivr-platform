@@ -2,7 +2,7 @@ import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/d
 import { QueryClient } from '@tanstack/react-query';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { NoAlertNumberBanner } from './NoAlertNumberBanner.tsx';
+import { NoAlertEmailBanner } from './NoAlertEmailBanner.tsx';
 
 afterEach(() => {
   cleanup();
@@ -26,7 +26,7 @@ async function renderBanner(detail: object | null, onAdd = vi.fn()) {
   render(
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <NoAlertNumberBanner venueId="v1" onAdd={onAdd} />
+      <NoAlertEmailBanner venueId="v1" onAdd={onAdd} />
     </RivrDataProvider>,
   );
   await waitFor(() => expect(isRead).toBe(true), { timeout: 5000 });
@@ -39,7 +39,7 @@ const DETAIL = {
   created_at: '', updated_at: '', sac_club_services: '999692', signatory_name: null, signatory_designation: null,
 };
 
-describe('The alert number warning (audit F-212)', () => {
+describe('The alert email warning (audit F-212)', () => {
   it('shows while the club has none, with the way to add it', async () => {
     const onAdd = vi.fn();
     await renderBanner(DETAIL, onAdd);
