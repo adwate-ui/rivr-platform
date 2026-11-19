@@ -84,7 +84,9 @@ function withContact(
     ...column, share: 1.75, exportValue: (player: DoorPlayer) => player.fullName,
     cell: (player: DoorPlayer) => <>{player.fullName}{player.phone === null ? null : <Text variant="secondary" tone="muted">{formatMobile(player.phone)}</Text>}</>,
   }));
-  return [...named, { key: 'action', share: 2.7, header: '', align: 'end', isWide: true, filter: false, cell: (player) => <Inline gap={2} justify="end">{history(player)}{action(player)}</Inline> }];
+  // Below 768 px the column is one 128 px track (DataTable's sideways layout), too narrow for both on one line: Check out
+  // wraps under History rather than squeeze its words onto two lines.
+  return [...named, { key: 'action', share: 2.7, header: '', align: 'end', isWide: true, filter: false, cell: (player) => <Inline gap={2} justify="end" wrap>{history(player)}{action(player)}</Inline> }];
 }
 
 /**
