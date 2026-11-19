@@ -1,6 +1,7 @@
 import { memberBonus } from './memberBonus.ts';
 import { memberHours } from './memberHours.ts';
 import { memberSignUp } from './memberSignUp.ts';
+import { memberStaffHistory } from './memberStaffHistory.ts';
 
 /** The console's Members screen (#60): find a member, open their record, and change their tier. */
 export const members = {
@@ -75,6 +76,7 @@ export const members = {
   /** The record's Sign-up (owner, 8 Nov). */
   signUp: memberSignUp,
   bonus: memberBonus,
+  staffHistory: memberStaffHistory,
   earlyDeparturesTitle: 'Early departures',
   noEarlyDepartures: 'No early departures.',
   /** One early departure: `{date}`, `{time}` of call time owed, why, and the admin who let them go. */

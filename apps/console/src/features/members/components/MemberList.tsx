@@ -2,12 +2,13 @@ import {
   MEMBERS_PAGE, useEveryMember, useMemberAccountStatuses, useMemberChoices, useMembersPage, useVenueTiers, type MemberListRow, type MembersView, type VenueTier,
 } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { ChoiceChips, DataTable, type DataTableRequest } from '@rivr/ui';
+import { ChoiceChips, DataTable, Sheet, Stack, type DataTableRequest } from '@rivr/ui';
 import { useState, type ReactNode } from 'react';
 import { useAddressWords } from './addressWords.ts';
 import { filtersInCodes } from './memberChoices.ts';
 import { memberColumns } from './memberColumns.tsx';
 import { memberExportColumns } from './memberExportColumns.ts';
+import { MemberStaffHistory } from './MemberStaffHistory.tsx';
 import type { Tonight } from './tonight.ts';
 
 /** What the list is given: the venue, where each member is tonight, how a record opens, and where its Export goes. */
@@ -23,6 +24,8 @@ interface ListProps {
   readonly seesIdentity: boolean;
   /** A record is open beside the list, so it has half the width: every column kept, the lines scrolling sideways (owner, 9 Nov). */
   readonly isDocked: boolean;
+  /** Floor and up (members.phone) open a member's History of changes by staff from their row, as the Door's History. */
+  readonly seesHistory: boolean;
 }
 
 /** The tier chosen in words, as an export records it with the table's own search and filters (#102); none for every tier. */
@@ -40,12 +43,25 @@ function viewOf(request: DataTableRequest | null, tier: VenueTier | null): Membe
   return request === null ? null : { ...request, filters: filtersInCodes(request.filters), tierId: tier?.tierId ?? null };
 }
 
+/** What the list's table is given besides the list's own: the tier chosen, the tier chips, and how a row's History opens. */
+interface ResultsExtra {
+  readonly tier: VenueTier | null;
+  readonly tiers: ReactNode;
+  readonly onHistory: ((row: MemberListRow) => void) | undefined;
+}
+
+/** A member's History in the panel at the side, as the Door's (#1073), while one is open. */
+function HistoryPanel({ venueId, opened, onClose }: { venueId: string; opened: MemberListRow | null; onClose: () => void }) {
+  if (opened === null) return null;
+  return <Sheet place="console" isOpen onClose={onClose} title={opened.fullName}><MemberStaffHistory venueId={venueId} memberId={opened.memberId} /></Sheet>;
+}
+
 /**
  * One page of the members the view leaves, as a table with the search above it and the tiers beside it (redesign RD-29):
  * the server sorts, searches, filters and pages, and counts what each column's menu offers. The search finds a name by
  * any part, a member number exactly, or four or more digits of a mobile. Export reads every member the view leaves.
  */
-function Results({ venueId, tonight, onOpen, exportIn, seesPhone, seesIdentity, isDocked, tier, tiers }: ListProps & { tier: VenueTier | null; tiers: ReactNode }) {
+function Results({ venueId, tonight, onOpen, exportIn, seesPhone, seesIdentity, isDocked, tier, tiers, onHistory }: Omit<ListProps, 'seesHistory'> & ResultsExtra) {
   // The table's view as it last handed it over; none until it is first drawn.
   const [request, setRequest] = useState<DataTableRequest | null>(null);
   const view = viewOf(request, tier);
@@ -55,7 +71,7 @@ function Results({ venueId, tonight, onOpen, exportIn, seesPhone, seesIdentity, 
   const statuses = useMemberAccountStatuses(venueId).data;
   const chosen = tierWords(tier);
   const base = {
-    label: t('console.members.title'), columns: memberColumns(tonight, { seesPhone, statuses, choices }), rowKey: (row: MemberListRow) => row.memberId, scrollsSideways: isDocked,
+    label: t('console.members.title'), columns: memberColumns(tonight, { seesPhone, statuses, choices, onHistory }), rowKey: (row: MemberListRow) => row.memberId, scrollsSideways: isDocked,
     filter: { label: t('console.members.search'), variant: 'subtle' as const, text: (row: MemberListRow) => row.fullName }, belowSearch: tiers,
     ...(chosen === undefined ? {} : { exportFilter: chosen }), exportColumns: memberExportColumns(seesIdentity),
     onRowOpen: (row: MemberListRow) => onOpen(row.memberId), initialSort: { key: 'name', direction: 'ascending' } as const, exportIn,
@@ -85,5 +101,12 @@ export function MemberList(props: ListProps) {
       options={[{ value: '', label: t('console.members.anyTier') }, ...tiers.data.map((choice) => ({ value: choice.tierId, label: choice.name }))]}
       onChange={(picked) => setTierId(picked[0] ?? '')} />
   );
-  return <Results {...props} tier={tier} tiers={chips} />;
+  const [opened, setOpened] = useState<MemberListRow | null>(null);
+  const { seesHistory, ...shown } = props;
+  return (
+    <Stack gap={0}>
+      <Results {...shown} tier={tier} tiers={chips} onHistory={seesHistory ? setOpened : undefined} />
+      <HistoryPanel venueId={props.venueId} opened={opened} onClose={() => setOpened(null)} />
+    </Stack>
+  );
 }

@@ -1,6 +1,6 @@
 import type { MemberAccountStatus, MemberChoices, MemberKycStatus, MemberListRow } from '@rivr/db';
 import { formatChips, formatDate, formatDuration, formatMobile, formatNumber, formatRupeesForFile, t } from '@rivr/i18n';
-import { DotStatus, Text, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
+import { Button, DotStatus, Text, type DataTableColumn, type DotStatusTone } from '@rivr/ui';
 import { choicesIn } from './memberChoices.ts';
 import type { Tonight } from './tonight.ts';
 
@@ -106,6 +106,20 @@ export interface MemberColumnsFor {
   readonly choices: MemberChoices | undefined;
   /** Members on a break, frozen or erased, anyone else active; undefined until that is known. */
   readonly statuses: ReadonlyMap<string, MemberAccountStatus> | undefined;
+  /** For floor and up (members.phone), as the Door's History: opens the member's changes by staff; without it, no History column. */
+  readonly onHistory?: ((row: MemberListRow) => void) | undefined;
+}
+
+/** History at the row's end (the owner, 19 Nov): its icon alone, named for the member, opening their changes by staff at the side. */
+function historyColumn(onHistory: (row: MemberListRow) => void): DataTableColumn<MemberListRow> {
+  return {
+    key: 'history', share: 0.6, header: '', align: 'end', filter: false, isExported: false,
+    cell: (row) => (
+      <Button variant="text" size="small" icon="history" aria-label={t('console.members.staffHistory.historyOf', { name: row.fullName })} onClick={() => onHistory(row)}>
+        {null}
+      </Button>
+    ),
+  };
 }
 
 /**
@@ -117,7 +131,8 @@ export interface MemberColumnsFor {
 export function memberColumns(tonight: ReadonlyMap<string, Tonight>, view: MemberColumnsFor): readonly DataTableColumn<MemberListRow>[] {
   const [name, number, tier, ...rest] = coreColumns(tonight, view.choices);
   const more = [...(view.seesPhone ? [mobileColumn] : []), accountColumn(view.statuses, view.choices), ...moreColumns(view.choices)];
-  return [name, number, tier, ...more, ...rest].filter((column) => column !== undefined);
+  const history = view.onHistory === undefined ? [] : [historyColumn(view.onHistory)];
+  return [name, number, tier, ...more, ...rest, ...history].filter((column) => column !== undefined);
 }
 
 /** Name, No., Tier, Tonight and Visits, as console v3 drew the list, then each member's Bonus in force (redesign RD-29). */
