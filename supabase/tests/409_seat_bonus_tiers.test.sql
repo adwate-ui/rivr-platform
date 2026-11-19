@@ -9,6 +9,9 @@ select no_plan();
 update public.promotion_version set status = 'draft' where status = 'live';
 select private.sync_promotion(id) from public.promotion where current_version is not null;
 update public.promotion set status = 'draft' where status = 'live';
+-- The Cab seed's members hold seats only in a month's first hours (supabase/seed/59_cab.sql, #1091): this test counts its
+-- own promotion's first claimants, so it sets theirs aside.
+delete from public.seat_session where member_id in ('00000000-0000-4000-8000-000000000620', '00000000-0000-4000-8000-000000000621');
 
 create function pg_temp.terms_ok(p_reward jsonb, p_limits jsonb) returns boolean language sql as $$
   select private.is_promotion_terms(p_reward, '{"stakes": "all", "tiers": "all", "audience": "everyone"}',
