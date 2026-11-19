@@ -74,6 +74,8 @@ export const callTimeEndingSchema = z.object({
   table_name: z.string().trim().min(1).max(40),
   seat: z.int().min(1).max(10),
   ends_at: z.iso.datetime({ offset: true }),
+  /** Whether the member set their call time (#1081): one never set is asked to set one. Absent on warnings made before it. */
+  is_set: z.boolean().optional(),
 });
 
 /** call_time.updated (decision 0320): the floor added time; the call time is now `minutes` in all. */

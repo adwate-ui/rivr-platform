@@ -13,6 +13,9 @@ export const push = {
     body: '{table}, seat {seat}. Ends at {time}.',
     /** Opens Set call time on Home (#1059). */
     action: 'Set call time',
+    /** A member who never set one (#1081): asked to set it, with no "Ends at" that reads as leave-by. */
+    setTitle: 'Set your call time',
+    setBody: '{table}, seat {seat}.',
   },
   /** The member's call time has run: they may go (8 Nov audit, F-181). */
   callTimeDone: {

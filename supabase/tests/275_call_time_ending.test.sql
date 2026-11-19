@@ -48,7 +48,8 @@ select private.sweep_seated_time();
 select is(pg_temp.warnings('00000000-0000-4000-8000-000000000211'), 1, 'ten minutes to run: one warning, however often the sweep runs');
 select is((select payload - 'ends_at' - 'session_id' from public.outbox_event where event_type = 'call_time.ending'
              and payload ->> 'member_id' = '00000000-0000-4000-8000-000000000211'),
-  jsonb_build_object('member_id', '00000000-0000-4000-8000-000000000211', 'table_name', 'Table 5', 'seat', 2), 'it names the table and seat');
+  jsonb_build_object('member_id', '00000000-0000-4000-8000-000000000211', 'table_name', 'Table 5', 'seat', 2, 'is_set', false),
+  'it names the table and seat, and that he never set a call time (#1081)');
 select ok((select (payload ->> 'ends_at')::timestamptz between now() + interval '9 minutes' and now() + interval '11 minutes'
            from public.outbox_event where event_type = 'call_time.ending' and payload ->> 'member_id' = '00000000-0000-4000-8000-000000000211'),
   'and when the call time ends');
