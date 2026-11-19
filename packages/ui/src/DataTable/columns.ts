@@ -18,6 +18,11 @@ export interface DataTableColumn<Row> {
    * default); `secondary`, a line under it with the column's name; `optional`, left out below 768 px.
    */
   readonly priority?: 'primary' | 'secondary' | 'optional';
+  /**
+   * The cell holds its own link, as a member's name (`MemberLink`), to where the row opens: the title is then not put inside
+   * the row's open button, never a link inside a button; a click on the link is the link's, anywhere else the row's.
+   */
+  readonly isLink?: boolean;
   /** Twice a column's share of the width from 768 px, for words that would wrap in one share: a stake's name. */
   readonly isWide?: boolean;
   /**

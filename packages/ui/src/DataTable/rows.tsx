@@ -200,7 +200,7 @@ function BodyCell<Row>({ row, column, priority, layout, isOneLine, isTotal, onRo
     // spaces (a key, a link) breaks rather than spill, and data-label names the column before the value.
     <div role="cell" data-label={layout.narrow === 'cards' && priority === 'secondary' ? column.header : undefined}
       title={titleOf(content, isOneLine)} className={cellClasses(column, priority, layout, { isOneLine, isTotal })}>
-      {priority === 'primary' ? <Title content={content} onOpen={onRowOpen && (() => onRowOpen(row))} isOneLine={isOneLine} /> : content}
+      {priority === 'primary' ? <Title content={content} onOpen={onRowOpen && column.isLink !== true ? () => onRowOpen(row) : undefined} isOneLine={isOneLine} /> : content}
     </div>
   );
 }
