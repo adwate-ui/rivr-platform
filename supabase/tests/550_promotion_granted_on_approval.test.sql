@@ -66,5 +66,22 @@ select is_empty($$ select 1 from public.outbox_event e
                    where e.event_type = 'promotion.granted' and e.idempotency_key = 'promotion.granted:' || (select id from ids where name = 'bhavna') $$,
   'refused, it is never told of');
 
+-- A decision changes each grant once (#1019): one row-audit line for it, and for an approved one one more for the Bonus it
+-- posted; besides one Activity line a decision.
+select results_eq(
+  $$ select ids.name, count(*) filter (where l.entity = 'promotion_grant')::integer, count(*) filter (where l.entity = 'bonus_grant')::integer
+     from ids
+     join public.promotion_grant g on g.id = ids.id
+     join public.audit_log l
+       on (l.entity = 'promotion_grant' and l.entity_id = g.id::text and l.action = 'update')
+       or (l.entity = 'bonus_grant' and l.entity_id = g.bonus_grant_id::text)
+     group by ids.name order by ids.name $$,
+  $$ values ('asha'::text, 1, 1), ('bhavna'::text, 1, 0) $$,
+  'each decided grant has one audit line for its change, and an approved one one for its Bonus');
+select is((select count(*)::integer from public.audit_log l
+           where l.action in ('bonus.approve', 'bonus.refuse') and l.entity = 'promotion_bonus_decision'
+             and l.entity_id in (select g.decision_id::text from public.promotion_grant g join ids on ids.id = g.id)), 2,
+  'and each decision its one Activity line');
+
 select * from finish();
 rollback;
