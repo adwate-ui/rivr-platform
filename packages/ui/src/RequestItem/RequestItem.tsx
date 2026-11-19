@@ -2,6 +2,7 @@ import { t } from '@rivr/i18n';
 import { tokens } from '@rivr/tokens';
 import { Button } from '../Button/Button.tsx';
 import { cx } from '../internal/classes.ts';
+import { MemberLink } from '../MemberLink/MemberLink.tsx';
 
 /** How long a new request's gold tint takes to fade, from the tokens: 2.5 s (decision 0465). Keep `isNew` on for as long. */
 export const FRESH_MS = Number.parseInt(String(tokens.motion.duration.fresh), 10);
@@ -22,7 +23,9 @@ export interface RequestItemProps {
   isLate?: boolean;
   /** Who asks: "Ritika Bhalla". */
   title: string;
-  /** Opens who asks, their seat or their record; the title is then a button. */
+  /** Whose account the title opens, through `MemberLink`. */
+  memberId?: string | undefined;
+  /** Opens who asks, their seat or their record: a click anywhere on the item but its name and actions, or its button. */
   onTitle?: (() => void) | undefined;
   /** Where: "Table 1 waitlist", "Table 2, seat 5". */
   detail?: string | undefined;
@@ -42,15 +45,24 @@ export interface RequestItemProps {
   look?: 'queue' | 'ask';
 }
 
-/** Who asks: words, or a button that opens them when `onTitle` is given. */
-function Title({ title, onTitle }: Pick<RequestItemProps, 'title' | 'onTitle'>) {
-  const look = 'font-text text-15 leading-snug font-medium text-content';
-  if (onTitle === undefined) return <p className={look}>{title}</p>;
+/** Who asks: their name, a link to their account with `memberId` (owner, 19 Nov). */
+function Title({ title, memberId }: Pick<RequestItemProps, 'title' | 'memberId'>) {
   return (
-    <button type="button" onClick={onTitle}
-      className={cx(look, 'self-start text-start underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-focus')}>
-      {title}
-    </button>
+    <p className="relative self-start font-text text-15 leading-snug font-medium text-content">
+      {memberId === undefined ? title : <MemberLink memberId={memberId}>{title}</MemberLink>}
+    </p>
+  );
+}
+
+/**
+ * With `onTitle`, the item's own button under it all, named as who asks: a click anywhere but the name and the actions,
+ * which sit above it, opens them (owner, 19 Nov: the name is the link, the rest does what it did).
+ */
+function OpenButton({ title, onTitle }: Pick<RequestItemProps, 'title' | 'onTitle'>) {
+  if (onTitle === undefined) return null;
+  return (
+    <button type="button" onClick={onTitle} aria-label={title}
+      className="absolute inset-0 rounded-md transition-colors hover:bg-subtle focus-visible:outline focus-visible:outline-focus" />
   );
 }
 
@@ -67,7 +79,7 @@ function Age({ age, isLate }: { age: string | undefined; isLate: boolean }) {
 /** The one filled action and the one in words: small in the queue, the console's compact height in a sheet. */
 function Actions({ primary, secondary, size }: Pick<RequestItemProps, 'primary' | 'secondary'> & { size: 'small' | 'compact' }) {
   return (
-    <div className="flex items-center gap-1">
+    <div className="pointer-events-auto relative flex items-center gap-1">
       <Button variant="strong" size={size} isLoading={primary.isLoading === true} onClick={primary.onClick}>{primary.label}</Button>
       {secondary ? <Button variant="text" size={size} isLoading={secondary.isLoading === true} onClick={secondary.onClick}>{secondary.label}</Button> : null}
     </div>
@@ -96,17 +108,21 @@ function Ask({ age, isLate = false, title, primary, secondary }: RequestItemProp
  * is the same request inside the player's own sheet.
  */
 export function RequestItem(props: RequestItemProps) {
-  const { kind, age, isLate = false, title, onTitle, detail, primary, secondary, isNew = false, requestKey } = props;
+  const { kind, age, isLate = false, title, memberId, onTitle, detail, primary, secondary, isNew = false, requestKey } = props;
   if (props.look === 'ask') return <Ask {...props} />;
+  // Above the item's own button, its words let a click through to it; only the name and the actions take their own.
   return (
-    <div data-fresh={isNew ? '' : undefined} data-request={requestKey} className="-mx-3 flex flex-col gap-1 rounded-md px-3 py-3">
-      <div className="flex items-center justify-between gap-2 font-text text-12 leading-snug">
-        <span className="text-content-muted">{kind}</span>
-        <Age age={age} isLate={isLate} />
+    <div data-fresh={isNew ? '' : undefined} data-request={requestKey} className="relative isolate -mx-3 flex flex-col gap-1 rounded-md px-3 py-3">
+      <OpenButton title={title} onTitle={onTitle} />
+      <div className={cx('relative flex flex-col gap-1', onTitle !== undefined && 'pointer-events-none')}>
+        <div className="flex items-center justify-between gap-2 font-text text-12 leading-snug">
+          <span className="text-content-muted">{kind}</span>
+          <Age age={age} isLate={isLate} />
+        </div>
+        <Title title={title} memberId={memberId} />
+        {detail ? <p className="font-text text-13 leading-snug text-content-muted">{detail}</p> : null}
       </div>
-      <Title title={title} onTitle={onTitle} />
-      {detail ? <p className="font-text text-13 leading-snug text-content-muted">{detail}</p> : null}
-      <div className="mt-2"><Actions primary={primary} secondary={secondary} size="small" /></div>
+      <div className="mt-2 self-start"><Actions primary={primary} secondary={secondary} size="small" /></div>
     </div>
   );
 }
