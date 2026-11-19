@@ -49,7 +49,7 @@ describe('resetting one member’s hours on their record (redesign RD-36)', () =
     fireEvent.click(screen.getByRole('button', { name: 'Reset hours' }));
     expect(sent).toEqual([]);
     fireEvent.click(await screen.findByRole('button', { name: 'Yes, reset the hours of Ishaan Verma' }));
-    await waitFor(() => expect(sent).toEqual([{ p_member_id: 'm1', p_reason: 'A new season' }]));
+    await waitFor(() => expect(sent).toEqual([{ p_member_id: 'm1', p_reason: 'A new season', p_request_id: expect.any(String) }]));
     expect(await screen.findByText('Hours reset.')).toBeDefined();
     expect(reason()).toHaveProperty('value', '');
   });

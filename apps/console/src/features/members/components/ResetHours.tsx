@@ -6,16 +6,20 @@ import { useState } from 'react';
 /**
  * A super admin resets one member's counted hours (redesign RD-36; the owner, 15 Nov): a reason, then Reset hours, asked
  * twice. From then the member's hours start from zero on the TV's hours leaderboard, for a play-time Bonus and in the
- * Members list; the visits above stay as they are. Audited, with the reason.
+ * Members list; the visits above stay as they are. Audited, with the reason. One request id per reset, so a double press
+ * or a retry resets once; a new one after it goes through.
  */
 export function ResetHours({ venueId, memberId, name }: { venueId: string; memberId: string; name: string }) {
   const reset = useResetMemberHours(venueId, memberId);
   const [reason, setReason] = useState('');
+  const [requestId, setRequestId] = useState(() => crypto.randomUUID());
   const [outcome, setOutcome] = useState<{ ok: boolean; text: string } | null>(null);
   const submit = async () => {
-    const done = await reset.mutateAsync(reason);
+    const done = await reset.mutateAsync({ reason, requestId });
     setOutcome(done.ok ? { ok: true, text: t('console.members.resetHours.done') } : { ok: false, text: t(`console.members.resetHours.failures.${done.error}`) });
-    if (done.ok) setReason('');
+    if (!done.ok) return;
+    setReason('');
+    setRequestId(crypto.randomUUID());
   };
   return (
     <Stack gap={3}>

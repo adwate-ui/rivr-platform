@@ -3589,7 +3589,7 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
 "reset_member_hours":
-{ Args: { "p_member_id": string,"p_reason": string }; Returns: string
+{ Args: { "p_member_id": string,"p_reason": string,"p_request_id": string }; Returns: string
                            },
 "resolve_feedback":
 { Args: { "p_feedback_id": string,"p_resolution": string }; Returns: undefined
