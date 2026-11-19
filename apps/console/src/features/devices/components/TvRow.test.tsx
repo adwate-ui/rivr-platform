@@ -1,7 +1,8 @@
 import type { VenueTv } from '@rivr/db';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { TvStatus } from './TvRow.tsx';
+import { RotationChips } from './tvCopy.tsx';
 
 afterEach(cleanup);
 
@@ -31,5 +32,18 @@ describe('whether a TV is on (audit F-083)', () => {
   it('says it waits for a TV yet to pick up its login', () => {
     render(<TvStatus tv={{ ...TV, isPaired: false, mode: null }} />);
     expect(screen.getByText('Waiting for the TV')).toBeDefined();
+  });
+});
+
+describe('what a TV turns to in between (decision 0163)', () => {
+  it('offers every board but its main one, the high hand bonus among them', () => {
+    render(<RotationChips label="What Bar TV turns to in between" mode="waitlist" value={[]} onChange={() => undefined} />);
+    const chips = within(screen.getByRole('group', { name: 'What Bar TV turns to in between' })).getAllByRole('button');
+    expect(chips.map((chip) => chip.textContent)).toEqual(['Call-time board', 'Promotions', 'Hours leaderboard', 'High hand bonus']);
+  });
+
+  it('leaves out only the main board, so a TV on the high hand bonus turns to the other four', () => {
+    render(<RotationChips label="What Bar TV turns to in between" mode="high_hand" value={[]} onChange={() => undefined} />);
+    expect(screen.getAllByRole('button').map((chip) => chip.textContent)).toEqual(['Waitlist board', 'Call-time board', 'Promotions', 'Hours leaderboard']);
   });
 });
