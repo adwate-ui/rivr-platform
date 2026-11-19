@@ -1,0 +1,9 @@
+# 0695 A member's Set or Extend call time stays in Requests until seen
+
+Date: 19 Nov 2026. Issue #1090. The owner, 19 Nov, after a staging test: the floor got no alert when a member set their call time. What existed was a toast of a few seconds and a chime counting the last minute's sets, and both are easy to miss while staff work elsewhere. The owner chose a Requests item until seen, one per seat.
+
+- **The item.** `floor_requests` has a `call_time_set` row for each open seat whose member set or extended their call time and the floor has not marked it seen. It shows the seat's latest change, the minutes set or added, and the call time left (null while away). It reads "Call time set · Table 5, seat 2 · leaves 23:40", with Seen, in the Requests panel and the player's sheet. The floor's own Set or Extend is never an item.
+- **The count.** `staff_queue_counts`' `callTimeSet` now counts those seats, gated like `floor_requests` (`waitlist.manage`), instead of the last minute's sets. It counts in the header's Requests, the Live floor rail and the tab title, and it chimes when it grows. `CHIME_ONLY_QUEUES` is now empty; it and its filter stay for a queue that should chime without counting. The item shows late after the five minutes any other request has.
+- **Seen.** `mark_call_time_seen(request)` is for the floor (`waitlist.manage`) at the change's venue only; a member's own change is required, otherwise 22023, and it is refused while frozen. It stamps `seen_at` and `seen_by_staff_id` on that seat's member changes up to the one shown, and a newer change comes back as a new item. Doing it again does nothing, and it sends nothing outside. It has no Undo.
+- **Kept.** The toast stays as it was (`useCallTimeNews`).
+- **At release.** The migration marks member changes on seats still open as seen, so the release brings no flood of old items (tried on a pre-release set).

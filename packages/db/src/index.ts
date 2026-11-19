@@ -67,8 +67,8 @@ export {
 export { ACTIVITY_KINDS, ACTIVITY_PAGE, useActivityPage, type ActivityFilters, type ActivityKind, type ActivityLine } from './activityLog.ts';
 export * from './floorReports.ts';
 export {
-  openSeatsAt, useFloorSeats, useHeldSeats, useLeftOwingCallTime, useSeatActions, useSetSeatCallTime, useAddCallTime, useAddTimeChoices,
-  useSetTopUp, type HeldSeat, type LeftOwing, type SeatedPlayer, type SeatFailure,
+  openSeatsAt, useFloorSeats, useHeldSeats, useLeftOwingCallTime, useSeatActions, useSetSeatCallTime, useAddCallTime,
+  useSetTopUp, useMarkCallTimeSeen, type HeldSeat, type LeftOwing, type SeatedPlayer, type SeatFailure,
 } from './seats.ts';
 export {
   isSeatAlert, useFloorRequests, useFloorRequestTargets, useFloorSignals, useReadyToSeat, type FloorRequest, type FloorRequestTargets,

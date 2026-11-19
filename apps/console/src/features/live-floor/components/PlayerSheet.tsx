@@ -1,5 +1,5 @@
 import type { RequestTargets } from '@rivr/domain/floorRequests';
-import { openSeatsAt, useAddTimeChoices, type FloorRequest, type FloorTable, type HeldSeat, type SeatedPlayer } from '@rivr/db';
+import { openSeatsAt, type FloorRequest, type FloorTable, type HeldSeat, type SeatedPlayer } from '@rivr/db';
 import { formatDuration, formatTime, t } from '@rivr/i18n';
 import { Button, ChoiceChips, Figure, Grid, Inline, ProgressBar, RequestItem, Sheet, Stack, Text } from '@rivr/ui';
 import { useNavigate } from '@tanstack/react-router';
@@ -59,33 +59,37 @@ function CallTime({ player, now }: { player: SeatedPlayer; now: Date }) {
 /** What this player asks, in their own words, each with its actions, as the requests panel has them. */
 function askTitle(request: FloorRequest): string {
   if (request.kind === 'top_up') return t(request.isStarted ? 'console.floor.player.toppingUp' : 'console.floor.player.asksTopUp');
+  if (request.kind === 'call_time_set') return t('console.floor.requests.callTimeSet');
   return t('console.floor.player.asksLeaving');
 }
 
 /**
- * Add call time (decision 0305; #1076): the lengths the club offers, for the floor's managers, by the member's own rule:
+ * Set call time, then Extend call time, as the member app (decision 0305; #1076; #1089, the owner, 19 Nov), for the
+ * floor's managers, by the member's own rule, the lengths coming with the seat by its state:
  * until a call time is set, a length ending no later than the call time the seat started with is greyed; it counts as
  * setting it, and once set, a length extends it.
  */
-function AddTime({ venueId, player, now, changes }: { venueId: string; player: SeatedPlayer; now: Date; changes: SeatChanges }) {
-  const choices = useAddTimeChoices(venueId).data ?? [];
+function CallTimeChoices({ player, now, changes }: { player: SeatedPlayer; now: Date; changes: SeatChanges }) {
+  const choices = player.addTimeChoices;
+  const isSet = player.callTimeSetAt !== null;
   const whyId = useId();
   if (choices.length === 0) return null;
   const isOpen = (minutes: number) => player.callTimeChoicesOpen.includes(minutes);
   // A length closed until a call time is set ends no later than the one owed now, as the member's own sheet says.
-  const notBefore = choices.every(isOpen) ? null : formatTime(new Date(now.getTime() + Math.max(0, player.callTimeLeft ?? 0) * 1000));
+  const notBefore = isSet || choices.every(isOpen) ? null : formatTime(new Date(now.getTime() + Math.max(0, player.callTimeLeft ?? 0) * 1000));
   return (
     <Stack gap={3}>
-      <Text variant="caption" tone="muted">{t('console.floor.player.addTime')}</Text>
+      <Text variant="caption" tone="muted">{t(isSet ? 'console.floor.player.extendCallTime' : 'console.floor.player.setCallTime')}</Text>
       <Grid columns={3} gap={2}>
         {choices.map((minutes) => (
           <Button key={minutes} variant="subtle" fullWidth isDisabled={!isOpen(minutes)} {...(isOpen(minutes) || notBefore === null ? {} : { 'aria-describedby': whyId })}
             onClick={() => void changes.addTime(player, minutes)}>
-            {t('console.floor.player.addTimeChoice', { time: formatDuration(minutes * 60) })}
+            {isSet ? t('console.floor.player.addTimeChoice', { time: formatDuration(minutes * 60) }) : formatDuration(minutes * 60)}
           </Button>
         ))}
       </Grid>
       {notBefore === null ? null : <Text id={whyId} variant="caption" tone="muted">{t('console.floor.player.addTimeNotBefore', { time: notBefore })}</Text>}
+      {isSet ? <Text variant="caption" tone="muted">{t('console.floor.player.extendNote')}</Text> : null}
     </Stack>
   );
 }
@@ -140,7 +144,7 @@ export function PlayerSheet(props: PlayerSheetProps) {
             secondary={actions.secondary && { label: actions.secondary.label, onClick: () => void actions.secondary?.run() }} />
         );
       })}
-      {permissions.includes('call_time.override') && player.callTimeLeft !== null ? <AddTime venueId={venueId} player={player} now={now} changes={changes.seats} /> : null}
+      {permissions.includes('call_time.override') && player.callTimeLeft !== null ? <CallTimeChoices player={player} now={now} changes={changes.seats} /> : null}
       <Move {...props} changes={changes.seats} />
       {drawBonusByHand !== null && permissions.includes('bonus.give') ? drawBonusByHand({ venueId, memberId: player.memberId }) : null}
       <MemberRecordLink memberId={player.memberId} permissions={permissions} />

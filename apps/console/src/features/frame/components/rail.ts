@@ -12,8 +12,8 @@ export type QueueCounts = Readonly<Record<string, number>>;
 // Bonus to approve too (decision 0670): a member waits for it at the tables, so a super admin hears of it.
 export const URGENT_QUEUES: readonly string[] = ['topUps', 'callTimeSet', 'waitlist', 'fnb', 'fnbCancelled', 'liveFloor', 'seating', 'bonusApprovals'];
 
-/** Urgent queues that only chime: a member's call time set (#1076) asks nothing, so the tab's count leaves it out. */
-export const CHIME_ONLY_QUEUES: readonly string[] = ['callTimeSet'];
+/** Urgent queues that only chime and count nowhere. None since a member's call time set waits in Requests until seen (#1090). */
+export const CHIME_ONLY_QUEUES: readonly string[] = [];
 
 /** The count in the tab's title: what waits on someone in the urgent queues, the chime-only ones left out. */
 export const titleCountOf = (counts: QueueCounts | null) =>

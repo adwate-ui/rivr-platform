@@ -19,7 +19,9 @@ export const KEYS = [
 ];
 export const TIME_KEYS = [
   { key: 'call_time.minutes', description: 'Call time', scope: 'table_type', value_schema: minutes(0, 1440) },
-  { key: 'call_time.add_choices', description: 'Add time choices', scope: 'venue',
+  { key: 'call_time.add_choices', description: 'Set call time choices', scope: 'venue',
+    value_schema: { type: 'object', properties: { minutes: { type: 'array', minItems: 1, maxItems: 12, items: { type: 'integer', minimum: 1, maximum: 1440 } } }, required: ['minutes'] } },
+  { key: 'call_time.extend_choices', description: 'Extend call time choices', scope: 'venue',
     value_schema: { type: 'object', properties: { minutes: { type: 'array', minItems: 1, maxItems: 12, items: { type: 'integer', minimum: 1, maximum: 1440 } } }, required: ['minutes'] } },
 ];
 export const STAKES = [{ code: 'nlh-50-100', name: 'NLH 50/100' }, { code: 'nlh-100-200', name: 'NLH 100/200' }];

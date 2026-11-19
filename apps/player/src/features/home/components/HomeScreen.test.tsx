@@ -153,6 +153,8 @@ describe('Tonight', () => {
     expect(within(sheet).getByRole('radio', { name: '3 h' }).getAttribute('aria-checked')).toBe('true');
     expect(within(sheet).getByText('Until 01:44')).toBeDefined();
     expect(within(sheet).getByText("Can't end before 01:25.")).toBeDefined();
+    // Setting is from now: no 'beyond the current end' (#1089).
+    expect(within(sheet).queryByText('Extend adds time beyond the current end.')).toBeNull();
     fireEvent.click(within(sheet).getByRole('button', { name: 'Set call time' }));
     await vi.waitFor(() => expect(asked.filter((call) => call.startsWith('set_my_call_time')).map((call) => call.includes('"p_minutes":180'))).toEqual([true]));
   });
@@ -172,11 +174,15 @@ describe('Tonight', () => {
 
   it('Extend call time once set: a length is added to when it ends, and sent as the member\'s own (the owner, 18 Nov)', async () => {
     // Set, and ending at 01:25 IST: an hour more ends at 02:25.
-    const { asked } = renderTonight([], [{ ...SEAT, call_time_set_at: '2026-11-15T17:00:00Z', call_time_choices_open: [30, 60, 120] }]);
+    // Two hours closed (a day's cap, say): once set, the sheet greys it without "Can't end before" (#1089).
+    const { asked } = renderTonight([], [{ ...SEAT, call_time_set_at: '2026-11-15T17:00:00Z', call_time_choices_open: [30, 60] }]);
     fireEvent.click(await screen.findByRole('button', { name: 'Extend call time' }, LATER));
     const sheet = await screen.findByRole('dialog', { name: 'Extend call time' });
     expect(within(sheet).getByRole('radio', { name: '1 h' }).getAttribute('aria-checked')).toBe('true');
     expect(within(sheet).getByText('Until 02:25')).toBeDefined();
+    // Extend adds beyond the current end, and the sheet says so (#1089, the owner, 19 Nov).
+    expect(within(sheet).getByText('Extend adds time beyond the current end.')).toBeDefined();
+    expect(within(sheet).queryByText(/^Can't end before/)).toBeNull();
     fireEvent.click(within(sheet).getByRole('button', { name: 'Extend call time' }));
     await vi.waitFor(() => expect(asked.filter((call) => call.startsWith('set_my_call_time')).map((call) => call.includes('"p_minutes":60'))).toEqual([true]));
   });

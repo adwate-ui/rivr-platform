@@ -1,6 +1,6 @@
 import type { SettingField } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { ChoiceChips, EditableList, ErrorMessage, Input, Stack, Switch } from '@rivr/ui';
+import { ChoiceChips, EditableList, ErrorMessage, Input, Stack, Switch, Text } from '@rivr/ui';
 import { fieldHint, fieldLabel, limitsText, optionLabel, unitOf } from './settingsCopy.ts';
 import type { FieldDraft } from './valueDraft.ts';
 
@@ -41,10 +41,13 @@ const LIST_UNITS = ['minutes', 'hours', 'days', 'seconds'] as const;
 function ListField({ settingKey, field, draft, isInvalid, onChange }: FieldInputProps & { field: Extract<SettingField, { kind: 'numbers' }> }) {
   const unit = LIST_UNITS.find((one) => one === unitOf(field));
   if (unit === undefined) return null;
+  // A list's own words under it: Extend call time's "beyond the current end" (#1089).
+  const hint = fieldHint(settingKey, field.name);
   return (
     <Stack gap={2}>
       <EditableList label={fieldLabel(settingKey, field.name)} entryLabel={t('console.settings.listEntry')} addLabel={t('console.settings.listAdd')} unit={unit}
         min={field.min} max={field.max} maxEntries={field.most ?? undefined} initialValues={typeof draft === 'object' && draft !== null ? [...draft].map(Number) : []} onChange={onChange} />
+      {hint === undefined ? null : <Text variant="caption" tone="muted">{hint}</Text>}
       {isInvalid && draft !== null ? <ErrorMessage>{t('console.settings.invalidList')}</ErrorMessage> : null}
     </Stack>
   );

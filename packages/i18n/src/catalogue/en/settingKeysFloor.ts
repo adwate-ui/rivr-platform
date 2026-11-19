@@ -6,8 +6,15 @@ export const floorSettingKeys = {
     fields: { minutes: 'Minutes' },
   },
   'call_time.add_choices': {
-    name: 'Add time choices',
-    help: 'Lengths a seated member can ask for',
+    name: 'Set call time choices',
+    help: 'Lengths to set a call time by',
+    fields: { minutes: 'Lengths offered' },
+  },
+  /** Its own list since 19 Nov (#1089): the member's Extend and the floor's alike. */
+  'call_time.extend_choices': {
+    name: 'Extend call time choices',
+    help: 'Lengths to extend a set call time by',
+    hints: { minutes: 'Extend adds time beyond the current end.' },
     fields: { minutes: 'Lengths offered' },
   },
   'fnb.enabled': {

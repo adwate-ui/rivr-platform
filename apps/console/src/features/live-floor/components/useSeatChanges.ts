@@ -53,7 +53,7 @@ function useAddTime(venueId: string) {
     requestIds.current.set(key, requestId);
     const outcome = await add.mutateAsync({ sessionId: player.sessionId, minutes, requestId });
     if (outcome.ok) requestIds.current.delete(key);
-    say(outcome, t('console.floor.toast.timeAdded', { name: player.fullName, time: formatDuration(minutes * 60) }),
+    say(outcome, t(player.callTimeSetAt === null ? 'console.floor.toast.timeSet' : 'console.floor.toast.timeAdded', { name: player.fullName, time: formatDuration(minutes * 60) }),
       () => undo.mutateAsync({ kind: 'callTime', requestId }));
   };
 }

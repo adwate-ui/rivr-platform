@@ -24,20 +24,21 @@ export function tableRow(id: string, name: string, extra: Partial<{ is_open: boo
 
 /**
  * A seated player: their session, table and seat, name, call time left in seconds, what they ask for, and their call time
- * as #1076 has it: owed while any is left unless said otherwise, set and ending when given, the lengths Add call time may
- * give (all of 30 min, 1 and 2 hours unless said), and the latest change, by the member or not.
+ * as #1076 has it: owed while any is left unless said otherwise, set and ending when given, the lengths the seat offers by
+ * its state (`lengths`, 30 min, 1 and 2 hours unless said, #1089) and which are open now (all of them unless said), and the
+ * latest change, by the member or not.
  */
 export function seatRow({ session, table, seat, name, ...extra }: {
   session: string; table: string; seat: number; name: string; left?: number | null; top_up?: string | null; leaving?: boolean;
-  owes?: boolean; set_at?: string | null; ends_at?: string | null; open?: number[]; change?: string | null; by_member?: boolean | null;
+  owes?: boolean; set_at?: string | null; ends_at?: string | null; lengths?: number[]; open?: number[]; change?: string | null; by_member?: boolean | null;
 }) {
   const left = extra.left === undefined ? 7200 : extra.left;
-  const call = { set_at: null, ends_at: null, owes: left !== null && left > 0, open: [30, 60, 120], by_member: null, change: null, ...extra };
+  const call = { set_at: null, ends_at: null, owes: left !== null && left > 0, lengths: [30, 60, 120], open: [30, 60, 120], by_member: null, change: null, ...extra };
   return {
     session_id: session, table_id: table, seat, member_id: `m-${session}`, full_name: name, tier_name: 'Black card', started_at: minutesAgo(60),
     must_move_order: null, away_since: null, call_time_left: left, leaving_at: extra.leaving === true ? minutesAgo(2) : null,
     top_up: extra.top_up ?? null, call_time_set_at: call.set_at, call_time_ends_at: call.ends_at, owes_call_time: call.owes,
-    call_time_choices_open: call.open, call_time_set_by_member: call.by_member, call_time_change_id: call.change,
+    call_time_choices_open: call.open, call_time_set_by_member: call.by_member, call_time_change_id: call.change, add_time_choices: call.lengths,
   };
 }
 
@@ -75,7 +76,7 @@ const TYPES = [
 function readsOf(api: FloorApi): Record<string, unknown> {
   return {
     floor_seats: api.seats ?? [], floor_requests: api.requests ?? [], waitlist_board: api.board ?? [], staff_queue_counts: api.queues ?? [],
-    waitlist_lengths: api.lengths ?? STAKES_OWN, floor_request_targets: [{ top_up_seconds: null, other_seconds: null }], add_time_choices: [30, 60, 120],
+    waitlist_lengths: api.lengths ?? STAKES_OWN, floor_request_targets: [{ top_up_seconds: null, other_seconds: null }],
     held_seats: [], floor_open_seats: [], floor_tonight: [],
   };
 }

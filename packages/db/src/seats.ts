@@ -32,7 +32,9 @@ export interface SeatedPlayer {
   readonly callTimeEndsAt: string | null;
   /** Whether they owe their call time: one is due until a call time has been set and has run out (#1076). */
   readonly owesCallTime: boolean;
-  /** The lengths Add call time may give now, by the member's own rule (#1076). */
+  /** The lengths the seat offers by its state (#1089): the Set list until a call time is set, then the Extend list. */
+  readonly addTimeChoices: readonly number[];
+  /** Which of them may be given now, by the member's own rule (#1076). */
   readonly callTimeChoicesOpen: readonly number[];
   /** Whether the member set or extended it last (the floor is told), not the floor's Add call time. */
   readonly isCallTimeSetByMember: boolean;
@@ -101,7 +103,7 @@ export function useFloorSeats(venueId: string, isEnabled = true) {
         callTimeLeft: row.call_time_left, leavingAt: row.leaving_at,
         topUp: row.top_up === 'requested' || row.top_up === 'in_progress' ? row.top_up : null,
         callTimeSetAt: row.call_time_set_at, callTimeEndsAt: row.call_time_ends_at, owesCallTime: row.owes_call_time,
-        callTimeChoicesOpen: row.call_time_choices_open, isCallTimeSetByMember: row.call_time_set_by_member === true,
+        addTimeChoices: row.add_time_choices, callTimeChoicesOpen: row.call_time_choices_open, isCallTimeSetByMember: row.call_time_set_by_member === true,
         callTimeChangeId: row.call_time_change_id,
       }));
     },
@@ -229,17 +231,12 @@ export function useAddCallTime(venueId: string) {
   });
 }
 
-/** The lengths of more call time the club offers, in minutes, shortest first (decision 0305), for the floor. */
-export function useAddTimeChoices(venueId: string) {
-  const { client, userId } = useRivrData();
-  return useQuery({
-    queryKey: queryKeys.addTimeChoices(userId ?? 'signed-out', venueId),
-    enabled: userId !== null,
-    queryFn: async (): Promise<readonly number[]> => {
-      const { data, error } = await client.rpc('add_time_choices', { p_venue_id: venueId });
-      if (error) throw error;
-      return data;
-    },
+/** The floor marks a member's own Set or Extend call time seen (#1090): it leaves Requests. A Result, and the floor is read again. */
+export function useMarkCallTimeSeen(venueId: string) {
+  const { client } = useRivrData();
+  const settle = useSeatSettle(venueId);
+  return useMutation({
+    mutationFn: async (requestId: string) => settle((await client.rpc('mark_call_time_seen', { p_request_id: requestId })).error),
   });
 }
 

@@ -11,11 +11,12 @@ afterEach(() => {
 /** An admin on Settings' Floor tab, where Time at the table is, with the values given in force. */
 const renderFloor = (rows: readonly unknown[], reply?: () => Response) => renderArea('floor', { rows, keys: () => Response.json(TIME_KEYS), ...(reply === undefined ? {} : { reply }) }).written;
 
-describe('Add time choices, a list of typed lengths (redesign RD-19)', () => {
+describe('Set call time choices, a list of typed lengths (redesign RD-19; named so 19 Nov)', () => {
   it('starts from what the club runs on, and adds, edits and removes a length', async () => {
     const written = renderFloor([]);
-    expect(await screen.findByText('30 min, 1 h and 2 h (default)', {}, { timeout: 5000 })).toBeDefined();
-    const panel = await openPanel('Add time choices');
+    // Set's and Extend's lists alike (#1089).
+    expect(await screen.findAllByText('30 min, 1 h and 2 h (default)', {}, { timeout: 5000 })).toHaveLength(2);
+    const panel = await openPanel('Set call time choices');
     const list = within(panel.getByRole('group', { name: 'Lengths offered' }));
     expect(list.getAllByRole('textbox').map((field) => field.getAttribute('value'))).toEqual(['30', '60', '120']);
     fireEvent.click(list.getByRole('button', { name: 'Remove Choice 1' }));
@@ -26,9 +27,19 @@ describe('Add time choices, a list of typed lengths (redesign RD-19)', () => {
     await waitFor(() => expect(written).toEqual([expect.objectContaining({ key: 'call_time.add_choices', subject: '', value: { minutes: [50, 120, 200] } })]));
   });
 
+  it('Extend call time choices: its own list, saying it adds beyond the current end (the owner, 19 Nov)', async () => {
+    const written = renderFloor([]);
+    const panel = await openPanel('Extend call time choices');
+    expect(panel.getByText('Extend adds time beyond the current end.')).toBeDefined();
+    const list = within(panel.getByRole('group', { name: 'Lengths offered' }));
+    fireEvent.click(list.getByRole('button', { name: 'Remove Choice 3' }));
+    save(panel);
+    await waitFor(() => expect(written).toEqual([expect.objectContaining({ key: 'call_time.extend_choices', subject: '', value: { minutes: [30, 60] } })]));
+  });
+
   it('saves nothing while a length is refused, or once none is left', async () => {
     const written = renderFloor([]);
-    const panel = await openPanel('Add time choices');
+    const panel = await openPanel('Set call time choices');
     const list = within(panel.getByRole('group', { name: 'Lengths offered' }));
     fireEvent.change(list.getByRole('textbox', { name: 'Choice 1' }), { target: { value: '1441' } });
     expect(list.getByText('Between 1 and 1,440 minutes.')).toBeDefined();
@@ -41,7 +52,7 @@ describe('Add time choices, a list of typed lengths (redesign RD-19)', () => {
 
   it('holds twelve at most, and says so before Save', async () => {
     renderFloor([inForce('call_time.add_choices', '', { minutes: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110] })]);
-    const panel = await openPanel('Add time choices');
+    const panel = await openPanel('Set call time choices');
     const add = panel.getByRole('button', { name: 'Add a choice' });
     expect(panel.queryByText('12 at most.')).toBeNull();
     fireEvent.click(add);
@@ -52,7 +63,7 @@ describe('Add time choices, a list of typed lengths (redesign RD-19)', () => {
   it('carries over the choices ticked before, kept as text', async () => {
     renderFloor([inForce('call_time.add_choices', '', { minutes: ['45', '90'] })]);
     expect(await screen.findByText('45 min and 1 h 30 min', {}, { timeout: 5000 })).toBeDefined();
-    const panel = await openPanel('Add time choices');
+    const panel = await openPanel('Set call time choices');
     expect(within(panel.getByRole('group', { name: 'Lengths offered' })).getAllByRole('textbox').map((field) => field.getAttribute('value'))).toEqual(['45', '90']);
   });
 });

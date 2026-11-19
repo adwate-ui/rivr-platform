@@ -39,7 +39,7 @@ function seatAlertActions(alert: SeatAlert, { onSeatAlert, canCheckId = true }: 
 
 /**
  * A request's one filled action and the one in words (console v3): Approve and Decline a join, Start or Done
- * a top-up, Leave or Not leaving, Record one who left owing, Seat an approved player. The panel's buttons and the keys `A`
+ * a top-up, Leave or Not leaving, Record one who left owing, Seen a member's own call time (#1090), Seat an approved player. The panel's buttons and the keys `A`
  * and `D` both use these.
  */
 export function requestActions(request: FloorRequest, actionsFor: RequestActionsFor): { primary: RequestAction; secondary?: RequestAction } {
@@ -58,6 +58,7 @@ export function requestActions(request: FloorRequest, actionsFor: RequestActions
       secondary: { label: t('console.floor.requests.notLeaving'), run: () => changes.notLeaving(request) },
     };
     case 'left_owing': return { primary: { label: t('console.floor.requests.record'), run: () => onLeave(request) } };
+    case 'call_time_set': return { primary: { label: t('console.floor.requests.seen'), run: () => changes.seeCallTime(request) } };
     default: return seatAlertActions(request, actionsFor);
   }
 }

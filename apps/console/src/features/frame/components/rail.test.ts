@@ -121,11 +121,11 @@ describe('the console rail (console v3)', () => {
 
   it('counts beside a screen what waits on it, in gold where it asks for action', () => {
     const rail = railFor(ROLE_PERMISSIONS.super_admin, { topUps: 2, callTimeSet: 1, liveFloor: 3, waitlist: 4, kycReview: 2, erasureRequests: 1 }).flatMap((section) => section.items);
-    // A member's call time set rings the chime and asks nothing (#1076): it is counted nowhere but the chime.
+    // A member's call time set waits in Requests until seen (#1090): it chimes and counts like any request.
     expect(URGENT_QUEUES).toContain('callTimeSet');
-    expect(titleCountOf({ topUps: 2, callTimeSet: 1, waitlist: 4 })).toBe(6);
+    expect(titleCountOf({ topUps: 2, callTimeSet: 1, waitlist: 4 })).toBe(7);
     expect(titleCountOf(null)).toBe(0);
-    expect(rail.find((item) => item.id === 'liveFloor')).toMatchObject({ count: 5, isActionable: true });
+    expect(rail.find((item) => item.id === 'liveFloor')).toMatchObject({ count: 6, isActionable: true });
     expect(rail.find((item) => item.id === 'waitlist')).toMatchObject({ count: 4, isActionable: true });
     expect(rail.find((item) => item.id === 'kycReview')).toMatchObject({ count: 2, isActionable: undefined });
     expect(rail.find((item) => item.id === 'members')).toMatchObject({ count: 1, isActionable: undefined });
@@ -135,7 +135,7 @@ describe('the console rail (console v3)', () => {
   it('puts Floor, Requests, Waitlist and Door on the phone tab bar, Requests counting every request', () => {
     const tabs = phoneTabsFor(ROLE_PERMISSIONS.floor, { topUps: 2, callTimeSet: 1, liveFloor: 1, waitlist: 3 });
     expect(tabs.map((tab) => [tab.label, tab.href])).toEqual([['Floor', '/'], ['Requests', '/requests'], ['Waitlist', '/waitlist'], ['Door', '/door']]);
-    expect(tabs.find((tab) => tab.id === 'requests')).toMatchObject({ count: 6, isActionable: true, icon: 'requests' });
+    expect(tabs.find((tab) => tab.id === 'requests')).toMatchObject({ count: 7, isActionable: true, icon: 'requests' });
   });
 
   it('marks the screen open now on the rail and the tab bar, by its own address', () => {

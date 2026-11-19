@@ -32,7 +32,7 @@ function readOf(seats: readonly SeatedPlayer[], seen: Seen | null): { fresh: { p
  * Tells the floor, on any screen, when a member sets or extends their call time from the app (#1076, the owner, 18 Nov): a
  * toast with when they now leave, one for each read (the names together when more than one); the rail's chime rings for it
  * too (the callTimeSet count). Each change once, from the seats the header already reads: nothing on the first read, for
- * the floor's own Add call time, or for an Undo that brings back an earlier change.
+ * the floor's own Set or Extend, or for an Undo that brings back an earlier change.
  */
 export function useCallTimeNews(seats: readonly SeatedPlayer[] | undefined) {
   const toast = useToast();

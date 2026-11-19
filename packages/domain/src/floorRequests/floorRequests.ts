@@ -1,8 +1,9 @@
 /**
  * What waits on the Live floor (decision 0479): a join, a top-up, more time, a player leaving, one who left owing call
- * time; and an approved player to seat (the owner, 8 Nov), ready, their identity check first, or waiting for a seat.
+ * time; a member's own Set or Extend call time, until seen (#1090); and an approved player to seat (the owner, 8 Nov),
+ * ready, their identity check first, or waiting for a seat.
  */
-export type FloorRequestKind = 'join' | 'top_up' | 'time' | 'leaving' | 'left_owing' | 'seat' | 'seat_check' | 'seat_wait';
+export type FloorRequestKind = 'join' | 'top_up' | 'time' | 'leaving' | 'left_owing' | 'call_time_set' | 'seat' | 'seat_check' | 'seat_wait';
 
 /** How long, in seconds, a request may wait before it shows late: a top-up, and every other request. */
 export interface RequestTargets {

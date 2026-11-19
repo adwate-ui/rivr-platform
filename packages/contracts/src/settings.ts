@@ -27,7 +27,15 @@ const callTimeMinutes = {
  */
 const callTimeAddChoices = {
   key: 'call_time.add_choices', defaultValue: { minutes: [30, 60, 120] },
-  description: 'The lengths of more call time offered: a member asks for one from the seat, the floor adds one. None set is 30 minutes, 1 hour and 2 hours.',
+  description: 'Set call time choices: the lengths a call time is set by, before one is set, by the member or the floor. None set is 30 minutes, 1 hour and 2 hours.',
+  scope: 'venue',
+  value: z.strictObject({ minutes: z.array(z.int().min(1).max(24 * 60)).min(1).max(12) }),
+} as const satisfies SettingDefinition;
+
+/** Extend call time choices (#1089, the owner, 19 Nov): the lengths a call time once set is extended by, beyond its end. */
+const callTimeExtendChoices = {
+  key: 'call_time.extend_choices', defaultValue: { minutes: [30, 60, 120] },
+  description: 'Extend call time choices: the lengths a call time once set is extended by, beyond its current end. None set is 30 minutes, 1 hour and 2 hours.',
   scope: 'venue',
   value: z.strictObject({ minutes: z.array(z.int().min(1).max(24 * 60)).min(1).max(12) }),
 } as const satisfies SettingDefinition;
@@ -217,7 +225,7 @@ const reportsUnclaimedDays = {
 
 /** Every setting key declared in code. */
 export const SETTINGS = [
-  callTimeMinutes, callTimeAddChoices, floorRequestTargets, tvBoards, tvBoardSeconds, tvLeaderboard, defaultTier, kycMinimumAge, kycAtTheClub, kycAadhaarCovers, authStoreReviewer, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
+  callTimeMinutes, callTimeAddChoices, callTimeExtendChoices, floorRequestTargets, tvBoards, tvBoardSeconds, tvLeaderboard, defaultTier, kycMinimumAge, kycAtTheClub, kycAadhaarCovers, authStoreReviewer, rakeConfig, jackpotDrop, jackpotShares, jackpotPayout, dealerVarianceThreshold, waitlistPriorityWeights, waitlistHoldMinutes,
   creditConfig, cageSecondApproverThreshold, tdsConfig, gstConfig, waitlistInterestToOpen, alertThresholds, exportsAlertRows, exportsArchiveRecipient, reportsUnclaimedDays,
   cageCashBuyInLimit, rakebackRate, cabMinimumVisits, bonusByHandCap, bonusDailyStaffCap, bonusExpiryDays, bonusVisitCap, fnbEnabled, ] as const;
 

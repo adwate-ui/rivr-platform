@@ -35,6 +35,9 @@ export const floor = {
     topUpStarted: 'Top-up in progress',
     leaving: 'Leaving',
     leftOwing: 'Left before call time',
+    /** A member's own Set or Extend call time, until the floor marks it seen (#1090): `Table 5, seat 2 · leaves 23:40`. */
+    callTimeSet: 'Call time set',
+    callTimeDetail: '{table}, seat {seat} · leaves {time}',
     joinDetail: '{table} waitlist',
     seatDetail: '{table}, seat {seat}',
     leavingDetail: '{table}, seat {seat} · {time} call time left',
@@ -62,6 +65,7 @@ export const floor = {
     leave: 'Leave',
     notLeaving: 'Not leaving',
     record: 'Record',
+    seen: 'Seen',
     alsoWaiting: 'Also waiting',
     kyc: 'ID checks',
     feedback: 'Feedback tickets',
@@ -79,8 +83,11 @@ export const floor = {
     asksTopUp: 'Asked for a top-up',
     toppingUp: 'Top-up in progress',
     asksLeaving: 'Said they are leaving',
-    /** Add call time (#1076): sets the call time by the member's own rule, or extends it once set. */
-    addTime: 'Add call time',
+    /** Set call time until one is set, then Extend call time, as the member app (#1076, #1089). */
+    setCallTime: 'Set call time',
+    extendCallTime: 'Extend call time',
+    /** Under Extend's lengths (the owner, 19 Nov). */
+    extendNote: 'Extend adds time beyond the current end.',
     addTimeChoice: '+{time}',
     /** Under lengths closed until a call time is set, as the member's own sheet says: `Can't end before 23:40.` */
     addTimeNotBefore: "Can't end before {time}.",
@@ -213,7 +220,10 @@ export const floor = {
     leftOut: '{name} left {table} and checked out',
     /** The seat change went through; the check-out was refused (the venue frozen, say). */
     notCheckedOut: '{name} not checked out. Check them out at the door.',
+    /** The floor set a call time (#1089): from now. */
+    timeSet: '{name}: call time set, {time} from now',
     timeAdded: '{name}: call time +{time}',
+    callTimeSeen: '{name}: call time seen',
     /** A member set or extended their call time from the app (#1076): the floor is told, with when they leave. */
     callTimeSet: '{name} set call time · leaves {time}',
     callTimeSetAway: '{name} set call time',
