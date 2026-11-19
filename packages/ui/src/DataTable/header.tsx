@@ -66,7 +66,7 @@ export function HeaderRow<Row>({ columns, sort, onSort, layout, isVirtual, ref, 
         {layout.ticks === null ? null : <TickHeader ticks={layout.ticks} place={tickPlace(layout, true)} />}
         {columns.map((column, at) => (
           <HeaderCell key={column.key} column={column} sort={sort} onSort={onSort} menu={menuFor(column)}
-            place={cx(look.headerCell, spansCell(column, priorityOf(column, at) === 'primary', layout) && look.span,
+            place={cx(look.headerCell, spansCell(column, layout) && look.span,
               priorityOf(column, at) === 'primary' && heldTitle(layout))} />
         ))}
       </div>

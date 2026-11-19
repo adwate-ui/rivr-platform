@@ -117,7 +117,7 @@ interface TableProps<Row> {
 }
 
 /** On a phone the sideways layout holds its title at one track, so the rest of the line has room (#1097). */
-const holdsTitleNarrowOf = <Row,>(props: DataTableProps<Row>, isWide: boolean) => props.narrowLayout === 'sideways' && !isWide;
+const isOneTrackEachOf = <Row,>(props: DataTableProps<Row>, isWide: boolean) => props.narrowLayout === 'sideways' && !isWide;
 
 /** How the rows are laid out: sideways at every width, or below 768 px (`isWide` false) as cards, lines that scroll, or sideways. */
 function narrowOf<Row>(props: DataTableProps<Row>, isWide: boolean) {
@@ -140,7 +140,7 @@ function Table<Row>({ props, visible, sort, resetKey, onSort, menuFor }: TablePr
   const isVirtual = visible.length > VIRTUAL_FROM && props.totalRow === undefined;
   const ticks = props.selection === undefined ? null : ticksFor(props.selection, visible.map(props.rowKey));
   const isWide = useIsWide('medium');
-  const layout = layoutOf(props.columns, narrowOf(props, isWide), props.density ?? density, { ticks, holdsTitleNarrow: holdsTitleNarrowOf(props, isWide) });
+  const layout = layoutOf(props.columns, narrowOf(props, isWide), props.density ?? density, { ticks, isOneTrackEach: isOneTrackEachOf(props, isWide) });
   // Where the body scrolls sideways, the header, which has no scrollbar, follows it.
   const onScrollX = (event: UIEvent<HTMLElement>) => {
     if (header.current !== null) header.current.scrollLeft = event.currentTarget.scrollLeft;
