@@ -60,6 +60,7 @@ test.describe('Sign in', { tag: '@staging' }, () => {
   });
 
   test('Identity › Start: a member whose identity check is not done sees only the check (#632)', async ({ page }) => {
+    // Kabir has no check after the seed, which staging runs again on every deploy (supabase/seed/98_flow_members_verified.sql).
     await requestCode(page, '90000 00202');
     await page.getByRole('textbox', { name: '6-digit code' }).fill(CODE);
     await expect(page).toHaveURL(/\/kyc$/);
