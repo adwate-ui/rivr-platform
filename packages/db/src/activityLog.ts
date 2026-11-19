@@ -84,7 +84,8 @@ const lineOf = (row: PageRow): ActivityLine => {
 
 /**
  * One page of the venue's activity log for super admins, newest first, by its number (8 Nov audit, F-034; redesign RD-31:
- * the data table's foot pages it), with how many lines the narrowing leaves. Empty for anyone else. The page before
+ * the data table's foot pages it), with how many lines the narrowing leaves: counted no further than five thousand past
+ * the page, and `isTotalAtLeast` when the count stopped there (#1015). Empty for anyone else. The page before
  * stays on screen while the next is read. `readEvery` reads every line the narrowing leaves, a thousand at a time, for
  * an export.
  */
@@ -94,10 +95,10 @@ export function useActivityPage(venueId: string, filters: ActivityFilters, page:
     queryKey: [...queryKeys.activityLog(userId ?? 'signed-out', venueId, filters), page],
     enabled: userId !== null,
     placeholderData: keepPreviousData,
-    queryFn: async (): Promise<{ lines: ActivityLine[]; total: number }> => {
+    queryFn: async (): Promise<{ lines: ActivityLine[]; total: number; isTotalAtLeast: boolean }> => {
       const { data, error } = await client.rpc('activity_page', askOf(venueId, filters, page, ACTIVITY_PAGE));
       if (error) throw error;
-      return { total: Number(data[0]?.total ?? 0), lines: data.map(lineOf) };
+      return { total: Number(data[0]?.total ?? 0), isTotalAtLeast: data[0]?.is_total_at_least === true, lines: data.map(lineOf) };
     },
   });
   const readEvery = (): Promise<ActivityLine[]> => readEveryRow((at) => client.rpc('activity_page', askOf(venueId, filters, at, EXPORT_PAGE)), lineOf);

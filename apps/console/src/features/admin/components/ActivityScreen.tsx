@@ -83,7 +83,7 @@ function Lines({ venueId, filters, exportIn }: { venueId: string; filters: Activ
   const base = {
     label: t('console.activity.title'), columns: columns(), rowKey: (line: ActivityLine) => String(line.id), narrowLayout: 'sideways' as const, exportIn,
     ...(exportFilter === undefined ? {} : { exportFilter }),
-    server: { total: log.data?.total ?? 0, pageSize: ACTIVITY_PAGE, scope: JSON.stringify(filters), onRequest: (request: { page: number }) => setPage(request.page) },
+    server: { total: log.data?.total ?? 0, isTotalAtLeast: log.data?.isTotalAtLeast === true, pageSize: ACTIVITY_PAGE, scope: JSON.stringify(filters), onRequest: (request: { page: number }) => setPage(request.page) },
     exportRows: log.readEvery,
   };
   if (log.isError) return <DataTable {...base} status="error" onRetry={() => void log.refetch()} />;

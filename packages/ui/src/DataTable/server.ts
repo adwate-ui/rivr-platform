@@ -19,6 +19,8 @@ export interface DataTableRequest {
 export interface DataTableServer {
   /** How many rows the search and filters leave, over every page. */
   readonly total: number;
+  /** The total is a floor: the count stopped short of the end, as Activity's long log does, and shows as "5,050+". */
+  readonly isTotalAtLeast?: boolean | undefined;
   /** How many rows a page holds. */
   readonly pageSize: number;
   /**

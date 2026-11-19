@@ -128,14 +128,18 @@ describe('Activity (8 Nov audit, F-034)', () => {
     await waitFor(() => expect(asked.at(-1)).toEqual({ p_venue_id: 'v1', p_page: 1, p_page_size: 50, p_kind: 'staff' }));
   });
 
-  it('records an export of every line the narrowing leaves, not the page', async () => {
+  it('reads every line the narrowing leaves, then records an export of how many it read, not the page', async () => {
     const { asked, exported } = renderScreen('super_admin', pageOf);
     await screen.findByText('50 of 120', {}, LOADS);
     await exportCsv();
     await waitFor(() => expect(exported).toHaveLength(1));
     expect(exported[0]).toMatchObject({ what: 'Activity', rows: 120 });
-    // The test's exporter records nothing, so no line is read for a file that is not saved.
-    expect(asked.some((body) => body['p_page_size'] === 1000)).toBe(false);
+    expect(asked.some((body) => body['p_page_size'] === 1000)).toBe(true);
+  });
+
+  it('says a count the server stopped short of the end is at least that many', async () => {
+    renderScreen('super_admin', (body) => pageOf(body).map((one) => ({ ...one, total: 5050, is_total_at_least: true })));
+    expect(await screen.findByText('50 of 5,050+', {}, LOADS)).toBeDefined();
   });
 
   it('says so when nothing matches', async () => {

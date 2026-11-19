@@ -269,6 +269,8 @@ export const ui = {
     clearAll: 'Clear all',
     removeFilter: 'Remove filter {filter}',
     shownOf: '{shown} of {total}',
+    /** The server stopped counting short of the end: "50 of 5,050+". */
+    shownOfAtLeast: '{shown} of {total}+',
     noFilterMatch: 'Nothing matches these filters.',
     filterInForce: '{label}: {value}',
     or: ' or ',

@@ -56,7 +56,7 @@ describe('useActivityPage (F-034; pages by number, redesign RD-31)', () => {
     const { result } = renderLog(NONE, () => [line(1, 'something_new')]);
     await waitFor(() => expect(result.current.data?.lines[0]?.kind).toBe('other'));
     const nothing = renderLog({ ...NONE, who: 'nobody' }, () => []);
-    await waitFor(() => expect(nothing.result.current.data).toEqual({ lines: [], total: 0 }));
+    await waitFor(() => expect(nothing.result.current.data).toEqual({ lines: [], total: 0, isTotalAtLeast: false }));
   });
 
   it('reads every line the narrowing leaves for an export, a thousand at a time', async () => {

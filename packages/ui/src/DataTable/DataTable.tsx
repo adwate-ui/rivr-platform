@@ -209,7 +209,7 @@ function Pills<Row>({ props, table, refocus }: { props: DataTableProps<Row>; tab
   const total = props.server?.total ?? table.source.length;
   return (
     <FilterPills on={table.on} filters={table.view.filters} isSearched={table.query !== ''}
-      shown={table.visible.length} total={total} isCountAlways={props.server !== undefined && total > 0}
+      shown={table.visible.length} total={total} isTotalAtLeast={props.server?.isTotalAtLeast === true} isCountAlways={props.server !== undefined && total > 0}
       onRemove={(key) => { table.setFilter(key, undefined); refocus(`[data-column-menu="${key}"]`); }}
       onClearAll={() => { table.clearAll(); refocus('input[type="search"], [data-column-menu]'); }} />
   );

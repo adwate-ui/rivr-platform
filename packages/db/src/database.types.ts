@@ -2686,7 +2686,7 @@ isOneToOne: false
                            },
 "activity_page":
 { Args: { "p_from"?: string,"p_kind"?: string,"p_page"?: number,"p_page_size"?: number,"p_to"?: string,"p_venue_id": string,"p_who"?: string }; Returns: {
-              "about": string,"action": string,"amount": number,"entity": string,"high_hand": Json,"id": number,"is_system": boolean,"kind": string,"occurred_at": string,"reason": string,"total": number,"who": string
+              "about": string,"action": string,"amount": number,"entity": string,"high_hand": Json,"id": number,"is_system": boolean,"is_total_at_least": boolean,"kind": string,"occurred_at": string,"reason": string,"total": number,"who": string
             }[]
                            },
 "add_bonus_use":
