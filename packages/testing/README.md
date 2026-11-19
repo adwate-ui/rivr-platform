@@ -35,6 +35,10 @@ it.each(casesFor(readGolden(rakeJson), 'rake'))('%s', (_description, goldenCase)
 
 A rule that also runs in SQL (rake, GST and the rest) is proved against the same file there: `pnpm supabase test db` loads every case into the local database, and `supabase/tests/024_golden_twins.test.sql` runs the SQL twin on each (decision 0037). A case added here is tested on both sides.
 
+## Removed features' words
+
+`src/removedWords.test.ts` searches every file git tracks under `apps`, `packages` and `supabase/seed` for the words of the features decisions 0585 and 0586 removed, as they were left in sample text, fixtures, golden files, comments and seeds (#994, #1015). It matches the removed forms only, listed in the test itself, never ordinary words that share a stem, and a file may keep one only where its `KEPT` entry says why. This line names none of them, so the search passes over it.
+
 ## Must not
 
 - Import `@rivr/domain` or any package but `@rivr/contracts`. The domain's own tests use this package.

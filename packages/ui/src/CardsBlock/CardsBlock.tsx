@@ -4,7 +4,7 @@ import { BandIntro } from '../internal/bandIntro.tsx';
 import { cx } from '../internal/classes.ts';
 import { Text } from '../Text/Text.tsx';
 
-/** One card: a line above (`01`, `Tier I · 1× points`), its title, a line or two, points, and a link to a page. */
+/** One card: a line above (`01`, `02 · Connect`), its title, a line or two, points, and a link to a page. */
 export interface WebCard {
   readonly label?: string | undefined;
   readonly title: string;

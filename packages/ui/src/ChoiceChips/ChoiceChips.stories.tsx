@@ -41,7 +41,7 @@ export const OneRowOnAPhone: Story = {
   args: {
     label: 'Show', mode: 'one', selected: ['all'],
     options: [
-      { value: 'all', label: 'All' }, { value: 'dining', label: 'Dining' }, { value: 'stay', label: 'Hotel nights' },
+      { value: 'all', label: 'All' }, { value: 'dining', label: 'Dining' }, { value: 'tournaments', label: 'Tournaments' },
       { value: 'merch', label: 'Merchandise' }, { value: 'experience', label: 'Experiences' },
     ],
     isOneRow: true,
