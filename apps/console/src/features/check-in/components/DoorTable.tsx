@@ -37,7 +37,8 @@ function countOf(chip: DoorChip, counted: ListChoices | undefined): number | und
   const sum = (column: string, values: readonly string[] | undefined) =>
     (counted[column] ?? []).filter((one) => values === undefined || values.includes(one.value)).reduce((total, one) => total + one.count, 0);
   if (chip.statuses !== undefined) return sum('status', chip.statuses);
-  return sum('list', chip.list === undefined ? undefined : [chip.list]);
+  // Everyone, by status, which each member has one of: a member back in has rows on two lists, a visit over and one open.
+  return chip.list === undefined ? sum('status', undefined) : sum('list', [chip.list]);
 }
 
 /**

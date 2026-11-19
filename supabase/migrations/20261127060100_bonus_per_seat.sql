@@ -4,7 +4,9 @@
 -- alone, so a moved member's rows add up to the day's figures and an export never counts either twice. Rows now come in
 -- the order sat, rows without a seat last. A seat's wait is the list's entry that ended in it, seated from the waitlist
 -- or left as seated (private.seat_member); a visit of the day with no seat has a row of its own, so a member back the same
--- night shows that visit. private.players_by_seat gives each row's Bonus used, whether it is the first, its seat session
+-- night shows that visit, and one waiting again from outside has a row of the wait with no visit. Each row is on the
+-- door's list of its visit: a visit that is over on the left list, the open one in the club, whatever the member does
+-- now. private.players_by_seat gives each row's Bonus used, whether it is the first, its seat session
 -- and visit (the rows' keys), and the member's id for a link to their account, none once erased; the two list sources
 -- and their pages carry them. Otherwise each is as the database had it.
 drop function public.door_page(uuid, jsonb);
@@ -77,13 +79,16 @@ AS $function$
   join public.visit v on v.id = st.visit_id
   cross join lateral (select private.table_played_seconds(st.seconds, st.wall, least(st.wall, greatest(0, st.wall - st.away))) as seconds) played
   union all
-  -- A row without a seat: each visit of the day with none, the open one too while the member waits again for a seat, and
-  -- one for a member with no visit that day (on a list from the app, never in).
+  -- A row without a seat: each visit of the day with none, the open one too while the member waits again for a seat; and
+  -- one with no visit for a member with none that day (on a list from the app, never in), or waiting again from outside
+  -- once their visits are over.
   select p.member_id, p.full_name, p.member_number, p.status, null, null, '[]'::jsonb, null, null, sv.opened_at, sv.closed_at,
          last_wait.seconds, 0, null, null, sv.id
   from players p
   cross join day
-  left join visits sv on sv.member_id = p.member_id
+  cross join lateral (
+    select v.id, v.opened_at, v.closed_at from visits v where v.member_id = p.member_id
+    union all select null::uuid, null::timestamptz, null::timestamptz) sv
   -- The visit's current wait, else its last: one still running first, then the one that ended latest; one that ended in a
   -- seat only when there is no other.
   left join lateral (
@@ -95,9 +100,12 @@ AS $function$
     order by (e.seated_at is null and e.left_reason is distinct from 'seated') desc, coalesce(e.left_at, e.seated_at, 'infinity') desc,
              e.joined_at
     limit 1) last_wait on true
-  where (sv.id is null and not exists (select 1 from seats st where st.member_id = p.member_id))
+  where (sv.id is null and not exists (select 1 from visits v where v.member_id = p.member_id)
+                       and not exists (select 1 from seats st where st.member_id = p.member_id))
+     or (sv.id is null and day.is_today and p.status = 'waiting'
+                       and not exists (select 1 from visits v where v.member_id = p.member_id and v.closed_at is null))
      or (sv.id is not null and not exists (select 1 from seats st where st.visit_id = sv.id))
-     or (day.is_today and p.status = 'waiting' and sv.closed_at is null and sv.id is not null)
+     or (sv.id is not null and day.is_today and p.status = 'waiting' and sv.closed_at is null)
   )
   -- The member's first row that day, by when they sat, rows without a seat last by check-in: it carries what is not a
   -- seat's own. An erased member's name links nowhere.
@@ -189,7 +197,10 @@ AS $function$
          select tp.member_id, tp.full_name, tp.member_number, t.name as tier_name,
                 t.rank = (select min(x.rank) from public.tier x where x.venue_id = t.venue_id and not x.is_retired) as is_base_tier,
                 case when tp.status = 'waiting' and ov.id is null then 'expected' else tp.status end as status,
-                case when ov.id is not null or tp.status = 'playing' then 'in_club' when tp.status = 'waiting' then 'expected'
+                -- A row is on the list of its visit: one that is over on the left list, whatever the member does now (back
+                -- in, or waiting outside); the rest by where the member stands.
+                case when tp.checked_out_at is not null then 'left'
+                     when ov.id is not null or tp.status = 'playing' then 'in_club' when tp.status = 'waiting' then 'expected'
                      when tp.status = 'left' then 'left' else 'not_arrived' end as list,
                 tp.checked_in_at, tp.checked_out_at, tp.waiting_seconds, tp.tables, tp.played_seconds, tp.table_name as table_names,
                 tp.seated_at, tp.left_at, tp.session_id, tp.visit_id, tp.linked_member_id,
