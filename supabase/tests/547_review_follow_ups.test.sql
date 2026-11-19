@@ -44,6 +44,10 @@ select ok(private.is_own_kyc_check('00000000-0000-4000-8000-0000000002f1'),
   'a member named "Vikram  Rao", two spaces, is Vikram Rao''s own record');
 select ok(private.is_own_kyc_check('00000000-0000-4000-8000-0000000002f3'), 'nor does a tab before the name hide it');
 select ok(private.is_own_kyc_check('00000000-0000-4000-8000-0000000002f4'), 'nor a no-break space in it');
+update public.member set full_name = 'Vik' || chr(8203) || 'ram Rao' where id = '00000000-0000-4000-8000-0000000002f3';
+select ok(private.is_own_kyc_check('00000000-0000-4000-8000-0000000002f3'), 'nor a zero-width space inside it');
+update public.member set full_name = 'Vik' || chr(173) || 'ram' || chr(8207) || ' Rao' || chr(65039) where id = '00000000-0000-4000-8000-0000000002f3';
+select ok(private.is_own_kyc_check('00000000-0000-4000-8000-0000000002f3'), 'nor a soft hyphen, a direction mark or a variation selector');
 select ok(not coalesce(private.is_own_kyc_check('00000000-0000-4000-8000-0000000002f2'), false), 'another member is not');
 
 select throws_ok($$ insert into public.device (venue_id, kind, name, token_hash)
