@@ -19,6 +19,11 @@ describe('the builder read as terms', () => {
     });
   });
 
+  it('saves no WhatsApp channel, as production has none, even for a promotion that had one', () => {
+    const { terms } = readForm(named({ channels: { playerApp: true, tv: false, website: false, whatsapp: true } }));
+    expect(terms?.channels).toEqual({ playerApp: true, tv: false, website: false, whatsapp: false });
+  });
+
   it('reads a text promotion as its card words and no limits, and reads it back', () => {
     const read = readForm(named({ kind: 'text', words: '  Free mocktails at every table ', perMember: 'per_visit', budgetChips: '5000' }));
     expect(read.errors.size).toBe(0);

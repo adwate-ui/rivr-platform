@@ -10,7 +10,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const WARNING = 'No alert number is set, so alerts reach no one.';
+const WARNING = 'Alerts reach no one until alert emails are set up.';
 
 /** The banner with this venue configuration; resolves once it has been read. */
 async function renderBanner(detail: object | null, onAdd = vi.fn()) {
@@ -44,12 +44,20 @@ describe('The alert number warning (audit F-212)', () => {
     const onAdd = vi.fn();
     await renderBanner(DETAIL, onAdd);
     expect(await screen.findByText(WARNING)).toBeDefined();
-    fireEvent.click(screen.getByRole('button', { name: 'Add the number' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Set up alert emails' }));
     expect(onAdd).toHaveBeenCalledOnce();
   });
 
-  it('says nothing once one is set', async () => {
+  it('still shows with only an alert number, as production has no WhatsApp, and with emails listed but off', async () => {
     await renderBanner({ ...DETAIL, alert_whatsapp: '+919876543210' });
+    expect(await screen.findByText(WARNING)).toBeDefined();
+    cleanup();
+    await renderBanner({ ...DETAIL, alert_email_on: false, alert_emails: ['owner@example.com'] });
+    expect(await screen.findByText(WARNING)).toBeDefined();
+  });
+
+  it('says nothing once alerts go by email, as on production, which has no WhatsApp', async () => {
+    await renderBanner({ ...DETAIL, alert_email_on: true, alert_emails: ['owner@example.com'] });
     expect(screen.queryByText(WARNING)).toBeNull();
   });
 

@@ -56,14 +56,15 @@ function OtherLimits({ section }: { section: SectionProps }) {
   );
 }
 
-const CHANNELS: readonly (keyof Channels)[] = ['playerApp', 'tv', 'website', 'whatsapp'];
+// No WhatsApp message among them: production has no WhatsApp (the owner, 19 Nov 2026, decision 0697).
+const CHANNELS = ['playerApp', 'tv', 'website'] as const satisfies readonly (keyof Channels)[];
 
-/** The channels picked, each on or off. */
+/** The channels picked, each on or off; never WhatsApp (decision 0697). */
 function channelsOf(picked: readonly string[]): Channels {
-  return { playerApp: picked.includes('playerApp'), tv: picked.includes('tv'), website: picked.includes('website'), whatsapp: picked.includes('whatsapp') };
+  return { playerApp: picked.includes('playerApp'), tv: picked.includes('tv'), website: picked.includes('website'), whatsapp: false };
 }
 
-/** 5 · Where it shows: the player app, the TVs, the website and a WhatsApp message; the website's rules; the card's link (#776). */
+/** 5 · Where it shows: the player app, the TVs and the website; the website's rules; the card's link (#776). */
 export function WhereSection({ section }: { section: SectionProps }) {
   const { form, onChange, isReadOnly, errors } = section;
   const chosen = CHANNELS.filter((channel) => form.channels[channel]);
