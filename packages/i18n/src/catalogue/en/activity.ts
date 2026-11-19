@@ -17,7 +17,8 @@ export const activity = {
   unknown: 'No longer on record',
   recordOf: '{thing} · {name}',
   /** In place of the member, for a Bonus decision on several members' at once. */
-  decided: '{count} at once',
+  decidedApproved: '{count} approved at once',
+  decidedRefused: '{count} refused at once',
   /** Points or bonus chips by hand: `Gave points: 500`, `Gave bonus chips: 1,500`. */
   withAmount: '{what}: {amount}',
   /** Beside a high hand paid (redesign RD-24): `Four Jacks · Table 2, seat 3`. */

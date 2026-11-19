@@ -98,13 +98,16 @@ function useTypingPaused(typed: string): string {
  * those it starts first, eight at most; whether a name found no one; and whether the search failed, with a way to ask again.
  */
 function useMatches(venueId: string, typed: string) {
-  const found = useMemberSearch(venueId, useTypingPaused(typed));
+  const paused = useTypingPaused(typed);
+  const found = useMemberSearch(venueId, paused);
   const isTyped = typed.trim() !== '';
-  const rows = topMatches(found.data ?? [], typed);
+  // Until typing pauses the last search's members are not offered: they match words no longer typed (UI review of #1104).
+  const isCurrent = paused.trim() === typed.trim();
+  const rows = isCurrent ? topMatches(found.data ?? [], typed) : [];
   return {
     rows,
-    isNoOne: hasLetters(typed) && found.isSuccess && rows.length === 0,
-    hasFailed: isTyped && found.isError,
+    isNoOne: isCurrent && hasLetters(typed) && found.isSuccess && rows.length === 0,
+    hasFailed: isTyped && isCurrent && found.isError,
     retry: () => void found.refetch(),
   };
 }

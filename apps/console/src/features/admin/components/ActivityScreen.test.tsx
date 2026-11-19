@@ -89,7 +89,7 @@ describe('Activity (8 Nov audit, F-034)', () => {
       line({ id: 8, action: 'bonus.approve', entity: 'promotion_bonus_decision', about: 'Mihir Shah', reason: null, amount: 300 }),
     ]);
     const table = await screen.findByRole('table', { name: 'Activity' }, LOADS);
-    expect(await within(table).findByText('Bonus from promotions · 2 at once', {}, LOADS)).toBeDefined();
+    expect(await within(table).findByText('Bonus from promotions · 2 approved at once', {}, LOADS)).toBeDefined();
     expect(within(table).getByText('Bonus from promotions · Mihir Shah')).toBeDefined();
     expect(within(table).queryByText('Bonus from promotions · 2')).toBeNull();
   });
