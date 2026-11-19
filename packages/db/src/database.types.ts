@@ -3032,6 +3032,9 @@ isOneToOne: false
 "forget_reopened_kyc_files":
 { Args: { "p_member_id": string,"p_paths": (string)[] }; Returns: number
                            },
+"forget_swept_kyc_files":
+{ Args: { "p_paths": (string)[] }; Returns: number
+                           },
 "games_history":
 { Args: { "p_from": string,"p_to": string,"p_venue_id": string }; Returns: {
               "big_blind_paise": number,"club_day": string,"game": string,"runs": number,"seconds": number,"small_blind_paise": number,"table_id": string,"table_name": string
@@ -3565,6 +3568,9 @@ isOneToOne: false
                            },
 "reopened_kyc_files":
 { Args: { "p_member_id": string }; Returns: (string)[]
+                           },
+"reopened_kyc_files_to_sweep":
+{ Args: Record<PropertyKey, never>; Returns: (string)[]
                            },
 "report_chart":
 { Args: { "p_from": string,"p_report": string,"p_to": string,"p_venue_id": string }; Returns: {
