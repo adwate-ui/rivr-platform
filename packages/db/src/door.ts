@@ -30,13 +30,13 @@ export interface DoorPlayer extends Omit<TodaysPlayer, 'status' | 'waitingSecond
   /** The wait that ended in the seat, or the current or last one, from the later of check-in and joining the list; null with no check-in. */
   readonly waitingSeconds: number | null;
   readonly kycStatus: MemberKycStatus;
-  /** When their open visit began, or, while expected, when they first joined a waitlist; null once they have left. */
+  /** When the member's open visit began, or, while expected, when they first joined a waitlist; null once they have left and are not back. */
   readonly since: string | null;
   /** The Bonus given to them today, by hand or by promotions once approved (#1062), on the first row of their latest visit alone; null on the rest. */
   readonly bonus: Paise | null;
   /** The Bonus used at the row's seat (the owner, 19 Nov); null with no seat. */
   readonly bonusUsed: Paise | null;
-  /** The row's seat session and its visit, which tell the rows apart; a row without a seat has no session, nor a visit if never in. */
+  /** The row's seat session and its visit, which tell the rows apart; a row without a seat has no session, nor a visit when it is a wait outside. */
   readonly sessionId: string | null;
   readonly visitId: string | null;
   /** Their id for a link to their account; null once they are erased, whose name links nowhere. */

@@ -94,7 +94,10 @@ AS $function$
   -- The visit's current wait, else its last: one still running first, then the one that ended latest; one that ended in a
   -- seat only when there is no other.
   left join lateral (
-    select private.wait_after_check_in(p_venue_id, e.member_id, e.joined_at, coalesce(e.left_at, e.seated_at, now())) as seconds
+    -- On a visit's row a wait ends at the visit's check-out at the latest (the reviews of the batch PR): it goes on after
+    -- on the member's own row, and counted past it on both it would be counted twice, running or since ended.
+    select private.wait_after_check_in(p_venue_id, e.member_id, e.joined_at,
+                                       least(coalesce(e.left_at, e.seated_at, now()), coalesce(sv.closed_at, 'infinity'))) as seconds
     from public.waitlist_entry e
     where e.venue_id = p_venue_id and e.member_id = p.member_id
       and ((e.joined_at >= day.starts_at and e.joined_at < day.ends_at) or (day.is_today and e.status = 'waiting'))

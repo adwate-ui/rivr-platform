@@ -77,5 +77,29 @@ select is((select count(*)::int from public.door_page('00000000-0000-4000-8000-0
   'and the Left filter shows each one''s visit that is over');
 reset role;
 
+-- One who joined a list, came in and went, and still waits: the visit's row stops his wait at its check-out, 5 minutes
+-- at most, where counted up to now it was 25.
+insert into public.member (id, venue_id, full_name, phone)
+values ('00000000-0000-4000-8000-0000000002f9', '00000000-0000-4000-8000-000000000001', 'Waits On', '+919000077299');
+insert into public.waitlist_entry (venue_id, member_id, table_type_id, table_id, idempotency_key, joined_at)
+select g.venue_id, '00000000-0000-4000-8000-0000000002f9', g.table_type_id, g.id, gen_random_uuid(), now() - interval '30 minutes'
+from public.game_table g where g.venue_id = '00000000-0000-4000-8000-000000000001' and g.name = 'Table 1';
+insert into public.visit (venue_id, member_id, opened_at, closed_at, close_reason)
+values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-0000000002f9', now() - interval '25 minutes', now() - interval '20 minutes', 'door');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select ok((select bool_and(d.waiting_seconds <= extract(epoch from d.checked_out_at - d.checked_in_at))
+           from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}') d
+           where d.member_id = '00000000-0000-4000-8000-0000000002f9' and d.checked_out_at is not null and d.waiting_seconds is not null),
+  'a visit that is over counts no wait past its check-out');
+reset role;
+update public.waitlist_entry set status = 'left', left_at = now(), left_reason = 'left'
+where member_id = '00000000-0000-4000-8000-0000000002f9' and status = 'waiting';
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select ok((select bool_and(d.waiting_seconds <= extract(epoch from d.checked_out_at - d.checked_in_at))
+           from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}') d
+           where d.member_id = '00000000-0000-4000-8000-0000000002f9' and d.checked_out_at is not null and d.waiting_seconds is not null),
+  'nor once the wait has ended after it');
+reset role;
+
 select * from finish();
 rollback;
