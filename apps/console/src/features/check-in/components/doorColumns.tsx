@@ -138,7 +138,7 @@ export function doorColumns(
       key: 'played', share: 1.03, filter: 'duration', header: t('console.todaysPlayers.played'), sortValue: (player) => player.playedSeconds, align: 'end',
       cell: (player) => (player.tables.length === 0 ? NONE() : formatDuration(player.playedSeconds)),
     },
-    // The Bonus given to them today (#1062), on their first row alone, and the Bonus used at each seat (the owner, 19 Nov).
+    // The Bonus given to them today (#1062), on the first row of their latest visit alone, and the Bonus used at each seat (the owner, 19 Nov).
     {
       key: 'bonus', share: 0.77, header: t('console.todaysPlayers.bonus'), align: 'end', filter: false,
       sortValue: (player) => rupees(player.bonus), exportValue: (player) => rupeesInFile(player.bonus), cell: (player) => chips(player.bonus),

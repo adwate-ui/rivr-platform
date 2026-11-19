@@ -67,7 +67,7 @@ function visitColumns(counted: ListChoices | undefined): readonly DataTableColum
       key: 'played', share: 1.02, filter: 'duration', header: t('console.todaysPlayers.played'), sortValue: (visit) => visit.playedSeconds, align: 'end',
       cell: (visit) => (visit.tables.length === 0 ? NONE() : formatDuration(visit.playedSeconds)),
     },
-    // The Bonus given to them that club day (#1062), on the visit's first row alone, and the Bonus used at each seat (the owner, 19 Nov).
+    // The Bonus given to them that club day (#1062), on the first row of the day's latest visit alone, and the Bonus used at each seat (the owner, 19 Nov).
     {
       key: 'bonus', share: 0.78, header: t('console.todaysPlayers.bonus'), align: 'end', filter: false,
       sortValue: (visit) => rupees(visit.bonus), exportValue: (visit) => rupeesInFile(visit.bonus), cell: (visit) => chips(visit.bonus),

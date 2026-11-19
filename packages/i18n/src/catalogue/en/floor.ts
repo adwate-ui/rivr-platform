@@ -172,7 +172,7 @@ export const todaysPlayers = {
   away: 'Away',
   /**
    * Bonus a row a seat (the owner, 19 Nov): what the member was given that club day (#1062), by hand or by promotions, on
-   * their first row alone; and beside it what they used of their Bonus at each seat, on its row. Short, to fit at 1440 px.
+   * the first row of their latest visit alone; and beside it what they used of their Bonus at each seat, on its row. Short, to fit at 1440 px.
    */
   bonus: 'Bonus',
   bonusUsed: 'Used',

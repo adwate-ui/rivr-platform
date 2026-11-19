@@ -33,11 +33,13 @@ const LINKS = { hrefOf: (memberId: string) => `/members?member=${memberId}` };
 /** The History panel's body, as the route hands it in (#1073). */
 const History = ({ memberId }: { venueId: string; memberId: string }) => <Text>{`Visits of ${memberId}`}</Text>;
 // As the server counts them over everyone at the door today: far more than the page shown.
+// One member is back in: on Left and in the room, Left and Playing, so the lists and the statuses each add up to 319 and
+// everyone, counted once, to 318.
 const COUNTS = [
-  { column_key: 'list', value: 'in_club', members: 36 }, { column_key: 'list', value: 'expected', members: 3 }, { column_key: 'list', value: 'left', members: 279 },
+  { column_key: 'list', value: 'in_club', members: 36 }, { column_key: 'list', value: 'expected', members: 3 }, { column_key: 'list', value: 'left', members: 280 },
   { column_key: 'status', value: 'playing', members: 30 }, { column_key: 'status', value: 'waiting', members: 6 }, { column_key: 'status', value: 'expected', members: 3 },
-  { column_key: 'status', value: 'left', members: 270 }, { column_key: 'status', value: 'in_room', members: 5 }, { column_key: 'status', value: 'never_arrived', members: 4 },
-  { column_key: 'tier', value: 'Member', members: 290 },
+  { column_key: 'status', value: 'left', members: 271 }, { column_key: 'status', value: 'in_room', members: 5 }, { column_key: 'status', value: 'never_arrived', members: 4 },
+  { column_key: 'tier', value: 'Member', members: 290 }, { column_key: 'everyone', value: 'all', members: 318 },
 ];
 // What the next test's server answers, when a test sets them: the page's rows and the counts.
 let rows: readonly (Readonly<Record<string, unknown>> & { readonly list: string; readonly status: string })[] | null = null;
@@ -103,7 +105,7 @@ describe('Check-in (the door as one table from the server, redesign RD-30)', () 
     const chips = screen.getByRole('radiogroup', { name: 'List' });
     expect(await within(chips).findByRole('radio', { name: 'In the room, 36' })).toBeDefined();
     expect(within(chips).getByRole('radio', { name: 'Expected tonight, 3' })).toBeDefined();
-    expect(within(chips).getByRole('radio', { name: 'Left, 279' })).toBeDefined();
+    expect(within(chips).getByRole('radio', { name: 'Left, 280' })).toBeDefined();
   });
 
   it('tells members apart by number, with the tier only above the base one (audit F-020), where each stands, the time played and the ID check', async () => {
@@ -187,7 +189,7 @@ describe('Today\'s players (issue 641; on the server, redesign RD-30)', () => {
   it('tells who is in the room and who never arrived from who left (audit F-097)', async () => {
     renderAs('host', 'players');
     const chips = await screen.findByRole('radiogroup', { name: 'Status' }, { timeout: 5000 });
-    for (const name of ['In the room, 5', 'Left, 270', 'Never arrived, 4']) expect(await within(chips).findByRole('radio', { name })).toBeDefined();
+    for (const name of ['In the room, 5', 'Left, 271', 'Never arrived, 4']) expect(await within(chips).findByRole('radio', { name })).toBeDefined();
   });
 
   it('says so when nobody has come in today', async () => {

@@ -10,8 +10,8 @@ create function pg_temp.as_person(p_person text) returns void language sql as $$
          set_config('request.jwt.claims', jsonb_build_object('sub', p_person, 'role', 'authenticated')::text, true);
 $$;
 grant execute on function pg_temp.as_person(text) to authenticated;
-create function pg_temp.door(p_list text) returns table (member_id uuid, visit_id uuid, checked_out_at timestamptz) language sql as $$
-  select d.member_id, d.visit_id, d.checked_out_at
+create function pg_temp.door(p_list text) returns table (member_id uuid, visit_id uuid, checked_out_at timestamptz, status text, bonus_paise bigint) language sql as $$
+  select d.member_id, d.visit_id, d.checked_out_at, d.status, d.bonus_paise
   from public.door_page('00000000-0000-4000-8000-000000000001',
     jsonb_build_object('page_size', 1000, 'scope', case when p_list is null then '{}'::jsonb else jsonb_build_object('list', p_list) end)) d
   where d.member_id in ('00000000-0000-4000-8000-000000000213', '00000000-0000-4000-8000-000000000216');
@@ -19,6 +19,10 @@ $$;
 grant execute on function pg_temp.door(text) to authenticated;
 create temporary table tonight on commit drop as select private.tonight_began(now()) as began;
 grant select on tonight to authenticated;
+
+-- Mihir is given 500 rupees by hand today.
+select lives_ok($$ select private.credit_bonus('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000213', 50000,
+  'Welcome', now() + interval '30 days', 'bonus.hand:563') $$, 'Mihir is given 500 rupees by hand');
 
 -- Kunal's visit earlier tonight, over, and his place on a list since.
 insert into public.visit (venue_id, member_id, opened_at, closed_at, close_reason)
@@ -47,6 +51,30 @@ select results_eq($$ select visit_id is null, checked_out_at from pg_temp.door('
 select is((select count(*)::int from pg_temp.door('left') where member_id = '00000000-0000-4000-8000-000000000216' and checked_out_at is not null), 1,
   'and Left has the visit he had');
 select is((select count(*)::int from pg_temp.door('in_club') where member_id = '00000000-0000-4000-8000-000000000216'), 0, 'he is not in the room');
+
+select results_eq($$ select b.list, b.bonus_paise from (
+    select 'in_club' as list, d.bonus_paise from pg_temp.door('in_club') d where d.member_id = '00000000-0000-4000-8000-000000000213'
+    union all select 'left', d.bonus_paise from pg_temp.door('left') d where d.member_id = '00000000-0000-4000-8000-000000000213') b order by 1 $$,
+  $$ values ('in_club'::text, 50000::bigint), ('left', null::bigint) $$,
+  'the day''s Bonus given is on his latest visit''s row, in the room, once');
+
+-- Each row says its visit's status: Left once it is over; the open visit's, where the member stands; a wait outside, Expected.
+select results_eq($$ select checked_out_at is null, status from pg_temp.door(null) where member_id = '00000000-0000-4000-8000-000000000213' order by 1 $$,
+  $$ values (false, 'left'::text), (true, 'in_room') $$, 'Mihir''s first visit says Left, his visit now In the room');
+select results_eq($$ select visit_id is null, status from pg_temp.door(null) where member_id = '00000000-0000-4000-8000-000000000216' order by 1 $$,
+  $$ values (false, 'left'::text), (true, 'expected') $$, 'Kunal''s visit says Left, his wait outside Expected');
+create temporary table counted on commit drop as
+select * from public.list_choices('door', '00000000-0000-4000-8000-000000000001', '{}');
+create temporary table rows_ on commit drop as
+select * from public.door_page('00000000-0000-4000-8000-000000000001', '{"page_size": 1000}');
+select is((select members::int from counted where column_key = 'everyone'), (select count(distinct member_id)::int from rows_),
+  'the chip of all counts each member once');
+select is((select members::int from counted where column_key = 'status' and value = 'left'),
+  (select count(distinct member_id)::int from rows_ where status = 'left'), 'the Left chip counts the members whose rows the Left filter shows');
+select is((select count(*)::int from public.door_page('00000000-0000-4000-8000-000000000001',
+             '{"page_size": 1000, "filters": {"status": {"kind": "choice", "chosen": ["left"]}}}')
+           where member_id in ('00000000-0000-4000-8000-000000000213', '00000000-0000-4000-8000-000000000216')), 2,
+  'and the Left filter shows each one''s visit that is over');
 reset role;
 
 select * from finish();

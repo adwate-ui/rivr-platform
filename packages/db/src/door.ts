@@ -32,7 +32,7 @@ export interface DoorPlayer extends Omit<TodaysPlayer, 'status' | 'waitingSecond
   readonly kycStatus: MemberKycStatus;
   /** When their open visit began, or, while expected, when they first joined a waitlist; null once they have left. */
   readonly since: string | null;
-  /** The Bonus given to them today, by hand or by promotions once approved (#1062), on their first row alone; null on the rest. */
+  /** The Bonus given to them today, by hand or by promotions once approved (#1062), on the first row of their latest visit alone; null on the rest. */
   readonly bonus: Paise | null;
   /** The Bonus used at the row's seat (the owner, 19 Nov); null with no seat. */
   readonly bonusUsed: Paise | null;

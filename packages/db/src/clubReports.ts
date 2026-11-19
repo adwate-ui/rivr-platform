@@ -118,7 +118,7 @@ export interface PlayerVisit extends Omit<TodaysPlayer, 'status' | 'waitingSecon
   readonly waitingSeconds: number | null;
   /** Their identity check as it stands now. */
   readonly kycStatus: MemberKycStatus;
-  /** The Bonus given to them that club day, by hand or by promotions once approved (#1062), on the visit's first row alone. */
+  /** The Bonus given to them that club day, by hand or by promotions once approved (#1062), on the first row of the day's latest visit alone. */
   readonly bonus: Paise | null;
   /** The Bonus used at the row's seat (the owner, 19 Nov); null with no seat. */
   readonly bonusUsed: Paise | null;

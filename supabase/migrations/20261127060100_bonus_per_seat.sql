@@ -1,12 +1,14 @@
 -- Bonus on the door's and Players visits' rows a seat each (the owner, 19 Nov): each seat row has the Bonus used at that
 -- seat (bonus_redemption: the buy-in redeemed as they sat, private.redeem_bonus_at_seat, or a use added later), and the
--- day's Bonus given (by hand, promotions, less reversals), which no seat holds, sits on the member's first row of the day
--- alone, so a moved member's rows add up to the day's figures and an export never counts either twice. Rows now come in
+-- day's Bonus given (by hand, promotions, less reversals), which no seat holds, sits on the first row of the member's
+-- latest visit that day alone (in the room for one back in), so a moved member's rows add up to the day's figures and an export never counts either twice. Rows now come in
 -- the order sat, rows without a seat last. A seat's wait is the list's entry that ended in it, seated from the waitlist
 -- or left as seated (private.seat_member); a visit of the day with no seat has a row of its own, so a member back the same
 -- night shows that visit, and one waiting again from outside has a row of the wait with no visit. Each row is on the
--- door's list of its visit: a visit that is over on the left list, the open one in the club, whatever the member does
--- now. private.players_by_seat gives each row's Bonus used, whether it is the first, its seat session
+-- door's list of its visit, and says its visit's status: a visit that is over is Left, on the left list, whatever the
+-- member does now; the open one's rows say where the member stands, in the club; a wait with no visit is Expected. The
+-- menus and chips count each member once a value (a member back in is on Left and in the club), and `everyone` counts
+-- each member once, for the chip of all. private.players_by_seat gives each row's Bonus used, whether it is the first, its seat session
 -- and visit (the rows' keys), and the member's id for a link to their account, none once erased; the two list sources
 -- and their pages carry them. Otherwise each is as the database had it.
 drop function public.door_page(uuid, jsonb);
@@ -107,11 +109,13 @@ AS $function$
      or (sv.id is not null and not exists (select 1 from seats st where st.visit_id = sv.id))
      or (sv.id is not null and day.is_today and p.status = 'waiting' and sv.closed_at is null)
   )
-  -- The member's first row that day, by when they sat, rows without a seat last by check-in: it carries what is not a
+  -- The first row of the member's latest visit that day (the open one for one back in), by when they sat, a row without a
+  -- seat last; a row with no visit only when they had none: it carries what is not a
   -- seat's own. An erased member's name links nowhere.
   select r.member_id, r.full_name, r.member_number, r.status, r.session_id, r.table_name, r.tables, r.seated_at, r.left_at,
          r.checked_in_at, r.checked_out_at, r.waiting_seconds, r.played_seconds, r.away_seconds,
-         row_number() over (partition by r.member_id order by r.seated_at nulls last, r.checked_in_at nulls last, r.table_name) = 1,
+         row_number() over (partition by r.member_id
+                            order by r.checked_in_at desc nulls last, r.checked_out_at desc nulls first, r.seated_at nulls last, r.table_name) = 1,
          r.bonus_used_paise, r.visit_id, case when m.erased_at is null then r.member_id end
   from seat_rows r
   join public.member m on m.id = r.member_id;
@@ -196,7 +200,10 @@ AS $function$
        select listed.* from (
          select tp.member_id, tp.full_name, tp.member_number, t.name as tier_name,
                 t.rank = (select min(x.rank) from public.tier x where x.venue_id = t.venue_id and not x.is_retired) as is_base_tier,
-                case when tp.status = 'waiting' and ov.id is null then 'expected' else tp.status end as status,
+                -- A row says its visit's status: Left once that visit is over, whatever the member does now; else where the
+                -- member stands, Expected while waiting outside.
+                case when tp.checked_out_at is not null then 'left'
+                     when tp.status = 'waiting' and ov.id is null then 'expected' else tp.status end as status,
                 -- A row is on the list of its visit: one that is over on the left list, whatever the member does now (back
                 -- in, or waiting outside); the rest by where the member stands.
                 case when tp.checked_out_at is not null then 'left'
@@ -206,7 +213,8 @@ AS $function$
                 tp.seated_at, tp.left_at, tp.session_id, tp.visit_id, tp.linked_member_id,
                 KYC_STATUS as kyc_status,
                 coalesce(ov.opened_at, (select min(e.joined_at) from public.waitlist_entry e where e.member_id = tp.member_id and e.status = 'waiting')) as since,
-                -- The day's Bonus given, by hand or by promotions, on the member's first row alone, so no export counts it twice;
+                -- The day's Bonus given, by hand or by promotions, on the first row of the member's latest visit alone (in the
+                -- room for one back in), so no export counts it twice;
                 -- each seat's own Bonus used beside it (the owner, 19 Nov).
                 case when tp.is_first_row then
                   (select coalesce(sum(g.amount_paise), 0) from public.bonus_grant g
@@ -226,9 +234,9 @@ AS $function$
      '{"player": "full_name", "number": "member_number", "tier": "tier_name", "status": "status", "in": "checked_in_at", "out": "checked_out_at",
        "waited": "waiting_seconds / 3600.0", "table": "table_names", "played": "played_seconds / 3600.0", "kyc": "kyc_status",
        "seated": "seated_at", "left": "left_at", "bonus_used": "bonus_used_paise / 100", "choices:count": "member_id",
-       "list": "list", "arrived": "(checked_in_at is not null)", "bonus": "bonus_paise / 100",
+       "list": "list", "arrived": "(checked_in_at is not null)", "bonus": "bonus_paise / 100", "everyone": "''all''",
        "status:sort": "array_position(array[''waiting'', ''expected'', ''playing'', ''in_room'', ''left'', ''never_arrived''], status)"}'::jsonb,
-     array['full_name', 'member_number'], 'full_name, member_id, seated_at nulls last, checked_in_at nulls last, table_names', array['status', 'tier', 'kyc', 'list', 'arrived']),
+     array['full_name', 'member_number'], 'full_name, member_id, seated_at nulls last, checked_in_at nulls last, table_names', array['status', 'tier', 'kyc', 'list', 'arrived', 'everyone']),
     -- The Waitlist as one list (redesign RD-31; the owner, 15 Nov): every place on every table's list, as
     -- private.waitlist_board gives them, each with its table. Each table keeps its own list and its own order: the
     -- places come table by table, in place order. The screen may ask for one table's list alone.
@@ -336,7 +344,7 @@ AS $function$
               tp.checked_in_at, tp.checked_out_at, tp.waiting_seconds, tp.tables, tp.played_seconds, tp.table_name as table_names,
               tp.seated_at, tp.left_at, tp.away_seconds, tp.session_id, tp.visit_id, tp.linked_member_id,
               KYC_STATUS as kyc_status,
-              -- As the door: the day's Bonus given on the visit's first row alone, each seat's Bonus used on its own.
+              -- As the door: the day's Bonus given on the first row of the latest visit alone, each seat's Bonus used on its own.
               case when tp.is_first_row then
                 (select coalesce(sum(g.amount_paise), 0) from public.bonus_grant g
                  where g.venue_id = $1 and g.member_id = tp.member_id and private.club_day_of(g.created_at) = tp_day.club_day)::bigint
