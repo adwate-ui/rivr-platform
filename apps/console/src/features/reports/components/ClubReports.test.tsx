@@ -113,7 +113,7 @@ describe('the reports beside Tables (redesign RD-27)', () => {
     const table = await screen.findByRole('table', { name: 'Visits' });
     expect(await rowOf(table, '15 Nov 2026')).toBe('15 Nov 2026Yash Gupta41Black card20:00–10 minTable 220:10–0 min2 h500Checked');
     // The base tier is left unsaid, as at the door.
-    expect(await rowOf(table, '14 Nov 2026')).toBe('14 Nov 2026Yash Gupta41–19:3023:300 minTable 119:4022:400 min3 h0Checked');
+    expect(await rowOf(table, '14 Nov 2026')).toBe('14 Nov 2026Yash Gupta41–19:3023:300 minTable 119:40–22:400 min3 h0Checked');
     const read = asked.find((call) => call.rpc === 'player_visits_page');
     expect(read?.body['p_venue_id']).toBe('v1');
     expect(read?.body['p_view']).toMatchObject({ scope: { from: '2026-11-09', to: '2026-11-15' } });

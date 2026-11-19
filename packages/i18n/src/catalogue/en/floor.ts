@@ -157,13 +157,18 @@ export const todaysPlayers = {
   /** When they checked in and out, short as the prototype's headers, so a phone's scrolling line keeps them on one line. */
   checkedIn: 'In',
   checkedOut: 'Out',
-  waited: 'Waited',
+  /** Short, so every heading fits at 1440 px (the owner, 19 Nov). */
+  waited: 'Wait',
   /** The tables a player played on today, and the time played across them, in columns of their own (console v3). */
   table: 'Table',
-  played: 'Time played',
-  /** A row is a seat (the owner, 19 Nov): when they sat at its table and left it, and its time away (Players visits). */
-  seated: 'Seated',
-  left: 'Left',
+  played: 'Played',
+  /**
+   * A row is a seat (the owner, 19 Nov): its time at the table, from when they sat to when they left, open while they are
+   * there; and its time away (Players visits). `{from}`, `{to}`: 17:53, 18:43.
+   */
+  atTable: 'At table',
+  atTableSpan: '{from}–{to}',
+  atTableOpen: '{from}–',
   away: 'Away',
   /** The Bonus given to the member that club day (#1062). */
   bonus: 'Bonus',

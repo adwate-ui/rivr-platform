@@ -20,6 +20,13 @@ const NONE = () => t('console.todaysPlayers.none');
 const at = (iso: string | null) => (iso === null ? NONE() : formatTime(new Date(iso)));
 // A wait counts only after check-in, and a row with no seat has no time away (the owner, 19 Nov): none, which is no 0 min.
 const duration = (seconds: number | null) => (seconds === null ? NONE() : formatDuration(seconds));
+
+/** A seat's time at its table: 17:53–18:43, or 17:53– while they are there; none with no seat (the owner, 19 Nov). */
+function atTable({ seatedAt, leftAt }: { readonly seatedAt: string | null; readonly leftAt: string | null }): string {
+  if (seatedAt === null) return NONE();
+  const from = formatTime(new Date(seatedAt));
+  return leftAt === null ? t('console.todaysPlayers.atTableOpen', { from }) : t('console.todaysPlayers.atTableSpan', { from, to: formatTime(new Date(leftAt)) });
+}
 const tablesOf = (visit: PlayerVisit) => (visit.tables.length === 0 ? NONE() : visit.tables.map((entry) => entry.table).join(', '));
 const kycWords = (status: MemberKycStatus) => t(`console.members.kycStatuses.${status}`);
 // A club day as a date: noon IST that day, so the date is the day's whatever the browser's zone.
@@ -30,36 +37,38 @@ const tierOf = (visit: PlayerVisit) => (visit.isBaseTier ? NONE() : visit.tierNa
 /** The tiers the column's menu offers, each with the server's count over the visits the other filters leave. */
 const tierChoices = (counted: ListChoices | undefined): readonly ColumnChoice[] => (counted?.['tier'] ?? []).map(({ value, count }) => ({ value, count }));
 
-/** The door's columns (decision 0682), with the day first: the server sorts and filters, as the door's table. */
+/**
+ * The door's columns (decision 0682), with the day first: the server sorts and filters, as the door's table. Each share is
+ * the room its heading and its widest cell take on one line at 1440 px (measured, the owner, 19 Nov).
+ */
 function visitColumns(counted: ListChoices | undefined): readonly DataTableColumn<PlayerVisit>[] {
   return [
     {
-      key: 'date', share: 1.2, header: t('console.reports.playersReport.date'), cell: (visit) => <Text variant="secondary" tone="muted">{dayOf(visit)}</Text>,
+      key: 'date', share: 1.32, header: t('console.reports.playersReport.date'), cell: (visit) => <Text variant="secondary" tone="muted">{dayOf(visit)}</Text>,
       sortValue: (visit) => visit.clubDay, exportValue: dayOf, filter: false, priority: 'secondary',
     },
-    { key: 'player', share: 2, header: t('console.todaysPlayers.name'), cell: (visit) => visit.fullName, sortValue: (visit) => visit.fullName, priority: 'primary', isWide: true, filter: 'text' },
-    { key: 'number', share: 0.65, header: t('console.members.number'), cell: (visit) => <Text variant="secondary" tone="muted">{String(visit.memberNumber)}</Text>, sortValue: (visit) => visit.memberNumber, exportValue: (visit) => visit.memberNumber, filter: 'number' },
-    { key: 'tier', share: 1.05, header: t('console.members.tier'), cell: tierOf, exportValue: (visit) => visit.tierName, sortValue: (visit) => visit.tierName, filter: 'choice', choices: tierChoices(counted), filterValue: (visit) => visit.tierName },
-    { key: 'in', share: 0.65, header: t('console.todaysPlayers.checkedIn'), cell: (visit) => at(visit.checkedInAt), sortValue: (visit) => visit.checkedInAt ?? '', filter: false },
-    { key: 'out', share: 0.65, header: t('console.todaysPlayers.checkedOut'), cell: (visit) => at(visit.checkedOutAt), sortValue: (visit) => visit.checkedOutAt ?? '', filter: false },
-    { key: 'waited', share: 1, filter: 'duration', header: t('console.todaysPlayers.waited'), cell: (visit) => duration(visit.waitingSeconds), sortValue: (visit) => visit.waitingSeconds ?? -1, align: 'end' },
-    { key: 'table', share: 0.95, header: t('console.todaysPlayers.table'), cell: tablesOf, sortValue: tablesOf, filter: 'text' },
-    // A row is a seat (the owner, 19 Nov): when they sat at its table and left it, and its time away.
-    { key: 'seated', share: 0.65, header: t('console.todaysPlayers.seated'), cell: (visit) => at(visit.seatedAt), sortValue: (visit) => visit.seatedAt ?? '', filter: false },
-    { key: 'left', share: 0.65, header: t('console.todaysPlayers.left'), cell: (visit) => at(visit.leftAt), sortValue: (visit) => visit.leftAt ?? '', filter: false },
-    { key: 'away', share: 0.8, filter: 'duration', header: t('console.todaysPlayers.away'), cell: (visit) => duration(visit.awaySeconds), sortValue: (visit) => visit.awaySeconds ?? -1, align: 'end' },
+    { key: 'player', share: 1.55, header: t('console.todaysPlayers.name'), cell: (visit) => visit.fullName, sortValue: (visit) => visit.fullName, priority: 'primary', isWide: true, filter: 'text' },
+    { key: 'number', share: 0.58, header: t('console.members.number'), cell: (visit) => <Text variant="secondary" tone="muted">{String(visit.memberNumber)}</Text>, sortValue: (visit) => visit.memberNumber, exportValue: (visit) => visit.memberNumber, filter: 'number' },
+    { key: 'tier', share: 0.78, header: t('console.members.tier'), cell: tierOf, exportValue: (visit) => visit.tierName, sortValue: (visit) => visit.tierName, filter: 'choice', choices: tierChoices(counted), filterValue: (visit) => visit.tierName },
+    { key: 'in', share: 0.58, header: t('console.todaysPlayers.checkedIn'), cell: (visit) => at(visit.checkedInAt), sortValue: (visit) => visit.checkedInAt ?? '', filter: false },
+    { key: 'out', share: 0.58, header: t('console.todaysPlayers.checkedOut'), cell: (visit) => at(visit.checkedOutAt), sortValue: (visit) => visit.checkedOutAt ?? '', filter: false },
+    { key: 'waited', share: 0.83, filter: 'duration', header: t('console.todaysPlayers.waited'), cell: (visit) => duration(visit.waitingSeconds), sortValue: (visit) => visit.waitingSeconds ?? -1, align: 'end' },
+    { key: 'table', share: 0.97, header: t('console.todaysPlayers.table'), cell: tablesOf, sortValue: tablesOf, filter: 'text' },
+    // A row is a seat (the owner, 19 Nov): its time at the table, sorted by when they sat and exported as its words; its time away.
+    { key: 'seated', share: 1.3, header: t('console.todaysPlayers.atTable'), cell: atTable, sortValue: (visit) => visit.seatedAt ?? '', exportValue: atTable, filter: false },
+    { key: 'away', share: 0.88, filter: 'duration', header: t('console.todaysPlayers.away'), cell: (visit) => duration(visit.awaySeconds), sortValue: (visit) => visit.awaySeconds ?? -1, align: 'end' },
     {
-      key: 'played', share: 1.5, filter: 'duration', header: t('console.todaysPlayers.played'), sortValue: (visit) => visit.playedSeconds, align: 'end',
+      key: 'played', share: 1.02, filter: 'duration', header: t('console.todaysPlayers.played'), sortValue: (visit) => visit.playedSeconds, align: 'end',
       cell: (visit) => (visit.tables.length === 0 ? NONE() : formatDuration(visit.playedSeconds)),
     },
     // The Bonus given to them that club day (#1062).
     {
-      key: 'bonus', share: 1, header: t('console.todaysPlayers.bonus'), align: 'end', filter: false,
+      key: 'bonus', share: 0.78, header: t('console.todaysPlayers.bonus'), align: 'end', filter: false,
       sortValue: (visit) => Number(formatRupeesForFile(visit.bonus)), exportValue: (visit) => Number(formatRupeesForFile(visit.bonus)),
       cell: (visit) => formatChips(visit.bonus),
     },
     {
-      key: 'kyc', share: 1.3, header: t('console.members.kyc'), sortValue: (visit) => KYC.indexOf(visit.kycStatus), isWide: true, filter: false,
+      key: 'kyc', share: 1.13, header: t('console.members.kyc'), sortValue: (visit) => KYC.indexOf(visit.kycStatus), isWide: true, filter: false,
       cell: (visit) => <DotStatus tone={KYC_TONE[visit.kycStatus]} label={kycWords(visit.kycStatus)} />, exportValue: (visit) => kycWords(visit.kycStatus),
     },
   ];
@@ -67,7 +76,7 @@ function visitColumns(counted: ListChoices | undefined): readonly DataTableColum
 
 /** A super admin's Correct, at the end of each row with a visit to correct (#1075); its column is left out of exports. */
 const correctColumn = (onCorrect: (visit: PlayerVisit) => void): DataTableColumn<PlayerVisit> => ({
-  key: 'correct', share: 1.1, header: '', align: 'end', filter: false,
+  key: 'correct', share: 0.8, header: '', align: 'end', filter: false,
   cell: (visit) => (visit.visits.length === 0 ? null : (
     <Button variant="text" size="small" aria-label={t('console.reports.playersReport.correctNamed', { name: visit.fullName, day: dayOf(visit) })}
       onClick={() => onCorrect(visit)}>
