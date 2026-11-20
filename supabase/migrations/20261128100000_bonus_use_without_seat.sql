@@ -51,14 +51,16 @@ where key = 'bonus.visit_cap';
 drop trigger seat_session_notes_bonus on public.seat_session;
 drop function private.note_bonus_at_first_seat();
 
--- A visit open now whose note came from a seat with no Bonus, before decision 0706, takes its base from its first use.
+-- A visit open now whose note came from a seat with no Bonus, before decision 0706, takes its base from its first use. A
+-- use a super admin added after the fact (used_at set) sets no base, so it keeps no note either.
 update public.visit v set bonus_at_first_seat_paise = null
 where v.closed_at is null and v.bonus_at_first_seat_paise is not null
-  and not exists (select 1 from public.bonus_redemption r join public.seat_session s on s.id = r.session_id where s.visit_id = v.id)
+  and not exists (select 1 from public.bonus_redemption r join public.seat_session s on s.id = r.session_id
+                  where s.visit_id = v.id and r.used_at is null)
   and not exists (select 1 from public.bonus_redemption r where r.visit_id = v.id);
 
 -- As 20261112100000_bonus_expiry_and_visit_cap.sql made it, forgetting a visit's note once none of its Bonus uses is left,
--- at a seat or without one, so the next use notes it afresh. A seat whose buy-in redeemed Bonus is never undone
+-- at a seat or without one (a use added after the fact sets no base, so it keeps none), so the next use notes it afresh. A seat whose buy-in redeemed Bonus is never undone
 -- (private.undo_seat: its bonus_redemption holds it), so the use that noted it stays.
 CREATE OR REPLACE FUNCTION private.forget_bonus_at_first_seat()
  RETURNS trigger
@@ -69,7 +71,8 @@ AS $function$
 begin
   update public.visit v set bonus_at_first_seat_paise = null
   where v.id = old.visit_id
-    and not exists (select 1 from public.bonus_redemption r join public.seat_session s on s.id = r.session_id where s.visit_id = old.visit_id)
+    and not exists (select 1 from public.bonus_redemption r join public.seat_session s on s.id = r.session_id
+                    where s.visit_id = old.visit_id and r.used_at is null)
     and not exists (select 1 from public.bonus_redemption r where r.visit_id = old.visit_id);
   return null;
 end;
@@ -77,7 +80,8 @@ $function$;
 
 -- As 20261125100000_bonus_reverse_and_missed_use.sql made it, with the visit's first draw noting the Bonus held before it,
 -- the cap's base (decision 0706): a seat's buy-in (private.redeem_bonus_at_seat) or a use without a seat (private.use_bonus).
--- A refused draw notes nothing: its refusal undoes the note with it.
+-- A refused draw notes nothing: its refusal undoes the note with it. The open visit's row is held before the Bonus lock, in
+-- the one order private.use_bonus sets out.
 CREATE OR REPLACE FUNCTION private.draw_bonus(p_member_id uuid, p_amount_paise bigint)
  RETURNS void
  LANGUAGE plpgsql
@@ -92,6 +96,7 @@ declare
   v_taken bigint[];
   v_left bigint;
 begin
+  perform 1 from public.visit v where v.member_id = p_member_id and v.closed_at is null for no key update;
   perform pg_advisory_xact_lock(hashtextextended('bonus:' || p_member_id::text, 0));
   -- No Bonus is used at a buy-in while any is owed (#1077): new Bonus pays it first.
   if private.bonus_owed_by(p_member_id) > 0 then
@@ -179,21 +184,28 @@ begin
   end if;
   perform private.assert_writable(v_venue_id, 'promotions', p_member_id);
   perform private.assert_rate(v_venue_id, 'bonus.use');
-  -- The open visit's row first, then the member's Bonus lock, the order a seating takes them in (its seat holds the
-  -- visit's row before its buy-in draws), so the two never wait on each other; a check-out waits for this.
-  select v.id into v_visit_id from public.visit v where v.member_id = p_member_id and v.closed_at is null for update;
-  if v_visit_id is null then
-    raise exception 'Not checked in: Bonus is used during a visit' using errcode = 'RVNIN';
+  -- One lock order for a member's visit and Bonus: the member's row, then their open visit's row, then their Bonus lock.
+  -- Check-in, seating and check-out take the member's row first (private.open_visit, start_seat_session, leave_by_door)
+  -- and the visit after it (close_visit); private.draw_bonus takes the visit's row before the Bonus lock;
+  -- private.reverse_bonus and add_bonus_use take the member's row before the Bonus lock. Whichever comes second waits at its
+  -- first lock while holding nothing the first still needs, so they wait in turn and never on each other. The member's row
+  -- is held for no key update: it waits for those, and they for it, as for update would, but a buy-in recorded meanwhile
+  -- (its row naming the member, which checks the member's key) is not held up while it holds the visit this waits for.
+  -- (An erasure, private.erase_member and carry_out_erasure, still takes the Bonus lock first; it refuses a member with a
+  -- visit open.)
+  perform 1 from public.member m where m.id = p_member_id and m.erased_at is null for no key update;
+  if not found then
+    raise exception 'The member was erased' using errcode = '22023';
   end if;
-  perform pg_advisory_xact_lock(hashtextextended('bonus:' || p_member_id::text, 0));
   -- The same request at the same moment waited above for the first, and is answered as it.
   if private.bonus_use_replayed(p_request_id, p_member_id, v_amount) then
     return p_request_id;
   end if;
-  perform 1 from public.member m where m.id = p_member_id and m.erased_at is null for share;
-  if not found then
-    raise exception 'The member was erased' using errcode = '22023';
+  select v.id into v_visit_id from public.visit v where v.member_id = p_member_id and v.closed_at is null for no key update;
+  if v_visit_id is null then
+    raise exception 'Not checked in: Bonus is used during a visit' using errcode = 'RVNIN';
   end if;
+  perform pg_advisory_xact_lock(hashtextextended('bonus:' || p_member_id::text, 0));
   -- Notes the cap's base on the visit if this is its first Bonus use (decision 0706), then draws.
   perform private.draw_bonus(p_member_id, v_amount);
   v_txn := private.post_ledger_transaction(v_venue_id, 'bonus_buy_in', 'bonus_use:' || p_request_id,
@@ -251,7 +263,8 @@ revoke all on function public.use_bonus(uuid, integer, text, uuid) from public, 
 grant execute on function public.use_bonus(uuid, integer, text, uuid) to authenticated;
 
 -- As 20261125100000_bonus_reverse_and_missed_use.sql made it, with a request id already used for a use without a seat
--- (no session) refused as another use's, never answered as this one.
+-- (no session) refused as another use's, never answered as this one; and the member's row taken before the Bonus lock, in
+-- the one order private.use_bonus sets out.
 CREATE OR REPLACE FUNCTION private.add_bonus_use(p_session_id uuid, p_chips integer, p_reason text, p_request_id uuid)
  RETURNS uuid
  LANGUAGE plpgsql
@@ -262,6 +275,7 @@ declare
   v_session public.seat_session;
   v_amount bigint := p_chips::bigint * 100;
   v_replay public.bonus_redemption;
+  v_is_kept boolean;
   v_ids uuid[];
   v_remaining bigint[];
   v_expires timestamptz[];
@@ -285,8 +299,11 @@ begin
   end if;
   perform private.assert_writable(v_session.venue_id, 'promotions', v_session.member_id);
   perform private.assert_rate(v_session.venue_id, 'bonus.use_add');
+  -- An erasure that came first has closed the record.
+  perform 1 from public.member m where m.id = v_session.member_id and m.erased_at is null for share;
+  v_is_kept := found;
   perform pg_advisory_xact_lock(hashtextextended('bonus:' || v_session.member_id::text, 0));
-  -- Under the member's lock, so the same request at once is answered as one, and an erasure is seen.
+  -- Under the member's lock, so the same request at once is answered as one.
   select * into v_replay from public.bonus_redemption r where r.id = p_request_id;
   if v_replay.id is not null then
     if v_replay.session_id is distinct from p_session_id or v_replay.amount_paise <> v_amount then
@@ -294,8 +311,7 @@ begin
     end if;
     return v_replay.id;
   end if;
-  perform 1 from public.member m where m.id = v_session.member_id and m.erased_at is null for share;
-  if not found or not exists (select 1 from private.bonus_use_seats(v_session.venue_id, v_session.member_id) u where u.session_id = p_session_id) then
+  if not v_is_kept or not exists (select 1 from private.bonus_use_seats(v_session.venue_id, v_session.member_id) u where u.session_id = p_session_id) then
     raise exception 'A seat of the member''s, past its Undo' using errcode = '22023';
   end if;
   select array_agg(g.id order by g.created_at, g.id), array_agg(g.remaining_paise order by g.created_at, g.id),
@@ -331,6 +347,93 @@ begin
                                           'session_id', p_session_id, 'owed_paise', v_owed),
                        'bonus.use_added:' || p_request_id);
   return p_request_id;
+end;
+$function$;
+
+-- As 20261125100000_bonus_reverse_and_missed_use.sql made it, with the member's row taken before the Bonus lock, in the one
+-- order private.use_bonus sets out.
+CREATE OR REPLACE FUNCTION private.reverse_bonus(p_grant_id uuid, p_reason text)
+ RETURNS bigint
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  v_grant public.bonus_grant;
+  v_expired bigint;
+  v_amount bigint;
+  v_ids uuid[];
+  v_remaining bigint[];
+  v_expires timestamptz[];
+  v_taken bigint[];
+  v_owed bigint;
+  v_txn uuid;
+begin
+  select * into v_grant from public.bonus_grant g where g.id = p_grant_id;
+  if v_grant.id is null or not private.is_super_admin(v_grant.venue_id) then
+    raise exception 'Only super admins reverse Bonus' using errcode = '42501';
+  end if;
+  if private.is_own_cage_record(v_grant.member_id) or coalesce(private.is_own_kyc_check(v_grant.member_id), false) then
+    raise exception 'Staff never reverse Bonus on their own record' using errcode = 'RVOWN';
+  end if;
+  if length(btrim(coalesce(p_reason, ''))) not between 3 and 200
+     or exists (select 1 from public.member m where m.id = v_grant.member_id and m.erased_at is not null) then
+    raise exception 'A reason of 3 to 200 characters, for a member still here' using errcode = '22023';
+  end if;
+  perform private.assert_writable(v_grant.venue_id, 'promotions', v_grant.member_id);
+  perform private.assert_rate(v_grant.venue_id, 'bonus.reverse');
+  -- An erasure that came first has closed the record.
+  perform 1 from public.member m where m.id = v_grant.member_id and m.erased_at is null for share;
+  if not found then
+    raise exception 'The member was erased' using errcode = '22023';
+  end if;
+  perform pg_advisory_xact_lock(hashtextextended('bonus:' || v_grant.member_id::text, 0));
+  select * into v_grant from public.bonus_grant g where g.id = p_grant_id for update;
+  -- Once: asked again, it is done.
+  if v_grant.reversed_at is not null then
+    return null;
+  end if;
+  -- What expired of it went back then; the rest comes back now.
+  v_expired := coalesce((select e.amount from public.ledger_entry e join public.ledger_account a on a.id = e.account_id and a.code = 'member.bonus'
+                         where e.transaction_id = v_grant.expiry_transaction_id), 0);
+  v_amount := v_grant.amount_paise - v_expired;
+  if v_amount <= 0 then
+    raise exception 'Nothing of it left to take back: it expired' using errcode = 'RVNIL';
+  end if;
+  select array_agg(g.id order by g.created_at, g.id), array_agg(g.remaining_paise order by g.created_at, g.id),
+         array_agg(g.expires_at order by g.created_at, g.id)
+  into v_ids, v_remaining, v_expires
+  from (    select g.id, g.created_at, g.remaining_paise, private.bonus_end_in_force(g.venue_id, g.expires_at) as expires_at
+          from public.bonus_grant g where g.member_id = v_grant.member_id and g.expired_at is null for update) g;
+  select t.taken, t.owed into v_taken, v_owed
+  from private.bonus_takes(v_amount, v_remaining, v_expires, now(), array_position(v_ids, v_grant.id)) t;
+  for i in 1 .. coalesce(array_length(v_ids, 1), 0) loop
+    continue when v_taken[i] = 0;
+    update public.bonus_grant set remaining_paise = remaining_paise - v_taken[i] where id = v_ids[i];
+  end loop;
+  v_txn := private.post_ledger_transaction(v_grant.venue_id, 'bonus_reversal', 'bonus_reversal:' || v_grant.id,
+    jsonb_build_array(
+      jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.member_id = v_grant.member_id and a.code = 'member.bonus'),
+                         'amount', v_amount::text),
+      jsonb_build_object('account_id', (select a.id from public.ledger_account a where a.venue_id = v_grant.venue_id
+                                         and a.code = 'venue.bonus_expense' and a.member_id is null), 'amount', (-v_amount)::text)),
+    'promotions', 'Bonus reversed');
+  update public.bonus_grant
+  set reversed_at = now(), reversal_transaction_id = v_txn, reversal_reason = btrim(p_reason), reversal_paise = v_amount,
+      reversed_by_staff_id = private.current_staff_id(v_grant.venue_id)
+  where id = v_grant.id;
+  -- A promotion's Bonus reversed frees the promotion (the owner, 19 Nov): its limits, its budget and MIS no longer count it.
+  update public.promotion_grant set status = 'reversed' where bonus_grant_id = v_grant.id and status = 'given';
+  if v_owed > 0 then
+    insert into public.bonus_owed (venue_id, member_id, kind, amount_paise, bonus_grant_id)
+    values (v_grant.venue_id, v_grant.member_id, 'reversal', v_owed, v_grant.id);
+  end if;
+  perform private.audit(v_grant.venue_id, 'bonus.reverse', 'member', v_grant.member_id::text, null,
+                        jsonb_build_object('bonus_grant_id', v_grant.id, 'chips', v_amount / 100, 'owed_chips', v_owed / 100), btrim(p_reason));
+  perform private.emit(v_grant.venue_id, 'bonus.reversed',
+                       jsonb_build_object('bonus_grant_id', v_grant.id, 'member_id', v_grant.member_id, 'amount_paise', v_amount, 'owed_paise', v_owed),
+                       'bonus.reversed:' || v_grant.id);
+  return v_amount;
 end;
 $function$;
 
