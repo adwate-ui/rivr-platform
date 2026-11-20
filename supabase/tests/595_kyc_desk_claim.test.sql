@@ -77,7 +77,27 @@ select pg_temp.as_user('00000000-0000-4000-8000-000000000103');
 select results_eq($$ select status, staff_name, since is not null from public.claim_kyc_desk_check('00000000-0000-4000-8000-000000000204') $$,
   $$ select 'decided'::text, vikram, true from names $$, 'starting a member already checked says who checked them, and when');
 
--- Only staff who check members in person.
+-- A claim that lapsed is cleared as the next is written.
+reset role;
+update private.kyc_desk_claim set claimed_at = now() - interval '20 minutes' where member_id = '00000000-0000-4000-8000-000000000203';
+select pg_temp.as_user('00000000-0000-4000-8000-000000000103');
+select results_eq($$ select status from public.claim_kyc_desk_check('00000000-0000-4000-8000-000000000202') $$,
+  $$ values ('claimed'::text) $$, 'the floor manager claims Kabir');
+reset role;
+select is((select count(*)::integer from private.kyc_desk_claim where member_id = '00000000-0000-4000-8000-000000000203'), 0,
+  'and Naina''s lapsed claim is gone');
+
+-- Erasure takes the member's claim with their other records.
+select is((select count(*)::integer from private.kyc_desk_claim where member_id = '00000000-0000-4000-8000-000000000202'), 1, 'Kabir is claimed');
+select private.delete_member_records(m) from public.member m where m.id = '00000000-0000-4000-8000-000000000202';
+select is((select count(*)::integer from private.kyc_desk_claim where member_id = '00000000-0000-4000-8000-000000000202'), 0,
+  'erasing Kabir''s records takes his claim');
+
+-- Only staff who check members in person: a member, or a cashier, is refused before anything is held.
+select pg_temp.as_user('00000000-0000-4000-8000-000000000201');
+select throws_ok($$ select * from public.claim_kyc_desk_check('00000000-0000-4000-8000-000000000203') $$, '42501', null,
+  'a member cannot claim a check');
+select is_empty($$ select * from public.kyc_desk_claims('00000000-0000-4000-8000-000000000001') $$, 'nor see who is checking whom');
 select pg_temp.as_user('00000000-0000-4000-8000-000000000104');
 select throws_ok($$ select * from public.claim_kyc_desk_check('00000000-0000-4000-8000-000000000203') $$, '42501', null,
   'a cashier cannot claim a check');

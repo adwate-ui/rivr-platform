@@ -60,6 +60,14 @@ describe('useKycDeskClaim (the owner, 20 Nov)', () => {
       .toEqual({ ok: true, value: { status: 'decided', staffName: null, at: null } });
   });
 
+  it('reads an answer it does not know as unavailable, never as a claim', async () => {
+    const empty = claimAnswering(() => Response.json([]));
+    expect(await act(() => empty.result.current.claim.mutateAsync(NAINA))).toEqual({ ok: false, error: 'unavailable' });
+    cleanup();
+    const nameless = claimAnswering(() => Response.json([{ status: 'taken', staff_name: null, since: null }]));
+    expect(await act(() => nameless.result.current.claim.mutateAsync(NAINA))).toEqual({ ok: false, error: 'unavailable' });
+  });
+
   it('reads the gate\'s refusals as the check would, and anything else as unavailable', async () => {
     const refused = claimAnswering(() => Response.json({ code: '42501', message: 'no' }, { status: 403 }));
     expect(await act(() => refused.result.current.claim.mutateAsync(NAINA))).toEqual({ ok: false, error: 'not_allowed' });

@@ -11,18 +11,32 @@ export type DecidedClaim = Extract<KycDeskClaim, { status: 'decided' }>;
  * taken: one being checked elsewhere says by whom and since when, and one checked already closes the check with who did
  * it and when. The claim is let go when the check closes undone: Choose another member, or the sheet closed.
  */
+/**
+ * A claim's two marks: held by this check, and the check closed. As the check closes the claim it holds is let go, and a
+ * claim that comes back after that is let go at once, not held for 15 minutes.
+ */
+function useLetGoOnClose(memberId: string, letGo: (memberId: string) => void) {
+  const isHeld = useRef(false);
+  const isClosed = useRef(false);
+  useEffect(() => {
+    isClosed.current = false;
+    return () => {
+      isClosed.current = true;
+      if (isHeld.current) letGo(memberId);
+    };
+  }, [memberId, letGo]);
+  return { isHeld, isClosed };
+}
+
 export function useStart({ venueId, member, onStarted, onChecked }: {
   venueId: string; member: KycCandidate; onStarted: () => void; onChecked: (claim: DecidedClaim) => void;
 }) {
   const { claim, release } = useKycDeskClaim(venueId);
   const [holder, setHolder] = useState<KycDeskHolder | null>(null);
   const [problem, setProblem] = useState<MessageKey | null>(null);
-  const isHeld = useRef(false);
   const { memberId } = member;
   const letGo = release.mutate;
-  useEffect(() => () => {
-    if (isHeld.current) letGo(memberId);
-  }, [memberId, letGo]);
+  const { isHeld, isClosed } = useLetGoOnClose(memberId, letGo);
   const ask = async () => {
     setProblem(null);
     const answer = await claim.mutateAsync(memberId);
@@ -31,6 +45,7 @@ export function useStart({ venueId, member, onStarted, onChecked }: {
   };
   const start = async () => {
     const answer = await ask();
+    if (answer?.status === 'claimed' && isClosed.current) return letGo(memberId);
     if (answer?.status === 'claimed') {
       isHeld.current = true;
       setHolder(null);

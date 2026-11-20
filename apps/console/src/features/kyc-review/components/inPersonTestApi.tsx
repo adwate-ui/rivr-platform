@@ -26,8 +26,8 @@ export const NAINA = { member_id: '00000000-0000-4000-8000-000000000203', full_n
 type Reply = () => Response | Promise<Response>;
 
 /** Vikram, a KYC reviewer, signed in, over a fake API; gives what was sent to the check. */
-/** What claim_kyc_desk_check answers: claimed unless a test says otherwise, each time or in turn. */
-type ClaimReply = unknown[] | (() => unknown[]);
+/** What claim_kyc_desk_check answers: claimed unless a test says otherwise, each time or in turn, at once or later. */
+type ClaimReply = unknown[] | (() => unknown[] | Promise<unknown[]>);
 
 /** Claimed for Vikram, as Start finds a member no one else is checking. */
 export const CLAIMED = [{ status: 'claimed', staff_name: null, since: '2026-11-20T14:30:00Z' }];
@@ -36,11 +36,14 @@ export const CLAIMED = [{ status: 'claimed', staff_name: null, since: '2026-11-2
 interface Claims {
   claim?: ClaimReply;
   claims?: unknown[];
+  /** Collects the members whose claim is let go. */
+  released?: string[];
 }
 
-/** What the desk's claim calls answer (the owner, 20 Nov); an empty list for any other call. */
-function deskAnswer(url: string, claims: Claims): Response {
-  if (url.includes('/rpc/claim_kyc_desk_check')) return Response.json(typeof claims.claim === 'function' ? claims.claim() : claims.claim ?? CLAIMED);
+/** What the desk's claim calls answer (the owner, 20 Nov), noting each claim let go; an empty list for any other call. */
+async function deskAnswer(url: string, init: RequestInit | undefined, claims: Claims): Promise<Response> {
+  if (url.includes('/rpc/claim_kyc_desk_check')) return Response.json(typeof claims.claim === 'function' ? await claims.claim() : claims.claim ?? CLAIMED);
+  if (url.includes('/rpc/release_kyc_desk_check')) claims.released?.push(String(Reflect.get(JSON.parse(String(init?.body)), 'p_member_id')));
   return Response.json(url.includes('/rpc/kyc_desk_claims') ? claims.claims ?? [] : []);
 }
 
@@ -66,7 +69,7 @@ function renderOver(ui: ReactElement, reply: Reply, lists: { found: unknown; due
       sent.push(JSON.parse(String(init?.body)));
       return reply();
     }
-    return deskAnswer(url, lists);
+    return deskAnswer(url, init, lists);
   });
   const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
   render(<RivrDataProvider client={client}>{ui}</RivrDataProvider>);

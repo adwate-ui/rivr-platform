@@ -30,13 +30,14 @@ interface DeskClaimRow {
   since: string | null;
 }
 
-/** claim_kyc_desk_check's one row, read as where the check stands; the check itself is still the gate's to refuse. */
-function deskClaimOf(row: DeskClaimRow | undefined): KycDeskClaim {
+/** claim_kyc_desk_check's one row, read as where the check stands; null for an answer it does not know, never a claim. */
+function deskClaimOf(row: DeskClaimRow | undefined): KycDeskClaim | null {
+  if (row?.status === 'claimed') return { status: 'claimed' };
   if (row?.status === 'taken' && row.staff_name !== null && row.since !== null) {
     return { status: 'taken', staffName: row.staff_name, since: new Date(row.since) };
   }
   if (row?.status === 'decided') return { status: 'decided', staffName: row.staff_name, at: row.since === null ? null : new Date(row.since) };
-  return { status: 'claimed' };
+  return null;
 }
 
 /**
@@ -52,7 +53,8 @@ export function useKycDeskClaim(venueId: string) {
       const { data, error } = await client.rpc('claim_kyc_desk_check', { p_member_id: memberId });
       if (error) return err(CLAIM_FAILURE_BY_CODE[error.code] ?? 'unavailable');
       const rows: DeskClaimRow[] = data;
-      return ok(deskClaimOf(rows[0]));
+      const claimed = deskClaimOf(rows[0]);
+      return claimed === null ? err('unavailable') : ok(claimed);
     },
   });
   const release = useMutation({

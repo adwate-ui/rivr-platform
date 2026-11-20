@@ -43,7 +43,10 @@ export function ReviewForm({ venueId, memberId, fullName, needsDateOfBirth, need
   const reason = form.register('reason');
   return (
     <Stack gap={3}>
-      {needsDateOfBirth ? <Input {...dateOfBirth} type="date" label={t('console.kycReview.dateOfBirthFor', { name: fullName })} /> : null}
+      {needsDateOfBirth ? (
+        <Input {...dateOfBirth} type="date" label={t('console.kycReview.dateOfBirthFor', { name: fullName })}
+          error={form.formState.errors.dateOfBirth ? t('console.kycReview.dateOfBirthInvalid') : undefined} />
+      ) : null}
       {needsPan ? <Input {...pan} label={t('console.kycReview.panFor', { name: fullName })} maxLength={10} autoComplete="off" /> : null}
       {/* The console's filled field (console v3), its name above it; the rule for the reason on the line above, as in the prototype. */}
       <Stack gap={2}>

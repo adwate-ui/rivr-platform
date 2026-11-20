@@ -3,8 +3,8 @@
 -- refusals in 40 seconds). Start now claims the member for 15 minutes: another device is told who is checking them and
 -- cannot start them, and a member whose check is done is told who did it and when (the newest kyc_review, which every
 -- check in person writes). Cancel lets the claim go; a claim older than 15 minutes counts for nothing, so a check left
--- open on a device that went away frees its member the same evening. The check itself (check_kyc_in_person) is
--- unchanged: a claim never refuses a check already under way.
+-- open on a device that went away frees its member the same evening, and a claim is cleared as the next is written. The
+-- check itself (check_kyc_in_person) is unchanged: a claim never refuses a check already under way.
 create table private.kyc_desk_claim (
   member_id uuid primary key,
   venue_id uuid not null,
@@ -30,8 +30,16 @@ declare
   v_holder uuid;
   v_since timestamptz;
 begin
+  -- Only staff who check members, before anything is held (the security review of the PR): anyone else learns nothing and
+  -- locks nothing.
+  select m.venue_id into v_venue_id from public.member m where m.id = p_member_id;
+  if v_venue_id is null
+     or not (private.has_permission(v_venue_id, 'kyc.in_person') or private.has_permission(v_venue_id, 'kyc.review')) then
+    raise exception 'Only staff who check members in person do' using errcode = '42501';
+  end if;
+  perform private.assert_rate(v_venue_id, 'kyc.desk_claim');
   -- One claim of a member at a time, as one check: a second waits here, then finds the first.
-  select m.venue_id into v_venue_id from public.member m where m.id = p_member_id for no key update;
+  perform 1 from public.member m where m.id = p_member_id for no key update;
   begin
     perform private.assert_may_check_in_person(p_member_id);
   exception when sqlstate 'RVKYC' then
@@ -53,6 +61,8 @@ begin
     return query select 'taken'::text, (select s.full_name from public.staff s where s.id = v_holder), v_since;
     return;
   end if;
+  -- Claims that lapsed are cleared as one is written, so none outlives its 15 minutes for long.
+  delete from private.kyc_desk_claim c where c.venue_id = v_venue_id and c.claimed_at <= now() - interval '15 minutes';
   insert into private.kyc_desk_claim (member_id, venue_id, staff_id) values (p_member_id, v_venue_id, v_staff_id)
   on conflict (member_id) do update set venue_id = excluded.venue_id, staff_id = excluded.staff_id, claimed_at = now();
   return query select 'claimed'::text, null::text, now();
@@ -105,6 +115,32 @@ language sql
 stable
 set search_path = ''
 as $$ select * from private.kyc_desk_claims(p_venue_id); $$;
+
+-- Erasure takes the member's claim with their other records (the security review of the PR): who was checking them, and
+-- when, goes as their kyc_review does. As 20261117210000_card_social_cage_and_older_screens_removed.sql made it, with the claim.
+create or replace function private.delete_member_records(p_member public.member)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  delete from public.member_preference x where x.member_id = p_member.id;
+  delete from public.notification_preference x where x.member_id = p_member.id;
+  delete from public.member_limit x where x.member_id = p_member.id;
+  delete from public.member_feature_override x where x.member_id = p_member.id;
+  delete from public.sign_up_attribution x where x.member_id = p_member.id;
+  delete from public.feedback x where x.member_id = p_member.id;
+  delete from public.review_request x where x.member_id = p_member.id;
+  delete from public.cab_request x where x.member_id = p_member.id;
+  delete from public.push_subscription x where x.member_id = p_member.id;
+  delete from public.live_status_device x where x.member_id = p_member.id;
+  delete from public.tournament_interest x where x.member_id = p_member.id;
+  delete from public.kyc_review x where x.member_id = p_member.id;
+  delete from private.kyc_desk_claim x where x.member_id = p_member.id;
+  delete from public.outbox_event x where x.venue_id = p_member.venue_id and x.payload ->> 'member_id' = p_member.id::text;
+end;
+$$;
 
 revoke execute on function private.claim_kyc_desk_check(uuid), public.claim_kyc_desk_check(uuid),
   private.release_kyc_desk_check(uuid), public.release_kyc_desk_check(uuid),
