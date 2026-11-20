@@ -32,6 +32,8 @@ const LINKS = { hrefOf: (memberId: string) => `/members?member=${memberId}` };
 
 /** The History panel's body, as the route hands it in (#1073). */
 const History = ({ memberId }: { venueId: string; memberId: string }) => <Text>{`Visits of ${memberId}`}</Text>;
+/** Use Bonus's form, as the route hands it in from the record (the owner, 20 Nov). */
+const BonusForm = ({ memberId }: { venueId: string; memberId: string }) => <Text>{`Use Bonus of ${memberId}`}</Text>;
 // As the server counts them over everyone at the door today: far more than the page shown.
 // One member is back in: on Left and in the room, Left and Playing, so the lists and the statuses each add up to 319 and
 // everyone, counted once, to 318.
@@ -84,7 +86,7 @@ function renderAs(role: string, pane: 'check-in' | 'players' = 'check-in') {
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
       <MemberLinksProvider links={LINKS}>
-        <StaffVenueProvider>{pane === 'check-in' ? <CheckInScreen history={History} /> : <TodaysPlayersScreen history={History} />}</StaffVenueProvider>
+        <StaffVenueProvider>{pane === 'check-in' ? <CheckInScreen history={History} bonusForm={BonusForm} /> : <TodaysPlayersScreen history={History} />}</StaffVenueProvider>
       </MemberLinksProvider>
     </RivrDataProvider>,
   );
@@ -138,11 +140,24 @@ describe('Check-in (the door as one table from the server, redesign RD-30)', () 
     expect(screen.getByRole('button', { name: 'History of Nakul Dhillon' })).toBeDefined();
   });
 
-  it('shows a host no mobile and no History', async () => {
+  it('shows a host no mobile, no History and no Use Bonus', async () => {
     renderAs('host');
     const row = (await within(await door()).findByText('Nakul Dhillon')).closest('[role="row"]');
     expect(row?.textContent).not.toContain('+91');
     expect(screen.queryByRole('button', { name: 'History of Nakul Dhillon' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Use Bonus for Nakul Dhillon' })).toBeNull();
+  });
+
+  it('gives those who give Bonus by hand Use Bonus on a checked-in member\'s first row alone, opening its form beside the table (the owner, 20 Nov)', async () => {
+    // Nakul's second seat tonight, at Table 2: not his first row, which alone carries his Bonus given (bonus_paise).
+    rows = [NAKUL, { ...NAKUL, session_id: 's9', seated_at: '2026-11-03T16:00:00Z', tables: [{ table: 'Table 2', seconds: 600 }], bonus_paise: null, bonus_used_paise: 0 }];
+    renderAs('floor');
+    const table = await door();
+    expect(await within(table).findAllByRole('button', { name: 'Use Bonus for Nakul Dhillon' })).toHaveLength(1);
+    expect(within(table).getAllByRole('button', { name: 'Check out Nakul Dhillon' })).toHaveLength(2);
+    fireEvent.click(within(table).getByRole('button', { name: 'Use Bonus for Nakul Dhillon' }));
+    const panel = await screen.findByRole('dialog', { name: 'Nakul Dhillon' });
+    expect(within(panel).getByText('Use Bonus of m2')).toBeDefined();
   });
 
   it('asks the server for the members expected, and checks one in from their row', async () => {

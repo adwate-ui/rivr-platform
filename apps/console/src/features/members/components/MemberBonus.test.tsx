@@ -81,10 +81,20 @@ describe('MemberBonus: Bonus by hand on the record (redesign of 15 Nov)', () => 
     expect(add.compareDocumentPosition(history) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
+  it('offers Use Bonus below Add Bonus, and says a use without a seat by why and by whom (the owner, 20 Nov)', async () => {
+    const used = { line_id: 'u1', at: '2026-11-20T15:00:00Z', kind: 'redeemed', amount_paise: 20_000, reason: 'Chips for the bar', table_name: null, staff_name: 'Aditya Malhotra' };
+    renderPart(true, false, { history: [used] });
+    expect(await screen.findByText('20 Nov 2026 · Used · Chips for the bar · by Aditya Malhotra')).toBeDefined();
+    const add = screen.getByRole('region', { name: 'Add Bonus' });
+    const use = screen.getByRole('region', { name: 'Use Bonus' });
+    expect(add.compareDocumentPosition(use) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('shows other staff the balances and the history only', async () => {
     renderPart(false, false, { history: HISTORY });
     expect(await screen.findByText(/Welcome bonus/)).toBeDefined();
     expect(screen.queryByRole('button', { name: 'Add Bonus' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Use Bonus' })).toBeNull();
     expect(screen.queryByRole('button', { name: /Welcome bonus/ })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Missed Bonus use' })).toBeNull();
   });

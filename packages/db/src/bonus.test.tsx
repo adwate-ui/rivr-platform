@@ -2,10 +2,10 @@ import { createClient } from '@supabase/supabase-js';
 import { QueryClient } from '@tanstack/react-query';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   useAddBonusUse, useBonusUseSeats, useGiveBonusChips, useMemberBonus, useMemberBonusHistory, useMemberBonusVisitLeft, useMyBonus, useMyBonusHistory,
-  useReverseBonus,
+  useReverseBonus, useUseBonus,
 } from './bonus.ts';
 import type { RivrClient } from './client.ts';
 import type { Database } from './database.types.ts';
@@ -33,7 +33,7 @@ function clientFor(replies: Record<string, { status?: number; body: unknown }>) 
   // No retries, so a refusal is an error at once.
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const wrapper = ({ children }: { children: ReactNode }) => <RivrDataProvider client={client} queryClient={queryClient}>{children}</RivrDataProvider>;
-  return { wrapper, calls };
+  return { wrapper, calls, queryClient };
 }
 
 const LINES = [
@@ -130,6 +130,27 @@ describe('Bonus', () => {
       const refused = clientFor({ '/rpc/give_bonus_chips': { status: 400, body: { code, message: 'no' } } });
       const hook = renderHook(() => useGiveBonusChips(VENUE, MEMBER), { wrapper: refused.wrapper });
       await act(async () => { outcome = await hook.result.current.mutateAsync({ chips: 75, reason: 'Birthday', requestId: 'r-2' }); });
+      expect(outcome).toEqual({ ok: false, error: failure });
+    }
+  });
+
+  it('uses Bonus without a seat with a reason and the request id, and says why it is refused (the owner, 20 Nov)', async () => {
+    const done = clientFor({ '/rpc/use_bonus': { body: 'u9' } });
+    const readAgain = vi.spyOn(done.queryClient, 'invalidateQueries');
+    const used = renderHook(() => useUseBonus(VENUE, MEMBER), { wrapper: done.wrapper });
+    let outcome: unknown;
+    await act(async () => { outcome = await used.result.current.mutateAsync({ chips: 200, reason: 'Chips for the bar', requestId: 'u9' }); });
+    expect(outcome).toEqual({ ok: true, value: null });
+    expect(done.calls.find((call) => call.url.includes('/rpc/use_bonus'))?.body)
+      .toEqual({ p_member_id: MEMBER, p_chips: 200, p_reason: 'Chips for the bar', p_request_id: 'u9' });
+    // The member's balance and histories (under memberBonus), the door and Players visits.
+    expect(readAgain.mock.calls.map(([filters]) => filters?.queryKey?.slice(2))).toEqual([['bonus', VENUE, MEMBER], ['door-board', VENUE], ['player-visits', VENUE]]);
+    const refusals = [['RVNIN', 'not_checked_in'], ['RVBON', 'bonus_short'], ['RVVCP', 'visit_cap'], ['RVCHP', 'invalid_chips'], ['22023', 'invalid_reason'],
+      ['RVOWN', 'own_record'], ['42501', 'not_allowed'], ['RVMBR', 'paused'], ['RVRAT', 'busy'], ['XX000', 'unavailable']] as const;
+    for (const [code, failure] of refusals) {
+      const refused = clientFor({ '/rpc/use_bonus': { status: 400, body: { code, message: 'no' } } });
+      const hook = renderHook(() => useUseBonus(VENUE, MEMBER), { wrapper: refused.wrapper });
+      await act(async () => { outcome = await hook.result.current.mutateAsync({ chips: 200, reason: 'Chips for the bar', requestId: 'u8' }); });
       expect(outcome).toEqual({ ok: false, error: failure });
     }
   });

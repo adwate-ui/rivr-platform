@@ -36,7 +36,7 @@ export const activity = {
 const ACTION_WORDS: Readonly<Record<string, string>> = {
   insert: 'Added', update: 'Changed', delete: 'Removed',
   'aml.flag': 'Flagged', 'aml.review': 'Reviewed', 'bonus.give': 'Gave Bonus', 'bonus.approve': 'Approved Bonus', 'bonus.refuse': 'Refused Bonus', 'bonus.reverse': 'Reversed Bonus',
-  'bonus.use_add': 'Added a Bonus use',
+  'bonus.use_add': 'Added a Bonus use', 'bonus.use': 'Used Bonus',
   'points.grant': 'Gave points', 'points.lock': 'Locked points', 'points.unlock': 'Released points',
   'device.enrolled': 'Enrolled', 'device.enrolment_started': 'Started enrolling', 'device.paired': 'Paired', 'device.pairing_started': 'Started pairing',
   'export.archive_saved': 'Saved an archive',

@@ -86,6 +86,9 @@ describe('the push consumer', () => {
       outcome: { ok: true, value: null }, asked: ['push.bonus'],
       sent: [{ title: 'Bonus used', body: '1,000 Bonus with your buy-in at Table 3.', url: '/bonus', tag: `bonus-used-${OTHER}` }],
     });
+    // Used without a seat (the owner, 20 Nov): no table to name.
+    expect((await sendOne('bonus.redeemed', { ...redeemed, amount_paise: 20_000, table_id: null, table_name: null })).sent)
+      .toEqual([{ title: 'Bonus used', body: '200 Bonus.', url: '/bonus', tag: `bonus-used-${OTHER}` }]);
     expect((await sendOne('bonus.redeemed', { ...redeemed, amount_paise: 1_000 })).outcome)
       .toEqual({ ok: false, error: { code: 'rejected', reason: 'bonus.redeemed payload is not readable' } });
     const consumer = createPushConsumer({ push: createFakePush(), ...members([phone('a')]), now });

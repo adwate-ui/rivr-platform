@@ -17,6 +17,8 @@ export const memberBonus = {
   redeemedBy: '{date} · Buy-in · {table} · seated by {name}',
   /** A use added after the fact (#1077), with its reason and the super admin who added it. */
   redeemedAdded: '{date} · Buy-in · {table} · {reason} · added by {name}',
+  /** Bonus used without a seat (the owner, 20 Nov): `20 Nov 2026 · Used · Chips for the bar · by Aditya Malhotra` `−200`. */
+  used: '{date} · Used · {reason} · by {name}',
   expired: '{date} · Expired · {reason}',
   /** A Bonus a super admin reversed (#1077): `19 Nov 2026 · Reversed · Wrong member · by Vikram Rao` `−2,000`. */
   reversed: '{date} · Reversed · {reason}',
@@ -51,6 +53,35 @@ export const memberBonus = {
       /** Above the most an admin or a floor manager adds by hand at once (bonus.by_hand_cap). */
       over_cap: 'More than staff add at once. Type less, or ask a super admin.',
       unavailable: 'Not added. Try again.',
+    },
+  },
+  /**
+   * Bonus used without a seat (the owner, 20 Nov), by those who add it by hand: while the member is checked in, whole
+   * fifties, never more than they hold or their visit's limit, with a reason. `{chips}` is the number, as `1,500`.
+   */
+  use: {
+    title: 'Use Bonus',
+    chips: 'Bonus',
+    chipsHint: 'Whole fifties, while checked in.',
+    reason: 'Reason',
+    /** The member sees no reason for a use, as for a use added. */
+    reasonHint: 'Kept on the record and in Activity.',
+    use: 'Use Bonus',
+    confirm: 'Yes, use {chips} Bonus',
+    used: '{chips} Bonus used.',
+    failures: {
+      not_allowed: 'Not in your role. Ask an admin.',
+      own_record: 'Not on your own record. Ask someone else who can.',
+      invalid_chips: 'Give whole fifties from 50 to 1,00,000.',
+      invalid_reason: 'Give a reason of 3 to 200 characters.',
+      not_checked_in: 'Not checked in. Check them in first.',
+      /** More than the Bonus in force, or some is owed. */
+      bonus_short: 'More than their Bonus. Type less.',
+      /** More than the visit's limit leaves (bonus.visit_cap). */
+      visit_cap: 'More than this visit allows. Type less.',
+      paused: 'Frozen, or promotions stopped. Try once released.',
+      busy: 'Too many at once. Try again shortly.',
+      unavailable: 'Not used. Try again.',
     },
   },
   /**

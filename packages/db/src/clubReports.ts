@@ -120,7 +120,10 @@ export interface PlayerVisit extends Omit<TodaysPlayer, 'status' | 'waitingSecon
   readonly kycStatus: MemberKycStatus;
   /** The Bonus given to them that club day, by hand or by promotions once approved (#1062), on the first row of the day's latest visit alone. */
   readonly bonus: Paise | null;
-  /** The Bonus used at the row's seat (the owner, 19 Nov); null with no seat. */
+  /**
+   * The Bonus used at the row's seat (the owner, 19 Nov), and on the first row of a visit also what it used without a seat
+   * that day (the owner, 20 Nov); null on a row without a seat that has none.
+   */
   readonly bonusUsed: Paise | null;
   /** The row's seat session and its visit, which tell the rows apart; a row without a seat has no session, nor a visit if never in. */
   readonly sessionId: string | null;

@@ -45,10 +45,14 @@ export const push = {
     title: 'Bonus added',
     body: '{chips} Bonus · {reason}',
   },
-  /** Bonus chips used with the buy-in as the floor seated the member: `1,000 bonus chips with your buy-in at Table 3.` */
+  /**
+   * Bonus chips used with the buy-in as the floor seated the member: `1,000 bonus chips with your buy-in at Table 3.`; used
+   * without a seat (the owner, 20 Nov): `200 Bonus.`
+   */
   bonusRedeemed: {
     title: 'Bonus used',
     body: '{chips} Bonus with your buy-in at {table}.',
+    bodyNoTable: '{chips} Bonus.',
   },
   /**
    * The lock-screen live status in the native app (decision 0323), as the prototype's Lock screen states have it: a line

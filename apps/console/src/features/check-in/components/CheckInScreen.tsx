@@ -1,25 +1,29 @@
 import { useCheckInActions, useCheckOutActions, useStaffVenue, type CheckInFailure, type CheckOutRefusal, type DoorPlayer } from '@rivr/db';
 import { t } from '@rivr/i18n';
-import { Button, ErrorMessage, Screen, Stack } from '@rivr/ui';
+import { Button, ErrorMessage, Inline, Screen, Sheet, Stack } from '@rivr/ui';
 import { useState, type ComponentType } from 'react';
 import { CHECK_IN_FAILURE_COPY, checkOutRefusalText } from './checkInCopy.ts';
 import { DoorField } from './DoorField.tsx';
 import { DoorTable, type DoorChip } from './DoorTable.tsx';
+
+/** The form that uses a member's Bonus without a seat (the owner, 20 Nov), as the route hands it in from the record. */
+type BonusForm = ComponentType<{ venueId: string; memberId: string }>;
 
 /**
  * Check-in (#72), for the front desk (waitlist.manage), as the redesign's prototype has the Door: one field for a mobile
  * number, a member number or a name; then everyone at the door today as one table from the server (RD-30), by chip those in
  * the room, with Check out (#82), those expected (on a waitlist, not yet in), with Check in, and those who have left.
  */
-export function CheckInScreen({ history }: { history?: ComponentType<{ venueId: string; memberId: string }> }) {
+export function CheckInScreen({ history, bonusForm }: { history?: ComponentType<{ venueId: string; memberId: string }>; bonusForm?: BonusForm }) {
   const staff = useStaffVenue();
   // The frame shows a screen only once the staff member's venue is known.
   if (staff.status !== 'ready') return null;
   if (!staff.venue.permissions.includes('waitlist.manage')) {
     return <Screen title={t('console.checkIn.title')} status="error" errorText={t('console.checkIn.notAllowed')} />;
   }
-  // Floor and up see members' numbers and History (#1073).
-  return <CheckIn venueId={staff.venue.venueId} history={staff.venue.permissions.includes('members.phone') ? history : undefined} />;
+  // Floor and up see members' numbers and History (#1073); those who give Bonus by hand use it from the row.
+  return <CheckIn venueId={staff.venue.venueId} history={staff.venue.permissions.includes('members.phone') ? history : undefined}
+    bonusForm={staff.venue.permissions.includes('bonus.give') ? bonusForm : undefined} />;
 }
 
 /** The door's lists as chips: in the room first, as the prototype opens on it. */
@@ -48,13 +52,32 @@ function useRowActions(venueId: string) {
   };
 }
 
-function CheckIn({ venueId, history: History }: { venueId: string; history?: ComponentType<{ venueId: string; memberId: string }> | undefined }) {
+/** A checked-in member's first row: it alone carries their day's Bonus given (`bonus`), and the Bonus they use without a seat. */
+const isFirstRowInClub = (player: DoorPlayer) => player.list === 'in_club' && player.checkedOutAt === null && player.bonus !== null;
+
+/** Use Bonus's form in the panel at the side, for the member whose row opened it (the owner, 20 Nov). */
+function BonusSheet({ venueId, using, form: Form, onClose }: { venueId: string; using: DoorPlayer | null; form: BonusForm | undefined; onClose: () => void }) {
+  if (using === null || Form === undefined) return null;
+  return <Sheet place="console" isOpen onClose={onClose} title={using.fullName}><Form venueId={venueId} memberId={using.memberId} /></Sheet>;
+}
+
+function CheckIn({ venueId, history: History, bonusForm }: { venueId: string; history?: ComponentType<{ venueId: string; memberId: string }> | undefined; bonusForm?: BonusForm | undefined }) {
   const actions = useRowActions(venueId);
+  const [using, setUsing] = useState<DoorPlayer | null>(null);
   // A row's one button (redesign correction 3): Check out for a member in the room, Check in for one expected; none once they have left.
+  // A checked-in member's first row has Use Bonus beside it, for those who give Bonus by hand.
   const action = (player: DoorPlayer) => {
     if (player.list === 'in_club') {
-      return <Button variant="subtle" size="small" isDisabled={actions.isBusy} aria-label={t('console.checkIn.checkOutMember', { name: player.fullName })}
+      const checkOut = <Button variant="subtle" size="small" isDisabled={actions.isBusy} aria-label={t('console.checkIn.checkOutMember', { name: player.fullName })}
         onClick={() => void actions.release(player.memberId)}>{t('console.checkIn.checkOut')}</Button>;
+      if (bonusForm === undefined || !isFirstRowInClub(player)) return checkOut;
+      return (
+        <Inline gap={2} justify="end" wrap>
+          <Button variant="subtle" size="small" aria-label={t('console.checkIn.useBonusMember', { name: player.fullName })}
+            onClick={() => setUsing(player)}>{t('console.checkIn.useBonus')}</Button>
+          {checkOut}
+        </Inline>
+      );
     }
     if (player.list !== 'expected') return null;
     return <Button variant="subtle" size="small" isDisabled={actions.isBusy} aria-label={t('console.checkIn.checkInMember', { name: player.fullName })}
@@ -68,6 +91,7 @@ function CheckIn({ venueId, history: History }: { venueId: string; history?: Com
         <DoorTable venueId={venueId} label={t('console.checkIn.doorLabel')} chipsLabel={t('console.checkIn.lists')} chips={chips()}
           emptyText={t('console.checkIn.noneOnList')} action={action}
           history={History === undefined ? undefined : (player) => <History venueId={venueId} memberId={player.memberId} />} />
+        <BonusSheet venueId={venueId} using={using} form={bonusForm} onClose={() => setUsing(null)} />
       </Stack>
     </Screen>
   );

@@ -29,6 +29,9 @@ export const checkIn = {
   /** Check-out at the door (#82): the visit closes, with its hours. */
   checkOut: 'Check out',
   checkOutMember: 'Check out {name}',
+  /** Bonus used without a seat (the owner, 20 Nov), on a checked-in member's first row: opens the record's form in a sheet. */
+  useBonus: 'Use Bonus',
+  useBonusMember: 'Use Bonus for {name}',
   checkedOut: 'Checked out.',
   notInRoom: 'Not checked in.',
   callTimeOwed: '{time} call time owed. An admin can release them on the Live floor.',
