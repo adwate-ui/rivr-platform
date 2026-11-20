@@ -39,7 +39,10 @@ export interface DoorPlayer extends Omit<TodaysPlayer, 'status' | 'waitingSecond
    * (the owner, 20 Nov); null on a row without a seat that has none.
    */
   readonly bonusUsed: Paise | null;
-  /** The Bonus in the member's wallet now, whichever day it was given (as Members has it; the owner, 20 Nov), on the same first row as `bonus`; null on the rest. */
+  /**
+   * The Bonus in the member's wallet now, whichever day it was given, less what is owed, so below zero while some is (as
+   * Members has it; the owner, 20 Nov), on the same first row as `bonus`; null on the rest.
+   */
   readonly wallet: Paise | null;
   /** The row's seat session and its visit, which tell the rows apart; a row without a seat has no session, nor a visit when it is a wait outside. */
   readonly sessionId: string | null;

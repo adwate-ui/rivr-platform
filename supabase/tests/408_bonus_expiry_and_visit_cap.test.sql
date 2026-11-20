@@ -96,7 +96,7 @@ select results_eq($$ select expires_at, expired_at, remaining_paise from public.
 select is((select expired_at is not null from public.bonus_grant where id = (select before_off from g)), true,
   'an end before the switch-off still ends');
 
--- The visit's cap: half the bonus held at its first seat, in whole 50s.
+-- The visit's cap: half the bonus held at its first Bonus use, here his first seat's buy-in, in whole 50s (decision 0706).
 insert into public.setting (venue_id, key, subject, value, effective_from, reason)
 values ('00000000-0000-4000-8000-000000000001', 'bonus.visit_cap', '', '{"basis_points": 5000}', '-infinity', 'Test 408');
 create temp table held as select private.bonus_in_force('00000000-0000-4000-8000-000000000211', now()) as paise;
@@ -122,7 +122,7 @@ select is((select left_paise from public.member_bonus_visit_left('00000000-0000-
   0::bigint, 'none left this visit');
 reset role;
 select is((select v.bonus_at_first_seat_paise from public.visit v where v.member_id = '00000000-0000-4000-8000-000000000211' and v.closed_at is null),
-  (select paise from held), 'the visit noted what he held at its first seat');
+  (select paise from held), 'the visit noted what he held at its first Bonus use, the buy-in at his first seat');
 
 select set_config('request.jwt.claims', jsonb_build_object('sub', '00000000-0000-4000-8000-000000000103', 'role', 'authenticated',
   'amr', jsonb_build_array(jsonb_build_object('method', 'otp', 'timestamp', floor(extract(epoch from now()))::bigint)))::text, true);
@@ -135,7 +135,9 @@ select set_config('request.jwt.claims', '', true);
 select throws_ok($$ select private.draw_bonus('00000000-0000-4000-8000-000000000211', 5000) $$, 'RVVCP', null,
   'nor at the cage');
 
--- A visit's only seat undone takes its note with it (the money audit of #908): Kabir (202), seated and undone.
+-- A seat without Bonus notes nothing: the base is the Bonus held at the visit's first Bonus use (decision 0706). A note
+-- with no use left to keep it, as a seat made one before that, goes as the visit's only seat is undone (the money audit of
+-- #908): Kabir (202), seated and undone.
 create temp table undone as
   with v as (insert into public.visit (venue_id, member_id, opened_at, close_reason)
              values ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000202', now() - interval '5 minutes', null)
@@ -144,9 +146,10 @@ create temp table undone as
 insert into public.seat_session (venue_id, member_id, visit_id, table_id, seat, started_at, seated_here_at, ended_at, end_reason)
 select u.venue_id, u.member_id, u.visit_id, pg_temp.table_id('Table 2'), 6, now() - interval '1 minute', now() - interval '1 minute', now(), 'left'
 from undone u;
-select isnt((select bonus_at_first_seat_paise from public.visit where id = (select visit_id from undone)), null, 'the seat noted what Kabir held');
+select is((select bonus_at_first_seat_paise from public.visit where id = (select visit_id from undone)), null, 'Kabir''s seat without Bonus notes nothing');
+update public.visit set bonus_at_first_seat_paise = 10000 where id = (select visit_id from undone);
 delete from public.seat_session where visit_id = (select visit_id from undone);
-select is((select bonus_at_first_seat_paise from public.visit where id = (select visit_id from undone)), null, 'undone, the note goes with it');
+select is((select bonus_at_first_seat_paise from public.visit where id = (select visit_id from undone)), null, 'a note with no use left goes with the seat undone');
 
 delete from public.setting where key = 'bonus.visit_cap';
 select is(private.bonus_visit_left('00000000-0000-4000-8000-000000000211'), null, 'with no cap set, nothing holds a visit back');

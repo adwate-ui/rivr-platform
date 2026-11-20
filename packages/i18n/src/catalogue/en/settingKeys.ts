@@ -98,7 +98,7 @@ export const settingKeys: Readonly<Record<string, SettingCopy>> = {
   'bonus.visit_cap': {
     name: 'Bonus per visit', fields: { basis_points: 'Share' },
     help: 'Share of their Bonus used in one visit',
-    hints: { basis_points: "Of what they held at the visit's first seat, in whole 50s. No limit unless set." },
+    hints: { basis_points: "Of what they held at the visit's first Bonus use, in whole 50s. No limit unless set." },
   },
   'rake.config': {
     name: 'Rake',

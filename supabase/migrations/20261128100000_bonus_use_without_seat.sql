@@ -4,14 +4,17 @@
 -- on Members or the member's row at the Door (private.use_bonus):
 -- - never on their own record; only while the member is checked in (an open visit); whole 50s; a reason of 3 to 200
 --   characters; never more than the Bonus in force; and within the visit's Bonus cap, which counts it with the visit's seat
---   buy-ins (private.bonus_visit_left, private.draw_bonus). The cap is a share of the Bonus held at the visit's first use,
---   a seat or none, so a use before the first seat no longer shrinks it.
+--   buy-ins (private.bonus_visit_left, private.draw_bonus).
 -- - posted as a buy-in at the seat is, member.bonus to venue.chips_outstanding, keyed on its request id; recorded as a
 --   bonus_redemption of the visit with no seat or table; kept in the audit log with its reason (the member's History of
 --   changes by staff); and told to the member (bonus.redeemed, with no table).
 -- - shown as Used on the first row of its visit at the Door and in Players visits (private.players_by_seat), in the
 --   report's Bonus used (report_figures counts every bonus_redemption already), in the record's and the member's Bonus
 --   history with no table (the member sees no reason, as for a use added).
+-- The visit's cap is a share of the Bonus held at the visit's first Bonus use, a seat's buy-in or a use without a seat (the
+-- owner, 20 Nov; decision 0706, in place of decision 0579's first seat): private.draw_bonus notes it as it first draws for
+-- the open visit; a seat without Bonus, and a use a super admin adds after the fact (no cap), note nothing. Before any use
+-- the cap is the share of what is held now.
 
 -- A use is a seat's (its session and table) or a visit's without a seat (the visit, and a reason).
 alter table public.visit add constraint visit_id_venue_id_key unique (id, venue_id);
@@ -36,11 +39,27 @@ comment on column public.bonus_redemption.visit_id is
 grant select (visit_id) on public.bonus_redemption to authenticated;
 insert into private.member_export_column (table_name, column_name, kind) values ('bonus_redemption', 'visit_id', 'owed');
 
+-- The cap's base (decision 0706): the column keeps its first name.
 comment on column public.visit.bonus_at_first_seat_paise is
-  'The bonus the member held as the visit''s first seat began, or as Bonus was first used in it without a seat, in paise; what bonus.visit_cap takes its share of (decision 0579).';
+  'The Bonus the member held as the visit''s first Bonus use began, a seat''s buy-in or a use without a seat, in paise; what bonus.visit_cap takes its share of (decisions 0579, 0706). Null until then.';
 
--- As 20261112100000_bonus_expiry_and_visit_cap.sql made it, keeping the note while the visit has a use without a seat,
--- which was counted against the share of what was held then.
+update public.setting_key
+set description = 'The share of the Bonus a member held at a visit''s first Bonus use that they may use in that visit, in whole 50s. None set is all of it.'
+where key = 'bonus.visit_cap';
+
+-- A seat no longer notes the Bonus held: only a Bonus use does, in private.draw_bonus below.
+drop trigger seat_session_notes_bonus on public.seat_session;
+drop function private.note_bonus_at_first_seat();
+
+-- A visit open now whose note came from a seat with no Bonus, before decision 0706, takes its base from its first use.
+update public.visit v set bonus_at_first_seat_paise = null
+where v.closed_at is null and v.bonus_at_first_seat_paise is not null
+  and not exists (select 1 from public.bonus_redemption r join public.seat_session s on s.id = r.session_id where s.visit_id = v.id)
+  and not exists (select 1 from public.bonus_redemption r where r.visit_id = v.id);
+
+-- As 20261112100000_bonus_expiry_and_visit_cap.sql made it, forgetting a visit's note once none of its Bonus uses is left,
+-- at a seat or without one, so the next use notes it afresh. A seat whose buy-in redeemed Bonus is never undone
+-- (private.undo_seat: its bonus_redemption holds it), so the use that noted it stays.
 CREATE OR REPLACE FUNCTION private.forget_bonus_at_first_seat()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -49,14 +68,59 @@ CREATE OR REPLACE FUNCTION private.forget_bonus_at_first_seat()
 AS $function$
 begin
   update public.visit v set bonus_at_first_seat_paise = null
-  where v.id = old.visit_id and not exists (select 1 from public.seat_session s where s.visit_id = old.visit_id)
+  where v.id = old.visit_id
+    and not exists (select 1 from public.bonus_redemption r join public.seat_session s on s.id = r.session_id where s.visit_id = old.visit_id)
     and not exists (select 1 from public.bonus_redemption r where r.visit_id = old.visit_id);
   return null;
 end;
 $function$;
 
+-- As 20261125100000_bonus_reverse_and_missed_use.sql made it, with the visit's first draw noting the Bonus held before it,
+-- the cap's base (decision 0706): a seat's buy-in (private.redeem_bonus_at_seat) or a use without a seat (private.use_bonus).
+-- A refused draw notes nothing: its refusal undoes the note with it.
+CREATE OR REPLACE FUNCTION private.draw_bonus(p_member_id uuid, p_amount_paise bigint)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  v_ids uuid[];
+  v_remaining bigint[];
+  v_expires timestamptz[];
+  v_result text;
+  v_taken bigint[];
+  v_left bigint;
+begin
+  perform pg_advisory_xact_lock(hashtextextended('bonus:' || p_member_id::text, 0));
+  -- No Bonus is used at a buy-in while any is owed (#1077): new Bonus pays it first.
+  if private.bonus_owed_by(p_member_id) > 0 then
+    raise exception 'Bonus is owed: none to use until new Bonus pays it' using errcode = 'RVBON';
+  end if;
+  select array_agg(g.id order by g.created_at, g.id), array_agg(g.remaining_paise order by g.created_at, g.id),
+         array_agg(g.expires_at order by g.created_at, g.id)
+  into v_ids, v_remaining, v_expires
+  from (select g.id, g.created_at, g.remaining_paise, private.bonus_end_in_force(g.venue_id, g.expires_at) as expires_at
+        from public.bonus_grant g where g.member_id = p_member_id and g.expired_at is null for update) g;
+  update public.visit v set bonus_at_first_seat_paise = private.bonus_in_force(p_member_id, now())
+  where v.member_id = p_member_id and v.closed_at is null and v.bonus_at_first_seat_paise is null;
+  v_left := private.bonus_visit_left(p_member_id);
+  if v_left is not null and p_amount_paise > v_left then
+    raise exception 'More bonus than this visit allows: % chips left', v_left / 100 using errcode = 'RVVCP';
+  end if;
+  select d.result, d.taken into v_result, v_taken from private.bonus_draws(p_amount_paise, v_remaining, v_expires, now()) d;
+  if v_result <> 'ok' then
+    raise exception 'More than the bonus in force' using errcode = 'RVBON';
+  end if;
+  for i in 1 .. coalesce(array_length(v_ids, 1), 0) loop
+    continue when v_taken[i] = 0;
+    update public.bonus_grant set remaining_paise = remaining_paise - v_taken[i] where id = v_ids[i];
+  end loop;
+end;
+$function$;
+
 -- As 20261117210000_card_social_cage_and_older_screens_removed.sql made it, counting the visit's uses without a seat with
--- its seats' buy-ins.
+-- its seats' buy-ins, against the share of the Bonus held at its first use (decision 0706), or held now before any.
 CREATE OR REPLACE FUNCTION private.bonus_visit_left(p_member_id uuid)
  RETURNS bigint
  LANGUAGE sql
@@ -80,10 +144,11 @@ AS $function$
 $function$;
 
 -- Uses a member's Bonus without a seat. The request id is the use's id: the same request again changes nothing and gives
--- the same id, even once the visit is over. Refusals: 42501 not one who gives Bonus by hand; RVOWN their own record; RVCHP
--- not whole 50s from 50 to 1,00,000; 22023 no reason of 3 to 200 characters or no request id, a request id used for
--- another use, or the member erased; RVKIL/RVFRZ/RVMBR promotions stopped or frozen; RVRAT too many a minute; RVNIN not
--- checked in; RVVCP more than the visit's cap leaves; RVBON more than the Bonus in force, or some owed.
+-- the same id, even once the visit is over, the venue frozen or too many asked this minute. Refusals: 42501 not one who
+-- gives Bonus by hand at the member's venue, or the member erased; RVOWN their own record; RVCHP not whole 50s from 50 to
+-- 1,00,000; 22023 no reason of 3 to 200 characters or no request id, a request id used for another use, or the member
+-- erased while this waited; RVKIL/RVFRZ/RVMBR promotions stopped or frozen; RVRAT too many a minute; RVNIN not checked in;
+-- RVVCP more than the visit's cap leaves; RVBON more than the Bonus in force, or some owed.
 create function private.use_bonus(p_member_id uuid, p_chips integer, p_reason text, p_request_id uuid)
 returns uuid
 language plpgsql
@@ -93,7 +158,6 @@ as $$
 declare
   v_venue_id uuid := (select m.venue_id from public.member m where m.id = p_member_id and m.erased_at is null);
   v_amount bigint := p_chips::bigint * 100;
-  v_replay public.bonus_redemption;
   v_visit_id uuid;
   v_txn uuid;
 begin
@@ -109,13 +173,14 @@ begin
   if p_request_id is null or length(btrim(coalesce(p_reason, ''))) not between 3 and 200 then
     raise exception 'A reason of 3 to 200 characters, and a request id' using errcode = '22023';
   end if;
-  perform private.assert_writable(v_venue_id, 'promotions', p_member_id);
-  perform private.assert_rate(v_venue_id, 'bonus.use');
+  -- A use that went through is answered before anything that refuses a new one.
   if private.bonus_use_replayed(p_request_id, p_member_id, v_amount) then
     return p_request_id;
   end if;
-  -- The open visit's row first, then the member's Bonus lock (in private.draw_bonus), the order a seating takes them in
-  -- (its first seat notes the Bonus held on the visit), so the two never wait on each other; a check-out waits for this.
+  perform private.assert_writable(v_venue_id, 'promotions', p_member_id);
+  perform private.assert_rate(v_venue_id, 'bonus.use');
+  -- The open visit's row first, then the member's Bonus lock, the order a seating takes them in (its seat holds the
+  -- visit's row before its buy-in draws), so the two never wait on each other; a check-out waits for this.
   select v.id into v_visit_id from public.visit v where v.member_id = p_member_id and v.closed_at is null for update;
   if v_visit_id is null then
     raise exception 'Not checked in: Bonus is used during a visit' using errcode = 'RVNIN';
@@ -129,9 +194,7 @@ begin
   if not found then
     raise exception 'The member was erased' using errcode = '22023';
   end if;
-  -- The visit's cap is a share of what was held at its first use, a seat or none (private.note_bonus_at_first_seat).
-  update public.visit v set bonus_at_first_seat_paise = private.bonus_in_force(p_member_id, now())
-  where v.id = v_visit_id and v.bonus_at_first_seat_paise is null;
+  -- Notes the cap's base on the visit if this is its first Bonus use (decision 0706), then draws.
   perform private.draw_bonus(p_member_id, v_amount);
   v_txn := private.post_ledger_transaction(v_venue_id, 'bonus_buy_in', 'bonus_use:' || p_request_id,
     jsonb_build_array(
@@ -310,8 +373,12 @@ AS $function$
   limit greatest(least(coalesce(p_limit, 20), 500), 1);
 $function$;
 
--- As 20261127060100_bonus_per_seat.sql made it, with a visit's Bonus used without a seat that day on the visit's first
--- row, by when they sat, a row without a seat last: beside the first seat's own Bonus used, or alone on a row without one.
+-- As 20261127060100_bonus_per_seat.sql made it, with a visit's Bonus used without a seat on the visit's first row, by when
+-- they sat, a row without a seat last: beside the first seat's own Bonus used, or alone on a row without one. Each use is
+-- on one club day alone, so Players visits neither loses nor counts one twice: the day it was used where its visit has a
+-- row that day (it opened then, or a seat of it began then), else the day the visit opened, where it always has one. The
+-- door also shows every use of a visit still open, which has a row today whichever day it opened, as an open seat shows its
+-- buy-in.
 CREATE OR REPLACE FUNCTION private.players_by_seat(p_venue_id uuid, p_day date DEFAULT NULL::date)
  RETURNS TABLE(member_id uuid, full_name text, member_number bigint, status text, session_id uuid, table_name text, tables jsonb, seated_at timestamp with time zone, left_at timestamp with time zone, checked_in_at timestamp with time zone, checked_out_at timestamp with time zone, waiting_seconds integer, played_seconds bigint, away_seconds bigint, is_first_row boolean, bonus_used_paise bigint, visit_id uuid, linked_member_id uuid)
  LANGUAGE sql
@@ -319,7 +386,7 @@ CREATE OR REPLACE FUNCTION private.players_by_seat(p_venue_id uuid, p_day date D
  SET search_path TO ''
 AS $function$
   with day as (
-    select s.starts_at, s.starts_at + interval '1 day' as ends_at, p_day is null as is_today
+    select s.starts_at, s.starts_at + interval '1 day' as ends_at, p_day is null as is_today, private.club_day_of(s.starts_at) as club_day
     from (select coalesce((p_day + time '06:00') at time zone 'Asia/Kolkata', private.tonight_began(now())) as starts_at) s
   ),
   players as (select * from private.todays_players(p_venue_id, p_day)),
@@ -355,13 +422,24 @@ AS $function$
       limit 1) at_seat
     where r.venue_id = p_venue_id and r.session_id in (select st.session_id from seats st)
   ),
-  -- Bonus used without a seat (private.use_bonus, the owner, 20 Nov): each visit's, on the day it was used, so a visit on
-  -- two days' rows counts each use once.
+  -- Bonus used without a seat (private.use_bonus, the owner, 20 Nov) that falls on this day, as above. Only the day's uses
+  -- and the uses of the day's visits can.
   visit_uses as (
-    select r.visit_id, sum(r.amount_paise)::bigint as paise
-    from public.bonus_redemption r cross join day
-    where r.venue_id = p_venue_id and r.session_id is null and r.created_at >= day.starts_at and r.created_at < day.ends_at
-    group by r.visit_id
+    select c.visit_id, sum(c.amount_paise)::bigint as paise
+    from (select r.id, r.visit_id, r.amount_paise, r.created_at from public.bonus_redemption r cross join day
+          where r.venue_id = p_venue_id and r.session_id is null and r.created_at >= day.starts_at and r.created_at < day.ends_at
+          union
+          select r.id, r.visit_id, r.amount_paise, r.created_at from visits vs join public.bonus_redemption r on r.visit_id = vs.id) c
+    join public.visit v on v.id = c.visit_id
+    cross join day
+    cross join lateral (select private.club_day_of(c.created_at) as used_on, private.club_day_of(v.opened_at) as opened_on) d
+    cross join lateral (
+      select d.used_on = d.opened_on
+             or exists (select 1 from public.seat_session s where s.visit_id = v.id and private.club_day_of(s.started_at) = d.used_on)
+             as has_row_that_day) h
+    where case when h.has_row_that_day then d.used_on else d.opened_on end = day.club_day
+       or (day.is_today and v.closed_at is null)
+    group by c.visit_id
   ),
   seat_rows as (
   select p.member_id, p.full_name, p.member_number, p.status, st.session_id, g.name as table_name,

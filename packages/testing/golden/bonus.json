@@ -159,7 +159,7 @@
       "expected": { "ends": "never" }
     },
     {
-      "description": "Half of a ₹10,000 balance at the first seat: ₹5,000 this visit.",
+      "description": "Half of a ₹10,000 balance at the visit's first Bonus use: ₹5,000 this visit.",
       "operation": "visitCap",
       "inputs": { "held": "₹10,000", "basisPoints": "5000" },
       "expected": { "cap": "₹5,000" }
@@ -183,7 +183,7 @@
       "expected": { "cap": "₹1,250" }
     },
     {
-      "description": "Nothing held at the first seat: nothing this visit.",
+      "description": "Nothing held at the visit's first Bonus use: nothing this visit.",
       "operation": "visitCap",
       "inputs": { "held": "₹0", "basisPoints": "5000" },
       "expected": { "cap": "₹0" }

@@ -1,5 +1,6 @@
 -- Wallet on the door (the owner, 20 Nov): Today's players carries the Bonus in each member's wallet now, as the Members
--- list's Bonus has it (private.bonus_in_force), on the member's first row alone, as the day's Bonus given is, so no
+-- list's Bonus has it (private.bonus_balance: the Bonus in force less what is owed, below nothing while some is owed), on
+-- the member's first row alone, as the day's Bonus given is, so no
 -- export counts it twice; their other rows carry none. A member given Bonus on an earlier day showed none at the door.
 -- The Bonus given that day and the Bonus used at each seat are as they were. It sorts on the server as `wallet`.
 -- Players visits is not changed: a past day has no wallet. Otherwise each is as the database had it.
@@ -108,9 +109,9 @@ AS $function$
                       where g.venue_id = $1 and g.member_id = tp.member_id and private.club_day_of(g.reversed_at) = private.club_day_now())::bigint
                 end as bonus_paise,
                 tp.bonus_used_paise,
-                -- The Bonus in the member's wallet now, whichever day it was given (private.bonus_in_force, as the
-                -- Members list's Bonus has it), on the same first row as the day's Bonus given (the owner, 20 Nov).
-                case when tp.is_first_row then private.bonus_in_force(tp.member_id, now()) end as wallet_paise,
+                -- The Bonus in the member's wallet now, whichever day it was given, less what is owed (private.bonus_balance,
+                -- as the Members list's Bonus has it), on the same first row as the day's Bonus given (the owner, 20 Nov).
+                case when tp.is_first_row then private.bonus_balance(tp.member_id, now()) end as wallet_paise,
                 -- The member's mobile for floor and up (#1073, members.phone); none for anyone else.
                 case when (select private.has_permission($1, 'members.phone')) then m.phone end as phone
          from private.players_by_seat($1) tp

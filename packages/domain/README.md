@@ -89,7 +89,7 @@ Import a rule area on its own (`@rivr/domain/money`, `@rivr/domain/ledger`) or e
 | `bonusTake(amount, grants, at, first)`, `BonusTaken` | Bonus taken back after the fact (#1077): a reversal's whole amount from the grant reversed first (ended or not), then the other grants in force in `bonusSpend`'s order; what they cannot give is owed, the balance below nothing. Never refused. The database's `private.bonus_takes` is proved equal on `bonus.json`. |
 | `bonusPayOff(given, owed)`, `BonusPaidOff` | Bonus given while some is owed pays it first; the member keeps the rest. `private.bonus_pay_off` is its twin on `bonus.json`. |
 | `bonusEnd(givenAt, days, since)` | When a grant ends once a venue sets `bonus.expiry_days` (decision 0579): N days after it was given, or after the switch-on for chips held before; never at 0 days. `private.bonus_end` is its twin on `bonus.json`. |
-| `visitBonusCap(heldAtFirstSeat, basisPoints)`, `visitBonusLeft(cap, redeemed)` | The most bonus one visit redeems under `bonus.visit_cap` (decision 0579): that share of the bonus held at its first seat, rounded down to whole ₹50 chips; and what is left of it. `private.visit_bonus_cap` and `private.visit_bonus_left` are their twins on `bonus.json`. |
+| `visitBonusCap(heldAtFirstUse, basisPoints)`, `visitBonusLeft(cap, redeemed)` | The most bonus one visit redeems under `bonus.visit_cap` (decision 0579): that share of the bonus held at its first Bonus use, a seat's buy-in or a use without a seat (decision 0706), rounded down to whole ₹50 chips; and what is left of it. `private.visit_bonus_cap` and `private.visit_bonus_left` are their twins on `bonus.json`. |
 
 ### `@rivr/domain/notices`
 
