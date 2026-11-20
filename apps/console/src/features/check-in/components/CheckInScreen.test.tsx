@@ -60,6 +60,12 @@ function pageOf(view: Asked): readonly object[] {
   return (rows ?? [KABIR, NAKUL]).filter((row) => (view.scope.list === undefined || row.list === view.scope.list) && (statuses === undefined || statuses.includes(row.status)));
 }
 
+/** The call a request makes, `list_choices` for `/rest/v1/rpc/list_choices`; none for a table's. */
+const rpcOf = (url: string) => url.split('/rpc/')[1]?.split('?')[0] ?? '';
+
+/** What the server answers each call that only reads: the counts, and a member's Bonus now, 5,500 (the UI review, 20 Nov). */
+const readsOf = (): Readonly<Record<string, unknown>> => ({ list_choices: counts, member_bonus: [{ bonus_paise: 550_000 }] });
+
 /** A staff member in `role` at the door, on Check-in or Today's players; gives every view asked of the server and every call that changes something. */
 function renderAs(role: string, pane: 'check-in' | 'players' = 'check-in') {
   const asked: Asked[] = [];
@@ -78,7 +84,8 @@ function renderAs(role: string, pane: 'check-in' | 'players' = 'check-in') {
       asked.push(view);
       return Response.json(pageOf(view));
     }
-    if (url.includes('/rpc/list_choices')) return Response.json(counts);
+    const read = readsOf()[rpcOf(url)];
+    if (read !== undefined) return Response.json(read);
     if (url.includes('/rpc/check_')) calls.push(url.split('/rpc/')[1]?.split('?')[0] ?? '');
     return Response.json(url.includes('/rpc/check_') ? 'v1' : []);
   });
@@ -136,8 +143,8 @@ describe('Check-in (the door as one table from the server, redesign RD-30)', () 
     renderAs('floor');
     const row = (await within(await door()).findByText('Nakul Dhillon')).closest('[role="row"]');
     expect(row?.textContent).toContain('+91 98765 43210');
-    expect(row?.textContent).toContain('History');
-    expect(screen.getByRole('button', { name: 'History of Nakul Dhillon' })).toBeDefined();
+    // History is its icon alone in the row, named for the member (the UI review, 20 Nov).
+    expect(row instanceof HTMLElement ? within(row).getByRole('button', { name: 'History of Nakul Dhillon' }) : null).not.toBeNull();
   });
 
   it('shows a host no mobile, no History and no Use Bonus', async () => {
@@ -158,6 +165,8 @@ describe('Check-in (the door as one table from the server, redesign RD-30)', () 
     fireEvent.click(within(table).getByRole('button', { name: 'Use Bonus for Nakul Dhillon' }));
     const panel = await screen.findByRole('dialog', { name: 'Nakul Dhillon' });
     expect(within(panel).getByText('Use Bonus of m2')).toBeDefined();
+    // Under his name, his Bonus now, as his record has it (the UI review, 20 Nov).
+    expect(await within(panel).findByText('Bonus: 5,500')).toBeDefined();
   });
 
   it('asks the server for the members expected, and checks one in from their row', async () => {

@@ -6,8 +6,8 @@ export const memberBonus = {
   chipsLabel: 'Bonus',
   /** The Members list's column: each member's Bonus in force (redesign RD-29). */
   column: 'Bonus',
-  /** They never expire; the floor redeems them with a buy-in as it seats the member. */
-  chipsLine: 'Used with a buy-in in the seat sheet. Never expires.',
+  /** They never expire; the floor redeems them with a buy-in as it seats the member, or uses them with Use Bonus. */
+  chipsLine: 'Used with a seat\'s buy-in or with Use Bonus. Never expires.',
   history: 'Bonus history',
   none: 'No Bonus yet.',
   showEarlier: 'Show earlier',

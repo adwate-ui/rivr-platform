@@ -62,11 +62,12 @@ export function doorFiltersInCodes(filters: Readonly<Record<string, ListFilter>>
   }));
 }
 
-// Floor and up see the mobile and History too (#1073). On Today's players, measured at 1440 px (the UI review, 19 Nov;
-// with Wallet, 20 Nov): a name of normal length stays on one line and the mobile gives way, onto two lines; every heading
-// and button fits; Bonus and Wallet keep five digits on one line, Used four. Only Never arrived, the longest status, is cut short.
+// Floor and up see the mobile and History too (#1073), on both tabs. Measured at 1440 px (the UI reviews, 19 and 20 Nov):
+// every heading fits; Bonus keeps five digits on one line, Used four, Wallet −1,52,000 and ID check At the desk. On Today's
+// players the mobile gives way, onto two lines, and a name longer than about 85 px takes two; Never arrived, the longest
+// status, is cut short. Check-in sets the name's share itself.
 const WITH_CONTACT: Partial<Record<string, number>> = {
-  player: 1.6, number: 0.61, tier: 0.73, status: 1.42, seated: 0.73, bonus: 0.73, bonus_used: 0.61, wallet: 0.73, kyc: 1.24,
+  player: 1.43, number: 0.62, tier: 0.74, status: 1.43, seated: 0.74, bonus: 0.74, bonus_used: 0.61,
 };
 
 const sharesWithContact = (columns: readonly DataTableColumn<DoorPlayer>[]) => columns.map((column) => {
@@ -78,44 +79,44 @@ const sharesWithContact = (columns: readonly DataTableColumn<DoorPlayer>[]) => c
  * The member's mobile and History (#1073), for floor and up: the server gives the number only to them, History opens in
  * the panel at the side, and the mobile is never in an export (decision 0690). On Today's players each has a column: the
  * mobile after the number, History at the end. On Check-in the row's button leaves no room for two more columns at
- * 1440 px, so the mobile goes under the name and History beside the button.
+ * 1440 px, so the mobile goes under the name and History beside the button. History is its icon alone, as on Members
+ * (the owner, 19 Nov), so it shares a line with Use Bonus (the UI review, 20 Nov).
  */
 function withContact(
   columns: readonly DataTableColumn<DoorPlayer>[], onHistory: (player: DoorPlayer) => void, action: ((player: DoorPlayer) => ReactNode) | undefined,
 ): DataTableColumn<DoorPlayer>[] {
   const history = (player: DoorPlayer) => (
-    <Button variant="text" size="small" aria-label={t('console.todaysPlayers.historyOf', { name: player.fullName })} onClick={() => onHistory(player)}>
-      {t('console.todaysPlayers.history')}
+    <Button variant="text" size="small" icon="history" aria-label={t('console.todaysPlayers.historyOf', { name: player.fullName })} onClick={() => onHistory(player)}>
+      {null}
     </Button>
   );
   if (action === undefined) {
     const mobile: DataTableColumn<DoorPlayer> = {
-      key: 'phone', share: 1.14, header: t('console.members.mobile'), filter: false, isExported: false,
+      key: 'phone', share: 1.13, header: t('console.members.mobile'), filter: false, isExported: false,
       cell: (player) => (player.phone === null ? NONE() : <Text variant="secondary" tone="muted">{formatMobile(player.phone)}</Text>),
     };
     const shown = sharesWithContact(columns);
-    return [...shown.slice(0, 2), mobile, ...shown.slice(2), { key: 'history', share: 1.14, header: '', align: 'end', filter: false, cell: history }];
+    return [...shown.slice(0, 2), mobile, ...shown.slice(2), { key: 'history', share: 0.76, header: '', align: 'end', filter: false, cell: history }];
   }
-  // With Wallet (the owner, 20 Nov) a row has no room at 1440 px for History and Check out side by side, so Check out goes
-  // under History and the name and its mobile keep a line each. Status needs less here: its longest is In the room (Never
-  // arrived is not on Check-in's lists) and it has no sort arrow (Today's players opens sorted by it). At table needs only
-  // its start and dash: a seat left wraps after its dash.
-  const named = columns.map((column) => {
-    if (column.key === 'status') return { ...column, share: 1.45 };
-    if (column.key === 'seated') return { ...column, share: 0.8 };
+  // The row's buttons take two lines (the UI review, 20 Nov): History and Use Bonus, then Check out beneath. The name, over
+  // its mobile, gives up the room: the mobile takes two lines, and a name longer than about 75 px two.
+  const named = sharesWithContact(columns).map((column) => {
     return column.key !== 'player' ? column : {
-      ...column, share: 1.85, exportValue: (player: DoorPlayer) => player.fullName,
+      ...column, share: 1.26, exportValue: (player: DoorPlayer) => player.fullName,
       cell: (player: DoorPlayer) => <>{nameOf(player)}{player.phone === null ? null : <Text variant="secondary" tone="muted">{formatMobile(player.phone)}</Text>}</>,
     };
   });
   // At 1440 px, and below 768 px where the column is one 128 px track (DataTable's sideways layout), Check out wraps under
-  // History rather than squeeze its words onto two lines.
-  return [...named, { key: 'action', share: 1.91, header: '', align: 'end', isWide: true, filter: false, cell: (player) => <Inline gap={2} justify="end" wrap>{history(player)}{action(player)}</Inline> }];
+  // History and Use Bonus rather than squeeze its words onto two lines.
+  return [...named, { key: 'action', share: 2.33, header: '', align: 'end', isWide: true, filter: false, cell: (player) => <Inline gap={2} justify="end" wrap>{history(player)}{action(player)}</Inline> }];
 }
 
-/** The Bonus in their wallet now, whichever day it was given (the owner, 20 Nov), on the same first row as the Bonus given. */
+/**
+ * The Bonus in their wallet now, whichever day it was given (the owner, 20 Nov), on the same first row as the Bonus given;
+ * wide enough for −1,52,000 on one line (the UI review, 20 Nov).
+ */
 const walletColumn = (): DataTableColumn<DoorPlayer> => ({
-  key: 'wallet', share: 0.77, header: t('console.todaysPlayers.wallet'), align: 'end', filter: false,
+  key: 'wallet', share: 1.06, header: t('console.todaysPlayers.wallet'), align: 'end', filter: false,
   sortValue: (player) => rupees(player.wallet), exportValue: (player) => rupeesInFile(player.wallet), cell: (player) => chips(player.wallet),
 });
 
@@ -130,7 +131,8 @@ export function doorColumns(
   counted: ListChoices | undefined, action?: (player: DoorPlayer) => ReactNode, onHistory?: (player: DoorPlayer) => void,
 ): readonly DataTableColumn<DoorPlayer>[] {
   const columns: DataTableColumn<DoorPlayer>[] = [
-    { key: 'player', share: 2, header: t('console.todaysPlayers.name'), cell: nameOf, sortValue: (player) => player.fullName, priority: 'primary', isWide: true, filter: 'text' },
+    // The name gives Wallet and ID check their room (the UI review, 20 Nov): a name of normal length still takes one line.
+    { key: 'player', share: 1.6, header: t('console.todaysPlayers.name'), cell: nameOf, sortValue: (player) => player.fullName, priority: 'primary', isWide: true, filter: 'text' },
     { key: 'number', share: 0.65, header: t('console.members.number'), cell: (player) => <Text variant="secondary" tone="muted">{String(player.memberNumber)}</Text>, sortValue: (player) => player.memberNumber, exportValue: (player) => player.memberNumber, filter: 'number' },
     { key: 'tier', share: 0.78, header: t('console.members.tier'), cell: tierOf, exportValue: (player) => player.tierName, sortValue: (player) => player.tierName, filter: 'choice', choices: choicesIn('tier', counted), filterValue: (player) => player.tierName },
     {
@@ -160,7 +162,7 @@ export function doorColumns(
     },
     walletColumn(),
     {
-      key: 'kyc', share: 1.26, header: t('console.members.kyc'), sortValue: (player) => KYC.indexOf(player.kycStatus), isWide: true, filter: 'choice', choices: choicesIn('kyc', counted),
+      key: 'kyc', share: 1.37, header: t('console.members.kyc'), sortValue: (player) => KYC.indexOf(player.kycStatus), isWide: true, filter: 'choice', choices: choicesIn('kyc', counted),
       filterValue: (player) => kycWords(player.kycStatus),
       cell: (player) => <DotStatus tone={KYC_TONE[player.kycStatus]} label={kycWords(player.kycStatus)} />, exportValue: (player) => kycWords(player.kycStatus),
     },

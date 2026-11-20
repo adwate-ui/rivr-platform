@@ -32,6 +32,8 @@ export const checkIn = {
   /** Bonus used without a seat (the owner, 20 Nov), on a checked-in member's first row: opens the record's form in a sheet. */
   useBonus: 'Use Bonus',
   useBonusMember: 'Use Bonus for {name}',
+  /** Use Bonus's sheet, under the member's name: their Bonus now, as their record has it. `{chips}` is `5,500`. */
+  bonusNow: 'Bonus: {chips}',
   checkedOut: 'Checked out.',
   notInRoom: 'Not checked in.',
   callTimeOwed: '{time} call time owed. An admin can release them on the Live floor.',
