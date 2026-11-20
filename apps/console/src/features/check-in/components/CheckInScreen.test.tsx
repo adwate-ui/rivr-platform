@@ -18,13 +18,13 @@ const KABIR = {
   total: 1, member_id: 'm1', full_name: 'Kabir Sethi', member_number: 31, tier_name: 'Black card', is_base_tier: false, status: 'expected', list: 'expected',
   checked_in_at: null, checked_out_at: null, waiting_seconds: 240, tables: [], played_seconds: 0, kyc_status: 'at_desk', since: '2026-11-03T14:00:00Z',
   bonus_paise: 0, phone: '+919812345678', seated_at: null, left_at: null, bonus_used_paise: null,
-  session_id: null, visit_id: null, linked_member_id: 'm1',
+  session_id: null, visit_id: null, linked_member_id: 'm1', wallet_paise: 0,
 };
 const NAKUL = {
   ...KABIR, member_id: 'm2', full_name: 'Nakul Dhillon', member_number: 270, tier_name: 'Member', is_base_tier: true, status: 'playing', list: 'in_club',
   checked_in_at: '2026-11-03T14:05:00Z', waiting_seconds: 0, tables: [{ table: 'Table 1', seconds: 5400 }], played_seconds: 5400, kyc_status: 'verified',
   bonus_paise: 150_000, phone: '+919876543210', seated_at: '2026-11-03T14:10:00Z', left_at: null, bonus_used_paise: 50_000,
-  session_id: 's2', visit_id: 'v2', linked_member_id: 'm2',
+  session_id: 's2', visit_id: 'v2', linked_member_id: 'm2', wallet_paise: 550_000,
 };
 
 /** Members' addresses, as the console's frame gives them, so a name the server links is a link. */
@@ -32,6 +32,8 @@ const LINKS = { hrefOf: (memberId: string) => `/members?member=${memberId}` };
 
 /** The History panel's body, as the route hands it in (#1073). */
 const History = ({ memberId }: { venueId: string; memberId: string }) => <Text>{`Visits of ${memberId}`}</Text>;
+/** Use Bonus's form, as the route hands it in from the record (the owner, 20 Nov). */
+const BonusForm = ({ memberId }: { venueId: string; memberId: string }) => <Text>{`Use Bonus of ${memberId}`}</Text>;
 // As the server counts them over everyone at the door today: far more than the page shown.
 // One member is back in: on Left and in the room, Left and Playing, so the lists and the statuses each add up to 319 and
 // everyone, counted once, to 318.
@@ -58,6 +60,12 @@ function pageOf(view: Asked): readonly object[] {
   return (rows ?? [KABIR, NAKUL]).filter((row) => (view.scope.list === undefined || row.list === view.scope.list) && (statuses === undefined || statuses.includes(row.status)));
 }
 
+/** The call a request makes, `list_choices` for `/rest/v1/rpc/list_choices`; none for a table's. */
+const rpcOf = (url: string) => url.split('/rpc/')[1]?.split('?')[0] ?? '';
+
+/** What the server answers each call that only reads: the counts, and a member's Bonus now, 5,500 (the UI review, 20 Nov). */
+const readsOf = (): Readonly<Record<string, unknown>> => ({ list_choices: counts, member_bonus: [{ bonus_paise: 550_000 }] });
+
 /** A staff member in `role` at the door, on Check-in or Today's players; gives every view asked of the server and every call that changes something. */
 function renderAs(role: string, pane: 'check-in' | 'players' = 'check-in') {
   const asked: Asked[] = [];
@@ -76,7 +84,8 @@ function renderAs(role: string, pane: 'check-in' | 'players' = 'check-in') {
       asked.push(view);
       return Response.json(pageOf(view));
     }
-    if (url.includes('/rpc/list_choices')) return Response.json(counts);
+    const read = readsOf()[rpcOf(url)];
+    if (read !== undefined) return Response.json(read);
     if (url.includes('/rpc/check_')) calls.push(url.split('/rpc/')[1]?.split('?')[0] ?? '');
     return Response.json(url.includes('/rpc/check_') ? 'v1' : []);
   });
@@ -84,7 +93,7 @@ function renderAs(role: string, pane: 'check-in' | 'players' = 'check-in') {
     <RivrDataProvider client={createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' })}
       queryClient={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
       <MemberLinksProvider links={LINKS}>
-        <StaffVenueProvider>{pane === 'check-in' ? <CheckInScreen history={History} /> : <TodaysPlayersScreen history={History} />}</StaffVenueProvider>
+        <StaffVenueProvider>{pane === 'check-in' ? <CheckInScreen history={History} bonusForm={BonusForm} /> : <TodaysPlayersScreen history={History} />}</StaffVenueProvider>
       </MemberLinksProvider>
     </RivrDataProvider>,
   );
@@ -134,15 +143,30 @@ describe('Check-in (the door as one table from the server, redesign RD-30)', () 
     renderAs('floor');
     const row = (await within(await door()).findByText('Nakul Dhillon')).closest('[role="row"]');
     expect(row?.textContent).toContain('+91 98765 43210');
-    expect(row?.textContent).toContain('History');
-    expect(screen.getByRole('button', { name: 'History of Nakul Dhillon' })).toBeDefined();
+    // History is its icon alone in the row, named for the member (the UI review, 20 Nov).
+    expect(row instanceof HTMLElement ? within(row).getByRole('button', { name: 'History of Nakul Dhillon' }) : null).not.toBeNull();
   });
 
-  it('shows a host no mobile and no History', async () => {
+  it('shows a host no mobile, no History and no Use Bonus', async () => {
     renderAs('host');
     const row = (await within(await door()).findByText('Nakul Dhillon')).closest('[role="row"]');
     expect(row?.textContent).not.toContain('+91');
     expect(screen.queryByRole('button', { name: 'History of Nakul Dhillon' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Use Bonus for Nakul Dhillon' })).toBeNull();
+  });
+
+  it('gives those who give Bonus by hand Use Bonus on a checked-in member\'s first row alone, opening its form beside the table (the owner, 20 Nov)', async () => {
+    // Nakul's second seat tonight, at Table 2: not his first row, which alone carries his Bonus given (bonus_paise).
+    rows = [NAKUL, { ...NAKUL, session_id: 's9', seated_at: '2026-11-03T16:00:00Z', tables: [{ table: 'Table 2', seconds: 600 }], bonus_paise: null, bonus_used_paise: 0 }];
+    renderAs('floor');
+    const table = await door();
+    expect(await within(table).findAllByRole('button', { name: 'Use Bonus for Nakul Dhillon' })).toHaveLength(1);
+    expect(within(table).getAllByRole('button', { name: 'Check out Nakul Dhillon' })).toHaveLength(2);
+    fireEvent.click(within(table).getByRole('button', { name: 'Use Bonus for Nakul Dhillon' }));
+    const panel = await screen.findByRole('dialog', { name: 'Nakul Dhillon' });
+    expect(within(panel).getByText('Use Bonus of m2')).toBeDefined();
+    // Under his name, his Bonus now, as his record has it (the UI review, 20 Nov).
+    expect(await within(panel).findByText('Bonus: 5,500')).toBeDefined();
   });
 
   it('asks the server for the members expected, and checks one in from their row', async () => {
@@ -154,6 +178,17 @@ describe('Check-in (the door as one table from the server, redesign RD-30)', () 
     expect(screen.queryByText('Nakul Dhillon')).toBeNull();
     fireEvent.click(checkIn);
     await waitFor(() => expect(calls).toContain('check_in'));
+  });
+
+  it('shows the Bonus in each member\'s wallet on Check-in too, after Used (the owner, 20 Nov)', async () => {
+    renderAs('floor');
+    const table = await door();
+    const row = (await within(table).findByText('Nakul Dhillon')).closest('[role="row"]');
+    const headers = within(table).getAllByRole('columnheader').map((header) => header.textContent ?? '');
+    const at = headers.findIndex((header) => header.startsWith('Wallet'));
+    expect(headers[at - 1]).toMatch(/^Used/);
+    const cells = row instanceof HTMLElement ? within(row).getAllByRole('cell').map((cell) => cell.textContent) : [];
+    expect(cells[at]).toBe('5,500');
   });
 
   it('refuses a dealer, who keeps no door', async () => {
@@ -205,6 +240,24 @@ describe('Today\'s players (issue 641; on the server, redesign RD-30)', () => {
     const table = await screen.findByRole('table', { name: 'Players today' }, { timeout: 5000 });
     expect((await within(table).findByRole('link', { name: 'Nakul Dhillon' })).getAttribute('href')).toBe('/members?member=m2');
     expect(within(table).getByText('Erased member').closest('a')).toBeNull();
+  });
+
+  it('shows the Bonus in a member\'s wallet now on their first row, whichever day it was given (the owner, 20 Nov)', async () => {
+    // Given ₹5,500 on earlier days and none today: Bonus is nought, Wallet holds it; his second seat's row has none.
+    rows = [
+      { ...NAKUL, bonus_paise: 0, bonus_used_paise: 0, wallet_paise: 550_000 },
+      { ...NAKUL, bonus_paise: null, bonus_used_paise: 0, wallet_paise: null, session_id: 's4', tables: [{ table: 'Table 2', seconds: 600 }], seated_at: '2026-11-03T16:00:00Z' },
+    ];
+    renderAs('host', 'players');
+    const table = await screen.findByRole('table', { name: 'Players today' }, { timeout: 5000 });
+    await within(table).findByText('Table 2');
+    const headers = within(table).getAllByRole('columnheader').map((header) => header.textContent ?? '');
+    const at = (name: string) => headers.findIndex((header) => header.startsWith(name));
+    expect(at('Wallet')).toBeGreaterThan(at('Bonus'));
+    const [first, second] = within(table).getAllByRole('row').slice(1).map((row) => within(row).getAllByRole('cell').map((cell) => cell.textContent));
+    expect(first?.[at('Wallet')]).toBe('5,500');
+    expect(first?.[at('Bonus')]).toBe('0');
+    expect(second?.[at('Wallet')]).toBe('–');
   });
 
   it('refuses staff who read no members', async () => {

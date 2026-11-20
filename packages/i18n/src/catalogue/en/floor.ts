@@ -176,8 +176,9 @@ export const todaysPlayers = {
    */
   bonus: 'Bonus',
   bonusUsed: 'Used',
-  /** Floor and up (#1073): the member's History in a panel at the side, beside their mobile (console.members.mobile). */
-  history: 'History',
+  /** The Bonus in the member's wallet now, whichever day it was given (the owner, 20 Nov), on their first row. */
+  wallet: 'Wallet',
+  /** Floor and up (#1073): the member's History in a panel at the side, beside their mobile (console.members.mobile); its icon alone. */
   historyOf: 'History of {name}',
   none: '–',
 } as const;

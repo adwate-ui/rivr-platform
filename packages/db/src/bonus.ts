@@ -7,8 +7,9 @@ import { queryKeys } from './queryKeys.ts';
 import { LIST_MOST } from './limits.ts';
 
 /**
- * What a line of bonus history is: chips given, chips used with a buy-in, chips that ended before bonus stopped expiring, or
- * Bonus a super admin reversed (#1077; its id is the grant's, as an expiry's is).
+ * What a line of bonus history is: chips given, chips used (with a buy-in, at a table; or without a seat, with no table),
+ * chips that ended before bonus stopped expiring, or Bonus a super admin reversed (#1077; its id is the grant's, as an
+ * expiry's is).
  */
 export type BonusLineKind = 'credited' | 'redeemed' | 'expired' | 'reversed';
 
@@ -174,7 +175,7 @@ export function useBonusByHandCap(venueId: string) {
   });
 }
 
-/** Bonus chips added by hand: how many, why, and the request id that makes a retry the same grant. */
+/** Bonus chips added or used by hand: how many, why, and the request id that makes a retry the same grant or use. */
 export interface BonusGift {
   readonly chips: number;
   readonly reason: string;
@@ -198,6 +199,39 @@ export function useGiveBonusChips(venueId: string, memberId: string) {
       if (error) return err(GIVE_FAILURE_BY_CODE[error.code] ?? 'unavailable');
       // Past the staff member's daily limit nothing is added and no grant comes back; the owner is alerted.
       return data === null ? err('daily_limit') : ok(null);
+    },
+  });
+}
+
+/**
+ * Why Bonus used without a seat did not go: not in the staff member's role; their own member record; not whole fifties from
+ * 50 to 1,00,000; no reason of 3 to 200 characters; the member not checked in; more than the Bonus in force (or some owed);
+ * more than the visit's limit leaves (bonus.visit_cap); the venue or member frozen, or promotions stopped; too many at once;
+ * anything else.
+ */
+export type UseBonusFailure =
+  | 'not_allowed' | 'own_record' | 'invalid_chips' | 'invalid_reason' | 'not_checked_in' | 'bonus_short' | 'visit_cap' | 'paused' | 'busy' | 'unavailable';
+
+const USE_FAILURE_BY_CODE: Readonly<Record<string, UseBonusFailure>> = {
+  '42501': 'not_allowed', RVOWN: 'own_record', RVCHP: 'invalid_chips', '22023': 'invalid_reason', RVNIN: 'not_checked_in', RVBON: 'bonus_short',
+  RVVCP: 'visit_cap', RVFRZ: 'paused', RVKIL: 'paused', RVMBR: 'paused', RVRAT: 'busy',
+};
+
+/**
+ * Uses a member's Bonus without a seat (the owner, 20 Nov): super admins, admins and floor managers, while the member is
+ * checked in, in whole fifties with a reason, within what they hold and their visit's limit (`use_bonus`). The same request id
+ * again is the same use. Resolves to a Result and reads the balance, the histories, the door and Players visits again.
+ */
+export function useUseBonus(venueId: string, memberId: string) {
+  const { client, userId } = useRivrData();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (use: BonusGift): Promise<Result<null, UseBonusFailure>> => {
+      const { error } = await client.rpc('use_bonus', { p_member_id: memberId, p_chips: use.chips, p_reason: use.reason, p_request_id: use.requestId });
+      const user = userId ?? 'signed-out';
+      await Promise.all([queryKeys.memberBonus(user, venueId, memberId), queryKeys.doorBoard(user, venueId), queryKeys.playerVisits(user, venueId)]
+        .map((queryKey) => queryClient.invalidateQueries({ queryKey })));
+      return error ? err(USE_FAILURE_BY_CODE[error.code] ?? 'unavailable') : ok(null);
     },
   });
 }

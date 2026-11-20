@@ -57,9 +57,12 @@ export const kycReview = {
   reasonFor: 'Reason for {name}',
   reasonHint: 'In words. Never document numbers.',
   dateOfBirthFor: 'Date of birth on {name}\'s original document',
+  /** Under the date of birth: a year typed in two digits, or a day to come, which the database refuses (20 Nov). */
+  dateOfBirthInvalid: 'Give the date of birth on the document, with a 4-digit year.',
   approve: 'Approve',
   reject: 'Reject',
-  reasonInvalid: 'Check the reason (3 to 500 characters, no document numbers), the date of birth and the PAN.',
+  /** Under the buttons, for the reason or the PAN; the date of birth has its own error (20 Nov). */
+  reasonInvalid: 'Check the reason (3 to 500 characters, no document numbers) and the PAN.',
 };
 
 /** Why a KYC decision did not go through. */

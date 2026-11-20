@@ -15,7 +15,8 @@ export const playerBonus = {
    * Bonus that ended `Expired · Buy-in bonus Tuesday`.
    */
   redeemed: 'Buy-in · {table}',
-  redeemedNoTable: 'Buy-in',
+  /** Bonus used without a seat (the owner, 20 Nov). */
+  redeemedNoTable: 'Used',
   expired: 'Expired · {reason}',
   /** Bonus the club reversed (#1077); with no reason (the owner, 19 Nov). */
   reversed: 'Reversed',

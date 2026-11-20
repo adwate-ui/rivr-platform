@@ -74,7 +74,7 @@ describe('Members (console v3)', () => {
     expect(screen.getByRole('link', { name: 'Bonus' }).getAttribute('aria-current')).toBe('page');
     // Twice: on the record's tile, and in the list's Bonus column beside it.
     await waitFor(() => expect(screen.getAllByText('1,500')).toHaveLength(2), { timeout: 5000 });
-    expect(screen.getByText('Used with a buy-in in the seat sheet. Never expires.')).toBeDefined();
+    expect(screen.getByText('Used with a seat\'s buy-in or with Use Bonus. Never expires.')).toBeDefined();
     expect(await screen.findByText(/Buy-in · Table 2 · seated by Aditya Malhotra$/, {}, { timeout: 5000 })).toBeDefined();
     expect(screen.getByText('−1,000')).toBeDefined();
     expect(screen.getByText(/Welcome bonus$/)).toBeDefined();

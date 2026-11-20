@@ -1,6 +1,6 @@
-import { cleanup, fireEvent, screen } from '@testing-library/react';
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { chooseNaina, NAINA, renderSection, renderSectionWithBars, stubCamera, takeAndUse, takeThreePhotos, typeDetails } from './inPersonTestApi.tsx';
+import { chooseNaina, CLAIMED, NAINA, renderSection, renderSectionClaimed, renderSectionWithBars, stubCamera, takeAndUse, takeThreePhotos, typeDetails } from './inPersonTestApi.tsx';
 
 beforeEach(stubCamera);
 
@@ -22,6 +22,97 @@ async function checkNaina({ consent = true } = {}) {
   if (consent) fireEvent.click(screen.getByRole('switch', { name: 'Naina Kapoor agrees to this ID check' }));
   fireEvent.click(screen.getByRole('button', { name: 'Verify Naina Kapoor' }));
 }
+
+// Asha has a member at the desk since 20:00 (14:30 UTC); Vikram is the one checking.
+const ASHA = { staff_name: 'Asha Rao', since: '2026-11-20T14:30:00Z' };
+
+describe('two staff at the desk at once (the owner, 20 Nov)', () => {
+  it('says who is checking a member on another device, and does not start them', async () => {
+    renderSectionClaimed(() => Response.json({ status: 'verified' }), { claim: [{ status: 'taken', ...ASHA }] });
+    await chooseNaina();
+    fireEvent.click(await screen.findByRole('button', { name: 'Start the check' }));
+    expect(await screen.findByText('Being checked by Asha Rao since 20:00.')).toBeDefined();
+    expect(screen.queryByText('Photo 1 of 3')).toBeNull();
+  });
+
+  it('closes a member checked already, saying who checked them and when', async () => {
+    renderSectionClaimed(() => Response.json({ status: 'verified' }), { claim: [{ status: 'decided', ...ASHA }] });
+    await chooseNaina();
+    fireEvent.click(await screen.findByRole('button', { name: 'Start the check' }));
+    expect(await screen.findByText('Asha Rao checked Naina Kapoor at 20:00.')).toBeDefined();
+    expect(screen.getByRole('searchbox', { name: 'Member\'s name or the last digits of their number' })).toBeDefined();
+  });
+
+  it('closes the check, saying who did it, when Verify finds it done on another device meanwhile', async () => {
+    let asked = 0;
+    const claim = () => {
+      asked += 1;
+      return asked === 1 ? CLAIMED : [{ status: 'decided', ...ASHA }];
+    };
+    renderSectionClaimed(() => Response.json({ error: 'decided' }, { status: 409 }), { claim });
+    await chooseNaina();
+    await takeThreePhotos();
+    typeDetails();
+    fireEvent.click(screen.getByRole('switch', { name: 'Naina Kapoor agrees to this ID check' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Verify Naina Kapoor' }));
+    expect(await screen.findByText('Asha Rao checked Naina Kapoor at 20:00.')).toBeDefined();
+    expect(screen.queryByRole('button', { name: 'Verify Naina Kapoor' })).toBeNull();
+  });
+
+  it('lets the claim go when another member is chosen, and lets nothing go for a member someone else has', async () => {
+    const released: string[] = [];
+    renderSectionClaimed(() => Response.json({ status: 'verified' }), { released });
+    await chooseNaina();
+    fireEvent.click(await screen.findByRole('button', { name: 'Start the check' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Back' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Choose another member' }));
+    await waitFor(() => expect(released).toEqual([NAINA.member_id]));
+    cleanup();
+    const none: string[] = [];
+    renderSectionClaimed(() => Response.json({ status: 'verified' }), { claim: [{ status: 'taken', ...ASHA }], released: none });
+    await chooseNaina();
+    fireEvent.click(await screen.findByRole('button', { name: 'Start the check' }));
+    await screen.findByText('Being checked by Asha Rao since 20:00.');
+    fireEvent.click(screen.getByRole('button', { name: 'Choose another member' }));
+    expect(await screen.findByRole('searchbox', { name: 'Member\'s name or the last digits of their number' })).toBeDefined();
+    expect(none).toEqual([]);
+  });
+
+  it('lets go at once of a claim that comes back after the check was closed', async () => {
+    const released: string[] = [];
+    let answer: (rows: unknown[]) => void = () => undefined;
+    let isAsked = false;
+    const claim = () => new Promise<unknown[]>((resolve) => {
+      isAsked = true;
+      answer = resolve;
+    });
+    renderSectionClaimed(() => Response.json({ status: 'verified' }), { claim, released });
+    await chooseNaina();
+    fireEvent.click(await screen.findByRole('button', { name: 'Start the check' }));
+    // Closed while the claim is on its way.
+    await waitFor(() => expect(isAsked).toBe(true));
+    fireEvent.click(screen.getByRole('button', { name: 'Choose another member' }));
+    answer(CLAIMED);
+    await waitFor(() => expect(released).toEqual([NAINA.member_id]));
+  });
+
+  it('lists who is being checked on another device, and since when', async () => {
+    renderSectionClaimed(() => Response.json({ status: 'verified' }), { claims: [{ member_id: NAINA.member_id, ...ASHA }] }, [NAINA]);
+    expect(await screen.findByText('Being checked by Asha Rao since 20:00.')).toBeDefined();
+  });
+
+  it('says what is wrong with a date of birth typed with a two-digit year, and sends nothing', async () => {
+    const sent = renderSection(() => Response.json({ status: 'verified' }));
+    await chooseNaina();
+    await takeThreePhotos();
+    typeDetails();
+    fireEvent.change(screen.getByLabelText('Date of birth on Naina Kapoor\'s original document'), { target: { value: '0092-04-12' } });
+    fireEvent.click(screen.getByRole('switch', { name: 'Naina Kapoor agrees to this ID check' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Verify Naina Kapoor' }));
+    expect(await screen.findByText('Give the date of birth on the document, with a 4-digit year.')).toBeDefined();
+    expect(sent).toEqual([]);
+  });
+});
 
 describe('a check in person', () => {
   it('sends the photo, the details from the originals and the consent, and says the member is verified', async () => {

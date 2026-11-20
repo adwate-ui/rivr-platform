@@ -41,6 +41,14 @@ describe('Bonus (redesign of 15 Nov)', () => {
     expect(screen.getByText('Welcome bonus').closest('div')?.textContent).toBe('Welcome bonus14 Nov+1,500');
   });
 
+  it('shows Bonus the club used without a seat as Used, with no table and no reason (the owner, 20 Nov)', async () => {
+    renderBonus({ balance: 105_000, lines: [
+      { line_id: 'u1', at: '2026-11-16T18:00:00Z', kind: 'redeemed', amount_paise: 20_000, reason: null, table_name: null },
+      ...BONUS_LINES,
+    ] });
+    expect((await screen.findByText('Used', {}, LATER)).closest('div')?.textContent).toBe('Used16 Nov−200');
+  });
+
   it('names the hand on a line a high hand paid (redesign RD-25)', async () => {
     renderBonus({ balance: 1_400_000, lines: [
       { line_id: 'h1', at: '2026-11-15T21:13:00Z', kind: 'credited', amount_paise: 1_000_000, reason: 'High hand bonus', table_name: null, hand: 'straight_flush', rank: 'nine' },

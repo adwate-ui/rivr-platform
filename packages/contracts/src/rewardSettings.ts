@@ -82,12 +82,12 @@ export const bonusExpiryDays = {
 } as const satisfies SettingDefinition;
 
 /**
- * The share of a member's bonus one visit may redeem (the owner, 12 Nov; decision 0579): of what they held at its first seat,
- * in whole 50s. Only super admins change it. None set is all of it.
+ * The share of a member's bonus one visit may redeem (the owner, 12 Nov; decision 0579): of what they held at its first Bonus
+ * use, a seat's buy-in or a use without a seat (decision 0706), in whole 50s. Only super admins change it. None set is all of it.
  */
 export const bonusVisitCap = {
   key: 'bonus.visit_cap',
-  description: 'The share of the bonus a member held at a visit\'s first seat that they may redeem in that visit, in whole 50s. None set is all of it.',
+  description: 'The share of the Bonus a member held at a visit\'s first Bonus use that they may use in that visit, in whole 50s. None set is all of it.',
   scope: 'venue',
   superAdminOnly: true,
   value: z.strictObject({ basis_points: z.int().min(100).max(10000) }),

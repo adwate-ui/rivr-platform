@@ -139,12 +139,16 @@ function bonusCredited(payload: unknown): Built {
   return ok({ memberId, pushType: 'push.bonus', title: t('push.bonusCredited.title'), body, url: '/bonus', tag: `bonus-${grantId}` });
 }
 
-/** Bonus chips used with the member's buy-in as they were seated (decision 0504): how many, and at which table. */
+/**
+ * Bonus chips used with the member's buy-in as they were seated (decision 0504): how many, and at which table; used without
+ * a seat (the owner, 20 Nov), how many alone.
+ */
 function bonusRedeemed(payload: unknown): Built {
   const redeemed = bonusRedeemedSchema.safeParse(payload);
   if (!redeemed.success) return unreadable('bonus.redeemed');
   const { member_id: memberId, bonus_redemption_id: redemptionId, amount_paise: amount, table_name: table } = redeemed.data;
-  const body = t('push.bonusRedeemed.body', { chips: formatChips(BigInt(amount)), table });
+  const chips = formatChips(BigInt(amount));
+  const body = table === null ? t('push.bonusRedeemed.bodyNoTable', { chips }) : t('push.bonusRedeemed.body', { chips, table });
   return ok({ memberId, pushType: 'push.bonus', title: t('push.bonusRedeemed.title'), body, url: '/bonus', tag: `bonus-used-${redemptionId}` });
 }
 

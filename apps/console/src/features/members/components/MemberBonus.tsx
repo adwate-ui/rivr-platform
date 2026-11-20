@@ -5,18 +5,20 @@ import { useState } from 'react';
 import { AddBonusUse } from './AddBonusUse.tsx';
 import { GiveBonusChips } from './GiveBonusChips.tsx';
 import { ReverseBonus, type Reversing } from './ReverseBonus.tsx';
+import { UseBonus } from './UseBonus.tsx';
 
 /** Lines shown at first, and how many more each Show earlier adds. */
 const PAGE = 20;
 
-/** The label of Bonus that went out: reversed (by whom), expired, or used at a table (who seated the member). */
+/** The label of Bonus that went out: reversed (by whom), expired, used without a seat (why, by whom) or at a table (who seated the member). */
 function outLabel(line: MemberBonusLine, date: string): string {
   const reason = line.reason ?? '';
   if (line.kind === 'reversed') {
     return line.staffName === null ? t('console.members.bonus.reversed', { date, reason }) : t('console.members.bonus.reversedBy', { date, reason, name: line.staffName });
   }
   if (line.kind === 'expired') return t('console.members.bonus.expired', { date, reason });
-  const table = line.tableName ?? '';
+  if (line.tableName === null) return t('console.members.bonus.used', { date, reason, name: line.staffName ?? '' });
+  const table = line.tableName;
   // A use added after the fact (#1077): its reason, and who added it, not who seated the member.
   if (line.reason !== null) return t('console.members.bonus.redeemedAdded', { date, table, reason, name: line.staffName ?? '' });
   return line.staffName === null ? t('console.members.bonus.redeemed', { date, table }) : t('console.members.bonus.redeemedBy', { date, table, name: line.staffName });
@@ -76,8 +78,8 @@ function Balance({ venueId, memberId }: { venueId: string; memberId: string }) {
 /**
  * Bonus chips on the member's record (decision 0504; owner, 8 Nov): the balance on its tile (gold with a chip, used with a
  * buy-in; below zero while some is owed), then, for staff with bonus.give (`canGive`), Bonus to add by hand (redesign of 15
- * Nov); for a super admin (`canCorrect`, #1077), a use a seat missed, and Reverse on each Bonus given; and every line of bonus
- * chips, the newest first. Chips are redeemed in the seat sheets.
+ * Nov) and to use without a seat (the owner, 20 Nov); for a super admin (`canCorrect`, #1077), a use a seat missed, and
+ * Reverse on each Bonus given; and every line of bonus chips, the newest first. Chips are redeemed in the seat sheets.
  */
 export function MemberBonus({ venueId, memberId, canGive, canCorrect }: { venueId: string; memberId: string; canGive: boolean; canCorrect: boolean }) {
   const [reversing, setReversing] = useState<Reversing | null>(null);
@@ -85,6 +87,7 @@ export function MemberBonus({ venueId, memberId, canGive, canCorrect }: { venueI
     <Stack gap={6}>
       <Balance venueId={venueId} memberId={memberId} />
       {canGive ? <GiveBonusChips venueId={venueId} memberId={memberId} /> : null}
+      {canGive ? <UseBonus venueId={venueId} memberId={memberId} /> : null}
       {canCorrect ? <AddBonusUse venueId={venueId} memberId={memberId} /> : null}
       <Stack gap={2}>
         <Heading level={3}>{t('console.members.bonus.history')}</Heading>

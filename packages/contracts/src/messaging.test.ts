@@ -17,6 +17,12 @@ describe('the bonus chip events (decision 0504)', () => {
     expect(bonusRedeemedSchema.parse(redeemed)).toEqual(redeemed);
     expect(bonusRedeemedSchema.safeParse({ ...redeemed, amount_paise: 2_500 }).success).toBe(false);
   });
+
+  it('reads bonus.redeemed with no table, for Bonus used without a seat (the owner, 20 Nov)', () => {
+    const used = { member_id: member, bonus_redemption_id: other, amount_paise: 20_000, table_id: null, table_name: null };
+    expect(bonusRedeemedSchema.parse(used)).toEqual(used);
+    expect(bonusRedeemedSchema.safeParse({ ...used, table_name: undefined }).success).toBe(false);
+  });
 });
 
 describe('waitlistCalledSchema', () => {

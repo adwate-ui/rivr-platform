@@ -92,13 +92,16 @@ export const bonusCreditedSchema = z.object({
   reason: z.string().trim().min(3).max(200),
 });
 
-/** bonus.redeemed (decision 0504): bonus chips used for the member's buy-in as the floor seated them, at that table. */
+/**
+ * bonus.redeemed (decision 0504): bonus chips used for the member's buy-in as the floor seated them, at that table; or used
+ * without a seat during their visit (the owner, 20 Nov), with no table.
+ */
 export const bonusRedeemedSchema = z.object({
   member_id: z.uuid(),
   bonus_redemption_id: z.uuid(),
   amount_paise: z.int().min(5000).multipleOf(5000),
-  table_id: z.uuid(),
-  table_name: z.string().trim().min(1).max(40),
+  table_id: z.uuid().nullable(),
+  table_name: z.string().trim().min(1).max(40).nullable(),
 });
 
 /**

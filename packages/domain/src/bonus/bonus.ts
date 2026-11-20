@@ -79,10 +79,11 @@ export function bonusEnd(givenAt: Date, days: number, since: Date): Date | null 
 
 /**
  * The most bonus a member may redeem in one visit (the owner, 12 Nov; decision 0579): `basisPoints` (5,000 is half) of the
- * bonus they held at the visit's first seat, rounded down to whole ₹50 chips. private.visit_bonus_cap is its twin.
+ * bonus they held at the visit's first Bonus use, a seat's buy-in or a use without a seat (decision 0706), rounded down to
+ * whole ₹50 chips. private.visit_bonus_cap is its twin.
  */
-export function visitBonusCap(heldAtFirstSeat: Paise, basisPoints: bigint): Paise {
-  return roundDownToChip(shareOf(heldAtFirstSeat, basisPoints));
+export function visitBonusCap(heldAtFirstUse: Paise, basisPoints: bigint): Paise {
+  return roundDownToChip(shareOf(heldAtFirstUse, basisPoints));
 }
 
 /** What a visit may still redeem: its cap less what it has redeemed, never below nothing. private.visit_bonus_left is its twin. */

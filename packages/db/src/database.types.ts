@@ -149,14 +149,14 @@ isOneToOne: false
                   ]
                 },"bonus_redemption": {
                   Row: {
-                    "amount_paise": number,"created_at": string,"id": string,"ledger_transaction_id": string,"member_id": string,"reason": string | null,"session_id": string,"staff_id": string | null,"table_id": string,"updated_at": string,"used_at": string | null,"venue_id": string
+                    "amount_paise": number,"created_at": string,"id": string,"ledger_transaction_id": string,"member_id": string,"reason": string | null,"session_id": string | null,"staff_id": string | null,"table_id": string | null,"updated_at": string,"used_at": string | null,"venue_id": string,"visit_id": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_paise": number,"created_at"?: string,"id"?: string,"ledger_transaction_id": string,"member_id": string,"reason"?: string | null,"session_id": string,"staff_id"?: string | null,"table_id": string,"updated_at"?: string,"used_at"?: string | null,"venue_id": string
+                    "amount_paise": number,"created_at"?: string,"id"?: string,"ledger_transaction_id": string,"member_id": string,"reason"?: string | null,"session_id"?: string | null,"staff_id"?: string | null,"table_id"?: string | null,"updated_at"?: string,"used_at"?: string | null,"venue_id": string,"visit_id"?: string | null
                   }
                   Update: {
-                    "amount_paise"?: number,"created_at"?: string,"id"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"reason"?: string | null,"session_id"?: string,"staff_id"?: string | null,"table_id"?: string,"updated_at"?: string,"used_at"?: string | null,"venue_id"?: string
+                    "amount_paise"?: number,"created_at"?: string,"id"?: string,"ledger_transaction_id"?: string,"member_id"?: string,"reason"?: string | null,"session_id"?: string | null,"staff_id"?: string | null,"table_id"?: string | null,"updated_at"?: string,"used_at"?: string | null,"venue_id"?: string,"visit_id"?: string | null
                   }
                   Relationships: [
                     {
@@ -188,6 +188,12 @@ isOneToOne: false
       columns: ["table_id","venue_id"]
 isOneToOne: false
       referencedRelation: "game_table"
+      referencedColumns: ["id","venue_id"]
+    },{
+      foreignKeyName: "bonus_redemption_visit_id_venue_id_fkey"
+      columns: ["visit_id","venue_id"]
+isOneToOne: false
+      referencedRelation: "visit"
       referencedColumns: ["id","venue_id"]
     }
                   ]
@@ -2828,6 +2834,11 @@ isOneToOne: false
 "claim_computer":
 { Args: { "p_code": string,"p_token_hash": string,"p_venue_id": string }; Returns: string
                            },
+"claim_kyc_desk_check":
+{ Args: { "p_member_id": string }; Returns: {
+              "since": string,"staff_name": string,"status": string
+            }[]
+                           },
 "claim_kyc_rechecks":
 { Args: { "p_with_vendor": boolean }; Returns: {
               "date_of_birth": string,"full_name": string,"is_practice": boolean,"member_id": string,"pan": string
@@ -2905,7 +2916,7 @@ isOneToOne: false
                            },
 "door_page":
 { Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
-              "bonus_paise": number,"bonus_used_paise": number,"checked_in_at": string,"checked_out_at": string,"full_name": string,"is_base_tier": boolean,"kyc_status": string,"left_at": string,"linked_member_id": string,"list": string,"member_id": string,"member_number": number,"phone": string,"played_seconds": number,"seated_at": string,"session_id": string,"since": string,"status": string,"tables": Json,"tier_name": string,"total": number,"visit_id": string,"waiting_seconds": number
+              "bonus_paise": number,"bonus_used_paise": number,"checked_in_at": string,"checked_out_at": string,"full_name": string,"is_base_tier": boolean,"kyc_status": string,"left_at": string,"linked_member_id": string,"list": string,"member_id": string,"member_number": number,"phone": string,"played_seconds": number,"seated_at": string,"session_id": string,"since": string,"status": string,"tables": Json,"tier_name": string,"total": number,"visit_id": string,"waiting_seconds": number,"wallet_paise": number
             }[]
                            },
 "down_hands":
@@ -3102,6 +3113,11 @@ isOneToOne: false
                            },
 "kyc_at_the_club":
 { Args: { "p_venue_id"?: string }; Returns: boolean
+                           },
+"kyc_desk_claims":
+{ Args: { "p_venue_id": string }; Returns: {
+              "member_id": string,"since": string,"staff_name": string
+            }[]
                            },
 "kyc_digilocker_delivery":
 { Args: { "p_member_id": string }; Returns: Json
@@ -3559,6 +3575,9 @@ isOneToOne: false
 "reject_promotion_version":
 { Args: { "p_reason": string,"p_version_id": string }; Returns: undefined
                            },
+"release_kyc_desk_check":
+{ Args: { "p_member_id": string }; Returns: undefined
+                           },
 "release_kyc_selfie":
 { Args: { "p_member_id": string }; Returns: undefined
                            },
@@ -3929,6 +3948,9 @@ isOneToOne: false
                            },
 "update_notice":
 { Args: { "p_body": string,"p_ends_at"?: string,"p_notice_id": string,"p_starts_at"?: string }; Returns: undefined
+                           },
+"use_bonus":
+{ Args: { "p_chips": number,"p_member_id": string,"p_reason": string,"p_request_id": string }; Returns: string
                            },
 "venue_dealers":
 { Args: { "p_venue_id": string }; Returns: {

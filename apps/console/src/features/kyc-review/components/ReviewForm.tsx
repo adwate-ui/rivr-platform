@@ -37,13 +37,17 @@ export function ReviewForm({ venueId, memberId, fullName, needsDateOfBirth, need
       setFailure(decided.ok ? null : decided.error);
       if (decided.ok) onDecided();
     })();
-  const isInvalid = Object.keys(form.formState.errors).length > 0;
+  // The date of birth says its own error under its field; this one message covers the reason and the PAN.
+  const isInvalid = form.formState.errors.reason !== undefined || form.formState.errors.pan !== undefined;
   const dateOfBirth = form.register('dateOfBirth');
   const pan = form.register('pan');
   const reason = form.register('reason');
   return (
     <Stack gap={3}>
-      {needsDateOfBirth ? <Input {...dateOfBirth} type="date" label={t('console.kycReview.dateOfBirthFor', { name: fullName })} /> : null}
+      {needsDateOfBirth ? (
+        <Input {...dateOfBirth} type="date" label={t('console.kycReview.dateOfBirthFor', { name: fullName })}
+          error={form.formState.errors.dateOfBirth ? t('console.kycReview.dateOfBirthInvalid') : undefined} />
+      ) : null}
       {needsPan ? <Input {...pan} label={t('console.kycReview.panFor', { name: fullName })} maxLength={10} autoComplete="off" /> : null}
       {/* The console's filled field (console v3), its name above it; the rule for the reason on the line above, as in the prototype. */}
       <Stack gap={2}>
@@ -54,7 +58,7 @@ export function ReviewForm({ venueId, memberId, fullName, needsDateOfBirth, need
         <Button variant="strong" size="compact" isLoading={review.isPending} onClick={decide(true)}>{t('console.kycReview.approve')}</Button>
         <Button variant="subtle" size="compact" isLoading={review.isPending} onClick={decide(false)}>{t('console.kycReview.reject')}</Button>
       </Inline>
-      {/* One message covers all three fields, as before. */}
+      {/* One message covers the reason and the PAN, as before. */}
       {isInvalid ? <ErrorMessage>{t('console.kycReview.reasonInvalid')}</ErrorMessage> : null}
       {failure === null ? null : <ErrorMessage>{t(FAILURE_COPY[failure])}</ErrorMessage>}
     </Stack>
