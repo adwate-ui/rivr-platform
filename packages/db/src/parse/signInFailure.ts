@@ -6,7 +6,7 @@ import { functionErrorCode } from './kycFailure.ts';
  * wrong code and an expired code alike (`otp_expired`), so the screen cannot tell them apart.
  * `no_connection` is a request that got no answer the app could read, the phone's connection most
  * often; `unavailable` is an answer that says the service failed. A function the gateway cannot run
- * (boot error, timeout) answers without CORS headers, which the browser reports as no answer too:
+ * (boot error, timeout) may answer without CORS headers, which the browser reports as no answer too:
  * many members' `refused:no_connection` at once is an outage, not their phones.
  */
 export type SignInFailure = 'code_rejected' | 'too_many_requests' | 'not_checked' | 'no_connection' | 'unavailable';
