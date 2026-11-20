@@ -12,10 +12,11 @@ afterEach(() => {
 
 const PHONE = indianMobileSchema.parse('9000000901');
 
-function renderCode() {
-  // sign-in-verify finds no VerifyNow code sent (decision 0679), and Auth refuses every code as expired or wrong.
+function renderCode(checkCode: () => Promise<Response> = async () => Response.json({ token: null })) {
+  // sign-in-verify answers with `checkCode`, by default that VerifyNow sent no code (decision 0679), and Auth refuses every
+  // code as expired or wrong.
   vi.stubGlobal('fetch', async (input: RequestInfo | URL) => (String(input).includes('/functions/v1/sign-in-verify')
-    ? Response.json({ token: null })
+    ? checkCode()
     : Response.json({ code: 403, error_code: 'otp_expired', msg: 'Token has expired or is invalid' }, { status: 403 })));
   const onBack = vi.fn();
   render(
@@ -55,6 +56,15 @@ describe('Sign in › Code', () => {
     fireEvent.change(field, { target: { value: '000000' } });
     expect(await screen.findByText('Wrong or expired code. Check it, or resend.')).toBeDefined();
     expect(field).toHaveProperty('value', '');
+  });
+
+  it('No answer: says the club could not be reached and keeps the code, to verify again', async () => {
+    renderCode(() => Promise.reject(new TypeError('Load failed')));
+    const field = screen.getByRole('textbox', { name: '6-digit code' });
+    fireEvent.change(field, { target: { value: '123456' } });
+    expect(await screen.findByText('Could not reach RIVR. Check your connection and try again.')).toBeDefined();
+    expect(field).toHaveProperty('value', '123456');
+    expect(screen.getByRole('button', { name: 'Verify' })).toHaveProperty('disabled', false);
   });
 
   it('goes back to the number', () => {

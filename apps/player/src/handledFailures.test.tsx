@@ -29,12 +29,12 @@ function renderAt(path: string) {
 }
 
 describe('failures the screens handle themselves are reported (the trial run of 13 Nov)', () => {
-  it('Sign in: a code request Auth could not take, by its code', async () => {
+  it('Sign in: a code request that got no answer from Auth, by its code', async () => {
     const reported = renderAt('/sign-in');
     fireEvent.change(await screen.findByRole('textbox', { name: 'Mobile number' }), { target: { value: '98765 43210' } });
     fireEvent.click(screen.getByRole('button', { name: 'Send code' }));
-    expect(await screen.findByText('Sign-in is down. Try again shortly.')).toBeDefined();
-    expect(reported()).toContain('refused:unavailable');
+    expect(await screen.findByText('Could not reach RIVR. Check your connection and try again.')).toBeDefined();
+    expect(reported()).toContain('refused:no_connection');
     expect(JSON.stringify(reported())).not.toContain('98765');
   });
 
