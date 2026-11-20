@@ -62,12 +62,15 @@ export function doorFiltersInCodes(filters: Readonly<Record<string, ListFilter>>
   }));
 }
 
-// Floor and up see the mobile and History too (#1073). Measured at 1440 px (the UI review, 19 Nov): a name of normal
-// length stays on one line and the mobile gives way, onto two lines; every heading and button fits.
-const WITH_CONTACT: Partial<Record<string, number>> = { player: 1.62 };
+// Floor and up see the mobile and History too (#1073). On Today's players, measured at 1440 px (the UI review, 19 Nov;
+// with Wallet, 20 Nov): a name of normal length stays on one line and the mobile gives way, onto two lines; every heading
+// and button fits; Bonus and Wallet keep five digits on one line, Used four. Only Never arrived, the longest status, is cut short.
+const WITH_CONTACT: Partial<Record<string, number>> = {
+  player: 1.6, number: 0.61, tier: 0.73, status: 1.42, seated: 0.73, bonus: 0.73, bonus_used: 0.61, wallet: 0.73, kyc: 1.24,
+};
 
-const sharesWithContact = (columns: readonly DataTableColumn<DoorPlayer>[], kept: string) => columns.map((column) => {
-  const share = column.key === kept ? undefined : WITH_CONTACT[column.key];
+const sharesWithContact = (columns: readonly DataTableColumn<DoorPlayer>[]) => columns.map((column) => {
+  const share = WITH_CONTACT[column.key];
   return share === undefined ? column : { ...column, share };
 });
 
@@ -87,26 +90,34 @@ function withContact(
   );
   if (action === undefined) {
     const mobile: DataTableColumn<DoorPlayer> = {
-      key: 'phone', share: 1.41, header: t('console.members.mobile'), filter: false, isExported: false,
+      key: 'phone', share: 1.14, header: t('console.members.mobile'), filter: false, isExported: false,
       cell: (player) => (player.phone === null ? NONE() : <Text variant="secondary" tone="muted">{formatMobile(player.phone)}</Text>),
     };
-    const shown = sharesWithContact(columns, '');
-    return [...shown.slice(0, 2), mobile, ...shown.slice(2), { key: 'history', share: 1.17, header: '', align: 'end', filter: false, cell: history }];
+    const shown = sharesWithContact(columns);
+    return [...shown.slice(0, 2), mobile, ...shown.slice(2), { key: 'history', share: 1.14, header: '', align: 'end', filter: false, cell: history }];
   }
-  // The name, over its mobile, gives up a little more, so History and Check out stay on one line. Status needs less here:
-  // its longest is In the room (Never arrived is not on Check-in's lists) and it has no sort arrow (Today's players opens
-  // sorted by it).
-  const named = sharesWithContact(columns, 'player').map((column) => {
+  // With Wallet (the owner, 20 Nov) a row has no room at 1440 px for History and Check out side by side, so Check out goes
+  // under History and the name and its mobile keep a line each. Status needs less here: its longest is In the room (Never
+  // arrived is not on Check-in's lists) and it has no sort arrow (Today's players opens sorted by it). At table needs only
+  // its start and dash: a seat left wraps after its dash.
+  const named = columns.map((column) => {
     if (column.key === 'status') return { ...column, share: 1.45 };
+    if (column.key === 'seated') return { ...column, share: 0.8 };
     return column.key !== 'player' ? column : {
-      ...column, share: 1.83, exportValue: (player: DoorPlayer) => player.fullName,
+      ...column, share: 1.85, exportValue: (player: DoorPlayer) => player.fullName,
       cell: (player: DoorPlayer) => <>{nameOf(player)}{player.phone === null ? null : <Text variant="secondary" tone="muted">{formatMobile(player.phone)}</Text>}</>,
     };
   });
-  // Below 768 px the column is one 128 px track (DataTable's sideways layout), too narrow for both on one line: Check out
-  // wraps under History rather than squeeze its words onto two lines.
-  return [...named, { key: 'action', share: 2.72, header: '', align: 'end', isWide: true, filter: false, cell: (player) => <Inline gap={2} justify="end" wrap>{history(player)}{action(player)}</Inline> }];
+  // At 1440 px, and below 768 px where the column is one 128 px track (DataTable's sideways layout), Check out wraps under
+  // History rather than squeeze its words onto two lines.
+  return [...named, { key: 'action', share: 1.91, header: '', align: 'end', isWide: true, filter: false, cell: (player) => <Inline gap={2} justify="end" wrap>{history(player)}{action(player)}</Inline> }];
 }
+
+/** The Bonus in their wallet now, whichever day it was given (the owner, 20 Nov), on the same first row as the Bonus given. */
+const walletColumn = (): DataTableColumn<DoorPlayer> => ({
+  key: 'wallet', share: 0.77, header: t('console.todaysPlayers.wallet'), align: 'end', filter: false,
+  sortValue: (player) => rupees(player.wallet), exportValue: (player) => rupeesInFile(player.wallet), cell: (player) => chips(player.wallet),
+});
 
 /**
  * The door's columns (redesign RD-30, as its prototype has them): the player, their number and tier, where they stand,
@@ -147,6 +158,7 @@ export function doorColumns(
       key: 'bonus_used', share: 0.63, header: t('console.todaysPlayers.bonusUsed'), align: 'end', filter: false,
       sortValue: (player) => rupees(player.bonusUsed), exportValue: (player) => rupeesInFile(player.bonusUsed), cell: (player) => chips(player.bonusUsed),
     },
+    walletColumn(),
     {
       key: 'kyc', share: 1.26, header: t('console.members.kyc'), sortValue: (player) => KYC.indexOf(player.kycStatus), isWide: true, filter: 'choice', choices: choicesIn('kyc', counted),
       filterValue: (player) => kycWords(player.kycStatus),

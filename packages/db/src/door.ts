@@ -39,6 +39,8 @@ export interface DoorPlayer extends Omit<TodaysPlayer, 'status' | 'waitingSecond
    * (the owner, 20 Nov); null on a row without a seat that has none.
    */
   readonly bonusUsed: Paise | null;
+  /** The Bonus in the member's wallet now, whichever day it was given (as Members has it; the owner, 20 Nov), on the same first row as `bonus`; null on the rest. */
+  readonly wallet: Paise | null;
   /** The row's seat session and its visit, which tell the rows apart; a row without a seat has no session, nor a visit when it is a wait outside. */
   readonly sessionId: string | null;
   readonly visitId: string | null;
@@ -48,7 +50,7 @@ export interface DoorPlayer extends Omit<TodaysPlayer, 'status' | 'waitingSecond
   readonly phone: string | null;
 }
 
-/** A figure in paise the server may leave out: Bonus on a member's later rows, or used with no seat. */
+/** A figure in paise the server may leave out: Bonus or the wallet on a member's later rows, or used with no seat. */
 export const paiseOrNone = (value: number | null): Paise | null => (value === null ? null : toPaise(value));
 
 const STATUSES: readonly DoorStatus[] = ['playing', 'waiting', 'in_room', 'expected', 'left', 'never_arrived'];
@@ -70,7 +72,7 @@ export function useDoorPage(venueId: string, view: ScopedView | null) {
       checkedInAt: row.checked_in_at, checkedOutAt: row.checked_out_at, waitingSeconds: row.waiting_seconds, tables: tablesOf(row.tables),
       playedSeconds: Number(row.played_seconds), kycStatus: kycStatusOf(row.kyc_status), since: row.since, bonus: paiseOrNone(row.bonus_paise),
       phone: row.phone, seatedAt: row.seated_at, leftAt: row.left_at, bonusUsed: paiseOrNone(row.bonus_used_paise),
-      sessionId: row.session_id, visitId: row.visit_id, linkedMemberId: row.linked_member_id,
+      sessionId: row.session_id, visitId: row.visit_id, linkedMemberId: row.linked_member_id, wallet: paiseOrNone(row.wallet_paise),
     }),
   });
 }

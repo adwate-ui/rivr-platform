@@ -2916,7 +2916,7 @@ isOneToOne: false
                            },
 "door_page":
 { Args: { "p_venue_id": string,"p_view"?: Json }; Returns: {
-              "bonus_paise": number,"bonus_used_paise": number,"checked_in_at": string,"checked_out_at": string,"full_name": string,"is_base_tier": boolean,"kyc_status": string,"left_at": string,"linked_member_id": string,"list": string,"member_id": string,"member_number": number,"phone": string,"played_seconds": number,"seated_at": string,"session_id": string,"since": string,"status": string,"tables": Json,"tier_name": string,"total": number,"visit_id": string,"waiting_seconds": number
+              "bonus_paise": number,"bonus_used_paise": number,"checked_in_at": string,"checked_out_at": string,"full_name": string,"is_base_tier": boolean,"kyc_status": string,"left_at": string,"linked_member_id": string,"list": string,"member_id": string,"member_number": number,"phone": string,"played_seconds": number,"seated_at": string,"session_id": string,"since": string,"status": string,"tables": Json,"tier_name": string,"total": number,"visit_id": string,"waiting_seconds": number,"wallet_paise": number
             }[]
                            },
 "down_hands":

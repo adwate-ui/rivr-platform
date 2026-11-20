@@ -18,13 +18,13 @@ const KABIR = {
   total: 1, member_id: 'm1', full_name: 'Kabir Sethi', member_number: 31, tier_name: 'Black card', is_base_tier: false, status: 'expected', list: 'expected',
   checked_in_at: null, checked_out_at: null, waiting_seconds: 240, tables: [], played_seconds: 0, kyc_status: 'at_desk', since: '2026-11-03T14:00:00Z',
   bonus_paise: 0, phone: '+919812345678', seated_at: null, left_at: null, bonus_used_paise: null,
-  session_id: null, visit_id: null, linked_member_id: 'm1',
+  session_id: null, visit_id: null, linked_member_id: 'm1', wallet_paise: 0,
 };
 const NAKUL = {
   ...KABIR, member_id: 'm2', full_name: 'Nakul Dhillon', member_number: 270, tier_name: 'Member', is_base_tier: true, status: 'playing', list: 'in_club',
   checked_in_at: '2026-11-03T14:05:00Z', waiting_seconds: 0, tables: [{ table: 'Table 1', seconds: 5400 }], played_seconds: 5400, kyc_status: 'verified',
   bonus_paise: 150_000, phone: '+919876543210', seated_at: '2026-11-03T14:10:00Z', left_at: null, bonus_used_paise: 50_000,
-  session_id: 's2', visit_id: 'v2', linked_member_id: 'm2',
+  session_id: 's2', visit_id: 'v2', linked_member_id: 'm2', wallet_paise: 550_000,
 };
 
 /** Members' addresses, as the console's frame gives them, so a name the server links is a link. */
@@ -171,6 +171,17 @@ describe('Check-in (the door as one table from the server, redesign RD-30)', () 
     await waitFor(() => expect(calls).toContain('check_in'));
   });
 
+  it('shows the Bonus in each member\'s wallet on Check-in too, after Used (the owner, 20 Nov)', async () => {
+    renderAs('floor');
+    const table = await door();
+    const row = (await within(table).findByText('Nakul Dhillon')).closest('[role="row"]');
+    const headers = within(table).getAllByRole('columnheader').map((header) => header.textContent ?? '');
+    const at = headers.findIndex((header) => header.startsWith('Wallet'));
+    expect(headers[at - 1]).toMatch(/^Used/);
+    const cells = row instanceof HTMLElement ? within(row).getAllByRole('cell').map((cell) => cell.textContent) : [];
+    expect(cells[at]).toBe('5,500');
+  });
+
   it('refuses a dealer, who keeps no door', async () => {
     renderAs('dealer');
     expect(await screen.findByText('Not in your role. Ask an admin.', {}, { timeout: 5000 })).toBeDefined();
@@ -220,6 +231,24 @@ describe('Today\'s players (issue 641; on the server, redesign RD-30)', () => {
     const table = await screen.findByRole('table', { name: 'Players today' }, { timeout: 5000 });
     expect((await within(table).findByRole('link', { name: 'Nakul Dhillon' })).getAttribute('href')).toBe('/members?member=m2');
     expect(within(table).getByText('Erased member').closest('a')).toBeNull();
+  });
+
+  it('shows the Bonus in a member\'s wallet now on their first row, whichever day it was given (the owner, 20 Nov)', async () => {
+    // Given ₹5,500 on earlier days and none today: Bonus is nought, Wallet holds it; his second seat's row has none.
+    rows = [
+      { ...NAKUL, bonus_paise: 0, bonus_used_paise: 0, wallet_paise: 550_000 },
+      { ...NAKUL, bonus_paise: null, bonus_used_paise: 0, wallet_paise: null, session_id: 's4', tables: [{ table: 'Table 2', seconds: 600 }], seated_at: '2026-11-03T16:00:00Z' },
+    ];
+    renderAs('host', 'players');
+    const table = await screen.findByRole('table', { name: 'Players today' }, { timeout: 5000 });
+    await within(table).findByText('Table 2');
+    const headers = within(table).getAllByRole('columnheader').map((header) => header.textContent ?? '');
+    const at = (name: string) => headers.findIndex((header) => header.startsWith(name));
+    expect(at('Wallet')).toBeGreaterThan(at('Bonus'));
+    const [first, second] = within(table).getAllByRole('row').slice(1).map((row) => within(row).getAllByRole('cell').map((cell) => cell.textContent));
+    expect(first?.[at('Wallet')]).toBe('5,500');
+    expect(first?.[at('Bonus')]).toBe('0');
+    expect(second?.[at('Wallet')]).toBe('–');
   });
 
   it('refuses staff who read no members', async () => {
