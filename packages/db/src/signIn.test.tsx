@@ -16,7 +16,12 @@ interface Reply {
   body: unknown;
   /** Answer this long after the request, as a slow network would. */
   delayMs?: number;
+  /** No answer at all: the request fails, as one does when the phone's connection drops. */
+  isLost?: boolean;
 }
+
+/** A request that never gets an answer. */
+const LOST: Reply = { status: 0, body: null, isLost: true };
 
 /**
  * A fake Auth and PostgREST: answers each path with the reply a test sets (or works out when
@@ -30,6 +35,8 @@ function fakeApi(replies: Record<string, Reply | (() => Reply)>) {
     const set = replies[path] ?? { status: 404, body: {} };
     const reply = typeof set === 'function' ? set() : set;
     if (reply.delayMs) await new Promise((resolve) => setTimeout(resolve, reply.delayMs));
+    // What Safari throws for a request whose connection dropped.
+    if (reply.isLost) throw new TypeError('Load failed');
     return new Response(reply.status === 204 ? null : JSON.stringify(reply.body), {
       status: reply.status,
       headers: { 'content-type': 'application/json' },
@@ -126,6 +133,18 @@ describe('useSignIn', () => {
     expect(await act(() => tooMany.result.current.verifyCode.mutateAsync({ phone, code: '000000' }))).toEqual({ ok: false, error: 'too_many_requests' });
     expect(await act(() => down.result.current.verifyCode.mutateAsync({ phone, code: '000000' }))).toEqual({ ok: false, error: 'unavailable' });
     expect([...wrong.calls, ...tooMany.calls, ...down.calls].map((call) => call.path)).not.toContain('/auth/v1/verify');
+  });
+
+  it('says the connection failed, not that sign-in is down, when a request gets no answer', async () => {
+    const check = signInWith({ '/functions/v1/sign-in-verify': LOST });
+    const verify = signInWith({ ...CHECK_WITH_AUTH, '/auth/v1/verify': LOST });
+    const send = signInWith({ '/auth/v1/otp': LOST });
+
+    expect(await act(() => check.result.current.verifyCode.mutateAsync({ phone, code: '123456' }))).toEqual({ ok: false, error: 'no_connection' });
+    expect(check.calls.map((call) => call.path)).not.toContain('/auth/v1/verify');
+    expect(await act(() => verify.result.current.verifyCode.mutateAsync({ phone, code: '123456' }))).toEqual({ ok: false, error: 'no_connection' });
+    expect(verify.calls.map((call) => call.path)).not.toContain('/rest/v1/rpc/link_my_login');
+    expect(await act(() => send.result.current.requestCode.mutateAsync({ phone }))).toEqual({ ok: false, error: 'no_connection' });
   });
 
   it('asks again what the person may see once the records are linked', async () => {

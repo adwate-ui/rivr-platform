@@ -6,5 +6,6 @@ export const FAILURE_COPY: Readonly<Record<SignInFailure, MessageKey>> = {
   code_rejected: 'common.signIn.codeRejected',
   too_many_requests: 'common.signIn.tooManyRequests',
   not_checked: 'common.signIn.notChecked',
+  no_connection: 'common.signIn.noConnection',
   unavailable: 'common.signIn.unavailable',
 };

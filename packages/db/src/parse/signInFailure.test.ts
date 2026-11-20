@@ -14,6 +14,10 @@ describe('toSignInFailure', () => {
     expect(toSignInFailure({ status: 429, code: 'unknown' })).toBe('too_many_requests');
   });
 
+  it('reads a request that got no answer, which Auth\'s client gives status 0, as no connection', () => {
+    expect(toSignInFailure({ status: 0 })).toBe('no_connection');
+  });
+
   it('reads anything else, such as no channel to send by, as unavailable', () => {
     // The send hook's answer for a code it could not send, as Auth passes it on (decision 0683).
     expect(toSignInFailure({ status: 424, code: 'unknown' })).toBe('unavailable');

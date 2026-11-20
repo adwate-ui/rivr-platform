@@ -40,10 +40,11 @@ export function CodeStep({ phone, onBack, onSignedIn, banner, onRefused }: CodeS
   const { verifyCode } = useSignIn();
   const isOnline = useIsOnline();
   const form = useForm<z.input<typeof codeForm>>({ resolver: zodResolver(codeForm), defaultValues: { code: '' } });
-  // A code refused leaves the cells empty, its reason beneath them, and asks for a new version (`onRefused`, #1053).
+  // A code refused leaves the cells empty, its reason beneath them, and asks for a new version (`onRefused`, #1053). A code
+  // whose check got no answer stays in the cells, so Verify can send it again as it is.
   const fail = (failure: SignInFailure) => {
     form.setError('code', { type: 'server', message: t(FAILURE_COPY[failure]) });
-    form.resetField('code', { keepError: true });
+    if (failure !== 'no_connection') form.resetField('code', { keepError: true });
     onRefused?.();
   };
 

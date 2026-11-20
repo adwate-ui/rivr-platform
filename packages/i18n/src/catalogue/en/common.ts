@@ -77,6 +77,8 @@ export const common = {
     tooManyRequests: 'Too many tries. Wait a minute.',
     /** The security check (Cloudflare Turnstile) did not finish or failed (#182). */
     notChecked: 'Security check incomplete. Send again.',
+    /** A sign-in request that got no answer at all, most often the phone's connection: sign-in itself is not down. */
+    noConnection: 'Could not reach RIVR. Check your connection and try again.',
     unavailable: 'Sign-in is down. Try again shortly.',
     signOut: 'Sign out',
     /** Sign-in opened while someone is still signed in on this device, such as a bookmark on a shared computer. */

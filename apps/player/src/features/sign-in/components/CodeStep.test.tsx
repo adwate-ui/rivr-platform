@@ -12,10 +12,11 @@ afterEach(() => {
 
 const PHONE = indianMobileSchema.parse('9000000901');
 
-function renderCode() {
-  // sign-in-verify finds no VerifyNow code sent (decision 0679), and Auth refuses every code as expired or wrong.
-  vi.stubGlobal('fetch', async (input: RequestInfo | URL) => (String(input).includes('/functions/v1/sign-in-verify')
-    ? Response.json({ token: null })
+function renderCode(checkCode: (body: unknown) => Promise<Response> = async () => Response.json({ token: null })) {
+  // sign-in-verify answers with `checkCode`, given what was sent, by default that VerifyNow sent no code (decision 0679),
+  // and Auth refuses every code as expired or wrong.
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => (String(input).includes('/functions/v1/sign-in-verify')
+    ? checkCode(JSON.parse(String(init?.body)))
     : Response.json({ code: 403, error_code: 'otp_expired', msg: 'Token has expired or is invalid' }, { status: 403 })));
   const onBack = vi.fn();
   render(
@@ -55,6 +56,24 @@ describe('Sign in › Code', () => {
     fireEvent.change(field, { target: { value: '000000' } });
     expect(await screen.findByText('Wrong or expired code. Check it, or resend.')).toBeDefined();
     expect(field).toHaveProperty('value', '');
+  });
+
+  it('No answer: says RIVR could not be reached and keeps the code, which Verify sends again', async () => {
+    // The first check gets no answer; the second finds no VerifyNow code sent, and Auth refuses the code.
+    const sent: unknown[] = [];
+    renderCode(async (body) => {
+      sent.push(body);
+      if (sent.length === 1) throw new TypeError('Load failed');
+      return Response.json({ token: null });
+    });
+    const field = screen.getByRole('textbox', { name: '6-digit code' });
+    fireEvent.change(field, { target: { value: '123456' } });
+    expect(await screen.findByText('Could not reach RIVR. Check your connection and try again.')).toBeDefined();
+    expect(field).toHaveProperty('value', '123456');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Verify' }));
+    expect(await screen.findByText('Wrong or expired code. Check it, or resend.')).toBeDefined();
+    expect(sent).toEqual([{ phone: PHONE, code: '123456' }, { phone: PHONE, code: '123456' }]);
   });
 
   it('goes back to the number', () => {

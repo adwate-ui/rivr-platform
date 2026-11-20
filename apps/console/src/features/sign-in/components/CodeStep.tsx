@@ -32,10 +32,11 @@ export function CodeStep({ phone, onBack, onSignedIn }: { phone: IndianMobile; o
   const { verifyCode } = useSignIn();
   const [isResent, setIsResent] = useState(false);
   const form = useForm<z.input<typeof codeForm>>({ resolver: zodResolver(codeForm), defaultValues: { code: '' } });
-  // A code refused leaves the cells empty for the next, its reason kept beneath them.
+  // A code refused leaves the cells empty for the next, its reason kept beneath them. A code whose check got no answer
+  // stays in the cells, so Verify can send it again as it is.
   const fail = (failure: SignInFailure) => {
     form.setError('code', { type: 'server', message: t(FAILURE_COPY[failure]) });
-    form.resetField('code', { keepError: true });
+    if (failure !== 'no_connection') form.resetField('code', { keepError: true });
   };
 
   const verify = form.handleSubmit(async ({ code }) => {

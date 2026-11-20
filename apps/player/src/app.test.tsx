@@ -253,11 +253,11 @@ describe('sign-in', () => {
     expect(await screen.findByText('Enter a 10-digit mobile number.')).toBeDefined();
   });
 
-  it('says sign-in is not available when Auth cannot be reached', async () => {
+  it('says to check the connection, not that sign-in is down, when Auth gives no answer', async () => {
     renderAt('/sign-in');
     fireEvent.change(await screen.findByRole('textbox', { name: 'Mobile number' }), { target: { value: '98765 43210' } });
     fireEvent.click(screen.getByRole('button', { name: 'Send code' }));
-    expect(await screen.findByText('Sign-in is down. Try again shortly.')).toBeDefined();
+    expect(await screen.findByText('Could not reach RIVR. Check your connection and try again.')).toBeDefined();
   });
 });
 
