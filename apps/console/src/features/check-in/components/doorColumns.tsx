@@ -62,12 +62,13 @@ export function doorFiltersInCodes(filters: Readonly<Record<string, ListFilter>>
   }));
 }
 
-// Floor and up see the mobile and History too (#1073), on both tabs. Measured at 1440 px (the UI reviews, 19 and 20 Nov):
-// every heading fits; Bonus keeps five digits on one line, Used four, Wallet −1,52,000 and ID check At the desk. On Today's
-// players the mobile gives way, onto two lines, and a name longer than about 85 px takes two; Never arrived, the longest
-// status, is cut short. Check-in sets the name's share itself.
+// Floor and up see the mobile and History too (#1073), on both tabs. Measured at 1440 px (the UI reviews, 19 and 20 Nov),
+// each column a pixel or less above the narrowest that cuts nothing: every heading fits; Bonus keeps five digits on one
+// line, Used four, Wallet −1,52,000 and ID check At the desk. On Today's players the mobile gives way, onto two lines, and
+// a name as long as Naina Kapoor keeps one; Never arrived, the longest status, is cut short. Check-in sets the name's share.
 const WITH_CONTACT: Partial<Record<string, number>> = {
-  player: 1.43, number: 0.62, tier: 0.74, status: 1.43, seated: 0.74, bonus: 0.74, bonus_used: 0.61,
+  number: 0.61, tier: 0.74, status: 1.41, waited: 0.85, table: 0.98, seated: 0.73, played: 1.03, bonus: 0.73, bonus_used: 0.6, wallet: 1.05,
+  kyc: 1.36,
 };
 
 const sharesWithContact = (columns: readonly DataTableColumn<DoorPlayer>[]) => columns.map((column) => {
@@ -92,23 +93,23 @@ function withContact(
   );
   if (action === undefined) {
     const mobile: DataTableColumn<DoorPlayer> = {
-      key: 'phone', share: 1.13, header: t('console.members.mobile'), filter: false, isExported: false,
+      key: 'phone', share: 1.15, header: t('console.members.mobile'), filter: false, isExported: false,
       cell: (player) => (player.phone === null ? NONE() : <Text variant="secondary" tone="muted">{formatMobile(player.phone)}</Text>),
     };
     const shown = sharesWithContact(columns);
-    return [...shown.slice(0, 2), mobile, ...shown.slice(2), { key: 'history', share: 0.76, header: '', align: 'end', filter: false, cell: history }];
+    return [...shown.slice(0, 2), mobile, ...shown.slice(2), { key: 'history', share: 0.75, header: '', align: 'end', filter: false, cell: history }];
   }
-  // The row's buttons take two lines (the UI review, 20 Nov): History and Use Bonus, then Check out beneath. The name, over
-  // its mobile, gives up the room: the mobile takes two lines, and a name longer than about 75 px two.
+  // The row's buttons take two lines (the UI review, 20 Nov): History and Use Bonus, then Check out beneath, the narrowest
+  // they go. The name, over its mobile, has what is left: the mobile takes two lines, and a name longer than about 90 px two.
   const named = sharesWithContact(columns).map((column) => {
     return column.key !== 'player' ? column : {
-      ...column, share: 1.26, exportValue: (player: DoorPlayer) => player.fullName,
+      ...column, share: 1.5, exportValue: (player: DoorPlayer) => player.fullName,
       cell: (player: DoorPlayer) => <>{nameOf(player)}{player.phone === null ? null : <Text variant="secondary" tone="muted">{formatMobile(player.phone)}</Text>}</>,
     };
   });
   // At 1440 px, and below 768 px where the column is one 128 px track (DataTable's sideways layout), Check out wraps under
   // History and Use Bonus rather than squeeze its words onto two lines.
-  return [...named, { key: 'action', share: 2.33, header: '', align: 'end', isWide: true, filter: false, cell: (player) => <Inline gap={2} justify="end" wrap>{history(player)}{action(player)}</Inline> }];
+  return [...named, { key: 'action', share: 2.27, header: '', align: 'end', isWide: true, filter: false, cell: (player) => <Inline gap={1} justify="end" wrap>{history(player)}{action(player)}</Inline> }];
 }
 
 /**

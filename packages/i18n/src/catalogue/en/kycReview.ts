@@ -61,7 +61,8 @@ export const kycReview = {
   dateOfBirthInvalid: 'Give the date of birth on the document, with a 4-digit year.',
   approve: 'Approve',
   reject: 'Reject',
-  reasonInvalid: 'Check the reason (3 to 500 characters, no document numbers), the date of birth and the PAN.',
+  /** Under the buttons, for the reason or the PAN; the date of birth has its own error (20 Nov). */
+  reasonInvalid: 'Check the reason (3 to 500 characters, no document numbers) and the PAN.',
 };
 
 /** Why a KYC decision did not go through. */
