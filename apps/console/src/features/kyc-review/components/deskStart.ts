@@ -7,11 +7,6 @@ import { IN_PERSON_FAILURE_COPY } from './checkText.ts';
 export type DecidedClaim = Extract<KycDeskClaim, { status: 'decided' }>;
 
 /**
- * Start claims the member for this reviewer (the owner, 20 Nov), so no one else starts them while the five steps are
- * taken: one being checked elsewhere says by whom and since when, and one checked already closes the check with who did
- * it and when. The claim is let go when the check closes undone: Choose another member, or the sheet closed.
- */
-/**
  * A claim's two marks: held by this check, and the check closed. As the check closes the claim it holds is let go, and a
  * claim that comes back after that is let go at once, not held for 15 minutes.
  */
@@ -28,6 +23,11 @@ function useLetGoOnClose(memberId: string, letGo: (memberId: string) => void) {
   return { isHeld, isClosed };
 }
 
+/**
+ * Start claims the member for this reviewer (the owner, 20 Nov), so no one else starts them while the five steps are
+ * taken: one being checked elsewhere says by whom and since when, and one checked already closes the check with who did
+ * it and when. The claim is let go when the check closes undone: Choose another member, or the sheet closed.
+ */
 export function useStart({ venueId, member, onStarted, onChecked }: {
   venueId: string; member: KycCandidate; onStarted: () => void; onChecked: (claim: DecidedClaim) => void;
 }) {
