@@ -14,6 +14,14 @@ describe('kycInPersonSchema', () => {
     expect(kycInPersonSchema.safeParse({ ...IN_PERSON, consent: false }).success).toBe(false);
   });
 
+  it('refuses a date of birth the database would: before 1900, as a year typed in two digits gives, or a day to come', () => {
+    expect(kycInPersonSchema.safeParse({ ...IN_PERSON, dateOfBirth: '0092-04-12' }).success).toBe(false);
+    expect(kycInPersonSchema.safeParse({ ...IN_PERSON, dateOfBirth: '2999-01-01' }).success).toBe(false);
+    expect(kycInPersonSchema.safeParse({ ...IN_PERSON, dateOfBirth: '1900-01-01' }).success).toBe(true);
+    expect(kycReviewSchema.safeParse({ reason: 'Seen at the desk', dateOfBirth: '0092-04-12', pan: '' }).success).toBe(false);
+    expect(kycReviewSchema.safeParse({ reason: 'Seen at the desk', dateOfBirth: '', pan: '' }).success).toBe(true);
+  });
+
   it('takes the word on the Aadhaar\'s bars as given or not: the database asks for it while the venue asks for the bars (decision 0663)', () => {
     expect(kycInPersonSchema.safeParse({ ...IN_PERSON, coversConfirmed: false }).success).toBe(true);
     expect(kycInPersonSchema.safeParse({ ...IN_PERSON, coversConfirmed: undefined }).success).toBe(false);

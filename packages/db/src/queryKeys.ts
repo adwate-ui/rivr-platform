@@ -37,6 +37,7 @@ export const queryKeys = {
   kycInPersonSearches: (userId: string, venueId: string) => ['user', userId, 'kyc-in-person', venueId] as const,
   kycInPersonCandidates: (userId: string, venueId: string, search: string) => ['user', userId, 'kyc-in-person', venueId, search] as const,
   kycDueTonight: (userId: string, venueId: string) => ['user', userId, 'kyc-due-tonight', venueId] as const,
+  kycDeskClaims: (userId: string, venueId: string) => ['user', userId, 'kyc-desk-claims', venueId] as const,
   memberKycDocuments: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-kyc-documents', venueId, memberId] as const,
   kycAadhaarCovers: (userId: string, venueId: string) => ['user', userId, 'kyc-aadhaar-covers', venueId] as const,
   kycDuplicateHolder: (userId: string, memberId: string) => ['user', userId, 'kyc-duplicate-holder', memberId] as const,

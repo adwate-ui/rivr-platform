@@ -216,6 +216,10 @@ export interface KycRetake {
   readonly reason: string;
 }
 
+// The desk's lists ask again every 10 seconds: two or three staff check members at once, and a member checked or started
+// on another device must show so before anyone else starts them (the owner, 20 Nov).
+export const DESK_LIST_CHECK = 10_000;
+
 interface CandidateRow {
   member_id: string;
   full_name: string;
@@ -241,6 +245,7 @@ export function useKycInPersonCandidates(venueId: string, search: string) {
   return useQuery({
     queryKey: queryKeys.kycInPersonCandidates(userId ?? 'signed-out', venueId, search.trim()),
     enabled: userId !== null && search.trim().length >= 2,
+    refetchInterval: DESK_LIST_CHECK,
     queryFn: async (): Promise<KycCandidate[]> => {
       const { data, error } = await client.rpc('kyc_in_person_candidates', { p_venue_id: venueId, p_search: search.trim() }).limit(LIST_MOST);
       if (error) throw error;
@@ -248,9 +253,6 @@ export function useKycInPersonCandidates(venueId: string, search: string) {
     },
   });
 }
-
-// The desk's list for tonight asks again each minute: members arrive and join lists all night.
-const DUE_TONIGHT_CHECK = 60_000;
 
 /**
  * Who the desk should check tonight (audit F-091): members in the room or on a list whose check is not done, the longest
@@ -261,7 +263,7 @@ export function useKycDueTonight(venueId: string) {
   return useQuery({
     queryKey: queryKeys.kycDueTonight(userId ?? 'signed-out', venueId),
     enabled: userId !== null,
-    refetchInterval: DUE_TONIGHT_CHECK,
+    refetchInterval: DESK_LIST_CHECK,
     queryFn: async (): Promise<KycCandidate[]> => {
       const { data, error } = await client.rpc('kyc_due_tonight', { p_venue_id: venueId }).limit(LIST_MOST);
       if (error) throw error;
@@ -299,10 +301,12 @@ export function useKycInPerson(venueId: string) {
       const [image, panImage, aadhaarImage] = await Promise.all([toBase64(photo), toBase64(panPhoto), toBase64(aadhaarPhoto)]);
       const { data, error } = await client.functions.invoke('kyc-in-person', { body: { ...details, image, panImage, aadhaarImage } });
       const user = userId ?? 'signed-out';
-      // The queue, which now holds a refused check, and the search, which no longer finds a decided one.
+      // The queue, which now holds a refused check, and the search and tonight's list, which no longer find a decided one.
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.kycReview(user, venueId) }),
         queryClient.invalidateQueries({ queryKey: queryKeys.kycInPersonSearches(user, venueId) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.kycDueTonight(user, venueId) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.kycDeskClaims(user, venueId) }),
       ]);
       if (error) return err(inPersonFailureOf(await functionErrorCode(error)));
       const status: unknown = typeof data === 'object' && data !== null ? Reflect.get(data, 'status') : null;

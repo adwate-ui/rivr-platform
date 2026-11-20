@@ -1,13 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { kycInPersonSchema } from '@rivr/contracts';
 import { useKycAadhaarCovers, useKycImageUrl, useKycInPerson, type KycCandidate, type KycInPersonOutcome } from '@rivr/db';
-import { t, type MessageKey } from '@rivr/i18n';
+import { formatTime, t, type MessageKey } from '@rivr/i18n';
 import { Button, ErrorMessage, Inline, Input, KycPhoto, kycPhotoStatus, MemberLink, Stack, Stepper, Switch, Text } from '@rivr/ui';
 import { useRef, useState } from 'react';
 import { useForm, type UseFormReturn } from 'react-hook-form';
 import type { z } from 'zod';
 import { IN_PERSON_FAILURE_COPY } from './checkText.ts';
 import { DeskCamera, DeskDocument, StepHeading } from './DeskPhotos.tsx';
+import { useStart, type DecidedClaim, type Start } from './deskStart.ts';
 import { PHOTO_KINDS, readyPhoto, stepNames, STEPS, type DeskPhoto, type DeskPhotoKind, type Step } from './deskSteps.ts';
 
 // The typed details; the photos and the consent are held beside the form.
@@ -79,7 +80,7 @@ function FaceUnconfirmed({ member }: { member: KycCandidate }) {
   return member.deskReason === 'face_unconfirmed' ? <ErrorMessage>{t('console.kycInPerson.faceUnconfirmed')}</ErrorMessage> : null;
 }
 
-function MemberStep({ member, onStart, onCancel }: { member: KycCandidate; onStart: () => void; onCancel: () => void }) {
+function MemberStep({ member, start, onCancel }: { member: KycCandidate; start: Start; onCancel: () => void }) {
   return (
     <Stack gap={4}>
       <StepHeading step="member" />
@@ -91,7 +92,11 @@ function MemberStep({ member, onStart, onCancel }: { member: KycCandidate; onSta
         </Stack>
       </Inline>
       <FaceUnconfirmed member={member} />
-      <Button variant="primary" fullWidth onClick={onStart}>{t('console.kycInPerson.start')}</Button>
+      {start.holder === null ? null : (
+        <ErrorMessage>{t('console.kycInPerson.beingChecked', { name: start.holder.staffName, time: formatTime(start.holder.since) })}</ErrorMessage>
+      )}
+      {start.problem === null ? null : <ErrorMessage>{t(start.problem)}</ErrorMessage>}
+      <Button variant="primary" fullWidth isLoading={start.isStarting} onClick={start.start}>{t('console.kycInPerson.start')}</Button>
       <Button variant="text" fullWidth onClick={onCancel}>{t('console.kycInPerson.another')}</Button>
     </Stack>
   );
@@ -202,6 +207,8 @@ interface DetailsOptions {
   photos: Photos;
   onProblem: (problem: MessageKey | null) => void;
   onDecided: (outcome: KycInPersonOutcome) => void;
+  /** Verify refused the check as decided: says who checked them where it can, closing the check; false where it cannot. */
+  onAlreadyDecided: () => Promise<boolean>;
   /** The Aadhaar photo was taken under the bars, and the word on them given (decision 0663). */
   hasCovers: boolean;
 }
@@ -211,7 +218,7 @@ interface DetailsOptions {
  * check is sent once however often Verify is pressed. Editing anything clears what the last try said; what the server
  * refuses is said in one line under the step.
  */
-function useDetails({ venueId, member, photos, onProblem, onDecided, hasCovers }: DetailsOptions) {
+function useDetails({ venueId, member, photos, onProblem, onDecided, onAlreadyDecided, hasCovers }: DetailsOptions) {
   const { check } = useKycInPerson(venueId);
   const [consent, setConsent] = useState(false);
   const [isConsentMissing, setConsentMissing] = useState(false);
@@ -227,7 +234,10 @@ function useDetails({ venueId, member, photos, onProblem, onDecided, hasCovers }
     const done = await check.mutateAsync({
       ...details, memberId: member.memberId, consent: true, coversConfirmed: hasCovers, photo: face.jpeg, panPhoto: pan.jpeg, aadhaarPhoto: aadhaar.jpeg,
     });
-    return done.ok ? onDecided(done.value) : onProblem(IN_PERSON_FAILURE_COPY[done.error]);
+    if (done.ok) return onDecided(done.value);
+    // Checked on another device meanwhile (13 Nov): who did it, and the check closes, rather than a Verify that cannot succeed.
+    if (done.error === 'decided' && (await onAlreadyDecided())) return undefined;
+    return onProblem(IN_PERSON_FAILURE_COPY[done.error]);
   });
   const verify = async () => {
     if (sending.current) return;
@@ -256,6 +266,8 @@ interface InPersonStepsProps {
   member: KycCandidate;
   /** The check went through the gate: verified, refused, or sent to review by a clash with another check. */
   onDecided: (outcome: KycInPersonOutcome) => void;
+  /** The member's check was done elsewhere: who checked them and when, where known (the owner, 20 Nov). */
+  onChecked: (claim: DecidedClaim) => void;
   /** Another member is to be chosen: what was taken and typed for this one is dropped. */
   onCancel: () => void;
 }
@@ -266,16 +278,17 @@ interface InPersonStepsProps {
  * consent, asked there. Each step takes the focus as it opens. The checks, the words and the rules are as before; the
  * database keeps the gate.
  */
-export function InPersonSteps({ venueId, member, onDecided, onCancel }: InPersonStepsProps) {
+export function InPersonSteps({ venueId, member, onDecided, onChecked, onCancel }: InPersonStepsProps) {
   const [problem, setProblem] = useState<MessageKey | null>(null);
   const steps = useSteps(setProblem);
   const hasCovers = useKycAadhaarCovers(venueId);
-  const details = useDetails({ venueId, member, photos: steps.photos, onProblem: setProblem, onDecided, hasCovers });
+  const start = useStart({ venueId, member, onStarted: steps.next, onChecked });
+  const details = useDetails({ venueId, member, photos: steps.photos, onProblem: setProblem, onDecided, onAlreadyDecided: start.whoChecked, hasCovers });
   const { step } = steps;
   return (
     <Stack gap={4}>
       <Stepper look="progress" label={t('console.kycInPerson.title')} steps={stepNames()} current={STEPS.indexOf(step)} />
-      {step === 'member' ? <MemberStep member={member} onStart={steps.next} onCancel={onCancel} /> : null}
+      {step === 'member' ? <MemberStep member={member} start={start} onCancel={onCancel} /> : null}
       {step === 'face' || step === 'pan' || step === 'aadhaar_front' ? <PhotoStep key={`${step}:${String(steps.isRetaking)}:${String(steps.attempt)}`} kind={step} member={member} steps={steps} problem={problem} hasCovers={hasCovers} /> : null}
       {step === 'details' ? <DetailsStep member={member} steps={steps} details={details} /> : null}
       {step === 'details' && problem !== null ? <ErrorMessage>{t(problem)}</ErrorMessage> : null}

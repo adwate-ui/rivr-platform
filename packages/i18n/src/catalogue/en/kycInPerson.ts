@@ -56,12 +56,18 @@ export const kycInPerson = {
   invalid: 'All three photos, date of birth, last four Aadhaar digits, PAN and consent are needed.',
   /** Under a field of the Details step, and under the consent, when Verify finds it missing or malformed. */
   errors: {
-    dateOfBirth: 'Give the date of birth on the document.',
+    dateOfBirth: 'Give the date of birth on the document, with a 4-digit year.',
     aadhaarLast4: 'Give the last four digits.',
     pan: 'Give the PAN as on the card.',
     consent: 'Ask for their consent, then switch this on.',
   },
   verified: '{name} is verified and can take a seat.',
+  /** A member another member of staff started at the desk in the last 15 minutes (the owner, 20 Nov). `{time}` is 20:41. */
+  beingChecked: 'Being checked by {name} since {time}.',
+  /** A member whose check was done elsewhere: who did it and when. `{by}` is a staff member's name, `{time}` 20:41. */
+  checkedBy: '{by} checked {name} at {time}.',
+  /** The same with no one to name: a check decided by the app or held for review. */
+  alreadyDecided: '{name}\'s check is already decided, in review, or waiting for their PAN.',
   refused: '{name} refused. See the checks below.',
   needsReview: '{name} goes to review: it matches another check. See the list below.',
   /** A super admin reopens a refused check done in person (#267). */

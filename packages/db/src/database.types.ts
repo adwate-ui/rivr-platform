@@ -2828,6 +2828,11 @@ isOneToOne: false
 "claim_computer":
 { Args: { "p_code": string,"p_token_hash": string,"p_venue_id": string }; Returns: string
                            },
+"claim_kyc_desk_check":
+{ Args: { "p_member_id": string }; Returns: {
+              "since": string,"staff_name": string,"status": string
+            }[]
+                           },
 "claim_kyc_rechecks":
 { Args: { "p_with_vendor": boolean }; Returns: {
               "date_of_birth": string,"full_name": string,"is_practice": boolean,"member_id": string,"pan": string
@@ -3102,6 +3107,11 @@ isOneToOne: false
                            },
 "kyc_at_the_club":
 { Args: { "p_venue_id"?: string }; Returns: boolean
+                           },
+"kyc_desk_claims":
+{ Args: { "p_venue_id": string }; Returns: {
+              "member_id": string,"since": string,"staff_name": string
+            }[]
                            },
 "kyc_digilocker_delivery":
 { Args: { "p_member_id": string }; Returns: Json
@@ -3558,6 +3568,9 @@ isOneToOne: false
                            },
 "reject_promotion_version":
 { Args: { "p_reason": string,"p_version_id": string }; Returns: undefined
+                           },
+"release_kyc_desk_check":
+{ Args: { "p_member_id": string }; Returns: undefined
                            },
 "release_kyc_selfie":
 { Args: { "p_member_id": string }; Returns: undefined

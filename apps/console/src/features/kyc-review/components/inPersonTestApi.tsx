@@ -26,7 +26,25 @@ export const NAINA = { member_id: '00000000-0000-4000-8000-000000000203', full_n
 type Reply = () => Response | Promise<Response>;
 
 /** Vikram, a KYC reviewer, signed in, over a fake API; gives what was sent to the check. */
-function renderOver(ui: ReactElement, reply: Reply, lists: { found: unknown; due: unknown[]; holder: unknown[]; covers?: boolean }) {
+/** What claim_kyc_desk_check answers: claimed unless a test says otherwise, each time or in turn. */
+type ClaimReply = unknown[] | (() => unknown[]);
+
+/** Claimed for Vikram, as Start finds a member no one else is checking. */
+export const CLAIMED = [{ status: 'claimed', staff_name: null, since: '2026-11-20T14:30:00Z' }];
+
+/** A check's claims and the desk's list of who others are checking, for a test that needs them. */
+interface Claims {
+  claim?: ClaimReply;
+  claims?: unknown[];
+}
+
+/** What the desk's claim calls answer (the owner, 20 Nov); an empty list for any other call. */
+function deskAnswer(url: string, claims: Claims): Response {
+  if (url.includes('/rpc/claim_kyc_desk_check')) return Response.json(typeof claims.claim === 'function' ? claims.claim() : claims.claim ?? CLAIMED);
+  return Response.json(url.includes('/rpc/kyc_desk_claims') ? claims.claims ?? [] : []);
+}
+
+function renderOver(ui: ReactElement, reply: Reply, lists: { found: unknown; due: unknown[]; holder: unknown[]; covers?: boolean } & Claims) {
   localStorage.setItem(
     SESSION_STORAGE_KEY,
     JSON.stringify({
@@ -48,7 +66,7 @@ function renderOver(ui: ReactElement, reply: Reply, lists: { found: unknown; due
       sent.push(JSON.parse(String(init?.body)));
       return reply();
     }
-    return Response.json([]);
+    return deskAnswer(url, lists);
   });
   const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
   render(<RivrDataProvider client={client}>{ui}</RivrDataProvider>);
@@ -58,6 +76,11 @@ function renderOver(ui: ReactElement, reply: Reply, lists: { found: unknown; due
 /** The check on its screen: the API finds `found` (Naina), lists `due` as due tonight and answers her check with `reply`. */
 export function renderSection(reply: Reply, found: unknown = NAINA, due: unknown[] = [], holder: unknown[] = []) {
   return renderOver(<InPersonSection venueId="v1" />, reply, { found, due, holder });
+}
+
+/** The check on its screen, with what Start's claim answers and who others are checking (the owner, 20 Nov). */
+export function renderSectionClaimed(reply: Reply, claims: Claims, due: unknown[] = []) {
+  return renderOver(<InPersonSection venueId="v1" />, reply, { found: NAINA, due, holder: [], ...claims });
 }
 
 /** The same, with the venue's Aadhaar bars on (decision 0663); Naina unless `found` says otherwise. */

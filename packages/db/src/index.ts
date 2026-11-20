@@ -38,6 +38,7 @@ export {
   type KycReviewFailure,
   type KycWaitReason,
 } from './kycReview.ts';
+export { useKycDeskClaim, useKycDeskClaims, type KycDeskClaim, type KycDeskHolder } from './kycDeskClaim.ts';
 export type { KycDocumentKind } from '@rivr/contracts';
 export { useKycAadhaarCovers, useKycDocumentRetake, useMemberKycDocuments, useSendBackKycDocument, type KycDocument, type KycSendBackFailure } from './kycDocuments.ts';
 export {

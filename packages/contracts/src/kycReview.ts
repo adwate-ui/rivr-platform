@@ -22,6 +22,13 @@ export function isReasonInWords(reason: string, max: number): boolean {
 const notGiven = (value: string) => (value === '' ? undefined : value);
 
 /**
+ * A date of birth as the database takes one (check_kyc_in_person, review_kyc): from 1900 to today, today as the database
+ * counts it (UTC). A year typed as two digits (0092) or a day to come is refused under the field, before anything is sent:
+ * on 19 Nov the desk had six checks refused in four minutes for it, told only to check every field.
+ */
+const dateOfBirthSchema = z.iso.date().refine((day) => day >= '1900-01-01' && day <= new Date().toISOString().slice(0, 10));
+
+/**
  * A KYC reviewer's decision, as the console's form gives it: the reason in their own words, never a
  * document number; and the date of birth and PAN from the original documents, given only where the
  * check kept none (empty otherwise).
@@ -29,7 +36,7 @@ const notGiven = (value: string) => (value === '' ? undefined : value);
 export const kycReviewSchema = z.object({
   reason: z.string().trim().min(3).max(500)
     .refine((reason) => !AADHAAR_LIKE.test(reason) && !PAN_LIKE.test(reason), { message: 'no document numbers' }),
-  dateOfBirth: z.union([z.literal(''), z.iso.date()]).transform(notGiven),
+  dateOfBirth: z.union([z.literal(''), dateOfBirthSchema]).transform(notGiven),
   pan: z.string().trim().toUpperCase().refine((pan) => pan === '' || PAN.test(pan)).transform(notGiven),
 });
 
@@ -40,7 +47,7 @@ export const kycReviewSchema = z.object({
  */
 export const kycInPersonSchema = z.object({
   memberId: z.uuid(),
-  dateOfBirth: z.iso.date(),
+  dateOfBirth: dateOfBirthSchema,
   aadhaarLast4: z.string().trim().regex(/^[0-9]{4}$/),
   pan: z.string().trim().toUpperCase().regex(PAN),
   consent: z.literal(true),

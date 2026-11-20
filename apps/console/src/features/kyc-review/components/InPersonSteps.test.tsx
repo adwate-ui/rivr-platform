@@ -84,8 +84,9 @@ describe('the check in person as five steps (redesign RD-21)', () => {
     expect(screen.queryByRole('button', { name: 'Take photo' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Back' }));
     expect(await screen.findByText('Step 1 of 5: Member')).toBeDefined();
+    // Start asks for the member first (the owner, 20 Nov), then opens the Face step with its photo kept.
     fireEvent.click(screen.getByRole('button', { name: 'Start the check' }));
-    expect(screen.getByRole('img', { name: 'ID check photo of Naina Kapoor' })).toBeDefined();
+    expect(await screen.findByRole('img', { name: 'ID check photo of Naina Kapoor' })).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(await screen.findByText('Photo 2 of 3')).toBeDefined();
   });
@@ -137,7 +138,7 @@ describe('the check in person as five steps (redesign RD-21)', () => {
     await chooseNaina();
     await takeThreePhotos();
     fireEvent.click(screen.getByRole('button', { name: 'Verify Naina Kapoor' }));
-    expect(await screen.findByText('Give the date of birth on the document.')).toBeDefined();
+    expect(await screen.findByText('Give the date of birth on the document, with a 4-digit year.')).toBeDefined();
     expect(screen.getByText('Give the last four digits.')).toBeDefined();
     expect(screen.getByText('Give the PAN as on the card.')).toBeDefined();
     expect(screen.getByText('Ask for their consent, then switch this on.')).toBeDefined();
