@@ -1,5 +1,6 @@
 import type { GlazaKind, GlazaLine } from '@rivr/db/glaza';
 import { parseRupees } from '@rivr/domain/money';
+import { csvFields } from '@rivr/ui';
 
 /** Glaza's columns, in order, as its file's first line names them (question #580). */
 export const GLAZA_COLUMNS = ['time', 'table', 'seat', 'item', 'kind', 'quantity', 'unit_cost', 'unit_price', 'comp'] as const;
@@ -9,29 +10,6 @@ const COMPS: Readonly<Record<string, boolean>> = { yes: true, no: false };
 // An IST time as Glaza writes it: 2026-11-14 21:30.
 const IST_TIME = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})$/;
 const WHOLE = /^\d{1,4}$/;
-
-/** A CSV line's fields: commas part them, and a field in double quotes may hold a comma, with "" for a quote. */
-export function csvFields(line: string): string[] {
-  const fields: string[] = [];
-  let field = '';
-  let isQuoted = false;
-  for (let index = 0; index < line.length; index += 1) {
-    const char = line.charAt(index);
-    if (char === '"' && isQuoted && line.charAt(index + 1) === '"') {
-      field += '"';
-      index += 1;
-    } else if (char === '"') {
-      isQuoted = !isQuoted;
-    } else if (char === ',' && !isQuoted) {
-      fields.push(field.trim());
-      field = '';
-    } else {
-      field += char;
-    }
-  }
-  fields.push(field.trim());
-  return fields;
-}
 
 /** A line's seat, quantity and amounts, or null when one does not read. */
 function figuresOf(seat: string, quantity: string, unitCost: string, unitPrice: string) {

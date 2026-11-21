@@ -1,6 +1,6 @@
 import type { FnbDiet, FnbItemKind } from '@rivr/contracts';
 import type { FnbMenuFileItem } from '@rivr/db/fnb';
-import { csvFields } from './glazaCsv.ts';
+import { csvFields } from '@rivr/ui';
 
 /**
  * One line of the file: its item, or what is wrong with it: no name or one over 60 characters, a type the menu has not,

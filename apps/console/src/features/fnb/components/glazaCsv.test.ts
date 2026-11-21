@@ -1,14 +1,8 @@
 import { fromRupees } from '@rivr/domain/money';
 import { describe, expect, it } from 'vitest';
-import { csvFields, readGlazaCsv } from './glazaCsv.ts';
+import { readGlazaCsv } from './glazaCsv.ts';
 
 const HEADING = 'time,table,seat,item,kind,quantity,unit_cost,unit_price,comp';
-
-describe('csvFields', () => {
-  it('splits on commas, keeps a quoted comma, and reads "" as a quote', () => {
-    expect(csvFields('a, "b, c" ,"say ""hi"""')).toEqual(['a', 'b, c', 'say "hi"']);
-  });
-});
 
 describe('readGlazaCsv', () => {
   it('reads each line as IST, with an empty seat as none, rupees as paise and comp as yes or no', () => {

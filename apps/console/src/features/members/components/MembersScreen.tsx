@@ -3,6 +3,7 @@ import { t } from '@rivr/i18n';
 import { Screen, SplitView } from '@rivr/ui';
 import { useState } from 'react';
 import { useTonight } from '../hooks/useTonight.ts';
+import { BonusFilePanel } from './BonusFileImport.tsx';
 import { MemberList } from './MemberList.tsx';
 import { ErasureRequests } from './ErasureRequests.tsx';
 import { MemberRecordPanel, type RecordAccess } from './MemberRecordPanel.tsx';
@@ -50,8 +51,9 @@ function Members({ title, venueId, can, seesHistory, memberId, part, onNavigate 
   const tonight = useTonight(venueId);
   // The table's Export sits beside the title, as the prototype has it.
   const [exportIn, setExportIn] = useState<HTMLElement | null>(null);
+  // Bonus from a file beside it, for super admins (the owner, 22 Nov).
   return (
-    <Screen title={title} onActionsSlot={setExportIn}>
+    <Screen title={title} actions={can.correctBonus ? <BonusFilePanel venueId={venueId} /> : undefined} onActionsSlot={setExportIn}>
       {can.erase ? <ErasureRequests venueId={venueId} onOpen={(id) => onNavigate(recordHref(id))} /> : null}
       {/* The list stays in place as a record opens, so the search typed stays (C-02). */}
       <SplitView layout="docked" recordKey={memberId} backLabel={t('console.members.back')} onBack={() => onNavigate('/members')} onClose={() => onNavigate('/members')}

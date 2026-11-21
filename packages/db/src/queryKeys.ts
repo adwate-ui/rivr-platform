@@ -92,6 +92,9 @@ export const queryKeys = {
   myBonusHistory: (userId: string, count: number) => ['user', userId, 'bonus', 'mine', 'history', count] as const,
   memberBonus: (userId: string, venueId: string, memberId: string) => ['user', userId, 'bonus', venueId, memberId] as const,
   bonusByHandCap: (userId: string, venueId: string) => ['user', userId, 'bonus-by-hand-cap', venueId] as const,
+  /** Every member's Bonus at a venue, which a Bonus file changes (the owner, 22 Nov), and the members a file names. */
+  bonusAt: (userId: string, venueId: string) => ['user', userId, 'bonus', venueId] as const,
+  bonusFileMembers: (userId: string, venueId: string, keys: string) => ['user', userId, 'bonus', venueId, 'file-members', keys] as const,
   /** What a member's visit may still redeem under bonus.visit_cap (decision 0579), under memberBonus so a seating refreshes both. */
   memberBonusVisitLeft: (userId: string, venueId: string, memberId: string) => ['user', userId, 'bonus', venueId, memberId, 'visit-left'] as const,
   /** The seats a super admin may add a missed Bonus use to (#1077), under memberBonus so a change refreshes them too. */
