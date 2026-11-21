@@ -99,7 +99,7 @@ as $$
   where g.venue_id = p_venue_id and g.idempotency_key = 'bonus.hand:file:' || p_request_id || ':' || p_n
   union all
   select r.member_id, 'use', r.amount_paise / 100 from public.bonus_redemption r
-  where r.id = private.bonus_file_use_id(p_request_id, p_n) and r.venue_id = p_venue_id;
+  where r.id = private.bonus_file_use_id(p_request_id, p_n) and r.venue_id = p_venue_id and r.session_id is null and r.visit_id is null;
 $$;
 revoke all on function private.bonus_file_saved_line(uuid, uuid, integer) from public, anon, authenticated;
 
@@ -171,6 +171,8 @@ begin
   if p_request_id is null or jsonb_typeof(p_lines) is distinct from 'array' or jsonb_array_length(p_lines) not between 1 and 500 then
     raise exception 'One to 500 lines, and a request id' using errcode = '22023';
   end if;
+  -- One attempt at a time under a request id: a second waits here for the first, so two files under one id never both go.
+  perform pg_advisory_xact_lock(hashtextextended('bonus.file:' || p_request_id::text, 0));
   -- A file that went through is answered before anything that refuses a new one.
   if private.bonus_file_replayed(p_venue_id, p_lines, p_request_id) then
     return jsonb_array_length(p_lines);
@@ -308,6 +310,57 @@ begin
   return true;
 end;
 $function$;
+
+-- As 20261127070000_member_staff_history.sql made it, with a change from a Bonus file showing its own row's figures alone
+-- (added_chips, used_chips): the rows its grants and uses wrote at the same moment would add an amount for each with no word
+-- of which was given and which used, and say two of the same amount once.
+create or replace function private.member_staff_history(p_venue_id uuid, p_member_id uuid, p_limit integer)
+returns table (id bigint, occurred_at timestamptz, who text, action text, entity text, reason text, changes jsonb)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  with member as materialized (
+    select m.id, m.user_id, m.erased_at is not null as is_erased
+    from public.member m
+    where m.id = p_member_id and m.venue_id = p_venue_id and (select private.has_permission(p_venue_id, 'members.phone'))
+  ), grouped as materialized (
+    -- One change is one action: the rows it wrote share its time and its actor. Its own named action, where it has one,
+    -- says what it was; otherwise its first row.
+    select l.occurred_at, max(l.id) as id, min(s.full_name) as who,
+           (array_agg(l.action order by l.action in ('insert', 'update', 'delete'), l.id))[1] as action,
+           (array_agg(l.entity order by l.action in ('insert', 'update', 'delete'), l.id))[1] as entity,
+           (array_agg(l.reason order by l.id) filter (where l.reason is not null))[1] as reason,
+           array_agg(l.id) as line_ids
+    from member m
+    join public.audit_log l
+      on l.venue_id = p_venue_id and l.actor_user_id is not null
+     and coalesce(case when l.entity = 'member' then l.entity_id end, l.after ->> 'member_id', l.before ->> 'member_id') = m.id::text
+    join public.staff s on s.user_id = l.actor_user_id and s.venue_id = l.venue_id
+    where l.actor_user_id is distinct from m.user_id
+      and l.action not like '%.view' and l.action not like 'export.%'
+      -- Who was frozen and why is the super admins' alone (#493): a freeze's lines only for those who read Activity.
+      and (l.entity <> 'control_state' or (select private.has_permission(p_venue_id, 'activity.read')))
+      and l.entity = any (array['member', 'kyc_record', 'kyc_review', 'kyc_document', 'bonus_grant', 'bonus_redemption', 'promotion_grant',
+                                'visit', 'seat_session', 'waitlist_entry', 'early_departure', 'promotion_step_skip', 'member_tier_change',
+                                'member_feature_override', 'member_limit', 'self_exclusion', 'control_state', 'consent', 'referral'])
+    group by l.occurred_at, l.actor_user_id
+    order by l.occurred_at desc, max(l.id) desc
+    limit least(greatest(coalesce(p_limit, 20), 1), 500)
+  )
+  select g.id, g.occurred_at, g.who, g.action, g.entity,
+         case when not m.is_erased or g.action = 'member.erase' then g.reason end,
+         case when m.is_erased then '[]'::jsonb else coalesce((
+           select jsonb_agg(distinct c.change)
+           from public.audit_log a
+           cross join lateral jsonb_array_elements(private.staff_history_changes(p_venue_id, a.entity, a.before, a.after)) c(change)
+           where a.venue_id = p_venue_id and a.id = any (g.line_ids)
+             and (g.action is distinct from 'bonus.file' or a.action = 'bonus.file')), '[]'::jsonb) end
+  from grouped g
+  cross join member m
+  order by g.occurred_at desc, g.id desc;
+$$;
 
 -- As 20261128100000_bonus_use_without_seat.sql made it, with a file's lines among the Bonus changes.
 CREATE OR REPLACE FUNCTION private.activity_kind(p_action text, p_entity text)

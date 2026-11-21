@@ -72,10 +72,10 @@ export function keysOf(read: ReadFile): string[] {
 /** What is wrong with a line once its member is known: as read, no such member, the reader's own record, frozen, some owed, or short. */
 export type PreviewProblem = ReadProblem | 'unknown' | 'own' | 'frozen' | 'owed' | 'short';
 
-/** A line as it will save, with its member; or what is wrong with it. */
+/** A line as it will save, with its member; or what is wrong with it, with the member's name where one is known. */
 export type PreviewLine =
   | { readonly line: number; readonly ok: true; readonly kind: 'add' | 'use'; readonly chips: number; readonly reason: string; readonly member: BonusFileMember }
-  | { readonly line: number; readonly ok: false; readonly problem: PreviewProblem };
+  | { readonly line: number; readonly ok: false; readonly problem: PreviewProblem; readonly name: string | null };
 
 /** The preview: every line, and the lines to save with the file's totals once every line is right (null until then). */
 export interface Preview {
@@ -87,11 +87,11 @@ export interface Preview {
 export function previewOf(read: ReadFile, members: readonly BonusFileMember[]): Preview {
   const byKey = new Map(members.map((member) => [member.key, member]));
   const named = read.lines.map((line): PreviewLine => {
-    if (!line.ok) return line;
+    if (!line.ok) return { ...line, name: null };
     const member = byKey.get(line.key);
-    if (member === undefined) return { line: line.line, ok: false, problem: 'unknown' };
-    if (member.isOwn) return { line: line.line, ok: false, problem: 'own' };
-    if (member.isFrozen) return { line: line.line, ok: false, problem: 'frozen' };
+    if (member === undefined) return { line: line.line, ok: false, problem: 'unknown', name: null };
+    if (member.isOwn) return { line: line.line, ok: false, problem: 'own', name: member.fullName };
+    if (member.isFrozen) return { line: line.line, ok: false, problem: 'frozen', name: member.fullName };
     return { line: line.line, ok: true, kind: line.kind, chips: line.chips, reason: line.reason, member };
   });
   const going = named.flatMap((line) => (line.ok ? [line] : []));
@@ -101,7 +101,8 @@ export function previewOf(read: ReadFile, members: readonly BonusFileMember[]): 
   const refusals = new Map(going.map((line, index) => [line.line, run.refusals[index] ?? null]));
   const lines = named.map((line): PreviewLine => {
     const refusal = line.ok ? refusals.get(line.line) ?? null : null;
-    return refusal === null ? line : { line: line.line, ok: false, problem: refusal === 'owed' ? 'owed' : 'short' };
+    if (!line.ok || refusal === null) return line;
+    return { line: line.line, ok: false, problem: refusal === 'owed' ? 'owed' : 'short', name: line.member.fullName };
   });
   if (lines.some((line) => !line.ok)) return { lines, toSave: null };
   const toSave = going.map(({ line, member, kind, chips, reason }) => ({ line, memberId: member.memberId, kind, chips, reason }));

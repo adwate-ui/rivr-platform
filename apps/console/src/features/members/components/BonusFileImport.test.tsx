@@ -1,11 +1,12 @@
 import { createRivrClient, RivrDataProvider, SESSION_STORAGE_KEY } from '@rivr/db';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { BonusFileImport } from './BonusFileImport.tsx';
+import { BonusFileSheet } from './BonusFileImport.tsx';
 
 afterEach(() => {
   cleanup();
   localStorage.clear();
+  sessionStorage.clear();
   vi.unstubAllGlobals();
 });
 
@@ -18,9 +19,9 @@ interface Sent { readonly p_request_id: string; readonly p_lines: unknown }
 
 /**
  * A super admin signed in, and a fake API: the members a file names, and bonus_from_file answered by `reply` (which may
- * throw, as a request that never got an answer); the bodies it was sent go into `sent`.
+ * throw, as a request that never got an answer, or wait); the bodies it was sent go into `sent`.
  */
-function renderImport(reply: () => Response, sent: Sent[] = [], unanswered = new Map<string, string>()) {
+function renderSheet(reply: () => Response | Promise<Response>, sent: Sent[] = [], onClose = vi.fn()) {
   localStorage.setItem(
     SESSION_STORAGE_KEY,
     JSON.stringify({
@@ -39,8 +40,8 @@ function renderImport(reply: () => Response, sent: Sent[] = [], unanswered = new
     return Response.json([]);
   });
   const client = createRivrClient({ url: 'http://127.0.0.1:9', publishableKey: 'test' });
-  render(<RivrDataProvider client={client}><BonusFileImport venueId="v1" unanswered={unanswered} /></RivrDataProvider>);
-  return sent;
+  render(<RivrDataProvider client={client}><BonusFileSheet venueId="v1" onClose={onClose} /></RivrDataProvider>);
+  return { sent, onClose };
 }
 
 /** Chooses a file with this text, as the file picker hands it over. */
@@ -56,14 +57,15 @@ async function save(count: string) {
   fireEvent.click(screen.getByRole('button', { name: `Yes, save ${count}` }));
 }
 
+const ONE_ADD = 'Member,Type,Chips,Reason\n1042,Add,500,Diwali gift\n';
+
 describe('Bonus from a file', () => {
-  it('shows the totals and Save above each line with its member, then saves them all once asked twice', async () => {
-    const sent = renderImport(() => Response.json(2));
+  it('shows the totals and each line with its member, then saves them all from the sheet\'s foot once asked twice', async () => {
+    const { sent } = renderSheet(() => Response.json(2));
     choose('Member,Type,Chips,Reason\n1042,Add,500,Diwali gift\n9000000216,Add,"2,000",Referral\n');
     expect(await screen.findByText('Line 2 · Ritika Das · No. 1042 · Add 500 · Diwali gift')).toBeDefined();
     expect(screen.getByText('Line 3 · Kunal Mehra · No. 1043 · Add 2,000 · Referral')).toBeDefined();
-    const totals = screen.getByText('2 lines · 2,500 added · 0 used');
-    expect(totals.compareDocumentPosition(screen.getByText(/^Line 2/)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByText('2 lines · 2,500 added · 0 used')).toBeDefined();
     fireEvent.click(screen.getByRole('button', { name: 'Save every line' }));
     expect(sent).toEqual([]);
     fireEvent.click(screen.getByRole('button', { name: 'Yes, save 2 lines' }));
@@ -74,45 +76,63 @@ describe('Bonus from a file', () => {
     }]);
   });
 
-  it('says once how many lines to fix, shows what is wrong with each without announcing each, and offers no Save', async () => {
-    renderImport(() => Response.json(1));
-    choose('Member,Type,Chips,Reason\n1042,Use,1050,At the bar\n555,Add,50,Gift\n1042,gift,50,Gift\n');
-    expect(await screen.findByText('Line 2: more than their Bonus by then.')).toBeDefined();
+  it('shows the lines to fix alone, by name where it knows the member, says once how many, and offers no Save', async () => {
+    renderSheet(() => Response.json(1));
+    choose('Member,Type,Chips,Reason\n1042,Use,1050,At the bar\n555,Add,50,Gift\n1042,gift,50,Gift\n9000000216,Add,50,Fine\n');
+    expect(await screen.findByText('Line 2: more than Ritika Das holds by then.')).toBeDefined();
     expect(screen.getByText('Line 3: no member has that number or mobile.')).toBeDefined();
     expect(screen.getByText('Line 4: write add or use under type.')).toBeDefined();
+    expect(screen.queryByText(/^Line 5/)).toBeNull();
     expect(screen.getAllByRole('alert').map((alert) => alert.textContent)).toEqual(['Fix 3 lines, then choose the file again.']);
     expect(screen.queryByRole('button', { name: 'Save every line' })).toBeNull();
   });
 
   it('says at which line the database refused, and that nothing was saved', async () => {
-    renderImport(() => Response.json({ code: 'RVBON', message: 'Line 2: more than the Bonus in force', details: '2' }, { status: 400 }));
+    renderSheet(() => Response.json({ code: 'RVBON', message: 'Line 2: more than the Bonus in force', details: '2' }, { status: 400 }));
     choose('Member,Type,Chips,Reason\n1042,Use,1000,At the bar\n');
     await save('1 line');
     expect(await screen.findByText('Refused at line 2. More than their Bonus, or some owed. Nothing saved.')).toBeDefined();
   });
 
-  it('sends a file with no answer again under the same request id, even chosen again in the panel opened again', async () => {
-    const file = 'Member,Type,Chips,Reason\n1042,Add,500,Diwali gift\n';
+  it('keeps Save and the file\'s request id after no answer, and in a sheet opened again', async () => {
     const sent: Sent[] = [];
-    const unanswered = new Map<string, string>();
-    renderImport(() => { throw new TypeError('Failed to fetch'); }, sent, unanswered);
-    choose(file);
+    renderSheet(() => { throw new TypeError('Failed to fetch'); }, sent);
+    choose(ONE_ADD);
     await save('1 line');
-    expect(await screen.findByText('No answer. Save again; it never saves twice.')).toBeDefined();
-    // The panel closed and opened again: a new form, the same file chosen.
+    expect(await screen.findByText('No answer. Save again.')).toBeDefined();
+    await save('1 line');
+    await waitFor(() => expect(sent).toHaveLength(2));
+    // The sheet closed and opened again, the same file chosen.
     cleanup();
-    renderImport(() => Response.json(1), sent, unanswered);
-    choose(file);
+    renderSheet(() => Response.json(1), sent);
+    choose(ONE_ADD);
     await save('1 line');
     expect(await screen.findByText('1 line saved.')).toBeDefined();
-    expect(sent).toHaveLength(2);
-    expect(sent[1]?.p_request_id).toBe(sent[0]?.p_request_id);
+    expect(new Set(sent.map((body) => body.p_request_id)).size).toBe(1);
     // Saved: the next save of that file is a new one.
-    expect(unanswered.size).toBe(0);
+    cleanup();
+    renderSheet(() => Response.json(1), sent);
+    choose(ONE_ADD);
+    await save('1 line');
+    await waitFor(() => expect(sent).toHaveLength(4));
+    expect(sent[3]?.p_request_id).not.toBe(sent[0]?.p_request_id);
+  });
+
+  it('stays open while a file is saving, so its answer is seen', async () => {
+    let answer: (response: Response) => void = () => undefined;
+    const { onClose } = renderSheet(() => new Promise<Response>((resolve) => { answer = resolve; }));
+    choose(ONE_ADD);
+    await save('1 line');
+    fireEvent.click(await screen.findByRole('button', { name: 'Close' }));
+    expect(onClose).not.toHaveBeenCalled();
+    answer(Response.json(1));
+    expect(await screen.findByText('1 line saved.')).toBeDefined();
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(onClose).toHaveBeenCalledOnce();
   });
 
   it('says what is wrong with the whole file', async () => {
-    renderImport(() => Response.json(1));
+    renderSheet(() => Response.json(1));
     choose('Member,Chips\n1042,50\n');
     expect(await screen.findByText('Name the columns on the first line: member, type, chips and reason.')).toBeDefined();
     fireEvent.change(document.querySelector('input[type="file"]') ?? document.body, {

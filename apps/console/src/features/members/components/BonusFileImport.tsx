@@ -1,23 +1,22 @@
-import { useBonusFileMembers, useSaveBonusFile, type BonusFileRefusal } from '@rivr/db/bonusFile';
+import { useBonusFileMembers, useSaveBonusFile, type BonusFileMember, type BonusFileRefusal } from '@rivr/db/bonusFile';
 import { formatChips, formatNumber, t } from '@rivr/i18n';
 import { Button, CameraButton, ConfirmButton, ErrorMessage, Inline, LoadState, readSheetFile, Sheet, Stack, StatusMessage, Text, type SheetFileProblem } from '@rivr/ui';
 import { useState } from 'react';
 import { keysOf, previewOf, readBonusFile, type Preview, type PreviewLine, type ReadFile } from './bonusFile.ts';
+import { forgetRequestId, keepRequestId, requestIdFor } from './bonusFileRequests.ts';
 
 // A file of 500 lines is a few tens of kilobytes: a larger one is not this one, and is never read.
 const MOST_BYTES = 1_048_576;
 const ACCEPT = '.csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
-/**
- * The request id of each file sent with no answer, by what it holds. The same file again, whether Save is pressed again, the
- * file chosen again or the panel opened again, goes under that id, so a file that went through unseen is never saved twice.
- */
-type Unanswered = Map<string, string>;
+type ToSave = NonNullable<Preview['toSave']>;
 
 /** One line as the preview shows it: as it will save, or what is wrong, said with the summary above rather than alone. */
 function LineView({ line }: { line: PreviewLine }) {
   const at = formatNumber(line.line);
-  if (!line.ok) return <ErrorMessage isAnnounced={false}>{t(`console.members.bonus.file.problems.${line.problem}`, { line: at })}</ErrorMessage>;
+  if (!line.ok) {
+    return <ErrorMessage isAnnounced={false}>{t(`console.members.bonus.file.problems.${line.problem}`, { line: at, name: line.name ?? '' })}</ErrorMessage>;
+  }
   const { member, chips, reason } = line;
   return <Text>{t(`console.members.bonus.file.${line.kind}`, { line: at, name: member.fullName, number: String(member.memberNumber), chips: formatNumber(chips), reason })}</Text>;
 }
@@ -28,116 +27,148 @@ function refusalText(refusal: BonusFileRefusal): string {
   return refusal.line === null ? why : t('console.members.bonus.file.atLine', { line: formatNumber(refusal.line), why });
 }
 
-/** The totals and Save, asked twice, for a file whose every line is right. Its request id is the file's until an answer comes. */
-function SaveFile({ venueId, toSave, unanswered, onSaved }: { venueId: string; toSave: NonNullable<Preview['toSave']>; unanswered: Unanswered; onSaved: (count: number) => void }) {
-  const save = useSaveBonusFile(venueId);
-  const file = JSON.stringify(toSave.lines);
-  const [requestId, setRequestId] = useState(() => unanswered.get(file) ?? crypto.randomUUID());
-  const [refusal, setRefusal] = useState<BonusFileRefusal | null>(null);
-  const count = toSave.lines.length;
-  const submit = async () => {
-    setRefusal(null);
-    const done = await save.mutateAsync({ lines: toSave.lines, requestId });
-    if (!done.ok && done.error.failure === 'unavailable') {
-      unanswered.set(file, requestId);
-      return setRefusal(done.error);
-    }
-    // An answer: the next try of this file, refused or not, is a new one.
-    unanswered.delete(file);
-    if (done.ok) return onSaved(done.value);
-    setRefusal(done.error);
-    setRequestId(crypto.randomUUID());
-  };
-  const totals = { count: formatNumber(count), added: formatChips(toSave.added), used: formatChips(toSave.used) };
+/** A file to save: its totals, then every line. A file with lines to fix: how many, once, then those lines alone. */
+function PreviewBody({ preview }: { preview: Preview }) {
+  const wrong = preview.lines.filter((line) => !line.ok);
+  const count = formatNumber(wrong.length);
+  const toSave = preview.toSave;
+  const summary = toSave === null
+    ? <ErrorMessage>{wrong.length === 1 ? t('console.members.bonus.file.toFixOne') : t('console.members.bonus.file.toFix', { count })}</ErrorMessage>
+    : <Text>{t(toSave.lines.length === 1 ? 'console.members.bonus.file.totalsOne' : 'console.members.bonus.file.totals',
+      { count: formatNumber(toSave.lines.length), added: formatChips(toSave.added), used: formatChips(toSave.used) })}</Text>;
   return (
-    <Stack gap={2}>
-      <Text>{t(count === 1 ? 'console.members.bonus.file.totalsOne' : 'console.members.bonus.file.totals', totals)}</Text>
-      <Inline>
-        <ConfirmButton variant="subtle" size="compact" label={t('console.members.bonus.file.save')} isBusy={save.isPending} onConfirm={() => void submit()}
-          confirm={count === 1 ? t('console.members.bonus.file.confirmOne') : t('console.members.bonus.file.confirm', { count: formatNumber(count) })} />
-      </Inline>
-      {refusal === null ? null : <ErrorMessage>{refusalText(refusal)}</ErrorMessage>}
+    <Stack gap={4}>
+      {summary}
+      <Stack gap={2} divided>{(toSave === null ? wrong : preview.lines).map((line) => <LineView key={line.line} line={line} />)}</Stack>
     </Stack>
   );
 }
 
-/** What is wrong, as one message, for a file with lines to fix. */
-function ToFix({ count }: { count: number }) {
-  return <ErrorMessage>{count === 1 ? t('console.members.bonus.file.toFixOne') : t('console.members.bonus.file.toFix', { count: formatNumber(count) })}</ErrorMessage>;
-}
-
-/** Every line with its member, read from the venue; above them the totals and Save once every line is right, or how many to fix. */
-function FilePreview({ venueId, read, unanswered, onSaved }: { venueId: string; read: ReadFile; unanswered: Unanswered; onSaved: (count: number) => void }) {
-  const keys = keysOf(read);
-  const members = useBonusFileMembers(venueId, keys);
-  if (members.isError) return <LoadState isError onRetry={() => void members.refetch()} />;
-  if (keys.length > 0 && members.data === undefined) return <LoadState />;
-  const preview = previewOf(read, members.data ?? []);
+/** Save, asked twice, in the sheet's foot so it stays in view down a long file. */
+function SaveButton({ toSave, isBusy, onSave }: { toSave: ToSave; isBusy: boolean; onSave: () => void }) {
+  const count = toSave.lines.length;
   return (
-    <Stack gap={4}>
-      {preview.toSave === null
-        ? <ToFix count={preview.lines.filter((line) => !line.ok).length} />
-        : <SaveFile venueId={venueId} toSave={preview.toSave} unanswered={unanswered} onSaved={onSaved} />}
-      <Stack gap={2} divided>{preview.lines.map((line) => <LineView key={line.line} line={line} />)}</Stack>
-    </Stack>
+    <ConfirmButton variant="primary" label={t('console.members.bonus.file.save')} isBusy={isBusy} onConfirm={onSave}
+      confirm={count === 1 ? t('console.members.bonus.file.confirmOne') : t('console.members.bonus.file.confirm', { count: formatNumber(count) })} />
   );
 }
 
 const savedText = (count: number) => (count === 1 ? t('console.members.bonus.file.savedOne') : t('console.members.bonus.file.saved', { count: formatNumber(count) }));
 
 /**
- * Bonus from a file (the owner, 22 Nov; decision 0707), for super admins: a CSV or .xlsx of lines, each a member (number or
- * mobile), Add or Use, chips and a reason, read on the screen and sent nowhere until Save. Every line shows with its member or
- * what is wrong; Save sends them all, in the file's order, and the database takes all or none. The body of `BonusFilePanel`,
- * which keeps `unanswered` while Members is open.
+ * What the preview shows: the file as it was sent while its save waits for an answer, since balances read after a file
+ * went would turn its lines wrong and take Save away; otherwise the file with its members as the venue reads them now.
  */
-export function BonusFileImport({ venueId, unanswered }: { venueId: string; unanswered: Unanswered }) {
-  const [read, setRead] = useState<ReadFile | null>(null);
-  const [fileProblem, setFileProblem] = useState<SheetFileProblem | null>(null);
-  // Each file chosen starts afresh, without the last one's refusal.
-  const [chosen, setChosen] = useState(0);
-  const [saved, setSaved] = useState<string | null>(null);
-  const choose = async (file: File) => {
-    setSaved(null);
-    const sheet = await readSheetFile(file, MOST_BYTES);
-    setFileProblem(sheet.ok ? null : sheet.problem);
-    setRead(sheet.ok ? readBonusFile(sheet.rows) : null);
-    setChosen((count) => count + 1);
+function usePreview(venueId: string, read: ReadFile | null, sent: Preview | null) {
+  const file = read?.fileProblem === null ? read : null;
+  const keys = file === null ? [] : keysOf(file);
+  const members = useBonusFileMembers(venueId, keys);
+  const isWaiting = keys.length > 0 && members.data === undefined;
+  const isLive = sent === null;
+  return {
+    preview: sent ?? livePreview(file, members, isWaiting), isWaiting: isLive && isWaiting, isError: isLive && members.isError,
+    retry: () => void members.refetch(),
   };
-  const isRead = read !== null && read.fileProblem === null;
+}
+
+/** The file with its members as the venue reads them now; none until they are read. */
+function livePreview(file: ReadFile | null, members: { readonly data?: readonly BonusFileMember[] | undefined; readonly isError: boolean }, isWaiting: boolean) {
+  if (file === null || isWaiting || members.isError) return null;
+  return previewOf(file, members.data ?? []);
+}
+
+/**
+ * Sending a file under its request id (`bonusFileRequests`). Saved, or refused as another file's, the next try of it is a
+ * new one; any other refusal wrote nothing, so its id stays. With no answer the preview stays as sent, with Save.
+ */
+function useSendFile(venueId: string, onSaved: (count: number) => void) {
+  const save = useSaveBonusFile(venueId);
+  const [sent, setSent] = useState<Preview | null>(null);
+  const [refusal, setRefusal] = useState<BonusFileRefusal | null>(null);
+  const submit = async (shown: Preview, toSave: ToSave) => {
+    setRefusal(null);
+    setSent(shown);
+    const requestId = requestIdFor(venueId, toSave.lines);
+    keepRequestId(venueId, toSave.lines, requestId);
+    const done = await save.mutateAsync({ lines: toSave.lines, requestId });
+    if (done.ok || done.error.failure === 'invalid') forgetRequestId(venueId, toSave.lines);
+    if (done.ok || done.error.failure !== 'unavailable') setSent(null);
+    if (done.ok) return onSaved(done.value);
+    setRefusal(done.error);
+  };
+  return { sent, refusal, isSaving: save.isPending, clearRefusal: () => setRefusal(null), submit };
+}
+
+/** The file's one hint, and the chooser, held while a file saves. */
+function Chooser({ hasFile, isBusy, onChoose }: { hasFile: boolean; isBusy: boolean; onChoose: (file: File) => void }) {
   return (
-    <Stack gap={4}>
+    <>
       <Text variant="small" tone="muted">{t('console.members.bonus.file.format')}</Text>
       <Inline>
-        <CameraButton variant="subtle" camera="none" accept={ACCEPT} onPhoto={(file) => void choose(file)}>
-          {t(read === null ? 'console.members.bonus.file.choose' : 'console.members.bonus.file.chooseAnother')}
+        <CameraButton variant="subtle" camera="none" accept={ACCEPT} isLoading={isBusy} onPhoto={onChoose}>
+          {t(hasFile ? 'console.members.bonus.file.chooseAnother' : 'console.members.bonus.file.choose')}
         </CameraButton>
       </Inline>
-      {fileProblem === null ? null : <ErrorMessage>{t(`console.members.bonus.file.${fileProblem}`)}</ErrorMessage>}
-      {read?.fileProblem ? <ErrorMessage>{t(`console.members.bonus.file.${read.fileProblem}`)}</ErrorMessage> : null}
-      {isRead ? (
-        <FilePreview key={chosen} venueId={venueId} read={read} unanswered={unanswered} onSaved={(count) => { setSaved(savedText(count)); setRead(null); }} />
-      ) : null}
-      <StatusMessage>{saved}</StatusMessage>
-    </Stack>
+    </>
   );
 }
 
-/** Bonus from a file, beside Export on Members for super admins: it opens the file's form in the panel at the side, a fresh one each time. */
+/** What is below the chooser: the members loading or not read, a refusal, and the preview. */
+function Shown({ shown, refusal }: { shown: ReturnType<typeof usePreview>; refusal: BonusFileRefusal | null }) {
+  if (shown.isError) return <LoadState isError onRetry={shown.retry} />;
+  if (shown.isWaiting) return <LoadState />;
+  return (
+    <>
+      {refusal === null ? null : <ErrorMessage>{refusalText(refusal)}</ErrorMessage>}
+      {shown.preview === null ? null : <PreviewBody preview={shown.preview} />}
+    </>
+  );
+}
+
+/**
+ * Bonus from a file (the owner, 22 Nov; decision 0707), for super admins: a CSV or .xlsx of lines, each a member (number or
+ * mobile), Add or Use, chips and a reason, read on the screen and sent nowhere until Save. Every line shows with its member;
+ * a file with lines to fix shows those. Save, in the sheet's foot, sends them all in the file's order, and the database
+ * takes all or none. While it saves the sheet stays open and no other file is chosen, so its answer is always seen.
+ */
+export function BonusFileSheet({ venueId, onClose }: { venueId: string; onClose: () => void }) {
+  const [read, setRead] = useState<ReadFile | null>(null);
+  const [problem, setProblem] = useState<SheetFileProblem | ReadFile['fileProblem']>(null);
+  const [saved, setSaved] = useState<string | null>(null);
+  const send = useSendFile(venueId, (count) => { setRead(null); setSaved(savedText(count)); });
+  const shown = usePreview(venueId, read, send.sent);
+  const choose = async (file: File) => {
+    setSaved(null);
+    send.clearRefusal();
+    const sheet = await readSheetFile(file, MOST_BYTES);
+    const next = sheet.ok ? readBonusFile(sheet.rows) : null;
+    setProblem(sheet.ok ? next?.fileProblem ?? null : sheet.problem);
+    setRead(next);
+  };
+  const { preview } = shown;
+  const toSave = preview?.toSave ?? null;
+  const footer = preview === null || toSave === null ? undefined
+    : <SaveButton toSave={toSave} isBusy={send.isSaving} onSave={() => void send.submit(preview, toSave)} />;
+  return (
+    <Sheet place="console" isOpen onClose={() => { if (!send.isSaving) onClose(); }} title={t('console.members.bonus.file.open')} footer={footer}>
+      <Stack gap={4}>
+        <Chooser hasFile={read !== null} isBusy={send.isSaving} onChoose={(file) => void choose(file)} />
+        {problem === null ? null : <ErrorMessage>{t(`console.members.bonus.file.${problem}`)}</ErrorMessage>}
+        <Shown shown={shown} refusal={send.refusal} />
+        <StatusMessage>{saved}</StatusMessage>
+      </Stack>
+    </Sheet>
+  );
+}
+
+/** Bonus from a file, beside Export on Members for super admins: it opens the file's sheet at the side, a fresh one each time. */
 export function BonusFilePanel({ venueId }: { venueId: string }) {
   const [opened, setOpened] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  // One map while Members is open, changed in place: never set again, so it never renders anything again.
-  const [unanswered] = useState<Unanswered>(() => new Map());
-  const title = t('console.members.bonus.file.open');
   return (
     <>
-      <Button variant="subtle" size="compact" onClick={() => { setOpened(opened + 1); setIsOpen(true); }}>{title}</Button>
-      {isOpen ? (
-        <Sheet place="console" isOpen onClose={() => setIsOpen(false)} title={title}>
-          <BonusFileImport key={opened} venueId={venueId} unanswered={unanswered} />
-        </Sheet>
-      ) : null}
+      <Button variant="subtle" size="compact" onClick={() => { setOpened(opened + 1); setIsOpen(true); }}>{t('console.members.bonus.file.open')}</Button>
+      {isOpen ? <BonusFileSheet key={opened} venueId={venueId} onClose={() => setIsOpen(false)} /> : null}
     </>
   );
 }

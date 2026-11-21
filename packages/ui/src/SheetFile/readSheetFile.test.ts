@@ -55,6 +55,12 @@ describe('readSheetFile', () => {
     expect(await readSheetFile(file, MB)).toEqual({ ok: true, rows: [['Member', 'Chips'], ['1042', '2,000'], [''], ['9876543210', '500']] });
   });
 
+  it('keeps a cell typed over several lines whole, on the line it starts, so the lines after keep their numbers', async () => {
+    const file = new Blob(['Member,Reason\r\n1042,"Diwali\r\ngift, late"\r\n1043,Referral']);
+    expect(await readSheetFile(file, MB)).toEqual({ ok: true, rows: [['Member', 'Reason'], ['1042', 'Diwali\ngift, late'], [''], ['1043', 'Referral']] });
+    expect(await readSheetFile(new Blob(['1042,"never closed\r\nmore']), MB)).toEqual({ ok: true, rows: [['1042', 'never closed\nmore'], ['']] });
+  });
+
   it('reads the workbook the export writes: inline strings and figures', async () => {
     const file = xlsxFile('Bonus', ['Member', 'Chips'], [['Ritika Das', 2000], ['Kunal & Co <1>', 50]]);
     expect(await readSheetFile(file, MB)).toEqual({ ok: true, rows: [['Member', 'Chips'], ['Ritika Das', '2000'], ['Kunal & Co <1>', '50']] });
@@ -83,6 +89,11 @@ describe('readSheetFile', () => {
     expect(await readSheetFile(new Blob([zipStored({ 'xl/worksheets/sheet1.xml': doctype })]), MB)).toEqual({ ok: false, problem: 'unreadable' });
     const far = `<worksheet xmlns="${MAIN}"><sheetData><row r="${MOST_SHEET_ROWS + 1}"><c><v>1</v></c></row></sheetData></worksheet>`;
     expect(await readSheetFile(new Blob([zipStored({ 'xl/worksheets/sheet1.xml': far })]), MB)).toEqual({ ok: false, problem: 'tooBig' });
+    // Rows that all claim row 1 are counted as they come.
+    const many = `<worksheet xmlns="${MAIN}"><sheetData>${'<row r="1"/>'.repeat(MOST_SHEET_ROWS + 1)}</sheetData></worksheet>`;
+    expect(await readSheetFile(new Blob([zipStored({ 'xl/worksheets/sheet1.xml': many })]), MB)).toEqual({ ok: false, problem: 'tooBig' });
+    const strings = { 'xl/worksheets/sheet1.xml': `<worksheet xmlns="${MAIN}"><sheetData/></worksheet>`, 'xl/sharedStrings.xml': `<sst>${'<si/>'.repeat(20_001)}</sst>` };
+    expect(await readSheetFile(new Blob([zipStored(strings)]), MB)).toEqual({ ok: false, problem: 'tooBig' });
   });
 
   it('stops inflating a part past the most bytes, whatever its header says', async () => {

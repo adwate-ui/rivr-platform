@@ -1,9 +1,13 @@
 import { zipEntries, zipText } from './zip.ts';
 
-/** The most a workbook part may come to once unpacked: far past any file of a few hundred lines. */
-const MOST_PART_BYTES = 20_000_000;
-/** The most rows a sheet is read to; a row past it makes the file too big. And the columns read: any past them are left out. */
+/** The most a workbook part may come to once unpacked: a sheet of 500 lines is about 100 KB, so this is far past any real one. */
+const MOST_PART_BYTES = 2_000_000;
+/**
+ * The most rows a sheet is read to, counted as they come as well as by number, so rows that all claim row 1 stop too; a row
+ * past it makes the file too big. The most shared strings, as many again. And the columns read: any past them are left out.
+ */
 export const MOST_SHEET_ROWS = 5_000;
+const MOST_SHARED_STRINGS = 20_000;
 const MOST_COLUMNS = 64;
 
 /** An XML part, or null when it does not parse, or declares a DOCTYPE, which no workbook part has and only a crafted one would. */
@@ -60,8 +64,10 @@ function rowCells(row: Element, shared: readonly string[]): string[] {
 
 /** A sheet's rows, the nth its row n, a row it skips empty; null when a row is past the most read. */
 function sheetRows(sheet: Document, shared: readonly string[]): string[][] | null {
+  const all = sheet.getElementsByTagNameNS('*', 'row');
+  if (all.length > MOST_SHEET_ROWS) return null;
   const rows: string[][] = [];
-  for (const row of named(sheet, 'row')) {
+  for (const row of Array.from(all)) {
     const number = Number(row.getAttribute('r') ?? rows.length + 1);
     if (!Number.isInteger(number) || number < 1 || number > MOST_SHEET_ROWS) return null;
     rows[number - 1] = rowCells(row, shared);
@@ -81,6 +87,8 @@ export async function xlsxRows(bytes: Uint8Array): Promise<string[][] | 'unreada
   const sheet = parsed(await read(path));
   if (sheet === null) return 'unreadable';
   const strings = parsed(await read('xl/sharedStrings.xml'));
-  const shared = strings === null ? [] : named(strings, 'si').map(textOf);
+  const items = strings === null ? null : strings.getElementsByTagNameNS('*', 'si');
+  if (items !== null && items.length > MOST_SHARED_STRINGS) return 'tooBig';
+  const shared = items === null ? [] : Array.from(items, textOf);
   return sheetRows(sheet, shared) ?? 'tooBig';
 }

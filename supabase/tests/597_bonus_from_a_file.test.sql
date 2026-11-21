@@ -172,6 +172,9 @@ select results_eq($$ select who, action, reason from public.member_staff_history
 select ok((select changes @> '[{"entity": "member", "field": "added_chips", "after": 500}, {"entity": "member", "field": "used_chips", "after": 1500}]'
            from public.member_staff_history('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000215', 50)
            where action = 'bonus.file'), 'with both figures: the Add and the Use');
+select is((select jsonb_agg(c ->> 'field' order by c ->> 'field') from public.member_staff_history('00000000-0000-4000-8000-000000000001',
+             '00000000-0000-4000-8000-000000000215', 50) h cross join jsonb_array_elements(h.changes) c where h.action = 'bonus.file'),
+  '["added_chips", "lines", "used_chips"]'::jsonb, 'and nothing of the grant and use rows written with it: no amounts that say neither');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000102');
 select results_eq($$ select amount, reason from public.activity_page('00000000-0000-4000-8000-000000000001', p_kind => 'bonus_chips', p_page_size => 200)
                      where action = 'bonus.file' and about = 'Ritika Das' $$,
