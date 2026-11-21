@@ -69,8 +69,8 @@ export function keysOf(read: ReadFile): string[] {
   return [...new Set(read.lines.flatMap((line) => (line.ok ? [line.key] : [])))];
 }
 
-/** What is wrong with a line once its member is known: as read, no such member, the reader's own record, some owed, or short. */
-export type PreviewProblem = ReadProblem | 'unknown' | 'own' | 'owed' | 'short';
+/** What is wrong with a line once its member is known: as read, no such member, the reader's own record, frozen, some owed, or short. */
+export type PreviewProblem = ReadProblem | 'unknown' | 'own' | 'frozen' | 'owed' | 'short';
 
 /** A line as it will save, with its member; or what is wrong with it. */
 export type PreviewLine =
@@ -83,7 +83,7 @@ export interface Preview {
   readonly toSave: { readonly lines: readonly BonusFileLineToSave[]; readonly added: Paise; readonly used: Paise } | null;
 }
 
-/** Each line with its member: unknown or one's own record is wrong; then the lines run in order (`bonusFileRun`) for what is owed or short. */
+/** Each line with its member: unknown, one's own record or frozen is wrong; then the lines run in order (`bonusFileRun`) for what is owed or short. */
 export function previewOf(read: ReadFile, members: readonly BonusFileMember[]): Preview {
   const byKey = new Map(members.map((member) => [member.key, member]));
   const named = read.lines.map((line): PreviewLine => {
@@ -91,6 +91,7 @@ export function previewOf(read: ReadFile, members: readonly BonusFileMember[]): 
     const member = byKey.get(line.key);
     if (member === undefined) return { line: line.line, ok: false, problem: 'unknown' };
     if (member.isOwn) return { line: line.line, ok: false, problem: 'own' };
+    if (member.isFrozen) return { line: line.line, ok: false, problem: 'frozen' };
     return { line: line.line, ok: true, kind: line.kind, chips: line.chips, reason: line.reason, member };
   });
   const going = named.flatMap((line) => (line.ok ? [line] : []));

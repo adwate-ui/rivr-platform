@@ -10,7 +10,8 @@ export const BONUS_FILE_MOST_LINES = 500;
 
 /**
  * A member a Bonus file names, for its preview (the owner, 22 Nov): the key the file gave (a member number, or a phone as +91
- * and ten digits), who it is, their Bonus in force and what they owe, and whether they are the reader's own record.
+ * and ten digits), who it is, their Bonus in force and what they owe, whether they are the reader's own record, and whether
+ * they are frozen.
  */
 export interface BonusFileMember {
   readonly key: string;
@@ -20,6 +21,7 @@ export interface BonusFileMember {
   readonly inForce: Paise;
   readonly owed: Paise;
   readonly isOwn: boolean;
+  readonly isFrozen: boolean;
 }
 
 /**
@@ -36,7 +38,7 @@ export function useBonusFileMembers(venueId: string, keys: readonly string[]) {
       if (error) throw error;
       return data.map((row) => ({
         key: row.key, memberId: row.member_id, memberNumber: row.member_number, fullName: row.full_name, inForce: toPaise(row.in_force_paise),
-        owed: toPaise(row.owed_paise), isOwn: row.is_own,
+        owed: toPaise(row.owed_paise), isOwn: row.is_own, isFrozen: row.is_frozen,
       }));
     },
   });
@@ -77,8 +79,9 @@ function lineOf(details: unknown): number | null {
 /**
  * Saves a Bonus file (the owner, 22 Nov): a super admin's Adds and Uses, every line or none, in the file's order
  * (`bonus_from_file`). The same request id again is the same file. Resolves to how many lines went, or the refusal and the
- * line it names; reads again every member's Bonus at the venue (the members the file named among them), the Door's Wallet,
- * Bonus given, and the reports.
+ * line it names. Once answered it reads again every member's Bonus at the venue (the members the file named among them),
+ * the Members table, the Door's Wallet, History, Bonus given and the reports. With no answer (`unavailable`) it reads
+ * nothing again, so the preview stays as it was and the same file can be sent again under its id.
  */
 export function useSaveBonusFile(venueId: string) {
   const { client, userId } = useRivrData();
@@ -87,11 +90,14 @@ export function useSaveBonusFile(venueId: string) {
     mutationFn: async (file: { readonly lines: readonly BonusFileLineToSave[]; readonly requestId: string }): Promise<Result<number, BonusFileRefusal>> => {
       const lines = file.lines.map(({ line, memberId, kind, chips, reason }) => ({ line, member_id: memberId, kind, chips, reason }));
       const { data, error } = await client.rpc('bonus_from_file', { p_venue_id: venueId, p_lines: lines, p_request_id: file.requestId });
-      const user = userId ?? 'signed-out';
-      await Promise.all([queryKeys.bonusAt(user, venueId), queryKeys.doorBoard(user, venueId), queryKeys.bonusGiven(user, venueId), queryKeys.clubReportsAt(user, venueId)]
-        .map((queryKey) => queryClient.invalidateQueries({ queryKey })));
-      if (error) return err({ failure: FAILURE_BY_CODE[error.code] ?? 'unavailable', line: lineOf(error.details) });
-      return ok(data);
+      const failure = error ? FAILURE_BY_CODE[error.code] ?? 'unavailable' : null;
+      if (failure !== 'unavailable') {
+        const user = userId ?? 'signed-out';
+        await Promise.all([queryKeys.bonusAt(user, venueId), queryKeys.membersListAll(user), queryKeys.memberStaffHistoryAll(user), queryKeys.doorBoard(user, venueId),
+          queryKeys.bonusGiven(user, venueId), queryKeys.clubReportsAt(user, venueId)].map((queryKey) => queryClient.invalidateQueries({ queryKey })));
+      }
+      if (failure !== null) return err({ failure, line: lineOf(error?.details) });
+      return ok(data ?? 0);
     },
   });
 }

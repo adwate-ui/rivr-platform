@@ -10,13 +10,14 @@
 --   none while any is owed. Told to the member (bonus.redeemed, with no table). It is in the report's Bonus used and in the
 --   Bonus histories with no table; the Door and Players visits show a visit's uses alone (private.players_by_seat joins
 --   each use to its visit), so not these.
--- - Each line is kept in the audit log with its reason as bonus.file, with added_chips or used_chips. One action of its own,
---   as a member's History makes one change of the rows a save writes at one moment (private.member_staff_history): a
---   member's Add and Use in one file read as one change from a file, with both figures, never as a gift alone. Activity
---   counts it among the Bonus changes and shows an Add's chips, as for Bonus given by hand.
--- - Lines go in the file's order, so a Use may spend an Add above it for the same member.
--- - A refusal names the file's line in its detail, and undoes the whole file.
--- - The same file again (its request id) changes nothing and gives the same count.
+-- - Each member of a file is kept in the audit log once, as bonus.file: their added_chips and used_chips in the file, its
+--   lines and their reasons. A member's History makes one change of the rows a save writes at one moment
+--   (private.member_staff_history), so one row with the sums reads right, where a row a line would read an Add and a Use as
+--   a gift, and two Adds of 500 as one. Activity counts it among the Bonus changes and shows the chips added.
+-- - Lines go in the file's order, so a Use may spend an Add above it for the same member. A Use before a visit's first Bonus
+--   use lowers that visit's cap, which is a share of what is held until then (decision 0706).
+-- - A refusal names the file's line in its detail, a frozen member's too, and undoes the whole file.
+-- - The same file again (its request id) changes nothing and gives the same count; another file under that id is refused.
 
 -- A use is a seat's (its session and table), a visit's without a seat (the visit, and a reason), or a file's (a reason alone).
 alter table public.bonus_redemption
@@ -29,17 +30,20 @@ comment on table public.bonus_redemption is
   'Bonus a member used: with their buy-in as they were seated (decision 0504), added after on a past seat (#1077), without a seat during a visit (the owner, 20 Nov), or from a file a super admin saved, with no visit (the owner, 22 Nov).';
 
 -- The members a file's lines name, for its preview: each key (a member number, or a phone as +91 and ten digits) that names
--- a member of the venue, with their name, Bonus in force, what they owe, and whether they are the reader's own record. For
--- the venue's super admins; nothing for anyone else. 500 keys at most, as a file holds.
+-- a member of the venue, with their name, Bonus in force, what they owe, whether they are the reader's own record, and
+-- whether they are frozen. For the venue's super admins; nothing for anyone else. 500 keys at most, as a file holds.
 create function private.bonus_file_members(p_venue_id uuid, p_keys text[])
-returns table (key text, member_id uuid, member_number bigint, full_name text, in_force_paise bigint, owed_paise bigint, is_own boolean)
+returns table (key text, member_id uuid, member_number bigint, full_name text, in_force_paise bigint, owed_paise bigint, is_own boolean,
+               is_frozen boolean)
 language sql
 stable
 security definer
 set search_path = ''
 as $$
   select k.key, m.id, m.member_number, m.full_name, private.bonus_in_force(m.id, now()), private.bonus_owed_by(m.id),
-         private.is_own_cage_record(m.id) or coalesce(private.is_own_kyc_check(m.id), false)
+         private.is_own_cage_record(m.id) or coalesce(private.is_own_kyc_check(m.id), false),
+         exists (select 1 from public.control_state c where c.venue_id = p_venue_id and c.level = 'member_freeze' and c.member_id = m.id
+                 and c.released_at is null)
   from (select distinct unnest(p_keys[1:500]) as key) k
   join public.member m
     on m.venue_id = p_venue_id and m.erased_at is null
@@ -48,7 +52,8 @@ as $$
 $$;
 
 create function public.bonus_file_members(p_venue_id uuid, p_keys text[])
-returns table (key text, member_id uuid, member_number bigint, full_name text, in_force_paise bigint, owed_paise bigint, is_own boolean)
+returns table (key text, member_id uuid, member_number bigint, full_name text, in_force_paise bigint, owed_paise bigint, is_own boolean,
+               is_frozen boolean)
 language sql
 stable
 set search_path = ''
@@ -58,45 +63,15 @@ grant execute on function private.bonus_file_members(uuid, text[]) to authentica
 revoke all on function public.bonus_file_members(uuid, text[]) from public, anon;
 grant execute on function public.bonus_file_members(uuid, text[]) to authenticated;
 
--- The id of a file's use on its nth line: the same file again gives the same ids.
+-- The id of a file's use on its nth line: the same file again gives the same ids. A version-4 id (its version and variant
+-- digits set), as every consumer of bonus.redeemed checks its ids (packages/contracts bonusRedeemedSchema).
 create function private.bonus_file_use_id(p_request_id uuid, p_n integer)
 returns uuid
 language sql
 immutable
 set search_path = ''
-as $$ select md5(p_request_id::text || ':' || p_n)::uuid; $$;
+as $$ select overlay(overlay(md5(p_request_id::text || ':' || p_n) placing '4' from 13) placing '8' from 17)::uuid; $$;
 revoke all on function private.bonus_file_use_id(uuid, integer) from public, anon, authenticated;
-
--- Whether the file with this request id was saved: its first line is there, as given (the file went whole or not at all).
--- A refusal (22023) when the id holds anything else.
-create function private.bonus_file_replayed(p_venue_id uuid, p_lines jsonb, p_request_id uuid)
-returns boolean
-language plpgsql
-stable
-security definer
-set search_path = ''
-as $$
-declare
-  v_first jsonb := p_lines -> 0;
-  v_grant public.bonus_grant;
-  v_use public.bonus_redemption;
-begin
-  select * into v_grant from public.bonus_grant g
-  where g.venue_id = p_venue_id and g.idempotency_key = 'bonus.hand:file:' || p_request_id || ':1';
-  select * into v_use from public.bonus_redemption r where r.id = private.bonus_file_use_id(p_request_id, 1);
-  if v_grant.id is null and v_use.id is null then
-    return false;
-  end if;
-  if (v_grant.id is not null and (v_first ->> 'kind' is distinct from 'add' or v_grant.member_id::text is distinct from v_first ->> 'member_id'
-                                  or v_grant.amount_paise is distinct from (v_first ->> 'chips')::bigint * 100))
-     or (v_use.id is not null and (v_first ->> 'kind' is distinct from 'use' or v_use.member_id::text is distinct from v_first ->> 'member_id'
-                                   or v_use.amount_paise is distinct from (v_first ->> 'chips')::bigint * 100 or v_use.venue_id <> p_venue_id)) then
-    raise exception 'That request id was used for another file' using errcode = '22023';
-  end if;
-  return true;
-end;
-$$;
-revoke all on function private.bonus_file_replayed(uuid, jsonb, uuid) from public, anon, authenticated;
 
 -- A file's lines in its order: n, the place in the array (1 first); line, the line of the file the console read it from.
 create function private.bonus_file_lines(p_lines jsonb)
@@ -112,12 +87,63 @@ as $$
 $$;
 revoke all on function private.bonus_file_lines(jsonb) from public, anon, authenticated;
 
+-- What the file with this request id saved at its nth place: the member, Add or Use, and chips; no row when nothing.
+create function private.bonus_file_saved_line(p_venue_id uuid, p_request_id uuid, p_n integer)
+returns table (member_id uuid, kind text, chips bigint)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select g.member_id, 'add', g.amount_paise / 100 from public.bonus_grant g
+  where g.venue_id = p_venue_id and g.idempotency_key = 'bonus.hand:file:' || p_request_id || ':' || p_n
+  union all
+  select r.member_id, 'use', r.amount_paise / 100 from public.bonus_redemption r
+  where r.id = private.bonus_file_use_id(p_request_id, p_n) and r.venue_id = p_venue_id;
+$$;
+revoke all on function private.bonus_file_saved_line(uuid, uuid, integer) from public, anon, authenticated;
+
+-- Whether the file with this request id was saved: every line there as given, and nothing past its last (a file goes whole
+-- or not at all, so nothing at its first place is nothing saved). A refusal (22023) when the id holds any other file.
+create function private.bonus_file_replayed(p_venue_id uuid, p_lines jsonb, p_request_id uuid)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_line record;
+  v_saved record;
+  v_same integer := 0;
+begin
+  for v_line in select * from private.bonus_file_lines(p_lines) loop
+    select * into v_saved from private.bonus_file_saved_line(p_venue_id, p_request_id, v_line.n);
+    continue when not found;
+    if v_saved.member_id is distinct from v_line.member_id or v_saved.kind is distinct from v_line.kind
+       or v_saved.chips is distinct from v_line.chips::bigint then
+      raise exception 'That request id was used for another file' using errcode = '22023';
+    end if;
+    v_same := v_same + 1;
+  end loop;
+  if v_same = 0 then
+    return false;
+  end if;
+  if v_same < jsonb_array_length(p_lines)
+     or exists (select 1 from private.bonus_file_saved_line(p_venue_id, p_request_id, jsonb_array_length(p_lines) + 1)) then
+    raise exception 'That request id was used for another file' using errcode = '22023';
+  end if;
+  return true;
+end;
+$$;
+revoke all on function private.bonus_file_replayed(uuid, jsonb, uuid) from public, anon, authenticated;
+
 -- Adds and uses a file's Bonus (above), resolving to how many lines went. Refusals, each naming the file's line in its
 -- detail where there is one: 42501 not a super admin of the venue; 22023 no lines, more than 500, no request id, a request
 -- id used for another file, a line with no member of the venue (or one erased), with a type not add or use, or with no reason
--- of 3 to 200 characters; RVOWN the super admin's own record; RVCHP not whole 50s from 50 to 1,00,000; RVKIL/RVFRZ/RVMBR
--- promotions stopped or frozen; RVRAT too many a minute; RVBON a use of more than the Bonus in force then, or while some
--- is owed.
+-- of 3 to 200 characters; RVOWN the super admin's own record; RVCHP not whole 50s from 50 to 1,00,000; RVKIL/RVFRZ
+-- promotions stopped or the venue frozen; RVMBR a line's member frozen; RVRAT more than five files a minute; RVBON a use of
+-- more than the Bonus in force then, or while some is owed.
 create function private.bonus_from_file(p_venue_id uuid, p_lines jsonb, p_request_id uuid)
 returns integer
 language plpgsql
@@ -130,7 +156,6 @@ declare
   v_member uuid;
   v_locked integer;
   v_amount bigint;
-  v_grant_id uuid;
   v_use_id uuid;
   v_ids uuid[];
   v_remaining bigint[];
@@ -151,7 +176,8 @@ begin
     return jsonb_array_length(p_lines);
   end if;
   perform private.assert_writable(p_venue_id, 'promotions');
-  perform private.assert_rate(p_venue_id, 'bonus.file');
+  -- A file is up to 500 changes and as many messages: five a minute for a super admin, ten for the venue.
+  perform private.assert_rate(p_venue_id, 'bonus.file', 5, 10);
   -- Every line is checked before anything is locked or written.
   for v_line in select * from private.bonus_file_lines(p_lines) loop
     if v_line.member_id is null
@@ -170,10 +196,17 @@ begin
     if private.is_own_cage_record(v_line.member_id) or coalesce(private.is_own_kyc_check(v_line.member_id), false) then
       raise exception 'Line %: staff never change Bonus on their own record', v_line.line using errcode = 'RVOWN', detail = v_line.line::text;
     end if;
-    perform private.assert_writable(p_venue_id, 'promotions', v_line.member_id);
+    -- The venue's freeze and stop were checked above; a member's freeze names the line.
+    begin
+      perform private.assert_writable(p_venue_id, 'promotions', v_line.member_id);
+    exception when sqlstate 'RVMBR' then
+      raise exception 'Line %: the member is frozen', v_line.line using errcode = 'RVMBR', detail = v_line.line::text;
+    end;
   end loop;
   -- The members' rows, then their Bonus locks, each in the members' id order, so two files, or a file and a use at a seat
   -- or without one (the member's row first: private.use_bonus sets out the order), wait in turn and never on each other.
+  -- An erasure still takes the Bonus lock first (#1111): with a file naming that member at that moment, Postgres ends one of
+  -- the two as a deadlock, and nothing of it is written.
   select array_agg(distinct l.member_id order by l.member_id) into v_members from private.bonus_file_lines(p_lines) l;
   select count(*) into v_locked
   from (select 1 from public.member m where m.id = any(v_members) and m.erased_at is null order by m.id for no key update) l;
@@ -191,11 +224,8 @@ begin
   for v_line in select * from private.bonus_file_lines(p_lines) loop
     v_amount := v_line.chips::bigint * 100;
     if v_line.kind = 'add' then
-      v_grant_id := private.credit_bonus(p_venue_id, v_line.member_id, v_amount, v_line.reason, null,
-                                         'bonus.hand:file:' || p_request_id || ':' || v_line.n);
-      perform private.audit(p_venue_id, 'bonus.file', 'member', v_line.member_id::text, null,
-                            jsonb_build_object('added_chips', v_line.chips, 'bonus_grant_id', v_grant_id, 'bonus_file_id', p_request_id,
-                                               'line', v_line.line), v_line.reason);
+      perform private.credit_bonus(p_venue_id, v_line.member_id, v_amount, v_line.reason, null,
+                                   'bonus.hand:file:' || p_request_id || ':' || v_line.n);
       continue;
     end if;
     -- No Bonus is used while any is owed (#1077): new Bonus pays it first, an Add above in the file among it.
@@ -225,14 +255,22 @@ begin
       'promotions', 'Bonus used from a file');
     insert into public.bonus_redemption (id, venue_id, member_id, amount_paise, ledger_transaction_id, staff_id, reason)
     values (v_use_id, p_venue_id, v_line.member_id, v_amount, v_txn, v_staff, v_line.reason);
-    perform private.audit(p_venue_id, 'bonus.file', 'member', v_line.member_id::text, null,
-                          jsonb_build_object('used_chips', v_line.chips, 'bonus_redemption_id', v_use_id, 'bonus_file_id', p_request_id,
-                                             'line', v_line.line), v_line.reason);
     -- No table: the member's app and push say it was used, with no table (packages/contracts bonusRedeemedSchema).
     perform private.emit(p_venue_id, 'bonus.redeemed',
                          jsonb_build_object('bonus_redemption_id', v_use_id, 'member_id', v_line.member_id, 'amount_paise', v_amount,
                                             'table_id', null, 'table_name', null),
                          'bonus.redeemed:' || v_use_id);
+  end loop;
+  -- Each member once in the audit log: the chips added and used (either left out when none), the lines, and their reasons
+  -- in the order they first come.
+  foreach v_member in array v_members loop
+    perform private.audit(p_venue_id, 'bonus.file', 'member', v_member::text, null,
+      (select jsonb_strip_nulls(jsonb_build_object('added_chips', sum(l.chips) filter (where l.kind = 'add'),
+                                                   'used_chips', sum(l.chips) filter (where l.kind = 'use'),
+                                                   'lines', jsonb_agg(l.line order by l.n), 'bonus_file_id', p_request_id))
+       from private.bonus_file_lines(p_lines) l where l.member_id = v_member),
+      (select string_agg(r.reason, '; ' order by r.first_n)
+       from (select l.reason, min(l.n) as first_n from private.bonus_file_lines(p_lines) l where l.member_id = v_member group by l.reason) r));
   end loop;
   return jsonb_array_length(p_lines);
 end;
@@ -247,6 +285,29 @@ revoke all on function private.bonus_from_file(uuid, jsonb, uuid) from public, a
 grant execute on function private.bonus_from_file(uuid, jsonb, uuid) to authenticated;
 revoke all on function public.bonus_from_file(uuid, jsonb, uuid) from public, anon;
 grant execute on function public.bonus_from_file(uuid, jsonb, uuid) to authenticated;
+
+-- As 20261128100000_bonus_use_without_seat.sql made it, with a file's use (no seat and no visit) refused as another use's,
+-- never answered as a use without a seat, which always names its visit.
+CREATE OR REPLACE FUNCTION private.bonus_use_replayed(p_request_id uuid, p_member_id uuid, p_amount_paise bigint)
+ RETURNS boolean
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  v_replay public.bonus_redemption;
+begin
+  select * into v_replay from public.bonus_redemption r where r.id = p_request_id;
+  if v_replay.id is null then
+    return false;
+  end if;
+  if v_replay.member_id <> p_member_id or v_replay.amount_paise <> p_amount_paise or v_replay.session_id is not null
+     or v_replay.visit_id is null then
+    raise exception 'That request id was used for another Bonus use' using errcode = '22023';
+  end if;
+  return true;
+end;
+$function$;
 
 -- As 20261128100000_bonus_use_without_seat.sql made it, with a file's lines among the Bonus changes.
 CREATE OR REPLACE FUNCTION private.activity_kind(p_action text, p_entity text)
@@ -271,7 +332,7 @@ AS $function$
   end;
 $function$;
 
--- As 20261127080000_activity_names_member_ids.sql made it, with a file's Add showing its chips as Bonus given by hand does.
+-- As 20261127080000_activity_names_member_ids.sql made it, with a file's chips added showing as Bonus given by hand does.
 create or replace view private.activity_line with (security_invoker = true) as
 SELECT l.venue_id,
     l.id,

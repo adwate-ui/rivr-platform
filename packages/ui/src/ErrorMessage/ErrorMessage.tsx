@@ -9,15 +9,20 @@ export interface ErrorMessageProps {
   id?: string | undefined;
   /** `dot`, a red 8 px dot before the words: the player redesign's field error (decision 0320). `icon` elsewhere. */
   look?: 'icon' | 'dot';
+  /**
+   * False for one of many messages shown at once, such as each wrong line of a file (decision 0707): it is not announced,
+   * and one summary of them is. True (announced as it appears) otherwise.
+   */
+  isAnnounced?: boolean;
 }
 
 /**
  * Why a step did not go through: an alert icon (or, in the player app, a red dot) and the message in cream, so it never
- * relies on red text, announced as it appears. Under a field (Input's error) or under the action that failed.
+ * relies on red text, announced as it appears unless one of many. Under a field (Input's error) or under the action that failed.
  */
-export function ErrorMessage({ children, id, look = 'icon' }: ErrorMessageProps) {
+export function ErrorMessage({ children, id, look = 'icon', isAnnounced = true }: ErrorMessageProps) {
   return (
-    <div role="alert" className="flex items-start gap-2 text-content">
+    <div role={isAnnounced ? 'alert' : undefined} className="flex items-start gap-2 text-content">
       {look === 'dot' ? (
         <span aria-hidden="true" className="mt-2 size-2 shrink-0 rounded-full bg-alert" />
       ) : <Icon name="alert" size="sm" />}

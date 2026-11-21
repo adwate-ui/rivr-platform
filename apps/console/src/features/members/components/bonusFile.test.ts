@@ -6,7 +6,9 @@ import { keysOf, memberKeyOf, previewOf, readBonusFile } from './bonusFile.ts';
 const HEADING = ['Member', 'Type', 'Chips', 'Reason'];
 
 function member(key: string, fields: Partial<BonusFileMember> = {}): BonusFileMember {
-  return { key, memberId: `m-${key}`, memberNumber: 1042, fullName: 'Ritika Das', inForce: fromPaise(100_000n), owed: fromPaise(0n), isOwn: false, ...fields };
+  return {
+    key, memberId: `m-${key}`, memberNumber: 1042, fullName: 'Ritika Das', inForce: fromPaise(100_000n), owed: fromPaise(0n), isOwn: false, isFrozen: false, ...fields,
+  };
 }
 
 describe('memberKeyOf', () => {
@@ -61,11 +63,12 @@ describe('previewOf', () => {
     });
   });
 
-  it('marks a line for no member, one\'s own record, Bonus owed, or more than they hold by then; and saves nothing', () => {
-    const read = readBonusFile([HEADING, ['7', 'add', '50', 'Gift'], ['8', 'add', '50', 'Gift'], ['9', 'use', '50', 'At the bar'], ['1042', 'use', '1,050', 'At the bar'],
-      ['1042', 'use', '1,000', 'At the bar'], ['oops', 'use', '50', 'At the bar']]);
-    const preview = previewOf(read, [member('8', { isOwn: true }), member('9', { memberId: 'm9', owed: fromPaise(5_000n) }), member('1042')]);
-    expect(preview.lines.map((line) => (line.ok ? 'ok' : line.problem))).toEqual(['unknown', 'own', 'owed', 'short', 'ok', 'member']);
+  it('marks a line for no member, one\'s own record, frozen, Bonus owed, or more than they hold by then; and saves nothing', () => {
+    const read = readBonusFile([HEADING, ['7', 'add', '50', 'Gift'], ['8', 'add', '50', 'Gift'], ['6', 'add', '50', 'Gift'], ['9', 'use', '50', 'At the bar'],
+      ['1042', 'use', '1,050', 'At the bar'], ['1042', 'use', '1,000', 'At the bar'], ['oops', 'use', '50', 'At the bar']]);
+    const preview = previewOf(read, [member('8', { isOwn: true }), member('6', { memberId: 'm6', isFrozen: true }), member('9', { memberId: 'm9', owed: fromPaise(5_000n) }),
+      member('1042')]);
+    expect(preview.lines.map((line) => (line.ok ? 'ok' : line.problem))).toEqual(['unknown', 'own', 'frozen', 'owed', 'short', 'ok', 'member']);
     expect(preview.toSave).toBeNull();
   });
 });

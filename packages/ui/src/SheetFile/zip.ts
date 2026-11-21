@@ -42,11 +42,23 @@ export function zipEntries(bytes: Uint8Array): Map<string, ZipEntry> | null {
   return entries;
 }
 
-/** Deflated bytes as they were, or null past `most` bytes, whatever the archive said they would come to. */
+/** How much deflated input goes in at a time: what one slice can unpack to is the most read past the limit. */
+const SLICE = 65_536;
+
+/**
+ * Deflated bytes as they were, or null past `most` bytes, whatever the archive said they would come to. The input goes in a
+ * slice at a time, each only once the output so far is read, so a part built to unpack hugely stops near the limit.
+ */
 async function inflated(bytes: Uint8Array, most: number): Promise<Uint8Array | null> {
-  // A copy, so the stream is handed bytes of a buffer of their own.
-  const copy = new Uint8Array(bytes);
-  const source = new ReadableStream<Uint8Array<ArrayBuffer>>({ start(controller) { controller.enqueue(copy); controller.close(); } });
+  let next = 0;
+  // Each slice a copy, so the stream is handed bytes of a buffer of their own.
+  const source = new ReadableStream<Uint8Array<ArrayBuffer>>({
+    pull(controller) {
+      if (next >= bytes.length) return controller.close();
+      controller.enqueue(new Uint8Array(bytes.subarray(next, next + SLICE)));
+      next += SLICE;
+    },
+  }, { highWaterMark: 0 });
   const reader = source.pipeThrough(new DecompressionStream('deflate-raw')).getReader();
   const parts: Uint8Array[] = [];
   let total = 0;

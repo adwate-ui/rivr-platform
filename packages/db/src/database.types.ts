@@ -2768,7 +2768,7 @@ isOneToOne: false
                            },
 "bonus_file_members":
 { Args: { "p_keys": (string)[],"p_venue_id": string }; Returns: {
-              "full_name": string,"in_force_paise": number,"is_own": boolean,"key": string,"member_id": string,"member_number": number,"owed_paise": number
+              "full_name": string,"in_force_paise": number,"is_frozen": boolean,"is_own": boolean,"key": string,"member_id": string,"member_number": number,"owed_paise": number
             }[]
                            },
 "bonus_from_file":

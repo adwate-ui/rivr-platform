@@ -6,9 +6,9 @@ const MOST_PART_BYTES = 20_000_000;
 export const MOST_SHEET_ROWS = 5_000;
 const MOST_COLUMNS = 64;
 
-/** An XML part, or null when it does not parse. */
+/** An XML part, or null when it does not parse, or declares a DOCTYPE, which no workbook part has and only a crafted one would. */
 function parsed(text: string | null): Document | null {
-  if (text === null) return null;
+  if (text === null || /<!DOCTYPE/i.test(text)) return null;
   const document = new DOMParser().parseFromString(text, 'application/xml');
   return document.getElementsByTagName('parsererror').length > 0 ? null : document;
 }
@@ -70,8 +70,8 @@ function sheetRows(sheet: Document, shared: readonly string[]): string[][] | nul
 }
 
 /**
- * A workbook's first sheet as rows of text (an .xlsx, as Excel, Google Sheets or Numbers save it). 'unreadable' for bytes that
- * are no workbook, 'tooBig' for a sheet past the most rows or a part past the most bytes.
+ * A workbook's first sheet as rows of text (an .xlsx, as Excel, Google Sheets or Numbers save it). 'tooBig' for a sheet past
+ * the most rows; 'unreadable' for bytes that are no workbook, a part that would unpack past the most bytes among them.
  */
 export async function xlsxRows(bytes: Uint8Array): Promise<string[][] | 'unreadable' | 'tooBig'> {
   const entries = zipEntries(bytes);

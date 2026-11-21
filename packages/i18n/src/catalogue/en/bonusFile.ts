@@ -5,7 +5,7 @@
 export const bonusFile = {
   open: 'Bonus from a file',
   /** The one hint the file needs: its columns and the words each takes. */
-  format: 'A CSV or Excel (.xlsx) file. Columns: member (number or mobile), type (add or use), chips (whole fifties) and reason. A use needs no check-in.',
+  format: 'A CSV or Excel (.xlsx) file. Columns: member (number or mobile), type (add or use), chips (whole fifties) and reason.',
   choose: 'Choose a file',
   chooseAnother: 'Choose another file',
   /** A line of the preview: `Line 2 · Ritika Das · No. 1042 · Add 2,000 · Diwali gift`. */
@@ -18,6 +18,7 @@ export const bonusFile = {
     reason: 'Line {line}: give a reason of 3 to 200 characters.',
     unknown: 'Line {line}: no member has that number or mobile.',
     own: 'Line {line}: your own record. Ask another super admin.',
+    frozen: 'Line {line}: their account is frozen.',
     /** Some Bonus is owed: an Add above the line pays it first. */
     owed: 'Line {line}: they owe Bonus. Add Bonus above this line first.',
     /** More than the member holds by this line, Adds above it included. */
@@ -31,22 +32,25 @@ export const bonusFile = {
   /** `12 lines · 24,000 added · 3,500 used`. */
   totals: '{count} lines · {added} added · {used} used',
   totalsOne: '1 line · {added} added · {used} used',
-  fixFirst: 'Nothing saves until every line is right. Fix the file and choose it again.',
+  /** Above the lines while some are wrong: the one message announced for all of them. */
+  toFix: 'Fix {count} lines, then choose the file again.',
+  toFixOne: 'Fix 1 line, then choose the file again.',
   save: 'Save every line',
   confirm: 'Yes, save {count} lines',
   confirmOne: 'Yes, save 1 line',
   saved: '{count} lines saved.',
   savedOne: '1 line saved.',
-  /** A refusal that names a line: `Line 4: more than their Bonus, or some owed. Nothing saved.` */
-  atLine: 'Line {line}: {why}',
+  /** A refusal that names a line: `Refused at line 4. More than their Bonus, or some owed. Nothing saved.` */
+  atLine: 'Refused at line {line}. {why}',
   failures: {
-    not_allowed: 'Super admins only. Nothing saved.',
+    not_allowed: 'Not in your role. Ask an admin.',
     own_record: 'Your own record. Nothing saved.',
     invalid_chips: 'Give whole fifties from 50 to 1,00,000. Nothing saved.',
     invalid: 'Not taken. Nothing saved. Check the file and choose it again.',
     bonus_short: 'More than their Bonus, or some owed. Nothing saved.',
     paused: 'Frozen, or promotions stopped. Nothing saved.',
     busy: 'Too many at once. Try again shortly.',
-    unavailable: 'Not sent. Try again.',
+    /** No answer: the same file sent again goes under the same request id, so it never saves twice. */
+    unavailable: 'No answer. Save again; it never saves twice.',
   },
 };

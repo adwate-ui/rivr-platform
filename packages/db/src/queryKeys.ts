@@ -113,6 +113,8 @@ export const queryKeys = {
   memberHoursPlayed: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-hours', venueId, memberId] as const,
   /** A member's changes by staff, their History from the Members table (the owner, 19 Nov). */
   memberStaffHistory: (userId: string, venueId: string, memberId: string, count: number) => ['user', userId, 'member-staff-history', venueId, memberId, count] as const,
+  /** Every member's History, which a Bonus file changes for many at once (decision 0707). */
+  memberStaffHistoryAll: (userId: string) => ['user', userId, 'member-staff-history'] as const,
   memberVisitsAll: (userId: string, venueId: string, memberId: string) => ['user', userId, 'member-visits', venueId, memberId] as const,
   memberBonusHistory: (userId: string, venueId: string, memberId: string, count: number) =>
     ['user', userId, 'bonus', venueId, memberId, 'history', count] as const,

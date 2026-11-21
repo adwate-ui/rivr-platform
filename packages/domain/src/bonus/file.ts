@@ -15,11 +15,11 @@ export interface BonusFileLine {
 }
 
 /** Why a file's Use is refused: some Bonus is owed, or it is more than the Bonus in force by then. */
-export type BonusFileRefusal = 'owed' | 'bonus_short';
+export type BonusFileLineRefusal = 'owed' | 'bonus_short';
 
 /** A file run in order: each line's refusal (null for none), and each member's Bonus after the lines that go. */
 export interface BonusFileRun {
-  readonly refusals: readonly (BonusFileRefusal | null)[];
+  readonly refusals: readonly (BonusFileLineRefusal | null)[];
   readonly held: ReadonlyMap<string, BonusHolding>;
 }
 
@@ -39,7 +39,7 @@ function afterAdd(holding: BonusHolding, amount: Paise): BonusHolding {
  */
 export function bonusFileRun(lines: readonly BonusFileLine[], held: ReadonlyMap<string, BonusHolding>): BonusFileRun {
   const now = new Map(held);
-  const refusals = lines.map((line): BonusFileRefusal | null => {
+  const refusals = lines.map((line): BonusFileLineRefusal | null => {
     const holding = now.get(line.memberId) ?? NOTHING;
     if (line.kind === 'add') {
       now.set(line.memberId, afterAdd(holding, line.amount));

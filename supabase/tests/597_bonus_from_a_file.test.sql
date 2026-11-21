@@ -144,20 +144,38 @@ select throws_ok($$ select pg_temp.save(jsonb_build_array(pg_temp.line(2, '216',
   '22023', 'That request id was used for another file', 'that request id with another file is refused');
 select throws_ok($$ select pg_temp.save(jsonb_build_array(pg_temp.line(2, '215', 'use', 500, 'Diwali gift')), '59700000-0000-4000-8000-000000000002') $$,
   '22023', 'That request id was used for another file', 'and with its first line as a Use');
+select throws_ok($$ select pg_temp.save(jsonb_build_array(pg_temp.line(2, '215', 'add', 500, 'Diwali gift'), pg_temp.line(3, '215', 'use', 1500, 'Paid at the bar')),
+                    '59700000-0000-4000-8000-000000000002') $$,
+  '22023', 'That request id was used for another file', 'and with its first lines alone');
+select throws_ok($$ select pg_temp.save(jsonb_build_array(pg_temp.line(2, '215', 'add', 500, 'Diwali gift'), pg_temp.line(3, '215', 'use', 1500, 'Paid at the bar'),
+                    pg_temp.line(4, '216', 'use', 200, 'Food on the 21st'), pg_temp.line(5, '216', 'add', 50, 'More')), '59700000-0000-4000-8000-000000000002') $$,
+  '22023', 'That request id was used for another file', 'and with a line more');
+select throws_ok($$ select pg_temp.save(jsonb_build_array(pg_temp.line(2, '215', 'add', 500, 'Diwali gift'), pg_temp.line(3, '215', 'use', 1000, 'Paid at the bar'),
+                    pg_temp.line(4, '216', 'use', 200, 'Food on the 21st')), '59700000-0000-4000-8000-000000000002') $$,
+  '22023', 'That request id was used for another file', 'and with a later line changed');
+reset role;
+select ok((select bool_and(id::text ~ '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$') from public.bonus_redemption
+           where id in (private.bonus_file_use_id('59700000-0000-4000-8000-000000000002', 2), private.bonus_file_use_id('59700000-0000-4000-8000-000000000002', 3))),
+  'a file''s use ids are version-4 ids, as the push consumer reads them');
+create temporary table file_use on commit drop as select private.bonus_file_use_id('59700000-0000-4000-8000-000000000002', 3) as id;
+grant select on file_use to authenticated;
+select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
+select throws_ok($$ select public.use_bonus('00000000-0000-4000-8000-000000000216', 200, 'Chips for the bar', (select id from file_use)) $$,
+  '22023', 'That request id was used for another Bonus use', 'a use without a seat under a file use''s id is refused, never answered as done');
 
 -- The record's History and Bonus history, the member's own, the door, and the report.
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select results_eq($$ select who, action, reason from public.member_staff_history('00000000-0000-4000-8000-000000000001',
                      '00000000-0000-4000-8000-000000000215', 50) where action like 'bonus.%' $$,
-  $$ values ('Meera Iyer'::text, 'bonus.file'::text, 'Diwali gift'::text) $$,
-  'Ritika''s History has the file once, as one change from a file: who, and the first line''s reason');
+  $$ values ('Meera Iyer'::text, 'bonus.file'::text, 'Diwali gift; Paid at the bar'::text) $$,
+  'Ritika''s History has the file once, as one change from a file: who, and each reason');
 select ok((select changes @> '[{"entity": "member", "field": "added_chips", "after": 500}, {"entity": "member", "field": "used_chips", "after": 1500}]'
            from public.member_staff_history('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000215', 50)
            where action = 'bonus.file'), 'with both figures: the Add and the Use');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000102');
-select results_eq($$ select amount from public.activity_page('00000000-0000-4000-8000-000000000001', p_kind => 'bonus_chips', p_page_size => 200)
-                     where action = 'bonus.file' and about = 'Ritika Das' order by id $$,
-  $$ values (500::bigint), (null) $$, 'Activity has each line among the Bonus changes, an Add with its chips');
+select results_eq($$ select amount, reason from public.activity_page('00000000-0000-4000-8000-000000000001', p_kind => 'bonus_chips', p_page_size => 200)
+                     where action = 'bonus.file' and about = 'Ritika Das' $$,
+  $$ values (500::bigint, 'Diwali gift; Paid at the bar'::text) $$, 'Activity has her once among the Bonus changes: the chips added, and the reasons');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select results_eq($$ select kind, amount_paise, reason, table_name, staff_name from public.member_bonus_history('00000000-0000-4000-8000-000000000001',
                      '00000000-0000-4000-8000-000000000215', 50) where kind = 'redeemed' $$,
@@ -186,6 +204,26 @@ select is(pg_temp.save(jsonb_build_array(pg_temp.line(2, '217', 'add', 1500, 'Di
 reset role;
 select is(private.bonus_owed_by('00000000-0000-4000-8000-000000000217'), 0::bigint, 'the Add paid the ₹1,000 he owed');
 select is(private.bonus_in_force('00000000-0000-4000-8000-000000000217', now()), 0::bigint, 'and the ₹500 he kept was used');
+
+-- Two Adds of 50 for Kunal in one file: his History adds them up, where a change a line would say 50 once.
+select pg_temp.as_person('00000000-0000-4000-8000-000000000102');
+select is(pg_temp.save(jsonb_build_array(pg_temp.line(2, '216', 'add', 50, 'Diwali gift'), pg_temp.line(3, '216', 'add', 50, 'Diwali gift'),
+                                         pg_temp.line(4, '216', 'add', 100, 'Referral')), '59700000-0000-4000-8000-000000000005'), 3, 'three Adds for Kunal go');
+reset role;
+select results_eq($$ select after - 'bonus_file_id', reason from public.audit_log
+                     where action = 'bonus.file' and after ->> 'bonus_file_id' = '59700000-0000-4000-8000-000000000005' $$,
+  $$ values ('{"added_chips": 200, "lines": [2, 3, 4]}'::jsonb, 'Diwali gift; Referral'::text) $$,
+  'the audit log has him once: 200 added, the lines and each reason once');
+
+-- A frozen member: the preview says so, and the file is refused at that line.
+insert into public.control_state (venue_id, level, member_id, reason)
+values ('00000000-0000-4000-8000-000000000001', 'member_freeze', '00000000-0000-4000-8000-000000000215', 'Under review');
+select pg_temp.as_person('00000000-0000-4000-8000-000000000102');
+select is((select is_frozen from public.bonus_file_members('00000000-0000-4000-8000-000000000001', array[(select number from numbers where person = '215')])),
+  true, 'the preview reads Ritika as frozen');
+select is(pg_temp.refusal(jsonb_build_array(pg_temp.line(2, '216', 'add', 50, 'Diwali gift'), pg_temp.line(3, '215', 'add', 50, 'Diwali gift'))),
+  'RVMBR 3', 'a line for her is refused, by its line');
+reset role;
 
 -- Promotions stopped: no file goes.
 insert into public.control_state (venue_id, level, feature, reason, engaged_by_staff_id)

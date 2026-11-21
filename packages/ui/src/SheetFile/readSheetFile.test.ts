@@ -73,12 +73,14 @@ describe('readSheetFile', () => {
     expect(await readSheetFile(file, MB)).toEqual({ ok: true, rows: [['a', '2']] });
   });
 
-  it('refuses a file past the most bytes, an old Excel file, a zip with no sheet, a broken sheet and a sheet past the most rows', async () => {
+  it('refuses a file past the most bytes, an old Excel file, a zip with no sheet, a broken sheet, a DOCTYPE and a sheet past the most rows', async () => {
     expect(await readSheetFile(new Blob(['x'.repeat(11)]), 10)).toEqual({ ok: false, problem: 'tooBig' });
     expect(await readSheetFile(new Blob([new Uint8Array([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1, 0])]), MB)).toEqual({ ok: false, problem: 'unreadable' });
     expect(await readSheetFile(new Blob([zipStored({ 'word/document.xml': '<w/>' })]), MB)).toEqual({ ok: false, problem: 'unreadable' });
     expect(await readSheetFile(new Blob([zipStored({ 'xl/worksheets/sheet1.xml': '<worksheet' })]), MB)).toEqual({ ok: false, problem: 'unreadable' });
     expect(await readSheetFile(new Blob([new Uint8Array([0x50, 0x4b, 3, 4, 0, 0])]), MB)).toEqual({ ok: false, problem: 'unreadable' });
+    const doctype = `<!DOCTYPE x [<!ENTITY a "aaaa">]><worksheet xmlns="${MAIN}"><sheetData><row><c><v>1</v></c></row></sheetData></worksheet>`;
+    expect(await readSheetFile(new Blob([zipStored({ 'xl/worksheets/sheet1.xml': doctype })]), MB)).toEqual({ ok: false, problem: 'unreadable' });
     const far = `<worksheet xmlns="${MAIN}"><sheetData><row r="${MOST_SHEET_ROWS + 1}"><c><v>1</v></c></row></sheetData></worksheet>`;
     expect(await readSheetFile(new Blob([zipStored({ 'xl/worksheets/sheet1.xml': far })]), MB)).toEqual({ ok: false, problem: 'tooBig' });
   });
