@@ -1,6 +1,6 @@
 import type { BonusFileLineToSave } from '@rivr/db/bonusFile';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { forgetRequestId, keepRequestId, requestIdFor } from './bonusFileRequests.ts';
+import { forgetRequestId, hasRequestId, keepRequestId, requestIdFor } from './bonusFileRequests.ts';
 
 const file = (chips: number): BonusFileLineToSave[] => [{ line: 2, memberId: 'm1', kind: 'add', chips, reason: 'Diwali gift' }];
 
@@ -13,7 +13,9 @@ describe('Bonus file request ids', () => {
   it('gives a file its kept id until forgotten, a new one otherwise, and never keeps the lines themselves', () => {
     const first = requestIdFor('v1', file(500));
     expect(requestIdFor('v1', file(500))).not.toBe(first);
+    expect(hasRequestId('v1', file(500))).toBe(false);
     keepRequestId('v1', file(500), first);
+    expect(hasRequestId('v1', file(500))).toBe(true);
     expect(requestIdFor('v1', file(500))).toBe(first);
     expect(requestIdFor('v1', file(550))).not.toBe(first);
     expect(requestIdFor('v2', file(500))).not.toBe(first);

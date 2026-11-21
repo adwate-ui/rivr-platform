@@ -48,6 +48,12 @@ function keep(venueId: string, ids: readonly (readonly [string, string])[]) {
   }
 }
 
+/** Whether this file was sent before with no answer, or refused for a reason that wrote nothing: an id is kept for it. */
+export function hasRequestId(venueId: string, lines: readonly BonusFileLineToSave[]): boolean {
+  const file = fingerprintOf(lines);
+  return keptIds(venueId).some(([fingerprint]) => fingerprint === file);
+}
+
 /** The id this file goes under: the one kept for it, or a new one. */
 export function requestIdFor(venueId: string, lines: readonly BonusFileLineToSave[]): string {
   const file = fingerprintOf(lines);

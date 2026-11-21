@@ -22,7 +22,13 @@ export async function readSheetFile(file: Blob, mostBytes: number): Promise<Shee
   if (file.size > mostBytes) return { ok: false, problem: 'tooBig' };
   const bytes = await file.arrayBuffer().then((buffer) => new Uint8Array(buffer), () => null);
   if (bytes === null || isOldExcel(bytes)) return { ok: false, problem: 'unreadable' };
-  if (!isZip(bytes)) return { ok: true, rows: csvRows(new TextDecoder().decode(bytes)) };
+  if (!isZip(bytes)) {
+    try {
+      return { ok: true, rows: csvRows(new TextDecoder().decode(bytes)) };
+    } catch {
+      return { ok: false, problem: 'unreadable' };
+    }
+  }
   const rows = await xlsxRows(bytes).catch(() => 'unreadable' as const);
   return typeof rows === 'string' ? { ok: false, problem: rows } : { ok: true, rows };
 }

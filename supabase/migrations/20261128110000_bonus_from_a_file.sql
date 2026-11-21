@@ -13,7 +13,8 @@
 -- - Each member of a file is kept in the audit log once, as bonus.file: their added_chips and used_chips in the file, its
 --   lines and their reasons. A member's History makes one change of the rows a save writes at one moment
 --   (private.member_staff_history), so one row with the sums reads right, where a row a line would read an Add and a Use as
---   a gift, and two Adds of 500 as one. Activity counts it among the Bonus changes and shows the chips added.
+--   a gift, and two Adds of 500 as one. Activity counts it among the Bonus changes, with no figure of its own: one
+--   figure would say neither what was added nor what was used, which History says.
 -- - Lines go in the file's order, so a Use may spend an Add above it for the same member. A Use before a visit's first Bonus
 --   use lowers that visit's cap, which is a share of what is held until then (decision 0706).
 -- - A refusal names the file's line in its detail, a frozen member's too, and undoes the whole file.
@@ -164,6 +165,7 @@ declare
   v_taken bigint[];
   v_txn uuid;
   v_staff uuid;
+  v_audit record;
 begin
   if p_venue_id is null or not coalesce(private.is_super_admin(p_venue_id), false) then
     raise exception 'Only super admins add or use Bonus from a file' using errcode = '42501';
@@ -264,15 +266,18 @@ begin
                          'bonus.redeemed:' || v_use_id);
   end loop;
   -- Each member once in the audit log: the chips added and used (either left out when none), the lines, and their reasons
-  -- in the order they first come.
-  foreach v_member in array v_members loop
-    perform private.audit(p_venue_id, 'bonus.file', 'member', v_member::text, null,
-      (select jsonb_strip_nulls(jsonb_build_object('added_chips', sum(l.chips) filter (where l.kind = 'add'),
-                                                   'used_chips', sum(l.chips) filter (where l.kind = 'use'),
-                                                   'lines', jsonb_agg(l.line order by l.n), 'bonus_file_id', p_request_id))
-       from private.bonus_file_lines(p_lines) l where l.member_id = v_member),
-      (select string_agg(r.reason, '; ' order by r.first_n)
-       from (select l.reason, min(l.n) as first_n from private.bonus_file_lines(p_lines) l where l.member_id = v_member group by l.reason) r));
+  -- in the order they first come. The file's lines are read once for all of them.
+  for v_audit in
+    with lines as materialized (select * from private.bonus_file_lines(p_lines))
+    select l.member_id,
+           jsonb_strip_nulls(jsonb_build_object('added_chips', sum(l.chips) filter (where l.kind = 'add'),
+                                                'used_chips', sum(l.chips) filter (where l.kind = 'use'),
+                                                'lines', jsonb_agg(l.line order by l.n), 'bonus_file_id', p_request_id)) as after,
+           (select string_agg(r.reason, '; ' order by r.first_n)
+            from (select f.reason, min(f.n) as first_n from lines f where f.member_id = l.member_id group by f.reason) r) as reasons
+    from lines l group by l.member_id order by l.member_id
+  loop
+    perform private.audit(p_venue_id, 'bonus.file', 'member', v_audit.member_id::text, null, v_audit.after, v_audit.reasons);
   end loop;
   return jsonb_array_length(p_lines);
 end;
@@ -384,68 +389,3 @@ AS $function$
     else 'other'
   end;
 $function$;
-
--- As 20261127080000_activity_names_member_ids.sql made it, with a file's chips added showing as Bonus given by hand does.
-create or replace view private.activity_line with (security_invoker = true) as
-SELECT l.venue_id,
-    l.id,
-    l.occurred_at,
-    w.name AS who,
-    l.actor_user_id IS NULL AS is_system,
-    l.action,
-    l.entity,
-    private.activity_kind(l.action, l.entity) AS kind,
-    COALESCE(
-        CASE
-            WHEN rm.erased_at IS NULL THEN rm.full_name
-            ELSE NULL::text
-        END, rs.full_name,
-        CASE
-            WHEN l.entity = 'table'::text THEN l.entity_id
-            WHEN l.entity = 'promotion_bonus_decision'::text AND NOT l.after ? 'member_id'::text THEN l.after ->> 'grants'::text
-            ELSE NULL::text
-        END) AS about,
-        CASE
-            WHEN rm.erased_at IS NULL OR l.action = 'member.erase'::text THEN l.reason
-            ELSE NULL::text
-        END AS reason,
-        CASE
-            WHEN l.action = ANY (ARRAY['bonus.give'::text, 'high_hand.pay'::text, 'bonus.approve'::text, 'bonus.refuse'::text]) THEN (l.after ->> 'chips'::text)::bigint
-            WHEN l.action = 'bonus.file'::text THEN (l.after ->> 'added_chips'::text)::bigint
-            ELSE NULL::bigint
-        END AS amount,
-        CASE
-            WHEN l.action = 'high_hand.pay'::text THEN jsonb_build_object('table', l.after ->> 'table'::text, 'seat', l.after -> 'seat'::text, 'hand', l.after ->> 'hand'::text, 'rank', l.after -> 'rank'::text)
-            ELSE NULL::jsonb
-        END AS high_hand,
-    -- Who is a member only where no staff name stands first, and while they are not erased, as `who` reads.
-        CASE
-            WHEN s.full_name IS NULL AND a.erased_at IS NULL THEN a.id
-            ELSE NULL::uuid
-        END AS who_member_id,
-    -- About is a member only while they are not erased, as `about` reads.
-        CASE
-            WHEN rm.erased_at IS NULL THEN rm.id
-            ELSE NULL::uuid
-        END AS about_member_id
-   FROM public.audit_log l
-     LEFT JOIN public.staff s ON s.user_id = l.actor_user_id AND s.venue_id = l.venue_id
-     LEFT JOIN public.member a ON a.user_id = l.actor_user_id AND a.venue_id = l.venue_id
-     LEFT JOIN public.device d ON d.id = l.device_id AND d.venue_id = l.venue_id
-     CROSS JOIN LATERAL ( SELECT COALESCE(s.full_name,
-                CASE
-                    WHEN a.erased_at IS NULL THEN a.full_name
-                    ELSE NULL::text
-                END, d.name) AS name) w
-     LEFT JOIN LATERAL ( SELECT COALESCE(
-                CASE
-                    WHEN l.entity = 'member'::text THEN l.entity_id
-                    ELSE NULL::text
-                END, l.after ->> 'member_id'::text, l.before ->> 'member_id'::text) AS member_id,
-            COALESCE(
-                CASE
-                    WHEN l.entity = 'staff'::text THEN l.entity_id
-                    ELSE NULL::text
-                END, l.after ->> 'staff_id'::text, l.before ->> 'staff_id'::text) AS staff_id) t ON true
-     LEFT JOIN public.member rm ON rm.id = private.uuid_or_null(t.member_id) AND rm.venue_id = l.venue_id
-     LEFT JOIN public.staff rs ON rs.id = private.uuid_or_null(t.staff_id) AND rs.venue_id = l.venue_id;

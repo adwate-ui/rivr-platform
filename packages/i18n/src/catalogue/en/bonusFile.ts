@@ -36,6 +36,10 @@ export const bonusFile = {
   toFix: 'Fix {count} lines, then choose the file again.',
   toFixOne: 'Fix 1 line, then choose the file again.',
   save: 'Save every line',
+  /** Beside Save while a file saves: the sheet stays open until it is answered. */
+  saving: 'Saving. This stays open until it is done.',
+  /** Beside Save for a file sent before with no answer: Save sends it under the same request, so it can only go once. */
+  resend: 'Sent before with no answer. Save again to see if it went.',
   confirm: 'Yes, save {count} lines',
   confirmOne: 'Yes, save 1 line',
   saved: '{count} lines saved.',

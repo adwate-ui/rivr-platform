@@ -17,20 +17,27 @@ function parsed(text: string | null): Document | null {
   return document.getElementsByTagName('parsererror').length > 0 ? null : document;
 }
 
-/** The elements of a name, whatever prefix the part gives its namespace. */
-function named(parent: Document | Element, name: string): Element[] {
-  return Array.from(parent.getElementsByTagNameNS('*', name));
+/**
+ * An element's children of a name, whatever prefix the part gives its namespace. Children only, never deeper: a part nesting
+ * rows in rows or strings in strings costs no more to read than one that does not.
+ */
+function childrenNamed(parent: Element | null | undefined, name: string): Element[] {
+  return parent ? Array.from(parent.children).filter((child) => child.localName === name) : [];
 }
 
-/** The text of a string, its runs together, without the reading guides some languages add (rPh). */
+/** The text of a string (si, or a cell's is): its own t, or its runs' t, in order; never a reading guide (rPh). */
 function textOf(element: Element): string {
-  return named(element, 't').filter((part) => part.parentElement?.localName !== 'rPh').map((part) => part.textContent ?? '').join('');
+  return Array.from(element.children).map((child) => {
+    if (child.localName === 't') return child.textContent ?? '';
+    return child.localName === 'r' ? childrenNamed(child, 't').map((part) => part.textContent ?? '').join('') : '';
+  }).join('');
 }
 
 /** Where the workbook's first sheet is, by its relationship; the usual place when the workbook does not say. */
 function firstSheetPath(workbook: Document | null, relations: Document | null): string {
-  const id = workbook === null ? null : named(workbook, 'sheet')[0]?.getAttribute('r:id');
-  const target = relations === null ? undefined : named(relations, 'Relationship').find((one) => one.getAttribute('Id') === id)?.getAttribute('Target');
+  const sheets = childrenNamed(workbook?.documentElement, 'sheets')[0];
+  const id = childrenNamed(sheets, 'sheet')[0]?.getAttribute('r:id');
+  const target = childrenNamed(relations?.documentElement, 'Relationship').find((one) => one.getAttribute('Id') === id)?.getAttribute('Target');
   if (target === undefined || target === null) return 'xl/worksheets/sheet1.xml';
   return target.startsWith('/') ? target.slice(1) : `xl/${target}`;
 }
@@ -45,8 +52,8 @@ function columnOf(reference: string | null, next: number): number {
 /** A cell as text: a shared string, an inline one, or its value as written (a number, a formula's result, 1 or 0). */
 function cellText(cell: Element, shared: readonly string[]): string {
   const type = cell.getAttribute('t');
-  if (type === 'inlineStr') return named(cell, 'is').map(textOf).join('');
-  const value = named(cell, 'v')[0]?.textContent ?? '';
+  if (type === 'inlineStr') return childrenNamed(cell, 'is').map(textOf).join('');
+  const value = childrenNamed(cell, 'v')[0]?.textContent ?? '';
   return type === 's' ? shared[Number(value)] ?? '' : value;
 }
 
@@ -54,7 +61,7 @@ function cellText(cell: Element, shared: readonly string[]): string {
 function rowCells(row: Element, shared: readonly string[]): string[] {
   const cells: string[] = [];
   let next = 0;
-  for (const cell of named(row, 'c')) {
+  for (const cell of childrenNamed(row, 'c')) {
     const column = columnOf(cell.getAttribute('r'), next);
     if (column < MOST_COLUMNS) cells[column] = cellText(cell, shared).trim();
     next = column + 1;
@@ -64,10 +71,11 @@ function rowCells(row: Element, shared: readonly string[]): string[] {
 
 /** A sheet's rows, the nth its row n, a row it skips empty; null when a row is past the most read. */
 function sheetRows(sheet: Document, shared: readonly string[]): string[][] | null {
-  const all = sheet.getElementsByTagNameNS('*', 'row');
-  if (all.length > MOST_SHEET_ROWS) return null;
+  const data = childrenNamed(sheet.documentElement, 'sheetData')[0];
+  if (data === undefined) return [];
+  if (data.childElementCount > MOST_SHEET_ROWS) return null;
   const rows: string[][] = [];
-  for (const row of Array.from(all)) {
+  for (const row of childrenNamed(data, 'row')) {
     const number = Number(row.getAttribute('r') ?? rows.length + 1);
     if (!Number.isInteger(number) || number < 1 || number > MOST_SHEET_ROWS) return null;
     rows[number - 1] = rowCells(row, shared);
@@ -75,9 +83,18 @@ function sheetRows(sheet: Document, shared: readonly string[]): string[][] | nul
   return Array.from(rows, (row) => row ?? []);
 }
 
+/** The workbook's shared strings: none when it has none; null when it has them but they cannot be read; 'tooBig' past the most. */
+async function sharedStrings(read: (name: string) => Promise<string | null>, isThere: boolean): Promise<string[] | null | 'tooBig'> {
+  if (!isThere) return [];
+  const root = parsed(await read('xl/sharedStrings.xml'))?.documentElement;
+  if (root === undefined) return null;
+  return root.childElementCount > MOST_SHARED_STRINGS ? 'tooBig' : childrenNamed(root, 'si').map(textOf);
+}
+
 /**
  * A workbook's first sheet as rows of text (an .xlsx, as Excel, Google Sheets or Numbers save it). 'tooBig' for a sheet past
- * the most rows; 'unreadable' for bytes that are no workbook, a part that would unpack past the most bytes among them.
+ * the most rows or strings; 'unreadable' for bytes that are no workbook, a part that would unpack past the most bytes among
+ * them, so a sheet never reads as empty for strings that could not be read.
  */
 export async function xlsxRows(bytes: Uint8Array): Promise<string[][] | 'unreadable' | 'tooBig'> {
   const entries = zipEntries(bytes);
@@ -86,9 +103,8 @@ export async function xlsxRows(bytes: Uint8Array): Promise<string[][] | 'unreada
   const path = firstSheetPath(parsed(await read('xl/workbook.xml')), parsed(await read('xl/_rels/workbook.xml.rels')));
   const sheet = parsed(await read(path));
   if (sheet === null) return 'unreadable';
-  const strings = parsed(await read('xl/sharedStrings.xml'));
-  const items = strings === null ? null : strings.getElementsByTagNameNS('*', 'si');
-  if (items !== null && items.length > MOST_SHARED_STRINGS) return 'tooBig';
-  const shared = items === null ? [] : Array.from(items, textOf);
+  const shared = await sharedStrings(read, entries.has('xl/sharedStrings.xml'));
+  if (shared === null) return 'unreadable';
+  if (shared === 'tooBig') return shared;
   return sheetRows(sheet, shared) ?? 'tooBig';
 }

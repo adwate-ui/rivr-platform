@@ -58,7 +58,17 @@ describe('readSheetFile', () => {
   it('keeps a cell typed over several lines whole, on the line it starts, so the lines after keep their numbers', async () => {
     const file = new Blob(['Member,Reason\r\n1042,"Diwali\r\ngift, late"\r\n1043,Referral']);
     expect(await readSheetFile(file, MB)).toEqual({ ok: true, rows: [['Member', 'Reason'], ['1042', 'Diwali\ngift, late'], [''], ['1043', 'Referral']] });
-    expect(await readSheetFile(new Blob(['1042,"never closed\r\nmore']), MB)).toEqual({ ok: true, rows: [['1042', 'never closed\nmore'], ['']] });
+    expect(await readSheetFile(new Blob(['1042,"never closed\r\nmore']), MB)).toEqual({ ok: true, rows: [['1042', 'never closed\nmore']] });
+  });
+
+  it('reads a quote inside a field as a quote, so a stray one never swallows the lines after it', async () => {
+    const file = new Blob(['1234,add,500,5" screen\n1235,add,500,gift']);
+    expect(await readSheetFile(file, MB)).toEqual({ ok: true, rows: [['1234', 'add', '500', '5" screen'], ['1235', 'add', '500', 'gift']] });
+  });
+
+  it('reads an unclosed quote over a great many lines without failing', async () => {
+    const result = await readSheetFile(new Blob([`h\n"${'\n'.repeat(200_000)}`]), MB);
+    expect(result.ok && result.rows.length).toBe(2);
   });
 
   it('reads the workbook the export writes: inline strings and figures', async () => {
@@ -94,6 +104,13 @@ describe('readSheetFile', () => {
     expect(await readSheetFile(new Blob([zipStored({ 'xl/worksheets/sheet1.xml': many })]), MB)).toEqual({ ok: false, problem: 'tooBig' });
     const strings = { 'xl/worksheets/sheet1.xml': `<worksheet xmlns="${MAIN}"><sheetData/></worksheet>`, 'xl/sharedStrings.xml': `<sst>${'<si/>'.repeat(20_001)}</sst>` };
     expect(await readSheetFile(new Blob([zipStored(strings)]), MB)).toEqual({ ok: false, problem: 'tooBig' });
+  });
+
+  it('reads rows and strings one level deep only, and never a sheet whose strings could not be read as empty', async () => {
+    const nested = `<worksheet xmlns="${MAIN}"><sheetData><row r="1"><c><v>1</v></c><row><c><v>9</v></c></row></row></sheetData></worksheet>`;
+    expect(await readSheetFile(new Blob([zipStored({ 'xl/worksheets/sheet1.xml': nested })]), MB)).toEqual({ ok: true, rows: [['1']] });
+    const broken = { 'xl/worksheets/sheet1.xml': `<worksheet xmlns="${MAIN}"><sheetData><row><c t="s"><v>0</v></c></row></sheetData></worksheet>`, 'xl/sharedStrings.xml': '<sst' };
+    expect(await readSheetFile(new Blob([zipStored(broken)]), MB)).toEqual({ ok: false, problem: 'unreadable' });
   });
 
   it('stops inflating a part past the most bytes, whatever its header says', async () => {

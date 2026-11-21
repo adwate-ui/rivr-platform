@@ -83,8 +83,12 @@ export interface Preview {
   readonly toSave: { readonly lines: readonly BonusFileLineToSave[]; readonly added: Paise; readonly used: Paise } | null;
 }
 
-/** Each line with its member: unknown, one's own record or frozen is wrong; then the lines run in order (`bonusFileRun`) for what is owed or short. */
-export function previewOf(read: ReadFile, members: readonly BonusFileMember[]): Preview {
+/**
+ * Each line with its member: unknown, one's own record or frozen is wrong; then the lines run in order (`bonusFileRun`) for
+ * what is owed or short. With `checksBalances` false the run is left out: for a file sent before with no answer, whose
+ * balances, read after it went, would say it can no longer go, when the database answers it as saved.
+ */
+export function previewOf(read: ReadFile, members: readonly BonusFileMember[], checksBalances = true): Preview {
   const byKey = new Map(members.map((member) => [member.key, member]));
   const named = read.lines.map((line): PreviewLine => {
     if (!line.ok) return { ...line, name: null };
@@ -97,7 +101,7 @@ export function previewOf(read: ReadFile, members: readonly BonusFileMember[]): 
   const going = named.flatMap((line) => (line.ok ? [line] : []));
   const ruleLines: BonusFileLine[] = going.map((line) => ({ memberId: line.member.memberId, kind: line.kind, amount: chipsToPaise(BigInt(line.chips)) }));
   const held = new Map<string, BonusHolding>(going.map((line) => [line.member.memberId, { inForce: line.member.inForce, owed: line.member.owed }]));
-  const run = bonusFileRun(ruleLines, held);
+  const run = checksBalances ? bonusFileRun(ruleLines, held) : { refusals: [] };
   const refusals = new Map(going.map((line, index) => [line.line, run.refusals[index] ?? null]));
   const lines = named.map((line): PreviewLine => {
     const refusal = line.ok ? refusals.get(line.line) ?? null : null;

@@ -178,7 +178,7 @@ select is((select jsonb_agg(c ->> 'field' order by c ->> 'field') from public.me
 select pg_temp.as_person('00000000-0000-4000-8000-000000000102');
 select results_eq($$ select amount, reason from public.activity_page('00000000-0000-4000-8000-000000000001', p_kind => 'bonus_chips', p_page_size => 200)
                      where action = 'bonus.file' and about = 'Ritika Das' $$,
-  $$ values (500::bigint, 'Diwali gift; Paid at the bar'::text) $$, 'Activity has her once among the Bonus changes: the chips added, and the reasons');
+  $$ values (null::bigint, 'Diwali gift; Paid at the bar'::text) $$, 'Activity has her once among the Bonus changes, with the reasons and no figure that says neither');
 select pg_temp.as_person('00000000-0000-4000-8000-000000000103');
 select results_eq($$ select kind, amount_paise, reason, table_name, staff_name from public.member_bonus_history('00000000-0000-4000-8000-000000000001',
                      '00000000-0000-4000-8000-000000000215', 50) where kind = 'redeemed' $$,

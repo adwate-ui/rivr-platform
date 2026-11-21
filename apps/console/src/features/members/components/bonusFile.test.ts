@@ -69,6 +69,10 @@ describe('previewOf', () => {
     const preview = previewOf(read, [member('8', { isOwn: true }), member('6', { memberId: 'm6', isFrozen: true }), member('9', { memberId: 'm9', owed: fromPaise(5_000n) }),
       member('1042')]);
     expect(preview.lines.map((line) => (line.ok ? 'ok' : line.problem))).toEqual(['unknown', 'own', 'frozen', 'owed', 'short', 'ok', 'member']);
+    // Without the balances, as for a file sent before with no answer: only what no answer could change.
+    const unchecked = previewOf(read, [member('8', { isOwn: true }), member('6', { memberId: 'm6', isFrozen: true }), member('9', { memberId: 'm9', owed: fromPaise(5_000n) }),
+      member('1042')], false);
+    expect(unchecked.lines.map((line) => (line.ok ? 'ok' : line.problem))).toEqual(['unknown', 'own', 'frozen', 'ok', 'ok', 'ok', 'member']);
     expect(preview.toSave).toBeNull();
   });
 });
